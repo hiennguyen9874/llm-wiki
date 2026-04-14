@@ -67,9 +67,33 @@ Tác động giá xăng dầu lên kinh tế Việt Nam **không đồng nhất*
 
 ## Tác động vào tỷ giá
 
-- Chi phí nhập khẩu xăng dầu tăng thêm **$1.3-1.5 tỷ/tháng** (so với bình thường ~$1.5 tỷ).
-- Xuất khẩu xăng dầu giảm từ ~$200 triệu xuống ~$60 triệu/tháng.
-- Tổng áp lực thâm hụt: **~$15 tỷ/năm** chỉ từ xăng dầu.
+### Chi phí nhập khẩu năng lượng (bổ sung từ ĐTDT 10/4)
+
+| Mặt hàng | Chi phí/tháng |
+|---|---|
+| Xăng dầu các loại | **~$1.4 tỷ** |
+| Dầu thô | **$549 triệu** |
+| Khí đốt hóa lỏng + sản phẩm dầu mỏ khác | Đáng kể |
+| **Tổng nhập khẩu năng lượng** | **~$2 tỷ+/tháng** |
+
+- Xuất khẩu dầu thô giảm (giữ lại cho nhu cầu trong nước)
+- Trước đây xuất khẩu dầu thô mang về >$300 triệu/tháng
+- Nay phần này giảm → áp lực ngoại tệ tăng thêm
+- Tổng áp lực thâm hụt: **~$15 tỷ/năm** chỉ từ xăng dầu
+
+### Giá dầu thế giới (9/4/2026)
+
+| Mặt hàng | Giá | Xu hướng |
+|---|---|---|
+| Brent | **$95.92/thùng** | Tiệm cận $100 |
+| WTI | **$97.87/thùng** | Tiệm cận $100 |
+
+- Thị trường biến động do thỏa thuận ngừng bắn Trung Đông còn mong manh
+- Rủi ro không chỉ ở mức giá mà còn ở **đảm bảo nguồn cung nhập khẩu**
+
+> [!warning] Rủi ro nguồn cung
+> Nếu xung đột kéo dài, bản thân việc đảm bảo đủ nguồn cung nhập khẩu cho nền kinh tế đã là thách thức — khác với khủng hoảng 2022 (chủ yếu là khủng hoảng giá).
+
 - Đây là áp lực tỷ giá quan trọng hơn rất nhiều so với ròng bán CK của khối ngoại.
 
 ## Chính sách hỗ trợ
@@ -94,6 +118,7 @@ Báu phân biệt hai loại chi phí khi dầu tăng:
 ## Nguồn
 
 - [[source-ban-tron-dau-tu-q2-2026|Bàn Tròn Đầu Tư Q2/2026 — AFA Capital × We Group]]
+- [[source-dtdt-10-4-2026|Đối thoại Tết Đen 10/4/2026 — Bổ sung số liệu nhập khẩu năng lượng cụ thể, giá dầu thế giới]]
 
 ## Xem thêm
 

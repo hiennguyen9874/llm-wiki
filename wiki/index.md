@@ -28,10 +28,11 @@ Master catalog of the second brain. Use this file for human orientation and brow
 
 ## Sources
 - [[source-ban-tron-dau-tu-q2-2026|Bàn Tròn Đầu Tư Q2/2026 — AFA Capital × We Group]] — Vietnamese investment roundtable: GDP, inflation, interest rates, oil impact, Q2 2026 outlook
+- [[source-dtdt-10-4-2026|ĐTDT 10/4/2026 — Đối thoại Tết Đen]] — NHNN meeting with 46 banks, interest rate consensus, Q1 trade deficit $3.64B, oil prices approaching $100
 
 ## Topics and Concepts
-- [[kinh-te-vi-mo-viet-nam-q2-2026|Kinh tế vĩ mô Việt Nam Q2/2026]] — macro outlook: GDP, inflation, rates, FX, equity scenario
-- [[gia-xang-dau-va-tac-dong-kinh-te|Giá xăng dầu và tác động kinh tế]] — two-channel oil price transmission model (gasoline→CPI, diesel→PPI)
+- [[kinh-te-vi-mo-viet-nam-q2-2026|Kinh tế vĩ mô Việt Nam Q2/2026]] — macro outlook: GDP, inflation, rates, FX, equity scenario; updated with banking liquidity crisis (LDR>110%, interbank rates 15%), Q1 trade deficit $3.64B, 46-bank interest rate consensus
+- [[gia-xang-dau-va-tac-dong-kinh-te|Giá xăng dầu và tác động kinh tế]] — two-channel oil price transmission model (gasoline→CPI, diesel→PPI); updated with specific import costs ($1.4B/month gasoline, $549M/month crude), Brent $95.92, WTI $97.87
 
 ## Projects
 <!-- Add project pages here -->
@@ -44,6 +45,12 @@ Master catalog of the second brain. Use this file for human orientation and brow
 
 ## Organizations
 - [[organization-afa-capital|AFA Capital]] — investment research firm, organizer of Bàn Tròn Đầu Tư quarterly
+- [[organization-ngan-hang-nha-nuoc|Ngân hàng Nhà nước]] — central bank of Vietnam, prioritizing macro stability
+- [[organization-bo-tai-chinh|Bộ Tài chính]] — Ministry of Finance, issued Thông tư 136 expanding securities fund investment
+
+## People
+- [[person-tran-ngoc-bau|Trần Ngọc Báu]] — macro analyst, We Group; regular guest on AFA Capital roundtable
+- [[person-thu-tuong-viet-nam|Thủ tướng]] — Prime Minister's macro stability priority stance
 
 ## Outputs Worth Promoting into Wiki
 <!-- Add links to durable outputs that should become wiki pages -->
