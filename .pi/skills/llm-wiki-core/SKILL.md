@@ -1,6 +1,6 @@
 ---
 name: llm-wiki-core
-description: Shared operating rules for this second-brain repository: architecture, lifecycle, metadata, citations, linking, logging, naming, and governance. Use before any task that materially reads or writes raw/, wiki/, or outputs/.
+description: "Shared operating rules for this second-brain repository: architecture, lifecycle, metadata, citations, linking, logging, naming, and governance. Use before any task that materially reads or writes raw/, wiki/, or outputs/."
 ---
 
 # LLM Wiki Core
