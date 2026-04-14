@@ -14,3 +14,4 @@ Append-only operational record of the second brain.
 ## [2026-04-14] setup | Initialized second-brain repository structure, schema, starter wiki pages, and QMD prep
 ## [2026-04-14] update | Expanded schema for Defuddle, Obsidian Markdown, Bases, Canvas, Obsidian CLI, and review-driven workflows
 ## [2026-04-14] update | Added LLM-WIKI-v2-inspired lifecycle, supersession, crystallization, and hybrid retrieval guidance
+## [2026-04-14] ingest | Processed raw/articles/2026/thang-4/vi-mo/ban-tron-dau-tu-4-2026.md — Q2/2026 investment roundtable (AFA Capital × We Group). Created source page, topic pages on Vietnam macro outlook and oil price transmission model, person page for Trần Ngọc Báu, entity page for AFA Capital. Key insight: gasoline/diesel two-channel inflation model, cost-push vs demand-pull distinction, interest rate vs FX priority.
