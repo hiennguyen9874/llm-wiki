@@ -10,7 +10,7 @@ tags: [vietnam, macroeconomics, gdp, inflation, interest-rates, exchange-rate, b
 domain: finance
 importance: high
 review_status: active
-related_sources: [source-ban-tron-dau-tu-q2-2026, source-dtdt-10-4-2026]
+related_sources: [source-ban-tron-dau-tu-q2-2026, source-dtdt-10-4-2026, source-dtdt-13-4-2026]
 confidence_score: 0.70
 quality_score: 0.80
 evidence_count: 1
@@ -21,14 +21,16 @@ retention_class: episodic
 visibility: private
 supersedes: []
 superseded_by: []
-related_entities: [Trần-Ngọc-Báu, AFA-Capital, gia-xang-dau-va-tac-dong-kinh-te]
+related_entities: [Trần-Ngọc-Báu, AFA-Capital, gia-xang-dau-va-tac-dong-kinh-te, Mỹ, Iran, Hormuz, VN-Index, VIC, Dragon-Capital, VinaCapital, FTSE-Russell]
 ---
 
 # Kinh tế vĩ mô Việt Nam Q2/2026
 
 ## Tổng quan
 
-Quý 1/2026 ghi nhận GDP tăng trưởng 7.83% — mức Q1 tốt nhất trong nhiều năm. Tuy nhiên, Q2 đối mặt với nhiều rủi ro: giá xăng dầu tăng mạnh do cuộc chiến Iran-Mỹ, áp lực lạm phát chi phí đẩy, thanh khoản ngân hàng căng thẳng, và tỷ giá chịu sức ép từ thâm hụt thương mại cộng chi phí nhập khẩu dầu tăng vọt.
+Quý 1/2026 ghi nhận GDP tăng trưởng 7.83% — mức Q1 tốt nhất trong nhiều năm. Tuy nhiên, Q2 đối mặt với nhiều rủi ro: đàm phán Iran-Mỹ thất bại, Mỹ tuyên bố phong tỏa Hormuz, giá dầu bật mạnh vượt $100/thùng, áp lực lạm phát chi phí đẩy, thanh khoản ngân hàng căng thẳng, và tỷ giá chịu sức ép.
+
+**Điểm tích cực trung hạn**: Kế hoạch đầu tư công trung hạn 2026-2030 quy mô 8,22 triệu tỷ đồng (gấp 2,7 lần chu kỳ trước), cải cách thể chế, và định hướng ổn định vĩ mô của Chính phủ.
 
 ## GDP và tăng trưởng
 
@@ -47,11 +49,13 @@ Xem chi tiết tại [[gia-xang-dau-va-tac-dong-kinh-te]].
 - **CPI tháng 3/2026**: 3.51% — thấp hơn mục tiêu 4.5% nhưng **chưa phản ánh đầy đủ áp lực dầu diesel**.
 - **CPI giao thông**: +10.81% (kênh xăng, tác động ngay).
 - **PPI công nghiệp**: Đang tăng chịu áp lực chi phí đầu vào từ dầu diesel, độ trễ 2-3 tháng.
+- **Giá dầu vượt $100/thùng** (13/4/2026): Brent ~$102.80 (+7.98%), WTI ~$104.88 (+8.61%) — bước tăng mạnh.
 - **Kịch bản lạm phát**:
   - Tiêu cực: CPI cả năm ~5%
   - Cơ sở: CPI cả năm 4-4.5%
   - Tích cực (dầu về $70-80): ~3.5-4% (khó xảy ra)
-- **Bản chất**: Lạm phát chi phí đẩy, không phải cầu kéo → **chính sách tài khoản phù hợp hơn tiền tệ**.
+- **Bản chất**: Lạm phát chi phí đẩy, không phải cầu kéo → **chính sách tài khóa phù hợp hơn tiền tệ**.
+- **Lưu ý**: PPI Mỹ công bố 14/4 — dữ liệu quan trọng cho kỳ vọng lạm phát toàn cầu và khả năng Fed hạ lãi suất.
 
 ## Lãi suất và Thanh khoản ngân hàng
 
@@ -117,7 +121,7 @@ Chiều 9/4, **NHNN họp với 46 ngân hàng thương mại** → các ngân h
 ### Áp lực sẽ gia tăng từ:
 
 1. Nhập siêu tiếp diễn
-2. Giá dầu tăng (Brent $95.92, WTI $97.87 — tiệm cận $100)
+2. Giá dầu tăng mạnh (Brent $102.80, WTI $104.88 — đã vượt $100)
 3. Chi phí nhập khẩu năng lượng tăng
 4. Ngân hàng trung ương thế giới không giảm lãi suất → dòng vốn ra khỏi VN tăng
 
@@ -139,17 +143,81 @@ Chiều 9/4, **NHNN họp với 46 ngân hàng thương mại** → các ngân h
 
 ## Thị trường cổ phiếu
 
-- Kịch bản **cơ sở** duy trì.
+- Kịch bản **cơ sở** duy trì nhưng với biến số mới.
 - P/E quanh mức cơ sở; P/B trên trung bình 3 năm.
 - FSSI Rosenberg được duyệt nhưng phân bổ chậm (10% đến 9/2026).
 - Số tài khoản mở mới vẫn tích cực.
-- Rủi ro: nếu cuộc chiến kéo dài → thay đổi kịch bản.
+- Rủi ro: nếu xung đột kéo dài → thay đổi kịch bản.
+
+### Diễn biến 13/4/2026: VN-Index tăng nhưng độ rộng yếu
+
+| Chỉ số | Giá trị | Nhận xét |
+|---|---|---|
+| VN-Index | **+8.96 điểm** | Tăng điểm |
+| Thanh khoản | **~22.000 tỷ đồng** | Ảm đạm |
+| Cổ phiếu giảm (HOSE) | **~171 mã** | Đa số giảm |
+| Tỷ lệ | **~40% tăng - 60% giảm** | Độ rộng yếu |
+| Dẫn dắt | **VIC** | Cổ phiếu vốn hóa lớn |
+
+> [!warning] Cấu trúc thị trường
+> VN-Index tăng **không phản ánh đồng đều toàn thị trường**. Nhiều nhà đầu tư thực tế có thể thấy danh mục giảm nhiều hơn tăng, dù VN-Index vẫn xanh. Đây là dấu hiệu thị trường bị chi phối bởi một số mã vốn hóa lớn.
+
+### Lộ trình nâng hạng thị trường
+
+| Mốc | Sự kiện |
+|---|---|
+| **21/08/2026** | FTSE Russell công bố danh mục cổ phiếu Việt Nam vào rổ chỉ số |
+| **21/09/2026** | Thời điểm nâng hạng chính thức |
+
+→ Câu chuyện nâng hạng **không còn "hot" trong ngắn hạn**; thị trường chờ mốc chính thức.
 
 ## Mở câu hỏi
 
 - [ ] Cuộc chiến Iran-Mỹ kết thúc khi nào? Biến số quan trọng nhất cho mọi kịch bản.
 - [ ] Khi nào dòng vốn ngoại quay lại Việt Nam?
 - [ ] Có bao giờ PPI truyền dẫn hoàn toàn vào CPI không, hay sức tiêu dùng yếu sẽ giới hạn?
+
+## Đầu tư công trung hạn 2026-2030
+
+### Kế hoạch quy mô lớn
+
+| Nguồn vốn | Quy mô |
+|---|---|
+| **Tổng vốn** | **8,22 triệu tỷ đồng** |
+| Ngân sách trung ương | 3,8 triệu tỷ đồng |
+| Ngân sách địa phương | 4,2 triệu tỷ đồng |
+
+- **Gấp 2,7 lần** so với thực hiện của chu kỳ 5 năm trước
+- Động lực rất lớn cho tăng trưởng kinh tế
+- Nền tảng cho mục tiêu **tăng trưởng hai chữ số**
+- Hỗ trợ: hạ tầng, sản xuất kinh doanh, tốc độ luân chuyển tiền, năng suất lao động, khoa học công nghệ
+- Tác động tích cực đến các loại tài sản: cổ phiếu, bất động sản, trái phiếu
+
+### Tiến độ giải ngân
+
+| Đơn vị/Dự án | Tỷ lệ giải ngân |
+|---|---|
+| VEC (Tổng công ty đường cao tốc) | ~29,8% |
+| Tuyến đường sắt cao tốc Hạ Long | ~120 km (khởi công) |
+
+> [!important] Nhấn mạnh
+> Điều quan trọng không chỉ là xây hạ tầng, mà là **hạ tầng có đi vào sản xuất kinh doanh và tạo giá trị thực hay không**.
+
+## Chiến lược đầu tư ngắn hạn
+
+### Ưu tiên quản trị rủi ro
+- **Giảm cổ phiếu rủi ro**
+- **Tăng tính đa dạng của danh mục**
+- Tái cấu trúc dựa trên: triển vọng lợi nhuận Q1, tác động giá dầu lên từng ngành, triển vọng lợi nhuận cả năm 2026
+
+### Thận trọng với nhóm tài chính
+- **Đặc biệt giảm cổ phiếu liên quan đến tài chính**
+- Lý do: câu chuyện nâng hạng thị trường không còn "hot" trong ngắn hạn
+
+### Tài sản phòng thủ
+- Có thể giữ một phần tài sản phòng thủ như **vàng**
+- **Không nên mua thêm nếu đã có tỷ trọng phù hợp** — giai đoạn biến động lớn
+- Giá vàng giảm do DXY tăng (USD mạnh lên)
 
 ## Thông tư 136 và Thị trường trái phiếu
 
