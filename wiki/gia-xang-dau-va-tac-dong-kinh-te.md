@@ -10,7 +10,7 @@ tags: [vietnam, oil-prices, inflation, macroeconomics, cost-push]
 domain: finance
 importance: high
 review_status: active
-related_sources: [source-ban-tron-dau-tu-q2-2026, source-dtdt-13-4-2026]
+related_sources: [source-ban-tron-dau-tu-q2-2026, source-dtdt-13-4-2026, source-thai-pham-12-4-2026]
 confidence_score: 0.80
 quality_score: 0.85
 evidence_count: 1
@@ -93,6 +93,15 @@ Tác động giá xăng dầu lên kinh tế Việt Nam **không đồng nhất*
 
 > [!note] Cập nhật từ 9/4
 > Brent $95.92 → $102.80 (+$6.88/thùng) và WTI $97.87 → $104.88 (+$7.01/thùng) chỉ trong 4 ngày.
+
+> [!warning] Contradiction: Dầu đã tạo đỉnh?
+> **Thái Phạm (12/4)** cho rằng giá dầu **đã tạo đỉnh ngắn hạn**, dù nguồn [[source-dtdt-13-4-2026]] ghi nhận Brent tăng lên $102.80. Lập luận của Thái Phạm:
+> - Iran không phải bên hưởng lợi lớn nhất từ giá dầu cao
+> - Mỹ, Nga, Saudi Arabia mới là các bên được hưởng lợi nhiều hơn
+> - Nếu Iran kéo dài siết Hormuz, chính Iran cũng bị thiệt hại
+> - Thế giới sẽ tìm nguồn thay thế từ Mỹ, Saudi, UAE, Oman, Nga
+> 
+> Cần theo dõi sau 14/4 để xác nhận quan điểm nào chính xác hơn.
 
 - Thị trường biến động do thỏa thuận ngừng bắn Trung Đông còn mong manh
 - Rủi ro không chỉ ở mức giá mà còn ở **đảm bảo nguồn cung nhập khẩu**

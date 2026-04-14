@@ -10,7 +10,7 @@ tags: [vietnam, macroeconomics, gdp, inflation, interest-rates, exchange-rate, b
 domain: finance
 importance: high
 review_status: active
-related_sources: [source-ban-tron-dau-tu-q2-2026, source-dtdt-10-4-2026, source-dtdt-13-4-2026]
+related_sources: [source-ban-tron-dau-tu-q2-2026, source-dtdt-10-4-2026, source-dtdt-13-4-2026, source-thai-pham-12-4-2026]
 confidence_score: 0.70
 quality_score: 0.80
 evidence_count: 1
@@ -21,7 +21,7 @@ retention_class: episodic
 visibility: private
 supersedes: []
 superseded_by: []
-related_entities: [Trần-Ngọc-Báu, AFA-Capital, gia-xang-dau-va-tac-dong-kinh-te, Mỹ, Iran, Hormuz, VN-Index, VIC, Dragon-Capital, VinaCapital, FTSE-Russell]
+related_entities: [Trần-Ngọc-Báu, Thái-Phạm, AFA-Capital, gia-xang-dau-va-tac-dong-kinh-te, Mỹ, Iran, Hormuz, VN-Index, VIC, S&P-500, Vàng, PM-Lê-Minh-Hưng, Dragon-Capital, VinaCapital, FTSE-Russell]
 ---
 
 # Kinh tế vĩ mô Việt Nam Q2/2026
@@ -171,6 +171,42 @@ Chiều 9/4, **NHNN họp với 46 ngân hàng thương mại** → các ngân h
 
 → Câu chuyện nâng hạng **không còn "hot" trong ngắn hạn**; thị trường chờ mốc chính thức.
 
+### Quan điểm tích cực hơn về thị trường Việt Nam (Thái Phạm, 12/4)
+
+> [!note] Bổ sung từ [[source-thai-pham-12-4-2026]]
+> Thái Phạm đưa ra quan điểm tích cực hơn về trung hạn cho thị trường Việt Nam.
+
+**Các yếu tố hỗ trợ theo Thái Phạm:**
+
+| Yếu tố | Chi tiết |
+|---|---|
+| Bộ máy lãnh đạo mới | Tạo kỳ vọng quyết sách nhanh hơn, tập trung hơn, kỹ trị hơn |
+| [[PM-Lê-Minh-Hưng]] | Đánh giá cao: kinh nghiệm vĩ mô, ổn định tỷ giá, ổn định lãi suất, quản lý dự trữ ngoại hối |
+| Nâng hạng FTSE | Vẫn là yếu tố hỗ trợ kỳ vọng thị trường |
+| Chính sách xăng dầu | Quốc hội đề xuất giảm thuế, đây là "lá chắn chính sách" trước cú sốc dầu |
+
+**Góc nhìn tổng thể:**
+- Thị trường có thể đi theo hướng **ổn định hơn, bền vững hơn**
+- Dựa trên **nội lực doanh nghiệp** thay vì chỉ bơm tiền
+
+> "Một thị trường tăng chậm nhưng bền sẽ tốt hơn kiểu 'bạo phát bạo tàn'."
+
+**Chiến lược chọn cổ phiếu:**
+- Ưu tiên doanh nghiệp có **nội lực tốt**, **nền giá hợp lý**, **trụ cột nền kinh tế**
+- Các nhóm: Ngân hàng, Chứng khoán, Thương mại, một số doanh nghiệp năng lượng
+- **Cảnh báo**: Không chạy theo "sóng tin" (dầu khí, đất hiếm) → dễ mua đỉnh, lỗ 20-30%
+
+### Ba kịch bản đàm phán Mỹ-Iran (Thái Phạm, 12/4)
+
+| Kịch bản | Xác suất | Tác động |
+|---|---|---|
+| **Căng thẳng hạ nhiệt** | **55-60%** | Giá dầu hạ nhiệt, chứng khoán tích cực |
+| Ngừng bắn tạm nhưng kéo dài | ~30% | Giá dầu neo cao, thị trường nhiễu |
+| **Leo thang đổ vỡ** | **15-20%** | Giá dầu tăng mạnh, chứng khoán tiêu cực |
+
+> [!warning] Contradiction cần theo dõi
+> Thái Phạm cho rằng giá dầu **đã tạo đỉnh ngắn hạn** — khác với [[source-dtdt-13-4-2026]] ghi nhận Brent $102.80, WTI $104.88. Cần theo dõi sau 14/4.
+
 ## Mở câu hỏi
 
 - [ ] Cuộc chiến Iran-Mỹ kết thúc khi nào? Biến số quan trọng nhất cho mọi kịch bản.
@@ -238,3 +274,4 @@ Chiều 9/4, **NHNN họp với 46 ngân hàng thương mại** → các ngân h
 
 - [[source-ban-tron-dau-tu-q2-2026|Bàn Tròn Đầu Tư Q2/2026 — AFA Capital × We Group]]
 - [[source-dtdt-10-4-2026|Đối thoại Tết Đen 10/4/2026 — Ổn định vĩ mô và lãi suất ngân hàng]]
+- [[source-thai-pham-12-4-2026|Thái Phạm 12/4/2026 — Phân tích thị trường và kịch bản đàm phán Mỹ-Iran]]
