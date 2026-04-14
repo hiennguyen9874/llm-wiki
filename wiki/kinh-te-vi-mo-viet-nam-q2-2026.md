@@ -2,18 +2,18 @@
 title: "Kinh tế vĩ mô Việt Nam Q2/2026"
 created: 2026-04-14
 last_updated: 2026-04-14
-source_count: 2
+source_count: 5
 status: draft
 page_type: topic
 aliases: [Vietnam macro Q2 2026, Triển vọng vĩ mô Q2/2026]
-tags: [vietnam, macroeconomics, gdp, inflation, interest-rates, exchange-rate, banking, liquidity, 2026-Q2]
+tags: [vietnam, macroeconomics, gdp, inflation, interest-rates, exchange-rate, banking, liquidity, credit-growth, deposit-growth, capital-increase, 2026-Q2]
 domain: finance
 importance: high
 review_status: active
-related_sources: [source-ban-tron-dau-tu-q2-2026, source-dtdt-10-4-2026, source-dtdt-13-4-2026, source-thai-pham-12-4-2026]
-confidence_score: 0.70
+related_sources: [source-ban-tron-dau-tu-q2-2026, source-dtdt-10-4-2026, source-dtdt-13-4-2026, source-thai-pham-12-4-2026, source-quang-dung-10-4-2026]
+confidence_score: 0.75
 quality_score: 0.80
-evidence_count: 1
+evidence_count: 5
 first_seen: 2026-04-14
 last_confirmed: 2026-04-14
 claim_status: active
@@ -21,7 +21,7 @@ retention_class: episodic
 visibility: private
 supersedes: []
 superseded_by: []
-related_entities: [Trần-Ngọc-Báu, Thái-Phạm, AFA-Capital, gia-xang-dau-va-tac-dong-kinh-te, Mỹ, Iran, Hormuz, VN-Index, VIC, S&P-500, Vàng, PM-Lê-Minh-Hưng, Dragon-Capital, VinaCapital, FTSE-Russell]
+related_entities: [Trần-Ngọc-Báu, Thái-Phạm, AFA-Capital, gia-xang-dau-va-tac-dong-kinh-te, Mỹ, Iran, Hormuz, VN-Index, VIC, S&P-500, Vàng, PM-Lê-Minh-Hưng, Dragon-Capital, VinaCapital, FTSE-Russell, Agribank, Vietcombank, VietinBank, BIDV, Techcombank, VPBank, ACB, MB, Tiền-gửi-Kho-bạc-Nhà-nước, Thông-tư-22/2019, Nghị-quyết-42]
 ---
 
 # Kinh tế vĩ mô Việt Nam Q2/2026
@@ -59,6 +59,69 @@ Xem chi tiết tại [[gia-xang-dau-va-tac-dong-kinh-te]].
 
 ## Lãi suất và Thanh khoản ngân hàng
 
+### Mất cân đối huy động - tín dụng nhiều năm
+
+> [!note] Bổ sung từ [[source-quang-dung-10-4-2026]]
+> Vấn đề gốc của hệ thống không chỉ là Q1/2026 mà đã kéo dài nhiều năm.
+
+| Năm | Tăng trưởng huy động | Tăng trưởng tín dụng | Chênh lệch |
+|---|---|---|---|
+| **2021** | ~10% | ~13% | -3% |
+| **2022** | ~7% | ~15% | -8% |
+| **Q1/2026** | ~0.44% | ~2.15% | -5x |
+
+**Phân tích** (theo Quang Dung):
+- Ngân hàng cho vay ra **nhanh hơn** khả năng huy động vốn
+- Hệ thống dần bị áp lực lên các **tỷ lệ an toàn**
+- Khi thiếu nguồn vốn đầu vào, **"giá của tiền" phải tăng** → lãi suất huy động tăng
+
+### Chu kỳ hiện tại khác với 2020, 2023
+
+| Giai đoạn | Đặc điểm | Khả năng giảm lãi suất |
+|---|---|---|
+| **2020, 2023, 2024** | Hệ thống **dư tiền**, liên ngân hàng thấp, cung tiền dồi dào | Thuận lợi |
+| **2026** | **Thiếu vốn tương đối**, LDR > 110%, liên ngân hàng cao | **Khó hơn nhiều** |
+
+### Tiền gửi Kho bạc Nhà nước - Cơ chế then chốt
+
+> [!note] Chi tiết từ [[source-quang-dung-10-4-2026]]
+> Tiền gửi Kho bạc là nguồn lực ngắn hạn quan trọng để thực thi chính sách giảm lãi suất.
+
+| Đặc điểm | Chi tiết |
+|---|---|
+| **Quy mô** | ~400.000 - 500.000 tỷ đồng (tùy thời điểm) |
+| **Vị trí** | Tập trung chủ yếu ở 4 ngân hàng quốc doanh |
+| **Các NH chính** | [[Agribank]], [[Vietcombank]], [[VietinBank]], [[BIDV]] |
+
+**Lộ trình giảm tỷ lệ tính vào tỷ lệ an toàn**:
+
+| Năm | Tỷ lệ tính vào tỷ lệ an toàn | Tác động |
+|---|---|---|
+| **2023** | 50% | Áp lực bắt đầu tăng |
+| **2024** | 40% | Áp lực tăng thêm |
+| **2025** | 20% | Áp lực lớn |
+| **2026** | **0%** (theo lộ trình) | **Áp lực thanh khoản nghiêm trọng** |
+
+> [!warning] Vấn đề then chốt
+> Khi tỷ lệ này giảm về 0%:
+> - Áp lực thanh khoản và tỷ lệ an toàn tăng lên
+> - Hạn chế khả năng hạ lãi suất và mở rộng tín dụng
+
+**Giả thuyết xử lý**:
+- Có thể nới lại cách tính để "mở khóa" thanh khoản
+- Có thể nâng mức áp dụng trở lại khoảng **60%**
+- ⚠️ Đây là **kỳ vọng/phân tích**, chưa phải quy định chính thức
+
+### Thông tư 22/2019 và tỷ lệ an toàn vốn
+
+> [!note] Chi tiết từ [[source-quang-dung-10-4-2026]]
+> [[Thông-tư-22/2019]] quy định về các tỷ lệ an toàn trong hoạt động ngân hàng.
+
+Theo Quang Dung, muốn giảm lãi suất thực chất phải xử lý đồng thời:
+1. Tiền gửi Kho bạc Nhà nước
+2. **Thông tư 22/2019 và cơ chế áp dụng**
+3. Bản thân ngân hàng phải tự tăng vốn
+
 ### Thanh khoản căng thẳng nghiêm trọng
 
 | Chỉ số | Giá trị | Ý nghĩa |
@@ -84,6 +147,14 @@ Xem chi tiết tại [[gia-xang-dau-va-tac-dong-kinh-te]].
 
 Chiều 9/4, **NHNN họp với 46 ngân hàng thương mại** → các ngân hàng **đồng thuận** giảm lãi suất huy động và cho vay theo định hướng của Chính phủ.
 
+**Ba kết luận từ cuộc họp** (theo [[source-quang-dung-10-4-2026]]):
+
+| Kết luận | Nội dung |
+|---|---|
+| **1. Tiếp tục chủ động, linh hoạt** | Chính sách tiền tệ chủ động, linh hoạt; phối hợp tài khóa; mục tiêu kiểm soát lạm phát, ổn định vĩ mô, ổn định tỷ giá, hỗ trợ tăng trưởng bền vững |
+| **2. Đồng loạt giảm lãi suất** | 46-48 ngân hàng cam kết; mức giảm 0,1%-1% (thực tế 0,5%-1%); áp dụng cho cả huy động và cho vay |
+| **3. Vai trò ngân hàng quốc doanh** | Agribank, Vietcombank, VietinBank, BIDV là "cánh tay nối dài" của chính sách |
+
 > [!important] Không phải nới lỏng tiền tệ
 > Đây **không phải** chu kỳ nới lỏng tiền tệ. Mà là biện pháp **quản trị rủi ro** nhằm:
 > - Ngăn cuộc đua lãi suất giữa các ngân hàng
@@ -91,6 +162,16 @@ Chiều 9/4, **NHNN họp với 46 ngân hàng thương mại** → các ngân h
 > - Ưu tiên ổn định vĩ mô
 
 - Đây là một trong những động thái đầu tiên của ban điều hành mới (Thống đốc mới, Chính phủ mới)
+
+**Hai tín hiệu cần theo dõi** (theo Quang Dung):
+
+1. **Lãi suất huy động thực tế có giảm không?**
+   - Chỉ cần giảm 0,3% - 0,5% đã là tín hiệu đáng chú ý
+   - Nếu nhiều ngân hàng giảm thật → chính sách không chỉ là "mệnh lệnh hành chính"
+
+2. **Có động thái xử lý nguồn vốn đi kèm không?**
+   - Đặc biệt là Thông tư 22/2019
+   - Tiền gửi Kho bạc tại nhóm ngân hàng quốc doanh
 
 ## Tỷ giá
 
@@ -129,6 +210,39 @@ Chiều 9/4, **NHNN họp với 46 ngân hàng thương mại** → các ngân h
 > Cả hai diễn giả đồng ý: **ưu tiên giữ lãi suất ổn định hơn tỷ giá**, chấp nhận VND mất giá dần dần. Trong "bộ ba bất khả thi", NHNN đang ưu tiên lãi suất — yếu tố tác động trực tiếp hơn đến toàn bộ nền kinh tế.
 
 ## Cơ cấu tín dụng
+
+### Hiệu quả phân bổ tín dụng theo ngành
+
+> [!note] Chi tiết từ [[source-quang-dung-10-4-2026]]
+> Bất động sản và xây dựng thâm dụng vốn nhưng đóng góp GDP không tương xứng. Cần ưu tiên tín dụng cho ngành hiệu quả hơn.
+
+| Ngành | Tín dụng sử dụng | GDP đóng góp | Hiệu suất |
+|---|---|---|---|
+| **Công nghiệp chế biến chế tạo** | ~12% tín dụng | ~24% GDP | **2x** |
+| **Nông nghiệp** | ~6% tín dụng | ~11% GDP | **~2x** |
+
+> [!important] Ý nghĩa đầu tư
+> Chính sách có thể ưu tiên tín dụng sang các ngành sản xuất, chế biến, nông nghiệp hơn là để vốn dồn quá nhiều vào các khu vực kém hiệu quả hơn về GDP.
+
+### "Nắn dòng tín dụng" thay vì "siết tín dụng"
+
+> [!important] Luận điểm từ [[source-quang-dung-10-4-2026]]
+> Hiện tại **không nên dùng từ "siết tín dụng bất động sản"**. Từ đúng hơn là **"nắn dòng tín dụng bất động sản"**.
+
+**Lập luận**:
+- BĐS và xây dựng là nhóm **thâm dụng vốn**
+- Nhưng đóng góp vào GDP không tương xứng với lượng tín dụng hấp thụ
+- Trong bối cảnh tín dụng không còn quá dồi dào, cần ưu tiên vốn cho ngành **tạo GDP hiệu quả hơn**
+
+### "Nuôi zombie" - Dòng tiền bị mắc kẹt
+
+> [!warning] Khái niệm từ [[source-quang-dung-10-4-2026]]
+> "Nuôi zombie" chỉ dòng tiền bị mắc kẹt trong các dự án, đặc biệt bất động sản, làm vốn không quay trở lại nền kinh tế đủ nhanh.
+
+- Các dự án BĐS phải mất **nhiều năm** mới có thể phục hồi thanh khoản
+- Đây là nguyên nhân cấu trúc cần giải quyết dài hạn
+
+### Tình hình hiện tại
 
 - Tín dụng BĐS và "tín dụng khác" tiếp tục tăng.
 - Tín dụng công nghiệp, vận tải, viễn thông **đang giảm**.
@@ -270,8 +384,90 @@ Chiều 9/4, **NHNN họp với 46 ngân hàng thương mại** → các ngân h
 
 → Kiểm soát lãi suất không chỉ hỗ trợ GDP mà còn **ngăn cuộc đua lãi suất** gây bất ổn hệ thống.
 
+## "Mùa tăng vốn" kỷ lục của ngành ngân hàng
+
+> [!note] Chi tiết từ [[source-quang-dung-10-4-2026]]
+> Năm 2026 có thể là năm ngành ngân hàng có **làn sóng tăng vốn mạnh nhất**.
+
+### Nhóm ngân hàng quốc doanh
+
+| Ngân hàng | Tình hình |
+|---|---|
+| BIDV, Vietcombank, VietinBank, Agribank | Trước đây tăng vốn khó vì vướng thủ tục; gần đây đã được tháo gỡ dần |
+
+**Phương thức tăng vốn**: chia cổ phiếu, chào bán riêng lẻ
+
+### Nhóm ngân hàng tư nhân lớn/vừa
+
+| Ngân hàng | Tình hình |
+|---|---|
+| [[Techcombank]] | Rất thận trọng, không chia cổ tức tiền mặt |
+| [[VPBank]] | Kế hoạch chia thấp hơn kỳ vọng trước |
+| [[ACB]] | Tỷ lệ chia tiền mặt thấp hơn dự kiến |
+| [[MB]] | Vừa chia tiền vừa phát hành quyền mua, huy động vốn trở lại |
+
+### Nhóm ngân hàng quy mô nhỏ
+
+| Đặc điểm | Chi tiết |
+|---|---|
+| Nền tảng vốn | Yếu hơn |
+| Đòn bẩy | Cao hơn |
+| Lợi nhuận giữ lại | Ít hơn |
+| Phương thức tăng vốn | Chào bán riêng lẻ, phát hành quyền mua tỷ lệ lớn |
+
+**Ví dụ thương vụ quyền mua**: 30%, 33%, 38%, 50% với giá 10.000 đồng/cổ phiếu (An Bình, VBB)
+
+> [!important] Kết luận
+> Làn sóng tăng vốn là phản ứng trực tiếp trước tình trạng **mất cân đối huy động - tín dụng**.
+
+## Nghị quyết 42 và xử lý nợ xấu
+
+> [!note] Chi tiết từ [[source-quang-dung-10-4-2026]]
+> [[Nghị-quyết-42]] (Nghị quyết 42/2017/QH13) là yếu tố quan trọng để giảm bớt lo ngại về nợ xấu.
+
+| Khía cạnh | Tác động |
+|---|---|
+| **Rủi ro hệ thống** | Giảm rủi ro tích lũy nợ xấu |
+| **Niềm tin nhà đầu tư** | Tăng cường niềm tin vào hệ thống ngân hàng |
+| **Khả năng cho vay** | Ngân hàng có thể cho vay mạnh hơn khi yên tâm về cơ chế xử lý nợ |
+| **Tác động lãi suất** | Hỗ trợ chính sách giảm lãi suất bằng cách giảm áp lực rủi ro |
+
+**Luận điểm của Quang Dung**:
+- Lãi suất tăng → Áp lực trả nợ của doanh nghiệp tăng
+- Nợ xấu có thể gia tăng → Rủi ro cho hệ thống ngân hàng
+- Nếu cơ chế xử lý nợ xấu tốt hơn → Hệ thống ngân hàng sẽ bớt rủi ro hơn
+
+## Phân hóa ngành ngân hàng
+
+> [!note] Chi tiết từ [[source-quang-dung-10-4-2026]]
+> Ngành ngân hàng sẽ **không tăng đồng đều** khi chu kỳ hạ lãi suất diễn ra.
+
+### Nhóm có thể hưởng lợi nhất: Ngân hàng quốc doanh
+
+| Ngân hàng | Lý do |
+|---|---|
+| [[BIDV]] | Cánh tay nối dài của Chính phủ/NHNN |
+| [[Vietcombank]] | Liên quan trực tiếp đến dòng tiền Kho bạc |
+| [[VietinBank]] | Thường đi đầu trong các đợt điều hành hệ thống |
+| [[Agribank]] | Vai trò thực thi chính sách |
+
+### Nhóm hưởng lợi ở chu kỳ chính sách mới: Tư nhân lớn/tầm trung
+
+| Ngân hàng | Đặc điểm |
+|---|---|
+| [[VPBank]] | Quy mô đủ lớn, khả năng tận dụng chính sách |
+| [[MB]] | Động lực tăng trưởng tín dụng, chuẩn bị nguồn vốn |
+| TPBank, Techcombank, HDBank | Quy mô đủ lớn, khả năng tham gia các chu kỳ vốn mới |
+
+### Nhóm chịu áp lực: Ngân hàng quy mô nhỏ
+
+- Có thể **chậm chân hơn** trong chu kỳ chính sách
+- Áp lực tăng vốn **lớn hơn**
+- Rủi ro về tỷ lệ an toàn **cao hơn** nếu không tăng vốn thành công
+
 ## Nguồn
 
 - [[source-ban-tron-dau-tu-q2-2026|Bàn Tròn Đầu Tư Q2/2026 — AFA Capital × We Group]]
 - [[source-dtdt-10-4-2026|Đối thoại Tết Đen 10/4/2026 — Ổn định vĩ mô và lãi suất ngân hàng]]
 - [[source-thai-pham-12-4-2026|Thái Phạm 12/4/2026 — Phân tích thị trường và kịch bản đàm phán Mỹ-Iran]]
+- [[source-quang-dung-10-4-2026|Quang Dung 10/4/2026 — Hạ lãi suất và góc nhìn đầu tư]]
