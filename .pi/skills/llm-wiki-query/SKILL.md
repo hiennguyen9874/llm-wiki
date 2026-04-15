@@ -21,29 +21,39 @@ Use hybrid retrieval behavior even if QMD remains the primary tool.
 - Do not force index-first reading for every narrow lookup.
 
 ### Retrieval Strategy
-1. Use QMD lexical search for exact names and terms.
-2. Use QMD semantic or expanded search when vocabulary is uncertain.
-3. Use metadata-aware filtering mentally or via Bases when status, recency, or page type matters.
-4. Expand outward from key entities and relationships mentioned in the first results.
-5. Read the actual files before synthesizing.
-6. Re-index/embed after large updates if search quality becomes stale.
+1. Use QMD lexical search for exact names, terms, filenames, and aliases.
+2. Use QMD semantic or expanded search when vocabulary is uncertain or the question is conceptual.
+3. Use metadata-aware filtering mentally or via Bases when status, recency, retention class, page type, or visibility matters.
+4. Expand outward from the first results using typed relationships, `related_entities`, backlinks, supersession links, and cited sources.
+5. Treat this relationship walk as the current markdown-first graph traversal layer.
+6. Read the actual files before synthesizing.
+7. Re-index/embed after large updates if search quality becomes stale.
 
 ## Query Workflow
 When answering a question:
 1. Use `wiki/index.md` for orientation when helpful, not by reflex.
 2. Use QMD to find relevant pages across `wiki/`, `outputs/`, and optionally `raw/`.
-3. Expand from the first results using entities, metadata, and typed relationships.
-4. Read the relevant pages before synthesizing.
-5. Answer with citations to the pages that informed the answer.
-6. Mention confidence, staleness, dispute, or supersession when it materially affects the answer.
-7. If raw sources are needed to resolve ambiguity, read them directly.
-8. If the answer creates durable value, save it in `outputs/answers/` or promote it into `wiki/`.
-9. If a visual map or dashboard would help, create/update a Canvas or Base.
-10. Append a `query` entry when a saved artifact is produced.
+3. Run both exact-term and concept-level retrieval when the first search may miss synonyms or adjacent phrasing.
+4. Expand from the first results using entities, metadata, typed relationships, supersession chains, and cited source pages.
+5. Read the relevant pages before synthesizing.
+6. Answer with citations to the pages that informed the answer.
+7. Distinguish clearly between supported facts, inference, and unresolved uncertainty.
+8. Mention confidence, staleness, dispute, retention concerns, or supersession when they materially affect the answer.
+9. If raw sources are needed to resolve ambiguity, read them directly.
+10. If the answer creates durable value, save it in `outputs/answers/` or promote it into `wiki/`.
+11. Persist only when it is reusable, well cited, non-duplicative, and likely to meet at least a moderate quality bar.
+12. If a visual map or dashboard would help, create/update a Canvas or Base.
+13. Append a `query` entry when a saved artifact is produced.
 
 ## Query Variants
+### Brief
+- Produce a short, decision-oriented summary grounded only in the knowledge base.
+- Aim for roughly 150-250 words with a one-sentence summary, key points, and open questions or next steps.
+- Cite the supporting pages.
+- Save only when explicitly requested or clearly reusable.
+
 ### Briefing
-- Produce a concise executive summary grounded only in the knowledge base.
+- Produce a fuller reusable executive summary grounded only in the knowledge base.
 - Structure around current state, key tensions, open questions, and recommended next steps when useful.
 - Cite the supporting pages for each section.
 - Save to `outputs/briefings/` only if it has durable reuse value.
@@ -56,8 +66,8 @@ When answering a question:
 ### Disagreements
 - Identify conflicting claims across sources or canonical pages.
 - Quote or paraphrase the competing claims and cite each source page.
-- Assess which side seems better supported without erasing unresolved uncertainty.
-- Preserve durable tensions in wiki pages when useful.
+- Assess which side seems better supported using recency, authority/directness, supporting-source count, and specificity.
+- Preserve durable tensions in wiki pages when useful instead of flattening uncertainty.
 
 ### Gaps / Explore / Next Research
 - Look for underdeveloped areas, implied but missing concepts, and promising adjacent topics.
@@ -76,3 +86,10 @@ Persist the result when it creates reusable value, such as:
 - a cross-topic connection worth retaining
 - a contradiction map worth revisiting
 - a research agenda or gap analysis that should guide future work
+
+Before persisting, prefer this quick check:
+- citations are present
+- the artifact adds something non-trivial beyond the chat reply
+- it is not obviously duplicating an existing page
+- it likely clears a rough `quality_score >= 0.75`
+- visibility is set appropriately for the audience

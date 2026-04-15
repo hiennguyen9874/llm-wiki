@@ -7,6 +7,12 @@ The human curates direction; the agent handles capture, ingestion, synthesis, re
 Turn raw material into persistent, compounding memory.
 Prefer compiling knowledge once, updating it with evidence, and reusing it later over re-deriving it from scratch.
 
+## Current Implementation Stance
+- This repository is currently manual-first, human-steered, and prompt-driven.
+- Prefer explicit workflows and scheduled review passes over pretending hidden automation already exists.
+- Shape prompts and skills so they can later support hooks or scheduled jobs.
+- Do not claim automation, graph infrastructure, or lifecycle enforcement that the repo does not yet actually have.
+
 ## Core Layers
 - `raw/` → immutable capture layer
 - `wiki/` → durable semantic knowledge layer
@@ -23,8 +29,9 @@ For any non-trivial task, read this file first, then activate the matching skill
 | Search / retrieval across the vault | `llm-wiki-query` + `qmd` |
 | New source capture, triage, ingest, batch ingest | `llm-wiki-ingest` + `qmd` |
 | Standard web URL ingest | `llm-wiki-ingest` + `defuddle` + `qmd` |
-| Answering questions, briefings, connections, disagreements, gap scans, next-research recommendations | `llm-wiki-query` + `qmd` |
-| Session distillation / durable lessons | `llm-wiki-crystallize` + `qmd` |
+| Answering questions, briefs, briefings, connections, disagreements, gap scans, next-research recommendations | `llm-wiki-query` + `qmd` |
+| Session start / context loading / orientation | `llm-wiki-query` + `qmd` |
+| Session distillation / session end / durable lessons | `llm-wiki-crystallize` + `qmd` |
 | Review, lint, maintenance, wiki improvement without a new source | `llm-wiki-maintenance` + `qmd` |
 | Canvas work | `llm-wiki-visualization` + `json-canvas` |
 | Base work | `llm-wiki-visualization` + `obsidian-bases` |
@@ -36,6 +43,8 @@ For any non-trivial task, read this file first, then activate the matching skill
 - Prefer updating existing pages over creating near-duplicates.
 - Preserve uncertainty explicitly.
 - Every factual claim must cite a source.
+- Distinguish clearly between supported facts, inference, and speculation.
+- Screen new material for secrets, PII, credentials, or other sensitive content before promoting it into `wiki/` or `outputs/`.
 - Use Obsidian-friendly markdown, frontmatter, and wikilinks in `wiki/` and `outputs/`.
 - Update `wiki/index.md` when important pages, bases, or canvases are added or materially changed.
 - Append meaningful actions to `wiki/log.md`; do not rewrite old log entries except tiny formatting repairs.
@@ -45,6 +54,7 @@ For any non-trivial task, read this file first, then activate the matching skill
 - Think in the loop: capture → distill → crystallize → integrate → visualize → review.
 - Promote durable knowledge upward through the memory tiers instead of leaving it in raw notes or chat.
 - Be proactive about backlinks, cross-links, and supersession.
+- Use QMD as the primary retrieval layer; use `wiki/index.md` mainly for human orientation and broad browsing.
 - Keep the vault browsable by a human in Obsidian.
 
 ## Pattern References
@@ -55,3 +65,15 @@ When changing the knowledge-system design itself, also read:
 ## Prompt Policy
 The files in `.pi/prompts/` are intentionally thin entry points.
 They rely on the workflow skills above for the detailed procedures.
+
+Important prompt families currently include:
+- ingest / ingest-url / ingest-batch
+- query / brief / briefing
+- connections / disagreements / gaps / next-research / explore
+- review / lint / retention-pass / resolve-contradictions / privacy-scan
+- crystallize / session-start / session-end
+
+Prompt responsibilities:
+- select the right workflow and companion skills
+- pass through scope and intent clearly
+- stay thin; keep the real policy in skills unless the distinction itself matters at prompt level

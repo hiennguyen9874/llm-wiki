@@ -14,6 +14,12 @@ It defines the shared rules that all other workflow skills depend on.
 - The agent handles capture, triage, ingestion, synthesis, cross-linking, retrieval, crystallization, review, and maintenance.
 - Optimize for persistent, compounding memory rather than one-off answers.
 
+## Implementation Stance
+- This repository is currently **manual-first, human-steered, and prompt-driven**.
+- Prefer explicit workflows and scheduled reviews over pretending hidden automation already exists.
+- Design prompts and skills so they can later support hooks or scheduled jobs.
+- Do not claim automation, graph infrastructure, or lifecycle enforcement that the repo does not yet actually have.
+
 ## Memory Architecture
 - `raw/` → immutable capture layer
 - `wiki/` → semantic knowledge layer for durable pages
@@ -45,6 +51,7 @@ It defines the shared rules that all other workflow skills depend on.
 - Do not promote every observation directly into `wiki/`.
 - Crystallize exploratory work when needed.
 - Consolidate only durable, evidence-backed knowledge into canonical wiki pages.
+- Promote repeated process lessons into procedural memory when they are stable enough to guide future sessions.
 
 ## Tool Selection Policy
 - Use **QMD** as the primary local search/retrieval tool for markdown in `wiki/`, `raw/`, and `outputs/`.
@@ -84,6 +91,7 @@ It defines the shared rules that all other workflow skills depend on.
 - Prefer updating existing pages over creating redundant near-duplicates.
 - Preserve uncertainty explicitly.
 - Every factual claim must cite a source.
+- Distinguish clearly between supported facts, reasonable inference, and open speculation.
 - When new evidence conflicts with old evidence, preserve provenance and mark the relationship.
 - Add internal links aggressively when pages are related.
 - Keep important insights in durable markdown artifacts, not only in chat.
@@ -169,7 +177,7 @@ related_entities: []
 - `episode`
 
 ### Recommended lifecycle meanings
-- `confidence_score` → current confidence in the claims
+- `confidence_score` → current confidence in the claims on the page
 - `quality_score` → quality of the page itself
 - `evidence_count` → number of distinct supporting observations/sources
 - `first_seen` → when the claim or page first entered the system
@@ -177,6 +185,63 @@ related_entities: []
 - `claim_status` → `active | stale | superseded | disputed | hypothesis`
 - `retention_class` → `transient | working | episodic | durable | foundational`
 - `visibility` → `private | shared | publishable`
+
+### Page-level vs claim-level lifecycle
+- Frontmatter fields apply to the page as a whole by default.
+- For pages with multiple important or contested claims, also maintain lightweight claim-level records in the body.
+- Use claim-level tracking when a page contains materially different confidence levels, ongoing disputes, or supersession chains.
+
+## Lightweight Scoring Heuristics
+Use these heuristics unless a page needs a more specific domain rubric.
+
+### Confidence scoring
+- Start around `0.50` for a plausible but weakly supported claim.
+- Raise confidence with independent reinforcement, recency, direct evidence, and specificity.
+- Lower confidence for unresolved contradiction, stale confirmation, indirect evidence, or vague sourcing.
+- Rough guide:
+  - `0.30–0.49` → tentative / hypothesis
+  - `0.50–0.69` → plausible but still weak or narrow
+  - `0.70–0.84` → well supported
+  - `0.85–0.95` → strong, repeatedly reinforced
+- Small updates are enough; avoid fake precision.
+
+### Quality scoring
+Evaluate whether the page:
+- cites sources clearly
+- distinguishes fact from inference
+- links to related pages
+- uses clean structure/frontmatter
+- reflects the current known state
+
+Rough guide:
+- `< 0.60` → needs review or rewrite
+- `0.60–0.79` → usable but incomplete
+- `0.80+` → strong, reusable page
+
+## Retention and Review Expectations
+Use `retention_class` to shape review cadence and decay behavior.
+
+- `transient` → review quickly; can go stale within days or weeks
+- `working` → review within weeks; often tied to active investigations
+- `episodic` → review during crystallization or periodic review
+- `durable` → review when reinforced, contradicted, or during broader maintenance
+- `foundational` → review slowly, but keep highly visible and well sourced
+
+Decay guidance:
+- Do not delete purely because something is old.
+- If a claim has not been reinforced within a plausible window for its retention class, lower confidence modestly or mark it `stale`.
+- When new evidence reaffirms a claim, refresh `last_confirmed` and raise confidence if justified.
+- Preserve provenance even when downgrading confidence.
+
+## Visibility Semantics
+- `private` → personal notes, preferences, sensitive synthesis, or material not meant for sharing
+- `shared` → safe for normal collaboration inside the project/team context
+- `publishable` → sanitized and appropriate for external reuse
+
+Rules:
+- Default to `private` unless there is a clear reason to widen scope.
+- Do not mark material `publishable` unless it is sanitized and source-safe.
+- When promoting content from `private` toward `shared`, review whether any sensitive details should be removed first.
 
 ## Source Page Schema
 Source pages usually also include:
@@ -223,6 +288,28 @@ Capture:
 - entities and relationships extracted from it
 - pages updated because of it
 - contradictions, supersession, or uncertainty
+- whether any downstream redaction/sanitization was applied
+
+## Claim and Evidence Model
+For high-value, disputed, or easily stale knowledge, prefer lightweight claim blocks inside `Evidence / claims` sections.
+
+Suggested shape:
+
+```md
+#### Claim
+- Statement: ...
+- Status: active
+- Confidence: 0.78
+- Evidence: [[source-a]], [[source-b]]
+- Last confirmed: YYYY-MM-DD
+- Notes: why this is believed, what could change it
+- Supersedes: [[older-page-or-claim]]
+```
+
+Use this pattern when:
+- a page mixes strong and weak claims
+- a claim is disputed or recently superseded
+- the claim is important enough that future maintenance should revisit it directly
 
 ## Entity and Relationship Extraction
 At minimum identify:
@@ -242,7 +329,13 @@ Preferred relationship verbs:
 - `supersedes`
 - `related_to`
 
-## Supersession Policy
+## Graph Representation Stance
+- The canonical knowledge layer is still markdown-first.
+- Typed relationships live primarily in prose pages, frontmatter fields, and structured sections.
+- Canvases and Bases are overlays for navigation and review, not the sole source of truth.
+- Until a separate graph artifact exists, query and maintenance work should traverse relationships through page content, links, frontmatter, and related entities.
+
+## Supersession and Contradiction Policy
 When newer or stronger evidence updates an older claim:
 - preserve the old claim's provenance
 - mark it as `stale`, `disputed`, or `superseded`
@@ -255,7 +348,10 @@ Use these factors to assess likely-current truth:
 - number of supporting sources
 - specificity of evidence
 
-If unresolved, keep both claims visible and mark uncertainty clearly.
+Default resolution behavior:
+- if one side is clearly stronger, mark the weaker claim/page as `superseded` or `stale`
+- if evidence is mixed, keep both visible and mark the issue `disputed`
+- explain the reasoning briefly instead of silently overwriting tension
 
 ## Index and Log Rules
 ### `wiki/index.md`
@@ -279,6 +375,11 @@ If unresolved, keep both claims visible and mark uncertainty clearly.
   - `review`
   - `visualize`
   - `crystallize`
+- For meaningful updates, include enough detail to recover intent later:
+  - why the change happened
+  - which important pages/artifacts were touched
+  - whether the change resolved contradiction, retention, privacy, or quality issues
+- For bulk or structural changes, make the scope and rule explicit.
 
 ## Focus Areas
 Default domains currently emphasized:
@@ -290,7 +391,10 @@ Default domains currently emphasized:
 
 ## Privacy and Governance
 - Do not commit secrets, credentials, tokens, or private data into the wiki.
-- Sanitize sensitive source material before adding it.
+- Screen new material for secrets, PII, or private content before promoting it into `wiki/` or `outputs/`.
+- If a raw file contains active secrets or highly sensitive material that should not remain in the repo, stop and ask the user before proceeding.
+- Sanitize sensitive source material before adding downstream summaries.
+- Note important downstream redactions in the source page when relevant.
 - Keep provenance and auditability through `wiki/log.md` and saved outputs.
 - Prefer reversible bulk changes and document why they were made.
 
@@ -301,6 +405,7 @@ Ask the user before:
 - changing folder taxonomy
 - changing metadata schema significantly
 - merging many pages into one canonical structure
+- performing bulk privacy cleanup that could remove source information
 
 ## Working Style
 - Be proactive about structure.

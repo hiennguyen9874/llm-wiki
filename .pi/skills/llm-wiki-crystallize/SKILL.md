@@ -22,16 +22,21 @@ Always activate `llm-wiki-core` first.
    - affected files/entities/pages
    - unresolved questions
    - reusable lessons
+   - confidence or uncertainty where it materially matters
+   - appropriate visibility for the artifact
 3. Promote durable lessons into `wiki/` pages or update existing canonical pages.
 4. Add links from the crystallization artifact back to the relevant canonical pages.
-5. Update `wiki/index.md` if the artifact or promoted pages are important for browsing.
-6. Append `crystallize` or `update` entries to `wiki/log.md`.
+5. If the session reinforces or weakens existing knowledge, update confidence, contradiction, or supersession state where justified.
+6. If a repeated process lesson emerged, consider promoting it into procedural memory.
+7. Update `wiki/index.md` if the artifact or promoted pages are important for browsing.
+8. Append `crystallize` or `update` entries to `wiki/log.md`.
 
 ## Promotion Rules
 - Promote stable concepts, not transient debugging noise.
 - Preserve provenance back to the session artifact.
 - If a lesson changes older knowledge, mark contradiction or supersession explicitly.
 - If the session mainly produced process improvements, consider a procedural page instead of a topic page.
+- Set visibility deliberately when the artifact contains personal or sensitive details.
 
 ## Good Crystallization Outputs
 A strong artifact usually makes later reuse easier by preserving:
@@ -39,3 +44,4 @@ A strong artifact usually makes later reuse easier by preserving:
 - the evidence or reasoning that supported it
 - where it belongs in the existing knowledge graph
 - what remains unresolved
+- what should be promoted into semantic or procedural memory
