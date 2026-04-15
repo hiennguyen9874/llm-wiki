@@ -1,8 +1,8 @@
 ---
 title: "Kinh tế vĩ mô Việt Nam Q2/2026"
 created: 2026-04-14
-last_updated: 2026-04-14
-source_count: 5
+last_updated: 2026-04-15
+source_count: 6
 status: draft
 page_type: topic
 aliases: [Vietnam macro Q2 2026, Triển vọng vĩ mô Q2/2026]
@@ -10,10 +10,10 @@ tags: [vietnam, macroeconomics, gdp, inflation, interest-rates, exchange-rate, b
 domain: finance
 importance: high
 review_status: active
-related_sources: [source-ban-tron-dau-tu-q2-2026, source-dtdt-10-4-2026, source-dtdt-13-4-2026, source-thai-pham-12-4-2026, source-quang-dung-10-4-2026]
+related_sources: [source-ban-tron-dau-tu-q2-2026, source-dtdt-10-4-2026, source-dtdt-13-4-2026, source-thai-pham-12-4-2026, source-quang-dung-10-4-2026, source-luong-huynh-9-4-2026]
 confidence_score: 0.75
 quality_score: 0.80
-evidence_count: 5
+evidence_count: 6
 first_seen: 2026-04-14
 last_confirmed: 2026-04-14
 claim_status: active
@@ -368,6 +368,108 @@ Chiều 9/4, **NHNN họp với 46 ngân hàng thương mại** → các ngân h
 - Có thể giữ một phần tài sản phòng thủ như **vàng**
 - **Không nên mua thêm nếu đã có tỷ trọng phù hợp** — giai đoạn biến động lớn
 - Giá vàng giảm do DXY tăng (USD mạnh lên)
+
+## Chiến lược chọn cổ phiếu sau giảm lãi suất
+
+> [!note] Bổ sung từ [[source-luong-huynh-9-4-2026]]
+> Lương Huỳnh phân tích chiến lược săn cổ phiếu trong bối cảnh 46 ngân hàng đồng loạt giảm lãi suất.
+
+### Định giá thị trường hiện tại
+
+| Chỉ số | Giá trị | Nhận xét |
+|---|---|---|
+| P/E VN-Index | ~14 lần | Chưa phải vùng đắt |
+| P/E 2019 | ~15 lần | Tương đương |
+| P/E 2021 | 18-20 lần (có lúc 21 lần) | Cao hơn đáng kể |
+
+> [!important] Nhận xét từ Lương Huỳnh
+> Thị trường không ở vùng quá đắt. Một số cổ phiếu vốn hóa lớn có thể làm méo định giá chung. Nếu loại ảnh hưởng này ra, mặt bằng định giá của nhiều nhóm ngành còn thấp hơn.
+
+### Kịch bản sóng thị trường
+
+| Kịch bản | Mức lãi suất kỳ vọng | Khả năng |
+|---|---|---|
+| Sóng nhỏ / sóng mini | Lãi suất giảm về ~6% | Có thể xảy ra |
+| Sóng trung bình | Lãi suất giảm về ~5% | Khả năng cao hơn |
+| Đại sóng | - | Chưa kỳ vọng như các chu kỳ mạnh trước |
+
+> [!note] Kỳ vọng của Lương Huỳnh
+> Nghiêng về kịch bản **sóng nhỏ đến trung bình**, chưa kỳ vọng "đại sóng" như các chu kỳ mạnh trước đây.
+
+### Nguyên tắc chọn cổ phiếu
+
+**Nguyên tắc 1: Ưu tiên cổ phiếu đi lên đầu tiên sau nhịp giảm**
+- Sau khi thị trường giảm mạnh:
+  - Có nhóm cổ phiếu **hồi rất chậm**
+  - Có nhóm **về bờ rất nhanh**
+  - Có nhóm thậm chí **vượt đỉnh/đi lên trước thị trường**
+- Những cổ phiếu hồi nhanh, giữ nền tốt, vượt lên đầu tiên thường là **ứng viên mạnh**
+
+**Cổ phiếu mạnh được nhắc đến**: HSG, HPG, DPM, DGC, STB, TNG, DXP, PC1, LCG, FCN, HHV
+
+**Cổ phiếu yếu hơn nhóm đối chiếu**: ACB, MBB, TCB, KDH, SSI/HCM
+
+**Nguyên tắc 2: Phân biệt "đầu tư" và "đầu cơ"**
+| Loại | Đặc điểm |
+|---|---|
+| **Đầu tư** | Mua ở vùng giá thấp nếu định giá hấp dẫn, hiểu sâu doanh nghiệp, nắm giữ theo nội tại |
+| **Đầu cơ/Trading** | Có nguyên tắc cắt lỗ, bám theo sức mạnh giá, tránh yêu cổ phiếu |
+
+> [!quote] Nổi bật từ Lương Huỳnh
+> "Cổ phiếu càng dễ mua nhiều khi lại càng nguy hiểm"
+> Cổ phiếu mạnh thường khiến nhà đầu tư **sợ vì giá đã tăng**, nhưng chính đó lại có thể là cổ phiếu dẫn sóng.
+
+**Nguyên tắc 3: Nhóm chứng khoán chỉ phù hợp khi thị trường uptrend rõ**
+- Lợi nhuận công ty chứng khoán phụ thuộc: margin, tự doanh, môi giới, thanh khoản
+- Khi thị trường yếu → lợi nhuận bị ảnh hưởng
+- Các mã được nhắc: SSI, SHS, VIX, HCM
+
+### Phân tích cổ phiếu cụ thể
+
+| Mã | Đánh giá | Ghi chú |
+|---|---|---|
+| [[FPT]] | "Rẻ" hơn trước | Không còn động lực AI mạnh như trước; có thể "về bờ" nhưng tăng mạnh cần lý do mới |
+| [[MWG]] | Tương đối rẻ | Khả năng lập kỷ lục lợi nhuận quý tới; định giá hấp dẫn so với lịch sử |
+| [[STB]] | Mã khỏe về giá | Có câu chuyện tài sản tồn đọng; nếu xử lý thuận lợi → định giá mở rộng |
+| [[HHV]] | Tích cực | Có BOT/thu phí; trả nợ dần, giảm chi phí lãi vay |
+| [[VHC]] | Theo dõi | Giá cá giống cao, xuất khẩu tích cực, sức mạnh giá đáng chú ý |
+| [[EVG]] | Theo dõi đầu cơ | Bất động sản du lịch, định giá thấp |
+
+### Bất động sản: Hưởng lợi nhưng phân hóa
+
+> [!warning] Lưu ý quan trọng
+> Giảm lãi suất không đồng nghĩa bất động sản "thời kỳ hoàng kim". Mặt bằng lãi suất vẫn **cao hơn đáng kể so với năm 2021** (năm 2021 khoảng 5%).
+
+**Dòng tiền sẽ ưu tiên**:
+- Doanh nghiệp có **bất động sản hiện hữu**
+- Tài sản ở **trung tâm đô thị**
+- Sản phẩm có **nhu cầu thật**
+
+**Cần cẩn trọng với**:
+- Dự án ở khu vực xa, thanh khoản thấp
+- Bất động sản mang tính đầu cơ cao
+
+### Dòng tiền lớn và hành vi nhà đầu tư tổ chức
+
+| Hành vi | Chi tiết |
+|---|---|
+| Mua dần khi định giá hấp dẫn | Không mua một lệnh lớn duy nhất |
+| Kiên nhẫn gom trong thời gian dài | Lợi thế về tiền và hiểu doanh nghiệp |
+| Khi đủ lực mua | Cổ phiếu rất khó giảm sâu thêm |
+
+**Ví dụ**: NTL/Đô thị Từ Liêm, DXP
+
+### Các tin xấu bên ngoài đang "chai dần"
+
+| Tin xấu | Tình trạng |
+|---|---|
+| Covid | Đã "chai" |
+| Trái phiếu | Đã "chai" |
+| Biến động tỷ giá USD | Đã "chai" |
+| Căng thẳng eo biển/địa chính trị | Đang "chai" |
+| Giá dầu tăng | Đang "chai" |
+
+→ Đây là yếu tố hỗ trợ cho khả năng thị trường giữ nền tốt hơn trước các cú sốc bên ngoài.
 
 ## Thông tư 136 và Thị trường trái phiếu
 

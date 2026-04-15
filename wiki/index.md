@@ -1,7 +1,7 @@
 ---
 title: Index
 created: 2026-04-14
-last_updated: 2026-04-14
+last_updated: 2026-04-15
 source_count: 0
 status: draft
 page_type: index
@@ -32,6 +32,7 @@ Master catalog of the second brain. Use this file for human orientation and brow
 - [[source-dtdt-13-4-2026|ĐTDT 13/4/2026 — Giá dầu bật mạnh]] — US-Iran negotiations failed, Hormuz blockade, oil prices above $100 (Brent $102.80, WTI $104.88), VN-Index weak breadth, public investment plan 8.22M VND 2026-2030
 - [[source-thai-pham-12-4-2026|Thái Phạm 12/4/2026 — Kịch bản đàm phán Mỹ-Iran]] — Three scenarios for Iran-US negotiations (55-60% de-escalation), oil peaked short-term (contradicts 13/4), S&P 500 strong recovery, Vietnam market positive medium-term, PM Lê Minh Hưng praised
 - [[source-quang-dung-10-4-2026|Quang Dung 10/4/2026 — Hạ lãi suất và góc nhìn đầu tư]] — Deep analysis on interest rate cuts: credit-deposit imbalance (2021-2022), State Treasury deposits mechanism, Thông tư 22/2019, Nghị quyết 42, capital increase wave, banking sector differentiation, GDP efficiency by credit allocation
+- [[source-luong-huynh-9-4-2026|Lương Huỳnh 9/4/2026 — Chiến lược săn cổ phiếu]] — Stock picking strategy after 46-bank interest rate cuts: P/E ~14x (not expensive), "mini/medium wave" market outlook, priority stocks stronger than market, real estate differentiated by asset quality, specific stock analysis (FPT, MWG, STB, HHV, VHC), margin trading only when uptrend confirmed
 
 ## Topics and Concepts
 - [[kinh-te-vi-mo-viet-nam-q2-2026|Kinh tế vĩ mô Việt Nam Q2/2026]] — macro outlook: GDP, inflation, rates, FX, equity scenario; updated with banking liquidity crisis (LDR>110%, interbank rates 15%), Q1 trade deficit $3.64B, 46-bank interest rate consensus
