@@ -40,73 +40,6 @@ Think of it as:
 - `wiki/` = canonical memory
 - `outputs/` = useful deliverables and episodic artifacts
 
-## How the agent is guided
-
-There are 3 important control layers in this repo:
-
-### 1. `AGENTS.md`
-[`AGENTS.md`](./AGENTS.md) is the top-level operating manual.
-
-It defines:
-- the mission of the second brain
-- the repository architecture
-- mandatory skill activation rules
-- non-negotiable quality rules
-- when the agent must ask the user before making structural changes
-
-If you change how the repo works, start here.
-
-### 2. `.pi/prompts/`
-The files in [`.pi/prompts/`](./.pi/prompts) are **thin prompt entry points**.
-
-They are intentionally short. They do not contain the full workflow logic.
-Instead, each prompt tells the agent:
-- which skills to load
-- what job to perform
-- what artifact to produce
-- when to update `wiki/index.md` and `wiki/log.md`
-
-In other words:
-- **prompts = user-facing entry points**
-- **skills = reusable operating procedures**
-
-### 3. `.pi/skills/`
-The files in [`.pi/skills/`](./.pi/skills) contain the durable workflow instructions.
-
-These are the real operating playbooks.
-They explain how ingest, query, review, crystallization, and visualization should be done.
-
-The `llm-wiki-*` skills are the most important ones for this repo.
-
-## How prompts and skills relate
-
-A good mental model is:
-
-1. A person wants something done.
-2. They invoke a prompt from `.pi/prompts/`.
-3. That prompt tells the agent to read `AGENTS.md` and load the right skills.
-4. The loaded skills tell the agent exactly how to perform the work.
-5. The result gets integrated into `raw/`, `wiki/`, `outputs/`, Bases, Canvases, index, and log as needed.
-
-So if you want to **use** the system, start with prompts.
-If you want to **change how the system behaves**, edit skills.
-
-## How to use the prompts
-
-Each prompt file is a reusable task template for Pi.
-Most of them accept `$ARGUMENTS`, which means you provide a topic, file path, folder, URL, or question.
-
-Examples of the kinds of arguments each prompt expects:
-- a topic: `AI coding agents`
-- a pair of concepts: `Project X and habit tracking`
-- a raw file path: `raw/inbox/some-article.md`
-- a raw folder: `raw/inbox/`
-- a URL: `https://example.com/article`
-- a natural-language question: `What do we already know about ...?`
-
-The exact way you invoke prompt files depends on your Pi workflow, but conceptually each file in `.pi/prompts/` is a named entry point.
-Use the filename as the task name and pass the relevant argument.
-
 ## Prompt catalog
 
 ### Query and synthesis prompts
@@ -168,7 +101,7 @@ Use the filename as the task name and pass the relevant argument.
   - Use after a meaningful research, debugging, or exploration session.
   - The goal is to turn a completed thread into durable memory in `outputs/` and promote stable lessons into `wiki/`.
 
-## What the `llm-wiki-*` skills are for
+## `llm-wiki-*` skills
 
 These are the durable workflow skills that make the prompts work.
 
