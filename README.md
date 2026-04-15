@@ -385,7 +385,37 @@ These references are especially relevant when changing the knowledge-system desi
 - Edit `AGENTS.md` if you want to change global rules.
 - Edit `.pi/prompts/` if you want different user-facing entry points.
 - Edit `.pi/skills/` if you want to change the actual workflows.
+- Edit `.pi/extensions/` if you want to change local workflow routing, guardrails, reminders, or verification hooks.
 - Read [`LLM-WIKI.md`](./LLM-WIKI.md) and [`LLM-WIKI-v2.md`](./LLM-WIKI-v2.md) before making system-level design changes.
+
+## Local hook layer
+
+This repo now includes project-local pi extensions in [`.pi/extensions/`](./.pi/extensions/).
+
+The local hook layer is intentionally narrow. It helps with:
+- deterministic workflow routing
+- deterministic policy guardrails
+- session reminders
+- post-turn workflow verification
+- structured session compaction memory
+- notify-only capture watching
+- explicit scheduled-maintenance trigger bridging
+
+It does **not** replace the prompt-and-skill workflow layer. Semantic tasks like ingest reasoning, contradiction handling, and crystallization judgment still belong in prompts and skills.
+
+Current local extensions:
+- `workflow-router.ts` - routes bare URLs and raw file paths into the right prompts
+- `vault-guardrails.ts` - enforces raw immutability, protects `wiki/log.md`, and screens downstream writes for sensitive content
+- `workflow-auditor.ts` - reports likely incomplete workflow outcomes after a turn
+- `session-reminders.ts` - reminds about pending captures and overdue review/lint work
+- `compaction-memory.ts` - preserves structured episodic session state during compaction without writing durable files
+- `inbox-watcher.ts` - watches `raw/inbox/` and `raw/captures/` while pi is running and suggests ingest commands for new files
+- `scheduled-trigger.ts` - bridges external scheduled maintenance triggers into pi reminders or queued maintenance commands
+
+For project-specific hook behavior and rollback notes, see [`docs/pi-hooks-local.md`](./docs/pi-hooks-local.md).
+For scheduled maintenance setup, see [`docs/pi-scheduled-maintenance.md`](./docs/pi-scheduled-maintenance.md).
+
+After editing hooks, use `/reload` inside pi to reload extensions, prompts, skills, and context files.
 
 ## Short version
 

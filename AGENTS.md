@@ -11,6 +11,7 @@ Prefer compiling knowledge once, updating it with evidence, and reusing it later
 - This repository is currently manual-first, human-steered, and prompt-driven.
 - Prefer explicit workflows and scheduled review passes over pretending hidden automation already exists.
 - Shape prompts and skills so they can later support hooks or scheduled jobs.
+- Use hooks mainly for routing, reminders, guardrails, and verification rather than hidden semantic automation.
 - Do not claim automation, graph infrastructure, or lifecycle enforcement that the repo does not yet actually have.
 
 ## Core Layers
