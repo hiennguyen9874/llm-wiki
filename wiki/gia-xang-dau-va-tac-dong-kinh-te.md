@@ -3,7 +3,7 @@ title: "Giá xăng dầu và tác động kinh tế Việt Nam"
 created: 2026-04-14
 last_updated: 2026-04-14
 source_count: 1
-status: draft
+status: reviewed
 page_type: concept
 aliases: [Oil price impact on Vietnam, Xăng dầu và kinh tế]
 tags: [vietnam, oil-prices, inflation, macroeconomics, cost-push]
@@ -15,7 +15,7 @@ confidence_score: 0.80
 quality_score: 0.85
 evidence_count: 1
 first_seen: 2026-04-14
-last_confirmed: 2026-04-14
+last_confirmed: 2026-04-15
 claim_status: active
 retention_class: working
 visibility: private
@@ -94,14 +94,10 @@ Tác động giá xăng dầu lên kinh tế Việt Nam **không đồng nhất*
 > [!note] Cập nhật từ 9/4
 > Brent $95.92 → $102.80 (+$6.88/thùng) và WTI $97.87 → $104.88 (+$7.01/thùng) chỉ trong 4 ngày.
 
-> [!warning] Contradiction: Dầu đã tạo đỉnh?
-> **Thái Phạm (12/4)** cho rằng giá dầu **đã tạo đỉnh ngắn hạn**, dù nguồn [[source-dtdt-13-4-2026]] ghi nhận Brent tăng lên $102.80. Lập luận của Thái Phạm:
-> - Iran không phải bên hưởng lợi lớn nhất từ giá dầu cao
-> - Mỹ, Nga, Saudi Arabia mới là các bên được hưởng lợi nhiều hơn
-> - Nếu Iran kéo dài siết Hormuz, chính Iran cũng bị thiệt hại
-> - Thế giới sẽ tìm nguồn thay thế từ Mỹ, Saudi, UAE, Oman, Nga
+> [!note] Oil price contradiction — resolved (2026-04-15)
+> **Thái Phạm (12/4)** cho rằng giá dầu **đã tạo đỉnh ngắn hạn**; [[source-dtdt-13-4-2026]] ghi nhận Brent $102.80. 
 > 
-> Cần theo dõi sau 14/4 để xác nhận quan điểm nào chính xác hơn.
+> **Resolution**: Two views valid with different time horizons. Thái Phạm's structural argument (US, Russia, Saudi benefit; Iran also hurt by prolonged blockade) is valid for medium-term. The $102.80 spike is short-term shock from Hormuz blockade announcement. See [[kinh-te-vi-mo-viet-nam-q2-2026#resolution-of-contradiction]] for details.
 
 - Thị trường biến động do thỏa thuận ngừng bắn Trung Đông còn mong manh
 - Rủi ro không chỉ ở mức giá mà còn ở **đảm bảo nguồn cung nhập khẩu**

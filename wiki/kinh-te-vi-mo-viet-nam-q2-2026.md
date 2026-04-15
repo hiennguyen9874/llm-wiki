@@ -3,7 +3,7 @@ title: "Kinh tế vĩ mô Việt Nam Q2/2026"
 created: 2026-04-14
 last_updated: 2026-04-15
 source_count: 6
-status: draft
+status: reviewed
 page_type: topic
 aliases: [Vietnam macro Q2 2026, Triển vọng vĩ mô Q2/2026]
 tags: [vietnam, macroeconomics, gdp, inflation, interest-rates, exchange-rate, banking, liquidity, credit-growth, deposit-growth, capital-increase, 2026-Q2]
@@ -15,7 +15,7 @@ confidence_score: 0.75
 quality_score: 0.80
 evidence_count: 6
 first_seen: 2026-04-14
-last_confirmed: 2026-04-14
+last_confirmed: 2026-04-15
 claim_status: active
 retention_class: episodic
 visibility: private
@@ -566,6 +566,19 @@ Chiều 9/4, **NHNN họp với 46 ngân hàng thương mại** → các ngân h
 - Có thể **chậm chân hơn** trong chu kỳ chính sách
 - Áp lực tăng vốn **lớn hơn**
 - Rủi ro về tỷ lệ an toàn **cao hơn** nếu không tăng vốn thành công
+
+## Resolution of Contradiction
+
+### Oil Price: Thái Phạm vs ĐTDT 13/4
+
+| Source | View | Date |
+|--------|------|------|
+| [[source-thai-pham-12-4-2026|Thái Phạm]] | Oil peaked short-term | 12/4 |
+| [[source-dtdt-13-4-2026|ĐTDT 13/4]] | Brent $102.80 breakout | 13/4 |
+
+**Resolution**: Thái Phạm's analysis (12/4) was based on expectations that negotiations were still ongoing. By 13/4, negotiations had failed and the US announced Hormuz blockade, causing Brent to spike to $102.80. Thái Phạm's structural argument (US, Russia, Saudi Arabia benefit from high prices; Iran also gets hurt by prolonged blockade) remains valid for the medium term. The $102.80 spike represents a short-term shock that could reverse if de-escalation occurs.
+
+**Status**: Thái Phạm's medium-term view is plausible; the short-term spike is factually recorded from ĐTDT 13/4. Both can coexist with different time horizons.
 
 ## Nguồn
 

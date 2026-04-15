@@ -3,7 +3,7 @@ title: Home
 created: 2026-04-14
 last_updated: 2026-04-14
 source_count: 0
-status: draft
+status: reviewed
 page_type: home
 aliases: [Second Brain Home]
 tags: [system, overview]

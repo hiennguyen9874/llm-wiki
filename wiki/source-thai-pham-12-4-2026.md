@@ -284,8 +284,12 @@ Trong bối cảnh lãi suất còn cao:
 | Trạng thái đàm phán | Đang diễn ra | Đã thất bại |
 | Hormuz | Còn biến động | Mỹ tuyên bố phong tỏa |
 
-> [!important] Xử lý contradiction
-> Hai nguồn ghi nhận tại thời điểm 12-13/4 với diễn biến nối tiếp: Thái Phạm phân tích dựa trên kỳ vọng đàm phán còn tiếp diễn; ĐTDT 13/4 ghi nhận đàm phán đã kết thúc thất bại. Về giá dầu, Thái Phạm đưa ra dự báo ngược chiều — cần theo dõi để xác nhận sau 14/4.
+> [!important] ✅ Contradiction resolved
+> **Resolution (2026-04-15)**: Two sources reflect different time horizons:
+> - **Thái Phạm (12/4)**: Medium-term structural view — US, Russia, Saudi Arabia benefit from high prices; Iran also gets hurt by prolonged blockade; oil near peak structurally
+> - **ĐTDT 13/4**: Short-term fact — Brent spiked to $102.80 due to Hormuz blockade announcement
+> 
+> Both views are valid with different time frames. Thái Phạm's structural argument remains plausible for medium-term outlook; the $102.80 spike reflects short-term shock that could reverse if de-escalation occurs. See [[kinh-te-vi-mo-viet-nam-q2-2026#resolution-of-contradiction]] for full resolution.
 
 ## Nguồn liên quan
 
