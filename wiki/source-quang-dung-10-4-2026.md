@@ -10,7 +10,7 @@ tags: [source, vietnam, macroeconomics, interest-rates, banking, credit-growth, 
 domain: finance
 importance: high
 review_status: processed
-related_sources: [source-dtdt-10-4-2026, source-ban-tron-dau-tu-q2-2026, source-dtdt-13-4-2026, source-thai-pham-12-4-2026]
+related_sources: [source-dtdt-10-4-2026, source-ban-tron-dau-tu-q2-2026, source-dtdt-13-4-2026, source-thai-pham-12-4-2026, source-quang-dung-8-4-2026]
 confidence_score: 0.80
 quality_score: 0.85
 evidence_count: 1
@@ -336,6 +336,7 @@ Diễn giả dùng khái niệm "nuôi zombie" để chỉ:
 - [[kinh-te-vi-mo-viet-nam-q2-2026]] — Bổ sung cơ chế vốn, tiền gửi Kho bạc, Thông tư 22/2019, Nghị quyết 42, phân hóa ngành ngân hàng, hiệu quả GDP theo tín dụng
 - [[entity-46-ngan-hang-thuong-mai]] — Bổ sung chi tiết theo từng ngân hàng cụ thể
 - [[source-dtdt-10-4-2026]] — Bổ sung liên kết chéo
+- [[source-quang-dung-8-4-2026]] — Liên kết cùng tác giả, bổ sung trục thị trường / sóng chính sách
 
 ## Nguồn
 

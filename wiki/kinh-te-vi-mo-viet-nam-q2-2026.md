@@ -1,8 +1,8 @@
 ---
 title: "Kinh tế vĩ mô Việt Nam Q2/2026"
 created: 2026-04-14
-last_updated: 2026-04-15
-source_count: 6
+last_updated: 2026-04-22
+source_count: 7
 status: reviewed
 page_type: topic
 aliases: [Vietnam macro Q2 2026, Triển vọng vĩ mô Q2/2026]
@@ -10,12 +10,12 @@ tags: [vietnam, macroeconomics, gdp, inflation, interest-rates, exchange-rate, b
 domain: finance
 importance: high
 review_status: active
-related_sources: [source-ban-tron-dau-tu-q2-2026, source-dtdt-10-4-2026, source-dtdt-13-4-2026, source-thai-pham-12-4-2026, source-quang-dung-10-4-2026, source-luong-huynh-9-4-2026]
+related_sources: [source-ban-tron-dau-tu-q2-2026, source-dtdt-10-4-2026, source-dtdt-13-4-2026, source-thai-pham-12-4-2026, source-quang-dung-10-4-2026, source-luong-huynh-9-4-2026, source-quang-dung-8-4-2026]
 confidence_score: 0.75
 quality_score: 0.80
-evidence_count: 6
+evidence_count: 7
 first_seen: 2026-04-14
-last_confirmed: 2026-04-15
+last_confirmed: 2026-04-22
 claim_status: active
 retention_class: episodic
 visibility: private
@@ -256,6 +256,13 @@ Chiều 9/4, **NHNN họp với 46 ngân hàng thương mại** → các ngân h
 - Nâng hạng FTSE Russell chỉ huy động vài trăm triệu USD — quá nhỏ so với nhu cầu.
 
 ## Thị trường cổ phiếu
+
+> [!note] Bổ sung từ [[source-quang-dung-8-4-2026]]
+> Một khung nhìn bổ sung cho thị trường đầu Q2/2026 là: phiên tăng mạnh khoảng +80 điểm nên được đọc như **phiên giải phóng tâm lý** sau khi nhiều nhóm cổ phiếu đã âm thầm tạo đáy trước đó khoảng 4–5 tuần, thay vì là điểm bắt đầu duy nhất của quá trình tạo đáy.
+
+> [!important] Hàm ý diễn giải
+> Không nên chỉ nhìn vĩ mô hiện tại hoặc điểm số chỉ số. Cần nhìn **bước tiếp theo của Chính phủ** và đọc thị trường ở cấp độ **luân phiên tạo đáy / đảo pha dòng tiền** giữa các nhóm ngành.
+
 
 - Kịch bản **cơ sở** duy trì nhưng với biến số mới.
 - P/E quanh mức cơ sở; P/B trên trung bình 3 năm.
@@ -586,3 +593,4 @@ Chiều 9/4, **NHNN họp với 46 ngân hàng thương mại** → các ngân h
 - [[source-dtdt-10-4-2026|Đối thoại Tết Đen 10/4/2026 — Ổn định vĩ mô và lãi suất ngân hàng]]
 - [[source-thai-pham-12-4-2026|Thái Phạm 12/4/2026 — Phân tích thị trường và kịch bản đàm phán Mỹ-Iran]]
 - [[source-quang-dung-10-4-2026|Quang Dung 10/4/2026 — Hạ lãi suất và góc nhìn đầu tư]]
+- [[source-quang-dung-8-4-2026|Quang Dung 8/4/2026 — Chứng khoán +80 điểm và hành động]]

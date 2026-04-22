@@ -1,7 +1,7 @@
 ---
 title: Index
 created: 2026-04-14
-last_updated: 2026-04-15
+last_updated: 2026-04-22
 source_count: 0
 status: draft
 page_type: index
@@ -33,10 +33,12 @@ Master catalog of the second brain. Use this file for human orientation and brow
 - [[source-thai-pham-12-4-2026|Thái Phạm 12/4/2026 — Kịch bản đàm phán Mỹ-Iran]] — Three scenarios for Iran-US negotiations (55-60% de-escalation), oil peaked short-term (resolution: different time horizons with ĐTDT 13/4), S&P 500 strong recovery, Vietnam market positive medium-term, PM Lê Minh Hưng praised
 - [[source-quang-dung-10-4-2026|Quang Dung 10/4/2026 — Hạ lãi suất và góc nhìn đầu tư]] — Deep analysis on interest rate cuts: credit-deposit imbalance (2021-2022), State Treasury deposits mechanism, Thông tư 22/2019, Nghị quyết 42, capital increase wave, banking sector differentiation, GDP efficiency by credit allocation
 - [[source-luong-huynh-9-4-2026|Lương Huỳnh 9/4/2026 — Chiến lược săn cổ phiếu]] — Stock picking strategy after 46-bank interest rate cuts: P/E ~14x (not expensive), "mini/medium wave" market outlook, priority stocks stronger than market, real estate differentiated by asset quality, specific stock analysis (FPT, MWG, STB, HHV, VHC), margin trading only when uptrend confirmed
+- [[source-quang-dung-8-4-2026|Quang Dung 8/4/2026 — Chứng khoán +80 điểm và hành động]] — Market-structure view: +80-point session as sentiment release rather than first bottom, rotational bottoming, policy-wave thesis, short-term sector rotation and long-term policy-sensitive groups
 
 ## Topics and Concepts
 - [[kinh-te-vi-mo-viet-nam-q2-2026|Kinh tế vĩ mô Việt Nam Q2/2026]] ⭐ — macro outlook: GDP, inflation, rates, FX, equity scenario; reviewed with oil price contradiction resolution, banking liquidity, Q1 trade deficit $3.64B, 46-bank consensus
 - [[gia-xang-dau-va-tac-dong-kinh-te|Giá xăng dầu và tác động kinh tế]] ⭐ — two-channel oil price transmission model (gasoline→CPI, diesel→PPI); reviewed with import costs ($1.4B/month gasoline, $549M/month crude), Brent $102.80, WTI $104.88
+- [[thi-truong-chung-khoan-viet-nam-q2-2026|Thị trường chứng khoán Việt Nam Q2/2026]] — canonical market-structure page for breadth, rotation, policy-wave framing, and stock-selection-vs-index interpretation
 
 ## Projects
 <!-- Add project pages here -->
@@ -46,6 +48,7 @@ Master catalog of the second brain. Use this file for human orientation and brow
 - [[person-thai-pham|Thái Phạm]] — market analyst; provides scenarios for Iran-US negotiations, Vietnam stock market outlook, and investment strategy
 - [[person-thu-tuong-viet-nam|Thủ tướng]] — Prime Minister's macro stability priority stance
 - [[person-le-minh-hung|PM Lê Minh Hưng]] — new Prime Minister, praised for macro stability experience
+- [[person-quang-dung|Quang Dung]] — analyst covering policy transmission, banking liquidity, and rotational market structure
 
 ## Timelines
 <!-- Add timeline pages here -->
