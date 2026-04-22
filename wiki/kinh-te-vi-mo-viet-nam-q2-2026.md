@@ -2,7 +2,7 @@
 title: "Kinh tế vĩ mô Việt Nam Q2/2026"
 created: 2026-04-14
 last_updated: 2026-04-22
-source_count: 8
+source_count: 9
 status: reviewed
 page_type: topic
 aliases: [Vietnam macro Q2 2026, Triển vọng vĩ mô Q2/2026]
@@ -10,10 +10,10 @@ tags: [vietnam, macroeconomics, gdp, inflation, interest-rates, exchange-rate, b
 domain: finance
 importance: high
 review_status: active
-related_sources: [source-ban-tron-dau-tu-q2-2026, source-dtdt-10-4-2026, source-dtdt-13-4-2026, source-thai-pham-12-4-2026, source-quang-dung-10-4-2026, source-luong-huynh-9-4-2026, source-quang-dung-8-4-2026, source-luong-huynh-12-4-2026]
+related_sources: [source-ban-tron-dau-tu-q2-2026, source-dtdt-10-4-2026, source-dtdt-13-4-2026, source-thai-pham-12-4-2026, source-quang-dung-10-4-2026, source-luong-huynh-9-4-2026, source-quang-dung-8-4-2026, source-luong-huynh-12-4-2026, source-luong-huynh-13-4-2026]
 confidence_score: 0.75
 quality_score: 0.80
-evidence_count: 8
+evidence_count: 9
 first_seen: 2026-04-14
 last_confirmed: 2026-04-22
 claim_status: active
@@ -587,6 +587,9 @@ Chiều 9/4, **NHNN họp với 46 ngân hàng thương mại** → các ngân h
 
 > [!note] Bổ sung từ [[source-luong-huynh-12-4-2026]]
 > Dù áp lực vĩ mô chưa biến mất, nguồn này cho rằng một số biến số ngắn hạn đã **bớt căng hơn trước**, gồm tỷ giá tự do và lãi suất qua đêm. Điều này không phủ định các rủi ro đã nêu ở trên, nhưng bổ sung một cách đọc rằng thị trường có thể đang phản ứng với trạng thái **ít xấu hơn** thay vì chờ môi trường trở nên thực sự đẹp.
+
+> [!note] Bổ sung tiếp từ [[source-luong-huynh-13-4-2026]]
+> Sau shock Hormuz, Lương Huỳnh tiếp tục reinforce một điểm quan trọng: dù dầu tăng mạnh ngắn hạn, phản ứng của nhiều thị trường vẫn chưa cho thấy panic system-wide. Điều này không phủ nhận rủi ro dầu/lạm phát, nhưng củng cố cách đọc rằng **shock vĩ mô lớn không tự động kéo theo phản ứng hoảng loạn đồng đều** nếu thị trường đã hấp thụ tin xấu tốt hơn trước.
 
 ## Resolution of Contradiction
 

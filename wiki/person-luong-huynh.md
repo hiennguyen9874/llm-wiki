@@ -2,7 +2,7 @@
 title: "Lương Huỳnh"
 created: 2026-04-22
 last_updated: 2026-04-22
-source_count: 2
+source_count: 3
 status: draft
 page_type: person
 aliases: [Luong Huynh, Lương Huỳnh analyst]
@@ -10,10 +10,10 @@ tags: [person, vietnam, finance, stock-market, market-analysis, investment]
 domain: finance
 importance: medium
 review_status: active
-related_sources: [source-luong-huynh-9-4-2026, source-luong-huynh-12-4-2026]
+related_sources: [source-luong-huynh-9-4-2026, source-luong-huynh-12-4-2026, source-luong-huynh-13-4-2026]
 confidence_score: 0.78
 quality_score: 0.80
-evidence_count: 2
+evidence_count: 3
 first_seen: 2026-04-22
 last_confirmed: 2026-04-22
 claim_status: active
@@ -35,6 +35,8 @@ Lương Huỳnh là một nguồn phân tích trong vault tập trung vào:
 - ưu tiên doanh nghiệp có nội tại mạnh, ít nợ, nhiều tiền mặt.
 
 ## Góc nhìn nổi bật trong các nguồn hiện có
+
+[[source-luong-huynh-13-4-2026]] tiếp tục nối mạch thesis của Lương Huỳnh sau shock Hormuz: không hoảng loạn theo headline chiến sự, ưu tiên quan sát phản ứng thực tế của giá và dòng tiền, và tập trung vào cổ phiếu mạnh / nhóm ngành mạnh tương đối.
 
 ### 1. Không nhìn thị trường chỉ qua chỉ số
 
@@ -69,3 +71,4 @@ Các tiêu chí được Lương Huỳnh nhấn mạnh lặp lại:
 
 - [[source-luong-huynh-9-4-2026|Lương Huỳnh 9/4/2026 — Chiến lược săn cổ phiếu trong bối cảnh giảm lãi suất]]
 - [[source-luong-huynh-12-4-2026|Lương Huỳnh 12/4/2026 — Đàm phán thất bại, thị trường sẽ ra sao?]]
+- [[source-luong-huynh-13-4-2026|Lương Huỳnh 13/4/2026 — Đóng cửa eo biển Hormuz, thị trường sẽ ra sao?]]

@@ -10,7 +10,7 @@ tags: [source, vietnam, stock-market, macroeconomics, investment-strategy, inter
 domain: finance
 importance: high
 review_status: processed
-related_sources: [source-luong-huynh-9-4-2026, source-thai-pham-12-4-2026, source-quang-dung-8-4-2026, source-quang-dung-10-4-2026, source-dtdt-13-4-2026]
+related_sources: [source-luong-huynh-9-4-2026, source-luong-huynh-13-4-2026, source-thai-pham-12-4-2026, source-quang-dung-8-4-2026, source-quang-dung-10-4-2026, source-dtdt-13-4-2026]
 confidence_score: 0.76
 quality_score: 0.82
 evidence_count: 1
@@ -162,6 +162,7 @@ Tiêu chí được nhắc lặp lại:
 - [[thi-truong-chung-khoan-viet-nam-q2-2026]] — củng cố luận điểm vùng đáy/tích lũy, hấp thụ tin xấu, và chọn cổ phiếu chất lượng hơn dự báo chỉ số.
 - [[kinh-te-vi-mo-viet-nam-q2-2026]] — bổ sung logic tín dụng ưu tiên khu vực hiệu quả, cân bằng hơn của tỷ giá/overnight, và nhấn mạnh lại vai trò lãi suất.
 - [[source-luong-huynh-9-4-2026]] — thêm liên kết nguồn cùng tác giả và làm rõ continuity của thesis.
+- [[source-luong-huynh-13-4-2026]] — nguồn nối tiếp sau shock Hormuz, reinforce mạnh hơn luận điểm bad-news absorption, relative strength, và ưu tiên bất động sản/xây dựng hơn chứng khoán ở nhịp hiện tại.
 - [[person-luong-huynh]] — tạo trang analyst để gom các nguồn cùng tác giả.
 
 ## Cân nhắc Base / Canvas

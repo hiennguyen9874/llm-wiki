@@ -2,7 +2,7 @@
 title: "Giá xăng dầu và tác động kinh tế Việt Nam"
 created: 2026-04-14
 last_updated: 2026-04-14
-source_count: 1
+source_count: 2
 status: reviewed
 page_type: concept
 aliases: [Oil price impact on Vietnam, Xăng dầu và kinh tế]
@@ -10,10 +10,10 @@ tags: [vietnam, oil-prices, inflation, macroeconomics, cost-push]
 domain: finance
 importance: high
 review_status: active
-related_sources: [source-ban-tron-dau-tu-q2-2026, source-dtdt-13-4-2026, source-thai-pham-12-4-2026]
+related_sources: [source-ban-tron-dau-tu-q2-2026, source-dtdt-13-4-2026, source-thai-pham-12-4-2026, source-luong-huynh-13-4-2026]
 confidence_score: 0.80
 quality_score: 0.85
-evidence_count: 1
+evidence_count: 2
 first_seen: 2026-04-14
 last_confirmed: 2026-04-15
 claim_status: active
@@ -97,7 +97,7 @@ Tác động giá xăng dầu lên kinh tế Việt Nam **không đồng nhất*
 > [!note] Oil price contradiction — resolved (2026-04-15)
 > **Thái Phạm (12/4)** cho rằng giá dầu **đã tạo đỉnh ngắn hạn**; [[source-dtdt-13-4-2026]] ghi nhận Brent $102.80. 
 > 
-> **Resolution**: Two views valid with different time horizons. Thái Phạm's structural argument (US, Russia, Saudi benefit; Iran also hurt by prolonged blockade) is valid for medium-term. The $102.80 spike is short-term shock from Hormuz blockade announcement. See [[kinh-te-vi-mo-viet-nam-q2-2026#resolution-of-contradiction]] for details.
+> **Resolution**: Two views valid with different time horizons. Thái Phạm's structural argument (US, Russia, Saudi benefit; Iran also hurt by prolonged blockade) is valid for medium-term. The $102.80 spike is short-term shock from Hormuz blockade announcement. [[source-luong-huynh-13-4-2026]] bổ sung thêm rằng đường cong futures được diễn giải như đang phản ánh kỳ vọng giá dầu hạ nhiệt dần về các tháng sau, càng củng cố cách đọc short-term shock vs medium-term normalization. See [[kinh-te-vi-mo-viet-nam-q2-2026#resolution-of-contradiction]] for details.
 
 - Thị trường biến động do thỏa thuận ngừng bắn Trung Đông còn mong manh
 - Rủi ro không chỉ ở mức giá mà còn ở **đảm bảo nguồn cung nhập khẩu**
@@ -130,6 +130,7 @@ Báu phân biệt hai loại chi phí khi dầu tăng:
 
 - [[source-ban-tron-dau-tu-q2-2026|Bàn Tròn Đầu Tư Q2/2026 — AFA Capital × We Group]]
 - [[source-dtdt-10-4-2026|Đối thoại Tết Đen 10/4/2026 — Bổ sung số liệu nhập khẩu năng lượng cụ thể, giá dầu thế giới]]
+- [[source-luong-huynh-13-4-2026|Lương Huỳnh 13/4/2026 — Góc nhìn trading sau shock Hormuz; futures được diễn giải là không tin giá dầu cao duy trì dài lâu]]
 
 ## Xem thêm
 
