@@ -2,7 +2,7 @@
 title: "Kinh tế vĩ mô Việt Nam Q2/2026"
 created: 2026-04-14
 last_updated: 2026-04-22
-source_count: 7
+source_count: 8
 status: reviewed
 page_type: topic
 aliases: [Vietnam macro Q2 2026, Triển vọng vĩ mô Q2/2026]
@@ -10,10 +10,10 @@ tags: [vietnam, macroeconomics, gdp, inflation, interest-rates, exchange-rate, b
 domain: finance
 importance: high
 review_status: active
-related_sources: [source-ban-tron-dau-tu-q2-2026, source-dtdt-10-4-2026, source-dtdt-13-4-2026, source-thai-pham-12-4-2026, source-quang-dung-10-4-2026, source-luong-huynh-9-4-2026, source-quang-dung-8-4-2026]
+related_sources: [source-ban-tron-dau-tu-q2-2026, source-dtdt-10-4-2026, source-dtdt-13-4-2026, source-thai-pham-12-4-2026, source-quang-dung-10-4-2026, source-luong-huynh-9-4-2026, source-quang-dung-8-4-2026, source-luong-huynh-12-4-2026]
 confidence_score: 0.75
 quality_score: 0.80
-evidence_count: 7
+evidence_count: 8
 first_seen: 2026-04-14
 last_confirmed: 2026-04-22
 claim_status: active
@@ -211,6 +211,10 @@ Chiều 9/4, **NHNN họp với 46 ngân hàng thương mại** → các ngân h
 
 ## Cơ cấu tín dụng
 
+> [!note] Bổ sung từ [[source-luong-huynh-12-4-2026]]
+> Một góc nhìn reinforcement đáng chú ý: nếu tăng trưởng tiếp tục được thúc đẩy qua tín dụng, dòng vốn có lý do để ưu tiên hơn cho khu vực **sản xuất - dịch vụ - nhà máy** thay vì quay lại bơm mạnh cho các khu vực bất động sản yếu, nơi vốn có thể bị "kẹt" lâu và tạo trạng thái gần với **zombie banking**.
+
+
 ### Hiệu quả phân bổ tín dụng theo ngành
 
 > [!note] Chi tiết từ [[source-quang-dung-10-4-2026]]
@@ -247,6 +251,7 @@ Chiều 9/4, **NHNN họp với 46 ngân hàng thương mại** → các ngân h
 - Tín dụng BĐS và "tín dụng khác" tiếp tục tăng.
 - Tín dụng công nghiệp, vận tải, viễn thông **đang giảm**.
 - Thanh khoản chỉ giải ở bề nổi (OMO, swap), chưa xử lý vấn đề cấu trúc.
+- Góc nhìn từ [[source-luong-huynh-12-4-2026]] reinforce rằng việc tiếp tục kéo dài vốn cho khu vực hấp thụ vốn kém hiệu quả có thể làm vòng quay vốn của nền kinh tế kém lành mạnh hơn.
 
 ## Dòng vốn ngoại
 
@@ -468,6 +473,10 @@ Chiều 9/4, **NHNN họp với 46 ngân hàng thương mại** → các ngân h
 
 ### Các tin xấu bên ngoài đang "chai dần"
 
+> [!note] Bổ sung từ [[source-luong-huynh-12-4-2026]]
+> Lương Huỳnh đẩy luận điểm này xa hơn một bước: khi tin xấu kéo dài đủ lâu, "tin xấu nhất" đôi khi lại gần vùng tạo đáy hơn là điểm bắt đầu cho một chu kỳ hoảng loạn hoàn toàn mới. Đây là cách đọc tâm lý thị trường, không phải quy luật cứng.
+
+
 | Tin xấu | Tình trạng |
 |---|---|
 | Covid | Đã "chai" |
@@ -574,6 +583,11 @@ Chiều 9/4, **NHNN họp với 46 ngân hàng thương mại** → các ngân h
 - Áp lực tăng vốn **lớn hơn**
 - Rủi ro về tỷ lệ an toàn **cao hơn** nếu không tăng vốn thành công
 
+## Tín hiệu ổn định tương đối ở lãi suất và tỷ giá
+
+> [!note] Bổ sung từ [[source-luong-huynh-12-4-2026]]
+> Dù áp lực vĩ mô chưa biến mất, nguồn này cho rằng một số biến số ngắn hạn đã **bớt căng hơn trước**, gồm tỷ giá tự do và lãi suất qua đêm. Điều này không phủ định các rủi ro đã nêu ở trên, nhưng bổ sung một cách đọc rằng thị trường có thể đang phản ứng với trạng thái **ít xấu hơn** thay vì chờ môi trường trở nên thực sự đẹp.
+
 ## Resolution of Contradiction
 
 ### Oil Price: Thái Phạm vs ĐTDT 13/4
@@ -594,3 +608,4 @@ Chiều 9/4, **NHNN họp với 46 ngân hàng thương mại** → các ngân h
 - [[source-thai-pham-12-4-2026|Thái Phạm 12/4/2026 — Phân tích thị trường và kịch bản đàm phán Mỹ-Iran]]
 - [[source-quang-dung-10-4-2026|Quang Dung 10/4/2026 — Hạ lãi suất và góc nhìn đầu tư]]
 - [[source-quang-dung-8-4-2026|Quang Dung 8/4/2026 — Chứng khoán +80 điểm và hành động]]
+- [[source-luong-huynh-12-4-2026|Lương Huỳnh 12/4/2026 — Đàm phán thất bại, thị trường sẽ ra sao?]]

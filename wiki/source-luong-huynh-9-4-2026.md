@@ -10,7 +10,7 @@ tags: [source, vietnam, stock-market, investment, interest-rates, real-estate, c
 domain: finance
 importance: high
 review_status: processed
-related_sources: [source-dtdt-10-4-2026, source-ban-tron-dau-tu-q2-2026, source-thai-pham-12-4-2026]
+related_sources: [source-dtdt-10-4-2026, source-ban-tron-dau-tu-q2-2026, source-thai-pham-12-4-2026, source-luong-huynh-12-4-2026]
 confidence_score: 0.75
 quality_score: 0.80
 evidence_count: 1
@@ -21,7 +21,7 @@ retention_class: episodic
 visibility: private
 supersedes: []
 superseded_by: []
-related_entities: [Lương-Huỳnh, VN-Index, FPT, MWG, STB, HHV, VHC, HPG, HSG, DGC, DPM, TNG, DXP, FCN, PC1, LCG, SSI, SHS, VIX, HCM, ACB, MBB, TCB, DXG, HDC, KDH, NTL, TCH, NVL, EVG, TTA]
+related_entities: [person-luong-huynh, VN-Index, FPT, MWG, STB, HHV, VHC, HPG, HSG, DGC, DPM, TNG, DXP, FCN, PC1, LCG, SSI, SHS, VIX, HCM, ACB, MBB, TCB, DXG, HDC, KDH, NTL, TCH, NVL, EVG, TTA]
 source_file: raw/articles/2026/thang-4/thi-truong/luong-huynh-9-4-2026.md
 source_type: transcript
 canonical_url: https://www.youtube.com/watch?v=MAhpsX4Ehn4
@@ -290,5 +290,6 @@ Lợi nhuận công ty chứng khoán phụ thuộc:
 
 - [[kinh-te-vi-mo-viet-nam-q2-2026]] — Bổ sung chiến lược chọn cổ phiếu, phân tích cụ thể
 - [[source-dtdt-10-4-2026]] — Xác nhận và bổ sung về giảm lãi suất 46 ngân hàng
+- [[source-luong-huynh-12-4-2026]] — Nguồn cùng tác giả, mở rộng thesis sang khung nhìn vùng đáy/tích lũy, tín dụng ưu tiên khu vực hiệu quả hơn, và chiến lược chọn doanh nghiệp ít nợ nhiều tiền mặt
 
 ---
