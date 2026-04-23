@@ -20,6 +20,7 @@ domain: machine-learning
 importance: medium
 review_status: active
 related_sources:
+  - source-github-anosorae-irra
   - source-arxiv-2308-09911-rde
   - source-arxiv-2507-10195-mra
 confidence_score: 0.89
@@ -65,7 +66,7 @@ entrypoint: raw/papers/arxiv-2303.12501-source/PaperForReview.tex
   - LaTeX entrypoint: `raw/papers/arxiv-2303.12501-source/PaperForReview.tex`
 
 ## Why it matters
-This paper is a direct source on [[text-to-image-person-retrieval]] that argues full-model CLIP transfer can outperform earlier retrieval systems when paired with an MLM-based cross-modal interaction module and a distribution-matching retrieval loss. It is also a useful reference point for the shift from explicit local alignment toward implicit token-level interaction with efficient global retrieval.
+This paper is a direct source on [[text-to-image-person-retrieval]] that argues full-model CLIP transfer can outperform earlier retrieval systems when paired with an MLM-based cross-modal interaction module and a distribution-matching retrieval loss. It is also a useful reference point for the shift from explicit local alignment toward implicit token-level interaction with efficient global retrieval. The later public code companion [[source-github-anosorae-irra]] now reinforces that these paper claims were realized as a reproducible CLIP-based training stack rather than remaining paper-only.
 
 ## Summary
 The paper proposes **IRRA** (*Implicit Relation Reasoning and Aligning*), a CLIP-initialized dual-encoder system for text-to-image person retrieval. Its core move is to avoid explicit part-level alignment at inference time while still learning fine-grained cross-modal relations during training.
@@ -123,12 +124,14 @@ The authors report state-of-the-art results, at publication time, on CUHK-PEDES,
 - Notes: Supported by the method and ablation sections; broader generality beyond these datasets remains unverified in-vault.
 
 ## Reinforcement / supersession assessment
+- The public implementation companion [[source-github-anosorae-irra]] reinforces the paper's architectural account and adds operational detail about the default recipe, the CLIP adaptation to `(384, 128)` person images, and the direct normalized-similarity evaluator.
 - Later in-vault sources [[source-arxiv-2308-09911-rde]] and [[source-arxiv-2507-10195-mra]] reinforce IRRA's role as an important baseline while superseding its historical benchmark-leadership claim.
 - Benchmark leadership claims are **time-bound** and should be interpreted as "as reported in this 2023 source," not as current state of the field.
 - No contradiction was found on the core architectural description; supersession mainly affects historical best-results status.
 
 ## Related pages updated
 - [[irra]]
+- [[source-github-anosorae-irra]]
 - [[text-to-image-person-retrieval]]
 - [[rde]]
 - [[mra]]

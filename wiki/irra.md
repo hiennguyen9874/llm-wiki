@@ -2,7 +2,7 @@
 title: IRRA
 created: 2026-04-23
 last_updated: 2026-04-23
-source_count: 7
+source_count: 8
 status: draft
 page_type: concept
 aliases:
@@ -18,6 +18,7 @@ importance: medium
 review_status: active
 related_sources:
   - source-arxiv-2303-12501-irra
+  - source-github-anosorae-irra
   - source-arxiv-2308-09911-rde
   - source-github-qinyang79-rde
   - source-arxiv-2308-10045-tbps-clip
@@ -26,7 +27,7 @@ related_sources:
   - source-arxiv-2604-18376-mvr
 confidence_score: 0.83
 quality_score: 0.86
-evidence_count: 7
+evidence_count: 8
 first_seen: 2026-04-23
 last_confirmed: 2026-04-23
 claim_status: active
@@ -38,6 +39,7 @@ superseded_by:
   - source-arxiv-2507-10195-mra
 related_entities:
   - text-to-image person retrieval
+  - global similarity retrieval
   - RDE
   - MARS
   - MRA
@@ -58,15 +60,16 @@ related_entities:
 IRRA (*Implicit Relation Reasoning and Aligning*) is a 2023 method for [[text-to-image-person-retrieval]] introduced in [[source-arxiv-2303-12501-irra]]. It keeps a dual-encoder retrieval setup but adds training-time mechanisms meant to learn stronger fine-grained cross-modal alignment without explicit part matching at inference.
 
 ## Summary
-The method starts from the full CLIP image and text encoders rather than separately pretrained unimodal backbones. The later companion repository [[source-github-qinyang79-rde]] also matters here because it explicitly acknowledges that the public RDE implementation is based on IRRA's codebase, reinforcing IRRA's role not just as a benchmark baseline but as an implementation scaffold for later robustness work. It then adds:
+The method starts from the full CLIP image and text encoders rather than separately pretrained unimodal backbones. The public implementation companion [[source-github-anosorae-irra]] makes this more concrete: it loads OpenAI CLIP checkpoints, resizes positional embeddings for person-retrieval image geometry, uses `ViT-B/16` with `(384, 128)` inputs and stride 16 by default, and keeps inference to normalized global text/image embedding similarity. It then adds:
 - an **Implicit Relation Reasoning (IRR)** module that uses masked language modeling with visual-token-conditioned interaction,
 - a **Similarity Distribution Matching (SDM)** loss for image-text alignment,
 - and an **identity classification loss** to tighten intra-identity grouping.
 
-The source argues this combination improves benchmark performance while preserving efficient retrieval through a single global similarity computation. A later source, [[source-arxiv-2308-10045-tbps-clip]], shows that a much simpler CLIP recipe can get close to or slightly exceed IRRA on some benchmarks while training far faster, so IRRA is best read as an early strong CLIP-based architecture rather than the only route to strong performance. Another later source, [[source-arxiv-2510-17685-bi-irra]], explicitly extends IRRA into a multilingual setting by replacing SDM with a stronger multilingual global-alignment stack and adding bidirectional multilingual masked-text / masked-image reasoning. A further source, [[source-arxiv-2604-18376-mvr]], shows IRRA can also be strengthened post hoc through training-free semantic compensation without retraining the backbone. In the current vault, IRRA remains an important architectural reference point, but its historical best-results claim is now superseded by later sources including [[source-arxiv-2308-09911-rde]], [[source-arxiv-2507-10195-mra]], and the multilingual descendant [[source-arxiv-2510-17685-bi-irra]].
+The later companion repository [[source-github-qinyang79-rde]] also matters here because it explicitly acknowledges that the public RDE implementation is based on IRRA's codebase, reinforcing IRRA's role not just as a benchmark baseline but as an implementation scaffold for later robustness work. A later source, [[source-arxiv-2308-10045-tbps-clip]], shows that a much simpler CLIP recipe can get close to or slightly exceed IRRA on some benchmarks while training far faster, so IRRA is best read as an early strong CLIP-based architecture rather than the only route to strong performance. Another later source, [[source-arxiv-2510-17685-bi-irra]], explicitly extends IRRA into a multilingual setting by replacing SDM with a stronger multilingual global-alignment stack and adding bidirectional multilingual masked-text / masked-image reasoning. A further source, [[source-arxiv-2604-18376-mvr]], shows IRRA can also be strengthened post hoc through training-free semantic compensation without retraining the backbone. In the current vault, IRRA remains an important architectural reference point, but its historical best-results claim is now superseded by later sources including [[source-arxiv-2308-09911-rde]], [[source-arxiv-2507-10195-mra]], and the multilingual descendant [[source-arxiv-2510-17685-bi-irra]].
 
 ## Relationships
 - `uses` CLIP full-model initialization
+- `uses` normalized global image/text similarity at inference
 - `uses` masked language modeling for token-level cross-modal supervision
 - `uses` similarity distribution matching as a retrieval objective
 - `supports` [[text-to-image-person-retrieval]]
@@ -99,8 +102,8 @@ The source argues this combination improves benchmark performance while preservi
 #### Claim
 - Statement: IRRA remains a strong CLIP-based TIReID baseline and a reference point for later methods such as RDE, TBPS-CLIP, Bi-IRRA, and MVR-style post-hoc enhancement.
 - Status: active
-- Confidence: 0.84
-- Evidence: [[source-arxiv-2303-12501-irra]], [[source-arxiv-2308-09911-rde]], [[source-github-qinyang79-rde]], [[source-arxiv-2308-10045-tbps-clip]], [[source-arxiv-2510-17685-bi-irra]], [[source-arxiv-2604-18376-mvr]]
+- Confidence: 0.85
+- Evidence: [[source-arxiv-2303-12501-irra]], [[source-github-anosorae-irra]], [[source-arxiv-2308-09911-rde]], [[source-github-qinyang79-rde]], [[source-arxiv-2308-10045-tbps-clip]], [[source-arxiv-2510-17685-bi-irra]], [[source-arxiv-2604-18376-mvr]]
 - Last confirmed: 2026-04-23
 - Notes: Reinforced because later sources compare directly against IRRA, extend it, reuse its code scaffold, or show competitive simpler baselines.
 
@@ -120,6 +123,7 @@ The source argues this combination improves benchmark performance while preservi
 
 ## Sources
 - [[source-arxiv-2303-12501-irra]]
+- [[source-github-anosorae-irra]]
 - [[source-arxiv-2308-09911-rde]]
 - [[source-github-qinyang79-rde]]
 - [[source-arxiv-2308-10045-tbps-clip]]
