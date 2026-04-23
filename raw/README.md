@@ -10,6 +10,7 @@ This directory holds immutable source documents for the second brain.
 - `web-clips/` — markdown from web clippers
 - `captures/` — quick captures, fleeting notes, copied snippets, and rough observations
 - `assets/` — downloaded images and attachments
+- `codes/` — source codes
 
 ## Rule
 Do not modify the contents of source documents after they are placed here.

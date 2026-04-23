@@ -2,7 +2,7 @@
 title: TBPS-CLIP
 created: 2026-04-23
 last_updated: 2026-04-23
-source_count: 1
+source_count: 2
 status: draft
 page_type: concept
 aliases:
@@ -19,9 +19,10 @@ importance: medium
 review_status: active
 related_sources:
   - source-arxiv-2308-10045-tbps-clip
+  - source-github-flame-chasers-tbps-clip
 confidence_score: 0.84
-quality_score: 0.81
-evidence_count: 1
+quality_score: 0.86
+evidence_count: 2
 first_seen: 2026-04-23
 last_confirmed: 2026-04-23
 claim_status: active
@@ -46,7 +47,7 @@ related_entities:
 
 # TBPS-CLIP
 
-TBPS-CLIP is a 2023 CLIP-based baseline for [[text-to-image-person-retrieval]] introduced in [[source-arxiv-2308-10045-tbps-clip]]. Unlike architecture-heavy methods, it keeps CLIP's original dual-encoder structure and improves TBPS largely through training recipe design.
+TBPS-CLIP is a 2023 CLIP-based baseline for [[text-to-image-person-retrieval]] introduced in [[source-arxiv-2308-10045-tbps-clip]]. Unlike architecture-heavy methods, it keeps CLIP's original dual-encoder structure and improves TBPS largely through training recipe design. The companion code repository, [[source-github-flame-chasers-tbps-clip]], confirms that the recipe is modular in practice, with optional MixGen, SimCLR self-supervision, MLM, ID loss, and a simplified launch preset.
 
 ## Summary
 TBPS-CLIP combines several practical ingredients:
@@ -67,6 +68,7 @@ The core lesson is that a tuned CLIP baseline can be competitive on TBPS without
 - `related_to` [[rde]]
 - `related_to` [[mars]]
 - `related_to` [[mra]]
+- `related_to` [[source-github-flame-chasers-tbps-clip]]
 
 ## Evidence / claims
 #### Claim
@@ -93,6 +95,14 @@ The core lesson is that a tuned CLIP baseline can be competitive on TBPS without
 - Last confirmed: 2026-04-23
 - Notes: Supported by the paper's model-generalization and model-compression experiments.
 
+#### Claim
+- Statement: The public TBPS-CLIP implementation makes the recipe modular, exposing optional MixGen, SimCLR self-supervision, MLM, and ID-loss branches plus a simplified preset for quick runs.
+- Status: active
+- Confidence: 0.90
+- Evidence: [[source-github-flame-chasers-tbps-clip]]
+- Last confirmed: 2026-04-23
+- Notes: Implementation-specific refinement of the paper's high-level recipe.
+
 ## Open questions
 - How much of TBPS-CLIP's gain comes from retrieval losses versus the augmentation pool and training tricks?
 - Does the recipe transfer to other fine-grained cross-modal retrieval tasks beyond person search?
@@ -100,3 +110,4 @@ The core lesson is that a tuned CLIP baseline can be competitive on TBPS without
 
 ## Sources
 - [[source-arxiv-2308-10045-tbps-clip]]
+- [[source-github-flame-chasers-tbps-clip]]

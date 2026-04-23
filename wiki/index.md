@@ -2,7 +2,7 @@
 title: Index
 created: 2026-04-14
 last_updated: 2026-04-23
-source_count: 9
+source_count: 10
 status: draft
 page_type: index
 aliases: [Catalog]
@@ -30,6 +30,7 @@ Master catalog of the second brain. Use this file for human orientation and brow
 - [[source-arxiv-2303-12501-irra]] — arXiv source page for the IRRA paper, preserved from LaTeX source rather than PDF.
 - [[source-arxiv-2308-09911-rde]] — arXiv source page for the RDE paper on noisy correspondence in text-to-image person re-identification.
 - [[source-arxiv-2308-10045-tbps-clip]] — arXiv source page for the CLIP-in-TBPS empirical study and lightweight baseline recipe.
+- [[source-github-flame-chasers-tbps-clip]] — GitHub source page for the public TBPS-CLIP implementation and simplified preset.
 - [[source-arxiv-2407-04287-mars]] — arXiv source page for the MARS paper on attribute-aware TBPS with masked reconstruction.
 - [[source-arxiv-2507-10195-mra]] — arXiv source page for the MRA paper on domain-aligned synthetic pretraining and region-phrase alignment.
 - [[source-arxiv-2509-09118-ga-dms]] — arXiv source page for the GA-DMS paper and its companion WebPerson dataset for robust text-based person retrieval.

@@ -2,7 +2,7 @@
 title: Source - arXiv 2308.10045 - TBPS-CLIP
 created: 2026-04-23
 last_updated: 2026-04-23
-source_count: 1
+source_count: 2
 status: reviewed
 page_type: source
 aliases:
@@ -21,12 +21,13 @@ domain: machine-learning
 importance: medium
 review_status: active
 related_sources:
+  - source-github-flame-chasers-tbps-clip
   - source-arxiv-2303-12501-irra
   - source-arxiv-2308-09911-rde
   - source-arxiv-2507-10195-mra
 confidence_score: 0.89
-quality_score: 0.86
-evidence_count: 1
+quality_score: 0.87
+evidence_count: 2
 first_seen: 2026-04-23
 last_confirmed: 2026-04-23
 claim_status: active
@@ -72,9 +73,10 @@ entrypoint: raw/papers/arxiv-2308.10045-source/arxiv.tex
   - `raw/papers/arxiv-2308.10045-source/`
   - LaTeX entrypoint: `raw/papers/arxiv-2308.10045-source/arxiv.tex`
 - Code URL: [https://github.com/Flame-Chasers/TBPS-CLIP](https://github.com/Flame-Chasers/TBPS-CLIP)
+- Companion code repository: [[source-github-flame-chasers-tbps-clip]]
 
 ## Why it matters
-This paper is a direct source on [[text-to-image-person-retrieval]] that argues a careful CLIP recipe can be a strong TBPS baseline without adding a bespoke multimodal interaction encoder. It broadens the in-vault story: performance gains come not only from architecture changes such as [[irra]] or robustness modules like [[rde]], but also from training tricks, data augmentation, loss design, and evaluation of model efficiency.
+This paper is a direct source on [[text-to-image-person-retrieval]] that argues a careful CLIP recipe can be a strong TBPS baseline without adding a bespoke multimodal interaction encoder. The companion code repository makes that recipe concrete and shows that performance gains come not only from architecture changes such as [[irra]] or robustness modules like [[rde]], but also from training tricks, data augmentation, loss design, and evaluation of model efficiency.
 
 ## Summary
 The paper studies CLIP for text-based person search through four lenses: practical training tricks, data augmentation, loss functions, and model generalization/compression.
@@ -84,6 +86,8 @@ Its main recipe, **TBPS-CLIP**, stays close to the original CLIP dual-encoder se
 2. **Image and text augmentations**, including an augmentation pool for images, back translation, and random deletion for text.
 3. **Retrieval-oriented losses**, notably normalized image-text contrastive loss (N-ITC), reversed image-text contrastive loss (R-ITC), and cyclic image-text contrastive loss (C-ITC), plus self-supervision and multi-view supervision variants in the ablations.
 4. **Generalization and compression probes**, including few-shot TBPS and layer-freezing observations for the text encoder.
+
+The companion GitHub repository, [[source-github-flame-chasers-tbps-clip]], also reveals additional implementation switches not foregrounded in the paper abstract, including MixGen, SimCLR image self-supervision, MLM, ID loss, and the simplified preset used by the shell scripts.
 
 The paper reports that TBPS-CLIP with ViT-B/16 reaches **73.54 / 65.05 / 61.95 Rank-1** on CUHK-PEDES, ICFG-PEDES, and RSTPReid respectively, while training in only **5 epochs** and remaining simpler than IRRA. It also shows that common augmentations and losses can lift vanilla CLIP substantially, and that TBPS-CLIP transfers better than prompt/adaptor-style CLIP variants in the paper's few-shot setting.
 
@@ -152,6 +156,7 @@ The paper reports that TBPS-CLIP with ViT-B/16 reaches **73.54 / 65.05 / 61.95 R
 - No sensitive material or contradiction issues were found, and the paper fits cleanly as a lightweight baseline study rather than a new taxonomy branch.
 
 ## Related pages updated
+- [[source-github-flame-chasers-tbps-clip]]
 - [[tbps-clip]]
 - [[text-to-image-person-retrieval]]
 - [[irra]]
@@ -162,5 +167,6 @@ The paper reports that TBPS-CLIP with ViT-B/16 reaches **73.54 / 65.05 / 61.95 R
 - Read from LaTeX source rather than PDF.
 - Normalized the user-provided arXiv URL to `/src/`, reused the cached source bundle, and preserved stable raw copies under `raw/papers/`.
 - Preserved the original arXiv URL in source metadata.
+- Integrated the companion code repository as a separate source page for implementation detail and recipe confirmation.
 - Did **not** create the skill-default `knowledge/summary_*.md` file.
 - No Base or Canvas update was necessary; the topic is still navigable through linked markdown pages.

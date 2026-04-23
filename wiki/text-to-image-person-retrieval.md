@@ -2,7 +2,7 @@
 title: Text-to-Image Person Retrieval
 created: 2026-04-23
 last_updated: 2026-04-23
-source_count: 9
+source_count: 10
 status: draft
 page_type: topic
 aliases:
@@ -21,6 +21,7 @@ related_sources:
   - source-arxiv-2303-12501-irra
   - source-arxiv-2308-09911-rde
   - source-arxiv-2308-10045-tbps-clip
+  - source-github-flame-chasers-tbps-clip
   - source-arxiv-2407-04287-mars
   - source-arxiv-2507-10195-mra
   - source-arxiv-2509-09118-ga-dms
@@ -28,8 +29,8 @@ related_sources:
   - source-arxiv-2510-17685-bi-irra
   - source-arxiv-2604-18376-mvr
 confidence_score: 0.86
-quality_score: 0.89
-evidence_count: 9
+quality_score: 0.90
+evidence_count: 10
 first_seen: 2026-04-23
 last_confirmed: 2026-04-23
 claim_status: active
@@ -79,10 +80,11 @@ related_entities:
 Text-to-image person retrieval is a multimodal retrieval task where a system receives a natural-language description of a person and must retrieve matching images from a gallery. The main challenge is aligning language and visual appearance despite modality mismatch, viewpoint/pose variation, ambiguity in textual descriptions, and potentially incorrect image-text pairings.
 
 ## Current in-vault view
-The vault currently has nine directly relevant sources:
+The vault currently has ten directly relevant sources:
 - [[source-arxiv-2303-12501-irra]] presents [[irra]] as a CLIP-based method that improves retrieval through training-time implicit relation reasoning and similarity distribution matching.
 - [[source-arxiv-2308-09911-rde]] presents [[rde]] as a later robustness-oriented method that explicitly models [[noisy-correspondence]] and reports stronger historical benchmark results than IRRA.
 - [[source-arxiv-2308-10045-tbps-clip]] presents [[tbps-clip]] as a lightweight CLIP recipe study showing that common training tricks, augmentation pools, and retrieval losses can make plain CLIP surprisingly strong for TBPS.
+- [[source-github-flame-chasers-tbps-clip]] exposes the public implementation of [[tbps-clip]], confirming that the recipe is modular in code and that the provided shell scripts use a simplified launch preset.
 - [[source-arxiv-2407-04287-mars]] presents [[mars]] as an attribute-focused TBPS method that adds masked reconstruction and chunk-level supervision over visual attributes.
 - [[source-arxiv-2507-10195-mra]] presents [[mra]] as a still later method that tackles the synthetic-to-real **pretraining gap** through [[domain-aware-diffusion]] and the [[synthetic-domain-aligned-dataset]], then adds explicit region-phrase alignment during pretraining.
 - [[source-arxiv-2509-09118-ga-dms]] presents [[ga-dms]] and [[webperson]] as a paired method-plus-dataset advance that targets noisy text tokens directly while scaling curated real-image pretraining.
@@ -212,6 +214,7 @@ Together, these sources suggest a broader in-vault progression: CLIP-based retri
 - [[source-arxiv-2303-12501-irra]]
 - [[source-arxiv-2308-09911-rde]]
 - [[source-arxiv-2308-10045-tbps-clip]]
+- [[source-github-flame-chasers-tbps-clip]]
 - [[source-arxiv-2407-04287-mars]]
 - [[source-arxiv-2507-10195-mra]]
 - [[source-arxiv-2509-09118-ga-dms]]
