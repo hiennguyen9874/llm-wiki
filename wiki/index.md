@@ -2,7 +2,7 @@
 title: Index
 created: 2026-04-14
 last_updated: 2026-04-23
-source_count: 10
+source_count: 11
 status: draft
 page_type: index
 aliases: [Catalog]
@@ -29,6 +29,7 @@ Master catalog of the second brain. Use this file for human orientation and brow
 ## Sources
 - [[source-arxiv-2303-12501-irra]] — arXiv source page for the IRRA paper, preserved from LaTeX source rather than PDF.
 - [[source-arxiv-2308-09911-rde]] — arXiv source page for the RDE paper on noisy correspondence in text-to-image person re-identification.
+- [[source-github-qinyang79-rde]] — GitHub source page for the public RDE implementation companion, including dual-branch loss modeling, synthetic-noise indices, and consensus filtering details.
 - [[source-arxiv-2308-10045-tbps-clip]] — arXiv source page for the CLIP-in-TBPS empirical study and lightweight baseline recipe.
 - [[source-github-flame-chasers-tbps-clip]] — GitHub source page for the public TBPS-CLIP implementation and simplified preset.
 - [[source-arxiv-2407-04287-mars]] — arXiv source page for the MARS paper on attribute-aware TBPS with masked reconstruction.

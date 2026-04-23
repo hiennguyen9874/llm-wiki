@@ -2,7 +2,7 @@
 title: IRRA
 created: 2026-04-23
 last_updated: 2026-04-23
-source_count: 6
+source_count: 7
 status: draft
 page_type: concept
 aliases:
@@ -19,13 +19,14 @@ review_status: active
 related_sources:
   - source-arxiv-2303-12501-irra
   - source-arxiv-2308-09911-rde
+  - source-github-qinyang79-rde
   - source-arxiv-2308-10045-tbps-clip
   - source-arxiv-2507-10195-mra
   - source-arxiv-2510-17685-bi-irra
   - source-arxiv-2604-18376-mvr
 confidence_score: 0.83
 quality_score: 0.86
-evidence_count: 6
+evidence_count: 7
 first_seen: 2026-04-23
 last_confirmed: 2026-04-23
 claim_status: active
@@ -57,7 +58,7 @@ related_entities:
 IRRA (*Implicit Relation Reasoning and Aligning*) is a 2023 method for [[text-to-image-person-retrieval]] introduced in [[source-arxiv-2303-12501-irra]]. It keeps a dual-encoder retrieval setup but adds training-time mechanisms meant to learn stronger fine-grained cross-modal alignment without explicit part matching at inference.
 
 ## Summary
-The method starts from the full CLIP image and text encoders rather than separately pretrained unimodal backbones. It then adds:
+The method starts from the full CLIP image and text encoders rather than separately pretrained unimodal backbones. The later companion repository [[source-github-qinyang79-rde]] also matters here because it explicitly acknowledges that the public RDE implementation is based on IRRA's codebase, reinforcing IRRA's role not just as a benchmark baseline but as an implementation scaffold for later robustness work. It then adds:
 - an **Implicit Relation Reasoning (IRR)** module that uses masked language modeling with visual-token-conditioned interaction,
 - a **Similarity Distribution Matching (SDM)** loss for image-text alignment,
 - and an **identity classification loss** to tighten intra-identity grouping.
@@ -98,10 +99,10 @@ The source argues this combination improves benchmark performance while preservi
 #### Claim
 - Statement: IRRA remains a strong CLIP-based TIReID baseline and a reference point for later methods such as RDE, TBPS-CLIP, Bi-IRRA, and MVR-style post-hoc enhancement.
 - Status: active
-- Confidence: 0.83
-- Evidence: [[source-arxiv-2303-12501-irra]], [[source-arxiv-2308-09911-rde]], [[source-arxiv-2308-10045-tbps-clip]], [[source-arxiv-2510-17685-bi-irra]], [[source-arxiv-2604-18376-mvr]]
+- Confidence: 0.84
+- Evidence: [[source-arxiv-2303-12501-irra]], [[source-arxiv-2308-09911-rde]], [[source-github-qinyang79-rde]], [[source-arxiv-2308-10045-tbps-clip]], [[source-arxiv-2510-17685-bi-irra]], [[source-arxiv-2604-18376-mvr]]
 - Last confirmed: 2026-04-23
-- Notes: Reinforced because later sources compare directly against IRRA, extend it, or show competitive simpler baselines.
+- Notes: Reinforced because later sources compare directly against IRRA, extend it, reuse its code scaffold, or show competitive simpler baselines.
 
 #### Claim
 - Statement: IRRA reported publication-time SOTA on three person-retrieval benchmarks in early 2023.
@@ -120,6 +121,7 @@ The source argues this combination improves benchmark performance while preservi
 ## Sources
 - [[source-arxiv-2303-12501-irra]]
 - [[source-arxiv-2308-09911-rde]]
+- [[source-github-qinyang79-rde]]
 - [[source-arxiv-2308-10045-tbps-clip]]
 - [[source-arxiv-2507-10195-mra]]
 - [[source-arxiv-2510-17685-bi-irra]]

@@ -2,7 +2,7 @@
 title: RDE
 created: 2026-04-23
 last_updated: 2026-04-23
-source_count: 3
+source_count: 4
 status: draft
 page_type: concept
 aliases:
@@ -18,11 +18,12 @@ importance: medium
 review_status: active
 related_sources:
   - source-arxiv-2308-09911-rde
+  - source-github-qinyang79-rde
   - source-arxiv-2507-10195-mra
   - source-arxiv-2509-09118-ga-dms
 confidence_score: 0.81
 quality_score: 0.80
-evidence_count: 3
+evidence_count: 4
 first_seen: 2026-04-23
 last_confirmed: 2026-04-23
 claim_status: active
@@ -56,13 +57,16 @@ RDE keeps a CLIP-based dual-encoder retrieval setup but adds explicit robustness
 - **Confident Consensus Division (CCD)** to identify high-confidence clean pairs from agreement between BGE- and TSE-based clean/noisy splits,
 - **Triplet Alignment Loss (TAL)** to stabilize triplet-style learning by replacing hardest-negative-only optimization with a log-sum-exp upper bound over all negatives.
 
-The method is presented as both a stronger historical benchmark result than [[irra]] and as a task-framing shift: TIReID should account for pair-level alignment noise instead of assuming all image-text pairs are clean. In the current vault, that historical best-results position is later superseded by [[mra]] and then [[ga-dms]], but RDE remains a key robustness-oriented reference point because later work still reinforces the importance of noise-aware learning.
+The method is presented as both a stronger historical benchmark result than [[irra]] and as a task-framing shift: TIReID should account for pair-level alignment noise instead of assuming all image-text pairs are clean. The companion code source [[source-github-qinyang79-rde]] makes that robustness story concrete: the public implementation keeps an IRRA-like CLIP scaffold, computes separate per-sample losses for BGE and TSE, fits Gaussian mixtures to both branches, and trains on their consensus clean-mask before evaluating BGE, TSE, and averaged BGE+TSE retrieval. In the current vault, RDE's historical best-results position is later superseded by [[mra]] and then [[ga-dms]], but RDE remains a key robustness-oriented reference point because later work still reinforces the importance of noise-aware learning.
 
 ## Relationships
 - `uses` CLIP image/text encoders
 - `uses` BGE and TSE as complementary embedding branches
 - `uses` CCD for clean/noisy pair consensus filtering
 - `uses` TAL for robust cross-modal similarity learning
+- `uses` dual Gaussian-mixture clean/noisy splitting in the public implementation
+- `depends_on` an IRRA-derived CLIP training scaffold in the public implementation
+- `uses` BGE+TSE score averaging at inference in the public implementation
 - `supports` [[text-to-image-person-retrieval]]
 - `supports` [[noisy-correspondence]]
 - `related_to` [[irra]]
@@ -91,6 +95,14 @@ The method is presented as both a stronger historical benchmark result than [[ir
 - Notes: Important conceptual distinction for future retrieval work in this area; later GA-DMS reinforces the broader importance of noise-aware learning at token level.
 
 #### Claim
+- Statement: The public RDE implementation realizes CCD by fitting separate Gaussian mixtures to normalized BGE and TSE per-sample losses, then using their consensus clean mask to weight training losses.
+- Status: active
+- Confidence: 0.90
+- Evidence: [[source-github-qinyang79-rde]]
+- Last confirmed: 2026-04-23
+- Notes: Implementation-level reinforcement that clarifies how the paper's robustness idea is operationalized in code.
+
+#### Claim
 - Statement: RDE supersedes IRRA's historical best-reported benchmark results in this vault, but is later superseded by MRA's 2025 reported results.
 - Status: superseded
 - Confidence: 0.81
@@ -107,5 +119,6 @@ The method is presented as both a stronger historical benchmark result than [[ir
 
 ## Sources
 - [[source-arxiv-2308-09911-rde]]
+- [[source-github-qinyang79-rde]]
 - [[source-arxiv-2507-10195-mra]]
 - [[source-arxiv-2509-09118-ga-dms]]

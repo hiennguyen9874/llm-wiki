@@ -2,7 +2,7 @@
 title: Text-to-Image Person Retrieval
 created: 2026-04-23
 last_updated: 2026-04-23
-source_count: 10
+source_count: 11
 status: draft
 page_type: topic
 aliases:
@@ -20,6 +20,7 @@ review_status: active
 related_sources:
   - source-arxiv-2303-12501-irra
   - source-arxiv-2308-09911-rde
+  - source-github-qinyang79-rde
   - source-arxiv-2308-10045-tbps-clip
   - source-github-flame-chasers-tbps-clip
   - source-arxiv-2407-04287-mars
@@ -30,7 +31,7 @@ related_sources:
   - source-arxiv-2604-18376-mvr
 confidence_score: 0.86
 quality_score: 0.90
-evidence_count: 10
+evidence_count: 11
 first_seen: 2026-04-23
 last_confirmed: 2026-04-23
 claim_status: active
@@ -80,9 +81,10 @@ related_entities:
 Text-to-image person retrieval is a multimodal retrieval task where a system receives a natural-language description of a person and must retrieve matching images from a gallery. The main challenge is aligning language and visual appearance despite modality mismatch, viewpoint/pose variation, ambiguity in textual descriptions, and potentially incorrect image-text pairings.
 
 ## Current in-vault view
-The vault currently has ten directly relevant sources:
+The vault currently has eleven directly relevant sources:
 - [[source-arxiv-2303-12501-irra]] presents [[irra]] as a CLIP-based method that improves retrieval through training-time implicit relation reasoning and similarity distribution matching.
 - [[source-arxiv-2308-09911-rde]] presents [[rde]] as a later robustness-oriented method that explicitly models [[noisy-correspondence]] and reports stronger historical benchmark results than IRRA.
+- [[source-github-qinyang79-rde]] exposes the public implementation of [[rde]], confirming that the method is realized as a CLIP/IRRA-style training scaffold with dual-branch loss modeling, Gaussian-mixture clean-pair filtering, packaged synthetic-noise indices, and BGE+TSE score fusion at evaluation.
 - [[source-arxiv-2308-10045-tbps-clip]] presents [[tbps-clip]] as a lightweight CLIP recipe study showing that common training tricks, augmentation pools, and retrieval losses can make plain CLIP surprisingly strong for TBPS.
 - [[source-github-flame-chasers-tbps-clip]] exposes the public implementation of [[tbps-clip]], confirming that the recipe is modular in code and that the provided shell scripts use a simplified launch preset.
 - [[source-arxiv-2407-04287-mars]] presents [[mars]] as an attribute-focused TBPS method that adds masked reconstruction and chunk-level supervision over visual attributes.
@@ -92,7 +94,7 @@ The vault currently has ten directly relevant sources:
 - [[source-arxiv-2510-17685-bi-irra]] presents [[bi-irra]] as a multilingual extension of IRRA that adds bidirectional multilingual reasoning and benchmark construction via LDAT.
 - [[source-arxiv-2604-18376-mvr]] presents [[mvr]] as a training-free semantic-compensation method that improves robustness through LLM-driven multi-view reformulation at inference time.
 
-Together, these sources suggest a broader in-vault progression: CLIP-based retrieval became a strong baseline, later work emphasized robustness to pair-level noise, a separate recipe study showed that careful training/augmentation/loss design can make a simple CLIP baseline highly competitive, MARS added attribute salience plus text-conditioned reconstruction, MRA argued that synthetic pretraining improves when the corpus is domain-aligned to pedestrian imagery, GA-DMS plus WebPerson shifted the picture toward token-level noise handling plus large-scale curated web data, CONQUER added explicit inference-time query refinement, Bi-IRRA broadened the task by making multilingual supervision and multilingual benchmarking first-class, and MVR added a no-retraining semantic-compensation route using multi-view reformulations.
+Together, these sources suggest a broader in-vault progression: CLIP-based retrieval became a strong baseline, later work emphasized robustness to pair-level noise, the RDE code companion shows that this robustness line plugs into a largely standard CLIP/IRRA-style pipeline rather than requiring a wholly different retrieval stack, a separate recipe study showed that careful training/augmentation/loss design can make a simple CLIP baseline highly competitive, MARS added attribute salience plus text-conditioned reconstruction, MRA argued that synthetic pretraining improves when the corpus is domain-aligned to pedestrian imagery, GA-DMS plus WebPerson shifted the picture toward token-level noise handling plus large-scale curated web data, CONQUER added explicit inference-time query refinement, Bi-IRRA broadened the task by making multilingual supervision and multilingual benchmarking first-class, and MVR added a no-retraining semantic-compensation route using multi-view reformulations.
 
 ## Key points
 - The task sits at the intersection of image-text retrieval and person re-identification.
@@ -100,6 +102,7 @@ Together, these sources suggest a broader in-vault progression: CLIP-based retri
 - A key design tension is balancing fine-grained cross-modal alignment against inference-time simplicity.
 - [[irra]] emphasizes implicit relation learning and efficient global retrieval.
 - [[rde]] adds the claim that noisy image-text pairings are common enough to require explicit robustness mechanisms such as CCD and TAL.
+- [[source-github-qinyang79-rde]] shows that this robustness line is implemented through dual-branch loss modeling, consensus clean-mask weighting, and simple BGE+TSE score fusion rather than a separate reranking stack.
 - [[tbps-clip]] shows that training tricks, augmentation pools, and retrieval-oriented losses can substantially lift a plain CLIP baseline without adding a bespoke multimodal interaction encoder.
 - [[mars]] shows that attribute-level supervision and text-conditioned masked reconstruction can also improve TBPS.
 - [[mra]] adds a data-centric argument: synthetic pretraining works better when the generated corpus is domain-aligned to real pedestrian data and carries region-phrase supervision.
@@ -133,10 +136,10 @@ Together, these sources suggest a broader in-vault progression: CLIP-based retri
 #### Claim
 - Statement: Noisy correspondence is an important practical failure mode for this task because mismatched image-text pairs can mislead visual-semantic alignment learning.
 - Status: active
-- Confidence: 0.79
-- Evidence: [[source-arxiv-2308-09911-rde]], [[source-arxiv-2509-09118-ga-dms]]
+- Confidence: 0.81
+- Evidence: [[source-arxiv-2308-09911-rde]], [[source-github-qinyang79-rde]], [[source-arxiv-2509-09118-ga-dms]]
 - Last confirmed: 2026-04-23
-- Notes: Later GA-DMS reinforces the broader noise-aware framing at token level.
+- Notes: The RDE code companion reinforces the broader noise-aware framing by showing a concrete synthetic-noise and consensus-filtering implementation; later GA-DMS reinforces the same theme at token level.
 
 #### Claim
 - Statement: No single method currently dominates all three in-vault English benchmarks simultaneously: Bi-IRRA remains stronger on CUHK-PEDES Rank-1, while MVR+HAM(RDE) reports higher Rank-1 on ICFG-PEDES and RSTPReid.
@@ -189,6 +192,7 @@ Together, these sources suggest a broader in-vault progression: CLIP-based retri
 ## Related pages
 - [[irra]]
 - [[rde]]
+- [[source-github-qinyang79-rde]]
 - [[tbps-clip]]
 - [[mars]]
 - [[mra]]
@@ -213,6 +217,7 @@ Together, these sources suggest a broader in-vault progression: CLIP-based retri
 ## Sources
 - [[source-arxiv-2303-12501-irra]]
 - [[source-arxiv-2308-09911-rde]]
+- [[source-github-qinyang79-rde]]
 - [[source-arxiv-2308-10045-tbps-clip]]
 - [[source-github-flame-chasers-tbps-clip]]
 - [[source-arxiv-2407-04287-mars]]

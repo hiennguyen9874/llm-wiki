@@ -2,7 +2,7 @@
 title: Source - arXiv 2308.09911 - RDE
 created: 2026-04-23
 last_updated: 2026-04-23
-source_count: 1
+source_count: 2
 status: reviewed
 page_type: source
 aliases:
@@ -21,11 +21,12 @@ domain: machine-learning
 importance: high
 review_status: active
 related_sources:
+  - source-github-qinyang79-rde
   - source-arxiv-2303-12501-irra
   - source-arxiv-2507-10195-mra
 confidence_score: 0.91
 quality_score: 0.86
-evidence_count: 1
+evidence_count: 2
 first_seen: 2026-04-23
 last_confirmed: 2026-04-23
 claim_status: active
@@ -70,6 +71,7 @@ entrypoint: raw/papers/arxiv-2308.09911-source/main.tex
   - `raw/papers/arxiv-2308.09911-source/`
   - LaTeX entrypoint: `raw/papers/arxiv-2308.09911-source/main.tex`
 - Code URL: [https://github.com/QinYang79/RDE](https://github.com/QinYang79/RDE)
+- Companion code source page: [[source-github-qinyang79-rde]]
 
 ## Why it matters
 This paper is directly relevant to [[text-to-image-person-retrieval]] because it argues that the task's usual clean-pair assumption is often false in practice. It introduces [[noisy-correspondence]] as a distinct failure mode, uses [[irra]] as a key baseline/reference point, and proposes [[rde]] as a robustness-oriented extension that improves historical benchmark results while reducing overfitting under synthetic noise.
@@ -82,7 +84,7 @@ The proposed method is **RDE** (*Robust Dual Embedding*), built from three main 
 2. **Confident Consensus Division (CCD)**: uses loss-based clean/noisy splits from both embeddings, then takes their consensus to identify reliable clean pairs and likely noisy pairs.
 3. **Triplet Alignment Loss (TAL)**: replaces hardest-negative-only triplet ranking with a log-sum-exp upper bound over all negatives, aiming to preserve hard-negative pressure without destabilizing training under noise.
 
-The paper reports publication-time improvements over prior TIReID baselines on CUHK-PEDES, ICFG-PEDES, and RSTPReid both at 0% synthetic noise and under 20%/50% noise. In-vault, this acts as newer evidence than [[source-arxiv-2303-12501-irra]] for historical benchmark leadership and for the importance of robustness to pair-level annotation errors, though that benchmark-leadership position is later superseded by [[source-arxiv-2507-10195-mra]].
+The paper reports publication-time improvements over prior TIReID baselines on CUHK-PEDES, ICFG-PEDES, and RSTPReid both at 0% synthetic noise and under 20%/50% noise. In-vault, this acts as newer evidence than [[source-arxiv-2303-12501-irra]] for historical benchmark leadership and for the importance of robustness to pair-level annotation errors, though that benchmark-leadership position is later superseded by [[source-arxiv-2507-10195-mra]]. The companion repository [[source-github-qinyang79-rde]] reinforces the method description by exposing the exact loss-modeling pipeline used for consensus clean-pair selection and the evaluation-time BGE/TSE score fusion.
 
 ## Sensitive material screen
 - Screened for secrets, credentials, tokens, and personal sensitive material before promotion.
@@ -107,6 +109,7 @@ The paper reports publication-time improvements over prior TIReID baselines on C
 - [[rde]] `supports` [[noisy-correspondence]].
 - [[rde]] `related_to` [[irra]].
 - [[rde]] `related_to` [[mra]].
+- [[source-arxiv-2308-09911-rde]] `related_to` [[source-github-qinyang79-rde]].
 - [[rde]] `supersedes` [[irra]] on publication-time benchmark leadership claims in this vault.
 - [[rde]] `is_superseded_by` [[mra]] on later publication-time benchmark leadership claims.
 - [[source-arxiv-2308-09911-rde]] `supports` [[rde]].
@@ -151,6 +154,7 @@ The paper reports publication-time improvements over prior TIReID baselines on C
 - Notes: Supported by best-vs-last checkpoint comparisons and the robustness plots; broader real-world generalization remains limited to the paper's datasets and setup.
 
 ## Reinforcement / supersession assessment
+- [[source-github-qinyang79-rde]] reinforces this paper by confirming that the public implementation actually uses dual-branch loss modeling plus consensus filtering rather than leaving CCD as a purely paper-level abstraction.
 - [[source-arxiv-2303-12501-irra]] is reinforced as an important CLIP-based TIReID baseline and design reference.
 - The earlier in-vault claim that [[irra]] held publication-time benchmark leadership is now **superseded** by this newer 2023 source.
 - The new source does **not** invalidate IRRA's architectural importance; it mainly weakens IRRA's historical best-results status and adds a stronger argument that robustness to pair-level noise matters.
@@ -158,6 +162,7 @@ The paper reports publication-time improvements over prior TIReID baselines on C
 - No in-vault contradiction was found on the existence of pair-level annotation noise; rather, this source deepens the task framing.
 
 ## Related pages updated
+- [[source-github-qinyang79-rde]]
 - [[rde]]
 - [[noisy-correspondence]]
 - [[text-to-image-person-retrieval]]
@@ -170,3 +175,4 @@ The paper reports publication-time improvements over prior TIReID baselines on C
 - Did **not** create the skill-default `knowledge/summary_*.md` file.
 - Considered Base/Canvas changes but deferred because the topic remains small enough to navigate through linked markdown pages.
 - Later ingest of [[source-arxiv-2507-10195-mra]] keeps this source active for robustness framing while superseding its historical best-results status.
+- Companion ingest of [[source-github-qinyang79-rde]] adds implementation-level support without changing the paper's historical benchmark-positioning role.
