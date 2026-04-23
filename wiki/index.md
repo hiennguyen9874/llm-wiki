@@ -2,7 +2,7 @@
 title: Index
 created: 2026-04-14
 last_updated: 2026-04-23
-source_count: 6
+source_count: 7
 status: draft
 page_type: index
 aliases: [Catalog]
@@ -32,6 +32,7 @@ Master catalog of the second brain. Use this file for human orientation and brow
 - [[source-arxiv-2407-04287-mars]] — arXiv source page for the MARS paper on attribute-aware TBPS with masked reconstruction.
 - [[source-arxiv-2507-10195-mra]] — arXiv source page for the MRA paper on domain-aligned synthetic pretraining and region-phrase alignment.
 - [[source-arxiv-2509-09118-ga-dms]] — arXiv source page for the GA-DMS paper and its companion WebPerson dataset for robust text-based person retrieval.
+- [[source-arxiv-2601-18625-conquer]] — arXiv source page for the CONQUER paper on context-aware alignment plus inference-time query enhancement for text-based person search.
 
 ## Topics and Concepts
 - [[text-to-image-person-retrieval]] — task-level topic page linking CLIP-based retrieval methods, robustness concerns, recipe tuning, and data-centric pretraining strategies.
@@ -41,6 +42,7 @@ Master catalog of the second brain. Use this file for human orientation and brow
 - [[rde]] — method page for Robust Dual Embedding and its robustness-oriented design.
 - [[mra]] — method page for Multi-granularity Relation Alignment and its benchmark progression.
 - [[ga-dms]] — method page for gradient-attention-guided dual masking in CLIP-based person retrieval.
+- [[conquer]] — method page for the two-stage CARE + IQE framework that refines both embeddings and user queries.
 - [[webperson]] — dataset page for the 5M-scale curated web person image-text corpus.
 - [[domain-aware-diffusion]] — concept page for synthetic-to-real image-level domain adaptation in the MRA pipeline.
 - [[synthetic-domain-aligned-dataset]] — concept page for the SDA synthetic pretraining corpus.

@@ -39,6 +39,7 @@ related_entities:
   - CUHK-PEDES
   - ICFG-PEDES
   - RSTPReid
+  - CONQUER
 ---
 
 # MARS
@@ -62,6 +63,7 @@ The paper's central argument is that TBPS models can become more precise when th
 - `related_to` [[rde]]
 - `related_to` [[tbps-clip]]
 - `related_to` [[mra]]
+- `related_to` [[conquer]]
 
 ## Evidence / claims
 #### Claim
@@ -92,6 +94,7 @@ The paper's central argument is that TBPS models can become more precise when th
 - Does attribute-loss supervision transfer cleanly to other fine-grained retrieval tasks?
 - How much of MARS's gain comes from the MAE branch versus the attribute loss itself?
 - Can the attribute-chunk idea be combined with later data-centric methods like [[mra]] without overfitting to caption grammar?
+- How much of [[conquer]]'s inference-time gain comes from reusing the same kind of attribute cues that MARS tries to enforce during training?
 
 ## Sources
 - [[source-arxiv-2407-04287-mars]]

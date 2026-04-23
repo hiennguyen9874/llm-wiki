@@ -34,6 +34,7 @@ superseded_by: []
 related_entities:
   - text-to-image person retrieval
   - WebPerson
+  - CONQUER
   - GASS
   - IRRA
   - RDE
@@ -61,6 +62,7 @@ In the current vault, GA-DMS matters because it strengthens the noise-robustness
 - `related_to` [[rde]]
 - `related_to` [[mra]]
 - `related_to` [[irra]]
+- `related_to` [[conquer]]
 - `supersedes` [[mra]] on publication-time benchmark leadership
 
 ## Evidence / claims
@@ -93,6 +95,7 @@ In the current vault, GA-DMS matters because it strengthens the noise-robustness
 - How much of the gain comes from [[webperson]] scale and quality versus the GA-DMS objective itself?
 - Does token-level masking remain effective when captions are cleaner and more human-authored?
 - Can GA-DMS-style token scoring be combined with region-phrase supervision from [[mra]]?
+- Can GA-DMS's token-noise handling be combined with [[conquer]]'s inference-time query enhancement without introducing MLLM-driven attribute hallucination?
 
 ## Sources
 - [[source-arxiv-2509-09118-ga-dms]]
