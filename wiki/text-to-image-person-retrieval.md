@@ -2,7 +2,7 @@
 title: Text-to-Image Person Retrieval
 created: 2026-04-23
 last_updated: 2026-04-23
-source_count: 2
+source_count: 3
 status: draft
 page_type: topic
 aliases:
@@ -19,9 +19,10 @@ review_status: active
 related_sources:
   - source-arxiv-2303-12501-irra
   - source-arxiv-2308-09911-rde
+  - source-arxiv-2507-10195-mra
 confidence_score: 0.79
 quality_score: 0.82
-evidence_count: 2
+evidence_count: 3
 first_seen: 2026-04-23
 last_confirmed: 2026-04-23
 claim_status: active
@@ -32,6 +33,9 @@ superseded_by: []
 related_entities:
   - IRRA
   - RDE
+  - MRA
+  - DaD
+  - SDA
   - noisy correspondence
   - CLIP
   - CUHK-PEDES
@@ -44,18 +48,20 @@ related_entities:
 Text-to-image person retrieval is a multimodal retrieval task where a system receives a natural-language description of a person and must retrieve matching images from a gallery. The main challenge is aligning language and visual appearance despite modality mismatch, viewpoint/pose variation, ambiguity in textual descriptions, and potentially incorrect image-text pairings.
 
 ## Current in-vault view
-The vault currently has two directly relevant sources:
+The vault currently has three directly relevant sources:
 - [[source-arxiv-2303-12501-irra]] presents [[irra]] as a CLIP-based method that improves retrieval through training-time implicit relation reasoning and similarity distribution matching.
 - [[source-arxiv-2308-09911-rde]] presents [[rde]] as a later robustness-oriented method that explicitly models [[noisy-correspondence]] and reports stronger historical benchmark results than IRRA.
+- [[source-arxiv-2507-10195-mra]] presents [[mra]] as a still later method that tackles the synthetic-to-real **pretraining gap** through [[domain-aware-diffusion]] and the [[synthetic-domain-aligned-dataset]], then adds explicit region-phrase alignment during pretraining.
 
-Together, these sources suggest a useful in-vault progression: CLIP-based global retrieval became a strong baseline, then later work argued that pair-level annotation noise is important enough to change both the task framing and the training objective design.
+Together, these sources suggest a broader in-vault progression: CLIP-based retrieval became a strong baseline, later work emphasized robustness to pair-level noise, and newer work argued that benchmark gains also depend on better domain-aligned synthetic pretraining data plus phrase-level supervision.
 
 ## Key points
 - The task sits at the intersection of image-text retrieval and person re-identification.
-- CLIP-initialized dual encoders appear as a strong backbone family in both in-vault sources.
+- CLIP-initialized dual encoders appear as a strong backbone family across the current in-vault method line.
 - A key design tension is balancing fine-grained cross-modal alignment against inference-time simplicity.
 - [[irra]] emphasizes implicit relation learning and efficient retrieval.
 - [[rde]] adds the claim that noisy image-text pairings are common enough to require explicit robustness mechanisms such as CCD and TAL.
+- [[mra]] adds a data-centric argument: synthetic pretraining works better when the generated corpus is domain-aligned to real pedestrian data and carries region-phrase supervision.
 - Current vault evidence is still narrow, so benchmark conclusions should be treated as historical-within-vault rather than field-final.
 
 ## Evidence / claims
@@ -84,21 +90,26 @@ Together, these sources suggest a useful in-vault progression: CLIP-based global
 - Notes: Currently supported by one in-vault source, but it materially changes how the task should be interpreted.
 
 #### Claim
-- Statement: IRRA's in-vault historical benchmark leadership claim is superseded by RDE's later reported results.
+- Statement: In the current vault, historical benchmark leadership progresses from IRRA to RDE to MRA across the three ingested papers.
 - Status: active
-- Confidence: 0.77
-- Evidence: [[source-arxiv-2303-12501-irra]], [[source-arxiv-2308-09911-rde]]
+- Confidence: 0.80
+- Evidence: [[source-arxiv-2303-12501-irra]], [[source-arxiv-2308-09911-rde]], [[source-arxiv-2507-10195-mra]]
 - Last confirmed: 2026-04-23
-- Notes: Historical benchmark claim only; future sources may supersede both.
-- Supersedes: [[irra]]
+- Notes: Historical benchmark-progression claim only; future sources may supersede all three.
+- Supersedes: [[irra]], [[rde]]
 
 ## Related pages
 - [[irra]]
 - [[rde]]
+- [[mra]]
+- [[domain-aware-diffusion]]
+- [[synthetic-domain-aligned-dataset]]
 - [[noisy-correspondence]]
 - [[source-arxiv-2303-12501-irra]]
 - [[source-arxiv-2308-09911-rde]]
+- [[source-arxiv-2507-10195-mra]]
 
 ## Sources
 - [[source-arxiv-2303-12501-irra]]
 - [[source-arxiv-2308-09911-rde]]
+- [[source-arxiv-2507-10195-mra]]

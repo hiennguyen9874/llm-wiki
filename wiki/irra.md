@@ -2,7 +2,7 @@
 title: IRRA
 created: 2026-04-23
 last_updated: 2026-04-23
-source_count: 2
+source_count: 3
 status: draft
 page_type: concept
 aliases:
@@ -19,9 +19,10 @@ review_status: active
 related_sources:
   - source-arxiv-2303-12501-irra
   - source-arxiv-2308-09911-rde
+  - source-arxiv-2507-10195-mra
 confidence_score: 0.80
 quality_score: 0.82
-evidence_count: 2
+evidence_count: 3
 first_seen: 2026-04-23
 last_confirmed: 2026-04-23
 claim_status: active
@@ -30,9 +31,11 @@ visibility: private
 supersedes: []
 superseded_by:
   - source-arxiv-2308-09911-rde
+  - source-arxiv-2507-10195-mra
 related_entities:
   - text-to-image person retrieval
   - RDE
+  - MRA
   - noisy correspondence
   - CLIP
   - masked language modeling
@@ -49,7 +52,7 @@ The method starts from the full CLIP image and text encoders rather than separat
 - a **Similarity Distribution Matching (SDM)** loss for image-text alignment,
 - and an **identity classification loss** to tighten intra-identity grouping.
 
-The source argues this combination improves benchmark performance while preserving efficient retrieval through a single global similarity computation. In the current vault, IRRA remains an important architectural reference point, but its historical best-results claim is now superseded by [[source-arxiv-2308-09911-rde]].
+The source argues this combination improves benchmark performance while preserving efficient retrieval through a single global similarity computation. In the current vault, IRRA remains an important architectural reference point, but its historical best-results claim is now superseded by later sources including [[source-arxiv-2308-09911-rde]] and [[source-arxiv-2507-10195-mra]].
 
 ## Relationships
 - `uses` CLIP full-model initialization
@@ -57,7 +60,8 @@ The source argues this combination improves benchmark performance while preservi
 - `uses` similarity distribution matching as a retrieval objective
 - `supports` [[text-to-image-person-retrieval]]
 - `related_to` [[rde]]
-- `is_superseded_by` [[source-arxiv-2308-09911-rde]] on publication-time benchmark leadership
+- `related_to` [[mra]]
+- `is_superseded_by` [[source-arxiv-2308-09911-rde]] and [[source-arxiv-2507-10195-mra]] on publication-time benchmark leadership
 
 ## Evidence / claims
 #### Claim
@@ -87,17 +91,18 @@ The source argues this combination improves benchmark performance while preservi
 #### Claim
 - Statement: IRRA reported publication-time SOTA on three person-retrieval benchmarks in early 2023.
 - Status: superseded
-- Confidence: 0.82
-- Evidence: [[source-arxiv-2303-12501-irra]], [[source-arxiv-2308-09911-rde]]
+- Confidence: 0.83
+- Evidence: [[source-arxiv-2303-12501-irra]], [[source-arxiv-2308-09911-rde]], [[source-arxiv-2507-10195-mra]]
 - Last confirmed: 2026-04-23
-- Notes: Preserve as historical provenance only. This claim is superseded in-vault by RDE's later reported results.
-- Superseded_by: [[source-arxiv-2308-09911-rde]]
+- Notes: Preserve as historical provenance only. This claim is superseded in-vault by later reported results from RDE and then MRA.
+- Superseded_by: [[source-arxiv-2308-09911-rde]], [[source-arxiv-2507-10195-mra]]
 
 ## Open questions
-- Which post-RDE methods further supersede both IRRA's and RDE's benchmark claims?
+- Which post-MRA methods further supersede IRRA, RDE, and MRA on these benchmarks?
 - How much of IRRA's gains come from SDM versus MLM-based interaction when evaluated under realistic noisy pairs?
 - Which parts of IRRA remain best-in-class when robustness is the primary objective?
 
 ## Sources
 - [[source-arxiv-2303-12501-irra]]
 - [[source-arxiv-2308-09911-rde]]
+- [[source-arxiv-2507-10195-mra]]

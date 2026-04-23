@@ -19,7 +19,9 @@ tags:
 domain: machine-learning
 importance: medium
 review_status: active
-related_sources: []
+related_sources:
+  - source-arxiv-2308-09911-rde
+  - source-arxiv-2507-10195-mra
 confidence_score: 0.89
 quality_score: 0.83
 evidence_count: 1
@@ -29,7 +31,9 @@ claim_status: active
 retention_class: durable
 visibility: private
 supersedes: []
-superseded_by: []
+superseded_by:
+  - source-arxiv-2308-09911-rde
+  - source-arxiv-2507-10195-mra
 related_entities:
   - IRRA
   - text-to-image person retrieval
@@ -119,13 +123,15 @@ The authors report state-of-the-art results, at publication time, on CUHK-PEDES,
 - Notes: Supported by the method and ablation sections; broader generality beyond these datasets remains unverified in-vault.
 
 ## Reinforcement / supersession assessment
-- No prior in-vault sources on this topic were found via QMD, so there is currently no local reinforcement or contradiction chain.
+- Later in-vault sources [[source-arxiv-2308-09911-rde]] and [[source-arxiv-2507-10195-mra]] reinforce IRRA's role as an important baseline while superseding its historical benchmark-leadership claim.
 - Benchmark leadership claims are **time-bound** and should be interpreted as "as reported in this 2023 source," not as current state of the field.
-- No supersession target exists in the vault yet.
+- No contradiction was found on the core architectural description; supersession mainly affects historical best-results status.
 
 ## Related pages updated
 - [[irra]]
 - [[text-to-image-person-retrieval]]
+- [[rde]]
+- [[mra]]
 
 ## Ingest notes
 - Read from LaTeX source rather than PDF.
