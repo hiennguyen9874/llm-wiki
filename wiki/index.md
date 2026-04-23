@@ -1,8 +1,8 @@
 ---
 title: Index
 created: 2026-04-14
-last_updated: 2026-04-14
-source_count: 0
+last_updated: 2026-04-23
+source_count: 1
 status: draft
 page_type: index
 aliases: [Catalog]
@@ -26,10 +26,11 @@ Master catalog of the second brain. Use this file for human orientation and brow
 - `outputs/answers/` — durable saved answers worth promoting when they become recurring knowledge.
 
 ## Sources
-<!-- Add source pages here, one line each -->
+- [[source-arxiv-2303-12501-irra]] — arXiv source page for the IRRA paper, preserved from LaTeX source rather than PDF.
 
 ## Topics and Concepts
-<!-- Add topic and concept pages here -->
+- [[text-to-image-person-retrieval]] — task-level topic page seeded from the IRRA ingest.
+- [[irra]] — method page for the IRRA architecture and claims.
 
 ## Projects
 <!-- Add project pages here -->
