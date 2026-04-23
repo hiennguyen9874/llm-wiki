@@ -37,6 +37,7 @@ related_entities:
   - RPC
   - RPM
   - IRRA
+  - MARS
   - RDE
 ---
 
@@ -64,6 +65,7 @@ In the current vault, MRA matters both as a later historical benchmark leader an
 - `uses` RPC and RPM for fine-grained supervision
 - `supports` [[text-to-image-person-retrieval]]
 - `related_to` [[irra]]
+- `related_to` [[mars]]
 - `related_to` [[rde]]
 - `supersedes` [[rde]] on publication-time benchmark leadership
 

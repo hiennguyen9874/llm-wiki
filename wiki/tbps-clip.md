@@ -34,6 +34,7 @@ related_entities:
   - text-to-image person retrieval
   - IRRA
   - RDE
+  - MARS
   - CUHK-PEDES
   - ICFG-PEDES
   - RSTPReid
@@ -64,6 +65,7 @@ The core lesson is that a tuned CLIP baseline can be competitive on TBPS without
 - `supports` [[text-to-image-person-retrieval]]
 - `related_to` [[irra]]
 - `related_to` [[rde]]
+- `related_to` [[mars]]
 - `related_to` [[mra]]
 
 ## Evidence / claims

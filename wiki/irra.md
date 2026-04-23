@@ -36,6 +36,7 @@ superseded_by:
 related_entities:
   - text-to-image person retrieval
   - RDE
+  - MARS
   - MRA
   - TBPS-CLIP
   - noisy correspondence
@@ -63,6 +64,7 @@ The source argues this combination improves benchmark performance while preservi
 - `supports` [[text-to-image-person-retrieval]]
 - `related_to` [[rde]]
 - `related_to` [[tbps-clip]]
+- `related_to` [[mars]]
 - `related_to` [[mra]]
 - `is_superseded_by` [[source-arxiv-2308-09911-rde]] and [[source-arxiv-2507-10195-mra]] on publication-time benchmark leadership
 

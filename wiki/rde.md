@@ -38,6 +38,7 @@ related_entities:
   - CCD
   - TAL
   - IRRA
+  - MARS
   - MRA
 ---
 
@@ -62,6 +63,7 @@ The method is presented as both a stronger historical benchmark result than [[ir
 - `supports` [[text-to-image-person-retrieval]]
 - `supports` [[noisy-correspondence]]
 - `related_to` [[irra]]
+- `related_to` [[mars]]
 - `related_to` [[mra]]
 - `supersedes` [[irra]] on publication-time benchmark leadership
 - `is_superseded_by` [[mra]] on later publication-time benchmark leadership
