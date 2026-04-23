@@ -65,4 +65,6 @@ Master catalog of the second brain. Use this file for human orientation and brow
 <!-- Add synthesis, comparison, and decision pages here -->
 
 ## Outputs Worth Promoting into Wiki
-<!-- Add links to durable outputs that should become wiki pages -->
+- [[text-based-person-search-methods-models-briefing]] — reusable briefing on the current in-vault design space for text-based person search.
+- [[text-based-person-search-methods-models-session-crystallization]] — episodic summary of the retrieval-and-benchmark session that produced the briefing and table.
+
