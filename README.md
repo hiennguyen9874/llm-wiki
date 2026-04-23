@@ -138,6 +138,14 @@ This diagram reflects the current implementation stance:
   - Use when starting from a web URL.
   - The intended flow is: clean the page, save it into `raw/web-clips/`, then run normal ingest with the same privacy/lifecycle/claim-aware checks.
 
+- [`ingest-arxiv.md`](./.pi/prompts/ingest-arxiv.md)
+  - Use when starting from an arXiv URL.
+  - The intended flow is: fetch the arXiv source bundle, read the paper from LaTeX sources when possible, preserve it under `raw/papers/`, then run normal ingest.
+
+- [`ingest-pdf.md`](./.pi/prompts/ingest-pdf.md)
+  - Use when starting from a PDF file or PDF URL.
+  - The intended flow is: preserve the raw PDF under `raw/papers/`, extract or visually inspect the content as needed, then run normal ingest.
+
 ### Maintenance and review prompts
 
 - [`review.md`](./.pi/prompts/review.md)
