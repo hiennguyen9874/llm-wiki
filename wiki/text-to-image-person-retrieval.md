@@ -176,6 +176,14 @@ Together, these sources suggest a broader in-vault progression: CLIP-based retri
 - Last confirmed: 2026-04-23
 - Notes: Kept as a narrower claim after the broader benchmark synthesis above.
 
+#### Claim
+- Statement: A practical TBPS hybrid in the current vault likely combines a CLIP/IRRA backbone with TBPS-CLIP recipe tuning, RDE/GA-DMS robustness, MARS/MRA grounding, and CONQUER/MVR inference-time adaptation, with Bi-IRRA added when multilingual support matters.
+- Status: active
+- Confidence: 0.82
+- Evidence: [[source-arxiv-2303-12501-irra]], [[source-arxiv-2308-09911-rde]], [[source-arxiv-2308-10045-tbps-clip]], [[source-arxiv-2407-04287-mars]], [[source-arxiv-2507-10195-mra]], [[source-arxiv-2509-09118-ga-dms]], [[source-arxiv-2601-18625-conquer]], [[source-arxiv-2510-17685-bi-irra]], [[source-arxiv-2604-18376-mvr]]
+- Last confirmed: 2026-04-23
+- Notes: Session-level synthesis; useful as a modular design recommendation, not as a benchmark claim.
+
 ## Related pages
 - [[irra]]
 - [[rde]]

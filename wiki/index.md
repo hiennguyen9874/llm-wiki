@@ -70,4 +70,5 @@ Master catalog of the second brain. Use this file for human orientation and brow
 - [[text-based-person-search-methods-models-session-crystallization]] — episodic summary of the retrieval-and-benchmark session that produced the briefing and table.
 - `outputs/answers/tbps-method-synthesis-and-hybrid-recommendation.md` — recommendation-oriented synthesis on how to combine the TBPS levers into a practical hybrid and when to prefer MVR, Bi-IRRA, or CONQUER.
 - `outputs/answers/tbps-hybrid-architecture-spec.md` — more concrete hybrid architecture proposal with training stack, data strategy, inference gates, and multilingual branch.
+- `outputs/crystallizations/tbps-hybrid-architecture-session-crystallization.md` — episodic crystallization of the hybrid-architecture session, including the 5-axis framing and modular stack recommendation.
 
