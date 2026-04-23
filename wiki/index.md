@@ -2,7 +2,7 @@
 title: Index
 created: 2026-04-14
 last_updated: 2026-04-23
-source_count: 5
+source_count: 6
 status: draft
 page_type: index
 aliases: [Catalog]
@@ -31,6 +31,7 @@ Master catalog of the second brain. Use this file for human orientation and brow
 - [[source-arxiv-2308-10045-tbps-clip]] — arXiv source page for the CLIP-in-TBPS empirical study and lightweight baseline recipe.
 - [[source-arxiv-2407-04287-mars]] — arXiv source page for the MARS paper on attribute-aware TBPS with masked reconstruction.
 - [[source-arxiv-2507-10195-mra]] — arXiv source page for the MRA paper on domain-aligned synthetic pretraining and region-phrase alignment.
+- [[source-arxiv-2509-09118-ga-dms]] — arXiv source page for the GA-DMS paper and its companion WebPerson dataset for robust text-based person retrieval.
 
 ## Topics and Concepts
 - [[text-to-image-person-retrieval]] — task-level topic page linking CLIP-based retrieval methods, robustness concerns, recipe tuning, and data-centric pretraining strategies.
@@ -39,6 +40,8 @@ Master catalog of the second brain. Use this file for human orientation and brow
 - [[mars]] — method page for attribute-aware TBPS with masked reconstruction.
 - [[rde]] — method page for Robust Dual Embedding and its robustness-oriented design.
 - [[mra]] — method page for Multi-granularity Relation Alignment and its benchmark progression.
+- [[ga-dms]] — method page for gradient-attention-guided dual masking in CLIP-based person retrieval.
+- [[webperson]] — dataset page for the 5M-scale curated web person image-text corpus.
 - [[domain-aware-diffusion]] — concept page for synthetic-to-real image-level domain adaptation in the MRA pipeline.
 - [[synthetic-domain-aligned-dataset]] — concept page for the SDA synthetic pretraining corpus.
 - [[noisy-correspondence]] — concept page for pair-level image-text misalignment noise.

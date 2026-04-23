@@ -2,7 +2,7 @@
 title: MRA
 created: 2026-04-23
 last_updated: 2026-04-23
-source_count: 1
+source_count: 2
 status: draft
 page_type: concept
 aliases:
@@ -19,9 +19,10 @@ importance: high
 review_status: active
 related_sources:
   - source-arxiv-2507-10195-mra
+  - source-arxiv-2509-09118-ga-dms
 confidence_score: 0.83
 quality_score: 0.82
-evidence_count: 1
+evidence_count: 2
 first_seen: 2026-04-23
 last_confirmed: 2026-04-23
 claim_status: active
@@ -29,7 +30,8 @@ retention_class: durable
 visibility: private
 supersedes:
   - rde
-superseded_by: []
+superseded_by:
+  - ga-dms
 related_entities:
   - text-to-image person retrieval
   - DaD
@@ -39,6 +41,8 @@ related_entities:
   - IRRA
   - MARS
   - RDE
+  - WebPerson
+  - GA-DMS
 ---
 
 # MRA
@@ -57,7 +61,7 @@ Its method stack includes:
 - **Region-Phrase Matching (RPM)** learning with hard negatives,
 - shared vision, text, and fusion encoders for multi-granularity supervision.
 
-In the current vault, MRA matters both as a later historical benchmark leader and as a design argument that better pretraining data plus phrase-level supervision can outperform earlier objective-only improvements.
+In the current vault, MRA matters both as a former historical benchmark leader and as a design argument that better pretraining data plus phrase-level supervision can outperform earlier objective-only improvements. That benchmark-leadership role is now later superseded in-vault by [[ga-dms]], but MRA remains the clearest source here for synthetic-domain alignment as a distinct lever.
 
 ## Relationships
 - `uses` [[domain-aware-diffusion]]
@@ -67,7 +71,9 @@ In the current vault, MRA matters both as a later historical benchmark leader an
 - `related_to` [[irra]]
 - `related_to` [[mars]]
 - `related_to` [[rde]]
+- `related_to` [[ga-dms]]
 - `supersedes` [[rde]] on publication-time benchmark leadership
+- `is_superseded_by` [[ga-dms]] on later publication-time benchmark leadership
 
 ## Evidence / claims
 #### Claim
@@ -87,18 +93,21 @@ In the current vault, MRA matters both as a later historical benchmark leader an
 - Notes: Source-supported via ablation discussion; keep as a design heuristic, not a universal rule.
 
 #### Claim
-- Statement: MRA supersedes RDE's historical best-reported benchmark results in this vault while preserving RDE as a useful robustness-oriented reference point.
-- Status: active
-- Confidence: 0.80
-- Evidence: [[source-arxiv-2507-10195-mra]], [[source-arxiv-2308-09911-rde]]
+- Statement: MRA supersedes RDE's historical best-reported benchmark results in this vault, but is later superseded by GA-DMS's 2025 reported results.
+- Status: superseded
+- Confidence: 0.81
+- Evidence: [[source-arxiv-2507-10195-mra]], [[source-arxiv-2308-09911-rde]], [[source-arxiv-2509-09118-ga-dms]]
 - Last confirmed: 2026-04-23
-- Notes: Historical benchmark claim only.
+- Notes: Preserve as historical provenance only; MRA still matters as the strongest synthetic-domain-alignment reference currently in-vault.
 - Supersedes: [[rde]]
+- Superseded_by: [[ga-dms]]
 
 ## Open questions
 - How much of MRA's gains come from SDA itself versus the MRA objective stack?
 - Does region-phrase supervision transfer beyond person retrieval into broader image-text retrieval domains?
 - How does MRA behave when training data also contain meaningful [[noisy-correspondence]]?
+- Which parts of [[ga-dms]]'s gains come from token-level masking versus [[webperson]] scale and curation, relative to MRA's synthetic-domain-alignment story?
 
 ## Sources
 - [[source-arxiv-2507-10195-mra]]
+- [[source-arxiv-2509-09118-ga-dms]]

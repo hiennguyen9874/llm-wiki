@@ -2,7 +2,7 @@
 title: RDE
 created: 2026-04-23
 last_updated: 2026-04-23
-source_count: 2
+source_count: 3
 status: draft
 page_type: concept
 aliases:
@@ -19,9 +19,10 @@ review_status: active
 related_sources:
   - source-arxiv-2308-09911-rde
   - source-arxiv-2507-10195-mra
+  - source-arxiv-2509-09118-ga-dms
 confidence_score: 0.81
 quality_score: 0.80
-evidence_count: 2
+evidence_count: 3
 first_seen: 2026-04-23
 last_confirmed: 2026-04-23
 claim_status: active
@@ -40,6 +41,8 @@ related_entities:
   - IRRA
   - MARS
   - MRA
+  - GA-DMS
+  - WebPerson
 ---
 
 # RDE
@@ -53,7 +56,7 @@ RDE keeps a CLIP-based dual-encoder retrieval setup but adds explicit robustness
 - **Confident Consensus Division (CCD)** to identify high-confidence clean pairs from agreement between BGE- and TSE-based clean/noisy splits,
 - **Triplet Alignment Loss (TAL)** to stabilize triplet-style learning by replacing hardest-negative-only optimization with a log-sum-exp upper bound over all negatives.
 
-The method is presented as both a stronger historical benchmark result than [[irra]] and as a task-framing shift: TIReID should account for pair-level alignment noise instead of assuming all image-text pairs are clean. In the current vault, that historical best-results position is itself later superseded by [[mra]], but RDE remains a key robustness-oriented reference point.
+The method is presented as both a stronger historical benchmark result than [[irra]] and as a task-framing shift: TIReID should account for pair-level alignment noise instead of assuming all image-text pairs are clean. In the current vault, that historical best-results position is later superseded by [[mra]] and then [[ga-dms]], but RDE remains a key robustness-oriented reference point because later work still reinforces the importance of noise-aware learning.
 
 ## Relationships
 - `uses` CLIP image/text encoders
@@ -65,8 +68,10 @@ The method is presented as both a stronger historical benchmark result than [[ir
 - `related_to` [[irra]]
 - `related_to` [[mars]]
 - `related_to` [[mra]]
+- `related_to` [[ga-dms]]
 - `supersedes` [[irra]] on publication-time benchmark leadership
 - `is_superseded_by` [[mra]] on later publication-time benchmark leadership
+- `is_reinforced_by` [[ga-dms]] on token-level noise handling
 
 ## Evidence / claims
 #### Claim
@@ -80,10 +85,10 @@ The method is presented as both a stronger historical benchmark result than [[ir
 #### Claim
 - Statement: RDE treats noisy correspondence as pair-level supervision noise, not merely class-label noise.
 - Status: active
-- Confidence: 0.81
-- Evidence: [[source-arxiv-2308-09911-rde]]
+- Confidence: 0.83
+- Evidence: [[source-arxiv-2308-09911-rde]], [[source-arxiv-2509-09118-ga-dms]]
 - Last confirmed: 2026-04-23
-- Notes: Important conceptual distinction for future retrieval work in this area.
+- Notes: Important conceptual distinction for future retrieval work in this area; later GA-DMS reinforces the broader importance of noise-aware learning at token level.
 
 #### Claim
 - Statement: RDE supersedes IRRA's historical best-reported benchmark results in this vault, but is later superseded by MRA's 2025 reported results.
@@ -103,3 +108,4 @@ The method is presented as both a stronger historical benchmark result than [[ir
 ## Sources
 - [[source-arxiv-2308-09911-rde]]
 - [[source-arxiv-2507-10195-mra]]
+- [[source-arxiv-2509-09118-ga-dms]]
