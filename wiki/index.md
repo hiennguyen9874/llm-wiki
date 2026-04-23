@@ -2,7 +2,7 @@
 title: Index
 created: 2026-04-14
 last_updated: 2026-04-23
-source_count: 1
+source_count: 2
 status: draft
 page_type: index
 aliases: [Catalog]
@@ -27,10 +27,13 @@ Master catalog of the second brain. Use this file for human orientation and brow
 
 ## Sources
 - [[source-arxiv-2303-12501-irra]] — arXiv source page for the IRRA paper, preserved from LaTeX source rather than PDF.
+- [[source-arxiv-2308-09911-rde]] — arXiv source page for the RDE paper on noisy correspondence in text-to-image person re-identification.
 
 ## Topics and Concepts
-- [[text-to-image-person-retrieval]] — task-level topic page seeded from the IRRA ingest.
+- [[text-to-image-person-retrieval]] — task-level topic page linking CLIP-based retrieval methods and robustness concerns.
 - [[irra]] — method page for the IRRA architecture and claims.
+- [[rde]] — method page for Robust Dual Embedding and its robustness-oriented design.
+- [[noisy-correspondence]] — concept page for pair-level image-text misalignment noise.
 
 ## Projects
 <!-- Add project pages here -->

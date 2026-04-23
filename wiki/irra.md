@@ -2,7 +2,7 @@
 title: IRRA
 created: 2026-04-23
 last_updated: 2026-04-23
-source_count: 1
+source_count: 2
 status: draft
 page_type: concept
 aliases:
@@ -18,18 +18,22 @@ importance: medium
 review_status: active
 related_sources:
   - source-arxiv-2303-12501-irra
-confidence_score: 0.78
-quality_score: 0.76
-evidence_count: 1
+  - source-arxiv-2308-09911-rde
+confidence_score: 0.80
+quality_score: 0.82
+evidence_count: 2
 first_seen: 2026-04-23
 last_confirmed: 2026-04-23
 claim_status: active
 retention_class: durable
 visibility: private
 supersedes: []
-superseded_by: []
+superseded_by:
+  - source-arxiv-2308-09911-rde
 related_entities:
   - text-to-image person retrieval
+  - RDE
+  - noisy correspondence
   - CLIP
   - masked language modeling
   - similarity distribution matching
@@ -45,20 +49,21 @@ The method starts from the full CLIP image and text encoders rather than separat
 - a **Similarity Distribution Matching (SDM)** loss for image-text alignment,
 - and an **identity classification loss** to tighten intra-identity grouping.
 
-The source argues this combination improves benchmark performance while preserving efficient retrieval through a single global similarity computation.
+The source argues this combination improves benchmark performance while preserving efficient retrieval through a single global similarity computation. In the current vault, IRRA remains an important architectural reference point, but its historical best-results claim is now superseded by [[source-arxiv-2308-09911-rde]].
 
 ## Relationships
 - `uses` CLIP full-model initialization
 - `uses` masked language modeling for token-level cross-modal supervision
 - `uses` similarity distribution matching as a retrieval objective
 - `supports` [[text-to-image-person-retrieval]]
-- `related_to` explicit local alignment methods discussed in [[source-arxiv-2303-12501-irra]]
+- `related_to` [[rde]]
+- `is_superseded_by` [[source-arxiv-2308-09911-rde]] on publication-time benchmark leadership
 
 ## Evidence / claims
 #### Claim
 - Statement: IRRA combines CLIP dual-encoder initialization, MLM-based implicit relation reasoning, SDM, and ID loss to improve person-text retrieval quality.
 - Status: active
-- Confidence: 0.80
+- Confidence: 0.82
 - Evidence: [[source-arxiv-2303-12501-irra]]
 - Last confirmed: 2026-04-23
 - Notes: Direct summary of the paper's architecture and objective stack.
@@ -66,23 +71,33 @@ The source argues this combination improves benchmark performance while preservi
 #### Claim
 - Statement: IRRA's design goal is to replace explicit fine-grained alignment at inference time with training-time implicit relation learning while keeping inference computationally efficient.
 - Status: active
-- Confidence: 0.78
+- Confidence: 0.79
 - Evidence: [[source-arxiv-2303-12501-irra]]
 - Last confirmed: 2026-04-23
-- Notes: This is a central design claim of the paper; real-world efficiency tradeoffs beyond the reported benchmarks are not yet reinforced in-vault.
+- Notes: Core design claim from the source.
 
 #### Claim
-- Statement: IRRA reported publication-time SOTA on three person-retrieval benchmarks in 2023.
+- Statement: IRRA remains a strong CLIP-based TIReID baseline and a reference point for later methods such as RDE.
 - Status: active
-- Confidence: 0.76
-- Evidence: [[source-arxiv-2303-12501-irra]]
+- Confidence: 0.78
+- Evidence: [[source-arxiv-2303-12501-irra]], [[source-arxiv-2308-09911-rde]]
 - Last confirmed: 2026-04-23
-- Notes: Treat as historical benchmark context rather than a current field-level claim.
+- Notes: Reinforced because the later RDE paper compares directly against IRRA and inherits its CLIP-based setup.
+
+#### Claim
+- Statement: IRRA reported publication-time SOTA on three person-retrieval benchmarks in early 2023.
+- Status: superseded
+- Confidence: 0.82
+- Evidence: [[source-arxiv-2303-12501-irra]], [[source-arxiv-2308-09911-rde]]
+- Last confirmed: 2026-04-23
+- Notes: Preserve as historical provenance only. This claim is superseded in-vault by RDE's later reported results.
+- Superseded_by: [[source-arxiv-2308-09911-rde]]
 
 ## Open questions
-- Has later work superseded IRRA's benchmark results or design choices?
-- How well does SDM transfer beyond person retrieval into broader multimodal retrieval settings?
-- Would phrase-level masking address the failure mode the authors note in their qualitative analysis?
+- Which post-RDE methods further supersede both IRRA's and RDE's benchmark claims?
+- How much of IRRA's gains come from SDM versus MLM-based interaction when evaluated under realistic noisy pairs?
+- Which parts of IRRA remain best-in-class when robustness is the primary objective?
 
 ## Sources
 - [[source-arxiv-2303-12501-irra]]
+- [[source-arxiv-2308-09911-rde]]

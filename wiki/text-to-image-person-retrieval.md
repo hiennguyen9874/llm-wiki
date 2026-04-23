@@ -2,7 +2,7 @@
 title: Text-to-Image Person Retrieval
 created: 2026-04-23
 last_updated: 2026-04-23
-source_count: 1
+source_count: 2
 status: draft
 page_type: topic
 aliases:
@@ -18,9 +18,10 @@ importance: medium
 review_status: active
 related_sources:
   - source-arxiv-2303-12501-irra
-confidence_score: 0.73
-quality_score: 0.74
-evidence_count: 1
+  - source-arxiv-2308-09911-rde
+confidence_score: 0.79
+quality_score: 0.82
+evidence_count: 2
 first_seen: 2026-04-23
 last_confirmed: 2026-04-23
 claim_status: active
@@ -30,6 +31,8 @@ supersedes: []
 superseded_by: []
 related_entities:
   - IRRA
+  - RDE
+  - noisy correspondence
   - CLIP
   - CUHK-PEDES
   - ICFG-PEDES
@@ -38,45 +41,64 @@ related_entities:
 
 # Text-to-Image Person Retrieval
 
-Text-to-image person retrieval is a multimodal retrieval task where a system receives a natural-language description of a person and must retrieve matching images from a gallery. The main challenge is aligning language and visual appearance despite modality mismatch, viewpoint/pose variation, and ambiguity in textual descriptions.
+Text-to-image person retrieval is a multimodal retrieval task where a system receives a natural-language description of a person and must retrieve matching images from a gallery. The main challenge is aligning language and visual appearance despite modality mismatch, viewpoint/pose variation, ambiguity in textual descriptions, and potentially incorrect image-text pairings.
 
 ## Current in-vault view
-The first ingested source on this topic is [[source-arxiv-2303-12501-irra]], which presents [[irra]] as a CLIP-based retrieval method that emphasizes **implicit** token-level relation learning during training rather than **explicit** local part alignment during inference.
+The vault currently has two directly relevant sources:
+- [[source-arxiv-2303-12501-irra]] presents [[irra]] as a CLIP-based method that improves retrieval through training-time implicit relation reasoning and similarity distribution matching.
+- [[source-arxiv-2308-09911-rde]] presents [[rde]] as a later robustness-oriented method that explicitly models [[noisy-correspondence]] and reports stronger historical benchmark results than IRRA.
+
+Together, these sources suggest a useful in-vault progression: CLIP-based global retrieval became a strong baseline, then later work argued that pair-level annotation noise is important enough to change both the task framing and the training objective design.
 
 ## Key points
 - The task sits at the intersection of image-text retrieval and person re-identification.
-- Earlier methods often used separately pretrained visual/text encoders and explicit local alignment.
-- The IRRA paper argues that full-model CLIP transfer plus MLM-based implicit reasoning can improve alignment quality while keeping inference simple.
-- Current vault evidence on this topic is still sparse; benchmark and design conclusions should be treated as provisional until reinforced by more sources.
+- CLIP-initialized dual encoders appear as a strong backbone family in both in-vault sources.
+- A key design tension is balancing fine-grained cross-modal alignment against inference-time simplicity.
+- [[irra]] emphasizes implicit relation learning and efficient retrieval.
+- [[rde]] adds the claim that noisy image-text pairings are common enough to require explicit robustness mechanisms such as CCD and TAL.
+- Current vault evidence is still narrow, so benchmark conclusions should be treated as historical-within-vault rather than field-final.
 
 ## Evidence / claims
 #### Claim
 - Statement: A key design tension in text-to-image person retrieval is balancing fine-grained cross-modal alignment against inference-time efficiency.
 - Status: active
-- Confidence: 0.72
-- Evidence: [[source-arxiv-2303-12501-irra]]
+- Confidence: 0.76
+- Evidence: [[source-arxiv-2303-12501-irra]], [[source-arxiv-2308-09911-rde]]
 - Last confirmed: 2026-04-23
-- Notes: Framed directly in the source through the contrast between global matching, explicit local matching, and implicit relation reasoning.
+- Notes: Reinforced by both sources, which improve alignment differently while preserving efficient retrieval structure.
 
 #### Claim
-- Statement: As represented by [[irra]], CLIP-initialized dual encoders can serve as a strong baseline for this task and can be improved with additional cross-modal reasoning objectives.
+- Statement: CLIP-initialized dual encoders are a strong backbone family for this task and can be improved with additional cross-modal reasoning or robustness objectives.
 - Status: active
-- Confidence: 0.74
-- Evidence: [[source-arxiv-2303-12501-irra]]
+- Confidence: 0.81
+- Evidence: [[source-arxiv-2303-12501-irra]], [[source-arxiv-2308-09911-rde]]
 - Last confirmed: 2026-04-23
-- Notes: Supported by the paper's baseline and final results; broader field generality still needs reinforcement.
+- Notes: Directly reinforced across both ingested papers.
 
 #### Claim
-- Statement: Publication-time SOTA claims in this topic area should be stored as historical claims unless newer reinforcement or contradiction enters the vault.
+- Statement: Noisy correspondence is an important practical failure mode for this task because mismatched image-text pairs can mislead visual-semantic alignment learning.
 - Status: active
-- Confidence: 0.80
-- Evidence: [[source-arxiv-2303-12501-irra]]
+- Confidence: 0.79
+- Evidence: [[source-arxiv-2308-09911-rde]]
 - Last confirmed: 2026-04-23
-- Notes: This is an ingest-policy interpretation applied to benchmark-heavy sources.
+- Notes: Currently supported by one in-vault source, but it materially changes how the task should be interpreted.
+
+#### Claim
+- Statement: IRRA's in-vault historical benchmark leadership claim is superseded by RDE's later reported results.
+- Status: active
+- Confidence: 0.77
+- Evidence: [[source-arxiv-2303-12501-irra]], [[source-arxiv-2308-09911-rde]]
+- Last confirmed: 2026-04-23
+- Notes: Historical benchmark claim only; future sources may supersede both.
+- Supersedes: [[irra]]
 
 ## Related pages
 - [[irra]]
+- [[rde]]
+- [[noisy-correspondence]]
 - [[source-arxiv-2303-12501-irra]]
+- [[source-arxiv-2308-09911-rde]]
 
 ## Sources
 - [[source-arxiv-2303-12501-irra]]
+- [[source-arxiv-2308-09911-rde]]
