@@ -2,7 +2,7 @@
 title: Index
 created: 2026-04-14
 last_updated: 2026-04-23
-source_count: 3
+source_count: 4
 status: draft
 page_type: index
 aliases: [Catalog]
@@ -28,11 +28,13 @@ Master catalog of the second brain. Use this file for human orientation and brow
 ## Sources
 - [[source-arxiv-2303-12501-irra]] — arXiv source page for the IRRA paper, preserved from LaTeX source rather than PDF.
 - [[source-arxiv-2308-09911-rde]] — arXiv source page for the RDE paper on noisy correspondence in text-to-image person re-identification.
+- [[source-arxiv-2308-10045-tbps-clip]] — arXiv source page for the CLIP-in-TBPS empirical study and lightweight baseline recipe.
 - [[source-arxiv-2507-10195-mra]] — arXiv source page for the MRA paper on domain-aligned synthetic pretraining and region-phrase alignment.
 
 ## Topics and Concepts
-- [[text-to-image-person-retrieval]] — task-level topic page linking CLIP-based retrieval methods, robustness concerns, and data-centric pretraining strategies.
+- [[text-to-image-person-retrieval]] — task-level topic page linking CLIP-based retrieval methods, robustness concerns, recipe tuning, and data-centric pretraining strategies.
 - [[irra]] — method page for the IRRA architecture and claims.
+- [[tbps-clip]] — method page for the lightweight CLIP recipe baseline and its benchmark / few-shot findings.
 - [[rde]] — method page for Robust Dual Embedding and its robustness-oriented design.
 - [[mra]] — method page for Multi-granularity Relation Alignment and its benchmark progression.
 - [[domain-aware-diffusion]] — concept page for synthetic-to-real image-level domain adaptation in the MRA pipeline.
