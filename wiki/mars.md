@@ -2,7 +2,7 @@
 title: MARS
 created: 2026-04-23
 last_updated: 2026-04-23
-source_count: 1
+source_count: 2
 status: draft
 page_type: concept
 aliases:
@@ -19,9 +19,10 @@ importance: medium
 review_status: active
 related_sources:
   - source-arxiv-2407-04287-mars
-confidence_score: 0.84
-quality_score: 0.82
-evidence_count: 1
+  - source-github-ergastialex-mars
+confidence_score: 0.87
+quality_score: 0.87
+evidence_count: 2
 first_seen: 2026-04-23
 last_confirmed: 2026-04-23
 claim_status: active
@@ -44,7 +45,7 @@ related_entities:
 
 # MARS
 
-MARS (*Mae-Attribute-Relation-Sensitive*) is a 2024 method for [[text-to-image-person-retrieval]] introduced in [[source-arxiv-2407-04287-mars]]. It adds attribute-focused supervision and text-conditioned masked reconstruction on top of a RaSa/ALBEF-style TBPS system.
+MARS (*Mae-Attribute-Relation-Sensitive*) is a 2024 method for [[text-to-image-person-retrieval]] introduced in [[source-arxiv-2407-04287-mars]] and further grounded in the public implementation companion [[source-github-ergastialex-mars]]. It adds attribute-focused supervision and text-conditioned masked reconstruction on top of a RaSa/ALBEF-style TBPS system.
 
 ## Summary
 MARS combines three main ideas:
@@ -52,7 +53,7 @@ MARS combines three main ideas:
 - **Attribute Loss**: adjective-noun chunks in captions are extracted with spaCy and matched against the image so each attribute receives explicit supervision.
 - **Full cross-attention reranking**: the cross-modal encoder is equipped with cross-attention in all blocks to improve reranking.
 
-The paper's central argument is that TBPS models can become more precise when they are forced to pay attention to individual visual attributes rather than only global caption-image similarity. In the current vault, MARS complements [[irra]], [[rde]], [[tbps-clip]], and [[mra]] by showing another route to strong performance: attribute salience plus reconstruction instead of pure CLIP recipe tuning, noisy-pair robustness, or synthetic pretraining.
+The paper's central argument is that TBPS models can become more precise when they are forced to pay attention to individual visual attributes rather than only global caption-image similarity. The public repository makes that claim more concrete: it implements a seven-loss stack, builds spaCy-derived attribute masks at training time, uses a text-conditioned cross-transformer decoder for masked patch reconstruction, and reranks the top 128 candidates with a full-cross-attention multimodal encoder. In the current vault, MARS complements [[irra]], [[rde]], [[tbps-clip]], and [[mra]] by showing another route to strong performance: attribute salience plus reconstruction instead of pure CLIP recipe tuning, noisy-pair robustness, or synthetic pretraining.
 
 ## Relationships
 - `uses` text-conditioned masked autoencoding
@@ -64,23 +65,24 @@ The paper's central argument is that TBPS models can become more precise when th
 - `related_to` [[tbps-clip]]
 - `related_to` [[mra]]
 - `related_to` [[conquer]]
+- `related_to` [[source-github-ergastialex-mars]] as the implementation companion
 
 ## Evidence / claims
 #### Claim
 - Statement: MARS improves text-based person search by combining visual reconstruction, attribute-level supervision, and stronger cross-modal reranking.
 - Status: active
 - Confidence: 0.88
-- Evidence: [[source-arxiv-2407-04287-mars]]
+- Evidence: [[source-arxiv-2407-04287-mars]], [[source-github-ergastialex-mars]]
 - Last confirmed: 2026-04-23
-- Notes: Direct summary of the paper's architecture.
+- Notes: The code companion confirms the architecture is realized as a seven-loss ALBEF-style training system rather than a paper-only abstraction.
 
 #### Claim
 - Statement: The attribute loss is most useful when paired with masked autoencoding or expanded cross-attention, and it mainly improves ranking quality rather than raw top-1 alone.
 - Status: active
 - Confidence: 0.82
-- Evidence: [[source-arxiv-2407-04287-mars]]
+- Evidence: [[source-arxiv-2407-04287-mars]], [[source-github-ergastialex-mars]]
 - Last confirmed: 2026-04-23
-- Notes: Supported by the ablation table and discussion.
+- Notes: The paper motivates the effect and the code shows the exact spaCy chunk extraction plus ITM-style chunk supervision path.
 
 #### Claim
 - Statement: MARS reports 77.62 Rank-1 / 71.41 mAP on CUHK-PEDES, 67.60 Rank-1 / 44.93 mAP on ICFG-PEDES, and 67.55 Rank-1 / 52.92 mAP on RSTPReid.
@@ -90,6 +92,22 @@ The paper's central argument is that TBPS models can become more precise when th
 - Last confirmed: 2026-04-23
 - Notes: Source-specific benchmark report from the main results table.
 
+#### Claim
+- Statement: The public MARS implementation keeps dual-encoder retrieval for first-pass candidate generation but applies a full-cross-attention ITM reranker over the top 128 image candidates.
+- Status: active
+- Confidence: 0.89
+- Evidence: [[source-github-ergastialex-mars]]
+- Last confirmed: 2026-04-23
+- Notes: Supported by `Retrieval.py`, `models/xbert.py`, and `configs/config_bert-fullca.json`.
+
+#### Claim
+- Statement: The public MARS repository uses a seven-loss objective stack with especially high relative weight on the attribute loss, indicating that attribute salience is central to the released training recipe rather than a minor auxiliary term.
+- Status: active
+- Confidence: 0.88
+- Evidence: [[source-github-ergastialex-mars]]
+- Last confirmed: 2026-04-23
+- Notes: The released configs set `weights: [0.5, 1, 1, 0.5, 0.5, 1, 2]`, making the attribute term the heaviest weighted component.
+
 ## Open questions
 - Does attribute-loss supervision transfer cleanly to other fine-grained retrieval tasks?
 - How much of MARS's gain comes from the MAE branch versus the attribute loss itself?
@@ -98,3 +116,4 @@ The paper's central argument is that TBPS models can become more precise when th
 
 ## Sources
 - [[source-arxiv-2407-04287-mars]]
+- [[source-github-ergastialex-mars]]

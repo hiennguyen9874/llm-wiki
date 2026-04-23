@@ -22,6 +22,7 @@ domain: machine-learning
 importance: high
 review_status: active
 related_sources:
+  - source-github-ergastialex-mars
   - source-arxiv-2303-12501-irra
   - source-arxiv-2308-09911-rde
   - source-arxiv-2308-10045-tbps-clip
@@ -72,7 +73,7 @@ published: 2024-07-05
 - Code URL: [https://github.com/ErgastiAlex/MARS](https://github.com/ErgastiAlex/MARS)
 
 ## Why it matters
-This paper adds a third explanatory frame to the vault's [[text-to-image-person-retrieval]] story. Instead of focusing primarily on CLIP recipe tuning ([[tbps-clip]]), implicit relation learning ([[irra]]), noisy-pair robustness ([[rde]]), or synthetic pretraining/domain alignment ([[mra]]), it argues that TBPS improves when models pay explicit attention to visual attributes and reconstruct masked image patches using text-conditioned supervision.
+This paper adds a third explanatory frame to the vault's [[text-to-image-person-retrieval]] story. Instead of focusing primarily on CLIP recipe tuning ([[tbps-clip]]), implicit relation learning ([[irra]]), noisy-pair robustness ([[rde]]), or synthetic pretraining/domain alignment ([[mra]]), it argues that TBPS improves when models pay explicit attention to visual attributes and reconstruct masked image patches using text-conditioned supervision. The companion code source [[source-github-ergastialex-mars]] now confirms the exact public realization of that idea.
 
 ## Summary
 The paper proposes **MARS** (*Mae-Attribute-Relation-Sensitive*), a TBPS architecture built on a RaSa/ALBEF-style retrieval stack with two main additions:
@@ -107,6 +108,7 @@ A third implementation choice strengthens reranking: the cross-modal encoder is 
 - [[source-arxiv-2407-04287-mars]] `related_to` [[irra]].
 - [[source-arxiv-2407-04287-mars]] `related_to` [[rde]].
 - [[source-arxiv-2407-04287-mars]] `related_to` [[mra]].
+- [[source-arxiv-2407-04287-mars]] `related_to` [[source-github-ergastialex-mars]].
 
 ## Candidate claims from the source
 #### Claim
@@ -143,6 +145,7 @@ A third implementation choice strengthens reranking: the cross-modal encoder is 
 
 ## Reinforcement / supersession assessment
 - MARS reinforces the vault view that TBPS performance can come from more than one lever: recipe tuning ([[tbps-clip]]), implicit relation learning ([[irra]]), robustness to noisy pairs ([[rde]]), synthetic domain alignment ([[mra]]), and now explicit attribute salience plus text-conditioned reconstruction.
+- The companion code source [[source-github-ergastialex-mars]] reinforces rather than contradicts the paper, adding exact implementation detail around the seven-loss objective, full-cross-attention encoder configuration, and top-128 reranking path.
 - It partially supersedes earlier publication-time benchmark claims on CUHK-PEDES from [[irra]], [[rde]], and [[tbps-clip]], but it does not flatten the whole benchmark story because [[mra]] later remains stronger on ICFG-PEDES and RSTPReid.
 - No contradiction or sensitive-material issue was found; the main result is a broadened design space, not a conflict.
 
@@ -153,9 +156,11 @@ A third implementation choice strengthens reranking: the cross-modal encoder is 
 - [[irra]]
 - [[rde]]
 - [[mra]]
+- [[source-github-ergastialex-mars]]
 
 ## Ingest notes
 - Read from the arXiv HTML page with Defuddle and saved a cleaned web clip under `raw/web-clips/`.
 - Preserved the original URL in source metadata via `canonical_url`.
 - Did **not** create the skill-default `knowledge/summary_*.md` file.
 - Base/Canvas changes were considered but deferred; the topic remains navigable through linked markdown pages.
+- Later code ingest via [[source-github-ergastialex-mars]] added implementation-level confirmation without changing the paper-level claim structure.
