@@ -2,7 +2,7 @@
 title: Bi-IRRA
 created: 2026-04-23
 last_updated: 2026-04-23
-source_count: 2
+source_count: 3
 status: draft
 page_type: concept
 aliases:
@@ -21,9 +21,10 @@ review_status: active
 related_sources:
   - source-arxiv-2303-12501-irra
   - source-arxiv-2510-17685-bi-irra
+  - source-arxiv-2604-18376-mvr
 confidence_score: 0.87
 quality_score: 0.84
-evidence_count: 2
+evidence_count: 3
 first_seen: 2026-04-23
 last_confirmed: 2026-04-23
 claim_status: active
@@ -43,6 +44,7 @@ related_entities:
   - bi-lingual A-ITM
   - GA-DMS
   - CONQUER
+  - MVR
 ---
 
 # Bi-IRRA
@@ -54,7 +56,7 @@ Bi-IRRA has two main technical pieces:
 - **Bi-IRR** adds bidirectional fine-grained reasoning through bi-lingual masked language modeling and cross-lingual distillation-based masked image modeling.
 - **Md-GA** replaces the earlier conference-version SDM-centric global alignment with bi-lingual ITC plus bi-lingual A-ITM so fusion features can contribute directly at inference.
 
-The paper pairs this method with **LDAT**, a multilingual benchmark-construction pipeline that translates, filters, and rewrites text descriptions using domain-specific knowledge. In the current vault, Bi-IRRA matters because it is both a direct architectural descendant of [[irra]] and the strongest current benchmark result line in-vault, while also making multilingual TIPR a first-class task rather than an afterthought.
+The paper pairs this method with **LDAT**, a multilingual benchmark-construction pipeline that translates, filters, and rewrites text descriptions using domain-specific knowledge. In the current vault, Bi-IRRA matters because it is both a direct architectural descendant of [[irra]] and a strong benchmark line with clear CUHK-PEDES strength, while also making multilingual TIPR a first-class task rather than an afterthought. A newer source, [[source-arxiv-2604-18376-mvr]], introduces mixed benchmark outcomes where Bi-IRRA no longer cleanly dominates every dataset.
 
 ## Relationships
 - `uses` LDAT for multilingual benchmark construction
@@ -66,8 +68,9 @@ The paper pairs this method with **LDAT**, a multilingual benchmark-construction
 - `related_to` [[irra]] as the conference-version predecessor
 - `related_to` [[ga-dms]] as the prior in-vault benchmark leader
 - `related_to` [[conquer]] as a different later-design branch focused on inference-time query refinement
+- `related_to` [[mvr]] as a training-free semantic-compensation branch with mixed benchmark overlap
 - `supports` [[text-to-image-person-retrieval]]
-- `supersedes` [[ga-dms]] on current in-vault historical English-benchmark leadership
+- `supersedes` [[ga-dms]] on later historical benchmark reporting, but not all newer dataset-specific results
 
 ## Evidence / claims
 #### Claim
@@ -87,12 +90,12 @@ The paper pairs this method with **LDAT**, a multilingual benchmark-construction
 - Notes: Cross-source synthesis grounded in the conference-version comparison.
 
 #### Claim
-- Statement: In the current vault, Bi-IRRA supersedes GA-DMS's benchmark-leadership position with later reported Rank-1 scores of 79.43, 70.36, and 72.50 on CUHK-PEDES, ICFG-PEDES, and RSTPReid respectively under pretraining.
-- Status: active
-- Confidence: 0.89
-- Evidence: [[source-arxiv-2510-17685-bi-irra]], [[source-arxiv-2509-09118-ga-dms]]
+- Statement: Bi-IRRA supersedes GA-DMS on later historical benchmark reporting and remains stronger on CUHK-PEDES Rank-1 in current in-vault comparisons, while newer MVR evidence reports higher Rank-1 on ICFG-PEDES and RSTPReid.
+- Status: disputed
+- Confidence: 0.82
+- Evidence: [[source-arxiv-2510-17685-bi-irra]], [[source-arxiv-2509-09118-ga-dms]], [[source-arxiv-2604-18376-mvr]]
 - Last confirmed: 2026-04-23
-- Notes: Historical in-vault comparison only.
+- Notes: Preserve as dataset-dependent leadership rather than a single global winner.
 - Supersedes: [[ga-dms]]
 
 #### Claim
@@ -112,3 +115,4 @@ The paper pairs this method with **LDAT**, a multilingual benchmark-construction
 ## Sources
 - [[source-arxiv-2303-12501-irra]]
 - [[source-arxiv-2510-17685-bi-irra]]
+- [[source-arxiv-2604-18376-mvr]]

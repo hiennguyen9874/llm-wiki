@@ -28,6 +28,7 @@ related_sources:
   - source-arxiv-2507-10195-mra
   - source-arxiv-2509-09118-ga-dms
   - source-arxiv-2601-18625-conquer
+  - source-arxiv-2604-18376-mvr
 confidence_score: 0.94
 quality_score: 0.90
 evidence_count: 1
@@ -119,7 +120,8 @@ Its central claim is that TIPR performance improves when models learn fine-grain
 - [[source-arxiv-2510-17685-bi-irra]] `related_to` [[irra]].
 - [[source-arxiv-2510-17685-bi-irra]] `related_to` [[ga-dms]].
 - [[source-arxiv-2510-17685-bi-irra]] `related_to` [[conquer]].
-- [[source-arxiv-2510-17685-bi-irra]] `supersedes` [[source-arxiv-2509-09118-ga-dms]] on in-vault historical English-benchmark leadership.
+- [[source-arxiv-2510-17685-bi-irra]] `related_to` [[mvr]].
+- [[source-arxiv-2510-17685-bi-irra]] `supersedes` [[source-arxiv-2509-09118-ga-dms]] on later historical benchmark reporting.
 
 ## Candidate claims from the source
 #### Claim
@@ -139,12 +141,12 @@ Its central claim is that TIPR performance improves when models learn fine-grain
 - Notes: Direct architecture claim from the method and ablation sections.
 
 #### Claim
-- Statement: In the current vault, this paper becomes the latest historical English-benchmark leader by reporting Rank-1 scores of 79.43 on CUHK-PEDES, 70.36 on ICFG-PEDES, and 72.50 on RSTPReid under the pretraining setting.
-- Status: active
-- Confidence: 0.90
-- Evidence: [[source-arxiv-2510-17685-bi-irra]], [[source-arxiv-2509-09118-ga-dms]], [[source-arxiv-2601-18625-conquer]]
+- Statement: This paper clearly supersedes earlier in-vault GA-DMS/CONQUER benchmark points on publication time and remains strongest on CUHK-PEDES Rank-1 among current in-vault sources, but newer MVR evidence reports higher Rank-1 on ICFG-PEDES and RSTPReid.
+- Status: disputed
+- Confidence: 0.83
+- Evidence: [[source-arxiv-2510-17685-bi-irra]], [[source-arxiv-2509-09118-ga-dms]], [[source-arxiv-2601-18625-conquer]], [[source-arxiv-2604-18376-mvr]]
 - Last confirmed: 2026-04-23
-- Notes: Historical in-vault comparison only; these are paper-reported numbers, not a universal field-final claim.
+- Notes: Mixed benchmark landscape; keep dataset-specific interpretation.
 - Supersedes: [[source-arxiv-2509-09118-ga-dms]]
 
 #### Claim
@@ -165,9 +167,10 @@ Its central claim is that TIPR performance improves when models learn fine-grain
 
 ## Reinforcement / supersession assessment
 - [[source-arxiv-2303-12501-irra]] is strongly reinforced as a durable architectural precursor, but this paper extends it substantially with multilingual supervision and a revised global-alignment stack.
-- [[source-arxiv-2509-09118-ga-dms]] is still useful for token-noise robustness and large-scale curated web pretraining, but its historical benchmark-leadership role is **superseded** here by later reported English-benchmark results.
-- [[source-arxiv-2601-18625-conquer]] remains important for inference-time query refinement; this paper does not contradict that design line so much as outperform it on benchmark reporting while emphasizing multilingual training.
-- No disputed contradiction was found that requires preserving two incompatible factual states. The main update is broader task scope plus later benchmark evidence.
+- [[source-arxiv-2509-09118-ga-dms]] is still useful for token-noise robustness and large-scale curated web pretraining, and its benchmark-leadership role is superseded by this later source.
+- [[source-arxiv-2601-18625-conquer]] remains important for inference-time query refinement; this paper outperforms it on historical benchmark reporting while emphasizing multilingual training.
+- [[source-arxiv-2604-18376-mvr]] introduces mixed outcomes that partially challenge a single-leader narrative (higher ICFG/RSTP Rank-1, lower CUHK Rank-1 than Bi-IRRA).
+- Contradiction resolution: preserve benchmark status as dataset-dependent rather than forcing one global in-vault winner.
 
 ## Related pages updated
 - [[bi-irra]]
@@ -175,7 +178,9 @@ Its central claim is that TIPR performance improves when models learn fine-grain
 - [[irra]]
 - [[ga-dms]]
 - [[conquer]]
+- [[mvr]]
 - [[source-arxiv-2509-09118-ga-dms]]
+- [[source-arxiv-2604-18376-mvr]]
 
 ## Ingest notes
 - Read from the arXiv HTML page with Defuddle and saved a cleaned web clip under `raw/web-clips/`.

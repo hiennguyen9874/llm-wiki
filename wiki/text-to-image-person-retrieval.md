@@ -2,7 +2,7 @@
 title: Text-to-Image Person Retrieval
 created: 2026-04-23
 last_updated: 2026-04-23
-source_count: 8
+source_count: 9
 status: draft
 page_type: topic
 aliases:
@@ -26,9 +26,10 @@ related_sources:
   - source-arxiv-2509-09118-ga-dms
   - source-arxiv-2601-18625-conquer
   - source-arxiv-2510-17685-bi-irra
+  - source-arxiv-2604-18376-mvr
 confidence_score: 0.86
 quality_score: 0.89
-evidence_count: 8
+evidence_count: 9
 first_seen: 2026-04-23
 last_confirmed: 2026-04-23
 claim_status: active
@@ -46,6 +47,9 @@ related_entities:
   - CARE
   - IQE
   - Bi-IRRA
+  - MVR
+  - expression drift
+  - semantic compensation
   - LDAT
   - multilingual TIPR
   - WebPerson
@@ -75,7 +79,7 @@ related_entities:
 Text-to-image person retrieval is a multimodal retrieval task where a system receives a natural-language description of a person and must retrieve matching images from a gallery. The main challenge is aligning language and visual appearance despite modality mismatch, viewpoint/pose variation, ambiguity in textual descriptions, and potentially incorrect image-text pairings.
 
 ## Current in-vault view
-The vault currently has eight directly relevant sources:
+The vault currently has nine directly relevant sources:
 - [[source-arxiv-2303-12501-irra]] presents [[irra]] as a CLIP-based method that improves retrieval through training-time implicit relation reasoning and similarity distribution matching.
 - [[source-arxiv-2308-09911-rde]] presents [[rde]] as a later robustness-oriented method that explicitly models [[noisy-correspondence]] and reports stronger historical benchmark results than IRRA.
 - [[source-arxiv-2308-10045-tbps-clip]] presents [[tbps-clip]] as a lightweight CLIP recipe study showing that common training tricks, augmentation pools, and retrieval losses can make plain CLIP surprisingly strong for TBPS.
@@ -83,9 +87,10 @@ The vault currently has eight directly relevant sources:
 - [[source-arxiv-2507-10195-mra]] presents [[mra]] as a still later method that tackles the synthetic-to-real **pretraining gap** through [[domain-aware-diffusion]] and the [[synthetic-domain-aligned-dataset]], then adds explicit region-phrase alignment during pretraining.
 - [[source-arxiv-2509-09118-ga-dms]] presents [[ga-dms]] and [[webperson]] as a paired method-plus-dataset advance that targets noisy text tokens directly while scaling curated real-image pretraining.
 - [[source-arxiv-2601-18625-conquer]] presents [[conquer]] as a two-stage method that combines training-time alignment refinement with inference-time query enhancement for ambiguous or incomplete descriptions.
-- [[source-arxiv-2510-17685-bi-irra]] presents [[bi-irra]] as a multilingual extension of IRRA that adds bidirectional multilingual reasoning, benchmark construction via LDAT, and later historical benchmark results than the prior in-vault leader.
+- [[source-arxiv-2510-17685-bi-irra]] presents [[bi-irra]] as a multilingual extension of IRRA that adds bidirectional multilingual reasoning and benchmark construction via LDAT.
+- [[source-arxiv-2604-18376-mvr]] presents [[mvr]] as a training-free semantic-compensation method that improves robustness through LLM-driven multi-view reformulation at inference time.
 
-Together, these sources suggest a broader in-vault progression: CLIP-based retrieval became a strong baseline, later work emphasized robustness to pair-level noise, a separate recipe study showed that careful training/augmentation/loss design can make a simple CLIP baseline highly competitive, MARS added attribute salience plus text-conditioned reconstruction, MRA argued that synthetic pretraining improves when the corpus is domain-aligned to pedestrian imagery, GA-DMS plus WebPerson shifted the picture toward token-level noise handling plus large-scale curated web data, CONQUER added explicit inference-time query refinement, and Bi-IRRA broadened the task again by making multilingual supervision and multilingual benchmarking first-class design concerns.
+Together, these sources suggest a broader in-vault progression: CLIP-based retrieval became a strong baseline, later work emphasized robustness to pair-level noise, a separate recipe study showed that careful training/augmentation/loss design can make a simple CLIP baseline highly competitive, MARS added attribute salience plus text-conditioned reconstruction, MRA argued that synthetic pretraining improves when the corpus is domain-aligned to pedestrian imagery, GA-DMS plus WebPerson shifted the picture toward token-level noise handling plus large-scale curated web data, CONQUER added explicit inference-time query refinement, Bi-IRRA broadened the task by making multilingual supervision and multilingual benchmarking first-class, and MVR added a no-retraining semantic-compensation route using multi-view reformulations.
 
 ## Key points
 - The task sits at the intersection of image-text retrieval and person re-identification.
@@ -100,6 +105,7 @@ Together, these sources suggest a broader in-vault progression: CLIP-based retri
 - [[webperson]] adds a competing data-centric argument: large-scale curated real web images plus MLLM captioning can be a strong pretraining route beside synthetic-domain alignment.
 - [[conquer]] adds an inference-time argument: retrieval can improve by actively enriching vague or incomplete user queries rather than treating the original text as fixed.
 - [[bi-irra]] adds a multilingual argument: person retrieval systems and benchmarks should be evaluated beyond English-only descriptions, and multilingual supervision can improve both multilingual and English retrieval results.
+- [[mvr]] adds an inference-time semantic compensation argument: multi-view LLM reformulations can reduce expression drift without retraining the backbone.
 - Current vault evidence is still narrow, so benchmark conclusions should be treated as historical-within-vault rather than field-final.
 
 ## Evidence / claims
@@ -112,12 +118,12 @@ Together, these sources suggest a broader in-vault progression: CLIP-based retri
 - Notes: Reinforces the idea that recipe design matters alongside architecture.
 
 #### Claim
-- Statement: CLIP-initialized dual encoders are a strong backbone family for this task and can be improved with additional cross-modal reasoning or robustness objectives.
+- Statement: CLIP-initialized dual encoders are a strong backbone family for this task and can be improved with additional cross-modal reasoning, robustness objectives, or inference-time semantic compensation.
 - Status: active
-- Confidence: 0.83
-- Evidence: [[source-arxiv-2303-12501-irra]], [[source-arxiv-2308-09911-rde]], [[source-arxiv-2308-10045-tbps-clip]], [[source-arxiv-2601-18625-conquer]], [[source-arxiv-2510-17685-bi-irra]]
+- Confidence: 0.84
+- Evidence: [[source-arxiv-2303-12501-irra]], [[source-arxiv-2308-09911-rde]], [[source-arxiv-2308-10045-tbps-clip]], [[source-arxiv-2601-18625-conquer]], [[source-arxiv-2510-17685-bi-irra]], [[source-arxiv-2604-18376-mvr]]
 - Last confirmed: 2026-04-23
-- Notes: Directly reinforced across multiple in-vault sources, including the multilingual Bi-IRRA extension.
+- Notes: Reinforced across architecture, training-objective, multilingual, and training-free compensation lines.
 
 #### Claim
 - Statement: Noisy correspondence is an important practical failure mode for this task because mismatched image-text pairs can mislead visual-semantic alignment learning.
@@ -128,27 +134,26 @@ Together, these sources suggest a broader in-vault progression: CLIP-based retri
 - Notes: Later GA-DMS reinforces the broader noise-aware framing at token level.
 
 #### Claim
-- Statement: The current vault's latest historical English-benchmark leadership is held by [[source-arxiv-2510-17685-bi-irra]], which reports Rank-1 scores of 79.43 on CUHK-PEDES, 70.36 on ICFG-PEDES, and 72.50 on RSTPReid under the paper's pretraining setting.
-- Status: active
-- Confidence: 0.89
-- Evidence: [[source-arxiv-2303-12501-irra]], [[source-arxiv-2308-09911-rde]], [[source-arxiv-2308-10045-tbps-clip]], [[source-arxiv-2407-04287-mars]], [[source-arxiv-2507-10195-mra]], [[source-arxiv-2509-09118-ga-dms]], [[source-arxiv-2601-18625-conquer]], [[source-arxiv-2510-17685-bi-irra]]
+- Statement: No single method currently dominates all three in-vault English benchmarks simultaneously: Bi-IRRA remains stronger on CUHK-PEDES Rank-1, while MVR+HAM(RDE) reports higher Rank-1 on ICFG-PEDES and RSTPReid.
+- Status: disputed
+- Confidence: 0.81
+- Evidence: [[source-arxiv-2510-17685-bi-irra]], [[source-arxiv-2604-18376-mvr]], [[source-arxiv-2509-09118-ga-dms]]
 - Last confirmed: 2026-04-23
-- Notes: Historical synthesis only; this is a vault-local comparison, not a claim about the entire field.
-- Supersedes: [[source-arxiv-2509-09118-ga-dms]]
+- Notes: Mixed benchmark evidence; keep as dataset-dependent rather than forcing a single global in-vault leader.
 
 #### Claim
-- Statement: The vault now shows multiple routes to strong TBPS performance: IRRA and RDE establish CLIP-based baselines, TBPS-CLIP strengthens a recipe-only line, MARS adds attribute-aware reranking, MRA adds domain-aligned synthetic pretraining, GA-DMS plus WebPerson combine token-level noise handling with large-scale curated web pretraining, CONQUER adds inference-time query refinement for ambiguous descriptions, and Bi-IRRA adds multilingual supervision plus multilingual benchmark construction.
+- Statement: The vault now shows multiple routes to strong TBPS performance: IRRA and RDE establish CLIP-based baselines, TBPS-CLIP strengthens a recipe-only line, MARS adds attribute-aware reranking, MRA adds domain-aligned synthetic pretraining, GA-DMS plus WebPerson combine token-level noise handling with large-scale curated web pretraining, CONQUER adds inference-time query refinement for ambiguous descriptions, Bi-IRRA adds multilingual supervision plus multilingual benchmark construction, and MVR adds training-free multi-view semantic compensation.
 - Status: active
-- Confidence: 0.86
-- Evidence: [[source-arxiv-2303-12501-irra]], [[source-arxiv-2308-09911-rde]], [[source-arxiv-2308-10045-tbps-clip]], [[source-arxiv-2407-04287-mars]], [[source-arxiv-2507-10195-mra]], [[source-arxiv-2509-09118-ga-dms]], [[source-arxiv-2601-18625-conquer]], [[source-arxiv-2510-17685-bi-irra]]
+- Confidence: 0.87
+- Evidence: [[source-arxiv-2303-12501-irra]], [[source-arxiv-2308-09911-rde]], [[source-arxiv-2308-10045-tbps-clip]], [[source-arxiv-2407-04287-mars]], [[source-arxiv-2507-10195-mra]], [[source-arxiv-2509-09118-ga-dms]], [[source-arxiv-2601-18625-conquer]], [[source-arxiv-2510-17685-bi-irra]], [[source-arxiv-2604-18376-mvr]]
 - Last confirmed: 2026-04-23
 - Notes: Synthesis claim that helps position the method family.
 
 #### Claim
-- Statement: Later in-vault evidence suggests inference-time query refinement is a distinct and practically relevant TBPS lever, especially for vague or incomplete user descriptions.
+- Statement: Later in-vault evidence suggests inference-time adaptation is a distinct and practically relevant TBPS lever, including both interactive query refinement and multi-view semantic compensation.
 - Status: active
-- Confidence: 0.80
-- Evidence: [[source-arxiv-2601-18625-conquer]]
+- Confidence: 0.83
+- Evidence: [[source-arxiv-2601-18625-conquer]], [[source-arxiv-2604-18376-mvr]]
 - Last confirmed: 2026-04-23
 - Notes: Keep as a design-space claim rather than a broad field law until more sources reinforce it.
 
@@ -177,6 +182,7 @@ Together, these sources suggest a broader in-vault progression: CLIP-based retri
 - [[ga-dms]]
 - [[conquer]]
 - [[bi-irra]]
+- [[mvr]]
 - [[webperson]]
 - [[domain-aware-diffusion]]
 - [[synthetic-domain-aligned-dataset]]
@@ -189,6 +195,7 @@ Together, these sources suggest a broader in-vault progression: CLIP-based retri
 - [[source-arxiv-2509-09118-ga-dms]]
 - [[source-arxiv-2601-18625-conquer]]
 - [[source-arxiv-2510-17685-bi-irra]]
+- [[source-arxiv-2604-18376-mvr]]
 
 ## Sources
 - [[source-arxiv-2303-12501-irra]]
@@ -199,3 +206,4 @@ Together, these sources suggest a broader in-vault progression: CLIP-based retri
 - [[source-arxiv-2509-09118-ga-dms]]
 - [[source-arxiv-2601-18625-conquer]]
 - [[source-arxiv-2510-17685-bi-irra]]
+- [[source-arxiv-2604-18376-mvr]]
