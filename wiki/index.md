@@ -24,6 +24,7 @@ Master catalog of the second brain. Use this file for human orientation and brow
 ## Crystallizations and Durable Outputs
 - `outputs/crystallizations/` — structured digests distilled from completed research, debugging, or exploration sessions.
 - `outputs/answers/` — durable saved answers worth promoting when they become recurring knowledge.
+- `outputs/analyses/text-to-image-person-retrieval-unexplored-connections.md` — cross-topic gap scan on the TBPS lever families and likely follow-up comparisons.
 
 ## Sources
 - [[source-arxiv-2303-12501-irra]] — arXiv source page for the IRRA paper, preserved from LaTeX source rather than PDF.
@@ -62,9 +63,11 @@ Master catalog of the second brain. Use this file for human orientation and brow
 <!-- Add timeline pages here -->
 
 ## Syntheses and Comparisons
-<!-- Add synthesis, comparison, and decision pages here -->
+- [[text-to-image-person-retrieval-research-agenda]] — prioritized next-research gaps and synthesis for the current text-to-image person retrieval cluster.
 
 ## Outputs Worth Promoting into Wiki
 - [[text-based-person-search-methods-models-briefing]] — reusable briefing on the current in-vault design space for text-based person search.
 - [[text-based-person-search-methods-models-session-crystallization]] — episodic summary of the retrieval-and-benchmark session that produced the briefing and table.
+- `outputs/answers/tbps-method-synthesis-and-hybrid-recommendation.md` — recommendation-oriented synthesis on how to combine the TBPS levers into a practical hybrid and when to prefer MVR, Bi-IRRA, or CONQUER.
+- `outputs/answers/tbps-hybrid-architecture-spec.md` — more concrete hybrid architecture proposal with training stack, data strategy, inference gates, and multilingual branch.
 

@@ -108,6 +108,9 @@ Together, these sources suggest a broader in-vault progression: CLIP-based retri
 - [[mvr]] adds an inference-time semantic compensation argument: multi-view LLM reformulations can reduce expression drift without retraining the backbone.
 - Current vault evidence is still narrow, so benchmark conclusions should be treated as historical-within-vault rather than field-final.
 
+## Research directions
+- [[text-to-image-person-retrieval-research-agenda]] — prioritized next-research agenda for benchmark diagnostics, robustness, data tradeoffs, fine-grained grounding, multilinguality, and inference-time adaptation.
+
 ## Evidence / claims
 #### Claim
 - Statement: A carefully tuned CLIP recipe can be a strong TBPS baseline without adding a bespoke multimodal interaction module.
