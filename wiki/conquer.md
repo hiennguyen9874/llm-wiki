@@ -20,9 +20,10 @@ importance: high
 review_status: active
 related_sources:
   - source-arxiv-2601-18625-conquer
+  - source-arxiv-2510-17685-bi-irra
 confidence_score: 0.85
-quality_score: 0.83
-evidence_count: 1
+quality_score: 0.84
+evidence_count: 2
 first_seen: 2026-04-23
 last_confirmed: 2026-04-23
 claim_status: active
@@ -39,6 +40,7 @@ related_entities:
   - GA-DMS
   - RDE
   - MRA
+  - Bi-IRRA
   - Qwen2.5-VL-7B
 ---
 
@@ -94,17 +96,18 @@ In the current vault, CONQUER matters because it adds a distinct design route: i
 - Notes: Source-specific benchmark report.
 
 #### Claim
-- Statement: In the current vault, CONQUER broadens the method landscape but does not supersede GA-DMS's historical benchmark-leadership claim.
+- Statement: In the current vault, CONQUER broadens the method landscape but is later outperformed on historical benchmark reporting by both GA-DMS and then Bi-IRRA.
 - Status: active
-- Confidence: 0.83
-- Evidence: [[source-arxiv-2601-18625-conquer]], [[source-arxiv-2509-09118-ga-dms]]
+- Confidence: 0.84
+- Evidence: [[source-arxiv-2601-18625-conquer]], [[source-arxiv-2509-09118-ga-dms]], [[source-arxiv-2510-17685-bi-irra]]
 - Last confirmed: 2026-04-23
 - Notes: Historical in-vault comparison only.
 
 ## Open questions
 - How much of CONQUER's gains come from CARE versus IQE when evaluated under realistic ambiguous-query distributions?
 - How reliable is MLLM-based attribute extraction when anchors are themselves slightly wrong?
-- Can CONQUER's query-enhancement idea combine productively with token-noise handling from [[ga-dms]] or data-centric pretraining from [[mra]]?
+- Can CONQUER's query-enhancement idea combine productively with token-noise handling from [[ga-dms]], multilingual supervision from [[bi-irra]], or data-centric pretraining from [[mra]]?
 
 ## Sources
 - [[source-arxiv-2601-18625-conquer]]
+- [[source-arxiv-2510-17685-bi-irra]]

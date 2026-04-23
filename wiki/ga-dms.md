@@ -2,7 +2,7 @@
 title: GA-DMS
 created: 2026-04-23
 last_updated: 2026-04-23
-source_count: 1
+source_count: 2
 status: draft
 page_type: concept
 aliases:
@@ -20,9 +20,10 @@ importance: high
 review_status: active
 related_sources:
   - source-arxiv-2509-09118-ga-dms
+  - source-arxiv-2510-17685-bi-irra
 confidence_score: 0.84
-quality_score: 0.83
-evidence_count: 1
+quality_score: 0.85
+evidence_count: 2
 first_seen: 2026-04-23
 last_confirmed: 2026-04-23
 claim_status: active
@@ -30,7 +31,8 @@ retention_class: durable
 visibility: private
 supersedes:
   - mra
-superseded_by: []
+superseded_by:
+  - bi-irra
 related_entities:
   - text-to-image person retrieval
   - WebPerson
@@ -40,6 +42,7 @@ related_entities:
   - RDE
   - MRA
   - CLIP
+  - Bi-IRRA
 ---
 
 # GA-DMS
@@ -51,7 +54,7 @@ GA-DMS centers on a **Gradient-Attention Similarity Score (GASS)** that estimate
 - **Noise token masking** reduces the influence of likely irrelevant or hallucinated caption tokens.
 - **Masked informative token prediction** forces the model to reconstruct semantically important masked tokens through cross-modal interaction.
 
-In the current vault, GA-DMS matters because it strengthens the noise-robustness story opened by [[rde]] while staying closer to CLIP/IRRA-style retrieval pipelines than the synthetic-domain pretraining route of [[mra]]. It also arrives with a companion dataset, [[webperson]], which the paper argues is a major part of the gain.
+In the current vault, GA-DMS matters because it strengthens the noise-robustness story opened by [[rde]] while staying closer to CLIP/IRRA-style retrieval pipelines than the synthetic-domain pretraining route of [[mra]]. It also arrives with a companion dataset, [[webperson]], which the paper argues is a major part of the gain. Its former benchmark-leadership role is now later superseded in-vault by [[bi-irra]], but GA-DMS remains the clearest current source here on token-level caption-noise handling plus large-scale curated web pretraining.
 
 ## Relationships
 - `uses` GASS for token relevance scoring
@@ -63,7 +66,9 @@ In the current vault, GA-DMS matters because it strengthens the noise-robustness
 - `related_to` [[mra]]
 - `related_to` [[irra]]
 - `related_to` [[conquer]]
+- `related_to` [[bi-irra]]
 - `supersedes` [[mra]] on publication-time benchmark leadership
+- `is_superseded_by` [[bi-irra]] on later in-vault historical benchmark leadership
 
 ## Evidence / claims
 #### Claim
@@ -83,13 +88,14 @@ In the current vault, GA-DMS matters because it strengthens the noise-robustness
 - Notes: Source-local ablation result; useful design hint rather than a universal rule.
 
 #### Claim
-- Statement: In the current vault, GA-DMS supersedes MRA's publication-time benchmark leadership with later reported Rank-1 scores of 77.60, 69.51, and 71.25 on CUHK-PEDES, ICFG-PEDES, and RSTPReid respectively.
-- Status: active
+- Statement: GA-DMS supersedes MRA's publication-time benchmark leadership with later reported Rank-1 scores of 77.60, 69.51, and 71.25 on CUHK-PEDES, ICFG-PEDES, and RSTPReid respectively, but is itself later superseded in-vault by Bi-IRRA.
+- Status: superseded
 - Confidence: 0.86
-- Evidence: [[source-arxiv-2509-09118-ga-dms]], [[source-arxiv-2507-10195-mra]]
+- Evidence: [[source-arxiv-2509-09118-ga-dms]], [[source-arxiv-2507-10195-mra]], [[source-arxiv-2510-17685-bi-irra]]
 - Last confirmed: 2026-04-23
-- Notes: Historical in-vault comparison only.
+- Notes: Preserve as historical provenance only.
 - Supersedes: [[mra]]
+- Superseded_by: [[bi-irra]]
 
 ## Open questions
 - How much of the gain comes from [[webperson]] scale and quality versus the GA-DMS objective itself?
@@ -99,3 +105,4 @@ In the current vault, GA-DMS matters because it strengthens the noise-robustness
 
 ## Sources
 - [[source-arxiv-2509-09118-ga-dms]]
+- [[source-arxiv-2510-17685-bi-irra]]

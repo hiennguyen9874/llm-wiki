@@ -28,6 +28,7 @@ related_sources:
   - source-arxiv-2407-04287-mars
   - source-arxiv-2507-10195-mra
   - source-arxiv-2509-09118-ga-dms
+  - source-arxiv-2510-17685-bi-irra
 confidence_score: 0.92
 quality_score: 0.88
 evidence_count: 1
@@ -152,7 +153,7 @@ The source's central claim is that TBPS suffers both from cross-modal mismatch d
 ## Reinforcement / supersession assessment
 - [[source-arxiv-2407-04287-mars]] is reinforced on the value of explicit attribute information, but CONQUER shifts that emphasis toward inference-time query enrichment rather than only training-time attribute supervision.
 - [[source-arxiv-2308-09911-rde]] and [[source-arxiv-2509-09118-ga-dms]] are reinforced on the broader idea that passive alignment alone is insufficient; CONQUER adds ambiguity-handling at query time instead of only noise-aware training.
-- [[source-arxiv-2509-09118-ga-dms]] remains the current in-vault benchmark leader; this paper broadens the design space without superseding that historical benchmark position.
+- [[source-arxiv-2509-09118-ga-dms]] remained the in-vault benchmark leader at the time of this ingest, but [[source-arxiv-2510-17685-bi-irra]] later supersedes both sources on historical benchmark reporting.
 - No material contradiction was found that requires a disputed state. The main update is an additional method family emphasizing inference-time adaptability.
 
 ## Related pages updated

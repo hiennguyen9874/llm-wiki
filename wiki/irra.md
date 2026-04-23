@@ -2,7 +2,7 @@
 title: IRRA
 created: 2026-04-23
 last_updated: 2026-04-23
-source_count: 4
+source_count: 5
 status: draft
 page_type: concept
 aliases:
@@ -21,9 +21,10 @@ related_sources:
   - source-arxiv-2308-09911-rde
   - source-arxiv-2308-10045-tbps-clip
   - source-arxiv-2507-10195-mra
-confidence_score: 0.81
-quality_score: 0.84
-evidence_count: 4
+  - source-arxiv-2510-17685-bi-irra
+confidence_score: 0.83
+quality_score: 0.86
+evidence_count: 5
 first_seen: 2026-04-23
 last_confirmed: 2026-04-23
 claim_status: active
@@ -39,6 +40,9 @@ related_entities:
   - MARS
   - MRA
   - TBPS-CLIP
+  - Bi-IRRA
+  - LDAT
+  - multilingual TIPR
   - noisy correspondence
   - CLIP
   - masked language modeling
@@ -55,7 +59,7 @@ The method starts from the full CLIP image and text encoders rather than separat
 - a **Similarity Distribution Matching (SDM)** loss for image-text alignment,
 - and an **identity classification loss** to tighten intra-identity grouping.
 
-The source argues this combination improves benchmark performance while preserving efficient retrieval through a single global similarity computation. A later source, [[source-arxiv-2308-10045-tbps-clip]], shows that a much simpler CLIP recipe can get close to or slightly exceed IRRA on some benchmarks while training far faster, so IRRA is best read as an early strong CLIP-based architecture rather than the only route to strong performance. In the current vault, IRRA remains an important architectural reference point, but its historical best-results claim is now superseded by later sources including [[source-arxiv-2308-09911-rde]] and [[source-arxiv-2507-10195-mra]].
+The source argues this combination improves benchmark performance while preserving efficient retrieval through a single global similarity computation. A later source, [[source-arxiv-2308-10045-tbps-clip]], shows that a much simpler CLIP recipe can get close to or slightly exceed IRRA on some benchmarks while training far faster, so IRRA is best read as an early strong CLIP-based architecture rather than the only route to strong performance. Another later source, [[source-arxiv-2510-17685-bi-irra]], explicitly extends IRRA into a multilingual setting by replacing SDM with a stronger multilingual global-alignment stack and adding bidirectional multilingual masked-text / masked-image reasoning. In the current vault, IRRA remains an important architectural reference point, but its historical best-results claim is now superseded by later sources including [[source-arxiv-2308-09911-rde]], [[source-arxiv-2507-10195-mra]], and the multilingual descendant [[source-arxiv-2510-17685-bi-irra]].
 
 ## Relationships
 - `uses` CLIP full-model initialization
@@ -66,7 +70,9 @@ The source argues this combination improves benchmark performance while preservi
 - `related_to` [[tbps-clip]]
 - `related_to` [[mars]]
 - `related_to` [[mra]]
+- `related_to` [[bi-irra]] as a multilingual extension of the core idea
 - `is_superseded_by` [[source-arxiv-2308-09911-rde]] and [[source-arxiv-2507-10195-mra]] on publication-time benchmark leadership
+- `is_extended_by` [[source-arxiv-2510-17685-bi-irra]] on multilingual bidirectional relation learning
 
 ## Evidence / claims
 #### Claim
@@ -86,12 +92,12 @@ The source argues this combination improves benchmark performance while preservi
 - Notes: Core design claim from the source.
 
 #### Claim
-- Statement: IRRA remains a strong CLIP-based TIReID baseline and a reference point for later methods such as RDE and TBPS-CLIP.
+- Statement: IRRA remains a strong CLIP-based TIReID baseline and a reference point for later methods such as RDE, TBPS-CLIP, and Bi-IRRA.
 - Status: active
-- Confidence: 0.79
-- Evidence: [[source-arxiv-2303-12501-irra]], [[source-arxiv-2308-09911-rde]], [[source-arxiv-2308-10045-tbps-clip]]
+- Confidence: 0.82
+- Evidence: [[source-arxiv-2303-12501-irra]], [[source-arxiv-2308-09911-rde]], [[source-arxiv-2308-10045-tbps-clip]], [[source-arxiv-2510-17685-bi-irra]]
 - Last confirmed: 2026-04-23
-- Notes: Reinforced because later sources compare directly against IRRA or show competitive simpler baselines.
+- Notes: Reinforced because later sources compare directly against IRRA, extend it, or show competitive simpler baselines.
 
 #### Claim
 - Statement: IRRA reported publication-time SOTA on three person-retrieval benchmarks in early 2023.
@@ -112,3 +118,4 @@ The source argues this combination improves benchmark performance while preservi
 - [[source-arxiv-2308-09911-rde]]
 - [[source-arxiv-2308-10045-tbps-clip]]
 - [[source-arxiv-2507-10195-mra]]
+- [[source-arxiv-2510-17685-bi-irra]]

@@ -26,6 +26,7 @@ related_sources:
   - source-arxiv-2308-09911-rde
   - source-arxiv-2407-04287-mars
   - source-arxiv-2507-10195-mra
+  - source-arxiv-2510-17685-bi-irra
 confidence_score: 0.93
 quality_score: 0.89
 evidence_count: 1
@@ -36,7 +37,8 @@ retention_class: durable
 visibility: private
 supersedes:
   - source-arxiv-2507-10195-mra
-superseded_by: []
+superseded_by:
+  - source-arxiv-2510-17685-bi-irra
 related_entities:
   - GA-DMS
   - WebPerson
@@ -116,6 +118,7 @@ Its central claim is that person retrieval improves when the training data becom
 - [[source-arxiv-2509-09118-ga-dms]] `related_to` [[rde]].
 - [[source-arxiv-2509-09118-ga-dms]] `related_to` [[mra]].
 - [[source-arxiv-2509-09118-ga-dms]] `supersedes` [[source-arxiv-2507-10195-mra]] on publication-time benchmark leadership claims in this vault.
+- [[source-arxiv-2509-09118-ga-dms]] `is_superseded_by` [[source-arxiv-2510-17685-bi-irra]] on later in-vault historical English-benchmark leadership.
 
 ## Candidate claims from the source
 #### Claim
@@ -135,13 +138,14 @@ Its central claim is that person retrieval improves when the training data becom
 - Notes: Direct method claim from the architecture and ablation sections.
 
 #### Claim
-- Statement: Relative to earlier in-vault sources, this paper reports later historical benchmark leadership with Rank-1 scores of 77.60 on CUHK-PEDES, 69.51 on ICFG-PEDES, and 71.25 on RSTPReid for the 5M setting.
-- Status: active
+- Statement: Relative to earlier in-vault sources, this paper reports later historical benchmark leadership with Rank-1 scores of 77.60 on CUHK-PEDES, 69.51 on ICFG-PEDES, and 71.25 on RSTPReid for the 5M setting, but that role is later superseded in-vault by Bi-IRRA.
+- Status: superseded
 - Confidence: 0.88
-- Evidence: [[source-arxiv-2509-09118-ga-dms]], [[source-arxiv-2507-10195-mra]], [[source-arxiv-2407-04287-mars]], [[source-arxiv-2308-09911-rde]]
+- Evidence: [[source-arxiv-2509-09118-ga-dms]], [[source-arxiv-2507-10195-mra]], [[source-arxiv-2407-04287-mars]], [[source-arxiv-2308-09911-rde]], [[source-arxiv-2510-17685-bi-irra]]
 - Last confirmed: 2026-04-23
-- Notes: Historical comparison only; these are paper-reported results, not a claim about the field's final frontier.
+- Notes: Historical comparison only; preserve as provenance rather than current frontier.
 - Supersedes: [[source-arxiv-2507-10195-mra]]
+- Superseded_by: [[source-arxiv-2510-17685-bi-irra]]
 
 #### Claim
 - Statement: The paper reinforces the view that noisy textual supervision is a major bottleneck in person retrieval and that token-level mitigation can matter alongside pair-level robustness and data curation.
@@ -163,6 +167,7 @@ Its central claim is that person retrieval improves when the training data becom
 - [[source-arxiv-2308-09911-rde]] is reinforced on the importance of noise-aware learning, but this paper shifts the locus from pair-level filtering alone toward token-level noise handling plus larger-scale curated pretraining.
 - [[source-arxiv-2507-10195-mra]] is reinforced on the importance of data quality and pretraining strategy, but its in-vault benchmark-leadership role is **superseded** by this later 2025 paper.
 - [[source-arxiv-2407-04287-mars]] remains a useful attribute-focused comparison point; this paper does not contradict MARS so much as propose a different route to fine-grained alignment.
+- [[source-arxiv-2510-17685-bi-irra]] later supersedes this source on historical English-benchmark leadership while leaving GA-DMS's token-noise and web-pretraining contributions intact.
 - No material contradiction was found that requires a disputed state; the main update is a broadened design space plus a later benchmark point.
 
 ## Related pages updated
