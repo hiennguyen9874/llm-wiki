@@ -18,7 +18,6 @@ This skill holds detailed repo-wide rules. `AGENTS.md` only routes work.
 - Manual-first, human-steered, prompt-driven.
 - Prefer explicit workflows + scheduled reviews over fake hidden automation.
 - Design prompts/skills so hooks or scheduled jobs can come later.
-- Adopt v4 ideas only as manual, executable conventions unless tooling exists.
 - Do not claim automation, graph infra, vector DB, desktop app, persistent queue, derived-index tooling, or lifecycle enforcement repo does not actually have.
 
 ## Memory Architecture
@@ -54,26 +53,6 @@ This skill holds detailed repo-wide rules. `AGENTS.md` only routes work.
 - Crystallize exploratory work when needed.
 - Canonical wiki gets durable, evidence-backed knowledge.
 - Stable process lessons go into procedural memory.
-
-
-## Manual Compile Workflow
-Compilation means synthesizing accumulated `raw/` sources and/or durable `outputs/` artifacts into canonical `wiki/` pages. It is distinct from capture and single-source ingest.
-
-Use compile when:
-- several sources cover the same topic and should update shared concept/entity/synthesis pages
-- saved answers, analyses, or crystallizations should be promoted into semantic memory
-- a topic needs a full consistency pass rather than another isolated source summary
-
-Modes:
-- `incremental` → process new or changed sources/outputs since the last relevant review/log entry
-- `full` → re-read all relevant sources/pages in scope and rewrite/update synthesis more broadly
-
-Rules:
-- Read actual files before synthesizing; do not compile from index summaries alone.
-- Preserve raw sources unchanged.
-- Update canonical pages, `related_sources`, claims, contradictions, confidence/quality, overview, index, and log where justified.
-- If the compile plan implies taxonomy/schema/bulk moves/deletes, ask user first.
-- If decisions can wait, create review queue items rather than blocking safe compilation.
 
 ## Tool Selection Policy
 - Use **QMD** as primary local markdown search/retrieval tool for `wiki/`, `raw/`, `outputs/`.
