@@ -1,8 +1,8 @@
 ---
 title: Source - arXiv 2507.10195 - MRA
 created: 2026-04-23
-last_updated: 2026-04-23
-source_count: 1
+last_updated: 2026-04-24
+source_count: 2
 status: reviewed
 page_type: source
 aliases:
@@ -23,11 +23,12 @@ review_status: active
 related_sources:
   - source-arxiv-2303-12501-irra
   - source-arxiv-2308-09911-rde
+  - source-github-shuyu-xjtu-mra
 confidence_score: 0.92
 quality_score: 0.88
 evidence_count: 1
 first_seen: 2026-04-23
-last_confirmed: 2026-04-23
+last_confirmed: 2026-04-24
 claim_status: active
 retention_class: durable
 visibility: private
@@ -69,6 +70,7 @@ entrypoint: raw/papers/arxiv-2507.10195-source/main.tex
   - `raw/papers/arxiv-2507.10195-source/`
   - LaTeX entrypoint: `raw/papers/arxiv-2507.10195-source/main.tex`
 - Code URL: [https://github.com/Shuyu-XJTU/MRA](https://github.com/Shuyu-XJTU/MRA)
+- Code companion page: [[source-github-shuyu-xjtu-mra]]
 
 ## Why it matters
 This paper extends the vault's [[text-to-image-person-retrieval]] thread beyond both [[irra]] and [[rde]]. Instead of focusing mainly on inference-efficient alignment or robustness to [[noisy-correspondence]], it argues that **synthetic pretraining only helps fully when the synthetic data are domain-aligned to the downstream pedestrian domain**. It contributes both a synthetic benchmark construction pipeline and a new method, making it relevant to method design, data-centric training strategy, and historical benchmark progression.
@@ -111,6 +113,7 @@ Relative to prior in-vault sources, this paper adds a different explanatory fram
 - [[source-arxiv-2507-10195-mra]] `supports` [[domain-aware-diffusion]].
 - [[source-arxiv-2507-10195-mra]] `supports` [[synthetic-domain-aligned-dataset]].
 - [[source-arxiv-2507-10195-mra]] `supports` [[text-to-image-person-retrieval]].
+- [[source-github-shuyu-xjtu-mra]] `implements` the retrieval-side MRA method described by this paper.
 - [[source-arxiv-2507-10195-mra]] `supersedes` [[source-arxiv-2308-09911-rde]] for historical best-reported benchmark results.
 
 ## Candidate claims from the source

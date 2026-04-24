@@ -1,8 +1,8 @@
 ---
 title: Domain-aware Diffusion
 created: 2026-04-23
-last_updated: 2026-04-23
-source_count: 1
+last_updated: 2026-04-24
+source_count: 2
 status: draft
 page_type: concept
 aliases:
@@ -18,11 +18,12 @@ importance: medium
 review_status: active
 related_sources:
   - source-arxiv-2507-10195-mra
+  - source-github-shuyu-xjtu-mra
 confidence_score: 0.78
 quality_score: 0.78
-evidence_count: 1
+evidence_count: 2
 first_seen: 2026-04-23
-last_confirmed: 2026-04-23
+last_confirmed: 2026-04-24
 claim_status: active
 retention_class: durable
 visibility: private
@@ -43,13 +44,14 @@ Domain-aware Diffusion (*DaD*) is the image-level domain adaptation component in
 ## Summary
 The paper positions DaD as a response to the **pretraining gap** between generic or earlier synthetic person data and real-world pedestrian retrieval datasets. DaD fine-tunes a Stable-Diffusion-style model with ControlNet-style trainable copies so the generated samples better match the target domain's illumination, color, and viewpoint characteristics.
 
-Within the source's pipeline, DaD is not the final retrieval model. It is the synthetic data generator that enables [[synthetic-domain-aligned-dataset]], which then supports [[mra]].
+Within the source's pipeline, DaD is not the final retrieval model. It is the synthetic data generator that enables [[synthetic-domain-aligned-dataset]], which then supports [[mra]]. The inspected public code companion [[source-github-shuyu-xjtu-mra]] reinforces this boundary: it implements the retrieval/SDA training side, not the DaD image-generation pipeline itself.
 
 ## Relationships
 - `supports` [[synthetic-domain-aligned-dataset]]
 - `supports` [[mra]]
 - `supports` [[text-to-image-person-retrieval]] indirectly through better pretraining data
 - `related_to` diffusion-based data generation
+- `not_implemented_by` [[source-github-shuyu-xjtu-mra]] for generation-side DaD code in the inspected snapshot
 
 ## Evidence / claims
 #### Claim
@@ -75,3 +77,4 @@ Within the source's pipeline, DaD is not the final retrieval model. It is the sy
 
 ## Sources
 - [[source-arxiv-2507-10195-mra]]
+- [[source-github-shuyu-xjtu-mra]]
