@@ -1,8 +1,8 @@
 ---
 title: Text-to-Image Person Retrieval Research Agenda
 created: 2026-04-23
-last_updated: 2026-04-23
-source_count: 9
+last_updated: 2026-04-24
+source_count: 10
 status: reviewed
 page_type: synthesis
 aliases:
@@ -27,11 +27,12 @@ related_sources:
   - source-arxiv-2601-18625-conquer
   - source-arxiv-2510-17685-bi-irra
   - source-arxiv-2604-18376-mvr
+  - source-arxiv-2509-13754-fmfa
 confidence_score: 0.86
 quality_score: 0.84
-evidence_count: 9
+evidence_count: 10
 first_seen: 2026-04-23
-last_confirmed: 2026-04-23
+last_confirmed: 2026-04-24
 claim_status: active
 retention_class: durable
 visibility: private
@@ -48,6 +49,9 @@ related_entities:
   - CONQUER
   - Bi-IRRA
   - MVR
+  - FMFA
+  - A-SDM
+  - EFA
   - WebPerson
   - noisy correspondence
   - expression drift
@@ -98,7 +102,7 @@ This page captures the most useful next research directions suggested by the cur
 ## Priority 2: natural extensions of well-developed topics
 
 ### 4) Build a fine-grained grounding ladder
-**Why this is a natural extension:** [[mars]] emphasizes attribute-level supervision, [[mra]] uses region-phrase alignment, and [[ga-dms]] targets token-level noise. These are different granularity choices around the same basic question: how fine-grained should the alignment signal be?
+**Why this is a natural extension:** [[mars]] emphasizes attribute-level supervision, [[mra]] uses region-phrase alignment, [[ga-dms]] targets token-level noise, and [[fmfa]] adds explicit sparse token-patch alignment inside a global retrieval framework. These are different granularity choices around the same basic question: how fine-grained should the alignment signal be?
 
 **Pages this would strengthen:** [[mars]], [[mra]], [[ga-dms]], [[conquer]]
 
@@ -106,6 +110,7 @@ This page captures the most useful next research directions suggested by the cur
 - a shared taxonomy of attribute-, token-, phrase-, and region-level supervision
 - when fine-grained grounding helps ranking versus only reranking
 - whether the gains compose cleanly or interfere with one another
+- whether FMFA-style fixed sparsity should be replaced by adaptive token-patch aggregation so useful local semantics are not discarded
 
 ### 5) Treat inference-time adaptation as a family, not isolated tricks
 **Why this is a natural extension:** [[conquer]] and [[mvr]] both improve retrieval without changing the backbone in the same way training-time methods do. They suggest an emerging family of inference-time adaptation methods: query enhancement, semantic compensation, and multi-view aggregation.

@@ -2,7 +2,7 @@
 title: Overview
 created: 2026-04-24
 last_updated: 2026-04-24
-source_count: 0
+source_count: 1
 status: draft
 page_type: overview
 aliases: [Current Overview, Wiki Overview]
@@ -10,7 +10,8 @@ tags: [system, synthesis]
 domain: general
 importance: high
 review_status: active
-related_sources: []
+related_sources:
+  - source-arxiv-2509-13754-fmfa
 confidence_score: 0.60
 quality_score: 0.70
 evidence_count: 0
@@ -51,8 +52,9 @@ The wiki is in an early structural phase. Core navigation, logging, lifecycle ru
 ## Known gaps
 
 - Purpose needs explicit human refinement beyond broad priorities.
-- Source pages and canonical topic/entity pages are not yet populated.
-- Review queue exists as a workflow convention but has no open items yet.
+- Source pages and canonical topic/entity pages are still sparse outside the active TBPS research cluster.
+- The TBPS cluster now includes FMFA as evidence for training-time explicit token-patch alignment with efficient global inference.
+- Review queue now has an open FMFA follow-up for metadata verification, possible code companion ingest, and later benchmark-taxonomy normalization.
 - Graph-insights-lite has not yet been run on a populated wiki.
 
 ## Recent structural changes
