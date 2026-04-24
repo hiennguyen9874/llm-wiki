@@ -2,7 +2,7 @@
 title: Index
 created: 2026-04-14
 last_updated: 2026-04-24
-source_count: 16
+source_count: 17
 status: draft
 page_type: index
 aliases: [Catalog]
@@ -42,6 +42,7 @@ Master catalog of the second brain. Use this file for human orientation and brow
 - [[source-arxiv-2601-18625-conquer]] — arXiv source page for the CONQUER paper on context-aware alignment plus inference-time query enhancement for text-based person search.
 - [[source-github-zqxie77-conquer]] — GitHub source page for the public CONQUER implementation, including the CLIP/RDE-style training scaffold, selected embeddings, GMM/OT noisy-pair handling, and IQE reranking script.
 - [[source-arxiv-2510-17685-bi-irra]] — arXiv source page for the Bi-IRRA paper on multilingual text-to-image person retrieval and multilingual benchmark construction.
+- [[source-github-flame-chasers-bi-irra]] — GitHub source page for the public Bi-IRRA implementation, including aligned multilingual annotation loading, X2-VLM/CCLM-derived training, D-MIM/MLM/ITC/ITM losses, and top-k ITM reranking.
 - [[source-arxiv-2604-18376-mvr]] — arXiv source page for the MVR paper on training-free multi-view semantic compensation for robust text-to-image person retrieval.
 
 ## Topics and Concepts
@@ -53,7 +54,7 @@ Master catalog of the second brain. Use this file for human orientation and brow
 - [[mra]] — method page for Multi-granularity Relation Alignment, its benchmark progression, and its public code companion.
 - [[ga-dms]] — method page for gradient-attention-guided dual masking in CLIP-based person retrieval.
 - [[conquer]] — method page for the two-stage CARE + IQE framework that refines both embeddings and user queries, now linked to its public code companion.
-- [[bi-irra]] — method page for the multilingual IRRA extension with bidirectional multilingual relation reasoning and LDAT-backed benchmark construction.
+- [[bi-irra]] — method page for the multilingual IRRA extension with bidirectional multilingual relation reasoning, LDAT-backed benchmark construction, and its public code companion.
 - [[mvr]] — method page for training-free LLM-assisted multi-view reformulation and semantic compensation.
 - [[webperson]] — dataset page for the 5M-scale curated web person image-text corpus.
 - [[domain-aware-diffusion]] — concept page for synthetic-to-real image-level domain adaptation in the MRA pipeline.

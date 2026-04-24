@@ -1,8 +1,8 @@
 ---
 title: Bi-IRRA
 created: 2026-04-23
-last_updated: 2026-04-23
-source_count: 3
+last_updated: 2026-04-24
+source_count: 4
 status: draft
 page_type: concept
 aliases:
@@ -21,12 +21,13 @@ review_status: active
 related_sources:
   - source-arxiv-2303-12501-irra
   - source-arxiv-2510-17685-bi-irra
+  - source-github-flame-chasers-bi-irra
   - source-arxiv-2604-18376-mvr
 confidence_score: 0.87
 quality_score: 0.84
-evidence_count: 3
+evidence_count: 4
 first_seen: 2026-04-23
-last_confirmed: 2026-04-23
+last_confirmed: 2026-04-24
 claim_status: active
 retention_class: durable
 visibility: private
@@ -42,6 +43,10 @@ related_entities:
   - bi-lingual MLM
   - cross-lingual D-MIM
   - bi-lingual A-ITM
+  - cross-encoder reranking
+  - X2-VLM
+  - XLM-RoBERTa
+  - BEiT v2
   - GA-DMS
   - CONQUER
   - MVR
@@ -56,7 +61,7 @@ Bi-IRRA has two main technical pieces:
 - **Bi-IRR** adds bidirectional fine-grained reasoning through bi-lingual masked language modeling and cross-lingual distillation-based masked image modeling.
 - **Md-GA** replaces the earlier conference-version SDM-centric global alignment with bi-lingual ITC plus bi-lingual A-ITM so fusion features can contribute directly at inference.
 
-The paper pairs this method with **LDAT**, a multilingual benchmark-construction pipeline that translates, filters, and rewrites text descriptions using domain-specific knowledge. In the current vault, Bi-IRRA matters because it is both a direct architectural descendant of [[irra]] and a strong benchmark line with clear CUHK-PEDES strength, while also making multilingual TIPR a first-class task rather than an afterthought. A newer source, [[source-arxiv-2604-18376-mvr]], introduces mixed benchmark outcomes where Bi-IRRA no longer cleanly dominates every dataset.
+The paper pairs this method with **LDAT**, a multilingual benchmark-construction pipeline that translates, filters, and rewrites text descriptions using domain-specific knowledge. The public implementation companion, [[source-github-flame-chasers-bi-irra]], confirms that the released training loop uses aligned source/target caption JSON files, an X2-VLM/CCLM-derived stack with XLM-RoBERTa and default BEiT v2 settings, and top-k cross-encoder ITM reranking after global retrieval. In the current vault, Bi-IRRA matters because it is both a direct architectural descendant of [[irra]] and a strong benchmark line with clear CUHK-PEDES strength, while also making multilingual TIPR a first-class task rather than an afterthought. A newer source, [[source-arxiv-2604-18376-mvr]], introduces mixed benchmark outcomes where Bi-IRRA no longer cleanly dominates every dataset.
 
 ## Relationships
 - `uses` LDAT for multilingual benchmark construction
@@ -65,6 +70,9 @@ The paper pairs this method with **LDAT**, a multilingual benchmark-construction
 - `uses` bi-lingual MLM
 - `uses` cross-lingual D-MIM
 - `uses` bi-lingual A-ITM
+- `uses` aligned source/target multilingual annotation JSON files in the released training loader
+- `uses` X2-VLM/CCLM-style initialization with XLM-RoBERTa and default BEiT v2 settings in the public implementation
+- `uses` top-k cross-encoder ITM reranking at evaluation time
 - `related_to` [[irra]] as the conference-version predecessor
 - `related_to` [[ga-dms]] as the prior in-vault benchmark leader
 - `related_to` [[conquer]] as a different later-design branch focused on inference-time query refinement
@@ -106,6 +114,14 @@ The paper pairs this method with **LDAT**, a multilingual benchmark-construction
 - Last confirmed: 2026-04-23
 - Notes: Keep as a benchmark-construction design claim rather than a universal multilingual-data rule.
 
+#### Claim
+- Statement: The public Bi-IRRA implementation operationalizes the method as an X2-VLM/CCLM-derived multilingual training stack and uses top-k cross-encoder ITM reranking after global retrieval at evaluation time.
+- Status: active
+- Confidence: 0.88
+- Evidence: [[source-github-flame-chasers-bi-irra]], [[source-arxiv-2510-17685-bi-irra]]
+- Last confirmed: 2026-04-24
+- Notes: The code source reinforces the paper's architecture while making the inference path more explicit.
+
 ## Open questions
 - How much of Bi-IRRA's gain comes from the multilingual data itself versus the revised objective stack?
 - Can Bi-IRRA's bidirectional multilingual supervision combine productively with token-noise handling from [[ga-dms]]?
@@ -115,4 +131,5 @@ The paper pairs this method with **LDAT**, a multilingual benchmark-construction
 ## Sources
 - [[source-arxiv-2303-12501-irra]]
 - [[source-arxiv-2510-17685-bi-irra]]
+- [[source-github-flame-chasers-bi-irra]]
 - [[source-arxiv-2604-18376-mvr]]

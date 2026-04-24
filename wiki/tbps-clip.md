@@ -1,8 +1,8 @@
 ---
 title: TBPS-CLIP
 created: 2026-04-23
-last_updated: 2026-04-23
-source_count: 2
+last_updated: 2026-04-24
+source_count: 3
 status: draft
 page_type: concept
 aliases:
@@ -20,11 +20,12 @@ review_status: active
 related_sources:
   - source-arxiv-2308-10045-tbps-clip
   - source-github-flame-chasers-tbps-clip
+  - source-github-flame-chasers-bi-irra
 confidence_score: 0.84
 quality_score: 0.86
-evidence_count: 2
+evidence_count: 3
 first_seen: 2026-04-23
-last_confirmed: 2026-04-23
+last_confirmed: 2026-04-24
 claim_status: active
 retention_class: durable
 visibility: private
@@ -36,6 +37,7 @@ related_entities:
   - IRRA
   - RDE
   - MARS
+  - Bi-IRRA
   - CUHK-PEDES
   - ICFG-PEDES
   - RSTPReid
@@ -56,7 +58,7 @@ TBPS-CLIP combines several practical ingredients:
 - retrieval-oriented objectives such as N-ITC, R-ITC, and C-ITC;
 - additional probes for few-shot learning and model compression.
 
-The core lesson is that a tuned CLIP baseline can be competitive on TBPS without a custom multimodal interaction encoder. In the current vault, TBPS-CLIP is important as a lightweight reference point that complements [[irra]] and [[rde]] rather than replacing them.
+The core lesson is that a tuned CLIP baseline can be competitive on TBPS without a custom multimodal interaction encoder. In the current vault, TBPS-CLIP is important as a lightweight reference point that complements [[irra]] and [[rde]] rather than replacing them. A later code source, [[source-github-flame-chasers-bi-irra]], acknowledges TBPS-CLIP as part of its implementation lineage, reinforcing TBPS-CLIP's role as reusable practical scaffolding even when the later method itself moves toward an X2-VLM/CCLM-style multilingual stack.
 
 ## Relationships
 - `uses` CLIP dual encoders
@@ -68,6 +70,7 @@ The core lesson is that a tuned CLIP baseline can be competitive on TBPS without
 - `related_to` [[rde]]
 - `related_to` [[mars]]
 - `related_to` [[mra]]
+- `related_to` [[bi-irra]] as a later repository that acknowledges TBPS-CLIP in its implementation lineage
 - `related_to` [[source-github-flame-chasers-tbps-clip]]
 
 ## Evidence / claims
@@ -103,6 +106,14 @@ The core lesson is that a tuned CLIP baseline can be competitive on TBPS without
 - Last confirmed: 2026-04-23
 - Notes: Implementation-specific refinement of the paper's high-level recipe.
 
+#### Claim
+- Statement: TBPS-CLIP's implementation ideas are reused downstream: the public Bi-IRRA repository explicitly acknowledges TBPS-CLIP as one of its codebase inspirations.
+- Status: active
+- Confidence: 0.82
+- Evidence: [[source-github-flame-chasers-bi-irra]], [[source-github-flame-chasers-tbps-clip]]
+- Last confirmed: 2026-04-24
+- Notes: This is an implementation-lineage claim, not a claim that Bi-IRRA preserves the lightweight CLIP-only TBPS-CLIP architecture.
+
 ## Open questions
 - How much of TBPS-CLIP's gain comes from retrieval losses versus the augmentation pool and training tricks?
 - Does the recipe transfer to other fine-grained cross-modal retrieval tasks beyond person search?
@@ -111,3 +122,4 @@ The core lesson is that a tuned CLIP baseline can be competitive on TBPS without
 ## Sources
 - [[source-arxiv-2308-10045-tbps-clip]]
 - [[source-github-flame-chasers-tbps-clip]]
+- [[source-github-flame-chasers-bi-irra]]

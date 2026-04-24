@@ -1,8 +1,8 @@
 ---
 title: Source - arXiv 2510.17685 - Bi-IRRA
 created: 2026-04-23
-last_updated: 2026-04-23
-source_count: 1
+last_updated: 2026-04-24
+source_count: 2
 status: reviewed
 page_type: source
 aliases:
@@ -28,12 +28,13 @@ related_sources:
   - source-arxiv-2507-10195-mra
   - source-arxiv-2509-09118-ga-dms
   - source-arxiv-2601-18625-conquer
+  - source-github-flame-chasers-bi-irra
   - source-arxiv-2604-18376-mvr
 confidence_score: 0.94
 quality_score: 0.90
-evidence_count: 1
+evidence_count: 2
 first_seen: 2026-04-23
-last_confirmed: 2026-04-23
+last_confirmed: 2026-04-24
 claim_status: active
 retention_class: durable
 visibility: private
@@ -54,6 +55,11 @@ related_entities:
   - ICFG-PEDES(M)
   - RSTPReid(M)
   - UFineBench(M)
+  - Bi-IRRA codebase
+  - cross-encoder reranking
+  - X2-VLM
+  - XLM-RoBERTa
+  - BEiT v2
   - Chinese
   - French
   - German
@@ -78,6 +84,7 @@ published: 2025-10-20
 - Published: 2025-10-20
 - Original URL: [https://arxiv.org/html/2510.17685v1](https://arxiv.org/html/2510.17685v1)
 - Cleaned web clip preserved at: `raw/web-clips/arxiv-2510-17685v1-multilingual-text-to-image-person-retrieval-via-bidirectional-relation-reasoning-and-aligning.md`
+- Public code companion now ingested as [[source-github-flame-chasers-bi-irra]] from `raw/codes/Bi-IRRA/`.
 
 ## Why it matters
 This paper extends the vault's [[text-to-image-person-retrieval]] thread in two important ways. First, it argues that the task should be treated as multilingual rather than English-only, and it constructs multilingual benchmark variants across Chinese, French, and German. Second, it introduces [[bi-irra]], a multilingual successor to [[irra]] that learns bidirectional masked-text and masked-image reasoning across languages and modalities. Relative to the current vault, it both broadens the task definition and supersedes [[source-arxiv-2509-09118-ga-dms]] on historical English-benchmark leadership inside this repository.
@@ -121,6 +128,8 @@ Its central claim is that TIPR performance improves when models learn fine-grain
 - [[source-arxiv-2510-17685-bi-irra]] `related_to` [[ga-dms]].
 - [[source-arxiv-2510-17685-bi-irra]] `related_to` [[conquer]].
 - [[source-arxiv-2510-17685-bi-irra]] `related_to` [[mvr]].
+- [[source-arxiv-2510-17685-bi-irra]] `is_implemented_by` [[source-github-flame-chasers-bi-irra]].
+- [[source-github-flame-chasers-bi-irra]] `supports` the paper's paired multilingual-data and objective-stack claims.
 - [[source-arxiv-2510-17685-bi-irra]] `supersedes` [[source-arxiv-2509-09118-ga-dms]] on later historical benchmark reporting.
 
 ## Candidate claims from the source
@@ -165,11 +174,20 @@ Its central claim is that TIPR performance improves when models learn fine-grain
 - Last confirmed: 2026-04-23
 - Notes: Cross-source synthesis grounded in the source's explicit conference-version comparison.
 
+#### Claim
+- Statement: The public code companion reinforces the paper's training setup and clarifies that evaluation uses top-k cross-encoder ITM reranking after initial global similarity retrieval.
+- Status: active
+- Confidence: 0.88
+- Evidence: [[source-arxiv-2510-17685-bi-irra]], [[source-github-flame-chasers-bi-irra]]
+- Last confirmed: 2026-04-24
+- Notes: Implementation-level detail from `misc/eval.py`; not a benchmark supersession claim.
+
 ## Reinforcement / supersession assessment
 - [[source-arxiv-2303-12501-irra]] is strongly reinforced as a durable architectural precursor, but this paper extends it substantially with multilingual supervision and a revised global-alignment stack.
 - [[source-arxiv-2509-09118-ga-dms]] is still useful for token-noise robustness and large-scale curated web pretraining, and its benchmark-leadership role is superseded by this later source.
 - [[source-arxiv-2601-18625-conquer]] remains important for inference-time query refinement; this paper outperforms it on historical benchmark reporting while emphasizing multilingual training.
 - [[source-arxiv-2604-18376-mvr]] introduces mixed outcomes that partially challenge a single-leader narrative (higher ICFG/RSTP Rank-1, lower CUHK Rank-1 than Bi-IRRA).
+- [[source-github-flame-chasers-bi-irra]] reinforces this paper as the implementation companion and adds reproduction details, including the aligned multilingual annotation contract and the top-k ITM reranking path.
 - Contradiction resolution: preserve benchmark status as dataset-dependent rather than forcing one global in-vault winner.
 
 ## Related pages updated
@@ -181,6 +199,7 @@ Its central claim is that TIPR performance improves when models learn fine-grain
 - [[mvr]]
 - [[source-arxiv-2509-09118-ga-dms]]
 - [[source-arxiv-2604-18376-mvr]]
+- [[source-github-flame-chasers-bi-irra]]
 
 ## Ingest notes
 - Read from the arXiv HTML page with Defuddle and saved a cleaned web clip under `raw/web-clips/`.
