@@ -57,13 +57,6 @@ For any non-trivial task, read this file first, then read matching skill files.
 Think in loop: purpose → capture → analyze → distill → crystallize → integrate → visualize → review → research gaps.
 Promote durable knowledge upward. Keep vault browsable in Obsidian.
 
-## Pattern References
-When changing knowledge-system design, also read:
-- `LLM-WIKI.md`
-- `LLM-WIKI-v2.md`
-- `LLM-Wiki-v3.md`
-- `LLM-Wiki-v4.md`
-
 ## Prompt Policy
 Important prompt families:
 - ingest / ingest-url / ingest-batch / ingest-pdf / ingest-arxiv / compile

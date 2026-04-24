@@ -488,6 +488,3 @@ Ask user before:
 - Prefer durable markdown artifacts over chat-only summaries.
 - Optimize for long-term compounding usefulness.
 - Think in loop: capture → distill → crystallize → integrate → visualize → review.
-
-## Pattern References
-Read `LLM-WIKI.md`, `LLM-WIKI-v2.md`, `LLM-Wiki-v3.md`, and `LLM-Wiki-v4.md` when changing system design or lifecycle rules.
