@@ -384,7 +384,6 @@ This repo is inspired by the LLM Wiki ideas and patterns:
 
 - Author LLM Wiki: <https://gist.github.com/karpathy/442a6bf555914893e9891c11519de94f>
 - LLM Wiki v2: <https://gist.github.com/rohitg00/2067ab416f7bbe447c1977edaaa681e2>
-- Local reference copies in this repo: [`LLM-WIKI.md`](./LLM-WIKI.md) and [`LLM-WIKI-v2.md`](./LLM-WIKI-v2.md)
 
 These references are especially relevant when changing the knowledge-system design, lifecycle rules, or overall operating model.
 
@@ -394,7 +393,6 @@ These references are especially relevant when changing the knowledge-system desi
 - Edit `.pi/prompts/` if you want different user-facing entry points.
 - Edit `.pi/skills/` if you want to change the actual workflows.
 - Edit `.pi/extensions/` if you want to change local workflow routing, guardrails, reminders, or verification hooks.
-- Read [`LLM-WIKI.md`](./LLM-WIKI.md) and [`LLM-WIKI-v2.md`](./LLM-WIKI-v2.md) before making system-level design changes.
 
 ## Local hook layer
 
