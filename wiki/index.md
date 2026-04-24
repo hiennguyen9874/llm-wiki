@@ -7,6 +7,10 @@ status: draft
 page_type: index
 aliases: [Catalog]
 tags: [system, navigation]
+domain: general
+importance: medium
+review_status: active
+related_sources: []
 confidence_score: 0.80
 quality_score: 0.82
 evidence_count: 0

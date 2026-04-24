@@ -7,6 +7,10 @@ status: draft
 page_type: log
 aliases: [Activity Log]
 tags: [system, operations]
+domain: general
+importance: medium
+review_status: active
+related_sources: []
 confidence_score: 0.80
 quality_score: 0.82
 evidence_count: 0
@@ -52,3 +56,4 @@ Append-only operational record of the second brain.
 ## [2026-04-24] ingest | Ingested the public `raw/codes/Bi-IRRA/` repository as a companion source to [[source-arxiv-2510-17685-bi-irra]], created [[source-github-flame-chasers-bi-irra]], screened the codebase for sensitive material before promotion (no actionable secrets; downstream notes omitted IDE metadata and placeholder `/path/to/...` config paths), extracted entities/typed relationships/claims around aligned source/target multilingual annotation loading, the X2-VLM/CCLM-derived XLM-RoBERTa + BEiT v2 stack, bi-lingual MLM/ITC/ITM, cross-lingual D-MIM, and top-k ITM reranking, updated [[bi-irra]], [[source-arxiv-2510-17685-bi-irra]], [[text-to-image-person-retrieval]], and [[tbps-clip]] to record implementation-level reinforcement and reproduction caveats, refreshed [[index]], ran a quick quality self-check, and deferred Base/Canvas changes because the TBPS method graph remains navigable through linked markdown pages.
 ## [2026-04-24] review | Ran maintenance workflow over inbox/captures, recent crystallizations, durable outputs, stale/disputed metadata, weak links, source integration, retention state, and downstream privacy. Confirmed `raw/inbox/` and `raw/captures/` have no pending files, preserved the Bi-IRRA/MVR benchmark tension as dataset-dependent rather than forcing a global supersession, found no actionable downstream secrets, and saved `outputs/reports/lint-report-2026-04-24.md`.
 ## [2026-04-24] update | Promoted recent durable TBPS hybrid recommendation work from `outputs/answers/` and `outputs/analyses/` into [[synthesis-tbps-hybrid-design-space]], linked it from [[index]], [[home]], and [[text-to-image-person-retrieval]], refreshed core lifecycle visibility metadata on [[home]], [[index]], and [[log]], and deferred Base/Canvas changes because linked markdown remains sufficient for the current method cluster.
+## [2026-04-24] lint | Ran full lint workflow over `wiki/`, including QMD retrieval, duplicate/orphan/link/source-integration/retention/supersession/visibility/Base/Canvas checks; safely repaired missing required metadata on [[home]], [[index]], and [[log]], found unresolved dataset/sub-method wikilinks and missing source archives for follow-up, and overwrote `outputs/reports/lint-report-2026-04-24.md` with the detailed report.

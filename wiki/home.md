@@ -1,14 +1,18 @@
 ---
 title: Home
 created: 2026-04-14
-last_updated: 2026-04-14
+last_updated: 2026-04-24
 source_count: 0
 status: draft
 page_type: home
 aliases: [Second Brain Home]
 tags: [system, overview]
+domain: general
+importance: medium
+review_status: active
+related_sources: []
 confidence_score: 0.80
-quality_score: 0.78
+quality_score: 0.80
 evidence_count: 0
 first_seen: 2026-04-14
 last_confirmed: 2026-04-24
