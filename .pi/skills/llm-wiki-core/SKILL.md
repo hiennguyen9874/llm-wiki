@@ -18,9 +18,10 @@ This skill holds detailed repo-wide rules. `AGENTS.md` only routes work.
 - Manual-first, human-steered, prompt-driven.
 - Prefer explicit workflows + scheduled reviews over fake hidden automation.
 - Design prompts/skills so hooks or scheduled jobs can come later.
-- Do not claim automation, graph infra, or lifecycle enforcement repo does not actually have.
+- Do not claim automation, graph infra, vector DB, desktop app, persistent queue, derived-index tooling, or lifecycle enforcement repo does not actually have.
 
 ## Memory Architecture
+- `purpose.md` → directional intent: goals, scope, key questions, active themes, evolving thesis
 - `raw/` → immutable capture layer
 - `wiki/` → durable semantic knowledge
 - `wiki/bases/` → operational dashboards
@@ -74,7 +75,8 @@ This skill holds detailed repo-wide rules. `AGENTS.md` only routes work.
 ### `wiki/`
 - `wiki/index.md` → browsable catalog of key pages + artifacts
 - `wiki/log.md` → append-only operational log
-- `wiki/home.md` → high-level overview
+- `wiki/home.md` → stable human landing page
+- `wiki/overview.md` → agent-updated current-state synthesis, major clusters, gaps, active direction
 - `wiki/bases/` → `.base` dashboards
 - `wiki/canvases/` → `.canvas` syntheses
 - other `wiki/*.md` → topics, concepts, sources, people, projects, decisions, syntheses, timelines, procedures
@@ -85,9 +87,21 @@ This skill holds detailed repo-wide rules. `AGENTS.md` only routes work.
 - `outputs/reports/` → lint reports, audits, reviews
 - `outputs/briefings/` → reusable summaries + briefings
 - `outputs/crystallizations/` → structured digests from completed investigations
+- `outputs/ingest-plans/` → selectively saved stage-1 ingest plans for non-trivial decisions
+- `outputs/review-queue/` → one markdown note per human judgment item
+
+## Purpose and Overview Rules
+- `purpose.md` answers why the wiki exists; keep strategic direction there, not in workflow policy.
+- Read `purpose.md` when broad ingest/query/review/research planning needs goal context.
+- `wiki/home.md` is stable human orientation.
+- `wiki/overview.md` is the agent-updated current-state synthesis; update it after meaningful ingests, major reviews, or important crystallizations.
+- Do not over-read purpose/overview for narrow exact lookups.
 
 ## Global Rules
 - Wiki = persistent compiled artifact, not chat scratch.
+- Keep `related_sources: []` current on wiki pages when sources materially support the page.
+- Do not introduce parallel `sources: []` schema unless the human explicitly approves a schema migration.
+- Use compile passes to turn multiple raw sources or reusable outputs into canonical semantic pages when one-off ingest would fragment knowledge.
 - Prefer updates over redundant near-duplicates.
 - Preserve uncertainty explicitly.
 - Every factual claim cites source.
@@ -160,6 +174,8 @@ related_entities: []
 
 ### Common `page_type`
 - `home`
+- `overview`
+- `purpose`
 - `index`
 - `log`
 - `topic`
@@ -175,6 +191,8 @@ related_entities: []
 - `dashboard`
 - `canvas`
 - `episode`
+- `ingest_plan`
+- `review_item`
 
 ### Recommended lifecycle meanings
 - `confidence_score` → current confidence in page claims
@@ -185,6 +203,7 @@ related_entities: []
 - `claim_status` → `active | stale | superseded | disputed | hypothesis`
 - `retention_class` → `transient | working | episodic | durable | foundational`
 - `visibility` → `private | shared | publishable`
+- review item `action_type` → `approve_edit | create_page | deep_research | skip | ask_user | resolve_contradiction`
 
 ### Page-level vs claim-level lifecycle
 - Frontmatter fields apply to page as whole by default.
@@ -353,6 +372,24 @@ Default resolution:
 - if evidence mixed, keep both visible + mark issue `disputed`
 - explain reasoning briefly; do not silently overwrite tension
 
+## Review Queue Rules
+- Use one markdown note per review item in `outputs/review-queue/`.
+- Create review items when a workflow needs human judgment but can continue safely without immediate blocking.
+- Use constrained actions: `approve_edit`, `create_page`, `deep_research`, `skip`, `ask_user`, `resolve_contradiction`.
+- Include source/context links, recommendation, options, and status (`open | decided | done | skipped`).
+- Ask user immediately instead of queueing when the decision is high-stakes, irreversible, or blocks safe progress.
+
+
+## Index as Rebuildable Catalog
+`wiki/index.md` remains a required human/agent catalog and should be updated on meaningful writes. Treat it as a rebuildable cache, not the source of truth. The source of truth is the actual markdown files, frontmatter, wikilinks, `related_sources`, and log.
+
+If index drift is suspected during query, ingest, compile, or maintenance:
+1. Prefer actual file/frontmatter evidence over stale index rows.
+2. Repair the index during maintenance/lint or as part of the current write if safe.
+3. Log meaningful rebuilds or repairs.
+
+Do not skip index updates by default just because it is rebuildable; until tooling exists, update it explicitly.
+
 ## Index and Log Rules
 ### `wiki/index.md`
 - Human orientation + browsing
@@ -372,6 +409,7 @@ Default resolution:
   - `lint`
   - `update`
   - `review`
+  - `research`
   - `visualize`
   - `crystallize`
 - For meaningful updates, include:
@@ -397,6 +435,24 @@ Default domains:
 - Keep provenance + auditability through `wiki/log.md` and saved outputs.
 - Prefer reversible bulk changes and document why.
 
+
+## Lint-as-Migration Principle
+When workflow schema evolves, prefer encoding safe repair rules in maintenance/lint rather than one-off migrations. Apply this conservatively.
+
+Safe automatic repairs include:
+- missing required frontmatter with obvious defaults
+- index/catalog drift
+- clear broken internal links or unambiguous backlinks
+- legacy field aliases explicitly documented in policy
+- minor metadata normalization with provenance preserved
+
+Ask user before:
+- major schema migration
+- taxonomy/folder changes
+- bulk moves/renames/deletes
+- merging many pages
+- changes that could remove provenance or private context
+
 ## Decision Hygiene
 Ask user before:
 - renaming large sets of pages
@@ -411,6 +467,3 @@ Ask user before:
 - Prefer durable markdown artifacts over chat-only summaries.
 - Optimize for long-term compounding usefulness.
 - Think in loop: capture → distill → crystallize → integrate → visualize → review.
-
-## Pattern References
-Read `LLM-WIKI.md` and `LLM-WIKI-v2.md` when changing system design or lifecycle rules.

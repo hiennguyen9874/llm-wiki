@@ -34,11 +34,14 @@ This wiki is the compiled semantic memory layer of a personal second brain. It i
 
 ## How to use this wiki
 - Browse from [[index]]
+- Use [[overview]] for current-state synthesis and active gaps
+- Use [Purpose](../purpose.md) for strategic direction
 - Review recent changes in [[log]]
 - Start with [[text-to-image-person-retrieval]] and [[synthesis-tbps-hybrid-design-space]] for the current active research cluster
 - Ingest new material from `raw/inbox/` or `raw/captures/`
 - Save durable analyses to `outputs/` and promote the best ones back into the wiki
 - Use Bases for triage/review and Canvases for visual thinking when topics become complex
+- Use `outputs/review-queue/` for non-blocking human decisions raised by agents
 
 ## Operating principles
 - The wiki is persistent and cumulative

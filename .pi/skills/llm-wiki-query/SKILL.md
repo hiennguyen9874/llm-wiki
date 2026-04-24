@@ -20,18 +20,20 @@ Use hybrid retrieval even if QMD remains primary tool.
 
 ### Orientation
 
-* Read `wiki/index.md` when broad orientation helps.
-* Do not force index-first reading for every narrow lookup.
+* Read `purpose.md` and `wiki/overview.md` for broad, strategic, research-planning, gap, or session-orientation questions.
+* Read `wiki/index.md` when broad content orientation helps.
+* Do not force purpose/overview/index reading for every narrow lookup.
 
 ### Retrieval Strategy
 
 1. Use QMD lexical search for exact names, terms, filenames, aliases.
 2. Use QMD semantic or expanded search when vocabulary uncertain or question conceptual.
 3. Use metadata-aware filtering mentally or via Bases when status, recency, retention class, page type, or visibility matters.
-4. Expand outward from first results using typed relationships, `related_entities`, backlinks, supersession links, cited sources.
-5. Treat relationship walk as current markdown-first graph traversal layer.
-6. Read actual files before synthesizing.
-7. Re-index/embed after large updates if search quality becomes stale.
+4. Expand outward from first results using wikilinks, backlinks, typed relationships, `related_entities`, `related_sources`, claims, supersession links, and cited sources.
+5. Budget context by priority: canonical wiki pages first, then relevant outputs, then raw sources needed to resolve ambiguity.
+6. Read selected files before synthesizing; do not answer from snippets alone when facts matter.
+7. Refresh the QMD search index after large updates if search quality becomes stale.
+8. Do not claim vector DB, graph engine, or automatic reranking unless those tools are actually available in the session.
 
 ## Query Workflow
 
@@ -40,7 +42,7 @@ When answering question:
 1. Use `wiki/index.md` for orientation when helpful, not by reflex.
 2. Use QMD to find relevant pages across `wiki/`, `outputs/`, optionally `raw/`.
 3. Run both exact-term and concept-level retrieval when first search may miss synonyms or adjacent phrasing.
-4. Expand from first results using entities, metadata, typed relationships, supersession chains, cited source pages.
+4. Expand from first results using entities, metadata, typed relationships, supersession chains, cited source pages, and markdown-first graph cues.
 5. Read relevant pages before synthesizing.
 6. Answer with citations to pages that informed answer.
 7. Distinguish clearly between supported facts, inference, unresolved uncertainty.
@@ -48,8 +50,9 @@ When answering question:
 9. If raw sources needed to resolve ambiguity, read them directly.
 10. If answer creates durable value, save in `outputs/answers/` or promote into `wiki/`.
 11. Persist only when reusable, well cited, non-duplicative, likely to meet at least moderate quality bar.
-12. If visual map or dashboard would help, create/update Canvas or Base.
-13. Append `query` entry when saved artifact produced.
+12. If the answer reveals material worth canonical synthesis, suggest or run `/compile` over the affected outputs/pages.
+13. If visual map or dashboard would help, create/update Canvas or Base.
+14. Append `query` entry when saved artifact produced.
 
 ## Query Variants
 
@@ -82,9 +85,11 @@ When answering question:
 
 ### Gaps / Explore / Next Research
 
+* Read `purpose.md` and `wiki/overview.md` unless scope is very narrow.
 * Look for underdeveloped areas, implied but missing concepts, promising adjacent topics.
-* Prioritize by impact on existing knowledge, not novelty alone.
-* Recommend future sources or next questions that would strengthen wiki.
+* Prioritize by impact on existing knowledge and purpose, not novelty alone.
+* Recommend future sources, search topics, and next questions that would strengthen wiki.
+* For manual-first Deep Research, propose editable search queries and ask user to approve URLs/sources before ingest.
 * Save durable artifact only when scan itself will be useful later.
 
 ## Citation and Evidence Rules
