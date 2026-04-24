@@ -7,6 +7,14 @@ status: draft
 page_type: log
 aliases: [Activity Log]
 tags: [system, operations]
+confidence_score: 0.80
+quality_score: 0.82
+evidence_count: 0
+first_seen: 2026-04-14
+last_confirmed: 2026-04-24
+claim_status: active
+retention_class: foundational
+visibility: private
 ---
 
 Append-only operational record of the second brain.
@@ -42,3 +50,5 @@ Append-only operational record of the second brain.
 ## [2026-04-24] ingest | Ingested the public `raw/codes/MRA/` repository as a companion source to [[source-arxiv-2507-10195-mra]], created [[source-github-shuyu-xjtu-mra]], screened the codebase for sensitive material before promotion (no actionable secrets; `token` hits were tokenizer variables), extracted entities/typed relationships/claims around the Swin+BERT retrieval stack, ITC/ITM/MLM objectives, SDA region branch, EDA augmentation, and benchmark configs, updated [[mra]], [[synthetic-domain-aligned-dataset]], [[domain-aware-diffusion]], [[source-arxiv-2507-10195-mra]], and [[text-to-image-person-retrieval]] to record implementation-level reinforcement plus reproduction caveats, refreshed [[index]], ran a quick quality self-check, and deferred Base/Canvas changes because the TBPS method graph remains navigable through linked markdown pages.
 ## [2026-04-24] ingest | Ingested the public `raw/codes/CONQUER/` repository as a companion source to [[source-arxiv-2601-18625-conquer]], created [[source-github-zqxie77-conquer]], screened the codebase for sensitive material before promotion (no actionable secrets; downstream notes omitted developer-local paths), extracted entities/typed relationships/claims around the CLIP/RDE-style global-plus-selected-embedding scaffold, GMM clean-pair filtering, Optimal Transport rematching, Qwen2.5-VL-7B/vLLM IQE loop, anchor validation, attribute extraction, caption aggregation, and score interpolation, updated [[conquer]], [[source-arxiv-2601-18625-conquer]], and [[text-to-image-person-retrieval]] to record implementation-level reinforcement and caveats, refreshed [[index]], ran a quick quality self-check, and deferred Base/Canvas changes because the TBPS method graph remains navigable through linked markdown pages.
 ## [2026-04-24] ingest | Ingested the public `raw/codes/Bi-IRRA/` repository as a companion source to [[source-arxiv-2510-17685-bi-irra]], created [[source-github-flame-chasers-bi-irra]], screened the codebase for sensitive material before promotion (no actionable secrets; downstream notes omitted IDE metadata and placeholder `/path/to/...` config paths), extracted entities/typed relationships/claims around aligned source/target multilingual annotation loading, the X2-VLM/CCLM-derived XLM-RoBERTa + BEiT v2 stack, bi-lingual MLM/ITC/ITM, cross-lingual D-MIM, and top-k ITM reranking, updated [[bi-irra]], [[source-arxiv-2510-17685-bi-irra]], [[text-to-image-person-retrieval]], and [[tbps-clip]] to record implementation-level reinforcement and reproduction caveats, refreshed [[index]], ran a quick quality self-check, and deferred Base/Canvas changes because the TBPS method graph remains navigable through linked markdown pages.
+## [2026-04-24] review | Ran maintenance workflow over inbox/captures, recent crystallizations, durable outputs, stale/disputed metadata, weak links, source integration, retention state, and downstream privacy. Confirmed `raw/inbox/` and `raw/captures/` have no pending files, preserved the Bi-IRRA/MVR benchmark tension as dataset-dependent rather than forcing a global supersession, found no actionable downstream secrets, and saved `outputs/reports/lint-report-2026-04-24.md`.
+## [2026-04-24] update | Promoted recent durable TBPS hybrid recommendation work from `outputs/answers/` and `outputs/analyses/` into [[synthesis-tbps-hybrid-design-space]], linked it from [[index]], [[home]], and [[text-to-image-person-retrieval]], refreshed core lifecycle visibility metadata on [[home]], [[index]], and [[log]], and deferred Base/Canvas changes because linked markdown remains sufficient for the current method cluster.

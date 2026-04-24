@@ -140,6 +140,7 @@ Together, these sources suggest a broader in-vault progression: CLIP-based retri
 
 ## Research directions
 - [[text-to-image-person-retrieval-research-agenda]] — prioritized next-research agenda for benchmark diagnostics, robustness, data tradeoffs, fine-grained grounding, multilinguality, and inference-time adaptation.
+- [[synthesis-tbps-hybrid-design-space]] — promoted canonical synthesis for the modular TBPS hybrid design recommendation and cross-topic design-space hypotheses.
 
 ## Evidence / claims
 #### Claim
@@ -211,8 +212,8 @@ Together, these sources suggest a broader in-vault progression: CLIP-based retri
 - Status: active
 - Confidence: 0.82
 - Evidence: [[source-arxiv-2303-12501-irra]], [[source-arxiv-2308-09911-rde]], [[source-arxiv-2308-10045-tbps-clip]], [[source-arxiv-2407-04287-mars]], [[source-arxiv-2507-10195-mra]], [[source-arxiv-2509-09118-ga-dms]], [[source-arxiv-2601-18625-conquer]], [[source-arxiv-2510-17685-bi-irra]], [[source-arxiv-2604-18376-mvr]]
-- Last confirmed: 2026-04-23
-- Notes: Session-level synthesis; useful as a modular design recommendation, not as a benchmark claim.
+- Last confirmed: 2026-04-24
+- Notes: Promoted into [[synthesis-tbps-hybrid-design-space]] during maintenance; useful as a modular design recommendation and research hypothesis, not as a benchmark claim.
 
 ## Related pages
 - [[irra]]
@@ -232,6 +233,7 @@ Together, these sources suggest a broader in-vault progression: CLIP-based retri
 - [[domain-aware-diffusion]]
 - [[synthetic-domain-aligned-dataset]]
 - [[noisy-correspondence]]
+- [[synthesis-tbps-hybrid-design-space]]
 - [[source-arxiv-2303-12501-irra]]
 - [[source-arxiv-2308-09911-rde]]
 - [[source-arxiv-2308-10045-tbps-clip]]

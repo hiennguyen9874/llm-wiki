@@ -1,0 +1,108 @@
+---
+title: TBPS Hybrid Design Space
+created: 2026-04-24
+last_updated: 2026-04-24
+source_count: 9
+status: reviewed
+page_type: synthesis
+aliases:
+  - TBPS hybrid architecture
+  - text-based person search hybrid design
+  - text-to-image person retrieval hybrid stack
+tags:
+  - machine-learning
+  - multimodal
+  - retrieval
+  - synthesis
+  - person-retrieval
+domain: machine-learning
+importance: high
+review_status: active
+related_sources:
+  - source-arxiv-2303-12501-irra
+  - source-arxiv-2308-09911-rde
+  - source-arxiv-2308-10045-tbps-clip
+  - source-arxiv-2407-04287-mars
+  - source-arxiv-2507-10195-mra
+  - source-arxiv-2509-09118-ga-dms
+  - source-arxiv-2601-18625-conquer
+  - source-arxiv-2510-17685-bi-irra
+  - source-arxiv-2604-18376-mvr
+confidence_score: 0.82
+quality_score: 0.86
+evidence_count: 9
+first_seen: 2026-04-23
+last_confirmed: 2026-04-24
+claim_status: active
+retention_class: durable
+visibility: private
+supersedes: []
+superseded_by: []
+related_entities:
+  - IRRA
+  - TBPS-CLIP
+  - RDE
+  - MARS
+  - MRA
+  - GA-DMS
+  - CONQUER
+  - Bi-IRRA
+  - MVR
+  - noisy correspondence
+  - expression drift
+  - multilingual TIPR
+---
+
+# TBPS Hybrid Design Space
+
+## Summary
+The strongest durable synthesis from the recent [[text-to-image-person-retrieval]] work is that no single in-vault method should be treated as a universal winner. The better canonical design view is a **modular hybrid stack**: keep an efficient CLIP/IRRA-style retrieval backbone, add training-time robustness and fine-grained grounding, then apply inference-time query compensation only when the query or ranking looks uncertain.
+
+This page promotes the reusable parts of `outputs/answers/tbps-method-synthesis-and-hybrid-recommendation.md`, `outputs/answers/tbps-hybrid-architecture-spec.md`, and `outputs/analyses/text-to-image-person-retrieval-unexplored-connections.md` into the wiki. It remains a synthesis/hypothesis page, not a claim that the full combined architecture has been experimentally validated.
+
+## Canonical recommendation
+Use this stack as the current in-vault reference design:
+
+1. **Backbone:** CLIP/IRRA-style dual encoder with efficient global image-text retrieval.
+2. **Recipe tuning:** TBPS-CLIP-style losses, augmentation, regularization, and careful training recipe.
+3. **Pair-level robustness:** RDE-style clean/noisy correspondence modeling and consensus filtering.
+4. **Token-level robustness:** GA-DMS-style noisy/informative token separation and masked reconstruction.
+5. **Fine-grained grounding:** MARS attribute chunks plus MRA region-phrase alignment when extra compute and supervision are available.
+6. **Data route:** choose either MRA-style domain-aligned synthetic pretraining or GA-DMS/WebPerson-style curated real-web pretraining; future work should test whether they are complementary.
+7. **Inference adaptation:** apply CONQUER query enhancement and/or MVR multi-view reformulation behind a query-confidence gate.
+8. **Multilingual branch:** use Bi-IRRA-style multilingual objectives and benchmarks when non-English retrieval matters.
+
+## Supported facts
+- A tuned CLIP recipe can be a strong TBPS baseline without bespoke interaction modules: [[tbps-clip]], [[source-arxiv-2308-10045-tbps-clip]].
+- Pair-level noisy correspondence is a durable failure mode: [[rde]], [[noisy-correspondence]], [[source-arxiv-2308-09911-rde]], [[source-github-qinyang79-rde]].
+- Token-level caption noise and large-scale curated web pretraining are a separate robustness/data route: [[ga-dms]], [[webperson]], [[source-arxiv-2509-09118-ga-dms]], [[source-github-multimodal-representation-learning-mrl-ga-dms]].
+- Attribute, phrase, and region grounding are recurring fine-grained alignment levers: [[mars]], [[mra]], [[source-arxiv-2407-04287-mars]], [[source-arxiv-2507-10195-mra]].
+- Inference-time query adaptation is a distinct lever rather than only a training-objective change: [[conquer]], [[mvr]], [[source-arxiv-2601-18625-conquer]], [[source-arxiv-2604-18376-mvr]].
+- Multilingual person retrieval is an emerging task-shaping extension: [[bi-irra]], [[source-arxiv-2510-17685-bi-irra]].
+
+## Inference and uncertainty
+> [!warning] Synthesis, not validated architecture
+> The full hybrid stack is not directly validated by one in-vault source. The confidence score reflects converging evidence that the levers are plausible and partly complementary, not proof that combining all modules improves every benchmark.
+
+Current unresolved points:
+- whether training-time denoising and inference-time compensation are complementary or partly redundant;
+- whether synthetic-domain alignment and curated real-web pretraining should be alternatives or a curriculum;
+- whether benchmark leadership is better explained by dataset name or by hidden query regimes such as ambiguity, language, attribute density, and caption noise;
+- whether MVR benchmark table readings remain stable after cleaner source extraction.
+
+## Lightweight claim record
+#### Claim
+- Statement: A practical TBPS hybrid should combine CLIP/IRRA-style retrieval with TBPS-CLIP recipe tuning, RDE/GA-DMS robustness, MARS/MRA grounding, CONQUER/MVR inference-time adaptation, and Bi-IRRA only where multilingual support matters.
+- Status: active
+- Confidence: 0.82
+- Evidence: [[source-arxiv-2303-12501-irra]], [[source-arxiv-2308-09911-rde]], [[source-arxiv-2308-10045-tbps-clip]], [[source-arxiv-2407-04287-mars]], [[source-arxiv-2507-10195-mra]], [[source-arxiv-2509-09118-ga-dms]], [[source-arxiv-2601-18625-conquer]], [[source-arxiv-2510-17685-bi-irra]], [[source-arxiv-2604-18376-mvr]]
+- Last confirmed: 2026-04-24
+- Notes: Promoted from recent durable outputs because it is likely to be reused. Treat as a design recommendation and research hypothesis, not a tested SOTA claim.
+
+## Related pages and outputs
+- [[text-to-image-person-retrieval]]
+- [[text-to-image-person-retrieval-research-agenda]]
+- `outputs/answers/tbps-method-synthesis-and-hybrid-recommendation.md`
+- `outputs/answers/tbps-hybrid-architecture-spec.md`
+- `outputs/analyses/text-to-image-person-retrieval-unexplored-connections.md`
+- `outputs/crystallizations/tbps-hybrid-architecture-session-crystallization.md`

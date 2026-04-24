@@ -7,6 +7,14 @@ status: draft
 page_type: index
 aliases: [Catalog]
 tags: [system, navigation]
+confidence_score: 0.80
+quality_score: 0.82
+evidence_count: 0
+first_seen: 2026-04-14
+last_confirmed: 2026-04-24
+claim_status: active
+retention_class: foundational
+visibility: private
 ---
 
 Master catalog of the second brain. Use this file for human orientation and browsing; rely on QMD, metadata, and relationships for deeper retrieval as the wiki grows.
@@ -72,11 +80,14 @@ Master catalog of the second brain. Use this file for human orientation and brow
 
 ## Syntheses and Comparisons
 - [[text-to-image-person-retrieval-research-agenda]] — prioritized next-research gaps and synthesis for the current text-to-image person retrieval cluster.
+- [[synthesis-tbps-hybrid-design-space]] — canonical promoted synthesis of the TBPS hybrid design recommendation and cross-topic design-space connections.
 
-## Outputs Worth Promoting into Wiki
+## Outputs Promoted or Worth Revisiting
+- [[synthesis-tbps-hybrid-design-space]] — promoted canonical wiki synthesis distilled from the recent TBPS recommendation, architecture spec, and unexplored-connections outputs.
 - [[text-based-person-search-methods-models-briefing]] — reusable briefing on the current in-vault design space for text-based person search.
 - [[text-based-person-search-methods-models-session-crystallization]] — episodic summary of the retrieval-and-benchmark session that produced the briefing and table.
-- `outputs/answers/tbps-method-synthesis-and-hybrid-recommendation.md` — recommendation-oriented synthesis on how to combine the TBPS levers into a practical hybrid and when to prefer MVR, Bi-IRRA, or CONQUER.
-- `outputs/answers/tbps-hybrid-architecture-spec.md` — more concrete hybrid architecture proposal with training stack, data strategy, inference gates, and multilingual branch.
+- `outputs/answers/tbps-method-synthesis-and-hybrid-recommendation.md` — source output promoted into [[synthesis-tbps-hybrid-design-space]]; keep as provenance for recommendation wording.
+- `outputs/answers/tbps-hybrid-architecture-spec.md` — source output promoted into [[synthesis-tbps-hybrid-design-space]]; keep as provenance for concrete stack details.
+- `outputs/analyses/text-to-image-person-retrieval-unexplored-connections.md` — source output promoted into [[synthesis-tbps-hybrid-design-space]]; keep as provenance for cross-topic hypotheses.
 - `outputs/crystallizations/tbps-hybrid-architecture-session-crystallization.md` — episodic crystallization of the hybrid-architecture session, including the 5-axis framing and modular stack recommendation.
 

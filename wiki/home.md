@@ -7,6 +7,14 @@ status: draft
 page_type: home
 aliases: [Second Brain Home]
 tags: [system, overview]
+confidence_score: 0.80
+quality_score: 0.78
+evidence_count: 0
+first_seen: 2026-04-14
+last_confirmed: 2026-04-24
+claim_status: active
+retention_class: foundational
+visibility: private
 ---
 
 This wiki is the compiled semantic memory layer of a personal second brain. It is intended to accumulate insights over time by integrating raw sources and crystallized exploratory work into interlinked topic, entity, project, timeline, and synthesis pages.
@@ -23,6 +31,7 @@ This wiki is the compiled semantic memory layer of a personal second brain. It i
 ## How to use this wiki
 - Browse from [[index]]
 - Review recent changes in [[log]]
+- Start with [[text-to-image-person-retrieval]] and [[synthesis-tbps-hybrid-design-space]] for the current active research cluster
 - Ingest new material from `raw/inbox/` or `raw/captures/`
 - Save durable analyses to `outputs/` and promote the best ones back into the wiki
 - Use Bases for triage/review and Canvases for visual thinking when topics become complex
