@@ -1,8 +1,8 @@
 ---
 title: Source - arXiv 2601.18625 - CONQUER
 created: 2026-04-23
-last_updated: 2026-04-23
-source_count: 1
+last_updated: 2026-04-24
+source_count: 2
 status: reviewed
 page_type: source
 aliases:
@@ -22,6 +22,7 @@ domain: machine-learning
 importance: high
 review_status: active
 related_sources:
+  - source-github-zqxie77-conquer
   - source-arxiv-2303-12501-irra
   - source-arxiv-2308-09911-rde
   - source-arxiv-2308-10045-tbps-clip
@@ -31,9 +32,9 @@ related_sources:
   - source-arxiv-2510-17685-bi-irra
 confidence_score: 0.92
 quality_score: 0.88
-evidence_count: 1
+evidence_count: 2
 first_seen: 2026-04-23
-last_confirmed: 2026-04-23
+last_confirmed: 2026-04-24
 claim_status: active
 retention_class: durable
 visibility: private
@@ -68,6 +69,7 @@ published: 2026-01-26
 - Original URL: [https://arxiv.org/html/2601.18625v1](https://arxiv.org/html/2601.18625v1)
 - Cleaned web clip preserved at: `raw/web-clips/arxiv-2601-18625v1-conquer-context-aware-representation-with-query-enhancement-for-text-based-person-search.md`
 - Code URL: [https://github.com/zqxie77/CONQUER](https://github.com/zqxie77/CONQUER)
+- Local code companion: [[source-github-zqxie77-conquer]]
 
 ## Why it matters
 This paper extends the vault's [[text-to-image-person-retrieval]] thread with a new argument: strong TBPS systems should not only learn better training-time alignment, but should also improve vague or incomplete user queries at inference time. Relative to current in-vault methods, [[conquer]] matters because it combines a training-time alignment stack with a plug-and-play query-refinement stage, broadening the design space beyond recipe tuning ([[tbps-clip]]), pair-level robustness ([[rde]]), attribute-focused supervision ([[mars]]), synthetic/domain-aligned pretraining ([[mra]]), and token-level noise handling with curated web data ([[ga-dms]]).
@@ -151,6 +153,7 @@ The source's central claim is that TBPS suffers both from cross-modal mismatch d
 - Notes: Supported by the cross-domain table and the paper's incomplete-query framing; keep as source-local rather than field-general.
 
 ## Reinforcement / supersession assessment
+- [[source-github-zqxie77-conquer]] reinforces this paper's two-stage architecture at implementation level and clarifies that the training scaffold is close to the CLIP/RDE noisy-correspondence family while IQE is implemented as a separate MLLM-assisted inference script.
 - [[source-arxiv-2407-04287-mars]] is reinforced on the value of explicit attribute information, but CONQUER shifts that emphasis toward inference-time query enrichment rather than only training-time attribute supervision.
 - [[source-arxiv-2308-09911-rde]] and [[source-arxiv-2509-09118-ga-dms]] are reinforced on the broader idea that passive alignment alone is insufficient; CONQUER adds ambiguity-handling at query time instead of only noise-aware training.
 - [[source-arxiv-2509-09118-ga-dms]] remained the in-vault benchmark leader at the time of this ingest, but [[source-arxiv-2510-17685-bi-irra]] later supersedes both sources on historical benchmark reporting.
@@ -158,6 +161,7 @@ The source's central claim is that TBPS suffers both from cross-modal mismatch d
 
 ## Related pages updated
 - [[conquer]]
+- [[source-github-zqxie77-conquer]]
 - [[text-to-image-person-retrieval]]
 - [[ga-dms]]
 - [[mars]]

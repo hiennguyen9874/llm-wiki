@@ -2,7 +2,7 @@
 title: Text-to-Image Person Retrieval
 created: 2026-04-23
 last_updated: 2026-04-24
-source_count: 15
+source_count: 16
 status: draft
 page_type: topic
 aliases:
@@ -31,11 +31,12 @@ related_sources:
   - source-arxiv-2509-09118-ga-dms
   - source-github-multimodal-representation-learning-mrl-ga-dms
   - source-arxiv-2601-18625-conquer
+  - source-github-zqxie77-conquer
   - source-arxiv-2510-17685-bi-irra
   - source-arxiv-2604-18376-mvr
 confidence_score: 0.86
 quality_score: 0.90
-evidence_count: 15
+evidence_count: 16
 first_seen: 2026-04-23
 last_confirmed: 2026-04-24
 claim_status: active
@@ -86,7 +87,7 @@ related_entities:
 Text-to-image person retrieval is a multimodal retrieval task where a system receives a natural-language description of a person and must retrieve matching images from a gallery. The main challenge is aligning language and visual appearance despite modality mismatch, viewpoint/pose variation, ambiguity in textual descriptions, and potentially incorrect image-text pairings.
 
 ## Current in-vault view
-The vault currently has fifteen directly relevant sources:
+The vault currently has sixteen directly relevant sources:
 - [[source-arxiv-2303-12501-irra]] presents [[irra]] as a CLIP-based method that improves retrieval through training-time implicit relation reasoning and similarity distribution matching.
 - [[source-github-anosorae-irra]] exposes the public IRRA implementation, confirming the CLIP `ViT-B/16` + SDM/MLM/ID recipe, the `(384, 128)` person-retrieval input geometry, and the use of direct normalized global-similarity retrieval at inference.
 - [[source-arxiv-2308-09911-rde]] presents [[rde]] as a later robustness-oriented method that explicitly models [[noisy-correspondence]] and reports stronger historical benchmark results than IRRA.
@@ -100,10 +101,11 @@ The vault currently has fifteen directly relevant sources:
 - [[source-arxiv-2509-09118-ga-dms]] presents [[ga-dms]] and [[webperson]] as a paired method-plus-dataset advance that targets noisy text tokens directly while scaling curated real-image pretraining.
 - [[source-github-multimodal-representation-learning-mrl-ga-dms]] exposes the public GA-DMS implementation, confirming a CLIP/IRRA-style SDM+MLM scaffold, gradient-through-attention token-map generation, and staged similarity-guided filtering for dual masking.
 - [[source-arxiv-2601-18625-conquer]] presents [[conquer]] as a two-stage method that combines training-time alignment refinement with inference-time query enhancement for ambiguous or incomplete descriptions.
+- [[source-github-zqxie77-conquer]] exposes the public CONQUER implementation, confirming a CLIP/RDE-style global-plus-selected-embedding training scaffold, GMM/Optimal-Transport noisy-pair handling, and an external MLLM-assisted IQE reranking script.
 - [[source-arxiv-2510-17685-bi-irra]] presents [[bi-irra]] as a multilingual extension of IRRA that adds bidirectional multilingual reasoning and benchmark construction via LDAT.
 - [[source-arxiv-2604-18376-mvr]] presents [[mvr]] as a training-free semantic-compensation method that improves robustness through LLM-driven multi-view reformulation at inference time.
 
-Together, these sources suggest a broader in-vault progression: CLIP-based retrieval became a strong baseline, the IRRA code companion confirms that this early line already kept inference simple through direct global similarity despite extra training-time reasoning, later work emphasized robustness to pair-level noise, the RDE code companion shows that this robustness line plugs into a largely standard CLIP/IRRA-style pipeline rather than requiring a wholly different retrieval stack, a separate recipe study showed that careful training/augmentation/loss design can make a simple CLIP baseline highly competitive, MARS added attribute salience plus text-conditioned reconstruction, and the MARS code companion shows that this route is realized in practice as a heavier seven-loss ALBEF-style training scaffold with top-k multimodal reranking rather than a lightweight recipe tweak. MRA then argued that synthetic pretraining improves when the corpus is domain-aligned to pedestrian imagery, the MRA code companion shows that this route is packaged as a Swin+BERT SDA-pretraining/fine-tuning stack rather than a CLIP-style scaffold, GA-DMS plus WebPerson shifted the picture toward token-level noise handling plus large-scale curated web data, and the GA-DMS code companion shows that this route is implemented as staged token-map generation plus filtered masking inside a CLIP/IRRA-style scaffold. CONQUER added explicit inference-time query refinement, Bi-IRRA broadened the task by making multilingual supervision and multilingual benchmarking first-class, and MVR added a no-retraining semantic-compensation route using multi-view reformulations.
+Together, these sources suggest a broader in-vault progression: CLIP-based retrieval became a strong baseline, the IRRA code companion confirms that this early line already kept inference simple through direct global similarity despite extra training-time reasoning, later work emphasized robustness to pair-level noise, the RDE code companion shows that this robustness line plugs into a largely standard CLIP/IRRA-style pipeline rather than requiring a wholly different retrieval stack, a separate recipe study showed that careful training/augmentation/loss design can make a simple CLIP baseline highly competitive, MARS added attribute salience plus text-conditioned reconstruction, and the MARS code companion shows that this route is realized in practice as a heavier seven-loss ALBEF-style training scaffold with top-k multimodal reranking rather than a lightweight recipe tweak. MRA then argued that synthetic pretraining improves when the corpus is domain-aligned to pedestrian imagery, the MRA code companion shows that this route is packaged as a Swin+BERT SDA-pretraining/fine-tuning stack rather than a CLIP-style scaffold, GA-DMS plus WebPerson shifted the picture toward token-level noise handling plus large-scale curated web data, and the GA-DMS code companion shows that this route is implemented as staged token-map generation plus filtered masking inside a CLIP/IRRA-style scaffold. CONQUER added explicit inference-time query refinement, and its code companion shows that this line also reuses a CLIP/RDE-style robustness scaffold before applying a separate MLLM-assisted IQE reranker. Bi-IRRA broadened the task by making multilingual supervision and multilingual benchmarking first-class, and MVR added a no-retraining semantic-compensation route using multi-view reformulations.
 
 ## Key points
 - The task sits at the intersection of image-text retrieval and person re-identification.
@@ -123,6 +125,7 @@ Together, these sources suggest a broader in-vault progression: CLIP-based retri
 - [[source-github-multimodal-representation-learning-mrl-ga-dms]] shows that this token-level route is implemented with gradient-attention maps, SDM/DDP losses, MLM reconstruction, and a post-map-generation filtered dataloader.
 - [[webperson]] adds a competing data-centric argument: large-scale curated real web images plus MLLM captioning can be a strong pretraining route beside synthetic-domain alignment.
 - [[conquer]] adds an inference-time argument: retrieval can improve by actively enriching vague or incomplete user queries rather than treating the original text as fixed.
+- [[source-github-zqxie77-conquer]] shows that the public CONQUER code implements this as a separate IQE reranking stage over a CLIP/RDE-style training scaffold rather than a monolithic end-to-end architecture.
 - [[bi-irra]] adds a multilingual argument: person retrieval systems and benchmarks should be evaluated beyond English-only descriptions, and multilingual supervision can improve both multilingual and English retrieval results.
 - [[mvr]] adds an inference-time semantic compensation argument: multi-view LLM reformulations can reduce expression drift without retraining the backbone.
 - Current vault evidence is still narrow, so benchmark conclusions should be treated as historical-within-vault rather than field-final.
@@ -175,8 +178,8 @@ Together, these sources suggest a broader in-vault progression: CLIP-based retri
 - Statement: Later in-vault evidence suggests inference-time adaptation is a distinct and practically relevant TBPS lever, including both interactive query refinement and multi-view semantic compensation.
 - Status: active
 - Confidence: 0.83
-- Evidence: [[source-arxiv-2601-18625-conquer]], [[source-arxiv-2604-18376-mvr]]
-- Last confirmed: 2026-04-23
+- Evidence: [[source-arxiv-2601-18625-conquer]], [[source-github-zqxie77-conquer]], [[source-arxiv-2604-18376-mvr]]
+- Last confirmed: 2026-04-24
 - Notes: Keep as a design-space claim rather than a broad field law until more sources reinforce it.
 
 #### Claim
@@ -244,5 +247,6 @@ Together, these sources suggest a broader in-vault progression: CLIP-based retri
 - [[source-github-shuyu-xjtu-mra]]
 - [[source-arxiv-2509-09118-ga-dms]]
 - [[source-arxiv-2601-18625-conquer]]
+- [[source-github-zqxie77-conquer]]
 - [[source-arxiv-2510-17685-bi-irra]]
 - [[source-arxiv-2604-18376-mvr]]

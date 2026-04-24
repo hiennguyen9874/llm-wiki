@@ -1,8 +1,8 @@
 ---
 title: CONQUER
 created: 2026-04-23
-last_updated: 2026-04-23
-source_count: 1
+last_updated: 2026-04-24
+source_count: 2
 status: draft
 page_type: concept
 aliases:
@@ -20,12 +20,13 @@ importance: high
 review_status: active
 related_sources:
   - source-arxiv-2601-18625-conquer
+  - source-github-zqxie77-conquer
   - source-arxiv-2510-17685-bi-irra
 confidence_score: 0.85
 quality_score: 0.84
-evidence_count: 2
+evidence_count: 3
 first_seen: 2026-04-23
-last_confirmed: 2026-04-23
+last_confirmed: 2026-04-24
 claim_status: active
 retention_class: durable
 visibility: private
@@ -53,6 +54,8 @@ CONQUER has two main components:
 - **CARE** improves the learned embedding space through multi-granularity encoding, complementary pair mining, and context-guided Optimal Transport matching.
 - **IQE** is a plug-and-play reranking module that selects anchor images, extracts likely missing attributes with an MLLM, and fuses them into an improved query without retraining the backbone.
 
+The public implementation companion, [[source-github-zqxie77-conquer]], confirms this split at code level: training lives in a CLIP/RDE-style scaffold with global BGE features plus selected token/patch TSE features, while IQE is implemented as a separate inference script that performs anchor validation, MLLM attribute extraction, caption aggregation, re-embedding, and score interpolation.
+
 In the current vault, CONQUER matters because it adds a distinct design route: instead of only improving data quality, loss design, or token/pair robustness during training, it treats ambiguity in the user's original query as a first-class retrieval bottleneck. That makes it a useful comparison point beside [[mars]], [[rde]], [[mra]], [[ga-dms]], [[irra]], and [[tbps-clip]].
 
 ## Relationships
@@ -62,6 +65,8 @@ In the current vault, CONQUER matters because it adds a distinct design route: i
 - `uses` complementary pair mining
 - `uses` context-guided Optimal Transport matching
 - `uses` anchor-based attribute enrichment for reranking
+- `uses` CLIP-derived dual encoders with global and selected token/patch embeddings in the released code
+- `uses` GMM-based clean-pair filtering and Optimal Transport rematching in the released training loop
 - `supports` [[text-to-image-person-retrieval]]
 - `related_to` [[mars]]
 - `related_to` [[rde]]
@@ -83,9 +88,9 @@ In the current vault, CONQUER matters because it adds a distinct design route: i
 - Statement: IQE is useful because it can refine vague or underspecified queries without retraining the main retrieval backbone.
 - Status: active
 - Confidence: 0.87
-- Evidence: [[source-arxiv-2601-18625-conquer]]
-- Last confirmed: 2026-04-23
-- Notes: Important durable design idea even if future benchmark leadership changes.
+- Evidence: [[source-arxiv-2601-18625-conquer]], [[source-github-zqxie77-conquer]]
+- Last confirmed: 2026-04-24
+- Notes: Important durable design idea even if future benchmark leadership changes; the code confirms IQE as an external inference-time reranking/refinement script.
 
 #### Claim
 - Statement: CONQUER reports 77.13 Rank-1 / 68.75 mAP on CUHK-PEDES, 67.70 Rank-1 / 40.36 mAP on ICFG-PEDES, and 68.40 Rank-1 / 51.73 mAP on RSTPReid.
@@ -103,6 +108,14 @@ In the current vault, CONQUER matters because it adds a distinct design route: i
 - Last confirmed: 2026-04-23
 - Notes: Historical in-vault comparison only.
 
+#### Claim
+- Statement: The released CONQUER code realizes the training side as a CLIP/RDE-style implementation with global BGE features, selected token/patch TSE features, GMM clean-pair filtering, and Optimal Transport rematching.
+- Status: active
+- Confidence: 0.86
+- Evidence: [[source-github-zqxie77-conquer]]
+- Last confirmed: 2026-04-24
+- Notes: Implementation-level reinforcement; does not supersede paper-level benchmark claims.
+
 ## Open questions
 - How much of CONQUER's gains come from CARE versus IQE when evaluated under realistic ambiguous-query distributions?
 - How reliable is MLLM-based attribute extraction when anchors are themselves slightly wrong?
@@ -110,4 +123,5 @@ In the current vault, CONQUER matters because it adds a distinct design route: i
 
 ## Sources
 - [[source-arxiv-2601-18625-conquer]]
+- [[source-github-zqxie77-conquer]]
 - [[source-arxiv-2510-17685-bi-irra]]

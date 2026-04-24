@@ -2,7 +2,7 @@
 title: Index
 created: 2026-04-14
 last_updated: 2026-04-24
-source_count: 15
+source_count: 16
 status: draft
 page_type: index
 aliases: [Catalog]
@@ -40,6 +40,7 @@ Master catalog of the second brain. Use this file for human orientation and brow
 - [[source-arxiv-2509-09118-ga-dms]] — arXiv source page for the GA-DMS paper and its companion WebPerson dataset for robust text-based person retrieval.
 - [[source-github-multimodal-representation-learning-mrl-ga-dms]] — GitHub source page for the public GA-DMS implementation, including gradient-attention token-map generation and staged similarity-guided dual masking.
 - [[source-arxiv-2601-18625-conquer]] — arXiv source page for the CONQUER paper on context-aware alignment plus inference-time query enhancement for text-based person search.
+- [[source-github-zqxie77-conquer]] — GitHub source page for the public CONQUER implementation, including the CLIP/RDE-style training scaffold, selected embeddings, GMM/OT noisy-pair handling, and IQE reranking script.
 - [[source-arxiv-2510-17685-bi-irra]] — arXiv source page for the Bi-IRRA paper on multilingual text-to-image person retrieval and multilingual benchmark construction.
 - [[source-arxiv-2604-18376-mvr]] — arXiv source page for the MVR paper on training-free multi-view semantic compensation for robust text-to-image person retrieval.
 
@@ -51,7 +52,7 @@ Master catalog of the second brain. Use this file for human orientation and brow
 - [[rde]] — method page for Robust Dual Embedding and its robustness-oriented design.
 - [[mra]] — method page for Multi-granularity Relation Alignment, its benchmark progression, and its public code companion.
 - [[ga-dms]] — method page for gradient-attention-guided dual masking in CLIP-based person retrieval.
-- [[conquer]] — method page for the two-stage CARE + IQE framework that refines both embeddings and user queries.
+- [[conquer]] — method page for the two-stage CARE + IQE framework that refines both embeddings and user queries, now linked to its public code companion.
 - [[bi-irra]] — method page for the multilingual IRRA extension with bidirectional multilingual relation reasoning and LDAT-backed benchmark construction.
 - [[mvr]] — method page for training-free LLM-assisted multi-view reformulation and semantic compensation.
 - [[webperson]] — dataset page for the 5M-scale curated web person image-text corpus.
