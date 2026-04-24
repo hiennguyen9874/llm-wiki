@@ -1,8 +1,8 @@
 ---
 title: TBPS Methods Synthesis and Hybrid Recommendation
 created: 2026-04-23
-last_updated: 2026-04-24
-source_count: 18
+last_updated: 2026-04-25
+source_count: 19
 status: reviewed
 page_type: answer
 aliases:
@@ -37,11 +37,12 @@ related_sources:
   - source-github-flame-chasers-bi-irra
   - source-arxiv-2604-18376-mvr
   - source-arxiv-2509-13754-fmfa
-confidence_score: 0.85
-quality_score: 0.88
-evidence_count: 18
+  - source-github-yinhao1102-fmfa
+confidence_score: 0.87
+quality_score: 0.90
+evidence_count: 19
 first_seen: 2026-04-23
-last_confirmed: 2026-04-24
+last_confirmed: 2026-04-25
 claim_status: active
 retention_class: durable
 visibility: private
@@ -73,7 +74,7 @@ related_entities:
 ## Short answer
 The best current recommendation in this vault is **hybrid**, not a single-method winner: build a **CLIP/IRRA-style dual-encoder retrieval core**, train it with **TBPS-CLIP recipe discipline**, add **RDE/GA-DMS robustness**, add **FMFA/MARS/MRA fine-grained grounding and data pretraining where compute allows**, then deploy **CONQUER/MVR inference-time query compensation behind a confidence gate**. Add **Bi-IRRA** when multilingual retrieval is required.
 
-This answer was refreshed after checking the log and the newly ingested `raw/codes/` companions. The code sources strengthen the recommendation because they show a recurring implementation pattern: most strong lines still orbit a CLIP/IRRA-style retrieval scaffold, while the newer gains are added as robustness, grounding, reranking, data, multilingual, or query-adaptation modules rather than as one clean replacement architecture. Supported by [[text-to-image-person-retrieval]], [[synthesis-tbps-hybrid-design-space]], [[source-github-anosorae-irra]], [[source-github-flame-chasers-tbps-clip]], [[source-github-qinyang79-rde]], [[source-github-ergastialex-mars]], [[source-github-shuyu-xjtu-mra]], [[source-github-multimodal-representation-learning-mrl-ga-dms]], [[source-github-zqxie77-conquer]], and [[source-github-flame-chasers-bi-irra]].
+This answer was refreshed after checking the log and the newly ingested `raw/codes/` companions. The code sources strengthen the recommendation because they show a recurring implementation pattern: most strong lines still orbit a CLIP/IRRA-style retrieval scaffold, while the newer gains are added as robustness, grounding, reranking, data, multilingual, or query-adaptation modules rather than as one clean replacement architecture. The new FMFA code companion further sharpens this view by confirming that FMFA keeps direct normalized global-similarity retrieval at inference, implements A-SDM and EFA explicitly in the loss path, and still fits the broader IRRA-family scaffold. Supported by [[text-to-image-person-retrieval]], [[synthesis-tbps-hybrid-design-space]], [[source-github-anosorae-irra]], [[source-github-flame-chasers-tbps-clip]], [[source-github-qinyang79-rde]], [[source-github-ergastialex-mars]], [[source-github-shuyu-xjtu-mra]], [[source-github-multimodal-representation-learning-mrl-ga-dms]], [[source-github-zqxie77-conquer]], [[source-github-flame-chasers-bi-irra]], and [[source-github-yinhao1102-fmfa]].
 
 ## Recommended best architecture: modular hybrid stack
 
@@ -91,7 +92,7 @@ Add token-level caption-noise suppression and informative-token reconstruction. 
 
 ### 5. Fine-grained grounding: FMFA/MARS/MRA where compute and supervision allow
 Use fine-grained grounding selectively:
-- **FMFA route**: A-SDM adaptively emphasizes unmatched positive image-text pairs, while EFA adds explicit sparse token-patch alignment during training without requiring local matching at inference. This is useful when you want stronger grounding but still want global-feature retrieval. Evidence: [[fmfa]], [[source-arxiv-2509-13754-fmfa]].
+- **FMFA route**: A-SDM adaptively emphasizes unmatched positive image-text pairs, while EFA adds explicit sparse token-patch alignment during training without requiring local matching at inference. The code companion confirms direct global-similarity evaluation, a concrete A-SDM weighting heuristic, and fixed-threshold EFA sparsification (`1 / num_patches`). This is useful when you want stronger grounding but still want global-feature retrieval, though the inspected snapshot also carries a pretraining-path reproduction caveat. Evidence: [[fmfa]], [[source-arxiv-2509-13754-fmfa]], [[source-github-yinhao1102-fmfa]].
 - **MARS route**: attribute chunks, masked visual reconstruction, full-cross-attention top-k reranking. Strong when attribute-level precision matters, but heavier at training/evaluation time. Evidence: [[mars]], [[source-github-ergastialex-mars]].
 - **MRA route**: Swin+BERT retrieval with SDA region-level supervision and ITC/ITM/MLM objectives; useful for domain-aligned synthetic pretraining and region-phrase alignment, but the code snapshot has reproduction caveats. Evidence: [[mra]], [[synthetic-domain-aligned-dataset]], [[domain-aware-diffusion]], [[source-github-shuyu-xjtu-mra]].
 
@@ -175,7 +176,7 @@ For a paper-grade or benchmark-focused system:
 - GA-DMS implements gradient-attention token maps and staged token masking in a CLIP/IRRA-like scaffold: [[source-github-multimodal-representation-learning-mrl-ga-dms]].
 - MARS is a heavier ALBEF-style system with seven losses and top-k ITM reranking: [[source-github-ergastialex-mars]].
 - MRA uses a Swin+BERT retrieval implementation with SDA region supervision and reproduction caveats in the inspected snapshot: [[source-github-shuyu-xjtu-mra]].
-- FMFA is paper-ingested as an IRRA-family global matching method with A-SDM for unmatched positives and EFA for explicit sparse token-patch alignment while preserving global-feature inference: [[fmfa]], [[source-arxiv-2509-13754-fmfa]].
+- FMFA is now paper-and-code ingested as an IRRA-family global matching method with A-SDM for unmatched positives and EFA for explicit sparse token-patch alignment while preserving global-feature inference: [[fmfa]], [[source-arxiv-2509-13754-fmfa]], [[source-github-yinhao1102-fmfa]].
 - CONQUER separates CLIP/RDE-like training from external MLLM-assisted IQE reranking: [[source-github-zqxie77-conquer]].
 - Bi-IRRA adds multilingual paired supervision and top-k cross-encoder reranking: [[source-github-flame-chasers-bi-irra]].
 - MVR is represented in the vault as training-free semantic compensation at inference: [[mvr]], [[source-arxiv-2604-18376-mvr]].
@@ -184,7 +185,7 @@ For a paper-grade or benchmark-focused system:
 - The full proposed hybrid has **not** been validated as one end-to-end architecture by a single source. The recommendation is an evidence-based synthesis that these modules target different bottlenecks and often attach around a shared retrieval scaffold. See [[synthesis-tbps-hybrid-design-space]].
 - RDE pair-level robustness and GA-DMS token-level robustness are likely complementary, but this exact combination still needs ablation.
 - MRA synthetic-domain alignment and GA-DMS/WebPerson real-web pretraining may be alternatives or a useful curriculum; the vault does not yet settle this.
-- FMFA strengthens the case for training-time explicit grounding with efficient inference, but its public code has not been ingested yet, so implementation-level confidence is lower than for the code-backed sources.
+- FMFA strengthens the case for training-time explicit grounding with efficient inference, and its public code is now ingested. Implementation-level confidence is higher than before, but the inspected snapshot still carries an apparent pretraining-path caveat in `processor/processor.py`, so reproduction confidence is not yet fully clean.
 - CONQUER/MVR should be gated because their inference-time adaptation may add latency/cost and may be unnecessary for clear queries.
 
 ## Confidence and uncertainty
@@ -195,10 +196,10 @@ For a paper-grade or benchmark-focused system:
 > The newly ingested code sources increase confidence in the **architecture shape** of the recommendation, especially the CLIP/IRRA scaffold plus modular add-ons. They do **not** create new benchmark results, so they should not be used to claim a new SOTA ranking.
 
 ### Evidence quality notes
-- Strong / active for implementation shape: [[source-github-anosorae-irra]], [[source-github-flame-chasers-tbps-clip]], [[source-github-qinyang79-rde]], [[source-github-ergastialex-mars]], [[source-github-multimodal-representation-learning-mrl-ga-dms]], [[source-github-zqxie77-conquer]], [[source-github-flame-chasers-bi-irra]], [[source-arxiv-2509-13754-fmfa]].
-- Useful but with reproduction caveats: [[source-github-shuyu-xjtu-mra]].
+- Strong / active for implementation shape: [[source-github-anosorae-irra]], [[source-github-flame-chasers-tbps-clip]], [[source-github-qinyang79-rde]], [[source-github-ergastialex-mars]], [[source-github-multimodal-representation-learning-mrl-ga-dms]], [[source-github-zqxie77-conquer]], [[source-github-flame-chasers-bi-irra]], [[source-github-yinhao1102-fmfa]], [[source-arxiv-2509-13754-fmfa]].
+- Useful but with reproduction caveats: [[source-github-shuyu-xjtu-mra]], [[source-github-yinhao1102-fmfa]].
 - Benchmark ranking remains mixed/disputed and should be read through [[text-to-image-person-retrieval]] and [[synthesis-tbps-hybrid-design-space]].
-- Slightly lower confidence: [[mvr]] benchmark table readings remain conservative because the source table extraction had rendering noise; [[fmfa]] implementation details remain paper-only until the FMFA GitHub repository is ingested.
+- Slightly lower confidence: [[mvr]] benchmark table readings remain conservative because the source table extraction had rendering noise; FMFA's architecture shape is now code-backed, but the pretraining path still merits validation before treating the repo as fully reproduction-clean.
 
 ## Informed by
-[[text-to-image-person-retrieval]], [[synthesis-tbps-hybrid-design-space]], [[irra]], [[tbps-clip]], [[rde]], [[mars]], [[mra]], [[ga-dms]], [[conquer]], [[bi-irra]], [[mvr]], [[fmfa]], [[webperson]], [[noisy-correspondence]], [[source-github-anosorae-irra]], [[source-github-flame-chasers-tbps-clip]], [[source-github-qinyang79-rde]], [[source-github-ergastialex-mars]], [[source-github-shuyu-xjtu-mra]], [[source-github-multimodal-representation-learning-mrl-ga-dms]], [[source-github-zqxie77-conquer]], [[source-github-flame-chasers-bi-irra]], [[source-arxiv-2509-13754-fmfa]].
+[[text-to-image-person-retrieval]], [[synthesis-tbps-hybrid-design-space]], [[irra]], [[tbps-clip]], [[rde]], [[mars]], [[mra]], [[ga-dms]], [[conquer]], [[bi-irra]], [[mvr]], [[fmfa]], [[webperson]], [[noisy-correspondence]], [[source-github-anosorae-irra]], [[source-github-flame-chasers-tbps-clip]], [[source-github-qinyang79-rde]], [[source-github-ergastialex-mars]], [[source-github-shuyu-xjtu-mra]], [[source-github-multimodal-representation-learning-mrl-ga-dms]], [[source-github-zqxie77-conquer]], [[source-github-flame-chasers-bi-irra]], [[source-arxiv-2509-13754-fmfa]], [[source-github-yinhao1102-fmfa]].
