@@ -14,6 +14,9 @@ Always activate `llm-wiki-core` first.
 - `obsidian-cli` when a running Obsidian vault should be inspected or validated
 - `obsidian-markdown` when embedding or linking visual artifacts from notes
 
+## Manual Graph-Insights Stance
+Use Canvases and Bases as Obsidian-first overlays. They may represent graph insights, sparse clusters, bridge pages, and review queues, but they are not a separate graph engine. Do not claim Louvain/community detection or 4-signal relevance unless implemented by actual tooling.
+
 ## Graph-Insights-Lite Visualization
 When maintenance/query finds isolated pages, sparse clusters, bridge pages, or surprising connections, consider a Canvas or Base to make the pattern reviewable. Keep this markdown/Obsidian-first; do not claim a separate graph engine exists.
 

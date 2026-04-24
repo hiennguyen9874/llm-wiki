@@ -13,6 +13,7 @@ Always activate `llm-wiki-core` first.
 * `obsidian-markdown` for note repair, metadata updates
 * `llm-wiki-visualization` when Bases or Canvases need refresh
 * `ask-user` before irreversible or high-level structural changes
+* `llm-wiki-ingest` when maintenance turns into compile/promotion from raw or outputs
 
 ## Review Workflow
 
@@ -41,6 +42,21 @@ Always activate `llm-wiki-core` first.
 * Run graph-insights-lite: isolated pages, sparse clusters, bridge pages, surprising cross-topic links
 * Record review activity in `wiki/log.md` as `review`
 
+
+## Librarian-Style Freshness and Quality Review
+Use this during monthly review, lint, or explicit freshness/quality audits. Keep repo metadata on the existing 0-1 scale. Reports may show equivalent percentages for readability.
+
+Check:
+- source traceability through `related_sources` and source pages
+- `last_confirmed`, `retention_class`, `claim_status`, confidence, and quality
+- whether source support is missing, stale, contradicted, or low quality
+- page depth, coherence, utility, citations, and link structure
+
+Output:
+- save durable reports to `outputs/reports/`
+- include worst stale pages, worst low-quality pages, likely fixes, and review items
+- do not automatically refresh factual claims without evidence
+
 ## Lint Workflow
 
 Run monthly or on request.
@@ -62,6 +78,12 @@ Check for:
 * Bases or Canvases no longer reflecting current wiki state
 * stale or unresolved review queue items
 * `wiki/overview.md` no longer matching current wiki state
+
+
+## Lint-as-Migration Rules
+Use lint as the normal place to repair safe schema drift. Auto-fix only mechanical, low-risk defects: missing obvious frontmatter defaults, stale index rows, clear broken links, unambiguous backlinks, and explicitly documented legacy aliases.
+
+Do not auto-fix decisions requiring judgment: taxonomy changes, bulk renames/moves/deletes, page merges, source deletion, privacy cleanup that removes provenance, or new metadata schema. Ask user or create review queue items.
 
 ## Retention Workflow
 
@@ -169,6 +191,9 @@ Actions:
 * create review items for uncertain links or page creation decisions
 * recommend or create Canvas/Base artifacts when they clarify structure
 * save durable gap/connection findings to `outputs/reports/` or `outputs/analyses/` when useful
+
+## Compile / Promotion Maintenance
+When several raw sources, saved answers, analyses, or crystallizations should become canonical wiki knowledge, run the `/compile` prompt or follow the compile workflow from `llm-wiki-core`. Prefer incremental compile unless the user asks for a full rewrite.
 
 ## Update Workflow
 

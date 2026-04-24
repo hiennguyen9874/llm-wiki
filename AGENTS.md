@@ -31,6 +31,7 @@ For any non-trivial task, read this file first, then read matching skill files.
 | Any meaningful work in `raw/`, `wiki/`, or `outputs/` | `llm-wiki-core` + `obsidian-markdown` |
 | Search / retrieval across vault | `llm-wiki-query` + `qmd` |
 | New source capture, triage, ingest, batch ingest | `llm-wiki-ingest` + `qmd`; use two-stage ingest for substantial sources |
+| Compile raw sources / outputs into canonical wiki pages | `llm-wiki-ingest` + `llm-wiki-query` + `llm-wiki-maintenance` + `qmd`; use `/compile` prompt for manual incremental/full compilation |
 | Standard web URL ingest | `llm-wiki-ingest` + `defuddle` + `qmd` |
 | Answers, briefs, briefings, connections, disagreements, gap scans, next-research recommendations | `llm-wiki-query` + `qmd`; read `purpose.md`/`wiki/overview.md` when broad or strategic |
 | Session start / context load / orientation | `llm-wiki-query` + `qmd` |
@@ -61,10 +62,11 @@ When changing knowledge-system design, also read:
 - `LLM-WIKI.md`
 - `LLM-WIKI-v2.md`
 - `LLM-Wiki-v3.md`
+- `LLM-Wiki-v4.md`
 
 ## Prompt Policy
 Important prompt families:
-- ingest / ingest-url / ingest-batch / ingest-pdf / ingest-arxiv
+- ingest / ingest-url / ingest-batch / ingest-pdf / ingest-arxiv / compile
 - query / brief / briefing
 - connections / disagreements / gaps / next-research / explore / deep-research
 - review / lint / retention-pass / resolve-contradictions / privacy-scan

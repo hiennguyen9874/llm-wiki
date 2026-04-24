@@ -24,12 +24,12 @@ Always activate `llm-wiki-core` first.
    - reusable lessons
    - confidence or uncertainty where it materially matters
    - appropriate visibility for the artifact
-3. Promote durable lessons into `wiki/` pages or update existing canonical pages, guided by `purpose.md` when broad direction matters.
+3. Promote durable lessons into `wiki/` pages or update existing canonical pages, guided by `purpose.md` when broad direction matters. If several crystallizations/outputs need synthesis, recommend or run `/compile`.
 4. Add links from the crystallization artifact back to the relevant canonical pages.
 5. If the session reinforces or weakens existing knowledge, update confidence, contradiction, or supersession state where justified.
-6. If a repeated process lesson emerged, consider promoting it into procedural memory.
+6. If a repeated process lesson emerged, consider promoting it into procedural memory (`AGENTS.md`, skills, or prompts) and log why.
 7. Update `wiki/overview.md` when the session changes current understanding, active themes, gaps, or direction.
-8. Update `wiki/index.md` if the artifact or promoted pages are important for browsing.
+8. Update `wiki/index.md` if the artifact or promoted pages are important for browsing; treat index as rebuildable but update it explicitly.
 9. Create review queue items for non-blocking human judgments that emerged.
 10. Append `crystallize` or `update` entries to `wiki/log.md`.
 

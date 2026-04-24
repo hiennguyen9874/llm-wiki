@@ -22,6 +22,7 @@ Always activate `llm-wiki-core` first. Core owns shared rules for privacy, metad
 - Save stage-1 plans selectively in `outputs/ingest-plans/` when they contain non-trivial decisions, contradictions, review items, or broad integration plans.
 - For trivial captures, use a fast path but still screen privacy, search related pages, cite sources, and log changes.
 - Preserve raw source unchanged unless unsafe sensitive material should not remain in repo; if raw file itself is unsafe, stop and ask user.
+- Maintain source traceability with existing `related_sources: []` fields on wiki pages and source metadata on source pages.
 - Read source fully before synthesis.
 - Run privacy/sensitivity screen before promoting content into `wiki/` or `outputs/`.
 - Use QMD to find related pages before creating new ones.
@@ -72,6 +73,8 @@ When processing one new source:
    - related existing pages and likely affected pages
    - what is new, reinforced, contradicted, superseded, or uncertain
    - proposed source page and canonical page updates
+   - `related_sources` updates needed for affected wiki pages
+   - whether this should remain single-source ingest or trigger a later `/compile` pass
    - review items for human judgment with recommended action
    - whether an output, Base, Canvas, overview update, or deep-research prompt is warranted
 7. Save the plan to `outputs/ingest-plans/` only when it has durable audit value; otherwise keep it in chat and summarize in log.
@@ -80,6 +83,7 @@ When processing one new source:
 ### Stage 2 — generation and integration
 9. Create or update dedicated source page in `wiki/`.
 10. Update all relevant topic, concept, entity, project, person, timeline, synthesis, and overview pages.
+10a. Add or refresh `related_sources` on affected wiki pages so source support is traceable.
 11. Add backlinks from existing pages to new material.
 12. For high-value or contested facts, update `Evidence / claims` with lightweight claim records.
 13. Mark contradictions explicitly and set supersession state when justified.
@@ -89,6 +93,9 @@ When processing one new source:
 17. If ingest produces durable standalone analysis, save it to `outputs/`.
 18. If topic becomes structurally complex, consider Canvas or Base.
 19. Goal = broad integration across wiki, not isolated summary.
+
+## Compile Handoff
+When a source overlaps many existing sources, or several outputs/sources should become one coherent semantic update, recommend `/compile` instead of creating isolated summaries. For substantial batches, ingest raw material first, then run compile over the affected scope.
 
 ## Batch Ingest Workflow
 When processing multiple unprocessed files:

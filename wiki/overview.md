@@ -60,6 +60,7 @@ The wiki is in an early structural phase. Core navigation, logging, lifecycle ru
 - Added `purpose.md` for directional intent.
 - Added this overview as a separate agent-maintained current-state synthesis.
 - Added conventions for ingest plans, review queue items, graph-insights-lite, and manual-first Deep Research.
+- Adopted selected `LLM-Wiki-v4.md` workflow ideas in manual-first form: `/compile`, stronger `related_sources` traceability, index-as-rebuildable-catalog, conservative lint-as-migration, and librarian-style freshness/quality review.
 
 ## Next actions
 

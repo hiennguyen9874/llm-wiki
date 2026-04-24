@@ -18,7 +18,8 @@ This skill holds detailed repo-wide rules. `AGENTS.md` only routes work.
 - Manual-first, human-steered, prompt-driven.
 - Prefer explicit workflows + scheduled reviews over fake hidden automation.
 - Design prompts/skills so hooks or scheduled jobs can come later.
-- Do not claim automation, graph infra, or lifecycle enforcement repo does not actually have.
+- Adopt v4 ideas only as manual, executable conventions unless tooling exists.
+- Do not claim automation, graph infra, vector DB, desktop app, persistent queue, derived-index tooling, or lifecycle enforcement repo does not actually have.
 
 ## Memory Architecture
 - `purpose.md` → directional intent: goals, scope, key questions, active themes, evolving thesis
@@ -53,6 +54,26 @@ This skill holds detailed repo-wide rules. `AGENTS.md` only routes work.
 - Crystallize exploratory work when needed.
 - Canonical wiki gets durable, evidence-backed knowledge.
 - Stable process lessons go into procedural memory.
+
+
+## Manual Compile Workflow
+Compilation means synthesizing accumulated `raw/` sources and/or durable `outputs/` artifacts into canonical `wiki/` pages. It is distinct from capture and single-source ingest.
+
+Use compile when:
+- several sources cover the same topic and should update shared concept/entity/synthesis pages
+- saved answers, analyses, or crystallizations should be promoted into semantic memory
+- a topic needs a full consistency pass rather than another isolated source summary
+
+Modes:
+- `incremental` → process new or changed sources/outputs since the last relevant review/log entry
+- `full` → re-read all relevant sources/pages in scope and rewrite/update synthesis more broadly
+
+Rules:
+- Read actual files before synthesizing; do not compile from index summaries alone.
+- Preserve raw sources unchanged.
+- Update canonical pages, `related_sources`, claims, contradictions, confidence/quality, overview, index, and log where justified.
+- If the compile plan implies taxonomy/schema/bulk moves/deletes, ask user first.
+- If decisions can wait, create review queue items rather than blocking safe compilation.
 
 ## Tool Selection Policy
 - Use **QMD** as primary local markdown search/retrieval tool for `wiki/`, `raw/`, `outputs/`.
@@ -99,6 +120,9 @@ This skill holds detailed repo-wide rules. `AGENTS.md` only routes work.
 
 ## Global Rules
 - Wiki = persistent compiled artifact, not chat scratch.
+- Keep `related_sources: []` current on wiki pages when sources materially support the page.
+- Do not introduce parallel `sources: []` schema unless the human explicitly approves a schema migration.
+- Use compile passes to turn multiple raw sources or reusable outputs into canonical semantic pages when one-off ingest would fragment knowledge.
 - Prefer updates over redundant near-duplicates.
 - Preserve uncertainty explicitly.
 - Every factual claim cites source.
@@ -376,6 +400,17 @@ Default resolution:
 - Include source/context links, recommendation, options, and status (`open | decided | done | skipped`).
 - Ask user immediately instead of queueing when the decision is high-stakes, irreversible, or blocks safe progress.
 
+
+## Index as Rebuildable Catalog
+`wiki/index.md` remains a required human/agent catalog and should be updated on meaningful writes. Treat it as a rebuildable cache, not the source of truth. The source of truth is the actual markdown files, frontmatter, wikilinks, `related_sources`, and log.
+
+If index drift is suspected during query, ingest, compile, or maintenance:
+1. Prefer actual file/frontmatter evidence over stale index rows.
+2. Repair the index during maintenance/lint or as part of the current write if safe.
+3. Log meaningful rebuilds or repairs.
+
+Do not skip index updates by default just because it is rebuildable; until tooling exists, update it explicitly.
+
 ## Index and Log Rules
 ### `wiki/index.md`
 - Human orientation + browsing
@@ -421,6 +456,24 @@ Default domains:
 - Keep provenance + auditability through `wiki/log.md` and saved outputs.
 - Prefer reversible bulk changes and document why.
 
+
+## Lint-as-Migration Principle
+When workflow schema evolves, prefer encoding safe repair rules in maintenance/lint rather than one-off migrations. Apply this conservatively.
+
+Safe automatic repairs include:
+- missing required frontmatter with obvious defaults
+- index/catalog drift
+- clear broken internal links or unambiguous backlinks
+- legacy field aliases explicitly documented in policy
+- minor metadata normalization with provenance preserved
+
+Ask user before:
+- major schema migration
+- taxonomy/folder changes
+- bulk moves/renames/deletes
+- merging many pages
+- changes that could remove provenance or private context
+
 ## Decision Hygiene
 Ask user before:
 - renaming large sets of pages
@@ -437,4 +490,4 @@ Ask user before:
 - Think in loop: capture → distill → crystallize → integrate → visualize → review.
 
 ## Pattern References
-Read `LLM-WIKI.md`, `LLM-WIKI-v2.md`, and `LLM-Wiki-v3.md` when changing system design or lifecycle rules.
+Read `LLM-WIKI.md`, `LLM-WIKI-v2.md`, `LLM-Wiki-v3.md`, and `LLM-Wiki-v4.md` when changing system design or lifecycle rules.
