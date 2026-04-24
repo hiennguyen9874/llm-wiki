@@ -21,6 +21,7 @@ This skill holds detailed repo-wide rules. `AGENTS.md` only routes work.
 - Do not claim automation, graph infra, or lifecycle enforcement repo does not actually have.
 
 ## Memory Architecture
+- `purpose.md` → directional intent: goals, scope, key questions, active themes, evolving thesis
 - `raw/` → immutable capture layer
 - `wiki/` → durable semantic knowledge
 - `wiki/bases/` → operational dashboards
@@ -74,7 +75,8 @@ This skill holds detailed repo-wide rules. `AGENTS.md` only routes work.
 ### `wiki/`
 - `wiki/index.md` → browsable catalog of key pages + artifacts
 - `wiki/log.md` → append-only operational log
-- `wiki/home.md` → high-level overview
+- `wiki/home.md` → stable human landing page
+- `wiki/overview.md` → agent-updated current-state synthesis, major clusters, gaps, active direction
 - `wiki/bases/` → `.base` dashboards
 - `wiki/canvases/` → `.canvas` syntheses
 - other `wiki/*.md` → topics, concepts, sources, people, projects, decisions, syntheses, timelines, procedures
@@ -85,6 +87,15 @@ This skill holds detailed repo-wide rules. `AGENTS.md` only routes work.
 - `outputs/reports/` → lint reports, audits, reviews
 - `outputs/briefings/` → reusable summaries + briefings
 - `outputs/crystallizations/` → structured digests from completed investigations
+- `outputs/ingest-plans/` → selectively saved stage-1 ingest plans for non-trivial decisions
+- `outputs/review-queue/` → one markdown note per human judgment item
+
+## Purpose and Overview Rules
+- `purpose.md` answers why the wiki exists; keep strategic direction there, not in workflow policy.
+- Read `purpose.md` when broad ingest/query/review/research planning needs goal context.
+- `wiki/home.md` is stable human orientation.
+- `wiki/overview.md` is the agent-updated current-state synthesis; update it after meaningful ingests, major reviews, or important crystallizations.
+- Do not over-read purpose/overview for narrow exact lookups.
 
 ## Global Rules
 - Wiki = persistent compiled artifact, not chat scratch.
@@ -160,6 +171,8 @@ related_entities: []
 
 ### Common `page_type`
 - `home`
+- `overview`
+- `purpose`
 - `index`
 - `log`
 - `topic`
@@ -175,6 +188,8 @@ related_entities: []
 - `dashboard`
 - `canvas`
 - `episode`
+- `ingest_plan`
+- `review_item`
 
 ### Recommended lifecycle meanings
 - `confidence_score` → current confidence in page claims
@@ -185,6 +200,7 @@ related_entities: []
 - `claim_status` → `active | stale | superseded | disputed | hypothesis`
 - `retention_class` → `transient | working | episodic | durable | foundational`
 - `visibility` → `private | shared | publishable`
+- review item `action_type` → `approve_edit | create_page | deep_research | skip | ask_user | resolve_contradiction`
 
 ### Page-level vs claim-level lifecycle
 - Frontmatter fields apply to page as whole by default.
@@ -353,6 +369,13 @@ Default resolution:
 - if evidence mixed, keep both visible + mark issue `disputed`
 - explain reasoning briefly; do not silently overwrite tension
 
+## Review Queue Rules
+- Use one markdown note per review item in `outputs/review-queue/`.
+- Create review items when a workflow needs human judgment but can continue safely without immediate blocking.
+- Use constrained actions: `approve_edit`, `create_page`, `deep_research`, `skip`, `ask_user`, `resolve_contradiction`.
+- Include source/context links, recommendation, options, and status (`open | decided | done | skipped`).
+- Ask user immediately instead of queueing when the decision is high-stakes, irreversible, or blocks safe progress.
+
 ## Index and Log Rules
 ### `wiki/index.md`
 - Human orientation + browsing
@@ -372,6 +395,7 @@ Default resolution:
   - `lint`
   - `update`
   - `review`
+  - `research`
   - `visualize`
   - `crystallize`
 - For meaningful updates, include:
@@ -413,4 +437,4 @@ Ask user before:
 - Think in loop: capture → distill → crystallize → integrate → visualize → review.
 
 ## Pattern References
-Read `LLM-WIKI.md` and `LLM-WIKI-v2.md` when changing system design or lifecycle rules.
+Read `LLM-WIKI.md`, `LLM-WIKI-v2.md`, and `LLM-Wiki-v3.md` when changing system design or lifecycle rules.

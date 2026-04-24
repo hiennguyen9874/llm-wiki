@@ -14,6 +14,9 @@ Always activate `llm-wiki-core` first.
 - `obsidian-cli` when a running Obsidian vault should be inspected or validated
 - `obsidian-markdown` when embedding or linking visual artifacts from notes
 
+## Graph-Insights-Lite Visualization
+When maintenance/query finds isolated pages, sparse clusters, bridge pages, or surprising connections, consider a Canvas or Base to make the pattern reviewable. Keep this markdown/Obsidian-first; do not claim a separate graph engine exists.
+
 ## Visual Synthesis Workflow
 Use JSON Canvas when a topic is relational, ambiguous, or benefits from spatial organization.
 
@@ -43,6 +46,8 @@ Good use cases:
 - project tracker
 - reading list
 - outputs-to-promote queue
+- human review queue from `outputs/review-queue/`
+- graph-insights-lite findings
 - pages with low confidence or low quality
 
 Workflow:

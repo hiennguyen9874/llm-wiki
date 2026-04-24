@@ -1,7 +1,7 @@
 ---
 title: Home
 created: 2026-04-14
-last_updated: 2026-04-14
+last_updated: 2026-04-24
 source_count: 0
 status: draft
 page_type: home
@@ -22,10 +22,13 @@ This wiki is the compiled semantic memory layer of a personal second brain. It i
 
 ## How to use this wiki
 - Browse from [[index]]
+- Use [[overview]] for current-state synthesis and active gaps
+- Use [Purpose](../purpose.md) for strategic direction
 - Review recent changes in [[log]]
 - Ingest new material from `raw/inbox/` or `raw/captures/`
 - Save durable analyses to `outputs/` and promote the best ones back into the wiki
 - Use Bases for triage/review and Canvases for visual thinking when topics become complex
+- Use `outputs/review-queue/` for non-blocking human decisions raised by agents
 
 ## Operating principles
 - The wiki is persistent and cumulative

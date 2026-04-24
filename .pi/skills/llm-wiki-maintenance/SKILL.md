@@ -25,6 +25,8 @@ Always activate `llm-wiki-core` first.
 * Refresh lifecycle metadata when evidence changed
 * Run light privacy/sensitivity scan over recently added downstream artifacts
 * Check whether new Canvas or Base should be created
+* Review open items in `outputs/review-queue/`
+* Refresh `wiki/overview.md` when recent changes affect the global state
 
 ### Monthly review
 
@@ -36,6 +38,7 @@ Always activate `llm-wiki-core` first.
 * Review low-quality pages and rewrite/repair worst offenders
 * Update at least one major synthesis page or Canvas
 * Identify top knowledge gaps and next-source targets
+* Run graph-insights-lite: isolated pages, sparse clusters, bridge pages, surprising cross-topic links
 * Record review activity in `wiki/log.md` as `review`
 
 ## Lint Workflow
@@ -57,6 +60,8 @@ Check for:
 * visibility mismatches or pages that should not be broadly scoped
 * important pages needing lightweight `Evidence / claims` structure but lacking it
 * Bases or Canvases no longer reflecting current wiki state
+* stale or unresolved review queue items
+* `wiki/overview.md` no longer matching current wiki state
 
 ## Retention Workflow
 
@@ -146,11 +151,30 @@ When asked to scan for sensitive content:
 * ask user before destructive cleanup or altering raw source storage policy
 * record meaningful remediation in `wiki/log.md`
 
+## Graph-Insights-Lite Workflow
+
+Use during monthly review, lint, gaps, or when the wiki feels fragmented. This is markdown-first and does not imply a real graph database exists.
+
+Look for:
+
+* isolated pages with few links or no obvious inbound/outbound context
+* sparse clusters where related pages lack cross-links or synthesis
+* bridge pages that connect several topics and may deserve a synthesis page or Canvas
+* surprising cross-topic links worth preserving as connections
+* purpose-relevant gaps that deserve manual-first Deep Research
+
+Actions:
+
+* add obvious links/backlinks when supported
+* create review items for uncertain links or page creation decisions
+* recommend or create Canvas/Base artifacts when they clarify structure
+* save durable gap/connection findings to `outputs/reports/` or `outputs/analyses/` when useful
+
 ## Update Workflow
 
 When asked to improve wiki without new source:
 
-1. Use `wiki/index.md` for orientation if needed.
+1. Use `purpose.md`, `wiki/overview.md`, and `wiki/index.md` for orientation if needed.
 2. Use QMD to find weakly connected, stale, disputed, or duplicate areas.
 3. Merge duplicates, add links, improve summaries, strengthen citations.
 4. Refresh lifecycle metadata, visibility, supersession links where justified.

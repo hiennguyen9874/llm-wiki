@@ -20,8 +20,9 @@ Use hybrid retrieval even if QMD remains primary tool.
 
 ### Orientation
 
-* Read `wiki/index.md` when broad orientation helps.
-* Do not force index-first reading for every narrow lookup.
+* Read `purpose.md` and `wiki/overview.md` for broad, strategic, research-planning, gap, or session-orientation questions.
+* Read `wiki/index.md` when broad content orientation helps.
+* Do not force purpose/overview/index reading for every narrow lookup.
 
 ### Retrieval Strategy
 
@@ -40,7 +41,7 @@ When answering question:
 1. Use `wiki/index.md` for orientation when helpful, not by reflex.
 2. Use QMD to find relevant pages across `wiki/`, `outputs/`, optionally `raw/`.
 3. Run both exact-term and concept-level retrieval when first search may miss synonyms or adjacent phrasing.
-4. Expand from first results using entities, metadata, typed relationships, supersession chains, cited source pages.
+4. Expand from first results using entities, metadata, typed relationships, supersession chains, cited source pages, and markdown-first graph cues.
 5. Read relevant pages before synthesizing.
 6. Answer with citations to pages that informed answer.
 7. Distinguish clearly between supported facts, inference, unresolved uncertainty.
@@ -82,9 +83,11 @@ When answering question:
 
 ### Gaps / Explore / Next Research
 
+* Read `purpose.md` and `wiki/overview.md` unless scope is very narrow.
 * Look for underdeveloped areas, implied but missing concepts, promising adjacent topics.
-* Prioritize by impact on existing knowledge, not novelty alone.
-* Recommend future sources or next questions that would strengthen wiki.
+* Prioritize by impact on existing knowledge and purpose, not novelty alone.
+* Recommend future sources, search topics, and next questions that would strengthen wiki.
+* For manual-first Deep Research, propose editable search queries and ask user to approve URLs/sources before ingest.
 * Save durable artifact only when scan itself will be useful later.
 
 ## Citation and Evidence Rules
