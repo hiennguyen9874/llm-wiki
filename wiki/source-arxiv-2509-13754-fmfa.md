@@ -1,7 +1,7 @@
 ---
 title: Source - arXiv 2509.13754 - FMFA
 created: 2026-04-24
-last_updated: 2026-04-24
+last_updated: 2026-04-25
 source_count: 1
 status: reviewed
 page_type: source
@@ -25,6 +25,7 @@ related_sources:
   - source-arxiv-2407-04287-mars
   - source-arxiv-2507-10195-mra
   - source-arxiv-2509-09118-ga-dms
+  - source-github-yinhao1102-fmfa
 confidence_score: 0.88
 quality_score: 0.84
 evidence_count: 1
@@ -125,7 +126,7 @@ Ablations report that A-SDM improves over SDM and that EFA usually improves the 
 ## Limitations and cautions
 - The source itself states that the fixed sparsity threshold in EFA may discard semantically useful patches.
 - Exact arXiv publication metadata was not verified during this ingest; the raw clip has a placeholder date.
-- The GitHub repository was not ingested here, so implementation and reproducibility claims remain source-reported rather than code-verified.
+- The public GitHub repository has now been ingested separately as [[source-github-yinhao1102-fmfa]], which confirms the core global-inference/A-SDM/EFA implementation story but also introduces an apparent pretraining-path reproduction caveat in the inspected snapshot.
 - Benchmark leadership should be stated as *among compared global matching methods*, not as an overall field-final SOTA claim.
 
 ## Relationships
@@ -146,5 +147,5 @@ Ablations report that A-SDM improves over SDM and that EFA usually improves the 
 
 ## Follow-up
 - Verify the live arXiv metadata/date if the source becomes citation-critical.
-- Ingest the public FMFA repository as a separate code companion if reproduction details matter.
+- Validate whether the apparent `processor/processor.py` pretraining-path hazard in [[source-github-yinhao1102-fmfa]] is snapshot-specific or affects practical reproduction.
 - Compare FMFA against newer in-vault methods under a normalized benchmark taxonomy rather than relying on one paper's category labels.

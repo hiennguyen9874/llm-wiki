@@ -1,7 +1,7 @@
 ---
 title: Log
 created: 2026-04-14
-last_updated: 2026-04-24
+last_updated: 2026-04-25
 source_count: 0
 status: draft
 page_type: log
@@ -62,3 +62,4 @@ Append-only operational record of the second brain.
 ## [2026-04-24] update | Adopted selected LLM-Wiki-v4 manual workflow improvements: added `/compile` prompt, clarified compile as manual promotion/synthesis pass, strengthened `related_sources` traceability, index-as-rebuildable-catalog stance, conservative lint-as-migration, librarian-style freshness/quality review, and no-fake-automation guardrails across AGENTS.md and llm-wiki skills.
 ## [2026-04-24] ingest | Ingested the arXiv 2509.13754v2 HTML paper from `raw/web-clips/cross-modal-full-mode-fine-grained-alignment-text-to-image-person-retrieval.md`, saved the Stage-1 plan to `outputs/ingest-plans/ingest-plan-2026-04-24-fmfa.md`, created [[source-arxiv-2509-13754-fmfa]] and [[fmfa]], updated [[text-to-image-person-retrieval]], [[irra]], [[text-to-image-person-retrieval-research-agenda]], and [[synthesis-tbps-hybrid-design-space]] to integrate A-SDM/EFA as an IRRA-family global-matching refinement, refreshed [[index]] and [[overview]], screened the source for sensitive material (no actionable issues; downstream notes omitted public author emails), and deferred FMFA GitHub-code claims until a separate code ingest.
 ## [2026-04-24] update | Refreshed `outputs/answers/tbps-method-synthesis-and-hybrid-recommendation.md` after the FMFA ingest, adding [[fmfa]]/[[source-arxiv-2509-13754-fmfa]] to the hybrid recommendation as a training-time explicit token-patch grounding route while preserving the caveat that FMFA implementation details remain paper-only until a separate code ingest.
+## [2026-04-25] ingest | Ingested the public `raw/codes/FMFA/` repository as a companion source to [[source-arxiv-2509-13754-fmfa]], saved `outputs/ingest-plans/ingest-plan-2026-04-25-fmfa-code.md`, created [[source-github-yinhao1102-fmfa]], screened the codebase for sensitive material before promotion (no actionable secrets; downstream notes omitted local/default paths, placeholders, and public contact metadata), extracted implementation-level claims around direct global-similarity evaluation, A-SDM weighting, fixed-threshold EFA sparsification, and the split between no-pretraining and NAM/HAM-finetuning scripts, updated [[fmfa]], [[source-arxiv-2509-13754-fmfa]], [[irra]], [[text-to-image-person-retrieval]], [[index]], [[overview]], and the FMFA review item, recorded an apparent pretraining-path reproduction caveat from the inspected snapshot, and deferred Base/Canvas changes because the TBPS method graph remains navigable through linked markdown pages.

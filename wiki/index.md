@@ -1,8 +1,8 @@
 ---
 title: Index
 created: 2026-04-14
-last_updated: 2026-04-24
-source_count: 18
+last_updated: 2026-04-25
+source_count: 19
 status: draft
 page_type: index
 aliases: [Catalog]
@@ -42,7 +42,8 @@ Master catalog of the second brain. Use this file for human orientation and brow
 - `outputs/answers/` — durable saved answers worth promoting when they become recurring knowledge.
 - `outputs/analyses/text-to-image-person-retrieval-unexplored-connections.md` — cross-topic gap scan on the TBPS lever families and likely follow-up comparisons.
 - `outputs/ingest-plans/ingest-plan-2026-04-24-fmfa.md` — saved Stage-1 ingest plan for the FMFA paper.
-- `outputs/review-queue/fmfa-metadata-code-benchmark-followups.md` — open FMFA follow-up for metadata verification, possible code companion ingest, and normalized benchmark comparison.
+- `outputs/ingest-plans/ingest-plan-2026-04-25-fmfa-code.md` — saved Stage-1 ingest plan for the FMFA code companion, including implementation-level caveats.
+- `outputs/review-queue/fmfa-metadata-code-benchmark-followups.md` — open FMFA follow-up now narrowed to metadata verification, code-path validation, and normalized benchmark comparison.
 
 ## Sources
 - [[source-arxiv-2303-12501-irra]] — arXiv source page for the IRRA paper, preserved from LaTeX source rather than PDF.
@@ -63,6 +64,7 @@ Master catalog of the second brain. Use this file for human orientation and brow
 - [[source-github-flame-chasers-bi-irra]] — GitHub source page for the public Bi-IRRA implementation, including aligned multilingual annotation loading, X2-VLM/CCLM-derived training, D-MIM/MLM/ITC/ITM losses, and top-k ITM reranking.
 - [[source-arxiv-2604-18376-mvr]] — arXiv source page for the MVR paper on training-free multi-view semantic compensation for robust text-to-image person retrieval.
 - [[source-arxiv-2509-13754-fmfa]] — arXiv source page for the FMFA paper on adaptive positive-pair weighting plus explicit sparse token-patch alignment for text-to-image person retrieval.
+- [[source-github-yinhao1102-fmfa]] — GitHub source page for the public FMFA implementation, including direct global-similarity evaluation, concrete A-SDM weighting, fixed-threshold EFA sparsification, and a reproduction caveat in the inspected pretraining path.
 
 ## Topics and Concepts
 - [[text-to-image-person-retrieval]] — task-level topic page linking CLIP-based retrieval methods, robustness concerns, recipe tuning, and data-centric pretraining strategies.
@@ -75,7 +77,7 @@ Master catalog of the second brain. Use this file for human orientation and brow
 - [[conquer]] — method page for the two-stage CARE + IQE framework that refines both embeddings and user queries, now linked to its public code companion.
 - [[bi-irra]] — method page for the multilingual IRRA extension with bidirectional multilingual relation reasoning, LDAT-backed benchmark construction, and its public code companion.
 - [[mvr]] — method page for training-free LLM-assisted multi-view reformulation and semantic compensation.
-- [[fmfa]] — method page for Full-Mode Fine-grained Alignment with A-SDM and EFA in an IRRA-family global retrieval framework.
+- [[fmfa]] — method page for Full-Mode Fine-grained Alignment with A-SDM and EFA in an IRRA-family global retrieval framework, now linked to its public code companion.
 - [[webperson]] — dataset page for the 5M-scale curated web person image-text corpus.
 - [[domain-aware-diffusion]] — concept page for synthetic-to-real image-level domain adaptation in the MRA pipeline.
 - [[synthetic-domain-aligned-dataset]] — concept page for the SDA synthetic pretraining corpus.

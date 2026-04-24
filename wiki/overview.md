@@ -1,8 +1,8 @@
 ---
 title: Overview
 created: 2026-04-24
-last_updated: 2026-04-24
-source_count: 1
+last_updated: 2026-04-25
+source_count: 2
 status: draft
 page_type: overview
 aliases: [Current Overview, Wiki Overview]
@@ -12,6 +12,7 @@ importance: high
 review_status: active
 related_sources:
   - source-arxiv-2509-13754-fmfa
+  - source-github-yinhao1102-fmfa
 confidence_score: 0.60
 quality_score: 0.70
 evidence_count: 0
@@ -53,8 +54,8 @@ The wiki is in an early structural phase. Core navigation, logging, lifecycle ru
 
 - Purpose needs explicit human refinement beyond broad priorities.
 - Source pages and canonical topic/entity pages are still sparse outside the active TBPS research cluster.
-- The TBPS cluster now includes FMFA as evidence for training-time explicit token-patch alignment with efficient global inference.
-- Review queue now has an open FMFA follow-up for metadata verification, possible code companion ingest, and later benchmark-taxonomy normalization.
+- The TBPS cluster now includes both the FMFA paper and its code companion as evidence for training-time explicit token-patch alignment with efficient global inference.
+- Review queue now has a narrowed FMFA follow-up for metadata verification, benchmark-taxonomy normalization, and optional validation of an apparent pretraining-path code hazard.
 - Graph-insights-lite has not yet been run on a populated wiki.
 
 ## Recent structural changes
@@ -67,5 +68,5 @@ The wiki is in an early structural phase. Core navigation, logging, lifecycle ru
 ## Next actions
 
 - Refine `purpose.md` with current top goals and questions.
-- Ingest first high-value sources using the two-stage workflow.
+- Continue high-value source and code-companion ingests in the active TBPS cluster.
 - Run review/lint once enough pages exist to surface real gaps and connections.

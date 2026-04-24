@@ -1,8 +1,8 @@
 ---
 title: IRRA
 created: 2026-04-23
-last_updated: 2026-04-24
-source_count: 9
+last_updated: 2026-04-25
+source_count: 10
 status: draft
 page_type: concept
 aliases:
@@ -26,9 +26,10 @@ related_sources:
   - source-arxiv-2510-17685-bi-irra
   - source-arxiv-2604-18376-mvr
   - source-arxiv-2509-13754-fmfa
-confidence_score: 0.83
-quality_score: 0.86
-evidence_count: 9
+  - source-github-yinhao1102-fmfa
+confidence_score: 0.85
+quality_score: 0.87
+evidence_count: 10
 first_seen: 2026-04-23
 last_confirmed: 2026-04-24
 claim_status: active
@@ -69,7 +70,7 @@ The method starts from the full CLIP image and text encoders rather than separat
 - a **Similarity Distribution Matching (SDM)** loss for image-text alignment,
 - and an **identity classification loss** to tighten intra-identity grouping.
 
-The later companion repository [[source-github-qinyang79-rde]] also matters here because it explicitly acknowledges that the public RDE implementation is based on IRRA's codebase, reinforcing IRRA's role not just as a benchmark baseline but as an implementation scaffold for later robustness work. A later source, [[source-arxiv-2308-10045-tbps-clip]], shows that a much simpler CLIP recipe can get close to or slightly exceed IRRA on some benchmarks while training far faster, so IRRA is best read as an early strong CLIP-based architecture rather than the only route to strong performance. Another later source, [[source-arxiv-2510-17685-bi-irra]], explicitly extends IRRA into a multilingual setting by replacing SDM with a stronger multilingual global-alignment stack and adding bidirectional multilingual masked-text / masked-image reasoning. A further source, [[source-arxiv-2604-18376-mvr]], shows IRRA can also be strengthened post hoc through training-free semantic compensation without retraining the backbone. [[source-arxiv-2509-13754-fmfa]] shows another IRRA-family path: keep IRR and ID loss, adapt SDM into A-SDM to emphasize unmatched positives, and add EFA for explicit sparse token-patch alignment during training. In the current vault, IRRA remains an important architectural reference point, but its historical best-results claim is now superseded by later sources including [[source-arxiv-2308-09911-rde]], [[source-arxiv-2507-10195-mra]], and the multilingual descendant [[source-arxiv-2510-17685-bi-irra]].
+The later companion repository [[source-github-qinyang79-rde]] also matters here because it explicitly acknowledges that the public RDE implementation is based on IRRA's codebase, reinforcing IRRA's role not just as a benchmark baseline but as an implementation scaffold for later robustness work. A later source, [[source-arxiv-2308-10045-tbps-clip]], shows that a much simpler CLIP recipe can get close to or slightly exceed IRRA on some benchmarks while training far faster, so IRRA is best read as an early strong CLIP-based architecture rather than the only route to strong performance. Another later source, [[source-arxiv-2510-17685-bi-irra]], explicitly extends IRRA into a multilingual setting by replacing SDM with a stronger multilingual global-alignment stack and adding bidirectional multilingual masked-text / masked-image reasoning. A further source, [[source-arxiv-2604-18376-mvr]], shows IRRA can also be strengthened post hoc through training-free semantic compensation without retraining the backbone. [[source-arxiv-2509-13754-fmfa]] shows another IRRA-family path: keep IRR and ID loss, adapt SDM into A-SDM to emphasize unmatched positives, and add EFA for explicit sparse token-patch alignment during training. The new code companion [[source-github-yinhao1102-fmfa]] strengthens that lineage claim at implementation level: FMFA keeps IRRA-like CLIP geometry, MLM/ID structure, and direct global-similarity evaluation while adding A-SDM and EFA in the loss path. In the current vault, IRRA remains an important architectural reference point, but its historical best-results claim is now superseded by later sources including [[source-arxiv-2308-09911-rde]], [[source-arxiv-2507-10195-mra]], and the multilingual descendant [[source-arxiv-2510-17685-bi-irra]].
 
 ## Relationships
 - `uses` CLIP full-model initialization
@@ -84,6 +85,7 @@ The later companion repository [[source-github-qinyang79-rde]] also matters here
 - `related_to` [[bi-irra]] as a multilingual extension of the core idea
 - `related_to` [[mvr]] as a training-free inference-time enhancement layer tested on IRRA-family baselines
 - `is_extended_by` [[fmfa]] as an IRRA-family global matching method with A-SDM and EFA
+- `is_implemented_by` [[source-github-yinhao1102-fmfa]] through a closely related CLIP/MLM/ID scaffold
 - `is_superseded_by` [[source-arxiv-2308-09911-rde]] and [[source-arxiv-2507-10195-mra]] on publication-time benchmark leadership
 - `is_extended_by` [[source-arxiv-2510-17685-bi-irra]] on multilingual bidirectional relation learning
 
@@ -107,10 +109,10 @@ The later companion repository [[source-github-qinyang79-rde]] also matters here
 #### Claim
 - Statement: IRRA remains a strong CLIP-based TIReID baseline and a reference point for later methods such as RDE, TBPS-CLIP, Bi-IRRA, FMFA, and MVR-style post-hoc enhancement.
 - Status: active
-- Confidence: 0.85
-- Evidence: [[source-arxiv-2303-12501-irra]], [[source-github-anosorae-irra]], [[source-arxiv-2308-09911-rde]], [[source-github-qinyang79-rde]], [[source-arxiv-2308-10045-tbps-clip]], [[source-arxiv-2510-17685-bi-irra]], [[source-arxiv-2604-18376-mvr]], [[source-arxiv-2509-13754-fmfa]]
-- Last confirmed: 2026-04-24
-- Notes: Reinforced because later sources compare directly against IRRA, extend it, reuse its code scaffold, or show competitive simpler baselines.
+- Confidence: 0.87
+- Evidence: [[source-arxiv-2303-12501-irra]], [[source-github-anosorae-irra]], [[source-arxiv-2308-09911-rde]], [[source-github-qinyang79-rde]], [[source-arxiv-2308-10045-tbps-clip]], [[source-arxiv-2510-17685-bi-irra]], [[source-arxiv-2604-18376-mvr]], [[source-arxiv-2509-13754-fmfa]], [[source-github-yinhao1102-fmfa]]
+- Last confirmed: 2026-04-25
+- Notes: Reinforced because later sources compare directly against IRRA, extend it, reuse its code scaffold, or show competitive simpler baselines; the FMFA code companion now confirms that one later branch remains implementation-close to IRRA rather than paper-only conceptually.
 
 #### Claim
 - Statement: IRRA reported publication-time SOTA on three person-retrieval benchmarks in early 2023.
@@ -136,3 +138,4 @@ The later companion repository [[source-github-qinyang79-rde]] also matters here
 - [[source-arxiv-2510-17685-bi-irra]]
 - [[source-arxiv-2604-18376-mvr]]
 - [[source-arxiv-2509-13754-fmfa]]
+- [[source-github-yinhao1102-fmfa]]

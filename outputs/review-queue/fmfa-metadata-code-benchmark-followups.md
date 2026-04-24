@@ -1,7 +1,7 @@
 ---
 title: FMFA Metadata, Code, and Benchmark Follow-ups
 created: 2026-04-24
-last_updated: 2026-04-24
+last_updated: 2026-04-25
 status: open
 page_type: review_item
 action_type: deep_research
@@ -14,6 +14,7 @@ tags:
 visibility: private
 related_sources:
   - source-arxiv-2509-13754-fmfa
+  - source-github-yinhao1102-fmfa
 related_entities:
   - FMFA
   - text-to-image person retrieval
@@ -26,8 +27,8 @@ The FMFA ingest plan and reviewer flagged non-blocking follow-ups after ingestin
 
 ## Review questions
 - Verify the live arXiv metadata for arXiv `2509.13754v2`, especially exact publication date/version and formal title formatting.
-- Decide whether to ingest the public code repository at [https://github.com/yinhao1102/FMFA](https://github.com/yinhao1102/FMFA) as a companion source.
+- Validate whether the apparent `processor/processor.py` pretraining-path hazard noted in [[source-github-yinhao1102-fmfa]] is a snapshot-specific bug, a known issue, or a real reproduction blocker.
 - Later compare [[fmfa]] against [[mra]], [[ga-dms]], [[conquer]], [[bi-irra]], and [[mvr]] under a normalized benchmark taxonomy so “best global matching method” does not get confused with overall practical leadership.
 
 ## Recommended action
-Run a small metadata/code-source follow-up first. Defer the broader benchmark taxonomy comparison until enough new method/source pages justify a compile pass.
+The code companion ingest is complete. Run a small metadata-and-reproduction-caveat follow-up first, then defer the broader benchmark taxonomy comparison until enough new method/source pages justify a compile pass.
