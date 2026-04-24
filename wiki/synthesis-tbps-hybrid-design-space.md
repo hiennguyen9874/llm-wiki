@@ -2,7 +2,7 @@
 title: TBPS Hybrid Design Space
 created: 2026-04-24
 last_updated: 2026-04-24
-source_count: 9
+source_count: 17
 status: reviewed
 page_type: synthesis
 aliases:
@@ -20,17 +20,25 @@ importance: high
 review_status: active
 related_sources:
   - source-arxiv-2303-12501-irra
+  - source-github-anosorae-irra
   - source-arxiv-2308-09911-rde
+  - source-github-qinyang79-rde
   - source-arxiv-2308-10045-tbps-clip
+  - source-github-flame-chasers-tbps-clip
   - source-arxiv-2407-04287-mars
+  - source-github-ergastialex-mars
   - source-arxiv-2507-10195-mra
+  - source-github-shuyu-xjtu-mra
   - source-arxiv-2509-09118-ga-dms
+  - source-github-multimodal-representation-learning-mrl-ga-dms
   - source-arxiv-2601-18625-conquer
+  - source-github-zqxie77-conquer
   - source-arxiv-2510-17685-bi-irra
+  - source-github-flame-chasers-bi-irra
   - source-arxiv-2604-18376-mvr
 confidence_score: 0.82
 quality_score: 0.86
-evidence_count: 9
+evidence_count: 17
 first_seen: 2026-04-23
 last_confirmed: 2026-04-24
 claim_status: active
@@ -56,7 +64,7 @@ related_entities:
 # TBPS Hybrid Design Space
 
 ## Summary
-The strongest durable synthesis from the recent [[text-to-image-person-retrieval]] work is that no single in-vault method should be treated as a universal winner. The better canonical design view is a **modular hybrid stack**: keep an efficient CLIP/IRRA-style retrieval backbone, add training-time robustness and fine-grained grounding, then apply inference-time query compensation only when the query or ranking looks uncertain.
+The strongest durable synthesis from the recent [[text-to-image-person-retrieval]] work is that no single in-vault method should be treated as a universal winner. The better canonical design view is a **modular hybrid stack**: keep an efficient CLIP/IRRA-style retrieval backbone, add training-time robustness and fine-grained grounding, then apply inference-time query compensation only when the query or ranking looks uncertain. The ingested `raw/codes/` repositories strengthen the architecture-shape recommendation because they show the implementation pattern directly: many methods keep a CLIP/IRRA-style or adjacent retrieval scaffold and add specialized modules for noise, grounding, reranking, multilinguality, or query adaptation.
 
 This page promotes the reusable parts of `outputs/answers/tbps-method-synthesis-and-hybrid-recommendation.md`, `outputs/answers/tbps-hybrid-architecture-spec.md`, and `outputs/analyses/text-to-image-person-retrieval-unexplored-connections.md` into the wiki. It remains a synthesis/hypothesis page, not a claim that the full combined architecture has been experimentally validated.
 
@@ -73,12 +81,12 @@ Use this stack as the current in-vault reference design:
 8. **Multilingual branch:** use Bi-IRRA-style multilingual objectives and benchmarks when non-English retrieval matters.
 
 ## Supported facts
-- A tuned CLIP recipe can be a strong TBPS baseline without bespoke interaction modules: [[tbps-clip]], [[source-arxiv-2308-10045-tbps-clip]].
-- Pair-level noisy correspondence is a durable failure mode: [[rde]], [[noisy-correspondence]], [[source-arxiv-2308-09911-rde]], [[source-github-qinyang79-rde]].
-- Token-level caption noise and large-scale curated web pretraining are a separate robustness/data route: [[ga-dms]], [[webperson]], [[source-arxiv-2509-09118-ga-dms]], [[source-github-multimodal-representation-learning-mrl-ga-dms]].
-- Attribute, phrase, and region grounding are recurring fine-grained alignment levers: [[mars]], [[mra]], [[source-arxiv-2407-04287-mars]], [[source-arxiv-2507-10195-mra]].
-- Inference-time query adaptation is a distinct lever rather than only a training-objective change: [[conquer]], [[mvr]], [[source-arxiv-2601-18625-conquer]], [[source-arxiv-2604-18376-mvr]].
-- Multilingual person retrieval is an emerging task-shaping extension: [[bi-irra]], [[source-arxiv-2510-17685-bi-irra]].
+- A tuned CLIP recipe can be a strong TBPS baseline without bespoke interaction modules, and the public code exposes that recipe as modular losses/augmentations around CLIP: [[tbps-clip]], [[source-arxiv-2308-10045-tbps-clip]], [[source-github-flame-chasers-tbps-clip]].
+- Pair-level noisy correspondence is a durable failure mode, and the RDE code implements it through BGE/TSE branches, Gaussian-mixture clean/noisy splitting, consensus filtering, and BGE+TSE fusion: [[rde]], [[noisy-correspondence]], [[source-arxiv-2308-09911-rde]], [[source-github-qinyang79-rde]].
+- Token-level caption noise and large-scale curated web pretraining are a separate robustness/data route, implemented in GA-DMS as staged gradient-attention token-map generation plus filtered masking in a CLIP/IRRA-style scaffold: [[ga-dms]], [[webperson]], [[source-arxiv-2509-09118-ga-dms]], [[source-github-multimodal-representation-learning-mrl-ga-dms]].
+- Attribute, phrase, and region grounding are recurring fine-grained alignment levers; code evidence distinguishes MARS's heavier ALBEF-style seven-loss/top-k-reranking path from MRA's Swin+BERT/SDA region-supervision path: [[mars]], [[mra]], [[source-arxiv-2407-04287-mars]], [[source-github-ergastialex-mars]], [[source-arxiv-2507-10195-mra]], [[source-github-shuyu-xjtu-mra]].
+- Inference-time query adaptation is a distinct lever rather than only a training-objective change; CONQUER's code makes IQE a separate MLLM-assisted reranking script: [[conquer]], [[mvr]], [[source-arxiv-2601-18625-conquer]], [[source-github-zqxie77-conquer]], [[source-arxiv-2604-18376-mvr]].
+- Multilingual person retrieval is an emerging task-shaping extension; Bi-IRRA's code confirms aligned source/target caption loading, multilingual objectives, and top-k cross-encoder reranking: [[bi-irra]], [[source-arxiv-2510-17685-bi-irra]], [[source-github-flame-chasers-bi-irra]].
 
 ## Inference and uncertainty
 > [!warning] Synthesis, not validated architecture
@@ -95,9 +103,9 @@ Current unresolved points:
 - Statement: A practical TBPS hybrid should combine CLIP/IRRA-style retrieval with TBPS-CLIP recipe tuning, RDE/GA-DMS robustness, MARS/MRA grounding, CONQUER/MVR inference-time adaptation, and Bi-IRRA only where multilingual support matters.
 - Status: active
 - Confidence: 0.82
-- Evidence: [[source-arxiv-2303-12501-irra]], [[source-arxiv-2308-09911-rde]], [[source-arxiv-2308-10045-tbps-clip]], [[source-arxiv-2407-04287-mars]], [[source-arxiv-2507-10195-mra]], [[source-arxiv-2509-09118-ga-dms]], [[source-arxiv-2601-18625-conquer]], [[source-arxiv-2510-17685-bi-irra]], [[source-arxiv-2604-18376-mvr]]
+- Evidence: [[source-arxiv-2303-12501-irra]], [[source-github-anosorae-irra]], [[source-arxiv-2308-09911-rde]], [[source-github-qinyang79-rde]], [[source-arxiv-2308-10045-tbps-clip]], [[source-github-flame-chasers-tbps-clip]], [[source-arxiv-2407-04287-mars]], [[source-github-ergastialex-mars]], [[source-arxiv-2507-10195-mra]], [[source-github-shuyu-xjtu-mra]], [[source-arxiv-2509-09118-ga-dms]], [[source-github-multimodal-representation-learning-mrl-ga-dms]], [[source-arxiv-2601-18625-conquer]], [[source-github-zqxie77-conquer]], [[source-arxiv-2510-17685-bi-irra]], [[source-github-flame-chasers-bi-irra]], [[source-arxiv-2604-18376-mvr]]
 - Last confirmed: 2026-04-24
-- Notes: Promoted from recent durable outputs because it is likely to be reused. Treat as a design recommendation and research hypothesis, not a tested SOTA claim.
+- Notes: Promoted from recent durable outputs because it is likely to be reused. Refreshed after code-source ingestion; treat as a design recommendation and research hypothesis, not as a tested SOTA claim.
 
 ## Related pages and outputs
 - [[text-to-image-person-retrieval]]
