@@ -2,6 +2,8 @@
 description: Ingest a new document
 ---
 
-"Read AGENTS.md. Then activate `llm-wiki-core`, `llm-wiki-ingest`, `qmd`, and `obsidian-markdown` before acting. Process user request from raw/. Follow the ingest skill exactly: read the source fully, run a privacy/sensitivity screen before promoting anything into `wiki/` or `outputs/`, read `purpose.md`, `wiki/overview.md`, and `wiki/index.md` when broad orientation is needed, use QMD to find related pages, produce a stage-1 ingest plan for substantial sources, save it selectively in `outputs/ingest-plans/` when audit-worthy, create review items in `outputs/review-queue/` for non-blocking human judgments, extract entities, typed relationships, and candidate claims, assess reinforcement/change/supersession, resolve contradictions using recency, authority/directness, support count, and specificity, create or update the source page and all affected canonical/overview pages, use lightweight `Evidence / claims` blocks for important or disputed facts, add backlinks, refresh lifecycle metadata and visibility when justified, run a quick quality self-check, consider whether a Base or Canvas should also be updated, update `wiki/index.md`, and append the ingest to `wiki/log.md` with what changed and why."
+Read `AGENTS.md`. Activate `llm-wiki-core`, `llm-wiki-ingest`, `qmd`, and `obsidian-markdown` before acting.
+
+Process the requested source from `raw/` using the Ingest Workflow in `llm-wiki-ingest`.
 
 User Request: $ARGUMENTS

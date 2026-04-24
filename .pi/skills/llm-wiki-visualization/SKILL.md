@@ -15,10 +15,7 @@ Always activate `llm-wiki-core` first.
 - `obsidian-markdown` when embedding or linking visual artifacts from notes
 
 ## Manual Graph-Insights Stance
-Use Canvases and Bases as Obsidian-first overlays. They may represent graph insights, sparse clusters, bridge pages, and review queues, but they are not a separate graph engine. Do not claim Louvain/community detection or 4-signal relevance unless implemented by actual tooling.
-
-## Graph-Insights-Lite Visualization
-When maintenance/query finds isolated pages, sparse clusters, bridge pages, or surprising connections, consider a Canvas or Base to make the pattern reviewable. Keep this markdown/Obsidian-first; do not claim a separate graph engine exists.
+Use Canvases and Bases as Obsidian-first overlays. They may represent isolated pages, sparse clusters, bridge pages, surprising connections, and review queues, but they are not a separate graph engine. Do not claim Louvain/community detection, 4-signal relevance, or other graph algorithms unless implemented by actual tooling. When maintenance/query finds graph-insights-lite patterns, consider a Canvas or Base to make them reviewable.
 
 ## Visual Synthesis Workflow
 Use JSON Canvas when a topic is relational, ambiguous, or benefits from spatial organization.

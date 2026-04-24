@@ -87,19 +87,9 @@ Do not auto-fix decisions requiring judgment: taxonomy changes, bulk renames/mov
 
 ## Retention Workflow
 
-Use retention class plus `last_confirmed` to decide decay review.
+Use the retention classes and cadence defined in `llm-wiki-core` plus `last_confirmed` to decide decay review.
 
-### Suggested cadence
-
-* `transient` → check quickly; stale within days or weeks
-* `working` → check within weeks
-* `episodic` → revisit during crystallization or monthly review
-* `durable` → revisit during broader maintenance or when contradicted
-* `foundational` → revisit slowly but keep well sourced
-
-### Retention actions
-
-When evidence gone cold:
+When evidence has gone cold:
 
 * lower `confidence_score` modestly when justified
 * mark `claim_status` or page status as `stale` / `needs_update` when warranted
@@ -109,16 +99,13 @@ When evidence gone cold:
 
 ## Contradiction Resolution Workflow
 
-When resolving conflicting claims:
+When resolving conflicting claims, use the core supersession/contradiction factors: recency, authority/directness, supporting-source count, and specificity.
 
+Workflow:
 1. Identify competing claims and cite relevant pages.
-2. Compare recency.
-3. Compare authority/directness of evidence.
-4. Compare supporting-source count.
-5. Compare specificity.
-6. If one side clearly stronger, mark weaker claim/page as `superseded` or `stale`.
-7. If evidence remains mixed, keep both visible and mark issue `disputed`.
-8. Briefly record reasoning in updated page or report.
+2. Decide whether one side is clearly stronger or evidence remains mixed.
+3. Mark weaker claims/pages as `superseded` or `stale`, or keep mixed evidence visible as `disputed`.
+4. Briefly record reasoning in the updated page or report.
 
 ## Quality Review Rules
 
@@ -193,7 +180,7 @@ Actions:
 * save durable gap/connection findings to `outputs/reports/` or `outputs/analyses/` when useful
 
 ## Compile / Promotion Maintenance
-When several raw sources, saved answers, analyses, or crystallizations should become canonical wiki knowledge, run the `/compile` prompt or follow the compile workflow from `llm-wiki-core`. Prefer incremental compile unless the user asks for a full rewrite.
+When several raw sources, saved answers, analyses, or crystallizations should become canonical wiki knowledge, run the `/compile` prompt or use the ingest workflow for source-backed integration. Prefer incremental compile unless the user asks for a full rewrite.
 
 ## Update Workflow
 
@@ -206,12 +193,3 @@ When asked to improve wiki without new source:
 5. Update Bases/Canvases when out of sync with markdown layer.
 6. Record meaningful changes in `wiki/log.md` as `update`, including what changed and why.
 
-## Automation Direction
-
-Keep maintenance manual-first for now, but shape workflows so later support:
-
-* scheduled lint/review passes
-* stale-knowledge scans
-* contradiction/supersession checks on wiki writes
-* promotion of durable outputs into canonical pages
-* periodic privacy and retention passes

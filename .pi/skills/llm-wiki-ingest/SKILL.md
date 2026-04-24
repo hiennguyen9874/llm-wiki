@@ -13,22 +13,20 @@ Always activate `llm-wiki-core` first. Core owns shared rules for privacy, metad
 - `obsidian-markdown` → wiki/output markdown edits
 - `defuddle` → standard web URLs
 - `llm-wiki-visualization` → add/update Base or Canvas when structure gets complex
-- `ask-user` or review queue → handle human judgment from stage-1 ingest plans
-- `ask-user` → high-level taxonomy or irreversible structural changes
+- `ask-user` or review queue → handle human judgment, especially high-stakes taxonomy or irreversible structural decisions
 
 ## Ingest-Specific Principles
+Core owns shared privacy, metadata, citation, naming, lifecycle, index/log, and governance rules. Ingest adds these workflow-specific rules:
 - Use a two-stage ingest for substantial sources: first an explicit ingest plan, then page generation/integration.
 - The stage-1 plan is not hidden chain-of-thought; it is a concise, auditable artifact with entities, claims, affected pages, contradictions, review items, and proposed edits.
 - Save stage-1 plans selectively in `outputs/ingest-plans/` when they contain non-trivial decisions, contradictions, review items, or broad integration plans.
-- For trivial captures, use a fast path but still screen privacy, search related pages, cite sources, and log changes.
+- For trivial captures, use a fast path but still apply core safety, traceability, retrieval, citation, and logging expectations.
 - Preserve raw source unchanged unless unsafe sensitive material should not remain in repo; if raw file itself is unsafe, stop and ask user.
 - Maintain source traceability with existing `related_sources: []` fields on wiki pages and source metadata on source pages.
 - Read source fully before synthesis.
-- Run privacy/sensitivity screen before promoting content into `wiki/` or `outputs/`.
 - Use QMD to find related pages before creating new ones.
 - Integrate broadly; avoid isolated summary notes.
-- Handle reinforcement, contradiction, uncertainty, supersession explicitly.
-- Use lightweight claim/evidence blocks for high-value, disputed, or easily stale claims.
+- Handle reinforcement, contradiction, uncertainty, and supersession explicitly.
 
 ## Capture and Triage Workflow
 Use when material lands in `raw/inbox/`, `raw/captures/`, or chat.
@@ -94,8 +92,21 @@ When processing one new source:
 18. If topic becomes structurally complex, consider Canvas or Base.
 19. Goal = broad integration across wiki, not isolated summary.
 
-## Compile Handoff
-When a source overlaps many existing sources, or several outputs/sources should become one coherent semantic update, recommend `/compile` instead of creating isolated summaries. For substantial batches, ingest raw material first, then run compile over the affected scope.
+## Compile Workflow
+Use when several raw sources, saved answers, analyses, or crystallizations should become one coherent semantic update instead of isolated summaries.
+
+1. Classify mode as `incremental` unless the user requests `full`.
+   - `incremental`: process new, changed, or explicitly scoped sources/outputs since the last relevant log/review.
+   - `full`: re-read all relevant sources/pages in scope and update broader synthesis.
+2. Read `purpose.md`, `wiki/overview.md`, and `wiki/index.md` when scope is broad or strategic.
+3. Use QMD for exact and conceptual retrieval across `wiki/`, `outputs/`, and relevant `raw/` paths.
+4. Read selected files before synthesis; do not compile from snippets or index summaries alone.
+5. Produce a concise compile plan in chat before editing. Include affected sources/outputs, canonical pages to create/update, traceability updates, contradictions/supersession, overview/index/log updates, and human review items.
+6. Ask before high-stakes taxonomy/schema/bulk move/delete/merge changes. Queue non-blocking judgments in `outputs/review-queue/`.
+7. Update or create canonical wiki pages. Prefer integration into existing pages over isolated summaries.
+8. Refresh traceability, claim/evidence blocks, confidence/quality, retention, visibility, contradictions, and supersession where justified.
+9. Update `wiki/overview.md`, `wiki/index.md`, and `wiki/log.md` when required by core rules.
+10. Save the compile plan under `outputs/analyses/` or `outputs/ingest-plans/` only when it has durable audit value.
 
 ## Batch Ingest Workflow
 When processing multiple unprocessed files:

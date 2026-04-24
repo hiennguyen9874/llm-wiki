@@ -29,22 +29,11 @@ Use hybrid retrieval even if QMD remains primary tool.
 1. Use QMD lexical search for exact names, terms, filenames, aliases.
 2. Use QMD semantic or expanded search when vocabulary uncertain or question conceptual.
 3. Use metadata-aware filtering mentally or via Bases when status, recency, retention class, page type, or visibility matters.
-4. Expand outward from first results using typed relationships, `related_entities`, backlinks, supersession links, cited sources, and `related_sources`.
-5. Treat relationship walk as current markdown-first graph traversal layer.
-6. Read actual files before synthesizing.
-7. Refresh the QMD search index after large updates if search quality becomes stale; do not imply embedding/vector infrastructure beyond available QMD behavior.
-
-
-### Manual Multi-Phase Retrieval Budget
-For broad queries, briefings, compile planning, and strategic gap scans, use a lightweight version of v4 retrieval:
-
-1. Exact/lexical search for names and terms.
-2. Semantic/expanded search when vocabulary is uncertain.
-3. Relationship expansion through wikilinks, backlinks, `related_entities`, `related_sources`, claims, and supersession chains.
-4. Context budgeting: prioritize canonical wiki pages first, then relevant outputs, then raw sources needed to resolve ambiguity.
-5. Read full selected files before answering; do not answer from snippets alone when facts matter.
-
-Do not claim vector DB, graph engine, or automatic reranking unless those tools are actually available in the session.
+4. Expand outward from first results using wikilinks, backlinks, typed relationships, `related_entities`, `related_sources`, claims, supersession links, and cited sources.
+5. Budget context by priority: canonical wiki pages first, then relevant outputs, then raw sources needed to resolve ambiguity.
+6. Read selected files before synthesizing; do not answer from snippets alone when facts matter.
+7. Refresh the QMD search index after large updates if search quality becomes stale.
+8. Do not claim vector DB, graph engine, or automatic reranking unless those tools are actually available in the session.
 
 ## Query Workflow
 
