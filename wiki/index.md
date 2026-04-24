@@ -1,8 +1,8 @@
 ---
 title: Index
 created: 2026-04-14
-last_updated: 2026-04-23
-source_count: 13
+last_updated: 2026-04-24
+source_count: 14
 status: draft
 page_type: index
 aliases: [Catalog]
@@ -37,6 +37,7 @@ Master catalog of the second brain. Use this file for human orientation and brow
 - [[source-github-ergastialex-mars]] — GitHub source page for the public MARS implementation companion, including the seven-loss training stack, full-cross-attention reranking, and spaCy-derived attribute masking.
 - [[source-arxiv-2507-10195-mra]] — arXiv source page for the MRA paper on domain-aligned synthetic pretraining and region-phrase alignment.
 - [[source-arxiv-2509-09118-ga-dms]] — arXiv source page for the GA-DMS paper and its companion WebPerson dataset for robust text-based person retrieval.
+- [[source-github-multimodal-representation-learning-mrl-ga-dms]] — GitHub source page for the public GA-DMS implementation, including gradient-attention token-map generation and staged similarity-guided dual masking.
 - [[source-arxiv-2601-18625-conquer]] — arXiv source page for the CONQUER paper on context-aware alignment plus inference-time query enhancement for text-based person search.
 - [[source-arxiv-2510-17685-bi-irra]] — arXiv source page for the Bi-IRRA paper on multilingual text-to-image person retrieval and multilingual benchmark construction.
 - [[source-arxiv-2604-18376-mvr]] — arXiv source page for the MVR paper on training-free multi-view semantic compensation for robust text-to-image person retrieval.

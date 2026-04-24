@@ -1,8 +1,8 @@
 ---
 title: Source - arXiv 2509.09118 - GA-DMS
 created: 2026-04-23
-last_updated: 2026-04-23
-source_count: 1
+last_updated: 2026-04-24
+source_count: 2
 status: reviewed
 page_type: source
 aliases:
@@ -27,11 +27,12 @@ related_sources:
   - source-arxiv-2407-04287-mars
   - source-arxiv-2507-10195-mra
   - source-arxiv-2510-17685-bi-irra
+  - source-github-multimodal-representation-learning-mrl-ga-dms
 confidence_score: 0.93
 quality_score: 0.89
-evidence_count: 1
+evidence_count: 2
 first_seen: 2026-04-23
-last_confirmed: 2026-04-23
+last_confirmed: 2026-04-24
 claim_status: active
 retention_class: durable
 visibility: private
@@ -75,6 +76,7 @@ published: 2025-09-11
 - Original URL: [https://arxiv.org/html/2509.09118v1](https://arxiv.org/html/2509.09118v1)
 - Cleaned web clip preserved at: `raw/web-clips/arxiv-2509-09118v1-gradient-attention-guided-dual-masking-synergetic-framework-for-robust-text-based-person-retrieval.md`
 - Code URL: [https://github.com/Multimodal-Representation-Learning-MRL/GA-DMS](https://github.com/Multimodal-Representation-Learning-MRL/GA-DMS)
+- Code companion source page: [[source-github-multimodal-representation-learning-mrl-ga-dms]]
 - Data URL: [https://huggingface.co/datasets/Kaichengalex/WebPerson-5M](https://huggingface.co/datasets/Kaichengalex/WebPerson-5M)
 
 ## Why it matters
@@ -115,6 +117,7 @@ Its central claim is that person retrieval improves when the training data becom
 - [[source-arxiv-2509-09118-ga-dms]] `supports` [[ga-dms]].
 - [[source-arxiv-2509-09118-ga-dms]] `supports` [[webperson]].
 - [[source-arxiv-2509-09118-ga-dms]] `supports` [[text-to-image-person-retrieval]].
+- [[source-github-multimodal-representation-learning-mrl-ga-dms]] `supports` this paper's implementation claims.
 - [[source-arxiv-2509-09118-ga-dms]] `related_to` [[rde]].
 - [[source-arxiv-2509-09118-ga-dms]] `related_to` [[mra]].
 - [[source-arxiv-2509-09118-ga-dms]] `supersedes` [[source-arxiv-2507-10195-mra]] on publication-time benchmark leadership claims in this vault.
@@ -174,6 +177,7 @@ Its central claim is that person retrieval improves when the training data becom
 - [[ga-dms]]
 - [[webperson]]
 - [[text-to-image-person-retrieval]]
+- [[source-github-multimodal-representation-learning-mrl-ga-dms]]
 - [[mra]]
 - [[rde]]
 
