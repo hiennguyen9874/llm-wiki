@@ -113,3 +113,6 @@ npm install -g @tobilu/qmd
 
 - [LLM Wiki (Karpathy)](https://gist.github.com/karpathy/442a6bf555914893e9891c11519de94f)
 - [LLM Wiki v2](https://gist.github.com/rohitg00/2067ab416f7bbe447c1977edaaa681e2)
+
+## TODO
+- QMD use more better
