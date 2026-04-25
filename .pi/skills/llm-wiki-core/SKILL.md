@@ -1,6 +1,6 @@
 ---
 name: llm-wiki-core
-description: Shared constitutional rules for this second-brain repo: mission, stance, memory architecture, lifecycle, and non-negotiable global invariants. Use before any meaningful work in raw/, wiki/, or outputs/.
+description: "Shared constitutional rules for this second-brain repo: mission, stance, memory architecture, lifecycle, and non-negotiable global invariants. Use before any meaningful work in raw/, wiki/, or outputs/."
 ---
 
 # LLM Wiki Core
