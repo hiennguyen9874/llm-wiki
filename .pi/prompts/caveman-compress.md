@@ -1,6 +1,13 @@
 ---
-description: Optimize skills file or prompt or agents.md follow caveman style
+description: Compress a memory or instruction file into caveman format to save tokens
 ---
-Activate skills `caveman` and `caveman-compress`, after that, follow instructions in `caveman-compress` to optimize file from user requests.
+
+Activate:
+- `caveman`
+- `caveman-compress`
+
+Follow `caveman-compress` exactly for the requested file.
+Preserve all technical substance, code, URLs, and structure.
+Overwrite the target file and save the human-readable backup as `FILE.original.md`.
 
 User request: $ARGUMENTS

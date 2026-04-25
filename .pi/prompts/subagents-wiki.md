@@ -2,14 +2,20 @@
 description: Explain the current llm-wiki subagent design and usage
 ---
 
-Read `AGENTS.md`. Activate `llm-wiki-core` and `pi-subagents`.
+Activate:
+- `llm-wiki-core`
+- `pi-subagents`
+
+Load companion skills as needed:
+- `llm-wiki-governance` if the user asks to modify subagent architecture or decision boundaries
+- `ask-user` before high-stakes structural changes
 
 Explain the current llm-wiki subagent design:
-- Single-writer parent/orchestrator.
-- Read-only project agents in `.pi/agents/`: `wiki-source-scout`, `wiki-ingest-planner`, `wiki-ingest-reviewer`.
-- Agentic prompts: `/ingest-agentic`, `/ingest-url-agentic`, `/ingest-batch-agentic`, `/compile-agentic`.
-- Handoffs are temporary unless parent selectively persists audit-worthy plans/reports.
-- Existing non-agentic prompts remain unchanged.
+- single-writer parent or orchestrator
+- read-only project agents in `.pi/agents/`: `wiki-source-scout`, `wiki-ingest-planner`, `wiki-ingest-reviewer`
+- agentic prompts: `/ingest-agentic`, `/ingest-url-agentic`, `/ingest-batch-agentic`, `/compile-agentic`
+- handoffs are temporary unless the parent selectively persists audit-worthy plans or reports
+- non-agentic prompts remain available for manual-first work
 
 If the user asks to modify the design, use `ask_user` before structural changes.
 

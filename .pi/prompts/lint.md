@@ -1,7 +1,16 @@
 ---
-description: Run lint/full health check on wiki/
+description: Run a lint and full health check across the wiki
 ---
 
-Read `AGENTS.md`. Activate `llm-wiki-core`, `llm-wiki-maintenance`, `qmd`, and `obsidian-markdown`.
+Activate:
+- `llm-wiki-core`
+- `llm-wiki-maintenance`
+- `llm-wiki-governance`
+- `llm-wiki-ops`
+- `llm-wiki-schema`
+- `qmd`
+- `obsidian-markdown`
 
-Run the Lint Workflow in `llm-wiki-maintenance` on `wiki/` and save the report to `outputs/reports/lint-report-[date].md`.
+Run the **Lint Workflow** in `llm-wiki-maintenance` on `wiki/`.
+Save the report to `outputs/reports/lint-report-[date].md`.
+Use the repo's safe-repair boundary; ask before risky merges, taxonomy changes, or deletions.

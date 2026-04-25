@@ -2,11 +2,11 @@
 name: qmd
 description: Search markdown knowledge bases, notes, and documentation using QMD. Use when users ask to search notes, find documents, or look up information.
 license: MIT
-compatibility: Requires qmd CLI or MCP server. Install via `npm install -g @tobilu/qmd`.
+compatibility: Requires qmd CLI. Install via `npm install -g @tobilu/qmd`.
 metadata:
   author: tobi
   version: "2.0.0"
-allowed-tools: Bash(qmd:*), mcp__qmd__*
+allowed-tools: Bash(qmd:*)
 ---
 
 # QMD - Quick Markdown Search
@@ -16,19 +16,6 @@ Local search engine for markdown content.
 ## Status
 
 !`qmd status 2>/dev/null || echo "Not installed: npm install -g @tobilu/qmd"`
-
-## MCP: `query`
-
-```json
-{
-  "searches": [
-    { "type": "lex", "query": "CAP theorem consistency" },
-    { "type": "vec", "query": "tradeoff between consistency and availability" }
-  ],
-  "collections": ["docs"],
-  "limit": 10
-}
-```
 
 ### Query Types
 
@@ -105,14 +92,6 @@ Note: `-term` only works in lex queries, not vec/hyde.
 ```
 
 Omit to search all collections.
-
-## Other MCP Tools
-
-| Tool | Use |
-|------|-----|
-| `get` | Retrieve doc by path or `#docid` |
-| `multi_get` | Retrieve multiple by glob/list |
-| `status` | Collections and health |
 
 ## CLI
 

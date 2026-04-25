@@ -1,7 +1,17 @@
 ---
-description: Ingest batch of documents
+description: Ingest a batch of documents from raw/ sequentially
 ---
 
-Read `AGENTS.md`. Activate `llm-wiki-core`, `llm-wiki-ingest`, `qmd`, and `obsidian-markdown`.
+Activate:
+- `llm-wiki-core`
+- `llm-wiki-ingest`
+- `llm-wiki-schema`
+- `llm-wiki-governance`
+- `llm-wiki-ops`
+- `qmd`
+- `obsidian-markdown`
 
-Process all unprocessed files from $ARGUMENTS in `raw/` sequentially using the Batch Ingest Workflow in `llm-wiki-ingest`. Use `ask-user` before high-level taxonomy or irreversible structural decisions.
+Process unprocessed files from: $ARGUMENTS
+Use the **Batch Ingest Workflow** in `llm-wiki-ingest`.
+
+Process sequentially unless parallelism is clearly safe and explicitly approved. Ask before high-level taxonomy or irreversible structural decisions.
