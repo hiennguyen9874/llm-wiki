@@ -1,7 +1,17 @@
 ---
-description: Ingest a new document
+description: Ingest a new local or raw source into the wiki
 ---
 
-"Read AGENTS.md. Then activate `llm-wiki-core`, `llm-wiki-ingest`, `qmd`, and `obsidian-markdown` before acting. Process user request from raw/. Follow the ingest skill exactly: read the source fully, run a privacy/sensitivity screen before promoting anything into `wiki/` or `outputs/`, use `wiki/index.md` only when broad orientation is needed, use QMD to find related pages, extract entities, typed relationships, and candidate claims, assess reinforcement/change/supersession, resolve contradictions using recency, authority/directness, support count, and specificity, create or update the source page and all affected canonical pages, use lightweight `Evidence / claims` blocks for important or disputed facts, add backlinks, refresh lifecycle metadata and visibility when justified, run a quick quality self-check, consider whether a Base or Canvas should also be updated, update `wiki/index.md`, and append the ingest to `wiki/log.md` with what changed and why."
+Activate:
+- `llm-wiki-core`
+- `llm-wiki-ingest`
+- `llm-wiki-schema`
+- `llm-wiki-governance`
+- `llm-wiki-ops`
+- `qmd`
+- `obsidian-markdown`
 
-User Request: $ARGUMENTS
+Process the requested source from `raw/` using the **Ingest Workflow** in `llm-wiki-ingest`.
+Use a two-stage ingest for substantial sources: first an explicit ingest plan, then generation and integration.
+
+User request: $ARGUMENTS

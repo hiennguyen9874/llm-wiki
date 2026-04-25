@@ -1,5 +1,17 @@
 ---
-description: Ingest a web URL into the second brain
+description: Capture and ingest a web URL into the second brain
 ---
 
-"Read AGENTS.md. Then activate `llm-wiki-core`, `llm-wiki-ingest`, `defuddle`, `qmd`, and `obsidian-markdown`. Use Defuddle for the provided URL: $ARGUMENTS unless it ends with `.md`. Save the cleaned markdown into `raw/web-clips/` with a stable kebab-case filename, preserve the original URL in source metadata, then run the normal ingest workflow from the ingest skill: screen for sensitive material before promoting anything into `wiki/` or `outputs/`, find related pages, extract entities, typed relationships, and candidate claims, assess reinforcement or supersession, resolve contradictions with the ingest rubric, update the source page and related canonical pages, add lightweight `Evidence / claims` records where useful, refresh lifecycle metadata and visibility, run a quality self-check, consider whether a Base or Canvas should be updated, update `wiki/index.md`, and append to `wiki/log.md` with what changed and why."
+Activate:
+- `llm-wiki-core`
+- `llm-wiki-ingest`
+- `llm-wiki-schema`
+- `llm-wiki-governance`
+- `llm-wiki-ops`
+- `defuddle`
+- `qmd`
+- `obsidian-markdown`
+
+Use the **URL Ingest Workflow** in `llm-wiki-ingest` for: $ARGUMENTS
+
+Use Defuddle unless the URL ends with `.md`, then continue with the normal **Ingest Workflow**. Preserve `canonical_url`, screen for sensitive material, and integrate broadly rather than creating an isolated summary.

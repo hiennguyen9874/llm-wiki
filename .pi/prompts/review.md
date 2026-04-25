@@ -1,5 +1,17 @@
 ---
-description: Run weekly or monthly second-brain review
+description: Run a weekly or monthly second-brain review
 ---
 
-"Read AGENTS.md. Then activate `llm-wiki-core`, `llm-wiki-maintenance`, `qmd`, and `obsidian-markdown`. Use `wiki/index.md` when orientation is helpful. Review `raw/inbox/`, `raw/captures/`, recent crystallizations, stale drafts, pages marked `needs_update`, under-integrated source pages, and durable outputs that should be promoted into the wiki. Use QMD to find weakly connected, stale, disputed, low-quality, or low-confidence areas. Run the maintenance workflow with retention review, contradiction resolution where warranted, and a light privacy scan over recent downstream artifacts. Refresh lifecycle metadata and visibility when justified, mark supersession where supported, crystallize important recent exploratory work, update markdown pages, and if Bases or Canvases need work activate `llm-wiki-visualization` with the relevant visualization skill. Append review/update entries to `wiki/log.md` with what changed and why."
+Activate:
+- `llm-wiki-core`
+- `llm-wiki-maintenance`
+- `llm-wiki-governance`
+- `llm-wiki-ops`
+- `llm-wiki-schema`
+- `qmd`
+- `obsidian-markdown`
+
+Run the **Weekly or Monthly Review Workflow** in `llm-wiki-maintenance` as requested for: $ARGUMENTS
+If the cadence is unclear, ask one focused question.
+
+Include review queue checks, graph-insights-lite where useful, and meaningful `wiki/log.md` updates.

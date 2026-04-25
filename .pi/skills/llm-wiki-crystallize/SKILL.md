@@ -8,10 +8,15 @@ description: Distill research, debugging, and exploration sessions into durable 
 Use this skill when exploration itself has become a source.
 Always activate `llm-wiki-core` first.
 
+This file owns crystallization procedure only.
+- Use `llm-wiki-schema` when writing crystallization artifacts, frontmatter, or wiki updates.
+- Use `llm-wiki-governance` when the session contains sensitive, disputed, stale, or superseding knowledge.
+- Use `llm-wiki-ops` when saved artifacts affect naming, index, log, or discoverability.
+
 ## Companion Skills
 - `qmd` for locating affected pages and related prior work
 - `obsidian-markdown` for crystallization artifacts and wiki updates
-- `llm-wiki-visualization` if a canvas/base would clarify the episode
+- `llm-wiki-visualization` if a Canvas or Base would clarify the episode
 
 ## Crystallization Workflow
 1. Distill the completed session into a structured digest in `outputs/crystallizations/` or `outputs/analyses/`.
@@ -19,17 +24,19 @@ Always activate `llm-wiki-core` first.
    - original question
    - what was investigated
    - key findings
-   - affected files/entities/pages
+   - affected files, entities, and pages
    - unresolved questions
    - reusable lessons
    - confidence or uncertainty where it materially matters
    - appropriate visibility for the artifact
-3. Promote durable lessons into `wiki/` pages or update existing canonical pages.
+3. Promote durable lessons into `wiki/` pages or update existing canonical pages, guided by `purpose.md` when broad direction matters. If several crystallizations/outputs need synthesis, recommend or run `/compile`.
 4. Add links from the crystallization artifact back to the relevant canonical pages.
 5. If the session reinforces or weakens existing knowledge, update confidence, contradiction, or supersession state where justified.
-6. If a repeated process lesson emerged, consider promoting it into procedural memory.
-7. Update `wiki/index.md` if the artifact or promoted pages are important for browsing.
-8. Append `crystallize` or `update` entries to `wiki/log.md`.
+6. If a repeated process lesson emerged, consider promoting it into procedural memory (`AGENTS.md`, skills, or prompts) and log why.
+7. Update `wiki/overview.md` when the session changes current understanding, active themes, gaps, or direction.
+8. Update `wiki/index.md` if the artifact or promoted pages are important for browsing; treat index as rebuildable but update it explicitly.
+9. Create review queue items for non-blocking human judgments that emerged.
+10. Append `crystallize` or `update` entries to `wiki/log.md`.
 
 ## Promotion Rules
 - Promote stable concepts, not transient debugging noise.

@@ -1,5 +1,18 @@
 ---
-description: Distill a completed research/debugging/exploration thread into durable memory
+description: Distill a completed session into durable episodic memory and promote stable lessons
 ---
 
-"Read AGENTS.md. Then activate `llm-wiki-core`, `llm-wiki-crystallize`, `qmd`, and `obsidian-markdown`. Crystallize $ARGUMENTS into a structured digest in `outputs/crystallizations/` or `outputs/analyses/`. Capture the original question, what was investigated, key findings, affected files/entities/pages, unresolved questions, reusable lessons, confidence/uncertainty where it matters, and appropriate visibility for the artifact. Then promote durable lessons into `wiki/` where appropriate, update confidence/contradiction/supersession state when the session materially changes existing knowledge, promote repeated process lessons into procedural memory when justified, update `wiki/index.md` if needed, and append `crystallize` or `update` entries to `wiki/log.md`."
+Activate:
+- `llm-wiki-core`
+- `llm-wiki-crystallize`
+- `llm-wiki-schema`
+- `qmd`
+- `obsidian-markdown`
+
+Load companion skills as needed:
+- `llm-wiki-governance` if the session contains sensitive, disputed, stale, or superseding knowledge
+- `llm-wiki-ops` if saved artifacts affect naming, `wiki/index.md`, `wiki/log.md`, or discoverability
+
+Run the **Crystallization Workflow** in `llm-wiki-crystallize` for: $ARGUMENTS
+
+Promote stable lessons, not transient noise. Preserve provenance back to the session artifact.

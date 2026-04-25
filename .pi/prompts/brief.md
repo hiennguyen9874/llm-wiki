@@ -1,5 +1,18 @@
 ---
-description: Write a short brief on a topic using only the knowledge base
+description: Write a short brief grounded only in the knowledge base
 ---
 
-"Read AGENTS.md. Then activate `llm-wiki-core`, `llm-wiki-query`, `qmd`, and `obsidian-markdown`. Based on everything relevant in the knowledge base, write a short brief on $ARGUMENTS. Keep it compact and decision-oriented: about 150-250 words, with a one-sentence summary, 3-5 key points, and 1-3 open questions or next steps. Cite the supporting pages inline or by section. Use only information already in the knowledge base. Save a durable artifact only if explicitly asked or if the brief has clear reuse value."
+Activate:
+- `llm-wiki-core`
+- `llm-wiki-query`
+- `qmd`
+- `obsidian-markdown`
+
+Load companion skills as needed:
+- `llm-wiki-schema` if you save a reusable brief
+- `llm-wiki-governance` if disputed, stale, superseded, or sensitive material matters
+- `llm-wiki-ops` if saving the result affects naming, `wiki/index.md`, `wiki/log.md`, or discoverability
+
+Use the **Brief** variant in `llm-wiki-query` for: $ARGUMENTS
+
+Keep it short, decision-oriented, and citation-backed. Save only if explicitly requested or clearly reusable.

@@ -1,5 +1,16 @@
 ---
-description: Run lint/full health check on wiki/
+description: Run a lint and full health check across the wiki
 ---
 
-"Read AGENTS.md. Then activate `llm-wiki-core`, `llm-wiki-maintenance`, `qmd`, and `obsidian-markdown`. Run the full lint workflow from the maintenance skill on `wiki/`. Use QMD to find duplicates, orphans, stale pages, weak cross-links, under-integrated source pages, low-confidence knowledge, low-quality pages, unresolved supersession chains, visibility mismatches, and Bases/Canvases that are out of sync with the markdown layer. Include retention checks and flag important pages that need lightweight `Evidence / claims` structure. Auto-fix only safe issues such as obvious broken links, unambiguous backlinks, or clearly stale page markers, and report the rest. Output to `outputs/reports/lint-report-[date].md` with severity levels (🔴 errors, 🟡 warnings, 🔵 info), then suggest 3 important gaps, 3 next sources to ingest, and 3 pages or artifacts needing consolidation."
+Activate:
+- `llm-wiki-core`
+- `llm-wiki-maintenance`
+- `llm-wiki-governance`
+- `llm-wiki-ops`
+- `llm-wiki-schema`
+- `qmd`
+- `obsidian-markdown`
+
+Run the **Lint Workflow** in `llm-wiki-maintenance` on `wiki/`.
+Save the report to `outputs/reports/lint-report-[date].md`.
+Use the repo's safe-repair boundary; ask before risky merges, taxonomy changes, or deletions.

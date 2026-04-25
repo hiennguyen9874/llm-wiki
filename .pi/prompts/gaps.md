@@ -1,5 +1,18 @@
 ---
-description: Find the three biggest gaps in the knowledge base
+description: Find the most important gaps in the knowledge base
 ---
 
-"Read AGENTS.md. Then activate `llm-wiki-core`, `llm-wiki-query`, `qmd`, and `obsidian-markdown`. Identify the three biggest gaps in this knowledge base: topics that are mentioned or implied but lack dedicated pages, areas where coverage is shallow, or important concepts that are missing. For each gap, explain why it matters, which current pages reveal the gap, and what a future page should cover. If surfacing these gaps reveals durable connections worth preserving, create or update a page in `wiki/`, then update the index and log as needed."
+Activate:
+- `llm-wiki-core`
+- `llm-wiki-query`
+- `qmd`
+- `obsidian-markdown`
+
+Load companion skills as needed:
+- `llm-wiki-schema` if saving a reusable gap scan
+- `llm-wiki-governance` if sensitive or disputed material matters
+- `llm-wiki-ops` if saving the result affects naming, index, log, or discoverability
+
+Use the **Gaps / Explore / Next Research** variant in `llm-wiki-query` to find the three biggest gaps for: $ARGUMENTS
+
+Read `purpose.md` and `wiki/overview.md` unless scope is very narrow. Prioritize by impact on purpose and existing knowledge, not novelty alone.
