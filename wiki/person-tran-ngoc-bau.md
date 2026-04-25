@@ -1,8 +1,8 @@
 ---
 title: "Trần Ngọc Báu"
 created: 2026-04-14
-last_updated: 2026-04-14
-source_count: 1
+last_updated: 2026-04-25
+source_count: 2
 status: draft
 page_type: person
 aliases: [Báu, Trần Ngọc Báu]
@@ -10,12 +10,12 @@ tags: [person, analyst, vietnam, finance]
 domain: finance
 importance: medium
 review_status: active
-related_sources: [source-ban-tron-dau-tu-q2-2026]
+related_sources: [source-ban-tron-dau-tu-q2-2026, source-ban-tron-kinh-te-19-4-2026]
 confidence_score: 0.80
 quality_score: 0.70
-evidence_count: 1
+evidence_count: 2
 first_seen: 2026-04-14
-last_confirmed: 2026-04-14
+last_confirmed: 2026-04-25
 claim_status: active
 retention_class: episodic
 visibility: private
@@ -37,6 +37,7 @@ Nhà phân tích kinh tế vĩ mô, khách mời thường xuyên của chương
 - **Phân tích dòng vốn**: Tập trung vào SBN (dòng ngoại hối qua mua dự trữ) hơn FII hay FDI như yếu tố quyết định thanh khoản.
 - **Ưu tiên lãi suất hơn tỷ giá**: Cho phép VND mất giá dần thay vì tăng lãi suất bảo vệ tỷ giá.
 - Lãi suất huy động 6-7%/năm là mức "vừa phải" cho phát triển bền vững; không nên tăng thêm.
+- Sau can thiệp 19/4, interbank và FX tự do hạ nhiệt rõ nhưng ông vẫn xem rủi ro cấu trúc là chưa xử lý xong; không nên kỳ vọng chu kỳ giảm lãi suất sâu nhanh.
 
 ## Xuất hiện
 

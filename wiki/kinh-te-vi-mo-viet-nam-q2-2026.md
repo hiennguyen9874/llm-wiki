@@ -1,8 +1,8 @@
 ---
 title: "Kinh tế vĩ mô Việt Nam Q2/2026"
 created: 2026-04-14
-last_updated: 2026-04-22
-source_count: 9
+last_updated: 2026-04-25
+source_count: 10
 status: reviewed
 page_type: topic
 aliases: [Vietnam macro Q2 2026, Triển vọng vĩ mô Q2/2026]
@@ -10,12 +10,12 @@ tags: [vietnam, macroeconomics, gdp, inflation, interest-rates, exchange-rate, b
 domain: finance
 importance: high
 review_status: active
-related_sources: [source-ban-tron-dau-tu-q2-2026, source-dtdt-10-4-2026, source-dtdt-13-4-2026, source-thai-pham-12-4-2026, source-quang-dung-10-4-2026, source-luong-huynh-9-4-2026, source-quang-dung-8-4-2026, source-luong-huynh-12-4-2026, source-luong-huynh-13-4-2026]
+related_sources: [source-ban-tron-dau-tu-q2-2026, source-dtdt-10-4-2026, source-dtdt-13-4-2026, source-thai-pham-12-4-2026, source-quang-dung-10-4-2026, source-luong-huynh-9-4-2026, source-quang-dung-8-4-2026, source-luong-huynh-12-4-2026, source-luong-huynh-13-4-2026, source-ban-tron-kinh-te-19-4-2026]
 confidence_score: 0.75
 quality_score: 0.80
-evidence_count: 9
+evidence_count: 10
 first_seen: 2026-04-14
-last_confirmed: 2026-04-22
+last_confirmed: 2026-04-25
 claim_status: active
 retention_class: episodic
 visibility: private
@@ -163,6 +163,9 @@ Chiều 9/4, **NHNN họp với 46 ngân hàng thương mại** → các ngân h
 
 - Đây là một trong những động thái đầu tiên của ban điều hành mới (Thống đốc mới, Chính phủ mới)
 
+> [!note] Bổ sung từ [[source-ban-tron-kinh-te-19-4-2026]]
+> Sau loạt can thiệp, lãi suất liên ngân hàng và tỷ giá tự do đã hạ nhiệt rõ, nhưng diễn giả vẫn xem rủi ro cấu trúc là chưa xử lý xong; huy động yếu hơn tín dụng nên chu kỳ giảm lãi suất sâu/nhanh khó hình thành.
+
 **Hai tín hiệu cần theo dõi** (theo Quang Dung):
 
 1. **Lãi suất huy động thực tế có giảm không?**
@@ -182,6 +185,9 @@ Chiều 9/4, **NHNN họp với 46 ngân hàng thương mại** → các ngân h
 - Dự trữ ngoại hối dưới 3 tháng nhập khẩu.
 - Chi phí nhập khẩu xăng dầu: **~$2.4 tỷ/tháng**, thêm **$1.3-1.5 tỷ/tháng** so với bình thường → áp lực ~**$15 tỷ/năm**.
 - Xuất khẩu xăng dầu giảm từ ~$200 triệu xuống ~$60 triệu/tháng (thiếu nguồn cung).
+
+> [!note] Bổ sung từ [[source-ban-tron-kinh-te-19-4-2026]]
+> Tỷ giá tự do đã dịu nhanh hơn dự kiến sau can thiệp, nhưng đây vẫn là hạ nhiệt ngắn hạn; áp lực cán cân thương mại và năng lượng vẫn là biến cần theo dõi trong nửa đầu năm.
 
 ### Cán cân thương mại Q1/2026: Nhập siêu nghiêm trọng
 

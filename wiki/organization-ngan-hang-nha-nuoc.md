@@ -1,8 +1,8 @@
 ---
 title: "Ngân hàng Nhà nước Việt Nam"
 created: 2026-04-14
-last_updated: 2026-04-14
-source_count: 2
+last_updated: 2026-04-25
+source_count: 3
 status: draft
 page_type: entity
 aliases: [NHNN, State Bank of Vietnam, SBV]
@@ -10,12 +10,12 @@ tags: [organization, vietnam, central-bank, monetary-policy]
 domain: finance
 importance: high
 review_status: active
-related_sources: [source-ban-tron-dau-tu-q2-2026, source-dtdt-10-4-2026]
+related_sources: [source-ban-tron-dau-tu-q2-2026, source-dtdt-10-4-2026, source-ban-tron-kinh-te-19-4-2026]
 confidence_score: 0.90
 quality_score: 0.85
-evidence_count: 2
+evidence_count: 3
 first_seen: 2026-04-14
-last_confirmed: 2026-04-14
+last_confirmed: 2026-04-25
 claim_status: active
 retention_class: episodic
 visibility: private
@@ -84,6 +84,9 @@ Chiều 9/4, NHNN tổ chức họp với 46 ngân hàng thương mại về đi
 ### Công cụ ngắn hạn
 - OMO (Repo ngược): Giải quyết thanh khoản bề nổi, chưa xử lý vấn đề cấu trúc
 - Swap ngoại tệ: Tương tự, giải quyết ngắn hạn
+
+> [!note] Bổ sung từ [[source-ban-tron-kinh-te-19-4-2026]]
+> Sau can thiệp, lãi suất liên ngân hàng và tỷ giá tự do hạ nhiệt rõ hơn, nhưng đây là hạ nhiệt ngắn hạn; cấu trúc vốn của hệ thống vẫn chưa được xử lý dứt điểm.
 
 ### Công cụ hành chính
 - Họp và yêu cầu các ngân hàng cam kết đồng thuận giảm lãi suất

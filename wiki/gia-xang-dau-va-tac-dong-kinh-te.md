@@ -1,8 +1,8 @@
 ---
 title: "Giá xăng dầu và tác động kinh tế Việt Nam"
 created: 2026-04-14
-last_updated: 2026-04-14
-source_count: 2
+last_updated: 2026-04-25
+source_count: 3
 status: reviewed
 page_type: concept
 aliases: [Oil price impact on Vietnam, Xăng dầu và kinh tế]
@@ -10,12 +10,12 @@ tags: [vietnam, oil-prices, inflation, macroeconomics, cost-push]
 domain: finance
 importance: high
 review_status: active
-related_sources: [source-ban-tron-dau-tu-q2-2026, source-dtdt-13-4-2026, source-thai-pham-12-4-2026, source-luong-huynh-13-4-2026]
+related_sources: [source-ban-tron-dau-tu-q2-2026, source-dtdt-13-4-2026, source-thai-pham-12-4-2026, source-luong-huynh-13-4-2026, source-ban-tron-kinh-te-19-4-2026]
 confidence_score: 0.80
 quality_score: 0.85
-evidence_count: 2
+evidence_count: 3
 first_seen: 2026-04-14
-last_confirmed: 2026-04-15
+last_confirmed: 2026-04-25
 claim_status: active
 retention_class: working
 visibility: private
@@ -90,6 +90,9 @@ Tác động giá xăng dầu lên kinh tế Việt Nam **không đồng nhất*
 
 > [!warning] Giá dầu đã vượt $100
 > Bước tăng mạnh sau khi đàm phán Mỹ-Iran thất bại và Mỹ tuyên bố phong tỏa eo biển Hormuz. Rủi ro không chỉ ở mức giá mà còn ở **đảm bảo nguồn cung nhập khẩu**.
+
+> [!note] Bổ sung từ [[source-ban-tron-kinh-te-19-4-2026]]
+> Diễn giả cho rằng vùng 90–100 USD/thùng có thể là mức neo trong khoảng 6 tháng tới, nhưng không đủ để kết luận suy thoái hay đình lạm toàn cầu.
 
 > [!note] Cập nhật từ 9/4
 > Brent $95.92 → $102.80 (+$6.88/thùng) và WTI $97.87 → $104.88 (+$7.01/thùng) chỉ trong 4 ngày.

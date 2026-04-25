@@ -1,7 +1,7 @@
 ---
 title: "Bàn Tròn Đầu Tư Q2/2026 – Triển vọng kinh tế vĩ mô Việt Nam"
 created: 2026-04-14
-last_updated: 2026-04-14
+last_updated: 2026-04-25
 source_count: 1
 status: draft
 page_type: source
@@ -10,7 +10,7 @@ tags: [source, vietnam, macroeconomics, investment, oil-prices, inflation, inter
 domain: finance
 importance: high
 review_status: processed
-related_sources: []
+related_sources: [source-ban-tron-kinh-te-19-4-2026]
 confidence_score: 0.75
 quality_score: 0.85
 evidence_count: 1
@@ -94,6 +94,7 @@ Bản ghi hình bàn tròn đầu tư quarterly do AFA Capital tổ chức, phâ
 
 - Video gốc trên kênh YouTube "Tài Chính Kinh Doanh"
 - Báo cáo chiến lược Q2/2026 của AFA Capital (được trích dẫn trong bản ghi hình)
+- [[source-ban-tron-kinh-te-19-4-2026]] — later macro update on rates, FX, and bank-liquidity pressure
 
 ## Trang wiki đã cập nhật nhờ nguồn này
 

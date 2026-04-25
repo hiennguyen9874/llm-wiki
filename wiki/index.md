@@ -1,7 +1,7 @@
 ---
 title: Index
 created: 2026-04-14
-last_updated: 2026-04-24
+last_updated: 2026-04-25
 source_count: 0
 status: draft
 page_type: index
@@ -32,6 +32,7 @@ Master catalog of the second brain. Use this file for human orientation and brow
 
 ## Sources
 - [[source-ban-tron-dau-tu-q2-2026|Bàn Tròn Đầu Tư Q2/2026 — AFA Capital × We Group]] — Vietnamese investment roundtable: GDP, inflation, interest rates, oil impact, Q2 2026 outlook
+- [[source-ban-tron-kinh-te-19-4-2026|Bàn Tròn Kinh Tế 19/4/2026 — lãi suất, tỷ giá, và thanh khoản sau can thiệp]] — later macro update: short-term rate/FX easing, structural bank-funding pressure, oil/rates interpretation
 - [[source-dtdt-10-4-2026|ĐTDT 10/4/2026 — Đối thoại Tết Đen]] — NHNN meeting with 46 banks, interest rate consensus, Q1 trade deficit $3.64B, oil prices approaching $100
 - [[source-dtdt-13-4-2026|ĐTDT 13/4/2026 — Giá dầu bật mạnh]] — US-Iran negotiations failed, Hormuz blockade, oil prices above $100 (Brent $102.80, WTI $104.88), VN-Index weak breadth, public investment plan 8.22M VND 2026-2030
 - [[source-thai-pham-12-4-2026|Thái Phạm 12/4/2026 — Kịch bản đàm phán Mỹ-Iran]] — Three scenarios for Iran-US negotiations (55-60% de-escalation), oil peaked short-term (resolution: different time horizons with ĐTDT 13/4), S&P 500 strong recovery, Vietnam market positive medium-term, PM Lê Minh Hưng praised
