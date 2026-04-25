@@ -19,7 +19,7 @@ Use the single-writer agentic ingest workflow for: $ARGUMENTS
 
 Decisions already adopted for this repo:
 - single-writer default: subagents do not edit files; parent/orchestrator performs all writes
-- custom project agents only: `.pi/agents/wiki-source-scout.md`, `.pi/agents/wiki-ingest-planner.md`, `.pi/agents/wiki-ingest-reviewer.md`
+- custom project subagents only: `wiki-source-scout`, `wiki-ingest-planner`, `wiki-ingest-reviewer`
 - handoffs stay temporary unless the parent decides a Stage-1 plan has durable audit value and saves it under `outputs/ingest-plans/`
 
 Workflow:

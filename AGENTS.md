@@ -54,12 +54,12 @@ For any non-trivial task, read this file first, then read matching skill files.
 ## Scope Split
 - `purpose.md` = strategic direction and evolving intent.
 - `AGENTS.md` = repo router, tool-selection policy, and top guardrails.
-- `.pi/skills/llm-wiki-core/SKILL.md` = constitutional rules: mission, stance, architecture, lifecycle, and global invariants.
-- `.pi/skills/llm-wiki-schema/SKILL.md` = shared note structure, frontmatter, lifecycle fields, and page-shape rules.
-- `.pi/skills/llm-wiki-governance/SKILL.md` = privacy, visibility, contradiction/supersession, review-queue, and risky-change policy.
-- `.pi/skills/llm-wiki-ops/SKILL.md` = naming, layout, index/log, and catalog-operation rules.
+- `llm-wiki-core` skill = constitutional rules: mission, stance, architecture, lifecycle, and global invariants.
+- `llm-wiki-schema` skill = shared note structure, frontmatter, lifecycle fields, and page-shape rules.
+- `llm-wiki-governance` skill = privacy, visibility, contradiction/supersession, review-queue, and risky-change policy.
+- `llm-wiki-ops` skill = naming, layout, index/log, and catalog-operation rules.
 - Workflow skills = task-specific procedure.
-- `.pi/prompts/` = thin entrypoints; real policy lives in skills.
+- `prompts` = thin entrypoints; real policy lives in skills.
 
 ## Must Remember
 - For work in `raw/`, `wiki/`, or `outputs/`, always follow `llm-wiki-core` first, then load matching companion skills (`llm-wiki-schema`, `llm-wiki-governance`, `llm-wiki-ops`) as needed.

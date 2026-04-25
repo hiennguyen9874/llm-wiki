@@ -10,7 +10,7 @@ Always activate `llm-wiki-core` first.
 
 This skill owns note structure, shared metadata, and canonical page shapes.
 It does not own privacy/risk judgments or repo-ops rules.
-Longer examples belong in `.pi/skills/llm-wiki-schema/examples.md` if needed.
+Longer examples belong in `./references/examples.md` if needed.
 
 ## What This Skill Owns
 - required frontmatter
@@ -188,7 +188,7 @@ related_sources: [[source-example]]
 ---
 ```
 
-For fuller examples, see `.pi/skills/llm-wiki-schema/examples.md`.
+For fuller examples, see `references/examples.md`.
 
 ## See Also
 - `llm-wiki-governance` for privacy, contradiction, retention action, and risky judgment
