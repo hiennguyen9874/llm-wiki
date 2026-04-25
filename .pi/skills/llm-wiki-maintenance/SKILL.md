@@ -4,47 +4,48 @@ description: Review, lint, and improve the existing second brain without requiri
 ---
 # LLM Wiki Maintenance
 
-Use skill for ongoing health, quality work.
+Use for ongoing health and quality work.
 Always activate `llm-wiki-core` first.
 
-## Companion Skills
+This file owns maintenance procedure only.
+- `llm-wiki-governance` owns the safe-repair boundary, contradiction handling, retention action, privacy, review queue, and risky changes; maintenance applies those rules.
+- Usually activate `llm-wiki-ops` for naming/layout, index/log, and catalog repair.
+- Activate `llm-wiki-schema` when repairing frontmatter, lifecycle fields, page shapes, or claim structure.
 
-* `qmd` for finding duplicates, stale areas, weakly connected pages
-* `obsidian-markdown` for note repair, metadata updates
-* `llm-wiki-visualization` when Bases or Canvases need refresh
-* `ask-user` before irreversible or high-level structural changes
-* `llm-wiki-ingest` when maintenance turns into compile/promotion from raw or outputs
+## Companion Skills
+- `qmd` for finding duplicates, stale areas, and weakly connected pages
+- `obsidian-markdown` for note repair and metadata updates
+- `llm-wiki-visualization` when Bases or Canvases need a refresh
+- `ask-user` before irreversible or high-level structural changes
+- `llm-wiki-ingest` when maintenance turns into compile/promotion from raw or outputs
 
 ## Review Workflow
 
 ### Weekly review
-
-* Process `raw/inbox/` and `raw/captures/`
-* Review recent ingests, crystallizations
-* Promote durable outputs into `wiki/`
-* Review stale drafts and pages marked `needs_update`
-* Refresh lifecycle metadata when evidence changed
-* Run light privacy/sensitivity scan over recently added downstream artifacts
-* Check whether new Canvas or Base should be created
-* Review open items in `outputs/review-queue/`
-* Refresh `wiki/overview.md` when recent changes affect the global state
+- Process `raw/inbox/` and `raw/captures/`.
+- Review recent ingests and crystallizations.
+- Promote durable outputs into `wiki/`.
+- Review stale drafts and pages marked `needs_update`.
+- Refresh lifecycle metadata when evidence changed.
+- Run a light privacy/sensitivity scan over recently added downstream artifacts.
+- Check whether a new Canvas or Base should be created.
+- Review open items in `outputs/review-queue/`.
+- Refresh `wiki/overview.md` when recent changes affect the global state.
 
 ### Monthly review
-
-* Run lint workflow
-* Run retention workflow
-* Refresh major topic pages
-* Check orphan pages and weakly linked areas
-* Review stale or low-confidence knowledge
-* Review low-quality pages and rewrite/repair worst offenders
-* Update at least one major synthesis page or Canvas
-* Identify top knowledge gaps and next-source targets
-* Run graph-insights-lite: isolated pages, sparse clusters, bridge pages, surprising cross-topic links
-* Record review activity in `wiki/log.md` as `review`
-
+- Run lint workflow.
+- Run retention workflow.
+- Refresh major topic pages.
+- Check orphan pages and weakly linked areas.
+- Review stale or low-confidence knowledge.
+- Review low-quality pages and rewrite or repair the worst offenders.
+- Update at least one major synthesis page or Canvas.
+- Identify top knowledge gaps and next-source targets.
+- Run graph-insights-lite: isolated pages, sparse clusters, bridge pages, surprising cross-topic links.
+- Record review activity in `wiki/log.md` as `review`.
 
 ## Librarian-Style Freshness and Quality Review
-Use this during monthly review, lint, or explicit freshness/quality audits. Keep repo metadata on the existing 0-1 scale. Reports may show equivalent percentages for readability.
+Use this during monthly review, lint, or explicit freshness/quality audits.
 
 Check:
 - source traceability through `related_sources` and source pages
@@ -58,138 +59,106 @@ Output:
 - do not automatically refresh factual claims without evidence
 
 ## Lint Workflow
-
 Run monthly or on request.
 Check for:
-
-* contradictions between pages
-* stale claims superseded by newer sources
-* orphan pages with no inbound links
-* concepts mentioned but never explained
-* duplicate pages that should be merged
-* missing cross-references
-* claims without source attribution
-* source pages not integrated into broader topic pages
-* missing lifecycle metadata on important pages
-* low-confidence or low-quality pages needing review
-* unresolved supersession chains
-* visibility mismatches or pages that should not be broadly scoped
-* important pages needing lightweight `Evidence / claims` structure but lacking it
-* Bases or Canvases no longer reflecting current wiki state
-* stale or unresolved review queue items
-* `wiki/overview.md` no longer matching current wiki state
-
-
-## Lint-as-Migration Rules
-Use lint as the normal place to repair safe schema drift. Auto-fix only mechanical, low-risk defects: missing obvious frontmatter defaults, stale index rows, clear broken links, unambiguous backlinks, and explicitly documented legacy aliases.
-
-Do not auto-fix decisions requiring judgment: taxonomy changes, bulk renames/moves/deletes, page merges, source deletion, privacy cleanup that removes provenance, or new metadata schema. Ask user or create review queue items.
+- contradictions between pages
+- stale claims superseded by newer sources
+- orphan pages with no inbound links
+- concepts mentioned but never explained
+- duplicate pages that should be merged
+- missing cross-references
+- claims without source attribution
+- source pages not integrated into broader topic pages
+- missing lifecycle metadata on important pages
+- low-confidence or low-quality pages needing review
+- unresolved supersession chains
+- visibility mismatches or pages that should not be broadly scoped
+- important pages needing lightweight `Evidence / claims` structure but lacking it
+- Bases or Canvases no longer reflecting current wiki state
+- stale or unresolved review queue items
+- `wiki/overview.md` no longer matching current wiki state
 
 ## Retention Workflow
-
-Use the retention classes and cadence defined in `llm-wiki-core` plus `last_confirmed` to decide decay review.
+Use the retention semantics from `llm-wiki-schema` plus `last_confirmed` to decide decay review.
 
 When evidence has gone cold:
-
-* lower `confidence_score` modestly when justified
-* mark `claim_status` or page status as `stale` / `needs_update` when warranted
-* preserve provenance instead of deleting content
-* suggest consolidation or archival only with clear reasoning
-* ask user before destructive cleanup or major consolidation
+- lower `confidence_score` modestly when justified
+- mark `claim_status` or page status as `stale` / `needs_update` when warranted
+- preserve provenance instead of deleting content
+- suggest consolidation or archival only with clear reasoning
+- ask user before destructive cleanup or major consolidation
 
 ## Contradiction Resolution Workflow
-
-When resolving conflicting claims, use the core supersession/contradiction factors: recency, authority/directness, supporting-source count, and specificity.
-
-Workflow:
+When resolving conflicting claims:
 1. Identify competing claims and cite relevant pages.
 2. Decide whether one side is clearly stronger or evidence remains mixed.
 3. Mark weaker claims/pages as `superseded` or `stale`, or keep mixed evidence visible as `disputed`.
 4. Briefly record reasoning in the updated page or report.
 
 ## Quality Review Rules
-
 Treat quality as operational, not decorative.
 
 Pages usually need attention when they:
-
-* lack source citations
-* blur fact and inference
-* have weak structure or missing frontmatter
-* are poorly linked to related pages
-* no longer match current known state
+- lack source citations
+- blur fact and inference
+- have weak structure or missing frontmatter
+- are poorly linked to related pages
+- no longer match current known state
 
 Default behavior:
-
-* safely improve structure, citations, links when fix obvious
-* mark weaker pages for review when right rewrite not obvious
-* avoid silently inventing missing evidence
+- safely improve structure, citations, and links when the fix is obvious
+- mark weaker pages for review when the right rewrite is not obvious
+- avoid silently inventing missing evidence
 
 ### Safe self-heal actions
-
 Automatically repair only when safe:
-
-* obvious broken internal links
-* missing backlinks when unambiguous
-* marking obviously stale pages as `needs_update`
-* modest confidence/quality refreshes when reason explicit and provenance preserved
+- obvious broken internal links
+- missing backlinks when unambiguous
+- marking obviously stale pages as `needs_update`
+- modest confidence/quality refreshes when reason is explicit and provenance preserved
 
 For risky merges, taxonomy changes, or deletions, ask user first.
 
 ### Lint output
-
-* Save to `outputs/reports/lint-report-[date].md`
-* Use severity levels:
-
-  * 🔴 errors
-  * 🟡 warnings
-  * 🔵 info
-* Also propose:
-
-  * 3 important knowledge gaps
-  * 3 possible next sources to ingest
-  * 3 pages or artifacts needing consolidation
+- Save to `outputs/reports/lint-report-[date].md`
+- Use severity levels: 🔴 errors, 🟡 warnings, 🔵 info
+- Also propose:
+  - 3 important knowledge gaps
+  - 3 possible next sources to ingest
+  - 3 pages or artifacts needing consolidation
 
 ## Privacy Scan Workflow
-
 When asked to scan for sensitive content:
-
-* inspect recent or specified scope for secrets, credentials, tokens, PII, or private material
-* verify such material has not been copied into `wiki/` or broadly reusable outputs
-* redact downstream summaries when safe and unambiguous
-* ask user before destructive cleanup or altering raw source storage policy
-* record meaningful remediation in `wiki/log.md`
+- inspect recent or specified scope for secrets, credentials, tokens, PII, or private material
+- verify such material has not been copied into `wiki/` or broadly reusable outputs
+- redact downstream summaries when safe and unambiguous
+- ask user before destructive cleanup or altering raw source storage policy
+- record meaningful remediation in `wiki/log.md`
 
 ## Graph-Insights-Lite Workflow
-
-Use during monthly review, lint, gaps, or when the wiki feels fragmented. This is markdown-first and does not imply a real graph database exists.
+Use during monthly review, lint, gaps, or when the wiki feels fragmented.
 
 Look for:
-
-* isolated pages with few links or no obvious inbound/outbound context
-* sparse clusters where related pages lack cross-links or synthesis
-* bridge pages that connect several topics and may deserve a synthesis page or Canvas
-* surprising cross-topic links worth preserving as connections
-* purpose-relevant gaps that deserve manual-first Deep Research
+- isolated pages with few links or no obvious inbound/outbound context
+- sparse clusters where related pages lack cross-links or synthesis
+- bridge pages that connect several topics and may deserve a synthesis page or Canvas
+- surprising cross-topic links worth preserving as connections
+- purpose-relevant gaps that deserve manual-first deep research
 
 Actions:
-
-* add obvious links/backlinks when supported
-* create review items for uncertain links or page creation decisions
-* recommend or create Canvas/Base artifacts when they clarify structure
-* save durable gap/connection findings to `outputs/reports/` or `outputs/analyses/` when useful
+- add obvious links/backlinks when supported
+- create review items for uncertain links or page-creation decisions
+- recommend or create Canvas/Base artifacts when they clarify structure
+- save durable gap/connection findings to `outputs/reports/` or `outputs/analyses/` when useful
 
 ## Compile / Promotion Maintenance
 When several raw sources, saved answers, analyses, or crystallizations should become canonical wiki knowledge, run the `/compile` prompt or use the ingest workflow for source-backed integration. Prefer incremental compile unless the user asks for a full rewrite.
 
 ## Update Workflow
-
-When asked to improve wiki without new source:
-
+When asked to improve the wiki without a new source:
 1. Use `purpose.md`, `wiki/overview.md`, and `wiki/index.md` for orientation if needed.
 2. Use QMD to find weakly connected, stale, disputed, or duplicate areas.
-3. Merge duplicates, add links, improve summaries, strengthen citations.
-4. Refresh lifecycle metadata, visibility, supersession links where justified.
-5. Update Bases/Canvases when out of sync with markdown layer.
+3. Merge duplicates, add links, improve summaries, and strengthen citations.
+4. Refresh lifecycle metadata, visibility, and supersession links where justified.
+5. Update Bases or Canvases when out of sync with the markdown layer.
 6. Record meaningful changes in `wiki/log.md` as `update`, including what changed and why.
-

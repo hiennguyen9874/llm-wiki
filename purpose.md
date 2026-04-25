@@ -11,7 +11,7 @@ visibility: private
 
 # Purpose
 
-This file states **why** this second brain exists. `AGENTS.md` and `.pi/skills/` define how agents operate; this page defines strategic direction so ingest, query, review, crystallization, and research planning can prioritize what matters.
+This file states **why** this second brain exists. `AGENTS.md` and skills define how agents operate; this page defines strategic direction so ingest, query, review, crystallization, and research planning can prioritize what matters.
 
 ## Mission
 

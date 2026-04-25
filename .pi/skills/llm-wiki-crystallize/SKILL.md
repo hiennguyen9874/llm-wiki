@@ -8,10 +8,15 @@ description: Distill research, debugging, and exploration sessions into durable 
 Use this skill when exploration itself has become a source.
 Always activate `llm-wiki-core` first.
 
+This file owns crystallization procedure only.
+- Use `llm-wiki-schema` when writing crystallization artifacts, frontmatter, or wiki updates.
+- Use `llm-wiki-governance` when the session contains sensitive, disputed, stale, or superseding knowledge.
+- Use `llm-wiki-ops` when saved artifacts affect naming, index, log, or discoverability.
+
 ## Companion Skills
 - `qmd` for locating affected pages and related prior work
 - `obsidian-markdown` for crystallization artifacts and wiki updates
-- `llm-wiki-visualization` if a canvas/base would clarify the episode
+- `llm-wiki-visualization` if a Canvas or Base would clarify the episode
 
 ## Crystallization Workflow
 1. Distill the completed session into a structured digest in `outputs/crystallizations/` or `outputs/analyses/`.
@@ -19,7 +24,7 @@ Always activate `llm-wiki-core` first.
    - original question
    - what was investigated
    - key findings
-   - affected files/entities/pages
+   - affected files, entities, and pages
    - unresolved questions
    - reusable lessons
    - confidence or uncertainty where it materially matters

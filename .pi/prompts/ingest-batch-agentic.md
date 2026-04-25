@@ -1,8 +1,19 @@
 ---
-description: Sequentially batch-ingest sources using read-only wiki subagents
+description: Sequentially batch-ingest sources using read-only subagents and a single writer
 ---
 
-Read `AGENTS.md`. Activate `llm-wiki-core`, `llm-wiki-ingest`, `llm-wiki-query`, `llm-wiki-maintenance`, `qmd`, `obsidian-markdown`, `ask-user`, and `pi-subagents` before acting.
+Activate:
+- `llm-wiki-core`
+- `llm-wiki-ingest`
+- `llm-wiki-query`
+- `llm-wiki-maintenance`
+- `llm-wiki-schema`
+- `llm-wiki-governance`
+- `llm-wiki-ops`
+- `qmd`
+- `obsidian-markdown`
+- `ask-user`
+- `pi-subagents`
 
 Use the single-writer sequential batch ingest workflow for: $ARGUMENTS
 
@@ -11,7 +22,7 @@ Rules:
 - For each source, run the `/ingest-agentic` pattern: `wiki-source-scout` → `wiki-ingest-planner` → parent writes → `wiki-ingest-reviewer`.
 - Reuse and update shared canonical pages; avoid duplicate one-off summaries.
 - After each source, reassess whether later sources should trigger a compile pass instead of isolated integration.
-- Ask before high-stakes taxonomy/schema/bulk move/delete/merge changes.
+- Ask before high-stakes taxonomy, schema, bulk move, delete, or merge changes.
 - Create review queue items for non-blocking human judgments.
 
-Finish with a per-source summary plus batch-level changes to `wiki/index.md`, `wiki/log.md`, `wiki/overview.md`, review queue, and any recommended later `/compile` pass.
+Finish with a per-source summary plus batch-level changes to `wiki/index.md`, `wiki/log.md`, `wiki/overview.md`, the review queue, and any recommended later `/compile` pass.

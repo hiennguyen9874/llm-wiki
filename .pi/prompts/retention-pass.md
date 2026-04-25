@@ -2,6 +2,16 @@
 description: Run a retention and decay review across the knowledge base
 ---
 
-Read `AGENTS.md`. Activate `llm-wiki-core`, `llm-wiki-maintenance`, `qmd`, and `obsidian-markdown`.
+Activate:
+- `llm-wiki-core`
+- `llm-wiki-maintenance`
+- `llm-wiki-governance`
+- `llm-wiki-schema`
+- `llm-wiki-ops`
+- `qmd`
+- `obsidian-markdown`
 
-Run the Retention Workflow in `llm-wiki-maintenance` across $ARGUMENTS, or the most relevant knowledge areas if no scope is given.
+Run the **Retention Workflow** in `llm-wiki-maintenance` across: $ARGUMENTS
+If no scope is given, review the most relevant knowledge areas.
+
+Prefer repair, review, or explicit downgrade over deletion. Ask before destructive cleanup or major consolidation.
