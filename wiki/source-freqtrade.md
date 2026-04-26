@@ -20,7 +20,8 @@ tags:
 domain: trading
 importance: medium
 review_status: active
-related_sources: []
+related_sources:
+  - [[freqtrade]]
 confidence_score: 0.84
 quality_score: 0.83
 evidence_count: 1

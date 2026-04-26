@@ -22,7 +22,8 @@ tags:
 domain: trading
 importance: medium
 review_status: active
-related_sources: []
+related_sources:
+  - [[tradingagents]]
 confidence_score: 0.81
 quality_score: 0.84
 evidence_count: 2

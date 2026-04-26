@@ -21,7 +21,8 @@ tags:
 domain: trading
 importance: medium
 review_status: active
-related_sources: []
+related_sources:
+  - [[daily-stock-analysis]]
 confidence_score: 0.76
 quality_score: 0.83
 evidence_count: 1

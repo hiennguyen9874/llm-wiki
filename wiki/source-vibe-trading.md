@@ -19,7 +19,8 @@ tags:
 domain: trading
 importance: medium
 review_status: active
-related_sources: []
+related_sources:
+  - [[vibe-trading]]
 confidence_score: 0.74
 quality_score: 0.82
 evidence_count: 1

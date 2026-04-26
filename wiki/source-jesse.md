@@ -21,7 +21,8 @@ tags:
 domain: trading
 importance: medium
 review_status: active
-related_sources: []
+related_sources:
+  - [[jesse]]
 confidence_score: 0.87
 quality_score: 0.84
 evidence_count: 1

@@ -20,7 +20,8 @@ tags:
 domain: trading
 importance: medium
 review_status: active
-related_sources: []
+related_sources:
+  - [[hummingbot]]
 confidence_score: 0.86
 quality_score: 0.83
 evidence_count: 1
