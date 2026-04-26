@@ -140,6 +140,7 @@ This source broadens the existing TradingView-Claude cluster from setup and indi
 - [[source-how-to-connect-claude-to-tradingview]]
 - [[source-how-to-connect-claude-to-tradingview-2]]
 - [[source-how-to-use-claude-to-build-tradingview-indicators]]
+- [[source-claude-code-tradingview-insane-trading-setup-stocks-crypto]]
 
 ## Sources
 - Original raw source: `raw/articles/claude-code-tradingview-25k-in-one-stream-live-trading-bot-tutorial.md`

@@ -97,6 +97,7 @@ This source captures a concrete example of an LLM-in-the-loop workflow for a liv
 ## Related pages
 - [[tradingview-mcp]]
 - [[source-how-to-use-claude-to-build-tradingview-indicators]]
+- [[source-claude-code-tradingview-insane-trading-setup-stocks-crypto]]
 
 ## Sources
 - Original raw source: `raw/articles/How-to-Connect-Claude-to-TradingView-1.md`

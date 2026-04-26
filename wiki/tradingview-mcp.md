@@ -2,7 +2,7 @@
 title: tradingview-mcp
 created: 2026-04-26
 last_updated: 2026-04-26
-source_count: 4
+source_count: 5
 status: draft
 page_type: topic
 aliases:
@@ -22,9 +22,10 @@ related_sources:
   - [[source-how-to-connect-claude-to-tradingview-2]]
   - [[source-how-to-use-claude-to-build-tradingview-indicators]]
   - [[source-claude-code-tradingview-live-trading-bot-0dte]]
-confidence_score: 0.83
-quality_score: 0.87
-evidence_count: 4
+  - [[source-claude-code-tradingview-insane-trading-setup-stocks-crypto]]
+confidence_score: 0.84
+quality_score: 0.88
+evidence_count: 5
 first_seen: 2026-04-26
 last_confirmed: 2026-04-26
 claim_status: active
@@ -54,6 +55,8 @@ The third source shows the same bridge can also support prompt-by-prompt Pine Sc
 
 The fourth source broadens the cluster into live trading bot prototyping and 0DTE research, showing the same TradingView bridge being used as a live system-design surface rather than only as an indicator authoring tool.
 
+The fifth source presents the workflow as a master-prompt, no-terminal demo that can live-read charts, switch assets and timeframes, inspect indicators, and generate custom indicators from plain English.
+
 ## Key points
 - Uses TradingView Desktop as the live data source.
 - Connects locally through Chrome DevTools Protocol on the Electron app.
@@ -62,6 +65,7 @@ The fourth source broadens the cluster into live trading bot prototyping and 0DT
 - Supports an AI-in-the-loop Pine Script edit / compile / fix loop.
 - Can be used for incremental, prompt-by-prompt indicator construction in TradingView Desktop.
 - Can also serve as a live research surface for bot prototyping, broker comparison, and options-trading hypothesis testing.
+- A later source presents the workflow as a master-prompt, low-friction setup demo with live chart reading, symbol switching, and plain-English indicator generation.
 - The articles frame the workflow as local-first, but dependent on undocumented TradingView internals.
 
 ## Relationships
@@ -111,6 +115,14 @@ The fourth source broadens the cluster into live trading bot prototyping and 0DT
 - Last confirmed: 2026-04-26
 - Notes: This is a broader operational framing supported by the new livestream summary, but it remains source-local and should not be overgeneralized.
 
+#### Claim
+- Statement: A later source presents the workflow as a one-prompt, low-friction setup demo that can read live TradingView chart state and execute chart-control / indicator-generation commands without terminal work.
+- Status: active
+- Confidence: 0.70
+- Evidence: [[source-claude-code-tradingview-insane-trading-setup-stocks-crypto]]
+- Last confirmed: 2026-04-26
+- Notes: Treat the speed and “no terminal” framing as a promotional UX claim rather than a universal guarantee.
+
 ## Open questions
 - Should this stay a general topic page, or become part of a broader trading automation cluster if more sources arrive?
 - How much of the behavior described in the sources has been independently verified?
@@ -120,3 +132,5 @@ The fourth source broadens the cluster into live trading bot prototyping and 0DT
 - [[source-how-to-connect-claude-to-tradingview]]
 - [[source-how-to-connect-claude-to-tradingview-2]]
 - [[source-how-to-use-claude-to-build-tradingview-indicators]]
+- [[source-claude-code-tradingview-live-trading-bot-0dte]]
+- [[source-claude-code-tradingview-insane-trading-setup-stocks-crypto]]

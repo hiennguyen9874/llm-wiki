@@ -115,6 +115,7 @@ This source expands the existing TradingView-Claude cluster beyond connection/se
 - [[tradingview-mcp]]
 - [[source-how-to-connect-claude-to-tradingview]]
 - [[source-how-to-connect-claude-to-tradingview-2]]
+- [[source-claude-code-tradingview-insane-trading-setup-stocks-crypto]]
 
 ## Sources
 - Original raw source: `raw/articles/How-to-Use-Claude-to-Build-TradingView-Indicators.md`
