@@ -2,7 +2,7 @@
 title: Overview
 created: 2026-04-24
 last_updated: 2026-04-26
-source_count: 10
+source_count: 11
 status: draft
 page_type: overview
 aliases: [Current Overview, Wiki Overview]
@@ -21,9 +21,10 @@ related_sources:
   - [[source-i-gave-claude-ai-full-access-to-tradingview-the-scalping-strategy-it-built-was-insane]]
   - [[source-openclaw-for-tradingview]]
   - [[source-i-let-ai-agents-trade-polymarket-for-24-hours-the-results-are-insane]]
-confidence_score: 0.67
-quality_score: 0.76
-evidence_count: 10
+  - [[source-polymarket-5-min-claude-code-bot-are-nuts]]
+confidence_score: 0.68
+quality_score: 0.77
+evidence_count: 11
 first_seen: 2026-04-24
 last_confirmed: 2026-04-26
 claim_status: active
@@ -40,7 +41,7 @@ Agent-updated current-state synthesis of the wiki. Keep [[home]] stable for huma
 
 ## Current state
 
-The wiki is in an early structural phase. Core navigation, logging, lifecycle rules, review dashboards, and workflow skills exist. Domain knowledge pages have started to populate with a TradingView-Claude cluster spanning connection/setup sources, an indicator-building walkthrough source, a live-trading / 0DTE research source, a fifth master-prompt / no-terminal demo source, a new Ethereum scalping-strategy demo with BlackCat indicators and backtest claims, a separate MoonDev / liquidation-data trading-research branch centered on model-comparison backtests, a new Claude Code automated-trading-bot branch centered on HMM regime detection, Alpaca execution, and risk management, a new TradingView community-indicator mining / Pine-to-Python backtest branch, and a new Polymarket / prediction-market AI-agent branch.
+The wiki is in an early structural phase. Core navigation, logging, lifecycle rules, review dashboards, and workflow skills exist. Domain knowledge pages have started to populate with a TradingView-Claude cluster spanning connection/setup sources, an indicator-building walkthrough source, a live-trading / 0DTE research source, a fifth master-prompt / no-terminal demo source, a new Ethereum scalping-strategy demo with BlackCat indicators and backtest claims, a separate MoonDev / liquidation-data trading-research branch centered on model-comparison backtests, a new Claude Code automated-trading-bot branch centered on HMM regime detection, Alpaca execution, and risk management, a new TradingView community-indicator mining / Pine-to-Python backtest branch, and a Polymarket / prediction-market AI-agent branch that now splits into both consensus-scanning and short-interval backtest / tick-data experimentation.
 
 ## Major knowledge areas
 
@@ -71,7 +72,7 @@ The wiki is in an early structural phase. Core navigation, logging, lifecycle ru
 - Added this overview as a separate agent-maintained current-state synthesis.
 - Added conventions for ingest plans, review queue items, graph-insights-lite, and manual-first Deep Research.
 - Adopted selected `LLM-Wiki-v4.md` workflow ideas in manual-first form: `/compile`, stronger `related_sources` traceability, index-as-rebuildable-catalog, conservative lint-as-migration, librarian-style freshness/quality review.
-- Added the first source/topic ingest pair for a TradingView-Claude MCP workflow source, then reinforced that cluster with a second source describing more CLI and chart-data detail, then added a third source on prompt-by-prompt TradingView indicator construction and OI/EMA interpretation, then added a fourth source on live trading bot prototyping, RBI, and 0DTE research, then added a fifth source focused on a master-prompt, no-terminal demo of chart reading and custom indicator generation, then added a sixth source on GPT-5.5 vs Claude Opus 4.7 liquidation-data backtests plus a new MoonDev topic page, then added a seventh source on a Claude Code automated-trading-bot tutorial plus a new regime-trading-bot topic, then added an eighth source on Claude-generated Ethereum scalping strategy design with BlackCat indicators and a 30-minute optimization claim, then added a ninth source plus a new OpenClaw project page for TradingView community-indicator mining and Pine-to-Python backtesting, and now added a tenth source plus a new prediction-market-trading topic for Polymarket AI-agent consensus workflows.
+- Added the first source/topic ingest pair for a TradingView-Claude MCP workflow source, then reinforced that cluster with a second source describing more CLI and chart-data detail, then added a third source on prompt-by-prompt TradingView indicator construction and OI/EMA interpretation, then added a fourth source on live trading bot prototyping, RBI, and 0DTE research, then added a fifth source focused on a master-prompt, no-terminal demo of chart reading and custom indicator generation, then added a sixth source on GPT-5.5 vs Claude Opus 4.7 liquidation-data backtests plus a new MoonDev topic page, then added a seventh source plus a new regime-trading-bot topic for a Claude Code automated-trading-bot tutorial, then added an eighth source on Claude-generated Ethereum scalping strategy design with BlackCat indicators and a 30-minute optimization claim, then added a ninth source plus a new OpenClaw project page for TradingView community-indicator mining and Pine-to-Python backtesting, then added a tenth source plus a new prediction-market-trading topic for Polymarket AI-agent consensus workflows, and now added an eleventh source that expands the Polymarket branch into short-interval backtesting, tick data, and CVD.
 
 ## Next actions
 

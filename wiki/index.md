@@ -40,6 +40,7 @@ Master catalog of the second brain. Use this file for human orientation and brow
 - [[source-openclaw-for-tradingview]] — transcript on harvesting TradingView community indicators, converting Pine Script to Python backtests, and logging research stats.
 - [[source-how-to-actually-build-a-trading-bot-with-claude-code]] — transcript on a Claude Code-built regime trading bot with HMM classification, Alpaca execution, and risk controls.
 - [[source-i-let-ai-agents-trade-polymarket-for-24-hours-the-results-are-insane]] — transcript on an AI-agent Polymarket scanner with multi-model consensus, trade filters, and prediction-market automation.
+- [[source-polymarket-5-min-claude-code-bot-are-nuts]] — transcript on Polymarket 5-minute backtesting, tick-data / CVD experimentation, and short-interval bot automation.
 
 ## Topics and Concepts
 - [[tradingview-mcp]] — local bridge between Claude Code and TradingView Desktop, with MCP, CLI, indicator-building, and live-research tooling.
