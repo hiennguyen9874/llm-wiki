@@ -119,6 +119,7 @@ This source reinforces the TradingView-Claude cluster with a more polished, tuto
 - [[source-how-to-connect-claude-to-tradingview-2]]
 - [[source-how-to-use-claude-to-build-tradingview-indicators]]
 - [[source-claude-code-tradingview-live-trading-bot-0dte]]
+- [[source-i-gave-claude-ai-full-access-to-tradingview-the-scalping-strategy-it-built-was-insane]]
 
 ## Sources
 - Original raw source: `raw/articles/claude-code-tradingview-insane-trading-setup-stocks-crypto.md`

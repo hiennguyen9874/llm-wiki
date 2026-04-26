@@ -2,7 +2,7 @@
 title: tradingview-mcp
 created: 2026-04-26
 last_updated: 2026-04-26
-source_count: 5
+source_count: 6
 status: draft
 page_type: topic
 aliases:
@@ -23,9 +23,10 @@ related_sources:
   - [[source-how-to-use-claude-to-build-tradingview-indicators]]
   - [[source-claude-code-tradingview-live-trading-bot-0dte]]
   - [[source-claude-code-tradingview-insane-trading-setup-stocks-crypto]]
+  - [[source-i-gave-claude-ai-full-access-to-tradingview-the-scalping-strategy-it-built-was-insane]]
 confidence_score: 0.84
 quality_score: 0.88
-evidence_count: 5
+evidence_count: 6
 first_seen: 2026-04-26
 last_confirmed: 2026-04-26
 claim_status: active
@@ -42,6 +43,10 @@ related_entities:
   - 0DTE options
   - Interactive Brokers
   - Robinhood
+  - BlackCat indicators
+  - ADX
+  - ATR bands
+  - Ethereum
 ---
 
 # tradingview-mcp
@@ -55,7 +60,7 @@ The third source shows the same bridge can also support prompt-by-prompt Pine Sc
 
 The fourth source broadens the cluster into live trading bot prototyping and 0DTE research, showing the same TradingView bridge being used as a live system-design surface rather than only as an indicator authoring tool.
 
-The fifth source presents the workflow as a master-prompt, no-terminal demo that can live-read charts, switch assets and timeframes, inspect indicators, and generate custom indicators from plain English.
+The fifth source presents the workflow as a master-prompt, no-terminal demo that can live-read charts, switch assets and timeframes, inspect indicators, and generate custom indicators from plain English. The sixth source shows the bridge can also support multi-indicator strategy construction and backtesting on Ethereum, including timeframe iteration, signal stacking, and optimization around a 30-minute chart.
 
 ## Key points
 - Uses TradingView Desktop as the live data source.
@@ -64,8 +69,10 @@ The fifth source presents the workflow as a master-prompt, no-terminal demo that
 - Makes chart data, indicator drawings, tables, strategy results, and screenshots readable to an LLM.
 - Supports an AI-in-the-loop Pine Script edit / compile / fix loop.
 - Can be used for incremental, prompt-by-prompt indicator construction in TradingView Desktop.
+- Can also support multi-indicator strategy construction and backtesting, not just single-indicator editing.
 - Can also serve as a live research surface for bot prototyping, broker comparison, and options-trading hypothesis testing.
 - A later source presents the workflow as a master-prompt, low-friction setup demo with live chart reading, symbol switching, and plain-English indicator generation.
+- The newest source extends the cluster into Ethereum scalping strategy design with BlackCat indicators, ADX, and ATR bands.
 - The articles frame the workflow as local-first, but dependent on undocumented TradingView internals.
 
 ## Relationships
@@ -122,6 +129,14 @@ The fifth source presents the workflow as a master-prompt, no-terminal demo that
 - Evidence: [[source-claude-code-tradingview-insane-trading-setup-stocks-crypto]]
 - Last confirmed: 2026-04-26
 - Notes: Treat the speed and “no terminal” framing as a promotional UX claim rather than a universal guarantee.
+
+#### Claim
+- Statement: The same bridge can support multi-indicator strategy construction and backtesting on Ethereum, including timeframe iteration and signal stacking around a 30-minute chart.
+- Status: active
+- Confidence: 0.69
+- Evidence: [[source-i-gave-claude-ai-full-access-to-tradingview-the-scalping-strategy-it-built-was-insane]]
+- Last confirmed: 2026-04-26
+- Notes: Treat this as a demonstrated usage pattern from a source-local demo rather than a validated trading edge.
 
 ## Open questions
 - Should this stay a general topic page, or become part of a broader trading automation cluster if more sources arrive?
