@@ -137,6 +137,8 @@ This source broadens the existing TradingView-Claude cluster from setup and indi
 
 ## Related pages
 - [[tradingview-mcp]]
+- [[moondev]]
+- [[source-gpt-55-traded-for-me-and-made-54597-percent]]
 - [[source-how-to-connect-claude-to-tradingview]]
 - [[source-how-to-connect-claude-to-tradingview-2]]
 - [[source-how-to-use-claude-to-build-tradingview-indicators]]
