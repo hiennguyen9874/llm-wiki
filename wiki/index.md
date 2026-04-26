@@ -45,6 +45,7 @@ Master catalog of the second brain. Use this file for human orientation and brow
 - [[source-this-ai-bot-trades-polymarket-24-7-while-i-sleep-full-claude-code-build]] — transcript on a keyword-filtered Polymarket P&L tracker, lookback slicing, and open-market valuation.
 - [[source-quantdinger]] — README documentation for the QuantDinger self-hosted AI quant operating system, Flask/Vue deployment stack, and trading-ops workflow.
 - [[source-fincept-terminal]] — README documentation for the Fincept Terminal native financial intelligence platform, C++20/Qt6/Python architecture, and broker/data connectivity claims.
+- [[source-fingpt]] — README documentation for the FinGPT open-source financial LLM ecosystem, datasets, LoRA fine-tuning, and forecasting demos.
 - [[source-daily-stock-analysis]] — README documentation for the Daily Stock Analysis AI stock-analysis system, decision dashboards, multi-channel pushes, and validation workflow.
 - [[source-tradingagents]] — arXiv paper + README family for the TradingAgents multi-agent financial trading framework.
 
@@ -59,6 +60,7 @@ Master catalog of the second brain. Use this file for human orientation and brow
 - [[vibe-trading]] — project page for the broader agentic finance workspace with CLI/TUI, web UI, MCP, memory, swarms, and backtests.
 - [[quantdinger]] — project page for the self-hosted AI quant operating system with strategy generation, backtesting, live execution, and commercialization primitives.
 - [[fincept-terminal]] — project page for the native desktop financial intelligence terminal with analytics, broker routing, and visual workflows.
+- [[fingpt]] — project page for the open-source financial LLM ecosystem with datasets, benchmark tasks, and forecasting demos.
 - [[daily-stock-analysis]] — project page for the daily stock-analysis platform with dashboards, import flows, notifications, and backtest validation.
 - [[tradingagents]] — project page for the multi-agent trading-firm framework with role specialization, debate, and benchmarked backtests.
 
