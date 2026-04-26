@@ -33,11 +33,13 @@ supersedes: []
 superseded_by: []
 related_entities:
   - AI4Finance Foundation
+  - FinRL
   - Hongyang Bruce Yang
   - FinGPT-Forecaster
   - FinGPT-RAG
   - FinGPT-FinNLP
   - FinGPT-Benchmark
+  - FinRL-Meta
   - BloombergGPT
   - LoRA
   - RLHF
@@ -145,7 +147,7 @@ The durable takeaway is not a single model release; it is the platform shape: fi
 ## Relationships
 - `FinGPT` depends on a layered architecture: data source layer, data engineering layer, LLM layer, task layer, and application layer.
 - `FinGPT` uses LoRA and instruction tuning to adapt base models to finance tasks.
-- `FinGPT` is adjacent to [[fincept-terminal]], [[daily-stock-analysis]], [[vibe-trading]], and [[tradingagents]] as part of a broader AI-finance tooling cluster.
+- `FinGPT` is adjacent to [[finrl]], [[source-finrl]], [[fincept-terminal]], [[daily-stock-analysis]], [[vibe-trading]], and [[tradingagents]] as part of a broader AI-finance tooling cluster.
 - `FinGPT` is conceptually related to [[overview]] because it expands the wiki from trading-automation tools into finance-LLM infrastructure.
 
 ## Open questions
@@ -155,6 +157,8 @@ The durable takeaway is not a single model release; it is the platform shape: fi
 
 ## Related pages
 - [[source-fingpt]]
+- [[finrl]]
+- [[source-finrl]]
 - [[fincept-terminal]]
 - [[daily-stock-analysis]]
 - [[vibe-trading]]

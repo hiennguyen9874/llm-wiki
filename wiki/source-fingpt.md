@@ -34,12 +34,14 @@ supersedes: []
 superseded_by: []
 related_entities:
   - FinGPT
+  - FinRL
   - AI4Finance Foundation
   - Hongyang Bruce Yang
   - FinGPT-Forecaster
   - FinGPT-RAG
   - FinGPT-FinNLP
   - FinGPT-Benchmark
+  - FinRL-Meta
   - BloombergGPT
   - LoRA
   - RLHF
@@ -131,7 +133,7 @@ This source adds a durable reference for the finance-LLM layer of the wiki. It i
 - `FinGPT` uses a layered stack: data source layer, data engineering layer, LLM layer, task layer, and application layer.
 - `FinGPT` depends on lightweight adaptation methods such as LoRA and on a broad benchmark / dataset ecosystem.
 - `FinGPT` is adjacent to [[fingpt]] because the project page should hold the durable synthesis of the same source.
-- `FinGPT` is adjacent to [[fincept-terminal]], [[daily-stock-analysis]], [[vibe-trading]], and [[tradingagents]] because all sit in the broader AI-finance tooling space.
+- `FinGPT` is adjacent to [[finrl]], [[source-finrl]], [[fincept-terminal]], [[daily-stock-analysis]], [[vibe-trading]], and [[tradingagents]] because all sit in the broader AI-finance tooling space.
 
 ## Notes
 > [!info]
@@ -142,6 +144,8 @@ This source adds a durable reference for the finance-LLM layer of the wiki. It i
 
 ## Related pages
 - [[fingpt]]
+- [[finrl]]
+- [[source-finrl]]
 - [[fincept-terminal]]
 - [[daily-stock-analysis]]
 - [[vibe-trading]]
