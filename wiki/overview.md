@@ -1,8 +1,8 @@
 ---
 title: Overview
 created: 2026-04-24
-last_updated: 2026-04-24
-source_count: 0
+last_updated: 2026-04-26
+source_count: 1
 status: draft
 page_type: overview
 aliases: [Current Overview, Wiki Overview]
@@ -10,12 +10,13 @@ tags: [system, synthesis]
 domain: general
 importance: high
 review_status: active
-related_sources: []
+related_sources:
+  - [[source-how-to-connect-claude-to-tradingview]]
 confidence_score: 0.60
 quality_score: 0.70
-evidence_count: 0
+evidence_count: 1
 first_seen: 2026-04-24
-last_confirmed: 2026-04-24
+last_confirmed: 2026-04-26
 claim_status: active
 retention_class: working
 visibility: private
@@ -30,7 +31,7 @@ Agent-updated current-state synthesis of the wiki. Keep [[home]] stable for huma
 
 ## Current state
 
-The wiki is in an early structural phase. Core navigation, logging, lifecycle rules, review dashboards, and workflow skills exist. Domain knowledge pages are still sparse.
+The wiki is in an early structural phase. Core navigation, logging, lifecycle rules, review dashboards, and workflow skills exist. Domain knowledge pages have started to populate with the first source and topic pages.
 
 ## Major knowledge areas
 
@@ -51,7 +52,7 @@ The wiki is in an early structural phase. Core navigation, logging, lifecycle ru
 ## Known gaps
 
 - Purpose needs explicit human refinement beyond broad priorities.
-- Source pages and canonical topic/entity pages are not yet populated.
+- Source pages and canonical topic/entity pages are only just beginning to populate.
 - Review queue exists as a workflow convention but has no open items yet.
 - Graph-insights-lite has not yet been run on a populated wiki.
 
@@ -60,7 +61,8 @@ The wiki is in an early structural phase. Core navigation, logging, lifecycle ru
 - Added `purpose.md` for directional intent.
 - Added this overview as a separate agent-maintained current-state synthesis.
 - Added conventions for ingest plans, review queue items, graph-insights-lite, and manual-first Deep Research.
-- Adopted selected `LLM-Wiki-v4.md` workflow ideas in manual-first form: `/compile`, stronger `related_sources` traceability, index-as-rebuildable-catalog, conservative lint-as-migration, and librarian-style freshness/quality review.
+- Adopted selected `LLM-Wiki-v4.md` workflow ideas in manual-first form: `/compile`, stronger `related_sources` traceability, index-as-rebuildable-catalog, conservative lint-as-migration, librarian-style freshness/quality review.
+- Added the first source/topic ingest pair for a TradingView-Claude MCP workflow source, demonstrating the new ingest path in practice.
 
 ## Next actions
 

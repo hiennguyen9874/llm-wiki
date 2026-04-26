@@ -1,7 +1,7 @@
 ---
 title: Index
 created: 2026-04-14
-last_updated: 2026-04-24
+last_updated: 2026-04-26
 source_count: 0
 status: draft
 page_type: index
@@ -30,10 +30,10 @@ Master catalog of the second brain. Use this file for human orientation and brow
 - `outputs/answers/` — durable saved answers worth promoting when they become recurring knowledge.
 
 ## Sources
-<!-- Add source pages here, one line each -->
+- [[source-how-to-connect-claude-to-tradingview]] — X article on connecting Claude to TradingView via `tradingview-mcp` and a local `tv` CLI.
 
 ## Topics and Concepts
-<!-- Add topic and concept pages here -->
+- [[tradingview-mcp]] — local bridge between Claude Code and TradingView Desktop, with MCP and CLI tooling.
 
 ## Projects
 <!-- Add project pages here -->
