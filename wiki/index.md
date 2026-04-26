@@ -37,6 +37,7 @@ Master catalog of the second brain. Use this file for human orientation and brow
 - [[source-claude-code-tradingview-insane-trading-setup-stocks-crypto]] — YouTube transcript on a master-prompt TradingView setup demo with live chart reading and custom indicator generation.
 - [[source-i-gave-claude-ai-full-access-to-tradingview-the-scalping-strategy-it-built-was-insane]] — YouTube transcript on Claude-generated Ethereum scalping strategy design, BlackCat indicators, ATR bands, and a 30-minute optimization claim.
 - [[source-gpt-55-traded-for-me-and-made-54597-percent]] — transcript on GPT-5.5 vs Claude Opus 4.7 liquidation-data backtests, overfit warnings, and robustness follow-up.
+- [[source-openclaw-for-tradingview]] — transcript on harvesting TradingView community indicators, converting Pine Script to Python backtests, and logging research stats.
 - [[source-how-to-actually-build-a-trading-bot-with-claude-code]] — transcript on a Claude Code-built regime trading bot with HMM classification, Alpaca execution, and risk controls.
 
 ## Topics and Concepts
@@ -45,7 +46,7 @@ Master catalog of the second brain. Use this file for human orientation and brow
 - [[regime-trading-bot]] — Claude Code / HMM / Alpaca automated trading bot architecture with regime-based allocation and circuit breakers.
 
 ## Projects
-<!-- Add project pages here -->
+- [[openclaw-for-tradingview]] — project page for the TradingView community-indicator mining and Pine-to-Python backtest workflow.
 
 ## People
 <!-- Add person pages here -->
