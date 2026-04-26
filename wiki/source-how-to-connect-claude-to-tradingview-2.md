@@ -109,6 +109,7 @@ It adds more specific operational detail than the first source, especially aroun
 ## Related pages
 - [[tradingview-mcp]]
 - [[source-how-to-connect-claude-to-tradingview]]
+- [[source-how-to-use-claude-to-build-tradingview-indicators]]
 
 ## Sources
 - Original raw source: `raw/articles/How-to-Connect-Claude-to-TradingView-2.md`

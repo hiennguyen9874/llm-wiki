@@ -2,7 +2,7 @@
 title: tradingview-mcp
 created: 2026-04-26
 last_updated: 2026-04-26
-source_count: 2
+source_count: 3
 status: draft
 page_type: topic
 aliases:
@@ -20,9 +20,10 @@ review_status: active
 related_sources:
   - [[source-how-to-connect-claude-to-tradingview]]
   - [[source-how-to-connect-claude-to-tradingview-2]]
-confidence_score: 0.80
-quality_score: 0.85
-evidence_count: 2
+  - [[source-how-to-use-claude-to-build-tradingview-indicators]]
+confidence_score: 0.82
+quality_score: 0.86
+evidence_count: 3
 first_seen: 2026-04-26
 last_confirmed: 2026-04-26
 claim_status: active
@@ -44,12 +45,15 @@ related_entities:
 
 The second source adds more operational detail about the `tv` CLI surface, streaming JSONL output, and the breadth of chart data the agent can read back.
 
+The third source shows the same bridge can also support prompt-by-prompt Pine Script indicator construction, including open-interest plotting, EMA overlays, fills, and save-to-account persistence.
+
 ## Key points
 - Uses TradingView Desktop as the live data source.
 - Connects locally through Chrome DevTools Protocol on the Electron app.
 - Exposes a `tv` CLI with JSON output, status checks, streaming commands, and Pine Script helpers.
 - Makes chart data, indicator drawings, tables, strategy results, and screenshots readable to an LLM.
 - Supports an AI-in-the-loop Pine Script edit / compile / fix loop.
+- Can be used for incremental, prompt-by-prompt indicator construction in TradingView Desktop.
 - The articles frame the workflow as local-first, but dependent on undocumented TradingView internals.
 
 ## Relationships
@@ -83,6 +87,14 @@ The second source adds more operational detail about the `tv` CLI surface, strea
 - Last confirmed: 2026-04-26
 - Notes: The second source gives the clearest command-level description.
 
+#### Claim
+- Statement: The `tradingview-mcp` workflow can support incremental, prompt-by-prompt Pine Script indicator construction inside TradingView Desktop, including plotting open interest, adding EMA overlays, and saving the script to the user’s account.
+- Status: active
+- Confidence: 0.72
+- Evidence: [[source-how-to-use-claude-to-build-tradingview-indicators]]
+- Last confirmed: 2026-04-26
+- Notes: This is demonstrated in one source article; keep it as a usage pattern rather than a universal capability claim.
+
 ## Open questions
 - Should this stay a general topic page, or become part of a broader trading automation cluster if more sources arrive?
 - How much of the behavior described in the sources has been independently verified?
@@ -91,3 +103,4 @@ The second source adds more operational detail about the `tv` CLI surface, strea
 ## Sources
 - [[source-how-to-connect-claude-to-tradingview]]
 - [[source-how-to-connect-claude-to-tradingview-2]]
+- [[source-how-to-use-claude-to-build-tradingview-indicators]]
