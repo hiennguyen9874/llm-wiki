@@ -109,7 +109,7 @@ This source adds a concrete classic trading-bot reference to the wiki's trading 
 - `Freqtrade` uses `WebUI` and `Telegram` for control.
 - `Freqtrade` depends on exchange integrations and documentation-specific exchange notes.
 - `Freqtrade` supports the safe workflow pattern of dry-run first, then live use.
-- `Freqtrade` is adjacent to [[regime-trading-bot]], [[quantdinger]], [[vibe-trading]], and [[tradingagents]] in the broader trading-automation cluster.
+- `Freqtrade` is adjacent to [[hummingbot]], [[regime-trading-bot]], [[quantdinger]], [[vibe-trading]], and [[tradingagents]] in the broader trading-automation cluster.
 
 ## Notes
 > [!info]
@@ -120,6 +120,7 @@ This source adds a concrete classic trading-bot reference to the wiki's trading 
 
 ## Related pages
 - [[freqtrade]]
+- [[hummingbot]]
 - [[regime-trading-bot]]
 - [[quantdinger]]
 - [[vibe-trading]]

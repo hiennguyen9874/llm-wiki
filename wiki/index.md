@@ -47,6 +47,7 @@ Master catalog of the second brain. Use this file for human orientation and brow
 - [[source-fincept-terminal]] — README documentation for the Fincept Terminal native financial intelligence platform, C++20/Qt6/Python architecture, and broker/data connectivity claims.
 - [[source-finrl]] — README documentation for the FinRL financial reinforcement learning framework, train-test-trade workflow, and FinRL-X successor framing.
 - [[source-freqtrade]] — README documentation for the Freqtrade open-source crypto trading bot, dry-run safety guidance, exchange support, and CLI / WebUI / Telegram workflow.
+- [[source-hummingbot]] — README documentation for the Hummingbot open-source trading framework, connector taxonomy, Gateway middleware, and ecosystem repos.
 - [[source-fingpt]] — README documentation for the FinGPT open-source financial LLM ecosystem, datasets, LoRA fine-tuning, and forecasting demos.
 - [[source-daily-stock-analysis]] — README documentation for the Daily Stock Analysis AI stock-analysis system, decision dashboards, multi-channel pushes, and validation workflow.
 - [[source-tradingagents]] — arXiv paper + README family for the TradingAgents multi-agent financial trading framework.
@@ -64,6 +65,7 @@ Master catalog of the second brain. Use this file for human orientation and brow
 - [[fincept-terminal]] — project page for the native desktop financial intelligence terminal with analytics, broker routing, and visual workflows.
 - [[finrl]] — project page for the original financial reinforcement learning framework with the train-test-trade pipeline and FinRL-X successor framing.
 - [[freqtrade]] — project page for the open-source crypto trading bot with dry-run, backtesting, WebUI, Telegram, and exchange support.
+- [[hummingbot]] — project page for the connector-centric trading framework with Gateway middleware and ecosystem repos.
 - [[fingpt]] — project page for the open-source financial LLM ecosystem with datasets, benchmark tasks, and forecasting demos.
 - [[daily-stock-analysis]] — project page for the daily stock-analysis platform with dashboards, import flows, notifications, and backtest validation.
 - [[tradingagents]] — project page for the multi-agent trading-firm framework with role specialization, debate, and benchmarked backtests.

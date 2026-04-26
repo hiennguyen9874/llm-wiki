@@ -121,6 +121,7 @@ The durable takeaway is not just that it is a bot, but that it exposes a fairly 
 - Notes: Keep this as a high-level claim unless a future source needs precise exchange-by-exchange tracking.
 
 ## Relationships
+- `Freqtrade` is adjacent to [[hummingbot]] because both are classic open-source trading bots, though Hummingbot is more connector-centric.
 - `Freqtrade` is adjacent to [[regime-trading-bot]] because both emphasize automated trading with safety controls.
 - `Freqtrade` is adjacent to [[quantdinger]] because both are practical trading systems with strategy, execution, and operations surfaces.
 - `Freqtrade` is adjacent to [[vibe-trading]] because both sit in the broader trading-automation space.
@@ -139,6 +140,7 @@ The durable takeaway is not just that it is a bot, but that it exposes a fairly 
 
 ## Related pages
 - [[source-freqtrade]]
+- [[hummingbot]]
 - [[regime-trading-bot]]
 - [[quantdinger]]
 - [[vibe-trading]]
