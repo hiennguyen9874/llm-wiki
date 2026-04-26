@@ -2,7 +2,7 @@
 title: Overview
 created: 2026-04-24
 last_updated: 2026-04-26
-source_count: 3
+source_count: 4
 status: draft
 page_type: overview
 aliases: [Current Overview, Wiki Overview]
@@ -14,9 +14,10 @@ related_sources:
   - [[source-how-to-connect-claude-to-tradingview]]
   - [[source-how-to-connect-claude-to-tradingview-2]]
   - [[source-how-to-use-claude-to-build-tradingview-indicators]]
-confidence_score: 0.65
-quality_score: 0.74
-evidence_count: 3
+  - [[source-claude-code-tradingview-live-trading-bot-0dte]]
+confidence_score: 0.66
+quality_score: 0.75
+evidence_count: 4
 first_seen: 2026-04-24
 last_confirmed: 2026-04-26
 claim_status: active
@@ -33,7 +34,7 @@ Agent-updated current-state synthesis of the wiki. Keep [[home]] stable for huma
 
 ## Current state
 
-The wiki is in an early structural phase. Core navigation, logging, lifecycle rules, review dashboards, and workflow skills exist. Domain knowledge pages have started to populate with a TradingView-Claude cluster spanning connection/setup sources plus an indicator-building walkthrough source.
+The wiki is in an early structural phase. Core navigation, logging, lifecycle rules, review dashboards, and workflow skills exist. Domain knowledge pages have started to populate with a TradingView-Claude cluster spanning connection/setup sources, an indicator-building walkthrough source, and a live-trading / 0DTE research source.
 
 ## Major knowledge areas
 
@@ -55,7 +56,7 @@ The wiki is in an early structural phase. Core navigation, logging, lifecycle ru
 
 - Purpose needs explicit human refinement beyond broad priorities.
 - Source pages and canonical topic/entity pages are only just beginning to populate.
-- Review queue exists as a workflow convention but has no open items yet.
+- Review queue exists as a workflow convention and now has at least one active ingest judgment item.
 - Graph-insights-lite has not yet been run on a populated wiki.
 
 ## Recent structural changes
@@ -64,7 +65,7 @@ The wiki is in an early structural phase. Core navigation, logging, lifecycle ru
 - Added this overview as a separate agent-maintained current-state synthesis.
 - Added conventions for ingest plans, review queue items, graph-insights-lite, and manual-first Deep Research.
 - Adopted selected `LLM-Wiki-v4.md` workflow ideas in manual-first form: `/compile`, stronger `related_sources` traceability, index-as-rebuildable-catalog, conservative lint-as-migration, librarian-style freshness/quality review.
-- Added the first source/topic ingest pair for a TradingView-Claude MCP workflow source, then reinforced that cluster with a second source describing more CLI and chart-data detail, then added a third source on prompt-by-prompt TradingView indicator construction and OI/EMA interpretation.
+- Added the first source/topic ingest pair for a TradingView-Claude MCP workflow source, then reinforced that cluster with a second source describing more CLI and chart-data detail, then added a third source on prompt-by-prompt TradingView indicator construction and OI/EMA interpretation, then added a fourth source on live trading bot prototyping, RBI, and 0DTE research.
 
 ## Next actions
 

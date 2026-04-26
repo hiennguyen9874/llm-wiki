@@ -33,9 +33,10 @@ Master catalog of the second brain. Use this file for human orientation and brow
 - [[source-how-to-connect-claude-to-tradingview]] — X article on connecting Claude to TradingView via `tradingview-mcp` and a local `tv` CLI.
 - [[source-how-to-connect-claude-to-tradingview-2]] — Miles Deutscher X article adding more CLI detail, streaming examples, and local-first caveats.
 - [[source-how-to-use-claude-to-build-tradingview-indicators]] — X article on prompt-by-prompt Claude-assisted TradingView indicator building with an OI/EMA example.
+- [[source-claude-code-tradingview-live-trading-bot-0dte]] — livestream summary on Claude Code + TradingView live trading research, RBI, and a speculative 0DTE thesis.
 
 ## Topics and Concepts
-- [[tradingview-mcp]] — local bridge between Claude Code and TradingView Desktop, with MCP and CLI tooling.
+- [[tradingview-mcp]] — local bridge between Claude Code and TradingView Desktop, with MCP, CLI, indicator-building, and live-research tooling.
 
 ## Projects
 <!-- Add project pages here -->

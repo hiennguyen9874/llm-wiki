@@ -2,7 +2,7 @@
 title: tradingview-mcp
 created: 2026-04-26
 last_updated: 2026-04-26
-source_count: 3
+source_count: 4
 status: draft
 page_type: topic
 aliases:
@@ -21,9 +21,10 @@ related_sources:
   - [[source-how-to-connect-claude-to-tradingview]]
   - [[source-how-to-connect-claude-to-tradingview-2]]
   - [[source-how-to-use-claude-to-build-tradingview-indicators]]
-confidence_score: 0.82
-quality_score: 0.86
-evidence_count: 3
+  - [[source-claude-code-tradingview-live-trading-bot-0dte]]
+confidence_score: 0.83
+quality_score: 0.87
+evidence_count: 4
 first_seen: 2026-04-26
 last_confirmed: 2026-04-26
 claim_status: active
@@ -36,6 +37,10 @@ related_entities:
   - TradingView Desktop
   - Chrome DevTools Protocol
   - Pine Script
+  - Research Backtest Incubate
+  - 0DTE options
+  - Interactive Brokers
+  - Robinhood
 ---
 
 # tradingview-mcp
@@ -47,6 +52,8 @@ The second source adds more operational detail about the `tv` CLI surface, strea
 
 The third source shows the same bridge can also support prompt-by-prompt Pine Script indicator construction, including open-interest plotting, EMA overlays, fills, and save-to-account persistence.
 
+The fourth source broadens the cluster into live trading bot prototyping and 0DTE research, showing the same TradingView bridge being used as a live system-design surface rather than only as an indicator authoring tool.
+
 ## Key points
 - Uses TradingView Desktop as the live data source.
 - Connects locally through Chrome DevTools Protocol on the Electron app.
@@ -54,6 +61,7 @@ The third source shows the same bridge can also support prompt-by-prompt Pine Sc
 - Makes chart data, indicator drawings, tables, strategy results, and screenshots readable to an LLM.
 - Supports an AI-in-the-loop Pine Script edit / compile / fix loop.
 - Can be used for incremental, prompt-by-prompt indicator construction in TradingView Desktop.
+- Can also serve as a live research surface for bot prototyping, broker comparison, and options-trading hypothesis testing.
 - The articles frame the workflow as local-first, but dependent on undocumented TradingView internals.
 
 ## Relationships
@@ -94,6 +102,14 @@ The third source shows the same bridge can also support prompt-by-prompt Pine Sc
 - Evidence: [[source-how-to-use-claude-to-build-tradingview-indicators]]
 - Last confirmed: 2026-04-26
 - Notes: This is demonstrated in one source article; keep it as a usage pattern rather than a universal capability claim.
+
+#### Claim
+- Statement: The same TradingView bridge can also support live trading research tasks, including bot prototyping, 0DTE thesis exploration, and broker/platform comparison.
+- Status: active
+- Confidence: 0.67
+- Evidence: [[source-claude-code-tradingview-live-trading-bot-0dte]]
+- Last confirmed: 2026-04-26
+- Notes: This is a broader operational framing supported by the new livestream summary, but it remains source-local and should not be overgeneralized.
 
 ## Open questions
 - Should this stay a general topic page, or become part of a broader trading automation cluster if more sources arrive?
