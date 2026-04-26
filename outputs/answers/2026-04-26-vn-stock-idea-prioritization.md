@@ -51,10 +51,17 @@ query:
 # VN stock idea prioritization
 
 ## Short answer
-Dựa trên wiki hiện tại, 5 ý tưởng đáng ưu tiên nhất cho chứng khoán Việt Nam là: **VN Stock Alert App**, **Vietnam Market Research Cockpit**, **TradingView + MCP cho cổ phiếu Việt Nam**, **Vietnam Event/Sentiment Scanner**, và **Multi-agent VN Stock Thesis Engine**.
+Rechecked against the current wiki: the **best-fit app for a personal stock investor in Vietnam is `[[openstock]]`**.
+
+Why:
+- it is the most directly aligned with **watchlists, alerts, charts, company insights, and daily summaries** [[openstock]] [[source-openstock]]
+- it is explicitly a **market-monitoring app**, not a brokerage or execution engine, which matches a retail decision-support use case [[openstock]] [[source-openstock]]
+- among the available pages, it is the closest match to a Vietnamese individual investor who wants a practical app layer first, not a heavy quant stack
+
+If the question is expanded into “which idea should we build next for VN stocks?”, the top 5 remain: **VN Stock Alert App**, **Vietnam Market Research Cockpit**, **TradingView + MCP cho cổ phiếu Việt Nam**, **Vietnam Event/Sentiment Scanner**, and **Multi-agent VN Stock Thesis Engine**.
 
 > [!note]
-> Các page nguồn trong wiki cho thấy mình đã có sẵn nhiều mảnh ghép phù hợp: data platform (`[[openbb]]`), market-monitoring app (`[[openstock]]`), daily analysis workflow (`[[daily-stock-analysis]]`), TradingView bridge (`[[tradingview-mcp]]`), agentic finance workspace (`[[vibe-trading]]`, `[[quantdinger]]`, `[[fincept-terminal]]`), and finance AI/RL foundations (`[[fingpt]]`, `[[finrl]]`, `[[tradingagents]]`).
+> The wiki currently gives the strongest support to `[[openstock]]` and `[[daily-stock-analysis]]` for a retail stock-monitoring workflow, while `[[openbb]]` is better understood as upstream data infrastructure. `[[fincept-terminal]]`, `[[vibe-trading]]`, `[[quantdinger]]`, `[[fingpt]]`, `[[finrl]]`, and `[[tradingagents]]` are broader or more technical than a simple personal-investor app.
 
 ## Ranking table
 
@@ -129,11 +136,11 @@ Dựa trên wiki hiện tại, 5 ý tưởng đáng ưu tiên nhất cho chứng
 **Why it ranks lower:** mạnh về AI narrative nhưng khó làm đúng; cần data tốt và đánh giá rõ để tránh over-engineering.
 
 ## Recommended order if you want to build
-1. **VN Stock Alert App**
-2. **Vietnam Market Research Cockpit**
-3. **TradingView + MCP for VN stocks**
-4. **Vietnam Event/Sentiment Scanner**
-5. **Multi-agent VN Stock Thesis Engine**
+1. **VN Stock Alert App** — closest to `[[openstock]]` and the best MVP for a retail investor.
+2. **Vietnam Market Research Cockpit** — closest to `[[daily-stock-analysis]]` plus `[[openbb]]`.
+3. **TradingView + MCP for VN stocks** — best if the user is a chart/technical-analysis trader.
+4. **Vietnam Event/Sentiment Scanner** — useful once news ingestion is available.
+5. **Multi-agent VN Stock Thesis Engine** — highest complexity; do later.
 
 ## Fact vs inference
 
@@ -145,9 +152,10 @@ Dựa trên wiki hiện tại, 5 ý tưởng đáng ưu tiên nhất cho chứng
 - `[[fingpt]]`, `[[finrl]]`, and `[[tradingagents]]` are finance AI / RL / multi-agent foundations, not direct Vietnam-specific stock apps.
 
 ### Inference
-- The best Vietnam-specific apps are the ones that reuse the existing wiki’s strongest patterns: alerting, dashboarding, sentiment, and chart assistance.
+- The best Vietnam-specific app is the one that reuses the existing wiki’s strongest retail patterns: alerting, dashboarding, and summary delivery.
 - A small, utility-first app is lower risk than jumping straight to autonomous trading.
 - Vietnam market workflows should probably prioritize data consolidation and decision support before execution automation.
+- `[[openstock]]` is therefore the best current answer, but **its Vietnam-market support is not yet verified in the wiki**, so local data-source fit still needs validation.
 
 ## Pages used
 - [[daily-stock-analysis]]
