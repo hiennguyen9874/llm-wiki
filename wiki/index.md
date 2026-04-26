@@ -61,5 +61,8 @@ Master catalog of the second brain. Use this file for human orientation and brow
 ## Syntheses and Comparisons
 <!-- Add synthesis, comparison, and decision pages here -->
 
+## Maintenance Reports
+- `outputs/reports/lint-report-2026-04-26.md` — monthly review, lint, review-queue, retention, privacy, and graph-insights-lite findings for the first populated trading cluster.
+
 ## Outputs Worth Promoting into Wiki
 <!-- Add links to durable outputs that should become wiki pages -->

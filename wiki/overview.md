@@ -63,9 +63,9 @@ The wiki is in an early structural phase. Core navigation, logging, lifecycle ru
 ## Known gaps
 
 - Purpose needs explicit human refinement beyond broad priorities.
-- Source pages and canonical topic/entity pages are only just beginning to populate, including a MoonDev / liquidation-data tooling page that sits alongside the TradingView-Claude cluster, a new regime-trading-bot topic for automated trading architecture, and a new prediction-market-trading topic for Polymarket-style AI-agent workflows.
-- Review queue exists as a workflow convention and now has active ingest judgment items for scope / robustness decisions in the trading cluster.
-- Graph-insights-lite has not yet been run on a populated wiki.
+- Source pages and canonical topic/entity pages are still early but now form a coherent trading-automation cluster: TradingView-Claude tooling, MoonDev / liquidation-data tooling, regime trading bots, OpenClaw-style indicator mining, and prediction-market trading workflows.
+- Review queue has active human-judgment items for page scope, cluster boundaries, and robustness / overfit risk in the trading cluster.
+- Graph-insights-lite has now been run once on the populated wiki; the current bridge pages are [[tradingview-mcp]], [[moondev]], and [[prediction-market-trading]].
 
 ## Recent structural changes
 
@@ -74,6 +74,7 @@ The wiki is in an early structural phase. Core navigation, logging, lifecycle ru
 - Added conventions for ingest plans, review queue items, graph-insights-lite, and manual-first Deep Research.
 - Adopted selected `LLM-Wiki-v4.md` workflow ideas in manual-first form: `/compile`, stronger `related_sources` traceability, index-as-rebuildable-catalog, conservative lint-as-migration, librarian-style freshness/quality review.
 - Added the first source/topic ingest pair for a TradingView-Claude MCP workflow source, then reinforced that cluster with a second source describing more CLI and chart-data detail, then added a third source on prompt-by-prompt TradingView indicator construction and OI/EMA interpretation, then added a fourth source on live trading bot prototyping, RBI, and 0DTE research, then added a fifth source focused on a master-prompt, no-terminal demo of chart reading and custom indicator generation, then added a sixth source on GPT-5.5 vs Claude Opus 4.7 liquidation-data backtests plus a new MoonDev topic page, then added a seventh source plus a new regime-trading-bot topic for a Claude Code automated-trading-bot tutorial, then added an eighth source on Claude-generated Ethereum scalping strategy design with BlackCat indicators and a 30-minute optimization claim, then added a ninth source plus a new OpenClaw project page for TradingView community-indicator mining and Pine-to-Python backtesting, then added a tenth source plus a new prediction-market-trading topic for Polymarket AI-agent consensus workflows, then added an eleventh source that expands the Polymarket branch into short-interval backtesting, tick data, and CVD, and now added a twelfth source that adds keyword-filtered P&L tracking and post-trade analysis to the Polymarket branch.
+- Ran the first monthly review on the populated wiki, including lint, retention/freshness checks, review queue normalization, privacy scan, and graph-insights-lite; saved the durable report at `outputs/reports/lint-report-2026-04-26.md`.
 
 ## Next actions
 
@@ -82,4 +83,5 @@ The wiki is in an early structural phase. Core navigation, logging, lifecycle ru
 - Continue validating the trading-research and automated-trading-bot branches with follow-up robustness checks where results look overfit.
 - Compare whether prediction-market workflows deserve their own long-lived synthesis or should later fold into a broader trading-automation cluster.
 - Decide whether keyword-filtered P&L analysis should stay embedded in prediction-market-trading or eventually become a standalone trading-analytics concept.
-- Run review/lint once enough pages exist to surface real gaps and connections.
+- Keep QMD retrieval refreshed after future ingest/review batches.
+- Consider a `trading-automation` synthesis page or Canvas only after one more source/review pass confirms it would reduce fragmentation.

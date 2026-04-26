@@ -4,7 +4,7 @@ created: 2026-04-26
 last_updated: 2026-04-26
 page_type: review_item
 source_count: 1
-status: draft
+status: open
 retention_class: working
 visibility: private
 action_type: deep_research
