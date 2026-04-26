@@ -118,7 +118,7 @@ The durable takeaway is the platform shape:
 ## Relationships
 - `OpenBB` uses a data-platform architecture that spans Python, CLI, API, MCP, Workspace, and Excel.
 - `OpenBB` depends on external data-source aggregation rather than a single trading strategy or model.
-- `OpenBB` is adjacent to [[fincept-terminal]], [[daily-stock-analysis]], [[vibe-trading]], [[tradingview-mcp]], [[finrl]], and [[fingpt]] because all sit in the broader finance-tooling ecosystem.
+- `OpenBB` is adjacent to [[openstock]], [[fincept-terminal]], [[daily-stock-analysis]], [[vibe-trading]], [[tradingview-mcp]], [[finrl]], and [[fingpt]] because all sit in the broader finance-tooling ecosystem.
 
 ## Notes
 > [!info]
@@ -129,6 +129,7 @@ The durable takeaway is the platform shape:
 
 ## Related pages
 - [[openbb]]
+- [[openstock]]
 - [[fincept-terminal]]
 - [[daily-stock-analysis]]
 - [[vibe-trading]]

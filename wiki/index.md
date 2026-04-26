@@ -52,6 +52,7 @@ Master catalog of the second brain. Use this file for human orientation and brow
 - [[source-fingpt]] — README documentation for the FinGPT open-source financial LLM ecosystem, datasets, LoRA fine-tuning, and forecasting demos.
 - [[source-daily-stock-analysis]] — README documentation for the Daily Stock Analysis AI stock-analysis system, decision dashboards, multi-channel pushes, and validation workflow.
 - [[source-openbb]] — README documentation for OpenBB’s Open Data Platform, analyst workspace, local backend flow, and financial data integration surfaces.
+- [[source-openstock]] — README documentation for the OpenStock stock market app, watchlists, TradingView widgets, alerts, and daily summary automation.
 - [[source-tradingagents]] — arXiv paper + README family for the TradingAgents multi-agent financial trading framework.
 
 ## Topics and Concepts
@@ -72,6 +73,7 @@ Master catalog of the second brain. Use this file for human orientation and brow
 - [[fingpt]] — project page for the open-source financial LLM ecosystem with datasets, benchmark tasks, and forecasting demos.
 - [[daily-stock-analysis]] — project page for the daily stock-analysis platform with dashboards, import flows, notifications, and backtest validation.
 - [[openbb]] — project page for the OpenBB financial data platform with Python, Workspace, Excel, MCP, and REST surfaces.
+- [[openstock]] — project page for the OpenStock stock market app with watchlists, alerts, company insights, charts, and email automation.
 - [[tradingagents]] — project page for the multi-agent trading-firm framework with role specialization, debate, and benchmarked backtests.
 
 ## People

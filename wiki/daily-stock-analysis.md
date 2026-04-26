@@ -141,6 +141,7 @@ It is best understood as an analysis-and-delivery system rather than a live trad
 ## Relationships
 - `Daily Stock Analysis` uses a dashboard-first flow: signal collection → synthesis → notification → historical review.
 - `Daily Stock Analysis` depends on LLM providers and market-data vendors.
+- `Daily Stock Analysis` is adjacent to [[openstock]] because both turn market data into reusable stock-monitoring workflows.
 - `Daily Stock Analysis` is adjacent to [[quantdinger]] because both combine research, workflow, and operational delivery in one platform.
 - `Daily Stock Analysis` is adjacent to [[vibe-trading]] because both emphasize multi-surface interfaces and reusable automation primitives.
 - `Daily Stock Analysis` is adjacent to [[tradingagents]] because both structure market analysis into repeatable agentic workflows.
@@ -153,6 +154,7 @@ It is best understood as an analysis-and-delivery system rather than a live trad
 
 ## Related pages
 - [[source-daily-stock-analysis]]
+- [[openstock]]
 - [[quantdinger]]
 - [[vibe-trading]]
 - [[tradingagents]]

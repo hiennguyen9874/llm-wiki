@@ -124,6 +124,7 @@ The strongest durable takeaway is that OpenBB is upstream infrastructure, not a 
 - Notes: Keep this caution visible downstream.
 
 ## Relationships
+- `OpenBB` is adjacent to [[openstock]] because both sit in the market-data / financial-platform layer.
 - `OpenBB` is adjacent to [[fincept-terminal]] because both present analyst-facing financial intelligence platforms with multiple data connectors.
 - `OpenBB` is adjacent to [[daily-stock-analysis]] because both turn market data into repeatable research outputs.
 - `OpenBB` is adjacent to [[vibe-trading]] because both expose multi-surface finance tooling for agentic workflows.
@@ -137,6 +138,7 @@ The strongest durable takeaway is that OpenBB is upstream infrastructure, not a 
 
 ## Related pages
 - [[source-openbb]]
+- [[openstock]]
 - [[fincept-terminal]]
 - [[daily-stock-analysis]]
 - [[vibe-trading]]

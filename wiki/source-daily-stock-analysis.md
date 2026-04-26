@@ -134,7 +134,7 @@ The durable value is in the pipeline shape:
 ## Relationships
 - `Daily Stock Analysis` uses a dashboard-first workflow: analysis inputs → decision summary → notifications → history / validation.
 - `Daily Stock Analysis` depends on multi-market data sources and LLM providers.
-- `Daily Stock Analysis` is adjacent to [[quantdinger]], [[vibe-trading]], [[tradingagents]], and [[regime-trading-bot]] because all sit in the broader AI-finance automation space.
+- `Daily Stock Analysis` is adjacent to [[openstock]], [[quantdinger]], [[vibe-trading]], [[tradingagents]], and [[regime-trading-bot]] because all sit in the broader AI-finance automation space.
 
 ## Notes
 > [!info]
@@ -145,6 +145,7 @@ The durable value is in the pipeline shape:
 
 ## Related pages
 - [[daily-stock-analysis]]
+- [[openstock]]
 - [[quantdinger]]
 - [[vibe-trading]]
 - [[tradingagents]]
