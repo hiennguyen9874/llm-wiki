@@ -39,11 +39,13 @@ Master catalog of the second brain. Use this file for human orientation and brow
 - [[source-gpt-55-traded-for-me-and-made-54597-percent]] — transcript on GPT-5.5 vs Claude Opus 4.7 liquidation-data backtests, overfit warnings, and robustness follow-up.
 - [[source-openclaw-for-tradingview]] — transcript on harvesting TradingView community indicators, converting Pine Script to Python backtests, and logging research stats.
 - [[source-how-to-actually-build-a-trading-bot-with-claude-code]] — transcript on a Claude Code-built regime trading bot with HMM classification, Alpaca execution, and risk controls.
+- [[source-i-let-ai-agents-trade-polymarket-for-24-hours-the-results-are-insane]] — transcript on an AI-agent Polymarket scanner with multi-model consensus, trade filters, and prediction-market automation.
 
 ## Topics and Concepts
 - [[tradingview-mcp]] — local bridge between Claude Code and TradingView Desktop, with MCP, CLI, indicator-building, and live-research tooling.
 - [[moondev]] — liquidation and market-data tooling / app ecosystem referenced in the trading backtest sources.
 - [[regime-trading-bot]] — Claude Code / HMM / Alpaca automated trading bot architecture with regime-based allocation and circuit breakers.
+- [[prediction-market-trading]] — Polymarket-style AI-agent consensus workflows for prediction-market scanning and filtering.
 
 ## Projects
 - [[openclaw-for-tradingview]] — project page for the TradingView community-indicator mining and Pine-to-Python backtest workflow.
