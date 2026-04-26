@@ -2,7 +2,7 @@
 title: Prediction Market Trading
 created: 2026-04-26
 last_updated: 2026-04-26
-source_count: 2
+source_count: 3
 status: draft
 page_type: topic
 aliases:
@@ -23,9 +23,10 @@ review_status: active
 related_sources:
   - [[source-i-let-ai-agents-trade-polymarket-for-24-hours-the-results-are-insane]]
   - [[source-polymarket-5-min-claude-code-bot-are-nuts]]
-confidence_score: 0.68
-quality_score: 0.81
-evidence_count: 2
+  - [[source-this-ai-bot-trades-polymarket-24-7-while-i-sleep-full-claude-code-build]]
+confidence_score: 0.71
+quality_score: 0.83
+evidence_count: 3
 first_seen: 2026-04-26
 last_confirmed: 2026-04-26
 claim_status: active
@@ -45,6 +46,10 @@ related_entities:
   - 1-minute data
   - tick data
   - CVD
+  - P&L tracker
+  - CSV export
+  - keyword filters
+  - bid / ask midpoint
 ---
 
 # Prediction Market Trading
@@ -52,15 +57,17 @@ related_entities:
 ## Summary
 Prediction market trading is the use of systematic or AI-assisted workflows to scan markets such as Polymarket, filter for higher-signal opportunities, and decide whether to enter `yes`, `no`, or no-trade positions.
 
-The current vault now has two strong source examples:
+The current vault now has three strong source examples:
 - one on multi-model consensus scanning and market filtering
 - one on short-interval backtesting, tick-data / CVD experimentation, and bot automation
+- one on keyword-filtered P&L tracking and retrospective trade analysis
 
 ## Key points
 - The pattern is closer to **signal ranking and market selection** than to classic indicator trading.
 - Multiple models can be used as a loose ensemble or debate layer.
 - Noise reduction matters: trade-size filters, category exclusions, and refresh logic are all part of the workflow.
 - Some prediction-market workflows move from consensus scanning into higher-resolution backtesting with 1-minute and tick data.
+- Another workflow adds a Python P&L tracker that slices exported trades by keyword and lookback window so the speaker can compare realized P&L across market types.
 - The source claims around CVD and MACD should be treated as source-local until independently validated.
 - The cluster is related to broader AI trading automation, but the venue and signal type are still distinct.
 
@@ -99,6 +106,14 @@ The current vault now has two strong source examples:
 - Notes: This expands the cluster from consensus scanning into higher-resolution bot research.
 
 #### Claim
+- Statement: A third Polymarket workflow can use a keyword-filtered P&L tracker to compare realized profit and loss across market terms and lookback windows.
+- Status: active
+- Confidence: 0.73
+- Evidence: [[source-this-ai-bot-trades-polymarket-24-7-while-i-sleep-full-claude-code-build]]
+- Last confirmed: 2026-04-26
+- Notes: This broadens the cluster from live scanning and backtesting into retrospective trade analysis.
+
+#### Claim
 - Statement: The short-interval transcript reports a 60% win-rate idea and very high trade frequency, but warns that the result may be overfit.
 - Status: active
 - Confidence: 0.60
@@ -120,11 +135,13 @@ The current vault now has two strong source examples:
 - Does tick-level CVD improve prediction-market trading results in practice?
 - Should CVD remain embedded in this page or become its own canonical concept page later?
 - Should the best use of LLMs in prediction markets be signal generation, triage, or explanation?
+- Should the P&L tracker become its own analysis topic if more sources reinforce it?
 - Should this remain a distinct topic or merge later into a broader trading-automation synthesis?
 
 ## Related pages
 - [[source-i-let-ai-agents-trade-polymarket-for-24-hours-the-results-are-insane]]
 - [[source-polymarket-5-min-claude-code-bot-are-nuts]]
+- [[source-this-ai-bot-trades-polymarket-24-7-while-i-sleep-full-claude-code-build]]
 - [[regime-trading-bot]]
 - [[tradingview-mcp]]
 - [[moondev]]
@@ -132,3 +149,4 @@ The current vault now has two strong source examples:
 ## Sources
 - [[source-i-let-ai-agents-trade-polymarket-for-24-hours-the-results-are-insane]]
 - [[source-polymarket-5-min-claude-code-bot-are-nuts]]
+- [[source-this-ai-bot-trades-polymarket-24-7-while-i-sleep-full-claude-code-build]]
