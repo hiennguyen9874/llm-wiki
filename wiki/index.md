@@ -44,6 +44,7 @@ Master catalog of the second brain. Use this file for human orientation and brow
 - [[source-polymarket-5-min-claude-code-bot-are-nuts]] — transcript on Polymarket 5-minute backtesting, tick-data / CVD experimentation, and short-interval bot automation.
 - [[source-this-ai-bot-trades-polymarket-24-7-while-i-sleep-full-claude-code-build]] — transcript on a keyword-filtered Polymarket P&L tracker, lookback slicing, and open-market valuation.
 - [[source-quantdinger]] — README documentation for the QuantDinger self-hosted AI quant operating system, Flask/Vue deployment stack, and trading-ops workflow.
+- [[source-tradingagents]] — arXiv paper + README family for the TradingAgents multi-agent financial trading framework.
 
 ## Topics and Concepts
 - [[tradingview-mcp]] — local bridge between Claude Code and TradingView Desktop, with MCP, CLI, indicator-building, and live-research tooling.
@@ -55,6 +56,7 @@ Master catalog of the second brain. Use this file for human orientation and brow
 - [[openclaw-for-tradingview]] — project page for the TradingView community-indicator mining and Pine-to-Python backtest workflow.
 - [[vibe-trading]] — project page for the broader agentic finance workspace with CLI/TUI, web UI, MCP, memory, swarms, and backtests.
 - [[quantdinger]] — project page for the self-hosted AI quant operating system with strategy generation, backtesting, live execution, and commercialization primitives.
+- [[tradingagents]] — project page for the multi-agent trading-firm framework with role specialization, debate, and benchmarked backtests.
 
 ## People
 <!-- Add person pages here -->
