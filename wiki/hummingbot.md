@@ -128,6 +128,7 @@ Its durable value is architectural breadth: the project is not just a bot, but a
 ## Related pages
 - [[source-hummingbot]]
 - [[freqtrade]]
+- [[jesse]]
 - [[regime-trading-bot]]
 - [[quantdinger]]
 - [[vibe-trading]]

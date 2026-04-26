@@ -141,6 +141,7 @@ The durable takeaway is not just that it is a bot, but that it exposes a fairly 
 ## Related pages
 - [[source-freqtrade]]
 - [[hummingbot]]
+- [[jesse]]
 - [[regime-trading-bot]]
 - [[quantdinger]]
 - [[vibe-trading]]
