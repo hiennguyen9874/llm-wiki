@@ -31,6 +31,7 @@ Master catalog of the second brain. Use this file for human orientation and brow
 
 ## Sources
 - [[source-how-to-connect-claude-to-tradingview]] — X article on connecting Claude to TradingView via `tradingview-mcp` and a local `tv` CLI.
+- [[source-how-to-connect-claude-to-tradingview-2]] — Miles Deutscher X article adding more CLI detail, streaming examples, and local-first caveats.
 
 ## Topics and Concepts
 - [[tradingview-mcp]] — local bridge between Claude Code and TradingView Desktop, with MCP and CLI tooling.
