@@ -23,7 +23,8 @@ tags:
 domain: trading
 importance: medium
 review_status: active
-related_sources: []
+related_sources:
+  - [[source-simple-4-step-ai-trading-assistant-with-claude]]
 confidence_score: 0.74
 quality_score: 0.81
 evidence_count: 1
@@ -147,6 +148,7 @@ This source adds a distinct trading-automation branch to the vault. It is not ju
 
 ## Related pages
 - [[regime-trading-bot]]
+- [[source-simple-4-step-ai-trading-assistant-with-claude]]
 
 ## Sources
 - Original raw source: `raw/articles/how-to-actually-build-a-trading-bot-with-claude-code-fully-automated.md`

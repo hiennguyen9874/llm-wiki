@@ -40,6 +40,7 @@ Master catalog of the second brain. Use this file for human orientation and brow
 - [[source-openclaw-for-tradingview]] — transcript on harvesting TradingView community indicators, converting Pine Script to Python backtests, and logging research stats.
 - [[source-vibe-trading]] — README documentation for the Vibe-Trading agentic finance workspace, memory layer, MCP surface, swarm workflows, and backtest/export stack.
 - [[source-how-to-actually-build-a-trading-bot-with-claude-code]] — transcript on a Claude Code-built regime trading bot with HMM classification, Alpaca execution, and risk controls.
+- [[source-simple-4-step-ai-trading-assistant-with-claude]] — Vietnamese video summary on a 4-step Claude Code workflow for building a personal AI trading assistant, journaling tendencies, and routine reviews.
 - [[source-i-let-ai-agents-trade-polymarket-for-24-hours-the-results-are-insane]] — transcript on an AI-agent Polymarket scanner with multi-model consensus, trade filters, and prediction-market automation.
 - [[source-polymarket-5-min-claude-code-bot-are-nuts]] — transcript on Polymarket 5-minute backtesting, tick-data / CVD experimentation, and short-interval bot automation.
 - [[source-this-ai-bot-trades-polymarket-24-7-while-i-sleep-full-claude-code-build]] — transcript on a keyword-filtered Polymarket P&L tracker, lookback slicing, and open-market valuation.
