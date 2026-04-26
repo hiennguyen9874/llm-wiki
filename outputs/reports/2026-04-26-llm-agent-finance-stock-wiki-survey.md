@@ -1,13 +1,13 @@
 ---
-title: LLM and Agent Ideas in the Current Wiki for Finance and Stocks
+title: Ý tưởng LLM và agent trong wiki hiện tại cho tài chính và cổ phiếu
 created: 2026-04-26
 last_updated: 2026-04-26
 status: draft
 page_type: synthesis
 aliases:
-  - Wiki survey of LLMs and agents in finance and stock
-  - Finance and stock agent ideas report
-  - Trading automation wiki survey
+  - Khảo sát wiki về LLM và agent trong finance và stock
+  - Báo cáo ý tưởng agent cho tài chính và cổ phiếu
+  - Khảo sát wiki về tự động hóa giao dịch
 tags:
   - llm
   - agents
@@ -59,121 +59,121 @@ related_entities:
   - OpenRouter
 ---
 
-# LLM and Agent Ideas in the Current Wiki for Finance and Stocks
+# Ý tưởng LLM và agent trong wiki hiện tại cho tài chính và cổ phiếu
 
-## Scope
-This report surveys the current wiki only. It does **not** add outside research.
+## Phạm vi
+Báo cáo này chỉ khảo sát **wiki hiện tại**. Nó **không** thêm nghiên cứu bên ngoài.
 
-The current corpus is heavily concentrated in **trading, market data, backtesting, and automation**. It has relatively little on broader finance topics such as valuation, accounting, portfolio construction, or corporate finance.
+Toàn bộ corpus hiện tại tập trung mạnh vào **giao dịch, dữ liệu thị trường, backtest và tự động hóa**. Nó có rất ít nội dung về các mảng tài chính rộng hơn như định giá, kế toán, phân bổ danh mục hay tài chính doanh nghiệp.
 
-## Executive summary
-The wiki’s finance/stock ideas cluster around one core pattern:
+## Tóm tắt điều hành
+Các ý tưởng về tài chính/cổ phiếu trong wiki xoay quanh một mẫu chính:
 
-> use LLMs and agents as **research copilots, UI operators, code generators, and strategy triage tools**, while keeping risk controls, validation, and final judgment outside the model.
+> dùng LLM và agent như **trợ lý nghiên cứu, người vận hành giao diện, trình sinh mã, và công cụ lọc/ưu tiên chiến lược**, trong khi vẫn giữ kiểm soát rủi ro, xác minh và phán đoán cuối cùng bên ngoài mô hình.
 
-The strongest recurring themes are:
-- LLM-to-TradingView workflows for live chart inspection and Pine Script iteration ([[tradingview-mcp]], [[source-how-to-connect-claude-to-tradingview]], [[source-how-to-connect-claude-to-tradingview-2]], [[source-how-to-use-claude-to-build-tradingview-indicators]])
-- live trading-bot prototyping and regime-based automation ([[source-claude-code-tradingview-live-trading-bot-0dte]], [[regime-trading-bot]], [[source-how-to-actually-build-a-trading-bot-with-claude-code]])
-- backtest-heavy idea generation and robustness filtering ([[source-gpt-55-traded-for-me-and-made-54597-percent]], [[openclaw-for-tradingview]], [[moondev]])
-- prediction-market scanning, consensus, and post-trade analysis ([[prediction-market-trading]], [[source-i-let-ai-agents-trade-polymarket-for-24-hours-the-results-are-insane]], [[source-polymarket-5-min-claude-code-bot-are-nuts]], [[source-this-ai-bot-trades-polymarket-24-7-while-i-sleep-full-claude-code-build]])
+Các chủ đề lặp lại mạnh nhất là:
+- luồng LLM ↔ TradingView để đọc chart trực tiếp và lặp Pine Script ([[tradingview-mcp]], [[source-how-to-connect-claude-to-tradingview]], [[source-how-to-connect-claude-to-tradingview-2]], [[source-how-to-use-claude-to-build-tradingview-indicators]])
+- dựng bot giao dịch trực tiếp và tự động hóa theo regime ([[source-claude-code-tradingview-live-trading-bot-0dte]], [[regime-trading-bot]], [[source-how-to-actually-build-a-trading-bot-with-claude-code]])
+- tạo ý tưởng backtest hàng loạt và lọc độ tin cậy/overfit ([[source-gpt-55-traded-for-me-and-made-54597-percent]], [[openclaw-for-tradingview]], [[moondev]])
+- quét prediction market, kết hợp consensus và phân tích sau giao dịch ([[prediction-market-trading]], [[source-i-let-ai-agents-trade-polymarket-for-24-hours-the-results-are-insane]], [[source-polymarket-5-min-claude-code-bot-are-nuts]], [[source-this-ai-bot-trades-polymarket-24-7-while-i-sleep-full-claude-code-build]])
 
-## Main idea clusters
+## Các cụm ý tưởng chính
 
-### 1) LLM as a live chart copilot
-**Facts:** `tradingview-mcp` connects Claude Code to TradingView Desktop through a local MCP / CDP bridge and exposes chart metadata, OHLCV, indicator drawings, tables, strategy tester data, screenshots, and streaming commands. The source pages also show prompt-by-prompt indicator creation and master-prompt chart control ([[tradingview-mcp]], [[source-how-to-connect-claude-to-tradingview]], [[source-how-to-connect-claude-to-tradingview-2]], [[source-how-to-use-claude-to-build-tradingview-indicators]], [[source-claude-code-tradingview-insane-trading-setup-stocks-crypto]]).
+### 1) LLM như một copilot cho chart trực tiếp
+**Fact:** `tradingview-mcp` kết nối Claude Code với TradingView Desktop qua một bridge local kiểu MCP / CDP và cung cấp metadata chart, OHLCV, indicator drawings, bảng dữ liệu, kết quả strategy tester, ảnh chụp màn hình và lệnh streaming. Các trang nguồn cũng cho thấy việc tạo indicator theo từng prompt và điều khiển chart bằng master prompt ([[tradingview-mcp]], [[source-how-to-connect-claude-to-tradingview]], [[source-how-to-connect-claude-to-tradingview-2]], [[source-how-to-use-claude-to-build-tradingview-indicators]], [[source-claude-code-tradingview-insane-trading-setup-stocks-crypto]]).
 
-**Inference:** In this wiki, the LLM is being used less as a chatbot and more as an **operator** for a live charting environment. The model is asked to inspect, change, compare, and iterate on chart state.
+**Inference:** Trong wiki này, LLM được dùng ít như chatbot và nhiều hơn như một **operator** cho môi trường chart trực tiếp. Mô hình được yêu cầu quan sát, thay đổi, so sánh và lặp lại trên trạng thái chart.
 
-**Practical use pattern:**
-- inspect live chart context
-- switch symbols/timeframes
-- add/remove indicators
-- generate or revise Pine Script
-- save the final script back to TradingView
+**Mẫu sử dụng thực tế:**
+- đọc context chart trực tiếp
+- đổi symbol / timeframe
+- thêm / xóa indicator
+- sinh hoặc sửa Pine Script
+- lưu script hoàn chỉnh về TradingView
 
-### 2) LLM as indicator author and Pine Script assistant
-**Facts:** The TradingView sources show Claude generating indicators from natural language, including open-interest plotting, EMA overlays, and save-to-account persistence ([[source-how-to-use-claude-to-build-tradingview-indicators]]). The master-prompt demo extends this to more polished setup and chart control for stocks and crypto ([[source-claude-code-tradingview-insane-trading-setup-stocks-crypto]]).
+### 2) LLM như tác giả indicator và trợ lý Pine Script
+**Fact:** Các nguồn TradingView cho thấy Claude sinh indicator từ ngôn ngữ tự nhiên, bao gồm vẽ open interest, EMA overlay và lưu vào tài khoản ([[source-how-to-use-claude-to-build-tradingview-indicators]]). Demo master-prompt mở rộng điều này thành thiết lập và điều khiển chart tinh gọn hơn cho cổ phiếu và crypto ([[source-claude-code-tradingview-insane-trading-setup-stocks-crypto]]).
 
-**Inference:** The reusable pattern is **incremental coauthoring**: one prompt, one change, one verification step. That is much more robust than asking an LLM to produce a full strategy in one shot.
+**Inference:** Mẫu dùng lại ở đây là **đồng tác giả theo từng bước nhỏ**: một prompt, một thay đổi, một bước kiểm chứng. Cách này vững hơn nhiều so với việc yêu cầu LLM sinh toàn bộ chiến lược trong một lần.
 
-**Practical use pattern:**
-- start from a narrow indicator idea
-- ask the model for a small code change
-- verify it visually on the chart
-- repeat until the indicator is usable
+**Mẫu sử dụng thực tế:**
+- bắt đầu từ một ý tưởng indicator hẹp
+- yêu cầu mô hình thực hiện một thay đổi code nhỏ
+- kiểm tra trực quan trên chart
+- lặp lại cho đến khi indicator dùng được
 
-### 3) LLM as a trading-bot architecture scaffold
-**Facts:** The wiki’s automated-bot branch describes a five-part bot architecture: brain, allocation, safety, brokerage, dashboard. The `brain` is HMM-based regime detection; the `safety` layer can veto or stop trading; Alpaca is the initial broker; paper trading is recommended before live deployment ([[regime-trading-bot]], [[source-how-to-actually-build-a-trading-bot-with-claude-code]]).
+### 3) LLM như khung kiến trúc cho bot giao dịch
+**Fact:** Nhánh bot tự động trong wiki mô tả kiến trúc bot gồm năm phần: brain, allocation, safety, brokerage, dashboard. `brain` là phát hiện regime dựa trên HMM; lớp `safety` có thể veto hoặc dừng giao dịch; Alpaca là broker ban đầu; paper trading được khuyến nghị trước khi triển khai vốn thật ([[regime-trading-bot]], [[source-how-to-actually-build-a-trading-bot-with-claude-code]]).
 
-The livestream summary also adds a bot-first trading philosophy, the RBI loop (`Research → Backtest → Incubate`), and a 0DTE thesis explored through TradingView and adjacent data sources ([[source-claude-code-tradingview-live-trading-bot-0dte]]).
+Tóm tắt livestream còn thêm triết lý giao dịch bot-first, vòng RBI (`Research → Backtest → Incubate`), và thesis 0DTE được khám phá qua TradingView cùng các nguồn dữ liệu liên quan ([[source-claude-code-tradingview-live-trading-bot-0dte]]).
 
-**Inference:** The model is being used to **scaffold the system**, not to own the whole system. The durable design rule is to keep risk controls, validation, and deployment gates separate from the model’s output.
+**Inference:** Mô hình đang được dùng để **dựng hệ thống**, chứ không phải tự nắm toàn bộ hệ thống. Nguyên tắc bền vững là giữ kiểm soát rủi ro, xác minh và ngưỡng triển khai tách biệt khỏi đầu ra của mô hình.
 
-**Practical use pattern:**
-- let the LLM draft the system structure
-- use a regime classifier or other signal layer
-- enforce independent risk rules
-- paper trade before live capital
+**Mẫu sử dụng thực tế:**
+- để LLM phác thảo cấu trúc hệ thống
+- dùng bộ phân loại regime hoặc lớp tín hiệu khác
+- áp đặt các luật rủi ro độc lập
+- paper trade trước khi dùng vốn thật
 
-### 4) LLM as a backtest amplifier and idea generator
-**Facts:** The liquidation-data comparison source pits GPT-5.5 High against Claude Opus 4.7, with five-agent expansion and heavy attention to overfit risk. The OpenClaw workflow turns TradingView community indicators into Python backtests and logs metrics like ROI, drawdown, Sharpe, Sortino, EV, and trade count. MoonDev appears as the recurring data/tooling layer behind several of these experiments ([[source-gpt-55-traded-for-me-and-made-54597-percent]], [[openclaw-for-tradingview]], [[moondev]]).
+### 4) LLM như bộ khuếch đại backtest và máy sinh ý tưởng
+**Fact:** Nguồn so sánh dữ liệu liquidation đặt GPT-5.5 High đối đầu Claude Opus 4.7, với việc mở rộng bằng năm agent và chú ý mạnh đến rủi ro overfit. Workflow OpenClaw biến indicator cộng đồng từ TradingView thành backtest Python và ghi log các chỉ số như ROI, drawdown, Sharpe, Sortino, EV và số lệnh. MoonDev xuất hiện như lớp dữ liệu / tooling lặp lại phía sau nhiều thí nghiệm này ([[source-gpt-55-traded-for-me-and-made-54597-percent]], [[openclaw-for-tradingview]], [[moondev]]).
 
-**Inference:** The LLM is useful here as a **candidate generator and triage layer**. It helps create many hypotheses quickly, but the wiki consistently treats headline backtest results as suspicious until robustness checks pass.
+**Inference:** LLM ở đây hữu ích như một **máy sinh ứng viên và lớp triage**. Nó giúp tạo nhanh nhiều giả thuyết, nhưng wiki nhất quán coi các kết quả backtest đẹp bất thường là đáng ngờ cho đến khi qua kiểm tra độ bền.
 
-**Practical use pattern:**
-- generate several candidate strategies
-- backtest quickly on available data
-- reject obvious overfit results
-- only promote candidates that survive robustness review
+**Mẫu sử dụng thực tế:**
+- sinh nhiều chiến lược ứng viên
+- backtest nhanh trên dữ liệu có sẵn
+- loại bỏ các kết quả overfit rõ ràng
+- chỉ đưa các ứng viên vượt qua review robustness lên tầng cao hơn
 
-### 5) LLM as a prediction-market scanner and analyst
-**Facts:** The prediction-market branch uses multiple models to scan Polymarket, vote `yes` / `no` / `no trade`, and aggregate consensus. A second source adds short-interval backtesting with 1-minute data and tick-level CVD work. A third source adds keyword-filtered P&L analysis for trade history review ([[prediction-market-trading]], [[source-i-let-ai-agents-trade-polymarket-for-24-hours-the-results-are-insane]], [[source-polymarket-5-min-claude-code-bot-are-nuts]], [[source-this-ai-bot-trades-polymarket-24-7-while-i-sleep-full-claude-code-build]]).
+### 5) LLM như máy quét và nhà phân tích prediction market
+**Fact:** Nhánh prediction market dùng nhiều mô hình để quét Polymarket, bỏ phiếu `yes` / `no` / `no trade`, rồi gom thành consensus. Nguồn thứ hai thêm backtest interval ngắn với dữ liệu 1 phút và thử nghiệm CVD từ tick data. Nguồn thứ ba thêm phân tích P&L được lọc theo keyword cho việc xem lại lịch sử giao dịch ([[prediction-market-trading]], [[source-i-let-ai-agents-trade-polymarket-for-24-hours-the-results-are-insane]], [[source-polymarket-5-min-claude-code-bot-are-nuts]], [[source-this-ai-bot-trades-polymarket-24-7-while-i-sleep-full-claude-code-build]]).
 
-**Inference:** The same LLM/agent pattern extends beyond stock charts into event markets, but the task shifts from technical-analysis signals to **signal ranking, filtering, and retrospective analysis**.
+**Inference:** Mẫu LLM/agent tương tự được mở rộng từ chart cổ phiếu sang thị trường sự kiện, nhưng nhiệm vụ chuyển từ tín hiệu technical analysis sang **xếp hạng tín hiệu, lọc nhiễu, và phân tích hậu kiểm**.
 
-**Practical use pattern:**
-- scan markets
-- filter noise by category, trade size, or price band
-- aggregate multiple model opinions
-- backtest with higher-resolution data when possible
-- review P&L by keyword or time window
+**Mẫu sử dụng thực tế:**
+- quét thị trường
+- lọc nhiễu theo category, quy mô trade, hoặc vùng giá
+- tổng hợp nhiều ý kiến mô hình
+- backtest với dữ liệu độ phân giải cao hơn nếu có
+- xem lại P&L theo keyword hoặc khung thời gian
 
-## Cross-cutting patterns
-These are the most reusable patterns I see across the current wiki:
+## Các mẫu xuyên suốt
+Đây là các mẫu dùng lại rõ nhất trong wiki hiện tại:
 
-1. **LLM as interface layer** — the model talks to charting or market tooling ([[tradingview-mcp]], [[prediction-market-trading]]).
-2. **LLM as code generator** — the model writes Pine Script, Python backtests, or bot scaffolding ([[source-how-to-use-claude-to-build-tradingview-indicators]], [[openclaw-for-tradingview]], [[source-how-to-actually-build-a-trading-bot-with-claude-code]]).
-3. **LLM as hypothesis expander** — multiple agents/models generate candidate strategies or votes ([[source-gpt-55-traded-for-me-and-made-54597-percent]], [[source-i-let-ai-agents-trade-polymarket-for-24-hours-the-results-are-insane]]).
-4. **Human or hard-rule risk gate** — the model does not get final authority over deployment, exposure, or stopping conditions ([[regime-trading-bot]], [[source-how-to-actually-build-a-trading-bot-with-claude-code]]).
-5. **Validation loop matters more than the model name** — the wiki repeatedly warns that strong-looking results may be overfit, promotional, or source-local ([[source-gpt-55-traded-for-me-and-made-54597-percent]], [[source-i-gave-claude-ai-full-access-to-tradingview-the-scalping-strategy-it-built-was-insane]], [[source-polymarket-5-min-claude-code-bot-are-nuts]]).
+1. **LLM như lớp giao diện** — mô hình nói chuyện với tooling chart hoặc market ([[tradingview-mcp]], [[prediction-market-trading]]).
+2. **LLM như trình sinh mã** — mô hình viết Pine Script, backtest Python, hoặc khung bot ([[source-how-to-use-claude-to-build-tradingview-indicators]], [[openclaw-for-tradingview]], [[source-how-to-actually-build-a-trading-bot-with-claude-code]]).
+3. **LLM như bộ mở rộng giả thuyết** — nhiều agent / model sinh chiến lược ứng viên hoặc phiếu bầu ([[source-gpt-55-traded-for-me-and-made-54597-percent]], [[source-i-let-ai-agents-trade-polymarket-for-24-hours-the-results-are-insane]]).
+4. **Cổng kiểm soát rủi ro bởi người hoặc luật cứng** — mô hình không có quyền cuối cùng về triển khai, mức phơi nhiễm, hay điều kiện dừng ([[regime-trading-bot]], [[source-how-to-actually-build-a-trading-bot-with-claude-code]]).
+5. **Vòng xác minh quan trọng hơn tên model** — wiki liên tục cảnh báo rằng kết quả đẹp có thể bị overfit, mang tính quảng bá, hoặc chỉ đúng trong phạm vi nguồn gốc ([[source-gpt-55-traded-for-me-and-made-54597-percent]], [[source-i-gave-claude-ai-full-access-to-tradingview-the-scalping-strategy-it-built-was-insane]], [[source-polymarket-5-min-claude-code-bot-are-nuts]]).
 
 ## Fact vs inference
-### Supported facts
-- There is a real TradingView-Claude bridge page and multiple source pages describing it ([[tradingview-mcp]], [[source-how-to-connect-claude-to-tradingview]], [[source-how-to-connect-claude-to-tradingview-2]], [[source-how-to-use-claude-to-build-tradingview-indicators]], [[source-claude-code-tradingview-insane-trading-setup-stocks-crypto]]).
-- There is a regime-based bot architecture with explicit risk controls and paper-trading guidance ([[regime-trading-bot]], [[source-how-to-actually-build-a-trading-bot-with-claude-code]]).
-- There are backtest and robustness-oriented workflows using liquidation data and TradingView community indicators ([[source-gpt-55-traded-for-me-and-made-54597-percent]], [[openclaw-for-tradingview]], [[moondev]]).
-- There is a separate Polymarket / prediction-market branch with consensus scanning, short-interval backtests, and P&L tracking ([[prediction-market-trading]], [[source-i-let-ai-agents-trade-polymarket-for-24-hours-the-results-are-insane]], [[source-polymarket-5-min-claude-code-bot-are-nuts]], [[source-this-ai-bot-trades-polymarket-24-7-while-i-sleep-full-claude-code-build]]).
+### Các fact được hỗ trợ
+- Có một trang bridge TradingView-Claude thực sự và nhiều trang nguồn mô tả nó ([[tradingview-mcp]], [[source-how-to-connect-claude-to-tradingview]], [[source-how-to-connect-claude-to-tradingview-2]], [[source-how-to-use-claude-to-build-tradingview-indicators]], [[source-claude-code-tradingview-insane-trading-setup-stocks-crypto]]).
+- Có kiến trúc bot theo regime với kiểm soát rủi ro rõ ràng và hướng dẫn paper-trading ([[regime-trading-bot]], [[source-how-to-actually-build-a-trading-bot-with-claude-code]]).
+- Có workflow backtest và kiểm tra robustness dựa trên liquidation data và indicator cộng đồng TradingView ([[source-gpt-55-traded-for-me-and-made-54597-percent]], [[openclaw-for-tradingview]], [[moondev]]).
+- Có một nhánh Polymarket / prediction market riêng với consensus scanning, backtest interval ngắn, và theo dõi P&L ([[prediction-market-trading]], [[source-i-let-ai-agents-trade-polymarket-for-24-hours-the-results-are-insane]], [[source-polymarket-5-min-claude-code-bot-are-nuts]], [[source-this-ai-bot-trades-polymarket-24-7-while-i-sleep-full-claude-code-build]]).
 
-### Inferences
-- The wiki is converging on a broader **trading automation** cluster rather than separate one-off demos.
-- The most durable use of LLMs here is **research acceleration plus orchestration**, not autonomous trading without human oversight.
-- Stock/finance coverage is still narrow: it is mostly technical trading and prediction markets, not broader investing or financial analysis.
+### Các inference
+- Wiki đang hội tụ về một cụm lớn hơn là **trading automation** thay vì nhiều demo rời rạc.
+- Cách dùng LLM bền vững nhất ở đây là **tăng tốc nghiên cứu + điều phối**, không phải tự động giao dịch hoàn toàn không cần người giám sát.
+- Phạm vi finance/cổ phiếu hiện vẫn hẹp: chủ yếu là giao dịch kỹ thuật và prediction market, không phải đầu tư hay phân tích tài chính rộng hơn.
 
-## Gaps and next likely syntheses
-- The corpus would benefit from a broader **trading-automation** synthesis page if more sources arrive.
-- The tradingview branch may deserve a canonical page hierarchy for setup, indicator authoring, and live research.
-- The Polymarket branch may eventually need a split between scanning, backtesting, and P&L analytics if it keeps growing.
-- There is very little on non-trading finance topics, so if that area matters, it needs new sources.
+## Khoảng trống và các tổng hợp tiếp theo có khả năng cần làm
+- Corpus sẽ hưởng lợi từ một trang tổng hợp rộng hơn kiểu **trading-automation** nếu còn nguồn mới xuất hiện.
+- Nhánh TradingView có thể cần một cấu trúc canonical cho setup, authoring indicator, và live research.
+- Nhánh Polymarket có thể cần tách riêng giữa scanning, backtesting, và phân tích P&L nếu tiếp tục lớn lên.
+- Gần như chưa có gì về mảng finance không liên quan giao dịch, nên nếu muốn mở rộng sang đó thì cần thêm nguồn mới.
 
-## Bottom line
-The current wiki suggests one clear operating model:
+## Kết luận
+Wiki hiện tại gợi ý một mô hình vận hành rất rõ:
 
-> Use LLMs and agents to **see the market, generate code, compare strategies, and organize experiments**; keep **risk, validation, and deployment judgment** outside the model.
+> Dùng LLM và agent để **nhìn thị trường, sinh mã, so sánh chiến lược, và tổ chức thí nghiệm**; giữ **rủi ro, xác minh, và phán đoán triển khai** ở bên ngoài mô hình.
 
-That is the strongest durable idea in the current corpus.
+Đó là ý tưởng bền vững nhất trong corpus hiện tại.
 
-## Pages used
-- [[wiki/overview]] and [[wiki/index]] for orientation
+## Các trang đã dùng
+- [[wiki/overview]] và [[wiki/index]] để định hướng
 - [[tradingview-mcp]]
 - [[regime-trading-bot]]
 - [[moondev]]
