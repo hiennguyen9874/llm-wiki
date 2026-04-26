@@ -143,6 +143,11 @@ The fifth source presents the workflow as a master-prompt, no-terminal demo that
 - How much of the behavior described in the sources has been independently verified?
 - Which parts of the workflow are stable enough to rely on versus merely demonstrated in the articles?
 
+## Related pages
+- [[vibe-trading]]
+- [[openclaw-for-tradingview]]
+- [[regime-trading-bot]]
+
 ## Sources
 - [[source-how-to-connect-claude-to-tradingview]]
 - [[source-how-to-connect-claude-to-tradingview-2]]

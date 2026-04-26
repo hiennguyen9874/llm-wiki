@@ -116,6 +116,7 @@ A regime trading bot is an automated trading system that classifies the current 
 
 ## Related pages
 - [[source-how-to-actually-build-a-trading-bot-with-claude-code]]
+- [[vibe-trading]]
 
 ## Sources
 - [[source-how-to-actually-build-a-trading-bot-with-claude-code]]

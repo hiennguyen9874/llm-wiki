@@ -38,6 +38,7 @@ Master catalog of the second brain. Use this file for human orientation and brow
 - [[source-i-gave-claude-ai-full-access-to-tradingview-the-scalping-strategy-it-built-was-insane]] — YouTube transcript on Claude-generated Ethereum scalping strategy design, BlackCat indicators, ATR bands, and a 30-minute optimization claim.
 - [[source-gpt-55-traded-for-me-and-made-54597-percent]] — transcript on GPT-5.5 vs Claude Opus 4.7 liquidation-data backtests, overfit warnings, and robustness follow-up.
 - [[source-openclaw-for-tradingview]] — transcript on harvesting TradingView community indicators, converting Pine Script to Python backtests, and logging research stats.
+- [[source-vibe-trading]] — README documentation for the Vibe-Trading agentic finance workspace, memory layer, MCP surface, swarm workflows, and backtest/export stack.
 - [[source-how-to-actually-build-a-trading-bot-with-claude-code]] — transcript on a Claude Code-built regime trading bot with HMM classification, Alpaca execution, and risk controls.
 - [[source-i-let-ai-agents-trade-polymarket-for-24-hours-the-results-are-insane]] — transcript on an AI-agent Polymarket scanner with multi-model consensus, trade filters, and prediction-market automation.
 - [[source-polymarket-5-min-claude-code-bot-are-nuts]] — transcript on Polymarket 5-minute backtesting, tick-data / CVD experimentation, and short-interval bot automation.
@@ -51,6 +52,7 @@ Master catalog of the second brain. Use this file for human orientation and brow
 
 ## Projects
 - [[openclaw-for-tradingview]] — project page for the TradingView community-indicator mining and Pine-to-Python backtest workflow.
+- [[vibe-trading]] — project page for the broader agentic finance workspace with CLI/TUI, web UI, MCP, memory, swarms, and backtests.
 
 ## People
 <!-- Add person pages here -->

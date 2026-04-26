@@ -91,6 +91,7 @@ related_entities:
 - [[source-openclaw-for-tradingview]]
 - [[moondev]]
 - [[tradingview-mcp]]
+- [[vibe-trading]]
 - [[source-i-gave-claude-ai-full-access-to-tradingview-the-scalping-strategy-it-built-was-insane]]
 - [[source-gpt-55-traded-for-me-and-made-54597-percent]]
 
