@@ -39,6 +39,7 @@ The explainer attributes gated MLA, MLA query LoRA, output gating, SiTU expert a
 
 - **Uses:** [Delta-rule and gated associative memory](delta-rule-and-gated-associative-memory.md) through fine-grained KDA state updates.
 - **Uses:** [Attention Residuals](attention-residuals.md) for selective access across depth.
+- **Contrasts with:** [Switch Transformer sparse routing](switch-transformer-sparse-routing.md): the supplied Kimi K3 overview reports top-16 routed experts per token, whereas Switch uses top-1 routing.
 - **Mitigates limits of:** [Linear attention as fixed-state memory](linear-attention-as-fixed-state-memory.md) by periodically retaining softmax access to token context.
 
 ## Evidence limits
