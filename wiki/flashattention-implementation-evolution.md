@@ -10,6 +10,9 @@ sources:
   - id: flashattention-summary
     resource: ../raw/FlashAttention.md
     title: "FlashAttention overview (Vietnamese summary)"
+  - id: flashattention-2-summary
+    resource: ../raw/FlashAttention-2.md
+    title: "FlashAttention-2 overview (Vietnamese summary)"
 ---
 
 # FlashAttention implementation evolution
@@ -20,7 +23,13 @@ FlashAttention-2 and FlashAttention-3 retain tiled, exact softmax attention whil
 
 FlashAttention fuses score computation, scaling, masking, softmax, dropout, and value aggregation so intermediate tensors mostly remain in registers or shared memory rather than making separate HBM round trips.[^flashattention-summary]
 
-The source characterizes FlashAttention-2 as reducing non-matmul work, parallelizing over the sequence dimension within a head, and improving warp work partitioning to reduce shared-memory communication. It reports approximately $2\times$ kernel speedup over the first version in its tested benchmarks, with reported A100 utilization figures that remain configuration-specific.[^flashattention-summary]
+FlashAttention-2 shifts more of the main loop toward Tensor-Core matrix multiplies by maintaining an unnormalized output accumulator and deferring division by the softmax normalizer until all key/value tiles have been processed. It also skips causal tiles wholly outside the allowed triangle, reducing masked work.[^flashattention-2-summary]
+
+Rather than making concurrency depend mainly on batch and head count, FlashAttention-2 assigns separate query-row tiles within each head to thread blocks. For a query length $N$ and query-tile height $B_r$, this creates roughly $B\,H\,\lceil N/B_r\rceil$ blocks, which can improve occupancy for long sequences with small batches.[^flashattention-2-summary]
+
+Within a thread block, its split-Q partition gives each warp independent query rows while sharing the key/value tile. This avoids the inter-warp reduction, shared-memory traffic, and synchronization associated with a split-K arrangement in which warps produce partial results for the same query rows.[^flashattention-2-summary]
+
+The source reports approximately $2\times$ kernel speedup over the first version in tested configurations, 50–73% of theoretical A100 peak FLOPs/s, and up to 225 TFLOPs/s per A100 in a reported end-to-end GPT-style training configuration. These are configuration-specific benchmark results, not device-independent guarantees.[^flashattention-2-summary]
 
 FlashAttention-3 is described as a Hopper-oriented redesign using warp specialization, asynchronous transfer/compute pipelining, interleaving GEMM with softmax work, and FP8 support with block quantization and error-reduction techniques. The source reports roughly $1.5$–$2\times$ speedup over FlashAttention-2 on tested H100 configurations; this is a benchmark result, not a device-independent guarantee.[^flashattention-summary]
 
@@ -38,3 +47,5 @@ FlashAttention makes full attention more efficient but does not remove its $O(N^
 - **Contrasts with:** [Linear attention as fixed-state memory](linear-attention-as-fixed-state-memory.md), which changes the retrieval formulation and state-growth behavior rather than optimizing exact full-attention kernels.[^flashattention-summary]
 
 [^flashattention-summary]: “FlashAttention overview” (Vietnamese summary), [raw source](../raw/FlashAttention.md), Sections 11–16 and 18. It cites Dao et al.'s FlashAttention (2022), FlashAttention-2 (2023), FlashAttention-3 (2024), and the official implementation repository; none has been independently ingested here.
+
+[^flashattention-2-summary]: “FlashAttention-2 overview” (Vietnamese summary), [raw source](../raw/FlashAttention-2.md), Sections 3–11. This secondary source cites Dao, “FlashAttention-2: Faster Attention with Better Parallelism and Work Partitioning” (2023/ICLR 2024); the primary paper has not been independently ingested here.
