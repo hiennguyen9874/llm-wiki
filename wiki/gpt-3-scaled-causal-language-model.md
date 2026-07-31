@@ -5,7 +5,7 @@ description: GPT-3 scales the GPT-2-style causal Transformer to 175B parameters,
 tags: [gpt-3, causal-language-modeling, pre-training, sparse-attention, training-data]
 status: stable
 created: 2026-07-31
-generated: { by: llm-wiki-agent/1, at: 2026-07-31T15:42:00Z }
+generated: { by: llm-wiki-agent/1, at: 2026-07-31T16:07:09Z }
 sources:
   - id: brown-gpt-3-2020-v4
     resource: ../raw/arXiv-2005.14165v4/main.tex
@@ -33,5 +33,6 @@ The source filters Common Crawl by a logistic-regression quality score trained t
 - **Extends:** [GPT-2 WebText pre-training and architecture](gpt-2-webtext-pre-training-and-architecture.md) with a larger context, data mixture, scale, and alternating sparse-attention pattern.
 - **Applies:** [Kaplan compute-optimal training allocation](kaplan-compute-optimal-training-allocation.md)'s then-current prescription to favor larger models trained on comparatively fewer tokens.
 - **Evaluated by:** [GPT-3 in-context learning evaluation and results](gpt-3-in-context-learning-evaluation-and-results.md) and [GPT-3 benchmark contamination audit](gpt-3-benchmark-contamination-audit.md).
+- **Limited by:** [GPT-3 limitations and social risk](gpt-3-limitations-and-social-risk.md), which records the source report’s capability, calibration, bias, cost, and misuse qualifications.
 
 [^brown-gpt-3-2020-v4]: Tom B. Brown et al., “Language Models are Few-Shot Learners,” arXiv:2005.14165v4 (2020), bundled [LaTeX source](../raw/arXiv-2005.14165v4/main.tex), especially Sections 2.1–2.3, Appendix A–B, and Tables 1–2.

@@ -1,6 +1,7 @@
 # Wiki Update Log
 
 ## 2026-07-31
+- **Lint**: Repaired 1 retrieval-context issue; report saved to [wiki lint report](../outputs/wiki-lint-2026-07-31.md).
 - **Ingest**: Compiled [Language Models are Few-Shot Learners](../raw/arXiv-2005.14165v4/main.tex); created [GPT-3 scaled causal language model](gpt-3-scaled-causal-language-model.md), [GPT-3 in-context learning evaluation and results](gpt-3-in-context-learning-evaluation-and-results.md), [GPT-3 benchmark contamination audit](gpt-3-benchmark-contamination-audit.md), and [GPT-3 limitations and social risk](gpt-3-limitations-and-social-risk.md).
 - **Ingest**: Compiled [Scaling Laws for Neural Language Models](../raw/arXiv-2001.08361v1/main.tex); created [Empirical language-model loss scaling laws](empirical-language-model-loss-scaling-laws.md) and [Kaplan compute-optimal training allocation](kaplan-compute-optimal-training-allocation.md).
 - **Ingest**: Compiled [Language Models are Unsupervised Multitask Learners](../raw/gpt2.pdf); created [GPT-2 WebText pre-training and architecture](gpt-2-webtext-pre-training-and-architecture.md) and [GPT-2 zero-shot multitask evaluation and overlap auditing](gpt-2-zero-shot-multitask-evaluation-and-overlap-auditing.md), and updated [GPT generative pre-training and task adaptation](gpt-generative-pre-training-and-task-adaptation.md).
