@@ -1,6 +1,7 @@
 # Wiki Update Log
 
 ## 2026-07-31
+- **Ingest**: Compiled [Chinchilla overview (summary)](../raw/Chinchilla.md); created [Chinchilla compute-optimal training allocation](chinchilla-compute-optimal-training-allocation.md) and [Chinchilla training validation and evaluation](chinchilla-training-validation-and-evaluation.md), and updated [Kaplan compute-optimal training allocation](kaplan-compute-optimal-training-allocation.md) and [GPT-3 scaled causal language model](gpt-3-scaled-causal-language-model.md).
 - **Ingest**: Compiled [The Pile: An 800GB Dataset of Diverse Text for Language Modeling (summary)](../raw/ThePile.md); created [The Pile training corpus](the-pile-training-corpus.md) and [The Pile data governance](the-pile-data-governance.md).
 - **Lint**: Repaired 1 retrieval-context issue; report saved to [wiki lint report](../outputs/wiki-lint-2026-07-31.md).
 - **Ingest**: Compiled [Language Models are Few-Shot Learners](../raw/arXiv-2005.14165v4/main.tex); created [GPT-3 scaled causal language model](gpt-3-scaled-causal-language-model.md), [GPT-3 in-context learning evaluation and results](gpt-3-in-context-learning-evaluation-and-results.md), [GPT-3 benchmark contamination audit](gpt-3-benchmark-contamination-audit.md), and [GPT-3 limitations and social risk](gpt-3-limitations-and-social-risk.md).

@@ -5,11 +5,14 @@ description: Under Kaplan et al.’s fitted laws, compute-efficient training sca
 tags: [scaling-laws, compute-optimal-training, training-compute, early-stopping, batch-size]
 status: stable
 created: 2026-07-31
-generated: { by: llm-wiki-agent/1, at: 2026-07-31T15:36:58Z }
+generated: { by: llm-wiki-agent/1, at: 2026-07-31T23:12:13+07:00 }
 sources:
   - id: kaplan-scaling-laws-2020-v1
     resource: ../raw/arXiv-2001.08361v1/main.tex
     title: Scaling Laws for Neural Language Models
+  - id: chinchilla-summary
+    resource: ../raw/Chinchilla.md
+    title: Chinchilla overview (summary)
 ---
 
 # Kaplan compute-optimal training allocation
@@ -44,5 +47,8 @@ These exponents and the resulting allocation are conditional on the paper’s de
 
 - **Depends on:** [Empirical language-model loss scaling laws](empirical-language-model-loss-scaling-laws.md), whose fitted exponents supply this allocation.
 - **Applies to:** decoder-only instances of [Transformer sequence transduction architecture](transformer-sequence-transduction-architecture.md) in the reported experiments.
+- **Contradicted by:** [Chinchilla compute-optimal training allocation](chinchilla-compute-optimal-training-allocation.md), which reports a later near-balanced fixed-compute allocation.[^chinchilla-summary]
 
 [^kaplan-scaling-laws-2020-v1]: Jared Kaplan et al., “Scaling Laws for Neural Language Models,” arXiv:2001.08361v1, bundled [LaTeX source](../raw/arXiv-2001.08361v1/main.tex), especially Sections 4–6 and Appendix A.
+
+[^chinchilla-summary]: “Chinchilla overview (summary),” [raw source](../raw/Chinchilla.md), Sections 6–7. This is a secondary summary; the primary Chinchilla paper has not been independently ingested here.
