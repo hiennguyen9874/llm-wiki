@@ -4,6 +4,7 @@
 - **Ingest**: Compiled [Speculative decoding overview (Vietnamese summary)](../raw/SpeculativeDecoding.md); created [Speculative decoding exact sampling](speculative-decoding-exact-sampling.md) and [Speculative decoding performance trade-offs](speculative-decoding-performance-trade-offs.md).
 
 ## 2026-07-31
+- **Ingest**: Compiled [PagedAttention and vLLM in LLM serving (Vietnamese summary)](../raw/PagedAttention.md); created [PagedAttention KV-cache serving](pagedattention-kv-cache-serving.md).
 - **Ingest**: Compiled [GQA overview (Vietnamese summary)](../raw/GQA.md); created [GQA checkpoint conversion and uptraining](gqa-checkpoint-conversion-and-uptraining.md) and updated [Multi-query and grouped-query attention](multi-query-and-grouped-query-attention.md).
 - **Ingest**: Compiled [MQA overview (Vietnamese summary)](../raw/MQA.md); created [Multi-query and grouped-query attention](multi-query-and-grouped-query-attention.md) and updated [Scaled dot-product and multi-head attention](scaled-dot-product-and-multi-head-attention.md) and [FlashAttention implementation evolution](flashattention-implementation-evolution.md).
 - **Ingest**: Compiled [ALiBi overview (Vietnamese summary)](../raw/ALiBi.md); created [ALiBi attention with linear biases](alibi-attention-with-linear-biases.md) and updated [Rotary position embedding (RoPE)](rotary-position-embedding.md) and [BLOOM open multilingual language model](bloom-open-multilingual-language-model.md).
