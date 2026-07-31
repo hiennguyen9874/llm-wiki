@@ -5,11 +5,14 @@ description: Practical MoE training requires bounded per-expert token capacity, 
 tags: [mixture-of-experts, sparse-models, distributed-training, load-balancing]
 status: draft
 created: 2026-07-31
-generated: { by: llm-wiki-agent/1, at: 2026-07-31T17:19:23Z }
+generated: { by: llm-wiki-agent/1, at: 2026-08-01T00:26:20+07:00 }
 sources:
   - id: moe-overview-2026
     resource: ../raw/MixtureofExperts.md
     title: "Switch Transformer and Mixture of Experts in LLMs (Vietnamese overview)"
+  - id: muon-overview-2026
+    resource: ../raw/MuonOptimizer.md
+    title: Muon Optimizer overview (Vietnamese summary)
 ---
 
 # Mixture-of-Experts training and systems trade-offs
@@ -34,15 +37,19 @@ The overview reports three Switch-specific stability measures: compute router lo
 - Small batches relative to the expert count yield poor utilization, many empty capacity slots, and unstable balance.
 - Fine-tuning data may not exercise every expert sufficiently, and router drift or expert overfitting can impair downstream transfer.
 - Attention, embeddings, dense layers, KV cache, router work, padding, and networking are excluded or only partly represented by an active-expert parameter count.[^moe-overview-2026]
+- The Muon overview reports Moonlight, a 2.24B-active/15.29B-total-parameter MoE trained with Muon; this optimizer result does not remove the routing, dispatch, or total-weight-memory constraints above.[^muon-overview-2026]
 
 ## Relationships
 
 - **Operationalizes:** [Switch Transformer sparse routing](switch-transformer-sparse-routing.md) through capacity limits, balancing, precision policy, and expert parallelism.
 - **Applies to:** [DeepSeekMoE expert specialization](deepseekmoe-expert-specialization.md), which adds fine-grained top-$k$ routing and an always-on shared path; its reported results and systems behavior require primary-source verification.
 - **Applies to:** [Kimi K3 hybrid retrieval architecture](kimi-k3-hybrid-retrieval-architecture.md), whose supplied overview describes routed latent-space experts; its system behavior requires primary-source verification.
+- **Related optimizer evidence:** [Muon LLM training scaling and operational trade-offs](muon-llm-training-scaling-and-operational-trade-offs.md) describes the supplied Moonlight result and the distributed cost of full-matrix orthogonalization.
 
 ## Evidence limits
 
 This page compiles a secondary Vietnamese overview that cites the Switch Transformer paper. The primary paper and implementation evidence were not bundled, so the formulas, thresholds, and reported training behavior remain attributed to the overview.[^moe-overview-2026]
 
 [^moe-overview-2026]: “Switch Transformer và Mixture of Experts trong LLM,” [raw source](../raw/MixtureofExperts.md), citing Fedus, Zoph, and Shazeer, “Switch Transformers: Scaling to Trillion Parameter Models with Simple and Efficient Sparsity” (2021/2022).
+
+[^muon-overview-2026]: “Muon Optimizer overview (Vietnamese summary),” [raw source](../raw/MuonOptimizer.md), Section 11; it cites “Muon is Scalable for LLM Training” (arXiv:2502.16982).
