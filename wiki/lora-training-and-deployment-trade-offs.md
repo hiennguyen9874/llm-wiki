@@ -5,11 +5,14 @@ description: LoRA reduces trainable parameter and optimizer-state memory, but it
 tags: [lora, peft, fine-tuning, gpu-memory, inference, limitations]
 status: draft
 created: 2026-07-31
-generated: { by: llm-wiki-agent/1, at: 2026-07-31T23:31:26+07:00 }
+generated: { by: llm-wiki-agent/1, at: 2026-07-31T16:33:43Z }
 sources:
   - id: lora-summary
     resource: ../raw/LoRA.md
     title: "LoRA overview (Vietnamese summary)"
+  - id: qlora-summary
+    resource: ../raw/QLoRA.md
+    title: "QLoRA overview (Vietnamese summary)"
 ---
 
 # LoRA training and deployment trade-offs
@@ -30,11 +33,14 @@ Merging a trained update into one base model can avoid a separate adapter comput
 
 A large adapter fleet remains an operational system: it needs compatibility checks against the base model, versioning, routing, batching, tests, and access control. Small per-adapter files do not remove those governance and reliability requirements.[^lora-summary]
 
-QLoRA is distinct from LoRA: the source describes it as using a quantized, typically 4-bit, frozen base while training higher-precision LoRA adapters. Quantization is therefore not required by the original LoRA mechanism.[^lora-summary]
+QLoRA is distinct from LoRA: it uses a quantized, typically 4-bit, frozen base while training higher-precision LoRA adapters. Quantization is therefore not required by the original LoRA mechanism; see [QLoRA quantized adapter fine-tuning](qlora-quantized-adapter-fine-tuning.md).[^qlora-summary]
 
 ## Relationships
 
 - **Qualifies:** [LoRA low-rank adaptation](lora-low-rank-adaptation.md).
 - **Contrasts with:** [InstructGPT human-feedback alignment](instructgpt-human-feedback-alignment.md); LoRA changes which parameters are trained during adaptation, while the documented InstructGPT recipe specifies supervision and preference-optimization stages.[^lora-summary]
+- **Extended by:** [QLoRA memory, evaluation, and deployment trade-offs](qlora-memory-evaluation-and-deployment-trade-offs.md); QLoRA adds frozen-base quantization and its memory and runtime consequences.[^qlora-summary]
 
 [^lora-summary]: “LoRA overview” (Vietnamese summary), [raw source](../raw/LoRA.md), Sections 8–14 and 16–18. This is secondary-source evidence that links to Hu et al., “LoRA: Low-Rank Adaptation of Large Language Models,” ICLR 2022 / arXiv:2106.09685; the primary paper has not been independently ingested here.
+
+[^qlora-summary]: “QLoRA overview” (Vietnamese summary), [raw source](../raw/QLoRA.md), Sections 2–3 and 8–11. This is secondary-source evidence summarizing Dettmers et al., “QLoRA: Efficient Finetuning of Quantized LLMs,” NeurIPS 2023; the primary paper has not been independently ingested here.
