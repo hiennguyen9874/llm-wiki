@@ -5,7 +5,7 @@ description: "Bản tổng hợp luận điểm của một livestream về bán
 tags: [co-phieu, margin, dinh-gia, quan-tri-rui-ro, viet-nam]
 status: draft
 created: 2026-07-31
-generated: { by: llm-wiki-agent/1, at: 2026-07-31T14:30:00Z }
+generated: { by: llm-wiki-agent/1, at: 2026-07-31T14:22:57Z }
 sources:
   - id: raw-quang-dung-2026-07-27-live
     resource: ../../raw/quang-dung/2026-07/2026-07-27-live.md
@@ -62,9 +62,14 @@ Việc một mã hoặc ngành xuất hiện ở đây chỉ cho biết nó đư
 4. Không cơ cấu danh mục cảm tính sau khi giá đã giảm sâu; đổi từ một cổ phiếu đang giảm sang cổ phiếu khác đang giảm có thể chỉ là “đảo cổ phiếu”. Chỉ nên cơ cấu khi luận điểm doanh nghiệp có vấn đề nghiêm trọng hoặc có một luận điểm thay thế rõ ràng.
 5. Tích sản không phù hợp trong mọi thị trường. Nguồn nghiêng về đầu tư theo chu kỳ ở thị trường Việt Nam, đồng thời nhấn mạnh phải bảo toàn công việc, thu nhập, sức khỏe và sức mua cá nhân.
 
+## Bổ sung: thanh khoản không đồng nghĩa chi phí vốn giảm
+
+Nguồn ngày 2026-07-31 bổ sung một kênh rủi ro cho luận điểm margin: SBV có thể hỗ trợ thanh khoản trong khi nhu cầu tín dụng, cạnh tranh huy động và ảnh hưởng từ Fed vẫn khiến lãi suất thị trường tăng. Vì vậy, việc lãi suất liên ngân hàng hạ hoặc chính sách không tăng lãi suất điều hành không đủ để kết luận người dùng đòn bẩy sẽ có chi phí vốn thấp hơn; tỷ giá và lạm phát cũng có thể làm điều kiện tài chính xấu đi.[^raw-tai-chinh-kinh-doanh-2026-07-31-live]
+
 ## Relationships
 
 - **Extends:** [Định giá thấp không đồng nghĩa tạo đáy: khung đầu tư trong downtrend](dinh-gia-thap-khong-dong-nghia-tao-day.md) bằng lập luận về margin call, định giá thấp nhưng chưa xác nhận đáy và tích lũy không đòn bẩy.
+- **Related:** [Lệch pha chính sách tiền tệ Mỹ–Việt Nam và áp lực tỷ giá](lech-pha-chinh-sach-tien-te-my-viet-nam-ap-luc-ty-gia.md), vì trang này giải thích thêm kênh lãi suất, tỷ giá và thanh khoản tác động đến rủi ro đòn bẩy.
 - **Related:** [Bản đồ định giá cổ phiếu trong video ngày 2026-07-28](ban-do-dinh-gia-co-phieu-video-2026-07-28.md), vì cùng so sánh P/E/P/B với Covid, năm 2022 và nhịp “thuế quan”.
 - **Related:** [Bản đồ cơ hội và rủi ro cổ phiếu trong video ngày 2026-07-30](ban-do-co-hoi-va-rui-ro-co-phieu-video-2026-07-30.md) và [Cổ phiếu tăng trưởng nhưng định giá thấp trong video ngày 2026-07-30](ban-do-co-phieu-tang-truong-dinh-gia-thap-video-2026-07-30.md), vì cùng phân biệt định giá thấp với việc đã tạo đáy.
 
@@ -76,3 +81,4 @@ Việc một mã hoặc ngành xuất hiện ở đây chỉ cho biết nó đư
 - **Định giá thấp và rủi ro giảm tiếp:** việc P/E/P/B được mô tả gần vùng khủng hoảng không loại bỏ rủi ro thanh khoản, margin call, chất lượng tài sản, kết quả kinh doanh hoặc giảm giá tiếp.
 
 [^raw-quang-dung-2026-07-27-live]: [Nguồn raw: tóm tắt video ngày 2026-07-27](../../raw/quang-dung/2026-07/2026-07-27-live.md).
+[^raw-tai-chinh-kinh-doanh-2026-07-31-live]: [Nguồn raw: tóm tắt video ngày 2026-07-31](../../raw/tai-chinh-kinh-doanh/2026-07/2026-07-31-live.md).

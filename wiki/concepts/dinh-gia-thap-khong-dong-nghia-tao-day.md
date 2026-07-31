@@ -5,7 +5,7 @@ description: "Một video lập luận rằng cổ phiếu có thể rẻ theo P
 tags: [co-phieu, dinh-gia, quan-tri-rui-ro, downtrend, viet-nam]
 status: draft
 created: 2026-07-31
-generated: { by: llm-wiki-agent/1, at: 2026-07-31T14:12:45Z }
+generated: { by: llm-wiki-agent/1, at: 2026-07-31T14:22:57Z }
 sources:
   - id: raw-2026-07-28-live
     resource: ../../raw/luong-huynh/2026-07/2026-07-28-live.md
@@ -62,11 +62,18 @@ Nguồn ngày 2026-07-27 bổ sung cơ chế giải thích cho nhịp giảm: ma
 
 Về hành động, nguồn củng cố các nguyên tắc không dùng margin, không đoán đáy, không cơ cấu danh mục cảm tính sau khi đã lỗ sâu và chỉ tích lũy từng phần bằng tiền nhàn rỗi vào doanh nghiệp có nền tảng. Tích sản được xem là phụ thuộc chu kỳ, không phù hợp với mọi vùng giá hoặc mọi điều kiện thị trường.[^raw-quang-dung-2026-07-27-live]
 
+## Bổ sung: lệch pha chính sách và chi phí vốn
+
+Nguồn ngày 2026-07-31 đặt khung định giá và downtrend trong bối cảnh Fed được mô tả là vẫn chống lạm phát, trong khi SBV hỗ trợ thanh khoản để ưu tiên tăng trưởng. Theo nguồn, điều này có thể gây áp lực lên USD/VND và làm lạm phát trong nước tăng qua chi phí nhập khẩu; đồng thời, thanh khoản được hỗ trợ không đảm bảo lãi suất huy động/cho vay thị trường giảm, vì nhu cầu vốn và cạnh tranh huy động vẫn có thể đẩy chi phí vốn lên. Do đó, cổ phiếu “rẻ” hoặc bất động sản có đòn bẩy vẫn có thể biến động nếu tỷ giá, lãi suất thị trường hoặc dòng tiền xấu đi.[^raw-tai-chinh-kinh-doanh-2026-07-31-live]
+
+Đây là bổ sung từ một livestream chưa được kiểm chứng độc lập. Các mốc CPI, lãi suất, tỷ giá và dự báo trong nguồn cần được đối chiếu với dữ liệu chính thức trước khi dùng để định giá hoặc quyết định đòn bẩy.
+
 ## Giới hạn sử dụng
 
-Đây là quan điểm của các video thị trường, không phải khuyến nghị cá nhân hóa. Các đánh giá “rẻ”, mức giảm/tăng kỳ vọng và lợi nhuận dự phóng cần được đối chiếu với báo cáo tài chính, chất lượng tài sản, dòng tiền, nợ vay, xu hướng ngành và khả năng chịu lỗ của từng nhà đầu tư. Xem [bản đồ định giá các nhóm cổ phiếu trong video ngày 2026-07-28](ban-do-dinh-gia-co-phieu-video-2026-07-28.md) và [bản đồ tiêu chí chọn cổ phiếu trong video ngày 2026-07-29](ban-do-dinh-gia-co-phieu-video-2026-07-29.md) để biết phạm vi mã được nhắc đến.
+Đây là quan điểm của các video thị trường, không phải khuyến nghị cá nhân hóa. Các đánh giá “rẻ”, mức giảm/tăng kỳ vọng và lợi nhuận dự phóng cần được đối chiếu với báo cáo tài chính, chất lượng tài sản, dòng tiền, nợ vay, xu hướng ngành và khả năng chịu lỗ của từng nhà đầu tư. Xem [bản đồ định giá các nhóm cổ phiếu trong video ngày 2026-07-28](ban-do-dinh-gia-co-phieu-video-2026-07-28.md) và [bản đồ tiêu chí chọn cổ phiếu trong video ngày 2026-07-29](ban-do-dinh-gia-co-phieu-video-2026-07-29.md) để biết phạm vi mã được nhắc đến. Xem thêm [Lệch pha chính sách tiền tệ Mỹ–Việt Nam và áp lực tỷ giá](lech-pha-chinh-sach-tien-te-my-viet-nam-ap-luc-ty-gia.md) về kênh tỷ giá, lạm phát và chi phí vốn.
 
 [^raw-2026-07-28-live]: [Nguồn raw: tóm tắt video ngày 2026-07-28](../../raw/luong-huynh/2026-07/2026-07-28-live.md).
 [^raw-2026-07-29-live]: [Nguồn raw: tóm tắt video ngày 2026-07-29](../../raw/luong-huynh/2026-07/2026-07-29-live.md).
 [^raw-2026-07-30-live2]: [Nguồn raw: tóm tắt video ngày 2026-07-30](../../raw/luong-huynh/2026-07/2026-07-30-live2.md).
 [^raw-quang-dung-2026-07-27-live]: [Nguồn raw: tóm tắt video ngày 2026-07-27](../../raw/quang-dung/2026-07/2026-07-27-live.md).
+[^raw-tai-chinh-kinh-doanh-2026-07-31-live]: [Nguồn raw: tóm tắt video ngày 2026-07-31](../../raw/tai-chinh-kinh-doanh/2026-07/2026-07-31-live.md).
