@@ -4,6 +4,7 @@
 - **Ingest**: Compiled [Speculative decoding overview (Vietnamese summary)](../raw/SpeculativeDecoding.md); created [Speculative decoding exact sampling](speculative-decoding-exact-sampling.md) and [Speculative decoding performance trade-offs](speculative-decoding-performance-trade-offs.md).
 
 ## 2026-07-31
+- **Ingest**: Compiled [RAG overview (Vietnamese summary)](../raw/RAG.md); created [Retrieval-augmented generation latent-document architecture](retrieval-augmented-generation-latent-document-architecture.md) and [Retrieval-augmented generation operational pipeline and trust limits](retrieval-augmented-generation-operational-pipeline-and-trust-limits.md).
 - **Ingest**: Compiled [PagedAttention and vLLM in LLM serving (Vietnamese summary)](../raw/PagedAttention.md); created [PagedAttention KV-cache serving](pagedattention-kv-cache-serving.md).
 - **Ingest**: Compiled [GQA overview (Vietnamese summary)](../raw/GQA.md); created [GQA checkpoint conversion and uptraining](gqa-checkpoint-conversion-and-uptraining.md) and updated [Multi-query and grouped-query attention](multi-query-and-grouped-query-attention.md).
 - **Ingest**: Compiled [MQA overview (Vietnamese summary)](../raw/MQA.md); created [Multi-query and grouped-query attention](multi-query-and-grouped-query-attention.md) and updated [Scaled dot-product and multi-head attention](scaled-dot-product-and-multi-head-attention.md) and [FlashAttention implementation evolution](flashattention-implementation-evolution.md).
