@@ -1,11 +1,11 @@
 ---
 type: Concept
 title: "Cổ phiếu “POW”: luận điểm tăng trưởng lợi nhuận và rủi ro"
-description: "Theo hai video transcript chưa được kiểm chứng độc lập, cổ phiếu được gọi là POW có thể hưởng lợi từ tăng trưởng lợi nhuận và định giá thấp, nhưng phụ thuộc lớn vào huy động điện, EVN, nguồn khí và các giả định dự phóng."
+description: "Theo nhiều video transcript chưa được kiểm chứng độc lập, cổ phiếu được gọi là POW có thể hưởng lợi từ tăng trưởng lợi nhuận và định giá thấp, nhưng phụ thuộc lớn vào huy động điện, EVN, nguồn khí và các giả định dự phóng."
 tags: [co-phieu, dien-luc, pow, viet-nam]
 status: draft
 created: 2026-07-31
-generated: { by: llm-wiki-agent/1, at: 2026-07-31T14:01:59Z }
+generated: { by: llm-wiki-agent/1, at: 2026-07-31T14:12:45Z }
 sources:
   - id: raw-2026-07-26-live
     resource: ../../raw/luong-huynh/2026-07/2026-07-26-live.md
@@ -14,8 +14,11 @@ sources:
     resource: ../../raw/luong-huynh/2026-07/2026-07-28-live.md
     title: "Tóm tắt video: Vùng đắt tranh mua - Vùng thấp lại sợ?"
   - id: raw-2026-07-30-live
-    resource: ../../raw/luong-huynh/2026-07/2026-07-30-live.md
+    resource: ../../raw/luong-huynh/2026-07-30-live.md
     title: "Tóm tắt video: Đám đông hoảng loạn – Cơ hội mở ra"
+  - id: raw-2026-07-30-live2
+    resource: ../../raw/luong-huynh/2026-07/2026-07-30-live2.md
+    title: "Tóm tắt video: Cổ phiếu tăng trưởng mạnh nhưng định giá thấp"
 ---
 
 # Cổ phiếu “POW”: luận điểm tăng trưởng lợi nhuận và rủi ro
@@ -55,6 +58,15 @@ Nguồn thiên về giao dịch theo nhịp tăng trưởng lợi nhuận trong 
 Nguồn ngày 2026-07-30 tiếp tục gắn mã được gọi là POW với câu chuyện thiếu điện, huy động điện khí và tỷ lệ sản lượng bao tiêu tốt hơn, đặc biệt quanh NT3–NT4. Video kỳ vọng lợi nhuận quý II cao nhưng đồng thời nêu rủi ro pháp lý; đây là một luận điểm đầu cơ–định giá chưa được kiểm chứng, không bổ sung bằng chứng độc lập cho các giả định về vận hành hoặc bao tiêu.[^raw-2026-07-30-live]
 
 [^raw-2026-07-30-live]: [Nguồn raw: tóm tắt video ngày 2026-07-30](../../raw/luong-huynh/2026-07/2026-07-30-live.md).
+[^raw-2026-07-30-live2]: [Nguồn raw: tóm tắt video ngày 2026-07-30](../../raw/luong-huynh/2026-07/2026-07-30-live2.md).
+
+## Bổ sung từ video ngày 2026-07-30 (live2)
+
+Nguồn mới tiếp tục quy mã transcript gọi là “PAO/Pao” về POW/PV Power theo ngữ cảnh điện khí, nhưng chưa xác minh độc lập danh tính. Nguồn nêu lợi nhuận quý khoảng **300 tỷ đồng** so với dự phóng khoảng **21 tỷ đồng**, P/E khoảng **6 lần**, giá quanh **13** và P/B gần **1 lần**. Rủi ro được nhấn mạnh là phải thu khoảng **25.000 tỷ đồng**, trong đó khoảng **24.000 tỷ đồng** liên quan EVN; dự phòng được thuật lại tăng từ khoảng **516 tỷ đồng** lên **579 tỷ đồng** rồi khoảng **700 tỷ đồng**. Các con số này là claim của nguồn mới và không được ghép thành chuỗi với các số liệu khác trên trang này.[^raw-2026-07-30-live2]
+
+## Relationships
+
+- **Related:** [Cổ phiếu tăng trưởng nhưng định giá thấp trong video ngày 2026-07-30](ban-do-co-phieu-tang-truong-dinh-gia-thap-video-2026-07-30.md), là bản đồ nguồn mới diễn giải thêm định giá, công nợ EVN và cách dùng luận điểm POW.
 
 ## Contradictions
 
@@ -62,6 +74,7 @@ Nguồn ngày 2026-07-30 tiếp tục gắn mã được gọi là POW với câ
 - **Số liệu và mốc thời gian:** chính nguồn cảnh báo một số mốc/số liệu diễn đạt chưa nhất quán. Các con số 4.183 tỷ đồng, tăng trưởng 256%, tỷ lệ 78%/102% và vốn hóa 41.000 tỷ đồng chưa được đối chiếu với báo cáo hoặc văn bản gốc.
 - **Ý nghĩa “bao tiêu 102%”:** transcript giải thích bằng ví dụ đơn giản nhưng không nêu công thức hay phạm vi áp dụng; chưa thể kết luận đây là tỷ lệ sản lượng thực tế theo nghĩa thông thường.
 - **Số liệu từ nguồn ngày 2026-07-28:** P/B khoảng 1,07 lần, lợi nhuận quý I khoảng 1.200 tỷ đồng và lợi nhuận quý II ước tính 2.000–2.300 tỷ đồng chưa được đối chiếu với báo cáo gốc.[^raw-2026-07-28-live]
+- **Số liệu từ nguồn ngày 2026-07-30 (live2):** lợi nhuận quý khoảng 300 tỷ đồng, dự phóng khoảng 21 tỷ đồng, P/E khoảng 6 lần, giá quanh 13, P/B gần 1 lần và phải thu EVN khoảng 24.000 tỷ đồng khác đáng kể với các mức được thuật lại từ các nguồn trước. Có thể khác phạm vi hoặc kỳ báo cáo; chưa thể hòa giải khi thiếu báo cáo gốc.[^raw-2026-07-30-live2]
 
 [^raw-2026-07-26-live]: [Nguồn raw: tóm tắt video ngày 2026-07-26](../../raw/luong-huynh/2026-07/2026-07-26-live.md).
 [^raw-2026-07-28-live]: [Nguồn raw: tóm tắt video ngày 2026-07-28](../../raw/luong-huynh/2026-07/2026-07-28-live.md).

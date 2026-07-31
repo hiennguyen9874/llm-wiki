@@ -5,7 +5,7 @@ description: "Một video lập luận rằng cổ phiếu có thể rẻ theo P
 tags: [co-phieu, dinh-gia, quan-tri-rui-ro, downtrend, viet-nam]
 status: draft
 created: 2026-07-31
-generated: { by: llm-wiki-agent/1, at: 2026-07-31T14:07:56Z }
+generated: { by: llm-wiki-agent/1, at: 2026-07-31T14:12:45Z }
 sources:
   - id: raw-2026-07-28-live
     resource: ../../raw/luong-huynh/2026-07/2026-07-28-live.md
@@ -16,6 +16,9 @@ sources:
   - id: raw-2026-07-30-live
     resource: ../../raw/luong-huynh/2026-07/2026-07-30-live.md
     title: "Tóm tắt video: Đám đông hoảng loạn – Cơ hội mở ra"
+  - id: raw-2026-07-30-live2
+    resource: ../../raw/luong-huynh/2026-07/2026-07-30-live2.md
+    title: "Tóm tắt video: Cổ phiếu tăng trưởng mạnh nhưng định giá thấp"
 ---
 
 # Định giá thấp không đồng nghĩa tạo đáy: khung đầu tư trong downtrend
@@ -46,6 +49,8 @@ Nguồn cũng phân biệt đầu tư dài hạn vào tài sản/doanh nghiệp 
 
 Nguồn mới mô tả thanh khoản tăng, khối ngoại quay lại mua ròng và dòng tiền chủ động cải thiện như các tín hiệu có thể hỗ trợ nhịp hồi, nhưng không xem đó là xác nhận xu hướng mới. Nguồn cũng củng cố bộ lọc “lợi nhuận tăng + biên lợi nhuận cải thiện + định giá chưa phản ánh hết kết quả” qua DHC và FRT, đồng thời nhấn mạnh rằng nhóm chứng khoán phù hợp hơn cho giao dịch theo nhịp hồi còn bất động sản, thép và các mã có rủi ro pháp lý cần thận trọng.[^raw-2026-07-30-live]
 
+Nguồn ngày 2026-07-30 bổ sung một cách diễn đạt chặt hơn cho bộ lọc “rẻ + tăng trưởng”: loại doanh nghiệp không tăng trưởng lợi nhuận, kiểm tra thanh khoản, rồi đối chiếu độ dốc lợi nhuận với P/E/P/B, tài sản, nợ và phải thu. Các ví dụ HAH, POW, MWG, FRT, TCH và HPG cho thấy định giá thấp chỉ trở thành luận điểm đáng chú ý khi động lực lợi nhuận còn tiếp diễn; ngược lại, công suất không mở rộng, công nợ EVN, bán hàng chậm hoặc vốn hóa lớn có thể làm giá tăng chậm. Đây vẫn là khung của livestream, chưa được kiểm chứng độc lập.[^raw-2026-07-30-live2]
+
 [^raw-2026-07-30-live]: [Nguồn raw: tóm tắt video ngày 2026-07-30](../../raw/luong-huynh/2026-07/2026-07-30-live.md).
 
 ## Giới hạn sử dụng
@@ -54,3 +59,4 @@ Nguồn mới mô tả thanh khoản tăng, khối ngoại quay lại mua ròng 
 
 [^raw-2026-07-28-live]: [Nguồn raw: tóm tắt video ngày 2026-07-28](../../raw/luong-huynh/2026-07/2026-07-28-live.md).
 [^raw-2026-07-29-live]: [Nguồn raw: tóm tắt video ngày 2026-07-29](../../raw/luong-huynh/2026-07/2026-07-29-live.md).
+[^raw-2026-07-30-live2]: [Nguồn raw: tóm tắt video ngày 2026-07-30](../../raw/luong-huynh/2026-07/2026-07-30-live2.md).
