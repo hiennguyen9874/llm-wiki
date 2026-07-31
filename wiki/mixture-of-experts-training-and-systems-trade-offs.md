@@ -5,7 +5,7 @@ description: Practical MoE training requires bounded per-expert token capacity, 
 tags: [mixture-of-experts, sparse-models, distributed-training, load-balancing]
 status: draft
 created: 2026-07-31
-generated: { by: llm-wiki-agent/1, at: 2026-07-31T17:15:46Z }
+generated: { by: llm-wiki-agent/1, at: 2026-07-31T17:19:23Z }
 sources:
   - id: moe-overview-2026
     resource: ../raw/MixtureofExperts.md
@@ -38,6 +38,7 @@ The overview reports three Switch-specific stability measures: compute router lo
 ## Relationships
 
 - **Operationalizes:** [Switch Transformer sparse routing](switch-transformer-sparse-routing.md) through capacity limits, balancing, precision policy, and expert parallelism.
+- **Applies to:** [DeepSeekMoE expert specialization](deepseekmoe-expert-specialization.md), which adds fine-grained top-$k$ routing and an always-on shared path; its reported results and systems behavior require primary-source verification.
 - **Applies to:** [Kimi K3 hybrid retrieval architecture](kimi-k3-hybrid-retrieval-architecture.md), whose supplied overview describes routed latent-space experts; its system behavior requires primary-source verification.
 
 ## Evidence limits
