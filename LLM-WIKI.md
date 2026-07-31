@@ -68,7 +68,9 @@ Rules:
 - Write structured headings, concise prose, lists, and tables. Put the one-paragraph synthesis first.
 - Attribute source-dependent claims with keyed footnotes whose labels match `sources[].id`.
 - Link concepts with standard Markdown relative links such as `[Title](concept.md)` or `[Title](../concept.md)` so they work in both Obsidian and ordinary Markdown renderers. Describe the relationship in prose.
-- Represent disagreement in context under `## Contradictions`; state each claim and its source without silently choosing one. Resolve it only when evidence supports the resolution.
+- When relationship semantics aid retrieval, use `## Relationships` bullets labeled with a small open vocabulary such as `Depends on`, `Uses`, `Owned by`, `Caused`, `Fixed by`, `Contradicts`, or `Supersedes`. Add a label only when the source or synthesis supports it.
+- Represent unresolved disagreement under `## Contradictions`; state each claim and its source without silently choosing one.
+- Represent resolved replacement under `## Supersession`. Mark the old concept `deprecated`, link it to the current concept with the effective date and evidence, and link the current concept back with `Supersedes`. Preserve both histories.
 
 Reserved `index.md` and `log.md` files follow their contracts below and aren't concepts.
 
@@ -89,7 +91,7 @@ Group entries by useful domain or concept type:
 - [Concept title](concept-title.md) — Exact frontmatter description.
 ```
 
-Every live concept appears exactly once in its nearest index. A root entry for a subdirectory summarizes and links its `index.md`. Sort entries alphabetically for stable diffs. Update affected index entries in the same change as concepts.
+Every concept, including deprecated history, appears exactly once in its nearest index; group deprecated concepts separately when that improves scanning. A root entry for a subdirectory summarizes and links its `index.md`. Sort entries alphabetically for stable diffs. Update affected index entries in the same change as concepts.
 
 ## Log contract
 
@@ -109,11 +111,19 @@ Log only completed state changes. Read-only queries need no entry.
 
 1. Read `wiki/index.md`; follow relevant group indexes and concept descriptions.
 2. Select candidates by title, description, type, tags, and named relationships. Use text search when the index isn't enough.
-3. Read the selected concepts and follow only links needed to answer the question.
+3. Read the selected concepts and traverse relationship types that match the question: dependencies for impact, causes and fixes for diagnosis, supersession and contradiction for freshness, and ownership for responsibility.
 4. Check `status`, `stale_after`, `verified`, contradictions, and cited sources. Treat missing verification as unverified, not false.
 5. Answer from the wiki with links to concept pages and distinguish documented facts, synthesis, uncertainty, and missing knowledge.
 6. Consult `raw/` only to verify a disputed citation, fill a provenance gap, or when the user explicitly requests source-level research.
 7. File an answer only when it adds reusable synthesis; transient answers stay in chat or `outputs/`.
+
+## Crystallization
+
+File a query result as `type: Synthesis` when it creates reusable multi-concept synthesis, a durable comparison, a decision or lesson, a newly supported relationship, a contradiction resolution, or a verified procedure. Cite the underlying concepts or raw sources through `sources`; transient chat isn't provenance. Integrate extracted insights into affected concepts rather than leaving the synthesis as an isolated report.
+
+## Privacy and governance
+
+Screen every input before compilation for credentials, private keys, tokens, PII, and private or confidential material. Store the minimum useful redacted knowledge in `wiki/`, keep provenance resolvable, and exclude sensitive values from wiki pages, outputs, and log entries. Pause the mutation and alert the human when a likely live credential or an unclear disclosure boundary is found. Preserve `raw/` in place; remediation or credential rotation is a human-governed operation. Keep bulk mutations reviewable through Git and summarize their reason and scope in one log entry.
 
 ## Idempotency
 
@@ -124,10 +134,12 @@ A source is identified by its normalized `sources[].resource` path because files
 A wiki-changing operation is complete only when:
 
 - every changed claim has provenance or is explicitly labeled synthesis;
-- every affected concept and contradiction is updated;
+- every affected concept, contradiction, typed relationship, and supersession edge is updated;
+- deprecated concepts identify their current replacement when one exists;
+- sensitive values are absent from wiki pages, outputs, and log entries;
 - links resolve where targets exist, and bidirectional context is added when useful rather than mechanically;
 - each changed concept's metadata and nearest index entry agree;
-- `wiki/index.md` still reaches every live concept through indexes;
+- `wiki/index.md` still reaches every concept, including deprecated history, through indexes;
 - exactly one operation entry records the completed mutation in `wiki/log.md`.
 
 ## Structural check
@@ -136,4 +148,4 @@ Run `python3 tools/wiki_check.py` after wiki mutations and during lint when comm
 
 ## Scale trigger
 
-Use indexes and ordinary text search first. Add a local lexical/vector search tool only after measured retrieval failures caused by corpus size; generated search indexes are caches, never sources of truth.
+Use indexes and ordinary text search below roughly 100 concepts. Around 100–200 concepts, measure index size, query cost, and missed retrieval; add local BM25-style search when those measurements show lexical retrieval failures. Add vector search only for observed semantic misses, and a graph engine only when Markdown relationship traversal is the bottleneck. Thresholds trigger evaluation, not automatic infrastructure. Generated search and graph indexes are caches, never sources of truth.
