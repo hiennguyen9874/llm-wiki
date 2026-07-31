@@ -57,6 +57,9 @@ SFT learns only to imitate chosen completions, while DPO also learns the observe
 ## Relationships
 
 - **Alternative to:** [InstructGPT human-feedback alignment](instructgpt-human-feedback-alignment.md); DPO replaces its reward-model-plus-PPO stage with direct pairwise policy optimization, while both commonly follow SFT and use a frozen reference.[^dpo-summary]
+- **Alternative to:** [Odds Ratio Preference Optimization](odds-ratio-preference-optimization.md); ORPO combines chosen-response NLL with an odds-ratio preference loss and has no frozen reference policy, whereas DPO optimizes a reference-relative likelihood gap.[^orpo-summary]
 - **Qualified by:** [DPO operational limits](dpo-operational-limits.md), which records data, distribution, and evaluation limits.
 
 [^dpo-summary]: “DPO overview” (Vietnamese summary), [raw source](../raw/DPO.md), Sections 1–12 and 16. This is secondary-source evidence that links to Rafailov et al., “Direct Preference Optimization: Your Language Model is Secretly a Reward Model,” NeurIPS 2023; the primary paper has not been independently ingested here.
+
+[^orpo-summary]: “ORPO overview” (Vietnamese summary), [raw source](../raw/ORPO.md), Sections 1, 3, 6, 9–10, and 13. This is secondary-source evidence linking to Hong, Lee, and Thorne, “ORPO: Monolithic Preference Optimization without Reference Model,” EMNLP 2024; the primary paper has not been independently ingested here.
