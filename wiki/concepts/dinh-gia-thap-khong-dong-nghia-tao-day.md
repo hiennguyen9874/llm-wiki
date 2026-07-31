@@ -13,6 +13,9 @@ sources:
   - id: raw-2026-07-29-live
     resource: ../../raw/luong-huynh/2026-07/2026-07-29-live.md
     title: "Tóm tắt video: Mùa săn sale – Tiêu chí chọn cổ phiếu là gì?"
+  - id: raw-2026-07-30-live
+    resource: ../../raw/luong-huynh/2026-07/2026-07-30-live.md
+    title: "Tóm tắt video: Đám đông hoảng loạn – Cơ hội mở ra"
 ---
 
 # Định giá thấp không đồng nghĩa tạo đáy: khung đầu tư trong downtrend
@@ -38,6 +41,12 @@ Video cho rằng thị trường có thể đang rẻ theo các thước đo nh�
 Nguồn ngày 2026-07-29 đề xuất lọc ban đầu theo vốn hóa trên khoảng 1.000 tỷ đồng, thanh khoản đủ lớn cho quy mô giải ngân minh họa khoảng 5 tỷ đồng/ngày và tăng trưởng lợi nhuận dương. Với doanh nghiệp bán lẻ/phân phối, người trình bày đọc nhanh doanh thu, lợi nhuận và hàng tồn kho cùng tăng; tồn kho vẫn phải được kiểm tra bằng vòng quay, chất lượng hàng và dòng tiền trước khi kết luận.[^raw-2026-07-29-live]
 
 Nguồn cũng phân biệt đầu tư dài hạn vào tài sản/doanh nghiệp rẻ với trading cổ phiếu khỏe, giữ giá hoặc có xu hướng tăng. Theo kỷ luật cá nhân được kể trong video, khi cổ phiếu phá nền có thể xem xét cắt lỗ ở vùng khoảng 5–8%, thay vì gồng lỗ 20–30%. Đây là quy tắc của người trình bày, không phải ngưỡng áp dụng phổ quát; nó bổ sung chứ không loại bỏ nguyên tắc cần xét thời hạn, luận điểm và khả năng chịu biến động của từng vị thế.[^raw-2026-07-29-live]
+
+## Bổ sung từ video ngày 2026-07-30
+
+Nguồn mới mô tả thanh khoản tăng, khối ngoại quay lại mua ròng và dòng tiền chủ động cải thiện như các tín hiệu có thể hỗ trợ nhịp hồi, nhưng không xem đó là xác nhận xu hướng mới. Nguồn cũng củng cố bộ lọc “lợi nhuận tăng + biên lợi nhuận cải thiện + định giá chưa phản ánh hết kết quả” qua DHC và FRT, đồng thời nhấn mạnh rằng nhóm chứng khoán phù hợp hơn cho giao dịch theo nhịp hồi còn bất động sản, thép và các mã có rủi ro pháp lý cần thận trọng.[^raw-2026-07-30-live]
+
+[^raw-2026-07-30-live]: [Nguồn raw: tóm tắt video ngày 2026-07-30](../../raw/luong-huynh/2026-07/2026-07-30-live.md).
 
 ## Giới hạn sử dụng
 

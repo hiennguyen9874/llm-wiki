@@ -8,6 +8,7 @@ The complete retrieval map for compiled knowledge. See [LLM Wiki Contract](../LL
 
 ## Concepts
 
+- [Bản đồ cơ hội và rủi ro cổ phiếu trong video ngày 2026-07-30](concepts/ban-do-co-hoi-va-rui-ro-co-phieu-video-2026-07-30.md) — Bản tổng hợp quan điểm của một livestream về nhịp hồi thị trường, tiêu chí phân biệt đầu tư với đầu cơ và các mã DHC, FRT, POW, KSB cùng nhóm ngành được nhắc đến; số liệu và nhận định chưa được kiểm chứng độc lập.
 - [Bản đồ định giá cổ phiếu trong video ngày 2026-07-28](concepts/ban-do-dinh-gia-co-phieu-video-2026-07-28.md) — Bản tổng hợp các nhóm và mã cổ phiếu được một video đánh giá là rẻ hoặc hợp lý theo P/B, P/E và triển vọng lợi nhuận; mọi nhận định đều chưa được kiểm chứng độc lập.
 - [Bản đồ tiêu chí chọn cổ phiếu trong video ngày 2026-07-29](concepts/ban-do-dinh-gia-co-phieu-video-2026-07-29.md) — Bản tổng hợp cách sàng lọc và các mã cổ phiếu được livestream ngày 2026-07-29 xem là rẻ, có tăng trưởng hoặc có xúc tác; mọi số liệu và đánh giá đều là nhận định tại thời điểm video, chưa được kiểm chứng độc lập.
 - [Cổ phiếu “POW”: luận điểm tăng trưởng lợi nhuận và rủi ro](concepts/pow-luan-diem-tang-truong-loi-nhuan-2026.md) — Theo hai video transcript chưa được kiểm chứng độc lập, cổ phiếu được gọi là POW có thể hưởng lợi từ tăng trưởng lợi nhuận và định giá thấp, nhưng phụ thuộc lớn vào huy động điện, EVN, nguồn khí và các giả định dự phóng.

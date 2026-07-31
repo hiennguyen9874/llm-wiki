@@ -13,6 +13,9 @@ sources:
   - id: raw-2026-07-28-live
     resource: ../../raw/luong-huynh/2026-07/2026-07-28-live.md
     title: "Tóm tắt video: Vùng đắt tranh mua - Vùng thấp lại sợ?"
+  - id: raw-2026-07-30-live
+    resource: ../../raw/luong-huynh/2026-07/2026-07-30-live.md
+    title: "Tóm tắt video: Đám đông hoảng loạn – Cơ hội mở ra"
 ---
 
 # Cổ phiếu “POW”: luận điểm tăng trưởng lợi nhuận và rủi ro
@@ -46,6 +49,12 @@ Luận điểm cho rằng khi thủy điện suy giảm do nắng nóng, thiếu
 ## Cách sử dụng luận điểm
 
 Nguồn thiên về giao dịch theo nhịp tăng trưởng lợi nhuận trong một vài quý hơn là dự báo nắm giữ 3–7 năm. Nếu dùng luận điểm này để nghiên cứu tiếp, cần kiểm chứng tối thiểu: báo cáo tài chính và sản lượng thực tế, tiến độ vận hành NT3–NT4, định nghĩa và tỷ lệ bao tiêu, số ngày phải thu từ EVN, khả năng cung cấp khí, cũng như các văn bản pháp lý được viện dẫn.[^raw-2026-07-26-live]
+
+## Bổ sung từ video ngày 2026-07-30
+
+Nguồn ngày 2026-07-30 tiếp tục gắn mã được gọi là POW với câu chuyện thiếu điện, huy động điện khí và tỷ lệ sản lượng bao tiêu tốt hơn, đặc biệt quanh NT3–NT4. Video kỳ vọng lợi nhuận quý II cao nhưng đồng thời nêu rủi ro pháp lý; đây là một luận điểm đầu cơ–định giá chưa được kiểm chứng, không bổ sung bằng chứng độc lập cho các giả định về vận hành hoặc bao tiêu.[^raw-2026-07-30-live]
+
+[^raw-2026-07-30-live]: [Nguồn raw: tóm tắt video ngày 2026-07-30](../../raw/luong-huynh/2026-07/2026-07-30-live.md).
 
 ## Contradictions
 
