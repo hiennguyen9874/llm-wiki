@@ -5,7 +5,7 @@ description: InstructGPT converts a pretrained GPT-3 policy into an instruction-
 tags: [instructgpt, rlhf, instruction-tuning, reward-modeling, ppo, alignment]
 status: draft
 created: 2026-07-31
-generated: { by: llm-wiki-agent/1, at: 2026-07-31T23:24:07+07:00 }
+generated: { by: llm-wiki-agent/1, at: 2026-07-31T17:08:36Z }
 sources:
   - id: instructgpt-summary
     resource: ../raw/InstructGPT.md
@@ -32,6 +32,9 @@ PPO-ptx combines the PPO objective with gradients from the original pretraining 
 
 - **Post-trains:** [GPT-3 scaled causal language model](gpt-3-scaled-causal-language-model.md); the source describes InstructGPT as beginning from pretrained GPT-3 models.[^instructgpt-summary]
 - **Addresses a limitation of:** [LLaMA evaluation, alignment, and limitations](llama-evaluation-alignment-and-limitations.md), which distinguishes base next-token prediction from instruction following and preference alignment.
+- **Alternative approach:** [Direct Preference Optimization](direct-preference-optimization.md) directly optimizes preference pairs against a frozen reference instead of fitting this workflow’s separate reward model and running PPO; both commonly follow SFT.[^dpo-summary]
 - **Evaluated by:** [InstructGPT behavioral evaluation and limitations](instructgpt-behavioral-evaluation-and-limitations.md).
+
+[^dpo-summary]: “DPO overview” (Vietnamese summary), [raw source](../raw/DPO.md), Sections 1–2 and 11. This is secondary-source evidence; the primary DPO paper has not been independently ingested here.
 
 [^instructgpt-summary]: “InstructGPT overview” (Vietnamese summary), [raw source](../raw/InstructGPT.md), Sections 1–7 and 10–13. This is secondary-source evidence that links to Ouyang et al., “Training language models to follow instructions with human feedback,” arXiv:2203.02155; the primary paper has not been independently ingested here.
