@@ -1,6 +1,7 @@
 # Wiki Update Log
 
 ## 2026-07-31
+- **Ingest**: Compiled [Scaling Laws for Neural Language Models](../raw/arXiv-2001.08361v1/main.tex); created [Empirical language-model loss scaling laws](empirical-language-model-loss-scaling-laws.md) and [Kaplan compute-optimal training allocation](kaplan-compute-optimal-training-allocation.md).
 - **Ingest**: Compiled [Language Models are Unsupervised Multitask Learners](../raw/gpt2.pdf); created [GPT-2 WebText pre-training and architecture](gpt-2-webtext-pre-training-and-architecture.md) and [GPT-2 zero-shot multitask evaluation and overlap auditing](gpt-2-zero-shot-multitask-evaluation-and-overlap-auditing.md), and updated [GPT generative pre-training and task adaptation](gpt-generative-pre-training-and-task-adaptation.md).
 - **Ingest**: Compiled [Improving Language Understanding by Generative Pre-Training](../raw/gpt.pdf); created [GPT generative pre-training and task adaptation](gpt-generative-pre-training-and-task-adaptation.md).
 - **Ingest**: Compiled [BERT: Pre-training of Deep Bidirectional Transformers for Language Understanding](../raw/arXiv-1810.04805v2/main.tex); created stable concepts for BERT’s transfer recipe and its MLM/NSP pre-training objectives.
