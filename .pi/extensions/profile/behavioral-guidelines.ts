@@ -44,7 +44,7 @@ export interface LoadBehavioralGuidelineRegistryResult {
 }
 
 const PRIMARY_MARKER = "\nPi documentation (read only";
-const FALLBACK_MARKER = "\n<project_context>\n";
+const FALLBACK_MARKER = "\n<skills_instructions>\n";
 
 function isObject(value: unknown): value is Record<string, unknown> {
   return Boolean(value) && typeof value === "object" && !Array.isArray(value);
