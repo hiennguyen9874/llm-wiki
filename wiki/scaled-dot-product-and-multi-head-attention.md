@@ -57,7 +57,10 @@ The base Transformer uses eight heads with $d_k=d_v=64$ and $d_{model}=512$. Spl
 - **Has profile:** [Self-attention computational profile](self-attention-computational-profile.md) when used as full self-attention over a sequence.
 - **Contrasts with:** [Linear attention as fixed-state memory](linear-attention-as-fixed-state-memory.md), which changes the attention formulation to permit a bounded recurrent state rather than retaining token-addressable interactions.
 - **Implemented by:** [FlashAttention IO-aware exact attention](flashattention-io-aware-exact-attention.md), which preserves this formula while changing GPU data movement and evaluation order.[^flashattention-summary]
+- **Modified by:** [Multi-query and grouped-query attention](multi-query-and-grouped-query-attention.md), which shares K/V projections across query heads to reduce decode-time cache traffic.[^mqa-summary]
 
 [^vaswani-transformer-2017]: Ashish Vaswani et al., “Attention Is All You Need,” arXiv:1706.03762v7, bundled [LaTeX source](../raw/arXiv-1706.03762v7/ms.tex), especially `model_architecture.tex` and its referenced attention diagrams.
 
 [^flashattention-summary]: “FlashAttention overview” (Vietnamese summary), [raw source](../raw/FlashAttention.md), Sections 1–8. This is secondary-source evidence; its cited primary FlashAttention paper has not been independently ingested here.
+
+[^mqa-summary]: “MQA overview” (Vietnamese summary), [raw source](../raw/MQA.md), Sections 1–6 and 10. This is secondary-source evidence; its cited primary MQA and GQA papers have not been independently ingested here.

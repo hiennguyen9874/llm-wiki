@@ -1,6 +1,7 @@
 # Wiki Update Log
 
 ## 2026-07-31
+- **Ingest**: Compiled [MQA overview (Vietnamese summary)](../raw/MQA.md); created [Multi-query and grouped-query attention](multi-query-and-grouped-query-attention.md) and updated [Scaled dot-product and multi-head attention](scaled-dot-product-and-multi-head-attention.md) and [FlashAttention implementation evolution](flashattention-implementation-evolution.md).
 - **Ingest**: Compiled [ALiBi overview (Vietnamese summary)](../raw/ALiBi.md); created [ALiBi attention with linear biases](alibi-attention-with-linear-biases.md) and updated [Rotary position embedding (RoPE)](rotary-position-embedding.md) and [BLOOM open multilingual language model](bloom-open-multilingual-language-model.md).
 - **Ingest**: Compiled [RoPE overview (Vietnamese summary)](../raw/RoPE.md); created [Rotary position embedding (RoPE)](rotary-position-embedding.md) and updated [LLaMA efficient pre-trained language models](llama-efficient-pre-trained-language-models.md) with a reciprocal RoPE link.
 - **Ingest**: Compiled [FlashAttention-2 overview (Vietnamese summary)](../raw/FlashAttention-2.md); updated [FlashAttention implementation evolution](flashattention-implementation-evolution.md) with its work-partitioning and benchmark details.

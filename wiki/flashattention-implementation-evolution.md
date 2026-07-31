@@ -45,7 +45,10 @@ FlashAttention makes full attention more efficient but does not remove its $O(N^
 
 - **Extends:** [FlashAttention IO-aware exact attention](flashattention-io-aware-exact-attention.md) with hardware-aware scheduling and data-movement refinements.[^flashattention-summary]
 - **Contrasts with:** [Linear attention as fixed-state memory](linear-attention-as-fixed-state-memory.md), which changes the retrieval formulation and state-growth behavior rather than optimizing exact full-attention kernels.[^flashattention-summary]
+- **Complemented by:** [Multi-query and grouped-query attention](multi-query-and-grouped-query-attention.md), which reduces KV-cache traffic in one-token decoding by sharing K/V heads rather than changing the exact-attention kernel.[^mqa-summary]
 
 [^flashattention-summary]: “FlashAttention overview” (Vietnamese summary), [raw source](../raw/FlashAttention.md), Sections 11–16 and 18. It cites Dao et al.'s FlashAttention (2022), FlashAttention-2 (2023), FlashAttention-3 (2024), and the official implementation repository; none has been independently ingested here.
 
 [^flashattention-2-summary]: “FlashAttention-2 overview” (Vietnamese summary), [raw source](../raw/FlashAttention-2.md), Sections 3–11. This secondary source cites Dao, “FlashAttention-2: Faster Attention with Better Parallelism and Work Partitioning” (2023/ICLR 2024); the primary paper has not been independently ingested here.
+
+[^mqa-summary]: “MQA overview” (Vietnamese summary), [raw source](../raw/MQA.md), Sections 3–7 and 13. This is secondary-source evidence; its cited primary MQA and GQA papers have not been independently ingested here.
