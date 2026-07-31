@@ -5,7 +5,7 @@ description: LLaMA is Meta AI’s reported 7B-to-65B decoder-only base-model fam
 tags: [llama, meta, causal-language-modeling, pre-training, efficient-training, open-weights]
 status: draft
 created: 2026-07-31
-generated: { by: llm-wiki-agent/1, at: 2026-07-31T23:20:06+07:00 }
+generated: { by: llm-wiki-agent/1, at: 2026-07-31T23:39:20+07:00 }
 sources:
   - id: llama-summary
     resource: ../raw/LLaMA.md
@@ -41,6 +41,7 @@ The summary reports that LLaMA-13B exceeded GPT-3 175B on most—not all—bench
 ## Relationships
 
 - **Informed by:** [Chinchilla compute-optimal training allocation](chinchilla-compute-optimal-training-allocation.md), whose data-intensive fixed-compute framing the summary identifies as a motivation for LLaMA.[^llama-summary]
+- **Uses:** [Rotary position embedding (RoPE)](rotary-position-embedding.md) for positional encoding rather than learned absolute position embeddings.[^llama-summary]
 - **Compared with:** [GPT-3 scaled causal language model](gpt-3-scaled-causal-language-model.md) in the source’s reported benchmark results.[^llama-summary]
 - **Limited by:** [LLaMA evaluation, alignment, and limitations](llama-evaluation-alignment-and-limitations.md).
 
