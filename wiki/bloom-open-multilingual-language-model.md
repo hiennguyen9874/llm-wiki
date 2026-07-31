@@ -5,11 +5,14 @@ description: BLOOM is BigScience’s reported 176B-parameter causal language mod
 tags: [bloom, bigscience, causal-language-modeling, multilingual, open-weights]
 status: draft
 created: 2026-07-31
-generated: { by: llm-wiki-agent/1, at: 2026-07-31T23:17:43+07:00 }
+generated: { by: llm-wiki-agent/1, at: 2026-07-31T16:41:40Z }
 sources:
   - id: bloom-summary
     resource: ../raw/BLOOM.md
     title: "BLOOM overview (Vietnamese summary)"
+  - id: alibi-summary
+    resource: ../raw/ALiBi.md
+    title: "ALiBi overview (Vietnamese summary)"
 ---
 
 # BLOOM open multilingual language model
@@ -20,7 +23,7 @@ BLOOM (BigScience Large Open-science Open-access Multilingual Language Model) is
 
 The overview reports 70 Transformer layers, hidden width 14,336, 112 attention heads of dimension 128, a 2,048-token training context, and a 250,680-token byte-level BPE vocabulary. BLOOM is pre-trained with causal next-token prediction, so the base model should be understood as a text-completion model rather than an instruction-tuned chat system.[^bloom-summary]
 
-Its reported architectural variations include ALiBi positional attention biases, layer normalization after word embeddings (called StableEmbedding), and GELU feed-forward activations. ALiBi adds a head-specific distance penalty to attention scores; the source describes this as avoiding a learned positional-embedding table and potentially supporting longer-context extrapolation, not as proof of uniformly better long-context behavior.[^bloom-summary]
+Its reported architectural variations include [ALiBi attention with linear biases](alibi-attention-with-linear-biases.md), layer normalization after word embeddings (called StableEmbedding), and GELU feed-forward activations. ALiBi adds a head-specific distance penalty to attention scores; the source describes this as avoiding a learned positional-embedding table and potentially supporting longer-context extrapolation, not as proof of uniformly better long-context behavior.[^bloom-summary][^alibi-summary]
 
 ## Openness and scope limits
 

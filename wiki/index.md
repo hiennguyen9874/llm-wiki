@@ -8,6 +8,7 @@ The complete retrieval map for compiled knowledge. See [LLM Wiki Contract](../LL
 
 ## Concepts
 
+- [ALiBi attention with linear biases](alibi-attention-with-linear-biases.md) — ALiBi adds fixed head-specific linear distance penalties to causal-attention logits, creating a recency prior that can extend positional behavior beyond the training length without positional embeddings.
 - [Attention Residuals](attention-residuals.md) — Attention Residuals replace uniform residual accumulation with learned retrieval over earlier depth-wise representations.
 - [BERT bidirectional transfer learning](bert-bidirectional-transfer-learning.md) — BERT pre-trains a bidirectional Transformer encoder, then fine-tunes all of its parameters with a small task-specific output layer.
 - [BERT masked-language and next-sentence pre-training](bert-masked-language-and-next-sentence-pre-training.md) — BERT learns bidirectional token representations by predicting selected corrupted tokens and jointly classifying whether paired text spans are consecutive.

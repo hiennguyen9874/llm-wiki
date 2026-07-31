@@ -43,7 +43,7 @@ The source also characterizes RoPE’s multi-frequency sum as having a soft long
 ## Relationships
 
 - **Alternative to:** [Transformer sequence transduction architecture](transformer-sequence-transduction-architecture.md), whose original design adds sinusoidal positional vectors to token embeddings; RoPE instead rotates projected queries and keys.[^rope-summary]
-- **Contrasts with:** [BLOOM open multilingual language model](bloom-open-multilingual-language-model.md), which the available summary describes as using additive ALiBi attention biases rather than RoPE.
+- **Alternative to:** [ALiBi attention with linear biases](alibi-attention-with-linear-biases.md), which adds a head-specific linear distance bias to attention logits rather than rotating queries and keys.[^rope-summary]
 - **Used by:** [LLaMA efficient pre-trained language models](llama-efficient-pre-trained-language-models.md), whose available summary reports rotary positional embeddings in its decoder-only architecture.
 
 [^rope-summary]: “RoPE overview” (Vietnamese summary), [raw source](../raw/RoPE.md), Sections 1–17. This is secondary-source evidence linking to Su et al., “RoFormer: Enhanced Transformer with Rotary Position Embedding” (arXiv:2104.09864); the primary paper has not been independently ingested here.
