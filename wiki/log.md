@@ -1,6 +1,7 @@
 # Wiki Update Log
 
 ## 2026-07-31
+- **Ingest**: Compiled [Self-Instruct overview (Vietnamese summary)](../raw/Self-Instruct.md); created [Self-Instruct synthetic instruction data](self-instruct-synthetic-instruction-data.md) and [Self-Instruct results and limitations](self-instruct-results-and-limitations.md), and updated [GPT-3 scaled causal language model](gpt-3-scaled-causal-language-model.md).
 - **Ingest**: Compiled [Constitutional AI overview (Vietnamese summary)](../raw/ConstitutionalAI.md); created [Constitutional AI training](constitutional-ai-training.md) and [Constitutional AI behavior and limitations](constitutional-ai-behavior-and-limitations.md).
 - **Ingest**: Compiled [InstructGPT overview (Vietnamese summary)](../raw/InstructGPT.md); created [InstructGPT human-feedback alignment](instructgpt-human-feedback-alignment.md) and [InstructGPT behavioral evaluation and limitations](instructgpt-behavioral-evaluation-and-limitations.md), and updated [GPT-3 scaled causal language model](gpt-3-scaled-causal-language-model.md).
 - **Ingest**: Compiled [LLaMA overview (Vietnamese summary)](../raw/LLaMA.md); created [LLaMA efficient pre-trained language models](llama-efficient-pre-trained-language-models.md) and [LLaMA evaluation, alignment, and limitations](llama-evaluation-alignment-and-limitations.md).
