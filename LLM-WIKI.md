@@ -31,11 +31,19 @@ Keep `wiki/` flat initially. Add a group only when it makes `index.md` materiall
 
 ## Ownership
 
-- `raw/` is read-only after a source lands. Corrections arrive as new source files.
-- `wiki/` is the persistent, agent-maintained synthesis and the default query surface.
+- `raw/` is read-only after a source lands and is the evidentiary source of truth. Corrections arrive as new source files.
+- `wiki/` is the persistent, agent-maintained operational synthesis and the default query surface. When wiki content conflicts with raw evidence, preserve the evidence and correct, qualify, or mark the wiki claim as disputed.
 - `outputs/` holds requested artifacts, not canonical knowledge. Durable insights belong in `wiki/`.
 - Git history supplies diffs and rollback; `wiki/log.md` supplies a human-readable operational history.
 - The repository—not `wiki/` alone—is the distribution unit. This keeps `sources[].resource` links into `raw/` resolvable; use `wiki/references/` only when a standalone OKF bundle is required.
+
+## Interaction mode
+
+In `guided` mode, the agent presents an ingest synthesis and update plan before mutating the wiki. In `autonomous` mode, it proceeds without routine approval and pauses only for consequential ambiguity, contradiction, privacy risk, or unclear scope. The human may select either mode per operation; when no preference is given, use `autonomous`.
+
+## Contract evolution
+
+`LLM-WIKI.md` defines policy; `.pi/skills/` implements its workflows. Evolve both from observed retrieval misses, maintenance friction, trust failures, or explicit human preference rather than speculative complexity. Contract changes that alter semantics, governance, or human control require human approval. After changing the contract, review affected skills for drift; workflow optimization must not silently change knowledge meaning or provenance.
 
 ## Concept contract
 
