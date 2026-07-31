@@ -5,11 +5,14 @@ description: Modern RAG commonly retrieves, optionally reranks, and supplies doc
 tags: [rag, retrieval-augmented-generation, retrieval, reranking, grounding, citations, hallucination]
 status: draft
 created: 2026-07-31
-generated: { by: llm-wiki-agent/1, at: 2026-07-31T16:55:07Z }
+generated: { by: llm-wiki-agent/1, at: 2026-07-31T17:07:23Z }
 sources:
   - id: rag-summary
     resource: ../raw/RAG.md
     title: "RAG overview (Vietnamese summary)"
+  - id: yao-react-summary
+    resource: ../raw/ReAct.md
+    title: ReAct overview (Vietnamese summary)
 ---
 
 # Retrieval-augmented generation operational pipeline and trust limits
@@ -44,5 +47,8 @@ Embedding, search, reranking, and added context tokens also increase latency and
 ## Relationships
 
 - **Simplifies:** [Retrieval-augmented generation latent-document architecture](retrieval-augmented-generation-latent-document-architecture.md) by using retrieved chunks as one assembled prompt context instead of the original RAG-Sequence or RAG-Token likelihood marginalization.[^rag-summary]
+- **Used by:** [ReAct reasoning-and-acting agent loop](react-reasoning-and-acting-agent-loop.md) as a possible retrieval tool; ReAct can decide whether to retrieve again from prior observations rather than following one fixed retrieval pass.[^yao-react-summary]
 
 [^rag-summary]: “RAG overview” (Vietnamese summary), [raw source](../raw/RAG.md), Sections 11–13 and 15. It cites Lewis et al., “Retrieval-Augmented Generation for Knowledge-Intensive NLP Tasks” (NeurIPS 2020); operational claims about contemporary pipelines are the supplied summary’s synthesis and have not been independently verified here.
+
+[^yao-react-summary]: “ReAct overview” (Vietnamese summary), [raw source](../raw/ReAct.md), Section 10. This is secondary-source evidence summarizing Yao et al., “ReAct: Synergizing Reasoning and Acting in Language Models” (ICLR 2023); the primary paper has not been independently ingested here.

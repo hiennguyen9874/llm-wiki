@@ -3,6 +3,9 @@
 ## 2026-08-12
 - **Ingest**: Compiled [Speculative decoding overview (Vietnamese summary)](../raw/SpeculativeDecoding.md); created [Speculative decoding exact sampling](speculative-decoding-exact-sampling.md) and [Speculative decoding performance trade-offs](speculative-decoding-performance-trade-offs.md).
 
+## 2026-08-01
+- **Ingest**: Compiled [ReAct overview (Vietnamese summary)](../raw/ReAct.md); created [ReAct reasoning-and-acting agent loop](react-reasoning-and-acting-agent-loop.md) and [ReAct evaluation and operational limits](react-evaluation-and-operational-limits.md), and updated [Chain-of-thought prompting](chain-of-thought-prompting.md), [Chain-of-thought prompting evaluation and limitations](chain-of-thought-prompting-evaluation-and-limitations.md), and [Retrieval-augmented generation operational pipeline and trust limits](retrieval-augmented-generation-operational-pipeline-and-trust-limits.md) with related-method context.
+
 ## 2026-07-31
 - **Ingest**: Compiled [Tree of Thoughts overview (Vietnamese summary)](../raw/TreeofThoughts.md); created [Tree of Thoughts deliberate search](tree-of-thoughts-deliberate-search.md) and [Tree of Thoughts evaluation and trade-offs](tree-of-thoughts-evaluation-and-trade-offs.md), and updated [Chain-of-thought prompting](chain-of-thought-prompting.md) and [Chain-of-thought prompting evaluation and limitations](chain-of-thought-prompting-evaluation-and-limitations.md) with related-method context.
 - **Ingest**: Compiled [Chain-of-Thought Prompting overview (Vietnamese summary)](../raw/Chain-of-ThoughtPrompting.md); created [Chain-of-thought prompting](chain-of-thought-prompting.md) and [Chain-of-thought prompting evaluation and limitations](chain-of-thought-prompting-evaluation-and-limitations.md), and updated [GPT-3 in-context learning evaluation and results](gpt-3-in-context-learning-evaluation-and-results.md).

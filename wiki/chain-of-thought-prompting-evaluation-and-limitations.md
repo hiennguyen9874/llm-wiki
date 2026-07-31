@@ -5,7 +5,7 @@ description: The supplied summary reports that few-shot chain-of-thought prompti
 tags: [chain-of-thought, evaluation, reasoning, prompting, limitations]
 status: stable
 created: 2026-07-31
-generated: { by: llm-wiki-agent/1, at: 2026-07-31T17:02:02Z }
+generated: { by: llm-wiki-agent/1, at: 2026-07-31T17:07:23Z }
 sources:
   - id: wei-cot-summary
     resource: ../raw/Chain-of-ThoughtPrompting.md
@@ -13,6 +13,9 @@ sources:
   - id: yao-tot-summary
     resource: ../raw/TreeofThoughts.md
     title: Tree of Thoughts overview (Vietnamese summary)
+  - id: yao-react-summary
+    resource: ../raw/ReAct.md
+    title: ReAct overview (Vietnamese summary)
 ---
 
 # Chain-of-thought prompting evaluation and limitations
@@ -42,7 +45,10 @@ The source further reports that emitting equations alone, unstructured extra tex
 
 - **Evaluates:** [Chain-of-thought prompting](chain-of-thought-prompting.md).
 - **Contrasts with:** [Tree of Thoughts evaluation and trade-offs](tree-of-thoughts-evaluation-and-trade-offs.md): ToT's intermediate state selection and backtracking aim to avoid linear error propagation, but add search cost and evaluator risk.[^yao-tot-summary]
+- **Qualified by:** [ReAct evaluation and operational limits](react-evaluation-and-operational-limits.md): observations can correct some unsupported assumptions, but a ReAct trace is not necessarily faithful and introduces tool, loop, cost, and action-safety risks.[^yao-react-summary]
 
 [^wei-cot-summary]: “Chain-of-Thought Prompting overview” (Vietnamese summary), [raw source](../raw/Chain-of-ThoughtPrompting.md), Sections 4–11. This is secondary-source evidence that links to Wei et al., “Chain-of-Thought Prompting Elicits Reasoning in Large Language Models,” arXiv:2201.11903; the primary paper has not been independently ingested here.
 
-[^yao-tot-summary]: “Tree of Thoughts overview” (Vietnamese summary), [raw source](../raw/TreeofThoughts.md), Sections 2, 6, and 11. This is secondary-source evidence that summarizes Yao et al., “Tree of Thoughts: Deliberate Problem Solving with Large Language Models” (NeurIPS 2023); the primary paper has not been independently ingested here.
+[^yao-tot-summary]: “Tree of Thoughts overview” (Vietnamese summary), [raw source](../raw/TreeofThoughts.md), Sections 2, 6, and 11. This is secondary-source evidence that summarizes Yao et al., “Tree of Thoughts: Deliberate Problem Solving with Large Language Models” (NeurIPS 2023); the primary paper and repository have not been independently ingested here.
+
+[^yao-react-summary]: “ReAct overview” (Vietnamese summary), [raw source](../raw/ReAct.md), Sections 7 and 12–13. This is secondary-source evidence summarizing Yao et al., “ReAct: Synergizing Reasoning and Acting in Language Models” (ICLR 2023); the primary paper has not been independently ingested here.

@@ -5,7 +5,7 @@ description: Few-shot chain-of-thought prompting supplies worked natural-languag
 tags: [chain-of-thought, prompting, few-shot-learning, in-context-learning, reasoning]
 status: stable
 created: 2026-07-31
-generated: { by: llm-wiki-agent/1, at: 2026-07-31T17:02:02Z }
+generated: { by: llm-wiki-agent/1, at: 2026-07-31T17:07:23Z }
 sources:
   - id: wei-cot-summary
     resource: ../raw/Chain-of-ThoughtPrompting.md
@@ -13,6 +13,9 @@ sources:
   - id: yao-tot-summary
     resource: ../raw/TreeofThoughts.md
     title: Tree of Thoughts overview (Vietnamese summary)
+  - id: yao-react-summary
+    resource: ../raw/ReAct.md
+    title: ReAct overview (Vietnamese summary)
 ---
 
 # Chain-of-thought prompting
@@ -38,7 +41,10 @@ CoT is most relevant when a task requires multiple dependent steps, an adequate 
 - **Uses:** [GPT-3 in-context learning evaluation and results](gpt-3-in-context-learning-evaluation-and-results.md)'s few-shot conditioning mechanism, while changing the demonstrations to include rationales.
 - **Evaluated by:** [Chain-of-thought prompting evaluation and limitations](chain-of-thought-prompting-evaluation-and-limitations.md), which records the reported task results, scale dependence, prompt sensitivity, and faithfulness limits.
 - **Extended by:** [Tree of Thoughts deliberate search](tree-of-thoughts-deliberate-search.md), which retains and searches multiple intermediate paths rather than committing to one linear rationale.[^yao-tot-summary]
+- **Extended by:** [ReAct reasoning-and-acting agent loop](react-reasoning-and-acting-agent-loop.md), which uses reasoning traces to select actions and revise its local plan from observations.[^yao-react-summary]
 
 [^wei-cot-summary]: “Chain-of-Thought Prompting overview” (Vietnamese summary), [raw source](../raw/Chain-of-ThoughtPrompting.md), Sections 1–3, 6–8, and 11–13. This is secondary-source evidence that links to Wei et al., “Chain-of-Thought Prompting Elicits Reasoning in Large Language Models,” arXiv:2201.11903; the primary paper has not been independently ingested here.
 
 [^yao-tot-summary]: “Tree of Thoughts overview” (Vietnamese summary), [raw source](../raw/TreeofThoughts.md), Sections 2 and 7. This is secondary-source evidence that summarizes Yao et al., “Tree of Thoughts: Deliberate Problem Solving with Large Language Models” (NeurIPS 2023); the primary paper has not been independently ingested here.
+
+[^yao-react-summary]: “ReAct overview” (Vietnamese summary), [raw source](../raw/ReAct.md), Sections 1–3 and 10. This is secondary-source evidence summarizing Yao et al., “ReAct: Synergizing Reasoning and Acting in Language Models” (ICLR 2023); the primary paper has not been independently ingested here.
