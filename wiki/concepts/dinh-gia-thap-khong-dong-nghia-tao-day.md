@@ -19,6 +19,9 @@ sources:
   - id: raw-2026-07-30-live2
     resource: ../../raw/luong-huynh/2026-07/2026-07-30-live2.md
     title: "Tóm tắt video: Cổ phiếu tăng trưởng mạnh nhưng định giá thấp"
+  - id: raw-quang-dung-2026-07-27-live
+    resource: ../../raw/quang-dung/2026-07/2026-07-27-live.md
+    title: "Tóm tắt video: Định giá thị trường chứng khoán năm 2026"
 ---
 
 # Định giá thấp không đồng nghĩa tạo đáy: khung đầu tư trong downtrend
@@ -53,6 +56,12 @@ Nguồn ngày 2026-07-30 bổ sung một cách diễn đạt chặt hơn cho b�
 
 [^raw-2026-07-30-live]: [Nguồn raw: tóm tắt video ngày 2026-07-30](../../raw/luong-huynh/2026-07/2026-07-30-live.md).
 
+## Bổ sung từ video ngày 2026-07-27
+
+Nguồn ngày 2026-07-27 bổ sung cơ chế giải thích cho nhịp giảm: margin call có thể đến từ cả cá nhân, tổ chức và cổ phiếu cầm cố; bán mạnh sau 14h hoặc trong ATC được xem là dấu hiệu có thể liên quan bán cưỡng bức, nhưng không đủ để xác định nguyên nhân từng lệnh. Nguồn cũng thuật lại P/E khoảng 10–10,2 lần và P/B khoảng 1,5 lần sau khi loại ảnh hưởng nhóm Vin/Vingroup, đồng thời nhấn mạnh rằng định giá thấp vẫn không xác nhận đáy.[^raw-quang-dung-2026-07-27-live]
+
+Về hành động, nguồn củng cố các nguyên tắc không dùng margin, không đoán đáy, không cơ cấu danh mục cảm tính sau khi đã lỗ sâu và chỉ tích lũy từng phần bằng tiền nhàn rỗi vào doanh nghiệp có nền tảng. Tích sản được xem là phụ thuộc chu kỳ, không phù hợp với mọi vùng giá hoặc mọi điều kiện thị trường.[^raw-quang-dung-2026-07-27-live]
+
 ## Giới hạn sử dụng
 
 Đây là quan điểm của các video thị trường, không phải khuyến nghị cá nhân hóa. Các đánh giá “rẻ”, mức giảm/tăng kỳ vọng và lợi nhuận dự phóng cần được đối chiếu với báo cáo tài chính, chất lượng tài sản, dòng tiền, nợ vay, xu hướng ngành và khả năng chịu lỗ của từng nhà đầu tư. Xem [bản đồ định giá các nhóm cổ phiếu trong video ngày 2026-07-28](ban-do-dinh-gia-co-phieu-video-2026-07-28.md) và [bản đồ tiêu chí chọn cổ phiếu trong video ngày 2026-07-29](ban-do-dinh-gia-co-phieu-video-2026-07-29.md) để biết phạm vi mã được nhắc đến.
@@ -60,3 +69,4 @@ Nguồn ngày 2026-07-30 bổ sung một cách diễn đạt chặt hơn cho b�
 [^raw-2026-07-28-live]: [Nguồn raw: tóm tắt video ngày 2026-07-28](../../raw/luong-huynh/2026-07/2026-07-28-live.md).
 [^raw-2026-07-29-live]: [Nguồn raw: tóm tắt video ngày 2026-07-29](../../raw/luong-huynh/2026-07/2026-07-29-live.md).
 [^raw-2026-07-30-live2]: [Nguồn raw: tóm tắt video ngày 2026-07-30](../../raw/luong-huynh/2026-07/2026-07-30-live2.md).
+[^raw-quang-dung-2026-07-27-live]: [Nguồn raw: tóm tắt video ngày 2026-07-27](../../raw/quang-dung/2026-07/2026-07-27-live.md).
