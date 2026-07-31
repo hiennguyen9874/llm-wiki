@@ -5,11 +5,14 @@ description: MQA shares one key/value head across many query heads to reduce aut
 tags: [attention, multi-query-attention, grouped-query-attention, kv-cache, decoding, inference]
 status: draft
 created: 2026-07-31
-generated: { by: llm-wiki-agent/1, at: 2026-07-31T23:44:26+07:00 }
+generated: { by: llm-wiki-agent/1, at: 2026-07-31T16:47:41Z }
 sources:
   - id: mqa-summary
     resource: ../raw/MQA.md
     title: "MQA overview (Vietnamese summary)"
+  - id: gqa-summary
+    resource: ../raw/GQA.md
+    title: "GQA overview (Vietnamese summary)"
 ---
 
 # Multi-query and grouped-query attention
@@ -26,7 +29,7 @@ $$
 
 Each query head retains its own query projection, so heads can produce different attention distributions over the shared keys. But they retrieve from the same value vectors and compare against the same key representation, reducing the independent key/value subspaces available under MHA.[^mqa-summary]
 
-GQA chooses $1 < H_{KV} < H_Q$ and assigns groups of query heads to shared KV heads. Thus MHA and MQA are the endpoints of the same head-count choice: $H_{KV}=H_Q$ for MHA and $H_{KV}=1$ for MQA.[^mqa-summary]
+GQA chooses $1 < H_{KV} < H_Q$ and assigns groups of query heads to shared KV heads. If $R=H_Q/H_{KV}$, query head $i$ uses KV head $\lfloor i/R\rfloor$; its query projection and attention distribution remain distinct from the other query heads in that group. Thus MHA and MQA are the endpoints of the same head-count choice: $H_{KV}=H_Q$ for MHA and $H_{KV}=1$ for MQA.[^gqa-summary]
 
 ## Decode memory and performance boundary
 
@@ -40,15 +43,20 @@ Consequently, MQA reduces idealized K/V tensor storage—and the K/V data read p
 
 MQA also reduces K/V projections and their parameters, but does not eliminate the per-query-head attention-score work. It should therefore not be interpreted as a universal $H_Q$-fold latency improvement: hardware, batch size, context length, kernel support, and other serving bottlenecks determine observed speedup. The source reports a TPUv2 experiment where decoder incremental latency fell from 46 to 3.8 microseconds per token, a configuration-specific result.[^mqa-summary]
 
+In the reported T5-XXL setup, uptrained GQA with eight KV heads scored 47.1 versus 47.2 for MHA-XXL and 46.6 for MQA-XXL, with reported inference times of 0.28, 1.51, and 0.24 seconds respectively. This makes the roughly $5.4\times$ GQA-versus-MHA speedup specific to that TPUv4 benchmark and its parallelization, rather than a general performance guarantee.[^gqa-summary]
+
 ## Quality trade-off
 
 Sharing K/V limits each head’s ability to learn independent key and value representations. In the source’s reported WMT14 English–German experiment, MQA had broadly comparable BLEU to MHA; its Billion Word result had slightly worse development perplexity. Those results support a small degradation in those tested configurations, not an assurance of equivalent quality for all models or tasks.[^mqa-summary]
 
-The summary presents GQA as a practical compromise that can approach MHA quality with much of MQA’s decode efficiency. It attributes to the cited GQA work an MHA-to-MQA/GQA checkpoint conversion procedure using approximately 5% of original pretraining compute in that work’s setting; this is a reported, setup-dependent training result.[^mqa-summary]
+The reported GQA-8 result supports GQA as a practical compromise that can approach MHA quality with much of MQA’s decode efficiency, but does not establish equivalent quality for every model, task, context length, or KV-head count. The source also describes an MHA-checkpoint conversion followed by limited continued pretraining; see [GQA checkpoint conversion and uptraining](gqa-checkpoint-conversion-and-uptraining.md).[^gqa-summary]
 
 ## Relationships
 
 - **Modifies:** [Scaled dot-product and multi-head attention](scaled-dot-product-and-multi-head-attention.md) by sharing K/V projections across query heads rather than giving each head separate projections.[^mqa-summary]
 - **Addresses:** the KV-cache-read bottleneck described in [FlashAttention implementation evolution](flashattention-implementation-evolution.md) for one-token decoding; it is an architectural cache-layout trade-off rather than an exact-attention kernel optimization.[^mqa-summary]
+- **Adapted by:** [GQA checkpoint conversion and uptraining](gqa-checkpoint-conversion-and-uptraining.md), which averages MHA K/V projections within each target group and continues pretraining.[^gqa-summary]
 
 [^mqa-summary]: “MQA overview” (Vietnamese summary), [raw source](../raw/MQA.md), Sections 1–14. This is secondary-source evidence citing Shazeer, “Fast Transformer Decoding: One Write-Head is All You Need” (2019), Vaswani et al. (2017), and Ainslie et al., “GQA” (2023); those primary papers have not been independently ingested here.
+
+[^gqa-summary]: “GQA overview” (Vietnamese summary), [raw source](../raw/GQA.md), Sections 3–18. This is secondary-source evidence summarizing Ainslie et al., “GQA: Training Generalized Multi-Query Transformer Models from Multi-Head Checkpoints” (2023); the primary paper has not been independently ingested here.
