@@ -1,15 +1,18 @@
 ---
 type: Concept
 title: "Cổ phiếu “POW”: luận điểm tăng trưởng lợi nhuận và rủi ro"
-description: "Theo một video transcript chưa được kiểm chứng độc lập, cổ phiếu được gọi là POW có thể hưởng lợi từ NT3–NT4 và tỷ lệ bao tiêu điện cao, nhưng phụ thuộc lớn vào huy động điện, EVN và nguồn khí."
+description: "Theo hai video transcript chưa được kiểm chứng độc lập, cổ phiếu được gọi là POW có thể hưởng lợi từ tăng trưởng lợi nhuận và định giá thấp, nhưng phụ thuộc lớn vào huy động điện, EVN, nguồn khí và các giả định dự phóng."
 tags: [co-phieu, dien-luc, pow, viet-nam]
 status: draft
 created: 2026-07-31
-generated: { by: llm-wiki-agent/1, at: 2026-07-31T14:00:38Z }
+generated: { by: llm-wiki-agent/1, at: 2026-07-31T14:01:59Z }
 sources:
   - id: raw-2026-07-26-live
     resource: ../../raw/luong-huynh/2026-07/2026-07-26-live.md
     title: "Tóm tắt video: Cổ phiếu “POW” (theo transcript) và câu chuyện tăng trưởng lợi nhuận"
+  - id: raw-2026-07-28-live
+    resource: ../../raw/luong-huynh/2026-07/2026-07-28-live.md
+    title: "Tóm tắt video: Vùng đắt tranh mua - Vùng thấp lại sợ?"
 ---
 
 # Cổ phiếu “POW”: luận điểm tăng trưởng lợi nhuận và rủi ro
@@ -22,6 +25,10 @@ Theo nguồn, cổ phiếu được transcript gọi là “POW” có luận đ
 - Các số liệu được nhấn mạnh cho quý II và sáu tháng đầu năm 2026 gồm lợi nhuận trước thuế công ty mẹ quý II khoảng 4.183 tỷ đồng, doanh thu sáu tháng tăng 88%, sản lượng tăng khoảng 42% và công suất tăng khoảng 38%. Đây là các con số theo transcript; nguồn không cung cấp báo cáo gốc để đối chiếu.
 - Theo video, tỷ lệ bao tiêu trung bình được mô tả tăng từ khoảng 78% trước năm 2025 lên khoảng 102% sau một nghị định được transcript gọi là “Nghị định 100/2025”. Nguồn không giải thích công thức QTC/Qm hoặc cách một tỷ lệ trên 100% được tính, nên chỉ nên xem đây là tín hiệu trong luận điểm chứ không phải dữ kiện đã xác minh.
 - Kịch bản định giá của tác giả giả định lợi nhuận sau thuế cả năm tối thiểu khoảng 5.000 tỷ đồng, vốn hóa khoảng 40.000–41.000 tỷ đồng và mức P/E mục tiêu khoảng 10 lần; từ đó ước tính dư địa tăng vốn hóa khoảng 10% hoặc hơn. Đây là phép tính kịch bản, không phải dự báo đã kiểm chứng.
+
+## Bổ sung từ video ngày 2026-07-28
+
+Nguồn thứ hai gọi POW là một mã có P/B khoảng 1,07 lần, lợi nhuận quý I khoảng 1.200 tỷ đồng và ước tính lợi nhuận quý II khoảng 2.000–2.300 tỷ đồng. Đây là các con số/ước tính được thuật lại từ video, không phải xác nhận độc lập; phần định giá và lợi nhuận này cũng được đặt trong bối cảnh “rẻ nhưng có thể giảm tiếp”, nên không xác nhận đáy.[^raw-2026-07-28-live]
 
 ## Mô hình và yếu tố phụ thuộc
 
@@ -45,5 +52,7 @@ Nguồn thiên về giao dịch theo nhịp tăng trưởng lợi nhuận trong 
 - **Danh tính doanh nghiệp:** transcript gọi mã là “POW”, nhưng nguồn chỉ mô tả doanh nghiệp và không cung cấp tài liệu định danh độc lập; vì vậy trang này giữ cách gọi có dấu ngoặc kép.
 - **Số liệu và mốc thời gian:** chính nguồn cảnh báo một số mốc/số liệu diễn đạt chưa nhất quán. Các con số 4.183 tỷ đồng, tăng trưởng 256%, tỷ lệ 78%/102% và vốn hóa 41.000 tỷ đồng chưa được đối chiếu với báo cáo hoặc văn bản gốc.
 - **Ý nghĩa “bao tiêu 102%”:** transcript giải thích bằng ví dụ đơn giản nhưng không nêu công thức hay phạm vi áp dụng; chưa thể kết luận đây là tỷ lệ sản lượng thực tế theo nghĩa thông thường.
+- **Số liệu từ nguồn ngày 2026-07-28:** P/B khoảng 1,07 lần, lợi nhuận quý I khoảng 1.200 tỷ đồng và lợi nhuận quý II ước tính 2.000–2.300 tỷ đồng chưa được đối chiếu với báo cáo gốc.[^raw-2026-07-28-live]
 
 [^raw-2026-07-26-live]: [Nguồn raw: tóm tắt video ngày 2026-07-26](../../raw/luong-huynh/2026-07/2026-07-26-live.md).
+[^raw-2026-07-28-live]: [Nguồn raw: tóm tắt video ngày 2026-07-28](../../raw/luong-huynh/2026-07/2026-07-28-live.md).
