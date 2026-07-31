@@ -5,7 +5,7 @@ description: GPT pre-trains a decoder-only Transformer language model on contigu
 tags: [gpt, generative-pre-training, causal-language-modeling, fine-tuning, transfer-learning]
 status: stable
 created: 2026-07-31
-generated: { by: llm-wiki-agent/1, at: 2026-07-31T15:28:50Z }
+generated: { by: llm-wiki-agent/1, at: 2026-07-31T15:33:02Z }
 sources:
   - id: radford-generative-pre-training-2018
     resource: ../raw/gpt.pdf
@@ -44,5 +44,6 @@ It also tested heuristic zero-shot scoring by average token log-probability for 
 
 - **Uses:** [Transformer sequence transduction architecture](transformer-sequence-transduction-architecture.md)'s masked decoder self-attention and position-wise feed-forward computation, but not its encoder or encoder-decoder attention.
 - **Contrasts with:** [BERT bidirectional transfer learning](bert-bidirectional-transfer-learning.md), whose encoder represents each token with both left and right context rather than GPT's causal context.
+- **Extended by:** [GPT-2 WebText pre-training and architecture](gpt-2-webtext-pre-training-and-architecture.md), which scales the decoder-only language-model approach and modifies its tokenization, context length, normalization, and initialization.
 
 [^radford-generative-pre-training-2018]: Alec Radford, Karthik Narasimhan, Tim Salimans, and Ilya Sutskever, “Improving Language Understanding by Generative Pre-Training” (2018), bundled [PDF](../raw/gpt.pdf), especially Sections 3–5 and Tables 2–5.

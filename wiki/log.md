@@ -1,6 +1,7 @@
 # Wiki Update Log
 
 ## 2026-07-31
+- **Ingest**: Compiled [Language Models are Unsupervised Multitask Learners](../raw/gpt2.pdf); created [GPT-2 WebText pre-training and architecture](gpt-2-webtext-pre-training-and-architecture.md) and [GPT-2 zero-shot multitask evaluation and overlap auditing](gpt-2-zero-shot-multitask-evaluation-and-overlap-auditing.md), and updated [GPT generative pre-training and task adaptation](gpt-generative-pre-training-and-task-adaptation.md).
 - **Ingest**: Compiled [Improving Language Understanding by Generative Pre-Training](../raw/gpt.pdf); created [GPT generative pre-training and task adaptation](gpt-generative-pre-training-and-task-adaptation.md).
 - **Ingest**: Compiled [BERT: Pre-training of Deep Bidirectional Transformers for Language Understanding](../raw/arXiv-1810.04805v2/main.tex); created stable concepts for BERT’s transfer recipe and its MLM/NSP pre-training objectives.
 - **Ingest**: Compiled [Attention Is All You Need](../raw/arXiv-1706.03762v7/ms.tex); created three stable concepts covering the Transformer architecture, scaled dot-product and multi-head attention, and self-attention’s computational profile.
