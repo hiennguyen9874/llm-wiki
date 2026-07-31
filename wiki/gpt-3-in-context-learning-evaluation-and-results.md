@@ -5,11 +5,14 @@ description: GPT-3 evaluates zero-, one-, and few-shot task behavior through tex
 tags: [gpt-3, in-context-learning, few-shot-learning, prompting, evaluation]
 status: stable
 created: 2026-07-31
-generated: { by: llm-wiki-agent/1, at: 2026-07-31T15:42:00Z }
+generated: { by: llm-wiki-agent/1, at: 2026-07-31T23:59:16+07:00 }
 sources:
   - id: brown-gpt-3-2020-v4
     resource: ../raw/arXiv-2005.14165v4/main.tex
     title: Language Models are Few-Shot Learners
+  - id: wei-cot-summary
+    resource: ../raw/Chain-of-ThoughtPrompting.md
+    title: Chain-of-Thought Prompting overview (Vietnamese summary)
 ---
 
 # GPT-3 in-context learning evaluation and results
@@ -35,5 +38,8 @@ Synthetic tasks offer suggestive but limited evidence of adaptation. For example
 - **Evaluates:** [GPT-3 scaled causal language model](gpt-3-scaled-causal-language-model.md) without parameter updates.
 - **Extends:** [GPT-2 zero-shot multitask evaluation and overlap auditing](gpt-2-zero-shot-multitask-evaluation-and-overlap-auditing.md) by explicitly distinguishing zero-, one-, and few-shot settings and systematically varying model scale.
 - **Qualified by:** [GPT-3 benchmark contamination audit](gpt-3-benchmark-contamination-audit.md), which identifies reported scores requiring leakage caveats.
+- **Used by:** [Chain-of-thought prompting](chain-of-thought-prompting.md), which applies few-shot conditioning with worked rationales rather than answer-only demonstrations.[^wei-cot-summary]
 
 [^brown-gpt-3-2020-v4]: Tom B. Brown et al., “Language Models are Few-Shot Learners,” arXiv:2005.14165v4 (2020), bundled [LaTeX source](../raw/arXiv-2005.14165v4/main.tex), especially Sections 1–3, 3.2, 3.7–3.9, and 5.
+
+[^wei-cot-summary]: “Chain-of-Thought Prompting overview” (Vietnamese summary), [raw source](../raw/Chain-of-ThoughtPrompting.md), Sections 1–3. This is secondary-source evidence that links to Wei et al., “Chain-of-Thought Prompting Elicits Reasoning in Large Language Models,” arXiv:2201.11903; the primary paper has not been independently ingested here.
