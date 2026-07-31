@@ -5,7 +5,7 @@ description: GPT-3 scales the GPT-2-style causal Transformer to 175B parameters,
 tags: [gpt-3, causal-language-modeling, pre-training, sparse-attention, training-data]
 status: stable
 created: 2026-07-31
-generated: { by: llm-wiki-agent/1, at: 2026-07-31T23:12:13+07:00 }
+generated: { by: llm-wiki-agent/1, at: 2026-07-31T23:15:02+07:00 }
 sources:
   - id: brown-gpt-3-2020-v4
     resource: ../raw/arXiv-2005.14165v4/main.tex
@@ -13,6 +13,9 @@ sources:
   - id: chinchilla-summary
     resource: ../raw/Chinchilla.md
     title: Chinchilla overview (summary)
+  - id: opt-summary
+    resource: ../raw/OPT.md
+    title: "OPT: Open Pre-trained Transformer Language Models (summary)"
 ---
 
 # GPT-3 scaled causal language model
@@ -34,6 +37,7 @@ The source filters Common Crawl by a logistic-regression quality score trained t
 ## Relationships
 
 - **Extends:** [GPT-2 WebText pre-training and architecture](gpt-2-webtext-pre-training-and-architecture.md) with a larger context, data mixture, scale, and alternating sparse-attention pattern.
+- **Compared with:** [OPT open pre-trained language models](opt-open-pre-trained-language-models.md), whose 175B member was designed as a near-GPT-3-scale and near-GPT-3-quality research release.[^opt-summary]
 - **Applies:** [Kaplan compute-optimal training allocation](kaplan-compute-optimal-training-allocation.md)'s then-current prescription to favor larger models trained on comparatively fewer tokens.
 - **Characterized by:** [Chinchilla compute-optimal training allocation](chinchilla-compute-optimal-training-allocation.md) as comparatively undertrained under its approximate 20-token-per-parameter heuristic.[^chinchilla-summary]
 - **Evaluated by:** [GPT-3 in-context learning evaluation and results](gpt-3-in-context-learning-evaluation-and-results.md) and [GPT-3 benchmark contamination audit](gpt-3-benchmark-contamination-audit.md).
@@ -42,3 +46,5 @@ The source filters Common Crawl by a logistic-regression quality score trained t
 [^brown-gpt-3-2020-v4]: Tom B. Brown et al., “Language Models are Few-Shot Learners,” arXiv:2005.14165v4 (2020), bundled [LaTeX source](../raw/arXiv-2005.14165v4/main.tex), especially Sections 2.1–2.3, Appendix A–B, and Tables 1–2.
 
 [^chinchilla-summary]: “Chinchilla overview (summary),” [raw source](../raw/Chinchilla.md), Sections 1 and 8. This is a secondary summary; the primary Chinchilla paper has not been independently ingested here.
+
+[^opt-summary]: “OPT: Open Pre-trained Transformer Language Models” (Vietnamese summary), [raw source](../raw/OPT.md), Sections 1–2 and 5. This is secondary-source evidence; the primary OPT paper has not been independently ingested here.
