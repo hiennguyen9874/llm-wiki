@@ -1,0 +1,14 @@
+As mentioned in Section \ref{section:Training Dataset}, we employed two techniques to improve the quality of the Common Crawl dataset: (1) filtering Common Crawl and (2) fuzzy deduplication:
+
+\begin{enumerate}
+
+\item In order to improve the quality of Common Crawl, we developed an automatic filtering method to remove low quality documents. Using the original WebText as a proxy for high-quality documents, we trained a classifier to distinguish these from raw Common Crawl. We then used this classifier to re-sample Common Crawl by prioritizing documents which were predicted by the classifier to be higher quality. The classifier is trained using logistic regression classifier with features from Spark's standard tokenizer and HashingTF \footnote{\url{https://spark.apache.org/docs/latest/api/python/pyspark.ml.html\#pyspark.ml.feature.HashingTF}}. For the positive examples, we used a collection of curated datasets such as WebText, Wikiedia, and our web books corpus as the positive examples, and for the negative examples, we used unfiltered Common Crawl.  We used this classifier to score Common Crawl documents. We kept each document in our dataset iff
+
+\[\verb|np.random.pareto|(\alpha) > 1 - \verb|document_score|\]
+
+We chose $\alpha = 9$ in order to take mostly documents the classifier scored highly, but still include some documents that were out of distribution. $\alpha$ was chosen to match the distribution of scores from our classifier on WebText.  We found this re-weighting increased quality as measured by loss on a range of out-of-distribution generative text samples.
+\item To further improve model quality and prevent overfitting (which becomes increasingly important as model capacity increases), we fuzzily deduplicated documents (i.e. removed documents with high overlap with other documents) within each dataset using Spark's MinHashLSH implementation with 10 hashes, using the same features as were used for classification above.  We also fuzzily removed WebText from Common Crawl. Overall this decreased dataset size by an average of 10\%.
+
+\end{enumerate}
+
+After filtering for duplicates and quality, we also partially removed text occurring in benchmark datasets, described in Appendix \ref{appendix:test_set_contamination}.

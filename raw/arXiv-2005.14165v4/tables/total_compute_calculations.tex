@@ -1,0 +1,41 @@
+
+\begin{table}[!h]
+
+\begin{adjustwidth}{-.6in}{-.6in}
+{
+    \tiny
+    \centering
+        \footnotesize
+        \begin{center}
+            \begin{tabular}{lccccccccc}
+                     Model & \shortstack{Total train\\ compute \\ (PF-days)} & \shortstack{Total train \\compute \\ (flops)} & \shortstack{Params \\(M)} & \shortstack{Training tokens\\ (billions)} & \shortstack{Flops \\ per param \\ per token} & \shortstack{Mult for\\ bwd pass} & \shortstack{Fwd-pass \\ flops per \\ active param \\ per token} & \shortstack{Frac of\\ params active\\ for each\\ token} \\
+            \midrule
+                  T5-Small &                      2.08E+00 &                    1.80E+20 &         60 &                      1,000 &                               3 &                       3 &                                         1 &                                      0.5 &   \\
+                   T5-Base &                      7.64E+00 &                    6.60E+20 &        220 &                      1,000 &                               3 &                       3 &                                         1 &                                      0.5 &   \\
+                  T5-Large &                      2.67E+01 &                    2.31E+21 &        770 &                      1,000 &                               3 &                       3 &                                         1 &                                      0.5 &   \\
+                     T5-3B &                      1.04E+02 &                    9.00E+21 &      3,000 &                      1,000 &                               3 &                       3 &                                         1 &                                      0.5 &   \\
+                    T5-11B &                      3.82E+02 &                    3.30E+22 &     11,000 &                      1,000 &                               3 &                       3 &                                         1 &                                      0.5 &   \\
+                 BERT-Base &                      1.89E+00 &                    1.64E+20 &        109 &                        250 &                               6 &                       3 &                                         2 &                                      1.0 &   \\
+                BERT-Large &                      6.16E+00 &                    5.33E+20 &        355 &                        250 &                               6 &                       3 &                                         2 &                                      1.0 &   \\
+              RoBERTa-Base &                      1.74E+01 &                    1.50E+21 &        125 &                      2,000 &                               6 &                       3 &                                         2 &                                      1.0 &   \\
+             RoBERTa-Large &                      4.93E+01 &                    4.26E+21 &        355 &                      2,000 &                               6 &                       3 &                                         2 &                                      1.0 &   \\
+               GPT-3 Small &                      2.60E+00 &                    2.25E+20 &        125 &                        300 &                               6 &                       3 &                                         2 &                                      1.0 &   \\
+              GPT-3 Medium &                      7.42E+00 &                    6.41E+20 &        356 &                        300 &                               6 &                       3 &                                         2 &                                      1.0 &   \\
+               GPT-3 Large &                      1.58E+01 &                    1.37E+21 &        760 &                        300 &                               6 &                       3 &                                         2 &                                      1.0 &   \\
+                  GPT-3 XL &                      2.75E+01 &                    2.38E+21 &      1,320 &                        300 &                               6 &                       3 &                                         2 &                                      1.0 &   \\
+                GPT-3 2.7B &                      5.52E+01 &                    4.77E+21 &      2,650 &                        300 &                               6 &                       3 &                                         2 &                                      1.0 &   \\
+                GPT-3 6.7B &                      1.39E+02 &                    1.20E+22 &      6,660 &                        300 &                               6 &                       3 &                                         2 &                                      1.0 &   \\
+                 GPT-3 13B &                      2.68E+02 &                    2.31E+22 &     12,850 &                        300 &                               6 &                       3 &                                         2 &                                      1.0 &   \\
+                GPT-3 175B &                      3.64E+03 &                    3.14E+23 &    174,600 &                        300 &                               6 &                       3 &                                         2 &                                      1.0 &   \\
+            \bottomrule
+            \end{tabular}
+            \end{center}
+            }
+            
+\end{adjustwidth}
+        \caption{
+Starting from the right hand side and moving left, we begin with the number of training tokens that each model was trained with. Next we note that since T5 uses an encoder-decoder model, only half of the parameters are active for each token during a forward or backwards pass. We then note that each token is involved in a single addition and a single multiply for each active parameter in the forward pass (ignoring attention). Then we add a multiplier of 3x to account for the backwards pass (as computing both $\frac{\partial{params}}{\partial{loss}}$ and $\frac{\partial{acts}}{\partial{loss}}$ use a similar amount of compute as the forwards pass. Combining the previous two numbers, we get the total flops per parameter per token. We multiply this value by the total training tokens and the total parameters to yield the number of total flops used during training. We report both flops and petaflop/s-day (each of which are 8.64e+19 flops).
+        }
+
+\label{table:total_compute_calculations}
+\end{table}

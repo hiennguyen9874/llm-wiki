@@ -1,0 +1,31 @@
+
+To test GPT-3's ability to perform simple arithmetic operations without task-specific training, we developed a small battery of 10 tests that involve asking GPT-3 a simple arithmetic problem in natural language:
+
+\begin{itemize}
+    \item \textbf{2 digit addition (2D+)} -- The model is asked to add two integers sampled uniformly from $[0, 100)$, phrased in the form of a question, e.g. ``Q: What is 48 plus 76? A: 124.''
+    \item \textbf{2 digit subtraction (2D-)} -- The model is asked to subtract two integers sampled uniformly from $[0, 100)$; the answer may be negative.  Example: ``Q: What is 34 minus 53? A: -19''.
+    \item \textbf{3 digit addition (3D+)} -- Same as 2 digit addition, except numbers are uniformly sampled from $[0, 1000)$.
+    \item \textbf{3 digit subtraction (3D-)} -- Same as 2 digit subtraction, except numbers are uniformly sampled from $[0, 1000)$.
+    \item \textbf{4 digit addition (4D+)} -- Same as 3 digit addition, except uniformly sampled from $[0, 10000)$.
+    \item \textbf{4 digit subtraction (4D-)} -- Same as 3 digit subtraction, except uniformly sampled from $[0, 10000)$.
+    \item \textbf{5 digit addition (5D+)} -- Same as 3 digit addition, except uniformly sampled from $[0, 100000)$.
+    \item \textbf{5 digit subtraction (5D-)} -- Same as 3 digit subtraction, except uniformly sampled from $[0, 100000)$.
+   \item \textbf{2 digit multiplication (2Dx)} -- The model is asked to multiply two integers sampled uniformly from $[0, 100)$, e.g. ``Q: What is 24 times 42? A: 1008''.
+    \item \textbf{One-digit composite (1DC)} -- The model is asked to perform a composite operation on three 1 digit numbers, with parentheses around the last two. For example, ``Q: What is 6+(4*8)? A: 38''. The three 1 digit numbers are selected uniformly on $[0, 10)$ and the operations are selected uniformly from \{+,-,*\}.
+\end{itemize}
+
+In all 10 tasks the model must generate the correct answer exactly. For each task we generate a dataset of 2,000 random instances of the task and evaluate all models on those instances.
+
+First we evaluate GPT-3 in the few-shot setting, for which results are shown in Figure \ref{graph:arithmetic}.  On addition and subtraction, GPT-3 displays strong proficiency when the number of digits is small, achieving 100\% accuracy on 2 digit addition, 98.9\% at 2 digit subtraction, 80.2\% at 3 digit addition, and 94.2\% at 3-digit subtraction.  Performance decreases as the number of digits increases, but GPT-3 still achieves 25-26\% accuracy on four digit operations and 9-10\% accuracy on five digit operations, suggesting at least some capacity to generalize to larger numbers of digits.  GPT-3 also achieves 29.2\% accuracy at 2 digit multiplication, an especially computationally intensive operation. Finally, GPT-3 achieves 21.3\% accuracy at single digit combined operations (for example, 9*(7+5)), suggesting that it has some robustness beyond just single operations.
+
+\input{graphs/arithmetic.tex}
+\input{tables/arithmetic.tex}
+
+As Figure \ref{graph:arithmetic} makes clear, small models do poorly on all of these tasks -- even the 13 billion parameter model (the second largest after the 175 billion full GPT-3) can solve 2 digit addition and subtraction only half the time, and all other operations less than 10\% of the time.
+
+One-shot and zero-shot performance are somewhat degraded relative to few-shot performance, suggesting that adaptation to the task (or at the very least recognition of the task) is important to performing these computations correctly.  Nevertheless, one-shot performance is still quite strong, and even zero-shot performance of the full GPT-3 significantly outperforms few-shot learning for all smaller models.  All three settings for the full GPT-3 are shown in Table \ref{table:arithmetic}, and model capacity scaling for all three settings is shown in Appendix \ref{appendix:results_on_all_tasks}.
+
+To spot-check whether the model is simply memorizing specific arithmetic problems, we took the 3-digit arithmetic problems in our test set and searched for them in our training data in both the forms \texttt{"<NUM1> + <NUM2> ="} and \texttt{"<NUM1> plus <NUM2>"}.  Out of 2,000 addition problems we found only 17 matches (0.8\%) and out of 2,000 subtraction problems we found only 2 matches (0.1\%), suggesting that only a trivial fraction of the correct answers could have been memorized.  In addition, inspection of incorrect answers reveals that the model often makes mistakes such as not carrying a ``1'', suggesting it is actually attempting to perform the relevant computation rather than memorizing a table.
+
+Overall, GPT-3 displays reasonable proficiency at moderately complex arithmetic in few-shot, one-shot, and even zero-shot settings.
+
