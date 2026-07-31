@@ -1,6 +1,7 @@
 # Wiki Update Log
 
 ## 2026-07-31
+- **Ingest**: Compiled [FlashAttention overview (Vietnamese summary)](../raw/FlashAttention.md); created [FlashAttention IO-aware exact attention](flashattention-io-aware-exact-attention.md) and [FlashAttention implementation evolution](flashattention-implementation-evolution.md), and updated [Scaled dot-product and multi-head attention](scaled-dot-product-and-multi-head-attention.md) and [Self-attention computational profile](self-attention-computational-profile.md).
 - **Ingest**: Compiled [QLoRA overview (Vietnamese summary)](../raw/QLoRA.md); created [QLoRA quantized adapter fine-tuning](qlora-quantized-adapter-fine-tuning.md) and [QLoRA memory, evaluation, and deployment trade-offs](qlora-memory-evaluation-and-deployment-trade-offs.md), and updated [LoRA training and deployment trade-offs](lora-training-and-deployment-trade-offs.md).
 - **Ingest**: Compiled [LoRA overview (Vietnamese summary)](../raw/LoRA.md); created [LoRA low-rank adaptation](lora-low-rank-adaptation.md) and [LoRA training and deployment trade-offs](lora-training-and-deployment-trade-offs.md).
 - **Ingest**: Compiled [Self-Instruct overview (Vietnamese summary)](../raw/Self-Instruct.md); created [Self-Instruct synthetic instruction data](self-instruct-synthetic-instruction-data.md) and [Self-Instruct results and limitations](self-instruct-results-and-limitations.md), and updated [GPT-3 scaled causal language model](gpt-3-scaled-causal-language-model.md).

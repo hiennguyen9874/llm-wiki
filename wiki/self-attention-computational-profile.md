@@ -5,11 +5,14 @@ description: Full self-attention offers constant sequential depth and direct tok
 tags: [self-attention, complexity, parallelism, long-context]
 status: stable
 created: 2026-07-31
-generated: { by: llm-wiki-agent/1, at: 2026-07-31T15:18:25Z }
+generated: { by: llm-wiki-agent/1, at: 2026-07-31T16:35:10Z }
 sources:
   - id: vaswani-transformer-2017
     resource: ../raw/arXiv-1706.03762v7/ms.tex
     title: Attention Is All You Need
+  - id: flashattention-summary
+    resource: ../raw/FlashAttention.md
+    title: "FlashAttention overview (Vietnamese summary)"
 ---
 
 # Self-attention computational profile
@@ -43,5 +46,8 @@ These are asymptotic, per-layer comparisons for processing a sequence, not a com
 - **Motivates:** [Transformer sequence transduction architecture](transformer-sequence-transduction-architecture.md).
 - **Applies to:** [Scaled dot-product and multi-head attention](scaled-dot-product-and-multi-head-attention.md) when attention spans the full sequence.
 - **Contrasts with:** [Linear attention as fixed-state memory](linear-attention-as-fixed-state-memory.md), which bounds recurrent decode state by giving up exact token-addressable softmax attention.
+- **Optimized by:** [FlashAttention IO-aware exact attention](flashattention-io-aware-exact-attention.md), which reduces full attention's intermediate-memory traffic while retaining its quadratic arithmetic.[^flashattention-summary]
 
 [^vaswani-transformer-2017]: Ashish Vaswani et al., “Attention Is All You Need,” arXiv:1706.03762v7, bundled [LaTeX source](../raw/arXiv-1706.03762v7/ms.tex), especially `why_self_attention.tex`.
+
+[^flashattention-summary]: “FlashAttention overview” (Vietnamese summary), [raw source](../raw/FlashAttention.md), Sections 2, 8, and 13. This is secondary-source evidence; its cited primary FlashAttention paper has not been independently ingested here.
