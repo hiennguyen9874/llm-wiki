@@ -1,0 +1,152 @@
+\vspace{-2mm}
+\section{Empirical Study}
+\vspace{-2mm}
+We compare the DeltaNet against strong baselines in both synthetic and real-world language modeling settings. Our main baselines include: LLaMA-architecture Transformer++ \cite{touvron2023llama};  RetNet \cite{sun2023retentive}, a linear attention Transformer with non-data-dependent exponential decay  and large head dimension; GLA \cite{yang_gated_2023}, a linear attention Transformer with data-dependent decay; and Mamba \cite{gu_mamba_2023}, a selective state-space model with data-dependent decay. 
+
+\vspace{-2mm}
+\subsection{Synthetic Benchmarks}
+\vspace{-2mm}
+
+We evaluate on three synthetic benchmarks: Multi-query associative recall  \cite[MQAR;][]{zoology}, Mechanistic Architecture Design \cite[MAD;][]{poli_mechanistic_2024}, and in-context language learning  \cite[RegBench;][]{akyurek2024context}.
+
+ \input{tables/mad} 
+
+MQAR
+ evaluates language models' ability to (in-context) recall information within a context when faced with multiple recall queries. We use \citet{zoology}'s training setting and for DeltaNet we use 2 heads.  We do not use convolutions for these experiments. Figure \ref{fig:mqar} shows that DeltaNet performs perfectly (even without convolution) in the hardest setting and outperforms Mamba (which uses convolutions) in the low-dimension setting. 
+Next, we consider the MAD benchmark \cite{poli_mechanistic_2024}, a suite of synthetic token manipulation tasks designed to probe capabilities of model 
+ architectures. The results are shown in Table \ref{tab:mad_results}. Compared with other architectures, including MHA, DeltaNet is better at recalling tasks, especially on Fuzzy Recall as expected, although it somehow struggles on the ``Memorize'' task. We defer the RegBench results to the \S\ref{sec:regbench} due to space constraints.
+
+
+
+\vspace{-2mm}
+\subsection{Language Modeling}
+\label{sec:lm-exp}
+\vspace{-2mm}
+\paragraph{Experimental setup.} Following prior work \cite{gu_mamba_2023, yang_gated_2023}, we evaluate on Wikitext perplexity and
+zero-shot common sense reasoning tasks, including LAMBADA~\citep[LMB.;][]{paperno_lambada_2016}, PiQA~\citep{bisk2020piqa}, HellaSwag~\citep[Hella.; ][]{zellers2019hellaswag}, WinoGrande~\citep[Wino.;][]{sakaguchi2021winogrande}, ARC-easy (ARC-e) and ARC-challenge (Arc-c) \citep{arc-ce}. Following \citet{arora_simple_2024}, we also evaluate the models real-world recall-intensive tasks, including FDA \cite{arora_language_2023}, SWDE \cite{lockard_openceres_2019}, and SQUAD \cite{rajpurkar_know_2018}. Both SWDE and FDA focus on extracting structured information: SWDE from raw HTML to identify semi-structured relationships, and FDA from PDFs to retrieve key-value pairs. SQUAD evaluates language models on reading comprehension by providing a text passage and a related question. See \S\ref{sec:hyper} for hyperparameter settings. 
+
+\vspace{-2mm}
+
+\input{tables/lm_harness}
+
+
+\vspace{-1mm}
+\paragraph{Results.} Our main language modeling results are shown in Table \ref{tab:main_results}. Since Mamba uses convolutions by default while GLA does not, we retrain  the GLA with convolution, and also train DeltaNet without convolution. For the 1.3B setting we only train the DeltaNet with convolution due to limited compute resources. In general we find that DeltaNet outperforms the strong Mamba/GLA baselines in terms of both perplexity and downstream task performance. 
+For recall-intensive tasks (i.e., SWDE, SQuAD, FDA), we find that under the same state size at the 340M scale, DeltaNet outperforms GLA, confirming the effectiveness of the delta rule. However, at the 1.3B scale, DeltaNet underperforms GLA due to its poorer state size scability (see \S\ref{sec:limitation}), since state size plays an important role in recall-intensive tasks.
+Finally, we confirm the benefits of hybrid architectures \cite{de_griffin_2024,Lieber2024JambaAH}: both the sliding window and global attention hybrids work well, outperforming the strong Transformer++ baselines. 
+We also scale DeltaNet to the 3B parameter scale trained with 1T tokens using the same settings as \citet{Shen2024PowerSA}. The results are shown in Table~\ref{tab:3b_results}, where 3B DeltaNet slightly underperforms a Transformer architecture trained with the same setting (PowerLM-3B), but outperforms  other  RNN baselines in the 2B--3B range (though these are trained for a different number of tokens so are not exactly comparable).
+
+% The hybrid DeltaNet that just replaces two DeltaNet layers with global attention outperforms a Transformer++ even on recall-intensive benchmarks.
+\paragraph{Ablations.}
+In Table~\ref{tab:main_results} (bottom) we ablate the choice of feature map and  normalization.
+We find that simply replacing the $L_1$-norm with the $L_2$-norm greatly increases performance. 
+For the feature map, we experiment with $\{\mathtt{ReLU}, \mathtt{1+ELU}, \mathtt{SiLU}\}$ and find that $\mathtt{SiLU}$ performs the best, consistent 
+ with prior work \cite{qin2023scaling}.
+
+\vspace{-2mm}
+\input{tables/larger_model} 
+\paragraph{Training throughput.}
+Figure \ref{fig:throughputs} compares the training throughputs of different 1.3B models in different training lengths and batch size settings. 
+The training speed of DeltaNet is close to GLA and significantly faster than Mamba.  
+All linear-time models outperform Transformers for longer-sequence training.
+
+
+
+
+
+\vspace{-2mm}
+\section{Discussion and Related Work}
+\vspace{-2mm}
+\subsection{DeltaNet vs. State Space Models / Linear RNNs}
+\vspace{-2mm}
+To discuss DeltaNet against existing linear RNNs (including state-space models) we first introduce a general class of associative RNNs with matrix-valued hidden states. Given a matrix-valued hidden state $\rmS_t \in \mathbb{R}^{d \times n}$ and current input $\vx_t \in \mathbb{R}^{d}$, these models have the following form:
+\begin{align*}
+    &\rmS_t =   \rmS_{t-1} \bullet \rmM_t  + \vv_t  \vk_t^\intercal, &&  \text{(recurrence)} \\ &\vo_t = \rmS_t \vq_t,  &&  \text{(memory read-out)} 
+\end{align*}
+where $\bullet$ is an associative operator (e.g., Hadamard product, matrix multiplication, etc.). The matrix $\rmM_t$ and vectors $\vv_t$, $\vk_t$, $\vq_t$  are (potentially non-linear) functions of the current input $\vx_t$. 
+
+
+As is the case in  vector-valued linear RNNs \cite{martin_parallelizing_2018,smith_simplified_2023}, the use of an associative operator enables the use of parallel scan \cite{Blelloch1990PrefixSA} to calculate $\rmS_1, \dots, \rmS_L$ in $O(\log L)$ steps and $O(L)$ work (ignoring the terms associated with the  associative operation)   if the inputs  $\vx_1, \dots, \vx_L$ are given (though see our discussion in footnote~\ref{footnote:1}). Hence, as long as the associative operator is not too expensive, training can be efficient. 
+However,  parallel scan by itself is not sufficient for  training language models at practical scale due to  some associative operator's  being too expensive. Recent models such as such as Mamba \cite{gu_mamba_2023} and gated linear attention Transformers \cite{sun2023retentive,yang_gated_2023,qin_hgrn2_2024,peng_eagle_2024,beck2024xlstm}  thus make use of cheap element-wise recurrence updates, in particular the Hadamard product, i.e., $\bullet = \odot$. 
+See Table~\ref{tab:overview} for how recent models can be cast into this form. 
+
+
+
+\begin{table}[t!]
+\vspace{-2mm}
+
+\footnotesize
+\scalebox{0.85}{
+\begin{tabular}{l ll}
+\toprule
+   Model  & Recurrence & Memory read-out \\
+   \midrule
+    Linear Attention \cite{katharopoulos_transformers_2020,kasai_finetuning_2021} &  $\rmS_t = \rmS_{t-1} + \vv_t  \vk_t^\intercal$ & $\vo_t = \rmS_t \vq_t $ \\
+        \,\, + Kernel &  $\rmS_t = \rmS_{t-1} + \vv_t  \phi(\vk_t)^\intercal$ & $\vo_t = \rmS_t \phi(\vq_t) $ \\
+\,\, + Normalization &  $\rmS_t = \rmS_{t-1} + \vv_t 
+\phi(\vk_t)^\intercal, \,\,\, \vz_t = \vz_{t-1} + \phi(\vk_t)$ & $\vo_t =  \rmS_t \phi(\vq_t) / (\vz_t^\intercal\phi(\vq_t))$  \\ 
+
+%   Linear Attention \cite{katharopoulos_transformers_2020}  &  $\rmS_t = \rmS_{t-1} + \vv_t 
+% \phi(\vk_t)^\intercal, \,\,\, \vz_t = \vz_{t-1} + \phi(\vk_t)$ & $\vo_t =  \rmS_t \phi(\vq_t) / (\vz_t^\intercal\phi(\vq_t))$  \\ 
+    DeltaNet \cite{schlag_linear_2021}  & $\rmS_t =  \rmS_{t-1} (\mathbf{I} - \beta_t \vk_t \vk_t^\intercal) + \beta_t \vv_t  \vk_t^\intercal$ & $\vo_t = \rmS_t \vq_t$ \\
+    Gated RFA \cite{peng_random_2021}  & $\rmS_t =  g_t \rmS_{t-1}  + (1-g_t) \vv_t  \vk_t^\intercal, \,\,\, \vz_t = g_t  \vz_{t-1} + (1-g_t)  \vk_t$ & $\vo_t = \rmS_t \vq_t / (\vz_t^\intercal\vq_t)$ \\
+    S4 \cite{s4, smith_simplified_2023}  & $\rmS_t = \rmS_{t-1} \odot \exp(- (\balpha \mathbf{1}^\intercal)\odot \exp(\mA)) +   \mB \odot (\vv_t \mathbf{1}^\intercal) $ & $\vo_t = (\rmS_t \odot \mC) \mathbf{1} + \vd \odot \vv_t$ \\
+    % H3 \cite{fu_hungry_2023}  & $\rmS_t =  ??$ & $\vo_t = ??$ \\
+    ABC \cite{peng_abc_2022} & $\rmS^{\vk}_t = \rmS^{\vk}_{t-1} + \vk_t\boldsymbol{\phi}_t ^\intercal, \,\,\,  \rmS^{\vv}_t = \rmS^{\vv}_{t-1} + \vv_t\boldsymbol{\phi_t} ^\intercal$  &  $\vo_t = \rmS^{\vv}_t\operatorname{softmax}\left( \rmS^{\vk}_t \vq_t\right)$
+    \\
+    DFW \cite{mao_fine-tuning_2022}&  $\rmS_t =  \rmS_{t-1} \odot (\bbeta_t \balpha_t^\intercal) + \vv_t  \vk_t^\intercal$ & $\vo_t = \rmS_t \vq_t$  \\    
+RetNet \cite{sun2023retentive} & $\rmS_t =  \gamma\rmS_{t-1} +  \vv_t  \vk_t^\intercal$ & $\vo_t = \rmS_t \vq_t$ \\
+   Mamba \cite{gu_mamba_2023} & $\rmS_t = \rmS_{t-1} \odot \exp(-(\balpha_t \mathbf{1}^\intercal)\odot \exp(\mA)) + (\balpha_t \odot \vv_t) \vk_t^\intercal $ & $\vo_t = \rmS_t \vq_t + \vd \odot \vv_t$  \\
+    GLA \cite{yang_gated_2023}&  $\rmS_t = \rmS_{t-1}  \odot  (\mathbf{1} \balpha_t^\intercal  ) + \vv_t  \vk_t^\intercal = \rmS_{t-1}  \text{Diag}(\balpha_t  )  + \vv_t  \vk_t^\intercal$ & $\vo_t = \rmS_t \vq_t$  \\
+    RWKV-6 \cite{peng_eagle_2024} &  $\rmS_t =   \rmS_{t-1} \text{Diag}(\balpha_t  ) + \vv_t  \vk_t^\intercal $ & $\vo_t = (\rmS_{t-1} + (\vd \odot  \vv_t ) \vk_t^\intercal) \vq_t$  \\ 
+    HGRN-2 \cite{qin_hgrn2_2024} &  $\rmS_t =   \rmS_{t-1} \text{Diag}( \balpha_t) + \vv_t  (\mathbf{1} - \balpha_t)^\intercal $ & $\vo_t = \rmS_t \vq_t$  \\   
+    mLSTM  \cite{beck2024xlstm} &$\rmS_t = f_t \rmS_{t-1} + i_t \vv_t  \vk_t^\intercal, \,\,\, \vz_t = f_t \vz_{t-1} + i_t \vk_t$ & $\vo_t = \rmS_t \vq_t / \max\{1, |\vz_t^\intercal \vq_t |\}$  \\
+    Mamba-2 \cite{mamba2} & $\rmS_t = \gamma_t \rmS_{t-1}  +  \vv_t  \vk_t^\intercal $ & $\vo_t = \rmS_t \vq_t$  \\
+    % Longhorn \cite{liu-2024-longhorn} & $\rmS_t = \rmS_{t-1} \odot \left(\rmI- \frac{\bbeta_t}{\mathbf{1}+ \vk_t^\intercal \vk_t \bbeta_t} \left(\vk \odot \vk\right)^\intercal \right) + \left(\frac{\bbeta_t}{\mathbf{1}+ \vk_t^\intercal \vk_t \bbeta_t } \odot \vx_t\right) \vk_t$ &  $\vo_t = \rmS_t \vq_t$   \\
+    GSA \cite{zhang2024gated} &  $\tiny{\rmS^{\vk}_t = \rmS^{\vk}_{t-1} \operatorname{Diag}(\balpha_t) +\vk_t \boldsymbol{\phi_t} ^\intercal, \,\,\,  \rmS^{\vv}_t = \rmS^{\vv}_{t-1}\operatorname{Diag}(\balpha_t) +  \vv_t\boldsymbol{\phi}_t^\intercal}$  &  $\vo_t = \rmS_t^{\vv}\operatorname{softmax}\left( \rmS^{\vk}_t \vq_t\right)$ \\
+    % MetaLA \cite{chou2024metala} & \rmS_t =   \rmS_{t-1} \text{Diag}( \balpha_t) + \vv_t  (\mathbf{1} - \balpha_t)^\intercal  &  $\vo_t = (\rmS_{t-1} + (\vd \odot  \vv_t ) \vk_t^\intercal) \vq_t$\\
+    Gated DeltaNet \cite{yang2024gateddeltanetworksimproving} & $\rmS_t =  \rmS_{t-1} \left(\alpha_t(\mathbf{I} - \beta_t \vk_t \vk_t^\intercal)\right) + \beta_t \vv_t  \vk_t^\intercal$ & $\vo_t = \rmS_t \vq_t$ \\
+    \bottomrule
+\end{tabular}
+}
+\vspace{1mm}
+\caption{Overview of recent linear recurrent models that have been proposed and applied to autoregressive language modeling (ordered in rough chronological order). These works make use of a matrix-valued hidden state $\rmS_{t} \in \mathbb{R}^{d\times n}$ (or two matrix-valued hidden states $\rmS_{t}^{\vk}, \rmS_{t}^{\vv}$, e.g., \cite{peng_abc_2022,zhang2024gated}) updated through an associative recurrence followed by an outer-product-based addition. Here $\odot$ is the Hadamard product. Some models make use of an additional linear RNN with hidden state vector $\vz_t$, which used to normalized the query vector $\vq_t$. Variables with the subscript $t$ (e.g., $\vv_t,  \balpha_t, f_t, \gamma_t$) are (potentially non-linear) functions of the current input $\vx_t$. Non-time-varying  parameters (e.g., $\mA, \vd, \gamma$) are denoted without subscripts; these parameters are either learned or  set to fixed values. Matrices are denoted with bold upper case letters, vectors with bold lower case, and scalars with italic letters.  Many models make use of a kernel $\phi$ (e.g., \cite{schlag_linear_2021,peng_random_2021}) but we subsume them into the key/value vectors to reduce notational clutter. 
+}
+\vspace{-8mm}
+\label{tab:overview}
+\end{table}
+Standard matrix multiplications (i.e., $\rmS_{t-1}\bullet \rmM_t = \rmS_{t-1}\rmM_t$) on the other hand can model richer  interactions  that go beyond elementwise recurrence. Without any structural assumptions on $\rmM_t$ however, these operations would take $O(dn^2)$  for each update (as opposed to $O(dn)$ for elementwise products),  which would be prohibitively expensive. Hence,  DeltaNet's use of $\rmM_t = \rmI - \beta_t \vk_t\vk_t^\intercal$ can be seen as exploiting structured matrices to efficiently model interactions beyond elementwise recurrences. Our chunkwise algorithm could generalize to a broader class of matrices in the Diagonal-Plus-Low-Rank (DPLR) form $\rmM_t = \rmD - \va_t\vb_t^\intercal$, which has been explored in S4 \cite{s4}, although their DPLR transition matrices are data-independent. We adopt DeltaNet's parameterization in this work (i.e., $\rmD=\rmI, \va_t = \beta_t \vk_t, \vb_t = \vk_t$) as we are primarily interested in improving recall (through DeltaNet's key-value update rule) while maintaining parameter efficiency. We leave the exploration of more generalized parameterizations for future work.
+
+% \footnote{However, keep in mind the non-unit eigenvalue of $\rmI + \va_t\vb_t^\intercal$ is $1 + \va_t^\intercal \vb_t$. To stabilize training, it is necessary to normalize it as $\rmI - \frac{\beta_t}{\va_t^\intercal \vb_t} \va_t \vb_t^\intercal$, where $\beta_t \in (0, 2)$.}
+
+
+\vspace{-4mm}
+\subsection{Towards a  Unifying Framework for Efficient Autoregressive Sequence Transformations}
+\vspace{-2mm}
+While the above class of models  makes it possible to unify recent models, we do not claim that it is the ``right'' level at   which view  (autoregressive) sequence transformations of the form $\{\vx_t\}_{t=1}^L \mapsto \{\vo_t\}_{t=1}^L$, where    $\vo_t$ cannot depend on any $\vx_j$ if  $j>t$. For example, this framing makes it difficult to (neatly) capture other subquadratic models that have been shown to be effective \cite{zaheer2020big,kitaev2020reformer,roy2021efficient,poli_hyena_2023}. An alternative unifying framework might be to view  the above sequence transformations as a discretization of a continuous state space model \cite{s4,smith_simplified_2023,gu_mamba_2023}, or as a  matrix multiplication with a masked structured matrix \cite{nguyen2021fmmformer,qin2023toeplitz,kang2023fast,mamba2}. What does seem important, however, is that a framework should ideally expose efficient algorithms for training, and  the algorithm should be hardware-efficient, which, in the case of modern GPUs, means that it should be rich in matrix multiplications. From this perspective, the state-space duality (SSD) framework recently proposed by \citet{mamba2}, which provides a connection between SSM-based sequence transformations and structured matrix multiplications with a semiseparable matrix, seems a promising candidate. However, this framework may not capture an important class of models, e.g.,  models where the associative recurrence involves matrix multiplication with an unstructured matrix, or models that make use of more exotic associative operators (e.g., in \citet{Peng2018RationalR}).
+
+Finally, we observe that there have been many recent linear-time models that have been proposed which purportedly match or outperform classic transformers.  As can be seen in Table~\ref{tab:overview}, the ``sequence mixing'' component of these works are closely related to one another. 
+However, the way in which the token-mixing primitive is used to build up a transformer-like model varies widely. For example, while most recent works make use of depthwise-separable convolution layers (not shown in Table~\ref{tab:overview}) \cite{gu_mamba_2023,beck2024xlstm,mamba2,chou2024metala,yang2024gateddeltanetworksimproving}, earlier works generally do not \cite{katharopoulos_transformers_2020,schlag_linear_2021,peng_random_2021}. There are also differences in the parameterizations of the feedforward layers used for the ``channel mixing'' component. Such variations should be  taken into account before declaring a particular model layer superior to another.
+
+
+\vspace{-2mm}
+\subsection{Limitations and Future Work}
+\label{sec:limitation}
+\vspace{-2mm}
+Our work has several limitations. First, in terms of computation, although we propose a new hardware-efficient algorithm, the training speed still lags behind that of GLA. This is due to the overhead caused by modeling {state-to-state dependencies} as described above, which requires ``marginalizing'' over the head dimension inside the kernel, similar to the case of softmax attention. However, for GLA since there are no intra-state dependencies (everything is elementwise), and thus it is easy to use tiling  to support arbitrary size of head dimension, as implemented in \citet{yang_fla_2024}. This limitation would potentially limit DeltaNet's memory size, consequently lowering the recall-intensive task performance as we observed in \S\ref{sec:lm-exp}. However, it may be feasible to adopt block diagonal generalized Householder transition matrices with block sizes fitting GPU SRAM (e.g., 128) while maintaining a overall large head dimension (and thus a large recurrent state size). 
+
+We also found that the length generalization of DeltaNet was limited, while GLA and RetNet (and Mamba to an extent) have been found to be able to extrapolate beyond the training length \cite{yang_gated_2023}. We speculate that this is because DeltaNet lacks explicit decay factors. This could be improved through incorporating a gating term in the recurrence, as demonstrated in a recent work by \citet{yang2024gateddeltanetworksimproving}. 
+
+\vspace{-2mm}
+\section{Related Work}
+\vspace{-2mm}
+We briefly discuss related work here and give an extended
+discussion  in Appendix \ref{app:related}.  
+
+Linear transformers can be seen as a  type of iterated Hopfield networks \cite{millidge_linear_nodate}, and this connection can provide  perspectives on the limitations and  improvements of linear attention transformers. For example, vanilla linear transformers use a Hebbian-like update rule, which has been shown to have limited memory capacity \cite{McEliece1987TheCO}. 
+Later works in Hopfield networks use higher-order polynomials \cite{demircigil_model_2017} and exponential kernels \cite{ramsauer_hopfield_2021,krotov_large_2021} to enhance the memory capacity, which is also related to linear attention with polynomial kernels \cite{polysketch,arora_simple_2024,aksenov_linear_2024}.
+On the other hand, the delta rule has been shown to have better memory capacity \cite{Gardner1988TheSO,Prados1989NeuralNC,Lingashetty2010DeltaLR,schlag_linear_2021}. In this sense, given the fixed size recurrent state, using the delta rule is able to achieve a better frontier of the recall-memory tradeoff curve \cite{arora_simple_2024}, and has recently been applied to enhance real-world retrieval tasks \cite{munkhdalai2024leave, Rodkin2024AssociativeRM}.
+Moreover, it outperforms the additive rule used in vanilla linear transformers across multiple domains \cite{schlag_linear_2021, irie_going_2021, DBLP:conf/nips/IrieFS22, DBLP:conf/iclr/IrieS23, irie-etal-2023-practical}.
+
+Despite these advantages, \citet{irie-etal-2023-practical} revealed theoretical limitations of the delta update rule in terms of expressiveness. Recurrent enhancements of DeltaNet, such as Recurrent DeltaNet \cite{irie2021going} and the Modern Self-Referential Weight Matrix \cite{Irie2022AMS}, and the mesa-layer \cite{mesa} were proposed and found superior.
+However, these models extend beyond linear RNNs and cannot be parallelized across sequence length. This suggests a fundamental trade-off between parallelism and expressiveness \cite{merrill_illusion_2024}. How to further enhance DeltaNet without sacrificing parallelism remains an open question, and the hybrid cross-chunk nonlinear and intra-chunk linear strategy used in TTT \citep{sun-2024-learning} might provide a suitable middle ground. Finally, we remark that delta rule is closely related to meta or online learning via gradient descent \citep{munkhdalai_metalearned_2019, irie2022dual}, which has been revisited in recent works like Longhorn \citep{liu-2024-longhorn} and TTT \citep{sun-2024-learning}. Recently, Titans \citep{behrouz2024titanslearningmemorizetest} improves TTT by introducing a momentum and weight decay term.

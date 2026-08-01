@@ -1,0 +1,115 @@
+\documentclass{article}
+
+
+     \PassOptionsToPackage{numbers, compress}{natbib}
+
+\usepackage{microtype}
+
+\usepackage{subfigure}
+\usepackage{booktabs} % for professional tables
+\usepackage{transparent}
+\usepackage{pgf}
+
+
+\usepackage{hyperref}
+\usepackage{breakurl}
+\hypersetup{
+           breaklinks=true,   % splits links across lines
+           colorlinks=true,   % displays links as colored text instead of blocks
+           pdfusetitle=true,  % \title and \author values into pdf metadata
+                              % etc.
+        }
+
+\usepackage{tikz}
+\usepackage{pifont}
+\usepackage{pgfplots}
+\usepackage{multirow}
+\usepackage{scalefnt} 
+\usepackage{algpseudocode}
+% \usepackage[noend]{algpseudocode}
+\usepackage{listings,multicol}  % <--- multicol only required, if the multicols= option shall be used
+\usepackage{xcolor}
+
+
+% \usepackage{arev}
+% Attempt to make hyperref and algorithmic work together better:
+\newcommand{\theHalgorithm}{\arabic{algorithm}}
+
+% ready for submission
+\usepackage[final]{neurips_2024}
+
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{mathtools}
+\usepackage{amsthm}
+\usepackage{fontawesome}
+\usepackage{hyperref}
+\definecolor{darkblue}{rgb}{0, 0, 0.5}
+\hypersetup{colorlinks, citecolor=darkblue, linkcolor=darkblue, urlcolor=darkblue}
+
+\usepackage[utf8]{inputenc} % allow utf-8 input
+\usepackage[T1]{fontenc}    % use 8-bit T1 fonts
+\usepackage{url}            % simple URL typesetting
+\usepackage{booktabs}       % professional-quality tables
+\usepackage{amsfonts}       % blackboard math symbols
+\usepackage{nicefrac}       % compact symbols for 1/2, etc.
+\usepackage{microtype}      % microtypography
+
+\usepackage{wrapfig,lipsum}
+
+\usepackage{xcolor} 
+\usepackage{colortbl}
+% colors
+\usepackage{amsmath}         % math
+\usepackage[labelfont=bf,font=footnotesize]{caption}
+\input{utils/macro}
+\input{utils/math_commands}
+\usepackage{graphicx}
+\newcommand\blfootnote[1]{%
+  \begingroup
+  \renewcommand\thefootnote{}\footnote{#1}%
+  \addtocounter{footnote}{-1}%
+  \endgroup
+}
+
+\usetikzlibrary{arrows.meta,positioning,calc,shapes.geometric,decorations.text,patterns,patterns.meta,fit,backgrounds,chains,shadows,math,circuits.ee.IEC,decorations.pathmorphing, decorations.pathreplacing, decorations.shapes}
+
+\title{Parallelizing  Linear Transformers with the Delta  Rule  \\ over Sequence Length}
+
+\author{
+{
+Songlin Yang$^{\diamond}$ \quad Bailin Wang$^{\diamond}$ \quad Yu Zhang$^\dagger$ \quad Yikang Shen$^{\ddag}$ \quad Yoon Kim$^{\diamond}$ \vspace{1mm}
+}
+\\ \vspace{2mm}
+$^{\diamond}$Massachusetts Institute of Technology \quad  $^\dagger$Soochow University  \quad $^{\ddag}$MIT-IBM Watson AI Lab   \\  \vspace{2mm}
+\texttt{yangsl66@mit.edu}
+ \vspace{-4mm}
+}
+
+
+\begin{document}
+\maketitle
+\begin{abstract}
+Transformers with linear attention (i.e., linear transformers) and  state-space models have recently been suggested as a viable linear-time alternative to  transformers with softmax attention. However, these models still  underperform transformers especially on tasks that require in-context retrieval. While more expressive variants of linear transformers which replace the additive  update in linear transformers with the delta rule \cite[DeltaNet;][]{schlag_linear_2021} have been found to be more effective at associative recall, existing algorithms for training such  models do not parallelize over sequence length and are thus inefficient to train on modern hardware. This work describes a hardware-efficient algorithm for training linear transformers with the delta rule, which exploits a memory-efficient representation for computing products of Householder matrices \cite{bischof_wy_1985}. 
+This algorithm allows us to scale up DeltaNet to standard language modeling settings. We train a 1.3B model for 100B tokens and find that it outperforms recent linear-time baselines such as Mamba \cite{gu_mamba_2023} and GLA \cite{yang_gated_2023} in terms of perplexity and zero-shot performance on downstream tasks. We also experiment with two hybrid models which combine DeltaNet layers with (1) sliding-window attention layers every other layer or (2) two global attention layers, and find that these hybrids  outperform strong  transformer baselines.\blfootnote{\noindent \hspace{-6mm} The parallel DeltaNet layer is made available as part of the \textsc{FlashLinearAttention} library \cite{yang_gated_2023,yang_fla_2024}: \url{https://github.com/fla-org/flash-linear-attention}} 
+
+\end{abstract}
+\input{sections/intro}
+\input{sections/background}
+\input{sections/method}
+\input{sections/experiment}
+\input{sections/related}
+\input{sections/conclusion}
+\section*{Acknowledgements}
+This study was supported by funds from  MIT-IBM Watson AI Lab and the MIT-Google Program for Computing Innovation. We are grateful to Mayank Mishra for assistance with training and evaluating the 3B models, to Kazuki Irie for valuable feedback on the draft, and to Simran Arora, Liliang Ren and Eric Alcaide for their insightful discussions. We also thank Michael Poli and Armin Thomas for sharing the raw results from the MAD benchmark experiment, as well as to Fan Zhou for identifying an error in Eq.~\ref{eq:inverse}.
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\bibliography{neurips_2024}
+\bibliographystyle{abbrvnat}
+\appendix
+\input{sections/appendix}
+
+
+\end{document}

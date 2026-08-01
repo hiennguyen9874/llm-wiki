@@ -1,0 +1,76 @@
+\vspace{-3mm}
+
+\section{Background}
+\vspace{-2mm}
+\subsection{Linear Transformer: Transformers with Linear Attention}
+\vspace{-2mm}
+
+\label{ssec:la}
+Given a sequence of $d$-dimensional input vectors $\vx_1,\dots,\vx_L$, transformers use the softmax attention mechanism to attend over the entire past,
+\vspace{-4mm}
+\begin{align*}
+\vq_t, \ \vk_t, \ \vv_t &= \mW_Q \vx_t, \mW_K \vx_t, \mW_V \vx_t,  & \vo_t = \sum_{i=1}^{t} \frac{ \exp(\vk_i^{\intercal} \vq_t)}{\sum_{j=1} ^{t} \exp(\vk_j^\intercal  \vq_t)} \vv_i,
+\end{align*}
+where $\rmW_Q,\rmW_K, \rmW_V \in \mathbb{R}^{d \times d}, 
+ \vq_t,\vk_t,\vv_t,\vo_t\in \mathbb{R}^d$. (Here we assume a single attention head for simplicity).  Linear attention \cite{katharopoulos_transformers_2020} replaces the exponential kernel $\exp(\vk_i^\intercal \vq_t)$ with the dot-product $\phi(\vk_i)^\intercal \phi(\vq_t)$ where $\phi: \mathbb{R}^d \to \mathbb{R}^{n}$ is a feature map. This makes it possible to rearrange computations to represent linear attention as a linear RNN with matrix-valued hidden states,
+\begin{align*}
+    \vo_t &= \sum_{i=1}^t \frac{\phi(\vk_i)^{\intercal}\phi(\vq_t)}{\sum_{j=1}^t \phi(\vk_j)^{\intercal}\phi(\vq_t)}\vv_i 
+    = \frac{ \left(\sum_{i=1}^t \vv_i \phi( \vk_i)^\intercal \right)\phi(\vq_t)}{\left(\sum_{j=1}^{t}\phi(\vk_j)^{\intercal}\right)\phi(\vq_t)} = \frac{\rmS_t \phi(\vq_t)}{\mathbf{z}^\intercal_t\phi(\vq_t)},
+\end{align*}
+where $\rmS_t = \sum_{i=1}^t \vv_i \phi(\vk_i)^\intercal \in \mathbb{R}^{d\times n}$ and $\mathbf{z}_t = \sum_{i=1}^t \phi(\vk_i) \in \mathbb{R}^n$. If we allow  $n$ to go to infinity, linear attention can use  feature maps associated with polynomial kernels to compute a polynomial approximation to the exponential kernel  as a dot product, and can thus approximate softmax attention arbitrarily well \cite{arora_simple_2024}. 
+The denominator $\mathbf{z}_t^\intercal \phi(\vq_t) \in \mathbb{R}$
+can result in  numerical instabilities \cite{qin_devil_2022} and is  removed in  recent works \cite{schlag_linear_2021,mao_fine-tuning_2022}. It is also common to use the identity mapping for $\phi$ \cite{mao_fine-tuning_2022,sun2023retentive}, which results in the following simplified linear transformer:  $\rmS_t = \rmS_{t-1} + \vv_t  \vk_t^\intercal$, $\vo_t = \rmS_t \vq_t$.
+
+\vspace{-1mm}
+
+\paragraph{Efficient training.}  Let $\rmQ, \rmK, \rmV \in \mathbb{R}^{L \times d}$ be the stacked query, key, value vectors, e.g., $\rmQ_i = \vq_i$. We can then compute the output $\rmO \in \mathbb{R}^{L \times d}$ in parallel via $\rmO = \left(\rmQ \rmK^\intercal \odot \rmM_L  \right ) \rmV$,  where $\rmM_L \in \mathbb{R}^{L \times L}$ is the causal mask. This fully ``parallel form'' and the above ``recurrent form'' have different FLOPs and parallelization tradeoffs. The parallel form takes $O(L^2d +Ld^2)$ and thus requires more FLOPs than the recurrent form, which takes $O(Ld^2)$. However, the parallel form is often much faster in practice for moderate-length sequences as it can be done in $O(1)$ steps. This sequence-level parallellism also enables high GPU occupancy. The recurrent form requires fewer FLOPs  but cannot be parallelized across sequence length\footnote{\label{footnote:1}It is possible in theory to use parallel scan \cite{Blelloch1990PrefixSA} to parallelize the recurrent form, which would enable the computations to be performed in $O(\log L)$ steps and $O(Ld^2)$ FLOPs. However, this approach requires materializing the 2D hidden state for each time step, which would incur significant memory I/O cost unless the state size is small enough such that materialization can happen in faster memory (i.e., as in Mamba \cite{gu_mamba_2023}).}  and the elementwise operations involved in  recurrence moreover cannot make use of specialized matmul accelerators (e.g., tensor cores).
+
+\vspace{-1mm}
+
+\paragraph{Chunkwise parallel form.} 
+
+
+The chunkwise parallel form \cite{hua_transformer_2022,sun2023retentive,yang_gated_2023} strikes a balance between the parallel and recurrent forms,  allowing for fewer FLOPs than the parallel form and more sequence-level parallelism than the recurrent form. Concretely, suppose the query/key/value vectors are split into $\frac{L}{C}$ chunks where each chunk is of length $C$. Let $\rmQ_{[t]} \in \mathbb{R}^{C \times d}$ be all the query vectors for chunk $t$, and let  $\vq_{[t]}^i = \vq_{t  C + i}$ be the $i$-th query vector within the $t$'th chunk; the key/value chunks are defined similarly.   Note that $t \in [0, L/C)$, $i \in [1, C]$. The state matrices are also re-indexed such that $\rmS_{[t]}^i = \rmS_{tC + i}$, and we additionally define $\rmS_{[t]}^0 = \rmS_{[t-1]}^C$, i.e., the initial state of a chunk is the last state of the previous chunk. We can then obtain the following identity for the hidden state and output vector for the $r$-th element within the $t$-th chunk,
+\begin{align*}
+    \rmS_{[t]}^r &= \rmS_{[t]}^0 + \sum_{i=1}^{r} \vv_{[t]}^i \vk_{[t]}^{i\intercal}, \qquad 
+    \vo_{[t]}^r =  \rmS_{[t]}^0 \vq_{[t]}^r + \sum_{i=1}^{r} \vv_{[t]}^i \left(\vk_{[t]}^{i\intercal}\vq_{[t]}^r \right). 
+    \end{align*}
+By further rewriting the intra-chunk computation based on the parallel form, we  obtain following,
+    \begin{align} 
+ \rmS_{[t+1]} &= \rmS_{[t]} + \rmV_{[t]}^\intercal \rmK_{[t]}  && \in \mathbb{R}^{d\times d} \label{eq:linear_attn_h}, \\ \rmO_{[t]} &= \rmQ_{[t]}  \rmS_{[t]}^{\intercal} + \left(\rmQ_{[t]}\rmK_{[t]}^\intercal \odot \rmM_C \right) \rmV_{[t]} && \in \mathbb{R}^{C\times d} \label{eq:linear_attn_o}
+\end{align}
+where we let $\rmS_{[t]}=\rmS_{[t]}^0$ to reduce notational clutter. With this  ``chunkwise parallel form'', information is propagated chunk-to-chunk through $\rmS_{[t]}$, and the intra-chunk states $\rmS^i_{[t]}$ for $i \in [1, C]$ need not be materialized, thus saving memory.
+
+
+The  complexity of the chunkwise parallel form is $O(LCd + Ld^2)$, and the number of steps (without chunk-level parallel scan) is $O(\frac{L}{C})$. Hence, $C =L$ recovers the fully parallel form and $C=1$ recovers the recurrent form. The chunkwise parallel form  allows us to interpolate between the two forms, in essence trading off the number of sequential computations against sequence-level parallelism. In practice $C$ is set to a small constant (usually 64 or 128), allowing for subquadratic training. This chunkwise form enables practical speed-ups against parallel-form-only softmax attention even on moderate-length sequences, as demonstrated by \textsc{FlashLinearAttention} \cite{yang_gated_2023,yang_fla_2024}
+
+\vspace{-1mm}
+\subsection{DeltaNet: Linear Transformers with the Delta Update Rule}
+\vspace{-1mm}
+\label{ssec:deltanet}
+
+The above linear transformer employs a simple linear recurrence: $\rmS_{t} = \rmS_{t-1} + \vv_t\vk_t^\intercal$. This can be seen as additively updating the memory $\rmS_{t-1}$ with new key-value associations  at each time step.
+However, a purely additive update rule makes it difficult to deallocate past key-value associations, eventually leading to key ``collisions'' when $L > d$, as pointed out by \citet{schlag_linear_2021}. A model should ideally learn to remove less important key-value associations to make room for new ones, and this removal should depend on the interaction between the new key and the memory content.
+
+From a fast weight programming \cite{schmidhuber_learning_1992} 
+ perspective, the recurrent hidden state of linear  attention is the fast weight mapping the input $\vq_t$ to output $\vo_t$ with a Hessian-like update rule, which has limited memory capacity \cite{McEliece1987TheCO}. DeltaNet, on the other hand, uses the delta update rule or the Widrow-Hoff learning rule \cite{widrow_adaptive_1988} for fast weight update: $\rmS_t = \rmS_{t-1} - \beta_t (\rmS_{t-1}\vk_t - \vv_t) \vk_t^\top$, where $\beta_t$ is the learning rate, $\rmS_{t-1}\vk_t$ represents the current prediction, $\vv_t$ is the target value. The method derives its name from the core principle of updating weights based on the ``delta'' (difference) between the prediction $\rmS_{t-1}\vk_t$ and the target $\vv_t$, which has been shown better memory capacity  \cite{Gardner1988TheSO,Prados1989NeuralNC,Lingashetty2010DeltaLR,schlag_linear_2021}. This process can also be regarded as optimizing an online regression loss  using a single step of SGD,\footnote{This perspective was discussed as early as \citet{widrow_adaptive_1988}, which later became known as the Least Mean Squares (LMS) algorithm and has found widespread applications in signal processing \citep{Rogers1996AdaptiveFT}.
+} 
+\vspace{-2mm}
+ \begin{align*}
+     \mathcal{L}_t(\rmS) &= \frac{1}{2}\|\rmS \vk_t - \vv_t\|^2, && \rmS_t = \rmS_{t-1} - \beta_t \nabla_{\rmS_{t-1}} \mathcal{L}_t(\rmS_{t-1}) =  \rmS_{t-1} - \beta_t (\rmS_{t-1}\vk_t - \vv_t) \vk_t^\top,
+ \end{align*}
+ \vspace{-2mm}
+which has been discussed in several recent works \cite{sun-2024-learning,liu-2024-longhorn,yang2024gateddeltanetworksimproving,behrouz2024titanslearningmemorizetest}. In contrast, linear transformers can be regarded as optimizing an online linear (negative inner-product) loss $\mathcal{L}_{t}=-\langle\rmS\vk_t, \vv_t\rangle$.\footnote{While quadratic loss (used in DeltaNet) provides gradients that scale with error magnitude, offering stronger corrections when predictions are far from the target, the gradient of linear loss remains constant regardless of prediction error. This gradient behavior provides an intuitive explanation for why linear transformers underperform DeltaNet in in-context retrieval tasks.} 
+
+An alternative  interpretation for DeltaNet is from the perspective of key-value retrieval. It first retrieves the old value using the current key, $\vv_{t}^{\text{old}}=\rmS_{t-1}\vk_t$. 
+It then obtains a new value $\vv_{t}^{\text{new}}$ by interpolating between the old value and the current value $\vv_t$, which replaces $\vv_{t}^{\text{old}}$ in the memory:
+\begin{align*}
+&\vv_{t}^{\text{new}} = \beta_t \vv_t + \left(1-\beta_t\right) \vv_t^{\text{old}}, &\rmS_t = \rmS_{t-1} \underbrace{ -\vv_t^{\text{old}}\vk_t^\intercal}_{\text{remove}}\underbrace{+\vv_t^{\text{new} }\vk_t^\intercal}_{\text{write}}
+\end{align*}
+Here  $\beta_t = \sigma(\rmW_{\beta}\vx_t) \in (0,1)$ is a soft ``writing strength'': when $\beta_t=1$, the old value is completely removed and $\vv_t^{\text{new}}=\vv_t$; when $\beta_t=0$, the memory remains unmodified and we have $\rmS_{t} = \rmS_{t-1}$. 
+The output computation is the same as vanilla linear attention, i.e., $\vo_{t} = \rmS_t \vq_t$. 
+The complexity of this recurrent form is the same as that of vanilla linear attention, i.e., $\mathcal{O}(Ld^2)$. 
+
+\citet{schlag_linear_2021} demonstrate that DeltaNet outperforms ordinary linear transformers on small-scale language modeling and synthetic in-context retrieval tasks. However, their training algorithm, an extension of the memory-efficient recurrent implementation for linear Transformers \citep[\S 3.3.1]{katharopoulos_transformers_2020}, is strictly sequential and thus hardware inefficient, as discussed in \citep[\S 3.2]{yang_gated_2023}, motivating us to derive an equivalent chunkwise algorithm to train DeltaNet at scale, as introduced below.
+
+% Since the old value vector depends on the previous hidden state $\rmS_{t-1}$, it is not possible to straightforwardly apply the above chunkwise parallel strategy for training DeltaNet transformers. While the official implementation from \citet{schlag_linear_2021} avoids materializing the $\rmS_{t}$'s (thus minimizing I/O cost) by using the linear-time-constant-memory algorithm from \citet[][\S 3.3.1]{katharopoulos_transformers_2020}, it still uses the pure recurrent form and thus does not parallelize across the sequence dimension, which makes it difficult to scale  DeltaNet to modern language modeling settings. 

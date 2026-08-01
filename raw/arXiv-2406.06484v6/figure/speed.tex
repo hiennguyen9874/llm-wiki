@@ -1,0 +1,104 @@
+% \begin{wrapfigure}{r}{0.4\textwidth}
+% \centering 
+% \vspace{-4mm}
+% \resizebox{0.35\columnwidth}{!}{  
+\begin{tikzpicture}
+\scalefont{1} %set font size
+\begin{axis}[
+    footnotesize,
+    ymajorgrids,
+    yminorgrids,
+    tick align=inside,
+    axis line style={opacity=0},
+    tickwidth=0pt,
+    width=8cm, height=6cm,
+    enlarge x limits=0.22,
+    ybar=2*\pgflinewidth,
+    bar width=3.5pt,
+    legend style={at={(1, 1)},
+            anchor=north east, legend columns=2,
+            /tikz/every even column/.append style={column sep=0.05cm, row sep=-0.05cm},
+            % column sep=0.1cm,
+            % row sep=-0.1cm
+            font=\tiny
+    },
+    legend cell align={left},
+    symbolic x coords={
+            2K,
+            4K,
+            8K,
+            16K,
+            M,
+        }, % This line maps labels to x values
+    xtick=data,
+    xticklabels={
+            2K$\times$8,
+            4K$\times$4,
+            8K$\times$2,
+            16K$\times$1,
+            Memory
+        },
+    x tick label style={font=\scriptsize, align=center}, % Optional line to rotate x labels
+    y tick label style={font=\scriptsize, align=center},
+    xtick distance=1,
+    xlabel={\scriptsize Training length$\times$Batch size},
+    xlabel style={font=\scriptsize,at={(0.5,0)}},
+    scaled ticks=false,
+    ymin=0, ymax=60,
+    ytick={0,15,30,45,60},
+    yticklabels={0, 15K, 30K, 45K,60K},
+    % yticklabel={\pgfmathparse{\tick}\pgfmathprintnumber[fixed]{\pgfmathresult}}, % This line converts y values to percentages
+    ylabel={\scriptsize Tokens per second (Kt/s)},
+    ylabel style={font=\scriptsize,at={(0.08,0.5)}},
+                        axis y line*=left
+]
+%NONE
+\addplot[
+draw=black,
+thick,
+fill=red!20,
+postaction={
+    pattern={Lines[angle=45,distance={1.2pt/sqrt(2)},line width=.8pt]},
+    pattern color=red,
+}
+] coordinates { 
+  (2K, 51.3)[\textcolor{bred!60}]
+  (4K, 46.7)[\textcolor{bred!60}]
+  (8K, 38.7)[\textcolor{bred!60}]
+  (16K, 29.1)[\textcolor{bred!60}]
+};
+
+%MODIFIER
+\addplot[draw=black,thick,pattern=crosshatch, pattern color=blue!80] coordinates {
+  (2K, 22.8)[\textcolor{bblue!60}{1408}]
+  (4K, 22.8)[\textcolor{bblue!60}{352}]
+  (8K, 22.8)[\textcolor{bblue!60}{1056}]
+  (16K, 26.0)[\textcolor{bblue!60}{1056}]
+};
+
+\addplot[draw=black,thick,fill=bcyan!30] coordinates {
+  (2K, 43.8)[\textcolor{bcyan!60}{1056}]
+  (4K, 43.5)[\textcolor{bcyan!60}{352}]
+  (8K, 43.2)[\textcolor{bcyan!60}{1056}]
+  (16K, 41.1)[\textcolor{bcyan!60}{1056}]
+  };
+
+\addplot[draw=black,thick,fill=white,fill opacity=0.6] coordinates {
+  (2K, 41.5)[\textcolor{bgreen!60}{1056}]
+  (4K, 41.6)[\textcolor{bgreen!60}{352}]
+  (8K, 40.0)[\textcolor{bgreen!60}{1056}]
+  (16K, 37.3)[\textcolor{bgreen!60}{1056}]
+  };
+
+\legend{\textcolor{black}{Transformer++}, \textcolor{black}{Mamba}, \textcolor{black}{GLA},  \textcolor{black}{DeltaNet}}
+
+\end{axis}
+\ref{mylegend}
+\end{tikzpicture}
+% }
+%      \vspace{-4mm}
+% \caption{Training throughput of 1.3B models on a single H100.}
+% \label{fig:tps}
+% 	% \end{figure}
+%  \vspace{-10mm}
+% \end{wrapfigure}

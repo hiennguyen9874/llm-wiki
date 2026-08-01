@@ -1,0 +1,54 @@
+
+% \section{Generalizing Linear Transformers Beyond Elementwise Recurrence}
+% To motivate our training algorithm, we first describe a generalization of  linear Transformers, of which DeltaNet, as well as  many models that will serve as baselines, are special cases.
+
+
+Given a matrix-valued hidden state $\rmS_t \in \mathbb{R}^{d \times n}$ and current input $\vx \in \mathbb{R}^{d}$, we are interested in sequence models with the following form:
+\begin{align*}
+    &\rmS_t =   \rmS_{t-1} \bullet \rmM_t  + \vv_t  \vk_t^\intercal, && \text{(recurrence)} \\ &\vo_t = \rmS_t \vq_t,  && \text{(memory read-out)}
+\end{align*}
+where $\bullet$ is an associative operator (e.g., Hadamard product, matrix multiplication, etc.). The matrix $\rmM_t$ and vectors $\vv_t$, $\vk_t$, $\vq_t$  are (potentially non-linear) functions of the current input $\vx_t$. 
+
+The use of an associative operator enables the use of parallel scan to calculate $\rmS_1, \dots, \rmS_L$ in $O(\log L)$ steps and $O(L)$ compute (ignoring the terms associated with the  associative operation)   if the inputs  $\vx_1, \dots, \vx_L$ are given. Hence, as long as the associative operator is not too expensive, training can be efficient. This model is also related to a variety of sequence models that have been previously explored: \textit{fast weights} \cite[][\textit{i.a.}]{hinton_using_1987,schmidhuber_learning_1992,ba_using_2016,schlag_linear_2021,irie_going_2021,mao_fine-tuning_2022},  \textit{state-space models} \cite[][\textit{i.a.}]{hasani2022liquid,fu_hungry_2023,mehta_long_2023,smith_simplified_2023,gu_mamba_2023}, and \textit{linear attention transformers} \cite[][\textit{i.a.}]{katharopoulos_transformers_2020,peng_random_2021,choromanski_rethinking_2021,sun2023retentive,pramanik_recurrent_2023,yang_gated_2023}. 
+
+However,  parallel scan by itself is not sufficient for  training language models at practical scale due to  some associative operator's  being too expensive. Recent models such as such as Mamba \cite{gu_mamba_2023} and gated linear Transformers \cite{sun2023retentive,yang_gated_2023,qin_hgrn2_2024,peng_eagle_2024,beck2024xlstm}  thus make use of cheap element-wise recurrence updates, in particular the Hadamard product, i.e., $\bullet = \odot$. See Table~\ref{tab:overview} for how recent models can be cast into this form. 
+
+Standard matrix multiplications (i.e., $\rmS_{t-1}\bullet \rmM_t = \rmS_{t-1}\rmM_t$) on the other hand can model richer  interactions  that go beyond elementwise recurrence. Without any structural assumptions on $\rmM_t$ however, these operations would take $O(dn^2)$  for each update (as opposed to $O(dn)$ for element-wise recurrences),  which would be prohibitively expensive. We thus consider a more restricted class of structured transformations, where the recurrence  is given by a diagonal plus low-rank (DPLR) matrix multiplication,
+\begin{align*}
+    \rmS_{t} = \rmS_{t-1}(\operatorname{diag}(\vd_t) + \va_t \vb_t^\intercal ) + \vv_t \vk_t^\intercal.
+\end{align*}
+It is easy to show that the DeltaNet is a special case of this ``DPLR Transformer'':
+\begin{align*}
+    \rmS_t &= \rmS_{t-1} -\vv_t^{\text{old}}\vk_t^\intercal+\vv_t^{\text{new} }\vk_t^\intercal\nonumber  =  \rmS_{t-1} + \beta_t \vv_t \vk_t^\intercal - \beta_t \left(\rmS_{t-1} \vk_t\right)\vk_t^\intercal = \rmS_{t-1} (\rmI - \beta_t \vk_t \vk_t^\intercal) + \beta_t \vv_t  \vk_t^\intercal.
+    % \label{eq:delta_recurrent}
+\end{align*}
+The interpretation of the DeltaNet update as retrieving and updating values associated with a particular key (\S\ref{ssec:deltanet}) makes it an attractive parameterization for generalizing linear Transformers, which have been shown to struggle with in-context learning and retrieval \cite{}. And in preliminary experiments, we found little difference in performance between DeltaNet and the more general DPLR parameterzation. Hence, we adopt the  parameter-efficient DeltaNet parameterization for the rest of paper. However we emphasize that the hardware-efficient training algorithm described below---which is the core contribution of the present work---is applicable to the more general DPLR Transformer.
+
+% While cheaper associative operators such as the Hadamard product (whose complexity is $O(dn)$) can enable FLOPs savings,  elementwise products cannot make use of specialized compute units (e.g., tensor cores) and are thus slow in practice; moreover, without any structural assumptions on $\rmM_{t}$ the hidden states $\rmS_{1},\dots,\rmS_{T}$ would need to be   either fully materialized and kept in memory (which would be impractical) or recomputed during backpropagation (which would be slow). Existing works such as Mamba \cite{gu_mamba_2023} Table~\ref{}) thus use a smaller expansion dimension $n$ to make sure that $\rmS_t$ is small enough to materialized only temporarily on faster memory.
+
+
+\begin{table}[t!]
+\footnotesize
+\scalebox{0.87}{
+\begin{tabular}{l ll}
+\toprule
+   Model  & Recurrence & Memory read-out \\
+   \midrule
+    Linear Attention \cite{katharopoulos_transformers_2020} &  $\rmS_t = \rmS_{t-1} + \vv_t  \vk_t^\intercal$ & $\vo_t = \rmS_t \vq_t $ \\
+        \,\, + Kernel &  $\rmS_t = \rmS_{t-1} + \phi(\vv_t)  \vk_t^\intercal$ & $\vo_t = \rmS_t \phi(\vq_t) $ \\
+\,\, + Normalization &  $\rmS_t = \rmS_{t-1} + \phi(\vv_t)  \vk_t^\intercal, \,\,\, \vz_t = \vz_{t-1} + \phi(\vk_t)$ & $\vo_t =  \rmS_t \phi(\vq_t) / (\vz_t^\intercal\phi(\vq_t))$  \\ 
+    GLA \cite{yang_gated_2023,katsch_gateloop_2023}&  $\rmS_t =  \rmS_{t-1} \odot (\bbeta_t \balpha_t^\intercal) + \vv_t  \vk_t^\intercal$ & $\vo_t = \rmS_t \vq_t$  \\
+       HGRN2 \cite{qin_hgrn2_2024} &  $\rmS_t =   \rmS_{t-1} \odot (\balpha_t  \mathbf{1}^\intercal) + \vv_t  (\mathbf{1} - \balpha_t)^\intercal $ & $\vo_t = \rmS_t \vq_t$  \\   
+    RWKV-6 \cite{peng_eagle_2024} &  $\rmS_t =   \rmS_{t-1} \odot (\balpha_t  \mathbf{1}^\intercal) + \vv_t  \vk_t^\intercal $ & $\vo_t = (\rmS_{t-1} + (\vd \odot  \vv_t ) \vk_t^\intercal) \vq_t$  \\    
+    Mamba \cite{gu_mamba_2023} & $\rmS_t = \rmS_{t-1} \odot \exp(-(\balpha_t \mathbf{1}^\intercal)\odot \exp(\mA)) + (\balpha_t \odot \vx_t) \vk_t^\intercal $ & $\vo_t = \rmS_t \vq_t + \vd \odot \vx_t$  \\
+    mLSTM  \cite{beck2024xlstm} &$\rmS_t = f_t \rmS_{t-1} + i_t \vv_t  \vk_t^\intercal, \,\,\, \vz_t = f_t \vz_{t-1} + i_t \vk_t$ & $\vo_t = \rmS_t \vq_t / \max\{1, |\vz_t^\intercal \vq_t |\}$  \\
+    DeltaNet \cite{schlag_linear_2021}& $\rmS_t =  \rmS_{t-1} (\mathbf{I} - \beta_t \vk_t \vk_t^\intercal) + \beta_t \vv_t  \vk_t^\intercal$ & $\vo_t = \rmS_t \vq_t$ \\
+     % Linear DPLR Transformer &    $ \rmS_{t} = \rmS_{t-1}(\operatorname{diag}(\vc_t) + \va_t \vb_t^\intercal ) + \vv_t \vk_t^\intercal$  & $\vo_t = \rmS_t \vq_t$ \\
+    \bottomrule
+\end{tabular}
+}
+\vspace{1mm}
+\caption{Overview of recent linear Transformer models, which make use of a matrix-valued hidden state $\rmS_{t} \in \mathbb{R}^{d\times n}$ that is updated through an associative recurrence followed by an outer-product-based addition. Some models make use of an additional linear RNN with hidden state vector $\vz_t$, which used to normalized the query vector $\vq_t$. Variables with the subscript $t$ ($\vv_t, \vk_t, \vq_t, \balpha_t, \bbeta_t, \va_t, \vb_t, \vc_t, f_t, i_t$) are (potentially non-linear) functions of the current input $\vx_t$. Non-time-varying (learned) parameters ($\mA$, $\vd$) are denoted without subscripts.}
+\label{tab:overview}
+\end{table}
+

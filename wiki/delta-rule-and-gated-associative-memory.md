@@ -5,8 +5,11 @@ description: Delta-rule memory corrects selected key-value associations, while l
 tags: [associative-memory, deltanet, gating, linear-attention]
 status: stable
 created: 2026-07-31
-generated: { by: llm-wiki-agent/1, at: 2026-08-01T02:00:29Z }
+generated: { by: llm-wiki-agent/1, at: 2026-08-01T02:24:41Z }
 sources:
+  - id: parallel-deltanet-2024
+    resource: ../raw/arXiv-2406.06484v6/neurips_2024.tex
+    title: "Parallelizing Linear Transformers with the Delta Rule over Sequence Length"
   - id: fast-weight-programmers-2021
     resource: ../raw/arXiv-2102.11174v3/main.tex
     title: "Linear Transformers Are Secretly Fast Weight Programmers"
@@ -61,15 +64,20 @@ KDA is a constrained diagonal-plus-low-rank (DPLR) transition. Its diagonal is $
 
 KDA compresses products of rank-one transitions within each chunk using a WY representation, then applies a UT transform so most work becomes matrix multiplication. Interactions inside a chunk are parallel, state crosses chunk boundaries recurrently, and autoregressive decoding uses the direct recurrent update. For chunk size $C$, head width $d_h$, and sequence length $T$, the report gives $6Td_h^2+3TCd_h+TC^2$ attention FLOPs per KDA head, versus the dominant $2T^2d_h$ term for global attention.[^kimi-linear-2025]
 
+The earlier Parallel DeltaNet paper applies the same broad compact-WY and triangular-transform strategy to the ungated DeltaNet recurrence, avoiding token-level matrix-state materialization while retaining chunk-boundary recurrence. Its dedicated training and evaluation evidence is recorded separately.[^parallel-deltanet-2024]
+
 ## Relationships
 
 - **Depends on:** [Linear attention as fixed-state memory](linear-attention-as-fixed-state-memory.md), whose additive-state interference motivates corrective updates.
+- **Parallelized by:** [Parallel DeltaNet chunkwise training](parallel-deltanet-chunkwise-training.md), which targets the ungated corrective recurrence.
 - **Used by:** [Kimi Linear hybrid attention architecture](kimi-linear-hybrid-attention-architecture.md), which interleaves KDA with periodic global attention.
 - **Used by:** [Kimi K3 hybrid retrieval architecture](kimi-k3-hybrid-retrieval-architecture.md), whose primary report retains the recurrence while lower-bounding log-decay for BF16 Tensor Core tiles and adding a full-rank output gate.[^kimi-k3-2026]
 
 ## Evidence limits
 
 The original learned-step delta update and its associative-memory comparison are documented in the 2021 primary paper; the KDA recurrence, derivation, pseudocode, and kernel measurements are documented in the Kimi Linear report, while Kimi K3 independently specifies its modified decay and output gate. The derivations support recurrent–chunkwise equivalence, while empirical expressivity and speed remain dependent on model, kernel, precision, and hardware.
+
+[^parallel-deltanet-2024]: Songlin Yang, Bailin Wang, Yu Zhang, Yikang Shen, and Yoon Kim, “Parallelizing Linear Transformers with the Delta Rule over Sequence Length,” NeurIPS 2024, [source](../raw/arXiv-2406.06484v6/neurips_2024.tex), Sections 2–3 and appendices.
 
 [^fast-weight-programmers-2021]: Imanol Schlag, Kazuki Irie, and Jürgen Schmidhuber, “Linear Transformers Are Secretly Fast Weight Programmers,” ICML 2021, [source](../raw/arXiv-2102.11174v3/main.tex), Sections 4.2 and Appendix A–B.
 
