@@ -5,7 +5,7 @@ description: Kimi K3 combines fixed-state KDA, periodic global MLA, depth-wise A
 tags: [kimi-k3, hybrid-attention, mixture-of-experts, multimodal]
 status: stable
 created: 2026-07-31
-generated: { by: llm-wiki-agent/1, at: 2026-08-01T02:08:42Z }
+generated: { by: llm-wiki-agent/1, at: 2026-08-01T05:20:09Z }
 sources:
   - id: gpt2-kimi3-2026
     resource: ../raw/2026-07-27-from-gpt2-to-kimi-k3.md
@@ -13,6 +13,9 @@ sources:
   - id: kimi-k3-2026
     resource: ../raw/arXiv-2607.24653v1/main.tex
     title: "Kimi K3: Open Frontier Intelligence"
+  - id: kimi-linear-modeling-2026
+    resource: ../raw/kimi-k3-sources/modeling_kimi_linear.py
+    title: "Kimi K3 text-backbone reference modeling code"
 ---
 
 # Kimi K3 hybrid retrieval architecture
@@ -37,6 +40,12 @@ The hybrid is complementary: bounded KDA state reduces sequence-growing cache pr
 
 K3 retains the channel-wise delta recurrence but lower-bounds each log-decay at $g_{\min}=-5$. Over a 16-token tile this bounds reciprocal decay rescaling below $e^{80}$, within BF16 range, allowing diagonal as well as off-diagonal causal tiles to use dense Tensor Core matrix multiplication. It also replaces Kimi Linear’s low-rank output gate with a full-rank, input-dependent channel gate.[^kimi-k3-2026]
 
+## Reference implementation runtime state
+
+The released Transformers reference code realizes the hybrid with two different cache forms. MLA layers append per-token key and value tensors, while KDA layers retain three short-convolution states plus one recurrent KDA state. Sequence length for generation is inferred from an MLA cache, so the combined cache API reflects the hybrid rather than treating every layer as conventional KV attention. Batched KDA execution uses the chunk kernel; cached one-token decoding switches to a fused recurrent kernel.[^kimi-linear-modeling-2026]
+
+This file is explicitly labeled a reference architecture implementation rather than production deployment code. It requires `fla-core`, enforces Transformers 4.56 or newer, and forces FlashAttention 2 for the text model, so it documents the released execution path but not every production kernel or serving optimization.[^kimi-linear-modeling-2026]
+
 ## Scale and efficiency claim
 
 The report attributes an approximately $2.5\times$ overall scaling-efficiency improvement over Kimi K2 to the combined architecture, data, and training recipe, measured through fitted held-out out-of-distribution validation-loss curves. Because the changes were evaluated jointly, this does not isolate the causal contribution of KDA, AttnRes, Stable LatentMoE, data, optimizer, or schedule.[^kimi-k3-2026]
@@ -58,3 +67,5 @@ The primary technical report specifies the architecture and reports ablations an
 [^gpt2-kimi3-2026]: ali (@waterloo_intern), “22580: From GPT2 to Kimi3, Explained,” 2026-07-27, [raw source](../raw/2026-07-27-from-gpt2-to-kimi-k3.md).
 
 [^kimi-k3-2026]: Kimi Team, “Kimi K3: Open Frontier Intelligence,” arXiv:2607.24653v1, [source](../raw/arXiv-2607.24653v1/main.tex), Abstract and Sections 1–3.
+
+[^kimi-linear-modeling-2026]: Moonshot AI Team, DeepSeek-AI, and Hugging Face, “Kimi K3 text-backbone reference modeling code,” 2025–2026, [source](../raw/kimi-k3-sources/modeling_kimi_linear.py), especially `KimiDynamicCache`, `KimiDeltaAttention`, and `KimiLinearModel`.

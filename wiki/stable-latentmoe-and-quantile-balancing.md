@@ -5,11 +5,14 @@ description: Stable LatentMoE routes tokens through compact experts and stabiliz
 tags: [mixture-of-experts, latentmoe, load-balancing, quantile-balancing]
 status: stable
 created: 2026-08-01
-generated: { by: llm-wiki-agent/1, at: 2026-08-01T02:00:00Z }
+generated: { by: llm-wiki-agent/1, at: 2026-08-01T05:20:09Z }
 sources:
   - id: kimi-k3-2026
     resource: ../raw/arXiv-2607.24653v1/main.tex
     title: "Kimi K3: Open Frontier Intelligence"
+  - id: kimi-linear-modeling-2026
+    resource: ../raw/kimi-k3-sources/modeling_kimi_linear.py
+    title: "Kimi K3 text-backbone reference modeling code"
 ---
 
 # Stable LatentMoE and Quantile Balancing
@@ -36,6 +39,12 @@ Routing applies an expert-specific bias only to top-$k$ selection, not to the no
 
 The next-step bias for expert $j$ is estimated from the $(1-k/n)$ quantile of its score margins against token cutoffs, then all biases are mean-centered. At scale, per-expert histograms pool margin counts across ranks with one integer all-reduce; the estimate’s error is bounded by the bin width. K3 reports 1,000 bins and no measurable residual imbalance, but does not provide a cross-system benchmark establishing universal superiority.[^kimi-k3-2026]
 
+## Released inference path
+
+The reference implementation confirms that the correction bias changes expert selection but not the mixture weights: top-$k$ indices use sigmoid or softmax router scores plus `e_score_correction_bias`, while selected weights are gathered from the uncorrected scores, optionally renormalized, and scaled. Routed tokens are down-projected into the latent width, processed expert by expert, optionally RMS-normalized, and up-projected before the always-on shared-expert result is added.[^kimi-linear-modeling-2026]
+
+This code does not implement Quantile Balancing updates or distributed expert dispatch, and its gate and sparse block explicitly reject training mode. It is therefore evidence for released single-process inference semantics, not evidence that the public reference path reproduces K3’s training-time balancing or MoonEP execution.[^kimi-linear-modeling-2026]
+
 ## Operational boundary
 
 QB balances router assignments, while MoonEP separately guarantees equal aggregate token work per expert-parallel rank by dynamically replicating experts. These mechanisms solve different levels of imbalance: learning and expert utilization versus distributed execution and static shapes.[^kimi-k3-2026]
@@ -51,3 +60,5 @@ QB balances router assignments, while MoonEP separately guarantees equal aggrega
 The paper reports improved validation loss from routed-branch normalization and stable large-scale optimization from the combined design, but it does not isolate every component at 2.8T scale. Exact QB balance is a property of its assignment formulation; histogram approximation, delayed updates, ties, and changing training distributions make realized routing an empirical systems result.[^kimi-k3-2026]
 
 [^kimi-k3-2026]: Kimi Team, “Kimi K3: Open Frontier Intelligence,” arXiv:2607.24653v1, [source](../raw/arXiv-2607.24653v1/main.tex), Sections 2.3 and Appendix B–C.
+
+[^kimi-linear-modeling-2026]: Moonshot AI Team, DeepSeek-AI, and Hugging Face, “Kimi K3 text-backbone reference modeling code,” 2025–2026, [source](../raw/kimi-k3-sources/modeling_kimi_linear.py), `KimiMoEGate` and `KimiSparseMoeBlock`.

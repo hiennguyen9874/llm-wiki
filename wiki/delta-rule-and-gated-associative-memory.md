@@ -5,7 +5,7 @@ description: Delta-rule memory corrects selected key-value associations, while l
 tags: [associative-memory, deltanet, gating, linear-attention]
 status: stable
 created: 2026-07-31
-generated: { by: llm-wiki-agent/1, at: 2026-08-01T02:28:38Z }
+generated: { by: llm-wiki-agent/1, at: 2026-08-01T05:20:09Z }
 sources:
   - id: parallel-deltanet-2024
     resource: ../raw/arXiv-2406.06484v6/neurips_2024.tex
@@ -25,6 +25,9 @@ sources:
   - id: gated-deltanet-2025
     resource: ../raw/arXiv-2412.06464v3/main.tex
     title: "Gated Delta Networks: Improving Mamba2 with Delta Rule"
+  - id: kimi-linear-modeling-2026
+    resource: ../raw/kimi-k3-sources/modeling_kimi_linear.py
+    title: "Kimi K3 text-backbone reference modeling code"
 ---
 
 # Delta-rule and gated associative memory
@@ -69,6 +72,8 @@ KDA compresses products of rank-one transitions within each chunk using a WY rep
 
 The earlier Parallel DeltaNet paper applies the same broad compact-WY and triangular-transform strategy to the ungated DeltaNet recurrence, avoiding token-level matrix-state materialization while retaining chunk-boundary recurrence. Its dedicated training and evaluation evidence is recorded separately.[^parallel-deltanet-2024]
 
+The released K3 reference path confirms the operational split: KDA runs `chunk_kda` for multi-token sequences and `fused_recurrent_kda` for cached one-token decoding. Its cache stores the final query, key, and value short-convolution states alongside the recurrent KDA state; padded batches are unpadded before the KDA kernel and restored afterward. Training is asserted to use chunk mode only.[^kimi-linear-modeling-2026]
+
 ## Relationships
 
 - **Depends on:** [Linear attention as fixed-state memory](linear-attention-as-fixed-state-memory.md), whose additive-state interference motivates corrective updates.
@@ -92,3 +97,5 @@ The original learned-step delta update and its associative-memory comparison are
 [^kimi-k3-2026]: Kimi Team, “Kimi K3: Open Frontier Intelligence,” arXiv:2607.24653v1, [source](../raw/arXiv-2607.24653v1/main.tex), Section 2.1.
 
 [^gated-deltanet-2025]: Songlin Yang, Jan Kautz, and Ali Hatamizadeh, “Gated Delta Networks: Improving Mamba2 with Delta Rule,” ICLR 2025, [source](../raw/arXiv-2412.06464v3/main.tex), Sections 3–4 and Appendix A.
+
+[^kimi-linear-modeling-2026]: Moonshot AI Team, DeepSeek-AI, and Hugging Face, “Kimi K3 text-backbone reference modeling code,” 2025–2026, [source](../raw/kimi-k3-sources/modeling_kimi_linear.py), `KimiDeltaAttention` and `KimiDynamicCache`.

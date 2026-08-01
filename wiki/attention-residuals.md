@@ -5,7 +5,7 @@ description: Attention Residuals replace uniform residual accumulation with lear
 tags: [attention-residuals, residual-stream, depth, retrieval]
 status: stable
 created: 2026-07-31
-generated: { by: llm-wiki-agent/1, at: 2026-08-01T02:43:29Z }
+generated: { by: llm-wiki-agent/1, at: 2026-08-01T05:20:09Z }
 sources:
   - id: gpt2-kimi3-2026
     resource: ../raw/2026-07-27-from-gpt2-to-kimi-k3.md
@@ -16,6 +16,9 @@ sources:
   - id: attnres-2026
     resource: ../raw/arXiv-2603.15031v1/main.tex
     title: "Attention Residuals"
+  - id: kimi-linear-modeling-2026
+    resource: ../raw/kimi-k3-sources/modeling_kimi_linear.py
+    title: "Kimi K3 text-backbone reference modeling code"
 ---
 
 # Attention Residuals
@@ -40,6 +43,8 @@ Block AttnRes sums outputs within each block and applies depth attention only ov
 
 Kimi K3 uses eight 12-layer blocks plus a partial final block; counting the embedding source yields nine retrievable block representations. This corrects the earlier secondary summary’s ambiguous statement that the model had only eight total block sources.[^gpt2-kimi3-2026][^kimi-k3-2026]
 
+The released reference code implements this block form directly. At each 12-layer boundary it appends the current block prefix sum to the retained block representations. Before attention and before the feed-forward sublayer, a learned scalar projection scores RMS-normalized retained block states together with the current prefix, then a softmax-weighted mixture replaces ordinary uniform residual retrieval. A final depth mixture is applied before the backbone’s output RMSNorm.[^kimi-linear-modeling-2026]
+
 ## Systems implications
 
 For pipeline-parallel training, the report caches received block summaries across virtual stages so only incremental summaries are transferred; it reports under 4% end-to-end training overhead under pipeline parallelism. For inference, learned queries can be batched per block against prior block summaries, then merged with sequential intra-block attention by online softmax. The reported implementation gives Block AttnRes an amortized residual-mechanism I/O of $5.5d$ per layer under its typical setting, versus $3d$ for standard residuals.[^attnres-2026]
@@ -61,3 +66,5 @@ The primary AttnRes report provides mechanism, systems, and author-run experimen
 [^kimi-k3-2026]: Kimi Team, “Kimi K3: Open Frontier Intelligence,” arXiv:2607.24653v1, [source](../raw/arXiv-2607.24653v1/main.tex), Sections 2.2 and 5.
 
 [^attnres-2026]: Kimi Team, “Attention Residuals,” arXiv:2603.15031v1, [source](../raw/arXiv-2603.15031v1/main.tex), including referenced sections, tables, and appendices in the source directory.
+
+[^kimi-linear-modeling-2026]: Moonshot AI Team, DeepSeek-AI, and Hugging Face, “Kimi K3 text-backbone reference modeling code,” 2025–2026, [source](../raw/kimi-k3-sources/modeling_kimi_linear.py), `KimiDecoderLayer._forward_attn_res`, `_apply_attn_res`, and `KimiLinearModel._apply_output_attn_res`.
