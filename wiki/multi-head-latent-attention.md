@@ -5,11 +5,14 @@ description: Multi-head Latent Attention caches a low-dimensional joint KV laten
 tags: [attention, multi-head-latent-attention, mla, kv-cache, inference, rope]
 status: stable
 created: 2026-08-01
-generated: { by: llm-wiki-agent/1, at: 2026-08-01T02:08:42Z }
+generated: { by: llm-wiki-agent/1, at: 2026-08-01T02:38:26Z }
 sources:
   - id: deepseek-v2-2024
     resource: ../raw/arXiv-2405.04434v5/main.tex
     title: "DeepSeek-V2: A Strong, Economical, and Efficient Mixture-of-Experts Language Model"
+  - id: deepseek-v3-2024
+    resource: ../raw/arXiv-2412.19437v2/main.tex
+    title: "DeepSeek-V3 Technical Report"
   - id: kimi-linear-2025
     resource: ../raw/arXiv-2510.26692v2/main.tex
     title: "Kimi Linear: An Expressive, Efficient Attention Architecture"
@@ -46,13 +49,15 @@ MLA compresses token state; it does not make exact global attention fixed-state.
 - **Uses:** [Rotary position embedding (RoPE)](rotary-position-embedding.md) only in its decoupled position path.
 - **Addresses:** [KV-cache compression and trade-offs](kv-cache-compression-and-trade-offs.md) with an architectural reduction in the per-token representation.
 - **Contrasts with:** [Multi-query and grouped-query attention](multi-query-and-grouped-query-attention.md), which shares whole K/V heads rather than caching a joint latent.
-- **Used by:** [DeepSeek-V2 architecture, training, and efficiency](deepseek-v2-architecture-training-and-efficiency.md) and the global-attention layers in [Kimi Linear hybrid attention architecture](kimi-linear-hybrid-attention-architecture.md) and [Kimi K3 hybrid retrieval architecture](kimi-k3-hybrid-retrieval-architecture.md).[^kimi-linear-2025][^kimi-k3-2026]
+- **Used by:** [DeepSeek-V2 architecture, training, and efficiency](deepseek-v2-architecture-training-and-efficiency.md), [DeepSeek-V3 architecture and pretraining](deepseek-v3-architecture-and-pretraining.md), and the global-attention layers in [Kimi Linear hybrid attention architecture](kimi-linear-hybrid-attention-architecture.md) and [Kimi K3 hybrid retrieval architecture](kimi-k3-hybrid-retrieval-architecture.md).[^deepseek-v3-2024][^kimi-linear-2025][^kimi-k3-2026]
 
 ## Evidence limits
 
 This is primary evidence from the bundled DeepSeek-V2 technical report and its included formulas and ablation tables. The reported quality, cache, training-cost, and throughput figures are author-run and configuration-specific; later MLA variants may change the position treatment, gating, dimensions, or inference implementation.[^deepseek-v2-2024]
 
 [^deepseek-v2-2024]: DeepSeek-AI, “DeepSeek-V2: A Strong, Economical, and Efficient Mixture-of-Experts Language Model,” arXiv:2405.04434v5, [source](../raw/arXiv-2405.04434v5/main.tex), Sections 2.1, 3.1–3.2, and Appendix C–D.
+
+[^deepseek-v3-2024]: DeepSeek-AI, “DeepSeek-V3 Technical Report,” arXiv:2412.19437v2, [source](../raw/arXiv-2412.19437v2/main.tex), Sections 1–2 and 5.
 
 [^kimi-linear-2025]: Kimi Team, “Kimi Linear: An Expressive, Efficient Attention Architecture,” arXiv:2510.26692v2, [source](../raw/arXiv-2510.26692v2/main.tex), Sections 2–3.
 
