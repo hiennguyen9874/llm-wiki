@@ -5,11 +5,14 @@ description: DeepSeekMoE replaces a few large FFN experts with many smaller rout
 tags: [deepseekmoe, mixture-of-experts, sparse-models, routing, expert-specialization]
 status: stable
 created: 2026-07-31
-generated: { by: llm-wiki-agent/1, at: 2026-08-01T02:06:40Z }
+generated: { by: llm-wiki-agent/1, at: 2026-08-01T02:08:42Z }
 sources:
   - id: deepseekmoe-2024
     resource: ../raw/arXiv-2401.06066v1/main.tex
     title: "DeepSeekMoE: Towards Ultimate Expert Specialization in Mixture-of-Experts Language Models"
+  - id: deepseek-v2-2024
+    resource: ../raw/arXiv-2405.04434v5/main.tex
+    title: "DeepSeek-V2: A Strong, Economical, and Efficient Mixture-of-Experts Language Model"
 ---
 
 # DeepSeekMoE expert specialization
@@ -32,9 +35,14 @@ The reported 16B configuration uses two shared experts plus six selected routed 
 
 DeepSeekMoE applies a small expert-level auxiliary loss to prevent routing collapse, using both the fraction of tokens assigned to an expert and its mean routing score. For distributed expert placement, it separately groups routed experts by device and applies a device-level loss to balance aggregate device computation; the authors explicitly prefer this over strict per-expert balancing, which they report can harm model quality. In the 2B and 16B runs, all experts for a layer fit on one device, so they did not use the device-level loss or drop tokens; the preliminary 145B run uses expert parallelism and a device-level balance factor of 0.05.[^deepseekmoe-2024]
 
+## DeepSeek-V2 scale-up
+
+DeepSeek-V2 retains two shared experts and selects six of 160 routed experts in every MoE FFN except the first dense layer. At this 236B-total/21B-active scale, it adds routing constraints and device-level balance controls for distributed execution; these system mechanisms extend the original architectural pattern rather than changing its shared-and-routed expert distinction.[^deepseek-v2-2024]
+
 ## Relationships
 
 - **Specializes:** [Mixture-of-Experts training and systems trade-offs](mixture-of-experts-training-and-systems-trade-offs.md) with top-$k$ fine-grained routing and an always-on shared path.
+- **Used by:** [DeepSeek-V2 architecture, training, and efficiency](deepseek-v2-architecture-training-and-efficiency.md) at 236B total parameters.
 - **Contrasts with:** [Switch Transformer sparse routing](switch-transformer-sparse-routing.md), which uses top-1 routing rather than the paper’s fine-grained shared-and-routed design.
 - **Evaluated by:** [DeepSeekMoE evaluation and deployment trade-offs](deepseekmoe-evaluation-and-deployment-trade-offs.md).
 
@@ -43,3 +51,5 @@ DeepSeekMoE applies a small expert-level auxiliary loss to prevent routing colla
 The bundled v1 paper is primary evidence for the architecture and its reported experiments. “Knowledge hybridity,” “redundancy,” and “specialization” are the authors’ interpretations of ablations and routing sensitivity, not direct semantic labels for individual experts.[^deepseekmoe-2024]
 
 [^deepseekmoe-2024]: Dai et al., “DeepSeekMoE: Towards Ultimate Expert Specialization in Mixture-of-Experts Language Models” (2024), [source](../raw/arXiv-2401.06066v1/main.tex), Sections 3–4 and Appendix A.
+
+[^deepseek-v2-2024]: DeepSeek-AI, “DeepSeek-V2: A Strong, Economical, and Efficient Mixture-of-Experts Language Model,” arXiv:2405.04434v5, [source](../raw/arXiv-2405.04434v5/main.tex), Sections 2.2–3.1.

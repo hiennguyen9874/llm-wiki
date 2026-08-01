@@ -5,7 +5,7 @@ description: Kimi Linear interleaves three fixed-state Kimi Delta Attention laye
 tags: [kimi-linear, hybrid-attention, linear-attention, long-context, mixture-of-experts]
 status: stable
 created: 2026-08-01
-generated: { by: llm-wiki-agent/1, at: 2026-08-01T01:48:53Z }
+generated: { by: llm-wiki-agent/1, at: 2026-08-01T02:08:42Z }
 sources:
   - id: kimi-linear-2025
     resource: ../raw/arXiv-2510.26692v2/main.tex
@@ -41,6 +41,7 @@ On the reported 48B configuration at batch size one and a 1M-token context, pref
 ## Relationships
 
 - **Uses:** [Delta-rule and gated associative memory](delta-rule-and-gated-associative-memory.md) through KDA’s channel-wise decay and corrective state update.
+- **Uses:** [Multi-head Latent Attention](multi-head-latent-attention.md) in periodic global NoPE layers, with KDA rather than RoPE carrying positional behavior.[^kimi-linear-2025]
 - **Mitigates limits of:** [Linear attention as fixed-state memory](linear-attention-as-fixed-state-memory.md) with periodic global MLA retrieval.
 - **Contrasts with:** [Rotary position embedding (RoPE)](rotary-position-embedding.md) by assigning positional behavior to KDA and leaving global MLA layers without explicit positional encoding.
 - **Enables:** [Multi-query and grouped-query attention](multi-query-and-grouped-query-attention.md), according to the report’s claim that NoPE MLA can be converted to pure MQA for inference.

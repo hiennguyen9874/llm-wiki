@@ -5,11 +5,14 @@ description: RoPE encodes absolute token positions by rotating query and key coo
 tags: [rope, positional-encoding, attention, transformer, long-context]
 status: draft
 created: 2026-07-31
-generated: { by: llm-wiki-agent/1, at: 2026-07-31T23:39:20+07:00 }
+generated: { by: llm-wiki-agent/1, at: 2026-08-01T02:08:42Z }
 sources:
   - id: rope-summary
     resource: ../raw/RoPE.md
     title: "RoPE overview (Vietnamese summary)"
+  - id: deepseek-v2-2024
+    resource: ../raw/arXiv-2405.04434v5/main.tex
+    title: "DeepSeek-V2: A Strong, Economical, and Efficient Mixture-of-Experts Language Model"
 ---
 
 # Rotary position embedding (RoPE)
@@ -34,6 +37,10 @@ RoPE is applied after forming the query and key projections and before computing
 
 Efficient implementations avoid materializing rotation matrices. Given aligned sine and cosine caches, they compute the rotation as $x\odot\cos\phi + \operatorname{rotate\_half}(x)\odot\sin\phi$. Implementations must consistently use either interleaved coordinate pairs or a split-half pairing convention; the source cautions that a checkpoint and rotary implementation using different conventions cannot simply be mixed.[^rope-summary]
 
+## RoPE in compressed KV attention
+
+MLA reports that directly rotating low-rank content keys would make their up-projection position-dependent, preventing its absorption into query projection during decoding. It consequently applies RoPE to separate per-head rotary queries and a shared rotary key, while caching that shared key alongside the compressed KV latent. This is an MLA-specific compatibility strategy, not a change to the standard RoPE rotation.[^deepseek-v2-2024]
+
 ## Context-length boundary
 
 Fixed sine and cosine formulas can be evaluated at positions beyond those seen in training, but that mechanical property does not ensure useful long-context extrapolation. At much longer positions, phase patterns can fall outside the training distribution and retrieval quality can degrade. The overview identifies position interpolation, frequency/base changes, per-frequency scaling, and long-sequence fine-tuning as later RoPE-based context-extension techniques, not features of the original RoFormer method.[^rope-summary]
@@ -45,5 +52,8 @@ The source also characterizes RoPE’s multi-frequency sum as having a soft long
 - **Alternative to:** [Transformer sequence transduction architecture](transformer-sequence-transduction-architecture.md), whose original design adds sinusoidal positional vectors to token embeddings; RoPE instead rotates projected queries and keys.[^rope-summary]
 - **Alternative to:** [ALiBi attention with linear biases](alibi-attention-with-linear-biases.md), which adds a head-specific linear distance bias to attention logits rather than rotating queries and keys.[^rope-summary]
 - **Used by:** [LLaMA efficient pre-trained language models](llama-efficient-pre-trained-language-models.md), whose available summary reports rotary positional embeddings in its decoder-only architecture.
+- **Adapted by:** [Multi-head Latent Attention](multi-head-latent-attention.md), which isolates positional rotation in a shared-key path compatible with joint low-rank KV caching.[^deepseek-v2-2024]
 
 [^rope-summary]: “RoPE overview” (Vietnamese summary), [raw source](../raw/RoPE.md), Sections 1–17. This is secondary-source evidence linking to Su et al., “RoFormer: Enhanced Transformer with Rotary Position Embedding” (arXiv:2104.09864); the primary paper has not been independently ingested here.
+
+[^deepseek-v2-2024]: DeepSeek-AI, “DeepSeek-V2: A Strong, Economical, and Efficient Mixture-of-Experts Language Model,” arXiv:2405.04434v5, [source](../raw/arXiv-2405.04434v5/main.tex), Section 2.1.

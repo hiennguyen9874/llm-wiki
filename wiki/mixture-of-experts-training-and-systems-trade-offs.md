@@ -5,7 +5,7 @@ description: Practical MoE training requires bounded per-expert token capacity, 
 tags: [mixture-of-experts, sparse-models, distributed-training, load-balancing]
 status: draft
 created: 2026-07-31
-generated: { by: llm-wiki-agent/1, at: 2026-08-01T02:06:40Z }
+generated: { by: llm-wiki-agent/1, at: 2026-08-01T02:08:42Z }
 sources:
   - id: moe-overview-2026
     resource: ../raw/MixtureofExperts.md
@@ -19,6 +19,9 @@ sources:
   - id: kimi-k3-2026
     resource: ../raw/arXiv-2607.24653v1/main.tex
     title: "Kimi K3: Open Frontier Intelligence"
+  - id: deepseek-v2-2024
+    resource: ../raw/arXiv-2405.04434v5/main.tex
+    title: "DeepSeek-V2: A Strong, Economical, and Efficient Mixture-of-Experts Language Model"
 ---
 
 # Mixture-of-Experts training and systems trade-offs
@@ -43,6 +46,10 @@ DeepSeekMoE supplies primary evidence for distinguishing collapse prevention fro
 
 This does not establish that the formulation is generally preferable: the no-drop setup and layer-local placement change the capacity and communication conditions relative to broadly sharded MoE deployments.[^deepseekmoe-2024]
 
+## Device-limited routing and token dropping
+
+DeepSeek-V2 adds a device fan-out limit before top-$k$ expert selection: each token first chooses at most $M$ devices with high-affinity experts, then selects routed experts only within that subset. It applies expert-, device-, and receiving-communication balance losses, and at training time drops the lowest-affinity assignments on over-capacity devices while retaining all assignments for approximately 10% of sequences. This bounds communication and device work in that setup, but dropped assignments and the chosen $M$, balance factors, placement, and capacity rule remain quality and utilization choices.[^deepseek-v2-2024]
+
 ## Extreme sparsity and rank-level balance
 
 Kimi K3 provides a primary-source case with 896 routed experts and top-16 selection. Its Stable LatentMoE reduces routed width, inserts normalization before returning to model width, bounds both activation branches, and updates routing biases from target-load quantiles. Its MoonEP runtime separately replicates experts dynamically so each expert-parallel rank receives equal aggregate token work and static computation shapes. Router balance and rank balance are complementary: neither alone removes weight memory, dispatch traffic, or within-rank expert skew.[^kimi-k3-2026]
@@ -59,6 +66,7 @@ Kimi K3 provides a primary-source case with 896 routed experts and top-16 select
 
 - **Operationalizes:** [Switch Transformer sparse routing](switch-transformer-sparse-routing.md) through capacity limits, balancing, precision policy, and expert parallelism.
 - **Applies to:** [DeepSeekMoE expert specialization](deepseekmoe-expert-specialization.md), which adds fine-grained top-$k$ routing and an always-on shared path; its paper supplies primary evidence for its balance objectives.
+- **Operationalized by:** [DeepSeek-V2 architecture, training, and efficiency](deepseek-v2-architecture-training-and-efficiency.md) through device-limited routing, three balance objectives, and training-time token dropping.
 - **Specialized by:** [Stable LatentMoE and Quantile Balancing](stable-latentmoe-and-quantile-balancing.md), with primary evidence for compact experts and quantile routing.
 - **Operationalized by:** [Kimi K3 lifecycle infrastructure](kimi-k3-lifecycle-infrastructure.md), including dynamic redundant experts and static rank-level shapes.
 - **Related optimizer evidence:** [Muon LLM training scaling and operational trade-offs](muon-llm-training-scaling-and-operational-trade-offs.md) describes the supplied Moonlight result and the distributed cost of full-matrix orthogonalization.
@@ -74,3 +82,5 @@ This page compiles a secondary Vietnamese overview that cites the Switch Transfo
 [^deepseekmoe-2024]: Dai et al., “DeepSeekMoE: Towards Ultimate Expert Specialization in Mixture-of-Experts Language Models” (2024), [source](../raw/arXiv-2401.06066v1/main.tex), Section 3.3 and Sections 4–6.
 
 [^kimi-k3-2026]: Kimi Team, “Kimi K3: Open Frontier Intelligence,” arXiv:2607.24653v1, [source](../raw/arXiv-2607.24653v1/main.tex), Sections 2.3 and 5.2.
+
+[^deepseek-v2-2024]: DeepSeek-AI, “DeepSeek-V2: A Strong, Economical, and Efficient Mixture-of-Experts Language Model,” arXiv:2405.04434v5, [source](../raw/arXiv-2405.04434v5/main.tex), Sections 2.2 and 3.1.

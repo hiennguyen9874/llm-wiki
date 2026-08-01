@@ -5,11 +5,14 @@ description: GRPO is an on-policy, PPO-style LLM post-training method that repla
 tags: [grpo, reinforcement-learning, post-training, reasoning, policy-optimization]
 status: draft
 created: 2026-07-31
-generated: { by: llm-wiki-agent/1, at: 2026-07-31T17:12:59Z }
+generated: { by: llm-wiki-agent/1, at: 2026-08-01T02:08:42Z }
 sources:
   - id: grpo-summary
     resource: ../raw/GRPO.md
     title: "GRPO overview (Vietnamese summary)"
+  - id: deepseek-v2-2024
+    resource: ../raw/arXiv-2405.04434v5/main.tex
+    title: "DeepSeek-V2: A Strong, Economical, and Efficient Mixture-of-Experts Language Model"
 ---
 
 # Group Relative Policy Optimization
@@ -44,9 +47,16 @@ A typical iteration samples $G$ diverse completions per prompt, evaluates reward
 
 The source presents GRPO as introduced in DeepSeekMath and later used in DeepSeek-R1-Zero and DeepSeek-R1 training. It is especially compatible with tasks whose outputs have checkable signals, such as mathematical answers, code tests, symbolic verification, and output-format checks. For DeepSeek-R1-Zero, the source reports accuracy and format rewards and describes a pipeline that later combined cold-start SFT, reasoning RL, rejection sampling plus SFT, and general RL; GRPO was therefore one component rather than the complete training recipe.[^grpo-summary]
 
+## DeepSeek-V2 application
+
+DeepSeek-V2 applies GRPO in two stages: code-and-math reasoning alignment with a reasoning reward model, then preference alignment with helpfulness, safety, and rule-based reward models. Its report also describes an inference/training hybrid engine, vLLM large-batch generation, and CPU/GPU offloading, showing that critic removal does not remove rollout and systems costs.[^deepseek-v2-2024]
+
 ## Relationships
 
+- **Applied by:** [DeepSeek-V2 alignment, evaluation, and limitations](deepseek-v2-alignment-evaluation-and-limitations.md) in a two-stage reward-model recipe.[^deepseek-v2-2024]
 - **Related method:** [InstructGPT human-feedback alignment](instructgpt-human-feedback-alignment.md) uses KL-regularized PPO after reward-model training; GRPO likewise uses on-policy policy optimization and a reference KL constraint, but derives relative advantages from grouped completions instead of a learned critic.[^grpo-summary]
 - **Qualified by:** [GRPO operational limits](grpo-operational-limits.md).
 
 [^grpo-summary]: “GRPO overview” (Vietnamese summary), [raw source](../raw/GRPO.md), Sections 1–8 and 11–12. This is secondary-source evidence linking to DeepSeek-AI, “DeepSeekMath: Pushing the Limits of Mathematical Reasoning in Open Language Models” (2024) and “DeepSeek-R1: Incentivizing Reasoning Capability in LLMs via Reinforcement Learning” (2025); the primary papers and implementation documentation have not been independently ingested here.
+
+[^deepseek-v2-2024]: DeepSeek-AI, “DeepSeek-V2: A Strong, Economical, and Efficient Mixture-of-Experts Language Model,” arXiv:2405.04434v5, [source](../raw/arXiv-2405.04434v5/main.tex), Section 4.2.
