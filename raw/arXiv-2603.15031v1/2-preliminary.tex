@@ -1,0 +1,49 @@
+
+
+
+
+
+
+
+
+
+
+
+\section{Motivation}
+
+\paragraph{Notation.} Consider a batch of input sequences with shape $B \times T \times d$, where $B$ is the batch size, $T$ is the sequence length, and $d$ is the hidden dimension. For clarity, we write formulas for a single token: $\bm{h}_l \in \mathbb{R}^{d}$ denotes the hidden state entering layer $l$, where $l \in \{1, \ldots, L\}$ is the layer index and $L$ is the total number of layers. The token embedding is $\bm{h}_1$. The function $f_l$ represents the transformation applied by layer $l$. In Transformer models, we treat each self-attention or MLP as an individual \emph{layer}.
+
+\subsection{Training Deep Networks via Residuals}
+
+\paragraph{Residual Learning.} 
+Residual learning~\citep{he2015resnet} proves to be a critical technique in training deep networks as it allows gradients to bypass transformations.
+Specifically, each layer updates the hidden state as:
+$$\bm{h}_{l} = \bm{h}_{l-1} + f_{l-1}(\bm{h}_{l-1})$$
+Expanding this recurrence, the hidden state at layer $l$ is the sum of the embedding and all preceding layer outputs: $\bm{h}_l = \bm{h}_1 + \sum_{i=1}^{l-1} f_i(\bm{h}_i)$.
+The key insight behind residual connections is \emph{identity mapping}: each layer preserves a direct path for both information and gradients to flow unchanged. During back-propagation, the gradient with respect to an intermediate hidden state is:
+$$\frac{\partial \mathcal{L}}{\partial \bm{h}_l} = \frac{\partial \mathcal{L}}{\partial \bm{h}_{L}} \cdot \prod_{j=l}^{L-1} \left( \mathbf{I} + \frac{\partial f_j}{\partial \bm{h}_j} \right)$$
+Expanding this product yields $\mathbf{I}$ plus higher-order terms involving the layer Jacobians $\partial f_j/\partial \bm{h}_j$. The identity term is always preserved, providing a direct gradient path from the loss to any layer regardless of depth.
+
+\paragraph{Generalizing Residuals.}
+While effective, the fixed unit coefficients in the residual update treat every layer's contribution uniformly, offering no mechanism to adapt the mixing across depth.
+Highway networks~\citep{srivastava2015highway} relax this by introducing learned element-wise gates:
+$$\bm{h}_{l} = (1 - \bm{g}_{l}) \odot \bm{h}_{l-1} + \bm{g}_{l} \odot f_{l-1}(\bm{h}_{l-1})$$
+where $\bm{g}_l \in [0,1]^d$ interpolates between the transformation and the identity path.
+More generally, both are instances of a weighted recurrence $\bm{h}_{l} = \alpha_{l} \cdot \bm{h}_{l-1} + \beta_{l} \cdot f_{l-1}(\bm{h}_{l-1})$, with residual setting $\alpha_{l} {=} \beta_{l} {=} 1$ and Highway setting $\alpha_{l} {=} 1 {-} \bm{g}_{l},\, \beta_{l} {=} \bm{g}_{l}$.
+
+\paragraph{Limitations.}
+Whether fixed or gated, both approaches share a fundamental constraint: each layer can only access its immediate input $\bm{h}_{l-1}$, a single compressed state that conflates all earlier layer outputs, rather than the individual outputs themselves.
+This entails several limitations:
+(1)~\emph{no selective access}: different layer types (e.g., attention vs.\ MLP) receive the same aggregated state, despite potentially benefiting from different weightings;
+(2)~\emph{irreversible loss}: information lost through aggregation cannot be selectively recovered in deeper layers;
+and (3)~\emph{output growth}: later layers learn increasingly larger outputs to gain influence over the accumulated residual, which can destabilize training.
+These limitations motivate a mechanism that lets each layer selectively aggregate information from all preceding layers.
+
+
+
+
+
+
+
+
+

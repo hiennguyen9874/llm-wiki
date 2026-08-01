@@ -1,0 +1,115 @@
+\pgfdeclareplotmark{hexagon*}{
+    \pgfpathmoveto{\pgfqpointpolar{0}{1.1\pgfplotmarksize}}
+    \pgfpathlineto{\pgfqpointpolar{60}{1.1\pgfplotmarksize}}
+    \pgfpathlineto{\pgfqpointpolar{120}{1.1\pgfplotmarksize}}
+    \pgfpathlineto{\pgfqpointpolar{180}{1.1\pgfplotmarksize}}
+    \pgfpathlineto{\pgfqpointpolar{240}{1.1\pgfplotmarksize}}
+    \pgfpathlineto{\pgfqpointpolar{300}{1.1\pgfplotmarksize}}
+    \pgfpathclose
+    \pgfusepathqfillstroke
+}
+\begin{figure}[t!]
+    \centering
+    \adjustbox{valign=t}{\begin{minipage}{0.45\textwidth}
+            \centering
+            \small
+            \setlength{\tabcolsep}{10pt}
+            \renewcommand{\arraystretch}{1.18}
+            \captionof{table}{Ablation on key components of AttnRes (16-layer model).}
+            \label{tab:ablation}
+            \begin{tabular}{llc}
+                \toprule
+                                                                                  & Variant                                   & Loss  \\
+                \midrule
+                \multicolumn{2}{l}{Baseline (PreNorm)}                            & 1.766                                             \\
+                \midrule
+                \multicolumn{2}{l}{DenseFormer \cite{pagliardini2024denseformer}} & 1.767                                             \\
+                \multicolumn{2}{l}{mHC \cite{xie2026mhc}}                         & 1.747                                             \\
+                \midrule
+                AttnRes                                                           & Full                                      & 1.737 \\
+                                                                                  & \quad \emph{w/ input-dependent query}     & 1.731 \\
+                                                                                  & \quad \emph{w/ input-independent mixing}  & 1.749 \\
+                                                                                  & \quad \emph{w/ $\operatorname{sigmoid}$}  & 1.741 \\
+                                                                                  & \quad \emph{w/o $\operatorname{RMSNorm}$} & 1.743 \\
+                                                                                  & SWA ($W = 1 + 8$)                         & 1.764 \\
+                                                                                  & Block ($S=4$)                             & 1.746 \\
+                                                                                  & \quad \emph{w/ multihead ($H=16$)}        & 1.752 \\
+                                                                                  & \quad \emph{w/o $\operatorname{RMSNorm}$} & 1.750 \\
+                \bottomrule
+            \end{tabular}
+        \end{minipage}}
+    \hfill
+    \adjustbox{valign=t}{\begin{minipage}{0.5\textwidth}
+            \centering
+            \small
+            \begin{tikzpicture}
+                \begin{axis}[
+                        xlabel={Block size ($S$)},
+                        ylabel={Validation loss},
+                        xlabel style={font=\small},
+                        ylabel style={font=\small},
+                        separate axis lines,
+                        every outer x axis line/.append style={line width=0.8pt},
+                        every outer y axis line/.append style={draw=none},
+                        every y tick/.style={draw=none},
+                        every x tick/.style={draw=none},
+                        xticklabel style={font=\small},
+                        yticklabel style={font=\small, /pgf/number format/fixed, /pgf/number format/precision=3, /pgf/number format/zerofill},
+                        xtick={1, 2, 3, 4, 5},
+                        xticklabels={32, 16, 8, 4, 2},
+                        xmin=0.5,
+                        xmax=5.5,
+                        ymin=1.734,
+                        ymax=1.770,
+                        ytick={1.735, 1.740, 1.745, 1.750, 1.755, 1.760, 1.765, 1.770},
+                        scaled y ticks=false,
+                        width=\textwidth,
+                        height=7cm,
+                        grid=major,
+                        grid style={gray!20, thin},
+                        enlargelimits=false,
+                        legend style={
+                                at={(1.,1.)},
+                                anchor=north east,
+                                legend cell align=left,
+                                font=\scriptsize,
+                                draw=gray!50,
+                                fill=white,
+                                fill opacity=0.9,
+                                text opacity=1,
+                            },
+                    ]
+
+                    \addplot[gray!60, dashed, line width=0.8pt, forget plot] coordinates {(0.5, 1.766) (5.5, 1.766)};
+                    \addlegendimage{gray!60, dashed, line width=0.8pt}
+                    \addlegendentry{Baseline}
+
+                    \addplot[brickred!80, dashed, line width=0.8pt, forget plot] coordinates {(0.5, 1.737) (5.5, 1.737)};
+                    \addlegendimage{brickred!80, dashed, line width=0.8pt}
+                    \addlegendentry{Full AttnRes}
+
+                    \addplot[brickred!80, line width=0.8pt, mark=hexagon*, mark size=1.2pt, mark options={fill=brickred!80}] coordinates {
+                            (1, 1.757)
+                            (2, 1.753)
+                            (3, 1.748)
+                            (4, 1.746)
+                            (5, 1.746)
+                        };
+                    \addlegendentry{Block AttnRes}
+
+                    \node[font=\tiny, above=3pt] at (axis cs:1, 1.757) {1.757};
+                    \node[font=\tiny, above=3pt] at (axis cs:2, 1.753) {1.753};
+                    \node[font=\tiny, above=3pt] at (axis cs:3, 1.748) {1.748};
+                    \node[font=\tiny, above=3pt] at (axis cs:4, 1.746) {1.746};
+                    \node[font=\tiny, above=3pt] at (axis cs:5, 1.746) {1.746};
+
+                    \node[font=\tiny, black, above=2pt] at (axis cs:3, 1.766) {Baseline (1.766)};
+
+                    \node[font=\tiny, black, below=2pt,text=brickred!80] at (axis cs:3, 1.737) {Full AttnRes i.e. S=1 (1.737)};
+
+                \end{axis}
+            \end{tikzpicture}
+            \captionof{figure}{Effect of block size on validation loss (16-layer model).}
+            \label{fig:blocksize}
+        \end{minipage}}
+\end{figure}

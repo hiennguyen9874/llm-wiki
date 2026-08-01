@@ -1,0 +1,112 @@
+\section{Infrastructure Design}
+\label{sec:infra}
+
+Block AttnRes introduces additional system challenges compared to standard residual connections. For large-scale model training, block representations must be propagated across pipeline stages, causing heavy communication in a na\"ive implementation. During inference, repeated access to accumulated block representations increases latency, while long-context prefilling amplifies the memory cost of caching block representations. We address these challenges with cross-stage caching in training, and with a two-phase computation strategy together with a memory-efficient prefilling scheme in inference.
+
+\subsection{Training}
+\label{sec:infra-training}
+For small-scale training, AttnRes adds a tiny computation overhead and no extra memory usage, as the activations need to be saved for backpropagation regardless.
+Under large-scale distributed training, pipeline parallelism poses the primary infrastructure challenge for AttnRes.
+Full AttnRes requires all $L$ layer outputs to be transmitted across stages; Block AttnRes reduces this to $N$ block representations, and the optimizations below further minimize the remaining overhead.
+
+\paragraph{Pipeline communication.}
+With standard residual connections, pipeline parallelism~\citep{huang2019gpipe} transfers a fixed-size hidden state between adjacent stages, independent of pipeline depth.
+Block AttnRes requires all accumulated block representations at each stage for inter-block attention, and na\"ively transmitting the full history at every transition incurs redundant communication.
+
+Consider an interleaved pipeline schedule~\citep{narayanan2021megatron} with $P$ physical stages and $V$ virtual stages per physical stage.
+For simplicity, assume each physical stage produces on average $N_p$ block representations of dimension $d$ per token.\footnote{In practice, block boundaries need not align with physical stage boundaries. For example, in Fig.~\ref{fig:pipeline}, each block spans two physical stages, so only every other transition involves a newly completed block.}
+With $C = PV$ total chunks (each physical stage in each virtual stage), the $j$-th chunk accumulates $jN_p$ blocks.
+Na\"ively transmitting all accumulated blocks at every transition incurs per-token communication cost:
+\begin{equation}
+    \mathrm{Comm}_{\text{na\"ive}} = \sum_{j=1}^{C-1} jN_p \cdot d = \frac{C(C{-}1)}{2}\,N_p d.
+\end{equation}
+\paragraph{Cross-stage caching.}
+Since each physical stage processes multiple virtual stages in succession, we can eliminate this redundancy by caching blocks locally: blocks received during earlier virtual stages remain in local memory and need not be re-transmitted.
+The first virtual stage ($v = 1$) has no cache and accumulates normally; for $v \geq 2$, each transition conveys only the ${\sim}P N_p$ incremental blocks accumulated since the receiver's corresponding chunk in the previous virtual stage.
+Total communication reduces to:
+\begin{equation}
+    \mathrm{Comm}_{\text{cached}} = \underbrace{\frac{P(P{-}1)}{2}\, N_p d}_{\text{first virtual stage}} + \underbrace{(V{-}1)\, P^2\, N_p d}_{\text{subsequent virtual stages}}.
+\end{equation}
+
+\input{figures/pipeline}
+
+Caching reduces peak per-transition cost from $O(C)$ to $O(P)$, a $V{\times}$ improvement that enables full overlap with computation during steady-state 1F1B.
+The backward pass benefits from the same scheme. Fig.~\ref{fig:pipeline} illustrates this optimization with $P{=}4$ and $V{=}2$: for the second virtual stage, caching eliminates 6 redundant block transmissions.
+
+\paragraph{Memory overhead.}
+With cross-stage caching, each block is stored exactly once across all $V$ virtual stages, which becomes negligible relative to standard per-layer activation cache. Crucially, the per-layer activation footprint remains identical to standard architectures, as activation checkpointing eliminates all inter-block attention intermediates, and the checkpointed input $\bm{p}_l$ matches the memory size of the hidden state $\bm{h}_l$ it replaces.
+
+In terms of wall-clock time, Block AttnRes adds negligible training overhead when pipeline parallelism is not enabled; under pipeline parallelism, the measured end-to-end overhead is less than 4\%.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+\subsection{Inference}
+\label{sec:infra-inference}
+The two-phase computation strategy described below applies to both Full and Block AttnRes: in either case, layers are grouped into blocks of size $S$, with Phase~1 batching the inter-block queries and Phase~2 handling sequential intra-block lookback. For Full AttnRes, this reduces per-layer I/O from $O(Ld)$ to $O((S{+}N)d)$ (detailed derivation shown in Appendix \ref{app:inference}); Block AttnRes further reduces the stored representations from $L$ to $N$, since each block is compressed into a single vector.
+In what follows, we focus on Block AttnRes and detail the two-phase computation strategy together with a sequence-sharded prefilling scheme for long-context inputs.
+
+\paragraph{Two-phase computation strategy.}
+The layer-wise attention computation of Block AttnRes resembles autoregressive decoding, where block representations serve as a shared KV cache reused across layers.
+A na\"ive implementation computes the attention residual at every layer, each requiring a full pass over all preceding blocks, resulting in $O(L \cdot N)$ memory accesses.
+Since the pseudo-query vectors are decoupled from the forward computation (\S\ref{sec:attnres}), all $S = L/N$ queries within a block can be batched into a single matrix multiplication, amortizing memory access from $S$ reads to $1$.
+
+Algorithm~\ref{alg:inference} instantiates a two-phase computation strategy exploiting this property.
+\begin{itemize}[leftmargin=*]
+    \item \textbf{Phase~1} computes inter-block attention for all $S$ layers simultaneously via a single batched query against the cached block representations, returning both outputs and $\operatorname{softmax}$ statistics (max and log-sum-exp). This amortizes the memory access cost, reducing reads from $S$ times to just once per block.
+    \item \textbf{Phase~2} computes intra-block attention sequentially for each layer using the evolving partial sum, then merges with Phase~1 outputs through online $\operatorname{softmax}$~\citep{milakov2018online}. Because the online-$\operatorname{softmax}$ merge is elementwise, this phase naturally admits kernel fusion with surrounding operations, further reducing I/O overhead.
+\end{itemize}
+
+\begin{algorithm}[t]
+    \caption{Two-phase computation for block $n$}
+    \label{alg:inference}
+    \KwIn{Pseudo queries $\{\bm{w}_l\}_{l \in \mathcal{B}_n}$, block representations $\{\bm{b}_0, \ldots, \bm{b}_{n-1}\}$}
+    \BlankLine
+    \tcc{Phase 1: Parallel inter-block attention}
+    $\mathbf{Q} \gets [\bm{w}_l]_{l \in \mathcal{B}_n}$\tcp*{$[S, d]$}
+    $\mathbf{K}, \mathbf{V} \gets [\bm{b}_0; \ldots; \bm{b}_{n-1}]$\tcp*{$[n, d]$}
+    $\{\bm{o}_l^{(1)}, m_l^{(1)}, \ell_l^{(1)}\}_{l \in \mathcal{B}_n} \gets \textsc{AttnWithStats}(\mathbf{Q}, \mathbf{K}, \mathbf{V})$\tcp*{Return LSE}
+    \;
+    \tcc{Phase 2: Sequential intra-block attention + Online $\operatorname{softmax}$ merge}
+    $i \gets 0$\;
+    \For{$l \in \mathcal{B}_n$}{
+        \eIf{$i = 0$}{
+            $\bm{h}_l \gets \bm{o}_l^{(1)} / \ell_l^{(1)}$\tcp*{Inter-block only}
+        }{
+            $\bm{o}_l^{(2)}, m_l^{(2)}, \ell_l^{(2)} \gets \textsc{AttnWithStats}(\bm{w}_l, \bm{b}_n^i, \bm{b}_n^i)$\tcp*{Intra-block}
+            $m_l \gets \max(m_l^{(1)}, m_l^{(2)})$\;
+            $\bm{h}_l \gets \dfrac{e^{m_l^{(1)} - m_l} \bm{o}_l^{(1)} + e^{m_l^{(2)} - m_l} \bm{o}_l^{(2)}}{e^{m_l^{(1)} - m_l} \ell_l^{(1)} + e^{m_l^{(2)} - m_l} \ell_l^{(2)}}$\tcp*{Online softmax merge}
+        }
+        $i \gets i + 1$\;
+        $\bm{b}_n^{i} \gets \bm{b}_n^{i-1} + f_l(\bm{h}_l)$\tcp*{Update partial sum; $\bm{b}_n^0 \coloneqq \bm{0}$}
+    }
+    \KwRet{$\{\bm{h}_l\}_{l \in \mathcal{B}_n}$}
+\end{algorithm}
+
+With the two-phase design, Phase~2 preserves an I/O footprint similar to that of standard residual connections, whereas the main additional cost arises from Phase~1 inter-block attention. Because these inter-block reads are amortized across all layers in a block through batching, the total per-layer memory access cost remains only $(\frac{N}{S} + 3)d$ reads and $2d$ writes (Table~\ref{tab:memory_access}). This is substantially lower than the residual-stream I/O of prior residual generalizations such as (m)HC under typical settings. In practice, Phase~1 can also partially overlap with the computation of the first layer in the block, further reducing its wall-clock impact. As a result, the end-to-end inference latency overhead is less than 2\% on typical inference workloads.
+
+\input{table/memory_access}
+
+
+
+\paragraph{Memory-efficient prefilling.}
+Storing block representations during prefilling requires $N \cdot T \cdot d$ elements, which incurs 15\,GB of memory for a 128K-token sequence with 8 blocks. We mitigate this by sharding these representations along the sequence dimension across $P$ tensor-parallel devices, allowing Phase~1 to execute independently on local sequence shards. The Phase~2 online-$\operatorname{softmax}$ merge then integrates into the standard TP all-reduce communication path: the output is reduce-scattered, merged locally, and reconstructed via all-gather, naturally admitting kernel fusion with operations like $\operatorname{RMSNorm}$. This reduces the per-device memory footprint to $N \cdot (T/P) \cdot d$---lowering the 128K-context example from 15\,GB to roughly 1.9\,GB per device. Combined with chunked prefill (e.g., 16K chunk size), the overhead further reduces to under 0.3\,GB per device.
+
+

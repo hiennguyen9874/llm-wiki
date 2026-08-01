@@ -1,0 +1,663 @@
+\begin{figure}[b!]
+  \centering
+  \definecolor{gray_bbox_color}{RGB}{243,243,244}
+  \definecolor{attn_color}{RGB}{200,220,245}
+  \definecolor{moe_color}{RGB}{255,225,190}
+  \definecolor{mix_path_color}{RGB}{130, 75, 80}
+  \definecolor{attnres_purple}{RGB}{100,60,160}
+  \definecolor{seagreen}{RGB}{235, 165, 85}
+  \definecolor{attnres_box}{RGB}{212,228,200}
+
+
+  \hspace{-12pt}%
+  \begin{subfigure}[b]{0.18\textwidth}
+    \centering
+    \resizebox{!}{0.36\textheight}{%
+      \begin{tikzpicture}[
+        emb/.style={
+            rectangle,
+            rounded corners=2pt,
+            minimum width=60pt,
+            minimum height=8pt,
+            draw=black,
+            semithick,
+            fill=gray_bbox_color,
+            font=\scriptsize
+          },
+        attn/.style={
+            rectangle,
+            rounded corners=2pt,
+            minimum width=48pt,
+            minimum height=8pt,
+            draw=black,
+            semithick,
+            fill=attn_color,
+            font=\scriptsize
+          },
+        moe/.style={
+            rectangle,
+            rounded corners=2pt,
+            minimum width=48pt,
+            minimum height=8pt,
+            draw=black,
+            semithick,
+            fill=moe_color,
+            font=\scriptsize
+          },
+        oplus/.style={
+            draw=black,
+            line width=0.6pt,
+            rectangle,
+            rounded corners=3.5pt,
+            minimum size=7pt,
+            inner sep=0pt,
+            outer sep=0pt,
+            fill=white,
+            path picture={
+                \draw[line width=0.4pt] (path picture bounding box.center) -- ++(2.5pt,0)
+                (path picture bounding box.center) -- ++(-2.5pt,0)
+                (path picture bounding box.center) -- ++(0,2.5pt)
+                (path picture bounding box.center) -- ++(0,-2.5pt);
+              },
+          },
+        block/.style={
+            rectangle,
+            rounded corners=6pt,
+            draw=black,
+            dashed,
+            semithick,
+            inner sep=5pt
+          },
+        residual/.style={
+        -{Latex[length=3.5pt, width=2.5pt]},
+        line width=0.5pt,
+        rounded corners=3pt,
+        black,
+        shorten <=0.2pt,
+        },
+        mainlink/.style={
+        -{Latex[length=3.5pt, width=2.5pt]},
+        line width=0.5pt,
+        rounded corners=3pt,
+        black,
+        shorten <=0.2pt,
+        },
+        ]
+
+        \path (-36pt,0) -- (36pt,0);
+
+        \node[emb] (emb) at (0, 0) {Embedding};
+
+        \node[font=\small, anchor=south, yshift=20pt] at (emb.north) (dots) {$\vdots$};
+
+        \node[oplus, anchor=south, yshift=2pt] at (dots.north) (plus0) {};
+        \draw[mainlink] ([yshift=-8pt]plus0.south) -- (plus0.south);
+
+        \node[attn, anchor=south, yshift=7pt] at (plus0.north) (attn1) {Attention};
+        \draw[mainlink] (plus0.north) -- (attn1.south);
+
+        \node[oplus, anchor=south, yshift=7pt] at (attn1.north) (plus1) {};
+        \draw[mainlink] (attn1.north) -- (plus1.south);
+
+        \node[moe, anchor=south, yshift=9pt] at (plus1.north) (moe1) {MoE};
+        \draw[mainlink] (plus1.north) -- (moe1.south);
+
+        \node[oplus, anchor=south, yshift=7pt] at (moe1.north) (plus2) {};
+        \draw[mainlink] (moe1.north) -- (plus2.south);
+
+        \node[attn, anchor=south, yshift=9pt] at (plus2.north) (attn2) {Attention};
+        \draw[mainlink] (plus2.north) -- (attn2.south);
+
+        \node[oplus, anchor=south, yshift=7pt] at (attn2.north) (plus3) {};
+        \draw[mainlink] (attn2.north) -- (plus3.south);
+
+        \node[moe, anchor=south, yshift=9pt] at (plus3.north) (moe2) {MoE};
+        \draw[mainlink] (plus3.north) -- (moe2.south);
+
+        \node[oplus, anchor=south, yshift=7pt] at (moe2.north) (plus4) {};
+        \draw[mainlink] (moe2.north) -- (plus4.south);
+
+        \node[emb, anchor=south, yshift=34pt, draw=none, fill=none] at (moe2.north) (output) {Output};
+        \draw[mainlink] (plus4.north) -- (output.south);
+
+        \coordinate (bbot) at ([yshift=-6pt]dots.south);
+        \coordinate (btop) at ($(moe2.north)!0.65!(output.south)$);
+        \coordinate (bleft) at ([xshift=-44pt]attn1.center);
+        \coordinate (bright) at ([xshift=44pt]attn1.center);
+        \begin{scope}[on background layer]
+          \node[block, inner sep=0pt, fit=(bbot -| bleft)(btop -| bright)] (mainblock) {};
+        \end{scope}
+
+        \coordinate (lx) at ([xshift=-34pt]plus1.center);
+        \draw[residual] (plus0) -- (lx |- plus0.center) -- (lx |- plus1.south west) -- (plus1.south west);
+        \draw[residual] (plus1) -- (lx |- plus1.center) -- (lx |- plus2.south west) -- (plus2.south west);
+        \draw[residual] (plus2) -- (lx |- plus2.center) -- (lx |- plus3.south west) -- (plus3.south west);
+        \draw[residual] (plus3) -- (lx |- plus3.center) -- (lx |- plus4.west) -- (plus4.west);
+
+      \end{tikzpicture}%
+    }
+    \caption{Standard Residuals}
+    \label{fig:teaser-baseline}
+  \end{subfigure}
+  \hspace{20pt}%
+  \begin{tikzpicture}[baseline=(current bounding box.south)]
+    \draw[dashed, line width=0.8pt, black] (20pt,0) -- (20pt,0.385\textheight);
+  \end{tikzpicture}%
+  \hspace{4pt}%
+  \begin{subfigure}[b]{0.28\textwidth}
+    \centering
+    \resizebox{!}{0.36\textheight}{%
+      \begin{tikzpicture}[
+        emb/.style={
+            rectangle,
+            rounded corners=2pt,
+            minimum width=60pt,
+            minimum height=8pt,
+            draw=black,
+            semithick,
+            fill=gray_bbox_color,
+            font=\scriptsize
+          },
+        attn/.style={
+            rectangle,
+            rounded corners=2pt,
+            minimum width=48pt,
+            minimum height=8pt,
+            draw=black,
+            semithick,
+            fill=attn_color,
+            font=\scriptsize
+          },
+        moe/.style={
+            rectangle,
+            rounded corners=2pt,
+            minimum width=48pt,
+            minimum height=8pt,
+            draw=black,
+            semithick,
+            fill=moe_color,
+            font=\scriptsize
+          },
+        block/.style={
+            rectangle,
+            rounded corners=6pt,
+            draw=black,
+            dashed,
+            semithick,
+            inner sep=5pt
+          },
+        innerblock/.style={
+        -{Latex[length=3.5pt, width=2.5pt]},
+        line width=0.5pt,
+        rounded corners=3pt,
+        mix_path_color,
+        preaction={draw=white, line width=1.4pt},
+        shorten <=0.2pt,
+        },
+        interblock/.style={
+            line width=0.5pt,
+            rounded corners=3pt,
+            mix_path_color,
+            preaction={draw=white, line width=1.4pt},
+            shorten <=0.2pt,
+            shorten >=0.2pt,
+          },
+        busline/.style={
+            line width=0.5pt,
+            rounded corners=3pt,
+            mix_path_color,
+            shorten <=0.2pt,
+            shorten >=0.2pt,
+          },
+        alphanode/.style={
+            circle,
+            draw=black,
+            fill=white,
+            minimum size=8pt,
+            inner sep=0pt,
+            semithick,
+            font=\tiny,
+            text=brickred
+          },
+        wbox/.style={
+            rectangle,
+            rounded corners=1pt,
+            minimum size=7pt,
+            draw=black,
+            line width=0.5pt,
+            fill=attnres_box,
+            inner sep=0pt,
+            outer sep=0pt,
+            text depth=0pt,
+            text height=3pt,
+            font=\fontsize{3pt}{3pt}\selectfont,
+            text=black
+          }
+        ]
+
+        \path (-36pt,0) -- (36pt,0);
+
+        \node[emb] (emb) at (0, 0) {Embedding};
+
+        \node[font=\small, anchor=south, yshift=15pt] at (emb.north) (dots) {$\vdots$};
+        \node[alphanode, anchor=south, yshift=-5pt] at (dots.north) (alpha1) {$\alpha$};
+        \node[attn, anchor=south, yshift=8pt] at (alpha1.north) (attn1) {Attention};
+
+        \node[alphanode, anchor=south, yshift=8pt] at (attn1.north) (alpha2) {$\alpha$};
+        \node[moe, anchor=south, yshift=10pt] at (alpha2.north) (moe1) {MoE};
+
+        \node[alphanode, anchor=south, yshift=8pt] at (moe1.north) (alpha3) {$\alpha$};
+        \node[attn, anchor=south, yshift=10pt] at (alpha3.north) (attn2) {Attention};
+
+        \node[alphanode, anchor=south, yshift=8pt] at (attn2.north) (alpha4) {$\alpha$};
+        \node[moe, anchor=south, yshift=10pt] at (alpha4.north) (moe2) {MoE};
+
+        \draw[interblock] (attn1.north) -- (alpha2.south);
+        \draw[interblock] (moe1.north) -- (alpha3.south);
+        \draw[interblock] (attn2.north) -- (alpha4.south);
+
+        \draw[innerblock] (alpha1.north) -- (attn1.south);
+        \draw[innerblock] (alpha2.north) -- (moe1.south);
+        \draw[innerblock] (alpha3.north) -- (attn2.south);
+        \draw[innerblock] (alpha4.north) -- (moe2.south);
+
+        \coordinate (wleft) at (-24pt, 0);
+        \node[wbox, anchor=west] at (wleft |- alpha1) (w1) {$\bm{w}$};
+        \node[wbox, anchor=west] at (wleft |- alpha2) (w2) {$\bm{w}$};
+        \node[wbox, anchor=west] at (wleft |- alpha3) (w3) {$\bm{w}$};
+        \node[wbox, anchor=west] at (wleft |- alpha4) (w4) {$\bm{w}$};
+
+        \draw[interblock] (w1.east) -- (alpha1.west);
+        \draw[interblock] (w2.east) -- (alpha2.west);
+        \draw[interblock] (w3.east) -- (alpha3.west);
+        \draw[interblock] (w4.east) -- (alpha4.west);
+
+        \coordinate (lpad) at ([xshift=-30pt]attn1.center);
+        \coordinate (rpad) at ([xshift=30pt]attn1.center);
+        \begin{scope}[on background layer]
+          \node[block, fit=(lpad)(dots)(moe2)(rpad), inner sep=6pt] (block) {};
+        \end{scope}
+
+        \node[emb, anchor=south, yshift=26pt, draw=none, fill=none] at (moe2.north) (output) {Output};
+        \node[alphanode] at ($(moe2.north)!0.55!(output.south)$) (alpha5) {$\alpha$};
+        \draw[interblock] (moe2.north) -- (alpha5.south);
+        \draw[innerblock] (alpha5.north) -- (output.south);
+
+        \node[wbox, anchor=west] at (wleft |- alpha5) (w5) {$\bm{w}$};
+        \draw[interblock] (w5.east) -- (alpha5.west);
+
+        \coordinate (arx) at ([xshift=30pt]attn1.center);
+        \coordinate (bus_emb) at ([xshift=12pt]arx);    % emb: innermost, drawn last
+        \coordinate (bus_attn1) at ([xshift=18pt]arx);  % 6pt spacing
+        \coordinate (bus_moe1) at ([xshift=24pt]arx);
+        \coordinate (bus_attn2) at ([xshift=30pt]arx);  % attn2: outermost, drawn first
+
+
+        \draw[busline] (attn2.east) -- (bus_attn2 |- attn2.east) -- (bus_attn2 |- alpha5.east) -- (alpha5.east);
+
+        \draw[interblock] (moe1.east) -- (bus_moe1 |- moe1.east) -- (bus_moe1 |- moe2.north);
+        \draw[busline] (moe1.east) -- (bus_moe1 |- moe1.east) -- (bus_moe1 |- alpha4.east) -- (alpha4.east);
+        \draw[busline] (moe1.east) -- (bus_moe1 |- moe1.east) -- (bus_moe1 |- alpha5.east) -- (alpha5.east);
+
+        \draw[interblock] (attn1.east) -- (bus_attn1 |- attn1.east) -- (bus_attn1 |- moe2.north);
+        \draw[busline] (attn1.east) -- (bus_attn1 |- attn1.east) -- (bus_attn1 |- alpha3.east) -- (alpha3.east);
+        \draw[busline] (attn1.east) -- (bus_attn1 |- attn1.east) -- (bus_attn1 |- alpha4.east) -- (alpha4.east);
+        \draw[busline] (attn1.east) -- (bus_attn1 |- attn1.east) -- (bus_attn1 |- alpha5.east) -- (alpha5.east);
+
+        \draw[interblock] (emb.east) -- (bus_emb |- emb.east) -- (bus_emb |- moe2.north);
+        \draw[busline] (emb.east) -- (bus_emb |- emb.east) -- (bus_emb |- alpha1.east) -- (alpha1.east);
+        \draw[busline] (emb.east) -- (bus_emb |- emb.east) -- (bus_emb |- alpha2.east) -- (alpha2.east);
+        \draw[busline] (emb.east) -- (bus_emb |- emb.east) -- (bus_emb |- alpha3.east) -- (alpha3.east);
+        \draw[busline] (emb.east) -- (bus_emb |- emb.east) -- (bus_emb |- alpha4.east) -- (alpha4.east);
+        \draw[busline] (emb.east) -- (bus_emb |- emb.east) -- (bus_emb |- alpha5.east) -- (alpha5.east);
+
+
+        \node[alphanode] at (alpha1) {$\alpha$};
+        \node[alphanode] at (alpha2) {$\alpha$};
+        \node[alphanode] at (alpha3) {$\alpha$};
+        \node[alphanode] at (alpha4) {$\alpha$};
+        \node[alphanode] at (alpha5) {$\alpha$};
+
+      \end{tikzpicture}%
+    }
+    \caption{Full Attention Residuals}
+    \label{fig:teaser-full}
+  \end{subfigure}
+  \hspace{-12pt}%
+  \begin{subfigure}[b]{0.38\textwidth}
+    \centering
+    \resizebox{!}{0.36\textheight}{%
+      \begin{tikzpicture}[
+        emb/.style={
+            rectangle,
+            rounded corners=2pt,
+            minimum width=60pt,
+            minimum height=8pt,
+            draw=black,
+            semithick,
+            fill=gray_bbox_color,
+            font=\scriptsize
+          },
+        attn/.style={
+            rectangle,
+            rounded corners=2pt,
+            minimum width=48pt,
+            minimum height=8pt,
+            draw=black,
+            semithick,
+            fill=attn_color,
+            font=\scriptsize
+          },
+        moe/.style={
+            rectangle,
+            rounded corners=2pt,
+            minimum width=48pt,
+            minimum height=8pt,
+            draw=black,
+            semithick,
+            fill=moe_color,
+            font=\scriptsize
+          },
+        oplus/.style={
+            draw=black,
+            line width=0.6pt,
+            rectangle,
+            rounded corners=3.5pt,
+            minimum size=7pt,
+            inner sep=0pt,
+            outer sep=0pt,
+            fill=white,
+            path picture={
+                \draw[line width=0.4pt] (path picture bounding box.center) -- ++(2.5pt,0)
+                (path picture bounding box.center) -- ++(-2.5pt,0)
+                (path picture bounding box.center) -- ++(0,2.5pt)
+                (path picture bounding box.center) -- ++(0,-2.5pt);
+              },
+          },
+        otimes/.style={
+            draw=black,
+            line width=0.3pt,
+            circle,
+            minimum size=6pt,
+            inner sep=0pt,
+            outer sep=0pt,
+            fill=white,
+            path picture={
+                \draw[line width=0.3pt] (path picture bounding box.center) -- ++(2.1pt,2.1pt)
+                (path picture bounding box.center) -- ++(-2.1pt,-2.1pt)
+                (path picture bounding box.center) -- ++(2.1pt,-2.1pt)
+                (path picture bounding box.center) -- ++(-2.1pt,2.1pt);
+              },
+          },
+        block/.style={
+            rectangle,
+            rounded corners=6pt,
+            draw=black,
+            dashed,
+            semithick,
+            inner sep=5pt
+          },
+        residual/.style={
+        -{Latex[length=3.5pt, width=2.5pt]},
+        line width=0.5pt,
+        rounded corners=3pt,
+        black,
+        shorten <=0.2pt,
+        },
+        mainlink/.style={
+        -{Latex[length=3.5pt, width=2.5pt]},
+        line width=0.5pt,
+        rounded corners=3pt,
+        black,
+        shorten <=0.2pt,
+        },
+        innerblock/.style={
+        -{Latex[length=3.5pt, width=2.5pt]},
+        line width=0.5pt,
+        rounded corners=3pt,
+        mix_path_color,
+        preaction={draw=white, line width=1.4pt},
+        shorten <=0.2pt,
+        shorten >=0.2pt,
+        },
+        interblock/.style={
+            line width=0.5pt,
+            rounded corners=3pt,
+            mix_path_color,
+            preaction={draw=white, line width=1.4pt},
+            shorten <=0.2pt,
+            shorten >=0.2pt,
+          },
+        busline/.style={
+            line width=0.5pt,
+            rounded corners=3pt,
+            mix_path_color,
+            shorten <=0.2pt,
+            shorten >=0.2pt,
+          },
+        alphanode/.style={
+            circle,
+            draw=black,
+            fill=white,
+            minimum size=8pt,
+            inner sep=0pt,
+            semithick,
+            font=\tiny,
+            text=brickred
+          },
+        wbox/.style={
+            rectangle,
+            rounded corners=1pt,
+            minimum size=7pt,
+            draw=black,
+            line width=0.5pt,
+            fill=attnres_box,
+            inner sep=0pt,
+            outer sep=0pt,
+            text depth=0pt,
+            text height=3pt,
+            font=\fontsize{3pt}{3pt}\selectfont,
+          }
+        ]
+
+        \pgfdeclarelayer{deepbackground}
+        \pgfsetlayers{deepbackground,background,main}
+
+        \path (-42pt,0) -- (42pt,0);
+
+        \node[emb] (emb) at (0, 0) {Embedding};
+
+        \node[font=\scriptsize, inner sep=1pt, anchor=south, yshift=0pt] at (emb.north) (dot0) {$\smash{\cdot}$};
+        \node[font=\scriptsize, inner sep=1pt, anchor=south, yshift=0pt] at (dot0.north) (dot1) {$\smash{\cdot}$};
+        \node[font=\scriptsize, inner sep=1pt, anchor=south, yshift=0pt] at (dot1.north) (dot2) {$\smash{\cdot}$};
+
+        \node[block, solid, rounded corners=2pt, minimum width=60pt, minimum height=12pt, inner sep=0pt, anchor=south, yshift=1pt, fill=gray_bbox_color] at ([yshift=2pt]dot2.north) (blockn2) {};
+        \node[black!80,font=\tiny] at (blockn2.center) {Block $n$-2};
+
+        \node[block, solid, rounded corners=2pt, minimum width=60pt, minimum height=12pt, inner sep=0pt, anchor=south, yshift=1pt, fill=gray_bbox_color] at (blockn2.north) (blockn1) {};
+        \node[black!80,font=\tiny] at (blockn1.center) {Block $n$-1};
+
+        \node[attn, anchor=south, yshift=8pt] at (blockn1.north) (attn1) {Attention};
+        \node[anchor=south, yshift=7pt] at (attn1.north) (plus1) {};
+        \draw[line width=0.5pt, black] (attn1.north) -- (plus1.center);
+
+        \node[moe, anchor=south, yshift=5pt] at (plus1.north) (moe1) {MoE};
+        \node[oplus, anchor=south, yshift=6pt] at (moe1.north) (plus2) {};
+        \draw[mainlink] (moe1.north) -- (plus2.south);
+
+        \node[attn, anchor=south, yshift=6pt] at (plus2.north) (attn2) {Attention};
+        \node[oplus, anchor=south, yshift=6pt] at (attn2.north) (plus3) {};
+        \draw[mainlink] (attn2.north) -- (plus3.south);
+
+        \node[moe, anchor=south, yshift=6pt] at (plus3.north) (moe2) {MoE};
+        \node[oplus, anchor=south, yshift=6pt] at (moe2.north) (plus4) {};
+        \draw[mainlink] (moe2.north) -- (plus4.south);
+
+        \coordinate (lx) at ([xshift=-34pt]plus1.center);
+        \coordinate (res1in) at (plus2.south west);
+        \coordinate (res2in) at (plus3.south west);
+        \coordinate (res3in) at (plus4.west);
+        \draw[residual] (plus1.center) -- (lx |- plus1.center) -- (lx |- res1in) -- (res1in);
+        \draw[residual] (plus2) -- (lx |- plus2.center) -- (lx |- res2in) -- (res2in);
+        \draw[residual] (plus3) -- (lx |- plus3.center) -- (lx |- res3in) -- (res3in);
+
+        \coordinate (lpad) at ([xshift=-40pt]attn1.center);
+        \coordinate (rpad) at ([xshift=40pt]attn1.center);
+        \begin{scope}[on background layer]
+          \node[block, fill=white, fit=(lpad)(attn1)(moe2)(plus4)(rpad), inner sep=4pt] (mainblock) {};
+        \end{scope}
+
+        \node[emb, anchor=south, yshift=26pt, draw=none, fill=none] at (plus4.north) (output) {Output};
+        \node[alphanode] at ($(plus4.north)!0.55!(output.south)$) (alpha4) {$\alpha$};
+        \draw[interblock] (plus4.north) -- (alpha4.south);
+        \draw[innerblock] (alpha4.north) -- (output.south);
+
+        \coordinate (arx) at ([xshift=36pt]attn1.center);
+        \coordinate (a0pos) at (arx |- attn1.center);
+        \coordinate (a1pos) at (arx |- moe1.center);
+        \coordinate (a2pos) at (arx |- attn2.center);
+        \coordinate (a3pos) at (arx |- moe2.center);
+
+        \node[alphanode] at (a0pos) (alpha0) {$\alpha$};
+        \node[alphanode] at (a1pos) (alpha1) {$\alpha$};
+        \node[alphanode] at (a2pos) (alpha2) {$\alpha$};
+        \node[alphanode] at (a3pos) (alpha3) {$\alpha$};
+
+        \draw[innerblock] (alpha0) -- (attn1.east);
+        \draw[innerblock] (alpha1) -- (moe1.east);
+        \draw[innerblock] (alpha2) -- (attn2.east);
+        \draw[innerblock] (alpha3) -- (moe2.east);
+
+        \draw[interblock, rounded corners=3pt] (plus1.center) -- (arx |- plus1.center) -> (alpha1);
+        \draw[interblock, rounded corners=3pt] (plus2.east) -- (arx |- plus2.center) -- (alpha2);
+        \draw[interblock, rounded corners=3pt] (plus3.east) -- (arx |- plus3.center) -- (alpha3);
+
+        \coordinate (bus_emb) at ([xshift=14pt]arx);    % emb: innermost, drawn last
+        \coordinate (bus_bn2) at ([xshift=20pt]arx);    % 6pt spacing
+        \coordinate (bus_bn1) at ([xshift=26pt]arx);    % blockn1: outermost, drawn first
+
+
+        \draw[busline] (blockn1.east) -- (bus_bn1 |- blockn1.east) -- (bus_bn1 |- alpha0.east) -- (alpha0.east);
+        \draw[busline] (blockn1.east) -- (bus_bn1 |- blockn1.east) -- (bus_bn1 |- alpha1.east) -- (alpha1.east);
+        \draw[busline] (blockn1.east) -- (bus_bn1 |- blockn1.east) -- (bus_bn1 |- alpha2.east) -- (alpha2.east);
+        \draw[busline] (blockn1.east) -- (bus_bn1 |- blockn1.east) -- (bus_bn1 |- alpha3.east) -- (alpha3.east);
+        \draw[busline] (blockn1.east) -- (bus_bn1 |- blockn1.east) -- (bus_bn1 |- alpha4.east) -- (alpha4.east);
+
+        \draw[interblock] (blockn2.east) -- (bus_bn2 |- blockn2.east) -- (bus_bn2 |- plus4.north);
+        \draw[busline] (blockn2.east) -- (bus_bn2 |- blockn2.east) -- (bus_bn2 |- alpha0.east) -- (alpha0.east);
+        \draw[busline] (blockn2.east) -- (bus_bn2 |- blockn2.east) -- (bus_bn2 |- alpha1.east) -- (alpha1.east);
+        \draw[busline] (blockn2.east) -- (bus_bn2 |- blockn2.east) -- (bus_bn2 |- alpha2.east) -- (alpha2.east);
+        \draw[busline] (blockn2.east) -- (bus_bn2 |- blockn2.east) -- (bus_bn2 |- alpha3.east) -- (alpha3.east);
+        \draw[busline] (blockn2.east) -- (bus_bn2 |- blockn2.east) -- (bus_bn2 |- alpha4.east) -- (alpha4.east);
+
+        \draw[interblock] (emb.east) -- (bus_emb |- emb.east) -- (bus_emb |- plus4.north);
+        \draw[busline] (emb.east) -- (bus_emb |- emb.east) -- (bus_emb |- alpha0.east) -- (alpha0.east);
+        \draw[busline] (emb.east) -- (bus_emb |- emb.east) -- (bus_emb |- alpha1.east) -- (alpha1.east);
+        \draw[busline] (emb.east) -- (bus_emb |- emb.east) -- (bus_emb |- alpha2.east) -- (alpha2.east);
+        \draw[busline] (emb.east) -- (bus_emb |- emb.east) -- (bus_emb |- alpha3.east) -- (alpha3.east);
+        \draw[busline] (emb.east) -- (bus_emb |- emb.east) -- (bus_emb |- alpha4.east) -- (alpha4.east);
+
+
+        \node[alphanode] at (alpha0) {$\alpha$};
+        \node[alphanode] at (alpha1) {$\alpha$};
+        \node[alphanode] at (alpha2) {$\alpha$};
+        \node[alphanode] at (alpha3) {$\alpha$};
+        \node[alphanode] at (alpha4) {$\alpha$};
+
+        \node[wbox, anchor=south, yshift=3pt] at (alpha0.north) (w0) {$\bm{w}$};
+        \node[wbox, anchor=south, yshift=3pt] at (alpha1.north) (w1) {$\bm{w}$};
+        \node[wbox, anchor=south, yshift=3pt] at (alpha2.north) (w2) {$\bm{w}$};
+        \node[wbox, anchor=south, yshift=3pt] at (alpha3.north) (w3) {$\bm{w}$};
+
+        \draw[interblock] (w0.south) -- (alpha0.north);
+        \draw[interblock] (w1.south) -- (alpha1.north);
+        \draw[interblock] (w2.south) -- (alpha2.north);
+        \draw[interblock] (w3.south) -- (alpha3.north);
+
+        \coordinate (wleft) at (-24pt, 0);
+        \node[wbox, anchor=west] at (wleft |- alpha4) (w4) {$\bm{w}$};
+        \draw[interblock] (w4.east) -- (alpha4.west);
+
+        \node[
+          rectangle, rounded corners=1.5pt, densely dotted,
+          draw=black!70, line width=0.5pt,
+          inner sep=1pt,
+          fit=(w4)(alpha4),
+        ] (wa4box) {};
+
+        \node[
+          rectangle,
+          rounded corners=1.5pt,
+          densely dashed,
+          draw=black!70,
+          line width=0.6pt,
+          minimum width=46pt,
+          minimum height=68pt,
+          anchor=north east,
+          xshift=-16pt,
+          fill=white,
+        ] at (mainblock.north west) (opbox) {};
+        \begin{pgfonlayer}{deepbackground}
+          \draw[black!70, densely dotted, line width=0.5pt]
+          (opbox.north west) -- (wa4box.north west);
+          \draw[black!70, densely dotted, line width=0.5pt]
+          (opbox.south west) -- (wa4box.south west);
+          \draw[black!70, densely dotted, line width=0.5pt]
+          (opbox.south east) -- (wa4box.south east);
+        \end{pgfonlayer}
+        \draw[black!70, densely dotted, line width=0.5pt]
+        (opbox.north east) -- (wa4box.north east);
+
+        \node[anchor=north, font=\scriptsize, text=black!70, yshift=-8pt] at (opbox.south) (oplabel) {\emph{AttnRes Op} {(\color{brickred}$\alpha$})};
+
+        \node[wbox, anchor=west, xshift=6pt] at (opbox.west) (wop) {$\bm{w}$};
+        \node[font=\fontsize{3.5pt}{3.5pt}\selectfont, text=black, anchor=south, yshift=0.5pt] at (wop.north) {$\mathbf{Q}$};
+        \draw[innerblock] ([xshift=-8pt]opbox.west) -- (wop.west);
+
+        \coordinate (kcol) at ([xshift=9pt]wop.east);
+        \node[rectangle, rounded corners=1pt, minimum size=7pt, draw=black, line width=0.5pt, fill=attnres_box, inner sep=0pt, anchor=south] at (kcol |- opbox.center) (k2) {};
+        \node[rectangle, rounded corners=1pt, minimum size=7pt, draw=black, line width=0.5pt, fill=attnres_box, inner sep=0pt, anchor=south] at (k2.north) (k1) {};
+        \node[rectangle, rounded corners=1pt, minimum size=7pt, draw=black, line width=0.5pt, fill=attnres_box, inner sep=0pt, anchor=north] at (k2.south) (k3) {};
+        \node[rectangle, rounded corners=1pt, minimum size=7pt, draw=black, line width=0.5pt, fill=attnres_box, inner sep=0pt, anchor=north] at (k3.south) (k4) {};
+
+        \node[otimes] at ($(wop.south) + (8pt,-16pt)$) (ot1) {};
+        \draw[mix_path_color, line width=0.3pt] (wop.south) -- (ot1);
+        \draw[mix_path_color, line width=0.3pt] (k4.south) -- (ot1);
+
+
+        \coordinate (vcol) at ([xshift=14pt]kcol);
+        \node[rectangle, rounded corners=1pt, minimum size=7pt, draw=black, line width=0.5pt, fill=attnres_box, inner sep=0pt, anchor=south] at (vcol |- opbox.center) (v2) {};
+        \node[rectangle, rounded corners=1pt, minimum size=7pt, draw=black, line width=0.5pt, fill=attnres_box, inner sep=0pt, anchor=south] at (v2.north) (v1) {};
+        \node[rectangle, rounded corners=1pt, minimum size=7pt, draw=black, line width=0.5pt, fill=attnres_box, inner sep=0pt, anchor=north] at (v2.south) (v3) {};
+        \node[rectangle, rounded corners=1pt, minimum size=7pt, draw=black, line width=0.5pt, fill=attnres_box, inner sep=0pt, anchor=north] at (v3.south) (v4) {};
+
+        \node[font=\fontsize{3.5pt}{3.5pt}\selectfont, text=black!70, anchor=south, yshift=0.5pt] at (k1.north) {$\mathbf{K}$};
+        \node[font=\fontsize{3.5pt}{3.5pt}\selectfont, text=black!70, anchor=south, yshift=0.5pt] at (v1.north) {$\mathbf{V}$};
+
+        \node[otimes] at ($(wop.south) + (13pt,-25pt)$) (ot2) {};
+        \draw[mix_path_color, line width=0.3pt] (ot1) -- (ot2);
+        \draw[mix_path_color, line width=0.3pt] (v4.south) -- (ot2);
+
+        \draw[innerblock] (ot2.south) -- (ot2.south |- oplabel.north);
+
+        \coordinate (vmid) at ($(v2.south east)!0.5!(v3.north east)$);
+        \draw[innerblock] ([xshift=4pt]opbox.east |- vmid) -- (vmid);
+
+        \coordinate (kmid_e) at ($(k2.south east)!0.5!(k3.north east)$);
+        \draw[innerblock] ($(v2.south west)!0.5!(v3.north west)$) -- (kmid_e);
+
+      \end{tikzpicture}%
+    }
+    \captionsetup{margin={74pt, 0pt}}
+    \caption{Block Attention Residuals}
+    \label{fig:teaser-block}
+  \end{subfigure}
+
+  \caption{
+    Overview of Attention Residuals.
+    \textbf{(\subref{fig:teaser-baseline})} Standard Residuals: standard residual connections with uniform additive accumulation.
+    \textbf{(\subref{fig:teaser-full})} Full AttnRes: each layer selectively aggregates all previous layer outputs via learned attention weights.
+    \textbf{(\subref{fig:teaser-block})} Block AttnRes: layers are grouped into blocks, reducing memory from $O(Ld)$ to $O(Nd)$.
+  }
+  \label{fig:teaser}
+\end{figure}

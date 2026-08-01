@@ -1,0 +1,31 @@
+\begin{table}[h]
+  \centering
+  \small
+  \setlength{\tabcolsep}{9pt}
+  \renewcommand{\arraystretch}{1.1}
+  \caption{Memory access cost per token per layer incurred by the residual mechanism under each scheme. The internal I/O of the layer function $f_l$ is excluded. For AttnRes, both Full and Block variants use the two-phase inference schedule described in Appendix~\ref{app:inference}; amortized costs are averaged over $N$ layers within a block. Typical values: $L{=}128$, $N{=}8$, $S{=}L/N{=}16$, $m{=}4$.}
+  \label{tab:memory_access}
+  \newlength{\iocolwidth}\settowidth{\iocolwidth}{$(8m{+}2)d{+}2m^2{+}4m$}%
+  \begin{tabular}{@{}l l l c c w{c}{\iocolwidth} w{c}{\iocolwidth}@{}}
+    \toprule
+                                                           &                                                               & \multirow{2}{*}{Operation} & \multirow{2}{*}{Read}           & \multirow{2}{*}{Write}                   & \multicolumn{2}{c}{Total I/O}                                                \\
+    \cmidrule(l){6-7}
+                                                           &                                                               &                            &                                 &                                          & Symbolic                                           & Typical                 \\
+    \midrule
+    \multicolumn{2}{l}{Standard Residuals}                 & Residual Merge                                                & $2d$                       & $d$                             & $3d$                                     & $3d$                                                                         \\
+    \midrule
+    \multicolumn{2}{l}{\multirow{5}{*}{mHC ($m$ streams)}} & Compute $\bm{\alpha}_{l}$, $\bm{\beta}_{l}$, $\mathbf{A}_{l}$ & $md$                       & $m^2{+}2m$                      & \multirow{5}{*}{$(8m{+}2)d{+}2m^2{+}4m$} & \multirow{5}{*}{$34d$}                                                       \\
+    \multicolumn{2}{l}{}                                   & Apply $\bm{\alpha}_{l}$                                       & $md{+}m$                   & $d$                             &                                          &                                                                              \\
+    \multicolumn{2}{l}{}                                   & Apply $\bm{\beta}_{l}$                                        & $d{+}m$                    & $md$                            &                                          &                                                                              \\
+    \multicolumn{2}{l}{}                                   & Apply $\mathbf{A}_{l}$                                        & $md{+}m^2$                 & $md$                            &                                          &                                                                              \\
+    \multicolumn{2}{l}{}                                   & Residual Merge                                                & $2md$                      & $md$                            &                                          &                                                                              \\
+    \midrule
+    \multirow{4}{*}{AttnRes}                               %& Full (na\"ive)                                                & Attention (amortized)             & $(L{+}1)d$                          & $d$                                      & $(L{+}2)d$                                         & $130d$                  \\
+                                                           & \multirow{2}{*}{Full}                                         & Phase~1 (amortized)        & $(N{-}1)d$                      & $d$                                      & \multirow{2}{*}{$(S{+}N)d$}                        & \multirow{2}{*}{$24d$}  \\
+                                                           &                                                               & Phase~2                    & $(S{-}1)d$                      & $d$                                      &                                                    &                         \\
+    \cmidrule{2-7}
+                                                           & \multirow{2}{*}{Block}                                        & Phase~1 (amortized)        & $\frac{N}{S}d$                  & $d$                                      & \multirow{2}{*}{$\left(\frac{N}{S}{+}5\right)d$}   & \multirow{2}{*}{$5.5d$} \\
+                                                           &                                                               & Phase~2                    & $3d$                            & $d$                                      &                                                    &                         \\
+    \bottomrule
+  \end{tabular}
+\end{table}

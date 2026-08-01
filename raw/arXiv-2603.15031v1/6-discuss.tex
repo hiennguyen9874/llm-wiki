@@ -1,0 +1,89 @@
+\section{Discussions}
+
+\subsection{Sequence-Depth Duality}
+\label{sec:depth-ttt}
+
+Residual connections propagate information over depth via a fixed recurrence $\bm{h}_{l} = \bm{h}_{l-1} + f_{l-1}(\bm{h}_{l-1})$, much as RNNs propagate information over time.
+Test-Time Training (TTT)~\cite{sun-2024-learning} formalizes the sequence side of this analogy (cf.\ Fast Weight Programmers~\cite{schmidhuber1992learning,munkhdalai-2019-metalearned}), casting each recurrent step as gradient descent on a self-supervised loss:
+\begin{equation}
+    \mathbf{W}_t = \mathbf{W}_{t-1} - \eta\,\nabla\ell(\mathbf{W}_{t-1};\, \bm{x}_t),
+\end{equation}
+where a slow network parameterizes $\ell$ and the state $\mathbf{W}$ is updated once per token.
+When $f$ is linear, this reduces to vanilla linear attention $\mathbf{S}_{t} = \mathbf{S}_{t-1} + \bm{k}_t\bm{v}_t^\top$.
+The standard residual exhibits the same additive form along depth, with $\bm{h}_l$ serving as the state and each layer $f_l$ acting as one ``gradient step.''
+
+As noted by~\cite{chen2026postlayernorm}, this duality extends to richer variants (Table~\ref{tab:residual_compare}).
+Data-dependent gates on the sequence side~\cite{sun-2023-retnet,yang-etal-2024-gla} correspond to Highway networks~\cite{srivastava2015highway} on the depth side;
+the delta rule~\cite{schlag-2021-deltanet,yang-2025-gdn,zhang2025kimi} corresponds to DDL~\cite{zhang2026ddl};
+and MRLA~\cite{fang2023cross} mirrors GLA's~\cite{yang-etal-2024-gla} gated linear attention.
+These methods all refine the recurrent update while remaining within the recurrence paradigm.
+AttnRes goes a step further and replaces depth-wise recurrence with direct cross-layer attention, just as Transformers replaced temporal recurrence with self-attention.
+Since the number of layers in current architectures remains well within the practical regime of $\operatorname{softmax}$ attention, we adopt vanilla depth-wise attention. Incorporating more expressive yet memory-efficient (e.g. linear-complexity) alternatives is a natural direction for future work.
+
+\input{table/residual_compare}
+
+\subsection{Residual Connections as Structured Matrices}
+\label{sec:structured-depth}
+
+The residual variants discussed above can all be viewed as weighted aggregations over previous layer outputs.
+We formalize this with a \emph{depth mixing matrix} $\mathbf{M} \in \mathbb{R}^{L \times L}$, where $\mathbf{M}_{i \to l}$ is the weight that layer $l$ assigns to the output of layer $i$.
+The variants differ in how these weights arise (fixed, learned, or input-dependent) and whether $\mathbf{M}$ is constrained to low rank or allowed to be dense.
+The semiseparable rank of $\mathbf{M}$~\cite{mamba2} offers a unified lens for comparing them.
+
+Concretely, the input to layer $l$ is $\bm{h}_l = \sum_{i=0}^{l-1} \mathbf{M}_{i \to l}\, \bm{v}_i$, where $\bm{v}_0 = \bm{h}_1$ (embedding) and $\bm{v}_i = f_i(\bm{h}_i)$ for $i \geq 1$.
+Fig.~\ref{fig:depth-matrices} visualizes $\mathbf{M}$ for representative methods; we derive each below.
+\begin{itemize}[leftmargin=*]
+    \item Standard residual~\cite{he2015resnet}, $\bm{h}_{l} = \bm{h}_{l-1} + f_{l-1}(\bm{h}_{l-1})$. Expanding gives $\bm{h}_l = \sum_{i=0}^{l-1} \bm{v}_i$, so $\mathbf{M}_{i \to l} = 1$ for all $i < l$ and $\mathbf{M}$ is an all-ones lower-triangular matrix:
+          \[
+              \begin{bmatrix}
+                  \bm{h}_1 \\ \bm{h}_2 \\ \vdots \\ \bm{h}_L
+              \end{bmatrix}
+              =
+              \begin{bmatrix}
+                  1      &        &        &   \\
+                  1      & 1      &        &   \\
+                  \vdots & \vdots & \ddots &   \\
+                  1      & 1      & \cdots & 1
+              \end{bmatrix}
+              \begin{bmatrix}
+                  \bm{v}_0 \\ \bm{v}_1 \\ \vdots \\ \bm{v}_{L-1}
+              \end{bmatrix}
+          \]
+    \item Highway~\cite{srivastava2015highway}, $\bm{h}_{l} = (1{-}g_{l})\,\bm{h}_{l-1} + g_{l}\,f_{l-1}(\bm{h}_{l-1})$ (written here with scalar gates for clarity; the element-wise extension is straightforward). Defining the carry product $\gamma_{i \to l}^{\times} \coloneqq \prod_{j=i+1}^{l}(1-g_j)$, the weights are $\mathbf{M}_{0 \to l} = \gamma_{1 \to l}^{\times}$ for the embedding and $\mathbf{M}_{i \to l} = g_{i+1}\,\gamma_{i+1 \to l}^{\times}$ for $i \geq 1$. Since the cumulative products factor through scalar gates, $\mathbf{M}$ is 1-semiseparable~\cite{mamba2}, the same rank as the standard residual but with input-dependent weights. The weights sum to one by construction, making Highway a softmax-free depth-wise instance of stick-breaking attention~\cite{tan2025stickbreaking}.
+    \item (m)HC~\cite{zhu2025hyperconnections,xie2026mhc} maintain $m$ parallel streams $\mathbf{H}_{l} \in \mathbb{R}^{d \times m}$, updated via
+          \[
+              \mathbf{H}_{l} = \mathbf{H}_{l-1} \mathbf{A}_{l} + f_{l-1}(\mathbf{H}_{l-1} \bm{\alpha}_{l-1})\, \bm{\beta}_{l-1}^\top,
+          \]
+          where $\mathbf{A}_{l} \in \mathbb{R}^{m \times m}$ is a learned transition matrix, $\bm{\alpha}_{l-1} \in \mathbb{R}^{m}$ mixes streams into a single input for $f_{l-1}$, and $\bm{\beta}_{l-1} \in \mathbb{R}^{m}$ distributes the output back across streams.
+          Unrolling the recurrence gives the effective weight
+          \begin{equation}
+              \label{eq:hc-unroll}
+              \mathbf{M}_{i \to l} = \bm{\beta}_{i}^\top \, \mathbf{A}_{i+1 \to l}^{\times} \, \bm{\alpha}_{l},
+          \end{equation}
+          where $\mathbf{A}_{i \to j}^{\times} \coloneqq \prod_{k=i+1}^{j} \mathbf{A}_k$.
+          The $m \times m$ transitions render $\mathbf{M}$ $m$-semiseparable~\cite{mamba2}. mHC~\cite{xie2026mhc,yang2026mhclite} further constrains each $\mathbf{A}_l$ to be doubly stochastic, stabilizing the cumulative products across depth.
+    \item Full AttnRes computes $\mathbf{M}_{i \to l} = \brickred{\alpha_{i \to l}}$ via $\phi(\bm{w}_l, \bm{k}_i) = \exp\left(\bm{w}_l^\top \operatorname{RMSNorm}(\bm{k}_i)\right)$ with normalization, where $\bm{k}_i = \bm{v}_i$ are input-dependent layer outputs, yielding a dense, rank-$L$ $\mathbf{M}$.
+    \item Block AttnRes partitions layers into $N$ blocks $\mathcal{B}_1, \ldots, \mathcal{B}_N$. For sources $i$ in a completed earlier block $\mathcal{B}_n$, all share the block-level key/value $\bm{b}_n$, so $\mathbf{M}_{i \to l} = \brickred{\alpha_{n \to l}}$ for every $i \in \mathcal{B}_n$. Within the current block, each layer additionally attends over the evolving partial sum $\bm{b}_n^{i-1}$, introducing one extra distinct source per intra-block position. The effective rank of $\mathbf{M}$ therefore lies between $N$ and $N + S$ (where $S$ is the block size), interpolating between standard residual ($N{=}1$) and Full AttnRes ($N{=}L$).
+\end{itemize}
+
+\input{figures/depth_matrices}
+
+\paragraph{Practicality.}
+The structured-matrix perspective serves two purposes.
+First, it enables analytical insights that are not apparent from the recurrence form alone.
+The input-dependent $\mathbf{M}$ of AttnRes, for instance, reveals depth-wise attention sinks (\S\ref{sec:analysis}), where certain layers consistently attract high weight regardless of input, mirroring the same phenomenon in sequence-wise attention~\cite{xiao2023efficient}.
+Second, it informs new designs by exposing which properties of the kernel $\phi$ matter.
+For example, when $\phi$ decomposes as $\phi(\bm{q}, \bm{k}) = \varphi(\bm{q})^\top \varphi(\bm{k})$ for some feature map $\varphi$~\cite{katharopoulos-2020-transformers}, depth-wise attention collapses into a recurrence---precisely the structure underlying the MRLA--GLA and DDL--DeltaNet correspondences noted above.
+
+\paragraph{Prior Residuals as Depth-Wise Linear Attention}
+
+The structured-matrix perspective further relates to the sequence-depth duality by showing that existing residual variants are, in effect, instances of \emph{linear} attention over the depth axis.
+For example, the unrolled (m)HC weight $\mathbf{M}_{i \to l} = \boldsymbol{\beta}_i^\top \mathbf{A}_{i+1 \to l}^\times \boldsymbol{\alpha}_l$ (Eq.~\ref{eq:hc-unroll}) admits a natural attention interpretation in which $\boldsymbol{\alpha}_l$ plays the role of a query issued by layer $l$, $\boldsymbol{\beta}_i$ serves as a key summarizing the contribution of layer $i$, and the cumulative transition $\mathbf{A}_{i+1 \to l}^\times$ acts as a depth-relative positional operator~\cite{zhang2025kimi} governing the query--key interaction across intervening layers.
+Notably, the $m$ parallel streams correspond to state expansion~\cite{qin-2024-hgrn2,mak2025residualmatrix} along the depth axis, expanding the recurrent state from $d$ to $d {\times}\, m$ and thereby increasing the semiseparable rank of $\mathbf{M}$.
+\cite{xie2026mhcidentity} show that replacing $\mathbf{A}_{i+1 \to l}^{\times}$ with the identity matrix still yields competitive performance, highlighting the role of state expansion.
+Through this lens, methods like (m)HC thus act as depth-wise \emph{linear} attention with matrix-valued states, while AttnRes acts as depth-wise $\operatorname{softmax}$ attention.
+
+
+
+
+

@@ -1,0 +1,10 @@
+\begin{abstract}
+    Residual connections~\citep{he2015resnet} with PreNorm~\citep{xiong2020layer} are standard in modern LLMs, yet they accumulate all layer outputs with fixed unit weights. This uniform aggregation causes uncontrolled hidden-state growth with depth, progressively diluting each layer's contribution~\citep{li2026siamesenorm}.
+    We propose \emph{Attention Residuals (AttnRes)}, which replaces this fixed accumulation with $\operatorname{softmax}$ attention over preceding layer outputs, allowing each layer to selectively aggregate earlier representations with learned, input-dependent weights.
+    To address the memory and communication overhead of attending over all preceding layer outputs for large-scale model training, we introduce \emph{Block AttnRes}, which partitions layers into blocks and attends over block-level representations, reducing the memory footprint while preserving most of the gains of full AttnRes. Combined with cache-based pipeline communication and a two-phase computation strategy, Block AttnRes becomes a practical drop-in replacement for standard residual connections with minimal overhead.
+
+    Scaling law experiments confirm that the improvement is consistent across model sizes, and ablations validate the benefit of content-dependent depth-wise selection.
+    We further integrate AttnRes into the Kimi Linear architecture~\citep{zhang2025kimi} (48B total / 3B activated parameters) and pre-train on 1.4T tokens, where AttnRes mitigates PreNorm dilution, yielding more uniform output magnitudes and gradient distribution across depth, and improves downstream performance across all evaluated tasks.
+\end{abstract}
+\vspace{-20pt}
+\input{figures/model}

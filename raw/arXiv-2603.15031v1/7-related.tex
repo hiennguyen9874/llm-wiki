@@ -1,0 +1,29 @@
+\section{Related Work}
+
+\paragraph{Normalization, Scaling, and Depth Stability.}
+The standard residual update $\bm{h}_{l+1} = \bm{h}_l + f_l(\bm{h}_l)$~\citep{he2015resnet} presents a fundamental tension between \emph{normalization placement} and \emph{gradient propagation}.
+PostNorm~\citep{vaswani-2017-attention} maintains bounded magnitudes but distorts gradients, as repeated normalization on the residual path compounds into gradient vanishing at depth~\citep{xiong2020layer}.
+PreNorm~\citep{nguyen-salazar-2019-transformers,xiong2020layer} restores a clean identity path yet introduces unbounded magnitude growth: since $\|\bm{h}_l\|$ grows as $O(L)$, each layer's relative contribution shrinks, compelling deeper layers to produce ever-larger outputs and limiting effective depth~\citep{li2026siamesenorm}.
+Subsequent work reconciles both desiderata via scaled residual paths~\citep{wang2022deepnorm}, hybrid normalization~\citep{zhuo2025hybridnorm}, amplified skip connections~\citep{chen2026postlayernorm}, or learned element-wise gates~\citep{srivastava2015highway} (see Table~\ref{tab:residual_compare}).
+AttnRes sidesteps this tension by replacing the additive recurrence with selective aggregation over individual earlier-layer outputs, avoiding both the cumulative magnitude growth of PreNorm and the repeated scale contraction of PostNorm.
+
+\paragraph{Multi-State Recurrence.}
+All single-state methods above condition layer $l$ only on $\bm{h}_{l-1}$, from which individual earlier-layer contributions cannot be selectively retrieved.
+Several methods address this by widening the recurrence to multiple parallel streams:
+Hyper-Connections~\citep{zhu2025hyperconnections} and its stabilized variant mHC~\citep{xie2026mhc} maintain $m$ streams with learned mixing matrices;
+DDL~\citep{zhang2026ddl} maintains a matrix state updated via a delta-rule erase-and-write mechanism;
+SiameseNorm~\citep{li2026siamesenorm} maintains two parameter-shared streams---one PreNorm and one PostNorm---to preserve identity gradients and bounded representations.
+While these methods alleviate information compression, they still condition on the immediate predecessor's state; AttnRes is orthogonal, providing selective access to individual earlier-layer outputs while remaining compatible with any normalization or gating scheme.
+We discuss the formal connection to Hyper-Connections in \S~\ref{sec:structured-depth}.
+
+\paragraph{Cross-Layer Connectivity.}
+A separate line of work bypasses the single-state bottleneck by giving each layer direct access to individual earlier-layer outputs.
+The simplest approach uses static weights: DenseNet~\citep{huang2018densenet} concatenates all preceding feature maps; ELMo~\citep{peters-etal-2018-deep} computes a $\operatorname{softmax}$-weighted sum of layer representations with learned scalar weights; DenseFormer~\citep{pagliardini2024denseformer} and ANCRe~\citep{zhang2026ancre} assign learned per-layer scalar coefficients fixed after training.
+For input-dependent aggregation, MUDDFormer~\citep{xiao2025muddformer} generates position-dependent weights via a small MLP across four decoupled streams;
+MRLA~\citep{fang2023cross} applies element-wise sigmoid gating over all previous layers, though its separable query--key product is closer to linear attention than $\operatorname{softmax}$-based retrieval.
+Other methods trade full cross-layer access for more targeted designs:
+Value Residual Learning~\citep{zhou-etal-2025-value} accesses only a single earlier layer;
+LAuReL~\citep{menghani2025laurel} augments the residual with low-rank projections over the previous $k$ activations;
+Dreamer~\citep{knupp2026depthrecurrent} combines sequence attention with depth attention and sparse experts.
+AttnRes combines $\operatorname{softmax}$-normalized, input-dependent weights with selective access to all preceding layers through a single $d$-dimensional pseudo-query per layer, and introduces a block structure reducing cost from $O(L^2)$ to $O(LN)$.
+Cache-based pipeline communication and a two-phase computation strategy (\S~\ref{sec:infra}) make Block AttnRes practical at scale with negligible overhead.

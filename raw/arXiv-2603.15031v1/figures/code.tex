@@ -1,0 +1,53 @@
+\renewcommand{\theFancyVerbLine}{\ttfamily\textcolor[rgb]{0.5,0.5,0.5}{\scriptsize\arabic{FancyVerbLine}}}
+
+\begin{figure}[t!]
+    \centering
+    \let\textit\textup
+    \begin{minted}[
+    fontsize=\scriptsize,
+    linenos,
+    numbersep=6pt,
+    xleftmargin=16pt,
+    ]{python}
+def block_attn_res(blocks: list[Tensor], partial_block: Tensor, proj: Linear, norm: RMSNorm) -> Tensor:
+    """
+    Inter-block attention: attend over block reps + partial sum.
+    blocks:
+        N tensors of shape [B, T, D]: completed block representations for each previous block
+    partial_block:
+        [B, T, D]:    intra-block partial sum (b_n^i)
+    """
+    V = torch.stack(blocks + [partial_block])  # [N+1, B, T, D]
+    K = norm(V)
+    logits = torch.einsum('d, n b t d -> n b t', proj.weight.squeeze(), K)
+    h = torch.einsum('n b t, n b t d -> b t d', logits.softmax(0), V)
+    return h
+
+def forward(self, blocks: list[Tensor], hidden_states: Tensor) -> tuple[list[Tensor], Tensor]:
+    partial_block = hidden_states
+    # apply block attnres before attn
+    # blocks already include token embedding
+    h = block_attn_res(blocks, partial_block, self.attn_res_proj, self.attn_res_norm)
+
+    # if reaches block boundary, start new block
+    # block_size counts ATTN + MLP; each transformer layer has 2
+    if self.layer_number % (self.block_size // 2) == 0:
+        blocks.append(partial_block)
+        partial_block = None
+
+    # self-attention layer
+    attn_out = self.attn(self.attn_norm(h))
+    partial_block = partial_block + attn_out if partial_block is not None else attn_out
+
+    # apply block attnres before MLP
+    h = block_attn_res(blocks, partial_block, self.mlp_res_proj, self.mlp_res_norm)
+
+    # MLP layer
+    mlp_out = self.mlp(self.mlp_norm(h))
+    partial_block = partial_block + mlp_out
+
+    return blocks, partial_block
+\end{minted}
+    \caption{PyTorch-style pseudo code for Block Attention Residuals. \texttt{block\_attn\_res} computes $\operatorname{softmax}$ attention over block representations using a learned pseudo-query $\bm{w}_l$; \texttt{forward} is a single-layer pass that maintains \texttt{partial\_block} ($\bm{b}_n^i$, intra-block residual) and \texttt{blocks} ($[\bm{b}_0, \ldots, \bm{b}_{n-1}]$, inter-block history).}
+    \label{listing:attnres}
+\end{figure}

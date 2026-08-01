@@ -1,0 +1,55 @@
+\section{Optimized Inference I/O for Full Attention Residuals}
+\label{app:inference}
+
+A na\"ive implementation of Full AttnRes scans all preceding layer outputs at every layer, so memory traffic scales linearly with depth. As noted in \S\ref{sec:infra-inference}, however, the pseudo-query $\bm{w}_l$ is a learned parameter independent of both the input and the hidden state. We can therefore batch inter-block accesses across layers in a two-phase schedule, bringing total I/O well below the na\"ive bound.
+
+Note that the block partition introduced below is purely an inference scheduling device. Unlike Block AttnRes, it leaves the model architecture unchanged and does not replace per-layer sources with block summaries; it simply makes the amortization argument concrete.
+
+\paragraph{Setup}
+
+Let the model have $L$ layers and hidden dimension $d$, partitioned into $N$ contiguous blocks of size $S = L/N$. Inference proceeds one block at a time: Phase~1 jointly computes inter-block attention for all $S$ layers in the block against all preceding blocks, and Phase~2 walks through intra-block dependencies sequentially.
+
+\subsection*{Phase 1: Batched Inter-block Attention}
+
+Consider block $n$ with its $S$ layers. The queries $\{\bm{w}_l\}_{l \in \mathcal{B}_n}$ are all known before execution begins, so the $(n{-}1)S$ preceding key--value pairs need only be read once from HBM and reused across all $S$ queries. The read cost for block $n$ is therefore
+\begin{equation}
+    \mathrm{Read}_{\text{inter}}^{(n)} = 2(n-1)Sd,
+\end{equation}
+where the factor of $2$ accounts for both keys and values. Summing over all $N$ blocks and using $SN=L$:
+\begin{equation}
+    \mathrm{Read}_{\text{inter}} = \sum_{n=1}^{N} 2(n-1)Sd
+    = 2Sd \cdot \frac{N(N-1)}{2}
+    = dL(N-1).
+\end{equation}
+
+Phase~1 also writes one $d$-dimensional output per layer, giving $\mathrm{Write}_{\text{inter}}^{(n)} = Sd$ per block and
+\begin{equation}
+    \mathrm{Write}_{\text{inter}} = Ld
+\end{equation}
+in total.
+
+\subsection*{Phase 2: Sequential Intra-block Attention}
+
+Phase~1 covers all sources before the current block. Within the block, however, each layer depends on those before it, so these must be handled in order. Layer $t$ ($1 \le t \le S$) reads $t{-}1$ intra-block key--value pairs at a cost of $2(t{-}1)d$. Summing over one block:
+\begin{equation}
+    \mathrm{Read}_{\text{intra}}^{(n)} = \sum_{t=1}^{S} 2(t-1)d = S(S-1)d.
+\end{equation}
+Phase~2 also writes one output per layer, so $\mathrm{Write}_{\text{intra}}^{(n)} = Sd$.
+
+\subsection*{Total Amortized I/O per Layer}
+
+Summing both phases over all $N$ blocks:
+\begin{equation}
+    \mathrm{Read}_{\text{total}} = dL(N-1) + N \cdot S(S-1)d, \qquad
+    \mathrm{Write}_{\text{total}} = 2Ld.
+\end{equation}
+Dividing by $L$ and using $SN=L$:
+\begin{equation}
+    \text{Read per layer} = (N-1)d + (S-1)d = (S + N - 2)d, \qquad
+    \text{Write per layer} = 2d,
+\end{equation}
+\begin{equation}
+    \boxed{\;\text{Total I/O per layer} = (S + N)\,d.\;}
+\end{equation}
+
+Batching inter-block reads thus brings per-layer I/O from $\mathcal{O}(L)$ down to $\mathcal{O}(S{+}N)$. The schedule follows the same two-phase split as Block AttnRes: inter-block attention accounts for the bulk of the traffic, while sequential computation stays local within each block.
