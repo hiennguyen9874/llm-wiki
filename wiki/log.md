@@ -5,6 +5,7 @@
 - **Ingest**: Compiled [Speculative decoding overview (Vietnamese summary)](../raw/SpeculativeDecoding.md); created [Speculative decoding exact sampling](speculative-decoding-exact-sampling.md) and [Speculative decoding performance trade-offs](speculative-decoding-performance-trade-offs.md).
 
 ## 2026-08-01
+- **Ingest**: Compiled [PyTorch OpenAI GPT model](../raw/gpt-source.py); created [OpenAI GPT PyTorch reference implementation](openai-gpt-pytorch-reference-implementation.md) and updated [GPT generative pre-training and task adaptation](gpt-generative-pre-training-and-task-adaptation.md) with implementation evidence.
 - **Ingest**: Compiled Kimi K3’s [multimodal](../raw/kimi-k3-sources/modeling_kimi_k3.py) and [text-backbone](../raw/kimi-k3-sources/modeling_kimi_linear.py) reference modeling code; updated five architecture, KDA, Attention Residuals, latent-MoE, and native-vision concepts, including an unresolved MoonViT attention-structure contradiction.
 - **Update**: Extended [LLM architecture learning roadmap](llm-architecture-learning-roadmap.md) with Mamba-2/SSD and KDA/MLA prerequisites; corrected its concept metadata and index description.
 - **Query**: Filed a build-first [LLM architecture learning roadmap](llm-architecture-learning-roadmap.md), covering dense causal Transformers through MoE and hybrid long-context architectures.

@@ -5,11 +5,14 @@ description: GPT pre-trains a decoder-only Transformer language model on contigu
 tags: [gpt, generative-pre-training, causal-language-modeling, fine-tuning, transfer-learning]
 status: stable
 created: 2026-07-31
-generated: { by: llm-wiki-agent/1, at: 2026-07-31T15:33:02Z }
+generated: { by: llm-wiki-agent/1, at: 2026-08-01T05:33:53Z }
 sources:
   - id: radford-generative-pre-training-2018
     resource: ../raw/gpt.pdf
     title: Improving Language Understanding by Generative Pre-Training
+  - id: huggingface-openai-gpt-pytorch
+    resource: ../raw/gpt-source.py
+    title: PyTorch OpenAI GPT model
 ---
 
 # GPT generative pre-training and task adaptation
@@ -40,10 +43,17 @@ The source reports contemporary state-of-the-art results on 9 of 12 evaluated da
 
 It also tested heuristic zero-shot scoring by average token log-probability for linguistic acceptability, sentiment, multiple-choice reading comprehension, and pronoun resolution. The observed performance increased during language-model pre-training, but these hand-designed task conversions are not a general zero-shot evaluation method.[^radford-generative-pre-training-2018]
 
+## Reference implementation
+
+The supplied [OpenAI GPT PyTorch reference implementation](openai-gpt-pytorch-reference-implementation.md) instantiates a configurable decoder stack with learned token and position embeddings, causal attention, four-times-width MLPs, and post-residual layer normalization. It is library-code evidence for the architecture rather than a replacement for the paper's training or evaluation evidence.[^huggingface-openai-gpt-pytorch]
+
 ## Relationships
 
 - **Uses:** [Transformer sequence transduction architecture](transformer-sequence-transduction-architecture.md)'s masked decoder self-attention and position-wise feed-forward computation, but not its encoder or encoder-decoder attention.
+- **Implemented by:** [OpenAI GPT PyTorch reference implementation](openai-gpt-pytorch-reference-implementation.md).
 - **Contrasts with:** [BERT bidirectional transfer learning](bert-bidirectional-transfer-learning.md), whose encoder represents each token with both left and right context rather than GPT's causal context.
 - **Extended by:** [GPT-2 WebText pre-training and architecture](gpt-2-webtext-pre-training-and-architecture.md), which scales the decoder-only language-model approach and modifies its tokenization, context length, normalization, and initialization.
 
 [^radford-generative-pre-training-2018]: Alec Radford, Karthik Narasimhan, Tim Salimans, and Ilya Sutskever, “Improving Language Understanding by Generative Pre-Training” (2018), bundled [PDF](../raw/gpt.pdf), especially Sections 3–5 and Tables 2–5.
+
+[^huggingface-openai-gpt-pytorch]: Hugging Face `modeling_openai.py`, “PyTorch OpenAI GPT model,” bundled [source](../raw/gpt-source.py). The supplied file has no revision or release-version metadata.
