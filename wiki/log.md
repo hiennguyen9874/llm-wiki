@@ -1,6 +1,7 @@
 # Wiki Update Log
 
 ## 2026-08-12
+- **Ingest**: Compiled [DeepSeek-V4: Towards Highly Efficient Million-Token Context Intelligence](../raw/arXiv-2606.19348v1/main.tex); created [five concepts](deepseek-v4-hybrid-architecture-and-pretraining.md) covering V4 architecture, compressed attention, mHC, systems, and post-training/evaluation, and updated Muon, KV-cache, MoE, and GRPO concepts with primary evidence.
 - **Ingest**: Compiled [Speculative decoding overview (Vietnamese summary)](../raw/SpeculativeDecoding.md); created [Speculative decoding exact sampling](speculative-decoding-exact-sampling.md) and [Speculative decoding performance trade-offs](speculative-decoding-performance-trade-offs.md).
 
 ## 2026-08-01

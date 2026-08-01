@@ -5,7 +5,7 @@ description: Practical MoE training requires bounded per-expert token capacity, 
 tags: [mixture-of-experts, sparse-models, distributed-training, load-balancing]
 status: draft
 created: 2026-07-31
-generated: { by: llm-wiki-agent/1, at: 2026-08-01T02:38:26Z }
+generated: { by: llm-wiki-agent/1, at: 2026-08-12T00:00:00Z }
 sources:
   - id: moe-overview-2026
     resource: ../raw/MixtureofExperts.md
@@ -25,6 +25,9 @@ sources:
   - id: deepseek-v3-2024
     resource: ../raw/arXiv-2412.19437v2/main.tex
     title: "DeepSeek-V3 Technical Report"
+  - id: deepseek-v4-2026
+    resource: ../raw/arXiv-2606.19348v1/main.tex
+    title: "DeepSeek-V4: Towards Highly Efficient Million-Token Context Intelligence"
 ---
 
 # Mixture-of-Experts training and systems trade-offs
@@ -61,6 +64,10 @@ DeepSeek-V3 supplies primary evidence for a different balance control: adaptive 
 
 Kimi K3 provides a primary-source case with 896 routed experts and top-16 selection. Its Stable LatentMoE reduces routed width, inserts normalization before returning to model width, bounds both activation branches, and updates routing biases from target-load quantiles. Its MoonEP runtime separately replicates experts dynamically so each expert-parallel rank receives equal aggregate token work and static computation shapes. Router balance and rank balance are complementary: neither alone removes weight memory, dispatch traffic, or within-rank expert skew.[^kimi-k3-2026]
 
+## V4 routing and wave-scheduled execution
+
+DeepSeek-V4 retains auxiliary-loss-free batch routing biases but adds a slight sequence-wise balance loss, uses hash routing in its first three MoE layers, and removes V3’s routing-target-node constraint. Its MegaMoE kernel partitions experts into waves so dispatch, compute, and combine can overlap; the report’s kernel-level speedups against non-fused baselines are not end-to-end MoE or model-serving measurements.[^deepseek-v4-2026]
+
 ## Operational limits
 
 - All expert weights, checkpoints, and model-loading costs remain proportional to total parameters.
@@ -78,6 +85,7 @@ Kimi K3 provides a primary-source case with 896 routed experts and top-16 select
 - **Specialized by:** [Stable LatentMoE and Quantile Balancing](stable-latentmoe-and-quantile-balancing.md), with primary evidence for compact experts and quantile routing.
 - **Operationalized by:** [Kimi K3 lifecycle infrastructure](kimi-k3-lifecycle-infrastructure.md), including dynamic redundant experts and static rank-level shapes.
 - **Related optimizer evidence:** [Muon LLM training scaling and operational trade-offs](muon-llm-training-scaling-and-operational-trade-offs.md) describes the supplied Moonlight result and the distributed cost of full-matrix orthogonalization.
+- **Specialized by:** [DeepSeek-V4 training and serving infrastructure](deepseek-v4-training-and-serving-infrastructure.md) through wave-scheduled fused expert parallelism.[^deepseek-v4-2026]
 
 ## Evidence limits
 
@@ -94,3 +102,5 @@ This page compiles a secondary Vietnamese overview that cites the Switch Transfo
 [^deepseek-v2-2024]: DeepSeek-AI, “DeepSeek-V2: A Strong, Economical, and Efficient Mixture-of-Experts Language Model,” arXiv:2405.04434v5, [source](../raw/arXiv-2405.04434v5/main.tex), Sections 2.2 and 3.1.
 
 [^deepseek-v3-2024]: DeepSeek-AI, “DeepSeek-V3 Technical Report,” arXiv:2412.19437v2, [source](../raw/arXiv-2412.19437v2/main.tex), Sections 2.1 and 5.4.
+
+[^deepseek-v4-2026]: DeepSeek-AI, “DeepSeek-V4: Towards Highly Efficient Million-Token Context Intelligence,” arXiv:2606.19348v1, [source](../raw/arXiv-2606.19348v1/main.tex), Sections 2.1, 4.1, and 5.2.

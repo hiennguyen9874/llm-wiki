@@ -5,7 +5,7 @@ description: KV-cache compression reduces decode-state memory through token rete
 tags: [kv-cache, compression, quantization, inference, decoding, llm-serving]
 status: draft
 created: 2026-08-01
-generated: { by: llm-wiki-agent/1, at: 2026-08-01T02:08:42Z }
+generated: { by: llm-wiki-agent/1, at: 2026-08-12T00:00:00Z }
 sources:
   - id: kv-cache-compression-summary
     resource: ../raw/KVCacheCompressionOptimization.md
@@ -13,6 +13,9 @@ sources:
   - id: deepseek-v2-2024
     resource: ../raw/arXiv-2405.04434v5/main.tex
     title: "DeepSeek-V2: A Strong, Economical, and Efficient Mixture-of-Experts Language Model"
+  - id: deepseek-v4-2026
+    resource: ../raw/arXiv-2606.19348v1/main.tex
+    title: "DeepSeek-V4: Towards Highly Efficient Million-Token Context Intelligence"
 ---
 
 # KV-cache compression and trade-offs
@@ -45,6 +48,10 @@ Merging similar token KV pairs, low-rank approximations, and sparse coding inste
 
 Multi-head Latent Attention is an architectural low-rank alternative: it caches a joint KV latent and a small decoupled rotary key rather than independently materialized K/V heads. In DeepSeek-V2’s controlled ablations, this reduced cache elements substantially relative to MHA while retaining token-addressable softmax attention; it is still model- and dimension-specific, and cache state grows with token count.[^deepseek-v2-2024]
 
+## Compressed attention state in DeepSeek-V4
+
+DeepSeek-V4 supplies primary evidence for an architectural aggregation variant: CSA and HCA replace groups of token KV entries with learned compressed entries, but retain a sliding-window cache and uncompressed tail state until a compression block completes. Its serving layout separates this fixed-size per-request state from compressed cache blocks, and can store completed compressed-prefix entries on disk; restoring a prefix still requires handling the incomplete tail and optionally reconstructing sliding-window state. This is a V4-specific lossy attention design, not ordinary post-hoc cache quantization.[^deepseek-v4-2026]
+
 ## Deployment boundary
 
 A smaller cache does not by itself make decoding faster. Quantization, sparse selection, irregular gathers, metadata access, decompression, and CPU–GPU migration can lower kernel efficiency or add latency. Evaluate memory reduction alongside prefill latency, time to first token, time per output token, throughput/goodput under a latency objective, and long-context task quality—not only the nominal compression ratio.[^kv-cache-compression-summary]
@@ -57,6 +64,7 @@ Compression is complementary to architectural and serving-layout choices. Multi-
 - **Complements:** [PagedAttention KV-cache serving](pagedattention-kv-cache-serving.md), which improves cache allocation, prefix reuse, and batching rather than reducing the per-token KV representation.[^kv-cache-compression-summary]
 - **Implemented architecturally by:** [Multi-head Latent Attention](multi-head-latent-attention.md), which stores a jointly compressed KV latent rather than sharing or evicting conventional K/V heads.[^deepseek-v2-2024]
 - **Addresses:** the decode-time KV-read bottleneck identified in [FlashAttention implementation evolution](flashattention-implementation-evolution.md).[^kv-cache-compression-summary]
+- **Specialized by:** [Compressed sparse and heavily compressed attention](compressed-sparse-and-heavily-compressed-attention.md), which makes learned aggregation part of V4 attention layers.[^deepseek-v4-2026]
 - **Contrasts with:** [Linear attention as fixed-state memory](linear-attention-as-fixed-state-memory.md), which replaces token-addressable softmax KV storage with a fixed-size state instead of compressing it.[^kv-cache-compression-summary]
 
 ## Evidence limits
@@ -66,3 +74,5 @@ This concept is compiled from a Vietnamese secondary summary that links two KV-c
 [^kv-cache-compression-summary]: “KV Cache Compression & Optimization,” [raw source](../raw/KVCacheCompressionOptimization.md), Sections 1–14. The source frames its synthesis around Liu et al., “KV Cache Compression for Inference Efficiency in LLMs: A Review” (2025), and “A Survey on Large Language Model Acceleration based on KV Cache Management” (2024/2025); those linked sources have not been independently inspected here.
 
 [^deepseek-v2-2024]: DeepSeek-AI, “DeepSeek-V2: A Strong, Economical, and Efficient Mixture-of-Experts Language Model,” arXiv:2405.04434v5, [source](../raw/arXiv-2405.04434v5/main.tex), Sections 2.1 and Appendix D.
+
+[^deepseek-v4-2026]: DeepSeek-AI, “DeepSeek-V4: Towards Highly Efficient Million-Token Context Intelligence,” arXiv:2606.19348v1, [source](../raw/arXiv-2606.19348v1/main.tex), Sections 2.3 and 4.5–4.6.
