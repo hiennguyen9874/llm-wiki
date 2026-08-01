@@ -5,8 +5,11 @@ description: Delta-rule memory corrects selected key-value associations, while l
 tags: [associative-memory, deltanet, gating, linear-attention]
 status: stable
 created: 2026-07-31
-generated: { by: llm-wiki-agent/1, at: 2026-08-01T02:00:00Z }
+generated: { by: llm-wiki-agent/1, at: 2026-08-01T02:00:29Z }
 sources:
+  - id: fast-weight-programmers-2021
+    resource: ../raw/arXiv-2102.11174v3/main.tex
+    title: "Linear Transformers Are Secretly Fast Weight Programmers"
   - id: gpt2-kimi3-2026
     resource: ../raw/2026-07-27-from-gpt2-to-kimi-k3.md
     title: "22580: From GPT2 to Kimi3, Explained"
@@ -20,9 +23,11 @@ sources:
 
 # Delta-rule and gated associative memory
 
-The delta rule turns a purely additive associative state into a memory that corrects what a key currently retrieves. Learned decay complements this targeted replacement with broader eviction; Kimi Delta Attention (KDA) makes that decay channel-wise, giving a fixed-capacity memory distinct write, correction, and per-feature retention controls.[^kimi-linear-2025]
+The delta rule turns a purely additive associative state into a memory that corrects what a key currently retrieves. Learned decay complements this targeted replacement with broader eviction; Kimi Delta Attention (KDA) makes that decay channel-wise, giving a fixed-capacity memory distinct write, correction, and per-feature retention controls.[^fast-weight-programmers-2021][^kimi-linear-2025]
 
 ## Delta update
+
+For a mapped key $\phi(k_t)$, the 2021 fast-weight formulation first reads $\bar v_t=W_{t-1}\phi(k_t)$, then applies $W_t=W_{t-1}+\beta_t(v_t-\bar v_t)\otimes\phi(k_t)$, where the model produces $\beta_t\in[0,1]$. With orthogonal keys, this rewrites the addressed association while leaving unrelated ones unchanged, unlike a global decay gate. The paper also normalizes mapped keys and queries by their component sums to balance the write and removal terms; its alternative accumulating attention normalization can grow with sequence length and did not provide that balance.[^fast-weight-programmers-2021]
 
 DeltaNet performs online gradient descent on the reconstruction loss $\tfrac12\|S^\top k_t-v_t\|^2$. With learned step size $\beta_t$, its state update is:
 
@@ -64,7 +69,9 @@ KDA compresses products of rank-one transitions within each chunk using a WY rep
 
 ## Evidence limits
 
-The KDA recurrence, derivation, pseudocode, and original kernel measurements are documented in the primary Kimi Linear report; the Kimi K3 report independently specifies its modified decay and output gate. The derivations support recurrent–chunkwise equivalence, while empirical expressivity and speed remain dependent on model, kernel, precision, and hardware.
+The original learned-step delta update and its associative-memory comparison are documented in the 2021 primary paper; the KDA recurrence, derivation, pseudocode, and kernel measurements are documented in the Kimi Linear report, while Kimi K3 independently specifies its modified decay and output gate. The derivations support recurrent–chunkwise equivalence, while empirical expressivity and speed remain dependent on model, kernel, precision, and hardware.
+
+[^fast-weight-programmers-2021]: Imanol Schlag, Kazuki Irie, and Jürgen Schmidhuber, “Linear Transformers Are Secretly Fast Weight Programmers,” ICML 2021, [source](../raw/arXiv-2102.11174v3/main.tex), Sections 4.2 and Appendix A–B.
 
 [^gpt2-kimi3-2026]: ali (@waterloo_intern), “22580: From GPT2 to Kimi3, Explained,” 2026-07-27, [raw source](../raw/2026-07-27-from-gpt2-to-kimi-k3.md).
 

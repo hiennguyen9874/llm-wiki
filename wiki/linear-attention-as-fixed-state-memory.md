@@ -5,8 +5,11 @@ description: Linear attention trades token-addressable KV storage for a fixed-si
 tags: [attention, associative-memory, linear-attention, inference]
 status: stable
 created: 2026-07-31
-generated: { by: llm-wiki-agent/1, at: 2026-08-01T02:00:00Z }
+generated: { by: llm-wiki-agent/1, at: 2026-08-01T02:00:29Z }
 sources:
+  - id: fast-weight-programmers-2021
+    resource: ../raw/arXiv-2102.11174v3/main.tex
+    title: "Linear Transformers Are Secretly Fast Weight Programmers"
   - id: gpt2-kimi3-2026
     resource: ../raw/2026-07-27-from-gpt2-to-kimi-k3.md
     title: "22580: From GPT2 to Kimi3, Explained"
@@ -20,19 +23,19 @@ sources:
 
 # Linear attention as fixed-state memory
 
-Linear attention replaces a sequence-growing, token-addressable KV cache with a fixed-size associative state. This bounds recurrent decode state, but several key-value associations share the same matrix and can interfere once its effective capacity is exceeded.[^gpt2-kimi3-2026][^kimi-linear-2025]
+Linear attention replaces a sequence-growing, token-addressable KV cache with a fixed-size associative state. This bounds recurrent decode state, but several key-value associations share the same matrix and can interfere once its effective capacity is exceeded.[^fast-weight-programmers-2021][^gpt2-kimi3-2026][^kimi-linear-2025]
 
 ## Mechanism
 
 Softmax attention forms query-key interactions before applying its nonlinearity, so its usual formulation cannot simply reassociate the products. Linear attention instead transforms queries and keys separately with a feature map, allowing an update of the form $S_t = S_{t-1} + \phi(k_t)^T v_t$ and a read from $\phi(q_t)S_t$, with an additional normalization state when required.[^gpt2-kimi3-2026]
 
-The resulting state has dimensions determined by head width rather than sequence length. By contrast, a conventional KV cache retains keys and values for each prior token and therefore grows linearly with context length. The Kimi Linear report instantiates this with a $d_k\times d_v$ state per KDA head and switches from chunkwise prefill to recurrent generation.[^gpt2-kimi3-2026][^kimi-linear-2025]
+The resulting state has dimensions determined by head width rather than sequence length. The 2021 paper formalizes this as a fast-weight matrix updated by an outer product of value and mapped key, plus a feature accumulator for normalized attention; a query reads the matrix with its mapped feature vector. By contrast, a conventional KV cache retains keys and values for each prior token and therefore grows linearly with context length. The Kimi Linear report instantiates this with a $d_k\times d_v$ state per KDA head and switches from chunkwise prefill to recurrent generation.[^fast-weight-programmers-2021][^gpt2-kimi3-2026][^kimi-linear-2025]
 
 ## Trade-off
 
 - **Bounded recurrent state:** decode memory does not grow with token count.
 - **Loss of isolated slots:** earlier associations are superposed rather than individually retained.
-- **Capacity interference:** purely additive updates eventually combine conflicting associations without an eviction policy.
+- **Capacity interference:** purely additive updates eventually combine conflicting associations without an eviction policy. For interference-free exact retrieval in the paper's associative-memory analysis, mapped keys must be orthogonal, so there can be no more than $d_{\mathrm{dot}}$ such associations; this is a representational limit, not a universal measured failure threshold.[^fast-weight-programmers-2021]
 - **Kernel approximation:** feature-map attention is less expressive than exact softmax attention; practical quality depends on the architecture and workload.[^gpt2-kimi3-2026]
 
 Training, prefill, and decode complexity should be distinguished. Avoid treating every implementation of softmax attention as performing quadratic work at every decode step: KV caching and fused attention kernels change the practical cost, while the cache still grows with sequence length.[^gpt2-kimi3-2026]
@@ -45,7 +48,9 @@ Training, prefill, and decode complexity should be distinguished. Avoid treating
 
 ## Evidence limits
 
-The fixed-state mechanism and its KDA realization are supported by the primary Kimi Linear and Kimi K3 reports; the broader memory framing also draws on the secondary explainer. Fixed state guarantees bounded state dimensions, not lossless memory, constant end-to-end latency, or quality parity with softmax attention. Kimi K3 still retains sequence-growing MLA cache, so end-to-end outcomes remain architecture-, kernel-, context-, and workload-dependent.
+The fixed-state mechanism, its fast-weight formulation, and its capacity analysis are supported by primary papers; the broader memory framing also draws on the secondary explainer. Fixed state guarantees bounded state dimensions, not lossless memory, constant end-to-end latency, or quality parity with softmax attention. Kimi K3 still retains sequence-growing MLA cache, so end-to-end outcomes remain architecture-, kernel-, context-, and workload-dependent.
+
+[^fast-weight-programmers-2021]: Imanol Schlag, Kazuki Irie, and Jürgen Schmidhuber, “Linear Transformers Are Secretly Fast Weight Programmers,” ICML 2021, [source](../raw/arXiv-2102.11174v3/main.tex), Sections 3–4.
 
 [^gpt2-kimi3-2026]: ali (@waterloo_intern), “22580: From GPT2 to Kimi3, Explained,” 2026-07-27, [raw source](../raw/2026-07-27-from-gpt2-to-kimi-k3.md).
 
