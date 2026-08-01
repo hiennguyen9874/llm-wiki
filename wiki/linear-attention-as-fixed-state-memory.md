@@ -3,24 +3,27 @@ type: Concept
 title: Linear attention as fixed-state memory
 description: Linear attention trades token-addressable KV storage for a fixed-size associative state, reducing decode-state growth while introducing capacity interference.
 tags: [attention, associative-memory, linear-attention, inference]
-status: draft
+status: stable
 created: 2026-07-31
-generated: { by: llm-wiki-agent/1, at: 2026-07-31T15:06:35Z }
+generated: { by: llm-wiki-agent/1, at: 2026-08-01T01:48:53Z }
 sources:
   - id: gpt2-kimi3-2026
     resource: ../raw/2026-07-27-from-gpt2-to-kimi-k3.md
     title: "22580: From GPT2 to Kimi3, Explained"
+  - id: kimi-linear-2025
+    resource: ../raw/arXiv-2510.26692v2/main.tex
+    title: "Kimi Linear: An Expressive, Efficient Attention Architecture"
 ---
 
 # Linear attention as fixed-state memory
 
-Linear attention replaces a sequence-growing, token-addressable KV cache with a fixed-size associative state. This bounds recurrent decode state, but several key-value associations share the same matrix and can interfere once its effective capacity is exceeded.[^gpt2-kimi3-2026]
+Linear attention replaces a sequence-growing, token-addressable KV cache with a fixed-size associative state. This bounds recurrent decode state, but several key-value associations share the same matrix and can interfere once its effective capacity is exceeded.[^gpt2-kimi3-2026][^kimi-linear-2025]
 
 ## Mechanism
 
 Softmax attention forms query-key interactions before applying its nonlinearity, so its usual formulation cannot simply reassociate the products. Linear attention instead transforms queries and keys separately with a feature map, allowing an update of the form $S_t = S_{t-1} + \phi(k_t)^T v_t$ and a read from $\phi(q_t)S_t$, with an additional normalization state when required.[^gpt2-kimi3-2026]
 
-The resulting state has dimensions determined by head width rather than sequence length. By contrast, a conventional KV cache retains keys and values for each prior token and therefore grows linearly with context length.[^gpt2-kimi3-2026]
+The resulting state has dimensions determined by head width rather than sequence length. By contrast, a conventional KV cache retains keys and values for each prior token and therefore grows linearly with context length. The Kimi Linear report instantiates this with a $d_k\times d_v$ state per KDA head and switches from chunkwise prefill to recurrent generation.[^gpt2-kimi3-2026][^kimi-linear-2025]
 
 ## Trade-off
 
@@ -34,10 +37,13 @@ Training, prefill, and decode complexity should be distinguished. Avoid treating
 ## Relationships
 
 - **Improved by:** [Delta-rule and gated associative memory](delta-rule-and-gated-associative-memory.md), which adds targeted replacement and learned decay to a fixed-size state.
-- **Used by:** [Kimi K3 hybrid retrieval architecture](kimi-k3-hybrid-retrieval-architecture.md) through Kimi Delta Attention.
+- **Used by:** [Kimi Linear hybrid attention architecture](kimi-linear-hybrid-attention-architecture.md), which combines fixed-state KDA layers with periodic global attention.
+- **Used by:** [Kimi K3 hybrid retrieval architecture](kimi-k3-hybrid-retrieval-architecture.md) through Kimi Delta Attention.[^gpt2-kimi3-2026]
 
 ## Evidence limits
 
-This concept is compiled from one secondary explainer rather than the cited primary papers or implementation. The mechanism is useful as a conceptual model, but equations, complexity details, and empirical comparisons remain unverified here.
+The fixed-state mechanism and its KDA realization are supported by the primary Kimi Linear report; the broader conceptual framing and Kimi K3 relationship also draw on a secondary explainer. Fixed state guarantees bounded state dimensions, not lossless memory, constant end-to-end latency, or quality parity with softmax attention. Those outcomes remain architecture-, kernel-, context-, and workload-dependent.
 
 [^gpt2-kimi3-2026]: ali (@waterloo_intern), “22580: From GPT2 to Kimi3, Explained,” 2026-07-27, [raw source](../raw/2026-07-27-from-gpt2-to-kimi-k3.md).
+
+[^kimi-linear-2025]: Kimi Team, “Kimi Linear: An Expressive, Efficient Attention Architecture,” arXiv:2510.26692v2, [source](../raw/arXiv-2510.26692v2/main.tex), especially Sections 1–3 and 6.
