@@ -1,0 +1,141 @@
+
+\documentclass{article} % For LaTeX2e
+\usepackage{iclr2025_conference,times}
+
+% Optional math commands from https://github.com/goodfeli/dlbook_notation.
+\input{math_commands.tex}
+
+\usepackage{hyperref}
+\usepackage{url}
+\usepackage{algorithm}
+\usepackage{algpseudocode}
+\usepackage{multirow} 
+\usepackage{array}
+\usepackage{graphicx} 
+\usepackage{booktabs}
+\renewcommand{\arraystretch}{1.5}
+
+
+
+
+% The \author macro works with any number of authors. There are two commands
+%
+% Using \And between authors leaves it to \LaTeX{} to determine where to break
+% the lines. Using \AND forces a linebreak at that point. So, if \LaTeX{}
+% puts 3 of 4 authors names on the first line, and the last on the second
+% line, try using \AND instead of \And before the third author name.
+
+\newcommand{\fix}{\marginpar{FIX}}
+\newcommand{\new}{\marginpar{NEW}}
+
+\newcommand{\red}[1]{\textcolor{red}{#1}}
+\newcommand{\green}[1]{\textcolor{green}{#1}}
+\newcommand{\blue}[1]{\textcolor{blue}{#1}}
+\newcommand{\yellow}[1]{\textcolor{yellow}{#1}}
+\newcommand{\hanxu}[1]{\textcolor{blue}{[#1]}}
+\newcommand{\ruijie}[1]{\textcolor{red}{[#1]}}
+\newcommand{\hongyuan}[1]{\textcolor{pink}{[#1]}}
+\newcommand{\huajian}[1]{\textcolor{orange}{\bf\small [Huajian: #1]}}
+
+\iclrfinalcopy % Uncomment for camera-ready version, but NOT for submission.
+\begin{document}
+
+{\LARGE \scshape \title{Looped World Models} \par}
+\begin{center}
+
+
+\maketitle
+\vspace{-2em}
+
+{\large \textbf{FaceMind Research Asia}\par\includegraphics[height=1.2cm]{logo.png}}
+
+{\normalsize
+\textbf{Leading Contributors}\par Hongyuan Adam Lu\textsuperscript{*}\quad Z.L.\quad Victor Wei\par
+\vspace{0.4em}
+\textbf{Core Contributors}\par
+Qun Zhang \quad Jinrui Zeng \quad Bowen Cao \quad Lingwei Meng \quad Mocheng Li \par
+Zezhong Wang \quad Haonan Yin \quad Naifu Xue \quad Minyu Chen \quad Cenyuan Zhang \par
+Zefan Zhang \quad Hao Wei \quad Jiawei Zhou \quad Haoran Xu \quad Hao Yang \par
+Ronglai Zuo \quad Tongda Xu \quad Yonghao Li \quad Jian Chen \quad Hebin Wang \par
+Zeyu Gao \quad Yang Li \quad Wei Zhao \quad Qimin Zhong \quad Siqi Liu \par
+Yumeng Zhang \quad Leyan Cui \quad Zhangyu Wang \quad Wai Lam
+}
+
+\end{center}
+
+\begin{abstract}
+Current world models face a fundamental tension: faithful long-horizon simulation demands deep computation, but deeper models are expensive to deploy and prone to compounding errors. We resolve this by introducing Looped World Models (LoopWM), which are the first looped architectures for world modelling. Our method iteratively refines latent environment states through a parameter-shared transformer block. This yield up to 100× parameter efficiency over conventional approaches with adaptive computation that automatically scales depth to match the complexity of each prediction step. Orthogonal to scaling model size and training data, LoopWM establishes iterative latent depth as a new scaling axis for world simulation, which might significantly push the community forward.
+
+\end{abstract}
+
+\begin{figure*}[h]
+\centering
+\includegraphics[width=11.5cm]{lwm.png}
+\caption{The overall framework of our proposed Looped World Models (LoopWM).}
+\label{fig: method}
+\end{figure*}
+
+\section{Introduction}
+World models (WM) learn to predict how an environment evolves in accordance with actions. WM has become a cornerstone of sample-efficient reinforcement learning and embodied intelligence \citep{ha2018worldmodels, hafner2019planet, kaiser2020simple}. Remarkably, the Deep Planning Network (PlaNet) is a WM \citep{hafner2019planet} first demonstrated that agents can learn latent dynamics entirely from pixels and plan via online optimisation. This establishes the recurrent state-space model (RSSM) as a foundational architecture for world modelling. The Dreamer family of models then \citep{hafner2020dreamerv1, hafner2021dreamerv2, hafner2025dreamerv3} progressively refined this approach, culminating in DreamerV3 \citep{hafner2025dreamerv3}. DreamerV3 masters over 150 different tasks with a single set of hyperparameters. Seeking to leverage the representational power of transformers, subsequent work replaced or augmented the recurrent backbone. IRIS \citep{micheli2023iris} showed that an autoregressive transformer over discrete latent tokens can serve as a highly data-efficient world model. TransDreamer \citep{chen2022transdreamer} introduced a Transformer State-Space Model for tasks demanding long-range memory. $\Delta$-IRIS \citep{micheli2024deltairis} improved efficiency via context-aware delta tokenisation. DIAMOND \citep{alonso2024diamond} demonstrated that diffusion models can produce visually faithful world simulations, and EMERALD \citep{burchi2025emerald} achieved state-of-the-art Crafter performance by combining masked generative transformers with spatial latent states. At a larger scale, Sora \citep{openai2024sora} and Genie \citep{bruce2024genie, deepmind2025genie3} demonstrated that video generation models and generative interactive environments can serve as general-purpose world simulators. And multiple surveys have charted the rapid expansion of world models into autonomous driving \citep{wang2025wmadsurvey}, embodied AI \citep{zhu2025embodiedwmsurvey}, and video generation \citep{cho2024sorasurvey, wang2025mechanisticvideo}. 
+
+Despite this progress, faithful long-horizon simulation often requires deep or iterative computation. This is because physical dynamics unfold through repeated application of governing laws, whereas conventional fixed-depth architectures allocate the same amount of computation to every transition regardless of its difficulty. There are two typical failure modes. First, prediction errors cause trajectory quality to degrade rapidly over extended horizons across rollout steps \citep{xiao2019compoundingerror, talvitie2017self, lambert2022survey}. Second, scaling model depth to combat this degradation proportionally usually increases parameter count and inference cost, which then makes real-time deployment on resource-constrained platforms prohibitively expensive \citep{wang2025wmadsurvey, hafner2025dreamerv3}.
+
+A parallel line of research has explored \emph{looped transformer architectures} (LM). In LM, a shared set of transformer blocks is applied recurrently to the same latent representation. Such a concept was first proposed as the Universal Transformer \citep{dehghani2019universal}, which introduced weight-sharing across depth with an adaptive halting mechanism inspired by Adaptive Computation Time \citep{graves2016act}. Early theoretical work shows that LM can simulate arbitrary iterative algorithms. This includes gradient descent, Newton's method, and dynamic programming, with constant parameter count \citep{giannou2023programmable}, and they achieve comparable in-context learning performance to standard transformers while using less than 10\% of the parameters \citep{yang2023looped}. ALBERT \citep{lan2020albert} shows the practical viability of cross-layer parameter sharing for language representation learning. MoEUT \citep{csordas2024moeut} combined mixture-of-experts with universal transformers.
+
+More recently, looped architectures have been scaled to practical language models with promising results. \citet{zhu2025ouro} demonstrated that a looped language model can achieve about 2 to 3$\times$ parameter efficiency through iterative latent computation. \citet{geiping2025rdm} showed that recurrent-depth models can scale test-time compute by simply increasing the number of loop iterations at inference. \citet{fan2024lengthgen} demonstrated that looped transformers with adaptive stopping significantly improve length generalisation.  \citet{saunshi2025latentthoughts} provided theoretical and empirical evidence that looped models implicitly generate latent thoughts. \citet{jeddi2025loopformer} introduced elastic-depth training with shortcut modulation for budget-conditioned latent reasoning. \citet{bae2025mor} proposed per-token dynamic recursive depth allocation within a single recursive transformer. \citet{prairie2026parcae} addressed the training instability of looped models by recasting the looped forward pass as a nonlinear dynamical system over the residual stream and constraining the spectral norm of the state-transition matrix through a negative-diagonal parameterisation. Most recently, Hyperloop Transformers \citep{zeitoun2026hyperloop} augmented the looped block with matrix-valued hyper-connected residual streams. This outperforms depth-matched standard transformers at half the parameter count. These developments connect looped transformers to a broader family of depth-continuous and implicit-layer models, including Neural ODEs \citep{chen2018neuralode} and Deep Equilibrium Models \citep{bai2019deq}, which likewise iterate a shared function toward a fixed point.
+
+However, \emph{all} of the above looped-architecture works have been developed and evaluated exclusively in the context of language modelling. Looped World Models (LoopWM) remain entirely unexplored.
+
+We propose that looped transformers are a promising backbone for world models because they introduce an explicit iterative refinement mechanism while reusing parameters across depth. At a high level, environment dynamics can often be viewed as repeated application of a shared transition law, which motivates modelling a single-step transition through repeated application of a shared latent update operator. This correspondence is conceptual rather than exact, as the inner loop is not meant to represent physical time directly but to perform iterative refinement of a latent transition estimate. To improve the numerical stability of this recurrent computation, we adopt a spectrally constrained state-retention parameterisation inspired by looped architectures. This construction ensures that the linear retention component remains contractive, which helps keep recurrent latent updates bounded as the number of inner-loop iterations increases. Structurally, environment dynamics are themselves an iterative process: a state $s_t$ evolves to $s_{t+1}$ through the repeated application of (approximately) stationary physical laws. The looped transformer's computation graph, where a shared function $f_\theta$ is applied recurrently to a latent state $h$,
+\begin{equation}
+  h_{t+1} = \bar{A}\, h_t + \bar{B}\, e + \bar{\mathcal{R}}(h_t, e),
+  \label{eq:looped_update}
+\end{equation} 
+with $\bar{A}$ governing state retention, $\bar{B}$ controlling input injection, and $\bar{\mathcal{R}}$ subsuming the transformer nonlinearities \citep{prairie2026parcae} is directly isomorphic to this dynamics structure. Stability is guaranteed by parameterizing the continuous-time matrix as $A := \mathrm{diag}(-\exp(\mathbf{a}))$ with learnable $\mathbf{a}$, and discretizing via zero-order hold,
+\begin{equation}
+  \bar{A} = \exp(\Delta\, A),
+  \label{eq:discretization}
+\end{equation}
+which constrains all eigenvalues of $\bar{A}$ to the interval $(0, 1)$, ensuring bounded residual dynamics regardless of rollout length
+\citep{prairie2026parcae}.
+
+Practically, the parameter efficiency of looped architectures is uniquely valuable for world models, because long-horizon rollouts require executing the dynamics model hundreds or thousands of times in sequence; a model that achieves the predictive quality of a much larger network with a fraction of the parameters yields compounding savings across every rollout step. Furthermore, the adaptive-depth property of looped models, allocating more iterations to complex transitions (e.g., collisions, contact events) and fewer to simple dynamics (e.g., free flight), maps directly onto the non-uniform computational demands of physical simulation. In the most favourable cases, where simple state transitions require only a single loop iteration compared to the full forward pass of a conventional fixed-depth model, this adaptive mechanism can substantially reduce average inference cost relative to a fixed-depth baseline. The magnitude of this reduction depends on the distribution of transition difficulty, the minimum useful loop depth, and the overhead of the exit mechanism.
+
+In this work, we introduce \textbf{Looped World Models} (LoopWM), the first looped transformer architectures for environment simulation and dynamics prediction. Our approach combines a parameter-shared recurrent transformer block with spectrally-constrained residual dynamics, enabling provably stable state transitions across arbitrary rollout lengths. We demonstrate that Looped World Models achieve competitive or superior predictive accuracy to existing world model architectures while using significantly fewer parameters, maintain stable rollouts over substantially longer horizons, and support test-time adaptive computation that automatically matches computational depth to transition complexity. We also integrate residual connections to improve model performance. Our results establish iterative latent depth as a previously unexplored and highly effective scaling axis for world models, orthogonal to both model size and training data.
+
+\section{Related Work}
+\input{relatedwork}
+\section{Looped World Model}
+\input{method}
+\section{Results}
+\subsection{Main Results on ScienceWorld}
+\input{results_main_science}
+\subsection{Main Results on AlfWorld}
+\input{results_main_alfworld}
+\input{deferred}
+\begin{figure*}[t]
+\centering
+\includegraphics[width=\textwidth]{bcmk.png}
+\caption{Relative increase over Qwen3.7-max on automatic online performance, compared against baselines. Note that the results are obtained via online estimation, with the tasks of danmaku generation. LWM denotes LoopWM.}
+\label{fig: compare1}
+\end{figure*}
+
+\begin{figure*}[t]
+\centering
+\includegraphics[width=\textwidth]{human_eval_combined.pdf}
+\caption{Human evaluation performance with our model, compared against baselines. Note that the results are obtained via online estimation, with the tasks of danmaku generation. LWM denotes LoopWM.}
+\label{fig: method2}
+\end{figure*}
+
+\section{Conclusions}
+\input{conclusions}
+
+\section{Broader Impacts}
+\input{limitations}
+
+\clearpage
+%\input{authors}
+%\clearpage
+\bibliographystyle{iclr2025_conference}  % 指定 ICLR 会议的参考文献样式
+\bibliography{iclr2025_conference}  
+\end{document}

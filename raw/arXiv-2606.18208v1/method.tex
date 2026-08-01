@@ -1,0 +1,300 @@
+We present Looped World Models, a latent dynamics architecture that combines the iterative computation of looped transformers with the action-conditioned state prediction required for world modelling. Our design follows three principles: (i)~structural alignment between the model's computation graph and the iterative nature of physical dynamics, (ii)~provable stability of latent state transitions across arbitrary rollout lengths, and (iii)~adaptive computational depth that matches the complexity of each transition. We describe the overall architecture (\S\ref{sec:architecture}), the stabilised looped dynamics core (\S\ref{sec:dynamics}), the training objective (\S\ref{sec:training}), and the adaptive early-exit mechanism for inference (\S\ref{sec:earlyexit}).
+
+% ---------------------------------------------------------------
+\subsection{Overall Architecture}
+\label{sec:architecture}
+
+At each environment time step $k$, the agent receives an observation $o_k \in \mathcal{O}$ and selects an action $a_k \in \mathcal{A}$. The goal of the world model is to predict the next latent state, from which future observations, rewards, and termination signals can be decoded. Our architecture consists of four modules:
+
+\paragraph{Observation Encoder $\mathcal{E}_\phi$.} A convolutional (or vision-transformer-based) encoder maps the raw observation $o_k$ into a latent embedding $e_k = \mathcal{E}_\phi(o_k) \in \mathbb{R}^{d}$.
+
+\paragraph{Action Embedder $\mathcal{A}_\psi$.} The action $a_k$ is projected into the same latent space via a learned embedding $u_k = \mathcal{A}_\psi(a_k) \in \mathbb{R}^{d}$.
+
+\paragraph{Looped Dynamics Core $\mathcal{L}_\theta$.} This is the central contribution of our architecture. The dynamics core takes the previous latent state $h_{k-1}$, the current observation embedding $e_k$, and the action embedding $u_k$, and produces the next latent state $h_k$ through $T$ iterations of a parameter-shared transformer block with spectrally-constrained residual dynamics. We describe this module in detail in \S\ref{sec:dynamics}.
+
+\paragraph{Prediction Heads $\mathcal{D}_\xi$.} A set of lightweight MLPs decode the latent state $h_k$ into: (i)~a reconstructed observation $\hat{o}_{k+1}$ or its latent target, (ii)~a predicted reward $\hat{r}_k$, and (iii)~a predicted continuation flag $\hat{c}_k$. These heads follow the standard design of prior latent world models \citep{hafner2020dreamerv1, hafner2021dreamerv2, hafner2025dreamerv3}.
+
+The full forward pass at environment step $k$ proceeds as:
+\begin{equation}
+  e_k = \mathcal{E}_\phi(o_k), \quad
+  u_k = \mathcal{A}_\psi(a_k), \quad
+  h_k = \mathcal{L}_\theta(h_{k-1},\, e_k,\, u_k), \quad
+  (\hat{o}_{k+1},\, \hat{r}_k,\, \hat{c}_k)
+    = \mathcal{D}_\xi(h_k).
+  \label{eq:full_forward}
+\end{equation}
+
+During imagination-based training of the policy (as in Dreamer \citep{hafner2020dreamerv1}), the encoder is bypassed: the dynamics core autoregressively rolls out latent trajectories using only actions sampled from the policy network, i.e., $h_{k+1} = \mathcal{L}_\theta(h_k,\, \mathbf{0},\, u_k)$, where observation injection is omitted or replaced by the model's own prediction.
+
+% ---------------------------------------------------------------
+\subsection{Looped Dynamics Core with Spectral Stability}
+\label{sec:dynamics}
+
+The dynamics core is the heart of our architecture. Following the prelude recurrent coda design \citep{geiping2025rdm, prairie2026parcae, zeitoun2026hyperloop}, we partition the dynamics core into three blocks:
+
+\paragraph{Prelude $\mathcal{P}$.} A small stack of $L_\mathcal{P}$ transformer layers processes the concatenation of the previous latent state, the observation embedding, and the action embedding to produce the conditioning signal:
+\begin{equation}
+  e = \mathrm{LN}\!\left(
+    \mathcal{P}\!\left(
+      [h_{k-1};\, e_k;\, u_k]
+    \right)
+  \right) \in \mathbb{R}^{d},
+  \label{eq:prelude}
+\end{equation}
+where $\mathrm{LN}(\cdot)$ denotes layer normalization. The normalisation of $e$ follows the Parcae design \citep{prairie2026parcae} and prevents input magnitude from inducing late-stage loss spikes.
+
+\paragraph{Recurrent Block $\mathcal{R}$.}
+A stack of $L_\mathcal{R}$ transformer layers with shared parameters is applied iteratively for $T$ loops. The hidden state is initialised as $h^{(0)} \sim \mathcal{N}(0, \sigma^2 I)$ (or, for temporal rollouts, from the previous time step's final hidden state). At each loop iteration $t = 0, 1, \ldots, T{-}1$, the update rule is:
+\begin{equation}
+  h^{(t+1)} = \bar{A}\, h^{(t)}
+             + \bar{B}\, e
+             + \bar{\mathcal{R}}(h^{(t)},\, e),
+  \label{eq:recurrent_update}
+\end{equation}
+where $\bar{A} \in \mathbb{R}^{d \times d}$ is the state-retention matrix controlling how much of the previous hidden state is preserved, $\bar{B} \in \mathbb{R}^{d \times d}$ is the input-injection matrix controlling the influence of the conditioning signal $e$, and $\bar{\mathcal{R}}$ subsumes the nonlinear transformer operations (multi-head attention and feed-forward layers) applied to the residual stream. The key distinction from conventional fixed-depth transformers is that the parameters of $\mathcal{R}$ are \emph{shared across all $T$ iterations}, making the computational depth independent of the parameter count.
+
+\paragraph{Spectral Stability Constraint.} To guarantee that the latent state does not explode regardless of the number of loop iterations $T$ (which is critical for long-horizon rollouts in world modelling), we constrain the spectral norm of $\bar{A}$ to be strictly less than 1. Following Parcae \citep{prairie2026parcae}, we parameterize $\bar{A}$ through discretization of a continuous-time negative diagonal matrix:
+\begin{align}
+  A &:= \mathrm{diag}\!\left(-\exp(\mathbf{a})\right),
+      \quad \mathbf{a} \in \mathbb{R}^{d}~\text{(learnable)},
+      \label{eq:A_continuous} \\
+  \bar{A} &= \exp(\Delta \cdot A),
+      \quad \Delta \in \mathbb{R}^{d}_{>0}~\text{(learnable)}.
+      \label{eq:A_discrete}
+\end{align}
+Since $A$ has strictly negative diagonal entries, $\Delta \cdot A$ has strictly negative entries, and $\exp(\cdot)$ maps these to the interval $(0, 1)$. Consequently, $\bar{A}$ is a diagonal matrix with all entries in $(0, 1)$, guaranteeing $\rho(\bar{A}) < 1$. This constraint holds by construction throughout training; no gradient clipping, post-hoc normalisation, or sensitive hyperparameter tuning is required.
+
+The input-injection matrix is similarly discretised as $\bar{B} = \Delta \cdot B$ with unconstrained $B$, but we apply layer normalisation to $e$ (Eq.~\ref{eq:prelude}) to bound the injected signal's magnitude.
+
+\paragraph{Coda $\mathcal{C}$.} A final stack of $L_\mathcal{C}$ transformer layers (with separate, non-shared parameters) processes the terminal hidden state $h^{(T)}$ through a learned projection:
+\begin{equation}
+  h_k = \mathcal{C}(C\, h^{(T)}),
+  \label{eq:coda}
+\end{equation}
+where $C \in \mathbb{R}^{d_c \times d}$ optionally adapts the embedding dimension. The output $h_k$ is then passed to the prediction heads and carried forward as the initial state for the next environment time step.
+
+\paragraph{Cross-Timestep State Propagation.} A distinctive property of our architecture is that the terminal hidden state $h^{(T)}$ from environment step $k$ can serve as the initialization $h^{(0)}$ for step $k{+}1$, enabling a dual-loop structure: the \emph{inner loop} (iterations of $\mathcal{R}$) refines the latent state within a single transition, while the \emph{outer loop} (sequential environment steps) propagates information across time. The spectral constraint on $\bar{A}$ ensures that both loops remain bounded, encouraging continuity while keeping propagated hidden states numerically well behaved.
+
+% ---------------------------------------------------------------
+\subsection{Training Objective}
+\label{sec:training}
+
+\paragraph{Variable-Depth Training.} We train with stochastic loop depth. At each training step, the loop count $T$ is sampled from a Poisson distribution with learnable mean $\mu_{\mathrm{rec}}$:
+\begin{equation}
+  T \sim \mathrm{Poisson}(\mu_{\mathrm{rec}}).
+  \label{eq:depth_sampling}
+\end{equation}
+We sample $T$ independently \emph{per sequence} within each micro-batch, rather than per micro-batch as in prior work \citep{geiping2025rdm}. This reduces variance in the training objective and empirically eliminates most loss spikes.
+
+\paragraph{World Model Loss.}
+The overall training objective combines observation prediction, reward prediction, and continuation prediction:
+\begin{equation}
+  \mathcal{L}_{\mathrm{wm}} =
+    \mathbb{E}_{T \sim \mathrm{Poisson}(\mu_{\mathrm{rec}})}
+    \left[
+      \sum_{k=1}^{K}
+      \left(
+        \underbrace{\mathcal{L}_{\mathrm{obs}}(o_{k+1},\, \hat{o}_{k+1})}
+          _{\text{observation loss}}
+        + \lambda_r\,
+          \underbrace{\mathcal{L}_{\mathrm{rew}}(r_k,\, \hat{r}_k)}
+          _{\text{reward loss}}
+        + \lambda_c\,
+          \underbrace{\mathcal{L}_{\mathrm{cont}}(c_k,\, \hat{c}_k)}
+          _{\text{continuation loss}}
+      \right)
+    \right],
+  \label{eq:wm_loss}
+\end{equation}
+where $K$ is the sequence length, $\lambda_r$ and $\lambda_c$ are balancing coefficients, and the specific form of $\mathcal{L}_{\mathrm{obs}}$ depends on the observation space (e.g., MSE for continuous states, cross-entropy for discrete tokens). Backpropagation through the loop iterations is truncated at $\mu_{\mathrm{bwd}} = \lceil \mu_{\mathrm{rec}} / 2 \rceil$ steps to limit memory cost.
+
+\paragraph{Entropy-Regularised Adaptive Depth.} When adaptive early exit is enabled (see \S\ref{sec:earlyexit}), we augment the loss with an entropy-regularisation term that prevents the exit gate from collapsing to trivial solutions (always exiting at the first iteration or never exiting). The regularisation takes the form:
+\begin{equation}
+  \mathcal{L}_{\mathrm{ent}} =
+    -\alpha\, \mathbb{E}
+    \left[
+      \sum_{t=1}^{T} H\!\left(g^{(t)}\right)
+    \right],
+  \label{eq:entropy_reg}
+\end{equation}
+where $g^{(t)} \in [0, 1]$ is the exit probability at loop iteration $t$, $H(\cdot)$ denotes binary entropy, and $\alpha$ is a regularization coefficient. The total training loss is $\mathcal{L} = \mathcal{L}_{\mathrm{wm}} + \mathcal{L}_{\mathrm{ent}}$.
+
+% ---------------------------------------------------------------
+\subsection{Adaptive Early Exit for Inference}
+\label{sec:earlyexit}
+
+At inference time, the looped dynamics core can adaptively terminate the inner loop early for transitions that converge quickly, and allocate additional iterations to complex transitions. We implement this via a lightweight exit gate, a single-layer MLP followed by a sigmoid:
+\begin{equation}
+  g^{(t)} = \sigma\!\left(
+    \mathbf{w}_g^\top\, h^{(t)} + b_g
+  \right),
+  \label{eq:exit_gate}
+\end{equation}
+where $\mathbf{w}_g \in \mathbb{R}^{d}$ and $b_g \in \mathbb{R}$ are learned parameters. At each loop iteration $t$, if $g^{(t)}$ exceeds a threshold $\tau$, the loop terminates and $h^{(t)}$ is used as the final hidden state. This mechanism is complementary to the convergence-based exit criteria studied by  \citet{pappone2025twoscale}, which halt when the second-order difference $\|h^{(t)} - 2h^{(t-1)} + h^{(t-2)}\|$ falls below a threshold.
+
+In the world-modelling setting, adaptive exit yields particularly large savings. Consider a 100-layer fixed-depth baseline: for a simple free-flight trajectory segment, our model may exit after a single loop of $L_\mathcal{R}$ layers (e.g., 4 layers), reducing inference FLOPs by a factor of $\sim$25$\times$ for that step. Over a long rollout containing many simple transitions interspersed with occasional complex events, the aggregate FLOPs reduction can reach up to two orders of magnitude compared to a fixed-depth model of equivalent quality.
+
+The maximum loop count $T_{\max}$ at inference time can also exceed the training-time mean $\mu_{\mathrm{rec}}$, enabling test-time compute scaling: the model produces progressively refined predictions as more iterations are allocated.
+
+\subsection{Deferred Decoding: Action-Conditioned Latent Rollout}
+\label{sec:deferred_decoding}
+
+\subsubsection{Motivation}
+
+In standard world models~\citep{hafner2020dreamerv1,hafner2021dreamerv2,hafner2025dreamerv3}, the prediction heads $\mathcal{D}_\xi$ are applied at every environment step $k$ to produce intermediate observation reconstructions $\hat{o}_{k+1}$, reward predictions $\hat{r}_k$, and continuation signals $\hat{c}_k$. This per-step decoding introduces two inefficiencies: (i) it forces the latent state to allocate representational capacity to pixel-level reconstruction at every intermediate step, even when only the final prediction matters for planning; (ii) it prevents the dynamics core from performing uninterrupted latent reasoning across a multi-step action sequence.
+
+Recent work in language modelling has demonstrated that deferring decoding to the end of a latent reasoning process---allowing the model to \emph{encode, think, then decode}---substantially improves reasoning quality~\citep{koishekenov2025etd,geiping2025rdm,saunshi2025latentthoughts}. MuZero~\citep{schrittwieser2020muzero} similarly operates entirely in latent space without observation reconstruction, predicting only value, reward, and policy.  Dreamer's own ``imagination'' rollouts~\citep{hafner2020dreamerv1} propagate latent states without re-encoding real observations, yet still apply reward and value heads at each step.
+
+We propose \textbf{Deferred Decoding}, a modification to the Looped World Model that eliminates all intermediate observation decoding during multi-step rollouts. Given a sequence of ground-truth or planned actions, the model injects each action into the looped dynamics core and advances the latent state purely in the continuous hidden space.  Observation, reward, and continuation predictions are produced \emph{only at the final step}, reducing computation and encouraging the latent trajectory to encode temporally extended, action-relevant structure rather than per-step visual detail.
+
+\subsubsection{Formulation}
+
+Consider a planning or evaluation horizon of $K$ steps. Let $h_0$ be the initial latent state (obtained from encoding a real observation $o_0$ through the encoder $\mathcal{E}_\phi$ and the prelude block of the looped dynamics core), and let $(a_0, a_1, \ldots, a_{K-1})$ be a sequence of actions.
+
+\paragraph{Standard per-step decoding (baseline).}
+At each step $k = 0, 1, \ldots, K-1$, the baseline model performs:
+\begin{align}
+  u_k &= \mathcal{A}_\psi(a_k), \label{eq:dd_action} \\
+  h_{k+1} &= \mathcal{L}_\theta(h_k, u_k),  \label{eq:dd_dynamics} \\
+  (\hat{o}_{k+1},\, \hat{r}_k,\, \hat{c}_k) &= \mathcal{D}_\xi(h_{k+1}),
+  \label{eq:dd_decode_all}
+\end{align}
+where $\mathcal{L}_\theta$ denotes the full looped dynamics core (prelude, $T$-step recurrent block, coda) described in Section~\ref{sec:dynamics}. This yields $K$ sets of decoded predictions.
+
+\paragraph{Deferred decoding.}
+We replace the per-step decoding with a \emph{decode-free latent rollout} followed by a single terminal decoding:
+\begin{align}
+  u_k &= \mathcal{A}_\psi(a_k),
+    &k &= 0, 1, \ldots, K-1, \label{eq:dd2_action} \\
+  h_{k+1} &= \mathcal{L}_\theta^{\mathrm{core}}(h_k, u_k),
+    &k &= 0, 1, \ldots, K-1, \label{eq:dd2_dynamics} \\
+  (\hat{o}_{K},\, \hat{r}_{K},\, \hat{c}_{K}) &=
+    \mathcal{D}_\xi(h_K). \label{eq:dd2_final_decode}
+\end{align}
+The key difference is that Eqs.~\eqref{eq:dd2_action}, \eqref{eq:dd2_dynamics} are applied $K$ times \emph{without invoking $\mathcal{D}_\xi$}, and the decoder is called exactly once at step $K$. Between steps, the model ingests a new action embedding $u_k$ and advances the latent state through the looped recurrent block, but produces no intermediate observation, reward, or continuation output.
+
+\paragraph{Interaction between inner and outer loops.}
+Recall from Section~\ref{sec:dynamics} that each invocation of $\mathcal{L}_\theta^{\mathrm{core}}$ itself involves $T$ inner-loop iterations of the shared transformer block.  With deferred decoding, the overall computation becomes a \emph{nested loop}:
+\begin{itemize}
+  \item \textbf{Outer loop} (action steps): $k = 0, \ldots, K-1$.
+    At each step, the action $u_k$ is injected.
+  \item \textbf{Inner loop} (latent refinement): $t = 0, \ldots, T-1$.
+    Within each action step, the recurrent block refines $h$ via
+    $h^{(t+1)} = \bar{A}\,h^{(t)} + \bar{B}\,[u_k;\, h_k]
+    + \bar{\mathcal{R}}(h^{(t)}, u_k)$
+    with spectral-norm-constrained $\bar{A}$.
+\end{itemize}
+The total effective depth is $K \times T$ shared-parameter transformer applications, but only one forward pass through the decoder.
+
+\subsubsection{Training Objective for Deferred Decoding}
+\label{sec:dd_training}
+
+Training the deferred-decoding variant requires the model to maintain accurate latent representations across $K$ action-conditioned transitions \emph{without} intermediate reconstruction supervision. We define a \textbf{terminal prediction loss} and a \textbf{latent trajectory regularizer}.
+
+\paragraph{Terminal prediction loss.}
+Given a training trajectory $(o_0, a_0, o_1, a_1, \ldots, o_K)$ where all intermediate actions are ground-truth, the model encodes $o_0$ to obtain $h_0$, performs $K$ latent transitions via Eqs.~\eqref{eq:dd2_action}, \eqref{eq:dd2_dynamics}, then decodes $h_K$:
+\begin{equation}
+  \mathcal{L}_{\mathrm{terminal}} =
+    \lambda_o\,\ell_{\mathrm{obs}}(\hat{o}_K, o_K)
+    + \lambda_r\,\ell_{\mathrm{rew}}(\hat{r}_K, r_{K-1})
+    + \lambda_c\,\ell_{\mathrm{cont}}(\hat{c}_K, c_{K-1}),
+  \label{eq:dd_loss_terminal}
+\end{equation}
+where $\ell_{\mathrm{obs}}$ may be a reconstruction loss (MSE, perceptual loss) or, in the decoder-free setting, a next-embedding alignment loss analogous to NE-Dreamer~\citep{anonymous2026nedreamer}.
+
+\paragraph{Latent trajectory regularizer.}
+Without intermediate decoding, the latent states at steps $1, \ldots, K-1$ are unsupervised and could drift into regions that are spectrally stable yet semantically meaningless.  We introduce two lightweight constraints:
+
+\begin{enumerate}
+  \item \textbf{Latent consistency loss.}
+    We encode each intermediate ground-truth observation $o_k$ ($k = 1,
+    \ldots, K-1$) with the frozen encoder $\mathcal{E}_\phi$ to obtain
+    reference embeddings $e_k^{\star} = \mathrm{sg}(\mathcal{E}_\phi(o_k))$,
+    then align:
+    \begin{equation}
+      \mathcal{L}_{\mathrm{consist}} =
+        \frac{1}{K-1}\sum_{k=1}^{K-1}
+          \left\|\, g_\omega(h_k) - e_k^{\star}\,\right\|_2^2,
+      \label{eq:dd_consist}
+    \end{equation}
+    where $g_\omega$ is a lightweight projection head and $\mathrm{sg}(\cdot)$
+    denotes stop-gradient.  This loss provides soft guidance without
+    requiring a full decoder at each step, analogous to the latent
+    overshooting technique in PlaNet~\citep{hafner2019planet}.
+
+  \item \textbf{Spectral contraction budget.}
+    The spectral-norm constraint on $\bar{A}$ (Section~\ref{sec:dynamics})
+    already ensures bounded latent evolution per inner loop.  Over $K$ outer
+    steps, we additionally monitor the cumulative contraction:
+    \begin{equation}
+      \left\|\, h_K - h_0 \,\right\|_2
+        \;\leq\; \sum_{k=0}^{K-1} \left\|\, h_{k+1} - h_k \,\right\|_2
+        \;\leq\; K \cdot C_{\max},
+      \label{eq:dd_contraction}
+    \end{equation}
+    where $C_{\max}$ is a soft upper bound enforced as a penalty term.
+    This prevents latent explosion over long deferred horizons while still
+    permitting meaningful state changes induced by actions.
+\end{enumerate}
+
+The full training objective for the deferred-decoding variant is:
+\begin{equation}
+  \mathcal{L}_{\mathrm{DD}} =
+    \mathcal{L}_{\mathrm{terminal}}
+    + \alpha\,\mathcal{L}_{\mathrm{consist}}
+    + \beta\,\max\!\bigl(0,\;\textstyle\sum_{k}\|h_{k+1}-h_k\|_2 - K\cdot C_{\max}\bigr),
+  \label{eq:dd_total}
+\end{equation}
+where $\alpha$ and $\beta$ are balancing coefficients.
+
+\subsubsection{Curriculum over Deferral Horizon $K$}
+\label{sec:dd_curriculum}
+
+Training directly with a large $K$ is unstable because gradients must back-propagate through $K \times T$ shared-parameter applications. We adopt a \textbf{progressive horizon curriculum}: training begins with $K = 1$ (equivalent to standard per-step decoding) and gradually increases $K$ during training according to a schedule $K(\text{step}) = \min(K_{\max},\; 1 + \lfloor \text{step} / \Delta \rfloor)$, where $\Delta$ is the number of training steps between increments. This allows the latent dynamics to first learn accurate single-step transitions before being challenged with longer decode-free rollouts.
+
+\subsubsection{Inference Modes}
+\label{sec:dd_inference}
+
+Deferred decoding naturally supports two inference modes:
+
+\paragraph{Planning mode.}
+Given a candidate action sequence $(a_0, \ldots, a_{K-1})$ from a planner (e.g., CEM, MPPI), the model performs a single decode-free rollout and evaluates only the terminal state $h_K$.  This reduces decoder invocations from $K$ to $1$, saving approximately $(K-1) \times \text{cost}(\mathcal{D}_\xi)$ FLOPs per candidate sequence. When combined with adaptive early exit within each inner loop (Section~\ref{sec:earlyexit}), the total FLOP reduction can reach up to two orders of magnitude for long-horizon planning with simple transitions.
+
+\paragraph{Monitoring mode.}
+When intermediate state inspection is needed (e.g., for safety-critical applications), the lightweight projection head $g_\omega$ can be applied at any step $k$ to produce a low-dimensional state summary $\tilde{e}_k = g_\omega(h_k)$ without invoking the full decoder. The full decoder $\mathcal{D}_\xi$ remains available as an optional diagnostic tool but is not required for the planning loop.
+
+\subsubsection{Relationship to Prior Work}
+\label{sec:dd_prior}
+
+Table~\ref{tab:dd_comparison} summarizes the key distinctions:
+
+\begin{table}[h]
+\centering
+\scriptsize
+\caption{Comparison of intermediate decoding strategies across world-model
+architectures.}
+\label{tab:dd_comparison}
+\begin{tabular}{lcccc}
+\toprule
+\textbf{Method} & \textbf{Latent dynamics} & \textbf{Intermediate decode}
+  & \textbf{Action injection} & \textbf{Looped depth} \\
+\midrule
+Dreamer~\citep{hafner2020dreamerv1}
+  & RSSM & reward + value at each step & per step & -- \\
+MuZero~\citep{schrittwieser2020muzero}
+  & learned MLP & policy + value + reward & per step & -- \\
+PlaNet~\citep{hafner2019planet}
+  & RSSM & reconstruction at each step & per step & -- \\
+ETD~\citep{koishekenov2025etd}
+  & looped layers & decode only at end & -- (language) & \checkmark \\
+NE-Dreamer~\citep{anonymous2026nedreamer}
+  & RSSM & embedding alignment & per step & -- \\
+\midrule
+\textbf{LoopWM-DD (ours)}
+  & looped transformer & \textbf{decode only at step $K$}
+  & \textbf{per step in latent} & \checkmark \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Dreamer's imagination rollout already avoids re-encoding real observations but still applies reward and value heads at every imagined step~\citep{hafner2020dreamerv1}. MuZero dispenses with observation reconstruction entirely but uses a non-looped, fixed-depth dynamics function~\citep{schrittwieser2020muzero}. ETD~\citep{koishekenov2025etd} demonstrates the encode-think-decode paradigm for language reasoning with looped layers, but does not handle action-conditioned state transitions or environment simulation. Our deferred decoding unifies these insights: it applies the looped transformer's iterative refinement at each action step in latent space (inheriting the parameter efficiency and spectral stability of the LoopWM) while deferring all observation-space computation to the terminal step, yielding a clean separation between \emph{latent dynamics reasoning} (inner + outer loops) and \emph{observation grounding} (single terminal decode).

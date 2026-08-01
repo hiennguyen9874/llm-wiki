@@ -1,0 +1,966 @@
+\subsection{Deep Analysis on Deferred Decoding}
+
+\begin{table}[h]
+\centering
+    \setlength\tabcolsep{15pt}
+    \setlength\extrarowheight{0pt}
+\caption{The effect of deferred decoding on the ScienceWorld dataset \citep{wang-etal-2022-scienceworld} world modelling task on average over all the tasks, compared to gemini-3-flash-preview-thinking. The relative improvements are calculated using the absolute performance $(Ours - Baselines) / Baselines * 100\%$. Note that our model is a model with about 1B model parameters.}
+\label{tab:scienceworld1}
+\begin{tabular}{lcccc}
+\toprule
+\textbf{Task Type} & \textbf{EM} & \textbf{F1}
+  & \textbf{BLEU} & \textbf{Entity}\\
+\midrule
+Step1 & +73.2\% & +16.4\% & +47.0\% & +9.7\% \\
+Step2 & +54.5\% & +21.4\% & +41.7\% & +18.0\% \\
+Step3 & +103.6\% & +28.1\% & +65.0\% & +19.0\% \\
+Step4 & +82.9\% & +29.0\% & +55.5\% & +20.7\% \\
+Step5 & +113.8\% & +22.4\% & +54.6\% & +12.8\% \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{table}[h]
+\centering
+    \setlength\tabcolsep{15pt}
+    \setlength\extrarowheight{0pt}
+\caption{The effect of deferred decoding on the ScienceWorld dataset \citep{wang-etal-2022-scienceworld} world modelling task on the task of Boil, compared to gemini-3-flash-preview-thinking. The relative improvements are calculated using the absolute performance $(Ours - Baselines) / Baselines * 100\%$. Note that our model is a model with about 1B model parameters. `—` represents that the baseline score is 0 and LoopWM score is not zero. `0\%` means that both of them has a score of 0.}
+\label{tab:scienceworld2}
+\begin{tabular}{lcccc}
+\toprule
+\textbf{Task Type} & \textbf{EM} & \textbf{F1}
+  & \textbf{BLEU} & \textbf{Entity}\\
+\midrule
+Step1 & +100.0\% & +3.5\% & +39.6\% & -8.0\% \\
+Step2 & +50.2\% & +33.4\% & +61.3\% & +54.9\% \\
+Step3 & +250.5\% & +57.5\% & +136.2\% & +39.3\% \\
+Step4 & +700.9\% & +120.0\% & +503.5\% & +121.0\% \\
+Step5 & +500.9\% & +29.9\% & +101.9\% & +20.0\% \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+
+\begin{table}[h]
+\centering
+    \setlength\tabcolsep{15pt}
+    \setlength\extrarowheight{0pt}
+\caption{The effect of deferred decoding on the ScienceWorld dataset \citep{wang-etal-2022-scienceworld} world modelling task on the task of Chemistry, compared to gemini-3-flash-preview-thinking. The relative improvements are calculated using the absolute performance $(Ours - Baselines) / Baselines * 100\%$. Note that our model is a model with about 1B model parameters.}
+\label{tab:scienceworld3}
+\begin{tabular}{lcccc}
+\toprule
+\textbf{Task Type} & \textbf{EM} & \textbf{F1}
+  & \textbf{BLEU} & \textbf{Entity}\\
+\midrule
+Step1 & +267.1\% & +52.4\% & +197.2\% & +56.9\% \\
+Step2 & +140.3\% & +42.2\% & +120.0\% & +33.5\% \\
+Step3 & +110.3\% & +34.1\% & +92.5\% & +18.5\% \\
+Step4 & +367.6\% & +57.0\% & +224.3\% & +62.6\% \\
+Step5 & +100.0\% & +15.0\% & +78.9\% & 0.0\% \\
+
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{table}[h]
+\centering
+    \setlength\tabcolsep{15pt}
+    \setlength\extrarowheight{0pt}
+\caption{The effect of deferred decoding on the ScienceWorld dataset \citep{wang-etal-2022-scienceworld} world modelling task on the task of Conductivity, compared to gemini-3-flash-preview-thinking. The relative improvements are calculated using the absolute performance $(Ours - Baselines) / Baselines * 100\%$. Note that our model is a model with about 1B model parameters.}
+\label{tab:scienceworld4}
+\begin{tabular}{lcccc}
+\toprule
+\textbf{Task Type} & \textbf{EM} & \textbf{F1}
+  & \textbf{BLEU} & \textbf{Entity}\\
+\midrule
+Step1 & +78.0\% & +17.5\% & +58.8\% & +2.4\% \\
+Step2 & +183.1\% & +44.5\% & +190.5\% & +42.5\% \\
+Step3 & +220.7\% & +57.5\% & +249.8\% & +39.0\% \\
+Step4 & +183.1\% & +53.2\% & +194.8\% & +48.7\% \\
+Step5 & +233.3\% & +51.9\% & +218.1\% & +40.0\% \\
+
+\bottomrule
+\end{tabular}
+\end{table}
+
+
+\begin{table}[h]
+\centering
+    \setlength\tabcolsep{15pt}
+    \setlength\extrarowheight{0pt}
+\caption{The effect of deferred decoding on the ScienceWorld dataset \citep{wang-etal-2022-scienceworld} world modelling task on the task of Find, compared to gemini-3-flash-preview-thinking. The relative improvements are calculated using the absolute performance $(Ours - Baselines) / Baselines * 100\%$. Note that our model is a model with about 1B model parameters.}
+\label{tab:scienceworld5}
+\begin{tabular}{lcccc}
+\toprule
+\textbf{Task Type} & \textbf{EM} & \textbf{F1}
+  & \textbf{BLEU} & \textbf{Entity}\\
+\midrule
+Step1 & +166.2\% & +45.0\% & +141.2\% & +28.4\% \\
+Step2 & +79.7\% & +7.1\% & +40.6\% & -8.3\% \\
+Step3 & +266.2\% & +71.0\% & +253.7\% & +41.7\% \\
+Step4 & +71.6\% & +25.6\% & +56.8\% & +14.6\% \\
+Step5 & +399.4\% & +38.7\% & +105.2\% & +6.3\% \\
+
+\bottomrule
+\end{tabular}
+\end{table}
+
+
+\begin{table}[h]
+\centering
+    \setlength\tabcolsep{15pt}
+    \setlength\extrarowheight{0pt}
+\caption{The effect of deferred decoding on the ScienceWorld dataset \citep{wang-etal-2022-scienceworld} world modelling task on the task of Freeze, compared to gemini-3-flash-preview-thinking. The relative improvements are calculated using the absolute performance $(Ours - Baselines) / Baselines * 100\%$. Note that our model is a model with about 1B model parameters.}
+\label{tab:scienceworld6}
+\begin{tabular}{lcccc}
+\toprule
+\textbf{Task Type} & \textbf{EM} & \textbf{F1}
+  & \textbf{BLEU} & \textbf{Entity}\\
+\midrule
+Step1 & +100.0\% & -6.2\% & +63.5\% & -32.1\% \\
+Step2 & +50.0\% & +10.1\% & +62.2\% & -2.9\% \\
+Step3 & +250.0\% & +80.9\% & +112.6\% & +20.6\% \\
+Step4 & +400.0\% & +96.7\% & +303.0\% & +76.0\% \\
+Step5 & +100.0\% & +70.6\% & +40.5\% & +46.1\% \\
+
+
+\bottomrule
+\end{tabular}
+\end{table}
+
+
+\begin{table}[h]
+\centering
+    \setlength\tabcolsep{15pt}
+    \setlength\extrarowheight{0pt}
+\caption{The effect of deferred decoding on the ScienceWorld dataset \citep{wang-etal-2022-scienceworld} world modelling task on the task of Genetics, compared to gemini-3-flash-preview-thinking. The relative improvements are calculated using the absolute performance $(Ours - Baselines) / Baselines * 100\%$. Note that our model is a model with about 1B model parameters.}
+\label{tab:scienceworld7}
+\begin{tabular}{lcccc}
+\toprule
+\textbf{Task Type} & \textbf{EM} & \textbf{F1}
+  & \textbf{BLEU} & \textbf{Entity}\\
+\midrule
+Step1 & +80.8\% & +31.9\% & +68.3\% & +27.0\% \\
+Step2 & +36.5\% & +24.5\% & +33.0\% & +20.3\% \\
+Step3 & +122.1\% & +36.3\% & +101.4\% & +24.3\% \\
+Step4 & +76.7\% & +30.5\% & +54.5\% & +22.6\% \\
+Step5 & +74.0\% & +19.5\% & +52.3\% & +10.7\% \\
+
+
+
+\bottomrule
+\end{tabular}
+\end{table}
+
+
+\begin{table}[h]
+\centering
+    \setlength\tabcolsep{15pt}
+    \setlength\extrarowheight{0pt}
+\caption{The effect of deferred decoding on the ScienceWorld dataset \citep{wang-etal-2022-scienceworld} world modelling task on the task of Grow, compared to gemini-3-flash-preview-thinking. The relative improvements are calculated using the absolute performance $(Ours - Baselines) / Baselines * 100\%$. Note that our model is a model with about 1B model parameters.}
+\label{tab:scienceworld8}
+\begin{tabular}{lcccc}
+\toprule
+\textbf{Task Type} & \textbf{EM} & \textbf{F1}
+  & \textbf{BLEU} & \textbf{Entity}\\
+\midrule
+Step1 & +109.6\% & +20.9\% & +89.1\% & +12.4\% \\
+Step2 & +59.6\% & +13.9\% & +46.9\% & +13.9\% \\
+Step3 & +48.4\% & +7.6\% & +41.1\% & +6.8\% \\
+Step4 & +16.3\% & -5.6\% & +5.8\% & -10.4\% \\
+Step5 & +50.0\% & +8.4\% & +34.1\% & +2.8\% \\
+
+
+
+\bottomrule
+\end{tabular}
+\end{table}
+
+
+
+\begin{table}[h]
+\centering
+    \setlength\tabcolsep{15pt}
+    \setlength\extrarowheight{0pt}
+\caption{The effect of deferred decoding on the ScienceWorld dataset \citep{wang-etal-2022-scienceworld} world modelling task on the task of Incline, compared to gemini-3-flash-preview-thinking. The relative improvements are calculated using the absolute performance $(Ours - Baselines) / Baselines * 100\%$. Note that our model is a model with about 1B model parameters.}
+\label{tab:scienceworld9}
+\begin{tabular}{lcccc}
+\toprule
+\textbf{Task Type} & \textbf{EM} & \textbf{F1}
+  & \textbf{BLEU} & \textbf{Entity}\\
+\midrule
+Step1 & +24.5\% & +1.9\% & +7.5\% & -0.1\% \\
+Step2 & +7.6\% & +2.3\% & +5.5\% & +2.1\% \\
+Step3 & +42.5\% & +6.6\% & +13.9\% & +3.8\% \\
+Step4 & +40.2\% & +6.8\% & +14.8\% & +3.3\% \\
+Step5 & +85.3\% & +8.4\% & +20.5\% & +6.1\% \\
+
+
+
+
+\bottomrule
+\end{tabular}
+\end{table}
+
+
+
+
+\begin{table}[h]
+\centering
+    \setlength\tabcolsep{15pt}
+    \setlength\extrarowheight{0pt}
+\caption{The effect of deferred decoding on the ScienceWorld dataset \citep{wang-etal-2022-scienceworld} world modelling task on the task of Melt, compared to gemini-3-flash-preview-thinking. The relative improvements are calculated using the absolute performance $(Ours - Baselines) / Baselines * 100\%$. Note that our model is a model with about 1B model parameters.}
+\label{tab:scienceworld10}
+\begin{tabular}{lcccc}
+\toprule
+\textbf{Task Type} & \textbf{EM} & \textbf{F1}
+  & \textbf{BLEU} & \textbf{Entity}\\
+\midrule
+Step1 & +112.6\% & -5.7\% & +27.9\% & -22.9\% \\
+Step2 & +343.2\% & +105.4\% & +201.4\% & +88.0\% \\
+Step3 & +349.6\% & +86.0\% & +172.7\% & +59.4\% \\
+Step4 & +585.3\% & +220.3\% & +467.1\% & +138.3\% \\
+Step5 & +557.7\% & +79.5\% & +161.3\% & +42.9\% \\
+
+
+
+
+
+\bottomrule
+\end{tabular}
+\end{table}
+
+
+
+\begin{table}[h]
+\centering
+    \setlength\tabcolsep{15pt}
+    \setlength\extrarowheight{0pt}
+\caption{The effect of deferred decoding on the ScienceWorld dataset \citep{wang-etal-2022-scienceworld} world modelling task on the task of Power, compared to gemini-3-flash-preview-thinking. The relative improvements are calculated using the absolute performance $(Ours - Baselines) / Baselines * 100\%$. Note that our model is a model with about 1B model parameters.}
+\label{tab:scienceworld11}
+\begin{tabular}{lcccc}
+\toprule
+\textbf{Task Type} & \textbf{EM} & \textbf{F1}
+  & \textbf{BLEU} & \textbf{Entity}\\
+\midrule
+Step1 & +499.3\% & +105.5\% & +499.3\% & +61.6\% \\
+Step2 & +99.8\% & +30.6\% & +80.9\% & +17.1\% \\
+Step3 & +299.3\% & +61.0\% & +347.5\% & +24.5\% \\
+Step4 & +66.4\% & +12.4\% & +66.4\% & -9.8\% \\
+Step5 & +299.3\% & +46.2\% & +264.1\% & +34.0\% \\
+
+\bottomrule
+\end{tabular}
+\end{table}
+
+
+\begin{table}[h]
+\centering
+    \setlength\tabcolsep{15pt}
+    \setlength\extrarowheight{0pt}
+\caption{The effect of deferred decoding on the ScienceWorld dataset \citep{wang-etal-2022-scienceworld} world modelling task averaged on all tasks, compared to qwen3.5-flash. The relative improvements are calculated using the absolute performance $(Ours - Baselines) / Baselines * 100\%$. Note that our model is a model with about 1B model parameters.}
+\label{tab:scienceworld12}
+\begin{tabular}{lcccc}
+\toprule
+\textbf{Task Type} & \textbf{EM} & \textbf{F1}
+  & \textbf{BLEU} & \textbf{Entity}\\
+\midrule
+Step1 & +143.5\% & +32.4\% & +93.8\% & +26.3\% \\
+Step2 & +86.4\% & +33.9\% & +72.5\% & +27.8\% \\
+Step3 & +136.1\% & +42.0\% & +106.0\% & +30.2\% \\
+Step4 & +78.1\% & +35.5\% & +74.0\% & +25.1\% \\
+Step5 & +104.8\% & +32.2\% & +79.3\% & +22.1\% \\
+
+\bottomrule
+\end{tabular}
+\end{table}
+
+
+\begin{table}[h]
+\centering
+    \setlength\tabcolsep{15pt}
+    \setlength\extrarowheight{0pt}
+\caption{The effect of deferred decoding on the ScienceWorld dataset \citep{wang-etal-2022-scienceworld} world modelling task averaged on Boil, compared to qwen3.5-flash. The relative improvements are calculated using the absolute performance $(Ours - Baselines) / Baselines * 100\%$. Note that our model is a model with about 1B model parameters.}
+\label{tab:scienceworld13}
+\begin{tabular}{lcccc}
+\toprule
+\textbf{Task Type} & \textbf{EM} & \textbf{F1}
+  & \textbf{BLEU} & \textbf{Entity}\\
+\midrule
+Step1 & — & +38.6\% & +356.5\% & +9.2\% \\
+Step2 & — & +116.7\% & +2428.1\% & +140.3\% \\
+Step3 & — & +100.2\% & +438.1\% & +55.7\% \\
+Step4 & — & +203.1\% & — & +194.7\% \\
+Step5 & +500.9\% & +57.1\% & +184.2\% & +86.7\% \\
+
+\bottomrule
+\end{tabular}
+\end{table}
+
+
+\begin{table}[h]
+\centering
+    \setlength\tabcolsep{15pt}
+    \setlength\extrarowheight{0pt}
+\caption{The effect of deferred decoding on the ScienceWorld dataset \citep{wang-etal-2022-scienceworld} world modelling task averaged on Chemistry, compared to qwen3.5-flash. The relative improvements are calculated using the absolute performance $(Ours - Baselines) / Baselines * 100\%$. Note that our model is a model with about 1B model parameters.}
+\label{tab:scienceworld14}
+\begin{tabular}{lcccc}
+\toprule
+\textbf{Task Type} & \textbf{EM} & \textbf{F1}
+  & \textbf{BLEU} & \textbf{Entity}\\
+\midrule
+Step1 & +450.7\% & +114.6\% & +369.8\% & +103.3\% \\
+Step2 & +500.7\% & +111.4\% & +487.7\% & +86.4\% \\
+Step3 & +600.9\% & +87.3\% & +411.0\% & +38.1\% \\
+Step4 & +250.7\% & +61.6\% & +217.6\% & +43.0\% \\
+Step5 & +300.9\% & +43.4\% & +290.6\% & +15.3\% \\
+
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{table}[h]
+\centering
+    \setlength\tabcolsep{15pt}
+    \setlength\extrarowheight{0pt}
+\caption{The effect of deferred decoding on the ScienceWorld dataset \citep{wang-etal-2022-scienceworld} world modelling task averaged on Conductivity, compared to qwen3.5-flash. The relative improvements are calculated using the absolute performance $(Ours - Baselines) / Baselines * 100\%$. Note that our model is a model with about 1B model parameters.}
+\label{tab:scienceworld15}
+\begin{tabular}{lcccc}
+\toprule
+\textbf{Task Type} & \textbf{EM} & \textbf{F1}
+  & \textbf{BLEU} & \textbf{Entity}\\
+\midrule
+Step1 & +100.0\% & +19.3\% & +71.3\% & -2.4\% \\
+Step2 & +240.5\% & +40.8\% & +209.7\% & +26.0\% \\
+Step3 & +166.3\% & +27.0\% & +169.3\% & +1.3\% \\
+Step4 & +143.1\% & +45.3\% & +191.0\% & +23.9\% \\
+Step5 & +233.3\% & +39.6\% & +191.7\% & +10.6\% \\
+
+\bottomrule
+\end{tabular}
+\end{table}
+
+
+\begin{table}[h]
+\centering
+    \setlength\tabcolsep{15pt}
+    \setlength\extrarowheight{0pt}
+\caption{The effect of deferred decoding on the ScienceWorld dataset \citep{wang-etal-2022-scienceworld} world modelling task averaged on Find, compared to qwen3.5-flash. The relative improvements are calculated using the absolute performance $(Ours - Baselines) / Baselines * 100\%$. Note that our model is a model with about 1B model parameters.}
+\label{tab:scienceworld16}
+\begin{tabular}{lcccc}
+\toprule
+\textbf{Task Type} & \textbf{EM} & \textbf{F1}
+  & \textbf{BLEU} & \textbf{Entity}\\
+\midrule
+Step1 & +699.2\% & +75.0\% & +400.0\% & +58.9\% \\
+Step2 & +349.4\% & +38.6\% & +196.7\% & -0.3\% \\
+Step3 & +449.4\% & +105.8\% & +440.5\% & +63.1\% \\
+Step4 & +139.7\% & +54.0\% & +133.3\% & +30.0\% \\
+Step5 & +149.4\% & +50.7\% & +108.8\% & +8.1\% \\
+
+\bottomrule
+\end{tabular}
+\end{table}
+
+
+\begin{table}[h]
+\centering
+    \setlength\tabcolsep{15pt}
+    \setlength\extrarowheight{0pt}
+\caption{The effect of deferred decoding on the ScienceWorld dataset \citep{wang-etal-2022-scienceworld} world modelling task averaged on Freeze, compared to qwen3.5-flash. The relative improvements are calculated using the absolute performance $(Ours - Baselines) / Baselines * 100\%$. Note that our model is a model with about 1B model parameters.}
+\label{tab:scienceworld17}
+\begin{tabular}{lcccc}
+\toprule
+\textbf{Task Type} & \textbf{EM} & \textbf{F1}
+  & \textbf{BLEU} & \textbf{Entity}\\
+\midrule
+Step1 & +100.0\% & -6.3\% & +308.7\% & -31.3\% \\
+Step2 & +200.0\% & +47.7\% & +116.6\% & +33.4\% \\
+Step3 & — & +162.2\% & +750.0\% & +51.5\% \\
+Step4 & +400.0\% & +109.2\% & +219.7\% & +59.9\% \\
+Step5 & — & +63.1\% & +235.5\% & +14.9\% \\
+
+\bottomrule
+\end{tabular}
+\end{table}
+
+
+
+\begin{table}[h]
+\centering
+    \setlength\tabcolsep{15pt}
+    \setlength\extrarowheight{0pt}
+\caption{The effect of deferred decoding on the ScienceWorld dataset \citep{wang-etal-2022-scienceworld} world modelling task averaged on Genetics, compared to qwen3.5-flash. The relative improvements are calculated using the absolute performance $(Ours - Baselines) / Baselines * 100\%$. Note that our model is a model with about 1B model parameters.}
+\label{tab:scienceworld18}
+\begin{tabular}{lcccc}
+\toprule
+\textbf{Task Type} & \textbf{EM} & \textbf{F1}
+  & \textbf{BLEU} & \textbf{Entity}\\
+\midrule
+Step1 & +203.5\% & +47.2\% & +184.8\% & +53.5\% \\
+Step2 & +61.6\% & +23.0\% & +50.6\% & +23.2\% \\
+Step3 & +202.9\% & +44.6\% & +185.0\% & +39.9\% \\
+Step4 & +70.8\% & +25.8\% & +59.8\% & +22.6\% \\
+Step5 & +104.4\% & +28.5\% & +91.5\% & +21.1\% \\
+
+\bottomrule
+\end{tabular}
+\end{table}
+
+
+\begin{table}[h]
+\centering
+    \setlength\tabcolsep{15pt}
+    \setlength\extrarowheight{0pt}
+\caption{The effect of deferred decoding on the ScienceWorld dataset \citep{wang-etal-2022-scienceworld} world modelling task averaged on Grow, compared to qwen3.5-flash. The relative improvements are calculated using the absolute performance $(Ours - Baselines) / Baselines * 100\%$. Note that our model is a model with about 1B model parameters.}
+\label{tab:scienceworld19}
+\begin{tabular}{lcccc}
+\toprule
+\textbf{Task Type} & \textbf{EM} & \textbf{F1}
+  & \textbf{BLEU} & \textbf{Entity}\\
+\midrule
+Step1 & +450.4\% & +63.1\% & +376.8\% & +45.1\% \\
+Step2 & +168.8\% & +46.5\% & +135.0\% & +34.6\% \\
+Step3 & +257.8\% & +45.7\% & +206.3\% & +31.5\% \\
+Step4 & +87.0\% & +15.4\% & +73.1\% & +0.8\% \\
+Step5 & +152.7\% & +33.3\% & +125.4\% & +20.4\% \\
+
+\bottomrule
+\end{tabular}
+\end{table}
+
+
+\begin{table}[h]
+\centering
+    \setlength\tabcolsep{15pt}
+    \setlength\extrarowheight{0pt}
+\caption{The effect of deferred decoding on the ScienceWorld dataset \citep{wang-etal-2022-scienceworld} world modelling task averaged on Incline, compared to qwen3.5-flash. The relative improvements are calculated using the absolute performance $(Ours - Baselines) / Baselines * 100\%$. Note that our model is a model with about 1B model parameters.}
+\label{tab:scienceworld20}
+\begin{tabular}{lcccc}
+\toprule
+\textbf{Task Type} & \textbf{EM} & \textbf{F1}
+  & \textbf{BLEU} & \textbf{Entity}\\
+\midrule
+Step1 & +40.2\% & +5.5\% & +12.9\% & +4.1\% \\
+Step2 & -1.0\% & +5.8\% & +8.4\% & +4.5\% \\
+Step3 & +7.4\% & +8.2\% & +13.5\% & +5.0\% \\
+Step4 & +2.4\% & +9.5\% & +13.6\% & +6.4\% \\
+Step5 & +9.8\% & +7.1\% & +13.0\% & +4.8\% \\
+
+\bottomrule
+\end{tabular}
+\end{table}
+
+
+
+\begin{table}[h]
+\centering
+    \setlength\tabcolsep{15pt}
+    \setlength\extrarowheight{0pt}
+\caption{The effect of deferred decoding on the ScienceWorld dataset \citep{wang-etal-2022-scienceworld} world modelling task averaged on Melt, compared to qwen3.5-flash. The relative improvements are calculated using the absolute performance $(Ours - Baselines) / Baselines * 100\%$. Note that our model is a model with about 1B model parameters.}
+\label{tab:scienceworld21}
+\begin{tabular}{lcccc}
+\toprule
+\textbf{Task Type} & \textbf{EM} & \textbf{F1}
+  & \textbf{BLEU} & \textbf{Entity}\\
+\midrule
+Step1 & +241.8\% & +25.0\% & +132.4\% & +5.6\% \\
+Step2 & +680.9\% & +143.0\% & +418.9\% & +125.0\% \\
+Step3 & +501.1\% & +152.9\% & +368.9\% & +115.7\% \\
+Step4 & +723.4\% & +198.4\% & +555.0\% & +150.8\% \\
+Step5 & +822.8\% & +128.0\% & +365.8\% & +112.0\% \\
+
+\bottomrule
+\end{tabular}
+\end{table}
+
+
+\begin{table}[h]
+\centering
+    \setlength\tabcolsep{15pt}
+    \setlength\extrarowheight{0pt}
+\caption{The effect of deferred decoding on the ScienceWorld dataset \citep{wang-etal-2022-scienceworld} world modelling task averaged on Power, compared to qwen3.5-flash. The relative improvements are calculated using the absolute performance $(Ours - Baselines) / Baselines * 100\%$. Note that our model is a model with about 1B model parameters.}
+\label{tab:scienceworld22}
+\begin{tabular}{lcccc}
+\toprule
+\textbf{Task Type} & \textbf{EM} & \textbf{F1}
+  & \textbf{BLEU} & \textbf{Entity}\\
+\midrule
+Step1 & +499.3\% & +138.0\% & +350.9\% & +121.2\% \\
+Step2 & +499.3\% & +116.3\% & +439.4\% & +46.9\% \\
+Step3 & +299.3\% & +77.9\% & +300.6\% & +70.3\% \\
+Step4 & — & +103.1\% & +891.7\% & +13.0\% \\
+Step5 & +299.3\% & +76.0\% & +272.1\% & +48.2\% \\
+
+\bottomrule
+\end{tabular}
+\end{table}
+
+
+\begin{table}[h]
+\centering
+    \setlength\tabcolsep{15pt}
+    \setlength\extrarowheight{0pt}
+\caption{The effect of deferred decoding on the ScienceWorld dataset \citep{wang-etal-2022-scienceworld} world modelling task averaged, on our model. Note that our model is a model with about 1B model parameters.}
+\label{tab:scienceworld23}
+\begin{tabular}{lcccc}
+\toprule
+\textbf{Task Type} & \textbf{EM} & \textbf{F1}
+  & \textbf{BLEU} & \textbf{Entity}\\
+\midrule
+Step 1 & 67.2\% & 78.0\% & 72.3\% & 77.9\% \\
+Step 2 & 68.6\% & 86.2\% & 80.9\% & 86.4\% \\
+Step 3 & 68.0\% & 87.5\% & 82.0\% & 87.1\% \\
+Step 4 & 68.4\% & 87.1\% & 82.1\% & 85.6\% \\
+Step 5 & 68.4\% & 85.3\% & 80.7\% & 83.9\% \\
+
+\bottomrule
+\end{tabular}
+\end{table}
+
+
+\begin{table}[h]
+\centering
+    \setlength\tabcolsep{15pt}
+    \setlength\extrarowheight{0pt}
+\caption{The effect of deferred decoding on the ScienceWorld dataset \citep{wang-etal-2022-scienceworld} world modelling tasks, on Step 1, on our model. Note that our model is a model with about 1B model parameters.}
+\label{tab:scienceworld24}
+\begin{tabular}{lcccc}
+\toprule
+\textbf{Task Type} & \textbf{EM} & \textbf{F1}
+  & \textbf{BLEU} & \textbf{Entity}\\
+\midrule
+Boil & 44.4\% & 59.6\% & 52.5\% & 54.4\% \\
+Chemistry & 81.5\% & 85.2\% & 84.1\% & 85.2\% \\
+Conductivity & 69.6\% & 78.5\% & 71.6\% & 76.6\% \\
+Find & 61.5\% & 73.5\% & 61.5\% & 76.9\% \\
+Freeze & 25.0\% & 42.0\% & 34.0\% & 42.5\% \\
+Genetics & 78.3\% & 83.9\% & 78.6\% & 85.5\% \\
+Grow & 67.7\% & 75.7\% & 67.7\% & 76.3\% \\
+Incline & 74.7\% & 91.9\% & 87.7\% & 90.9\% \\
+Melt & 27.0\% & 39.5\% & 31.6\% & 38.0\% \\
+Power & 85.7\% & 97.6\% & 85.7\% & 100.0\% \\
+
+\bottomrule
+\end{tabular}
+\end{table}
+
+
+\begin{table}[h]
+\centering
+    \setlength\tabcolsep{15pt}
+    \setlength\extrarowheight{0pt}
+\caption{The effect of deferred decoding on the ScienceWorld dataset \citep{wang-etal-2022-scienceworld} world modelling tasks, on Step 2, on our model. Note that our model is a model with about 1B model parameters.}
+\label{tab:scienceworld25}
+\begin{tabular}{lcccc}
+\toprule
+\textbf{Task Type} & \textbf{EM} & \textbf{F1}
+  & \textbf{BLEU} & \textbf{Entity}\\
+\midrule
+Boil & 66.7\% & 81.9\% & 71.6\% & 88.9\% \\
+Chemistry & 88.9\% & 92.6\% & 91.1\% & 93.2\% \\
+Conductivity & 73.9\% & 83.5\% & 82.2\% & 81.8\% \\
+Find & 69.2\% & 78.3\% & 70.3\% & 70.3\% \\
+Freeze & 37.5\% & 69.7\% & 54.0\% & 66.7\% \\
+Genetics & 80.8\% & 84.9\% & 82.2\% & 85.9\% \\
+Grow & 78.5\% & 84.4\% & 79.9\% & 87.1\% \\
+Incline & 56.7\% & 93.4\% & 86.9\% & 92.0\% \\
+Melt & 49.2\% & 72.9\% & 63.3\% & 73.9\% \\
+Power & 85.7\% & 95.6\% & 89.0\% & 98.0\% \\
+
+\bottomrule
+\end{tabular}
+\end{table}
+
+
+\begin{table}[h]
+\centering
+    \setlength\tabcolsep{15pt}
+    \setlength\extrarowheight{0pt}
+\caption{The effect of deferred decoding on the ScienceWorld dataset \citep{wang-etal-2022-scienceworld} world modelling tasks, on Step 3, on our model. Note that our model is a model with about 1B model parameters.}
+\label{tab:scienceworld26}
+\begin{tabular}{lcccc}
+\toprule
+\textbf{Task Type} & \textbf{EM} & \textbf{F1}
+  & \textbf{BLEU} & \textbf{Entity}\\
+\midrule
+Boil & 77.8\% & 97.5\% & 94.7\% & 98.1\% \\
+Chemistry & 77.8\% & 85.4\% & 80.1\% & 83.8\% \\
+Conductivity & 69.6\% & 82.7\% & 80.8\% & 80.6\% \\
+Find & 84.6\% & 96.1\% & 90.9\% & 96.2\% \\
+Freeze & 87.5\% & 98.6\% & 70.8\% & 97.9\% \\
+Genetics & 83.3\% & 86.3\% & 83.8\% & 85.0\% \\
+Grow & 66.2\% & 73.3\% & 68.3\% & 75.1\% \\
+Incline & 58.0\% & 96.6\% & 91.2\% & 94.6\% \\
+Melt & 57.1\% & 88.0\% & 76.9\% & 92.3\% \\
+Power & 57.1\% & 74.7\% & 72.5\% & 72.2\% \\
+
+\bottomrule
+\end{tabular}
+\end{table}
+
+
+
+\begin{table}[h]
+\centering
+    \setlength\tabcolsep{15pt}
+    \setlength\extrarowheight{0pt}
+\caption{The effect of deferred decoding on the ScienceWorld dataset \citep{wang-etal-2022-scienceworld} world modelling tasks, on Step 4, on our model. Note that our model is a model with about 1B model parameters.}
+\label{tab:scienceworld27}
+\begin{tabular}{lcccc}
+\toprule
+\textbf{Task Type} & \textbf{EM} & \textbf{F1}
+  & \textbf{BLEU} & \textbf{Entity}\\
+\midrule
+Boil & 88.9\% & 98.8\% & 85.1\% & 98.1\% \\
+Chemistry & 51.9\% & 72.7\% & 61.3\% & 66.5\% \\
+Conductivity & 73.9\% & 93.0\% & 90.2\% & 92.5\% \\
+Find & 92.3\% & 94.1\% & 93.3\% & 93.4\% \\
+Freeze & 62.5\% & 95.4\% & 66.5\% & 91.7\% \\
+Genetics & 82.5\% & 84.3\% & 83.1\% & 84.6\% \\
+Grow & 66.2\% & 72.1\% & 67.7\% & 71.3\% \\
+Incline & 60.7\% & 95.8\% & 90.9\% & 93.7\% \\
+Melt & 65.1\% & 91.6\% & 84.5\% & 90.3\% \\
+Power & 71.4\% & 79.0\% & 71.4\% & 71.4\% \\
+
+\bottomrule
+\end{tabular}
+\end{table}
+
+
+\begin{table}[h]
+\centering
+    \setlength\tabcolsep{15pt}
+    \setlength\extrarowheight{0pt}
+\caption{The effect of deferred decoding on the ScienceWorld dataset \citep{wang-etal-2022-scienceworld} world modelling tasks, on Step 5, on our model. Note that our model is a model with about 1B model parameters.}
+\label{tab:scienceworld28}
+\begin{tabular}{lcccc}
+\toprule
+\textbf{Task Type} & \textbf{EM} & \textbf{F1}
+  & \textbf{BLEU} & \textbf{Entity}\\
+\midrule
+Boil & 66.7\% & 79.0\% & 75.3\% & 77.5\% \\
+Chemistry & 44.4\% & 64.4\% & 54.2\% & 57.9\% \\
+Conductivity & 87.0\% & 89.0\% & 87.8\% & 87.9\% \\
+Find & 76.9\% & 90.4\% & 82.7\% & 85.8\% \\
+Freeze & 25.0\% & 59.7\% & 31.2\% & 54.8\% \\
+Genetics & 78.3\% & 80.2\% & 78.9\% & 79.8\% \\
+Grow & 73.8\% & 80.0\% & 75.5\% & 79.8\% \\
+Incline & 59.3\% & 95.3\% & 90.4\% & 93.4\% \\
+Melt & 73.0\% & 91.9\% & 85.7\% & 91.6\% \\
+Power & 57.1\% & 63.9\% & 60.8\% & 61.5\% \\
+
+\bottomrule
+\end{tabular}
+\end{table}
+
+
+
+\begin{table}[h]
+\centering
+    \setlength\tabcolsep{15pt}
+    \setlength\extrarowheight{0pt}
+\caption{The effect of deferred decoding on the ScienceWorld dataset \citep{wang-etal-2022-scienceworld} world modelling tasks, on gemini.}
+\label{tab:scienceworld29}
+\begin{tabular}{lcccc}
+\toprule
+\textbf{Task Type} & \textbf{EM} & \textbf{F1}
+  & \textbf{BLEU} & \textbf{Entity}\\
+\midrule
+Step 1 & 38.8\% & 67.0\% & 49.2\% & 71.0\% \\
+Step 2 & 44.4\% & 71.0\% & 57.1\% & 73.2\% \\
+Step 3 & 33.4\% & 68.3\% & 49.7\% & 73.2\% \\
+Step 4 & 37.4\% & 67.5\% & 52.8\% & 70.9\% \\
+Step 5 & 32.0\% & 69.7\% & 52.2\% & 74.4\% \\
+
+\bottomrule
+\end{tabular}
+\end{table}
+
+
+\begin{table}[h]
+\centering
+    \setlength\tabcolsep{15pt}
+    \setlength\extrarowheight{0pt}
+\caption{The effect of deferred decoding on the ScienceWorld dataset \citep{wang-etal-2022-scienceworld} world modelling tasks, on Step 1 on gemini.}
+\label{tab:scienceworld30}
+\begin{tabular}{lcccc}
+\toprule
+\textbf{Task Type} & \textbf{EM} & \textbf{F1}
+  & \textbf{BLEU} & \textbf{Entity}\\
+\midrule
+Boil & 22.2\% & 57.6\% & 37.6\% & 59.1\% \\
+Chemistry & 22.2\% & 55.9\% & 28.3\% & 54.3\% \\
+Conductivity & 39.1\% & 66.8\% & 45.1\% & 74.8\% \\
+Find & 23.1\% & 50.7\% & 25.5\% & 59.9\% \\
+Freeze & 12.5\% & 44.8\% & 20.8\% & 62.6\% \\
+Genetics & 43.3\% & 63.6\% & 46.7\% & 67.3\% \\
+Grow & 32.3\% & 62.6\% & 35.8\% & 67.9\% \\
+Incline & 60.0\% & 90.2\% & 81.6\% & 91.0\% \\
+Melt & 12.7\% & 41.9\% & 24.7\% & 49.3\% \\
+Power & 14.3\% & 47.5\% & 14.3\% & 61.9\% \\
+
+\bottomrule
+\end{tabular}
+\end{table}
+
+
+\begin{table}[h]
+\centering
+    \setlength\tabcolsep{15pt}
+    \setlength\extrarowheight{0pt}
+\caption{The effect of deferred decoding on the ScienceWorld dataset \citep{wang-etal-2022-scienceworld} world modelling tasks, on Step 2 on gemini.}
+\label{tab:scienceworld31}
+\begin{tabular}{lcccc}
+\toprule
+\textbf{Task Type} & \textbf{EM} & \textbf{F1}
+  & \textbf{BLEU} & \textbf{Entity}\\
+\midrule
+Boil & 44.4\% & 61.4\% & 44.4\% & 57.4\% \\
+Chemistry & 37.0\% & 65.1\% & 41.4\% & 69.8\% \\
+Conductivity & 26.1\% & 57.8\% & 28.3\% & 57.4\% \\
+Find & 38.5\% & 73.1\% & 50.0\% & 76.7\% \\
+Freeze & 25.0\% & 63.3\% & 33.3\% & 68.7\% \\
+Genetics & 59.2\% & 68.2\% & 61.8\% & 71.4\% \\
+Grow & 49.2\% & 74.1\% & 54.4\% & 76.5\% \\
+Incline & 52.7\% & 91.3\% & 82.4\% & 90.1\% \\
+Melt & 11.1\% & 35.5\% & 21.0\% & 39.3\% \\
+Power & 42.9\% & 73.2\% & 49.2\% & 83.7\% \\
+
+\bottomrule
+\end{tabular}
+\end{table}
+
+
+\begin{table}[h]
+\centering
+    \setlength\tabcolsep{15pt}
+    \setlength\extrarowheight{0pt}
+\caption{The effect of deferred decoding on the ScienceWorld dataset \citep{wang-etal-2022-scienceworld} world modelling tasks, on Step 3 on gemini.}
+\label{tab:scienceworld32}
+\begin{tabular}{lcccc}
+\toprule
+\textbf{Task Type} & \textbf{EM} & \textbf{F1}
+  & \textbf{BLEU} & \textbf{Entity}\\
+\midrule
+Boil & 22.2\% & 61.9\% & 40.1\% & 70.4\% \\
+Chemistry & 37.0\% & 63.7\% & 41.6\% & 70.7\% \\
+Conductivity & 21.7\% & 52.5\% & 23.1\% & 58.0\% \\
+Find & 23.1\% & 56.2\% & 25.7\% & 67.9\% \\
+Freeze & 25.0\% & 54.5\% & 33.3\% & 81.2\% \\
+Genetics & 37.5\% & 63.3\% & 41.6\% & 68.4\% \\
+Grow & 44.6\% & 68.1\% & 48.4\% & 70.3\% \\
+Incline & 40.7\% & 90.6\% & 80.1\% & 91.1\% \\
+Melt & 12.7\% & 47.3\% & 28.2\% & 57.9\% \\
+Power & 14.3\% & 46.4\% & 16.2\% & 58.0\% \\
+
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{table}[h]
+\centering
+    \setlength\tabcolsep{15pt}
+    \setlength\extrarowheight{0pt}
+\caption{The effect of deferred decoding on the ScienceWorld dataset \citep{wang-etal-2022-scienceworld} world modelling tasks, on Step 4 on gemini.}
+\label{tab:scienceworld33}
+\begin{tabular}{lcccc}
+\toprule
+\textbf{Task Type} & \textbf{EM} & \textbf{F1}
+  & \textbf{BLEU} & \textbf{Entity}\\
+\midrule
+Boil & 11.1\% & 44.9\% & 14.1\% & 44.4\% \\
+Chemistry & 11.1\% & 46.3\% & 18.9\% & 40.9\% \\
+Conductivity & 26.1\% & 60.7\% & 30.6\% & 62.2\% \\
+Find & 53.8\% & 74.9\% & 59.5\% & 81.5\% \\
+Freeze & 12.5\% & 48.5\% & 16.5\% & 52.1\% \\
+Genetics & 46.7\% & 64.6\% & 53.8\% & 69.0\% \\
+Grow & 56.9\% & 76.4\% & 64.0\% & 79.6\% \\
+Incline & 43.3\% & 89.7\% & 79.2\% & 90.7\% \\
+Melt & 9.5\% & 28.6\% & 14.9\% & 37.9\% \\
+Power & 42.9\% & 70.3\% & 42.9\% & 79.2\% \\
+
+\bottomrule
+\end{tabular}
+\end{table}
+
+
+\begin{table}[h]
+\centering
+    \setlength\tabcolsep{15pt}
+    \setlength\extrarowheight{0pt}
+\caption{The effect of deferred decoding on the ScienceWorld dataset \citep{wang-etal-2022-scienceworld} world modelling tasks, on Step 5 on gemini.}
+\label{tab:scienceworld34}
+\begin{tabular}{lcccc}
+\toprule
+\textbf{Task Type} & \textbf{EM} & \textbf{F1}
+  & \textbf{BLEU} & \textbf{Entity}\\
+\midrule
+Boil & 11.1\% & 60.8\% & 37.3\% & 64.6\% \\
+Chemistry & 22.2\% & 56.0\% & 30.3\% & 57.9\% \\
+Conductivity & 26.1\% & 58.6\% & 27.6\% & 62.8\% \\
+Find & 15.4\% & 65.2\% & 40.3\% & 80.7\% \\
+Freeze & 12.5\% & 35.0\% & 22.2\% & 37.5\% \\
+Genetics & 45.0\% & 67.1\% & 51.8\% & 72.1\% \\
+Grow & 49.2\% & 73.8\% & 56.3\% & 77.6\% \\
+Incline & 32.0\% & 87.9\% & 75.0\% & 88.0\% \\
+Melt & 11.1\% & 51.2\% & 32.8\% & 64.1\% \\
+Power & 14.3\% & 43.7\% & 16.7\% & 45.9\% \\
+
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{table}[h]
+\centering
+    \setlength\tabcolsep{15pt}
+    \setlength\extrarowheight{0pt}
+\caption{The effect of deferred decoding on the ScienceWorld dataset \citep{wang-etal-2022-scienceworld} world modelling tasks on qwen.}
+\label{tab:scienceworld35}
+\begin{tabular}{lcccc}
+\toprule
+\textbf{Task Type} & \textbf{EM} & \textbf{F1}
+  & \textbf{BLEU} & \textbf{Entity}\\
+\midrule
+Step 1 & 27.6\% & 58.9\% & 37.3\% & 61.7\% \\
+Step 2 & 36.8\% & 64.4\% & 46.9\% & 67.6\% \\
+Step 3 & 28.8\% & 61.6\% & 39.8\% & 66.9\% \\
+Step 4 & 38.4\% & 64.3\% & 47.2\% & 68.4\% \\
+Step 5 & 33.4\% & 64.5\% & 45.0\% & 68.7\% \\
+
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{table}[h]
+\centering
+    \setlength\tabcolsep{15pt}
+    \setlength\extrarowheight{0pt}
+\caption{The effect of deferred decoding on the ScienceWorld dataset \citep{wang-etal-2022-scienceworld} world modelling tasks, on Step 1 on qwen.}
+\label{tab:scienceworld36}
+\begin{tabular}{lcccc}
+\toprule
+\textbf{Task Type} & \textbf{EM} & \textbf{F1}
+  & \textbf{BLEU} & \textbf{Entity}\\
+\midrule
+Boil & 0.0\% & 43.0\% & 11.5\% & 49.8\% \\
+Chemistry & 14.8\% & 39.7\% & 17.9\% & 41.9\% \\
+Conductivity & 34.8\% & 65.8\% & 41.8\% & 78.5\% \\
+Find & 7.7\% & 42.0\% & 12.3\% & 48.4\% \\
+Freeze & 0.0\% & 34.3\% & 8.3\% & 49.3\% \\
+Genetics & 25.8\% & 57.0\% & 27.6\% & 55.7\% \\
+Grow & 12.3\% & 46.4\% & 14.2\% & 52.6\% \\
+Incline & 53.3\% & 87.1\% & 77.7\% & 87.3\% \\
+Melt & 7.9\% & 31.6\% & 13.6\% & 36.0\% \\
+Power & 14.3\% & 41.0\% & 19.0\% & 45.2\% \\
+
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{table}[h]
+\centering
+    \setlength\tabcolsep{15pt}
+    \setlength\extrarowheight{0pt}
+\caption{The effect of deferred decoding on the ScienceWorld dataset \citep{wang-etal-2022-scienceworld} world modelling tasks, on Step 2 on qwen.}
+\label{tab:scienceworld37}
+\begin{tabular}{lcccc}
+\toprule
+\textbf{Task Type} & \textbf{EM} & \textbf{F1}
+  & \textbf{BLEU} & \textbf{Entity}\\
+\midrule
+Boil & 0.0\% & 37.8\% & 3.2\% & 37.0\% \\
+Chemistry & 14.8\% & 43.8\% & 15.5\% & 50.0\% \\
+Conductivity & 21.7\% & 59.3\% & 26.6\% & 64.9\% \\
+Find & 15.4\% & 56.5\% & 23.7\% & 70.5\% \\
+Freeze & 12.5\% & 47.2\% & 24.7\% & 50.0\% \\
+Genetics & 50.0\% & 69.0\% & 54.5\% & 69.7\% \\
+Grow & 29.2\% & 57.6\% & 34.0\% & 64.7\% \\
+Incline & 57.3\% & 88.3\% & 80.2\% & 88.0\% \\
+Melt & 6.3\% & 30.0\% & 12.2\% & 32.8\% \\
+Power & 14.3\% & 44.2\% & 16.5\% & 66.7\% \\
+
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{table}[h]
+\centering
+    \setlength\tabcolsep{15pt}
+    \setlength\extrarowheight{0pt}
+\caption{The effect of deferred decoding on the ScienceWorld dataset \citep{wang-etal-2022-scienceworld} world modelling tasks, on Step 3 on qwen.}
+\label{tab:scienceworld38}
+\begin{tabular}{lcccc}
+\toprule
+\textbf{Task Type} & \textbf{EM} & \textbf{F1}
+  & \textbf{BLEU} & \textbf{Entity}\\
+\midrule
+Boil & 0.0\% & 48.7\% & 17.6\% & 63.0\% \\
+Chemistry & 11.1\% & 45.6\% & 16.4\% & 61.4\% \\
+Conductivity & 26.1\% & 65.1\% & 30.0\% & 79.6\% \\
+Find & 15.4\% & 46.7\% & 16.8\% & 59.0\% \\
+Freeze & 0.0\% & 37.6\% & 8.3\% & 64.6\% \\
+Genetics & 27.5\% & 59.7\% & 29.4\% & 61.1\% \\
+Grow & 18.5\% & 50.3\% & 22.3\% & 57.1\% \\
+Incline & 54.0\% & 89.3\% & 80.5\% & 90.1\% \\
+Melt & 9.5\% & 34.8\% & 16.4\% & 42.8\% \\
+Power & 14.3\% & 42.0\% & 18.1\% & 42.4\% \\
+
+\bottomrule
+\end{tabular}
+\end{table}
+
+
+\begin{table}[h]
+\centering
+    \setlength\tabcolsep{15pt}
+    \setlength\extrarowheight{0pt}
+\caption{The effect of deferred decoding on the ScienceWorld dataset \citep{wang-etal-2022-scienceworld} world modelling tasks, on Step 4 on qwen.}
+\label{tab:scienceworld39}
+\begin{tabular}{lcccc}
+\toprule
+\textbf{Task Type} & \textbf{EM} & \textbf{F1}
+  & \textbf{BLEU} & \textbf{Entity}\\
+\midrule
+Boil & 0.0\% & 32.6\% & 0.0\% & 33.3\% \\
+Chemistry & 14.8\% & 45.0\% & 19.3\% & 46.5\% \\
+Conductivity & 30.4\% & 64.0\% & 31.0\% & 74.7\% \\
+Find & 38.5\% & 61.1\% & 40.0\% & 71.8\% \\
+Freeze & 12.5\% & 45.6\% & 20.8\% & 57.3\% \\
+Genetics & 48.3\% & 67.0\% & 52.0\% & 69.0\% \\
+Grow & 35.4\% & 62.5\% & 39.1\% & 70.7\% \\
+Incline & 59.3\% & 87.5\% & 80.0\% & 88.1\% \\
+Melt & 7.9\% & 30.7\% & 12.9\% & 36.0\% \\
+Power & 0.0\% & 38.9\% & 7.2\% & 63.1\% \\
+
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{table}[h]
+\centering
+    \setlength\tabcolsep{15pt}
+    \setlength\extrarowheight{0pt}
+\caption{The effect of deferred decoding on the ScienceWorld dataset \citep{wang-etal-2022-scienceworld} world modelling tasks, on Step 5 on qwen.}
+\label{tab:scienceworld40}
+\begin{tabular}{lcccc}
+\toprule
+\textbf{Task Type} & \textbf{EM} & \textbf{F1}
+  & \textbf{BLEU} & \textbf{Entity}\\
+\midrule
+Boil & 11.1\% & 50.3\% & 26.5\% & 41.5\% \\
+Chemistry & 11.1\% & 44.9\% & 13.9\% & 50.2\% \\
+Conductivity & 26.1\% & 63.8\% & 30.1\% & 79.5\% \\
+Find & 30.8\% & 60.0\% & 39.6\% & 79.4\% \\
+Freeze & 0.0\% & 36.6\% & 9.3\% & 47.7\% \\
+Genetics & 38.3\% & 62.4\% & 41.2\% & 65.9\% \\
+Grow & 29.2\% & 60.0\% & 33.5\% & 66.3\% \\
+Incline & 54.0\% & 89.0\% & 80.0\% & 89.1\% \\
+Melt & 7.9\% & 40.3\% & 18.4\% & 43.2\% \\
+Power & 14.3\% & 36.3\% & 22.1\% & 41.5\% \\
+
+\bottomrule
+\end{tabular}
+\end{table}
+
+Across the tables, we conclude that the deferred decoding is useful, and it tends to be more useful when the rollouts are accumulated.
