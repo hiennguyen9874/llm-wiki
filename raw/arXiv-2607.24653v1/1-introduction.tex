@@ -1,0 +1,50 @@
+\section{Introduction}
+\label{sec:intro}
+
+For much of the development of Large Language Models (LLMs), scaling meant investing more computation before deployment by training larger models on more data~\citep{kaplan2020scaling,hoffmann2022training}.
+The rise of reasoning models has established test-time computation as a second axis of scaling: OpenAI's o-series scales reinforcement learning and test-time reasoning~\citep{openai2024o1,openai2025o3}; Anthropic's extended-thinking models allocate adaptive thinking budgets and interleave reasoning with tool use~\citep{anthropic2025extendedthinking,anthropic2025claude4}; DeepSeek-R1~\citep{deepseekai2025deepseekr1} and \kimi{1.5}~\citep{kimik15} show that large-scale reinforcement learning can elicit sophisticated reasoning behaviors from strong pre-trained models; and \kimi{2.5} Agent Swarm~\citep{kimik25} further extends test-time scaling from sequential reasoning to parallel agent coordination.
+These advances have made test-time scaling a central focus of frontier research.
+However, while the open-source model ecosystem has advanced rapidly on the second axis, it has progressed slowly on the first: many recent models remain within or slightly above the 1T-class parameter regime~\citep{glm5team2026glm5vibecodingagentic,deepseekv4,mimo2026v25pro,thinkingmachines2026inkling}.
+As increasingly sophisticated reasoning and agentic reinforcement learning methods are applied to pre-trained foundations of similar scale, open-source progress risks converging while the gap to the strongest proprietary systems widens.
+With \kimi{3}, we pursue both scaling axes together to the frontier: scaling the pre-trained foundation to unprecedented 3T-class parameters while scaling reinforcement learning, reasoning effort, and long-horizon interaction at 1M context length.
+
+
+We introduce \kimi{3}, a native multimodal Mixture-of-Experts model with 2.8 trillion total parameters, 104 billion activated parameters, and a context window of up to one million tokens.
+Its architecture scales information flow across sequence length, network depth, and model width.
+Kimi Delta Attention (KDA)~\citep{team2025kimi} provides efficient long-sequence mixing, with periodically interleaved Gated MLA layers preserving global interaction. Attention Residuals (AttnRes)~\citep{kimiteam2026attnres} allows each layer to selectively attend to representations from all preceding layers. Stable LatentMoE expands the routed expert space to 896 experts, with 16 activated per token, while normalization, SiTU-GLU, and Quantile Balancing stabilize optimization at extreme sparsity. These architectural advances, combined with refined data and training recipes, yield an approximately $2.5\times$ improvement in overall scaling efficiency over \kimi{2}~\cite{kimiteam2025kimik2openagentic}.
+
+We pair this pre-training foundation with post-training designed explicitly for 1M context test-time scaling.
+\kimi{3} undergoes reinforcement learning across long-horizon coding, general agents, general reasoning and knowledge tasks, each spanning multiple reasoning-effort levels.
+Training environments include verifiable search and professional knowledge work, software engineering and kernel optimization, multimodal reasoning with vision-in-the-loop tool use, persistent assistant workflows, web development, and autonomous execution tasks.
+These environments train a general loop of reasoning, acting, observing, verifying, and adapting, often over hundreds or thousands of tool calls and millions of accumulated context tokens.
+Domain- and effort-specialized policies are consolidated into a unified model through multi-teacher on-policy distillation~\citep{lu2025onpolicydistillation, xiao2026mimov2flash, deepseekv4}.
+
+
+Realizing this regime requires infrastructure that scales with architecture complexity, model size, and trajectory length. 
+For systems co-design for KDA, we develop fused kernels, KDA Context Parallelism, and state-aware prefix caching to make KDA efficient within devices, across devices, and across requests. 
+For 2.8T-parameter MoE pre-training, MoonEP provides perfectly balanced expert execution with static computation shapes and zero-copy communication, while memory efficient training and multimodal encoder optimizations sustain utilization within bounded memory. 
+For million-token agentic RL, our co-located system combines partial rollouts, external KV-cache retention, adaptive throttling and resumable microVM sandboxes to preserve long-lived model and environment state. 
+Finally, specialized kernels, and cache- and budget-aware fleet scheduling translate these innovations into predictable production serving.
+
+
+The resulting model establishes a new open frontier.
+On benchmarks spanning long-horizon
+coding, agentic, knowledge, reasoning, and vision tasks, \kimi{3} trails the strongest proprietary systems overall---Claude Fable 5 and GPT-5.6 Sol---and is consistently ahead of the other open and proprietary models evaluated in our suite, as shown in Fig.~\ref{fig:kimi-k3-results}.
+
+Our contributions are summarized as follows:
+
+\begin{itemize}[leftmargin=12pt, topsep=0pt]
+    \item \textbf{Pre-training at the open frontier.}
+          We train a 2.8T-parameter native multimodal MoE model with 104B activated parameters and a 1M-token context window.
+          KDA, AttnRes, Stable LatentMoE, refined data and training recipes collectively improve overall scaling efficiency by approximately $2.5\times$ over \kimi{2}.
+
+    \item \textbf{Reinforcement learning for multi-effort test-time scaling.}
+          We conduct RL across general, agentic, and coding domains and multiple reasoning-effort levels, then consolidate the resulting capabilities into a unified model.
+
+    \item \textbf{Infrastructure for multi-trillion-parameter, million-token intelligence.}
+          We introduce KDA systems co-designs; MoonEP and memory-efficient infrastructure for 2.8T-parameter MoE pre-training; a co-located RL system with resumable sandboxes for million-token agentic trajectories; and more infrastructure innovations.
+
+    \item \textbf{An open frontier model.}
+          We release the full \kimi{3} model weights, making frontier intelligence available for research, deployment, and further innovation.
+
+\end{itemize}

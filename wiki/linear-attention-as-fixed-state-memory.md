@@ -5,7 +5,7 @@ description: Linear attention trades token-addressable KV storage for a fixed-si
 tags: [attention, associative-memory, linear-attention, inference]
 status: stable
 created: 2026-07-31
-generated: { by: llm-wiki-agent/1, at: 2026-08-01T01:48:53Z }
+generated: { by: llm-wiki-agent/1, at: 2026-08-01T02:00:00Z }
 sources:
   - id: gpt2-kimi3-2026
     resource: ../raw/2026-07-27-from-gpt2-to-kimi-k3.md
@@ -13,6 +13,9 @@ sources:
   - id: kimi-linear-2025
     resource: ../raw/arXiv-2510.26692v2/main.tex
     title: "Kimi Linear: An Expressive, Efficient Attention Architecture"
+  - id: kimi-k3-2026
+    resource: ../raw/arXiv-2607.24653v1/main.tex
+    title: "Kimi K3: Open Frontier Intelligence"
 ---
 
 # Linear attention as fixed-state memory
@@ -38,12 +41,14 @@ Training, prefill, and decode complexity should be distinguished. Avoid treating
 
 - **Improved by:** [Delta-rule and gated associative memory](delta-rule-and-gated-associative-memory.md), which adds targeted replacement and learned decay to a fixed-size state.
 - **Used by:** [Kimi Linear hybrid attention architecture](kimi-linear-hybrid-attention-architecture.md), which combines fixed-state KDA layers with periodic global attention.
-- **Used by:** [Kimi K3 hybrid retrieval architecture](kimi-k3-hybrid-retrieval-architecture.md) through Kimi Delta Attention.[^gpt2-kimi3-2026]
+- **Used by:** [Kimi K3 hybrid retrieval architecture](kimi-k3-hybrid-retrieval-architecture.md) through KDA, paired with periodic global MLA because fixed recurrent state is not token-addressable.[^kimi-k3-2026]
 
 ## Evidence limits
 
-The fixed-state mechanism and its KDA realization are supported by the primary Kimi Linear report; the broader conceptual framing and Kimi K3 relationship also draw on a secondary explainer. Fixed state guarantees bounded state dimensions, not lossless memory, constant end-to-end latency, or quality parity with softmax attention. Those outcomes remain architecture-, kernel-, context-, and workload-dependent.
+The fixed-state mechanism and its KDA realization are supported by the primary Kimi Linear and Kimi K3 reports; the broader memory framing also draws on the secondary explainer. Fixed state guarantees bounded state dimensions, not lossless memory, constant end-to-end latency, or quality parity with softmax attention. Kimi K3 still retains sequence-growing MLA cache, so end-to-end outcomes remain architecture-, kernel-, context-, and workload-dependent.
 
 [^gpt2-kimi3-2026]: ali (@waterloo_intern), “22580: From GPT2 to Kimi3, Explained,” 2026-07-27, [raw source](../raw/2026-07-27-from-gpt2-to-kimi-k3.md).
 
 [^kimi-linear-2025]: Kimi Team, “Kimi Linear: An Expressive, Efficient Attention Architecture,” arXiv:2510.26692v2, [source](../raw/arXiv-2510.26692v2/main.tex), especially Sections 1–3 and 6.
+
+[^kimi-k3-2026]: Kimi Team, “Kimi K3: Open Frontier Intelligence,” arXiv:2607.24653v1, [source](../raw/arXiv-2607.24653v1/main.tex), Sections 2.1 and 5.

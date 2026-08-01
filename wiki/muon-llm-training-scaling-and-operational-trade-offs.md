@@ -5,11 +5,14 @@ description: The supplied Muon overview reports lower compute-to-loss requiremen
 tags: [muon, optimizer, scaling-laws, distributed-training, pre-training, mixture-of-experts]
 status: draft
 created: 2026-08-01
-generated: { by: llm-wiki-agent/1, at: 2026-08-01T00:26:20+07:00 }
+generated: { by: llm-wiki-agent/1, at: 2026-08-01T02:00:00Z }
 sources:
   - id: muon-overview-2026
     resource: ../raw/MuonOptimizer.md
     title: Muon Optimizer overview (Vietnamese summary)
+  - id: kimi-k3-2026
+    resource: ../raw/arXiv-2607.24653v1/main.tex
+    title: "Kimi K3: Open Frontier Intelligence"
 ---
 
 # Muon LLM training scaling and operational trade-offs
@@ -25,6 +28,10 @@ Muon saves optimizer-state memory only for the matrix parameters assigned to it:
 ## Distributed execution
 
 Newton–Schulz orthogonalization requires a full momentum matrix, which makes straightforward optimizer sharding insufficient. The described Distributed Muon procedure reduce-scatters gradients, updates local momentum shards, gathers the complete matrix for orthogonalization, retains each update shard, updates parameter shards, and all-gathers parameters. The overview estimates communication at roughly 1–1.25 times Distributed AdamW, but realized wall-clock cost remains dependent on matrix packing, kernels, parallelism, and communication overlap.[^muon-overview-2026]
+
+## Kimi K3 refinements
+
+Kimi K3 orthogonalizes Q/K/V momentum separately per attention head rather than as one full projection, aiming to prevent large-scale heads from dominating the shared update. For distributed optimizer sharding, each rank retrieves only remote shards needed to assemble its locally owned matrices through pipelined P2P communication, avoiding a full-parameter all-gather buffer. The report claims improved stability and lower overhead but does not isolate end-to-end gains.[^kimi-k3-2026]
 
 ## Limits for adoption
 
@@ -44,3 +51,5 @@ Newton–Schulz orthogonalization requires a full momentum matrix, which makes s
 The source is a secondary Vietnamese overview. Its primary technical report, implementation measurements, and reported benchmark data have not been independently verified in this wiki.[^muon-overview-2026]
 
 [^muon-overview-2026]: “Muon Optimizer overview (Vietnamese summary),” [raw source](../raw/MuonOptimizer.md), Sections 7–11 and 13–15; it cites “Muon is Scalable for LLM Training” (arXiv:2502.16982).
+
+[^kimi-k3-2026]: Kimi Team, “Kimi K3: Open Frontier Intelligence,” arXiv:2607.24653v1, [source](../raw/arXiv-2607.24653v1/main.tex), Sections 2.5 and 5.2.

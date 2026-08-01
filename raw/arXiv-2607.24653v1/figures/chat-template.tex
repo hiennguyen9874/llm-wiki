@@ -1,0 +1,122 @@
+\definecolor{ctfigink}{HTML}{1C1C1E}
+\definecolor{ctfiggray}{HTML}{777777}
+\definecolor{ctfiggrid}{HTML}{D6D6D8}
+\definecolor{ctfigred}{HTML}{B92622}
+\definecolor{ctfigredfill}{HTML}{FBF1F0}
+\definecolor{ctfigblue}{HTML}{1773E6}
+\definecolor{ctfigbluefill}{HTML}{EDF4FD}
+
+\begin{adjustbox}{width=\textwidth,center}
+        \begin{tikzpicture}[
+                        x=1pt,
+                        y=1pt,
+                        outer sep=0pt,
+                        paneltitle/.style={font=\fontsize{9.2}{10.8}\selectfont, text=ctfigink, align=center},
+                        zonelabel/.style={font=\fontsize{7.2}{8.4}\selectfont, text=ctfiggray},
+                        zone/.style={draw=ctfiggrid, line width=0.5pt, rounded corners=2.5pt, fill=white},
+                        chip/.style={draw=ctfigink!75, line width=0.5pt, rounded corners=1.5pt,
+                                        fill=white, font=\fontsize{6.9}{8}\selectfont, text=ctfigink,
+                                        inner xsep=3pt, inner ysep=2.2pt},
+                        optchip/.style={chip, draw=ctfigblue!80, fill=ctfigbluefill},
+                        hotchip/.style={chip, draw=ctfigred, fill=ctfigredfill, line width=0.7pt},
+                        expchip/.style={chip, dashed, draw=ctfiggray},
+                        chan/.style={line width=0.5pt, rounded corners=2pt},
+                        chanthink/.style={chan, draw=ctfiggray!75, fill=white},
+                        chanresp/.style={chan, draw=ctfigblue!65, fill=ctfigbluefill},
+                        chantools/.style={chan, draw=ctfigred!60, fill=ctfigredfill},
+                        callcard/.style={draw=ctfigink!55, line width=0.45pt, rounded corners=1.8pt, fill=white},
+                        mono/.style={font=\scriptsize\ttfamily, text=ctfigink},
+                        textline/.style={draw=ctfiggrid, line width=1.7pt, line cap=round},
+                        flow/.style={draw=ctfiggray, line width=0.55pt,
+                                                -{Latex[length=3.8pt,width=3pt]}},
+                        zoom/.style={draw=ctfiggray!85, line width=0.45pt, dashed},
+                ]
+                \path[use as bounding box] (0,-4) rectangle (560,205);
+
+                \node[paneltitle, anchor=north] at (82,203)
+                {(a) Context layout};
+
+                \draw[zone] (6,150) rectangle (158,184);
+                \node[zonelabel, anchor=north] at (82,182) {global option messages};
+                \node[optchip] at (47,162) {tool-declare};
+                \node[optchip] at (110,162) {thinking-effort};
+
+                \draw[zone] (6,80) rectangle (158,140);
+                \node[zonelabel, anchor=north] at (82,138) {input messages};
+                \node[chip] (m-sys) at (48,122) {system};
+                \node[chip] (m-usr) at (112,122) {user};
+                \node[chip] (m-tool) at (48,108) {tool};
+                \node[hotchip] (m-asst) at (112,108) {assistant};
+                \node[expchip] (m-dyn) at (82,94) {dynamic tool-declare};
+
+                \draw[zone] (6,38) rectangle (158,72);
+                \node[zonelabel, anchor=north] at (82,70) {one-shot option messages};
+                \node[optchip] at (46,50) {tool-choice};
+                \node[optchip] at (112,50) {response-format};
+
+                \draw[flow] (82,147) -- (82,143);
+                \draw[flow] (82,77) -- (82,75);
+
+                \node[chip] (genprefix) at (43.5,24) {[open]think[sep]};
+                \node[zonelabel] at (79.7,24) {/};
+                \node[chip] at (115.8,24) {[open]response[sep]};
+                \node[zonelabel, anchor=north] at (82,15) {generation prefix};
+                \draw[flow] (82,36) -- (82,30);
+
+                \node[paneltitle, anchor=north] at (270,203)
+                {(b) Assistant message};
+
+                \draw[zoom] (m-asst.north east) -- (176,180);
+                \draw[zoom] (m-asst.south east) -- (176,22);
+
+                \draw[zone] (180,18) rectangle (360,184);
+                \node[mono, anchor=north west] at (186,181) {[open]message role="assistant"[sep]};
+
+                \draw[chanthink] (188,124) rectangle (352,170);
+                \node[mono, anchor=north west] at (194,167) {[open]think[sep]};
+                \draw[textline] (198,151) -- (272,151);
+                \draw[textline] (198,143.5) -- (256,143.5);
+                \node[mono, text=ctfiggray, anchor=south west] at (194,127) {[close]think[sep]};
+
+                \draw[chanresp] (188,80) rectangle (352,118);
+                \node[mono, anchor=north west] at (194,115) {[open]response[sep]};
+                \draw[textline] (198,101) -- (272,101);
+                \draw[textline] (198,93.5) -- (256,93.5);
+                \node[mono, text=ctfiggray, anchor=south west] at (194,83) {[close]response[sep]};
+
+                \draw[chantools] (188,32) rectangle (352,74);
+                \node[mono, anchor=north west] at (194,71) {[open]tools[sep]};
+                \node[mono, text=ctfiggray] at (270,53) {$\cdots$};
+                \node[mono, text=ctfiggray, anchor=south west] at (194,35) {[close]tools[sep]};
+
+                \node[mono, text=ctfiggray, anchor=south west] (msgclose) at (186,21.5) {[close]message[sep]};
+                \node[chip, right=3.5pt of msgclose] {[end\_of\_msg]};
+
+                \node[paneltitle, anchor=north] at (465,203)
+                {(c) Tools channel};
+
+                \draw[zoom] (352,72) -- (371,180);
+                \draw[zoom] (352,34) -- (371,40);
+
+                \draw[chantools] (373,34) rectangle (559,184);
+                \node[mono, anchor=north west] at (379,181) {[open]tools[sep]};
+
+                \draw[callcard] (379,118) rectangle (555,170);
+                \node[mono, align=left, anchor=north west, inner xsep=2.5pt, inner ysep=2pt]
+                at (384,167.5) {[open]call tool="python" index="1"[sep]\\[0.5pt]
+                        {\color{ctfiggray}\fontsize{6.0}{7.2}\selectfont [open]argument key="code" type="string"[sep]}\\[0.5pt]
+                        {\color{ctfiggray}\fontsize{6.0}{7.2}\selectfont \hspace{1.2em}$\cdots$}\\[0.5pt]
+                        {\color{ctfiggray}\fontsize{6.0}{7.2}\selectfont [close]argument[sep]}\\[0.5pt]
+                        {\color{ctfiggray}[close]call[sep]}};
+
+                \draw[callcard] (379,56) rectangle (555,110);
+                \node[mono, align=left, anchor=north west, inner xsep=2.5pt, inner ysep=2pt]
+                at (384,107.5) {[open]call tool="search" index="2"[sep]\\[0.5pt]
+                        {\color{ctfiggray}\fontsize{6.0}{7.2}\selectfont [open]argument key="options" type="object"[sep]}\\[0.5pt]
+                        {\color{ctfiggray}\fontsize{6.0}{7.2}\selectfont \hspace{1.2em}\{"timeout": 150\}}\\[0.5pt]
+                        {\color{ctfiggray}\fontsize{6.0}{7.2}\selectfont [close]argument[sep]}\\[0.5pt]
+                        {\color{ctfiggray}[close]call[sep]}};
+
+                \node[mono, text=ctfiggray, anchor=north west] at (379,48) {[close]tools[sep]};
+        \end{tikzpicture}
+\end{adjustbox}

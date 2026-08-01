@@ -1,0 +1,55 @@
+\section{Case Studies}
+
+In this section, we present representative cases that demonstrate \kimi{3}'s capabilities across diverse technical tasks.
+
+\begin{figure}[t]
+  \centering
+  \resizebox{\columnwidth}{!}{\input{figures/case-study-kernel-optimization.tex}}
+  \caption{Case study: GPU kernel optimization on AttnRes.}
+  \label{fig:case-kernel}
+\end{figure}
+
+\begin{figure}[h]
+\centering
+\includegraphics{figures/appendix/minitriton/case-study-compiler.pdf}
+\caption{Case study: GPU compiler development with MiniTriton. (a) CUDA-core
+and (b) tensor-core rooflines of MiniTriton kernels on an NVIDIA L20 (sm\_89)
+against torch eager, torch.compile, Triton, and cuBLAS baselines (losing
+points included); (c) training-loss curves of the character-level GPT trained
+with MiniTriton versus torch eager; (d) two-GPU data-parallel training built
+on MiniTriton's own distributed primitives (NCCL) versus single-GPU training.}
+\label{fig:case-compiler}
+\end{figure}
+
+
+
+
+
+
+\paragraph{GPU kernel optimization}
+We tested the models' ability to optimize GPU kernels. Each model works independently in an identically configured sandbox, with a budget of up to 24 hours per task for profiling, rewriting, and benchmarking. The evaluation covers four representative kernels: AttnRes, DeepSeek Sparse Attention (DSA), KDA, and MLA (with head dimension 512), on an NVIDIA Hopper GPU and an alternative-vendor GPGPU.
+\kimi{3} substantially improved performance across all four kernels, reducing AttnRes latency from 283.6\,ms to 114.4\,ms, cutting DSA and KDA runtime by 55.1\% and 73.6\%, respectively, and reaching over half of peak TFLOPS on MLA.
+Across these tasks, \kimi{3} matched Claude Fable 5~\citep{claudefable5} (with fallback) and substantially outperformed Claude Opus 4.8~\citep{claudeopus48}, GPT-5.6 Sol~\citep{gpt56sol}, and GPT-5.5~\citep{gpt55}.
+Figure~\ref{fig:case-kernel} compares the models' optimization trajectories on AttnRes.
+Beyond the benchmark, an early \kimi{3} checkpoint was already handling most of our kernel optimization work during late-stage development.
+
+
+\paragraph{GPU compiler development} \kimi{3} developed MiniTriton\footnote{\url{https://github.com/MoonshotAI/minitriton}}, a compact Triton-like~\citep{tillet2019triton} compiler with a custom tile-level Python frontend and layout system, a lightweight warp-level MLIR~\citep{lattner2021mlir} annotation and optimization layer, and a Parallel Thread Execution (PTX) code-generation pipeline. Built around the compiler is a dual-mode tensor library with a PyTorch-like~\citep{paszke2019pytorch} high-level interface, whose eager and forward-only compiled paths share the same DSL compiler and runtime. The library further provides reverse-mode autograd, neural-network modules, distributed-training primitives over NCCL~\citep{nccl},  and sparse and visualization primitives.
+On an NVIDIA L20, MiniTriton outperforms PyTorch eager~\citep{paszke2019pytorch} and \texttt{torch.compile}~\citep{ansel2024pytorch2} in geometric mean over its core benchmark suite. Its from-scratch tensor-core matmul path approaches cuBLAS~\citep{cublas} at the largest shapes,  reaching about 90\% of the measured machine roof, while its DSL-level KDA~\citep{team2025kimi} prefill kernel outperforms a matched Triton reference by a clear margin. MiniTriton also trains a GPT model end to end with a loss curve closely tracking the PyTorch reference, with full-model gradients differing from torch autograd by no more than torch's own fp32 rounding error ($10^{-4}$), measured against an fp64 reference. Together, These results demonstrate that \kimi{3} can build a coherent end-to-end compiler --- from DSL frontend and IR passes to PTX codegen and CUDA runtime --- rather than a collection of isolated kernels (Figure~\ref{fig:case-compiler}).
+
+
+\paragraph{Chip design} 
+As an early proof of concept, \kimi{3} designed an inference-chip prototype for a nano model following the same architecture --- hybrid KDA and NoPE-MLA attention, Block AttnRes with a block size of two, sigmoid-based MoE routing with one shared expert --- under
+group-wise INT4 weight quantization (group size 128). In a single 48-hour autonomous run with Kimi Code, \kimi{3} built, optimized, and verified the chip using open-source EDA tools with the Nangate45 standard-cell library~\cite{nangate45}. Within the 4\,mm$^2$ analytical area budget, the design closes timing at 100\,MHz and achieves an RTL-simulated decode throughput of over 8{,}700 tokens/s, integrating 1.46M standard cells, 0.277 MiB of SRAM, and an INT4 MAC array with fused dequantization. 
+The RTL code is available on GitHub\footnote{\url{https://github.com/MoonshotAI/nano-kpu}}.
+
+
+
+\paragraph{Coding for research} To reproduce the I--Love--Q universal relations in computational astrophysics, \kimi{3} reviewed more than 20 papers and cross-validated their results, implemented the full numerical pipeline, evaluated over 300 equations of state, identified inconsistencies in published formulas, wrote more than 3,000 lines of Python, and produced an interactive HTML dashboard --- in about two hours, versus a typical one to two weeks for an experienced researcher. 
+
+\paragraph{Knowledge work} In Kimi Work, \kimi{3} produced an interactive research website covering 42 years of the AI ASIC industry. The model completed more than 120 rounds of iterative refinement, drawing on a corpus of 87 quarterly reports and 99 original PDFs (more than 11,000 pages) through over 2,800 web searches and over 1,100 terminal queries.
+In a second case, \kimi{3} analyzed 391 gravitational-wave events in GWTC-5 using more than 20 concurrent subagents, producing seven scientific visualizations, two summary tables, and a literature synthesis of over ten papers.
+
+
+
+\paragraph{Video editing and motion design} Leveraging its native multimodal architecture, \kimi{3} created a 3Blue1Brown-style motion-graphics explainer of its own architecture, and edited its teaser video from 56 source clips. This involved clip selection, motion-matched cuts, frame-accurate beat synchronization, audio processing, and multiple rounds of revision. Producing a comparable high-density short video would typically take an experienced editor one to two days.

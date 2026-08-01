@@ -5,11 +5,14 @@ description: Muon updates hidden-layer weight matrices using the polar factor of
 tags: [muon, optimizer, pre-training, matrix-optimization, newton-schulz]
 status: draft
 created: 2026-08-01
-generated: { by: llm-wiki-agent/1, at: 2026-08-01T00:26:20+07:00 }
+generated: { by: llm-wiki-agent/1, at: 2026-08-01T02:00:00Z }
 sources:
   - id: muon-overview-2026
     resource: ../raw/MuonOptimizer.md
     title: Muon Optimizer overview (Vietnamese summary)
+  - id: kimi-k3-2026
+    resource: ../raw/arXiv-2607.24653v1/main.tex
+    title: "Kimi K3: Open Frontier Intelligence"
 ---
 
 # Muon orthogonalized-momentum optimizer
@@ -42,6 +45,10 @@ $$
 
 The supplied overview reports that weight decay also controlled growing weight and activation scales during long bf16 training.[^muon-overview-2026]
 
+## Per-head variant
+
+Kimi K3 partitions Q/K/V momentum along the attention-head dimension and orthogonalizes each block separately. The stated motivation is to equalize update scale across heads instead of letting larger-gradient heads dominate a single full-matrix polar factor; tall per-head blocks also make Newton–Schulz iterations somewhat cheaper. This is an architecture-specific refinement, not a change to Muon’s core orthogonalized-momentum principle.[^kimi-k3-2026]
+
 ## Relationships
 
 - **Operational limits and scaling evidence:** [Muon LLM training scaling and operational trade-offs](muon-llm-training-scaling-and-operational-trade-offs.md).
@@ -52,3 +59,5 @@ The supplied overview reports that weight decay also controlled growing weight a
 This page compiles a secondary Vietnamese overview that cites the Muon technical report, a Keller Jordan blog post, and an implementation repository. The primary report and code were not independently ingested; reported formulas, coefficients, and configuration guidance remain attributed to the overview.[^muon-overview-2026]
 
 [^muon-overview-2026]: “Muon Optimizer overview (Vietnamese summary),” [raw source](../raw/MuonOptimizer.md), Sections 1–6, 12, and 15; it cites “Muon is Scalable for LLM Training” (arXiv:2502.16982), Keller Jordan’s Muon post, and the Muon repository.
+
+[^kimi-k3-2026]: Kimi Team, “Kimi K3: Open Frontier Intelligence,” arXiv:2607.24653v1, [source](../raw/arXiv-2607.24653v1/main.tex), Section 2.5.

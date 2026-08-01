@@ -5,7 +5,7 @@ description: Delta-rule memory corrects selected key-value associations, while l
 tags: [associative-memory, deltanet, gating, linear-attention]
 status: stable
 created: 2026-07-31
-generated: { by: llm-wiki-agent/1, at: 2026-08-01T01:48:53Z }
+generated: { by: llm-wiki-agent/1, at: 2026-08-01T02:00:00Z }
 sources:
   - id: gpt2-kimi3-2026
     resource: ../raw/2026-07-27-from-gpt2-to-kimi-k3.md
@@ -13,6 +13,9 @@ sources:
   - id: kimi-linear-2025
     resource: ../raw/arXiv-2510.26692v2/main.tex
     title: "Kimi Linear: An Expressive, Efficient Attention Architecture"
+  - id: kimi-k3-2026
+    resource: ../raw/arXiv-2607.24653v1/main.tex
+    title: "Kimi K3: Open Frontier Intelligence"
 ---
 
 # Delta-rule and gated associative memory
@@ -57,12 +60,14 @@ KDA compresses products of rank-one transitions within each chunk using a WY rep
 
 - **Depends on:** [Linear attention as fixed-state memory](linear-attention-as-fixed-state-memory.md), whose additive-state interference motivates corrective updates.
 - **Used by:** [Kimi Linear hybrid attention architecture](kimi-linear-hybrid-attention-architecture.md), which interleaves KDA with periodic global attention.
-- **Used by:** [Kimi K3 hybrid retrieval architecture](kimi-k3-hybrid-retrieval-architecture.md), according to the separate secondary explainer.[^gpt2-kimi3-2026]
+- **Used by:** [Kimi K3 hybrid retrieval architecture](kimi-k3-hybrid-retrieval-architecture.md), whose primary report retains the recurrence while lower-bounding log-decay for BF16 Tensor Core tiles and adding a full-rank output gate.[^kimi-k3-2026]
 
 ## Evidence limits
 
-The KDA recurrence, derivation, pseudocode, and kernel measurements are documented in the primary Kimi Linear technical report, while the Kimi K3 relationship remains sourced only to a secondary explainer. The derivation supports equivalence of the recurrent and chunkwise formulations; empirical expressivity and speed still depend on the tested models, kernels, precision strategy, and hardware, which were not independently reproduced here.
+The KDA recurrence, derivation, pseudocode, and original kernel measurements are documented in the primary Kimi Linear report; the Kimi K3 report independently specifies its modified decay and output gate. The derivations support recurrent–chunkwise equivalence, while empirical expressivity and speed remain dependent on model, kernel, precision, and hardware.
 
 [^gpt2-kimi3-2026]: ali (@waterloo_intern), “22580: From GPT2 to Kimi3, Explained,” 2026-07-27, [raw source](../raw/2026-07-27-from-gpt2-to-kimi-k3.md).
 
 [^kimi-linear-2025]: Kimi Team, “Kimi Linear: An Expressive, Efficient Attention Architecture,” arXiv:2510.26692v2, [source](../raw/arXiv-2510.26692v2/main.tex), especially Sections 2–3, 6, and the chunkwise derivation and pseudocode appendices.
+
+[^kimi-k3-2026]: Kimi Team, “Kimi K3: Open Frontier Intelligence,” arXiv:2607.24653v1, [source](../raw/arXiv-2607.24653v1/main.tex), Section 2.1.

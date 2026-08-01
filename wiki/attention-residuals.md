@@ -1,42 +1,55 @@
 ---
 type: Concept
 title: Attention Residuals
-description: Attention Residuals replace uniform residual accumulation with learned retrieval over earlier depth-wise representations.
+description: Attention Residuals replace uniform residual accumulation with learned softmax retrieval over earlier depth-wise representations, with a block form that bounds cache and communication overhead.
 tags: [attention-residuals, residual-stream, depth, retrieval]
-status: draft
+status: stable
 created: 2026-07-31
-generated: { by: llm-wiki-agent/1, at: 2026-07-31T15:06:35Z }
+generated: { by: llm-wiki-agent/1, at: 2026-08-01T02:00:00Z }
 sources:
   - id: gpt2-kimi3-2026
     resource: ../raw/2026-07-27-from-gpt2-to-kimi-k3.md
     title: "22580: From GPT2 to Kimi3, Explained"
+  - id: kimi-k3-2026
+    resource: ../raw/arXiv-2607.24653v1/main.tex
+    title: "Kimi K3: Open Frontier Intelligence"
 ---
 
 # Attention Residuals
 
-Attention Residuals (AttnRes) make the residual stream selectively addressable across model depth. Instead of giving a later layer only an equally weighted additive accumulation of all preceding outputs, AttnRes learns weights that retrieve the earlier representations most useful to that layer.[^gpt2-kimi3-2026]
+Attention Residuals (AttnRes) make representations selectively addressable across model depth. Instead of passing only the uniform additive accumulation of prior layer outputs, each layer uses a learned pseudo-query and softmax weights to mix the embedding and preceding representations.[^kimi-k3-2026]
 
-## Mechanism
+## Full form
 
-A conventional residual stack can be summarized as an embedding plus the unweighted sum of preceding layer outputs. AttnRes assigns each term a learned, normalized weight. In the described implementation, a layer-specific query scores normalized earlier residual states; a softmax over depth produces the weights used to mix those states.[^gpt2-kimi3-2026]
+For layer $l$, a learned query $w_l$ scores RMS-normalized earlier layer outputs. Softmax-normalized scores $\alpha_{i\to l}$ produce
 
-This creates a second retrieval axis:
+$$
+h_l=\sum_{i=0}^{l-1}\alpha_{i\to l}v_i.
+$$
 
-- token attention retrieves information across sequence positions;
-- AttnRes retrieves representations across network depth.
+RMS normalization prevents output magnitude alone from dominating depth attention. This gives token attention and depth attention distinct jobs: one retrieves across sequence positions, while AttnRes retrieves intermediate transformations.[^kimi-k3-2026]
 
-The source argues that selective depth access mitigates residual dilution and the need for later layers to overcome an increasingly large accumulated stream.[^gpt2-kimi3-2026]
+Full AttnRes has affordable $O(L^2d)$ arithmetic for fewer than 100 layers, according to the report, but retains $O(Ld)$ live representations and adds cross-stage communication under pipeline parallelism.[^kimi-k3-2026]
 
-## Blockwise form
+## Block form
 
-Applying depth attention at every layer would be costly. Kimi K3 is described as grouping the outputs of 12 decoder layers into block representations and applying AttnRes at those boundaries. The source reports eight such blocks across the model's 23 four-layer macrocycles.[^gpt2-kimi3-2026]
+Block AttnRes sums outputs within each block and applies full depth attention only over the embedding and completed block representations. A layer inside the current block can also access its intra-block partial sum. This reduces memory and communication from $O(Ld)$ to $O(Nd)$ for $N$ blocks and supports an online-softmax merge between parallel inter-block retrieval and the sequential current-block sum.[^kimi-k3-2026]
+
+Kimi K3 uses eight 12-layer blocks plus a partial final block; counting the embedding source yields nine retrievable block representations. This corrects the earlier secondary summary’s ambiguous statement that the model had only eight total block sources.[^gpt2-kimi3-2026][^kimi-k3-2026]
+
+## Systems implications
+
+During training, block representations are generated once and shared; checkpointing keeps per-layer saved activations comparable to a standard residual stack. During serving, sequence parallelism avoids replicating block representations across tensor-parallel ranks, while side-stream execution and fused online-softmax/RMSNorm reduce decode overhead. These are design claims from the Kimi K3 system, not architecture-independent guarantees.[^kimi-k3-2026]
 
 ## Relationships
 
-- **Used by:** [Kimi K3 hybrid retrieval architecture](kimi-k3-hybrid-retrieval-architecture.md) as a complement to token-context retrieval and bounded recurrent memory.
+- **Used by:** [Kimi K3 hybrid retrieval architecture](kimi-k3-hybrid-retrieval-architecture.md).
+- **Operationalized by:** [Kimi K3 lifecycle infrastructure](kimi-k3-lifecycle-infrastructure.md).
 
 ## Evidence limits
 
-The mechanism and Kimi K3 placement are compiled from one secondary explainer. Reported compute and latency benefits were excluded from the synthesis because no primary benchmark evidence was included.
+The Kimi K3 report provides the mechanism and system design but refers to a separate AttnRes paper for broad model-scale ablations. Its statement that approximately eight blocks recover most benefits is therefore cited evidence, not independently reproduced here.[^kimi-k3-2026]
 
 [^gpt2-kimi3-2026]: ali (@waterloo_intern), “22580: From GPT2 to Kimi3, Explained,” 2026-07-27, [raw source](../raw/2026-07-27-from-gpt2-to-kimi-k3.md).
+
+[^kimi-k3-2026]: Kimi Team, “Kimi K3: Open Frontier Intelligence,” arXiv:2607.24653v1, [source](../raw/arXiv-2607.24653v1/main.tex), Sections 2.2 and 5.

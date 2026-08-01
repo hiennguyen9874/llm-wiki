@@ -5,7 +5,7 @@ description: Practical MoE training requires bounded per-expert token capacity, 
 tags: [mixture-of-experts, sparse-models, distributed-training, load-balancing]
 status: draft
 created: 2026-07-31
-generated: { by: llm-wiki-agent/1, at: 2026-08-01T00:26:20+07:00 }
+generated: { by: llm-wiki-agent/1, at: 2026-08-01T02:00:00Z }
 sources:
   - id: moe-overview-2026
     resource: ../raw/MixtureofExperts.md
@@ -13,6 +13,9 @@ sources:
   - id: muon-overview-2026
     resource: ../raw/MuonOptimizer.md
     title: Muon Optimizer overview (Vietnamese summary)
+  - id: kimi-k3-2026
+    resource: ../raw/arXiv-2607.24653v1/main.tex
+    title: "Kimi K3: Open Frontier Intelligence"
 ---
 
 # Mixture-of-Experts training and systems trade-offs
@@ -31,6 +34,10 @@ Expert parallelism shards experts across accelerators. Tokens are grouped by sel
 
 The overview reports three Switch-specific stability measures: compute router logits and softmax in float32 while retaining lower precision elsewhere; reduce initialization scale to roughly one tenth of the dense default; and apply stronger expert dropout during fine-tuning to limit overfitting. These are reported engineering findings, not universal hyperparameter prescriptions.[^moe-overview-2026]
 
+## Extreme sparsity and rank-level balance
+
+Kimi K3 provides a primary-source case with 896 routed experts and top-16 selection. Its Stable LatentMoE reduces routed width, inserts normalization before returning to model width, bounds both activation branches, and updates routing biases from target-load quantiles. Its MoonEP runtime separately replicates experts dynamically so each expert-parallel rank receives equal aggregate token work and static computation shapes. Router balance and rank balance are complementary: neither alone removes weight memory, dispatch traffic, or within-rank expert skew.[^kimi-k3-2026]
+
 ## Operational limits
 
 - All expert weights, checkpoints, and model-loading costs remain proportional to total parameters.
@@ -43,7 +50,8 @@ The overview reports three Switch-specific stability measures: compute router lo
 
 - **Operationalizes:** [Switch Transformer sparse routing](switch-transformer-sparse-routing.md) through capacity limits, balancing, precision policy, and expert parallelism.
 - **Applies to:** [DeepSeekMoE expert specialization](deepseekmoe-expert-specialization.md), which adds fine-grained top-$k$ routing and an always-on shared path; its reported results and systems behavior require primary-source verification.
-- **Applies to:** [Kimi K3 hybrid retrieval architecture](kimi-k3-hybrid-retrieval-architecture.md), whose supplied overview describes routed latent-space experts; its system behavior requires primary-source verification.
+- **Specialized by:** [Stable LatentMoE and Quantile Balancing](stable-latentmoe-and-quantile-balancing.md), with primary evidence for compact experts and quantile routing.
+- **Operationalized by:** [Kimi K3 lifecycle infrastructure](kimi-k3-lifecycle-infrastructure.md), including dynamic redundant experts and static rank-level shapes.
 - **Related optimizer evidence:** [Muon LLM training scaling and operational trade-offs](muon-llm-training-scaling-and-operational-trade-offs.md) describes the supplied Moonlight result and the distributed cost of full-matrix orthogonalization.
 
 ## Evidence limits
@@ -53,3 +61,5 @@ This page compiles a secondary Vietnamese overview that cites the Switch Transfo
 [^moe-overview-2026]: “Switch Transformer và Mixture of Experts trong LLM,” [raw source](../raw/MixtureofExperts.md), citing Fedus, Zoph, and Shazeer, “Switch Transformers: Scaling to Trillion Parameter Models with Simple and Efficient Sparsity” (2021/2022).
 
 [^muon-overview-2026]: “Muon Optimizer overview (Vietnamese summary),” [raw source](../raw/MuonOptimizer.md), Section 11; it cites “Muon is Scalable for LLM Training” (arXiv:2502.16982).
+
+[^kimi-k3-2026]: Kimi Team, “Kimi K3: Open Frontier Intelligence,” arXiv:2607.24653v1, [source](../raw/arXiv-2607.24653v1/main.tex), Sections 2.3 and 5.2.
