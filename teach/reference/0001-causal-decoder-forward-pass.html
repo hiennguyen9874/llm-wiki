@@ -1,0 +1,101 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Causal decoder forward pass — reference</title>
+    <link rel="stylesheet" href="../assets/course.css" />
+  </head>
+  <body>
+    <main class="lesson">
+      <p class="eyebrow">Quick reference · Foundations</p>
+      <h1>Causal decoder forward pass</h1>
+      <p class="dek">
+        Use this when an architecture paper introduces a component and you need
+        to ask: <em>where does it sit in the baseline path?</em>
+      </p>
+      <section class="flow">
+        <div class="step">
+          <strong>1 · Token IDs</strong><br /><span class="shape">[T]</span>
+          discrete vocabulary indexes from a subword tokenizer.
+        </div>
+        <div class="arrow">↓</div>
+        <div class="step">
+          <strong>2 · Token + position representations</strong><br /><span
+            class="shape"
+            >[T, d]</span
+          >
+          continuous vectors; position information prevents order from being
+          lost.
+        </div>
+        <div class="arrow">↓</div>
+        <div class="step">
+          <strong>3 · Repeated decoder blocks</strong><br />causal
+          self-attention mixes permitted earlier positions; an MLP transforms
+          each position; residual and normalization paths carry the
+          representation across depth.
+        </div>
+        <div class="arrow">↓</div>
+        <div class="step">
+          <strong>4 · Hidden states</strong><br /><span class="shape"
+            >[T, d]</span
+          >
+          one contextual representation at each position.
+        </div>
+        <div class="arrow">↓</div>
+        <div class="step">
+          <strong>5 · Vocabulary projection → logits</strong><br /><span
+            class="shape"
+            >[T, V]</span
+          >
+          one unnormalized score per vocabulary item for each position.
+        </div>
+        <div class="arrow">↓</div>
+        <div class="step">
+          <strong>6 · Softmax → next-token distribution</strong><br /><span
+            class="shape"
+            >[T, V]</span
+          >
+          normalized probabilities. A generation policy selects the next token,
+          which is decoded to text.
+        </div>
+      </section>
+      <h2>Two invariants</h2>
+      <ul>
+        <li>
+          <strong>Causality:</strong> for position <span class="shape">i</span>,
+          attention blocks positions after <span class="shape">i</span>. This is
+          what permits next-token prediction without future-token leakage.
+        </li>
+        <li>
+          <strong>Shapes:</strong> attention/MLP blocks preserve the model width
+          <span class="shape">d</span>; only the final vocabulary projection
+          changes it to <span class="shape">V</span>.
+        </li>
+      </ul>
+      <aside class="callout">
+        <strong>Paper-reading prompt.</strong> When you meet a new mechanism,
+        label it first as a change to token/position representation, sequence
+        mixing, per-token transformation, residual/normalization, vocabulary
+        output, or inference state. Then ask what cost or limitation it targets.
+      </aside>
+      <h2>Sources and boundary</h2>
+      <p>
+        The original
+        <a href="https://arxiv.org/abs/1706.03762">Transformer paper</a>
+        documents attention, position-wise feed-forward layers,
+        residual/normalization paths, and positional encodings.
+        <a href="../../raw/gpt.pdf">Radford et al.’s GPT paper</a> documents the
+        decoder-only causal language-model adaptation and BPE vocabulary. The
+        original Transformer is encoder–decoder; this reference uses its
+        decoder-side components as the dense causal baseline.
+      </p>
+      <footer>
+        <a href="../lessons/0001-trace-a-causal-decoder.html"
+          >Return to Lesson 0001</a
+        >
+        · Ask your teacher to trace any diagram or equation that is unclear.
+      </footer>
+    </main>
+  </body>
+</html>

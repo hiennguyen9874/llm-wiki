@@ -1,0 +1,148 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Trace a causal decoder</title>
+    <link rel="stylesheet" href="../assets/course.css" />
+    <script src="../assets/quiz.js" defer></script>
+  </head>
+  <body>
+    <main class="lesson">
+      <p class="eyebrow">Lesson 0001 · Foundations · 8 minutes</p>
+      <h1>Trace a causal decoder</h1>
+      <p class="dek">
+        Your first paper-reading skill: turn “decoder-only Transformer” into a
+        concrete flow of representations and shapes.
+      </p>
+      <p class="mission">
+        Mission connection: architecture papers are much easier to read when you
+        can locate a proposed change in the baseline forward pass—then ask which
+        cost, capability, or deployment constraint it changes.
+      </p>
+      <h2>The one idea</h2>
+      <p>
+        An LLM does not directly manipulate words. A subword tokenizer first
+        maps text to vocabulary IDs. A GPT-style model maps those IDs to
+        vectors, repeatedly contextualizes them with <em>causal</em> decoder
+        blocks, and converts the final vectors to vocabulary scores. Softmax
+        turns those scores (<strong>logits</strong>) into a distribution for the
+        next token.
+      </p>
+      <section class="flow" aria-label="Causal decoder data flow">
+        <div class="step">
+          <strong>Text → token IDs</strong> <span class="shape">[T]</span>
+        </div>
+        <div class="arrow">↓</div>
+        <div class="step">
+          <strong>Token + position representations</strong>
+          <span class="shape">[T, d]</span>
+        </div>
+        <div class="arrow">↓</div>
+        <div class="step">
+          <strong>N × causal decoder blocks</strong>
+          <span class="shape">[T, d]</span>
+        </div>
+        <div class="arrow">↓</div>
+        <div class="step">
+          <strong>Vocabulary projection → logits</strong>
+          <span class="shape">[T, V]</span>
+        </div>
+        <div class="arrow">↓</div>
+        <div class="step">
+          <strong>Softmax → next-token probabilities</strong>
+          <span class="shape">[T, V]</span>
+        </div>
+      </section>
+      <p>
+        <span class="shape">T</span> is the number of tokens already in context,
+        <span class="shape">d</span> the model width, and
+        <span class="shape">V</span> the vocabulary size. The crucial
+        architectural observation is that decoder blocks preserve
+        <span class="shape">d</span>; the final projection is where the model
+        becomes a score over every vocabulary entry.
+      </p>
+      <h2>Why “causal” matters</h2>
+      <p>
+        At position <span class="shape">i</span>, self-attention is masked so it
+        cannot use positions after <span class="shape">i</span>. Thus the
+        representation at each position is built only from permitted preceding
+        context. This masking, not merely the word “GPT,” makes the decoder
+        suitable for autoregressive next-token prediction.
+      </p>
+      <aside class="callout">
+        <strong>Don’t overgeneralize.</strong> The original Transformer paper
+        describes an encoder–decoder architecture. GPT adapts the masked decoder
+        side into a decoder-only language model. Keep those two baselines
+        distinct when reading papers.
+      </aside>
+      <h2>Fast retrieval check</h2>
+      <div
+        class="quiz"
+        data-quiz
+        data-answer="logits"
+        data-correct="Correct. The vocabulary projection produces logits with one score per vocabulary item."
+        data-incorrect="Not quite. The vocabulary projection produces logits; softmax converts them to probabilities."
+      >
+        <fieldset>
+          <legend>
+            <strong
+              >Which matrix has shape [T, V] immediately before softmax?</strong
+            >
+          </legend>
+          <label
+            ><input type="radio" name="shape" value="logits" /> logits</label
+          ><label
+            ><input type="radio" name="shape" value="values" /> values</label
+          ><label
+            ><input type="radio" name="shape" value="biases" /> biases</label
+          >
+        </fieldset>
+        <p class="feedback" aria-live="polite"></p>
+      </div>
+      <h2>Use it on a paper</h2>
+      <p>
+        For every claimed architectural novelty, write one sentence in this
+        template:
+      </p>
+      <p class="callout">
+        <strong
+          >“It changes <em>[baseline stage]</em> to address
+          <em>[bottleneck]</em>, trading <em>[cost or capability]</em> for
+          <em>[cost or risk]</em>.”</strong
+        >
+      </p>
+      <p>
+        Example—not a claim about any particular paper: “It changes sequence
+        mixing to reduce inference state, trading token-addressable retrieval
+        for bounded memory.” This will become your lens for attention variants,
+        KV-cache designs, MoE, and recurrent alternatives.
+      </p>
+      <h2>Read next</h2>
+      <p>
+        <strong>Primary source:</strong>
+        <a href="https://arxiv.org/abs/1706.03762"
+          >“Attention Is All You Need” (Vaswani et al.), §3</a
+        >. Read only the architecture section, then identify the attention,
+        per-position transformation, residual/normalization, and
+        positional-information stages. For the decoder-only adaptation, see
+        <a href="../../raw/gpt.pdf"
+          >“Improving Language Understanding by Generative Pre-Training”
+          (Radford et al.)</a
+        >.
+      </p>
+      <p>
+        Keep the
+        <a href="../reference/0001-causal-decoder-forward-pass.html"
+          >causal-decoder forward-pass reference</a
+        >
+        open while you read.
+      </p>
+      <footer>
+        When you’re done, reply with your completed sentence for a paper
+        mechanism—or ask any follow-up question. I’ll give precise feedback and
+        choose the next Foundations lesson.
+      </footer>
+    </main>
+  </body>
+</html>
