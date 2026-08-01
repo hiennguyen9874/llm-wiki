@@ -5,6 +5,7 @@
 - **Ingest**: Compiled [Speculative decoding overview (Vietnamese summary)](../raw/SpeculativeDecoding.md); created [Speculative decoding exact sampling](speculative-decoding-exact-sampling.md) and [Speculative decoding performance trade-offs](speculative-decoding-performance-trade-offs.md).
 
 ## 2026-08-01
+- **Query**: Filed a build-first [LLM architecture learning roadmap](llm-architecture-learning-roadmap.md), covering dense causal Transformers through MoE and hybrid long-context architectures.
 - **Query**: Compared [DeepSeek-V4](deepseek-v4-hybrid-architecture-and-pretraining.md) and [Kimi K3](kimi-k3-hybrid-retrieval-architecture.md) architectures; filed [durable synthesis](deepseek-v4-and-kimi-k3-architecture-comparison.md).
 - **Ingest**: Compiled [Looped World Models](../raw/arXiv-2606.18208v1/draft.tex); created [Looped World Models](looped-world-models.md) and [LoopWM evaluation and evidence limits](loopwm-evaluation-and-evidence-limits.md), explicitly recording the incomplete disclosure and mismatched evaluation artifact.
 - **Ingest**: Compiled [Attention Residuals](../raw/arXiv-2603.15031v1/main.tex); upgraded [Attention Residuals](attention-residuals.md) with primary mechanism and systems evidence and created [Attention Residuals evaluation and systems trade-offs](attention-residuals-evaluation-and-systems-trade-offs.md).
