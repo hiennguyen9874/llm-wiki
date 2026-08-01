@@ -1,0 +1,241 @@
+import test from "node:test";
+import assert from "node:assert/strict";
+import { mkdtempSync, mkdirSync, writeFileSync } from "node:fs";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
+
+import { loadProfilesConfig } from "./profile-config.ts";
+import { createProfilePolicy } from "./profile-policy.ts";
+
+function createRoot(): string {
+  const root = mkdtempSync(join(tmpdir(), "pi-profile-config-"));
+  mkdirSync(join(root, ".pi"));
+  mkdirSync(join(root, ".pi", "profiles"));
+  return root;
+}
+
+test("missing config returns empty profiles map", () => {
+  const root = mkdtempSync(join(tmpdir(), "pi-profile-config-"));
+  mkdirSync(join(root, ".pi"));
+
+  const result = loadProfilesConfig(root);
+
+  assert.equal(result.error, undefined);
+  assert.deepEqual(result.config?.profiles, {});
+  assert.equal(result.config?.defaultProfile, undefined);
+});
+
+test("malformed profiles.json returns parse error", () => {
+  const root = createRoot();
+  writeFileSync(join(root, ".pi", "profiles.json"), "{not json}");
+
+  const result = loadProfilesConfig(root);
+
+  assert.equal(result.config, undefined);
+  assert.match(result.error ?? "", /json/i);
+});
+
+test("loads defaultProfile from profiles.json and profiles from YAML files", () => {
+  const root = createRoot();
+  writeFileSync(
+    join(root, ".pi", "profiles.json"),
+    JSON.stringify({ defaultProfile: "backend" }),
+  );
+  writeFileSync(
+    join(root, ".pi", "profiles", "backend.yaml"),
+    [
+      "skillsEnable:",
+      "  - backend-patterns",
+      "mcpServersDisable:",
+      "  - chrome-devtools",
+      "extensionState:",
+      "  behavioralGuidelines:",
+      "    enabled: true",
+      "    sections:",
+      "      validation: false",
+    ].join("\n"),
+  );
+
+  const result = loadProfilesConfig(root);
+
+  assert.equal(result.error, undefined);
+  assert.equal(result.config?.defaultProfile, "backend");
+  assert.deepEqual(result.config?.profiles.backend, {
+    skillsEnable: ["backend-patterns"],
+    mcpServersDisable: ["chrome-devtools"],
+    extensionState: {
+      behavioralGuidelines: {
+        enabled: true,
+        sections: {
+          validation: false,
+        },
+      },
+    },
+  });
+});
+
+test("loads package and extension profile fields from YAML files", () => {
+  const root = createRoot();
+  writeFileSync(
+    join(root, ".pi", "profiles", "base.yaml"),
+    [
+      "packagesEnable:",
+      "  - npm:pi-web-access",
+      "packagesDisable:",
+      "  - npm:pi-cache-graph",
+      "extensionsEnable:",
+      "  - git:github.com/hiennguyen9874/pi-goal",
+      "extensionsDisable:",
+      "  - ./extensions/dirty-repo-guard.ts",
+    ].join("\n"),
+  );
+
+  const result = loadProfilesConfig(root);
+
+  assert.equal(result.error, undefined);
+  assert.deepEqual(result.config?.profiles.base, {
+    packagesEnable: ["npm:pi-web-access"],
+    packagesDisable: ["npm:pi-cache-graph"],
+    extensionsEnable: ["git:github.com/hiennguyen9874/pi-goal"],
+    extensionsDisable: ["./extensions/dirty-repo-guard.ts"],
+  });
+});
+
+test("loads schema-free settings overrides from profile YAML", () => {
+  const root = createRoot();
+  writeFileSync(
+    join(root, ".pi", "profiles", "focused.yaml"),
+    [
+      "extra:",
+      "  override:",
+      "    defaultModel: gpt-5.4",
+      "    compaction:",
+      "      reserveTokens: 8192",
+      "    extensionState:",
+      "      arbitraryExtensionSetting: true",
+    ].join("\n"),
+  );
+
+  const result = loadProfilesConfig(root);
+
+  assert.equal(result.error, undefined);
+  assert.deepEqual(result.config?.profiles.focused.extra, {
+    override: {
+      defaultModel: "gpt-5.4",
+      compaction: { reserveTokens: 8192 },
+      extensionState: { arbitraryExtensionSetting: true },
+    },
+  });
+});
+
+test("rejects non-object settings override in YAML file", () => {
+  const root = createRoot();
+  writeFileSync(join(root, ".pi", "profiles", "broken.yaml"), "extra:\n  override: default-model\n");
+
+  const result = loadProfilesConfig(root);
+
+  assert.equal(result.config, undefined);
+  assert.match(result.error ?? "", /extra\.override.*object/i);
+});
+
+test("rejects invalid behavioral guideline section in YAML file", () => {
+  const root = createRoot();
+  writeFileSync(
+    join(root, ".pi", "profiles", "planning.yaml"),
+    [
+      "extensionState:",
+      "  behavioralGuidelines:",
+      "    sections:",
+      "      unknownSection: false",
+    ].join("\n"),
+  );
+
+  const result = loadProfilesConfig(root);
+
+  assert.equal(result.config, undefined);
+  assert.match(result.error ?? "", /unknown behavioral guideline section/i);
+});
+
+test("repository base profile allows configured skills", () => {
+  const result = loadProfilesConfig(process.cwd());
+  const baseProfile = result.config?.profiles.base;
+  assert.ok(baseProfile);
+
+  const policy = createProfilePolicy(baseProfile);
+
+  assert.equal(policy.isSkillAllowed("git-commit"), true);
+});
+
+test("invalid defaultProfile type is rejected", () => {
+  const root = createRoot();
+  writeFileSync(
+    join(root, ".pi", "profiles.json"),
+    JSON.stringify({ defaultProfile: 42 }),
+  );
+
+  const result = loadProfilesConfig(root);
+
+  assert.equal(result.config, undefined);
+  assert.match(result.error ?? "", /defaultProfile/i);
+});
+
+test("skips non-yaml files and hidden files in profiles directory", () => {
+  const root = createRoot();
+  writeFileSync(
+    join(root, ".pi", "profiles", "base.yaml"),
+    "skillsEnable:\n  - ask-user\n",
+  );
+  writeFileSync(join(root, ".pi", "profiles", "readme.md"), "# not a profile");
+  writeFileSync(join(root, ".pi", "profiles", ".hidden.yaml"), "skillsEnable:\n  - hidden\n");
+  writeFileSync(join(root, ".pi", "profiles", "_template.yaml"), "skillsEnable:\n  - template\n");
+
+  const result = loadProfilesConfig(root);
+
+  assert.equal(result.error, undefined);
+  assert.deepEqual(Object.keys(result.config?.profiles ?? {}), ["base"]);
+});
+
+test("malformed YAML reports file-specific error", () => {
+  const root = createRoot();
+  writeFileSync(join(root, ".pi", "profiles", "broken.yaml"), "{{not: valid: yaml: [}");
+
+  const result = loadProfilesConfig(root);
+
+  assert.equal(result.config, undefined);
+  assert.match(result.error ?? "", /broken\.yaml/);
+});
+
+test("multiple profiles load from separate YAML files", () => {
+  const root = createRoot();
+  writeFileSync(join(root, ".pi", "profiles.json"), JSON.stringify({ defaultProfile: "a" }));
+  writeFileSync(join(root, ".pi", "profiles", "a.yaml"), "skillsEnable:\n  - skill-a\n");
+  writeFileSync(join(root, ".pi", "profiles", "b.yaml"), "skillsEnable:\n  - skill-b\n");
+
+  const result = loadProfilesConfig(root);
+
+  assert.equal(result.error, undefined);
+  assert.deepEqual(Object.keys(result.config?.profiles ?? {}).sort(), ["a", "b"]);
+  assert.deepEqual(result.config?.profiles.a.skillsEnable, ["skill-a"]);
+  assert.deepEqual(result.config?.profiles.b.skillsEnable, ["skill-b"]);
+});
+
+test("loads prompt profile fields from YAML files", () => {
+  const root = createRoot();
+  writeFileSync(
+    join(root, ".pi", "profiles", "review.yaml"),
+    [
+      "promptsEnable:",
+      "  - review-code",
+      "promptsDisable:",
+      "  - generate-slides",
+    ].join("\n"),
+  );
+
+  const result = loadProfilesConfig(root);
+
+  assert.equal(result.error, undefined);
+  assert.deepEqual(result.config?.profiles.review, {
+    promptsEnable: ["review-code"],
+    promptsDisable: ["generate-slides"],
+  });
+});
