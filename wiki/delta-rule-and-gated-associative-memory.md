@@ -5,7 +5,7 @@ description: Delta-rule memory corrects selected key-value associations, while l
 tags: [associative-memory, deltanet, gating, linear-attention]
 status: stable
 created: 2026-07-31
-generated: { by: llm-wiki-agent/1, at: 2026-08-01T02:24:41Z }
+generated: { by: llm-wiki-agent/1, at: 2026-08-01T02:28:38Z }
 sources:
   - id: parallel-deltanet-2024
     resource: ../raw/arXiv-2406.06484v6/neurips_2024.tex
@@ -22,11 +22,14 @@ sources:
   - id: kimi-k3-2026
     resource: ../raw/arXiv-2607.24653v1/main.tex
     title: "Kimi K3: Open Frontier Intelligence"
+  - id: gated-deltanet-2025
+    resource: ../raw/arXiv-2412.06464v3/main.tex
+    title: "Gated Delta Networks: Improving Mamba2 with Delta Rule"
 ---
 
 # Delta-rule and gated associative memory
 
-The delta rule turns a purely additive associative state into a memory that corrects what a key currently retrieves. Learned decay complements this targeted replacement with broader eviction; Kimi Delta Attention (KDA) makes that decay channel-wise, giving a fixed-capacity memory distinct write, correction, and per-feature retention controls.[^fast-weight-programmers-2021][^kimi-linear-2025]
+The delta rule turns a purely additive associative state into a memory that corrects what a key currently retrieves. Scalar learned decay complements this targeted replacement with broader eviction; Gated DeltaNet combines the two, while Kimi Delta Attention (KDA) makes decay channel-wise for more granular retention control.[^fast-weight-programmers-2021][^gated-deltanet-2025][^kimi-linear-2025]
 
 ## Delta update
 
@@ -42,7 +45,7 @@ Equivalently, the memory reads the association currently selected by $k_t$ and w
 
 ## Gated decay and KDA
 
-Gated DeltaNet multiplies the corrective transition by a learned scalar decay $\alpha_t$. KDA replaces that head-wise scalar with a diagonal channel-wise gate:
+Gated DeltaNet multiplies the corrective transition by a learned scalar decay $\alpha_t$, retaining a key-conditioned rank-one correction while allowing broad state clearing. KDA replaces that head-wise scalar with a diagonal channel-wise gate:[^gated-deltanet-2025]
 
 $$
 S_t=(I-\beta_tk_tk_t^\top)\operatorname{Diag}(\alpha_t)S_{t-1}+\beta_tk_tv_t^\top.
@@ -70,6 +73,7 @@ The earlier Parallel DeltaNet paper applies the same broad compact-WY and triang
 
 - **Depends on:** [Linear attention as fixed-state memory](linear-attention-as-fixed-state-memory.md), whose additive-state interference motivates corrective updates.
 - **Parallelized by:** [Parallel DeltaNet chunkwise training](parallel-deltanet-chunkwise-training.md), which targets the ungated corrective recurrence.
+- **Implemented by:** [Gated DeltaNet architecture and chunkwise training](gated-deltanet-architecture-and-training.md), with scalar decay and a decay-aware chunkwise extension.[^gated-deltanet-2025]
 - **Used by:** [Kimi Linear hybrid attention architecture](kimi-linear-hybrid-attention-architecture.md), which interleaves KDA with periodic global attention.
 - **Used by:** [Kimi K3 hybrid retrieval architecture](kimi-k3-hybrid-retrieval-architecture.md), whose primary report retains the recurrence while lower-bounding log-decay for BF16 Tensor Core tiles and adding a full-rank output gate.[^kimi-k3-2026]
 
@@ -86,3 +90,5 @@ The original learned-step delta update and its associative-memory comparison are
 [^kimi-linear-2025]: Kimi Team, “Kimi Linear: An Expressive, Efficient Attention Architecture,” arXiv:2510.26692v2, [source](../raw/arXiv-2510.26692v2/main.tex), especially Sections 2–3, 6, and the chunkwise derivation and pseudocode appendices.
 
 [^kimi-k3-2026]: Kimi Team, “Kimi K3: Open Frontier Intelligence,” arXiv:2607.24653v1, [source](../raw/arXiv-2607.24653v1/main.tex), Section 2.1.
+
+[^gated-deltanet-2025]: Songlin Yang, Jan Kautz, and Ali Hatamizadeh, “Gated Delta Networks: Improving Mamba2 with Delta Rule,” ICLR 2025, [source](../raw/arXiv-2412.06464v3/main.tex), Sections 3–4 and Appendix A.

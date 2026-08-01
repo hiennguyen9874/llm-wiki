@@ -5,11 +5,14 @@ description: Parallel DeltaNet improves several reported linear-recurrent and re
 tags: [deltanet, evaluation, hybrid-attention, linear-attention, retrieval]
 status: stable
 created: 2026-08-01
-generated: { by: llm-wiki-agent/1, at: 2026-08-01T02:24:41Z }
+generated: { by: llm-wiki-agent/1, at: 2026-08-01T02:28:38Z }
 sources:
   - id: parallel-deltanet-2024
     resource: ../raw/arXiv-2406.06484v6/neurips_2024.tex
     title: "Parallelizing Linear Transformers with the Delta Rule over Sequence Length"
+  - id: gated-deltanet-2025
+    resource: ../raw/arXiv-2412.06464v3/main.tex
+    title: "Gated Delta Networks: Improving Mamba2 with Delta Rule"
 ---
 
 # DeltaNet evaluation and hybrid-attention trade-offs
@@ -44,7 +47,10 @@ The reported tables give point estimates without run-to-run uncertainty. Main 34
 
 - **Evaluates:** [Parallel DeltaNet chunkwise training](parallel-deltanet-chunkwise-training.md) in synthetic, language-modeling, and throughput settings.
 - **Evaluates:** [Delta-rule and gated associative memory](delta-rule-and-gated-associative-memory.md)’s corrective update against additive and elementwise-decay recurrent baselines.
+- **Extended by:** [Gated DeltaNet evaluation and hybrid trade-offs](gated-deltanet-evaluation-and-hybrid-trade-offs.md), which evaluates scalar decay plus the corrective update under a separate training recipe.[^gated-deltanet-2025]
 - **Mitigates limits of:** [Linear attention as fixed-state memory](linear-attention-as-fixed-state-memory.md) through local or global token-addressable attention.
 - **Supports hybrid use of:** [Self-attention computational profile](self-attention-computational-profile.md), with scope limited to the paper’s architectures and tests.
 
 [^parallel-deltanet-2024]: Songlin Yang, Bailin Wang, Yu Zhang, Yikang Shen, and Yoon Kim, “Parallelizing Linear Transformers with the Delta Rule over Sequence Length,” NeurIPS 2024, [source](../raw/arXiv-2406.06484v6/neurips_2024.tex), Sections 4–5, Tables 2–3, Figures 1–3, and experimental appendix.
+
+[^gated-deltanet-2025]: Songlin Yang, Jan Kautz, and Ali Hatamizadeh, “Gated Delta Networks: Improving Mamba2 with Delta Rule,” ICLR 2025, [source](../raw/arXiv-2412.06464v3/main.tex), Sections 3–5 and Appendix B.
