@@ -1,6 +1,7 @@
 # Wiki Update Log
 
 ## 2026-08-10
+- **Query**: Filed [Attention: beginner's guide for causal language models](attention-beginner-guide.md), expanding Stage 3 with Q/K/V intuition, scaled dot-product attention, causal masking, multi-head implementation, and correctness tests.
 - **Update**: Rewrote [Causal language modeling: training and sampling](causal-language-modeling-training-and-sampling.md) as a beginner-first guide to CLM objective, teacher forcing, causal masking, PyTorch training, decoding, and debugging.
 - **Update**: Rewrote [Foundations for training a bigram language model](foundations-for-training-a-bigram-language-model.md) as a beginner-first guide with a worked example, runnable PyTorch implementation, sampling walkthrough, and debugging checks.
 - **Query**: Filed [causal language modeling: training and sampling](causal-language-modeling-training-and-sampling.md), expanding Stage 2 with next-token likelihood, teacher forcing, causal masking, a PyTorch training loop, and a temperature/top-k/top-p sampler.
