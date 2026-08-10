@@ -60,6 +60,7 @@ In the DeepSeek-V2 authors’ matched 7B dense ablation, MHA led GQA with eight 
 
 ## Relationships
 
+- **Reduces the cache produced by:** [KV caching](kv-caching.md), shrinking KV-head count rather than changing what the cache stores.[^mqa-summary]
 - **Contrasts with:** [Multi-head Latent Attention](multi-head-latent-attention.md), which caches a joint low-rank KV latent plus a rotary key rather than sharing whole K/V heads.[^deepseek-v2-2024]
 - **Modifies:** [Scaled dot-product and multi-head attention](scaled-dot-product-and-multi-head-attention.md) by sharing K/V projections across query heads rather than giving each head separate projections.[^mqa-summary]
 - **Addresses:** the KV-cache-read bottleneck described in [FlashAttention implementation evolution](flashattention-implementation-evolution.md) for one-token decoding; it is an architectural cache-layout trade-off rather than an exact-attention kernel optimization.[^mqa-summary]

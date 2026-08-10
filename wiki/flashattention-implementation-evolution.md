@@ -43,6 +43,7 @@ FlashAttention makes full attention more efficient but does not remove its $O(N^
 
 ## Relationships
 
+- **Contextualized by:** [KV caching](kv-caching.md), which explains why prefill is compute-heavy and one-token decode is bounded by KV-cache reads.[^flashattention-summary]
 - **Extends:** [FlashAttention IO-aware exact attention](flashattention-io-aware-exact-attention.md) with hardware-aware scheduling and data-movement refinements.[^flashattention-summary]
 - **Contrasts with:** [Linear attention as fixed-state memory](linear-attention-as-fixed-state-memory.md), which changes the retrieval formulation and state-growth behavior rather than optimizing exact full-attention kernels.[^flashattention-summary]
 - **Complemented by:** [Multi-query and grouped-query attention](multi-query-and-grouped-query-attention.md), which reduces KV-cache traffic in one-token decoding by sharing K/V heads rather than changing the exact-attention kernel.[^mqa-summary]

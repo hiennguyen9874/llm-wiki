@@ -46,6 +46,7 @@ Block tables introduce an extra memory indirection and require specialized paged
 
 ## Relationships
 
+- **Manages the decode cache of:** [KV caching](kv-caching.md), mapping its growing logical K/V sequence to non-contiguous physical blocks.[^pagedattention-summary]
 - **Uses:** [Scaled dot-product and multi-head attention](scaled-dot-product-and-multi-head-attention.md) unchanged mathematically while changing where cached K/V tensors reside during causal decoding.[^pagedattention-summary]
 - **Complemented by:** [Multi-query and grouped-query attention](multi-query-and-grouped-query-attention.md), which lowers cache bytes and reads per token by reducing KV-head count.[^pagedattention-summary]
 - **Contrasts with:** [FlashAttention IO-aware exact attention](flashattention-io-aware-exact-attention.md): PagedAttention manages non-contiguous decode cache, whereas FlashAttention tiles attention computation to reduce intermediate HBM traffic.[^pagedattention-summary]

@@ -60,6 +60,7 @@ Compression is complementary to architectural and serving-layout choices. Multi-
 
 ## Relationships
 
+- **Builds on:** [KV caching](kv-caching.md), whose per-token cache this page compresses rather than replaces.[^kv-cache-compression-summary]
 - **Complements:** [Multi-query and grouped-query attention](multi-query-and-grouped-query-attention.md), which reduces KV-head count rather than compressing an already-produced cache.[^kv-cache-compression-summary]
 - **Complements:** [PagedAttention KV-cache serving](pagedattention-kv-cache-serving.md), which improves cache allocation, prefix reuse, and batching rather than reducing the per-token KV representation.[^kv-cache-compression-summary]
 - **Implemented architecturally by:** [Multi-head Latent Attention](multi-head-latent-attention.md), which stores a jointly compressed KV latent rather than sharing or evicting conventional K/V heads.[^deepseek-v2-2024]
