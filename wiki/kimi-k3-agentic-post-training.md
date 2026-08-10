@@ -5,11 +5,14 @@ description: Kimi K3 post-training combines agentic SFT, nine domain-and-effort 
 tags: [kimi-k3, reinforcement-learning, agents, distillation]
 status: stable
 created: 2026-08-01
-generated: { by: llm-wiki-agent/1, at: 2026-08-01T02:00:00Z }
+generated: { by: llm-wiki-agent/1, at: 2026-08-10T13:58:35Z }
 sources:
   - id: kimi-k3-2026
     resource: ../raw/arXiv-2607.24653v1/main.tex
     title: "Kimi K3: Open Frontier Intelligence"
+  - id: kimi-k3-dspark-card
+    resource: ../raw/KimiK3DSparkspeculator.md
+    title: "Kimi K3 DSpark speculator (Hugging Face model card)"
 ---
 
 # Kimi K3 agentic post-training
@@ -44,7 +47,7 @@ Autonomous Execution Tasks expose goals, constraints, tools, budgets, and verifi
 
 Quantization-aware training begins at SFT: routed expert weights use MXFP4 and activations MXFP8, while non-expert components remain at higher precision. Rollout and optimization use the same scheme to avoid train–inference precision mismatch.[^kimi-k3-2026]
 
-A pre-trained multi-token-prediction layer is fine-tuned as an EAGLE-3-style draft. The target is frozen; the draft fuses early, middle, and final AttnRes block features and directly minimizes negative log speculative acceptance rather than KL divergence.[^kimi-k3-2026]
+A pre-trained multi-token-prediction layer is fine-tuned as an EAGLE-3-style draft. The target is frozen; the draft fuses early, middle, and final AttnRes block features and directly minimizes negative log speculative acceptance rather than KL divergence. A separate third-party checkpoint, the Kimi K3 DSpark speculator, offers an alternative draft for the same target: a DFlash-style parallel draft with Markov logit-bias and confidence heads trained via SpecForge online distillation, rather than a fine-tuned MTP layer.[^kimi-k3-2026][^kimi-k3-dspark-card]
 
 ## Relationships
 
@@ -52,9 +55,12 @@ A pre-trained multi-token-prediction layer is fine-tuned as an EAGLE-3-style dra
 - **Allocates:** [Test-time compute allocation](test-time-compute-allocation.md) through effort-conditioned policies and budget penalties.
 - **Uses:** [Kimi K3 lifecycle infrastructure](kimi-k3-lifecycle-infrastructure.md) for persistent rollout and sandbox state.
 - **Deploys with:** [Speculative decoding performance trade-offs](speculative-decoding-performance-trade-offs.md).
+- **Complemented by:** [DSpark parallel-draft speculative decoding](dspark-parallel-draft-speculative-decoding.md), an external parallel-draft checkpoint for the same target.
 
 ## Evidence limits
 
 The report shows capability improving as RL FLOPs and average tool-call steps increase, but the interventions co-vary and do not prove that longer trajectories alone cause improvement. Many task suites, judges, and environments are internal; human guidance, synthesis sources, and reward-model bias limit reproducibility.[^kimi-k3-2026]
 
 [^kimi-k3-2026]: Kimi Team, “Kimi K3: Open Frontier Intelligence,” arXiv:2607.24653v1, [source](../raw/arXiv-2607.24653v1/main.tex), Section 4 and Appendix F.
+
+[^kimi-k3-dspark-card]: RadixArk, “Kimi K3 DSpark speculator,” Hugging Face model card, [source](../raw/KimiK3DSparkspeculator.md), Overview and Training Details.

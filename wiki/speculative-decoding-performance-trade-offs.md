@@ -5,7 +5,7 @@ description: Speculative decoding improves decode latency when cheap, target-ali
 tags: [speculative-decoding, inference, decoding, latency, gpu-utilization, kv-cache]
 status: draft
 created: 2026-08-12
-generated: { by: llm-wiki-agent/1, at: 2026-08-01T02:38:26Z }
+generated: { by: llm-wiki-agent/1, at: 2026-08-10T13:58:35Z }
 sources:
   - id: speculative-decoding-summary
     resource: ../raw/SpeculativeDecoding.md
@@ -13,6 +13,9 @@ sources:
   - id: deepseek-v3-2024
     resource: ../raw/arXiv-2412.19437v2/main.tex
     title: "DeepSeek-V3 Technical Report"
+  - id: kimi-k3-dspark-card
+    resource: ../raw/KimiK3DSparkspeculator.md
+    title: "Kimi K3 DSpark speculator (Hugging Face model card)"
 ---
 
 # Speculative decoding performance trade-offs
@@ -52,6 +55,10 @@ Block verification is valuable especially when one-token decoding underuses the 
 
 DeepSeek-V3 supplies a reported self-speculation case: its one-depth sequential multi-token-prediction module is trained as an additional objective and can be retained to propose a second token. The authors report 85–90% second-token acceptance across tested generation topics and 1.8× tokens/s, but do not specify enough workload, batching, or serving detail here to generalize the figure.[^deepseek-v3-2024]
 
+## DSpark long-context acceptance evidence
+
+The Kimi K3 DSpark speculator card reports SGLang `acc_len` — the histogram-native request acceptance length, averaged within each question and then equally across questions — of 2.99–5.51 across eight benchmarks. At one-million-token RULER V2 inputs (actual prompts of 1,000,432–1,047,925 tokens), average acceptance length stays about 4.26, so long-context acceptance does not collapse at scale in this configuration. AIME26 acceptance is weakest for 1–4K-token outputs (about 2.56–2.58) and rises to about 4.92 for two very long outputs, so acceptance varies with output regime. The draft is a 2.25B-parameter parallel draft (DFlash-style, block size 7) against a 2.8T target, an unusually large draft that shifts the draft-cost side of the trade-off. These figures measure accepted draft tokens, not end-to-end speedup; the card provides no latency or token-throughput claims.[^kimi-k3-dspark-card]
+
 ## Deployment constraints
 
 - A separate draft model increases memory use; placing it on a different device can add communication cost.
@@ -66,7 +73,10 @@ DeepSeek-V3 supplies a reported self-speculation case: its one-depth sequential 
 - **Complemented by:** [FlashAttention implementation evolution](flashattention-implementation-evolution.md), whose prefill-oriented attention kernels address a different inference phase; speculative decoding primarily targets decode.[^speculative-decoding-summary]
 - **Complemented by:** [Multi-query and grouped-query attention](multi-query-and-grouped-query-attention.md), which reduces growing KV-cache traffic during decode rather than proposing multiple tokens for target verification.[^speculative-decoding-summary]
 - **Implemented by:** [Sequential multi-token prediction](sequential-multi-token-prediction.md) in the reported DeepSeek-V3 self-speculation setup.[^deepseek-v3-2024]
+- **Evidenced by:** [DSpark speculator evaluation and deployment](dspark-speculator-evaluation-and-deployment.md) with concrete acceptance lengths at up to one-million-token context.
 
 [^speculative-decoding-summary]: “Speculative decoding overview” (Vietnamese summary), [raw source](../raw/SpeculativeDecoding.md), Sections 10–13 and 16–20. This secondary source cites Leviathan, Kalman, and Matias, “Fast Inference from Transformers via Speculative Decoding” (ICML 2023), and Chen et al., “Accelerating Large Language Model Decoding with Speculative Sampling” (2023); neither primary paper has been independently ingested here.
 
 [^deepseek-v3-2024]: DeepSeek-AI, “DeepSeek-V3 Technical Report,” arXiv:2412.19437v2, [source](../raw/arXiv-2412.19437v2/main.tex), Section 6.3.
+
+[^kimi-k3-dspark-card]: RadixArk, “Kimi K3 DSpark speculator,” Hugging Face model card, [source](../raw/KimiK3DSparkspeculator.md), Evaluation Results, Model Specifications, and Serving with SGLang.

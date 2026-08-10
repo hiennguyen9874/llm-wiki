@@ -5,7 +5,7 @@ description: Speculative decoding uses a fast draft model and modified rejection
 tags: [speculative-decoding, speculative-sampling, inference, decoding, rejection-sampling]
 status: draft
 created: 2026-08-12
-generated: { by: llm-wiki-agent/1, at: 2026-08-12T00:00:00Z }
+generated: { by: llm-wiki-agent/1, at: 2026-08-10T13:58:35Z }
 sources:
   - id: speculative-decoding-summary
     resource: ../raw/SpeculativeDecoding.md
@@ -49,5 +49,6 @@ This guarantee applies to stochastic sampling when acceptance and residual sampl
 - **Accelerates:** autoregressive decoding by replacing several sequential target-model calls with draft proposals and a block verification pass.[^speculative-decoding-summary]
 - **Complemented by:** [Multi-query and grouped-query attention](multi-query-and-grouped-query-attention.md), which reduces decode KV-cache traffic through attention-head sharing rather than reducing the number of target decode iterations.
 - **Operationalized by:** [Speculative decoding performance trade-offs](speculative-decoding-performance-trade-offs.md), which describes when the exact procedure yields latency gains.
+- **Used by:** [DSpark parallel-draft speculative decoding](dspark-parallel-draft-speculative-decoding.md) as a concrete draft implementation for Kimi K3.
 
 [^speculative-decoding-summary]: “Speculative decoding overview” (Vietnamese summary), [raw source](../raw/SpeculativeDecoding.md), Sections 2–9, 15, and 18. This secondary source cites Leviathan, Kalman, and Matias, “Fast Inference from Transformers via Speculative Decoding” (ICML 2023), and Chen et al., “Accelerating Large Language Model Decoding with Speculative Sampling” (2023); neither primary paper has been independently ingested here.

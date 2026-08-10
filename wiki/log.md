@@ -1,6 +1,7 @@
 # Wiki Update Log
 
 ## 2026-08-10
+- **Ingest**: Compiled [Kimi K3 DSpark speculator (model card)](../raw/KimiK3DSparkspeculator.md); created [DSpark parallel-draft speculative decoding](dspark-parallel-draft-speculative-decoding.md) and [DSpark speculator evaluation and deployment](dspark-speculator-evaluation-and-deployment.md), and updated speculative-decoding performance trade-offs, exact sampling, and Kimi K3 agentic post-training with concrete acceptance-length and draft evidence.
 - **Ingest**: Compiled [KV Caching in LLMs, Clearly Explained](../raw/KVCachinginLLMsClearlyExplained.md); created [KV caching](kv-caching.md) and linked it from KV-cache compression, PagedAttention, MQA/GQA, FlashAttention evolution, and the learning roadmap.
 
 ## 2026-08-12
