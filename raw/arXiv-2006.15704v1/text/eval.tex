@@ -1,0 +1,260 @@
+\section{Evaluation}\label{sec:eval}
+
+%This section presents evaluation results of PyTorch \code{DDP} using 32 GPUs. The GPUs are located on 4 servers, connected using Mellanox MT27700 ConnectX-4 100GB/s NIC. All 4 servers reside in the same rack, and each server is equipped with 8 NVIDIA Tesla V100 GPUs. Fig.~\ref{fig:topo} shows the interconnection of the 8 GPUs within the same server. Experiments in this section use different numbers of GPUs with a fixed scale out strategy, which is described in Table~\ref{tab:mapping}. Experiments are conducted on a single machine if it involves no more than 8 GPUs, while more machines are included for 16-, 24-, and 32-GPU experiments. This strategy is used because it is usually faster to train with the same amount of GPUs on the same machine instead of across machines due to higher bandwidth in the same server, and hence this mimics how real-world applications would scale out. 
+
+\begin{figure}
+\centering
+  \includegraphics[width=0.7\linewidth]{image/topo.pdf}
+  \vspace{-1em}
+  \caption{GPU Connection Topology}\label{fig:topo}
+  \vspace{-1.5em}
+\end{figure}
+
+This section presents the evaluation results of PyTorch \code{DDP} using an exclusive 32 GPU cluster and a shared entitlement. In the exclusive cluster, the GPUs are located on 4 servers, connected using Mellanox MT27700 ConnectX-4 100GB/s NIC. All 4 servers reside in the same rack, and each server is equipped with 8 NVIDIA Tesla V100 GPUs. Fig.~\ref{fig:topo} shows the interconnection of the 8 GPUs within the same server. We only use the shared entitlement when a set of experiments require more than 32 GPUs.
+In the shared entitlement, we submit jobs to run on different numbers of GPUs where different jobs can run on different machines, and hence the hardware and network connectivity can vary from job to job. Although the disparity in the test environment can lead to different latency measures even for the same code, we pack the same set of experiments into the same job, so that the trend shown in the same curve is still meaningful.
+
+
+
+%\begin{center}
+%\begin{table}
+%\begin{center}
+%\begin{tabular}{ |c||c|c|c|c|c|c|c| }
+%\hline
+%GPUs & 1 & 2 & 4 & 8 & 16 & 24 & 32 \\
+%\hline
+%Machines & 1 & 1 & 1 & 1 & 2 & 3 & 4 \\
+%\hline
+%\end{tabular}
+%\end{center}
+%\caption{GPU-Machine Mapping}\label{tab:mapping}
+%\end{table}
+%\vspace{-1em}
+%\end{center}
+
+We measure \code{DDP} per iteration latency and scalability using two popular models, ResNet50~\cite{resnet} and BERT~\cite{bert}, to represent typical vision and NLP applications. Most experiments use randomly generated synthetic inputs and labels, which are sufficient as the purpose is to compare per iteration latency instead of model accuracy. Experiments compute losses using the \code{CrossEntropyLoss} function and update parameters using the \code{SGD} optimizer. Configurations for accuracy-related experiments will be explained in detail close to their presentations.
+
+
+\begin{figure}
+\centering
+  \includegraphics[width=0.8\linewidth]{image/better_breakdown_print.pdf}
+  \vspace{-1em}
+  \caption{Per Iteration Latency Breakdown}\label{fig:breakdown}
+  \vspace{-1.5em}
+\end{figure}
+
+
+
+\begin{figure*}[!htb]
+\begin{minipage}[c]{0.245\textwidth}
+  \centering
+  \includegraphics[width=\linewidth]{image/nccl_bucket_size.pdf}
+  (a) ResNet50 on NCCL
+\end{minipage}
+\begin{minipage}[c]{0.245\textwidth}
+  \centering
+  \includegraphics[width=\linewidth]{image/gloo_bucket_size.pdf}
+  (b) ResNet50 on Gloo
+\end{minipage}
+\begin{minipage}[c]{0.245\textwidth}
+  \centering
+  \includegraphics[width=\linewidth]{image/bert_nccl_bucket_size.pdf}
+  (c) BERT on NCCL
+\end{minipage}
+\begin{minipage}[c]{0.245\textwidth}
+  \centering
+  \includegraphics[width=\linewidth]{image/bert_gloo_bucket_size.pdf}
+  (d) BERT on Gloo
+\end{minipage}
+\vspace{-1em}
+\caption{Per Iteration Latency vs Bucket Size on 16 GPUs}\label{fig:bucket_size}
+\vspace{-0.8em}
+\end{figure*}
+
+\begin{figure*}[!htb]
+\begin{minipage}[c]{0.245\textwidth}
+  \centering
+  \includegraphics[width=\linewidth]{image/nccl_bucket_size_32.pdf}
+  (a) ResNet50 on NCCL
+\end{minipage}
+\begin{minipage}[c]{0.245\textwidth}
+  \centering
+  \includegraphics[width=\linewidth]{image/gloo_bucket_size_32.pdf}
+  (b) ResNet50 on Gloo
+\end{minipage}
+\begin{minipage}[c]{0.245\textwidth}
+  \centering
+  \includegraphics[width=\linewidth]{image/bert_nccl_bucket_size_32.pdf}
+  (c) BERT on NCCL
+\end{minipage}
+\begin{minipage}[c]{0.245\textwidth}
+  \centering
+  \includegraphics[width=\linewidth]{image/bert_gloo_bucket_size_32.pdf}
+  (d) BERT on Gloo
+\end{minipage}
+\vspace{-1em}
+\caption{Per Iteration Latency vs Bucket Size on 32 GPUs}\label{fig:bucket_size_32}
+\vspace{-1em}
+\end{figure*}
+
+\subsection{Latency Breakdown}
+
+
+A typical training iteration contains three steps: forward pass to compute loss, backward pass to compute gradients, and optimizer step to update parameters. 
+% New
+With \code{DDP}, the backward pass involves local computation and \code{AllReduce} communication. To demonstrate the effectiveness of overlapping computation with communication, Fig.~\ref{fig:breakdown} plots the latency breakdown when using NCCL and Gloo backends for ResNet50 and BERT models respectively. All experiments are conducted using 32 GPUs across 4 machines. To visually compare the speedup on different model and backend combinations, we normalize the total latency to 1 for all non-overlapping cases. 
+The results demonstrate that the backward pass is the most time-consuming step with PyTorch \code{DDP} training, as \code{AllReduce} communications (\emph{i.e.}, gradient synchronization) are completed in this step. This observation justifies that the \code{DDP} backward pass deserves the most efforts for improvements. Within the backward pass, the communication step takes more than half of the total delay and this is exacerbated with the increase of model size. Between these two backends, NCCL is considerably faster than GLOO. The speedup is most effective when the computation and communication take roughly the same amount of time as they can overlap more. The overlapping approach helps ResNet and BERT on NCCL attain 38.0\% and 35.2\% speedup. With GLOO backend, the gain shrinks to 26.8\% and 21.5\% respectively, as GLOO communication becomes the dominating delay in the backward pass.  
+%
+%Fig.~\ref{fig:breakdown} plots the latency breakdown of the three steps using NCCL and Gloo backends for ResNet50 and BERT models respectively. All experiments are conducted using 16 GPUs across 2 machines. Forward, backward, and optimizer steps are highlighted using different colors. The X-axis is the iteration number and Y axis the latency. To measure latency for different steps, one approach is to wait with CUDA stream synchronization after every step and then measure using Python \code{time}. This approach cannot faithfully represent total execution time, as such stream synchronization usually does not appear in real training loops. Instead, we measure latency by inserting CUDA events before and after every step and calculating the differences using \code{Event.elapsed\_time}. The results show that the latency values for different components are mostly stable across iterations. The delay spikes in the backward pass align at the boundary of each 100 iterations. We suspect this is because the experiments reconstruct \code{DDP} instances and regenerate training data every 100 iterations.
+
+
+
+
+
+
+
+%Fig.~\ref{fig:breakdown}~(a) illustrates the latency breakdown of the three steps during ResNet50 training using NCCL backend. The forward, backward, and optimizer step contribute about 25\%, 71\%, and 4\% to the total latency respectively. The backward pass is obviously dominating. Similar results are observed with the Gloo backend as well, where the three steps take about 15\%, 73\%, and 2\% of the item in one iteration, as shown in Fig.~\ref{fig:breakdown}~(b). Domination in latency of the backward pass becomes even more prominent with larger models. Fig.~\ref{fig:breakdown}~(c) and (d) plots the same measurements with BERT model, where the backward pass consumes 79\% and 90\% of the training time on NCCL and Gloo respectively.
+
+%The results demonstrate that the backward pass is the most time-consuming step with PyTorch \code{DDP} training, as \code{AllReduce} communications (\emph{i.e.}, gradient synchronization) are completed in this step. This observation justifies that the \code{DDP} backward pass deserves the most efforts for improvements. 
+
+\subsection{Bucket Size}
+
+
+
+
+
+To avoid launching an excessive number of \code{AllReduce} operations, \code{DDP} organizes small gradients into larger buckets and synchronizes each bucket using an \code{AllReduce} operation. With this design, bucket size is an important configuration knob. \code{DDP} exposes this knob to applications through \code{bucket\_cap\_mb} argument. No single bucket size can best serve all applications. This value should be measured and determined empirically. The default value of \code{bucket\_cap\_mb} is 25MB, which is our best effort estimation based experiences. The following experiments also confirm this is a reasonable choice for ResNet50 and BERT. This section compares per iteration latency across different bucket sizes using 16 GPUs on two machines. Zero bucket size means each gradient will be communicated on its own as soon as it is ready. This serves as a baseline on one extreme of the bucket size spectrum. The other extreme is communication all gradients in one short, which is skipped as results in Fig.~\ref{fig:bucket_size} and Fig.~\ref{fig:bucket_size_32} clearly show the best option for both ResNet50 and BERT is somewhere in the middle.
+
+
+Fig.~\ref{fig:bucket_size}~(a) uses box-whisker to illustrate how bucket size affects per iteration latency on ResNet50 with NCCL backend. The x-axis is the bucket size in MBs, and Y-axis per iteration latency in seconds. The outliers are the tiny delay spikes at 100 iteration boundaries caused by \code{DDP} instance re-construction and input data regeneration. Other than that, delays of most iterations concentrate in a very narrow time range, which also agrees with the results shown in Fig.~\ref{fig:breakdown}~(a). The results show that the highest speed is achieved between 10MB and 25MB bucket sizes. Fig.~\ref{fig:bucket_size}~(b) presents the same measurements for Gloo backend. The results are different from NCCL backend in two ways, 1) per iteration latency falls into a large range, 2) the 5MB bucket size attains higher speed compared to 10MB and 25MB. The first difference matches with Fig.~\ref{fig:breakdown}~(b). To understand the second difference, let us revisit Fig.~\ref{fig:allreduce}~(b) on Gloo \code{AllReduce} latency across different tensor sizes. It's clear that the total \code{AllReduce} time fluctuates around the same level when the bucket size is larger than 512KB. Therefore, larger bucket sizes beyond 512KB with Gloo backend would only mean longer waiting time for gradients, which leads to longer per iteration latency. Fig.~\ref{fig:bucket_size}~(c) and (d) show the measurements for BERT model. As BERT model contains 15X more parameters compared to ResNet50, intuitively, it should benefit from larger buckets as larger communication overheads would dwarf the waiting time for the first bucket. The results verified the intuition with NCCL backend, where 50MB bucket size leads to the best performance. However, with Gloo backend, 5MB bucket size still wins with the lowest per iteration latency. 
+
+
+Fig.~\ref{fig:bucket_size_32} presents the results of the same set of experiments but on 32 GPUs. In this case, the outliers span a larger range, which is not surprising as synchronizations usually take longer with more participants and the impact of strangler is more prominent. Fig.~\ref{fig:bucket_size_32}~(a) and (b) both suggest that 0MB bucket size leads to obviously longer per iteration latency on 32 GPUs compared to 16 GPUs, as per-gradient reductions on a larger cluster are expected to be slower. However, when bucket size is set to above 5MB, scaling from 16 GPUs to 32 GPUs does not lead to a noticeable speed regression. This is probably because although individual \code{AllReduce} operations is expected to be slower, asynchronous execution and parallelism could help to hide the overall delay. 
+
+
+
+
+\subsection{Scalability}
+
+
+
+
+
+% {nccl, gloo} X {resnet, bert} scalability
+% no_sync
+
+%To understand the scalability of \code{DDP}, we measure per iteration training latency of ResNet50 and BERT using NCCL and Gloo backend on different numbers of GPUs. Results are presented in Fig.~\ref{fig:scalability}. X-axis is the number of GPUs, and Y-axis the latency. Figure~\ref{fig:scalability}~(a) shows that the per iteration latency steadily increases as it scales out. Using 32 GPUs leads to 20\% slow down in each iteration, meaning that the real scaling factor is 32 $\times$ 80\% = 25.6. With the BERT model, there is a significant gap between 8 GPUs and 16 GPUs using NCCL backend. The gap occurs when the communication reaches more than one server, suggesting that the link bandwidth plays a crucial role for large models. This behavior also matches with NCCL~\cite{nccl} design where the \code{AllReduce} ring bandwidth is bounded by the slowest link. Another observation is that 16, 24, and 32 GPUs end up with roughly the same per iteration latency. We suspect this is because introducing two more machines only adding two across machine links to the \code{AllReduce} ring, and its overhead on individual buckets is shadowed by the delay of communicating gradients of the BERT model with multiple concurrent \code{AllReduce} operations. 
+
+%Fig.~\ref{fig:scalability}~(b) and (d) show the results for Gloo backend, where scaling from 8 GPUs to 16 GPUs has lighter impacts compared to NCCL backend and the gap is much larger when scales from 1 GPU to 8 GPUs on the same machine. The results indicate that the dominating overhead comes from copying gradients from CUDA to CPU and then writing back after \code{AllReduce}, instead of from the communication. This would also explain why the latency stays at the same level for 16, 24, and 32 GPUs.
+
+% New
+To understand the scalability of \code{DDP}, we measure per iteration training latency of ResNet50 and BERT using NCCL and Gloo backend on up to 256 GPUs in the shared entitlement. Results are presented in Fig.~\ref{fig:scalability}. The X-axis is the number of GPUs, and Y-axis the latency. Figure~\ref{fig:scalability}~(a) shows that the per iteration latency steadily increases as it scales out. Using 256 GPUs leads to 100\% slow down in each iteration compared to local training, meaning that the real scaling factor is 256 $\times$ 50\% = 128. With the BERT model, the per-iteration latency significantly increases due to the larger model size. Another observation is that the 16-GPU case suffers a longer per-iteration delay compared to the 32-GPU case in Figure~\ref{fig:scalability}~(c). We suspect this is because either the 16-GPU experiments were on a slow or congested link or there are other workflows in the shared entitlement competing for resources with our job. Fig.~\ref{fig:scalability}~(b) and (d) show the results for Gloo backend and the per-iteration slowdown is about 3X for ResNet and 6X for BERT when using 256 GPUs. The deteriorated training speed with larger model sizes indicates that the network is the bottleneck resource when using Gloo backend in this experiment. 
+
+
+
+
+
+%In general, scaling out to more GPUs slows down individual iterations. One option to mitigate the overhead is skipping gradient synchronizations, \emph{i.e.}, perform gradient reduction every $n$ iterations. This approach helps to considerably reduce the amortized latency. Fig.~\ref{fig:no_sync} depicts the amortized average per iteration latency for conducting gradient reduction every 1, 2, 4, and 8 iterations. As Fig.~\ref{fig:scalability} confirms that the per iteration latency falls into a relatively narrow range, the average value can faithfully represent all measurements. Hence, the results of skipping synchronization are consolidated into a smaller number of bar graphs. ResNet50 on NCCL and Gloo sees 17\% and 58\% speed up respectively with 32 GPUs, reducing the scaling overhead to less than 10\%. Besides the per iteration latency, it's also crucial to measure the convergence speed to verify if the acceleration might be erased by convergence slowdown. The experiments use MNIST~\cite{mnist} dataset to train the ResNet. The learning rate is set to 0.02 and the batch size is 8. Results are plotted in Fig.~\ref{fig:accuracy}~(a), which only contains the measurements for NCCL backend as the communication layer does not change the convergence speed. X-axis is the number of iterations and Y-axis the loss. Please note that the goal of this experiment is not developing the best model for MNIST, instead, it only aims to show the impact of skipping synchronization on the model convergence. The raw loss data oscillate severely, which are presented by the tiny dots. Directly connecting them into a line would result in the last curve covering all previous drawn ones, making them less visible. Therefore, we apply an order 3 low pass filter by using \code{filtfilt} from SciPy~\cite{scipy} and plot the smoothed loss curve. The figure confirms that using \code{no\_sync} in this case only leads to negligible exacerbation to the convergence speed. However, we must emphasize that the impact of \code{no\_sync} could depend on the configuration. Fig.~\ref{fig:accuracy}~(b) shows similar measurements by replacing batch size to 256 and learning rate to 0.06. As highlighted by the red box in the right bottom corner, \code{no\_sync} hurts the final training loss. It is because large batch size and \code{no\_sync} cause more gradients to be accumulated between consecutive communications and optimizer steps, which implicitly requires using a smaller learning rate.  
+
+
+\begin{figure*}[!htb]
+\begin{minipage}[c]{0.245\textwidth}
+  \centering
+  \includegraphics[width=\linewidth]{image/nccl_resnet_scalability_large.pdf}
+  (a) ResNet50 on NCCL
+\end{minipage}
+\begin{minipage}[c]{0.245\textwidth}
+  \centering
+  \includegraphics[width=\linewidth]{image/gloo_resnet_scalability_large.pdf}
+  (b) ResNet50 on Gloo
+\end{minipage}
+\begin{minipage}[c]{0.245\textwidth}
+  \centering
+  \includegraphics[width=\linewidth]{image/nccl_bert_scalability_large.pdf}
+  (c) BERT on NCCL
+\end{minipage}
+\begin{minipage}[c]{0.245\textwidth}
+  \centering
+  \includegraphics[width=\linewidth]{image/gloo_bert_scalability_large.pdf}
+  (d) BERT on Gloo
+\end{minipage}
+\vspace{-1em}
+\caption{Scalability}\label{fig:scalability}
+\vspace{-0.8em}
+\end{figure*}
+
+
+
+\begin{figure*}[!htb]
+\begin{minipage}[c]{.5\textwidth}
+\begin{minipage}[c]{0.5\textwidth}
+  \centering
+  \includegraphics[width=\linewidth]{image/nccl_no_sync_large.pdf}
+  (a) ResNet50 on NCCL
+\end{minipage}
+\begin{minipage}[c]{0.5\textwidth}
+  \centering
+  \includegraphics[width=\linewidth]{image/gloo_no_sync_large.pdf}
+  (b) ResNet50 on Gloo
+\end{minipage}
+\vspace{-1em}
+\caption{Skip Gradient Synchronization}\label{fig:no_sync}
+\end{minipage}
+\begin{minipage}[c]{.5\textwidth}
+\begin{minipage}[c]{0.5\textwidth}
+  \centering
+  \includegraphics[width=\linewidth]{image/accuracy_nccl.pdf}
+  (a) Batch Size = 8
+\end{minipage}
+\begin{minipage}[c]{0.5\textwidth}
+  \centering
+  \includegraphics[width=\linewidth]{image/accuracy_nccl_256.pdf}
+  (b) Batch Size = 256
+\end{minipage}
+\vspace{-1em}
+\caption{Accuracy with Skipping Synchronization}\label{fig:accuracy}
+\end{minipage}
+\vspace{-0.8em}
+\end{figure*}
+
+
+\begin{figure*}[!htb]
+\begin{minipage}[c]{0.245\textwidth}
+  \centering
+  \includegraphics[width=\linewidth]{image/nccl_stream.pdf}
+  (a) ResNet50 on NCCL
+\end{minipage}
+\begin{minipage}[c]{0.245\textwidth}
+  \centering
+  \includegraphics[width=\linewidth]{image/gloo_stream.pdf}
+  (b) ResNet50 on Gloo
+\end{minipage}
+\begin{minipage}[c]{0.245\textwidth}
+  \centering
+  \includegraphics[width=\linewidth]{image/bert_nccl_stream.pdf}
+  (c) BERT on NCCL
+\end{minipage}
+\begin{minipage}[c]{0.245\textwidth}
+  \centering
+  \includegraphics[width=\linewidth]{image/bert_gloo_stream.pdf}
+  (d) BERT on Gloo
+\end{minipage}
+\vspace{-1em}
+\caption{Round-Robin Process Group}\label{fig:rr}
+\vspace{-1em}
+\end{figure*}
+
+
+%New
+In general, scaling out to more GPUs slows down individual iterations. One option to mitigate the overhead is skipping gradient synchronizations, \emph{i.e.}, perform gradient reduction every $n$ iterations. This approach helps to considerably reduce the amortized latency. Fig.~\ref{fig:no_sync} depicts the average per iteration latency for conducting gradient reduction every 1, 2, 4, and 8 iterations. To visually compare the effectiveness of this method, we consolidated different skipping configurations for the same model and backend combination into the same figure. 
+ResNet50 on NCCL and Gloo sees 38\% and 57\% speed up with 256 GPUs when conducting gradient sync every 8 iterations. There is a sudden jump in delay with NCCL backend when scaling from 128 to 256 and this occurs to all experiments shown in this figure. We believe this is caused by slow or congested links among some of those 256 nodes which are not included in the 128-GPU experiments.
+%
+Besides the per iteration latency, it's also crucial to measure the convergence speed to verify if the acceleration might be erased by convergence slowdown. The experiments use MNIST~\cite{mnist} dataset to train the ResNet. The learning rate is set to 0.02 and the batch size is 8. Results are plotted in Fig.~\ref{fig:accuracy}~(a), which only contains the measurements for NCCL backend as the communication layer does not change the convergence speed. X-axis is the number of iterations and Y-axis the loss. Please note that the goal of this experiment is not developing the best model for MNIST, instead, it only aims to show the impact of skipping synchronization on the model convergence. The raw loss data oscillate severely, which are presented by the tiny dots. Directly connecting them into a line would result in the last curve covering all previous drawn ones, making them less visible. Therefore, we apply an order 3 low pass filter by using \code{filtfilt} from SciPy~\cite{scipy} and plot the smoothed loss curve. The figure confirms that using \code{no\_sync} in this case only leads to negligible exacerbation to the convergence speed. However, we must emphasize that the impact of \code{no\_sync} could depend on the configuration. Fig.~\ref{fig:accuracy}~(b) shows similar measurements by replacing batch size to 256 and learning rate to 0.06. As highlighted by the red box in the right bottom corner, \code{no\_sync} hurts the final training loss. It is because large batch size and \code{no\_sync} cause more gradients to be accumulated between consecutive communications and optimizer steps, which implicitly requires using a smaller learning rate. In summary, when skipping synchronizations properly, \code{DDP} attains near linear scalability with negligible accuracy penalty. 
+
+\subsection{Round-Robin Process Group}
+
+% {nccl, gloo} X {resnet, bert} rr1, 3, 5, 7
+
+
+
+
+Another technique to speed up training is to use multiple process groups to work around subtle intrinsic concurrency limitations in process group backend implementations. The concurrency limitations could come from NCCL streams or Gloo threads, depending on the type of the backend, which might prevent one process group instance to fully utilize all link bandwidth. The PyTorch distributed package supports composing a Round-Robin process group with multiple NCCL or Gloo process groups, which dispatches collective communications to different process group instances in Robin-Robin order. Fig.~\ref{fig:rr} plots the per iteration latency of Round-Robin process group using 1, 3, and 5 NCCL or Gloo process groups, where \code{rrx} stands for \textbf{R}ound-\textbf{R}obin with \textbf{x} process group instances. ResNet50 on NCCL backend sees negligible differences with different amounts of process groups, meaning that for relatively small models like ResNet50, bandwidth is not the bottleneck resource. Noticeable difference can be observed in ResNet50 on Gloo, where \code{rr3} consistently outperforms \code{rr1}. The most prominent acceleration occurs in BERT model with NCCL backend, where \code{rr3} achieves 33\% speedup compared to \code{rr1} on 16 GPUs, revealing that one NCCL group is incompetent to saturate the link capacity.

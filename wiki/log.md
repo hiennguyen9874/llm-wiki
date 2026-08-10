@@ -1,6 +1,7 @@
 # Wiki Update Log
 
 ## 2026-08-10
+- **Ingest**: Compiled [PyTorch Distributed: Experiences on Accelerating Data Parallel Training](../raw/arXiv-2006.15704v1/main.tex); created [PyTorch DDP gradient synchronization](pytorch-ddp-gradient-synchronization.md) and [PyTorch DDP performance tuning](pytorch-ddp-performance-tuning.md).
 - **Ingest**: Compiled [How AI Inference Works, Clearly Explained](../raw/HowAIInferenceWorksClearlyExplained.md); created [LLM inference serving stack](llm-inference-serving-stack.md).
 - **Ingest**: Compiled [深入 Kimi-K3：Hugging Face 仓库分析](../raw/KimiK3XStatus.md); created [Kimi K3 XTML chat and tool encoding](kimi-k3-xtml-chat-and-tool-encoding.md) and updated [Kimi K3 native multimodal pre-training](kimi-k3-native-multimodal-pre-training.md) with the public processor’s image-only boundary.
 - **Ingest**: Compiled [Kimi K3 DSpark speculator (model card)](../raw/KimiK3DSparkspeculator.md); created [DSpark parallel-draft speculative decoding](dspark-parallel-draft-speculative-decoding.md) and [DSpark speculator evaluation and deployment](dspark-speculator-evaluation-and-deployment.md), and updated speculative-decoding performance trade-offs, exact sampling, and Kimi K3 agentic post-training with concrete acceptance-length and draft evidence.

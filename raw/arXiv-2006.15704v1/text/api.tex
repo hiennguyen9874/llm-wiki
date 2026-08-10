@@ -1,0 +1,40 @@
+\subsection{API}\label{sec:api}
+
+When designing the API, we have defined two design goals to achieve the necessary functionality.
+
+\begin{itemize}
+    \item \textbf{Non-intrusive}: The API must be non-intrusive to applications. Application developers usually start from writing local training scripts, and scale out when hitting the resource limit on a single machine. At that point, it is unacceptable to ask developers to rewrite the entire application to enable distributed data parallel training. Instead, the developer should be able to reuse the local training script with minimal modifications.
+    \item \textbf{Interceptive}: The API needs to allow the implementation to intercept various signals and trigger appropriate algorithms promptly. Distributed data parallel aims at accelerating training by using more computational resources. This process requires subtle optimizations in both computations and communications to achieve the best performance. Hence, the API must expose as many optimization opportunities as possible to the internal implementation.
+\end{itemize}
+
+Given the above requirements, we implemented distributed data parallel as an \code{nn.Module}, which takes the local model as a constructor argument and transparently synchronizes gradients in the backward pass. The code snippet below shows an example of using \code{DDP} module. This  example uses an \code{nn.Linear} layer to create a local model on line 10. Then, it converts the local model into a distributed training model on line 11 and sets up the optimizer on line 12. Line 14 through 23 are typical forward pass, backward pass, and optimizer step implementations. In this toy distributed training example, line 11 is the only difference that converts a local training application into a distributed one, which satisfies the non-intrusive requirement. It also fulfills the interceptive requirement. The constructor allows \code{DDP} to inspect the model structure and parameters. After construction, the local model is replaced by the distributed one, which can then easily intercept the \code{forward()} call to perform necessary actions accordingly. For the backward pass, \code{DDP} relies on backward hooks to trigger gradient reduction, which will be invoked by the autograd engine when executing \code{backward()} on the loss tensor. 
+
+%\vspace{-1.5em}
+
+\begin{lstlisting}[language=Python]
+import torch
+import torch.nn as nn
+import torch.nn.parallel as par
+import torch.optim as optim
+
+# initialize torch.distributed properly 
+# with init_process_group
+
+# setup model and optimizer
+net = nn.Linear(10, 10)
+net = par.`\textcolor{red}{DistributedDataParallel}`(net)
+opt = optim.SGD(net.parameters(), lr=0.01)
+
+# run forward pass
+inp = torch.randn(20, 10)
+exp = torch.randn(20, 10)
+out = net(inp)
+
+# run backward pass
+nn.MSELoss()(out, exp).backward()
+
+# update parameters
+opt.step()
+\end{lstlisting}
+\vspace{-1em}
+

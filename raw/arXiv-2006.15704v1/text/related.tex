@@ -1,0 +1,77 @@
+\section{Related Work}\label{sec:related}
+
+%Recent advances in distributed training have explored several novel ideas, including data parallelism, model parallelism, pipeline parallelism, and combinations of these technologies. 
+
+%Data parallelism has been extensively discussed in this paper. Besides the aforementioned techniques, \emph{i.e.}, bucketing gradients, overlapping communication with computation, and skipping synchronizations, the latest research aims at breaking the barrier between the backward pass and the optimizer step and even with the forward pass in the next iteration in order to overlap communication with more computations. Jayarajan \emph{et al.}~\cite{sosp:19:priority} proposed to prioritize gradient synchronizations and parameter updates based on the forward order instead of the backward order, meaning that gradients in initial layers should receive higher priorities than those in final layers. Communications should still start from final layer gradients, as they will become ready earlier, but higher priority gradients (\emph{i.e.}, in initial layers) can preempt lower priority ones. This design allows the forward pass in the next iteration to start sooner, even before finishing gradients communications in the previous iteration, creating more opportunities to overlap computations and communications. ByteScheduler~\cite{bytescheduler} explored scheduling communications for distributed data parallel training as well. However, instead of binding with a single framework, ByteScheduler works for multiple frameworks by inserting a common core scheduler between framework APIs and framework engines and uses per-engine plugins to intercept communication invocations. Experiments show that aggressively overlapping communication with more computations attains considerable speedup for data parallel training. The challenges for adopting this strategy at the framework level include laconic API design and generalized applicability.
+
+%Model parallelism divides the model into smaller pieces, which is especially helpful when the model is too large to fit into one device or machine. The RPC~\cite{rpc} package solves the problem by extending the autograd graph across RPC boundaries, so that applications can wrap part of the model in RPC and run it on a remote machine. 
+
+%Pipeline parallelism~\cite{gpipe} allows the lifetime of multiple iterations to overlap with each other. When combined with model parallelism, it helps to reduce the idle waiting time on different devices caused by the bubble in the schedule.
+
+%The mixture of different parallelism scheme fosters even powerful training paradigms. Mesh-TensorFlow~\cite{shazeer2018mesh} combines data parallelism with model parallelism. It vertically divides some layers by dimensions and replicating other layers where the given dimension is absent. ZeRO~\cite{rajbhandari2019zero} also combines data parallelism with model parallelism, but with minimum model replication to support fast training on super large models. The authors observed that main memory consumption contributors are input data, model parameters, gradients, optimizer states, and activations. Splitting input data is trivial. However, model parameters and activations are compulsory ingredients for forward the backward passes. ZeRO addressed this problem by partitioning parameters, gradients, and optimizer states on each \code{DDP} instance. Parameters are broadcast from the owner \code{DDP} instance to all others when necessary. Activations are recomputed during the backward pass. PipeDream~\cite{narayanan2019pipedream} employs a different approach where the model stack is decomposed into multiple stages, where data parallelism is applied within one stage and pipeline with model parallelisms govern the workload across stages. Parallax~\cite{parallax} explored a hybrid structure that combines parameter-server~\cite{ps} and collective communications. Models are partitioned based on  sparsity, where dense parameters are communicated using \code{allreduce} and sparse tensors are placed to parameter servers. This design avoids densifying sparse tensors and communicating empty values, which is especially helpful for NLP models. 
+
+%Some researchers attempted to accelerate training from higher or lower layers in the software stack. BigDL~\cite{bigdl} implemented a deep learning framework on top of Apache Spark~\cite{spark} using functional APIs. Compared to other deep learning frameworks, BigDL employs a copy-on-write principle, where instead of mutating one model repeated, every update will create a new dataset. With BigDL, every iteration launches two Spark jobs to compute gradients and update parameters respectively. Blink~\cite{wang2019blink} speeds up collective communications for distributed machine learning by exploring the network heterogeneity across GPUs. The authors identified that NCCL \code{allreduce} ring's capacity is limited by the slowest link in the ring, which can lead to significant bandwidth under-utilization in other more powerful links. Blink proposes to prob link capacities and then generate packing spanning trees for communications. 
+
+%%%% 
+
+Distributed training algorithms can be categorized into different types from different perspectives. Below are three popular categorizations.
+
+\begin{itemize}
+    \item Synchronous update vs Asynchronous update: With the former, all model replicas can use \code{AllReduce} to collectively communicate gradients or parameters, while the asynchronous scheme employs P2P communication to update gradients or parameters independently.
+    \item Cross-iteration vs Intra-iteration:  Cross-iteration parallelism (e.g., pipeline parallelism) allows the lifetime of multiple iterations to overlap with each other, while intra-iteration scheme focuses on parallelizing training within one iteration. 
+    \item Data parallel vs Model parallel: Data parallel training distributes input data to multiple model replicas, while model parallelism divides the model into smaller pieces, which is especially helpful when the model is too large to fit in one device or machine.
+\end{itemize}
+
+Table~\ref{tab:related} summarizes some recent distributed training solutions by marking which scheme they can support. Besides advances in training schemes, prior work has also explored different communication algorithms, including tree-based \code{AllReduce}~\cite{nccl:tree_reduce}, heterogeneity-aware interconnection structure~\cite{wang2019blink}, and \code{AllReduce} decomposition~\cite{cho2019blueconnect}. As this paper focuses on \code{DDP}, the remainder of this section only elaborates and compares closely related techniques, \emph{i.e.}, Synchronous, Intra-iteration, and Data parallel training schemes. 
+
+The techniques presented in this paper were first implemented and released in PyTorch v1.1. Similar computation-communication overlap techniques are also introduced in TensorFlow v2.2 as the Multi Worker Mirrored Strategy~\cite{tf-ddp}. This technique is researched in academia as well. GradientFlow~\cite{sun2019gradientflow} combines bucketing \code{AllReduce} with skipping parameter synchronizations. Compared to PyTorch \code{DDP}, instead of skipping the entire synchronization step in one iteration, GradientFlow selectively communicates a subset of gradients. Although this strategy helps to reduce communication overhead for gradients, it requires an additional communication phase to attain consensus on which gradients to synchronize. As a result, the overhead incurred to acquire consensus might overshadow the speedup achieved in gradient synchronizations, especially for small models or large network round-trip delays.
+
+
+Another approach to speeding up distributed training is preempting and prioritizing communications based on the order of downstream computations. Jayarajan \emph{et al.}~\cite{sosp:19:priority} proposed to prioritize gradient synchronizations and parameter updates based on the forward order instead of the backward order, meaning that gradient buckets containing the initial layers should receive higher priorities than those in the final layers. Communications should still start from final layer gradients, as they will become ready earlier, but higher priority gradients (\emph{i.e.}, in initial layers) can preempt lower priority ones. This design allows the forward pass in the next iteration to start sooner, even before finishing gradients communications in the previous iteration, creating more opportunities to overlap computations and communications. ByteScheduler~\cite{bytescheduler} explored scheduling communications for distributed data parallel training as well. However, instead of binding with a single framework, ByteScheduler works for multiple frameworks by inserting a common core scheduler between framework APIs and framework engines and uses per-engine plugins to intercept communication invocations. To integrate with PyTorch, ByteScheduler builds on top of Horovod~\cite{sergeev2018horovod} which launches communication in the optimizer. One downside of this approach is that, there is a hard barrier between the backward pass and the optimizer step. As a result, communication can only overlap with the next forward pass instead of the current backward pass. With dynamic graphs, the next iteration might touch a different set of parameters, which would invalidate the schedule derived from the previous iteration. PACE~\cite{baopreemptive} computes the optimal communication schedule and implements preemption by segmenting primitive \code{AllReduce} operations into smaller pieces. Although segmenting can indeed mimic preemption, it will on the other hand hurt the total communication time as we have seen in Fig.~\ref{fig:allreduce}. A more efficient approach would be to natively support prioritization in the communication libraries (e.g., NCCL and Gloo).
+
+\begin{center}
+\begin{table}
+\begin{center}
+\begin{tabular}{ |c|cccccc| }
+\hline
+Scheme & S & A & C & I & D & M\\
+\hline
+PT DDP~\cite{pt-ddp} & $\surd$ & & & $\surd$ & $\surd$ & \\
+\hline
+PT RPC~\cite{rpc} &  & $\surd$  & $\surd$ & $\surd$  & $\surd$  & $\surd$ \\
+\hline
+TF MultiWorkerMirrored~\cite{tf-ddp} & $\surd$ & & & $\surd$ & $\surd$ & \\
+\hline
+TF ParameterServer~\cite{tf-ps, ps} & & $\surd$  & & $\surd$ & $\surd$ & $\surd$ \\
+\hline
+Mesh TensorFlow~\cite{shazeer2018mesh} & $\surd$ &  & & $\surd$ & $\surd$ & $\surd$ \\
+\hline
+GPipe~\cite{gpipe} & $\surd$ &  & $\surd$ &  & & $\surd$ \\
+\hline
+Horovod~\cite{sergeev2018horovod} & $\surd$ & & & $\surd$ & $\surd$ & \\
+\hline
+GradientFlow~\cite{sun2019gradientflow} & $\surd$ & & & $\surd$ & $\surd$ & \\
+\hline
+SlowMo~\cite{wang2019slowmo} & & $\surd$  & & $\surd$ & $\surd$ & \\
+\hline
+PipeDream~\cite{narayanan2019pipedream} & $\surd$ &  & $\surd$ & $\surd$  & $\surd$  & $\surd$ \\
+\hline
+ZeRO~\cite{rajbhandari2019zero} & $\surd$ &  & & $\surd$  & $\surd$  & $\surd$ \\
+\hline
+Parallax~\cite{parallax} & $\surd$ & $\surd$ & & $\surd$  & $\surd$  & $\surd$ \\
+\hline
+ByteScheduler~\cite{bytescheduler} & $\surd$ & & $\surd$  & $\surd$  & $\surd$  & \\
+\hline
+TicTac~\cite{hashemi2018tictac} & & $\surd$ & & $\surd$  & $\surd$  & $\surd$  \\
+\hline
+PACE~\cite{baopreemptive}  & $\surd$ &  & & $\surd$  & $\surd$  &   \\
+\hline
+\end{tabular}
+\end{center}
+\caption{Distributed Training Solutions: \normalfont{ Six schemes are \textbf{\b{S}}ynchronous-Update vs \textbf{\b{A}}synchronous-Update, \textbf{\b{C}}ross-Iteration vs \textbf{\b{I}}ntra-Iteration, \textbf{\b{D}}ata-Parallel vs \textbf{\b{M}}odel-Parallel}\vspace{-1em}}\label{tab:related}
+\end{table}
+\end{center}
+
+
+The mixture of different parallelism scheme fosters even more powerful training paradigms. Mesh-TensorFlow~\cite{shazeer2018mesh} combines data parallelism with model parallelism. It vertically divides some layers by dimensions and replicating other layers where the given dimension is absent. ZeRO~\cite{rajbhandari2019zero} also combines data parallelism with model parallelism, but with minimum model replication to support fast training on super large models. The authors observed that main memory consumption contributors are input data, model parameters, gradients, optimizer states, and activations. Splitting input data is trivial. However, model parameters and activations are compulsory ingredients for backward passes. ZeRO addressed this problem by partitioning parameters, gradients, and optimizer states on each \code{DDP} instance. Parameters are broadcast from the owner \code{DDP} instance to all others when necessary. Activations are recomputed during the backward pass. Compared to PyTorch \code{DDP}, ZeRO can scale to much larger models as each process only needs to maintain a small partition of the model. The high scalability is achieved by sacrificing the training speed, as the additional re-computation, broadcast, and gather would introduce considerable overhead. Hence, applications can choose which techniques to use based on the size of the given model and available resources. PipeDream~\cite{narayanan2019pipedream} employs a different approach where the model stack is decomposed into multiple stages, where data parallelism is applied within one stage and pipeline with model parallelisms govern the workload across stages. One subtle detail is that to attain high training speed, PipeDream slightly sacrifices accuracy by using the latest gradients from multiple concurrent passes. Although the gradient might not be derived from the current parameter states, the authors show that this mismatch is tolerable in practice.  Parallax~\cite{parallax} explored a hybrid structure that combines parameter-server~\cite{ps} and collective communications. Models are partitioned based on  sparsity, where dense parameters are communicated using \code{AllReduce} and sparse tensors are placed to parameter servers. This design avoids densifying sparse tensors and communicating empty values, which is especially helpful for NLP models. 
+

@@ -1,0 +1,18 @@
+\section{System Design}\label{sec:design}
+
+PyTorch~\cite{pytorch:nips:2019} provides a \code{DistributedDataParallel} (\code{DDP}\footnote{For simplicity, the rest of the paper uses the acronym \code{DDP} to represent \code{DistributedDataParallel} henceforth.}) module to help easily parallelize training across multiple processes and machines. During distributed training, each process has its own local model replica and local optimizer. In terms of correctness, distributed data parallel training and local training must be mathematically equivalent. \code{DDP} guarantees the correctness by making sure that all model replicas start from the exact same model state, and see the same parameter gradients after every backward pass. Therefore, even though optimizers from different processes are all independent, they should be able to bring their local model replicas to the same state at the end of every iteration\footnote{For optimizers with intrinsic randomness, different processes can initialize their states using the same random seed.}. Fig.~\ref{fig:block} illustrates building blocks of \code{DDP}, which contains a Python API frontend, C++ gradient reduction core algorithm, and employs the \code{c10d} collective communication library. The following sections are presented in the top-down order of this stack graph. 
+
+Section~\ref{sec:api} presents API design principles. Section~\ref{sec:reduction} explains gradient reduction techniques used in PyTorch distributed data parallel training. Finally, Section~\ref{sec:collective} discusses the collective communication backends for \code{DDP}.
+
+\begin{figure}
+\centering
+  \includegraphics[width=0.5\linewidth]{image/stack.pdf}
+  \caption{DistributedDataParallel Building Blocks}\label{fig:block}
+  \vspace{-1.5em}
+\end{figure}
+
+
+\input{text/api.tex}
+\input{text/reduction.tex}
+\input{text/collective.tex}
+
