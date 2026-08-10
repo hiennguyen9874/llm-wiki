@@ -287,12 +287,12 @@ Sau khi bigram hoạt động, giữ nguyên tokenizer, shift, cross-entropy, tr
 
 Bigram không kiểm tra được attention, positional representation, residual path, normalization, MLP sâu, KV cache, hay năng lực ngữ cảnh dài. Nó cũng không đại diện cho quy mô dữ liệu, compute, đánh giá, bản quyền, an toàn hoặc chi phí của pre-training thực tế. Giá trị của nó là kiểm tra nguyên lý tối ưu hóa và giao diện token-level ở quy mô mà bạn có thể hiểu và đo toàn bộ.
 
-Bước tiếp theo phù hợp là [GPT generative pre-training and task adaptation](gpt-generative-pre-training-and-task-adaptation.md), rồi [scaled dot-product and multi-head attention](scaled-dot-product-and-multi-head-attention.md) và [Transformer sequence transduction architecture](transformer-sequence-transduction-architecture.md). [LLM architecture learning roadmap](llm-architecture-learning-roadmap.md) đặt bài tập này ở Stage 1 trước causal LM đầy đủ và attention.
+Bước tiếp theo phù hợp là [Causal language modeling: training and sampling](causal-language-modeling-training-and-sampling.md): giữ nguyên logits/cross-entropy nhưng thêm teacher forcing, causal mask và sampler. Sau đó học [GPT generative pre-training and task adaptation](gpt-generative-pre-training-and-task-adaptation.md), [scaled dot-product and multi-head attention](scaled-dot-product-and-multi-head-attention.md), và [Transformer sequence transduction architecture](transformer-sequence-transduction-architecture.md). [LLM architecture learning roadmap](llm-architecture-learning-roadmap.md) đặt bài tập này ở Stage 1 trước causal LM đầy đủ và attention.
 
 ## Relationships
 
 - **Elaborates:** Stage 1 của [LLM architecture learning roadmap](llm-architecture-learning-roadmap.md) bằng một bài thực hành và tiêu chí kiểm chứng.
-- **Prepares for:** [GPT generative pre-training and task adaptation](gpt-generative-pre-training-and-task-adaptation.md), [scaled dot-product and multi-head attention](scaled-dot-product-and-multi-head-attention.md), và [Transformer sequence transduction architecture](transformer-sequence-transduction-architecture.md).
+- **Prepares for:** [Causal language modeling: training and sampling](causal-language-modeling-training-and-sampling.md), [GPT generative pre-training and task adaptation](gpt-generative-pre-training-and-task-adaptation.md), [scaled dot-product and multi-head attention](scaled-dot-product-and-multi-head-attention.md), và [Transformer sequence transduction architecture](transformer-sequence-transduction-architecture.md).
 - **Uses:** [GPT-2 WebText pre-training and architecture](gpt-2-webtext-pre-training-and-architecture.md) để minh họa byte-level BPE.
 
 [^radford-generative-pre-training-2018]: Radford et al., “Improving Language Understanding by Generative Pre-Training” (2018), [PDF](../raw/gpt.pdf), Sections 3–4.

@@ -1,6 +1,7 @@
 # Wiki Update Log
 
 ## 2026-08-10
+- **Query**: Filed [causal language modeling: training and sampling](causal-language-modeling-training-and-sampling.md), expanding Stage 2 with next-token likelihood, teacher forcing, causal masking, a PyTorch training loop, and a temperature/top-k/top-p sampler.
 - **Query**: Filed [foundations for training a bigram language model](foundations-for-training-a-bigram-language-model.md), connecting tokenization, logits, cross-entropy, backpropagation, AdamW, and the transition to causal GPT.
 - **Ingest**: Compiled [Efficient Memory Management for Large Language Model Serving with PagedAttention](../raw/arXiv-2309.06180v1/main.tex); upgraded [PagedAttention KV-cache serving](pagedattention-kv-cache-serving.md) with primary evidence and created [PagedAttention evaluation and serving trade-offs](pagedattention-evaluation-and-serving-trade-offs.md).
 - **Ingest**: Compiled [PyTorch Distributed: Experiences on Accelerating Data Parallel Training](../raw/arXiv-2006.15704v1/main.tex); created [PyTorch DDP gradient synchronization](pytorch-ddp-gradient-synchronization.md) and [PyTorch DDP performance tuning](pytorch-ddp-performance-tuning.md).
