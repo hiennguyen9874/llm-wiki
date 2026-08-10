@@ -1,6 +1,7 @@
 # Wiki Update Log
 
 ## 2026-08-10
+- **Ingest**: Compiled [Efficient Memory Management for Large Language Model Serving with PagedAttention](../raw/arXiv-2309.06180v1/main.tex); upgraded [PagedAttention KV-cache serving](pagedattention-kv-cache-serving.md) with primary evidence and created [PagedAttention evaluation and serving trade-offs](pagedattention-evaluation-and-serving-trade-offs.md).
 - **Ingest**: Compiled [PyTorch Distributed: Experiences on Accelerating Data Parallel Training](../raw/arXiv-2006.15704v1/main.tex); created [PyTorch DDP gradient synchronization](pytorch-ddp-gradient-synchronization.md) and [PyTorch DDP performance tuning](pytorch-ddp-performance-tuning.md).
 - **Ingest**: Compiled [How AI Inference Works, Clearly Explained](../raw/HowAIInferenceWorksClearlyExplained.md); created [LLM inference serving stack](llm-inference-serving-stack.md).
 - **Ingest**: Compiled [深入 Kimi-K3：Hugging Face 仓库分析](../raw/KimiK3XStatus.md); created [Kimi K3 XTML chat and tool encoding](kimi-k3-xtml-chat-and-tool-encoding.md) and updated [Kimi K3 native multimodal pre-training](kimi-k3-native-multimodal-pre-training.md) with the public processor’s image-only boundary.
