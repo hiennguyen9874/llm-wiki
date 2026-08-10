@@ -5,7 +5,7 @@ description: Kimi K3 jointly pre-trains text and a from-scratch vision encoder w
 tags: [kimi-k3, pre-training, multimodal, long-context]
 status: stable
 created: 2026-08-01
-generated: { by: llm-wiki-agent/1, at: 2026-08-01T05:20:09Z }
+generated: { by: llm-wiki-agent/1, at: 2026-08-10T14:03:17Z }
 sources:
   - id: kimi-k3-2026
     resource: ../raw/arXiv-2607.24653v1/main.tex
@@ -13,6 +13,9 @@ sources:
   - id: kimi-k3-modeling-2026
     resource: ../raw/kimi-k3-sources/modeling_kimi_k3.py
     title: "Kimi K3 multimodal reference modeling code"
+  - id: kimi-k3-processor-2026
+    resource: ../raw/kimi-k3-sources/kimi_k3_processor.py
+    title: "Kimi K3 multimodal processor reference code"
 ---
 
 # Kimi K3 native multimodal pre-training
@@ -37,6 +40,8 @@ In the released reference path, a strided 2D convolution creates patches; learna
 
 The technical report says MoonViT-V2 factorizes attention into intra-frame spatial and inter-frame temporal passes.[^kimi-k3-2026] The released `modeling_kimi_k3.py` instead flattens each complete $t\times h\times w$ visual grid into one sequence and applies full non-causal self-attention within that media item; temporal identity enters through additive time embeddings, while 2D RoPE is repeated across frames.[^kimi-k3-modeling-2026] The code labels itself a reference architecture implementation and points to the model card for production deployment, so the repository does not establish whether the difference is a simplified public path, a production divergence, or a documentation mismatch.
 
+The public `KimiK3Processor` prepares image media and raises `ValueError` for every other media type, even though the vision configuration retains time-related parameters and the model card describes video capability. The released Transformers processor therefore establishes image-only input support for that path, not usable video inference or a resolution of the attention-structure discrepancy.[^kimi-k3-processor-2026]
+
 ## Long-context curriculum
 
 NoPE MLA avoids position-embedding modification during extension; KDA supplies learned positional and recency behavior. The long-context pipeline cleans near-duplicates, binary or malformed files, truncated data, invalid logs, and low-quality video, then upsamples genuinely long documents and videos.[^kimi-k3-2026]
@@ -60,3 +65,5 @@ The report’s approximately $2.5\times$ scaling-efficiency claim combines archi
 [^kimi-k3-2026]: Kimi Team, “Kimi K3: Open Frontier Intelligence,” arXiv:2607.24653v1, [source](../raw/arXiv-2607.24653v1/main.tex), Sections 2.4–2.5 and 3.
 
 [^kimi-k3-modeling-2026]: Moonshot AI Team and Hugging Face, “Kimi K3 multimodal reference modeling code,” 2025–2026, [source](../raw/kimi-k3-sources/modeling_kimi_k3.py), especially `MoonVision3dPatchEmbed`, `MoonViT3dEncoder`, `tpool_patch_merger`, the projector classes, and `KimiK3ForConditionalGeneration`.
+
+[^kimi-k3-processor-2026]: Moonshot AI Team and Hugging Face, “Kimi K3 multimodal processor reference code,” [source](../raw/kimi-k3-sources/kimi_k3_processor.py), especially `preprocess_medias`.
