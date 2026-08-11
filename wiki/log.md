@@ -1,5 +1,8 @@
 # Wiki Update Log
 
+## 2026-08-11
+- **Query**: Filed [Decoder-only Transformer: beginner's guide](decoder-only-transformer-beginners-guide.md), linked it from Stage 4 of the roadmap, and added component-level architecture, a minimal PyTorch GPT implementation, and debugging checks.
+
 ## 2026-08-10
 - **Query**: Filed [Attention: beginner's guide for causal language models](attention-beginner-guide.md), expanding Stage 3 with Q/K/V intuition, scaled dot-product attention, causal masking, multi-head implementation, and correctness tests.
 - **Update**: Rewrote [Causal language modeling: training and sampling](causal-language-modeling-training-and-sampling.md) as a beginner-first guide to CLM objective, teacher forcing, causal masking, PyTorch training, decoding, and debugging.
