@@ -4,6 +4,7 @@
 - **Query**: Filed [LLM inference lifecycle: training, prefill, decode, and latency](llm-inference-lifecycle-training-prefill-decode-and-latency.md), linked it from Stage 5 of the roadmap, and explained the request path, KV-cache state, TTFT, and time per output token.
 
 ## 2026-08-11
+- **Query**: Filed [MQA/GQA: giảm KV cache khi decode — bài học cho người mới](mqa-gqa-kv-cache-decode-beginners-guide.md), linked it from Stage 6 of the roadmap, and covered MHA→MQA→GQA theory, PyTorch grouped-KV caching, correctness tests, and memory/latency measurement.
 - **Query**: Filed [RoPE: positional encoding, implementation, và kiểm chứng cho người mới](rope-positional-encoding-beginners-guide.md), expanding Stage 6 with Q/K rotation theory, an interleaved PyTorch implementation, and convention/cache correctness tests.
 - **Query**: Filed [KV caching: cơ chế, implementation, và kiểm chứng](kv-caching-beginners-guide.md), expanding Stage 5 with a per-layer PyTorch cache, cached-versus-uncached logits/output checks, and latency/memory measurements by context length.
 - **Query**: Filed [Pretraining scaling for beginners](pretraining-scaling-beginners-guide.md), linked it from Stage 5 of the roadmap, and explained parameter–token–FLOPs allocation, Chinchilla, and its contrast with Kaplan.
