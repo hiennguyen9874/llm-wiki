@@ -38,6 +38,7 @@ In training, the forward pass retains output and small row-wise normalization in
 
 - **Implements:** [Scaled dot-product and multi-head attention](scaled-dot-product-and-multi-head-attention.md) without changing its attention formula.[^flashattention-summary]
 - **Optimizes:** [Self-attention computational profile](self-attention-computational-profile.md)'s full attention by reducing intermediate-memory traffic, not its quadratic arithmetic.[^flashattention-summary]
+- **Elaborated by:** [FlashAttention: tiled attention và online softmax cho người mới](flashattention-tiled-attention-beginners-guide.md), which adds beginner-first derivation, reference code, and correctness tests.
 - **Extended by:** [FlashAttention implementation evolution](flashattention-implementation-evolution.md).
 
 [^flashattention-summary]: “FlashAttention overview” (Vietnamese summary), [raw source](../raw/FlashAttention.md), Sections 1–11. This is secondary-source evidence summarizing Dao et al., “FlashAttention: Fast and Memory-Efficient Exact Attention with IO-Awareness” (NeurIPS 2022); the primary paper has not been independently ingested here.
