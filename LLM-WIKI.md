@@ -157,3 +157,6 @@ Run `python3 tools/wiki_check.py` after wiki mutations and during lint when comm
 ## Scale trigger
 
 Use indexes and ordinary text search below roughly 100 concepts. Around 100–200 concepts, measure index size, query cost, and missed retrieval; add local BM25-style search when those measurements show lexical retrieval failures. Add vector search only for observed semantic misses, and a graph engine only when Markdown relationship traversal is the bottleneck. Thresholds trigger evaluation, not automatic infrastructure. Generated search and graph indexes are caches, never sources of truth.
+
+## Language
+- Vietnamese
