@@ -1,5 +1,8 @@
 # Wiki Update Log
 
+## 2026-08-12
+- **Query**: Filed [LLM inference lifecycle: training, prefill, decode, and latency](llm-inference-lifecycle-training-prefill-decode-and-latency.md), linked it from Stage 5 of the roadmap, and explained the request path, KV-cache state, TTFT, and time per output token.
+
 ## 2026-08-11
 - **Query**: Filed [Pretraining scaling for beginners](pretraining-scaling-beginners-guide.md), linked it from Stage 5 of the roadmap, and explained parameter–token–FLOPs allocation, Chinchilla, and its contrast with Kaplan.
 - **Query**: Filed [Decoder-only Transformer: beginner's guide](decoder-only-transformer-beginners-guide.md), linked it from Stage 4 of the roadmap, and added component-level architecture, a minimal PyTorch GPT implementation, and debugging checks.
