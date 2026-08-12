@@ -1,6 +1,10 @@
 # Wiki Update Log
 
+## 2026-11-16
+- **Query**: Filed [Expert parallelism và serving trade-offs — bài học cho người mới](expert-parallelism-serving-trade-offs-beginners-guide.md), linked it from Stage 7 of the roadmap, and covered dispatch/combine all-to-all, device placement, communication bottlenecks, capacity padding, total-weight memory, and a PyTorch routing simulation.
+
 ## 2026-08-12
+- **Query**: Filed [MoE capacity, load balancing & stability — bài lab cho người mới](moe-capacity-load-balancing-stability-lab.md), linked it from Stage 7 of the roadmap, and covered capacity factor, overflow/token dropping, auxiliary loss, routing bias, routing-collapse diagnosis, and expert-load plots.
 - **Query**: Filed [Thiết kế expert và specialization trong DeepSeekMoE — bài học cho người mới](deepseekmoe-expert-design-beginners-guide.md), linked it from Stage 7 of the roadmap, and covered fine-grained routed experts, shared experts, top-k trade-offs, compositional capacity, a PyTorch reference, and evidence limits.
 - **Query**: Filed [Mixture-of-Experts và sparse routing — bài học cho người mới](mixture-of-experts-sparse-routing-beginners-guide.md), linked it from Stage 7 of the roadmap, and covered dense-FFN replacement, top-1/top-k routing, active versus total parameters, a PyTorch toy MoE, and routing checks.
 - **Query**: Filed [LLM inference lifecycle: training, prefill, decode, and latency](llm-inference-lifecycle-training-prefill-decode-and-latency.md), linked it from Stage 5 of the roadmap, and explained the request path, KV-cache state, TTFT, and time per output token.
