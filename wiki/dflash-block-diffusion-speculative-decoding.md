@@ -5,11 +5,14 @@ description: DFlash conditions a lightweight block-diffusion drafter on frozen t
 tags: [speculative-decoding, diffusion, draft-model, kv-injection, inference]
 status: stable
 created: 2026-08-12
-generated: { by: llm-wiki-agent/1, at: 2026-08-12T07:35:39Z }
+generated: { by: llm-wiki-agent/1, at: 2026-08-12T14:46:56Z }
 sources:
   - id: dflash-2026
     resource: ../raw/arXiv-2602.06036v2/main.tex
     title: "DFlash: Block Diffusion for Flash Speculative Decoding"
+  - id: nemotron-dflash-card
+    resource: ../raw/NVIDIA-Nemotron-3.5-Lightning-30B-A3B/DFlash.md
+    title: NVIDIA Nemotron 3.5 Lightning DFlash model card
 ---
 
 # DFlash block-diffusion speculative decoding
@@ -49,6 +52,10 @@ A five-layer diffusion drafter without target features produced only 2.65–3.73
 
 KV injection adds a shared $W_c\in\mathbb{R}^{D\times5D}$ projection plus activations and per-layer projected KV use. For the paper’s Qwen3.5-35B-A3B example at $D=2048$, the shared BF16 projection is about 42 MB versus a reported roughly 70 GB target, but cached target-feature storage grows linearly with the number of extracted layers during offline training.[^dflash-2026]
 
+## Nemotron 3.5 Lightning checkpoint
+
+NVIDIA’s target-specific Nemotron 3.5 Lightning DFlash release is an 833M-parameter NVFP4 draft (481M non-embedding parameters) with dense MLPs and non-causal, full-sequence GQA. It is intended to accompany the 30B-total/3B-active [Nemotron 3.5 Lightning target](nemotron-3-5-lightning-architecture-and-training.md), not run as a standalone language model. The card reports vLLM and llama.cpp support and positions it for low-concurrency data-centre and workstation serving, but does not disclose its layer count, target-feature injection details, memory footprint, or end-to-end latency.[^nemotron-dflash-card]
+
 ## Relationships
 
 - **Operationalizes:** [Speculative decoding exact sampling](speculative-decoding-exact-sampling.md) by supplying parallel proposals for target verification.
@@ -61,3 +68,5 @@ KV injection adds a shared $W_c\in\mathbb{R}^{D\times5D}$ projection plus activa
 The mechanism and ablations are primary author evidence, but the paper does not independently establish that target hidden states literally encode future tokens or that diffusion drafting is universally preferable. DFlash requires a separately trained, target-specific drafter; the reported training uses target-generated responses, frozen shared vocabulary projections, and model-specific feature layers and block sizes. Exact target-distribution preservation depends on the verification implementation, which this paper describes at a system level rather than re-deriving.[^dflash-2026]
 
 [^dflash-2026]: Chen, Liang, and Liu, “DFlash: Block Diffusion for Flash Speculative Decoding,” arXiv:2602.06036v2, [source](../raw/arXiv-2602.06036v2/main.tex), Sections 3–5 and Appendix A–B, F, including the inference/training diagrams and ablation tables.
+
+[^nemotron-dflash-card]: NVIDIA, “NVIDIA Nemotron 3.5 Lightning DFlash,” [model card](../raw/NVIDIA-Nemotron-3.5-Lightning-30B-A3B/DFlash.md), Model Architecture, Use Case, and DFlash Speculative Decoding.

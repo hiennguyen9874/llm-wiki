@@ -1,15 +1,18 @@
 ---
 type: Concept
 title: DSpark speculator evaluation and deployment
-description: The Kimi K3 DSpark speculator card reports SGLang acc_len from 2.99 to 5.51 across eight benchmarks, holding about 4.26 at one-million-token RULER V2 contexts, with author-run evaluation limits.
+description: "DSpark cards report target-specific acceptance evidence: Kimi K3 holds about 4.26 at one-million-token context, while Nemotron averages 3.75 on SPEED-Bench without latency results."
 tags: [speculative-decoding, evaluation, long-context, sglang, kimi-k3]
 status: stable
 created: 2026-08-10
-generated: { by: llm-wiki-agent/1, at: 2026-08-10T13:58:35Z }
+generated: { by: llm-wiki-agent/1, at: 2026-08-12T14:46:56Z }
 sources:
   - id: kimi-k3-dspark-card
     resource: ../raw/KimiK3DSparkspeculator.md
     title: "Kimi K3 DSpark speculator (Hugging Face model card)"
+  - id: nemotron-dspark-card
+    resource: ../raw/NVIDIA-Nemotron-3.5-Lightning-30B-A3B/DSpark.md
+    title: NVIDIA Nemotron 3.5 Lightning DSpark model card
 ---
 
 # DSpark speculator evaluation and deployment
@@ -49,9 +52,13 @@ RULER V2 uses the 1M input configuration; actual prompts span 1,000,432–1,047,
 
 Acceptance is weakest for 1–4K-token outputs (about 2.56–2.58) and strongest for the two very long outputs (about 4.92), suggesting acceptance varies with output regime rather than being constant per dataset.[^kimi-k3-dspark-card]
 
+## Nemotron checkpoint comparison
+
+For a draft length of seven, NVIDIA’s Nemotron 3.5 Lightning DSpark card reports SPEED-Bench accepted length from 2.83 (writing) to 4.55 (multilingual), averaging 3.75 across eleven categories at temperature 1.0/top-p 0.95. Its same-source DFlash card reports 3.16 overall under the stated matching setup, so DSpark has higher acceptance in every listed category. This does not establish lower latency: DSpark is also larger (967M versus 833M total parameters), and neither card supplies end-to-end speed, concurrency, memory, or confidence-scheduling measurements. The DSpark card also inconsistently lists llama.cpp under inference test engines after naming only vLLM as a supported runtime, so llama.cpp support remains unclear.[^nemotron-dspark-card]
+
 ## Serving configuration
 
-The card points to the SGLang Cookbook recipe for Kimi K3 with DSPARK and highlights the draft-relevant flags:
+The Kimi card points to the SGLang Cookbook recipe for Kimi K3 with DSPARK and highlights the draft-relevant flags:
 
 - `--speculative-algorithm DSPARK` with `--speculative-draft-model-path RadixArk/Kimi-K3-DSpark`.
 - `--speculative-dspark-block-size 7`, draft attention backend `trtllm_mha`, and `--enable-linear-replayssm-spec`.
@@ -69,3 +76,5 @@ The card points to the SGLang Cookbook recipe for Kimi K3 with DSPARK and highli
 The card is an author-run artifact: `acc_len` is acceptance quality, not end-to-end speedup, and no TTFT, token-throughput, or latency measurements are provided. AIME26 has only 30 questions and no questions in the 8–16K or 16–32K output buckets; the 32K+ rebound rests on just two outputs. Each RULER V2 partition uses 50 questions. No comparison against the K3 report's EAGLE-3-style draft is included, and results may not transfer to other workloads, batch sizes, or serving conditions.[^kimi-k3-dspark-card]
 
 [^kimi-k3-dspark-card]: RadixArk, “Kimi K3 DSpark speculator,” Hugging Face model card, [source](../raw/KimiK3DSparkspeculator.md), Evaluation Results and Serving with SGLang.
+
+[^nemotron-dspark-card]: NVIDIA, “NVIDIA Nemotron 3.5 Lightning DSpark,” [model card](../raw/NVIDIA-Nemotron-3.5-Lightning-30B-A3B/DSpark.md), Software Integration, Training Dataset, Inference, and Evaluation.

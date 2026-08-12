@@ -5,7 +5,7 @@ description: Speculative decoding improves decode latency when cheap, target-ali
 tags: [speculative-decoding, inference, decoding, latency, gpu-utilization, kv-cache]
 status: draft
 created: 2026-08-12
-generated: { by: llm-wiki-agent/1, at: 2026-08-12T07:35:39Z }
+generated: { by: llm-wiki-agent/1, at: 2026-08-12T14:46:56Z }
 sources:
   - id: speculative-decoding-summary
     resource: ../raw/SpeculativeDecoding.md
@@ -19,6 +19,12 @@ sources:
   - id: dflash-2026
     resource: ../raw/arXiv-2602.06036v2/main.tex
     title: "DFlash: Block Diffusion for Flash Speculative Decoding"
+  - id: nemotron-dflash-card
+    resource: ../raw/NVIDIA-Nemotron-3.5-Lightning-30B-A3B/DFlash.md
+    title: NVIDIA Nemotron 3.5 Lightning DFlash model card
+  - id: nemotron-dspark-card
+    resource: ../raw/NVIDIA-Nemotron-3.5-Lightning-30B-A3B/DSpark.md
+    title: NVIDIA Nemotron 3.5 Lightning DSpark model card
 ---
 
 # Speculative decoding performance trade-offs
@@ -66,6 +72,10 @@ The Kimi K3 DSpark speculator card reports SGLang `acc_len` — the histogram-na
 
 DFlash replaces sequential autoregressive drafting with one parallel block-diffusion pass conditioned on target hidden features. In its author-run Qwen3 evaluation, average decoding speedup is 4.86–4.91× under greedy decoding and 4.03–4.24× at temperature 1, versus 1.68–1.81× for matched-width EAGLE-3. Serving results expose the boundary hidden by those averages: on Qwen3-8B, SGLang Math500 speedup falls from 5.1× at concurrency 1 to 2.8× at 32, and vLLM Qwen3.5-9B results show similar declines. Parallel drafting reduces the sequential draft term, but verification compute and device saturation still cap gains.[^dflash-2026]
 
+## Same-target draft comparison
+
+NVIDIA’s DFlash and DSpark cards provide a same-publisher, same-target SPEED-Bench comparison at draft length seven and temperature 1.0/top-p 0.95. DSpark reports higher accepted length in every category and 3.75 overall versus DFlash’s 3.16, but is larger at 967M versus 833M parameters. Without latency, throughput, concurrency, or memory measurements, the acceptance advantage cannot determine which draft is faster; it illustrates the central trade-off between proposal alignment and draft cost.[^nemotron-dflash-card][^nemotron-dspark-card]
+
 ## Deployment constraints
 
 - A separate draft model increases memory use; placing it on a different device can add communication cost.
@@ -90,3 +100,7 @@ DFlash replaces sequential autoregressive drafting with one parallel block-diffu
 [^kimi-k3-dspark-card]: RadixArk, “Kimi K3 DSpark speculator,” Hugging Face model card, [source](../raw/KimiK3DSparkspeculator.md), Evaluation Results, Model Specifications, and Serving with SGLang.
 
 [^dflash-2026]: Chen, Liang, and Liu, “DFlash: Block Diffusion for Flash Speculative Decoding,” arXiv:2602.06036v2, [source](../raw/arXiv-2602.06036v2/main.tex), Sections 3–5 and Appendix C.
+
+[^nemotron-dflash-card]: NVIDIA, “NVIDIA Nemotron 3.5 Lightning DFlash,” [model card](../raw/NVIDIA-Nemotron-3.5-Lightning-30B-A3B/DFlash.md), Model Architecture and Evaluation.
+
+[^nemotron-dspark-card]: NVIDIA, “NVIDIA Nemotron 3.5 Lightning DSpark,” [model card](../raw/NVIDIA-Nemotron-3.5-Lightning-30B-A3B/DSpark.md), Model Architecture and Evaluation.

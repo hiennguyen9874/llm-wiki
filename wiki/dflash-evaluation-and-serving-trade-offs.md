@@ -5,11 +5,14 @@ description: DFlash reports large low-concurrency decoding gains over autoregres
 tags: [speculative-decoding, evaluation, serving, throughput, diffusion]
 status: stable
 created: 2026-08-12
-generated: { by: llm-wiki-agent/1, at: 2026-08-12T07:35:39Z }
+generated: { by: llm-wiki-agent/1, at: 2026-08-12T14:46:56Z }
 sources:
   - id: dflash-2026
     resource: ../raw/arXiv-2602.06036v2/main.tex
     title: "DFlash: Block Diffusion for Flash Speculative Decoding"
+  - id: nemotron-dflash-card
+    resource: ../raw/NVIDIA-Nemotron-3.5-Lightning-30B-A3B/DFlash.md
+    title: NVIDIA Nemotron 3.5 Lightning DFlash model card
 ---
 
 # DFlash evaluation and serving trade-offs
@@ -41,6 +44,10 @@ A separate vLLM Qwen3.5-9B evaluation follows the same pattern: Math500 drops fr
 - Additional single-B200, concurrency-8 results cover Qwen3.5, Qwen3-Coder-Next, and GPT-OSS targets; reported DFlash gains span 1.2–3.9× and exceed native MTP where compared.
 - A Qwen3.5-27B drafter trained at 4K loses acceptance beyond that length. Fine-tuning on 1.6K LongAlign-10K samples improves reported 16K acceptance from 3.61–3.57 to 6.05–6.00 on HotpotQA and Qasper, and from 2.67 to 3.81 on GovReport; only GovReport is reported at 32K.[^dflash-2026]
 
+## Nemotron checkpoint acceptance
+
+For a draft length of seven, NVIDIA’s Nemotron 3.5 Lightning DFlash card reports SPEED-Bench accepted length from 2.49 (writing) to 3.75 (multilingual), averaging 3.16 across eleven categories at temperature 1.0/top-p 0.95. The target-specific draft was trained for two epochs over 66B synthetic tokens derived from prompts in Nemotron post-training collections and evaluated by its publisher. Accepted length is not wall-clock acceleration; the card supplies no concurrency, latency, throughput, memory, or direct non-speculative baseline measurements.[^nemotron-dflash-card]
+
 ## Relationships
 
 - **Measures:** [DFlash block-diffusion speculative decoding](dflash-block-diffusion-speculative-decoding.md).
@@ -52,3 +59,5 @@ A separate vLLM Qwen3.5-9B evaluation follows the same pattern: Math500 drops fr
 All results are produced by the DFlash authors. The main EAGLE-3 comparisons use released third-party or official checkpoints rather than retraining every baseline under one pipeline, and other diffusion speculative methods are omitted because implementations were unavailable. Hardware and software vary across sections: H200/Transformers for many experiments, B200/SGLang with different speculative schedulers and attention backends for serving, and B200/vLLM for an appendix result. The paper reports decoding throughput and acceptance, not draft-training cost amortization, memory capacity under multi-tenant serving, prefill acceleration, energy, or independent reproduction. “Lossless” refers to target verification, not bitwise identity or unchanged system-level sampling behavior under every implementation.[^dflash-2026]
 
 [^dflash-2026]: Chen, Liang, and Liu, “DFlash: Block Diffusion for Flash Speculative Decoding,” arXiv:2602.06036v2, [source](../raw/arXiv-2602.06036v2/main.tex), Sections 3 and 5, Tables 1–8, and Appendix C–F. The five PDF figures were visually inspected; they agree with the TeX captions and tabulated trends.
+
+[^nemotron-dflash-card]: NVIDIA, “NVIDIA Nemotron 3.5 Lightning DFlash,” [model card](../raw/NVIDIA-Nemotron-3.5-Lightning-30B-A3B/DFlash.md), Training Dataset and Evaluation.

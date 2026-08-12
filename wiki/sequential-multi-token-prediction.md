@@ -5,11 +5,20 @@ description: Sequential multi-token prediction trains additional causal modules 
 tags: [pretraining, multi-token-prediction, speculative-decoding, language-modeling]
 status: stable
 created: 2026-08-01
-generated: { by: llm-wiki-agent/1, at: 2026-08-01T02:38:26Z }
+generated: { by: llm-wiki-agent/1, at: 2026-08-12T14:46:56Z }
 sources:
   - id: deepseek-v3-2024
     resource: ../raw/arXiv-2412.19437v2/main.tex
     title: "DeepSeek-V3 Technical Report"
+  - id: nemotron-lightning-card
+    resource: ../raw/NVIDIA-Nemotron-3.5-Lightning-30B-A3B/README.md
+    title: NVIDIA Nemotron 3.5 Lightning 30B A3B BF16 model card
+  - id: nemotron-lightning-config
+    resource: ../raw/NVIDIA-Nemotron-3.5-Lightning-30B-A3B/config.json
+    title: NVIDIA Nemotron 3.5 Lightning 30B A3B checkpoint configuration
+  - id: nemotron-lightning-code
+    resource: ../raw/NVIDIA-Nemotron-3.5-Lightning-30B-A3B/modeling_nemotron_h.py
+    title: NVIDIA Nemotron-H Transformers modeling implementation
 ---
 
 # Sequential multi-token prediction
@@ -28,6 +37,10 @@ The main model can discard MTP modules and run normally, so their training-time 
 
 In matched small and large MoE ablations, V3’s MTP variants improve most listed benchmark scores but not every score. The report also states an 85–90% second-token acceptance rate across its tested generation topics and 1.8× tokens/s with speculative decoding. Those deployment results do not identify the request mix, batch size, or implementation conditions required to reproduce them.[^deepseek-v3-2024]
 
+## Nemotron 3.5 Lightning implementation boundary
+
+[Nemotron 3.5 Lightning](nemotron-3-5-lightning-architecture-and-training.md) reports continued pre-training of MTP layers and MTP-accelerated RL rollouts. Its checkpoint config declares one next-token-prediction extension composed of full attention and MoE blocks. However, the bundled Transformers causal-LM implementation never constructs those configured MTP blocks or computes an MTP loss. This source therefore evidences the released model’s MTP metadata and training claim, but not a runnable implementation or acceptance/speed result for native MTP.[^nemotron-lightning-card][^nemotron-lightning-config][^nemotron-lightning-code]
+
 ## Relationships
 
 - **Used by:** [DeepSeek-V3 architecture and pretraining](deepseek-v3-architecture-and-pretraining.md) as a one-depth objective.
@@ -39,3 +52,9 @@ In matched small and large MoE ablations, V3’s MTP variants improve most liste
 This is primary evidence for the V3 implementation and its controlled ablations, but not evidence that sequential MTP is universally better than parallel heads or other draft designs. The stated quality and speed claims are author-run results under undisclosed full system and workload details.[^deepseek-v3-2024]
 
 [^deepseek-v3-2024]: DeepSeek-AI, “DeepSeek-V3 Technical Report,” arXiv:2412.19437v2, [source](../raw/arXiv-2412.19437v2/main.tex), Sections 2.2, 5.3, 6.3, and Table 4.
+
+[^nemotron-lightning-card]: NVIDIA, “NVIDIA-Nemotron-3.5-Lightning-30B-A3B-BF16,” [model card](../raw/NVIDIA-Nemotron-3.5-Lightning-30B-A3B/README.md), Model Design and Training Methodology.
+
+[^nemotron-lightning-config]: NVIDIA, “NVIDIA Nemotron 3.5 Lightning checkpoint configuration,” [config](../raw/NVIDIA-Nemotron-3.5-Lightning-30B-A3B/config.json).
+
+[^nemotron-lightning-code]: NVIDIA/Hugging Face, “Nemotron-H modeling implementation,” [source](../raw/NVIDIA-Nemotron-3.5-Lightning-30B-A3B/modeling_nemotron_h.py), model and causal-LM classes.
