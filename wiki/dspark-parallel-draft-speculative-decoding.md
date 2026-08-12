@@ -5,11 +5,14 @@ description: DSpark extends the DFlash parallel-draft backbone with a Markov log
 tags: [speculative-decoding, draft-model, dspark, dflash, distillation]
 status: stable
 created: 2026-08-10
-generated: { by: llm-wiki-agent/1, at: 2026-08-10T13:58:35Z }
+generated: { by: llm-wiki-agent/1, at: 2026-08-12T07:35:39Z }
 sources:
   - id: kimi-k3-dspark-card
     resource: ../raw/KimiK3DSparkspeculator.md
     title: "Kimi K3 DSpark speculator (Hugging Face model card)"
+  - id: dflash-2026
+    resource: ../raw/arXiv-2602.06036v2/main.tex
+    title: "DFlash: Block Diffusion for Flash Speculative Decoding"
 ---
 
 # DSpark parallel-draft speculative decoding
@@ -18,7 +21,7 @@ DSpark is a speculative-decoding draft architecture that extends the DFlash para
 
 ## Draft architecture
 
-- **DFlash backbone:** DSpark builds on DFlash's parallel-draft backbone, which proposes draft tokens in parallel rather than purely sequentially. The card does not define DFlash's internal structure beyond this role.
+- **DFlash backbone:** DSpark builds on DFlash's parallel-draft backbone, which proposes a masked token block in parallel. The DFlash paper defines its own backbone as a target-conditioned block-diffusion drafter with target features injected as KV entries at every draft layer; the DSpark card does not establish which of those exact implementation and training details DSpark retains.[^dflash-2026]
 - **Markov logit-bias head:** biases draft logits during proposal, adding Markov-conditioned bias on top of the backbone's output.
 - **Per-position confidence head:** predicts acceptance confidence at each draft position, supplying a per-position signal the architecture can use for draft behavior such as adaptive stopping.
 - **Topology:** 5 full-attention Qwen3-style GQA layers, hidden size 7168, 64 query heads / 16 KV heads; `block_size=7`; verification width of 1 current token + 7 draft tokens.
@@ -40,13 +43,15 @@ The draft is trained at a 65,536-token context. The published draft config enabl
 
 ## Relationships
 
-- **Extends:** the DFlash parallel-draft backbone with the Markov logit-bias and per-position confidence heads.
+- **Extends:** [DFlash block-diffusion speculative decoding](dflash-block-diffusion-speculative-decoding.md) with the Markov logit-bias and per-position confidence heads, according to the DSpark card.
 - **Drafts for:** [Kimi K3 hybrid retrieval architecture](kimi-k3-hybrid-retrieval-architecture.md); proposals still require target verification as in [Speculative decoding exact sampling](speculative-decoding-exact-sampling.md).
 - **Differs from:** the Kimi K3 report's own EAGLE-3-style draft, which fine-tunes the target's pre-trained multi-token-prediction layer over AttnRes features; DSpark is a separate externally trained parallel-draft checkpoint for the same target.[^kimi-k3-dspark-card]
 - **Evaluated by:** [DSpark speculator evaluation and deployment](dspark-speculator-evaluation-and-deployment.md).
 
 ## Evidence limits
 
-The model card names the DFlash backbone and the two added heads but does not specify their internal structure, how the Markov condition is applied, or how the confidence head is consumed at runtime. Parameter counts, layer choices, and loss weights are checkpoint-specific and may not generalize to other targets or draft sizes.[^kimi-k3-dspark-card]
+The DFlash paper now supplies primary evidence for the base method, but the DSpark model card still does not specify how closely DSpark follows DFlash's KV injection, masking, loss weighting, or shared embedding/head design. It also does not define how the Markov condition is applied or how the confidence head is consumed at runtime. Parameter counts, layer choices, and loss weights are checkpoint-specific and may not generalize to other targets or draft sizes.[^kimi-k3-dspark-card][^dflash-2026]
 
 [^kimi-k3-dspark-card]: RadixArk, “Kimi K3 DSpark speculator,” Hugging Face model card, [source](../raw/KimiK3DSparkspeculator.md), Overview, Model Specifications, and Training Details.
+
+[^dflash-2026]: Chen, Liang, and Liu, “DFlash: Block Diffusion for Flash Speculative Decoding,” arXiv:2602.06036v2, [source](../raw/arXiv-2602.06036v2/main.tex), Sections 3–4 and Appendix B.

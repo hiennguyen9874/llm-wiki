@@ -1,0 +1,55 @@
+\section{Method}
+\label{sec:method}
+
+\subsection{Inference}
+\label{sec:inference}
+
+The system design of DFlash is illustrated in \autoref{fig:inference}. In this section, we explain the key design choices that allow DFlash to achieve high draft acceptance length using a very small and efficient draft model.
+
+\textbf{Context features from the target model.  } Prior work like \citet{an2025pardacceleratingllminference} naively applied a small diffusion model as a speculative drafter, which leads to poor acceptance length and limited speedups. To validate this, we train a five-layer block diffusion draft model \emph{without} any conditioning from the target model and evaluate it on several math benchmarks. As the results shown in the \autoref{tab:naive_diffusion}, the resulting speedups are modest, typically around $2$--$3\times$. This limitation stems from the lack of rich contextual guidance: without access to the internal representations of the target model, the diffusion drafter must effectively predict future tokens \textit{from scratch}.
+
+In contrast, the hidden representations of large autoregressive target models encode substantially more information than token-level logits. These features capture long-range dependencies and task-specific semantics, and—crucially—implicitly encode information about future token predictions, as also observed by \citet{samragh2025llmknowsfutureuncovering}.
+
+In DFlash, given an input prompt, the target model first performs a standard prefill pass to generate the first token. During this pass, we extract hidden representations from a fixed set of layers uniformly sampled from shallow to deep. These hidden states are concatenated and passed through a lightweight projection layer to fuse cross-layer information into a compact \emph{target context feature}, which is then used to condition the draft model.
+
+\textbf{Conditioning via KV injection enables acceptance scaling.  } Existing methods such as EAGLE-3 also leverage hidden features from the target model, but they fuse these features with the draft model’s token embeddings and feed them only as inputs to the draft model. As the draft model depth increases, the information from target model becomes more and more diluted, resulting in diminishing gains in acceptance length when adding more draft layers.
+
+DFlash adopts a fundamentally different strategy. We treat the fused target context feature as persistent contextual information and directly inject it into the Key and Value projections of \emph{every} draft model layer. The projected features are stored in the draft model’s KV cache and reused across drafting iterations. We provide more details about the KV injection mechanism in \autoref{appd:kv-injection}. This design provides strong and consistent conditioning throughout the draft model, enabling acceptance length to scale effectively with the number of draft layers. We analyze this behavior in more detail in \autoref{sec:ablation_layers}.
+
+\textbf{Parallel diffusion drafting.  } Another key contributor to DFlash’s speed is its low drafting latency. Autoregressive draft models must perform multiple sequential forward passes to generate draft tokens or trees, which limits parallelism and leads to inefficient GPU utilization. In contrast, DFlash predicts the next token block using a block-level diffusion process. All masked positions within a block are decoded in parallel in a single forward pass. Compared to autoregressive drafting, this block-wise parallel generation substantially reduces drafting latency and achieves significantly higher hardware utilization, even when using deeper draft models.
+
+Overall, DFlash combines diffusion-based parallel drafting with tightly coupled conditioning from the target model, enabling high-quality drafting with substantially reduced drafting latency.
+
+\subsection{Training}
+\label{sec:training}
+
+\begin{figure}[t]
+    \centering
+    \includegraphics[width=1.0\linewidth]{figures/dflash_attn.pdf}
+    \caption{\textbf{DFlash training attention.} The target model provides context features (blue) that condition the draft model. The input consists of clean prompt tokens $p$ and clean response tokens $r$. Within each masked block, a subset of clean response tokens (yellow) is randomly sampled as anchors, while mask tokens $m$ (green) mark positions for parallel prediction. Invisible tokens (white) denote the attention mask, which enforces causal consistency and prevents inter-block information leakage during training.}
+    \label{fig:train}
+\end{figure}
+
+DFlash draft models are trained to align block-level diffusion predictions with the outputs of a frozen autoregressive target model. Rather than directly adopting standard block diffusion training~\cite{arriola2025blockdiffusioninterpolatingautoregressive}, we introduce several key modifications that improve training efficiency, scalability, and alignment with the inference-time speculative decoding behavior.
+
+\textbf{KV injection.  } Following the inference pipeline, given a sequence consisting of a prompt and its response, we first pass the entire clean sequence through the target model to extract and fuse the hidden features for all tokens. The hidden features are then injected into the draft model as Key and Value projections, as illustrated in \autoref{fig:train}.
+
+\textbf{Random sampling of masked blocks.  } In standard block diffusion training, the response is uniformly divided into blocks and random positions within each block are masked, with the model trained to denoise the masked tokens.
+
+DFlash instead tailors block construction to the speculative decoding setting. We randomly sample \emph{anchor tokens} from the response, use each anchor as the first position of a block, and mask the remaining positions. The draft model is trained to predict the next $\text{block\_size} - 1$ tokens in parallel. This directly matches inference-time behavior, where the draft model always conditions on a clean token produced by the target model (\ie, the bonus token from the previous verification step). Randomizing anchor positions also exposes the draft model to more diverse target context features, improving data efficiency and coverage. As shown in \autoref{tab:ablation_sample_block}, this strategy substantially improves both acceptance length and speedup.
+
+During training, all blocks are concatenated into a single sequence and processed jointly using a sparse attention mask as shown in \autoref{fig:train}. Tokens attend bidirectionally within the same block and to the corresponding injected target context features, while attention across different blocks is disallowed. This design enables multiple draft blocks to be trained efficiently within a single forward and backward pass using Flex Attention~\citep{dong2024flexattentionprogrammingmodel}.
+\input{tables/results/main}
+
+\textbf{Efficient long-context training.  } Training speculative draft models on long contexts is challenging for methods such as EAGLE-3 due to their costly training-time test. DFlash achieves efficient long-context training by fixing the number of masked blocks per sequence and randomly sampling anchor positions for each sequence at every epoch. This strategy provides effective data augmentation while keeping training cost bounded.
+
+\textbf{Loss weighting for faster convergence.  } In speculative decoding, \textit{not all tokens are equal}. Errors at early positions within a draft block invalidate all subsequent tokens. This makes early predictions disproportionately important for acceptance length. We reflect this asymmetry by weighting the cross-entropy loss to emphasize earlier token positions during training.
+
+Specifically, for a token at position $k$ within a block, we apply an exponentially decaying weight
+\begin{equation}
+\label{eq:loss-decay}
+    w_k = \exp\!\left(-\frac{k-1}{\gamma}\right),
+\end{equation}
+where $\gamma$ controls the decay rate. This weighting prioritizes early positions, accelerating convergence and yielding a higher acceptance length than uniform weighting (\autoref{fig:ablation_acc}).
+
+\textbf{Shared embedding and LM head.  } To improve training efficiency, the draft model shares the token embedding layer and language modeling head with the target model and keeps them frozen during training. Only the draft Transformer layers are updated. This design reduces the number of trainable parameters and encourages the draft model to function as a lightweight diffusion adapter tightly aligned with the target model's representation space.

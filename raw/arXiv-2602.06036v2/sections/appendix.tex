@@ -1,0 +1,198 @@
+\clearpage
+\appendix
+\section{Appendix}
+
+\subsection{Training Implementation}
+\label{appd:implementation}
+The draft models are optimized for 6 epochs using AdamW with a learning rate of $6 \times 10^{-4}$, a gradient clipping threshold of 1.0, and a cosine schedule with a warmup ratio of 0.04. We train on our training data mixture with a maximum sequence length of 3072 tokens (4096 for Qwen3-Coder); for each sequence, 512 anchor positions are randomly sampled. The hyperparameter $\gamma$ for the loss decay in \autoref{eq:loss-decay} is set to 7 for block size 16, 5 for block size 10, and 4 for block size 8 models.
+
+Training can be performed either online or offline. In online training, target hidden features are computed on the fly during each training step. In offline training, target hidden features are precomputed and cached, then loaded during draft model optimization to reduce computational overhead.
+
+\subsection{Diffusion Drafter without Target Feature}
+
+\begin{table}[h!]
+\centering
+\caption{ A 5-layer block diffusion draft model \emph{without} target context features. The draft model achieves only modest acceptance length and speedup.}
+\label{tab:naive_diffusion}
+\small
+\setlength{\tabcolsep}{4pt}
+\begin{tabular}{c cccc}
+\toprule
+\multirow{2}{*}{Temp}
+& GSM8K
+& Math500
+& AIME24
+& AIME25 \\
+& \scriptsize Speedup / $\tau$
+& \scriptsize Speedup / $\tau$
+& \scriptsize Speedup / $\tau$
+& \scriptsize Speedup / $\tau$ \\
+\midrule
+0
+& 2.83 / 3.38
+& 3.73 / 4.61
+& 3.43 / 4.12
+& 3.35 / 4.07 \\
+1
+& 2.76 / 3.29
+& 3.31 / 4.12
+& 2.66 / 3.23
+& 2.65 / 3.24 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{KV Injection Mechanism and Memory Overhead}
+\label{appd:kv-injection}
+
+DFlash uses KV injection to condition the diffusion drafter on target-model features. We first concatenate hidden states from selected target layers and project them once into the draft hidden dimension:
+\[
+\mathbf{H}_{t}
+=
+\mathrm{RMSNorm}
+\left(
+W_c[\mathbf{H}^{(l_1)};\ldots;\mathbf{H}^{(l_5)}]
+\right).
+\]
+The projected target features are shared by all draft layers. At layer $i$, draft tokens produce queries, while both target features and draft tokens are projected into keys and values:
+\[
+\begin{aligned}
+\mathbf{Q}_i &= W_i^Q \mathbf{H}_d, \\
+\mathbf{K}_i &= [W_i^K \mathbf{H}_t;\, W_i^K \mathbf{H}_d]_{\mathrm{seq}}, \\
+\mathbf{V}_i &= [W_i^V \mathbf{H}_t;\, W_i^V \mathbf{H}_d]_{\mathrm{seq}}.
+\end{aligned}
+\]
+Thus, target features only serve as additional KV entries for the masked-block draft tokens. They bypass the draft model's $Q$ projection, output projection, self-attention update, and FFN.
+
+The memory overhead is small. The only extra parameterized component is the shared projection $W_c \in \mathbb{R}^{D \times 5D}$. For Qwen3.5-35B-A3B with $D=2048$ and BF16 weights, this adds
+\[
+5 \times 2048 \times 2048 \times 2 \approx 42\text{ MB},
+\]
+which is negligible compared with the roughly 70 GB target model. The activation overhead is also modest: for batch size 1 and sequence length 2048, the projection input and output require about 40 MB and 8 MB, respectively. During decoding with block size 16, the temporary activation is below 400 KB.
+
+\subsection{Results on More Models and vLLM}
+\label{appd:more-models-vllm}
+
+We further evaluate DFlash across more target models and inference frameworks. 
+\autoref{tab:more-models-sglang} reports SGLang results on one B200 with concurrency 8. 
+Each entry shows acceptance length / speedup over autoregressive decoding. 
+DFlash consistently improves over native MTP when both are available, and also scales to larger Qwen3.5, Qwen3-Coder, and GPT-OSS~\citep{agarwal2025gpt} models.
+
+\begin{table}[h]
+\centering
+\caption{Results across more models on SGLang. Each cell reports acceptance length / speedup.}
+\label{tab:more-models-sglang}
+\resizebox{\columnwidth}{!}{
+\small
+\setlength{\tabcolsep}{3pt}
+\begin{tabular}{llccc}
+\toprule
+Model & Method & Math500 & HumanEval & MT-Bench \\
+\midrule
+Qwen3.5-4B & MTP 
+& 6.5 / 1.5$\times$ & 6.3 / 1.6$\times$ & 5.3 / 1.3$\times$ \\
+& DFlash 
+& 7.1 / 3.0$\times$ & 7.3 / 2.9$\times$ & 5.6 / 2.3$\times$ \\
+\midrule
+Qwen3.5-9B & MTP 
+& 6.7 / 1.7$\times$ & 6.6 / 1.7$\times$ & 5.3 / 1.3$\times$ \\
+& DFlash 
+& 7.3 / 3.5$\times$ & 7.9 / 3.4$\times$ & 5.5 / 2.5$\times$ \\
+\midrule
+Qwen3.5-35B-A3B & MTP 
+& 6.9 / 1.7$\times$ & 7.1 / 1.6$\times$ & 5.2 / 1.2$\times$ \\
+& DFlash 
+& 7.2 / 2.4$\times$ & 7.9 / 2.3$\times$ & 5.4 / 1.7$\times$ \\
+\midrule
+Qwen3.5-27B & DFlash 
+& 7.7 / 3.8$\times$ & 9.1 / 3.9$\times$ & 5.5 / 2.5$\times$ \\
+Qwen3-Coder-Next & DFlash 
+& 6.0 / 1.9$\times$ & 7.2 / 1.9$\times$ & 3.9 / 1.2$\times$ \\
+GPT-OSS-20B & DFlash 
+& 5.1 / 2.2$\times$ & 4.3 / 2.2$\times$ & 4.2 / 2.0$\times$ \\
+GPT-OSS-120B & DFlash 
+& 5.4 / 1.6$\times$ & 4.4 / 1.7$\times$ & 3.7 / 1.3$\times$ \\
+\bottomrule
+\end{tabular}
+}
+\end{table}
+
+We also evaluate DFlash in vLLM on Qwen3.5-9B. 
+\autoref{tab:vllm-qwen35-9b} reports throughput and speedup over autoregressive decoding under different concurrency levels. 
+DFlash achieves strong speedup at low and medium concurrency, while still maintaining throughput gains at high concurrency.
+
+\begin{table}[h]
+\centering
+\caption{vLLM results for Qwen3.5-9B. Each cell reports DFlash throughput in tok/s, with speedup over autoregressive decoding in parentheses.}
+\label{tab:vllm-qwen35-9b}
+\resizebox{\columnwidth}{!}{
+\small
+\setlength{\tabcolsep}{5pt}
+\begin{tabular}{cccc}
+\toprule
+Concurrency & Math500 & HumanEval & MT-Bench \\
+\midrule
+1  & 849  (4.0$\times$)  & 969   (4.6$\times$) & 627  (3.0$\times$) \\
+8  & 5096 (3.2$\times$)  & 5434  (3.4$\times$) & 3536 (2.2$\times$) \\
+16 & 7669 (2.5$\times$)  & 8131  (2.7$\times$) & 5297 (1.7$\times$) \\
+32 & 9836 (1.9$\times$)  & 10258 (2.1$\times$) & 6787 (1.3$\times$) \\
+\bottomrule
+\end{tabular}
+}
+\end{table}
+
+\subsection{Further Ablations}
+\subsubsection{Loss Decay}
+
+We ablate the position-dependent loss decay introduced in \autoref{sec:training}. Specifically, we compare the default setting with exponentially decaying token weights against a variant trained with uniform token weighting within each draft block. This study isolates the effect of emphasizing early-token accuracy during training. Results in \autoref{fig:ablation_acc} show that applying loss decay leads faster and better convergency.
+
+\begin{figure}[h!]
+    \centering
+    \includegraphics[width=0.9\linewidth]{figures/acceptance_length_vs_epoch.pdf}
+    \caption{The loss decay makes training converge faster and better.}
+    \label{fig:ablation_acc}
+\end{figure}
+
+
+\subsubsection{Random Sampling of Masked Blocks}
+\begin{table}[h]
+\centering
+\caption{Randomly sample anchor tokens to construct masked blocks during training effectively augments the training data and leads to higher acceptance length and better speedup. Both draft models use three layers and extract five hidden features from the target model. The block size is 16. We use the 100K data introduced in \autoref{sec:exp-ablation} to train both models.}
+\label{tab:ablation_sample_block}
+\resizebox{\columnwidth}{!}{
+\small
+\setlength{\tabcolsep}{3pt}
+\begin{tabular}{l|cc|cc|cc}
+\toprule
+Setting 
+& \multicolumn{2}{c|}{Math500} 
+& \multicolumn{2}{c|}{HumanEval} 
+& \multicolumn{2}{c}{MT-Bench} \\
+\cmidrule(lr){2-3} \cmidrule(lr){4-5} \cmidrule(lr){6-7}
+& Speedup & $\tau$ 
+& Speedup & $\tau$
+& Speedup & $\tau$ \\
+\midrule
+Standard 
+& 4.13x & 4.94 
+& 3.29x & 3.86 
+& 2.13x & 2.80 \\
+\textbf{Sample} 
+& \textbf{4.69x} & \textbf{5.64} 
+& \textbf{3.90x} & \textbf{4.61} 
+& \textbf{2.38x} & \textbf{3.18} \\
+\bottomrule
+\end{tabular}
+}
+\end{table}
+
+
+
+
+
+
+
+
+
+
+

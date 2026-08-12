@@ -1,0 +1,49 @@
+\section{Preliminaries}
+\label{sec:preliminaries}
+
+\begin{figure*}[t]
+    \centering
+    \includegraphics[width=0.9\linewidth]{figures/dflash_inference_design.pdf}
+    \caption{\textbf{DFlash Inference Design.} Hidden context features extracted from the target model are fused and injected into each draft layer's Key-Value cache to enable conditional speculation.}
+    \label{fig:inference}
+\end{figure*}
+
+This section formalizes the speedup mechanism of speculative decoding and clarifies the efficiency trade-offs between autoregressive and diffusion-based drafting. Our analysis highlights why diffusion drafters are uniquely positioned to achieve both low drafting latency and high acceptance rates.
+
+\subsection{Speculative Decoding Speedup}
+
+Speculative decoding accelerates inference of a target model $\mathcal{M}_t$ using a smaller draft model $\mathcal{M}_d$. In each decoding cycle, the draft model proposes $\gamma$ tokens, which are verified in parallel by the target model.
+
+Following \citet{sadhukhan2025magicdecbreakinglatencythroughputtradeoff}, the average per-token latency is
+\begin{equation}
+L = \frac{T_{\text{draft}} + T_{\text{verify}}}{\tau},
+\end{equation}
+where $T_{\text{draft}}$ is the time spent generating draft tokens, $T_{\text{verify}}$ is the cost of verification, and $\tau \in [1, \gamma + 1]$ is the expected number of accepted tokens per cycle, including the bonus token produced by the target model. Let $L_{\text{target}}$ denote the autoregressive per-token latency of $\mathcal{M}_t$; the resulting speedup is $\eta = L_{\text{target}} / L$.
+
+This expression makes the trade-off explicit: speedup improves either by increasing the expected acceptance length $\tau$ or by reducing the drafting overhead $T_{\text{draft}}$.
+
+\subsection{Autoregressive \vs Diffusion Drafting}
+
+\textbf{Autoregressive drafters} generate tokens sequentially, incurring a drafting cost
+\begin{equation}
+T_{\text{draft}} = \gamma \cdot t_{\text{step}},
+\end{equation}
+where $t_{\text{step}}$ is the latency of a single forward pass. Drafting costs therefore grow linearly with the speculation budget $\gamma$.
+
+To keep latency manageable, autoregressive drafters are constrained to very shallow architectures (\eg, a single transformer layer in EAGLE-3). This severely limits the draft quality: while increasing $\gamma$ increases drafting cost, acceptance length $\tau$ quickly saturates due to limited model capacity. In practice, this imbalance restricts achievable speedups.
+
+\textbf{Diffusion drafters} generate all $\gamma$ tokens in parallel within a single forward pass, yielding
+\begin{equation}
+T_{\text{draft}} = t_{\text{parallel}},
+\end{equation}
+where $t_{\text{parallel}}$ denotes the latency of block generation. Modern GPUs execute such parallel operations far more efficiently than multiple sequential passes, making $t_{\text{parallel}} \ll \gamma \cdot t_{\text{step}}$ for models of comparable size. For moderate block sizes, $T_{\text{draft}}$ is therefore largely insensitive to $\gamma$.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[]{figures/draft_latency_bar.pdf}
+    \caption{Draft cost of 1, 3, 5-layer DFlash and 1-layer EAGLE-3.}
+    \label{fig:draft_cost}
+\end{figure}
+
+
+This parallelism fundamentally changes the design space. Because drafting cost no longer scales with the number of generated tokens, diffusion drafters can afford \textit{deeper, more expressive} architectures without sacrificing latency. This increased capacity substantially improves draft quality and acceptance length. Empirically, a five-layer \method draft model generating 16 tokens achieves both lower latency~(\autoref{fig:draft_cost}) and higher acceptance length than EAGLE-3 generating 8 tokens, placing \method on a more favorable Pareto frontier between draft quality and drafting cost.
