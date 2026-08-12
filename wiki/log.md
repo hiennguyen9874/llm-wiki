@@ -1,6 +1,7 @@
 # Wiki Update Log
 
 ## 2026-08-12
+- **Query**: Filed [Mixture-of-Experts và sparse routing — bài học cho người mới](mixture-of-experts-sparse-routing-beginners-guide.md), linked it from Stage 7 of the roadmap, and covered dense-FFN replacement, top-1/top-k routing, active versus total parameters, a PyTorch toy MoE, and routing checks.
 - **Query**: Filed [LLM inference lifecycle: training, prefill, decode, and latency](llm-inference-lifecycle-training-prefill-decode-and-latency.md), linked it from Stage 5 of the roadmap, and explained the request path, KV-cache state, TTFT, and time per output token.
 
 ## 2026-08-11
