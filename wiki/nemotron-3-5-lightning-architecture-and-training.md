@@ -5,7 +5,7 @@ description: Nemotron 3.5 Lightning is NVIDIA’s reported 30B-total/3B-active h
 tags: [nemotron, hybrid-model, mamba-2, mixture-of-experts, long-context, pretraining]
 status: stable
 created: 2026-08-12
-generated: { by: llm-wiki-agent/1, at: 2026-08-12T14:46:56Z }
+generated: { by: llm-wiki-agent/1, at: 2026-08-12T14:58:21Z }
 sources:
   - id: nemotron-lightning-card
     resource: ../raw/NVIDIA-Nemotron-3.5-Lightning-30B-A3B/README.md
@@ -25,6 +25,24 @@ NVIDIA describes Nemotron 3.5 Lightning as a 30B-total/3B-active text model for 
 ## Hybrid backbone
 
 The 52-block schedule contains 23 `mamba`, 23 `moe`, and six `attention` entries; attention occurs at blocks 6, 13, 20, 27, 34, and 43. The Transformers configuration migrates those legacy labels to `linear_attention` and `full_attention`, and the implementation applies one pre-normalized mixer or expert block plus a residual connection at each depth.[^nemotron-lightning-config][^nemotron-lightning-code]
+
+### Exact block schedule
+
+The `layers_block_type` order is a seven-slot repeating cycle with attention at blocks 6, 13, 20, 27, 34, and 43 (1-indexed):[^nemotron-lightning-config]
+
+- Blocks 1–5: mamba, moe, mamba, moe, mamba.
+- Blocks 6, 13, 20, 27, 34, 43: attention (causal GQA).
+- Blocks 7–12, 14–19, 21–26, 28–33: moe, mamba, moe, mamba, moe, mamba — six blocks between consecutive attention blocks.
+- Blocks 35–42: moe, mamba, moe, mamba, moe, mamba, moe, mamba — the interval between the attention blocks at 34 and 43 stretches to eight blocks.
+- Blocks 44–52: moe, mamba, moe, mamba, moe, mamba, moe, mamba, moe.
+
+Totals: 23 mamba, 23 moe, 6 attention = 52 blocks. The shipped config stores legacy labels (`mamba`, `attention`); at load time they remap to `linear_attention` (Mamba-2 mixer) and `full_attention` (GQA), while `MIXER_TYPES` binds `moe` to the routed-expert block.[^nemotron-lightning-config][^nemotron-lightning-code]
+
+### Block connection and data flow
+
+Every block shares one pre-normalized-residual shape: RMSNorm the hidden stream (width 2,688), run the depth's mixer, add the pre-block residual back. The three mixer kinds differ only in the state and masks they consume: attention receives position ids, a causal mask, and its KV cache; Mamba receives a recurrent mask and its conv/SSM cache; MoE receives only the normalized stream and is stateless.[^nemotron-lightning-code]
+
+The full forward path is token IDs → embedding (131,072 × 2,688, untied) → (RMSNorm → mixer → +residual) × 52 → final RMSNorm → untied linear LM head (2,688 → 131,072, no bias). Residual output projections are scaled by 1/√52 at initialization (`rescale_prenorm_residual`, GPT-2 scheme).[^nemotron-lightning-code][^nemotron-lightning-config]
 
 - **Model width:** 2,688, with a 131,072-token vocabulary and untied output head.
 - **Mamba-2 path:** 64 heads of width 64, state size 128, eight state groups, expansion factor 2, convolution width 4, and training chunk size 128. Decode uses recurrent cache state rather than a token-growing KV cache for these blocks.
