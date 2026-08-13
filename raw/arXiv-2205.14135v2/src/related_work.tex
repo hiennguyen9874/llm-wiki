@@ -1,0 +1,86 @@
+\section{Related Work}
+\label{sec:related_work}
+
+\textbf{IO-Aware Runtime Optimization.}
+The broad concept of optimizing for reading and writing to fast/slow memory has a long history in computer science and has been known by many names.
+We draw the most direct connection to the literature of analyzing I/O complexity in this work~\citep{aggarwal1988input}, but concepts of memory hierarchies are fundamental and has appeared in many forms, from the working set model~\citep{denning1968working}, to data locality~\citep{wolf1991data}, to the Roofline model of arithmetic intensity~\citep{williams2009roofline}, to analyses of scalability~\citep{mcsherry2015scalability}, to standard textbook treatments of computer architecture~\citep{hennessy2003memory}.
+We hope that this work encourages the community to adopt these ideas in more parts of the deep learning stack.
+
+\textbf{Efficient ML Models with Structured Matrices.}
+Matrix multiply is the core computational bottleneck of most machine learning
+models.
+To reduce the computational complexity, there have been numerous approaches to
+learn over a more efficient set of matrices.
+These matrices are called \emph{structured matrices}, which have subquadratic
+($o(n^2)$ for dimension $n \times n$) number of parameters and runtime.
+Most common examples of structured matrices are sparse and low-rank matrices,
+along with fast transforms commonly encountered in signal processing (Fourier,
+Chebyshev, sine/cosine, orthogonal polynomials).
+There have been several more general classes of structured matrices proposed in
+machine learning: Toeplitz-like~\citep{sindhwani2015structured},
+low-displacement rank~\citep{kailath1979displacement},
+quasi-separable~\citep{eidelman1999new}).
+The butterfly pattern we use for our block-sparse attention is motivated by the
+fact that butterfly matrices~\citep{parker1995random, dao2019learning} and their
+products have been shown to be able to express any structured matrices with
+almost optimal runtime and number of
+parameters~\citep{desa2018two,dao2020kaleidoscope}.
+However, even though structured matrices are efficient in theory, they have not
+seen wide adoption since it is hard to translate their efficiency to wall-clock
+speedup since dense unconstrained matrix multiply has very optimize
+implementation, a phenomenon known as the hardware
+lottery~\citep{hooker2020hardware}.
+Extensions of butterfly matrices~\citep{dao2021pixelated,dao2022monarch} aimed
+to make butterfly matrices more hardware-friendly.
+
+\textbf{Sparse Training.}
+Our block-sparse \sysname can be seen as a step towards making sparse model
+training more efficient.
+Sparse models have seen success in compressing models for inference (pruning) by
+sparsifying the weight
+matrices~\citep{han2015deep,han2015learning,sanh2020movement,
+  NIPS2017_a51fb975,dong2017learning}.
+For model training, the lottery
+tickets hypothesis~\citep{frankle2018lottery,frankle2019stabilizing,frankle2020linear}
+suggests that there are a set of small sub-networks derived from a larger dense
+network that performs as well as the original dense network.
+Out block-sparse \sysname can also be seen as a fixed lottery ticket in the
+context of attention: we fix the sparsity pattern to be the butterfly pattern
+through training, and observe that it performs almost as well as the (dense)
+\sysname on the Long-range Arena tasks.
+
+\textbf{Efficient Transformer.}
+Transformer-based models have become the most widely-used architecture in
+natural language processing~\citep{devlin2018bert} and computer
+vision~\citep{dosovitskiy2020image,yuan2021tokens}.
+However, one of their computational bottlenecks is that their time and memory
+scales quadratic in the sequence length.
+There are numerous approaches to overcome this bottleneck, including
+approximation with hashing (i.e., sparse) such as
+Reformer~\citep{kitaev2020reformer} and Smyrf~\citep{daras2020smyrf} and with
+low-rank approximation such as
+Performer~\citep{choromanski2020rethinking,likhosherstov2020sub}.
+One can even combine sparse and low-rank approximation for better accuracy
+(e.g., Longformer~\citep{beltagy2020longformer},
+BigBird~\citep{zaheer2020bigbird}, Scatterbrain~\citep{scatterbrain},
+Long-short transformer~\citep{zhu2021long}, Combiner~\citep{ren2021combiner}).
+Other approaches include compressing along the sequence dimension to attend to
+multiple tokens at
+once~\citep{wu2019pay,sukhbaatar2019adaptive,lan2019albert,ma2021luna}.
+One can also attend over the states from previous sequences to help lengthen the
+context (e.g., Transformer-XL~\citep{dai2019transformer} and Compressive
+Transformer~\citep{rae2019compressive}).
+We recommend the survey~\citep{tay2020efficient} for more details.
+
+There are several lines of work on developing other modules instead of attention
+to model longer context. HiPPO~\citep{gu2020hippo} and its extensions, most
+notably S4~\citep{gu2021combining, gu2022efficiently, goel2022s} projects the
+history on a polynomial basis, allowing accurate reconstruction of the history
+through state-space models.
+They combine the strengths of CNNs (efficient training), RNNs (efficient
+inference), and continuous models (robust to change in sampling rates).
+LambdaNetworks~\citep{bello2021lambdanetworks},  AFT~\citep{zhai2021attention}
+and FLASH~\citep{hua2022transformer} are other attempts at replacing attention
+in the context of image classification and language modeling.
+
+

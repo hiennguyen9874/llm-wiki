@@ -1,0 +1,224 @@
+\documentclass{article}
+
+\usepackage{etoolbox}
+\newtoggle{arxiv}
+\toggletrue{arxiv}
+
+\newtoggle{icmlworkshop}
+\togglefalse{icmlworkshop}
+
+
+
+\iftoggle{arxiv}{}{
+\PassOptionsToPackage{numbers,sort,compress}{natbib}
+\usepackage{neurips_2022}
+}
+
+
+
+
+
+
+
+
+\usepackage[utf8]{inputenc} %
+\usepackage[T1]{fontenc}    %
+\usepackage{hyperref}       %
+\usepackage{url}            %
+\usepackage{booktabs}       %
+\usepackage{amsfonts}       %
+\usepackage{nicefrac}       %
+\usepackage{microtype}      %
+\usepackage{xcolor}         %
+\usepackage{amsmath,amsthm,amssymb}
+
+\usepackage{algorithm}
+\usepackage{algorithmic}
+
+\usepackage{subcaption}
+\usepackage{multirow}
+
+\usepackage{xspace}
+\usepackage{wrapfig}
+
+\usepackage{pifont}
+\newcommand{\xmark}{\ding{55}}
+
+\usepackage[capitalise]{cleveref}  %
+\usepackage{comment}
+\usepackage[inline]{enumitem}
+
+\usepackage{graphicx}
+\usepackage{grffile}
+\usepackage{color}
+
+\usepackage{newtxmath}
+
+\iftoggle{arxiv}{
+\usepackage[numbers,sort]{natbib}
+}{}
+
+\usepackage{import}
+\providecommand{\main}{.}
+
+\newtoggle{todo}
+\toggletrue{todo}
+\newcommand{\todo}[1]{\iftoggle{todo}{\textcolor{cyan}{[TODO: #1]}}{}}
+
+\newtoggle{comment}
+\togglefalse{comment} %
+\newcommand{\TD}[1]{\iftoggle{comment}{\textcolor{magenta}{[TD: #1]}}{}}
+\newcommand{\DF}[1]{\iftoggle{comment}{\textcolor{magenta}{[DF: #1]}}{}}
+
+\newcommand{\abs}[1]{\left\lvert#1\right\rvert}
+\newcommand{\norm}[1]{\left\|{#1}\right\|} %
+\newcommand{\diag}{\mathrm{diag}}
+\newcommand{\softmax}{\mathrm{softmax}}
+\providecommand{\tr}{\mathop{\rm tr}}
+
+\newcommand{\defeq}{:=}
+
+\newcommand{\vQ}{\mathbf{Q}}
+\newcommand{\vK}{\mathbf{K}}
+\newcommand{\vV}{\mathbf{V}}
+\newcommand{\vdQ}{\mathbf{dQ}}
+\newcommand{\vdK}{\mathbf{dK}}
+\newcommand{\vdV}{\mathbf{dV}}
+\newcommand{\vS}{\mathbf{S}}
+\newcommand{\vdS}{\mathbf{dS}}
+\newcommand{\vP}{\mathbf{P}}
+\newcommand{\vdP}{\mathbf{dP}}
+\newcommand{\vU}{\mathbf{U}}
+\newcommand{\vW}{\mathbf{W}}
+\newcommand{\vT}{\mathbf{T}}
+\newcommand{\vX}{\mathbf{X}}
+\newcommand{\vO}{\mathbf{O}}
+\newcommand{\vdO}{\mathbf{dO}}
+\newcommand{\vM}{\mathbf{M}}
+\newcommand{\vZ}{\mathbf{Z}}
+
+\newcommand{\sysname}{\textsc{FlashAttention}\xspace}
+
+
+\newtheorem{theorem}{Theorem}
+\newtheorem*{theorem*}{Theorem}
+\newtheorem{corollary}[theorem]{Corollary}
+\newtheorem{definition}{Definition}
+\newtheorem{lemma}[theorem]{Lemma}
+\newtheorem{claim}[theorem]{claim}
+\newtheorem{example}{Example}
+\newtheorem{proposition}[theorem]{Proposition}
+
+\iftoggle{arxiv}{
+  \setlength{\textwidth}{6.5in}
+  \setlength{\textheight}{9in}
+  \setlength{\oddsidemargin}{0in}
+  \setlength{\evensidemargin}{0in}
+  \setlength{\topmargin}{-0.5in}
+  \newlength{\defbaselineskip}
+  \setlength{\defbaselineskip}{\baselineskip}
+  \setlength{\marginparwidth}{0.8in}
+}{
+\usepackage[compact]{titlesec}
+\titlespacing{\section}{0pt}{*1}{*0}
+\titlespacing{\subsection}{0pt}{*1.5}{*0}
+
+\usepackage[subtle, mathdisplays=tight, charwidths=normal, leading=normal]{savetrees}
+
+\addtolength\textfloatsep{-0.5em}
+\addtolength\intextsep{-0.2em}
+
+
+\def\setstretch#1{\renewcommand{\baselinestretch}{#1}}
+\setstretch{0.985}
+\addtolength{\parskip}{-1pt}
+
+}
+
+\title{\sysname: Fast and Memory-Efficient Exact Attention with IO-Awareness}
+
+\iftoggle{arxiv}{
+  \usepackage{authblk}
+  \author[$\dagger$]{Tri Dao}
+  \author[$\dagger$]{Daniel Y.\ Fu}
+  \author[$\dagger$]{Stefano Ermon}
+  \author[$\ddagger$]{Atri Rudra}
+  \author[$\dagger$]{Christopher R{\'e}}
+  \affil[$\dagger$]{Department of Computer Science, Stanford University}
+  \affil[$\ddagger$]{Department of Computer Science and Engineering, University at Buffalo, SUNY\vspace{4pt}}
+  \affil[ ]{{\texttt{\{trid,danfu\}@cs.stanford.edu}, \texttt{ermon@stanford.edu}, \texttt{atri@buffalo.edu}, \texttt{chrismre@cs.stanford.edu}}}
+}{
+
+
+
+\author{%
+  Tri Dao$^{\dagger}$, Daniel Y.\ Fu $^\dagger$, Stefano Ermon $^\dagger$, Atri Rudra $^\ddagger$, Christopher R\'{e} $^\dagger$\\
+  $^\dagger$ Department of Computer Science, Stanford University\\
+  $^\ddagger$ Department of Computer Science and Engineering, University at Buffalo, SUNY\\
+  {\small\texttt{\{trid,danfu\}@stanford.edu}, \texttt{ermon@stanford.edu}, \texttt{atri@buffalo.edu}, \texttt{chrismre@cs.stanford.edu}}
+}
+}
+
+
+\begin{document}
+
+
+\maketitle
+
+
+\begin{abstract}
+\input{src/abstract.tex}
+\end{abstract}
+
+\input{src/intro.tex}
+
+\input{src/background.tex}
+
+\input{src/algo.tex}
+
+\input{src/theory.tex}
+
+\input{src/extension.tex}
+
+\input{src/experiments.tex}
+
+\input{src/discussion.tex}
+
+\subsubsection*{Acknowledgments}
+
+Our implementation uses Apex's FMHA code (\url{https://github.com/NVIDIA/apex/tree/master/apex/contrib/csrc/fmha}) as a starting point.
+We thank Young-Jun Ko for the in-depth explanation of his FMHA implementation and for his thoughtful answers to our questions about CUDA.
+We thank Sabri Eyuboglu, Megan Leszczynski, Laurel Orr, Yuhuai Wu, Beidi Chen, and Xun Huang for their constructive feedback and suggestions on early drafts of the paper.
+We thank Markus Rabe and Charles Staats for helpful discussion of their attention algorithm.
+
+We gratefully acknowledge the support of NIH under No.\ U54EB020405 (Mobilize), NSF under Nos.\ CCF1763315 (Beyond Sparsity), CCF1563078 (Volume to Velocity), and 1937301 (RTML); ARL under No.\ W911NF-21-2-0251 (Interactive Human-AI Teaming); ONR under No.\ N000141712266 (Unifying Weak Supervision); ONR N00014-20-1-2480: Understanding and Applying Non-Euclidean Geometry in Machine Learning; N000142012275 (NEPTUNE); NXP, Xilinx, LETI-CEA, Intel, IBM, Microsoft, NEC, Toshiba, TSMC, ARM, Hitachi, BASF, Accenture, Ericsson, Qualcomm, Analog Devices, Google Cloud, Salesforce, Total, the HAI-GCP \& HAI-Azure Cloud Credits for Research program,  the Stanford Data Science Initiative (SDSI), Department of Defense (DoD) through the National Defense Science and Engineering Graduate Fellowship (NDSEG) Program, and members of the Stanford DAWN project: Facebook, Google, and VMWare. The U.S.\ Government is authorized to reproduce and distribute reprints for Governmental purposes notwithstanding any copyright notation thereon. Any opinions, findings, and conclusions or recommendations expressed in this material are those of the authors and do not necessarily reflect the views, policies, or endorsements, either expressed or implied, of NIH, ONR, or the U.S.\ Government.
+Atri Rudra’s research is supported by NSF grant CCF-1763481.
+
+\bibliography{ref}
+\bibliographystyle{plainnat}
+
+\newpage
+
+\appendix
+
+\iftoggle{arxiv}{}{
+\input{src/checklist.tex}
+\newpage
+}
+
+\input{src/related_work.tex}
+
+\input{src/algo_details.tex}
+
+\input{src/proofs.tex}
+
+\input{src/extension_details.tex}
+
+\input{src/exp_supp.tex}
+
+
+
+\appendix
+\newpage
+
+\end{document}

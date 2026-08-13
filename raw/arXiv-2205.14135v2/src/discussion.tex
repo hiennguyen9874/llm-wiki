@@ -1,0 +1,31 @@
+\section{Limitations and Future Directions}
+\label{sec:discussion}
+
+We discuss limitations of our approach and future directions. Related work is given in~\cref{sec:related_work}.
+
+\textbf{Compiling to CUDA.} Our current approach to building IO-aware implementations of attention requires writing a new CUDA kernel for each new attention implementation.
+This requires writing the attention algorithm in a considerably lower-level language than PyTorch, and requires significant engineering effort.
+Implementations may also not be transferrable across GPU architectures.
+These limitations suggest the need for a method that supports writing attention
+algorithms in a high-level language (e.g., PyTorch), and compiling to IO-aware implementations in CUDA---similar to efforts such as Halide in image processing~\citep{ragan2013halide}.
+
+\textbf{IO-Aware Deep Learning.}
+We believe that the IO-aware approach can extend beyond attention.
+Attention is the most memory-intensive computation in Transformers, but every layer in a deep network touches GPU HBM.
+We hope our work inspires IO-aware implementations of additional modules.
+We discuss these potential extensions in~\cref{sec:extension_details}.
+
+\textbf{Multi-GPU IO-Aware Methods.}
+Our IO-aware implementation of attention is optimal within constants for computing attention on a single GPU.
+However, the attention computation may be parallelizable across multiple GPUs~\citep{recht2013parallel}.
+Using multiple GPUs adds an additional layer to IO analysis---accounting for data transfer between GPUs.
+We hope our work inspires future work in this direction.
+
+\iftoggle{arxiv}{}{
+\textbf{Societal Impacts.}
+As Transformer-based foundation models grow in size and data, our work seeks to understand how to train these large models more efficiently.
+This may allow a general community with limited access to computational resources to train and understand those foundation models.
+Our method is applicable to all Transformer-based models, which have a variety of applications, both positive and negative. For example, language modeling may make it easier to spread misinformation, while image classification models may make automatic surveillance easier.
+Alleviating these risks requires addressing application-specific issues such as privacy, bias, and discrimination.
+}
+

@@ -1,0 +1,432 @@
+\section{Full Experimental Results}
+\label{sec:experiment_details}
+
+\subsection{BERT}
+\label{subsec:bert_details}
+
+We train BERT-large following the training procedure and hyperparameters of the
+reference MLPerf 1.1 implementation.
+In particular, we use the LAMB optimizer with learning rate 3.75e-3, with batch
+size 448, trained for at most 7100 steps.
+The training is stopped once the validation accuracy (for masked language
+modeling) reaches the target 72.0\%, and the wall-clock run-time is measured.
+We train with FP16 precision using Apex AMP (with O2 optimization level).
+
+We compare our results with the reported training speed from Nvidia that was
+submitted to MLPerf 1.1 (\cref{table:bert_speed}).
+
+We use the same train / validation data split provided by MLPerf 1.1 reference
+implementation.
+In particular, we evaluate on the same 10000 validation examples as the
+baseline from Nvidia.
+
+We train the model on 8$\times$A100-80GB GPUs. Each training run takes between 16
+and 19 minutes, and we average the results of 10 runs.
+
+\subsection{GPT-2}
+\label{subsec:gpt_details}
+
+We use the standard implementations of
+GPT-2~\citep{radford2019language} from Huggingface \texttt{transformers} library and from Nvidia's Megatron-LM repo.
+We follow the training recipe of the Megatron-LM repo.
+
+We use an effective batch size of 512, and use gradient accumulation to fit into
+available GPU memory.
+We use the AdamW optimizer, with learning rate 6e-4 for GPT-2 small and 1.5e-4
+for GPT-2 medium, and weight decay of 0.1.
+All models are trained with the same hyperparameters for 400K steps.
+We run all implementations with mixed-precision training (PyTorch AMP).
+
+We use the Openwebtext dataset, with the GPT-2 BPE tokenizer. We randomly select
+0.5\% of the dataset as the validation set, with the rest being used as training
+set.
+This random selection of validation set is done once, and all models are evaluated
+on the same validation set.
+
+We train the model on 8$\times$A100-40GB GPUs, and we measure the wall-clock training
+time.
+Training GPT-2 small takes between 2.7-9.5 days, and training GPT-2 medium takes
+between 6.9-21.0 days (\cref{table:gpt_finetune}).
+
+In~\cref{fig:gpt2_training_curve}, we plot of the validation perplexity throughout training of GPT-2 small/medium,
+using either HuggingFace implementation or our \sysname implementation.
+We see that \sysname behaves the same as the baseline implementation
+and the validation perplexity curves of the two implementations almost lie on
+top of each other.
+
+\begin{figure}[ht]
+  \centering
+  \includegraphics[width=0.7\textwidth]{figs/gpt2_flashattn_training.pdf}
+  \caption{\label{fig:gpt2_training_curve}Validation perplexity of GPT-2
+    small/medium using two implementations.
+    We confirm that \sysname yields the same validation curves as the baseline
+    implementation from HuggingFace.}
+\end{figure}
+
+\iftoggle{icmlworkshop}{
+\subsection{Faster Transformer with \sysname on Long-range Arena}
+We compare vanilla Transformer (with either standard implementation or \sysname)
+on the long-range arena (LRA~\citep{tay2020long}) benchmark.
+We measure accuracy, throughput, and training time of all models.
+Each task has a different sequence length varying between 1024 and 4096.
+We follow the implementation and experimental setting
+in~\citet{tay2020long}and~\citet{xiong2021nystromformer}.\footnote{LRA accuracy
+  results are known to be highly dependent on the tuning
+  procedure~\citep{xiong2021nystromformer}.
+  Our reproduced baselines perform better than as reported in the original
+  comparison~\citep{tay2020long}.}
+\cref{table:lra} shows that \sysname achieves up 2.4$\times$
+speed-up compared to standard attention.
+Block-sparse \sysname is faster than all of the approximate attention methods that we have
+tested.
+
+\begin{table}[h]
+\captionsetup{font=small}
+  \vspace{-1em}
+    \caption{The performance of standard attention, \sysname, block-sparse
+      \sysname, and approximate attention baselines on the Long-Range-Arena benchmarks.}
+	\centering
+	\small
+  \iftoggle{arxiv}{}{
+    \resizebox{0.9\linewidth}{!}
+  }
+  {
+	\begin{tabular}{c|ccccc|c|c}
+  Models & ListOps & Text & Retrieval & Image & Pathfinder & Avg & Speedup \\
+	\hline
+	Transformer & 36.0 & 63.6 & 81.6 & 42.3 & 72.7 & 59.3 & - \\
+  \sysname & 37.6 & 63.9 & 81.4 & 43.5 & 72.7 & 59.8 & 2.4$\times$ \\
+  Block-sparse \sysname & 37.0 & 63.0 & 81.3 & 43.6 & 73.3 & 59.6 & \textbf{2.8$\times$} \\
+	\cline{1-8}
+	\hline
+  Linformer~\citep{wang2020linformer} & 35.6 & 55.9 & 77.7 & 37.8 & 67.6 & 54.9 & 2.5$\times$ \\
+  Linear Attention~\citep{katharopoulos2020transformers} & 38.8 & 63.2 & 80.7 & 42.6 & 72.5 & 59.6 & 2.3$\times$ \\
+  Performer~\citep{choromanski2020rethinking} & 36.8 & 63.6 & 82.2 & 42.1 & 69.9 & 58.9 & 1.8$\times$ \\
+  Local Attention~\citep{tay2020long} & 36.1 & 60.2 & 76.7 & 40.6 & 66.6 & 56.0 & 1.7$\times$ \\
+  Reformer~\citep{kitaev2020reformer} & 36.5 & 63.8 & 78.5 & 39.6 & 69.4 & 57.6 & 1.3$\times$  \\
+  Smyrf~\citep{daras2020smyrf} & 36.1 & 64.1 & 79.0 & 39.6 & 70.5 & 57.9 & 1.7$\times$ \\
+	\end{tabular}
+  }
+	\label{table:lra}
+	\vspace{-1em}
+\end{table}
+
+\subsection{Better Models with Longer Sequences}
+\label{ssec:exp_long_sequences}
+
+
+\paragraph{Language Modeling with Long Context.}
+The runtime and memory-efficiency of \sysname allow us to increase the context length of
+GPT-2 by 4$\times$ while still running faster than the optimized
+implementation from Megatron-LM.
+\cref{table:gpt2_long_context} shows that that GPT-2 with \sysname and
+context length 4K is still 30\% faster than GPT-2 from Megatron with context
+length 1K, while achieving 0.7 better perplexity.
+
+\begin{table}[h]
+\vspace{-3mm}
+  \captionsetup{font=small}
+  \small
+  \centering
+  \caption{\label{table:gpt2_long_context}GPT-2 small with \sysname, with 4$\times$ larger context
+    length compared to Megatron-LM, is still 30\% faster while achieving 0.7
+    better perplexity. Training time on 8$\times$A100 GPUs is reported.}
+  \setlength{\tabcolsep}{5pt}
+  \vspace{1em}
+  \iftoggle{arxiv}{}{
+      \resizebox{0.8\linewidth}{!}
+  }
+  {
+    \begin{tabular}{@{}c|ccc@{}}
+      Model implementations & Context length &\multicolumn{1}{c}{OpenWebText (ppl)}&\multicolumn{1}{c}{Training time (speedup)} \\
+    \hline
+      GPT-2 small - Megatron-LM & 1k & 18.2 & 4.7 days (1.0$\times$) \\
+      GPT-2 small - \sysname & 1k & 18.2 & \textbf{2.7 days (1.7$\times$)} \\
+      GPT-2 small - \sysname & 2k & 17.6 & 3.0 days (1.6$\times$) \\
+      GPT-2 small - \sysname & 4k & \textbf{17.5} & 3.6 days (1.3$\times$) \\
+    \end{tabular}
+  }
+  \vspace{-3mm}
+\end{table}
+}{}
+
+\paragraph{Long Document Classification.}
+\iftoggle{icmlworkshop}{
+Training Transformers with longer sequences with \sysname improves performance on the MIMIC-III~\citep{johnson2016mimic} and ECtHR~\citep{chalkidis-etal-2019-neural, chalkidis-et-al-2021-ecthr} datasets.
+MIMIC-III contains intensive care unit patient discharge summaries, each annotated with multiple labels.
+ECtHR contains legal cases from the European Court of Human Rights, each of which is mapped to articles of the Convention of Human Rights that were allegedly violaged.
+Both of these datasets contain very long text documents; the average number of tokens in MIMIC is 2,395 tokens, and the longest document contains 14,562 tokens, while the average and longest numbers in ECtHR are 2,197 and 49,392, respectively.
+We evaluate lift from increasing the sequence length of a pretrained RoBERTa model~\citep{liu2019roberta} (we repeat the positional embeddings, as in~\citet{beltagy2020longformer}).
+
+Table~\ref{tab:mimic} shows that sequence length 16K outperforms length 512 by 4.3 points on MIMIC, and that  length 8K outperforms length 512 by 8.5 points on ECtHR.
+The discrepancies may be due to subtle distribution shifts: MIMIC-III contains specialized medical text and thus may be more susceptible to a distribution shift in the document length, whereas ECtHR contains general language.
+
+\vspace{-1em}
+\begin{table}[h]
+    \centering
+    \begin{minipage}{2.5in}
+    \input{tables/long_documents}
+    \end{minipage}
+    \begin{minipage}{0.20in}
+    ~
+    \end{minipage}
+    \begin{minipage}{2.5in}
+    \input{tables/pathx}
+    \end{minipage}
+\end{table}
+\vspace{-1em}
+}{}
+
+For MIMIC-III and ECtHR, we follow the hyperparameters of~\citet{dai2022revisiting}.
+
+\subsection{LRA details}
+\label{subsec:lra_details}
+
+We follow the hyperparameters from the Long-range arena
+paper~\citep{tay2020long}, the Long-range arena repo
+(\url{https://github.com/google-research/long-range-arena}), and the
+Nystr{\"o}mformer reproduction~\citep{xiong2021nystromformer}.
+To be generous to the baseline methods, if we are unable to reproduce the
+performance of any baseline for any of the five tasks, we report the better
+performance from~\citet{tay2020long} or~\citet{xiong2021nystromformer} for that
+baseline on that task.
+
+After hyperparameter tuning, almost all of the attention methods achieve similar
+accuracy on all of the five LRA tasks.
+
+We run all methods with mixed-precision training, except for Performer (not
+stable with mixed precision) and Local Attention (implementation does not
+support FP16).
+
+To calculate the overall wallclock-time speedup, we take the geometric mean of
+the wallclock-time speedup of each of the five tasks.
+
+\paragraph{Path-X}
+For Path-X and Path-256, we follow the hyperparameters from the PathFinder-32 experiments from the long-range arena paper\citep{tay2020long}.
+For both, we first pretrain a model on Path-64.
+We take the checkpoint after 200 epochs, upsample its positional embedding (we duplicate the positional embeddings gridwise in space), and fine-tune it on the downstream task for 200 epochs with one epoch of linear warmup, and cosine decay of the learning rate.
+For Path-X, we take the best performing checkpoint (according to val accuracy), and additionally fine-tune it for 200 epochs with the same warmup and learning rate (this adds roughly 4 points of accuracy to \sysname for Path-X, but the model starts overfitting afterwards).
+
+\iftoggle{icmlworkshop}{
+\subsection{Benchmarking Attention}
+\label{sec:benchmark}
+
+
+
+
+
+
+\input{figs/benchmarks}
+
+We vary sequence length and measure runtime and memory usage of \sysname and block-sparse \sysname against various attention baselines on one A100 GPU with 40 GB HBM, with dropout and a padding mask.
+We compare against reference implementations for exact attention, approximate attention, and sparse attention.
+We report a subset of baselines in the main body; Appendix~\ref{sec:experiment_details} contains more baselines and full details.
+
+
+
+
+\paragraph{Runtime.}
+Figure~\ref{fig:benchmark} (left) reports the runtime in milliseconds of the forward + backward pass of \sysname and block-sparse \sysname compared to the baselines in exact, approximate, and sparse attention (exact numbers in Appendix~\ref{sec:experiment_details}).
+Runtime grows quadratically with sequence length, but \sysname runs significantly faster than \textbf{exact attention} baselines, up to 3$\times$ faster than the PyTorch implementation.
+The runtimes of many approximate/sparse attention mechanisms grow linearly with sequence length, but \sysname still runs faster than approximate and sparse attention for short sequences due to fewer memory accesses.
+The \textbf{approximate attention} runtimes begin to cross over with \sysname at sequences between 512 and 1024.
+On the other hand, block-sparse \sysname is faster than all implementations of exact, sparse, and approximate attention that we know of, across all sequence lengths.
+
+\paragraph{Memory Footprint.}
+Figure~\ref{fig:benchmark} (right) shows the memory footprint of \sysname and block-sparse \sysname compared to various exact, approximate, and sparse attention baselines.
+\sysname and block-sparse \sysname have the same memory footprint, which grows linearly with sequence length.
+\sysname is up to 20$\times$ more memory efficient than \textbf{exact attention} baselines, and is more memory-efficient than the \textbf{approximate attention} baselines.
+All other algorithms except for Linformer run out of memory on an A100 GPU before 64K, and \sysname is still 2$\times$ more efficient than Linformer.
+}{}
+
+\subsection{Comparison with Apex FMHA}
+\label{supp:fmha}
+
+We compare our method/implementation with Apex FMHA
+(\url{https://github.com/NVIDIA/apex/tree/master/apex/contrib/csrc/fmha}).
+
+When we started this project, Apex FMHA was the fastest implementation of
+attention (that we knew of), tailored for short sequences of length at most 512.
+In fact, almost all MLPerf submissions for BERT training benchmark running on
+Nvidia GPUs use FMHA for their model code, as of MLPerf
+1.1~\citep{mattson2020mlperf}.
+Since FMHA targets BERT models, it only supports head
+dimension 64, and only runs on A100 GPUs.
+FMHA fuses the attention computation
+$\mathrm{dropout}(\softmax(\textsc{mask}(\vQ \vK^\top))) \vV$ into one CUDA kernel.
+In the forward pass, it stores the attention matrix
+$\softmax(\textsc{mask}(\vQ \vK^T))$ to HBM to be used in gradient computation.
+As a result, it does not offer substantial memory saving (though for shorter
+sequences memory footprint is often not a primary concern).
+
+We use FMHA code as a starting point, and apply two well-established techniques
+(tiling and recomputation) to deal with long sequences and to save memory as
+mentioned in~\cref{sec:algo}.
+As a result, we can support much longer sequences (e.g., up to length 64K).
+We also support more head dimensions (16, 32, 64, 128) and broader GPU types
+(all Turing and Ampere GPUs at the time of writing).
+
+In~\cref{tab:fmha_comparison}, we compare the performance of \sysname and Apex FMHA for short sequences
+(as FMHA only supports sequence length at most 512).
+Generally \sysname is slightly faster than FMHA in the forward pass and slightly
+slower than FMHA in the backward pass.
+This is because we do not store the attention matrix in the forward pass and
+recompute it in the backward pass.
+Compared to FMHA, the overall runtime of \sysname is about 4\% slower for sequence length 128, 8\%
+faster for sequence length 256, and 5\% faster for sequence length 512.
+\begin{table}
+\centering
+\small
+\captionsetup{font=small}
+\caption{Runtime (ms) of \sysname compared to FMHA by sequence length, with
+  masking and dropout, measured on an A100-SXM4-40GB GPU. Batch size 64, 16
+  heads, head dimension 64 (i.e., BERT-large size).}
+\begin{tabular}{@{}r|ccc@{}}
+\toprule
+\textbf{Attention Method} & 128 & 256 & 512 \\
+\hline
+\textbf{Apex FMHA forward} & 0.10 & 0.29 & 1.14 \\
+\textbf{\sysname forward} & \textbf{0.08} & \textbf{0.22} & \textbf{0.81} \\
+\hline
+\textbf{Apex FMHA backward} & \textbf{0.17} & \textbf{0.52} & \textbf{1.81} \\
+\textbf{\sysname backward} & 0.20 & 0.53 & 2.00 \\
+\hline
+\textbf{Apex FMHA forward + backward} & \textbf{0.27} & 0.81 & 2.95 \\
+\textbf{\sysname forward + backward} & 0.28 & \textbf{0.75} & \textbf{2.81} \\
+\hline
+\bottomrule
+\end{tabular}
+\label{tab:fmha_comparison}
+\end{table}
+
+\subsection{Speedup On Different Hardware and Configurations}
+\label{supp:hardware}
+
+Speedup varies between different types of GPU types and generations depending on HBM bandwidth and SRAM size.
+In this section, we profile \sysname speedup on different GPUs and configurations.
+
+\begin{figure}[h!]
+  \centering
+  \includegraphics[width=5.5in]{figs/flashattn_speedup.jpg}
+  \caption{Speedup over standard PyTorch attention at different sequence lengths, on A100.}
+  \label{fig:A100_speedup}
+\end{figure}
+
+\paragraph{A100}
+Figure~\ref{fig:A100_speedup} shows speedup on an A100 GPU with batch size 8, head dimension 64, and 12 attention heads, across different sequence lengths.
+We generally see 2-4$\times$ speedup, and we see more speedup when using dropout and masking due to kernel fusion.
+
+\begin{figure}[h!]
+  \centering
+  \includegraphics[width=5.5in]{figs/flashattn_speedup_a100_d128.jpg}
+  \caption{Speedup over standard PyTorch attention at different sequence lengths, on A100, with head dimension 128.}
+  \label{fig:A100_speedup_128_dim}
+\end{figure}
+\paragraph{A100, Head Dimension 128}
+Speedup also changes when we increase the head dimension.
+Each block requires more memory, so we need to use smaller block sizes to fit into SRAM.
+Figure~\ref{fig:A100_speedup_128_dim} shows speedup with head dimension 128 on an A100 (batch size 16, 12 heads).
+We see less speedup overall---but we can still see significant speedup (up to 3$\times$) with a causal mask, where half the blocks are masked out.
+
+\begin{figure}[h!]
+  \centering
+  \includegraphics[width=5.5in]{figs/flashattn_speedup_3090.jpg}
+  \caption{Speedup over standard PyTorch attention at different sequence lengths, on RTX 3090.}
+  \label{fig:rtx3090_speedup}
+\end{figure}
+
+\paragraph{RTX 3090}
+Figure~\ref{fig:rtx3090_speedup} shows speedup on an RTX 3090 GPU.
+Here, we use batch size 12 with 12 attention heads.
+We observe slightly higher speedups on the RTX 3090 (between 2.5-4.5$\times$), since the memory bandwidth on an RTX 3090 is lower than on an A100 (roughly 900 GB/s vs. 1.5 TB/s).
+
+\begin{figure}[h!]
+  \centering
+  \includegraphics[width=5.5in]{figs/flashattn_speedup_t4.jpg}
+  \includegraphics[width=5.5in]{figs/flashattn_speedup_t4_fwd.jpg}
+  \caption{Speedup over standard PyTorch attention at different sequence lengths, on T4. \textbf{Top:} Combined forward pass + backward pass. \textbf{Bottom:} Forward pass only.}
+  \label{fig:t4_speedup}
+\end{figure}
+
+\paragraph{T4}
+Figure~\ref{fig:t4_speedup} shows speedup on a T4 GPU. T4 SRAM is smaller than A100, so we need to make the block sizes smaller in \sysname.
+As a result, we observe less speedup on T4, which matches the IO complexity analysis in Section~\ref{sec:theory}.
+T4 GPUs are commonly used for inference, so we also report speedup on the forward pass only.
+
+\subsection{Full Benchmarking Results}
+\label{supp:benchmarking}
+
+We report the full benchmarking results and experimental details on A100.
+
+\paragraph{Baselines}
+We compare against reference implementations for exact attention from PyTorch/HuggingFace and Megatron, approximate attention, and sparse attention.
+For approximate attention, we compare against reference implementations of Reformer~\citep{kitaev2020reformer}, Local Attention~\citep{rae-razavi-2020-transformers}, Linformer Attention~\citep{wang2020linformer}, Smyrf~\citep{daras2020smyrf}, and LongShortFormer (LSFormer)~\citep{zhu2021long}.
+For sparse attention, we compare against reference implementations of Block-Sparse Attention form OpenAI~\citep{child2019generating}, Longformer\citep{beltagy2020longformer}, and BigBird Attention~\citep{zaheer2020bigbird}.
+For the approximate and sparse attention, we use a compression ratio of 1/8, or a compressed sequence length of 256, whichever is smaller.
+
+\paragraph{Setup}
+We measure runtime and memory usage of the attention computation with 8 heads of dimension 64, and batch size 16 on a machine with one A100 GPU with 40 GB of GPU HBM.
+We vary sequence length in our experiments.
+We compute attention on random vectors for $\vQ$, $\vK$, and $\vV$ (we do not measure the projection from the hidden layer).
+For dropout, we use dropout 0.1; for masking, we use a padding mask with uniformly-random mask lengths between the total sequence length and the total sequence length minus 20.
+To measure runtime, we take the average of 100 measurements of the attention call.
+We only measure memory footprint once, since it does not vary between runs.
+
+We report timing results on the forward pass, backward pass, and combined forward + backward pass.
+We measure each method with and without dropout, masking, or both---except for Block Sparse, Longformer, and BigBird.
+These methods did not successfully run the backward pass with masking due to a bug in external libraries, so we measured them without masking to be generous.
+We use FP16 for all measurements, except for Local Attention, whose
+implementation only supports FP32.
+
+For each baseline, we increase sequence length until it runs out of memory on the GPU, except for the following exceptions:
+The Megatron implementation does not support sequence lengths longer than 2048.
+Block-Sparse (OpenAI) does not support sequence lengths longer than 4096.
+Longformer and BigBird do not support sequence lengths longer than 8092.
+
+We measure memory usage on the combined forward + backward pass, without dropout or masking.
+
+\paragraph{Results}
+\cref{tab:benchmark_summary} summarizes all the experimental configurations and contains pointers to the results tables.
+
+\begin{table}
+    \centering
+    \caption{Pointers to results tables.}
+    \label{tab:benchmark_summary}
+    \begin{tabular}{ccc|c}
+    \toprule
+        \textbf{Dropout} & \textbf{Masking} & \textbf{Pass} & \textbf{Table} \\ \hline
+        Yes & Yes & Forward & \cref{tab:dropout_masking_forward_pass} \\
+        Yes & Yes & Backward & \cref{tab:dropout_masking_backward_pass} \\
+        Yes & Yes & Combined & \cref{tab:dropout_masking_combined} \\
+        No & Yes & Forward  & \cref{tab:masking_forward_pass} \\
+        No & Yes & Backward & \cref{tab:masking_backward_pass} \\
+        No & Yes & Combined & \cref{tab:masking_combined} \\
+        Yes & No & Forward  & \cref{tab:dropout_forward_pass} \\
+        Yes & No & Backward & \cref{tab:dropout_backward_pass} \\
+        Yes & No & Combined & \cref{tab:dropout_combined} \\
+        No & No & Forward  & \cref{tab:forward_pass} \\
+        No & No & Backward & \cref{tab:backward_pass} \\
+        No & No & Combined & \cref{tab:combined} \\
+        No & No & Memory Usage (Combined) & \cref{tab:memory} \\
+        \toprule
+    \end{tabular}
+\end{table}
+
+\input{tables/dropout_masking_forward}
+\input{tables/dropout_masking_backward}
+\input{tables/dropout_masking_combined}
+
+\input{tables/masking_forward}
+\input{tables/masking_backward}
+\input{tables/masking_combined}
+
+\input{tables/dropout_forward}
+\input{tables/dropout_backward}
+\input{tables/dropout_combined}
+
+\input{tables/forward_pass}
+\input{tables/backward_pass}
+\input{tables/combined}
+
+\input{tables/memory_use}
+

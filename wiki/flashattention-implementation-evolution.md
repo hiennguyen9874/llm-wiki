@@ -5,8 +5,11 @@ description: FlashAttention-2 and -3 retain tiled exact attention while improvin
 tags: [flashattention, gpu-kernels, prefill, decoding, kv-cache, hopper]
 status: draft
 created: 2026-07-31
-generated: { by: llm-wiki-agent/1, at: 2026-07-31T16:35:10Z }
+generated: { by: llm-wiki-agent/1, at: 2026-08-13T16:13:58Z }
 sources:
+  - id: flashattention-2022
+    resource: ../raw/arXiv-2205.14135v2/streaming_attention_neurips_2022.tex
+    title: "FlashAttention: Fast and Memory-Efficient Exact Attention with IO-Awareness"
   - id: flashattention-summary
     resource: ../raw/FlashAttention.md
     title: "FlashAttention overview (Vietnamese summary)"
@@ -21,7 +24,7 @@ FlashAttention-2 and FlashAttention-3 retain tiled, exact softmax attention whil
 
 ## Kernel evolution
 
-FlashAttention fuses score computation, scaling, masking, softmax, dropout, and value aggregation so intermediate tensors mostly remain in registers or shared memory rather than making separate HBM round trips.[^flashattention-summary]
+The original FlashAttention fuses score computation, scaling, masking, softmax, dropout, and value aggregation so intermediate tensors mostly remain in registers or shared memory rather than making separate HBM round trips; its tiled recomputation supplies the shared exact-attention foundation for the later kernels.[^flashattention-2022]
 
 FlashAttention-2 shifts more of the main loop toward Tensor-Core matrix multiplies by maintaining an unnormalized output accumulator and deferring division by the softmax normalizer until all key/value tiles have been processed. It also skips causal tiles wholly outside the allowed triangle, reducing masked work.[^flashattention-2-summary]
 
@@ -48,7 +51,9 @@ FlashAttention makes full attention more efficient but does not remove its $O(N^
 - **Contrasts with:** [Linear attention as fixed-state memory](linear-attention-as-fixed-state-memory.md), which changes the retrieval formulation and state-growth behavior rather than optimizing exact full-attention kernels.[^flashattention-summary]
 - **Complemented by:** [Multi-query and grouped-query attention](multi-query-and-grouped-query-attention.md), which reduces KV-cache traffic in one-token decoding by sharing K/V heads rather than changing the exact-attention kernel.[^mqa-summary]
 
-[^flashattention-summary]: “FlashAttention overview” (Vietnamese summary), [raw source](../raw/FlashAttention.md), Sections 11–16 and 18. It cites Dao et al.'s FlashAttention (2022), FlashAttention-2 (2023), FlashAttention-3 (2024), and the official implementation repository; none has been independently ingested here.
+[^flashattention-summary]: “FlashAttention overview” (Vietnamese summary), [raw source](../raw/FlashAttention.md), Sections 11–16 and 18. It is secondary evidence for the FlashAttention-2 and -3 claims; those primary papers have not been independently ingested here.
+
+[^flashattention-2022]: Tri Dao et al., “FlashAttention: Fast and Memory-Efficient Exact Attention with IO-Awareness,” NeurIPS 2022, bundled [LaTeX source](../raw/arXiv-2205.14135v2/streaming_attention_neurips_2022.tex), Sections 1–4 and Appendix A.
 
 [^flashattention-2-summary]: “FlashAttention-2 overview” (Vietnamese summary), [raw source](../raw/FlashAttention-2.md), Sections 3–11. This secondary source cites Dao, “FlashAttention-2: Faster Attention with Better Parallelism and Work Partitioning” (2023/ICLR 2024); the primary paper has not been independently ingested here.
 
