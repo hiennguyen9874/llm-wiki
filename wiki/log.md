@@ -3,6 +3,9 @@
 ## 2026-11-16
 - **Query**: Filed [Expert parallelism và serving trade-offs — bài học cho người mới](expert-parallelism-serving-trade-offs-beginners-guide.md), linked it from Stage 7 of the roadmap, and covered dispatch/combine all-to-all, device placement, communication bottlenecks, capacity padding, total-weight memory, and a PyTorch routing simulation.
 
+## 2026-08-13
+- **Ingest**: Compiled [minGPT](../raw/minGPT/README.md); created [reference implementation](mingpt-educational-gpt-reference-implementation.md) and [training workflows](mingpt-training-and-didactic-task-workflows.md) concepts.
+
 ## 2026-08-12
 - **Update**: Added the exact 52-block schedule and the per-block connection/data-flow detail to [Nemotron 3.5 Lightning architecture and training](nemotron-3-5-lightning-architecture-and-training.md), verified against the checkpoint config and modeling code.
 - **Ingest**: Compiled the [NVIDIA Nemotron 3.5 Lightning 30B A3B release bundle](../raw/NVIDIA-Nemotron-3.5-Lightning-30B-A3B/README.md); created [architecture and training](nemotron-3-5-lightning-architecture-and-training.md) and [evaluation and deployment](nemotron-3-5-lightning-evaluation-and-deployment-limits.md) concepts, and updated MTP, DFlash, DSpark, and speculative-decoding trade-offs with checkpoint evidence and implementation limits.
