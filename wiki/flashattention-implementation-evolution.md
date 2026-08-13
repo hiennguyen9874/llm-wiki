@@ -3,9 +3,9 @@ type: Concept
 title: FlashAttention implementation evolution
 description: FlashAttention-2 and -3 retain tiled exact attention while improving GPU work partitioning and, on Hopper, asynchronous low-precision execution; benefits are greatest for long-prompt prefill rather than one-token decode.
 tags: [flashattention, gpu-kernels, prefill, decoding, kv-cache, hopper]
-status: draft
+status: stable
 created: 2026-07-31
-generated: { by: llm-wiki-agent/1, at: 2026-08-13T23:18:20+07:00 }
+generated: { by: llm-wiki-agent/1, at: 2026-08-13T23:21:30+07:00 }
 sources:
   - id: flashattention-2022
     resource: ../raw/arXiv-2205.14135v2/streaming_attention_neurips_2022.tex
@@ -19,11 +19,14 @@ sources:
   - id: flashattention-2-2023
     resource: ../raw/arXiv-2307.08691v1/flash2.tex
     title: "FlashAttention-2: Faster Attention with Better Parallelism and Work Partitioning"
+  - id: flashattention-3-2024
+    resource: ../raw/arXiv-2407.08608v2/fa3_neurips2024.tex
+    title: "FlashAttention-3: Fast and Accurate Attention with Asynchrony and Low-precision"
 ---
 
 # FlashAttention implementation evolution
 
-FlashAttention-2 and FlashAttention-3 retain tiled, exact softmax attention while targeting progressively better hardware utilization: FlashAttention-2 changes work partitioning and sequence parallelism, and FlashAttention-3 targets NVIDIA Hopper with asynchronous, warp-specialized execution and low-precision support. These kernels most directly benefit long-sequence training and prompt prefill; one-token autoregressive decode is often constrained instead by KV-cache reads.[^flashattention-summary]
+FlashAttention-2 and FlashAttention-3 retain tiled, exact softmax attention while targeting progressively better hardware utilization: FlashAttention-2 changes work partitioning and sequence parallelism, and FlashAttention-3 targets NVIDIA Hopper with asynchronous, warp-specialized execution and low-precision support.[^flashattention-2-2023][^flashattention-3-2024] These kernels most directly benefit long-sequence training and prompt prefill; one-token autoregressive decode is often constrained instead by KV-cache reads.[^flashattention-summary]
 
 ## Kernel evolution
 
@@ -37,7 +40,15 @@ Within a thread block, its split-Q partition gives each warp independent query r
 
 On the authors’ A100 80GB SXM4 attention benchmarks—sequence lengths 512 to 16K, total batch tokens fixed at 16K, head dimensions 64 or 128, causal and non-causal cases—FlashAttention-2 was reported as 1.7–3.0× faster than FlashAttention, 1.3–2.5× faster than its Triton implementation, and 3–10× faster than PyTorch attention, reaching up to 230 TFLOPs/s (73% of theoretical peak). Their 8×A100 GPT-style 1.3B/2.7B training tests reported up to 1.3× over FlashAttention and 2.8× over the non-FlashAttention baseline, reaching 225 TFLOPs/s/GPU (72% model-FLOPs utilization). These are author-reported, configuration-specific results, not device-independent guarantees.[^flashattention-2-2023]
 
-FlashAttention-3 is described as a Hopper-oriented redesign using warp specialization, asynchronous transfer/compute pipelining, interleaving GEMM with softmax work, and FP8 support with block quantization and error-reduction techniques. The source reports roughly $1.5$–$2\times$ speedup over FlashAttention-2 on tested H100 configurations; this is a benchmark result, not a device-independent guarantee.[^flashattention-summary]
+FlashAttention-3 is a Hopper-specific redesign. Producer warps use the Tensor Memory Accelerator (TMA) to fill a circular shared-memory buffer with Q/K/V tiles, while consumer warpgroups issue asynchronous WGMMA matrix multiplies; register allocation is shifted from producer to consumer warps. Its two-stage schedule pipelines the next $QK^T$ and current $PV$ GEMMs around softmax work from adjacent key tiles, and its pingpong schedule coordinates two warpgroups so one performs softmax while the other issues GEMMs.[^flashattention-3-2024]
+
+The paper reports that a deeper three-stage pipeline performed worse in its implementation: compiler scheduling did not overlap the second WGMMA as intended, while the extra score/probability state increased register pressure and forced smaller tiles. Pipeline depth is therefore a hardware/compiler/profiled trade-off, not an unconditional optimization.[^flashattention-3-2024]
+
+For FP8 forward attention, Hopper WGMMA layout constraints require a k-major V layout and a conversion between the first GEMM's FP32 accumulator layout and the second GEMM's FP8 operand layout. FlashAttention-3 uses an in-kernel V-tile transpose and register permutation rather than a separate global-memory transpose. It reduces quantization error with per-block scaling and an orthogonal, Hadamard-based incoherent transformation applied to Q and K before quantization; the transformation preserves their dot products before quantization.[^flashattention-3-2024]
+
+On the authors' H100 80 GB SXM5 measurements (fixed 1830 MHz; CUDA 12.3, cuDNN 9.1.1.17, CUTLASS 3.5, FlashAttention-2 2.5.8, PyTorch 2.3.0), FP16 FlashAttention-3 reached up to 740 TFLOPs/s (75% of stated peak), with reported forward and backward speedups of 1.5–2.0× and 1.5–1.75× over FlashAttention-2, respectively. The focused non-causal FP16 ablation (batch 4, sequence length 8448, 16 heads, head dimension 128) measured 661 TFLOPs/s for both optimizations, versus 582 without GEMM–softmax pipelining and 570 without warp specialization.[^flashattention-3-2024]
+
+The source's synthetic-outlier numerical test reports FP16 RMSE of $1.9\times10^{-4}$ for both FlashAttention-2 and -3 versus $3.2\times10^{-4}$ for its standard baseline; its FP8 FlashAttention-3 variant reported $9.1\times10^{-3}$ versus $2.4\times10^{-2}$ for per-tensor-scaled baseline attention. These are not end-to-end model-quality results. The paper also reports that its FP8 kernel lacked the FP16 persistent-kernel/load-balancing design, which partly explains weaker small-sequence and causal results relative to FP8 cuDNN.[^flashattention-3-2024]
 
 ## Operational boundary
 
@@ -59,5 +70,7 @@ FlashAttention makes full attention more efficient but does not remove its $O(N^
 [^flashattention-2022]: Tri Dao et al., “FlashAttention: Fast and Memory-Efficient Exact Attention with IO-Awareness,” NeurIPS 2022, bundled [LaTeX source](../raw/arXiv-2205.14135v2/streaming_attention_neurips_2022.tex), Sections 1–4 and Appendix A.
 
 [^flashattention-2-2023]: Tri Dao, “FlashAttention-2: Faster Attention with Better Parallelism and Work Partitioning,” arXiv:2307.08691v1, [bundled LaTeX source](../raw/arXiv-2307.08691v1/flash2.tex), abstract and Sections 2–5. The source package’s reported A100 and H100 benchmark plots were reviewed as corroborating attachments; this synthesis uses the paper’s stated aggregate results rather than extracting every plotted value.
+
+[^flashattention-3-2024]: Jay Shah et al., “FlashAttention-3: Fast and Accurate Attention with Asynchrony and Low-precision,” arXiv:2407.08608v2, [bundled LaTeX source](../raw/arXiv-2407.08608v2/fa3_neurips2024.tex), abstract, Sections 1–5, and appendices. The bundled pipeline diagrams and 14 benchmark-plot PDFs were visually reviewed. Results are author-reported on an H100 SXM5 under the stated software, clock, shape, precision, and masking conditions.
 
 [^mqa-summary]: “MQA overview” (Vietnamese summary), [raw source](../raw/MQA.md), Sections 3–7 and 13. This is secondary-source evidence; its cited primary MQA and GQA papers have not been independently ingested here.
