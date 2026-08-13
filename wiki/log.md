@@ -4,6 +4,7 @@
 - **Query**: Filed [Expert parallelism và serving trade-offs — bài học cho người mới](expert-parallelism-serving-trade-offs-beginners-guide.md), linked it from Stage 7 of the roadmap, and covered dispatch/combine all-to-all, device placement, communication bottlenecks, capacity padding, total-weight memory, and a PyTorch routing simulation.
 
 ## 2026-08-13
+- **Ingest**: Compiled [nanoGPT](../raw/nanoGPT/README.md); created [GPT-2 reference implementation](nanogpt-gpt-2-reference-implementation.md) and [training, data, and reproduction workflow](nanogpt-training-data-and-reproduction-workflow.md) concepts.
 - **Ingest**: Compiled [minGPT](../raw/minGPT/README.md); created [reference implementation](mingpt-educational-gpt-reference-implementation.md) and [training workflows](mingpt-training-and-didactic-task-workflows.md) concepts.
 
 ## 2026-08-12
