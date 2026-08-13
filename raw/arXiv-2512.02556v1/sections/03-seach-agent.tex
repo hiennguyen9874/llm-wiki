@@ -1,0 +1,30 @@
+
+\label{sec:context}
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=0.95\linewidth]{figures/search.pdf}
+    \caption{
+    Accuracy of Browsecomp with different test-time compute expansion strategies.
+    }
+    \label{fig:search}
+\end{figure}
+
+Even with extended context windows such as 128k, agentic workflows, particularly in search-based scenarios, frequently encounter maximum length limitations that prematurely truncate the reasoning process. 
+This bottleneck inhibits the full realization of test-time compute potential. 
+To address this, we introduce context management employing simple strategies to extend token budgets at test time， when the token usage exceeds 80\% of the context window length. 
+These strategies include 
+(1) \textbf{Summary}, which summarizes the overflowed trajectory and re-initiates the rollout;
+(2) \textbf{Discard-75\%}, which discards the first 75\% tool call history in the trajectory to free up spaces;
+(3) \textbf{Discard-all}, which resets the context by discarding all previous tool call history (similar to the new context tool~\citep{opus4.5}). 
+For comparison, we also implement a parallel scaling baseline, \textbf{Parallel-fewest-step}, which samples N independent trajectories and selects the trajectory with the fewest steps.
+
+We evaluate these strategies on the BrowseComp benchmark~\citep{wei2025browsecomp}. 
+As illustrated in Figure~\ref{fig:search}, under varying compute budgets, context management leads to significant performance gains by allowing the model to scale up test-time compute, providing more space to perform additional execution steps.
+For example, Summary extends the average steps to 364, achieving a performance improvement of up to 60.2. However, its overall efficiency is relatively low.
+Despite its simplicity, Discard-all performs well in both efficiency and scalability, achieving a score of 67.6, comparable to parallel scaling while using significantly fewer steps.
+
+
+In summary, test-time compute can be scaled either serially through context management or in parallel, both effectively extending the model's problem-solving capacity.
+However, different strategies exhibit varying efficiency and scalability. 
+Thus, it is crucial to account for actual compute costs when benchmarking model performance. 
+Meanwhile, finding the optimal combination of serial and parallel scaling to maximize both efficiency and scalability remains a crucial direction for future work.

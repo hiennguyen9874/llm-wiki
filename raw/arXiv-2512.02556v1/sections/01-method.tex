@@ -1,0 +1,109 @@
+
+\section{\newmodel{} Architecture}
+
+
+\subsection{DeepSeek Sparse Attention}
+\newmodel{} uses exactly the same architecture as DeepSeek-V3.2-Exp. 
+Compared with \oldmodel{}, the last version of DeepSeek-V3.1, the only architectural modification of \newmodel{} is the introduction of \methodfull{}~(\method{}) through continued training.
+
+\paragraph{Prototype of \method{}.}
+The prototype of \method{} primarily consists of two components: a lightning indexer and a fine-grained token selection mechanism.
+
+The \textbf{lightning indexer} computes the index score $I_{t, s}$ between the query token $\mathbf{h}_t \in \mathbb{R}^{d}$ and a preceding token $\mathbf{h}_s \in \mathbb{R}^{d}$, determining which tokens to be selected by the query token: 
+\begin{equation}
+    I_{t, s} = \sum_{j=1}^{H^I} w_{t, j}^I \cdot \text{ReLU}\left(\mathbf{q}^{I}_{t, j} \cdot \mathbf{k}^{I}_{s}\right),
+\end{equation}
+where $H^{I}$ denotes the number of indexer heads; $\mathbf{q}^{I}_{t, j} \in \mathbb{R}^{d^{I}}$ and $w_{t, j}^I \in \mathbb{R}$  are derived from the query token $\mathbf{h}_t$;
+and $\mathbf{k}^{I}_{s} \in \mathbb{R}^{d^{I}}$ is derived from the preceding token $\mathbf{h}_s$. 
+We choose ReLU as the activation function for throughput consideration.
+Given that the lightning indexer has a small number of heads and can be implemented in FP8, its computational efficiency is remarkable. 
+
+Given the index scores $\{I_{t, s}\}$ for each query token $\mathbf{h}_t$, our \textbf{fine-grained token selection mechanism} retrieves only the key-value entries $\{\mathbf{c}_s\}$ corresponding to the top-k index scores. 
+Then, the attention output $\mathbf{u}_t$ is computed by applying the attention mechanism between the query token $\mathbf{h}_t$ and the sparsely selected key-value entries $\{\mathbf{c}_s\}$:
+\begin{equation}
+    \mathbf{u}_t = \text{Attn}\qty(\mathbf{h}_t, \qty{ \mathbf{c}_s \, \middle| \, I_{t, s} \in \text{Top-k} \qty(I_{t, :}) } ).
+\end{equation}
+
+\begin{figure}[t]
+    \centering
+    \includegraphics[width=0.95\linewidth]{figures/v32_arch.pdf}
+    \caption{
+    Attention architecture of \newmodel{}, where \method{} is instantiated under MLA. 
+    The green part illustrates how \method{} selects the top-k key-value entries according to the indexer.
+    }
+    \label{fig:dsa_mla}
+\end{figure}
+
+\paragraph{Instantiate \method{} Under MLA.}
+For the consideration of continued training from \oldmodel{}, we instantiate DSA based on MLA~\citep{deepseekV2} for \newmodel{}.
+At the kernel level, each key-value entry must be shared across multiple queries for computational efficiency~\citep{yuan-etal-2025-native}. 
+Therefore, we implement DSA based on the MQA~\citep{MQA} mode of MLA\footnote{We illustrate the difference between the MQA and MHA modes of MLA in Appendix~\ref{appendix:mqa_mha}.}, where each latent vector (the key-value entry of MLA) will be shared across all query heads of the query token. 
+The DSA architecture based on MLA is illustrated in Figure~\ref{fig:dsa_mla}.
+We also provide an open-source implementation of \newmodel{}\footnote{\url{https://huggingface.co/deepseek-ai/DeepSeek-V3.2-Exp/tree/main/inference}} to specify the details unambiguously.
+
+\subsubsection{Continued Pre-Training}
+
+Starting from a base checkpoint of \oldmodel{}, whose context length has been extended to 128K, we perform continued pre-training followed by post-training to create \newmodel{}.
+
+
+The continued pre-training of \newmodel{} consists of two training stages. 
+For both stages, the distribution of training data is totally aligned with the 128K long context extension data used for \oldmodel{}. 
+
+\paragraph{Dense Warm-up Stage.}
+We first use a short warm-up stage to initialize the lightning indexer. 
+In this stage, we keep dense attention and freeze all model parameters except for the lightning indexer. 
+To align the indexer outputs with the main attention distribution, for the $t$-th query token, we first aggregate the main attention scores by summing across all attention heads. 
+This sum is then L1-normalized along the sequence dimension to produce a target distribution $p_{t,:} \in \mathbb{R}^{t}$.
+Based on $p_{t,:}$, we set a KL-divergence loss as the training objective of the indexer:
+\begin{equation}
+    \mathcal{L}^{I} = \sum_t \Dkl{p_{t,:}}{\text{Softmax}\qty({I}_{t,:})}.
+\end{equation}
+For warm-up, we use a learning rate of $10^{-3}$. 
+We train the indexer for only 1000 steps, with each step consisting of 16 sequences of 128K tokens, resulting in a total of 2.1B tokens.
+
+\paragraph{Sparse Training Stage.}
+Following indexer warm-up, we introduce the fine-grained token selection mechanism and optimize all model parameters to adapt the model to the sparse pattern of \method{}. 
+In this stage, we also keep aligning the indexer outputs to the main attention distribution, but considering only the selected token set $\mathcal{S}_t=\qty{s \, \middle| \, I_{t,s} \in \text{Top-k} \qty(I_{t,:})}$:
+\begin{equation}
+    \mathcal{L}^{I} = \sum_t \Dkl{p_{t,\mathcal{S}_t}}{\text{Softmax}\qty(I_{t,\mathcal{S}_t})}. 
+\end{equation}
+It is worth noting that we detach the indexer input from the computational graph for separate optimization. 
+The training signal of the indexer is from only $\mathcal{L}^{I}$, while the optimization of the main model is according to only the language modeling loss.
+In this sparse training stage, we use a learning rate of $7.3 \times 10^{-6}$, and select 2048 key-value tokens for each query token.
+We train both the main model and the indexer for $15000$ steps, with each step consisting of 480 sequences of 128K tokens, resulting in a total of 943.7B tokens.
+
+\subsection{Parity Evaluation}
+
+\paragraph{Standard Benchmark}
+In September 2025, we evaluate DeepSeek-V3.2-Exp on a suite of benchmarks, which focus on diverse capabilities, and compare it with \oldmodel{} showing similar performance. 
+While DeepSeek V3.2 Exp significantly improves computational efficiency on long sequences, we do not observe substantial performance degradation compared with \oldmodel{}, on both short- and long-context tasks. 
+
+\paragraph{Human Preference} Given that direct human preference assessments are inherently susceptible to bias, we employ ChatbotArena as an indirect evaluation framework to approximate user preferences for the newly developed base models. Both DeepSeek‑V3.1‑Terminus and DeepSeek‑V3.2‑Exp share an identical post‑training strategy, and their Elo scores, obtained from evaluations conducted on 10 November 2025, are closely matched. These results suggest that the new base model achieves performance on par with the previous iteration, despite incorporating a sparse attention mechanism.
+\paragraph{Long Context Eval} Following the release of DeepSeek‑V3.2‑Exp, several independent long‑context evaluations were conducted using previously unseen test sets. A representative benchmark is AA‑LCR\footnote{\url{https://artificialanalysis.ai/evaluations/artificial-analysis-long-context-reasoning}}, in which DeepSeek‑V3.2‑Exp scores four points higher than \oldmodel~ in reasoning mode. In the Fiction.liveBench evaluation\footnote{\url{https://fiction.live/stories/Fiction-liveBench-April-6-2025/oQdzQvKHw8JyXbN87}}, DeepSeek‑V3.2‑Exp consistently outperforms \oldmodel~ across multiple metrics. This evidence indicates the base checkpoint of DeepSeek‑V3.2‑Exp does not regress on long context tasks. 
+
+
+
+\subsection{Inference Costs}
+\method{} reduces the core attention complexity of the main model from $\order{L^2}$ to $\order{L k}$, where $k$ ($\ll L$) is the number of selected tokens. 
+Although the lightning indexer still has a complexity of $\order{L^2}$, it requires much less computation compared with MLA in \oldmodel{}.
+Combined with our optimized implementation, \method{} achieves a significant end-to-end speedup in long-context scenarios.
+Figure~\ref{fig:cost} presents how token costs of \oldmodel{} and \newmodel{} vary with the token position in the sequence. 
+These costs are estimated from benchmarking the actual service deployed on H800 GPUs, at a rental price of 2 USD per GPU hour.
+Note that for short-sequence prefilling, we specially implement a masked MHA mode to simulate \method{}, which can achieve higher efficiency under short-context conditions.
+
+\begin{figure}[t]
+    \centering
+    \subfigure[Prefilling]{
+        \includegraphics[width=0.475\textwidth]{figures/cost_prefilling.pdf}
+        \label{fig:cost_prefilling}
+    }
+    \hspace{0.01cm}
+    \subfigure[Decoding]{
+        \includegraphics[width=0.475\textwidth]{figures/cost_decoding.pdf}
+        \label{fig:cost_decoding}
+    }
+    \caption{
+    Inference costs of \oldmodel{} and \newmodel{} on H800 clusters.
+    }
+    \label{fig:cost}
+\end{figure}

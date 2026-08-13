@@ -1,0 +1,16 @@
+\subsection{Synthesis Agentic Tasks}
+In this section, we perform ablation experiments to study the effect of synthetic agentic tasks. We focus on two questions. First, are synthetic tasks sufficiently challenging for reinforcement learning? Second, how well do these synthetic tasks generalize, i.e., can they transfer to different downstream tasks or real-world environments?
+
+To address the first question, we randomly sample 50 instances from the general synthesized agentic tasks and evaluate both the model used for synthesis and frontier closed-source LLMs. As shown in Table~\ref{tab:synthesis-eval}, \newmodel-Exp attains an accuracy of only 12\%, while frontier closed-source models achieve at most 62\%. These results indicate that the synthetic data include agentic tasks that are challenging for both \newmodel-Exp and frontier closed-source models.
+\input{tables/synthesis-eval}
+
+To investigate whether RL on synthetic data can generalize to different tasks or real-world environments, we apply RL to the SFT checkpoint of \newmodel~ (denoted \newmodel-SFT). To exclude the effects of long CoT and other RL data, we conduct RL only on synthetic agentic tasks in non-thinking mode. We then compare the model with \newmodel-SFT and \newmodel-Exp, where \newmodel-Exp is trained with RL only in search and code environments. As shown in Figure~\ref{fig:synthesis-rl}, large-scale RL on synthetic data yields substantial improvements over \newmodel-SFT on Tau2Bench, MCP-Mark, and MCP-Universe benchmarks. In contrast, restricting RL to code and search scenarios does not improve performance on these benchmarks, further highlighting the potential of synthetic data.
+
+\begin{figure}[t]
+    \centering
+    \includegraphics[width=0.95\linewidth]{figures/synthesis-rl-plot.png}
+    \caption{
+       RL training of DeepSeek-V3.2-SFT using exclusively synthetic general agent data.
+    }
+    \label{fig:synthesis-rl}
+\end{figure}

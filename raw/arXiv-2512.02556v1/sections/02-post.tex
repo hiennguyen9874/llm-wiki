@@ -1,0 +1,331 @@
+
+
+\section{Post-Training}
+
+After continued pre-training, we perform post-training to create the final \newmodel{}.
+The post-training of \newmodel{} also employs sparse attention in the same way as the sparse continued pre-training stage. 
+For \newmodel{}, we maintain the same post-training pipeline as in DeepSeek-V3.2-Exp, which includes specialist distillation and mixed RL training. 
+
+\paragraph{Specialist Distillation} For each task, we initially develop a specialized model dedicated exclusively to that particular domain, with all specialist models being fine-tuned from the same pre-trained DeepSeek-V3.2 base checkpoint. 
+In addition to writing tasks and general question-answering, our framework encompasses six specialized domains: mathematics, programming, general logical reasoning, general agentic tasks, agentic coding, and agentic search, with all the domains supporting both thinking and non-thinking modes. 
+Each specialist is trained with large-scale Reinforcement Learning (RL) computing.
+Furthermore, we employ different models to generate training data for long chain-of-thought reasoning (thinking mode) and direct response generation (non-thinking mode). 
+Once the specialist models are prepared, they are used to produce the domain-specific data for the final checkpoint. 
+Experimental results demonstrate that models trained on the distilled data achieve performance levels only marginally below those of domain-specific specialists, with the performance gap being effectively eliminated through subsequent RL training.
+
+\paragraph{Mixed RL Training} For \newmodel{}, we still adopt Group Relative Policy Optimization (GRPO)~\citep{deepseekmath,deepseekr1} as the RL training algorithm. 
+As DeepSeek-V3.2-Exp, we merge reasoning, agent, and human alignment training into one RL stage. 
+This approach effectively balances performance across diverse domains while circumventing the catastrophic forgetting issues commonly associated with multi-stage training paradigms. 
+For reasoning and agent tasks, we employ rule-based outcome reward, length penalty, and language consistency reward. 
+For general tasks, we employ a generative reward model where each prompt has its own rubrics for evaluation. 
+
+
+\paragraph{\newmodel{} and \highmodel{}}
+\newmodel{} integrates reasoning, agent, and human alignment data distilled from specialists, undergoing thousands of steps of continued RL training to reach the final checkpoints.
+To investigate the potential of extended thinking, we also developed an experimental variant, \highmodel{}. This model was trained exclusively on reasoning data with a reduced length penalty during RL. Additionally, we incorporated the dataset and reward method from DeepSeekMath-V2 \citep{deepseek-math-v2} to enhance capabilities in mathematical proofs.
+
+We would like to highlight our efforts in how to create a stable recipe to scale up RL compute in Section \ref{sec:grpo}, and how to integrate thinking into agentic tasks in Section \ref{sec:synthesis}
+
+\subsection{Scaling GRPO}
+\label{sec:grpo}
+
+%\paragraph{RL Algorithm.} %We adopt Group Relative Policy Optimization (GRPO) in the RL training stage[cite DS-Math; cite R1].
+We first review the objective of GRPO. GRPO optimizes the policy model $\pi_{\theta}$ by maximizing the following objective on a group of responses $\{o_1,\cdots, o_G\}$ sampled from the old policy $\piold$ given each question $q$:
+\begin{align}
+    \Jgrpo(\theta)=\enspace& \mathbb{E}_{
+        q\sim P(Q), 
+        \{o_i\}_{i=1}^G\sim \piold(\cdot|q)}\Bigg[
+            \frac{1}{G}\sum_{i=1}^G\frac{1}{|o_i|}\sum_{t=1}^{|o_i|} \nonumber\\
+            &\min\left(
+                r_{i,t}(\theta) \hat{A}_{i,t}, 
+                \text{clip}\left(r_{i,t}(\theta), 1-\varepsilon, 1+\varepsilon\right)\hat{A}_{i,t}
+            \right) - \beta \Dkl{\pi_\theta(o_{i,t})}{\piref(o_{i,t})}
+        \Bigg],
+\end{align}
+where
+\begin{equation}
+    r_{i,t}(\theta)=\frac{\pi_\theta(o_{i,t}|q,o_{i,<t})}{\piold(o_{i,t}|q,o_{i,<t})}
+\end{equation}
+is the importance sampling ratio between the current and old policy. $\varepsilon$ and $\beta$ are hyper-parameters controlling the clipping range and KL penalty strength, respectively. $\hat{A}_{i,t}$ is the advantage of $o_{i,t}$ which is estimated by normalizing the outcome reward within each group. Specifically, a set of reward models are used to score an outcome reward $R_i$ for each output $o_i$ in the group, yielding $G$ rewards $\boldsymbol{R}=\{R_1,\cdots,R_G\}$ respectively. The advantage of $o_{i,t}$ is calculated by subtracting the average reward of the group from the reward of output $o_i$, i.e., $\hat{A}_{i,t} = R_i-\text{mean}(\boldsymbol{R})$. 
+
+In the following, we outline additional strategies that stabilize RL scaling, directly building on the GRPO algorithm.
+
+\paragraph{Unbiased KL Estimate} Given $o_{i,t}$ is sampled from the old policy $\piold(\cdot|q,o_{i,<t})$, we correct the K3 estimator \citep{schulman2020klapprox} to obtain an unbiased KL estimate
+using the importance-sampling ratio between the current policy $\pi_\theta$ and the old policy $\piold$ .
+\begin{equation}
+    \Dkl{\pi_\theta(o_{i,t})}{\piref(o_{i,t})} = 
+        \frac{\pi_\theta(o_{i,t}|q,o_{i,<t})}{\piold(o_{i,t}|q,o_{i,<t})}
+        \left(
+            \frac{\piref(o_{i,t}|q,o_{i,<t})}{\pi_{\theta}(o_{i,t}|q,o_{i,<t})}
+            - \log \frac{\piref(o_{i,t}|q,o_{i,<t})}{\pi_{\theta}(o_{i,t}|q,o_{i,<t})} - 1
+        \right).
+\end{equation}
+
+As a direct result of this adjustment, the gradient of this KL estimator becomes unbiased, which eliminates systematic estimation errors, thereby facilitating stable convergence. This contrasts sharply with the original K3 estimator, particularly when the sampled tokens have substantially lower probabilities under the current policy than the reference policy, i.e., $\pi_\theta \ll \piref$. In such cases, the gradient of the K3 estimator assigns disproportionately large, unbounded weights to maximize the likelihood of these tokens, resulting in noisy gradient updates that accumulate to degrade sample quality in subsequent iterations and lead to unstable training dynamics. In practice, we find that different domains benefit from varying strengths of KL regularization. For certain domains, such as mathematics, applying a relatively weak KL penalty or even omitting it entirely can yield improved performance.
+
+\paragraph{Off-Policy Sequence Masking} To improve the efficiency of RL systems, we typically generate a large batch of rollout data, which is subsequently split into multiple mini-batches for several gradient update steps. This practice inherently introduces off-policy behavior. Additionally, inference frameworks used for efficient data generation are often highly optimized, which may differ in implementation details from training frameworks. Such training-inference inconsistency further exacerbates the degree of off-policyness. To stabilize training and improve tolerance for off-policy updates, we mask negative sequences that introduce significant policy divergence, as measured by the KL divergence between the data-sampling policy $\piold$ and the current policy $\pi_\theta$. More specifically, we introduce a binary mask $M$ into the GRPO loss:
+\begin{align}
+    \Jgrpo(\theta)=\enspace& \mathbb{E}_{
+        q\sim P(Q), 
+        \{o_i\}_{i=1}^G\sim \piold(\cdot|q)}\Bigg[
+            \frac{1}{G}\sum_{i=1}^G\frac{1}{|o_i|}\sum_{t=1}^{|o_i|} \nonumber\\
+            &\min\left(
+                r_{i,t}(\theta) \hat{A}_{i,t}, 
+                \text{clip}\left(r_{i,t}(\theta), 1-\varepsilon, 1+\varepsilon\right)\hat{A}_{i,t}
+            \right)M_{i,t} - \beta \Dkl{\pi_\theta(o_{i,t})}{\piref(o_{i,t})}
+        \Bigg],
+\end{align}
+where
+
+\begin{equation}
+M_{i,t} = \begin{cases}
+0 & {\hat{A}_{i,t} < 0, \frac{1}{|o_i|}\sum_{t=1}^{|o_i|}\log\frac{\piold(o_{i,t}|q,o_{i,<t})}{\pi_{\theta}(o_{i,t}|q,o_{i,<t})} > \delta} \\[1ex]
+1 & {\text{otherwise},}
+\end{cases}
+\end{equation}
+and $\delta$ is a hyper-parameter that controls the threshold of policy divergence. Note that $\piold$ here denotes the sampling probability directly returned by the inference framework, thus the KL divergence between the old and current policy accounts for both sources of off-policyness mentioned above. It is also worth noting that we only mask sequences with negative advantages. 
+
+Intuitively, the model benefits the most by learning from its own mistakes, whereas highly off-policy negative samples can be detrimental, potentially misleading or destabilizing the optimization process. We empirically observe that this Off-Policy Sequence Masking operation improves stability in certain training scenarios that would otherwise exhibit instability.
+
+\paragraph{Keep Routing} Mixture-of-Experts (MoE) models improve computational efficiency by activating only a subset of expert modules during inference. However, discrepancies between inference and training frameworks, compounded by policy updates, can result in inconsistent expert routing during inference and training even for identical inputs. Such inconsistency induces abrupt shifts in the active parameter subspace, which destabilizes optimization and exacerbates off-policy issues. To mitigate this, we preserve the expert routing paths used during sampling in the inference framework and enforce the same routing paths during training, ensuring that identical expert parameters are optimized. This Keep Routing operation was found crucial for RL training stability of MoE models, and has been adopted in our RL training pipeline since DeepSeek-V3-0324.
+
+
+\paragraph{Keep Sampling Mask} Top-p and top-k sampling are widely used sampling strategies to enhance the quality of responses generated by LLMs. Employing these strategies in RL training is also advantageous, as it avoids sampling extremely low-probability tokens that would be used as optimization targets. While such truncation preserves sample quality, it introduces a mismatch between the action spaces of $\piold$ and $\pi_\theta$, which violates the principles of importance sampling and destabilizes training. To address this, we preserve the truncation masks during sampling from $\piold$ and apply them to $\pi_\theta$ during training, ensuring both policies share identical action subspaces. Empirically, we find that combining top-p sampling with the Keep Sampling Mask strategy effectively preserves language consistency during RL training.
+
+
+
+\subsection{Thinking in Tool-Use}
+\label{sec:synthesis}
+
+\subsubsection{Thinking Context Management}
+DeepSeek-R1 has demonstrated that incorporating a thinking process can significantly enhance a model's ability to solve complex problems. Building on this insight, we aim to integrate thinking capabilities into tool-calling scenarios.
+
+We observed that replicating DeepSeek-R1’s strategy—discarding reasoning content upon the arrival of the second round of messages—results in significant token inefficiency. This approach forces the model to redundantly re-reason through the entire problem for each subsequent tool call. To mitigate this, we developed a context management strictly tailored for tool-calling scenarios as shown in Fig~\ref{fig:format}:
+\begin{itemize}
+\item Historical reasoning content is discarded only when a new \textbf{user message} is introduced to the conversation. If only tool-related messages (e.g., tool outputs) are appended, the reasoning content is \textbf{retained} throughout the interaction.
+\item When reasoning traces are removed, the history of \textbf{tool calls and their results} remains preserved in the context.
+\end{itemize}
+Notably, certain agent frameworks, such as Roo Code or Terminus, simulate tool interactions via user messages. These frameworks may not fully benefit from our enhanced reasoning persistence due to the context management rules outlined above. Therefore, we recommend utilizing non-thinking models for optimal performance with such architectures.
+\begin{figure}[ht]
+    \centering
+    \includegraphics[width=0.95\linewidth]{figures/template.JPEG}
+    \caption{
+        Thinking retention mechanism in tool-calling scenarios.
+    }
+    \label{fig:format}
+\end{figure}
+
+\subsubsection{Cold-Start}
+
+Given the availability of reasoning data (non-agentic) and non-reasoning agentic data, a straightforward strategy for integrating these two capabilities is through carefully designed prompting. We posit that the model possesses sufficient ability to accurately follow explicit instructions, thereby enabling the seamless incorporation of tool execution within the reasoning process.
+
+To demonstrate the operation of the cold-start mechanism, we selectively sample the training data as shown in Appendix Tables \ref{tab:think_template}–\ref{tab:agentthink_template}. It is important to note that distinct task prompts are associated with different system prompts. Tables \ref{tab:think_template}–\ref{tab:agentthink_template} present an illustrative example corresponding to a competitive programming prompt.
+Table \ref{tab:think_template} presents an example of our reasoning data, which uses a system prompt to explicitly asks the model to do reasoning before the final answer and uses a special tag <think></think> to label the reasoning path. Table \ref{tab:agent_template} shows the prompt of non-reasoning agentic data, where the system prompt contains the guidance of toolcall. Table \ref{tab:agentthink_template} presents the system prompt we designed to instruct the model to incorporate multiple tool calls within its reasoning process.
+
+In this manner, although the reasoning in tool‑use patterns may lack robustness, the model is occasionally able to generate the desired trajectories, thereby providing a basis for subsequent reinforcement learning stages.
+
+
+
+\subsubsection{Large-Scale Agentic Tasks}
+
+A diverse set of RL tasks is crucial for enhancing model robustness. For tasks such as search, code engineering, and code interpretation, we employ real-world tools, including actual web search APIs, coding tools, and Jupyter Notebooks. While these RL environments are real, the prompts employed are either extracted from Internet sources or synthetically generated, rather than obtained from actual user interactions.
+For other tasks,  the environment and prompts are both synthetically constructed. The agent tasks we used are described in Table \ref{tab:description}.
+
+\begin{table}[h]
+\centering
+\caption{The description of different agent tasks, including the number of tasks, environment type (real or synthesized), and prompt source (extracted or synthesized). \label{tab:description} } 
+\begin{tabular}{c|c|c|c}
+\hline
+ & number of tasks & environment & prompt \\
+\hline
+code agent & 24667 & real & extracted \\
+\hline
+search agent& 50275 & real & synthesized \\
+\hline
+general agent & 4417& synthesized & synthesized\\
+\hline
+code interpreter & 5908 & real & extracted \\
+\hline
+\end{tabular}
+
+\end{table}
+
+
+\paragraph{Search Agent}
+
+We employ a multi-agent pipeline based on DeepSeek-V3.2 to generate diverse, high-quality training data. 
+We first sample informative long-tail entities across diverse domains from large-scale web corpora. 
+A question-construction agent then explores each entity using search tools with configurable depth and breadth parameters, consolidating the discovered information into question-answer pairs. 
+Multiple answer-generation agents with heterogeneous configurations (different checkpoints, system prompts, etc.) produce diverse candidate responses for each proposed QA pair. 
+A verification agent with search capabilities validates all answers through multiple passes, retaining only samples where the ground-truth is correct and all candidates are verifiably incorrect. 
+These data spans multiple languages, domains, and difficulty levels. 
+To complement these verifiable samples and better reflect real-world usage, we also augment the dataset with filtered instances from our existing helpful RL datasets, for which the search tool provides measurable benefits.
+We then develop detailed evaluation rubrics across multiple quality dimensions and employ a generative reward model to score responses based on these rubrics. 
+This hybrid approach enables optimization for both factual reliability and practical helpfulness.
+
+\paragraph{Code Agent}
+
+
+We constructed large-scale, executable environments for software issue resolution by mining millions of issue-Pull Request (PR) pairs from GitHub. This dataset was rigorously filtered using heuristic rules and LLM-based judgments to ensure high quality, requiring that each entry contain a reasonable issue description, a correlated gold patch, and a test patch for validation. An automated environment-setup agent, powered by DeepSeek-V3.2, was employed to build executable environments for these pairs. This agent handles package installation, dependency resolution, and test execution. Test results are output in the standard JUnit format, ensuring consistent parsing across programming languages and test frameworks. An environment is deemed successfully built only when applying the gold patch results in a non-zero count of false-to-positive (F2P) test cases (indicating the issue is fixed) and a zero count of pass-to-fail (P2F) test cases (indicating no regressions). Using this pipeline, we successfully built tens of thousands of reproducible issue resolution environments spanning multiple programming languages, including Python, Java, JavaScript, TypeScript, C, C++, Go, and PHP.
+
+\paragraph{Code Interpreter Agent}
+We utilize Jupyter Notebook as a code interpreter to address complex reasoning tasks. To facilitate this, we curate a diverse set of problems spanning mathematics, logic, and data science, each requiring the model to leverage code execution capabilities to arrive at a solution.
+
+\paragraph{General Agent}
+To scale up agent environments and tasks in RL, we employ an automatic environment-synthesis agent that synthesizes 1,827 task-oriented environments. These tasks are hard to solve but easy to verify. The synthesis workflow primarily consists of environment and toolset construction, task synthesis, and solution generation. Specifically, the workflow proceeds as follows.
+\begin{enumerate}
+    \item Given a task category (e.g., planning a travel itinerary) and a sandbox equipped with a bash and a search tool, the agent first uses these tools to generate or retrieve relevant data from the Internet and store them in the sandbox database.
+    \item The agent then synthesizes a set of task-specific tools, each implemented as a function.
+    \item To create tasks that are both challenging and automatically verifiable, the agent initially proposes a simple task based on the current database, along with its solution and verification functions implemented in Python. The solution function is restricted to invoking tool functions or performing logical computations, and cannot call other functions or directly access the database, ensuring the task can only be solved through the tool interface. Additionally, the results produced by the solution function must be validated by the verification function. If the solution is not validated, the agent will modify the solution or verification functions until the solution's output passes the verification. The agent then iteratively increases the difficulty of the task and updates the corresponding solution and verification functions. During this iterative process, if the current toolset is not sufficient to solve the task, the agent will augment the toolset.
+
+\end{enumerate}
+
+
+Following this workflow, we obtain thousands of $⟨\text{environment}, \text{tools}, \text{task}, \text{verifier}⟩$ tuples. We then perform RL on this dataset using \newmodel{} and retain only instances with non-zero pass@100, resulting in 1,827 environments and their corresponding tasks (4,417 in total). A synthetic trip-planning example is illustrated below. This example highlights that, while searching the large combinatorial space for a trip plan that satisfies all constraints is challenging, checking whether a given candidate solution satisfies these constraints is relatively straightforward.
+\begin{tcolorbox}[
+  floatplacement=ht,    
+  title={An Example of Synthesized Task: Trip Planning}, 
+  label={case:trip_request}             
+]
+\small
+I'm planning a three-day trip starting from Hangzhou, and I need help creating an itinerary from October 1st to October 3rd, 2025. 
+A few important requirements: I don't want to repeat any cities, hotels, attractions, or restaurants during the entire trip. Also, please make sure that every hotel, restaurant, and attraction you recommend is actually located in the city where I'll be staying that day.
+One more thing about the second day - I'm trying to be smart about my budget. If I end up booking a luxury hotel that costs 800 CNY or more per night, then I need to be more careful with other expenses: my total spending on both restaurants (lunch and dinner) should stay under 350 CNY, both restaurants should be rated at least 4.0 stars, and the afternoon attraction ticket needs to be less than 120 CNY.
+If the hotel on day 2 is in the mid-to-high range (500-800 CNY), then I have a bit more flexibility - I just need to make sure at least one of my restaurant choices is rated 4.0 or higher, and the attraction ticket should be below 180 CNY.
+For more affordable hotels (200-500 CNY range), I only need to ensure that at least one restaurant has a rating of 3.2 or above.
+Can you help me put together this itinerary? \\[0.2em]
+
+\textbf{Submit Result Format} \\[0.2em]
+
+[
+\\[0.2em]
+  \{
+    "time": "2025-10-01",
+    "city": "cite\_name",
+    "hotel": "hotel\_name",
+    "afternoon\_restaurant": "restaurant\_name",
+    "afternoon\_attraction": "attraction\_name",
+    "evening\_restaurant": "restaurant\_name"
+  \},
+  \\[0.2em]
+  \{
+    "time": "2025-10-02",
+    "city": "cite\_name",
+    "hotel": "hotel\_name",
+    "afternoon\_restaurant": "restaurant\_name",
+    "afternoon\_attraction": "attraction\_name",
+    "evening\_restaurant": "restaurant\_name"
+  \},
+  \\[0.2em]
+  \{
+    "time": "2025-10-03",
+    "city": "cite\_name",
+    "hotel": "hotel\_name",
+    "afternoon\_restaurant": "restaurant\_name",
+    "afternoon\_attraction": "attraction\_name",
+    "evening\_restaurant": "restaurant\_name"
+  \}
+]
+\end{tcolorbox}
+
+
+
+\begin{tcolorbox}[
+  floatplacement=ht,
+  title={Tool Set for Trip Planning},
+  label={case:tools}
+]
+\scriptsize
+\begin{tabularx}{\textwidth}{l X}
+\toprule
+\textbf{Function Name} & \textbf{Description} \\
+\midrule
+\texttt{get\_all\_attractions\_by\_city(city)} &
+Get all attractions for given city. \\[0.3em]
+
+\texttt{get\_all\_cities()} &
+Get all cities from the database. \\[0.3em]
+
+\texttt{get\_all\_hotels\_by\_city(city)} &
+Get all hotels for given city. \\[0.3em]
+
+\texttt{get\_all\_restaurants\_by\_city(city)} &
+Get all restaurants for given city. \\[0.3em]
+
+\texttt{get\_city\_by\_attraction(attraction)} &
+Get city for given attraction name. \\[0.3em]
+
+\texttt{get\_city\_by\_hotel(hotel)} &
+Get city for given hotel name. \\[0.3em]
+
+\texttt{get\_city\_by\_restaurant(restaurant)} &
+Get city for given restaurant name. \\[0.3em]
+
+\texttt{get\_city\_transport(city)} &
+Get all intra-city transport options for given city. \\[0.3em]
+
+\texttt{get\_infos\_by\_attraction(info\_keywords, attraction)} &
+Get specified infos for given attraction. \\[0.3em]
+
+\texttt{get\_infos\_by\_city(info\_keywords, city)} &
+Get specified infos for given city. \\[0.3em]
+
+\texttt{get\_infos\_by\_hotel(info\_keywords, hotel)} &
+Get specified infos for given hotel. \\[0.3em]
+
+\texttt{get\_infos\_by\_restaurant(info\_keywords, restaurant)} &
+Get specified infos for given restaurant. \\[0.3em]
+
+\texttt{get\_inter\_city\_transport(from\_city, to\_city)} &
+Get all transports between given city pair. \\[0.3em]
+
+\texttt{get\_weather\_by\_city\_date(city, date)} &
+Get weather for given city-date pair. \\[0.3em]
+
+\texttt{submit\_result(answer\_text)} &
+Submit the final answer content. \\
+\bottomrule
+\end{tabularx}
+\end{tcolorbox}
+
+
+
+
+% \highmodel{} is a reasoning-oriented model, which built upon an intermediate checkpoint of \newmodel{} by increasing output length. \highmodel{} does not support tool call and is inferior to \newmodel{} on general chat. During the  RL training of \highmodel{}, it applies the technique of DeepSeekMath-V2. 
+% \newmodel{} does not apply RL technique in  DeepSeekMath-V2 to improve math proofing capability. 
+
+
+\section{Evaluation}
+
+\subsection{Main Results}
+We evaluate models on MMLU-Pro \citep{mmlu_pro}, GPQA Diamond \citep{gpqa}, Human Last Exam (HLE) Text-only \citep{hle}, LiveCodeBench (2024.08-2025.04), Codeforces, Aider-Polyglot, AIME 2025, HMMT Feb 2025, HMMT Nov 2025 \citep{balunovic2025matharena}, IMOAnswerBench \citep{luong-etal-2025-towards}, Terminal Bench 2.0, SWE-Verified \citep{swe_verified}, SWE Multilingual \citep{yang2025swesmith}, BrowseComp \citep{wei2025browsecomp}, BrowseCompZh \citep{zhou2025browsecomp}, $\tau^2$-bench \citep{tau2}, MCP-Universe \citep{mcpuniverse}, MCP-Mark \citep{mcpmark}, and Tool-Decathlon \citep{li2025tool}. Tool-use benchmarks are evaluated using the standard function call format, wherein models are configured to thinking mode.
+ For MCP-Universe \citep{mcpuniverse} and MCP-Mark \citep{mcpmark}, we evaluate all models with our internal environment, because the search and playwright environment might be slightly different from the official setting.   
+We set the temperature to 1.0, and the context window to 128K tokens.
+For math-related tasks such as AIME, HMMT, IMOAnswerBench, and HLE, we eval with the following template: \texttt{"\{question\}\textbackslash nPlease reason step by step, and put your final answer within \textbackslash boxed\{\}."}
+In the case of HLE, we additionally assessed \newmodel{}-Thinking using the official template, resulting in a score of $23.9$.
+
+
+\input{tables/eval_main}
+\newmodel{} achieves similar performance with GPT-5-high on reasoning tasks, but is slightly worse than Gemini-3.0-Pro. Compared to K2-Thinking, \newmodel{} achieves comparable scores with substantially fewer output tokens, as shown in Table \ref{tab:long_model_performance}. These performance gains can be attributed to the increased computational resources allocated to RL training. Over recent months, we have observed consistent performance improvements correlating with extended RL training budget, which already exceeds 10\% of the pre-training cost. We hypothesize that reasoning capabilities could be further enhanced with additional computational budget allocation. Notably, the performance of \newmodel{} presented herein is constrained by a length constraint reward model; upon removal of the restriction, we observe further improvement in model performance, as detailed in Section \ref{longoutput}.
+
+In code agent evaluations, \newmodel{} significantly outperforms open-source LLMs on both SWE-bench Verified and Terminal Bench 2.0, demonstrating its potential within real-world coding workflows. Regarding Terminal Bench 2.0, as previously noted, our context management strategy for the 'thinking mode' is currently incompatible with Terminus; consequently, the reported score of 46.4 was achieved using the Claude Code framework. We also evaluated \newmodel{} with Terminus in non-thinking mode, yielding a score of 39.3. For SWE-bench Verified, the primary score was obtained using our internal framework. Robustness tests across other settings—including the Claude Code and RooCode frameworks, as well as non-thinking mode—produced consistent results, ranging from 72 to 74.
+
+For the search agent evaluation, we assess our models using a standard commercial search API. Since \newmodel{} supports a maximum context length of only 128K, approximately 20\%+ of the test cases exceed this limit. To address this, we employ a context management method to derive the final score. For reference, the score is 51.4 without context management. Further details are provided in Section \ref{sec:context}.
+
+On tool-use benchmarks, \newmodel{} substantially narrows the performance gap between open-source and closed-source LLMs, though it remains below frontier models. For $\tau^2$-bench, we employ the model itself as the user agent, achieving final category scores of 63.8 (Airline), 81.1 (Retail), and 96.2 (Telecom). For the MCP benchmarks, we employ the function calling format and place tool outputs within messages designated with the 'tool' role, rather than the 'user' role.
+During our testing, we observed that \newmodel{} frequently engages in redundant self-verification, generating excessively long trajectories. This tendency often causes the context length to exceed the 128K limit, particularly in tasks such as MCP-Mark GitHub and Playwright evaluation. Consequently, this phenomenon hinders the final performance of \newmodel{}. However, integrating context management strategies can further enhance performance. We identify this as a direction for future work and a practical consideration for users. Even if \newmodel{} suffers from the issue, it still significantly outperforms existing open models. 
+Notably, since the environments and toolsets employed in these benchmarks were not encountered during RL training, the observed improvements demonstrate \newmodel's capacity to generalize its reasoning strategies to out-of-domain agentic scenarios. The evaluation of non-thinking model in the agent scenario is shown in Appendix Table \ref{tab:nonthink}.  
+
+\input{sections/06-high}
+
+
+
+
+\input{sections/05-thinking-with-tool}
+\subsection{Context Management of Search Agent}
+\input{sections/03-seach-agent}
+
+\section{Conclusion, Limitation, and Future Work}
+In this work, we introduced \newmodel, a framework that effectively bridges the gap between computational efficiency and advanced reasoning capabilities. Using DSA, we addressed critical computation complexity without sacrificing long-context performance. By increasing computational budget, \newmodel{} achieves comparable performance with GPT-5 on reasoning benchmarks. Finally, the integration of our large-scale agentic task synthesis pipeline significantly enhances tool-use proficiency, unlocking new possibilities for robust and generalizable AI agents with open LLM. Furthermore, our high-compute variant, \highmodel{}, validated by gold-medal achievements in the IMO and IOI, sets a milestone for open LLMs.
+
+Despite these achievements, we acknowledge certain limitations when compared to frontier closed-source models such as Gemini-3.0-Pro. First, due to fewer total training FLOPs, the breadth of world knowledge in \newmodel{} still lags behind that of leading proprietary models. We plan to address this knowledge gap in future iterations by scaling up the pre-training compute. Second, token efficiency remains a challenge; \newmodel{} typically requires longer generation trajectories (i.e., more tokens) to match the output quality of models like Gemini-3.0-Pro. Future work will focus on optimizing the intelligence density of the model's reasoning chains to improve efficiency. Third, solving complex tasks is still inferior to frontier models, motivating us to further refine our foundation model and post-training recipe.

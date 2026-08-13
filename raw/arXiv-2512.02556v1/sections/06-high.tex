@@ -1,0 +1,121 @@
+
+
+\subsection{Results of \highmodel{}}
+\label{longoutput}
+
+\begin{table}[t]
+    \centering
+    % \small
+    \caption{
+    Benchmark performance and efficiency of reasoning models. For each benchmark, cells show accuracy and output token count (in thousands). The highest accuracy per benchmark is in bold; the second-highest is underlined.
+    }
+    \setlength{\tabcolsep}{4pt}
+    \label{tab:long_model_performance}
+    \resizebox{0.95\linewidth}{!}{%
+    \begin{tabular}{@{}l llll|l@{}}
+        \toprule
+        \multirow{2}{*}{\textbf{Benchmark}} 
+        & \textbf{GPT-5} & \textbf{Gemini-3.0} & \textbf{Kimi-K2} & \textbf{DeepSeek-V3.2} & \textbf{DeepSeek-V3.2} \\
+        & \textbf{High} & \textbf{Pro} & \textbf{Thinking} & \textbf{Thinking} & \textbf{Speciale} \\
+        \midrule
+        {AIME 2025 {\tiny (Pass@1)}} 
+        & 94.6 (13k) 
+        & \underline{95.0} (15k) 
+        & 94.5 (24k)
+        & 93.1 (16k) 
+        & \textbf{96.0} (23k) \\
+        
+        {HMMT Feb 2025 {\tiny (Pass@1)}} 
+        & 88.3 (16k) 
+        & \underline{97.5} (16k) 
+        & 89.4 (31k)
+        & 92.5 (19k) 
+        & \textbf{99.2} (27k) \\
+        
+        {HMMT Nov 2025 {\tiny (Pass@1)}} 
+        & 89.2 (20k) 
+        & \underline{93.3} (15k) 
+        & 89.2 (29k)
+        & 90.2 (18k) 
+        & \textbf{94.4} (25k) \\
+        
+        {IMOAnswerBench {\tiny (Pass@1)}} 
+        & 76.0 (31k)
+        & \underline{83.3} (18k)
+        & 78.6 (37k)
+        & 78.3 (27k)
+        & \textbf{84.5} (45k) \\
+        
+        {LiveCodeBench {\tiny (Pass@1-COT)}} 
+        & 84.5 (13k) 
+        & \textbf{90.7} (13k) 
+        & 82.6 (29k)
+        & 83.3 (16k) 
+        & \underline{88.7} (27k) \\
+        
+        {CodeForces {\tiny (Rating)}} 
+        & 2537 (29k) 
+        & \textbf{2708} (22k) 
+        & -
+        & {2386} (42k) 
+        & \underline{2701} (77k) \\
+        
+        {GPQA Diamond {\tiny (Pass@1)}} 
+        & \underline{85.7} (8k) 
+        & \textbf{91.9} (8k)
+        & 84.5 (12k)
+        & 82.4 (7k)
+        & \underline{85.7} (16k) \\
+        
+        {HLE {\tiny (Pass@1)}}
+        & 26.3 (15k)
+        & \textbf{37.7} (15k)
+        & 23.9 (24k)
+        & 25.1 (21k)
+        & \underline{30.6} (35k) \\
+        \bottomrule
+    \end{tabular}
+    }
+\end{table}
+
+Table \ref{tab:long_model_performance} demonstrates that \highmodel{} achieves superior performance by leveraging increased reasoning tokens, surpassing the state-of-the-art Gemini-3.0-Pro across multiple benchmarks.
+Remarkably, as shown in Table \ref{tab:imo_ioi}, this general-purpose model attains gold-medal level performance in the 2025 International Olympiad in Informatics (IOI) and the ICPC World Finals (ICPC WF) without targeted training.
+Furthermore, by incorporating techniques from \citet{deepseek-math-v2}, the model excels in complex proof tasks, reaching gold-medal thresholds in the 2025 International Mathematical Olympiad (IMO) and China Mathematical Olympiad (CMO)\footnote{We evaluated the English version of CMO 2025. The IMO 2025 and CMO 2025 problems, together with the inference code, can be found at: \url{https://github.com/deepseek-ai/DeepSeek-Math-V2}.}. Detailed evaluation protocols are provided in Appendix \ref{appendix:ioi_eval}.
+
+However, the token efficiency of \highmodel{} remains significantly inferior to that of Gemini-3.0-Pro. 
+To mitigate deployment costs and latency, we imposed stricter token constraints during the training of the official \newmodel{}, aiming to optimize the trade-off between performance and cost.
+We believe that token efficiency remains a critical area for future investigation.
+
+
+\begin{table}[htbp]
+\centering
+\caption{Performance of \highmodel{} in top-tier mathematics and coding competitions.
+For ICPC WF 2025, we report the number of submissions for each successfully solved problem. \highmodel{} ranked 2nd in ICPC WF 2025 and 10th in IOI 2025.
+}
+\label{tab:imo_ioi}
+
+\begin{tabular}{lcccccc cc}
+\toprule
+\textbf{Competition} & \textbf{P1} & \textbf{P2} & \textbf{P3} & \textbf{P4} & \textbf{P5} & \textbf{P6} & \textbf{Overall} & \textbf{Medal} \\
+\midrule
+IMO 2025 & 7 & 7 & 7 & 7 & 7 & 0 & 35/42 & \textcolor{gold}{Gold} \\
+CMO 2025 & 18 & 18 & 9 & 21 & 18 & 18 & 102/126 & \textcolor{gold}{Gold} \\
+IOI 2025 & 100 & 82 & 72 & 100 & 55 & 83 & 492/600 & \textcolor{gold}{Gold} \\
+\bottomrule
+\end{tabular}
+
+\vspace{1em}
+
+\setlength{\tabcolsep}{4pt}
+% \resizebox{\linewidth}{!}{%
+\begin{tabular}{lcccccccccccc cc}
+\toprule
+\textbf{Competition} & \textbf{A} & \textbf{B} & \textbf{C} & \textbf{D} & \textbf{E} & \textbf{F} & \textbf{G} & \textbf{H} & \textbf{I} & \textbf{J} & \textbf{K} & \textbf{L} & \textbf{Overall} & \textbf{Medal} \\
+\midrule
+ICPC WF 2025 & 3 & - & 1 & 1 & 2 & 2 & - & 1 & 1  & 1 & 1 & 1 & 10/12 & \textcolor{gold}{Gold} \\
+\bottomrule
+\end{tabular}
+% }%
+\end{table}
+
+

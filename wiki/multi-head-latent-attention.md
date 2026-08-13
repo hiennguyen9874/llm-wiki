@@ -5,7 +5,7 @@ description: Multi-head Latent Attention caches a low-dimensional joint KV laten
 tags: [attention, multi-head-latent-attention, mla, kv-cache, inference, rope]
 status: stable
 created: 2026-08-01
-generated: { by: llm-wiki-agent/1, at: 2026-08-01T02:38:26Z }
+generated: { by: llm-wiki-agent/1, at: 2026-08-13T16:27:51Z }
 sources:
   - id: deepseek-v2-2024
     resource: ../raw/arXiv-2405.04434v5/main.tex
@@ -19,6 +19,9 @@ sources:
   - id: kimi-k3-2026
     resource: ../raw/arXiv-2607.24653v1/main.tex
     title: "Kimi K3: Open Frontier Intelligence"
+  - id: deepseek-v3-2-2025
+    resource: ../raw/arXiv-2512.02556v1/main.tex
+    title: "DeepSeek-V3.2: Pushing the Frontier of Open Large Language Models"
 ---
 
 # Multi-head Latent Attention
@@ -43,13 +46,15 @@ In controlled small and large MoE comparisons, the authors report MLA cache size
 
 MLA compresses token state; it does not make exact global attention fixed-state. Cache bytes, cache reads, and attention work still grow with context length, while actual serving also depends on precision, kernels, batching, and allocation policy.[^deepseek-v2-2024]
 
+DeepSeek-V3.2 supplies a later sparse-use case: its DeepSeek Sparse Attention instantiates MLA in MQA mode, shares one latent KV entry across query heads, and selects only top-ranked prior entries before core attention. This reduces the main attention work but does not change MLA’s cache from context-linear to fixed-size; its lightning indexer also retains a lower-cost quadratic scoring pass.[^deepseek-v3-2-2025]
+
 ## Relationships
 
 - **Modifies:** [Scaled dot-product and multi-head attention](scaled-dot-product-and-multi-head-attention.md) through a jointly compressed key/value representation.
 - **Uses:** [Rotary position embedding (RoPE)](rotary-position-embedding.md) only in its decoupled position path.
 - **Addresses:** [KV-cache compression and trade-offs](kv-cache-compression-and-trade-offs.md) with an architectural reduction in the per-token representation.
 - **Contrasts with:** [Multi-query and grouped-query attention](multi-query-and-grouped-query-attention.md), which shares whole K/V heads rather than caching a joint latent.
-- **Used by:** [DeepSeek-V2 architecture, training, and efficiency](deepseek-v2-architecture-training-and-efficiency.md), [DeepSeek-V3 architecture and pretraining](deepseek-v3-architecture-and-pretraining.md), and the global-attention layers in [Kimi Linear hybrid attention architecture](kimi-linear-hybrid-attention-architecture.md) and [Kimi K3 hybrid retrieval architecture](kimi-k3-hybrid-retrieval-architecture.md).[^deepseek-v3-2024][^kimi-linear-2025][^kimi-k3-2026]
+- **Used by:** [DeepSeek-V2 architecture, training, and efficiency](deepseek-v2-architecture-training-and-efficiency.md), [DeepSeek-V3 architecture and pretraining](deepseek-v3-architecture-and-pretraining.md), [DeepSeek Sparse Attention](deepseek-sparse-attention.md), and the global-attention layers in [Kimi Linear hybrid attention architecture](kimi-linear-hybrid-attention-architecture.md) and [Kimi K3 hybrid retrieval architecture](kimi-k3-hybrid-retrieval-architecture.md).[^deepseek-v3-2024][^deepseek-v3-2-2025][^kimi-linear-2025][^kimi-k3-2026]
 
 ## Evidence limits
 
@@ -62,3 +67,5 @@ This is primary evidence from the bundled DeepSeek-V2 technical report and its i
 [^kimi-linear-2025]: Kimi Team, “Kimi Linear: An Expressive, Efficient Attention Architecture,” arXiv:2510.26692v2, [source](../raw/arXiv-2510.26692v2/main.tex), Sections 2–3.
 
 [^kimi-k3-2026]: Kimi Team, “Kimi K3: Open Frontier Intelligence,” arXiv:2607.24653v1, [source](../raw/arXiv-2607.24653v1/main.tex), Sections 2–3.
+
+[^deepseek-v3-2-2025]: DeepSeek-AI, “DeepSeek-V3.2: Pushing the Frontier of Open Large Language Models,” arXiv:2512.02556v1, [source](../raw/arXiv-2512.02556v1/main.tex), Section 2.1.

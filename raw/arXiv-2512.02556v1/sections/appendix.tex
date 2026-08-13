@@ -1,0 +1,441 @@
+\section*{Appendices}
+
+\section{MHA and MQA Modes of MLA}
+\label{appendix:mqa_mha}
+
+\begin{figure}[h]
+    \centering
+    \subfigure[MHA mode of MLA.]{
+        \includegraphics[width=0.475\textwidth]{figures/MLA-MHA.pdf}
+    }
+    \hspace{0.01cm}
+    \subfigure[MQA mode of MLA.]{
+        \includegraphics[width=0.475\textwidth]{figures/MLA-MQA.pdf}
+    }
+    \caption{
+    Illustration of the MHA and MQA modes of MLA.
+    For \oldmodel{}, the MHA mode is used for training and prefilling, while the MQA mode is used for decoding. 
+    }
+    \label{fig:mha_mqa_mode}
+\end{figure}
+
+
+Figure~\ref{fig:mha_mqa_mode} illustrates two aspects of MLA -- the MHA and MQA modes -- as well as the transformation between them.
+
+% \section{Parity Evaluation of the Base Model}
+
+% \begin{figure}[h]
+%     \centering
+%     \includegraphics[width=0.8\textwidth]{figures/arena.png}
+%     \caption{Chatbot Arena Elo scores as of November 10, 2025, demonstrating that DeepSeek V3.2 Exp exhibits no regression in human preference benchmarks.}
+% \end{figure}
+
+
+
+
+
+%\newpage
+\section{Cold Start Template}
+
+\begin{table}[htbp]
+\centering
+\small
+\begin{minipage}{\textwidth}
+\centering    \caption{An example of the reasoning data system prompt. The system prompt requires the model to output the reasoning process in the tag <think></think>.}
+    \label{tab:think_template}
+ \begin{tabular}{p{0.1\textwidth}|p{0.77\textwidth}}
+    \toprule
+
+    Reasoning System Prompt & You are an expert Python programmer. You will be given a question (problem specification) and will generate a correct Python program that matches the specification and passes all tests. Please first reason before giving the final answer. 
+    The reasoning process enclosed within <think> </think>. The final answer is output after the </think> tag.   \\ \hline
+    Prompt &  Given a linked list, swap every two adjacent nodes and return its head ... \\ \hline
+    Reasoning Response & <think>
+
+    ...
+
+    </think>
+
+    [FINAL ANSWER]
+    
+    \\ 
+     \bottomrule
+    \end{tabular}
+
+    
+\end{minipage}
+\hfill
+\begin{minipage}{\textwidth}
+\centering
+   \small
+        \caption{ \{TOOL-DESCRIPTIONS\} and \{TOOLCALL-FORMAT\} will be replaced with the specific tools and our designed toolcall format.}
+    \label{tab:agent_template}
+    
+    \begin{tabular}{p{0.1\textwidth}|p{0.77\textwidth}}
+    \toprule
+
+    Agent System Prompt &  Use Python interpreter tool to execute Python code. The code will not be shown to the user. This tool should be used for internal reasoning, but not for code that is intended to be visible to the user (e.g. when creating plots, tables, or files). When you send a message containing Python code to python, it will be executed in a stateful Jupyter notebook environment. python will respond with the output of the execution or time out after 120.0 seconds.
+
+    
+    \#\# Tools
+    
+You have access to the following tools:
+
+\{TOOL-DESCRIPTIONS\}
+
+  Important: ALWAYS adhere to this exact format for tool use:
+
+\{TOOLCALL-FORMAT\}
+
+    \\ \hline
+    Prompt &Given a linked list, swap every two adjacent nodes and return its head ... \\ \hline
+    Agent Response & [MULTI-TURN TOOLCALL]
+    
+    [FINAL ANSWER] \\ 
+     \bottomrule
+    \end{tabular}
+
+\end{minipage}
+
+\begin{minipage}{\textwidth}
+ \centering
+    \small
+        \caption{  The model executes tool calls in thinking process.}
+   \label{tab:agentthink_template}
+       \begin{tabular}{p{0.1\textwidth}|p{0.77\textwidth}}
+    \toprule
+
+    Reasoning Required Agent System Prompt & You are a helpful assistant with access to a Python interpreter.
+    
+- You may use the Python tool **multiple times** during your reasoning, a.k.a in <think></think>, with a maximum of 20 code executions.
+
+- Call the Python tool early in your reasoning to aid in solving the task. Continue reasoning and invoking tools as needed until you reach the final answer. Once you have the answer, stop reasoning and present your solution using Markdown and LaTeX.
+
+- Do NOT invoke any tools in your presented final solution steps.
+
+- To improve efficiency and accuracy, you should prefer code execution over language-based reasoning whenever possible. Keep your reasoning succinct; let the code do the heavy lifting.
+
+
+    \#\# Tools
+    
+You have access to the following tools:
+
+\{TOOL-DESCRIPTIONS\}
+
+  Important: ALWAYS adhere to this exact format for tool use:
+
+\{TOOLCALL-FORMAT\}
+
+\\ \hline
+    Prompt & Given a linked list, swap every two adjacent nodes and return its head ... \\ \hline
+    Agent Response with Thinking &
+    <think> 
+    
+    [MULTI-TURN Thinking-Then-TOOLCALL]
+
+</think>
+    
+    [FINAL ANSWER]  \\ 
+     \bottomrule
+    \end{tabular}
+
+    \end{minipage}
+
+\end{table}
+\newpage
+\section{Non-thinking \newmodel~ Agentic Evaluation }
+\input{tables/nonthink}
+The performance of non-thinking mode is slightly worse than the thinking mode, but still competitive. 
+
+\section{Evaluation Method of IOI, ICPC World Final, IMO, and CMO}
+\label{appendix:ioi_eval}
+For all competitions, the model's maximum generation length is set to 128k. No tools or internet access are used, and testing strictly adheres to the contest's time and attempt limits.
+
+For the IOI evaluation, we designed our submission strategy in accordance with the official competition rules, which permit up to 50 submissions per problem and score each submission based on the maximum points achieved across all subtasks. Specifically, we first sampled 500 candidate solutions for each problem, then applied a multi-stage filtering pipeline. In the initial stage, we eliminated invalid submissions that failed to pass the provided sample test cases or exceeded the length constraints. Subsequently, we employed the DeepSeek-V32-Exp model to identify and remove samples in which the model explicitly indicated an inability or refusal to solve the problem. From the remaining valid candidates, we selected the 50 samples with the longest thinking traces for final submission.
+
+For the ICPC evaluation, we adapted the same filtering methodology but with a smaller initial sample size. We generated 32 candidate solutions per problem and applied the identical filtering criteria to select submissions.
+
+
+In the IMO and CMO tasks, we employ a generate-verify-refine loop. The model iteratively improves its solution until it achieves a perfect self-evaluation or hits the maximum revision cap, identical to the process in \citet{deepseek-math-v2}.
+
+
+
+
+\newpage
+\section{Author List}
+\noindent
+\textbf{Research \& Engineering}: 
+Aixin Liu,
+Aoxue Mei,
+Bangcai Lin,
+Bing Xue,
+Bingxuan Wang,
+Bingzheng Xu,
+Bochao Wu,
+Bowei Zhang,
+Chaofan Lin,
+Chen Dong,
+Chengda Lu,
+Chenggang Zhao,
+Chengqi Deng,
+Chenhao Xu,
+Chong Ruan*,
+Damai Dai,
+Daya Guo,
+Dejian Yang,
+Deli Chen,
+Erhang Li,
+Fangqi Zhou*,
+Fangyun Lin,
+Fucong Dai,
+Guangbo Hao,
+Guanting Chen,
+Guowei Li,
+H. Zhang,
+Hanwei Xu,
+Hao Li,
+Haofen Liang,
+Haoran Wei,
+Haowei Zhang,
+Haowen Luo,
+Haozhe Ji,
+Honghui Ding,
+Hongxuan Tang,
+Huanqi Cao,
+Huazuo Gao,
+Hui Qu,
+Hui Zeng,
+Jialiang Huang,
+Jiashi Li,
+Jiaxin Xu,
+Jiewen Hu,
+Jingchang Chen,
+Jingting Xiang,
+Jingyang Yuan,
+Jingyuan Cheng,
+Jinhua Zhu,
+Jun Ran*,
+Junguang Jiang,
+Junjie Qiu,
+Junlong Li*,
+Junxiao Song,
+Kai Dong,
+Kaige Gao,
+Kang Guan,
+Kexin Huang*,
+Kexing Zhou,
+Kezhao Huang,
+Kuai Yu,
+Lean Wang,
+Lecong Zhang,
+Lei Wang,
+Liang Zhao,
+Liangsheng Yin*,
+Lihua Guo,
+Lingxiao Luo,
+Linwang Ma,
+Litong Wang,
+Liyue Zhang,
+M.S. Di,
+M.Y Xu,
+Mingchuan Zhang,
+Minghua Zhang,
+Minghui Tang,
+Mingxu Zhou,
+Panpan Huang,
+Peixin Cong,
+Peiyi Wang,
+Qiancheng Wang,
+Qihao Zhu,
+Qingyang Li,
+Qinyu Chen,
+Qiushi Du,
+Ruiling Xu,
+Ruiqi Ge,
+Ruisong Zhang,
+Ruizhe Pan,
+Runji Wang,
+Runqiu Yin,
+Runxin Xu,
+Ruomeng Shen,
+Ruoyu Zhang,
+S.H. Liu,
+Shanghao Lu,
+Shangyan Zhou,
+Shanhuang Chen,
+Shaofei Cai,
+Shaoyuan Chen,
+Shengding Hu,
+Shengyu Liu,
+Shiqiang Hu,
+Shirong Ma,
+Shiyu Wang,
+Shuiping Yu,
+Shunfeng Zhou,
+Shuting Pan,
+Songyang Zhou,
+Tao Ni,
+Tao Yun,
+Tian Pei,
+Tian Ye,
+Tianyuan Yue,
+Wangding Zeng,
+Wen Liu,
+Wenfeng Liang,
+Wenjie Pang,
+Wenjing Luo,
+Wenjun Gao,
+Wentao Zhang,
+Xi Gao,
+Xiangwen Wang,
+Xiao Bi,
+Xiaodong Liu,
+Xiaohan Wang,
+Xiaokang Chen,
+Xiaokang Zhang,
+Xiaotao Nie,
+Xin Cheng,
+Xin Liu,
+Xin Xie,
+Xingchao Liu,
+Xingkai Yu,
+Xingyou Li,
+Xinyu Yang,
+Xinyuan Li*,
+Xu Chen,
+Xuecheng Su,
+Xuehai Pan,
+Xuheng Lin,
+Xuwei Fu,
+Y.Q. Wang,
+Yang Zhang,
+Yanhong Xu,
+Yanru Ma,
+Yao Li,
+Yao Li,
+Yao Zhao,
+Yaofeng Sun,
+Yaohui Wang,
+Yi Qian,
+Yi Yu,
+Yichao Zhang,
+Yifan Ding,
+Yifan Shi,
+Yiliang Xiong,
+Ying He,
+Ying Zhou,
+Yinmin Zhong,
+Yishi Piao,
+Yisong Wang,
+Yixiao Chen,
+Yixuan Tan,
+Yixuan Wei,
+Yiyang Ma,
+Yiyuan Liu,
+Yonglun Yang,
+Yongqiang Guo,
+Yongtong Wu,
+Yu Wu,
+Yuan Cheng,
+Yuan Ou,
+Yuanfan Xu,
+Yuduan Wang,
+Yue Gong*,
+Yuhan Wu,
+Yuheng Zou,
+Yukun Li,
+Yunfan Xiong,
+Yuxiang Luo,
+Yuxiang You,
+Yuxuan Liu,
+Yuyang Zhou,
+Z.F. Wu,
+Z.Z. Ren,
+Zehua Zhao,
+Zehui Ren,
+Zhangli Sha,
+Zhe Fu,
+Zhean Xu,
+Zhenda Xie,
+Zhengyan Zhang,
+Zhewen Hao,
+Zhibin Gou,
+Zhicheng Ma,
+Zhigang Yan,
+Zhihong Shao,
+Zhixian Huang,
+Zhiyu Wu,
+Zhuoshu Li,
+Zhuping Zhang,
+Zian Xu,
+Zihao Wang,
+Zihui Gu,
+Zijia Zhu,
+Zilin Li,
+Zipeng Zhang,
+Ziwei Xie,
+Ziyi Gao,
+Zizheng Pan,
+Zongqing Yao
+
+
+\noindent
+\textbf{Data Annotation:}
+Bei Feng,
+Hui Li,
+J.L. Cai,
+Jiaqi Ni,
+Lei Xu,
+Meng Li,
+Ning Tian,
+R.J. Chen,
+R.L. Jin,
+S.S. Li,
+Shuang Zhou,
+Tianyu Sun,
+X.Q. Li,
+Xiangyue Jin,
+Xiaojin Shen,
+Xiaosha Chen,
+Xinnan Song,
+Xinyi Zhou,
+Y.X. Zhu,
+Yanping Huang,
+Yaohui Li,
+Yi Zheng,
+Yuchen Zhu,
+Yunxian Ma,
+Zhen Huang,
+Zhipeng Xu,
+Zhongyu Zhang
+
+
+\noindent
+\textbf{Business \& Compliance:}
+Dongjie Ji,
+Jian Liang,
+Jianzhong Guo,
+Jin Chen,
+Leyi Xia,
+Miaojun Wang,
+Mingming Li,
+Peng Zhang,
+Ruyi Chen,
+Shangmian Sun,
+Shaoqing Wu,
+Shengfeng Ye,
+T.Wang,
+W.L. Xiao,
+Wei An,
+Xianzu Wang,
+Xiaowen Sun,
+Xiaoxiang Wang,
+Ying Tang,
+Yukun Zha,
+Zekai Zhang,
+Zhe Ju,
+Zhen Zhang,
+Zihua Qu
+
+
+Authors are listed alphabetically by their first name. 
+Names marked with * denote individuals who have departed from our team. 
