@@ -5,7 +5,7 @@ description: MQA shares one key/value head across many query heads to reduce aut
 tags: [attention, multi-query-attention, grouped-query-attention, kv-cache, decoding, inference]
 status: draft
 created: 2026-07-31
-generated: { by: llm-wiki-agent/1, at: 2026-08-01T02:08:42Z }
+generated: { by: llm-wiki-agent/1, at: 2026-08-13T23:18:20+07:00 }
 sources:
   - id: mqa-summary
     resource: ../raw/MQA.md
@@ -16,6 +16,9 @@ sources:
   - id: deepseek-v2-2024
     resource: ../raw/arXiv-2405.04434v5/main.tex
     title: "DeepSeek-V2: A Strong, Economical, and Efficient Mixture-of-Experts Language Model"
+  - id: flashattention-2-2023
+    resource: ../raw/arXiv-2307.08691v1/flash2.tex
+    title: "FlashAttention-2: Faster Attention with Better Parallelism and Work Partitioning"
 ---
 
 # Multi-query and grouped-query attention
@@ -33,6 +36,8 @@ $$
 Each query head retains its own query projection, so heads can produce different attention distributions over the shared keys. But they retrieve from the same value vectors and compare against the same key representation, reducing the independent key/value subspaces available under MHA.[^mqa-summary]
 
 GQA chooses $1 < H_{KV} < H_Q$ and assigns groups of query heads to shared KV heads. If $R=H_Q/H_{KV}$, query head $i$ uses KV head $\lfloor i/R\rfloor$; its query projection and attention distribution remain distinct from the other query heads in that group. Thus MHA and MQA are the endpoints of the same head-count choice: $H_{KV}=H_Q$ for MHA and $H_{KV}=1$ for MQA.[^gqa-summary]
+
+An exact-attention implementation need not physically duplicate shared K/V heads: FlashAttention-2 represents MQA/GQA sharing by manipulating head indices, and sums the K/V gradients across query heads that share them during backward computation.[^flashattention-2-2023]
 
 ## Decode memory and performance boundary
 
@@ -71,3 +76,5 @@ In the DeepSeek-V2 authors’ matched 7B dense ablation, MHA led GQA with eight 
 [^gqa-summary]: “GQA overview” (Vietnamese summary), [raw source](../raw/GQA.md), Sections 3–18. This is secondary-source evidence summarizing Ainslie et al., “GQA: Training Generalized Multi-Query Transformer Models from Multi-Head Checkpoints” (2023); the primary paper has not been independently ingested here.
 
 [^deepseek-v2-2024]: DeepSeek-AI, “DeepSeek-V2: A Strong, Economical, and Efficient Mixture-of-Experts Language Model,” arXiv:2405.04434v5, [source](../raw/arXiv-2405.04434v5/main.tex), Section 2.1 and Appendix C.
+
+[^flashattention-2-2023]: Tri Dao, “FlashAttention-2: Faster Attention with Better Parallelism and Work Partitioning,” arXiv:2307.08691v1, [bundled LaTeX source](../raw/arXiv-2307.08691v1/flash2.tex), Section 3.

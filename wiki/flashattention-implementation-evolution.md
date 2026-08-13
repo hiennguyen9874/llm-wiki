@@ -5,7 +5,7 @@ description: FlashAttention-2 and -3 retain tiled exact attention while improvin
 tags: [flashattention, gpu-kernels, prefill, decoding, kv-cache, hopper]
 status: draft
 created: 2026-07-31
-generated: { by: llm-wiki-agent/1, at: 2026-08-13T16:13:58Z }
+generated: { by: llm-wiki-agent/1, at: 2026-08-13T23:18:20+07:00 }
 sources:
   - id: flashattention-2022
     resource: ../raw/arXiv-2205.14135v2/streaming_attention_neurips_2022.tex
@@ -16,6 +16,9 @@ sources:
   - id: flashattention-2-summary
     resource: ../raw/FlashAttention-2.md
     title: "FlashAttention-2 overview (Vietnamese summary)"
+  - id: flashattention-2-2023
+    resource: ../raw/arXiv-2307.08691v1/flash2.tex
+    title: "FlashAttention-2: Faster Attention with Better Parallelism and Work Partitioning"
 ---
 
 # FlashAttention implementation evolution
@@ -26,13 +29,13 @@ FlashAttention-2 and FlashAttention-3 retain tiled, exact softmax attention whil
 
 The original FlashAttention fuses score computation, scaling, masking, softmax, dropout, and value aggregation so intermediate tensors mostly remain in registers or shared memory rather than making separate HBM round trips; its tiled recomputation supplies the shared exact-attention foundation for the later kernels.[^flashattention-2022]
 
-FlashAttention-2 shifts more of the main loop toward Tensor-Core matrix multiplies by maintaining an unnormalized output accumulator and deferring division by the softmax normalizer until all key/value tiles have been processed. It also skips causal tiles wholly outside the allowed triangle, reducing masked work.[^flashattention-2-summary]
+FlashAttention-2 maintains an unnormalized output accumulator and applies the final softmax-normalizer division only after all key/value tiles have been processed; it stores row-wise logsumexp rather than separate maximum and exponential-sum statistics for backward recomputation. These exact-algorithm changes reduce non-matrix-multiply work, while entirely disallowed causal tiles are skipped.[^flashattention-2-2023]
 
-Rather than making concurrency depend mainly on batch and head count, FlashAttention-2 assigns separate query-row tiles within each head to thread blocks. For a query length $N$ and query-tile height $B_r$, this creates roughly $B\,H\,\lceil N/B_r\rceil$ blocks, which can improve occupancy for long sequences with small batches.[^flashattention-2-summary]
+Rather than making concurrency depend mainly on batch and head count, FlashAttention-2 assigns separate query-row tiles within each head to thread blocks. For batch $B$, heads $H$, query length $N$, and query-tile height $B_r$, this creates roughly $B\,H\,\lceil N/B_r\rceil$ blocks and can improve occupancy when long sequences make batch or head counts small. Its backward pass parallelizes column blocks and uses atomic additions for their shared query-gradient updates.[^flashattention-2-2023]
 
-Within a thread block, its split-Q partition gives each warp independent query rows while sharing the key/value tile. This avoids the inter-warp reduction, shared-memory traffic, and synchronization associated with a split-K arrangement in which warps produce partial results for the same query rows.[^flashattention-2-summary]
+Within a thread block, its split-Q partition gives each warp independent query rows while sharing the key/value tile. This avoids the inter-warp reduction, shared-memory traffic, and synchronization associated with a split-K arrangement in which warps produce partial results for the same query rows.[^flashattention-2-2023]
 
-The source reports approximately $2\times$ kernel speedup over the first version in tested configurations, 50–73% of theoretical A100 peak FLOPs/s, and up to 225 TFLOPs/s per A100 in a reported end-to-end GPT-style training configuration. These are configuration-specific benchmark results, not device-independent guarantees.[^flashattention-2-summary]
+On the authors’ A100 80GB SXM4 attention benchmarks—sequence lengths 512 to 16K, total batch tokens fixed at 16K, head dimensions 64 or 128, causal and non-causal cases—FlashAttention-2 was reported as 1.7–3.0× faster than FlashAttention, 1.3–2.5× faster than its Triton implementation, and 3–10× faster than PyTorch attention, reaching up to 230 TFLOPs/s (73% of theoretical peak). Their 8×A100 GPT-style 1.3B/2.7B training tests reported up to 1.3× over FlashAttention and 2.8× over the non-FlashAttention baseline, reaching 225 TFLOPs/s/GPU (72% model-FLOPs utilization). These are author-reported, configuration-specific results, not device-independent guarantees.[^flashattention-2-2023]
 
 FlashAttention-3 is described as a Hopper-oriented redesign using warp specialization, asynchronous transfer/compute pipelining, interleaving GEMM with softmax work, and FP8 support with block quantization and error-reduction techniques. The source reports roughly $1.5$–$2\times$ speedup over FlashAttention-2 on tested H100 configurations; this is a benchmark result, not a device-independent guarantee.[^flashattention-summary]
 
@@ -55,6 +58,6 @@ FlashAttention makes full attention more efficient but does not remove its $O(N^
 
 [^flashattention-2022]: Tri Dao et al., “FlashAttention: Fast and Memory-Efficient Exact Attention with IO-Awareness,” NeurIPS 2022, bundled [LaTeX source](../raw/arXiv-2205.14135v2/streaming_attention_neurips_2022.tex), Sections 1–4 and Appendix A.
 
-[^flashattention-2-summary]: “FlashAttention-2 overview” (Vietnamese summary), [raw source](../raw/FlashAttention-2.md), Sections 3–11. This secondary source cites Dao, “FlashAttention-2: Faster Attention with Better Parallelism and Work Partitioning” (2023/ICLR 2024); the primary paper has not been independently ingested here.
+[^flashattention-2-2023]: Tri Dao, “FlashAttention-2: Faster Attention with Better Parallelism and Work Partitioning,” arXiv:2307.08691v1, [bundled LaTeX source](../raw/arXiv-2307.08691v1/flash2.tex), abstract and Sections 2–5. The source package’s reported A100 and H100 benchmark plots were reviewed as corroborating attachments; this synthesis uses the paper’s stated aggregate results rather than extracting every plotted value.
 
 [^mqa-summary]: “MQA overview” (Vietnamese summary), [raw source](../raw/MQA.md), Sections 3–7 and 13. This is secondary-source evidence; its cited primary MQA and GQA papers have not been independently ingested here.
