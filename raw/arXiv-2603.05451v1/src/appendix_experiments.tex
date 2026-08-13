@@ -1,0 +1,44 @@
+\newpage
+
+\section{Additional Details on Experiments and Benchmarking}
+
+\subsection{System and libraries}
+\label{sec:system}
+
+We benchmark the speed on a B100 180GB SXM6 (1000W).
+We warmup with 5 runs, then repeat the benchmarks 10 times, and take the average timing.
+
+We generally used the latest versions of the libraries at the time of writing
+(March 2025).
+Specifically, we use:
+\begin{itemize}
+\item CUDA 13.1
+\item \fa 2.8.3
+\item Triton 3.6
+\item PyTorch 2.10.0
+\item CuTe-DSL 4.4.1 
+\end{itemize}
+For cuDNN, in the main paper, we compare to cuDNN 9.13 and the latest version cuDNN 9.19.1.2. Starting from version 9.13 and 9.14~\citep{cudnn913releasenotes}, we have worked with the cuDNN team to incorporate some techniques from \faf into cuDNN so that our work can benefit as many practitioners as possible.
+
+
+
+\subsection{Backward Deterministic non-causal}
+
+For completeness, we also include performance numbers for the deterministic backward kernel without causal masking in \cref{fig:bwd-det-ablation-non-causal}, side by side with causal masking.
+
+\begin{figure*}[t]
+\centering
+ \begin{minipage}{0.48\textwidth}
+    \centering
+    \includegraphics[width=\textwidth]{../Figures/non-causal_bwd_det_FA4.png}
+  \end{minipage}
+  \hfill
+  \begin{minipage}{0.48\textwidth}
+    \centering
+    \includegraphics[width=\textwidth]{../Figures/causal_bwd_det_FA4.png}
+  \end{minipage}
+  \caption{Ablations for Deterministic Backward pass on B200 with head dimension 128. Non-causal attention with batch/head swizzle versus naive. Right: causal attention -- SPT, LPT with reverse mblock order, LPT, and naive with no batch/head swizzle.}
+  \label{fig:bwd-det-ablation-non-causal}
+\end{figure*}
+
+

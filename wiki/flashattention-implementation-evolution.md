@@ -1,11 +1,11 @@
 ---
 type: Concept
 title: FlashAttention implementation evolution
-description: FlashAttention-2 and -3 retain tiled exact attention while improving GPU work partitioning and, on Hopper, asynchronous low-precision execution; benefits are greatest for long-prompt prefill rather than one-token decode.
-tags: [flashattention, gpu-kernels, prefill, decoding, kv-cache, hopper]
+description: FlashAttention-2 through -4 retain tiled exact attention while progressively adapting work partitioning, asynchrony, and numerical or memory bottlenecks to GPU generations; benefits are greatest for long-prompt prefill rather than one-token decode.
+tags: [flashattention, gpu-kernels, prefill, decoding, kv-cache, hopper, blackwell]
 status: stable
 created: 2026-07-31
-generated: { by: llm-wiki-agent/1, at: 2026-08-13T23:21:30+07:00 }
+generated: { by: llm-wiki-agent/1, at: 2026-08-13T00:00:00Z }
 sources:
   - id: flashattention-2022
     resource: ../raw/arXiv-2205.14135v2/streaming_attention_neurips_2022.tex
@@ -25,11 +25,14 @@ sources:
   - id: flashinfer-2025
     resource: ../raw/arXiv-2501.01005v2/main.tex
     title: "FlashInfer: Efficient and Customizable Attention Engine for LLM Inference Serving"
+  - id: flashattention-4-2026
+    resource: ../raw/arXiv-2603.05451v1/arxiv_main.tex
+    title: "FlashAttention-4: Algorithm and Kernel Pipelining Co-Design for Asymmetric Hardware Scaling"
 ---
 
 # FlashAttention implementation evolution
 
-FlashAttention-2 and FlashAttention-3 retain tiled, exact softmax attention while targeting progressively better hardware utilization: FlashAttention-2 changes work partitioning and sequence parallelism, and FlashAttention-3 targets NVIDIA Hopper with asynchronous, warp-specialized execution and low-precision support.[^flashattention-2-2023][^flashattention-3-2024] These kernels most directly benefit long-sequence training and prompt prefill; one-token autoregressive decode is often constrained instead by KV-cache reads.[^flashattention-summary]
+FlashAttention-2 through -4 retain tiled, exact softmax attention while targeting the bottlenecks of successive GPU generations: FlashAttention-2 changes work partitioning and sequence parallelism; FlashAttention-3 targets NVIDIA Hopper with asynchronous, warp-specialized execution and low-precision support; and FlashAttention-4 targets Blackwell’s comparatively scarcer shared-memory and exponential resources with larger asynchronous MMA tiles, softmax changes, and paired CTAs.[^flashattention-2-2023][^flashattention-3-2024][^flashattention-4-2026] These kernels most directly benefit long-sequence training and prompt prefill; one-token autoregressive decode is often constrained instead by KV-cache reads.[^flashattention-summary]
 
 ## Kernel evolution
 
@@ -53,6 +56,22 @@ On the authors' H100 80 GB SXM5 measurements (fixed 1830 MHz; CUDA 12.3, cuDNN 9
 
 The source's synthetic-outlier numerical test reports FP16 RMSE of $1.9\times10^{-4}$ for both FlashAttention-2 and -3 versus $3.2\times10^{-4}$ for its standard baseline; its FP8 FlashAttention-3 variant reported $9.1\times10^{-3}$ versus $2.4\times10^{-2}$ for per-tensor-scaled baseline attention. These are not end-to-end model-quality results. The paper also reports that its FP8 kernel lacked the FP16 persistent-kernel/load-balancing design, which partly explains weaker small-sequence and causal results relative to FP8 cuDNN.[^flashattention-3-2024]
 
+## Blackwell co-design in FlashAttention-4
+
+The FA4 source frames Blackwell as an asymmetric scaling regime: its stated BF16 tensor-core throughput doubles from Hopper while shared-memory bandwidth and MUFU exponential throughput do not scale comparably. It therefore attributes the forward bottleneck to MMA plus exponentiation, and the backward bottleneck principally to shared-memory traffic, under its simplified roofline model.[^flashattention-4-2026]
+
+For forward attention, FA4 uses Blackwell’s fully asynchronous UMMA operations, tensor memory (TMEM), 128-token query tiles, and paired high/low query tiles so tensor-core work can overlap with softmax. A separate correction warpgroup rescales accumulated outputs. To relieve MUFU pressure, it computes a tuned 10–25% subset of $2^x$ operations with a Cody–Waite range reduction and polynomial FMA approximation; the source reports degree-3 approximation error is largely hidden after BF16 rounding. Its conditional online-softmax rescaling delays an output rescale until the running maximum rises beyond a threshold (typically $\log_2 256$), while final normalization preserves the stated result.[^flashattention-4-2026]
+
+For backward attention, the source pipelines five MMAs using TMEM and uses Blackwell’s 2-CTA MMA mode. A CTA pair stages halves of operand B; for $dQ$, it exchanges half of $dS$ through distributed shared memory so each CTA has an $(M/2)\times2N$ reduction operand. The paper says this reduces shared-memory traffic and halves global $dQ$ atomic updates. Its deterministic mode serializes those reductions with semaphores; batch/head swizzling and causal tile ordering reduce lock stalls.[^flashattention-4-2026]
+
+FA4 also applies longest-processing-time-first ordering to causal and variable-length work. Its stated causal schedule preserves batch locality, groups heads within L2-fitting sections, and traverses query blocks in reverse order; for MQA/GQA it completes query heads sharing a KV head before moving blocks. Variable-length batches can instead be pre-sorted by estimated work, with cached index metadata.[^flashattention-4-2026]
+
+The source reports BF16 forward speedups up to 1.3× over cuDNN 9.13 and 2.7× over Triton, and up to 1,613 TFLOPs/s (71% of its stated B200 theoretical maximum); those are author-reported shape-, software-, and system-dependent results. It also reports CuTe-DSL compile times of 2.5 s forward and 1.4 s backward versus FA3’s 55 s and 45 s for one kernel, respectively. The reported figures note newer cuDNN versions incorporate techniques from the paper and yield similar FA4 performance.[^flashattention-4-2026]
+
+## Contradictions
+
+- The abstract, introduction, experiments, and figure captions identify the benchmark GPU as B200, whereas the appendix says the speed tests used a B100 180 GB SXM6. The source does not resolve this discrepancy, so the FA4 performance claims cannot be assigned a single verified GPU system here.[^flashattention-4-2026]
+
 ## FlashInfer serving specialization
 
 FlashInfer applies FlashAttention-2-style templates through Ada and FlashAttention-3-style templates on Hopper to serving workloads with non-contiguous caches and varying request lengths. It pairs sparse gathers with a block-sparse cache abstraction, JIT-inserted attention variants, and a runtime schedule that splits and reduces long-KV work while preserving fixed launch/workspace configuration for CUDA Graph replay.[^flashinfer-2025]
@@ -68,7 +87,7 @@ FlashAttention makes full attention more efficient but does not remove its $O(N^
 ## Relationships
 
 - **Contextualized by:** [KV caching](kv-caching.md), which explains why prefill is compute-heavy and one-token decode is bounded by KV-cache reads.[^flashattention-summary]
-- **Extends:** [FlashAttention IO-aware exact attention](flashattention-io-aware-exact-attention.md) with hardware-aware scheduling and data-movement refinements.[^flashattention-summary]
+- **Extends:** [FlashAttention IO-aware exact attention](flashattention-io-aware-exact-attention.md) with hardware-aware scheduling and data-movement refinements.[^flashattention-summary][^flashattention-4-2026]
 - **Specialized for serving by:** [FlashInfer attention engine](flashinfer-attention-engine.md), which adds block-sparse cache access, variant JIT, and variable-length scheduling.[^flashinfer-2025]
 - **Contrasts with:** [Linear attention as fixed-state memory](linear-attention-as-fixed-state-memory.md), which changes the retrieval formulation and state-growth behavior rather than optimizing exact full-attention kernels.[^flashattention-summary]
 - **Complemented by:** [Multi-query and grouped-query attention](multi-query-and-grouped-query-attention.md), which reduces KV-cache traffic in one-token decoding by sharing K/V heads rather than changing the exact-attention kernel.[^mqa-summary]
@@ -80,6 +99,8 @@ FlashAttention makes full attention more efficient but does not remove its $O(N^
 [^flashattention-2-2023]: Tri Dao, “FlashAttention-2: Faster Attention with Better Parallelism and Work Partitioning,” arXiv:2307.08691v1, [bundled LaTeX source](../raw/arXiv-2307.08691v1/flash2.tex), abstract and Sections 2–5. The source package’s reported A100 and H100 benchmark plots were reviewed as corroborating attachments; this synthesis uses the paper’s stated aggregate results rather than extracting every plotted value.
 
 [^flashattention-3-2024]: Jay Shah et al., “FlashAttention-3: Fast and Accurate Attention with Asynchrony and Low-precision,” arXiv:2407.08608v2, [bundled LaTeX source](../raw/arXiv-2407.08608v2/fa3_neurips2024.tex), abstract, Sections 1–5, and appendices. The bundled pipeline diagrams and 14 benchmark-plot PDFs were visually reviewed. Results are author-reported on an H100 SXM5 under the stated software, clock, shape, precision, and masking conditions.
+
+[^flashattention-4-2026]: Ted Zadouri et al., “FlashAttention-4: Algorithm and Kernel Pipelining Co-Design for Asymmetric Hardware Scaling,” arXiv:2603.05451v1, [bundled LaTeX source](../raw/arXiv-2603.05451v1/arxiv_main.tex), abstract, Sections 1–6, and appendix. The forward-pipeline and 2-CTA diagrams were visually reviewed; benchmark figures were inspected through their captions. The source internally conflicts on whether its benchmark system was B200 or B100, so its performance results are retained as unresolved, author-reported evidence.
 
 [^mqa-summary]: “MQA overview” (Vietnamese summary), [raw source](../raw/MQA.md), Sections 3–7 and 13. This is secondary-source evidence; its cited primary MQA and GQA papers have not been independently ingested here.
 

@@ -1,0 +1,62 @@
+\section{Background}
+\label{sec:background}
+
+\subsection{Multi-Head Attention}
+\label{subsec:multi_head_attn}
+
+Let $\vQ, \vK, \vV \in \mathbb{R}^{N \times d}$ be the query, key and value input sequences associated to a single head, where $N$ is the sequence length and $d$ is the head dimension. The attention output $\vO \in \mathbb{R}^{N \times d}$ is computed as:
+\begin{align*}
+  \vS &= \alpha \vQ \vK^\top \in \mathbb{R}^{N \times N}, \\
+  \vP &= \softmax(\vS) \in \mathbb{R}^{N \times N}, \\
+  \vO &= \vP\vV \in \mathbb{R}^{N \times d},
+\end{align*}
+where $\softmax$ is applied row-wise and $\alpha = 1/\sqrt{d}$ is the scaling factor. In practice, we subtract $\rowmax(\vS)$ from $\vS$ for numerical stability.
+For multi-head attention (MHA), each head has its own set of projections, and this computation parallelizes across multiple heads and batches.
+
+Given output grad $\vdO \in \mathbb{R}^{N \times d}$, the backward computes:
+\begin{align*}
+  \vdV &= \vP^\top \vdO, \quad \vdP = \vdO \vV^\top, \\
+  \vdS &= \dsoftmax (\vdP), \\
+  \vdQ &= \alpha \vdS \vK, \quad \vdK = \alpha \vdS^\top \vQ,
+\end{align*}
+where $\dsoftmax(\vdP)$ denotes row-wise softmax gradient $\mathbf{d}s = (\diag(p) - p p^\top)\mathbf{d}p$ for $p = \softmax(s)$.
+
+\subsection{GPU Hardware Characteristics and Execution Model}
+\label{subsec:hardware}
+
+We describe the aspects of the GPU's execution model relevant for \faf, with a focus on the NVIDIA Blackwell architecture (B200 \& GB200). We highlight key differences from the prior Hopper architecture that motivate the optimizations in \faf.
+
+\paragraph{Memory hierarchy:}
+The GPU's memories are organized as a hierarchy of data locales, with capacity inversely related to bandwidth.
+Global memory (GMEM), also known as HBM, is the off-chip DRAM that is accessible to all streaming multiprocessors (SMs).
+Data from GMEM are transparently cached in an on-chip L2 cache.
+Next, each SM contains a small, programmer-managed, highly banked cache called shared memory (SMEM) on the chip.
+Lastly, there is the register file within each SM.
+
+Blackwell introduces a new memory level called \emph{tensor memory} (TMEM), a 256 KB on-chip memory per SM specifically designed for storing intermediate results of tensor core operations. Unlike shared memory, TMEM is warp-synchronous and tightly coupled with the tensor cores, enabling the matrix multiply-accumulate (MMA) units to write outputs directly to TMEM without consuming registers. This alleviates the extreme register pressure that plagued Hopper kernels and enables larger tile sizes. TMEM is allocated in 32-column (16 KB) granules and requires explicit programmer management for allocation, deallocation, and data movement.
+
+\paragraph{Thread hierarchy:}
+The GPU's programming model is organized around logical groupings of execution units called threads.
+From the finest to the coarsest level, the thread hierarchy is comprised of threads, warps (32 threads), warpgroups (4 contiguous warps), threadblocks (i.e. cooperative thread arrays or CTAs), threadblock clusters, and grids.
+Threads in the same CTA are co-scheduled on the same SM, and CTAs in the same cluster are co-scheduled on the same GPC.
+SMEM is directly addressable by all threads within a CTA, whereas each thread has at most 256 registers (RMEM) private to itself.
+
+\paragraph{Tensor cores and increased asynchrony:}
+Blackwell features fifth-generation tensor cores that operate on tiles significantly larger than in previous architectures. Each MMA tensor core instruction processes $128 \times N$ tiles (typically $N =$ 128 or 256), compared to $64 \times N$ on Hopper. Crucially, Blackwell MMAs write their output directly to TMEM asynchronously, whereas Hopper MMAs write to registers. This full asynchrony enables better overlap between computation and other operations, as the MMA units no longer block on register writeback.
+
+Hardware support for asynchrony allows for warp-specialized kernels, where the warps of a CTA are divided into producer or consumer roles that only ever issue data movement or computation \citep{warp-specialization-2011}.
+
+
+\paragraph{2-CTA tensor core:}
+Blackwell supports a 2-CTA tensor core MMA mode in which a CTA pair within the same thread block cluster cooperatively executes a single MMA, allowing the operation to read and write tensor memory from both CTAs. One thread in the pair initiates the MMA, but the peer CTA must be launched and remain active while the operation is in flight. Compared to single CTA MMAs that limit the dimension M to 128, the paired mode supports M = 128 or 256 by partitioning the A tile and the accumulator across the pair in dimension M and partitioning the B tile across the two CTAs in dimension N so that each CTA stages only half of B in its own shared memory while the hardware consumes the combined B tile during the multiply. This reduces redundant shared memory capacity and bandwidth, but since these operations touch tensor memory across the CTA pair, kernels must launch CTAs in fixed pairs and use a consistent 2-CTA mode for tensor memory and tensor core operations throughout the kernel.
+
+\paragraph{Shifting bottlenecks:}
+A key trend reflected in Blackwell is that tensor core throughput scales faster than other functional units. Blackwell doubles the FP16/BF16 tensor core throughput compared to Hopper (2.25 PFLOPS~\citep{nvidia2024nvidia} vs 1 PFLOPS~\citep{nvidia2022nvidia} per GPU), but shared memory bandwidth and exponential unit throughput remain unchanged or scale more slowly. This imbalance shifts the performance bottleneck away from matrix multiplication toward shared memory traffic and non-matmul operations like softmax. As our roofline analysis in \cref{sec:fwd,sec:bwd} shows, this requires careful kernel design to maximize overlap between MMA operations and these bottleneck resources.
+
+The throughput of several hardware components on B200 (and GB200) is listed below.
+\begin{enumerate}[itemsep=0pt,topsep=0pt,leftmargin=*]
+  \item Tensor cores: The BF16 MMA has a throughput of 8192 ops / clock / SM, doubled from 4096 ops / clock / SM of Hopper. This can be derived from the theoretical maximum FLOPS: 2.25 PFLOPS / 1850 Mhz clock speed / 148 SMs = 8192 ops / clock / SM.
+  \item Exponential unit. The multifunction unit (MUFU) on B200 and GB200 can perform 16 ops / clock / SM, the same as Hopper~\citep{cuda}. We note that B300 and GB300 GPUs have doubled the exponential throughput to 32 ops / clock / SM, though these GPUs are not yet widely available at the time of writing.
+  \item SMEM: the read throughput is 128 bytes / clock / SM, the same as Hopper, as measured by microbenchmarking~\citep{luo2025dissecting}.
+\end{enumerate}
+We see that the MMA throughput on Blackwell has doubled compared to Hopper, but other hardware units do not necessarily get faster at the same rate. This reflects a broader trend in accelerator design: increasing the throughput of the most important components (typically matrix multiply units) to get higher performance under similar power / silicon area constraint.

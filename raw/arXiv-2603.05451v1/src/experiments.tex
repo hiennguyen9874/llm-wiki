@@ -1,0 +1,72 @@
+\section{Empirical Evaluation}
+\label{sec:experiments}
+
+We evaluate \faf efficiency compared to various open-source and closed-source baselines.
+
+\paragraph{Benchmarking attention.} We measure the runtime of \faf across different sequence lengths and head dimensions, comparing it to standard implementations in PyTorch, \faa\footnote{\fat does not run on B200}, Triton (which uses B200-specific instructions~\citep{tillet2019triton}), Gluon (a lower-level GPU programming language with finer control than Triton~\citep{gluon2024}), and cuDNN (a vendor's library optimized for B200 GPUs). We confirm that \faf is up to 1.3$\times$ faster than cuDNN 9.13 and up to 2.7$\times$ faster than Triton. \faf reaches up to 1613 TFLOPs/s, approximately 71\% of the theoretical maximum TFLOPs/s on B200 GPUs.
+
+\paragraph{Benchmark settings.} We measure runtime on a B200 GPU for different settings (with/without causal mask, head dimensions 64, 128, and (192, 128)) for BF16 inputs. We vary the sequence length as 1k, 2k, ..., 32k, and set batch size so that the total number of tokens is 32k. We set the hidden dimension to 2048, and head dimension to be either 64 or 128 (i.e., 32 heads or 16 heads). For the (192, 128) configuration used in DeepSeek V3~\citep{deepseekai2024deepseekv3technicalreport}, we use 16 heads with 192 query dimensions and 128 key/value dimensions. To calculate the FLOPs of the forward pass, we use $4 \cdot \text{seqlen}^2 \cdot \text{head dimension} \cdot \text{number of heads}$.
+With causal masking, we divide this number by 2 to account for the fact that approximately only half of the entries are calculated. To get the FLOPs of the backward pass, we multiply the forward pass FLOPs by 2.5 (since there are 2 matmuls in the forward pass and 5 matmuls in the backward pass, due to recomputation).
+
+\subsection{Forward pass}
+
+\begin{figure*}[t]
+  \centering
+  \begin{minipage}{0.48\textwidth}
+    \centering
+    \includegraphics[width=\textwidth]{../Figures/fa4_fwd_causalFalse_hdim128_updated.png}
+  \end{minipage}
+  \hfill
+  \begin{minipage}{0.48\textwidth}
+    \centering
+    \includegraphics[width=\textwidth]{../Figures/fa4_fwd_causalTrue_hdim128_updated.png}
+  \end{minipage}
+\caption{Forward pass TFLOPS on B200 (FP16/BF16) with head dimension 128. Left: non-causal attention. Right: causal attention. FA4 achieves 1.1-1.3$\times$ speedup over cuDNN 9.13.0 and 2.1-2.7$\times$ over Triton  across sequence lengths. Since the initial release of our implementation, newer versions of cuDNN have incorporated many of the techniques described in this paper, yielding similar performance to FA4.}
+  \label{fig:fwd}
+\end{figure*}
+
+
+We report forward pass results in~\cref{fig:fwd,fig:fwd_hdim192128}, showing that \faf is 1.1-1.3$\times$ faster than cuDNN 9.13 and 2.1-2.7$\times$ faster than Triton. For medium and long sequences (4k and above), \faf consistently outperforms all baselines across different head dimensions and causal masking settings.
+The gains are larger for the causal case, which we attribute to the longest-processing-time first (LPT) scheduler.
+
+
+\begin{figure}[h]
+  \centering
+  \includegraphics[width=0.65\columnwidth]{../Figures/fa4_fwd_causalTrue_hdim192128_updated.png}
+  \caption{Forward pass TFLOPS comparison between cuDNN and FA4 on B200 (FP16/BF16) with head dimension (192, 128) for causal attention (typically used in DeepSeek V3 architecture)}
+  \label{fig:fwd_hdim192128}
+\end{figure}
+
+\subsection{Backward pass}
+
+
+
+\begin{figure*}[t]
+  \centering
+  \begin{minipage}{0.48\textwidth}
+    \centering
+    \includegraphics[width=\textwidth]{../Figures/fa4_bwd_causalFalse_hdim128_updated.png}
+  \end{minipage}
+  \hfill
+  \begin{minipage}{0.48\textwidth}
+    \centering
+    \includegraphics[width=\textwidth]{../Figures/fa4_bwd_causalTrue_hdim128_updated.png}
+  \end{minipage}
+  \caption{Backward pass TFLOPS on B200 (FP16/BF16) with head dimension 128. Left: non-causal attention. Right: causal attention.}
+  \label{fig:bwd}
+\end{figure*}
+
+
+We report backward pass results in~\cref{fig:bwd}. \faf achieves consistent speedups across long sequence lengths and causal masking, demonstrating the effectiveness of our 2-CTA backward pass. 
+
+We also show the performance of the deterministic backward pass in~\cref{fig:bwd-det-ablation}. Our careful swizzling and scheduling results in a much faster deterministic backward pass, getting up to 75\% the speed of the nondeterministic backward pass of the 1-CTA backward pass.
+
+\begin{figure}[h]
+  \centering
+  \includegraphics[width=0.95\columnwidth]{../Figures/causal_bwd_det_FA4.png}
+  \caption{Ablations for Deterministic Backward pass on B200 (FP16/BF16) with head dimension 128. Causal attention -- SPT, LPT with reverse mblock order, LPT, and naive with no batch/head swizzle.}
+  \label{fig:bwd-det-ablation}
+\end{figure}
+
+
+

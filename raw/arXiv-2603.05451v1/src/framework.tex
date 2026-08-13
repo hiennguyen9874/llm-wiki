@@ -1,0 +1,35 @@
+\section{Language and Framework}
+\label{sec:framework}
+
+We write \faf entirely in CuTe-DSL~\citep{cutedsl}, embedded in Python, without any component in CUDA C++.
+The CuTe-DSL compiler takes the source code in Python, lowers to PTX, then uses the PTX compiler (ptxas) to finally produce the assembly code (SASS). 
+
+
+\textbf{Full expressivity with clean abstractions.}
+The CuTe-DSL programming model is isomorphic to CUTLASS C++, ensuring that \faf retains the full expressivity of low-level GPU programming while benefiting from the productivity gains of meta-programming in Python instead of C++ and fast JIT compilation times. CuTe-DSL provides direct access to PTX as an escape hatch, allowing developers to implement any functionality they need without framework limitations. For example, we leverage custom PTX sequences for operations not yet fully exposed in CuTe-DSL APIs (though these will be integrated in future releases), demonstrating that our framework does not constrain developers to a limited subset of GPU capabilities.
+
+\textbf{Fast compilation through JIT.}
+Compile time has been a bottleneck in past FlashAttention implementations, due to complex C++ template metaprograms. By embedding CuTe-DSL in Python with just-in-time (JIT) compilation, \faf achieves faster build times compared to traditional C++ template-based approaches. As shown in~\cref{table:compile_time}, \faf reduces compile time by 20-30$\times$ compared to \fat. This rapid iteration cycle significantly improves developer productivity, enabling faster experimentation and debugging during kernel development.
+
+\begin{table}[h]
+  \centering
+  \begin{tabular}{lcc}
+    \toprule
+    Method & Forward pass & Backward pass \\
+    \midrule
+    \fat & 55s & 45s \\
+    \faf & 2.5s & 1.4s \\
+    \midrule
+    Speedup & 22$\times$ & 32$\times$ \\
+    \bottomrule
+  \end{tabular}
+  \caption{Compile time for a single kernel: FA3 (C++ templates) and FA4
+    (CuTe-DSL). Typically FA2 and FA3 require precompiling hundreds of kernels
+    for different attention variants.}
+  \label{table:compile_time}
+\end{table}
+
+\textbf{Flexibility and accessibility.}
+The Python based framework has already demonstrated its flexibility in practice: developers have successfully built FlexAttention and block-sparse attention variants on top of \faf without modifying the core framework. By lowering the barrier to entry, our approach enables researchers and engineers with just a few months of GPU programming experience to contribute meaningful extensions without requiring deep expertise in C++ template metaprogramming. This accessibility accelerates innovation and allows the attention mechanism research community to more rapidly explore new algorithmic variants.
+
+Our vision is to provide a comprehensive framework for building all kinds of attention variants with best-in-class performance. Rather than implementing each attention variant from scratch, \faf factors common functionality into independent, composable primitives. Operations such as block-sparse patterns, masking strategies, variable sequence length handling, and work scheduling are all exposed as orthogonal primitives that can be freely combined. This modular design ensures that optimizations and new features benefit all attention implementations built on the framework while still achieving the highest performance by compiling down to efficient GPU kernels.
