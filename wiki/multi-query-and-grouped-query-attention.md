@@ -19,6 +19,9 @@ sources:
   - id: flashattention-2-2023
     resource: ../raw/arXiv-2307.08691v1/flash2.tex
     title: "FlashAttention-2: Faster Attention with Better Parallelism and Work Partitioning"
+  - id: flashinfer-2025
+    resource: ../raw/arXiv-2501.01005v2/main.tex
+    title: "FlashInfer: Efficient and Customizable Attention Engine for LLM Inference Serving"
 ---
 
 # Multi-query and grouped-query attention
@@ -38,6 +41,8 @@ Each query head retains its own query projection, so heads can produce different
 GQA chooses $1 < H_{KV} < H_Q$ and assigns groups of query heads to shared KV heads. If $R=H_Q/H_{KV}$, query head $i$ uses KV head $\lfloor i/R\rfloor$; its query projection and attention distribution remain distinct from the other query heads in that group. Thus MHA and MQA are the endpoints of the same head-count choice: $H_{KV}=H_Q$ for MHA and $H_{KV}=1$ for MQA.[^gqa-summary]
 
 An exact-attention implementation need not physically duplicate shared K/V heads: FlashAttention-2 represents MQA/GQA sharing by manipulating head indices, and sums the K/V gradients across query heads that share them during backward computation.[^flashattention-2-2023]
+
+For short-query GQA serving, FlashInfer instead fuses the query-head group with the query-length dimension when mapping work to a thread block. One shared-memory K/V load can then serve every query head in the group; the paper says this becomes less important when a longer query dimension already supplies enough work. This is a kernel mapping optimization, not a change to GQA’s K/V-sharing semantics.[^flashinfer-2025]
 
 ## Decode memory and performance boundary
 
@@ -70,6 +75,7 @@ In the DeepSeek-V2 authors’ matched 7B dense ablation, MHA led GQA with eight 
 - **Modifies:** [Scaled dot-product and multi-head attention](scaled-dot-product-and-multi-head-attention.md) by sharing K/V projections across query heads rather than giving each head separate projections.[^mqa-summary]
 - **Addresses:** the KV-cache-read bottleneck described in [FlashAttention implementation evolution](flashattention-implementation-evolution.md) for one-token decoding; it is an architectural cache-layout trade-off rather than an exact-attention kernel optimization.[^mqa-summary]
 - **Adapted by:** [GQA checkpoint conversion and uptraining](gqa-checkpoint-conversion-and-uptraining.md), which averages MHA K/V projections within each target group and continues pretraining.[^gqa-summary]
+- **Optimized by:** [FlashInfer attention engine](flashinfer-attention-engine.md), which uses head-group fusion to increase shared-KV reuse for short-query GQA kernels.[^flashinfer-2025]
 
 [^mqa-summary]: “MQA overview” (Vietnamese summary), [raw source](../raw/MQA.md), Sections 1–14. This is secondary-source evidence citing Shazeer, “Fast Transformer Decoding: One Write-Head is All You Need” (2019), Vaswani et al. (2017), and Ainslie et al., “GQA” (2023); those primary papers have not been independently ingested here.
 
@@ -78,3 +84,5 @@ In the DeepSeek-V2 authors’ matched 7B dense ablation, MHA led GQA with eight 
 [^deepseek-v2-2024]: DeepSeek-AI, “DeepSeek-V2: A Strong, Economical, and Efficient Mixture-of-Experts Language Model,” arXiv:2405.04434v5, [source](../raw/arXiv-2405.04434v5/main.tex), Section 2.1 and Appendix C.
 
 [^flashattention-2-2023]: Tri Dao, “FlashAttention-2: Faster Attention with Better Parallelism and Work Partitioning,” arXiv:2307.08691v1, [bundled LaTeX source](../raw/arXiv-2307.08691v1/flash2.tex), Section 3.
+
+[^flashinfer-2025]: Zihao Ye et al., “FlashInfer: Efficient and Customizable Attention Engine for LLM Inference Serving,” arXiv:2501.01005v2, [bundled LaTeX source](../raw/arXiv-2501.01005v2/main.tex), Appendix “Head Group Fusion for Grouped-Query Attention.”

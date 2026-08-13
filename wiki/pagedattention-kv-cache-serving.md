@@ -10,6 +10,9 @@ sources:
   - id: pagedattention-2023
     resource: ../raw/arXiv-2309.06180v1/main.tex
     title: "Efficient Memory Management for Large Language Model Serving with PagedAttention"
+  - id: flashinfer-2025
+    resource: ../raw/arXiv-2501.01005v2/main.tex
+    title: "FlashInfer: Efficient and Customizable Attention Engine for LLM Inference Serving"
 ---
 
 # PagedAttention KV-cache serving
@@ -40,6 +43,9 @@ The paper's evaluation and its author-implemented baselines are summarized in [P
 - **Uses:** [Scaled dot-product and multi-head attention](scaled-dot-product-and-multi-head-attention.md) with a block-addressed cache representation.[^pagedattention-2023]
 - **Complemented by:** [Multi-query and grouped-query attention](multi-query-and-grouped-query-attention.md), which reduces KV-head count and hence cache bytes, whereas PagedAttention reduces allocation waste and permits sharing.[^pagedattention-2023]
 - **Contrasts with:** [FlashAttention IO-aware exact attention](flashattention-io-aware-exact-attention.md): PagedAttention manages non-contiguous decode cache, whereas FlashAttention tiles attention computation to reduce intermediate-memory traffic.[^pagedattention-2023]
+- **Implemented by:** [FlashInfer attention engine](flashinfer-attention-engine.md), whose BSR abstraction represents page-table cache access alongside other sparse layouts; it is an attention-engine integration, not a replacement for PagedAttention’s allocation and sharing policy.[^flashinfer-2025]
 - **Evaluated by:** [PagedAttention evaluation and serving trade-offs](pagedattention-evaluation-and-serving-trade-offs.md).[^pagedattention-2023]
 
 [^pagedattention-2023]: Kwon et al., “Efficient Memory Management for Large Language Model Serving with PagedAttention,” SOSP 2023, [source](../raw/arXiv-2309.06180v1/main.tex), Sections 1–5 and 7–8.
+
+[^flashinfer-2025]: Zihao Ye et al., “FlashInfer: Efficient and Customizable Attention Engine for LLM Inference Serving,” arXiv:2501.01005v2, [bundled LaTeX source](../raw/arXiv-2501.01005v2/main.tex), Sections 1 and 3.1.

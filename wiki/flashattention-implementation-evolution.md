@@ -22,6 +22,9 @@ sources:
   - id: flashattention-3-2024
     resource: ../raw/arXiv-2407.08608v2/fa3_neurips2024.tex
     title: "FlashAttention-3: Fast and Accurate Attention with Asynchrony and Low-precision"
+  - id: flashinfer-2025
+    resource: ../raw/arXiv-2501.01005v2/main.tex
+    title: "FlashInfer: Efficient and Customizable Attention Engine for LLM Inference Serving"
 ---
 
 # FlashAttention implementation evolution
@@ -50,6 +53,10 @@ On the authors' H100 80 GB SXM5 measurements (fixed 1830 MHz; CUDA 12.3, cuDNN 9
 
 The source's synthetic-outlier numerical test reports FP16 RMSE of $1.9\times10^{-4}$ for both FlashAttention-2 and -3 versus $3.2\times10^{-4}$ for its standard baseline; its FP8 FlashAttention-3 variant reported $9.1\times10^{-3}$ versus $2.4\times10^{-2}$ for per-tensor-scaled baseline attention. These are not end-to-end model-quality results. The paper also reports that its FP8 kernel lacked the FP16 persistent-kernel/load-balancing design, which partly explains weaker small-sequence and causal results relative to FP8 cuDNN.[^flashattention-3-2024]
 
+## FlashInfer serving specialization
+
+FlashInfer applies FlashAttention-2-style templates through Ada and FlashAttention-3-style templates on Hopper to serving workloads with non-contiguous caches and varying request lengths. It pairs sparse gathers with a block-sparse cache abstraction, JIT-inserted attention variants, and a runtime schedule that splits and reduces long-KV work while preserving fixed launch/workspace configuration for CUDA Graph replay.[^flashinfer-2025]
+
 ## Operational boundary
 
 During training, reduced attention activations can enable longer sequences or larger batches, but total memory remains affected by model weights, other activations, gradients, optimizer state, and hardware-specific kernels.[^flashattention-summary]
@@ -62,6 +69,7 @@ FlashAttention makes full attention more efficient but does not remove its $O(N^
 
 - **Contextualized by:** [KV caching](kv-caching.md), which explains why prefill is compute-heavy and one-token decode is bounded by KV-cache reads.[^flashattention-summary]
 - **Extends:** [FlashAttention IO-aware exact attention](flashattention-io-aware-exact-attention.md) with hardware-aware scheduling and data-movement refinements.[^flashattention-summary]
+- **Specialized for serving by:** [FlashInfer attention engine](flashinfer-attention-engine.md), which adds block-sparse cache access, variant JIT, and variable-length scheduling.[^flashinfer-2025]
 - **Contrasts with:** [Linear attention as fixed-state memory](linear-attention-as-fixed-state-memory.md), which changes the retrieval formulation and state-growth behavior rather than optimizing exact full-attention kernels.[^flashattention-summary]
 - **Complemented by:** [Multi-query and grouped-query attention](multi-query-and-grouped-query-attention.md), which reduces KV-cache traffic in one-token decoding by sharing K/V heads rather than changing the exact-attention kernel.[^mqa-summary]
 
@@ -74,3 +82,5 @@ FlashAttention makes full attention more efficient but does not remove its $O(N^
 [^flashattention-3-2024]: Jay Shah et al., “FlashAttention-3: Fast and Accurate Attention with Asynchrony and Low-precision,” arXiv:2407.08608v2, [bundled LaTeX source](../raw/arXiv-2407.08608v2/fa3_neurips2024.tex), abstract, Sections 1–5, and appendices. The bundled pipeline diagrams and 14 benchmark-plot PDFs were visually reviewed. Results are author-reported on an H100 SXM5 under the stated software, clock, shape, precision, and masking conditions.
 
 [^mqa-summary]: “MQA overview” (Vietnamese summary), [raw source](../raw/MQA.md), Sections 3–7 and 13. This is secondary-source evidence; its cited primary MQA and GQA papers have not been independently ingested here.
+
+[^flashinfer-2025]: Zihao Ye et al., “FlashInfer: Efficient and Customizable Attention Engine for LLM Inference Serving,” arXiv:2501.01005v2, [bundled LaTeX source](../raw/arXiv-2501.01005v2/main.tex), Sections 3.2–3.3 and 6. Its templates build on FA2/FA3 according to the source; this is not a claim of universal performance equivalence.

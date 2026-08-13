@@ -1,0 +1,51 @@
+\section{Background}
+\label{sec:background}
+
+\subsection{FlashAttention}
+\label{sec:flashattention}
+
+FlashAttention~\cite{dao2022flashattention} is an efficient algorithm for computing exact attention with reduced memory usage. During the forward pass, it employs the online-softmax trick~\cite{milakov2018onlinesoftmax}, updating attention outputs on-the-fly using a constant amount of on-chip memory, thus avoiding materializing the attention matrix in GPU global memory. FlashAttention2\&3~\cite{dao2023flashattention2,jay2024flashattention3} improve performance by optimizing loop ordering and pipeline design for Ampere and Hopper GPUs. \sys builds upon these advancements.
+
+The operational intensity of FlashAttention is given by $O\left(\frac{1}{1/l_{qo} + 1/l_{kv}}\right)$, where $l_{qo}$ and $l_{kv}$ are the query and key-value cache lengths, respectively. In LLM serving, the query length is either equal to (prefill) or smaller than (decode/incremental prefill) the key-value cache length, simplifying the operational intensity to $O(l_{qo})$. Techniques like batching~\cite{yu2022orca} do not alter this operational intensity.
+Multi-Query Attention (MQA) ~\cite{shazeer2019mqa} and Grouped Query Attention (GQA) ~\cite{ainslie2023gqa} optimize the KV-Cache size by grouping queries and sharing the same KV-Cache entries. The ratio of the number of queries to the number of KV-Cache entries is denoted as the group size $g = \frac{H_{qo}}{H_{kv}}$, enhancing operational intensity to $O(g \cdot l_{qo})$.
+
+\subsection{Attention Composition}
+\label{sec:attention-composition}
+
+Block-Parallel Transformer (BPT)~\cite{liu2023blockparalleltransformer} demonstrates that attention outputs for the same query and different keys/values can be composed by preserving both the attention outputs and their scales. Let \(\mathbf{q}\) be a query, and let \(\mathcal{I}\) be an index set. We define the \emph{attention scale} over \(\mathcal{I}\) via the log-sum-exp operation on the attention scores:
+
+\begin{equation}
+    \mathbf{LSE}(\mathcal{I}) = \log \sum_{i \in \mathcal{I}} \exp(\mathbf{q} \cdot \mathbf{k}_i)
+\end{equation}
+
+where \(\mathbf{k}_i\) is the \(i\)-th key vector. The corresponding \emph{attention output} \(\mathbf{O}(\mathcal{I})\) is then
+
+
+\begin{equation}
+    \mathbf{O}(\mathcal{I}) = \sum_{i \in \mathcal{I}} \frac{\exp(\mathbf{q} \cdot \mathbf{k}_i)}{\exp(\mathbf{LSE}(\mathcal{I}))} \cdot \mathbf{v}_i
+\end{equation}
+
+We define the \emph{Attention State} for \(\mathcal{I}\) as the tuple of \emph{attention output} and \emph{attention scale}:
+\(\begin{bmatrix}\mathbf{O}(\mathcal{I}) \\ \mathbf{LSE}(\mathcal{I}) \end{bmatrix}\). Crucially, the Attention State of \(\mathcal{I}\cup\mathcal{J}\) can be derived by composing the states of \(\mathcal{I}\) and \(\mathcal{J}\). Specifically, introducing an operator \(\oplus\):
+
+\vspace{-1em}
+\begin{eqnarray*}
+   \begin{bmatrix} \mathbf{O}(\mathcal{I \cup J}) \\ \mathbf{LSE}(\mathcal{I \cup J}) \end{bmatrix} & \!\!\!\!\!\!=\!\!\!\!\!\! &
+    \begin{bmatrix} \mathbf{O}(\mathcal{I}) \\ \mathbf{LSE}(\mathcal{I}) \end{bmatrix} \oplus \begin{bmatrix} \mathbf{O}(\mathcal{J}) \\ \mathbf{LSE}(\mathcal{J}) \end{bmatrix} \\ \ & \!\!\!\!\!\! = \!\!\!\!\!\! & 
+    \begin{bmatrix} 
+        \frac{\exp(\mathbf{LSE}(\mathcal{I})) \mathbf{O}(\mathcal{I}) + \exp(\mathbf{LSE}(\mathcal{J})) \mathbf{O}(\mathcal{J})}{\exp(\mathbf{LSE}(\mathcal{I})) + \exp(\mathbf{LSE}(\mathcal{J}))}
+        \\ \log(\exp(\mathbf{LSE}(\mathcal{I})) + \exp(\mathbf{LSE}(\mathcal{J}))) \end{bmatrix}
+\end{eqnarray*}
+\vspace{-1em}
+
+Since \(\oplus\) is associative and commutative, multiple sets of attention states can be composed in any order. Ring-Attention~\cite{liu2023ring} and Flash-Decoding~\cite{dao2023flash-decoding} utilize this property to offload partial-attention computations, thereby reducing memory usage and improving hardware efficiency. In \sys, the \emph{Attention State} is adopted as the canonical output of an attention operation, and \(\oplus\) serves as the standard reduction operator (analogous to summation in GEMM) on these states.
+
+\subsection{Block/Vector Sparsity}
+
+\label{sec:block-sparse}
+
+Block Compressed Sparse Row (BSR) is a hardware-efficient sparse format that groups non-zero elements into contiguous matrices of size $(b_r, b_c)$, as opposed to the random scattering found in unstructured sparsity. This format offers several advantages over the standard Compressed Sparse Row (CSR) format. BSR improves register reuse efficiency~\cite{im2004blocksparsity, buluc2009bsr} and demonstrates better compatibility with hardware matrix multiplication units on GPUs and NPUs~\cite{narang2017bsr-rnn,gray2017gpu-bsr}. In addition, it provides the ability to skip empty blocks, reducing computational overhead. BSR's efficiency is particularly evident when subcomputations are aligned with hardware matrix multiplication instructions, such as NVIDIA's \texttt{mma} instructions.
+Traditionally, tensor core instructions operate on minimal dimensions of 16 (or larger for newer GPUs), leading most block-sparse kernels to use block sizes that are multiples of $(16, 16)$. However, this approach is not always optimal for applications with fine-grained sparsity patterns~\cite{wang2023tcgnn}. Many attention libraries restrict their block sizes to multiples of $(128, 128)$ for block-sparse attention kernels.
+
+Recent research~\cite{chen2021tensorcoressparsity, li2022magicube} has demonstrated that efficient utilization of the tensor core can be achieved with smaller block sizes, such as $(16, 1)$ for matrix $B$ in GEMM, or $(1, 16)$ for matrix $A$ (also known as vector-sparse). This is accomplished by first gathering rows/columns into contiguous shared memory and then applying dense tensor cores to these contiguous shared-memory data. This approach is particularly beneficial for applications with fine-grained sparsity patterns.
+\sys builds upon these techniques to support blocks with arbitrary column sizes $B_c$, offering greater flexibility and efficiency in handling diverse sparsity patterns.
