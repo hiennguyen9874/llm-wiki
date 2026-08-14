@@ -5,7 +5,7 @@ description: Muon updates hidden-layer weight matrices using the polar factor of
 tags: [muon, optimizer, pre-training, matrix-optimization, newton-schulz]
 status: draft
 created: 2026-08-01
-generated: { by: llm-wiki-agent/1, at: 2026-08-12T00:00:00Z }
+generated: { by: llm-wiki-agent/1, at: 2026-08-14T06:56:09Z }
 sources:
   - id: muon-overview-2026
     resource: ../raw/MuonOptimizer.md
@@ -16,6 +16,9 @@ sources:
   - id: deepseek-v4-2026
     resource: ../raw/arXiv-2606.19348v1/main.tex
     title: "DeepSeek-V4: Towards Highly Efficient Million-Token Context Intelligence"
+  - id: glm5-report-2026
+    resource: ../raw/arXiv-2602.15763v2/0_main.tex
+    title: "GLM-5: from Vibe Coding to Agentic Engineering"
 ---
 
 # Muon orthogonalized-momentum optimizer
@@ -54,7 +57,7 @@ DeepSeek-V4 provides primary configuration evidence for a hybrid optimizer: it a
 
 ## Per-head variant
 
-Kimi K3 partitions Q/K/V momentum along the attention-head dimension and orthogonalizes each block separately. The stated motivation is to equalize update scale across heads instead of letting larger-gradient heads dominate a single full-matrix polar factor; tall per-head blocks also make Newton–Schulz iterations somewhat cheaper. This is an architecture-specific refinement, not a change to Muon’s core orthogonalized-momentum principle.[^kimi-k3-2026]
+Kimi K3 partitions Q/K/V momentum along the attention-head dimension and orthogonalizes each block separately. The stated motivation is to equalize update scale across heads instead of letting larger-gradient heads dominate a single full-matrix polar factor; tall per-head blocks also make Newton–Schulz iterations somewhat cheaper. GLM-5 independently reports the same per-head split for MLA Q/K/V up-projections and shows it closing an observed MLA-versus-GQA gap in its listed ablation. These are architecture-specific refinements, not changes to Muon’s core orthogonalized-momentum principle.[^kimi-k3-2026][^glm5-report-2026]
 
 ## Relationships
 
@@ -71,3 +74,5 @@ This page compiles a secondary Vietnamese overview that cites the Muon technical
 [^kimi-k3-2026]: Kimi Team, “Kimi K3: Open Frontier Intelligence,” arXiv:2607.24653v1, [source](../raw/arXiv-2607.24653v1/main.tex), Section 2.5.
 
 [^deepseek-v4-2026]: DeepSeek-AI, “DeepSeek-V4: Towards Highly Efficient Million-Token Context Intelligence,” arXiv:2606.19348v1, [source](../raw/arXiv-2606.19348v1/main.tex), Sections 2.4, 4.4.1, and 5.2.
+
+[^glm5-report-2026]: GLM-5 Team, “GLM-5: from Vibe Coding to Agentic Engineering,” arXiv:2602.15763v2, [pre-training section](../raw/arXiv-2602.15763v2/2_pretrain.tex), Multi-latent Attention ablation.

@@ -1,0 +1,276 @@
+\appendix
+
+\section{Hyper-Parameters}
+
+Hyper-parameters related to the model architecture of GLM-5 are shown in \Cref{tab:model_arch_glm45_glm5}.
+
+For training, we follow the setting of GLM-4.5, including the Muon optimizer, cosine decay, and batch size warmup. The learning rate goes through a warmup stage from 0 to 2e-4, and a decaying stage to 4e-5 until the end of the pre-training stage. In the mid-training stage, the learning rate decreases linearly from 4e-5 to 1e-5. Other hyper-parameters are the same as those of GLM-4.5. For DSA warmup stage, the learning rate goes down from 5e-3 to 2e-4. For DSA sparse adaption stage, we use a constant learning rate of 1e-5.
+
+\begin{table}[!ht]
+    \centering
+    \caption{Model architecture of GLM-4.5 and GLM-5. When counting parameters, for all models we include the parameters of MTP layers but not word embeddings and the output layer.}
+    \label{tab:model_arch_glm45_glm5}
+    \begin{tabular}{l|cc}
+    \toprule
+       Model & \textbf{GLM-4.5} & \textbf{GLM-5} \\
+    \midrule
+       \# Total Parameters & 355B & 744B \\
+       \# Activated Parameters & 32B & 40B \\
+       \# Dense Layers & 3 & 3 \\
+       \# MoE Layers & 89 & 75 \\
+       \# MTP Layers & 1 & 1 \\
+       Hidden Dim & 5120 & 6144 \\
+       Dense Intermediate Dim & 12288 & 12288 \\
+       MoE Intermediate Dim & 1536 & 2048 \\
+    \midrule
+       QK Head Dim & 128 & 192 \\
+       V Head Dim & 128 & 256 \\
+       Q LoRA Dim & -- & 2048 \\
+       KV LoRA Dim & -- & 512 \\
+       \# Attention Heads & 96 & 64 \\
+       \# Key-Value Heads & 8 & -- \\
+       \# Indexer Attn Heads & -- & 32 \\
+       \# Indexer Head Dim & -- & 128 \\
+    \midrule
+       \# Experts (total) & 160 & 256 \\
+       \# Routed Experts & 8 & 8 \\
+       \# Shared Experts & 1 & 1 \\
+    \midrule
+       Vocabulary Size & 151552 & 154880 \\
+    \bottomrule
+    \end{tabular}
+\end{table}
+
+\section{Evaluation Details}
+\subsection{Evaluation of Base Models}
+We evaluate the base model of GLM-5 with English, Chinese, code, and math benchmarks in \Cref{tab:base_benchmark}.
+
+\begin{table}[!ht]
+  \centering
+  \caption{Comparison among GLM-5-Base, GLM-4.5-Base and other representative open-source base models.}
+  \resizebox{\textwidth}{!}{
+  \begin{tabular}{lcccc|c}
+    \toprule
+     & \textbf{Benchmark (Metric)} & \textbf{DeepSeek-V3} & \textbf{Kimi-K2} & \textbf{GLM-4.5} & \textbf{GLM-5} \\
+    & & \textbf{Base} & \textbf{Base} & \textbf{Base} & \textbf{Base} \\
+    \midrule
+    \multirow{3}{*}{} & Architecture & MoE & MoE & MoE & MoE \\
+    & \# Activated Params & 37B & 32B & 32B & 40B \\
+    & \# Total Params & 671B & 1043B & 355B & 744B \\
+    \midrule
+    \multirow{6}{*}{\textbf{English}} & SimpleQA (EM) & 26.6 & 35.3 & 30.0 & 36.0 \\
+    & BBH (EM) & 88.4 & 88.7 & 86.2 & 87.4 \\
+    & MMLU (EM) & 87.2 & 87.8 & 86.1 & 88.3 \\
+    & HellaSwag (EM) & 88.9 & 94.6 & 87.1 & 88.1 \\
+    & PIQA (EM) & 84.7 & - & 85.3 & 84.6 \\
+    & TriviaQA (EM) & 82.9 & 85.1 & 80.0 & 80.9 \\
+    \midrule
+    \multirow{2}{*}{\textbf{Code}} & EvalPlus (Pass@1) & 65.6 & 80.3 & 78.1 & 87.0 \\
+    & LiveCodeBench-Base (Pass@1) & 24.6 & 26.3 & 28.1 & 34.4 \\
+    \midrule
+    \multirow{2}{*}{\textbf{Math}} & GSM8K (EM) & 87.6 & 92.1 & 79.4 & 68.8 \\
+    & MATH (EM) & 62.6 & 70.2 & 61.0 & 56.4 \\
+    \midrule
+    \multirow{4}{*}{\textbf{Chinese}} & CLUEWSC (EM) & 82.7 & - & 83.5 & 84.2 \\
+    & C-Eval (EM) & 90.1 & 92.5 & 86.9 & 88.8 \\
+    & C3 (EM) & 78.6 & - & 83.1 & 80.3 \\
+    & Chinese-SimpleQA (EM) & 72.1 & 77.6 & 70.1 & 74.6 \\
+    \bottomrule
+  \end{tabular}
+  }
+  \label{tab:base_benchmark}
+\end{table}
+
+\subsection{Evaluation of ARC Benchmarks}
+\label{sec:eval_details_arc}
+Humanity’s Last Exam (HLE) \& other reasoning tasks: We evaluate with a maximum generation length of $131,072$ tokens ($temperature=1.0, top\_p=0.95, max\_new\_tokens=131072$). By default, we report the text-only subset; results marked with * are from the full set. We use GPT-5.2 (medium) as the judge model. For HLE-with-tools, we use a maximum context length of $202,752$ tokens.
+
+SWE-bench \& SWE-bench Multilingual: We run the SWE-bench suite with OpenHands using a tailored instruction prompt. Settings: $temperature=0.7, top\_p=0.95, max\_new\_tokens=16384$, with a 200K context window.
+
+BrowseComp: Without context management, we retain details from the most recent 5 turns. With context management, we use the same discard-all strategy as DeepSeek-V3.2 and Kimi K2.5.
+
+Terminal-Bench 2.0 (Terminus 2): We evaluate with the Terminus framework using $timeout=2h, temperature=0.7, top\_p=1.0, max\_new\_tokens=8192$, with a 128K context window. Resource limits are capped at 16 CPUs and 32 GB RAM.
+
+Terminal-Bench 2.0 (Claude Code): We evaluate in Claude Code 2.1.14 (think mode) with $temperature=1.0, top\_p=0.95, max\_new\_tokens=65536$. We remove wall-clock time limits, while preserving per-task CPU and memory constraints. We fix environment issues introduced by Claude Code and also report results on a verified Terminal-Bench 2.0 dataset that resolves ambiguous instructions (see: \url{https://huggingface.co/datasets/zai-org/terminal-bench-2-verified}). Scores are averaged over 5 runs.
+
+CyberGym: We evaluate in Claude Code 2.1.18 (think mode, no web tools) with ($temperature=1.0, top\_p=1.0, max\_new\_tokens=32000$) and a 250-minute timeout per task. Results are single-run Pass@1 over 1,507 tasks.
+
+MCP-Atlas: All models are evaluated in think mode on the 500-task public subset with a 10-minute timeout per task. We use Gemini 3 Pro as the judge model.
+
+$\tau^2$-Bench: We add a small prompt adjustment in Retail and Telecom to avoid failures caused by premature user termination. For Airline, we apply the domain fixes proposed in the Claude Opus 4.5 system card.
+
+Vending-Bench 2: Runs are conducted independently by Andon Labs\footnote{\url{https://andonlabs.com/evals/vending-bench-2}}.
+
+
+\subsection{Optimized User Simulator for $\tau^2$-Bench}
+\label{sec:tau_user_prompt}
+We add a small prompt adjustment in Telecom and Retail to avoid failures caused by premature user termination. The optimized prompts are shown in Figure~\ref{fig:tau2-prompt-telecom} and Figure~\ref{fig:tau2-prompt-retail}. These optimized prompts are integrated into the system prompt as follows:
+
+\begin{tcolorbox}[left=0mm,right=0mm,top=0mm,bottom=0mm,boxsep=1mm,arc=0mm,boxrule=0pt, frame empty, breakable]
+\begin{lstlisting}
+SYSTEM_PROMPT = """"
+{global_user_sim_guidelines}
+
+<scenario>
+{instructions}
+</scenario>
+
+{optimized_user_prompt}
+"""".strip()
+\end{lstlisting}
+\end{tcolorbox}
+
+\begin{tcolorbox}[left=0mm,right=0mm,top=0mm,bottom=0mm,boxsep=1mm,arc=0mm,boxrule=0pt, frame empty, breakable]
+\footnotesize
+\begin{lstlisting}
+# Note:
+- Do not generate the '###TRANSFER###' before agent clearly tells "YOU ARE BEING TRANSFERRED TO A HUMAN AGENT. PLEASE HOLD ON.".
+    Example:
+    Case1:
+        - agent: "Would you like me to transfer you to a human agent who can assist you with these options and help get your service restored?"
+        - user: "Yes, please transfer me to a human agent.".
+    Case2:
+        - user: "YOU ARE BEING TRANSFERRED TO A HUMAN AGENT. PLEASE HOLD ON."
+        - user: "###TRANSFER###"
+\end{lstlisting}
+\end{tcolorbox}
+\noindent\begin{minipage}{\textwidth}
+\captionof{figure}{The optimized user prompt for $\tau^2$-Bench Telecom.}
+\label{fig:tau2-prompt-telecom}
+\end{minipage}
+
+\begin{tcolorbox}[left=0mm,right=0mm,top=0mm,bottom=0mm,boxsep=1mm,arc=0mm,boxrule=0pt, frame empty, breakable]
+\footnotesize
+\begin{lstlisting}
+# Rules:
+- Just generate one line at a time to simulate the user's message.
+- Do not give away all the instruction at once. Only provide the information that is necessary for the current step.
+- Do not hallucinate information that is not provided in the instruction. Follow these guidelines:
+    1. If the agent asks for information NOT in the instruction:
+        - Say you don't remember or don't have it
+        - Offer alternative information that IS mentioned in the instruction
+    2. Examples:
+        - If asked for order ID (not in instruction): "Sorry, I don't remember the order ID, can you search for it? My name/email/phone number/zipcode is ..."
+        - If asked for email (not in instruction): "I don't have my email handy, but I can give you my name and zip code which are..."
+- Do not repeat the exact instruction in the conversation. Instead, use your own words to convey the same information.
+- Try to make the conversation as natural as possible, and stick to the personalities in the instruction.
+# Constraint Handling:
+- Provide requests strictly based on what is explicitly stated in the instruction.
+- Do not assume, extend, substitute, or generalize in any form.
+- Do not modify or relax constraints on:
+- Time / Date
+- Budget
+- Specific terms (e.g., "same" must not be replaced with "similar")
+- Core Rule: Any attribute NOT mentioned in the instruction can be either changed or kept the same
+- Examples:
+    - If instruction says "exchange red item to blue": Only color must change, other attributes (size, material, etc.) are flexible
+    - If instruction says "exchange red item to blue, keep the same size": Both color must change AND size must stay the same
+- Exception: Only follow additional constraints when explicitly stated in the instruction
+# Domain-Specific Rules:
+## For Retail scenarios:
+- Focus on product attributes and exchange/return processes as specified in instructions.
+- During confirmations: Always respond based strictly on the original instruction, never deviate to match agent's provided options. Restate your requirement from the instruction rather than selecting from agent's choices.
+    - Example: If the agent provides specific options (A/B/C) but the instruction states a general requirement (e.g., "same as pending order"), always restate or confirm based on what the instruction says, not by directly selecting from the agent's provided options.
+# When NOT to finish the conversation:
+- Do not end until you have clearly and completely expressed all your requirements and constraints.
+- Do not end until the agent has completed all tasks mentioned in the instruction and verified no operations were missed.
+- Do not end if the agent's execution results do not match your expectations or are incorrect/incomplete.
+# When you CAN finish the conversation:
+- Only when all above conditions are satisfied AND all tasks are completed correctly.
+- OR when you have clearly expressed complete requirements but the system explicitly states it cannot complete them due to technical limitations - in this case, accept transfer to human.
+# How to finish the conversation:
+- If the agent has completed all tasks, generate the '###STOP###' token to end the conversation.
+# Note:
+- You should carefully check if the agent has completed all tasks mentioned in the instruction before generating '###STOP###'.
+\end{lstlisting}
+\end{tcolorbox}
+\noindent\begin{minipage}{\textwidth}
+\captionof{figure}{The optimized user prompt for $\tau^2$-Bench Retail.}
+\label{fig:tau2-prompt-retail}
+\end{minipage}
+
+\subsection{Evaluation of Real-world Agentic Engineering Experience}
+
+\subsubsection{Frontend Evaluation}
+
+\label{sec:frontend_eval_data_cons}
+
+\paragraph{Data.}
+Our dataset encompasses seven distinct frontend scenarios designed to evaluate a model's engineering proficiency across diverse functional domains: Business Management Systems, Web Games, SVG/Canvas Rendering,  Creative Tools \& Editors, Showcase Pages, Forms \& Tables and Data Visualization.
+% \begin{itemize}
+% \item Business Management Systems: Applications for enterprise or personal data/workflow management.
+% \item Web Games: Interactive, real-time rendering-focused entertainment applications.
+% \item SVG/Canvas Rendering: Graphics-intensive applications based on low-level drawing APIs.
+% \item Creative Tools \& Editors: Utility applications supporting content creation and complex state management.
+% \item Showcase Pages: Layout-oriented pages emphasizing visual expression and responsiveness.
+% \item Forms \& Tables: Applications centered on structured data entry, validation, and processing.
+% \item Data Visualization: Graphical representation and analytical tools for complex datasets.
+% \end{itemize}
+
+
+\begin{table}[h]
+\centering
+\small
+\caption{Distribution of frontend application scenarios.}
+\begin{tabular}{lp{7cm}rr}
+\toprule
+\textbf{Category} & \textbf{Description} & \textbf{\# Tasks} & \textbf{\# Checkitems} \\
+\midrule
+Business Systems & Enterprise/Personal data and process management. & 42 & 167 \\
+Web Games & Interaction and entertainment-focused games. & 40 & 163\\
+SVG/Canvas & Graphics rendering and interactive visualizations. & 32 & 166\\
+Creative Tools & Content creation and online editing tools. & 28 & 160\\
+Showcase Pages & Visual expression and information presentation. & 27 & 115\\
+Forms \& Tables & Structured data entry and processing. & 26 & 93\\
+Data Visualization & Graphical data expression and analysis. & 25 & 85\\
+\bottomrule
+\end{tabular}
+
+\end{table}
+
+\subparagraph{Data Distribution by Coding Languages}
+The benchmark provides full coverage of three mainstream paradigms: Vanilla Web Stack (HTML/CSS/JS), React Component-based Framework, and the Vue 3 + Vite Progressive Solution.
+\begin{table}[h]
+\centering
+\caption{Statistics of technology stacks and evaluation units.}
+\begin{tabular}{llcc}
+\toprule
+\textbf{Category} & \textbf{Description} & \textbf{\# Tasks} & \textbf{\# Checkitems} \\
+\midrule
+HTML & Vanilla HTML/CSS/JS development. & 113 & 490 \\
+React & Component-based framework development. & 58 & 249 \\
+Vue & Vue 3 + Vite progressive solution. & 49 & 210 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subparagraph{Data sample}
+Each test case is composed of three components: the \textbf{Task}, the \textbf{Checklist}, and a \textbf{Dedicated Environment}. Below is a representative example of a test case:
+\begin{tcolorbox}[left=0mm,right=0mm,top=0mm,bottom=0mm,boxsep=1mm,arc=0mm,boxrule=0pt, frame empty, breakable]
+\footnotesize
+\begin{lstlisting}
+    Task: Develop an online drawing tool that includes a brush, an eraser, a white canvas, and a save button.
+        The brush color and thickness should be selectable via buttons on the left. Users can draw on the canvas by clicking and dragging the mouse.
+        The eraser size should be selectable via buttons on the left. Users can erase content by clicking and dragging the mouse over the canvas.
+        Once the drawing is complete, clicking the "Save" button should allow the user to save the image locally.
+        Please implement this using the React framework in the current directory.
+
+    Checklist:
+        The user can select the brush color and thickness using the left-hand buttons, and drawing is functional via mouse click-and-drag on the canvas.
+        The user can select the eraser size using the left-hand buttons, and erasing is functional via mouse click-and-drag on the canvas.
+        Upon clicking the "Save" button, the generated image is successfully saved to the local machine.
+\end{lstlisting}
+\end{tcolorbox}
+\noindent\begin{minipage}{\textwidth}
+\end{minipage}
+
+
+\subparagraph{\textbf{Data Construction and Validation}}
+
+We implement a rigorous four-stage pipeline to ensure data quality:
+\begin{itemize}[leftmargin=1.5em,itemsep=2pt]
+\item Stage 1: Task Synthesis. Tasks are designed by senior frontend experts to ensure they reflect real-world engineering challenges while maintaining a balanced distribution across diverse scenarios and technologies.
+\item Stage 2: Checklist Generation and Refinement. We initially employ Claude Sonnet 4.5 to synthesize candidate checklists based on task specifications $T$. These are then meticulously audited and integrated by experts. Through multiple rounds of refinement, we ensure that each check-item is semantically unambiguous, objective, and provides exhaustive coverage of user requirements.
+\item Stage 3: Execution-based Correction. We conduct cross-validation between the Agent-as-a-Judge framework and human experts. Any discrepancies in judgment trigger a re-evaluation and correction of the underlying data to eliminate potential noise.
+\item Stage 4: Dynamic Benchmark Iteration. To maintain a high level of discriminative power, we iteratively update the test suite by removing trivial tasks that no longer challenge state-of-the-art coding agents. This expert-led curation process culminated in a final set of 220 high-quality frontend coding tasks and their corresponding checklists.
+\end{itemize}

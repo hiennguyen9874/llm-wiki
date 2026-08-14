@@ -5,7 +5,7 @@ description: Multi-head Latent Attention caches a low-dimensional joint KV laten
 tags: [attention, multi-head-latent-attention, mla, kv-cache, inference, rope]
 status: stable
 created: 2026-08-01
-generated: { by: llm-wiki-agent/1, at: 2026-08-13T16:27:51Z }
+generated: { by: llm-wiki-agent/1, at: 2026-08-14T06:56:09Z }
 sources:
   - id: deepseek-v2-2024
     resource: ../raw/arXiv-2405.04434v5/main.tex
@@ -22,6 +22,9 @@ sources:
   - id: deepseek-v3-2-2025
     resource: ../raw/arXiv-2512.02556v1/main.tex
     title: "DeepSeek-V3.2: Pushing the Frontier of Open Large Language Models"
+  - id: glm5-report-2026
+    resource: ../raw/arXiv-2602.15763v2/0_main.tex
+    title: "GLM-5: from Vibe Coding to Agentic Engineering"
 ---
 
 # Multi-head Latent Attention
@@ -48,6 +51,8 @@ MLA compresses token state; it does not make exact global attention fixed-state.
 
 DeepSeek-V3.2 supplies a later sparse-use case: its DeepSeek Sparse Attention instantiates MLA in MQA mode, shares one latent KV entry across query heads, and selects only top-ranked prior entries before core attention. This reduces the main attention work but does not change MLA’s cache from context-linear to fixed-size; its lightning indexer also retains a lower-cost quadratic scoring pass.[^deepseek-v3-2-2025]
 
+GLM-5 reports that ordinary Muon orthogonalization left its 576-dimensional MLA cache behind GQA-8 in a listed ablation. Splitting Q/K/V up-projection matrices by head before orthogonalization closes that measured gap, while increasing effective Q/K width from 192 to 256 and reducing head count by one third is intended to lower decode dot-product work without changing reported parameter or prefill compute. This is architecture-and-optimizer-specific evidence, not a general MLA requirement.[^glm5-report-2026]
+
 ## Relationships
 
 - **Modifies:** [Scaled dot-product and multi-head attention](scaled-dot-product-and-multi-head-attention.md) through a jointly compressed key/value representation.
@@ -69,3 +74,5 @@ This is primary evidence from the bundled DeepSeek-V2 technical report and its i
 [^kimi-k3-2026]: Kimi Team, “Kimi K3: Open Frontier Intelligence,” arXiv:2607.24653v1, [source](../raw/arXiv-2607.24653v1/main.tex), Sections 2–3.
 
 [^deepseek-v3-2-2025]: DeepSeek-AI, “DeepSeek-V3.2: Pushing the Frontier of Open Large Language Models,” arXiv:2512.02556v1, [source](../raw/arXiv-2512.02556v1/main.tex), Section 2.1.
+
+[^glm5-report-2026]: GLM-5 Team, “GLM-5: from Vibe Coding to Agentic Engineering,” arXiv:2602.15763v2, [pre-training section](../raw/arXiv-2602.15763v2/2_pretrain.tex), Multi-latent Attention; [appendix](../raw/arXiv-2602.15763v2/9_appendix.tex), architecture table.

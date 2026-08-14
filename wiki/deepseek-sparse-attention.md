@@ -5,11 +5,17 @@ description: DeepSeek Sparse Attention uses a lightweight indexer to select toke
 tags: [attention, sparse-attention, deepseek, multi-head-latent-attention, long-context, inference]
 status: stable
 created: 2026-08-13
-generated: { by: llm-wiki-agent/1, at: 2026-08-13T16:27:51Z }
+generated: { by: llm-wiki-agent/1, at: 2026-08-14T06:56:09Z }
 sources:
   - id: deepseek-v3-2-2025
     resource: ../raw/arXiv-2512.02556v1/main.tex
     title: "DeepSeek-V3.2: Pushing the Frontier of Open Large Language Models"
+  - id: glm5-report-2026
+    resource: ../raw/arXiv-2602.15763v2/0_main.tex
+    title: "GLM-5: from Vibe Coding to Agentic Engineering"
+  - id: glm5-code-2026
+    resource: ../raw/glm-moe/modular_glm_moe_dsa.py
+    title: Hugging Face GLM-MoE-DSA modular implementation
 ---
 
 # DeepSeek Sparse Attention
@@ -36,6 +42,12 @@ The authors initialize DSA from a 128K-context DeepSeek-V3.1-Terminus checkpoint
 
 The source reports no substantial short- or long-context benchmark degradation against V3.1-Terminus in its September 2025 suite, closely matched ChatbotArena Elo values from November 2025, and stronger results in two named external long-context evaluations. Its H800 service-cost plots show a much flatter DSA cost curve than V3.1-Terminus through 128K tokens for both prefill and decode; short prefill uses a separate masked-MHA simulation. These are author-selected comparisons and cost estimates at an assumed USD 2 per H800 GPU-hour, not a general serving-cost guarantee.[^deepseek-v3-2-2025]
 
+## GLM-5 adaptation and implementation
+
+GLM-5 reports adapting DSA from its mid-training MLA checkpoint with a 1,000-step indexer warm-up and only 20B sparse-training tokens. Its listed 128K evaluations are mixed rather than uniformly equal—DSA improves MV-NIAH and SQuAD but trails MLA on HotpotQA—and a GLM-4.7-Flash control closes most of its 128K warm-up deficit after 150B joint-training tokens. These results support model-specific recoverability, not the report’s broader claim that DSA is “lossless by construction.”[^glm5-report-2026]
+
+The released implementation scores tokens with weighted ReLU indexer heads and selects up to 2,048 causal positions, consistent with the core DSA mechanism. GLM differs by applying interleaved RoPE in the indexer and exposing per-layer `full` versus `shared` modes: shared layers reuse the preceding full layer’s top-k positions. Eager/SDPA materializes a sparse additive mask, while another backend may consume indices directly. Cross-layer sharing is code evidence not documented in the GLM-5 report, and the generated module marks Flash-MLA support as incomplete.[^glm5-code-2026]
+
 ## Relationships
 
 - **Specializes:** [Multi-head Latent Attention](multi-head-latent-attention.md) by selecting a sparse token subset before MQA over MLA entries.[^deepseek-v3-2-2025]
@@ -44,6 +56,10 @@ The source reports no substantial short- or long-context benchmark degradation a
 
 ## Evidence limits
 
-The mechanism, training counts, parity findings, and cost curves are all from DeepSeek-AI’s report. It does not supply controlled ablations isolating the indexer, MQA instantiation, selected-token count, kernels, or continued-training data, and the paper does not establish generalization to other architectures or workloads.[^deepseek-v3-2-2025]
+The original mechanism, training counts, parity findings, and cost curves are from DeepSeek-AI’s report. It does not supply controlled ablations isolating the indexer, MQA instantiation, selected-token count, kernels, or continued-training data. GLM-5 adds a second architecture and a released model implementation, but its quality and efficiency evidence remains author-run and does not isolate DSA from data, model, or systems changes.[^deepseek-v3-2-2025][^glm5-report-2026][^glm5-code-2026]
 
 [^deepseek-v3-2-2025]: DeepSeek-AI, “DeepSeek-V3.2: Pushing the Frontier of Open Large Language Models,” arXiv:2512.02556v1, [source](../raw/arXiv-2512.02556v1/main.tex), Sections 2.1–2.3; included [architecture figure](../raw/arXiv-2512.02556v1/figures/v32_arch.pdf) and [cost figures](../raw/arXiv-2512.02556v1/figures/cost_prefilling.pdf) and [decode cost figure](../raw/arXiv-2512.02556v1/figures/cost_decoding.pdf).
+
+[^glm5-report-2026]: GLM-5 Team, “GLM-5: from Vibe Coding to Agentic Engineering,” arXiv:2602.15763v2, [pre-training section](../raw/arXiv-2602.15763v2/2_pretrain.tex), Continued Pre-Training with DSA and efficient-attention ablations.
+
+[^glm5-code-2026]: Hugging Face, “GLM-MoE-DSA modular implementation,” [source](../raw/glm-moe/modular_glm_moe_dsa.py), indexer, attention, and model classes; cross-checked against the generated [modeling module](../raw/glm-moe/modeling_glm_moe_dsa.py).

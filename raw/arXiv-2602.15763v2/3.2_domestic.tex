@@ -1,0 +1,28 @@
+\section{Adapting GLM-5 to Chinese Chip Infrastructure}
+\label{sec:chinese}
+
+Adapting GLM-5 to diverse Chinese chip infrastructures presents significant challenges due to the heterogeneity of hardware ecosystems, which often complicates high-performance deployment. Despite these hurdles, we have successfully achieved full-stack adaptation for GLM-5 through close collaboration with seven mainstream Chinese chip platforms, including Huawei Ascend, Moore Threads, Hygon, Cambricon, Kunlunxin, MetaX, and Enflame. In this section, we use the Ascend Atlas series as a case study to demonstrate our adaptation methodology, focusing on three core pillars: extreme quantization, high-performance kernel fusion, and advanced inference engine scheduling.
+
+\paragraph{Mixed-Precision W4A8 quantization.}
+To fit the 750B parameter GLM-5 model onto a single Atlas 800T A3 machine, we implemented a sophisticated W4A8 mixed-precision quantization strategy. Utilizing the msModelSlim~\footnote{\url{https://www.hiascend.com/document/detail/zh/CANNCommunityEdition/80RC3alpha003/devaids/auxiliarydevtool/modelslim_0001.html}} tool, we applied specific precisions to different model components: standard Attention and MLP blocks use W8A8 (INT8), while the MoE experts are compressed to W4A8 (INT4) to drastically reduce memory footprint without significant accuracy loss. Advanced algorithms like QuaRot~\cite{ashkboos2024quarotoutlierfree4bitinference} for outlier suppression and \texttt{Flex\_AWQ\_SSZ} for scaling calibration were employed to maintain stability in low-bit deployment.
+
+\paragraph{High-Performance fusion kernels.}
+To overcome the computational bottlenecks of sparse attention on Ascend NPUs, we developed a suite of customized fusion kernels: Lightning Indexer, Sparse Flash Attention, and MLAPO (Multi-head Latent Attention Pre-processing Optimization). 
+Lightning Indexer integrates score calculation, ReLU, and TopK operations into a single kernel, allowing the NPU to overlap computation with memory access.
+For the Sparse Flash Attention kernel, we specifically optimized for GLM-5's sparse patterns. This kernel handles the selection of TopK tokens from the KV cache and sparse attention computation in parallel.
+Last, MLAPO fuses 13 small pre-processing operators into one ``super operator'', utilizing parallel processing between Vector and Cube units to boost end-to-end efficiency.
+
+\paragraph{Specialized inference engine optimizations.}
+We adapted two leading inference engines, vLLM-Ascend and SGLang, to maximize hardware utilization:
+
+\begin{itemize}[leftmargin=1.5em,itemsep=2pt]
+    \item \textbf{Asynchronous Scheduling:} Within vLLM, we implemented a mechanism to overlap the ``Device-to-Host'' (D2H) sampling copies with the preparation of the next decode step, effectively eliminating scheduling "bubbles."
+    
+    \item \textbf{Context Management:} Features like RadixCache (prefix sharing) and Prefix Cache (extending KV storage to system RAM) enable efficient reuse of KV entries, which is critical for long-context performance.
+
+    \item \textbf{Parallel Strategy:} We utilized a hybrid approach combining Attention Data Parallelism (DP) and MoE Expert Parallelism (EP), alongside FlashComm, which splits AllReduce operations to hide communication latency behind computation.
+
+    \item \textbf{Multi-Token Prediction (MTP):} By generating multiple tokens per inference step, we significantly increased NPU computation density and reduced total sequence generation time.
+\end{itemize}
+
+Through these hardware-level co-optimizations, GLM-5 on a single Chinese node achieves performance comparable to dual-GPU international clusters, while reducing deployment costs in long-sequence scenarios by 50\%.

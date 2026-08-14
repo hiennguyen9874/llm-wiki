@@ -5,7 +5,7 @@ description: Sequential multi-token prediction trains additional causal modules 
 tags: [pretraining, multi-token-prediction, speculative-decoding, language-modeling]
 status: stable
 created: 2026-08-01
-generated: { by: llm-wiki-agent/1, at: 2026-08-12T14:46:56Z }
+generated: { by: llm-wiki-agent/1, at: 2026-08-14T06:56:09Z }
 sources:
   - id: deepseek-v3-2024
     resource: ../raw/arXiv-2412.19437v2/main.tex
@@ -19,6 +19,9 @@ sources:
   - id: nemotron-lightning-code
     resource: ../raw/NVIDIA-Nemotron-3.5-Lightning-30B-A3B/modeling_nemotron_h.py
     title: NVIDIA Nemotron-H Transformers modeling implementation
+  - id: glm5-report-2026
+    resource: ../raw/arXiv-2602.15763v2/0_main.tex
+    title: "GLM-5: from Vibe Coding to Agentic Engineering"
 ---
 
 # Sequential multi-token prediction
@@ -37,13 +40,17 @@ The main model can discard MTP modules and run normally, so their training-time 
 
 In matched small and large MoE ablations, V3’s MTP variants improve most listed benchmark scores but not every score. The report also states an 85–90% second-token acceptance rate across its tested generation topics and 1.8× tokens/s with speculative decoding. Those deployment results do not identify the request mix, batch size, or implementation conditions required to reproduce them.[^deepseek-v3-2024]
 
+## GLM-5 shared-depth variant
+
+GLM-5 trains three sequential MTP depths with shared parameters rather than allocating one distinct layer per depth. The report’s intent is to preserve a multi-step causal training chain while keeping draft parameter memory comparable to DeepSeek-V3’s single MTP layer. With four speculative steps on a private prompt set, it reports mean accepted length 2.76 versus 2.55 for DeepSeek-V3.2; no latency, distribution, or variance is disclosed.[^glm5-report-2026]
+
 ## Nemotron 3.5 Lightning implementation boundary
 
 [Nemotron 3.5 Lightning](nemotron-3-5-lightning-architecture-and-training.md) reports continued pre-training of MTP layers and MTP-accelerated RL rollouts. Its checkpoint config declares one next-token-prediction extension composed of full attention and MoE blocks. However, the bundled Transformers causal-LM implementation never constructs those configured MTP blocks or computes an MTP loss. This source therefore evidences the released model’s MTP metadata and training claim, but not a runnable implementation or acceptance/speed result for native MTP.[^nemotron-lightning-card][^nemotron-lightning-config][^nemotron-lightning-code]
 
 ## Relationships
 
-- **Used by:** [DeepSeek-V3 architecture and pretraining](deepseek-v3-architecture-and-pretraining.md) as a one-depth objective.
+- **Used by:** [DeepSeek-V3 architecture and pretraining](deepseek-v3-architecture-and-pretraining.md) as a one-depth objective and [GLM-5 architecture, pre-training, and systems](glm-5-architecture-pretraining-and-systems.md) with three shared-parameter depths.[^glm5-report-2026]
 - **Can operationalize:** [Speculative decoding exact sampling](speculative-decoding-exact-sampling.md) after target verification.
 - **Qualified by:** [Speculative decoding performance trade-offs](speculative-decoding-performance-trade-offs.md), where draft cost, acceptance, verification, and serving overhead determine realized speedup.
 
@@ -58,3 +65,5 @@ This is primary evidence for the V3 implementation and its controlled ablations,
 [^nemotron-lightning-config]: NVIDIA, “NVIDIA Nemotron 3.5 Lightning checkpoint configuration,” [config](../raw/NVIDIA-Nemotron-3.5-Lightning-30B-A3B/config.json).
 
 [^nemotron-lightning-code]: NVIDIA/Hugging Face, “Nemotron-H modeling implementation,” [source](../raw/NVIDIA-Nemotron-3.5-Lightning-30B-A3B/modeling_nemotron_h.py), model and causal-LM classes.
+
+[^glm5-report-2026]: GLM-5 Team, “GLM-5: from Vibe Coding to Agentic Engineering,” arXiv:2602.15763v2, [pre-training section](../raw/arXiv-2602.15763v2/2_pretrain.tex), Multi-token Prediction with Parameter Sharing.

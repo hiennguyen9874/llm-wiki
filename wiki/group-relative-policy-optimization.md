@@ -5,7 +5,7 @@ description: GRPO is an on-policy, PPO-style LLM post-training method that repla
 tags: [grpo, reinforcement-learning, post-training, reasoning, policy-optimization]
 status: draft
 created: 2026-07-31
-generated: { by: llm-wiki-agent/1, at: 2026-08-13T16:27:51Z }
+generated: { by: llm-wiki-agent/1, at: 2026-08-14T06:56:09Z }
 sources:
   - id: grpo-summary
     resource: ../raw/GRPO.md
@@ -22,6 +22,9 @@ sources:
   - id: deepseek-v3-2-2025
     resource: ../raw/arXiv-2512.02556v1/main.tex
     title: "DeepSeek-V3.2: Pushing the Frontier of Open Large Language Models"
+  - id: glm5-report-2026
+    resource: ../raw/arXiv-2602.15763v2/0_main.tex
+    title: "GLM-5: from Vibe Coding to Agentic Engineering"
 ---
 
 # Group Relative Policy Optimization
@@ -74,6 +77,12 @@ DeepSeek-V3.2 documents controls for scaling GRPO in a sparse MoE policy. Its di
 
 The report corrects its KL estimate for samples drawn from the rollout policy by including the current-to-rollout importance ratio. It masks only negative-advantage sequences whose average rollout-versus-current log-probability divergence exceeds a threshold, retaining positive sequences. It also reuses the sampled MoE routing path during training and reapplies the rollout-time top-$p$/top-$k$ truncation mask to the current policy. These controls target inference/training mismatch and off-policy drift; the source reports stability observations, not comparative ablations that establish their independent effects.[^deepseek-v3-2-2025]
 
+## GLM-5 synchronous and asynchronous variants
+
+GLM-5 reasoning RL retains group-standardized advantages and PPO-style clipping but multiplies updates by an IcePop-style training/inference mismatch ratio only within a bounded range, removes KL regularization, and reports group size 32. Its asynchronous agentic stage instead uses recorded rollout log-probabilities as the behavior proxy, masks tokens outside a double-sided importance interval, and drops stale trajectories. These are report-specific GRPO-derived controls for inference/training and policy-lag mismatch, not changes implied by GRPO itself.[^glm5-report-2026]
+
+The final GLM-5 cross-stage distillation replaces reward advantage with a stopped teacher/student log-probability gap and uses group size 1. That stage reuses the surrounding optimizer machinery but no longer estimates a group-relative reward advantage, so it should be understood as on-policy distillation rather than ordinary GRPO.[^glm5-report-2026]
+
 ## Relationships
 
 - **Applied by:** [DeepSeek-V2 alignment, evaluation, and limitations](deepseek-v2-alignment-evaluation-and-limitations.md) in a two-stage reward-model recipe and [DeepSeek-V3 post-training, evaluation, and limitations](deepseek-v3-post-training-evaluation-and-limitations.md) with rule- and model-based rewards.[^deepseek-v2-2024][^deepseek-v3-2024]
@@ -91,3 +100,5 @@ The report corrects its KL estimate for samples drawn from the rollout policy by
 [^deepseek-v4-2026]: DeepSeek-AI, “DeepSeek-V4: Towards Highly Efficient Million-Token Context Intelligence,” arXiv:2606.19348v1, [source](../raw/arXiv-2606.19348v1/main.tex), Section 6.1.
 
 [^deepseek-v3-2-2025]: DeepSeek-AI, “DeepSeek-V3.2: Pushing the Frontier of Open Large Language Models,” arXiv:2512.02556v1, [source](../raw/arXiv-2512.02556v1/main.tex), Sections 3.1–3.2.
+
+[^glm5-report-2026]: GLM-5 Team, “GLM-5: from Vibe Coding to Agentic Engineering,” arXiv:2602.15763v2, [post-training](../raw/arXiv-2602.15763v2/3_posttrain.tex), Reasoning RL and cross-stage distillation; [agentic RL](../raw/arXiv-2602.15763v2/3.1_agenticRL.tex), asynchronous stability controls.

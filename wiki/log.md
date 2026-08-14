@@ -3,6 +3,9 @@
 ## 2026-11-16
 - **Query**: Filed [Expert parallelism và serving trade-offs — bài học cho người mới](expert-parallelism-serving-trade-offs-beginners-guide.md), linked it from Stage 7 of the roadmap, and covered dispatch/combine all-to-all, device placement, communication bottlenecks, capacity padding, total-weight memory, and a PyTorch routing simulation.
 
+## 2026-08-14
+- **Ingest**: Compiled [GLM-5: from Vibe Coding to Agentic Engineering](../raw/arXiv-2602.15763v2/0_main.tex) and the [GLM-MoE-DSA implementation](../raw/glm-moe/modular_glm_moe_dsa.py); created three GLM-5 concepts and updated DSA, MLA, MTP, Muon, auxiliary-loss-free routing, and GRPO with report- and code-bounded evidence.
+
 ## 2026-08-13
 - **Ingest**: Compiled [FlashAttention-4: Algorithm and Kernel Pipelining Co-Design for Asymmetric Hardware Scaling](../raw/arXiv-2603.05451v1/arxiv_main.tex); updated [FlashAttention implementation evolution](flashattention-implementation-evolution.md) with Blackwell pipeline, TMEM/2-CTA, softmax, scheduling, and source-conflict-bounded benchmark evidence.
 - **Ingest**: Compiled [DeepSeek-V3.2: Pushing the Frontier of Open Large Language Models](../raw/arXiv-2512.02556v1/main.tex); created [DeepSeek Sparse Attention](deepseek-sparse-attention.md) and [V3.2 post-training, agentic synthesis, and evaluation limits](deepseek-v3-2-post-training-agentic-evaluation.md), and updated MLA, GRPO, and test-time scaling with source-bounded mechanism and context-management evidence.
