@@ -4,6 +4,7 @@
 - **Query**: Filed [Expert parallelism và serving trade-offs — bài học cho người mới](expert-parallelism-serving-trade-offs-beginners-guide.md), linked it from Stage 7 of the roadmap, and covered dispatch/combine all-to-all, device placement, communication bottlenecks, capacity padding, total-weight memory, and a PyTorch routing simulation.
 
 ## 2026-08-15
+- **Query**: Filed [LLM architecture development and learning map](llm-architecture-development-and-learning-map.md), a Mermaid diagram separating architectural evolution from the build-first learning sequence; the existing roadmap was unchanged.
 - **Update**: Extended the [LLM architecture learning roadmap](llm-architecture-learning-roadmap.md) without changing existing stages: added architecture/mask taxonomy (1.1), modern decoder modules (4.1), an attention-design matrix (6.1), depth/residual design (8.1), serving/decode architecture (10), and multimodal/external-memory composition (11).
 - **Query**: Answered “So sánh kiến trúc mô hình GLM-5 với Kimi K3”; filed [GLM-5 and Kimi K3 architecture comparison](glm-5-and-kimi-k3-architecture-comparison.md).
 - **Ingest**: Compiled the [Qwen3.5-27B checkpoint bundle](../raw/Qwen3.5-27B/config.json); created [Qwen3.5-27B checkpoint architecture and implementation](qwen3-5-27b-checkpoint-architecture.md).
