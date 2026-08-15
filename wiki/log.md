@@ -3,6 +3,9 @@
 ## 2026-11-16
 - **Query**: Filed [Expert parallelism và serving trade-offs — bài học cho người mới](expert-parallelism-serving-trade-offs-beginners-guide.md), linked it from Stage 7 of the roadmap, and covered dispatch/combine all-to-all, device placement, communication bottlenecks, capacity padding, total-weight memory, and a PyTorch routing simulation.
 
+## 2026-08-15
+- **Ingest**: Compiled the [Qwen3.5-27B checkpoint bundle](../raw/Qwen3.5-27B/config.json); created [Qwen3.5-27B checkpoint architecture and implementation](qwen3-5-27b-checkpoint-architecture.md).
+
 ## 2026-08-14
 - **Update**: Deep-read the generated [configuration and modeling files](../raw/glm-moe/modeling_glm_moe_dsa.py) and refined [GLM-5 architecture, pre-training, and systems](glm-5-architecture-pretraining-and-systems.md) with indexer dimensions (32×128, float32 `weights_proj`), the all-`"full"` default indexer schedule, 154,880 vocabulary, no-op router group machinery, 3D expert tensors with `grouped_gemm` EP plan, DeepSeek-V3/V3.2 import lineage, layer-78 checkpoint-key dropping, and config dead-code limits.
 - **Ingest**: Compiled [GLM-5: from Vibe Coding to Agentic Engineering](../raw/arXiv-2602.15763v2/0_main.tex) and the [GLM-MoE-DSA implementation](../raw/glm-moe/modular_glm_moe_dsa.py); created three GLM-5 concepts and updated DSA, MLA, MTP, Muon, auxiliary-loss-free routing, and GRPO with report- and code-bounded evidence.
