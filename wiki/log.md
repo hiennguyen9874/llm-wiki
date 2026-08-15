@@ -4,6 +4,7 @@
 - **Query**: Filed [Expert parallelism và serving trade-offs — bài học cho người mới](expert-parallelism-serving-trade-offs-beginners-guide.md), linked it from Stage 7 of the roadmap, and covered dispatch/combine all-to-all, device placement, communication bottlenecks, capacity padding, total-weight memory, and a PyTorch routing simulation.
 
 ## 2026-08-15
+- **Query**: Answered the review of claims about one-million-token context and native multimodality; filed [Review of claims about million-token context and native multimodality](million-token-context-and-native-multimodality-claim-review.md).
 - **Query**: Answered “Đưa ra chi tiết kiến trúc của bạn”; expanded [Workload-conditioned frontier LLM architecture selection](workload-conditioned-frontier-llm-architecture-selection.md) with the proposed Hybrid-96 blueprint and its ablation plan.
 - **Query**: Answered “Theo bạn thiết kế kiến trúc nào tốt hơn nếu bạn được chọn. Hoặc bạn có đề xuất kiến trúc nào tốt nhất không”; filed [Workload-conditioned frontier LLM architecture selection](workload-conditioned-frontier-llm-architecture-selection.md).
 - **Ingest**: Compiled the [Qwen3.8-2.4T-A95B release bundle](../raw/Qwen3.8-2.4T-A95B/README.md); created its [checkpoint architecture](qwen3-8-2-4t-a95b-checkpoint-architecture.md) and [release-interface/evaluation limits](qwen3-8-2-4t-a95b-release-interface-and-evaluation-limits.md) concepts, and updated [sequential MTP](sequential-multi-token-prediction.md) with its declared-versus-implemented MTP boundary.
