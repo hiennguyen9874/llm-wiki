@@ -5,11 +5,14 @@ description: A late-fusion video classifier that separates appearance in RGB fra
 tags: [video, action-recognition, convnet, optical-flow, multi-task-learning]
 status: stable
 created: 2026-08-15
-generated: { by: llm-wiki-agent/1, at: 2026-08-15T10:21:19Z }
+generated: { by: llm-wiki-agent/1, at: 2026-08-15T10:23:21Z }
 sources:
   - id: two-stream-convnets
     resource: ../raw/Two-StreamConvNets/flow_net.tex
     title: Two-Stream Convolutional Networks for Action Recognition in Videos
+  - id: temporal-segment-networks
+    resource: ../raw/TemporalSegmentNetworks/tsn_pami.tex
+    title: Temporal Segment Networks for Action Recognition in Videos
 ---
 
 # Two-stream ConvNets for action recognition
@@ -34,6 +37,12 @@ The temporal stream cannot use still-image pretraining in the same way as the sp
 
 On HMDB-51 split 1, this multi-task setup reported 55.4% temporal-stream accuracy, versus 46.6% when training on HMDB-51 alone. On UCF-101 split 1, fusing the multi-task temporal stream with the spatial stream via an SVM reported 87.0% accuracy.[^two-stream-convnets]
 
+## TSN refinements
+
+Temporal Segment Networks retain the RGB and flow streams but sample snippets across equal-duration video segments and train on a consensus of their scores, rather than treating snippets independently.[^temporal-segment-networks] For temporal-stream initialization, the paper averages an ImageNet-pretrained RGB filter’s three input channels and replicates that average to the flow or RGB-difference input channels; it then freezes batch-normalization statistics except in the first layer during fine-tuning (*partial BN*).[^temporal-segment-networks]
+
+The same work evaluates stacked RGB differences as a motion representation that avoids optical-flow extraction. Its reported accuracy/throughput trade-off is specific to the paper’s UCF101 protocol and TitanX hardware, not a current deployment comparison.[^temporal-segment-networks]
+
 ## Evidence limits
 
 The reported full three-split results are 88.0% on UCF-101 and 59.4% on HMDB-51 with SVM fusion.[^two-stream-convnets] They rely on precomputed Brox optical flow and the paper’s benchmark protocols, so they do not establish current deployment cost, robustness, or superiority to later end-to-end video models.
@@ -43,5 +52,7 @@ The reported full three-split results are 88.0% on UCF-101 and 59.4% on HMDB-51 
 - **Applies to:** [Temporal action understanding](temporal-action-understanding.md) for clip-level action recognition.
 - **Part of:** [Video temporal learning](video-temporal-learning.md).
 - **Uses:** [Video temporal representation learning](video-temporal-representation-learning.md) in the limited sense of spatial ImageNet pretraining.
+- **Extended by:** [Temporal Segment Networks](temporal-segment-networks.md) for sparse video-level sampling and consensus learning.
 
 [^two-stream-convnets]: [Two-Stream Convolutional Networks for Action Recognition in Videos](../raw/Two-StreamConvNets/flow_net.tex)
+[^temporal-segment-networks]: [Temporal Segment Networks for Action Recognition in Videos](../raw/TemporalSegmentNetworks/tsn_pami.tex)

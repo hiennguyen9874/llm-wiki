@@ -5,11 +5,14 @@ description: Video tasks that recognize, localize, segment, or anticipate action
 tags: [video, temporal-learning, action-understanding]
 status: draft
 created: 2026-08-15
-generated: { by: llm-wiki-agent/1, at: 2026-08-15T10:12:47Z }
+generated: { by: llm-wiki-agent/1, at: 2026-08-15T10:23:21Z }
 sources:
   - id: video-temporal-survey
     resource: ../raw/TongHopCacHuongXuLyVideo.md
     title: Tổng hợp các hướng xử lý video
+  - id: temporal-segment-networks
+    resource: ../raw/TemporalSegmentNetworks/tsn_pami.tex
+    title: Temporal Segment Networks for Action Recognition in Videos
 ---
 
 # Temporal action understanding
@@ -27,6 +30,10 @@ Temporal action understanding separates four output granularities: clip-level re
 
 Localization must identify uncertain action boundaries; segmentation is susceptible to over-segmentation, where noisy predictions fragment an otherwise continuous action. Anticipation and online action understanding must not use future frames at prediction time.[^video-temporal-survey]
 
+## Untrimmed classification is not localization
+
+An untrimmed-video classifier can address varying action locations, durations, and background without returning intervals. For example, TSN’s M-TWI evaluates fixed-rate snippets, pools within multi-scale temporal windows, and aggregates windows into a video-level class score.[^temporal-segment-networks] This is distinct from temporal action localization, whose output must include action boundaries.
+
 ## Supervision trade-off
 
 Precise temporal intervals are expensive to annotate. Weakly supervised temporal action localization instead learns from video-level action labels while inferring frame or segment boundaries; the source lists multiple-instance learning, activation sequences, pseudo-labels, contrastive learning, and text supervision as families for this setting.[^video-temporal-survey]
@@ -35,5 +42,7 @@ Precise temporal intervals are expensive to annotate. Weakly supervised temporal
 
 - **Part of:** [Video temporal learning](video-temporal-learning.md).
 - **Uses:** [Video temporal representation learning](video-temporal-representation-learning.md) as a source of pretrained features.
+- **Uses:** [Temporal Segment Networks](temporal-segment-networks.md) for video-level classification across sparse global samples.
 
 [^video-temporal-survey]: [Tổng hợp các hướng xử lý video](../raw/TongHopCacHuongXuLyVideo.md)
+[^temporal-segment-networks]: [Temporal Segment Networks for Action Recognition in Videos](../raw/TemporalSegmentNetworks/tsn_pami.tex)
