@@ -1,0 +1,47 @@
+---
+type: Concept
+title: Two-stream ConvNets for action recognition
+description: A late-fusion video classifier that separates appearance in RGB frames from motion in stacked optical flow.
+tags: [video, action-recognition, convnet, optical-flow, multi-task-learning]
+status: stable
+created: 2026-08-15
+generated: { by: llm-wiki-agent/1, at: 2026-08-15T10:21:19Z }
+sources:
+  - id: two-stream-convnets
+    resource: ../raw/Two-StreamConvNets/flow_net.tex
+    title: Two-Stream Convolutional Networks for Action Recognition in Videos
+---
+
+# Two-stream ConvNets for action recognition
+
+Two-stream ConvNets classify video by separating static appearance from motion: a spatial ConvNet processes individual RGB frames, a temporal ConvNet processes a stack of dense optical-flow fields, and their class scores are fused late.[^two-stream-convnets] The separation makes motion explicit rather than requiring a network trained on limited video data to infer it from stacked RGB frames.
+
+## Architecture
+
+- The **spatial stream** applies an image ConvNet to sampled video frames. It can be pretrained on ImageNet, then adapted to the action dataset.[^two-stream-convnets]
+- The **temporal stream** receives $L$ consecutive flow fields as $2L$ channels: horizontal and vertical displacement for each field. In the reported architecture, it otherwise closely follows the spatial network’s convolutional and fully connected layers.[^two-stream-convnets]
+- At video level, sample and crop scores are averaged within each stream; the two softmax-score vectors are fused either by averaging or by a linear SVM trained on stacked, $L_2$-normalized scores.[^two-stream-convnets]
+
+## Motion representation choices
+
+The paper evaluates flow sampled at fixed image locations (*optical-flow stacking*) and along estimated trajectories (*trajectory stacking*). It also evaluates bidirectional flow and subtracting the per-field mean displacement, a simple mitigation for dominant camera motion.[^two-stream-convnets]
+
+On UCF-101 split 1, ten stacked flows with mean subtraction reached 81.0% temporal-stream accuracy, compared with 73.9% for one flow; bidirectional flow reached 81.2%, and trajectory stacking reached 80.2%.[^two-stream-convnets] These are paper-specific experimental results, not a general ranking across contemporary architectures.
+
+## Limited-data training
+
+The temporal stream cannot use still-image pretraining in the same way as the spatial stream. To share video training data from UCF-101 and HMDB-51 despite different class sets, the paper uses a shared network body with one dataset-specific softmax head and loss per dataset; each example activates only its dataset’s loss.[^two-stream-convnets]
+
+On HMDB-51 split 1, this multi-task setup reported 55.4% temporal-stream accuracy, versus 46.6% when training on HMDB-51 alone. On UCF-101 split 1, fusing the multi-task temporal stream with the spatial stream via an SVM reported 87.0% accuracy.[^two-stream-convnets]
+
+## Evidence limits
+
+The reported full three-split results are 88.0% on UCF-101 and 59.4% on HMDB-51 with SVM fusion.[^two-stream-convnets] They rely on precomputed Brox optical flow and the paper’s benchmark protocols, so they do not establish current deployment cost, robustness, or superiority to later end-to-end video models.
+
+## Relationships
+
+- **Applies to:** [Temporal action understanding](temporal-action-understanding.md) for clip-level action recognition.
+- **Part of:** [Video temporal learning](video-temporal-learning.md).
+- **Uses:** [Video temporal representation learning](video-temporal-representation-learning.md) in the limited sense of spatial ImageNet pretraining.
+
+[^two-stream-convnets]: [Two-Stream Convolutional Networks for Action Recognition in Videos](../raw/Two-StreamConvNets/flow_net.tex)
