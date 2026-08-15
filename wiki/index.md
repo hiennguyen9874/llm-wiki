@@ -9,6 +9,7 @@ The complete retrieval map for compiled knowledge. See [LLM Wiki Contract](../LL
 ## Concepts
 
 - [Long-video temporal modeling](long-video-temporal-modeling.md) — Scalable representations and retrieval mechanisms for preserving fine-grained events across long video contexts.
+- [Production temporal video analytics](production-temporal-video-analytics.md) — Selecting temporal models after detection and tracking by event complexity, latency, compute, data, and explainability constraints.
 - [Temporal action understanding](temporal-action-understanding.md) — Video tasks that recognize, localize, segment, or anticipate actions across time.
 - [Video temporal learning](video-temporal-learning.md) — A task taxonomy for learning temporal structure in video, spanning recognition, localization, representation learning, language grounding, and reasoning.
 - [Video temporal representation learning](video-temporal-representation-learning.md) — Pretraining video features to encode appearance, motion, order, dynamics, and longer-range semantics for downstream tasks.
