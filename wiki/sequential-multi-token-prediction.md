@@ -22,6 +22,12 @@ sources:
   - id: glm5-report-2026
     resource: ../raw/arXiv-2602.15763v2/0_main.tex
     title: "GLM-5: from Vibe Coding to Agentic Engineering"
+  - id: qwen38-config
+    resource: ../raw/Qwen3.8-2.4T-A95B/config.json
+    title: Qwen3.8-2.4T-A95B checkpoint configuration
+  - id: qwen38-modeling
+    resource: ../raw/Qwen3.8-2.4T-A95B/modeling_qwen3_5_moe.py
+    title: Qwen3.5-MoE Transformers reference implementation
 ---
 
 # Sequential multi-token prediction
@@ -48,6 +54,10 @@ GLM-5 trains three sequential MTP depths with shared parameters rather than allo
 
 [Nemotron 3.5 Lightning](nemotron-3-5-lightning-architecture-and-training.md) reports continued pre-training of MTP layers and MTP-accelerated RL rollouts. Its checkpoint config declares one next-token-prediction extension composed of full attention and MoE blocks. However, the bundled Transformers causal-LM implementation never constructs those configured MTP blocks or computes an MTP loss. This source therefore evidences the released model’s MTP metadata and training claim, but not a runnable implementation or acceptance/speed result for native MTP.[^nemotron-lightning-card][^nemotron-lightning-config][^nemotron-lightning-code]
 
+## Qwen3.8 checkpoint implementation boundary
+
+Qwen3.8-2.4T-A95B’s configuration declares one MTP hidden layer, but its supplied causal-LM implementation does not construct an MTP module and ignores unexpected `mtp.*` checkpoint keys. This establishes MTP metadata rather than a runnable MTP loss or inference/speculation path.[^qwen38-config][^qwen38-modeling]
+
 ## Relationships
 
 - **Used by:** [DeepSeek-V3 architecture and pretraining](deepseek-v3-architecture-and-pretraining.md) as a one-depth objective and [GLM-5 architecture, pre-training, and systems](glm-5-architecture-pretraining-and-systems.md) with three shared-parameter depths.[^glm5-report-2026]
@@ -67,3 +77,7 @@ This is primary evidence for the V3 implementation and its controlled ablations,
 [^nemotron-lightning-code]: NVIDIA/Hugging Face, “Nemotron-H modeling implementation,” [source](../raw/NVIDIA-Nemotron-3.5-Lightning-30B-A3B/modeling_nemotron_h.py), model and causal-LM classes.
 
 [^glm5-report-2026]: GLM-5 Team, “GLM-5: from Vibe Coding to Agentic Engineering,” arXiv:2602.15763v2, [pre-training section](../raw/arXiv-2602.15763v2/2_pretrain.tex), Multi-token Prediction with Parameter Sharing.
+
+[^qwen38-config]: Qwen Team, “Qwen3.8-2.4T-A95B checkpoint configuration,” [config](../raw/Qwen3.8-2.4T-A95B/config.json).
+
+[^qwen38-modeling]: Qwen Team and Hugging Face, “Qwen3.5-MoE Transformers reference implementation,” [source](../raw/Qwen3.8-2.4T-A95B/modeling_qwen3_5_moe.py), `Qwen3_5MoeForCausalLM`.
