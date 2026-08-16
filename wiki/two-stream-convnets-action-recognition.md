@@ -5,7 +5,7 @@ description: A late-fusion video classifier that separates appearance in RGB fra
 tags: [video, action-recognition, convnet, optical-flow, multi-task-learning]
 status: stable
 created: 2026-08-15
-generated: { by: llm-wiki-agent/1, at: 2026-08-15T10:23:21Z }
+generated: { by: llm-wiki-agent/1, at: 2026-08-16T02:03:58Z }
 sources:
   - id: two-stream-convnets
     resource: ../raw/Two-StreamConvNets/flow_net.tex
@@ -13,6 +13,9 @@ sources:
   - id: temporal-segment-networks
     resource: ../raw/TemporalSegmentNetworks/tsn_pami.tex
     title: Temporal Segment Networks for Action Recognition in Videos
+  - id: i3d-paper
+    resource: ../raw/I3D/full_kinetics_update_v0.tex
+    title: Quo Vadis, Action Recognition? A New Model and the Kinetics Dataset
 ---
 
 # Two-stream ConvNets for action recognition
@@ -43,6 +46,10 @@ Temporal Segment Networks retain the RGB and flow streams but sample snippets ac
 
 The same work evaluates stacked RGB differences as a motion representation that avoids optical-flow extraction. Its reported accuracy/throughput trade-off is specific to the paper’s UCF101 protocol and TitanX hardware, not a current deployment comparison.[^temporal-segment-networks]
 
+## I3D extension
+
+I3D preserves the two-stream separation but replaces each 2D ConvNet with an inflated 3D ConvNet that learns spatiotemporal features over a 64-frame input; the separately trained RGB and flow predictions are averaged at test time.[^i3d-paper] This makes temporal feature extraction internal to both streams rather than limiting motion processing to the flow input and late score fusion.
+
 ## Evidence limits
 
 The reported full three-split results are 88.0% on UCF-101 and 59.4% on HMDB-51 with SVM fusion.[^two-stream-convnets] They rely on precomputed Brox optical flow and the paper’s benchmark protocols, so they do not establish current deployment cost, robustness, or superiority to later end-to-end video models.
@@ -53,6 +60,8 @@ The reported full three-split results are 88.0% on UCF-101 and 59.4% on HMDB-51 
 - **Part of:** [Video temporal learning](video-temporal-learning.md).
 - **Uses:** [Video temporal representation learning](video-temporal-representation-learning.md) in the limited sense of spatial ImageNet pretraining.
 - **Extended by:** [Temporal Segment Networks](temporal-segment-networks.md) for sparse video-level sampling and consensus learning.
+- **Extended by:** [Inflated 3D ConvNets (I3D)](inflated-3d-convnets-i3d.md), which replaces each 2D stream with an inflated 3D ConvNet.
 
 [^two-stream-convnets]: [Two-Stream Convolutional Networks for Action Recognition in Videos](../raw/Two-StreamConvNets/flow_net.tex)
 [^temporal-segment-networks]: [Temporal Segment Networks for Action Recognition in Videos](../raw/TemporalSegmentNetworks/tsn_pami.tex)
+[^i3d-paper]: [Quo Vadis, Action Recognition? A New Model and the Kinetics Dataset](../raw/I3D/full_kinetics_update_v0.tex)
