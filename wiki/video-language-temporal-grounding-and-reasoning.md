@@ -5,7 +5,7 @@ description: Text-conditioned localization and inference over event timing, orde
 tags: [video, language, temporal-grounding, temporal-reasoning, video-llm]
 status: draft
 created: 2026-08-15
-generated: { by: llm-wiki-agent/1, at: 2026-08-16T03:40:02Z }
+generated: { by: llm-wiki-agent/1, at: 2026-08-16T10:43:17+07:00 }
 sources:
   - id: video-temporal-survey
     resource: ../raw/TongHopCacHuongXuLyVideo.md
@@ -22,6 +22,9 @@ sources:
   - id: videoitg-paper
     resource: ../raw/VideoITG/main.tex
     title: "VideoITG: Multimodal Video Understanding with Instructed Temporal Grounding"
+  - id: neus-qa-paper
+    resource: ../raw/NeuS-QA/main.tex
+    title: "NeuS-QA: Grounding Long-Form Video Understanding in Temporal Logic and Neuro-Symbolic Reasoning"
 ---
 
 # Video-language temporal grounding and reasoning
@@ -66,6 +69,10 @@ The reported full-attention selector scores a fixed candidate-frame budget and s
 
 A neuro-symbolic direction translates questions and video events into explicit temporal relations such as *before*, *overlaps*, and *during*, then uses those relations to retrieve evidence before visual-language reasoning. This is a proposed architectural pattern in the source, not a verified general solution.[^video-temporal-survey]
 
+## Logic-verified retrieval
+
+NeuS-QA makes temporal relations executable: it translates a question into event propositions and a temporal-logic specification, labels a frame-based video automaton with VLM detections, and model-checks the specification before sending a satisfying interval to an answering VLM. This is evidence for query-conditioned, interpretable retrieval under the source's benchmark setup, not a guarantee that the VLM grounded every event correctly.[^neus-qa-paper]
+
 ## Relationships
 
 - **Part of:** [Video temporal learning](video-temporal-learning.md).
@@ -75,9 +82,11 @@ A neuro-symbolic direction translates questions and video events into explicit t
 - **Uses:** [InternVideo2](internvideo2.md) for reported CG-DETR temporal-grounding evaluations, not as general temporal-reasoning evidence.[^internvideo2-paper]
 - **Includes:** [UniTime](unitime.md) as an MLLM temporal-grounding framework with textual timestamp tokens and coarse-to-fine long-video retrieval; this does not demonstrate general temporal reasoning.[^unitime-paper]
 - **Includes:** [VideoITG](videoitg.md) as instruction-conditioned clip retrieval and fixed-budget frame selection for a separate answering Video-LLM; this is not general temporal-reasoning evidence.[^videoitg-paper]
+- **Includes:** [NeuS-QA](neus-qa.md) as a temporal-logic and model-checking retrieval pipeline; its verification is conditional on VLM event grounding.[^neus-qa-paper]
 
 [^video-temporal-survey]: [Tổng hợp các hướng xử lý video](../raw/TongHopCacHuongXuLyVideo.md)
 [^internvideo-paper]: [InternVideo: General Video Foundation Models via Generative and Discriminative Learning](../raw/InternVideo/main.tex)
 [^internvideo2-paper]: [InternVideo2: Scaling Foundation Models for Multimodal Video Understanding](../raw/InternVideo2/main.tex)
 [^unitime-paper]: [Universal Video Temporal Grounding with Generative Multi-modal Large Language Models](../raw/UniTime/main.tex)
 [^videoitg-paper]: [VideoITG: Multimodal Video Understanding with Instructed Temporal Grounding](../raw/VideoITG/main.tex)
+[^neus-qa-paper]: [NeuS-QA: Grounding Long-Form Video Understanding in Temporal Logic and Neuro-Symbolic Reasoning](../raw/NeuS-QA/main.tex)

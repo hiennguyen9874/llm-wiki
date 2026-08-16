@@ -20,6 +20,7 @@ The complete retrieval map for compiled knowledge. See [LLM Wiki Contract](../LL
 - [Multiscale Vision Transformers (MViT)](multiscale-vision-transformers-mvit.md) — A staged video and image Transformer that pools token resolution while expanding channel capacity through its hierarchy.
 - [Memory-and-Anticipation Transformer (MAT)](memory-and-anticipation-transformer-mat.md) — A unified Transformer for online action detection and fixed-gap anticipation that compresses historical memory and iteratively exchanges it with latent future features.
 - [Non-local Neural Networks](non-local-neural-networks.md) — Neural-network blocks that directly aggregate pairwise feature relations across all spatial, temporal, or spacetime positions.
+- [NeuS-QA](neus-qa.md) — A training-free neuro-symbolic LVQA pipeline that translates questions into temporal-logic specifications, model-checks a VLM-grounded video automaton, and answers from the verified segment.
 - [Production temporal video analytics](production-temporal-video-analytics.md) — Selecting temporal models after detection and tracking by event complexity, latency, compute, data, and explainability constraints.
 - [R(2+1)D](r-2-plus-1-d.md) — A ResNet video architecture that factorizes each 3D convolution into spatial 2D and temporal 1D convolutions separated by a nonlinearity.
 - [SlowFast Networks](slowfast-networks.md) — A two-pathway video architecture that assigns sparse semantic processing and dense lightweight motion processing to separate temporal rates.

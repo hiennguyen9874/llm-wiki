@@ -1,6 +1,7 @@
 # Wiki Update Log
 
 ## 2026-08-16
+- **Ingest**: Compiled [NeuS-QA: Grounding Long-Form Video Understanding in Temporal Logic and Neuro-Symbolic Reasoning](../raw/NeuS-QA/main.tex); created [NeuS-QA](neus-qa.md) and updated [Video-language temporal grounding and reasoning](video-language-temporal-grounding-and-reasoning.md) and [Long-video temporal modeling](long-video-temporal-modeling.md).
 - **Ingest**: Compiled [VideoITG: Multimodal Video Understanding with Instructed Temporal Grounding](../raw/VideoITG/main.tex); created [VideoITG](videoitg.md) and updated [Video-language temporal grounding and reasoning](video-language-temporal-grounding-and-reasoning.md) and [Long-video temporal modeling](long-video-temporal-modeling.md).
 - **Ingest**: Compiled [Universal Video Temporal Grounding with Generative Multi-modal Large Language Models](../raw/UniTime/main.tex); created [UniTime](unitime.md) and updated [Video-language temporal grounding and reasoning](video-language-temporal-grounding-and-reasoning.md) and [Long-video temporal modeling](long-video-temporal-modeling.md).
 - **Ingest**: Compiled [LV-MAE: Learning Long Video Representations through Masked-Embedding Autoencoders](../raw/LV-MAE/main.tex); created [LV-MAE](lv-mae.md) and updated [Long-video temporal modeling](long-video-temporal-modeling.md), [Video temporal representation learning](video-temporal-representation-learning.md), [Temporal action understanding](temporal-action-understanding.md), and [InternVideo2](internvideo2.md).

@@ -5,7 +5,7 @@ description: Scalable representations and retrieval mechanisms for preserving fi
 tags: [video, long-context, temporal-learning, efficiency]
 status: draft
 created: 2026-08-15
-generated: { by: llm-wiki-agent/1, at: 2026-08-16T03:40:02Z }
+generated: { by: llm-wiki-agent/1, at: 2026-08-16T10:43:17+07:00 }
 sources:
   - id: vivit-paper
     resource: ../raw/ViViT/main_arxiv.tex
@@ -43,6 +43,9 @@ sources:
   - id: videoitg-paper
     resource: ../raw/VideoITG/main.tex
     title: "VideoITG: Multimodal Video Understanding with Instructed Temporal Grounding"
+  - id: neus-qa-paper
+    resource: ../raw/NeuS-QA/main.tex
+    title: "NeuS-QA: Grounding Long-Form Video Understanding in Temporal Logic and Neuro-Symbolic Reasoning"
 ---
 
 # Long-video temporal modeling
@@ -109,6 +112,10 @@ VideoITG uses an instruction-conditioned selector to score up to 512 candidate f
 
 This is a fixed-budget retrieval-and-selection strategy. The source reports improved benchmark scores over uniform sampling, but it does not establish lossless preservation of unselected events or unrestricted global attention over arbitrary-duration video.[^videoitg-paper]
 
+## Logic-verified interval retrieval
+
+NeuS-QA uses a query-conditioned alternative to uniform sampling: it retains a video interval only after a temporal-logic specification over VLM-detected events is satisfied by a frame-based automaton, then extends that interval for answer context. This constrains the answering VLM's input but does not remove the fixed cost of constructing the automaton or guarantee retention when the detector misses an event.[^neus-qa-paper]
+
 ## Architectural alternatives
 
 The source identifies local/hierarchical attention and state-space models as alternatives to full global attention. It motivates state-space approaches by approximately linear sequence scaling, but does not provide verified comparative evidence that they are preferable for a particular video task.[^video-temporal-survey]
@@ -129,6 +136,7 @@ The source identifies local/hierarchical attention and state-space models as alt
 - **Uses:** [LV-MAE](lv-mae.md) as clip-token compression followed by masked reconstruction across a bounded long-video sequence.[^lv-mae-paper]
 - **Uses:** [UniTime](unitime.md) as adaptive token allocation and hierarchical timestamp-conditioned retrieval for text queries, not as arbitrary-duration global memory.[^unitime-paper]
 - **Uses:** [VideoITG](videoitg.md) as instruction-conditioned scoring and top-$k$ selection from a fixed frame budget for a separate answering Video-LLM, not as arbitrary-duration global memory.[^videoitg-paper]
+- **Uses:** [NeuS-QA](neus-qa.md) as temporal-logic-constrained interval retrieval before VLM answering; automaton construction remains a VLM-grounding and compute bottleneck.[^neus-qa-paper]
 
 [^vivit-paper]: [ViViT: A Video Vision Transformer](../raw/ViViT/main_arxiv.tex)
 [^video-temporal-survey]: [Tổng hợp các hướng xử lý video](../raw/TongHopCacHuongXuLyVideo.md)
@@ -142,3 +150,4 @@ The source identifies local/hierarchical attention and state-space models as alt
 [^lv-mae-paper]: [LV-MAE: Learning Long Video Representations through Masked-Embedding Autoencoders](../raw/LV-MAE/main.tex)
 [^unitime-paper]: [Universal Video Temporal Grounding with Generative Multi-modal Large Language Models](../raw/UniTime/main.tex)
 [^videoitg-paper]: [VideoITG: Multimodal Video Understanding with Instructed Temporal Grounding](../raw/VideoITG/main.tex)
+[^neus-qa-paper]: [NeuS-QA: Grounding Long-Form Video Understanding in Temporal Logic and Neuro-Symbolic Reasoning](../raw/NeuS-QA/main.tex)
