@@ -58,6 +58,7 @@ The source recommends detector/tracker history followed by rules or TCNs as the 
 
 - **Applies:** [Video temporal learning](video-temporal-learning.md) to tracked-object and scene-video production pipelines.
 - **Uses:** [Temporal action understanding](temporal-action-understanding.md) for behavior and event outputs.
+- **Synthesized by:** [Real-time action-recognition deployment pattern](real-time-action-recognition-deployment-pattern.md), which combines the source's rule, per-track, interaction, and scene-level guidance into a staged deployment design.
 
 ## Evidence limits
 
