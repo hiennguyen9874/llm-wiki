@@ -5,7 +5,7 @@ description: Video tasks that recognize, localize, segment, or anticipate action
 tags: [video, temporal-learning, action-understanding]
 status: draft
 created: 2026-08-15
-generated: { by: llm-wiki-agent/1, at: 2026-08-16T02:46:34Z }
+generated: { by: llm-wiki-agent/1, at: 2026-08-16T09:57:51+07:00 }
 sources:
   - id: bmn-paper
     resource: ../raw/BMN/main.tex
@@ -19,6 +19,9 @@ sources:
   - id: ms-tcn-paper
     resource: ../raw/MS-TCN/egpaper_final.tex
     title: MS-TCN: Multi-Stage Temporal Convolutional Network for Action Segmentation
+  - id: mvit-paper
+    resource: ../raw/MViT/mvit_arxiv.tex
+    title: Multiscale Vision Transformers
 ---
 
 # Temporal action understanding
@@ -45,6 +48,10 @@ An untrimmed-video classifier can address varying action locations, durations, a
 
 Temporal action proposal generation returns class-agnostic intervals and confidence scores rather than detections. A two-stage detector can subsequently assign action categories to retrieved proposals. BMN is one such proposal generator: it combines predicted boundaries with a dense start-duration confidence map, while the paper supplies classification separately for its detection evaluation.[^bmn-paper]
 
+## Transformer backbone across task granularity
+
+MViT is evaluated as a fixed-clip Transformer backbone for Kinetics, Something-Something-V2, and Charades classification, then as a Kinetics-pretrained backbone with a video-adapted RoI head for AVA human-action detection.[^mvit-paper] The latter localizes actions around annotated frames with regions; it is not evidence that MViT alone outputs temporal action intervals or framewise segmentation.
+
 ## Supervision trade-off
 
 Precise temporal intervals are expensive to annotate. Weakly supervised temporal action localization instead learns from video-level action labels while inferring frame or segment boundaries; the source lists multiple-instance learning, activation sequences, pseudo-labels, contrastive learning, and text supervision as families for this setting.[^video-temporal-survey]
@@ -56,8 +63,10 @@ Precise temporal intervals are expensive to annotate. Weakly supervised temporal
 - **Uses:** [Temporal Segment Networks](temporal-segment-networks.md) for video-level classification across sparse global samples.
 - **Includes:** [Boundary-Matching Network (BMN)](boundary-matching-network.md) as a class-agnostic proposal-generation method.
 - **Includes:** [MS-TCN (Multi-Stage Temporal Convolutional Network)](ms-tcn.md) as a fully supervised frame-level segmentation method.
+- **Includes:** [Multiscale Vision Transformers (MViT)](multiscale-vision-transformers-mvit.md) as a Transformer backbone evaluated for clip classification and frame-centered human-action detection.[^mvit-paper]
 
 [^bmn-paper]: [BMN: Boundary-Matching Network for Temporal Action Proposal Generation](../raw/BMN/main.tex)
 [^video-temporal-survey]: [Tổng hợp các hướng xử lý video](../raw/TongHopCacHuongXuLyVideo.md)
 [^temporal-segment-networks]: [Temporal Segment Networks for Action Recognition in Videos](../raw/TemporalSegmentNetworks/tsn_pami.tex)
 [^ms-tcn-paper]: [MS-TCN: Multi-Stage Temporal Convolutional Network for Action Segmentation](../raw/MS-TCN/egpaper_final.tex)
+[^mvit-paper]: [Multiscale Vision Transformers](../raw/MViT/mvit_arxiv.tex)

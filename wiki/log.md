@@ -1,6 +1,7 @@
 # Wiki Update Log
 
 ## 2026-08-16
+- **Ingest**: Compiled [Multiscale Vision Transformers](../raw/MViT/mvit_arxiv.tex); created [Multiscale Vision Transformers (MViT)](multiscale-vision-transformers-mvit.md) and updated [long-video temporal modeling](long-video-temporal-modeling.md) and [temporal action understanding](temporal-action-understanding.md).
 - **Ingest**: Compiled [ViViT: A Video Vision Transformer](../raw/ViViT/main_arxiv.tex); created [ViViT](vivit.md) and updated [long-video temporal modeling](long-video-temporal-modeling.md) and [TimeSformer](timesformer.md).
 - **Ingest**: Compiled [Is Space-Time Attention All You Need for Video Understanding?](../raw/TimeSformer/TimeSformer_arxiv_v17.tex); created [TimeSformer](timesformer.md) and updated [long-video temporal modeling](long-video-temporal-modeling.md).
 - **Ingest**: Compiled [MS-TCN: Multi-Stage Temporal Convolutional Network for Action Segmentation](../raw/MS-TCN/egpaper_final.tex); created [MS-TCN](ms-tcn.md) and updated [temporal action understanding](temporal-action-understanding.md) and [Inflated 3D ConvNets (I3D)](inflated-3d-convnets-i3d.md).
