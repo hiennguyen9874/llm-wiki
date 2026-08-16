@@ -1,0 +1,424 @@
+\section{Experiments}
+\label{sec_exp}
+
+\subsection{Experimental Setups}
+
+\noindent \textbf{Datasets.} 
+To support universal temporal grounding, we compile a diverse dataset spanning varied scenes, genres, durations, and query types ({\em e.g.,} descriptions, questions, procedural instructions), as detailed in Table~\ref{table:datasets}.
+For evaluation, we benchmark our method across three categories: 
+(i) Short-video temporal grounding, including Charades-STA~\cite{sigurdsson2016hollywood}, ActivityNet-Captions~\cite{krishna2017dense}, and QVHighlights~\cite{lei2021detecting}.
+(ii) Long-video temporal grounding, including Ego4D-NLQ~\cite{grauman2022ego4d} and TaCoS~\cite{regneri2013grounding}.
+(iii) Video question answering (VideoQA), including two grounded benchmarks with temporally annotated queries (QaEgo4D~\cite{barmann2022did}, CG-Bench~\cite{cgbench}) and two general benchmarks (MLVU~\cite{mlvu}, LongVideoBench~\cite{longvideobench}). 
+The statistics of evaluation benchmarks we used are listed in Table~\ref{table:benchmarks}.
+
+\noindent \textbf{Evaluation Metrics.}
+For temporal grounding tasks, we adopt Recall@1 (\texttt{R1}) at multiple temporal intersection-over-union (IoU) thresholds and mean IoU (\texttt{mIoU}) as evaluation metrics. 
+Specifically, we use IoU thresholds of 0.3 and 0.5 for long-video benchmarks, 
+and 0.5 and 0.7 for short-video benchmarks. For general VideoQA tasks, 
+we report standard accuracy metrics, while for grounded VideoQA tasks, we also evaluate \texttt{R1}, \texttt{mIoU}, and intersection-over-prediction (\texttt{IoP}). More details about metrics are in the Appendix~\ref{sub:benchmarks}.
+
+\begin{table}[t]
+    \centering
+    \caption{
+    \textbf{Comparison with SoTA methods on video temporal grounding benchmarks.}
+    SP denotes the dataset-specific fine-tuning setting, and Full refers to the universal pre-training setting.
+    Best results are in \textbf{bold}. Improvements of UniTime-Full over SoTA are highlighted in \textcolor{darkgreen}{(green)}.}
+    \label{tab:sota}
+    \begin{subtable}[t]{0.48\textwidth}
+        \centering
+        \caption{Long-video temporal grounding benchmarks.}
+        \label{tab:ft_long}
+        \resizebox{1.0\textwidth}{!}{
+        \setlength{\tabcolsep}{0.1cm}
+        \begin{tabular}{l *{6}{r}}  % 1 left-aligned + 12 centered columns
+        \toprule
+        \multirow{2}{*}{Method} & 
+        \multicolumn{3}{c}{\textbf{Ego4D-NLQ}} & 
+        \multicolumn{3}{c}{\textbf{TaCoS}} \\
+        \cmidrule(lr){2-4} \cmidrule(lr){5-7}
+         & R1@.3 & R1@.5 & mIoU & R1@.3 & R1@.5 & mIoU \\
+        \midrule
+        2D-TAN~\cite{zhang2020learning} & 5.04 & 2.02 & 3.53 & 45.61 & 35.77 & - \\
+        VSLNet~\cite{zhang2020span} & 10.84 & 6.81 & 8.83 & 35.54 & 23.54 & 24.99 \\
+        RGNet~\cite{hannan2024rgnet} & 18.28 & 12.04 & 12.41 & - & - & - \\
+        SnAG~\cite{mu2024snag} & 15.87 & 11.26 & - & 56.44 & 44.86 & - \\
+        SG-DETR~\cite{gordeev2024saliency} & - & - & - & 56.71 & 44.70 & 40.90 \\
+        LD-DETR~\cite{zhao2025ld} & - & - & - & 57.61 & 44.31 & 40.30 \\
+        UniVTG~\cite{lin2023univtg} & 7.28 & 3.95 & 4.91 & 51.44 & 34.97 & 33.60 \\
+        UniVTG w/PT & 11.74 & 7.54 & 7.88 & 56.11 & 43.44 & 38.63 \\
+        Qwen2-VL-7B~\cite{wang2024qwen2} & 0.48 & 0.17 & 0.46 & 4.14 & 1.27 & 2.64 \\
+        Qwen2.5-VL-7B~\cite{bai2025qwen2} & 1.11 & 0.48 & 0.82 & 7.66 & 3.35 & 5.29 \\
+        \midrule
+        \rowcolor{green!5} UniTime-SP & {24.79} & {16.83} & {17.25} & {61.18} & {48.31} & {45.02}\\
+        \rowcolor{green!5}  & \textbf{27.09} & \textbf{18.41} & \textbf{18.80} & \textbf{66.91} & \textbf{55.14} & \textbf{50.00} \\
+        \rowcolor{green!5} \multirow{-2}{*}{UniTime-Full}
+& {\fontsize{8pt}{10pt}\selectfont \textcolor{darkgreen}{(+8.81)}} 
+& {\fontsize{8pt}{10pt}\selectfont \textcolor{darkgreen}{(+6.37)}} 
+& {\fontsize{8pt}{10pt}\selectfont \textcolor{darkgreen}{(6.39)}} 
+& {\fontsize{8pt}{10pt}\selectfont \textcolor{darkgreen}{(+9.30)}} 
+& {\fontsize{8pt}{10pt}\selectfont \textcolor{darkgreen}{(+10.44)}} 
+& {\fontsize{8pt}{10pt}\selectfont \textcolor{darkgreen}{(+9.10)}} \\
+        \bottomrule
+        \end{tabular}}
+    \end{subtable}
+    \hfill
+    \begin{subtable}[t]{0.5\textwidth}
+        \centering
+        \caption{Short-video temporal grounding benchmarks.}
+        \label{tab:ft_short}
+        \resizebox{1.0\textwidth}{!}{
+        \setlength{\tabcolsep}{0.1cm}
+        \begin{tabular}{l *{6}{r}}  % 1 left-aligned + 12 centered columns
+        \toprule
+        \multirow{2}{*}{Method} &  
+        \multicolumn{2}{c}{\textbf{Charades-STA}} & 
+        \multicolumn{2}{c}{\textbf{ANet-Captions}} & 
+        \multicolumn{2}{c}{\textbf{QVHighlights}} \\
+        \cmidrule(lr){2-3} \cmidrule(lr){4-5} \cmidrule(lr){6-7}
+         & R1@.5 & R1@.7 & R1@.5 & R1@.7 & R1@.5 & R1@.7 \\
+        \midrule
+        UnLoc-L~\cite{yan2023unloc} & 60.80 & 38.40 & 48.30 & 30.20 & 66.10 & 46.70 \\
+        SG-DETR~\cite{gordeev2024saliency} & 70.20 & 49.50 & - & -  & 72.20 & 56.60 \\
+        LD-DETR~\cite{zhao2025ld} & 62.58 & 41.56 & - & - & 66.80 & 51.04 \\
+        SnAG~\cite{mu2024snag} & 64.62 & 46.26 & 48.55 & 30.56 & - & - \\
+        UniVTG~\cite{lin2023univtg} & 58.01 & 35.65 & - & - & 58.86 & 40.86 \\
+        UniVTG w/PT & 60.19 & 38.55 & 42.41 & 21.55 & 65.43 & 50.06 \\
+        TimeSuite~\cite{zeng2024timesuite} & 67.10 & 43.00 & - & - & - & - \\
+        Mr.BLIP~\cite{meinardus2024surprising} & 69.31 & 49.29 & 53.92 & 35.55 & 74.77 & 60.51 \\
+        Qwen2-VL-7B~\cite{wang2024qwen2} & 7.18 & 3.28 & 3.87 & 1.74 & - & - \\
+        Qwen2.5-VL-7B~\cite{bai2025qwen2} & 60.32 & 34.27 & 16.96 & 8.75 & - & -\\
+        \midrule
+        \rowcolor{green!5} UniTime-SP & 74.33 & 53.71 & \textbf{54.81} & \textbf{36.62} & \textbf{77.76} & \textbf{63.29} \\
+        \rowcolor{green!5} & \textbf{75.27} & \textbf{56.85} & 53.67 & 35.90 & 76.72 & 62.65 \\
+        \rowcolor{green!5} \multirow{-2}{*}{UniTime-Full}
+& {\fontsize{8pt}{10pt}\selectfont \textcolor{darkgreen}{(+5.07)}} 
+& {\fontsize{8pt}{10pt}\selectfont \textcolor{darkgreen}{(+7.35)}} 
+& {\fontsize{8pt}{10pt}\selectfont \textcolor{gray}{(-0.25)}} 
+& {\fontsize{8pt}{10pt}\selectfont \textcolor{darkgreen}{(+0.35)}} 
+& {\fontsize{8pt}{10pt}\selectfont \textcolor{darkgreen}{(+1.95)}} & {\fontsize{8pt}{10pt}\selectfont \textcolor{darkgreen}{(+2.14)}}\\
+        \bottomrule
+        \end{tabular}}
+    \end{subtable}
+\vspace{-10pt}
+\end{table}
+
+\noindent \textbf{Implementation Details.}
+Our framework is built on PyTorch, with \texttt{Qwen2-VL-7B}~\cite{wang2024qwen2} as
+the base model.
+All experiments are conducted with a batch size of 8, using AdamW~\cite{loshchilov2017decoupled} optimizer with the learning rate 2e-4, and trained for one epoch with linear warmup during the first $3\%$ of steps. 
+The vision encoder is frozen, and the LLM is fine-tuned via LoRA~\cite{hu2022lora} (rank = 8, alpha = 8).
+We sample frames at 2 fps, with $N_f^{\text{short}}=128$ and $N_f^{\text{long}}=1024$, capping input video at 16,384 tokens.
+The default segment length and replication factor are set to 32 and 4, respectively.
+
+\subsection{Comparison with State-of-the-arts on Video Temporal Grounding}
+
+\noindent \textbf{{Dataset-specific Setting}.}
+In Table~\ref{tab:sota}, we compare our model against state-of-the-art methods on two long-video benchmarks and three short-video benchmarks.
+Under this setting, where models are trained and tested separately on each dataset, our method (\textbf{\Model{}-SP}) outperforms all existing approaches (including traditional and MLLM-based models), achieving absolute improvements of 6.39\% on Ego4D-NLQ, 9.10\% on TaCoS, 5.45\% on Charades-STA, 2.88\% on ANet-Captions, and 2.89\% on QVHighlights over prior best results.
+
+\noindent \textbf{{Universal Setting}.}
+To assess broad applicability, we train a single model (\textbf{\Model{}-Full}) on the largest collection of temporal grounding data (Table~\ref{table:datasets}, Parts I \& II).
+Unlike dataset-specific tuning, this setting prioritizes broad competence over specialized performance, ensuring the model robustly handles diverse video types and query styles in real-world scenarios.
+Without benchmark-specific fine-tuning, \textbf{\Model{}-Full} achieves superior performance across all evaluated benchmarks, demonstrating its effectiveness as a universal solution for video temporal grounding.
+
+
+\noindent \textbf{Zero-shot Setting.}
+To further test the generalization capability of our method, we pre-train a zero-shot model (\textbf{\Model{}-Zero}) on Part I datasets in Table~\ref{table:datasets}, while excluding all in-domain data (Part II).
+As shown in Table~\ref{table:sota_table_zs}, our method achieves superior zero-shot performance, highlighting its remarkable generalization capability. The error analysis on ANet-Captions can be found in the Appendix~\ref{sub:anet}.
+
+
+\begin{table}[t]
+\caption{
+\textbf{Zero-shot performance on video temporal grounding benchmarks.}
+Zero indicates zero-shot. All models are evaluated in the zero-shot setting.
+Numbers in \colorbox{gray!20}{gray} are sourced from the original paper; all others are tested by us using their released code and checkpoints.
+Improvements of UniTime-Zero over SoTA are highlighted in \textcolor{darkgreen}{(green)}.
+}
+\centering
+\resizebox{1.0\textwidth}{!}{
+\setlength{\tabcolsep}{0.1cm}
+\begin{tabular}{l *{15}{r}}  % 1 left-aligned + 12 centered columns
+\toprule
+\multirow{2}{*}{Method} & 
+\multicolumn{3}{c}{\textbf{Ego4D-NLQ}} & 
+\multicolumn{3}{c}{\textbf{TaCoS}} & 
+\multicolumn{3}{c}{\textbf{Charades-STA}} & 
+\multicolumn{3}{c}{\textbf{ANet-Captions}} & 
+\multicolumn{3}{c}{\textbf{QVHighlights}} \\
+\cmidrule(lr){2-4} \cmidrule(lr){5-7} \cmidrule(lr){8-10} \cmidrule(lr){11-13} \cmidrule(lr){14-16}
+ & R1@.3 & R1@.5 & mIoU & R1@.3 & R1@.5 & mIoU & R1@.5 & R1@.7 & mIoU & R1@.5 & R1@.7 & mIoU & R1@.5 & R1@.7 & mIoU \\
+\midrule 
+UniVTG~\cite{lin2023univtg} & \cellcolor{gray!20}{6.48} & \cellcolor{gray!20}{3.48} & \cellcolor{gray!20}{4.63} & \cellcolor{gray!20}{5.17} & \cellcolor{gray!20}{1.27} & \cellcolor{gray!20}{4.40} & \cellcolor{gray!20}{25.22} & \cellcolor{gray!20}{10.03} & \cellcolor{gray!20}{27.12} & 11.10 & 4.06 & 16.86 & \cellcolor{gray!20}14.13 & \cellcolor{gray!20}4.42 & \cellcolor{gray!20}23.38 \\
+Mr.BLIP~\cite{meinardus2024surprising} & {6.49} & {3.20}  & {5.37} & {24.59} & {14.32} & {17.94} & - & - & - & - & - & - & - & - & - \\
+VTG-LLM~\cite{guo2025vtg} & 1.71 & 0.46 & 1.36 & 6.87 & 2.92 & 5.27 & 34.11 & 15.81 & 34.93 & 12.32 & 6.74 & 17.86 & 4.13 & 1.55 & 8.60 \\
+Momentor~\cite{qian2024momentor} & - & - & - & - & - & - & \cellcolor{gray!20}{26.60} & \cellcolor{gray!20}{11.60} & \cellcolor{gray!20}{28.50} & \cellcolor{gray!20}\textbf{23.00} & \cellcolor{gray!20}{12.40} & \cellcolor{gray!20}\textbf{29.30} & - & - \\
+VTimeLLM~\cite{huang2024vtimellm} & {1.67} & {0.77} & {2.52} & {9.30} & {3.90} & {8.08} & \cellcolor{gray!20}{34.30} & \cellcolor{gray!20}{14.70} & \cellcolor{gray!20}{34.60} & - & - & - & 26.13 & 11.16 & 29.42 \\
+Timechat~\cite{ren2024timechat} & 1.67 & 0.79 & 1.30 & 3.77 & 1.60 & 2.95 & 29.73 & 12.53 & 31.20 & 16.38 & 8.36 & 21.53 & 8.32 & 4.26 & 14.25 \\
+TimeMarker~\cite{chen2024timemarker} & - & - & - & - & - & - & \cellcolor{gray!20}{51.90} & \cellcolor{gray!20}{26.90} & \cellcolor{gray!20}{48.40} & - & - & -  & - & - \\
+TimeSuite~\cite{zeng2024timesuite} & {0.88} & {0.43} & {0.94} & {6.75} & {2.50} & {5.71} & 48.95 & 24.65 & 45.91 & {16.56} & {9.28} & {22.03} & 12.32 & 9.16 & 21.30 \\
+\midrule
+\rowcolor{green!5} & \textbf{14.67} & \textbf{7.38} & \textbf{10.18} & \textbf{50.06} & \textbf{31.54} & \textbf{33.38} & \textbf{59.09} & \textbf{31.88} & \textbf{52.19} & {22.77} & \textbf{14.14} & {27.31} & \textbf{41.03} & \textbf{31.48} & \textbf{43.71} \\
+\rowcolor{green!5} \multirow{-2}{*}{UniTime-Zero}
+& {\fontsize{8pt}{10pt}\selectfont \textcolor{darkgreen}{(+8.18)}} 
+& {\fontsize{8pt}{10pt}\selectfont \textcolor{darkgreen}{(+3.90)}} 
+& {\fontsize{8pt}{10pt}\selectfont \textcolor{darkgreen}{(+4.81)}} 
+& {\fontsize{8pt}{10pt}\selectfont \textcolor{darkgreen}{(+25.47)}} 
+& {\fontsize{8pt}{10pt}\selectfont \textcolor{darkgreen}{(+17.22)}} 
+& {\fontsize{8pt}{10pt}\selectfont \textcolor{darkgreen}{(+15.44)}} 
+& {\fontsize{8pt}{10pt}\selectfont \textcolor{darkgreen}{(+7.19)}}
+& {\fontsize{8pt}{10pt}\selectfont \textcolor{darkgreen}{(+4.98)}}
+& {\fontsize{8pt}{10pt}\selectfont \textcolor{darkgreen}{(+3.79)}}
+& {\fontsize{8pt}{10pt}\selectfont \textcolor{gray}{(-0.23)}}
+& {\fontsize{8pt}{10pt}\selectfont \textcolor{darkgreen}{(+1.74)}}
+& {\fontsize{8pt}{10pt}\selectfont \textcolor{gray}{(-1.99)}}
+& {\fontsize{8pt}{10pt}\selectfont \textcolor{darkgreen}{(+14.90)}}
+& {\fontsize{8pt}{10pt}\selectfont \textcolor{darkgreen}{(+20.32)}}
+& {\fontsize{8pt}{10pt}\selectfont \textcolor{darkgreen}{(+14.29)}}\\
+\bottomrule
+\end{tabular}}
+\vspace{-5pt}
+\label{table:sota_table_zs}
+\end{table}
+
+\begin{table}[t]
+\begin{minipage}[t]{0.48\textwidth}
+    \centering
+    \captionof{table}{
+    \textbf{Closed-source Model Evaluation.} All models are evaluated on sampled subsets, with outputs lacking predicted timestamps excluded.}
+    \vspace{4pt}
+    \label{table:closed_source}
+    \resizebox{\textwidth}{!}{
+    \setlength{\tabcolsep}{0.15cm}
+    \renewcommand{\arraystretch}{1.25} 
+    \begin{tabular}{l *{6}{r}}  % 1 left-aligned + 12 centered columns
+    \toprule
+    \multirow{2}{*}{Model} & 
+    \multicolumn{3}{c}{\textbf{Ego4D-NLQ}} &
+    \multicolumn{3}{c}{\textbf{Charades-STA}} \\
+    \cmidrule(lr){2-4} \cmidrule(lr){5-7} 
+     & R1@.3 & R1@.5 & mIoU & R1@.5 & R1@.7 & mIoU \\
+    \midrule
+    Gemini-2.5-flash~\cite{comanici2025gemini} & 15.29 & 15.29 & 13.93 & 36.46 & 13.54 & 38.72 \\
+    Gemini-2.5-pro~\cite{comanici2025gemini} & \textbf{26.83} & \textbf{19.51} & \textbf{20.45} & 35.96 & 11.24 & 39.28 \\
+    GPT-4.1-mini~\cite{openai2025gpt4.1} & 5.00 & 3.00 & 5.04 & 31.00 & 17.00 & 31.46 \\
+    GPT-4o~\cite{openai2024gpt4o} & 10.59 & 7.06 & 7.97 & 41.11 & 17.78 & 43.82 \\
+    Seed1.5-VL~\cite{seed2025seed1_5vl} & 19.39 & 10.20 & 13.74 & \textbf{90.82} & \textbf{63.27} & \textbf{73.69} \\
+    UniTime-Full & 25.00 & 17.00 & 17.20 & 81.00 & 61.00 & 70.11 \\
+    \bottomrule
+    \end{tabular}}
+\end{minipage}%
+\hfill
+\begin{minipage}[t]{0.48\textwidth}
+    \centering
+    \captionof{table}{
+    \textbf{Flexibility Verification.}
+    Improvements over baseline are highlighted in \textcolor{darkgreen}{(green)}. All UniTime variants use the data-specific setting.
+}
+    \label{table:flexibility}
+    \vspace{2pt}
+    \resizebox{\linewidth}{!}{
+    \setlength{\tabcolsep}{0.1cm}
+    \begin{tabular}{l *{6}{l}}  % 1 left-aligned + 12 centered columns
+    \toprule
+    \multirow{2}{*}{Method} & 
+    \multicolumn{3}{c}{\textbf{Ego4D-NLQ}} &
+    \multicolumn{3}{c}{\textbf{Charades-STA}} \\
+    \cmidrule(lr){2-4} \cmidrule(lr){5-7} 
+     & R1@.3 & R1@.5 & mIoU & R1@.5 & R1@.7 & mIoU \\
+    \midrule
+    Qwen2-VL-2B~\cite{wang2024qwen2} & 0.34 & 0.34 & 0.42 & 2.23 & 0.51 & 6.70 \\
+    ~~~~~+\textbf{UniTime} & 10.50 & 5.80 & 7.29 \textcolor{darkgreen}{(+6.87)} & 65.38 & 42.18 & 57.25 \textcolor{darkgreen}{(+50.55)} \\
+    Qwen2-VL-7B~\cite{wang2024qwen2} & 0.48 & 0.17 & 0.46 & 7.18 & 3.28 & 8.98 \\
+    ~~~~~+\textbf{UniTime} & 24.79 & 16.83 & 17.25 \textcolor{darkgreen}{(+16.79)} & 74.33 & 53.71 & 63.15 \textcolor{darkgreen}{(+54.17)} \\
+    Qwen2.5-VL-7B~\cite{bai2025qwen2} & 1.11 & 0.48 & 0.82 & 60.32 & 34.27 & 52.42 \\
+    ~~~~~+\textbf{UniTime} & 23.53 & 16.12 & 16.61 \textcolor{darkgreen}{(+15.79)} & 74.19 & 53.98 & 63.62 \textcolor{darkgreen}{(+11.20)} \\
+    InternVL2.5-2B~\cite{chen2024expanding} & 0.33 & 0.22 & 0.42 & 5.48 & 1.77 & 9.30 \\
+    ~~~~~+\textbf{UniTime} & 9.87 & 5.26 & 7.46 \textcolor{darkgreen}{(+7.04)} & 69.49 & 47.77 & 59.03 \textcolor{darkgreen}{(+49.73} \\
+    InternVL2.5-8B~\cite{chen2024expanding} & 2.19 & 0.55 & 1.77 & 8.66 & 2.55 & 17.54 \\
+    ~~~~~+\textbf{UniTime} & 16.23 & 8.55 & 12.03 \textcolor{darkgreen}{(+10.26)} & 71.83 & 49.62 & 60.50 \textcolor{darkgreen}{(+42.96)} \\
+    \bottomrule
+    \end{tabular}}
+\end{minipage}
+\vspace{-15pt}
+\end{table}
+
+\subsection{Comparison with Closed-source models on Video Temporal Grounding}
+
+To comprehensively assess UniTime, we benchmarked mainstream closed-source MLLMs to examine whether UniTime surpasses them or narrows the gap on VTG tasks. We conducted temporal grounding experiments on a randomly sampled subset from Ego4D and Charades. As shown in Table~\ref{table:closed_source}, Seed1.5-VL~\cite{seed2025seed1_5vl} attained the strongest performance on short videos (72.2 mIoU on Charades), while Gemini-2.5-Pro~\cite{comanici2025gemini} exhibited superior grounding on long videos (20.5 mIoU on Ego4D). However, these closed-source models struggle to achieve high performance concurrently on both long and short videos, indicating a lack of generalization. In contrast, UniTime achieves competitive performance compared to these closed-source models while maintaining more balanced capabilities for both short and long-form video grounding benchmarks, proving our approach to be overall the best in terms of consistent performance across varying video types.
+
+
+\subsection{Flexibility Verification}
+\label{subsec:flexibility}
+As discussed in Section~\ref{sec:architecture}, our approach is compatible with any MLLM that processes dynamic frame inputs. To evaluate flexibility and generalization, we conduct experiments across multiple baseline MLLMs (e.g., \texttt{Qwen2-VL}, \texttt{Qwen2.5-VL}, \texttt{InternVL2.5}) and model scales. As shown in Table~\ref{table:flexibility}, larger MLLMs outperform their smaller counterparts, and our method consistently improves temporal grounding performance regardless of the underlying architecture. These results demonstrate strong generalization and flexibility, and indicate that the effectiveness of our framework continues to benefit from advances in MLLM architectures and increased model scale, enabling further gains in temporal grounding as more powerful models become available.
+
+\subsection{Ablation Studies}
+\label{subsec:ablation}
+
+\begin{table}[t]
+\begin{minipage}[t]{0.48\textwidth}
+    \centering
+    \captionof{table}{
+    \textbf{Ablation of the proposed modules.}
+    Adaptive Scaling refers to adaptive frame scaling and Segment Retrieval indicates multi-granular temporal prediction.}
+    \vspace{4pt}
+    \label{table:abl_cumu}
+    \resizebox{\textwidth}{!}{
+    \setlength{\tabcolsep}{0.15cm}
+    \renewcommand{\arraystretch}{1.25} 
+    \begin{tabular}{*{7}{c}}
+    \toprule
+    \multirow{2}{*}{\textbf{\makecell{Adaptive\\Scaling}}} & \multirow{2}{*}{\textbf{\makecell{Multi-stage\\Inference}}} & \multirow{2}{*}{\textbf{\makecell{Segment\\Retrieval}}} &
+    \multicolumn{3}{c}{\textbf{Ego4D-NLQ}} \\
+    \cmidrule(lr){4-6}
+     & & & R1@.3 & R1@.5 & mIoU\\
+    \midrule
+    \ding{55} & \ding{55} & \ding{55} & 14.25 & 7.54 & 9.83 \\
+    \checkmark & \ding{55} & \ding{55} & 14.00 & 7.51 & 9.83 \\
+    \ding{55} & \checkmark & \ding{55} & 18.42 & 12.13 & 12.78 \\
+    \checkmark & \checkmark & \ding{55} & 17.91 & 11.99 & 12.39 \\
+    \checkmark & \checkmark & \checkmark & \textbf{24.79} & \textbf{16.83} & \textbf{17.25} \\
+    \bottomrule
+    \end{tabular}}
+\end{minipage}%
+\hfill
+\begin{minipage}[t]{0.48\textwidth}
+    \centering
+    \captionof{table}{
+    \textbf{Robustness test on time shift and query decomposition.}
+    QD indicates query decomposition, 
+    TS denotes time shift, and Ratio is TS performance relative to the original.}
+    \label{table:abl_shift}
+    \vspace{2pt}
+    \resizebox{\linewidth}{!}{
+    \setlength{\tabcolsep}{0.2cm}
+    \begin{tabular}{l c c c c c c}
+    \toprule
+    \multirow{2}{*}{Method} & 
+    \multicolumn{5}{c}{\textbf{Charades-STA TS}} & \multirow{2}{*}{\textbf{Charades-STA}}\\
+    \cmidrule(lr){2-6}
+     & Shift & R1@.5 & R1@.7 & mIoU & Ratio & \textbf{IoG of QD}\\
+    \midrule
+    \multirow{2}{*}{VTimeLLM} & \ding{55} & 28.53 & 12.35 & 32.00 &  \multirow{2}{*}{53.67} & \multirow{2}{*}{68.99} \\
+     & \checkmark & 14.65 & 6.64 & 17.89 & & \\
+     \midrule
+     \multirow{2}{*}{Mr.BLIP} & \ding{55} & 70.05 & 50.24 & 59.38 &  \multirow{2}{*}{66.77} & \multirow{2}{*}{71.22} \\
+     & \checkmark & 51.32 & 26.91 & 43.63 &  & \\
+     \midrule
+    \multirow{2}{*}{TimeSuite} & \ding{55} & 48.65 & 24.01 & 45.32 &  \multirow{2}{*}{66.26} & \multirow{2}{*}{47.07} \\
+     & \checkmark & 37.02 & 13.55 & 31.54 &  & \\
+     \midrule
+     \multirow{2}{*}{UniTime-SP} & \ding{55} & 73.36 & 53.74 & 62.87 &  \multirow{2}{*}{\textbf{80.20}} & \multirow{2}{*}{\textbf{74.88}}\\
+     & \checkmark & 63.06 & 37.47 & 53.39 &  & \\
+    \bottomrule
+    \end{tabular}}
+\end{minipage}
+\vspace{-15pt}
+\end{table}
+
+\noindent \textbf{Effect of Individual Modules.} 
+To assess the contribution of each module, we conduct ablation studies on the Ego4D-NLQ benchmark, with results presented in Table~\ref{table:abl_cumu}.
+The study examines three key components: "Adaptive Scaling" for video input processing; "Multi-stage Inference" implementing coarse-to-fine grounding for long videos; and "Segment Retrieval" for coarse temporal grounding through inserting timestamps before segments.
+The results demonstrate three key findings:
+(i) Adaptive frame scaling (row 2) maintains performance comparable to uniform sampling (row 1) when used independently.
+(ii) Multi-stage inference yields consistent improvements for temporal grounding (row 3) through progressive refinement from lower to higher frame rates, and for spatial grounding (row 4) via progressive refinement from lower to higher resolution, with both coarse-to-fine grounding strategies benefiting from this hierarchical approach.
+(iii) Most notably, incorporating multi-granular temporal prediction~(row 5), 
+where the model first retrieves a coarse relevant segment and then localizes the precise moment within it, yields substantial improvements across all metrics. 
+These results highlight the effectiveness of the multi-stage temporal grounding framework. More details can be found in the Appendix~\ref{subsub:individual}.
+
+
+\noindent \textbf{Effect of Segment Length.} 
+Our universal temporal grounding framework operates in two stages: 
+(i) retrieving the video segment most relevant to the query; 
+(ii) predicting the precise temporal interval within it. 
+Segment length critically influences this process. We evaluate its impact using three metrics:
+Segment retrieval accuracy (R@1) measures the ability to identify the correct segment. Oracle grounding accuracy (oracle R1@0.3) reflects fine-grained localization given the ground-truth segment. Overall grounding accuracy (R1@0.3) assesses the overall end-to-end temporal grounding performance. As shown in Figure~\ref{fig:abl_clen&over}(a), longer segments improve segment retrieval accuracy but hinder fine-grained localization, resulting in lower oracle grounding performance. To balance this trade-off, we set the segment length to 32 for optimal overall accuracy.
+
+
+\noindent \textbf{Effect of Replication Factor.} 
+We investigate the impact of {replication} factor~($N_{\text{rep}}$), which balances long and short video samples during training.
+Figure~\ref{fig:abl_clen&over}(b) shows that increasing $N_{\text{rep}}$ initially improves segment retrieval but saturates and fluctuates later.
+In contrast, fine-grained grounding performance remains stable. Based on these results, we set $N_{\text{rep}}=4$ for optimal performance.
+
+
+\begin{figure*}[h]
+    \centering
+    \begin{minipage}[t]{0.62\linewidth}
+        \centering
+        \includegraphics[width=\linewidth]{img/ablation.pdf}
+        \captionof{figure}{
+        \textbf{Ablation on hyperparameters.}
+        We decouple the effects of Segment Length (left) and Replication Factor (right) on temporal grounding performance.
+        }
+        \label{fig:abl_clen&over}
+    \end{minipage}%
+    \hfill
+    \begin{minipage}[t]{0.34\linewidth} % Slightly smaller to add padding
+        \centering
+        \includegraphics[width=\linewidth]{img/bias.pdf}
+        \captionof{figure}{
+        \textbf{Temporal distribution bias in Charades-STA.}
+        \textcolor{navy}{Darker colors} indicate higher data density.
+        }
+        \label{fig:bias}
+    \end{minipage}
+\vspace{-10pt}
+\end{figure*}
+
+\subsection{Robustness Test}
+Generative models are known to produce hallucinations in their outputs~\cite{liu2024survey}.
+To evaluate robustness, we conduct experiments on the Charades-STA benchmark from two perspectives: (i) perturbing event positions to assess robustness against temporal distributional bias, and (ii) decomposing complex queries into simpler object-based questions to test the model’s reliability across query types.
+
+
+\noindent \textbf{Time Shift on Event.}
+Previous studies~\cite{hao2022can, otani2020uncovering} reveal significant biases in event distributions within temporal grounding datasets. As seen in Figure~\ref{fig:bias}, annotated events in Charades-STA are heavily concentrated near the start or end of videos.
+To assess robustness against such bias, we perturb the data distribution by sampling clips that contain the event segment but place it at randomized positions.
+As shown in Table~\ref{table:abl_shift}, our method exhibits greater robustness than other MLLM-based approaches, as evidenced by the higher performance ratio relative to the unperturbed baseline.
+
+\noindent \textbf{On Decomposition of Query.}
+Accurate localization of complex queries fundamentally depends on understanding the referenced objects or events.
+To address this, we prompt Qwen2~\cite{qwen2} to decompose each Charades-STA query into a set of object-based questions in the form of ``When does \texttt{<object>} appear?'', where \texttt{<object>} denotes an entity that can be grounded in the original query.
+For each decomposed query, we compute the intersection-over-ground-truth (IoG) between its predicted segment and the ground-truth segment.
+It is worth noting that this is only an approximate estimation, as an entity may appear in multiple temporal segments, while annotations typically provide only a single segment.
+As shown in Table~\ref{table:abl_shift}, our approach demonstrates superior query understanding and more reliable localization, with fewer hallucinations compared to other methods.
+
+Recently, a related work~\cite{jung2025consistency} focuses on prediction consistency: they also curate test data by rephrasing original queries and shifting ground-truth moments in videos to probe grounding consistency. For detailed tests and comparisons, please refer to the Appendix~\ref{sec:consistency}.
+
+\begin{table}[b]
+\vspace{-20pt}
+\caption{
+\textbf{Performance on VideoQA benchmarks.}
+R@IoU is the mean Recall@1 at IoU thresholds $[0.1:0.1:0.5]$. For grounded VideoQA, IoP and mIoU are used as grounding metrics.}
+\vspace{5pt}
+\centering
+\resizebox{1.0\textwidth}{!}{
+\setlength{\tabcolsep}{0.2cm}
+\begin{tabular}{l *{10}{c}}  % 1 left-aligned + 12 centered columns
+\toprule
+\multirow{2}{*}{Method} & 
+\multicolumn{4}{c}{\textbf{QaEgo4D}} &
+\multicolumn{4}{c}{\textbf{CG-Bench}} & \textbf{MLVU} & \textbf{LongVideoBench} \\
+\cmidrule(lr){2-5} \cmidrule(lr){6-9} \cmidrule(lr){10-10} \cmidrule(lr){11-11}
+ & IoP & R1@.5 & mIoU & Acc. &
+ IoP & R@IoU & mIoU & Acc. & Acc. & Acc. \\
+\midrule
+Uniform Sample & 3.67 & - & - & 49.60 & 1.08 & - & - & 33.87  & 60.53 & 54.82 \\
+UniVTG~\cite{lin2023univtg} & 9.80 & 6.20 & 7.76 & 50.00 & 1.37 & 4.92 & 3.86 & 34.87 & 62.56 & 54.67 \\
+VTimeLLM~\cite{huang2024vtimellm} & 3.87 & 1.40 & 3.68 & 48.60 & 1.62 & 1.22 & 1.58 & 34.60 & 59.52 & 54.30 \\
+TimeSuite~\cite{zeng2024timesuite} & 6.28 & 0.20 & 1.22 & 48.80 & 5.06 & 2.89 & 2.09 & 32.47 & 58.51 & 53.25 \\
+\midrule
+\rowcolor{green!5}
+UniTime-Full & \textbf{25.29} & \textbf{19.00} & \textbf{18.44} & \textbf{55.51} & \textbf{16.64} & \textbf{17.66} & \textbf{11.63} & \textbf{40.30} & \textbf{66.50} & \textbf{56.47} \\
+\bottomrule
+\end{tabular}}
+\label{table:qa}
+\end{table}
+
+
+\vspace{-5pt}
+\subsection{Downstream Task}
+\label{subsec:down}
+\vspace{-5pt}
+To validate the effectiveness of our universal temporal grounding model in facilitating long video understanding as discussed in Section~\ref{sec:intro}, we evaluate on four VideoQA benchmarks.
+As a baseline, we uniformly sample 32 frames from each video and input them to the \texttt{Qwen2-VL-7B} model for answer generation.
+To assess the impact of different temporal grounding approaches on downstream VideoQA, we first use each model to predict the relevant temporal segment for each question, then uniformly sample 32 frames from the predicted segment and feed them into \texttt{Qwen2-VL-7B} for answer prediction.
+As shown in Table~\ref{table:qa}, our method exhibits superior generalization compared to existing temporal grounding models, demonstrating robust grounding performance on out-of-domain data and enhancing long video understanding. Refer to Appendix~\ref{sub:donwstream} for VideoQA evaluation details.

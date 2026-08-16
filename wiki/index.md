@@ -27,6 +27,7 @@ The complete retrieval map for compiled knowledge. See [LLM Wiki Contract](../LL
 - [Temporal action understanding](temporal-action-understanding.md) — Video tasks that recognize, localize, segment, or anticipate actions across time.
 - [Temporal Segment Networks](temporal-segment-networks.md) — A video-level action-recognition framework that samples snippets across equal temporal segments and learns their consensus.
 - [Two-stream ConvNets for action recognition](two-stream-convnets-action-recognition.md) — A late-fusion video classifier that separates appearance in RGB frames from motion in stacked optical flow.
+- [UniTime](unitime.md) — An MLLM-based universal video temporal-grounding framework that interleaves textual timestamps with scaled video tokens and retrieves moments coarse-to-fine.
 - [Video Swin Transformer](video-swin-transformer.md) — A hierarchical video Transformer that uses alternating local and shifted 3D attention windows to model spacetime efficiently.
 - [VideoMAE](videomae.md) — A self-supervised video-pretraining method that reconstructs heavily tube-masked video cubes with an asymmetric Vision Transformer autoencoder.
 - [Video temporal learning](video-temporal-learning.md) — A task taxonomy for learning temporal structure in video, spanning recognition, localization, representation learning, language grounding, and reasoning.

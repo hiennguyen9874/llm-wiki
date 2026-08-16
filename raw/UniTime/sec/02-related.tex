@@ -1,0 +1,25 @@
+\section{Related Work}
+\label{sec:related}
+\noindent \textbf{Video Temporal Grounding~(VTG)} 
+tasks can typically be categorized into short- and long-duration scenarios. 
+For short videos, SOTA methods primarily adopt DETR-like architectures~\cite{carion2020end,lei2021detecting,moon2023query,moon2023correlation,gordeev2024saliency}. 
+For example, Moment-DETR~\cite{lei2021detecting} formulates moment retrieval as a set prediction problem with a transformer-based encoder–decoder, enabling end-to-end prediction of moment coordinates and saliency. Recent works further enhance performance by introducing prior knowledge~\cite{jang2023knowing} and advanced attention mechanisms~\cite{moon2023query,moon2023correlation}.
+%
+Non-DETR methods, such as UMT~\cite{liu2022umt} and Mr.BLIP~\cite{meinardus2024surprising}, leverage multi-modal cues and large language models, respectively. 
+While effective for short videos, these methods struggle with long videos, where sparse relevant moments create a ``needle-in-a-haystack'' challenge. 
+Recent works~\cite{hou2022cone,pan2023scanning} employ coarse-to-fine alignment and hierarchical pipelines to address this.
+%
+Despite the progress on individual benchmarks, fundamental differences between short and long videos hinder the development of unified models. 
+While UniVTG~\cite{lin2023univtg} attempts to bridge this gap, its lightweight architecture limits generalization, especially in out-of-domain scenarios~\cite{shi2024aotd}.
+This motivates our work to develop a universal grounding model capable of (i) handling videos of arbitrary duration, (ii) robustly generalizing across domains, and (iii) excelling in downstream tasks like video question answering.
+
+
+\noindent \textbf{Temporal Grounding with Multi-modal Language Models~(MLLMs).}
+While MLLMs have achieved remarkable success across various multi-modal tasks~\cite{lai2024lisa,pi2023detgpt,liu2024lamra}, accurate temporal grounding remains challenging. Existing temporal integration approaches in MLLMs can be grouped into three paradigms:
+(i) time-agnostic models: VTimeLLM~\cite{huang2024vtimellm} processes fixed-length videos (100 frames) without explicit temporal cues, predicting normalized moment positions; LITA~\cite{huang2024lita} replaces the predicted textual timestamps with special time tokens. The lack of explicit temporal signals often leads to suboptimal performance.
+(ii) implicit timestamp-encoded models: These methods incorporate timestamp-aware encoders, such as TimeChat~\cite{ren2024timechat} and TimeSuite~\cite{zeng2024timesuite}, which fuse frame and temporal embeddings. VTG-LLM~\cite{guo2025vtg} uses absolute time embeddings, while Qwen2.5-VL~\cite{bai2025qwen2} employs MRoPE for temporal modeling. Despite advances, these methods require extensive pretraining and may hallucinate timestamps due to implicit temporal representations.
+(iii) explicit temporal marking models: Methods like Mr.BLIP~\cite{meinardus2024surprising}, TimeMarker~\cite{chen2024timemarker}, and VideoLLaMA3~\cite{zhang2025videollama} prepend textual timestamps to video frames, leveraging retrieval capabilities of MLLMs to match DETR-based performance.
+Although these approaches have advanced short video temporal grounding, they are constrained by context windows and GPU memory, limiting scalability to long videos. To address this, we propose a framework that adaptively adjusts scales of video frames, combined with a multi-scale, coarse-to-fine iterative temporal grounding strategy tailored for long video understanding.
+
+\noindent \textbf{Long Video Understanding} is significantly more challenging than short video or image-based tasks due to complex temporal dynamics and substantial redundancy. The large number of frames dramatically increases memory and computational demands, making dense sampling impractical. Existing video MLLMs~\cite{bai2025qwen2,wang2024qwen2,zhang2024video} often rely on uniform frame sampling, which risks omitting critical information. To address this, some approaches compress frames into minimal token sets to reduce computational costs~\cite{shen2024longvu,li2024videochat,zhang2024beyond}, while others focus on more effective frame sampling strategies~\cite{ye2025re,tang2025adaptive,hu2025m,di2025rekv}.
+Despite these advancements, temporal grounding—crucial for retrieving salient events—remains underexplored in the context of long videos. In this work, we leverage temporal grounding to identify key events, enhancing the understanding of long-form video content.

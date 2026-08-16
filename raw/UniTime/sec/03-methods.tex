@@ -1,0 +1,192 @@
+% Framework
+\vspace{-5pt}
+\section{Methods}
+\label{sec:method}
+\vspace{-5pt}
+In this section, we introduce \textbf{\Model{}}, a novel framework for universal video temporal grounding, adapted from pre-trained Multi-modal Large Language Models~(MLLMs). Our approach achieves precise temporal grounding across videos of diverse scenes, genres, and durations, and employs an iterative coarse-to-fine strategy to handle long videos. 
+In the following, Section~\ref{sec:problem} formalizes the problem setting. Section~\ref{sec:architecture} presents our architecture and its core modules, which support flexible temporal grounding at arbitrary granularities via inference-time computation. Section~\ref{sec:training} details an efficient training paradigm that equips MLLMs with universal temporal grounding capabilities.
+
+
+\subsection{Problem Formulation}
+\label{sec:problem}
+Given an untrimmed video sequence $\mathcal{V}= \{f_1, \dots, f_{N_f}\} \in \mathbb{R}^{N_f \times H \times W \times 3}$ sampled at timestamps $\mathcal{T} = \{t_1, \dots, t_{N_f}\}$ and a free-form text query $\mathcal{Q}$ (either a complex question or a plain description), our task is to identify all temporal moments $\mathcal{Y} = \{(s_1,e_1), \dots, (s_K,e_K)\}$ that semantically match the query, 
+where each $s_k, e_k \in \mathcal{T}$  denotes a start and end timestamp, respectively:
+\begin{align*}
+\mathcal{Y} = \Phi_{\text{\Model{}}}(\mathcal{V}, \mathcal{T}, \mathcal{Q}).
+\end{align*}
+With this formulation, temporal grounding is achieved by identifying the frames most relevant to the query and retrieving their timestamps. 
+By adjusting the granularity of $\mathcal{T}$, our design supports multi-scale temporal predictions, enabling efficient coarse-to-fine grounding for long videos through inference-time computation, as shown in Figure~\ref{fig:teaser}(b).
+
+\subsection{Universal Temporal Grounding Model}
+\label{sec:architecture}
+
+The core innovation of \Model{} lies in its capability 
+to perform predictions at multiple temporal granularities for videos of diverse lengths.
+The model consists of three key components:
+(i) adaptive frame scaling for constructing multi-granular
+video inputs, 
+(ii) timestamp-interleaved sequence construction enabling multi-scale temporal window prediction, and (iii) multi-scale prediction for coarse-to-fine temporal grounding during inference, as illustrated in Figure~\ref{fig:framework}.
+
+\noindent \textbf{Adaptive Frame Scaling.} 
+A central challenge in universal temporal grounding is handling videos with highly variable durations, ranging from a few seconds to several hours. Applying fixed temporal and spatial resolutions across such diverse inputs is inefficient and often impractical, especially for MLLMs constrained by limited context windows and GPU memory.
+
+To address this, we propose an adaptive frame scaling mechanism that dynamically adjusts per-frame token budget ($N_{\text{res}}$) based on video duration, allocating high spatial resolution to short videos and low resolution to long videos.
+Specifically, given a video $\mathcal{V}$ with constant frame rate ($N_f$ frames in total), each frame is allocated $N_{\text{res}} = \lfloor N_{\text{total}} / N_f \rfloor$ tokens, where $N_{\text{total}}$ is the total token budget.
+To support varying spatial granularities, we set two thresholds, $N_f^{\text{short}}$ and $N_f^{\text{long}}$, as the maximum number of frames for short and long videos, respectively. Frames are then processed as:
+\begin{equation*}
+  \mathbf{V}_i = \begin{cases}
+    \phi_{\text{project}}\big(\phi_{\text{vision}}(
+\psi_\text{resize}(f_i))\big) \in \mathbb{R}^{N_{\text{res}} \times d}, & N_f < N_f^{\text{short}}.\\
+    \psi_\text{compress}(\phi_{\text{projector}}\big(\phi_{\text{vision}}(f_i))\big) \in \mathbb{R}^{N_{\text{res}} \times d}, & N_f^{\text{short}} \leq N_f < N_f^{\text{long}}.
+  \end{cases}
+\end{equation*}
+where $\phi_{\text{vision}}(\cdot)$ is the vision encoder, which supports dynamic input resolutions with a fixed patch size of $P$, and $\phi_{\text{project}}(\cdot)$ is the projection module.
+$\psi_{\text{resize}}(\cdot)$ denotes the frame resizing function, which adjusts the spatial resolution of each frame so that it can be partitioned into $N_{\text{res}}$ patches of size $P \times P$ pixels.
+$\psi_{\text{compress}}(\cdot)$ denotes token compression via bilinear interpolation, yielding $N_{\text{res}}$ tokens as the final representation. 
+Unlike frame resizing, which may degrade spatial details, token compression reduces redundancy at the token level while better preserving key semantic information, especially for long videos with low resolutions per frame.
+When the number of frames exceeds $N_f^{\text{long}}$, the video is divided into multiple clips of length $N_f^{\text{long}}$ for divide-and-conquer processing. 
+The ablation experiments of token budget, thresholds and the input processing strategy can be found in Appendix~\ref{sub:hyper} and \ref{sub:input_process}.
+
+\noindent \textbf{Discussion.}
+Existing MLLMs typically employ fixed frame sizes and token allocations~\cite{video_chatgpt,llava_next_video,llava_onevision}, which limits their ability to encode long videos effectively. To handle such inputs, these models must resort to sparse temporal sampling, resulting in significant loss of detailed visual content.
+In contrast, our adaptive strategy dynamically employs higher spatial resolutions for short videos and lower ones for longer videos. This allows for efficient and scalable modeling across diverse video lengths, maximizing the utility of the available token budget and model capability.
+
+\noindent \textbf{Timestamp-Interleaved Sequence Construction.}
+To associate frames with their timestamps, we encode temporal information by interleaving timestamp tokens between visual tokens. 
+For a frame $f_i$ sampled at timestamp $t_i$, 
+the timestamp is represented as free text $\tau_i=$ \texttt{``timestamp:$~t_i$ seconds''},
+and inserted before visual tokens of $f_i$, forming an interleaved sequence:
+\begin{equation}
+\label{equ:short}
+    \mathcal{S} = [\mathbf{T}_1;\mathbf{V}_1;\mathbf{T}_2;\mathbf{V}_2;\dots;\mathbf{T}_{N_f};\mathbf{V}_{N_f};\mathcal{Q}],\quad \mathbf{T}_i = \phi_{\text{tokenizer}}(\tau_i)
+\end{equation}
+where $\phi_{\text{tokenizer}}(\cdot)$ is the tokenizer.
+This interleaved sequence is input to the large language models~(LLMs), 
+which generates temporal boundaries for a given query $Q$, with the output formatted as $\mathcal{A}=$\texttt{``From $s_k$ seconds to $e_k$ seconds''}. 
+Note that, unlike conventional methods that predict the exact moment in the original video, our model instead predicts the minimal timestamp interval $(s_{k}, e_{k})$ from the sampled timestamps set $\mathcal{T}$. 
+That is to say, we leverage the retrieval capabilities of MLLMs to read out the inserted timestamp tokens, rather than decoding dense position encodings. For a comparison of these temporal information encoding approaches, refer to the Appendix~\ref{sub:temporal encoding}.
+
+It is worth noting that direct fine-grained temporal interval prediction on coarse-grained long video inputs is inherently unreliable, as the lack of detailed spatial information often results in ambiguous or inaccurate predictions.
+This highlights the necessity of adopting predictions at different scales for videos with varying granularities.
+Our framework addresses this challenge by offering inherent flexibility in timestamp token insertion, making it adaptable to varying granularities. Specifically, timestamp tokens can be interleaved at different scales: before each frame for fine-grained temporal predictions, or before fixed-length segments for coarse-grained temporal reasoning.
+
+\begin{figure*}[t]
+    \centering
+    \includegraphics[width=\linewidth]{img/arch_arxiv.pdf}
+    \captionof{figure}{Overview of the proposed \textbf{\Model{}} framework. (a) \Model{} achieves universal temporal grounding by leveraging adaptive frame scaling to construct multi-scale video inputs and then generate multi-scale predictions, allowing robust grounding across diverse video durations.
+    (b) Within the model architecture, \Model{} constructs an interleaved sequence of timestamps and scaled frame features, which, combined with the language query, is fed into the LLM and then identifies the corresponding temporal interval from the timestamp tokens.}
+    \label{fig:framework}
+    \vspace{-10pt}
+\end{figure*}
+
+We divide the input video into $N_s$ segments 
+$\{\mathbf{S}_j\}_{j=1}^{N_s}$, each comprising $\mathbf{L}_s$ frames.
+Here, for the $j^{th}$ segment, $\mathbf{S}_j = [\mathbf{V}_{s_j}; \mathbf{V}_{s_j + 1};\cdots; \mathbf{V}_{s_j + {\mathbf{L}_s} - 1}] \in \mathbb{R}^{\mathbf{L}_s \times N_{\text{res}} \times d}$, 
+where $s_j$ is the start index of the segment and we use the corresponding timestamp $t_{s_j}$ at the beginning of each segment to represent its temporal location. Note that we prepend only a single timestamp text token to each segment, thereby providing coarse-grained temporal supervision. We also feed the interleaved timestamps, visual tokens, and the query into the LLM to retrieve the target segment.
+\begin{equation}
+\label{equ:long}
+    \mathcal{S} = [\mathbf{T}_1;\mathbf{S}_1;\mathbf{T}_2;\mathbf{S}_2;\cdots;\mathbf{T}_{N_s};\mathbf{S}_{N_s};\mathcal{Q}],\quad \mathbf{T}_i = \phi_{\text{tokenizer}}(\tau_{s_j})
+\end{equation}
+
+\noindent \textbf{Discussion.} 
+Here, explicitly providing timestamps offers several crucial advantages: 
+(i) \textbf{Improved temporal grounding}. These explicit timestamp tokens help the LLM effectively associate visual content with its corresponding temporal position in the video, allowing it to generalize to temporal grounding tasks.
+(ii) \textbf{Alignment-free integration.} As the inserted timestamps are textual, they naturally reside in the language space and do not require realignment. In contrast, methods based on learned vectors necessitate additional embedding alignment, thereby complicating the LLM’s understanding of temporal information.
+(iii) \textbf{Generalisable temporal reasoning.} When combined with adaptive frame scaling, explicitly provided timestamp tokens allow the model to directly refer to the temporal cues, potentially enabling extrapolation. For example, as demonstrated in Section~\ref{subsec:down}, this design allows the model to be trained on short or medium-length videos ({\em e.g.}, around 6 minutes), while still generalizing effectively to much longer videos ({\em e.g.}, 20 minutes) during inference on downstream tasks.
+(iv) \textbf{Model-agnostic design.} This method is plug-and-play and can be easily incorporated into diverse model architectures with minimal modifications, which is validated in Section~\ref{subsec:flexibility}, eliminating the need for architecture-specific adjustments such as custom positional encoding schemes~\cite{guo2025vtg,bai2025qwen2}. 
+
+\paragraph{Universal Temporal Grounding with Multi-stage Inference.}
+Building on these designs, our framework achieves universal temporal grounding by processing input frames at different spatial resolutions and generating temporal predictions at appropriate granularities, according to video duration. 
+For long videos, we employ a hierarchical, multi-stage inference strategy. Specifically, if a video exceeds $N_f^{\text{long}}$ frames, it is partitioned into multiple clips, each of length $N_f^{\text{long}}$. Segment retrieval is first performed within each clip to identify potentially relevant segments. The retrieved segments from all clips are then aggregated and subjected to further segment retrieval, and this process can be repeated recursively if necessary.
+Finally, fine-grained grounding is conducted within the final selected segments.
+As evidenced by Section~\ref{subsec:ablation}, this flexible and hierarchical inference process ensures accurate and efficient temporal grounding across diverse video durations.
+
+
+\subsection{Training}
+\label{sec:training}
+
+In this section, we first describe the training objective for temporal grounding, 
+followed by a detailed explanation of the hierarchical data construction for multi-granularity training. We then present a video-centric training mechanism to improve training efficiency.
+
+\noindent \textbf{Training Loss.}
+The model is trained with an auto-regressive objective over mini-batches. 
+For each training sample $(\mathcal{V}, \mathcal{T}, \mathcal{Q}, \mathcal{Y})$, {\em i.e.,} the video, timestamps, text query, and target, the prompt sequence $\mathcal{S}$ is constructed based on Equation~\ref{equ:short} or~\ref{equ:long} for short and long videos, respectively. Then, the model minimizes the negative log-likelihood over the target tokens only:
+\begin{equation*}
+    \mathcal{L}(\mathcal{S}, \mathcal{Y}) = -\sum_{i=1}^{N_y} \log P(y_t \mid \mathcal{S}, y_{<i}; \theta)
+\end{equation*}
+where $N_y$ is the target length.
+
+\begin{table}[t]
+\vspace{-7pt}
+\caption{
+\textbf{Statistics of temporal grounding datasets.}
+The datasets in Part I are used exclusively for pre-training, while those in Part II are the training sets of benchmarks. 
+}
+\centering
+\resizebox{\textwidth}{!}{
+\setlength{\tabcolsep}{0.25cm}
+\begin{tabular}{l l r r r r r r}
+\toprule
+ & \textbf{Dataset} & \textbf{\makecell[c]{\#Videos}} & \textbf{\makecell[c]{\#Queries}} & \textbf{\makecell[c]{Video Len.}} & \textbf{\makecell[c]{Moment Len.}} & \textbf{Views} & \textbf{Domain}\\
+\midrule
+\multirow{7}{*}{\makecell[c]{I}} 
+ & NaQ~\cite{ramakrishnan2023naq} & 4.9K & 1031K & 413s & 1.1s & Ego & Open \\
+ & DiDeMo~\cite{anne2017localizing} & 8.4K & 33.0K & 29s & 7.5s & Exo & Open \\
+ & QuerYD~\cite{oncescu2021queryd} & 819 & 5.7K & 278s & 13.6s & Ego \& Exo & Open \\
+ & HiRest~\cite{zala2023hierarchical} & 526 & 4.0K & 263s & 18.9s & Ego \& Exo & Open \\
+ & COIN~\cite{tang2019coin} & 11.8K & 46.4K & 145s & 14.9s & Ego \& Exo & Open \\
+ & Momentor~\cite{qian2024momentor} & 6.7K & 136.4K & 403s & 49.5s & Ego \& Exo & Open \\
+ & YouCook2~\cite{zhou2018towards} & 1.2K & 9.6K & 316s & 19.7s & Ego \& Exo & Cooking \\
+\midrule
+\multirow{5}{*}{\makecell[c]{II}}
+ & Ego4D-NLQ~\cite{grauman2022ego4d} & 1.0K & 10.0K & 495s & 8.2s & Ego & Open \\
+ & TACoS~\cite{regneri2013grounding} & 75 & 9.8K & 287s & 27.9s & Ego \& Exo & Cooking \\
+ & Charades-STA~\cite{sigurdsson2016hollywood} & 4.8K & 11.2K & 31s & 8.1s & Exo & Activity \\
+ & QVHighlights~\cite{lei2021detecting} & 7.1K & 7.2K & 150s & 24.6s & Ego \& Exo & Vlog/News \\
+ & ANet-Captions~\cite{krishna2017dense} & 10K & 37.4K & 118s & 36.0s & Ego \& Exo & Activity \\
+\bottomrule
+\end{tabular}}
+\label{table:datasets}
+\end{table}
+
+\begin{table}[t]
+\caption{Statistics of benchmarks. The benchmarks encompass three representative tasks – Video Temporal Grounding, Grounded VideoQA, and General VideoQA. The reported statistics are based on the actual numbers of videos and queries used in our experiments.}
+\vspace{5pt}
+\centering
+\resizebox{\textwidth}{!}{
+\setlength{\tabcolsep}{0.25cm}
+\begin{tabular}{l r r r r r r}
+\toprule
+ \textbf{Benchmark} & \textbf{\makecell[c]{\#Videos}} & \textbf{\makecell[c]{\#Queries}} & \textbf{\makecell[c]{Video Len.}} & \textbf{\makecell[c]{Moment Len.}} & \textbf{Views} & \textbf{Domain}\\
+ \midrule
+ Ego4D-NLQ~\cite{grauman2022ego4d} & 415 & 4.6K & 500s & 10.7s & Ego & Open \\
+ TACoS~\cite{regneri2013grounding} & 25 & 4.0K & 368s & 31.9s & Ego \& Exo & Cooking \\
+ Charades-STA~\cite{sigurdsson2016hollywood} & 1.3K & 3.7K & 29s & 7.8s & Exo & Activity \\
+ QVHighlights~\cite{lei2021detecting} & 1.5K & 1.5K & 150s & 32
+ .2s & Ego \& Exo & Vlog/News \\
+ ANet-Captions~\cite{krishna2017dense} & 4.9K & 17.0K & 118s & 40.2s & Ego \& Exo & Activity \\
+ QaEgo4D~\cite{barmann2022did} & 148 & 500 & 487s & 13s & Ego & Open \\
+ CG-Bench~\cite{cgbench} & 1.2K & 12K & 1661.1s & 19.8s & Ego \& Exo  & Open \\
+ MLVU~\cite{mlvu} & 1.1K & 2.2K & 755.7s & - & Ego \& Exo & Open \\
+ LongVideoBench~\cite{longvideobench} & 618 & 1.2K & 574.9s & - & Ego \& Exo & Open \\
+ \bottomrule
+\end{tabular}}
+\vspace{-10pt}
+\label{table:benchmarks}
+\end{table}
+
+\noindent \textbf{Training Data Construction.}
+To support temporal grounding at multiple granularities, we construct training data from videos of varying durations, using full videos for coarse-grained supervision and randomly sampling shorter segments containing ground-truth moments for fine-grained training. 
+All samples are combined for joint training.
+Since this process naturally yields more short videos than long ones, we balance the data distribution by replicating long video samples with a factor $N_{\text{rep}}>1$.
+
+\noindent \textbf{Video-centric Training.} 
+Given a dataset comprising paired videos, text queries, and corresponding moments~(${\mathcal{V}^{(k)}, \mathcal{Q}^{(k)}, \mathcal{M}^{(k)}}$), previous methods typically employ \textit{query-centric} sampling: first sampling a query, then loading its associated video.
+This approach is highly inefficient when multiple queries correspond to the same video, as it introduces (i) an I/O bottleneck from repeatedly loading long videos and (ii) redundant computation due to re-encoding identical video content.
+
+To address this, we employ \textit{video-centric} sampling, wherein each video $\mathcal{V}^{(k)}$ is sampled first, and all associated query-answer pairs are grouped into a single input sequence.
+This strategy minimizes redundant video loading and computation, significantly accelerating training.
+To maintain consistency, we modify the attention mask to prevent cross-interaction between different query-answer pairs, and
+assign each query-answer sequence the same starting position index, directly following the video tokens' indices.
+For further implementation details, we refer readers to Appendix~\ref{sub:vc}.
+

@@ -5,7 +5,7 @@ description: Scalable representations and retrieval mechanisms for preserving fi
 tags: [video, long-context, temporal-learning, efficiency]
 status: draft
 created: 2026-08-15
-generated: { by: llm-wiki-agent/1, at: 2026-08-16T10:33:34+07:00 }
+generated: { by: llm-wiki-agent/1, at: 2026-08-16T10:36:46+07:00 }
 sources:
   - id: vivit-paper
     resource: ../raw/ViViT/main_arxiv.tex
@@ -37,6 +37,9 @@ sources:
   - id: lv-mae-paper
     resource: ../raw/LV-MAE/main.tex
     title: "LV-MAE: Learning Long Video Representations through Masked-Embedding Autoencoders"
+  - id: unitime-paper
+    resource: ../raw/UniTime/main.tex
+    title: "Universal Video Temporal Grounding with Generative Multi-modal Large Language Models"
 ---
 
 # Long-video temporal modeling
@@ -93,6 +96,10 @@ For interval-level temporal action localization, ActionFormer combines local sel
 
 LV-MAE is a hierarchical temporal-compression strategy: a frozen short-video encoder produces one embedding per five-second segment, then a masked autoencoder models the segment sequence. Its reported implementation caps sequences at 256 clip tokens (about 21 minutes 20 seconds at that segment length), so its claim of scalable long-video processing is not evidence of arbitrary-duration global attention.[^lv-mae-paper]
 
+## Coarse-to-fine timestamp retrieval
+
+UniTime uses a generative MLLM to select free-text timestamps interleaved with frame or segment tokens. It scales each frame's token budget with video length, splits over-limit videos into clips, retrieves coarse segments, and refines boundaries within selected regions. This is a query-guided, fixed-budget retrieval strategy: it can recurse over candidate segments but does not retain or attend over the complete long-video token sequence at once.[^unitime-paper]
+
 ## Architectural alternatives
 
 The source identifies local/hierarchical attention and state-space models as alternatives to full global attention. It motivates state-space approaches by approximately linear sequence scaling, but does not provide verified comparative evidence that they are preferable for a particular video task.[^video-temporal-survey]
@@ -111,6 +118,7 @@ The source identifies local/hierarchical attention and state-space models as alt
 - **Uses:** [Future Transformer (FUTR)](future-transformer-futr.md) as global attention over sampled observed features for benchmark-scale long-term action anticipation, with explicit attention-scaling limits.[^futr-paper]
 - **Uses:** [Memory-and-Anticipation Transformer (MAT)](memory-and-anticipation-transformer-mat.md) as segment-based, bounded-cache compression for online detection and anticipation, not as arbitrary-duration memory.[^mat-paper]
 - **Uses:** [LV-MAE](lv-mae.md) as clip-token compression followed by masked reconstruction across a bounded long-video sequence.[^lv-mae-paper]
+- **Uses:** [UniTime](unitime.md) as adaptive token allocation and hierarchical timestamp-conditioned retrieval for text queries, not as arbitrary-duration global memory.[^unitime-paper]
 
 [^vivit-paper]: [ViViT: A Video Vision Transformer](../raw/ViViT/main_arxiv.tex)
 [^video-temporal-survey]: [Tổng hợp các hướng xử lý video](../raw/TongHopCacHuongXuLyVideo.md)
@@ -122,3 +130,4 @@ The source identifies local/hierarchical attention and state-space models as alt
 [^futr-paper]: [Future Transformer for Long-term Action Anticipation](../raw/FutureTransformer/main.tex)
 [^mat-paper]: [Memory-and-Anticipation Transformer for Online Action Understanding](../raw/Memory-and-AnticipationTransformer/main.tex)
 [^lv-mae-paper]: [LV-MAE: Learning Long Video Representations through Masked-Embedding Autoencoders](../raw/LV-MAE/main.tex)
+[^unitime-paper]: [Universal Video Temporal Grounding with Generative Multi-modal Large Language Models](../raw/UniTime/main.tex)

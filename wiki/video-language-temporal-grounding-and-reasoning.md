@@ -5,7 +5,7 @@ description: Text-conditioned localization and inference over event timing, orde
 tags: [video, language, temporal-grounding, temporal-reasoning, video-llm]
 status: draft
 created: 2026-08-15
-generated: { by: llm-wiki-agent/1, at: 2026-08-16T10:29:08+07:00 }
+generated: { by: llm-wiki-agent/1, at: 2026-08-16T10:36:46+07:00 }
 sources:
   - id: video-temporal-survey
     resource: ../raw/TongHopCacHuongXuLyVideo.md
@@ -16,6 +16,9 @@ sources:
   - id: internvideo2-paper
     resource: ../raw/InternVideo2/main.tex
     title: "InternVideo2: Scaling Foundation Models for Multimodal Video Understanding"
+  - id: unitime-paper
+    resource: ../raw/UniTime/main.tex
+    title: "Universal Video Temporal Grounding with Generative Multi-modal Large Language Models"
 ---
 
 # Video-language temporal grounding and reasoning
@@ -46,6 +49,10 @@ InternVideo’s video–text branch contrastively aligns independently encoded v
 
 InternVideo2 provides direct but bounded grounding evidence: with CG-DETR, its paper reports finetuned 6B features at 71.42 R1@0.5 and 56.45 R1@0.7 on QVHighlight, plus 70.03 R1@0.5 and 58.79 mIoU on Charades-STA. These evaluate natural-language moment localization under the stated protocols, not general temporal reasoning or arbitrary-duration evidence access.[^internvideo2-paper]
 
+## Timestamp-conditioned MLLM grounding
+
+UniTime makes each sampled frame or coarse segment addressable by interleaving a free-text timestamp with its visual tokens, then has an MLLM generate the matching interval. For long video, it retrieves coarse segments under a fixed token budget and refines within selected regions. This is direct temporal-grounding evidence, but does not establish arbitrary-duration full-context access or general temporal reasoning.[^unitime-paper]
+
 ## Explicit temporal representations
 
 A neuro-symbolic direction translates questions and video events into explicit temporal relations such as *before*, *overlaps*, and *during*, then uses those relations to retrieve evidence before visual-language reasoning. This is a proposed architectural pattern in the source, not a verified general solution.[^video-temporal-survey]
@@ -57,7 +64,9 @@ A neuro-symbolic direction translates questions and video events into explicit t
 - **Uses:** [Video temporal representation learning](video-temporal-representation-learning.md) for visual and video–text features.
 - **Uses:** [InternVideo](internvideo.md) for video–text retrieval and question-answering features, not as a demonstrated temporal-grounding system.[^internvideo-paper]
 - **Uses:** [InternVideo2](internvideo2.md) for reported CG-DETR temporal-grounding evaluations, not as general temporal-reasoning evidence.[^internvideo2-paper]
+- **Includes:** [UniTime](unitime.md) as an MLLM temporal-grounding framework with textual timestamp tokens and coarse-to-fine long-video retrieval; this does not demonstrate general temporal reasoning.[^unitime-paper]
 
 [^video-temporal-survey]: [Tổng hợp các hướng xử lý video](../raw/TongHopCacHuongXuLyVideo.md)
 [^internvideo-paper]: [InternVideo: General Video Foundation Models via Generative and Discriminative Learning](../raw/InternVideo/main.tex)
 [^internvideo2-paper]: [InternVideo2: Scaling Foundation Models for Multimodal Video Understanding](../raw/InternVideo2/main.tex)
+[^unitime-paper]: [Universal Video Temporal Grounding with Generative Multi-modal Large Language Models](../raw/UniTime/main.tex)
