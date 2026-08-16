@@ -23,7 +23,7 @@ The complete retrieval map for compiled knowledge. See [LLM Wiki Contract](../LL
 - [Non-local Neural Networks](non-local-neural-networks.md) — Neural-network blocks that directly aggregate pairwise feature relations across all spatial, temporal, or spacetime positions.
 - [NeuS-QA](neus-qa.md) — A training-free neuro-symbolic LVQA pipeline that translates questions into temporal-logic specifications, model-checks a VLM-grounded video automaton, and answers from the verified segment.
 - [Production temporal video analytics](production-temporal-video-analytics.md) — Selecting temporal models after detection and tracking by event complexity, latency, compute, data, and explainability constraints.
-- [Real-time action-recognition deployment pattern](real-time-action-recognition-deployment-pattern.md) — A draft hybrid design that prioritizes tracked-object temporal signals and rules, escalating to clip-level video inference only when needed.
+- [Real-time action-recognition deployment pattern](real-time-action-recognition-deployment-pattern.md) — A draft hybrid design for detector-based and detector-free real-time action recognition, with selective clip-level escalation.
 - [R(2+1)D](r-2-plus-1-d.md) — A ResNet video architecture that factorizes each 3D convolution into spatial 2D and temporal 1D convolutions separated by a nonlinearity.
 - [SlowFast Networks](slowfast-networks.md) — A two-pathway video architecture that assigns sparse semantic processing and dense lightweight motion processing to separate temporal rates.
 - [TimeSformer](timesformer.md) — A video Transformer that factorizes temporal and spatial self-attention over frame patches to make long-clip action recognition practical.

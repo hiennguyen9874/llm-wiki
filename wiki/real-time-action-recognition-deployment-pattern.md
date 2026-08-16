@@ -1,11 +1,11 @@
 ---
 type: Synthesis
 title: Real-time action-recognition deployment pattern
-description: A draft hybrid design that prioritizes tracked-object temporal signals and rules, escalating to clip-level video inference only when needed.
+description: A draft hybrid design for detector-based and detector-free real-time action recognition, with selective clip-level escalation.
 tags: [video-analytics, action-recognition, realtime, deployment]
 status: draft
 created: 2026-08-16
-generated: { by: llm-wiki-agent/1, at: 2026-08-16T10:55:27+07:00 }
+generated: { by: llm-wiki-agent/1, at: 2026-08-16T11:00:00+07:00 }
 sources:
   - id: temporal-video-analytics-overview
     resource: ../raw/TongQuanCacPhuongPhapTemporal.md
@@ -19,6 +19,12 @@ sources:
   - id: mat-paper
     resource: ../raw/Memory-and-AnticipationTransformer/main.tex
     title: Memory-and-Anticipation Transformer for Online Action Understanding
+  - id: r2plus1d-paper
+    resource: ../raw/R(2+1)D/res2_plus_1d.pdf
+    title: A Closer Look at Spatiotemporal Convolutions for Action Recognition
+  - id: slowfast-paper
+    resource: ../raw/SlowFast/slowfast_iccv19_arxiv_final.tex
+    title: SlowFast Networks for Video Recognition
 ---
 
 # Real-time action-recognition deployment pattern
@@ -34,6 +40,14 @@ sources:
 5. **Selective escalation:** send only uncertain, interacting, or scene-level candidate windows to a clip-level RGB model or a broader temporal model. This preserves expensive video inference for cases where a per-track history cannot represent the event.[^detector-tracker-temporal]
 
 A deployment must make the temporal classifier causal or tolerate an explicit look-ahead delay. The cited MS-TCN implementation is acausal and is therefore not direct evidence for zero-look-ahead streaming; it is evidence for dilated-convolution segmentation and refinement only.[^ms-tcn-paper]
+
+## Detector-free branch
+
+When detector or tracking is unavailable, process overlapping RGB clips or their frame/clip features directly as one scene-level stream. Use a fixed recent window for current-event classification, then smooth its outputs over time; use a bounded-history encoder such as MAT only when the event needs a longer observed prefix.[^mat-paper] Clip encoders such as [R(2+1)D](r-2-plus-1-d.md) or [SlowFast Networks](slowfast-networks.md) are relevant RGB spatiotemporal backbones, but their wiki evidence is fixed-clip benchmark evaluation rather than streaming latency.[^r2plus1d-paper][^slowfast-paper]
+
+This is best suited to a scene label such as violence, crowd panic, or a coarse activity state. It cannot reliably say *which* person acted, and its whole-scene input is more sensitive to background, camera motion, and multiple simultaneous actions. The production source similarly treats scene-level temporal/video models as the higher-cost option and notes that scene features sacrifice object-level attribution.[^temporal-video-analytics-overview][^detector-tracker-temporal]
+
+A practical detector-free realtime prototype is therefore `rolling RGB clip → compact clip encoder → temporal score smoothing → alert`; add a second, slower clip model only to confirm uncertain alerts. This staged configuration is synthesis and requires target-hardware measurement.
 
 ## Select the temporal branch by event scope
 
@@ -59,7 +73,8 @@ Before calling the design realtime, measure end-to-end rather than model-only la
 - **Applies:** [Production temporal video analytics](production-temporal-video-analytics.md) as a concrete deployment synthesis.
 - **Uses:** [Temporal action understanding](temporal-action-understanding.md) to distinguish online detection, segmentation, and interval localization requirements.
 - **Uses:** [MS-TCN (Multi-Stage Temporal Convolutional Network)](ms-tcn.md) as evidence for dilated temporal convolution, with an explicit causal-streaming limitation.
-- **Uses:** [Memory-and-Anticipation Transformer (MAT)](memory-and-anticipation-transformer-mat.md) as a bounded-history option when per-track context must extend beyond a short window.
+- **Uses:** [Memory-and-Anticipation Transformer (MAT)](memory-and-anticipation-transformer-mat.md) as a bounded-history option when per-track or scene context must extend beyond a short window.
+- **Uses:** [R(2+1)D](r-2-plus-1-d.md) and [SlowFast Networks](slowfast-networks.md) as detector-free RGB clip-encoder options; streaming feasibility remains unverified.
 
 ## Evidence limits
 
@@ -69,3 +84,5 @@ The production sources are qualitative and lack hardware, dataset, latency, thro
 [^detector-tracker-temporal]: [Detector + Tracker + Temporal Transformer architectures](../raw/DetectorTrackerTemporal.md)
 [^ms-tcn-paper]: [MS-TCN: Multi-Stage Temporal Convolutional Network for Action Segmentation](../raw/MS-TCN/egpaper_final.tex)
 [^mat-paper]: [Memory-and-Anticipation Transformer for Online Action Understanding](../raw/Memory-and-AnticipationTransformer/main.tex)
+[^r2plus1d-paper]: [A Closer Look at Spatiotemporal Convolutions for Action Recognition](../raw/R\(2+1\)D/res2_plus_1d.pdf)
+[^slowfast-paper]: [SlowFast Networks for Video Recognition](../raw/SlowFast/slowfast_iccv19_arxiv_final.tex)
