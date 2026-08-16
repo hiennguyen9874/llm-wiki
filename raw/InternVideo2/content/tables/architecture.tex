@@ -1,0 +1,46 @@
+\begin{table}[tp]
+    \centering
+    % \setlength\tabcolsep{8.0pt}
+    \resizebox{1.0\linewidth}{!}{
+        \begin{tabular}{c|c|c}
+        \textbf{Stage} & \textbf{ViT-6B} & \textbf{Output Size} \\
+        \Xhline{1.0pt}
+        Video & sparse sampling & \violet{3}$\times$\darkGreen{8}$\times$\myblue{224}$\times$\myblue{224} \\
+        \hline
+        Patch & \darkGreen{1}$\times$\myblue{14}$\times$\myblue{14}, \violet{3200} & \multirow{2}{*}{\violet{3200}$\times$\darkGreen{8}$\times$\orange{256}} \\
+        Embedding & stride \darkGreen{1}$\times$\myblue{14}$\times$\myblue{14} & ~ \\
+        \hline
+        Position & learnable, 3D sine-cosine initialization & \multirow{2}{*}{\violet{3200}$\times$\orange{2048}} \\
+        Embedding & \violet{3200}$\times$\orange{2048} & ~ \\
+        \hline
+        Mask & semantic mask w/ \textit{mask ratio} $=$ $\rho$ & \violet{3200}$\times$\orange{2048$\cdot$(1-$\rho$)} \\
+        \hline
+        Encoder & $\left[\begin{array}{c}\text{MHSA(\violet{3200})}\\\text{MLP(\violet{12800})}\end{array}\right]$$\times$48 $+$ AttnPool(\violet{768}) & 
+        \makecell{\violet{3200}$\times$\orange{2048$\cdot$(1-$\rho$)}
+        \\\violet{768}$\times$\orange{1}} \\
+        \hline
+        Projection & 
+        $\left[\begin{array}{c}\text{LN(\violet{3200})}\\\text{MLP(\violet{3200})}\end{array}\right]$$\times$$K_{CLIP}$,
+        $\left[\begin{array}{c}\text{LN(\violet{3200})}\\\text{MLP(\violet{1408})}
+        \end{array}\right]$$\times$$K_{MAE}$,
+        $\left[\begin{array}{c}\text{LN(\violet{3200})}\\\text{MLP(\violet{768})}
+        \end{array}\right]$$\times1$ & 
+        \makecell{$K$$\times$\violet{3200}$\times$\orange{2048$\cdot$(1-$\rho$)}
+        \\$K$$\times$\violet{1408}$\times$\orange{2048$\cdot$(1-$\rho$)}
+        \\$K$$\times$\violet{768}$\times$\orange{1}} \\
+        % \hline
+        % \multirow{2}{*}{Target} & unmasked token & \multirow{2}{*}{$K$$\times$\violet{512}$\times$\darkGreen{8}$\times$[196$\cdot$(1-$\rho$)]} \\
+        % ~ & alignment & ~ \\
+        \end{tabular}
+    }
+    % \vspace{-0.3cm}
+    \caption{\textbf{Architecture of vision encoder.}
+    We take ViT-6B as an example and omit the class token for a simple presentation.
+    ``MHSA'', ``MLP'', ``AttnPool'', and ``LN'' refer to spatiotemporal multi-head self-attention, multi-layer perception, attention pooling~\citep{coca} and root mean square layer normalization~\citep{zhang2019root}.
+    $K_{CLIP}$ and $K_{MAE}$ means the layer number for unmasked token alignment with multimodal and motion-aware teachers.
+    We mark the \violet{channel number}, \darkGreen{frame number}, \myblue{spatial size}, and \orange{token number} by different colors.
+    The projection layers are dropped after Stage1 training.
+    }
+    \label{tab:model_architecture}
+    % \vspace{-0.3cm}
+\end{table}

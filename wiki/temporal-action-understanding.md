@@ -5,7 +5,7 @@ description: Video tasks that recognize, localize, segment, or anticipate action
 tags: [video, temporal-learning, action-understanding]
 status: draft
 created: 2026-08-15
-generated: { by: llm-wiki-agent/1, at: 2026-08-16T10:21:31+07:00 }
+generated: { by: llm-wiki-agent/1, at: 2026-08-16T10:29:08+07:00 }
 sources:
   - id: bmn-paper
     resource: ../raw/BMN/main.tex
@@ -40,6 +40,9 @@ sources:
   - id: mat-paper
     resource: ../raw/Memory-and-AnticipationTransformer/main.tex
     title: Memory-and-Anticipation Transformer for Online Action Understanding
+  - id: internvideo2-paper
+    resource: ../raw/InternVideo2/main.tex
+    title: "InternVideo2: Scaling Foundation Models for Multimodal Video Understanding"
 ---
 
 # Temporal action understanding
@@ -89,6 +92,8 @@ VideoMAE is a masked-video-pretraining method rather than a task head. Its sourc
 
 InternVideo provides a pretrained ViT-H backbone rather than a new temporal-action-localization head. In the paper's backbone substitution experiments, it pairs that backbone with ActionFormer for THUMOS-14, ActivityNet-v1.3, and FineAction, and with TCANet for HACS Segment; reported average mAP values are 71.58, 39.00, 17.57, and 41.55 respectively.[^internvideo-paper] These results are evidence for the stated backbone/head combinations under their protocols, not a claim that InternVideo alone returns temporal intervals.
 
+InternVideo2 similarly reports its stage-1 features with ActionFormer: 72.0 average mAP on THUMOS14, 43.3 on HACS Segment, 41.2 on ActivityNet, and 27.7 on FineAction. The reported values support those backbone/head evaluations only; InternVideo2 does not itself decode temporal intervals in this setup.[^internvideo2-paper]
+
 ## Supervision trade-off
 
 Precise temporal intervals are expensive to annotate. Weakly supervised temporal action localization instead learns from video-level action labels while inferring frame or segment boundaries; the source lists multiple-instance learning, activation sequences, pseudo-labels, contrastive learning, and text supervision as families for this setting.[^video-temporal-survey]
@@ -107,6 +112,7 @@ Precise temporal intervals are expensive to annotate. Weakly supervised temporal
 - **Includes:** [Future Transformer (FUTR)](future-transformer-futr.md) as a long-term, framewise action-anticipation model with parallel segment decoding.[^futr-paper]
 - **Includes:** [Memory-and-Anticipation Transformer (MAT)](memory-and-anticipation-transformer-mat.md) as a unified online current-action detection and fixed-gap anticipation model.[^mat-paper]
 - **Uses:** [InternVideo](internvideo.md) as a pretrained feature backbone evaluated with existing action-recognition, temporal-localization, and spatiotemporal-localization heads.[^internvideo-paper]
+- **Uses:** [InternVideo2](internvideo2.md) as a pretrained feature backbone reported with an ActionFormer temporal-localization head.[^internvideo2-paper]
 
 [^bmn-paper]: [BMN: Boundary-Matching Network for Temporal Action Proposal Generation](../raw/BMN/main.tex)
 [^video-temporal-survey]: [Tổng hợp các hướng xử lý video](../raw/TongHopCacHuongXuLyVideo.md)
@@ -119,3 +125,4 @@ Precise temporal intervals are expensive to annotate. Weakly supervised temporal
 [^futr-paper]: [Future Transformer for Long-term Action Anticipation](../raw/FutureTransformer/main.tex)
 [^internvideo-paper]: [InternVideo: General Video Foundation Models via Generative and Discriminative Learning](../raw/InternVideo/main.tex)
 [^mat-paper]: [Memory-and-Anticipation Transformer for Online Action Understanding](../raw/Memory-and-AnticipationTransformer/main.tex)
+[^internvideo2-paper]: [InternVideo2: Scaling Foundation Models for Multimodal Video Understanding](../raw/InternVideo2/main.tex)

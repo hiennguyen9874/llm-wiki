@@ -1,0 +1,525 @@
+\section{Experiments} \label{sec:exp}
+% \vspace{-2mm}
+In our evaluation of {\modelname}, we assess the models from three learning stages. The evaluation covers a wide range of tasks, including video recognition, video retrieval, question-answering, and more. It includes various scenarios such as zero-shot learning, finetuning, and linear probing. 
+
+For {\modelname} trained in stage 1, 2, and 3, we denote them with {\modelname}$_{s1}$, {\modelname}$_{s2}$, and {\modelname}$_{s3}$, respectively. We also learn a CLIP-style {\modelname} indicated by {\modelname}$_{clip}$. It is post-pretrained from {\modelname}$_{s2}$ by only preserving video and text encoders and contrastive loss.
+
+Each training stage of {\modelname}-6B uses different configurations and resources. In the first stage, we employ 256 NVIDIA A100 GPUs and train the model for 18 days. The second stage also utilizes 256 A100 GPUs and spans a training period of 14 days. Finally, in the third stage, we use 64 A100 GPUs and train the model for 3 days. We introduce DeepSpeed and FlashAttention \cite{dao2022flashattention} for training and inference.
+More implementation details and experiment results are given in the supp.
+
+\subsection{Video Classification}
+
+\subsubsection{Action Recognition} \label{sec:cls}
+We test {\modelname} on Kinetics (\textit{i.e.}, K400, 600, and 700 \cite{k400,k600,k700}), Moments in Time V1 (MiT) \cite{mit}, Something-Something V2 (SSv2) \cite{sth}, UCF~\cite{soomro2012ucf101}, HMDB~\cite{hmdb}, Charades~\cite{charades_sta}, ActivityNet~\cite{activitynet} (ANet) and HACS \cite{hacs}. We evaluate in four settings: 
+\emph{(a) end-to-end finetuning} the whole backbone;
+\emph{(b) attentive probing} is similar to linear pooling, but extra trains the attention pooling layer~\cite{coca}. 
+\emph{(c) linear probing} which freezes the backbone and only trains the task head; and
+\emph{(d) zero-shot}.
+
+\input{content/tables/exps/action_cls_ft}
+
+% \vspace{-3mm}
+\paragraph{End-to-end Finetuning.}
+Tab. \ref{tab:ft_recognition1} shows \modelname-6B obtains new state-of-the-art (SOTA) results on Kinetics (\textbf{92.1\%/91.9\%/85.9\%} on K400/600/700, respectively), SthSthv2, MiT, ANet, and HACS with only 16 frames, while the previous SOTAs require larger resolution (224 \textit{vs.} 576) or model ensemble. As for MiT in Tab. \ref{tab:ft_recognition1},
+\modelname-6B exceeds the previous SOTA, CoCa-g, by a significant margin of 2.2\% (\textbf{51.2\%} \textit{vs.} 49.0\%). 
+Regarding the temporal-related actions in Tab. \ref{tab:ft_recognition1},
+our \modelname-6B also surpasses MVD~\cite{wang2023masked} on SSv2 (\textbf{77.5\%} \textit{vs.} 77.3\%). 
+Moreover, our \modelname-6B showcases top performance on untrimmed video analysis, as indicated in Tab. \ref{tab:ft_recognition1}, 
+with 95.9\% on ActivityNet and 97.0\% on HACS.
+These results affirm our model's superior capability for robustly identifying complex actions across varied scenes. Note ``I" and ``V" denotes images and videos, respectively. ``IV-3B" means the total number of the used images and videos is 3B, while ``I-3B" means using 3B images.
+
+
+\input{content/tables/exps/action_atten_probe}
+
+% \vspace{-3mm}
+\paragraph{Attentive Probing.}
+As in Tab. \ref{tab:ap_recognition}, \modelname-6B not only outperforms ViT-22B \cite{Dehghani2023ScalingVT} and CoCa-g \cite{coca} in scene-focused datasets but also surpasses or matches the performance of the latest video foundation model~\cite{bardes2024vjepa,videoprism}, on datasets emphasizing temporal dynamics (SthSthV2). 
+This underscores our model's exceptional ability to understand and interpret both spatial and temporal information effectively.
+
+\input{content/tables/exps/action_lp}
+
+% \vspace{-3mm}
+\paragraph{Linear Probing.}
+In Tab. \ref{tab:lp_recognition}, \modelname-1B significantly outperforms the previous SOTA, DINOv2-g~\cite{oquab2023dinov2}, by notable margins: +3.2\% on K400, +8.0\% on SthSthV2, and +4.8\% on UCF-101. As we scale the model, an upward trend in results is observed, underscoring the benefits of model enhancement. Notably, the integration of multimodal pretraining (stage 2) yields further rise in results. We suppose stage 2 enhances feature discrimination.
+
+\input{content/tables/exps/action_zeroshot_ohters}
+\input{content/tables/exps/action_zeroshot_kinetics}
+
+% \vspace{-3mm}
+\paragraph{Zero-shot.} Table~\ref{tab:zs_recognition2} and \ref{tab:zs_recognition} show {\modelname} gets 72.7\% / 71.7\% / 64.2\% on K400/600/700, respectively, outperforming others but VideoPrism on K400 (76.4\%). On UCF~\cite{soomro2012ucf101}, HMDB~\cite{hmdb}, MiT~\cite{mit}, SSv2-MC, and Charades, {\modelname} gives an cutting edges over others. The clear gap between VideoPrism and {\modelname} on K400 may signify the importance of pretraining corpus in VideoPrism (311M videos with text and 36.1M of them are manually labeled) for K400 in zero-shot. Note that on the datasets of Kinetics, UCF101 and HMDB51, which have a distribution closer to the pre-training dataset used in stage1, the performance of Internvideo2-6B is slightly inferior to that of Internvideo2-1B. We suppose this is caused by Internvideo2-6B uses a more abundant pretraining dataset in stage2, leading to the forgetting of pretraining data in stage1.
+
+\input{content/tables/exps/action_localize_ft}
+
+% \vspace{-3mm}
+\subsubsection{Temporal Action Localization} \label{sec:tal}
+We evaluate models on four temporal action localization (TAL) datasets: THUMOS14~\cite{thumos}, ActivityNet~\cite{anet}, HACS Segment~\cite{hacs} and FineAction~\cite{liu2022fineaction} in a feature-based manner with finetuning. We employ output of the 7-th layer from {\modelname} for inputs as the corresponding features without fusing anything else. ActionFormer~\cite{didemo} is used as the detection head. We report mean Average Precision(mAP) under multiple tIoU as in~\cite{lin2019bmn,chen2022dcan,didemo,yang2023basictad}. In Table~\ref{tab:exp-tal}, {\modelname}-6B gets the highest mAP among all comparisons in all datasets, while {\modelname}-1B nearly surpass other methods except in THUMOS14. We find {\modelname}-6B almost consistently improves mAP with a notable margin from {\modelname}-1B except in FineAction. We suppose scaling model capacity without data refinement cannot nontrivially improve fine-grained discrimination abilities of models. Scaling detailed annotations in training may address this issue.
+
+\input{content/tables/exps/vis}
+% \vspace{-3mm}
+\subsubsection{Video Instance Segmentation} \label{sec:vis}
+We evaluate on the Video Instance Segmentation (VIS) dataset Youtube-VIS 2019~\cite{yang2019video}. Built upon Mask2Former~\cite{cheng2021maskformer}, we employ the video encoder of {\modelname} as backbone with ViT-adapter~\cite{chen2022vitadapter} for features. We also try InternViT~\cite{chen2023internvl} for comparisons. In Table~\ref{tab:videoinstanceseg}, {\modelname} gets the highest mAP among all. This validates its effectiveness in relatively fine-grained spatiotemporal perception.
+
+
+% \vspace{-2mm}
+\subsection{Video-Audio-Language Tasks}
+% % \vspace{-2mm}
+We evaluate {\modelname} on video retrieval, captioning, and multi-choice question-answersing (QA). The former two tasks are conducted by matching video representation and the candidate text ones using the text encoder in stage 2. The latter is tested by the VideoLLM learned in stage 3. We also test audio tasks.
+
+\begin{table}[!t]
+% \vspace{-2mm}
+\caption{Results of zero-shot video retrieval in both text-to-video (T2V) and video-to-text (V2T) on MSR-VTT, LSMDC, DiDeMo, MSVD, ActivityNet (ANet), and VATEX.}
+\centering
+\small
+% \scriptsize
+\resizebox{.9\textwidth}{!}{
+\setlength{\tabcolsep}{1.5 mm}{
+  \begin{tabular}{llllllllllllll}
+    \toprule
+    \multirow{2}{*}{Method}& \multicolumn{2}{c}{MSR-VTT} & \multicolumn{2}{c}{LSMDC} & \multicolumn{2}{c}{DiDeMo} & \multicolumn{2}{c}{MSVD} & \multicolumn{2}{c}{ANet} & \multicolumn{2}{c}{VATEX}\\
+    & T2V & V2T & T2V & V2T & T2V & V2T & T2V & V2T & T2V & V2T & T2V & V2T \\
+    \midrule
+     CLIP~\cite{clip} & 30.4 & 24.2 & 13.9 & 11.9 & 12.7 & 18.7 & 40.5 & 57.2 & 9.1 & 13.2 &- &-\\
+     CLIP4Clip~\cite{clip4clip} & 32.0 & - & 15.1 & - & - & - & 38.5 & - & - & - & -&-\\
+     ViCLIP~\cite{wang2023internvid} & 42.4 & 41.3 & 20.1 & 16.9 & 18.4 & 27.9 & 49.1 & 75.1 & 15.1 & 24.0 & - & -\\
+     InternVideo-L~\cite{wang2022internvideo} & 40.7 & 39.6 & 17.6 & 13.2 & 31.5 & 33.5 & 43.4 & 67.6 & 30.7 & 31.4 & 49.5 & 69.5\\
+     UMT-L~\cite{umt} & 40.7 & 37.1 & 24.9 & 21.9 & 48.6 & 49.9 & 49.0 & 74.5 & 41.9 & 39.4 & - & -\\
+     VideoCoCa-g~\cite{videococa}  & 34.4 & 64.7 & - & - & - & - & - & - & 34.5 & 33.0 & 53.2 & 73.6\\
+     VideoPrism-g~\cite{videoprism}  & 39.7 & \textbf{71.0} & - & - & - & - & - & - & 52.7 & 50.3 & 62.5 & 77.1\\
+     \midrule
+     \modelname$_{s2}$-1B  & 51.9 & 50.9 & 32.0 & 27.3 & 57.0 & 54.3 & 58.1 & 83.3 & 60.4 & 54.8 & 70.4 & 85.4\\
+     \modelname$_{s2}$-6B & \textbf{55.9} & 53.7 & \textbf{33.8} & \textbf{30.1} & \textbf{57.9} & \textbf{57.1} & \textbf{59.3} & \textbf{83.1} & \textbf{63.2} & \textbf{56.5} & \textbf{71.5} & \textbf{85.3}\\
+    \bottomrule
+  \end{tabular}
+}
+}
+\label{tab:zs_retrieval}
+\end{table}
+
+
+\begin{table}[!t]
+% \vspace{-2mm}
+\caption{Results of finetuning video retrieval in both text-to-video (T2V) and video-to-text (V2T) on MSR-VTT, LSMDC, DiDeMo, MSVD, ActivityNet (ANet), and VATEX. }
+\centering
+\small
+% \scriptsize
+\resizebox{.9\textwidth}{!}{
+\setlength{\tabcolsep}{1.5 mm}{
+  \begin{tabular}{lcllllllllllll}
+    \toprule
+    \multirow{2}{*}{Method}& \multicolumn{2}{c}{MSR-VTT} & \multicolumn{2}{c}{LSMDC} & \multicolumn{2}{c}{DiDeMo} & \multicolumn{2}{c}{MSVD} & \multicolumn{2}{c}{ANet} & \multicolumn{2}{c}{VATEX}\\
+      & T2V & V2T & T2V & V2T & T2V & V2T & T2V & V2T & T2V & V2T & T2V & V2T\\
+    \midrule
+    CLIP~\cite{clip} & 38.2 & 38.7 & 22.5 & 22.6 & 32.2 & 33.9 & - & - & 26.1 & 26.9 & - & - \\
+     CLIP4Clip~\cite{clip4clip}  & 45.6 & 45.9 & 24.3 & 23.8 & 43.0 & 43.6 & 45.2 & 48.4 & 40.3 & 41.6& - & - \\
+     ViCLIP~\cite{wang2023internvid}  & 52.5 & 51.8 & 33.0 & 32.5 & 49.4 & 50.2 & - & - & 49.8 & 48.1& - & - \\
+     UMT-L~\cite{umt}  & 58.8 & 58.6 & 43.0 & 41.4 & 70.4 & 65.7 & 58.2 & 82.4 & 66.8 & 64.4 & 72.0 & 86.0 \\
+     \midrule
+     \modelname$_{s2}$-6B  & \textbf{62.8} & \textbf{60.2} & \textbf{46.4} & \textbf{46.7} & \textbf{74.2} & \textbf{71.9} & \textbf{61.4} & \textbf{85.2} & \textbf{74.1} & \textbf{69.7} & \textbf{75.5} & \textbf{89.3}\\
+    \bottomrule
+  \end{tabular}
+}}
+\label{tab:retrieval}
+% \vspace{-2mm}
+\end{table}
+
+% \vspace{-2mm}
+\subsubsection{Video Retrieval} \label{sec:retrieval}
+We evaluate the video retrieval on six popular benchmarks: MSR-VTT \cite{msrvtt}, LSMDC \cite{lsmdc}, DiDeMo \cite{didemo}, MSVD \cite{msvd}, ActivityNet (ANet) \cite{activitynet}, and VATEX \cite{vatex}, as shown in Tab. \ref{tab:zs_retrieval} and \ref{tab:retrieval}. In evaluation, eight frames from the input videos are uniformly sampled. \textit{We report R@1 scores for both text-to-video (t2v) and video-to-text (v2t) tasks} in Tab. \ref{tab:zs_retrieval} and \ref{tab:retrieval}. R@5 and R@10 are given in Supp.
+
+Tab. \ref{tab:zs_retrieval} and \ref{tab:retrieval} demonstrate that {\modelname} outperforms other state-of-the-arts with a notable margin in both t2v and v2t of all used datasets no matter in zero-shot or finetuned settings, except for the v2t of MSR-VTT, where VideoPrism gives the best result. This shows the video-language semantic alignment of transferrity of {\modelname}.
+
+\begin{table}[!t]
+    \caption{Finetuned temporal grounding on QVHighlight~\cite{lei2021qvhighlights} and Charade-STA~\cite{charades_sta}. 
+    % \vspace{-8mm}
+    }
+    \resizebox{\textwidth}{!}{
+    \begin{subtable}[t]{.5\linewidth}
+		\centering
+		\caption{QVHighlight}
+        % \vspace{-2mm}
+    	\setlength{\tabcolsep}{.5pt} %
+		% \renewcommand*{\arraystretch}{1.10}  %
+		\vspace{-0.3\baselineskip}
+		\scriptsize{
+			\begin{tabular}{lccc|cc}
+            \toprule
+             Feature  & R1@0.5 & R1@0.7 & mAP & mAP & HiT@1 \\
+             \midrule
+             CLIP \cite{clip}  &  64.97 & 48.65 &42.96 & 39.83 & 64.19  \\
+             CLIP+SlowFast \cite{slowfast} & 65.43 & 48.38 & 42.86 & 40.33 & 66.21  \\
+             \modelname$_{s2}$-1B &  \underline{70.00} & \underline{54.45} & \underline{47.02} & \underline{42.36} & \underline{69.74}  \\
+             \modelname$_{s2}$-6B &  \textbf{71.42} & \textbf{56.45} & \textbf{49.24} & \textbf{42.90} & \textbf{72.00}  \\
+            \bottomrule
+          \end{tabular}
+		}
+		\label{tab:grounding-qvhighlight}
+	\end{subtable}
+    % }
+  \hfill
+   % \resizebox{\textwidth}{!}{
+    \begin{subtable}[t]{.5\linewidth}
+		\centering
+		\caption{Charade-STA}
+        % \vspace{-2mm}
+    	\setlength{\tabcolsep}{.5pt} %
+		% \renewcommand*{\arraystretch}{1.10}  %
+		\vspace{-0.3\baselineskip}
+		\scriptsize{
+			\begin{tabular}{lcccc}
+            \toprule
+             Feature  & R1@0.3 &R1@0.5 & R1@0.7 & mIoU   \\
+             \midrule
+             CLIP \cite{clip}  & 65.62 & 52.77 &30.16 &45.85   \\
+             CLIP+SlowFast \cite{slowfast} & 70.43 & 58.44 & 36.34 & 50.13  \\
+             \modelname$_{s2}$-1B & \underline{78.41} & \underline{68.36} & \underline{45.03} & \underline{57.12}  \\
+             \modelname$_{s2}$-6B & \textbf{79.70} & \textbf{70.03} & \textbf{48.95} & \textbf{58.79}  \\
+             
+            \bottomrule
+          \end{tabular}
+
+		}
+    % \vspace{0.96\baselineskip} %
+	\end{subtable}
+ }
+\label{tab:grounding} 
+% \vspace{-2mm}
+\end{table}
+
+% \vspace{-3mm}
+\subsubsection{Video Temporal Grounding} \label{sec:ground}
+
+We evaluate {\modelname} on two video temporal grounding (VTG) datasets: QVhighlight~\cite{lei2021qvhighlights}, and Charade-STA~\cite{charades_sta}. The eval setting and used features are the same as in TAL.
+We use CG-DETR~\cite{moon2023cg-detr} as the grounding head. 
+We report R1@0.3, R1@0.5, R1@0.7, and mAP for moment retrieval as in~\cite{lei2021qvhighlights,moon2023cg-detr,lin2023univtg}. Highlight Detection is evaluated in terms of ``Very Good'' mAP and HiT@1.
+In Table~\ref{tab:grounding}, \modelname-1B and \modelname-6B bring gradual performance improvements compared to CLIP~\cite{clip} and CLIP~\cite{clip}+Slowfast~\cite{slowfast}. This suggests that a larger spatiotemporal model is more beneficial to short-term video semantic alignment capabilities.
+
+% if using chat system, we will move it to Sec. 4.3, otherwise, we will move it to mc-qa
+\begin{table}[!t]
+% \vspace{-2mm}
+\caption{Audio retrieval results on AudioCaps \cite{kim2019audiocaps}, Clothov1, and Clothov2 \cite{drossos2020clotho}. We report text-to-audio R@1 accuracy in zero-shot and finetuning settings. }
+\centering
+\small
+% \scriptsize
+\resizebox{0.87\textwidth}{!}{
+\setlength{\tabcolsep}{1.5 mm}{
+    \begin{tabular}{l|ccc|ccc}
+        \toprule
+        \multirow{2}{*}{Method} & \multicolumn{3}{c}{Zero-shot} & \multicolumn{3}{c}{Finetuning} \\
+         & AudioCaps & ClothoV1 & ClothoV2 & AudioCaps & ClothoV1 & ClothoV2 \\
+         \midrule
+        VIP-ANT \cite{zhao2021connecting} & 27.7 &  & - & - &  & - \\
+        VAST \cite{chen2024vast} & - & - & - & 52.0 & 25.1 & 26.9 \\
+        LanguageBind \cite{zhu2023languagebind} & - & 12.1 & 12.1 & - & - & - \\
+        {\modelname}$_{s2}$-6B & \textbf{37.1} & \textbf{17.4} & \textbf{17.4} & \textbf{55.2} & \textbf{25.3} & \textbf{27.2}\\
+        \bottomrule
+    \end{tabular}
+}}
+\label{tab:audio_retrieval}
+% \vspace{-3mm}
+\end{table}
+
+
+\begin{table}[!t]
+% \vspace{-3mm}
+    \caption{Results of AudioQA on ClothoAQA \cite{lipping2022clotho} and Audio-MusicAVQA (AMAVQA) \cite{behera2023aquallm}, and audio classification on the ESC-50 \cite{piczak2015esc}. Both in the finetuning setting. }
+    \resizebox{.5\textwidth}{!}{
+    \begin{subtable}[t]{.5\linewidth}
+		\centering
+		\caption{ClothoAQA and AMAVQA}
+    	\setlength{\tabcolsep}{2pt} %
+		\renewcommand*{\arraystretch}{1.10}  %
+		\vspace{-0.3\baselineskip}
+		\scriptsize{
+			\begin{tabular}{l|cc}
+                \toprule
+                Backbone & ClothQA & AMAVQA \\
+                \midrule
+                AquaNet \cite{lipping2022clotho} & 14.78 & 65.59 \\
+                MWAFM \cite{li2023multi} & 22.24 & 67.54 \\
+                {\modelname}$_{s2}$ & \textbf{30.14} & \textbf{80.51} \\
+                \bottomrule
+            \end{tabular}
+		}
+		\label{tab:audioqa}
+	\end{subtable}
+    }
+  	% \hfill
+    \resizebox{.5\textwidth}{!}{
+    \begin{subtable}[t]{.5\linewidth}
+		\centering
+		\caption{ESC-50}
+    	\setlength{\tabcolsep}{2pt} %
+		\renewcommand*{\arraystretch}{1.10}  %
+		\vspace{-0.3\baselineskip}
+		\scriptsize{
+			\begin{tabular}{l|c}
+            \toprule
+             Method  & Top-1 Acc \\
+             \midrule
+             AST \cite{gong2021ast}  & 95.60    \\
+             BEATs  \cite{beats}     & 98.10 \\
+             {\modelname}$_{s2}$   & \textbf{98.60} \\
+            \bottomrule
+          \end{tabular}
+        \label{tab:audiocls}
+		}
+        \end{subtable}
+        }
+        % \vspace{-5mm}
+\end{table}
+
+
+\subsubsection{Audio-related Tasks} \label{sec:audio}
+We evaluate {\modelname}'s audio and text encoders on audio tasks, including audio-text retrieval on AudioCaps \cite{kim2019audiocaps}, Clothov1, and Clothov2 \cite{drossos2020clotho}; audioQA on ClothoAQA \cite{lipping2022clotho} and Audio-MusicAVQA \cite{behera2023aquallm}; and audio classification on the ESC-50 \cite{piczak2015esc}. As shown in Tab.~\ref{tab:audio_retrieval}, ~\ref{tab:audioqa}, and \ref{tab:audiocls}, our model achieves state-of-the-art performance on all downstream tasks. Considering the limited size of the used audio and text encoders, these audio-related results show crossmodal contrastive learning's benefits are mutual to the used modalities. Audio and the corresponding text models also gain from this learning.
+
+\begin{table*}[!t]
+    % \vspace{-3mm}
+    \caption{
+        Results of Chat-centric Evaluation on Multiple Choice Video-QA on MVBench \cite{li2023mvbench}, Egoschema~\cite{egoschema} and Perception Test~\cite{perceptiontest}. 
+    }
+    \centering
+    \small
+    \resizebox{1.0\linewidth}{!}{
+    \setlength{\tabcolsep}{3.0 mm}{
+        \begin{tabular}{l|l|l|c|c|c}
+        % \Xhline{1.0pt}
+        \toprule
+        \textbf{Model} & \textbf{ViEncoder} & \textbf{LLM} & MVBench  & Egoschema  & Perception Test \\
+        \midrule
+        GPT-4V~\cite{gpt4v} & - & GPT-4 & {43.5} & -   & -  \\
+        Gemini 1.0 Pro~\cite{team2023gemini} & - & - & 37.7  & 55.7 & 51.1 \\
+        Gemini 1.0 Ultra~\cite{team2023gemini} & - & - & - & 61.5 & 54.7 \\
+        Gemini 1.5 Pro~\cite{team2023gemini} & - & - & -  & \textbf{72.2}  & - \\
+        
+        % \Xhline{0.8pt}
+        \midrule
+        LLaVA-Next-Video \cite{liu2024llava} & CLIP-L & Vicuna-7B & 46.5 & 43.9 & 48.8  \\
+        VideoLLaMA2 \cite{cheng2024videollama} & CLIP-L-336 & Mistral-7B & 54.6 & 51.7  & 51.4 \\
+        VideoLLaMA2 \cite{cheng2024videollama} & CLIP-L-336 & Mistral-8*7B & 53.9 & 53.3  & 52.2 \\
+        \hline
+        \textbf{VideoChat2} & UMT-L & Vicuna-7B & 51.1 & -  & - \\
+        \textbf{VideoChat2} & {\modelname}$_{s3}$-1B & Mistral-7B & 60.3 & 55.8  & 53.0 \\
+        \textbf{VideoChat2-HD} & {\modelname}$_{s3}$-1B & Mistral-7B & 65.4 & 60.2  & 60.1 \\
+        \textbf{VideoChat2-HD-F16} & {\modelname}$_{s3}$-1B & Mistral-7B & \textbf{67.2} & 60.0 & \textbf{63.4} \\
+        \bottomrule
+        \end{tabular}
+        }
+    }
+    % \vspace{3mm}
+    \label{tab:wct-vcbench}
+\end{table*}
+
+\begin{table}[!t]
+% \vspace{-3mm}
+\caption{Average top-1 accuracy of action recognition (K400, SSv2, and MiT) and video retrieval (MSR-VTT, LSMDC, DiDeMo, MSVD, ANet, and VATEX in t2v) using zero-shot and finetuning settings. * denotes results are from {\modelname}$_{s1}$.}
+\centering
+\small
+% \scriptsize
+\resizebox{0.7\textwidth}{!}{
+\setlength{\tabcolsep}{1.5 mm}{
+    \begin{tabular}{l|ccc}
+        \toprule
+        \multirow{2}{*}{Model} & \multicolumn{2}{c}{Zero-shot}  & Finetuning \\
+         & Action Recognition & Video Retrieval & Action Recognition \\
+         \midrule
+        {\modelname}$_{s2}$-1B & 55.5 & 55.0 & 73.2* \\
+        {\modelname}$_{s2}$-6B & \textbf{56.9}$_{(+1.4)}$ & \textbf{56.9}$_{(+1.9)}$ & \textbf{73.6}$_{(+0.4)}$* \\
+        \bottomrule
+    \end{tabular}
+    }}
+\label{tab:model_scale}
+% \vspace{-3mm}
+\end{table}
+
+\begin{table}[!t]
+% \scriptsize
+\vspace{-0mm}
+\caption{Ablation of Stage1, conducted with finetuned action recognition on Kinetics, MiT, and SthSthv2. All models are tested with 8$\times$224$\times$224 input.}
+\centering
+\small
+\resizebox{1.0\linewidth}{!}{
+\setlength{\tabcolsep}{3.0 mm}{
+  \begin{tabular}{lllllllll}
+    \toprule
+     Model & Teacher & Data & K400 & K600 & K700 & MiT & SSv2 & Avg \\
+    \midrule
+    ViT-L & CLIP-L & K710 & 90.3 & 90.4 & 83.2 & 48.0 & 74.7 & 77.3 \\
+    ViT-L & CLIP-L & K-Mash$_{1.1M}$ & 90.5 & 90.4 & 83.4 & 48.1 & 74.7 & 77.4 \\
+    \hline
+    % ViT-1B & CLIP-L & K710 &  &  &  &  &  &  \\
+    ViT-1B & InternVL-6B & K710 & 90.9 & 91.0 & 84.7 & 49.8 & 75.9 & 78.5 \\
+    ViT-1B & InternVL-6B & K-Mash$_{1.1M}$ & 91.4 & 91.5 & 85.1 & 50.5 & 76.5 & 79.0 \\
+    ViT-1B & InternVL-6B$+$VideoMAE-g & K-Mash$_{1.1M}$ & 91.3 & 91.4 & 85.0 & 50.8 & 77.1 & 79.1 \\
+    ViT-1B & InternVL-6B & K-Mash$_{2M}$ & 91.3 & 91.5 & 85.1 & 50.6 & 76.6 & 79.0 \\ 
+    \hline
+    ViT-6B & InternVL-6B$+$VideoMAE-g & K-Mash$_{2M}$ & \textbf{91.9} & \textbf{91.7} & \textbf{85.7} & \textbf{51.0} & \textbf{77.5} & \textbf{79.6} \\
+    \bottomrule
+  \end{tabular}
+}
+}
+\label{tab:abaltion_stage1}
+% \vspace{-5mm}
+\end{table}
+
+\begin{figure*}[!t]
+    \centering
+    \includegraphics[width=0.9\textwidth]{content/figures/chat_action.pdf}
+    % \vspace{-0.3cm}
+    \caption{\textbf{Temporal action recognition tasks.} In questions about an action before it happens, Gemini Pro and InternVideo2-Chat both describe accurately the action, while GPT-4V hallucinates.}
+    \label{fig:chat_action}
+    % \vspace{-0.3cm}
+\end{figure*}
+
+\begin{figure*}[!t]
+    \centering
+    \includegraphics[width=0.9\textwidth]{content/figures/chat_fine.pdf}
+    % \vspace{-0.3cm}
+    \caption{\textbf{Confused action recognition.} The person in the video is performing a misleading action while holding a banana. Gemini Pro gives a wrong answer. GPT-4V identifies the misleading action but doesn't give a correct answer. InternVideo2-Chat gives a correct answer.}
+    \label{fig:chat_fine}
+    % \vspace{-0.3cm}
+\end{figure*}
+
+\begin{figure*}[!t]
+    \centering
+    \includegraphics[width=0.9\textwidth]{content/figures/chat_objectorder.pdf}
+    % \vspace{-0.3cm}
+    \caption{\textbf{Video Object Temporal Recognition.} The person in this video takes out different letters in the order of time. Gemini Pro recognizes 4 letters, but the order is totally reversed; GPT-4V recognizes only 3 letters, and the result is mixed with wrong answers; InternVideo2-Chat has the fewest errors among them and the order is correct.}
+    \label{fig:chat_order}
+    % \vspace{-0.3cm}
+\end{figure*}
+
+\begin{figure*}[!t]
+    \centering
+    \includegraphics[width=0.9\textwidth]{content/figures/chat_count.pdf}
+    % \vspace{-0.3cm}
+    \caption{\textbf{Event counting task.} Both GPT-4V and InternVideo2-Chat are able to correctly capture the times of actions and not be confused by redundant frames and other actions.}
+    \label{fig:chat_count}
+    % \vspace{-0.3cm}
+\end{figure*}
+
+
+\begin{figure*}[!t]
+    \centering
+    \includegraphics[width=0.9\textwidth]{content/figures/chat_unexpectaction.pdf}
+    % \vspace{-0.3cm}
+    \caption{\textbf{Unexpected Action Recognition tasks.} The model needs to recognize the magical parts of the video. Both Gemini Pro and InternVideo2-Chat can capture part of the transition in the video and infer the shooting technique of the video. GPT-4V recognizes the transition but fails to successfully explain the process of the transition.}
+    \label{fig:chat_reason}
+    % \vspace{-0.3cm}
+\end{figure*}
+
+\begin{figure*}[!t]
+    \centering
+    \includegraphics[width=0.9\textwidth]{content/figures/chat_vln.pdf}
+    % \vspace{-0.3cm}
+    \caption{\textbf{Visual Language Navigation Tasks.} GPT-4V and InternVideo2-Chat are able to understand the instruction and make decisions about next steps based on the content of the video, while Gemini Pro is subject to hallucination.}
+    \label{fig:chat_vln}
+    % \vspace{-0.3cm}
+\end{figure*}
+
+\subsection{Video-centric Dialogue and its Applications} \label{sec:chat}
+
+Tab. \ref{tab:wct-vcbench} shows results on MVBench \cite{li2023mvbench}, Egoschema \cite{egoschema}, and Perception Test \cite{perceptiontest}, by equipping VideoChat2~\cite{li2023mvbench} with our InternVideo2 encoder, compared with other MLLMs. Note VideoChat2-HD-F16 with {\modelname} outperforms other systems with a clear margin in Perception Test and MVBench (\textbf{F16} denotes the model is trained and tested with 16-frame inputs), except in Egoschema compared with proprietary commercial models (GPT4 \& Gemini). Our method demonstrates superior short-term fine-grained video understanding compared to both open-source and commercial methods. Egoschema requires longer context harnessing, and we plan to further explore leveraging LLM for long multimodal sequence modeling. Considering these benchmarks not only involve perception but also reasoning, these results suggest {\modelname} does embed knowledge to partially model the world.
+It also validates the importance of learning a transferrable video representation for current video-related MLLM. We also give several qualitative evaluations with popular GPT-4V and GeminiPro,
+including dialogues on action sequence (Fig.~\ref{fig:chat_action}), confused action (Fig.~\ref{fig:chat_fine}), temporal order understanding (Fig.~\ref{fig:chat_order}), temporal event counting (Fig.~\ref{fig:chat_count}, unexpected action reasoning (Fig.~\ref{fig:chat_reason}), and vision-language navigation (Fig.~\ref{fig:chat_vln}).
+
+% \vspace{-3mm}
+\subsection{Ablation Studies} \label{sec:ab}
+
+\subsubsection{Scaling Video Encoder} Tab. \ref{tab:model_scale} gives {\modelname}'s average performance on action recognition and video retrieval. It shows that scaling video encoder from 1B to 6B still leads to notable  improvements in generalization of action recognition and video-retrieval by 1.4\% and 1.9\% (in zero-shot), respectively. Meanwhile, the increase in finetuned action recognition result is relatively marginal (0.4\%) with the growth of model scale.
+
+
+\subsubsection{Training Data and used Teachers in Stage 1} \label{sec:ab_kmash}
+In Tab. \ref{tab:abaltion_stage1}, we examine the impact of distillation teachers and used dataset sizes on model performance.
+\textit{(a) Data Scale:} 
+Note that pretraining data scale for MAE should grow with the increasing model scale, otherwise the downstream performance would be saturated, such as K710 (0.66M videos) for ViT-L, K-Mash$_{1.1M}$ for ViT-1B, and K-Mash$_{2M}$ for ViT-6B.
+\textit{(b) Teacher:} Tab. \ref{tab:abaltion_stage1} reveals that the synergy between a multimodal teacher (e.g., CLIP \cite{clip}) and a motion-aware teacher (e.g., MAE \cite{videomae}) markedly boosts performance, 
+especially on SthSthV2. It highlights the importance of strategic teacher model selection in the distillation process.
+
+\begin{table}[t]
+% \scriptsize
+\vspace{-2mm}
+\caption{Ablation of Stage2. All models are tested with 8$\times$224$\times$224 input. 
+% \vspace{-3mm}
+}
+\centering
+\small
+\resizebox{.75\linewidth}{!}{
+\setlength{\tabcolsep}{3.0 mm}{
+  \begin{tabular}{l|c}
+  \toprule
+Method & MSR-VTT \\
+\midrule
+Baseline (video \& text encoders w/ video-text learning) & 24.7 \\
+Baseline + audio encoder w/ audio-text learning & 24.0\\
+Baseline + speech encoder w/ video-speech-text learning & 24.9 \\
+Baseline + audio encoder w/ video-audio-text learning & \textbf{27.8} \\
+Baseline + audio \& speech encoders + video-audio-speech-text learning & 25.7 \\
+\bottomrule
+\end{tabular}
+}
+}
+\label{tab:ab_stage2}
+% \vspace{-3mm}
+\end{table}
+
+\begin{table}[t]
+% \scriptsize
+\vspace{-0mm}
+\caption{Zero-shot t2v retrieval on MSR-VTT with different training captions. 
+% \vspace{-3mm}
+}
+\centering
+\small
+\resizebox{.75\linewidth}{!}{
+\setlength{\tabcolsep}{3.0 mm}{
+\begin{tabular}{ccccc|c}
+\toprule
+SceneDet & AutoShot & Video Cap & Audio Cap & Speech Cap & MSR-VTT \\
+\midrule
+\Checkmark &  & \Checkmark &  &  & 24.7 \\
+\Checkmark &  & \Checkmark & \Checkmark &  & 26.6 \\
+ \Checkmark&  & \Checkmark & \Checkmark & \Checkmark & 27.1 \\
+ & \Checkmark & \Checkmark & \Checkmark & \Checkmark & \textbf{34.8} \\
+ \bottomrule
+\end{tabular}
+}
+}
+\label{tab:ab_stage2_data}
+% \vspace{-5mm}
+\end{table}
+
+\subsubsection{Training Arch, Method, and Data in Stage 2} We ablate the necessity of introducing an audio encoder in Stage 2. We employ ViT-B and Bert-B for video and text encoders, respectively. The used text are simple video captions. The baseline is conducting video-text contrastive and matching as well as masked language generation loss for training with only video and text encoders. Other settings including adding audio or speech encoder or them both, and how to update newly added encoders i.e., whether train them with only text encoder or both video and text encoders. Tab. \ref{tab:ab_stage2} shows that only introducing audio encoder and learn it along with both video and text encoders can best improve video-text retrieval performance. The speech encoder harms such effectiveness more or less.
+
+Further, we verify the impact of video temporal segmentation and the used captions as text inputs in Stage 2 in Tab. \ref{tab:ab_stage2_data}. 
+We still use ViT-B and Bert-B for video-text training. 
+Tab. \ref{tab:ab_stage2_data} finds the fused text from video-audio-speech works best for retrieval tasks compard with others, rising zero-shot t2v R\@1 of MSR-VTT from 24.7 to 27.1. Moreover, using AutoShot instead of SceneDet notably improves t2v retrieval (increasing by nearly 7 points). It validates the effectiveness of the introduced video-text dataset and its annotation systems.
+
+\begin{table*}[!tp]
+    \vspace{-3mm}
+    \caption{
+        Ablation on using qformer instruction in Stage3 training of Chat-Centric Model.
+    }
+    \centering
+    \small
+    \resizebox{0.86\linewidth}{!}{
+    \setlength{\tabcolsep}{3.0 mm}{
+        \begin{tabular}{l|l|l|c|c}
+        % \Xhline{1.0pt}
+        \toprule
+
+        \textbf{Model} & MVBench & NextQA & Egoschema-full & Egoschema-subset \\
+        \midrule
+
+        \textbf{VideoChat2} w qformer inst & 59.9 & \textbf{79} & 52.9 & 65.8 \\
+        \textbf{VideoChat2} w/o qformer inst & \textbf{60.4} (+0.5) & 78.6 (-0.4)& \textbf{55.8} (+2.9) & \textbf{66.4} (+0.6)  \\
+        
+        \bottomrule
+        \end{tabular}
+        }
+    }
+    \vspace{-3mm}
+    \label{tab:wct-qformerinst-ablate}
+\end{table*}
+
+\subsubsection{Training and Evaluation in Stage 3}
+As shown in Tab. \ref{tab:wct-qformerinst-ablate}, incorporating questions (i.e., the `\texttt{q}' in `\texttt{QA}') into QFormer during Stage 3 training, which was found useful in \cite{instructblip}, actually harms the out-of-domain performance of the scaled-up VideoLLM. The NextQA training data is already included in the training corpus, and this is the only benchmark where the question-injected version performs better. Therefore, we believe that adding questions to QFormer during the instruction tuning stage of the scaled VideoChat model leads to some degree of overfitting.

@@ -1,0 +1,331 @@
+\section{Model}
+
+\begin{table*}[!th]
+    \caption{Architecture of vision encoder (6B).}
+    \vspace{-0.3cm}
+    \centering
+    % \setlength\tabcolsep{8.0pt}
+    \resizebox{0.9\linewidth}{!}{
+        \begin{tabular}{c|c|c}
+        \Xhline{1.0pt}
+        \textbf{Stage} & \textbf{ViT-6B} & \textbf{Output Size} \\
+        \Xhline{1.0pt}
+        Video & sparse sampling & \violet{3}$\times$\darkGreen{8}$\times$\myblue{224}$\times$\myblue{224} \\
+        \hline
+        Patch & \darkGreen{1}$\times$\myblue{14}$\times$\myblue{14}, \violet{3200} & \multirow{2}{*}{\violet{3200}$\times$\darkGreen{8}$\times$\orange{256}} \\
+        Embedding & stride \darkGreen{1}$\times$\myblue{14}$\times$\myblue{14} & ~ \\
+        \hline
+        Position & learnable, 3D sine-cosine initialization & \multirow{2}{*}{\violet{3200}$\times$\orange{2048}} \\
+        Embedding & \violet{3200}$\times$\orange{2048} & ~ \\
+        \hline
+        Mask & semantic mask w/ \textit{mask ratio} $=$ $\rho$ & \violet{3200}$\times$\orange{2048$\cdot$(1-$\rho$)} \\
+        \hline
+        Encoder & $\left[\begin{array}{c}\text{MHSA(\violet{3200})}\\\text{MLP(\violet{12800})}\end{array}\right]$$\times$48 $+$ AttnPool(\violet{768}) & 
+        \makecell{\violet{3200}$\times$\orange{2048$\cdot$(1-$\rho$)}
+        \\\violet{768}$\times$\orange{1}} \\
+        \hline
+        Projection & 
+        $\left[\begin{array}{c}\text{LN(\violet{3200})}\\\text{MLP(\violet{3200})}\end{array}\right]$$\times$$K_{CLIP}$,
+        $\left[\begin{array}{c}\text{LN(\violet{3200})}\\\text{MLP(\violet{1408})}
+        \end{array}\right]$$\times$$K_{MAE}$,
+        $\left[\begin{array}{c}\text{LN(\violet{3200})}\\\text{MLP(\violet{768})}
+        \end{array}\right]$$\times1$ & 
+        \makecell{$K$$\times$\violet{3200}$\times$\orange{2048$\cdot$(1-$\rho$)}
+        \\$K$$\times$\violet{1408}$\times$\orange{2048$\cdot$(1-$\rho$)}
+        \\$K$$\times$\violet{768}$\times$\orange{1}} \\
+
+        \bottomrule
+        \end{tabular}
+    }
+    \label{tab:model_architecture}
+    \vspace{-0.3cm}
+\end{table*}
+
+\paragraph{Video Encoder.}
+In Tab. \ref{tab:model_architecture}, we take ViT-6B as an example and omit the class token for a simple presentation. ``MHSA'', ``MLP'', ``AttnPool'', and ``LN'' refer to spatiotemporal multi-head self-attention, multi-layer perception, attention pooling~\cite{coca} and root mean square layer normalization~\cite{zhang2019root}. $K_{CLIP}$ and $K_{MAE}$ means the layer number for unmasked token alignment with multimodal and motion-aware teachers. We mark the \violet{channel number}, \darkGreen{frame number}, \myblue{spatial size}, and \orange{token number} by different colors. The projection layers are dropped after stage 1 training.
+
+% \input{content/tables/s2_table1}
+\section{Video-centric Multimodal Data}
+We prepare our training data according to the learning objectives of the three stages in our learning scheme. Specifically, it consists of video-only pretraining set for masked video token reconstruction, Video-Audio-Speech-Text one for multimodal alignment, and video instruction dataset for human-computer interaction alignment. They are detailed in the following.
+
+\subsection{Video-only Data}
+\input{content/tables/stage1_data}
+
+To create the curated collection of videos, named \textbf{K-Mash}, we source videos from renowned action recognition datasets such as Kinetics-400 (K400) \cite{k400}, Something-Something (Sth) \cite{sth}, Moments in Time (MIT) \cite{mit}, ActivityNet \cite{activitynet}, and HACS \cite{hacs}. These datasets provide a wide range of video types, including both first-person and third-person perspectives, short and long durations, and featuring a rich variety of characters and settings.
+
+For the enhanced version of the dataset, called K-Mash$_{2M}$, we push a step further and meticulously selected an additional 844,000 videos from YouTube to further enhance the diversity of the dataset. It's important to note that all videos in this dataset are utilized for training without any labels, allowing the model to learn from the unlabeled data in an unsupervised manner. This approach helps to broaden the model's understanding of different visual concepts and improves its performance on various video-related tasks. 
+
+\subsection{Videos with Audio-Video-Speech Modalities} \label{supp:avs_anno}
+In addtion to publicly available video-text datasets (e.g. InternVid~\citep{wang2023internvid} and WebVid \citep{webvid}), we introduce a new video dataset that incorporates both audio-visual-speech information and their corresponding textual descriptions. This dataset is included in the training process of {\modelname}. To create this multimodal dataset, named {\dataname}, we leverage several video sources and provide detailed annotations. {\dataname} includes videos with synchronized audio, visual, and speech information, along with their corresponding textual descriptions. This multimodal dataset enables the training of {\modelname} to better understand and capture the connections between different modalities, enhancing its performance in various video-related tasks that require audio, visual, and speech understanding.
+
+\noindent\textbf{Collection.}
+In the {\dataname} dataset, approximately half of the videos are sourced from YouTube, while the remaining videos are gathered from anonymous sources. This is to improve the diversity of dataset, as relying solely on YouTube may result in limited depth of the dataset.
+Furthermore, to study the impact of video culture backgrounds on the learned models, a small portion of the dataset consists of Chinese data. These videos were collected with proper permissions for academic usage, ensuring compliance with legal and ethical considerations.
+
+By incorporating videos from various sources and including a subset of Chinese data, {\dataname} provides a more diverse and representative dataset for training {\modelname}. This approach allows the model to learn from a wide range of video content, encompassing different cultural backgrounds and further enhancing its ability to understand and process videos from various sources.
+
+\noindent\textbf{Trimming.}
+In our approach, instead of relying on the widely-used SceneDet filter of FFMPEG, we employ a temporal boundary detection model called AutoShot \cite{zhu2023autoshot} to segment videos into clips. AutoShot is capable of predicting clip boundaries based on temporal semantic variations, as opposed to pixel differences. This leads to the generation of semantically complete cuts without mixing extra frames that may contain inconsistent context. By using AutoShot, we aim to reduce captioning errors by producing fewer clips with obvious transitions, resulting in a more coherent input for video captioning models. In the inference of AutoShot, we use a threshold of 0.5 to determine the shot boundaries for AutoShot's estimations. 
+
+For the video dataset, we first preserve clips longer than 2 seconds. For video clips longer than 30 seconds, as the segments within the clip are from the same shot, we randomly choose a 30-second segment. During this process, we also abandon clips with still or extreme dynamics, such as browsing a photo gallery. 
+
+\begin{table*}[h]\centering
+\begin{minipage}{0.99\columnwidth}\vspace{0mm}    
+     \caption{\textbf{Fusion prompt.}The above prompt is to generate 2 multi-modal captions, the following prompt is to generate 3 multi-modal captions.}
+    \label{fusion_prompt}
+    \vspace{-2mm}
+    \centering
+    \begin{tcolorbox} 
+        \centering
+        % \small
+        \hspace{-6mm}
+        \begin{tabular}{p{0.99\columnwidth}}
+        \hspace{1mm}
+        \begin{minipage}{0.99\columnwidth}
+        You are a text analysis expert. About one video, here is 1 vision caption: \violet{\texttt{vid\_cap}}, 1 audio caption:\violet{\texttt{aud\_cap}}. You need to understand and encode them into 1 sentence. Do not simply concatenate them together. The weights of video/audio are equaled. Considering dropping audio caption if it is incomprehensible. The output must be a complete and natural sentence. The sentence is:
+        $...$ \\ \rule[0.25\baselineskip]{\textwidth}{1pt}
+        You are a text analysis expert. About one video, here is 1 vision caption: \violet{\texttt{vid\_cap}}, 1 audio caption:\violet{\texttt{aud\_cap}}, and one speech subtitle: \violet{\texttt{asr\_cap}},. You need to understand and encode them into 1 compelete sentence. The weights of video/audio/speech are equaled. Considering dropping audio caption or speech subtitle if it is incomprehensible. The output must be a complete and natural sentence, do not simply concatenate them together. The complete sentence is:
+        \end{minipage}
+        \end{tabular}
+    \end{tcolorbox}
+    \vspace{-2mm}
+\end{minipage}
+\end{table*}
+
+\begin{figure*}[t]
+    \centering
+    \includegraphics[width=1.\textwidth]{content/figures/avs1.pdf}
+    \includegraphics[width=1.\textwidth]{content/figures/avs2.pdf}
+    \includegraphics[width=1.\textwidth]{content/figures/avs3.pdf}
+    \includegraphics[width=1.\textwidth]{content/figures/avs4.pdf}
+    % \vspace{-0.3cm}
+    \caption{Annotation examples using our captioning approach.}
+    \label{fig:anno_example}
+    % \vspace{-0.3cm}
+\end{figure*}
+
+\noindent\textbf{Annotation.} We automatically caption visual, audio, and speech of {\dataname}. Then we correct them and fuse them for cross-modal captions for training using LLM. We list several annotation examples of our method in Fig. \ref{fig:anno_example}.
+% \subsubsection{Annotation}
+\begin{itemize}[leftmargin=*]
+    \item[$\bullet$] \textbf{Vision Captioner.} We employ the video captioning pipeline in InternVid to annotate our data. Rather than using VideoLLM \citep{li2023videochat,videochatgpt} to describe videos, we choose this validated method due to its better downstream results. 
+    \item[$\bullet$] \textbf{Audio Captioner.} We craft a audio captioner upon VideoChat~\citep{li2023videochat}, as we find no reliable ones. It extracts audio features from inputs by Beats~\citep{beats}. We learn it by only tuning its Qformer (the interface between audio encoder and LLM) using a combination of the large-scale audio-text corpus WavCaps~\citep{mei2023wavcaps} dataset.
+    \item[$\bullet$] \textbf{Speech Captioner.} We utilize the audio transcription model Whisper~\citep{whisper} to obtain speech from videos.Concretely, we use the WhisperV2-large model since its concurrent state-of-the-art performance. During the data collection process, a portion of the data is directly adopted from YT-Temporal-180M, which already has well-aligned timestamps and adjusted speech recognition content. The remaining data is first passed through a pre-trained language identification model Fasttext-lid~\citep{joulin2016bag} to determine the language category, and then transcribed the non-English text into English using the pretrained Seamless M4T~\citep{communication2023seamlessm4t} model. For the text with language identification confidence less than 0.95, we use Vicuna-1.5 as a translation alternative.
+    \item[$\bullet$] \textbf{Caption Triming \& Fusion with LLM.} After obtaining the captions of audio, video, and speech from the given video, we utilize an LLM (Vicuna-1.5~\citep{vicuna}) to integrate the uni-modal captions into the multimodal ones. To fulfill the request for multiple contrastive objectives, we combine the audio caption with the video caption as the audio-visual caption, as well as integrate the audio, video, and speech captions as the audio-visual-subtitle captions. In this way, we acquire 5 types of captions (3 uni-modal captions (A, V, S) and 2 multi-modal captions (AV, AVS)) for each video automatically. Specifically, we have carefully designed prompt templates (Fig.~\ref{fusion_prompt}) and employed vLLM~\citep{kwon2023efficient} for inference acceleration, effectively get the visual caption, audio caption, subtitle, audio-visual caption and audio-visual-speech caption while maintaining a natural human-like subtitle style.
+\end{itemize}
+
+\noindent\textbf{Filtering \& Sampling.} After obtaining the captions, we calculate the CLIP similarity between the video segments and captions. We select the top 60 million data as the video segment data for \dataname{}. For LAION-2B, we only select samples with CLIP similarity in the top 158 million for training.
+
+\section{Experiments}
+
+\subsection{Ablations}
+
+\subsubsection{How {\modelname} Works in Feature-based Tasks.} \label{supp:tal} We study which part of {\modelname}$_{s1}$'s predictions are suitable for feature-based tasks, i.e. temporal action localition. We adhere the same train and test protocols as in the main paper.
+
+In Tab. \ref{supp:tal}, the most effective feature tends to be located within the last few layers of the video encoder. This observation aligns with the similarity between feature-based temporal tasks and linear probing classification, which is reasonable. We undertake comprehensive experiments to investigate the impact of features from various layers, as detailed in Table~\ref{tab:abla-tal-feature}. The results reveal the best features appear between the last 5-th layer and 7-th layer.
+
+\begin{table}[h]
+\centering
+\caption{Effect of feature extracted from the last 7 layers.}
+% \vspace{-0.3cm}
+    \resizebox{1.0\linewidth}{!}{
+        \begin{tabular}{c|cc|cc|cc|cc}
+                \toprule
+                 Layer Index & \multicolumn{2}{c}{THUMOS-14} & \multicolumn{2}{c}{ActivityNet} & \multicolumn{2}{c}{HACS Segment} & \multicolumn{2}{c}{FineAction} \\
+                   & 1B@mAP& 6B@mAP& 1B@mAP& 6B@mAP& 1B@mAP& 6B@mAP & 1B@mAP& 6B@mAP  \\
+                 \midrule
+                 -1  & 67.9& 70.3& 39.0& 40.7 & 39.5& 42.1& 25.4 & 25.3  \\
+                 -2  & 68.4 & 71.0 & 39.3 & 40.5 & 41.0& 42.7& 26.2 & 26.4  \\
+                 -3 & 69.0 & 71.3 & 39.7 & 40.5 & 41.2& 42.7& 27.0 & 26.6  \\
+                 -4 & 69.3 & 71.4 & 39.6 & 41.1 & 41.3& 43.1& 27.1 & 27.1  \\
+                 -5 & \textbf{69.9} & 71.8 & 39.7  & 40.9 & \textbf{41.4} & 43.1 & \textbf{27.2} & \textbf{27.7}  \\
+                 -6 & 69.6 & \textbf{72.0} & 39.6 & \textbf{41.2} & 40.7& \textbf{43.3} & 27.0& 27.7  \\
+                 -7 & 69.5 & 71.9  & \textbf{40.0} & 41.1 & 40.6 & 42.8 & 26.9 & 27.7  \\
+                \bottomrule
+        \end{tabular}
+        \label{tab:abla-tal-feature}
+    }
+\end{table}
+
+\subsection{Video Retrieval}
+We detail R@1, R@5, and R@10 of zero-shot video retrieval from {\modelname} in Tab. \ref{tab:msrvtt}
+-\ref{tab:msvd} for reference.
+
+\begin{table}[t]
+    \caption{Video retrieval results on MSR-VTT, DiDeMo, LSMDC, ActivityNet, VATEX, and MSVD. We report R@1, R@5, and R@10. \#F denotes input frame number in eval.}
+    \vspace{-0.2cm}
+    % \centering
+    % \small
+    \begin{subtable}[t]{.48\linewidth}
+		\centering
+		\caption{MSR-VTT}
+    	\setlength{\tabcolsep}{2pt} %
+		\renewcommand*{\arraystretch}{1.10}  %
+		\vspace{-0.3\baselineskip}
+		\resizebox{1.0\textwidth}{!}{
+			\begin{tabular}{lccccccc}
+            \toprule
+             \multirow{2}{*}{Method}& \multirow{2}{*}{\#F} &\multicolumn{3}{c}{Text-to-Video} & \multicolumn{3}{c}{Video-to-Text} \\
+             &  & R@1 & R@5 & R@10 & R@1 & R@5 & R@10\\
+            \midrule
+             \modelname$_{s2}$-1B & 4 & 51.9 & 74.6 & 81.7 & 49.6 & 73.6 & 81.2 \\
+             \modelname$_{s2}$-1B & 8 & 51.9 & 75.3 & 82.5 & 50.9 & 73.4 & 81.8 \\      
+             \modelname$_{s2}$-6B & 4 & 54.5 & 77.5 & 83.7 & 52.3 & 75.3 & 83.5 \\
+             \modelname$_{s2}$-6B & 8 & 55.9 & 78.3 & 85.1 & 53.7 & 77.5 & 84.1 \\
+            \bottomrule
+          \end{tabular}
+		}
+		\label{tab:msrvtt}
+	  	% \vspace{0.96\baselineskip} %
+  		\centering
+  		\caption{LSMDC}
+  		\vspace{-0.2\baselineskip}
+  		%\setlength{\tabcolsep}{6pt} %
+  		\resizebox{1.0\textwidth}{!}{
+  			\begin{tabular}{cccccccc}
+            \toprule
+             \multirow{2}{*}{Method}& \multirow{2}{*}{\#F} &\multicolumn{3}{c}{Text-to-Video} & \multicolumn{3}{c}{Video-to-Text} \\
+             & & R@1 & R@5 & R@10 & R@1 & R@5 & R@10\\
+            \midrule
+            \modelname$_{s2}$-1B & 4 & 31.5 & 51.3 & 59.5 & 27.1 & 44.8 & 51.8 \\
+             \modelname$_{s2}$-1B & 8 & 32.0 & 52.4 & 59.4 & 27.3 & 44.2 & 51.6 \\    
+             \modelname$_{s2}$-6B & 4 & 34.8 & 54.0 & 61.6 & 30.1 & 48.0 & 55.0 \\
+             \modelname$_{s2}$-6B & 8 & 33.8 & 55.9 & 62.2 & 30.1 & 47.7 & 54.8 \\
+            \bottomrule
+          \end{tabular}
+  			\label{tab:lsmdc}
+  		}
+    % \vspace{0.96\baselineskip} %
+  		\centering
+  		\caption{VATEX}
+  		\vspace{-0.2\baselineskip}
+  		%\setlength{\tabcolsep}{6pt} %
+  		\resizebox{1.0\textwidth}{!}{
+  			\begin{tabular}{cccccccc}
+            \toprule
+             \multirow{2}{*}{Method}& \multirow{2}{*}{\#F} &\multicolumn{3}{c}{Text-to-Video} & \multicolumn{3}{c}{Video-to-Text} \\
+             & & R@1 & R@5 & R@10 & R@1 & R@5 & R@10\\
+            \midrule
+             \modelname$_{s2}$-1B & 4 & 70.7 & 93.7 & 96.9 & 85.9 & 97.6 & 99.2\\
+             \modelname$_{s2}$-1B & 8 & 70.4 & 93.4 & 96.9 & 85.4 & 97.6 & 99.1\\    
+             \modelname$_{s2}$-6B & 4 & 71.1 & 93.8 & 97.0 & 85.2 & 97.7 & 99.4 \\
+             \modelname$_{s2}$-6B & 8 & 71.5 & 94.0 & 97.1 & 85.3 & 97.9 & 99.3 \\
+            \bottomrule
+          \end{tabular}
+  			\label{tab:vatex}
+  		}
+	\end{subtable}
+  	%\hfill
+    \begin{subtable}[t]{.48\linewidth}
+		\centering
+		\caption{DiDeMo}
+    	\setlength{\tabcolsep}{2pt} %
+		\renewcommand*{\arraystretch}{1.10}  %
+		\vspace{-0.3\baselineskip}
+		\resizebox{1.0\textwidth}{!}{
+			\begin{tabular}{lccccccc}
+            \toprule
+             \multirow{2}{*}{Method}& \multirow{2}{*}{\#F} &\multicolumn{3}{c}{Text-to-Video} & \multicolumn{3}{c}{Video-to-Text} \\
+             &  & R@1 & R@5 & R@10 & R@1 & R@5 & R@10\\
+            \midrule
+             \modelname$_{s2}$-1B & 4 & 56.7 & 78.7 & 83.9 & 54.4 & 74.4 & 80.6 \\
+             \modelname$_{s2}$-1B & 8 & 57.0 & 80.0 & 85.1 & 54.3 & 77.2 & 83.5 \\    
+             \modelname$_{s2}$-6B & 4 & 56.2 & 77.6 & 83.6 & 53.2 & 76.8 & 82.7 \\
+             \modelname$_{s2}$-6B & 8 & 57.9 & 80.0 & 84.6 & 57.1 & 79.9 & 85.0 \\
+            \bottomrule
+          \end{tabular}
+		}
+		\label{tab:didemo}
+	  	% \vspace{0.96\baselineskip} %
+  		\centering
+  		\caption{ActivityNet}
+  		\vspace{-0.2\baselineskip}
+  		%\setlength{\tabcolsep}{6pt} %
+  		\resizebox{1.0\textwidth}{!}{
+  			\begin{tabular}{cccccccc}
+            \toprule
+             \multirow{2}{*}{Method}& \multirow{2}{*}{\#F} &\multicolumn{3}{c}{Text-to-Video} & \multicolumn{3}{c}{Video-to-Text} \\
+             & & R@1 & R@5 & R@10 & R@1 & R@5 & R@10\\
+            \midrule
+             \modelname$_{s2}$-1B & 4 & 56.9 & 81.7 & 89.8 & 53.6 & 80.0 & 88.5\\
+             \modelname$_{s2}$-1B & 8 & 60.4 & 83.9 & 90.8 & 54.8 & 81.5 & 89.5 \\    
+             \modelname$_{s2}$-6B & 4 & 59.4 & 83.2 & 90.3 & 53.7 & 80.5 & 88.9 \\
+             \modelname$_{s2}$-6B & 8 & 63.2 & 85.6 & 92.5 & 56.5 & 82.8 & 90.3 \\
+            \bottomrule
+          \end{tabular}
+  			\label{tab:anet}
+  		}
+    % \vspace{0.96\baselineskip} %
+  		\centering
+  		\caption{MSVD}
+  		\vspace{-0.2\baselineskip}
+  		%\setlength{\tabcolsep}{6pt} %
+  		\resizebox{1.0\textwidth}{!}{
+  			\begin{tabular}{cccccccc}
+            \toprule
+             \multirow{2}{*}{Method}& \multirow{2}{*}{\#F} &\multicolumn{3}{c}{Text-to-Video} & \multicolumn{3}{c}{Video-to-Text} \\
+             & & R@1 & R@5 & R@10 & R@1 & R@5 & R@10\\
+            \midrule
+             \modelname$_{s2}$-1B & 4 & 58.9 & 83.0 & 88.7 & 83.6 & 94.8 & 97.0\\
+             \modelname$_{s2}$-1B & 8 & 58.1 & 83.0 & 88.4 & 83.3 & 94.3 & 96.9\\    
+             \modelname$_{s2}$-6B & 4 & 59.8 & 84.2 & 89.7 & 82.5 & 94.6 & 97.2\\
+             \modelname$_{s2}$-6B & 8 & 59.3 & 84.4 & 89.6 & 83.1 & 94.2 & 97.0\\
+            \bottomrule
+          \end{tabular}
+  			\label{tab:msvd}
+  		}
+	\end{subtable}
+\end{table}
+
+\begin{table}[!ht]
+\vspace{-0mm}
+\caption{The top-1 accuracy of zero-shot video QA (multi-choice) on MSR-VTT and LSMDC. Finetuned results are marked in gray.}
+\centering
+\small
+% \scriptsize
+\resizebox{0.50\textwidth}{!}{
+\setlength{\tabcolsep}{1.5 mm}{
+\begin{tabular}{lcc}
+\toprule
+Method & MSR-VTT & LSMDC \\
+\midrule
+VIOLET \cite{violet} & \gray{91.9} & \gray{82.8} \\
+InternVideo \cite{wang2022internvideo} & 93.4 & \textbf{77.3}  \\
+\modelname$_{s2}$-6B & \textbf{94.4} & 76.9 \\
+\bottomrule
+\end{tabular}}}
+\label{tab:mc}
+% \vspace{-3mm}
+\end{table}
+
+% \vspace{-3mm}
+\subsection{Multi-Choice Video Question Answering} \label{sec:qa}
+We evaluate zero-shot multi-choice (MC) video QA using {\modelname} in stage 2 on MSR-VTT and VATEX. 
+Tab. \ref{tab:mc} shows {\modelname} consistently improves MC accuracy compared with previous SOTAs except on LSMDC, where it gets a comparable result with InternVideo.
+
+\begin{table}[!t]
+\caption{Performance of multimodal LLMs on different question types and scenes of MoVQA.
+}
+% \vspace{-0.3cm}
+\centering
+\scalebox{.65}{
+\begin{tabular}{c|c|cccccc|ccc|c}
+\toprule 
+  Method & Backbone &Synopsis & Temporal & Spatial & Causal & Hypothetical  & Knowledge   & Single-Scene & Multi-Scene & Full-Scene & Overall \\ 
+\midrule
+  Mplug-Owl \cite{mplugowl}& CLIP ViT-L &25.1 &  19.9 & 25.3 & 21.9& 23.5  &27.5  & 25.2 & 23.5 & 22.1 & 24.8\\
+  Otter \cite{li2023otter} & CLIP ViT-L & 22.6 & 20.7 &  19.6  &  26.1 & 24.2  & 21.8 & 23.1 & 22.1 & 21.3 & 22.6\\
+  VideoChatGPT \cite{videochatgpt} & CLIP ViT-L &  23.8 & 20.2  &  22.1   &  22.1 &  21.4  &  24.1 & 23.4 & 22.7 & 22.3 & 22.9\\
+  VideoChat \cite{li2023videochat} & Eva-g  &  33.6 & 24.3 & 34.5 & 36.6 & 35.5  & 32.0 &35.3 & 32.9 & 33.3 & 34.7\\ 
+  VideoChat2 \cite{li2023mvbench} & {\modelname}$_{s3}$ & \bf42.6 & \bf27.8 & \bf39.9  & \bf44.3 & 4\bf42.5 & \bf41.2 & \bf40.9 & \bf39.3 & \bf38.6  & \bf40.1\\
+\bottomrule
+\end{tabular}
+}
+\label{tab:movqa-type-scene}
+% \vspace{-2mm}
+\end{table}
+
+\subsection{Movie Understanding}
+
+We evaluate {\modelname} on the MoVQA for movie understanding. It is a long-form movie question-answering dataset\cite{zhang2023movqa}. MoVQA assesses the diverse cognitive capabilities of multimodal systems by considering both video length and clue length, relying on multi-level temporal lengths (single-scene, multi-scene and full-scene). 
+There are six types of QAs, including information synopsis, temporal perception, spatial perception, causal reasoning, hypothetical reasoning and external knowledge.
+We evaluate {\modelname}-6B in the form of open-ended QAs, and detailed results are shown on Table~\ref{tab:movqa-type-scene}.

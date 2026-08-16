@@ -5,7 +5,7 @@ description: Pretraining video features to encode appearance, motion, order, dyn
 tags: [video, representation-learning, self-supervised-learning, foundation-models]
 status: draft
 created: 2026-08-15
-generated: { by: llm-wiki-agent/1, at: 2026-08-16T10:21:31+07:00 }
+generated: { by: llm-wiki-agent/1, at: 2026-08-16T10:29:08+07:00 }
 sources:
   - id: video-temporal-survey
     resource: ../raw/TongHopCacHuongXuLyVideo.md
@@ -19,6 +19,9 @@ sources:
   - id: internvideo-paper
     resource: ../raw/InternVideo/main.tex
     title: "InternVideo: General Video Foundation Models via Generative and Discriminative Learning"
+  - id: internvideo2-paper
+    resource: ../raw/InternVideo2/main.tex
+    title: "InternVideo2: Scaling Foundation Models for Multimodal Video Understanding"
 ---
 
 # Video temporal representation learning
@@ -41,6 +44,8 @@ A useful unresolved design tension is the balance between appearance understandi
 
 InternVideo is a concrete modular response to this tension: it trains masked-video and video–text contrastive branches separately, then learns cross-model attention between their features under action-classification supervision. This is paper-specific evidence that feature coordination can be evaluated across action and video–language tasks, not evidence that it resolves the tension generally.[^internvideo-paper]
 
+InternVideo2 extends this progressive family with unmasked-token distillation, video–audio–speech–text alignment, and video-conditioned next-token prediction. Its paper supplies transfer evaluations, but its authors retain fixed-resolution and sampling limits and do not claim a consistent world model; its results therefore do not settle the appearance-versus-temporal-understanding tension generally.[^internvideo2-paper]
+
 ## Relationships
 
 - **Part of:** [Video temporal learning](video-temporal-learning.md).
@@ -50,8 +55,10 @@ InternVideo is a concrete modular response to this tension: it trains masked-vid
 - **Instantiated by:** [Inflated 3D ConvNets (I3D)](inflated-3d-convnets-i3d.md) through ImageNet initialization and supervised Kinetics pretraining.
 - **Instantiated by:** [VideoMAE](videomae.md) through masked pixel reconstruction on unlabeled video clips.[^videomae-paper]
 - **Instantiated by:** [InternVideo](internvideo.md) by coordinating separately pretrained masked-video and video–text encoders.[^internvideo-paper]
+- **Instantiated by:** [InternVideo2](internvideo2.md) through progressive token distillation, multimodal alignment, and video-conditioned next-token prediction.[^internvideo2-paper]
 
 [^video-temporal-survey]: [Tổng hợp các hướng xử lý video](../raw/TongHopCacHuongXuLyVideo.md)
 [^i3d-paper]: [Quo Vadis, Action Recognition? A New Model and the Kinetics Dataset](../raw/I3D/full_kinetics_update_v0.tex)
 [^videomae-paper]: [VideoMAE: Masked Autoencoders are Data-Efficient Learners for Self-Supervised Video Pre-Training](../raw/VideoMAE/main.tex)
 [^internvideo-paper]: [InternVideo: General Video Foundation Models via Generative and Discriminative Learning](../raw/InternVideo/main.tex)
+[^internvideo2-paper]: [InternVideo2: Scaling Foundation Models for Multimodal Video Understanding](../raw/InternVideo2/main.tex)
