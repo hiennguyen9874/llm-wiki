@@ -5,7 +5,7 @@ description: A video Transformer that factorizes temporal and spatial self-atten
 tags: [video, action-recognition, transformer, attention, long-context]
 status: stable
 created: 2026-08-16
-generated: { by: llm-wiki-agent/1, at: 2026-08-16T09:54:47+07:00 }
+generated: { by: llm-wiki-agent/1, at: 2026-08-16T10:03:14+07:00 }
 sources:
   - id: vivit-paper
     resource: ../raw/ViViT/main_arxiv.tex
@@ -13,6 +13,9 @@ sources:
   - id: timesformer-paper
     resource: ../raw/TimeSformer/TimeSformer_arxiv_v17.tex
     title: Is Space-Time Attention All You Need for Video Understanding?
+  - id: video-swin-paper
+    resource: ../raw/VideoSwin/main.tex
+    title: Video Swin Transformer
 ---
 
 # TimeSformer
@@ -41,6 +44,7 @@ The long configuration uses 96 frames at $224 \times 224$ sampled at one frame p
 - **Supports:** [Long-video temporal modeling](long-video-temporal-modeling.md) through factorized attention over longer clips.
 - **Contrasts with:** [Inflated 3D ConvNets (I3D)](inflated-3d-convnets-i3d.md) and [SlowFast Networks](slowfast-networks.md), which are convolutional video backbones; the source compares their historical action-recognition costs and accuracies.[^timesformer-paper]
 - **Contrasts with:** [ViViT (Video Vision Transformer)](vivit.md). ViViT's paper directly compares its factorised-encoder classification result with TimeSformer-HR on Something-Something-V2; this is a historical, protocol-specific comparison.[^vivit-paper]
+- **Contrasts with:** [Video Swin Transformer](video-swin-transformer.md), which jointly attends inside shifted local 3D windows rather than factorizing globally scoped temporal and spatial attention.[^video-swin-paper]
 
 ## Evidence limits
 
@@ -48,3 +52,4 @@ The source evaluates action classification on Kinetics-400/600, Something-Someth
 
 [^vivit-paper]: [ViViT: A Video Vision Transformer](../raw/ViViT/main_arxiv.tex)
 [^timesformer-paper]: [Is Space-Time Attention All You Need for Video Understanding?](../raw/TimeSformer/TimeSformer_arxiv_v17.tex)
+[^video-swin-paper]: [Video Swin Transformer](../raw/VideoSwin/main.tex)

@@ -5,7 +5,7 @@ description: Scalable representations and retrieval mechanisms for preserving fi
 tags: [video, long-context, temporal-learning, efficiency]
 status: draft
 created: 2026-08-15
-generated: { by: llm-wiki-agent/1, at: 2026-08-16T09:57:51+07:00 }
+generated: { by: llm-wiki-agent/1, at: 2026-08-16T10:03:14+07:00 }
 sources:
   - id: vivit-paper
     resource: ../raw/ViViT/main_arxiv.tex
@@ -22,6 +22,9 @@ sources:
   - id: mvit-paper
     resource: ../raw/MViT/mvit_arxiv.tex
     title: Multiscale Vision Transformers
+  - id: video-swin-paper
+    resource: ../raw/VideoSwin/main.tex
+    title: Video Swin Transformer
 ---
 
 # Long-video temporal modeling
@@ -54,6 +57,10 @@ ViViT offers a different factorization: it first reduces the patches at each tem
 
 MViT provides a fixed-clip hierarchical alternative: it pools queries at stage boundaries to shorten the output token sequence, pools keys and values to reduce attention cost, and increases channel width as spatiotemporal resolution falls.[^mvit-paper] This is a concrete token-compression mechanism, but the source evaluates 16–64-frame clips rather than arbitrary-duration video; it does not provide persistent memory or retrieval over a full long video.[^mvit-paper]
 
+## Local spatiotemporal windows
+
+Video Swin Transformer uses joint self-attention inside fixed-size 3D windows and shifts the window grid across successive blocks. Its Kinetics-400 ablation found that an $8 \times 7 \times 7$ temporal-spatial window incurred 88 GFLOPs versus 106 GFLOPs for a temporally global $16 \times 7 \times 7$ window, with a 0.3-point top-1 reduction for the reported Swin-T configuration.[^video-swin-paper] This is a local-attention speed--accuracy trade-off for fixed clips; it neither supplies persistent memory nor demonstrates retrieval over an arbitrary-duration video.
+
 ## Architectural alternatives
 
 The source identifies local/hierarchical attention and state-space models as alternatives to full global attention. It motivates state-space approaches by approximately linear sequence scaling, but does not provide verified comparative evidence that they are preferable for a particular video task.[^video-temporal-survey]
@@ -67,9 +74,11 @@ The source identifies local/hierarchical attention and state-space models as alt
 - **Uses:** [TimeSformer](timesformer.md) as a factorized-attention approach that expands clip-level temporal coverage.
 - **Uses:** [ViViT (Video Vision Transformer)](vivit.md) as a spatial-then-temporal encoder that increases practical clip length.
 - **Uses:** [Multiscale Vision Transformers (MViT)](multiscale-vision-transformers-mvit.md) as fixed-clip hierarchical token compression, not as arbitrary-length-video memory.[^mvit-paper]
+- **Uses:** [Video Swin Transformer](video-swin-transformer.md) as local joint spatiotemporal attention with shifted cross-window connections, not as arbitrary-length-video memory.[^video-swin-paper]
 
 [^vivit-paper]: [ViViT: A Video Vision Transformer](../raw/ViViT/main_arxiv.tex)
 [^video-temporal-survey]: [Tổng hợp các hướng xử lý video](../raw/TongHopCacHuongXuLyVideo.md)
 [^temporal-segment-networks]: [Temporal Segment Networks for Action Recognition in Videos](../raw/TemporalSegmentNetworks/tsn_pami.tex)
 [^timesformer-paper]: [Is Space-Time Attention All You Need for Video Understanding?](../raw/TimeSformer/TimeSformer_arxiv_v17.tex)
 [^mvit-paper]: [Multiscale Vision Transformers](../raw/MViT/mvit_arxiv.tex)
+[^video-swin-paper]: [Video Swin Transformer](../raw/VideoSwin/main.tex)

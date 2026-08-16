@@ -5,7 +5,7 @@ description: Video tasks that recognize, localize, segment, or anticipate action
 tags: [video, temporal-learning, action-understanding]
 status: draft
 created: 2026-08-15
-generated: { by: llm-wiki-agent/1, at: 2026-08-16T09:57:51+07:00 }
+generated: { by: llm-wiki-agent/1, at: 2026-08-16T10:03:14+07:00 }
 sources:
   - id: bmn-paper
     resource: ../raw/BMN/main.tex
@@ -22,6 +22,9 @@ sources:
   - id: mvit-paper
     resource: ../raw/MViT/mvit_arxiv.tex
     title: Multiscale Vision Transformers
+  - id: video-swin-paper
+    resource: ../raw/VideoSwin/main.tex
+    title: Video Swin Transformer
 ---
 
 # Temporal action understanding
@@ -64,9 +67,11 @@ Precise temporal intervals are expensive to annotate. Weakly supervised temporal
 - **Includes:** [Boundary-Matching Network (BMN)](boundary-matching-network.md) as a class-agnostic proposal-generation method.
 - **Includes:** [MS-TCN (Multi-Stage Temporal Convolutional Network)](ms-tcn.md) as a fully supervised frame-level segmentation method.
 - **Includes:** [Multiscale Vision Transformers (MViT)](multiscale-vision-transformers-mvit.md) as a Transformer backbone evaluated for clip classification and frame-centered human-action detection.[^mvit-paper]
+- **Includes:** [Video Swin Transformer](video-swin-transformer.md) as a local-attention Transformer backbone evaluated for clip-level action recognition.[^video-swin-paper]
 
 [^bmn-paper]: [BMN: Boundary-Matching Network for Temporal Action Proposal Generation](../raw/BMN/main.tex)
 [^video-temporal-survey]: [Tổng hợp các hướng xử lý video](../raw/TongHopCacHuongXuLyVideo.md)
 [^temporal-segment-networks]: [Temporal Segment Networks for Action Recognition in Videos](../raw/TemporalSegmentNetworks/tsn_pami.tex)
 [^ms-tcn-paper]: [MS-TCN: Multi-Stage Temporal Convolutional Network for Action Segmentation](../raw/MS-TCN/egpaper_final.tex)
 [^mvit-paper]: [Multiscale Vision Transformers](../raw/MViT/mvit_arxiv.tex)
+[^video-swin-paper]: [Video Swin Transformer](../raw/VideoSwin/main.tex)

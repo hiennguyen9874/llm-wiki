@@ -21,6 +21,7 @@ The complete retrieval map for compiled knowledge. See [LLM Wiki Contract](../LL
 - [Temporal action understanding](temporal-action-understanding.md) — Video tasks that recognize, localize, segment, or anticipate actions across time.
 - [Temporal Segment Networks](temporal-segment-networks.md) — A video-level action-recognition framework that samples snippets across equal temporal segments and learns their consensus.
 - [Two-stream ConvNets for action recognition](two-stream-convnets-action-recognition.md) — A late-fusion video classifier that separates appearance in RGB frames from motion in stacked optical flow.
+- [Video Swin Transformer](video-swin-transformer.md) — A hierarchical video Transformer that uses alternating local and shifted 3D attention windows to model spacetime efficiently.
 - [Video temporal learning](video-temporal-learning.md) — A task taxonomy for learning temporal structure in video, spanning recognition, localization, representation learning, language grounding, and reasoning.
 - [Video temporal representation learning](video-temporal-representation-learning.md) — Pretraining video features to encode appearance, motion, order, dynamics, and longer-range semantics for downstream tasks.
 - [Video-language temporal grounding and reasoning](video-language-temporal-grounding-and-reasoning.md) — Text-conditioned localization and inference over event timing, order, duration, frequency, state changes, and causal relations in video.
