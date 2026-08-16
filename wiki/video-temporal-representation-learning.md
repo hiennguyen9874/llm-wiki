@@ -5,7 +5,7 @@ description: Pretraining video features to encode appearance, motion, order, dyn
 tags: [video, representation-learning, self-supervised-learning, foundation-models]
 status: draft
 created: 2026-08-15
-generated: { by: llm-wiki-agent/1, at: 2026-08-16T02:03:58Z }
+generated: { by: llm-wiki-agent/1, at: 2026-08-16T10:11:45+07:00 }
 sources:
   - id: video-temporal-survey
     resource: ../raw/TongHopCacHuongXuLyVideo.md
@@ -13,6 +13,9 @@ sources:
   - id: i3d-paper
     resource: ../raw/I3D/full_kinetics_update_v0.tex
     title: Quo Vadis, Action Recognition? A New Model and the Kinetics Dataset
+  - id: videomae-paper
+    resource: ../raw/VideoMAE/main.tex
+    title: "VideoMAE: Masked Autoencoders are Data-Efficient Learners for Self-Supervised Video Pre-Training"
 ---
 
 # Video temporal representation learning
@@ -21,7 +24,7 @@ Video representation learning aims to encode temporal structure—appearance, mo
 
 ## Pretraining families
 
-The source groups self-supervised video learning into transformation/order prediction, contrastive learning, and masked video modeling.[^video-temporal-survey] Masked video modeling hides a large fraction of spatiotemporal input and trains an encoder-decoder to reconstruct the missing content; its stated motivation is temporal redundancy in video.
+The source groups self-supervised video learning into transformation/order prediction, contrastive learning, and masked video modeling.[^video-temporal-survey] Masked video modeling hides a large fraction of spatiotemporal input and trains an encoder-decoder to reconstruct the missing content; its stated motivation is temporal redundancy in video. VideoMAE is a pixel-reconstruction instance that shares a tube mask across frames and feeds only the remaining visible tokens to its encoder during pretraining.[^videomae-paper]
 
 ## Supervised video pretraining
 
@@ -40,6 +43,8 @@ A useful unresolved design tension is the balance between appearance understandi
 - **Supports:** [Video-language temporal grounding and reasoning](video-language-temporal-grounding-and-reasoning.md).
 - **Depends on:** [Long-video temporal modeling](long-video-temporal-modeling.md) when context exceeds a short clip.
 - **Instantiated by:** [Inflated 3D ConvNets (I3D)](inflated-3d-convnets-i3d.md) through ImageNet initialization and supervised Kinetics pretraining.
+- **Instantiated by:** [VideoMAE](videomae.md) through masked pixel reconstruction on unlabeled video clips.[^videomae-paper]
 
 [^video-temporal-survey]: [Tổng hợp các hướng xử lý video](../raw/TongHopCacHuongXuLyVideo.md)
 [^i3d-paper]: [Quo Vadis, Action Recognition? A New Model and the Kinetics Dataset](../raw/I3D/full_kinetics_update_v0.tex)
+[^videomae-paper]: [VideoMAE: Masked Autoencoders are Data-Efficient Learners for Self-Supervised Video Pre-Training](../raw/VideoMAE/main.tex)

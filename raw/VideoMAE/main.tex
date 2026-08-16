@@ -1,0 +1,988 @@
+\documentclass{article}
+
+
+% if you need to pass options to natbib, use, e.g.:
+%     \PassOptionsToPackage{numbers, compress}{natbib}
+% before loading neurips_2022
+
+
+% ready for submission
+% \usepackage{neurips_2022}
+
+
+% to compile a preprint version, e.g., for submission to arXiv, add add the
+% [preprint] option:
+%     \usepackage[preprint]{neurips_2022}
+
+
+% to compile a camera-ready version, add the [final] option, e.g.:
+% \usepackage[final]{neurips_2022}
+
+\PassOptionsToPackage{numbers, compress}{natbib}
+\usepackage[final]{neurips_2022}
+% \usepackage{natbib}
+% \setcitestyle{square}
+% \setcitestyle{nonatbib}
+
+% \bibliographystyle{plain}
+% \bibliography{ref}
+% to avoid loading the natbib package, add option nonatbib:
+%    \usepackage[nonatbib]{neurips_2022}
+
+
+\usepackage[utf8]{inputenc} % allow utf-8 input
+\usepackage[T1]{fontenc}    % use 8-bit T1 fonts
+\usepackage{url}            % simple URL typesetting
+\usepackage{booktabs}       % professional-quality tables
+\usepackage{amsfonts}       % blackboard math symbols
+\usepackage{nicefrac}       % compact symbols for 1/2, etc.
+\usepackage{microtype}      % microtypography
+\usepackage{xcolor}         % colors
+\usepackage{tabularx}
+\usepackage{graphicx}
+\usepackage{amsmath}
+
+\usepackage{subcaption}
+\usepackage{tabulary,multirow,overpic,xcolor}
+\definecolor{mygray}{gray}{0.92}
+\definecolor{baselinecolor}{gray}{.9}
+\newcommand{\baseline}[1]{\cellcolor{baselinecolor}{#1}}
+\usepackage{listings}
+\usepackage{amsthm}
+\usepackage{tabulary}
+\usepackage{colortbl}
+\usepackage{enumitem}
+\usepackage{braket}
+\usepackage{array}
+
+\usepackage{float}
+\usepackage{enumitem}
+\usepackage{booktabs}
+\usepackage{algorithm}
+\usepackage{bbding}
+\usepackage{listings}
+\usepackage{tabu}
+
+\usepackage{pifont} 
+\newcommand{\cmark}{\ding{51}}%
+\newcommand{\xmark}{\ding{55}}%
+\newcommand{\ncdot}{{\mkern 0mu\cdot\mkern 0mu}}
+\def\x{$\times$}
+
+\newcolumntype{x}[1]{>{\centering\arraybackslash}p{#1pt}}
+\newcolumntype{y}[1]{>{\raggedright\arraybackslash}p{#1pt}}
+\newcolumntype{z}[1]{>{\raggedleft\arraybackslash}p{#1pt}}
+
+\newlength\savewidth\newcommand\shline{\noalign{\global\savewidth\arrayrulewidth
+		\global\arrayrulewidth 1pt}\hline\noalign{\global\arrayrulewidth\savewidth}}
+\newcommand{\tablestyle}[2]{\setlength{\tabcolsep}{#1}\renewcommand{\arraystretch}{#2}\centering\footnotesize}
+\newcommand{\blocks}[3]{\multirow{3}{*}{\(\left[\begin{array}{c}\text{\tcolor{1}$\times$\xycolor{1}$^\text{2}$, \wcolor{#2}}\\[-.1em] \text{\tcolor{1}$\times$\xycolor{3}$^\text{2}$, \wcolor{#2}}\\[-.1em] \text{\tcolor{1}$\times$\xycolor{1}$^\text{2}$, \wcolor{#1}}\end{array}\right]\)$\times$#3}
+}
+\newcommand{\blockatt}[3]{\multirow{2}{*}{\(\left[\begin{array}{c}\text{MHA(\wcolor{#1})}\\[-.1em] \text{MLP(\wcolor{#2})}\end{array}\right]\)$\times$#3}
+}
+% \newcommand{\blockatt}[3]{\multirow{2}{*}{\(\left[\begin{array}{c}{MHA(\wcolor{#1})} \\[-.1em] {MLP(\wcolor{#2})}\end{array}\right]\)$\times$#3}
+% }
+\newcommand{\blockt}[3]{\multirow{3}{*}{\(\left[\begin{array}{c}\text{\tcolor{3}$\times$\xycolor{1}$^\text{2}$}, \wcolor{#2}\\[-.1em] \text{\tcolor{1}$\times$\xycolor{3}$^\text{2}$, \wcolor{#2}}\\[-.1em] \text{\tcolor{1}$\times$\xycolor{1}$^\text{2}$, \wcolor{#1}}\end{array}\right]\)$\times$#3}
+}
+\newcommand{\outsizes}[7]{\multirow{#7}{*}{\(\begin{array}{c} \text{\emph{Slow}}: \text{#1$\times$#2$^\text{2}$}\\[-.1em] \text{\emph{Fast}}: \text{#4$\times$#5$^\text{2}$}\end{array}\)}
+}
+\definecolor{linkcol}{RGB}{233, 4, 141}
+\newcommand{\linkcol}[1]{\textcolor{linkcol}{#1}}
+\definecolor{xycolor}{RGB}{60, 120, 216}
+\definecolor{xycolor}{HTML}{0071bc}
+\newcommand{\xycolor}[1]{\textcolor{xycolor}{#1}}
+\definecolor{wcolor}{RGB}{103, 78, 167}
+\newcommand{\wcolor}[1]{\textcolor{wcolor}{#1}}
+\definecolor{dcolor}{RGB}{166, 77,21}
+\newcommand{\dcolor}[1]{\textcolor{dcolor}{#1}}
+\definecolor{gcolor}{RGB}{204, 102, 153}
+\newcommand{\gcolor}[1]{\textcolor{gcolor}{#1}}
+\definecolor{tcolor}{RGB}{34,139,34}
+\newcommand{\tcolor}[1]{\textcolor{tcolor}{#1}}
+\definecolor{iterc}{RGB}{91,196,159}
+\newcommand{\iterc}[1]{\textcolor{iterc}{#1}}
+\definecolor{epochc}{RGB}{96,172,252}
+\newcommand{\epochc}[1]{\textcolor{epochc}{#1}}
+\definecolor{eicolor}{RGB}{153, 51, 102}
+\newcommand{\eicolor}[1]{\textcolor{eicolor}{#1}}
+\newcommand{\maskcolor}[1]{\textcolor{orange}{#1}}
+\newcommand{\outsizesRaw}[4]{\multirow{#4}{*}{\(\begin{array}{c}  \text{#1$\times$#2\x #3}\\[-.1em]  \end{array}\)}}
+\newcommand{\outsizesRawD}[5]{\multirow{#5}{*}{\(\begin{array}{c}  \text{#1\x#2\x#3\x#4}\\[-.1em]  \end{array}\)}}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\newcommand{\rebuttal}[1]{\textcolor{blue}{#1}}
+
+\definecolor{citecolor}{HTML}{0071BC}
+\definecolor{linkcolor}{HTML}{ED1C24}
+\usepackage[pagebackref=false,breaklinks=true,letterpaper=true,colorlinks,citecolor=citecolor,linkcolor=linkcolor,bookmarks=false]{hyperref}
+
+\title{VideoMAE: Masked Autoencoders are Data-Efficient Learners for Self-Supervised Video Pre-Training}
+
+
+% The \author macro works with any number of authors. There are two commands
+% used to separate the names and addresses of multiple authors: \And and \AND.
+%
+% Using \And between authors leaves it to LaTeX to determine where to break the
+% lines. Using \AND forces a line break at that point. So, if LaTeX puts 3 of 4
+% authors names on the first line, and the last on the second line, try using
+% \AND instead of \And before the third author name.
+
+
+\author{%
+Zhan Tong $^{1, 2}$\thanks{Work is done during internship at Tencent AI Lab. ~~\textsuperscript{\dag}Corresponding author. } \quad
+Yibing Song $^{2}$ \quad
+Jue Wang $^{2}$ \quad
+Limin Wang $^{1,3\dagger}$\vspace{0.2em}\\
+$^{1}$State Key Laboratory for Novel Software Technology, Nanjing University \\ $^{2}$Tencent AI Lab \quad \quad $^{3}$Shanghai AI Lab \vspace{.2em}\\
+{\tt\small{tongzhan@smail.nju.edu.cn \quad \{yibingsong.cv, arphid\}@gmail.com \quad lmwang@nju.edu.cn}} \\
+}
+
+
+\begin{document}
+
+
+\maketitle
+
+
+\begin{abstract}
+Pre-training video transformers on extra large-scale datasets is generally required to achieve premier performance on relatively small datasets.
+In this paper, we show that video masked autoencoders (VideoMAE) are data-efficient learners for self-supervised video pre-training (SSVP). We are inspired by the recent ImageMAE~\cite{he2021masked} and propose customized video tube masking with an extremely high ratio. 
+This simple design makes video reconstruction a more challenging and meaningful self-supervision task, thus encouraging extracting more effective video representations during the pre-training process.
+We obtain three important findings with VideoMAE: 
+(1) An extremely high proportion of masking ratio (i.e., $90\%$ to $95\%$) still yields favorable performance for VideoMAE. The temporally redundant video content enables higher masking ratio than that of images.
+(2) VideoMAE achieves impressive results on very small datasets (i.e., around 3k-4k videos) without using any extra data. This is partially ascribed to the challenging task of video reconstruction to enforce high-level structure learning. 
+(3) VideoMAE shows that data quality is more important than data quantity for SSVP. Domain shift between pre-training and target datasets is an important factor. Notably, our VideoMAE with the vanilla ViT backbone can achieve 87.4\% on Kinects-400, 75.4\% on Something-Something V2, 91.3\% on UCF101, and 62.6\% on HMDB51, without using any extra data. Code is available at \href{https://github.com/MCG-NJU/VideoMAE}{https://github.com/MCG-NJU/VideoMAE}.
+\end{abstract}
+
+\section{Introduction}
+Transformer~\cite{attention} has brought significant progress in natural language processing~\cite{devlin2019bert,Brown2020,Radford2018}. The vision transformer~\cite{vit} also improves a series of computer vision tasks including image classification~\cite{deit,deepvit}, object detection~\cite{detr,swin}, semantic segmentation~\cite{segformer}, object tracking~\cite{ChenYZ0YL21,mixformer}, and video recognition~\cite{timesformer,vivit}. The multi-head self-attention upon linearly projected image/video tokens is capable of modeling global dependency among visual content either spatially or temporally. The inductive bias is effectively reduced via this flexible attention mechanism. 
+
+\begin{figure}[t!]
+\vspace{-2mm}
+    \begin{center}
+    \includegraphics[width=0.96\textwidth]{figures/pipline_nips.pdf}
+    \end{center}
+    \vspace{-3mm}
+    \caption{
+    \textbf{VideoMAE} performs the task of masking random cubes and reconstructing the missing ones with an asymmetric encoder-decoder architecture. Due to high redundancy and temporal correlation in videos, we present the customized design of tube masking with an extremely high ratio (90\% to 95\%). This simple design enables us to create a more challenging and meaningful self-supervised task to make the learned representations capture more useful spatiotemporal structures.}
+    \label{fig:pipline}
+    \vspace{-5mm}
+\end{figure}
+
+Training effective vision transformers (ViTs) typically necessitates large-scale supervised datasets. Initially, the pre-trained ViTs achieve favorable performance by using hundreds of millions of labeled images~\cite{vit}. For video transformers~\cite{vivit,timesformer}, they are usually derived from image-based transformers and heavily depend on the pre-trained models from large-scale image data (e.g., ImageNet~\cite{russakovsky2015imagenet}). Previous trials~\cite{vivit,timesformer} on training video transformers from scratch yield unsatisfied results (except for MViT~\cite{mvit} with a strong inductive bias). Therefore, the learned video transformers are naturally biased by image-based models, and it still remains a challenge that {\em how to effectively and efficiently train a vanilla vision transformer on the video dataset itself without using any pre-trained model or extra image data.} Moreover, the existing video datasets are relatively small compared with image datasets, which further increases the difficulty of training video transformers from scratch. Meanwhile, self-supervised learning has shown remarkable performance by using large-scale image datasets~\cite{mocov3,caron2021emerging}. The learned representations have outperformed the ones via supervised learning when being transferred to downstream tasks. It is expected that this self-supervised learning paradigm can provide a promising solution to address the challenge of training video transformers.
+
+Following the success of masked autoencoding in NLP~\cite{devlin2019bert} and images~\cite{he2021masked,beit}, we present a new self-supervised video pre-training (SSVP) method, termed as {\em Video Masked Autoencoder} (VideoMAE). Our VideoMAE inherits the simple pipeline of masking random cubes and reconstructing the missing ones. However, the extra time dimension of videos makes them different from images in this masked modeling. First, video frames are often densely captured, and their semantics varies slowly in time~\cite{slowness12}. This temporal redundancy would increase the risk of recovering missing pixels from the spatiotemporal neighborhood with little high-level understanding. Furthermore, video could be viewed as the temporal evolution of static appearance, and there exists a correspondence between frames. This temporal correlation could lead to information leakage (i.e., masked spatiotemporal content re-occurrence) during reconstruction unless a specific masking strategy is considered. In this sense, for each masked cube, it is easy to find a corresponding and unmasked copy in adjacent frames. This property would make the learned models identify some “shortcut” features that are hard to generalize to new scenarios. 
+
+To make video masked modeling more effective, in this paper, we present a customized design of tube masking with an extremely high ratio in our VideoMAE. First, due to temporal redundancy, we use an {\em extremely high} masking ratio to drop the cubes from the downsampled clips. This simple strategy not only effectively increases the pre-training performance but also greatly reduces the computational cost due to the asymmetric encoder-decoder architecture. Second, to consider temporal correlation, we devise a simple yet effective {\em tube masking} strategy, which turns out to be helpful in relieving the risk of information leakage for cubes with no or negligible motion during reconstruction. With this simple yet effective design in our VideoMAE, we are able to successfully train vanilla ViT backbones on the relatively small-scale video datasets such as Something-Something~\cite{sth}, UCF101~\cite{ucf}, and HMDB51~\cite{hmdb}, which significantly outperform the previous state of the art under the setting without extra data. In summary, the main contribution of this paper is threefold:
+\vspace{-2mm}
+\begin{itemize}[]
+    \item We present a simple but effective video masked autoencoder that unleashes the potential of vanilla vision transformer for video recognition. To the best of our knowledge, this is the first masked video pre-training framework of simply using plain ViT backbones.
+    To relieve the information leakage issue in masked video modeling, we present the tube masking with an extremely high ratio, which brings the performance improvement to the VideoMAE.
+    \item Aligned with the results in NLP and Images on masked modeling, our VideoMAE demonstrates that this simple masking and reconstruction strategy provides a good solution to self-supervised video pre-training. The models pre-trained with our VideoMAE significantly outperform those trained from scratch or pre-trained with contrastive learning methods.
+    \item We obtain extra important findings on masked modeling that might be ignored in previous research in NLP and Images. (1) We demonstrate that VideoMAE is a data-efficient learner that could be successfully trained with only 3.5k videos. (2) Data quality is more important than quantity for SSVP when a domain shift exists between the source and target dataset.
+\end{itemize}
+
+\section{Related Work}
+
+\par{\noindent \textbf{Video representation learning.}} 
+Learning good video representations has been heavily investigated in the literature. The supervised learning methods~\cite{simonyan2014two,tsn_journal,tran2018closer,I3D,timesformer} usually depend on the image backbones.
+The video encoder backbones are first pre-trained with image data in a supervised form. Then, these backbones are fine-tuned on the video dataset for classifying human actions. Meanwhile, some methods~\cite{tran2015learning,slowfast,mvit} directly train video backbones from videos in a supervised manner. Besides supervised learning, semi-supervised video representation learning has also been studied~\cite{singh2021semi}. The representations of labeled training samples are utilized to generate supervision signals for unlabeled ones. Supervised or semi-supervised representation learning mainly uses a top-down training paradigm, which is not effective in exploring the inherent video data structure itself. Meanwhile, some multimodal contrastive learning methods~\cite{cpd,MiechASLSZ20,abs-2007-14937} have been developed to learn video representation from noisy text supervision.
+
+For self-supervised learning, the prior knowledge of temporal information has been widely exploited to design pretext tasks~\cite{wang2015unsupervised, misra2016shuffle, vcop, speedNet} for SSVP.
+Recently, contrastive learning~\cite{memdpc,pan2021videomoco,han2020coclr,qian2021spatiotemporal,ge2021revitalizing,DBLP:conf/cvpr/0005XZWGHH22} is popular to learn better visual representation. However these methods heavily rely on strong data augmentation and large batch size~\cite{large}. 
+Predicting the video clip with autoencoders in pixel space has been explored for representation learning by using CNN or LSTM backbones~\cite{PatrauceanHC15,SrivastavaMS15}, or conducting video generation with autoregressive GPT~\cite{videogpt}. 
+Instead, our VideoMAE aims to use the simple masked autoencoder with recent ViT backbones to perform data-efficient SSVP. 
+
+\par{\noindent \textbf{Masked visual modeling.}} 
+Masked visual modeling has been proposed to learn effective visual representations based on the simple pipeline of masking and reconstruction. These works mainly focus on the image domain. The early work~\cite{VincentLLBM10} treated the masking as a noise type in denoised autoencoders~\cite{VincentLBM08} or inpainted missing regions with context~\cite{PathakKDDE16} by using convolutions. 
+iGPT~\cite{iGPT20} followed the success of GPT~\cite{Brown2020,radford2019language} in NLP and operated a sequence of pixels for prediction. The original ViT~\cite{vit} investigated the masked token prediction for self-supervised pre-training. More recently, the success of 
+vision transformer has led to investigation of Transformer-based architectures for masked visual modeling~\cite{beit,dong2021peco,he2021masked,wei2021masked,xie2021simmim,zhou2021ibot}. BEiT~\cite{beit}, BEVT~\cite{bevt} and VIMPAC~\cite{vimpac} followed BERT~\cite{devlin2019bert} and proposed to learn visual representations from images and videos by predicting the discrete tokens~\cite{dalle}. MAE~\cite{he2021masked} introduced an asymmetric encoder-decoder architecture for masked image modeling. MaskFeat~\cite{wei2021masked} proposed to reconstruct the HOG features of masked tokens to perform self-supervised pre-training in videos. VideoMAE is inspired by the ImageMAE and introduces specific design in implementation for SSVP. In particular, compared with previous masked video modeling~\cite{he2021masked,bevt,vimpac}, we present a simpler yet more effective video masked autoencoder by directly reconstructing the pixels. Our VideoMAE is the first masked video pre-training framework of simply using plain ViT backbones.
+
+\section{Proposed Method}
+In this section, we first revisit ImageMAE~\cite{he2021masked}. Then we analyze the characteristics of video data. Finally, we show how we explore MAE in the video data by presenting our VideoMAE.
+
+\subsection{Revisiting Image Masked Autoencoders}
+ImageMAE~\cite{he2021masked} performs the masking and reconstruction task with an asymmetric encoder-decoder architecture. The input image $I \in \mathcal{R}^{3 \times H \times W} $ is first divided into regular non-overlapping patches of size 16 \x 16, and each patch is represented with {\em token embedding}. Then a subset of tokens are randomly masked with a high masking ratio (75\%), and only the remaining ones are fed into the transformer {\em encoder}~$ \Phi_{enc}$.
+Finally, a shallow {\em decoder}~$ \Phi_{dec}$ is placed on top of the visible tokens from the encoder and learnable mask tokens to reconstruct the image.
+The {\em loss function} is mean squared error (MSE) loss between the normalized masked tokens and reconstructed ones in the pixel space:
+\begin{equation}
+    \mathcal{L} = \frac{1}{\Omega} \sum_{p \in \Omega} |I(p) - \hat{I}(p)|^2,
+\end{equation}
+where $p$ is the token index, $\Omega$ is the set of masked tokens, $I$ is the input image, and $\hat{I}$ is the reconstructed one. 
+
+\subsection{Characteristics of Video Data}
+Compared with static images, video data contain temporal relations. We show the motivation of our VideoMAE by analyzing video characteristics.
+
+\par{\noindent \textbf{Temporal redundancy.}}
+There are frequently captured frames in a video. The semantics vary slowly in the temporal dimension~\cite{slowness12}. We observe that consecutive frames are highly redundant, as shown in Figure~\ref{fig:masking}. This property leads to two critical issues in masked video autoencoding. First, it would be less efficient to keep the original temporal frame rate for pre-training. This would draw us to focus more on static or slow motions in our masked modeling. Second, temporal redundancy greatly dilutes motion representations. This would make the task of reconstructing missing pixels not difficult under the normal masking ratio (e.g., 50\% to 75\%). The encoder backbone is not effective in capturing motion representations.
+
+\par{\noindent \textbf{Temporal correlation.}}
+Videos could be viewed as the temporal extension of static appearance, and therefore there exists an inherent correspondence between adjacent frames. This temporal correlation could increase the risk of information leakage in the masking and reconstruction pipeline. In this sense, as shown in Figure~\ref{fig:masking}, we can reconstruct the masked patches by finding the spatiotemporal corresponding unmasked patches in the adjacent frames under plain random masking or frame masking. In this case, it might guide the VideoMAE to learn low-level temporal correspondence rather than high-level information such as spatiotemporal reasoning over the content. To alleviate this behavior, we need to propose a new masking strategy to make the reconstruction more challenging and encourage effective learning of spatiotemporal structure representations.
+
+\begin{figure}[t!]
+    \begin{center}
+    \includegraphics[width=0.98\linewidth]{figures/masking_3.pdf}
+    \end{center}
+    \vspace{-8mm}
+    \caption{Slowness is a general prior in (a) video data~\cite{slowness12}. This leads to two important characteristics in time: temporal redundancy and temporal correlation. Temporal redundancy makes it possible to recover pixels under an extremely high masking ratio. Temporal correlation leads to easily reconstruct the missing pixels by finding those corresponding patches in adjacent frames under plain (b) frame masking or (c) random masking. To avoid this simple task and encourage learning representative representation, we propose a (d) tube masking, where the masking map is the same for all frames.}
+    \label{fig:masking}
+    \vspace{-1.5em}
+\end{figure}
+
+
+\subsection{VideoMAE}
+To relieve the above issues in video masked modeling, we make the customized design in our VideoMAE, and the overall pipeline is shown in Figure~\ref{fig:pipline}.
+Our VideoMAE takes the {\em downsampled frames} as inputs and uses the {\em cube embedding} to obtain video tokens. Then, we propose a simple design of {\em tube masking with high ratio} to perform MAE pre-training with an asymmetric encoder-decoder architecture. Our backbone uses the vanilla ViT with {\em joint space-time attention}.
+
+\par{\noindent \textbf{Temporal downsampling.}} According to the above analysis on temporal redundancy over consecutive frames, we propose to use the strided temporal sampling strategy to perform more efficient video pre-training. Formally, one video clip consisting of $t$ consecutive frames is first randomly sampled from the original video $V$. We then use temporal sampling to compress the clip to $T$ frames, each of which contains $H\times W\times 3 $ pixels.
+In experiments, the stride $\tau$ is set to 4 and 2 on Kinetics and Something-Something, respectively.
+
+\par{\noindent \textbf{Cube embedding.}} We adopt the joint space-time cube embedding~\cite{vivit,mvit,liu2021video} in our VideoMAE, where we treat each cube of size $2\times16\times16$ as one token embedding. Thus, the cube embedding layer obtains $ \frac{T}{2}\times \frac{H}{16}\times \frac{W}{16}$ 3D tokens and maps each token to the channel dimension $D$. 
+This design can decrease the spatial and temporal dimension of input, which helps to alleviate the spatiotemporal redundancy in videos.
+
+\par{\noindent \textbf{Tube masking with extremely high ratios.}}
+First, temporal redundancy is a factor affecting VideoMAE design. We find that VideoMAE is in favor of extremely high masking ratios (e.g. 90\% to 95\%) compared with the ImageMAE. Video information density is much lower than images, and we expect a high ratio to increase the reconstruction difficulty. This high masking ratio is helpful to mitigate the information leakage during masked modeling and make masked video reconstruction a meaningful self-supervised pre-training task.
+
+Second, temporal correlation is another factor in our VideoMAE design. We find even under the extremely high masking ratio, we can still improve the masking efficiency by proposing the temporal tube masking mechanism. 
+Temporal tube masking enforces a mask to expand over the whole temporal axis, namely, different frames sharing the same masking map. Mathematically, the tube mask mechanism can be expressed as 
+$\mathbb{I}[p_{x, y, \cdot} \in \Omega] \sim \mathrm{Bernoulli}(\rho_\mathrm{mask})$ and different time $t$ shares the same value.
+With this mechanism, temporal neighbors of masked cubes are always masked. So for some cubes with no or small motion (e.g., finger cube in 4th row of Figure~\ref{fig:masking}~(d)), we can not find the spatiotemporal corresponding content in all frames. In this way, it would encourage our VideoMAE to reason over high-level semantics to recover these totally missing cubes. 
+This simple strategy can alleviate the information leakage for cubes with no or negligible motion, and turns out to be effective in practice for masked video pre-training.
+
+\par{\noindent \textbf{Backbone: joint space-time attention.}} Due to the high proportion of masking ratio mentioned above, only a few tokens are left as the input for the encoder. To better capture high-level spatio-temporal information in the remaining tokens, we use the vanilla ViT backbone~\cite{vit} and adopt the joint space-time attention~\cite{vivit,liu2021video}. Thus, all pair tokens could interact with each other in the multi-head self-attention layer~\cite{attention}. 
+The specific architecture design for the encoder and decoder is shown in supplementary materials.
+The quadratic complexity of the joint space-time attention mechanism is a computational bottleneck, while our design of an extremely high masking ratio alleviates this issue by only putting the unmasked tokens (e.g., 10\%) into the encoder during the pre-training phase.
+
+\section{Experiments}
+\subsection{Datasets}
+\label{sec:data}
+We evaluate our VideoMAE on five common video datasets: Kinetics-400~\cite{kinetics400}, Something-Something V2~\cite{sth}, UCF101~\cite{ucf}, HMDB51~\cite{hmdb}, and AVA~\cite{ava}. 
+The Kinetics-400 contains around 240k training videos and 20k validation videos of 10s from 400 classes. 
+The Something-Something V2 is another large-scale video dataset, having around 169k videos for training and 20k videos for validation. In contrast to Kinetics-400, this dataset contains 174 motion-centric action classes. These two large-scale video datasets focus on different visual cues for action recognition. 
+UCF101 and HMDB51 are two relatively small video datasets, which contain around 9.5k/3.5k train/val videos and 3.5k/1.5k train/val videos, respectively. Compared with those large-scale video datasets, these two small datasets are more suitable for verifying the effectiveness of VideoMAE, as training large ViT models is more challenging on small datasets. 
+Moreover, we also transfer the learned ViT models by VideoMAE to downstream action detection task. We work on AVA, a dataset for spatiotemporal localization of human actions with 211k training and 57k validation video segments.
+In experiments of downstream tasks, we fine-tune the pre-trained VideoMAE models on the training set and report the results on the validation set. The implementation details are described in Appendix~\S~\ref{sec:impl}.
+
+
+\begin{table}[t]
+\vspace{-.2em}
+\centering
+%#################################################
+% VideoMAE decoder depth
+%#################################################
+\subfloat[
+\textbf{Decoder depth}. 4 blocks of decoder achieve the best trade-off. ``GPU mem.'' is GPU memory during pre-training, benchmarked in one GPU with a batch size of 16.
+\label{tab:decoder_depth}
+]{
+\centering
+\begin{minipage}{0.28\linewidth}{\begin{center}
+\tablestyle{2pt}{1.05}
+\begin{tabular}{x{20}x{23}x{20}x{40}}
+blocks & SSV2 & K400 & GPU mem.  \\
+\shline
+1 &  68.5 & 79.0 & 7.9G \\ 
+2 &  69.2 & 79.2 & 10.2G \\
+4 & \baseline{\textbf{69.6}} & \baseline{\textbf{80.0}} & 14.7G \\
+8 & 69.3 & 79.7 & 23.7G \\
+\end{tabular}
+\end{center}}\end{minipage}
+}
+\hspace{2em}
+\subfloat[
+\textbf{Mask sampling}. We compare different masking strategies. Our proposed tube masking with an extremely high ratio works the best. $*$``87.5'' means masking 14/16 frames.
+\label{tab:mask_types}
+]{
+\begin{minipage}{0.27\linewidth}{\begin{center}
+\tablestyle{2pt}{1.05}
+\begin{tabular}{y{26}x{24}x{22}x{22}}
+case & ratio & SSV2 & K400 \\
+\shline
+tube & 75 & 68.0 & 79.8 \\
+tube & 90 & \baseline{\textbf{69.6}} &  \baseline{\textbf{80.0}} \\
+random & 90 & 68.3 & 79.5 \\
+frame & 87.5$^*$ &  61.5 & 76.5 \\
+\end{tabular}
+\end{center}}\end{minipage}
+}
+\hspace{1.5em}
+%#################################################
+% VideoMAE targets
+%#################################################
+\subfloat[
+\textbf{Reconstruction target}. $T \times \tau $ denotes ``frames \x stride''. \emph{center} denotes the center frame of the input clip. $T$ is set to 16 as default. $\tau $ is set to 2 and 4 on SSV2 and K400, respectively.
+\label{tab:abl_target}
+]{
+\begin{minipage}{0.28\linewidth}{\begin{center}
+\tablestyle{4pt}{1.05}
+\begin{tabular}{x{20}x{26}x{20}x{20}}
+input & target & SSV2 & K400 \\
+\shline
+$T$\x$\tau$ & $\emph{center}$ & 63.0 &  79.3 \\
+$T$\x$\frac{\tau}{2}$ & $T$\x$\frac{\tau}{2}$ & 68.9 &  79.8  \\
+$T$\x$\tau$ & $T$\x$\tau$ &  \baseline{\textbf{69.6}} & \baseline{80.0} \\
+$T$\x$\tau$ & $2T$\x$\frac{\tau}{2}$ &  69.2 &  \textbf{80.1} \\
+\end{tabular}
+\end{center}}
+\end{minipage}
+}
+\\
+\centering
+% \vspace{-0.6em}
+
+%#################################################
+% VideoMAE pre-training strategy
+%#################################################
+\hspace{-1.5em}
+\subfloat[
+\textbf{Pre-training strategy}. Our VideoMAE works the best without using any extra data. ``sup.'' is supervised training.
+\label{tab:abl_pretrain}
+]{
+\centering
+\begin{minipage}{0.29\linewidth}{\begin{center}
+\tablestyle{2pt}{1.05}
+\begin{tabular}{y{68}x{20}x{20}}
+case & SSV2 & K400 \\
+\shline
+\emph{from scratch}  & 32.6 & 68.8 \\
+ImageNet-21k sup.  & 61.8 & 78.9 \\
+IN-21k+K400 sup. & 65.2 & - \\
+VideoMAE  & \baseline{\textbf{69.6}} & \baseline{\textbf{80.0}} \\
+\end{tabular}
+\end{center}}\end{minipage}
+}
+\hspace{1em}
+%#################################################
+% VideoMAE pre-training dataset
+%#################################################
+\subfloat[
+\textbf{Pre-training dataset}. Our VideoMAE works the best when directly pre-training the models on the source datasets.
+\label{tab:abl_dataset}
+]{
+\centering
+\begin{minipage}{0.29\linewidth}{\begin{center}
+\tablestyle{2pt}{1.05}
+\begin{tabular}{x{24}x{39}x{21}x{19}}
+dataset & method & SSV2 & K400 \\
+\shline
+IN-1K &  ImageMAE & 64.8 & 78.7 \\
+K400 &  VideoMAE & 68.5 & \baseline{\textbf{80.0}} \\
+SSV2 &  VideoMAE  & \baseline{\textbf{69.6}} & 79.6 \\
+\multicolumn{4}{c}{~} \\
+\end{tabular}
+\end{center}}\end{minipage}
+}
+\hspace{1.5em}
+%#################################################
+% VideoMAE loss function
+%#################################################
+\subfloat[
+\textbf{Loss function}. MSE loss works the best for the masking and reconstruction task in VideoMAE.
+\label{tab:abl_loss}
+]{
+\begin{minipage}{0.26\linewidth}{\begin{center}
+\tablestyle{2pt}{1.05}
+\begin{tabular}{y{58}x{22}x{22}}
+case & SSV2 & K400 \\
+\shline
+L1 loss  & 69.1 & 79.7 \\
+MSE loss & \baseline{\textbf{69.6}} & \baseline{\textbf{80.0}} \\
+Smooth L1 loss  & 68.9 & 79.6 \\
+\multicolumn{3}{c}{~}\\
+\end{tabular}
+\end{center}}\end{minipage}
+}
+% \vspace{-.5em}
+\caption{Ablation experiments on \textbf{Something-Something V2} and \textbf{Kinetics-400}. 
+Our backbone is 16-frame vanilla ViT-B and all models are pre-trained with \emph{mask ratio} $\rho$=90\% for 800 epochs, and fine-tuned for evaluation. We perform TSN~\cite{tsn_journal} uniform sampling on SSV2 and dense sampling~\cite{nonlocal,slowfast} on K400. All models share the same inference protocol, i.e., 2 clips \x~3 crops on SSV2 and 5 clips \x~3 crops on K400. The default choice for our model is colored in \colorbox{baselinecolor}{gray}.}
+\label{tab:ablations} 
+\vspace{-2.5em}
+\end{table}
+%#################################################
+
+\subsection{Ablation Studies}
+In this subsection, we perform in-depth ablation studies on VideoMAE design with the default backbone of 16-frame ViT-B on Something-Something V2 (SSV2) and Kinetics-400 (K400). The specific architectures for the encoder and decoder are shown in Appendix~\S~\ref{sec:arch}.
+For fine-tuning, we perform TSN~\cite{tsn_journal} uniform sampling on SSV2 and dense sampling~\cite{nonlocal,slowfast} on K400. All models share the same inference protocol, i.e., 2 clips \x~3 crops on SSV2 and 5 clips \x~3 crops on K400.
+
+\par{\noindent \textbf{Decoder design.}} 
+The lightweight decoder is one key component of our VideoMAE. We conduct experiments with the different depths in Table~\ref{tab:decoder_depth}. Unlike in ImageMAE, a deep decoder here is important for better performance, while a shallow decoder could reduce the GPU memory consumption. We take 4 blocks for the decoder by default. The decoder width is set to half channel of the encoder (e.g., 384-d for ViT-B), following the design in the image domain.
+
+\par{\noindent \textbf{Masking strategy.}}
+We compare different masking strategies in Table~\ref{tab:mask_types}. When increasing the masking ratio from 75\% to 90\% for tube masking, the performance on SSV2 boosts from 68.0\% to 69.6\%. Then, with an extremely high ratio, we find tube masking also achieves better performance than plain random masking and frame masking. We attribute these interesting observations to the redundancy and temporal correlation in videos. The conclusion on K400 is in accord with one on SSV2. One may note that the performance gap on K400 is lower than one on SSV2. We argue that the Kinetics videos are mostly stationary and scene-related. The effect of temporal modeling is not obvious. Overall, we argue that our default designs enforce the networks to capture more useful spatiotemporal structures and therefore make VideoMAE a more challenging task, which a good self-supervised learner hunger for.
+
+\par{\noindent \textbf{Reconstruction target.}}  First, if we only employ the center frame as the target, the results would decrease greatly as shown in Table~\ref{tab:abl_target}. The sampling stride is also sensitive. The result of small sampling stride $\frac{\tau}{2}$ is lower than default sampling stride $\tau$ (68.9\% vs. 69.6\% on SSV2).
+We also try to reconstruct $2T$ frames from the downsampled $T$ frames, but it obtains slightly worse results on SSV2. For simplicity, we use the input downsampled clip as our default reconstruction target.
+
+\par{\noindent \textbf{Pre-training strategy.}} We compare different pre-training strategies in Table~\ref{tab:abl_pretrain}. Similar to previous trials~\cite{vivit,timesformer}, training video transformers from scratch yields unsatisfied results on video datasets. When pre-trained on the large-scale ImageNet-21K dataset, the video transformer obtains better accuracy from 32.6\% to 61.8\% on SSV2 and 68.8\% to 78.9\% on K400. Using the models pre-trained on both ImageNet-21K and Kinetics further increases accuracy to 65.2\% on SSV2. Our VideoMAE can effectively train a video transformer on the video dataset itself without using any extra data and achieve the best performance (69.6\% on SSV2 and 80.0\% on K400). 
+
+\par{\noindent \textbf{Pre-training dataset.}} 
+First, we pre-train the ViT-B on ImageNet-1K for 1600 epochs, following the recipes in~\cite{he2021masked}. Then we inflate the 2D patch embedding layer to our cube embedding layer following~\cite{I3D} and fine-tune the model on the target video datasets. The results surpass the model trained \emph{from scratch} as shown in Table~\ref{tab:abl_dataset}. We also compare the ImageMAE pre-trained model with VideoMAE models pre-trained on video datasets. We see that our VideoMAE models can achieve better performance than ImageMAE. However, when we try to transfer the pre-trained VideoMAE models to the other video datasets (e.g. from Kinetics to Something-Something), the results are slightly worse than their counterpart, which is directly pre-trained on its own target video datasets. 
+We argue that domain shift between pre-training and target datasets could be an important issue.
+
+
+\par{\noindent \textbf{Loss function.}} Table~\ref{tab:abl_loss} contains an ablation
+study of loss function. We find that the MSE loss could achieve a higher result compared with the L1 loss and smooth L1 loss. Therefore, we employ the MSE loss by default.
+
+%##################################################################################################
+\begin{table}[t!]
+\vspace{-.2em}
+\tablestyle{3pt}{1.05}
+\begin{tabular}{lcccc}
+dataset   &   training data   & \emph{from scratch} &  MoCo v3  & VideoMAE \\
+\shline 
+K400    & 240k &   68.8   & 74.2  &  \textbf{80.0} \\
+Sth-Sth V2   &  169k &  32.6 & 54.2  &  \textbf{69.6}   \\ 
+UCF101   &  9.5k  & 51.4  &  81.7   &  \textbf{91.3} \\ 
+HMDB51   &  3.5k   &   18.0  &  39.2  &  \textbf{62.6} \\ 
+\end{tabular}
+\caption{Comparisons with the results of previous \textbf{self-supvised pre-training methods} on different datasets. We take 16-frame ViT-B as the default backbone. Notably, here MoCo v3 and VideoMAE all only use the \textit{unlabelled} data in the training set of each dataset for pre-training and are all fine-tuned for evaluation.}
+\label{tab:comparison_acc}
+\vspace{-1.5em}
+\end{table}
+%##################################################################################################
+
+%##################################################################################################
+\begin{table}[t]
+\vspace{-.2em}
+\tablestyle{6pt}{1.05}
+\begin{tabular}{lccccc}
+method & epoch & ft. acc. & lin. acc. & hours & speedup \\
+\shline
+ MoCo v3 &  300 & 54.2 & 33.7 & 61.7 & - \\
+ VideoMAE  &  800 & \textbf{69.6} & 38.9 & 19.5 & \textbf{3.2$\times$} \\
+\end{tabular}
+\vspace{.3em}
+\caption{Comparisons with the \textbf{efficiency and effectiveness} on Something-Something V2. We report the fine-tuning (ft) and linear probing (lin) accuracy (\%). The \textbf{wall-clock time} of pre-training is benchmarked in 64 Tesla V100 GPUs with PyTorch.}
+\label{tab:comparison_time} 
+\vspace{-1.8em}
+\end{table}
+%##################################################################################################
+%##################################################################################################
+\begin{table}[t!]
+\tablestyle{3pt}{1.05}
+\begin{tabular}{lccc}
+method &   K400 $\rightarrow$ SSV2 & K400 $\rightarrow$ UCF & K400 $\rightarrow$ HMDB  \\
+\shline
+ MoCo v3    & 62.4 & 93.2  & 67.9 \\
+VideoMAE   & \textbf{68.5} & \textbf{96.1}  & \textbf{73.3} \\
+\end{tabular}
+\caption{Comparisons with the \textbf{feature transferability} on smaller datasets. We take 16-frame ViT-B as the default backbone. Notably, here MoCo v3 and VideoMAE are all pre-trained on Kinetics-400 with \textit{unlabelled} data in the training set. Then the pre-trained model is fine-tuned on target datasets for evaluation.}
+\label{tab:transfer} 
+\vspace{-2em}
+\end{table}
+%##################################################################################################
+
+\subsection{Main Results and Analysis}
+{\flushleft \bf VideoMAE: data-efficient learner.} The self-supervised video pre-training (SSVP) has been extensively studied in previous works, but they mainly use the CNN-based backbones. Few works have investigated transformer-based backbone in SSVP. Therefore, to demonstrate the effectiveness of VideoMAE for transformer-based SSVP, we compare two methods implemented by ourselves: (1) training from scratch and (2) pre-training with contrastive learning (MoCo v3~\cite{mocov3}). For training from scratch, we carefully tune these hyper-parameters to successfully pre-train ViT-Base from the training set of the dataset. For pre-training with MoCo v3, we strictly follow the training practice in its image counterpart and carefully avoid the collapse issue.
+
+The recognition accuracy is reported in Table~\ref{tab:comparison_acc}. We see that our VideoMAE significantly outperforms other two training settings. For instance, on the largest dataset of Kinetics-400, our VideoMAE outperforms training from scratch by around 10\% and MoCo v3 pre-training by around 5\%. This superior performance demonstrates that masked autoencoder provides an effective pre-training mechanism for video transformers. We also see that the performance gap between our VideoMAE and the other two methods becomes larger as the training set becomes smaller. Notably, even with only 3.5k training clips on HMDB51, our VideoMAE pre-training can still obtain a satisfying accuracy (around 61\%). This new result demonstrates that VideoMAE is a more data-efficient learner for SSVP. This property is particularly important for scenarios with limited data available and different with contrastive learning methods.
+
+We compare the efficiency of VideoMAE pre-training and MoCo v3 pre-training in Table~\ref{tab:comparison_time}. The task of masked autoencoding with a high ratio is more challenging and thereby requires more training epochs (800 vs. 300). Thanks to the asymmetric encoder-decoder in our VideoMAE and extremely high masking ratio, our pre-training time is much shorter than MoCo v3 (19.5 vs. 61.7 hours).
+
+\begin{figure}[t!]
+\begin{minipage}[t]{0.41\linewidth}
+\centering
+\vspace{-5.15cm}
+\includegraphics[width=.9\linewidth]{figures/masking_ratio_ssv2_nips.pdf}\\
+\vspace{-0.5em}
+\small (a) Performance on SSV2 \\
+\vspace{0.2em}
+\includegraphics[width=.9\linewidth]{figures/masking_ratio_k400_nips.pdf}\\
+\vspace{-0.3em}
+\small  (b) Performance on Kinetics-400 \\
+% \vspace{-.7em}
+\caption{The effect of \textbf{masking ratio} on (a) Something-Something V2 and (b) Kinetics-400. We
+take 16-frame vanilla ViT-B as default. The results show that an extremely high masking ratio (90\%) achieves the best efficiency and effectiveness trade-off on both video datasets.}
+\label{fig:mask_ratio}
+\end{minipage}
+\hspace{1mm}
+\begin{minipage}[t]{0.58\linewidth}
+\centering
+    % \begin{center}
+    \includegraphics[width=0.96\textwidth]{figures/abl_data_ssv2.pdf}
+    % \end{center}
+    % \vspace{-2mm}
+    \caption{\textbf{Data efficiency} of VideoMAE representations. Our default backbone is 16-frame vanilla ViT-B. \iterc{$\bullet$} denotes that all models are trained for the \textbf{same} 132k iterations, and \epochc{$\bullet$} denotes that all models are trained for the \textbf{same} 800 epochs. Note that it takes 132k iterations to pre-train the model for 800 epochs on the full training set of Something-Something V2.
+    }\label{fig:abl_data_ssv2}
+\end{minipage}
+\vspace{-1.5em}
+\end{figure}
+
+
+
+
+{\flushleft \bf High masking ratio.} In VideoMAE, one core design is the extremely high masking ratio. We perform an investigation of this design on the Kinetics-400 and Something-Something V2 datasets. The results are shown in Figure~\ref{fig:mask_ratio}. We see that the best masking ratio is extremely high, and even 95\% can achieve good performance for both datasets. This result is difference from BERT~\cite{devlin2019bert} in NLP and MAE~\cite{he2021masked} in images. We analyze the temporal redundancy and correlation in videos makes it possible for our VideoMAE to learn plausible outputs with such a high masking ratio. 
+
+We also visualize the reconstructed examples in Appendix~\S~\ref{sec:vis}. We see that even under an extremely high masking ratio, VideoMAE can produce satisfying reconstructed results. This implies VideoMAE is able to learn useful representations that capture the holistic spatiotemporal structure in videos.
+
+{\flushleft \bf Transfer learning: quality vs. quantity.} To further investigate the generalization ability of VideoMAE in representation learning, we transfer the learned VideoMAE from Kinetics-400 to Something-Something V2, UCF101, and HMDB51. The results are shown in Table~\ref{tab:transfer}, and we compare them with MoCo v3 pre-training. The models pre-trained by VideoMAE are better than those pre-trained by MoCo v3, demonstrating that our VideoMAE learns more transferable representations.
+
+
+
+Comparing Table~\ref{tab:comparison_acc} and Table~\ref{tab:transfer}, the transferred representation outperforms the original VideoMAE models trained from its own dataset on UCF101 and HMDB51. In contrast, the transferred representation is worse on Something-Something V2. To figure out whether this inconsistent result is caused by the large scale of Something-Something V2, we further perform a detailed investigation by decreasing the pre-training video numbers. In this study, we run two experiments: (1) pre-training with the same epochs and (2) pre-training with the same time budget. The result is shown in Figure~\ref{fig:abl_data_ssv2}. We see that more training iterations could contribute to better performance when we decrease the size of the pre-training set. Surprisingly, even with only 42k pre-training videos, we can still obtain better accuracy than the Kinetics pre-trained models with 240k videos (68.7\% vs. 68.5\%). This result implies that domain shift is another important factor, and data quality is more important than data quantity in SSVP when there exists a difference between pre-training and target datasets. It also demonstrates that VideoMAE is a data-efficient learner for SSVP.
+
+
+%#################################################################################################
+\begin{table}[t]
+	\centering
+	\tablestyle{2pt}{1.05}
+    \begin{tabular}{l|c|c|c|c|c|c|c}
+	   % \shline
+		\textbf{Method} &  \textbf{Backbone} & \textbf{Pre-train Dataset} & \textbf{Extra Labels} & \textbf{$T \times \tau$} &  \textbf{GFLOPs}  & \textbf{Param} & \textbf{mAP}   \\ 
+		\shline
+        \rowcolor{mygray} supervised~\cite{slowfast} & SlowFast-R101 & Kinetics-400 & \cmark & 8\x8 & 138 & 53 & 23.8 \\
+        CVRL~\cite{cvrl} & SlowOnly-R50  & Kinetics-400 & \xmark & 32\x2 & 42 &  32  &  16.3 \\
+        $\rho$BYOL$_{\rho=3}$~\cite{large} & SlowOnly-R50 & Kinetics-400 & \xmark & 8\x8 & 42 &  32  & 23.4 \\
+        $\rho$MoCo$_{\rho=3}$~\cite{large} & SlowOnly-R50 & Kinetics-400 & \xmark & 8\x8 & 42 &  32  & 20.3 \\
+        \textcolor{gray}{MaskFeat{\scriptsize\textuparrow312}~\cite{wei2021masked}} & \textcolor{gray}{MViT-L} & \textcolor{gray}{Kinetics-400} & \textcolor{gray}{\cmark} & \textcolor{gray}{40\x3} & \textcolor{gray}{2828} &  \textcolor{gray}{218} & \textcolor{gray}{37.5}  \\
+		\textcolor{gray}{MaskFeat{\scriptsize\textuparrow312}~\cite{wei2021masked}} & \textcolor{gray}{MViT-L} & \textcolor{gray}{Kinetics-600} & \textcolor{gray}{\cmark} & \textcolor{gray}{40\x3} & \textcolor{gray}{2828} &  \textcolor{gray}{218} & \textcolor{gray}{38.8}  \\
+        \shline
+        \textbf{VideoMAE} & ViT-S & Kinetics-400 & \xmark & 16\x4 & 57 & 22 & 22.5 \\		\textbf{VideoMAE} & ViT-S & Kinetics-400 & \cmark & 16\x4 & 57 & 22 & 28.4 \\
+        \textbf{VideoMAE} & ViT-B & Kinetics-400 & \xmark & 16\x4 & 180 & 87 & 26.7 \\
+        \textbf{VideoMAE} & ViT-B & Kinetics-400 & \cmark & 16\x4 & 180 & 87 & 31.8 \\
+        \textbf{VideoMAE} & ViT-L & Kinetics-400 & \xmark & 16\x4 & 597 & 305 & 34.3 \\
+        \textbf{VideoMAE} & ViT-L & Kinetics-400 & \cmark & 16\x4 & 597 & 305 & 37.0 \\
+        \textbf{VideoMAE} & ViT-H & Kinetics-400 & \xmark & 16\x4 & 1192 & 633 & \textbf{36.5} \\
+        \textbf{VideoMAE} & ViT-H & Kinetics-400 & \cmark & 16\x4 & 1192 & 633 & \textbf{39.5} \\
+        \hline
+        \textbf{VideoMAE} & ViT-L & Kinetics-700 & \xmark & 16\x4 & 597 & 305 & \textbf{36.1} \\
+        \textbf{VideoMAE} & ViT-L & Kinetics-700 & \cmark & 16\x4 & 597 & 305 & \textbf{39.3} \\
+	\end{tabular}
+	\caption{\textbf{Comparison with the state-of-the-art methods on AVA v2.2.} All models are pre-trained and fine-tuned at image size $224^2$. We report the mean Average Precision (mAP) on validation set. ``Ex. labels \xmark '' means only \textit{unlabelled} data is used during the pre-training phase and the pre-trained models are directly transferred to AVA. ``Ex. labels \cmark'' means  pre-trained models are additionally fine-tuned on the pre-training dataset with \textit{labels} before transferred to AVA. $T \times \tau$ refers to frame number and corresponding sample rate.
+}\label{sota:ava}
+\vspace{-1.5em}
+\end{table}
+%#################################################################################################
+
+%#################################################################################################
+\begin{table*}[t!]
+\centering
+\tablestyle{2.0pt}{1.04}
+\begin{tabular}{l|c|c|c|c|c|c|c|c}
+\textbf{Method} & \textbf{Backbone} & \textbf{Extra data} & \textbf{Ex. labels} & \textbf{Frames} & \textbf{GFLOPs}  & \textbf{Param} & \textbf{Top-1}  & \textbf{Top-5} \\
+\shline\hline
+TEINet$_{En}$~\cite{teinet} &  \footnotesize{ResNet50$_{\times 2}$} &  \multirow{3}{*}{ImageNet-1K} & \cmark & 8+16 &  99\x10\x3 & 50 & 66.5 & N/A \\
+TANet$_{En}$~\cite{tanet} &  \footnotesize{ResNet50$_{\times 2}$} & & \cmark & 8+16 & 99\x2\x3 & 51 & 66.0 & 90.1 \\
+TDN$_{En}$~\cite{tdn} & \footnotesize{ResNet101$_{\times 2}$} &   & \cmark & 8+16 & 198\x1\x3 & 88 & 69.6 & 92.2   \\
+\hline
+SlowFast~\cite{slowfast} &  ResNet101 &  \multirow{2}{*}{Kinetics-400} & \cmark & 8+32 & 106\x1\x3 & 53 & 63.1 & 87.6 \\
+MViTv1~\cite{mvit} & MViTv1-B &  & \cmark & 64 & 455\x1\x3 & 37 & 67.7 & 90.9  \\
+\hline
+TimeSformer~\cite{timesformer} & ViT-B & \multirow{2}{*}{ImageNet-21K} & \cmark & 8 & 196\x1\x3 & 121 & 59.5 &  N/A \\
+TimeSformer~\cite{timesformer} & ViT-L &  & \cmark & 64  & 5549\x1\x3 & 430 & 62.4 & N/A \\
+\hline
+ViViT FE~\cite{vivit} & ViT-L & \multirow{4}{*}{\footnotesize IN-21K+K400} & \cmark & 32 & 995\x 4\x3 & N/A & 65.9 & 89.9 \\
+Motionformer~\cite{motionformer} & ViT-B &    & \cmark & 16 & 370\x1\x3 & 109  & 66.5 & 90.1 \\
+Motionformer~\cite{motionformer} & ViT-L &    & \cmark & 32 & 1185\x1\x3 & 382  & 68.1 & 91.2 \\
+Video Swin~\cite{liu2021video}  & Swin-B &   & \cmark & 32 & 321\x1\x3 & 88 & 69.6 & 92.7  \\
+\hline
+VIMPAC~\cite{vimpac} & ViT-L & \scriptsize{HowTo100M+DALLE} & \xmark & 10 & N/A\x10\x3 & 307 & 68.1 & N/A \\
+BEVT~\cite{bevt}  & Swin-B & \scriptsize{IN-1K+K400+DALLE}  & \xmark & 32 & 321\x1\x3 & 88 & 70.6 & N/A  \\
+\textcolor{gray}{MaskFeat{\scriptsize\textuparrow312}~\cite{wei2021masked}} & \textcolor{gray}{MViT-L} & \textcolor{gray}{Kinetics-600} & \textcolor{gray}{\cmark} & \textcolor{gray}{40}  & \textcolor{gray}{2828\x1\x3} & \textcolor{gray}{218} & \textcolor{gray}{75.0} & \textcolor{gray}{95.0} \\
+\hline
+\textbf{VideoMAE} & ViT-B &  Kinetics-400 & \xmark & 16 & 180\x2\x3 & 87 & 69.7 &  92.3 \\
+\textbf{VideoMAE} & ViT-L & Kinetics-400 & \xmark & 16 & 597\x2\x3 & 305 & 74.0 & 94.6 \\
+\shline\hline
+\textbf{VideoMAE} & ViT-S & \multirow{4}{*}{\emph{no external data}} & \xmark & 16 & 57\x2\x3 & 22 & 66.8 & 90.3 \\
+\textbf{VideoMAE} & ViT-B &  & \xmark & 16 & 180\x2\x3 & 87 & 70.8 & 92.4 \\
+\textbf{VideoMAE} & ViT-L &  & \xmark & 16 & 597\x2\x3 & 305 & 74.3 & 94.6 \\
+\textbf{VideoMAE} & ViT-L &  & \xmark & 32 & 1436\x1\x3 & 305 & \textbf{75.4} & \textbf{95.2} \\
+\end{tabular}
+\vspace{-2mm}
+\caption{\textbf{Comparison with the state-of-the-art methods on Something-Something V2}. Our VideoMAE reconstructs normalized cube pixels and is pre-trained with a masking ratio of 90\% for 2400 epochs. ``Ex. labels \xmark '' means only \textit{unlabelled} data is used during the pre-training phase. ``N/A'' indicates the numbers are not available for us.}
+\label{tab:ssv2}
+\vspace{-3.8mm}
+\end{table*}
+%#################################################################################################
+
+
+{\flushleft \bf Transfer learning: downstream action detection.}
+We also transfer the learned VideoMAE on Kinetics-400 to downstream action detection dataset AVA. Following the standard setting~\cite{ava}, we evaluate on top 60 common classes with mean Average Precision (mAP) as the metric under IoU threshold of 0.5. The results are shown in the Table~\ref{sota:ava}. After self-supervised pre-training on Kinetics-400, our VideoMAE with the vanilla ViT-B can achieve 26.7 mAP on AVA, which demonstrates the strong transferability of our VideoMAE. If the pre-trained ViT-B is additionally fine-tuned on Kinetics-400 with labels, the transfer learning performance can further increase about 5 mAP (from 26.7 to 31.8). 
+More remarkably, when we scale up the pre-training configurations with larger video datasets (e.g. Kinetics-700) or more powerful backbones (e.g. ViT-Large and ViT-Huge), VideoMAE can finally obtain better performance.
+For example, our ViT-L VideoMAE pre-trained on Kinetics-700 achieves 39.3 mAP and ViT-H VideoMAE pre-trained on Kinetics-400 has 39.5 mAP.
+These results demonstrate that the self-supervised pre-trained models transfer well not only on action classification task but on more complex action detection task.
+
+%#################################################################################################
+\begin{table*}[t!]
+\centering
+\tablestyle{2.0pt}{1.04}
+\begin{tabular}{l|c|c|c|c|c|c|c|c}
+\textbf{Method} & \textbf{Backbone} & \textbf{Extra data} & \textbf{Ex. labels} & \textbf{Frames} & \textbf{GFLOPs}  & \textbf{Param} & \textbf{Top-1}  & \textbf{Top-5} \\
+\shline\hline
+NL I3D~\cite{nonlocal} & ResNet101 &   \multirow{3}{*}{ImageNet-1K}    & \cmark & 128 & 359\x10\x3  & 62  & 77.3 & 93.3    \\
+TANet~\cite{tanet} &  ResNet152 & & \cmark &16 & 242\x4\x3 & 59 & 79.3 & 94.1 \\
+TDN$_{En}$~\cite{tdn} & ResNet101 &   & \cmark & 8+16 & 198\x10\x3 & 88 & 79.4 & 94.4   \\
+\hline
+TimeSformer~\cite{timesformer} & ViT-L & \multirow{4}{*}{ImageNet-21K}  & \cmark & 96 & 8353\x1\x3 & 430 & 80.7 & 94.7 \\
+ViViT FE~\cite{vivit} & ViT-L &  & \cmark & 128 & 3980\x 1\x3 & N/A & 81.7 & 93.8 \\
+Motionformer~\cite{motionformer} & ViT-L &    & \cmark & 32 & 1185\x10\x3 & 382  & 80.2 & 94.8 \\
+Video Swin~\cite{liu2021video}  & Swin-L &   & \cmark & 32 & 604\x4\x3 & 197 & 83.1 & 95.9  \\
+\hline
+ViViT FE~\cite{vivit} & ViT-L & JFT-300M  & \cmark & 128 & 3980\x 1\x3  & N/A & 83.5 & 94.3 \\
+ViViT~\cite{vivit} & ViT-H & JFT-300M & \cmark & 32 & 3981\x 4\x3 & N/A & 84.9 & 95.8 \\
+VIMPAC~\cite{vimpac} & ViT-L & \scriptsize{HowTo100M+DALLE} & \xmark & 10 & N/A\x10\x3 & 307 & 77.4 & N/A \\
+BEVT~\cite{bevt}  & Swin-B & IN-1K+DALLE  & \xmark & 32 & 282\x4\x3 & 88 & 80.6 & N/A  \\
+MaskFeat{\scriptsize\textuparrow352}~\cite{wei2021masked} & MViT-L & Kinetics-600  & \xmark & 40 & 3790\x4\x3 & 218 & 87.0 & 97.4 \\
+\hline
+ip-CSN~\cite{csn} & ResNet152 & \multirow{4}{*}{\emph{no external data}} & \xmark & 32 & 109$\times$10$\times$3 & 33 & 77.8 & 92.8 \\
+SlowFast~\cite{slowfast} &  R101+NL &   & \xmark & 16+64 & 234\x10\x3 & 60 & 79.8 & 93.9 \\
+MViTv1~\cite{mvit} & MViTv1-B &  & \xmark & 32 & 170\x5\x1 & 37  & 80.2 & 94.4 \\
+MaskFeat~\cite{wei2021masked} & MViT-L &  & \xmark & 16  & 377\x10\x1 & 218 & 84.3 & 96.3 \\
+\shline\hline
+\textbf{VideoMAE} & ViT-S & \multirow{4}{*}{\emph{no external data}} & \xmark & 16 & 57\x5\x3 & 22 & 79.0 & 93.8 \\
+\textbf{VideoMAE} & ViT-B &  & \xmark & 16 & 180\x5\x3 & 87 & 81.5 & 95.1 \\
+\textbf{VideoMAE} & ViT-L &  & \xmark & 16 & 597\x5\x3 & 305 & 85.2 & 96.8 \\
+\textbf{VideoMAE} & ViT-H &  & \xmark & 16 & 1192\x5\x3 & 633 & \textbf{86.6} & \textbf{97.1} \\
+\hline
+\textbf{VideoMAE{\scriptsize\textuparrow320}} & ViT-L & \multirow{2}{*}{\emph{no external data}} & \xmark & 32 & 3958\x4\x3 & 305 & 86.1 & 97.3 \\
+\textbf{VideoMAE{\scriptsize\textuparrow320}} & ViT-H &  & \xmark & 32 & 7397\x4\x3 & 633 & \textbf{87.4} & \textbf{97.6} \\
+\end{tabular}
+\vspace{-0.5mm}
+\caption{\textbf{Comparison with the state-of-the-art methods on Kinetics-400}. Our VideoMAE reconstructs normalized cube pixels. Here models are self-supervised pre-trained with a masking ratio of 90\% for 1600 epochs on Kinetics-400. VideoMAE{\scriptsize\textuparrow320} is initialized from its $224^2$ resolution counterpart and then fine-tuned for evaluation. ``Ex. labels \xmark '' means only \textit{unlabelled} data is used during the pre-training phase. ``N/A'' indicates the numbers are not available for us. }
+\vspace{-1em}
+\label{tab:k400}
+\end{table*}
+%#################################################################################################
+
+\subsection{Comparison with the state of the art}
+We compare with the previous state-of-the-art performance on the Kinetics-400 and Something-Something V2 datasets. The results are reported in Table~\ref{tab:ssv2} and Table~\ref{tab:k400}. Our VideoMAE can easily scale up with more powerful backbones (e.g. ViT-Large and ViT-Huge) and more frames (e.g. 32). Our VideoMAE achieves the top-1 accuracy of 75.4\% on Something-Something V2 and 87.4\% on Kinetics-400 without using any extra data. We see that the existing state-of-the-art methods all depend on the external data for pre-training on the Something-Something V2 dataset. On the contrary, our VideoMAE without any external data significantly outperforms previous methods with the same input resolution by around 5\%. Our ViT-H VideoMAE also achieves very competitive performance on the Kinetics-400 dataset without using any extra data, which is even better than ViViT-H with on JFT-300M pre-training (86.6\% v.s. 84.9\%). When fine-tuned with larger spatial resolutions and input video frames, the performance of our ViT-H VideoMAE can further boost from 86.6\% to 87.4\%.
+
+\vspace{-1.2mm}
+\section{Conclusion}
+\label{sec:conclusion}
+In this paper, we have presented a simple and data-efficient self-supervised learning method (VideoMAE) for video transformer pre-training. Our VideoMAE introduces two critical designs of extremely high masking ratio and tube masking strategy to make the video reconstruction task more challenging. This harder task would encourage VideoMAE to learn more representative features and relieve the information leakage issue. Empirical results demonstrate this simple algorithm works well for video datasets of different scales. In particular, we are able to learn effective VideoMAE only with thousands of video clips, which has significant practical value for scenarios with limited data available.
+
+{\flushleft \bf Future work} \ VideoMAE could be further improved by using larger webly datasets, larger models (e.g., ViT-G) and larger spatial resolutions of input video (e.g., 384$^2$). VideoMAE only leverages the RGB video stream without using additional audio or text stream. We expect that audio and text from the video data can provide more information for self-supervised pre-training. 
+
+{\flushleft \bf Broader impact} \ Potential negative societal impacts of VideoMAE are mainly concerned with energy consumption.
+The pre-training phase may lead to a large amount of carbon emission. Though the pre-training is energy-consuming, we only need to pre-train the model once. 
+Different downstream tasks can then share the same pre-trained model via additional fine-tuning. 
+Our VideoMAE unleashes the great potential of vanilla vision transformer for video analysis, which could increase the risk of video understanding model or its outputs being used incorrectly, such as for unauthorized surveillance.
+
+{\flushleft \bf Acknowledgements and disclosure of funding} \ Thanks to Ziteng Gao, Lei Chen and Chongjian Ge for their help. This work is supported by National Natural Science Foundation of China (No. 62076119, No. 61921006), the Fundamental Research Funds for the Central Universities (No. 020214380091), Tencent AI Lab Rhino-Bird Focused Research Program (No. JR202125), and Collaborative Innovation Center of Novel Software Technology and Industrialization.
+
+\clearpage
+{\small
+\bibliographystyle{plain}
+\bibliography{ref}
+}
+
+\clearpage
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section*{Appendix}
+
+In this appendix, we provide more details of VideoMAE from the following aspects:
+\begin{itemize}
+    \item The detailed architecture illustration is in \S~\ref{sec:arch}. 
+    \item The implementation details are in \S~\ref{sec:impl}.
+    \item Experimental results are in \S~\ref{sec:result} where there are ablation studies on the Something-Something V2 and Kinectics-400 datasets, and a downstream evaluation task (i.e., action detection). More comparisons with state-of-the-art methods on the UCF101 and HMDB51 datasets are included as well.
+    \item Results analysis is in \S~\ref{sec:analysis}.
+    \item Visualization of reconstructed samples is in \S~\ref{sec:vis}.
+    \item License of the datasets is in \S~\ref{sec:license}.
+\end{itemize}
+
+\section{Architectures}\label{sec:arch}
+We use an asymmetric encoder-decoder architecture for video self-supervised pre-training and discard the decoder during the fine-tuning phase. We take the 16-frame vanilla ViT-Base for example, and the specific architectural design for the encoder and decoder is shown in Table~\ref{tab:arch}. We adopt the joint space-time attention~\cite{vivit,liu2021video} to better capture the high-level spatio-temporal information in the remaining tokens.
+
+%##################################################################################################
+\begin{table}[h]
+    \vspace{-1em}
+    \scriptsize
+    \centering
+    \tablestyle{1pt}{1.08}
+    \begin{tabular}{c|c|c}
+    	\textbf{Stage} & \textbf{Vision Transformer (Base)} & \textbf{Output Sizes}  \\  
+    	\shline
+    	\multirow{2}{*}{data} & stride \tcolor{4}\x\xycolor{1}\x\xycolor{1} on \emph{K400} &   \multirow{2}{*}{\wcolor{3}\x\tcolor{16}\x\xycolor{224}\x\xycolor{224}}  \\
+    	& stride \tcolor{2}\x\xycolor{1}\x\xycolor{1} on \emph{SSV2}  & \\
+        \hline
+    	\multirow{2}{*}{cube} & \tcolor{2}\x\xycolor{16}\x\xycolor{16}, {\wcolor{768} } & \multirow{2}{*}{ \wcolor{768}\x\tcolor{\textbf{8}}\x\xycolor{196}} \\
+    	& stride \tcolor{2}\x\xycolor{16}\x\xycolor{16}&  \\
+    	\hline 
+    	\multirow{2}{*}{mask} & tube mask  & \multirow{2}{*}{ \wcolor{768}\x\tcolor{\textbf{8}}\x[\xycolor{196}\x(1-\maskcolor{$\rho$})]}\\ 
+    	&  \emph{mask ratio = \maskcolor{$\rho$}} &  \\ 
+    	\hline 
+        \multirow{2}{*}{encoder} & \blockatt{768}{3072}{12} &  \multirow{2}{*}{ \wcolor{768}\x\tcolor{\textbf{\textbf{8}}}\x[\xycolor{196}\x(1-\maskcolor{$\rho$})]}\\
+        & &  \\
+        \hline
+        \multirow{2}{*}{projector} & \text{MLP(\wcolor{384})} \& & \multirow{2}{*}{ \wcolor{384}\x\tcolor{\textbf{8}}\x\xycolor{196}} \\ 
+        & \emph{concat learnable tokens} &  \\
+    	\hline 
+        \multirow{2}{*}{decoder} & \blockatt{384}{1536}{4} &   \multirow{2}{*}{ \wcolor{384}\x\tcolor{\textbf{8}}\x\xycolor{196}}\\
+        & & \\
+        \hline 
+        projector & \text{MLP(\wcolor{1536})} &   \wcolor{1536}\x\tcolor{\textbf{8}}\x\xycolor{196} \\ 
+        \hline
+        reshape & \emph{from} \wcolor{1536} \emph{to}   \wcolor{3}\x\tcolor{2}\x\xycolor{16}\x\xycolor{16} &  \wcolor{3}\x\tcolor{16}\x\xycolor{224}\x\xycolor{224} \\
+	\end{tabular}
+	\vspace{0.2em}
+	\caption{\textbf{Architectures details of VideoMAE.} We take 16-frame vanilla ViT-Base for example. ``MHA'' here denotes the joint space-time self-attention. The output sizes are denoted by $\{ $$\wcolor{C}$\x$\tcolor{T}$\x$\xycolor{S}$$\}$ for channel, temporal and spatial sizes.}
+	\label{tab:arch}
+    \vspace{-2.2em}
+\end{table}
+
+
+\section{Implementation Details}\label{sec:impl}
+We conduct the experiments with 64 GPUs for both pre-training and fine-tuning on the Something-Something V2 and Kinetics-400 datasets. The experiments on the smaller UCF101 and HMDB51 datasets are trained with 8 GPUs. The experiments on the AVA dataset are conducted with 32 GPUs. We linearly scale the base learning rate w.r.t. the overall batch size, $\emph{lr}=\emph{base learning rate}\times \emph{batch\  size\ /\ 256}$. We adopt the PyTorch~\cite{pytorch} and DeepSpeed\footnote{\url{https://github.com/microsoft/DeepSpeed}} frameworks for faster training. 
+We have made the code\footnote{\url{https://github.com/MCG-NJU/VideoMAE}} and pre-trained models\footnote{\url{https://github.com/MCG-NJU/VideoMAE/blob/main/MODEL_ZOO.md}} public to facilitate future research in self-supervised video pre-training.
+
+
+%##################################################################################################
+\begin{table}[t!]
+\tablestyle{1pt}{1.02}
+\small
+\begin{tabular}{y{98}|x{88}x{88}}
+config & Sth-Sth V2 & Kinetics-400 \\
+\shline
+optimizer & \multicolumn{2}{c}{AdamW} \\ 
+base learning rate & \multicolumn{2}{c}{1.5e-4}\\
+weight decay & \multicolumn{2}{c}{0.05} \\
+optimizer momentum & \multicolumn{2}{c}{$\beta_1, \beta_2{=}0.9, 0.95$~\cite{Chen2020c}} \\
+batch size & \multicolumn{2}{c}{1024} \\
+learning rate schedule & \multicolumn{2}{c}{cosine decay~\cite{coslr}} \\
+warmup epochs & \multicolumn{2}{c}{40} \\
+flip augmentation & \emph{no} & \emph{yes} \\
+augmentation & \multicolumn{2}{c}{MultiScaleCrop~\cite{tsn_journal}} \\
+\end{tabular}
+\vspace{.2em}
+\caption{\textbf{Pre-training setting.}}
+\label{tab:impl_videomae_pretrain} 
+\end{table}
+%##################################################################################################
+
+%##################################################################################################
+\begin{table}[t!]
+\tablestyle{1pt}{1.02}
+\small
+\begin{tabular}{y{88}|x{98}x{98}}
+config & Sth-Sth V2 & Kinetics-400 \\
+\shline
+optimizer & \multicolumn{2}{c}{AdamW} \\
+base learning rate & 1e-3(S), 5e-4(B,L) & 1e-3 \\
+weight decay & \multicolumn{2}{c}{0.05} \\
+optimizer momentum & \multicolumn{2}{c}{$\beta_1, \beta_2{=}0.9, 0.999$} \\
+batch size & 512 & 512\\
+learning rate schedule & \multicolumn{2}{c}{cosine decay~\cite{coslr}} \\
+warmup epochs & \multicolumn{2}{c}{5} \\
+training epochs &  40~(S,B), 30~(L) & 150~(S), 75~(B), 50~(L,H) \\
+repeated augmentation & 2 & 2  \\
+flip augmentation & \emph{no} & \emph{yes} \\
+RandAug~\cite{randaugment}  & (9, 0.5) & (9, 0.5) \\
+label smoothing~\cite{label_smoothing}  & 0.1 & 0.1 \\
+mixup~\cite{mixup}  & 0.8 & 0.8  \\
+cutmix~\cite{cutmix}  & 1.0 & 1.0 \\
+drop path & \multicolumn{2}{c}{0.1~(S,B), 0.2~(L,H)} \\
+dropout & 0.5~(L) & 0.5~(L,H) \\
+layer-wise lr decay~\cite{beit}  & 0.7~(S),0.75~(B,L) & 0.7~(S),0.75~(B,L,H)  \\
+\end{tabular}
+\vspace{.2em}
+\caption{\textbf{End-to-end fine-tuning setting in Table~\ref{tab:ssv2} and Table~\ref{tab:k400}.}}
+\label{tab:impl_videomae_finetune}
+\end{table}
+%##################################################################################################
+
+%##################################################################################################
+\begin{table}[t!]
+\tablestyle{6pt}{1.02}
+\small
+\begin{tabular}{y{88}|x{58}}
+config & Sth-Sth V2  \\
+\shline
+optimizer & SGD \\
+base learning rate & 0.1 \\
+weight decay & 0 \\
+optimizer momentum & 0.9 \\
+batch size & 1024 \\
+learning rate schedule & cosine decay \\
+warmup epochs & 10 \\
+training epochs & 100 \\
+augmentation & MultiScaleCrop \\
+\end{tabular}
+\vspace{.2em}
+\caption{\textbf{Linear probing setting.}
+\label{tab:impl_videomae_linear}}
+\end{table}
+
+
+%##################################################################################################
+\begin{table}[t!]
+\tablestyle{1pt}{1.02}
+\small
+\begin{tabular}{y{128}|x{128}x{98}}
+config & \multicolumn{2}{c}{AVA v2.2}\\
+\shline
+additional fine-tuning on Kinetics & \xmark & \cmark  \\
+optimizer & \multicolumn{2}{c}{AdamW} \\
+base learning rate & 1e-3~(S), 2.5e-4~(B,~L), 5e-4~(H) & 5e-4\\
+weight decay & \multicolumn{2}{c}{0.05} \\
+optimizer momentum & \multicolumn{2}{c}{$\beta_1, \beta_2{=}0.9, 0.999$} \\
+batch size &  \multicolumn{2}{c}{128} \\
+learning rate schedule & \multicolumn{2}{c}{cosine decay~\cite{coslr}} \\
+warmup epochs & \multicolumn{2}{c}{5} \\
+training epochs &  30~(S,~B,~L), 20~(H) & 30~(S,~B) 20~(L,~H) \\
+repeated augmentation & \multicolumn{2}{c}{\emph{no}} \\
+flip augmentation &  \multicolumn{2}{c}{\emph{yes}} \\
+drop path &  \multicolumn{2}{c}{0.2} \\
+layer-wise lr decay~\cite{beit}  & 0.6~(S),~0.75~(B,~L),~0.8~(H) & 0.6~(S),~0.75~(B),~0.8~(L,~H)  \\
+\end{tabular}
+\vspace{.2em}
+\caption{\textbf{End-to-end fine-tuning setting in Table~\ref{sota:ava}.}}
+\label{tab:impl_videomae_finetune}
+\end{table}
+%##################################################################################################
+
+{\flushleft \bf Something-Something V2.} Our VideoMAE is pre-trained for 800 epochs on Something-Something V2 by default. During the fine-tuning phase, we perform the uniform sampling following TSN~\cite{tsn_journal}. For evaluation, all models share the same inference protocol, i.e., 2 clips \x~3 crops. The default settings of pre-training, fine-tuning, and linear probing are shown in Table~\ref{tab:impl_videomae_pretrain}, Table~\ref{tab:impl_videomae_finetune}, and Table~\ref{tab:impl_videomae_linear}. For supervised training, we follow the recipe in~\cite{mvit} and train from scratch for 100 epochs.
+Note that we use $\emph{no flip augmentation}$ during both the pre-training and fine-tuning phase. We additionally adopt the repeated augmentation~\cite{repeated_aug} during the fine-tuning phase in Table~\ref{tab:ssv2}, which can further increase the Top-1 accuracy by 0.1\%~-~0.3\%.
+
+{\flushleft \bf Kinetics-400.} Our VideoMAE is pre-trained for 800 epochs on Kinetics-400 by default. During the fine-tuning phase, we perform the dense sampling following Slowfast~\cite{slowfast}. For evaluation, all models share the same inference protocol, i.e., 5 clips \x~3 crops. The default settings of pre-training and fine-tuning are shown in Table~\ref{tab:impl_videomae_pretrain} and Table~\ref{tab:impl_videomae_finetune}. For supervised training from scratch, we follow the recipe in~\cite{mvit} and train the model for 200 epochs. Note that we adopt the repeated augmentation~\cite{repeated_aug} during the fine-tuning phase in Table~\ref{tab:k400}, which can further increase the Top-1 accuracy by 0.8\%~-~1.0\%.
+
+{\flushleft \bf UCF101.} We follow a similar recipe on Kinetics for pre-training. Our VideoMAE is pre-trained with a masking ratio of 75\% for 3200 epochs. The  batch size and base learning rate are set to 192 and 3e-4, respectively. Here, 16 frames with a temporal stride of 4 are sampled. For fine-tuning, the model is trained with repeated augmentation~\cite{repeated_aug} and a batch size of 128 for 100 epochs. The base learning rate, layer decay and drop path are set to 5e-4, 0.7 and 0.2, respectively. For evaluation, we adopt the inference protocol of 5 clips \x~3 crops.
+
+{\flushleft \bf HMDB51.} Our VideoMAE is pre-trained with a masking ratio of 75\% for 4800 epochs. The batch size and base learning rate are set to 192 and 3e-4, respectively. Here, 16 frames with a temporal stride of 2 are sampled. For fine-tuning, the model is trained with repeated augmentation~\cite{repeated_aug} and a batch size of 128 for 50 epochs. The base learning rate, layer decay and drop path are set to 1e-3, 0.7 and 0.2, respectively. For evaluation, we adopt the inference protocol of 10 clips \x~3 crops.
+
+{\flushleft \bf AVA.} We follow the action detection architecture in Slowfast~\cite{slowfast} and use the detected person boxes from AIA~\cite{tang2020asynchronous}. The default settings of fine-tuning are shown in Table~\ref{tab:impl_videomae_finetune}. For data augmentations, we resize the short side of the input frames to 256 pixels. We apply a random crop of the input frames to 224$\times$224 pixels and random flip during training. We use only ground-truth person boxes for training and the detected boxes with confidence $\geq$0.8 for inference.
+
+
+
+\section{Additional Results}\label{sec:result}
+%##################################################################################################
+\subsection{Training schedule}
+Figure~\ref{fig:training schedules} shows the influence of the longer pre-training schedule on the Something-Something V2 and Kinetics-400 datasets. We find that a longer pre-training schedule brings slight gains to both datasets. In the main paper, our VideoMAE is pre-trained for 800 epochs by default.
+
+\begin{figure}[t]\centering
+\includegraphics[width=.6\linewidth]{figures/epochs_ssv2.pdf}\\
+\vspace{-0.1em}
+(a) Performance on Something-Something V2 \\
+\includegraphics[width=.6\linewidth]{figures/epochs_k400.pdf}\\
+\vspace{-0.4em}
+(b) Performance on Kinetics-400 \\
+\vspace{-.4em}
+\caption{The effect of \textbf{training schedules} on (a) Something-Something V2 and (b) Kinetics-400. Here each point is a full training schedule. Our default ViT-B backbone is described in Table~\ref{tab:arch}.}
+\label{fig:training schedules}
+% \vspace{-1em}
+\end{figure}
+%##################################################################################################
+
+\begin{figure}[t]
+    \begin{center}
+    \includegraphics[width=0.6\linewidth]{figures/figure_1.pdf}
+    \end{center}
+    % \vspace{-5mm}
+    \caption{Comparison with VideoMAE, MoCo v3~\cite{mocov3}, and Vi$^2$CLR~\cite{Diba_2021_ICCV} on UCF101 and HMDB51.}
+    \label{fig:videomae}
+    % \vspace{-5mm}
+\end{figure}
+
+
+
+
+
+\subsection{Comparison with the state-of-the-art methods}\label{sec:sota}
+We present the detailed comparison with the state-of-the-art on UCF101 and HMDB51 in Table~\ref{tab:ucf_hmdb_supp}. 
+Figure~\ref{fig:videomae} additionally shows that our VideoMAE is a data-efficient learner that allows us to effectively train video transformers only from limited video data (e.g., 9.5k clips in UCF101, and 3.5k clips in HMDB51) without any ImageNet pre-training. VideoMAE significantly outperforms training from scratch, MoCo v3 pre-training~\cite{mocov3}, and the previous best performance from Vi$^2$CLR~\cite{Diba_2021_ICCV} without extra data on these small-scale video datasets. Compared with those large-scale video datasets, these two small datasets are more proper to verify the effectiveness of VideoMAE, as training large ViT models is more challenging on small datasets.
+
+
+\begin{table*}[t!] 
+\tablestyle{3.0pt}{1.05}
+\begin{tabular}{l|c|c|c|c|c|c|c}
+	\bfseries Method &\bfseries  Backbone & \bfseries Extra data   & \textbf{Frames} & \bfseries Param &\bfseries  Modality & \bfseries UCF101 & \bfseries HMDB51 \\ 
+	\shline
+	OPN~\cite{opn} & VGG & UCF101  & N/A &  N/A &  V & 59.6 & 23.8 \\
+	VCOP~\cite{vcop} & R(2+1)D &  UCF101  & N/A &  N/A & V & 72.4 & 30.9 \\
+	CoCLR~\cite{han2020coclr}  &  S3D-G &  UCF101  & 32 & 9M  & V & 81.4 &  52.1   \\
+	Vi$^2$CLR~\cite{Diba_2021_ICCV}  & S3D & UCF101 & 32  & 9M  & V & 82.8 & 52.9  \\
+	\shline
+	\textbf{VideoMAE} & ViT-B & \emph{no external data} & 16  & 87M & V & \textbf{91.3} & \textbf{62.6} \\
+	\hline \hline 
+	SpeedNet~\cite{speedNet}  & S3D-G   &  Kinetics-400   & 64 & 9M   & V &  81.1 & 48.8  \\
+	VTHCL~\cite{vthcl}  & SlowOnly-R50  & Kinetics-400  &  8  & 32M  & V & 82.1 & 49.2  \\  
+    Pace~\cite{wang2020self}  &  R(2+1)D  &  Kinetics-400  & 16  & 15M & V  & 77.1 & 36.6  \\
+    MemDPC~\cite{memdpc}   & R-2D3D  & Kinetics-400  & 40 &  32M  & V & 86.1 & 54.5 \\
+	CoCLR~\cite{han2020coclr}  &  S3D-G & Kinetics-400    & 32 & 9M  & V & 87.9 & 54.6   \\
+	RSPNet~\cite{rspnet}  & S3D-G & Kinetics-400 & 64  & 9M &V  & 93.7 & 64.7 \\
+	VideoMoCo~\cite{pan2021videomoco} & R(2+1)D  & Kinetics-400 & 16  & 15M & V & 78.7 & 49.2  \\
+	Vi$^2$CLR~\cite{Diba_2021_ICCV}  & S3D & Kinetics-400 & 32  & 9M  & V & 89.1 & 55.7  \\
+	CVRL~\cite{cvrl}  & SlowOnly-R50& Kinetics-400  &  32  & 32M  & V & 92.9 & 67.9  \\ 
+	CVRL~\cite{cvrl} & SlowOnly-R50 & Kinetics-600 &  32  & 32M  & V & 93.6 & 69.4  \\ 
+	CVRL~\cite{cvrl}  & Slow-R152 (2$ \times $) & Kinetics-600 & 32 & 328M & V & 94.4 & 70.6  \\ 
+
+	CORP$_{f}$~\cite{Hu_2021_ICCV}& SlowOnly-R50  & Kinetics-400  &  32 & 32M   & V & 93.5 & 68.0  \\ 
+	$\rho$SimCLR$_{\rho=2}$~\cite{large}   & SlowOnly-R50 & Kinetics-400 & 8 & 32M   &V  & 88.9 & N/A  \\
+	$\rho$SwAV$_{\rho=2}$~\cite{large}  & SlowOnly-R50  & Kinetics-400 & 8  & 32M  &V   & 87.3 & N/A  \\
+	$\rho$MoCo$_{\rho=2}$~\cite{large} & SlowOnly-R50 & Kinetics-400  & 8 & 32M  &V  & 91.0 & N/A  \\
+	$\rho$BYOL$_{\rho=2}$~\cite{large} & SlowOnly-R50 & Kinetics-400 & 8  & 32M  &V & 92.7 & N/A \\
+	$\rho$BYOL$_{\rho=4}$~\cite{large}  & SlowOnly-R50 & Kinetics-400 & 8  & 32M & V & 94.2 & 72.1  \\
+	\hline 
+	\textcolor{gray}{MIL-NCE~\cite{milnce}}  & \textcolor{gray}{S3D} & \textcolor{gray}{HowTo100M} & \textcolor{gray}{32} & \textcolor{gray}{9M}   & \textcolor{gray}{V+T} & \textcolor{gray}{91.3} & \textcolor{gray}{61.0} \\
+	\textcolor{gray}{MMV~\cite{mmv}}& \textcolor{gray}{S3D-G} & \textcolor{gray}{AS+HTM}  & \textcolor{gray}{32}   & \textcolor{gray}{9M}   & {\textcolor{gray}{ V+A+T}} & \textcolor{gray}{92.5} & \textcolor{gray}{69.6} \\
+	\textcolor{gray}{CPD~\cite{cpd}}  & \textcolor{gray}{ResNet50}& \textcolor{gray}{IG300k} & \textcolor{gray}{16} & \textcolor{gray}{N/A} & \textcolor{gray}{V+T} & \textcolor{gray}{92.8} & \textcolor{gray}{63.8}  \\
+    \textcolor{gray}{ELO~\cite{elo}}  & \textcolor{gray}{R(2+1)D} & \textcolor{gray}{Youtube8M-2} & \textcolor{gray}{N/A} &  \textcolor{gray}{N/A}  & \textcolor{gray}{V+A}  & \textcolor{gray}{93.8} & \textcolor{gray}{67.4}   \\
+	\textcolor{gray}{XDC~\cite{xdc}}  & \textcolor{gray}{R(2+1)D} & \textcolor{gray}{Kinetics-400}  & \textcolor{gray}{32}  & \textcolor{gray}{15M} &  \textcolor{gray}{V+A} & \textcolor{gray}{84.2}  & \textcolor{gray}{47.1} \\ 
+	\textcolor{gray}{XDC~\cite{xdc}}  & \textcolor{gray}{R(2+1)D} & \textcolor{gray}{IG65M}  & \textcolor{gray}{32}  & \textcolor{gray}{15M} &  \textcolor{gray}{V+A} & \textcolor{gray}{94.2}  & \textcolor{gray}{67.1} \\ 
+	\textcolor{gray}{GDT~\cite{gdt}}  & \textcolor{gray}{R(2+1)D}& \textcolor{gray}{Kinetics-400} & \textcolor{gray}{32} & \textcolor{gray}{15M} & \textcolor{gray}{V+A} & \textcolor{gray}{89.3} & \textcolor{gray}{60.0}  \\
+	\textcolor{gray}{GDT~\cite{gdt}}  & \textcolor{gray}{R(2+1)D}& \textcolor{gray}{IG65M} & \textcolor{gray}{32} & \textcolor{gray}{15M} & \textcolor{gray}{V+A} & \textcolor{gray}{95.2} & \textcolor{gray}{72.8}  \\
+	
+	\shline
+	\textbf{VideoMAE} & ViT-B & Kinetics-400 & 16  & 87M & V & \textbf{96.1} & \textbf{73.3} \\
+\end{tabular}
+	\caption{\textbf{Comparison with the state-of-the-art methods on UCF101 and HMDB51.} Our VideoMAE reconstructs normalized cube pixels and is pre-trained with a masking ratio of 75\% for 3200 epochs on UCF101 and 4800 epochs on HMDB51, respectively. We report fine-tuning accuracy for evaluation. `V' refers to visual only, `A' is audio, `T' is text narration. ``N/A'' indicates the numbers are not available for us.} \label{tab:ucf_hmdb_supp}
+	\vspace{-0.5em}
+\end{table*} 
+
+
+\section{Model result analysis}\label{sec:analysis}
+In this section, we add the analysis of model results. As shown in Figure~\ref{fig:res:ImageMAE} and Figure~\ref{fig:res:IN21k}, our VideoMAE bring significant gain for most categories on SSV2, which implies that our VideoMAE can capture more spatiotemporal structure representations than ImageMAE and ImageNet-21k supervised pre-trained model. On the other hand, we also notice that our VideoMAE performs slightly worse than other two models on some categories. To better understand how the model works, we select several examples from validation set. The examples are shown in Figure~\ref{fig:sample}. For the example in the 1st row, we find our VideoMAE might not capture the motion information from very small object. We suspect that tokens containing the small motion might all be masked due to our extremely high masking ratio, so our VideoMAE could hardly reconstruct the masked small motion pattern. For the example in the 2nd row, we find our VideoMAE could capture the deformation of objects and movement from the squeeze of the hand, while this cannot be discriminated by image pre-training. We leave more detailed analysis of our VideoMAE for future work.
+
+
+\begin{figure*}[t]
+\centering
+\includegraphics[width=.98\textwidth]{figures/image_videomae_top1.pdf} \\
+(a) Categories that VideoMAE outperforms ImageMAE. We only show those gain larger than 10\%. \\
+\includegraphics[width=.58\textwidth]{figures/image_videomae_top1_minus.pdf} \\
+(b) Categories that ImageMAE outperforms VideoMAE. \\
+% \vspace{-.7em}
+\caption{ ImageMAE (64.8\%) vs. VideoMAE (69.6\%) on Something-Something V2.}
+\label{fig:res:ImageMAE}
+\end{figure*}
+
+\begin{figure*}[t]\centering
+\includegraphics[width=.98\textwidth]{figures/image21k_videomae_top1.pdf} \\
+(a) Categories that VideoMAE outperforms ImageNet-21k supervised pre-trained model. We only show those gain larger than 15\%. \\
+\includegraphics[width=.58\textwidth]{figures/image21k_videomae_top1_minus.pdf} \\
+(b) Categories that ImageNet-21k supervised pre-trained model outperforms VideoMAE. \\
+% \vspace{-.7em}
+\caption{ImageNet-21k supervised pre-trained model (61.8\%) vs. VideoMAE (69.6\%) on Something-Something V2.}
+\label{fig:res:IN21k}
+\end{figure*}
+
+\begin{figure*}[t]\centering
+\includegraphics[width=.98\textwidth]{figures/sample.pdf} \\
+\caption{Prediction examples of different models on Something-Something V2. For each example drawn from the validation dataset, the predictions with blue text indicating a correct prediction and red indicating an incorrect one. ``GT'' indicates the ground truth of the example.}
+\label{fig:sample}
+\end{figure*}
+
+
+\section{Visualization}\label{sec:vis}
+We show several examples of reconstruction in Figure~\ref{fig:vis_k400_sup} and Figure~\ref{fig:vis_ssv2_sup}. Videos are all randomly chosen from the validation set. We can see that even under an extremely high masking ratio, VideoMAE can produce satisfying reconstructed results. These examples imply that our VideoMAE is able to learn more representative features that capture the holistic spatiotemporal structure in videos.
+
+\section{License of Data}\label{sec:license}
+All the datasets we used are commonly used datasets for academic purpose. The license of the Something-Something V2\footnote{URL: \url{https://developer.qualcomm.com/software/ai-datasets/something-something}} and UCF101\footnote{URL: \url{https://www.crcv.ucf.edu/data/UCF101.php}} datasets is custom. The license of the Kinetics-400\footnote{URL: \url{https://www.deepmind.com/open-source/kinetics}}, HMDB51\footnote{URL: \url{https://serre-lab.clps.brown.edu/resource/hmdb-a-large-human-motion-database}} and AVA\footnote{URL: \url{https://research.google.com/ava/index.html}} datasets is CC BY-NC 4.0\footnote{URL: \url{https://creativecommons.org/licenses/by/4.0}}.
+%##################################################################################################
+\begin{figure*}[t]\centering
+\includegraphics[width=.98\textwidth]{figures/vis_k400_supp.pdf}\\
+\caption{ \textbf{Uncurated random videos} on Kinetics-400 \emph{validation} set. We show the original video squence and reconstructions with different masking ratios. 
+Reconstructions of videos are predicted by our VideoMAE pre-trained with a masking ratio of 90\%. 
+}
+\label{fig:vis_k400_sup}
+\end{figure*}
+%##################################################################################################
+
+%##################################################################################################
+\begin{figure*}[t]\centering
+\includegraphics[width=.98\textwidth]{figures/vis_ssv2_supp.pdf}\\
+\caption{\textbf{Uncurated random videos} on Something-Something V2 \emph{validation} set. We show the original video squence and reconstructions with different masking ratios. 
+Reconstructions of videos are all predicted by our VideoMAE pre-trained with a masking ratio of 90\%. 
+}
+\label{fig:vis_ssv2_sup}
+\end{figure*}
+
+
+\end{document}

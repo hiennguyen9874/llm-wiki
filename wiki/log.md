@@ -1,6 +1,7 @@
 # Wiki Update Log
 
 ## 2026-08-16
+- **Ingest**: Compiled [VideoMAE: Masked Autoencoders are Data-Efficient Learners for Self-Supervised Video Pre-Training](../raw/VideoMAE/main.tex); created [VideoMAE](videomae.md) and updated [Video temporal representation learning](video-temporal-representation-learning.md) and [Temporal action understanding](temporal-action-understanding.md).
 - **Ingest**: Compiled [Video Swin Transformer](../raw/VideoSwin/main.tex); created [Video Swin Transformer](video-swin-transformer.md) and updated [Temporal action understanding](temporal-action-understanding.md), [Long-video temporal modeling](long-video-temporal-modeling.md), and [TimeSformer](timesformer.md).
 - **Ingest**: Compiled [Multiscale Vision Transformers](../raw/MViT/mvit_arxiv.tex); created [Multiscale Vision Transformers (MViT)](multiscale-vision-transformers-mvit.md) and updated [long-video temporal modeling](long-video-temporal-modeling.md) and [temporal action understanding](temporal-action-understanding.md).
 - **Ingest**: Compiled [ViViT: A Video Vision Transformer](../raw/ViViT/main_arxiv.tex); created [ViViT](vivit.md) and updated [long-video temporal modeling](long-video-temporal-modeling.md) and [TimeSformer](timesformer.md).
