@@ -5,7 +5,7 @@ description: Scalable representations and retrieval mechanisms for preserving fi
 tags: [video, long-context, temporal-learning, efficiency]
 status: draft
 created: 2026-08-15
-generated: { by: llm-wiki-agent/1, at: 2026-08-16T10:17:50+07:00 }
+generated: { by: llm-wiki-agent/1, at: 2026-08-16T10:33:34+07:00 }
 sources:
   - id: vivit-paper
     resource: ../raw/ViViT/main_arxiv.tex
@@ -34,6 +34,9 @@ sources:
   - id: mat-paper
     resource: ../raw/Memory-and-AnticipationTransformer/main.tex
     title: Memory-and-Anticipation Transformer for Online Action Understanding
+  - id: lv-mae-paper
+    resource: ../raw/LV-MAE/main.tex
+    title: "LV-MAE: Learning Long Video Representations through Masked-Embedding Autoencoders"
 ---
 
 # Long-video temporal modeling
@@ -86,6 +89,10 @@ Video Swin Transformer uses joint self-attention inside fixed-size 3D windows an
 
 For interval-level temporal action localization, ActionFormer combines local self-attention with a temporal feature pyramid. Its fixed-size window therefore covers a progressively wider temporal span at coarser levels; the paper gives a window of 19 at a 16×-downsampled level as covering 304 feature-grid steps. On THUMOS14, its ablation reports the same 66.8% average mAP for window size 19 as full attention, while reporting 45.3 versus 57.8 GMACs for a 2,304-step input. This is task- and implementation-specific evidence, not a general long-video guarantee.[^actionformer-paper]
 
+## Clip-token masked reconstruction
+
+LV-MAE is a hierarchical temporal-compression strategy: a frozen short-video encoder produces one embedding per five-second segment, then a masked autoencoder models the segment sequence. Its reported implementation caps sequences at 256 clip tokens (about 21 minutes 20 seconds at that segment length), so its claim of scalable long-video processing is not evidence of arbitrary-duration global attention.[^lv-mae-paper]
+
 ## Architectural alternatives
 
 The source identifies local/hierarchical attention and state-space models as alternatives to full global attention. It motivates state-space approaches by approximately linear sequence scaling, but does not provide verified comparative evidence that they are preferable for a particular video task.[^video-temporal-survey]
@@ -103,6 +110,7 @@ The source identifies local/hierarchical attention and state-space models as alt
 - **Uses:** [ActionFormer](actionformer.md) as local temporal attention plus a feature pyramid for interval-level temporal action localization.[^actionformer-paper]
 - **Uses:** [Future Transformer (FUTR)](future-transformer-futr.md) as global attention over sampled observed features for benchmark-scale long-term action anticipation, with explicit attention-scaling limits.[^futr-paper]
 - **Uses:** [Memory-and-Anticipation Transformer (MAT)](memory-and-anticipation-transformer-mat.md) as segment-based, bounded-cache compression for online detection and anticipation, not as arbitrary-duration memory.[^mat-paper]
+- **Uses:** [LV-MAE](lv-mae.md) as clip-token compression followed by masked reconstruction across a bounded long-video sequence.[^lv-mae-paper]
 
 [^vivit-paper]: [ViViT: A Video Vision Transformer](../raw/ViViT/main_arxiv.tex)
 [^video-temporal-survey]: [Tổng hợp các hướng xử lý video](../raw/TongHopCacHuongXuLyVideo.md)
@@ -113,3 +121,4 @@ The source identifies local/hierarchical attention and state-space models as alt
 [^actionformer-paper]: [ActionFormer: Localizing Moments of Actions with Transformers](../raw/ActionFormer/main.tex)
 [^futr-paper]: [Future Transformer for Long-term Action Anticipation](../raw/FutureTransformer/main.tex)
 [^mat-paper]: [Memory-and-Anticipation Transformer for Online Action Understanding](../raw/Memory-and-AnticipationTransformer/main.tex)
+[^lv-mae-paper]: [LV-MAE: Learning Long Video Representations through Masked-Embedding Autoencoders](../raw/LV-MAE/main.tex)

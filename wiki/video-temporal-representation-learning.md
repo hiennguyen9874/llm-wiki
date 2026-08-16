@@ -5,7 +5,7 @@ description: Pretraining video features to encode appearance, motion, order, dyn
 tags: [video, representation-learning, self-supervised-learning, foundation-models]
 status: draft
 created: 2026-08-15
-generated: { by: llm-wiki-agent/1, at: 2026-08-16T10:29:08+07:00 }
+generated: { by: llm-wiki-agent/1, at: 2026-08-16T10:33:34+07:00 }
 sources:
   - id: video-temporal-survey
     resource: ../raw/TongHopCacHuongXuLyVideo.md
@@ -22,6 +22,9 @@ sources:
   - id: internvideo2-paper
     resource: ../raw/InternVideo2/main.tex
     title: "InternVideo2: Scaling Foundation Models for Multimodal Video Understanding"
+  - id: lv-mae-paper
+    resource: ../raw/LV-MAE/main.tex
+    title: "LV-MAE: Learning Long Video Representations through Masked-Embedding Autoencoders"
 ---
 
 # Video temporal representation learning
@@ -31,6 +34,8 @@ Video representation learning aims to encode temporal structure—appearance, mo
 ## Pretraining families
 
 The source groups self-supervised video learning into transformation/order prediction, contrastive learning, and masked video modeling.[^video-temporal-survey] Masked video modeling hides a large fraction of spatiotemporal input and trains an encoder-decoder to reconstruct the missing content; its stated motivation is temporal redundancy in video. VideoMAE is a pixel-reconstruction instance that shares a tube mask across frames and feeds only the remaining visible tokens to its encoder during pretraining.[^videomae-paper]
+
+LV-MAE applies masked modeling at a coarser level: it reconstructs masked sequences of frozen short-video embeddings rather than video pixels. This permits its long-range Transformer to receive one token per five-second segment, but it transfers the short-video encoder's representational limits into the long-video model.[^lv-mae-paper]
 
 ## Supervised video pretraining
 
@@ -56,9 +61,11 @@ InternVideo2 extends this progressive family with unmasked-token distillation, v
 - **Instantiated by:** [VideoMAE](videomae.md) through masked pixel reconstruction on unlabeled video clips.[^videomae-paper]
 - **Instantiated by:** [InternVideo](internvideo.md) by coordinating separately pretrained masked-video and video–text encoders.[^internvideo-paper]
 - **Instantiated by:** [InternVideo2](internvideo2.md) through progressive token distillation, multimodal alignment, and video-conditioned next-token prediction.[^internvideo2-paper]
+- **Instantiated by:** [LV-MAE](lv-mae.md) through masked reconstruction of frozen clip-level embeddings for bounded long-video sequences.[^lv-mae-paper]
 
 [^video-temporal-survey]: [Tổng hợp các hướng xử lý video](../raw/TongHopCacHuongXuLyVideo.md)
 [^i3d-paper]: [Quo Vadis, Action Recognition? A New Model and the Kinetics Dataset](../raw/I3D/full_kinetics_update_v0.tex)
 [^videomae-paper]: [VideoMAE: Masked Autoencoders are Data-Efficient Learners for Self-Supervised Video Pre-Training](../raw/VideoMAE/main.tex)
 [^internvideo-paper]: [InternVideo: General Video Foundation Models via Generative and Discriminative Learning](../raw/InternVideo/main.tex)
 [^internvideo2-paper]: [InternVideo2: Scaling Foundation Models for Multimodal Video Understanding](../raw/InternVideo2/main.tex)
+[^lv-mae-paper]: [LV-MAE: Learning Long Video Representations through Masked-Embedding Autoencoders](../raw/LV-MAE/main.tex)

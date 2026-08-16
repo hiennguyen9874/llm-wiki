@@ -5,11 +5,14 @@ description: A staged video foundation-model family that couples unmasked-token 
 tags: [video, foundation-models, representation-learning, multimodal-learning, video-language]
 status: stable
 created: 2026-08-16
-generated: { by: llm-wiki-agent/1, at: 2026-08-16T10:29:08+07:00 }
+generated: { by: llm-wiki-agent/1, at: 2026-08-16T10:33:34+07:00 }
 sources:
   - id: internvideo2-paper
     resource: ../raw/InternVideo2/main.tex
     title: "InternVideo2: Scaling Foundation Models for Multimodal Video Understanding"
+  - id: lv-mae-paper
+    resource: ../raw/LV-MAE/main.tex
+    title: "LV-MAE: Learning Long Video Representations through Masked-Embedding Autoencoders"
 ---
 
 # InternVideo2
@@ -47,5 +50,7 @@ The authors state that InternVideo2 relies on fixed input resolution, sampling r
 - **Supports:** [Video-language temporal grounding and reasoning](video-language-temporal-grounding-and-reasoning.md) through reported CG-DETR temporal-grounding evaluations; this is not general reasoning evidence.[^internvideo2-paper]
 - **Uses:** [ActionFormer](actionformer.md) as the reported temporal-action-localization head.[^internvideo2-paper]
 - **Uses:** [VideoMAE](videomae.md) through VideoMAEv2-g as a motion-aware stage-1 teacher.[^internvideo2-paper]
+- **Supports:** [LV-MAE](lv-mae.md) as one reported frozen short-video segment encoder; this downstream use does not evaluate InternVideo2's own long-context capacity.[^lv-mae-paper]
 
 [^internvideo2-paper]: [InternVideo2: Scaling Foundation Models for Multimodal Video Understanding](../raw/InternVideo2/main.tex)
+[^lv-mae-paper]: [LV-MAE: Learning Long Video Representations through Masked-Embedding Autoencoders](../raw/LV-MAE/main.tex)

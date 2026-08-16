@@ -5,7 +5,7 @@ description: Video tasks that recognize, localize, segment, or anticipate action
 tags: [video, temporal-learning, action-understanding]
 status: draft
 created: 2026-08-15
-generated: { by: llm-wiki-agent/1, at: 2026-08-16T10:29:08+07:00 }
+generated: { by: llm-wiki-agent/1, at: 2026-08-16T10:33:34+07:00 }
 sources:
   - id: bmn-paper
     resource: ../raw/BMN/main.tex
@@ -43,6 +43,9 @@ sources:
   - id: internvideo2-paper
     resource: ../raw/InternVideo2/main.tex
     title: "InternVideo2: Scaling Foundation Models for Multimodal Video Understanding"
+  - id: lv-mae-paper
+    resource: ../raw/LV-MAE/main.tex
+    title: "LV-MAE: Learning Long Video Representations through Masked-Embedding Autoencoders"
 ---
 
 # Temporal action understanding
@@ -88,6 +91,10 @@ ActionFormer directly targets interval-level TAL: it classifies each temporal fe
 
 VideoMAE is a masked-video-pretraining method rather than a task head. Its source transfers a Kinetics-400-pretrained ViT-B to AVA human-action detection and reports 26.7 mAP without labeled-Kinetics fine-tuning and 31.8 mAP with it; this is frame-centered detection evidence, not evidence for temporal action intervals or framewise segmentation.[^videomae-paper]
 
+## Long-video classification representations
+
+LV-MAE pretrains a representation over sequences of frozen five-second clip embeddings and evaluates it with linear or attentive probing on Breakfast cooking-activity classification and COIN procedural-task classification. These video-level labels do not make LV-MAE a temporal-interval localizer, action-segmentation model, or online predictor.[^lv-mae-paper]
+
 ## Foundation-model backbone transfer
 
 InternVideo provides a pretrained ViT-H backbone rather than a new temporal-action-localization head. In the paper's backbone substitution experiments, it pairs that backbone with ActionFormer for THUMOS-14, ActivityNet-v1.3, and FineAction, and with TCANet for HACS Segment; reported average mAP values are 71.58, 39.00, 17.57, and 41.55 respectively.[^internvideo-paper] These results are evidence for the stated backbone/head combinations under their protocols, not a claim that InternVideo alone returns temporal intervals.
@@ -113,6 +120,7 @@ Precise temporal intervals are expensive to annotate. Weakly supervised temporal
 - **Includes:** [Memory-and-Anticipation Transformer (MAT)](memory-and-anticipation-transformer-mat.md) as a unified online current-action detection and fixed-gap anticipation model.[^mat-paper]
 - **Uses:** [InternVideo](internvideo.md) as a pretrained feature backbone evaluated with existing action-recognition, temporal-localization, and spatiotemporal-localization heads.[^internvideo-paper]
 - **Uses:** [InternVideo2](internvideo2.md) as a pretrained feature backbone reported with an ActionFormer temporal-localization head.[^internvideo2-paper]
+- **Uses:** [LV-MAE](lv-mae.md) as a pretrained long-video representation for video-level action and procedural classification, not for localization or segmentation.[^lv-mae-paper]
 
 [^bmn-paper]: [BMN: Boundary-Matching Network for Temporal Action Proposal Generation](../raw/BMN/main.tex)
 [^video-temporal-survey]: [Tổng hợp các hướng xử lý video](../raw/TongHopCacHuongXuLyVideo.md)
@@ -126,3 +134,4 @@ Precise temporal intervals are expensive to annotate. Weakly supervised temporal
 [^internvideo-paper]: [InternVideo: General Video Foundation Models via Generative and Discriminative Learning](../raw/InternVideo/main.tex)
 [^mat-paper]: [Memory-and-Anticipation Transformer for Online Action Understanding](../raw/Memory-and-AnticipationTransformer/main.tex)
 [^internvideo2-paper]: [InternVideo2: Scaling Foundation Models for Multimodal Video Understanding](../raw/InternVideo2/main.tex)
+[^lv-mae-paper]: [LV-MAE: Learning Long Video Representations through Masked-Embedding Autoencoders](../raw/LV-MAE/main.tex)

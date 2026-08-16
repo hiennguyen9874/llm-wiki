@@ -15,6 +15,7 @@ The complete retrieval map for compiled knowledge. See [LLM Wiki Contract](../LL
 - [InternVideo](internvideo.md) — A video foundation-model system that combines masked-video and video–text pretraining through supervised cross-model attention.
 - [InternVideo2](internvideo2.md) — A staged video foundation-model family that couples unmasked-token distillation, video–audio–speech–text alignment, and video-conditioned next-token prediction.
 - [Long-video temporal modeling](long-video-temporal-modeling.md) — Scalable representations and retrieval mechanisms for preserving fine-grained events across long video contexts.
+- [LV-MAE](lv-mae.md) — A self-supervised long-video representation learner that reconstructs masked sequences of frozen short-video embeddings.
 - [MS-TCN (Multi-Stage Temporal Convolutional Network)](ms-tcn.md) — A full-resolution frame-level action-segmentation network that sequentially refines temporal class probabilities with stacked dilated-convolution stages.
 - [Multiscale Vision Transformers (MViT)](multiscale-vision-transformers-mvit.md) — A staged video and image Transformer that pools token resolution while expanding channel capacity through its hierarchy.
 - [Memory-and-Anticipation Transformer (MAT)](memory-and-anticipation-transformer-mat.md) — A unified Transformer for online action detection and fixed-gap anticipation that compresses historical memory and iteratively exchanges it with latent future features.
