@@ -31,6 +31,9 @@ sources:
   - id: futr-paper
     resource: ../raw/FutureTransformer/main.tex
     title: Future Transformer for Long-term Action Anticipation
+  - id: mat-paper
+    resource: ../raw/Memory-and-AnticipationTransformer/main.tex
+    title: Memory-and-Anticipation Transformer for Online Action Understanding
 ---
 
 # Long-video temporal modeling
@@ -52,6 +55,12 @@ The common trade-off is retaining precise, short-lived events while modeling dep
 FUTR provides task-specific evidence that full attention can be useful after temporal sampling and feature extraction: its encoder self-attends over sampled observed-frame features, while its decoder cross-attends to all encoder outputs and self-attends over a fixed sequence of future-action queries.[^futr-paper] On Breakfast, restricting decoder cross-attention to the most recent 25% of observed features rather than all of them reduced reported mean-over-classes accuracy by 2.0–3.3 points across the tested observation and prediction ratios.[^futr-paper]
 
 This does not overturn the general scaling constraint: FUTR's experiments use pre-extracted I3D features on finite benchmark videos, and its authors identify the computation and memory of attention as a limitation. It is evidence for exploiting the whole available prefix at that scale, not for arbitrary-duration global attention.[^futr-paper]
+
+## Segmented online memory compression
+
+MAT provides a bounded-cache alternative for online action understanding. It splits the cached feature history into long- and short-term regions, runs shared learned queries over non-overlapping long-memory segments, pools each segment into a token, and lets recent short-memory tokens cross-attend to those compressed tokens. Its subsequent circular decoder exchanges the enhanced short-memory representation with learned latent future features; it does not retain the full history as decoder tokens.[^mat-paper]
+
+This is evidence for lossy compression of a fixed experimental memory cache, not persistent state or arbitrary-duration retrieval. The reported model also consumes pre-extracted features, so it does not establish end-to-end long-video throughput.[^mat-paper]
 
 ## Fixed-budget global sampling
 
@@ -93,6 +102,7 @@ The source identifies local/hierarchical attention and state-space models as alt
 - **Uses:** [Video Swin Transformer](video-swin-transformer.md) as local joint spatiotemporal attention with shifted cross-window connections, not as arbitrary-length-video memory.[^video-swin-paper]
 - **Uses:** [ActionFormer](actionformer.md) as local temporal attention plus a feature pyramid for interval-level temporal action localization.[^actionformer-paper]
 - **Uses:** [Future Transformer (FUTR)](future-transformer-futr.md) as global attention over sampled observed features for benchmark-scale long-term action anticipation, with explicit attention-scaling limits.[^futr-paper]
+- **Uses:** [Memory-and-Anticipation Transformer (MAT)](memory-and-anticipation-transformer-mat.md) as segment-based, bounded-cache compression for online detection and anticipation, not as arbitrary-duration memory.[^mat-paper]
 
 [^vivit-paper]: [ViViT: A Video Vision Transformer](../raw/ViViT/main_arxiv.tex)
 [^video-temporal-survey]: [Tổng hợp các hướng xử lý video](../raw/TongHopCacHuongXuLyVideo.md)
@@ -102,3 +112,4 @@ The source identifies local/hierarchical attention and state-space models as alt
 [^video-swin-paper]: [Video Swin Transformer](../raw/VideoSwin/main.tex)
 [^actionformer-paper]: [ActionFormer: Localizing Moments of Actions with Transformers](../raw/ActionFormer/main.tex)
 [^futr-paper]: [Future Transformer for Long-term Action Anticipation](../raw/FutureTransformer/main.tex)
+[^mat-paper]: [Memory-and-Anticipation Transformer for Online Action Understanding](../raw/Memory-and-AnticipationTransformer/main.tex)

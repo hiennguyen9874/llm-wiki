@@ -1,0 +1,42 @@
+\section{Introduction}
+\label{sec:intro}
+
+Online anticipation~\cite{kitani2012activity} or detection~\cite{oad2016} in computer vision attempt to perceive future or present states from a historical perspective. They are the crucial factors of AI systems that engage with complex real environments and interact with other agents, \eg\ wearable devices~\cite{wearable-device}, human-robot interaction systems~\cite{human-robot-systems}, and autonomous vehicles~\cite{yu2020autonomous}. 
+\begin{figure}
+    \centering
+    \includegraphics[width=0.48\textwidth]{images/story_new.pdf}
+    \caption{\textbf{Examples for the forward influence of memory and backward constraint of anticipation.} (a) An athlete prepares to start, starts to run, and then jumps to form the result of completing a high jump; (b) The goals of a camera wearer for cutting a tomato dictate the sequence of actions he will perform: hold the knife, get ready to cut, etc.; (c) Compared with the memory-based method, the memory-anticipation-based method is able to establish circular dependencies between memory and future.}
+    \vspace{-3mm}
+    \label{story}
+\end{figure}
+
+Human beings frequently imagine future events based on past experiences. Similarly, anticipating future events inherently requires modeling past actions or the progression of events to predict what will happen next.
+To bridge the gap with human forecasting ability, current systems strive to mimic this cognitive ability by employing different memory mechanisms~\cite{lstr,huang2018predicting,gatehub,testra,tempagg,avt}. Previous research~\cite{rulstm,tempagg} demonstrated that modeling long temporal context is crucial for accurate anticipation. 
+LSTR~\cite{lstr} further decomposes the memory encoder into long and short-term stages for online action detection and anticipation, allowing for the extraction of more representative memory features. 
+Similarly, research efforts such as~\cite{testra,gatehub,gtrm} have also illustrated improvements based on this principle.
+
+
+
+
+However, despite various \textbf{memory-based} approaches, memory is not the only driver of present or future action.
+The synchronization between shot transitions and the evolution of actor behavior appears to cohere with the beliefs and wills of the event weavers, be they actors or camera-wearers. In (a) and (b) of Fig~\ref{story}, we use the examples of high jumping and cooking to show the forward influence of memory and backward constraint of anticipation.
+Upon closer examination of both examples, it has been observed that future-oriented thoughts may impact action and memory, which seems modulated by the encoding of new information~\cite{2007ghosts,mcn}. 
+Additionally, anticipation may change as ongoing behavior progresses and memory is updated~\cite{15active, 17neuroscience}. 
+This indicates that there exists a circular interdependence between anticipation and memory,
+constraining the evolution of behavior or events.
+
+
+
+Based on the preceding analysis, we reevaluate the temporal dependencies inherent in \textbf{memory-based} methods. In their preoccupation with the impact of memory on anticipation, these memory-based methods tend to overlook the inverse direction of impact, \ie, anticipation on memory. Consequently, historical representations are not adequately corrected, thereby risking impeding any attempts to transcend the past. Against this backdrop, we assert that a comprehensive temporal structure seamlessly integrates memory and anticipation is indispensable. In other words, a \textbf{memory-anticipation-based} method building circular dependencies between memory and anticipation, as shown in Fig~\ref{story}(c), holds tremendous promise for enhancing cognitive inference capabilities and advanced understanding of AI systems about the present and future.
+
+To this end, we propose \textbf{M}emory-and-\textbf{A}nticipation \textbf{T}ransformer \textbf{(MAT)}, a novel \textbf{memory-anticipation-based} approach that fully
+models the complete temporal context, including history, present, and future.
+A \emph{Progressive Memory Encoder} is designed to provide a more precise history summary by compressing long- and short-term memory in a segment-based fashion.
+Meanwhile, we propose our key idea of modeling circular dependencies between memory and future, implemented as  \emph{Memory-Anticipation Circular Decoder}. It first \emph{learns latent future features} in a supervised manner, then updates iteratively the enhanced short-term memory and the latent future features by performing \emph{Conditional circular Interaction} between them. Among them, multiple interaction processes capture the circular dependency and supervise the output to maintain stable features with real semantics. 
+
+
+Remarkably, owing to the inherent superiority of our model design, we are able to adapt both tasks, \ie, online action detection and anticipation, in a unified manner, spanning the training and online inference stages. For any given dataset, the MAT model obviates the need for separate training or testing for each task. Rather, a single training process is enough, and during inference, the corresponding token for each task can be extracted effortlessly.
+
+
+In summary, our contributions are 1). We rethink the temporal dependence of event evolution and propose a memory-anticipation-based paradigm for the circular interaction of memory and anticipation, introducing the concept of memory and future circular dependence.
+2). We propose a unified architecture Memory-Anticipation Transformer (MAT) that simultaneously processes online action detection and anticipation, showing effective performance. 3). MAT significantly outperforms all existing methods on four challenging benchmarks for online action detection and anticipation tasks, \ie, TVSeries~\cite{oad2016}, THUMOS'14~\cite{THUMOS14}, HDD~\cite{hdd} and EPIC-Kitchens-100~\cite{ek100}.

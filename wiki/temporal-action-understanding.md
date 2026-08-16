@@ -37,6 +37,9 @@ sources:
   - id: internvideo-paper
     resource: ../raw/InternVideo/main.tex
     title: "InternVideo: General Video Foundation Models via Generative and Discriminative Learning"
+  - id: mat-paper
+    resource: ../raw/Memory-and-AnticipationTransformer/main.tex
+    title: Memory-and-Anticipation Transformer for Online Action Understanding
 ---
 
 # Temporal action understanding
@@ -52,6 +55,9 @@ Temporal action understanding separates four output granularities: clip-level re
 | Temporal action localization/detection | Untrimmed video | Action intervals `(start, end, class)` |
 | Action segmentation | Video sequence | A class label for every frame/timestep |
 | Action anticipation | Observations through time `t` | One or more future actions |
+| Online action detection | Observations through current time | Current action class at each timestep |
+
+Online action detection classifies the action as it occurs without future access; it is not interval-level temporal action localization, which must return action boundaries. MAT treats online detection as the zero-gap ($\tau=0$) case of a shared detection-and-fixed-gap-anticipation formulation, taking its current prediction from short-term memory and its future prediction from a gap-aligned future token.[^mat-paper]
 
 Localization must identify uncertain action boundaries; segmentation is susceptible to over-segmentation, where noisy predictions fragment an otherwise continuous action. MS-TCN addresses fully supervised frame-level segmentation with multi-stage temporal refinement and a smoothing objective over adjacent frame predictions.[^ms-tcn-paper] Anticipation and online action understanding must not use future frames at prediction time.[^video-temporal-survey]
 
@@ -99,6 +105,7 @@ Precise temporal intervals are expensive to annotate. Weakly supervised temporal
 - **Uses:** [VideoMAE](videomae.md) as a self-supervised pretrained backbone for clip classification and frame-centered human-action detection.[^videomae-paper]
 - **Includes:** [ActionFormer](actionformer.md) as a single-stage anchor-free Transformer for interval-level temporal action localization.[^actionformer-paper]
 - **Includes:** [Future Transformer (FUTR)](future-transformer-futr.md) as a long-term, framewise action-anticipation model with parallel segment decoding.[^futr-paper]
+- **Includes:** [Memory-and-Anticipation Transformer (MAT)](memory-and-anticipation-transformer-mat.md) as a unified online current-action detection and fixed-gap anticipation model.[^mat-paper]
 - **Uses:** [InternVideo](internvideo.md) as a pretrained feature backbone evaluated with existing action-recognition, temporal-localization, and spatiotemporal-localization heads.[^internvideo-paper]
 
 [^bmn-paper]: [BMN: Boundary-Matching Network for Temporal Action Proposal Generation](../raw/BMN/main.tex)
@@ -111,3 +118,4 @@ Precise temporal intervals are expensive to annotate. Weakly supervised temporal
 [^actionformer-paper]: [ActionFormer: Localizing Moments of Actions with Transformers](../raw/ActionFormer/main.tex)
 [^futr-paper]: [Future Transformer for Long-term Action Anticipation](../raw/FutureTransformer/main.tex)
 [^internvideo-paper]: [InternVideo: General Video Foundation Models via Generative and Discriminative Learning](../raw/InternVideo/main.tex)
+[^mat-paper]: [Memory-and-Anticipation Transformer for Online Action Understanding](../raw/Memory-and-AnticipationTransformer/main.tex)
