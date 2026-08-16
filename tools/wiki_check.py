@@ -7,6 +7,7 @@ import re
 import sys
 from collections import Counter
 from pathlib import Path
+from urllib.parse import unquote
 
 ROOT = Path(__file__).resolve().parents[1]
 WIKI = ROOT / "wiki"
@@ -40,7 +41,7 @@ def links(path: Path) -> list[Path]:
     text = path.read_text(encoding="utf-8")
     targets: list[Path] = []
     for raw in LINK_RE.findall(text):
-        target = raw.replace(r"\(", "(").replace(r"\)", ")").split("#", 1)[0]
+        target = unquote(raw.replace(r"\(", "(").replace(r"\)", ")").split("#", 1)[0])
         if not target or "://" in target or target.startswith(("mailto:", "#")):
             continue
         resolved = (WIKI / target.lstrip("/")) if target.startswith("/") else (path.parent / target)
