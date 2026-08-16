@@ -1,6 +1,7 @@
 # Wiki Update Log
 
 ## 2026-08-16
+- **Ingest**: Compiled [BMN: Boundary-Matching Network for Temporal Action Proposal Generation](../raw/BMN/main.tex); created [Boundary-Matching Network (BMN)](boundary-matching-network.md) and updated [temporal action understanding](temporal-action-understanding.md).
 - **Ingest**: Compiled [SlowFast Networks for Video Recognition](../raw/SlowFast/slowfast_iccv19_arxiv_final.tex); created [SlowFast Networks](slowfast-networks.md) and updated [two-stream ConvNets](two-stream-convnets-action-recognition.md) and [Non-local Neural Networks](non-local-neural-networks.md).
 - **Ingest**: Compiled [Non-local Neural Networks](../raw/Non-localNeuralNetworks/nonlocal.tex); created [Non-local Neural Networks](non-local-neural-networks.md) and updated [Inflated 3D ConvNets (I3D)](inflated-3d-convnets-i3d.md).
 - **Ingest**: Compiled [A Closer Look at Spatiotemporal Convolutions for Action Recognition](../raw/R\(2+1\)D/res2_plus_1d.pdf); created [R(2+1)D](r-2-plus-1-d.md) and updated [Inflated 3D ConvNets (I3D)](inflated-3d-convnets-i3d.md).

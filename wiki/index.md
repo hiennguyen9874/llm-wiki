@@ -8,6 +8,7 @@ The complete retrieval map for compiled knowledge. See [LLM Wiki Contract](../LL
 
 ## Concepts
 
+- [Boundary-Matching Network (BMN)](boundary-matching-network.md) — A class-agnostic temporal action proposal network that jointly predicts boundaries and a dense start-duration confidence map.
 - [Inflated 3D ConvNets (I3D)](inflated-3d-convnets-i3d.md) — A two-stream action-recognition architecture that inflates pretrained 2D image ConvNets into spatiotemporal 3D ConvNets.
 - [Long-video temporal modeling](long-video-temporal-modeling.md) — Scalable representations and retrieval mechanisms for preserving fine-grained events across long video contexts.
 - [Non-local Neural Networks](non-local-neural-networks.md) — Neural-network blocks that directly aggregate pairwise feature relations across all spatial, temporal, or spacetime positions.
