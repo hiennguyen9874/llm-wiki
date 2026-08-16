@@ -5,7 +5,7 @@ description: A draft hybrid design for detector-based and detector-free real-tim
 tags: [video-analytics, action-recognition, realtime, deployment]
 status: draft
 created: 2026-08-16
-generated: { by: llm-wiki-agent/1, at: 2026-08-16T11:00:00+07:00 }
+generated: { by: llm-wiki-agent/1, at: 2026-08-16T11:05:00+07:00 }
 sources:
   - id: temporal-video-analytics-overview
     resource: ../raw/TongQuanCacPhuongPhapTemporal.md
@@ -48,6 +48,19 @@ When detector or tracking is unavailable, process overlapping RGB clips or their
 This is best suited to a scene label such as violence, crowd panic, or a coarse activity state. It cannot reliably say *which* person acted, and its whole-scene input is more sensitive to background, camera motion, and multiple simultaneous actions. The production source similarly treats scene-level temporal/video models as the higher-cost option and notes that scene features sacrifice object-level attribution.[^temporal-video-analytics-overview][^detector-tracker-temporal]
 
 A practical detector-free realtime prototype is therefore `rolling RGB clip → compact clip encoder → temporal score smoothing → alert`; add a second, slower clip model only to confirm uncertain alerts. This staged configuration is synthesis and requires target-hardware measurement.
+
+## Detector-free traffic-accident prototype
+
+**Synthesis:** for a fixed traffic camera, treat accident detection first as a scene-level event rather than vehicle attribution: `fixed road ROI → overlapping RGB clips → candidate classifier → confirmation classifier → persisted alert`. The fixed ROI is camera configuration, not object detection.
+
+1. Feed short, overlapping RGB clips from the road ROI to a baseline spatiotemporal encoder such as [R(2+1)D](r-2-plus-1-d.md); train a binary normal/collision-candidate classifier, or add a near-miss class only when it has sufficient labels.[^r2plus1d-paper]
+2. Smooth scores across successive clips and create a candidate only after persistence. This reduces isolated false alerts; its threshold and delay are deployment parameters to calibrate.
+3. Re-run only candidate windows with a stronger RGB clip encoder such as [SlowFast Networks](slowfast-networks.md), whose separate fast pathway is designed to retain fine motion while its slow pathway represents spatial semantics.[^slowfast-paper]
+4. Emit a scene-level accident alert only when the confirmation and persistence conditions hold. Use the first and last positive windows as a coarse event span; add [ActionFormer](actionformer.md) later only if more accurate boundaries are required.
+
+This design avoids detector and optical flow in the always-on path. It is poorly matched to a small, distant, heavily occluded crash and cannot identify the vehicles involved; those are expected limitations of scene-level input, not failures corrected by temporal smoothing alone. Road camera data must include hard negatives such as abrupt braking, congestion, stopped vehicles, shadows, rain, night glare, camera shake, and emergency vehicles; this data requirement is engineering guidance, not a result in the cited sources.
+
+Measure event recall, false alerts per camera-hour, median and p95 detection delay from the collision, and end-to-end p95 latency. Do not select the encoder solely by clip-level accuracy.[^temporal-video-analytics-overview]
 
 ## Select the temporal branch by event scope
 

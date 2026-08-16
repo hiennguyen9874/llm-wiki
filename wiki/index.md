@@ -25,6 +25,7 @@ The complete retrieval map for compiled knowledge. See [LLM Wiki Contract](../LL
 - [Production temporal video analytics](production-temporal-video-analytics.md) — Selecting temporal models after detection and tracking by event complexity, latency, compute, data, and explainability constraints.
 - [Real-time action-recognition deployment pattern](real-time-action-recognition-deployment-pattern.md) — A draft hybrid design for detector-based and detector-free real-time action recognition, with selective clip-level escalation.
 - [R(2+1)D](r-2-plus-1-d.md) — A ResNet video architecture that factorizes each 3D convolution into spatial 2D and temporal 1D convolutions separated by a nonlinearity.
+- [R(2+1)D, SlowFast, and TCN comparison](r-2-plus-1-d-slowfast-tcn-comparison.md) — A task-aware comparison of R(2+1)D and SlowFast RGB video backbones with TCN temporal sequence models.
 - [SlowFast Networks](slowfast-networks.md) — A two-pathway video architecture that assigns sparse semantic processing and dense lightweight motion processing to separate temporal rates.
 - [TimeSformer](timesformer.md) — A video Transformer that factorizes temporal and spatial self-attention over frame patches to make long-clip action recognition practical.
 - [Temporal action understanding](temporal-action-understanding.md) — Video tasks that recognize, localize, segment, or anticipate actions across time.
