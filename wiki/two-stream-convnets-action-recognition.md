@@ -5,8 +5,11 @@ description: A late-fusion video classifier that separates appearance in RGB fra
 tags: [video, action-recognition, convnet, optical-flow, multi-task-learning]
 status: stable
 created: 2026-08-15
-generated: { by: llm-wiki-agent/1, at: 2026-08-16T02:03:58Z }
+generated: { by: llm-wiki-agent/1, at: 2026-08-16T09:37:18+07:00 }
 sources:
+  - id: slowfast-paper
+    resource: ../raw/SlowFast/slowfast_iccv19_arxiv_final.tex
+    title: SlowFast Networks for Video Recognition
   - id: two-stream-convnets
     resource: ../raw/Two-StreamConvNets/flow_net.tex
     title: Two-Stream Convolutional Networks for Action Recognition in Videos
@@ -50,6 +53,10 @@ The same work evaluates stacked RGB differences as a motion representation that 
 
 I3D preserves the two-stream separation but replaces each 2D ConvNet with an inflated 3D ConvNet that learns spatiotemporal features over a 64-frame input; the separately trained RGB and flow predictions are averaged at test time.[^i3d-paper] This makes temporal feature extraction internal to both streams rather than limiting motion processing to the flow input and late score fusion.
 
+## SlowFast contrast
+
+SlowFast retains two pathways but feeds both with RGB frames sampled at different temporal rates, making the high-rate pathway narrow rather than supplying a second, precomputed motion modality.[^slowfast-paper] Its source reports end-to-end action-classification and detection experiments, but this is a distinct architecture from two-stream late fusion.
+
 ## Evidence limits
 
 The reported full three-split results are 88.0% on UCF-101 and 59.4% on HMDB-51 with SVM fusion.[^two-stream-convnets] They rely on precomputed Brox optical flow and the paper’s benchmark protocols, so they do not establish current deployment cost, robustness, or superiority to later end-to-end video models.
@@ -61,7 +68,9 @@ The reported full three-split results are 88.0% on UCF-101 and 59.4% on HMDB-51 
 - **Uses:** [Video temporal representation learning](video-temporal-representation-learning.md) in the limited sense of spatial ImageNet pretraining.
 - **Extended by:** [Temporal Segment Networks](temporal-segment-networks.md) for sparse video-level sampling and consensus learning.
 - **Extended by:** [Inflated 3D ConvNets (I3D)](inflated-3d-convnets-i3d.md), which replaces each 2D stream with an inflated 3D ConvNet.
+- **Contrasted with:** [SlowFast Networks](slowfast-networks.md), which separates two RGB pathways by temporal rate and channel capacity rather than RGB and optical-flow modality.[^slowfast-paper]
 
+[^slowfast-paper]: [SlowFast Networks for Video Recognition](../raw/SlowFast/slowfast_iccv19_arxiv_final.tex)
 [^two-stream-convnets]: [Two-Stream Convolutional Networks for Action Recognition in Videos](../raw/Two-StreamConvNets/flow_net.tex)
 [^temporal-segment-networks]: [Temporal Segment Networks for Action Recognition in Videos](../raw/TemporalSegmentNetworks/tsn_pami.tex)
 [^i3d-paper]: [Quo Vadis, Action Recognition? A New Model and the Kinetics Dataset](../raw/I3D/full_kinetics_update_v0.tex)

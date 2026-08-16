@@ -13,6 +13,7 @@ The complete retrieval map for compiled knowledge. See [LLM Wiki Contract](../LL
 - [Non-local Neural Networks](non-local-neural-networks.md) — Neural-network blocks that directly aggregate pairwise feature relations across all spatial, temporal, or spacetime positions.
 - [Production temporal video analytics](production-temporal-video-analytics.md) — Selecting temporal models after detection and tracking by event complexity, latency, compute, data, and explainability constraints.
 - [R(2+1)D](r-2-plus-1-d.md) — A ResNet video architecture that factorizes each 3D convolution into spatial 2D and temporal 1D convolutions separated by a nonlinearity.
+- [SlowFast Networks](slowfast-networks.md) — A two-pathway video architecture that assigns sparse semantic processing and dense lightweight motion processing to separate temporal rates.
 - [Temporal action understanding](temporal-action-understanding.md) — Video tasks that recognize, localize, segment, or anticipate actions across time.
 - [Temporal Segment Networks](temporal-segment-networks.md) — A video-level action-recognition framework that samples snippets across equal temporal segments and learns their consensus.
 - [Two-stream ConvNets for action recognition](two-stream-convnets-action-recognition.md) — A late-fusion video classifier that separates appearance in RGB frames from motion in stacked optical flow.
