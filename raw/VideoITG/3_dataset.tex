@@ -1,0 +1,78 @@
+\section{VideoITG-40K: dataset construction}
+
+
+\subsection{VidThinker: automated annotation pipeline}
+\label{pipeline}
+When humans search for information in long videos, they typically proceed in three steps: (i) extracting key cues from the instruction, (ii) retrieving a coarse temporal window, and (iii) fine-grained localization of the target event. We therefore propose \textit{VidThinker}, a fully automated and interpretable pipeline that mimics this three-step reasoning for instruction-guided temporal localization. It comprises three interdependent stages—Instructed Clip Captioning, Instructed Clip Retrieval, and Instructed Frame Localization—that progressively narrow the search space while strengthening alignment with the instruction.
+
+
+\noindent\textbf{i) Instructed Clip Captioning:} The video $v$ is uniformly divided into short clips (5 seconds each), denoted as $\{v_i\}_{i=0}^n$. For each segment, we employ LLM to extract salient phrases that capture the core information needed to fulfill the instruction. For example, given the question ($q = $``\textit{What does the man playing the drums do with his feet as he plays the drum?}'') and the answer ($a = $``\textit{moves his feet}''), the system distills the essential action phrase: $k =$``\textit{The man playing the drums moves his feet and hits the drums with his hands.}'' We then input the extracted phrases alongside raw video clips into the VLM to generate clip-level descriptions $\{c_i\}_{i=0}^n$ in a recurrent manner. The extracted phrases serve as reference cues to guide the model's attention towards salient elements within each clip.  However, the VLM strictly adheres to visual evidence and it only incorporates information from the extracted phrases when it is explicitly observable in the current clip. This ensures that the system will not hallucinate or infer content solely based on the extracted phrases, maintaining descriptions grounded in visual content. The process can be formulated as follows:
+\begin{equation}
+    k = \mathrm{LLM}(q, a),\quad c_i = \mathrm{VLM}(k, v_i).
+\end{equation}
+Conditioning on these instruction- and answer-derived cues, we ensure each segment's annotation is relevant and informative, facilitating precise instructed temporal grounding.
+
+\noindent\textbf{ii) Instructed Clip Retrieval:} The generated clip descriptions $ \{c_i\}_{i=0}^n$ are organized sequentially and evaluated by an LLM for the relevance to the QA pairs. Instead of simply assigning binary relevance scores, the LLM is instructed to perform chain-of-thought reasoning, explicitly considering both keyword matches and temporal relationships to directly output the indexes of relevant clips:
+\begin{equation}
+    \mathcal{I}_\mathrm{rel-clip} = \mathrm{LLM}(\{c_i\}_{i=0}^n, q, a).
+\end{equation}
+The chain-of-thought prompting requires the model to justify its selections based on both semantic and temporal cues, rather than relying solely on trivial keyword matching. This automation significantly improves the efficiency and the interpretability of relevant segment selection.
+    
+\noindent\textbf{iii) Instructed Frame Localization:} After coarse localization of video segment, \textit{VidThinker} further refines the annotation by selecting key frames according to the instruction type. For each frame within the candidate segment, we prompt a LLM to perform a binary classification task: given the QA pair and a single frame, the LLM determines whether the frame is relevant (\texttt{yes}) or not (\texttt{no}) to the instruction.
+Formally, for each frame $f_i$ in the candidate segment, the LLM is prompted as follows:
+\begin{equation}
+    y_i = \mathrm{LLM}(f_i, q, a), \quad \text{where} \quad y_i \in \{\texttt{yes}, \texttt{no}\},
+\end{equation}
+where $y_i$ indicates whether frame $f_i$ is relevant to the QA.
+Only frames with positive responses ($y_i = \texttt{yes}$) are retained as the final temporal grounding results. This instruction-guided filtering allows \textit{VidThinker} to achieve high precision in identifying the most informative frames for instructions.
+
+
+
+\subsection{Fine-grained grounding instruction}
+\label{taxonomy}
+%\textcolor{red}{
+We adopt fine-grained frame selection strategies tailored to each instruction type, ensuring that the visual evidence matches the reasoning needs of each QA task. Since different instructions demand varying visual understanding, we categorize instructions by whether they require static semantics, dynamic motion, both, or no explicit cues at all (video-level). For each type, we adopt a matching frame selection strategy to align visual evidence with QA reasoning needs.
+
+
+\begin{itemize}[leftmargin=6mm, itemsep=2pt, parsep=0pt, topsep=2pt]
+    \item \textbf{Semantic only}: Instructions query static appearance cues (e.g., people, objects, scenes). For example: \textit{"What did the man do before getting into the car?"} \textit{VidThinker} selects frames revealing the man's clothing and the guitar. After relevant segment localization, we select diverse frames that capture representative semantic clues to ensure comprehensive coverage. Concretely, we extract CLIP features per frame and compute cosine similarity between adjacent frames; a frame is retained when its similarity to the last selected keyframe falls below a scene-change threshold. Further algorithmic details are provided in the appendix.
+
+    \item \textbf{Motion only}: Instructions focus on dynamic patterns (e.g., type, speed, direction). We adopt fixed-rate sampling within the localized segment to capture motion progression. For example: \textit{"How does the person jump off the diving board?"} \textit{VidThinker} selects frames spanning takeoff, mid-air, and water entry.
+    
+    \item \textbf{Semantic \& Motion}: Instructions jointly require static semantics and dynamic changes. We apply fixed-rate sampling in motion-relevant regions while preserving semantically informative frames, balancing both needs. For example: \textit{"Could you describe the camera movement in the video?"} \textit{VidThinker} selects frames showing hand drumming and foot movement simultaneously.
+    
+    \item \textbf{Non Clues}: Entire video-level instructions without clear semantic or motion anchors. We samle a compact yet diverse set of frames across the entire video (e.g., beginning–middle–end) to ensure holistic coverage with minimal redundancy. For example: \textit{"Please describe the video in detail."}
+\end{itemize}
+
+\subsection{Dataset statistics}
+\label{statistics}
+Leveraging the proposed \textit{VidThinker} pipeline, we construct \textbf{VideoITG-40K} from LLaVA-Video~\cite{zhang2024video}: 40K videos and 500K instruction-grounded annotations for temporal grounding. The entire annotation is automated by \textit{VidThinker}, ensuring efficiency, consistency, and alignment with diverse instruction types. The videos average 120s and cover three duration bands (30–60s, 1–2min, 2–3min). Each video has 10–15 QA pairs (multiple-choice and open-ended). As summarized in Table~\ref{tab:dataset_statistic}, VideoITG-40K is nearly 4$\times$ larger than DiDeMo~\cite{anne2017localizing} (10.6K) and QVHighlights~\cite{lei2021detecting} (10.2K), and far exceeds QuerYD~\cite{oncescu2021queryd} (2.6K) and HiREST~\cite{zala2023hierarchical} (3.4K). Unlike prior descriptive-query datasets, VideoITG-40K is explicitly instruction-guided, enabling precise, query-conditioned temporal localization.
+
+
+\begin{table}[h]
+\renewcommand{\arraystretch}{1.0}
+\centering
+% \vspace{-4mm}
+\caption{
+\textbf{Comparison of dataset statistics for temporal grounding and highlight detection datasets.}
+}
+\vspace{-2mm}
+\Large
+\resizebox{0.47\textwidth}{!}{
+\begin{tabular}{l|c|c|c|c}
+\toprule
+\textbf{Dataset} & \textbf{\# Videos} & \textbf{\# Queries} & \textbf{Avg. Duration} & \textbf{Instructed?} \\
+\midrule
+DiDeMo~\cite{anne2017localizing} & 10.6K & 41.2K & 29s & No \\
+QuerYD~\cite{oncescu2021queryd} & 2.6K & 32K & \textbf{278s} & No \\
+HiREST~\cite{zala2023hierarchical} & 3.4K & 8.6K & 263s & No \\
+Charades-STA~\cite{gao2017tall} & 6.7K & 16.1K & 30s & No \\
+QVHighlights~\cite{lei2021detecting} & 10.2K & 10.3K & 150s & No \\
+\midrule
+\rowcolor[HTML]{DAEFF9} VideoITG-40K & \textbf{40K} & \textbf{500K} & 120s & \textbf{Yes} \\
+\bottomrule
+\end{tabular}
+}
+\label{tab:dataset_statistic}
+\vspace{-2mm}
+\end{table}

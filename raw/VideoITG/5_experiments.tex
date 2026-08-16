@@ -1,0 +1,70 @@
+
+\section{Experiments}
+
+\input{exp1}
+\input{ablation1}
+
+\subsection{Implementation details}
+We follow the training approach of LLaVA-Video~\cite{zhang2024video}, using the pretrained model as the initialization for our VideoITG model's pre-training. We employ SigLIP~\cite{zhai2023sigmoid} as the vision encoder and Qwen2~\cite{wang2024qwen2} as the language model. Initially, we train the MLP projector on image caption datasets with a batch size of 256 and a learning rate of \(1 \times 10^{-3}\). Then, we fine-tune all model parameters on the LLaVA-OV-SI~\cite{li2024llavaonevision} and LLaVA-Video datasets. During this stage, the video frame sampling rate is set to 64, and the LLM's maximum sequence length is set to 16K. We then train the VideoITG model on the proposed VideoITG-40K dataset, adjusting the video sampling rate to 1 fps. 
+
+Throughout training and inference, we employ a dynamic token spatial size strategy~\cite{liu2025oryx}. Across all stages, the LLM's learning rate is \(2 \times 10^{-5}\), and in the final stage, the learning rate for the classification head is \(2 \times 10^{-4}\). To fairly compare with other leading video LMMs, we primarily use results from their original papers. When results are unavailable, we integrate the models into LMMs-Eval~\cite{zhang2024lmms} and assess them under consistent settings. Due to context length constraints, we support up to 512 video frames as input (with 16 visual tokens per frame) for the VideoITG model, from which we select the top 32 frames based on their scores by default. 
+
+\subsection{Main results}
+
+
+
+\noindent \textbf{Comparisons with other frame selection methods.}
+As shown in Table~\ref{tab:main_comparisons}, our proposed VideoITG demonstrates \textbf{\textit{three notable advantages}} over existing selection strategies: 
+
+\textbf{(i) Consistant Improvement}: VideoITG consistently outperforms Uniform sampling across all benchmarks and model settings. It achieves an average gain of \textbf{+6.7} (54.9$\rightarrow$61.6) on LLaVA-OneVision-7B and \textbf{+6.2} (54.1$\rightarrow$60.3) on Qwen2-VL, with similar trends on LLaVA-Video-7B (+2$\sim$3 points). These steady improvements across diverse models and datasets highlight the \textbf{robustness} and \textbf{general applicability} of our frame selection strategy in enhancing video understanding under challenging scenarios.
+
+\textbf{(ii) Precision in Selection}: When using LLaVA-Video as baseline, VideoITG achieves superior accuracy using only 32 selected frames, outperforming other methods that use \textbf{more frames} (\textit{e.g.}, 50-64) on MLVU and VideoMME, highlighting the effectiveness of our strategy in identifying the most informative frames. As shown in Figure~\ref{fig:frames}, our VideoITG method achieves comparable performance to uniform sampling with 64 frames using only 16 frames on VideoMME, and also outperforms other methods with 32 frames, highlighting the precision of our frame selection strategy. 
+
+\textbf{(iii) Robust Performance:} Compared to training-based methods such as Q-Frame and Frame-Voyager, VideoITG achieves more substantial improvements across three long video understanding benchmarks. For instance, it boosts the average score from 59.5 (Frame-Voyager) and 57.6 (Q-Frame) to \textbf{61.6} and \textbf{60.3} under the same settings. These consistent gains highlight the strong adaptability of VideoITG across diverse scenarios.
+
+We find that on LongVideoBench, increasing frames has limited impact, likely because many tasks are text referring. Our VideoITG also samples at lower resolution, indicating room for finer-grained content recognition.
+ 
+\vspace{1mm}
+\noindent\textbf{Results on newer backbone (Qwen3-VL).}
+To verify that our gains are not tied to a specific backbone generation, we evaluate VideoITG on the newer Qwen3-VL model. The results are included in Table~\ref{tab:video}, showing consistent improvements over the UNI-32 baseline across LongVideoBench, MLVU, VideoMME (S/M/L), and CG-Bench-mini.
+
+
+
+
+\noindent\textbf{Extension to more Video-LLMs.} Extending our VideoITG on diverse Video-LLMs with difeerent model scales further presents its \textbf{\textit{two compiling advantages}}: 
+
+\textbf{(i) Model Size Scalability}:
+Table~\ref{tab:video} demonstrates that integrating VideoITG with Video-LLMs of different sizes consistently yields substantial performance improvements over uniform sampling. For example, on InternVL2.5-8B, VideoITG improves the average score from $58.7\%$ to $64.3\%$ ($+5.6$), while on the larger InternVL2.5-26B, the improvement is from $61.6\%$ to $66.7\%$ ($+5.1$). Notably, InternVL2.5-8B with VideoITG even surpasses the InternVL2.5-26B baseline on both average score ($64.3\%$ vs. $61.6\%$) and long-video benchmarks such as CG-Bench ($46.7\%$ vs. $40.6\%$), indicating that effective frame selection can provide greater gains than simply increasing model size. 
+
+\begin{figure*}[!h]
+\centering
+\includegraphics[width=\linewidth]{vis.pdf}
+\vspace{-7mm}
+\caption{\textbf{Two examples of how different sampling strategies impact video understanding.} We mark the identified key frames that directly answer the question with green check-marks.}
+\label{vis}
+\end{figure*}
+
+(ii) \textbf{Model Diversity Adaptability}:
+We further evaluate VideoITG across diverse Video-LLMs, each trained on different data distributions and objectives. The results show that VideoITG consistently outperforms uniform sampling for all models and benchmarks. For instance, on LLaVA-Video-7B, VideoITG raises the average score by $4.5$ \% ($62.9\%$ vs. $58.4\%$), and on Eagle2.5-8B, the improvement reaches $4.9$ points ($66.7\%$ vs. $61.8\%$). These consistent gains across models with varying architectures and training data highlight the strong adaptability and robustness of our method.
+
+\subsection{Ablation on VideoITG design choices}
+Table~\ref{ablation_table_models} presents a comprehensive analysis on the design of VideoITG, directly supporting our key contributions.
+
+
+
+\noindent\textbf{Architecture Design.} 
+First, we compare the three variants of our model architecture in Fig.~\ref{fig:model}. We observe that Variant A, which is based on the text generation paradigm, performs the worst. One possible reason is that text generation models trained with the next-token prediction paradigm suffer from sparse supervision due to teacher forcing, where previous frame selections influence subsequent ones, making the training process less efficient compared to discriminative classification models. We find that Variant C with full-attention outperforms Variant B with causal attention. This improvement may be attributed to full-attention's larger receptive field, which enables global temporal relationship modeling and allows all tokens to access the textual query. Moreover, model scale yields a consistent but modest gain: the 7B model surpasses the 3B counterpart across all benchmarks, raising the overall average from 66.8\% to 67.8\%.
+
+
+
+\noindent\textbf{Dataset Construction.} We analyze our data annotation strategies to demonstrate the effectiveness of our pipeline. Ablation studies show that the performance degrades when Instructed Clip Captioning are removed (using a VLM to directly select temporal boundaries based on visual inputs), with accuracy dropping from 56.9\% to 53.4\% on Videomme Long videos and from 75.0\% to 73.2\% on MLVU. This demonstrates that ensuring information diversity is crucial for maintaining comprehensive feature  representation of videos. Similarly, removing Instructed Frame Localization (learning all frame index within corase temporal boundaries using VideoITG Model) decreases performance, particularly on Videomme Medium videos (from 67.1\% to 65.8\%). These results confirm that both stages are essential for optimal model performance and validate our data construction approach of the VideoITG-40K dataset.
+
+\noindent\textbf{Pre-training Data.} Finally, we investigate the impact of vision-language alignment pre-training on model performance. Our experiments reveal that removing video pre-training causes modest performance changes across benchmarks. This suggests that the benefits of video data for instructed temporal grounding tasks primarily stem from effective visual context length, yet this impact is relatively minor compared to vision-language alignment. This observation is further validated if we eliminate both image and video pre-training data, starting from a text-only large language model, where performance drops dramatically, with accuracy decreasing from 75.0\% to 69.1\% on MLVU and from 61.9\% to 58.6\% on LongVideoBench. This substantial degradation underscores that robust vision-language alignment is crucial to effective VideoITG training.%, as the model struggles to establish meaningful connections between visual content and textual instructions without this foundational knowledge.
+
+
+
+
+\subsection{Visualization}
+In Fig.~\ref{vis}, we compare uniform sampling and VideoITG sampling of 8 frames from the VideoMME~\cite{fu2024videomme} Benchmark. In the first case, VideoITG captures both brushing teeth and spraying perfume actions, enabling correct temporal ordering, while uniform sampling misses key cues. In the second case, VideoITG accurately captures rapid consecutive movements at the end, whereas uniform sampling fails to do so, leading to incomplete video understanding.
+
+

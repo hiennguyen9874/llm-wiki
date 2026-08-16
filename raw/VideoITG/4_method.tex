@@ -1,0 +1,50 @@
+\begin{figure*}[t]
+\vspace{-2mm}
+\centering
+\includegraphics[width=0.94\linewidth]{method.pdf}
+\vspace{-3mm}
+\caption{\textbf{VideoITG model design}: (A) Text generation aligns video and language tokens for sequential predictions. (B) Classification with causal attention utilizes anchor tokens for temporal cue management. (C) Classification with full attention facilitates interaction across visual and text tokens without anchors.}
+\label{fig:model}
+\vspace{-2mm}
+\end{figure*}
+
+\section{VideoITG: model design}
+
+In this section, we explore how to utilize our VideoITG-40K dataset to train the model for the \textbf{Instructed Temporal Grounding} task, aiming to optimize video frame selection and enhance the performance of Video-LLMs. As illustrated in Fig.~\ref{fig:model}, our framework comprises three modules: 
+(1) a vision encoder (\textit{e.g.}, ViT) that maps video frames into text-aligned visual features $F$, 
+(2) a VideoITG module that performs instruction-guided frame selection $\mathcal{I}_\mathrm{rel}$, 
+and (3) a VideoLLM that generates answers $a$ conditioned on the selected frames $F_{\mathcal{I}_\mathrm{rel}}$ and the question $q$. The process can be described as folllows:
+\begin{align}
+    F &= \mathrm{VIT}(v) \\
+    \mathcal{I}_\mathrm{rel} &= \mathrm{VideoITG}(F, q) \\
+    a &= \mathrm{VideoLLM}(F_{ \mathcal{I}_\mathrm{rel}}, q)
+\end{align}
+The VideoITG module follows a plug-and-play design philosophy, driven by two core objectives: 
+(1) enhancing the alignment between visual and language tokens to improve instruction following, 
+and (2) strengthening contextual encoding to capture multi-granular temporal cues. With the above considerations, we develop three model variants: text generation-based classification, anchor-based classification, and pooling-based classification, as illustrated in Fig.~\ref{fig:model} (b).
+
+%\textcolor{red}{
+\noindent\textbf{Variant A: Text-generation-based classification.}
+As shown in Fig.~\ref{fig:model}(b, left), this variant reformulates the Instructed Temporal Grounding task as a next-token prediction problem, where the model sequentially outputs text tokens conditioned on video and instruction features. 
+This formulation naturally aligns with the core training paradigm of existing Video-LLMs, thereby preserving their strong vision-language alignment and instruction-following abilities. 
+Similar generative frameworks have also been adopted in prior time-sensitive models such as TimeChat~\cite{ren2024timechat} and Grounded-VideoLLM~\cite{wang2024grounded}.
+\input{ablation2}
+
+%\textcolor{red}{
+\noindent\textbf{Variant B: Anchor-based classification.}
+To move beyond token-by-token generation, this variant adopts a discriminative paradigm that directly classifies visual tokens at the frame level (Fig.~\ref{fig:model}(b, middle)). 
+We initialize the model from a pretrained Video-LLM while maintaining its causal attention mask to retain temporal consistency. 
+However, the causal mask prevents visual tokens from accessing the instruction beforehand and restricts early frames from leveraging subsequent temporal cues. 
+To mitigate this limitation, we insert an \emph{anchor token} after the instruction, serving as a temporal mediator for each frame.  
+Formally, for a video frame at timestamp $t$, the anchor token $A^t$ is derived by global averaging over all spatial locations:
+\begin{equation}
+A^t = \frac{1}{M}\sum\nolimits_{i,j} F_{ij}^t, \quad t \in [1, T],
+\end{equation}
+where $F_{ij}^t$ denotes the visual feature at grid $(i,j)$ of the $t$-th frame and $M$ is the total number of patches per frame. 
+The set $\{A^t\}_{t=1}^T$ bridges temporal dependencies across frames under causal attention.
+
+%\textcolor{red}{
+\noindent\textbf{Variant C: Pooling-based classification.}
+As the causal attention mask restricts inter-frame communication, we further remove this constraint to enable full bidirectional attention between visual and textual tokens (Fig.~\ref{fig:model}(b, right)). 
+For each frame, we aggregate its visual tokens through average pooling, followed by a classification head that determines instruction relevance, without introducing explicit anchor tokens.
+This full-attention design enriches temporal context modeling across frames and facilitates stronger interaction between instructions and visual evidence.

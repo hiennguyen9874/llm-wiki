@@ -5,7 +5,7 @@ description: Text-conditioned localization and inference over event timing, orde
 tags: [video, language, temporal-grounding, temporal-reasoning, video-llm]
 status: draft
 created: 2026-08-15
-generated: { by: llm-wiki-agent/1, at: 2026-08-16T10:36:46+07:00 }
+generated: { by: llm-wiki-agent/1, at: 2026-08-16T03:40:02Z }
 sources:
   - id: video-temporal-survey
     resource: ../raw/TongHopCacHuongXuLyVideo.md
@@ -19,6 +19,9 @@ sources:
   - id: unitime-paper
     resource: ../raw/UniTime/main.tex
     title: "Universal Video Temporal Grounding with Generative Multi-modal Large Language Models"
+  - id: videoitg-paper
+    resource: ../raw/VideoITG/main.tex
+    title: "VideoITG: Multimodal Video Understanding with Instructed Temporal Grounding"
 ---
 
 # Video-language temporal grounding and reasoning
@@ -53,6 +56,12 @@ InternVideo2 provides direct but bounded grounding evidence: with CG-DETR, its p
 
 UniTime makes each sampled frame or coarse segment addressable by interleaving a free-text timestamp with its visual tokens, then has an MLLM generate the matching interval. For long video, it retrieves coarse segments under a fixed token budget and refines within selected regions. This is direct temporal-grounding evidence, but does not establish arbitrary-duration full-context access or general temporal reasoning.[^unitime-paper]
 
+## Instructed frame grounding
+
+VideoITG supplies instruction-conditioned frame-selection supervision rather than only descriptive moment queries. Its automated VidThinker pipeline captions five-second clips under question-and-answer-derived cues, retrieves relevant clips, and selects relevant frames; its four instruction types pair semantic, motion, hybrid, or whole-video cues with different sampling strategies.[^videoitg-paper]
+
+The reported full-attention selector scores a fixed candidate-frame budget and sends the top-ranked frames to a separate answering Video-LLM. This is evidence for query-conditioned evidence selection, not end-to-end answer optimization or general temporal reasoning.[^videoitg-paper]
+
 ## Explicit temporal representations
 
 A neuro-symbolic direction translates questions and video events into explicit temporal relations such as *before*, *overlaps*, and *during*, then uses those relations to retrieve evidence before visual-language reasoning. This is a proposed architectural pattern in the source, not a verified general solution.[^video-temporal-survey]
@@ -65,8 +74,10 @@ A neuro-symbolic direction translates questions and video events into explicit t
 - **Uses:** [InternVideo](internvideo.md) for video–text retrieval and question-answering features, not as a demonstrated temporal-grounding system.[^internvideo-paper]
 - **Uses:** [InternVideo2](internvideo2.md) for reported CG-DETR temporal-grounding evaluations, not as general temporal-reasoning evidence.[^internvideo2-paper]
 - **Includes:** [UniTime](unitime.md) as an MLLM temporal-grounding framework with textual timestamp tokens and coarse-to-fine long-video retrieval; this does not demonstrate general temporal reasoning.[^unitime-paper]
+- **Includes:** [VideoITG](videoitg.md) as instruction-conditioned clip retrieval and fixed-budget frame selection for a separate answering Video-LLM; this is not general temporal-reasoning evidence.[^videoitg-paper]
 
 [^video-temporal-survey]: [Tổng hợp các hướng xử lý video](../raw/TongHopCacHuongXuLyVideo.md)
 [^internvideo-paper]: [InternVideo: General Video Foundation Models via Generative and Discriminative Learning](../raw/InternVideo/main.tex)
 [^internvideo2-paper]: [InternVideo2: Scaling Foundation Models for Multimodal Video Understanding](../raw/InternVideo2/main.tex)
 [^unitime-paper]: [Universal Video Temporal Grounding with Generative Multi-modal Large Language Models](../raw/UniTime/main.tex)
+[^videoitg-paper]: [VideoITG: Multimodal Video Understanding with Instructed Temporal Grounding](../raw/VideoITG/main.tex)
