@@ -1,0 +1,116 @@
+Given an input video $\mathbf{X}$, we assume that $\mathbf{X}$ can be represented using a set of feature vectors $\mathbf{X}=\{\mathbf{x}_1, \mathbf{x}_2, \ldots, \mathbf{x}_T\}$ defined on discretized time steps $t=\{1, 2, \ldots, T\}$, where the total duration $T$ varies across videos. For example, $\mathbf{x}_t$ can be the feature vector of a video clip at moment $t$ extracted from a 3D convolutional network. The goal of temporal action localization is to predict the action label $\mathbf{Y}=\{\mathbf{y}_1, \mathbf{y}_2, \ldots, \mathbf{y}_N\}$ based on the input video sequence $\mathbf{X}$. $\mathbf{Y}$ consists of $N$ action instances $\mathbf{y}_i$, where $N$ also varies across videos. Each instance $\mathbf{y}_i=(s_i, e_i, a_i)$ is defined by its starting time $s_i$ (onset), ending time $e_i$ (offset) and its action label $a_i$, where $s_i \in [1, T]$, $e_i \in [1, T]$, $a_i \in \{1,.., C\}$ ($C$ pre-defined categories) and $s_i < e_i$. The task of TAL is thus a challenging problem of structured output prediction.
+
+\begin{figure*}[t!]
+	\centering 
+	\includegraphics[width=0.9\linewidth]{figure/overview_new_crop.pdf}
+	\caption{Overview of our ActionFormer. Our method builds a Transformer based model to detect an action instance by classifying every moment and estimating action boundaries. Specifically, ActionFormer first extracts a sequence of video clip features, and embeds each of these features. The embedded features are further encoded into a feature pyramid using a multi-scale Transformer (right). The feature pyramid is then examined by shared classification and regression heads, producing an action candidate at every time step. Our method provides a single-stage anchor-free model for temporal action localization with strong performance across several datasets.}
+	\label{fig:overview}
+\end{figure*}
+
+\smallskip
+\noindent \textbf{A Simple Representation for Action Localization}. Our method builds on an anchor-free representation for action localization, inspired by~\cite{a2nettip2020,afsdcvpr2021}. The key idea is to classify each moment as either one of the action categories or the background, and further regress the distance between this time step and the action's onset and offset. In doing so, we convert the structured output prediction problem ($\mathbf{X}=\{\mathbf{x}_1, \mathbf{x}_2, ..., \mathbf{x}_T\} \rightarrow \mathbf{Y} = \{\mathbf{y}_1, \mathbf{y}_2, \ldots, \mathbf{y}_N\}$) into a more approachable sequence labeling problem
+\begin{equation}
+\mathbf{X}=\{\mathbf{x}_1, \mathbf{x}_2, ..., \mathbf{x}_T\} \rightarrow \mathbf{\hat{Y}}=\{\mathbf{\hat{y}}_1, \mathbf{\hat{y}}_2, ..., \mathbf{\hat{y}}_T\}.
+\end{equation}
+The output $\mathbf{\hat{y}}_t=(p(a_t), d_t^s, d_t^e)$ at time $t$ is defined as 
+\squishlist
+\item $p(a_t)$ consists of $C$ values, with each representing a binomial variable indicating the probability of action category $a_t$ ($\in \{1, 2, \ldots, C\}$) at time $t$. This can be considered as the outputs of $C$ binary classification. 
+\item $d_t^s>0$ and $d_t^e>0$ are the distance between the current time $t$ to the action's onset and offset, respectively. $d_t^s$ and $d_t^e$ are not defined if the time step $t$ lies on the background. 
+\squishend
+
+\smallskip
+Intuitively, this formulation considers \emph{every moment} $t$ in the video $\mathbf{X}$ as an action candidate, recognizes the action's category $a_t$, and estimates the distances between current step and the action boundaries ($d_t^s$ and $d_t^e$) if an action presents. Action localization results can be readily decoded from $\mathbf{\hat{y}}_t=(p(a_t), d_t^s, d_t^e)$ by
+\begin{equation}
+    a_t = \argmax \ p(a_t), \quad s_t = t-d_t^s, \quad e_t=t+d_t^e.
+\end{equation}%
+
+\noindent \textbf{Method Overview}. Our model --- ActionFormer learns to label an input video sequence $f(\mathbf{X}) \rightarrow \mathbf{\hat{Y}}$. Specifically, $f$ is realized using a deep model. ActionFormer follows an encoder-decoder architecture proven successful in many vision tasks, and decomposes $f$ as $h\circ g$. Here $g\colon \mathbf{X} \rightarrow \mathbf{Z}$ encodes the input into a latent vector $\mathbf{Z}$, and $h\colon \mathbf{Z} \rightarrow \mathbf{\hat{Y}}$ subsequently decodes $\mathbf{Z}$ into the sequence label $\mathbf{\hat{Y}}$.
+
+Fig.\ \ref{fig:overview} presents an overview of our model. Importantly, our encoder $g$ is parameterized by a Transformer network~\cite{transformernips2017}. Our decoder $h$ adopts a lightweight convolutional network. To capture actions at various temporal scales, we design a multi-scale feature representation $\mathbf{Z}=\{\mathbf{Z}^1, \mathbf{Z}^2, \ldots, \mathbf{Z}^L\}$ forming a feature pyramid with varying resolutions. Note that our model operates on a temporal axis defined by feature grids rather than the absolute time, allowing it to adapt to videos with different frame rates. We now describe the details of our model.
+
+\subsection{Encode Videos with Transformer}\label{sec:method:encoder}
+Our model first encodes an input video $\mathbf{X}=\{\mathbf{x}_1, \mathbf{x}_2, \ldots, \mathbf{x}_T\}$ into a multiscale feature representation $\mathbf{Z}=\{\mathbf{Z}^1, \mathbf{Z}^2, \ldots, \mathbf{Z}^L\}$ using an encoder $g$. The encoder $g$ consists of (1) a projection function using a convolutional network that embeds each feature ($\mathbf{x}_t$) into a $D$-dimensional space; and (2) a Transformer network that maps the embedded features to the output feature pyramid $\mathbf{Z}$.
+
+\smallskip
+\noindent \textbf{Projection}. Our projection $\mathbf{E}$ is a shallow convolutional network with ReLU as the activation function, defined as
+\begin{equation}
+    \mathbf{Z}^0 = [ \mathbf{E}(\mathbf{x}_1), \mathbf{E}(\mathbf{x}_2), \ldots , \mathbf{E}(\mathbf{x}_T) ]^T,
+\end{equation}%
+where $\mathbf{E}(\mathbf{x}_i) \in \mathbb{R}^{D}$ is the embedded feature of $\mathbf{x}_i$. Adding convolutions before a Transformer network was recently found helpful to better incorporate local context for time series data~\cite{li2019enhancing} and to stabilize the training of vision Transformers~\cite{xiao2021early}. An position embedding~\cite{transformernips2017} $\mathbf{E}_{pos}  \in \mathbb{R}^{T \times D}$ can be optionally added. However, we find that doing so will decrease the performance of the model, and have thus removed position embeddings in our model by default. 
+
+\smallskip
+\noindent \textbf{Local Self-Attention}. The Transformer network further takes $\mathbf{Z}^0$ as input. The core of a Transformer is  self-attention~\cite{transformernips2017}. We briefly introduce the key idea to make the paper self-contained. Concretely, self-attention computes a weighted average of features with the weight proportional to a similarity score between pairs of input features. Given $\mathbf{Z}^0 \in \mathbb{R}^{T \times D}$ with $T$ time steps of $D$ dimensional features, $\mathbf{Z}^0$ is projected using $\mathbf{W}_Q \in \mathbb{R}^{D \times D_q}$, $\mathbf{W}_K \in \mathbb{R}^{D \times D_k}$, and $\mathbf{W}_V \in \mathbb{R}^{D\times D_v}$ to extract feature representations $\mathbf{Q}$, $\mathbf{K}$, and $\mathbf{V}$, referred to as query, key and value respectively with $D_k = D_q$. The outputs $\mathbf{Q}$, $\mathbf{K}$, $\mathbf{V}$ are computed as
+\begin{equation}
+    \mathbf{Q} = \mathbf{\mathbf{Z}^0} \mathbf{W}_Q, \quad
+    \mathbf{K} = \mathbf{\mathbf{Z}^0} \mathbf{W}_K, \quad
+    \mathbf{V} = \mathbf{\mathbf{Z}^0} \mathbf{W}_V.
+\end{equation}%
+The output of self-attention is given by
+\begin{equation}\label{eq:trueatten}
+    \mathbf{S} = \text{softmax}\left( \mathbf{Q} \mathbf{K}^T / \sqrt{D_q} \right) \mathbf{V},
+\end{equation}%
+where $\mathbf{S}\in \mathbb{R}^{T \times D}$ and $\text{softmax}$ is performed {\it row-wise}. A multiheaded self-attention ($\operatorname{MSA}$) further adds several self-attention operations in parallel. 
+
+A main advantage of $\operatorname{MSA}$ is the ability to integrate temporal context across the full sequence, yet such a benefit comes at the cost of computation. A vanilla $\operatorname{MSA}$ has a complexity of $O(T^2D + D^2T)$ in both memory and time, and is thus highly inefficient for long videos. There has been several recent work on efficient self-attention~\cite{xiong2021nystromformer,Beltagy2020Longformer,wang2020linformer,choromanski2020rethinking}. Here we adapt the local self-attention from~\cite{choromanski2020rethinking} by limiting the attention within a local window. Our intuition is the temporal context beyond a certain range is less helpful for action localization. Such a local self-attention significantly reduces the complexity to $O(W^2TD + D^2T)$ with $W$ the local window size ($\ll T$). Importantly, local self-attention is used in tandem with the multiscale feature representation $\mathbf{Z}=\{\mathbf{Z}^1, \mathbf{Z}^2, \ldots, \mathbf{Z}^L\}$, using the same window size on each pyramid level. With this design, a small window size (19) on a downsampled feature map (16x) will cover a large temporal range (304). 
+
+\smallskip
+\noindent \textbf{Multiscale Transformer}. We now present the design of our Transformer encoder. Our Transformer has $L$ Transformer layers with each layer consisting of alternating layers of local multiheaded self-attention ($\operatorname{MSA}$) and $\operatorname{MLP}$ blocks. Moreover, LayerNorm ($\operatorname{LN}$) is applied before every $\operatorname{MSA}$ or $\operatorname{MLP}$ block, and residual connection is added after every block. GELU is used for the $\operatorname{MLP}$. To capture actions at different temporal scales, a downsampling operator $\operatorname{\downarrow}(\cdot)$ is optionally attached. This is given by
+\begin{equation}
+\begin{split}
+    \mathbf{\bar{Z}}^\ell &= \alpha^\ell \operatorname{MSA}(\operatorname{LN}(\mathbf{Z}^{\ell-1})) + \mathbf{Z}^{\ell-1}, \quad
+    \mathbf{\hat{Z}}^\ell = \bar{\alpha}^\ell\operatorname{MLP}(\operatorname{LN}(\mathbf{\bar{Z}}^{\ell})) + \mathbf{\bar{Z}}^{\ell}, \\
+    \mathbf{Z}^\ell &= \operatorname{\downarrow}(\mathbf{\hat{Z}}^{\ell}), \quad \ell=1\ldots L, 
+\end{split}
+\end{equation}%
+where $\mathbf{Z}^{\ell-1}, \mathbf{\bar{Z}}^{\ell}, \mathbf{\hat{Z}}^{\ell}\in \mathbb{R}^{T^{\ell-1} \times D}$ and $\mathbf{Z}^\ell \in \mathbb{R}^{T^{\ell} \times D}$. $T^{\ell-1} / T^{\ell}$ is the downsampling ratio. $\alpha^\ell$ and $\bar{\alpha}^\ell$ are learnable per-channel scaling factors as in~\cite{touvron2021going}.
+
+The downsampling operator $\operatorname{\downarrow}$ is implemented using a strided depthwise 1D convolution due to its efficiency. We use 2x downsampling for our model. Our Transformer block is shown in Fig.\ \ref{fig:overview} (right). Our model further combines several Transformer blocks with downsampling in between, resulting in a feature pyramid $\mathbf{Z}=\{\mathbf{Z}^1, \mathbf{Z}^2, \ldots, \mathbf{Z}^L\}$.
+
+\subsection{Decoding Actions in Time}\label{sec:method:decoder}
+Next, our model decodes the feature pyramid $\mathbf{Z}$ from the encoder $g$ into the sequence label $\mathbf{\hat{Y}}=\{\mathbf{\hat{y}}_1, \mathbf{\hat{y}}_2, \ldots, \mathbf{\hat{y}}_T\}$ using the decoder $h$. Our decoder is a lightweight convolutional network with a classification and a regression head. 
+
+\smallskip
+\noindent \textbf{Classification Head}. 
+Given the feature pyramid $Z$, our classification head examines each moment $t$ across all $L$ levels on the pyramid, and predicts the probability of action $p(a_{t})$ at every moment $t$.\footnote{Without loss of clarity, we drop the index of the pyramid $\ell$.} This is realized using a lightweight 1D convolutional network attached to each pyramid level with its parameters shared across all levels. Our classification network is implemented using 3 layers of 1D convolutions with kernel size=3, layer normalization (for the first 2 layers), and ReLU activation. A sigmoid function is attached to each output dimension to predict the probability of $C$ action categories. Adding layer normalization slightly boosts the performance as we will demonstrate in our ablation. 
+
+\smallskip
+\noindent \textbf{Regression Head}. 
+Similar to our classification head, our regression head examines every moment $t$ across all $L$ levels on the pyramid. The difference is that the regression head predicts the distances to the onset and offset of an action ($d^s_{t}$, $d^e_{t}$), only if the current time step $t$ lies in an action. An output regression range is pre-specified for each pyramid level. The regression head, again, is implemented using a 1D convolutional network following the same design of the classification network, except that a ReLU is attached at the end for distance estimation. 
+
+\subsection{ActionFormer: Model Design}\label{sec:method:details}
+
+Putting things together, ActionFormer is conceptually simple: each feature on the feature pyramid $\mathbf{Z}$ outputs an action score $p(a)$ and the corresponding temporal boundaries $(s, e)$, which are then used to decode an action candidate. Notwithstanding the simplicity, we find that several key architecture designs are important to ensure a strong performance. We discuss these design choices here. 
+
+\smallskip
+\noindent \textbf{Design of the Feature Pyramid}. A critical component of our model is the design of the temporal feature pyramid $\mathbf{Z}=\{\mathbf{Z}^1, \mathbf{Z}^2, \ldots, \mathbf{Z}^L\}$. The design choices include (1) the number of levels within the pyramid; (2) the downsampling ratio between successive feature maps; and (3) the output regression range of each pyramid level. Inspired by the design of feature pyramid in modern object detectors (FPN~\cite{fpncvpr2017} and FCOS~\cite{fcosiccv2019}), we simplify our design choices by using a 2x downsampling of the feature maps, and roughly enlarging the output regression range by 2 accordingly. We explore different design choices in our ablation.
+
+\smallskip
+\noindent \textbf{Loss Function}. Our model outputs $(p(a_t), d_t^s, d_t^e)$ for every moment $t$, including the probability of action categories $p(a_{t})$ and the distances to action boundaries ($d^s_{t}$, $d^e_{t}$). Our loss function, again following minimalist design, only has two terms: (1) $\mathcal L_{cls}$ a focal loss~\cite{focaliccv2017} for $C$ way binary classification; and (2) $\mathcal L_{reg}$ a DIoU loss~\cite{diouaaai2020} for distance regression. The loss is defined for each video $X$ as
+\begin{equation}
+    \mathcal L = \sum_{t}\left(
+    \mathcal L_{cls} + \lambda_{reg}\mathbbm{1}_{c_t}\mathcal L_{reg}\right) / {T_{+}},
+\label{eq:loss}
+\end{equation}
+where $T_{+}$ is the total number of positive samples. $\mathbbm{1}_{c_t}$ is an indicator function that denotes if a time step $t$ is within an action, \ie a positive sample. $\mathcal L$ is applied to all levels on the output pyramid, and averaged across all video samples during training. $\lambda_{reg}$ is a coefficient balancing the classification and regression loss. We set $\lambda_{reg}$=1 by default and study the choice of $\lambda_{reg}$ in our ablation.
+
+Importantly, $\mathcal L_{cls}$ uses Focal loss~\cite{fcosiccv2019} to recognize $C$ action categories. Focal loss naturally handles imbalanced samples --- there are much more negative samples than positive ones. Moreover, $\mathcal L_{reg}$ adopts a differentiable IoU loss~\cite{gioucvpr2019}. $\mathcal L_{reg}$ is only enabled when the current time step contains a positive sample.
+
+\smallskip
+\noindent \textbf{Center Sampling}. During training, we find it helpful to adapt a center sampling strategy similar to~\cite{fcosiccv2019,zhang2020bridging}, as we will show in our ablation study. Specifically, when determining the positive samples, only time steps within an interval around the center of an action are considered positive, where the duration of interval is proportional to the feature stride of the current pyramid level $\ell$. More precisely, given an action centered at $c$, any time step $t \in [c - \alpha T / T^{\ell},  c + \alpha T / T^{\ell}]$ at the pyramid level $\ell$ is considered as positive, where $\alpha=1.5$. Center sampling does not impact model inference, yet encourages higher scores around action centers.
+
+\subsection{Implementation Details}\label{sec:method:implement}
+
+\smallskip
+\noindent \textbf{Training}. Following~\cite{actiontransformercvpr2019}, we use Adam~\cite{kingma2014adam} with warm-up for training. The warm-up stage is critical for model convergence and good performance, as also pointed out by~\cite{liu2020understanding}. When training with variable length input, we fix the maximum input sequence length, pad or cropped the input sequences accordingly, and add proper masking for operations in the model. This is equal to training with sliding windows as in~\cite{a2nettip2020}. Varying the maximum input sequence length during training has little impact to the performance, as shown in our ablation. 
+
+\smallskip
+\noindent \textbf{Inference}. At inference time, we feed the full sequences into the model, as no position embeddings are used in the model. Our model takes the input video $\mathbf{X}$, and outputs $\{(p(a_{t}), d_{t}^s, d_{t}^e))\}$ for every time step $t$ across all pyramid levels. Each time step $t$ further decodes an action instance $(e_{t}=t-d_{t}^s, s_{t}=t+d_{t}^e, p(a_{t}))$. $e_t$ and $s_t$ are the onset and offset of the action, and $p(a_{t})$ is an action confidence score. The result action candidates are further processed using Soft-NMS~\cite{softnmsiccv2017} to remove highly overlapping instances, leading to the final outputs of actions.
+
+\smallskip
+\noindent \textbf{Network Architecture}. We used 2 convolutions for projection, 7 Transformer blocks for the encoder (all using local attention and with 2x downsampling for the last 5), and separate classification and regression heads as the decoder. The regression range on each pyramid level was normalized by the stride of the features. More details are presented in the appendix~\ref{sec:appendix:details}.
+
+
+
+
+
+

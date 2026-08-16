@@ -5,7 +5,7 @@ description: Video tasks that recognize, localize, segment, or anticipate action
 tags: [video, temporal-learning, action-understanding]
 status: draft
 created: 2026-08-15
-generated: { by: llm-wiki-agent/1, at: 2026-08-16T10:11:45+07:00 }
+generated: { by: llm-wiki-agent/1, at: 2026-08-16T10:15:26+07:00 }
 sources:
   - id: bmn-paper
     resource: ../raw/BMN/main.tex
@@ -28,6 +28,9 @@ sources:
   - id: videomae-paper
     resource: ../raw/VideoMAE/main.tex
     title: "VideoMAE: Masked Autoencoders are Data-Efficient Learners for Self-Supervised Video Pre-Training"
+  - id: actionformer-paper
+    resource: ../raw/ActionFormer/main.tex
+    title: "ActionFormer: Localizing Moments of Actions with Transformers"
 ---
 
 # Temporal action understanding
@@ -58,6 +61,8 @@ Temporal action proposal generation returns class-agnostic intervals and confide
 
 MViT is evaluated as a fixed-clip Transformer backbone for Kinetics, Something-Something-V2, and Charades classification, then as a Kinetics-pretrained backbone with a video-adapted RoI head for AVA human-action detection.[^mvit-paper] The latter localizes actions around annotated frames with regions; it is not evidence that MViT alone outputs temporal action intervals or framewise segmentation.
 
+ActionFormer directly targets interval-level TAL: it classifies each temporal feature-grid location and regresses distances to its action boundaries, using a multiscale local-attention Transformer and convolutional heads. This is a single-stage anchor-free detector, unlike proposal generation and clip-level classification.[^actionformer-paper]
+
 ## Self-supervised backbone transfer
 
 VideoMAE is a masked-video-pretraining method rather than a task head. Its source transfers a Kinetics-400-pretrained ViT-B to AVA human-action detection and reports 26.7 mAP without labeled-Kinetics fine-tuning and 31.8 mAP with it; this is frame-centered detection evidence, not evidence for temporal action intervals or framewise segmentation.[^videomae-paper]
@@ -76,6 +81,7 @@ Precise temporal intervals are expensive to annotate. Weakly supervised temporal
 - **Includes:** [Multiscale Vision Transformers (MViT)](multiscale-vision-transformers-mvit.md) as a Transformer backbone evaluated for clip classification and frame-centered human-action detection.[^mvit-paper]
 - **Includes:** [Video Swin Transformer](video-swin-transformer.md) as a local-attention Transformer backbone evaluated for clip-level action recognition.[^video-swin-paper]
 - **Uses:** [VideoMAE](videomae.md) as a self-supervised pretrained backbone for clip classification and frame-centered human-action detection.[^videomae-paper]
+- **Includes:** [ActionFormer](actionformer.md) as a single-stage anchor-free Transformer for interval-level temporal action localization.[^actionformer-paper]
 
 [^bmn-paper]: [BMN: Boundary-Matching Network for Temporal Action Proposal Generation](../raw/BMN/main.tex)
 [^video-temporal-survey]: [Tổng hợp các hướng xử lý video](../raw/TongHopCacHuongXuLyVideo.md)
@@ -84,3 +90,4 @@ Precise temporal intervals are expensive to annotate. Weakly supervised temporal
 [^mvit-paper]: [Multiscale Vision Transformers](../raw/MViT/mvit_arxiv.tex)
 [^video-swin-paper]: [Video Swin Transformer](../raw/VideoSwin/main.tex)
 [^videomae-paper]: [VideoMAE: Masked Autoencoders are Data-Efficient Learners for Self-Supervised Video Pre-Training](../raw/VideoMAE/main.tex)
+[^actionformer-paper]: [ActionFormer: Localizing Moments of Actions with Transformers](../raw/ActionFormer/main.tex)

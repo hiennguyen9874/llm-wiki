@@ -5,7 +5,7 @@ description: Scalable representations and retrieval mechanisms for preserving fi
 tags: [video, long-context, temporal-learning, efficiency]
 status: draft
 created: 2026-08-15
-generated: { by: llm-wiki-agent/1, at: 2026-08-16T10:03:14+07:00 }
+generated: { by: llm-wiki-agent/1, at: 2026-08-16T10:15:26+07:00 }
 sources:
   - id: vivit-paper
     resource: ../raw/ViViT/main_arxiv.tex
@@ -25,6 +25,9 @@ sources:
   - id: video-swin-paper
     resource: ../raw/VideoSwin/main.tex
     title: Video Swin Transformer
+  - id: actionformer-paper
+    resource: ../raw/ActionFormer/main.tex
+    title: "ActionFormer: Localizing Moments of Actions with Transformers"
 ---
 
 # Long-video temporal modeling
@@ -61,6 +64,10 @@ MViT provides a fixed-clip hierarchical alternative: it pools queries at stage b
 
 Video Swin Transformer uses joint self-attention inside fixed-size 3D windows and shifts the window grid across successive blocks. Its Kinetics-400 ablation found that an $8 \times 7 \times 7$ temporal-spatial window incurred 88 GFLOPs versus 106 GFLOPs for a temporally global $16 \times 7 \times 7$ window, with a 0.3-point top-1 reduction for the reported Swin-T configuration.[^video-swin-paper] This is a local-attention speed--accuracy trade-off for fixed clips; it neither supplies persistent memory nor demonstrates retrieval over an arbitrary-duration video.
 
+## Local temporal windows with a pyramid
+
+For interval-level temporal action localization, ActionFormer combines local self-attention with a temporal feature pyramid. Its fixed-size window therefore covers a progressively wider temporal span at coarser levels; the paper gives a window of 19 at a 16×-downsampled level as covering 304 feature-grid steps. On THUMOS14, its ablation reports the same 66.8% average mAP for window size 19 as full attention, while reporting 45.3 versus 57.8 GMACs for a 2,304-step input. This is task- and implementation-specific evidence, not a general long-video guarantee.[^actionformer-paper]
+
 ## Architectural alternatives
 
 The source identifies local/hierarchical attention and state-space models as alternatives to full global attention. It motivates state-space approaches by approximately linear sequence scaling, but does not provide verified comparative evidence that they are preferable for a particular video task.[^video-temporal-survey]
@@ -75,6 +82,7 @@ The source identifies local/hierarchical attention and state-space models as alt
 - **Uses:** [ViViT (Video Vision Transformer)](vivit.md) as a spatial-then-temporal encoder that increases practical clip length.
 - **Uses:** [Multiscale Vision Transformers (MViT)](multiscale-vision-transformers-mvit.md) as fixed-clip hierarchical token compression, not as arbitrary-length-video memory.[^mvit-paper]
 - **Uses:** [Video Swin Transformer](video-swin-transformer.md) as local joint spatiotemporal attention with shifted cross-window connections, not as arbitrary-length-video memory.[^video-swin-paper]
+- **Uses:** [ActionFormer](actionformer.md) as local temporal attention plus a feature pyramid for interval-level temporal action localization.[^actionformer-paper]
 
 [^vivit-paper]: [ViViT: A Video Vision Transformer](../raw/ViViT/main_arxiv.tex)
 [^video-temporal-survey]: [Tổng hợp các hướng xử lý video](../raw/TongHopCacHuongXuLyVideo.md)
@@ -82,3 +90,4 @@ The source identifies local/hierarchical attention and state-space models as alt
 [^timesformer-paper]: [Is Space-Time Attention All You Need for Video Understanding?](../raw/TimeSformer/TimeSformer_arxiv_v17.tex)
 [^mvit-paper]: [Multiscale Vision Transformers](../raw/MViT/mvit_arxiv.tex)
 [^video-swin-paper]: [Video Swin Transformer](../raw/VideoSwin/main.tex)
+[^actionformer-paper]: [ActionFormer: Localizing Moments of Actions with Transformers](../raw/ActionFormer/main.tex)

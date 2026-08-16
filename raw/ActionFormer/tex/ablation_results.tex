@@ -1,0 +1,62 @@
+
+\begin{table}[t]\centering
+\caption{\textbf{Ablation} studies on THUMOS14. We report \textit{m}AP at tIoU$=$0.5 and 0.7, and the average \textit{m}AP in $[0.3:0.1:0.7]$. Results are without score fusion unless specified.\label{tab-ablations}} 
+\subfloat[\textbf{Model Design}: We start from a baseline 1D convolutional network (AF Base), and gradually replace convolutions with our Transformer model, add layer norm to heads (LN), enable center sampling during training (CTR), explore position encoding (PE), and fuse classification scores (Fusion).]
+{
+  \scriptsize
+  \setlength{\tabcolsep}{2.5pt}
+  \begin{tabular}{l|c|cccc|c|c|c}
+  Method             & Backbone & LN & CTR & PE & Fusion &0.5  & 0.7  & Avg  \\
+  \hline
+  AF Base~\cite{a2nettip2020}   & Conv     &    &     &                   &     & 36.6 & 15.0 & 34.2 \\
+  AF Base~\cite{afsdcvpr2021}   & Conv     &    &     &                   &     & 31.0 & 19.0 & 40.4 \\
+  AF Base (Our Impl) & Conv     &    &     &                              &     & 48.0 & 29.4 & 46.6 \\
+  AF Base (Our Impl) & Conv     &    &     &                     & \checkmark   & 54.6 & 33.4 & 52.9\\\hline
+  Ours               & Trans    &    &     &                              &     & 66.8 & 38.4 & 62.7 \\
+  Ours               & Trans    & \checkmark  &     &                     &     & 69.0 & 43.0 & 65.4 \\
+  Ours               & Trans    & \checkmark  & \checkmark   & \checkmark           &     & 70.4 & 43.6 & 66.7 \\
+  Ours               & Trans    & \checkmark  & \checkmark   &  & \checkmark    & 66.0 & 41.7 & 62.1 \\
+  Ours               & Trans    & \checkmark  & \checkmark   &  &    & \textbf{71.0} & \textbf{43.9} & \textbf{66.8} \\
+  Ours (win size=19)  & Trans    & \checkmark  & \checkmark   &  &    & \textbf{71.0} & \textbf{43.9} & \textbf{66.8}
+  \end{tabular}
+}
+\\
+\resizebox{0.49\textwidth}{!}
+{
+\subfloat[\textbf{Local Window Size}: We additionally report MACs and normalized run time by varying the local window size for self-attention in our model, using an input of $2304$ time steps (5 minutes on THUMOS14). Time is normalized by setting AF Base to 1.0x.]
+{
+  \setlength{\tabcolsep}{2.5pt}
+  \begin{tabular}{l|c|c|c|c|c|c}
+  Method  & Win Size & 0.5           & 0.7           & Avg           & GMACs  & Time\\
+  \hline
+  AF Base & N/A      & 48.0          & 29.4          & 46.6          &  45.6   & 1.0x  \\
+  \hline
+  Ours    & 9        & 70.5          & 42.7          & 66.5         &  45.2   & 2.0x  \\
+  Ours    & 19       & \textbf{71.0}          & \textbf{43.9}          & \textbf{66.8}          & 45.3 & 2.0x     \\
+  Ours    & 25       & 70.3          & 43.9          & 66.4          & 45.4   & 2.0x    \\
+  Ours    & 37       & \textbf{71.0}          & 43.1          & 66.7         & 45.5 & 2.0x      \\
+  Ours    & Full     & \textbf{71.0}          & \textbf{43.9}          & \textbf{66.8}          & 57.8  & 2.2x  
+  \end{tabular}
+}
+}~
+\resizebox{0.49\textwidth}{!}{
+\subfloat[\textbf{Design of Feature Pyramid}: We vary (1) the number of pyramid levels and (2) the initial regression range, and report \textit{m}AP and the average \textit{m}AP.]
+{
+  \setlength{\tabcolsep}{2.5pt}
+  \begin{tabular}{l|c|c|c|c|c}
+  Method  & \# Levels & Init Range & 0.5           & 0.7           & Avg          \\
+  \hline
+  Ours    & 1     & [0, $+\infty$) & 51.8  & 15.8  & 47.6    \\
+  \hline
+  Ours    & 3     & [0, 4)  & 64.4  & 31.5  & 60.1    \\
+  Ours    & 3     & [0, 8)  & 61.4  & 30.0  & 57.6    \\
+  Ours    & 3     & [0, 16) & 54.2  & 19.2  & 50.2    \\
+  \hline
+  Ours    & 4     & [0, 4) & 67.4  & 39.7  & 63.7    \\
+  Ours    & 5     & [0, 4) & 70.2  & 42.2  & 65.5    \\
+  Ours    & 6     & [0, 4) & \textbf{71.0}  & \textbf{43.9}  & \textbf{66.8}    \\
+  Ours    & 7     & [0, 4) & 70.6  & 43.2  & 66.2    \\
+  \end{tabular}
+}
+}
+\end{table}

@@ -1,0 +1,120 @@
+We now present our experiments and results. Our main results include benchmarks on THUMOS14~\cite{thumoscviu2017}, ActivityNet-1.3~\cite{activitynetcvpr2015} and EPIC-Kitchens 100~\cite{epicarxiv2020}. Moreover, we provide extensive ablation studies of our model.
+
+\smallskip
+\noindent \textbf{Evaluation Metric}. For all datasets, we report the standard mean average precision~(\textit{m}AP) at different temporal intersection over union~(tIoU) thresholds, widely used to evaluate TAL methods. tIoU is defined as the intersection over union between two temporal windows, \ie the 1D Jaccard index. Given a tIoU threshold, \textit{m}AP computes the mean of average prevision across all action categories. An average \textit{m}AP is also reported by averaging across several tIoUs.
+
+\smallskip
+\noindent \textbf{Baseline and Comparison}. For our main results on THUMOS14~\cite{thumoscviu2017} and ActivityNet-1.3~\cite{activitynetcvpr2015}. We compare to a strong set of baselines, including both two-stage (\eg G-TAD~\cite{gtadcvpr2020}, BC-GNN~\cite{bcgnneccv2020}, TAL-MR~\cite{bottumuptaleccv2020}) and single-stage (\eg A2Net~\cite{a2nettip2020}, GTAN~\cite{gaussiancvpr2019}, AFSD~\cite{afsdcvpr2021}, TadTR~\cite{tadtrarxiv2021}) methods for TAL. Our close competitors are those single-stage methods. Despite our best attempt for a fair comparison, we recognize some of our baselines used different setups (\eg video features). Our experiment setup follows previous works~\cite{cmcscvpr2019,bottumuptaleccv2020}. And our intention here is to compare our results to the best results previously reported.
+
+
+\subsection{Results on THUMOS14}\label{sec:exp:thumos}
+
+\smallskip
+\noindent \textbf{Dataset}.
+THUMOS14~\cite{thumoscviu2017} dataset contains 413 untrimmed videos with 20 categories of actions. The dataset is divided into two subsets: validation set and test set. The validation set contains 200 videos and the test set contains 213 videos. Following the common practice~\cite{gtadcvpr2020,bottumuptaleccv2020,bsneccv2018,bmniccv2019}, we use the validation set for training and report results on the test set. 
+
+\smallskip
+\noindent \textbf{Experiment Setup}.
+We used two-stream I3D~\cite{kinetics2017cvpr} pretrained on Kinetics to extract the video features on THUMOS14, following~\cite{cmcscvpr2019,bottumuptaleccv2020}.
+\textit{m}AP@$[0.3$:$0.1$:$0.7]$ was used to evaluate our model. 
+A window size of 19 was used for local self-attention based on our ablation. Further details are described in the appendix~\ref{sec:appendix:details}. To show that our method can adapt to different video features, we also consider the pre-training method from~\cite{tspiccvworkshop2021} using an R(2+1)D network~\cite{res2p1d2018cvpr}. %
+
+\input{tex/main_table}
+
+\smallskip
+\noindent \textbf{Results}. Table~\ref{tab:result_thumosandanet} (left) summarizes the results. Our method achieves an average \textit{m}AP of 66.8\% ($[0.3:0.1:0.7]$), with an \textit{m}AP of 71.0\% at tIoU$=$0.5 and an \textit{m}AP of 43.9\% at tIoU$=$0.7, outperforming all previous methods by a large margin (+14.1\% \textit{m}AP at tIoU$=$0.5 and +12.8\% \textit{m}AP at tIoU$=$0.7). Our results stay on top of all single-stage methods, and also beats all previous two-stage methods, including the latest ones from~\cite{bottumuptaleccv2020,tcanetcvpr2021,ctcnmm2020,csaiccv2021}. Note that our method significantly outperforms the concurrent work of TadTR~\cite{tadtrarxiv2021}, which also designed a Transformer model for TAL. With the combination of a simple design and a strong Transformer model, our method establishes new state of the art on THUMOS14, crossing the 65\% average \textit{m}AP for the first time. 
+
+
+\subsection{Results on ActivityNet-1.3}\label{sec:exp:anet}
+
+\smallskip
+\noindent \textbf{Dataset}.
+ActivityNet-1.3~\cite{activitynetcvpr2015} is a large-scale action dataset which contains 200 activity classes and around 20,000 videos with more than 600 hours. The dataset is divided into three subsets: 10,024 videos for training, 4,926 for validation, and 5,044 for testing. Following the common practice in~\cite{bsneccv2018,bmniccv2019,gtadcvpr2020}, we train our model on the training set and report the performance on the validation set. 
+
+\smallskip
+\noindent \textbf{Experiment Setup}.
+We used two-stream I3D~\cite{kinetics2017cvpr} for feature extraction.%
+Following \cite{bsneccv2018,bmniccv2019,gtadcvpr2020}, the extracted features were downsampled into a fixed length of 160 using linear interpolation. For evaluation, we used \textit{m}AP@$[0.5$:$0.05$:$0.95]$ and also reported the average \textit{m}AP. %
+A window size of 11 was used for local self-attention. Further implementation details can be found in the appendix~\ref{sec:appendix:details}. Moreover, we combined external classification results from~\cite{anetarxiv2017} following~\cite{bottumuptaleccv2020,gtadcvpr2020,bcgnneccv2020,pgcniccv2019}. Similarly, we consider the pre-training method from~\cite{tspiccvworkshop2021}. %
+
+\smallskip
+\noindent \textbf{Results}. Table~\ref{tab:result_thumosandanet} (right) shows the results. With I3D features, our method reaches an average \textit{m}AP of 35.6\% ($[0.5:0.05:0.95]$), outperforming all previous methods using the same features by at least 0.6\%. This boost is significant as the result is averaged across many tIoU thresholds, including those tight ones \eg 0.95. Using the pre-training method from TSP~\cite{tspiccvworkshop2021} largely improves our results (36.6\% average \textit{m}AP). Our model thus outperforms the best method with the same features~\cite{vsgniccv2021} by a major margin (+0.7\%). Again, our method outperforms TadTR~\cite{tadtrarxiv2021}. Our results are worse than TCANet~\cite{tcanetcvpr2021}---a latest two-stage method using stronger SlowFast features~\cite{slowfasticcv2019} that are not publicly available. We conjecture our method will also benefit from better features. Nonetheless, our model clearly demonstrates state-of-the-art results on this challenging dataset. 
+
+\subsection{Results on EPIC-Kitchens 100}\label{sec:exp:epic}
+\begin{table}[t]
+    \centering
+    \caption{\textbf{Results on EPIC-Kitchens 100 validation set}. We report \textit{m}AP at different tIoU thresholds and the average \textit{m}AP in $[0.1$:$0.1$:$0.5]$. All methods used the same SlowFast features. Our method outperforms all baselines by a large margin.}
+	\label{table:all epic-kitchens results}
+    {
+    \scriptsize
+	\setlength{\tabcolsep}{2.5pt}
+	\begin{tabular}{l|l|c|c|c|c|c|c}
+	{Task} & {Method} & 0.1 &0.2 & 0.3 & 0.4 & 0.5 & Avg\\
+		\hline
+	\multirow{3}{*}{Verb} & BMN~\cite{bmniccv2019,epicarxiv2020} & 10.8	&9.8&8.4&7.1&5.6&8.4 \\
+	& G-TAD~\cite{gtadcvpr2020} & 12.1 & 11.0 & 9.4 & 8.1 & 6.5 & 9.4\\
+	& Ours & \textbf{26.6} & \textbf{25.4} &\textbf{24.2}&\textbf{22.3} &\textbf{19.1} &\textbf{23.5} \\
+	\hline 
+	\multirow{3}{*}{Noun} & BMN~\cite{bmniccv2019,epicarxiv2020} & 10.3	&8.3&6.2&4.5&3.4&6.5 \\
+	& G-TAD~\cite{gtadcvpr2020} & 11.0 & 10.0 & 8.6 & 7.0 & 5.4 & 8.4\\
+	& Ours & \textbf{25.2} & \textbf{24.1} &\textbf{22.7}&\textbf{20.5} &\textbf{17.0} &\textbf{21.9} \\
+	\end{tabular}}
+
+\end{table}
+
+\smallskip
+\noindent \textbf{Dataset}.
+EPIC-Kitchens 100 is the largest egocentric action dataset. The dataset contains 100 hours of videos from 700 sessions capturing cooking activities in different kitchens. In comparison to ActivityNet-1.3, EPIC-Kitchens 100 has less number of videos, yet many more instances per video (average 128 vs.\ 1.5 on ActivityNet-1.3). In comparison to THUMOS14, EPIC-Kitchens is 3 times larger in terms of video hours and more than 10 times larger in terms of action instances. These egocentric videos also include significant camera motion. This dataset thus poses new challenges for TAL. 
+
+\smallskip
+\noindent \textbf{Experiment Setup}.
+We used a SlowFast network~\cite{slowfasticcv2019} pre-trained on EPIC-Kitchens for feature extraction. This model is provided by~\cite{epicarxiv2020}. %
+Our model was trained on the training set and evaluated on the validation set. A window size of 9 was used for local self-attention. For evaluation, we used \textit{m}AP@$[0.1$:$0.1$:$0.5]$ and report the average \textit{m}AP following~\cite{epicarxiv2020}. In this dataset, an action is defined as a combination of a verb (action) and a noun (object). As this dataset was recently released, we are only able to compare our methods to BMN~\cite{bmniccv2019} and G-TAD~\cite{gtadcvpr2020}, both using the same SlowFast features provided by~\cite{epicarxiv2020}. Again, implementation details are described in the appendix~\ref{sec:appendix:details}.
+
+
+\smallskip
+\noindent \textbf{Results}.
+Table~\ref{table:all epic-kitchens results} presents the results. Our method achieves an average \textit{m}AP ($[0.1$:$0.1$:$0.5]$) of 23.5\% and 21.9\% for verb and noun, respectively. Our results again largely outperform the strong baselines of BMN~\cite{bmniccv2019} and G-TAD~\cite{gtadcvpr2020} by over 13.5\% in absolute percentage points. An interesting observation is that the gaps between our results and BMN / G-TAD are much larger on EPIC-Kitchens 100. A possible reason is that ActivityNet has a small number of actions per video (1.5), leading to imbalanced classification for our model; only a few moments (around the action center) are labeled positive while all rest are negative.
+
+We adapt ActionFormer for EPIC-Kitchens 100 2022 Action Detection challenge. By combining features from SlowFast~\cite{slowfasticcv2019} and ViViT~\cite{arnab2021vivit}, ActionFormer achieves 21.36\% / 20.95\% average \textit{m}AP for actions on the validation / test set. Our results ranked 2nd with a gap of 0.32 average \textit{m}AP to the top solution.
+
+\subsection{Ablation Experiments}\label{sec:exp:ablation}
+We conduct extensive ablations on THUMOS14 to understand our model design. Results are reported using I3D features with a fixed random seed for training. Further ablations on loss weight, maximum input length during training, input temporal feature resolution and error analysis can be found in the appendix~\ref{sec:appendix:ablation}.
+
+
+\smallskip
+\noindent \textbf{Baseline: A Convolutional Network}. Our ablation starts by re-implementing a baseline anchor-free method (AF Base) as described in~\cite{a2nettip2020,afsdcvpr2021} (Table~\ref{tab-ablations}a row 1-2). This baseline shares the same action representation as our model, yet uses a 1D convolutional network as the encoder. We roughly match the number of layers and parameters of this baseline to our model. See the appendix~\ref{sec:appendix:details} for more details. This baseline achieves an average \textit{m}AP of 46.6\% on THUMOS14 (Table~\ref{tab-ablations}a row 3), outperforms the numbers reported in~\cite{afsdcvpr2021} by 6.2\%. We attribute the difference to variations in architectures and training schemes. This baseline, when using score fusion, reaches 52.9\% average \textit{m}AP (Table~\ref{tab-ablations}a row 4). 
+
+\smallskip
+\noindent \textbf{Transformer Network}. Our next step is to simply replace the 1D convolutional network with our Transformer model using vanilla self-attention. This model achieves an average \textit{m}AP of 62.7\% (Table~\ref{tab-ablations}a row 5) --- a major boost of 16.1\%. We note that this model already outperforms the best reported results (56.9\% \textit{m}AP at tIoU$=$0.5 from~\cite{liu2021multi}). This result shows that our Transformer model is very powerful for TAL, and serves as the main course of performance gain. 
+
+\input{tex/ablation_results}
+
+\smallskip
+\noindent \textbf{Layer Norm, Center Sampling, Position Encoding, \& Score Fusion}. We further add layer norm in the classification and regression heads, apply center sampling during training, and explore position encoding as well as score fusion (Table~\ref{tab-ablations}a row 6-9). Adding layer norm boosts the average \textit{m}AP by 2.7\%, and using center sampling further improves the performance by 1.4\%. The commonly used position encoding, however, does not bring performance gain. We postulate that our projection using convolutions as well as the depthwise convolutions in our Transformer blocks already leak the location information, as also pointed out in~\cite{xie2021segformer}. Further fusing the classification scores will decrease the largely performance. As a reference, when replacing the vanilla self-attention with a local version (window size=19), the average \textit{m}AP remains the same.
+
+\smallskip
+\noindent \textbf{Window Size for Local Self-Attention}. Next, we study the effects of window size for local self-attention in our model. We vary the window size, re-train the model, and present both model accuracy, complexity (in GMACs), and run time in Table~\ref{tab-ablations}b. All results are reported without score fusion. Due to our design of a multiscale feature pyramid, even using the global self-attention only leads to 26\% increase in MACs when compared to the baseline convolutional network. Reducing the window size cuts down the MACs yet maintains a similar accuracy. In addition to MACs, we also evaluate the normalized run time of these models on GPUs, where the base convolutional model is set to 1.0x. In spite of similar MACs, Transformer-based models are roughly 2x slower in run time compared to a convolution-based model (AF Base). It is known that self-attention is not easily parallelizable on GPUs. Also, our current implementation of Transformer used PyTorch primitives~\cite{paszke2019pytorch} without leveraging customized CUDA kernels.
+
+
+
+\smallskip
+\noindent \textbf{Feature Pyramid}. Further, we study the design of the feature pyramid. As discussed in Sec.\ \ref{sec:method:details}, our design space is specified by (1) the number of pyramid levels and (2) an initial regression range for the first pyramid level. We vary these parameters and report results in Table~\ref{tab-ablations}c. We follow our best design with a local window size=19 and layer norm, and center sampling. 
+
+First, we disable the feature pyramid and attach the heads to the feature map with the highest resolution. This is done by setting the number of pyramid to 1 with an initial regression range of [0, $+\infty$), Removing the feature pyramid results in a major performance drop (-19.3\% in average mAP), suggesting that using feature pyramid is critical for our model. Next, we set the number of pyramid levels to 3 and experiment with different initial regression ranges. The best results are achieved with the range of [0, 4). Further increase of the range decreases the mAP scores. Finally, we fix the initial regression range to [0, 4) and increase the number of pyramid levels. The performance of our method generally increases with more pyramid levels, yet is saturated when using 6 levels. 
+
+
+
+
+\begin{figure}[t]
+\centering
+\includegraphics[width=0.95\linewidth]{vis_merge.pdf}
+\caption{Visualization of our results. From \emph{top} to \emph{bottom}: (1) input video frames;  (2) action scores at each time step; (3) histogram of action onsets and offsets computed by weighting the regression outputs using action scores. See more in the appendix~\ref{sec:appendix:vis}}
+\label{fig:visualization}
+\end{figure}
+
+\smallskip
+\noindent \textbf{Result Visualization}. Finally, we visualize the outputs of our model (before Soft-NMS) in Fig.\ \ref{fig:visualization}, including the action scores, and the regression outputs weighted by the action scores (as a weighted histogram). Our model outputs a strong peak near the center of an action, potentially due to the employment of center sampling during training. The regression of action boundaries seems less accurate. We conjecture that our regression heads can be further improved. 
+
+
+
