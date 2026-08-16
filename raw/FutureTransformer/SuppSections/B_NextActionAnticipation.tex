@@ -1,0 +1,23 @@
+% !TEX root = ../supp.tex
+\section*{B. Next Action Anticipation}
+We conduct an experiment of next action anticipation on EK55~(validation, RGB) following the previous experimental protocols~\cite{girdhar2021anticipative,sener2020temporal,furnari2019would}.
+\\
+\noindent
+\textbf{Dataset.}
+The Epic-Kitchens 55 dataset~\cite{Damen2018EPICKITCHENS} is the large-scale dataset in first-person vision. The dataset comprises of 55 hours of recordings of 32 kitchens, including 39,594 action segments annotated with 125 verb, 331 noun, and 2,513 action classes. 
+\\
+\noindent
+\textbf{Implementation details.}
+\ours can be applied to next action anticipation by simply setting the number of action query $M$ to 1.
+We use two encoder layers and two decoder layers while setting the size of the hidden dimension $D$ to 512.
+We do not include action segmentation loss in this experiment due to the
+lack of frame-level action annotations. 
+Instead, we use additional a fully-connected layer applying to the output of the encoder layers $X_{L^E}$ to predict features of the next frame. Then we apply a feature prediction loss of L2 distance between predicted features and the next frame similar to AVT~\cite{girdhar2021anticipative}.
+We use AdamW optimizer~\cite{loshchilov2017decoupled} with a learning rate of 1e-5. We train our model for 40 epochs with a batch size of 32.
+We use the RGB feature embedded by TSN~\cite{wang2016_TemporalSegmentNetworks} in this experiment. 
+\\
+\noindent
+\textbf{Results.}
+\input{Tables/Supplementary/Table_EK55}
+The result is shown in Table~\ref{tab:EK55}. \ours obtains 12.3\%p at top-1 accuracy performing comparable with the state-of-the-art methods. We find that \ours is also effective for next action anticipation, although the model is designed for long-term action anticipation. 
+

@@ -1,0 +1,30 @@
+% !TEX root = ../main.tex
+
+\vspace{-4mm}
+\section{Introduction}
+Long-term action anticipation from a video is recently emerging as an essential task for advanced intelligent systems. It aims to predict a sequence of actions in the future from a limited observation of past actions in a video.
+While there exists a growing body of research on action anticipation, most of the recent work focuses on predicting a single action in a few seconds~\cite{furnari2019would,miech2019leveraging,fernando2021anticipating,girdhar2021anticipative,sener2020temporal,gammulle2019predicting,sener2019zero, roy2021action}. In contrast, long-term action anticipation~\cite{abu2018will,farha2020long,ke2019time,sener2020temporal} aims to predict a minutes-long sequence of multiple actions in the future. 
+This task is challenging since it requires learning long-range dependencies between past and future actions.
+
+\input{Figures/Figure1}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+Recent long-term anticipation methods~\cite{farha2020long,sener2020temporal} encode observed video frames into condensed vectors and decode them via recurrent neural networks (RNNs) to predict a sequence of future actions in an autoregressive manner.
+Despite the impressive performance on the standard benchmarks~\cite{kuehne2014language,stein2013combining}, they have several limitations.
+First, the encoder excessively compresses the input frame features so that fine-grained temporal relations between the observed frames are not preserved.
+Second, the RNN decoder is limited in modeling long-term dependencies over the input sequence and also in considering global relations between past and future actions.
+Third, the sequential prediction of autoregressive decoding may accumulate errors from the precedent results and also increase inference time.
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+To resolve the limitations, we introduce an end-to-end attention neural network, \textit{Future Transformer (\ours)}, 
+for long-term action anticipation. The proposed method effectively captures long-term relations over the whole sequence of actions. 
+\ie, not only observed actions in the past but also potential actions in the future.
+\ours is an encoder-decoder structure~\cite{vaswani2017attention,carion2020end} as illustrated in Fig.~\ref{fig:teaser}; the encoder learns to capture fine-grained long-range temporal relations between the observed frames from the past, while the decoder learns to capture global relations between upcoming actions in the future along with the observed features from the encoder.
+Different from the previous autoregressive models, \ours anticipates a sequence of future actions in parallel decoding, enabling more accurate and faster inference without error accumulations.
+Furthermore, we employ an action segmentation loss for input frames to learn distinctive feature representations in the encoder.
+We evaluate \ours on the standard benchmarks for long-term action anticipation and achieve new state-of-the-art results on Breakfast and 50 Salads.
+The main contribution of our paper is four-fold:
+\begin{itemize}
+    \item We introduce an end-to-end attention neural network, dubbed \ours, which effectively leverages fine-grained features and global interactions for long-term action anticipation.
+    \item We propose to predict a sequence of actions in parallel decoding, enabling accurate and fast inference.
+    \item We develop an integrated model that learns distinctive feature representation by segmenting actions in the encoder and anticipating actions in the decoder.
+    \item The proposed method sets a new state of the arts on standard benchmarks for long-term action anticipation, Breakfast and 50 Salads.
+\end{itemize}

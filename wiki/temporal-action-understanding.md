@@ -5,7 +5,7 @@ description: Video tasks that recognize, localize, segment, or anticipate action
 tags: [video, temporal-learning, action-understanding]
 status: draft
 created: 2026-08-15
-generated: { by: llm-wiki-agent/1, at: 2026-08-16T10:15:26+07:00 }
+generated: { by: llm-wiki-agent/1, at: 2026-08-16T10:17:50+07:00 }
 sources:
   - id: bmn-paper
     resource: ../raw/BMN/main.tex
@@ -31,6 +31,9 @@ sources:
   - id: actionformer-paper
     resource: ../raw/ActionFormer/main.tex
     title: "ActionFormer: Localizing Moments of Actions with Transformers"
+  - id: futr-paper
+    resource: ../raw/FutureTransformer/main.tex
+    title: Future Transformer for Long-term Action Anticipation
 ---
 
 # Temporal action understanding
@@ -48,6 +51,12 @@ Temporal action understanding separates four output granularities: clip-level re
 | Action anticipation | Observations through time `t` | One or more future actions |
 
 Localization must identify uncertain action boundaries; segmentation is susceptible to over-segmentation, where noisy predictions fragment an otherwise continuous action. MS-TCN addresses fully supervised frame-level segmentation with multi-stage temporal refinement and a smoothing objective over adjacent frame predictions.[^ms-tcn-paper] Anticipation and online action understanding must not use future frames at prediction time.[^video-temporal-survey]
+
+## Long-term action anticipation
+
+Long-term action anticipation predicts a sequence of future actions from an observed prefix, potentially covering minutes rather than only the next action. One segment-based formulation predicts each future action class and its duration, then expands the segments into framewise labels for evaluation.[^futr-paper]
+
+FUTR uses this formulation with globally attended sampled past-frame features and ordered future-action queries. It emits the query outputs in parallel, so its decoder can model bidirectional dependencies among predicted future actions without feeding a preceding predicted class back as input.[^futr-paper] Its auxiliary segmentation loss requires past-frame labels during training; it is therefore distinct from anticipation settings that provide only coarser action annotations.
 
 ## Untrimmed classification is not localization
 
@@ -82,6 +91,7 @@ Precise temporal intervals are expensive to annotate. Weakly supervised temporal
 - **Includes:** [Video Swin Transformer](video-swin-transformer.md) as a local-attention Transformer backbone evaluated for clip-level action recognition.[^video-swin-paper]
 - **Uses:** [VideoMAE](videomae.md) as a self-supervised pretrained backbone for clip classification and frame-centered human-action detection.[^videomae-paper]
 - **Includes:** [ActionFormer](actionformer.md) as a single-stage anchor-free Transformer for interval-level temporal action localization.[^actionformer-paper]
+- **Includes:** [Future Transformer (FUTR)](future-transformer-futr.md) as a long-term, framewise action-anticipation model with parallel segment decoding.[^futr-paper]
 
 [^bmn-paper]: [BMN: Boundary-Matching Network for Temporal Action Proposal Generation](../raw/BMN/main.tex)
 [^video-temporal-survey]: [Tổng hợp các hướng xử lý video](../raw/TongHopCacHuongXuLyVideo.md)
@@ -91,3 +101,4 @@ Precise temporal intervals are expensive to annotate. Weakly supervised temporal
 [^video-swin-paper]: [Video Swin Transformer](../raw/VideoSwin/main.tex)
 [^videomae-paper]: [VideoMAE: Masked Autoencoders are Data-Efficient Learners for Self-Supervised Video Pre-Training](../raw/VideoMAE/main.tex)
 [^actionformer-paper]: [ActionFormer: Localizing Moments of Actions with Transformers](../raw/ActionFormer/main.tex)
+[^futr-paper]: [Future Transformer for Long-term Action Anticipation](../raw/FutureTransformer/main.tex)

@@ -1,6 +1,7 @@
 # Wiki Update Log
 
 ## 2026-08-16
+- **Ingest**: Compiled [Future Transformer for Long-term Action Anticipation](../raw/FutureTransformer/main.tex); created [Future Transformer (FUTR)](future-transformer-futr.md) and updated [Temporal action understanding](temporal-action-understanding.md) and [Long-video temporal modeling](long-video-temporal-modeling.md).
 - **Ingest**: Compiled [ActionFormer: Localizing Moments of Actions with Transformers](../raw/ActionFormer/main.tex); created [ActionFormer](actionformer.md) and updated [Temporal action understanding](temporal-action-understanding.md) and [Long-video temporal modeling](long-video-temporal-modeling.md).
 - **Ingest**: Compiled [VideoMAE: Masked Autoencoders are Data-Efficient Learners for Self-Supervised Video Pre-Training](../raw/VideoMAE/main.tex); created [VideoMAE](videomae.md) and updated [Video temporal representation learning](video-temporal-representation-learning.md) and [Temporal action understanding](temporal-action-understanding.md).
 - **Ingest**: Compiled [Video Swin Transformer](../raw/VideoSwin/main.tex); created [Video Swin Transformer](video-swin-transformer.md) and updated [Temporal action understanding](temporal-action-understanding.md), [Long-video temporal modeling](long-video-temporal-modeling.md), and [TimeSformer](timesformer.md).

@@ -1,0 +1,36 @@
+% !TEX root = ../main.tex
+
+\section{Related Work}
+
+\noindent \textbf{Action anticipation.}
+Action anticipation aims to predict future actions given a limited observation of a video. 
+With the emergence of the large-scale dataset~\cite{Damen2018EPICKITCHENS,damen2020rescaling}, many methods have been proposed to solve next action anticipation, predicting a single future action within a few seconds~\cite{furnari2019would,miech2019leveraging,fernando2021anticipating,girdhar2021anticipative,sener2020temporal,gammulle2019predicting,sener2019zero, roy2021action}.
+Long-term action anticipation has been recently proposed to predict a sequence of future actions in the distant future from a long-range video~\cite{abu2018will,abu2019uncertainty,ke2019time,farha2020long,sener2020temporal}. 
+Farha~\etal~\cite{abu2018will} first introduce the long-term action anticipation task and propose two models, RNN and CNN, to tackle the task.
+Farha and Gall~\cite{abu2019uncertainty} introduce a GRU network to model the uncertainty of future activities in an autoregressive way. They predict multiple possible sequences of future actions at test time.
+Ke~\etal~\cite{ke2019time} introduce a model that predicts an action in a specific future timestamp without anticipating intermediate actions.
+They show that iterative predictions of the intermediate actions cause error accumulations.
+Previous methods~\cite{abu2018will,ke2019time,abu2019uncertainty} typically take action labels of observed frames as input, extracting action labels using the action segmentation model~\cite{richard2017weakly}.
+In contrast, recent work~\cite{farha2020long,sener2020temporal} uses visual features as input.
+Farha~\etal~\cite{farha2020long} propose an end-to-end model of long-term action anticipation, employing the action segmentation model~\cite{farha2019ms} for visual features in training.
+They also introduce a GRU model with cycle consistency between past and future actions. 
+Sener~\etal~\cite{sener2020temporal} suggest a multi-scale temporal aggregation model 
+that aggregates past visual features in condensed vectors and then iteratively predicts future actions using the LSTM network.
+The recent work~\cite{farha2020long,sener2020temporal} commonly utilizes RNNs with compressed representation of past frames.
+In contrast, we propose an end-to-end attention model that anticipates all future actions in parallel using fine-grained visual features of past frames.
+
+\vspace{1mm}
+\noindent
+\textbf{Self-attention mechanisms.}
+Self-attention~\cite{vaswani2017attention} was initially introduced for neural machine translation to mitigate the problem of learning long-term dependencies in RNNs and has been widely adopted in a variety of computer vision tasks~\cite{dosovitskiy2020image,kim2021relational,strudel2021segmenter,fan2021multiscale}.
+Self-attention is effective in learning global interactions among image pixels or patches in image domains~\cite{Bello_2019_ICCV,dosovitskiy2020image, touvron2021training,wu2021cvt,strudel2021segmenter,liu2021swin,ramachandran2019stand,yuan2021tokens,wang2021pyramid}.
+Several methods employ attention mechanisms in video domains to model temporal dynamics in short-term~\cite{kim2021relational,wang2018non,gberta_2021_ICML,arnab2021vivit,zhang2021vidtr,fan2021multiscale,patrick2021keeping} and long-term videos~\cite{nawhal2021activity,girdhar2021anticipative,zhu2020actbert,luo2020univl,li2020hero}.
+Related to action anticipation, 
+Girdhar and Grauman~\cite{girdhar2021anticipative} recently introduce the anticipative video transformer (AVT) that uses a self-attention decoder to predict the next action.
+Unlike AVT, which requires autoregressive predictions for long-term anticipation, our encoder-decoder model effectively predicts a minutes-long sequence of future actions in parallel.
+
+\vspace{1mm}
+\noindent
+\textbf{Parallel decoding.}
+The transformer~\cite{vaswani2017attention} is designed to predict outputs sequentially, \ie, autoregressive decoding. Due to the inference cost, which increases with the length of the output sequence, recent methods in natural language processing~\cite{gu2018non,stern2018blockwise} replace autoregressive decoding with parallel decoding. The  transformer models with parallel decoding have also been used for computer vision tasks such as object detection~\cite{carion2020end}, camera calibration~\cite{lee2021ctrl}, and dense video captioning~\cite{wang2021end}.
+We adopt it for long-term action anticipation, predicting a sequence of future actions simultaneously. In long-term action anticipation, parallel decoding not only enables faster inference but also captures bi-directional relations among future actions.

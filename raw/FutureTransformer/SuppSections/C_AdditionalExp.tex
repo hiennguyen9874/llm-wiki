@@ -1,0 +1,68 @@
+% !TEX root = ../supp.tex
+
+\section*{C. Additional Analysis}
+\label{sec:C}
+We conduct additional experiments for further analysis of the proposed method. In the following experiments, we evaluate our models on the Breakfast dataset with two observed ratios $\alpha \in \{0.2, 0.3\}$. Unless otherwise specified, all experimental settings are the same as those in Sec. 5.4.
+
+\input{Tables/Supplementary/Table_AVT}
+\input{Figures/Supplementary/Figure_avt}
+\input{Figures/Supplementary/Figure_inf}
+
+\input{Tables/Full/Table_globality_full}
+\input{Tables/Full/Table_pos_full}
+\input{Tables/Full/Table_model_full}
+\input{Tables/Full/Table_lenloss_full}
+
+\noindent
+\textbf{Comparison with AVT.}
+The core difference between AVT~\cite{girdhar2021anticipative} and \ours lies in the transformer architecture and the parallel decoding. 
+While AVT uses a simple decoder that predicts the next action within a few seconds considering only the previous actions via masked self-attention, \ours adopts a full-fledged decoder that predicts the whole sequence of actions in parallel by examining long-term relations of the actions via self-attention and cross-attention. 
+AVT is also capable of anticipating long-term actions by unrolling the decoder iteratively, but it remains the drawbacks of error accumulation and slow inference speed. 
+To validate our claim, we compare our method with AVT\footnote{We evaluate two AVT models trained on 50 Salads according to different types of backbone networks: AVT with ViT, where the trained model is available on their official website (\url{www.github.com/facebookresearch/AVT}), and AVT with I3D, where the model is trained by using their official codes.}
+on long-term action anticipation.
+
+Table~\ref{tab:avt} shows the results of long-term action anticipation of both models. 
+Since AVT is built for next action anticipation, we also adjust the prediction rate $\beta$ ranging from 0.01 to 0.5. 
+As $\beta$ becomes smaller, the prediction results are closely related to next action anticipation.
+We find that AVT performs inferior to \ours, especially when predicting long-term sequences. AVT is accurate for the early frames but becomes inaccurate in the prolonged predictions as shown in Fig.~\ref{fig:avt}.
+\\
+\noindent
+\textbf{Inference time comparison.}
+We compare inference time of FUTR to that of the Cycle Cons.~\cite{farha2020long} and AVT~\cite{girdhar2021anticipative} in Fig.~\ref{fig:inf}.
+The vertical axis indicates the inference time~(ms) and the horizontal axis indicates the number of predicted actions for Cycle Cons. and the prediction rate $\beta$ for AVT.
+The inference time of FUTR is consistently fast while that of Cycle Cons. and AVT linearly increases as the duration of the predicted sequence increases.
+From this experiment, we find that \ours is 14$\times$ faster than Cycle Cons. when predicting 16 actions and 173$\times$ faster than AVT when $\beta$ is set to 0.5.
+The results show the efficiency of the parallel decoding for long-term action anticipation.
+
+\input{Tables/Full/Table_parallel_full}
+\input{Tables/Full/Table_locality_full}
+\input{Tables/Full/Table_setpred_full}
+\input{Tables/Full/Table_loss_full}
+\input{Tables/Full/Table_query_full}
+
+\noindent
+\textbf{Effectiveness of global cross-attention.} 
+To evaluate the importance of modeling long-term dependencies between the observed frames and the action queries during the decoding stage, we measure the performance by gradually increasing the number of cross-attended frames from the most recent frame to the farthest one.
+For notational simplicity, we establish the ratio of the cross-attended frames $\gamma$ ranging from 0.25 to 1, adjusting the number of observed frames starting from the recent past; the cross-attention layer in the decoder only attends to the most recent $\gamma T^\textrm{O}$ frames during the decoding stage.
+Note that $\gamma = 1$, our default setting, indicates that the decoder attends to the whole video frames to anticipate actions.
+
+Table~\ref{tab:sup_globality_full} summarizes the results of the effect of global attention in the cross-attention layers. As we gradually increase the $\gamma$ from 0.25 to 1, the overall accuracy significantly increases by 2.0-3.3\%p.
+This demonstrates the efficacy of modeling global interactions between the observed frames in the past and the action queries in the future for long-term action anticipation.
+\\
+\noindent
+\textbf{Position embedding analysis.}
+In Table~\ref{tab:pos_full}, we investigate various combinations of different types and locations of the positional embeddings.
+From the 1$^\mathrm{st}$ to the 3$^\mathrm{rd}$ rows, we compare three types of position embeddings in the encoder layers: none, sinusoidal, and learnable position embeddings. Here, we fix the position embedding of the decoder as learnable embedding, which is added before going into the attention layers. We find that using learnable position embeddings in the encoder is effective.
+Then we change the location of the position embeddings to be learned in the attention layers, obtaining additional accuracy improvements. In this experiment, we find that position embedding learned at the attention layer is effective for our model.
+\\
+% \vspace{1mm}
+\noindent
+\textbf{Model analysis.}
+Table~\ref{tab:model_full} summarizes the results of the model ablations, according to the number of encoder layers $L^\textrm{E}$, the number of decoder layers $L^\textrm{D}$, and hidden dimension $D$.
+We find that the performance is saturated when we use more than two encoder layers and one decoder layer. Thus we set $L^\textrm{E}=2$ and $L^\textrm{D}=1$ as our default number of encoder layers and decoder layers, respectively.
+We also evaluate our model by varying the channel dimension $D$ and find that setting $D$ to 128 performs the best; too small $D$ restricts the representation power of the model while too large $D$ causes overfitting problems.
+
+\noindent
+\textbf{Duration loss analysis.}
+In Table~\ref{tab:lenloss_full}, we evaluate our duration loss $\mathcal{L}^\mathrm{duration}$ of Eq.~(14). Instead of L2 loss, we use L1 loss and Smooth L1 loss~\cite{girshick2015fast} in this experiment. The results show that applying L2 loss shows better performance over the L1 loss and smooth L1 loss. 
+Since L2 loss is more robust to outliers than L1 loss and smooth L1 loss, we find that applying L2 loss is effective in the proposed method.

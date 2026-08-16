@@ -5,7 +5,7 @@ description: Scalable representations and retrieval mechanisms for preserving fi
 tags: [video, long-context, temporal-learning, efficiency]
 status: draft
 created: 2026-08-15
-generated: { by: llm-wiki-agent/1, at: 2026-08-16T10:15:26+07:00 }
+generated: { by: llm-wiki-agent/1, at: 2026-08-16T10:17:50+07:00 }
 sources:
   - id: vivit-paper
     resource: ../raw/ViViT/main_arxiv.tex
@@ -28,6 +28,9 @@ sources:
   - id: actionformer-paper
     resource: ../raw/ActionFormer/main.tex
     title: "ActionFormer: Localizing Moments of Actions with Transformers"
+  - id: futr-paper
+    resource: ../raw/FutureTransformer/main.tex
+    title: Future Transformer for Long-term Action Anticipation
 ---
 
 # Long-video temporal modeling
@@ -43,6 +46,12 @@ Long-video understanding cannot generally send every frame and visual token to g
 - **Efficient temporal computation:** use sparse sampling, token pruning, local attention, adaptive resolution, or dynamic allocation of compute.
 
 The common trade-off is retaining precise, short-lived events while modeling dependencies over minutes or hours.[^video-temporal-survey]
+
+## Global attention over an observed prefix
+
+FUTR provides task-specific evidence that full attention can be useful after temporal sampling and feature extraction: its encoder self-attends over sampled observed-frame features, while its decoder cross-attends to all encoder outputs and self-attends over a fixed sequence of future-action queries.[^futr-paper] On Breakfast, restricting decoder cross-attention to the most recent 25% of observed features rather than all of them reduced reported mean-over-classes accuracy by 2.0–3.3 points across the tested observation and prediction ratios.[^futr-paper]
+
+This does not overturn the general scaling constraint: FUTR's experiments use pre-extracted I3D features on finite benchmark videos, and its authors identify the computation and memory of attention as a limitation. It is evidence for exploiting the whole available prefix at that scale, not for arbitrary-duration global attention.[^futr-paper]
 
 ## Fixed-budget global sampling
 
@@ -83,6 +92,7 @@ The source identifies local/hierarchical attention and state-space models as alt
 - **Uses:** [Multiscale Vision Transformers (MViT)](multiscale-vision-transformers-mvit.md) as fixed-clip hierarchical token compression, not as arbitrary-length-video memory.[^mvit-paper]
 - **Uses:** [Video Swin Transformer](video-swin-transformer.md) as local joint spatiotemporal attention with shifted cross-window connections, not as arbitrary-length-video memory.[^video-swin-paper]
 - **Uses:** [ActionFormer](actionformer.md) as local temporal attention plus a feature pyramid for interval-level temporal action localization.[^actionformer-paper]
+- **Uses:** [Future Transformer (FUTR)](future-transformer-futr.md) as global attention over sampled observed features for benchmark-scale long-term action anticipation, with explicit attention-scaling limits.[^futr-paper]
 
 [^vivit-paper]: [ViViT: A Video Vision Transformer](../raw/ViViT/main_arxiv.tex)
 [^video-temporal-survey]: [Tổng hợp các hướng xử lý video](../raw/TongHopCacHuongXuLyVideo.md)
@@ -91,3 +101,4 @@ The source identifies local/hierarchical attention and state-space models as alt
 [^mvit-paper]: [Multiscale Vision Transformers](../raw/MViT/mvit_arxiv.tex)
 [^video-swin-paper]: [Video Swin Transformer](../raw/VideoSwin/main.tex)
 [^actionformer-paper]: [ActionFormer: Localizing Moments of Actions with Transformers](../raw/ActionFormer/main.tex)
+[^futr-paper]: [Future Transformer for Long-term Action Anticipation](../raw/FutureTransformer/main.tex)

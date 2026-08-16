@@ -1,0 +1,22 @@
+% !TEX root = ../main.tex
+
+\section{Problem Setup}
+\label{sec:3}
+
+The problem of long-term action anticipation is to predict a sequence of actions for future video frames from a given observable part of a video.
+Figure~\ref{fig:task} illustrates the problem setup.
+For a video with $T$ frames, the first $\alpha T$ frames are observed and a sequence of actions for the next $\beta T$ frames is anticipated; $\alpha \in [0,1]$ is an observation ratio of the video while $\beta \in [0, 1-\alpha]$ is a prediction ratio.
+The anticipation thus takes the observable frames $\bm{I}^{\mathrm{past}} = [\bm{I}_1, \dots ,\bm{I}_{\alpha T}]^\top \in \mathbb{R}^{\alpha T \times H \times W \times 3}$ as input  
+and predicts a sequence of frame-wise action class labels for the next $\beta T$ frames, $\bm{S}^{\mathrm{future}} = [\bm{s}_{\alpha T + 1}, \dots, \bm{s}_{\alpha T+\beta T}]^\top \in \mathbb{R}^{\beta T \times K}$ where $K$ is the number of target actions. 
+Following the previous work~\cite{abu2018will, ke2019time, farha2020long, sener2020temporal, abu2019uncertainty}, we represent  $\bm{S}^{\mathrm{future}}$ as a sequence of action segments, each of which consists of an action and its duration, and 
+predict a sequence of action class labels $\bm{A}=[\bm{a}_1, \dots, \bm{a}_N]^\top \in \mathbb{R}^{N \times K}$ and their durations $\bm{d}=[d_1, \dots, d_N] \in \mathbb{R}^{N}$ where $\sum^{N}_{j=0} d_j = 1$. 
+
+For evaluation, the sequence of action segments is translated to that of frame-wise actions; the action label $\bm{s}_{\alpha T+t}$ at time $\alpha T+t$ and that of  $i^{\textrm{th}}$ segment are related by 
+\vspace{-2mm}
+\begin{align}
+    \bm{s}_{\alpha T+t} = \bm{a}_i, \quad \beta T \sum^{i-1}_{j=0} d_j < t \leq \beta T \sum^{i}_{j=0} d_j,
+    \label{eq:anticipation}
+\end{align}
+where $d_0=0$.
+
+In addition, the ground-truth action labels for the past frames are denoted by $\bm{S}^{\mathrm{past}} = [\bm{s}_1, \dots ,\bm{s}_{\alpha T}]^\top \in \mathbb{R}^{\alpha T \times K}$, which are used for action segmentation loss in our work. 

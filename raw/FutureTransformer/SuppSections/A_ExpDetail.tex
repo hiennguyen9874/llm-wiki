@@ -1,0 +1,54 @@
+% !TEX root = ../supp.tex
+
+\section*{A. Experimental Details}
+\label{sec:A}
+In this section, we provide experimental details of the two experiments in Sec.~\ref{sec:5.4}.
+\noindent
+\\
+\textbf{Parallel decoding vs. autoregressive decoding.}
+In Table~\ref{tab:parallel}, we compare our model with two \ours variants, \ours-A and \ours-M.
+Two models have the same encoder but different decoders compared to \ours, as illustrated in Fig.~\ref{fig:parallel}.
+\ours-A anticipates the next action recurrently using a sequence of the predicted action labels as input in an autoregressive way.
+There exist two unique tokens: \textit{SOS} and \textit{EOS} in autoregressive decoding, each of which indicates the start and the end of the sequence, respectively.
+The decoder of \ours-A takes \textit{SOS} as the first input and predicts the next action label recursively until the model predicts \textit{EOS}.
+\ours-M takes a sequence of action queries as input and predicts action labels and durations in parallel with masked self-attention. Masked self-attention employs a causal mask to MHSA, preventing action queries from attending to future actions.
+The core difference between \ours and \ours-M lies in the masked self-attention; action queries of \ours-M only consider uni-directional temporal dependencies between action queries, while that of \ours consider bi-directional temporal relations between the past and the future.  
+We validate the effect of parallel decoding by comparing the three models.
+\\
+\noindent
+\textbf{Output structuring.}
+In Table~\ref{tab:setpred}, we conduct experiments related to output structuring strategy.
+We introduce two variants of \ours, \ours-H and \ours-S. 
+\ours-H is a DETR-like variant~\cite{carion2020end}, where the ground truths are assigned to the outputs of the queries by the Hungarian matching~\cite{kuhn1955hungarian}.
+Let us denote that $\bm{y}$ is the target set of future actions. 
+The ground truth of the $i^{\mathrm{th}}$ index is defined by $\bm{y}_i = \{\bm{c_i}, \bm{t}_i\}$, where $\bm{c_i}$ and $\bm{t}_i$ is the target action label and start-end window, respectively.
+Note that $\bm{y}$ is padded with \textit{NONE} class to a size $M$.
+We also denote $\hat{\bm{y}}$ is the set of $M$ predictions from the action queries. 
+Since the Hungarian matching finds a pair-wise matching between the two set $\bm{y}$ and $\hat{\bm{y}}$ minimizing the matching cost $\mathcal{L}^{\mathrm{match}}$, we find the optimal permutation $\zeta$ from a set of permutation of M queries $Z_M$:
+% \vspace{-6mm}
+\begin{align}
+    \hat{\zeta} &= \mathrm{argmin}_{\zeta \in Z_M}\sum_{i=1}^M\mathcal{L}^{\mathrm{match}}(\bm{y}_i, \hat{\bm{y}}_{\zeta(i)}).
+\end{align}
+We define matching cost as the sum of negative class probability and a window loss:
+\begin{align}
+     \mathcal{L}^{\mathrm{match}}(\bm{y}_i, \hat{\bm{y}}_i) &= \mathbbm{1}_{c_i\neq \varnothing}[-\hat{\bm{A}}_{\zeta(i),c_i} +\mathcal{L}^{\mathrm{window}}(\bm{t}_i,\hat{\bm{t}}_{\zeta(i)})],
+\end{align}
+where $\mathbbm{1}_{c_i\neq\varnothing}$ is an indicator function that sets to one where the gournd-truth action label is not \textit{NONE}.
+We define a window loss $\mathcal{L}^{\textrm{window}}$ with L1 distance and temporal IoU loss:
+\begin{align}
+    \mathcal{L}^\mathrm{window}(\bm{t}_i, \hat{\bm{t}}_{\zeta(i)}) &= \lambda^\mathrm{L_1}\lvert\lvert \bm{t}_i- \hat{\bm{t}}_{\zeta(i)}\rvert\rvert_1 - \lambda^\mathrm{tiou} \frac{\lvert \bm{t}_i \cap \hat{\bm{t}}_{\zeta(i)} \rvert}{\lvert \bm{t}_i \cup \hat{\bm{t}}_{\zeta(i)}\rvert},
+\end{align}
+where $|.|$ and $\hat{\bm{t}}_{\zeta(i)}$ indicates temporal areas and the predicted start-end window. 
+$\lambda^\mathrm{L1}$ and $\lambda^\mathrm{tiou}$ are weighting values of the two losses, which are 5 and 2, respectively.
+Note that starting and ending points of the temporal window $\bm{t}_i \in [0,1]^2$ are bounded from 0 to 1.
+Finally, we define the Hungarian loss $ \mathcal{L}^\mathrm{Hungarian}$ by 
+\begin{multline}
+    \mathcal{L}^\mathrm{Hungarian}(\bm{y}, \hat{\bm{y}}) \\
+    = \sum_{i=1}^M\sum_{j=1}^{K+1}[-{\bm{A}}_{i,j}log\hat{\bm{A}}_{\hat{\zeta}(i),j}+
+        \mathbbm{1}_{c_i\neq \varnothing}\mathcal{L}^{\mathrm{window}}(\bm{t}_i, \hat{\bm{t}}_{\hat{\zeta}(i)})].
+\end{multline}
+In training \ours-H, we use the sum of the Hungarian loss and the action segmentation loss as our final loss. 
+
+
+
+
