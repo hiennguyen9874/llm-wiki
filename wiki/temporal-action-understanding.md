@@ -5,7 +5,7 @@ description: Video tasks that recognize, localize, segment, or anticipate action
 tags: [video, temporal-learning, action-understanding]
 status: draft
 created: 2026-08-15
-generated: { by: llm-wiki-agent/1, at: 2026-08-16T09:44:11+07:00 }
+generated: { by: llm-wiki-agent/1, at: 2026-08-16T02:46:34Z }
 sources:
   - id: bmn-paper
     resource: ../raw/BMN/main.tex
@@ -16,6 +16,9 @@ sources:
   - id: temporal-segment-networks
     resource: ../raw/TemporalSegmentNetworks/tsn_pami.tex
     title: Temporal Segment Networks for Action Recognition in Videos
+  - id: ms-tcn-paper
+    resource: ../raw/MS-TCN/egpaper_final.tex
+    title: MS-TCN: Multi-Stage Temporal Convolutional Network for Action Segmentation
 ---
 
 # Temporal action understanding
@@ -32,7 +35,7 @@ Temporal action understanding separates four output granularities: clip-level re
 | Action segmentation | Video sequence | A class label for every frame/timestep |
 | Action anticipation | Observations through time `t` | One or more future actions |
 
-Localization must identify uncertain action boundaries; segmentation is susceptible to over-segmentation, where noisy predictions fragment an otherwise continuous action. Anticipation and online action understanding must not use future frames at prediction time.[^video-temporal-survey]
+Localization must identify uncertain action boundaries; segmentation is susceptible to over-segmentation, where noisy predictions fragment an otherwise continuous action. MS-TCN addresses fully supervised frame-level segmentation with multi-stage temporal refinement and a smoothing objective over adjacent frame predictions.[^ms-tcn-paper] Anticipation and online action understanding must not use future frames at prediction time.[^video-temporal-survey]
 
 ## Untrimmed classification is not localization
 
@@ -52,7 +55,9 @@ Precise temporal intervals are expensive to annotate. Weakly supervised temporal
 - **Uses:** [Video temporal representation learning](video-temporal-representation-learning.md) as a source of pretrained features.
 - **Uses:** [Temporal Segment Networks](temporal-segment-networks.md) for video-level classification across sparse global samples.
 - **Includes:** [Boundary-Matching Network (BMN)](boundary-matching-network.md) as a class-agnostic proposal-generation method.
+- **Includes:** [MS-TCN (Multi-Stage Temporal Convolutional Network)](ms-tcn.md) as a fully supervised frame-level segmentation method.
 
 [^bmn-paper]: [BMN: Boundary-Matching Network for Temporal Action Proposal Generation](../raw/BMN/main.tex)
 [^video-temporal-survey]: [Tổng hợp các hướng xử lý video](../raw/TongHopCacHuongXuLyVideo.md)
 [^temporal-segment-networks]: [Temporal Segment Networks for Action Recognition in Videos](../raw/TemporalSegmentNetworks/tsn_pami.tex)
+[^ms-tcn-paper]: [MS-TCN: Multi-Stage Temporal Convolutional Network for Action Segmentation](../raw/MS-TCN/egpaper_final.tex)
