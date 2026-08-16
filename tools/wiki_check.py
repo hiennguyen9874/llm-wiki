@@ -13,7 +13,7 @@ WIKI = ROOT / "wiki"
 RESERVED = {"index.md", "log.md"}
 REQUIRED = ("type", "title", "description")
 VALID_STATUS = {"draft", "stable", "deprecated"}
-LINK_RE = re.compile(r"(?<!!)\[[^]]*\]\(([^)\s]+)(?:\s+['\"].*?['\"])?\)")
+LINK_RE = re.compile(r"(?<!!)\[[^]]*\]\(((?:\\.|[^)\s])+)(?:\s+['\"].*?['\"])?\)")
 
 
 def frontmatter(path: Path) -> tuple[str | None, list[str]]:
@@ -40,7 +40,7 @@ def links(path: Path) -> list[Path]:
     text = path.read_text(encoding="utf-8")
     targets: list[Path] = []
     for raw in LINK_RE.findall(text):
-        target = raw.split("#", 1)[0]
+        target = raw.replace(r"\(", "(").replace(r"\)", ")").split("#", 1)[0]
         if not target or "://" in target or target.startswith(("mailto:", "#")):
             continue
         resolved = (WIKI / target.lstrip("/")) if target.startswith("/") else (path.parent / target)
