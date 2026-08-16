@@ -5,7 +5,7 @@ description: A two-stream action-recognition architecture that inflates pretrain
 tags: [video, action-recognition, convnet, optical-flow, transfer-learning]
 status: stable
 created: 2026-08-16
-generated: { by: llm-wiki-agent/1, at: 2026-08-16T02:17:23Z }
+generated: { by: llm-wiki-agent/1, at: 2026-08-16T02:34:42Z }
 sources:
   - id: i3d-paper
     resource: ../raw/I3D/full_kinetics_update_v0.tex
@@ -13,6 +13,9 @@ sources:
   - id: r2plus1d-paper
     resource: ../raw/R(2+1)D/res2_plus_1d.pdf
     title: A Closer Look at Spatiotemporal Convolutions for Action Recognition
+  - id: nonlocal-paper
+    resource: ../raw/Non-localNeuralNetworks/nonlocal.tex
+    title: Non-local Neural Networks
 ---
 
 # Inflated 3D ConvNets (I3D)
@@ -41,6 +44,7 @@ The paper pretrains on Kinetics, whose reported version has 400 human-action cla
 - **Applies to:** [Temporal action understanding](temporal-action-understanding.md) for clip-level action recognition.
 - **Uses:** [Video temporal representation learning](video-temporal-representation-learning.md) through ImageNet initialization and supervised Kinetics video pretraining.
 - **Compared with:** [R(2+1)D](r-2-plus-1-d.md). Its source reports a historical Kinetics RGB comparison (72.0% R(2+1)D trained from scratch versus 67.5% no-pretraining I3D); this is not a current or fully matched deployment comparison.[^r2plus1d-paper]
+- **Complemented by:** [Non-local Neural Networks](non-local-neural-networks.md). In that source’s ResNet-101 Kinetics ablation, adding five non-local blocks to its I3D raised top-1 accuracy from 74.4% to 76.0%; this is a paper-specific historical comparison.[^nonlocal-paper]
 
 ## Evidence limits
 
@@ -48,3 +52,4 @@ The source evaluates trimmed action-classification benchmarks and depends on pre
 
 [^i3d-paper]: [Quo Vadis, Action Recognition? A New Model and the Kinetics Dataset](../raw/I3D/full_kinetics_update_v0.tex)
 [^r2plus1d-paper]: [A Closer Look at Spatiotemporal Convolutions for Action Recognition](../raw/R\(2+1\)D/res2_plus_1d.pdf)
+[^nonlocal-paper]: [Non-local Neural Networks](../raw/Non-localNeuralNetworks/nonlocal.tex)
