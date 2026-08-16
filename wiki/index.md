@@ -12,6 +12,7 @@ The complete retrieval map for compiled knowledge. See [LLM Wiki Contract](../LL
 - [Boundary-Matching Network (BMN)](boundary-matching-network.md) — A class-agnostic temporal action proposal network that jointly predicts boundaries and a dense start-duration confidence map.
 - [Future Transformer (FUTR)](future-transformer-futr.md) — An encoder-decoder Transformer for long-term action anticipation that predicts an ordered sequence of future action labels and durations in parallel.
 - [Inflated 3D ConvNets (I3D)](inflated-3d-convnets-i3d.md) — A two-stream action-recognition architecture that inflates pretrained 2D image ConvNets into spatiotemporal 3D ConvNets.
+- [InternVideo](internvideo.md) — A video foundation-model system that combines masked-video and video–text pretraining through supervised cross-model attention.
 - [Long-video temporal modeling](long-video-temporal-modeling.md) — Scalable representations and retrieval mechanisms for preserving fine-grained events across long video contexts.
 - [MS-TCN (Multi-Stage Temporal Convolutional Network)](ms-tcn.md) — A full-resolution frame-level action-segmentation network that sequentially refines temporal class probabilities with stacked dilated-convolution stages.
 - [Multiscale Vision Transformers (MViT)](multiscale-vision-transformers-mvit.md) — A staged video and image Transformer that pools token resolution while expanding channel capacity through its hierarchy.

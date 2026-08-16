@@ -1,0 +1,81 @@
+% !TeX spellcheck = en_US
+%!TEX root=../Main.tex
+% \clearpage
+\section{Experiments}
+
+We detail our experimental configurations first (Section \ref{sec_config}), 
+then we present the downstream performance of \model~on the proposed video understanding benchmark with three types of tasks (action understanding, video-language alignment, and open understanding) in Section \ref{sec_tasks}.
+
+\subsection{Data for Pretraining} \label{sec_config}
+
+General video foundation model pretraining requires data from various domains at scale. To achieve a data distribution with diversity, we employ 6 public datasets and our self-collected video clips as shown in Table~\ref{tab:pretraining_datasets}. 
+
+\input{content/tables/datasets.tex}
+
+\input{content/data/k710.tex}
+
+\input{content/data/unlabeledhybrid.tex}
+
+\subsection{Implementations}
+
+\subsubsection{Multimodal Training}
+
+With the initialization from CLIP, we post-pretrain our multi-modal model with WebVid2M, WebVid10M, and HowTo100M. Since the training corpus of video-text datasets is not as rich as CLIP-400M~\cite{CLIP}, we co-train the video model with image-text datasets, a subset of LAION-400M~\cite{laion400m} containing 100M image-text pairs. We alternate images and videos for each iteration. The batch size of video-text is 14,336, and the batch size of image-text is 86,016. We train for 400k steps on 128 NVIDIA A100 GPUs in 2 weeks, with a learning rate of $8\times 10^{-5}$, weight decay of 0.2, cosine annealing schedule, and 4k warm-up steps.
+
+\subsubsection{Masked Video Training}
+We train the VideoMAE-Huge for 1200 epochs on the UnlabeledHybrid dataset with 64 80G-A100 GPUs. The model adapts the cosine annealing learning rate schedule and warmup 10\% total epochs. The learning rate is set to $2.5e-4$. Only MultiScaleCrop is used for data augmentation.
+
+\subsubsection{Model Interaction}
+
+As shown in Figure \ref{fig:ensemble},
+we freeze both backbones except the classification layers and the query tokens in the multimodal video encoder.
+To maintain the original output,
+we add tanh gating layers in the extra MHCA and FFN as in Flamingo \cite{alayrac2022flamingo}, 
+and the parameters in dynamic weighted sum are initialized as zero.
+We train the coordinated models with a batch size of 64, a learning rate of $5\times10^{5}$, a weight decay of 0.001, a dropout rate of 0.9, and an EMA rate of 0.9999.
+Besides,
+we use a cosine annealing schedule for 5 epochs with 1 warmup epoch.
+All used data augmentations are the same as in UniFormerV2 \cite{uniformerv2}.
+
+
+\subsection{Downstream Tasks} \label{sec_tasks}
+We conduct extensive experiments on a spectrum of downstream tasks to evaluate \model. The employed tasks are of three categories that consider action understanding, video-language alignment, and open understanding. Since \model~contains masked video encoder specializing in spatiotemporal variation characterization and fused multi-modality video encoder, it can improve action understanding (Section \ref{sec_action}) and video-language alignment (Section \ref{sec_vlt}) tasks significantly. Its generalization brought by large-scale training data also enables its impressive zero-shot and open-set capabilities on the related tasks (Section \ref{sec_open}). Even transferred to ego-centric tasks, \model~still gives an overwhelmingly favorable performance with simple heads \cite{chen2022ego4d}. Details are given as follows.
+
+\input{content/tables/kinetics_ensemble}
+\input{content/tables/hmdb51.tex}
+\input{content/tables/tal}
+\input{content/tables/stal}
+
+\subsubsection{Action Understanding Tasks}
+\label{sec_action}
+\input{content/tasks/cls}
+
+\input{content/tasks/tal}
+
+
+\input{content/tasks/stal}
+
+
+\subsubsection{Video-Language Alignment Tasks}
+\label{sec_vlt}
+\input{content/tables/retrieval.tex}
+\input{content/tables/vqa}
+\input{content/tables/vln}
+\input{content/tables/zs-retrieval.tex}
+
+\input{content/tasks/retrieval}
+
+\input{content/tasks/vqa}
+
+\input{content/tasks/vln}
+
+\subsubsection{Video Open Understanding Tasks}
+\label{sec_open}
+\input{content/tasks/zs-ar}
+\input{content/tasks/zs-retrieval}
+
+\input{content/tables/zs-mc}
+\input{content/tables/openset.tex}
+
+\input{content/tasks/zs-mc}
+\input{content/tasks/openset}

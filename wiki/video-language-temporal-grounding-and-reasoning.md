@@ -5,11 +5,14 @@ description: Text-conditioned localization and inference over event timing, orde
 tags: [video, language, temporal-grounding, temporal-reasoning, video-llm]
 status: draft
 created: 2026-08-15
-generated: { by: llm-wiki-agent/1, at: 2026-08-15T10:12:47Z }
+generated: { by: llm-wiki-agent/1, at: 2026-08-16T10:21:31+07:00 }
 sources:
   - id: video-temporal-survey
     resource: ../raw/TongHopCacHuongXuLyVideo.md
     title: Tổng hợp các hướng xử lý video
+  - id: internvideo-paper
+    resource: ../raw/InternVideo/main.tex
+    title: "InternVideo: General Video Foundation Models via Generative and Discriminative Learning"
 ---
 
 # Video-language temporal grounding and reasoning
@@ -34,6 +37,10 @@ The source identifies these temporal reasoning targets:
 
 It argues that fine-grained temporal reasoning remains difficult for multimodal LLMs even when their appearance-based semantic understanding is strong.[^video-temporal-survey]
 
+## Video–language alignment is not temporal grounding
+
+InternVideo’s video–text branch contrastively aligns independently encoded video and text, then uses a caption decoder with cross-attention for multimodal fusion. The paper evaluates it on video retrieval and question answering, but does not report natural-language temporal localization or tests of temporal relations. It is therefore relevant as a source of video–text features, not evidence of the grounding and reasoning capabilities defined here.[^internvideo-paper]
+
 ## Explicit temporal representations
 
 A neuro-symbolic direction translates questions and video events into explicit temporal relations such as *before*, *overlaps*, and *during*, then uses those relations to retrieve evidence before visual-language reasoning. This is a proposed architectural pattern in the source, not a verified general solution.[^video-temporal-survey]
@@ -43,5 +50,7 @@ A neuro-symbolic direction translates questions and video events into explicit t
 - **Part of:** [Video temporal learning](video-temporal-learning.md).
 - **Depends on:** [Long-video temporal modeling](long-video-temporal-modeling.md) for long-context evidence access.
 - **Uses:** [Video temporal representation learning](video-temporal-representation-learning.md) for visual and video–text features.
+- **Uses:** [InternVideo](internvideo.md) for video–text retrieval and question-answering features, not as a demonstrated temporal-grounding system.[^internvideo-paper]
 
 [^video-temporal-survey]: [Tổng hợp các hướng xử lý video](../raw/TongHopCacHuongXuLyVideo.md)
+[^internvideo-paper]: [InternVideo: General Video Foundation Models via Generative and Discriminative Learning](../raw/InternVideo/main.tex)

@@ -5,7 +5,7 @@ description: Pretraining video features to encode appearance, motion, order, dyn
 tags: [video, representation-learning, self-supervised-learning, foundation-models]
 status: draft
 created: 2026-08-15
-generated: { by: llm-wiki-agent/1, at: 2026-08-16T10:11:45+07:00 }
+generated: { by: llm-wiki-agent/1, at: 2026-08-16T10:21:31+07:00 }
 sources:
   - id: video-temporal-survey
     resource: ../raw/TongHopCacHuongXuLyVideo.md
@@ -16,6 +16,9 @@ sources:
   - id: videomae-paper
     resource: ../raw/VideoMAE/main.tex
     title: "VideoMAE: Masked Autoencoders are Data-Efficient Learners for Self-Supervised Video Pre-Training"
+  - id: internvideo-paper
+    resource: ../raw/InternVideo/main.tex
+    title: "InternVideo: General Video Foundation Models via Generative and Discriminative Learning"
 ---
 
 # Video temporal representation learning
@@ -36,6 +39,8 @@ The source characterizes video foundation models as a shift from single-task mod
 
 A useful unresolved design tension is the balance between appearance understanding and motion/temporal understanding. The source reports that foundation models can be strong in one while weak in the other; this is retained as an unverified research-gap claim rather than a settled comparison.[^video-temporal-survey]
 
+InternVideo is a concrete modular response to this tension: it trains masked-video and video–text contrastive branches separately, then learns cross-model attention between their features under action-classification supervision. This is paper-specific evidence that feature coordination can be evaluated across action and video–language tasks, not evidence that it resolves the tension generally.[^internvideo-paper]
+
 ## Relationships
 
 - **Part of:** [Video temporal learning](video-temporal-learning.md).
@@ -44,7 +49,9 @@ A useful unresolved design tension is the balance between appearance understandi
 - **Depends on:** [Long-video temporal modeling](long-video-temporal-modeling.md) when context exceeds a short clip.
 - **Instantiated by:** [Inflated 3D ConvNets (I3D)](inflated-3d-convnets-i3d.md) through ImageNet initialization and supervised Kinetics pretraining.
 - **Instantiated by:** [VideoMAE](videomae.md) through masked pixel reconstruction on unlabeled video clips.[^videomae-paper]
+- **Instantiated by:** [InternVideo](internvideo.md) by coordinating separately pretrained masked-video and video–text encoders.[^internvideo-paper]
 
 [^video-temporal-survey]: [Tổng hợp các hướng xử lý video](../raw/TongHopCacHuongXuLyVideo.md)
 [^i3d-paper]: [Quo Vadis, Action Recognition? A New Model and the Kinetics Dataset](../raw/I3D/full_kinetics_update_v0.tex)
 [^videomae-paper]: [VideoMAE: Masked Autoencoders are Data-Efficient Learners for Self-Supervised Video Pre-Training](../raw/VideoMAE/main.tex)
+[^internvideo-paper]: [InternVideo: General Video Foundation Models via Generative and Discriminative Learning](../raw/InternVideo/main.tex)

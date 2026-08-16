@@ -1,0 +1,35 @@
+\subsubsection{Self-collected Data}
+% 大数据是大模型的基础
+We collect video data and annotate some of them besides of the used public data. We find they are helpful to improve generality and downstream performance of VideoIntern.
+%\yinan{Large-scale datasets are the cornerstone of many MML methods. Attributed to public video datasets, MAE and MML can get satisfactory visual representation. Further, video foundation model requires more comprehensive data distribution and richer text annotation. }
+% 我们结合现有的公开数据集和ATUS合并了3.7k个标签词，组合成了query词，翻译成了10国语言，在Youtube上搜索，得到了1.2M的数据 -> 12M video clip
+
+Based on the existing action labels from mainstream action datasets, we reorganize their relations and hierarchy using the semantic structure from U.S. time diary survey~\cite{atus}. More importantly, we extend the existing around 800 action labels (from Kinetics, something-something, moments, etc) into 3.7 thousand ones. All these labels are visible motion descriptions, exploited as the query phrases on the video websites for collecting relevent data. During collection, associative words and translation into other languages are enabled for getting videos from a broader and more diverse scenes and regions. Finally, we acquire around 1.2 million videos lasting from 15 minutes to 2 hours with 10 minute average length. Their audios and subtitles (if have) are also reserved, used for multi-modality learning.
+
+%\yinan{From our point of improving the representation of motions, we collect action labels by aligning existing video datasets and the candidate words of U.S. time diary survey. We filter out 3.7k labels which is a phrase has a visible concept. We filter phrases that do not contain visual concepts (e.g. desire), leaving 3.7k phrases as the base vocabulary of the query items. We use the associative words of the search engine to augment our query words, keep the top ten recommended query items of each phrase, and translate them into 10 different languages through the translation toolkit. We collect 1.2 million videos with 37k query items from multiple sources. The videos contain an average of 10 minutes of sequence, audio. 10\% of them have user-generated subtitles, and about half of the videos contain ASR subtitles. These data form our video-text data pool.}
+
+% \begin{figure}[t]
+% \begin{center}
+% \fbox{\rule{0pt}{2in} \rule{0.9\linewidth}{0pt}}
+%   %\includegraphics[width=0.8\linewidth]{egfigure.eps}
+% \end{center}
+%   \caption{Placeholder. Statics of self-collected data.}
+% \label{fig:self-collected-data}
+% \end{figure}
+
+\subsubsection{Data Sculpting}
+
+
+
+% 对部分数据使用镜头切割得到小的片段，在使用CLIP打伪标签，再使用人工标注，得到multi-labels的有标注数据集
+
+% 我们根据时间戳将长视频进行修剪，然后将片段的帧输入进经过大量图片-文本对训练的CLIP中，根据查询词获得最高的响应时间戳。我们将该帧的前后五秒作为一个视频序列再次输入到模型中，获得模型在3.7k个标签
+
+Considering the collected videos are long and noisy, we develop a data sculpting pipeline upon public vision-language models to generate trimmed video clips for training. The basic idea is to extract clips highly correlated with our new action labels from videos.
+We initially divide every original video into several segments based on frame differences. Then we localize the key frames in each segment and compute their semantic responses from CLIP~\cite{clip} in a prompt fashion, meaning computing the estimated likelihoods of all used labels with CLIP. Then we select top $n$ (we use $k=min(3,n)$ where $n$ denotes the number of keyframes in the segment) frames with the highest responses, and generate their corresponding clips by including a 10-second clip centering around them. Meanwhile, these clips are automatically annotated with pseudo labels from CLIP. For each clip, we preserve its top 4 labels with highest responses plus the original query one. 
+
+%\yinan{To efficiency obtain the trimed video clips, we propose a simple self-collected data sculpting pipeline. 1) The timestamp of the shot is first calculated according to the change of the video frames. 2) We trim long videos based on timestamps and then feed the clips’ frames into CLIP~\cite{clip} trained on large-scale image-text pairs to get the highest response timestamps based on query phrases. 3) We feed this frame and the frames 5 seconds before and after it into the model as a sequence and obtain label candidates in 3.7k labels. }
+
+For human annotation, we ask annotators to select all relevant labels from the given pseudo ones for each video clip, leading to a multi-label video action dataset. This dataset currently only has around 200 thousand clips with annotations.
+% 讲的标注过程，感觉不一定需要。
+%\yinan{In the process of human annotation, we ask workers to tell whether the top five labels output by the model exist in the current video clip. So we obtain multi-label video action annotations for model training.}
