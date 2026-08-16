@@ -1,0 +1,38 @@
+\section{Introduction}
+
+
+Approaches based on deep convolutional neural networks have advanced the state-of-the-art across many standard datasets for vision problems since AlexNet~\cite{krizhevsky_neurips_2012}.
+At the same time, the most prominent architecture of choice in sequence-to-sequence modelling (e.g. in natural language processing) is the transformer~\cite{vaswani_neurips_2017}, which does not use convolutions, but is based on multi-headed self-attention.
+This operation is particularly effective at modelling long-range dependencies and allows the model to attend over all elements in the input sequence.
+This is in stark contrast to convolutions where the corresponding ``receptive field'' is limited, and grows linearly with the depth of the network.%
+
+
+The success of attention-based models in NLP has recently inspired approaches in computer vision to integrate transformers into CNNs~\cite{wang_cvpr_2018, carion_eccv_2020}, as well as some attempts to replace convolutions completely~\cite{parmar_icml_2018, bello_iccv_2019, ramachandran_neurips_2019}. 
+However, it is only very recently with the Vision Transformer (ViT)~\cite{dosovitskiy_iclr_2021}, that a pure-transformer based architecture has outperformed its convolutional counterparts in image classification.
+Dosovitskiy~\etal~\cite{dosovitskiy_iclr_2021} closely followed the original transformer architecture of~\cite{vaswani_neurips_2017}, and noticed that its main benefits were observed at large scale -- as transformers lack some of the inductive biases of convolutions (such as translational equivariance), they seem to require more data~\cite{dosovitskiy_iclr_2021} or stronger regularisation~\cite{touvron_arxiv_2020}.
+
+
+Inspired by ViT, and the fact that attention-based architectures are an intuitive choice for modelling long-range contextual relationships in video, we develop several transformer-based models for video classification.
+Currently, the most performant models are based on deep 3D convolutional architectures~\cite{carreira_cvpr_2017, feichtenhofer_cvpr_2020, feichtenhofer_iccv_2019} which were a natural extension of image classification CNNs~\cite{he_cvpr_2016, szegedy_cvpr_2015}.
+Recently, these models were augmented by incorporating self-attention into their later layers to better capture long-range dependencies~\cite{wang_cvpr_2018, girdhar_cvpr_2019, wu_cvpr_2019, arnab_graph_structured_iccv_2021}.
+
+\input{figures/teaser}
+
+
+
+As shown in Fig.~\ref{fig:teaser}, we propose pure-transformer models for video classification.
+The main operation performed in this architecture is self-attention, and it is computed on a sequence of spatio-temporal tokens that we extract from the input video.
+To effectively process the large number of spatio-temporal tokens that may be encountered in video, we present several methods of factorising our model along spatial and temporal dimensions to increase efficiency and scalability.
+Furthermore, to train our model effectively on smaller datasets, we show how to reguliarise our model during training and leverage pretrained image models.
+
+
+
+
+
+We also note that convolutional models have been developed by the community for several years, and there are thus many ``best practices'' associated with such models.
+As pure-transformer models present different characteristics, we need to determine the best design choices for such architectures. 
+We conduct a thorough ablation analysis of tokenisation strategies, model architecture and regularisation methods.
+Informed by this analysis, we achieve state-of-the-art results on multiple standard video classification benchmarks, including Kinetics 400 and 600~\cite{kay_arxiv_2017}, Epic Kitchens 100~\cite{damen_arxiv_2020}, Something-Something v2~\cite{goyal_iccv_2017} and Moments in Time~\cite{monfort_pami_2019}.
+
+
+

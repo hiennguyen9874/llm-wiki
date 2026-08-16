@@ -5,8 +5,11 @@ description: A video Transformer that factorizes temporal and spatial self-atten
 tags: [video, action-recognition, transformer, attention, long-context]
 status: stable
 created: 2026-08-16
-generated: { by: llm-wiki-agent/1, at: 2026-08-16T09:49:25+07:00 }
+generated: { by: llm-wiki-agent/1, at: 2026-08-16T09:54:47+07:00 }
 sources:
+  - id: vivit-paper
+    resource: ../raw/ViViT/main_arxiv.tex
+    title: "ViViT: A Video Vision Transformer"
   - id: timesformer-paper
     resource: ../raw/TimeSformer/TimeSformer_arxiv_v17.tex
     title: Is Space-Time Attention All You Need for Video Understanding?
@@ -37,9 +40,11 @@ The long configuration uses 96 frames at $224 \times 224$ sampled at one frame p
 - **Applies to:** [Temporal action understanding](temporal-action-understanding.md) for video-level action recognition.
 - **Supports:** [Long-video temporal modeling](long-video-temporal-modeling.md) through factorized attention over longer clips.
 - **Contrasts with:** [Inflated 3D ConvNets (I3D)](inflated-3d-convnets-i3d.md) and [SlowFast Networks](slowfast-networks.md), which are convolutional video backbones; the source compares their historical action-recognition costs and accuracies.[^timesformer-paper]
+- **Contrasts with:** [ViViT (Video Vision Transformer)](vivit.md). ViViT's paper directly compares its factorised-encoder classification result with TimeSformer-HR on Something-Something-V2; this is a historical, protocol-specific comparison.[^vivit-paper]
 
 ## Evidence limits
 
 The source evaluates action classification on Kinetics-400/600, Something-Something-V2, Diving-48, and a paper-defined HowTo100M subset.[^timesformer-paper] It does not evaluate temporal localization, segmentation, streaming inference, production latency, or current state of the art. Its resource is manuscript source plus figure attachments; text was extracted from the referenced PDFs, while the attention-example PDF contains no extractable text and is represented by its manuscript caption.
 
+[^vivit-paper]: [ViViT: A Video Vision Transformer](../raw/ViViT/main_arxiv.tex)
 [^timesformer-paper]: [Is Space-Time Attention All You Need for Video Understanding?](../raw/TimeSformer/TimeSformer_arxiv_v17.tex)

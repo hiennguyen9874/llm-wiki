@@ -5,8 +5,11 @@ description: Scalable representations and retrieval mechanisms for preserving fi
 tags: [video, long-context, temporal-learning, efficiency]
 status: draft
 created: 2026-08-15
-generated: { by: llm-wiki-agent/1, at: 2026-08-15T10:23:21Z }
+generated: { by: llm-wiki-agent/1, at: 2026-08-16T09:54:47+07:00 }
 sources:
+  - id: vivit-paper
+    resource: ../raw/ViViT/main_arxiv.tex
+    title: "ViViT: A Video Vision Transformer"
   - id: video-temporal-survey
     resource: ../raw/TongHopCacHuongXuLyVideo.md
     title: Tổng hợp các hướng xử lý video
@@ -40,6 +43,10 @@ Temporal Segment Networks provide a concrete sparse-sampling alternative: divide
 
 TimeSformer provides a concrete attention-based alternative: it splits attention into temporal interactions at each patch location followed by spatial interactions within each frame. This changes per-patch comparisons from joint attention's $NF + 1$ to $N + F + 2$, where $N$ is patches per frame and $F$ is frames.[^timesformer-paper] In its long configuration, the source processes 96 frames spanning 102.4 seconds per clip and averages multiple non-overlapping clip predictions to cover each multi-minute HowTo100M video.[^timesformer-paper] Factorization makes longer clips feasible; it does not make full-video global attention or lossless event preservation free.
 
+## Factorised encoder for longer clips
+
+ViViT offers a different factorization: it first reduces the patches at each temporal index with a spatial Transformer, then applies a temporal Transformer only to those per-index representations.[^vivit-paper] In the paper's Kinetics-400 ablation, its ViViT-L/16x2 factorised encoder processed 128 frames sampled at stride 2—enough to cover the dataset's 250-frame, 10-second video with one view—and the source reports its highest accuracy for that configuration.[^vivit-paper] The same paper explicitly limits this evidence to clip-level classification; it does not demonstrate retention or retrieval across arbitrary-length video.
+
 ## Architectural alternatives
 
 The source identifies local/hierarchical attention and state-space models as alternatives to full global attention. It motivates state-space approaches by approximately linear sequence scaling, but does not provide verified comparative evidence that they are preferable for a particular video task.[^video-temporal-survey]
@@ -51,7 +58,9 @@ The source identifies local/hierarchical attention and state-space models as alt
 - **Supports:** [Video temporal representation learning](video-temporal-representation-learning.md).
 - **Uses:** [Temporal Segment Networks](temporal-segment-networks.md) as a fixed-budget sparse-sampling approach.
 - **Uses:** [TimeSformer](timesformer.md) as a factorized-attention approach that expands clip-level temporal coverage.
+- **Uses:** [ViViT (Video Vision Transformer)](vivit.md) as a spatial-then-temporal encoder that increases practical clip length.
 
+[^vivit-paper]: [ViViT: A Video Vision Transformer](../raw/ViViT/main_arxiv.tex)
 [^video-temporal-survey]: [Tổng hợp các hướng xử lý video](../raw/TongHopCacHuongXuLyVideo.md)
 [^temporal-segment-networks]: [Temporal Segment Networks for Action Recognition in Videos](../raw/TemporalSegmentNetworks/tsn_pami.tex)
 [^timesformer-paper]: [Is Space-Time Attention All You Need for Video Understanding?](../raw/TimeSformer/TimeSformer_arxiv_v17.tex)

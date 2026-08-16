@@ -23,3 +23,4 @@ The complete retrieval map for compiled knowledge. See [LLM Wiki Contract](../LL
 - [Video temporal learning](video-temporal-learning.md) — A task taxonomy for learning temporal structure in video, spanning recognition, localization, representation learning, language grounding, and reasoning.
 - [Video temporal representation learning](video-temporal-representation-learning.md) — Pretraining video features to encode appearance, motion, order, dynamics, and longer-range semantics for downstream tasks.
 - [Video-language temporal grounding and reasoning](video-language-temporal-grounding-and-reasoning.md) — Text-conditioned localization and inference over event timing, order, duration, frequency, state changes, and causal relations in video.
+- [ViViT (Video Vision Transformer)](vivit.md) — A family of pure-Transformer video classifiers that tokenizes video as frames or tubelets and offers four space–time attention designs.

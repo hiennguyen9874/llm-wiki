@@ -1,0 +1,56 @@
+\section{Additional experimental details}
+
+In this appendix, we provide additional experimental details.
+Section~\ref{sec:regulariser_details} provides additional details about the regularisers we used and Sec.~\ref{sec:hyperparameters} details the training hyperparamters used for our experiments.
+
+\input{tables/training_hyperparams.tex}
+
+\subsection{Further details about regularisers}
+\label{sec:regulariser_details} 
+
+In this section, we provide additional details and list the hyperparameters of the additional regularisers that we employed in Tab.~\ref{tab:regularisation_epic_kitchens}.
+Hyperparameter values for all our experiments are listed in Tab.~\ref{tab:training_hyperparameters}.
+
+\paragraph{Stochastic depth}
+
+Stochastic depth regularisation was originally proposed for training very deep residual networks~\cite{huang_stochasticdepth_eccv_2016}.
+Intuitively, the outputs of a layer, $\ell$, are ``dropped out'' with probability, $p_{\text{drop}}(\ell)$ during training, by setting the output of the layer to be equal to its input.
+
+Following~\cite{huang_stochasticdepth_eccv_2016}, we linearly increase the probability of dropping a layer according to its depth within the network, 
+\begin{equation}
+p_{\text{drop}}(\ell) = \frac{\ell}{L} p_{\text{drop}},
+\end{equation}
+where $\ell$ is the index of the layer in the network, and $L$ is the total number of layers.
+
+\paragraph{Random augment}
+Random augment~\cite{cubuk_arxiv_2019} randomly applies data augmentation transformations sequentially to an input example.
+We follow the public implementation\footnote{\url{https://github.com/tensorflow/models/blob/master/official/vision/beta/ops/augment.py}}, but modify the data augmentation operations to be temporally consistent throughout the video (in other words, the same transformation is applied on each frame of the video).
+
+The authors define two hyperparameters for Random augment, ``number of layers'' , the number of augmentation transformations to apply sequentially to a video and ``magnitude'',  the strength of the transformation that is shared across all augmentation operations.
+Our values for these parameters are shown in Tab.~\ref{tab:training_hyperparameters}.
+
+\paragraph{Label smoothing}
+Label smoothing was proposed by~\cite{szegedy_cvpr_2016} originally to regularise training Inception-v3.
+Concretely, the label distribution used during training, $\tilde{y}$, is a mixture of the one-hot ground-truth label, $y$,  and a uniform distribution, $u$, to encourage the network to produce less confident predictions during training:
+\begin{equation}
+\tilde{y} = (1 - \lambda) y + \lambda u.
+\end{equation}
+There is therefore one scalar hyperparamter, $\lambda \in [0, 1]$.
+
+\paragraph{Mixup}
+Mixup~\cite{zhang_mixup_iclr_2018} constructs virtual training examples which are a convex combination of pairs of training examples and their labels.
+Concretely, given $(x_i, y_i)$ and $(x_j, y_j)$ where $x_i$ denotes an input vector and $y_i$ a one-hot input label, mixup constructs the virtual training example,
+\begin{align}
+\tilde{x} &= \lambda x_i + (1 - \lambda) x_j \nonumber \\
+\tilde{y} &= \lambda y_i + (1 - \lambda) y_j.
+\end{align}
+$\lambda \in [0, 1]$, and is sampled from a Beta distribution, $\text{Beta}(\alpha, \alpha)$.
+Our choice of the hyperparameter $\alpha$ is detailed in Tab.~\ref{tab:training_hyperparameters}.
+
+
+\subsection{Training hyperparameters}
+\label{sec:hyperparameters}
+
+Table~\ref{tab:training_hyperparameters} details the hyperparamters for all of our experiments.
+We use synchronous SGD with momentum, a cosine learning rate schedule with linear warmup, and a batch size of 64 for all experiments.
+As aforementioned, we only employed additional regularisation when training on the smaller Epic Kitchens and Something-Something v2 datasets.
