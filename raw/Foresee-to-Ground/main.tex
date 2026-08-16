@@ -1,0 +1,1366 @@
+%%%%%%%% ICML 2026 EXAMPLE LATEX SUBMISSION FILE %%%%%%%%%%%%%%%%%
+
+\documentclass{article}
+
+% Recommended, but optional, packages for figures and better typesetting:
+\usepackage{microtype}
+\usepackage{graphicx}
+\usepackage{subcaption}
+\usepackage{booktabs} % for professional tables
+
+% hyperref makes hyperlinks in the resulting PDF.
+% If your build breaks (sometimes temporarily if a hyperlink spans a page)
+% please comment out the following usepackage line and replace
+% \usepackage{icml2026} with \usepackage[nohyperref]{icml2026} above.
+\usepackage{hyperref}
+
+
+% Attempt to make hyperref and algorithmic work together better:
+\newcommand{\theHalgorithm}{\arabic{algorithm}}
+
+% Use the following line for the initial blind version submitted for review:
+% \usepackage{icml2026}
+
+%If accepted, instead use the following line for the camera-ready submission:
+\usepackage[accepted]{icml2026}
+
+% ---- Global spacing tweaks (put AFTER \usepackage{icml2026}) ----
+\usepackage{titlesec}
+\usepackage{dblfloatfix}
+% Section-like headings (before/after)
+\titlespacing*{\section}{0pt}{0mm}{0mm}
+\titlespacing*{\subsection}{0pt}{0mm}{0mm}
+\titlespacing*{\subsubsection}{0pt}{-1mm}{-1mm}
+\titlespacing*{\paragraph}{0pt}{0mm}{1em} % 注意：\paragraph 默认是 run-in，“后面”是水平空隙
+
+% Figures/Tables floats spacing (before/after floats)
+\addtolength{\textfloatsep}{-3mm}     % top/bottom floats vs text
+\addtolength{\intextsep}{-2mm}        % here-floats vs text
+\addtolength{\floatsep}{-2mm}         % float vs float
+\addtolength{\dbltextfloatsep}{-2mm}  % two-column floats vs text
+\addtolength{\dblfloatsep}{-2mm}      % two-column float vs float
+
+% For preprint, use
+% \usepackage[preprint]{icml2026}
+
+
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{mathtools}
+\usepackage{amsthm}
+\usepackage{xcolor}
+\usepackage{array}
+\usepackage{multirow}
+\usepackage{tabularx}
+% \usepackage{tcolorbox}
+\usepackage{makecell}
+\usepackage{bbding}
+\usepackage{graphicx}
+\usepackage{multirow}
+\usepackage{colortbl} % for \rowcolor
+\newcommand{\impro}[1]{\textcolor{red}{\scriptsize (+#1)}}
+
+\usepackage[most]{tcolorbox}
+\tcbuselibrary{listings,breakable}
+
+% if you use cleveref..
+\usepackage[capitalize,noabbrev]{cleveref}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% THEOREMS
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\theoremstyle{plain}
+\newtheorem{theorem}{Theorem}[section]
+\newtheorem{proposition}[theorem]{Proposition}
+\newtheorem{lemma}[theorem]{Lemma}
+\newtheorem{corollary}[theorem]{Corollary}
+\theoremstyle{definition}
+\newtheorem{definition}[theorem]{Definition}
+\newtheorem{assumption}[theorem]{Assumption}
+\theoremstyle{remark}
+\newtheorem{remark}[theorem]{Remark}
+
+% Todonotes is useful during development; simply uncomment the next line
+%    and comment out the line below the next line to turn off comments
+%\usepackage[disable,textsize=tiny]{todonotes}
+\usepackage[textsize=tiny]{todonotes}
+
+% The \icmltitle you define below is probably too long as a header.
+% Therefore, a short form for the running title is supplied here:
+\icmltitlerunning{Foresee-to-Ground: From Predictive Temporal Perception to Evidence-Driven Reasoning for Video Temporal Grounding}
+
+\begin{document}
+
+\twocolumn[
+  % \icmltitle{Foresee-to-Ground: From Predictive Temporal Modeling to Evidence-Driven\\
+  %   Span-Prompted Localization in Video Temporal Grounding}
+  \icmltitle{Foresee-to-Ground: From Predictive Temporal Perception to \\
+  Evidence-Driven Reasoning for Video Temporal Grounding}
+  
+  % It is OKAY to include author information, even for blind submissions: the
+  % style file will automatically remove it for you unless you've provided
+  % the [accepted] option to the icml2026 package.
+
+  % List of affiliations: The first argument should be a (short) identifier you
+  % will use later to specify author affiliations Academic affiliations
+  % should list Department, University, City, Region, Country Industry
+  % affiliations should list Company, City, Region, Country
+
+  % You can specify symbols, otherwise they are numbered in order. Ideally, you
+  % should not use this facility. Affiliations will be numbered in order of
+  % appearance and this is the preferred way.
+  \icmlsetsymbol{equal}{*}
+
+  \begin{icmlauthorlist}
+    \icmlauthor{Zelin Zheng}{ucas,lab}
+    \icmlauthor{Xinyan Liu}{hit,cityu}
+    \icmlauthor{Ruixin Li}{ucas,lab}
+    \icmlauthor{Antoni B. Chan}{cityu}
+    \icmlauthor{Guorong Li}{ucas}
+    \icmlauthor{Qingming Huang}{ucas}
+    \icmlauthor{Laiyun Qing}{ucas,lab}
+    %\icmlauthor{}{sch}
+    % \icmlauthor{Firstname8 Lastname8}{sch}
+    % \icmlauthor{Firstname8 Lastname8}{yyy,comp}
+    %\icmlauthor{}{sch}
+    %\icmlauthor{}{sch}
+  \end{icmlauthorlist}
+
+  \icmlaffiliation{ucas}{School of Computer Science and Technology, University of Chinese Academy of Sciences, Beijing, China}
+  \icmlaffiliation{hit}{Faculty of Computing, Harbin Institute of Technology, Weihai, China}
+  \icmlaffiliation{cityu}{City University of Hong Kong, Hong Kong, China}
+  \icmlaffiliation{lab}{Beijing Key Laboratory of Embodied Intelligence Computing, Beijing, China}
+
+  \icmlcorrespondingauthor{Laiyun Qing}{lyqing@ucas.ac.cn}
+  % \icmlcorrespondingauthor{Firstname2 Lastname2}{first2.last2@www.uk}
+
+  % You may provide any keywords that you find helpful for describing your
+  % paper; these are used to populate the "keywords" metadata in the PDF but
+  % will not be shown in the document
+  \icmlkeywords{Machine Learning, ICML}
+
+  \vskip 0.3in
+]
+
+% this must go after the closing bracket ] following \twocolumn[ ...
+
+% This command actually creates the footnote in the first column listing the
+% affiliations and the copyright notice. The command takes one argument, which
+% is text to display at the start of the footnote. The \icmlEqualContribution
+% command is standard text for equal contribution. Remove it (just {}) if you
+% do not need this facility.
+
+% Use ONE of the following lines. DO NOT remove the command.
+% If you have no special notice, KEEP empty braces:
+\printAffiliationsAndNotice{}  % no special notice (required even if empty)
+% Or, if applicable, use the standard equal contribution text:
+% \printAffiliationsAndNotice{\icmlEqualContribution}
+
+\begin{abstract}
+  Current Video-LLM approaches for Video Temporal Grounding (VTG) typically rely on direct timestamp generation from an unstructured visual-token stream, often leading to brittle numerics and inconsistent boundaries. 
+  To address this, we propose Foresee-to-Ground (F2G), a framework that reformulates VTG as a verifiable Identify-then-Measure problem. 
+  F2G integrates  Predictive Temporal Perception with Evidence-Driven Reasoning: it learns boundary-sensitive temporal representations to build a video-wide evidence pool of candidate event segments, and exposes these segments to the LLM as citable evidence units that bind boundary prediction to explicit event hypotheses. 
+  By decoupling event identification from precise boundary measurement, F2G stabilizes grounding and makes predictions verifiable. 
+  Extensive experiments demonstrate that F2G consistently improves grounding accuracy across diverse benchmarks, transfers robustly across different Video-LLM backbones, and preserves general video understanding capabilities.
+  Our project is available at \url{https://github.com/zelion2003/Foresee-to-Ground}.
+
+\end{abstract}
+
+\begin{figure}[t]
+  \vskip 0in
+  \centering
+  \includegraphics[width=\columnwidth]{figures/Introduction.pdf}
+  \caption{\textbf{Paradigms for VTG with Video-LLMs.} (a) Direct timestamp generation; (b) Direct timestamp generation with time-text interface; (c) F2G: a verifiable grounding pipeline.}
+  \label{fig:paradigm}
+  \vspace{-1mm}
+\end{figure}
+
+\section{Introduction}
+Video Temporal Grounding (VTG) serves as a pivotal task in long-form video understanding, mapping open-vocabulary queries to specific temporal segments \cite{vtg2,vtg1,tea,interventional,survey23,survey25}.
+% xinyan: 补充一些参考文献 zelin: 收到，已更新
+Video-LLMs have emerged as the predominant backbone for VTG. However, the prevailing paradigm treats grounding as a direct timestamp regression problem. This formulation is architecturally misaligned, as it compels LLMs to map flattened visual tokens onto continuous coordinates from within a discrete representation space. Such a black-box regression approach inevitably leads to brittle inference and high-variance temporal boundaries.
+
+These regression-based approaches are conceptually incongruent: they compel LLMs to map a discrete token space onto a continuous temporal domain. While existing methods mitigate this via timestamp discretization \cite{VTimeLLM,Momentor,TimeChat,TRACE}, they largely overlook the underlying cognitive process of temporal grounding. Humans do not ground temporal queries by treating videos as a continuous stream of metric time; instead, when grounding a query, we first make an explicit segment commitment (identifying the event), then refine its precise boundaries (measuring the interval). 
+%camera ready revision
+This motivates an Identify-then-Measure formulation, reframing VTG from black-box numeric regression into a structured grounding process where explicit evidence selection guides evidence-conditioned boundary refinement. Fig.~\ref{fig:paradigm} summarizes these paradigms.
+
+% camera ready revision
+
+To operationalize this intuition, we propose Foresee-to-Ground (F2G), a framework that translates the Identify-then-Measure routine into a verifiable grounding pipeline. F2G bridges temporal perception and LLM reasoning by constructing an explicit, video-wide evidence pool of candidate event segments. Each evidence unit contains a span identifier, a coarse temporal interval, and segment-local visual evidence, and is presented to the LLM as a discrete, citable event hypothesis. The LLM then identifies the most relevant hypothesis and measures precise temporal boundaries through evidence-conditioned refinement.
+
+F2G builds this evidence pool with Predictive Temporal Perception. 
+Motivated by the human tendency to perceive videos as coherent events rather than a flat visual stream, this module decomposes untrimmed videos into a compact set of candidate segments. 
+These candidates are extracted from boundary-aware representations learned via predictive objectives, which encourage the temporal module to capture coherent event dynamics and transition cues.
+The resulting evidence pool supports subsequent Evidence-Driven Reasoning, where the LLM input is augmented with indexed evidence units. 
+By binding each boundary prediction to a specific evidence ID, F2G shifts grounding from unconstrained timestamp regression over a flattened visual-token stream to verifiable, citation-based inference.
+
+We instantiate F2G on Qwen3-VL-8B-Instruct~\cite{Qwen3-VL} and evaluate it on standard VTG benchmarks.
+Across settings, F2G improves grounding accuracy while markedly reducing the instability under repeated inference.
+Moreover, the same \textit{+F2G-FT} recipe transfers to other Video-LLMs with minimal changes, consistently boosting VTG without sacrificing general video understanding.
+More broadly, F2G suggests a general recipe for applying LLMs to structured perception:
+make discrete commitments explicit, and reserve continuous prediction for local refinement. 
+
+More broadly, F2G highlights a simple design principle for Video-LLM grounding: expose intermediate evidence explicitly before asking the model to produce precise temporal boundaries. Our contributions are summarized as follows:
+
+\par\vspace{-0.8em}
+\begin{enumerate}
+    \setlength{\itemsep}{0pt}
+    \setlength{\topsep}{0pt}
+    \setlength{\parsep}{0pt}
+    \setlength{\partopsep}{0pt}
+    \setlength{\parskip}{0pt}
+    \item We introduce Foresee-to-Ground (F2G), a VTG framework that makes segment-level evidence explicit and enables verifiable grounding through supervised evidence citation.
+    \item We develop Predictive Temporal Perception, which learns boundary-sensitive temporal representations and extracts a compact, ranked evidence pool of candidate event segments from untrimmed videos.
+    \item We propose Evidence-Driven Reasoning, which augments the LLM input with citable evidence units and implements Identify-then-Measure through joint span-ID and timestamp supervision.
+\end{enumerate}
+\vspace{-0.4em}
+% i) We introduce Foresee-to-Ground (F2G), a VTG framework that makes segment-level evidence explicit and enables verifiable grounding by requiring evidence citation before boundary prediction; ii) We develop predictive temporal perception to extract a compact, ranked evidence pool of candidate event segments from untrimmed videos; iii) We propose evidence-driven reasoning that augments the LLM input with evidence units and enforces an explicit Identify-then-Measure inference routine.
+
+
+\section{Related Work}
+\subsection{Video Temporal Grounding with Video-LLMs}
+
+Video Temporal Grounding (VTG) grounds the temporal interval of a language query in an untrimmed video, typically by predicting start/end timestamps ~\cite{vtg2,vtg1,tea,interventional,llava-st}, covering tasks such as moment retrieval ~\cite{VMR,xu2022meta,foo2023system,hierarchical,frame,grounded}, dense video captioning ~\cite{activitynet_captions,vid2seq,person_search_survey,kim2024you}, and highlight detection ~\cite{qvhighlights,TimeChat}.
+Motivated by open-vocabulary generalization and a unified instruction-following interface ~\cite{LLaVA-OneVision,LLaVA,Qwen2-VL,yi2024bridge,LLaVA-Video}, recent works increasingly build VTG on top of Video-LLMs to solve multiple grounded tasks within a single generative framework.
+A persistent challenge is that Video-LLMs must map a long, flattened visual-token stream to metric time, making timestamp decoding numerically brittle and unstable.
+To bridge this gap, prior adaptations largely fall into two complementary lines.
+
+\textbf{Timestamp tokenization and injection:} discretizing time into bins/tokens~\cite{Momentor,TRACE} or injecting explicit temporal cues such as timestamps~\cite{VTimeLLM,TimeChat,TimeSuite} and visual indices/number prompts~\cite{NumPro}.
+These methods improve the time-to-text interface, but the model still performs a direct stream-to-time mapping.
+% \textbf{Segment-level structural bias:} including event-structured decoding~\cite{TRACE}, segment-level fine-tuning~\cite{SF2T}, and coarse-to-fine multi-pass prompting~\cite{slowfocus}.
+% While such structure can help localization, it often increases inference cost and the relevant segment often remains implicit.
+% In contrast, Foresee-to-Ground introduces an evidence-mediated interface that makes segment hypotheses explicit as a compact, video-wide evidence pool of candidate event segments, and enforces an Identify-then-Measure routine: the model first identifies a segment by citing its evidence ID, then measures precise metric boundaries via evidence-driven reasoning under that cited hypothesis.
+% camera ready revision
+\textbf{Segment-level structural bias:} including event-structured decoding~\cite{TRACE}, segment-level fine-tuning~\cite{SF2T}, and coarse-to-fine multi-pass prompting~\cite{slowfocus}.
+While such structure can help localization, it often increases inference cost, and the intermediate segment hypothesis is not always explicit, supervised, or directly attributable.
+In contrast, Foresee-to-Ground introduces an evidence-mediated interface that turns segment hypotheses into a compact, video-wide evidence pool of candidate event segments.
+Each evidence unit is associated with a citable span ID, a coarse temporal interval, and segment-local visual evidence, so the intermediate hypothesis is not merely a narrowed search range but a supervised and attributable event-level variable.
+The model then grounds the query by identifying one such evidence unit and measuring precise metric boundaries via evidence-driven reasoning under the cited hypothesis.
+
+\subsection{Self-Supervised Video Representation Learning}
+
+Self-supervised video representation learning acquires transferable spatiotemporal features from unlabeled videos via pretext objectives~\cite{xu2019vcop,speednet,ssl,qian2021cvrl}.
+Masked reconstruction methods recover missing spatiotemporal content and scale well to large corpora~\cite{videomae,videomae-v2}, while recent predictive approaches replace pixel-level synthesis with latent-space prediction to capture temporal dynamics more compactly~\cite{VJEPA,VJEPA2}.
+At the same time, predictive training can be sensitive to optimization and latent geometry, motivating regularization that stabilizes embedding distributions and improves robustness ~\cite{LeJEPA}.
+Unlike prior work that treats such pretraining mainly as a transferable representation, we use it as predictive temporal perception for verifiable VTG: the learned features are optimized to discover event segments and construct an explicit evidence pool for Identify-then-Measure grounding.
+
+\begin{figure*}[t]
+  \vskip 0in
+  \centering
+  \includegraphics[width=\textwidth]{figures/pipeline.pdf}
+  \caption{\textbf{Foresee-to-Ground framework overview.}
+  Left: model architecture and LLM input sequence construction with evidence units.
+  Right: three-stage training pipeline (Stage-1: predictive temporal perception pretraining; Stage-2: proposal warm-up; Stage-3 evidence-driven Identify-then-Measure fine-tuning via LoRA on the LLM).}
+  \label{fig:f2g_overview}
+\end{figure*}
+
+\section{Foresee-to-Ground}
+
+We formulate VTG as a verifiable structured prediction problem under an explicit Identify-then-Measure formulation:
+\begin{equation}
+\begin{aligned}
+p(A,T,z \mid V,Q,\mathcal{S}_K(V))
+&=
+p\!\left(z \mid V,Q,\mathcal{S}_K(V)\right) \\
+&\quad\cdot p\!\left(A,T \mid z,V,Q,\mathcal{S}_K(V)\right).
+\end{aligned}
+\label{eq:identify_measure_joint}
+\end{equation}
+where $V$ and $Q$ denote the input video and query, $T=(t^{\mathrm{st}},t^{\mathrm{ed}})$ is the metric interval, and $A$ is an grounded answer.
+Crucially, $z\in\{1,\ldots,K\}$ indexes a single candidate segment from a compact, video-wide evidence pool $\mathcal{S}_K(V)$.
+
+The first factor predicts the cited index $z$ (Identify), and the second factor generates $(A,T)$ conditioned on the cited hypothesis (Measure), turning grounding into a verifiable decision rather than direct timestamp regression.
+% camera ready revision
+This factorization is implemented as a single structured response rather than two separate LLM passes. All evidence units are provided in the same context, while the output is supervised to contain exactly one evidence citation that makes the generated interval attributable to a specific hypothesis.
+
+As illustrated in Fig.~\ref{fig:f2g_overview}, F2G realizes this framework through a synergistic design of predictive temporal perception and evidence-driven reasoning.
+The perception module extracts boundary-sensitive temporal features $U$, proposes Top-$K$ candidate event segments, and aggregates segment-local visual evidence via a Span Evidence Encoder (SEE), forming the video-wide evidence pool $\mathcal{S}_K(V)$.
+Conditioned on the instruction, video tokens, and $\mathcal{S}_K(V)$, the Video-LLM first cites one evidence ID $z$ and then generates the final boundaries $T$ and answer $A$ under the cited hypothesis.
+
+We optimize F2G via a three-stage curriculum: i) pretraining predictive temporal perception, ii) warming up proposal generation, and iii) fine-tuning the Video-LLM for evidence-driven grounding.
+
+
+
+\subsection{Predictive Temporal Perception: Dynamics-Driven Event Discovery}
+\label{sec:perception}
+
+%In stage-1, we pretrain a temporal module to produce boundary-sensitive temporal features, and realize this by training with a multi-view latent prediction objective ~\cite{VJEPA,VJEPA2,LeJEPA}.
+In Stage-1, we pretrain a temporal module to produce boundary-sensitive representations that are
+well suited for event discovery in untrimmed videos. Rather than regressing temporal boundaries
+directly, this stage learns dynamics-aware features from which coherent event hypotheses can be
+efficiently extracted. We achieve this via a multi-view latent prediction objective
+~\cite{VJEPA,VJEPA2,LeJEPA}.
+
+Given an untrimmed video $V$ sampled into $N$ time steps, the Video-LLM's vision encoder produces spatially dense tokens and a projector maps them into the Video-LLM embedding space:
+\begin{equation}
+H^{v}=\mathrm{Proj}(\mathrm{VisionEnc}(V))\in\mathbb{R}^{N\times S\times D},
+\end{equation}
+where $S$ is the number of spatial tokens per time step and $D$ matches the LLM embedding dimension.
+We pool over spatial tokens to form the temporal sequence shared by all stages:
+\begin{equation}
+X=\mathrm{Pool}(H^{v})\in\mathbb{R}^{N\times D}.
+\label{eq:pool_to_X}
+\end{equation}
+
+Stage-1 pretrains the temporal module on multi-view samples derived from $X$, rather than directly supervising temporal boundaries.
+The key intuition is that within a coherent event, long-range temporal dynamics are relatively predictable from partial observations, whereas near event boundaries, the same partial evidence can correspond to multiple plausible continuations.
+By predicting global temporal dynamics from local views, the model is encouraged to distinguish stable within-event evolution from boundary-induced ambiguity:
+\begin{equation}
+\min_{g}\ \mathbb{E}\!\left[\|U_g-g(U_l)\|_2^2\right],
+\end{equation}
+where $U_g$ and $U_l$ denote global-view and local-view latents in a simplified two-view case, and $g$ denotes the predictor.
+
+Concretely, we construct multiple views on the same temporal sequence $X\in\mathbb{R}^{N\times D}$.
+The global view $X_g\in\mathbb{R}^{N_g\times D}$ preserves full-range temporal context, while each local view $X_l^{(v)}\in\mathbb{R}^{N_v\times D}$ contains partial temporal evidence obtained by a view-specific crop, stride, or subsampling pattern.
+Here, $N_g$ and $N_v$ denote the numbers of timesteps in the global and local views, respectively.
+All views share the same temporal module:
+
+\begin{equation}
+U_g=f_\theta(X_g),\qquad U_l^{(v)}=f_\theta(X_l^{(v)}),\ \ v\in\mathcal{V},
+\label{eq:view_latents}
+\end{equation}
+% where $U_g\in\mathbb{R}^{N_g\times D}$ and $U_l^{(v)}\in\mathbb{R}^{N_v\times D}$.
+A lightweight predictor $g_\phi$ maps each local-view latent to the global target latent.
+We additionally use a learnable view embedding $e_v$ to indicate the local-view type (e.g., scale/stride/crop pattern):
+\begin{equation}
+\hat{U}_g^{(v)} = g_{\phi}\!\left(U_l^{(v)} + e_v\right),
+\label{eq:predictor_def_new}
+\end{equation}
+and minimize a latent-space predictive loss:
+\begin{equation}
+\mathcal{L}_{\mathrm{pred}}
+=
+\mathbb{E}
+\left[
+\sum_{v\in\mathcal{V}}
+\left\|
+\mathrm{sg}(U_g)
+-
+\hat{U}_g^{(v)}
+\right\|_{2}^{2}
+\right],
+\label{eq:lp_pred_new}
+\end{equation}
+where $\mathrm{sg}(\cdot)$ denotes stop-gradient.
+Since each local view $X_l^{(v)}$ contains only partial temporal context while the global view $X_g$ summarizes long-range dynamics, minimizing $\mathcal{L}_{\mathrm{pred}}$ is discouraged from collapsing to a trivial copy-and-match solution.
+Instead, the shared backbone is driven to encode the temporal cues that make global evolution predictable from partial evidence, which tends to highlight transition/boundary-related signals in the learned temporal features.
+
+%Multi-view prediction alone can produce poorly conditioned or anisotropic latent spaces, which destabilize training and harm downstream continuous boundary parameterization.
+%We therefore regularize the latent geometry with a sliced isotropic Gaussian regularizer (SIGReg) ~\cite{LeJEPA}.
+To stabilize the latent geometry and facilitate reliable downstream boundary refinement, we regularize the temporal representations using a sliced isotropic Gaussian regularizer (SIGReg)~\cite{LeJEPA}. 
+%This prevents poorly conditioned latent spaces that can otherwise destabilize continuous boundary prediction.
+
+Let $\tilde{u}$ denote pooled latent samples collected from $\{\mathrm{sg}(U_g)\}\cup\{U_l^{(v)}\}_{v\in\mathcal{V}}$ over a minibatch (pooling over time and batch).
+Let $\mathcal{A}$ be a set of random unit directions (sampled on the sphere), $\hat{p}(a^\top \tilde{u})$ the empirical 1D distribution of projected samples, and $\mathcal{N}(0,1)$ the standard normal.
+We define
+\begin{equation}
+\mathcal{L}_{\mathrm{SIG}}
+=
+\mathbb{E}_{a\sim \mathcal{A}}
+\Big[
+D\!\left(\hat{p}\!\left(a^{\top}\tilde{u}\right),\, \mathcal{N}(0,1)\right)
+\Big],
+\label{eq:sigreg_new}
+\end{equation}
+where $D(\cdot,\cdot)$ is a divergence between 1D distributions.
+This regularizer encourages a well-conditioned latent geometry and improves optimization stability. 
+
+The overall Stage-1 objective is
+\begin{equation}
+\mathcal{L}_{\mathrm{S1}}
+=
+(1-\lambda)\mathcal{L}_{\mathrm{pred}}
++
+\lambda\mathcal{L}_{\mathrm{SIG}}.
+\label{eq:perc_total}
+\end{equation}
+We summarize the complete optimization procedure in Alg.~\ref{alg:perception}. 
+
+After Stage-1 pretraining, we discard the predictor $g_\phi$ and apply the pretrained temporal module to the full temporal sequence, obtaining $U=f_\theta(X)\in\mathbb{R}^{N\times D}$ for Stage-2 proposal generation and Stage-3 evidence construction.
+
+
+\begin{algorithm}[tb]
+  \caption{Predictive Temporal Perception via Multi-view Latent Prediction}
+  \label{alg:perception}
+  \begin{algorithmic}
+    \STATE {\bfseries Input:} temporal feature sequence $X$;
+    \STATE {\bfseries Parameters:} shared backbone $f_{\theta}$; predictor $g_{\phi}$; view embeddings $\{e_v\}$; weight $\lambda$;
+    \STATE {\bfseries Output:} pretrained backbone $f_{\theta}$ ;
+
+    \REPEAT
+      \STATE Sample global view $X_g$ and local views $\{X_l^{(v)}\}_{v\in\mathcal{V}}$
+      \STATE Encode views: $U_g \leftarrow f_{\theta}(X_g)$; $U_l^{(v)} \leftarrow f_{\theta}(X_l^{(v)})$
+      \STATE Stop-gradient target: $\bar{U}_g \leftarrow \mathrm{sg}(U_g)$
+      \STATE Predict global latent from each local latent:
+      \FOR{each $v\in\mathcal{V}$}
+        \STATE $\hat{U}_g^{(v)} \leftarrow g_{\phi}\!\left(U_l^{(v)} + e_v\right)$
+      \ENDFOR
+      \STATE $\mathcal{L}_{\mathrm{pred}} \leftarrow \sum_{v\in\mathcal{V}} \|\bar{U}_g - \hat{U}_g^{(v)}\|_2^2$
+      \STATE Pool latent samples $\tilde{u} \leftarrow \mathrm{Pool}(\{\bar{U}_g\}\cup\{U_l^{(v)}\}_{v\in\mathcal{V}})$
+      \STATE $\mathcal{L}_{\mathrm{SIG}} \leftarrow \mathrm{SIGReg}(\tilde{u})$
+      \STATE $\mathcal{L} \leftarrow (1-\lambda)\mathcal{L}_{\mathrm{pred}} + \lambda\mathcal{L}_{\mathrm{SIG}}$
+      \STATE Update $\theta, \phi,$ and $\{e_v\}$ by SGD on $\mathcal{L}$
+    \UNTIL{convergence}
+  \end{algorithmic}
+\end{algorithm}
+
+
+\subsection{Proposal Warm-up and Evidence Pool Construction}
+\label{sec:evidence_pool}
+
+%Stage-1 produces dynamics-aware temporal features $U=f_{\theta}(X)\in\mathbb{R}^{N\times D}$. Stage-2 learns a proposal head $h_{\psi}$ that enumerates video-wide candidate event segments from $U$.
+Stage-2 trains a lightweight proposal head $h_\psi$ to enumerate a compact, ranked set of candidate
+event segments from the boundary-sensitive temporal features $U=f_\theta(X)$. This warm-up stage
+aligns proposal generation with the downstream evidence-driven reasoning interface, ensuring that
+the Top-$K$ candidates form a high-recall evidence pool suitable for citation.
+
+We implement $h_{\psi}$ as a lightweight self-attention stack followed by MLP regression and scoring:
+\begin{equation}
+\begin{gathered}
+\bar{U}=\mathrm{MHSAStack}_{\psi}(U)\in\mathbb{R}^{N\times D},\\
+(\tilde{s}_i,\tilde{c}_i)=\mathrm{MLP}_{\psi}(\bar{U}_i),
+\end{gathered}
+\label{eq:prop_head}
+\end{equation}
+
+where $\tilde{s}_i=(\tilde{\tau}^{\mathrm{st}}_i,\tilde{\tau}^{\mathrm{ed}}_i)\in[0,1]^2$ is a normalized segment and $\tilde{c}_i\in\mathbb{R}$ is its objectness score.
+Collecting all predictions gives $\tilde{\mathcal{S}}_{N}(V)=\{(\tilde{s}_i,\tilde{c}_i)\}_{i=1}^{N}$, and we keep the Top-$K$ candidates by objectness score:
+\begin{equation}
+\tilde{\mathcal{S}}_{K}(V)=\mathrm{TopK}\!\left(\tilde{\mathcal{S}}_{N}(V)\right).
+\label{eq:topk_pool}
+\end{equation}
+
+Stage-2 warm-up supervises $h_{\psi}$ with a small set of labeled VTG intervals to align proposal objectness and ranking with the evidence interface.
+% Let $\tilde{s}^\star$ be the ground-truth normalized interval, 
+Given the ground-truth normalized interval $\tilde{s}^\star$,
+we train proposal head with a standard regression-and-scoring objective:
+\begin{equation}
+\mathcal{L}_{\mathrm{S2}}
+=
+\mathcal{L}_{\mathrm{reg}}\!\left(\{\tilde{s}_i\},\tilde{s}^{\star}\right)
++
+\eta\,\mathcal{L}_{\mathrm{score}},
+\label{eq:s2_loss}
+\end{equation}
+where $\mathcal{L}_{\mathrm{score}}$ uses IoU-derived targets so high-IoU segments receive higher objectness scores.
+% camera ready revision
+Importantly, this supervision remains query-agnostic: although Stage-2 uses VTG-style interval annotations, the proposal head does not access the language query.
+
+After Top-$K$ selection, we map each normalized segment to metric time $T_k$ and attach segment-local visual evidence via a Span Evidence Encoder (SEE).
+Given a candidate interval $T_k$, we first crop the temporal features to obtain a variable-length segment sequence
+\begin{equation}
+U_k=\mathrm{Crop}(U,T_k)\in\mathbb{R}^{N_k\times D}.
+\label{eq:crop_uk}
+\end{equation}
+SEE is a Q-Former style evidence encoder with $M$ learnable query tokens. It aggregates $U_k$ into a fixed-length evidence token set via stacked cross-attention:
+\begin{equation}
+P_k=\mathrm{SEE}(U_k)=\mathrm{MHCAStack}(B,U_k)\in\mathbb{R}^{M\times D},
+\label{eq:see_tokens}
+\end{equation}
+where $B\in\mathbb{R}^{M\times D}$ denotes the learnable queries.
+
+Finally, we construct the evidence pool
+\begin{equation}
+\mathcal{S}_K(V)
+=
+\Big\{
+\big(\langle\texttt{Span}_k\rangle,\ T_k,\ P_k\big)
+\Big\}_{k=1}^{K},
+\label{eq:evidence_pool}
+\end{equation}
+where $\langle\texttt{Span}_k\rangle$ is a discrete citable ID, $T_k$ is the coarse metric hypothesis, and $P_k$ provides the segment evidence in embedding space. We provide the string-level instruction, an example of the top-K proposals and example response formats in Appendix~\ref{app:serialization}.
+
+\subsection{Identify-then-Measure: Evidence-Driven Reasoning}
+\label{sec:reasoning}
+Given the video-wide evidence pool $\mathcal{S}_K(V)$, F2G performs verifiable grounding by enforcing an explicit Identify-then-Measure routine within Video-LLM decoding.
+% Concretely, the decoder first selects exactly one evidence unit by emitting its identifier, and then generates the final metric interval $T$ and $A$ conditioned on that selection.
+% camera ready revision
+Concretely, the decoder is supervised to make an explicit commitment to one evidence unit and to generate the final metric interval $T$ and answer $A$ under this cited hypothesis within a single structured response.
+
+With the evidence-augmented input sequence, F2G constrains decoding to cite exactly one identifier token.
+Let $z\in\{1,\ldots,K\}$ denote the cited index; the identification factor in Eq.~\ref{eq:identify_measure_joint} is implemented as next-token probabilities over the ID vocabulary:
+\begin{equation}
+p\!\left(z \mid V,Q,\mathcal{S}_K(V)\right)
+=
+p\!\left(\langle\texttt{Span}_z\rangle \mid V,Q,\mathcal{S}_K(V)\right).
+\label{eq:identify_prob}
+\end{equation}
+The cited index $z$ explicitly selects the evidence unit $(\langle\texttt{Span}_z\rangle, T_z, P_z)\in\mathcal{S}_K(V)$ and serves as the hypothesis passed to boundary generation.
+
+Conditioned on the cited evidence $(T_z,P_z)$, the model then outputs the final metric interval $T$ and $A$ within the same structured response.
+% By forcing citation before time emission, boundary generation is carried out under an explicit event-segment hypothesis, rather than as unconstrained timestamp regression from a flattened token stream; this reduces decoding ambiguity and improves stability across repeated generations.
+% camera ready revision
+By tying timestamp generation to an explicit evidence citation, boundary prediction is associated with an event-segment hypothesis rather than performed as unconstrained timestamp regression from a flattened token stream; this reduces decoding ambiguity and improves stability across repeated generations.
+
+In Stage-3, we adapt the Video-LLM reasoning stack by fine-tuning the LLM via LoRA ~\cite{LoRA} and simultaneously train the span evidence encoder (SEE) that produces $\{P_k\}$.
+Given a ground-truth interval $T^\star$, we assign the citation target $z^\star$ as the best-overlapping candidate in the pool,
+\begin{equation}
+z^\star=\arg\max_{k\in\{1,\ldots,K\}}\mathrm{IoU}(T_k,T^\star),
+\end{equation}
+and optimize the evidence-driven objective:
+\begin{equation}
+\mathcal{L}_{\mathrm{S3}}
+=
+\mathcal{L}_{\mathrm{LM}}
++
+\alpha\,\mathcal{L}_{\mathrm{id}}
++
+\beta\,\mathcal{L}_{\mathrm{time}},
+\label{eq:s3_reason}
+\end{equation}
+where $\mathcal{L}_{\mathrm{LM}}$ is the sequence cross-entropy over the structured output,
+$\mathcal{L}_{\mathrm{id}}$ supervises the cited identifier token $\langle\texttt{Span}_{z^\star}\rangle$,
+and $\mathcal{L}_{\mathrm{time}}$ supervises the emitted numeric timestamp tokens for $(t^{\mathrm{st}},t^{\mathrm{ed}})$.
+Because Identify-then-Measure conditions decoding on $\mathcal{S}_K(V)$, evidence quality upper-bounds attainable grounding accuracy; we therefore keep the temporal module and proposal head $(f_\theta,h_\psi)$ trainable with a smaller learning rate and add a lightweight proposal loss to maintain alignment:
+\begin{equation}
+\mathcal{L}_{\mathrm{S3+}}
+=
+\mathcal{L}_{\mathrm{S3}}
++
+\gamma\,\mathcal{L}_{\mathrm{reg}},
+\label{eq:s3_plus}
+\end{equation}
+where $\mathcal{L}_{\mathrm{reg}}$ reuses the Stage-2 proposal objective's (Eq.~\ref{eq:s2_loss}) regression term, and $\gamma$ is set small so optimization remains centered on evidence-conditioned decoding while the evidence pool continues to improve.
+
+
+\label{sec:main_results}
+% =========================
+% Table 1: Main comparison
+% =========================
+\begin{table*}[t]
+\renewcommand\arraystretch{0.95}
+\centering
+\caption{\textbf{Comparison on VTG benchmarks with previous state-of-the-art methods.}
+$\dagger$ denotes zero-shot transfer evaluation.
+\textit{+FT} and \textit{+F2G-FT} denote conventional fine-tuning and Foresee-to-Ground fine-tuning on the same instruction set, respectively.
+The best and second-best results in each column are highlighted in \textbf{bold} and \underline{underline}, respectively.}
+\resizebox{\textwidth}{!}{
+\begin{tabular}{l|l|llll|llll|ll}
+\toprule
+\multirow{2}{*}{Method} & \multirow{2}{*}{Backbone} &
+\multicolumn{4}{c|}{Charades-STA$^\dagger$} &
+\multicolumn{4}{c|}{ActivityNet-Captions} &
+\multicolumn{2}{c}{QVHighlights$^\dagger$}\\
+& & R@0.3 & R@0.5 & R@0.7 & mIoU & R@0.3 & R@0.5 & R@0.7 & mIoU & mAP & HIT@1\\
+\midrule
+GroundingGPT~\cite{GroundingGPT} & CLIP ViT-L/14 + Vicuna-v1.5-7B & - & 29.6 & 11.9 & - & - & - & - & - & - & -\\
+LITA~\cite{LITA} & CLIP ViT-L/14 + Vicuna-7B & - & - & - & - & - & 25.9 & - & 28.6 & - & - \\
+VTG-LLM~\cite{VTG-llm} & ViT-G/14 + BLIP + LLaMA-2-7B & 52.0 & 33.8 & 15.7 & - & - & - & - & - & 16.5 & 33.5 \\
+TimeChat~\cite{TimeChat} & ViT-G/14 + LLaMA-2-7B & 47.7 & 22.9 & 12.5 & 30.6 & 30.2 & 16.9 & 8.2 & 21.8 & 14.5 & 23.9 \\
+VTimeLLM~\cite{VTimeLLM} & CLIP ViT-L/14 + Vicuna-13B & 55.3 & 34.3 & 14.7 & 34.6 & 44.8 & 29.5 & 14.2 & 31.4 & - & - \\
+Momentor~\cite{Momentor} & CLIP ViT-L4 + LLaMA-7B & 42.9 & 23.0 & 12.4 & 29.3 & 42.6 & 26.6 & 11.6 & 28.5 & 7.6 & - \\
+HawkEye~\cite{Hawkeye} & - & 50.6 & 31.4 & 14.5 & 33.7 & 49.1 & 29.3 & 10.7 & 32.7 & - & - \\
+TRACE~\cite{TRACE} & CLIP ViT-L + Mistral-7B & - & 40.3 & 19.4 & - & - & - & - & - & \underline{26.8} & \underline{42.7} \\
+NumPro~\cite{NumPro} & LongVA-7B-DPO & 63.8 & 42.0 & 20.6 & 41.4 & 55.6 & 37.5 & 20.6 & 38.8 & 25.0 & 37.2 \\
+\midrule
+\multicolumn{12}{c}{\textit{Qwen3-VL-8B-Instruct backbone}}\\
+\midrule
+Qwen3-VL-8B~\cite{Qwen3-VL} & Qwen3-VL-8B-Instruct & 65.4 & 37.7 & 15.9 & 40.4 & 42.8 & 27.8 & 17.3 & 32.2 & 21.3 & 32.6\\
+~~~~~~\textit{+FT} & Qwen3-VL-8B-Instruct & \underline{65.8} & \underline{44.7} & \underline{21.6} & \underline{42.9} & \underline{58.4} & \underline{39.2} & \underline{21.7} & \underline{40.8} & 24.6 & 36.8\\
+~~~~~~\textit{+F2G-FT(Ours)} & Qwen3-VL-8B-Instruct & \textbf{71.3} & \textbf{50.4} & \textbf{25.7} & \textbf{47.2} & \textbf{63.8} & \textbf{46.1} & \textbf{28.4} & \textbf{45.7} & \textbf{29.7} & \textbf{45.6}\\
+\bottomrule
+\end{tabular}}
+\vskip -0.1in
+\label{table:main}
+\end{table*}
+
+\section{Experiments}
+
+\subsection{Experiment Setup}
+We evaluate F2G on VTG benchmarks spanning moment retrieval (Charades-STA~\cite{Charades-STA}, ActivityNet Captions~\cite{activitynet_captions}) and highlight detection (QVHighlights~\cite{qvhighlights}). We employ a 220K-sample VTG instruction fine-tuning dataset, following the setup in prior grounding studies~\cite{VTimeLLM,NumPro}.
+It is built from 70K QA pairs in DiDeMo~\cite{DiDeMo} and ActivityNet Captions~\cite{activitynet_captions} plus additional grounding instructions from VTimeLLM~\cite{VTimeLLM}. 
+The training set includes ActivityNet Captions videos but excludes Charades-STA and QVHighlights, so results on the latter are reported as zero-shot transfer. For clarity, we summarize the stage-wise training data and implementation details in Appendix~\ref{app:stage_data}.
+
+We use Qwen3-VL-8B-Instruct~\cite{Qwen3-VL} as the base model and follow the three-stage pipeline in Fig.~\ref{fig:f2g_overview}. Stage-3 applies LoRA~\cite{LoRA} to the LLM for 1 epoch (global batch 64) with AdamW~\cite{Adam} and cosine decay (peak LR $10^{-4}$, warm-up 0.05; $r{=}64$, $\alpha{=}128$). 
+We sample videos at 1 FPS and use Top-$K{=}8$ candidates with 4 SEE queries per sample; other settings follow the default Qwen3-VL configuration. 
+All experiments run on 4$\times$A6000 GPUs, and the instruction fine-tuning dataset details are in Appendix~\ref{app:instruction_data}.
+
+For moment retrieval, we report mIoU and Recall@1 at IoU threshold $m$ (R@$m$), $m\in\{0.3,0.5,0.7\}$, with IoU computed between predicted and ground-truth intervals. 
+For highlight detection, we report mAP and HIT@1, where HIT@1 tests whether the top-ranked clip overlaps a ground-truth highlight segment. 
+All metrics follow standard VTG practice~\cite{VTimeLLM,Momentor,TimeChat,Hawkeye,VTG-llm}.
+
+\subsection{Main Results}
+
+% \subsubsection{Comparison with Prior VTG Methods}
+Prior Video-LLM VTG methods are typically built on different backbones. Since foundation models evolve rapidly, their reported results are not strictly backbone-controlled.
+Accordingly, we do not claim strict comparability across backbones; instead, we report each method with its backbone for transparency, and provide a backbone-controlled and dataset-controlled comparison on Qwen3-VL-8B to quantify method gains.
+
+\paragraph{Comparison with Prior VTG Methods.}
+Table~\ref{table:main} shows that \textit{+F2G-FT} achieves strong results among reported Video-LLM VTG methods, while the backbone-controlled comparison on Qwen3-VL-8B confirms clear gains over conventional fine-tuning.
+The gains concentrate at stricter IoU thresholds, indicating improved boundary sharpness from evidence-conditioned Identify-then-Measure decoding rather than merely higher coarse recall.
+Notably, the same recipe improves both zero-shot transfer and in-domain evaluation, suggesting that explicit event segment evidence and local refinement generalize across datasets.
+% \paragraph{Highlight detection.}
+On QVHighlights, \textit{+F2G-FT} improves both mAP and HIT@1 (Table~\ref{table:main}), showing that the evidence-mediated interface benefits query-conditioned relevance ranking in addition to temporal localization.
+Together, these results support F2G as a unified recipe across heterogeneous VTG formulations.
+
+\paragraph{Effectiveness across Video-LLMs.}
+Table~\ref{table:across} shows that F2G transfers robustly across Video-LLM backbones: the same \textit{+F2G-FT} recipe consistently improves VTG when applied to widely used open-source models, including LLaVA-NeXT-7B ~\cite{llava-next}, Qwen2.5-VL-7B ~\cite{Qwen2.5-VL}, and Qwen3-VL-8B ~\cite{Qwen3-VL}, on both Charades-STA and ActivityNet-Captions.
+Overall, these results position F2G as a generally applicable VTG adaptation recipe rather than a backbone-specific modification.
+
+\begin{table}[t]
+\centering
+\caption{\textbf{Effectiveness of Foresee-to-Ground across various Video-LLMs.}}
+\resizebox{\columnwidth}{!}{
+\begin{tabular}{l|cc|cc}
+\toprule
+\multirow{2}{*}{Model} & \multicolumn{2}{c|}{Charades-STA} & \multicolumn{2}{c}{ActivityNet-Captions} \\
+& R@0.7 & mIoU & R@0.7 & mIoU \\
+\midrule
+LLaVA-NeXT-7B~\cite{llava-next} & 7.9 & 24.6 & 6.5 & 12.6 \\
+\rowcolor{gray!20}
+~~~~~~\textit{+F2G-FT} & 12.5$_{\impro{4.6}}$ & 32.2$_{\impro{7.6}}$ & 12.4$_{\impro{5.9}}$ & 23.3$_{\impro{10.7}}$ \\
+\midrule
+Qwen2.5-VL-7B~\cite{Qwen2.5-VL} & 10.3 & 33.6 & 14.4 & 25.7 \\
+\rowcolor{gray!20}
+~~~~~~\textit{+F2G-FT} & 14.2$_{\impro{3.9}}$ & 38.6$_{\impro{5.0}}$ & 16.7$_{\impro{2.3}}$ & 33.5$_{\impro{7.8}}$ \\
+\midrule
+Qwen3-VL-8B~\cite{Qwen3-VL} & 15.9 & 40.4 & 17.3 & 32.2 \\
+~~~~~~\textit{+FT} & 21.6 & 42.9 & 21.7 & 40.8 \\
+\rowcolor{gray!20}
+~~~~~~\textit{+F2G-FT} & 25.7$_{\impro{9.8}}$ & 47.2$_{\impro{6.8}}$ & 28.4$_{\impro{11.1}}$ & 45.7$_{\impro{13.4}}$ \\
+\bottomrule
+\end{tabular}}
+\label{table:across}
+\end{table}
+
+\paragraph{Generalization to TimeLens-Bench.}
+\label{sec:timelens_results}
+To further evaluate F2G under a stricter fine-grained VTG protocol, we conduct experiments on TimeLens-Bench~\cite{timelens}.
+Following the TimeLens setting, we keep Stage-1/2 unchanged and replace only the Stage-3 instruction data with TimeLens-100K~\cite{timelens}.
+Table~\ref{tab:timelens_full} reports the results on Charades-TimeLens, ActivityNet-TimeLens, and QVHighlights-TimeLens.
+F2G consistently improves over the Qwen3-VL-8B baseline and remains competitive with TimeLens-specialized models, while using pure SFT without RL-based post-training.
+These results suggest that the evidence-mediated Identify-then-Measure formulation transfers beyond conventional VTG benchmarks.
+
+\begin{table*}[t]
+\centering
+\caption{
+Full results on TimeLens-Bench.
+The best and second-best results in each column are highlighted in bold and underline, respectively.
+}
+\label{tab:timelens_full}
+\resizebox{\textwidth}{!}{
+\begin{tabular}{l|cccc|cccc|cccc}
+\toprule
+\multirow{2}{*}{Model}
+& \multicolumn{4}{c|}{Charades-TimeLens}
+& \multicolumn{4}{c|}{ActivityNet-TimeLens}
+& \multicolumn{4}{c}{QVHighlights-TimeLens} \\
+& R@0.3 & R@0.5 & R@0.7 & mIoU
+& R@0.3 & R@0.5 & R@0.7 & mIoU
+& R@0.3 & R@0.5 & R@0.7 & mIoU \\
+\midrule
+Time-R1-7B~\cite{time_r1}
+& 57.9 & 32.0 & 16.9 & 36.6
+& 44.8 & 31.0 & 19.0 & 33.1
+& 65.8 & 51.5 & 36.1 & 49.2 \\
+
+MiMo-VL-7B~\cite{mimovl}
+& 57.9 & 42.6 & 20.5 & 39.6
+& 49.3 & 38.7 & 22.4 & 35.5
+& 57.1 & 42.6 & 28.4 & 41.5 \\
+
+Qwen2.5-VL-7B~\cite{Qwen2.5-VL}
+& 59.7 & 37.8 & 16.6 & 39.3
+& 44.1 & 31.0 & 16.1 & 31.4
+& 41.5 & 27.8 & 15.2 & 31.6 \\
+
+TimeLens-7B~\cite{timelens}
+& 70.5 & 55.6 & 28.4 & 48.8
+& 62.8 & 51.0 & 32.6 & 46.2
+& 74.1 & 62.7 & 43.1 & 56.0 \\
+
+Qwen3-VL-8B~\cite{Qwen3-VL}
+& 69.2 & 53.4 & 27.5 & 48.3
+& 62.1 & 51.2 & 34.4 & 46.8
+& 74.2 & 64.6 & 49.3 & 59.4 \\
+
+TimeLens-8B~\cite{timelens}
+& \textbf{76.6} & \underline{63.0} & \underline{35.2} & \textbf{55.2}
+& \underline{68.9} & \underline{58.4} & \underline{40.6} & \underline{53.2}
+& \textbf{80.2} & \textbf{71.6} & \textbf{55.5} & \textbf{65.5} \\
+
+\textbf{F2G}
+& \underline{74.2} & \textbf{63.1} & \textbf{36.3} & \underline{54.9}
+& \textbf{69.8} & \textbf{59.4} & \textbf{42.3} & \textbf{54.1}
+& \underline{79.6} & \underline{70.4} & \underline{54.5} & \underline{64.1} \\
+\bottomrule
+\end{tabular}
+}
+\end{table*}
+
+\paragraph{Qualitative Results.}
+\label{sec:qualitative_results}
+Fig.~\ref{fig:qualitative} shows two examples illustrating F2G's Identify-then-Measure behavior and compares it with Qwen3-VL (+FT) and two prior Video-LLM VTG methods (TimeChat and VTimeLLM).
+We visualize the ground truth interval, the proposal interval cited by F2G, and the final interval measured under the cited evidence, along with predictions from the compared baselines.
+In Case A (stable visual content), TimeChat and VTimeLLM drift to partial sub-events, while Qwen3-VL (+FT) truncates the long action.
+In contrast, F2G first cites an evidence interval that covers the correct event region and then measures boundaries closer to the ground truth.
+In Case B (rapid scene changes), distractor transitions cause the baselines to over-extend across irrelevant segments.
+F2G remains confined to the cited evidence neighborhood and measures a tighter interval, improving temporal precision.
+Overall, explicit evidence citation stabilizes event identification, and evidence-driven measurement sharpens boundary localization.
+To probe the quality of the video-wide candidate pool, we visualize the Top-$K$ proposal's intervals in Appendix~\ref{app:topk_proposals}.
+
+
+
+% =========================
+% Figure: Qualitative results
+% =========================
+\begin{figure}[!b]
+\vskip 0in
+\centering
+\includegraphics[width=\columnwidth]{figures/case.pdf}
+\caption{\textbf{Analysis on special cases.}  }
+\label{fig:qualitative}
+\end{figure}
+
+\paragraph{Stability and Robustness.}
+% \label{sec:stability_robustness}
+
+A key motivation of Foresee-to-Ground is to mitigate the stochasticity of direct timestamp decoding in LLMs.
+On ActivityNet-Captions, we decode each query twice independently and measure (i) the mean IoU across runs, and (ii) $|\Delta\mathrm{IoU}|$, the run-to-run deviation.
+As shown in Fig.~\ref{fig:stability_stats}, \textit{F2G} shifts the mean IoU distribution rightward while concentrating substantially more mass near $|\Delta\mathrm{IoU}|=0$ than the direct timestamp decoding method (\textit{Qwen3-VL + FT}), indicating higher accuracy with lower variance.
+We provide an additional failure decomposition analysis in Appendix~\ref{app:stability}.
+
+\begin{figure}[bt]
+\vskip 0in
+\centering
+\includegraphics[width=\columnwidth]{figures/stable_1.pdf}
+\caption{\textbf{Repeated-inference stability on ActivityNet-Captions.}
+For visualization, we omit $|\Delta\mathrm{IoU}|, \mathrm{IoU}\in[0,0.02)$ and renormalize the remaining density to highlight tail behavior.}
+\label{fig:stability_stats}
+\end{figure}
+
+\paragraph{Efficiency Overhead.}
+F2G adds a compact evidence interface with modest compute and context cost.
+Serializing Top-$K$ candidates increases the LLM context by only $\sim$100--200 tokens, which is negligible compared with the original video-token stream (typically on the order of $10^3$--$10^4$ tokens, depending on the sampling rate and visual-token granularity).
+The added perception components (temporal module, proposal head, and SEE) introduce $\sim$0.5B extra parameters on top of an 8B backbone, and increase end-to-end inference latency by $<5\%$ under identical decoding settings.
+
+
+\subsection{Ablation Studies}
+\label{sec:ablation}
+
+% \subsubsection{Dynamics-Driven Event Discovery}
+% \label{sec:ablation_f2u}
+
+\begin{table}[t]
+\centering
+\caption{\textbf{Ablations on predictive temporal perception and proposal warm-up (Stage-1/2).}}
+\label{tab:ablation_stage12}
+\resizebox{\columnwidth}{!}{
+\begin{tabular}{l|cc|cc}
+\toprule
+\multirow{2}{*}{Variant} &
+\multicolumn{2}{c|}{Charades-STA$^\dagger$} &
+\multicolumn{2}{c}{ActivityNet-Captions} \\
+& R@0.7$\uparrow$ & mIoU$\uparrow$ & R@0.7$\uparrow$ & mIoU$\uparrow$ \\
+\midrule
+\textbf{F2G} & 25.7 & 47.2 & 28.4 & 45.7 \\
+w/o SIGReg (Stage-1) & 24.1 & 45.8 & 26.8 & 44.2 \\
+Random init (no Stage-1) & 20.9 & 43.5 & 22.2 & 41.8 \\
+Stage-2 action-only & 21.5 & 44.3 & 24.6 & 43.0 \\
+\bottomrule
+\end{tabular}}
+\vspace{2pt}
+\footnotesize
+\parbox{\columnwidth}{\textbf{Variant.}
+\textit{Stage-2 action-only}: skip Stage-1 and train the proposal head in Stage-2 with an action-detection dataset before VTG fine-tuning.}
+\vspace{-6pt}
+% \vskip -0.1in
+\end{table}
+
+\paragraph{Predictive Temporal Perception.}
+Table~\ref{tab:ablation_stage12} shows that Stage-1 predictive pretraining is critical for high-precision localization.
+Removing SIGReg or skipping Stage-1 consistently degrades performance, with larger drops at the strict IoU threshold (R@0.7), indicating that dynamics-aware pretraining mainly improves boundary fidelity rather than coarse coverage.
+Replacing Stage-1 with an action-only Stage-2 recovers only part of the gain, suggesting that generic action supervision cannot fully substitute for the transition cues needed to propose event-like segments.
+
+\paragraph{Identify-then-Measure Fine-tuning.}
+\label{sec:ablation_stage3}
+
+\begin{table}[t]
+\centering
+\caption{\textbf{Ablations on evidence-driven Identify-then-Measure fine-tuning (Stage-3).}}
+\label{tab:ablation_stage3}
+
+\resizebox{\columnwidth}{!}{
+\begin{tabular}{l|cc|cc}
+\toprule
+\multirow{2}{*}{Variant} &
+\multicolumn{2}{c|}{Charades-STA$^\dagger$} &
+\multicolumn{2}{c}{ActivityNet-Captions} \\
+& R@0.7$\uparrow$ & mIoU$\uparrow$ & R@0.7$\uparrow$ & mIoU$\uparrow$ \\
+\midrule
+\textbf{F2G} & 25.7 & 47.2 & 28.4 & 45.7 \\
+\midrule
+\multicolumn{5}{c}{\textit{Identify / evidence design}} \\
+w/o Identify (no ID citation) & 21.5 & 43.1 & 22.2 & 41.1 \\
+Interval-only evidence (no $P_k$) & 22.1 & 43.2 & 23.5 & 41.5 \\
+\midrule
+\multicolumn{5}{c}{\textit{Evidence budget}} \\
+Top-$K{=}4$ (SEE$=4$) & 23.3 & 43.5 & 25.1 & 42.2 \\
+SEE$=2$ (Top-$K{=}8$) & 24.8 & 45.8 & 27.5 & 44.7 \\
+SEE$=8$ (Top-$K{=}8$) & 25.1 & 44.8 & 28.1 & 45.2 \\
+\bottomrule
+\end{tabular}}
+
+\vspace{2pt}
+\footnotesize
+\parbox{\columnwidth}{\textbf{Variants.}
+\textit{w/o Identify} removes the ID-citation requirement and directly generates timestamps.
+\textit{Interval-only evidence} keeps $(\langle\texttt{Span}_k\rangle, T_k)$ but removes visual evidence tokens $P_k$.
+Default uses Top-$K{=}8$ and SEE$=4$.}
+\vskip -0.1in
+\end{table}
+
+Table~\ref{tab:ablation_stage3} isolates the key ingredients of evidence-driven Identify-then-Measure fine-tuning.
+Removing explicit identification (no ID citation) causes a large drop, showing that committing to a discrete candidate segment is an effective constraint for stable and precise boundary generation.
+Keeping candidate intervals but removing visual evidence tokens further hurts accuracy, indicating that $P_k$ contributes beyond coarse temporal priors by providing discriminative segment content.
+Finally, the evidence-budget ablations show that reducing Top-$K$ or SEE queries lowers strict-threshold accuracy, while increasing SEE beyond the default gives diminishing returns, supporting Top-$K{=}8$ and SEE$=4$ as a practical operating point.
+
+Viewed together, Tables~\ref{tab:ablation_stage12} and~\ref{tab:ablation_stage3} separate the contribution of perception from that of structured reasoning.
+The former improves the quality of the evidence pool, while the latter determines how the LLM commits to and refines a cited hypothesis.
+Thus, F2G's gains arise from the interaction between stronger event hypotheses and a supervised, verifiable commitment mechanism, not from temporal features alone.
+
+\subsection{Mechanism Analysis}
+
+\paragraph{Predictive temporal perception.}
+To examine how predictive temporal perception reshapes the representation space and captures event changes, we visualize the temporal geometry without and with the temporal module (TM).
+For each video, we extract a per-timestep temporal sequence from (i) temporally pooled visual features and (ii) TM output features, and project them to 2D via PCA.
+Compared with the w/o TM features, the prediction-trained TM reshapes the temporal trajectory into a small number of compact clusters that are consistent with the video’s coarse event phases.
+This emergent cluster structure makes event-like segments explicit in representation space, which directly eases span enumeration and boundary-sensitive scoring when constructing the video-wide proposal pool.
+
+\begin{figure}[t]
+    \vskip 0in
+    \centering
+    \includegraphics[width=\columnwidth]{figures/pca.pdf}
+    \caption{\textbf{PCA visualization of temporal representations.}
+    \textbf{w/o TM}: without TM, uses temporally pooled visual features, \textbf{w/ TM}: with TM, uses temporal module output features.
+    \textbf{Time} colors points by temporal order, and \textbf{Span} colors points by ground-truth membership (orange: inside; blue: outside).
+    Prediction-trained temporal module makes the embedding trajectory more temporally coherent and increases inside/outside separability, exposing clearer event structure for segment proposal.}
+    \label{fig:ftu_pca}
+    \vskip -0.1in
+\end{figure}
+
+\paragraph{Evidence-driven Identify-then-Measure.}
+We further probe the Identify-then-Measure mechanism by decomposing performance into three quantities:
+\textit{Retrieve@K}, the best span achievable from the Top-$K$ proposal pool without refinement;
+\textit{Cited}, the evidence segment selected by the model; and
+\textit{Refined}, the final interval after evidence-conditioned measurement.
+
+Fig.~\ref{fig:spgr_recall} shows a consistent pattern on both ActivityNet-Captions and Charades-STA:
+\textit{Retrieve@K} provides a tight cite-only upper bound, \textit{Cited} closely tracks this bound, and \textit{Refined} further improves over \textit{Cited}.
+Thus, the proposal pool provides a coverage-oriented hypothesis space, but the improvement does not come from proposal generation alone: supervised citation commits the LLM to a strong hypothesis, and evidence-conditioned measurement further refines its boundaries.
+To separate candidate-set coverage from evidence mis-selection, we analyze the per-query citation gap in Appendix~\ref{app:cite_gap}.
+
+
+
+\begin{figure}[t]
+  \vskip 0in
+  \centering
+  \includegraphics[width=\columnwidth]{figures/eval.pdf}
+  \caption{\textbf{Stage-wise diagnostics for evidence-driven grounding.}}
+  % \vspace{-3mm}
+  \label{fig:spgr_recall}
+\end{figure}
+
+
+\subsection{Preserving General Video Understanding}
+\label{sec:videomme}
+
+While Foresee-to-Ground is tailored for temporal grounding, a natural concern is whether VTG-oriented fine-tuning may compromise a backbone's general video understanding.
+We therefore evaluate Qwen3-VL-8B and F2G (its \textit{+F2G-FT} counterpart) on VideoMME ~\cite{Video-MME}, a standard benchmark for general video question answering.
+As shown in Table~\ref{tab:videomme}, F2G matches the Qwen3-VL-8B baseline under the official VideoMME metrics, with no observable degradation.
+These results suggest that F2G improves VTG while preserving broad video QA capability, alleviating concerns about over-specialization.
+
+\begin{table}[t]
+\centering
+\caption{\textbf{Evaluation on VideoMME (w/o subtitles).}}
+\resizebox{\columnwidth}{!}{
+\begin{tabular}{l|cccc}
+\toprule
+Model & Overall (\%) & Short (\%) & Medium (\%) & Long (\%) \\
+\midrule
+Qwen3-VL-8B & 71.4 & 78.5 & 70.1 & 62.3  \\
+F2G & 70.9 & 78.3 & 70.2 & 62.1  \\
+\bottomrule
+\end{tabular}}
+\label{tab:videomme}
+\vskip -0.1in
+\end{table}
+
+\section{Limitations and Future Work}
+\label{sec:limitations}
+
+F2G focuses on standard visual VTG, where each query is grounded to a primary temporal interval.
+This clean setting validates the core Identify-then-Measure formulation, but does not cover the full complexity of real-world video grounding.
+A natural next step is to extend F2G to complex queries involving multi-event reasoning, compositional temporal constraints, and multiple target spans through hierarchical evidence selection and multi-span Identify-then-Measure.
+Another promising direction is spatio-temporal grounding, where the evidence unit includes not only a temporal interval but also object-level or region-level support.
+Finally, incorporating speech, sound events, and environmental audio would allow F2G to move from visual VTG toward audio-visual multimodal grounding.
+Across these extensions, the central principle remains the same: make intermediate evidence explicit, citable, and verifiable before fine-grained measurement.
+
+\section{Conclusion}
+We proposed Foresee-to-Ground (F2G), a verifiable VTG framework that bridges temporal perception and reasoning through an explicit Identify-then-Measure routine.
+On the perception side, F2G learns boundary-sensitive temporal features via a multi-view latent predictive training with geometry regularization, enabling a lightweight proposal module to extract a compact, video-wide evidence pool of candidate event segments.
+On the reasoning side, F2G performs evidence-driven temporal grounding: the LLM first identifies the moment by citing a single evidence ID, and then measures precise metric boundaries conditioned on the cited hypothesis, avoiding brittle one-shot timestamp decoding.
+Empirically, this approach consistently improves grounding accuracy and stability across various Video-LLM backbones without introducing architectural complexity.
+Ultimately, F2G offers a generalizable paradigm for long-form video agents, demonstrating that decoupling structured temporal discovery from semantic reasoning is key to achieving reliable and auditable video understanding.
+
+\section*{Acknowledgements}
+
+This work was supported by the National Natural Science Foundation of China (No. 62272438 and No. 62502115), the Beijing Natural Science Foundation (No. L25700), the Fundamental Research Funds for the Central Universities (No. E2ET1104), and the Hong Kong Scholars Programme.
+
+\section*{Impact Statement}
+
+F2G aims to improve the reliability and verifiability of Video-LLM-based temporal grounding by making intermediate segment evidence explicit and citable.
+It may benefit auditable video search, educational content navigation, assistive video analysis, and human-in-the-loop media review.
+Our experiments are conducted on established video benchmarks and instruction data, following their intended research-use settings.
+When applied to real-world video data, especially in privacy-sensitive contexts, F2G should be used with appropriate data licenses, privacy safeguards, and human oversight.
+
+
+% In the unusual situation where you want a paper to appear in the
+% references without citing it in the main text, use \nocite
+% \nocite{langley00}
+\nocite{*}
+\bibliography{main}
+\bibliographystyle{icml2026}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% APPENDIX
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\newpage
+\appendix
+\onecolumn
+
+\section{Appendix Overview}
+
+In this appendix we present:
+\begin{itemize}
+    \item The string-level instruction templates and constrained response format used to expose the evidence pool (Section~\ref{app:serialization}).
+    \item Stage-wise training data and implementation details for the three-stage pipeline (Section~\ref{app:stage_data}), including:
+    \begin{itemize}
+        \item stage-wise training data and supervision (Section~\ref{app:stage_training_data});
+        \item a detailed module-level data-flow diagram of F2G (Section~\ref{app:data_flow}).
+    \end{itemize}
+    \item Examples of the instruction fine-tuning dataset, including both training and evaluation formats (Section~\ref{app:instruction_data}).
+    \item Additional results not included in the main paper (Section~\ref{app:additional_results}), including:
+    \begin{itemize}
+    \item standalone Stage-2 proposal quality (Section~\ref{app:stage2_quality});
+    \item full results across Video-LLMs (Section~\ref{app:full_results_backbones}).
+    \end{itemize}
+    \item Additional analyses and diagnostics (Section~\ref{app:analyses}), including:
+    \begin{itemize}
+        \item visualization and redundancy discussion of the coverage-oriented Top-$K$ proposal pool (Section~\ref{app:topk_proposals});
+        \item repeated-inference stability decomposition (Section~\ref{app:stability});
+        \item citation-gap analysis to disentangle proposal coverage vs.\ mis-selection, together with coverage-efficiency implications (Section~\ref{app:cite_gap}).
+    \end{itemize}
+\end{itemize}
+
+
+\section{Instruction Templates and Output Format}
+\label{app:serialization}
+
+\paragraph{Purpose and scope.}
+This appendix specifies the string-level instruction used to expose the video-wide evidence pool to the Video-LLM, together with the constrained output format that makes grounding verifiable.
+As described in the main text, F2G forms an evidence pool
+$\mathcal{S}_K(V)=\{(\langle\texttt{Span}_k\rangle, T_k, P_k)\}_{k=1}^{K}$,
+where $\langle\texttt{Span}_k\rangle$ is a discrete and citable identifier, $T_k$ is a coarse metric hypothesis (time range), and $P_k$ provides segment evidence in embedding space.
+The templates below show how we serialize (i) the video stream, (ii) the Top-$K$ proposals/evidence units, and (iii) the query into a single instruction, and how we standardize the response so that the model must \emph{cite exactly one} evidence ID.
+
+\paragraph{Evidence-unit serialization.}
+We serialize each evidence unit as a human-readable candidate entry, and in the templates, $\{K\}$ denotes the number of evidence units in the pool and $\{m\}$ denotes the number of span-level visual tokens allocated per candidate.
+
+Below we provide three templates that implement this interface:
+i) a training-time instruction used for instruction tuning,
+ii) an inference-time instruction used for evaluation and deployment,
+and iii) the response format that appends a single span-ID citation.
+
+\begin{tcblisting}{
+  colback=gray!10,
+  colframe=black,
+  width=0.9\textwidth,
+  center,
+  breakable,
+  title={Instruction Template(Train)},
+  listing only,
+  listing options={
+    breaklines=true,
+    breakautoindent=false,
+    breakindent=0pt,
+    postbreak=\mbox{},
+    columns=fullflexible,
+    keepspaces=true
+  }
+}
+<|im_start|>system
+You are a multimodal AI assistant. Follow the user instruction and produce the answer.
+<|im_end|>
+
+<|im_start|>user
+% Video stream
+<0.3 seconds><|vision_start|><|video_pad|><|video_pad|><|video_pad|><|video_pad|><|video_pad|><|video_pad|><|video_pad|><|video_pad|>...<|video_pad|><|vision_end|><1.3 seconds><|vision_start|><|video_pad|>...<|video_pad|><|vision_end|>
+
+% Candidates
+Here are {K} candidate event spans extracted from the video. Each candidate provides (1) its time range and (2) {m} visual span tokens. You MUST cite exactly one span id token at the end of your answer.
+Candidate {1}: from X seconds to Y seconds, <Span_1> <|vision_start|><|video_pad|><|video_pad|><|vision_end|>
+...
+Candidate {K}: from X seconds to Y seconds, <Span_{K}> <|vision_start|><|video_pad|><|video_pad|><|vision_end|>
+
+% Question
+{question}, Please answer naturally, and finally cite exactly ONE candidate span id token: <Span_1> <Span_2> <Span_3> <Span_4> <Span_5> <Span_6> <Span_7> <Span_8> .
+<|im_end|>
+\end{tcblisting}
+
+\begin{tcblisting}{
+  colback=gray!10,
+  colframe=black,
+  width=0.9\textwidth,
+  center,
+  breakable,
+  title={Instruction Template(Inference)},
+  listing only,
+  listing options={
+    breaklines=true,
+    breakautoindent=false,
+    breakindent=0pt,
+    postbreak=\mbox{},
+    columns=fullflexible,
+    keepspaces=true
+  }
+}
+<|im_start|>system
+You are a multimodal AI assistant. Follow the user instruction and produce the answer.
+<|im_end|>
+
+<|im_start|>user
+% Video stream
+<0.3 seconds><|vision_start|><|video_pad|><|video_pad|><|video_pad|><|video_pad|><|video_pad|><|video_pad|><|video_pad|><|video_pad|>...<|video_pad|><|vision_end|><1.3 seconds><|vision_start|><|video_pad|>...<|video_pad|><|vision_end|>
+
+% Candidates
+Here are {K} candidate event spans extracted from the video. Each candidate provides (1) its time range and (2) {m} visual span tokens. You MUST cite exactly one span id token at the end of your answer.
+Candidate {1}: from X seconds to Y seconds, <Span_1> <|vision_start|><|video_pad|><|video_pad|><|vision_end|>
+...
+Candidate {K}: from X seconds to Y seconds, <Span_{K}> <|vision_start|><|video_pad|><|video_pad|><|vision_end|>
+
+%   Query
+During what time, can you see {Query}. Please answer naturally, and finally cite exactly ONE candidate span id token: <Span_1> <Span_2> <Span_3> <Span_4> <Span_5> <Span_6> <Span_7> <Span_8> .
+<|im_end|>
+\end{tcblisting}
+
+\begin{tcblisting}{
+  colback=gray!10,
+  colframe=black,
+  width=0.9\textwidth,
+  center,
+  breakable,
+  title={Response Format},
+  listing only,
+  listing options={
+    breaklines=true,
+    breakautoindent=false,
+    breakindent=0pt,
+    postbreak=\mbox{},
+    columns=fullflexible,
+    keepspaces=true
+  }
+}
+<|im_end|>
+{answer}. Corresponding span: <Span_PLACEHOLDER>. 
+<|im_end|>
+\end{tcblisting}
+
+\section{Stage-wise Training Data and Implementation Details}
+\label{app:stage_data}
+
+\subsection{Stage-wise Training Data and Supervision}
+\label{app:stage_training_data}
+
+Table~\ref{tab:stage_data} summarizes the data, supervision, and trainable components used in the three-stage training pipeline.
+\par\noindent\emph{Stage-1.} Self-supervised predictive temporal pretraining on $\sim$200K unlabeled video clips.
+\par\noindent\emph{Stage-2.} Query-agnostic proposal warm-up on $\sim$10K interval-annotated videos.
+\par\noindent\emph{Stage-3.} Evidence-driven Identify-then-Measure adaptation on 220K VTG instruction samples.
+
+\begin{table}[t]
+\centering
+\caption{\textbf{Stage-wise training data and supervision.}}
+\label{tab:stage_data}
+\resizebox{\columnwidth}{!}{
+\begin{tabular}{llll}
+\toprule
+Stage & Data & Supervision & Trainable components \\
+\midrule
+Stage-1 & $\sim$200K unlabeled clips & $\mathcal{L}_{\mathrm{pred}}+\mathcal{L}_{\mathrm{SIG}}$ & $f_\theta$, $g_\phi$ \\
+Stage-2 & $\sim$10K interval-annotated videos & regression + objectness scoring & $f_\theta$, $h_\psi$ \\
+Stage-3 & 220K VTG instructions & LM + ID + time losses & LoRA, SEE, $f_\theta/h_\psi$ with small LR \\
+\bottomrule
+\end{tabular}
+}
+\end{table}
+
+\subsection{Detailed Data Flow}
+\label{app:data_flow}
+
+Fig.~\ref{fig:data_flow_detail} provides a module-level data-flow diagram of F2G across the three training stages.
+It complements Fig.~\ref{fig:f2g_overview} by expanding the computation inside the Temporal Module, Proposal Head, and Span Evidence Encoder.
+
+\begin{figure*}[t]
+\centering
+\includegraphics[width=\textwidth]{figures/dataflow.pdf}
+\caption{
+Detailed data flow of additional modules across the three training stages.
+}
+\label{fig:data_flow_detail}
+\end{figure*}
+
+\section{Instruction fine-tuning dataset}
+\label{app:instruction_data}
+
+\paragraph{Overview.}
+This section provides concrete examples of the instruction fine-tuning data used in F2G.
+The training split follows an instruction-style format, where QA pairs may cover temporal localization as well as broader video-understanding intents, which regularizes learning and mitigates overfitting to a single VTG phrasing. In contrast, evaluation follows the standard VTG protocol by providing the query and annotated start/end times for metric scoring.
+
+
+\begin{tcblisting}{
+  colback=gray!10,
+  colframe=black,
+  width=0.9\textwidth,
+  center,
+  breakable,
+  title={Train Dataset},
+  listing only,
+  listing options={
+    breaklines=true,
+    breakautoindent=false,
+    breakindent=0pt,
+    postbreak=\mbox{},
+    columns=fullflexible,
+    keepspaces=true
+  }
+}
+{
+    "id": "v_QOlSCBRmfWY_q1",
+    "source": "anet",
+    "video": "v_QOlSCBRmfWY",
+    "duration": 82.7,
+    "question": "Can you provide more details about the dance itself?",
+    "answer": "Certainly! The young woman engages in a lively dance, moving around the room from 18.0 seconds to 60.0 seconds. Her movements showcase a range of emotions and expressions as she dances. The dance concludes with her lying on the floor from 56.0 seconds to 80.0 seconds."
+  },
+\end{tcblisting}
+
+\begin{tcblisting}{
+  colback=gray!10,
+  colframe=black,
+  width=0.9\textwidth,
+  center,
+  breakable,
+  title={Evaluation Dataset},
+  listing only,
+  listing options={
+    breaklines=true,
+    breakautoindent=false,
+    breakindent=0pt,
+    postbreak=\mbox{},
+    columns=fullflexible,
+    keepspaces=true
+  }
+}
+{
+        "id": "v_uqiMw7tQ1Cc_1",
+        "video": "v_uqiMw7tQ1Cc.mp4",
+        "start_time": 0,
+        "end_time": 4.14,
+        "query": "Two men both dressed in athletic gear are standing and talking in an indoor weight lifting gym filled with other equipment.",
+        "duration": 55.15
+    },
+\end{tcblisting}
+
+
+\section{Additional Results}
+\label{app:additional_results}
+
+\subsection{Standalone Stage-2 Proposal Quality}
+\label{app:stage2_quality}
+
+To evaluate the proposal head independently of downstream LLM reasoning, we report Stage-2-only metrics before Top-$K$ evidence serialization. 
+The proposal head produces dense per-timestep predictions, including an eventness score and a regressed temporal span. 
+We report Center-AP to measure event-center classification quality and Matched mIoU to measure span localization quality after matching predicted spans to ground-truth intervals.
+
+\begin{table}[t]
+\centering
+\caption{\textbf{Standalone proposal quality after Stage-2 warm-up.}}
+\label{tab:stage2_quality}
+\begin{tabular}{lc}
+\toprule
+Metric & Value \\
+\midrule
+Center-AP & 0.79 \\
+Matched mIoU & 0.56 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+As shown in Table~\ref{tab:stage2_quality}, the proposal head learns a meaningful proposal space before evidence-driven LLM fine-tuning. 
+These results characterize the independent quality of Stage-2 proposal generation, while the final grounding performance further depends on evidence citation and boundary refinement in Stage-3.
+
+\subsection{Full Results Across Video-LLMs}
+\label{app:full_results_backbones}
+Table~\ref{table:full_across} reports the complete per-metric results for the cross-backbone study.
+For each Video-LLM, \textit{+F2G-FT} applies the same fine-tuning recipe; the subscript $\impro{\cdot}$ denotes the absolute improvement over the untuned backbone in the same row group.
+For Qwen3-VL-8B, we additionally include \textit{+FT} to separate gains from conventional instruction fine-tuning.
+
+\begin{table*}[tb]
+\centering
+\caption{\textbf{Effectiveness of Foresee-to-Ground across various Video-LLMs (Full results).}}
+\resizebox{\textwidth}{!}{
+\begin{tabular}{l|llll|llll}
+\toprule
+\multirow{2}{*}{Model} & \multicolumn{4}{c|}{Charades-STA} & \multicolumn{4}{c}{ActivityNet-Captions} \\
+& R@0.3 & R@0.5 & R@0.7 & mIoU & R@0.3 & R@0.5 & R@0.7 & mIoU \\
+\midrule
+LLaVA-NeXT-7B~\cite{llava-next} & 30.1 & 13.8 & 7.9 & 24.6 & 18.6 & 9.8 & 6.5 & 12.6 \\
+\rowcolor{gray!20}
+~~~~~~\textit{+F2G-FT} & 43.2$_{\impro{13.1}}$ & 26.2$_{\impro{12.4}}$ & 12.5$_{\impro{4.6}}$ & 32.2$_{\impro{7.6}}$ & 29.5$_{\impro{10.9}}$ & 19.8$_{\impro{10.0}}$ & 12.4$_{\impro{5.9}}$ & 23.3$_{\impro{10.7}}$ \\
+\midrule
+Qwen2.5-VL-7B~\cite{Qwen2.5-VL} & 51.1 & 29.5 & 10.3 & 33.6 & 33.4 & 22.3 & 14.4 & 25.7 \\
+\rowcolor{gray!20}
+~~~~~~\textit{+F2G-FT} & 62.5$_{\impro{11.4}}$ & 36.8$_{\impro{7.3}}$ & 14.2$_{\impro{3.9}}$ & 38.6$_{\impro{5.0}}$ & 46.7$_{\impro{13.3}}$ & 32.6$_{\impro{10.3}}$ & 16.7$_{\impro{2.3}}$ & 33.5$_{\impro{7.8}}$ \\
+\midrule
+Qwen3-VL-8B~\cite{Qwen3-VL} & 65.4 & 37.7 & 15.9 & 40.4 & 42.8 & 27.8 & 17.3 & 32.2 \\
+~~~~~~\textit{+FT} & 65.8 & 44.7 & 21.6 & 42.9 & 58.4 & 39.2 & 21.7 & 40.8 \\
+\rowcolor{gray!20}
+~~~~~~\textit{+F2G-FT} & 71.3$_{\impro{5.9}}$ & 50.4$_{\impro{12.7}}$ & 25.7$_{\impro{9.8}}$ & 47.2$_{\impro{6.8}}$ & 63.8$_{\impro{21.0}}$ & 46.1$_{\impro{18.3}}$ & 28.4$_{\impro{11.1}}$ & 45.7$_{\impro{13.4}}$ \\
+\bottomrule
+\end{tabular}}
+\label{table:full_across}
+\end{table*}
+
+
+\section{Additional Analyses}
+\label{app:analyses}
+
+\subsection{Coverage-Oriented Top-$K$ Proposal Pool Visualization}
+\label{app:topk_proposals}
+
+To complement the case-study comparisons in Sec.~\ref{sec:qualitative_results}, we visualize the raw Top-$K$ candidate segments produced by the proposal head.
+
+Fig.~\ref{fig:topk_pool_vis} shows two examples.
+Each row corresponds to one video-query pair, with the thumbnail strip indicating the temporal context and the colored bars showing the Top-$K$ proposed intervals in seconds.
+The proposal pool is designed to be coverage-oriented under a small evidence budget: it aims to preserve plausible event hypotheses for subsequent evidence citation and measurement, rather than to produce a maximally non-overlapping set of intervals.
+Accordingly, the pool may contain both tight segments and longer spans, as well as locally overlapping proposals.
+Such overlap can correspond to alternative boundary hypotheses around the same semantic event, rather than pure redundancy.
+
+However, excessive overlap may reduce the effective coverage of long or event-dense videos, which motivates the coverage-efficiency analysis in Sec.~\ref{app:cite_gap}.
+
+\subsection{Additional Stability Diagnostics}
+\label{app:stability}
+
+Beyond the distributional evidence in Fig.~\ref{fig:stability_stats}, we further analyze how repeated-inference variance occurs.
+For each query in ActivityNet-Captions, we decode twice independently and obtain two IoU scores, $\mathrm{IoU}_1$ and $\mathrm{IoU}_2$, with respect to the ground-truth interval.
+We focus on degenerate failures at $\mathrm{IoU}=0$ and divide them into two cases:
+\emph{consistent-miss}, where $\mathrm{IoU}_1=\mathrm{IoU}_2=0$, and
+\emph{stochastic-collapse}, where exactly one run yields zero IoU:
+$[\mathrm{IoU}_1=0]\oplus[\mathrm{IoU}_2=0]$.
+For stochastic-collapse cases, we further stratify examples by the non-zero IoU of the other run to measure collapse severity.
+
+As shown in Fig.~\ref{fig:stability_failures}, direct timestamp decoding exhibits a noticeable fraction of stochastic-collapse cases, meaning that identical inputs can lead to success or failure depending on sampling noise.
+In contrast, \textit{F2G} substantially reduces such collapse, consistent with its explicit evidence commitment.
+The remaining errors are dominated by consistent-miss cases, which more likely reflect intrinsically difficult queries, such as severe ambiguity or weak visual evidence.
+This complements Fig.~\ref{fig:stability_stats} by showing that \textit{F2G} improves stability mainly by suppressing sampling-induced collapse.
+
+\subsection{Citation-gap analysis}
+\label{app:cite_gap}
+A natural follow-up to the stage-wise diagnostics in Fig.~\ref{fig:spgr_recall} is to identify whether remaining errors come from insufficient proposal coverage or suboptimal evidence selection.
+To disentangle these two sources, we analyze the citation gap between the best candidate available in the proposal pool and the span actually cited by the model.
+
+For each query with ground-truth interval $T^\star$, we compute the best IoU achievable within the Top-$K$ proposal pool,
+\begin{equation}
+\mathrm{IoU}_{\mathrm{best}}
+=
+\max_{k\in\{1,\ldots,K\}}
+\mathrm{IoU}(T_k, T^\star),
+\end{equation}
+and the IoU of the cited span,
+\begin{equation}
+\mathrm{IoU}_{\mathrm{cite}}
+=
+\mathrm{IoU}(T_z, T^\star),
+\end{equation}
+where $z$ is the model-cited index.
+We then define the citation gap
+\begin{equation}
+\Delta\mathrm{IoU}
+=
+\mathrm{IoU}_{\mathrm{best}}-\mathrm{IoU}_{\mathrm{cite}}
+\in[0,1].
+\end{equation}
+A small $\Delta\mathrm{IoU}$ indicates that the model's citation is near-optimal \emph{given the pool}, whereas a large gap indicates that errors are attributable to mis-selection rather than pool quality.
+
+Fig.~\ref{fig:cite_gap} plots the distribution of $\Delta\mathrm{IoU}$.
+The mass concentrates near zero on both ActivityNet-Captions and Charades-STA: 87.8\% and 93.6\% of queries have $\Delta\mathrm{IoU}<0.10$, respectively.
+This shows that, once a good candidate exists in the pool, the Identify step usually selects a near-optimal span.
+Thus, remaining errors are more often limited by candidate-set coverage, i.e., $\mathrm{IoU}_{\mathrm{best}}$ itself being low, rather than by evidence mis-selection.
+Together with Fig.~\ref{fig:spgr_recall}, this supports the view that improving proposal quality and coverage efficiency is the main lever for further gains, while evidence-conditioned measurement sharpens boundaries beyond the cited hypothesis.
+
+This also clarifies the redundancy--coverage trade-off in Sec.~\ref{app:topk_proposals}: under a fixed Top-$K$ budget, moderate local overlap can preserve alternative boundary hypotheses, whereas excessive overlap may reduce effective coverage.
+Future extensions may improve coverage efficiency through multi-scale proposal generation, diversity-aware temporal suppression, adaptive Top-$K$ allocation, or coarse-to-local proposal refinement.
+
+\begin{figure*}[tb]
+  \centering
+  \includegraphics[width=\textwidth]{figures/case1.pdf}
+  \caption{\textbf{Visualization of the Top-$K$ proposal pool.}
+  For each video pair, we plot the Top-$K$ candidate segments $T_k$ (in seconds), ordered by proposal objectness (top to bottom).
+  The resulting pool provides diverse, video-wide event hypotheses that are later serialized as evidence units for Identify$\rightarrow$Measure grounding.}
+  \label{fig:topk_pool_vis}
+  \vspace{-6pt}
+\end{figure*}
+
+\begin{figure}[tb]
+\vskip 0in
+\centering
+\includegraphics[width=\columnwidth]{figures/stable_2.pdf}
+\caption{\textbf{Repeated-inference failure decomposition on ActivityNet-Captions.}
+We decompose repeated decoding outcomes into consistent-miss ($\mathrm{IoU}_1=\mathrm{IoU}_2=0$) and stochastic-collapse (exactly one run has $\mathrm{IoU}=0$), and further stratify collapse cases by the other run's non-zero IoU.}
+\label{fig:stability_failures}
+\end{figure}
+
+\begin{figure}[b]
+  \centering
+  \includegraphics[width=\columnwidth]{figures/cite_gap.pdf}
+  \caption{\textbf{Citation-gap distribution.}
+  We plot $\Delta\mathrm{IoU}=\mathrm{IoU}_{\mathrm{best}}-\mathrm{IoU}_{\mathrm{cite}}$, where $\mathrm{IoU}_{\mathrm{best}}$ is the best candidate IoU within the Top-$K$ proposal pool and $\mathrm{IoU}_{\mathrm{cite}}$ is the IoU of the model-cited span.
+  Most mass lies near $\Delta\mathrm{IoU}=0$ (87.8\% / 93.6\% of queries have $\Delta\mathrm{IoU}<0.10$ on ActivityNet-Captions / Charades-STA), indicating that citation is usually near-optimal given the pool; remaining failures are therefore more often constrained by candidate-set coverage than by mis-selection.}
+  \label{fig:cite_gap}
+  \vspace{-6pt}
+\end{figure}
+
+
+
+
+
+% \section{You \emph{can} have an appendix here.}
+
+% You can have as much text here as you want. The main body must be at most $8$
+% pages long. For the final version, one more page can be added. If you want, you
+% can use an appendix like this one.
+
+% The $\mathtt{\backslash onecolumn}$ command above can be kept in place if you
+% prefer a one-column appendix, or can be removed if you prefer a two-column
+% appendix.  Apart from this possible change, the style (font size, spacing,
+% margins, page numbering, etc.) should be kept the same as the main body.
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\end{document}
+
+% This document was modified from the file originally made available by
+% Pat Langley and Andrea Danyluk for ICML-2K. This version was created
+% by Iain Murray in 2018, and modified by Alexandre Bouchard in
+% 2019 and 2021 and by Csaba Szepesvari, Gang Niu and Sivan Sabato in 2022.
+% Modified again in 2023 and 2024 by Sivan Sabato and Jonathan Scarlett.
+% Previous contributors include Dan Roy, Lise Getoor and Tobias
+% Scheffer, which was slightly modified from the 2010 version by
+% Thorsten Joachims & Johannes Fuernkranz, slightly modified from the
+% 2009 version by Kiri Wagstaff and Sam Roweis's 2008 version, which is
+% slightly modified from Prasad Tadepalli's 2007 version which is a
+% lightly changed version of the previous year's version by Andrew
+% Moore, which was in turn edited from those of Kristian Kersting and
+% Codrina Lauth. Alex Smola contributed to the algorithmic style files.

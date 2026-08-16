@@ -5,7 +5,7 @@ description: Text-conditioned localization and inference over event timing, orde
 tags: [video, language, temporal-grounding, temporal-reasoning, video-llm]
 status: draft
 created: 2026-08-15
-generated: { by: llm-wiki-agent/1, at: 2026-08-16T10:43:17+07:00 }
+generated: { by: llm-wiki-agent/1, at: 2026-08-16T10:46:05+07:00 }
 sources:
   - id: video-temporal-survey
     resource: ../raw/TongHopCacHuongXuLyVideo.md
@@ -25,6 +25,9 @@ sources:
   - id: neus-qa-paper
     resource: ../raw/NeuS-QA/main.tex
     title: "NeuS-QA: Grounding Long-Form Video Understanding in Temporal Logic and Neuro-Symbolic Reasoning"
+  - id: f2g-paper
+    resource: ../raw/Foresee-to-Ground/main.tex
+    title: "Foresee-to-Ground: From Predictive Temporal Perception to Evidence-Driven Reasoning for Video Temporal Grounding"
 ---
 
 # Video-language temporal grounding and reasoning
@@ -65,6 +68,12 @@ VideoITG supplies instruction-conditioned frame-selection supervision rather tha
 
 The reported full-attention selector scores a fixed candidate-frame budget and sends the top-ranked frames to a separate answering Video-LLM. This is evidence for query-conditioned evidence selection, not end-to-end answer optimization or general temporal reasoning.[^videoitg-paper]
 
+## Cited event-span hypotheses
+
+Foresee-to-Ground (F2G) supplies a different grounding interface: it constructs a compact, video-wide pool of learned candidate event spans, each with a span ID, coarse interval, and segment-local visual evidence. The Video-LLM is supervised to cite one span and then generate its answer and refined interval in a single structured response. This makes the intermediate hypothesis attributable, but a citation does not verify that the candidate or emitted boundary is correct.[^f2g-paper]
+
+The source reports improvements over direct fine-tuning in its controlled Qwen3-VL-8B comparison and argues that residual errors are mainly limited by candidate-pool coverage. These are source-reported benchmark findings; the method covers single-interval visual grounding, not general multi-event temporal reasoning.[^f2g-paper]
+
 ## Explicit temporal representations
 
 A neuro-symbolic direction translates questions and video events into explicit temporal relations such as *before*, *overlaps*, and *during*, then uses those relations to retrieve evidence before visual-language reasoning. This is a proposed architectural pattern in the source, not a verified general solution.[^video-temporal-survey]
@@ -83,6 +92,7 @@ NeuS-QA makes temporal relations executable: it translates a question into event
 - **Includes:** [UniTime](unitime.md) as an MLLM temporal-grounding framework with textual timestamp tokens and coarse-to-fine long-video retrieval; this does not demonstrate general temporal reasoning.[^unitime-paper]
 - **Includes:** [VideoITG](videoitg.md) as instruction-conditioned clip retrieval and fixed-budget frame selection for a separate answering Video-LLM; this is not general temporal-reasoning evidence.[^videoitg-paper]
 - **Includes:** [NeuS-QA](neus-qa.md) as a temporal-logic and model-checking retrieval pipeline; its verification is conditional on VLM event grounding.[^neus-qa-paper]
+- **Includes:** [Foresee-to-Ground (F2G)](foresee-to-ground.md) as cited candidate-span selection plus evidence-conditioned boundary refinement; it is grounding evidence, not evidence of general temporal reasoning.[^f2g-paper]
 
 [^video-temporal-survey]: [Tổng hợp các hướng xử lý video](../raw/TongHopCacHuongXuLyVideo.md)
 [^internvideo-paper]: [InternVideo: General Video Foundation Models via Generative and Discriminative Learning](../raw/InternVideo/main.tex)
@@ -90,3 +100,4 @@ NeuS-QA makes temporal relations executable: it translates a question into event
 [^unitime-paper]: [Universal Video Temporal Grounding with Generative Multi-modal Large Language Models](../raw/UniTime/main.tex)
 [^videoitg-paper]: [VideoITG: Multimodal Video Understanding with Instructed Temporal Grounding](../raw/VideoITG/main.tex)
 [^neus-qa-paper]: [NeuS-QA: Grounding Long-Form Video Understanding in Temporal Logic and Neuro-Symbolic Reasoning](../raw/NeuS-QA/main.tex)
+[^f2g-paper]: [Foresee-to-Ground: From Predictive Temporal Perception to Evidence-Driven Reasoning for Video Temporal Grounding](../raw/Foresee-to-Ground/main.tex)
