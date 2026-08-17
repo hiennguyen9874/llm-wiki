@@ -5,7 +5,7 @@ description: Current document OCR spans lightweight detector–recognizer pipeli
 tags: [ocr, document-parsing, vision-language-models, synthesis]
 status: draft
 created: 2026-08-17
-generated: { by: llm-wiki-agent/1, at: 2026-08-17T14:59:12Z }
+generated: { by: llm-wiki-agent/1, at: 2026-08-17T22:05:24+07:00 }
 sources:
   - id: pp-ocrv6-report
     resource: ../raw/2606.13108_PP-OCRv6/main.tex
@@ -106,7 +106,7 @@ Systems such as [PP-StructureV3](pp-structurev3.md), [PaddleOCR-VL-1.6](paddleoc
 
 ### End-to-end generative document VLMs
 
-End-to-end models map a full page and prompt directly to an ordered structured representation. [FireRed-OCR](firered-ocr.md), [OvisOCR2](ovisocr2.md), [DeepSeek-OCR 2](deepseek-ocr-2.md), and [Infinity-Parser2](infinity-parser2.md) exemplify page-to-Markdown or task-conditioned JSON/HTML/LaTeX generation. This unifies recognition, layout, and formatting and makes one model reusable across tasks, but introduces sequence-length cost, repetition or hallucination risk, and sensitivity to output schemas and language priors.[^deepseek-ocr-2-report][^ovisocr2-report][^infinity-parser2-report]
+End-to-end models map a full page and prompt directly to an ordered structured representation. [FireRed-OCR](firered-ocr.md), [OvisOCR2](ovisocr2.md), [DeepSeek-OCR 2](deepseek-ocr-2.md), and [Infinity-Parser2](infinity-parser2.md) exemplify page-to-Markdown or task-conditioned JSON/HTML/LaTeX generation. This unifies recognition, layout, and formatting and makes one model reusable across tasks, but introduces sequence-length cost, repetition or hallucination risk, and sensitivity to output schemas and language priors. [End-to-end generative OCR VLM benchmarks](end-to-end-generative-ocr-vlm-benchmarks.md) catalogs the retained models, datasets, metrics, result vectors, and protocol conflicts.[^deepseek-ocr-2-report][^ovisocr2-report][^infinity-parser2-report]
 
 ### Unified multimodal reconstruction
 
@@ -172,6 +172,7 @@ Nearly all relevant wiki concepts are `draft`; missing independent verification 
 - **Synthesizes:** the retained current OCR and document-parsing model families cataloged under **Retained model coverage**, with [PP-OCRv6](pp-ocrv6.md), [PaddleOCR-VL-1.6](paddleocr-vl-1.6.md), [DeepSeek-OCR 2](deepseek-ocr-2.md), [OvisOCR2](ovisocr2.md), [Infinity-Parser2](infinity-parser2.md), and [Multimodal OCR](multimodal-ocr.md) as architectural exemplars.
 - **Uses:** [Document-parser data flywheel](document-parser-data-flywheel.md), [DOM-based document synthesis](dom-based-document-synthesis.md), and [Reference Sliding Window Attention](reference-sliding-window-attention.md) as cross-cutting methods.
 - **Evaluated by:** [Layout-first modular OCR benchmarks](layout-first-modular-ocr-benchmarks.md) for the retained region-first document parsers, with benchmark-version and protocol differences kept separate.
+- **Evaluated by:** [End-to-end generative OCR VLM benchmarks](end-to-end-generative-ocr-vlm-benchmarks.md) for direct page-to-structure models, including boundary cases and missing-result evidence.
 
 [^pp-ocrv6-report]: Zhang et al., *PP-OCRv6*, local source at [main.tex](../raw/2606.13108_PP-OCRv6/main.tex).
 [^paddleocr-vl-1-6-report]: Zhang et al., *PaddleOCR-VL-1.6*, local source at [main.tex](../raw/2606.03264_PaddleOCR-VL-1.6/main.tex).
