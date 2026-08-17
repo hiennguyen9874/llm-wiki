@@ -33,6 +33,7 @@ The complete retrieval map for compiled knowledge. See [LLM Wiki Contract](../LL
 - [Two-stream ConvNets for action recognition](two-stream-convnets-action-recognition.md) — A late-fusion video classifier that separates appearance in RGB frames from motion in stacked optical flow.
 - [UniTime](unitime.md) — An MLLM-based universal video temporal-grounding framework that interleaves textual timestamps with scaled video tokens and retrieves moments coarse-to-fine.
 - [V-JEPA 2](v-jepa-2.md) — A self-supervised video JEPA scaled for motion understanding and anticipation, then post-trained as a latent action-conditioned world model for image-goal robot planning.
+- [Video backbones and encoders comparison](video-backbones-and-encoders-comparison.md) — A task-aware comparison of video backbones and pretrained encoders, including architecture, pretraining scale, reported evidence, and selection trade-offs.
 - [VideoITG](videoitg.md) — An instruction-conditioned Video-LLM frame-selection framework and automatically constructed 40K-video temporal-grounding dataset.
 - [Video Swin Transformer](video-swin-transformer.md) — A hierarchical video Transformer that uses alternating local and shifted 3D attention windows to model spacetime efficiently.
 - [VideoMAE](videomae.md) — A self-supervised video-pretraining method that reconstructs heavily tube-masked video cubes with an asymmetric Vision Transformer autoencoder.

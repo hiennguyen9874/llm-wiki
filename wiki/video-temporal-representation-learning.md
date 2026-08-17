@@ -5,7 +5,7 @@ description: Pretraining video features to encode appearance, motion, order, dyn
 tags: [video, representation-learning, self-supervised-learning, foundation-models]
 status: draft
 created: 2026-08-15
-generated: { by: llm-wiki-agent/1, at: 2026-08-17T11:58:42+07:00 }
+generated: { by: llm-wiki-agent/1, at: 2026-08-17T12:03:39+07:00 }
 sources:
   - id: video-temporal-survey
     resource: ../raw/TongHopCacHuongXuLyVideo.md
@@ -96,6 +96,7 @@ InternVideo2 extends this progressive family with unmasked-token distillation, v
 - **Instantiated by:** [X-CLIP: CLIP adaptation for video recognition](x-clip-video-recognition.md) through cross-frame message passing, temporal integration, and video-conditioned class-text representations.[^xclip-recognition-paper]
 - **Instantiated by:** [VideoPrism](videoprism.md) through sequential video-text alignment and masked global-local teacher-feature distillation with token shuffling.[^videoprism-paper]
 - **Instantiated by:** [V-JEPA 2](v-jepa-2.md) through masked EMA-teacher feature prediction, followed separately by action-conditioned latent-dynamics post-training.[^vjepa2-paper]
+- **Compared in:** [Video backbones and encoders comparison](video-backbones-and-encoders-comparison.md), which separates backbone architecture, pretraining recipe, corpus scale, and task-specific transfer evidence.
 
 [^video-temporal-survey]: [Tổng hợp các hướng xử lý video](../raw/TongHopCacHuongXuLyVideo.md)
 [^i3d-paper]: [Quo Vadis, Action Recognition? A New Model and the Kinetics Dataset](../raw/I3D/full_kinetics_update_v0.tex)
