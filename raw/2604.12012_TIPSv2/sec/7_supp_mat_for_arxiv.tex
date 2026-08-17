@@ -1,0 +1,270 @@
+\appendix
+\section{Appendix}
+
+
+\input{tables/tab_clip_full_ema}
+\input{tables/tab_clip}
+\input{tables/tab_clip_dual}
+
+
+\subsection{Applying iBOT++ to CLIP}
+
+
+In the main paper results, we showed the value of our novel iBOT++ loss in the context of the TIPS training recipe.
+In this section, we go further to demonstrate the generalizability of iBOT++ to other vision-language architectures, specifically on top of the widely adopted CLIP model.
+First, both iBOT and iBOT++ are applied on top of vanilla CLIP, trained with the same dataset used throughout the paper, using a ViT-L backbone.
+Our results in \cref{tab:clip_full_ema} demonstrate that integrating iBOT++ yields consistent performance gains across all metrics, beyond that of adding iBOT alone.
+A similar conclusion is obtained when using head-only EMA in addition to iBOT++, a setup which reduces memory requirements significantly and achieves generally on par performance with the full EMA case, as reported in \cref{tab:clip}.
+Then, as an additional experiment to validate iBOT++, we add it on top of CLIP using two CLS tokens (as in the TIPS setup, but without any of the additional losses used in TIPS), with a ViT-g backbone and the same training dataset (\cref{tab:clip_dual}).
+Once again, we see significant and consistent performance gains using iBOT++, compared to the CLIP 2 CLS baseline and its modified version using iBOT.
+Notably, in all these cases iBOT++ yields significant improvements in zero-shot segmentation, highlighting its importance for aligning image patches to language.
+These results corroborate the usefulness of our proposed iBOT++ recipe for vision-language pretraining.
+
+\subsection{iBOT++ Ablation Study on Masking Ratios}
+
+\input{tables/table_masking_ablation}
+
+As detailed in \cref{bridge}, distillation significantly enhances patch-text alignment, even when the teacher model exhibits poor dense alignment.
+In \cref{tab:init}, we identified two key distinctions between the distillation and pretraining stages: A) also applying loss to visible tokens (compare rows (1-2)) and B) lowering masking ratio from  $75\% \rightarrow 0\%$ (compare rows (2-4)) .
+In iBOT++, we propose to take the approach in A) from distillation and apply it to pretraining. 
+This naturally raises the question: Would applying B) by removing masking in iBOT++ pretraining also further enhance patch-text alignment?
+To explore this, we ablated the masking ratio during iBOT++ pretraining. 
+Our experiments in \cref{tab:masking} demonstrate that the answer is no: iBOT++ achieves its best performance with a $75\%$ masking ratio.
+As a result, we adopt the $75\%$ ratio setting as our final \tipsvtwo training recipe.
+Our results confirm that Masked Image Modeling (MIM) remains critical for pretraining, consistently improving performance across image-only tasks and image-text tasks. We conclude that mask removal is only effective during distillation because the teacher model already provides the necessary strong local semantic understanding. This allows the student vision encoder to inherit the alignment without needing to learn it via the MIM objective.
+
+\subsection{Ablations on Multi-Granularity Captions}
+
+In \cref{tab:multi_captions}, we present ablations to justify our strategy to utilize multiple captions, varying 1-2 [CLS] tokens and the assignment to [CLS] tokens between the 3 available captions (web, PaliGemma, Gemini).
+These ablations are conducted with the default \tipsvtwo training setup, except that full EMA is used (instead of head-only EMA).
+We find the optimal strategy is the recipe in \tipsvtwo: alternating real/synthetic captions with the dual CLS setup.
+
+\input{tables/tab_multicaptions}
+
+\subsection{Qualitative Comparisons to DINOv2 and v3}
+
+In order to further illustrate the comparison with self-supervised pretrained models, we provide additional PCA maps for DINOv2 (with registers)~\cite{vitsneedregisters,oquab2024dinov2} and DINOv3~\citep{siméoni2025dinov3}.
+\cref{fig:qualitative_dino_l} presents results on ViT-L models, which is the largest common size between these model families. 
+\cref{fig:qualitative_dino_g} presents results on larger models: ViT-g for DINOv2 and \tipsvtwo, but ViT-7B for DINOv3.
+Note that the DINOv3 ViT-7B teacher model is trained with 6$\times$ more parameters and 15$\times$ more images than the \tipsvtwo ViT-g teacher.
+
+Comparing DINOv3 and \tipsvtwo, we can see that PCA maps for DINOv3 are smoother, whereas \tipsvtwo maps are more granular.
+We note that DINOv3 enhances dense feature maps (on top of DINOv2) by means of a Gram anchoring loss that acts on patch correlations, introducing another teacher that is frozen from the past, along with a higher-resolution inference and down-sampling procedure.
+The dense feature maps of \tipsvtwo also demonstrate comparable improvements in spatial coherence (on top of TIPS), but require much simpler changes to the training setup.
+On some images, this seems to demonstrate a more semantic focus for \tipsvtwo, compared to a more spatial focus in DINOv3.
+
+For example, in the third row of \cref{fig:qualitative_dino_l} and \cref{fig:qualitative_dino_g}, the backpacks appear semantically similar to the people wearing them in DINOv3 PCA, while they are clearly distinct from the people in \tipsvtwo PCA.
+In the second row of \cref{fig:qualitative_dino_g}, the ceiling tends to be underclustered in DINOv3, unable to distinguish lamps and other features; in contrast, \tipsvtwo clearly segments them properly.
+In the first row of \cref{fig:qualitative_dino_l}, the windows for DINOv3 PCA are distinctly colored, varying from foreground to background, but are all uniformly colored for \tipsvtwo PCA.
+
+Comparing against DINOv2, \tipsvtwo PCA maps are overall much smoother and more spatially coherent, in contrast to DINOv2's noisy maps.
+
+
+
+
+\newcommand{\showpcas}[2]{%
+  \resizebox{#1\linewidth}{!}{%
+	\setlength{\fboxsep}{0pt}
+		\hfill
+		\includegraphics[height=#1\linewidth]{images/supp/#2.jpeg}
+		\hfill
+		\includegraphics[height=#1\linewidth]{images/supp/dinov2/vit_l/#2.png}
+		\hfill
+        \includegraphics[height=#1\linewidth]{images/supp/dinov3/vit_l/#2.png}
+		\hfill
+		\includegraphics[height=#1\linewidth]{images/supp/tipsv2/vit_l/#2.png}
+}}
+
+\newcommand{\pcawidthsupp}{1.0}
+
+\begin{figure}[tb]
+	\centering
+	\showpcas{\pcawidthsupp}{dadaocheng} \\[0.2mm]
+    \showpcas{\pcawidthsupp}{cph} \\[0.2mm]
+    \showpcas{\pcawidthsupp}{hike} \\[0.2mm]
+    \showpcas{\pcawidthsupp}{angus} \\[0.1mm]
+
+    \resizebox{\pcawidthsupp\linewidth}{!}{%
+    \scriptsize
+        \begin{minipage}[t]{0.24\linewidth}
+          \centering
+          Image
+        \end{minipage}%
+        \hfill
+        \begin{minipage}[t]{0.24\linewidth}
+          \centering
+          DINOv2-L
+        \end{minipage}%
+        \hfill
+        \begin{minipage}[t]{0.24\linewidth}
+          \centering
+          DINOv3-L
+        \end{minipage}%
+        \hfill
+        \begin{minipage}[t]{0.24\linewidth}
+          \centering
+          \tipsvtwo-L (ours)
+        \end{minipage}%
+    }%
+    \vspace{-1mm}
+	\caption{\small\textbf{PCA maps at ViT-L size.} Comparing the first $3$ PCA components from the ViT-L models of DINOv2 (with registers), DINOv3, and \tipsvtwo. Images are forwarded at $1372$ resolution for patch size $14$ models (DINOv2 and \tipsvtwo) and at $1568$ resolution for patch size $16$ models (DINOv3). DINOv3 features appear smoother, but \tipsvtwo features show more semantically focused features, e.g., \tipsvtwo maps show all windows clustered together in row 1, and the eyes and leash are distinct on the dog in row 4.}
+	\label{fig:qualitative_dino_l}
+	\vspace{-3mm}
+\end{figure}
+
+\newcommand{\showpcasg}[2]{%
+  \resizebox{#1\linewidth}{!}{%
+	\setlength{\fboxsep}{0pt}
+		\hfill
+		\includegraphics[height=#1\linewidth]{images/supp/#2.jpeg}
+		\hfill
+		\includegraphics[height=#1\linewidth]{images/supp/dinov2/vit_g/#2.png}
+		\hfill
+        \includegraphics[height=#1\linewidth]{images/supp/dinov3/vit_7b/#2.png}
+		\hfill
+		\includegraphics[height=#1\linewidth]{images/supp/tipsv2/vit_g/#2.png}
+}}
+
+\begin{figure}[tb]
+	\centering
+	\showpcasg{\pcawidthsupp}{dadaocheng} \\[0.2mm]
+    \showpcasg{\pcawidthsupp}{cph} \\[0.2mm]
+    \showpcasg{\pcawidthsupp}{hike} \\[0.2mm]
+    \showpcasg{\pcawidthsupp}{angus} \\[0.1mm]
+
+    \resizebox{\pcawidthsupp\linewidth}{!}{%
+    \scriptsize
+        \begin{minipage}[t]{0.24\linewidth}
+          \centering
+          Image
+        \end{minipage}%
+        \hfill
+        \begin{minipage}[t]{0.24\linewidth}
+          \centering
+          DINOv2-g
+        \end{minipage}%
+        \hfill
+        \begin{minipage}[t]{0.24\linewidth}
+          \centering
+          DINOv3-7B
+        \end{minipage}%
+        \hfill
+        \begin{minipage}[t]{0.24\linewidth}
+          \centering
+          \tipsvtwo-g (ours)
+        \end{minipage}%
+    }%
+    \vspace{-1mm}
+	\caption{\small\textbf{PCA maps at ViT-g or ViT-7B size.} Comparing the first $3$ PCA components from teacher models of DINOv2  (with registers, ViT-g), DINOv3 (ViT-7B), and \tipsvtwo (ViT-g). Images are forwarded at $1372$ resolution for patch size $14$ models (DINOv2 and \tipsvtwo) and at $1568$ resolution for patch size $16$ models (DINOv3). 
+    As for the ViT-L PCA maps, DINOv3 features appear smoother, but \tipsvtwo features capture more semantically focused details, e.g., notice the ceiling details in row 2 or the different colors contrasting people and backpacks in row 3.}
+	\label{fig:qualitative_dino_g}
+	\vspace{-3mm}
+\end{figure}
+
+
+
+\subsection{Qualitative Analysis: iBOT++ vs iBOT}
+
+\newcommand{\showvizs}[2]{%
+  \resizebox{#1\linewidth}{!}{%
+	\setlength{\fboxsep}{0pt}
+		\includegraphics[height=#1\linewidth]{images/supp/#2.png}
+		\hfill
+		\includegraphics[height=#1\linewidth]{images/supp/#2_gt.png}
+		\hfill
+		\includegraphics[height=#1\linewidth]{images/supp/#2_ibotplus.png}
+		\hfill
+		\includegraphics[height=#1\linewidth]{images/supp/#2_ibot.png}
+}}
+
+
+\newcommand{\vizwidthsupp}{1.0}
+\begin{figure}[tb]
+	\centering
+	\showvizs{\vizwidthsupp}{bicycle} \\[0.24mm]
+    \showvizs{\vizwidthsupp}{kids} \\[0.24mm]
+    \showvizs{\vizwidthsupp}{baby} \\[0.24mm]
+    \showvizs{\vizwidthsupp}{redbus} \\[0.24mm]
+    \showvizs{\vizwidthsupp}{puppy} \\[0.24mm]
+    \showvizs{\vizwidthsupp}{sleep} \\[0.24mm]
+
+    \resizebox{\vizwidthsupp\linewidth}{!}{%
+    \scriptsize
+        \begin{minipage}[t]{0.24\linewidth}
+          \centering
+          Image
+        \end{minipage}%
+        \hfill
+        \begin{minipage}[t]{0.24\linewidth}
+          \centering
+          Ground truth
+        \end{minipage}%
+        \hfill
+        \begin{minipage}[t]{0.24\linewidth}
+          \centering
+          iBOT++
+        \end{minipage}%
+        \hfill
+        \begin{minipage}[t]{0.24\linewidth}
+          \centering
+          iBOT
+        \end{minipage}%
+    }%
+    \vspace{-1mm}
+	\caption{\small\textbf{Zero-shot segmentation visualization.} Comparing results with the iBOT loss (used in TIPS) vs the iBOT++ loss (used in \tipsvtwo), where classes are predicted directly by finding the closest text embedding to each image patch token, without any post-processing. Compared to baseline iBOT, iBOT++ achieves significantly improved patch-text alignment, as part of the TIPSv2 recipe.}
+	\label{fig:ibotplus_zss_viz}
+	\vspace{-3mm}
+\end{figure}
+
+As detailed in \cref{loss_diff}, iBOT++ significantly enhances patch-text alignment during pretraining.
+This improvement is quantified in \cref{tab:ablation_studies}, where a substantial performance gain is directly observed in the zero-shot segmentation metrics when comparing iBOT baseline (first row) to iBOT++ (second row). 
+To further illustrate this enhancement, \cref{fig:ibotplus_zss_viz} provides qualitative visualizations of the zero-shot segmentation results, which correspond directly to the first and second rows of \cref{tab:ablation_studies}. These visualizations confirm that iBOT++ yields significantly cleaner segmentation maps.
+
+\subsection{Zero-shot Segmentation with SigLIP2}
+
+We showed that smaller models in the TIPS~\cite{tips_paper} family outperform larger ones in the task of zero-shot image segmentation, which motivated our investigations and contributions towards TIPSv2.
+In this section, we provide evidence of a similar effect also happening in the SigLIP2 family.
+\cref{tab:zeroseg_scale_siglipv2} presents zero-shot segmentation results for three model sizes, where the smallest one outperforms the larger versions in two evaluations, and the SO size model wins in the third; notably, the largest ViT-g model presents the worst performance in all three evaluations.
+Note that the smallest ViT-B size model is distilled via active data curation from a larger SO model in the family.
+Similarly to the TIPS case, these results indicate that the smaller models surprisingly outperform larger pretrained ones.
+
+\input{tables/tab_zeroseg_scale_siglipv2}
+\input{tables/table_family}
+
+\subsection{\textbf{\tipsvtwo} Family} 
+\label{sec:panda_family}
+
+
+
+The \tipsvtwo model family includes variants with different backbone sizes: ViT-B, ViT-L, ViT-g and SO-400m~\citep{alabdulmohsin2023sovit} (referred to as $\text{SO}$ hereafter). The ViT-g model is directly pretrained, while the smaller ViT-B, ViT-L, and $\text{SO}$ variants are obtained via the patch-level distillation strategy detailed in \cref{sec:preliminaries} and \cref{bridge}, using $\text{ViT}$-g as the teacher model. For text encoder scaling, we follow \citep{tips_paper} and adopt the same transformer parameterization as the image encoder but fix the number of layers at 12 (except for the $\text{SO}$ variant, which maintains its standard layer count). 
+
+Our studies demonstrate that the \tipsvtwo family exhibits strong performance across all image and image-text benchmarks, as summarized in \cref{tab:family}. The parameter count for each model is detailed in \cref{tab:num_params}.
+
+\input{tables/tab_num_params}
+
+
+
+\subsection{Performance of \tipsvtwo against Competitors}
+
+\begin{figure}[t]
+    \centering
+    \includegraphics[width=1.0\linewidth]{figures/tipsv2-battle-fix.pdf}
+    \caption{    
+    \textbf{Comparison of \tipsvtwo against recent vision encoders.} The chart illustrates the percentage of shared evaluation benchmarks where \tipsvtwo secures the best result (green) compared head-to-head to other individual leading models (orange). 
+    \tipsvtwo demonstrates a winning record on the majority of shared tasks. The integer displayed on the chart represents the count of metrics on which each respective model achieves the best result (i.e., the number of wins).
+    For each comparison between individual vision encoders, we use the largest comparable model size (ViT-g against ViT-g, or ViT-g against ViT-G, or ViT-L against ViT-L).
+    }
+    \label{fig:battle}
+\end{figure}
+
+To gain a comprehensive understanding of the performance of our new method compared to other recent vision encoders, we quantified the number of evaluations where \tipsvtwo outperforms (or underperforms) each competitor method head-to-head, based on reported scores in the main results tables.
+Looking only at the evaluations the models share, \tipsvtwo generally comes out on top in most cases, as shown in \cref{fig:battle}.
+This summary confirms the strong results from \tipsvtwo overall.
+
+
+
+
+
+
+\subsection{Additional Implementation Details}
+ Our implementation closely follows that of TIPS. The loss components are weighted by $\mathcal{L} = \mathcal{L}_\text{CLIP} + \alpha\mathcal{L}_\text{DINO} + \beta\mathcal{L}_\text{iBOT}$, where $\alpha=1.0$, $\beta=2.0$. $\mathcal{L}_\text{CLIP}$ is the averaged result of contrastive losses from the two captions. We use the Adafactor~\citep{shazeer2018adafactor} optimizer, and projection heads are balanced from collapse with EMA centering and sharpening.

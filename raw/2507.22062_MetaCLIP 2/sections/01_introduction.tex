@@ -1,0 +1,48 @@
+\section{Introduction}
+\label{intro}
+
+Contrastive Language-Image Pre-training (CLIP)~\citep{radford2021learning} has become an essential building block of modern vision and multimodal models, from zero-shot image classification and retrieval to serving as vision encoders in multimodal large language models (MLLMs)~\citep{grattafiori2024llama,team2023gemini,liu2023visual,bai2023qwenvl}. 
+CLIP and its majority variants \citep{ilharco_gabriel_2021_5143773,xu2024demystifying} adopt an English-only setting, and
+Meta CLIP~\citep{xu2024demystifying} introduces a scalable data curation algorithm to meticulously extract a billion-scale English dataset that exhausts long-tailed concepts in Common Crawl.
+The algorithm transforms the distribution of the raw Internet into \textit{controllable} and \textit{balanced} training distribution defined by metadata (e.g., visual concepts composed by human experts) and training distribution is known as one key contributor to performance.
+In contrast, popular CLIP reproductions outsource such key contributor to external resources, e.g., OpenCLIP~\citep{ilharco_gabriel_2021_5143773} trained on LAION~\citep{schuhmann2021laion, schuhmann2022laion} and DFN~\citep{fang2023data} rely on pretrained CLIP models for black-box \emph{filtering} to keep only high-confidence data. Such approaches resemble distillation of an existing CLIP teacher model and produce \textit{untractable} distributions owned by an outsourcing party.
+
+\begin{figure}[ht!]
+    \centering
+    \includegraphics[width=1.0\textwidth]{imgs/teaser.pdf}
+    \caption{(Left) CLIP training suffers from the \textit{curse of multilinguality} that the English performance of a CLIP model trained on worldwide (i.e., English + non-English), billion-scale data is worse than its English-only counterpart, even when applying our recipe on ViT-L/14;
+    scaling to ViT-H/14 enables non-English data helps English-only CLIP. (Right) English data also helps non-English CLIP.
+    }
+    \label{fig:teaser}
+    \vspace{-2.mm}
+\end{figure}
+
+Although being the most widely used ``foundation'' models, most CLIP variants, including the scalable Meta CLIP, rely on English-only curation and thus discard the other, e.g., 50.9\%~\citep{internetLangStats2025} of non-English, worldwide web data. To extend CLIP training and data to the worldwide web for the next level of scaling, we inevitably have to handle these non-English image-text pairs—a barrier we refer to as the \textit{worldwide scaling challenges}, which are issues not yet being solved after years of attempts to train CLIP on multilingual data:
+\newpage
+\textbf{Challenge \#1: Lack of a fundamental data curation method to handle non-English data at scale}. Existing attempts either conduct no curation on the raw, non-English image-text pair data at all (e.g., distilling from English CLIP~\citep{chen2023mclip} or machine translation~\citep{carlsson2022cross,nguyen2024multilingual}), or rely on proprietary and private data sources (e.g., WebLI~\citep{chen2023pali} that drives mSigLIP and SigLIP 2~\citep{zhai2023sigmoid, tschannen2025siglip} is built from Google Image Search~\citep{juan2019graph}).
+
+\textbf{Challenge \#2: Worse English performance than English-only CLIP}. This is also known as \textit{curse of multilinguality} in text-only large language models (LLMs).
+For instance, mSigLIP is \(1.5\)\% worse than its English-only counterpart, SigLIP, on ImageNet~\citep{zhai2023sigmoid}, while SigLIP~2~\citep{tschannen2025siglip} prioritizes English performance at the cost of even worse multilingual results than mSigLIP. Hence, disparate models have to be used to optimize English and non-English performance at the same time.
+
+\paragraph{This work.} We present \textbf{Meta CLIP~2}, the first ever recipe developing CLIP with training \emph{from scratch} on \emph{native} \textbf{worldwide} image-text pairs, without relying on outsourced resources, such as any private data, machine translation, or distillation. We empirically show that the curse of multilinguality in CLIP is the consequence of \emph{insufficient scaling} due to the lack of a proper recipe for worldwide data curation and model training.
+When metadata, data curation, model capacity, and training are carefully designed and scaled \emph{jointly}, we show that not only the performance trade-offs between English and non-English data disappear, but the two become \emph{mutually beneficial}. Achieving such worldwide scaling is highly desirable, especially when English Internet data is exhausted soon~\citep{villalobos2022will}.
+
+Our Meta CLIP~2 recipe is built on top of English Meta CLIP, where overlapping with OpenAI CLIP's vanilla architecture is deliberately maximized. The overlap makes our findings generalizable to CLIP and its variants, compared to system works (c.f.,~\citep{zhai2023sigmoid, tschannen2025siglip, bolya2025perception}) aiming at state-of-the-art (SoTA) performance with combination of all available techniques. Such combination involves confounding factors or comparison on outsourced resources instead of CLIP itself.
+The Meta CLIP~2 recipe introduces three principled innovations for scaling to worldwide. 
+1) \textit{Metadata.}  We scale the English Meta CLIP metadata % of 500k entries to 27M 
+to \(300\)+ languages on Wikipedia and multilingual WordNet.
+2) \textit{Curation algorithm.} We build per-language substring matching and balancing to curate concept distribution for non-English data similar to the English counterpart.
+3) \textit{Training framework.}
+We design the first worldwide CLIP training framework, including an increase of seen image-text pairs during training proportional to the increased data size from the added non-English data examples, and a study on minimal viable model capacity to learn from worldwide scale data. 
+As shown in Fig.~\ref{fig:teaser}, although a ViT-L/14 (the largest model size used by OpenAI) still suffers the curse of multilinguality, ViT-H/14 breaks the curse. English accuracy \emph{rises} from 80.5\% to 81.3\% on ImageNet and surprisingly new SoTA is set with minimal CLIP architecture changes for multilingual image-to-text retrieval (XM3600 64.3\%, Babel-ImageNet 50.2\%, and CVQA 57.4\%).
+
+Together, Meta CLIP~2 enables the following desirable results by nature.
+1) \textbf{Mutual benefits from the English and non-English worlds.} Non-English data now can better support an English-only model and vice versa, which is critical in the era when English data is depleting. 
+2) \textbf{Full multilingual support.} Meta CLIP~2 never drops image-text pairs simply by languages and yields models outperforming all the previous multilingual systems, such as mSigLIP~\citep{zhai2023sigmoid} and SigLIP~2 \citep{tschannen2025siglip}.
+3) \textbf{Native-language supervision.} Models learn directly from
+alt-texts written by native speakers rather than synthetic machine
+translations~\citep{pouget2024no, nguyen2024multilingual}.
+4) \textbf{Cultural diversity.} Meta CLIP~2 retains the entire global distribution of images and thus inherits the comprehensive cultural and socioeconomic coverage advocated by \citep{pouget2024no}. Such coverage improves geo-localization and region-specific recognition.
+5) \textbf{No-filter philosophy.} 
+With the curation algorithm designed towards worldwide data, Meta CLIP~2 removes the last filter (i.e., whether the alt-text is in English) in pipeline, achieving better diversity and minimizing biases introduced by filters~\citep{pouget2024no}.
+6) \textbf{Broader impacts on foundation data.} This work provides a foundational data algorithm designed for worldwide scale, and benefits not only CLIP, but also efforts using CLIP data such as MLLM~\citep{grattafiori2024llama,team2024chameleon}, SSL (Web-DINO~\citep{fan2025scaling}) and image generation (DALL-E~\citep{ramesh2021zero} and diffusion models~\citep{yang2023diffusurvey}).

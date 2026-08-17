@@ -1,0 +1,128 @@
+\section{Appendix}
+\label{sec:implementation_details}
+
+\subsection{Model Architecture Details}
+\label{subsec:model_hyperparams}
+
+
+% \subsection{Scaling}
+% \label{subsec:scaling}
+We develop $5$ Chinese CLIP models of different sizes, spanning from around $77$ to $958$ million parameters. 
+We include $1$ ResNet-50 model $\text{CN-CLIP}\rm_{RN50}$ and $4$ ViT models, i.e., $\text{CN-CLIP}\rm_{ViT\text{-}B/16}$, $\text{CN-CLIP}\rm_{ViT\text{-}L/14}$, $\text{CN-CLIP}\rm_{ViT\text{-}L/14@336px}$ and $\text{CN-CLIP}\rm_{ViT\text{-}H/14}$, where models are pretrained on images of the resolution of $224 \times 224$ without specification. 
+Table~\ref{tb:modelcard} presents the details of the model architecture. 
+The smallest model $\text{CN-CLIP}\rm_{RN50}$ consists of a ResNet-50 for the image encoder and a RBT3 for the text encoder. 
+The base-size model $\text{CN-CLIP}\rm_{ViT\text{-}B/16}$ consists of a ViT-B/16@224px for the image encoder and a RoBERTa-wwm-Base for the text encoder. 
+The large-size model $\text{CN-CLIP}\rm_{ViT\text{-}L/14}$ consists of a ViT-L/14@224px for the image encoder and a RoBERTa-wwm-Base for the text encoder, while $\text{CN-CLIP}\rm_{ViT\text{-}L/14@336px}$ consists of a ViT-L/14@336px and a RoBERTa-wwm-Base. 
+Specifically, we pretrain $\text{CN-CLIP}\rm_{ViT\text{-}L/14@336px}$ by continuing pretraining on the pretrained $\text{CN-CLIP}\rm_{ViT\text{-}L/14}$. 
+For the adaptation to a larger resolution, we initialize the image positional embedding by applying interpolation to the positional embedding of $\text{CN-CLIP}\rm_{ViT\text{-}L/14}$, following \citet{openclip}. 
+The huge-size model $\text{CN-CLIP}\rm_{ViT\text{-}H/14}$ consists of a ViT-H/14 for the image encoder and RoBERTa-wwm-Large for the text encoder. 
+More implementation details are presented in Appendix~\ref{sec:implementation_details}.
+
+\input{tables/modelcard.tex}
+
+\input{tables/architecture_details.tex}
+% As mentioned in Section~\ref{subsec:scaling} and Table~\ref{tb:modelcard}, we release $5$ Chinese CLIP models of different sizes. 
+We provide more details of their model architectures in Table~\ref{tb:detailed_architecture_vit} and Table~\ref{tb:detailed_architecture_rn}. We keep the architecture of ResNet-50, ViT-B/16, and ViT-L/14 backbones conformed with OpenAI CLIP and the architecture of ViT-H/14 same with LAION CLIP\footnote{\url{https://laion.ai/blog/large-openclip/}}. 
+This enables us to initialize the Chinese CLIP image encoders with their weights. 
+The text encoders are Chinese Roberta models~\cite{wwm}. Specifically, our most lightweight tiny-size Chinese CLIP uses the architecture of the $3$-layer RBT3 model. The base-size and large-size Chinese CLIP models use the $12$-layer architecture of RoBERTa-wwm-Base. For the huge-size CN-CLIP, we use the $24$-layer architecture of RoBERTa-wwm-Large. The vocabulary size of text tokenizer is $21,128$.
+
+\subsection{Pretraining Details}
+\label{subsec:pretraining_details}
+
+\paragraph{Initialization} As mentioned in Section~\ref{subsec:pretraining_method}, we initialize the image encoders of $\text{CN-CLIP}\rm_{RN50}$, $\text{CN-CLIP}\rm_{ViT\text{-}B/16}$ and $\text{CN-CLIP}\rm_{ViT\text{-}L/14}$ using the OpenAI CLIP weights. The image encoder of $\text{CN-CLIP}\rm_{ViT\text{-}H/14}$ is initialized with LAION CLIP. 
+Besides the ResNet or ViT parameters, the temperature and visual output projection parameters are also initialized with the pretrained CLIP weights. 
+For the text encoder, we initialize the parameters using the released Chinese Roberta weights of the corresponding model scale, with their pooler weights discarded. The text output projection weight is randomly initialized with normal distribution.
+
+\input{tables/hyperparams_stage1.tex}
+
+\paragraph{Stage 1} 
+The pretraining hyperparameters of Stage 1 are shown in Table~\ref{tb:hyperparams_stage1}, which are shared for $\text{CN-CLIP}\rm_{RN50}$, $\text{CN-CLIP}\rm_{ViT\text{-}B/16}$, $\text{CN-CLIP}\rm_{ViT\text{-}L/14}$ and $\text{CN-CLIP}\rm_{ViT\text{-}H/14}$. 
+The values of hyperparameters are generally similar to those in OpenAI CLIP~\citep{clip}. 
+As to data augmentation, we use random resize cropping and AutoAugment~\citep{autoaugment} on input images. We leverage all-gather communications across GPU workers to compute contrastive loss on the global batch. The above $4$ models are pretrained for around $20$, $44$, $64$, and $26$ epochs in this stage respectively, with the image encoder frozen. The running variance and mean of batch normalization layers are not updated in this stage for $\text{CN-CLIP}\rm_{RN50}$. The optimal epochs of pretraining are determined by measuring the mean-recall under the $3$ downstream zero-shot retrieval tasks during training. Mixed-precision training is activated. 
+In this stage, we pretrain $1.6$ days using $64$ NVIDIA V100 GPUs for $\text{CN-CLIP}\rm_{RN50}$, $4.5$ days using $128$ NVIDIA V100 GPUs for $\text{CN-CLIP}\rm_{ViT\text{-}B/16}$, $11.5$ days using $128$ NVIDIA V100 GPUs for $\text{CN-CLIP}\rm_{ViT\text{-}L/14}$ and $3.8$ days using $184$ NVIDIA A100 GPUs for $\text{CN-CLIP}\rm_{ViT\text{-}H/14}$.
+
+\paragraph{Stage 2} 
+In Stage 2, we unfreeze the image encoder and update all the model parameters. Except for the peak learning rate, batch size and training epochs, all other hyperparameters mentioned in Stage 1 are kept unchanged. We decrease the learning rate to $2e-5$ for subtler optimization. % Updating all the parameters will cost more GPU memory during backward computation. 
+For $\text{CN-CLIP}\rm_{RN50}$, $\text{CN-CLIP}\rm_{ViT\text{-}B/16}$ and $\text{CN-CLIP}\rm_{ViT\text{-}L/14}$, the batch size is shrunk to $16,384$, $16,384$ and $4,608$ respectively due to the limitation in GPU memory. When scaling to $\text{CN-CLIP}\rm_{ViT\text{-}H/14}$, we implement gradient checkpointing, which enables a larger batch size of $32,768$. These $4$ models are pretrained for around $44$, $15$, $7$ and $7$ epochs in Stage 2, respectively.
+In this stage, we pretrain $\text{CN-CLIP}\rm_{RN50}$ for $5.8$ days using $64$ NVIDIA V100 GPUs, $\text{CN-CLIP}\rm_{ViT\text{-}B/16}$ for $3.0$ days using $128$ NVIDIA V100 GPUs, $\text{CN-CLIP}\rm_{ViT\text{-}L/14}$ for $8.0$ days using $128$ Nvidia V100 GPUs, and $\text{CN-CLIP}\rm_{ViT\text{-}H/14}$ for $2.2$ days using $184$ NVIDIA A100 GPUs. 
+
+To pretrain a model of a larger resolution, we implement interpolation to the image positional embedding of $\text{CN-CLIP}\rm_{ViT\text{-}L/14}$ for adapting to a larger resolution and continue pretraining with images of the resolution of $336 \times 336$. 
+We start from $\text{CN-CLIP}\rm_{ViT\text{-}L/14}$ and continue pretraining by $2$ epochs. 
+The pretraining only costs the use of $128$ NVIDIA A100 GPUs for $0.7$ days.
+
+\subsection{Finetuning Details}
+\input{tables/hyperparams_finetune.tex}
+\input{tables/appendix_ICR.tex}
+As reported in Table~\ref{tb:muge}, \ref{tb:flickr} and \ref{tb:coco}, we mainly finetune CN-CLIP on $3$ cross-modal retrieval datasets: MUGE, Flickr30K-CN, and COCO-CN.
+Most finetuning experiments are conducted on $32$ NVIDIA A100 GPUs.
+The finetuning strategy and loss are consistent with the pretraining process.
+For time efficiency and full utilization of computation resources, we set the batch size as large as possible.
+We implement gradient checkpointing in the finetuning process of $\text{CN-CLIP}\rm_{ViT\text{-}L/14@336px}$ and $\text{CN-CLIP}\rm_{ViT\text{-}H/14}$ for a larger batch size.
+Table~\ref{tb:detailed_finetune} shows the specific settings of batch size, peaking learning rate, maximum epochs, and warmup iterations in the finetuning process.
+We set other hyperparameters to be the same as those in pretraining by default.
+We save the model parameters at the end of each epoch.
+For MUGE, we report the best results on the validation set.
+For Flickr30K-CN and COCO-CN, we choose the checkpoint with the best performance on the validation set and report the results on the test set.
+% In particular, we find that under the same setting of batch size, a larger peak learning rate will lead to , but usually will also reach a higher MR. A relatively small peak learning rate will delay the occurrence of over fitting, but the maximum MR can be lower.
+
+
+\subsection{Cross-modal Retrieval with Longer Texts}
+The results reported in Section~\ref{subsubsec:results} demonstrate the excellent cross-modal retrieval capability of Chinese CLIP.
+Note that the average text lengths of MUGE, Flickr30K-CN, and COCO-CN are $7.4$, $19.7$, and $16.8$, respectively.
+We also conduct finetuning experiments on the ICR~\citep{r2d2} dataset with an average text length of $45.3$. 
+Experimental results are shown in Table~\ref{tb:ICR}.
+Since the texts in the ICR dataset are longer, we set the maximum text length to $128$ for finetuning.
+The results show that Chinese CLIP achieves state-of-the-art performance in cross-modal retrieval tasks with longer texts.
+
+% We also conducted finetuning experiments on ICR~\citep{r2d2} dataset for $\text{CN-CLIP}\rm_{ViT\text{-}B/16}$ and $\text{CN-CLIP}\rm_{ViT\text{-}L/14}$. Since the text in the ICR dataset is longer, we set the maximum text length to $128$ when finetuning. $\text{CN-CLIP}\rm_{ViT\text{-}B/16}$ and $\text{CN-CLIP}\rm_{ViT\text{-}L/14}$ achieve $73.5$ and $78.3$ 
+
+
+\subsection{Details About Experiments on Zero-shot Image Classification}
+
+\input{tables/icinw_data.tex}
+
+\input{tables/icinw_result}
+
+We present the data statistics and metrics of the $20$ image classification datasets of the track ICinW in the ELEVATER benchmark in Table~\ref{tb:icinw}. 
+For the adaptation of Chinese CLIP to the English-native benchmark, we apply a series of preprocessing strategies. Specifically, we translate the text descriptions of the labels and the templates for manual prompts to Chinese. 
+For example, the labels in CIFAR-10 include ``car, dog, ...'', and we manually translate the words into Chinese. 
+There are also particular cases, such as the labels in FGVC-Aircraft~\citep{fgvc}, which are difficult to translate or transliterate. 
+We search the names on Google and figure out the best Chinese name for each label. 
+Be that as it may, we cannot guarantee that we have the best Chinese translation, and more importantly, it is still hard for the Chinese pretrained model to understand some of the concepts, which may lead to unsatisfactory performance in the related downstream tasks. 
+As to the templates, for some datasets, we use our translation of the templates provided by the ELEVATER toolkit,\footnote{\url{https://github.com/Computer-Vision-in-the-Wild/Elevater\_Toolkit\_IC}} and for the others, we use the translation of the templates from OpenAI CLIP.
+
+We present the experimental results of all Chinese CLIP models on zero-shot image classification in Table~\ref{tb:zs}. 
+It can be found that the scaling of model size can consistently bring improvements in model performance. 
+The predictable improvements of scaling Chinese CLIP indicate that we can further scale up the model for better performance in the future work.  
+However, it is still a pity that the tiny-size $\text{CN-CLIP}\rm_{RN50}$ saliently performs much worse than the ViT variants which are significantly larger. 
+This shows that there is still much room for the small model to improve, and the knowledge transfer of CLIP from large models to small models should be an important research topic in multimodal representation learning. 
+
+\subsection{Deployment}
+\label{appendix:deployment}
+
+Chinese CLIP is supported to be deployed into ONNX-based\footnote{\url{https://onnx.ai/}} and TensorRT-based\footnote{\url{https://developer.nvidia.com/tensorrt}} models, enabling faster text and vision representation generation (especially for online inference). In this section, we provide more details on the model conversion, as well as the performance improvement. 
+% The code for ONNX-based and TensorRT-based model deployment is opensourced.
+
+Specifically, we employ the ONNX module in PyTorch with \textsc{onnxmltools}\footnote{\url{https://github.com/onnx/onnxmltools}} package to convert Chinese CLIP PyTorch models to ONNX-based models in FP16 precision. With the support of \textsc{onnxruntime-gpu}\footnote{\url{https://onnxruntime.ai/docs/install}} package, the ONNX-based models are able to infer on NVIDIA GPUs. The \textsc{TensorRT} package enables the TensorRT-based models obtained from ONNX-based models and provides the GPU inference runtime. Our TensorRT-based models are also in FP16 precision.
+
+We benchmark the PyTorch implemented Chinese CLIP models with converted ONNX-based and TensorRT-based models using a server with a single NVIDIA T4 GPU. The server contains \num{16} Intel Xeon (Skylake) Platinum 8163 CPU cores with \num{64}GB memory. For each model, we inference the vision and text representations for $100$ batches and compute the average time. Simulating the scenario of online deployment, we use batch size of $1$. All the models infer with FP16 precision. Table~\ref{tb:deployment_speed} shows the comparisons of inference time cost. For almost all the model scales, ONNX-based and TensorRT-based models have optimized inference speed over native PyTorch implemented Chinese CLIP models, especially on smaller model sizes. For vision representation inference, the TensorRT-based models are around $1.3$ ($\text{CN-CLIP}\rm_{ViT\text{-}H/14}$) to $9.5$ ($\text{CN-CLIP}\rm_{RN50}$) times as fast as the Pytorch-based models. For text representation inference, the TensorRT-based models are around $6.2$ ($\text{CN-CLIP}\rm_{ViT\text{-}H/14}$) to $8.2$ ($\text{CN-CLIP}\rm_{ViT\text{-}L/14}$) times as fast as the PyTorch counterparts.
+
+\input{tables/deployment_speed_benchmark.tex}
+
+We also evaluate the quality of ONNX-based and TensorRT-based model representations by measuring their zero-shot performance on MUGE retrieval dataset. Table~\ref{tb:deployment_muge} provides the experimental zero-shot results, which shows that the converted ONNX-based or TensorRT-based models keeps the quality of vision and text representations well, with no more than $0.1$ MR degradation in retrieval performance.
+
+\input{tables/deployment_MUGE_performance.tex}
+
+\begin{figure*}[h] 
+    \centering
+    \includegraphics[width=1.0\linewidth]{pics/cat.png}
+    \caption{Retrieval results of the query ``a cat with glasses'' in Chinese.}
+    \label{fig:demo_cat}
+\end{figure*}
+
+\begin{figure*}[h] 
+    \centering
+    \includegraphics[width=1.0\linewidth]{pics/couplet.png}
+    \caption{Retrieval results of the query ``Spring Festival couplet'' in Chinese.}
+    \label{fig:demo_couplet}
+\end{figure*}

@@ -5,10 +5,10 @@ description: A 4B Gemma 3-based image-safety classifier that applies an input po
 tags: [multimodal-safety, content-moderation, vision-language-models, image-classification, synthetic-data]
 status: stable
 created: 2026-08-16
-generated: { by: llm-wiki-agent/1, at: 2026-08-16T15:47:27Z }
+generated: { by: llm-wiki-agent/1, at: 2026-08-17T00:00:00Z }
 sources:
   - id: zeng-2025-shieldgemma2
-    resource: ../raw/2504.01081_ShieldGemma2.md
+    resource: ../raw/2504.01081_ShieldGemma2/main.tex
     title: ShieldGemma 2: Robust and Tractable Image Content Moderation
 ---
 
@@ -38,6 +38,6 @@ ShieldGemma 2 (SG2) is a 4B-parameter image-content moderation model fine-tuned 
 
 ## Evidence coverage
 
-The source’s Markdown text and figure captions were reviewed. Its figures are remote assets and were not visually inspected; this concept makes no claim based only on their pixels.
+The complete TeX manuscript was reviewed, including all sections, appendix, contributor list, and local figures. The figures corroborate the described synthetic-data pipeline and show policy-reannotation examples; this concept makes no claim based only on their pixels. Bibliographic entries and branding assets were not independently reviewed because they do not add material evidence for these claims.
 
-[^zeng-2025-shieldgemma2]: Zeng et al., “ShieldGemma 2: Robust and Tractable Image Content Moderation” (2025), [source](../raw/2504.01081_ShieldGemma2.md).
+[^zeng-2025-shieldgemma2]: ShieldGemma Team, “ShieldGemma 2: Robust and Tractable Image Content Moderation” (2025), [source](../raw/2504.01081_ShieldGemma2/main.tex).

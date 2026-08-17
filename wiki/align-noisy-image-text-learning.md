@@ -5,10 +5,10 @@ description: A dual-encoder contrastive approach showing that web-scale, lightly
 tags: [multimodal-learning, contrastive-learning, representation-learning, retrieval]
 status: stable
 created: 2026-08-16
-generated: { by: llm-wiki-agent/1, at: 2026-08-16T15:27:17Z }
+generated: { by: llm-wiki-agent/1, at: 2026-08-17T02:26:31Z }
 sources:
   - id: align-2021
-    resource: ../raw/2102.05918_ALIGN.md
+    resource: ../raw/2102.05918_ALIGN/align.tex
     title: Scaling Up Visual and Vision-Language Representation Learning With Noisy Text Supervision
 ---
 
@@ -36,4 +36,4 @@ For the authors’ EfficientNet-B7/BERT-Base ablation, 3 million noisy ALIGN pai
 - A multilingual variant trained on 1.8 billion pairs across 100+ languages used a 250k wordpiece vocabulary and reported zero-shot Multi30K retrieval results in English, German, French, and Czech.[^align-2021]
 - The paper reports stronger cross-modal than intra-modal similarity performance on CxC, consistent with its cross-modal matching objective. It also identifies web-data bias, harmful text, cultural and demographic skew, and surveillance misuse as deployment risks requiring further analysis and mitigation.[^align-2021]
 
-[^align-2021]: Jia et al., “Scaling Up Visual and Vision-Language Representation Learning With Noisy Text Supervision” (2021), [source](../raw/2102.05918_ALIGN.md).
+[^align-2021]: Jia et al., “Scaling Up Visual and Vision-Language Representation Learning With Noisy Text Supervision” (2021), [source](../raw/2102.05918_ALIGN/align.tex).

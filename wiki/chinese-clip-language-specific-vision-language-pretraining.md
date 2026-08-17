@@ -5,13 +5,13 @@ description: A Chinese CLIP adaptation that aligns a Chinese text encoder to a l
 tags: [multimodal-learning, contrastive-learning, transfer-learning, chinese-language, retrieval, zero-shot-transfer]
 status: stable
 created: 2026-08-16
-generated: { by: llm-wiki-agent/1, at: 2026-08-16T15:37:55Z }
+generated: { by: llm-wiki-agent/1, at: 2026-08-17T02:40:28Z }
 sources:
   - id: yang-2022-chinese-clip
-    resource: ../raw/2211.01335_Chinese-CLIP.md
+    resource: ../raw/2211.01335_Chinese-CLIP/acl2023.tex
     title: "Chinese CLIP: Contrastive Vision-Language Pretraining in Chinese"
   - id: chen-2022-altclip
-    resource: ../raw/2211.06679_AltCLIP.md
+    resource: ../raw/2211.06679_AltCLIP/main.tex
     title: "AltCLIP: Altering the Language Encoder in CLIP for Extended Language Capabilities"
 ---
 
@@ -33,7 +33,7 @@ Chinese CLIP transfers a CLIP-style dual encoder to Chinese through two contrast
 
 ## Reported evidence and limits
 
-- The paper reports state-of-the-art zero-shot and fine-tuned retrieval results on MUGE, Flickr30K-CN, and COCO-CN across its comparisons. MUGE is Chinese-native e-commerce data, whereas Flickr30K-CN and COCO-CN use translated captions; these are benchmark-specific author reports, not a general cross-lingual guarantee.[^yang-2022-chinese-clip]
+- The paper reports state-of-the-art zero-shot and fine-tuned retrieval results on MUGE, Flickr30K-CN, COCO-CN, and fine-tuned long-text ICR across its comparisons. MUGE is Chinese-native e-commerce data, whereas Flickr30K-CN and COCO-CN use translated captions; these are benchmark-specific author reports, not a general cross-lingual guarantee.[^yang-2022-chinese-clip]
 - The source flags a contamination caveat: translated COCO is included in pre-training, so its COCO-CN zero-shot results are not a clean held-out evaluation.[^yang-2022-chinese-clip]
 - Zero-shot classification requires translated Chinese class names and prompts. Results are sensitive to prompt wording and translations of proper names; in the reported tests, replacing an "other" label with a negated label substantially reduced accuracy, consistent with weak negation handling.[^yang-2022-chinese-clip]
 - The authors report that ONNX and TensorRT conversions on a T4 GPU made inference roughly 2–10× faster than PyTorch, with MUGE mean-recall differences no greater than 0.1 for the converted models.[^yang-2022-chinese-clip]
@@ -44,6 +44,6 @@ Chinese CLIP transfers a CLIP-style dual encoder to Chinese through two contrast
 - Uses: [LiT locked-image tuning](lit-locked-image-tuning.md) supplies the first, locked-image stage; Chinese CLIP adds a second joint-tuning stage to adapt the visual encoder to Chinese-domain imagery.[^yang-2022-chinese-clip]
 - Related: [AltCLIP multilingual text-encoder alignment](altclip-multilingual-text-encoder-alignment.md) also adapts CLIP to Chinese; unlike Chinese CLIP, it distills an XLM-R text encoder with parallel text and leaves the image encoder frozen during contrastive tuning.[^chen-2022-altclip]
 
-[^yang-2022-chinese-clip]: Yang et al., “Chinese CLIP: Contrastive Vision-Language Pretraining in Chinese” (2022), [source](../raw/2211.01335_Chinese-CLIP.md).
+[^yang-2022-chinese-clip]: Yang et al., “Chinese CLIP: Contrastive Vision-Language Pretraining in Chinese” (2022), [source manuscript](../raw/2211.01335_Chinese-CLIP/acl2023.tex).
 
-[^chen-2022-altclip]: Chen et al., “AltCLIP: Altering the Language Encoder in CLIP for Extended Language Capabilities” (2022), [source](../raw/2211.06679_AltCLIP.md).
+[^chen-2022-altclip]: Chen et al., “AltCLIP: Altering the Language Encoder in CLIP for Extended Language Capabilities” (2022), [source manuscript](../raw/2211.06679_AltCLIP/main.tex).

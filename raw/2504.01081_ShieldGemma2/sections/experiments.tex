@@ -1,0 +1,65 @@
+\section{Experiments}
+\begin{table*}[ht]
+\centering
+\renewcommand{\arraystretch}{1.5}
+\resizebox{\textwidth}{!}{
+\begin{tabular}{lcccccc}
+\toprule
+{Policy} & {SG2} & {\makecell{LlavaGuard \\(Our Policy)}} & {\makecell{LlavaGuard \\(Original Policy)}} & {GPT-4o mini} & {Gemma 3} & { SG2 (w/o BADG)}\\
+\midrule
+{Sexual} & 87.6/89.7/\textbf{88.6} & 67.2/98.9/80.0 & 47.6/93.1/63.0 &68.3/97.7/80.3 & 77.7/87.9/82.5 & 85.9/91.4/\textbf{88.6} \\
+{Danger} & 95.6/91.9/\textbf{93.7} & 82.3/89.6/85.8  & 67.0/100.0/80.3& 84.4/99.0/91.0 & 75.9/94.5/84.2 & 91.8/90.9/91.3 \\
+{Violence}  & 80.3/90.4/\textbf{85.0} & 39.8/100.0/57.0& 36.8/100.0/53.8 & 40.2/100.0/57.3 & 78.2/82.2/80.1  & 76.1/89.6/82.3 \\
+\bottomrule
+\end{tabular}
+}
+\caption{Precision/Recall/F1 (\%, higher is better) on our internal benchmark. SG2 outperforms all other models across all three policies. GPT-4o mini exhibits a very high recall; however, it suffers significantly from over-triggering, resulting in a much lower precision. Without BADG, SG2 experiences a 2.6\%/2.7\% drop in F1 score for \textit{danger} and \textit{violence}, respectively.}
+\label{tab:internal_eval}
+\end{table*}
+
+\begin{table*}[ht]
+\centering
+\renewcommand{\arraystretch}{1.5}
+\footnotesize
+\begin{tabular}{lcccccc}
+\toprule
+{Policy} & {metrics} & {SG2} & { \makecell{LlavaGuard \\(Our Policy)}} & {\makecell{LlavaGuard \\ (Original Policy)}} & { GPT-4o mini} & {Gemma 3} \\
+\midrule
+{Sexual} & F1 &  \textbf{64.2} & 42.1 & 37.8 & 57.1 & 50.4 \\
+{Danger} & 1 - FPR & 88.7 & 68.6 & 27.3 & 92.3 & \textbf{93.8} \\
+{Violence}& 1 - FPR & \textbf{95.9} & 40.1 & 13.0 & 62.5  & 57.3 \\
+\bottomrule
+\end{tabular}
+\caption{UnsafeBench external benchmark performance (\%, higher is better) after relabeling with our policies. F1 score is used for \textit{sexual} evaluation, while 1-FPR (false positive rate) is used for evaluating \textit{violence} and \textit{danger}.}
+\label{tab:external_eval}
+\end{table*}
+
+\subsection{Setup}
+
+
+Despite the abundance of safety-related benchmark datasets, direct comparison remains challenging due to several factors: (i) variations in policy definitions and supported harm types across datasets; (ii) inconsistencies in policy definitions even within the same harm type. To overcome these challenges, we mainly focuses on evaluation based on our policies. Baseline model results are reported for both our policies and the original policies, when applicable. For external benchmarks, images are re-annotated using our policies. 
+
+
+
+\subsection{Benchmark Datasets and Baseline Models}
+
+
+\textbf{UnsafeBench Dataset}. \citep{qu2024unsafebench} is a dataset that comprises roughly ~$10k$ images (~$2k$ in the test set), and is annotated for 11 different types of unsafe content, namely: \textit{hate, harassment, violence, self-harm, sexual, shocking, illegal activity, deception, political, public and personal health, and spam}. Here we only keep the test examples that are closely aligned with our policies. We re-annotate the examples of \textit{sexual, violence, self-harm} based on our internal policies of \textit{sexual, violence, danger} respectively. Relabeling resulted in a significant reduction of positive examples. Figures \ref{fig:danger_fp}, \ref{fig:sexual_fp}, and \ref{fig:violence_fp} in the Appendix provide examples of instances that were originally labeled as positive but re-annotated as negative. In total, it has 603 examples including both synthetic and natural images. 
+
+
+\textbf{Internal Benchmark Dataset}. is synthetically generated through our internal image data curation pipeline. This pipeline includes key steps such as \textit{problem definition, safety taxonomy generation, image query generation, image generation, attribute analysis, label quality validation}, and more. We have approximately 500 examples for each harm policy. The positive ratios are \textit{39\%, 67\%, 32\%} for \textit{sexual, danger, violence} respectively.
+
+
+Our model is evaluated against the following baselines: LlavaGuard 7B \citep{helff2024llavaguard}, GPT-4o mini \citep{hurst2024gpt}, and out-of-the-box Gemma-3-4B-IT \citep{gemma_2025}. For GPT-4o mini, we utilize the OpenAI API (model=\textit{gpt-4o-mini}). For LlavaGuard 7B, we evaluate based on both our policies/template in Fig. \ref{fig:sft_instruction} and the original LlavaGuard policies/template in the appendix (subsection \nameref{ssec:llavaguardinstruction}). For GPT-4o mini and Gemma 3, we use our policies/template in Fig. \ref{fig:sft_instruction}.
+
+
+
+
+
+\subsection{Results}
+
+\textbf{Our internal evaluation results} are presented in Table \ref{tab:internal_eval}. SG2 consistently outperforms all other models across all three policies, achieving an average PR-AUC of 89.1\%. This represents improvements of 6.8\%, 12.9\%, and 14.8\% over Gemma-3-4B-IT, GPT-4o mini, and LlavaGuard 7B, respectively. For SG2 and Gemma-3-4B-IT, optimal thresholds were applied. Without thresholding, directly predicting `Yes'/`No' tokens leads to a marginal 0.8\% reduction F1 score for SG2. 
+
+To evaluate the impact of BADG, we performed an \textbf{ablation study} comparing SG2 with a model trained without the BADG dataset. As shown in Table \ref{tab:internal_eval}, excluding BADG resulted in a 2.6\% and 2.7\% decrease in F1 score for \textit{danger} and \textit{violence}. Notably, precision was significantly enhanced.
+
+\textbf{Our External Evaluation Results}. On UnsafeBench dataset are shown in Table \ref{tab:external_eval}. Following the relabeling of the UnsafeBench dataset according to our policy, the number of positive instances for \textit{danger} and \textit{violence} became significantly reduced. Consequently, performance for these categories is reported using 1-FPR (false positive rate), where FPR represents the percentage of benign examples incorrectly classified as positive. SG2 demonstrates superior performance over all baseline models in \textit{sexual} and \textit{violence}. For \textit{danger}, SG2's performance is comparable to GPT-4o mini and Gemma 3, but SG2 achieves perfect (100\%) recall compared to 80\% for the other two models.

@@ -1,0 +1,197 @@
+\documentclass{article} % For LaTeX2e
+\usepackage{iclr2026_conference,times}
+
+
+% Optional math commands from https://github.com/goodfeli/dlbook_notation.
+\input{math_commands.tex}
+\usepackage{xcolor}
+\definecolor{iclrblue}{RGB}{0,0,140} % dark blue
+
+\usepackage[
+    colorlinks = true,
+    linkcolor  = iclrblue,
+    citecolor  = iclrblue,
+    urlcolor   = iclrblue
+]{hyperref}
+% \usepackage{hyperref}
+\usepackage{url}
+\usepackage{multirow}
+\usepackage{stmaryrd}
+
+% FONT
+% \usepackage{libertine}
+% \usepackage{mathpazo}
+
+\usepackage{booktabs}
+\usepackage{multirow}
+\usepackage{colortbl}   % For row shading
+\usepackage{xcolor}     % For defining colors
+\usepackage{subcaption}
+
+\usepackage[most,skins,breakable]{tcolorbox}
+\usepackage{listings}
+% \usepackage{bera} % better monospace font
+
+\definecolor{lightgray}{gray}{0.9}
+
+
+\usepackage{booktabs,tabularx,url}
+\usepackage{siunitx}
+\sisetup{group-separator = {.}, group-minimum-digits = 4}
+
+% Preamble additions:
+\usepackage{booktabs, multirow, makecell, rotating, xcolor, colortbl}
+\usepackage[flushleft]{threeparttable}
+\renewcommand\theadfont{\bfseries}
+\newcommand{\rot}[1]{\rotatebox{90}{#1}}
+% Define custom colors
+\definecolor{grpA}{HTML}{E8F4FF}     % paler blue for group banners
+\definecolor{grpB}{HTML}{FFE8EB}     % paler pink for group banners
+\definecolor{grpC}{HTML}{E8FFEF}     % paler mint for group banners
+\definecolor{grpD}{HTML}{FFF0E0} 
+\definecolor{grpE}{HTML}{FFF0F6} 
+\definecolor{avgcol}{gray}{0.9}      % avg column grey
+\definecolor{dscol}{gray}{0.95}      % dataset name column background
+\definecolor{latcol}{RGB}{210,235,255} % light blue for latency column
+\definecolor{latcpucol}{RGB}{210,235,255} % light blue (CPU)
+\definecolor{latgpucol}{RGB}{170,215,255} % slightly darker blue (GPU)
+
+
+\usepackage{pifont}
+\usepackage{wrapfig}
+
+% \title{Bert Needed the Vision}
+% \title{Make Visual Retrivers Small Again}
+% \title{\flagship{}: Towards Smaller Visual Retrievers With Bidirectional Attention}
+% \title{\flagship{}: Rethinking Visual Retriever Training With Bidirectional Attention}
+% \title{\flagship{}: Leveraging Bidirectional Attention For Visual Retrievers}
+\title{\flagship{}: Towards Smaller Visual Document Retrievers}
+
+% Authors must not appear in the submitted version. They should be hidden
+% as long as the \iclrfinalcopy macro remains commented out below.
+% Non-anonymous submissions will be rejected without review.
+
+\author{Paul Teiletche$^{1,2}$
+\quad Quentin Macé$^{1,3}$ 
+\quad Max Conti$^{1}$ 
+\quad Antonio Loison$^{1}$ 
+\\
+\textbf{Gautier Viaud}$^{1}$ 
+% \quad \textbf{Céline Hudelot}$^{3}$ 
+\quad \textbf{Pierre Colombo}$^{3,4}$
+\quad \textbf{Manuel Faysse}$^{1,3}$
+\\\\
+$^{1}$Illuin Technology 
+\quad$^2$EPFL
+\quad$^3$CentraleSupélec, Paris-Saclay 
+\quad $^4$Equall.ai 
+\\
+\small \url{paul.teiletche@epfl.ch}}
+% The \author macro works with any number of authors. There are two commands
+% used to separate the names and addresses of multiple authors: \And and \AND.
+%
+% Using \And between authors leaves it to \LaTeX{} to determine where to break
+% the lines. Using \AND forces a linebreak at that point. So, if \LaTeX{}
+% puts 3 of 4 authors names on the first line, and the last on the second
+% line, try using \AND instead of \And before the third author name.
+
+\newcommand{\fix}{\marginpar{FIX}}
+\newcommand{\new}{\marginpar{NEW}}
+\definecolor{ownpurple}{RGB}{111, 8, 201}
+\definecolor{sportingreen}{RGB}{0, 128, 87}
+
+\newcommand{\manu}[1]{{\textcolor{blue}{\bf [{\sc MF:} #1]}}}
+\newcommand{\paul}[1]{{\textcolor{red}{\bf [{\sc PT:} #1]}}}
+\newcommand{\maxou}[1]{{\textcolor{ownpurple}{\bf [{\sc MC:} #1]}}}
+\newcommand{\quentin}[1]{{\textcolor{cyan}{\bf [{\sc QM:} #1]}}}
+\newcommand{\anto}[1]{{\textcolor{sportingreen}{\bf [{\sc AL:} #1]}}}
+\newcommand{\pierre}[1]{{\textcolor{sportingreen}{\bf [{\sc PC:} #1]}}}
+
+
+\iclrfinalcopy % Uncomment for camera-ready version, but NOT for submission.
+
+%%%% Custom
+\ificlrfinal
+  % In final mode: remove red coloring
+  \renewcommand{\textcolor}[2]{#2}
+\fi
+
+% Variables
+\input{macros}
+
+\begin{document}
+
+
+\maketitle
+
+\begin{abstract}
+    \textcolor{red}{Retrieving specific information from a large corpus of documents is a prevalent industrial use case of modern AI, notably due to the popularity of Retrieval-Augmented Generation (RAG) systems. Although neural document retrieval models have historically operated exclusively in the text space, Visual Document Retrieval (VDR) models -- large vision–language decoders repurposed as embedding models which directly work with page screenshots as inputs -- are increasingly popular due to the performance and indexing latency gains they offer.
+    %their ability to leverage the additional visual cues contained in the page (layouts, charts, table structures, etc.) and the fact they circumvent complex text extraction pipelines.
+    In this work, we show that, while cost-efficient, this approach of repurposing generative models bottlenecks retrieval performance.}
+    Through controlled experiments, we \textcolor{red}{revisit the entire training pipeline, and} establish a principled recipe for improving visual document retrieval models. We notably measure the impact of attention masking, image resolution, modality alignment data regimes, and late interaction centered contrastive objectives which emerge as central performance factors.
+   Building on these insights, we release \flagship{}, a compact \flagshipparameters{}-parameter vision–language encoder that outperforms recent models up to 10 times larger when fine-tuned on document retrieval tasks, \textcolor{red}{enabling efficient inference on cheap CPU hardware and greatly reducing latency and costs while maintaining strong performance. 
+   Models, code and data are available at \repo.
+}
+\end{abstract}
+
+% \ificlrfinal
+% \begin{center}
+% \begin{tabular}{@{}ll@{}}
+% \raisebox{-0.3\height}{\includegraphics[height=1.8em]{assets/hf-logo.png}} &
+% \repo \\[4pt]
+
+% \raisebox{-0.3\height}{\includegraphics[height=1.8em]{assets/gh-logo.png}} &
+% \ghrepo
+% \end{tabular}
+% \end{center}
+% \fi
+
+
+\input{sections/intro}
+
+\input{sections/methodology}
+
+\input{sections/ablations}
+
+\input{sections/flagship}
+
+\input{sections/related_work}
+
+\input{sections/conclusion}
+
+
+\section*{Ethics Statement}
+\noindent\textbf{Environmental Costs.} Training \colflagship required approximately 2{,}000 H100 GPU-hours in total, which we estimate corresponds to 41\,kg of CO$_2$\footnote{Carbon footprint estimated with \textit{Green Algorithms} \citep{Lannelongue2021GreenAlgorithms}: 
+$E = t \times P \times \mathrm{PUE},\; \mathrm{CO_{2}e} = E \times \mathrm{CI}$. 
+With $t=2000$ GPUh, $P=0.35$ kW (H100 PCIe), $\mathrm{PUE}=1.3$, and $\mathrm{CI}=45$ gCO$_2$/kWh, 
+this gives $E \approx 910$ kWh and $\mathrm{CO_{2}e} \approx 41$ kg.}, based on standard assumptions of GPU power draw, datacenter efficiency, and grid carbon intensity. This estimate follows methodologies such as Green Algorithms \citep{Lannelongue2021GreenAlgorithms} and related analyses of the carbon footprint of machine learning \citep{Strubell2019Energy,Patterson2021Carbon}. Across the entire project, all combined experiments totaled about 18k H100-hours. To mitigate costs and promote sustainable research practices, we release all model checkpoints and training artifacts to facilitate reuse, extension, and reproducibility without necessitating retraining. Additionally, this work shows efficiency gains with smaller models to aim to limit the inference costs of visual retrieval, and consequently reduce the environmental footprint. Our model performs query encoding efficiently on CPUs, keeping inference costs low and reducing barriers to adoption. 
+
+\noindent\textbf{Safety and Bias.} From a safety perspective, our encoder-only retriever poses less risk than generative models: it produces fixed-length embeddings rather than free-form content, reducing avenues for harmful content generation, hallucination, or deceptive outputs; nonetheless, retrieval systems can still propagate biases present in the underlying data, which we address through dataset curation open release.
+
+\noindent\textbf{AI Assistance.} Parts of this paper were prepared with the assistance of an AI-based writing tool used for copy editing and stylistic refinement. All generated text was carefully reviewed, verified, and revised by the authors, who take full responsibility for the accuracy and originality of the final manuscript.
+
+\section*{Reproducibility Statement}
+For transparency and to foster future work, we release our training data, model checkpoints (base models and adapters), and the complete codebase under the MIT License, as detailed in the main paper and repository. The supplementary material specifies training configurations for all models (also provided in the corresponding HuggingFace repositories), describes our synthetic data generation process, and reports expanded evaluation results to support exact replication.
+
+\ificlrfinal
+\section*{Detailed Contributions}
+\textbf{PT} is the first author of the project. Notably, he designed the modality alignement codebase, ran and supervised most large scale experiments across modality alignment and contrastive training, coordinated work, and was key in paper writing. 
+\textbf{QM} ran large scale ablations on the data mixtures, contrastive training, and was responsible for the final training run.
+\textbf{MC} ran multiple experiments, including investigations into model merging and contributed to paper writing.
+\textbf{AL} focused on optimizing the data mixture and the contrastive training codebase. He was notably responsible for the initial cross-modality positive transfer results. 
+\textbf{GV} and \textbf{PC} are senior contributors who helped with project framing, grant obtention, industry expertise and paper review.
+\textbf{MF} is last author and scientific lead of this work. He initiated and closely supervised the project from beginning to end, wrote the initial version of the multimodal contrastive training framework and greatly contributed to paper writing.
+
+
+\section*{Acknowledgments}
+This work was carried out within the framework of the LIAGORA "LabCom", a joint laboratory supported by the French National Research Agency (ANR) and established between ILLUIN Technology and the MICS laboratory of CentraleSupélec. This work was performed using HPC resources from IDRIS with grant AD011016393. We warmly thank Hippolyte Gisserot-Boukhlef and Nicolas Boizard for sharing the controlled experiments LM checkpoints, Antoine Chaffin for his feedback on the modality alignment codebase and insights on Ettin’s modeling, as well as Andi Marafioti, Orr Zohar, and Miquel Farré for their valuable input and help on gathering the modality alignment dataset.
+\fi
+
+\bibliography{iclr2026_conference}
+\bibliographystyle{iclr2026_conference}
+
+\newpage
+\appendix
+\input{sections/appendix}
+
+\end{document}

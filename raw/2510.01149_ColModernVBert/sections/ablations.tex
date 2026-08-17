@@ -1,0 +1,390 @@
+\section{What Makes a Great Visual Retriever?}
+
+\begin{wrapfigure}[19]{r}{0.5\textwidth} % <- 12 = approx. number of text lines to wrap
+  \vspace{4pt}                          % tighten top spacing (tweak as needed)
+  \includegraphics[width=0.95\linewidth]{figures/vbert_style/objective_downstream__rebuttal_ft.pdf}
+    \caption{\textbf{Impact of Modality Alignment objective on downstream tasks.} Early Fusion of vision and text models boosts document retrieval tasks regardless of the LM objective, but degrades natural image and classification tasks w.r.t. the standalone \textit{fine-tuned} vision model SigLIP. Reported scores are aggregated MIEB scores (nDCG, Accuracy.)}
+    \label{fig:objective_downstream}
+  \vspace{-15pt}                         % tighten bottom spacing (tweak as needed)
+\end{wrapfigure}
+
+
+Vision-language retrievers built upon existing generative VLMs often inherit design choices and weights that may not be well suited for all embedding tasks. Here, we analyze these critical design choices hoping to derive clear insights for developing efficient visual retrievers. Importantly, although we assess design decisions at different stages of the training pipelines, evaluation are always done end-to-end on the final evaluation signal. 
+
+%\anto{Suggestion for intro paragraph: Many vision-language retrieval systems adapt pre-trained generative models, but their weights are often not optimized for creating effective embeddings. In this section, we analyze the critical design choices in this adaptation process to provide clear guidelines for developing more efficient retrievers.}
+
+\subsection{Modality Alignment Design}
+\label{sec:ablation_tasks}
+
+\noindent\textbf{Language modeling Modality Alignment improves document understanding.}
+% According to benchmarks such as MIEB~\citep{xiao2025miebmassiveimageembedding}, dual encoder models trained explicitly on contrastive image-text tasks achieve superior performance in image classification tasks compared to VLMs. VLMs particularly excel at retrieving complex text-image relationships~\citep{jiang2025vlm2vectrainingvisionlanguagemodels}, yet, contrary to common belief, they do not enhance image representations themselves. In fact, they degrade performance in most natural image benchmarks. Instead, their strength lies in effectively aligning text and image tokens for zero-shot classification\paul{find work}. To substantiate this hypothesis, we designed experiments on document classification tasks, pooling image representations and applying classification heads. Results demonstrated that standalone image encoders possess sufficient capacity and information for these tasks, ultimately converging to similar performance levels regardless of the VLM training. This confirms that the critical contribution of VLMs lies in the modality alignment phase. For natural images, token-level alignment appears less critical, and the high-level features learned through large-scale contrastive training, as exemplified by SigLIP, are more impactful. Thus, contrastive training aligned with retrieval scenarios at inference is essential. \paul{What should we present here? Would results from @QM xp fit? Maybe we should focus on classification tasks here and stop reporting it later}
+% On the other hand, these latest particularly excel at retrieving complex text-image relationships like documents-query ones~\citep{jiang2025vlm2vectrainingvisionlanguagemodels,chen2025mocamodalityawarecontinualpretraining}.
+According to benchmarks such as MIEB~\citep{xiao2025miebmassiveimageembedding}, dual encoder models explicitly trained on contrastive image-text tasks outperform repurposed VLMs in natural image classification tasks. 
+% We first study the impacts of aligning a pretrained Language Model (LM) with a vision tower through language modeling objectives, across different tasks.
+%Using the checkpoints described in \autoref{sec:methodology}, 
+To assess this, we train an encoder and a decoder vision-language model using the methodology described in \autoref{sec:methodology} on a mix of natural image and document data (alignment and contrastive training). \textcolor{red}{We compare them with \textit{SigLIP2-FT}, the 378M dual vision encoder model whose vision component is used by the vision tower of both VLMs, and with the larger \textit{SigLIP2-FT Large} (881M parameters). Both SigLIP-FT models are finetuned in the same conditions as the VLMs, and initialized from pre-trained weights from scratch on billions of text-image pairs}\footnote{\textcolor{red}{We report the performance of the untrained \textit{off-the-shelf} SigLIP in Appendix~\ref{appendix:objective_downstream}}}.
+As shown in Figure~\ref{fig:objective_downstream}, the two early fusion VLM variants severely underperform the SigLIP2-FT dual encoders on natural image tasks. In contrast, they achieve significant gains on document retrieval tasks (+6.1 nDCG@5 on ViDoRe and ViDoRe v2 datasets w.r.t. base), even edging out \textit{SigLIP2-FT Large} that contains 3.5x vision parameters more than both VLMs.
+
+% This confirms high-level representation tasks do not benefit from the granular interactions between image and text tokens learned during the VLM modality alignment phase, but large-scale contrastive training remains superior. However, pairing a vision model with an LM enables token level interactions that create richer document understanding, aiding specific tasks even with less contrastive post-training.
+
+This confirms large-scale contrastive training remains best for high-level image representation tasks (natural images), but sequentially combining a vision model with a pretrained language model facilitates document representation tasks, even with significantly less contrastive post-training. \textcolor{red}{As the rest of this paper shows, steering away from the dual encoder architecture further enables improving performance through many avenues other than text to image contrastive training, for which supervised training samples can be hard to obtain.}
+
+
+% \begin{figure}
+%     \centering
+%     \includegraphics[width=0.9\linewidth]{figures/objective_downstream.png}
+%     \caption{Impact of different objectives on downstream tasks. Aligning a language model with a vision tower through language modeling pretraining improves the performance of the model in document retrieval tasks. However, it degrades its performances in caption retrieval and classification tasks.}
+%     \label{fig:objective_downstream}
+% \end{figure}
+
+% \noindent\textbf{Scaling the pretraining phase for better token representations.}  
+% Prior work shows that scaling the pretraining phase of causal VLMs improves their generative abilities~\citep{beyer2024paligemmaversatile3bvlm, mckinzie2024mm1methodsanalysis, wang2024qwen2vlenhancingvisionlanguagemodels}. We test whether similar gains hold in a bidirectional setting by evaluating checkpoints during pretraining with an MLM objective, up to 3.5B tokens. We compare this approach with the traditional CLM objective. Figure~\ref{fig:pt_scaling} presents the performance of the two training objectives across a diverse set of tasks. 
+% The model improves across all tasks with additional pretraining data, showing the importance of scaling this phase. \textit{CLM offers an advantage in low-data regimes, but MLM seems to catches up and scales more effectively}. In document retrieval, MLM surpasses CLM.  
+% % MLM scale better than CLM, especially in documental settings  
+% % To counterbalance this plateau, we anneal the CLM-aligned decoder model using MLM to bring this objective scaling benefits. However, we observe a negative impact of such attention adaptation during cooldown. This might come from our model and scale, which may be too low to observe these gains.  
+% % CLIP is the king in natural images  
+% Image captioning and classification performances drop compared to the CLIP baseline vision tower. In contrast, the vision tower baseline is quickly outperformed in document retrieval. This finding suggests that \textit{token prediction pretraining yields embeddings better suited for document tasks than fully contrastively trained models}.  
+
+
+% \begin{figure}[t]
+%     \centering
+%     \includegraphics[width=0.9\linewidth]{figures/pt_scaling.png}
+%     \caption{Pretraining phase scaling. The dashed line marks the vision tower baseline. The orange curve shows the model initialized from a decoder LM with a \textit{CLM} objective, and the blue curve shows the model trained with an \textit{MLM} objective from an encoder LM. CLM performs better in low-data regimes, but MLM scales more effectively, surpassing CLM in document retrieval, while captioning and classification remain below the CLIP baseline.}
+%     \label{fig:pt_scaling}
+% \end{figure}
+
+
+% \textit{Given that the initial training stage aims to align representations at the token level~\citep{jiang2025vlm2vectrainingvisionlanguagemodels}, we next evaluate whether MLM constitutes a more effective objective for learning multi-vector representations.}
+
+
+\noindent\textbf{Scaling the modality alignment phase for better token representations.}  
+Prior work shows that scaling the modality alignment phase of VLMs improves their generative abilities~\citep{beyer2024paligemmaversatile3bvlm, mckinzie2024mm1methodsanalysis, wang2024qwen2vlenhancingvisionlanguagemodels}. We test whether similar gains hold in retrieval by contrastively fine-tuning \texttt{enc} checkpoints during MLM modality alignment. Figure~\ref{fig:pt_scaling} illustrates the results of post-trained checkpoints on diverse tasks. 
+Although document retrieval improves consistently with more modality alignment data -- largely surpassing the vision tower evaluated in isolation and showing clear scaling benefits -- natural image tasks plateau past 1B tokens, far from the standalone dual encoder baseline. This shows that document and natural image retrieval leverage different mechanisms and should not be optimized the same way. \textit{Document Retrieval benefits from learning fine-grained interactions between image and text tokens through the language model, while the LM has limited utility for high level natural image tasks}.
+
+
+\begin{figure}[t]
+    \centering    
+    \includegraphics[width=0.95\textwidth]{figures/vbert_style/pt_scaling.pdf}
+    \caption{\textbf{Modality alignment scaling of early fusion encoders for up to 1 epoch (3.5B tokens) of data.} The dashed line indicates the vision encoder evaluated standalone without further training. Our findings show that retrieval tasks benefits from extended modality alignment phase, particularly in document retrieval, where performance quickly surpasses that of the standalone vision encoder. }
+    % \manu{paul: could we have this in terms of B tokens seen instrad of steps ? remove average, increase fonts}}
+    \label{fig:pt_scaling}
+\end{figure}
+
+
+\noindent\textbf{Bidirectional attention fully unlocks Late Interaction.}
+Inspired by the effectiveness of bidirectional attention in text-only retrieval~\citep{gisserotboukhlef2025pretrainencodersmaskedlanguage, weller2025seqvsseqopen}\footnote{\citet{chen2025mocamodalityawarecontinualpretraining} investigate post-hoc removal of the attention mask during visual retrieval fine-tuning.}, we investigate if it surpasses causal attention in \textit{visual document retrieval}, particularly when using the multi-vector late interaction matching common in SOTA visual retrievers~\citep{khattab_colbert_2020,faysse2025colpaliefficientdocumentretrieval}.
+% Table~\ref{table:vidore_alignment_objective} presents the results on the ViDoRe benchmark suite when training a visual retriever with different attention masking and objective loss.  
+Figure~\ref{fig:enc_dec_multivec} reports single vector and late interaction results on the ViDoRe benchmark for various model variants. On top of the standard \texttt{enc} (MLM) and \texttt{dec} (CLM) models, we evaluate the \texttt{dec-enc} and the  \texttt{dec} models modality aligned with MLM objectives to determine whether bidirectional attention capabilities can be obtained in later stages of training.
+
+Single-vector embedding results are close between bidirectional and causal attention models for document retrieval, with \texttt{enc} slightly outperforming \texttt{dec} by +1.6 nDCG@5. 
+% Single-vector embedding results are close between bidirectional and causal attention models, with \texttt{dec} slightly outperforming \texttt{enc}. 
+
+Intuitively however, bidirectional attention makes a huge difference when used in late interaction settings, substantially exceeding the causal counterpart by +10.6 nDCG@5. 
+% \paul{@MF recheck jai du changer car dec est legerement meilleur en single vec - ouais true que en doc}
+Causal decoders are incapable of correctly contextualizing image or text token representations seen at the beginning of the sequences. \textit{This is a key result as almost all current visual retrievers, including late interaction variants, are causal models, clearly indicating some performance is left on the table.}
+
+Removing the causal attention mask during training does not suffice to recover the \texttt{enc} late interaction performance at these data regimes. This indicates converting trained decoders as late interaction retrievers is highly non trivial, and confirms the insights from \citet{weller2025seqvsseqopen}; when possible, training encoder models from scratch remain better for retrieval tasks.
+
+
+
+% \begin{table*}[ht]
+%   \centering
+%   \renewcommand{\arraystretch}{1.2}
+%   \small
+%   \resizebox{0.6\textwidth}{!}{%
+%   \begin{tabular}{@{} >{}l cc >{\columncolor{avgcol}}c}
+%     % Group banners with distinct colors, no top rule
+    
+%     % & \multicolumn{2}{>{\columncolor{grpA}}c}{\textbf{Doc. Retrieving}}  \\
+%     % \cmidrule(lr){2-3}
+%     & \rot{ViDoRe(v1)} & \rot{ViDoRe(v2)} 
+%     & \rot{\textbf{Average}} \\
+%     \midrule
+%     \multicolumn{3}{@{}l}{\itshape Causal Base LM}\\
+%     CLM Alignment & 67.1 & 41.4 & 54.3 \\
+%     MLM Alignment & 65.6 & 35.1 & 50.4 \\
+%     \hspace{3pt} + \textit{Base Model Annealing} & 67.4 & 38.9 & 53.1 \\
+%     \midrule
+%     \multicolumn{3}{@{}l}{\itshape Bidirectional Base LM}\\
+%     MLM Alignment & \textbf{79.1} & \textbf{50.6} & \textbf{64.9}  \\
+%     \bottomrule
+%   \end{tabular}%
+%   }
+%   \caption{Scores (nDCG@5) of the models on ViDoRe v1 and ViDoRe v2 \textit{english} splits\footnote{Our base LM models are trained on english only, thus evaluating on multilingual splits for such comparison would be mostly noise.} when training a visual retriever with different attention masking and objective loss. \textit{Causal Base LM}  are the models based on a decoder LM, while \textit{Bidirectional Base LM} are the one from an encoder LM. \textit{Base Model Annealing} is the LM backbone annealed as an encoder \textbf{before modality alignment}.}
+%   \label{table:vidore_alignment_objective}
+% \end{table*}
+
+% \textit{For a fixed model, image resolution is an important factor influencing downstream performance. We therefore examine how resolution impacts embedding tasks, and whether its effect varies by task type.}
+
+\begin{figure*}[t]
+    \centering
+    % Left side: first figure (single subfigure kept)
+    \begin{minipage}{0.48\textwidth}
+        \centering
+        \includegraphics[width=0.9\textwidth]{figures/enc_dec_vidore_palette.pdf}
+        \caption{\textbf{Impact of attention masks and training objectives on document retrieval performances.} 
+        We report the average nDCG@5 on English splits of ViDoRe benchmarks for models post-trained on ColPali.
+        % Employing native bidirectional attention outperforms the other approaches when used in multi-vector settings 
+        } 
+        \label{fig:enc_dec_multivec}
+    \end{minipage}%
+    \hfill
+    % Right side: second figure + table
+    \begin{minipage}{0.48\textwidth}
+        \renewcommand{\arraystretch}{1.1}
+        \small
+        \resizebox{\textwidth}{!}{%
+        \begin{tabular}{@{} l c ccc >{\columncolor{avgcol}}c}
+        & {HR Cooldown} & \rot{Document Retrieval} & \rot{Image/Caption Retrieval} & \rot{Image Classification} & \rot{\textbf{Average}} \\
+    
+        \midrule
+        512px & \xmark & 30.7 & \underline{58.8} & \textbf{41.4} & 43.6 \\
+        1024px & \xmark & 42.2 & \textbf{58.9} & \underline{37.2} & \textbf{46.1} \\
+        2048px & \xmark & \underline{43.8} & 57.6 & 33.9 & 45.1 \\
+        2048px & \cmark & \textbf{45.8} & 57.8 & 33.7 & \underline{45.8} \\
+        
+        \bottomrule
+        \end{tabular}%
+        }
+        \captionof{table}{\textbf{Effect of image resolution on VL encoder abilities.} Document retrieval performance increases with higher image resolution. Further annealing the encoder on high-resolution images (HR Cooldown) at the end of modality alignment yields additional gains. By contrast, for non-document tasks, raising the resolution tends to degrade performance.}
+        \label{table:image_resolution}
+            
+        % \vspace{1em}
+        % \centering        \includegraphics[width=0.9\linewidth]{figures/pt_scaling.png}
+        % \captionof{figure}{\textbf{Pretraining phase scaling.} The dashed line marks the vision tower baseline. \paul{TODO: I wait to fix what tiles we show here before writting the caption(mean of tasks per domain like above, or per task)}}
+        % \label{fig:pt_scaling}
+    \end{minipage}
+\end{figure*}
+
+
+% However, we also observe a negative correlation with performance on tasks that involve natural images. This suggests that the multiple high-resolution crops generated during preprocessing may obscure global separable features necessary for classification, and that passing one image in the size expected by the vision tower is optimal. 
+%These results highlight the importance of flexible, resolution-aware preprocessing pipelines that can adapt hierarchically to the native resolution of each input image.
+
+% \begin{table*}[t]
+%   \centering
+%   \renewcommand{\arraystretch}{1.2}
+%   \small
+%   \resizebox{0.5\textwidth}{!}{%
+%   \begin{tabular}{@{} l c ccc >{\columncolor{avgcol}}c}
+%     & {HR Cooldown} & \rot{Document Retrieval} & \rot{Caption Retrieval} & \rot{Zero-Shot Classification} & \rot{\textbf{Average}} \\
+
+%     \midrule
+%     512px & \xmark & 30.7 & 58.8 & 45.1 & 44.9 \\
+%     1024px & \xmark & 42.2 & \textbf{58.9} & 42.8 & \textbf{48.0} \\
+%     2048px & \xmark & 43.8 & 57.6 & 40.4 & 47.3 \\
+%     2048px & \cmark & \textbf{45.8} & 57.8 & 39.2 & 47.6 \\
+    
+%     \bottomrule
+%   \end{tabular}%
+%   }
+%   \caption{\textbf{Effect of image resolution on VL encoder abilities.} Document retrieval performance increases with higher image resolution. Further annealing the encoder on high-resolution images (HR Cooldown) during pretraining yields additional gains. By contrast, for non-document tasks, raising the resolution tends to degrade performance.}
+%   \label{table:image_resolution}
+% \end{table*}
+
+% \begin{table*}[t]
+%   \centering
+%   \renewcommand{\arraystretch}{1.1}
+%   \small
+%   \resizebox{\textwidth}{!}{%
+%   \begin{tabular}{@{} l cc ccc >{\columncolor{avgcol}}c}
+%     & {HR Cooldown} & {Resize at Inference} & \rot{Document Retrieval} & \rot{Caption Retrieval} & \rot{Zero-Shot Classification} & \rot{\textbf{Average}} \\
+
+%     \midrule
+%     512px & \xmark & \cmark & 30.7 & 58.8 & 45.1 & 44.9 \\
+%     1024px & \xmark & \cmark & 42.2 & \textbf{58.9} & 42.8 & 48.0 \\
+%     2048px & \xmark & \cmark & 43.8 & 57.6 & 40.4 & 47.3 \\
+%     2048px & \cmark & \cmark & \textbf{45.8} & 57.8 & 39.2 & 47.6 \\
+%     2048px & \xmark & \xmark & 42.6 & 56.0 & \textbf{46.7} & \textbf{48.5} \\
+    
+%     \bottomrule
+%   \end{tabular}%
+%   }
+%   \caption{\textbf{Effect of image resolution on VL encoder abilities.} Document retrieval performance increases with higher image resolution. Further annealing the encoder on high-resolution images (HR Cooldown) during pretraining yields additional gains. By contrast, for non-document tasks, raising the resolution tends to degrade performance, with best average score achieved when not resizing the input images during inference.}
+%   \label{table:image_resolution}
+% \end{table*}
+
+\subsection{Contrastive Training Design} 
+
+The previous subsection established bidirectional encoder models to often be the best option when training visual retrievers. In the following experiments, we assess contrastive training choices and only report results for the encoder model for simplicity.
+
+% After the first stage, the model can perform token prediction, but its latent space is not optimized for general concept embeddings. A common solution is to add a second stage with a contrastive objective~\citep{jiang2025vlm2vectrainingvisionlanguagemodels, jiang2024e5vuniversalembeddingsmultimodal, chen2025mme5improvingmultimodalmultilingual, chen2025mocamodalityawarecontinualpretraining}.  
+% This stage aligns concept representations across modalities at the sentence level, yielding models well suited for zero-shot tasks~\citep{radford2021learningtransferablevisualmodels, zhai2023sigmoidlosslanguageimage}.  
+% \paul{Un truc style on a vu avant que token-level c'est bien pour documentaire masi CL aide sur le reste. On regarde comment on peut scale notre dataset pour tirer un max de perf across all tasks} In this section, we search for the most effective contrastive post-training mix to draw maximum capabilities. 
+
+% \textit{While additional paired data are required to close the performance gap on natural image tasks, such resources remain limited. This raises the question of how alternative data sources might be leveraged to address this gap.}
+
+
+\noindent\textbf{Image resolution benefits are task-specific.} 
+Image resolution plays a critical role in VLM generative capabilities, notably in document-focused tasks, as higher-resolution inputs enables the model to capture finer visual cues~\citep{hu2024mplugdocowl2highresolutioncompressingocrfree,marafioti2025smolvlmredefiningsmallefficient}.
+%We examine how these resolution dynamics transfer to embedding tasks. 
+Modality alignment is done at a fixed image resolution of 1024 pixels (longer side) and we report scores of contrastive training runs with varying settings in Table~\ref{table:image_resolution}. \textcolor{red}{To vary the resolution, images of the highest quality available are scaled to the desired size (often downscaled) before being fed to the image tokenizer.} Our findings confirm that embedding tasks are strongly sensitive to image-resolution. In particular, \textit{training with higher resolution inputs substantially improves the results on visual document retrieval benchmarks}, consistent with prior work in generative settings~\cite{beyer2024paligemmaversatile3bvlm,mckinzie2024mm1methodsanalysis}. Furthermore, adding a cool-down phase by showing higher-resolution images towards the end of the modality alignment phase yields additional gains. This suggests that models can adapt their attention mechanisms to finer details when exposed to increased resolution. Interestingly, these findings do not hold in natural image tasks, where high resolution can even degrade performance.
+
+
+% \noindent\textbf{Scaling the modality alignment phase for better token representations.}  
+% Prior work shows that scaling the CLM modality alignment phase of VLMs improves their generative abilities~\citep{beyer2024paligemmaversatile3bvlm, mckinzie2024mm1methodsanalysis, wang2024qwen2vlenhancingvisionlanguagemodels}. We test whether similar gains hold in a retrieval setting by evaluating checkpoints during modality alignment with an MLM objective, for up to 3.5B tokens. Figure~\ref{fig:pt_scaling} illustrates the results of the post-trained checkpoints on diverse tasks. 
+% The model consistently improves across all retrieval tasks with an increasing amount of alignment data. This is similar to what is observed for generative tasks, suggesting that the model learns to create richer token representations with the information available in the images during this modality alignment stage.
+
+% \begin{figure}[t]
+%     \centering    \includegraphics[width=0.95\textwidth]{figures/pt_scaling.png}
+%     \caption{\textbf{Modality alignment scaling.} The dashed line marks the vision tower baseline. \paul{TODO: I wait to fix what tiles we show here before writing the caption(mean of tasks per domain like above, or per task)}}
+    
+%     \label{fig:pt_scaling}
+% \end{figure}
+
+% \begin{figure}[t]
+%     \centering    \includegraphics[width=0.85\textwidth]{figures/finegrain/pt_scaling.png}
+%     \caption{Pretraining phase scaling. The dashed
+% line marks the vision tower baseline. \paul{TODO: I wait to fix what tiles we show here before writing the caption(mean of tasks per domain like above, or per task)}}
+    
+%     \label{fig:pt_scaling_finegrain}
+% \end{figure}
+
+% \begin{table*}[b]
+%   \centering
+%   \renewcommand{\arraystretch}{1.2}
+%   \small
+%   \resizebox{\textwidth}{!}{%
+%   \begin{tabular}{@{} >{}l c c c >{\columncolor{avgcol}}c}
+%     & {Document Retrieval} & {Caption Retrieval} & {Zero-Shot Classification} & {\textbf{Average}} \\
+
+%     \midrule
+%     Baseline CL Mix & 43.9 & \textbf{57.2} & 40.6 & 47.2 \\
+%     + \textit{Text$\rightarrow$Text Pairs} & 45.6 & 53.2 & 42.3 & 47.0 \\
+%     + \textit{Image$\rightarrow$Caption Pairs} & \textbf{45.8} & 54.4 & \textbf{44.4} & \textbf{48.2} \\
+    
+%     \bottomrule
+%   \end{tabular}%
+%   }
+%   \caption{\textbf{Impact of contrastive post-training mixtures on downstream tasks.} Incorporating text-only pairs improves performance on document retrieval, but degrades other performances. Adding natural images-captions pairs substantially enhances performance on zero-shot classification tasks.}
+%   \label{table:cl_mix_impact}
+% \end{table*}
+
+\begin{table*}[b]
+  \centering
+  \renewcommand{\arraystretch}{1.1}
+  \small
+  \resizebox{\textwidth}{!}{%
+  \begin{tabular}{@{} >{}l  ccc >{\columncolor{avgcol}}c}
+    & {Document Retrieval} & {Image/Caption Retrieval} & {Image Classification} & {\textbf{Average}} \\
+
+    \midrule
+    Baseline CL Mix & 43.9 & \textbf{57.2} & 36.1 & 45.7 \\
+    + \textit{Text$\rightarrow$Text Pairs} & 45.6 & 53.2 & 35.7 & 44.8 \\
+    + \textit{Image$\rightarrow$Caption Pairs} & \textbf{45.8} & 54.4 & \textbf{49.9} & \textbf{50.0} \\
+    
+    \bottomrule
+  \end{tabular}%
+  }
+  \caption{\textbf{Impact of contrastive training mixtures on downstream tasks.} Incorporating text-only pairs improves performance on document retrieval, but degrades other performances. Adding natural images-captions pairs substantially enhances performance on classification tasks.}
+  \label{table:cl_mix_impact}
+\end{table*}
+
+
+\noindent\textbf{Increasing the pool of contrastive pairs.}
+\label{sec:scaling=-cont}
+% \quentin{A series of ablation studies on our post-training data composition revealed two key insights. First, incorporating unimodal text-only pairs from \cite{thakur2025rlhn} markedly enhances performance on visual document retrieval \ref{table:cl_mix_impact}. We attribute this enhancement to the model learning a more complex semantic understanding from the textual data, which successfully transfers across modalities to the image-text task. Second, we found that adding the \natcap{} dataset is crucial for preserving the model's general vision capabilities. By expanding the contrastive dataset and increasing the variety of image types, it effectively counteracts the performance degradation on image classification benchmarks typically seen when aligning the original SigLIP baseline with our text encoder.}
+A severe limitation that current visual retrievers face is the lack of large volumes of high quality (document image, query pairs). 
+Previous work \citep{ma2024unifyingmultimodalretrievaldocument, faysse2025colpaliefficientdocumentretrieval, jiang2025vlm2vectrainingvisionlanguagemodels, zhang2025gmeimprovinguniversalmultimodal} has relied on a mix of repurposed existing visual question answering datasets and synthetically generated queries with external LLMs. Even put together however, the field is only a year old, and these datasets remain small in size and often of poor quality.
+
+
+% As described in Section ~\ref{sec:ablation_tasks}, using modality alignment is only one phase of training stage reduces performance in natural image tasks compared to the vision tower backbone. This underscores the need for extensive contrastive post-training to obtain stronger single-vector representations~\citep{radford2021learningtransferablevisualmodels}. 
+% \paul{on peut affiner la motiv}
+% However, the absence of large-scale and high-quality multimodal contrastive datasets constrains the scalability of this phase. To address this, we investigate whether incorporating additional data sources incrementally can mitigate these limitations. 
+A central question in our study is whether the abundance of \emph{text-only} query–document pairs can be exploited to improve \emph{visual} retrieval via cross-modal capability transfer. To probe this, we run contrastive training under three regimes. Unlike prior work that “warms up” visual retrievers or trains exclusively with text-only pairs \citep{ma2024unifyingmultimodalretrievaldocument, jiang2024e5vuniversalembeddingsmultimodal}, we \emph{interleave} text-only pairs and text–image pairs throughout training at a 1:1 ratio. The dataset sources are detailed in Appendix~\ref{appendix:contrastive_mix}
+
+As reported in Table~\ref{table:cl_mix_impact}, incorporating text-only pairs yields a sizeable improvement on visual document retrieval (+1.7 \textsc{nDCG}@5), indicating clear cross-modal transfer—likely facilitated by the backbone’s jointly learned text–image embedding space. This result suggests that domain-specific training corpora can be assembled irrespective of native modality, reducing duplication of effort and lowering data-collection costs.
+
+We further evaluate training with \natcap{}, a corpus of natural images paired with synthetic, highly detailed captions (see Appendix~\ref{appendix:natcap}). This scaling step improves downstream performance across the board—most notably on natural-image tasks, and with a smaller but consistent gain on document retrieval (+0.2 \textsc{nDCG}@5). Together, these findings underscore the importance of scaling contrastive learning with high-quality data, but which doesn't need to be exclusively image document focused.
+
+
+% \begin{table*}[t]
+%   \centering
+%   \renewcommand{\arraystretch}{1.2}
+%   \small
+%   \resizebox{\textwidth}{!}{%
+%   \begin{tabular}{@{} >{}l cccc >{\columncolor{avgcol}}c}
+
+%     & Document Retrieval & Captioning & Classification (0S) & Classification (LP)
+%     & \textbf{Average} \\
+
+%     \toprule
+%     % \multicolumn{6}{@{}l}{\itshape Single-Vector} \\
+%     % ColPali & -- & -- & -- & -- & -- \\
+%     % \hspace{3pt} + \textit{MSCOCO} & 43.9 & \textbf{57.2} & 19.8 & 52.2 & 43.3 \\
+%     Baseline CL mix & 43.9 & \textbf{57.2} & 19.8 & 52.2 & 43.3 \\
+%     \hspace{3pt} + \textit{\natcap{}} & \underline{44.9} & 53.7 & \underline{36.2} & \underline{59.8} & 48.7 \\
+%     \hspace{3pt} + \textit{Text$\rightarrow$Text Data}& \textbf{45.8} & \underline{54.4} & \textbf{39.8} & \textbf{60.0} & \textbf{50.0} \\
+%     % \midrule
+%     % \multicolumn{6}{@{}l}{\itshape Multi-Vector} \\
+%   \end{tabular}%
+%   }
+%   \caption{Impact of contrastive post-training mixtures on downstream tasks. Adding \natcap{} substantially enhances performance on image classification tasks, but leads to a decrease in performance on natural image captioning. Incorporating unimodal text data improves performance on document retrieval  and zero-shot tasks.}
+%   \label{table:cl_mix_impact}
+% \end{table*}
+
+% \begin{table*}[h]
+%   \centering
+%   \renewcommand{\arraystretch}{1.2}
+%   \small
+%   \resizebox{\textwidth}{!}{%
+%   \begin{tabular}{@{} >{}l ccc >{\columncolor{avgcol}}c}
+
+%     & \rot{Document Retrieval} & \rot{Caption Retrieval} & \rot{Zero-Shot Classification}
+%     & \rot{\textbf{Average}} \\
+
+%     \toprule
+%     % \multicolumn{6}{@{}l}{\itshape Single-Vector} \\
+%     % ColPali & -- & -- & -- & -- & -- \\
+%     % \hspace{3pt} + \textit{MSCOCO} & 43.9 & \textbf{57.2} & 19.8 & 52.2 & 43.3 \\
+%     Baseline CL mix & 43.9 & \textbf{57.2} & \underline{19.8} & \underline{40.3} \\
+%     \hspace{3pt} + \textit{Text$\rightarrow$Text Pairs (RLHN)}& \underline{45.6} & 53.2 & 18.2 & 39.0 \\
+%     % \hspace{3pt} + \textit{\natcap{}} & \underline{44.9} & 53.7 & \underline{36.2} & 44.9 \\
+%     \hspace{3pt} + \textit{Image$\rightarrow$Caption Pairs (\natcap{})} & \textbf{45.8} & \underline{54.4} & \textbf{39.8} & \textbf{46.7} \\
+%     % \midrule
+%     % \multicolumn{6}{@{}l}{\itshape Multi-Vector} \\
+%     \bottomrule
+%   \end{tabular}%
+%   }
+%   \caption{\textbf{Impact of contrastive post-training mixtures on downstream tasks.} Incorporating unimodal text data improves performance on document retrieval, but degrades other performances. Adding \natcap{} substantially enhances performance on zero-shot classification tasks.}
+%   \label{table:cl_mix_impact}
+% \end{table*}
+
+
+
+% \noindent\textbf{Merging Models.} 
+
+% \begin{table*}[t]
+%   \centering
+%   \renewcommand{\arraystretch}{1.2} % Adjusts row spacing for better readability
+%   \small % Use a smaller font size for the table
+%   % Resize the table to fit the width of the text area
+%   \resizebox{\textwidth}{!}{%
+%   \begin{tabular}{@{} l l c cc cc c @{}} % Column formatting
+%     % --- Column Headers with Grouping and Colors ---
+%     &
+%     & \multicolumn{1}{>{\columncolor{grpA}}c}{\textbf{Captioning}}
+%     & \multicolumn{2}{>{\columncolor{grpB}}c}{\textbf{Doc. Retrieval}}
+%     & \multicolumn{2}{>{\columncolor{grpC}}c}{\textbf{Natural Image}}
+%     & \multicolumn{1}{>{\columncolor{grpD}}c}{\textbf{Other}} \\
+    
+%     % Use cmidrule for partial lines under the main groups
+%     \cmidrule(lr){3-3} \cmidrule(lr){4-5} \cmidrule(lr){6-7} \cmidrule(lr){8-8}
+    
+%     % --- Sub-headers for specific datasets/tasks ---
+%     Task & Model & Image Captioning & ViDoRe(v1) & ViDoRe(v2) & MSCOCO & Flickr30k & Others \\
+%     \midrule
+    
+%     % --- Table Data ---
+%     % Using \texttt{} for model names to correctly display underscores and improve readability
+%     4 & \texttt{baseline\_x\_baseline-\natcap{}-text-2\_t075} & 0.576 & 0.484 & 0.136 & 0.478 & 0.674 & 0.898 \\
+%     0 & \texttt{baseline\_x\_baseline-\natcap{}-text-05}     & 0.561 & 0.483 & 0.138 & 0.466 & 0.656 & 0.901 \\
+%     1 & \texttt{baseline\_x\_baseline-\natcap{}-text-2}      & 0.561 & 0.480 & 0.132 & 0.467 & 0.655 & 0.900 \\
+%     5 & \texttt{baseline\_x\_baseline-text-07\_x\_...-\natcap{}} & 0.544 & 0.469 & 0.125 & 0.451 & 0.637 & 0.901 \\
+%     2 & \texttt{baseline\_x\_baseline-\natcap{}-text-2\_avg}  & 0.551 & 0.462 & 0.129 & 0.450 & 0.653 & 0.898 \\
+%     3 & \texttt{baseline\_x\_baseline-\natcap{}-text-2\_t025} & 0.537 & 0.466 & 0.127 & 0.446 & 0.628 & 0.900 \\
+%     \bottomrule
+%   \end{tabular}%
+%   }
+%   \caption{Performance comparison of different model configurations across a variety of downstream tasks. The table evaluates performance on image captioning, document retrieval (ViDoRe), natural image tasks (MSCOCO, Flickr30k), and other benchmarks.}
+%   \label{table:model_performance_comparison}
+% \end{table*}

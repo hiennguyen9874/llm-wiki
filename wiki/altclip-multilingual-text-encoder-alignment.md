@@ -5,10 +5,10 @@ description: A two-stage method that replaces CLIP's text encoder with XLM-R, di
 tags: [multimodal-learning, multilingual, contrastive-learning, knowledge-distillation, transfer-learning, zero-shot-transfer]
 status: stable
 created: 2026-08-16
-generated: { by: llm-wiki-agent/1, at: 2026-08-16T15:37:55Z }
+generated: { by: llm-wiki-agent/1, at: 2026-08-17T02:42:08Z }
 sources:
   - id: chen-2022-altclip
-    resource: ../raw/2211.06679_AltCLIP.md
+    resource: ../raw/2211.06679_AltCLIP/main.tex
     title: "AltCLIP: Altering the Language Encoder in CLIP for Extended Language Capabilities"
 ---
 
@@ -21,12 +21,14 @@ AltCLIP makes CLIP bilingual or multilingual by replacing its text encoder with 
 - A projection maps the XLM-R-Large student encoder's `[CLS]` output to the CLIP ViT-L/14 teacher text-embedding dimension. In the teacher-learning stage, mean squared error matches the student embedding for a translated or parallel sentence to the frozen CLIP teacher embedding for its English counterpart; the teacher is discarded at inference.[^chen-2022-altclip]
 - Teacher learning includes English–English pairs, machine-translated English–Chinese captions from CC3M and a 28M LAION-400M subset, and 5M human English–Chinese translations from TSL2019. The multilingual M9 variant applies the same approach to English, Chinese, Spanish, French, Russian, Arabic, Japanese, Korean, and Italian.[^chen-2022-altclip]
 - In stage two, AltCLIP applies the usual image–text contrastive loss to the learned text encoder and CLIP's ViT image encoder, but freezes the image encoder following LiT. The bilingual model uses 2M filtered Chinese and English image–text pairs; the multilingual model uses 100M multilingual pairs.[^chen-2022-altclip]
+- The reported configuration initializes XLM-R-Large and uses CLIP ViT-L/14 text and image towers. Teacher learning runs for ten epochs (238,620 steps); contrastive learning runs for one epoch (2,000 steps). These settings document the authors’ implementation rather than validated requirements for other model or data choices.[^chen-2022-altclip]
 
 ## Reported evidence and limits
 
 - On the paper's ViT-L comparisons, the final bilingual model reports ImageNet top-1 accuracy of 74.5% in English and 59.6% with Chinese labels, compared with 75.5% and 1.9% for CLIP, respectively. Its reported Flickr30K mean recall is 90.4% (English) and 89.2% (Chinese).[^chen-2022-altclip]
-- The M9 model reports the highest image-to-text Recall@10 among the table's baselines for seven of eight reported XTD languages; it excludes German, Polish, and Turkish even though XTD contains captions in eleven languages.[^chen-2022-altclip]
+- The M9 model reports the highest image-to-text Recall@10 among the table's baselines for seven of eight reported XTD languages; its nine-language training set excludes German, Polish, and Turkish even though XTD contains captions in eleven languages.[^chen-2022-altclip]
 - The authors' ablation attributes English classification retention to including English–English teacher pairs, Chinese performance to English–Chinese pairs, and further Chinese ImageNet improvement to human translations. These are empirical results in their ten-epoch ablation, not evidence that each data choice transfers unchanged to other encoders or datasets.[^chen-2022-altclip]
+- Chinese zero-shot classification uses manually adapted CLIP prompts translated by machine, while the COCO-CN 1K captions are human written and its 5K captions machine translated. These evaluation-language and prompt choices limit direct interpretation as language-agnostic performance.[^chen-2022-altclip]
 - The source's text-to-image extension (AltDiffusion) replaces Stable Diffusion's language encoder and tunes only cross-attention key/value projections. It presents qualitative multilingual examples, so it does not establish quantitative image-generation quality or safety.[^chen-2022-altclip]
 
 ## Relationships
@@ -35,4 +37,4 @@ AltCLIP makes CLIP bilingual or multilingual by replacing its text encoder with 
 - Uses: [LiT locked-image tuning](lit-locked-image-tuning.md) motivates freezing the CLIP image encoder during contrastive tuning, while AltCLIP additionally uses an embedding-distillation stage.[^chen-2022-altclip]
 - Related: [Chinese CLIP language-specific vision–language pre-training](chinese-clip-language-specific-vision-language-pretraining.md) also adapts CLIP to Chinese, but it contrastively aligns and then jointly unfreezes both towers instead of distilling a multilingual text encoder and keeping the image tower locked.[^chen-2022-altclip]
 
-[^chen-2022-altclip]: Chen et al., “AltCLIP: Altering the Language Encoder in CLIP for Extended Language Capabilities” (2022), [source](../raw/2211.06679_AltCLIP.md).
+[^chen-2022-altclip]: Chen et al., “AltCLIP: Altering the Language Encoder in CLIP for Extended Language Capabilities” (2022), [source manuscript](../raw/2211.06679_AltCLIP/main.tex).

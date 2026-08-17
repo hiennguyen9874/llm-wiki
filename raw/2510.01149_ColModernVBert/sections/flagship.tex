@@ -1,0 +1,133 @@
+\section{Building a Small yet Mighty Visual Retriever.}
+% \noindent\textbf{Assymetric encoders.} 
+% \noindent\textbf{Ensembled embeddings.} 
+
+% \manu{Maybe we can take the kaobox takeaway style a bit similar to here ? \url{https://arxiv.org/pdf/2410.10781}}
+% \noindent\textbf{Selecting the right recipe.} Putting together the results from our experiment, we devise a training recipe for a small visual document retriever. 
+
+% Our ablation studies yields key insights on training early fusion visual encoders. 
+% Notably, practitioners should select architectures according to task needs: fused VLMs are preferable for document tasks due to their ability to generate token-level representations, whereas lightweight CLIP-style ViTs offer superior sentence-level alignment particularly useful in image captioning and classification. When building visual document retrievers from scratch, practitioners should prioritize bidirectional attention to fully exploit the benefits of a token-level alignment with late interaction.
+% When starting from pretrained models and larger parameter scales, we suggest annealing causal VLMs into bi-directional encoders using methods such as MoCa~\citep{chen2025mocamodalityawarecontinualpretraining}. This strategy combines the advantages of bi-directional attention in late interaction with the rich semantic and world knowledge captured during large-scale causal pretraining.
+
+% \paul{Linking stuff: We want to build a visual document retriever from scratch, freeing ourselves from the constraint of repurposing a VLM. Building on our insights, [...].}
+
+\subsection{Training.} 
+
+\noindent\textbf{Recipe.} Putting together the results from our experiments, we devise a training recipe for a small visual document retriever \flagship{}. It combines a state-of-the-art 150M text bidirectional encoder~\citep{weller2025seqvsseqopen} with the ModernBERT architecture \citep{modernbert} and a small vision encoder SigLIP2-16B-512 of 100M parameters~\citep{tschannen2025siglip2multilingualvisionlanguage}. We modality align both models with a MLM objective for 10B tokens, 3 times longer than during our experiments. To boost document understanding, we augment the input image resolution from 1024px to 2048px during a modality alignment cooldown stage (2B tokens). We call the resulting model \flagship{}.
+%In line with our results, we  scale the post-training corpus to 
+% \manu{we don't care about the bimodell - only describe the setup for the colmodel. ModernVBert is a multivector model, Bi doesn't exist (except appendix)}
+%pairs, resulting in the mixture summarized in Table~\ref{tab:final_cl_mix} and train with Late Interaction objectives.  F
+Following the findings of Section~\ref{sec:scaling=-cont}, we then scale the contrastive training mix from previous experiments to combine document–query pairs with text-only pairs, and use 1 hard negatives for each document-query pair and 2 for each text-only pairs. We opt for a 2/1 text-to-image ratio following our ablation results introduced in Appendix~\ref{appendix:text_image_ratio}. This results in \colflagship{}, a compact late interaction model. For reference, we also train \textit{Bi}\flagship{}, a single vector variant. More training details are provided in Appendix~\ref{appendix:implementation_details}.
+
+% \begin{table*}[h]
+% \centering
+% \setlength{\tabcolsep}{6pt}
+% \renewcommand{\arraystretch}{1.15}
+% \begin{tabular}{l r}
+% \toprule
+% \textbf{Source} & \textbf{Contrastive Pairs} \\
+% \midrule
+% ColPali~\citep{faysse2025colpaliefficientdocumentretrieval}                          & 118 000 \\
+% MSCOCO~\citep{lin2015microsoftcococommonobjects}                            & 118 000 \\
+% \natcap~\textit{(ours)}           & 118 000 \\
+% RLHN~\citep{thakur2025rlhn}                              & 680 000 \\
+% \midrule
+% \textbf{TOTAL}                    & \textbf{1 020 000} \\
+% \bottomrule
+% \end{tabular}
+% \caption{\manu{This takes a shit ton of space - is it useful ?}}
+% \label{tab:final_cl_mix}
+% \end{table*}
+
+% new mix, add if concluant
+% \begin{table*}[h]
+% \centering
+% \setlength{\tabcolsep}{6pt}
+% \renewcommand{\arraystretch}{1.15}
+% \begin{tabular}{l r}
+% \toprule
+% \textbf{Source} & \textbf{Contrastive Pairs} \\
+% \midrule
+% ColPali~\citep{faysse2025colpaliefficientdocumentretrieval}                          & 118 000 \\
+% VDR                               & 240 000 \\
+% MSCOCO (3 captions)               & 354 000 \\
+% \natcap~\textit{(ours)}           & 333 000 \\
+% RLHN                              & 680 000 \\
+% \midrule
+% \textbf{TOTAL}                    & \textbf{1 725 000} \\
+% \bottomrule
+% \end{tabular}
+% \caption{\paul{@QM check this and comment and cite everybody}.}
+% \label{tab:final_cl_mix}
+% \end{table*}
+
+
+
+% \noindent\textbf{Evaluation.}  
+% We evaluate our approach on the ViDoRe benchmark suite~\citep{faysse2025colpaliefficientdocumentretrieval,macé2025vidorebenchmarkv2raising}\footnote{We only report the English splits as the base model is mainly efficient in English tasks}. We compare our approach against CLIP encoders~\citep{radford2021learningtransferablevisualmodels,zhai2023sigmoidlosslanguageimage}, as well as recent VLMs repurposed for embedding tasks~\citep{jiang2025vlm2vectrainingvisionlanguagemodels,meng2025vlm2vecv2advancingmultimodalembedding,chen2025mocamodalityawarecontinualpretraining} and similar early fusion encoders~\citep{zhou2024vistavisualizedtextembedding} on tasks. Furthermore, we evaluate \colflagship{}–the document-optimized version of our \flagship{}– against the retrievers of the ViDoRe leaderboard~\citep{faysse2025colpaliefficientdocumentretrieval, macé2025vidorebenchmarkv2raising}. We present the baselines in detail in Appendix~\ref{appendix:baselines}
+
+\subsection{Results.}
+\label{sec:results}
+
+\input{tables/vidore_ldb}
+
+\noindent\textbf{\colflagship{}}. The resulting model, \colflagship{} showcases strong performances on visual document retrieval benchmarks, especially relative to its size category (Figure~\ref{fig:pareto_vidore}). Despite having over 10 times less parameters than models such as ColPali released only a year ago, it is only 0.6 nDCG@5 points below on the aggregated ViDoRe benchmark scores (\autoref{table:res}). It also edges many larger single-vector repurposed VLM models released within the year \citep{chen2025mocamodalityawarecontinualpretraining, jiang2024e5vuniversalembeddingsmultimodal, jiang2025vlm2vectrainingvisionlanguagemodels}. It however falls short of top model performance on ViDoRe which are built on larger decoder VLMs pretrained and aligned on billions of tokens of text and image data.
+
+Most sub-1B parameter models evaluated on document retrieval benchmarks are dual encoder models, since early fusion generative models that perform well are not common at this scale. The most related model is a 176M late interaction model, ColFlor \citep{masrycolflor}, trained from the Florence2 model \citep{xiao2023florence2advancingunifiedrepresentation}. ColFlor is 12.7 nDCG@5 points under \colflagship{}. \colflagship{} also largely outperforms off-the-shelf dual encoders, even when those have substantially larger parameter counts. 
+These results highlights the benefits of multi-phase training and early fusion architectures for multi-modal document related tasks, even at smaller parameter counts. We also attribute the strong performance of \colflagship{} at smaller model sizes to the symbiosis of native bidirectional attention and Late Interaction matching, which largely boosts performance relative to comparable decoder models (Section~\ref{sec:ablation_tasks}).
+
+%Our single-vector variant also sets a new optimal performance-size balance in among single-vector models, only beaten by GME-Qwen2 and MoCa-3B, that rely on much larger and more powerful base models. This confirms the soundness of our training approach, showcasing meaningful gains even without the Late Interaction paradigm.
+
+\noindent\textbf{Speed.} As noted by \citet{xiao2025metaembedscalingmultimodalretrieval}, multi-vector visual retrievers are not bottlenecked in their inference speed by the late interaction matching operation, but rather by the latency required to encode queries with the text model. Our model demonstrates that strong performance is not incompatible with speed, even when running inference on consumer CPUs, which is the standard setting in most industrial local deployments of text embedding models. Latencies are computed by averaging query encoding times of all NanoBEIR queries, which are 23.4 word and 147.5 character long on average, and \textcolor{red}{are run with batch size 1 to replicate online use cases. To prevent RAM bottlenecks, we benchmark on very high RAM (2TB) CPU cloud environments, but note models larger than 3B parameter require more than 12 GB RAM to run optimally.}\footnote{\textcolor{red}{With more standard CPU RAM settings such as those found in low-end servers or Google Colab (12GB RAM), models above 3B parameters must rely on memory offloading to run, which adds up to dozens of seconds of latency per query.}}  (\autoref{table:res}). \flagship{} achieves more than a 7x speedup on CPU over models with similar performances on ViDoRe. \textcolor{red}{We further report model latency results on GPU hardware in Appendix~\ref{appendix:gpu_latency}. We notably demonstrate that with batched inference, \flagship{} based query encoders are able to encode 5000 queries per second on Nvidia H100 GPUs.} ModernVBert's small model size also enables efficient batching when encoding documents. 
+
+
+% \begin{table*}[t]
+%   \centering
+%   \renewcommand{\arraystretch}{1.2}
+%   \small
+%   \resizebox{\textwidth}{!}{%
+%   \begin{tabular}{@{} >{}l cc cc >{\columncolor{avgcol}}c}
+%     & {Model Size} & {Latency (ms)} & \rot{ViDoRe(v1)} & \rot{ViDoRe(v2)} & \rot{\textbf{Average}} \\
+
+%     \midrule
+%     \multicolumn{6}{@{}l}{\itshape Single-Vector Models}\\    
+%     bge-visualized-m3 & 873M & - & 12.4 & 10.2 & 11.3 \\
+%     siglip2-large-patch16-512 & 882M & - & 43.8 & 27.0 & 35.4 \\
+%     VLM2Vec-Full & 4150M & - & 49.8 & 36.5 & 43.1 \\
+%     MoCa-Qwen25VL-3B & 3750M & - & 80.1 & 53.8 & 66.9 \\
+%     \textbf{\biflagship{}} & 252M & - & 63.6 & 35.7 & 49.7 \\
+%     \midrule
+%     \multicolumn{6}{@{}l}{\itshape Multi-Vector Models}\\
+%     ColFlor & 174M & - & 68.8 & 43.0 & 55.9 \\
+%     colSmol-256M & 256M & - & 79.7 & 50.0 & 64.8 \\
+%     colSmol-500M & 500M & - & 82.5 & 52.1 & 67.3 \\
+%     colpali-v1.1 & 2920M & - & 81.6 & 56.8 & 69.2 \\
+%     colqwen2.5-v0.2 & 3000M & - & 89.5 & 61.5 & 75.5 \\
+%     \textbf{\colflagship{}} & 252M & - & 81.2 & 56.0 & 68.6 \\
+    
+%     \bottomrule
+%   \end{tabular}%
+%   }
+%   \caption{\textbf{ViDoRe Leaderboard.} Our model \colflagship{} offers the best performance-size tradeoff, matching the performance of models up to 10x larger. \paul{Do we report bi modernvbert?} \manu{please add colflor, colpali, colqwen, along with the parameter counts. structure this table with what we want to claim. perhaps don't show the biencoder results but only the Late Interaction results, the whole point of having an encoder might be to boost the number 1 way to boost vision retrievers, aka LI, this is not a sidething... We are trying to claim the best way to do things is with LI and it gets a disporoportionate boost when strating from encoders. Compare with LI, we don't care about the biencoder. Reorganoze models by param count (<1B, >1B, and then in these cats, you can have other categories. We need to be first in our category. Rethink how to highlight doc performance.}}
+%   \label{tab:vidore_results}
+% \end{table*}
+
+% \begin{table*}[h]
+% \centering
+% \setlength{\tabcolsep}{6pt}
+% \renewcommand{\arraystretch}{1.15}
+% \begin{tabular}{l r}
+% \toprule
+% \textbf{Source} & \textbf{Contrastive Pairs} \\
+% \midrule
+% ColPali~\citep{faysse2025colpaliefficientdocumentretrieval}                          & 118 000 \\
+% MSCOCO~\citep{lin2015microsoftcococommonobjects}                            & 118 000 \\
+% \natcap~\textit{(ours)}           & 118 000 \\
+% RLHN~\citep{thakur2025rlhn}                              & 680 000 \\
+% \midrule
+% \textbf{TOTAL}                    & \textbf{1 020 000} \\
+% \bottomrule
+% \end{tabular}
+% \caption{\manu{This takes a shit ton of space - is it useful ?}}
+% \label{tab:final_cl_mix}
+% \end{table*}

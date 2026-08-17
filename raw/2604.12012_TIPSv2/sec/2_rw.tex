@@ -1,0 +1,52 @@
+\section{Related Work}
+\label{relatedwork}
+
+There are currently three dominant paradigms for large-scale pretraining of versatile image representations: self-supervised visual learning~\cite{chen2020simclr,assran2023ijepa,he2022mae}, image-text contrastive learning~\cite{radford2021clip,jia2021align,cherti2023reproducible} or image captioning~\cite{tschannen2023cappa,tschannen2024locca,fini2025aimv2}.
+In this work, we build on top of self-supervised and image-text contrastive techniques to construct visual representations that are natively text-aligned and spatially aware.
+We review relevant work in these areas and contextualize our advances with respect to them.
+
+\noindent\textbf{Self-supervised learning} methods enable visual pretraining without the use of any labels, by formulating pretext tasks that derive supervisory signals from the images themselves.
+Landmark approaches in this area, such as DINO~\cite{caron2021dino} and iBOT~\cite{zhou2022ibot}, enforce representational invariances to image augmentations such as crops, flips, color distortions and masking.
+These methods adopt a student-teacher distillation setup, where the teacher model is constructed as an exponential moving average (EMA) of the student~\cite{he2020moco}.
+DINOv2~\cite{oquab2024dinov2} combines these strategies into a well-tuned recipe which was scaled on a curated training set.
+More recently, DINOv3~\cite{siméoni2025dinov3} and WebSSL~\cite{fan2025scalinglanguagefreevisualrepresentation} scale this recipe even further to image encoders with $7$B parameters, on $2$B curated images.
+
+Our proposed \tipsvtwo framework leverages self-supervised losses, making two contributions to enhance them.
+First, we extend the iBOT~\cite{zhou2022ibot} masked image modeling (MIM) strategy to introduce our novel iBOT++ technique, which enables direct supervision on both visible and masked tokens at pretraining time -- this simple change dramatically boosts patch-text alignment and benefits several downstream tasks.
+Examples in the literature have some similarities to the iBOT++ strategy.
+DMAE~\cite{wu2023dmae} predicts visible and masked patches (not tokens), focusing on robust classifiers.
+SimMIM~\cite{xie2022simmim} also attempted predicting visible patches, but found it ineffective.
+MaskAlign~\cite{xue2023maskalign} and MR-MAE~\cite{gao2023mrmae} align student visible tokens with those of pretrained frozen models.
+To the best of our knowledge, overall, supervising both visible and masked tokens as part of MIM pretraining was unexplored.
+Second, we introduce a significant simplification to the widely-used EMA learning setup~\cite{he2020moco}, where only projection heads undergo EMA updates and a single vision encoder is used.
+This is particularly effective in our setup because the additional image-text contrastive loss generally provides a stable signal preventing model collapse.
+This reduces the number of trainable parameters by nearly half, enabling much more efficient scaling.
+Other methods which combine SSL and contrastive image-text techniques are SILC~\cite{naeem2024silc}, TIPS~\cite{tips_paper} and SigLIP2~\cite{tschannen2025siglip2multilingualvisionlanguage}: all of them employ EMA teachers but do not consider simplifications in this component.
+
+
+
+\noindent\textbf{Contrastive vision-language pretraining} was introduced by CLIP~\cite{radford2021clip} and ALIGN~\cite{jia2021align}, leveraging web-scale image datasets with weakly supervised text labels.
+More recent instantiations in this area include OpenCLIP~\citep{cherti2023reproducible}, SigLIP~\citep{zhai2023siglip}, Perception Encoder~\cite{bolya2025perceptionencoderbestvisual}, EVA~\citep{fang2023eva,fang2024eva02,sun2023evaclip} and MetaCLIP~\cite{xu2024metaclip,chuang2025metaclip2}.
+Some methods in this area~\cite{lai2024veclip,fan2023laclip,tips_paper,stone2025visualcomposition} explore the use of synthetic image captions for contrastive image-text training.
+In our \tipsvtwo model, we go beyond these to combine noisy web captions with synthetic captions at different granularities, providing a range of possible textual descriptions for images, increasing the robustness of the model.
+
+Knowledge distillation~\cite{hinton2015distilling} techniques have been frequently used to train smaller vision-language encoders~\cite{tips_paper,tschannen2025siglip2multilingualvisionlanguage,bolya2025perceptionencoderbestvisual}, enabling high performance at a much cheaper compute budget.
+In this work, one of our contributions is to show for the first time that distillation procedures, tuned to strengthen spatial awareness, can be helpful to enhance patch-text alignment of these models.
+Surprisingly, even large pretrained models with weak patch-text alignment can be distilled into smaller models to enhance this capability.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

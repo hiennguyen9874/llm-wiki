@@ -5,7 +5,7 @@ description: A CLIP-style dual encoder that replaces batch-normalized contrastiv
 tags: [multimodal-learning, contrastive-learning, sigmoid-loss, representation-learning, zero-shot-transfer]
 status: stable
 created: 2026-08-16
-generated: { by: llm-wiki-agent/1, at: 2026-08-16T15:45:53Z }
+generated: { by: llm-wiki-agent/1, at: 2026-08-17T02:49:15Z }
 sources:
   - id: zhai-2023-siglip
     resource: ../raw/2303.15343_SigLIP.md
@@ -13,8 +13,8 @@ sources:
   - id: faysse-2024-colpali
     resource: ../raw/2407.01449_ColPali.md
     title: Efficient Document Retrieval with Vision Language Models
-  - id: gritsenko-2025-siglip2
-    resource: ../raw/2502.14786_SigLIP2.md
+  - id: tschannen-2025-siglip2
+    resource: ../raw/2502.14786_SigLIP2/document.tex
     title: SigLIP 2: Multilingual Vision-Language Encoders with Improved Semantic Understanding, Localization, and Dense Features
 ---
 
@@ -45,9 +45,9 @@ SigLIP replaces CLIP’s globally normalized softmax contrastive objective with 
 
 - Extends: [CLIP natural-language image pre-training](clip-natural-language-image-pretraining.md) with a pairwise sigmoid objective in place of CLIP’s symmetric globally normalized softmax loss.[^zhai-2023-siglip]
 - Extends: [LiT locked-image tuning](lit-locked-image-tuning.md) through SigLiT, which freezes the image tower while training with sigmoid loss.[^zhai-2023-siglip]
-- Extended by: [SigLIP 2 multilingual vision–language encoders](siglip2-multilingual-vision-language-encoders.md), which retains SigLIP’s core architecture and sigmoid image–text loss while adding multilingual tokenization and staged auxiliary training.[^gritsenko-2025-siglip2]
+- Extended by: [SigLIP 2 multilingual vision–language encoders](siglip2-multilingual-vision-language-encoders.md), which retains SigLIP’s core architecture and sigmoid image–text loss while adding multilingual tokenization and staged auxiliary training.[^tschannen-2025-siglip2]
 - Used by: [ColPali vision-space document retrieval](colpali-vision-space-document-retrieval.md), whose PaliGemma backbone uses a SigLIP vision encoder.[^faysse-2024-colpali]
 
 [^zhai-2023-siglip]: Zhai et al., “Sigmoid Loss for Language Image Pre-Training” (2023), [source](../raw/2303.15343_SigLIP.md).
 [^faysse-2024-colpali]: Faysse et al., “Efficient Document Retrieval with Vision Language Models” (2024), [source](../raw/2407.01449_ColPali.md).
-[^gritsenko-2025-siglip2]: Gritsenko et al., “SigLIP 2: Multilingual Vision-Language Encoders with Improved Semantic Understanding, Localization, and Dense Features” (2025), [source](../raw/2502.14786_SigLIP2.md).
+[^tschannen-2025-siglip2]: Tschannen et al., “SigLIP 2: Multilingual Vision-Language Encoders with Improved Semantic Understanding, Localization, and Dense Features” (2025), [complete manuscript source](../raw/2502.14786_SigLIP2/document.tex).

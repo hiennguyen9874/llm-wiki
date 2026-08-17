@@ -1,0 +1,138 @@
+\section{The Meta CLIP~2 Recipe}
+\label{curation}
+
+Our recipe of scaling CLIP to native worldwide data and training comprises three steps shown in Fig. \ref{fig:pipeline}: (1) constructing worldwide metadata, (2) implementing worldwide curation algorithm, and (3) building training framework for worldwide model. 
+For generalizable recipe and findings, Meta CLIP~2 is designed to maximize overlapping with OpenAI CLIP and Meta CLIP, and only adopts necessary changes to learn from worldwide data.
+
+\begin{figure}[h]
+    \centering
+\includegraphics[width=0.95\textwidth]{imgs/overview.pdf}
+    \caption{Overview of Meta CLIP 2 recipe: scaling CLIP data and training to worldwide scope.}
+    \label{fig:pipeline}
+    \vspace{-2.mm}
+\end{figure}
+
+
+\subsection{Revisit of Meta CLIP Algorithm}
+\label{sec:Meta CLIP_algorithm}
+
+We revisit the original Meta CLIP algorithm to illustrate how English-based CLIP data is curated with metadata constructed from human knowledge. 
+The algorithm first constructs \textbf{metadata $\mathcal{M}$}, a list of high-quality visual concepts, from corpora written by human experts. $\mathcal{M}$ contains 500k entries, a combination and deduplication of entities from four high-quality sources: 1) all English WordNet Synsets, 2) Wikipedia English unigrams, and 3) bigrams, and 4) Wikipedia page titles. Then, the algorithm performs \textbf{substring matching}
+on each alt-text (from a given image-text pair in the data pool $\mathcal{D}$) using metadata $\mathcal{M}$ to obtain a list \texttt{matched\_entry\_ids}.
+\textbf{Global counting} is conducted to calculate the number of matches over $\mathcal{D}$ for each entry in $\mathcal{M}$
+as \texttt{entry\_count}. Finally, the algorithm applies \textbf{balancing} to transform the raw image-text pair distribution into a distribution that is balanced for head and tail concepts and ready for training, by associating each pair with a sampling probability. Specifically, the count per entry is first converted into a probability of sampling each entry, \texttt{entry\_prob}, where tail entries (defined as \texttt{entry\_count} < $t$) have a probability set to 1, and all the other head entries have \texttt{$t$/entry\_count} as sampling probabilities. Each pair is then sampled based on probabilities of matched entries in its alt-text. Here, $t$ is a threshold to decide head vs. tail entries and set to 20k in OpenAI CLIP; Meta CLIP raised $t$ to 170k for scaling to billion English pairs.
+
+\subsection{Worldwide Metadata}
+
+We address the first challenge for worldwide scaling by constructing 
+the missing metadata to cover the non-English world.
+We maintain independent metadata per language since such design is intuitive (e.g., the same word ``mit'' has different meaning in English and Germany), has better performance (see ablation in Sec.~\ref{sec:ablation_metadata_curation_tokenizer}), and is flexible for adding and curating a new set of languages in future.
+
+Our metadata is from the same four sources as OpenAI CLIP and Meta CLIP, but beyond English. Key changes are highlighted as follows. 
+1) Multilingual WordNet: we include all synsets from 31 languages. 2) Wikipedia Unigrams and 3) Bigrams: we process unigram and bigram from Wikipedia dumps dated on May 2024, which include corpora in 329 languages. We clean the corpora into plain text with WikiExtractor~\citep{wikiextractor}. For most languages, we use space and punctuation to tokenize text into words, and then count unigrams and bigrams. For languages without space separation (e.g., some Asian languages), we use open-source tokenizers (see Table~\ref{tbl:tokenizer} in Appendix) developed by local communities to properly split text into words and meanwhile maintain the semantic integrity. 
+4) Wikipedia Titles: we use page titles from 40 random dates of Wikipedia snapshots and rank these titles by click-through traffic for each language.
+
+\subsection{Curation Algorithm}
+
+Next, we scale curation to worldwide data language-by-language. The curation algorithm is detailed below and summarized in pseudo-code as Algorithm \ref{alg:code}. First, we conduct \textbf{language identification} (LID)~\citep{grave2018learning} to classify the language of the alt-text from an image-text pair, and choose language-specific metadata to match concepts. 
+The sets of languages covered by LID and metadata sources (e.g., Wikipedia) are usually different, so we first establish a mapping between one language in LID to a unique set of languages in metadata entries. The languages in the metadata mapped to the same language in LID are merged into one group. This ends with a dictionary representation of metadata, \texttt{M}, where the keys are each language in LID and the values are the combined metadata of each group of languages. We also include a key ``other'' for metadata of languages that cannot be associated with any language in LID. Each
+alt-text (\texttt{text}) in $\mathcal{D}$ is applied with LID for predicting its language (\texttt{text.lang}). After that, as in the Meta CLIP algorithm summarized in Sec.~\ref{sec:Meta CLIP_algorithm}, we run \textbf{substring matching} with metadata corresponding to predicted languages: \texttt{matched\_entry\_ids = substr\_match(text, M[text.lang])}, and aggregate \textbf{global count}, the number of matches of each entry, in \texttt{entry\_counts}.
+
+With counts calculated, we \textbf{balance} occurrence of concepts across pairs. In data curation for English CLIP described above, a threshold $t$ is designed to limit the \emph{matches per metadata entry}, where entries with matches fewer than $t$ are defined as tail entries (or concepts) and otherwise head. 
+Image-text pairs from head concepts are downsampled by a sampling probability derived from $t$ to balance training data distribution.
+Thus, $t$ depends on the size of raw data pool (e.g., a larger pool has higher counts for the same entry).
+OpenAI CLIP sets $t$ to 20k for 400M pairs; Meta CLIP~\citep{xu2024demystifying} tunes $t$ to 170k for scaling the training dataset to 2.5B and keeping the same ratio, 6\% of matches from \emph{tail concepts}, that OpenAI CLIP leverages to obtain the 400M pairs.
+For worldwide data, the data size and the counts of matches differ greatly across languages, so $t$ should be language-\emph{dependent}.
+Applying a single threshold $t$ to all languages yields suboptimal performance, e.g., a larger $t$ for a language with fewer pairs may yield too many pairs of head concepts and dilutes tail concepts in the curated data (see Sec.~\ref{sec:ablation_metadata_curation_tokenizer}). 
+
+To derive $t$ for each language, we leverage the \emph{invariance} assumption adopted in Meta CLIP algorithm design, the percentage of \emph{tail matches} (i.e., 6\%), and apply it across languages.
+With this assumption, we determine $t$ in two steps. 
+(1) \textbf{From} $t_\text{en}$ \textbf{to $p$}: we calculate the global tail proportion $p$ for all languages, based on matches of English tail entries decided by $t_\text{en}$.
+(2) \textbf{From $p$ to} $t_\text{lang}$: for each non-English language, we reversely find the language-specific threshold $t_\text{lang}$ based on the calculated $p$ to ensure the same tail proportion across all languages.
+Detailed implementation of these two steps is shown as the \texttt{t\_to\_p()} and \texttt{p\_to\_t()} functions in Algorithm~\ref{alg:code}. With $t_\text{lang}$, \texttt{entry\_counts} is converted to \texttt{entry\_probs} similarly as in Meta CLIP but for each language.
+
+Putting everything computed together, 
+Algorithm \ref{alg:code} takes raw image-text pairs $\mathcal{D}$, metadata \texttt{M}, and an arbitrary threshold for English $t_\text{en}$ as input, and outputs a curated dataset of balanced and diverse training pairs, $\mathcal{D}^\ast$, with three stages.
+\textbf{Stage 1} performs language-specific substring matching for each alt-text, \texttt{text}, based on LID results and corresponding metadata, and obtains match counts, \texttt{entry\_counts}, for each language and entry.
+\textbf{Stage 2} computes thresholds $t_\text{lang}$ from $t_\text{en}$.
+\textbf{Stage 3} samples image-text pairs based on matched entries in \texttt{text} with probabilities \texttt{entry\_probs}. Pairs matched with tail entries are always selected (i.e., probability = 1.0); pairs with head entries have sampling probabilities $t_\text{lang}$ / \texttt{entry\_counts[lang]}.
+Sampled pairs compose $\mathcal{D}^\ast$.
+
+\begin{algorithm}[ht]
+\caption{Pseudo-code of Meta CLIP~2 Curation Algorithm in Python/NumPy.}
+\label{alg:code}
+\definecolor{codeblue}{rgb}{0.25,0.5,0.5}
+\lstset{
+  backgroundcolor=\color{white},
+  basicstyle=\fontsize{8pt}{9pt}\ttfamily\selectfont,
+  columns=flexible,
+  breaklines=true,
+  captionpos=b,
+  commentstyle=\fontsize{9pt}{9pt}\color{codeblue},
+  keywordstyle=\fontsize{9pt}{9pt},
+}
+\centering
+\begin{lstlisting}[language=python]
+"""
+Input: 
+D(list) raw (image, text) pairs: each text is assigned with a language "text.lang" by LID;
+M(dict) worldwide metadata: key->language code; value(list)->metadata for that language;
+t_en(int) English threshold on counts of head/tail entry cutoff: OpenAI CLIP->20k, Meta CLIP->170k;
+
+Output: 
+D_star(list): curated image-text pairs;
+"""
+
+# helper functions to compute t for each language.
+def t_to_p(t, entry_count):
+    return entry_count[entry_count < t].sum() / entry_count.sum()
+
+def p_to_t(p, entry_count):
+    sorted_count = np.sort(entry_count)
+    cumsum_count = np.cumsum(sorted_count)
+    cumsum_prob = cumsum_count / sorted_count.sum()
+    return sorted_count[(np.abs(cumsum_prob - p)).argmin()]
+
+# Stage 1: sub-string matching.
+entry_counts = {lang: np.zero(len(M[lang])) for lang in M}
+for image, text in D:
+    # call substr_match which returns matched entry ids.
+    text.matched_entry_ids = substr_match(text, M[text.lang])
+    entry_counts[text.lang][text.matched_entry_ids] += 1
+
+# Stage 2: compute t for each langauge.
+p = t_to_p(t_en, entry_counts["en"]); t = {}
+for lang in entry_counts:
+    t[lang] = p_to_t(p, entry_counts[lang])
+
+# Stage 3: balancing via indepenent sampling per language.
+entry_probs = {}
+for lang in entry_counts:
+    entry_counts[lang][entry_counts[lang] < t[lang]] = t[lang]
+    entry_probs[lang] = t[lang] / entry_counts[lang]
+
+D_star = []
+for image, text in D:
+    for entry_id in text.matched_entry_ids:
+        if random.random() < entry_probs[text.lang][entry_id]:
+            D_star.append((image, text))
+            break
+\end{lstlisting}
+\end{algorithm}
+
+\subsection{Training Framework}
+\label{sec:scaling_recipe}
+
+Adopting data prepared with worldwide curation in current CLIP training framework addresses the first challenge, but curse of multilinguality still exists as shown in Fig. \ref{fig:teaser}.
+Thus, we further design the worldwide CLIP training framework.
+To make our framework and findings generalizable to CLIP and its variants, our framework follows OpenAI/Meta CLIP's training setting and model architecture with three additions: (1) a multilingual text tokenizer, (2) scaling seen training pairs, and (3) 
+study of minimal viable model capacity.
+The first is required to support worldwide languages and discussed in Sec.~\ref{sec:ablation_metadata_curation_tokenizer} for various choices; details of the latter two are described below.
+
+\paragraph{Scaling seen pairs.}
+Expanding from an English-only dataset and distribution to worldwide naturally increases the number of available image-text pairs. Training CLIP for worldwide distribution with the same number of seen pairs as English CLIP downsamples English training pairs and harms English performance. Hence, we scale seen pairs proportionally to the growth of data size from non-English pairs, to ensure the amount of English seen pairs unchanged during the worldwide CLIP training. This is achieved by increasing the global training batch size, which encourages cross-lingual learning, and meanwhile keeping the other training hyperparameters unchanged. 
+We choose a 2.3$\times$ scaling of global batch to reflect that English pairs constitute 44\% of our training data. We ablate other choices of global batch size in Sec.~\ref{sec:main_ablation}.
+
+\paragraph{Minimal viable model capacity.}  
+Lastly, we study the minimal model expressivity to enable learning on extra seen pairs and break the curse of multilinguality. As in Fig. \ref{fig:teaser}, we find that even a ViT-L/14 (largest model provided by OpenAI) suffers from the curse due to deficient capacity, and
+ViT-H/14 is the inflection point to break the curse (strong performance improvement in both English and non-English tasks).

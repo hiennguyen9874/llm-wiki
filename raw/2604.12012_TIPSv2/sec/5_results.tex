@@ -1,0 +1,137 @@
+\section{Results}
+\label{results}
+\subsection{Experimental Setup}
+
+
+
+To demonstrate general-purpose capability as a vision encoder, we evaluate our models on a suite of 9 standard tasks, covering two broad types: image-text and image-only.
+Datasets and metrics used in this work are introduced in the following paragraphs.
+Evaluations follow the detailed protocol of \citep{tips_paper}, to ensure fair comparisons.
+As our objective is to assess the applicability of our model off-the-shelf for downstream applications, the pretrained image-text representations are kept frozen for all evaluations.
+
+\noindent\textbf{Image-text tasks} include 2 types, focused on dense and global image-text alignment.
+We consider dense image-text alignment by evaluating on zero-shot segmentation, reporting mean Intersection over Union (mIoU).
+Unless otherwise mentioned, we report \tipsvtwo results on zero-shot segmentation with the simple protocol that maximizes cosine similarities between patch features, up-scaled to image resolution, and the text features of each class name.
+Note that DINOv2 (with text~\cite{jose2024dinov2}) and SILC~\cite{naeem2024silc} instead report results using the expensive sliding window protocol from TCL~\citep{cha2023learning}, which generally boosts results.
+Both protocols use the value embeddings of the final transformer layer as patch embeddings, following ~\citep{zhou2022extract}.
+We report zero-shot segmentation on ADE20K~\citep{zhou2017ade20k} with 150 classes (ADE150), PASCAL context \citep{everingham2011pascal}, and PASCAL VOC~\citep{everingham2010pascal}.
+For PASCAL context, we report both with (PC60) and without (PC59) the background label.
+The global-focused tasks include image-to-text and text-to-image retrieval on Flickr30K~\citep{young2014from}, DOCCI~\citep{onoe2024docci}, and COCO~\citep{chen2015cococaptions} reporting recall@1; and zero-shot classification on ImageNet-1K reporting top-1 accuracy by retrieving nearest class text embeddings~\citep{radford2021clip}. 
+
+
+\noindent\textbf{Image-only tasks} include semantic segmentation with linear probe on PASCAL VOC~\citep{everingham2010pascal} and ADE20k~\citep{zhou2017ade20k} reporting mIOU; monocular depth estimation on the scene-centric NYUv2~\citep{silberman2012indoor} with linear probe and the object-centric NAVI~\citep{jampani2023navi} with DPT~\cite{ranftl2021vision}, both reporting RMSE; surface normal estimation on NYUv2 and NAVI, using DPT, reporting angular RMSE; image classification on ImageNet-1K~\citep{russakovsky2015imagenet} reporting top-1 accuracy (KNN and linear probe); and fine-grained/instance-level retrieval on the Universal Embeddings Dataset (UnED)~\citep{ypsilantis2023uned} (comprising data from $8$ different domains: Food2k \citep{min2023large}, CARS196 \citep{krause20133d}, SOP \citep{song2016deep}, InShop \citep{liu2016deepfashion}, iNat \citep{van2018inaturalist}, Met\citep{ypsilantis2021met}, GLDv2 \cite{weyand2020google}, Rp2k\cite{peng2020rp2k}), reporting average recall@1.
+
+\noindent\textbf{Training data.}
+We train our models using the web-crawled WebLI dataset~\citep{chen23pali}, reusing the specific filtered subset created by~\cite{tips_paper}, containing $116$M images.
+We also reuse synthetic captions from PaliGemma~\citep{beyer2024paligemma}, again following~\cite{tips_paper}.
+Additionally, as described in \cref{multi_caption}, we leverage synthetic captions from Gemini 1.5 Flash \cite{geminiteam2024gemini}.
+
+\noindent\textbf{Implementation details.}
+Following \citep{tips_paper}, pretraining combines contrastive image-text and self-supervised losses, integrating the key upgrades described in \cref{sec:method}: iBOT++, head-only EMA and multi-granularity text captions.
+Pretraining consists of a low-resolution stage for $90k$ steps at batch size $8192$ and then a high-resolution adaptation stage for $9k$ steps at batch size $4096$.
+At low resolution, we train with $1$ global crop at resolution $224$ and $6$ local crops at resolution $98$.
+At high resolution, the global crop has resolution $448$ and the local crops have resolution $140$.
+We use only random resizes, crops and flips as augmentations.
+We pre-train at ViT-g scale with 512 TPUv5 chips for 2 days.
+We also distill to a family of -SO, -L, -B models, with all results presented in the appendix.
+Distillation is as described in \cref{sec:preliminaries}, and then student models also undergo a high-resolution adaptation stage. 
+
+
+
+
+\subsection{Ablations}
+We present ablations in \cref{tab:ablation_studies} where we add each of the primary contributions successively, evaluated on a representative subset of 7 of our evaluation tasks.
+We begin with TIPS~\citep{tips_paper} as a baseline, reproduced with two minor modifications: we halve the batch size and increase position embeddings to $32\times32$ from $16\times16$.
+Our preliminary experiments showed halving the batch size saved training resources without affecting results significantly, and higher-resolution position embeddings improved all results without incurring much cost. 
+Ablations are carried out for 100k steps at original resolution, without the high-res adaptation stage of the full pretraining process.
+In the second row, iBOT is replaced by iBOT++, which results in across-the-board improvements for most evals, including a dramatic $+14.1$ mIoU improvement to zero-shot segmentation.
+After that, we replace PaliGemma synthetic captions with multi-granularity captions sampled from PaliGemma and Gemini captions, which improves both global and dense types of image-text tasks: I$\rightarrow$T, T$\rightarrow$I, and zero-shot segmentation.
+Finally, we add head-only EMA, a change that is primarily targeted at enabling significant training resource savings, but still results in comparable performance, even further improving some tasks such as  zero-shot segmentation. 
+The combination of these changes is \tipsvtwo, with all primary components resulting in increased or comparable performance across our evaluations, with particular significant improvement for zero-shot segmentation from iBOT++. 
+
+
+\input{tables/tab_sota_dense_image_text}
+\input{tables/tab_sota_image_text} 
+\input{tables/tab_sota_image_only}
+\input{tables/tab_dinov3}
+
+\subsection{Comparisons with Other Vision Encoders}
+
+We provide extensive benchmarking against state-of-the-art methods.
+For fair comparisons, we strictly follow the protocol of \citep{tips_paper}, considering the largest instantiations in each model family, up to ViT size ``G", with $1.8$B parameters in the vision encoder.
+Note that the largest model in the \tipsvtwo family is of size ``g", with $1.1$B parameters in the vision encoder.
+The compared methods are the following.
+Weakly-supervised methods: CLIP~\citep{radford2021clip}, PE~\citep{bolya2025perceptionencoderbestvisual}, and OpenCLIP~\citep{cherti2023reproducible}; self-supervised methods: DINOv2~\citep{oquab2024dinov2} (with registers~\cite{vitsneedregisters}), DINOv3~\citep{siméoni2025dinov3}, and FRANCA~\citep{venkataramanan2025franca}; combined approaches: TIPS~\citep{tips_paper}, SILC~\citep{naeem2024silc}, dino.txt~\citep{jose2024dinov2} (as the image-text capability of DINOv2), and SigLIP2~\citep{tschannen2025siglip2multilingualvisionlanguage}.
+Qualitatively, \cref{fig:qualitative_dense} shows that \tipsvtwo patch embeddings are more spatially coherent than other vision-language pretraining methods.
+
+\noindent\textbf{Dense image-text tasks.} In \cref{tab:sota_dense_image_text}, we report zero-shot segmentation results on ViT-L and the closest comparable sizes from competitor models.
+\tipsvtwo achieves state-of-the-art results, indicating a significant improvement in dense patch-text alignment. 
+Qualitative visualizations of the zero-shot segmentation results are presented in \cref{fig:zss_viz}.
+
+\noindent\textbf{Global image-text tasks.} 
+In \cref{tab:sota_image_text}, \tipsvtwo achieves the best or second-best results in 5 out of 7 evaluations. Our models are best in all COCO and long-text DOCCI tasks, outperforming even larger ViT-G models.
+Note that our ViT-g models even outperform the recent PE~\citep{bolya2025perceptionencoderbestvisual} ViT-G models in 3 out of 5 evals, although the PE model has 56\% more parameters and processes 47$\times$ more image-text pairs.
+
+\newcommand{\showpca}[2]{%
+  \resizebox{#1\linewidth}{!}{%
+	\setlength{\fboxsep}{0pt}
+		\hfill
+		\includegraphics[height=#1\linewidth]{images/#2.jpeg}
+		\hfill
+		\includegraphics[height=#1\linewidth]{images/tips/#2.png}
+		\hfill
+		\includegraphics[height=#1\linewidth]{images/siglip2/#2.png}
+		\hfill
+		\includegraphics[height=#1\linewidth]{images/supp/tipsv2/vit_g/#2.png}
+}}
+
+\newcommand{\pcawidth}{1.0}
+\begin{figure}[tb]
+	\centering
+	\showpca{\pcawidth}{dadaocheng} \\[0.2mm]
+    \showpca{\pcawidth}{cph} \\[0.2mm]
+    \showpca{\pcawidth}{hike} \\[0.2mm]
+    \showpca{\pcawidth}{angus} \\[0.1mm]
+
+    \resizebox{\pcawidth\linewidth}{!}{%
+    \scriptsize
+        \begin{minipage}[t]{0.24\linewidth}
+          \centering
+          Image
+        \end{minipage}%
+        \hfill
+        \begin{minipage}[t]{0.24\linewidth}
+          \centering
+          TIPS
+        \end{minipage}%
+        \hfill
+        \begin{minipage}[t]{0.24\linewidth}
+          \centering
+          SigLIP2
+        \end{minipage}%
+        \hfill
+        \begin{minipage}[t]{0.24\linewidth}
+          \centering
+          \tipsvtwo (ours)
+        \end{minipage}%
+    }%
+    \vspace{-1mm}
+	\caption{\small\textbf{PCA maps.} Comparing the first $3$ PCA components, using ViT-g models. 
+    Images are forwarded at 1372 resolution for patch size 14 models (TIPS, TIPSv2) and at 1568 resolution for patch size 16 models (SigLIP2).
+    \tipsvtwo produces smoother feature maps compared to other vision-language pretraining methods, with well-delineated objects.}
+	\label{fig:qualitative_dense}
+	\vspace{-3mm}
+\end{figure}
+
+\noindent\textbf{Image-only tasks.} In \cref{tab:sota_image_only}, \tipsvtwo achieves the best or second-best results in 7 out of 9 evaluations, and also achieves strong performance on the remaining 2 cases.
+\tipsvtwo stands out as particularly strong in dense understanding tasks, improving by $+1.5$ in segmentation on PASCAL and by $-0.019$ on depth in NYUv2 over prior best.
+However, our models do not perform as well in ImageNet classification, a result of our focus on optimizing for general purpose capability across a wide range of tasks.
+
+\noindent\textbf{DINOv3 comparison.}
+Additionally, we compare \tipsvtwo with the very recent DINOv3~\citep{siméoni2025dinov3}, presenting results in \cref{tab:dinov3}.
+In order to make the zero-shot segmentation evals comparable, for this table we reproduce their setup, with the more expensive sliding window protocol from TCL~\citep{cha2023learning}.
+Note that the DINOv3 teacher model is trained with 6$\times$ more parameters and 15$\times$ more images than the \tipsvtwo teacher, so we believe the fairest possible comparison is to use the largest model size in common between the two model families, which is ViT-L.
+We report numbers on the subset of all released evals with matching protocols.
+Notably, \tipsvtwo outperforms DINOv3 in 4 out of 6 evals, despite the data and model size disadvantage.
+
+

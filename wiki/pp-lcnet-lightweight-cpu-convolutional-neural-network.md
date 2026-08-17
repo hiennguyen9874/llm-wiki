@@ -5,10 +5,10 @@ description: A CPU-oriented lightweight CNN that combines depthwise-separable bl
 tags: [computer-vision, convolutional-neural-networks, efficient-inference, hardware-aware-design, lightweight-models]
 status: stable
 created: 2026-08-16
-generated: { by: llm-wiki-agent/1, at: 2026-08-16T15:30:33Z }
+generated: { by: llm-wiki-agent/1, at: 2026-08-17T02:31:40Z }
 sources:
   - id: cui-2021-pp-lcnet
-    resource: ../raw/2109.15099_PP-LCNet.md
+    resource: ../raw/2109.15099_PPLCNet/PP-LCNet.tex
     title: PP-LCNet: A Lightweight CPU Convolutional Neural Network
 ---
 
@@ -21,6 +21,7 @@ PP-LCNet is a lightweight CNN designed around Intel CPU inference with oneDNN/MK
 - The base network has a $3 \times 3$ convolutional stem followed by depthwise-separable convolution blocks. The authors select this block because their Intel CPU acceleration stack had optimized it and because it avoids shortcut, concatenation, and elementwise-add operations.[^cui-2021-pp-lcnet]
 - PP-LCNet replaces ReLU with H-Swish, uses $5 \times 5$ depthwise kernels in tail blocks, and adds squeeze-and-excitation (SE) modules only to the final two blocks. Its head uses global average pooling followed by a 1,280-channel $1 \times 1$ convolution without batch normalization before classification.[^cui-2021-pp-lcnet]
 - The paper's ablations place the SE modules or larger kernels at different depths. For PP-LCNet-0.5x, tail-only SE reached 63.14% ImageNet top-1 at 2.05 ms, versus 62.17% at 2.03 ms for a mid-network placement; tail-only large kernels reached the same accuracy and latency, close to using large kernels throughout (63.22%, 2.08 ms).[^cui-2021-pp-lcnet]
+- The cumulative PP-LCNet-0.5x ablation reports that adding H-Swish, tail large kernels, tail SE, then a final $1 \times 1$ convolution and dropout raises top-1 accuracy from 55.58% to 63.14%; latency rises from 1.61 ms to 2.05 ms, with the final convolution accounting for the largest reported latency increase.[^cui-2021-pp-lcnet]
 
 ## Reported measurements
 
@@ -32,4 +33,4 @@ PP-LCNet is a lightweight CNN designed around Intel CPU inference with oneDNN/MK
 
 The paper's design recommendations are empirical for its selected Intel CPU, oneDNN/MKLDNN configuration, batch size, and training recipes. They should be re-benchmarked for another processor, inference runtime, input shape, or task rather than treated as hardware-independent lightweight-CNN rules.[^cui-2021-pp-lcnet]
 
-[^cui-2021-pp-lcnet]: Cui et al., “PP-LCNet: A Lightweight CPU Convolutional Neural Network” (2021), [source](../raw/2109.15099_PP-LCNet.md).
+[^cui-2021-pp-lcnet]: Cui et al., “PP-LCNet: A Lightweight CPU Convolutional Neural Network” (2021), [source](../raw/2109.15099_PPLCNet/PP-LCNet.tex).

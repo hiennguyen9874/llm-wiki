@@ -1,0 +1,37 @@
+\section{Related Work}
+\label{related_work}
+
+\subsection{Evolution of CLIP and its Data Processing}
+CLIP~\citep{radford2021learning} and its variants~\citep{jia2021scaling,ilharco_gabriel_2021_5143773,zhai2023sigmoid} learn versatile image and text representations that are generally useful for downstream tasks~\citep{grattafiori2024llama,dai2023instructblip,liu2023visual}. Such multimodal contrastive learning and transformer architectures become standard components in vision and multimodal research.
+Data is a key contributor to CLIP's performance~\citep{gadre2023datacomp,xu2024demystifying}. 
+Two major processing approaches for CLIP data emerge: curation\footnote{Here, ``curation'' refers to select and align training data distribution with human from raw data source, excluding data filtering that is also referred to as curation in many works like DataComp~\citep{gadre2023datacomp, li2024datacomp} and DFN~\citep{fang2023data}.} from scratch, and distillation from external resources.
+One key difference is that the former yields more \textit{controllable distribution} and the latter has untractable distribution owned by an outsourcing party.
+
+\textbf{Curation from scratch.}
+OpenAI CLIP~\citep{radford2021learning} curates a training dataset of 400M image-text pairs from scratch and publicizes high-level curation guidance. Meta CLIP~\citep{xu2024demystifying} makes OpenAI's guidance as a formal curation algorithm and scales the curation to 2.5B pairs.
+The algorithm is model-free, no blackbox filtering, and fully transparent to enable training entirely from scratch on public data source, where the data distribution is curated to align with metadata composed by human experts (e.g., WordNet and Wikipedia). % 
+
+\textbf{Distillation from external resources}.
+Distillation-based methods usually have good performance and save compute by learning from teacher model's knowledge~\citep{hinton2015distillingknowledgeneuralnetwork}.
+However, in the context of CLIP training the teacher is usually an external blackbox system, which introduces untractable bias. 
+For example, LAION-400M/5B~\citep{schuhmann2021laion,schuhmannlaion} (used by OpenCLIP~\citep{ilharco_gabriel_2021_5143773}) relies on OpenAI CLIP-filter and DFN~\citep{fang2023data} using a filter model trained on high-quality private data~\citep{ranasinghe2023perceptual}.
+Recently, SigLIP~\citep{zhai2023sigmoid} and SigLIP~2~\citep{tschannen2025siglip}
+learn from data source WebLI~\citep{chen2023pali}, which is derived
+from Google Image Search~\citep{juan2019graph}.
+
+\subsection{Vision Encoding}
+\label{sec:related_ve}
+
+CLIP-style models are widely used as vision encoders in MLLM, where language supervision in CLIP training helps to learn compact and semantic-rich visual representations. In contrast, traditional visual representation learning is based on self-supervised learning (SSL) methods like SimCLR~\citep{chen2020simple}, DINOv2~\citep{oquab2024dinov2}, and purely relies on the full visual signal without language bias.
+There are variants that take advantage of both. 
+SLIP~\citep{mu2021slip} combines language and SSL supervision; LiT~\citep{zhai2022lit} trains a vision encoder first and conducts language alignment later; Perception Encoder~\citep{bolya2025perception} shows early layers of CLIP representation yields vision-driven features with less semantic alignment. Recently, Web-DINO~\citep{fan2025scaling} shows SSL has better scalability on Meta CLIP curated large-scale data.
+In summary, CLIP focuses on human-aligned representations optimized for compact models and efficient downstream uses; SSL models aim to preserve all visual information as a 
+general pretraining approach. We envision more synergy from the two research lines due to complementarity.
+
+\subsection{Multilingual CLIP Models}
+Due to the lack of open source curation for public worldwide data, initial attempts to multilingual CLIP models are mainly distillation approaches. M-CLIP~\citep{carlsson2022cross} and mCLIP~\citep{chen2023mclip} simply leverage existing English-only CLIP as the vision encoder and trains a multilingual text encoder with low-quality multilingual pairs. To incorporate non-English data, subsequent works~\citep{santos2023capivara, nguyen2024multilingual, pouget2024no} leverage machine translation techniques, either translating non-English captions into English or vice versa. These distillation-based models carry existing English CLIP bias or translation bias on nonhuman-captioned data.
+mSigLIP~\citep{zhai2023sigmoid} substantially advanced multilingual performance
+by leveraging multilingual data from WebLI~\citep{chen2023pali}, which is an undisclosed dataset built with private data processing pipeline instead of publicly available worldwide data curation algorithm.
+
+However, mSigLIP and other multilingual CLIP models suffer from the curse of multilinguality, e.g., mSigLIP is 1.5\% worse in ImageNet accuracy than its English-only counterpart SigLIP. Recently, SigLIP~2 adopts a notably English-centric design of having 90\% of its data in English, which is much higher than mSigLIP.
+Mixed results are also observed ~\citep{wang2025scaling} on English benchmarks when scaling SigLIP from WebLI's 10B to 100B raw data, suggesting the challenges of scaling WebLI beyond.

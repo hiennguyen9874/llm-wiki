@@ -1,0 +1,322 @@
+\section{Training}
+
+\subsection{Implementation and Resources}
+\label{appendix:implementation_details}
+\input{tables/implementation_details}
+% We list the details of each MetaEmbed variant in Table 4. We reserve 1% training data from each subset of MMEB-train as evaluation split and training was early stopped when evaluation loss stops dropping. All models are trained with gradient checkpointing (Chen et al., 2016) to reduce memory usage. Training was conducted using PyTorch (Paszke et al., 2019) 2.6.0+cu124 and FlashAttention 2.0 (Dao, 2024). For the 3B configuration, we adopt Distributed Data Parallel (Li et al., 2020) while for all other model sizes we use Fully Sharded Data Parallel (FSDP) (Zhao et al., 2023) v2. To prevent distributed hanging when training samples contain no images under FSDP, we pad those samples with a placeholder image to ensure the visual encoder is activated on each GPU.
+We list hyperparameters and resource details in \autoref{table:app_training_details} for the various training stages of our final models. We employ ZeRO stage 1 optimizer~\citep{rajbhandari2020zeromemoryoptimizationstraining} for our modality alignment runs. All ablation models are contrastively trained with gradient checkpointing~\citep{chen2016trainingdeepnetssublinear} to reduce memory usage. All training runs are performed with FlashAttention 2.0~\citep{dao2023flashattention2fasterattentionbetter}. For LoRA configurations, we consistently use a rank \texttt{r} of $32$, \texttt{lora\_alpha} of $32$, and a dropout of $0.1$. For the implementation, we start from m4\footnote{SmolVLM trainer, \url{https://github.com/huggingface/smollm}} and ColPali\footnote{\url{https://github.com/illuin-tech/colpali}} codebases for training, and use the MTEB\footnote{\url{https://github.com/embeddings-benchmark/mteb}} repository for evaluation.\footnote{\ghrepo}
+
+\subsection{Similarity Functions}
+\label{appendix:similarity_functions}
+\noindent\textbf{Single-Vector Similarity.}
+For single-vector models, we apply mean pooling for MLM-aligned encoders and end-of-sequence (EOS) pooling for CLM-based models and compute the cosine similarity of a query $q$ and a document $d$ as
+\begin{equation}
+\label{eq:cosine_sim}
+    \Phi_\mathrm{CosSim}(\mathbf{q},\mathbf{d}) = \exp(\cos(\mathbf{E}_q,\mathbf{E}_d)/\tau)
+\end{equation}
+\noindent\textbf{Multi-Vector Similarity.}
+For multi-vector models, we adopt the standard late-interaction scoring function defined as:
+\begin{equation}
+\label{eq:li_sim}
+\Phi_\mathrm{LI}(q,d) = \sum_{i \in \llbracket 1, N_q \rrbracket}
+\max_{j \in \llbracket 1, N_d \rrbracket}
+\left\langle \mathbf{E}_q^{(i)} , \mathbf{E}_d^{(j)} \right\rangle ,
+\end{equation}
+where $\mathbf{E}_q^{(i)}$ and $\mathbf{E}_d^{(j)}$ denote token-level embeddings for the query and document, respectively.
+
+\subsection{Data}
+
+\subsubsection{Modality Alignment Mixture}
+\label{appendix:alignment_mixture}
+
+For our modality alignment trainings, we rely on The Cauldron dataset \citep{laurencon_what_2024} and its Docmatix extension \citep{laurençon2024building}. \autoref{tab:mod_alignment_mix} provides further details on the constitution of this dataset.
+\input{tables/alignment_mix}
+
+\subsubsection{\natcap{}}
+\label{appendix:natcap}
+To enrich our contrastive learning data mixture, we construct \natcap{} (Natural Captions), a large-scale dataset containing around 333000 contextualized image–caption pairs. This dataset is created by generating synthetic captions, along with cross-class and in-class discriminative tags, from existing image classification datasets (see Table~\ref{tab:natcap}). For this purpose, we leverage \texttt{Gemini-flash-2.5}\footnote{\url{https://ai.google.dev/gemini-api/docs/models?hl=fr\#gemini-2.5-flash}} which produces captions conditioned on both the image content and the accompanying dataset metadata, as illustrated in Figure~\ref{fig:natcap_example}. We detail the prompt below.
+
+\input{tables/natcap}
+
+\begin{figure}[t]
+    \centering    
+    \includegraphics[width=0.95\textwidth]{figures/appendix/natcap_example.pdf}
+    \caption{Example from the NatCap dataset}
+    \label{fig:natcap_example}
+\end{figure}
+
+\subsubsection{Contrastive Training Mix}
+\label{appendix:contrastive_mix}
+
+In this subsection, we describe the composition of our data mixes used in the contrastive training stages. \autoref{tab:cl_mix} outlines the datasets included in each mix, including the Document-Focused variant employed for \colflagship{}.
+\input{tables/cl_mix}
+
+
+\section{Baselines Details}
+\label{appendix:baselines}
+In this section, we describe the models evaluated in as comparison to our document retriever model.
+
+\noindent{\textbf{MoCa-3B}~\citep{chen2025mocamodalityawarecontinualpretraining}.} 
+A modality-aware continual pretraining model that transforms a causal vision-language model into a bidirectional multimodal embedding model, using interleaved image-text reconstruction and contrastive alignment to support cross-modal retrieval.
+
+\noindent{\textbf{GME-Qwen2}~\citep{zhang2025gmeimprovinguniversalmultimodal}.} 
+A unified multimodal embedder built on Qwen2-VL~\citep{wang2024qwen2vlenhancingvisionlanguagemodels}, which produces shared embedding representations across text, image, and fused input modalities, enabling universal multimodal retrieval.
+
+\noindent{\textbf{VLM2Vec}~\citep{jiang2025vlm2vectrainingvisionlanguagemodels}.} 
+A method that trains a vision-language encoder by converting a VLM through extensive contrastive post-training. Flagship model is based on the model Phi-3.5~\citep{abdin_phi-3_2024}.
+
+\noindent{\textbf{E5-V}~\citep{jiang2024e5vuniversalembeddingsmultimodal}.} 
+An adaptation of the E5 embedding approach to multimodal models: it trains only on text pairs yet bridges the modality gap to handle image inputs, reducing cost while achieving universal embeddings.
+
+\noindent{\textbf{ColPali}~\citep{faysse2025colpaliefficientdocumentretrieval}.} 
+A vision-based document retrieval model that processes document pages as images (no OCR) and produces multi-vector embeddings via a late-interaction mechanism over PaliGemma~\citep{beyer2024paligemmaversatile3bvlm}, enabling efficient and accurate retrieval.
+
+\noindent{\textbf{ColQwen2.5}~\citep{faysse2025colpaliefficientdocumentretrieval}.} 
+An extension of ColPali~\citep{faysse2025colpaliefficientdocumentretrieval} using Qwen2-VL~\citep{wang2024qwen2vlenhancingvisionlanguagemodels} as the backbone, carrying forward the late interaction retrieval paradigm over page image embeddings, capturing layout and textual context without OCR.
+
+\noindent{\textbf{Jina-v4}~\citep{günther2025jinaembeddingsv4universalembeddingsmultimodal}.} 
+A multimodal embedding model combining visual and textual inputs with support for multi-vector (late interaction) embeddings, using adapters over a unified backbone to excel on visually rich document retrieval.
+
+\noindent{\textbf{NemoRetriever}~\citep{xu2025llamanemoretrievercolembedtopperforming}.} 
+An LI retriever that combines vision-language embeddings with a ColEmbed design, enabling high performance on visual document retrieval with structured patch matching and efficient similarity.
+
+\noindent{\textbf{Jina CLIP}~\citep{koukounas_jina_2024}.} 
+A smaller scale vision-language model using CLIP embeddings, applied to document retrieval tasks; although not LI, it offers a lightweight multimodal baseline.
+
+\noindent{\textbf{BGE Visualized M3}~\citep{zhou2024vistavisualizedtextembedding}.} 
+A vision-enhanced version of BGE M3~\citep{chen_bge_2024} that supports visual inputs and extends embedding models into multimodal domains.
+
+\noindent{\textbf{SigLIP2-L-512/16}~\citep{tschannen2025siglip2multilingualvisionlanguage}.} 
+A multilingual vision-language bi-encoder model, which combines image and text modalities to yield unified embeddings across languages. This configuration handles images of 512x512 pixels and create subpatches of 16x16 pixels.
+
+\noindent{\textbf{ColFlor}~\citep{masrycolflor}.} 
+A lightweight OCR-free visual document retriever with only 174M parameters built over Florence-2 and DaViT, delivering strong performance near ColPali with much lower computational cost and much faster encoding.
+
+
+% \noindent{\textbf{colSmol-256M}.} 
+% A scaled-down LI variant in the Col family at 256M parameters, intended to test retrieval efficacy in very low-resource regimes.
+
+% \noindent{\textbf{colSmol-500M}.} 
+% A moderate-size variant in the Col family at 500M parameters, serving as a mid-point benchmark in the efficiency
+
+
+
+% \section{Model Architecture}
+% \paul{Architectural details}
+% \subsection{Pixel Shuffling.}
+% \paul{appendix to explain compression ratio tradeoff} 
+% \begin{figure}[t]
+%     \centering
+%     \includegraphics[width=0.7\textwidth]{figures/pixel_shuffling.png} % adjust width and filename
+%     \caption{Empty caption}
+%     \label{fig:pixel_shuffling}
+% \end{figure}
+
+
+\section{Additional Ablations}
+
+\subsection{Performance Against Off-the-Shelf Dual Encoder}
+\label{appendix:objective_downstream}
+\textcolor{red}{We study whether using \textit{off-the-shelf} performances of the standalone vision tower are not outweighing the burden of adding language parameters and re-training through language modeling, as proposed in our work. Figure~\ref{fig:objective_downstream_noft} shows the results of the various models on the tasks described in Section~\ref{sec:methodology}. Similarly to Section~\ref{sec:ablation_tasks}, we observe that the early fusion model trained with LM objective significantly outperform the standalone vision tower on document retrieval tasks (+10.9 nDCG@5). It even surpass the larger dual encoder (+4.8 nDCG@5) on these latest tasks. We note that the standalone vision tower largely outperform the early fusion models on the other natural images tasks, supporting for the use of the SigLIP model for these tasks as found in various general benchmarks~\citep{xiao2025miebmassiveimageembedding}.}
+\begin{figure}
+    \centering
+    \includegraphics[width=0.75\linewidth]{figures/vbert_style/objective_downstream__rebuttal.pdf}
+    \caption{\textbf{Impact of Modality Alignment objective on downstream tasks.} Early Fusion of vision and text models boosts document retrieval tasks regardless of the LM objective, but degrades natural image and classification tasks w.r.t. the standalone \textit{off-the-shelf} vision model SigLIP. Reported scores are aggregated MIEB scores (nDCG, Accuracy.)}
+    \label{fig:objective_downstream_noft}
+\end{figure}
+
+\subsection{Scaling Dynamics of Attention Masks}
+\label{appendix:mlm_vs_clm_scaling}
+We study the different training dynamics of the different training objectives. We compare the \texttt{enc} (MLM) approach with a traditional \texttt{dec} (CLM) objective. Figure~\ref{fig:pt_scaling_clmvmlm} presents the performance of the two training objectives across a diverse set of tasks. While starting \texttt{dec} offers an advantage in low-data regimes, \texttt{enc} seems to catches up. In document retrieval tasks, it eventually surpasses \texttt{dec} and scales better.
+\begin{figure}[ht]
+    \centering
+    \includegraphics[width=\linewidth]{figures/appendix/pt_scaling_with_clm_all.pdf}
+    \caption{\textbf{Attention masks impact on modality alignment phase scaling.} The dashed line marks the vision tower baseline. The orange curve shows the model initialized from a decoder LM with a \textit{CLM} objective, and the blue curve shows the model trained with an \textit{MLM} objective from an encoder LM. CLM performs better in low-data regimes, but MLM scales more effectively, surpassing CLM in document retrieval, while captioning and classification remain below the CLIP baseline.}
+    \label{fig:pt_scaling_clmvmlm}
+\end{figure}
+
+\subsection{Bridging the Gap with Longer Contrastive Training}
+\label{appendix:cl_scaling}
+We study the impact of additional in-distribution training pairs on embedding tasks by scaling the contrastive training stage. Starting from the final checkpoint of our encoder-based ablation model, we double the contrastive dataset size at each step and train until convergence\footnote{To avoid overfitting, we set an early stopping on an eval set. We limit the number of step to one epoch on the full dataset.}. This setup tests whether scaling continues to improve performance. 
+Figure~\ref{fig:cl_scaling} shows the scaling behavior. Performance improves overall with more in-distribution data. The vision-tower baseline is quickly surpassed on visual document benchmarks, and scaling narrows the gap on other tasks\footnote{Note that the models probably won't fully recover baseline vision-tower performance. This highlights the need to choose models according to use case (e.g., lightweight CLIP-like models for image classification).}. We note a plateau in captioning and classification, pointing to the need for more diverse data.  
+\begin{figure}[ht]
+    \centering
+    \includegraphics[width=\linewidth]{figures/vbert_style/cl_scaling.pdf}
+    \caption{Contrastive training scaling. Each dot on the blue curve represents one fraction of the baseline contrastive training mix (ColPali + MSCOCO). Performance improves with more in-distribution data, surpassing the baseline on document benchmarks and narrowing the gap on image captioning. There is no clear improvement in image classification, highlighting the need for more diverse pairs.}
+    \label{fig:cl_scaling}
+\end{figure}
+
+\subsubsection{Optimal Text-To-Image Ratio for Document Retrieval}
+\label{appendix:text_image_ratio}
+Our findings in subsection~\ref{sec:scaling=-cont} indicate that incorporating additional text-only pairs boosts document retrieval performance. While our initial experiment employed a 1:1 text-to-image ratio, we further investigate how varying this ratio impacts our broad set of tasks. We start from the best contrastive mix in Table~\ref{table:cl_mix_impact}, and vary the text-to-image ratio. As shown in Figure~\ref{fig:text_image_ratio}, increasing the number of text-only pairs \textit{for a fixed amount of image pairs} consistently enhances retrieval performance. However, for natural image classification tasks, adding more text does not appear to provide benefits.
+
+\begin{figure}[ht]
+    \centering
+    \includegraphics[width=.95\linewidth]{figures/appendix/image_text_ratio.pdf}
+    \caption{\textbf{Optimal text-to-image ratio in contrastive training mix.} Increasing the ratio in retrieval tasks consistently improves the performances. }
+    \label{fig:text_image_ratio}
+\end{figure}
+
+\subsection{Late Interaction for Non-Documental Retrieval}
+
+\begin{table*}[ht]
+  \centering
+  \renewcommand{\arraystretch}{1.2}
+  \small
+  \resizebox{\textwidth}{!}{%
+  \begin{tabular}{@{} >{}l c cccc >{\columncolor{avgcol}}c}
+    & & \multicolumn{2}{>{\columncolor{grpA}}c}{\textbf{Document Retrieval}} & \multicolumn{2}{>{\columncolor{grpB}}c}{\textbf{Image/Caption Retrieval}} \\
+    \cmidrule(lr){3-6}
+& \rot{Model Size} & \rot{ViDoRe(v1)} & \rot{ViDoRe(v2)} & \rot{MSCOCO (T$\rightarrow$I)} & \rot{Flickr30k (T$\rightarrow$I)} & \rot{\textbf{Average}} \\
+
+    \midrule
+    \multicolumn{7}{@{}l}{\itshape CLIP Encoders}\\
+    siglip2-base-patch16-512 & 376M & 36.6 & 23.4 & 66.2 & 86.9 & 53.3 \\
+    siglip2-large-patch16-512 & 882M & 43.8 & 27.0 & 67.1 & 88.9 & 56.7 \\
+    clip-vit-base-patch16 & 151M & 25.5 & 20.4 & 50.3 & 76.8 & 43.3 \\
+    clip-vit-large-patch14 & 428M & 38.0 & 28.6 & 52.7 & 79.3 & 49.6 \\
+
+    \midrule
+    \multicolumn{7}{@{}l}{\itshape VLM-based Encoders}\\
+    VLM2Vec-Full & 4150M & 49.8 & 36.5 & 59.5 & 81.8 & 56.9 \\
+    % MoCa-Qwen25VL-3B & 3750M & 80.1 & 53.8 & 67.2 & 88.2 & 72.3 \\
+    e5-v & 8360M & 62.7 & 49.4 & 68.1 & 89.8 & 67.5 \\
+
+    \midrule
+    \multicolumn{7}{@{}l}{\itshape Early Fusion Encoders}\\
+    % blip-image-captioning-large & 470M & 0.8 & 0.8 & 0.1 & 0.0 & 0.4 \\
+    bge-visualized-base & 196M & 10.3 & 9.0 & 50.0 & 74.1 & 35.9 \\
+    bge-visualized-m3 & 873M & 12.4 & 10.2 & 39.6 & 69.0 & 32.8 \\
+    \textbf{\flagshipembed{}} & 252M & 58.4 & 36.9 & 56.5 & 76.0 & 56.9 \\
+    \textbf{\flagshipembed{} (multi-vector)} & 252M & 76.5 & 53.9 & 61.8 & 81.4 & \textbf{68.4} \\
+    
+    \bottomrule
+  \end{tabular}%
+  }
+  \caption{\textbf{Generalist retrieval performances.} Late interaction benefits extend to non-documental retrieval tasks. Our multi-vector model increases its single-vector counterpart across all tasks, surpassing larger VLM-based retrievers. }
+  \label{tab:results_generalist}
+\end{table*}
+
+We want to study if the multi-vector gains transfer to non-documental retrieval. To do so, we contrastively post-train our base model on our generalist post-training mix presented in Table~\ref{tab:cl_mix}.
+The late interaction generalist exhibits superior performance in retrieval setting, improving its single-vector performance by +20.2\% (11.5 points), matching the performance of substantially larger VLM-based retrievers like E5-V (8.3B parameters, 67.5 points) and surpassing dual encoders like SigLIP (882M parameters, 56.7 points). This matches the capabilities observed in Section~\ref{sec:ablation_tasks} for documental settings for models with native bidirectional attention, extending it to natural image tasks. This result extends the prevailing understanding from the document retrieval community, where the superiority of late-interaction is well-documented (\cite{khattab_colbert_2020}, \cite{GTE-ModernColBERT}, \cite{faysse2025colpaliefficientdocumentretrieval}). While this performance gap is widely accepted for document retrieval, its applicability to caption matching tasks has not really been addressed. Our findings provide strong evidence that the fine-grained matching capabilities of late-interaction models are a key driver of performance in this domain too.
+
+
+\subsubsection{Model Merging}\label{appendix:model_merging}
+Our contrastive learning stage provides direct performance trade-offs on different tasks. Following recent trends, we evaluate how model merging techniques allow to mitigate performance degradation on specific tasks, while maintaining the performance enabled by the contrastive training \citep{sung2023empiricalstudymultimodalmodelmerging, dziadzio2024mergemultimodalmodelstime, li2024improvinggeneraltextembeddingmerging, zhang2025qwen3embeddingadvancingtext}. We merge our ablation model after modality alignment with the checkpoint after the full contrastive learning with two methods: SLERP \citep{ilharco2022patchingopenvocabularymodelsinterpolating} and average merging \citep{slerp_original}. For SLERP, we compare three values for the $\lambda$ coefficient ($0.25$, $0.5$, $0.75$). \autoref{fig:model_merging_results} displays the the trends with the best method (SLERP, $\lambda = 0.75$). As we can see, the merged model mitigates the performance drop in Image/Caption Retrieval tasks, while maintaining significant gains on Image Classification tasks. However, merging strongly degrades performance on Document Retrieval, showing that benefits of merging embedding models are task-dependent. 
+
+\begin{figure}[ht]
+    \centering
+    \includegraphics[width=.7\linewidth]{figures/appendix/grouped_model_performance2.pdf}
+    \caption{Merging model results across tasks. Benefits are task-dependent, with performance degradation w.r.t. both original models in Document Retrieval.}
+    \label{fig:model_merging_results}
+\end{figure}
+
+% \subsubsection{Late Interaction for caption-image retrieval}
+% Another finding of our work is that late-interaction models substantially improves over an equivalent dense encoder on caption-to-image retrieval. This result extends the prevailing understanding from the document retrieval community, where the superiority of late-interaction is well-documented (\cite{khattab_colbert_2020}, \cite{GTE-ModernColBERT}, \cite{faysse2025colpaliefficientdocumentretrieval}). While this performance gap is widely accepted for document retrieval, its applicability to caption matching tasks has not really been addressed. Our findings provide strong evidence that the fine-grained matching capabilities of late-interaction models are a key driver of performance in this domain too.
+
+
+\subsubsection{Curriculum For Document Retriever Contrastive Post-Training}
+
+\begin{wraptable}{r}{0.5\textwidth}
+\vspace{-10pt}
+\centering
+\renewcommand{\arraystretch}{1.2}
+\small
+\resizebox{\linewidth}{!}{%
+  % --- your tabular code unchanged ---
+  \begin{tabular}{@{} l cc >{\columncolor{avgcol}}c}
+    & \rot{ViDoRe(v1)} & \rot{ViDoRe(v2)} & \rot{\textbf{Average}} \\
+    \toprule
+    \multicolumn{4}{@{}l}{\itshape Document retrieval contrastive training starting checkpoint}\\
+    \midrule
+    \flagship{}-base                        & \textbf{81.2} & \textbf{56.0} & \textbf{68.6} \\
+    \hspace{1cm} + multi-vector generalist CL  & 80.7 & 55.4 & 68.1 \\
+    \hspace{1cm} + single-vector generalist CL   & 80.6 & 54.0 & 67.3 \\
+    \bottomrule
+  \end{tabular}
+}
+\caption{\textbf{Performance of \flagship{} Document Specialisation Curriculums.} This table presents the performance of various contrastive training curriculums starting from \flagship{}-base, on the ViDoRe(v1) and ViDoRe(v2) benchmarks. The generalist contrastive learning mix used in the last two models is detailed in Table~\ref{tab:cl_mix}. We see that a preliminary stage of generalist contrastive learning harms the final document retrieval performance, regardless of whether a multi-vector approach is used.}
+\label{appendix:flagship_ablations}
+\end{wraptable}
+
+
+We conduct an ablation study to determine the optimal contrastive training curriculum for specializing \flagship{} in document retrieval. Specifically, we investigate whether a preliminary generalist contrastive training phase, intended to leverage a larger dataset, improves downstream performance. As shown in Table \ref{appendix:flagship_ablations}, our results demonstrate that this initial generalist phase is detrimental to final performance ($-0.5\%$). The optimal strategy is to specialize the model on the target task directly after its initial Masked Language Modeling (MLM) alignment.
+
+\subsection{Text-Only Retrieval}
+\begin{table}[h]
+\centering
+\begin{tabular}{l r r}
+  \toprule
+  Model & Params (M) & NDCG@5 \\
+  \midrule
+  \multicolumn{3}{l}{\textbf{Statistical}} \\
+  BM25s & — & 0.559 \\
+  \midrule
+  \multicolumn{3}{l}{\textbf{Single Vector}} \\
+  Jina Embeddings v4 & 3577* & 0.623 \\
+  E5-large-v2 & 335 & 0.605 \\
+  bge-m3 (Bi Encoder) & 567 & 0.590 \\
+  Qwen3-Embedding-0.6B & 600 & 0.567 \\
+  % \biflagship{} & 150* & 0.429 \\
+  \midrule
+  \multicolumn{3}{l}{\textbf{Multi Vector}} \\
+  LightOn GTE-ModernColBERT v1 & 149 & 0.669 \\
+  Jina ColBERT v2 & 137 & 0.642 \\
+  bge-m3 (Late Interaction) & 567 & 0.606 \\
+  ColBERT v2 & 110 & 0.593 \\
+  Colqwen2-v1.0 & 1580* & 0.593\\
+  \colflagship{} & 150* & 0.589 \\
+  Colqwen2.5-v0.2 & 3145* & 0.589\\
+  \bottomrule
+\end{tabular}
+\caption{Average NDCG@5 of \colflagship{} on NanoBEIR, a text retrieval benchmark with multiple sub domains. *For multimodal models, we only consider parameters of the text encoder}
+\label{appendix:text_perf}
+\end{table}
+
+The results in Table \ref{appendix:text_perf} detail the performance of \colflagship{} and other baselines on the NanoBEIR text retrieval benchmark. It achieves an average NDCG@5 score competitive with single and multi vector models specialized for text, even without explicit optimization for this modality. This performance is encouraging and indicates a promising direction for training a unified model for both text and image retrieval.
+
+\subsection{Model Latency}
+
+\subsubsection{Image Resolution Tradeoffs}
+\label{appendix:visual_tokens}
+
+\textcolor{red}{Figure~\ref{fig:tokens_shuffling_tradeoff} presents the pixel shuffling trade-off. Processing larger images creates more visual tokens, leading to very long sequences (around $17'500$ tokens for a 2048x2048 px image with no pixel shuffling). Pixel shuffling allow to compress these sequence by concatenating the embeddings of spatially close patches. This diminishes the number of tokens for longer visual token embeddings. Table~\ref{tab:image_resolution_latency} presents the latency to process one image of various resolutions on one L4 GPU and CPU.}
+
+\begin{figure}[ht] 
+\centering \includegraphics[width=0.6\linewidth]{figures/visual_tokens_hidden_size_vs_shuffling_ratio.pdf} 
+\caption{\textbf{\textcolor{red}{Image processing parameters impact on visual tokens.}} Here we assume a square image for simplicity. Scaling the image size introduces naturally more tokens, but having a large enough pixel shuffling ratio ($r\geq4$) allows to counterbalance by concatenating spatially close patch representations.} \label{fig:tokens_shuffling_tradeoff} \end{figure}
+
+\begin{table}[ht]
+    \centering
+    \renewcommand{\arraystretch}{1.0}
+    \small
+    \resizebox{0.85\textwidth}{!}{%
+    \begin{tabular}{@{} l c cc}
+    & {\textbf{Num. Visual Tokens}} & {\textbf{CPU Latency (ms)}} & {\textbf{GPU Latency (ms)}} \\
+    
+    \midrule
+    $512$px & $128$ & $287.2_{(\pm 7.8)}$ & $43.6 _{(\pm 1.4)}$ \\
+    $1024$px & $320$ & $1015.8 _{(\pm 58.1)}$ & $150.3 _{(\pm 2.5)}$ \\
+    $2048$px & $1088$ & $2572.0 _{(\pm 63.9)}$ & $363.4 _{(\pm 4.6)}$ \\
+    
+    \bottomrule
+    \end{tabular}%
+    }
+    \caption{\textcolor{red}{\textbf{\flagship{} image processing latency}}. Computing the average time to process a single image on GPU and CPU. The average is computed on 100 images. The values represent the mean latency in milliseconds, with the standard deviation included in parenthesis.}
+    \label{tab:image_resolution_latency}
+\end{table}
+
+\subsubsection{Online Query Encoding Latency}
+\label{appendix:gpu_latency}
+\textcolor{red}{We evaluate the query embedding speed of our model on GPU. We use a single Nvidia H100 with 80GB of VRAM. As for Section~\ref{sec:results}, latencies are computed in batch size 1 to simulate online situations, and are averaged over all NanoBEIR queries. Only the text parameters are loaded and run, to minimize memory usage. Parameters are cast to bfloat16 and Flash Attention 2 is used. The resulting speeds are often much faster than those obtained by running inference through each model's reference implementation. Results are shown in Table~\ref{table:pu_latency}). Interestingly in this setup where memory is not a bottleneck, model depth seems to be a large performance driver, sometimes more the parameter count.
+We finally evaluate batched GPU throughput. We use batches of size 512 by default and iteratively half it when memory is insufficient. We observe that \flagship{} based models are extremely fast and can process 5000 queries per second. In the table, the reported figures correspond to the inverted throughput (latency per batch divided by the number of queries per batch). These speed and throughput gains are made possible due to a combination of size, and efficient hardware-informed design as well as the support of flash attention and sequence packing other models of the size often lack \citep{warner2024smarterbetterfasterlonger}.
+}
+
+
+
+
+\input{tables/latency_ldb.tex}
+
+% buggy layout, this has to be on seperated page
+\clearpage
+\input{tables/natcap_prompt}

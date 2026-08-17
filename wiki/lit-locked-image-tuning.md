@@ -5,16 +5,19 @@ description: A contrastive-tuning method that freezes a pretrained image encoder
 tags: [multimodal-learning, contrastive-learning, transfer-learning, zero-shot-transfer, representation-learning]
 status: stable
 created: 2026-08-16
-generated: { by: llm-wiki-agent/1, at: 2026-08-16T15:40:00Z }
+generated: { by: llm-wiki-agent/1, at: 2026-08-17T02:40:28Z }
 sources:
   - id: zhai-2021-lit
-    resource: ../raw/2111.07991_Vision Text Dual Encoder.md
+    resource: ../raw/2111.07991_Vision Text Dual Encoder/c.tex
     title: LiT: Zero-Shot Transfer with Locked-image Text Tuning
+  - id: zhai-2021-lit-appendix
+    resource: ../raw/2111.07991_Vision Text Dual Encoder/appendix.tex
+    title: LiT: Zero-Shot Transfer with Locked-image Text Tuning — appendix
   - id: yang-2022-chinese-clip
-    resource: ../raw/2211.01335_Chinese-CLIP.md
+    resource: ../raw/2211.01335_Chinese-CLIP/acl2023.tex
     title: "Chinese CLIP: Contrastive Vision-Language Pretraining in Chinese"
   - id: chen-2022-altclip
-    resource: ../raw/2211.06679_AltCLIP.md
+    resource: ../raw/2211.06679_AltCLIP/main.tex
     title: "AltCLIP: Altering the Language Encoder in CLIP for Extended Language Capabilities"
   - id: zhai-2023-siglip
     resource: ../raw/2303.15343_SigLIP.md
@@ -42,6 +45,8 @@ Locked-image Tuning (LiT) is a contrastive-tuning method that freezes a strong p
 
 - LiT's advantage was clearer for zero-shot classification than retrieval: for sufficiently long tuning schedules, configurations that train the image tower sometimes surpassed `Lu` on retrieval. The authors therefore recommend considering trainable-image variants when retrieval, rather than zero-shot classification, is the primary objective.[^zhai-2021-lit]
 - The study evaluates classification and retrieval, not detection, segmentation, visual question answering, or captioning. Its private-data results depend on a non-public image–text corpus, limiting independent reproduction of those numbers.[^zhai-2021-lit]
+- The reported VTAB evaluations selected image preprocessing, prompt templates, and often task-specific class names on an 800-image validation set before testing. The authors therefore characterize this protocol as arguably not strict zero-shot transfer; structured-task performance did not significantly exceed random guessing despite prompt engineering.[^zhai-2021-lit-appendix]
+- The multilingual evaluation has additional confounds: translated prompts can be imperfect, and WIT examples often retain proper nouns across languages, which can overstate a monolingual model’s multilingual performance. The reported multilingual gains should therefore not be treated as a comprehensive language-understanding evaluation.[^zhai-2021-lit-appendix]
 - The authors note that attaching an open-vocabulary text tower to existing image models can facilitate harmful or offensive applications; their conclusion calls for further work on desired model behavior.[^zhai-2021-lit]
 
 ## Relationships
@@ -52,10 +57,12 @@ Locked-image Tuning (LiT) is a contrastive-tuning method that freezes a strong p
 - Used by: [AltCLIP multilingual text-encoder alignment](altclip-multilingual-text-encoder-alignment.md) freezes CLIP's image tower during contrastive tuning, but first distills a multilingual XLM-R text encoder from CLIP using parallel text.[^chen-2022-altclip]
 - Extended by: [SigLIP sigmoid contrastive language–image pre-training](siglip-sigmoid-contrastive-language-image-pretraining.md) as SigLiT, which retains LiT’s locked image tower but uses the pairwise sigmoid objective.[^zhai-2023-siglip]
 
-[^zhai-2021-lit]: Zhai et al., “LiT: Zero-Shot Transfer with Locked-image Text Tuning” (2021), [source](../raw/2111.07991_Vision%20Text%20Dual%20Encoder.md).
+[^zhai-2021-lit]: Zhai et al., “LiT: Zero-Shot Transfer with Locked-image Text Tuning” (2021), [source manuscript](../raw/2111.07991_Vision%20Text%20Dual%20Encoder/c.tex).
 
-[^yang-2022-chinese-clip]: Yang et al., “Chinese CLIP: Contrastive Vision-Language Pretraining in Chinese” (2022), [source](../raw/2211.01335_Chinese-CLIP.md).
+[^zhai-2021-lit-appendix]: Zhai et al., “LiT: Zero-Shot Transfer with Locked-image Text Tuning” (2021), [appendix source](../raw/2111.07991_Vision%20Text%20Dual%20Encoder/appendix.tex).
 
-[^chen-2022-altclip]: Chen et al., “AltCLIP: Altering the Language Encoder in CLIP for Extended Language Capabilities” (2022), [source](../raw/2211.06679_AltCLIP.md).
+[^yang-2022-chinese-clip]: Yang et al., “Chinese CLIP: Contrastive Vision-Language Pretraining in Chinese” (2022), [source manuscript](../raw/2211.01335_Chinese-CLIP/acl2023.tex).
+
+[^chen-2022-altclip]: Chen et al., “AltCLIP: Altering the Language Encoder in CLIP for Extended Language Capabilities” (2022), [source manuscript](../raw/2211.06679_AltCLIP/main.tex).
 
 [^zhai-2023-siglip]: Zhai et al., “Sigmoid Loss for Language Image Pre-Training” (2023), [source](../raw/2303.15343_SigLIP.md).

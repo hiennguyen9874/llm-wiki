@@ -1,0 +1,64 @@
+\newcommand{\showviz}[2]{%
+  \resizebox{#1\linewidth}{!}{%
+	\setlength{\fboxsep}{0pt}
+		\includegraphics[height=#1\linewidth]{images/#2.png}
+		\hfill
+		\includegraphics[height=#1\linewidth]{images/#2_gt.png}
+		\hfill
+		\includegraphics[height=#1\linewidth]{images/#2_v2.png}
+		\hfill
+		\includegraphics[height=#1\linewidth]{images/#2_v1.png}
+        \hfill
+		\includegraphics[height=#1\linewidth]{images/#2_siglip2.png}
+}}
+
+
+\newcommand{\vizwidth}{1.0}
+\begin{figure}[tb]
+	\centering
+	\showviz{\vizwidth}{dog_rug} \\[0.2mm]
+    \showviz{\vizwidth}{birds} \\[0.2mm]
+    \showviz{\vizwidth}{bus} \\[0.2mm]
+
+    \resizebox{\vizwidth\linewidth}{!}{%
+    \scriptsize
+        \begin{minipage}[t]{0.19\linewidth}
+          \centering
+          Image
+        \end{minipage}%
+        \hfill
+        \begin{minipage}[t]{0.19\linewidth}
+          \centering
+          Ground truth
+        \end{minipage}%
+        \hfill
+        \begin{minipage}[t]{0.19\linewidth}
+          \centering
+          \tipsvtwo (ours)
+        \end{minipage}%
+        \hfill
+        \begin{minipage}[t]{0.19\linewidth}
+          \centering
+          TIPS
+        \end{minipage}%
+        \hfill
+        \begin{minipage}[t]{0.19\linewidth}
+          \centering
+          SigLIP2
+        \end{minipage}%
+    }%
+    \vspace{-1mm}
+	\caption{\small\textbf{Zero-shot segmentation visualization.} Comparing results for \tipsvtwo, TIPS and SigLIP 2, where classes are predicted directly by finding the closest text embedding to each image patch token, without any post-processing. \tipsvtwo enhances patch-text alignment significantly compared to other models, showcasing strong off-the-shelf capabilities.}
+	\label{fig:zss_viz}
+	\vspace{-5mm}
+\end{figure}
+
+\section{Conclusion}
+
+In this work, we introduce \tipsvtwo, a new vision-language encoder suitable to a variety of multimodal applications.
+By investigating the weak dense image-text alignment of previous models, we find that patch-level distillation substantially enhances this capability.
+This observation inspires us to introduce iBOT++, an upgrade to the well-known iBOT masked image modeling technique used in pretraining, resulting in significant enhancements to dense image-text alignment.
+Additionally, we make vision-language pretraining more efficient with simplifications to the EMA setup, and leverage image captions at different granularities to obtain more robust representations.
+Through comprehensive experiments, our final \tipsvtwo model showcases strong results on $9$ tasks spanning $20$ datasets, generally matching or exceeding results from previous vision-language encoders.
+
+\noindent\textbf{Acknowledgments.}~We would like to thank Connor Schenck for thoughtful discussions and suggestions.

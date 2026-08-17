@@ -5,10 +5,10 @@ description: A vision–language encoder recipe that combines contrastive image�
 tags: [multimodal-learning, vision-language-models, representation-learning, dense-prediction, self-supervised-learning, knowledge-distillation]
 status: stable
 created: 2026-08-16
-generated: { by: llm-wiki-agent/1, at: 2026-08-16T15:52:12Z }
+generated: { by: llm-wiki-agent/1, at: 2026-08-17T02:56:51Z }
 sources:
   - id: cao-2026-tipsv2
-    resource: ../raw/2604.12012_TIPSv2.md
+    resource: ../raw/2604.12012_TIPSv2/main.tex
     title: "TIPSv2: Advancing Vision-Language Pretraining with Enhanced Patch-Text Alignment"
 ---
 
@@ -31,7 +31,9 @@ The authors report that patch-level distillation without masking can produce a s
 - In an ablation on the TIPS ViT-g recipe, replacing iBOT with iBOT++ increased ADE150 zero-shot-segmentation mIoU from 3.5 to 17.6. Adding mixed-granularity captions and head-only EMA raised it to 19.1 in that fixed-schedule ablation.[^cao-2026-tipsv2]
 - The appendix reports that adding iBOT++ to CLIP improved its evaluated ViT-L and ViT-g image-only, retrieval, and zero-shot-segmentation measures over the corresponding CLIP and CLIP+iBOT baselines. This is experimental evidence for those configurations, not a guarantee for arbitrary CLIP training recipes.[^cao-2026-tipsv2]
 
-## Scope and limits
+## Experimental context and limits
+
+The reported pretraining uses a 116M-image filtered WebLI subset, followed by distillation from ViT-g into ViT-B, ViT-L, and SO-400m variants. All reported downstream evaluations keep the pretrained representations frozen; the pretraining schedule and fixed evaluation protocols are therefore part of the reported results, not evidence for arbitrary fine-tuning settings.[^cao-2026-tipsv2]
 
 Reported model comparisons depend on distinct architectures, data volumes, model sizes, and—in some zero-shot-segmentation comparisons—different inference protocols. The authors explicitly note that some competing results use a more expensive sliding-window protocol, and their TIPSv2 training and evaluation results should therefore be read as paper-specific benchmarks.[^cao-2026-tipsv2]
 
@@ -40,4 +42,4 @@ Reported model comparisons depend on distinct architectures, data volumes, model
 - Uses: [CLIP natural-language image pre-training](clip-natural-language-image-pretraining.md)'s contrastive image–text objective as one component of a combined contrastive and self-supervised recipe.[^cao-2026-tipsv2]
 - Related: [SigLIP 2 multilingual vision–language encoders](siglip2-multilingual-vision-language-encoders.md) is a vision–language encoder baseline in the paper's dense and global image–text evaluations.[^cao-2026-tipsv2]
 
-[^cao-2026-tipsv2]: Cao et al., “TIPSv2: Advancing Vision-Language Pretraining with Enhanced Patch-Text Alignment” (2026), [source](../raw/2604.12012_TIPSv2.md).
+[^cao-2026-tipsv2]: Cao et al., “TIPSv2: Advancing Vision-Language Pretraining with Enhanced Patch-Text Alignment” (2026), [complete manuscript source](../raw/2604.12012_TIPSv2/main.tex).
