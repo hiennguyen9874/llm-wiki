@@ -1,0 +1,446 @@
+\documentclass{firered}
+\usepackage[utf8]{inputenc} % allow utf-8 input
+\usepackage[T1]{fontenc}    % use 8-bit T1 fonts
+\usepackage{hyperref}       % hyperlinks
+\usepackage{url}            % simple URL typesetting
+\usepackage{booktabs}       % professional-quality tables
+\usepackage{amsfonts}       % blackboard math symbols
+\usepackage{nicefrac}       % compact symbols for 1/2, etc.
+\usepackage{microtype}      % microtypography
+\usepackage{float}
+\usepackage{mwe}
+\usepackage{graphicx}
+\usepackage{amssymb}
+\usepackage{adjustbox}
+\usepackage{colortbl}
+\usepackage{array}
+\usepackage{multirow}
+\usepackage{makecell}
+\usepackage{bbm}
+\usepackage{collcell,xfp}
+\usepackage{pgf}
+% xcolor already loaded by cambrian.cls with [table,dvipsnames]
+% \usepackage[table,dvipsnames]{xcolor}
+% modified from z-image
+\usepackage{tikz}
+\usepackage[most]{tcolorbox}
+\usepackage{csquotes}
+\usepackage[noorphans,vskip=1em,leftmargin=1em]{quoting}
+\usepackage{pifont} % For custom symbols
+\usepackage{enumitem} % For customized itemize settings
+\usepackage{tcolorbox} % For creating a boxed environment
+\usepackage{forest}
+% \usepackage{subfig}
+\usepackage{wrapfig}
+\usepackage{caption}
+\usepackage{subcaption}
+\usepackage{longtable}
+% \usepackage{algorithm}
+\usepackage{algpseudocode}
+\usepackage{amsmath}
+\usepackage[capitalize]{cleveref}
+\usepackage[ruled,vlined,linesnumbered]{algorithm2e} 
+\usepackage[percent]{overpic}
+\usepackage{xspace}
+\usepackage[normalem]{ulem}  % for \ul, \setul, \setulcolor
+\usepackage{tocloft}  % TOC customization
+\usepackage{fancyhdr} % 页眉页脚设置
+\usepackage{natbib}  % cite
+
+% 设置页眉页脚横线为红色 - 只在首页显示
+\fancypagestyle{firststyle}{
+    % 首页不显示页眉文字，但保留横线
+    \fancyhead[L]{}
+    \fancyhead[C]{}
+    \fancyhead[R]{}
+    \renewcommand{\headrulewidth}{0pt}
+    \renewcommand{\footrulewidth}{0.8pt}
+    \renewcommand{\headrule}{}
+    \renewcommand{\footrule}{\color{sectionred}\hrule width\textwidth height\footrulewidth \vspace{-100pt}}
+    % 首页不显示页码
+    \fancyfoot[C]{}
+}
+
+% 其他页面不显示横线
+\pagestyle{fancy}
+% 清空页眉文字
+\fancyhead[L]{}
+\fancyhead[C]{}
+\fancyhead[R]{}
+% 不显示页眉横线
+\renewcommand{\headrulewidth}{0pt}
+\renewcommand{\headrule}{}
+% 页脚无横线
+\renewcommand{\footrulewidth}{0pt}
+
+% 设置目录中章节标题为红色
+\renewcommand{\cftsecfont}{\color{sectionred}\bfseries}
+\renewcommand{\cftsubsecfont}{\color{sectionred}}
+\renewcommand{\cftsubsubsecfont}{\color{sectionred}}
+% 只设置目录页码为红色，点线用默认色，加快编译速度
+\renewcommand{\cftsecpagefont}{\color{sectionred}\bfseries}
+\renewcommand{\cftsecafterpnum}{\color{sectionred}}
+\renewcommand{\cftsubsecpagefont}{\color{sectionred}}
+\renewcommand{\cftsubsecafterpnum}{\color{sectionred}}
+\renewcommand{\cftsubsubsecpagefont}{\color{sectionred}}
+\renewcommand{\cftsubsubsecafterpnum}{\color{sectionred}}
+\usepackage{listings}
+\usepackage{wrapfig}
+\usepackage{geometry}
+\usepackage{xcolor}
+% 引入 tcolorbox 及必要的库
+\usepackage[most]{tcolorbox}
+
+% 设置页面边距，让卡片宽一点
+\geometry{a4paper, left=2cm, right=2cm, top=2cm, bottom=2cm}
+
+% \usepackage{xeCJK}
+% \setCJKmonofont{STKaiti} % 这里好像得改一下，现在这个感觉有点问题
+% \usepackage{enumerate}
+
+
+\usepackage{CJKutf8}   % 只加载，不激活
+\newcommand{\zh}[1]{%   % 定义一个“中文盒子”
+  \begin{CJK}{UTF8}{gbsn}#1\end{CJK}}
+\usepackage{arydshln}
+\usepackage{twemojis}
+\usepackage{tikz-dependency}
+\usepackage{graphicx}
+\usepackage{tikz}
+\usepackage{tikz-qtree}
+\usepackage{caption}
+\usetikzlibrary{arrows.meta}
+\definecolor{clearpurple}{RGB}{138, 140, 191}
+\definecolor{clearyellow}{HTML}{f2d3bf}
+\definecolor{skyblue}{HTML}{a8d8e2}
+\definecolor{darkblue}{HTML}{19183B}
+\definecolor{tp1}{RGB}{253, 207, 158}
+
+\newcommand{\thRows}[1]{\multirow{3}*{#1}}
+\newcommand{\thCols}[1]{\multicolumn{3}{c}{#1}}
+\newcommand{\tRows}[1]{\multirow{2}*{#1}}
+\newcommand{\tCols}[1]{\multicolumn{2}{c}{#1}}
+\newcommand{\foCols}[1]{\multicolumn{4}{c}{#1}}
+% logos
+\usepackage{fontawesome}
+\newcommand{\huggingface}{\raisebox{-1.5pt}{\includegraphics[height=1.05em]{Logos/hf-logo.pdf}}\xspace}
+\newcommand{\modelscope}{\raisebox{-1.5pt}{\includegraphics[height=1.05em]{Logos/modelscope-logo.pdf}}\xspace}
+\newcommand{\github}{\raisebox{-1.5pt}{\includegraphics[height=1.05em]{Logos/github-logo.pdf}}\xspace}
+\newcommand{\wandb}{\raisebox{-1.5pt}{\includegraphics[height=1.05em]{Logos/wandb-logo.png}}\xspace}
+\newcommand{\apache}{\raisebox{-1.5pt}{\includegraphics[height=1.05em]{Logos/apache-logo.pdf}}\xspace}
+\newcommand{\worldwideweb}{\raisebox{-1.5pt}{\includegraphics[height=1.05em]{Logos/internet-icon.pdf}}\xspace}
+
+\newcommand{\emojifire}{\raisebox{-1.5pt}{\includegraphics[height=1.05em]{figs/Logos/fire_1f525.png}}\xspace}
+\newcommand{\emojiice}{\raisebox{-1.5pt}{\includegraphics[height=1.05em]{figs/Logos/snowflake_2744-fe0f.png}}\xspace}
+
+
+\usepackage[most]{tcolorbox} % 引入tcolorbox
+
+% 定义一个新的环境叫 insight
+\newtcolorbox{insight}[1][]{
+  colback=red!5!white, % 内容背景色 (浅蓝)
+  colframe=red!75!black, % 边框颜色 (深蓝)
+  fonttitle=\bfseries, % 标题加粗
+  title=Insight, % 默认标题
+  sharp corners=downhill, % 样式微调
+  enhanced, % 开启高级渲染
+  attach boxed title to top left={yshift=-2mm, xshift=2mm}, % 标题位置
+  boxed title style={colback=red!75!black}, % 标题框样式
+  #1
+}
+
+% EH define scholarblue citation color
+\definecolor{scholarblue}{rgb}{0.21,0.49,0.74}
+\definecolor{bluelink}{RGB}{0,113,188}
+\definecolor{greenlink}{RGB}{0,188,113}
+% \definecolor{redlink}{RGB}{188,37,37}
+\hypersetup{
+    colorlinks=true,%
+    citecolor=scholarblue,%
+    filecolor=red,%
+    % linkcolor=black,%
+    linkcolor=red!93!black,%
+    urlcolor=bluelink
+}
+
+% 定义自定义的 Prompt 卡片样式
+\newtcolorbox{promptbox}[1][]{
+    enhanced,
+    colback=gray!10,      % 背景色：浅灰色
+    colframe=black,       % 边框颜色：黑色
+    coltitle=white,       % 标题文字颜色
+    fonttitle=\bfseries\sffamily, % 标题字体
+    fontupper=\ttfamily\small,    % 内容字体：等宽字体(Typewriter)，稍小
+    boxrule=0.8pt,        % 边框粗细
+    arc=4mm,              % 卡片圆角半径
+    title={#1},           % 标题内容
+    % 标题样式设置：悬浮在左上角
+    attach boxed title to top left={xshift=0.5cm, yshift*=-\tcboxedtitleheight/2},
+    boxed title style={
+        colback=black,    % 标题背景黑
+        arc=3mm,          % 标题圆角
+        boxrule=0pt,      % 标题无边框
+        left=3mm, right=3mm, top=1.5mm, bottom=1.5mm
+    },
+    top=1.5em,            % 内容距离顶部的间距（给标题留位置）
+    parbox=false          % 允许内容中的段落
+}
+
+% \definecolor{darkblue}{rgb}{0, 0, 0.5}
+% \usepackage[pagebackref,breaklinks,colorlinks, citecolor=scholarblue]{hyperref}
+
+% reduce the vspace for all \paragraph commands
+% https://www.perplexity.ai/search/latex-reduce-the-vspace-for-al-IlwgPwVWQTq_1Xsn.0j2qg#1
+\usepackage{titlesec}
+\titlespacing*{\paragraph}
+    {0pt}     % left margin
+    {0.25em}  % space before (vertical above)
+    {1em}  % space after (vertical below, adjust as needed)
+
+% 设置所有章节标题为红色
+\definecolor{sectionred}{RGB}{220,38,38}  % 定义红色
+\titleformat{\section}{\color{sectionred}\large\bfseries}{\color{sectionred}\thesection.}{0.5em}{#1}[]
+\titleformat{\subsection}{\color{sectionred}\bfseries}{\color{sectionred}\thesubsection.}{0.5em}{#1}[]
+\titleformat{\subsubsection}{\color{sectionred}\bfseries\itshape}{\color{sectionred}\thesubsubsection.}{0.5em}{#1}[]
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% MACROS
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\newcommand{\finding}[2]{
+    % args:
+    %   1: finding number
+    %   2: finding text
+    \begin{tcolorbox}[
+        colback=white!90!gray,     % Soft ivory background
+        colframe=teal!60!black,     % Deep navy frame color
+        arc=5pt,                    % Less rounded corners for a modern look
+        boxsep=5pt,                 % Inner margin between text and frame
+        left=10pt,                  % Left margin within the box
+        right=10pt,                 % Right margin within the box
+        top=2pt,                    % Top margin within the box
+        bottom=2pt,                 % Bottom margin within the box
+        boxrule=0.8pt,              % Frame thickness
+        drop shadow=gray!50!white,  % Subtle shadow effect for depth
+        enhanced jigsaw             % Allows for the shadow effect and better arcs
+    ]
+    % \paragraph{\textbf{\textit{Observation #1:}}} #2
+    #2
+    \end{tcolorbox}
+}
+
+
+% ================= 全局配置与颜色 =================
+\definecolor{cGreen}{RGB}{69, 139, 89}    % Seedream 4.0
+\definecolor{cYellow}{RGB}{241, 186, 88}  % GPT-Image-1
+\definecolor{cBlue}{RGB}{95, 126, 222}    % Gemini-2.5
+\definecolor{cRed}{RGB}{219, 86, 96}      % Qwen-Image
+\definecolor{cPurple}{RGB}{166, 156, 226} % Seedream 3.0
+\definecolor{gridColor}{RGB}{200, 200, 200}
+\definecolor{bgColor}{RGB}{248, 252, 252}
+
+% 维度标签 (顺时针顺序: 12点钟方向开始)
+\def\labels{
+    "Alignment", 
+    "Text Rendering", 
+    "Overall(Elo)", 
+    "DreamEval(bo4)", 
+    "DreamEval(avg)", 
+    "Correction", 
+    "Aesthetics", 
+    "Structure"
+}
+
+
+\definecolor{navyblue}{HTML}{0071BC}
+% \iffalse   %% Change between \iffalse and \iftrue to show/hide comments
+\iftrue   %% Change between \iffalse and \iftrue to show/hide comments
+\newcommand{\displaytodo}[1]{#1}
+% \newcommand{\sy}[1]{}
+\else
+\newcommand{\displaytodo}[1]{}
+% \newcommand{\sy}[1]{\textcolor{navyblue}{[\textbf{SY:} #1]}}
+\fi
+\newcommand{\todo}[1]{\displaytodo{\textcolor{red}{[\textbf{TODO:} #1]}}}
+\newcommand{\sy}[1]{\displaytodo{\textcolor{navyblue}{[\textbf{SY:} #1]}}}
+\newcommand{\jy}[1]{\displaytodo{\textcolor{orange}{[\textbf{JY:} #1]}}}
+\newcommand{\eb}[1]{\displaytodo{\textcolor{Emerald}{[\textbf{EB:} #1]}}}
+\newcommand{\pt}[1]{\displaytodo{\textcolor{yellow}{[\textbf{PT:} #1]}}}
+\newcommand{\sx}[1]{\displaytodo{\textcolor{OrangeRed}{[\textbf{SX:} #1]}}}
+
+
+
+\newcommand{\fix}{\marginpar{FIX}}
+\newcommand{\new}{\marginpar{NEW}}
+\newcommand{\methodname}{{FireRed-OCR }}
+\def\eg{\emph{e.g.,~}}
+\def\ie{\emph{i.e.,~}}
+\newcommand{\jinx}[1]{{\color{blue}(jx: {#1})}}
+
+
+\def\eg{\emph{e.g.}} 
+\def\ie{\emph{i.e.}}
+\def\cf{\emph{c.f.}} 
+\def\etc{\emph{etc.}} 
+\def\wrt{w.r.t.}
+\def\vs{\emph{vs.}} 
+\def\etal{\emph{et al.}}
+
+% Colors
+\definecolor{blindcolor}{HTML}{AB2AC6}    % Blind – purple
+% \definecolor{chancecolor}{HTML}{8E8E93}   % Chance – slate gray
+\definecolor{chancecolor}{HTML}{F59E0B}   % Chance – amber
+\definecolor{singlecolor}{HTML}{06B6D4}   % Single – cyan
+\definecolor{multiplecolor}{HTML}{2563EB} % Multiple – blue
+\definecolor{captioncolor}{HTML}{22C55E}  % Caption – green
+
+% https://tex.stackexchange.com/a/681557/283520
+ \newcommand{\culine}[2]{%
+    \def\temp@uline{\bgroup\markoverwith
+        {\textcolor{#1}{\rule[-0.5ex]{2pt}{1pt}}}\ULon}%
+    \temp@uline{#2}%
+}
+ \newcommand{\cthickuline}[3][0.8pt]{%
+    \def\temp@uline{\bgroup\markoverwith
+        {\textcolor{#2}{\rule[-0.5ex]{2pt}{#1}}}\ULon}%
+    \temp@uline{#3}%
+}
+
+\newcommand{\blindul}[1]    {\cthickuline{blindcolor}{#1}}
+\newcommand{\chanceul}[1]   {\cthickuline{chancecolor}{#1}}
+\newcommand{\singleul}[1]   {\cthickuline[0.5pt]{singlecolor}{#1}}
+\newcommand{\multipleul}[1] {\cthickuline[1pt]{multiplecolor}{#1}}
+\newcommand{\captionul}[1]  {\cthickuline{captioncolor}{#1}}
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% TITLE
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\title{\center{FireRed-OCR Technical Report}} 
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% AUTHORS
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\renewcommand\Authfont{\normalfont\fontsize{11}{15}\selectfont\centering}
+\renewcommand\Affilfont{\normalfont\fontsize{11}{15}\selectfont\centering}
+% \setlength{\affilsep}{0pt}
+\author{ 
+    Super Intelligence Team, Xiaohongshu Inc.
+}
+
+\begin{document}
+
+% 在作者信息下方添加红色横线，宽度与页眉一致
+{\color{sectionred}\hrule width\textwidth height0.2pt}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% ABSTRACT
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% 摘要标题改为红色
+\renewcommand{\abstractname}{\textcolor{sectionred}{Abstract}}
+\input{section/0_abstract}
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% LINK TABLE
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+% Inspiration: https://arxiv.org/abs/2402.00838, https://arxiv.org/abs/2406.16860
+
+\setlength{\parindent}{0pt}
+
+\begin{tikzpicture}[remember picture,overlay]
+            % 横线上方放logo和标题（logo更靠上）
+            \node[anchor=north west, xshift=1.5cm, yshift=-1.0cm] at (current page.north west) {
+                \includegraphics[width=5.4cm]{Logos/fireredocr-logo.png}
+            };
+\end{tikzpicture}
+
+\maketitle
+
+\begin{center}
+    \renewcommand{\arraystretch}{1.5}
+    \begin{tabular}{rll}
+
+        \github{} & \textbf{GitHub} & {\textcolor{sectionred}{\href{https://github.com/FireRedTeam/FireRed-OCR}{https://github.com/FireRedTeam/FireRed-OCR}}} \\
+        % \twemoji[width=1em]{open-book} & \textbf{Blog} & \href{https://} \\
+        \huggingface{} & \textbf{HuggingFace Model} & {\textcolor{sectionred}{\href{https://huggingface.co/FireRedTeam/FireRed-OCR}{https://huggingface.co/FireRedTeam/FireRed-OCR}}} \\
+        \huggingface{} & \textbf{HuggingFace Demo} & {\textcolor{sectionred}{\href{https://huggingface.co/spaces/FireRedTeam/FireRed-OCR}{Online Demo (HuggingFace)}}} \\
+    \end{tabular}
+\end{center}
+
+
+% for author footnotes
+\setcounter{footnote}{0}  % Reset footnote counter to 0 for the main text
+\renewcommand{\thefootnote}{\arabic{footnote}}  % Set back to default numbering
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% 目录
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\clearpage
+% 目录标题改为红色
+\renewcommand{\contentsname}{\textcolor{sectionred}{Contents}}
+\tableofcontents
+\clearpage
+
+% #########################################################
+% Introduction
+% #########################################################
+\input{section/1_introduction}
+
+% #########################################################
+% Data Infrastructure
+% #########################################################
+\input{section/2_data}
+
+% #########################################################
+% Our Method
+% #########################################################
+\input{section/3_method}
+
+% #########################################################
+% REDEdit BenchMark
+% #########################################################
+\input{section/4_evaluation}
+
+% #########################################################
+% Performance Evaluation
+% #########################################################
+\input{section/5_experiments}
+
+% #########################################################
+% Conclusion
+% #########################################################
+\input{section/6_conclusion}
+
+
+
+
+\section{Authors}
+% All contributors to FireRed-OCR are listed alphabetically by their last names.
+\begin{itemize}
+   \item \textbf{Core Contributors:} Hao Wu, Haoran Lou, Xinyue Li, Zuodong Zhong, Zhaojun Sun, Phellon Chen, Xuanhe Zhou, Kai Zuo, Yibo Chen, Xu Tang, Yao Hu
+    \item \textbf{Contributors:} Boxiang Zhou, Jian Wu, Yongji Wu, Wenxin Yu, Yingmiao Liu, Yuhao Huang, Manjie Xu, Gang Liu, Yidong Ma, Zhichao Sun, Changhao Qiao
+\end{itemize}
+
+
+
+\clearpage
+
+\addcontentsline{toc}{section}{References}
+\bibliography{redocr_report}
+\bibliographystyle{plain}
+
+% \appendix
+% \input{fireredocr/section/7_appendix}
+
+
+
+
+\end{document}

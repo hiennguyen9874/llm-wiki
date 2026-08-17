@@ -1,0 +1,75 @@
+\section{Data}
+\begin{figure}[h]
+  \centering
+  \includegraphics[width=0.99\textwidth]{figures/data.png}
+  \caption{Overview of the proposed data processing and optimization pipeline. This pipeline operates through five rigorous stages, including Geometry-Driven Feature Extraction and Dual Indexing, Stratified Sampling and Unified Re-annotation, Synthetic Data Generation for Structural Priors, Automated Quality Control and Hard-Negative Mining and Expert-Level Refinement via Model Distillation.}
+  \label{fig:data}
+\end{figure}
+The performance ceiling of structure-aware VLMs is determined not by the sheer volume of data, but by the density of high-quality, structurally diverse samples. Traditional OCR datasets~\cite{chng2019icdar2019,singh2021textocr} often suffer from two critical issues: (1) \textit{Distribution Imbalance}, where simple layouts (e.g., novels) dominate over complex ones (e.g., multi-column papers, financial tables), and (2) \textit{Annotation Inconsistency}, where different sources utilize conflicting Markdown standards.
+
+To address these challenges, we introduce the \textbf{``Geometry + Semantics'' Data Factory}, an automated, scalable refinery that transforms raw web data into ``high-octane fuel'' for structural learning. This pipeline operates through five rigorous stages.
+
+\subsection{Geometry-Driven Feature Extraction and Dual Indexing}
+Random sampling is insufficient for ensuring layout diversity. A text-heavy page and a table-heavy page may share similar semantic topics but require vastly different structural parsing capabilities. We propose a \textbf{Dual-Indexing Mechanism} to decouple layout complexity from semantic content.
+
+\subsubsection{Geometric Clustering}
+We utilize a lightweight, pre-trained image encoder (e.g., ResNet/ViT variants)~\cite{radford2021learning,chuang2025meta} to extract visual feature vectors from document images, deliberately ignoring textual content to focus on \textit{layout topology}. By performing unsupervised clustering (e.g., K-Means~\cite{ahmed2020k} or DBSCAN~\cite{hahsler2019dbscan}) on these geometric embeddings, we map the dataset into a structural feature space.
+\begin{itemize}
+    \item \textbf{Redundancy Elimination:} We identify and downsample clusters with high density (e.g., standard single-column text), removing highly similar duplicates.
+    \item \textbf{Rare Layout Mining:} We identify sparse clusters representing ``long-tail'' layouts, such as nested tables, irregular forms, or artistic typography, ensuring these hard examples are preserved.
+\end{itemize}
+
+\subsubsection{Multi-dimensional Tagging System}
+Complementary to geometric features, we construct a semantic tag system to ensure interpretability. We employ a classifier to label data across four dimensions:
+\begin{itemize}
+    \item \textbf{Language:} Balancing dominant languages with low-resource ones.
+    \item \textbf{Layout Type:} Dense text, multi-column, table-heavy, image-rich.
+    \item \textbf{Document Source:} Scanned PDFs, camera-captured images, digital-born documents.
+    \item \textbf{Genre:} Academic papers, financial invoices, legal contracts, receipts.
+\end{itemize}
+This dual-index allows for precise control over the training distribution, enabling us to curate a dataset that is both geometrically diverse and semantically balanced.
+
+\subsection{Stratified Sampling and Unified Re-annotation}
+Existing open-source datasets~\cite{singh2021textocr,olmocrbench} often possess conflicting Ground Truth (GT) styles. Some represent formulas with ``$$...$$'', others with ``\(...\)''; some use HTML tables, others Markdown. Such inconsistency confuses the model during convergence.
+
+\subsubsection{Balanced Sampling}
+Leveraging the dual-index, we perform stratified sampling. We heavily upsample the ``rare layout'' clusters and ``complex genre'' tags while capping the contribution of simple text documents. This ensures that the model sees a uniform distribution of \textit{difficulty} rather than a natural distribution of data.
+
+\subsubsection{Standardized Markdown Re-annotation}
+To eliminate style conflicts, we discard original disparate annotations and re-process the entire sampled corpus using \textbf{PaddleOCR-VL}~\cite{cui2025paddleocr}. While PaddleOCR-VL serves as a strong baseline, we utilize it primarily to standardize the \textit{format} (unified Markdown syntax). This step creates a cohesive ``lingua franca'' for the model, ensuring that `Level 1 Headers` or `Bold Text` are represented consistently across 10 million+ samples, regardless of their original source.
+
+\subsection{Synthetic Data Generation for Structural Priors}
+Despite aggressive mining, certain structural combinations (e.g., tables spanning three pages, complex nested mathematical proofs) remain scarce in natural data. To bridge this gap, we implement a \textbf{Render-based Synthesis Pipeline}.
+We construct a library of HTML/CSS templates capable of generating complex layouts procedurally. By randomizing content (text, numbers, formulas) and style parameters (border visibility, column spans, font types), we render high-resolution images with perfectly aligned Markdown Ground Truths. This provides the model with error-free structural priors, particularly for:
+\begin{itemize}
+    \item \textbf{Complex Tables:} Spanning cells, invisible borders, and color-coded rows.
+    \item \textbf{Mathematical Formulas:} Heavy nesting and rare symbols.
+\end{itemize}
+
+\subsection{Automated Quality Control and Hard-Negative Mining}
+Quality control is critical to preventing ``Garbage In, Garbage Out.'' We implement a bi-level filtration system designed not just to clean data, but to identify valuable ``hard negatives.''
+
+\subsubsection{Automated Heuristics (The Sieve)}
+We apply rule-based checks to the Markdown ground-truth:
+\begin{itemize}
+    \item \textbf{Structural Closure:} Verifying that all opened tags (e.g., `table`, `**`) are correctly closed.
+    \item \textbf{Table Integrity:} Checking that the number of Markdown pipe characters `|` matches the expected column count for every row.
+    \item \textbf{Garbage Detection:} Filtering out samples with high ratios of non-printable characters or excessive repetition.
+\end{itemize}
+
+\subsubsection{LLM-based Content Audit (The Judge)}
+Data passing the heuristic filter is subjected to a lightweight LLM audit. The LLM classifies potential issues into:
+\begin{itemize}
+    \item \textbf{Discard (Noise):} Blank pages, severe blur, substantial content cut-off.
+    \item \textbf{Keep (Hard Case):} Samples where the content is legible but the layout is highly complex or the initial OCR failed.
+\end{itemize}
+Crucially, we do not discard the ``Hard Cases.'' Instead, they are routed to a specialized repository for refinement.
+
+\subsection{Expert-Level Refinement via Model Distillation}
+The \textit{HardCase} repository represents the "frontier" of the model's capability. To unlock the value in these samples, we employ an expert-in-the-loop strategy using advanced proprietary models (e.g., Gemini 3 Pro series~\cite{google2025gemini3pro}).
+We feed the HardCase images to these teacher models with a prompt specifically designed to correct structural errors while preserving the standardized Markdown format. This process:
+\begin{enumerate}
+    \item \textbf{Repairs Structural Hallucinations:} Fixing missing rows in tables or disordered text blocks in the GT.
+    \item \textbf{Reduces Systemic Bias:} Mitigating errors introduced by the initial PaddleOCR pass.
+\end{enumerate}
+This ``Expert Consultation'' effectively distills the reasoning power of massive frontier models into our training set, providing FireRed-OCR with pixel-perfect supervision for the most challenging document scenarios.

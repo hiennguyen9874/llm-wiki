@@ -1,0 +1,649 @@
+\documentclass[11pt, a4paper, logo, copyright, nonumbering]{deepseek}
+\usepackage[numbers, square, sort&compress]{natbib}
+% \usepackage[numbers, sort&compress]{natbib}
+\usepackage{dblfloatfix}
+\usepackage{ulem}
+\usepackage{caption}
+% \usepackage{cite}
+% \usepackage{subcaption}
+% \usepackage{listings}
+% \lstset{breaklines=true}
+\definecolor{citecolor}{HTML}{1976D2}
+\hypersetup{
+    colorlinks=true,
+    linkcolor=black,
+    filecolor=magenta,
+    urlcolor=cyan,
+    citecolor=citecolor,
+}
+\usepackage{dramatist}
+\usepackage{xspace}
+\usepackage{pifont}% http://ctan.org/pkg/pifont
+\usepackage{multirow}
+\usepackage{tcolorbox}
+\usepackage{xltabular}
+\usepackage{longtable}
+\usepackage{hyperref}
+\usepackage{diagbox}
+\usepackage{makecell}
+\interfootnotelinepenalty=10000
+
+\usepackage{amsfonts}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{lineno}
+
+\usepackage[bottom]{footmisc}
+% \linenumbers
+
+\usepackage{CJKutf8}
+\usepackage{subfigure}
+\usepackage{setspace}
+\usepackage{subcaption} 
+\usepackage{epigraph}
+\usepackage{wrapfig}
+% ########
+
+% \usepackage[finalizecache,cachedir=.]{minted}
+
+
+\makeatletter
+\def\@BTrule[#1]{%
+  \ifx\longtable\undefined
+    \let\@BTswitch\@BTnormal
+  \else\ifx\hline\LT@hline
+    \nobreak
+    \let\@BTswitch\@BLTrule
+  \else
+     \let\@BTswitch\@BTnormal
+  \fi\fi
+  \global\@thisrulewidth=#1\relax
+  \ifnum\@thisruleclass=\tw@\vskip\@aboverulesep\else
+  \ifnum\@lastruleclass=\z@\vskip\@aboverulesep\else
+  \ifnum\@lastruleclass=\@ne\vskip\doublerulesep\fi\fi\fi
+  \@BTswitch}
+\makeatother
+
+\addto\extrasenglish{
+    \def\chapterautorefname{Chapter}%
+    \def\sectionautorefname{Section}%
+    \def\paragraphautorefname{Section}
+    \def\subparagraphautorefname{Section}
+    \def\paragraphautorefname{Paragraph}%
+    \def\tableautorefname{Table}%
+    \def\equationautorefname{Equation}%
+}
+
+\newenvironment{indentchunk}[1]%
+ {\begin{list}{}%
+         {\setlength{\leftmargin}{#1}}%
+         \item[]%
+ }
+ {\end{list}}
+ 
+\bibliographystyle{abbrvnat}
+% \bibliography{main}
+
+\reportnumber{001} % Leave blank if n/a
+
+% \renewcommand{\today}{2021-12-08}
+\renewcommand{\today}{}
+
+\title{\centering
+    Unlimited OCR Works\\
+    {\large\normalfont\textit{Welcome the Era of One-shot Long-horizon Parsing}}
+}
+
+\author{
+ Baidu Inc.\\
+}
+% \affil{DeepSeek-AI}
+
+
+% \author{
+% Aaa Aa, Bbb Bb,
+% Ccc Cc, Ddd,Dd
+% }
+% \affil{DeepSeek-AI}
+% \correspondingauthor{Authors are ordered alphabetically by the last name.}
+
+\input{commands.tex}
+
+\newcommand{\fix}{\marginpar{FIX}}
+\newcommand{\new}{\marginpar{NEW}}
+
+\newcommand{\zdaxie}[1]{\textcolor[rgb]{0.545,0,0.071}{#1}}
+
+\begin{abstract}
+% This is abstract.
+% As the most intuitive embodiment of artificial language in the physical world, optical text makes its interpretation an essential frontier — and a fiercely contested one — for multimodal large language models (MLLMs). 
+Recently, end-to-end OCR models, exemplified by DeepSeek OCR, have once again thrust OCR into the spotlight. A widely held view is that employing a large language model (LLM) as the decoder allows the model to leverage the prior distribution of language, leading to improved OCR performance. However, the downside is equally evident: as the output sequence lengthens, the accumulated KV cache drives up memory consumption and progressively slows down generation. This stands in stark contrast to humans, who exhibit no such decline in efficiency during long-horizon copying tasks. In this technical report, we propose Unlimited OCR, a model designed to emulate human parsing working memory. Taking DeepSeek OCR as the baseline, we replace all attention layers in the decoder with our proposed Reference Sliding Window Attention (R-SWA), which reduces attention computation costs while maintaining a constant KV cache throughout the entire decoding process. By combining the high compression rate of DeepSeek OCR's encoder with our constant KV cache design, Unlimited OCR can transcribe dozens of pages of documents in a single forward pass under a standard maximum length of 32K. More importantly, R-SWA is a general-purpose parsing attention mechanism — beyond OCR, it is equally applicable to tasks such as ASR, translation, etc. Codes and model weights are publicly available at \url{http://github.com/baidu/Unlimited-OCR}.
+
+
+
+
+
+
+% We present DeepSeek-OCR 2 to investigate the feasibility of a novel encoder—DeepEncoder V2—capable of dynamically reordering visual tokens upon image semantics. Conventional vision-language models (VLMs) invariably process visual tokens in a rigid raster-scan order (top-left to bottom-right) with fixed positional encoding when fed into LLMs. However, this contradicts human visual perception, which follows flexible yet semantically coherent scanning patterns driven by inherent logical structures. Particularly for images with complex layouts, human vision exhibits causally-informed sequential processing. Inspired by this cognitive mechanism, DeepEncoder V2 is designed to endow the encoder with causal reasoning capabilities, enabling it to intelligently reorder visual tokens prior to LLM-based content interpretation. This work explores a novel paradigm: whether 2D image understanding can be effectively achieved through two-cascaded 1D causal reasoning structures, thereby offering a new architectural approach with the potential to achieve genuine 2D reasoning. Codes and model weights are publicly accessible at \url{http://github.com/deepseek-ai/DeepSeek-OCR-2}.
+\end{abstract}
+
+
+\begin{document}
+\begin{CJK*}{UTF8}{gbsn}
+
+\maketitle
+
+
+
+
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=0.88\linewidth]{Figs/1.pdf}
+    % \vspace{-0.2cm}
+    \caption{Illustration of Reference Sliding Window Attention (R-SWA). Each generated token attends to all reference tokens (visual tokens in OCR) and the preceding $n$ output tokens (128 by default). Compared to standard full attention, R-SWA maintains a constant KV cache throughout decoding. Compared to vanilla SWA, it preserves visual token fidelity by excluding them from state transitions, thereby avoiding progressive blurring.}
+    \label{fig:1}
+\end{figure}
+
+
+
+
+\newpage
+
+\begin{spacing}{0.9}
+\tableofcontents
+\end{spacing}
+
+
+
+\newpage
+
+\section{Introduction}
+
+
+Humans are remarkably adept at seemingly straightforward long-horizon tasks: transcribing hundreds of book pages, translating hours-long audio recordings, and the like. Yet these are precisely the tasks where current models fall short. Take OCR as an example—no existing model~\cite{wei2025deepseek,wei2024general,cui2025paddleocrvl,wang2024mineru} can even parse ten of pages in a single forward pass. Instead, they resort to page-by-page processing in a for-loop fashion, resetting memory at every step. This divergence is far from superficial, and it cannot be reduced to a mere lack of sufficient context. When humans perform such tasks, they maintain a continuous cognitive state in which distant outputs fade softly from memory, while nearby context is used to track progress. The for-loop paradigm, by contrast, erases memory entirely at each page, fragmenting a coherent long-horizon process into isolated short tasks managed by an external scheduler. It works to some extent, but it remains an engineering workaround, not a step toward AGI-purpose intelligence.
+
+
+
+Consider the act of transcribing a document. As we copy each character, we do not scan the entire text already written; we simply glance at the immediately surrounding context to stay oriented. This everyday behavior points to an attention pattern fundamentally different from those in current models. It is not standard full attention—the full history is never fully consulted. Nor does it resemble linear attention, since visual/reference tokens undergo no recurrent state updates; such updates would progressively blur the visual features and degrade recognition accuracy. To align more closely with this natural attention flow, and to explore how multimodal large language models (MLLMs)~\cite{team2023gemini,Qwen2.5-VL,huang2026step3,GPT4} can handle simple long-horizon parsing tasks, we propose Unlimited OCR. Our main contributions are as follows:
+
+
+\begin{itemize}
+\item We introduce Reference Sliding Window Attention (R-SWA), illustrated in Figure~\ref{fig:1}. For each token, R-SWA attends to all reference tokens—visual tokens and the prompt—while limiting output attention to the preceding $n$ tokens ($n$ defaults to 128). In this way, each token perceives the full image and autonomously tracks OCR progress through state transitions within the causal sliding window. This design keeps the KV cache constant during inference, alleviating memory pressure and reducing the computational cost. 
+
+% R-SWA is applied across all layers of LLM-decoder for parsing tasks.
+
+\item Building on R-SWA, we propose Unlimited OCR. Using DeepSeek OCR as our baseline, we retain its DeepEncoder with high image compression rate, modifying all the decoder LLM's attention mechanism to R-SWA. This enables Unlimited OCR to parse dozens of paper pages in a single forward pass. R-SWA also yields a modest improvement in general OCR accuracy. Specifically, Unlimited OCR achieves 93\% on the OmniDocBench v1.5 benchmark~\cite{ouyang2025omnidocbench}, outperforming the DeepSeek OCR baseline by 6\%.
+
+\item We conduct a preliminary validation of MLLM architectures with linear-complexity attention on OCR tasks, particularly in long-horizon scenarios. Rather than brute-force scaling up the training context, we identify an elegant approach that achieves long-horizon OCR. Looking ahead, we see promise in extending R-SWA to ASR, translation, and other reference-based tasks that demand long-horizon dependency modeling.
+\end{itemize}
+
+
+In summary, we present R-SWA, which substantially reduces both the computational cost of attention and the memory footprint in the long-horizon inference. Building on R-SWA, Unlimited OCR not only enables one-shot parsing of an entire book, but also surpasses the DeepSeek OCR baseline by a large margin on popular document parsing benchmarks. Furthermore, we believe R-SWA holds promise well beyond OCR.
+
+
+
+
+% \begin{figure}[ht]
+% 	\centering
+%     \includegraphics[width=1.0\linewidth]{fig/3.pdf}
+%     % \vspace{-2mm}
+% 	\caption{This figure shows two computer vision models with parallelized queries: DETR's decoder~\cite{carion2020end} for object detection and BLIP2's Q-former~\cite{li2023blip} for visual token compression. Both employ bidirectional self-attention among queries.}
+% 	\label{fig:encoders}
+% \end{figure}
+
+
+\section{Related Works}
+\label{sec:related1}
+
+% \label{sec:related}
+
+\subsection{Pipeline-based Framework}
+Traditional OCR models, particularly those designed for document parsing, typically adopt a pipeline architecture~\cite{cui2025paddleocr,cui2025paddleocrvl,wang2024mineru,li2025monkeyocr,feng2025dolphin}: a detection model first identifies different types of document elements, followed by multiple recognition operators that further parse the content within those blocks. These components are often bridged by a variety of heuristic strategies, such as cropping, rectification, and so on. In recent years, with the powerful decoder capabilities of large language models (LLMs), the pipeline-based OCR paradigm has continued to evolve~\cite{li2025monkeyocr}. The most straightforward adaptation retains the detection model while consolidating the multiple recognition models into a single unified model---a pragmatic hybrid that combines mature traditional detection algorithms with the advanced decoder of an LLM. Beyond this, there is another pipeline variant that invokes the LLM twice, replacing even the detection model with the same LLM~\cite{feng2025dolphin}, so that the entire OCR workflow becomes: LLM detection--cropping strategy--LLM recognition. Thanks to the inherent flexibility in how OCR tasks can be decomposed, pipeline architectures still remain widely adopted to this day.
+
+\subsection{End-to-end Model}
+With the advancement of vision-language models (VLMs)~\cite{li2023blip,Qwen-VL,Qwen2.5-VL,wei2024vary,huang2026step3} , end-to-end OCR, especially dense OCR models~\cite{blecher2023nougat,wei2024general,wei2025deepseek,wei2026deepseek,dots,poznanski2025olmocr} are on the rise. This approach fully leverages the powerful decoder capabilities of LLMs by merging text detection and recognition into a single unified function, allowing the entire content of a page to be parsed in a single forward pass. Compared with the pipeline approach, the end-to-end algorithm places higher demands on model capacity and poses greater training challenges. This, in turn, makes research on end-to-end OCR models all the more compelling: innovations in architectural design and iterative improvements in training methodologies can more directly inspire, or even advance, the development of general-purpose VLMs. 
+
+% That said, most current end-to-end document parsing models operate in a within-page end-to-end manner. When dealing with multi-page scenarios, they largely follow the same strategy as the pipeline architecture---typically adopting a fully stateless, for-loop approach that processes each page independently and forgets all prior context. This marks a clear departure from how we humans would transcribe a book, where memory and cross-page continuity play an essential role.
+
+
+\subsubsection{High-compression Encoder}
+In end-to-end models, the encoder is an indispensable module that extracts and compresses image information. To a certain extent, the encoder determines the upper bound of the model: taking generation efficiency as an example, if the input vision tokens are too long—meaning the encoder's token compression ratio is insufficient—the model's decoding efficiency will be hindered by excessively long prefix tokens, thereby affecting decoding speed. The same holds true for effective decoding length. DeepEncoder~\cite{wei2025deepseek} achieves a 16$\times$ token compression rate under low activation values by cascading window attention ViT~\cite{kirillov2023segment} and global attention one~\cite{radford2021learning}, making it an ideal choice for multi-page long-horizon OCR. 
+
+\subsubsection{High-efficiency Decoder}
+What most directly affects inference cost is the decoder, including the activation value of the LLM and the KV cache size. Regarding the former, current end-to-end OCR models are typically under 3B parameters. In a related vein, DeepSeek OCR~\cite{wei2025deepseek} uses an MoE architecture~\cite{deepseek32}, keeping its activation at only 500M during inference. As for the KV cache, current models all see it grow continuously with decoding contexts, which limits both generation speed and length. This is exactly the key issue that our Unlimited OCR aims to address.
+
+
+% \label{sec:related1}
+
+
+% Previously, object detection was dominated by two-stage detectors (e.g., Faster R-CNN~\cite{ren2015faster}) and one-stage detectors (e.g., YOLO~\cite{redmon2017yolo9000}), which heavily relied on hand-crafted components such as anchor boxes, non-maximum suppression (NMS), and feature pyramid networks (FPN~\cite{lin2017feature}).
+
+% DETR~\cite{carion2020end} pioneered the integration of transformer architecture into object detection, fundamentally breaking away from traditional detection paradigms~\cite{ren2015faster,redmon2017yolo9000}. To overcome the efficiency limitations of serial decoding in transformer blocks, DETR introduced preset parallelized learnable queries—a set of 100 object queries that encode object priors such as shape and position through training. These queries interact with feature maps~\cite{he2016deep} 
+% % extracted by the backbone network~\cite{he2016deep} 
+% via cross-attention mechanisms, while simultaneously engaging in bidirectional information exchange among themselves through self-attention. 
+% % The object queries output by the decoder are subsequently fed into detection heads for coordinate and category regression predictions. 
+% DETR established a foundational paradigm that enables transformers to handle parallelized tokens.
+% % , achieving truly end-to-end learning without the need for anchor design or NMS post-processing. 
+% The object query design has since become the de facto standard architectural component in subsequent transformer-based detection methods~\cite{zhu2020deformable,liu2021wb}.
+
+
+
+% % \subsection{Parallelized Queries in Projector}
+% In recent years, vision-language models~\cite{li2023blip,Qwen-VL,Qwen2.5-VL,wei2024vary} have developed rapidly, with architectures converging toward the encoder-projector-LLM paradigm. The projector aligns visual tokens with the LLM's embedding space, serving as a critical bridge that enables LLMs to understand visual content. Q-former, introduced in BLIP-2~\cite{li2023blip}, exemplifies an effective projector design that employs learnable queries for visual token compression. Adopting a BERT-like~\cite{devlin2019bert} architecture and drawing inspiration from DETR's object queries~\cite{carion2020end}, Q-former utilizes 32 learnable queries that interact with hundreds of CLIP~\cite{radford2021learning} visual tokens through cross-attention. These compressed query representations are subsequently fed into the LLM, achieving effective mapping from visual to language space. The success of Q-former demonstrates that parallelized learnable queries are effective not only for feature decoding in detection tasks but also for token compression in multimodal alignment.
+
+% % \subsection{LLM-based Multimodal Initialization}
+% LLMs trained on large-scale internet data have proven effective as initialization for multimodal models. Pang et al.~\cite{pang2023fozen} demonstrated that frozen LLM transformer layers enhance visual discriminative tasks. Moreover, encoder-free or lightweight-encoder models such as Fuyu~\cite{fuyu8b_model} and Chameleon~\cite{chameleon2024} in vision, as well as VALL-E~\cite{wang2023neural} in speech, further validate the potential of LLM pretrained weights for 
+% multimodal initialization.
+
+\begin{figure}[ht]
+	\centering
+    \includegraphics[width=1.0\linewidth]{Figs/3.pdf}
+    % \vspace{-2mm}
+	\caption{Inspired by the process of humans copying books, we propose the Unlimited OCR. This model features a unified end-to-end architecture, consisting of an encoder and a MoE-LLM decoder in which all attention mechanisms are R-SWA. The KV cache is implemented as a queue with a capacity of $m+n$—each time a new token is generated, the KV corresponding to the $(m+1)$-th token in the queue is evicted, ensuring that both computational cost and memory usage do not progressively increase during the generation process.}
+	\label{fig:architecture}
+\end{figure}
+
+
+\section{Methodology}
+
+\subsection{Long-horizon Parsing}
+Our humans excel at long-horizon parsing tasks—continuously transcribing an entire book, translating even hundreds of pages in one sitting, or transcribing hours of audio without interruption. This continuous parsing capability appears closely linked to the working memory. As illustrated in Figure~\ref{fig:architecture}, when a person copies a book by hand, their attention typically centers on three points: the original source book, a small portion of what has just been written (usually only a few characters), and the next character about to be written. Rather than retaining a complete memory of everything already transcribed, they engage in a form of soft forgetting. This maybe the key to sustaining long-horizon parsing under low cognitive load. Inspired by this observation, we present Unlimited OCR.
+
+\subsection{Architecture}
+
+As shown in Figure~\ref{fig:architecture},  Unlimited OCR adopts DeepSeek OCR as its baseline. Specifically, it comprises the DeepEncoder paired with a Mixture-of-Experts (MoE) architecture that enjoys 3B total and 500M activated parameters. The DeepEncoder stands out for its exceptional visual token compression capability, which can dramatically reduce the KV cache footprint during the prefill stage while preserving robust optical text feature extraction. Departing from the original DeepSeek OCR, we replace the vanilla Multi-Head Attention (MHA) with our proposed R-SWA. With the new proposed attention, long-horizon parsing can be achieved by augmenting the original reference KV cache $m$ with a fixed-capacity output KV buffer of width $n$. We will delve into the technical details in the following sections.
+
+\subsection{DeepEncoder}
+DeepEncoder is originally introduced in DeepSeek OCR~\cite{wei2025deepseek}. It cascades SAM-ViT~\cite{kirillov2023segment} with CLIP-ViT~\cite{radford2021learning} and applies 16$\times$~\cite{wei2024vary} token compression at the bridge, so that the first half relies entirely on window attention to process the original image tokens, while global attention is reserved exclusively for the compressed tokens. This design keeps the activation values low when encoding high-resolution images, thereby conserving GPU memory. DeepEncoder natively supports five resolution modes; we retain two of them:  the "Base" model (1024×1024 for multi-page), and the "Gundam" mode (dynamic resolution for single-page). Specifically, DeepEncoder can compress a 1024$\times$1024 PDF-image to just 256 tokens. This high compression ratio is critically important for unlimited OCR works, because visual tokens do not undergo state transitions alongside the output - they are encoded once and remain static throughout the entire long-horizon parsing process.
+
+
+
+\subsection{Reference Sliding Window Attention}
+
+
+Despite the satisfactory compression of visual tokens that DeepEncoder achieves on the input side, the real bottleneck for one-shot parsing of an entire book lies in the decoding stage. Assume a compression ratio of 1:10 between visual and text tokens — \textit{i.e.}, one visual token can decode around ten text tokens. In that case, 10K visual tokens (equivalent to roughly $20-30$ pages at 1024$\times$1024 resolution) demand an output length of 100k$+$ tokens for full decoding. This has long been a formidable challenge for vanilla LLM-driven OCR models, due to the massive KV cache storage and attention computation that sequences beyond 128k tokens entail. To address this, we propose Reference Sliding Window Attention (R-SWA).
+
+\subsubsection{Attention computation}
+
+In essence, R-SWA constrains attention within a two-segment window of size $m+n$, as illustrated in Figure~\ref{fig:architecture}. Here, $m$ denotes the window for prefix tokens, which includes both visual tokens and the prompt. During a single inference pass, 
+$m$ remains fixed; it depends only on the number of book pages or the resolution size of the document being decoded, and does not vary with decoding length. The window $n$ for the decode region is also fixed in size and slides in a causal manner. Specifically, the formulation is as follows:
+\begin{align}
+\mathcal{N}(t) &= \mathcal{P}\cup \mathcal{D}_n(t); \ \ \ \ \mathcal{P} = \{1,\dots,L_m\}, \\
+\mathcal{D}_n(t) &= \left\{\,j \mid \max(L_m+1,\;L_m+t-n)\le j \le L_m+t-1 \right\},
+\end{align}
+where $\mathcal{P}$ denotes the prefix segment of length $L_m$, which is globally visible to all subsequent tokens, and $\mathcal{D}_n(t)$ denotes the causal sliding window of width $n$ over the decode region. The attention weight from token $t$ to position $j\in\mathcal{N}(t)$ is then computed as
+\begin{align}
+\alpha_{tj}
+&=
+\frac{
+\exp\left(\frac{\mathbf{q}_t^\top \mathbf{k}_j}{\sqrt{d_k}}\right)
+}{
+\sum\limits_{i\in\mathcal{N}(t)}
+\exp\left(\frac{\mathbf{q}_t^\top \mathbf{k}_i}{\sqrt{d_k}}\right)
+},
+\quad j\in\mathcal{N}(t),
+\end{align}
+where $\mathbf{q}_t$, $\mathbf{k}_j$, and $\mathbf{v}_j$ are the query, key, and value vectors, respectively, and $d_k$ is the dimension of the key-vector. The output representation is obtained by aggregating values over the same accessible set:
+\begin{align}
+\mathbf{o}_t
+&=
+\sum_{j\in\mathcal{N}(t)} \alpha_{tj}\mathbf{v}_j .
+\end{align}
+This formulation makes explicit that each decoding token can attend to all prefix tokens as persistent global context, while only attending locally within a bounded causal window over previously generated tokens. As a result, the model preserves access to the full prefix information while reducing the attention cost over the growing decode sequence.
+
+\subsubsection{KV cache management}
+For DeepSeek OCR baseline, it employs standard Multi-Head Attention (MHA)—the most classical form of attention, which offers strong expressiveness but imposes enormous KV cache pressure, the KV cache size is calculated as follows:
+\begin{align}
+C_{\mathrm{MHA}}(T) &= L_m + T.
+\end{align}
+In contrast, under R-SWA, the model always retains the full prefix cache of size $L_m$, but for the generated continuation it only needs to keep the most recent $n$ tokens. Therefore, after generating a total of $T$ tokens, the required KV cache size is
+\begin{align}
+C_{\mathrm{R\text{-}SWA}}(T) &= L_m + \min(n,\,T) \le L_m + n.
+\end{align}
+This shows that, unlike standard MHA whose cache size increases unboundedly with $T$, the decode-side cache of R-SWA is upper-bounded by a constant window size. To quantify the reduction, we define the cache ratio
+\begin{align}
+\rho(T)
+&=
+\frac{C_{\mathrm{R\text{-}SWA}}(T)}{C_{\mathrm{MHA}}(T)}
+=
+\frac{L_m+\min(n,\,T)}{L_m+T}.
+\end{align}
+If the generated length is sufficiently long such that $T\gg n$, then
+\begin{align}
+\rho(T)
+&=
+\frac{L_m+n}{L_m+T}.
+\end{align}
+which decreases as $T$ grows. In particular, when the decode length dominates both the prefix length and the window size, we have
+\begin{align}
+\rho(T)\approx \frac{L_m+n}{T}\to 0.
+\end{align}
+Therefore, for long-sequence decoding, R-SWA reduces the KV cache requirement from linear growth in $T$ to a bounded quantity $L_m+n$, yielding a substantial memory saving compared with standard MHA. Accordingly, R-SWA serves as the cornerstone to enabling near-unlimited parsing works under limited resources.
+
+
+
+
+\subsubsection{Kernel study}
+
+
+\begin{wrapfigure}{r}{0.5\textwidth}
+\vspace{-5ex}
+	\centering
+	\includegraphics[width=0.5\textwidth]{Figs/attn_scaling-2-Arial-95.pdf}
+	\caption{The latency of the Flash Attention v3 kernel as decoding length increases. }
+	\label{fig3}
+\vspace{-3ex}
+\end{wrapfigure}
+
+
+%In this section, we conduct ablation analyses on COCO val2017. We mainly utilize the SwinTransformer (tiny) as the backbone and use the ResNet-50 partly.
+
+As shown in Figure~\ref{fig3}, we plot the per-call duration of the Flash Attention v3 kernel for both the DeepSeek OCR baseline and Unlimited OCR Works (denoted as UOW in the figure). The figure clearly shows that the standard MHA kernel in DeepSeek OCR incurs growing latency with each successive decoding step, whereas in Unlimited OCR the duration remains constant—a direct benefit of adopting R-SWA across all layers of the LLM decoder. The spike in the DeepSeek OCR occurs when the KV cache length crosses a certain alignment boundary, causing an abrupt drop in data transfer efficiency; this issue also does not arise with R-SWA. Besides, the same pattern will hold for GPU memory usage during inference: in the original DeepSeek OCR it scales linearly, while in Unlimited OCR it stays fixed. This joint stability in both computational cost and memory footprint is precisely what makes long-horizon parsing possible.
+
+
+
+
+\section{Experimental Settings}
+
+\subsection{Data Engine}
+\label{data}
+
+We construct approximately 2 million document OCR data samples to train Unlimited OCR, with a 9:1 ratio of single-page to multi-page data. For the single-page PDF data, we use Paddle OCR~\cite{cui2025paddleocr} for annotation, concatenating the coordinates and content of each block to construct end-to-end detection and parsing ground truth. The coordinates of each element are normalized to the range of 0–1000. All multi-page data are synthesized by concatenating single-page data. We randomly generate around 200k samples, each consisting of 2 to 50 pages, with \textit{<page>} used as a separator between pages.  All data are packed into a sequence length of 32K tokens.
+
+
+
+% We train Unlimited OCR on 8$\times$16 A800 GPUs.
+
+
+\subsection{Implementation Details}
+
+Starting from the DeepSeek OCR checkpoint~\cite{wei2025deepseek}, we continue training Unlimited OCR for 4,000 steps with a global batch size of 256 and a maximum sequence length of 32K on 8$\times$16 A800 GPUs, using random packing for all data. During training, we freeze the DeepEncoder and only train the LLM parameters, as the DeepEncoder is already sufficiently optimized in DeepSeek OCR. We use the AdamW~\cite{AdamW} optimizer and a cosine annealing scheduler~\cite{loshchilov2016sgdr} with an initial learning rate of 1e-4. To support 32K training, we adopt DeepEP~\cite{deepseek32}, with expert parallelism (EP) set to 4. The entire training pipeline is built on the Megatron-LM~\cite{megatron-lm} framework. For inference, we implement KV cache management for R-SWA in the Transformers library, along with corresponding support and optimizations in the SGLang inference engine. Both inference frameworks can operate Unlimited OCR under constant TPS (tokens/S) and GPU memory.
+
+
+\section{Evaluation}
+
+
+\subsection{Benchmark and Metrics}
+
+We select OmniDocBench~\cite{ouyang2025omnidocbench} as the main benchmark for evaluating foundational document OCR capabilities, and test the Unlimited OCR on both v1.5 and v1.6 versions. OmniDocBench v1.6 includes 296 more test images than v1.5 and represents the latest benchmark, while v1.5 provides official metrics from more classic models—including our baseline DeepSeek OCR—which facilitates performance comparisons. For long-horizon OCR evaluation, an in-house test set is constructed, where we select a number of novels, documents, and papers and divide them by page count to assess the multi-page performance of Unlimited OCR. Specifically, we select books of 2, 5, 10, 20, and 40+ pages for testing, with no fewer than ten books for each category.
+
+
+
+OmniDocBench is designed to evaluate document parsing capabilities across multiple dimensions, including text recognition, formula recognition, table structure extraction, and reading order prediction. It adopts task-specific metrics for a well-rounded evaluation: (1) Text Edit Distance (Edit $\downarrow$), which measures character-level accuracy for text recognition; (2) Formula CDM (CDM $\uparrow$), which evaluates the quality of mathematical formula recognition; (3) Table TEDS (TEDS $\uparrow$) and Table TEDS-S (TEDS-S $\uparrow$), which assess table structure extraction accuracy with and without content recognition; and (4) Reading Order Edit Distance (Edit $\downarrow$), which quantifies the correctness of predicted reading sequences. The overall score is then computed as a weighted average across text, formula, and table recognition tasks. For the in-house benchmark, we report both the Distinct-n and the Edit Distance. Distinct-n is the ratio of the number of unique n-grams to the total number of n-grams in the generated text.
+
+
+
+
+\begin{table}[h]
+\footnotesize
+\caption{Comparison on OmniDocBench (v1.5/v1.6). All models in the table are end-to-end VLM-based architectures. v1.5 is primarily intended for comparison with classic end-to-end algorithms and the baseline DeepSeek OCR. v1.6 mainly compares against current end-to-end SOTA models. Except for the proposed Unlimited OCR, all other models are selected from the OmniDocBench repository.}
+\label{tab:omnidocbench}
+\centering
+%\resizebox{1.\linewidth}{!}
+\setlength{\tabcolsep}{1.6pt}
+{
+\begin{tabular}{l|c|c|ccccc}
+\toprule[.9pt]
+{\textbf{Model}} &Size & Overall $\uparrow$ & Text$^{Edit}$ $\downarrow$  &  Formula$^{CDM}$ $\uparrow$ & Table$^{TEDs}$ $\uparrow$ & Table$^{TEDS_s}$ $\uparrow$ & Read-order$^{Edit}$ $\downarrow$  \\  
+\midrule  
+% \shline
+
+\multicolumn{8}{c}{\textbf{    End-to-end Model (v1.5)}} \\ 
+\midrule 
+OCRFlux~\cite{ocrflux} &3B &74.82 & 0.193 & 68.03 & 75.75 & 80.23 & 0.202 \\
+GPT-4o~\cite{GPT4} & - &75.02 & 0.217 & 79.70 & 67.07 & 76.09 & 0.148 \\
+InternVL3~\cite{zhu2025internvl3} & 78B & 80.33 & 0.131 & 83.42 & 70.64 & 77.74  & 0.113 \\
+POINTS-Reader~\cite{liu2025pointsreader}& 3B & 80.98 & 0.134 & 79.20 & 77.13 & 81.66 & 0.145 \\
+olmOCR~\cite{poznanski2025olmocr}& 7B   & 81.79 & 0.096 & 86.04 & 68.92 & 74.77 & 0.121 \\
+InternVL3.5~\cite{wang2025internvl35}& 241B & 82.67 & 0.142 & 87.23 & 75.00 & 81.28  & 0.125 \\
+MinerU2-VLM~\cite{wang2024mineru} &0.9B & 85.56 & 0.078 & 80.95 & 83.54 & 87.66  & 0.086 \\
+Nanonets-OCR-s~\cite{NanonetsOCRs}&3B&85.59 & 0.093 & 85.90 & 80.14 & 85.57  & 0.108 \\
+Qwen2.5-VL~\cite{Qwen2.5-VL} & 72B & 87.02 & 0.094 & 88.27 & 82.15 & 86.22 & 0.102 \\
+Gemini-2.5 Pro\cite{google_gemini_web}&- & 88.03 & 0.075 & 85.82 & 85.71 & 90.29 & 0.097 \\
+dots.ocr~\cite{dots}&3B & 88.41 & 0.048 & 83.22 & 86.78 & 90.62 & 0.053 \\ 
+OCRVerse~\cite{OCRVerse} &4B & 88.56 & 0.058 & 86.91 & 84.55 & 88.45 & 0.071 \\ 
+Qwen3-VL\cite{bai2025qwen3vltechnicalreport}&235B & 89.15 & 0.069 & 88.14 & 86.21 & 90.55 & 0.068 \\ 
+DeepSeek-OCR 2~\cite{wei2026deepseek}&3B-A0.5B & 89.17  & 0.049  & 86.85  & 85.60  & 90.06 &  0.060 \\ 
+
+\midrule 
+% \rowcolor{gray!10}
+DeepSeek-OCR &3B-A0.5B & 87.01 & 0.073 & 83.37 & 84.97 & 88.80 & 0.086 \\ 
+
+\rowcolor{gray!10}
+Unlimited-OCR &3B-A0.5B & 93.23 & 0.038 & 92.61 & 90.93 & 94.07 & 0.045 \\ 
+% \rowcolor{gray!10}
+
+
+ & & \textcolor{blue}{$\uparrow 6.22$} &\textcolor{blue}{$\downarrow 0.035$} & \textcolor{blue}{$\uparrow 9.24$} & \textcolor{blue}{$\uparrow 5.96$} & \textcolor{blue}{$\uparrow 5.27$} & \textcolor{blue}{$\downarrow 0.041$} \\
+
+\midrule  
+\multicolumn{8}{c}{\textbf{    End-to-end Model (v1.6)}} \\ 
+\midrule  
+HunyuanOCR~\cite{team2025hunyuanocr}&1B & 89.95  & 0.088  & 87.68  & 91.01  & 92.23 &  0.171 \\ 
+DeepSeek-OCR 2~\cite{wei2026deepseek}&3B-A0.5B & 90.25  & 0.050  & 91.84  & 83.89  & 87.75 &  0.144 \\ 
+dots.ocr~\cite{dots}&3B & 90.77 & 0.048 & 89.95 & 87.18 & 90.58 & 0.138 \\ 
+FireRed-OCR~\cite{wu2026firered}&2B & 93.26 & 0.037  & 95.44  & 88.04  & 91.06 &  0.131 \\ 
+Logics-Parsing-v2~\cite{Logics-Parsing-V2}&4B & 93.33  & 0.041  & 95.65  & 88.42  & 91.98 &  0.137 \\ 
+Qianfan-OCR~\cite{dong2026qianfan}&4B & 93.90  & 0.040  & 95.08  & 90.53  & 93.31 &  0.13 \\ 
+\midrule 
+\rowcolor{gray!10}
+Unlimited-OCR &3B-A0.5B & 93.92 & 0.042 & 95.79 & 90.16 & 93.32 & 0.129 \\ 
+\bottomrule[.9pt]
+\end{tabular}
+% \vspace{-.6em}
+}
+% \vspace{-2.em}
+\end{table}
+
+
+
+
+\subsection{Main Results}
+\label{OmniDocbench v1.5}
+
+As shown in Table~\ref{tab:omnidocbench}, by continue-training on merely 2M PDF-document-specific data based on DeepSeek OCR, Unlimited OCR achieves end-to-end SOTA performance. This demonstrates the effectiveness of R-SWA on parsing tasks. First, compared with the standard attention in DeepSeek OCR, R-SWA may allow the model to focus more on dense OCR tasks, whereas full attention could lead to divergence as the output length increases. On the other hand, the state transition across intra-page content under R-SWA is both workable and solid. Specifically, on OmniDocBench v1.5, compared with DeepSeek OCR, the text edit distance drops by 0.035, and the table TEDS improves by 5.96\%, indicating that historical information is causally and continuously fed into the sliding window, enabling the model to clearly locate its OCR progress even though it sees only a few tokens. On the OmniDocBench v1.6 benchmark, Unlimited OCR again achieves end-to-end SOTA (93.92\% on overall metric), further proving that for single-page PDF-level document OCR tasks, replacing all standard attention entirely with R-SWA of width 128 is both effective and lossless.
+
+Moreover, Unlimited OCR gains all the benefits of DeepSeek OCR, such as the MoE architecture with only 0.5B activated parameters, resulting in very high inference efficiency. In the OmniDocBench, Unlimited OCR achieves 5580 TPS (tokens/s/512 concurrency) compared to DeepSeek OCR’s 4951 TPS under ''Base" DeepEncoder mode, representing a 12.7\% speed increase. Of course, the average document length in OmniDocBench is relatively short—the longer the output length, the more pronounced the advantage of Unlimited OCR becomes.
+
+
+
+% \begin{table}[!t]\small
+% 	\centering	
+        
+%  	\caption{Edit Distances for different categories of document-elements in OmniDocBench v1.5. V-token$^{max}$ denotes the lowest maximum number of visual tokens.}
+%     \setlength{\abovecaptionskip}{0.2cm}
+% 	\setlength{\tabcolsep}{1.5mm}{	
+		
+%             \begin{tabular}{l|c|cccc|c}  %
+%             \toprule 
+%             Model & V-token$^{max}$$\downarrow$ & Text$^{Edit}$$\downarrow$ & Formula$^{Edit}$$\downarrow$ & Table$^{Edit}$$\downarrow$ & R-order$^{Edit}$$\downarrow$ & Overall$^{Edit}$$\downarrow$ \\ 
+%             \midrule
+% 			Gemini-3 pro~\cite{team2023gemini}& 1120 & - & -  & - & - & 0.115  \\
+%             Seed-1.8~\cite{seedseed1}& 5120 & - & -  & - & - & 0.106  \\
+%             DeepSeek-OCR& 1156 & 0.073 & 0.236  & 0.123 & 0.085 & 0.129  \\
+%             DeepSeek-OCR 2& 1120 &0.048 & 0.198  & 0.096  & 0.057  & 0.100   \\
+%             % Process& resize & resize &  & \\
+
+% 			\bottomrule		
+% 	\end{tabular}}		
+
+% 	\label{table2}
+% \end{table}
+
+
+
+\subsection{Subcategory Study}
+
+OmniDocBench (v1.5) provides 9 types of documents, and conducting a subcategory comparison is crucial for a more systematic and comprehensive analysis of R-SWA. As shown in Table~\ref{table-3}, compared to DeepSeek OCR, Unlimited OCR shows clear and consistent gains across every metric, demonstrating that our decoder-side optimization, \textit{i.e.}, R-SWA, delivers a genuine "free lunch"—improvements without compromises. Compared to DeepSeek OCR 2, Unlimited OCR also holds a clear advantage, with seven-ninths of both the text edit distance and reading order scores surpassing those of DeepSeek OCR 2. For documents with complex layouts such as PPT, newspapers, magazines, and note, Unlimited OCR shows no disadvantage either, further demonstrating that replacing all standard attention with R-SWA for LLM-decoder is complete and sound for parsing tasks.
+
+
+\begin{table}[ht]\small
+    \centering	
+	% \begin{center}
+
+    \caption{Detailed subcategory comparison between Unlimited OCR and the DeepSeek-OCR series across nine document types. R-order denotes reading order. All metrics are edit distances, where lower is better. Red cells indicate that the corresponding metric of DeepSeek-OCR or DeepSeek-OCR 2 is better than that of Unlimited OCR.}
+    % \resizebox{7.5cm}{!}{
+    \setlength{\abovecaptionskip}{0.2cm}
+    \setlength{\tabcolsep}{0.6mm}{
+    
+        
+        \begin{tabular}{l|c|ccccccccc}
+            % \hline  
+                % \toprule
+            % \hline
+                \toprule
+            %	\rowcolor{gray!20}
+            Model & Edit $\downarrow$ & PPT & \makecell{Academic \\ Paper} & Book & \makecell{Colorful \\ Textbook} & \makecell{Exam \\ Paper} & Magazine & Newspaper & Note & \makecell{Research \\ Report}  \\
+            % \hline  % 中部线
+                \midrule
+            % \rowcolor{gray!10}
+                \multirow{2}{*}{DS-OCR} & Text & 0.052 & 0.028 & 0.022 & 0.130 & 0.074 & 0.049 & 0.131 & 0.145 & 0.015   \\
+                % \cmidrule{2-2}
+                  & R-order & 0.052 & 0.021 & 0.040 & 0.125 & 0.083 & 0.101 & 0.217 & 0.089 & 0.016   \\
+                % \cmidrule{1-6}
+                \midrule
+                 \multirow{2}{*}{DS-OCR 2}  &Text & 0.031 & \cellcolor{pink!40}{0.013} & 0.033 & 0.053 & \cellcolor{pink!40}{0.047} & 0.026 & 0.139 & 0.068 & 0.008  \\
+                 % \cmidrule{2-11}
+                         &R-order & 0.025 & 0.013 & 0.027 & 0.066 & \cellcolor{pink!40}{0.048} & 0.100 & 0.176 & 0.035 & \cellcolor{pink!40}{0.011}   \\
+
+                                \midrule
+                 \multirow{2}{*}{UOW}  &Text & 0.025 & 0.023 & 0.019 & 0.046 & 0.049 & 0.020 & 0.081 & 0.066 & 0.008  \\
+                 % \cmidrule{2-11}
+                         &R-order & 0.023 & 0.012 & 0.025 & 0.051 & 0.049 & 0.061 & 0.134 & 0.018 & 0.013   \\
+                
+    % \hline
+    \bottomrule
+    \end{tabular}}
+
+	% }	
+	% \end{center}
+    \label{table-3}
+	
+\end{table}
+
+
+
+\begin{table}[!t]\small
+    \centering
+
+    \caption{Performance of long-horizon OCR. We test the distinct-n and edit distance under different page numbers. Distinct-n is the higher the better.}
+    % \resizebox{7.5cm}{!}{
+    \setlength{\abovecaptionskip}{0.5cm}
+    \setlength{\tabcolsep}{3.5mm}{
+    
+        
+        \begin{tabular}{l|cccccc}
+            % \hline  
+                % \toprule
+            % \hline
+                \toprule
+            %	\rowcolor{gray!20}
+            \diagbox[height=0.61cm]{Metric}{Pages} & 2 & 5 & 10 &  15 & 20 & 40+  \\
+            % \hline  % 中部线
+                \midrule
+            % \rowcolor{gray!10}
+                Distinct-20 $\uparrow$ & 99.76\% & 99.78\% & 97.49\% & 99.92\%  & 98.73\%  & 96.08\%  \\
+                % \cmidrule{2-2}
+                Distinct-35 $\uparrow$ & 99.87\% & 99.98\% & 99.83\% & 99.99\%  & 99.89\%  & 96.90\%  \\
+                
+
+                \midrule
+                 Edit Distance $\downarrow$ & 0.0362 & 0.0452 & 0.0526  & 0.0787 & 0.0572 & 0.1069   \\
+
+    % \hline
+    \bottomrule
+    \end{tabular}}
+
+	% }	
+
+	\label{table4}
+    \end{table}
+
+
+\subsection{Long-horizon Parsing}
+
+Long-horizon parsing is one of the novel capabilities of Unlimited OCR. Two main obstacles have hindered previous models from achieving this: first, excessively long output sequences can easily exceed the maximum token limit; second, output latency grows with sequence length, causing the OCR of documents spanning dozens of pages to become progressively slower. Unlimited OCR, equipped with R-SWA, can prefill tens to hundreds of document pages in a single pass and parse continuously from the first page to the last. Throughout this process, the KV cache remains fixed, so output latency stays constant—making long-horizon parsing feasible. As shown in Table~\ref{table4}, our model delivers satisfactory performance in multi-page one-shot OCR scenarios, maintaining strong results even with 20 pages input simultaneously. At 40+ pages, the edit distance remains below 0.11 along with 97\% Distinct-35. We examine the cases with repeated errors and find that most occur where small text in the PDF is difficult to discern, primarily due to the use of DeepEncoder's "Base" mode (1024$\times$1024 resolution) under multi-page conditions, rather than R-SWA losing direction in long-horizon parsing process. 
+
+% We expect that with greater resources in the future, R-SWA will allow the model to truly parse a book of hundreds or even thousands of pages in one breath, much like a human.
+
+
+% \section{Discussion}
+
+% Unlimited OCR demonstrates the effectiveness of replacing all attention in the LLM decoder with R-SWA on document parsing tasks — an approach fundamentally different from the prevailing practice of pairing SWA with full attention. In parsing tasks, the model only needs to attend to the "document and question requirements" (visual tokens + prompts) to understand the task, along with a few nearby output tokens to track its progress. All previously generated long-chain content can be soft forgotten through causal sliding window. This represents a human-like, low-power modeling paradigm. Whether this approach remains effective for more general multimodal tasks is an open question. That is, what other tasks are suitable for adopting R-SWA entirely—enabling one to reap both the powerful knowledge benefits of LLM pretraining and the low-power advantages of R-SWA—remains well worth exploring and discussing.
+
+\begin{table}[!t]\small
+    \centering
+
+    \caption{Theoretical inference performance ceiling comparison. We compare the TPS upper limits of DeepSeek OCR and Unlimited OCR across varying output lengths.}
+    % \resizebox{7.5cm}{!}{
+    \setlength{\abovecaptionskip}{0.5cm}
+    \setlength{\tabcolsep}{2.5mm}{
+    
+        
+        \begin{tabular}{l|ccccccc}
+            % \hline  
+                % \toprule
+            % \hline
+                \toprule
+            %	\rowcolor{gray!20}
+            \diagbox[height=0.7cm]{Model}{TPS} & 256 & 512 & 1024 &  2048 & 3072 & 4096 & 6144  \\
+            % \hline  % 中部线
+                \midrule
+            % \rowcolor{gray!10}
+                Deepseek OCR  & 7229.32 & 7468.27 & 7422.50 & 7166.85  & 6790.72  & 6430.21 & 5822.87\\
+                % \cmidrule{2-2}
+                Unlimited OCR  & 7229.52 & 7714.78 & 7840.94& 7881.11  & 7881.93  & 7905.18  & 7847.71 \\
+
+
+    % \hline
+    \bottomrule
+    \end{tabular}}
+
+	% }	
+
+	\label{table5}
+    \end{table}
+
+
+
+\section{Efficiency Analysis}
+As presented in Table~\ref{table5}, we compare the output tokens per second (TPS) of Unlimited OCR and DeepSeek OCR under ideal concurrency conditions. The prefill length is fixed at 10, with all other settings held identical. The results show that at 256 tokens, the inference speeds of the two models are virtually the same. As the output length grows, however, the TPS of DeepSeek OCR steadily declines, and at 6,000 tokens, it lags behind Unlimited OCR—which incorporates R-SWA—by 35\%. These findings further validate the effectiveness of R-SWA and underscore that consistent generation speed is a critical requirement for long-horizon OCR tasks.
+
+
+
+
+\section{Limitation and Future Work}
+
+Our model cannot achieve truly unlimited parsing under a finite context length (\textit{e.g.,} 32K), as it is also constrained by the prefill length. Although DeepEncoder already achieves a high compression rate for image tokens, the prefill still becomes very long as the number of pages accumulates. In the short term, we will train models with longer context lengths, such as 128K, to support the prefill of more pages. In the long term, we plan to build a prefill pool and enable the model to learn to automatically fetch prefill KV chunks, thereby simulating the effect of a human flipping through pages, so as to achieve truly unlimited OCR works. In addition, we will also transfer R-SWA to reference-based tasks such as ASR and translation.
+
+
+
+
+\section{Conclusion}
+In this technical report, we propose the Unlimited OCR model and present the R-SWA algorithm to support its capability for long-horizon parsing. We verify that when all standard attention in the decoder of an end-to-end model is replaced with causal reference-based SWA, the model's performance on parsing tasks remains lossless. This indicates that the model learns to continuously pass useful information from historical outputs into the window, and this soft form of forgetting is consistent with how we humans behave when transcribing a book. We believe that R-SWA will be applied to more tasks in the future, making attention computation and memory footprint no longer the bottleneck for long-horizon parsing field.
+
+
+\section{Author List}
+
+% \subsection*{Core contributor:}
+\noindent * indicates project leader; $^\dag$ indicates technical director
+
+
+\noindent \textbf{Core Contributors:} Youyang Yin, Huanhuan Liu*, YY$^\dag$
+
+\noindent \textbf{Contributors:} Qunyi Xie, Chaorun Liu, Shiqi Yang, Shaohua Wang, Zhanlong Liu, Hao Zou, Jinyue Chen, Shu Wei, Jingjing Wu, Mingxin Huang, Zhen Wu, Guibin Wang, Tengyu Du,  Lei Jia 
+
+
+
+
+% \newpage
+
+
+% \bibliographystyle{plain}
+\bibliography{main}
+
+
+
+
+\end{CJK*}
+\end{document} 

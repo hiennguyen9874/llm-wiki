@@ -1,0 +1,770 @@
+
+
+
+% \section{Use of Large Language Models}
+
+% We used a large language model (GPT4V) as an assistive tool during the preparation of this paper. 
+% Specifically, it was employed for language polishing, grammar refinement, and providing alternative phrasings to improve readability. The model was not involved in generating research ideas, designing experiments, analyzing results, or drawing conclusions. All substantive contributions, including research conception, methodology, data analysis, and interpretation, were performed solely by the authors, who take full responsibility for the content.
+
+
+% \section{Ethics Statement}
+
+% This work does not involve human subjects, personal data, or sensitive user information. 
+% All experiments are conducted on publicly available datasets or synthetic data generated via HTML rendering. 
+% The newly introduced Infinity-Doc-400K dataset combines automatically generated synthetic documents with real-world samples that are pseudo-labeled through cross-model agreement and manually filtered to ensure quality. 
+% We have taken care to remove potentially harmful or inappropriate content, and the dataset will be released strictly for research purposes under an academic license. 
+% We believe our contributions do not pose risks of discrimination, bias, or privacy violations, and instead aim to advance the robustness and reliability of document parsing technologies for broad scientific and practical use.
+
+\section{Reproducibility Statement}
+
+We are committed to ensuring the reproducibility of our results. 
+To this end, we will release the full Infinity-Doc-400K dataset, the implementation of LayoutRL with verifiable reward functions, and the pretrained Infinity-Parser model. 
+Detailed training configurations, hyperparameters, and evaluation protocols are provided in the appendix and supplementary materials. 
+Our experiments are conducted on widely used benchmarks, including OmniDocBench, olmOCR-Bench, PubTabNet, and FinTabNet, ensuring comparability with prior work. 
+We will also provide scripts for preprocessing, training, and evaluation to facilitate reproducibility and further research by the community.
+
+
+
+
+\section{Training Details}
+
+ 
+\subsection{Training Context Length Distribution}
+
+Our model was trained with a maximum context length of 8K tokens. To provide a clearer picture of the training data, we report detailed statistics of the context length distribution in Table~\ref{tab:context_length_summary} and Table~\ref{tab:context_length_distribution}. The average context length is 1,765 tokens, with a maximum of 31,147 tokens. More than 73\% of the samples fall within the [512, 4K) range. For sequences exceeding the 8K limit, we applied a left-truncation strategy to retain the semantically more relevant content at the end of the sequence.
+
+\begin{table}[h!]
+\centering
+
+\begin{tabular}{lccccc}
+\toprule
+Metric & Min & Max & Average & Median & Std \\
+\midrule
+Value & 17 & 31,147 & 1,765 & 1,127 & 1,692 \\
+\bottomrule
+\end{tabular}
+\caption{Summary statistics of training context length.}
+\label{tab:context_length_summary}
+\end{table}
+
+
+
+\begin{table}[h!]
+\centering
+\resizebox{\textwidth}{!}{%
+\begin{tabular}{lcccccccc}
+\toprule
+Context Length (tokens) & [1,256) & [256,512) & [512,1K) & [1K,2K) & [2K,4K) & [4K,8K) & [8K,16K) & $\geq$16K \\
+\midrule
+Frequency (count) & 25,125 & 40,680 & 119,041 & 102,757 & 70,554 & 39,780 & 2,482 & 63 \\
+Distribution (\%) & 6.27 & 10.16 & 29.72 & 25.66 & 17.62 & 9.93 & 0.62 & 0.02 \\
+\bottomrule
+\end{tabular}}
+\caption{Distribution of training samples across different context length intervals.}
+\label{tab:context_length_distribution}
+\end{table}
+
+
+
+
+
+% \subsection{Performance Gap Between Chinese and English Benchmarks}
+
+% Although our method achieves strong performance on both Chinese and English tasks, we observe a noticeable gap in formula parsing results. It is worth emphasizing that our method consistently outperforms the baseline model (Qwen2.5-VL) on other Chinese structural parsing tasks such as text parsing, table parsing, and reading order prediction, as shown in Table~\ref{tab:zh_structural}. This demonstrates the strong generalization capability of our approach in structural modeling.
+
+% However, the OmniDocBench test set contains only 981 samples in total, with merely 22 Chinese formula instances across 16 documents. This extremely limited dataset may result in evaluation metrics that lack statistical significance. Furthermore, our RL training dataset includes very few Chinese formula samples, and the formula outputs are not standardized in LaTeX format, which further degrades performance on formula parsing tasks and influences structural evaluation metrics such as NED. We will address this limitation in the revised version and provide a more comprehensive analysis of differences between Chinese and English tasks.
+
+
+
+% \begin{table}[h!]
+% \centering
+% \label{tab:zh_structural}
+% \resizebox{\textwidth}{!}{%
+% \begin{tabular}{lccccc}
+% \toprule
+% Model & Text-Edit (ZH) ↓ & Table-TEDS (ZH) ↑ & Table-Edit (ZH) ↓ & ReadOrder-Edit (ZH) ↓ & Formula-Edit (ZH) ↓ \\
+% \midrule
+% Qwen2.5-VL-7B & 0.236 & 75.7 & 0.294 & 0.207 & 0.587 \\
+% Infinity-Parser-7B & \textbf{0.156} & \textbf{79.0} & \textbf{0.156} & \textbf{0.162} & \textbf{0.822} \\
+% \bottomrule
+% \end{tabular}}
+% \caption{Comparison of Chinese structural parsing performance on OmniDocBench. Our method (Infinity-Parser-7B) consistently outperforms the baseline (Qwen2.5-VL-7B).}
+% \end{table}
+
+
+
+% \subsection{Quantitative Results for Formula Metrics}
+
+% In addition to structural parsing metrics, formula recognition is an essential component of document understanding. In our methods section, we introduced CDM, NED, and BLEU as evaluation metrics for formula recognition. CDM measures component-level detection accuracy under relaxed matching, while ExpRate@CDM denotes strict recall requiring perfect character-level correctness. NED reflects normalized edit distance, and BLEU evaluates n-gram overlap quality. 
+
+% While CDM and NED results were already included in Table~2, due to space constraints BLEU results were omitted. For completeness, we now provide the full quantitative results across multiple baselines in Table~\ref{tab:formula_metrics}. As shown, our model (Infinity-Parser-7B) achieves new state-of-the-art performance across all metrics, surpassing both traditional OCR systems (e.g., Mathpix, Pix2Tex) and advanced vision-language models (e.g., GPT-4o, Qwen2-VL-72B).
+
+
+% \begin{table}[h!]
+% \centering
+% \label{tab:formula_metrics}
+% \resizebox{0.7\textwidth}{!}{%
+% \begin{tabular}{lcccc}
+% \toprule
+% Models & CDM ↑ & ExpRate@CDM ↑ & BLEU ↑ & Norm Edit ↓ \\
+% \midrule
+% GOT-OCR & 74.1 & 28.0 & 55.07 & 0.290 \\
+% Mathpix & 86.6 & 2.8 & 66.56 & 0.322 \\
+% Pix2Tex & 73.9 & 39.5 & 46.00 & 0.337 \\
+% UniMERNet-B & 85.0 & 60.2 & 60.84 & 0.238 \\
+% GPT-4o & 86.8 & 65.5 & 45.17 & 0.282 \\
+% InternVL2-76B & 67.4 & 54.5 & 47.63 & 0.308 \\
+% Qwen2-VL-72B & 83.8 & 55.4 & 53.71 & 0.285 \\
+% \textbf{Infinity-Parser-7B} & \textbf{93.0} & \textbf{71.1} & \textbf{62.30} & \textbf{0.253} \\
+% \bottomrule
+% \end{tabular}}
+% \caption{Quantitative results on formula recognition benchmarks. Our method achieves state-of-the-art performance across CDM, ExpRate@CDM, BLEU, and NED metrics.}
+% \end{table}
+
+
+
+
+
+
+
+\section{Data Details}
+
+
+ 
+
+As illustrated in Figure~\ref{fig:example1235}, the dataset spans seven diverse document domains, making it one of the most richly annotated and structurally varied resources to date. Each domain is represented by two sample pages, highlighting the broad variability in layout design, content structure, and semantic density. For instance, Medical Reports typically contain structured tables with clinical measurements and diagnostic notes. Synthetic Documents are algorithmically generated to replicate real-world formats, providing layout diversity for training robust parsers. Financial Reports feature dense tables and formal accounting records, while Academic Papers often follow two-column layouts with references, equations, and figures. Books combine narrative content with visual illustrations, and Magazines blend images and stylized text for reader engagement. Finally, Web Pages, when saved as PDFs, preserve HTML-based structures that integrate tables, lists, and dynamic elements. This visual taxonomy exemplifies the structural and semantic diversity present in real-world documents, highlighting the core challenge faced by document AI systems: reliably parsing heterogeneous layouts and extracting structured information across a wide variety of formats.
+
+
+
+% Compared to existing training datasets such as DocStruct4M and olmOCR-mix, Infinity-Doc-55K not only supports more task types (e.g., it includes ROD and MFR which others lack), but also provides stronger alignment with evaluation benchmarks. This “strong match” makes it a more suitable training resource for real-world, multi-task document agents, particularly in layout- and formula-aware parsing scenarios.
+
+
+% \begin{table}[ht]
+% \centering
+% \resizebox{1\textwidth}{!}{
+% \begin{tabular}{l|c|ccccc|cccc|c}
+% \toprule
+% \textbf{\multirow{2}{*}{Benchmark}} & \multirow{2}{*}{\makecell{\textbf{Document}\\\textbf{Domain}}} & \multicolumn{5}{c}{\textbf{Annotation Type}} & \multicolumn{4}{c}{\textbf{End-to-End Task}} & \multirow{2}{*}{\textbf{Strong Match}} \\
+% & & BBox & Text & Table & Formula & Attributes & OCR & TR & MFR & ROD & \\
+
+% \midrule
+% \multicolumn{12}{l}{\textbf{\textit{End-to-end Eval Benchmarks}}} \\
+% \midrule
+% Fox~\cite{fox} & 2 & \CheckmarkBold & \CheckmarkBold &  &  & & \CheckmarkBold &  &  &  & \\
+% Nougat~\cite{Nougat} & 1 &  & \CheckmarkBold & \CheckmarkBold & \CheckmarkBold &  & \CheckmarkBold & \CheckmarkBold & \CheckmarkBold  &  & \\
+% GOT OCR 2.0~\cite{got2} & 2 &  & \CheckmarkBold & \CheckmarkBold & \CheckmarkBold &  & \CheckmarkBold & \CheckmarkBold & \CheckmarkBold  &  & \\
+% % READoc~\cite{READoc} & 2 &  & \CheckmarkBold & \CheckmarkBold & \CheckmarkBold & \CheckmarkBold & \CheckmarkBold & \CheckmarkBold & \CheckmarkBold & \CheckmarkBold & \CheckmarkBold \\
+
+% OmniDocBench~\cite{ouyang2024omnidocbench} & 9 & \CheckmarkBold & \CheckmarkBold & \CheckmarkBold & \CheckmarkBold & \CheckmarkBold & \CheckmarkBold & \CheckmarkBold & \CheckmarkBold & \CheckmarkBold &  \\
+
+% \midrule
+% \multicolumn{12}{l}{\textbf{\textit{End-to-end Train Dataset}}} \\
+% \midrule
+
+% DocStruct4M~\cite{hu2024mplug} & - &  & \CheckmarkBold &   &   &  & \CheckmarkBold &   &   &   &  \\
+
+% olmOCR-mix~\cite{poznanski2025olmocr} & - &  & \CheckmarkBold & \CheckmarkBold & \CheckmarkBold &        
+                                                                      
+%                                           & \CheckmarkBold & \CheckmarkBold & \CheckmarkBold & \CheckmarkBold &  \\
+
+% \textbf{Infinity-Doc-55K} & 7 & \CheckmarkBold & \CheckmarkBold & \CheckmarkBold & \CheckmarkBold & \CheckmarkBold & \CheckmarkBold & \CheckmarkBold & \CheckmarkBold & \CheckmarkBold & \CheckmarkBold \\
+
+% \bottomrule
+% \end{tabular}
+% }
+% \vspace{3mm}
+% \caption{A comparison between Infinity-Doc-55K and existing datasets. \textit{BBox}: Bounding boxes. \textit{Text}: Text in Unicode. \textit{Table}: Table in LaTeX/HTML/Markdown. \textit{Formula}: Formula in LaTeX. \textit{Attributes}: Page- and BBox-Level Attributes. \textit{OCR}: Optical Character Recognition; \textit{TR}: Table Recognition; \textit{MFR}: Math Formula Recognition; \textit{ROD}: Reading Order Detection. \textit{Multi-Type Doc}: Whether the dataset includes documents from multiple domains or categories.}
+% \label{tab:all1}
+% % \vspace{-5mm}
+% \end{table} 
+
+
+\begin{figure}[ht]
+  \centering
+  \resizebox{1\linewidth}{!}{%
+    \includegraphics{picture/appendix_daataset_V2.pdf}
+  }
+  \caption{This figure illustrates a diverse collection of PDF document types commonly encountered in Infinity-Doc-55K, grouped into seven categories: Medical Reports, Synthetic Documents, Financial Reports, Academic Papers, Books, Magazines, and Web Pages. }
+  \label{fig:example1235}
+\end{figure}
+
+
+
+Table \ref{tab:doc_breakdown_by_type} provides an overview of the document types included in the Infinity-Doc-400K dataset, detailing the composition across both real-world and synthetic sources. The real-world portion consists of 331K documents spanning six domains: financial reports, medical reports, academic papers, books, magazines, and web pages. These documents were collected from the web and annotated using a pseudo-labeling pipeline based on expert model agreement. While this approach enables large-scale data acquisition, the resulting label quality is relatively low due to occasional inconsistencies across models. Additionally, real-world data collection incurs a high cost, especially in terms of manual filtering, formatting normalization, and layout validation.
+
+% In contrast, the synthetic subset includes 6.5k documents automatically generated using curated content from CC3M, Wikipedia, and the web, combined with predefined HTML templates. This pipeline allows for precise control over layout and annotation, resulting in high-quality labels at low cost. The combination of real and synthetic sources enables a balance between structural diversity, realism, and supervision quality, making Infinity-Doc-55K a comprehensive and scalable benchmark for training and evaluating document parsing models.
+
+
+\begin{table}[h]
+  \small
+  \centering
+  % \renewcommand{\arraystretch}{0.9}
+  \setlength{\tabcolsep}{14pt} 
+  \resizebox{1\linewidth}{!}{
+    \begin{tabular}{l c c l c}
+      \toprule
+      \textbf{Data Source} & \textbf{Document Types} & \textbf{Size} & \textbf{Annotation Method} & \textbf{Cost} \\
+      \midrule
+      Real-World Doc & Financial Reports & 58.0K & Web + Pseudo-Label   & High \\
+      Real-World Doc & Medical Reports   & 5.0K  & Web + Pseudo-Label   & High \\
+      Real-World Doc & Academic Papers   & 71.7K  & Web + Pseudo-Label   & High \\
+      Real-World Doc & Books             & 11.3K & Web + Pseudo-Label   & High \\
+      Real-World Doc & Magazines         & 180.0K  & Web + Pseudo-Label   & High \\
+      Real-World Doc & Web Pages         & 5.0K  & Web + Pseudo-Label   & High \\
+      \midrule
+      Synthetic      & Synthetic Documents & 69.0K & CC3M + Web + Wiki    & Low \\
+      \bottomrule
+    \end{tabular}
+  }
+  \vspace{3mm}
+  \caption{Overview of document types in the Infinity-Doc-400K dataset, including data source, document type, annotation method, and collection cost.}
+  \label{tab:doc_breakdown_by_type}
+\end{table}
+
+
+
+
+
+
+
+\section{Benchmarks Details}
+
+
+\textbf{OmniDocBench~\citep{ouyang2024omnidocbench}} We conduct evaluation on OmniDocBench, a comprehensive benchmark that covers diverse document types and content modalities. To assess parsing performance across different structural elements, we employ two primary evaluation metrics: Normalized Edit Distance (NED), which measures the minimum edit operations required to transform one string into another normalized by the target string length, and Tree Edit Distance-based Similarity (TEDS), which captures structural similarities by comparing tree representations of HTML tables. These metrics are applied to different subtasks: NED is used to evaluate pure text, formula transcription, and reading order; TEDS combined with NED is used to evaluate both structural and content accuracy of table parsing.
+
+% \textbf{Fox~\citep{liu2024focus_fox}}
+% A multilingual benchmark for fine-grained, text-centric document understanding, covering 9 sub-tasks such as OCR, translation, summarization, layout analysis, and captioning. It includes 212 bilingual pages (112 English, 100 Chinese) with diverse layouts, evaluated using task-specific metrics like NED, F1, BLEU, METEOR, and ROUGE-L.
+
+\textbf{PubTabNet~\citep{PubTabNet}}
+A widely used benchmark for table recognition, containing 500,777 training and 9,115 validation images with diverse scientific table structures. Evaluation is conducted on the validation set.
+
+\textbf{FinTabNet~\citep{zheng2021global}}
+Focused on financial documents, this dataset includes 112,000 single-page scanned documents, with 92,000 cropped training images and 10,656 for testing. It features dense layouts and detailed annotations for both structure and content evaluation.
+
+\paragraph{olmOCR-Bench~\citep{poznanski2025olmocr}} This is a benchmark developed to automatically and reliably evaluate document-level OCR performance across a wide range of tools. Unlike traditional evaluation metrics such as edit distance—which may penalize valid variations or fail to capture critical semantic errors—olmOCR-Bench focuses on verifying simple, unambiguous, and machine-checkable “facts” about each document page, similar to unit tests. For instance, it checks whether a specific sentence appears exactly in the OCR output. The benchmark operates directly on single-page PDFs to preserve digital metadata, which can be beneficial for certain OCR systems, and to maintain the integrity of the original document format. Designed for flexibility, olmOCR-Bench supports outputs in Markdown or plain text, allowing for seamless evaluation of both open-source and custom OCR pipelines.
+
+
+ 
+
+
+
+
+\section{More Results}
+% \section{Diverse Page Types Evaluation}
+\paragraph{Diverse Page Types Evaluation}
+
+To further investigate model behavior across diverse document types, we evaluated text recognition performance on nine distinct page categories. As shown in Table \ref{result_label2}, pipeline-based systems such as MinerU~\cite{MinerU} and Mathpix achieved strong results on structured formats like academic papers and financial reports. General-purpose vision-language models (VLMs) demonstrated better generalization on less formal page types, including presentation slides and handwritten notes. However, for challenging formats such as newspapers, most VLMs underperformed, while pipeline tools maintained relatively lower error rates. Notably, our proposed Infinity-Parser-7B achieved consistently low edit distances across all document types, outperforming both pipeline-based systems and general-purpose VLMs in overall accuracy. This highlights the robustness and adaptability of our reinforcement learning approach across diverse and complex document layouts.
+
+
+
+\begin{table*}[h]
+  % \centering
+  \resizebox{1\textwidth}{!}{
+    \begin{tabular}{l ccccccccc |c}
+      \toprule
+      \textbf{Models} & \textbf{Book} & \textbf{Slides} & \makecell{\textbf{Financial}\\\textbf{Report}} & \makecell{\textbf{Textbook}} & \makecell{\textbf{Exam}\\\textbf{Paper}} & \textbf{Magazine} & \makecell{\textbf{Academic}\\\textbf{Papers}} & \textbf{Notes} & \textbf{Newspaper} & \textbf{Overall $\downarrow$} \\
+      \midrule
+      \multicolumn{11}{l}{\textit{Based on Pipeline Tools}} \\
+      MinerU & \textbf{0.055} & 0.124 & \textbf{0.033} & 0.102 & 0.159 &\textbf{ 0.072} & \textbf{0.025} & 0.984 & 0.171 & 0.206 \\
+      Marker & 0.074 & 0.34 & 0.089 & 0.319 & 0.452 & 0.153 & 0.059 & 0.651 & 0.192 & 0.274 \\
+      Mathpix & 0.131 & 0.22 & 0.202 & 0.216 & 0.278 & 0.147 & 0.091 & 0.634 & 0.69 & 0.3 \\
+      \midrule
+      \multicolumn{11}{l}{\textit{Based on Expert VLMs}} \\
+      GOT-OCR & 0.111 & 0.222 & 0.067 & 0.132 & 0.204 & 0.198 & 0.179 & 0.388 & 0.771 & 0.267 \\
+      Nougat & 0.734 & 0.958 & 1.000 & 0.820 & 0.930 & 0.83 & 0.214 & 0.991 & 0.871 & 0.806 \\
+      \midrule
+      \multicolumn{11}{l}{\textit{Based on General VLMs}} \\
+      GPT-4o & 0.157 & 0.163 & 0.348 & 0.187 & 0.281 & 0.173 & 0.146 & 0.607 & 0.751 & 0.316 \\
+      
+      Qwen2-VL-72B & 0.096 & \textbf{0.061} & 0.047 & 0.149 & 0.195 & 0.071 & 0.085 & 0.168 & 0.676 & 0.179 \\
+      InternVL2-76B & 0.216 & 0.098 & 0.162 & 0.184 & 0.247 & 0.150 & 0.419 & 0.226 & 0.903 & 0.3 \\
+      
+      % Qwen2.5-VL-7B & 0.662 & 0.341 & 0.238 & 0.743 & 0.421 & 0.574 & 0.671 & 0.342 & 0.820 & 0.536 \\
+
+      % Qwen2.5-VL-7B & 0.178 & 0.125 & 0.178 & 0.256 & 0.178 & 0.203 & 0.222 & 0.249 & 0.738 & 0.259 \\
+
+      Qwen2.5-VL-7B & 0.222 & 0.131 & 0.194 & 0.268 & 0.203 & 0.230 & 0.195 & 0.249 & 0.394 & 0.230 \\
+      
+      % InternVL3-8B & 0.514 & 0.488 & 0.331 & 0.385 & 0.276 & 0.438 & 0.493 & 0.277 & 0.758 & 0.445 \\
+
+      InternVL3-8B & 0.311 & 0.233 & 0.320 & 0.222 & 0.238 & 0.157 & 0.438 & 0.268 & 0.726 & 0.328 \\
+      
+      \midrule
+      \multicolumn{11}{l}{\textit{Based on Reinforcement Learning}} \\
+      % PDF-SFT-7B & 0.216 & 0.098 & 0.162 & 0.184 & 0.247 & 0.150 & 0.419 & 0.226 & 0.903 & 0.3 \\
+      Infinity-Parser-7B
+        & 0.112 & 0.107 & 0.070 & \textbf{0.093} & \textbf{0.082} & 0.082 & 0.087 & \textbf{0.141} & \textbf{0.153}& \textbf{0.104} \\
+      \bottomrule
+    \end{tabular}
+  }
+  \caption{End-to-end text recognition performance on OmniDocBench: evaluation using edit distance across 9 PDF page types. We compare with Mathpix, MinerU~\citep{MinerU}, Marker~\citep{marker}, GOT-OCR~\citep{got2}, Nougat~\citep{Nougat}, GPT-4o~\citep{GPT3}, Qwen2-VL-72B~\citep{wang2024qwen2}, InternVL2-76B~\citep{InternVL}, Qwen2.5-VL-7B~\citep{bai2025qwen2.5}, InternVL3-8B~\citep{zhu2025internvl3}.}
+  \label{result_label2}
+  % \vspace{-3mm}
+\end{table*}
+
+
+
+
+
+
+% \paragraph{Document-level OCR Evaluation} As shown in Table \ref{tab:en_page_ocr}, Infinity-Parser-7B achieves the best edit distance among all evaluated models, scoring 0.023 for English and 0.017 for Chinese, outperforming all baselines including large-scale models such as Qwen-VL-Max~\citep{Qwen-VL} and Fox~\citep{liu2024focus_fox}. This result suggests that Infinity-Parser-7B can reconstruct dense document text with exceptional precision and minimal character-level errors.
+ 
+
+% \begin{table*}[ht]
+%   \centering
+%   \setlength{\tabcolsep}{4pt} % Adjust column padding
+%   \resizebox{\linewidth}{!}{%
+%   \begin{tabular}{lccccccccccc|cc}
+%     \toprule[.9pt]
+%     \multirow{2}{*}{\textbf{Method}} & \multirow{2}{*}{Size} 
+%     & \multicolumn{2}{c}{F1-score$\uparrow$}  
+%     & \multicolumn{2}{c}{Precision$\uparrow$} 
+%     & \multicolumn{2}{c}{Recall$\uparrow$} 
+%     & \multicolumn{2}{c}{BLEU$\uparrow$} 
+%     & \multicolumn{2}{c}{METEOR$\uparrow$}
+%     & \multicolumn{2}{c}{Edit Distance$\downarrow$} \\
+    
+%     \cmidrule(rl){3-4}  \cmidrule(rl){5-6}  \cmidrule(rl){7-8}  \cmidrule(rl){9-10} \cmidrule(rl){11-12} \cmidrule(rl){13-14}
+%     & & en & zh & en & zh & en & zh & en & zh & en & zh & en & zh \\ 
+%     \midrule
+%     UReader~\citep{ye2023ureader} & 7B & 0.344 & - & 0.296 & - & 0.469 & - & 0.103 & - & 0.287 & - & 0.718 & - \\
+%     LLaVA-NeXT~\citep{liu2024llavanext} & 34B & 0.647 & - & 0.573 & - & 0.881 & - & 0.478 & - & 0.582 & - & 0.430 & - \\
+%     InternVL-ChatV1.5~\citep{chen2024far_intervl1.5} & 26B & 0.751 & 0.816 & 0.698 & 0.784 & 0.917 & 0.866 & 0.568 & 0.622 & 0.663 & 0.717 & 0.393 & 0.265 \\
+%     Nougat~\citep{blecher2023nougat} & 250M & 0.745 & - & 0.720 & - & 0.809 & - & 0.665 & - & 0.761 & - & 0.255 & - \\
+%     TextMonkey~\citep{liu2024textmonkey} & 7B & 0.821 & - & 0.778 & - & 0.906 & - & 0.671 & - & 0.762 & - & 0.265 & - \\
+%     DocOwl1.5~\citep{hu2024mplugdocowl1.5} & 7B & 0.862 & - & 0.835 & - & 0.962 & - & 0.788 & - & 0.858 & - & 0.258 & - \\
+%     Vary~\citep{wei2023vary} & 7B & 0.918 & 0.952 & 0.906 & 0.961 & 0.956 & 0.944 & 0.885 & 0.754 & 0.926 & 0.873 & 0.092 & 0.113 \\
+%     Vary-toy~\citep{wei2024small_varytoy} & 1.8B & 0.924 & 0.914 & 0.919 & 0.928 & 0.938 & 0.907 & 0.889 & 0.718 & 0.929 & 0.832 & 0.082 & 0.142 \\
+%     Qwen-VL-Plus~\citep{Qwen-VL} & - & 0.931 & 0.895 & 0.921 & 0.903 & 0.950 & 0.890 & 0.893 & 0.684 & 0.936 & 0.828 & 0.096 & 0.121 \\
+%     Qwen-VL-Max~\citep{Qwen-VL} & >72B & 0.964 & 0.931 & 0.955 & 0.917 & \cellcolor{blue!3}\textbf{0.977} & 0.946 & 0.942 & 0.756 & \cellcolor{blue!3}\textbf{0.971} & 0.885 & 0.057 & 0.091 \\
+%     Fox~\citep{liu2024focus_fox} & 1.8B & 0.952 & 0.954 & 0.957 &  0.964 & 0.948 & 0.946 & 0.930 & 0.842 & 0.954 & 0.908 & 0.046 & 0.061 \\
+%     GOT~\citep{wei2024general} & 580M & 0.972 & 0.980 & 0.971 & 0.982 & 0.973 & 0.978 & 0.947 & 0.878 & 0.958 & 0.939 & 0.035 & 0.038 \\
+%     \midrule
+%     Infinity-Parser-7B & 7B & 0.955 & \textbf{0.984} & 0.968 & \textbf{0.987} & 0.942 &   \textbf{0.980} & 0.923 & \textbf{0.952} & 0.950 & \textbf{0.974} & \textbf{0.023} & \textbf{0.017} \\
+%     \bottomrule[.9pt]
+%   \end{tabular}
+%   }
+%   \caption{Performance comparison of dense English and Chinese OCR on document-level pages.}
+%   \label{tab:en_page_ocr}
+%   % \vspace{-5mm}
+% \end{table*}
+
+
+
+Table~\ref{tab:table_single_attr} summarizes the performance of various models on the OmniDocBench table subset, evaluated along three dimensions: language diversity, table frame types, and special layout conditions. Notably, Infinity-Parser-7B achieves the best overall performance with an impressive score of 86.4, outperforming all other models across most individual metrics. It leads in nearly every category, including mixed-language settings (94.8), complex frame layouts (e.g., omission and three-line formats), and challenging special situations such as merged cells, formulas, and rotations. This demonstrates its strong generalization ability and robustness across diverse and noisy table formats. 
+
+
+
+
+\begin{table*}[h]
+  \centering
+  \renewcommand\tabcolsep{3pt}
+  % \renewcommand\arraystretch{0.98}
+  \resizebox{1\textwidth}{!}{
+    \begin{tabular}{l|ccc|cccc|cccc|c}
+    \toprule
+    \multirow{2}{*}{\textbf{Model}} & \multicolumn{3}{c|}{\textbf{Language}} & \multicolumn{4}{c|}{\textbf{Table Frame Type}} & \multicolumn{4}{c|}{\textbf{Special Situation}} & \multirow{2}{*}{\textbf{Overall} $\uparrow$ }  \\
+    & \textit{EN} & \textit{ZH} & \textit{Mixed}   & \textit{Full} & \textit{Omission} & \textit{Three} & \textit{Zero} & \textit{Merge Cell}(+/-) & \textit{Formula}(+/-) & \textit{\makecell{Colorful}}(+/-) & \textit{Rotate}(+/-) \\
+    \midrule
+    PaddleOCR~\citep{li2022ppocrv3attemptsimprovementultra} & 76.8 & 71.8 & 80.1 & 67.9 & 74.3 & 81.1 & 74.5 & 70.6/75.2 & 71.3/74.1 & 72.7/74.0 & 23.3/74.6 & 73.6 \\
+    RapidTable~\citep{RapidTable2023} & 80.0 & 83.2 & 91.2 & 83.0 & 79.7 & 83.4 & 78.4 & 77.1/85.4 & 76.7/83.9 & 77.6/84.9 & 25.2/83.7 & 82.5 \\
+    StructEqTable~\citep{StructEqTable2024} & 72.8 & 75.9 & 83.4 & 72.9 & 76.2 & 76.9 & 88.0 & 64.5/81.0 & 69.2/76.6 & 72.8/76.4 & 30.5/76.2 & 75.8 \\
+    GOT-OCR~\citep{got2} & 72.2 & 75.5 & 85.4 & 73.1 & 72.7 & 78.2 & 75.7 & 65.0/80.2 & 64.3/77.3 & 70.8/76.9 & 8.5/76.3 & 74.9 \\
+    Qwen2-VL-7B~\citep{wang2024qwen2} & 70.2 & 70.7 & 82.4 & 70.2 & 62.8 & 74.5 & 80.3 & 60.8/76.5 & 63.8/72.6 & 71.4/70.8 & 20.0/72.1 & 71.0 \\
+    InternVL2-8B~\citep{InternVL} & 70.9 & 71.5 & 77.4 & 69.5 & 69.2 & 74.8 & 75.8 & 58.7/78.4 & 62.4/73.6 & 68.2/73.1 & 20.4/72.6 & 71.5 \\
+    Qwen2.5-VL-7B~\citep{wang2024qwen2} & 87.4 & 80.7 & 93.5 & 86.4 & 85.1 & 84.1 & 88.7 & 77.5/89.8 & 82.1/87.2 & 77.1/87.5 & 56.5/86.0 & 85.5 \\
+    InternVL3-8B~\citep{zhu2025internvl3} & 79.5 & 86.0 & 91.7 & 85.5 & 80.7 & 83.9 & 85.9 & 71.9/90.9 & 74.0/86.7 & 82.1/85.3 & 12.6/85.5 & 84.3 \\
+    \midrule
+    \textbf{Infinity-Parser-7B} & 84.7 & \textbf{86.7} & \textbf{94.8} & \ 85.5 & \textbf{86.5 }& \textbf{87.4} & \textbf{89.4} & \textbf{78.6/90.7} & 81.9/ \textbf{87.5} & \textbf{83.2/88.0} & \textbf{68.8/86.7} & \textbf{86.4} \\
+    \bottomrule
+    \end{tabular}%
+  }
+  \caption{Component-level Table Recognition evaluation on OmniDocBench table subset. \textit{(+/-)} means \textit{with/without} special situation. }
+  \label{tab:table_single_attr}%
+  % \vspace{-5mm}
+\end{table*}
+
+
+
+
+
+
+
+
+
+% \begin{table}[h]
+%   \centering
+%   % \vspace{3mm}
+%   \begin{minipage}{0.52\linewidth}
+%     % \small
+%     % \textbf{Description:} \\
+
+%     As shown in Table~\ref{tab:data_size_performance}, we evaluate the impact of data scale on RL training with layout-aware rewards. The zero-shot baseline performs worst, highlighting the importance of training data. From 5k to 15k, category error steadily decreases and edit distance improves, indicating better generalization. At 22k, performance peaks, though minor edit distance fluctuations suggest possible noise. These results show that scaling data enhances RL’s structural modeling capabilities.
+
+%   \end{minipage}%
+%   \hfill
+%   \renewcommand{\baselinestretch}{1.6}  % 设置行间距为 1.5 倍
+%   \begin{minipage}{0.45\linewidth}
+%     \centering
+%     \small
+%     \resizebox{\linewidth}{!}{
+%       \begin{tabular}{l c c c}
+%         \toprule
+%         \textbf{Method} & \textbf{Data Size} & \textbf{Overall}\textsuperscript{Edit} $\downarrow$ & \textbf{Overall}\textsuperscript{Cat.} $\downarrow$ \\
+%         \midrule
+%         Zero-Shot & -  & 0.346 & 0.259 \\
+%         RL & 5k  & 0.275 & 0.168 \\
+%         RL & 10k & 0.310 & 0.153 \\
+%         RL & 15k & 0.324 & 0.147 \\
+%         RL & 22k & 0.260 & 0.123 \\
+%         \bottomrule
+%       \end{tabular}
+%     }
+%     \vspace{-3mm}
+%     \caption{Results with different data sizes.}
+%     \label{tab:data_size_performance}
+%   \end{minipage}
+% \end{table}
+
+
+ 
+
+% \paragraph{Effect of Data Scale under RL-based Training} 
+
+
+
+
+
+
+% \begin{table}[t!]
+%   % \centering
+%   \begin{minipage}{0.48\linewidth}
+%     \centering
+%     \resizebox{\linewidth}{!}{
+%       \begin{tabular}{l c c c}
+%         \toprule
+%         \textbf{Method} & \textbf{Data Size} & \textbf{Overall}\textsuperscript{Edit} $\downarrow$ & \textbf{Overall}\textsuperscript{Cat.} $\downarrow$ \\
+%         \midrule
+%         Zero Shot   & --     & 0.346 & 0.259 \\
+%         SFT     & 5k     & 0.332 & 0.257 \\
+%         SFT    & 10k    & 0.353 & 0.167 \\
+%         SFT    & 15k    & 0.374 & 0.179 \\
+%         SFT    & 22k    & 0.375 &  0.166 \\
+%         \bottomrule
+%       \end{tabular}
+%     }
+%     \vspace{-2mm}
+%     \captionof{table}{Results with different data sizes.}
+%     \label{tab:sft_data_scale}
+%   \end{minipage}%
+%   \hfill
+%   \begin{minipage}{0.48\linewidth}
+%     \centering
+%     \resizebox{\linewidth}{!}{
+%       \begin{tabular}{l c c c}
+%         \toprule
+%         \textbf{Method} & \textbf{Data Type} & \textbf{Overall}\textsuperscript{Edit} $\downarrow$ & \textbf{Overall}\textsuperscript{Cat.} $\downarrow$ \\
+%         \midrule
+%         % Zero Shot     & --  & 0.346 & 0.259 \\
+%         SFT   & Real  &   0.337    &  0.279      \\
+%         SFT  & Synth  &   0.290    &  0.214     \\
+%         RL    & Real  &   0.285    &  0.164     \\
+%         RL   & Synth  &   0.262    &  0.156    \\
+%         RL  & Synth+Real & 0.273 &  0.155    \\ 
+%         \bottomrule
+%       \end{tabular}
+%     }
+%     \vspace{-2mm}
+%     \captionof{table}{Results with different data types.}
+%     \label{tab:synthetic_vs_pseudo}
+%   \end{minipage}
+% \vspace{-3mm}
+% \end{table}
+
+
+
+
+
+
+% \paragraph{Effect of Data Validity}
+% Table \ref{tab:sft_data_scale} highlights two important findings regarding data effectiveness and the limitations of the SFT paradigm. First, increasing the size of training data improves performance in terms of Overall\textsuperscript{Cat.}, which drops significantly from 0.257 at 5k to 0.166 at 22k, confirming the value of larger datasets in enhancing content categorization accuracy. However, the Overall\textsuperscript{Edit} metric shows a non-monotonic trend: while initial gains are observed from 5k to 10k, performance begins to degrade as the dataset size increases further. This suggests that beyond a certain point, the SFT paradigm struggles to maintain structural precision, possibly due to the lack of layout-aware supervision, revealing its limitations in scaling for layout-sensitive document parsing.
+
+
+
+
+
+
+% \paragraph{Effect of Data Construction Methods}
+% Table \ref{tab:synthetic_vs_pseudo} demonstrates that synthetic data serves as an effective complement to real-world data for document parsing. Under both SFT and RL settings, synthetic data consistently achieves lower scores in Overall\textsuperscript{Edit} and Overall\textsuperscript{Cat.}, indicating better structural alignment and parsing accuracy. Notably, combining real and synthetic data under the RL setup yields the best overall performance, especially in Overall\textsuperscript{Cat.} (0.155), suggesting that the structural precision of synthetic documents enhances the diversity and complexity offered by real-world samples. These results highlight the importance of leveraging both data sources to achieve robust and layout-aware document understanding.
+
+
+
+\section{Prompt Strategy for Parsing Tasks.}
+
+\textbf{Prompt Template} summarizes the prompt designs for two key parsing tasks: document parsing and table parsing. For document parsing, the prompts instruct the model to recognize visual regions and convert their contents into structured Markdown. This design ensures consistent region-level extraction across documents with diverse layouts.
+
+For table parsing, although the prompts are phrased differently, they share the same objective: transforming table content from images into HTML. This diversity encourages the model to generalize across variations in phrasing and reduces overfitting to a single instruction template. Notably, HTML is used here to match the evaluation format, but the resulting outputs can be easily converted to Markdown if needed for downstream use.
+
+\begin{figure}[t]
+  \centering
+  \includegraphics[width=\linewidth]{picture/promtx.pdf} % 改成你的路径
+  % \caption{Your caption here.}
+  \label{fig:myplot}
+\end{figure}
+
+\section{Case Analysis}
+
+Figure~\ref{fig:example1223} illustrates a progressive improvement in Markdown generation quality across different training strategies. The zero-shot model fails to capture key structural elements, omitting titles and producing redundant or incomplete content. With SFT, the model better identifies section headers and general layout but still suffers from symbol-level errors and repeated outputs. In contrast, the layout-aware RL model demonstrates the most accurate and coherent result, successfully preserving the document hierarchy and eliminating redundancy. This highlights the effectiveness of layout-aware rewards in guiding the model toward semantically and structurally faithful document parsing.
+
+
+\begin{figure}[htbp]
+  \centering
+  \resizebox{1\linewidth}{!}{%
+    \includegraphics{picture/case1_V4.pdf}
+  }
+  \caption{Comparison of four Markdown generation results on a single case, illustrating progressive improvement from direct inference to full reward integration.}
+  \label{fig:example1223}
+\end{figure}
+ 
+
+Infinity-Parser exhibits consistent improvements across a wide spectrum of document types, including academic papers, books, colorful textbooks, exam papers, magazines, government notices, newspaper articles, and PowerPoint-style slides. These gains are reflected in structural parsing, title and content recognition, formatting accuracy, and robustness to diverse visual layouts. As shown in Figures~\ref{fig:example123_academic} through~\ref{fig:example123_ppt}, we provide detailed visual comparisons with existing models, where Infinity-Parser consistently achieves superior results. These findings underscore the effectiveness and generalizability of our layout-aware RL approach across complex, real-world PDF formats.
+
+
+\begin{figure}[htbp]
+  \centering
+  \resizebox{1\linewidth}{!}{%
+    \includegraphics{picture/appendix_academic_literature.pdf}
+  }
+  \caption{Comparison of Markdown extraction from academic literature using different models. The figure shows the original PDF (a), ground truth annotations (b), and extraction results from three models: MinerU, GPT-4o, and Infinity-Parser (c–e). Infinity-Parser produces the most accurate output, correctly identifying titles and content while avoiding redundancy and omissions.}
+  \label{fig:example123_academic}
+\end{figure}
+
+
+
+\begin{figure}[htbp]
+  \centering
+  \resizebox{1\linewidth}{!}{%
+    \includegraphics{picture/appendix_book.pdf}
+  }
+  \caption{Comparison of Markdown extraction from a book-style PDF using different models. This figure displays the original document (a), human-annotated ground truth (b), and the extraction results from MinerU, GPT-4o, and Infinity-Parser (c–e). GPT-4o introduces multiple errors, such as incorrect headings, redundancy, and missing lines. MinerU retains unnecessary line breaks and repeated text. In contrast, Infinity-Parser correctly identifies the content structure, including titles and paragraphs, producing clean and accurate output.}
+  \label{fig:example123_book}
+\end{figure}
+
+
+
+ 
+
+
+\begin{figure}[htbp]
+  \centering
+  \resizebox{1\linewidth}{!}{%
+    \includegraphics{picture/appendix_exam_paper.pdf}
+  }
+  \caption{Comparison of Markdown extraction from an exam-style PDF. The figure presents the original exam document (a), ground truth annotations (b), and the extraction results from MinerU, GPT-4o, and Infinity-Parser (c–e). GPT-4o and MinerU both introduce redundant text and formatting errors, such as incorrect title levels and misplaced content. In contrast, Infinity-Parser accurately captures the heading hierarchy and structured list format, faithfully reproducing the content as intended in the original layout.}
+  \label{fig:example123_exam}
+\end{figure}
+
+
+\begin{figure}[htbp]
+  \centering
+  \resizebox{1\linewidth}{!}{%
+    \includegraphics{picture/appendix_magazine.pdf}
+  }
+  \caption{Comparison of Markdown extraction from a magazine-style PDF. The figure shows the original visually-rich page (a), ground truth annotations (b), and results from MinerU, GPT-4o, and Infinity-Parser (c–e). Due to the complex layout and dark background, GPT-4o suffers from significant formatting errors. Infinity-Parser accurately preserves the structural hierarchy and formatting, demonstrating robustness in handling stylized layouts.}
+  \label{fig:example123_magazine}
+\end{figure}
+
+
+
+
+\begin{figure}[htbp]
+  \centering
+  \resizebox{1\linewidth}{!}{%
+    \includegraphics{picture/appendix_newspaper.pdf}
+  }
+  \caption{ Comparison of Markdown extraction from a newspaper-style PDF. This figure presents the original densely formatted page (a), ground truth annotations (b), and the results from MinerU, GPT-4o, and Infinity-Parser (c–e). Due to the complex multi-column layout and title hierarchy, both MinerU and GPT-4o exhibit issues such as incorrect title levels, redundant content, and format errors. In contrast, Infinity-Parser accurately identifies the main title, maintains structural formatting, and preserves content integrity, demonstrating strong layout understanding in challenging document types.}
+  \label{fig:example123_newspaper}
+\end{figure}
+
+
+\begin{figure}[htbp]
+  \centering
+  \resizebox{1\linewidth}{!}{%
+    \includegraphics{picture/appendix_PPT2PDF.pdf}
+  }
+  \caption{Comparison of Markdown extraction from a PowerPoint-style PDF slide. The figure includes the original slide (a), human-annotated ground truth (b), and outputs from MinerU, GPT-4o, and Infinity-Parser (c–e). MinerU and GPT-4o both struggle with layout fidelity, introducing spacing and formatting errors. In contrast, Infinity-Parser preserves the dialogue structure and formatting accurately, demonstrating its capability to handle informal, visually decorated slides effectively.}
+  \label{fig:example123_ppt}
+\end{figure}
+
+
+\newpage
+
+
+
+
+% Table~\ref{tab:prompt_design} presents the prompt design used for two key parsing tasks: document parsing and table parsing. Both tasks employ a prompt variation strategy—randomly selecting one of several instructions during training. For document parsing, we guide the model to identify visual regions and convert their contents into structured Markdown, with each block encapsulated in <ele></ele> tags to preserve reading order. This ensures consistent region-wise extraction across diverse layouts.
+
+
+
+
+
+% \usepackage[most]{tcolorbox} % 高级彩色盒子
+% \usepackage{enumitem}        % 控制 enumerate/itemize 格式
+% \usepackage{geometry}
+% \geometry{a4paper, margin=1in}
+% \geometry{a4paper, margin=1in}
+
+
+
+% \begin{tcolorbox}[
+%   title={\textbf{Prompt Template}},
+%   colback=gray!5, colframe=gray!80,
+%   boxrule=0.5pt, arc=3pt, fonttitle=\small\bfseries
+% ]
+% \small
+% % You are a document parsing agent. Your task is to convert any input document into clean Markdown format.
+
+% \textbf{Document Parsing:}
+% % \begin{itemize}[leftmargin=2em]
+% You are an AI assistant specialized in converting PDF images to Markdown format. Please follow these instructions for the conversion:
+
+%         1. Text Processing:
+        
+%         - Accurately recognize all text content in the PDF image without guessing or inferring.
+        
+%         - Convert the recognized text into Markdown format.
+        
+%         - Maintain the original document structure, including headings, paragraphs, lists, etc.
+
+%         2. Mathematical Formula Processing:
+        
+%         - Convert all mathematical formulas to LaTeX format.
+        
+%         - Enclose inline formulas with $ $. For example: This is an inline formula $ E = mc^2 $
+        
+%         - Enclose block formulas with $$ $$ For example: $$ \frac{-b \pm \sqrt{b^2 - 4ac}}{2a} $$
+
+%         3. Table Processing:
+        
+%         - Convert tables to Markdown format.
+
+%         4. Figure Handling:
+        
+%         - Ignore figures content in the PDF image. Do not attempt to describe or convert images.
+
+%         5. Output Format:
+        
+%         - Ensure the output Markdown document has a clear structure with appropriate line breaks between elements.
+        
+%         - For complex layouts, try to maintain the original document's structure and format as closely as possible.
+
+%         Please strictly follow these guidelines to ensure accuracy and consistency in the conversion. Your task is to accurately convert the content of the PDF image into Markdown format without adding any extra explanations or comments.
+
+%   % \item Please transform the document's contents into Markdown format. First analyze the document layout, then identify and extract the content of each region. Output every region’s content wrapped in \verb|<ele></ele>| tags in reading order.
+
+%   % \item Extract the core information of the document and present it in markdown form. First analyze the document layout, then identify and extract the content of each region. Output every region’s content wrapped in \verb|<ele></ele>| tags in reading order.
+
+%   % \item Reconstruct the document in markdown format, paying attention to title hierarchy and list usage. First analyze the document layout, then identify and extract the content of each region. Output every region’s content wrapped in \verb|<ele></ele>| tags in reading order.
+
+%   % \item Parse the main body of the document and convert it to markdown. Requirements: Retain the original logical structure, use elements such as titles, lists, and quotes appropriately, and ensure that the output document is clear and easy to read. First analyze the document layout, then identify and extract the content of each region. Output every region’s content wrapped in \verb|<ele></ele>| tags in reading order.
+
+%   % \item Reorganize the document using markdown syntax, ensuring clear structure and logical coherence. First analyze the document layout, then identify and extract the content of each region. Output every region’s content wrapped in \verb|<ele></ele>| tags in reading order.
+
+% % \end{itemize}
+
+
+% \textbf{Table Parsing:}
+% \begin{enumerate}[leftmargin=2em]
+%   \item Please encode the table from the image into HTML format.
+%   \item Render the table in the image as HTML code, please.
+%   \item Please transform the table from the image into HTML format.
+%   \item Convert the image's table data into the HTML structure.
+%   \item Transform the image's table into the HTML format, please.
+%   \item Convert the table found in the image into HTML format.
+% \end{enumerate}
+
+
+
+% \textbf{Example Input:} A PDF with headings, paragraphs, and a table.  
+
+% \textbf{Example Output:} Markdown reconstruction with proper hierarchy.
+% \end{tcolorbox}
+
+
+
+
+
+
+
+% \begin{table}[h]
+% \centering
+% \small
+% \begin{tabular}{p{0.2\linewidth} | p{0.72\linewidth}}
+% \toprule
+% \textbf{Prompt Type} & \textbf{Prompt Content} \\
+% \midrule
+
+% \textbf{Document Parsing} & 
+
+% \texttt{Please transform the document's contents into Markdown format. First analyze the document layout, then identify and extract the content of each region. Output every region’s content wrapped in <ele></ele> tags in reading order.} \\
+
+% \\
+
+% & \texttt{Extract the core information of the document and present it in markdown form. First analyze the document layout, then identify and extract the content of each region. Output every region’s content wrapped in <ele></ele> tags in reading order.} \\
+
+% \\
+
+% & \texttt{Reconstruct the document in markdown format, paying attention to title hierarchy and list usage. First analyze the document layout, then identify and extract the content of each region. Output every region’s content wrapped in <ele></ele> tags in reading order.} \\
+
+% \\
+
+% & \texttt{Task: Parse the main body of the document and convert it to markdown. Requirements: Retain the original logical structure, use elements such as titles, lists, and quotes appropriately, and ensure that the output document is clear and easy to read. First analyze the document layout, then identify and extract the content of each region. Output every region’s content wrapped in <ele></ele> tags in reading order.} \\
+
+% \\
+
+% & \texttt{Reorganize the document using markdown syntax, ensuring clear structure and logical coherence. First analyze the document layout, then identify and extract the content of each region. Output every region’s content wrapped in <ele></ele> tags in reading order.} \\
+
+
+% \midrule
+
+% \textbf{Table Parsing} & 
+% \texttt{Please encode the table from the image into HTML format.} \\
+% & \texttt{Render the table in the image as HTML code, please.} \\
+% & \texttt{Please transform the table from the image into HTML format.} \\
+% & \texttt{Convert the image's table data into the HTML structure.} \\
+% & \texttt{Transform the image's table into the HTML format, please.} \\
+% & \texttt{Convert the table found in the image into HTML format.} \\
+% \bottomrule
+% \end{tabular}
+% \vspace{3mm}
+% \caption{Prompt design for two parsing tasks.}
+% \label{tab:prompt_design}
+% \end{table}
+
+
+
+
+% \begin{tcolorbox}[
+%   title={\textbf{Prompt Template: Document Parsing}},
+%   colback=gray!5, colframe=gray!80,
+%   boxrule=0.5pt, arc=3pt, fonttitle=\small\bfseries
+% ]
+% \small
+% \textbf{Prompt Variants:}
+% \begin{enumerate}[label=\textbf{Prompt \arabic*:}, leftmargin=2em]
+%   \item \\
+%   \texttt{Please transform the document's contents into Markdown format. First analyze the document layout, then identify and extract the content of each region. Output every region’s content wrapped in <ele></ele> tags in reading order.}
+  
+%   \item \\
+%   \texttt{Extract the core information of the document and present it in markdown form. First analyze the document layout, then identify and extract the content of each region. Output every region’s content wrapped in <ele></ele> tags in reading order.}
+  
+%   \item \\
+%   \texttt{Reconstruct the document in markdown format, paying attention to title hierarchy and list usage. First analyze the document layout, then identify and extract the content of each region. Output every region’s content wrapped in <ele></ele> tags in reading order.}
+  
+%   \item \\
+%   \texttt{Task: Parse the main body of the document and convert it to markdown. Requirements: Retain the original logical structure, use elements such as titles, lists, and quotes appropriately, and ensure that the output document is clear and easy to read. First analyze the document layout, then identify and extract the content of each region. Output every region’s content wrapped in <ele></ele> tags in reading order.}
+  
+%   \item \\
+%   \texttt{Reorganize the document using markdown syntax, ensuring clear structure and logical coherence. First analyze the document layout, then identify and extract the content of each region. Output every region’s content wrapped in <ele></ele> tags in reading order.}
+% \end{enumerate}
+% \end{tcolorbox}

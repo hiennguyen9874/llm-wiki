@@ -1,0 +1,134 @@
+\section{Methodology}
+\label{sec:methodology}
+
+In this section, we present the overall design of the GLM-OCR framework, including its architectural components, task formulation, and training strategy. We first introduce the core design motivations that guide our system, followed by a detailed description of the model architecture and task-specific pipelines. Finally, we elaborate on the multi-stage training recipe that progressively aligns visual and language representations, enhances structured generation ability, and optimizes task performance through supervised and reinforcement learning.
+
+\begin{figure}[!h]
+\centering
+\includegraphics[width=\linewidth]{assets/model.pdf}
+\caption{Overall architecture and workflow of the GLM-OCR framework. This system supports two primary tasks: Document Parsing (Task 1), which combines layout detection and region cropping to produce structured Markdown and JSON outputs; and Key Information Extraction (Task 2), which directly extracts structured JSON data based on input visual prompts.}
+\label{fig:eval_comparison}
+\end{figure}
+
+\subsection{Model Overview}
+
+To provide a comprehensive understanding of the GLM-OCR architecture, we first discuss the primary design rationale behind our approach, followed by a detailed description of the model structure and its execution across different tasks.
+
+\paragraph{Motivation.} Three fundamental observations and goals in document understanding inform our architectural design:
+
+\textbf{1. Integration of Layout Analysis in Document Parsing:} 
+In practice, we observe that small-scale models are highly susceptible to hallucinations and repetitive generation when processing documents with complex layouts. By explicitly introducing a layout analysis module prior to recognition, we decompose complex layout structures into multiple simpler sub-problems, significantly enhancing the overall performance and stability of the model. Furthermore, partitioning large, complex pages into smaller, independent regions allows for parallel recognition, which substantially improves inference efficiency.
+
+\textbf{2. Incorporation of Key Information Extraction (KIE):} 
+Document parsing and KIE can both be formulated as structured generation problems conditioned on visual inputs. While document parsing focuses on reconstructing the full structural representation of a document (e.g., Markdown or JSON), KIE aims to generate task-specific structured fields from the same visual source. From a modeling perspective, both tasks require:
+(i) robust visual-text alignment,
+(ii) structural reasoning over layout and semantic regions, and
+(iii) the ability to generate well-formed structured outputs.
+
+Therefore, instead of treating them as isolated pipelines, we unify them under a shared generative framework. This design encourages the model to learn generalizable document-level representations while leveraging task-specific prompts to control output formats. Such a unified formulation improves parameter efficiency and promotes cross-task knowledge transfer without introducing additional architectural complexity.
+
+\textbf{3. Adoption of Multi-Token Prediction (MTP):} 
+Standard LLM decoding generates one token at a time, which can be computationally expensive and slow for long-form document generation. We employ Multi-token Prediction (MTP) to address two primary challenges:
+\begin{itemize}
+    \item \textit{Inference Speed:} By predicting $k$ tokens simultaneously, we significantly reduce the total number of decoding steps.
+    \item \textit{Contextual Modeling:} MTP encourages the model to plan further ahead. This is particularly beneficial in OCR tasks where structural tokens (e.g., table tags or Markdown syntax) exhibit strong local dependencies. Consequently, this approach yields fewer "broken" tags and produces more robust structured outputs.
+\end{itemize}
+
+\paragraph{Architecture.} 
+As illustrated in Figure~\ref{fig:eval_comparison}, the system is centered around the GLM-OCR Core, which follows a vision-language generative paradigm. The core model consists of:
+
+\begin{itemize}
+    \item \textbf{Vision Encoder (CogViT, 400M parameters):} Responsible for extracting high-level visual representations from document images.
+    \item \textbf{LLM Decoder (GLM, 500M parameters):} An autoregressive language model that generates structured textual outputs conditioned on visual embeddings and textual prompts.
+\end{itemize}
+
+The visual features produced by the encoder are projected into the language embedding space and fed into the decoder as prefix tokens. During decoding, the model predicts structured outputs (e.g., Markdown or JSON) in an autoregressive manner.
+
+To improve decoding efficiency and structural consistency, we introduce a Multi-Token Prediction (MTP) mechanism. In addition to the main prediction head, we attach $k$ shared-parameter auxiliary heads that simultaneously predict the next $k$ tokens. These heads share the same parameters but are trained to model different future offsets. During inference, this allows the model to generate multiple tokens per step, reducing latency while encouraging better local structural coherence. 
+
+The framework supports two primary tasks under a unified generative formulation:
+
+\textbf{Task 1: Document Parsing.} 
+
+Given a document image, the pipeline first performs layout analysis using PPDocLayoutV3, which decomposes the document into semantically coherent regions (e.g., paragraphs, tables, formulas). Each region is independently processed by the GLM-OCR Core.
+
+The generated regional outputs are subsequently aggregated by a Merge \& Post Process module, which restores the reading order and produces structured outputs in Markdown and JSON formats. This modular design reduces hallucination risks, improves robustness to complex layouts, and enables parallel processing of document regions.
+
+\textbf{Task 2: Key Information Extraction.} 
+
+For KIE, the full document image is directly fed into the GLM-OCR Core together with a task-specific textual prompt (e.g., instructing the model to extract invoice fields in JSON format). Unlike document parsing, this task does not rely on explicit layout cropping. Instead, the model learns to attend to relevant visual regions implicitly under prompt guidance.
+
+Both tasks are thus unified as conditional structured generation problems, differing only in preprocessing strategy and prompt specification.
+
+
+\subsection{Training Recipe}
+
+The training process of GLM-OCR is divided into several distinct stages, systematically progressing from vision-language alignment to task-specific refinement and reinforcement learning. The detailed training recipe, including the data types, learning rates, and training scale for each phase, is summarized in Table \ref{tab:training_recipe}.
+
+\begin{table}[htbp]
+\centering
+\caption{Training Recipe for GLM-OCR across different stages.}
+\label{tab:training_recipe}
+\resizebox{\textwidth}{!}{
+\begin{tabular}{lll}
+\toprule
+\textbf{Stage} & \textbf{Phase} & \textbf{Data Types} \\
+\midrule
+Stage 1 & Vision Encoder Training & Image-text pairs, Grounding / Retrieval data \\
+\addlinespace
+Stage 2.1 & Pretrain & Image-text pairs, Document parsing, Grounding, VQA \\
+\addlinespace
+Stage 2.2 & Pretrain with MTP & Document parsing, Grounding, VQA \\
+\addlinespace
+Stage 3 & SFT with MTP & Text / Formula / Table recognition, KIE \\
+\addlinespace
+Stage 4 & RL & Text / Formula / Table recognition, KIE \\
+\bottomrule
+\end{tabular}
+}
+\end{table}
+
+\paragraph{Stage 1: Vision Encoder Training.} We first train the vision encoder using large-scale image-text and grounding data to establish strong visual representation capabilities. In this stage, the model is trained on a dataset scaled up to tens of billions of image-text pairs. The training incorporates a dual objective of MIM and CLIP tasks. Furthermore, we employ knowledge distillation from an in-house ViT with a larger parameter size to further enhance the encoder's feature extraction capability.
+
+\paragraph{Stage 2: Vision-Language Pretraining.} In Stage 2.1, we append GLM-0.5B to the Vision Transformer (ViT) and jointly pretrain the full model on image-text, document parsing, grounding, and VQA data to align multimodal representations. In Stage 2.2, we introduce the Multi-Token Prediction (MTP) objective to adapt the decoder for efficient structured generation.
+
+\paragraph{Stage 3: Supervised Fine-Tuning (SFT).} In this stage, we fine-tune the model on curated OCR datasets covering text recognition, formula transcription, table structure recovery, and key information extraction. The objective is to specialize the model for high-precision structured outputs under real-world document distributions. Multi-Token Prediction remains enabled to ensure consistency between training and inference. The data mixture is balanced to prevent overfitting to any single sub-task and to maintain cross-task generalization.
+
+\paragraph{Stage 4: Reinforcement Learning (RL).}
+
+The final stage applies GRPO~\cite{shao2024deepseekmath} to improve structured output reliability and task-specific accuracy. Training samples are generated via rollout from the SFT model, evaluated automatically, and stratified by difficulty to construct a graded optimization set.
+
+The reward function is task-aware and integrates both accuracy-based metrics and structural validation signals. The design is summarized in Table~\ref{tab:rl_reward}.
+
+\begin{table}[htbp]
+\centering
+\caption{Reward function design in Stage 4 RL training.}
+\label{tab:rl_reward}
+\resizebox{\textwidth}{!}{
+\begin{tabular}{lll}
+\toprule
+\textbf{Task} & \textbf{Primary Accuracy Reward} & \textbf{Additional Constraints} \\
+\midrule
+Text Recognition 
+& Normalized Edit Distance 
+& Repetition penalty \\
+
+Formula Recognition 
+& CDM score 
+& Structural validity check \\
+
+Table Recognition 
+& TEDS score 
+& Tag closure verification, structural parsing \\
+
+Key Information Extraction (KIE) 
+& Field-level F1 score 
+& JSON parse validation, missing/duplicate field penalty \\
+
+\midrule
+\multicolumn{3}{l}{\textbf{Global Regularization:} Repetition ratio penalty, malformed structure penalty}
+\\
+\bottomrule
+\end{tabular}
+}
+\end{table}

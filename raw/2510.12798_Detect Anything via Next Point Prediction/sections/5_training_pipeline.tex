@@ -1,0 +1,88 @@
+\section{Training Pipelines}
+We employ a two-stage training strategy, depicted in Figure \ref{fig:training_pipelines}. In the first stage, supervised fine-tuning (SFT) is performed on 22 million annotated samples using a teacher-guided approach, enabling the model to acquire fundamental coordinate prediction capabilities. In the second stage, we apply reinforcement learning based on the GRPO framework, which further refines the model's performance by combining geometry-aware rewards with behavior-aware optimization, thus addressing the limitations of the SFT stage and enhancing overall prediction quality.
+
+\subsection{Stage1: Supervised Fine-Tuning}
+Since the model predicts coordinates in the form of quantized tokens ranging from 0 to 999, it must first learn how to accurately map these discrete values back to continuous pixel locations within the image. This corresponds to a 1,000 way classification problem over spatial positions, which requires substantial supervision to achieve reliable performance. Therefore, we begin training with a teacher-guided supervised fine-tuning stage on large-scale annotated data, enabling the model to acquire the fundamental ability to interpret and predict spatial coordinates.
+
+We adopt the following online strategy to construct SFT conversation data:
+\vspace{-1em}
+\begin{itemize}
+    \item \textbf{Conversation Templates:} For each training task, we construct multiple question templates with GPT-4o to mimic real user scenarios. These templates include placeholders for \textbf{PHRASE} keywords, which are replaced with actual phrases from the data during training.
+    \item \textbf{Multi-Phrase Queries:} In practical settings, users may wish to detect multiple object categories within a single image. To reflect this, if an image contains $N$ annotated phrases, we randomly sample between 1 and $N$ phrases to form the training query.
+    \item \textbf{Visual Prompting Training:} Following T-Rex2~\cite{jiang2025t}, for each training sample consisting of an image and its annotated category-specific bounding boxes, we simulate visual prompting scenarios. Specifically, for each category present in the image, we randomly sample between 1 and $N$ bounding boxes, where $N$ denotes the maximum number of annotated instances for that category. These sampled boxes are treated as visual prompts and converted into quantized coordinate tokens consistent with our coordinate formulation. The model is then instructed, through natural language queries, to detect all objects of the same category as indicated by the given visual prompts.
+
+    % \item \textbf{Negative Prompt Sampling:} To equip the model with the ability to reject outputting coordinates for non-existent objects, thereby mitigating hallucinations, we integrate negative prompt sampling. We construct a vocabulary of category names from our detection datasets. During training, in addition to the ground-truth categories of the current image, we randomly sample several negative categories from this vocabulary. For these negative prompts, the model is trained to output 'None' as the coordinate sequence.
+\end{itemize}
+
+\noindent We adopt the standard cross-entropy loss for training. The model is trained on 8 nodes, each equipped with 8 A100 GPUs, and the total training time is approximately 8 days. All model parameters are updated during training. We use separate learning rates for different components: 2e-6 for the vision encoder, and 2e-5 for both the projection layer and the LLM. Optimization is performed using the AdamW~\cite{loshchilov2017adamw} optimizer with a learning rate warm-up of 3\% and a weight decay of 0.01. Following the architecture of Qwen2.5-VL, Rex-Omni also employs a native resolution Vision Transformer as its vision encoder. We constrain the number of input pixels to range from a minimum of 16 × 28 × 28 to a maximum of 2560 × 28 × 28. Given a ViT patch size of 28, this limits the number of image tokens between 16 and 2560.
+
+\subsection{Stage2: Reinforcement Post-Training}
+
+\begin{figure*}[t]
+    \centering
+    \includegraphics[width=\textwidth]{figures/pipeline.pdf}
+    \caption{Overview of Rex-Omni's two-stage training pipeline. The first stage involves supervised fine-tuning (SFT) on 22 million samples to establish fundamental coordinate prediction capabilities. This is followed by GRPO-based reinforcement post-training, which leverages geometry-aware rewards and behavior-aware optimization to refine precision and correct SFT-induced behavioral deficiencies.}
+    \label{fig:training_pipelines}
+\end{figure*}
+
+\subsubsection{Limitations of SFT}
+\label{sec:sft_limitation}
+While SFT allows the model to quickly acquire basic coordinate prediction capabilities by leveraging massive amounts of labeled data, it presents two key limitations: 
+
+\textbf{Geometric Discretization Issue.} Using cross-entropy loss for coordinate prediction inherently introduces a discretization problem. Coordinates are represented as categorical tokens (from \texttt{<0>} to \texttt{<999>}), and the model is trained to classify each token exactly. However, this formulation is misaligned with the continuous nature of geometry in spatial tasks. For example, if the ground-truth token is \texttt{<33>} but the model predicts \texttt{<32>}, the difference in pixel space may be negligible, yet the CE loss penalizes it as a completely incorrect prediction. Conversely, if the ground truth is \texttt{<0><0><100><100>} but the model predicts \texttt{<0><0><100><1000>}, only one token is misclassified. In this case, the CE loss remains relatively small, even though the resulting bounding box is severely misaligned and the geometric error is substantial.
+
+\textbf{Behavioral Regulation Deficiency.} In the SFT stage, teacher-forced training relies on full ground-truth sequences for efficient parallel learning. This setup fixes the number of predicted boxes to the ground-truth count, preventing the model from autonomously learning how many objects to predict. Consequently, during inference the model often fails to regulate output quantity, leading to two typical errors: (1) predicting fewer boxes than required (missed detections), or (2) predicting more boxes than necessary (repetitive detections with identical or slightly shifted coordinates). These behaviors reflect the model’s lack of effective output regulation.
+
+\subsubsection{GRPO-based Post-Training}
+To address the geometry and behavior-related limitations of SFT, we adopt a reinforcement post-training strategy based on GRPO~\cite{deepseekmath}. GRPO enables the model to explore its own output space and improve through reward-guided optimization. Given an image and a question $(I, x)$, the model samples a group of $G$ complete responses $\{o_1, o_2, \dots, o_G\}$ from the current policy $\pi_\theta$. Each response consists of a full reasoning trace and a final set of predicted coordinates or boxes, depending on the task. For each output $o_i$, we compute a scalar reward $r_i$, which is normalized across the group to obtain the \textit{relative advantage}:
+
+\begin{equation}
+A_i = \frac{r_i - \mathrm{mean}(r_1, \dots, r_G)}{\mathrm{std}(r_1, \dots, r_G)}.
+\end{equation}
+
+\noindent These group-based advantages provide fine-grained credit assignment among diverse outputs, encouraging the model to prefer more accurate and non-redundant predictions. The GRPO objective is formulated as a clipped policy gradient with KL regularization:
+
+\begin{equation}
+\mathcal{J}_{\text{GRPO}}(\theta) = \frac{1}{G} \sum_{i=1}^G \frac{1}{|o_i|} \sum_{t=1}^{|o_i|} \left[\min \left(\rho_{i,t} \hat{A}_{i,t}, \text{clip}(\rho_{i,t}, 1 - \epsilon, 1 + \epsilon)\hat{A}_{i,t} \right) - \beta \mathbb{D}_{\text{KL}}[\pi_\theta \| \pi_{\text{ref}} \right],
+\end{equation}
+
+\noindent where $\rho_{i,t}$ is the importance sampling ratio, and $\pi_{\text{ref}}$ is the model frozen after the SFT stage. The KL penalty ensures training stability by preventing excessive divergence from the reference model.
+
+This framework naturally mitigates both geometry and behavior limitations: 1) rewards can be made \textit{geometry-aware}, such as IoU or L1 distance metrics, directly encouraging accurate spatial alignment beyond token-level correctness; and 2) by allowing \textit{variable-length outputs}, the model can learn to avoid repetition or over-generation. Repetitive or redundant predictions receive lower rewards, leading to more concise and behaviorally aligned responses.
+
+\subsubsection{Geometry-aware Rewards}
+
+To provide informative feedback on the spatial quality of predictions, we design three geometry-aware reward functions tailored to different tasks: box IoU reward, point-in-mask reward, and point-in-box reward. These reward types reflect the structural correctness of the predicted outputs with respect to ground-truth annotations.
+
+\textbf{Box IoU Reward.} This reward is applied to tasks requiring bounding box predictions, including object detection, grounding, referring, and OCR. The reward encourages both accurate localization and correct object-category alignment.
+
+\noindent Given a set of predicted boxes $\hat{B} = \{\hat{b}_1, \dots, \hat{b}_m\}$ and the ground-truth boxes $B^* = \{b^*_1, \dots, b^*_n\}$, we perform a ground-truth-guided matching. For each ground-truth box $b^*_j$, we find the predicted box $\hat{b}_i$ that maximizes the IoU with $b^*_j$:
+
+\begin{equation}
+\text{IoU}(b^*_j, \hat{b}_i) = \max_{\hat{b}_i \in \hat{B}} \text{IoU}(b^*_j, \hat{b}_i).
+\end{equation}
+
+\noindent If the category label of $\hat{b}_i$ matches that of $b^*_j$, we assign the IoU value as the reward $r_j$ for that ground-truth box. Otherwise, $r_j = 0$. Let $R = \{r_1, \dots, r_n\}$ be the reward set for all GT boxes. We then compute recall and precision as follows:
+
+\begin{equation}
+\text{Recall} = \frac{\sum_{j=1}^{n} r_j}{n}, \quad
+\text{Precision} = \frac{\sum_{j=1}^{n} r_j}{m}, \quad
+r^{\text{IoU}} = \frac{2 \cdot \text{Precision} \cdot \text{Recall}}{\text{Precision} + \text{Recall} + \epsilon},
+\end{equation}
+
+\noindent where $\epsilon$ is a small constant to prevent division by zero. This formulation rewards both spatial accuracy and label correctness. It penalizes unmatched or misclassified predictions and balances over- and under-prediction through the F1-style reward signal.
+
+\textbf{Point-in-Mask Reward.} This reward is applied to tasks where the model localizes objects via point predictions, such as pointing-based detection, grounding, and referring. It evaluates whether a predicted point lies within the object mask.
+
+\noindent Given a set of ground-truth bounding boxes $B^* = \{b^*_1, \dots, b^*_n\}$, we apply SAM to extract a binary mask $M_j$ for each ground-truth box $b^*_j$. Let $\hat{P} = \{\hat{p}_1, \dots, \hat{p}_m\}$ denote the predicted points, each associated with a category label. For each ground-truth mask $M_j$, we determine whether there exists a predicted point $\hat{p}_i$ that lies inside $M_j$:
+\begin{equation}
+\exists \hat{p}_i \in \hat{P},\quad \text{s.t.} \quad \hat{p}_i \in M_j.
+\end{equation}
+
+\noindent If such a point exists and its associated category label matches that of $M_j$, we assign a reward of 1 to the corresponding ground-truth instance; otherwise, the reward is 0. Precision, recall, and F1 reward are then computed using the same formulation as in the Box IoU Reward.
+
+\textbf{Point-in-Box Reward.} This reward is specifically designed for the GUI Grounding task, where the model is expected to predict a point indicating the clickable position (e.g., a button) on a graphical user interface. If the predicted point falls within the ground-truth bounding box of the target GUI element, a reward of 1 is assigned; otherwise, the reward is 0. This simple binary reward effectively encourages precise point-level interaction behavior required in GUI scenarios.
+
+\subsubsection{Implementation Details}
+
+We sample 66K data from the SFT dataset to serve as training data for the GRPO stage. We reuse the same dialogue templates from the SFT phase. The GRPO training is conducted on 8 A100 GPUs for approximately 24 hours. We set the rollout size to 8, the KL penalty coefficient $\beta$ to 0.01, and use a batch size of 64. All model parameters are updated during this stage.

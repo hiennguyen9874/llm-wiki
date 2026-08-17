@@ -1,0 +1,203 @@
+\documentclass[11pt, a4paper]{article}
+
+\usepackage[margin=1in]{geometry}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{lmodern}
+\usepackage[dvipsnames, table]{xcolor}     %
+\usepackage{pifont}   %
+\usepackage{multirow}
+\usepackage{booktabs} %
+\usepackage{siunitx}  %
+\usepackage{fancyvrb}
+\usepackage{microtype}
+\usepackage{placeins}
+
+\emergencystretch=1em
+\definecolor{tiiPurple}{RGB}{122, 0, 255}
+\usepackage[x11names]{xcolor} 
+\usepackage{hyperref}
+\usepackage{subcaption} %
+\hypersetup{
+    colorlinks=true,
+    linkcolor=tiiPurple,
+    urlcolor=tiiPurple,
+    citecolor=tiiPurple
+}
+
+\newcommand{\purplecheck}{{\textcolor{tiiPurple}{\checkmark}}}
+\newcommand{\purplecross}{{\textcolor{tiiPurple}{\ding{55}}}}
+\usepackage[most]{tcolorbox}
+\usepackage{graphicx}
+\usepackage{tabularx}
+\usepackage[useregional]{datetime2}
+\DTMsetdatestyle{iso}  %
+\usepackage[normalem]{ulem}
+\setlength{\intextsep}{5pt}
+\usepackage{wrapfig}
+\usepackage{titlesec}
+\usepackage{adjustbox}
+\usepackage{enumitem}
+\usepackage{booktabs}
+\usepackage{multirow}
+\usepackage{array}
+\usepackage{float}
+\usepackage{caption}
+\usepackage{amsfonts}       %
+\usepackage{amsmath, amssymb}       %
+\usepackage{nicefrac}       %
+\usepackage{hyperref}       %
+\usepackage{url}            %
+\usepackage[utf8]{inputenc} %
+\usepackage[T1,T5]{fontenc}    %
+\usepackage{natbib}
+\usepackage{graphicx}
+\usepackage{enumitem}
+\usepackage{makecell}
+
+
+\definecolor{bestcolor}{RGB}{220,255,220}
+\usepackage{CJKutf8}
+\usepackage[para]{threeparttable}
+\newcommand{\best}[1]{\cellcolor{bestcolor}\textbf{#1}}
+
+\usepackage{xspace}
+
+\makeatletter
+\DeclareRobustCommand\onedot{\futurelet\@let@token\@onedot}
+\def\@onedot{\ifx\@let@token.\else.\null\fi\xspace}
+
+\def\eg{\emph{e.g}\onedot} \def\Eg{\emph{E.g}\onedot}
+\def\ie{\emph{i.e}\onedot} \def\Ie{\emph{I.e}\onedot}
+\def\cf{\emph{cf}\onedot} \def\Cf{\emph{Cf}\onedot}
+\def\etc{\emph{etc}\onedot} \def\vs{\emph{vs}\onedot}
+\def\wrt{w.r.t\onedot} \def\dof{d.o.f\onedot}
+\def\iid{i.i.d\onedot} \def\wolog{w.l.o.g\onedot}
+\def\etal{\emph{et al}\onedot}
+\makeatother
+
+\titleformat{\section}
+  {\normalfont\Large\bfseries}{\thesection.}{1em}{}
+\usepackage{fancyhdr}
+\pagestyle{fancy}
+\fancyhf{}  %
+\fancyhead[c]{\footnotesize Falcon-Perception}  %
+\renewcommand{\headrulewidth}{0.4pt}  %
+\thispagestyle{empty}
+\cfoot{\thepage}
+
+\begin{document}
+\noindent
+\begin{minipage}[t]{0.49\textwidth}
+    \vspace{-4.2em}
+    \includegraphics[height=1.3cm,width=2.5cm]{figures/tii_logo.png}  %
+\end{minipage}%
+\hfill
+\begin{minipage}[t]{0.49\textwidth}
+    \vspace{-1.5em}
+\end{minipage}
+\vspace{-0.5em}
+\hrule
+\vspace{3em}
+
+{\noindent \huge \textbf{\textcolor{tiiPurple}{Falcon Perception}}}
+
+\noindent
+
+
+
+\vspace{1.2em}
+\noindent\href{https://github.com/tiiuae/Falcon-Perception}{https://github.com/tiiuae/Falcon-Perception}
+
+\vspace{0.5em}
+
+{\noindent \small Falcon Vision Team, TII}
+
+
+\vspace{1.5em}
+
+
+    \noindent Perception-centric systems are typically implemented with a modular encoder-decoder pipeline: a vision backbone for feature extraction and a separate decoder (or late-fusion module) for task prediction. This raises a central question: \emph{is this architectural separation essential or can a single early-fusion stack do both perception and task modeling at scale?} We introduce \textbf{Falcon Perception}, a unified dense Transformer that processes image patches and text tokens in a shared parameter space from the first layer, using a hybrid attention pattern (bidirectional among image tokens, causal for prediction tokens) to combine global visual context with autoregressive, variable-length instance generation. To keep dense outputs practical, Falcon Perception retains a lightweight token interface and decodes continuous spatial outputs with specialized heads, enabling parallel high-resolution mask prediction.
+
+    Our design promotes simplicity: we keep a single scalable backbone and shift complexity toward data and training signals, adding only small heads where outputs are continuous and dense. On SA-Co, Falcon Perception improves mask quality to 68.0 Macro-F$_1$ compared to 62.3 of SAM3. We also introduce \textbf{PBench}, a benchmark targeting compositional prompts (OCR, spatial constraints, relations) and dense long-context regimes, where the model shows better gains. Finally, we extend the same early-fusion recipe to \textbf{Falcon OCR}: a compact 300M-parameter model which attains 80.3\% on olmOCR and 88.64 on OmniDocBench.
+
+
+
+
+\tableofcontents
+\clearpage
+\begin{figure}
+    \centering
+    \includegraphics[width=\linewidth, trim=0 2cm 0 2cm, clip]{figures/architecture/arch.pdf}
+    \caption{\textbf{Falcon Perception Architecture:} A single autoregressive Transformer processes a unified sequence of image patches, text, and task tokens. The model predicts object properties in a fixed order: \texttt{<coord>} $\to$ \texttt{<size>} $\to$ \texttt{<segm>}. Bounding boxes' coordinate and size tokens are decoded via specialized heads and re-injected as Fourier features to condition subsequent steps. High resolution segmentation masks are generated by a dot product between the \texttt{<segm>} token of each instance and the upsampled image features, leveraging the early-fusion backbone for instance-aware localization. Visual data flow is shown in \textcolor{Green}{green}, coordinates in \textcolor{blue}{blue}, size in \textcolor{orange}{orange}, and segmentation in \textcolor{BlueViolet}{purple.}}
+    \label{fig:arch}
+
+\end{figure}
+
+
+
+\input{sections/introduction}
+
+
+\input{sections/arch}
+
+\input{sections/pbench}
+
+
+\input{sections/training}
+
+\input{sections/results}
+
+
+\input{sections/ocr}
+
+
+\input{sections/discussion}
+
+\newpage
+
+
+\section*{Contributions}
+
+\noindent\textbf{Architecture design:}
+Yasser Dahou, Phúc H. Lê Kh\'\abreve{}c, Sanath Narayan, Sofian Chaybouti
+
+\noindent\textbf{Perception training and ablations:}
+Sanath Narayan, Yasser Dahou
+
+
+\noindent\textbf{Distillation:}
+Sofian Chaybouti
+
+\noindent\textbf{Data:}
+Yasser Dahou, Sanath Narayan, Ankit Singh, Wamiq Reyaz Para, Ngoc Dung Huynh
+
+
+\noindent\textbf{Evaluation and benchmarks:}
+Phúc H. Lê Kh\'\abreve{}c, Yasser Dahou, Sanath Narayan, Ankit Singh, Wamiq Reyaz Para, Ngoc Dung Huynh, Sofian Chaybouti
+
+\noindent\textbf{OCR training and ablations:}
+ Ankit Singh, Wamiq Reyaz Para, Ngoc Dung Huynh
+
+\noindent\textbf{Codebase and infrastructure:}
+Phúc H. Lê Kh\'\abreve{}c, Sanath Narayan, Ankit Singh, Aviraj Bevli
+
+\noindent\textbf{Integrations:}
+Aviraj Bevli, Phúc H. Lê Kh\'\abreve{}c, Sanath Narayan, Ankit Singh, Yasser Dahou
+
+\noindent\textbf{Leadership:}
+Yasser Dahou, Hakim Hacid
+
+\section*{Acknowledgments}
+We would like to thank Mouad Yagoubi, Ahmed AlHammadi, and Qiyang Zhao for reviewing the technical report. We also thank Mikhail Lubinets for setting up the demonstration infrastructure, and Younes Belkada for his valuable insights regarding llama.cpp and MLX integrations.
+
+
+\vspace{4em}
+\bibliographystyle{iclr2025_conference}
+\bibliography{references}
+
+\clearpage
+\appendix
+\input{sections/appendix}
+
+\end{document}

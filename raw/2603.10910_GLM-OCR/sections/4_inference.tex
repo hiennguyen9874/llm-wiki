@@ -1,0 +1,32 @@
+\section{Inference and Deployment}
+\label{sec:inference_deployment}
+
+\subsection{Local Deployment and SDK Integration}
+With a compact parameter scale of 0.9B, GLM-OCR is highly optimized for localized inference and resource-constrained environments. The model supports efficient deployment across mainstream frameworks, including vLLM, SGLang, and Ollama. To facilitate seamless integration, a comprehensive SDK is provided for end-to-end document parsing workflows~\footnote{https://github.com/zai-org/GLM-OCR}.
+
+To assess operational efficiency, we conducted a comparative throughput analysis of various OCR pipelines. Under identical hardware configurations and testing conditions (single replica, single concurrency), we evaluated the parsing and Markdown-export speeds for both image and PDF inputs. As demonstrated in Table~\ref{tab:ocr_throughput}, GLM-OCR outperforms comparable methods, achieving a throughput of 1.86 pages/second for PDF documents and 0.67 images/second for standalone image files.
+
+\begin{table}[htbp]
+    \centering
+    \caption{Throughput comparison of different OCR models for Image and PDF inputs.}
+    \label{tab:ocr_throughput}
+    \begin{tabular}{lcc}
+        \toprule
+        \multirow{2}{*}{\textbf{Model}} & \textbf{Image Input} & \textbf{PDF Input} \\
+        & \textbf{(pages / s)} & \textbf{(pages / s)} \\
+        \midrule
+        GLM-OCR & \textbf{0.67} & \textbf{1.86} \\
+        PaddleOCR-VL-1.5 & 0.39 & 1.22 \\
+        Deepseek-OCR2 & 0.32 & $-$ \\
+        MinerU2.5 & 0.18 & 0.48 \\
+        dots.ocr & 0.10 & $-$ \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+\subsection{Model-as-a-Service (MaaS) API}
+For cloud-based deployments, GLM-OCR is accessible via a MaaS API
+~\footnote{https://docs.bigmodel.cn/cn/guide/models/vlm/glm-ocr}. The service employs a highly cost-effective, unified pricing model for both input and output tokens, set at 0.2 RMB per million tokens. Under this pricing structure, an expenditure of 1 RMB is sufficient to process approximately 2,000 A4-sized scanned images or 200 simple-layout PDFs (10 pages each). This represents a significant reduction in operational overhead, decreasing processing costs to approximately one-tenth of those associated with traditional OCR solutions.
+
+\subsection{Fine-Tuning Capabilities}
+In scenarios where specific domain adaptation or enhanced task performance is required, GLM-OCR supports direct fine-tuning utilizing the LLaMA-Factory framework. Comprehensive tutorials and configuration guidelines for the fine-tuning process are available in the official repository: \url{https://github.com/zai-org/GLM-OCR/blob/main/examples/finetune/README.md}.

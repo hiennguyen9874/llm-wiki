@@ -1,0 +1,77 @@
+
+
+
+
+
+
+
+
+
+
+
+
+
+\section{Related Work}
+
+\subsection{Reinforcement Learning for Language Models}
+
+Recent advancements in Large Language Models (LLMs) such as OpenAI's GPT series~\citep{openai2024gpt4ocard}), DeepSeek-R1~\citep{guo2025deepseek}, and Gemini~\citep{gemini} have highlighted the significant potential of Reinforcement Learning (RL) in enhancing their reasoning capabilities. This RL paradigm has been successfully extended to other domains demanding sophisticated reasoning, including code generation~\citep{alphacode, zeng2025acecoder}, autonomous tool utilization~\citep{toolformer, autocode}, and information retrieval~\citep{webgpt}. Similarly, RL has demonstrated its efficacy in the domain of Visual Language Models (VLMs), including precise object counting~\citep{peng2025skywork}, nuanced visual perception~\citep{liu2025visual}, and complex multimodal reasoning (e.g., VL-Rethinker~\citep{vlrethinker}, Pixel Reasoner~\citep{su2025pixel}, Vision-R1~\citep{huang2025visionr1}). These pioneering works have predominantly relied on binary outcome rewards to guide RL training. Complementary to these efforts, our work demonstrates the effectiveness of incorporating layout-aware and layout-based rewards for document parsing, offering a more granular and contextually relevant feedback mechanism. 
+
+% The concept of curriculum learning~\citep{bengio2009curriculum, wu2024curriculum, curriculum}  also witnessed a resurgence for enhancing training efficiency and effectiveness in LLMs~\citep{kimi-1_5}. Building upon this principle, we extend the idea of curriculum learning to document parsing. Specifically, we propose leveraging perplexity as a metric for defining curriculums, thereby guiding the model to learn from progressively more challenging examples. 
+
+
+\subsection{VLM-based Document Parsing}
+
+ 
+
+Recent advancements in document understanding and optical character recognition (OCR) have highlighted their importance as critical benchmarks for evaluating the perceptual capabilities of vision-language models (VLMs). By incorporating large-scale OCR corpora during pretraining, models such as GPT-4o~\citep{GPT4} and Qwen2-VL~\citep{Qwen-VL} have achieved competitive performance on document content extraction tasks. Building upon these foundations, the emergence of  VLMs has further accelerated the progress of end-to-end document parsing, giving rise to a range of models such as Donut~\citep{Nougat}, Nougat~\citep{blecher2023nougat}, Kosmos-2.5~\citep{KOSMOS-2.5}, Vary~\citep{Vary}, mPLUG-DocOwl~\citep{hu2024mplug2}, Fox~\citep{fox}, and GOT~\citep{got2}. These models have continued to improve their understanding of visual layouts and textual content by leveraging advancements in visual encoders~\citep{dosovitskiy2020image}, language decoders~\citep{Qwen-VL}, and data construction pipelines. Despite the success of these VLM-based approaches in enabling end-to-end document parsing, they still face generalization challenges on downstream layout parsing tasks~\citep{MinerU}. To address this issue, we propose leveraging reinforcement learning to provide a more effective training paradigm that better aligns with the demands of document parsing.
+
+
+
+
+
+
+
+
+
+
+\begin{table}[t!]
+% \centering
+\resizebox{1\textwidth}{!}{
+\begin{tabular}{l|c|ccccc|cccc|c}
+\toprule
+\textbf{\multirow{2}{*}{Benchmark}} & \multirow{2}{*}{\makecell{\textbf{Document}\\\textbf{Domain}}} & \multicolumn{5}{c}{\textbf{Annotation Type}} & \multicolumn{4}{c}{\textbf{End-to-End Task}} & \multirow{2}{*}{\textbf{Exactly Match}} \\
+& & BBox & Text & Table & Formula & Attributes & OCR & TR & MFR & ROD & \\
+
+\midrule
+\multicolumn{12}{l}{\textbf{\textit{End-to-end Eval Benchmarks}}} \\
+\midrule
+Fox~\citep{fox} & 2 & \CheckmarkBold & \CheckmarkBold &  &  & & \CheckmarkBold &  &  &  & \\
+Nougat~\citep{Nougat} & 1 &  & \CheckmarkBold & \CheckmarkBold & \CheckmarkBold &  & \CheckmarkBold & \CheckmarkBold & \CheckmarkBold  &  & \\
+GOT OCR 2.0~\citep{got2} & 2 &  & \CheckmarkBold & \CheckmarkBold & \CheckmarkBold &  & \CheckmarkBold & \CheckmarkBold & \CheckmarkBold  &  & \CheckmarkBold  \\
+% READoc~\citep{READoc} & 2 &  & \CheckmarkBold & \CheckmarkBold & \CheckmarkBold & \CheckmarkBold & \CheckmarkBold & \CheckmarkBold & \CheckmarkBold & \CheckmarkBold & \CheckmarkBold \\
+
+OmniDocBench~\citep{ouyang2024omnidocbench} & 9 & \CheckmarkBold & \CheckmarkBold & \CheckmarkBold & \CheckmarkBold & \CheckmarkBold & \CheckmarkBold & \CheckmarkBold & \CheckmarkBold & \CheckmarkBold & \CheckmarkBold \\
+
+\midrule
+\multicolumn{12}{l}{\textbf{\textit{End-to-end Train Dataset}}} \\
+\midrule
+
+DocStruct4M~\citep{hu2024mplug} & - &  & \CheckmarkBold &   &   &  & \CheckmarkBold &   &   &   &  \\
+% MonkeyOCR~\citep{ } & - &  & \CheckmarkBold & \CheckmarkBold  & \CheckmarkBold  &  & \CheckmarkBold & \CheckmarkBold  & \CheckmarkBold  &   &  \\
+
+olmOCR-mix~\citep{poznanski2025olmocr} & - &  & \CheckmarkBold & \CheckmarkBold & \CheckmarkBold &        
+                                                                      
+                                          & \CheckmarkBold & \CheckmarkBold & \CheckmarkBold & \CheckmarkBold &  \\
+
+% \midrule
+\textbf{Infinity-Doc-400K} & 7 & \CheckmarkBold & \CheckmarkBold & \CheckmarkBold & \CheckmarkBold & \CheckmarkBold & \CheckmarkBold & \CheckmarkBold & \CheckmarkBold & \CheckmarkBold & \CheckmarkBold \\
+
+\bottomrule
+\end{tabular}
+}
+% \vspace{-1mm}
+\caption{A comparison between Infinity-Doc-400K and existing datasets. \textit{BBox}: Bounding boxes. \textit{Text}: Text in Unicode. \textit{Table}: Table in LaTeX/HTML/Markdown. \textit{Formula}: Formula in LaTeX. \textit{Attributes}: Page- and BBox-Level Attributes. \textit{OCR}: Optical Character Recognition; \textit{TR}: Table Recognition; \textit{MFR}: Math Formula Recognition; \textit{ROD}: Reading Order Detection. \textit{Multi-Type Doc}: Whether the dataset includes documents from multiple domains or categories.}
+\label{tab:all-1}
+\vspace{-3mm}
+\end{table} 

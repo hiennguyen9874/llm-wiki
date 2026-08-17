@@ -1,0 +1,122 @@
+
+
+
+
+\section{OCR Extension}
+\label{sec:ocr}
+
+Modern OCR has evolved far beyond simple text extraction from scanned documents. Today's systems must handle diverse layouts, mathematical formulas, tables, charts, and multilingual content, all within a single unified framework. The recent emergence of Vision-Language Models (VLMs) for OCR~\citep{li2025monkeyocr, cui2025paddleocrvl, li2025dotsocr} has demonstrated that large-scale end-to-end models can outperform traditional pipeline approaches. However, many of these systems remain large (1B--3B+ parameters) and are either limited to a single task (\eg, document parsing only) or require costly multi-stage pipelines involving separate layout analysis modules.
+
+We extend the Falcon Perception architecture to text-heavy document understanding with \textbf{FalconOCR}, a compact 300M-parameter model that repurposes our early-fusion dense transformer backbone for OCR tasks. Our design philosophy is to maximize the utility of our unified architecture: the same model that performs open-vocabulary segmentation can, with task-specific training data, learn to recognize and structure text. Rather than building a monolithic end-to-end document parser, we adopt a modular two-stage pipeline that decouples layout analysis from text recognition. This separation offers practical advantages: each component can be developed, debugged, and upgraded independently, and the OCR model can focus exclusively on element-level recognition without needing to also solve the layout problem.
+
+\subsection{Pipeline}
+
+Our inference pipeline operates in two stages, following the approach adopted by several recent OCR systems~\citep{li2025monkeyocr, niu2025mineru25decoupledvisionlanguagemodel, cui2025paddleocrvl} that combine a dedicated layout detector with a VLM-based recognizer.
+
+\noindent \textbf{Stage 1 -- Layout Detection:} Given a full-page document image, we first apply PP-DocLayoutV3~\citep{cui2025paddleocr30technicalreport}, a lightweight and publicly available layout analysis model, to detect document elements and produce axis-aligned bounding boxes. PP-DocLayoutV3 categorizes each detected region into one of several element types: text blocks, tables, mathematical formulas, figures, headers, footers, and captions, providing both spatial coordinates and semantic labels. This off-the-shelf detector has been trained on large-scale document layout datasets and provides robust element localization across diverse document styles, including academic papers, invoices, scanned books, and web-captured screenshots, without requiring any additional fine-tuning from our side.
+
+\noindent \textbf{Stage 2 -- Element-level OCR:} Each detected bounding box is cropped from the original high-resolution image and fed independently into our 300M FalconOCR model. The model performs end-to-end recognition and structured output generation conditioned on the element type. Specifically, text blocks are transcribed into plain-text, mathematical formulas are converted to \LaTeX{}, and tables are rendered as HTML. The element-type label from Stage~1 is encoded as a task-specific prompt prefix, allowing the model to adapt its output format accordingly. This design enables a single compact model to handle heterogeneous document elements within a unified autoregressive framework.
+
+\noindent \textbf{Post-processing and Assembly:} After all cropped elements have been processed, their outputs are reassembled into a single structured document following the spatial reading order determined by the layout detector. This yields a complete Markdown representation of the page, with formulas in \LaTeX{} and tables in HTML, ready for downstream consumption by RAG systems or LLM training pipelines.
+
+\subsection{Model Architecture}
+
+FalconOCR uses the same unified dense transformer architecture described in Section~\ref{sec:architecture}: a single autoregressive stack that processes image patches and text tokens in a shared parameter space with hybrid attention masking (bidirectional for image tokens, causal for text tokens). The 300M-parameter (22-layer) variant is used. Crucially, unlike the Falcon Perception segmentation model, FalconOCR is initialized \textit{from scratch}, \ie, without the multi-teacher distillation stage described in Section~\ref{sec:mtd}. This choice was motivated by the observation that the visual features required for OCR (fine-grained glyph recognition, stroke-level discrimination) differ substantially from the object-level features learned during distillation from DINOv3 and SigLIP2. Training from a randomly initialized model allows the backbone to develop text-optimized representations from the ground-up.
+The model processes cropped element images at their native aspect ratio (up to the maximum token budget, by resizing the maximum width to 1024 pixels) using the same scatter-and-pack strategy as the perception model. Since each input is a cropped region rather than a full page, the typical sequence length is shorter, allowing efficient batched processing.
+
+\subsection{Training Recipe}
+
+\noindent \textbf{Data:} We focus only on English language. We train FalconOCR on a curated mixture of OCR-specific datasets spanning three core tasks: (i)~general document text parsing across multiple document types - digital PDFs, old scans, typewritten documents, \etc. (ii)~mathematical and scientific formula recognition, and (iii)~table structure recognition. Additionally, we include handwriting, real world scenes with text, and other miscellaneous text-heavy datasets. The training data includes both publicly available datasets and synthetic samples generated from rendered \LaTeX{} and HTML sources, ensuring broad coverage of document styles, fonts, languages, and degradation levels.
+
+\noindent \textbf{Schedule:} Training proceeds in two phases. The first phase consists of \num{250}k iterations of standard pre-training at a constant learning rate, during which the model learns the core OCR capabilities across all element types. This is followed by a cosine learning rate decay over \num{20}k steps, during which the learning rate is annealed to near zero. We monitor validation performance throughout the decay phase and select the best checkpoint based on a held-out set of document parsing samples. This two-phase approach, \ie, long stable training followed by a short annealing, has been shown to yield robust final checkpoints in language model pre-training~\citep{hu2024minicpm}, and we find it equally effective for the OCR task.
+
+\noindent \textbf{Objective:} The training objective follows the same formulation described in Section~\ref{sec:loss}, \ie, standard cross-entropy on the autoregressive text tokens with the image tokens excluded from the loss. The sequence packing infrastructure, global loss normalization across data-parallel ranks, and native resolution handling are shared with the perception training pipeline. No additional OCR-specific losses (\eg, CTC, attention-based sequence losses) are used and the model learns purely through next-token prediction on structured text outputs.
+
+\subsection{Deployment}
+
+Efficient serving is critical for OCR workloads, where a single document may contain dozens of elements that must be processed in rapid succession. FalconOCR is integrated with vLLM~\citep{kwon2023efficient}, which provides continuous batching, PagedAttention, and optimized CUDA kernels for autoregressive generation. Thanks to the compact 300M-parameter footprint, the model achieves a throughput of approximately \num{3000} output tokens per second on a single GPU, making it practical for large-scale document processing pipelines where millions of pages must be digitized. The two-stage design also lends itself naturally to parallelism: multiple cropped elements from the same page (or different pages) can be batched together, maximizing GPU utilization.
+
+Additionally, for latency critical applications, one can skip the layout detection step and perform OCR on the whole image of the document. While this leads to slightly degraded performance on dense documents due to our maximum resolution being capped at 1024, it is still quite useful for sparse documents and applications where latency is critical.
+
+\subsection{Evaluation Benchmarks}
+
+We evaluate FalconOCR on two complementary benchmarks: olmOCR~\citep{poznanski2025olmocr} and OmniDocBench~\citep{ouyang2025omnidocbench} that test document parsing from two complementary angles. Together, they provide a comprehensive picture of OCR robustness across input diversity, layout complexity, and evaluation granularity.
+
+\noindent \textbf{olmOCR}~\citep{poznanski2025olmocr} emphasizes \textit{input diversity}. Its eight category splits span a wide range of real-world conditions: old scans with degraded ink and bleed-through, tiny text requiring high-resolution discrimination, handwritten content, ArXiv papers with dense mathematical notation, multi-column layouts, and standard base documents. The evaluation protocol is \textit{binary}: for each test case, the benchmark checks discrete properties of the predicted output, \ie, whether a specific text phrase is present or absent, whether one text span correctly follows another in the reading order, and whether cells in predicted HTML tables appear under the correct column headers. A prediction either passes or fails each check, and the final accuracy is the fraction of checks passed. This binary paradigm makes olmOCR a strict test of factual correctness, but it does not penalize minor formatting differences or measure the quality of the full parsed output.
+We drop non-English documents from our evaluation.
+
+\noindent \textbf{OmniDocBench}~\citep{ouyang2025omnidocbench} takes a complementary approach, emphasizing \textit{layout complexity} with \textit{continuous} evaluation metrics. Its document categories focus on digitally typeset content, \ie, slides, academic articles, and newspapers, where the primary challenge is not input degradation but structural complexity. Newspapers, for instance, present some of the hardest parsing scenarios: reading order can switch mid-page due to section breaks and headlines, with multiple vertical columns that interleave in non-trivial ways. The evaluation operates on the \textit{entire parsed page}: the full predicted text is aligned against the ground truth at the element level, and three continuous metrics are computed. For plain text, the \textit{Edit Distance} (lower is better) measures character-level accuracy between matched text blocks. For mathematical formulas, the \textit{CDM} (Character Detection Metric; higher is better) evaluates \LaTeX{} output fidelity. For tables, \textit{TEDS} (Tree-Edit-Distance-based Similarity; higher is better) compares the structural and content accuracy of predicted HTML against the ground-truth table tree. The \textit{Overall} score aggregates these three sub-metrics. Crucially, all three metrics depend on a matching algorithm that pairs predicted elements with ground-truth elements before scoring, making the evaluation sensitive to the quality of this alignment step.
+We use the version 1.5 of OmniDocBench which adds a few complex documents over the original version, and focus our evaluation on the \textit{English-only} subset of the documents, discarding Chinese language documents.
+
+
+\subsection{Results on olmOCR}
+
+Table~\ref{tab:olmocr_results_booktabs} compares FalconOCR against state-of-the-art OCR systems spanning three categories: commercial APIs (Mistral OCR 3~\citep{mistral2025ocr}, Gemini 3 Pro/Flash~\citep{gemini_deepmind}, GPT 5.2~\citep{openai_gpt52}), specialized OCR models (Chandra~\citep{chandra2025}, DeepSeek OCR v2~\citep{wei2026deepseek}), and modular VLM pipelines (PaddleOCR VL \citep{cui2025paddleocrvl} / VL 1.5~\citep{cui2026paddleocrvl15}). All comparison models have significantly more parameters and/or rely on proprietary infrastructure.
+
+\begin{table}[t]
+    \centering
+    \caption{\textbf{olmOCR Benchmark Results.} Category-wise performance comparison of FalconOCR against state-of-the-art OCR models. We report accuracy (\%) across all category splits.}
+    \label{tab:olmocr_results_booktabs}
+    \resizebox{\textwidth}{!}{
+    \begin{tabular}{l c cccccccc}
+    \toprule
+    \textbf{Model} & \textbf{Average} & \textbf{ArXiv Math} & \textbf{Base} & \textbf{Hdr/Ftr} & \textbf{TinyTxt} & \textbf{MultCol} & \textbf{OldScan} & \textbf{OldMath} & \textbf{Tables} \\
+    \midrule
+    Mistral OCR 3~\citep{mistral2025ocr}       & 81.7          & 85.4          & 99.9 & 93.8          & 88.9          & 82.1          & 48.8          & 68.3          & 86.1          \\
+    Chandra~\citep{chandra2025}             & 82.0          & 81.4          & 99.8          & 88.8          & 91.9 & 82.9          & 49.2          & 73.6          & 88.2          \\
+    Gemini 3 Pro~\citep{gemini_deepmind}        & 80.2          & 70.6          & 99.8          & 84.0          & 90.3          & 79.2          & 47.5          & 84.9          & 84.9          \\
+    PaddleOCR VL 1.5~\citep{cui2026paddleocrvl15}    & 79.3          & 85.4          & 98.8          & 96.9 & 80.8          & 82.6          & 39.2          & 66.4          & 84.1          \\
+    PaddleOCR VL~\citep{cui2025paddleocrvl}        & 79.2          & 85.4          & 98.6          & 96.9 & 80.8          & 82.5          & 38.8          & 66.4          & 83.9          \\
+    DeepSeek OCR v2~\citep{wei2026deepseek}     & 78.8          & 81.9          & 99.8          & 95.6          & 88.7          & 83.6          & 33.7          & 68.8          & 78.1          \\
+    Gemini 3 Flash~\citep{gemini_deepmind}      & 77.5          & 66.5          & 99.8          & 83.8          & 88.2          & 73.7          & 46.0          & 85.8 & 75.9          \\
+    GPT 5.2~\citep{openai_gpt52}          & 69.8          & 61.0          & 99.8          & 75.6          & 62.2          & 70.2          & 34.6          & 75.8          & 79.0          \\
+    \midrule
+    \textbf{FalconOCR} & 80.3 & 80.5 & 99.5 & 94.0 & 78.5 & 87.1 & 43.5 & 69.2 & 90.3 \\
+        \bottomrule
+    \end{tabular}
+    }
+\end{table}
+
+\noindent \textbf{Overall Performance.} Our model achieves an average accuracy of {80.3\%}, placing it competitively among systems that are often orders of magnitude larger. With only 300M parameters, it matches or exceeds the performance of Gemini 3 Pro (80.2\%), PaddleOCR VL 1.5 (79.3\%), DeepSeek OCR v2 (78.8\%), and GPT 5.2 (69.8\%). The gap to the top-performing systems, \ie, Chandra (82.0\%) and Mistral OCR 3 (81.7\%) is modest at 1.7 and 1.4 points respectively, despite these models leveraging significantly larger backbones and proprietary training data.
+
+\noindent \textbf{Category-level Analysis.} FalconOCR demonstrates particularly strong performance on categories that require understanding of spatial document structure. On \textbf{Multi-Column} layouts, it achieves {87.1\%}, the highest score across all models, suggesting that the early-fusion backbone, which processes image patches with bidirectional attention, is well-suited for capturing cross-column reading order. Similarly, on \textbf{Tables} (90.3\%), FalconOCR ranks at the top, reasonably surpassing Chandra (88.2\%), confirming that the model effectively learns HTML table serialization from the training data. Performance on \textbf{Headers/Footers} ({94.0\%}) and \textbf{Base} documents ({99.5\%}) is near-saturated and on par with the best systems, indicating robust handling of standard document content.
+
+\noindent \textbf{Weaknesses and Limitations.} Two categories reveal clear limitations. On \textbf{OldScan} (43.5\%), FalconOCR lags behind Chandra (49.2\%), Mistral OCR 3 (48.8\%), and Gemini 3 Pro (47.5\%). This gap likely stems from insufficient representation of heavily degraded historical documents that have faded ink, bleed-through, and non-standard typefaces in our training data. On \textbf{TinyText} (78.5\%), the model underperforms Chandra (91.9\%) and Gemini 3 Pro (90.3\%) by a substantial margin. Since FalconOCR operates on cropped regions from the layout detector, very small text elements may arrive at the model with limited pixel resolution, making fine-grained glyph discrimination difficult for a 300M model. Both gaps point to concrete directions for improvement: targeted data augmentation for degraded scans and higher-resolution processing for small text regions.
+
+
+
+\subsection{Results on OmniDocBench}
+
+\begin{wraptable}{r}{0.5\textwidth}
+    \centering
+    \caption{\textbf{OmniDocBench Results:} Performance comparison on full-page document parsing. Overall$\uparrow$ aggregates the three sub-metrics. Edit$\downarrow$ measures text edit distance (lower is better). CDM$\uparrow$ evaluates formula recognition accuracy. TEDS$\uparrow$ measures table structure similarity.\vspace{-0.2cm}}
+    \label{tab:omnidocbench_results}
+    \setlength{\tabcolsep}{6pt}
+    \adjustbox{width=0.49\textwidth}{
+    \begin{tabular}{l cccc}
+    \toprule
+    \textbf{Model} & \textbf{Overall}$\uparrow$ & \textbf{Edit}$\downarrow$ & \textbf{CDM}$\uparrow$ & \textbf{TEDS}$\uparrow$ \\
+    \midrule
+    PaddleOCR VL 1.5~\citep{cui2026paddleocrvl15}    & 94.37 & 0.075 & 94.4 & 91.1 \\
+    PaddleOCR VL~\citep{cui2025paddleocrvl}        & 91.76 & 0.024 & 91.7 & 85.9 \\
+    Chandra~\citep{chandra2025}             & 88.97 & 0.046 & 88.1 & 89.5 \\
+    DeepSeek OCR v2~\citep{wei2026deepseek}     & 87.66 & 0.037 & 89.2 & 77.5 \\
+    GPT 5.2~\citep{openai_gpt52}             & 86.56 & 0.061 & 88.0 & 77.7 \\
+    Mistral OCR 3~\citep{mistral_ocr3_2025}       & 85.20 & 0.053 & 84.3 & 76.1 \\
+    \midrule
+    \textbf{FalconOCR}  & 88.64 & 0.055 & 86.8 & 84.6 \\
+    \bottomrule
+    \end{tabular}
+    }
+\end{wraptable}
+Table~\ref{tab:omnidocbench_results} presents results on OmniDocBench~\citep{ouyang2025omnidocbench}, where the evaluation shifts from binary correctness checks to continuous metrics over full-page parses. The tables in OmniDocBench are significantly more complex than those in olmOCR, featuring nested structures, multi-level headers, and spanning cells that stress the structural prediction capabilities of each system. 
+
+\noindent \textbf{Overall Performance:} FalconOCR achieves an Overall score of \textbf{88.64}, placing it ahead of DeepSeek OCR~v2 (87.66), GPT~5.2 (86.56), and Mistral OCR~3 (85.20), while trailing the recent top modular pipelines PaddleOCR VL~1.5 (94.37) and PaddleOCR VL (91.76). Table parsing is quite competitive: our TEDS of \textbf{84.6} is close to PaddleOCR VL (85.9) and substantially above DeepSeek OCR~v2 (77.5), GPT~5.2 (77.7), and Mistral OCR~3 (76.1). Text edit distance (\textbf{0.055}) is in the mid-range, reflecting that full-page element matching on complex layouts is more challenging for our two-stage pipeline than for systems that have been specifically tuned for OmniDocBench's evaluation protocol.
+
+
+\noindent \textbf{Table Parsing and Matching Challenges:} Although our model's TEDS score of \textbf{84.6} trails PaddleOCR VL~1.5 (91.1) and Chandra (89.5), we attribute part of this gap to inherent ambiguities in the TEDS evaluation protocol. HTML table representations are not unique: visually identical tables can be encoded in structurally different ways. For instance, a horizontal row separator can be represented either by a \texttt{rowspan} attribute or by inserting explicit empty cells, both produce the same visual rendering but yield different tree structures under TEDS. We apply some post-processing to normalize our HTML output, but do not attempt exhaustive structural canonicalization, which would require heuristic rules that risk introducing other errors.
+
+\noindent \textbf{Formula Matching Sensitivity:} While our model's CDM of \textbf{86.8} is below the top systems (PaddleOCR VL~1.5 at 94.4, PaddleOCR VL at 91.7), we observe that the element-matching step in OmniDocBench's evaluation pipeline penalizes certain valid predictions. Specifically, when our model outputs a formula together with its equation number as a single block (a common typographical convention), the matching algorithm may fail to align it with the ground truth, which separates the formula from its number. This ``clubbing'' penalty artificially deflates CDM on affected samples. Similarly, character encoding discrepancies, such as predicting the Unicode symbol $\beta$ \vs the \LaTeX{} command \texttt{\textbackslash beta} incur edit penalties even when both representations are semantically correct, as the ground-truth sometimes favors one convention over the other. These matching artifacts affect our model significantly because we perform only minimal output normalization, prioritizing generality over benchmark-specific tuning.
+
+
+\noindent \textbf{Efficiency--Accuracy Trade-off:} Across both benchmarks, the key takeaway is that FalconOCR achieves competitive accuracy at a fraction of the cost of larger systems. At 300M parameters, with ${\sim}\num{6000}$ tokens/second and an average $2.8$ images/s throughput using an efficient vLLM implementation, FalconOCR occupies a favorable point on the efficiency--accuracy frontier: it is the smallest model, yet remains competitive on olmOCR (80.3\%, top-3) and OmniDocBench (88.64, top-4), making it a practical choice for large-scale document digitization.

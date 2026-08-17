@@ -1,0 +1,22 @@
+\section{Discussion}
+\label{sec:discussion}
+
+Falcon Perception is built around a simple idea, \ie, a single early-fusion Transformer with the right interface is enough for dense perception tasks. We keep one scalable backbone and move complexity to training signal and sequence interface. The results in Section~\ref{sec:experiments} suggest this direction is viable, especially when prompts require OCR, spatial constraints, relations, or long-context dense outputs.
+
+\noindent\textbf{A ``bitter lesson'' view of open-vocabulary segmentation:}
+In this field, it is very tempting to solve every failure mode with a new module: a stronger vision encoder, an extra fusion block, a new matching trick, or more post-processing. This can work, but it also makes systems harder to scale and harder to reason about. Falcon Perception is ``bitter'' on purpose: one backbone, one training objective family, and small heads only where outputs are continuous and dense. The hope is that most improvements should come from more data, more compute, and better training signals, not from making the pipeline more complicated.
+
+\noindent\textbf{A scalable interface:}
+Dense perception is not a fixed-size prediction problem. The number of instances can be small or extremely large, and the prompt can ask for simple objects or complicated prompts requiring reasoning. Autoregressive generation gives a clean interface for this: the model can emit as many instances as needed, and the sequence length becomes the knob for ``how much perception'' we want. This matters for crowded scenes. If we want to push to $K\!\sim\!1000$ masks, we do not need a new model family; we need to make long-context generation stable and efficient. In our design, we keep generation cheap by emitting only a few task tokens per instance, while producing masks in parallel via the segmentation head.
+
+\noindent\textbf{Early fusion is enough:}
+Existing open-vocabulary systems  rely on a separate vision encoder and a late fusion stage. Our results support a different view: if image tokens and text tokens share the same backbone from the first layer, the model can learn the interaction just fine. This is especially useful for OCR-guided and spatial prompts, where the prompt should influence feature formation, not only the final decoder. In Falcon Perception, we still use specialized heads, but only for decoding coordinates, size, and masks efficiently. The backbone doing all the main localization work stays one dense model.
+
+\noindent\textbf{Scaling path: patchify and mix data without redesign:}
+Because the model is a Transformer over tokens, the scaling is straightforward. We can improve visual grounding by adding more images and harder prompts, and we can improve language knowledge by mixing text-only data, captioning data, or interleaved vision-language data. Nothing in the architecture blocks this: it is still one sequence model. 
+
+\noindent\textbf{RL and sampling: the model already contains the solution:}
+Sampling is a strong feature of an autoregressive design. Our Pass@$k$ results show that the model often has correct localizations in its distribution, but greedy decoding does not pick them. This looks similar to LLMs before RL post-training: maximum likelihood learns a rich distribution, but the probability mass is not shaped for the decision we want. This behavior is reminiscent of DeepSeek-R1~\citep{guo2025deepseek}, where the ``raw'' model already contains high-quality solutions. RL-style post-training can then reshape the distribution by rewarding the desired outcome, effectively pulling up correct but lower-probability predictions. This is aligned with risk-based training views such as~\citep{pinto2023tuning}. We intentionally evaluate up to Pass@$8$ since group-based RL methods (e.g., GRPO-style) commonly use similar group sizes. The fact that Pass@$k$ helps across levels suggests we can form candidate groups with real discriminative signal using Falcon Perception.
+
+\noindent\textbf{Limitations and what we expect next:}
+A single-stack autoregressive model is not free: training is more expensive and decoding can be slower than a fully parallel DETR like models. But the upside is a clean scaling interface. Going forward, we expect most gains to come from: (i) better data mixtures (including text-only, interleaved and captioning when needed), (ii) longer-context training for dense scenes, and (iii) post-training (RL) to improve selection of the right prediction from the model's own distribution.

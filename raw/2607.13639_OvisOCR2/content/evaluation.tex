@@ -1,0 +1,204 @@
+\section{Evaluation}
+
+In this section, we assess the effectiveness of \ours{} by comparing against a wide range of document parsing models grouped into general VLMs and specialized VLMs. We further divide specialized VLMs by inference paradigm. The pipeline group includes leading methods such as PaddleOCR-VL-1.6~\cite{paddleocrvl16}, GLM-OCR~\cite{glmocr}, and MinerU2.5-Pro~\cite{mineru25pro}, which combine layout analysis with region-level parsing. The end-to-end group, including \ours{}, outputs the Markdown representation from the page-level image in a single pass. We conduct the evaluation on two public document parsing benchmarks, OmniDocBench v1.6~\cite{omnidocbench} and PureDocBench~\cite{puredocbench}, as well as an in-house benchmark focused on complex document scenarios. We also provide qualitative comparisons in Appendix~\ref{sec:qualitative_examples}.
+
+\subsection{OmniDocBench v1.6}
+
+OmniDocBench v1.6~\cite{omnidocbench} is the most widely adopted public benchmark for page-level document parsing, covering 1,651 PDF pages across 10 document types, 5 layout types, and 5 language types. Compared with the earlier v1.5 protocol, v1.6 refines element matching in formula evaluation and introduces a hard subset of structurally complex pages, yielding more discriminative rankings among strong methods. The benchmark jointly evaluates four dimensions: text transcription (measured by normalized edit distance), formula recognition (character detection matching, CDM~\cite{cdm}), table reconstruction (tree-edit similarity, TEDS and TEDS-S~\cite{pubtabnet}), and reading-order recovery (edit distance over block sequences). The overall score is computed by averaging the text score converted from normalized edit distance, formula CDM, and table TEDS.
+
+As shown in Table~\ref{tab:odb16_full}, on OmniDocBench v1.6, \ours{} achieves a state-of-the-art overall score of 96.58 with a compact 0.8B model. It surpasses leading pipeline methods, including PaddleOCR-VL-1.6, MinerU2.5-Pro, and GLM-OCR, and improves over the previous best end-to-end method by 1.84 points. Across metrics, \ours{} reports the lowest text edit distance, the highest formula CDM score, the tied highest TEDS score, the highest TEDS-S score, and the lowest reading-order edit distance.
+
+\begin{table}[!t]
+\centering
+\caption{OmniDocBench v1.6 comparison. Public leaderboard scores are from OpenDataLab~\cite{omnidocbenchLeaderboard}; PaddleOCR-VL-1.6, Unlimited-OCR, and HunyuanOCR-1.5 are from their technical reports~\cite{paddleocrvl16,unlimitedocr,hunyuanocr15}. RO denotes reading order.}
+\label{tab:odb16_full}
+\resizebox{\linewidth}{!}{
+\begin{tabular}{@{}l|lc|cccccc@{}}
+\toprule
+\textbf{Model type} & \textbf{Method} & \textbf{Parameters} & \textbf{Overall}\up & \textbf{Text$^{Edit}$}\down & \textbf{Formula$^{CDM}$}\up & \textbf{Table$^{TEDS}$}\up & \textbf{Table$^{TEDS\mbox{-}S}$}\up & \textbf{RO$^{Edit}$}\down \\
+\midrule
+\multirow{7}{*}{\makecell[l]{\textbf{General}\\\textbf{VLMs}}}
+& InternVL3.5-241B~\cite{internvl} & 241B & 83.76 & 0.130 & 89.95 & 74.35 & 79.78 & 0.215 \\
+& Kimi K2.5~\cite{kimiteam2026kimik25visualagentic} & 1T/32B & 84.53 & 0.107 & 83.50 & 80.76 & 84.00 & 0.211 \\
+& GPT-5.2~\cite{gpt52} & -- & 86.59 & 0.114 & 88.21 & 82.95 & 87.93 & 0.193 \\
+& Qwen3-VL-235B~\cite{qwen3vl235b} & 235B/22B & 89.78 & 0.063 & 92.55 & 83.07 & 86.75 & 0.166 \\
+& Gemini 3 Flash~\cite{gemini3flash} & -- & 92.62 & 0.066 & 95.16 & 89.29 & 93.51 & 0.172 \\
+& Gemini 3 Pro~\cite{gemini3pro} & -- & 92.91 & 0.064 & 95.99 & 89.15 & 92.96 & 0.165 \\
+& Ovis2.6-30B-A3B~\cite{ovis26} & 30B/3B & 93.70 & 0.035 & 95.17 & 89.44 & 92.40 & 0.135 \\
+\midrule
+\multirow{10}{*}{\makecell[l]{\textbf{Specialized VLMs}\\\textbf{(pipeline)}}}
+& Dolphin-1.5~\cite{dolphin} & 0.3B & 86.52 & 0.094 & 87.49 & 81.43 & 84.82 & 0.167 \\
+& MonkeyOCR-pro-3B~\cite{monkeyocr} & 3B & 88.57 & 0.074 & 88.74 & 84.35 & 88.62 & 0.189 \\
+& Dolphin-v2~\cite{dolphin} & 3B & 89.50 & 0.069 & 91.01 & 84.40 & 87.44 & 0.150 \\
+& MinerU2.5~\cite{mineru25} & 1.2B & 93.04 & 0.045 & 95.77 & 87.88 & 91.47 & 0.130 \\
+& Youtu-Parsing~\cite{youtu-parsing} & 2.5B & 93.74 & 0.044 & 93.63 & 92.02 & 95.00 & \secondcell{0.116} \\
+& PaddleOCR-VL~\cite{paddleocrvl} & 0.9B & 94.18 & 0.040 & 95.91 & 90.65 & 93.74 & 0.135 \\
+& PaddleOCR-VL-1.5~\cite{paddleocrvl15} & 0.9B & 94.93 & 0.038 & 96.89 & 91.67 & 94.37 & 0.130 \\
+& GLM-OCR~\cite{glmocr} & 0.9B & 95.22 & 0.044 & 97.18 & 92.83 & 95.39 & 0.133 \\
+& MinerU2.5-Pro~\cite{mineru25pro} & 1.2B & 95.75 & 0.036 & 97.45 & 93.42 & 95.92 & 0.120 \\
+& PaddleOCR-VL-1.6~\cite{paddleocrvl16} & 0.9B & \secondcell{96.33} & \secondcell{0.033} & \secondcell{97.49} & \bestcell{94.76} & \secondcell{97.11} & 0.127 \\
+\midrule
+\multirow{15}{*}{\makecell[l]{\textbf{Specialized VLMs}\\\textbf{(end-to-end)}}}
+& POINTS-Reader~\cite{pointsreader} & 3B & 83.37 & 0.096 & 85.72 & 73.98 & 77.40 & 0.198 \\
+& Nanonets-OCR-S~\cite{Nanonets-OCR-S} & 3B & 83.61 & 0.108 & 81.46 & 80.18 & 84.51 & 0.213 \\
+& olmOCR~\cite{olmocr} & 7B & 85.74 & 0.139 & 88.10 & 83.00 & 87.17 & 0.216 \\
+& OCRVerse~\cite{ocrverse} & 4B & 88.60 & 0.063 & 89.61 & 82.44 & 86.27 & 0.163 \\
+& HunyuanOCR~\cite{hunyuanocr} & 1B & 89.95 & 0.088 & 87.68 & 91.01 & 93.23 & 0.171 \\
+& DeepSeek-OCR-2~\cite{deepseekocr2} & 3B/0.5B & 90.25 & 0.050 & 91.84 & 83.89 & 87.75 & 0.144 \\
+& OpenDoc-0.1B~\cite{unirec} & 0.1B & 90.67 & 0.049 & 93.02 & 83.88 & 87.45 & 0.140 \\
+& dots.ocr~\cite{dots-ocr} & 3B & 90.77 & 0.048 & 89.95 & 87.18 & 90.58 & 0.138 \\
+& FireRed-OCR~\cite{fireredocr} & 2B & 93.26 & 0.037 & 95.44 & 88.04 & 91.06 & 0.131 \\
+& ABot-OCR~\cite{abotocr} & 2B & 93.30 & 0.037 & 94.86 & 88.69 & 91.87 & 0.137 \\
+& Logics-Parsing-v2~\cite{logicsparsing} & 4B & 93.33 & 0.041 & 95.65 & 88.42 & 91.98 & 0.137 \\
+& Qianfan-OCR~\cite{qianfanocr} & 4B & 93.90 & 0.040 & 95.08 & 90.53 & 93.31 & 0.130 \\
+& Unlimited-OCR~\cite{unlimitedocr} & 3B/0.5B & 93.92 & 0.042 & 95.79 & 90.16 & 93.32 & 0.129 \\
+& HunyuanOCR-1.5~\cite{hunyuanocr15} & 1B & 94.74 & 0.039 & 94.50 & \secondcell{93.67} & 94.71 & 0.129 \\
+& \textbf{\ours} & \textbf{0.8B} & \bestcell{96.58} & \bestcell{0.025} & \bestcell{97.53} & \bestcell{94.76} & \bestcell{97.16} & \bestcell{0.111} \\
+\bottomrule
+\end{tabular}
+}
+\end{table}
+
+\subsection{PureDocBench}
+
+PureDocBench~\cite{puredocbench} complements OmniDocBench with source-traceable evaluation data: document images are rendered from HTML sources, and annotations are produced from the same source rather than transcribed from rendered images. It evaluates robustness across the Clean track with rendered pages, the Digital track with degraded images, and the Real track with physical or screen-mediated recaptures, including phone-captured pages, photocopies, screen photography, and compressed screenshots, covering 1,475 pages across 10 domains and 66 subcategories, for 4,425 images in total.
+
+\begin{table}[!htbp]
+\centering
+\caption{PureDocBench comparison. The Clean, Digital, and Real columns report per-track overall scores; Avg3 is their mean. Public scores are transcribed from the PureDocBench main table~\cite{puredocbench}.}
+\label{tab:puredoc_full}
+\renewcommand{\arraystretch}{0.86}
+\resizebox{\linewidth}{!}{
+\begin{tabular}{@{}l|lc|cccc@{}}
+\toprule
+\textbf{Model type} & \textbf{Method} & \textbf{Parameters} & \textbf{Clean}\up & \textbf{Digital}\up & \textbf{Real}\up & \textbf{Avg3}\up \\
+\midrule
+\multirow{6}{*}{\makecell[l]{\textbf{General}\\\textbf{VLMs}}}
+& MiniCPM-V-4.5~\cite{minicpmv} & 8B & 51.81 & 49.38 & 37.59 & 46.26 \\
+& Step3-VL~\cite{step3vl} & 10B & 53.65 & 52.74 & 45.06 & 50.48 \\
+& Kimi K2.6~\cite{kimiteam2026kimik25visualagentic} & 1T/32B & 72.32 & 69.95 & 68.02 & 70.10 \\
+& Gemini-3.1-Pro~\cite{gemini31pro} & -- & 70.04 & 69.28 & \bestcell{71.98} & 70.43 \\
+& Qwen3.5-9B~\cite{qwen35} & 9B & 73.87 & 73.34 & 65.45 & 70.89 \\
+& Qwen3.5-122B-A10B~\cite{qwen35} & 122B/10B & 76.14 & \secondcell{76.34} & \secondcell{69.85} & \secondcell{74.11} \\
+\midrule
+\multirow{10}{*}{\makecell[l]{\textbf{Specialized VLMs}\\\textbf{(pipeline)}}}
+& OpenOCR~\cite{svtrv2,unirec} & 0.1B & 32.70 & 30.03 & 25.73 & 29.49 \\
+& MonkeyOCR-pro-1.2B~\cite{monkeyocr} & 1.2B & 61.09 & 55.72 & 43.82 & 53.54 \\
+& MonkeyOCR-pro-3B~\cite{monkeyocr} & 3B & 62.23 & 57.40 & 46.49 & 55.37 \\
+& Dolphin-v2~\cite{dolphin} & 3B & 65.90 & 60.24 & 44.92 & 57.02 \\
+& GLM-OCR~\cite{glmocr} & 0.9B & 68.65 & 63.06 & 58.31 & 63.34 \\
+& PaddleOCR-VL-1.5~\cite{paddleocrvl15} & 0.9B & 73.01 & 66.73 & 60.50 & 66.75 \\
+& MinerU2.5~\cite{mineru25} & 1.2B & 74.90 & 68.92 & 59.15 & 67.66 \\
+& Youtu-Parsing~\cite{youtu-parsing} & 2B & 75.02 & 69.66 & 60.29 & 68.32 \\
+& MinerU2.5-Pro~\cite{mineru25pro} & 1.2B & 75.87 & 71.77 & 62.56 & 70.07 \\
+& DotsMOCR~\cite{dots-mocr} & 3B & 76.27 & 73.16 & 61.73 & 70.39 \\
+\midrule
+\multirow{16}{*}{\makecell[l]{\textbf{Specialized VLMs}\\\textbf{(end-to-end)}}}
+& OCRFlux-3B~\cite{ocrflux} & 3B & 47.14 & 41.82 & 37.21 & 42.06 \\
+& DeepSeek-OCR~\cite{deepseekocr} & 3B/0.5B & 53.50 & 46.95 & 40.48 & 46.98 \\
+& UniRec-0.1B~\cite{unirec} & 0.1B & 58.91 & 52.42 & 34.44 & 48.59 \\
+& DeepSeek-OCR-2~\cite{deepseekocr2} & 3B/0.5B & 55.53 & 49.41 & 43.60 & 49.51 \\
+& Qianfan-OCR~\cite{qianfanocr} & 4B & 57.22 & 50.85 & 45.06 & 51.04 \\
+& OpenDoc-0.1B~\cite{unirec} & 0.1B & 60.28 & 52.46 & 44.27 & 52.00 \\
+& olmOCR~\cite{olmocr} & 7B & 62.56 & 57.84 & 47.30 & 55.90 \\
+& Nanonets-OCR2~\cite{Nanonets-OCR2} & 3B & 64.83 & 61.23 & 49.03 & 58.36 \\
+& HunyuanOCR~\cite{hunyuanocr} & 1B & 65.61 & 61.49 & 54.58 & 60.56 \\
+& olmOCR-2-7B~\cite{olmocr2} & 7B & 69.36 & 65.87 & 56.10 & 63.78 \\
+& dots.ocr~\cite{dots-ocr} & 3B & 72.01 & 65.95 & 55.68 & 64.55 \\
+& FireRed-OCR~\cite{fireredocr} & 2B & 70.81 & 68.49 & 57.42 & 65.57 \\
+& OCRVerse~\cite{ocrverse} & 4B & 73.18 & 71.36 & 63.66 & 69.40 \\
+& Logics-Parsing-v2~\cite{logicsparsing} & 4B & 76.35 & 73.85 & 67.64 & 72.61 \\
+& FD-RL~\cite{fdrl} & 4B & \secondcell{78.38} & 76.33 & 67.04 & 73.92 \\
+& \textbf{\ours} & \textbf{0.8B} & \bestcell{81.55} & \bestcell{77.09} & 66.56 & \bestcell{75.06} \\
+\bottomrule
+\end{tabular}
+}
+\end{table}
+
+As shown in Table~\ref{tab:puredoc_full}, \ours{} achieves a state-of-the-art Avg3 score of 75.06. It also ranks first on the clean and digital tracks. On the real track, \ours{} remains below strong general VLMs such as Gemini-3.1-Pro and Qwen3.5-122B-A10B, suggesting that robustness to degraded real-world images remains an important direction for future work.
+
+\subsection{In-house benchmark}
+
+\begin{table}[!t]
+\centering
+\caption{Results on the in-house benchmark.}
+\label{tab:inhouse_all}
+\small
+\setlength{\tabcolsep}{2pt}
+\begin{tabular*}{\linewidth}{@{\extracolsep{\fill}}lcccccc@{}}
+\toprule
+Model & Text$^{Edit}$\down & Formula$^{CDM}$\up & Table$^{TEDS}$\up & Table$^{TEDS\mbox{-}S}$\up & RO$^{Edit}$\down & Overall\up \\
+\midrule
+MinerU2.5-Pro~\cite{mineru25pro} & 0.1645 & 34.85 & \secondcell{78.20} & \secondcell{82.68} & 0.3351 & 65.54 \\
+PaddleOCR-VL-1.5~\cite{paddleocrvl15} & 0.1325 & 84.73 & 73.18 & 77.84 & 0.2380 & 81.55 \\
+GLM-OCR~\cite{glmocr} & 0.1378 & 84.04 & 78.12 & 82.25 & 0.2393 & 82.80 \\
+PaddleOCR-VL-1.6~\cite{paddleocrvl16} & \secondcell{0.1292} & \secondcell{85.13} & 76.42 & 80.74 & \secondcell{0.2358} & \secondcell{82.88} \\
+\textbf{\ours} & \bestcell{0.0850} & \bestcell{86.32} & \bestcell{78.80} & \bestcell{82.87} & \bestcell{0.1885} & \bestcell{85.54} \\
+\bottomrule
+\end{tabular*}
+\end{table}
+
+\begin{table}[!t]
+\centering
+\caption{Overall performance on the in-house benchmark by difficulty level.}
+\label{tab:inhouse_all_difficulty}
+\small
+\setlength{\tabcolsep}{2pt}
+\begin{tabular*}{\linewidth}{@{\extracolsep{\fill}}lccc@{}}
+\toprule
+Model & Easy\up & Medium\up & Hard\up \\
+\midrule
+MinerU2.5-Pro~\cite{mineru25pro} & 66.12 & 65.37 & 64.60 \\
+PaddleOCR-VL-1.5~\cite{paddleocrvl15} & 83.23 & 82.23 & 71.07 \\
+GLM-OCR~\cite{glmocr} & 84.94 & \secondcell{83.31} & 72.61 \\
+PaddleOCR-VL-1.6~\cite{paddleocrvl16} & \secondcell{84.98} & 83.16 & \secondcell{75.06} \\
+\textbf{\ours} & \bestcell{87.95} & \bestcell{85.82} & \bestcell{78.99} \\
+\bottomrule
+\end{tabular*}
+\end{table}
+
+\begin{table}[!t]
+\centering
+\caption{Results on the handwriting subset of the in-house benchmark.}
+\label{tab:inhouse_handwriting}
+\small
+\setlength{\tabcolsep}{2pt}
+\begin{tabular*}{\linewidth}{@{\extracolsep{\fill}}lcccccc@{}}
+\toprule
+Model & Overall\up & Text$^{Edit}$\down & Formula$^{CDM}$\up & Table$^{TEDS}$\up & Table$^{TEDS\mbox{-}S}$\up & RO$^{Edit}$\down \\
+\midrule
+MinerU2.5-Pro~\cite{mineru25pro} & 55.04 & 0.2903 & 40.63 & \secondcell{53.52} & \bestcell{67.21} & 0.4353 \\
+PaddleOCR-VL-1.5~\cite{paddleocrvl15} & 67.31 & 0.2257 & 77.24 & 47.27 & 57.74 & 0.2283 \\
+PaddleOCR-VL-1.6~\cite{paddleocrvl16} & 67.66 & \secondcell{0.2148} & \secondcell{77.88} & 46.57 & 57.39 & \secondcell{0.2202} \\
+GLM-OCR~\cite{glmocr} & \secondcell{69.58} & 0.2421 & 75.63 & \bestcell{57.31} & \secondcell{65.76} & 0.2340 \\
+\textbf{\ours} & \bestcell{72.28} & \bestcell{0.1561} & \bestcell{81.51} & 50.95 & 59.84 & \bestcell{0.1733} \\
+\bottomrule
+\end{tabular*}
+\end{table}
+
+\begin{table}[!t]
+\centering
+\caption{Results on the complex-table subset of the in-house benchmark. MR denotes missing rate, defined as the fraction of tables missing from the parsed output.}
+\label{tab:inhouse_table}
+\small
+\setlength{\tabcolsep}{2pt}
+\begin{tabular*}{\linewidth}{@{\extracolsep{\fill}}lccccc@{}}
+\toprule
+Model & Overall\up & Text$^{Edit}$\down & Table$^{TEDS}$\up & Table$^{TEDS\mbox{-}S}$\up & MR\down \\
+\midrule
+PaddleOCR-VL-1.5~\cite{paddleocrvl15} & 70.98 & \secondcell{0.2705} & 69.01 & 73.24 & 0.1637 \\
+PaddleOCR-VL-1.6~\cite{paddleocrvl16} & 73.19 & 0.2760 & 73.98 & 77.41 & 0.1593 \\
+GLM-OCR~\cite{glmocr} & \secondcell{74.08} & 0.2848 & 76.63 & \secondcell{79.92} & 0.1726 \\
+MinerU2.5-Pro~\cite{mineru25pro} & 71.43 & 0.3407 & \secondcell{76.92} & 79.71 & \secondcell{0.1327} \\
+\textbf{\ours} & \bestcell{83.97} & \bestcell{0.1040} & \bestcell{78.34} & \bestcell{81.33} & \bestcell{0.0796} \\
+\bottomrule
+\end{tabular*}
+\end{table}
+
+Although existing public benchmarks cover a broad range of document layouts, their data distributions do not fully reflect the heterogeneity and visual noise of documents encountered in real-world workflows. Examples include, among others, domain-specific forms, scanned reports with seals, printed templates with handwritten annotations, and tables with irregularly merged cells. To provide a more comprehensive evaluation of \ours{}, we construct an in-house benchmark following the OmniDocBench v1.6 evaluation protocol. The benchmark comprises more than 1,000 pages spanning a wide range of document types.
+
+During the development of \ours{}, we found handwriting and complex tables to be two challenging document scenarios frequently encountered in real-world workflows. We therefore report separate results on handwriting and complex-table subsets in addition to the full benchmark.
+
+As shown in Table~\ref{tab:inhouse_all}, \ours{} achieves the highest overall score on the in-house benchmark and shows consistently leading performance across text, formula, table, and reading-order metrics. We further divide the benchmark by parsing difficulty. As shown in Table~\ref{tab:inhouse_all_difficulty}, the advantage of \ours{} holds across easy, medium, and hard tiers.
+
+Tables~\ref{tab:inhouse_handwriting} and~\ref{tab:inhouse_table} summarize the handwriting and complex-table results. On handwriting, while GLM-OCR obtains a higher table TEDS score, \ours{} achieves the highest overall score, the lowest text edit distance, the highest formula CDM score, and the lowest reading-order error. On the complex-table subset, \ours{} obtains the highest overall score, the highest TEDS, and the lowest missing rate. The missing-rate comparison is particularly informative: pipeline methods miss 13--17\% of tables during layout parsing, an error that is irrecoverable by downstream recognizers.

@@ -1,1 +1,47 @@
 # Wiki Update Log
+
+## 2026-08-17
+- **Ingest**: Compiled [NVIDIA Nemotron Parse v1.1 model card](../raw/NVIDIA-Nemotron-Parse-v1.1.md); created [NVIDIA Nemotron Parse v1.1](nemotron-parse-v1-1.md).
+- **Ingest**: Compiled [PaddleOCR-VL model card](../raw/PaddleOCR-VL.md); updated [PaddleOCR-VL](paddleocr-vl.md) with official pipeline, vLLM, Transformers, and version-status evidence.
+- **Ingest**: Compiled [Surya OCR 2 model card](../raw/surya-ocr-2.md); created [Surya OCR 2](surya-ocr-2.md).
+- **Ingest**: Compiled [RolmOCR model card](../raw/RolmOCR.md); created [RolmOCR](rolmocr.md).
+- **Ingest**: Compiled [olmOCR-2-7B-1025 model card](../raw/olmOCR-2-7B-1025.md); created [olmOCR-2-7B-1025](olmocr-2-7b-1025.md).
+- **Ingest**: Compiled [Nemotron OCR v2 model card](../raw/nemotron-ocr-v2.md); created [Nemotron OCR v2](nemotron-ocr-v2.md).
+- **Ingest**: Compiled [Nanonets-OCR2 model card](../raw/Nanonets-OCR2.md); created [Nanonets-OCR2](nanonets-ocr2.md).
+- **Ingest**: Compiled [MinerU2.5-Pro-2605-1.2B model card](../raw/MinerU2.5-Pro-2605-1.2B.md); updated [MinerU2.5-Pro](mineru2-5-pro.md) with release-specific parsing claims and author-reported comparison to 2604.
+- **Ingest**: Compiled [MinerU2.5-Pro model card](../raw/MinerU2.5-Pro-2604-1.2B.md); created [MinerU2.5-Pro](mineru2-5-pro.md) and updated [MinerU2.5](mineru2-5.md) with its author-reported baseline comparison.
+- **Ingest**: Compiled [MinerU2.5-2509-1.2B model card](../raw/MinerU2.5-2509-1.2B.md); created [MinerU2.5](mineru2-5.md).
+- **Ingest**: Compiled [MinerU-Diffusion-V1-0320-2.5B model card](../raw/MinerU-Diffusion-V1-0320-2.5B.md); created [MinerU-Diffusion](mineru-diffusion.md).
+- **Ingest**: Compiled [LightOnOCR-2-1B model card](../raw/LightOnOCR-2-1B.md); updated [LightOnOCR](lightonocr.md) with current release identity, Transformers/vLLM operation, fine-tuning guidance, and image-asset coverage limits.
+- **Ingest**: Compiled [LightOnOCR-1B-1025 model card](../raw/LightOnOCR-1B-1025.md); updated [LightOnOCR](lightonocr.md) with 1B-1025 deployment guidance, release status, and version-identity limitations.
+- **Ingest**: Compiled [Infinity-Parser2-Pro model card](../raw/Infinity-Parser2-Pro.md); updated [Infinity-Parser2](infinity-parser2.md) with release, license, operational interfaces, and source-coverage limits.
+- **Ingest**: Compiled [Infinity-Parser-7B model card](../raw/Infinity-Parser-7B.md); updated [LayoutRL and Infinity-Parser](layout-rl-and-infinity-parser.md) with release metadata, output limitations, and an image-asset coverage limit.
+- **Ingest**: Compiled [HunyuanOCR-1.5 model card](../raw/HunyuanOCR-1.5.md); created [HunyuanOCR-1.5](hunyuanocr-1.5.md) and updated [Document-parser data flywheel](document-parser-data-flywheel.md) with its agent-mediated variant.
+- **Ingest**: Compiled [granite-docling-258m model card](../raw/granite-docling-258m.md); created [Granite Docling 258M](granite-docling-258m.md).
+- **Ingest**: Compiled [Falcon OCR model card](../raw/FalconOCR.md); updated [FalconOCR](falcon-ocr.md) with released interfaces, deployment behavior, and qualified throughput evidence.
+- **Ingest**: Compiled [dots.ocr model card](../raw/dots.ocr.md); created [dots.ocr](dots-ocr.md).
+- **Ingest**: Compiled [dots.mocr model card](../raw/dots.mocr.md); updated [Multimodal OCR](multimodal-ocr.md) with release operation and parser output details.
+- **Ingest**: Compiled [Chandra model card](../raw/chandra.md); created deprecated [Chandra OCR](chandra-ocr.md) and updated [Chandra OCR 2](chandra-ocr-2.md) with reciprocal supersession context.
+- **Ingest**: Compiled [Chandra OCR 2 model card](../raw/chandra-ocr-2.md); created [Chandra OCR 2](chandra-ocr-2.md).
+- **Ingest**: Compiled [OvisOCR2 Technical Report](../raw/2607.13639_OvisOCR2/main.tex); created [OvisOCR2](ovisocr2.md) and updated [DOM-based document synthesis](dom-based-document-synthesis.md).
+- **Ingest**: Compiled [MonkeyOCRv2: A Visual-Text Foundation Model for Document AI](../raw/2607.11562_MonkeyOCRv2/monkeyocr.tex); created [MonkeyOCRv2](monkeyocrv2.md) and [MonkeyDoc v2](monkeydoc-v2.md), and updated [MDPBench](mdpbench.md).
+- **Ingest**: Compiled [Infinity-Parser2 Technical Report](../raw/2607.07836_Infinity-Parser2/arxiv_latex.tex); created [Infinity-Parser2](infinity-parser2.md), [Infinity-Doc2-5M](infinity-doc2-5m.md), [Document-parser data flywheel](document-parser-data-flywheel.md), and [DOM-based document synthesis](dom-based-document-synthesis.md), and updated [LayoutRL and Infinity-Parser](layout-rl-and-infinity-parser.md) and [Infinity-Doc-400K](infinity-doc-400k.md).
+- **Ingest**: Compiled [RT-DocLayout: Real-Time End-to-End Document Layout Analysis with Reading Order in the Wild](../raw/2606.23344_RT-DocLayout/main.tex); updated [PP-DocLayoutV3](pp-doclayoutv3.md) with its academic identity, training, augmentation, and author-reported results.
+- **Ingest**: Compiled [Unlimited OCR Works](../raw/2606.23050_Unlimited-OCR/main.tex) and its [model card](../raw/2606.23050_Unlimited-OCR/README.md); created [Unlimited OCR](unlimited-ocr.md) and [Reference Sliding Window Attention](reference-sliding-window-attention.md).
+- **Ingest**: Compiled [PP-OCRv6: From 1.5M to 34.5M Parameters, Surpassing Billion-Scale VLMs on OCR Tasks](../raw/2606.13108_PP-OCRv6/main.tex); created [PP-OCRv6](pp-ocrv6.md) and updated [PP-OCRv5](pp-ocrv5.md).
+- **Ingest**: Compiled [PaddleOCR-VL-1.6: Expanding the Frontier of Document Parsing with Under-Optimized Region Refinement and Progressive Post-Training](../raw/2606.03264_PaddleOCR-VL-1.6/main.tex); created [PaddleOCR-VL-1.6](paddleocr-vl-1.6.md), deprecated [PaddleOCR-VL-1.5](paddleocr-vl-1.5.md), and updated [PP-DocLayoutV3](pp-doclayoutv3.md).
+- **Ingest**: Compiled [MDPBench: A Benchmark for Multilingual Document Parsing in Real-World Scenarios](../raw/2603.28130_MDPBench/main.tex); created [MDPBench](mdpbench.md).
+- **Ingest**: Compiled [Falcon Perception](../raw/2603.27365_FalconPerception/main.tex); created [Falcon Perception](falcon-perception.md), [PBench](pbench.md), and [FalconOCR](falcon-ocr.md), and updated [PP-DocLayoutV3](pp-doclayoutv3.md).
+- **Ingest**: Compiled [Qianfan-OCR: A Unified End-to-End Model for Document Intelligence](../raw/2603.13398_Qianfan-OCR/qianfan_ocr_report.tex) and its [model card](../raw/2603.13398_Qianfan-OCR/README.md); created [Qianfan-OCR](qianfan-ocr.md).
+- **Ingest**: Compiled [Multimodal OCR: Parse Anything from Documents](../raw/2603.13032_MultimodalOCR/main.tex); created [Multimodal OCR](multimodal-ocr.md) and [OCR Arena](ocr-arena.md).
+- **Ingest**: Compiled [GLM-OCR Technical Report](../raw/2603.10910_GLM-OCR/main.tex) and its [model card](../raw/2603.10910_GLM-OCR/README.md); created [GLM-OCR](glm-ocr.md) and updated [PP-DocLayoutV3](pp-doclayoutv3.md).
+- **Ingest**: Compiled [FireRed-OCR Technical Report](../raw/2603.01840_FireRed-OCR/fireredocr_report.tex) and its [model card](../raw/2603.01840_FireRed-OCR/README.md); created [FireRed-OCR](firered-ocr.md).
+- **Ingest**: Compiled [PaddleOCR-VL-1.5: Towards a Multi-Task 0.9B VLM for Robust In-the-Wild Document Parsing](../raw/2601.21957_PaddleOCR-VL-1.5/main.tex) and its [model card](../raw/2601.21957_PaddleOCR-VL-1.5/README.md); created [PaddleOCR-VL-1.5](paddleocr-vl-1.5.md), [PP-DocLayoutV3](pp-doclayoutv3.md), and [Real5-OmniDocBench](real5-omnidocbench.md), and updated [PaddleOCR-VL](paddleocr-vl.md) and [PP-DocLayoutV2](pp-doclayoutv2.md).
+- **Ingest**: Compiled [DeepSeek-OCR 2: Visual Causal Flow](../raw/2601.20552_DeepSeek-OCR-2/main.tex) and its [model card](../raw/2601.20552_DeepSeek-OCR-2/README.md); created [DeepSeek-OCR 2](deepseek-ocr-2.md).
+- **Ingest**: Compiled [Typhoon OCR: Open Vision-Language Model For Thai Document Extraction](../raw/2601.14722_TyphoonOCR/main.tex) and its [model card](../raw/2601.14722_TyphoonOCR/README.md); created [Typhoon OCR](typhoon-ocr.md).
+- **Ingest**: Compiled [LightOnOCR: A 1B End-to-End Multilingual Vision-Language Model for State-of-the-Art OCR](../raw/2601.14251_LightOnOCR/templateArxiv.tex); created [LightOnOCR](lightonocr.md).
+- **Ingest**: Compiled [DeepSeek-OCR: Contexts Optical Compression](../raw/2510.18234_DeepSeek-OCR/main.tex); created [DeepSeek-OCR](deepseek-ocr.md) and [Optical Context Compression](optical-context-compression.md).
+- **Ingest**: Compiled [PaddleOCR-VL: Boosting Multilingual Document Parsing via a 0.9B Ultra-Compact Vision-Language Model](../raw/2510.14528_PaddleOCR-VL/main.tex); created [PaddleOCR-VL](paddleocr-vl.md) and [PP-DocLayoutV2](pp-doclayoutv2.md), and updated [PP-StructureV3](pp-structurev3.md).
+- **Update**: Completed source reconciliation for [Detect Anything via Next Point Prediction](../raw/2510.12798_Detect%20Anything%20via%20Next%20Point%20Prediction/main.tex); updated [Rex-Omni](rex-omni.md) with the sampling analysis that distinguishes simple from complex detection tasks.
+- **Ingest**: Compiled [PaddleOCR 3.0 Technical Report](../raw/2507.05595_PaddleOCR-3.0/main.tex); created [PaddleOCR 3.0](paddleocr-3.md), [PP-OCRv5](pp-ocrv5.md), [PP-StructureV3](pp-structurev3.md), and [PP-ChatOCRv4](pp-chatocrv4.md), and connected the modular parser to [LayoutRL and Infinity-Parser](layout-rl-and-infinity-parser.md).
+- **Ingest**: Compiled [Infinity-Parser: Layout-Aware Reinforcement Learning for Scanned Document Parsing](../raw/2506.03197_InfinityParser/main.tex); created [Infinity-Doc-400K](infinity-doc-400k.md) and [LayoutRL and Infinity-Parser](layout-rl-and-infinity-parser.md).

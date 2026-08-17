@@ -1,0 +1,38 @@
+\section{Evaluation}
+
+In this section, we evaluate the performance of GLM-OCR against current state-of-the-art pipeline tools, general Vision-Language Models (VLMs), and specialized OCR VLMs. To provide a comprehensive assessment, the evaluation is divided into two parts: standard Public Benchmarks and custom In-House Benchmarks.
+
+\subsection{Public Benchmarks}
+
+We first evaluate GLM-OCR on widely recognized public datasets encompassing Document Parsing and KIE tasks.
+
+\paragraph{Overall Benchmark Performance.} As shown in Table~\ref{tab:docparse}, GLM-OCR demonstrates superior performance across the majority of standard datasets. In Document Parsing, our model achieves the highest scores on OmniDocBench v1.5 (94.6), OCRBench Text (94.0), UniMERNet (96.5), and TEDS\_TEST (86.0). It remains highly competitive on PubTabNet (85.2), trailing only MinerU 2.5. Furthermore, GLM-OCR establishes a clear SOTA in KIE, outperforming all available open-source competitors on Nanonets-KIE (93.7) and Handwritten-KIE (86.1), and even narrowing the gap with closed-source giants like Gemini-3-Pro.
+
+% 插入表1
+\input{tables/docparse}
+
+\paragraph{OmniDocBench v1.5 Analysis.} To better understand the model's document parsing capabilities, we present a granular breakdown of the OmniDocBench v1.5 results in Table~\ref{tab:main_results}. This benchmark compares pipeline tools, general VLMs of varying sizes, and specialized VLMs.
+
+Remarkably, despite possessing only 0.9B parameters, GLM-OCR achieves the highest Overall score (94.62), outperforming not only direct specialized competitors like PaddleOCR-VL-1.5 (94.50) and MinerU2.5 (90.67) but also massive general VLMs such as Qwen3-VL-235B (89.15) and Gemini-3 Pro (90.33).
+
+A breakdown of sub-metrics indicates strong performance in table structure recovery. It achieves the absolute best scores in table recognition, scoring 93.96 on Table$_{TEDS}$ and 96.39 on Table$_{TEDS-S}$. While PaddleOCR-VL-1.5 slightly edges out GLM-OCR in Text$_{Edit}$ (0.035 vs 0.040) and Formula$_{CDM}$ (94.21 vs 93.90), GLM-OCR's exceptional table parsing capabilities secure its position as the top-performing model overall, proving that specialized, parameter-efficient architectures can rival or surpass scale-heavy models in complex document parsing.
+
+% 插入表2
+\input{tables/omnidocbench}
+
+\subsection{In-House Benchmarks}
+
+To assess the robustness of GLM-OCR in highly complex, real-world industrial scenarios, we conducted evaluations on a custom suite of in-house benchmarks. These tasks include Code Document parsing, Real-world Table extraction, Handwritten Text recognition, Multilingual Text processing, Seal Recognition, and Receipt KIE.
+
+% 插入表3
+\input{tables/self_eval}
+
+As detailed in Table~\ref{tab:self_eval}, GLM-OCR achieves the highest score in five out of six evaluated categories among the compared open-weight models. Most notably, GLM-OCR demonstrates a notable margin in challenging, niche domains:
+
+\begin{itemize}
+    \item \textbf{Seal Recognition:} GLM-OCR achieves an exceptional score of 90.5, outperforming the next best open-weight model (dots.ocr at 63.0) by a massive margin and performing competitively with Gemini-3-Pro (91.3).
+    \item \textbf{Multilingual Text:} The model excels in diverse linguistic contexts, scoring 69.3 compared to PaddleOCR-VL-1.5's 54.8.
+    \item \textbf{Complex Formatting:} It leads in Code Document parsing (84.7) and Real-world Table extraction (91.5), proving its utility in highly structured and noisy environments.
+\end{itemize}
+
+While PaddleOCR-VL-1.5 holds a marginal lead in Handwritten Text (87.4 vs. GLM-OCR's 87.0), GLM-OCR remains highly effective. Crucially, in practical application tasks like Receipt KIE, GLM-OCR (94.5) easily surpasses proprietary models like GPT-5.2 (83.5). These in-house results validate that GLM-OCR is not merely optimizing for academic datasets but is highly capable of generalizing to the noisy, variable conditions of real-world OCR deployments.

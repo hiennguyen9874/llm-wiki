@@ -1,0 +1,78 @@
+\section{In-depth Analysis of Rex-Omni}
+
+In this section, we conduct a comprehensive analysis to investigate and elucidate the efficacy of Rex-Omni's key design components. Our aim is to provide a deeper understanding of how each architectural choice, training strategy (including the role of GRPO), and data design collectively influences the model’s overall performance across various visual perception tasks.
+
+\subsection{Why GRPO Works}
+Rex-Omni adopts a two-stage training strategy, beginning with supervised fine-tuning (SFT) and followed by GRPO-based reinforcement learning. Across all coordinate prediction benchmarks, the GRPO-enhanced model consistently outperforms its SFT-only counterpart. To investigate the source of these gains, we analyze the model’s behaviors and highlight key error patterns that GRPO effectively mitigates.
+
+
+\begin{figure}[t]     
+    \centering
+    % \hspace*{-0.05\textwidth}
+    \includegraphics[width=\textwidth]{figures/training_curve.pdf}
+    \caption{Model performance across SFT and GRPO training stages. F1@mIoU scores are shown for three datasets (Dense200, COCO, LVIS) with training data volume increasing.}
+    \label{fig:training_dynamics}
+\end{figure}
+
+
+\subsubsection{Training Dynamics}
+To better understand how Rex-Omni acquires its visual perception capability, we analyze the performance trajectory during both the SFT and GRPO stages as training progresses. Figure~\ref{fig:training_dynamics} illustrates model performance on representative benchmarks as a function of training steps (measured by the amount of data seen).
+
+During the SFT stage, performance exhibits a steady and gradual improvement. As the model is exposed to more training data, it progressively learns to align visual inputs with coordinate outputs, leading to consistent but incremental gains across benchmarks. However, once SFT concludes, performance tends to plateau, suggesting that further improvements from additional supervised exposure are limited. In contrast, the GRPO stage produces a strikingly different trajectory. With only a small number of training steps, the model experiences a rapid performance jump across benchmarks. Notably, this improvement cannot be attributed simply to more data exposure, since the GRPO stage involves far fewer samples than SFT. Instead, the results suggest that the SFT-trained model already possesses strong latent capabilities that remain underutilized. GRPO, by introducing behavior-aware rewards and sequence-level feedback, effectively unlocks this hidden potential, enabling the model to achieve a substantial leap in performance with minimal additional training.
+
+Taken together, these dynamics reveal that GRPO’s benefit lies not in extending supervised learning, but in reshaping model behavior to better exploit existing capabilities. In the following subsections, we delve deeper into the specific mechanisms behind this improvement, beginning with how GRPO corrects problematic behaviors learned during SFT.
+
+\subsubsection{Behavioral Correction via GRPO}
+\textbf{Duplicate Predictions}. A major error pattern is the tendency to generate repeated predictions. Under SFT, the model is trained with full teacher forcing, conditioning on ground-truth tokens at each step—so it rarely encounters or corrects this issue. In contrast, GRPO requires the model to generate sequences autonomously and provides reward-based feedback. Repeated coordinates receive low rewards, effectively discouraging duplication and promoting more coherent predictions.
+
+\input{tables/ab1_duplicate}
+
+
+
+To verify this effect, we analyzed predictions from both the SFT-only and GRPO-trained models, focusing on repeated outputs. A repeated prediction is defined as a coordinate sequence where the same value appeared consecutively at least 10 times, with the total number of predicted boxes exceeding twice the ground-truth count. We removed such duplicates and re-evaluated F1 scores. As shown in Table~\ref{tab:ab1_duplicate}, the SFT-only model exhibited substantial improvements after duplicate removal (e.g., +1.23\% on COCO, +1.38\% on LVIS, and +15.3\% on VisDrone), whereas the GRPO model showed minimal gains (e.g., +0.08\% on COCO, +0.1\% on VisDrone). This indicates that SFT-trained models produce significantly more repeated predictions than GRPO-trained models. After removing duplicates, the performance gap between SFT and GRPO narrowed, becoming nearly negligible on dense datasets like VisDrone. Visual examples of these differences are shown in Figure~\ref{fig:ab1} (left). These findings confirm that GRPO effectively suppresses duplicate predictions, which is a key factor in Rex-Omni’s overall performance improvement.
+
+
+\noindent\textbf{Large-box Predictions}. Another behavioral issue observed, especially in dense object detection scenarios, is the tendency of models to predict a single large bounding box that encompasses multiple dense objects. This failure mode was also highlighted in our benchmarking of dense object detection (Section \ref{sec:dense}). To investigate this, we conducted an experiment on the Dense200 dataset. A large box prediction was defined as a scenario where only one bounding box was predicted in the image, and its area exceeded 95\% of the total image size. We then analyzed instances of such large box predictions from both the SFT-only and GRPO-trained models, removing these samples from evaluation. 
+\input{tables/ab1_large_box}
+
+\begin{figure}[t]     
+    \centering
+    % \hspace*{-0.05\textwidth}
+    \includegraphics[width=\textwidth]{figures/ab1_sft_vs_grpo_dense.pdf}
+    \caption{Illustration of challenges in MLLM-based object detection and their mitigation. The left side qualitatively compares predictions from SFT and GRPO models, highlighting GRPO's effectiveness in reducing duplicate outputs. The right side visualizes the large-box prediction failure mode, where models inappropriately predict overly large bounding boxes encompassing multiple objects.}
+    \label{fig:ab1}
+\end{figure}
+
+
+As shown in Table \ref{tab:ab1_large_box}, the SFT-only model exhibited a substantial 20.5\% of its total predictions as large boxes, leading to a significant performance improvement (e.g., F1@IoU=mIoU increased from 44.9 to 56.7) once these large box predictions were removed. In stark contrast, the GRPO-trained model had only 3.5\% of its predictions categorized as large boxes, and consequently, showed a much smaller performance change (F1@IoU=mIoU increased from 58.3 to 60.0) upon their removal. This clearly indicates that GRPO's behavior-aware optimization effectively discourages models from producing such overly large, encompassing bounding boxes for dense scenes. This failure mode is visually exemplified on the right side of Figure \ref{fig:ab1}.
+
+\subsubsection{Improvement in Coordinate Precision?}
+We hypothesize that the cross-entropy loss used in SFT lacks geometry-awareness, whereas GRPO can exploit geometry-aware rewards to refine coordinate precision. To validate this, we evaluate coordinate precision on COCO, LVIS, and HumanRef.
+
+Specifically, for each test sample, We only include samples where both the SFT and GRPO models produce a number of predicted boxes that exactly matches the ground-truth count. Furthermore, for these selected samples, each predicted box from both models must achieve an IoU exceeding a predefined matching threshold with its corresponding ground-truth box. This filtering strategy allows us to effectively isolate the analysis to focus exclusively on the subtle differences in coordinate precision. As shown in Table~\ref{tab:ab3_coordinate_accuracy}, GRPO yields only modest gains over SFT. For example, F1@mIoU increases slightly from 63.0 to 63.5 on COCO and from 56.6 to 56.9 on LVIS. These results suggest that SFT already provides sufficient capacity for learning accurate coordinates and tight localization. Thus, GRPO’s primary advantage lies not in boosting raw coordinate precision, but in correcting behavioral deficiencies such as duplicate predictions and large-box outputs, as discussed earlier.
+
+\input{tables/ab3_coornidate_accuracy}
+
+\input{tables/ab4_sampling_probability}
+
+\subsubsection{\textbf{Elevating the Likelihood of Correct Predictions}}
+Beyond behavioral correction and coordinate refinement, we examine GRPO’s impact from a sampling-probability perspective. We hypothesize that SFT models inherently possess the ability to generate accurate predictions, but their inference randomness reduces the likelihood of consistently sampling optimal outputs. GRPO, by contrast, leverages reward-guided exploration to increase this likelihood.
+
+To empirically test this, we conducted high-temperature sampling experiments using the SFT model on COCO, LVIS, and Dense200. We simulated GRPO's rollout by sampling 8 candidate predictions per test instance (using temperature 1.2, top-k 50, top-p 0.99). From these, we derived two SFT-based metrics: \textbf{SFT-Sampling-Best}: The highest F1-score achieved across 8 independent full-dataset test runs of the SFT model. \textbf{SFT-Sampling-Vote}: For each test sample, the best prediction (highest F1-score against ground truth) is chosen from its 8 sampled outputs. These sample-wise best predictions are then aggregated for overall performance. This estimates SFT's maximal performance if optimal predictions were reliably selected at the sample level.
+
+As shown in Table~\ref{tab:ab4_sampling}, on COCO the SFT-Sampling-Vote score (72.6 F1@0.5) exceeds both GRPO (72.0) and base SFT (68.2), indicating that SFT has a latent capacity for accurate predictions and GRPO mainly improves sampling consistency on simpler datasets. However, on LVIS and Dense200, neither SFT-Sampling-Best nor SFT-Sampling-Vote approaches GRPO’s performance, showing that for complex tasks GRPO plays a deeper role by enabling inherently more coherent and precise predictions. These findings suggest that GRPO’s benefits vary by task complexity: increasing sampling probability on simpler settings, and fundamentally enhancing prediction quality in more challenging ones.
+
+\input{tables/ab5_inference_efficiency}
+
+\begin{figure}[t]     
+    \centering
+    % \hspace*{-0.05\textwidth}
+    \includegraphics[width=0.6\textwidth]{figures/analysis_speed.png}
+    \caption{Inference speed and output token analysis. The plot shows the average generation time (seconds) and the average number of output tokens as a function of the number of predicted boxes. The experiment was conducted on a single NVIDIA A100 GPU with vLLM deployment in BF16 precision, without model acceleration or compression.}
+    \label{fig:inference_speed}
+\end{figure}
+
+\subsection{Inference Efficiency and Speed}
+The efficiency of coordinate representation is crucial, as it directly affects output length and inference speed. We compare Rex-Omni, which encodes quantized coordinates using special tokens, with SEED1.5-VL, which represents relative coordinates without special tokens. To evaluate this, we sampled 100 images each from COCO and Dense200, and measured the average boxes per image, total output tokens per image, and tokens per box. As summarized in Table~\ref{tab:ab5_inference_efficiency}, Rex-Omni achieves far greater tokenization efficiency. For example, on COCO it requires only 7.6 tokens per box on average, compared to 148.8 for SEED1.5-VL, with total output length reduced from 631.0 to 45.3 tokens per image. Similar improvements are observed on Dense200, confirming that dedicated special tokens substantially enhance efficiency, especially in dense object settings.
+
+Beyond tokenization efficiency, we further examine practical inference speed. Figure~\ref{fig:inference_speed} illustrates the relationship between the number of predicted boxes, output token length, and average generation time, measured on a single NVIDIA A100 GPU using vLLM with BF16 precision (no acceleration or compression applied). Both generation time and token count grow approximately linearly with the number of predicted boxes: detecting a few objects (0–29) takes under 2 seconds, whereas detecting hundreds of objects (e.g., 410–419) exceeds 16 seconds. These findings indicate that current MLLM-based detectors are slower than traditional optimized detectors, with speed scaling directly with the number of detected objects. Nevertheless, this limitation could be mitigated through acceleration strategies such as quantization or distillation.

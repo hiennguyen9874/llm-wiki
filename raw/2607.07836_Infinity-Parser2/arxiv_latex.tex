@@ -1,0 +1,120 @@
+\documentclass[13pt]{article}
+
+\usepackage{latex/PRIMEarxiv}
+
+\usepackage[utf8]{inputenc} % allow utf-8 input
+\usepackage[T1]{fontenc}    % use 8-bit T1 fonts
+\usepackage{hyperref}       % hyperlinks
+\hypersetup{
+    colorlinks=true, % Change the border to colored text
+    linkcolor=blue,  % Color for internal links (ToC, references)
+    citecolor=blue,  % Color for bibliography citations
+    urlcolor=blue    % Color for URL links
+}
+\usepackage{url}            % simple URL typesetting
+\usepackage{booktabs}       % professional-quality tables
+\usepackage{amsfonts}       % blackboard math symbols
+\usepackage{amsmath}
+\usepackage{nicefrac}       % compact symbols for 1/2, etc.
+\usepackage{microtype}      % microtypography
+\usepackage{lipsum}
+\usepackage{fancyhdr}       % header
+\usepackage{graphicx}       % graphics
+\graphicspath{{media/}}     % organize your images and other figures under media/ folder
+
+% used for formated list
+\usepackage{enumitem}
+\usepackage{amssymb}
+
+\usepackage{multirow}
+\usepackage{booktabs}
+
+% 1. 导入 tcolorbox 包用于绘制带背景的盒子
+\usepackage{tcolorbox}
+% 允许盒子跨页断开（因为您源码里写了 breakable 参数）
+\tcbuselibrary{breakable} 
+
+% 2. 导入 listings 包用于渲染代码块
+\usepackage{listings}
+
+% 3. 定义您的 lstlisting 样式 (如果您还没定义的话)
+% 因为您的源码使用了 [style=promptlisting]，如果没有定义会报错
+\lstdefinestyle{promptlisting}{
+    basicstyle=\ttfamily\small, % 使用等宽字体
+    breaklines=true,            % 允许自动换行
+    columns=fullflexible,       % 字符间距更紧凑美观
+    keepspaces=true             % 保留空格
+}
+
+%Header
+\pagestyle{fancy}
+\thispagestyle{empty}
+\rhead{ \textit{ }} 
+
+% Update your Headers here
+% \fancyhead[LO]{Running Title for Header}
+% \fancyhead[RE]{Firstauthor and Secondauthor} % Firstauthor et al. if more than 2 - must use \documentclass[twoside]{article}
+  
+%% Title
+\title{
+  Infinity-Parser2 Technical Report
+}
+
+\author{
+  INF Team
+}
+
+\begin{document}
+\maketitle
+
+\begin{center}
+  \vspace{-1.2cm}
+  \normalsize
+  \raisebox{-0.1em}{\includegraphics[height=1em]{figures/Hugging_Face_Emoji.png}}\ \href{https://huggingface.co/collections/infly/infinity-parser2}{Models}\quad
+  \raisebox{-0.1em}{\includegraphics[height=1em]{figures/Dataset_Emoji.png}}\ \href{https://huggingface.co/datasets/infly/Infinity-Doc2-5M}{Dataset}\quad
+  \raisebox{-0.1em}{\includegraphics[height=1em]{figures/Github_Emoji.png}}\ \href{https://github.com/infly-ai/INF-MLLM}{Code}\quad
+  \raisebox{-0.1em}{\includegraphics[height=1em]{figures/Rocket_Emoji.png}}\ \href{https://huggingface.co/spaces/infly/Infinity-Parser2-Demo}{Demo}\quad
+  \vspace{0.5cm}
+\end{center}
+
+\begin{abstract}
+We present \textbf{Infinity-Parser2}, a large multimodal model that couples a controllable data-synthesis pipeline with multi-task reinforcement learning for end-to-end document parsing, addressing the persistent scarcity of faithfully annotated parsing corpora. Our contributions are threefold. First, we build a scalable synthesis engine, pairing a controllable rendering framework with an iterative refinement loop, and use it to construct and open-source \textbf{Infinity-Doc2-5M}: a 5-million-sample bilingual (Chinese/English) corpus spanning diverse document types, annotated with element bounding boxes, canonical content forms (Markdown, HTML, LaTeX, SMILES, structured charts), and full-page reading order. Second, we introduce a verifiable, multi-task reward system that enables Joint Reinforcement Learning across eight co-trained objectives (document parsing, layout analysis, table parsing, math formula parsing, chart parsing, chemical formula parsing, document VQA, and general multimodal understanding), unifying perception, structure, and reasoning in a single optimization signal. Third, we release two variants under a shared architecture: \textbf{Infinity-Parser2-Flash}, optimized for low-latency inference with a \textbf{3.68$\times$} throughput gain over Infinity-Parser-7B, and \textbf{Infinity-Parser2-Pro}, engineered for precision-critical settings. Infinity-Parser2-Pro reaches state-of-the-art \textbf{87.6\%} on olmOCR-Bench and \textbf{74.3\%} on ParseBench, surpassing DeepSeek-OCR-2, PaddleOCR-VL-1.5, and MinerU2.5, with strong generalization to charts, chemical formulas, and document VQA.
+\end{abstract}
+
+\begin{figure*}[htbp]
+  \centering
+  \includegraphics[width=\textwidth]{figures/document_parsing_perf.pdf}\\[4pt]
+  \includegraphics[width=\textwidth]{figures/capabilities_perf.pdf}
+  \caption{Performance evaluation. Top: document parsing benchmarks. Bottom: cross-domain multi-task capabilities.}
+  \label{fig:perf}
+\end{figure*}
+
+\newpage
+{
+\setcounter{tocdepth}{2}
+\tableofcontents
+}
+
+\newpage
+\input{latex/introduction}
+
+\input{latex/related_work}
+
+\input{latex/method}
+
+\input{latex/experiments}
+
+\input{latex/limitations}
+
+\input{latex/conclusion}
+
+\input{latex/contributions}
+
+\bibliographystyle{unsrt}  
+\bibliography{latex/custom}
+
+\appendix
+\newpage
+\input{latex/appendix}
+
+\end{document}

@@ -1,0 +1,239 @@
+\section{Benchmark Results}
+\label{sec:experiment}
+This section presents the evaluation of Rex-Omni across multiple visual perception tasks, such as common, long-tailed, and dense object detection, referring object detection, and object pointing. For each task, we outline the benchmark datasets, experimental settings, and evaluation metrics.
+
+\subsection{Common Object Detection}
+\label{sec:coco}
+Common object detection refers to the task of detecting objects from a predefined set of categories that frequently appear in real-world scenarios. The goal of this task is to evaluate the model's baisc ability to accurately identify and localize these common objects.
+
+\input{tables/common_object_detection}
+
+\textbf{Benchmark}: We conduct our evaluation on the COCO~\cite{Datasets:MSCOCO} dataset, one of the most widely used benchmarks in the field of object detection. The dataset includes 5,000 test images and spans 80 distinct object categories, representing a broad range of common objects.
+
+\textbf{Evaluation Settings}: We evaluate two variants of our proposed model: \textbf{Rex-Omni-SFT}, which undergoes only the first stage of supervised fine-tuning, and the full \textbf{Rex-Omni} model, which undergoes both SFT and the subsequent GRPO-based reinforcement post-training. We compare these variants with three types of models: 1) Closed-set detection models trained on COCO, including Faster RCNN~\cite{ren2016faster}, DETR~\cite{carion2020end}, DyHead~\cite{dai2021dynamic}, DAB-DETR~\cite{liu2022dab}, Deformable-DETR~\cite{zhu2020deformable} and DINO~\cite{zhang2022dino}; 2) Open-set detection model Grounding DINO~\cite{liu2023grounding} that is not trained on COCO,  and 3) Multimodal large language models (MLLMs) including DeepSeek-VL2~\cite{wu2024deepseek}, Ovis2.5~\cite{lu2025ovis2}, MiMo-VL~\cite{coreteam2025mimovltechnicalreport}, Qwen2.5-VL~\cite{bai2025qwen2} and SEED1.5-VL~\cite{guo2025seed1}. For closed-set detection models, we input images and retain only the predicted bounding boxes whose categories match the ground-truth (GT) labels in each image. For open-set models, we provide all GT categories as text prompts and keep the corresponding results. For MLLMs, we adopt two prompting strategies: (1) querying one GT category at a time (e.g., “Detect dog in this image”), and (2) querying all GT categories simultaneously (e.g., “Detect dog, cat, person in this image”). Although the latter is more practical in real-world scenarios, most MLLMs exhibit a performance drop when handling multiple categories simultaneously. Therefore, except for SEED1.5-VL and Rex-Omni, we use the single-category strategy. All evaluations of Rex-Omni (both SFT and full versions) are conducted with a sampling temperature of 0 to minimize randomness.
+
+\textbf{Metric}: In object detection, the standard metric is Average Precision (AP), which relies on confidence scores to compute precision and recall at varying thresholds. However, multimodal models often lack reliable confidence estimation, rendering AP unsuitable. We therefore adopt Recall, Precision, and F1 score as evaluation metrics. Given predicted and ground-truth boxes, Recall and Precision are computed per category and then averaged, while F1 is taken as their harmonic mean. Following COCO conventions, Intersection over Union (IoU) is evaluated at thresholds from 0.5 to 0.95 (step size 0.05), and results are reported at IoU=0.5, IoU=0.95, and the mean across thresholds. For fair comparison with MLLMs, we further compute F1 scores across confidence thresholds ranging from 0 to 1 (step size 0.01) for both closed- and open-set detection models, reporting the highest F1 as the final performance.
+
+\begin{figure}[t]     
+    % \hspace*{-0.05\textwidth}
+    \includegraphics[width=1.0\textwidth]{figures/compare_common_longtail.pdf}
+    \caption{Visualization of detection predictions from different models on common and long-tailed object detection benchmarks, using COCO and LVIS, respectively.}
+    \label{fig:compare_common_longtail}
+\end{figure}
+
+\textbf{Results}: The results are presented in Table \ref{tab:common_object_detection}. Firstly, among MLLMs, Rex-Omni surpasses existing approaches, including SEED1.5-VL, which previously held state-of-the-art detection performance. At an IoU threshold of 0.5, Rex-Omni demonstrates superior performance, outperforming both the open-set detection model Grounding DINO-SwinT and the closed-set detection model DINO-R50. Crucially, Rex-Omni achieves this in a zero-shot setting (without training on COCO data), thereby indicating that MLLM-based detection methods can indeed surpass traditional regression-based models when highly precise bounding box localization is not the sole critical factor. However, at a stricter IoU threshold of 0.95, Rex-Omni's performance, while still strong, only marginally outperforms DAB-DETR, suggesting that MLLMs may still lag behind conventional regression-based models in scenarios demanding extremely precise bounding box tightness.
+
+Nevertheless, despite this nuanced limitation, the achieved performance is generally sufficient for a wide range of practical applications. We show some visualization results in Figure \ref{fig:compare_common_longtail}. Furthermore, a significant improvement is observed with GRPO post-training, where the full Rex-Omni model substantially outperforms its SFT-only variant (Rex-Omni-SFT). This clearly highlights the effectiveness of our reinforcement learning strategy. 
+
+\subsection{Long-tailed Object Detection}
+Long-tailed object detection tackles the challenge of recognizing categories with highly imbalanced instance distributions, where most categories are sparsely represented. This task requires models to generalize effectively and robustly detect rare objects in complex real-world scenarios.
+
+\textbf{Benchmark: }We evaluate on the widely used LVIS~\cite{gupta2019lvis} dataset. LVIS comprises 1,203 categories, significantly more than COCO's 80, and features 19,626 test images.  Its categories are derived from WordNet synsets and are intentionally distributed to mimic real-world frequencies, resulting in a natural long-tail distribution where many categories have very few instances. 
+
+\textbf{Evaluation Settings and Metrics: }We assess the performance of open-set detection models and MLLMs, following the same evaluation settings and metrics as described in Section~\ref{sec:coco} for COCO.
+
+\input{tables/long_tailed_object_detection}
+
+\textbf{Results: }The results are presented in Table~\ref{tab:long_tailed_object_detection}. On LVIS, MLLMs generally outperform traditional open-set detectors such as Grounding DINO, owing to the stronger linguistic reasoning ability of their LLM components compared to conventional text encoders (e.g., CLIP or BERT). This advantage facilitates better generalization to low-frequency categories.
+
+In the zero-shot setting, Rex-Omni achieves competitive performance, with an F1 score at IoU=0.5 second only to SEED1.5-VL, likely due to the latter’s larger model size and stronger language understanding. Notably, Rex-Omni attains state-of-the-art results on the mIoU metric, reflecting its superior bounding box precision across thresholds. Moreover, the substantial improvement from Rex-Omni-SFT to the full Rex-Omni model underscores the effectiveness of GRPO-based reinforcement post-training in enhancing object localization. Qualitative results are shown in Figure~\ref{fig:compare_common_longtail} and Figure~\ref{fig:app_common_longtailed}.
+
+\subsection{Dense and Tiny Object Detection}
+\label{sec:dense}
+Dense and tiny object detection is crucial for applications such as remote sensing and object counting, requiring accurate localization of numerous small objects in crowded scenes. For MLLMs, this task is particularly challenging: it not only demands precise, extended coordinate predictions sensitive to subtle pixel variations, but also exposes the absence of multi-scale feature mechanisms (e.g., feature pyramids~\cite{lin2017feature}) that traditional regression-based detectors exploit to handle scale diversity. As a result, MLLMs often suffer from issues such as duplicate predictions and coordinate offsets in dense and tiny object detection scenarios.
+ 
+\input{tables/dense_object_detection}
+\begin{figure}[!h]     
+    % \hspace*{-0.05\textwidth}
+    \includegraphics[width=1.0\textwidth]{figures/compare_dense.pdf}
+    \caption{Visualization of dense and tiny object detection predictions. This figure presents a qualitative comparison of various models on the VisDrone and Dense200 datasets.}
+    \label{fig:compare_dense}
+\end{figure}
+
+
+\noindent\textbf{Benchmark, settings and metrics: }We evaluate open-set detection models and MLLMs on two distinct datasets tailored for dense and tiny object detection. The first dataset, VisDrone~\cite{du2019visdrone}, comprises 1,610 aerial traffic images spanning 10 categories, with individual boxes measuring approximately 30.7×32.4 pixels. Additionally, we introduce Dense200, a manually collected dataset consisting of 200 densely annotated images covering 109 categories. In Dense200, each image contains an average of 91.2 bounding boxes, with an average size of  66.8×64.5 pixels. Together, these datasets pose significant challenges due to the combination of small object sizes and high object density, demanding precise spatial reasoning and accurate localization. The evaluation settings and metrics are the same as those used in Section \ref{sec:coco} for COCO evaluation.
+
+\noindent\textbf{Results}: The results are reported in Table~\ref{tab:dense_object_detection}, with representative visualizations in Figure~\ref{fig:compare_dense} and Figure~\ref{fig:app_dense}. As anticipated in Section \ref{sec:sft_limitation}, MLLMs struggle with dense and tiny object detection, with most models showing poor performance. We identify two critical failure modes: (1) \textbf{Large-box prediction}, where a single oversized bounding box erroneously covers multiple adjacent objects, and (2) \textbf{Structured duplicate predictions}, where repeated coordinates with minimal offsets are generated instead of distinct object boxes.
+
+We attribute these issues to the SFT stage. Teacher-forced training on full ground-truth sequences restricts the model’s ability to regulate its own output structure. Without such guidance at inference, the model fails to decide object counts or avoid redundant predictions. Notably, we also observed these problematic repetitive predictions in our SFT-only variant. Crucially, after GRPO-based reinforcement post-training, these duplication issues largely disappear, compellingly demonstrating the effectiveness of our two-stage pipeline in correcting SFT-induced deficiencies and enabling more coherent, accurate predictions in dense and tiny object scenarios.
+
+\input{tables/referring_object_detection}
+\begin{figure}[!h]     
+    % \hspace*{-0.05\textwidth}
+    \includegraphics[width=1.0\textwidth]{figures/referring_comparsion.pdf}
+    \captionsetup{justification=centering}
+    \caption{Visualization of model predictions on referring object detection benchmarks.}
+    \label{fig:compare_referring}
+\end{figure}
+
+
+\subsection{Referring Object Detection}
+Referring object detection requires a model to identify and localize objects described by a natural language expression. Unlike standard object detection, which focuses on category-level recognition, this task demands fine-grained language understanding and strong alignment between linguistic descriptions and visual content.
+
+\textbf{Benchmark: }The evaluation is conducted on two established public benchmarks:
+\textbf{1) RefCOCOg (val/test):} RefCOCOg~\cite{Datasets:REFCOCOG} is built on COCO images and includes 4,889 validation and 9,577 test referring expressions. Each expression maps to a single ground-truth bounding box, making this benchmark relatively straightforward for evaluation.
+\textbf{2) HumanRef:} HumanRef~\cite{jiang2025referringperson} is a human-annotated benchmark focused on people, comprising 6,000 test expressions organized into six subsets: attribute, position, interaction, reasoning, celebrity, and rejection. We use the first five subsets (5,000 images) for evaluation. Unlike RefCOCOg, a single expression in HumanRef may correspond to multiple ground-truth boxes, averaging two per expression. This design poses greater challenges, requiring both fine-grained language understanding and robust visual perception.
+
+\textbf{Evaluation Settings and Metrics}: We evaluate open-set detection models and MLLMs using the same settings and metrics as in Section~\ref{sec:coco} for COCO, with one exception: during testing, models are queried with a single referring expression at a time. For the open-set detector Grounding DINO, we adopt its official demo confidence threshold of 0.25
+
+\textbf{Results}: The results are presented in Table \ref{tab:referring_detection}. Open-set detection models notably struggle with this task, as evidenced by Grounding DINO’s consistent underperformance across benchmarks. In stark contrast, MLLMs, leveraging their inherent strong language understanding capabilities, consistently excel at this task. On HumanRef, Rex-Omni achieves competitive results, ranking second only to SEED1.5-VL. This indicates that, while Rex-Omni (3B parameters) possesses sufficient language understanding for effective REC, larger models like SEED1.5-VL benefit from greater capacity for more nuanced reasoning. Overall, Rex-Omni’s strong performance across all datasets demonstrates its ability to align natural language with visual content, making it highly practical for real-world referring scenarios. Visualization examples are shown in Figure~\ref{fig:compare_referring} and and Figure~\ref{fig:app_referring}.
+
+% \subsection{Hallucination Rejection}
+
+% \input{tables/rejection}
+% \begin{figure}[t]     
+%     \centering
+%     % \hspace*{-0.05\textwidth}
+%     \includegraphics[width=0.9\textwidth]{figures/comparsion_rejection.pdf}
+%     \caption{Visualization of hallucination examples. The figure illustrates erroneous predictions made by MLLMs for non-existent objects, where models generate bounding boxes despite the absence of corresponding visual content.}
+%     \label{fig:compare_rejection}
+% \end{figure}
+
+% Beyond accurately detecting existent objects, a truly robust model must also refrain from predicting objects when the input prompt lacks corresponding visual content. In this section, we evaluate a model's ability to reject hallucinations, specifically its capacity to avoid generating coordinates for non-existent objects.
+
+% \textbf{Benchmarks and Evaluation Settings: }
+% To evaluate hallucination rejection, we construct specific rejection benchmarks from the COCO and LVIS datasets. Specifically, for each test image, a category not present in that image is randomly sampled from the full set of dataset categories and used as the rejection prompt. The model is then queried with this category, and its capacity to refrain from producing any predictions is measured.
+
+% \textbf{Metrics}
+% The rejection rate is employed as the primary evaluation metric. For a given test sample, the model is considered to have correctly rejected a hallucination if it outputs no coordinates. The rejection rate is computed as the proportion of correctly rejected instances out of the total number of test instances.
+
+% \textbf{Results:}
+% The experimental results are summarized in Table \ref{tab:rejection}. The experiments reveal that several existing MLLMs, alongside Grounding DINO, exhibit severe hallucination, frequently predicting coordinates for objects entirely absent from the image. Figure \ref{fig:compare_rejection} visualizes representative examples of these erroneous predictions.
+
+% We attribute this deficiency in rejection capability to the absence of negative samples during coordinate prediction training. To verify this hypothesis, we conducted an ablation study on Rex-Omni, comparing models trained with and without randomly sampled negative prompts. The results clearly demonstrate that when negative samples are not included in training, Rex-Omni fails to reject non-existent objects, yielding a rejection score of 0 on both COCO and LVIS. This finding underscores the inherent tendency of MLLMs to overfit training patterns. Based on this critical observation, our final Rex-Omni training pipeline incorporates negative prompt sampling, which effectively enables the model to correctly withhold predictions when prompted with non-existent objects.
+\input{tables/visual_prompting}
+
+
+\subsection{Visual Prompting}
+
+While text prompts are widely used in many tasks, they have inherent limitations, particularly when certain objects are difficult to describe using language alone. In such scenarios, visual prompting can offer a more effective approach for object detection. In this section, we define visual prompting as a task where, given an image alongside several example bounding boxes within it, the model is required to detect all other objects belonging to the same category as those indicated by the examples.
+
+\textbf{Benchmark and Evaluation Setting:}
+We evaluate visual prompting on the object counting dataset FSC147~\cite{ranjan2021learning}, as well as on object detection benchmarks COCO, LVIS, and Dense200. The FSC147 dataset consists of 1,190 images, each containing a dense set of objects from a single category along with three example bounding boxes, which are used as visual prompts for detection. For COCO, LVIS, and Dense200, we follow the T-Rex2~\cite{jiang2024t} methodology, where for each ground-truth category in an image, one bounding box is randomly sampled as the visual prompt for that category. To interface with Rex-Omni, the coordinates of the selected visual prompt box are converted into special tokens and embedded into the query, e.g., “Given reference boxes <12><52><212><337> indicating one or more objects, find all objects of the same category in the image.”
+
+
+\textbf{Metric:}
+We primarily adopt the F1-score as described in Section~\ref{sec:coco} for object detection. Additionally, we introduce the Mean Absolute Error (MAE) metric to evaluate the model’s object counting ability. MAE is computed as the absolute difference between predicted and ground-truth object counts, averaged across the entire dataset, thereby providing an additional measure of the model’s capability to accurately count objects in dense scenes.
+
+\textbf{Results:}
+While Rex-Omni’s overall performance still falls short of the traditional expert model T-Rex2, it demonstrates strong visual prompting capabilities. In particular, Rex-Omni performs well in both dense scenes and long-tailed scenarios, highlighting its effectiveness in addressing high object density and severe class imbalance. Representative visualization results are shown in Figure~\ref{fig:compare_visual_prompt}.
+
+\begin{figure}[!h]     
+    \centering
+    % \hspace*{-0.05\textwidth}
+    \includegraphics[width=\textwidth]{figures/compare_visual_prompt.pdf}
+    \captionsetup{justification=centering}
+    \caption{Qualitative comparison of visual prompting predictions between T-Rex2 and Rex-Omni.}
+    \label{fig:compare_visual_prompt}
+\end{figure}
+
+\subsection{Object Pointing}
+The object pointing task requires models to predict precise point coordinates for specified target objects. Unlike bounding boxes, point annotations offer greater flexibility in localization, as models can indicate an object’s center or any representative position within its boundaries.
+
+\textbf{Benchmarks, Evaluation Settings and Metric: }To evaluate object pointing, we integrate datasets previously used for box-based detection, including COCO, LVIS, Dense200, VisDrone, RefCOCOg, and HumanRef. This collection covers a broad range of visual scenarios, from common and long-tailed objects to dense small objects and complex referring expressions. The evaluation protocol follows that of the earlier detection tasks. For most models, except SEED1.5-VL and Rex-Omni, each test image is queried with a single ground-truth category at a time. We adopt the same F1-score–based evaluation metric as in object detection, with one modification in the matching criterion. For each ground-truth bounding box, we generate a segmentation mask using SAM, and a predicted point is considered correct if it falls within the corresponding mask. Recall, Precision, and F1 are then computed analogously to standard box-based evaluation.
+
+\input{tables/pointing}
+
+\textbf{Results: }The performance of all evaluated models is reported in Table~\ref{tab:pointing}. While most MLLMs achieve reasonable pointing accuracy on common object categories, they struggle with dense or small-scale instances, particularly on Dense200 and VisDrone. Rex-Omni attains the highest F1-scores across both general and challenging datasets, highlighting its strong spatial localization ability. Representative visualizations are shown in Figure~\ref{fig:compare_pointing} and and Figure~\ref{fig:app_pointing}.
+
+\begin{figure}[t]     
+    \centering
+    % \hspace*{-0.05\textwidth}
+    \includegraphics[width=\textwidth]{figures/compare_pointing.pdf}
+    \captionsetup{justification=centering}
+    \caption{Qualitative comparison of object pointing predictions from different models.}
+    \label{fig:compare_pointing}
+\end{figure}
+
+\input{tables/gui_grounding}
+
+
+\subsection{GUI Grounding}
+Graphical User Interface (GUI) grounding evaluates a model’s ability to localize specific UI elements based on natural language queries. This task is critical for applications such as intelligent agents, automated UI interaction, and software testing, as it requires seamless integration of visual perception and language understanding.
+
+\textbf{Benchmarks, Evaluation Setting and Metric: }We evaluate models on two datasets: ScreenSpot-V2~\cite{wu2024atlas} and ScreenSpot-Pro~\cite{li2025screenspot}. ScreenSpot-V2 encompasses mobile, desktop, and web scenarios, featuring a diverse array of UI layouts across 1,272 images. ScreenSpot-Pro, conversely, focuses on ultra-high-resolution interfaces, specifically designed to test the model’s precision in localizing UI elements under highly challenging visual conditions, comprising 1,581 images. Rex-Omni is assessed using its point-based prediction capability, outputting a point within the target UI element for each query. Following standard protocols, we report accuracy, considering a prediction correct if the point falls within the ground-truth bounding box.
+
+\textbf{Results: }As shown in Table \ref{tab:gui_grounidng}, Rex-Omni consistently demonstrates strong performance on GUI grounding tasks. Specifically, among 3B-parameter models, Rex-Omni achieves the highest accuracy across both ScreenSpot V2 and ScreenSpot Pro. This underscores its superior capability to seamlessly integrate robust language understanding with fine-grained visual localization, even in diverse and ultra-high-resolution UI scenarios.
+
+
+\subsection{Layout Grounding}
+Layout grounding requires models to localize and interpret the spatial relationships among elements in a document, such as titles, paragraphs, sections, and figures. This task is crucial for applications like document layout analysis and web page understanding, as it demands not only object detection but also reasoning over structural arrangement and semantic relationships.
+
+\textbf{Benchmark, Evaluation Setting, and Metrics:}
+We evaluate our model on the DocLayNet~\cite{pfitzmann2022doclaynet} and M6Doc~\cite{cheng2023m6doc} datasets. DocLayNet is collected from PDF documents and includes 11 categories such as footnotes, pictures, tables, and titles, with a test set consisting of 6,480 images.The M6Doc dataset is considerably more complex, encompassing data from diverse domains (e.g., scientific articles, textbooks, test papers, magazines, newspapers, notes, books) with a total of 74 categories across 2,724 test images. For evaluation, we treat this task as an object detection problem, following the same evaluation protocol used for common object detection on COCO.
+
+\textbf{Results:}
+The results are presented in Table~\ref{tab:layout_grounding}. Rex-Omni outperforms other MLLMs by a large margin on layout grounding. While there remains a performance gap compared to closed-set models, Rex-Omni’s ability to handle open-set layout grounding provides a unique advantage. Unlike closed-set models, which are limited to predefined categories, Rex-Omni demonstrates a unique capability to generalize to unseen domains and novel layout structures, establishing it as a more versatile and adaptable solution for real-world layout understanding tasks. Representative visualization results are provided in Figure \ref{fig:compare_layout_grounding} and Figure~\ref{fig:app_layout}.
+
+\input{tables/layout_grounding}
+
+\begin{figure}[t]     
+    \centering
+    % \hspace*{-0.05\textwidth}
+    \includegraphics[width=\textwidth]{figures/compare_layout_grounding.pdf}
+    \caption{Qualitative comparison of layout grounding predictions from different models. The figure illustrates the models' ability to localize and interpret various layout elements.}
+    \label{fig:compare_layout_grounding}
+\end{figure}
+
+\input{tables/ocr}
+
+\begin{figure}[t]     
+    \centering
+    % \hspace*{-0.05\textwidth}
+    \includegraphics[width=\textwidth]{figures/compare_ocr.pdf}
+    \captionsetup{justification=centering}
+    \caption{Visualization of OCR results across models.}
+    \label{fig:compare_ocr}
+\end{figure}
+
+\subsection{OCR}
+Optical Character Recognition (OCR) involves both text detection and recognition, where the model identifies and extracts text from images or documents. The task requires the model to detect text regions and then recognize the characters or words within those regions, enabling the conversion of scanned documents or images into machine-readable text.
+
+\textbf{Benchmark, Evaluation Setting:}
+We evaluate the performance of PaddleOCR, SEED1.5-VL, and Rex-Omni on four diverse datasets. The core evaluation method involves detecting and recognizing all text within the images. The datasets include HierText (3,446 instances, primarily dense text), TotalText (600 instances, scene text with predominantly curved text), ICDAR2015 (1,000 instances, scene text), and SROIE (720 instances, printed receipt data with mostly horizontal text). Together, these datasets cover a broad spectrum of OCR challenges, from dense and curved scene text to structured document text. For PaddleOCR and Rex-Omni, both bounding box (BBOX) and polygonal (POLY) text regions are predicted, and we report performance for both formats to provide a comprehensive assessment of text localization.
+
+\textbf{Metrics:} We formulate OCR as an object detection task, following the COCO evaluation protocol with categories replaced by recognized text. A prediction is considered correct if (1) the predicted and ground-truth regions match, and (2) the recognized text exactly matches the ground truth. Performance is reported using the F1 score, balancing precision and recall.
+
+\textbf{Results:} The evaluation results for the OCR task are presented in Table \ref{tab:ocr}. For bounding box (BBOX) outputs, Rex-Omni demonstrates strong competitive performance. It significantly outperforms SEED1.5-VL across all metrics and datasets, and achieves comparable or superior results to the dedicated OCR expert model PaddleOCRv5 in several key aspects. This highlights Rex-Omni's robust capabilities in text detection and recognition using bounding boxes. In the polygonal (POLY) output format, Rex-Omni also shows competitive performance. The full Rex-Omni model, after GRPO post-training, notably achieves leading results on challenging datasets like ICDAR2015 for polygonal text region detection. This indicates the versatility of our approach in handling more complex text geometries. Consistent gains from Rex-Omni-SFT to Rex-Omni further validate the effectiveness of our two-stage training pipeline in enhancing OCR performance. Representative visualization results are provided in Figure \ref{fig:compare_ocr} and and Figure~\ref{fig:app_ocr}.
+
+\input{tables/spatial}
+
+\begin{figure}[t]     
+    \centering
+    % \hspace*{-0.05\textwidth}
+    \includegraphics[width=\textwidth]{figures/compare_spatial.jpg}
+    \captionsetup{justification=centering}
+    \caption{Visualization of Spatial Pointing results across models. Masks indicate correct areas.}
+    \label{fig:compare_spatial}
+\end{figure}
+
+
+\subsection{Spatial Pointing}
+
+This task focuses on grounding natural language expressions that describe spatial relationships in complex scenes. Unlike standard referring object detection, which primarily matches objects to category names or simple attributes, spatial grounding requires models to interpret relational cues such as relative position, anchoring, and free-space placement.
+
+\noindent\textbf{Benchmark and Metrics:}
+RefSpatial-Bench~\cite{zhou2025roborefer} evaluates spatial referring and reasoning in complex indoor scenes across two tasks: \textit{location} and \textit{placement}, each with 100 curated samples. Each sample includes an image, a natural language referring expression, and precise mask annotations. The location task requires models to predict a 2D point corresponding to a target object based on referring expressions that may involve attributes such as color, shape, spatial order, or anchor-based references. The placement task requires identifying a suitable 2D point within a free space described in the expression, often involving multiple anchors or hierarchical spatial relations. To assess generalization, the benchmark additionally provides 77 unseen samples containing novel combinations of spatial relations not present in training. Evaluation is performed using ground-truth masks, with accuracy defined as the percentage of predictions falling within the mask region.
+
+\noindent\textbf{Results:} As shown in Table~\ref{tab:spatial}, Rex-Omni substantially outperforms prior proprietary and referring-specialist models. Its strong performance on both location and placement tasks suggests enhanced applicability to downstream scenarios such as robotic manipulation, where accurate grasping and placement are essential. Moreover, Rex-Omni demonstrates superior generalization to unseen cases, underscoring its robustness in handling novel spatial relations. Representative visualization results are provided in Figure \ref{fig:compare_spatial}.
+
+\subsection{Keypoint}
+
+\noindent\textbf{Benchmark, Evaluation Setting, and Metrics:}
+COCO is a benchmark dataset designed to evaluate 2D human pose estimation and instance-level keypoint detection capabilities in unconstrained environments. It comprises a large-scale collection of images featuring people in diverse and complex natural scenes. Each annotated person instance includes a set of 17 predefined body joints, forming a standard human skeleton. AP10K is a benchmark designed to advance the field of 2D animal pose estimation, addressing the challenge of anatomical variation across species. The benchmark standardizes keypoint annotation with a unified definition of 17 body keypoints for mammals, reptiles, and birds.
+Following the COCO protocol, we adopt Object Keypoint Similarity (OKS) as the evaluation metric. We report F1 score at OKS thresholds of 0.5, 0.95, and the mean over thresholds from 0.5 to 0.95 in increments of 0.05.
+
+\input{tables/keypointing}
+
+\begin{figure}[t]     
+    \centering
+    % \hspace*{-0.05\textwidth}
+    \includegraphics[width=\textwidth]{figures/compare_keypoint.pdf}
+    \captionsetup{justification=centering}
+    \caption{Qualitative comparison of keypoint detection predictions from different models.}
+    \label{fig:keypoint}
+\end{figure}
+
+
+\noindent\textbf{Results:} 
+As shown in Table~\ref{tab:keypointing}, the open-set expert model X-Pose achieves the strongest performance on COCO keypoint detection, particularly at lower OKS thresholds. However, it generalizes poorly to AP10K, where its performance drops sharply. In contrast, Rex-Omni demonstrates more balanced results across both human and animal keypoint benchmarks. Although its absolute scores on COCO lag behind X-Pose, Rex-Omni substantially outperforms it on AP10K, highlighting its superior cross-domain generalization. Furthermore, the consistent improvement from Rex-Omni-SFT to the full Rex-Omni model validates the effectiveness of our two-stage training pipeline for enhancing keypoint reasoning. Representative visualization results are provided in Figure \ref{fig:keypoint}.

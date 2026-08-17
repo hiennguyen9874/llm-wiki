@@ -1,0 +1,376 @@
+
+
+
+\section{Experiments}
+\label{sec:experiments}
+
+In this section, we present a comprehensive evaluation of FireRed-OCR. We benchmark our model against three categories of state-of-the-art systems: (1) \textbf{General Large Vision-Language Models (VLMs)} such as Qwen3-VL-235B~\cite{bai2025qwen3} and Gemini-3.0 Pro~\cite{google2025gemini3pro}; (2) \textbf{Traditional Pipeline Systems} like PaddleOCR-VL-1.5~\cite{cui2026paddleocr}; and (3) \textbf{Specialized End-to-End (E2E) OCR Models} like DeepSeek-OCR 2~\cite{wei2026deepseek} and dots.ocr~\cite{li2025dots}.
+
+\subsection{Data Preparation}
+
+To develop a robust and versatile model, we constructed a comprehensive training dataset derived from two primary sources: high-quality open-source datasets and re-annotation from open-source datasets. This combination ensures diversity across various document layouts, fonts, and domains.
+
+
+
+We integrated a wide range of public datasets to cover specific capabilities such as handwritten text recognition, formula generation, and table parsing. 
+
+
+
+\textbf{Mathematical Expressions.} 
+Handling complex mathematical notation is a core capability of our system. We utilized the \textit{LaTeX OCR} dataset~\cite{latex_ocr} for simple formulas and the \textit{latex-formulas-80M} dataset~\cite{latex-formulas-80M} for complex equations.
+A critical challenge addressed during preprocessing was the discrepancy in \LaTeX{} syntax between training sources and standard evaluation benchmarks. We developed a normalization pipeline to unify the \LaTeX{} format, ensuring consistency in spacing, symbol representation, and environment definitions. 
+
+
+\textbf{General Document Understanding and OCR.} 
+For general document parsing, we integrated multiple sources.
+\begin{itemize}
+    \item \textbf{BLIP-3 OCR:} We utilized a subset of the \textit{BLIP-3 OCR} dataset~\cite{xue2024xgen}. Although the original dataset contains 200M samples, we filtered for high-quality bounding box annotations and selected a few samples for training.
+    \item \textbf{Docmatix:} Docmatix~\cite{laurencon2024building} provides valuable Visual Question Answering (VQA) data. We re-labeled the OCR ground truth to align with our training objectives. 
+\end{itemize}
+
+\textbf{Tabular Data.} 
+To enhance the model's ability to interpret structural information, we included the \textit{PubTabNet} dataset~\cite{zhong2019image}. We converted the ground truth from raw HTML representations into a unified Parquet format for efficient loading. 
+
+\textbf{Handwritten Text.} 
+To support handwriting recognition, we employed the \textit{IAM Handwriting Database}~\cite{IAM-line}. We processed lines of English handwriting, converting the annotations into Markdown format to maintain consistency with our text generation targets.
+
+
+
+
+\subsection{Implementation Details}
+\label{subsec:implementation}
+
+Our training pipeline proceeds in three stages with varying data scales and optimization strategies. 
+In Multi-task Pre-alignment stage, we utilize a dataset of approximately 1.3M samples to ground the model's visual perception. 
+For pecialized SFT stage, we fine-tune the model on 400k high-quality document-to-markdown pairs to standardize the structural output. 
+Both supervised stages employ a global batch size of 256 and a learning rate of $3 \times 10^{-5}$. 
+Finally, in the Format-Constrained GRPO stage, we use 50K samples for reinforcement learning and reduce the learning rate to $5 \times 10^{-7}$. 
+For generation during the RL phase, we apply nucleus sampling with $p=0.99$ and $k=50$, setting a maximum context length of 24,576 tokens and a completion limit of 2,048 tokens. 
+A linear warmup ratio of 0.05 is applied across all training stages.
+
+
+\subsection{Evaluation}
+
+
+Our evaluation relies on serveral benchmarks, including OmniDocBench v1.5~\cite{ouyang2025omnidocbench}, OCRBench~\cite{liu2024ocrbench}, TEDS, PubTabNet~\cite{zhong2019image} and FireRedBench. FireRedBench is a newly introduced internal benchmark focusing on complex, non-standard layouts (e.g., distorted scans, dense multi-column papers, and embedded logic diagrams). This dataset is designed to stress-test layout robustness where traditional crop-based methods often fail. 
+
+
+
+We report \textbf{Overall} scores alongside specific metrics: \textbf{Edit Distance} (Text/Reading Order, lower is better), \textbf{CDM} (Formula match), and \textbf{TEDS} (Table structure).
+
+
+
+\subsection{Main Results}
+
+\begin{table}[h]
+    \centering
+    \caption{\textbf{Overall Comparison.} FireRed-OCR-2B outperforms massive general VLMs and competitive pipelines, particularly balancing standard accuracy with in-the-wild robustness. For PaddleOCR-VL-1.5 and GLM-OCR on OCRBench (Text), scores are reported as API / pure VLM.}
+    \label{tab:overall}
+    \resizebox{0.9\textwidth}{!}{
+    \begin{tabular}{l c c c c c}
+        \toprule
+        \textbf{Model} & \textbf{OmniDocBench v1.5} & \textbf{FireRedBench} & \textbf{OCRBench (Text)} & \textbf{TEDS} & \textbf{PubTabNet} \\
+        \midrule
+        \multicolumn{6}{l}{\textit{Pipeline Systems}} \\
+        MinerU2.5~\cite{niu2025mineru2} & 90.67 & - & 75.3 & 85.4 & 88.4 \\
+    PaddleOCR-VL-1.5~\cite{cui2026paddleocr} & 94.50 & 76.47 & 53.5 / 87.0 & 83.3 & 84.6 \\
+        GLM-OCR~\cite{glmocr} & 94.60 & 74.33 & 
+      61.0 / 95.0 & 86.0 & 85.2 \\
+        \midrule
+        \multicolumn{6}{l}{\textit{General VLMs }} \\
+        GPT-5.2~\cite{gpt52} \faLock & 85.50 & - & 83.7 & 67.6 & 84.4 \\
+        Gemini-3.0 Pro~\cite{google2025gemini3pro} \faLock & 90.33 & 79.68 & 91.9 & 81.8 & 91.4 \\
+        Qwen3-VL-235B-A22B~\cite{bai2025qwen3} & 89.15 & 79.04 & \textbf{95.0} & - & - \\
+        Qwen3.5-397B-A17B~\cite{qwen3.5} & 90.80 & 81.85 & 90.5 &64.9 & 70.3\\  
+        \midrule
+        \multicolumn{6}{l}{\textit{ End-to-End OCR Models}} \\
+        dots.ocr~\cite{li2025dots} & 88.41 & 72.93 & 92.1 & 62.4 & 71.0 \\
+        DeepSeek-OCR 2~\cite{wei2026deepseek} & 91.09 & 61.61 & 48.5 & - & - \\
+     
+        \rowcolor{red!10}\textbf{FireRed-OCR-2B (Ours)} & \textbf{92.94} & \textbf{74.62} & \textbf{93.5} & \textbf{80.6} & \textbf{77.0} \\
+        
+        \bottomrule
+    \end{tabular}
+    }
+\end{table}
+
+\subsubsection{Overall Performance Comparison}
+As presented in Table~\ref{tab:overall}, we conduct a comprehensive benchmarking of \textbf{FireRed-OCR-2B} against three distinct categories of state-of-the-art methods: Pipeline Systems, massive General Vision-Language Models (VLMs), and specialized End-to-End (E2E) models. Despite its compact size, our model demonstrates remarkable performance, balancing standard accuracy with in-the-wild robustness.
+
+\paragraph{Comparison with End-to-End Specialists.}
+Within the domain of specialized E2E models, FireRed-OCR-2B establishes a new state-of-the-art. On the challenging \textit{OmniDoc v1.5} benchmark, our model achieves a score of \textbf{92.94}, surpassing competitive baselines such as DeepSeek-OCR 2 (91.09) and dots.ocr (88.41) by a significant margin. Similarly, on \textit{OCRBench (Text)}, we achieve a score of \textbf{93.5}, outperforming the nearest E2E competitor by over 1.4 points. These results underscore the efficacy of our proposed architecture and training strategy in handling complex document understanding tasks without relying on external detection modules.
+
+\paragraph{Efficiency against General VLMs.}
+A critical observation is the parameter efficiency of FireRed-OCR-2B. While general VLMs like Qwen3-VL-235B and Gemini-3.0 Pro utilize hundreds of billions of parameters, our 2B-parameter model delivers highly competitive results. Notably, on \textit{OCRBench}, FireRed-OCR-2B (93.5) outperforms GPT-5.2 (83.7) and Gemini-3.0 Pro (91.9), and is comparable to the massive Qwen3-VL-235B (95.0). Furthermore, on \textit{OmniDoc v1.5}, our model surpasses Qwen3-VL-235B (89.15) and Qwen3.5-397B (90.80), demonstrating that a well-optimized, domain-specific model can outperform substantially larger generalist models in fine-grained optical character recognition tasks.
+
+\paragraph{Robustness compared to Pipeline Systems.}
+Table~\ref{tab:overall} reveals that FireRed-OCR-2B challenges the dominance of heavy pipeline systems. Despite lacking the specialized layout analysis modules found in systems like MinerU2.5, our 2B-parameter model delivers remarkable results on text-centric benchmarks. Specifically, on \textit{OmniDocBench v1.5}, we surpass MinerU2.5 (92.94 vs. 90.67) and approach the performance of GLM-OCR (94.60). Furthermore, on \textit{OCRBench}, our single-model architecture (93.5) significantly outperforms the API-based configurations of pipeline competitors and remains competitive with their pure VLM counterparts, demonstrating that massive ensembles are not strictly necessary for high-accuracy text recognition.
+
+
+
+
+\subsubsection{Detailed Analysis on OmniDocBench v1.5}
+Table~\ref{tab:omnidoc} presents a granular analysis of model performance across diverse document elements, including text, formulas, tables, and reading order reconstruction. \textbf{FireRed-OCR-2B} demonstrates exceptional capabilities, achieving an Overall score of \textbf{92.94}. This result not only establishes a new state-of-the-art among End-to-End (E2E) models but also challenges the dominance of massive General VLMs and complex Pipeline Systems.
+
+\paragraph{Defying Scaling Laws against General VLMs.}
+A striking observation is that FireRed-OCR-2B significantly outperforms general-purpose models with vastly larger parameter counts. Our 2B model surpasses \textbf{Qwen3.5-397B} (90.80) and \textbf{Gemini-3.0 Pro} (90.33), despite being less than 1\% of their size. In specific tasks such as table structure recognition, our model achieves a $\text{Table}^{\text{TEDS}}$ score of 90.31, dramatically outperforming Qwen3-VL-235B (86.21) and GPT-4o (67.07). This suggests that domain-specific architectural optimization is far more parameter-efficient than brute-force scaling for document understanding tasks.
+
+\paragraph{Dominance in End-to-End OCR.}
+Within the E2E category, FireRed-OCR-2B outperforms the previous best model, DeepSeek-OCR 2 (91.09), across all metrics. Crucially, we conduct a direct comparison with \textbf{Qwen3-VL-2B}, a general VLM of equivalent size (separated by the dashed line in Table~\ref{tab:omnidoc_detailed}). As highlighted in the bottom row ($\Delta$), our model delivers a massive performance leap: an \textbf{+11.07} point improvement in Overall score and a \textbf{+20.54} point increase in Table TEDS. This validates the effectiveness of our training recipe over standard VLM pre-training for OCR tasks.
+
+\paragraph{Precision in Text and Layout.}
+Our model exhibits pixel-level precision. In raw text recognition, FireRed-OCR-2B achieves the lowest edit distance ($\text{Text}^{\text{Edit}}$) of \textbf{0.032} among all evaluated models, surpassing even the top-performing pipeline system, PaddleOCR-VL-1.5 (0.035). Furthermore, our Reading Order score ($\text{R-order}^{\text{Edit}}$) of 0.041 is the best in the table, indicating superior layout comprehension logic. While Pipeline Systems like PaddleOCR-VL-1.5 maintain a slight edge in complex formulas ($\text{Formula}^{\text{CDM}}$), our E2E approach (91.71) significantly narrows the gap compared to other E2E baselines, offering a more balanced trade-off between accuracy and system simplicity.
+
+\begin{table}[t]
+    \centering
+    \caption{\textbf{Detailed Evaluation on OmniDocBench v1.5.}.}
+    \label{tab:omnidoc}
+    \resizebox{\textwidth}{!}{
+    \begin{tabular}{lcccccc}
+        \toprule
+        \textbf{Model} & \textbf{Overall} $\uparrow$ & \textbf{Text}$^{\text{Edit}}$ $\downarrow$ & \textbf{Formula}$^{\text{CDM}}$ $\uparrow$ & \textbf{Table}$^{\text{TEDS}}$ $\uparrow$ & \textbf{Table}$^{\text{TEDS\_s}}$ $\uparrow$ & \textbf{R-order}$^{\text{Edit}}$ $\downarrow$ \\
+        \midrule
+       \multicolumn{7}{l}{\textit{Pipeline OCR Systems}} \\
+        Marker-1.8.2~\cite{markerpdf} & 71.30 & 0.206 & 76.66 & 57.88 & 71.17 & 0.250 \\
+        MinerU2-pp~\cite{wang2024mineru} & 71.51 & 0.209 & 76.55 & 70.90 & 79.11 & 0.225 \\
+        Dolphin~\cite{feng2025dolphin} & 74.67 & 0.125 & 67.85 & 68.70 & 77.77 & 0.124 \\
+        Dolphin-1.5~\cite{dolphin2025} & 83.21 & 0.092 & 80.78 & 78.06 & 84.10 & 0.080 \\
+        PP-StructureV3~\cite{cui2025paddleocr} & 86.73 & 0.073 & 85.79 & 81.68 & 89.48 & 0.073 \\
+        MonkeyOCR-pro-1.2B~\cite{li2025monkeyocr} & 86.96 & 0.084 & 85.02 & 84.24 & 89.02 & 0.130 \\
+        MonkeyOCR-3B~\cite{li2025monkeyocr} & 87.13 & 0.075 & 87.45 & 81.39 & 85.92 & 0.129 \\
+        MonkeyOCR-pro-3B~\cite{li2025monkeyocr} & 88.85 & 0.075 & 87.25 & 86.78 & 90.63 & 0.128 \\
+        MinerU2.5~\cite{niu2025mineru2} & 90.67 & 0.047 & 88.46 & 88.22 & 92.38 & 0.044 \\
+        PaddleOCR-VL~\cite{cui2025paddleocr2} & 92.86 & 0.035 & 91.22 & 90.89 & 94.76 & 0.043 \\
+        \textbf{PaddleOCR-VL-1.5}~\cite{cui2026paddleocr} & \textbf{94.50} & 0.035 & \textbf{94.21} & \textbf{92.76} & \textbf{95.79} & 0.042 \\
+        \midrule
+        \multicolumn{7}{l}{\textit{General VLMs}} \\
+        GPT-4o~\cite{hurst2024gpt} \faLock & 75.02 & 0.217 & 79.70 & 67.07 & 76.09 & 0.148 \\
+        GPT-5.2~\cite{gpt52} \faLock & 85.50 & 0.123 & 86.11 & 82.66 & 87.35 & 0.099 \\
+        Gemini-2.5 Pro~\cite{google2025gemini25pro} \faLock & 88.03 & 0.075 & 85.82 & 85.71 & 90.29 & 0.097 \\
+        Gemini-3.0 Pro~\cite{google2025gemini3pro} \faLock & 90.33 & 0.065 & 89.18 & 88.28 & 90.29 & 0.071 \\
+        
+        InternVL3-76B~\cite{zhu2025internvl3} & 80.33 & 0.131 & 83.42 & 70.64 & 77.74 & 0.113 \\
+        Qwen2.5-VL-72B~\cite{Qwen2.5-VL} & 87.02 & 0.094 & 88.27 & 82.15 & 86.22 & 0.102 \\
+        InternVL3.5-241B~\cite{wang2025internvl3} & 82.67 & 0.142 & 87.23 & 75.00 & 81.28 & 0.125 \\
+        Qwen3-VL-235B-A22B~\cite{bai2025qwen3} & 89.15 & 0.069 & 88.14 & 86.21 & 90.55 & 0.068 \\
+        Qwen3.5-397B-A17B~\cite{qwen3.5} & 90.80 & - & -&- & -\\
+        
+        \midrule
+        \multicolumn{7}{l}{\textit{End-to-End OCR Models}} \\
+        OCRFlux-3B~\cite{OCRFlux} & 74.82 & 0.193 & 68.03 & 75.75 & 80.23 & 0.202 \\
+        Mistral OCR~\cite{mistral-ocr} & 74.82 & 0.193 & 68.03 & 75.75 & 80.23 & 0.202 \\
+        POINTS-Reader~\cite{liu2025points} & 80.98 & 0.134 & 79.20 & 77.13 & 81.66 & 0.145 \\
+        olmOCR-7B~\cite{olmocrbench} & 81.79 & 0.096 & 86.04 & 68.92 & 74.77 & 0.121 \\
+        MinerU2-VLM~\cite{wang2024mineru} & 85.56 & 0.078 & 80.95 & 83.54 & 87.66 & 0.086 \\
+        Nanonets-OCR-s~\cite{Nanonets-OCR-S} & 85.59 & 0.093 & 85.90 & 80.14 & 85.57 & 0.108 \\
+        dots.ocr~\cite{li2025dots} & 88.41 & 0.048 & 83.22 & 86.78 & 90.62 & 0.053 \\
+        OCRVerse~\cite{zhong2026ocrverse} & 88.56 & 0.058 & 86.91 & 84.55 & 88.45 & 0.071 \\
+        DeepSeek-OCR~\cite{wei2025deepseek} & 87.36 & 0.073 & 84.14 & 85.25 & 89.01 & 0.085 \\
+        DeepSeek-OCR 2~\cite{wei2026deepseek} & 91.09 & 0.048 & 90.31 & 87.75 & 92.06 & 0.057 \\
+        \hdashline
+        Qwen3-VL-2B~\cite{bai2025qwen3} & 81.87 & 0.100 & 85.87 & 69.77 & 74.37 & 0.115 \\
+        \rowcolor{red!10}\textbf{FireRed-OCR-2B (Ours)} & \textbf{92.94} & \textbf{0.032} & \textbf{91.71} & \textbf{90.31} & \textbf{93.81} & \textbf{0.041} \\
+        $\Delta$ & +11.07 & +0.068 & +5.84 & +20.54 & +19.44 & +0.074 \\
+       
+        \bottomrule
+    \end{tabular}
+    }
+\end{table}
+
+\subsubsection{Performance on FireRedBench}
+Table~\ref{tab:firered} details the evaluation results on \textit{FireRedBench}, a challenging benchmark specifically designed to test model robustness against complex document layouts and diverse topologies. In this demanding scenario, \textbf{FireRed-OCR-2B} achieves an Overall score of \textbf{74.62}.
+
+
+\paragraph{Surpassing Pipeline Complexity.}
+A notable finding is that our compact E2E model outperforms the complex \textit{GLM-OCR} pipeline (74.62 vs. 74.33) and remains highly competitive with \textit{PaddleOCR-VL-1.5} (76.47). While pipeline systems typically rely on separate detection and recognition modules to handle layout variability, FireRed-OCR-2B effectively internalizes these capabilities within a single 2B-parameter architecture. This suggests that our model learns a more robust internal representation of document structure, avoiding the cascading errors often observed in multi-stage pipelines when processing intricate layouts.
+
+\paragraph{State-of-the-Art among E2E Models.}
+Within the realm of End-to-End models, FireRed-OCR-2B establishes a significant lead. It outperforms \textit{DeepSeek-OCR 2} by a remarkable margin (+13.01 points overall) and surpasses \textit{dots.ocr} (72.93). Specifically, in structure-heavy tasks, our model achieves a $\text{Table}^{\text{TEDS}}$ of 65.63, substantially higher than DeepSeek-OCR 2 (55.06), highlighting its proficiency in parsing dense tabular data without external layout analysis tools.
+
+\paragraph{Significant Gains over Base VLM.}
+To isolate the contribution of our training recipe, we compare FireRed-OCR-2B directly with its backbone, \textit{Qwen3-VL-2B} (separated by the dashed line). As shown in the $\Delta$ row, our method yields a comprehensive improvement across all metrics, with an Overall increase of \textbf{+9.04}. Most strikingly, we observe a \textbf{+15.78} point jump in $\text{Table}^{\text{TEDS}}$ and a \textbf{+16.64} point increase in $\text{Table}^{\text{TEDS\_s}}$, confirming that our supervised fine-tuning strategy fundamentally enhances the model's ability to ground visual structure into textual representations.
+
+\begin{table}[h]
+    \centering
+    \caption{\textbf{Evaluation on FireRedBench.} This benchmark tests robustness against complex layouts. Note the significant performance drop of Pipeline models compared to the stability of E2E models.}
+    \label{tab:firered}
+    \resizebox{\textwidth}{!}{
+    \begin{tabular}{lcccccc}
+        \toprule
+        \textbf{Model} & \textbf{Overall} $\uparrow$ & \textbf{Text}$^{\text{Edit}}$ $\downarrow$ & \textbf{Formula}$^{\text{CDM}}$ $\uparrow$ & \textbf{Table}$^{\text{TEDS}}$ $\uparrow$ & \textbf{Table}$^{\text{TEDS\_s}}$ $\uparrow$ & \textbf{R-order}$^{\text{Edit}}$ $\downarrow$ \\
+        \midrule
+        \multicolumn{7}{l}{\textit{Pipeline OCR Systems}} \\
+        GLM-OCR~\cite{glmocr} & 74.33 & 0.309 & 82.53 & 71.35 & 79.93 & 0.456 \\
+        PaddleOCR-VL-1.5~\cite{cui2026paddleocr} & 76.47 & 0.291 & 92.37 & 66.15 & 74.39 & 0.453 \\
+        \midrule
+        \multicolumn{7}{l}{\textit{General VLMs}} \\
+        GPT-5.2~\cite{gpt52} \faLock & 68.09 & 0.238 & 66.33 & 61.74 & 68.00 & 0.380 \\ 
+        Gemini-3.0 Pro~\cite{google2025gemini3pro} \faLock & 79.68 & 0.169 & 80.11 & 75.82 & 82.73 & 0.353 \\
+        Qwen3-VL-235B~\cite{bai2025qwen3} & 79.04 & 0.208 & 90.83 & 67.09 & 74.52 & 0.366 \\
+        Qwen3.5-397B-A17B~\cite{qwen3.5} & 81.85 & 0.205 & 94.14 & 71.93 & 78.25 & 0.383 \\
+        
+
+        
+        \midrule
+        \multicolumn{7}{l}{\textit{End-to-End OCR Models}} \\
+        DeepSeek-OCR 2~\cite{wei2026deepseek} & 61.61 & 0.290 & 58.78 & 55.06 & 59.42 & 0.437 \\
+        dots.ocr~\cite{li2025dots} & 72.93 & 0.240 & 82.53 & 60.25 & 64.08 & 0.419 \\
+        \hdashline
+        Qwen3-VL-2B~\cite{bai2025qwen3} & 65.58 & 0.283 & 75.19 & 49.85 & 55.66 & 0.388 \\
+        \rowcolor{red!10}\textbf{FireRed-OCR-2B (Ours)} & 74.62 & 0.248 & 83.02 & 65.63 & 72.30 & 0.430 \\
+        $\Delta$ & +9.04 & +0.035 & +7.83 & +15.78 & +16.64 & -0.042 \\
+       
+        \bottomrule
+    \end{tabular}
+    }
+\end{table}
+
+
+
+\subsection{Ablation Study}
+
+In this section, we investigate the impact of different data distributions and training strategies on the model's performance. We employ Group Relative Policy Optimization (GRPO) across three primary domains: Text, Table, and Formula (LaTeX). The results are summarized in Table~\ref{tab:ablation}.
+
+\subsubsection{Single-Domain Optimization}
+As shown in the first block of Table~\ref{tab:ablation}, applying GRPO to specific domains yields significant improvements in their respective metrics. Specifically, the \textit{Base + Table GRPO} configuration achieves a substantial gain in Table TEDS (+2.0 points), while \textit{Base + Text GRPO} minimizes the Text Edit distance to 0.04. This demonstrates that GRPO effectively aligns the model with domain-specific rewards. However, we observe that single-domain optimization often fails to generalize well to other modalities (e.g., Table GRPO underperforms in Text Edit compared to the Text-only baseline).
+
+\subsubsection{The Challenge of Modality Interference}
+A naive combination of datasets does not guarantee performance improvements. The \textit{Base + Table + Text} experiment yields an Overall score of 88.72, which is inferior to the pure text baseline (88.91) and the single-domain Table GRPO (89.18). We hypothesize that this sub-optimal performance stems from modality interference, where the optimization direction of one modality conflicts with another during the joint alignment process, leading to a "alignment tax" that degrades general performance.
+
+\subsubsection{Balanced Mixture Strategy}
+To address the interference issue, we propose a balanced sampling strategy. As evidenced in the last row of Table~\ref{tab:ablation}, the \textit{Base + Mix 1:1:1} configuration achieves the state-of-the-art Overall score of \textbf{89.60}. Notably, this setting outperforms the \textit{Table GRPO (Extended)} setting (89.28). This indicates that a balanced distribution of multimodal supervision signals rather than simple data accumulation, which is critical for mitigating modality competition and maximizing the comprehensive capability of the model.
+
+\begin{table}[h]
+    \centering
+    \caption{\textbf{Ablation study on GRPO strategies.}}
+    \label{tab:ablation}
+    \resizebox{\textwidth}{!}{
+    \begin{tabular}{lcccccc}
+        \toprule
+        \textbf{Model} & \textbf{Overall} $\uparrow$ & \textbf{Text}$^{\text{Edit}}$ $\downarrow$ & \textbf{Formula}$^{\text{CDM}}$ $\uparrow$ & \textbf{Table}$^{\text{TEDS}}$ $\uparrow$ & \textbf{Table}$^{\text{TEDS\_s}}$ $\uparrow$ & \textbf{R-order}$^{\text{Edit}}$ $\downarrow$ \\
+        \midrule
+        \textit{Baselines} & & & & &\\
+        Base & 88.38 & 0.047 & 87.72 & 82.14 & 85.63 & 0.060\\
+        \midrule
+        \textit{Single-Domain GRPO} & & & & &\\
+        Base + Table GRPO & 89.18 & 0.046 & 88.01  & 84.14  & 88.08 & 0.059\\
+        Base + Text GRPO & 88.91 & 0.040 & 88.16 & 82.57 & 86.14 & 0.049\\
+        Base + LaTeX GRPO & 88.86 & 0.049 & 87.57 & 83.90 & 87.42 & 0.061 \\
+        \midrule
+        \textit{Joint Training \& Mixture} & & & & &\\
+        Base + Table + Text (Joint) & 88.72 & 0.041 & 86.95  & 83.31 & 87.06 & 0.050\\
+        Base + Table GRPO (Extended) & 89.28 & 0.047 & 87.01 & 85.54 & 89.44 & 0.062 \\
+        \textbf{Base + Mix 1:1:1} &  89.60  &  0.035  & 86.24 & \ 86.07  & 89.73 & 0.047\\
+        \bottomrule
+    \end{tabular}
+    }
+\end{table}
+
+
+\subsection{Qualitative Evaluation}
+We present a qualitative evaluation of our model across four distinct domains: mathematical expression parsing, handwritten text recognition, complex document layout analysis, and structural table reconstruction. The following cases demonstrate the model's capability to bridge the gap between raw pixels and structured semantic understanding.
+
+
+\subsubsection{Case 1: Mathematical Structure Parsing}
+Traditional OCR fails at 2D spatial structures like limits and nested fractions. Our model successfully translates the pixel information into a syntactically correct \LaTeX{} or Markdown sequence, preserving the logical derivation of the \textit{Product Rule}.
+\vspace{1cm}
+\begin{figure}[hbt!]
+    \centering
+    
+    \begin{subfigure}[b]{0.48\textwidth}
+        \centering
+        \includegraphics[width=\linewidth]{figures/case/Z1.png} 
+        \caption{\textbf{Input:} Original Slide Image}
+    \end{subfigure}
+    \hfill 
+    \begin{subfigure}[b]{0.48\textwidth}
+        \centering
+        \includegraphics[width=\linewidth]{figures/case/Z2.png} 
+        \caption{\textbf{Output:} Rendered \LaTeX{} Result}
+    \end{subfigure}
+    \caption{\textbf{From Pixels to Formula:} The model accurately identifies complex structures such as $\lim_{\Delta x\to0}$ and fraction hierarchies, enabling direct digitization of STEM materials.}
+    \label{fig:case1}
+\end{figure}
+
+
+\vspace{12cm}
+
+\subsubsection{Case 2: Robust Handwritten Text Recognition}
+Dealing with unconstrained handwriting on noisy backgrounds (e.g., lined paper) is challenging. The model demonstrates high robustness by effectively separating foreground text from background lines and recognizing cursive strokes.
+
+\begin{figure}[hbt!]
+    \centering
+    \begin{subfigure}[b]{0.48\textwidth}
+        \centering
+        \includegraphics[width=\linewidth]{figures/case/A1.jpeg} 
+        \caption{\textbf{Input:} Handwritten Essay}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[b]{0.48\textwidth}
+        \centering
+        \includegraphics[width=\linewidth]{figures/case/A2.png} 
+        \caption{\textbf{Output:} Digitized Text}
+    \end{subfigure}
+    \caption{\textbf{Unconstrained Handwriting:} Despite the interference of grid lines and personal writing styles, the model achieves near-perfect recall on the essay content.}
+    \label{fig:case2}
+\end{figure}
+
+\clearpage 
+\subsubsection{Case 3: Complex Layout Analysis (Newspaper)}
+Newspapers often feature mixed orientations (vertical/horizontal text) and multi-column layouts. The model correctly performs Layout Analysis (LA) to recover the logical Reading Order (RO), handling vertical CJK text correctly.
+
+\begin{figure}[hbt!]
+    \centering
+    \begin{subfigure}[b]{0.48\textwidth}
+        \centering
+        \includegraphics[width=\linewidth]{figures/case/J1.jpg} 
+        \caption{\textbf{Input:} Complex Newspaper Layout}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[b]{0.48\textwidth}
+        \centering
+        \includegraphics[width=0.4\linewidth]{figures/case/J2.png} 
+        \caption{\textbf{Output:} Reconstructed Layout}
+    \end{subfigure}
+    \caption{\textbf{Layout \& Reading Order:} The model distinguishes between the main article and sidebars, correctly parsing vertical text flows common in Chinese publications. 
+    }
+    \label{fig:case3}
+\end{figure}
+
+
+\subsubsection{Case 4: Structural Table Reconstruction}
+\textbf{Insight:} Financial tables contain dense information with spanning cells. The model reconstructs the logical tree of the table, correctly identifying row spans (e.g., grouping stocks by category) and hierarchical headers.
+
+\begin{figure}[hbt!]
+    \centering
+    \begin{subfigure}[b]{0.48\textwidth}
+        \centering
+        \includegraphics[width=\linewidth]{figures/case/C1.png} 
+        \caption{\textbf{Input:} Financial Report Image}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[b]{0.48\textwidth}
+        \centering
+        \includegraphics[width=\linewidth]{figures/case/C2.png} 
+        \caption{\textbf{Output:} Rendered Result}
+    \end{subfigure}
+    \caption{\textbf{Table Structure Recovery}.}
+    \label{fig:case4}
+\end{figure}
+
+\begin{figure}[hbt!]
+    \centering
+    \begin{subfigure}[b]{0.48\textwidth}
+        \centering
+        \includegraphics[width=\linewidth]{figures/case/F1.png} 
+        \caption{\textbf{Input:} Financial Report Image}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[b]{0.48\textwidth}
+        \centering
+        \includegraphics[width=\linewidth]{figures/case/F2.png} 
+        \caption{\textbf{Output:} Rendered Result}
+    \end{subfigure}
+    \caption{\textbf{Table Structure Recovery}.}
+    \label{fig:case4}
+\end{figure}
