@@ -1,6 +1,7 @@
 # Wiki Update Log
 
 ## 2026-08-17
+- **Query**: Answered “tổng hợp các temporal head, so sánh đánh giá”; filed [Temporal heads comparison](temporal-heads-comparison.md) and linked it from the action and video-language temporal taxonomies.
 - **Ingest**: Compiled the [V-JEPA 2 official PyTorch repository](../raw/vjepa2/README.md); created [V-JEPA 2.1](v-jepa-2-1.md) and updated V-JEPA 2, video representation learning, and the encoder comparison.
 - **Update**: Updated [Video backbones and encoders comparison](video-backbones-and-encoders-comparison.md) from current wiki knowledge, distinguishing [InternVideo3](internvideo3.md) as an adjacent long-video MLLM rather than a standalone visual encoder.
 - **Ingest**: Compiled [InternVideo3: Agentify Foundation Models with Multimodal Contextual Reasoning](../raw/2606.12195_InternVideo3/main.tex); created [InternVideo3](internvideo3.md) and updated long-video modeling and video-language temporal grounding and reasoning.

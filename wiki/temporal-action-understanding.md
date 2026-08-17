@@ -5,7 +5,7 @@ description: Video tasks that recognize, localize, segment, or anticipate action
 tags: [video, temporal-learning, action-understanding]
 status: draft
 created: 2026-08-15
-generated: { by: llm-wiki-agent/1, at: 2026-08-17T12:38:10+07:00 }
+generated: { by: llm-wiki-agent/1, at: 2026-08-17T13:47:55+07:00 }
 sources:
   - id: bmn-paper
     resource: ../raw/BMN/main.tex
@@ -157,6 +157,7 @@ Precise temporal intervals are expensive to annotate. Weakly supervised temporal
 - **Uses:** [VideoPrism](videoprism.md) as a frozen feature backbone paired with separate classification, temporal-localization, and spatiotemporal-localization heads.[^videoprism-paper]
 - **Uses:** [V-JEPA 2](v-jepa-2.md) as a frozen predictive video backbone for motion classification and short-horizon action anticipation, not temporal interval decoding.[^vjepa2-paper]
 - **Uses:** [VideoMamba](videomamba.md) as an SSM backbone for short- and minute-scale video classification, not as a temporal localizer or segmenter.[^videomamba-paper]
+- **Compared by:** [Temporal heads comparison](temporal-heads-comparison.md), which maps output granularity and inference constraints to task-specific heads and adjacent grounding systems.
 
 [^bmn-paper]: [BMN: Boundary-Matching Network for Temporal Action Proposal Generation](../raw/BMN/main.tex)
 [^video-temporal-survey]: [Tổng hợp các hướng xử lý video](../raw/TongHopCacHuongXuLyVideo.md)

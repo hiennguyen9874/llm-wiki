@@ -30,6 +30,7 @@ The complete retrieval map for compiled knowledge. See [LLM Wiki Contract](../LL
 - [SlowFast Networks](slowfast-networks.md) — A two-pathway video architecture that assigns sparse semantic processing and dense lightweight motion processing to separate temporal rates.
 - [TimeSformer](timesformer.md) — A video Transformer that factorizes temporal and spatial self-attention over frame patches to make long-clip action recognition practical.
 - [Temporal action understanding](temporal-action-understanding.md) — Video tasks that recognize, localize, segment, or anticipate actions across time.
+- [Temporal heads comparison](temporal-heads-comparison.md) — A task-aware comparison of temporal heads and adjacent query-conditioned systems for recognition, segmentation, proposals, localization, online detection, anticipation, and grounding.
 - [Temporal Segment Networks](temporal-segment-networks.md) — A video-level action-recognition framework that samples snippets across equal temporal segments and learns their consensus.
 - [Two-stream ConvNets for action recognition](two-stream-convnets-action-recognition.md) — A late-fusion video classifier that separates appearance in RGB frames from motion in stacked optical flow.
 - [UniTime](unitime.md) — An MLLM-based universal video temporal-grounding framework that interleaves textual timestamps with scaled video tokens and retrieves moments coarse-to-fine.

@@ -5,7 +5,7 @@ description: Text-conditioned localization and inference over event timing, orde
 tags: [video, language, temporal-grounding, temporal-reasoning, video-llm]
 status: draft
 created: 2026-08-15
-generated: { by: llm-wiki-agent/1, at: 2026-08-17T12:41:57+07:00 }
+generated: { by: llm-wiki-agent/1, at: 2026-08-17T13:47:55+07:00 }
 sources:
   - id: video-temporal-survey
     resource: ../raw/TongHopCacHuongXuLyVideo.md
@@ -131,6 +131,7 @@ NeuS-QA makes temporal relations executable: it translates a question into event
 - **Uses:** [V-JEPA 2](v-jepa-2.md) as a language-free pretrained video encoder later aligned with an LLM for temporal QA, not as a temporal-boundary grounding model.[^vjepa2-paper]
 - **Uses:** [VideoMamba](videomamba.md) as an aligned video-text feature encoder whose cited evidence is whole-video retrieval, not temporal grounding or reasoning.[^videomamba-paper]
 - **Includes:** [InternVideo3](internvideo3.md) as a long-video MLLM with direct grounding evaluations and an MCR evidence-gathering loop; its broad agent evidence remains preliminary.[^internvideo3-paper]
+- **Compared by:** [Temporal heads comparison](temporal-heads-comparison.md), which distinguishes strict feature-sequence heads from query-conditioned grounding and retrieval systems.
 
 [^video-temporal-survey]: [Tổng hợp các hướng xử lý video](../raw/TongHopCacHuongXuLyVideo.md)
 [^internvideo-paper]: [InternVideo: General Video Foundation Models via Generative and Discriminative Learning](../raw/InternVideo/main.tex)
