@@ -5,7 +5,7 @@ description: A task-aware comparison of video backbones and pretrained encoders,
 tags: [video, backbones, encoders, pretraining, representation-learning, comparison]
 status: stable
 created: 2026-08-17
-generated: { by: llm-wiki-agent/1, at: 2026-08-17T12:38:10+07:00 }
+generated: { by: llm-wiki-agent/1, at: 2026-08-17T13:08:47+07:00 }
 sources:
   - id: i3d-paper
     resource: ../raw/I3D/full_kinetics_update_v0.tex
@@ -58,11 +58,16 @@ sources:
   - id: videomamba-paper
     resource: ../raw/2403.06977_VideoMamba/main.tex
     title: "VideoMamba: State Space Model for Efficient Video Understanding"
+  - id: internvideo3-paper
+    resource: ../raw/2606.12195_InternVideo3/main.tex
+    title: "InternVideo3: Agentify Foundation Models with Multimodal Contextual Reasoning"
 ---
 
 # Video backbones and encoders comparison
 
 A **video backbone** is the visual network that converts RGB/flow clips into features; an **encoder** often means that same network after pretraining, while a foundation encoder adds a reusable pretraining recipe and broader transfer objective. This distinction matters: I3D, SlowFast, MViT, and Video Swin are primarily architectures; VideoMAE is primarily a self-supervised recipe over a ViT encoder; InternVideo, InternVideo2, VideoPrism, and V-JEPA 2 are pretrained model systems. Their reported scores are not a common leaderboard because model scale, pretraining data, heads, fine-tuning, input views, and tasks differ.
+
+[InternVideo3](internvideo3.md) is deliberately outside the encoder rows: it is an end-to-end Qwen3-based multimodal language model that consumes visual representations and adds latent KV-cache compression, long-context post-training, tool use, and iterative evidence gathering. It is an adjacent full-system choice for long-video QA and grounding, not a drop-in visual backbone.[^internvideo3-paper]
 
 ## Architecture map
 
@@ -145,16 +150,18 @@ These numbers illustrate each model's documented strength; they are **not direct
 5. **Long videos:** no short-clip backbone above solves long context by itself. VideoMamba offers linear sequence scaling and end-to-end 32–64 sparse-frame processing on minute-scale videos, while LV-MAE is the explicit long-video aggregator, reaching about 21 minutes through five-second clip tokens. Both can discard unsampled or compressed short events; neither demonstrates arbitrary-duration memory.
 6. **Video-language retrieval/classification on a constrained budget:** X-CLIP efficiently reuses CLIP; choose the recognition and retrieval variants by task because they are distinct models.
 7. **Temporal localization or segmentation:** attach an appropriate head such as [ActionFormer](actionformer.md) or [MS-TCN](ms-tcn.md). Backbone classification accuracy alone does not predict boundary quality.
+8. **Long-video QA or grounding as an end task:** consider [InternVideo3](internvideo3.md) only when a full MLLM and tool-assisted reasoning stack is acceptable. Its long-context training and compressed KV cache address a different system layer from LV-MAE or a standalone encoder, and its agentic evidence remains preliminary.[^internvideo3-paper]
 
 ## Scope and evidence limits
 
-This synthesis includes concepts that directly encode pixels/flow or aggregate pretrained clip embeddings. It does not relabel task heads and Video-LLM frameworks—ActionFormer, BMN, MS-TCN, FUTR, MAT, F2G, UniTime, VideoITG, and NeuS-QA—as visual backbones. Dataset counts can include clips cut from the same source video and may overlap across stages. No cited concept supplies a matched evaluation with identical model size, data, input duration, optimization, head, and inference views across all families; therefore claims such as “best encoder” remain task- and budget-dependent.
+This synthesis includes concepts that directly encode pixels/flow or aggregate pretrained clip embeddings. It does not relabel task heads and Video-LLM frameworks—ActionFormer, BMN, MS-TCN, FUTR, MAT, F2G, UniTime, VideoITG, NeuS-QA, or InternVideo3—as visual backbones. Dataset counts can include clips cut from the same source video and may overlap across stages. No cited concept supplies a matched evaluation with identical model size, data, input duration, optimization, head, and inference views across all families; therefore claims such as “best encoder” remain task- and budget-dependent.
 
 ## Relationships
 
 - **Compares:** [Video temporal representation learning](video-temporal-representation-learning.md) instances and the principal visual backbones in [Temporal action understanding](temporal-action-understanding.md).
 - **Depends on:** [Long-video temporal modeling](long-video-temporal-modeling.md) whenever requested context exceeds the encoder's sampled clip.
 - **Uses:** [LV-MAE](lv-mae.md) as a long-video aggregation pattern over frozen short-clip encoders.
+- **Contrasts with:** [InternVideo3](internvideo3.md), which uses a visual encoder inside an end-to-end long-video MLLM rather than serving as a standalone encoder.[^internvideo3-paper]
 
 [^i3d-paper]: [Quo Vadis, Action Recognition? A New Model and the Kinetics Dataset](../raw/I3D/full_kinetics_update_v0.tex)
 [^r2plus1d-paper]: [A Closer Look at Spatiotemporal Convolutions for Action Recognition](../raw/R\(2+1\)D/res2_plus_1d.pdf)
@@ -173,3 +180,4 @@ This synthesis includes concepts that directly encode pixels/flow or aggregate p
 [^videoprism-paper]: [VideoPrism: A Foundational Visual Encoder for Video Understanding](../raw/2402.13217_VideoPrism/main.tex)
 [^vjepa2-paper]: [V-JEPA 2: Self-Supervised Video Models Enable Understanding, Prediction and Planning](../raw/2506.09985_V-JEPA%202/main.tex)
 [^videomamba-paper]: [VideoMamba: State Space Model for Efficient Video Understanding](../raw/2403.06977_VideoMamba/main.tex)
+[^internvideo3-paper]: [InternVideo3: Agentify Foundation Models with Multimodal Contextual Reasoning](../raw/2606.12195_InternVideo3/main.tex)

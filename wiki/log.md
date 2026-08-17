@@ -1,6 +1,7 @@
 # Wiki Update Log
 
 ## 2026-08-17
+- **Update**: Updated [Video backbones and encoders comparison](video-backbones-and-encoders-comparison.md) from current wiki knowledge, distinguishing [InternVideo3](internvideo3.md) as an adjacent long-video MLLM rather than a standalone visual encoder.
 - **Ingest**: Compiled [InternVideo3: Agentify Foundation Models with Multimodal Contextual Reasoning](../raw/2606.12195_InternVideo3/main.tex); created [InternVideo3](internvideo3.md) and updated long-video modeling and video-language temporal grounding and reasoning.
 - **Ingest**: Compiled [VideoMamba: State Space Model for Efficient Video Understanding](../raw/2403.06977_VideoMamba/main.tex); created [VideoMamba](videomamba.md) and updated video representation learning, temporal action understanding, long-video modeling, video-language retrieval context, and the video encoder comparison.
 - **Ingest**: Compiled [VideoMAE V2: Scaling Video Masked Autoencoders with Dual Masking](../raw/2303.16727_VideoMAEV2/videomae_v2.tex); created [VideoMAE V2](videomae-v2.md) and updated VideoMAE, video representation learning, temporal action understanding, ActionFormer, InternVideo2, and the video encoder comparison.
