@@ -5,7 +5,7 @@ description: Current document OCR spans lightweight detector–recognizer pipeli
 tags: [ocr, document-parsing, vision-language-models, synthesis]
 status: draft
 created: 2026-08-17
-generated: { by: llm-wiki-agent/1, at: 2026-08-17T14:34:28Z }
+generated: { by: llm-wiki-agent/1, at: 2026-08-17T14:43:44Z }
 sources:
   - id: pp-ocrv6-report
     resource: ../raw/2606.13108_PP-OCRv6/main.tex
@@ -37,6 +37,57 @@ sources:
   - id: real5-source
     resource: ../raw/2601.21957_PaddleOCR-VL-1.5/main.tex
     title: PaddleOCR-VL-1.5 Technical Report
+  - id: infinity-parser-report
+    resource: ../raw/2506.03197_InfinityParser/main.tex
+    title: Infinity-Parser Technical Report
+  - id: rex-omni-report
+    resource: "../raw/2510.12798_Detect Anything via Next Point Prediction/main.tex"
+    title: Detect Anything via Next Point Prediction
+  - id: lightonocr-report
+    resource: ../raw/2601.14251_LightOnOCR/templateArxiv.tex
+    title: LightOnOCR Technical Report
+  - id: typhoonocr-report
+    resource: ../raw/2601.14722_TyphoonOCR/main.tex
+    title: Typhoon OCR Technical Report
+  - id: qianfan-ocr-report
+    resource: ../raw/2603.13398_Qianfan-OCR/qianfan_ocr_report.tex
+    title: Qianfan-OCR Technical Report
+  - id: monkeyocrv2-report
+    resource: ../raw/2607.11562_MonkeyOCRv2/monkeyocr.tex
+    title: MonkeyOCRv2 Technical Report
+  - id: chandra-ocr-2-card
+    resource: ../raw/chandra-ocr-2.md
+    title: Chandra OCR 2 model card
+  - id: dots-ocr-card
+    resource: ../raw/dots.ocr.md
+    title: dots.ocr model card
+  - id: granite-docling-card
+    resource: ../raw/granite-docling-258m.md
+    title: Granite Docling 258M model card
+  - id: hunyuanocr-card
+    resource: ../raw/HunyuanOCR-1.5.md
+    title: HunyuanOCR-1.5 model card
+  - id: mineru2-5-card
+    resource: ../raw/MinerU2.5-2509-1.2B.md
+    title: MinerU2.5 model card
+  - id: mineru2-5-pro-card
+    resource: ../raw/MinerU2.5-Pro-2604-1.2B.md
+    title: MinerU2.5-Pro model card
+  - id: nanonets-ocr2-card
+    resource: ../raw/Nanonets-OCR2.md
+    title: Nanonets-OCR2 model card
+  - id: nemotron-parse-card
+    resource: ../raw/NVIDIA-Nemotron-Parse-v1.1.md
+    title: NVIDIA Nemotron Parse v1.1 model card
+  - id: olmocr2-card
+    resource: ../raw/olmOCR-2-7B-1025.md
+    title: olmOCR-2-7B-1025 model card
+  - id: rolmocr-card
+    resource: ../raw/RolmOCR.md
+    title: RolmOCR model card
+  - id: surya-ocr-2-card
+    resource: ../raw/surya-ocr-2.md
+    title: Surya OCR 2 model card
 ---
 
 # Current OCR approaches
@@ -60,6 +111,34 @@ End-to-end models map a full page and prompt directly to an ordered structured r
 ### Unified multimodal reconstruction
 
 [Multimodal OCR](multimodal-ocr.md) extends parsing beyond text, tables, and formulas by assigning type-specific payloads such as SVG to information-bearing graphics. This points toward document reconstruction rather than OCR alone, although the retained source describes full-page parsing and region-level SVG generation as separate task-conditioned passes rather than one fully unified release path.[^multimodal-ocr-report]
+
+### Adjacent unified perception
+
+Not every retained OCR-capable model is a document parser. [Rex-Omni](rex-omni.md) casts detection, grounding, OCR polygons, and keypoints as quantized coordinate-token generation, making OCR one task in a unified perception interface. [Falcon Perception](falcon-perception.md) similarly supplies a general early-fusion perception architecture related to FalconOCR. These systems matter where OCR must share a model with localization or interaction, but they do not replace document-to-Markdown pipelines.[^rex-omni-report][^falcon-perception-report]
+
+## Retained model coverage
+
+The architectural families above use representative systems. For complete retrieval, the remaining current model families retained under `raw/` map as follows:
+
+| Model or family | Primary distinguishing direction |
+|---|---|
+| [Chandra OCR 2](chandra-ocr-2.md) | Multilingual PDF/image conversion to Markdown, HTML, or layout-bearing JSON.[^chandra-ocr-2-card] |
+| [dots.ocr](dots-ocr.md) | One prompt-driven 1.7B VLM for layout detection, recognition, grounding, and reading-order output.[^dots-ocr-card] |
+| [Granite Docling 258M](granite-docling-258m.md) | Compact document-conversion VLM integrated into the Docling processing stack.[^granite-docling-card] |
+| [HunyuanOCR-1.5](hunyuanocr-1.5.md) | Lightweight end-to-end OCR with agentic data construction and DFlash speculative decoding.[^hunyuanocr-card] |
+| [LayoutRL and Infinity-Parser](layout-rl-and-infinity-parser.md) | Direct GRPO training with verifiable content, segment-count, and reading-order rewards.[^infinity-parser-report] |
+| [LightOnOCR](lightonocr.md) | Native-resolution ViT plus Qwen3 decoder, with an optional image-box output variant.[^lightonocr-report] |
+| [MonkeyOCRv2](monkeyocrv2.md) | Document-native visual-encoder pretraining through text generation and pixel reconstruction.[^monkeyocrv2-report] |
+| [MinerU2.5](mineru2-5.md) and [MinerU2.5-Pro](mineru2-5-pro.md) | Coarse-to-fine global layout followed by native-resolution crop recognition; Pro emphasizes scaled and refined data.[^mineru2-5-card][^mineru2-5-pro-card] |
+| [Nanonets-OCR2](nanonets-ocr2.md) | Multilingual image-to-Markdown with explicit handling of equations, tables, figures, signatures, watermarks, checkboxes, and VQA.[^nanonets-ocr2-card] |
+| [NVIDIA Nemotron Parse v1.1](nemotron-parse-v1-1.md) | Sub-1B encoder–decoder emitting ordered text, element classes, and boxes.[^nemotron-parse-card] |
+| [olmOCR-2-7B-1025](olmocr-2-7b-1025.md) | Qwen2.5-VL PDF-page extraction specialized through SFT and GRPO.[^olmocr2-card] |
+| [Qianfan-OCR](qianfan-ocr.md) | Optional Layout-as-Thought emits boxes, labels, and summaries before parsing or understanding.[^qianfan-ocr-report] |
+| [RolmOCR](rolmocr.md) | Metadata-independent PDF-page OCR trained with rotated pages for off-angle robustness.[^rolmocr-card] |
+| [Surya OCR 2](surya-ocr-2.md) | Shared compact VLM for layout, order, OCR, and tables, plus a separate line detector.[^surya-ocr-2-card] |
+| [Typhoon OCR](typhoon-ocr.md) | Thai–English extraction using one image-only prompt and rich Markdown/HTML/formula outputs.[^typhoonocr-report] |
+
+Older or release-specific artifacts are represented by their current family pages: [DeepSeek-OCR](deepseek-ocr.md) precedes DeepSeek-OCR 2; [PaddleOCR-VL](paddleocr-vl.md) and [PaddleOCR-VL-1.5](paddleocr-vl-1.5.md) precede 1.6; [Chandra OCR](chandra-ocr.md) is superseded by Chandra OCR 2; `dots.mocr` is the released implementation covered by Multimodal OCR; and Infinity-Parser2-Pro is covered by Infinity-Parser2. [PaddleOCR 3.0](paddleocr-3.md) is a toolkit rather than one model, while [MDPBench](mdpbench.md), [Real5-OmniDocBench](real5-omnidocbench.md), MonkeyDoc, and Infinity-Doc are benchmarks or datasets rather than model families.
 
 ## Cross-cutting technical directions
 
@@ -90,7 +169,7 @@ Nearly all relevant wiki concepts are `draft`; missing independent verification 
 
 ## Relationships
 
-- **Synthesizes:** [PP-OCRv6](pp-ocrv6.md), [PaddleOCR-VL-1.6](paddleocr-vl-1.6.md), [DeepSeek-OCR 2](deepseek-ocr-2.md), [OvisOCR2](ovisocr2.md), [Infinity-Parser2](infinity-parser2.md), and [Multimodal OCR](multimodal-ocr.md).
+- **Synthesizes:** the retained current OCR and document-parsing model families cataloged under **Retained model coverage**, with [PP-OCRv6](pp-ocrv6.md), [PaddleOCR-VL-1.6](paddleocr-vl-1.6.md), [DeepSeek-OCR 2](deepseek-ocr-2.md), [OvisOCR2](ovisocr2.md), [Infinity-Parser2](infinity-parser2.md), and [Multimodal OCR](multimodal-ocr.md) as architectural exemplars.
 - **Uses:** [Document-parser data flywheel](document-parser-data-flywheel.md), [DOM-based document synthesis](dom-based-document-synthesis.md), and [Reference Sliding Window Attention](reference-sliding-window-attention.md) as cross-cutting methods.
 
 [^pp-ocrv6-report]: Zhang et al., *PP-OCRv6*, local source at [main.tex](../raw/2606.13108_PP-OCRv6/main.tex).
@@ -103,3 +182,20 @@ Nearly all relevant wiki concepts are `draft`; missing independent verification 
 [^multimodal-ocr-report]: Zheng et al., *Multimodal OCR*, local source at [main.tex](../raw/2603.13032_MultimodalOCR/main.tex).
 [^falcon-perception-report]: Falcon Vision Team, *Falcon Perception*, local source at [main.tex](../raw/2603.27365_FalconPerception/main.tex).
 [^real5-source]: Cui et al., *PaddleOCR-VL-1.5*, local source at [main.tex](../raw/2601.21957_PaddleOCR-VL-1.5/main.tex).
+[^infinity-parser-report]: Wang et al., *Infinity-Parser*, local source at [main.tex](../raw/2506.03197_InfinityParser/main.tex).
+[^rex-omni-report]: Sun et al., *Detect Anything via Next Point Prediction*, local source at [main.tex](../raw/2510.12798_Detect%20Anything%20via%20Next%20Point%20Prediction/main.tex).
+[^lightonocr-report]: LightOnOCR authors, local source at [templateArxiv.tex](../raw/2601.14251_LightOnOCR/templateArxiv.tex).
+[^typhoonocr-report]: Typhoon OCR authors, local source at [main.tex](../raw/2601.14722_TyphoonOCR/main.tex).
+[^qianfan-ocr-report]: Qianfan-OCR authors, local source at [qianfan_ocr_report.tex](../raw/2603.13398_Qianfan-OCR/qianfan_ocr_report.tex).
+[^monkeyocrv2-report]: MonkeyOCRv2 authors, local source at [monkeyocr.tex](../raw/2607.11562_MonkeyOCRv2/monkeyocr.tex).
+[^chandra-ocr-2-card]: Datalab, local [Chandra OCR 2 model card](../raw/chandra-ocr-2.md).
+[^dots-ocr-card]: rednote-hilab, local [dots.ocr model card](../raw/dots.ocr.md).
+[^granite-docling-card]: IBM, local [Granite Docling 258M model card](../raw/granite-docling-258m.md).
+[^hunyuanocr-card]: Tencent Hunyuan, local [HunyuanOCR-1.5 model card](../raw/HunyuanOCR-1.5.md).
+[^mineru2-5-card]: OpenDataLab, local [MinerU2.5 model card](../raw/MinerU2.5-2509-1.2B.md).
+[^mineru2-5-pro-card]: OpenDataLab, local [MinerU2.5-Pro model card](../raw/MinerU2.5-Pro-2604-1.2B.md).
+[^nanonets-ocr2-card]: Nanonets, local [Nanonets-OCR2 model card](../raw/Nanonets-OCR2.md).
+[^nemotron-parse-card]: NVIDIA, local [Nemotron Parse v1.1 model card](../raw/NVIDIA-Nemotron-Parse-v1.1.md).
+[^olmocr2-card]: Allen Institute for AI, local [olmOCR-2-7B-1025 model card](../raw/olmOCR-2-7B-1025.md).
+[^rolmocr-card]: Reducto AI, local [RolmOCR model card](../raw/RolmOCR.md).
+[^surya-ocr-2-card]: Datalab, local [Surya OCR 2 model card](../raw/surya-ocr-2.md).
