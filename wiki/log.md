@@ -1,6 +1,7 @@
 # Wiki Update Log
 
 ## 2026-08-17
+- **Ingest**: Compiled the [V-JEPA 2 official PyTorch repository](../raw/vjepa2/README.md); created [V-JEPA 2.1](v-jepa-2-1.md) and updated V-JEPA 2, video representation learning, and the encoder comparison.
 - **Update**: Updated [Video backbones and encoders comparison](video-backbones-and-encoders-comparison.md) from current wiki knowledge, distinguishing [InternVideo3](internvideo3.md) as an adjacent long-video MLLM rather than a standalone visual encoder.
 - **Ingest**: Compiled [InternVideo3: Agentify Foundation Models with Multimodal Contextual Reasoning](../raw/2606.12195_InternVideo3/main.tex); created [InternVideo3](internvideo3.md) and updated long-video modeling and video-language temporal grounding and reasoning.
 - **Ingest**: Compiled [VideoMamba: State Space Model for Efficient Video Understanding](../raw/2403.06977_VideoMamba/main.tex); created [VideoMamba](videomamba.md) and updated video representation learning, temporal action understanding, long-video modeling, video-language retrieval context, and the video encoder comparison.

@@ -5,7 +5,7 @@ description: Pretraining video features to encode appearance, motion, order, dyn
 tags: [video, representation-learning, self-supervised-learning, foundation-models]
 status: draft
 created: 2026-08-15
-generated: { by: llm-wiki-agent/1, at: 2026-08-17T12:38:10+07:00 }
+generated: { by: llm-wiki-agent/1, at: 2026-08-17T13:40:58+07:00 }
 sources:
   - id: video-temporal-survey
     resource: ../raw/TongHopCacHuongXuLyVideo.md
@@ -40,6 +40,9 @@ sources:
   - id: vjepa2-paper
     resource: ../raw/2506.09985_V-JEPA 2/main.tex
     title: "V-JEPA 2: Self-Supervised Video Models Enable Understanding, Prediction and Planning"
+  - id: vjepa21-readme
+    resource: ../raw/vjepa2/README.md
+    title: V-JEPA 2 official PyTorch repository README
   - id: videomamba-paper
     resource: ../raw/2403.06977_VideoMamba/main.tex
     title: "VideoMamba: State Space Model for Efficient Video Understanding"
@@ -66,6 +69,8 @@ Foresee-to-Ground pretrains a temporal module by predicting a global-view latent
 V-JEPA 2 predicts masked video representations from visible tubelets using an EMA teacher and L1 feature regression rather than reconstructing pixels. Its scaling study combines more data, encoders up to 1B parameters, longer training, and a progressive cooldown from 16-frame 256×256 clips to as many as 64 higher-resolution frames. The source reports gains under frozen attentive probes, but its ablations combine changes in data, scale, schedule, and resolution and do not establish that feature prediction alone causes the full improvement.[^vjepa2-paper]
 
 The same frozen representation supports a separately trained action-conditioned predictor for robot-frame forecasting. This is evidence that a video representation can become the state space of a latent dynamics model after interaction-data post-training, not that the action-free encoder itself learns controllable dynamics.[^vjepa2-paper]
+
+[V-JEPA 2.1](v-jepa-2-1.md) shifts this recipe toward dense transfer by also predicting teacher features for visible context tokens, supervising from four encoder depths, and jointly handling images and videos. Its repository reports much larger gains on depth, tracking, and segmentation than on global recognition, but the absent paper and incomplete evaluation details make those release results provisional rather than a controlled explanation of which recipe component matters.[^vjepa21-readme]
 
 ## Supervised video pretraining
 
@@ -109,6 +114,7 @@ InternVideo2 extends this progressive family with unmasked-token distillation, v
 - **Instantiated by:** [X-CLIP: CLIP adaptation for video recognition](x-clip-video-recognition.md) through cross-frame message passing, temporal integration, and video-conditioned class-text representations.[^xclip-recognition-paper]
 - **Instantiated by:** [VideoPrism](videoprism.md) through sequential video-text alignment and masked global-local teacher-feature distillation with token shuffling.[^videoprism-paper]
 - **Instantiated by:** [V-JEPA 2](v-jepa-2.md) through masked EMA-teacher feature prediction, followed separately by action-conditioned latent-dynamics post-training.[^vjepa2-paper]
+- **Instantiated by:** [V-JEPA 2.1](v-jepa-2-1.md) through dense masked-and-visible feature prediction, multi-depth targets, and joint image-video training.[^vjepa21-readme]
 - **Instantiated by:** [VideoMamba](videomamba.md) through bidirectional selective state-space scans and optional final-layer masked alignment to a CLIP visual teacher.[^videomamba-paper]
 - **Compared in:** [Video backbones and encoders comparison](video-backbones-and-encoders-comparison.md), which separates backbone architecture, pretraining recipe, corpus scale, and task-specific transfer evidence.
 
@@ -123,4 +129,5 @@ InternVideo2 extends this progressive family with unmasked-token distillation, v
 [^xclip-recognition-paper]: [Expanding Language-Image Pretrained Models for General Video Recognition](../raw/2208.02816_X-CLIP/main.tex)
 [^videoprism-paper]: [VideoPrism: A Foundational Visual Encoder for Video Understanding](../raw/2402.13217_VideoPrism/main.tex)
 [^vjepa2-paper]: [V-JEPA 2: Self-Supervised Video Models Enable Understanding, Prediction and Planning](../raw/2506.09985_V-JEPA%202/main.tex)
+[^vjepa21-readme]: [V-JEPA 2 official PyTorch repository README](../raw/vjepa2/README.md)
 [^videomamba-paper]: [VideoMamba: State Space Model for Efficient Video Understanding](../raw/2403.06977_VideoMamba/main.tex)

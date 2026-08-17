@@ -5,7 +5,7 @@ description: A task-aware comparison of video backbones and pretrained encoders,
 tags: [video, backbones, encoders, pretraining, representation-learning, comparison]
 status: stable
 created: 2026-08-17
-generated: { by: llm-wiki-agent/1, at: 2026-08-17T13:08:47+07:00 }
+generated: { by: llm-wiki-agent/1, at: 2026-08-17T13:40:58+07:00 }
 sources:
   - id: i3d-paper
     resource: ../raw/I3D/full_kinetics_update_v0.tex
@@ -55,6 +55,15 @@ sources:
   - id: vjepa2-paper
     resource: ../raw/2506.09985_V-JEPA 2/main.tex
     title: "V-JEPA 2: Self-Supervised Video Models Enable Understanding, Prediction and Planning"
+  - id: vjepa21-readme
+    resource: ../raw/vjepa2/README.md
+    title: V-JEPA 2 official PyTorch repository README
+  - id: vjepa21-config
+    resource: ../raw/vjepa2/configs/train_2_1/vitg16/pretrain-256px-16f.yaml
+    title: V-JEPA 2.1 ViT-g pretraining configuration
+  - id: vjepa21-chart
+    resource: ../raw/vjepa2/assets/bars_teaser_tikz-1.png
+    title: V-JEPA 2.1 frozen-feature benchmark chart
   - id: videomamba-paper
     resource: ../raw/2403.06977_VideoMamba/main.tex
     title: "VideoMamba: State Space Model for Efficient Video Understanding"
@@ -91,6 +100,7 @@ A **video backbone** is the visual network that converts RGB/flow clips into fea
 | Foundation encoder | [InternVideo2](internvideo2.md) | Teacher distillation, multimodal alignment, then LLM connection | General visual/multimodal backbone | Strong localization and grounding transfer; fixed resolution/rate and compressed tokens limit detail |
 | Frozen foundation encoder | [VideoPrism](videoprism.md) | Video-text contrast followed by masked global/local feature distillation | Frozen short-clip encoder | Broadest frozen-backbone evaluation in the wiki; direct input is only 8–16 sampled frames |
 | Predictive encoder | [V-JEPA 2](v-jepa-2.md) | Predicts masked EMA-teacher features; optional action-conditioned latent predictor | Motion/anticipation encoder | Strong motion and anticipation evidence at scale; direct context remains at most 64 pretrained frames |
+| Dense predictive encoder | [V-JEPA 2.1](v-jepa-2-1.md) | Predicts masked and visible teacher features at multiple encoder depths across images and videos | Dense/global frozen encoder | Stronger repository-reported dense transfer and scale to 2B; paper, protocols, and exact checkpoint reproduction are unavailable |
 | Long-video aggregator | [LV-MAE](lv-mae.md) | Reconstructs masked sequences of frozen five-second clip embeddings | Encoder over clip tokens | Reaches about 21 minutes at 256 tokens; inherits information loss from the frozen short-clip encoder |
 
 ## Pretraining scale
@@ -116,6 +126,7 @@ Counts below are the paper-reported samples used by the relevant stage, not nece
 | InternVideo2 | Stage 1: **2M** unlabeled videos; later stages list **300M image-text**, **50M** video-audio-speech-text clips, and **2.1M** instruction examples | Largest explicitly staged multimodal pipeline in the wiki; teacher provenance and corpus licensing remain incompletely auditable[^internvideo2-paper] |
 | VideoPrism | **36.1M** manually captioned stock clips; about **582M** additional/noisier clips from **275M videos**; Stage 1 also uses about **1B WebLI image-text pairs** | Largest reported mixed visual-language corpus here; three major corpora are anonymized and governance is only partially documented[^videoprism-paper] |
 | V-JEPA 2 | VideoMix22M: **22M video/image samples**, including **>1M video hours**; action-conditioned post-training uses **<62 robot hours** | Very large action-free motion corpus, but robot control evidence comes from a tiny and specialized post-training subset[^vjepa2-paper] |
+| V-JEPA 2.1 | Supplied ViT-g config mixes K710, SSv2, and HowTo path lists with ImageNet-1K image training; repository does not state an auditable total for released weights | Multi-modal-tokenizer recipe and listed 80M–2B checkpoints; corpus accounting and checkpoint-to-config mapping remain incomplete[^vjepa21-readme][^vjepa21-config] |
 | LV-MAE | More than **1,000 movies/TV series**, **>40k FineVideo videos**, **~7k MovieClips train clips**, plus ActivityNet; short-clip encoders remain frozen | Long-video pretraining is cheap (reported 20 hours on 8×A10), but upstream LanguageBind/InternVideo2 data are inherited rather than retrained[^lv-mae-paper] |
 
 ## Evaluation signals that are reasonably informative
@@ -139,6 +150,7 @@ These numbers illustrate each model's documented strength; they are **not direct
 | InternVideo2 | ActionFormer THUMOS14 **72.0 mAP**; CG-DETR QVHighlight R1@0.5 **71.42** | Strong pretrained features for localization and language grounding[^internvideo2-paper] |
 | VideoPrism-g frozen | K400 **87.2%**, SSv2 **68.5%**, ActivityNet localization **37.8 mAP** with trained heads | Broad frozen-encoder transfer; heads still matter[^videoprism-paper] |
 | V-JEPA 2 1B frozen | SSv2 **77.3%**; Epic-Kitchens anticipation recall@5 **39.7** | Strong motion representation and short-horizon anticipation[^vjepa2-paper] |
+| V-JEPA 2.1 frozen | NYUv2 depth error **0.307**; DAVIS tracking **69.0**; ADE20K segmentation **47.9** in the repository chart | Promising dense transfer, but the absent paper leaves protocols and variants under-specified[^vjepa21-chart] |
 | LV-MAE | LVU classification average **63.4**; COIN **92.72%**, Breakfast **93.24%** with InternVideo2 embeddings | Bounded long-video aggregation, not interval localization[^lv-mae-paper] |
 
 ## Selection guidance
@@ -146,7 +158,7 @@ These numbers illustrate each model's documented strength; they are **not direct
 1. **Conventional RGB action recognition:** use SlowFast when rapid motion is central; use Video Swin or MViT when a hierarchical Transformer ecosystem is preferred; keep R(2+1)D as a simple factorized-3D baseline.
 2. **Small unlabeled video corpus:** VideoMAE has the clearest evidence for data-efficient self-supervision. Its advantage is the recipe, not a guarantee that a plain ViT is the best production architecture.
 3. **One frozen encoder across many short-video tasks:** VideoPrism has the broadest frozen-backbone evidence in this wiki. InternVideo2 is preferable when temporal localization/grounding and multimodal alignment are primary, subject to a more complex training and inference stack.
-4. **Motion, anticipation, or latent dynamics research:** V-JEPA 2 offers the strongest documented predictive-representation evidence, but it is not a long-horizon or real-time robot world model.
+4. **Motion, anticipation, dense features, or latent dynamics research:** V-JEPA 2 has the stronger paper-audited motion, anticipation, and robotics evidence. V-JEPA 2.1 is the more relevant frozen encoder for dense depth/tracking/segmentation experiments, but its current repository-only evidence is less auditable; neither is a long-context or real-time robot world model.
 5. **Long videos:** no short-clip backbone above solves long context by itself. VideoMamba offers linear sequence scaling and end-to-end 32–64 sparse-frame processing on minute-scale videos, while LV-MAE is the explicit long-video aggregator, reaching about 21 minutes through five-second clip tokens. Both can discard unsampled or compressed short events; neither demonstrates arbitrary-duration memory.
 6. **Video-language retrieval/classification on a constrained budget:** X-CLIP efficiently reuses CLIP; choose the recognition and retrieval variants by task because they are distinct models.
 7. **Temporal localization or segmentation:** attach an appropriate head such as [ActionFormer](actionformer.md) or [MS-TCN](ms-tcn.md). Backbone classification accuracy alone does not predict boundary quality.
@@ -179,5 +191,8 @@ This synthesis includes concepts that directly encode pixels/flow or aggregate p
 [^xclip-retrieval-paper]: [X-CLIP: End-to-End Multi-grained Contrastive Learning for Video-Text Retrieval](../raw/2207.07285_X-CLIP/sample-base.tex)
 [^videoprism-paper]: [VideoPrism: A Foundational Visual Encoder for Video Understanding](../raw/2402.13217_VideoPrism/main.tex)
 [^vjepa2-paper]: [V-JEPA 2: Self-Supervised Video Models Enable Understanding, Prediction and Planning](../raw/2506.09985_V-JEPA%202/main.tex)
+[^vjepa21-readme]: [V-JEPA 2 official PyTorch repository README](../raw/vjepa2/README.md)
+[^vjepa21-config]: [V-JEPA 2.1 ViT-g pretraining configuration](../raw/vjepa2/configs/train_2_1/vitg16/pretrain-256px-16f.yaml)
+[^vjepa21-chart]: [V-JEPA 2.1 frozen-feature benchmark chart](../raw/vjepa2/assets/bars_teaser_tikz-1.png)
 [^videomamba-paper]: [VideoMamba: State Space Model for Efficient Video Understanding](../raw/2403.06977_VideoMamba/main.tex)
 [^internvideo3-paper]: [InternVideo3: Agentify Foundation Models with Multimodal Contextual Reasoning](../raw/2606.12195_InternVideo3/main.tex)

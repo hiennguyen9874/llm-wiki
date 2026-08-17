@@ -5,11 +5,14 @@ description: A self-supervised video JEPA scaled for motion understanding and an
 tags: [video, representation-learning, self-supervised-learning, world-models, robotics, video-language]
 status: stable
 created: 2026-08-17
-generated: { by: llm-wiki-agent/1, at: 2026-08-17T11:58:42+07:00 }
+generated: { by: llm-wiki-agent/1, at: 2026-08-17T13:40:58+07:00 }
 sources:
   - id: vjepa2-paper
     resource: ../raw/2506.09985_V-JEPA 2/main.tex
     title: "V-JEPA 2: Self-Supervised Video Models Enable Understanding, Prediction and Planning"
+  - id: vjepa21-readme
+    resource: ../raw/vjepa2/README.md
+    title: V-JEPA 2 official PyTorch repository README
 ---
 
 # V-JEPA 2
@@ -50,9 +53,11 @@ For video QA, the encoder is projected into an LLM and trained on image/video-te
 
 ## Relationships
 
+- **Extended by:** [V-JEPA 2.1](v-jepa-2-1.md), which adds visible-token prediction, intermediate-layer targets, joint image-video training, and a listed 2B encoder while leaving V-JEPA 2-AC as the documented robotics variant.[^vjepa21-readme]
 - **Instantiates:** [Video temporal representation learning](video-temporal-representation-learning.md) through masked prediction of EMA-teacher video features.[^vjepa2-paper]
 - **Supports:** [Temporal action understanding](temporal-action-understanding.md) through frozen-probe motion classification and one-second action anticipation.[^vjepa2-paper]
 - **Depends on:** [Long-video temporal modeling](long-video-temporal-modeling.md) beyond its directly processed 64-frame clips and short-horizon latent rollouts.[^vjepa2-paper]
 - **Supports:** [Video-language temporal grounding and reasoning](video-language-temporal-grounding-and-reasoning.md) as a video encoder aligned post hoc with an LLM for temporal QA; it does not predict temporal intervals.[^vjepa2-paper]
 
 [^vjepa2-paper]: [V-JEPA 2: Self-Supervised Video Models Enable Understanding, Prediction and Planning](../raw/2506.09985_V-JEPA%202/main.tex)
+[^vjepa21-readme]: [V-JEPA 2 official PyTorch repository README](../raw/vjepa2/README.md)
