@@ -10,6 +10,7 @@ The complete retrieval map for compiled knowledge. See [LLM Wiki Contract](../LL
 
 - [Chandra OCR](chandra-ocr.md) — Chandra OCR is Datalab's earlier document-OCR model for converting images and PDFs to Markdown, HTML, or JSON with layout information.
 - [Chandra OCR 2](chandra-ocr-2.md) — Chandra OCR 2 is a Datalab document-OCR model that converts images and PDFs to Markdown, HTML, or JSON with layout information.
+- [Current OCR approaches](current-ocr-approaches.md) — Current document OCR spans lightweight detector–recognizer pipelines, modular layout-first systems, end-to-end generative VLMs, and emerging data-, decoding-, and evaluation-centered approaches.
 - [DeepSeek-OCR](deepseek-ocr.md) — DeepSeek-OCR is an end-to-end OCR VLM whose DeepEncoder compresses high-resolution visual features before a 3B MoE decoder generates text or structured outputs.
 - [DeepSeek-OCR 2](deepseek-ocr-2.md) — DeepSeek-OCR 2 is an end-to-end document OCR VLM that uses DeepEncoder V2 to causally reorder compressed visual tokens before a 3B MoE decoder.
 - [Document-parser data flywheel](document-parser-data-flywheel.md) — The document-parser data flywheel iteratively converts model weaknesses into disjoint mined, pseudo-labeled, and synthesized training data.

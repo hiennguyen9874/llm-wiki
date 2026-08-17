@@ -1,6 +1,7 @@
 # Wiki Update Log
 
 ## 2026-08-17
+- **Query**: Synthesized the current OCR landscape into [Current OCR approaches](current-ocr-approaches.md), covering architectural families, data and training strategies, decoding, robustness, evaluation, and practical selection.
 - **Ingest**: Compiled [NVIDIA Nemotron Parse v1.1 model card](../raw/NVIDIA-Nemotron-Parse-v1.1.md); created [NVIDIA Nemotron Parse v1.1](nemotron-parse-v1-1.md).
 - **Ingest**: Compiled [PaddleOCR-VL model card](../raw/PaddleOCR-VL.md); updated [PaddleOCR-VL](paddleocr-vl.md) with official pipeline, vLLM, Transformers, and version-status evidence.
 - **Ingest**: Compiled [Surya OCR 2 model card](../raw/surya-ocr-2.md); created [Surya OCR 2](surya-ocr-2.md).
