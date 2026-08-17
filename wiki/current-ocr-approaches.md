@@ -5,7 +5,7 @@ description: Current document OCR spans lightweight detector–recognizer pipeli
 tags: [ocr, document-parsing, vision-language-models, synthesis]
 status: draft
 created: 2026-08-17
-generated: { by: llm-wiki-agent/1, at: 2026-08-17T21:53:41+07:00 }
+generated: { by: llm-wiki-agent/1, at: 2026-08-17T14:59:12Z }
 sources:
   - id: pp-ocrv6-report
     resource: ../raw/2606.13108_PP-OCRv6/main.tex
@@ -171,6 +171,7 @@ Nearly all relevant wiki concepts are `draft`; missing independent verification 
 
 - **Synthesizes:** the retained current OCR and document-parsing model families cataloged under **Retained model coverage**, with [PP-OCRv6](pp-ocrv6.md), [PaddleOCR-VL-1.6](paddleocr-vl-1.6.md), [DeepSeek-OCR 2](deepseek-ocr-2.md), [OvisOCR2](ovisocr2.md), [Infinity-Parser2](infinity-parser2.md), and [Multimodal OCR](multimodal-ocr.md) as architectural exemplars.
 - **Uses:** [Document-parser data flywheel](document-parser-data-flywheel.md), [DOM-based document synthesis](dom-based-document-synthesis.md), and [Reference Sliding Window Attention](reference-sliding-window-attention.md) as cross-cutting methods.
+- **Evaluated by:** [Layout-first modular OCR benchmarks](layout-first-modular-ocr-benchmarks.md) for the retained region-first document parsers, with benchmark-version and protocol differences kept separate.
 
 [^pp-ocrv6-report]: Zhang et al., *PP-OCRv6*, local source at [main.tex](../raw/2606.13108_PP-OCRv6/main.tex).
 [^paddleocr-vl-1-6-report]: Zhang et al., *PaddleOCR-VL-1.6*, local source at [main.tex](../raw/2606.03264_PaddleOCR-VL-1.6/main.tex).
