@@ -1,0 +1,607 @@
+\section{\NAME model additional information}
+\label{sec:model_additional}
+\subsection{\NAME model details}
+\label{sec:model_details}
+
+Figure~\ref{fig:teaser} visualizes some examples of \NAME on several tasks, such as image captioning, visual question answering, OCR-oriented captioning and question answering. Examples in multiple languages are shown as well.
+
+
+
+Below, we show more specifics about the \NAME model and its components.
+
+\paragraph{Model variants} 
+
+Table~\ref{table:model_sizes} lists the main \NAME models used where the largest is \NAME-17B of 17B parameters.
+
+
+\begin{table*}[h!]
+\centering
+\begin{tabular}{llccc} 
+ \toprule
+ Model & Components & Image Encoder & Multimodal Encoder-Decoder & Total \\
+ \midrule
+ \NAME-3B & ViT-G, mT5-L    & 1.8B & 1.2B & 3.0B \\
+ \NAME-15B &ViT-G, mT5-XXL  & 1.8B & 13B & 14.8B \\
+ \NAME-17B  &ViT-e,  mT5-XXL & 3.9B & 13B & 16.9B \\
+ \bottomrule
+\end{tabular}
+\caption{The size in terms of number of parameters for the trained \NAME model versions.}
+\label{table:model_sizes}
+
+\end{table*}
+
+\begin{figure*}[t]
+\centering
+\includegraphics[scale=0.42]{figures/PaLI_images_sorted.pdf}
+\caption{\NAME addresses a variety of vision and language tasks across many languages, for example, image captioning, visual question answering, scene-text understanding, etc.
+Images from the publicly-available TextVQA~\citep{textvqa} and TextCaps~\citep{textcaps} datasets are shown, together with PaLI inputs and outputs.
+}
+\label{fig:teaser}
+\end{figure*}
+
+
+\paragraph{ViT-e Backbone} 
+We show ViT-e's configuration in Table~\ref{tbl:model_arch} alongside ViT-g and ViT-G for reference. 
+Width, depth and MLP dimensions are all further scaled up in ViT-e, resulting in a model with 4B parameters.
+The model training setup is copied from the ViT-G model~\citep{zhai-21-scalingvit}, on the JFT-3B dataset~\citep{zhai-21-scalingvit}, with $16,384$ batch size, \imres{224} resolution.
+We train the model for 1M steps using 0.0008 initial learning rate, with an inverse square-root learning rate decay, and a linear cool-down to zero for the final 100k steps.
+The only additional technique added is model souping~\citep{model_soup}: we run the 900K to 1M cool-down twice, once with inception cropping and once with resizing only.
+Thus, the final ViT-e model consists of the average weights of these two cool-downs.
+ViT-e is pretrained using the {\tt big\_vision} codebase~\citep{big_vision}.
+
+
+\begin{table*}[ht!]
+\centering
+  \begin{tabular}{lccccccc}
+    \toprule
+    \multirow{2}{*}{\bf{Name}} & \multirow{2}{*}{\bf{Width}} & \multirow{2}{*}{\bf{Depth}} & \multirow{2}{*}{\bf{MLP}} & \multirow{2}{*}{\bf{Heads}} & \multirow{2}{*}{\bf{Params (M)}} &
+    \multicolumn{2}{c}{\bf{GFLOPs}} \\
+    \cmidrule[0.5pt]{7-8}
+     &  &  &  &  & & \small{$224^2$} & \small{$384^2$} \\
+    \cmidrule[0.5pt]{1-8}
+    g/14  & 1408 & 40 & 6144 & 16 & 1011 & 533.1 & 1596.4 \\
+    G/14  & 1664 & 48 & 8192 & 16 & 1843 & 965.3 & 2859.9 \\
+    e/14  & 1792 & 56 & 15360 & 16 & 3926 & 1980 & 5777 \\
+    \bottomrule
+  \end{tabular}
+  \caption{ViT-e architecture details.}
+  \label{tbl:model_arch}
+\end{table*}
+
+\paragraph{The overall model}
+The overall \NAME models are implemented in {\tt JAX/Flax}~\citep{jax2018github} using the open-source {\tt T5X}~\citep{t5x} and {\tt Flaxformer}~\citep{flax2020github} frameworks. 
+For the learning rate, we use a 1k-step linear warmup, followed by inverse square-root decay.
+For \NAME-3B, we use a peak learning rate of 1e-2.
+For larger models, \NAME-15B and \NAME-17B, we use a peak learning rate of 5e-3. We use the Adafactor~\citep{shazeer2018adafactor} optimizer with $\beta_1=0$ and second-moment exponential decay set to 0.8.
+
+The largest model, \NAME-17B, is pretrained using 1,024 GCP-TPUv4 chips for 7 days.
+It uses a four-way model partitioning \citep{t5x} and a batch size of 4,096.
+This is slightly less TPU resources than used to train other large vision and language models on TPUs.
+SimVLM used 2,048 GCP-TPUv3 for 5 days~\citep{simvlm}, while CoCa used 2,048 GCP-TPUv4 chips for 5 days~\citep{coca}.
+Flamingo used 1,536 GCP-TPUv4 chips for 15 days~\citep{flamingo}.
+
+During training, the model passes over 1.6B images, one epoch over the entire pretraining dataset. 
+The image resolution for this pass is \imres{224}.
+During training, only the parameters of the language component are updated and the vision component is frozen, which provides a boost in performance (Sec.~\ref{sec:ablations}). 
+
+\textbf{Continuation of pretraining at higher image resolution} For the largest model, \NAME-17B, we perform a further high-resolution (\imres{588}) pre-finetuning for the multilingual tasks. When scaling up image resolution, the patch size is kept the same, and the number of patches are increased with higher resolution. We perform a 2D bilinear upsampling of the positional embedding to match the increased number of patches.
+This second stage of training is only for 10k steps at batch size 1024 (10M examples in total) and is performed on a subset of the full training mix.
+We simplify the mixture of data in this stage to focus on VQA, captioning and OCR capabilities, by including only the OCR, CC3M-35L and \qsq in the training mixture and making them equally weighted. 
+In this high-resolution finetuning phase, all of the parameters of \NAME are updated. This high resolution phase was performed using 512 GCP-TPUv4 chips for an additional 3 days.
+
+
+\subsection{The Pretraining Task Mixture}
+\label{sec:mixture}
+Below are detailed descriptions of each component of our task mixture.
+
+
+\begin{itemize}
+    \item \textbf{Span corruption on text-only data} uses the same technique described by~\citet{xue-2021-mt5}, corrupting 15\% of the tokens from a given text-only example and using ``sentinels'' of the form \exidk for each corrupted span; the text-only examples are using a sample of 100M of text-only examples.
+    \item \textbf{Split-captioning (SplitCap) on \PTDATA alt-text data} is inspired by the pretraining objective of~\citet{simvlm}, and works by splitting each alt-text string randomly into two parts, \capfirst and \capsecond. It uses the prompt \prompt{Generate the alt\_text in \lang at \pos: \capfirst \exid} (where \lang is the language code of the alt-text string, and \pos is the number of words in \capfirst), with \capsecond as the target.
+    \item \textbf{Captioning (Cap) on CC3M-35L on native and translated alt-text data} using the prompt \prompt{Generate the alt\_text in \lang at 0: \exid}, with the alt-text string in language \lang as the target. CC3M-35L is Conceptual Captions~\citep{cc3m} training data, translated into an additional 34 languages (the same as the non-English ones covered by Crossmodal-3600~\citep{xm3600}, except for Cusco-Quechua), for a total of 100M examples.
+    \item \textbf{OCR on \PTDATA OCR-text data} using the prompt \prompt{Generate the ocr\_text in \lang: \exid}, with \ocrtext as the target, where \ocrtext is the concatenation of the annotated OCR texts in language \lang~\citep{prestu} produced by the publicly available automatic service for the input image. 
+    \item \textbf{English and Cross-Lingual VQA on native and translated \qsqcc-35L-100M VQA triplets} using, for a
+    given $\langle image, [question], [answer]\rangle$ VQA triple, the prompt: 
+    \prompt{Answer in EN: [question] \exid}, with $[answer]$ for the target.
+    \qsqcc-35L-100M is a 100M random subset of \qsqcc~\citep{changpinyo-2022-vq2a}, translated into the same additional 34 languages as mentioned above.
+    Note that we use English answers in all instances here, as the English-native answers for VQA are often short and too prone to errors to perform out-of-context automatic translation.
+    \item \textbf{English and Cross-Lingual visual question generation (VQG) on native and translated \qsqcc-35L-100M VQA triplets} using, for a given $\langle image, [question], [answer]\rangle$ VQA triple, the prompt:
+    \prompt{Generate a question in \lang for [answer]: \exid}, with $[question]$ in language \lang as the target.
+    Similarly, we use only English answers here.
+    \item \textbf{English-only Object-Aware (OA) VQA} is based on VQA triplets derived from automatically-produced, non-exhaustive object labels, inspired by~\citet{piergiovanni-2022-OApretr}.
+    We automatically generate 4 different prompt types, based on the available object labels, as follows. (1) Prompt: \prompt{Answer in EN: List the objects present: \exid}, with the target: \obj, \ldots, \objn. (2) Prompt: \prompt{Answer in EN: Is \objk in the image? \exid}, with the target ``Yes'' or ``No''. (3) Prompt: \prompt{Answer in EN: Is \obj, \ldots, \objn in the image?  \exid}, with the target ``Yes'' or ``No''. (4) Prompt: \prompt{Answer in EN: Which of \obj, \ldots, \objn are in the image? \exid}, with the target made of the list of object labels present.
+    To create these examples, we require object-level annotations, for which we use Open Images~\citep{kuznetsova2020open}, from which we create 50M examples.
+    \item \textbf{Object detection} is a generative object-detection task inspired by~\citet{Chen2022Pix2seqAL,chen2022unified}.
+    The target sequence describes bounding-box coordinates and object labels, e.g. \prompt{10 20 90 100 cat 20 30 100 100 dog}.
+    The coordinates are in the \textit{y\textsubscript{min} x\textsubscript{min} y\textsubscript{max} x\textsubscript{max}} order, and range between 0 and 999. 
+    Unlike~\citet{Chen2022Pix2seqAL}, the prompt used contains a set of positive and negative class labels, i.e. object classes that are present and not present in the image (e.g. \prompt{detect cat and dog and leopard}). The prompt is prefixed with the word \prompt{detect}. For the datasets that do not have negative class labels explicitly defined, we randomly sample non-positive class labels. Since WebLI does not contain bounding box annotations, we train on a mixture of public datasets, totalling 16M images: Open Images~\citep{kuznetsova2020open}, Visual Genome~\citep{krishna-17-visualgenome}, and Object365~\citep{o365}. The datasets are de-duplicated against evaluation tasks. These examples are included to increase object awareness capabilities of the model.
+\end{itemize}
+
+\textbf{Dataset mixing ratio for pretraining}
+Table~\ref{table:mixture_ratio} provides the data mixing ratio for pretraining all \NAME variants.
+
+\begin{table*}[ht!]
+\centering
+\resizebox{\linewidth}{!}{%
+\begin{tabular}{lccccccccc} 
+\toprule
+ & Text-only & WebLI alt-text & OCR & CC3M-35L & VQA & VQG & OA & Detection & Total \\
+\midrule
+Amount (M) & 100 & 1000 & 100 & 100 & 100 & 100 & 50 & 16 & 1566 \\
+\bottomrule
+\end{tabular}}
+\caption{Mixing ratio of each task for pretraining}
+\label{table:mixture_ratio}
+\end{table*}
+
+\subsection{Fine-Tuning details}
+\label{app:details}
+
+\textbf{Hyperparameters for finetuning the V\&L tasks} We performed limited hyperparameter search for finetuning. The train steps is mostly selected based on dataset size. The batch size is selected among \{128, 256, 512\}, and the initial learning rate among \{1e-5, 3e-5, 1e-4\}. The optimizer setting for finetuning is the same as the setting for pretraining. Note that we did not perform the hyperparameter sweep over all possible combinations. Table~\ref{table:hyperparam} summarizes the hyperparameters corresponding to the main results.
+\begin{table*}[ht!]
+\centering
+\resizebox{\linewidth}{!}{%
+\begin{tabular}{lcccccccc} 
+\toprule
+Hyper-parameter & COCO \& NoCaps & TextCaps & VizWiz-Cap & VQAv2 & TextVQA & VizWiz-QA & OKVQA & ST-VQA\\
+\midrule
+Dropout & \multicolumn{8}{c}{0.1} \\
+LR decay schedule  & \multicolumn{8}{c}{linear decay to zero} \\
+Train & 20k & 10k & 5k & 20k & 5k & 5k & 5k & 5k\\
+Batch size & \multicolumn{8}{c}{256} \\
+Initial (peak) LR & 3e-5 & 1e-4 & 1e-4 & 1e-4 & 1e-4 & 1e-4 & 3e-5 & 1e-4\\
+\bottomrule
+\end{tabular}}
+\caption{Hyper-parameters used in fine-tuning experiments.}
+\label{table:hyperparam}
+\end{table*}
+
+\textbf{Setup for zero-shot image classification}
+For each image, each class is scored using the prompt \prompt{Generate alt\_text in EN at 2: Photo of \exid}, scoring against all 1,000 classes with a target \prompt{$\langle$en\_class\_name$\rangle$}, where \prompt{$\langle$en\_class\_name$\rangle$} stands for a classification label in English, such as \emph{"goldfish"}, \emph{"great white shark"}, etc.
+
+\section{\PTDATA Dataset Details}
+\label{sec:webli_details}
+
+The \PTDATA dataset covers about 10 billion images and 12 billion alt-texts in 109 languages.
+We further apply a publicly available automatic service to extract OCR annotations on all images, producing additional 29 billion image-OCR pairs.
+Examples and statistics for the \PTDATA corpus are shown in Figure~\ref{fig:webli}. 
+
+
+Due to the scale of WebLI, to mitigate train-to-test leakage, we perform near de-duplication of the images against the train, validation, and test splits of 68 common vision/vision-language datasets.
+Eliminating these images from the \PTDATA dataset does not result in any significant shrinkage (0.36\%), and avoids any potential ``leakage'' of examples from the pretraining setup to the downstream evaluation tasks.
+
+To improve the data quality in terms of image-text alignment, we score image and alt-text pairs based on their cross-modal similarity.
+This score is measured with cosine similarity between embedding representations from each modality, computed as follows.
+The image embeddings are trained with a graph-based, semi-supervised representation learning approach, as described in~\citet{graph-rise}.
+Then, the text embeddings are learned using the frozen image embeddings, based on a contrastive approach using a Transformer encoder for the text, which forces both modality representations to the same embedding space.
+
+We tune a threshold on the image and alt-text pairs’ score, and retain only the top 10\% best scoring of the original \PTDATA image-text pairs (about 1B examples), which we use to train \NAME.
+
+
+
+\begin{figure*} %[h] %%[t]
+\centering
+\includegraphics[width=\linewidth]{figures/webli.pdf}
+\caption{The \PTDATA dataset.
+Top: Sampled images\protect\footnotemark\ associated with multilingual alt-text (available) and OCR (computed using publicly available API ).
+Bottom left/middle: Statistics of recognized languages from alt-text/OCR.
+Bottom right: Image-text pair counts, compared against other large-scale vision-language datasets.}
+\label{fig:webli}
+\end{figure*}
+\footnotetext{
+The second image is by jopradier (\href{https://www.geneanet.org/cartes-postales/view/6573969}{original}), used under the \href{https://www.creativecommons.org/licenses/by-nc-sa/2.0/fr/deed.en}{CC BY-NC-SA 2.0 license}. Remaining images are also used with permissions.}
+
+
+
+\section{Additional experimental results}
+
+\subsection{Language-only evaluation}
+\label{sec:lang_only}
+In Table ~\ref{table:language_understanding}, we evaluate te performance of \NAME on a range of language understanding benchmarks, in order to verify that the language-only capabilities of the model have been preserved. 
+More specifically we compare mT5-XXL and \NAME-17B, evaluating on the English-only SuperGLUE benchmark~\citep{wang-2019-superglue}, and on three multilingual benchmarks from the {XTREME}~\citep{pmlr-v119-hu20b}: XNLI~\citep{conneau-etal-2018-xnli}, which is a textual entailment task covering 14 languages, XQuAD~\citep{artetxe-etal-2020-cross} and TyDiQA-GoldP~\citep{clark-etal-2020-tydi}, which are both question-answering tasks covering 10 and 11 languages, respectively.
+
+
+\begin{table*}[ht!]
+\centering
+\begin{tabular}{lcccc} 
+ \toprule
+ Model & SuperGLUE & XNLI & XQuAD & TyDiQA-GoldP \\
+ Method & FT & ZS & ZS & ZS \\
+ \midrule
+ Metric & Avg. Score & Accuracy & F1/EM & F1/EM \\
+ \midrule
+ mT5-$\mathrm{XXL}$~\citep{xue-2021-mt5}  & 89.2 & 85.0 & 82.5 / 66.8 & 80.8 / 65.9 \\
+ mT5-$\mathrm{XXL}$ (our setting) & 89.3 & 84.5 &  82.6 / 66.6 & 81.6 / 66.3 \\
+ \NAME-17B & 88.2 & 84.9 & 81.8 / 66.0 & 81.2 / 66.5 \\
+ \bottomrule
+\end{tabular}
+\caption{Results on SuperGLUE and three XTREME tasks. The first row is the result reported by mT5~\citep{xue-2021-mt5} and ByT5~\citep{byt5} paper.
+The second row is our repetition using the publicly available mT5-XXL checkpoint, which is also the starting point for \NAME-17B.
+The third row results are using the trained \NAME-17B model.}
+\label{table:language_understanding}
+\end{table*}
+
+\subsection{Additional scaling results}
+\label{sec:additional_scaling}
+
+Figure~\ref{fig:scaling-lang}  shows that the model scaling impacts significantly the performance for multiple languages. We can see that \NAME-17B improves substantially over \NAME-3B across languages. We also include a plot where for a subset of 600 examples, we back-translate the predictions from six languages, including French, Hindi, Hebrew, Romanian, Thai and Chinese to English and compute the CIDEr score against English references for a better comparison to the English quality. The result shows that the captioning quality across languages is fairly consistent.
+
+
+\begin{figure} %[h] %%[t]
+\centering
+\includegraphics[width=0.8\linewidth]{figures/scaling_lang.pdf}
+\includegraphics[width=0.8\linewidth]{figures/scaling_lang_backtran.pdf}
+\caption{\NAME Scaling performance across multiple languages (See Table~\ref{table:i18n_captioning}), using the Crossmodal-3600 benchmark.
+Larger scale models are important for better performance in these languages, especially low resource ones. (Top) CIDEr scores computed using predictions in each language. (Bottom) For the six languages French, Hindi, Hebrew, Romanian, Thai and Chinese, we sample a 600-example subset and back-translate the non-English predictions to English, and computed the CIDEr score vs. the same English references.}
+\label{fig:scaling-lang}
+\end{figure}
+
+We also trained a 5B \NAME model consisting of mT5-Large and ViT-e for additional datapoints. We evaluated this 5B model on two representative captioning and VQA benchmarks, COCO-Cap and OKVQA, and the results are shown in Table~\ref{table:5b}. We note that the training mixture and hyperparameters of this PaLI-5B checkpoint are slightly different from other PaLI sizes, but the results are still indicative and supportive of our conclusions regarding the value of joint scaling.
+
+On COCO, the improvement from PaLI-3B to 5B (+2.1 CIDEr points) is slightly smaller than the improvement from PaLI-15B to 17B (+2.8). On OKVQA, it is likely that the benefit of having ViT-e cannot be exploited by the mT5-Large enc-dec as much as that by the mT5-XXL on VQA tasks, which require stronger language-understanding capabilities than Image Captioning tasks. In general, it is clear that scaling ViT still has much better return on investment (see the last column in Table~\ref{table:5b}), even for PaLI-5B where the ViT model is much larger than the encoder-decoder backbone. Note that we computed RoI as “improvement per 1B parameter”, using COCO and OKVQA numbers as performance indicators.
+\begin{table*}[ht]
+\centering
+\begin{tabular}{lcccc}
+\toprule
+\multirow{2}{*}{Model} & \multirow{2}{*}{Component} & COCO-Cap & OKVQA & Improvement per \\
+&& @490 res & @490 res & 1B more params \\
+\midrule
+\NAME-3B & mT5-Large \& ViT-G & 145.4 & 52.4 & - \\
+\midrule
+\multirow{2}{*}{\NAME-5B} & \multirow{2}{*}{mT5-Large \& ViT-e} & \multirow{2}{*}{147.5} & \multirow{2}{*}{53.8} & +0.9 per 1B more \textbf{ViT} params \\
+&&&& (vs PaLI-3B) \\
+\midrule
+\multirow{2}{*}{\NAME-15B} & \multirow{2}{*}{mT5-XXL \& ViT-G} & \multirow{2}{*}{146.2} & \multirow{2}{*}{56.5} & +0.2 per 1B more \textbf{mT5} params \\
+&&&& (vs PaLI-3B) \\
+\midrule
+\multirow{4}{*}{\NAME-17B} & \multirow{4}{*}{mT5-XXL \& ViT-e} & \multirow{4}{*}{149.0} & \multirow{4}{*}{62.4} & +2.2 per 1B more \textbf{ViT} params \\
+&&&& (vs PaLI-15B) \\
+&&&& +0.4 per 1B more \textbf{mT5} params \\
+&&&& (vs PaLI-5B) \\
+\bottomrule
+\end{tabular}
+\caption{
+Result on a 5B version of \NAME consisting of mT5-Large and ViT-e. Results on COCO-Cap and OKVQA with \imres{490} are shown together with other sizes.
+}
+\label{table:5b}
+\end{table*}
+
+\begin{table*}[ht!]
+\centering
+\resizebox{0.7\linewidth}{!}{%
+\begin{tabular}{lccc}
+\toprule
+Model & TallyQA simple & TallyQA complex & Weighted average\\
+\midrule 
+\NAME-700M & 66.9 & 55.6 & 62.4 \\
+\NAME-3B  & 72.0 & 56.7 & 65.9 \\
+\NAME-17B & 76.2 & 65.5 & 71.9 \\
+\bottomrule
+\end{tabular}}
+\caption{Result of 700M, 3B and 17B versions of PaLI on TallyQA~\citep{acharya2019tallyqa}.}
+\end{table*}
+
+
+\subsection{Additional ablations}
+
+Table~\ref{table:ablation_reuse} shows that initializing from unimodal checkpoint plays a critical role in \NAME's quality. 
+Table~\ref{table:ablation_frozen_vit} shows that freezing ViT during pretraining leads to an improvement in downstream finetuning on COCO. 
+
+Table~\ref{table:ablation_nonen_webli} shows the effect of the non-English part of WebLI data. The table shows two sets of comparison for the pretraining data. 1) Using only the English subset of WebLI vs using only the whole WebLI. 2) Taking out the non-EN part of WebLI from the full mix vs using the full mix. This set of comparison results is performed with a 1.5B version of \NAME model, consisting of mT5-Large and ViT-L (with 300M parameters). This model has a similar parameter ratio (20\% for ViT) compared with PaLI-17B (23\%). Each model is pretrained to cover 200M of the data. All downstream benchmarks are fine-tuned and evaluated at \imres{224} image resolution. The six non-En languages (6L) for XM-3600 are fr, hi, iw, ro, th and zh, and "7L" for xGQA are en, bn, de, id, ko, pt, ru, zh, both are the same as those included in Table~\ref{table:i18n_captioning} and Table~\ref{table:i18n_vqa}. The takeaways are as follows:
+\begin{itemize}
+    \item (comparison 1, row \#1 vs row \#2) With only the English portion of WebLI, the model's multilingual captioning capability remains very low (as measured on XM-3600), even with further finetuning on COCO-35L. There is also a clear drop in cross-lingual VQA performance on xGQA.
+    \item (comparison 2, row \#3 vs row \#4) Taking away the multilingual part of WebLI from the full mixture, which still contains other translated multilingual/cross-lingual datasets (CC3M-35L, VQ2A-CC3M-35L, VQG-CC3M-35L), still has a significant impact on XM-3600 performance. On xGQA, because of the cross-lingual training source VQ2A-CC3M-35L, the impact of removing non-EN WebLI data is reduced but still apparent. With the non-EN WebLI data in the full mix, xGQA performance improves by +0.4 overall and is better than or equal to with only the WebLI-EN in every language. 
+    \item Last but definitely not least, there is an interesting result: when training with all the languages of WebLI, the model is performing better on (English) COCO captions, compared to training with English-only WebLI (about +2 CIDEr points). This suggests that 1) the multilingual WebLI may contain extra images with richer objects and their descriptions compared with the English-only subset 2) the model may be able to exploit the shared linguistic structure across languages, benefiting from transfer learning across languages.
+\end{itemize}
+
+\begin{table*}[ht]
+\centering
+\small
+\begin{tabular}{lccccc}
+\toprule
+Model & Initialization & COCO (Karp. test) & XM-3600 & TextVQA\\
+\midrule
+\multirow{2}{*}{\NAME-3B}  & From mT5-Large and ViT-G & 141.4 & 93.8 (EN) / 42.5 (6L) & 41.6 \\
+& From scratch& 72.8 & 22.1 (EN) / 10.1 (6L) & 12.8 \\
+\bottomrule
+\end{tabular}
+\caption{
+Comparison between \NAME's initializing from existing unimodal checkpoints and initializing the parameter from scratch. The setup is the same as the main ablation result Table~\ref{table:abation_mixture}.
+}
+\label{table:ablation_reuse}
+\end{table*}
+
+\begin{table*}[ht]
+\centering
+\begin{tabular}{lccc}
+\toprule
+Model & ViT during finetuning & ViT during pretraining & COCO (Karp. test) \\
+\midrule
+\multirow{2}{*}{\NAME-3B}  & \multirow{2}{*}{Fine-tuned} & Frozen & 139.3\\
+& & Fine-tuned & 138.8\\
+\midrule
+\multirow{2}{*}{\NAME-15B} & \multirow{2}{*}{Fine-tuned} & Frozen & 141.4 \\
+& & Fine-tuned & 140.1 \\
+\bottomrule
+\end{tabular}
+\caption{
+Comparison of performance on COCO for Frozen versus fine-tuned ViT during a short period of pretraining. 
+In this comparison, finetuning of COCO is performed at resolution \imres{224}.
+}
+\label{table:ablation_frozen_vit}
+\end{table*}
+
+\begin{table*}[ht]
+\centering
+\resizebox{\linewidth}{!}{%
+\begin{tabular}{lccc}
+\toprule
+Pretraining Data & XM-3600 (FT on COCO-35L) & COCO-Cap & xGQA (FT on VQAv2-13L) \\
+\midrule
+only WebLI-en & 86.0 (en) / 8.2 (6L) & 132.2 & 40.6 (en) / 34.0 (7L) \\
+only WebLI & 87.2 (en) / 30.0 (6L) & 134.3 & 42.8 (en) / 38.6 (7L) \\
+\midrule
+WebLI-en \& rest of \NAME mix & 91.2 (en) / 39.0 (6L) & 135.3 & 44.9 (en) / 40.9 (7L) \\
+Full \NAME mix & 92.2 (en) / 41.9 (6L) & 135.4 & 45.1 (en) / 41.3 (7L) \\
+\bottomrule
+\end{tabular}}
+\caption{
+Ablation studies on the effect of including the multilingual examples of WebLI on multi-(cross-)lingual benchmarks XM-3600 and xGQA. We also included the English benchmark COCO-Captions in the comparison. This set of comparison results is performed with a 1.5B version of \NAME model, consisting of mT5-Large and ViT-L (with 300M parameters).
+}
+\label{table:ablation_nonen_webli}
+\end{table*}
+
+
+\subsection{Evaluation of \NAME's Visual Component: ViT-e}
+\label{lit_results}
+
+Table~\ref{tbl:scaling_vit} compares the ViT-e architecture with the smaller ViT-G and ViT-g architectures on vision only and vision-language tasks.
+The results suggest that V\&L tasks could benefit more from scaling up the vision backbone, even on the high end.
+In Table~\ref{tbl:vit_e_sup}, we fine-tune the pretrained ViT-e model on the ImageNet dataset, and then report the evaluation scores on several out-of-distribution test variants: ImageNet-v2, ObjectNet, and ReaL~\citep{imagenet_real}.
+We follow the finetuning protocol of \citet{zhai-21-scalingvit}, but use a $560\times560$ resolution.
+We evaluate the fine-tuned model at $644\times644$~\citep{fixres} (chosen according to a held-out 2\% of the training set), results are reported in Table~\ref{tbl:vit_e_sup}.
+ViT-e achieves 90.9\% top-1 accuracy on ImageNet and shows clear benefits on the OOD benchmarks.
+
+\begin{table*}[ht!]
+\centering
+  \begin{tabular}{lcccc}
+    \toprule
+     &  INet-10 & INet-25 & COCO & VQAv2 \\
+    \midrule
+    ViT-g  & 84.5 & 85.4 & - & - \\
+    ViT-G  & 84.9 & 85.6 & 146.2 & 82.9 \\
+    ViT-e  & 85.2  & 85.8 & 149 & 83.4 \\
+    \bottomrule
+  \end{tabular}
+  \caption{Impact of scaling ViT. For vision-only tasks, we report 10-shot and 25-shot accuracy on ImageNet. For vision-language tasks, ViT models are paired with the mT5-XXL model in \NAME and we report captioning (COCO) and VQA (VQAv2).
+  For direct comparison, results with ViT-e on COCO and VQAv2 do not include the  high resolution phase of pretraining.}\label{tbl:scaling_vit}
+  \vspace{-0.5em}
+\end{table*}
+Since ViT-e is new and has not been evaluated in the prior work, we evaluate its standalone performance.
+For this, we perform supervised fine-tuning on standard classification tasks. 
+Additionally, we perform LiT transfer~\citep{lit} to evaluate the frozen representation quality in a zero-shot setup.
+
+We follow LiT \citep{lit} to add zero-shot transfer capabilities to the (frozen) ViT-e model, the visual component of \NAME.
+More specifically, we tune a text encoder, when the ViT image encoder is frozen.
+We use the English subset of the \PTDATA dataset for the text encoder training, since all evaluation tasks in Table~\ref{table:lit} are in English.
+\begin{table*}[ht!]
+\centering
+  \begin{tabular}{lcccc}
+    \toprule
+    Model & INet & INet-v2 & ObjNet  & ReaL \\
+    \midrule
+     ViT-G & 90.5 & 83.3 & 70.5  & 90.8 \\
+     CoCa & 91.0 & - & -  & - \\
+     \midrule
+     ViT-e & 90.9 & 84.3 & 72.0 & 91.1 \\
+    \bottomrule
+  \end{tabular}
+  \caption{ViT-e on ImageNet and OOD test sets.}
+  \label{tbl:vit_e_sup}
+\end{table*}
+These results highlight that going from ViT-g to ViT-e provides consistently better results.
+Notably, LiT with ViT-e achieves 84.9\% zero-shot accuracy on the challenging out-of-distribution ObjectNet test set, setting the new state-of-the-art. 
+The VTAB-Natural benchmark~\citep{vtab} consists of seven diverse natural image datasets, for which LiT also benefits from ViT-e over ViT-g.
+Detailed results on each VTAB-Natural task are in Appendix~\ref{app:vtab}.
+
+
+We also test multilingual performance using \PTDATA in this setting.
+We further perform LiT transfer using the same multilingual \PTDATA dataset as used to train \NAME, and use Crossmodal-3600 to evaluate the cross-lingual image-text retrieval performance. 
+Figure~\ref{fig:crossmodal_retrieval} shows that LiT ViT-e pretrained on the English subset substantially outperforms the same model pretrained on the multilingual dataset.
+The same observation applies to a few languages that are similar to English, e.g. Spanish (es), French (fr), Italian (it).
+However, the multilingual model performs much better on most other languages, especially those with a non-latin script such as Chinese (zh), Japanese (ja), Korean (ko), and Hebrew (iw).
+On average (avg), the multilingual LiT ViT-e outperforms the English-only model by a large margin. More results could be found in Table~\ref{table:crossmodal_retrieval}.
+These results highlight the importance of having good multilingual benchmarks to measure the benefits of training models on diverse datasets such as \PTDATA.
+
+\begin{table*}
+\centering
+\resizebox{\linewidth}{!}{%
+\begin{tabular}{lccccccc} 
+ \toprule
+ Model & INet & INet-v2 & INet-R & INet-A & ObjNet & ReaL & VTAB-N \\
+ \midrule
+ CLIP~\citep{clip} & 76.2 & 70.1 & 88.9 & 77.2 & 72.3 & - & 73.9 \\
+ ALIGN~\citep{align} & 76.4 & 70.1 & 92.2 & 75.8 & 72.2 & - & - \\
+ BASIC~\citep{basic} & 85.7 & 80.6 & 95.7 & 85.6 & 78.9 & - & - \\
+ CoCa~\citep{coca} & 86.3 & 80.7 & 96.5 & 90.2 & 82.7 & - & - \\
+ LiT ViT-g~\citep{lit} & 85.2 & 79.8 & 94.9 & 81.8 & 82.5 & 88.6 & 74.7 \\
+ \midrule
+ LiT ViT-e (ours) & 85.4 & 80.6 & 96.1 & 88.0 & 84.9 & 88.4 & 76.9 \\
+ \bottomrule
+\end{tabular}}
+\caption{Zero-shot transfer results of ViT-e on ImageNet, OOD test sets and VTAB-Natural datasets.}
+\label{table:lit}
+\end{table*}
+
+
+\begin{figure} %[h] %%[t]
+\centering
+\includegraphics[scale=0.43]{figures/crossmodal_i2t.pdf}
+\includegraphics[scale=0.43]{figures/crossmodal_t2i.pdf}
+\caption{Zero-shot image-text retrieval results on all 36 languages of Crossmodal-3600. Top: image-to-text retrieval accuracy; bottom: text-to-image retrieval accuracy.}
+\label{fig:crossmodal_retrieval}
+\end{figure}
+
+
+\subsection{Results on TextCaps, TextVQA and VizWiz-QA without Detected OCR as Input}
+
+In the main text, we presented results on TextCaps, TextVQA, VizWiz-Cap, VizWiz-QA and ST-VQA with detected OCR strings as input. Following~\citet{prestu}, we order the OCR items based on their locations in the image, from top left to bottom right.
+We only include the OCR strings themselves, without the OCR-item locations provided by the API.
+GIT2~\citep{git} has demonstrated strong performance without the OCR input, while \NAME-17B shows the superiority of levaraging a specialized OCR system for a better recipe to solve these tasks.
+
+Table~\ref{table:no_ocr} shows the results on TextCaps, TextVQA and VizWiz-QA without the detected OCR strings as input. \NAME slightly suffers without OCR input, while its performance remains close to the first version of GIT. This result may suggest that the significantly larger vocab of \NAME adds further difficulty to OCR string generation.
+
+However, for VizWiz-QA, \NAME establishes SOTA performance without OCR input.
+\label{appendix:no_ocr}
+\begin{table*}[ht!]
+\centering
+\begin{tabular}{lcccccccc} 
+\toprule
+&& TextCaps && TextVQA && \multicolumn{2}{c}{VizWiz-QA} \\
+\cmidrule{3-3} \cmidrule{5-5} \cmidrule{7-8}
+Method & OCR input? & test && test && test-dev & test-std \\
+\midrule
+TAP~\citep{tap} & Yes & 103.2 && 53.97 && - & - \\
+GIT & No & 138.2 && 59.75 && 68.0 & 67.5 \\
+GIT2 & No & 145.0 && 67.27 && 71.0 & 70.1 \\
+\midrule
+\NAME & No & 135.4 && 58.80 && 71.6 & 70.7 \\
+\NAME & Yes & 160.4 && 73.06 && 74.4 & 73.3 \\
+\bottomrule
+\end{tabular}
+\caption{Results on TextCaps, TextVQA and VizWiz-QA with and without detected OCR as input for \NAME}
+\label{table:no_ocr}
+\end{table*}
+
+\subsection{Detailed VTAB Results}
+\label{app:vtab}
+
+For the VTAB benchmark~\citep{vtab}, we follow the methodology outlined in~\citep{lit}. \NAME sets a new state-of-the-art zero-shot performance for the ``natural'' subset (see Table~\ref{table:vtab_natural}).
+
+\begin{table*}[ht!]
+\centering
+\begin{tabular}{lrrrrrrr|r}
+\toprule
+{}                  &  Caltech101 &  CIFAR-100 & DTD & Flowers102 & Pets & Sun397 & SVHN & Mean  \\
+\midrule
+CLIP                &     \textbf{92.8} &   77.5 & 55.7 &     78.3 &  93.5 &    68.4 &  \textbf{51.0} &     73.9 \\
+LiT \textit{ViT-g}  &     79.2 &   83.6 & 66.6 &     \textbf{92.3} &  97.7 &    76.0 &  27.5 &     74.7 \\
+LiT \textit{ViT-e}  &     79.8 &   \textbf{90.4} & \textbf{68.8} &     91.2 &  \textbf{98.1} &    \textbf{76.3} &  33.8 &     \textbf{76.9} \\
+\bottomrule
+\end{tabular}
+\caption{Accuracies for zero-shot evaluation of different VTAB ``natural'' tasks, and the average over these tasks. Note that CLIP is using OCR for the SVHN task (as opposed to LiT and \NAME, which do not use OCR).}
+\label{table:vtab_natural}
+\end{table*}
+
+\subsection{Top 5 Accuracy on Zero-shot ImageNet Datasets}
+Table~\ref{table:imagenet_top5} shows the Top 5 Accuracy results on Zero-shot evaluation on ImageNet Datasets.
+\begin{table*}[ht!]
+\footnotesize
+\centering
+\begin{tabular}{lcccccccccccccc}
+\toprule
+ Model & INet & & INet-R & & INet-A & & INet-sketch & & INet-v2 & ObjNet \\
+\midrule
+
+\NAME-3B  & 84.31    & & 90.05   & &  55.04 & &  76.47   & &  78.49  & 53.71 \\
+\NAME-15B &   84.78    & &     90.91   & &   59.00     & &  76.81   & &   79.54  & 55.29 \\
+\NAME-17B     & 86.18     & &        91.51   & &   62.72     & &  79.30   & &   80.71  & 58.35 \\
+\bottomrule
+\end{tabular}
+
+\caption{Top 5 accuracy results of Zero-shot image classification on ImageNet~\citep{deng2009imagenet}, \mbox{ImageNet-R}~\citep{hendrycks2021many}, \mbox{ImageNet-A}~\citep{hendrycks2021nae}, \mbox{ImageNet-Sketch}~\citep{wang2019learning}, \mbox{ImageNet-v2}~\citep{recht2019imagenet} and ObjectNet~\citep{objectnet}.} 
+\label{table:imagenet_top5}
+\end{table*}
+
+\subsection{More Zero-shot Image-text Retrieval Results on Crossmodal-3600}
+\label{sec:more_zero_shot}
+\begin{table*}[ht]
+\centering
+\resizebox{\linewidth}{!}{%
+\small
+\begin{tabular}{lrrrrrr}
+\toprule
+\multirow{2}{*}{Language} & \multicolumn{3}{c}{Image-to-text} & \multicolumn{3}{c}{Text-to-image} \\
+\cmidrule{2-4} \cmidrule{5-7}
+ & LiT ViT-g & LiT ViT-e & LiT ViT-e (multilingual) & LiT ViT-g & LiT ViT-e & LiT ViT-e (multilingual) \\
+\midrule
+ar & 5.28 & 26.58 & 39.69 & 2.80 & 18.46 & 32.60 \\
+bn & 0.00 & 0.11 & 5.67 & 0.00 & 0.06 & 3.31 \\
+cs & 18.19 & 39.25 & 44.03 & 11.24 & 27.35 & 35.24 \\
+da & 26.44 & 48.92 & 50.75 & 14.07 & 34.43 & 38.48 \\
+de & 37.83 & 58.42 & 58.53 & 23.61 & 43.25 & 46.50 \\
+el & 1.56 & 13.47 & 29.03 & 0.39 & 5.46 & 20.92 \\
+en & 51.22 & 51.78 & 42.11 & 46.24 & 47.07 & 40.63 \\
+es & 41.81 & 57.50 & 55.22 & 30.29 & 47.71 & 46.55 \\
+fa & 3.78 & 18.39 & 44.50 & 1.57 & 10.74 & 35.58 \\
+fi & 14.14 & 29.42 & 32.64 & 6.59 & 16.91 & 21.80 \\
+fil & 10.94 & 16.39 & 15.53 & 4.18 & 8.66 & 10.04 \\
+fr & 38.28 & 57.06 & 52.61 & 28.02 & 45.20 & 43.47 \\
+hi & 0.47 & 7.33 & 13.14 & 0.08 & 2.90 & 7.42 \\
+hr & 15.86 & 34.47 & 38.31 & 8.80 & 22.72 & 29.55 \\
+hu & 15.11 & 31.17 & 44.67 & 8.45 & 20.52 & 35.49 \\
+id & 24.11 & 43.72 & 46.33 & 12.99 & 32.08 & 36.75 \\
+it & 39.69 & 57.47 & 54.53 & 27.07 & 46.79 & 44.76 \\
+iw & 1.75 & 9.11 & 38.67 & 0.86 & 3.99 & 29.39 \\
+ja & 3.61 & 11.67 & 35.47 & 1.20 & 4.91 & 27.24 \\
+ko & 1.78 & 6.00 & 36.11 & 0.35 & 3.14 & 25.95 \\
+mi & 0.58 & 0.92 & 0.33 & 0.19 & 0.30 & 0.22 \\
+nl & 37.47 & 51.67 & 52.14 & 27.26 & 44.08 & 43.79 \\
+no & 26.53 & 49.69 & 49.17 & 14.61 & 35.59 & 37.35 \\
+pl & 19.67 & 42.03 & 51.42 & 12.00 & 31.13 & 43.72 \\
+pt & 33.92 & 50.81 & 49.19 & 23.58 & 42.97 & 42.73 \\
+quz & 5.08 & 6.83 & 4.31 & 1.85 & 1.89 & 1.90 \\
+ro & 17.94 & 30.08 & 37.75 & 10.15 & 20.06 & 28.82 \\
+ru & 12.00 & 26.22 & 50.64 & 5.76 & 17.19 & 41.11 \\
+sv & 25.50 & 51.00 & 53.22 & 15.11 & 38.80 & 40.66 \\
+sw & 4.47 & 7.75 & 6.42 & 1.58 & 4.17 & 3.41 \\
+te & 0.06 & 0.03 & 1.92 & 0.03 & 0.03 & 1.42 \\
+th & 1.89 & 7.22 & 22.00 & 0.79 & 3.71 & 16.06 \\
+tr & 10.72 & 31.28 & 39.50 & 4.73 & 20.42 & 31.47 \\
+uk & 7.67 & 19.94 & 39.53 & 3.38 & 10.40 & 30.81 \\
+vi & 3.08 & 11.44 & 27.08 & 0.98 & 6.22 & 21.28 \\
+zh & 4.53 & 11.11 & 33.61 & 1.67 & 5.60 & 28.24 \\
+avg & 15.64 & 28.23 & 35.99 & 9.79 & 20.14 & 28.46 \\
+\bottomrule
+\end{tabular}}
+\caption{Image-to-text and text-to-image zero-shot retrieval results on all 36 languages of Crossmodal-3600. Models are trained following LiT~\citep{lit} method with diverse visual backbones (ViT-g or ViT-e) and datasets (English or multilingual).}
+\label{table:crossmodal_retrieval}
+\end{table*}
+Table~\ref{table:crossmodal_retrieval} shows more zero-shot image-text retrieval results on Crossmodal-3600.
+
+\section{Model Fairness, Biases, and Other Potential Issues}
+\label{sec:fairness}
+
+Models trained on web data are at risk of being biased or unfair due to biases in that data. A first step towards addressing those risks is being transparent about their existence, and then measuring them.
+To this end, we add a data card~\citep{datacard} for \PTDATA and model card~\citep{mitchell-2019-model} for \NAME in Appendix~\ref{data_card} and~\ref{model_card}.
+
+To understand the demographic properties of the data, we sample 112,782 (0.001\% of the full data set, randomly sampled due to the limitations of the labeling tool, described next) examples and analyze both images and texts of the sampled data with the \href{https://knowyourdata.withgoogle.com/}{Know Your Data} (KYD) tool. We use KYD to analyze the perceived gender presentation of image subjects~\citep{cschumann2021miap} along with gender expressed through pronouns in text. In the sampled images, 54\% of people appear feminine presenting with 46\% masculine presenting. In the sampled text, female pronouns (e.g., she, her) are used 30\% of the time, male pronouns (e.g., he, him) 38\% of the time, and they or them (either singular or plural) 31\% of the time. We also analyze the perceived age of individuals appearing in the sampled images, resulting in the distribution displayed in Figure~\ref{fig:rai-ages}.
+
+We consider all the effort above a first step, and know that it will be important to continue to measure and mitigate bias as we apply our model to new tasks. Deeper analysis will include the study of the model's recognition capabilities and potential biases observed towards specific attributes, e.g. related to gender, age, etc. and how scaling affects these observations.
+
+\begin{figure} %[h] %%[t]
+\centering
+\includegraphics[scale=0.20]{figures/rai_ages.pdf}
+\caption{The distribution of ages recognized from the sampled images of \PTDATA.}
+\label{fig:rai-ages}
+\end{figure}
+
+\section{Limitations}
+\label{sec:limitations}
+
+Despite good performance, our model has a number of limitations. For example, the model might not describe very thoroughly a complex scene with many objects because most of the source data does not have complex annotations. We have tried to mitigate this with the object-aware and localization aware queries, added to the data.  
+
+We also noticed that some of the multilingual capabilities are lost when fine-tuned on English-only data, which is consistent with other model fine-tuning behavior. Ideally these models should be fine-tuned on a mix of multiple datasets including multilingual ones.
+
+There are limitations related to the evaluation procedures of the benchmarks. Since we are evaluating in the open-vocabulary generative setting, for example in VQA, the model might generate a correct response which is a synonym or a paraphrase of the target response and does not match the target exactly. In these cases the answer is counted as incorrect. Fixed-vocabulary approaches do not suffer from these issues, but are limited in generalization beyond the answers of a specific dataset.
+Further, in terms of evaluation, some benchmarks might need more comprehensive  strategies to avoid evaluations with Western-centric bias. Multilingual models and benchmarks are a first step in that direction.
+
+
+\section{\NAME Model Card}
+\label{model_card}
+\input{model_card.tex}
+
+\clearpage
+\section{\PTDATA Datasheet}
+\label{data_card}
+\input{data_card.tex}

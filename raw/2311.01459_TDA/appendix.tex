@@ -1,0 +1,172 @@
+
+\appendix
+
+\noindent\begin{LARGE} \textbf{Appendix} \vspace{4mm} \end{LARGE}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+In the following, we provide further details on our implementation under Section \ref{supp:implementaions}. In Section \ref{supp:xdataset}, we provide additional results of our proposed PromptAlign method on cross-dataset generalization, base-to-novel generalization and for different CLIP backbone architectures; and Section \ref{supp:qualitative} shows additional qualitative results. Finally, Section \ref{supp:ablations} presents ablation trends across diverse datasets for the effect of the proxy dataset, the effect of test sample statistics and different parameter choices.
+
+
+\section{Additional Implementation details}
+\label{supp:implementaions}
+
+
+\subsection{Hardware and Software details}
+We implement our method with the MaPLe \cite{khattakMaPLe} multi-modal prompting model with the CLIP ViT-B/16 backbone architecture. Our models were implemented on a single NVIDIA A100 40GB GPU using the PyTorch framework.
+
+
+\subsection{Effect of layer depth for token distribution alignment loss}
+The token distribution alignment loss is computed from all the corresponding tokens of 64 crops spanning the first 3 layers of the visual encoder. This is chosen in line with the baseline multimodal prompt learning model \cite{khattakMaPLe} where the deep prompts are present in layers 1-3. In order to analyze the impact of different layer depths on the alignment loss, we conduct an ablation study. Figure \ref{fig:alignment_depth} displays the performance comparison of alignment losses obtained from various layer combinations using the ImageNet-A dataset. As observed in the Figure~\ref{fig:alignment_depth}, enforcing the token alignment loss across the first three layers of the vision encoder of CLIP provides the best performance.
+
+\begin{figure}[!h]
+    \centering
+    \begin{minipage}{0.6\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{figs/alignment_depth.png}
+    \end{minipage}%
+    \hspace{0.5em}
+    \begin{minipage}{0.3\textwidth}
+        \captionsetup[figure]{justification=raggedleft}
+        \caption{\small \textbf{Effect of alignment depth on performance}: We examine how the performance of PromptAlign is affected by altering the number of alignment layers that contribute to the alignment loss. Our findings indicate that the token distribution alignment loss is most impactful when applied to the lower layers (specifically, layer $1 \rightarrow 3$). We  hypothesize that the effectiveness of the token distribution alignment loss in these layers can be attributed to the presence of our prompts, which are located within the first three layers of the visual encoder.}
+        \label{fig:alignment_depth}
+    \end{minipage}
+\end{figure}
+\vspace{-3mm}
+% \begin{figure}[!h]
+%     \centering    \includegraphics[width=0.66\textwidth]{figs/alignment_depth.png}
+%     \caption{\small \textbf{Effect of alignment depth on performance}: We examine how the performance of PromptAlign is affected by altering the number of alignment layers that contribute to the alignment loss. Our findings indicate that the alignment loss is most impactful when applied to the lower layers (specifically, layer $1 \rightarrow 3$). We  hypothesize that the effectiveness of the alignment loss in these layers can be attributed to the presence of our prompts, which are located within the first three layers of the visual encoder.}
+%     \label{fig:alignment_depth}
+% \end{figure}
+
+
+% \begin{itemize}
+%     \item GPU; Loss Layers; pytorch; maple in depth.
+% \end{itemize}
+
+
+\section{Additional results}
+\label{supp:xdataset}
+
+\subsection{Cross dataset evaluations}
+\label{supp:xdatasets}
+% In Table \ref{tab:xd} of main paper, we compared the performance of PrompAlign with existing state-of-the-art prompt learning methods: CoOp and CoCoOp, for cross-dataset generalization. In Table \ref{tab:xdatasets_supp}, we provide further comparisons of our method with existing prompt learning methods integrated with TPT. As observed in the Table \ref{tab:xdatasets_supp}, our PromptAlign outperforms both CoOp+TPT and CoCoOp+TPT 9 out of 10 datasets. It can be further observed that whe integrated with TPT, the performance of CoOp and CoCoOp descreases in majority of the cases. On the contrary, our PromptAlign consistenty improves the perfromance on cross-datasets.
+In Table \ref{tab:xd} of the main paper, we compared the performance of PromptAlign with the current state-of-the-art prompt learning methods, CoOp and CoCoOp, for cross-dataset generalization. Additionally, in Table \ref{tab:xdatasets_supp}, we evaluate existing prompt learning methods that have been integrated with TPT and present further comparisons of our method with them. As shown in Table \ref{tab:xdatasets_supp}, PromptAlign outperforms both CoOp+TPT and CoCoOp+TPT in 9 out of 10 datasets. It is worth noting that when integrated with TPT, the performance of CoOp and CoCoOp decreases for the majority of cases. In contrast, PromptAlign consistently improves performance across different datasets.
+
+\subsection{Base to Novel Generalization}
+\label{supp:b2n}
+We also evaluate the performance of our method on the base-to-novel generalization benchmark setting. On average, our distribution alignment strategy improves the model performance by nearly 1\% in the base classes and by 0.79\% on novel classes. We observe that TPT alone drops the performance of the model in some instances such as for OxfordPets, Eurosat and UCF101. On such instances, PromptAlign regulates the drop in accuracy cause by TPT, while in most cases achieves better performance in novel classes of these datasets. 
+% Here, we show that on average, TPT alone drops the performance of the model, where as our distribution alignment strategy improves the model performance by nearly 1\% in the base classes and by 0.79\% on novel classes.
+\vspace{-1em}
+\input{tables/Supp_XD}\input{tables/base2novel}
+
+\subsection{Different CLIP backbone architectures}
+
+We also evaluate our method on the ViT-B/32 backbone architecture variant  of CLIP. Here, we train CLIP ViT-B/32 in the original MaPLe setting without any hyperparameter tuning specific to MaPLe. Our distribution alignment strategy improves upon TPT on average in both the domain generalization setting and cross-dataset settings as reported in Table~\ref{tab:supp-vitB32-domaingen} and Table~\ref{tab:supp-xd-ViTB/32}.
+
+\input{tables/DG_ViT-B32}
+\input{tables/xd-ViT-B32}
+
+
+\section{Qualitative Results}
+\label{supp:qualitative}
+% We visualize the attention of the CLS token from the heads
+% of the last block of CLIP visual encoder on the test samples from Imagenet-A dataset. Figure [] shows the comparison of attention maps generated by PrompAlign and TPT. We observe that PromptAlign  focuses more on the discriminative regions and reduces the attention on background regions as opposed to TPT. In the first test sample (left), PrompAlign intensifies the focus on the object of interest and reduces the attention on background regions. Similarly, in the second image (right), PromptAlign increases the attention on the object.
+
+\begin{figure}[htb]
+    \centering    \includegraphics[width=1\textwidth]{figs/attentionmaps.pdf}
+    \caption{\small \textbf{Comparison of attention map visualizations.} PromptAlign focuses on highlighting the discriminative areas while reducing attention on background regions as opposed to TPT.} 
+    \label{fig:attention}
+\end{figure}
+
+We generate attention map visualizations from the heads of the last block of the CLIP visual encoder on the test samples from the Imagenet-A dataset. In Figure \ref{fig:attention}, we compare the attention maps produced by PromptAlign and TPT. Our findings reveal that PromptAlign exhibits a stronger focus on discriminative regions while reducing attention on background regions compared to TPT. For the first test sample (on the left), PromptAlign intensifies attention on the object of interest and diminishes attention on the background regions. Similarly, in the second image (on the right), PromptAlign increases attention toward the salient object.
+
+
+% \begin{itemize}
+%     \item Attention maps
+  
+% \end{itemize}
+
+
+\section{Extended Ablations}
+\label{supp:ablations}
+
+\subsection{Proxy source dataset}
+\label{supp:laion_ablation}
+We assess the effectiveness of our alignment strategy, in Table \ref{tab:laion} by employing LAION400M \cite{schuhmann2021laion} to compute the source data statistics. We utilize a subset of 2 Million images\footnote[1]{Due to compute and time limitations we use a subset of LAION400M dataset} from the LAION400M dataset (denoted as PromptAlign\textsuperscript{$\dagger$}). We show that using LAION400M to compute the source dataset statistics enhances the distribution alignment objective, and thus the overall performance in Table~\ref{tab:laion}. This emphasises the effectiveness of distribution alignment, since LAION400M has been shown as a valid training dataset for CLIP \cite{cherti2022reproducible}.
+% Due to the vast size of the LAION400M dataset and the fact that CLIP already achieves outstanding zero-shot performance on ImageNet, we regard ImageNet as a pragmatic selection for the proxy source dataset. This selection is consistent with previous studies \cite{bahng2022exploringg}.
+
+% We analyze the effectiveness of the proxy source dataset in contributing to the token distribution alignment loss. 
+In Table~\ref{tab:proxy_dataset_supp} we present the performance of our method when using the training set of the respective dataset as the proxy source data to compute the training statistics used for the token distribution alignment loss. We choose 5 datasets: DTD \cite{cimpoi2014describing}, StanfordCars \cite{krause20133d}, UCF10 1\cite{soomro2012dataset} Caltech101 \cite{fei2004learning}, and FGVC Aircrafts \cite{maji2013fine} for the analysis. We observe that using ImageNet as the proxy source dataset gives better performance across all datasets, except in UCF101, where the performance is the same. Experiments in different Vision-Language models such as EVA-CLIP \cite{fang2023eva}, with different training recipes has a similar trend validating the choice of ImageNet as a proxy dataset.
+
+Our hypothesis on the effectiveness of ImageNet as a proxy source dataset is two-fold. Firstly, the token distribution alignment loss intends to align the tokens to that of the CLIP pre-training dataset token distributions. The larger scale of ImageNet in comparison to the training set of the above datasets, and the CLIP pre-training strategy, finetuning it to improve performance on the ImageNet benchmark \cite{bahng2022exploring} renders ImageNet a better proxy source dataset for CLIP. Furthermore, using ImageNet acts as a regularizer, maintaining the generalization capability of CLIP while performing test-time prompt learning using entropy minimization. Similarly, since LAION400M is a better representation of the CLIP training dataset, the subset of LAION400M used as the proxy shows an improvement over ImageNet in being used as a proxy source dataset.
+
+\input{tables/laion}
+
+\input{tables/proxy_dataset_eval}
+
+\input{tables/BOS} 
+
+\subsection{Effect of test sample statistics}
+To analyze the effect of the test sample statistics quality on the distribution alignment strategy, we experiment with the use of more samples for alignment. For each test example, we use a bag of samples (N=5) obtained from the same class (while the class label is kept unknown) to estimate the test sample statistics. We present the results in Table~\ref{tab:bos} which shows that test sample statistics can be better approximated with more samples, improving the performance through the alignment objective. However, in the actual setting of test-time adaptation, only a single sample is available.
+
+\subsection{Trend across parameter choices}
+
+We present ablations on the distribution loss scaling factor $\beta$, the number of augmented views, and the number of prompt update steps across diverse datasets. We choose 5 datasets: DTD \citesupp{cimpoi2014describing}, StanfordCars \citesupp{krause20133d}, UCF101 \citesupp{soomro2012dataset} and Caltech101 \citesupp{fei2004learning}, and ImageNet-A \citesupp{hendrycks2021natural}, and compare the average accuracy across them as shown in Figure~\ref{fig:supp-ablate}. The loss scaling factor $\beta$ plateaus close to 100, whereas the performance increases with the increasing number of augmented views and prompt update steps. As discussed in Section~\ref{sec:ablations}, the token distribution alignment scaling factor $\beta$ is set to 100 using the ImageNet validation set, which is used for all experiments.
+
+\begin{figure}[htb]
+  \centering
+  % \vspace{-1em}
+% \end{figure}
+% \begin{figure}[!t]
+  % \centering
+  \begin{subfigure}[htb]{0.32\textwidth}
+    \centering
+    \includegraphics[width=\textwidth]{figs/loss_scale_multi.png}
+    % \caption{{Effect of the number of augmented views used for prompt update.}}
+  \end{subfigure}
+  \hfill
+  \begin{subfigure}[htb]{0.32\textwidth}
+    \centering
+    \includegraphics[width=\textwidth]{figs/num_of_views_all.png}
+    % \vspace{0.1em}
+    % \caption{Effect of number of prompt updates.}
+  \end{subfigure}
+  \hfill
+  \begin{subfigure}[htb]{0.32\textwidth}
+    \centering
+    \includegraphics[width=\textwidth]{figs/num_steps_all.png}
+  \end{subfigure}
+  \caption{\small \textbf{Effect of loss scaling factor $\beta$ \texttt{(left)}, number of augmented views \texttt{(center)}, and number of prompt update steps \texttt{(right)} averaged across the 5 datasets.} The loss scaling factor trend is similar to that on ImageNet validation set, and the average accuracy increases consistently with the number of augmented views and the number of prompt update steps.}
+  \label{fig:supp-ablate}
+\end{figure}
+
+
+\section{Analysis of losses for distribution alignment}
+\label{analaysis-matching-losses}
+The comparison of different alignment loss functions is presented in Fig \ref{fig:loss_ablation} of the main paper. All three losses improve on top of the test-time prompting approach. In terms of a test-time setting, the L1 loss appears better suited to equally valuing all errors as opposed to L2 which primarily penalizes outliers. Moreover, the KL divergence loss does not enforce strict distribution alignment hence leading to sub-par performance. We further show a comparative analysis of  alignment loss gradients in Table \ref{tab:loss-grads}. Each row indicates the ratio of the average gradient in comparison to the gradient when using each of the other losses. In our experiments we notice that the shift in the statistical measures are small, which would lead to very small gradients in the case of L2 and KL divergence losses. This can be observed from Table~\ref{tab:loss-grads}. Specifically, the gradient of the L1 loss is almost 80 times greater than that of the L2 loss and approximately 4 times greater than that of the KL divergence loss. It is evident that the L1 Loss results in improved alignment, primarily due to its higher gradient values, indicating that prompt updates with an L1 penalty can yield better alignment.
+
+\begin{table}[!h]
+\caption{\textnormal{\textbf{Comparison of different alignment losses.}} L1 Loss yields better alignment due smaller deviation in statistical measures, thus higher gradient values.}
+    \tabstyle{4pt}
+    \resizebox{0.55\textwidth}{!}{
+    \begin{tabular}{l ccc}
+    \toprule
+    % \multicolumn{12}{c}{\textbf{Target Datasets}} \\  \cmidrule(lr){2-12}
+  & L1-Loss  & L2-Loss & KL-Divergence  \\
+    \midrule
+L1-Loss & 1 & 81.40 & 3.95 \\
+\midrule
+L2-Loss & 0.0123 & 1 &  0.048 \\
+\midrule
+KL-Divergence & 0.25& 20.5 & 1  \\
+    \bottomrule
+    \end{tabular}}
+    \vspace{1em}
+    
+    \label{tab:loss-grads} \vspace{-1em}
+\end{table}
+% l1= 0.01425
+% l2=0.000175
+% kl=0.0036
+\section{Limitations and Future Directions} 
+As a test-time adaptation strategy, PromptAlign improves CLIP performance but relies on the proxy source dataset statistics for aligning the train data distribution with the test sample statistics. Further, it involves a single update step during runtime to optimize the prompts. A potential future direction would be to explore the adaptation of PromptAlign to other downstream tasks such as object detection and segmentation.

@@ -5,11 +5,14 @@ description: A contrastive image–text pre-training method that uses language p
 tags: [multimodal-learning, contrastive-learning, zero-shot-transfer, prompt-engineering, representation-learning]
 status: stable
 created: 2026-08-16
-generated: { by: llm-wiki-agent/1, at: 2026-08-17T02:40:28Z }
+generated: { by: llm-wiki-agent/1, at: 2026-08-17T04:00:00Z }
 sources:
   - id: radford-2021-clip
     resource: ../raw/2103.00020_CLIP/clip_paper.tex
     title: Learning Transferable Visual Models From Natural Language Supervision
+  - id: xu-2024-metaclip
+    resource: ../raw/2309.16671_MetaCLIP/iclr2024_conference.tex
+    title: Demystifying CLIP Data
   - id: xu-2022-bridgetower
     resource: ../raw/2206.08657_BridgeTower/main.tex
     title: "BridgeTower: Building Bridges Between Encoders in Vision-Language Representation Learning"
@@ -28,6 +31,48 @@ sources:
   - id: singh-2022-flava
     resource: ../raw/2112.04482_FLAVA/arxiv_strip.tex
     title: "FLAVA: A Foundational Language And Vision Alignment Model"
+  - id: zhou-2021-coop
+    resource: ../raw/2109.01134_CoOp/main.tex
+    title: Learning to Prompt for Vision-Language Models
+  - id: zhou-2022-cocoop
+    resource: ../raw/2203.05557_CoCoOp/arxiv.tex
+    title: Conditional Prompt Learning for Vision-Language Models
+  - id: wortsman-2021-wise-ft
+    resource: ../raw/2109.01903_WiSE-FT/main.tex
+    title: Robust fine-tuning of zero-shot models
+  - id: zhang-2022-tip-adapter
+    resource: ../raw/2111.03930_Tip-Adapter/ReviewTemplate.tex
+    title: "Tip-Adapter: Training-free CLIP-Adapter for Better Vision-Language Modeling"
+  - id: li-2022-declip
+    resource: ../raw/2110.05208_DeCLIP/declip.tex
+    title: "Supervision Exists Everywhere: A Data Efficient Contrastive Language-Image Pre-training Paradigm"
+  - id: yao-2022-filip
+    resource: ../raw/2111.07783_FILIP/filip_arxiv.tex
+    title: "FILIP: Fine-grained Interactive Language-Image Pre-Training"
+  - id: mu-2022-slip
+    resource: ../raw/2112.12750_SLIP/slip.tex
+    title: "SLIP: Self-supervision Meets Language-Image Pre-training"
+  - id: li-2022-blip
+    resource: ../raw/2201.12086_BLIP/main.tex
+    title: "BLIP: Bootstrapping Language-Image Pre-training for Unified Vision-Language Understanding and Generation"
+  - id: yu-2022-coca
+    resource: ../raw/2205.01917_CoCa/main.tex
+    title: "CoCa: Contrastive Captioners are Image-Text Foundation Models"
+  - id: khattak-2023-maple
+    resource: ../raw/2210.03117_MaPLe/PaperForReview.tex
+    title: "MaPLe: Multi-modal Prompt Learning"
+  - id: cherti-2022-openclip-scaling
+    resource: ../raw/2212.07143_OpenCLIP-Scaling/main.tex
+    title: Reproducible scaling laws for contrastive language-image learning
+  - id: khattak-2023-promptsrc
+    resource: ../raw/2307.06948_PromptSRC/egpaper_final.tex
+    title: "Self-regulating Prompts: Foundational Model Adaptation without Forgetting"
+  - id: hassan-2023-promptalign
+    resource: ../raw/2311.01459_TDA/Manuscript.tex
+    title: "Align Your Prompts: Test-Time Prompting with Distribution Alignment for Zero-Shot Generalization"
+  - id: wu-2024-caspl
+    resource: ../raw/2409.17805_CasPL/main.tex
+    title: Cascade Prompt Learning for Vision-Language Model Adaptation
 ---
 
 # CLIP natural-language image pre-training
@@ -70,10 +115,27 @@ The paper's FairFace probes further show that adding a `child` class changed the
 - Extended by: [Chinese CLIP language-specific vision–language pre-training](chinese-clip-language-specific-vision-language-pretraining.md) initializes a Chinese text encoder alongside a CLIP vision tower, then unlocks both towers for Chinese-domain adaptation.[^yang-2022-chinese-clip]
 - Extended by: [AltCLIP multilingual text-encoder alignment](altclip-multilingual-text-encoder-alignment.md) retains CLIP's image encoder, but distills an XLM-R text encoder from CLIP before contrastive text-only tuning for bilingual or multilingual support.[^chen-2022-altclip]
 - Extended by: [SigLIP sigmoid contrastive language–image pre-training](siglip-sigmoid-contrastive-language-image-pretraining.md) replaces CLIP's symmetric global-softmax objective with independently scored sigmoid-loss terms for every image–text pair.[^zhai-2023-siglip]
+- Extended by: [MetaCLIP metadata-curated language–image pre-training](metaclip-metadata-curated-language-image-pretraining.md) operationalizes the original query-list and approximate class-balancing description as text-metadata curation without a pretrained model filter.[^xu-2024-metaclip]
 - Extended by: [Meta CLIP 2 worldwide CLIP scaling](meta-clip-2-worldwide-clip-scaling.md) retains the CLIP-style dual-encoder setting while scaling metadata, curation, tokenization, training exposure, and capacity for native-language worldwide image–text data.[^chuang-2025-meta-clip-2]
 - Related: [FLAVA foundational language and vision alignment](flava-foundational-language-vision-alignment.md) retains contrastive image-text alignment but adds a fusion transformer plus multimodal masked-modeling and matching objectives for multimodal reasoning.[^singh-2022-flava]
+- Extended by: [CoOp context optimization](coop-context-optimization.md) freezes CLIP’s pretrained encoders and learns continuous prompt-context vectors from labeled downstream examples rather than manually selecting prompt wording.[^zhou-2021-coop]
+- Extended by: [CoCoOp conditional context optimization](cocoop-conditional-context-optimization.md) keeps CLIP frozen but conditions learned prompt context on each image through a lightweight Meta-Net.[^zhou-2022-cocoop]
+- Extended by: [MaPLe multimodal prompt learning](maple-multimodal-prompt-learning.md) keeps CLIP frozen but couples deep language prompts to image-encoder prompts through learned per-layer projections.[^khattak-2023-maple]
+- Extended by: [PromptSRC self-regulating prompts](promptsrc-self-regulating-prompts.md) learns independent deep prompts in both branches and regularizes them against unprompted frozen-CLIP features.[^khattak-2023-promptsrc]
+- Extended by: [PromptAlign test-time distribution alignment](promptalign-test-time-distribution-alignment.md) applies per-sample updates to multimodal prompts while retaining frozen CLIP encoders, combining entropy minimization with proxy-source visual-token distribution alignment.[^hassan-2023-promptalign]
+- Extended by: [CasPL cascade prompt learning](caspl-cascade-prompt-learning.md) learns boosting prompts through unlabeled-domain distillation from a larger CLIP teacher, freezes them, then cascades them with a few-shot adapting-prompt method.[^wu-2024-caspl]
+- Extended by: [OpenCLIP reproducible contrastive language–image scaling](openclip-reproducible-contrastive-language-image-scaling.md) uses CLIP-style contrastive dual encoders to measure how public LAION data, model capacity, and training exposure interact across downstream tasks.[^cherti-2022-openclip-scaling]
+- Extended by: [Tip-Adapter cache-based few-shot CLIP adaptation](tip-adapter-cache-based-few-shot-clip-adaptation.md) preserves CLIP's visual encoder and text-derived classifier while adding cache retrieval over labeled few-shot image embeddings to its logits.[^zhang-2022-tip-adapter]
+- Adapted by: [WiSE-FT robust zero-shot fine-tuning](wise-ft-robust-zero-shot-fine-tuning.md) fine-tunes CLIP then interpolates its weights with the original zero-shot checkpoint to trade target accuracy against distribution-shift performance.[^wortsman-2021-wise-ft]
+- Extended by: [DeCLIP data-efficient contrastive language–image pre-training](declip-data-efficient-contrastive-language-image-pretraining.md) retains CLIP’s dual encoder and symmetric contrastive objective but adds unimodal self-supervision, augmented cross-modal views, and text-nearest-neighbor positives.[^li-2022-declip]
+- Extended by: [FILIP fine-grained interactive language–image pre-training](filip-fine-grained-interactive-language-image-pretraining.md) retains independently encoded image and text towers, but replaces global embedding similarity with directional token-level late interaction.[^yao-2022-filip]
+- Extended by: [SLIP self-supervised language-image pre-training](slip-self-supervised-language-image-pre-training.md) retains CLIP’s image-text contrastive branch and jointly trains the image encoder with an image-only self-supervised objective.[^mu-2022-slip]
+- Related: [BLIP bootstrapping language–image pre-training](blip-bootstrapping-language-image-pre-training.md) retains contrastive image–text alignment but adds image-grounded matching and causal generation modes, plus caption-and-filter data bootstrapping.[^li-2022-blip]
+- Extended by: [CoCa contrastive captioner image–text foundation model](coca-contrastive-captioner-image-text-foundation-model.md) retains aligned contrastive embeddings but adds a decoupled causal decoder for image-conditioned captioning and fused multimodal representations.[^yu-2022-coca]
 
 [^radford-2021-clip]: Radford et al., “Learning Transferable Visual Models From Natural Language Supervision” (2021), [source manuscript](../raw/2103.00020_CLIP/clip_paper.tex).
+
+[^xu-2024-metaclip]: Xu et al., “Demystifying CLIP Data” (2024), [source manuscript](../raw/2309.16671_MetaCLIP/iclr2024_conference.tex).
 
 [^xu-2022-bridgetower]: Xu et al., “BridgeTower: Building Bridges Between Encoders in Vision-Language Representation Learning” (2022), [source manuscript](../raw/2206.08657_BridgeTower/main.tex).
 
@@ -86,3 +148,31 @@ The paper's FairFace probes further show that adding a `child` class changed the
 [^chuang-2025-meta-clip-2]: Chuang et al., “Meta CLIP 2: A Worldwide Scaling Recipe” (2025), [source manuscript](../raw/2507.22062_MetaCLIP%202/paper.tex).
 
 [^singh-2022-flava]: Singh et al., “FLAVA: A Foundational Language And Vision Alignment Model” (2022), [source manuscript](../raw/2112.04482_FLAVA/arxiv_strip.tex).
+
+[^zhou-2021-coop]: Zhou et al., “Learning to Prompt for Vision-Language Models” (2021), [source manuscript](../raw/2109.01134_CoOp/main.tex).
+
+[^zhou-2022-cocoop]: Zhou et al., “Conditional Prompt Learning for Vision-Language Models” (2022), [source manuscript](../raw/2203.05557_CoCoOp/arxiv.tex).
+
+[^wortsman-2021-wise-ft]: Wortsman et al., “Robust fine-tuning of zero-shot models” (2021), [source manuscript](../raw/2109.01903_WiSE-FT/main.tex).
+
+[^zhang-2022-tip-adapter]: Zhang et al., “Tip-Adapter: Training-free CLIP-Adapter for Better Vision-Language Modeling” (2022), [source manuscript](../raw/2111.03930_Tip-Adapter/ReviewTemplate.tex).
+
+[^li-2022-declip]: Li et al., “Supervision Exists Everywhere: A Data Efficient Contrastive Language-Image Pre-training Paradigm” (2022), [source manuscript](../raw/2110.05208_DeCLIP/declip.tex).
+
+[^yao-2022-filip]: Yao et al., “FILIP: Fine-grained Interactive Language-Image Pre-Training” (2022), [complete source manuscript](../raw/2111.07783_FILIP/filip_arxiv.tex).
+
+[^mu-2022-slip]: Mu et al., “SLIP: Self-supervision Meets Language-Image Pre-training” (2022), [complete source manuscript](../raw/2112.12750_SLIP/slip.tex).
+
+[^li-2022-blip]: Li et al., “BLIP: Bootstrapping Language-Image Pre-training for Unified Vision-Language Understanding and Generation” (2022), [complete manuscript source](../raw/2201.12086_BLIP/main.tex).
+
+[^yu-2022-coca]: Yu et al., “CoCa: Contrastive Captioners are Image-Text Foundation Models” (2022), [complete manuscript source](../raw/2205.01917_CoCa/main.tex).
+
+[^khattak-2023-maple]: Khattak et al., “MaPLe: Multi-modal Prompt Learning” (2023), [complete source manuscript](../raw/2210.03117_MaPLe/PaperForReview.tex).
+
+[^cherti-2022-openclip-scaling]: Cherti et al., “Reproducible scaling laws for contrastive language-image learning” (2022), [source manuscript](../raw/2212.07143_OpenCLIP-Scaling/main.tex).
+
+[^khattak-2023-promptsrc]: Khattak et al., “Self-regulating Prompts: Foundational Model Adaptation without Forgetting” (2023), [complete manuscript source](../raw/2307.06948_PromptSRC/egpaper_final.tex).
+
+[^hassan-2023-promptalign]: Hassan et al., “Align Your Prompts: Test-Time Prompting with Distribution Alignment for Zero-Shot Generalization” (2023), [complete manuscript source](../raw/2311.01459_TDA/Manuscript.tex).
+
+[^wu-2024-caspl]: Wu et al., “Cascade Prompt Learning for Vision-Language Model Adaptation” (2024), [complete source manuscript](../raw/2409.17805_CasPL/main.tex).

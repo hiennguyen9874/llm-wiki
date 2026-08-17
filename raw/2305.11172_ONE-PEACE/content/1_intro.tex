@@ -1,0 +1,76 @@
+\section{Introduction}
+\label{sec:intro}
+% Multi-modality signals are entangled in the real world.
+
+% With the rapid development of deep learning, it has become possible to build such a general AI system. 
+% First, the recent progress of Transformer shows it has the potential to become a general model applicable to multiple modalities. Second, pretraining techniques have achieved remarkable success across different domains, enabling models to have strong generalization capabilities and efficiently transfer to various tasks.
+
+% We think that there are several reasons for this:
+% Firstly, models used in different modalities differ greatly. Although the popularity of Transformers in recent years has made models from different fields gradually converge, a single Transformer structure is still difficult to accurately represent the features of each modality.
+% Secondly, due to the different characteristics of different modalities, it is difficult to use a unified pre-training task to train the model. For example, text is discrete data, while images and speech are continuous data. A common solution is to cluster or introduce additional models to discretize continuous data, and then train the model through masked prediction tasks. However, these discretization operations also increase the difficulty of training.
+% Finally, multi-modal models need to pay attention to both intra-modal and cross-modal tasks, which means that the model needs to learn the information within each modality while also focusing on alignment between modalities. This inevitably requires the introduction of multi-task training methods, which often have conflicts.
+% This article focuses on building a universal representation model, hoping to simultaneously model the data of images, text, and audio through a unified architecture and pre-training tasks.
+% We have built a universal representation model called ONE-PEACE, whose model architecture is based on a Transformer Model. It consists of multiple modality-specific adapters and a modality fusion encoder, which includes multiple modality-specific FFNs and modality-shared self-attention layers.
+% To efficiently extract information within each modality and align different modalities' semantic spaces, we have designed two contrastive-style pre-training tasks: cross-modal contrastive learning and masked intra-modal contrastive learning. These two tasks can work well together, allowing the model to achieve superior finetuning performance in downstream tasks while maintaining good zero-shot cross-modal retrieval capabilities.
+
+% Building a general AI system is a fascinating and challenging goal. Such a system should not only perform well in individual modalities but also be able to handle multiple modalities simultaneously. It requires the system to accurately comprehend the semantics of various modalities and align the semantic space of different modalities.
+
+% With the rapid development of deep learning, building a general AI system is become possible. Firstly, 
+
+% In recent years, large-scale pretrained models have achieved remarkable success across different domains, including natural language processing, computer vision, speech processing, etc.
+% Some researchers also explore vision-language pretraining and audio-language pretraining, and have achieved promising results in downstream tasks. However, models that can simultaneously model vision, audio, and language are still relatively rare. 
+
+% There are several reasons for this:
+% Firstly, models used in different modalities differ greatly. Although the popularity of Transformers in recent years has made models from different fields gradually converge, a single Transformer structure is still difficult to accurately represent the features of each modality.
+% Secondly, due to the different characteristics of different modalities, it is difficult to use a unified pre-training task to train the model. For example, text is discrete data, while images and speech are continuous data. A common solution is to cluster or introduce additional models to discretize continuous data, and then train the model through masked prediction tasks. However, these discretization operations also increase the difficulty of training.
+% Finally, multi-modal models need to pay attention to both intra-modal and cross-modal tasks, which means that the model needs to learn the information within each modality while also focusing on alignment between modalities. This inevitably requires the introduction of multi-task training methods, which often have conflicts.
+
+% In this paper, we propose \onepeace. a general representation model that can handle language, vision, audio, and multimodal tasks. 
+% The model architecture of \onepeace consists of multiple modality-specific adapters and a modality fusion encoder.
+% To efficiently extract information within each modality and align different modalities' semantic spaces, we have designed two contrastive-style pre-training tasks: cross-modal contrastive learning and masked intra-modal contrastive learning. These two tasks can work well together, allowing the model to achieve superior finetuning performance in downstream tasks while maintaining good zero-shot cross-modal retrieval capabilities.
+
+
+Building a general AI system is a fascinating and challenging goal. Such a system should not only perform well in individual modalities but also be able to handle multiple modalities simultaneously. It requires the system to accurately understand the semantics of various modalities and align the semantic spaces of different modalities. With the rapid development of deep learning, building a general AI system is gradually becoming possible.
+
+
+
+% In the past years, model architectures vary greatly in different domains.
+% For example, models in natural language processing (NLP) were mainly based on recurrent neural networks (RNNs), while models in computer vision (CV) were mainly based on convolutional neural networks (CNNs).
+% With the rise of Transformers~\cite{transformer,vit}, model architectures across different domains gradually begin to converge. It is possible to process all modalities through a unified Transformer model.
+% For the training method, the “pretrain-finetune” paradigm has achieved remarkable success across various domains, including NLP, CV, speech processing, etc.
+% To enhance the ability of pretrained models, various pretraining tasks have been proposed. Masked language modeling is a classic pretraining task that has been proven effective in multiple domains. 
+% It learns data by reconstructing randomly masked units and can help models achieve excellent finetuning performance in downstream tasks.
+% Cross-modal Contrastive learning is one of the representatives of cross-modal pretraining tasks, which can effectively align the semantic space of different modalities and enable the model to have strong cross-modal retrieval ability.
+
+Firstly, model structures across different domains gradually begin to converge. In the past years, the architectures varied greatly in different domains, such as recurrent neural networks (RNNs)~\cite{rnn} and convolutional neural networks (CNNs)~\cite{mnist}.  With the development of Transformer~\cite{transformer,vit}, researchers have successfully applied Transformer to various domains.  It has now become possible to process all modalities through a unified Transformer model.
+Secondly, the “pre-train then finetune” paradigm has achieved remarkable success in natural language processing~\cite{bert,gpt,gpt3,electra,roberta,deberta,xlnet,bart,T5}, computer vision~\cite{beit,mae,ibot,moco,mocov2,mocov3,simclr}, speech processing~\cite{wav2vec,wav2vec2,wavlm,hubert}, etc. To enhance the ability of pre-trained models, various pre-training tasks have been proposed. Masked prediction is a pre-training task that has proven effective in multiple domains, which learns data by reconstructing randomly masked units and can help models achieve excellent finetuning performance in downstream tasks. Cross-modal contrastive learning is one of the representatives of cross-modal pre-training tasks, which can effectively align the semantic space of different modalities and enable the model to have strong cross-modal retrieval ability.
+
+With the help of a unified model structure and efficient pre-training tasks, recent works have achieved promising results in vision-language learning~\cite{ofa,flamingo,coca,beit3,blip,pali} and audio-language learning~\cite{audioclip,wav2clip,clap,speecht5,speechlm}. However, there is still a lack of research on developing general models that can be applied to visual, audio, and language tasks. This paper focuses on building a general representation model. We advocate that a general representation model should meet the following conditions:
+1). The model architecture needs to be sufficiently flexible. Ideally, the model should incorporate modality-specific components to capture modality-specific information, as well as modality-interaction components to enable cross-modal interaction.
+2). The pre-training tasks should be general and simple enough to apply to different modalities. 
+3). The pre-training tasks should not only focus on extracting information within each modality but also ensure alignment across modalities so that the model can achieve good performance in both single-modality tasks and multi-modality tasks.
+
+% There are several reasons for this:
+% Firstly, although the popularity of Transformers in recent years has made models from different fields gradually converge, a single Transformer structure is still difficult to accurately extract the features of each modality.
+% Secondly, due to the different characteristics of different modalities, it is difficult to design a unified pretraining task to train the model. For example, text is discrete data, while images and speech are continuous data. A common solution is to cluster or introduce additional models to discretize continuous data, and then train the model through masked prediction tasks. However, these discretization operations also increase the difficulty of training.
+% Finally, multi-modal models need to pay attention to both intra-modal and cross-modal tasks, which means that the model needs to learn the information within each modality while also focusing on alignment between modalities. This inevitably requires the introduction of multi-task training methods, which often have conflicts.
+
+In this paper, we propose \onepeace. a general representation model that can handle language, vision, audio, and multimodal tasks. 
+The model architecture of \onepeace consists of multiple modality-specific adapters and a modality fusion encoder. The modality fusion encoder is based on the Transformer architecture, we set up a shared self-attention layer and multiple modality-specific Feed Forward Networks (FFNs) in each Transformer block.
+With such a flexible model structure, introducing new modalities is a straightforward process that only requires the addition of modality-specific parts.
+To efficiently extract information within each modality and align the semantic spaces of different modalities, we design two contrastive-style pretraining tasks: cross-modal contrastive learning and masked intra-modal contrastive learning. These two tasks can work well together, allowing the model to achieve superior finetuning performance in downstream tasks while maintaining good zero-shot cross-modal retrieval capability.
+
+We conduct comprehensive experiments to demonstrate the effectiveness of \onepeace. Experimental results show that \onepeace achieves state-of-the-art results on cross-modal and single-modal tasks, including visual grounding, image-text retrieval, and object segmentation.
+
+% Our main contributions are summarized as follows:
+% \begin{itemize}
+%     \item We propose a general representation model \onepeace that can handle language, vision, audio, and multimodal tasks. The model architecture of \onepeace consists of modality-specific modules and modality-sharing modules, which have the potential to expand to infinity modalities.
+%     \item We combine both cross-modal contrastive learning and masked intra-modal contrastive learning to pretrain \onepeace.
+%     These tasks are well-compatible, allowing the model to achieve superior finetuning performance in downstream tasks while maintaining good zero-shot cross-modal retrieval capability.
+%     \item We conduct comprehensive experiments to demonstrate the effectiveness of \onepeace. Experimental results show that \onepeace achieves state-of-the-art results on cross-modal and single-modal tasks, including visual grounding, image-text retrieval, and object segmentation.
+% \end{itemize}
+
+
+
+
+

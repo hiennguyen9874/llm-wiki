@@ -1,0 +1,192 @@
+
+
+\documentclass{article} % For LaTeX2e
+\usepackage{iclr2022_conference,times}
+
+% Optional math commands from https://github.com/goodfeli/dlbook_notation.
+\input{math_commands.tex}
+
+\usepackage{hyperref}
+\usepackage{url}
+\usepackage{graphicx}
+\usepackage{subfigure}
+\usepackage{amsmath}
+\usepackage{multirow}
+\usepackage{booktabs}
+\usepackage{xspace}
+\usepackage{wrapfig}
+\newcommand{\workname}{DeCLIP\xspace}
+
+\newcommand{\lf}[1]{{{\color{blue}#1}}{}}
+\newcommand{\checkme}[1]{{{\color{red}#1}}{}}  
+
+\usepackage{algorithm}
+\usepackage{algorithmicx}
+\usepackage{algpseudocode}
+\renewcommand{\algorithmicrequire}{\textbf{Input:}}
+\renewcommand{\algorithmicensure}{\textbf{Output:}}
+
+\newcommand{\tablestyle}[2]{\setlength{\tabcolsep}{#1}\renewcommand{\arraystretch}{#2}\centering\footnotesize}
+\usepackage[margin=0.1 cm]{caption}
+
+\usepackage{tikz}
+\newcommand*\circled[1]{\tikz[baseline=(char.base)]{\node[shape=circle,draw,inner sep=0.8pt] (char) {#1};}}
+\newcommand*\incircled[1]{\tikz[baseline=(char.base)]{\node[shape=circle,draw,inner sep=2pt] (char) {#1};}}
+            
+\usepackage{enumitem}
+
+\newcommand*\rot{\rotatebox{90}}
+\newcommand{\wl}[1]{\textcolor{red}{#1}}
+
+\title{Supervision Exists Everywhere: A Data \\
+Efficient Contrastive Language-Image \\
+Pre-training Paradigm}
+
+% Authors must not appear in the submitted version. They should be hidden
+% as long as the \iclrfinalcopy macro remains commented out below.
+% Non-anonymous submissions will be rejected without review.
+
+% \author{Antiquus S.~Hippocampus, Natalia Cerebro \& Amelie P. Amygdale \thanks{ Use footnote for providing further information
+% about author (webpage, alternative address)---\emph{not} for acknowledging
+% funding agencies.  Funding acknowledgements go at the end of the paper.} \\
+% Department of Computer Science\\
+% Cranberry-Lemon University\\
+% Pittsburgh, PA 15213, USA \\
+% \texttt{\{hippo,brain,jen\}@cs.cranberry-lemon.edu} \\
+% \And
+% Ji Q. Ren \& Yevgeny LeNet \\
+% Department of Computational Neuroscience \\
+% University of the Witwatersrand \\
+% Joburg, South Africa \\
+% \texttt{\{robot,net\}@wits.ac.za} \\
+% \AND
+% Coauthor \\
+% Affiliation \\
+% Address \\
+% \texttt{email}
+% }
+\author{Yangguang Li \thanks{The first three authors contribute equally. The order is determined by dice rolling.}~~\textsuperscript{\rm 1,}, 
+        Feng Liang\textsuperscript{\rm$\ast$ 2}, 
+        Lichen Zhao\textsuperscript{\rm$\ast$ 1},
+        Yufeng Cui\textsuperscript{\rm 1}, \\
+        \textbf{Wanli Ouyang\textsuperscript{\rm 3}}, 
+        \textbf{Jing Shao\textsuperscript{\rm 1}}, 
+        \textbf{Fengwei Yu\textsuperscript{\rm 1}}, 
+        \textbf{Junjie Yan\textsuperscript{\rm 1}}\\
+% SenseTime Research\\
+% University of Texas at Austin \\
+% University of Sydney\\
+
+\textsuperscript{\rm 1}SenseTime Research \\
+\textsuperscript{\rm 2}The University of Texas at Austin \\
+\textsuperscript{\rm 3}University of Sydney\\
+
+\texttt{\{liyangguang,zhaolichen,cuiyufeng\}@sensetime.com}\\
+\texttt{jeffliang@utexas.edu}\\
+% \texttt{\{liyangguang,liangfeng,zhaolichen,cuiyufeng,shaojing} \\
+% \texttt{,yufengwei,yanjunjie\}@sensetime.com} \\
+
+% \texttt{\{wanli.ouyang\}@sydney.edu.au} \\
+% \texttt{\{shaojing,yufengwei,yanjunjie\}@sensetime.com} \\
+% \affiliations{
+%     %Afiliations
+%     \textsuperscript{\rm 1}SenseTime Research
+%     \textsuperscript{\rm 2}University of Texas at Austin
+%     \textsuperscript{\rm 3}University of Sydney\\
+%     \texttt{\{liyangguang,liangfeng,zhaolichen,cuiyufeng\}@sensetime.com} \\
+%     \texttt{\{Wanli Ouyang\}@sydney.edu.au} \\
+%     \texttt{\{shaojing,yufengwei,yanjunjie\}@sensetime.com} \\
+% }
+
+
+% \And
+% Ji Q. Ren \& Yevgeny LeNet \\
+% Department of Computational Neuroscience \\
+% University of the Witwatersrand \\
+% Joburg, South Africa \\
+% \texttt{\{robot,net\}@wits.ac.za} \\
+% \AND
+% Coauthor \\
+% Affiliation \\
+% Address \\
+% \texttt{email}
+}
+
+
+% The \author macro works with any number of authors. There are two commands
+% used to separate the names and addresses of multiple authors: \And and \AND.
+%
+% Using \And between authors leaves it to \LaTeX{} to determine where to break
+% the lines. Using \AND forces a linebreak at that point. So, if \LaTeX{}
+% puts 3 of 4 authors names on the first line, and the last on the second
+% line, try using \AND instead of \And before the third author name.
+
+\newcommand{\fix}{\marginpar{FIX}}
+\newcommand{\new}{\marginpar{NEW}}
+
+
+%\iclrfinalcopy % Uncomment for camera-ready version, but NOT for submission.
+\iclrfinalcopy
+\begin{document}
+
+% \footnotetext[0]{$\ast$ The first three authors contribute equally. The order is determined by dice rolling.}
+
+\maketitle
+\begin{abstract}
+Recently, large-scale Contrastive Language-Image Pre-training (CLIP)~\citep{radford2021learning} has attracted unprecedented attention for its impressive zero-shot recognition ability and excellent transferability to downstream tasks. 
+However, CLIP is quite data-hungry and requires 400M image-text pairs for pre-training, thereby restricting its adoption. 
+This work proposes a novel training paradigm, Data efficient CLIP (\workname), to alleviate this limitation.
+We demonstrate that by carefully utilizing the widespread supervision among the image-text pairs, our \workname can learn generic visual features more efficiently.
+Instead of using the single image-text contrastive supervision, we fully exploit data potential through the use of (1) self-supervision within each modality; (2) multi-view supervision across modalities; (3) nearest-neighbor supervision from other similar pairs.
+Benefiting from these intrinsic supervision, our \workname-ResNet50 can achieve 60.4\% zero-shot top1 accuracy on ImageNet, which is 0.8\% above the CLIP-ResNet50 while using 7.1$\times$ fewer data. 
+% \lf{Using only 88M image-text pairs, our best ResNet50/ViT-B32 models boost the zero-shot performance to 62.5\% and 66.2\%, nearly 3.0\% higher than the best number reported for these two architectures.}
+Our \workname-ResNet50 outperforms its counterpart in 8 out of 11 visual datasets when transferred to downstream tasks.
+Moreover, Scaling up the model and computing also works well in our framework. 
+Our code, dataset and models are released at: \url{https://github.com/Sense-GVT/DeCLIP}
+% Our code, dataset and models are released at: \url{https://github.com/Sense-GVT/DeCLIP}
+% Our \workname-RegNetY-64GF achieves the same accuracy with CLIP-ResNet$\times$64 while using 4.5$\times$ fewer data. 
+% Pre-trained models, code, and datasets shall be released to the community. \lf{I just move this sentence to the last sentence of introduction.}
+
+\end{abstract}
+
+% \input{DeCLIP/TODO}
+
+\input{DeCLIP/1_intro/1_1_intro}
+
+\input{DeCLIP/5_related_work/_5_1_pretrained_models}
+\input{DeCLIP/5_related_work/_5_2_supervisory_signals}
+\input{DeCLIP/5_related_work/_5_3_multimodal_learning}
+
+\input{DeCLIP/2_approach/2_1_approach}
+
+\input{DeCLIP/3_experiments/3_1_experiments}
+
+\input{DeCLIP/4_analysis/4_1_analysis}
+
+% \input{DeCLIP/5_related_work/_5_1_pretrained_models}
+% \input{DeCLIP/5_related_work/_5_2_supervisory_signals}
+% \input{DeCLIP/5_related_work/_5_3_multimodal_learning}
+%\input{DeCLIP/5_related_work/5_1_contrastive_learning}
+%\input{DeCLIP/5_related_work/5_2_multimodal_learning}
+
+\input{DeCLIP/6_conclusion/6_conclusion}
+
+% \subsubsection*{Author Contributions}
+% If you'd like to, you may include  a section for author contributions as is done
+% in many journals. This is optional and at the discretion of the authors.
+
+% \subsubsection*{Acknowledgments}
+% Use unnumbered third level headings for the acknowledgments. All
+% acknowledgments, including those to funding agencies, go at the end of the paper.
+
+% \newpage
+
+% \input{DeCLIP/Statement/ethics_statement}
+% \input{DeCLIP/Statement/reproducibility_statement}
+
+\bibliography{iclr2022_conference}
+\bibliographystyle{iclr2022_conference}
+
+\input{DeCLIP/7_appendix/appendix}
+
+\end{document}

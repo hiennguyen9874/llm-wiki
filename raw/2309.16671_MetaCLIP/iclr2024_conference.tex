@@ -1,0 +1,1029 @@
+
+\documentclass{article} % For LaTeX2e
+\usepackage{iclr2024_conference,times}
+
+% Optional math commands from https://github.com/goodfeli/dlbook_notation.
+\input{math_commands.tex}
+
+\usepackage[hidelinks,urlcolor=gray]{hyperref}
+\usepackage{url}
+\usepackage{graphicx}
+\usepackage{amsmath,bm}
+\usepackage{amssymb}
+\usepackage{booktabs}
+\usepackage{amsfonts}
+\usepackage{wrapfig}
+\usepackage[ruled,linesnumbered]{algorithm2e}
+\usepackage{caption}
+\usepackage{subcaption}
+\usepackage{bbm}
+%\usepackage{times}
+\usepackage{latexsym}
+\usepackage{soul}
+\usepackage{tabulary,multirow,overpic}
+\usepackage{balance}
+\usepackage{pifont}% http://ctan.org/pkg/pifont
+\usepackage{comment}
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage{tabularx}
+\usepackage{colortbl}
+% \usepackage[dvipsnames]{xcolor}
+
+% \usepackage[table]{xcolor}  % already defined in iclr2023_conference
+% \usepackage{algorithm}
+\usepackage{listings}
+\usepackage{color, colortbl}
+\usepackage{lscape}
+\usepackage{rotating}
+
+\newcommand{\x}{{$\times$}}
+\newcommand{\tablestyle}[2]{\setlength{\tabcolsep}{#1}\renewcommand{\arraystretch}{#2}\centering\footnotesize}
+\newlength\savewidth\newcommand\shline{\noalign{\global\savewidth\arrayrulewidth
+  \global\arrayrulewidth 1pt}\hline\noalign{\global\arrayrulewidth\savewidth}}
+
+% \DeclareMathOperator*{\argmax}{arg\,max}  % already defined
+\DeclareMathOperator*{\argsort}{arg\,sort}
+\DeclareMathOperator*{\argtopk}{arg\,topk}
+% \DeclareMathOperator*{\argmin}{arg\,min}  % already defined
+\newcommand{\cmark}{\ding{51}}%
+\newcommand{\xmark}{\ding{55}}%
+
+\newcommand{\ch}[1]{\textcolor{orange}{[ch: #1]}}
+\newcommand{\sx}[1]{\textcolor{cyan}{[sx: #1]}}
+\newcommand{\hu}[1]{\textcolor{blue}{[hu: #1]}}
+\newcommand{\bernie}[1]{\textcolor{green}{[bernie: #1]}}
+
+\definecolor{defaultcolor}{gray}{0.9}
+\definecolor{borderpurple}{RGB}{120,81,169}
+\definecolor{brightmaroon}{rgb}{0.76, 0.13, 0.28}
+% \usepackage[pagebackref=false, breaklinks=true, letterpaper=true, colorlinks, urlcolor=gray,citecolor=citecolor,linkcolor=linkcolor, bookmarks=false]{hyperref}
+
+\newcommand{\quotebox}[1]
+{
+  \begin{center}
+    \fcolorbox{white}{blue!15!gray!15}{
+      \begin{minipage}{0.9\linewidth}\vspace{10pt}
+        \center
+        \begin{minipage}{0.9\linewidth}{\space\Huge``}{\setlength{\parindent}{1.5em}#1}{\hspace{1.5em}\break\null\Huge\hfill''}
+        \end{minipage}
+        \smallbreak
+      \end{minipage}
+    }
+\end{center}
+}
+
+\title{Demystifying CLIP Data}
+
+% Authors must not appear in the submitted version. They should be hidden
+% as long as the \iclrfinalcopy macro remains commented out below.
+% Non-anonymous submissions will be rejected without review.
+
+\author{
+\textcolor{borderpurple}{Hu Xu}$^{1}$ Saining Xie$^2$ Xiaoqing Ellen Tan$^1$ Po-Yao Huang$^1$ Russell Howes$^1$ Vasu Sharma$^1$ \\ \textbf{ \textcolor{borderpurple}{Shang-Wen Li}$^1$ \qquad Gargi Ghosh$^1$ \qquad Luke Zettlemoyer$^{1,3}$ \qquad Christoph Feichtenhofer$^1$}\\
+$^1$FAIR, Meta AI \qquad $^2$New York University \qquad $^3$University of Washington\\
+\\
+\textbf{ \textcolor{borderpurple}{Project Leads}}
+% {\small Code (available soon): 
+  %% examples of more authors
+  %% \And
+  %% Coauthor \\
+  %% Affiliation \\
+  %% Address \\
+  %% \texttt{email} \\
+  %% \AND
+  %% Coauthor \\
+  %% Affiliation \\
+  %% Address \\
+  %% \texttt{email} \\
+  %% \And
+  %% Coauthor \\
+  %% Affiliation \\
+  %% Address \\
+  %% \texttt{email} \\
+  %% \And
+  %% Coauthor \\
+  %% Affiliation \\
+  %% Address \\
+  %% \texttt{email} \\
+}
+
+% The \author macro works with any number of authors. There are two commands
+% used to separate the names and addresses of multiple authors: \And and \AND.
+%
+% Using \And between authors leaves it to \LaTeX{} to determine where to break
+% the lines. Using \AND forces a linebreak at that point. So, if \LaTeX{}
+% puts 3 of 4 authors names on the first line, and the last on the second
+% line, try using \AND instead of \And before the third author name.
+
+\newcommand{\fix}{\marginpar{FIX}}
+\newcommand{\new}{\marginpar{NEW}}
+
+\iclrfinalcopy % Uncomment for camera-ready version, but NOT for submission.
+\begin{document}
+
+
+\maketitle
+
+
+\vspace{-5pt}
+
+
+\begin{abstract}
+Contrastive Language-Image Pre-training (CLIP) is an approach that has advanced research and applications in computer vision, fueling modern recognition systems and generative models. We believe that the main ingredient to the success of CLIP is its \textit{data} and \textit{not} the \textit{model} architecture or pre-training {objective}. However, CLIP only provides very limited information about its data and how it has been collected, leading to works that aim to reproduce CLIP's data by filtering with its model parameters. 
+In this work, we intend to reveal CLIP's data curation approach 
+and in our pursuit of making it open to the community introduce Metadata-Curated Language-Image Pre-training (MetaCLIP). 
+MetaCLIP takes a raw data pool and metadata (derived from CLIP's concepts) and yields a balanced subset over the metadata distribution. 
+Our experimental study rigorously isolates the model and training settings, concentrating solely on data.
+MetaCLIP applied to CommonCrawl with 400M image-text data pairs outperforms CLIP's data on multiple standard benchmarks. 
+In zero-shot ImageNet classification, MetaCLIP achieves 70.8\% accuracy, surpassing CLIP's 68.3\% on \mbox{ViT-B} models. Scaling to 1B data, while maintaining the same training budget, attains {72.4\%}. Our observations hold across various model sizes, exemplified by  ViT-bigG producing {82.1\%}. 
+Curation code and training data distribution over metadata is available at {\color{purple}{\url{https://github.com/facebookresearch/MetaCLIP}}}.
+\end{abstract}
+
+\vspace{-5pt}
+\section{Introduction}
+\label{sec:intro}
+Deep learning has revolutionized the field of artificial intelligence, and pre-trained models have played a pivotal role in democratizing access to cutting-edge AI capabilities. However, the training data used to create these models is often concealed from the public eye, shrouded in secrecy.
+
+The increasing availability of pre-trained models for public use contrasts sharply with the lack of transparency regarding their training data. Further, proprietary concerns, such as copyright issues, often limit access to the original data sources. Consequently, the need to explore novel approaches for curating high-quality training data that can be shared openly arises.
+
+In the vision-language domain, the dominant model and learning approach is Contrastive Language-Image Pre-training (CLIP) \citep{radford2021learning}, a simple technique to learn from image-text pairs. We believe that the secret to the dominance of CLIP models is attributed to its high-quality WIT400M \textit{dataset} which is curated from the web. Despite its popularity, the specifics of CLIP's curation process have remained a mystery, captivating the research community for years.
+
+Follow-up works \citep{schuhmannlaion,schuhmann2021laion} have attempted to replicate CLIP's data, but with a notable difference in their curation method. While CLIP generates data based on its unknown data source and curation methodology, these approaches remove noise by applying the CLIP model as a hard blackbox filter which in turn is a form of distilling WIT400M information captured in CLIP.
+
+The advantages of CLIP's curation are apparent. First, it starts \textit{from scratch}, avoiding the introduction of biases through filters. Second, CLIP's curation process \textit{balances} the data distribution over metadata, maximizing signal preservation while mitigating, rather than removing, noise in the data\footnote{For example, a filter on digits can remove noise from date or id strings but remove signal for tasks that involve OCR (e.g., MNIST), or a filter removing text with less than 5 characters can remove signal ``dog''.}. Such distribution lays the groundwork for task-agnostic data, a crucial part of foundation models.
+
+\begin{wrapfigure}{r}{0.55\textwidth}
+\centering
+    \includegraphics[width=0.55\textwidth]{imgs/teaser1.pdf}
+  \vspace{-15pt}
+  \caption{ViT-B/32 on ImageNet zero-shot classification with fixed training steps (12.8B seen pairs and training/validation data has been de-duplicated).  Raw: raw CommonCrawl (CC) distribution; Raw English: English only CC; MetaCLIP w/o bal.: curated (sub-string matched) data pool from CC; MetaCLIP: curated \textit{and balanced} metadata distribution. Metadata curation boosts performance significantly and balancing is equally important. Our MetaCLIP data significantly outperforms CLIP's WIT400M and LAION data\citep{schuhmann2021laion}. }
+  \vspace{-15pt}
+  \label{fig:teaser}
+\end{wrapfigure}
+
+In this paper, we attempt to \textit{reveal} CLIP's method around training \textit{data curation}. We present an empirical study on data curation, with frozen model architecture and training schedule. We focus solely on the impact of training \textit{data}, excluding other factors that could confound the results. We make several observations for good data quality and present a simple algorithm to make CLIP's curation more transparent. 
+Consequently, we shed light on both the curation process and the resulting training data \textit{distribution}. Our algorithm enables easy adaptation to different data pools, allowing parties to fully own their data pipeline without relying on blackbox filters from external providers.
+
+Our algorithm takes a raw data pool $\mathcal{D}$ and metadata $\mathcal{M}$ (derived from CLIP's queries or visual concepts) and yields a balanced subset $\mathcal{D}^*$ over $\mathcal{M}$: $\mathcal{D}^* \leftarrow f(\mathcal{D}; \mathcal{M})$. Our approach, named Metadata-Curated Language-Image Pre-training (MetaCLIP), marks a significant step towards making the curation process more transparent and accessible.
+
+MetaCLIP applied to CommonCrawl (CC) with 400M data points outperforms CLIP on multiple standard benchmarks. 
+In terms of zero-shot ImageNet classification, using ViT~\citep{dosovitskiy2020image} models of various sizes.
+Our MetaCLIP achieves 70.8\% vs CLIP's 68.3\% on ViT-B and 76.2\% vs 75.5\% on ViT-L. 
+Scaling to 2.5B data, with the \textit{same} training budget and similar distribution boosts this to unprecedented accuracy of 79.2\% for ViT-L , 80.5\% for ViT-H and 82.1\% for ViT-bigG in the vanilla training setting (not using any external data, models, or longer training).
+
+In Fig.\ref{fig:teaser}, we show the impact of metadata curation on ImageNet validation plotted over training steps. First, we are training on Raw English data from the web (400M image-text pairs, 57.4\% accuracy), after applying Language IDentification (LID) to the random Raw set ($\sim$1.1B pairs, 54.1\%). Using metadata to curate the training set (MetaCLIP 400M w/o bal, 60.8\%) performs significantly better than these baselines, and using balancing significantly increases accuracy further (MetaCLIP, 65.5\%), outperforming similar datasets, WIT400M from CLIP, 63.4\% and LAION 400M, 60.0\%\citep{schuhmann2021laion}.  
+
+\section{Related Work}
+\label{sec:related_work}
+
+The training data of CLIP differs significantly from a traditional supervised dataset \citep{gadre2023datacomp} in various aspects. Firstly, it involves large-scale training with mixed-quality image-text pairs rather than categorized images with human annotated labels, as commonly seen in classification datasets. Secondly, CLIP's pre-training is the initial stage of training, assuming no access to previously trained models.
+
+\paragraph{Data Pruning on Established Datasets.}
+
+Current research on data algorithms primarily revolves around \textit{data pruning} techniques applied to well-established datasets using pre-trained models \citep{sorscher2022beyond,abbas2023semdedup}. These approaches, such as coreset selection techniques \citep{har2004coresets,feldman2011scalable,bachem2015coresets,mirzasoleiman2020coresets,toneva2018empirical}, aim to select a subset of data that yields similar performance to training on the entire dataset. 
+{\color{black}Post-hoc data pruning with model filters has limited utility, if the model is used as a black-box filter that forbids to control biases or improve the filter quality.
+}
+
+\paragraph{Handling Noisy Internet Data.}
+
+Addressing noisy data from the Internet is a significant challenge, and existing approaches often heavily rely on human-designed filter systems. Classical methods involve dataset cleaning and outlier removal \citep{jiang2001two,yu2002findout} to discard samples that may introduce undesirable biases to models.
+
+\paragraph{Replicating CLIP's Training Data.}
+
+Recent efforts, such as LAION \citep{schuhmann2021laion,schuhmannlaion} and concurrent work DataComp \citep{gadre2023datacomp}, attempt to replicate CLIP's training data. However, they adopt fundamentally different strategies for several reasons. First, the data used in these approaches are post-hoc, filtered, by vanilla CLIP as a \textit{teacher} model. %, making them unsuitable for training a vanilla CLIP from scratch. 
+Second, the curation process in these methods relies on a labor-intensive pipeline of filters, making it challenging to comprehend the resulting data distribution from the raw Internet (refer to the unknown biases of using CLIP filter in \citep{schuhmannlaion}). Thirdly, the goal is to match the quantity of CLIP's target data size rather than the data distribution itself, which may lead to an underestimation of the data pool size needed to obtain sufficient quality data. Consequently, the performance on the 400M scale is sub-optimal, with LAION400M only achieving 72.77\% \citep{schuhmann2021laion} accuracy on ViT-L/14 on ImageNet, whereas vanilla CLIP obtains 75.5\%.
+
+\paragraph{Importance of Understanding CLIP's Data Curation.}
+
+The observations made in these studies underscore the critical importance of understanding how OpenAI CLIP curates its data in the first place. A comprehensive understanding of the curation process can shed light on the factors that contribute to its success, allowing researchers to devise more effective and efficient algorithms for future vision-language pre-training endeavors.
+
+\section{MetaCLIP}
+\label{sec:method}
+The original paper \citep{radford2021learning} only provides limited details about how CLIP curates its data. Since important design choices for a direct reproduction are missing, we will clarify our choices in this section. Our goal is to uncover CLIP's data curation process, which involves preserving signal in the data while minimizing noise. In this section, we will explain the principles we have adopted to achieve this, which may differ from CLIP's as these are not known publicly.
+
+CLIP's WIT400M is curated with an information retrieval method, quoting \citep{radford2021learning}:
+\quotebox{To address this, we constructed a new dataset of 400 million (image, text) pairs collected from a variety of publicly available sources on the Internet. To attempt to cover as broad a set of visual concepts as possible, we \textit{\textbf{search}} for (image, text) pairs as part of the construction process whose text includes one of a set of \textit{500,000 \textbf{queries}} We approximately class balance the results by including \textit{up to 20,000 (image, text) pairs per query}.}
+
+
+We rigorously adhere to this description and provide detailed insights into the construction process of CLIP's metadata (in \S \ref{sec:cit_queries})\footnote{We generalize the term queries (used by CLIP) as \textit{entries} in \textit{metadata} because metadata describe training data and our algorithm does not require search on inverted index yet have similar effects.}, sub-string matching (in \S\ref{sec:match}), inverted indexing (in \S\ref{sec:index}), as well as query and balancing (in \S\ref{sec:query}). 
+
+\subsection{Metadata construction: \texorpdfstring{$\mathcal{M}=\{\textit{entry}\}$}{}}
+\label{sec:cit_queries}
+
+We start by re-building CLIP's 500,000-query metadata, citing~\cite{radford2021learning}:
+\quotebox{The base query list is all words occurring at least 100 times in the \textit{English version of Wikipedia}. This is augmented with \textit{bi-grams} with high pointwise mutual information as well as the names of all \textit{Wikipedia articles} above a certain search volume. Finally all \textit{WordNet synsets} not already in the query list are added.}
+
+The metadata (`queries' or `entries') consists of four components: (1) all synsets of WordNet, (2) uni-grams from the English version of Wikipedia occurring at least 100 times, (3) bi-grams with high pointwise mutual information, and (4) titles of Wikipedia articles above a certain search volume. We rebuild these components from WordNet and Wikipedia and summarize the statistics in Table \ref{tbl:metadata}\footnote{Note that we cannot find Wikipedia's search volume for titles of Wikipedia (4). Instead, we use volumes of Pageviews on Wiki articles. We randomly selected 26 days' Pageviews from Apr. 2018 to Sep. 2022.}. We estimate the thresholds for components (3) and (4) as in the 3rd column of Table \ref{tbl:metadata}, by first choosing a point-wise mutual information threshold of 30 that meets the budget of 100k entries for bi-grams and then fill the rest of the entries with Wikipedia titles.
+
+\begin{table}[h]
+\centering
+\scalebox{1.0}{\begin{tabular}{l r | l | r}
+Source & \# of Entries & Desc. of Threshold & Threshold\\
+\hline
+WordNet synsets & 86,654 & N/A & [ALL] (follow CLIP)\\
+Wiki uni-gram & 251,465 & Count & 100 (follow CLIP)\\
+Wiki bi-gram & 100,646 & Pointwise Mutual Info.(PMI) & 30 (estimated)\\
+Wiki titles & 61,235 & View Frequency & 70 (estimated)\\
+\hline
+\end{tabular}}
+\caption{Composition of MetaCLIP Metadata.}
+\label{tbl:metadata}
+\end{table}
+
+\subsection{Sub-string Matching: \texorpdfstring{$\textit{text}\rightarrow \textit{entry}$}{}}
+\label{sec:match}
+
+After constructing the metadata, CLIP's curation aligns a pool of image-text pairs with metadata entries through sub-string matching. This process identifies texts that contain any of the metadata entries, effectively associating unstructured texts with structured metadata entries. The sub-string matching step retains only high-quality matching texts, automatically filtering out various types of noises that a typical filter system would consider on a case-by-case basis.
+
+Such alignment is referred to as sub-string matching in~\cite{radford2021learning}:
+
+\quotebox{We also restrict this step in CLIP to text-only querying for \textit{sub-string matches} while most webly supervised work uses standard image search engines ...}
+
+\paragraph{Image-Text Pair Pool} We start by estimating the pool size used by CLIP's curation. CLIP's data source is unknown to us (``a variety of publicly available sources'' in~\cite{radford2021learning}). We adopt CommonCrawl (CC)\footnote{\url{https://commoncrawl.org}} as the source to build such a pool and re-apply sub-string matching to this source. 
+We ended with a pool of 1.6B image-text pairs (5.6B counts of sub-string matches). Note that one text can have multiple matches of entries and we have 3.5 matches per text on average.
+
+As a result, sub-string matching builds the mapping $\textit{txt} \rightarrow \textit{entry}$.
+This step has two outcomes: (1) low-quality text is dropped; 
+(2) unstructured text now has a structured association with metadata.
+For all English text,
+$\sim$50\% image-text pairs are kept in this stage. Similar to CiT \citep{xu2023cit}, this approach looks for quality matches and automatically gets rid of some type of noise (such as date strings) that a typical filter system would remove consider case-by-case (e.g., regular expression on dates, ids etc.).
+
+\subsection{Inverted Indexing: \texorpdfstring{$\textit{entry} \rightarrow \textit{text}$}{}}
+\label{sec:index}
+
+Following sub-string matching, CLIP builds an inverted index of the data pool. All texts associated with each metadata entry are aggregated into lists, creating a mapping from each entry to the corresponding texts,  $\textit{entry} \rightarrow \textit{text}$.
+
+As an analysis, we count the number of matches for each entry and summarize that in Table \ref{tbl:summary_counts}.
+The counts exhibit a long-tailed distribution. Out of the 500k entries, \textbf{114k} entries have \textit{no} matches. This signifies the importance of knowing the training data distribution since it is very likely the training data does not have certain visual concepts.
+We observed that only 16k entries had counts higher than 20k, accounting for only \textbf{3.2\%} (16k/500k) of the entries, but their counts made up \textbf{94.5\%} (5.35B/5.6B) of the total counts of all entries.
+
+\begin{table}
+\centering
+\scalebox{1.0}{\begin{tabular}{l r r}
+Metadata Subset & \# of Entries & \# of Counts\\
+\hline
+Full & 500K & 5.6B\\
+Counts $=0$ & 114K & 0\\
+Counts $>20000$ & 16K & 5.35B\\
+\hline
+\end{tabular}}
+\caption{Summary of counts for entries.}
+\label{tbl:summary_counts}
+\end{table}
+
+\paragraph{Top Entries.}
+We show the top entries of the matching in Table \ref{tbl:match}. 
+Interestingly, many of these are stopwords, which don't carry specific meaning but can enhance the overall text quality (e.g., by generating grammatically correct sentences rather than just keyword lists). It's important to note that although sub-string matching aims to select only high-quality texts, there are instances where common entries may still include irrelevant texts. For instance, the entry "photo" could match with the popular but unhelpful term "untitled photo". These noise-related issues can be addressed in the subsequent stage of processing.
+
+
+\begin{table}
+\centering
+\scalebox{1.0}{\begin{tabular}{l r|l r|l r|l r}
+Entry & Counts & Entry & Counts & Entry & Counts & Entry & Counts\\
+\hline
+of & 120M & in & 107M & and & 100M & for & 89M\\
+the & 87M & The & 67M & with & 67M & to & 61M\\
+photo & 54M & a & 50M & image & 48M & 1 & 47M\\
+on & 45M & by & 43M & 2 & 43M & Image & 39M\\
+at & 38M & Black & 33M & 3 & 30M & A & 29M\\
+\hline
+\end{tabular}}
+\caption{Top-20 entries with counts.}
+\label{tbl:match}
+\end{table}
+
+\subsection{Query and Balancing with \texorpdfstring{$t \leq$20k}{}}
+\label{sec:query}
+
+
+The key secret behind OpenAI CLIP's curation is to balance the counts of matched entries. For each metadata entry, the associated list of texts (or image-text pairs) is sub-sampled, ensuring that the resulting data distribution is more balanced. This step aims to mitigate noise and diversify the distribution of data points, making the data more task-agnostic as foundation data for pre-training.
+
+The magic number $t=20$k is a threshold used to limit the number of texts/pairs for each entry. Entries with fewer than $t$ pairs (tail entries) retain all associated pairs, while entries with more than $t$ pairs (head entries) are sub-sampled to $t$ pairs. The selection is based on the density of information in texts; texts with more matched entries have a higher chance of being curated (recall that the average is 3.5 matches per text).
+
+To study the effect of the magic number $t=20$k, we plot the cumulative sum of counts for entries sorted by counts from tail to head in Fig.~\ref{fig:cumsum}.
+Interestingly, the value of $t=20$k seemingly represents the transition from tail to head entries, when the head entries start exhibiting an\textit{ exponential growth rate}. By applying a max count of $t$, the growth rate of total counts (i.e., the scale of resulting data points) is reduced to \textit{linear}. This significantly flattens (and balances) the training data distribution. We further study the optimality of $t=20$k for the 400M data scale in our experiments.
+
+\begin{figure}[h]
+\centering
+\includegraphics[width=0.9\linewidth] {imgs/count_cumsum_bal_v2.pdf}
+\caption{Cumulative sum of counts on entries from \textit{tail to head} on a data pool with 1.6B image-text pairs (5.6B match counts). (1) {\color{brightmaroon}raw/unbalanced cumulative counts}, $t=\infty$; (2) {\color{violet}balanced cumulative counts} after applying $t=20$k. The limit $t$ defines the transition of tail/head entries.}
+\label{fig:cumsum}
+\end{figure}
+
+In summary, balancing yields three interesting outcomes:
+
+(i) It reduces dominance and noise from head entries, like common web terms. E.g., out of 400M pairs, only $20$k texts containing ``photo'' are kept (while there are 54M ``photo'' instances in the pool).
+
+(ii) It diversifies the data distribution and balances tail/head entries, leading to a more task-agnostic foundation.
+
+(iii) Sampling for each entry ensures that data points with more matched entries or \textit{denser} information are prioritized for curation.
+
+\paragraph{Discussion.}
+CLIP employs a pure NLP-based approach, requiring no access to ML models and minimizing  explicit/implicit priors from humans. The metadata plays a central role in mitigating noise and preserving signal in the data distribution. The balancing step effectively flattens the data distribution, diversifying the data and making it more suitable as foundation data for pre-training tasks. We analyze the effects of balancing in Appendix \ref{sec:curation_analysis}.
+
+\subsection{A simple Algorithm for Curation}
+
+This section presents an algorithm that formalizes the curation process described earlier. The algorithm aims to improve scalability and reduce space complexity for operations across data points, such as inverted indexing and sub-sampling. Instead of building inverted indexes, the algorithm only maintains total counts for each entry. 
+
+We assume that CLIP curation constructs an inverted index that maps entries to documents (image-text pairs) to enable efficient \textit{search} for each entry (``we search for (image-text) pairs'' in \cite{radford2021learning}). In contrast, our algorithm approaches the balancing process through independent sampling. This avoids the need to build an inverted index that could potentially store hundreds of millions of concrete pairs for popular entries, thereby improving efficiency and scalability.
+
+Our algorithm takes three inputs: metadata $\mathcal{M}$, a data pool $\mathcal{D}$, and a hyper-parameter $t$. It aims to find a subset $\mathcal{D}^*$ with a balanced distribution over $\mathcal{M}$, denoted as $\mathcal{D}^* \leftarrow f(\mathcal{D}; \mathcal{M}, t)$. The algorithm consists of two parts, each corresponding to a specific stage of the curation process. 
+
+We provide the Python pseudo-code in Algorithm \ref{alg:code}.
+
+\paragraph{Part 1: Entry Counts from Sub-string Matching.}
+This corresponds to Sec.~\ref{sec:match}. The \texttt{substr\_matching} function outputs the total counts of matches per entry, \texttt{entry\_count}, represented as a NumPy array indexed by \texttt{entry\_id}.
+Each \texttt{text} is associated with \texttt{matched\_entry\_ids} that contains a list of matched entries. 
+
+\paragraph{Part 2: Balancing via Independent Sampling.}
+This part corresponds to Sec.\ref{sec:index} and Sec.\ref{sec:query} and focuses on balancing counts on entries. Instead of building an expensive inverted index with associated lists of texts for each entry, we sample each data point independently. 
+
+We first compute the probability of sampling each entry, \texttt{entry\_prob}, where tail entries (\texttt{entry\_count} < $t$) have a probability equal to 1, and head entries have a probability less than 1. We iterate through all image-text pairs and sample/curate each pair. When an image-text pair has a matched entry sampled/selected, we include that pair in $\mathcal{D}^*$. 
+
+This procedure is equivalent to CLIP's curation, because if one image-text pair has one or more matched entries, the chance of that pair being selected is determined by the probability of sampling for each individual entry: $t/\texttt{entry\_count[entry\_id]}$. As long as one entry selects that pair, it will be kept in $\mathcal{D}^*$. Our independent sampling approach allows us to scale balancing for each data point independently and reduces the global operation to counting the total matches for each entry. We demonstrate case studies in experiments on (1) scaling curation in a data pipeline and (2) online balancing in data loader.
+    
+        \begin{algorithm}[t]
+        \caption{Pseudo-code of Curation Algorithm in Python style (see Sec. \ref{sec:example} for samples).}
+        \label{alg:code}
+        \definecolor{codeblue}{rgb}{0.25,0.5,0.5}
+        \lstset{
+          backgroundcolor=\color{white},
+          basicstyle=\fontsize{7.2pt}{7.2pt}\ttfamily\selectfont,
+          columns=fullflexible,
+          breaklines=true,
+          captionpos=b,
+          commentstyle=\fontsize{7.2pt}{7.2pt}\color{codeblue},
+          keywordstyle=\fontsize{7.2pt}{7.2pt},
+        %  frame=tb,
+        }
+        \begin{lstlisting}[language=python]
+        # D: raw image-text pairs;
+        # M: metadata; 
+        # t: max matches per entry in metadata;
+        # D_star: curated image-text pairs;
+        
+        D_star = []
+        # Part 1: sub-string matching: store entry indexes in  text.matched_entry_ids and output counts per entry in  entry_count.
+        entry_count = substr_matching(D, M)
+        # Part 2: balancing via indepenent sampling
+        entry_count[entry_count < t] = t
+        entry_prob = t / entry_count
+        for image, text in D:
+            for entry_id in text.matched_entry_ids:
+                if random.random() < entry_prob[entry_id]:
+                    D_star.append((image, text))
+                    break
+        \end{lstlisting}
+        \end{algorithm}
+
+\section{Experiments}
+
+\paragraph{Data Pools.} We collect two pools of data:
+
+Pool 1 contains 1.6 billion image-text pairs with a total of 5.6 billion counts of matches. This pool was used to estimate a target of \textbf{400M} image-text pairs, collected from 15 snapshots of CommonCrawl (CC) from January 2021 to January 2023.
+
+Pool 2 aims to scale curation in our data pipeline. We parsed all 90 CC snapshots from 2013 to April 2023, using our algorithm (see \S\ref{sec:case} for details on the curation pipeline) to curate from a pool of 10.7B matched image-text pairs that are originally from a large set of URL-text pairs, which have undergone de-duplication, English Language IDentification (LID) and sub-string matching. However, we only perform (expensive) image downloading, storing, and transferring for data points that are distribution-calibrated and selected by our algorithm. 
+
+For balancing we consider 2 scenarios on this data: (i) $t=170k$, which is resulting in \textbf{2.5B} image-text pairs. This $t=170k$ configuration has tail counts amounting to 6\% of the total counts, the \textit{same tail/head ratio} that the 400M Pool 1 data has, produced by applying $t=20k$ on the 1.6B Pool 1 data. (ii) The $t=20k$ threshold applied to Pool 2 which results in \textbf{1B} image-text pairs and compared to the 400M set from Pool 1 only increases tail metadata matches (head counts are capped at $20k$). 
+
+
+\paragraph{Training Setup}
+
+We strictly follow the CLIP training setup, using V100 32GB GPUs and an equivalent global batch size of 32,768.
+For ViT-B/32 and ViT-B/16, we use 64 GPUs with a per GPU batch size of 512 and for ViT-L/14 we use 128 GPUs with a 256 per GPU batch size.
+It takes 4 days to train ViT-B/32 and a month to train ViT-L/14. We use 256 A100 80GB GPUs to train ViT-H/14 and ViT-bigG/14 model for 1 week and 2 months, respectively. We train in all experiments for the same number of iterations that correspond to 12.8B seen image-text pairs during training (32 epochs for 400M). We pre-process with face-blurring.
+
+\subsection{Results}
+\paragraph{Zero-shot Image Classification.}
+We follow the standard evaluation benchmark and made sure all prompts and class names were the same as those used by CLIP~\cite{radford2021learning}. We also re-evaluated OpenAI/OpenCLIP's checkpoints to avoid differences caused by benchmark data copies.
+The results are shown in Tab~\ref{tbl:zs}. {\color{black} The standard deviation of training multiple seeds is relatively small with $\pm$ 0.1\% for ImageNet on ViT-B/32.}
+
+
+\newcolumntype{S}{@{}>{\lrbox0}l<{\endlrbox}}  %
+\definecolor{lightgreen}{HTML}{D8ECD1}
+\newcommand{\better}[1]{\colorbox{lightgreen}{#1}}
+\newcommand{\datatag}[1]{\rotatebox[origin=l]{90}{\scriptsize{#1}}}
+\begin{table*}
+\vspace{-1.em}
+\centering
+\resizebox{1.0\linewidth}{!}{
+\tablestyle{1.5pt}{1.1}
+\begin{tabular}{l c | c c c c c c c c c c c c c c c c c c c c c c c c c c c}
+& \datatag{Average}
+& \datatag{ImageNet}
+& \datatag{Food-101} 
+& \datatag{CIFAR10} 
+& \datatag{CIFAR100} 
+& \datatag{CUB}
+& \datatag{SUN397}
+& \datatag{Cars}
+& \datatag{Aircraft}
+& \datatag{DTD}
+& \datatag{Pets}
+& \datatag{Caltech-101}
+& \datatag{Flowers}
+& \datatag{MNIST}
+& \datatag{FER-2013}
+& \datatag{STL-10}
+& \datatag{EuroSAT}
+& \datatag{RESISC45}
+& \datatag{GTSRB}
+& \datatag{KITTI}
+& \datatag{Country211}
+& \datatag{PCAM}
+& \datatag{UCF101}
+& \datatag{Kinetics700}
+& \datatag{CLEVR}
+& \datatag{HatefulMemes}
+& \datatag{SST2}\\
+\shline
+\rowcolor{lightgray} ViT-B/32 & & & & & & & & & & & & & & & & & & & & & & & & & & & \\
+CLIP, our eval. & 56.6 & 63.4 & \better{83.7} & 89.8 & 65.1 & 53.7 & 62.0 & 59.7 & 19.6 & 44.0 & 87.2 & 87.4 & 66.9 & \better{48.2} & 46.6 & \better{97.1} & 44.9 & 61.0 & 32.6 & 28.7 & 17.2 & \better{62.5} & 63.9 & \better{48.0} & 23.6 & 56.4 & \better{58.6}\\
+OpenCLIP, our eval. & 57.6 & 62.9 & 80.7 & 90.7 & \better{70.6} & 61.2 & \better{66.4} & \better{79.2} & 16.7 & \better{54.5} & 86.5 & 90.7 & 66.1 & 37.4 & \better{48.2} & 95.6 & 52.2 & 58.0 & \better{42.0} & \better{38.0} & 14.8 & 50.1 & 63.0 & 42.8 & 22.5 & 53.3 & 52.3\\
+
+\hline
+\textbf{MetaCLIP} & \better{\textbf{58.2}} & \better{65.5} & 80.6 & \better{91.3} & 70.2 & \better{63.4} & 63.0 & 70.7 & \better{26.8} & 52.8 & \better{88.7} & \better{91.9} & \better{68.5} & 41.5 & 35.9 & 95.4 & \better{52.6} & \better{64.2} & 35.8 & 30.7 & \better{17.2} & 55.5 & \better{66.1} & 45.4 & \better{30.6} & \better{56.4} & 53.4\\
+\rowcolor{lightgray} ViT-B/16 & & & & & & & & & & & & & & & & & & & & & & & & & & & \\
+CLIP, our eval. & 59.6 & 68.3 & \better{88.8} & 90.8 & 68.2 & 55.6 & 64.0 & 64.6 & 24.0 & 45.1 & 88.9 & 89.1 & 69.4 & 51.8 & \better{53.0} & \better{98.2} & 54.8 & 65.5 & 43.3 & 21.7 & \better{22.8} & \better{56.3} & \better{68.5} & \better{52.3} & 25.5 & \better{58.7} & 60.5\\
+OpenCLIP, our eval. & 60.4 & 67.0 & 85.8 & \better{91.7} & \better{71.4} & 65.3 & \better{69.2} & \better{83.6} & 17.4 & 51.0 & 89.2 & 90.8 & 66.5 & \better{66.3} & 46.1 & 97.0 &  52.2 & 65.7 & 43.5 & 23.7 & 18.1 & 51.7 & 67.0 & 46.2 & \better{33.9} & 54.5 & 54.4\\
+\hline
+\textbf{MetaCLIP} & \better{\textbf{61.1}} & \better{70.8} & 86.8 & 90.1 & 66.5 & \better{70.8} & 66.6 & 74.1 & \better{27.9} & \better{55.9} & \better{90.4} & \better{93.8} & \better{72.3} & 47.8 & 44.6 & 97.2 & \better{55.4} & \better{68.8} & \better{43.8} & \better{33.4} & 22.6 & 52.9 & 68.0 & 49.5 & 22.8 & 54.8 & \better{60.6}\\
+\rowcolor{lightgray} ViT-L/14 & & & & & & & & & & & & & & & & & & & & & & & & & & & \\
+CLIP, our eval. & 65.7 & 75.5 & \better{93.0} & \better{95.6} & \better{78.3} & 63.3 & 66.8 & 77.8 & 31.3 & 55.3 & 93.6 & 93.3 & \better{79.3} & \better{76.4} & \better{56.9} & \better{99.4} & 61.9 & 70.9 & \better{50.6} & 19.2 & \better{31.9} & 50.1 & \better{75.7} & \better{60.2} & 22.3 & \better{59.7} & \better{68.9}\\
+OpenCLIP, our eval. & 64.5 & 72.7 & 90.0 & 94.7 & 78.0 & 73.9 & \better{72.4} & \better{89.5} & 24.7 & 60.2 & 91.6 & 93.6 & 73.0 & 76.1 & 54.3 & 98.1 & \better{63.9} & 69.6 & 49.9 & 16.0 & 23.0 & 51.7 & 71.5 & 51.6 & 25.4 & 55.3 & 56.0\\
+\hline
+\textbf{MetaCLIP} & \better{\textbf{67.1}} & \better{76.2} & 90.7 & 95.5 & 77.4 & \better{75.9} & 70.5 & 84.7 & \better{40.4} & \better{62.0} & \better{93.7} & \better{94.4} & 76.4 & 61.7 & 46.5 & 99.3 & 59.7 & \better{71.9} & 47.5 & \better{29.9} & 30.9 & \better{70.1} & 75.5 & 57.1 & \better{35.1} & 56.6 & 65.6\\
+\end{tabular}
+}
+\vspace{-.5em}
+\caption{MetaCLIP-400M \textit{vs.}~CLIP (WIT400M data) and OpenCLIP (LAION-400M data\citep{schuhmann2021laion}). We use 3 different model scales (ViT-B/32 and -B/16 and -L/14) and an identical training setup as CLIP.}
+\label{tbl:zs}
+\end{table*}
+
+
+\begin{table*}[t]
+\vspace{-1.em}
+\centering
+\resizebox{1.0\linewidth}{!}{
+\tablestyle{1.5pt}{1.1}
+\begin{tabular}{l c | c c c c c c c c c c c c c c c c c c c c c c c c c c c}
+& \datatag{Average}
+& \datatag{ImageNet}
+& \datatag{Food-101} 
+& \datatag{CIFAR10} 
+& \datatag{CIFAR100} 
+& \datatag{CUB}
+& \datatag{SUN397}
+& \datatag{Cars}
+& \datatag{Aircraft}
+& \datatag{DTD}
+& \datatag{Pets}
+& \datatag{Caltech-101}
+& \datatag{Flowers}
+& \datatag{MNIST}
+& \datatag{FER-2013}
+& \datatag{STL-10}
+& \datatag{EuroSAT}
+& \datatag{RESISC45}
+& \datatag{GTSRB}
+& \datatag{KITTI}
+& \datatag{Country211}
+& \datatag{PCAM}
+& \datatag{UCF101}
+& \datatag{Kinetics700}
+& \datatag{CLEVR}
+& \datatag{HatefulMemes}
+& \datatag{SST2}\\
+\shline
+\rowcolor{lightgray} ViT-B/32 & & & & & & & & & & & & & & & & & & & & & & & & & & & \\
+		      MetaCLIP(400M) & 58.2 & 65.5 & 80.6 & 91.3 & 70.2 & 63.4 & 63.0 & 70.7 & 26.8 & 52.8 & 88.7 & 91.9 & 68.5 & 41.5 & 35.9 & 95.4 & 52.6 & 64.2 & 35.8 & 30.7 & 17.2 & 55.5 & 66.1 & 45.4 & \better{30.6} & \better{56.4} & 53.4 \\
+			MetaCLIP(1B) & \better{60.3} & 67.3 & 81.9 & 95.2 & 76.7 & \better{71.4} & 65.9 & 73.0 & \better{31.4} & 58.9 & 89.5 & 92.5 & \better{72.6} & 35.4 & 45.8 & 96.3 & \better{50.4} & 64.6 & \better{40.7} & \better{32.0} & 17.0 & \better{64.2} & \better{70.3} & \better{47.8} & 14.6 & 54.9 & \better{56.8}\\
+			MetaCLIP(2.5B) & 59.8 & \better{67.6} & \better{82.6} & \better{95.2} & \better{77.7} & 67.8 & \better{66.8} & \better{77.2} & 26.9 & \better{58.9} & \better{90.9} & \better{92.5} & 69.7 & \better{42.7} & \better{48.3} & \better{96.3} & 49.9 & \better{66.5} & 39.2 & 29.3 & \better{17.7} & 50.0 & 68.0 & 47.6 & 19.4 & 53.5 & 53.1 \\
+				\multicolumn{5}{c}{}\\
+			
+			\rowcolor{lightgray} ViT-B/16 & & & & & & & & & & & & & & & & & & & & & & & & & & & \\
+			MetaCLIP(400M) & 61.1 & 70.8 & 86.8 & 90.1 & 66.5 & 70.8 & 66.6 & 74.1 & 27.9 & 55.9 & 90.4 & \better{93.8} & 72.3 & 47.8 & 44.6 & 97.2 & \better{55.4} & 68.8 & 43.8 & 33.4 & 22.6 & 52.9 & 68.0 & 49.5 & 22.8 & 54.8 & 60.6\\
+                MetaCLIP(1B) & 63.2 & \better{72.4} & 88.1 & 94.8 & 78.2 & \better{77.5} & 66.4 & 79.3 & \better{38.0} & 57.7 & \better{92.3} & 93.6 & \better{75.1} & 36.4 & \better{47.8} & 98.0 & 50.5 & 70.1 & \better{49.5} & \better{36.6} & 21.6 & \better{53.7} & \better{74.1} & \better{52.7} & 21.6 & 56.8 & \better{61.6}\\
+			MetaCLIP(2.5B) & \better{63.5} & 72.1 & \better{88.3} & \better{95.7} & \better{79.0} & 71.4 & \better{68.5} & \better{82.9} & 30.3 & \better{62.1} & 91.7 & 93.3 & 73.9 & \better{66.1} & 47.0 & \better{98.4} & 51.1 & \better{71.1} & 46.6 & 16.6 & \better{22.7} & 50.5 & 73.0 & 52.5 & \better{30.8} & \better{57.4} & 59.0 &  \\
+				\multicolumn{5}{c}{}
+			\\
+			\rowcolor{lightgray} ViT-L/14 & & & & & & & & & & & & & & & & & & & & & & & & & & & \\
+			\hline
+			MetaCLIP(400M) & 67.1 & 76.2 & 90.7 & 95.5 & 77.4 & 75.9 & 70.5 & 84.7 & 40.4 & 62.0 & 93.7 & 94.4 & 76.4 & 61.7 & 46.5 & 99.3 & 59.7 & 71.9 & 47.5 & 29.9 & 30.9 & 70.1 & 75.5 & 57.1 & \better{35.1} & 56.6 & 65.6\\
+			MetaCLIP(1B) & \better{70.2} & 79.0 & 92.9 & 96.8 & \better{84.9} & \better{83.1} & 72.8 & 86.5 & \better{48.9} & 65.9 & \better{95.3} & 94.8 & \better{84.7} & 53.8 & 54.1 & 99.3 & \better{70.0} & 73.8 & \better{58.7} & \better{36.3} & 32.2 & \better{70.4} & 81.4 & 61.6 & 21.1 & \better{61.2} & 66.1\\
+			MetaCLIP(2.5B) & 69.8 & \better{79.2} & \better{93.4} & \better{97.6} & 84.2 & 80.1 & \better{73.8} & \better{88.7} & 44.6 & \better{68.1} & 94.7 & \better{95.4} & 81.8 & \better{64.4} & \better{55.1} & \better{99.3} & 59.2 & \better{74.6} & 56.3 & 29.7 & \better{34.0} & 67.3 & \better{81.6} & \better{62.0} & 25.9 & 58.0 & \better{66.7}\\
+				\multicolumn{5}{c}{}
+			\\
+			\rowcolor{lightgray} ViT-H/14 & & & & & & & & & & & & & & & & & & & & & & & & & & & \\
+			MetaCLIP(2.5B) & 72.4 & 80.5 & 94.2 & 98.0 & 86.4 & 83.4 & 74.1 & 90.0 & 50.2 & 72.4 & 95.4 & 95.6 & 85.1 & 72.7 & 55.2 & 99.4 & 66.3 & 74.6 & 62.5 & 38.2 & 37.2 & 65.8 & 82.2 & 64.1 & 30.1 & 59.3 & 69.2\\	
+			\\
+			\rowcolor{lightgray} ViT-bigG/14 & & & & & & & & & & & & & & & & & & & & & & & & & & & \\
+                MetaCLIP(2.5B) & 73.2 & 82.1 & 94.9 & 98.5 & 88.6 & 84.0 & 74.7 & 90.9 & 52.7 & 72.6 & 96.1 & 95.7 & 89.5 & 78.1 & 56.7 & 99.5 & 73.7 & 75.5 & 61.7 & 31.0 & 41.5 & 65.6 & 85.6 & 65.8 & 24.3 & 58.8 & 65.3\\
+		\end{tabular}
+  
+	}
+
+ 
+        \vspace{-.5em}
+	\caption{Scaling MetaCLIP from 400M ($t$=20k) to 1B ($t$=20k) and 2.5B ($t$=170k) training data.
+	}	
+	\label{tbl:zs_scale}
+\vspace{-20pt}
+\end{table*}
+
+
+In Table~\ref{tbl:zs}, we observe that MetaCLIP outperforms OpenAI CLIP on ImageNet and average accuracy across 26 tasks, for 3 model scales. With 400 million training data points on ViT-B/32, MetaCLIP outperforms CLIP by +2.1\% on ImageNet and by +1.6\% on average. On ViT-B/16, MetaCLIP outperforms CLIP by +2.5\% on ImageNet and by 
++1.5\% on average. On ViT-L/14, MetaCLIP outperforms CLIP by +0.7\% on ImageNet and by +1.4\% on average across the 26 tasks. 
+
+
+
+We next turn to Pool 2 which is a larger set of image-text pairs and study the effect of scaling data. 
+In Table~\ref{tbl:zs_scale}, we scale data to 1B and 2.5B and observe a large gain over 400M, with similar performance for both 1B and 2.5B scales. Note that the number of training iterations (and therefore compute) is the same for all rows. The main difference between 1B and 2.5B is the threshold $t$, where 1B is a more balanced set by adding more data points (compared to the 400M set) to \textit{tail} entries (up to $t=20k$), instead the 2.5B set adds (up to $t=170k$) data points to all, \textit{head and tail}, entries. 
+The extra data in the tail entries (1B set), seems to benefit downstream accuracy for tasks on specific data such as CUB fine-grained bird classification, Flowers, KITTI, PCAM, while the larger 2.5B data that has more head entries increases broadly over more datasets, but each at a smaller amount.
+The overall average accuracies are similar for 1B and 2.5B (e.g., 70.2\% vs.~69.8\% for ViT-L model size). 
+On ImageNet, the 2.5B training data achieves 67.6\% on ViT-B/32 that breaks the previous believed saturated B/32 models \citep{cherti2022reproducible}, 79.2\% on ViT-L/14 , 80.5\% on ViT-H/14  and 82.1\% on ViT-bigG/14. 
+
+ We plot the cumulative sum of counts for entries sorted by counts from tail to head in Fig.~\ref{fig:cumsum2} for all these cases, similar to Fig.~\ref{fig:cumsum} for Pool 1 (and the Pool 1 configuration as dashed lines). The plot shows that the 2.5B data is still relatively long-tail, while the 1B data is more balanced, explaining it's better performance on specific data such as bird and flower types observed above.
+
+
+\begin{figure}[t]
+\centering
+\includegraphics[width=1.0\linewidth] {imgs/fullcc_count_cumsum_bal_20k_v3.pdf}
+\caption{Cumulative sum of counts on entries from \textit{tail to head} on a data Pool 2. We again show (1) raw/unbalanced cumulative counts), $t=\infty$; (2) balanced cumulative counts after applying $t=20$k and $t=170$k. $t$ defines maximum number of counts per entry and the transition of tail/head entries. We show the Pool 1 configuration from Fig.~\ref{fig:cumsum} as dashed lines for reference.}
+\label{fig:cumsum2}
+\vspace{-3pt}
+\end{figure}
+
+
+\subsection{Ablation Study}
+We show ablations for MetaCLIP for the 400M scale and ViT-B/32 in Table \ref{tbl:sampling}. 
+We first ablate different balancing thresholds $t$. We observe that the choice of $t=20k$ by CLIP yields the best performance for ImageNet and averaged accuracy and $t=15k$ or $t=35k$ are slightly worse.  
+
+To understand the key effect of balancing, we use the whole matched pool (1.6B image-text pairs) to train CLIP.  Surprisingly, training on 4\x~\textit{more data} (on head entries) \textit{significantly hurts the accuracy} on ImageNet (61.9 vs~65.5) and averaged accuracy across 26 tasks (56.6 vs 58.2).
+
+Balancing can also be applied online in the data loader with head entries down-sampled leading to slightly better performance (58.5 vs 58.2); see appendix for details. This is useful if head data has already been collected and one wants to train on a different distribution. The better accuracy for online balancing is explained by the larger diversity in head data.
+
+\begin{table*}[h]
+\vspace{-1.em}
+\centering
+\resizebox{1.0\linewidth}{!}{
+\tablestyle{1.5pt}{1.1}
+\begin{tabular}{l c | c c c c c c c c c c c c c c c c c c c c c c c c c c c}
+& \datatag{Average}
+& \datatag{ImageNet}
+& \datatag{Food-101} 
+& \datatag{CIFAR10} 
+& \datatag{CIFAR100} 
+& \datatag{CUB}
+& \datatag{SUN397}
+& \datatag{Cars}
+& \datatag{Aircraft}
+& \datatag{DTD}
+& \datatag{Pets}
+& \datatag{Caltech-101}
+& \datatag{Flowers}
+& \datatag{MNIST}
+& \datatag{FER-2013}
+& \datatag{STL-10}
+& \datatag{EuroSAT}
+& \datatag{RESISC45}
+& \datatag{GTSRB}
+& \datatag{KITTI}
+& \datatag{Country211}
+& \datatag{PCAM}
+& \datatag{UCF101}
+& \datatag{Kinetics700}
+& \datatag{CLEVR}
+& \datatag{HatefulMemes}
+& \datatag{SST2}\\
+\shline
+			MetaCLIP $t$=20k  & 58.2 & 65.5 & 80.6 & \better{91.3} & \better{70.2} & 63.4 & 63.0 & 70.7 & 26.8 & 52.8 & 88.7 & 91.9 & 68.5 & 41.5 & 35.9 & 95.4 & 52.6 & 64.2 & 35.8 & 30.7 & 17.2 & 55.5 & 66.1 & 45.4 & \better{30.6} & \better{56.4} & 53.4 \\
+			\hline
+			- $t$=15k & 57.5 & 65.5 & 79.9 & 90.4 & 68.8 & 65.7 & 64.6 & 69.4 & 25.6 & 52.1 & \better{88.8} & 91.9 & \better{69.5} & 35.8 & 39.7 & 96.5 & 54.0 & 64.1 & 34.8 & 30.6 & 16.1 & 52.3 & \better{67.1} & 45.4 & 22.3 & 51.2 & 53.8\\
+			- $t$=35k & 57.8 & 65.4 & 79.3 & 91.2 & 69.0 & 63.0 & 65.0 & 72.0 & \better{28.5} & 52.7 & 88.5 & 91.8 & 68.0 & 42.0 & 23.0 & 96.2 & 50.0 & 63.8 & 40.2 & \better{32.4} & \better{17.7} & 56.1 & 64.2 & 44.8 & 28.0 & 55.4 & \better{54.2}\\
+   \hline
+   			- unbalanced (1.6B) & 56.6 & 61.9 & 76.9 & 90.0 & 67.6 & 50.8 & \better{65.8} & \better{77.0} & 19.9 & 51.0 & 83.1 & 91.5 & 64.5 & \better{58.2} & 37.0 & 95.1 & \better{55.2} & 58.2 & \better{41.4} & 32.2 & 15.1 & 51.0 & 59.2 & 42.6 & 17.2 & 55.6 & 52.6\\
+			- online balancing & \better{58.5} & \better{66.1} & \better{80.8} & 89.9 & 68.8 & \better{65.7} & 65.4 & 71.6 & 27.9 & \better{55.1} & 88.2 & \better{92.7} & 68.8 & 38.3 & \better{42.1} & \better{96.5} & 54.5 & \better{64.8} & 36.2 & 29.1 & 17.6 & \better{58.8} & 66.0 & \better{45.8} & 22.0 & 56.0 & 52.4\\
+		\end{tabular}
+	}
+	\caption{Ablation studies on balancing in MetaCLIP. Default: $t$=20k, 400M. Model: ViT-B/32. 
+	}
+	\vspace{-20pt}
+	\label{tbl:sampling}
+\end{table*}
+
+\section{Conclusion}
+In this paper, we attempt to reveal CLIP's data curation. Our MetaCLIP builds upon metadata for curation and balancing of raw data sourced from the web.
+Curating with metadata and balancing are essential for good data quality, significantly outperforming the use of raw data. 
+Our experiments show that MetaCLIP performs well for different scales sourced from CommonCrawl data and outperforms CLIP's proprietary data source, without reliance on any external model. We make our pipeline for generating the data publicly available.
+
+\subsubsection*{Acknowledgments}
+We thank Zeyuan Allen-Zhu, and Chunting Zhou for the insightful discussion and Brighid Meredith for suggestions on scaling the pipeline.
+
+\appendix
+
+\section{Appendix}
+
+
+\subsection{Additional Results}
+\label{sec:app_results}
+
+\begin{wrapfigure}{r}{0.6\textwidth}
+\centering
+\includegraphics[width=0.6\textwidth]{imgs/teaser2.pdf}
+\vspace{-15pt}
+\caption{ViT-B/32 on our Pool 1, Pool 2 and DataComp's unfiltered 12.8B pool. We show ImageNet zero-shot classification with a fixed 12.8B seen pair training budget. 
+MetaCLIP's curation is effective for all pools.
+However, with the same curation method, the unfiltered DataComp-12.8B pool lacks quality  (we suspect it is caused by implicit filters in the parser of DataComp).  }
+\vspace{-10pt}
+\label{fig:pool_datacomp}
+\end{wrapfigure}
+
+\paragraph{Curation from DataComp-12.8B.}
+The concurrent work \cite{gadre2023datacomp} released a collection of 12.8B image-text pairs from CommonCrawl from 2014-2022.
+We further investigate whether we can apply the algorithm on its 12.8 unfiltered pool. 
+Although the unfiltered pool seemingly offers an opportunity to apply our algorithm on a publicly available source, our initial studies show that, implicit biases may still be present in this pool. For example, we notice that all image URLs are collected as a string starting with \texttt{http}. This excludes relative URLs that could be frequently used by quality websites
+(with potentially good image-text pairs).
+We curate from DataComp's 12.8B unfiltered pool with $t$=60k, which has 6\% of tail counts that is the same as $t$=20k for 400M from our 1.6B pool. 
+
+ When using 1B image-text pairs curated from DataComp's pool we notice a quality drop during training, compared to data curated from our pools, see  Fig.~\ref{fig:pool_datacomp}. Our smaller 400M set is slightly better than using DataComp-1B and our larger sets (1B, 2.5B) are significantly better. 
+
+In Table \ref{tbl:zs_datacomp}, we show our 400M data vs our curated DataComp-1B data at various model scales, where the same observation holds, suggesting our raw data pool is more effective. 
+
+\begin{table*}[!htp]
+\vspace{-1.em}
+\centering
+\resizebox{1.0\linewidth}{!}{
+\tablestyle{1.5pt}{1.1}
+\begin{tabular}{l c | c c c c c c c c c c c c c c c c c c c c c c c c c c c}
+& \datatag{Average}
+& \datatag{ImageNet}
+& \datatag{Food-101} 
+& \datatag{CIFAR10} 
+& \datatag{CIFAR100} 
+& \datatag{CUB}
+& \datatag{SUN397}
+& \datatag{Cars}
+& \datatag{Aircraft}
+& \datatag{DTD}
+& \datatag{Pets}
+& \datatag{Caltech-101}
+& \datatag{Flowers}
+& \datatag{MNIST}
+& \datatag{FER-2013}
+& \datatag{STL-10}
+& \datatag{EuroSAT}
+& \datatag{RESISC45}
+& \datatag{GTSRB}
+& \datatag{KITTI}
+& \datatag{Country211}
+& \datatag{PCAM}
+& \datatag{UCF101}
+& \datatag{Kinetics700}
+& \datatag{CLEVR}
+& \datatag{HatefulMemes}
+& \datatag{SST2}\\
+			\shline
+			\rowcolor{lightgray} ViT-B/32 & & & & & & & & & & & & & & & & & & & & & & & & & & & \\
+			MetaCLIP (400M) & \better{58.2} & \better{65.5} & 80.6 & \better{91.3} & \better{70.2} & \better{63.4} & 63.0 & 70.7 & \better{26.8} & 52.8 & 88.7 & 91.9 & \better{68.5} & \better{41.5} & 35.9 & 95.4 & \better{52.6} & \better{64.2} & 35.8 & 30.7 & 17.2 & \better{55.5} & \better{66.1} & \better{45.4} & \better{30.6} & 56.4 & 53.4\\
+			MetaCLIP (1B,DataComp) & 57.5 & 65.4 & \better{81.5} & 88.7 & 68.5 & 59.4 & \better{64.7} & \better{76.6} & 18.1 & \better{57.5} & \better{89.9} & \better{92.4} & 67.3 & 40.7 & \better{38.2} & \better{96.5} & 41.2 & 62.3 & \better{43.4} & \better{35.1} & \better{17.6} & 53.5 & 61.5 & 44.8 & 19.2 & \better{57.0} & \better{54.3}\\
+			
+			\rowcolor{lightgray} ViT-B/16 & & & & & & & & & & & & & & & & & & & & & & & & & & & \\
+			\hline
+			MetaCLIP (400M) & 61.1 & \better{70.8} & 86.8 & 90.1 & 66.5 & \better{70.8} & 66.6 & 74.1 & \better{27.9} & 55.9 & 90.4 & \better{93.8} & \better{72.3} & 47.8 & \better{44.6} & 97.2 & \better{55.4} & \better{68.8} & 43.8 & 33.4 & \better{22.6} & \better{52.9} & 68.0 & \better{49.5} & \better{22.8} & 54.8 & \better{60.6}\\
+			
+			MetaCLIP (1B,DataComp) & \better{61.2} & 70.7 & \better{88.1} & \better{91.3} & \better{71.6} & 64.5 & \better{67.6} & \better{81.2} & 21.6 & \better{62.3} & \better{92.7} & 93.2 & 70.7 & \better{55.6} & 39.6 & \better{97.7} & 52.9 & 66.3 & \better{45.7} & \better{36.0} & 22.3 & 50.1 & \better{68.1} & 49.2 & 17.1 & \better{56.4} & 59.9\\
+			\rowcolor{lightgray} ViT-L/14 & & & & & & & & & & & & & & & & & & & & & & & & & & & \\
+			MetaCLIP (400M) & \better{67.1} & 76.2 & 90.7 & 95.5 & 77.4 & \better{75.9} & 70.5 & 84.7 & \better{40.4} & 62.0 & \better{93.7} & 94.4 & \better{76.4} & 61.7 & \better{46.5} & \better{99.3} & 59.7 & \better{71.9} & \better{47.5} & 29.9 & 30.9 & \better{70.1} & 75.5 & 57.1 & \better{35.1} & 56.6 & \better{65.6}\\
+			MetaCLIP (1B,DataComp) & 66.3 & \better{76.7} & \better{92.6} & \better{95.6} & \better{78.9} & 72.1 & \better{71.6} & \better{87.1} & 31.6 & \better{67.5} & 93.4 & \better{95.3} & 76.0 & \better{65.1} & 42.4 & 99.1 & \better{61.7} & 69.8 & 45.9 & \better{36.8} & \better{31.8} & 51.0 & \better{76.6} & \better{57.5} & 29.3 & \better{57.1} & 60.8\\
+		\end{tabular}
+	}
+	\caption{MetaCLIP curating our 400M data vs curating 1B data from DataComp-12.8B: The pool of DataComp leads to a quality drop with performance closer to our 400M set.  
+	}
+	\vspace{10pt}
+	\label{tbl:zs_datacomp}
+\end{table*}
+
+
+
+\paragraph{DataComp Benchmark}
+We also evaluate MetaCLIP on the benchmark used by \citep{gadre2023datacomp} that contains 38 tasks including variants of ImageNet, retrieval, VTAB, etc. For simplicity, we average the scores over each category. 
+
+Note that prompts and class names used by \citep{gadre2023datacomp} could be different from prompts and classnames used by OpenAI CLIP. 
+
+From Table \ref{tbl:clip_benchmark}, we can see that MetaCLIP outperforms CLIP and OpenCLIP across various model sizes.
+First, for the same data scale (400M), MetaCLIP outperforms OpenCLIP, which is better than CLIP on this benchmark, by +1.4\% for ViT-B/16 and +2.5\% for ViT-L/14, when comparing average accuracy across the 38 tasks. Second, for increasing our MetaCLIP data size to 1B we see a significant gain, especially for the larger model, from 62.2\% to 65.0\% average accuracy. Using our larger dataset with 2.5B and more head entries leads to a further gain to 65.5\%. 
+
+\begin{table*}
+\vspace{-1.em}
+\centering
+\resizebox{0.6\linewidth}{!}{
+\tablestyle{1.5pt}{1.1}
+\begin{tabular}{l c | c | c | c | c}			
+    \hline
+        & Avg. & IN & IN Dist. Shift & VTAB & Avg. Retrieval\\
+    \shline
+    \rowcolor{lightgray} ViT-B/32 & & & & & \\
+    CLIP (400M) & 51.5 & 63.4 & 48.2 & 50.5 & 48.0\\
+    OpenCLIP (407M) & 52.7 & 62.9 & 48.5 & 53.0 & 50.7\\
+    \hline    
+    MetaCLIP (400M) & 53.5 & 65.5 & 50.4 & 54.1 & 50.6\\
+        MetaCLIP (1B) & 54.2 & 67.3 & 51.9 & 53.6 & 51.1\\
+        MetaCLIP (2.5B) & \better{55.4} & \better{67.6} & \better{52.3} & \better{55.3} & \better{52.6}\\
+    \\
+    \rowcolor{lightgray} ViT-B/16 & & & & & \\
+    CLIP (400M) & 55.5 & 68.3 & 54.1 & 54.4 & 50.2 \\
+    OpenCLIP (407M) & 56.1 & 67.0 & 52.6 & 54.9 & 53.9\\
+    \hline
+    MetaCLIP (400M) & 57.5 & 70.8 & 55.5 & 56.7 & 53.9\\
+    MetaCLIP (1B) & 58.4 & \better{72.4} & 57.8 & 56.3 & \better{54.3}\\
+    MetaCLIP (2.5B) & \better{60.0} & 72.1 & \better{57.7} & \better{59.0} & 54.0\\
+    \\
+    \rowcolor{lightgray} ViT-L/14 & & & & &\\
+    CLIP (400M) & 61.4 & 75.5 & 61.6 & 59.5 & 53.6\\
+    OpenCLIP (407M) & 59.7 & 72.7 & 57.3 & 58.6 & 55.9\\
+    \hline
+    MetaCLIP (400M) & 62.2 & 76.2 & 61.3 & 59.8 & 57.3\\
+    MetaCLIP (1B) & 65.0 & 79.0 & 64.5 & 62.5 & 58.3\\
+    MetaCLIP (2.5B) & \better{65.6} & \better{79.2} & \better{64.6} & \better{64.1} & \better{60.1}\\\\
+    \rowcolor{lightgray} ViT-H/14 & & & & &\\
+    MetaCLIP (2.5B) & 66.5 & 80.5 & 66.1 & 64.6 & 60.4\\\\
+    \rowcolor{lightgray} ViT-bigG/14 & & & & &\\
+    MetaCLIP (2.5B) & 68.3 & 82.1 & 67.6 & 66.5 & 62.6\\
+\end{tabular}
+}
+\caption{Zero-shot classification and retrieval on tasks from \citep{gadre2023datacomp}.}
+\vspace{10pt}
+\label{tbl:clip_benchmark}
+\end{table*}
+
+We further detail the breakdown of each dataset in Table \ref{tbl:datacompfull} (please view in landscape orentation). 
+
+\begin{landscape}
+\begin{table}
+\vspace{-1.em}
+\centering
+\resizebox{1.0\linewidth}{!}{
+\tablestyle{1.5pt}{1.1}
+
+\begin{tabular}{l | c c c c c c | c c c c c c c c c c c c c | c c c | c c c c c c c c c c c c c c c c}
+ & \datatag{ImageNet 1k} & \datatag{ImageNet Sketch} & \datatag{ImageNet v2} & \datatag{ImageNet-A} & \datatag{ImageNet-O} & \datatag{ImageNet-R} & \datatag{Caltech-101} & \datatag{CIFAR-100} & \datatag{CLEVR Counts} & \datatag{CLEVR Distance} & \datatag{Describable Textures} & \datatag{EuroSAT} & \datatag{KITTI Vehicle Distance} & \datatag{Oxford Flowers-102} & \datatag{Oxford-IIIT Pet} & \datatag{RESISC45} & \datatag{SUN397} & \datatag{SVHN} & \datatag{Camelyon17} & \datatag{Flickr} & \datatag{MSCOCO} & \datatag{WinoGAViL} & \datatag{CIFAR-10} & \datatag{Country211} & \datatag{FGVC Aircraft} & \datatag{Food-101} & \datatag{GTSRB} & \datatag{MNIST} & \datatag{ObjectNet} & \datatag{Pascal VOC 2007} & \datatag{PatchCamelyon} & \datatag{Rendered SST2} & \datatag{Stanford Cars} & \datatag{STL-10} & \datatag{iWildCam} & \datatag{FMoW} & \datatag{Dollar Street} & \datatag{GeoDE}\\
+\hline
+& \multicolumn{6}{c|}{ImageNet Distribution Shift} & \multicolumn{13}{c|}{VTAB} & \multicolumn{3}{c|}{Retrieval} & \\
+\shline
+\rowcolor{lightgray} ViT-B/32 &  &  &  &  &  &  &  &  &  &  &  &  &  &  &  &  &  &  &  &  &  &  &  &  &  &  &  &  &  &  &  &  &  &  &  &  &  & \\
+CLIP (400M) & 63.3 & 42.3 & 56.0 & \better{31.5} & 47.8 & 69.4 & 87.6 & 64.2 & \better{23.3} & 23.4 & 44.3 & 50.5 & 27.4 & 66.6 & 87.0 & 53.6 & 62.5 & 14.9 & 51.6 & 68.8 & 40.3 & 34.9 & 89.8 & 17.2 & 19.5 & \better{84.0} & 32.5 & \better{48.3} & 44.3 & 76.4 & 62.2 & \better{58.6} & 59.6 & \better{97.1} & 6.7 & 13.3 & 53.9 & 82.2\\
+OpenCLIP (407M) & 62.9 & 49.4 & 55.1 & 21.7 & \better{53.5} & 73.4 & 91.2 & 70.3 & 16.2 & 23.9 & 54.6 & 51.5 & \better{28.8} & 66.2 & 86.7 & 54.5 & \better{67.0} & 30.4 & 47.1 & 70.2 & 43.9 & 38.0 & 90.7 & 14.7 & 16.6 & 80.9 & \better{42.0} & 37.5 & 43.9 & 75.8 & 55.9 & 52.3 & \better{79.3} & 95.6 & 7.4 & 13.0 & 54.9 & 83.8\\
+\hline
+MetaCLIP (400M) & 65.6 & 53.3 & 57.6 & 28.6 & 46.8 & 74.8 & 91.7 & 70.0 & 21.5 & \better{24.5} & 52.5 & \better{52.4} & 25.9 & 68.1 & 88.8 & 59.6 & 63.4 & 20.5 & \better{64.5} & 70.1 & 43.9 & 37.8 & 91.3 & 17.1 & 26.9 & 81.0 & 35.8 & 41.4 & 50.5 & 70.8 & \better{64.2} & 53.5 & 70.6 & 95.4 & 8.2 & 0.0 & 59.7 & 85.4\\
+MetaCLIP (1B) & 67.3 & 55.3 & 59.2 & 29.7 & 48.2 & 76.1 & \better{93.7} & 76.5 & 15.7 & 22.5 & \better{59.1} & 48.0 & 20.5 & \better{72.7} & 89.5 & \better{61.6} & 66.3 & 21.7 & 49.4 & 72.6 & 45.1 & 35.6 & \better{95.2} & 16.9 & \better{31.0} & 82.6 & 40.7 & 35.6 & 49.4 & \better{79.0} & 50.0 & 57.1 & 73.0 & 96.3 & 8.4 & 14.8 & 58.9 & 86.0\\
+MetaCLIP (2.5B) & \better{67.7} & \better{56.0} & \better{59.6} & 29.9 & 48.3 & \better{78.1} & 92.9 & \better{77.7} & 18.7 & 23.1 & 58.8 & 49.9 & 18.7 & 69.4 & \better{90.9} & 61.2 & 66.9 & \better{34.3} & 56.6 & \better{72.9} & \better{46.6} & \better{38.2} & 95.2 & \better{17.7} & 27.1 & 83.1 & 39.3 & 42.6 & \better{52.8} & 76.5 & 56.0 & 53.2 & 77.3 & 96.3 & \better{9.2} & \better{15.9} & \better{60.5} & \better{86.1}\\
+\\
+\rowcolor{lightgray} ViT-B/16 &  &  &  &  &  &  &  &  &  &  &  &  &  &  &  &  &  &  &  &  &  &  &  &  &  &  &  &  &  &  &  &  &  &  &  &  &  & \\
+CLIP (400M) & 68.3 & 48.3 & 61.9 & \better{49.9} & 42.3 & 77.7 & 89.0 & 66.9 & 21.2 & 22.3 & 44.9 & \better{56.0} & \better{26.3} & 69.1 & 88.9 & 58.2 & 64.4 & \better{40.2} & 60.2 & 72.2 & 42.8 & 35.7 & 90.8 & \better{22.8} & 24.3 & 88.7 & 43.3 & 51.3 & 55.3 & 78.3 & 50.7 & 60.5 & 64.7 & 98.3 & 11.1 & 16.7 & 58.8 & 86.1\\
+OpenCLIP (407M) & 67.0 & 52.4 & 59.7 & 33.2 & \better{50.6} & 77.9 & 91.3 & 71.2 & 28.7 & \better{24.5} & 51.3 & 50.2 & 18.1 & 66.9 & 89.2 & 58.5 & \better{69.6} & 34.1 & 59.9 & 74.5 & 46.9 & \better{40.2} & 91.7 & 18.1 & 17.7 & 86.1 & 43.4 & \better{66.2} & 51.5 & 76.8 & 59.6 & 54.4 & \better{83.7} & 97.0 & 10.3 & 15.5 & 59.3 & 85.3\\
+\hline
+MetaCLIP (400M) & 70.8 & 57.9 & 62.6 & 47.0 & 39.2 & 81.8 & 93.4 & 66.5 & \better{30.1} & 22.4 & 55.7 & 55.7 & 24.2 & 72.3 & 90.4 & 66.1 & 66.8 & 25.2 & 67.7 & 76.7 & 48.2 & 36.9 & 90.1 & 22.6 & 28.4 & 87.2 & 43.7 & 47.8 & 59.1 & 72.2 & 61.9 & 60.5 & 74.2 & 97.2 & 11.2 & \better{19.9} & 60.6 & \better{88.9}\\
+MetaCLIP (1B) & \better{72.4} & \better{60.5} & \better{65.1} & 49.2 & 41.9 & 82.7 & \better{93.5} & 77.9 & 19.3 & 24.4 & 58.2 & 47.6 & 24.6 & \better{74.8} & \better{92.1} & 65.1 & 66.8 & 27.8 & 60.1 & 77.1 & 48.9 & 36.8 & 94.8 & 21.6 & \better{38.1} & 88.3 & \better{49.5} & 36.3 & 60.0 & \better{79.2} & \better{65.7} & \better{61.3} & 79.0 & 98.0 & \better{13.2} & 15.8 & 63.3 & 87.9\\
+MetaCLIP (2.5B) & 72.1 & 60.2 & 65.0 & 49.5 & 41.5 & \better{84.2} & 93.3 & \better{78.9} & 29.0 & 22.6 & \better{62.2} & 52.7 & 18.4 & 73.5 & 91.7 & \better{67.4} & 68.8 & 39.1 & \better{69.8} & \better{78.1} & \better{50.4} & 33.5 & \better{95.7} & 22.7 & 30.5 & \better{88.8} & 46.5 & 66.1 & \better{61.4} & 78.2 & 59.2 & 59.1 & 83.0 & \better{98.4} & 12.3 & 19.4 & \better{64.0} & 88.7\\
+\\
+\rowcolor{lightgray} ViT-L/14 &  &  &  &  &  &  &  &  &  &  &  &  &  &  &  &  &  &  &  &  &  &  &  &  &  &  &  &  &  &  &  &  &  &  &  &  &  & \\
+CLIP (400M) & 75.6 & 59.6 & 69.8 & 70.7 & 32.3 & 87.9 & 92.5 & 75.8 & 19.5 & 20.2 & 55.3 & 62.6 & 21.8 & 79.2 & 93.2 & 63.3 & 67.6 & \better{52.8} & 69.6 & 75.1 & 46.4 & 39.2 & 95.6 & 31.9 & 31.7 & 93.1 & 50.6 & \better{76.3} & 68.9 & 78.3 & 52.0 & \better{68.9} & 77.9 & \better{99.4} & 12.3 & 15.2 & 63.0 & 88.4\\
+OpenCLIP (407M) & 72.8 & 59.6 & 65.4 & 46.5 & \better{41.9} & 84.7 & 92.6 & 77.4 & 24.3 & 24.5 & 60.5 & 62.3 & 20.1 & 73.1 & 91.7 & 67.4 & 72.6 & 49.5 & 45.5 & 78.9 & 51.3 & 37.4 & 94.6 & 23.0 & 24.9 & 90.1 & 49.9 & 76.1 & 59.7 & 75.6 & 49.7 & 56.0 & \better{89.6} & 98.1 & 12.5 & 17.0 & 61.7 & 88.4\\
+\hline
+MetaCLIP (400M) & 76.2 & 65.0 & 69.8 & 66.4 & 28.9 & 88.9 & 94.6 & 77.3 & 22.7 & \better{25.1} & 62.4 & 60.4 & 24.2 & 76.5 & 93.8 & 68.5 & 70.8 & 32.4 & 69.2 & 79.8 & 51.9 & 40.2 & 95.5 & 30.9 & 39.8 & 90.7 & 47.5 & 61.8 & 69.2 & 74.4 & 70.3 & 65.6 & 84.8 & 99.3 & 14.1 & 18.7 & 67.3 & 89.3\\
+MetaCLIP (1B) & 79.0 & 68.9 & 72.5 & 70.4 & 31.6 & 91.0 & 58.4 & \better{84.6} & 15.8 & 22.5 & 65.8 & \better{68.3} & 23.2 & \better{83.8} & \better{95.2} & 68.0 & 72.9 & 38.0 & \better{79.1} & 82.2 & 54.2 & 38.6 & 96.8 & 32.2 & \better{49.6} & 93.1 & \better{58.6} & 53.9 & 73.9 & \better{80.9} & \better{73.1} & 66.0 & 86.6 & 99.3 & \better{16.2} & \better{28.1} & \better{69.4} & 91.1\\
+MetaCLIP (2.5B) & \better{79.2} & \better{68.9} & \better{72.6} & \better{72.3} & 30.1 & \better{92.0} & \better{95.3} & 84.1 & \better{31.0} & 22.6 & \better{68.6} & 59.0 & \better{27.9} & 81.4 & 94.6 & \better{73.6} & \better{73.6} & 46.8 & 75.5 & \better{83.3} & \better{55.7} & \better{41.4} & \better{97.6} & \better{33.9} & 45.3 & \better{93.5} & 56.3 & 64.4 & \better{74.6} & 80.3 & 62.0 & 66.8 & 88.8 & 99.3 & 15.8 & 25.9 & 67.4 & \better{91.4}\\
+\\
+\rowcolor{lightgray} ViT-H/14 &  &  &  &  &  &  &  &  &  &  &  &  &  &  &  &  &  &  &  &  &  &  &  &  &  &  &  &  &  &  &  &  &  &  &  &  &  & \\
+MetaCLIP (2.5B) & 80.5 & 70.5 & 74.1 & 75.4 & 30.2 & 93.4 & 95.3 & 86.4 & 21.1 & 18.8 & 72.7 & 64.5 & 27.7 & 84.5 & 95.6 & 70.3 & 74.4 & 62.8 & 66.2 & 85.0 & 57.5 & 38.8 & 98.1 & 37.2 & 51.0 & 94.2 & 62.6 & 72.7 & 76.5 & 75.0 & 62.3 & 69.1 & 89.9 & 99.4 & 17.3 & 15.6 & 68.1 & 90.7\\
+\\
+\rowcolor{lightgray} ViT-bigG/14 &  &  &  &  &  &  &  &  &  &  &  &  &  &  &  &  &  &  &  &  &  &  &  &  &  &  &  &  &  &  &  &  &  &  &  &  &  & \\
+MetaCLIP (2.5B) & 82.1 & 72.8 & 76.0 & 78.4 & 28.9 & 94.1 & 95.7 & 88.3 & 17.0 & 20.3 & 72.1 & 72.8 & 26.7 & 89.1 & 96.2 & 74.0 & 75.1 & 60.4 & 76.1 & 85.4 & 58.1 & 44.4 & 98.5 & 41.5 & 52.7 & 94.8 & 61.7 & 78.1 & 77.2 & 74.7 & 75.8 & 65.3 & 90.8 & 99.5 & 18.3 & 18.5 & 70.2 & 92.5\\
+\end{tabular}
+}
+\caption{
+    {\color{black}Zero-shot evaluation of Table \ref{tbl:clip_benchmark} broken down by datasets.}
+}
+\vspace{10pt}
+\label{tbl:datacompfull}
+\end{table}
+\end{landscape}
+
+\subsection{Details on Efficient Curation}
+\label{sec:case}
+\paragraph{Curation in Data Pipeline.}
+
+{\color{black}
+Our data collection pipeline contains 5 major components: HTML parsing/Language-Identification, URLs \& Text deduplication, Image Download, NSFW image filter \& deduplication and packaging, which are described next. 
+
+Our HTML Parser is applied to all WAT files of CommonCrawl by keeping all \texttt{<img>} tags with both relative and absolute URLs and one or multiple text keys. 
+
+Language-Identification(LID): we use an internal language identification system that can detect 191 languages with different dialects and keep all texts that are tagged as English (or its dialects). 
+
+URLs / Text deduplication: We use 24bit sha224 hashing to encode an URL and into tables to deduplicate columns with the same hash, avoiding downloading the same image URL multiple times. URLs with illegal domains are removed; if there are multiple texts associated with the same image, these are further deduplicated; texts with NSFW keywords are removed; 
+
+NSFW filter: We use an internal system that can classify inappropriate content in images into 96 types of dangerous content and discard such image/text pairs. Images are further deduplicated by 64-bit PCA hash, derived from a similarity search model's feature embeddings with PCA reduction to 64 dimensions and sign quantization.
+}
+
+Our curation algorithm does not require access to images, making it suitable for integration into a pipeline to reduce the scale of data points after parsing and before image downloading. We designed the algorithm to be modular, allowing different parts to be placed at different stages in the pipeline, as shown in Figure \ref{fig:pipeline}. 
+
+Specifically, sub-string matching can be placed immediately after HTML parsing to reduce data points for English-only pairs (e.g.~by $\sim$50\%). Balancing can be applied earlier, before image downloading, to further reduce data points by  $\sim$77\%. This approach led to a total reduction of  $\sim$90\%, allowing for curation of the entire CommonCrawl data \textit{without} the need to store and transfer all data points, which allows us to curate the whole CommonCrawl since 2013 with 300B+ scale URL-text pairs without spending the storage/transfer on all $\sim$10$\times$ data points, where the rate of keeping a data point with MetaCLIP curation is $\sim$0.1 (0.5 $\times$ 0.23).
+
+
+\begin{figure}[h]
+	\centering
+	\includegraphics[width=0.8\linewidth]{imgs/pipeline.pdf}
+	\caption{Case study: Curation implementation in our data pipeline.}
+	\label{fig:pipeline}
+	\vspace{-3pt}
+\end{figure}
+
+\paragraph{Curation in Data Loading}
+We applied the balancing/sampling part of the algorithm to the data loader to adjust data distribution on-the-fly. Although data points for tail entries are always sampled in Algorithm \ref{alg:code}, the diverse pairs from the head entries are sub-sampled from a larger pool while maintaining a similar distribution as offline curation. This diversification of pairs that match the head entries improved the performance, as shown in Table \ref{tbl:sampling}.
+
+
+
+\subsection{Human Study on the Effects of Curation}
+\label{sec:curation_analysis}
+In this section, we study the impact of MetaCLIP curation on data distribution by using human evaluation. We approach this exploration from three distinct angles: noise reduction, alignment of visual content, and task-agnostic attributes. In the pursuit of comprehending the first two aspects, we undertake a human study aimed at comprehending the data quality implications of implementing the balancing technique (outlined in Part 2 of Algorithm \ref{alg:code}). This evaluation encompasses three dimensions: image-only, text-only, and image-text alignment. We collect an evaluation set of 100 random image-text pairs for balanced and unbalanced data, respectively, and ask annotators to score on the image, text, and pair quality metrics, separately, on a scale of 1 to 5. 
+
+\paragraph{Annotation Guidelines.}
+Annotators follow guidelines to assess both images and texts, evaluating informativeness (how well information is conveyed) and aesthetics. For images, aesthetics considers visual elements like composition, color, lighting, balance, contrast, texture, and subject matter. For texts, aesthetics gauges factors like delimiters, sentence structure, capitalization, prefixes/suffixes, recognized words, generic words, and overall text quality. The alignment metric for image-text pairs measures the relevance between the two modalities, assessing how well the text describes the image content. Ratings are averaged across annotators for each dimension.
+
+We show the study results in Table~\ref{tab:human_evaluation} and discuss the different criteria next. 
+
+\begin{table}[!htbp]
+	\centering
+	\begin{tabular}{cccc}
+		\toprule
+		Evaluation Dimension & Rating for Balanced Data &  Rating for Unbalanced Data & P-value \\
+		\midrule
+		Image & $4.60$, $[4.50, 4.70]$  & $4.36$, $[4.23, 4.48]$ & $<0.001$ \\
+		\midrule
+		Text & $4.67$, $[4.56, 4.78]$ & $4.06$, $[3.82, 4.30]$ & $<0.001$ \\
+		\midrule
+		Alignment & $4.41$, $[4.23, 4.59]$ & $3.72$, $[3.46, 3.99]$ & $<0.001$ \\
+		\bottomrule
+	\end{tabular}
+	\vspace{-5pt}
+	\caption{Average human rating on the effect of balancing on data quality, with confidence intervals shown in parentheses. Higher rating is better. Balanced data is rated of higher quality.  }
+	\label{tab:human_evaluation}
+ \vspace{-10pt}
+\end{table}
+
+\paragraph{Noise Mitigation in Image and Text.}
+As shown in Table~\ref{tab:human_evaluation}, significant quality improvement for all the three evaluation dimensions is observed after applying  balancing. 
+MetaCLIP curation has no specific hard filters such as removing shorter text, removing dates, etc. However, curation by sub-string matching and balancing has a different filtering effect. For example, a sub-string itself can never curate a date-only text.
+Further, balancing allows signal and noise to co-exist when they are difficult to be separated by human designed filters.
+For example, if one entry such as ``image'' or ``photo'' is capped to $t=20k$, it can only contribute 0.005\% of 400M data.
+
+\paragraph{Visual Content Alignment.}
+Although MetaCLIP curation does not directly involve images,
+it has a positive effect on aligning visual content by controlling the quality and distribution of text.
+First, sub-string matching increases the chance of having (visual) entities mentioned in the text, thereby improving the likelihood of finding corresponding visual content. Second, balancing favors long-tailed entries that could have more diverse visual content than a head entry (such as the text ``1'').
+In Table~\ref{tab:human_evaluation}, we observe significant improvement on pair quality from unbalanced data to balanced data. 
+
+{\color{black}
+\subsection{Measuring Task-Alignment}
+With metadata, one can measure the alignment of pre-training data distribution with the data distribution in downstream tasks. First we can do a simple measure of counting the number of metadata substring matches that are directly corresponding to class names in the downstream tasks. In the first row of Table \ref{tbl:task_agnosity}, we show the accuracy of MetaCLIP (400M), ViT-L (\textit{cf.~}Table\ref{tbl:zs}) for reference. The second row shows the number of classes that are present in the metadata, for each downstream dataset. For example, for ImageNet 703 of the 998 unique class names are present in the metadata. Interestingly, there seems to be a correlation with the accuracy and the number of classes matched in the metadata.  
+
+\begin{table*}[!htp]
+\vspace{-1.em}
+\centering
+\resizebox{1.0\linewidth}{!}{
+\tablestyle{1.5pt}{1.1}
+\begin{tabular}{l | c c c c c c c c c c c c c c c c c c c c c c c c c c c}
+& \datatag{ImageNet}
+& \datatag{Food-101} 
+& \datatag{CIFAR10} 
+& \datatag{CIFAR100} 
+& \datatag{CUB}
+& \datatag{SUN397}
+& \datatag{Cars}
+& \datatag{Aircraft}
+& \datatag{DTD}
+& \datatag{Pets}
+& \datatag{Caltech-101}
+& \datatag{Flowers}
+& \datatag{MNIST}
+& \datatag{FER-2013}
+& \datatag{STL-10}
+& \datatag{EuroSAT}
+& \datatag{RESISC45}
+& \datatag{GTSRB}
+& \datatag{KITTI}
+& \datatag{Country211}
+& \datatag{PCAM}
+& \datatag{UCF101}
+& \datatag{Kinetics700}
+& \datatag{CLEVR}
+& \datatag{HatefulMemes}
+& \datatag{SST2}\\
+\shline
+
+{MetaCLIP (400M)} ViT-L &  {76.2} & 90.7 & 95.5 & 77.4 & {75.9} & 70.5 & 84.7 & {40.4} & {62.0} & {93.7} & {94.4} & 76.4 & 61.7 & 46.5 & 99.3 & 59.7 & {71.9} & 47.5 & {29.9} & 30.9 & {70.1} & 75.5 & 57.1 & {35.1} & 56.6 & 65.6\\
+\hline
+\# of cls. w/ non-zero counts & 703/998 & 52/101 & 10/10 & 93/100 & 1/200 & 193/397 & 0/196 & 8/100 & 40/47 & 15/37 & 86/102 & 61/102 & 10/10 & 12/12 & 10/10 & 2/10 & 32/45 & 1/43 & 0/4 & 190/211 & 1/2 & 5/101 & 122/700 & 8/8 & 1/2 & 2/2\\
+
+KL-divergence & \\
+- unbal. & 6.8 & 9.4 & 7.5 & 6.1 & 11.4 & 6.7 & 0.0 & 12.0 & 9.7 & 11.7 & 7.7 & 10.6 & 3.4 & 8.9 & 7.1 & 8.4 & 7.6 & 9.3 & 0.0 & 5.7 & 14.6 & 8.9 & 8.9 & 3.8 & 9.2 & 9.8\\
+- bal. & 5.1 & 7.4 & 8.1 & 6.0 & 10.4 & 6.0 & 0.0 & 10.1 & 8.0 & 9.7 & 7.1 & 8.6 & 8.1 & 8.3 & 8.1 & 9.7 & 7.2 & 10.4 & 0.0 & 5.2 & 12.5 & 8.8 & 7.1 & 8.3 & 10.4 & 9.7 \\
+
+\hline
+\end{tabular}
+}
+    \caption{{\color{black}Measuring task-alignment. First row: MetaCLIP (400M) ViT-L/14 accuracy, second row: number of classes matched in metadata, Third and fourth row: We use KL-divergence (lower is better) to measure the similarity between pre-training distribution and benchmark task distribution. Note that, for ImageNet, two classes have duplicated class names and therefore there are only 998 unique classes (out of 1000).}}
+\vspace{10pt}
+\label{tbl:task_agnosity}
+\end{table*}
+
+Next, we use KL-divergence to measure alignment:
+\begin{equation}
+D_\text{KL}(T||P) = -\sum_{m\in\mathcal{M}}T(m)\log\big(\frac{P(m)}{T(m)}\big),
+\end{equation}
+where $T(m)$ represents the task distribution over $\mathcal{M}$ and $P(m)$ represents the pre-training data distribution. We compute $T(m)$ using the benchmark data distribution over class labels of a task. 
+Taking ImageNet as an example from Table \ref{tbl:task_agnosity}, $T(m)$ ImageNet has 998 entries uniformly distributed (each has evenly 50 examples) and $P(m)$ has normalized counts over all 500k entries but only 703 entries used to compute KL-divergence.
+In the third and fourth row of Table \ref{tbl:task_agnosity}, we can see improvements for balanced data points over unbalanced ones for each task, showing balancing improves similarity with most tasks.
+
+}
+
+\subsection{Training Setup of OpenAI CLIP vs OpenCLIP}
+\label{sec:openclip}
+Our work strictly follows CLIP's setup for a controlled comparison focusing on data curation and quality. We notice differences in the training setup of OpenCLIP\footnote{\url{https://github.com/mlfoundations/open_clip}} and list the difference (known to us). OpenCLIP varies the setup from CLIP (e.g., global batch size, learning schedule, etc.). Here we only list the difference for LAION-400M\citep{schuhmann2021laion}, which is closer to the CLIP setup. We note that DataComp differs even more, e.g., by curating images close to ImageNet training data, a large batch size of 90k that is almost 3$\times$ larger than CLIP, and using the CLIP model to filter data.
+
+\begin{table}[t]\centering
+	\scalebox{0.8}{
+		\setlength\tabcolsep{3.0pt}
+		\begin{tabular}{l|c | c | c}
+			Hyperparameter & OpenAI CLIP / MetaCLIP & OpenCLIP & DataComp\\ 
+			\toprule 
+			Activation Function & QuickGELU & GELU & GELU\\
+			Seen Pairs & 12.8B(400M$\times$32 epochs) & 13B (407M$\times$32 epochs) & 12.8B \\
+			Batch Size & 32768 & 32768 (B/32), 33792 (B/16), 38400 (L/14) & 90112 (L/14)\\
+			Learning Rate & 5.0e-4(B/32,B/16), 4.0e-4(L/14) & 5.0e-4(B/32) & 1e-3(L/14)\\
+			Warm-up & 2k & 2k (B/32) & 10k (L/14)\\
+			\hline
+		\end{tabular}
+	}
+	\caption{Hyperparameters of OpenAI CLIP vs OpenCLIP on LAION-400M\citep{schuhmann2021laion} and DataComp 1B.}
+	\label{tbl:hp}
+\end{table}
+
+\subsection{Benchmark Deduplication}
+Our pools are deduplicated from the benchmark/ImageNet data using a 64-bit PCA hash, derived from a similarity search model's feature embeddings with PCA reduction to 64 dimensions and sign quantization. DataComp-12.8B is already deduplicated.
+
+\subsection{Negative Results Learned from Ablating CLIP Curation}
+We briefly describe a few ideas close to CLIP curation that did not look promising in our initial attempts and were abandoned:
+\begin{enumerate}
+	\item \textbf{Self-curated Metadata}. We initially attempted to build metadata directly from the text in raw image-text pairs (i.e., using terms appearing in text above a certain threshold of counts). 
+	We rank entries by count and keep the top 500,000. Metadata built this way appeared worse.  We notice that although the top frequent entries are similar to CLIP's metadata, the long-tailed part is very different. For example, the minimal count to be in the 500,000 budget needs at least 130 counts. In contrast, our metadata has 114K entries that have no matches.
+	This approach results in worse quality metadata including low-quality spelling/writing (instead of high-quality entries from WordNet or Wikipedia). Further, the effect of balancing saturates earlier for such data (in a larger $t$, verified by CLIP training) since low-quality entries are also heavily in long-tail.
+	\item \textbf{Cased WordNet}. We also notice many cased words are missing from metadata (e.g., WordNet is in lowercase). After adding cased WordNet into metadata, we notice a performance drop on ImageNet.
+	The reason could be class names are more likely in lower case and upper case entry matching may reduce the written quality of texts.
+	\item \textbf{Stopwords/Useless Entries Removal}
+	We further study the effect of whether removing stopwords and useless words such as ``photo'' and ``image'' is beneficial. This led to almost no difference since balancing entries reduced the effects of useless entries (each entry contributes to 0.0002\% (1/500k) level of the total data points). To encourage a simplified solution, we do not intend to add more artificial filters. 
+ 
+\end{enumerate}
+
+{\color{black} \subsection{More Details on Distribution on MetaData}
+Extending the top-20 matches in Table \ref{tbl:match}, we further group counts of metadata entries and show 5 examples per group as in Table \ref{tbl:metadata_historgram}.}
+
+\begin{table}[!ht]
+\centering
+\scalebox{1.0}{\begin{tabular}{l | l}
+
+{\color{black} Group} & {\color{black} 5 Examples (Entry:Count)} \\
+\hline
+{\color{black}0-10k} & {\color{black}ivailo:12, Kunta Kinte:201, vikernes:33, peria:50, ankoku:20}\\
+{\color{black}10k-20k} & {\color{black}queer:19k, barry:10k, bandages:12k, The Police:15k, sigma:14k}\\
+{\color{black}20k-50k} & {\color{black}polygonal:21k, widely:28k, however:35k, toppers:25k, executives:21k}\\
+{\color{black}50k-100k} & {\color{black}planted:52k, olive oil:58k, yours:63k, packages:82k, Spokane:53k}\\
+{\color{black}100k-500k} & {\color{black}compact:133k, vertical:222k, underwear:111k, powder:323k, weekly:130k}\\
+{\color{black}500k-1M} & {\color{black}Tokyo:713k, Lead:620k, Diagram:809k, Dye:858k, unnamed:512k}\\
+{\color{black}1M-50M} & {\color{black}see:1.4M, Door:3.2M, News:2.3M, sea:1.1M, street:1M}\\
+{\color{black}50M-130M} & {\color{black}with:67M, and:100M, to:61M, in:107M, of:121M}\\
+\hline
+\end{tabular}}
+\caption{{\color{black}Distribution of metadata entries with counts, similar as head shown in Table \ref{tbl:match}.}}
+\label{tbl:metadata_historgram}
+\end{table}
+
+{\color{black} \subsection{Randomness of Algorithm 1}
+We further study the randomness of algorithm 1 by running it 3 times for Pool 1(400M) and Pool 2(2.5B). This ended with a standard deviation of 4035 examples for Pool 1 and 
+2104 examples for Pool 2, respectively.
+
+\subsection{Qualitative Data Examples}
+\label{sec:example}
+In Table \ref{tbl:gallery_other}, we illustrate data before/after sub-string matching and balancing. We also highlight class labels from ImageNet in the table.
+We mark a matched entry with a bigger font size indicating higher probability of sampling that entry. Intuitively, sub-string matching removes low quality text and balancing favors longer text with long-tail entities to improve data quality.
+In Table \ref{tbl:gallery_tail}, we show more examples of matched text that include ImageNet tail entries.
+
+\include{demo_table}
+
+\bibliography{iclr2024_conference}
+\bibliographystyle{iclr2024_conference}
+
+
+\end{document}

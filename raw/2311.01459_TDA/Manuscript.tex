@@ -1,0 +1,499 @@
+\documentclass[a4paper]{article}
+
+
+% if you need to pass options to natbib, use, e.g.:
+\PassOptionsToPackage{numbers, compress}{natbib}
+% before loading neurips_2022
+
+
+\newcommand{\jh}[1]{{\color{blue}JH: #1}}
+\newcommand{\noor}[1]{{\color{magenta}Noor: #1}}
+\newcommand{\hanan}[1]{{\color{olive}Hanan: #1}}
+
+\usepackage{pifont}%
+\newcommand{\xmark}{\ding{55}}%
+
+% ready for submission
+\usepackage[final]{neurips_2023}
+\usepackage{amssymb}
+
+% to compile a preprint version, e.g., for submission to arXiv, add add the
+% [preprint] option:
+%     \usepackage[preprint]{neurips_2022}
+
+
+% to compile a camera-ready version, add the [final] option, e.g.:
+%     \usepackage[final]{neurips_2022}
+
+
+% to avoid loading the natbib package, add option nonatbib:
+%    \usepackage[nonatbib]{neurips_2022}
+
+
+\usepackage[utf8]{inputenc} % allow utf-8 input
+\usepackage[T1]{fontenc}    % use 8-bit T1 fonts
+% \usepackage{hyperref}       % hyperlinks
+\usepackage{url}            % simple URL typesetting
+\usepackage{booktabs}       % professional-quality tables
+\usepackage{amsfonts}       % blackboard math symbols
+\usepackage{nicefrac}       % compact symbols for 1/2, etc.
+\usepackage{microtype}      % microtypography
+\usepackage[dvipsnames]{xcolor}         % colors
+
+%%% From ICCV SRC
+
+\usepackage{times}
+\usepackage{epsfig}
+\usepackage{graphicx}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{bm}
+% Include other packages here, before hyperref.
+\usepackage{wrapfig}
+% Include other packages here, before hyperref.
+% Include other packages here, before hyperref.
+\usepackage{graphicx}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{booktabs}
+% \usepackage[dvipsnames]{xcolor}
+\usepackage{color, colortbl}
+% \usepackage{xcolor}
+\newcommand{\tableCellHeight}{1}
+\newcommand{\tabstyle}[1]{
+  \setlength{\tabcolsep}{#1}
+  \renewcommand{\arraystretch}{\tableCellHeight}
+  \centering
+  \small
+}
+\usepackage{sidecap}
+\newcommand{\tablestyle}[2]{\setlength{\tabcolsep}{#1}\renewcommand{\arraystretch}{#2}\centering\footnotesize}
+\usepackage{float}
+\definecolor{purple}{RGB}{230, 227, 254}
+\definecolor{lightgreen}{RGB}{238, 252, 241}
+\definecolor{lightred}{RGB}{231, 187, 187}
+\definecolor{darkred}{RGB}{198, 129, 129}
+\newcommand{\tp}[1]{\colorbox{lavender}{#1}}
+\definecolor{tabhighlight}{HTML}{e5e5e5}
+\definecolor{tabhighlight2}{HTML}{e8e8e8}
+
+\newcommand{\romannum}[1]{\romannumeral #1} % roman numbering
+\newcommand{\rotbox}[1]{\rotatebox{55}{#1}}
+\usepackage{graphicx, amsmath, amssymb, caption, subcaption, multirow, overpic}
+\newcommand{\hgreen}[1]{\textcolor{ForestGreen}{\textbf{#1}}} % highlight color
+\newcommand{\hblue}[1]{\textcolor{NavyBlue}{\textbf{#1}}} % highlight color
+\newcommand{\cavan}[1]{{\color{blue}(cavan: {#1})}} % cavan's comments
+\newcommand{\ky}[1]{{\color{red}(ky: {#1})}} % ky's comments
+\definecolor{tabhighlight}{HTML}{e5e5e5}
+\definecolor{citecolor}{HTML}{0071bc}
+\definecolor{trainglePurple}{HTML}{D383E0}
+
+\def\etal{\emph{et al.}\xspace}
+\def\ie{\emph{i.e.}\xspace}
+\def\eg{\emph{e.g.}\xspace}
+\renewcommand*\ttdefault{cmvtt}
+\newcommand{\txt}[1]{{\texttt{#1}}}
+
+% If you comment hyperref and then uncomment it, you should delete
+% egpaper.aux before re-running latex.  (Or just hit 'q' on the first latex
+% run, let it finish, and you should be clear).
+\usepackage[breaklinks=true,bookmarks=false]{hyperref}
+%%%%%%%%
+\usepackage{multibib}
+\newcites{supp}{Supplementary References}
+% \title{Prompt learning through self-supervised learning for better generalization}
+\title{Align Your Prompts: Test-Time Prompting with Distribution Alignment for Zero-Shot Generalization}
+
+
+% The \author macro works with any number of authors. There are two commands
+% used to separate the names and addresses of multiple authors: \And and \AND.
+%
+% Using \And between authors leaves it to LaTeX to determine where to break the
+% lines. Using \AND forces a line break at that point. So, if LaTeX puts 3 of 4
+% authors names on the first line, and the last on the second line, try using
+% \AND instead of \And before the third author name.
+
+\author{%
+Jameel Hassan$^{1*}$ \quad Hanan Gani$^{1*}$ \quad Noor Hussein$^1$ \quad Muhammad Uzair Khattak$^1$ \\ \textbf{Muzammal Naseer}$^1$ \quad \textbf{Fahad Shahbaz Khan}$^{1,2}$ \quad 
+\textbf{Salman Khan}$^{1,3}$ \\
+$^1$Mohamed Bin Zayed University of AI
+\quad $^2$Link{\"o}ping University
+\quad $^3$Australian National University \\
+\texttt{\{jameel.hassan, hanan.ghani, noor.hussein, uzair.khattak}\\
+\texttt{muzammal.naseer, fahad.khan, salman.khan\} @mbzuai.ac.ae}\\
+}
+
+
+\begin{document}
+
+\maketitle
+\def\thefootnote{*}\footnotetext{Equal contribution}
+
+\begin{abstract}
+     The promising zero-shot generalization of vision-language models such as CLIP has led to their adoption using prompt learning for numerous downstream tasks. Previous works have shown test-time prompt tuning using entropy minimization to adapt text prompts for unseen domains. While effective, this overlooks the key cause for performance degradation to unseen domains -- distribution shift. In this work, we explicitly handle this problem by aligning the out-of-distribution (OOD) test sample statistics to those of the source data using prompt tuning. We use a single test sample to adapt multi-modal prompts at test time by minimizing the feature distribution shift to bridge the gap in the test domain. Evaluating against the domain generalization benchmark, our method improves zero-shot top-1 accuracy beyond existing prompt-learning techniques, with a $3.08\%$ improvement over the baseline MaPLe. In cross-dataset generalization with unseen categories across 10 datasets, our method improves consistently across all datasets compared to the existing state-of-the-art. Our source code and models
+     are available at \href{https://jameelhassan.github.io/promptalign/}{https://jameelhassan.github.io/promptalign/}.
+\end{abstract}
+
+\section{Introduction}
+
+% \jh{add comments like this as it might be easier. e.g. \textbackslash noor\{\}, \textbackslash hanan\{\}}
+
+Deep neural networks (DNNs) have outperformed humans in numerous visual recognition tasks \cite{he2015delving, esteva2017dermatologist}. 
+%However, this impressive performance is strongly attributed to the test data originating from the same distribution as the training data. 
+However, their impressive performance generally holds in the case when test data originate from the same distribution as the training data. 
+In most real-world applications, the train and test data distributions can significantly differ 
+%this does not hold or is a challenging constraint to meet 
+due to factors such as natural variations or changes in sensing equipment. The sensitivity of models to such unseen distributional shifts during inference results in their performance degradation \cite{hendrycks2019benchmarking, recht2019imagenet, quinonero2008dataset}. A plethora of previous works \cite{sun2020test, wang2022continual, wang2020tent} have explored test-time adaptation as a mechanism to overcome the crucial problem of distribution shift in test data. 
+%Notably, most existing methods have predominantly studied them on CNN and transformer-based vision models \cite{sun2020test, wang2022continual, wang2020tent}. 
+However, test-time adaptation has been minimally explored for the increasingly popular foundation models, which are large DNNs trained on massive vision-language datasets \cite{radford2021learning, jia2021scaling, zhai2022lit, yao2021filip, yuan2021florence}. 
+%despite its surge of interest in the computer vision community 
+\par
+
+Foundation models emerging at the intersection of various modalities such as vision, language, and audio, are proving to be effective in numerous downstream applications. Among these models, Vision-Language (V-L) model CLIP (Contrastive Language-Image Pretraining) \cite{radford2021learning} has been pre-trained on large-scale image-text pairs from the web, and can generalize well to  zero-shot recognition tasks. The CLIP model has parallel vision and language encoding branches and the similarities between the embeddings obtained from both the branches are used to classify an input image. At inference, a handcrafted prompt such as \texttt{`a photo of a} <{\textsc{cls}}>' is used as a query for the text encoder. However, adapting CLIP efficiently to specific downstream tasks is still a challenging problem. Naively fine-tuning such models poses the risk of losing their inherent generalization abilities \cite{kumar2022fine}. Instead, recent methods have shown the promise of prompt learning on training data \cite{zhou2022coop, zhou2022cocoop, khattakMaPLe, khattak2023self, zang2022unified} as opposed to handcrafted prompts, allowing the model to better adapt to the training data distribution.\par
+
+
+Existing prompt learning approaches are deployed at the training phase to learn representative prompts based on the training data for the downstream task. This conventional approach does not explicitly handle the distribution shift in the test set. Leveraging the capability of prompt learning, a recent approach TPT \cite{shu2022test} performs test-time adaptation by tuning the text prompts on the fly to adapt the model to the test sample. For image classification, the model updates the prompts by minimizing the entropy of the top confident samples which are obtained using different augmented views. 
+%Although effective, TPT struggles to explicitly align the pre-trained CLIP to become aware of the distributions that could arise at test time (Fig. \ref{fig:concept_diagram} a).
+However, TPT does not explicitly align the pre-trained CLIP to become aware of the test sample distribution.
+
+
+% Our approach explicitly handles this problem, which is similar to ActMAD \cite{mirza2022actmad}. However, unlike ActMAD, we utilize a single sample at test time to perform distribution matching between the test batch statistics and the train data statistics. We also only utilize prompt learning and avoid continuous updates of the prompts. \par
+
+%%% MOTIVATION MAFIA
+For the effective test-time adaptation of V-L foundation models, it is crucial to bridge the distribution gap between the pre-training dataset and the downstream evaluation set for high zero-shot generalization. To this end, we propose PromptAlign, a test-time token distribution alignment strategy using prompt learning. The TPT setting, which tunes the prompts on the text encoder branch alone poses an architectural limitation in performing distribution alignment of tokens. Further, at test time, there is no knowledge transfer between the text and vision branches in the intermediate stages. Since the text encoder features will be static given a dataset (as the input is the same class labels), distribution alignment of tokens can only be performed on the vision branch. Given these constraints and to further extend the strength of prompts for test time adaptation, we propose to employ a multi-modal prompt learning model (MaPLe) \cite{khattakMaPLe}  for distribution alignment. PromptAlign explicitly aligns the mean and variances of the image token embeddings of a proxy source dataset, computed offline, with the image token embeddings of the test sample. We extend TPT with the token alignment strategy, which enforces to bridge the distribution shift in the test data (Fig. \ref{fig:conceptdiagram} a). For each input test sample, we obtain randomly augmented views that are fed into the model to obtain the token embedding statistics. Without any noticeable compute overhead, we update the prompts on both the text and vision branches of CLIP to minimize jointly the feature distribution shift and entropy of predictions. 
+
+
+% In our approach, we explicitly handle the distribution shift problem from train to test data using a single image sample. We enforce this through a distribution matching loss between the mean and variances of the transformer features of the test sample, with that of the source dataset. 
+
+
+ \begin{figure}[!t]
+    \centering    \includegraphics[width=\textwidth]{figs/conceptDiagram.pdf}
+    \caption{\small \texttt{(a)} 
+    % Our PromptAlign shifts the test sample's distribution closer to the source distribution by minimizing the difference between their statistics.
+    PromptAlign matches the distribution statistics $\bm{\mu}_{l}(\mathcal{T} ; \bm{p})$, $\bm{\sigma^2}_{l}(\mathcal{T} ; \bm{p})$, obtained from multiple augmented views of a single test sample, with the source data distribution statistics $\bm{\hat{\mu}}_{l}$, $\bm{\hat{\sigma}^2}_{l}$. This effectively brings the test sample closer to the distribution of the source data, where the domain shift is denoted by \textcolor{trainglePurple}{$\blacktriangle_{1}$} $\rightarrow$ \textcolor{trainglePurple}{$\blacktriangle_{2}$}. $\mathcal{T}$ denotes the distribution of the test sample, $\bm{p}$ represents the prompts that are updated and $l$ refers to the vision-backbone layers. \texttt{(b)} Owing to the distribution matching via prompts, PromptAlign surpasses the existing state-of-the-art prompt learning approaches on 8 out of 10 datasets in cross-dataset generalization benchmarks.}
+    \label{fig:conceptdiagram}
+    \vspace{-1em}
+\end{figure}
+
+We extensively demonstrate the effectiveness of PromptAlign by evaluating the zero-shot generalization on two representative benchmarks: domain generalization and cross-dataset generalization. In the domain generalization setting, our method improves the baseline model by $3.08\%$ on average across the four datasets and has the highest average Top-1 accuracy compared to existing state-of-the-art methods. In the cross-dataset setting, our method achieves an absolute average improvement of $1.82\%$ over the existing state-of-the-art method which uses test-time prompt tuning, while attaining the best Top-1 accuracy in $8$ out of the $10$ datasets. Our contributions can be summarized as follows:
+\begin{itemize}
+    \item Given only a single test sample, we introduce a distribution alignment strategy for V-L models to improve test-time adaptation. The distribution-aware pre-trained CLIP effectively narrows the distribution gap on the test domains. To the best of our knowledge, this is the first study to explore the potential of distribution alignment in V-L models at test time.
+    \item The proposed strategy formulates a distribution alignment loss that utilizes offline computed source data statistics to encourage the test sample token distributions to be aligned with the source data token distributions. 
+    We harmonically combine the benefits of token distribution alignment and entropy minimization using a multi-modal prompt learning approach.
+    % \item We study ImageNet as a source dataset, and our empirical results show that ImageNet is an effective proxy source dataset for large-scale vision-language models such as CLIP.
+    \item Since CLIP-pre-training data is not publicly released, we study the statistics of ImageNet as a possible candidate for the source distribution, and our empirical results show that ImageNet is an effective proxy source dataset for large-scale V-L models such as CLIP.
+    \item We validate our method PromptAlign through extensive experiments in domain generalization and cross-dataset benchmarks. PromptAlign improves the generalization of CLIP at test time beyond existing prompt-tuning methods, achieving state-of-the-art results.
+\end{itemize}
+
+
+
+% --------------------------------------------------------- \\
+% Intro to test time adaptation. Core problem here is the distribution mismatch in test distribution. Previous works have explored it using vision only backbones. 
+
+% Recently VL models show excellent ZS capabilities. The encoders of both branches are trained in unison. 
+% Motivation for prompt learning - the difficulty of optimizing these large models using prompting. \par 
+
+% prompt tuning has been explored for test-time optimization. what they are doing. TPT misses the main problem of distribution alignment. \par
+
+% TPT only tunes text prompts. Text only prompted models have an architectural limitation of performing feature alignment. We bring in MaPLe to explicitly handle this problem using alignment using multimodal prompts.\par
+
+% our method. Feature distribution alignment. \par
+
+% \begin{itemize}
+%     \item For the first time performs distribution alignment strategy for V-L models. 
+%     \item How? using token alignment for prompt tuning at test time.
+%     \item We show Imagenet can be used a proxy source dataset for large scale V-L models. 
+%     \item We validate this with various benchamrks demonstrating its effectiveness in bla bla.
+% \end{itemize}
+
+
+\section{Related Work}
+\noindent
+\textbf{Prompting for Vision-Language models.}
+Vision Language (V-L) foundation models \cite{radford2021learning, jia2021scaling, zhai2022lit, yao2021filip, yuan2021florence} have emerged with the convergence of image and text modalities. Having been pre-trained on massive image-text pairs from the web in a contrastive self-supervised manner, these models like CLIP \cite{radford2021learning} and ALIGN \cite{jia2021scaling} have shown strong generalizability towards downstream zero-shot recognition tasks. However, adapting them efficiently to specific downstream tasks with limited data is still a challenging problem. Prompting in CLIP-like models has been explored in the form of a text query that is usually given to the text encoder to instruct it to perform a specific task. Recent methods propose to learn these prompts by treating them as continuous learnable vectors and training them in an end-to-end manner while keeping the model parameters frozen. CoOp \cite{zhou2022coop} proposes to fine-tune CLIP by learning a set of prompts in the text encoder. CoCoOp \cite{zhou2022cocoop} highlights the inferior generalization capability of CoOp and conditions the text prompt tokens on image embeddings on the fly. MaPLe \cite{khattakMaPLe} proposes to jointly learn deep prompts at both vision and text encoders of CLIP. The vision prompts are further conditioned on text prompts via a V-L coupling function. While all these approaches promote the effective transfer of CLIP, they require training data to learn the prompts which restricts such adaptation on novel datasets at test time. A recent method TPT \cite{shu2022test}, attempts to learn prompts solely at test time with the objective of enforcing consistency regularization between multiple views of a test sample by minimizing their averaged entropy. However, this approach struggles to explicitly address the distribution misalignment between the pre-training data of CLIP and the downstream test data. Our method builds on multi-modal prompting variant \cite{khattakMaPLe} and explicitly enforces to match the distribution via a distribution alignment technique using a proxy dataset that serves as a replacement for unavailable pre-training data of CLIP. To the best of our knowledge, ours is the first work to explicitly align the distributions learned by V-L foundational models with test time data distribution.
+
+%downstream data distributions at test time.
+
+
+
+\textbf{Test-Time Adaptation (TTA).} TTA \cite{sun2020test, wang2020tent, ttt_new} aims to bridge the distribution gap between the train and test data distributions at test time. These %model adaptation approaches
+methods can broadly be categorized into two streams. The first stream of approaches \cite{gandelsman2022test, sun2020test} typically utilizes a self-supervised proxy task such as predicting image rotations and thus alters the training phase. For example, Test-Time Training (TTT) \cite{sun2020test} jointly trains the model for rotation prediction and image classification during training. TTT++ \cite{ttt_new} adopts a self-supervised contrastive learning approach as an auxiliary task during training and test-time feature alignment module to adapt the model. By incorporating additional auxiliary tasks, these techniques aim to mitigate over-fitting and improve the generalization performance of the model. The second stream of approaches solely adopts the pre-trained model without altering the training phase. These methods improve model generalization at test time by imposing self-consistency regularization constraints or aligning statistics of training and test samples in a model. Approaches with self-consistency regularization constraints typically utilize entropy minimization within samples of a batch or multiple views of a single test sample. TENT \cite{wang2020tent} proposes entropy minimization of batch-wise prediction probability distributions. The need to have a batch of samples by generating multiple views via augmentations at test time is eliminated in \cite{zhang2022memo}. Other methods, such as NORM~\cite{schneider2020improving} and DUA \cite{mirza2022norm} adapt the model's normalization layers by matching the batch normalization statistics computed during training with the test set distribution. 
+Both \cite{lin2023video} and ActMAD \cite{mirza2022actmad} updates all model parameters using a batch of samples in a continuous manner, with a distribution matching loss between the source statistics and the batch statistics of activations across the network. However, it is unclear how these statistics alignment techniques can be adopted for foundational V-L models in a lightweight manner for a single sample. In this paper, we propose a multi-modal test time prompting approach without altering the pre-training phase of V-L models along with a strategy to obtain training distribution statistics. This effectively paves the way for distribution alignment together with entropy minimization for improved test-time optimization.  
+ 
+\textbf{Test-time prompt tuning.}
+As mentioned earlier, a plethora of works has been introduced on learning prompts to adapt V-L models using the downstream task training data. However, the learning of prompts at test time remains largely unexplored in the literature. Very recently, TPT \cite{shu2022test} proposed a test time prompting approach by learning prompts at the text side with an entropy minimization objective. While effective, TPT struggles with addressing the explicit alignment of the pre-training data distribution of CLIP with the test data distribution. Further, such an alignment is not trivial as access to the pre-training data of CLIP is not available. Our work addresses these limitations by extending TPT and introducing a distribution alignment objective for CLIP. This objective leverages token distribution statistics from proxy source data and a \emph{single} test sample using multi-modal prompt learning, %approach 
+and  explicitly aligns the train and test sample distributions to mitigate the domain shift.
+% approach. 
+% provide clear contrast between previous TTP work, its limitations and then your proposed method.
+
+
+% In such cases, adapting the model to distribution shifts occurring at test-time becomes crucial. 
+
+
+
+% Distribution shifts can occur naturally in the real world due to variations in the environment \cite{koh2021wilds} or the encounter of unseen concepts \cite{dhamija2018reducing}. \cite{mirza2022actmad} models the distribution of each feature in multiple layers across the network and updates the entire model parameters.   Pre-trained vision-language models such as CLIP possess the ability to generalize to downstream tasks with different distribution shifts in a zero-shot manner, which is a promising direction for creating reliable and generic machine learning models.  Rather than adapting CLIP to specific downstream tasks or target datasets, our objective is to enhance CLIP's generality in this study by aligning the features of the test sample with the train statistics. Unlike \cite{mirza2022actmad} which uses a batch of images to align the features followed by updating the entire model, we on the other hand use a single test sample and only update the prompts. We use feature alignment along with entropy minimization as our objective for test-time prompt tuning, along with the confidence selection module.
+
+
+% \noindent
+% \textbf{Test-Time Adaptation. }The concept of adapting machine learning models to test data on the fly has been employed in various works \cite{shocher2018zero, bau2020semantic, kundu2020universal}. These studies primarily focus on enhancing the model generalization to data distribution shifts. One of the major obstacles in this field is to develop an efficient test-time objective. Past test-time training approaches (41, 42) modify the training process by incorporating a an additional self-supervised loss which computes an optimization objective at test time and adjusts the network to the test sample. TENT \cite{wang2020tent} estimates normalization statistics and optimizes channel-wise affine transformations to update online on each batch. However, TENT requires more than one test sample to obtain a non-trivial solution. Zhang et al. \cite{zhang2022memo} suggests using data augmentations to circumvent the multi-sample requirements. Batch normalization (BN) layers have been demonstrated to capture domain discrepancies in image data \cite{li2016revisiting,shu2021encoding}  and are a simple way to adapt the BN statistics at test time to increase model robustness against distribution shifts. However, this method is only limited to architectures containing BN layers. Alternatively, there have been works which update either the feature extractor \cite{sun2020test} or entire model parameters \cite{zhang2022memo}. \cite{shu2022testtime} scales the test-time adaptation to CLIP by updating the text prompts using entropy minimization. While effective, their approach lacks the distribution alignment when used in cross-dataset settings due to the absence of visual prompts. In our work, we utilize the multi-modal prompts which pave the way for distribution alignment 
+%  together with entropy minimization for effective test-time optimization.  
+
+\begin{figure}[!t]
+    \centering    \includegraphics[width=1.05\textwidth]{figs/PromptAlign.pdf}
+    \caption{\small \textbf{Overview of our proposed PromptAlign method for zero-shot image classification.} At test time, a single test sample along with its augmented views is passed through the CLIP image encoder, and the text labels are passed to the CLIP text encoder. The token distribution statistics -- mean and variance -- of the test sample are aligned with the offline computed source data statistics using a distribution alignment loss. The resulting alignment loss from the distribution shift is combined with the entropy loss to update the multi-modal prompts. }
+    \label{fig:main_fig}
+\end{figure}
+
+\section{Methodology}
+\label{Methodology}
+%In this section, 
+We provide an overview of CLIP \cite{radford2021learning} and prompt learning and their application for zero-shot generalization to downstream tasks in Section \ref{Preliminaries}. We then discuss test-time prompt tuning and briefly review previous approaches. Finally, we introduce PromptAlign in Section \ref{our_approach} and provide a detailed explanation of how we apply it to achieve improved zero-shot image classification. 
+
+\subsection{Preliminaries}
+\label{Preliminaries}
+\noindent
+\textbf{Contrastive Language-Image Pre-training (CLIP). }
+CLIP consists of two parallel encoders, one for mapping the text input into a feature vector and the other for mapping the visual input. We denote the CLIP image and text encoders by $\mathcal{F}_v$ and $\mathcal{F}_t$ respectively, and their pre-trained parameters are represented by ${\theta}_{\mathtt{CLIP}} = \{\theta_{v}, \theta_{t} \}$ respectively. The input image ${X}$ is divided into $M$ patches, which are projected to produce patch tokens, and a class token ${\textsc{cls}}$ is prepended to it, resulting in $\bm{\Tilde{X}}_{0}= \{{\textsc{cls}}, \bm{e}_{1}, \bm{e}_{2}, \hdots, \bm{e}_{M}\}$ where $e_i$ is the embedding of the $i^{th}$ patch. The image encoder $\mathcal{F}_v$ encodes the input patches via transformer blocks to produce a latent visual feature representation $\bm{\Tilde{f}_v} =\mathcal{F}_v(\bm{\Tilde{X}}_{0}, \theta_{v})$. The corresponding class label ${y}$ is embedded within a text template, such as \texttt{`a photo of a} <{\textsc{cls}}>', which is formulated as $\bm{\Tilde{Y}}_{0}=\{{\textsc{sos}}, \bm{t}_{1}, \bm{t}_{2}, \hdots, \bm{t}_{L}, \bm{c}_{k}, {\textsc{eos}}\}$. Here, ${\bm{t}_l|_{l=1}^{L}}$ and $\bm{c}_{k}$ are the word embeddings corresponding to the text template and the class label, respectively, while ${\textsc{sos}}$ and ${\textsc{eos}}$ are the start and end token embeddings. The text encoder ${\mathcal{F}_t}$ encodes $\bm{\Tilde{Y}}$ via transformer blocks to produce the latent textual feature as $\bm{\Tilde{f}_t} = \mathcal{F}_{t}(\bm{\Tilde{Y}}_{0}, \theta_{t})$. For zero-shot inference, each text feature with class labels $y = \{1, 2, \cdots, C\}$ is paired with the image feature to compute a similarity score $\bm{s_i} = \mathtt{sim}(\bm{\tilde{f}_t} \cdot \bm{\tilde{f}_v})$, where $\mathtt{sim}(.)$ denotes the cosine similarity. The prediction probability on ${X}$ can be denoted by $ p(y_i|{X}) = \frac{\mathtt{exp}(\mathtt{sim}(\bm{\tilde{f}_t} \cdot \bm{\tilde{f}_v})\tau)}{\sum_{i=1}^{K}\mathtt{exp}(\mathtt{sim}(\bm{\tilde{f}_t} \cdot \bm{\tilde{f}_v})\tau)}$, where $\tau$ is the temperature of the softmax.% function.
+ 
+
+\noindent
+\textbf{Prompt tuning on downstream tasks. }
+% CLIP contains plethora of knowledge leveraged from training on millions of noisy image-text pairs. To utilize the rich knowledge inside CLIP, a naive way is to fine-tune the entire CLIP model or a subset of its layers on some specific input categories.
+% However, fine-tuning CLIP on any downstream task leads to loss of generalization due to introduction of domain specific behaviours which limits its generalization ability \cite{wortsman2022robust, kumar2022fine}. 
+CLIP contains a plethora of knowledge leveraged from training on millions of noisy image-text pairs. 
+To effectively extract the rich features learned by the CLIP model, 
+recent approaches \cite{zhou2022coop, zhou2022cocoop, khattakMaPLe, bahng2022visual, zang2022unified} append extra learnable prompts while keeping image and text encoders frozen. These prompts modify the context of the model input without distorting the pre-trained CLIP features. Prompts are appended either at the image or text encoder side and learn contextual information tailored towards a specific task.
+% Prompt tokens are added at either the text \cite{zhou2022coop, zhou2022cocoop} encoder or image \cite{bahng2022visual} encoder to maximize the performance on the downstream tasks. 
+In our work, we use a recently introduced multi-modal prompting baseline \cite{khattakMaPLe} that learns prompt tokens on both the text and image encoders. \par
+
+Specifically, we append learnable $V$ visual and $T$ text prompts given as $\bm{p_{v}} = \{ \bm{p_{v}}^1, \bm{p_{v}}^2, \hdots, \bm{p_{v}}^{V} \}$, and $\bm{p_{t}}$ = $\{ \bm{p_{t}}^1, \bm{p_{t}}^2, \hdots, \bm{p_{t}}^{T} \}$ with the visual and textual input tokens respectively. The image encoder processes the input $\bm{\Tilde{X}^p}_{0} = \{ {\textsc{cls}}, \bm{p_{v}}, \bm{e}_{1}, \bm{e}_{2}, \hdots, \bm{e}_{M} \} $ to generate a prompted visual feature representation denoted as $\bm{\Tilde{f}^p_v}$. Similarly, the text encoder processes the input $ \bm{\Tilde{Y}^p}_{0} = \{ {\textsc{sos}}, \bm{p_{t}}, \bm{t}_{1}, \bm{t}_{2}, \hdots, \bm{t}_{L}, \bm{c}_{k}, {\textsc{eos}} \}$ producing the textual feature representation $\bm{\Tilde{f}^p_t}$. Our approach uses deep prompting as utilized in \cite{khattakMaPLe}, along with text prompts and conditional image prompts at subsequent transformer blocks. We jointly represent the visual and textual prompts by $\bm{p}$. We refer the readers to \cite{khattakMaPLe} for more details on the baseline architecture.
+
+\noindent
+\textbf{Test-time prompt tuning. } Test-time prompt tuning introduced by \cite{shu2022test} aims to benefit from the rich knowledge of CLIP to boost its generalization
+in a zero-shot manner. TPT can be viewed  as a means to provide the model with a context that is customized for each individual test sample in order to more accurately recall the knowledge contained within CLIP. During inference, several
+randomly augmented views are generated from the given test sample $X_{\text{test}}$. The predictions having entropy below a certain threshold are kept, while other views are discarded using a confidence selection filter. The averaged entropy of the filtered predictions is then used to update the prompts $\bm{p}$ in an unsupervised fashion using the following objective function.
+\begin{align}
+\label{eq:ent-min}
+    % \bm{p}^{\ast} 
+    \mathcal{L}_{\text{entropy}}= \text{arg}&\min_{\bm{p}}-\sum_{i=1}^{C}\Tilde{p}_{\bm p} (y_i|X_{\text{test}}) \log \Tilde{p}_{\bm p}(y_i|X_{\text{test}}),
+    % \text{where } \quad &\Tilde{p}_{\bm p}(y_i|X_{\text{test}}) = \frac{1}{N}\sum_{i=1}^{N}p_{\bm p}(y_i|\mathcal{A}_i(X_{\text{test}})).
+\end{align}
+where $\Tilde{p}_{\bm p}(y_i|X_{\text{test}})$ represents the mean of vector class probabilities produced by the model across the different augmented views preserved after the confidence selection filter. 
+
+% We denote the CLIP image and text encoders as ${f}$ and ${g}$, respectively and their pretrained parameters as ${\theta}_{\mathtt{CLIP}} = \{\theta_{f}, \theta_{g} \}$ where $\theta_{f}$ and $\theta_{g}$ refer to the image and text encoder parameters, respectively. The input image $\bm{X} \in \mathbb{R}^{C\times H\times W}$ is divided into $M$ patches followed by a projection to produce patch tokens.  Further, a learnable class token $\bm{e}_{cls}$ is appended with the input patches as $\bm{\Tilde{X}}= \{\bm{e}_{cls}, \bm{e}_{1}, \bm{e}_{2}, \cdots, \bm{e}_{M}\}$.
+% % where $\bm{e}_{i} \in \mathbb{R}^{d_v}$
+% The image encoder ${f}$ encodes the input patches via multiple transformer blocks to produce a latent visual feature representation $\bm{\Tilde{f}} = f(\bm{\Tilde{X}}, \theta_{f})$, where $\bm{\Tilde{f}} \in  \mathbb{R}^{d}$. Next, the corresponding class label ${y}$ is wrapped within a text template % a hand-crafted prompt 
+% such as ‘a photo of a \{class label\}’ which can be formulated as $\bm{\Tilde{Y}}=\{\bm{t}_{SOS}, \bm{t}_{1}, \bm{t}_{2}, \cdots, \bm{t}_{L}, \bm{c}_{k}, \bm{t}_{EOS}\}$. Here $\{\bm{t}_l|_{l=1}^{L}\}$ and $\bm{c}_{k}$ are the word embeddings corresponding to the text template % hand-crafted prompt
+% and the class label, respectively while $\bm{t}_{SOS}$  and  $\bm{t}_{EOS}$ are the learnable start and end token embeddings. The text encoder ${g}$ encodes $\bm{\Tilde{Y}}$ via multiple transformer blocks to produce the latent textual feature as $\bm{\Tilde{g}} = g(\bm{\Tilde{Y}}, \theta_{g})$, where $\bm{\Tilde{g}} \in  \mathbb{R}^{d}$. For zero-shot inference, textual features of text template %hand-crafted prompts 
+% with class labels $\{1, 2, \cdots, C\}$
+% % $\{\bm{\Tilde{y}_{1}}, \bm{\Tilde{y}_{2}}, \bm{\Tilde{y}_{3}} \cdots, \bm{\Tilde{y}_{C}}\}$
+% are matched with image feature $\bm{\Tilde{f}}$ as $\frac{\mathtt{exp}(\mathtt{sim}(\bm{\Tilde{g}} \cdot \bm{\Tilde{f}})\tau)}{\sum_{i=1}^{C}\mathtt{exp}(\mathtt{sim}(\bm{\Tilde{g_i}} \cdot \bm{\Tilde{f}})\tau)}$, where $\mathtt{sim}()$ denotes the cosine similarity and $\tau$ is the temperature.
+
+
+\subsection{PromptAlign}
+\label{our_approach}
+
+Unimodal Test-time Prompt Tuning (TPT) \cite{shu2022test} updates the text prompts on the fly at inference by minimizing the entropy loss. This approach does not explicitly handle distribution shift that arises in the test set which is sub-optimal. One solution to this problem is to align the source and target distributions by bringing the test sample into the domain of the source data distribution. However, TPT updates the prompts only on the text encoder branch with static labels which poses an architectural limitation in performing the distribution alignment of tokens. Hence, distribution alignment of tokens can only be performed on the vision branch. We, therefore, utilize multi-modal prompt learning VL models \cite{khattakMaPLe} to explicitly handle the distribution shift of each test sample from the source distribution. \par
+
+Given a test sample $X_{\text{test}}$, we take multiple augmented views and pass them through the visual encoder with deep learnable prompts as shown in Fig.~\ref{fig:main_fig}. At each layer of the visual encoder, we compute the token alignment loss between the means and variances of the test sample with that of the means and variances of a proxy dataset which mimics the behavior of the source data distribution. Our final objective combines the entropy and alignment losses to update the prompts for a given test sample.
+
+\textbf{Proxy source dataset.} In order to compute the token embedding statistics on the source dataset, we require the pre-training dataset of the CLIP model. The CLIP model was trained on over 400 million image-text pairs, which is not publicly available. However, previous works have shown that LAION400M \cite{schuhmann2021laion} can be used as a training dataset to achieve the performance of CLIP \cite{cherti2022reproducible}, leading to subsets of LAION400M being used as a proxy dataset for the CLIP training dataset. In addition to this, CLIP has also been heavily tuned to achieve excellent zero-shot performance on ImageNet \cite{bahng2022exploring}. Therefore, we use ImageNet as the proxy source dataset for computing the mean and variance of token distributions. Source dataset statistics are computed offline and utilized directly at test time.
+
+% Therefore, we compute the mean and variances of the token distributions using ImageNet and consider it as the proxy source dataset.
+
+\noindent
+\textbf{Token Distribution Alignment via multi-modal prompting. }
+We generate $N_k$ random views of the test sample using a set of augmentations ${\mathcal{H}}$. The mean and variance statistics of token embeddings of the test sample are computed at the output of each transformer layer of the CLIP model's visual encoder, across the $N_k$ views. Similarly, the source data statistics are pre-computed in an offline manner. We represent test sample distribution by ($\mathcal{T}$) and source distribution by ($\mathcal{D}$). Specifically, we compute the token means and variances for the alignment as follows.
+\begin{align}
+\label{eq:mean-prompts}
+    \bm{\mu}_{l}(\mathcal{T} ; \bm{p}) = \frac{1}{N_k} \sum_{\mathrm{x} \in \mathcal{H}(X)}  \bm{\Tilde{X}^p}_{l, \mathrm{x}} \quad ,
+\end{align}
+\begin{align}
+\label{eq:sigma-prompts}
+    \bm{\sigma^2}_{l}(\mathcal{T} ; \bm{p}) = \frac{1}{N_k} \sum_{\mathrm{x} \in \mathcal{H}(X)} \bigg(\bm{\Tilde{X}^p}_{l, \mathrm{x}} - \bm{\mu}_{l}(\mathcal{T} ; \bm{p})\bigg)^2,
+\end{align}
+where $\bm{\mu}_{l}(\mathcal{T}; \bm{p})$ and $\bm{\sigma^2}_{l}(\mathcal{T}; \bm{p})$ are the vector means and variances of the test sample tokens at the layer $l$ in the visual encoder and $\bm{\Tilde{X}^p}_{l, \mathrm{x}}$ represents the prompted token embeddings at layer $l$ for the augmented view input $\mathrm{x}$. 
+Similarly for each layer $l$  in the visual encoder, we pre-compute the source data statistics as,
+\begin{align}
+\label{eq:source-statistics}
+ \bm{\hat{\mu}}_{l} =  \bm{\mu}_{l}(\mathcal{D}, {\theta}_v)  \quad  \text{and}\quad       \bm{\hat{\sigma}^2}_{l} =  \bm{\sigma}^2_{l}(\mathcal{D}, {\theta}_v) \quad , 
+\end{align}
+where ${\theta_v}$ denotes the parameters of the visual encoder from the pre-trained CLIP model. We compute the token distribution alignment loss between the mean and variances of the test sample and the source dataset statistics as follows,
+\begin{align}
+\label{eq:align-loss}
+    \mathcal{L}_{\text{align}} = \frac{1}{L}\sum_{l=1}^{L} \bigg( \|  \bm{\mu}_{l}(\mathcal{T} ; \bm{p}) - \bm{\hat{\mu}}_{l} \|_1  +  \| \bm{\sigma^2}_{l}(\mathcal{T} ; \bm{p}) -   \bm{\hat{\sigma}^2}_{l}\|_1 \bigg).
+\end{align}
+As shown above, we use ${L}_1$ loss to enforce the distribution alignment of the test sample with the source distribution. The alignment loss $\mathcal{L}_{\text{align}}$ is  added to the entropy loss (Eq. \ref{eq:ent-min}) to obtain the final objective $\mathcal{L}_{\text{final}}$. Finally, the combined objective  is optimized to update the prompts $\bm{p}$.
+\begin{align}
+\label{eq:final}
+    \mathcal{L}_{\text{final}} = \mathcal{L}_{\text{entropy}}   + \beta \mathcal{L}_{\text{align}} \quad ,
+\end{align}
+where the hyperparameter $\beta$ controls the contribution of alignment loss to the overall objective function. Our alignment loss in Eq.~\ref{eq:final}  bridges the gap between source and token distributions by updating the prompts to align them with the source distribution.
+
+% \begin{figure}[!t]
+%     \centering    \includegraphics[width=1\textwidth]{figs/attentionmaps.pdf}
+%     \caption{\small \textbf{Comparison of attention map visualizations.} PromptAlign focuses on highlighting the discriminative areas while reducing attention on background regions as opposed to TPT \cite{shu2022test}. }
+%     \label{fig:attention}
+% \end{figure}
+
+
+\textbf{Discussion on $\mathcal{L}_{\text{final}}$.}
+As derived above, our test-time loss combines the entropy minimization ($\mathcal{L}_{\text{entropy}}$) and distribution alignment objectives ($\mathcal{L}_{\text{align}}$) together. The $\mathcal{L}_{\text{entropy}}$ objective enforces prediction consistency among different views of a sample, leading to robustness against various variations that could possibly occur at test time. On the other hand, $\mathcal{L}_{\text{align}}$ effectively narrows the domain shift and brings the test sample distribution closer to the pre-trained CLIP distribution space, which enforces CLIP to better understand the test sample. The combination of these loss objectives harmonically adapts CLIP to be robust to different sample variations and at the same time, enhances CLIP's understanding of the underlying test sample domain for better generalization. 
+% In Figure. \ref{fig:attention}, we visualize attention maps on test samples obtained through previous TPT \cite{shu2022test} and our approach. 
+% The visualization shows that test-time adapted CLIP with our approach more prominently attends to salient contents in the image, which indicates that distribution alignment strategy in addition to entropy minimization helps CLIP generalize better towards new test domains.
+
+\section{Experiments}
+\textbf{Datasets.} %We conduct experiments and evaluate our method under two benchmark settings. In the first setting, we evaluate the models' generalizability to domain shifts. In the second setting, we evaluate the cross-dataset transfer capability of our method. \par
+%
+For the domain generalization setting, we evaluate the four out-of-distribution (OOD) variants of ImageNet \cite{deng2009imagenet}; ImageNetV2 \cite{recht2019imagenet}, ImageNet-Sketch \cite{wang2019learning}, ImageNet-A \cite{hendrycks2021natural} and ImageNet-R \cite{hendrycks2021many}. We also evaluate the domain generalization setting on the recent challenging Photorealistic Unreal Graphics (PUG) dataset \cite{bordes2023pug}, comprising different textures, backgrounds, sizes and orientations. In the cross-dataset evaluation, we follow TPT \cite{shu2022test} and evaluate the performance of methods on 10 image classification datasets covering a wide range of visual recognition tasks. This includes one generic-objects dataset Caltech101 \cite{fei2004learning}; five fine-grained datasets OxfordPets \cite{parkhi2012cats}, StanfordCars \cite{krause20133d}, Flowers102 \cite{nilsback2008automated}, Food101 \cite{bossard2014food} and FGVC-Aircraft \cite{maji2013fine}, which contain images of animals, flowers and transportation; and four datasets of scenes, textures, satellite imagery and human actions -- SUN397 \cite{sun2020test}, DTD \cite{cimpoi2014describing}, EUROSAT \cite{helber2019eurosat} and UCF101 \cite{soomro2012dataset} respectively. \par
+
+\textbf{Baselines.}
+We evaluate PromptAlign with existing few-shot prompt learning methods for adapting CLIP including CoOp \cite{zhou2022coop} and CoCoOp~\cite{zhou2022cocoop}, and TPT~\cite{shu2022test} method. MaPLe \cite{khattakMaPLe} is a multi-modal prompt learning baseline, which adapts CLIP by learning deep prompts on both the text and vision branches. TPT is a test-time prompt tuning method, that tunes the prompt at test time per input sample achieving state-of-the-art performance in prompt learning when combined with CoOp. \par
+
+\textbf{Implementation details.}
+Following MaPLe~\cite{khattakMaPLe}, we train on ImageNet using $16$-shot training data with $2$ prompt tokens for a depth of $3$ layers. We optimize the prompts on both the text and vision branches using a single test image. We obtain 63 augmented views using random resized crops and horizontal flip augmentations to construct a batch of 64 images including the original image to mimic the setting of TPT. From the 64 predictions, we obtain top $10\%$ confident predictions based on the lowest entropy and compute the average prediction probability. We compute the token distribution alignment loss between the tokens of all 64 images. We optimize the prompts to minimize the combined loss of average prediction entropy and the token distribution alignment loss using the AdamW optimizer. We use a learning rate of $5e^{-4}$ for the fine-grained datasets Flowers102, OxfordPets, Food101, SUN397, FGVCAircraft, and EuroSAT and a learning rate of $0.04$ for the rest of the datasets, and set the loss scale factor $\beta$ equal to $100$. Further details are listed in Appendix~\ref{supp:implementaions}.
+
+
+\subsection{Token distribution alignment in V-L models}
+
+We first evaluate the performance of the token distribution alignment strategy over the baseline for test-time prompt tuning. Since the alignment can only be performed on the vision branch, we explicitly compare PromptAlign to vanilla MaPLe, and MaPLe with TPT using entropy minimization. Table~\ref{tab:promptAlign_DG} presents the results in domain generalization across ImageNet variants. TPT improves the performance of MaPLe from $60.28\%$ to $62.31\%$ on average, while the incorporation of token distribution alignment further improves the performance by $1.24\%$. This indicates that explicitly aligning the distribution of training and testing data enhances CLIP's generalization. Moreover, TPT is intended to improve test-time adaptation as a plug-in module, but its effectiveness is not uniform, as observed from the drop in performance on the ImageNet-Sketch dataset. On the other hand, PromptAlign does not show any performance degradation and improves beyond vanilla MaPLe consistently on all datasets. We further present qualitative results of PromptAlign in Appendix~\ref{supp:qualitative}. \par
+
+% Table~\ref{tab:PromptAlign_xd} presents the cross-dataset transfer results using token distribution alignment in PromptAlign. Our method improves the baseline in 9/10 datasets. Overall, our method shows an improvement of $0.62\%$ over the baseline and $0.42\%$ over TPT incorporated baseline. We show that, token distribution alignment has a clear improvement, by leveraging source data token distribution statistics to enforce the prompts to align accordingly.
+
+% \input{tables/Maple_XD}
+
+\input{tables/Maple_DG}
+\input{tables/domain_gen}
+\input{tables/PUG_DG}
+
+\input{tables/cross_dataset}
+
+\subsection{Domain Generalization}
+
+
+%In Table~\ref{tab:robustness} we show a comparison of PromptAlign with existing methods across different out-of-distribution domains. 
+Compared to CLIP, all test-time adaptation methods demonstrate better performance, indicating that V-L models benefit from test-time adaptation approaches (Table~\ref{tab:robustness}). PromptAlign achieves the highest Top-1 accuracy averaged across all ImageNet variants. In comparison to the previous state-of-the-art CoOp+TPT, PromptAlign achieves an average improvement of $0.71\%$. Out of the four different domains, our method improves beyond the previous best, except in Imagenet-V2. We hypothesize this is due to the extensive training of CoOp on ImageNet which has a very similar distribution to ImageNet-V2. We further evaluate the effectiveness of our method in domain generalization on the challenging PUG dataset as reported in Table~\ref{tab:PUG_dg}. PromptAlign consistently improves upon TPT here as well. These results demonstrate the effectiveness of PromptAlign, which adapts CLIP simultaneously for both robustness against view changes and alignment of train-test set distribution.
+
+\subsection{Cross-Dataset Transfer}
+% In Table~\ref{tab:xd}, we evaluate the performance of our method in generalizing across diverse cross-datasets in comparison with existing state-of-the-art method TPT. Our PromptAlign method provides consistent improvements and outperforms the previous best method CLIP+TPT method in 8/10 cross-datasets with an average improvement of $1.82\%$ across all datasets (Table~\ref{tab:xd}). In comparison to prompt learning methods, it can be observed that both CoOp and CoCoOp on average are inferior to zero-shot CLIP+TPT, while PromptAlign consistently demonstrates improvements, which validates the necessity of token distribution alignment for preserving CLIP's generalizability. This further affirms that PromptAlign harmonically combines the effect of entropy minimization and token distribution alignment in V-L models. We further study that as opposed to our method, existing prompt learning methods with TPT are not consistent across cross-datasets, which we discuss in detail in Appendix \ref{supp:xdataset}. 
+In Table~\ref{tab:xd}, we evaluate the performance of our method in generalizing across diverse cross-datasets in comparison with existing state-of-the-art methods using prompt learning. PromptAlign provides consistent improvements and outperforms the previous best method MaPLe combined with TPT in all cross-datasets with an average improvement of $0.42\%$. In comparison to prompt learning methods, it can be observed that both CoOp and CoCoOp on average are inferior to zero-shot CLIP+TPT, while PromptAlign consistently demonstrates improvements, which validates the necessity of token distribution alignment for preserving CLIP's generalizability. This further affirms that PromptAlign harmonically combines the effect of entropy minimization and token distribution alignment in V-L models. We also analyze the effect of a better proxy source dataset, using a subset of LAION400M in Appendix \ref{supp:laion_ablation}, proving the effectiveness of distribution alignment with source dataset statistics. Furthermore, we note that as opposed to our method, existing prompt learning methods with TPT are not consistent across cross-datasets, which we discuss in detail in Appendix \ref{supp:xdataset}. 
+
+% We also show that our method with source dataset statistics computed using a subset of 2 Million images\footnote[1]{Due to compute and time limitations we use a subset of LAION400M dataset} from the LAION400M dataset. Please refer to the supplementary material for more details (see \ref{supp:ablations}).
+%further improves the performance of the model, giving an improvement of $0.67\%$.
+
+
+\section{Ablation}
+\label{sec:ablations}
+%In this section, we provide an empirical analysis with ablation experiments for the design choices of our method PromptAlign.
+
+We perform ablative analysis on various components of PromptAlign. Unless stated otherwise, we show ablations on ImageNet-A dataset, the smallest domain generalization variant for simplicity. Detailed ablation trends across other ImageNet variants and datasets are presented in Appendix \ref{supp:ablations}.
+%We first show the requirement for prompt alignment using token distribution alignment loss. Next, we study the impact of the loss balancing factor for distribution alignment. Lastly, we provide analysis pertaining to compute resources and latency. 
+%
+
+\textbf{Token Distribution Alignment.} 
+Table~\ref{tab:ablationTDL} summarizes the effect of token distribution alignment in PromptAlign. It can be observed that removing the entropy loss results in almost the same performance as vanilla MaPLe. Whereas combining alignment and entropy losses improves the performance remarkably. This is because the distribution alignment loss is a regularizer that functions together with the self-entropy loss. Since distribution alignment does not promote any discriminative learning as opposed to entropy loss, it is not expected to improve test-time adaptation on its own.
+\begin{figure}[b]
+    \begin{center}
+        \begin{minipage}{0.46\textwidth}
+        \includegraphics[width=\textwidth]{figs/loss_scale.png}
+        \captionof{figure} {\small Effect of the loss scaling factor $\beta$ on ImageNet. Scale factor plateaus after $\beta = 100$.}
+        \label{fig:beta_ablation}
+    \end{minipage}
+    % \hfill
+    \hspace{5mm}
+    \begin{minipage}{0.46\textwidth}
+        \includegraphics[width=\textwidth]{figs/Losses.png}
+        \captionof{figure}{\small Effect of performance on the choice of loss function for distribution alignment.}
+        \label{fig:loss_ablation}
+    \end{minipage}
+    \end{center}
+\end{figure}
+
+\input{tables/AblationPromptAlign}
+
+% \section{Ablation}
+% \label{sec:ablations}
+% %In this section, we provide an empirical analysis with ablation experiments for the design choices of our method PromptAlign.
+
+% We perform ablative analysis on various components of PromptAlign. Unless stated otherwise, we show ablations on ImageNet-A dataset, the smallest domain generalization variant for simplicity. Detailed ablation trends across other ImageNet variants and datasets are presented in Appendix \ref{supp:ablations}.
+% %We first show the requirement for prompt alignment using token distribution alignment loss. Next, we study the impact of the loss balancing factor for distribution alignment. Lastly, we provide analysis pertaining to compute resources and latency. 
+% %
+
+% \textbf{Token Distribution Alignment.} 
+% Table~\ref{tab:ablationTDL} summarizes the effect of token distribution alignment in PromptAlign. It can be observed that removing the entropy loss results in almost the same performance as vanilla MaPLe. Whereas combining alignment and entropy losses improves the performance remarkably. This is because the distribution alignment loss is a regularizer that functions together with the self-entropy loss. Since distribution alignment does not promote any discriminative learning as opposed to entropy loss, it is not expected to improve test-time adaptation on its own.
+
+\textbf{Loss variants for distribution alignment.} We show the variation in performance with different loss choices for distribution alignment objective. Figure~\ref{fig:loss_ablation} compares the three loss choices $L_1$, $L_2$, and KL divergence. We observe that $L_1$ constraint performs best for the distribution alignment objective. Further analysis is shown in Table \ref{analaysis-matching-losses} of supplementary material.
+
+\textbf{Loss balancing factor $\beta$.}
+We ablate the loss scale factor $\beta$ to analyze the significance of the distribution alignment loss. The performance improves over the baseline model with TPT as depicted in Figure~\ref{fig:beta_ablation}, even with a smaller weight scale and gradually plateaus close to a scale of $100$. We use ImageNet validation set for this ablation and choose $\beta = 100$ across all experiments. We find a similar trend of the scaling factor on other datasets, which is discussed in Appendix~\ref{supp:ablations}. For the MaPLe+TPT model, the value of $\beta$ is 0 as there is no alignment objective in this case.
+
+\textbf{Higher Order Statistics.}
+Since we align distributions computed using a small set of samples, we use relatively simpler (mean and variance) measures for our alignment strategy over higher order statistical measures. We evaluate this choice for the distribution alignment in PromptAlign using the 5\textsuperscript{th} order statistics of Central Moment Discrepancy measure \cite{zellinger2017central} in Table~\ref{tab:higherOrdStats}. Our observation reveals that the utilization of higher order statistics results in only a slight improvement implies that there is minimal distinction between opting for higher order statistics validating mean and variance based approach as a suitable measure for alignment in our case.
+
+\textbf{Prompt Regularization.} We compare PromptAlign to a naive prompt regularization method in a continuous test-time adaptation setting, in which the model gradually adapts to the incoming distribution. We regularize the prompts in relation to the previous prompts, denoted by PromptReg in Table~\ref{tab:promptreg}. We also lower the learning rate to $1e^{-5}$ to prevent diverging in the continuous setting. We show that the naive regularization setting, even in a continuous setting is not robust as the proposed alignment strategy, which solely aligns based on a single test sample, individually.
+\vspace{-1em}
+\input{tables/HighOrdStats}
+\input{tables/promptReg}
+
+\textbf{Trade-off between compute resources and performance.} 
+% We also analyze parameters related to computing resources, the number of augmented views, and the number of prompt updates per image. 
+Figure~\ref{fig:ablate_compute}(a) demonstrates the improvement in performance as the number of augmented views at test time increases. PromptAlign shows better improvement with more augmented views, owing to a better approximation of the test sample distribution. While MaPLe+TPT performance plateaus around 64 augmented views, our method with alignment loss shows further scope for improvement given more augmented views. Figure~\ref{fig:ablate_compute}(b) shows the variation in performance with the number of prompt update steps. We note that, with more update steps, PromptAlign can consistently better adapt to the test sample in comparison to MaPLe+TPT alone. In Figure~\ref{fig:ablate_compute}(c) we analyze the computational overhead of PromptAlign. PromptAlign shows no additional compute cost in terms of latency. The average inference time per sample across three seeds with and without the distribution alignment strategy are $0.216s$ and $0.197s$. Considering the memory usage and increase in latency, we use $64$ views and a single-step update following TPT \cite{shu2022test}.
+
+\begin{figure}[htb]
+  \centering
+  % \vspace{-1em}
+% \end{figure}
+% \begin{figure}[!t]
+  % \centering
+  \begin{subfigure}[htb]{0.32\textwidth}
+    \centering
+    \includegraphics[width=\textwidth]{figs/num_of_views.png}
+    % \caption{{Effect of the number of augmented views used for prompt update.}}
+  \end{subfigure}
+  \hfill
+  \begin{subfigure}[htb]{0.32\textwidth}
+    \centering
+    \includegraphics[width=\textwidth]{figs/num_steps.png}
+    % \vspace{0.1em}
+    % \caption{Effect of number of prompt updates.}
+  \end{subfigure}
+  \hfill
+  \begin{subfigure}[htb]{0.32\textwidth}
+    \centering
+    \includegraphics[width=\textwidth]{figs/timing.png}
+  \end{subfigure}
+  \caption{\small \textbf{Analysis of compute resource constraints on performance.} \texttt{(a)} The Top-1 accuracy increases with the number of augmented views. \texttt{(b)} The Top-1 accuracy improves consistently with the number of prompt update steps. \texttt{(c)} Impact on latency with the number of prompt update steps is similar for both methods.}
+  \label{fig:ablate_compute}
+   \vspace{-1.5em}
+\end{figure}
+
+
+\section{Conclusion}
+In this paper, we introduce PromptAlign, a novel approach for enhancing test-time adaptation of Vision-Language (V-L) models for zero-shot generalization. Our proposed approach bridges the gap between the test sample and source distributions by explicitly aligning the test sample statistics with that of the source data distribution through token distribution alignment. To achieve this, we incorporate multi-modal prompting to facilitate the alignment of token distributions across the transformer layers during test time. Through extensive experiments, PromptAlign demonstrates superior performance over existing state-of-the-art CLIP zero-shot generalization methods in domain generalization and cross-dataset evaluation settings.
+
+\section*{Acknowledgements}
+
+The computational resources were provided by the National Academic Infrastructure for Supercomputing in Sweden (NAISS), partially funded by the Swedish Research Council through grant agreement No. 2022-06725, and by the Berzelius resource, provided by Knut and Alice Wallenberg Foundation at the National Supercomputer Center.
+
+% Being a test-time adaptation strategy, while our method improves performance, it requires proxy source dataset statistics for distribution alignment and has a single update step at runtime to optimize the prompts. A potential future direction would be to adapt PromptAlign to other downstream tasks such as object detection and segmentation.
+
+
+% \textbf{Limitations and Future Work.} In order to perform token distribution alignment, it is necessary to have a multi-modal prompted model. 
+
+% The method shows improvement in zero-shot image classification task. An interesting future direction would be to extend V-L models to various other downstream tasks such as object detection and segmentation. 
+
+
+
+% \newpage
+\small{
+% \bibliographystyle{ieee_fullname}
+\bibliographystyle{plainnat}
+\bibliography{refs} 
+}
+
+\newpage
+
+\input{appendix}
+
+
+\end{document}

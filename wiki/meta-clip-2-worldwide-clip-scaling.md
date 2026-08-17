@@ -5,7 +5,7 @@ description: A CLIP training recipe that curates native-language worldwide web i
 tags: [multimodal-learning, vision-language-models, contrastive-learning, multilingual, data-curation, web-scale-training]
 status: stable
 created: 2026-08-16
-generated: { by: llm-wiki-agent/1, at: 2026-08-17T02:52:31Z }
+generated: { by: llm-wiki-agent/1, at: 2026-08-17T03:55:29Z }
 sources:
   - id: chuang-2025-meta-clip-2
     resource: ../raw/2507.22062_MetaCLIP 2/paper.tex
@@ -33,6 +33,7 @@ Meta CLIP 2 extends the Meta CLIP curation approach to native-language, worldwid
 
 ## Relationships
 
+- Extends: [MetaCLIP metadata-curated language–image pre-training](metaclip-metadata-curated-language-image-pretraining.md) by generalizing its metadata matching and balancing approach from English Common Crawl to native-language worldwide web data.[^chuang-2025-meta-clip-2]
 - Extends: [CLIP natural-language image pre-training](clip-natural-language-image-pretraining.md) by retaining the CLIP-style dual-encoder setting while changing metadata, curation, tokenization, and training scale for worldwide data.[^chuang-2025-meta-clip-2]
 - Related: [SigLIP 2 multilingual vision–language encoders](siglip2-multilingual-vision-language-encoders.md) is a competing multilingual vision–language encoder evaluated against Meta CLIP 2 in this source; the systems differ in objective, data pipeline, and auxiliary training, so the reported comparison does not isolate a single cause.[^chuang-2025-meta-clip-2]
 

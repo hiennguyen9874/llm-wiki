@@ -1,0 +1,155 @@
+\vspace{-1ex}
+\section{Experiment}
+\vspace{-0.5ex}
+\label{sec:experiment}
+
+\input{table/zeroshot}
+\input{table/vqa_zeroshot}
+
+Table 1 provides an overview of the performance of BLIP-2 on various zero-shot vision-language tasks.
+Compared to previous state-of-the-art models,
+BLIP-2 achieves improved performance while requiring substantially fewer number of trainable parameters during vision-language pre-training.
+
+\vspace{-0.5ex}
+\subsection{Instructed Zero-shot Image-to-Text Generation}
+\vspace{-0.5ex}
+BLIP-2 effectively enables a LLM to understand images while preserving its capability in following text prompts,
+which allows us to control image-to-text generation with instructions.
+We simply append the text prompt after the visual prompt as input to the LLM.
+Figure~\ref{fig:example} shows examples to demonstrate a wide range of zero-shot image-to-text capabilities including visual knowledge reasoning, visual commensense reasoning,
+visual conversation,
+personalized image-to-text generation, etc.
+
+
+
+
+
+\textbf{Zero-shot VQA}.
+We perform quantitative evaluation on the zero-shot visual question answering task.
+For OPT models, we use the prompt ``Question: {\small\{\}} Answer:''.
+For FlanT5 models, we use the prompt ``Question: {\small\{\}} Short answer:''.
+During generation,
+we use beam search with a beam width of 5.
+We also set the length-penalty to -1 which encourages shorter answers that align better with human annotation.
+
+As shown in Table~\ref{tbl:vqa_zeroshot}.
+BLIP-2 achieves state-of-the-art result on the VQAv2~\cite{VQA2} and GQA~\cite{GQA} datasets.
+It outperforms Flamingo80B by 8.7\% on VQAv2, despite having 54x fewer trainable parameters.
+On the OK-VQA~\cite{okvqa} dataset,
+BLIP-2 comes secondary to Flamingo80B.
+We hypothesis that this is because OK-VQA focuses more on open-world knowledge than visual understanding,
+and the 70B Chinchilla~\cite{chinchilla} language model from Flamingo80B possesses more knowledge than the 11B FlanT5$_\text{XXL}$.
+
+We make a promising observation from Table~\ref{tbl:vqa_zeroshot}: 
+\textbf{a stronger image encoder or a stronger LLM both lead to better performance.}
+This observation is supported by several facts:
+(1) ViT-g outperforms ViT-L for both OPT and FlanT5.
+(2) Within the same LLM family, larger models outperform smaller ones.
+(3) FlanT5, an instruction-tuned LLM, outperforms the unsupervised-trained OPT on VQA. 
+This observation validates BLIP-2 as a \textbf{generic vision-language pre-training method} that can efficiently harvest the rapid advances in vision and natural language communities.  
+
+% \subsection{Pretrained \name~Prevents Catastrophic Forgetting}
+\noindent\textbf{Effect of Vision-Language Representation Learning.}
+\vspace{-0.5ex}
+\input{figure/qformer_effect.tex}
+
+The first-stage representation learning pre-trains the \name~to learn visual features relevant to the text,
+which reduces the burden of the LLM to learn vision-language alignment.
+Without the representation learning stage,
+\name~relies solely on the vision-to-language generative learning to bridge the modality gap, which is similar to the Perceiver Resampler in Flamingo.
+Figure~\ref{fig:qformer_effect} shows the effect of representation learning on generative learning.
+Without representation learning,
+both types of LLMs give substantially lower performance on zero-shot VQA.
+In particular, OPT suffers from catastrophic forgetting where performance drastically degrades as training proceeds.
+
+\input{table/caption}
+\input{table/vqa_finetune}
+
+
+\subsection{Image Captioning}
+
+We finetune BLIP-2 models for the image captioning task,
+which asks the model to generate a text description for the image's visual content.
+We use the prompt ``a photo of'' as an initial input to the LLM and trains the model to generate the caption with the language modeling loss.
+We keep the LLM frozen during finetuning, 
+and updates the parameters of the \name~together with the image encoder.
+We experiment with ViT-g and various LLMs.
+Detailed hyperparameters can be found in the appendix.
+We perform finetuning on COCO,
+and evaluate on both COCO test set and zero-shot transfer to NoCaps~\cite{nocaps} validation set.
+
+The results are shown in Table~\ref{tbl:caption}.
+BLIP-2 achieves state-of-the-art performance with significant improvement on NoCaps over existing methods,
+demonstrating strong generalization ability to out-domain images.
+
+\subsection{Visual Question Answering}
+
+Given annotated VQA data,
+we finetune the parameters of the \name~and the image encoder while keeping the LLM frozen. 
+We finetune with the open-ended answer generation loss,
+where the LLM receives \name's output and the question as input,
+and is asked to generate the answer.
+In order to extract image features that are more relevant to the question,
+we additionally condition \name~on the question.
+Specifically,
+the question tokens are given as input to the \name~and interact with the queries via the self-attention layers,
+which can guide the \name's~cross-attention layers to focus on more informative image regions.
+% \name's output query embeddings can be conditioned on text input.
+% We make use of this property and perform question-guided image feature extraction,
+% where the queries interact with the question tokens via self-attention layers.
+% This enables the queries to focus on regions in the image that are more relevant to the question,
+% thereby feeding the LLM with more informative image features to answering the question.
+% Table~\ref{tbl:vqa_ablation} shows that question-guided image feature extraction leads to a noticeable improvement on the VQA performance.
+
+% In order to keep pre-training consistent with finetuning, 
+% we perform second-stage pre-training using the language-guided GemFormer,
+% where the prefix text is used as input to the GemFormer.
+% We also mix VQA data into the second-stage pre-training.
+
+Following BLIP,
+our VQA data includes the training and validation splits from VQAv2, as well as training samples from Visual Genome.
+Table~\ref{tbl:vqa_finetune} demonstrates the state-of-the-art results of BLIP-2 among open-ended generation models.
+
+
+% Compare OPT and T5.
+
+
+\subsection{Image-Text Retrieval}
+\input{table/retrieval}
+Since image-text retrieval does not involve language generation,
+we directly finetune the first-stage-pretrained model w/o LLM.
+Specifically,
+we finetune the image encoder together with \name~on COCO using the same objectives (\ie~ITC, ITM, and ITG) as pre-training.
+We then evaluate the model for both image-to-text retrieval and text-to-image retrieval on COCO and Flickr30K~\cite{flickr} datasets.
+During inference,
+we follow~\citet{ALBEF,blip} which first select $k=128$ candidates based on the image-text feature similarity, followed by a re-ranking based on pairwise ITM scores.
+We experiment with both ViT-L and ViT-g as the image encoder.
+Detailed hyperparameters can be found in the appendix.
+
+The results are shown in Table~\ref{tbl:retrieval}.
+BLIP-2 achieves state-of-the-art performance with significant improvement over existing methods on zero-shot image-text retrieval.
+% On COCO,
+% BLIP-2 w/ ViT-g achieves similar performance as BEIT-3, despite having 0.7B fewer parameters during finetuning and 10x fewer trainable parameters during pre-training.
+
+
+\input{table/retrieval_ablation.tex}
+The ITC and ITM losses are essential for image-text retrieval as they directly learn image-text similarity.
+In Table~\ref{tbl:retrieval_ablation},
+we show that the ITG (image-grounded text generation) loss is also beneficial for image-text retrieval.
+This result supports our intuition in designing the representation learning objectives: the ITG loss enforces the queries to extract visual features most relevant to the text,
+thus improving vision-language alignment. 
+
+
+
+
+
+
+% \subsection{Vision-language Tasks}
+
+% \subsection{Zero-shot VQA}
+
+% \subsection{Fine-tuning for Visual Reasoning}
+
+% \subsection{Multi-task Unified Model}
+
+% \subsection{Visualization}

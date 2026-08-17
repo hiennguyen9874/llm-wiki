@@ -1,0 +1,141 @@
+\documentclass{article}
+
+\usepackage{PRIMEarxiv}
+
+\usepackage[utf8]{inputenc} % allow utf-8 input
+\usepackage{cinzel}
+\usepackage[T1]{fontenc}    % use 8-bit T1 fonts
+%\usepackage{hyperref}       % hyperlinks
+\usepackage{url}            % simple URL typesetting
+\usepackage{booktabs}       % professional-quality tables
+\usepackage{amsfonts}       % blackboard math symbols
+\usepackage{nicefrac}       % compact symbols for 1/2, etc.
+\usepackage{microtype}      % microtypography
+\usepackage{lipsum}
+\usepackage{fancyhdr}       % header
+\usepackage{graphicx}       % graphics
+\graphicspath{{media/}}     % organize your images and other figures under media/ folder
+
+\usepackage{xspace}
+\usepackage{amsfonts}
+\usepackage{amssymb}
+\usepackage{pifont}
+\usepackage{bm}
+\usepackage{marvosym}
+
+%Header
+\pagestyle{fancy}
+\thispagestyle{empty}
+\rhead{ \textit{ }} 
+
+\usepackage{adjustbox}
+\usepackage{multirow}
+
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{mathtools}
+\usepackage{amsthm}
+\usepackage{balance}
+\usepackage{subcaption}
+%\usepackage[capitalize,noabbrev]{cleveref}
+
+\newcommand{\cmark}{\ding{51}}%
+\newcommand{\xmark}{\ding{55}}%
+
+\newcommand\titlefont[1]{{\usefont{T1}{cinzeldecorativebold}{m}{n}#1}}
+\newcommand\modelfont[1]{{\usefont{T1}{cinzeldecorative}{m}{n}#1}}
+% \newcommand{\onepeace}{\titlefont{ONE-PEACE}\xspace}
+\newcommand{\onepeace}{ONE-PEACE\xspace}
+\newcommand{\modeltitle}{\titlefont{ONE-PEACE}}
+\newcommand{\modelname}{\titlefont{ONE-PEACE}\xspace}
+
+\usepackage[dvipsnames]{xcolor}         % colors
+\usepackage{colortbl}
+\usepackage{cuted}
+\usepackage{makecell}
+
+\definecolor{baselinecolor}{gray}{.9}
+\newcommand{\baseline}[1]{\cellcolor{baselinecolor}{#1}}
+\definecolor{highlightcolor}{HTML}{eaf7eb}  % green
+\newcommand{\highlight}[1]{\cellcolor{highlightcolor}{#1}}
+
+\newlength\savewidth\newcommand\shline{\noalign{\global\savewidth\arrayrulewidth
+  \global\arrayrulewidth 1pt}\hline\noalign{\global\arrayrulewidth\savewidth}}
+\newcommand{\tablestyle}[2]{\setlength{\tabcolsep}{#1}\renewcommand{\arraystretch}{#2}\centering\footnotesize}
+\newcommand{\normaltablestyle}[2]{\setlength{\tabcolsep}{#1}\renewcommand{\arraystretch}{#2}\centering\normalsize}
+
+\definecolor{citecolor}{RGB}{65,130,164}
+\definecolor{linkcolor}{RGB}{166,64,54}
+\definecolor{citecolor2}{HTML}{0071BC}
+\usepackage[pagebackref=true,breaklinks=true,colorlinks,
+citecolor=citecolor2,linkcolor=magenta,bookmarks=false]{hyperref}
+
+\definecolor{dt}{gray}{0.7}  %
+\newcommand{\lowlight}[1]{\cellcolor{highlightcolor}{#1}}
+
+\newcolumntype{x}[1]{>{\centering\arraybackslash}p{#1pt}}
+\newcolumntype{y}[1]{>{\raggedright\arraybackslash}p{#1pt}}
+\newcolumntype{z}[1]{>{\raggedleft\arraybackslash}p{#1pt}}
+
+\newcolumntype{*}{>{\global\let\currentrowstyle\relax}}
+\newcolumntype{^}{>{\currentrowstyle}}
+\newcommand{\rowstyle}[1]{\gdef\currentrowstyle{#1}#1\ignorespaces}
+
+\newcommand{\tabincell}[2]{\begin{tabular}{@{}#1@{}}#2\end{tabular}}
+
+%% Title
+\title{{\modeltitle}: Exploring one general Representation Model toward unlimited modalities}
+
+\author{
+   Peng Wang$^{1}$\thanks{Equal contribution. Work done during Shijie’s internship at DAMO Academy. $^\dag$Corresponding author} ,
+   Shijie Wang$^{1,2*}$, Junyang Lin$^{1}$, Shuai Bai$^{1}$\\\\ 
+   \textbf{Xiaohuan Zhou$^{1}$, Jingren Zhou$^{1}$, Xinggang Wang$^{2}$, Chang Zhou$^{1\dag}$
+   } \\\\
+   $^1$DAMO Academy, Alibaba Group\ \ \ $^2$Huazhong University of Science and Technology
+}
+
+\begin{document}
+\maketitle
+
+
+\begin{abstract}
+In this work, we explore a scalable way for building a general representation model toward unlimited modalities.
+We release \onepeace, a highly extensible model with 4B parameters that can seamlessly align and integrate representations across vision, audio, and language modalities.
+The architecture of \onepeace comprises modality adapters, shared self-attention layers, and modality FFNs. 
+% which allow for the interaction between different modalities while also facilitating information extraction within each modality.
+This design allows for the easy extension of new modalities by adding adapters and FFNs, while also enabling multi-modal fusion through self-attention layers.
+To pretrain \onepeace, we develop two modality-agnostic pretraining tasks, cross-modal aligning contrast and intra-modal denoising contrast, which align the semantic space of different modalities and capture fine-grained details within modalities concurrently.
+% which align the semantic space of different modalities and capture fine-grained details within modalities concurrently.
+With the scaling-friendly architecture and pretraining tasks, \onepeace has the potential to expand to unlimited modalities.
+% Furthermore, these tasks are universal for all modalities without requiring modality-specific designs.
+Without using any vision or language pretrained model for initialization, \onepeace achieves leading results on a wide range of uni-modal and multi-modal tasks, including image classification (ImageNet), semantic segmentation (ADE20K), audio-text retrieval (AudioCaps, Clotho), audio classification (ESC-50, FSD50K, VGGSound), audio question answering (AVQA), image-text retrieval (MSCOCO, Flickr30K), and visual grounding (RefCOCO/+/g).
+% The former promotes interaction between different modalities, while the latter facilitates information extraction within each modality.
+% We design two pretraining tasks, cross-modal contrastive learning and masked intra-modal contrastive learning, to align the semantic space of different modalities and capture fine-grained details within modalities concurrently.
+% Cross-modal contrastive learning effectively aligns the semantic spaces of different modalities, while masked intra-modal contrastive enables the model to capture fine-grained details within modalities.
+% Importantly, these tasks are universal for all modalities, which obviates the need for modality-specific designs.
+% We highlight the unified architecture and pretext tasks for all modalities without modality-specific designs.
+
+\smallskip
+\centering
+Code is available at \url{https://github.com/OFA-Sys/ONE-PEACE}
+\end{abstract}
+
+
+\input{content/1_intro_new.tex}
+\input{content/2_related_work.tex}
+\input{content/3_method_new.tex}
+\input{content/4_experiments.tex}
+\input{content/5_conclusion.tex}
+
+\section*{Acknowledgments}
+We would like to thank Yang Zhang, Benjin Mei, Dongkun Li, Jin Wang, Wei Wang, and Yinghui Liu for their support to this project, and we would like to thank Yusong Wu for patiently answering our questions about the audio dataset. We would also thank the M6-Team for providing a supportive research environment.
+
+%Bibliography
+\bibliographystyle{unsrt}  
+\bibliography{main}
+
+\newpage
+\appendix
+\input{content/6_appendix}
+
+\end{document}

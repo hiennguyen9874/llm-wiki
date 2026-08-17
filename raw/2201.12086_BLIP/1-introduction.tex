@@ -1,0 +1,51 @@
+\vspace{-3ex}
+\section{Introduction}
+Vision-language pre-training has recently received tremendous success on various multimodal downstream tasks.
+However, existing methods have two major limitations:
+
+(1) Model perspective: most methods either adopt an encoder-based model~\cite{clip,ALBEF}, or an encoder-decoder~\cite{VL_T5,simvlm} model.
+However, encoder-based models are less straightforward to directly transfer to text generation tasks (\eg~image captioning), whereas encoder-decoder models have not been successfully adopted for image-text retrieval tasks.
+
+(2) Data perspective: most state-of-the-art methods (\eg, CLIP~\cite{clip}, ALBEF~\cite{ALBEF}, SimVLM~\cite{simvlm}) pre-train on image-text pairs collected from the web. 
+Despite the performance gain obtained by scaling up the dataset,
+our paper shows that the noisy web text is suboptimal for vision-language learning.
+
+
+To this end, we propose \name: Bootstrapping Language-Image Pre-training for unified vision-language understanding and generation.
+\name~is a new VLP framework which enables a wider range of downstream tasks than existing methods.
+It introduces two contributions from the model and data perspective, respectively:
+
+(a) Multimodal mixture of Encoder-Decoder (MED):
+a new model architecture for effective multi-task pre-training and flexible transfer learning.
+An MED can operate either as a unimodal encoder, or an image-grounded text encoder, or an image-grounded text decoder.
+% The image features are passed in through cross-attention layers.
+% To le multi-task pre-training,
+% the MED model reuses its parameters across the encoder-mode and decoder-mode, except for the self-attention layers.
+% The text encoder and text decoder share the same transformer parameters except for the self-attention layers.
+The model is jointly pre-trained with three vision-language objectives: image-text contrastive learning, image-text matching, and image-conditioned language modeling.
+% We propose a parameter-sharing strategy to leverage multi-task learning with efficiency.
+
+
+% For the purpose of BootCap,
+% we finetune the image-grounded text decoder into the \textit{generator},
+% and the image-grounded text encoder into the \textit{denoiser}.
+
+(b) Captioning and Filtering (CapFilt):
+a new dataset boostrapping method for learning from noisy image-text pairs.
+We finetune a pre-trained MED into two modules: a \textit{captioner} to produce synthetic captions given web images,
+and a \textit{filter} to remove noisy captions from both the original web texts and the synthetic texts.
+% We observe substantial performance gains by injecting diverse synthetic captions into the pre-training corpus. 
+
+\input{figure/teaser}
+
+We perform extensive experiments and analysis, and make the following key observations. 
+\vspace{-\topsep}
+\vspace{-1ex}
+\begin{itemize}[leftmargin=*]
+	\setlength\itemsep{0pt}
+% 	\item Our pre-trained model transfers flexibly to both understanding-based and generation-based tasks, in the meantime being efficient during pre-training.	
+	\item We show that the captioner and the filter work together to achieve substantial performance improvement on various downstream tasks by bootstrapping the captions.  
+	We also find that more diverse captions yield larger gains.
+	\item \name~achieves state-of-the-art performance on a wide range of vision-language tasks,
+	including image-text retrieval, image captioning, visual question answering, visual reasoning, and visual dialog. We also achieve state-of-the-art zero-shot performance when directly transferring our models to two video-language tasks: text-to-video retrieval and videoQA.
+\end{itemize}

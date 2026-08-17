@@ -1,0 +1,48 @@
+\section{Introduction}
+Deep learning has recently witnessed the rise of foundation language models~\cite{bommasani2021opportunities} such as BERT~\cite{devlin2018bert}, T5~\cite{raffel2019exploring}, GPT-3~\cite{brown2020language}, where models are pretrained on web-scale data and demonstrate generic multi-tasking capabilities through zero-shot, few-shot or transfer learning. Compared with specialized individual models, pretraining foundation models for massive downstream tasks can amortize training costs, providing opportunities to push the limits of model scale~\cite{barham2022pathways} for human-level intelligence.
+
+For vision and vision-language problems, several foundation model candidates have been explored:
+(1) Pioneering works~\cite{girshick2014rich, long2015fully, simonyan2014two} have shown the effectiveness of \textbf{single-encoder models} pretrained with cross-entropy loss on image classification datasets such as ImageNet~\cite{deng2009imagenet}.
+The image encoder provides generic \textit{visual representations} that can be adapted for various downstream tasks including image and video understanding \citep{dai2021coatnet,zhang2021co}.
+However, these models rely heavily on image annotations as labeled vectors and do not bake in knowledge of free-form human natural language,
+hindering their application to downstream tasks that involving both vision and language modalities.
+(2) Recently,
+a line of research ~\cite{radford2021learning, jia2021scaling, yuan2021florence}
+has shown the feasibility of image-text foundation model candidates by pretraining two parallel encoders with a contrastive loss on web-scale noisy image-text pairs.
+In addition to the visual embeddings for vision-only tasks,
+the resulting \textbf{dual-encoder models} can additionally encode textual embeddings to the same latent space,
+enabling new \textit{crossmodal alignment} capabilities such as zero-shot image classification and image-text retrieval.
+Nonetheless, these models are not directly applicable for joint vision-language understanding tasks such as visual question answering (VQA), due to missing joint components to learn fused image and text representations.
+(3) Another line of research~\cite{vinyals2015show, wang2021simvlm, wang2022unifying} has explored generative pretraining with \textbf{encoder-decoder models} to learn generic vision and multimodal representations. 
+During pretraining, the model takes images on the encoder side and applies Language Modeling (LM) loss (or PrefixLM~\cite{raffel2019exploring, wang2021simvlm}) on the decoder outputs.
+For downstream tasks, the decoder outputs can then be used as joint representations for \textit{multimodal understanding} tasks.
+While superior vision-language results~\cite{wang2021simvlm} have been attained with pretrained encoder-decoder models,
+they do not produce text-only representations aligned with image embeddings,
+thereby being less feasible and efficient for crossmodal alignment tasks.
+
+\begin{figure}[t]
+\centering
+\includegraphics[width=\linewidth]{figures/overview}
+\caption{Overview of Contrastive Captioners (CoCa) pretraining as image-text foundation models. The pretrained CoCa can be used for downstream tasks including visual recognition, vision-language alignment, image captioning and multimodal understanding with zero-shot transfer, frozen-feature evaluation or end-to-end finetuning.}
+\label{figs:overview}
+\end{figure}
+
+In this work, we unify \textit{single-encoder}, \textit{dual-encoder} and \textit{encoder-decoder} paradigms,
+and train one image-text foundation model that subsumes the capabilities of all three approaches.
+We propose a simple model family named Contrastive Captioners (CoCa) with a modified encoder-decoder architecture trained with both contrastive loss and captioning (generative) loss.
+As shown in Figure~\ref{figs:overview},
+we decouple the decoder transformer into two parts, a unimodal decoder and a multimodal decoder.
+We omit cross-attention in unimodal decoder layers to encode text-only representations, and cascade multimodal decoder layers cross-attending to image encoder outputs to learn \textit{multimodal} image-text representations.
+We apply both the contrastive objective between outputs of the image encoder and unimodal text decoder,
+and the captioning objective at the output of the multimodal decoder.
+Furthermore,
+CoCa is trained on both image annotation data and noisy image-text data by treating all labels simply as text.
+The generative loss on image annotation text provides a fine-grained training signal similar to the single-encoder cross-entropy loss approach,
+effectively subsuming all three pretraining paradigms into a single unified method.
+
+The design of CoCa leverages contrastive learning for learning global representations and captioning for fine-grained region-level features,
+thereby benefiting tasks across all three categories shown in Figure \ref{figs:overview}.
+CoCa shows that a single pretrained model can outperform many specialized models using zero-shot transfer or minimal task-specific adaptation.
+For example, CoCa obtains 86.3\% zero-shot accuracy on ImageNet and better zero-shot crossmodal retrieval on MSCOCO and Flickr30k.
+With a frozen-encoder, CoCa achieves 90.6\% on ImageNet classification, 88.0\%/88.5\%/81.1\% on Kinetics-40/600/700 and 47.4\% on Moments-in-Time.
+After lightweight finetuning, CoCa further achieves 91.0\% on ImageNet, 82.3\% on VQA and 120.6 CIDEr score on NoCaps.

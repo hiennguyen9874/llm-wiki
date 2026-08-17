@@ -1,0 +1,166 @@
+\documentclass{article}
+
+
+
+\usepackage[preprint]{style}
+\usepackage{mathtools}
+\usepackage{bm}
+\usepackage{amsmath,amsfonts,amssymb}
+\usepackage[square,sort,comma,numbers]{natbib}
+\usepackage{subfig}
+\usepackage{graphicx, amsmath, amssymb, caption, multirow, overpic, textpos}
+\usepackage[table]{xcolor}
+\usepackage[british, english, american]{babel}
+\usepackage[pagebackref=false, breaklinks=true, letterpaper=true, colorlinks,
+            citecolor=citecolor, linkcolor=linkcolor, bookmarks=false]{hyperref}
+\definecolor{citecolor}{HTML}{0071BC}
+\definecolor{linkcolor}{HTML}{ED1C24}
+
+\newlength\savewidth\newcommand\shline{\noalign{\global\savewidth\arrayrulewidth
+  \global\arrayrulewidth 1pt}\hline\noalign{\global\arrayrulewidth\savewidth}}
+\newcommand{\tablestyle}[2]{\setlength{\tabcolsep}{#1}\renewcommand{\arraystretch}{#2}\centering\footnotesize}
+\renewcommand{\paragraph}[1]{\vspace{1.25mm}\noindent\textbf{#1}}
+\newcommand\blfootnote[1]{\begingroup\renewcommand\thefootnote{}\footnote{#1}\addtocounter{footnote}{-1}\endgroup}
+
+\newcolumntype{x}[1]{>{\centering\arraybackslash}p{#1pt}}
+\newcolumntype{y}[1]{>{\raggedright\arraybackslash}p{#1pt}}
+\newcolumntype{z}[1]{>{\raggedleft\arraybackslash}p{#1pt}}
+
+\newcommand{\app}{\raise.17ex\hbox{$\scriptstyle\sim$}}
+\newcommand{\mypm}[1]{\color{gray}{\tiny{$\pm$#1}}}
+\newcommand{\x}{{\times}}
+\definecolor{deemph}{gray}{0.6}
+\newcommand{\gc}[1]{\textcolor{deemph}{#1}}
+\definecolor{baselinecolor}{gray}{.9}
+\newcommand{\baseline}[1]{\cellcolor{baselinecolor}{#1}}
+\newcommand{\authorskip}{\hspace{2.5mm}}
+
+
+\def\onedot{.}
+\def\eg{\emph{e.g}\onedot} \def\Eg{\emph{E.g}\onedot}
+\def\ie{\emph{i.e}\onedot} \def\Ie{\emph{I.e}\onedot}
+\def\cf{\emph{c.f}\onedot} \def\Cf{\emph{C.f}\onedot}
+\def\etc{\emph{etc}\onedot} \def\vs{\emph{vs}\onedot}
+\def\wrt{w.r.t\onedot} \def\dof{d.o.f\onedot}
+\def\etal{\emph{et al}\onedot}
+\def\aka{\emph{a.k.a}\onedot}
+
+
+
+\usepackage[utf8]{inputenc} %
+\usepackage[T1]{fontenc}    %
+\usepackage{hyperref}       %
+\usepackage{url}            %
+\usepackage{booktabs}       %
+\usepackage{amsfonts}       %
+\usepackage{nicefrac}       %
+\usepackage{microtype}      %
+\usepackage{xcolor}         %
+\usepackage{adjustbox}
+\usepackage{colortbl}
+\usepackage{multirow}
+\usepackage{rotating}
+\usepackage{wrapfig}
+\usepackage{algorithm}
+\usepackage{listings}
+
+\usepackage{etoolbox}
+\makeatletter
+\AfterEndEnvironment{algorithm}{\let\@algcomment\relax}
+\AtEndEnvironment{algorithm}{\kern2pt\hrule\relax\vskip3pt\@algcomment}
+\let\@algcomment\relax
+\newcommand\algcomment[1]{\def\@algcomment{\footnotesize#1}}
+\renewcommand\fs@ruled{\def\@fs@cfont{\bfseries}\let\@fs@capt\floatc@ruled
+  \def\@fs@pre{\hrule height.8pt depth0pt \kern2pt}%
+  \def\@fs@post{}%
+  \def\@fs@mid{\kern2pt\hrule\kern2pt}%
+  \let\@fs@iftopcapt\iftrue}
+\makeatother
+
+\newcommand{\todo}[1]{\textcolor{blue}{{#1}}}
+
+\definecolor{red2}{RGB}{252, 54, 65}
+\definecolor{darkergreen}{RGB}{21, 152, 56}
+
+\title{CoCa: Contrastive Captioners are Image-Text Foundation Models}
+
+\setcounter{footnote}{1}
+\author{
+\parbox{\linewidth}{\centering
+   Jiahui Yu\thanks{Equal contribution.} \hspace{1cm}
+   Zirui Wang\footnotemark[2] \hspace{1cm}\\\vspace{0.1cm}
+   \texttt{\{jiahuiyu, ziruiw\}@google.com}\\\vspace{0.2cm}
+   Vijay Vasudevan \hspace{.1cm}
+   Legg Yeung \hspace{.1cm}
+   Mojtaba Seyedhosseini \hspace{.1cm}
+   Yonghui Wu  \hspace{.1cm}\\
+}\\
+
+\parbox{\linewidth}{\centering \vspace{0.2cm}
+   Google Research \\
+}
+}
+
+\begin{document}
+
+\maketitle
+
+\begin{abstract}
+Exploring large-scale pretrained foundation models is of significant interest in computer vision because these models can be quickly transferred to many downstream tasks. This paper presents \textbf{Co}ntrastive \textbf{Ca}ptioner (\textbf{CoCa}), a minimalist design to pretrain an image-text encoder-decoder foundation model jointly with contrastive loss and captioning loss, thereby subsuming model capabilities from contrastive approaches like CLIP and generative methods like SimVLM. In contrast to standard encoder-decoder transformers where all decoder layers attend to encoder outputs, CoCa omits cross-attention in the first half of decoder layers to encode \textit{unimodal} text representations, and cascades the remaining decoder layers which cross-attend to the image encoder for \textit{multimodal} image-text representations. We apply a contrastive loss between unimodal image and text embeddings, in addition to a captioning loss on the multimodal decoder outputs which predicts text tokens autoregressively. By sharing the same computational graph, the two training objectives are computed efficiently with minimal overhead. CoCa is pretrained end-to-end and from scratch on both web-scale alt-text data and annotated images by treating all labels simply as text, seamlessly unifying natural language supervision for representation learning. Empirically, CoCa achieves state-of-the-art performance with zero-shot transfer or minimal task-specific adaptation on a broad range of downstream tasks, spanning visual recognition (ImageNet, Kinetics-400/600/700, Moments-in-Time), crossmodal retrieval (MSCOCO, Flickr30K, MSR-VTT), multimodal understanding (VQA, SNLI-VE, NLVR2), and image captioning (MSCOCO, NoCaps). Notably on ImageNet classification, CoCa obtains 86.3\% \textit{zero-shot} top-1 accuracy, 90.6\% with a \textit{frozen encoder} and learned classification head, and new state-of-the-art 91.0\% top-1 accuracy on ImageNet with a \textit{finetuned encoder}.
+\end{abstract}
+
+\input{sec1_intro}
+
+\input{sec2_related_work}
+
+\input{sec3_approach}
+
+\input{sec4_experiments}
+
+\input{sec5_broader_impacts}
+
+\input{sec6_conclusion}
+
+\subsubsection*{Acknowledgments}
+We would like to thank Yi-Ting Chen, Kaifeng Chen, Ye Xia, Zhen Li, Chao Jia, Yinfei Yang, Zhengdong Zhang, Wei Han, Yuan Cao, Tao Zhu, Futang Peng, Soham Ghosh, Zihang Dai, Junnan Li, Ning Wang, Xin Li, Anelia Angelova, Jason Baldridge, Izhak Shafran, Shengyang Dai, Abhijit Ogale, Zhifeng Chen, Claire Cui, Paul Natsev, Tom Duerig for helpful discussions, Andrew Dai for help with contrastive models, Christopher Fifty and Bowen Zhang for help with video models, Yuanzhong Xu for help with model scaling, Lucas Beyer for help with data preparation, Andy Zeng for help with MSR-VTT evaluation, Hieu Pham and Simon Kornblith for help with zero-shot evaluations, Erica Moreira and Victor Gomes for help with resource coordination, Tom Small for help with visual illustration, Liangliang Cao for proofreading, and others in the Google Brain team for support throughout this project.
+
+\bibliographystyle{unsrt}
+\bibliography{main}
+
+\clearpage
+
+\appendix
+
+\section{Visual Recognition Finetuning Details}
+\label{secs:detailed_ae_ft}
+\input{tables/detailed_ae_ft}
+In addition to zero-shot transfer, we evaluate frozen-feature and finetuning performance of CoCa on visual recognition tasks. For frozen-feature evaluation, we add an attentional pooling layer (pooler) on top of the output sequence of visual features and an additional softmax cross entropy loss layer to learn classification of images and videos. For finetuning, we adapt the same architecture as frozen-feature evaluation (thus also with poolers) and finetune both encoder and pooler. All learning hyperparameters are listed in Table~\ref{tabs:detailed_ae_ft}.
+
+\section{Multimodal Understanding Finetuning Details}
+\label{secs:detailed_vl}
+\input{tables/detailed_vl}
+
+CoCa is an encoder-decoder model and the final decoder outputs can be used for multimodal understanding/generation.
+Thus, we evaluate on popular vision-language benchmarks.
+We mainly follow the same setup introduced in \cite{wang2021simvlm}.
+All hyper-parameters are listed in Table \ref{tabs:detailed_vl}.
+
+For multimodal classification,
+we feed the image into the encoder and the corresponding text to the decoder.
+We then apply another attentional pooler with a single query to extract embedding from the decoder output, and train a linear classifier on top of the pooled embedding.
+For VQA v2 \citep{goyal2017making}, we follow prior work and formulate the task as a classification problem over 3,129 most frequent answers in the training set.
+We additionally enable cotraining with the generative loss on the concatenated pairs of textual questions and answers to improve model robustness.
+Similarly for SNLI-VE,
+the image and the textual hypothesis are fed to encoder and decoder separately,
+and the classifier is trained to predict the relation between them as entailment, neutral or contradiction.
+For NLVR2,
+we create two input pairs of each image and the text description,
+and concatenate them as input to the classifier.
+We do not use image augmentation for NLVR2.
+
+For image captioning,
+we apply simple cross-entropy loss (same as the captioning loss used in pretraining) and finetune the model on the training split of MSCOCO to predict for MSCOCO test split and NoCaps online evaluation.
+
+
+
+\end{document}

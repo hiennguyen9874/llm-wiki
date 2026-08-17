@@ -1,0 +1,91 @@
+Following~\cite{mitchell-2019-model}, we present the PaLI model card in Table~\ref{tab:modelcard}. 
+\begin{longtable}[c]{ p{.20\textwidth} | p{.62\textwidth} } 
+\toprule
+\multicolumn{2}{c}{\textbf{Model Summary}}      \\ \toprule
+\multicolumn{1}{l|}{Model Architecture} & PaLI is a multimodal sequence-to-sequence Transformer~\citep{vaswani2017attention} model derived from the T5~\citep{2020t5} encoder-decoder architecture. It takes text tokens and ViT~\citep{dosovitskiy-2021-vit} dense image embeddings as inputs to an encoder and autoregressively predicts discrete text tokens with a decoder.  \\ \midrule
+\multicolumn{1}{l|}{Input(s)} & A pair of image and text. 
+\\ \midrule
+\multicolumn{1}{l|}{Output(s)} & Generated text. 
+\\
+\toprule
+
+\multicolumn{2}{c}{\textbf{Usage}}      \\ \toprule
+\multicolumn{1}{l|}{Application} & The model is for research prototype and the current version is not available for the public.\\ 
+\midrule
+\multicolumn{1}{l|}{Known Caveats} & No.    \\
+\toprule
+
+\multicolumn{2}{c}{\textbf{System Type}}      \\ \toprule
+\multicolumn{1}{l|}{System Description} & This is a standalone model.  \\ \midrule
+\multicolumn{1}{l|}{Upstream Dependencies} & No.  \\ \midrule
+\multicolumn{1}{l|}{Downstream Dependencies} & No. \\
+\toprule
+
+\multicolumn{2}{c}{\textbf{Implementation Frameworks}}      \\ \toprule
+\multicolumn{1}{l|}{Hardware \& Software} & Hardware: TPU v4~\citep{jouppi2020domain}.    \vspace{0.1in}
+
+Software: T5X~\citep{t5x}, JAX~\citep{jax2018github}, Flaxformer~\citep{flax2020github}    \vspace{0.1in}
+
+Details are reported in Section~\ref{sec:model_details}.
+\\ \midrule
+\multicolumn{1}{l|}{Compute Requirements} & Reported in Section~\ref{sec:model_details}. \\
+\toprule
+
+\multicolumn{2}{c}{\textbf{Model Characteristics}}      \\ \toprule
+\multicolumn{1}{l|}{Model Initialization} & The model is initialized from pre-trained language (mT5)~\citep{xue-2021-mt5} and Vision Transformer (ViT)~\citep{zhai-21-scalingvit,dosovitskiy-2021-vit} checkpoints.  \\ \midrule
+\multicolumn{1}{l|}{Model Status} & This is a static model trained on an offline dataset.  \\ \midrule
+\multicolumn{1}{l|}{Model Stats} & The largest PaLI model has 17B parameters, which consists of a 13B parameter mT5-XXL model and a 4B parameter ViT-e model. We have also trained 3B and 15B parameter models. \\
+\toprule
+
+\multicolumn{2}{c}{\textbf{Data Overview}}      \\ \toprule
+\multicolumn{1}{l|}{Training dataset} &
+The model is pre-trained on the following mixture of datasets: WebLI (Table~\ref{table:datasheet}), % a subset of PaLM/GLaM Dataset~\citep{du2022glam,chowdhery2022palm}, 
+CC3M-35L~\citep{cc3m}, VQ$^2$A-CC3M-35L~\citep{changpinyo-2022-vq2a}, Open Images~\citep{kuznetsova2020open}, Visual Genome~\citep{krishna-17-visualgenome} and Object365~\citep{o365}.
+Details are reported in Section~\ref{sec:mixture}. \\\toprule
+\multicolumn{1}{l|}{Evaluation and Fine-tuning Dataset} &
+\begin{itemize}
+    \item \textbf{Vision + language tasks}
+        \begin{itemize}
+            \item \textbf{Image captioning (English)}:
+            COCO~\citep{coco},
+            NoCaps~\citep{nocaps},
+            TextCaps~\citep{textcaps}
+            \item \textbf{Image captioning (multilingual)}: Crossmodal-3600~\citep{xm3600}
+            \item \textbf{Visual question answering (English)}:
+            VQAv2~\citep{vqav2},
+            OKVQA~\citep{kat-okvqa-2022},
+            TextVQA~\citep{textvqa},
+            VizWiz-QA~\citep{gurari2018vizwiz}
+            \item \textbf{Visual question answering (multilingual)}: xGQA~\citep{xgqa},
+            MaXM~\citep{maxm}
+        \end{itemize}
+    \item \textbf{Vision-only tasks}
+        \begin{itemize}
+            \item \textbf{Image classification (fine-tuning)}: ImageNet~\citep{deng2009imagenet}, ImageNet-V2~\citep{recht2019imagenet}, ObjectNet~\citep{objectnet},
+            ReaL~\citep{imagenet_real}
+            \item \textbf{Image classification (zero-shot)}: ImageNet~\citep{deng2009imagenet}, ImageNet-V2~\citep{recht2019imagenet}, ImageNet-R~\citep{hendrycks2021many}, ImageNet-A~\citep{hendrycks2021nae}, ImageNet-Sketch~\citep{wang2019learning}, ObjectNet~\citep{objectnet},
+            ReaL~\citep{imagenet_real},
+            VTAB~\citep{vtab}
+        \end{itemize}
+    \item \textbf{Language-only tasks}
+        \begin{itemize}
+            \item \textbf{Natural language inference (English)}: SuperGLUE~\citep{wang-2019-superglue}
+            \item Natural language inference (multilingual): XNLI~\citep{conneau-etal-2018-xnli}
+            \item \textbf{Question Answering (multilingual)}: XQuAD~\citep{artetxe-etal-2020-cross}, TyDiQA~\citep{clark-etal-2020-tydi}
+        \end{itemize}
+\end{itemize}    \\
+\toprule
+
+\multicolumn{2}{c}{\textbf{Evaluation Results}}      \\ \toprule
+\multicolumn{1}{l|}{Evaluation Results} & Reported in Section~\ref{sec:results}. \\ 
+\toprule
+
+\multicolumn{2}{c}{\textbf{Model Usage \& Limitations}}      \\ \toprule
+\multicolumn{1}{l|}{Sensitive Use} & The model is capable of open-ended text generations. This model should not be used for any of the unacceptable language model use cases, e.g., generation of toxic speech.  \\ \midrule
+\multicolumn{1}{l|}{Known Limitations} & Reported in Section~\ref{sec:limitations}. \\ \midrule
+\multicolumn{1}{l|}{Ethical Considerations \& Risks} & Reported in Section~\ref{sec:fairness}. \\
+
+\bottomrule
+\caption{PaLI model card.}
+\label{tab:modelcard}
+\end{longtable}

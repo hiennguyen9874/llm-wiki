@@ -1,0 +1,74 @@
+\section{Related Work}
+%\xd{remember to cite all recent papers, no missing} 
+\paragraph{Vision-Language Pre-training Models.} The pre-train-and-fine-tune scheme has achieved great success in the domains of natural language processing~\citep{devlin2018bert,brown2020language} and computer vision~\citep{dosovitskiy2020image}.
+It is then naturally extended to a joint cross-modal domain of 
+% vision and language
+% , named 
+Vision-and-Language Pre-training (VLP). 
+The pre-training datasets of recent VLP models 
+include publically available 
+% several 
+% automatically collected 
+datasets 
+% with image-text pairs 
+% from Internet, 
+like YFCC100M \citep{thomee2016yfcc100m} and CC12M \citep{changpinyo2021cc12m}, as well as 
+% Pre-training on 
+larger-scale datasets with more than 100M samples
+% has shown promising results  
+in CLIP \citep{radford2021learning} and ALIGN \citep{jia2021scaling}, which are shown to be even more powerful. 
+The pre-training tasks of VLP models can be categorized into two categories: image-text contrastive learning task and Language Modeling (LM) based tasks:
+(i) CLIP \citep{radford2021learning}, ALIGN \citep{jia2021scaling} and UNIMO \citep{li2020unimo} make use of cross-modal contrastive learning which aligns the textual and visual information into a unified semantic space; (ii) VisualBERT \citep{li2019visualbert}, UNITER \citep{chen2020uniter}, M6 \citep{lin2021m6}, and DALL-E \citep{ramesh2021zeroshot} employ LM-like objectives, including both masked LM (e.g., Masked Language/Region Modeling), and autoregressive LM (e.g., image captioning, text-grounded image generation).
+% the BERT-like objectives such as: Masked Language Modeling (MLM), Masked
+% Region Modeling (MRM) to learn multi-modal representations from a
+% concatenated-sequence of vision features and language embeddings.
+On the other hand, some methods rely on a pre-trained object detection model such as Faster-RCNN \citep{ren2015faster} to extract image regional
+features offline, which requires extra labeled bounding-box data and makes the approach less scalable.
+Recent efforts such as SOHO \citep{huang2021seeing} and SimVLM \citep{wang2021simvlm} try to eliminate this burden via visual dictionary or PrefixLM 
+\citep{raffel2020exploring}. 
+% Our method further explores to 
+In this paper, we 
+ directly 
+%  model the whole image as well as the fine-grained representation and 
+learn fine-grained vision-language representations
+in an end-to-end and simpler manner while maintaining the benefit of inference efficiency.
+
+
+\paragraph{Multi-Modality Interaction Mechanism.} 
+The core of vision-language pre-training models lies in modeling the interaction between the two modalities. 
+% From the perspective of multi-modality interaction architecture, there
+There are mainly two types of cross-modal interaction architectures: single-stream and dual-stream models. 
+% Specifically, 
+Single-stream models like VisualBERT \citep{li2019visualbert} and ViLT \citep{kim2021vilt} directly concatenate the patch-wise or regional visual features and textual embeddings 
+% as a sequence 
+and feed them to the transformer-based model.
+Dual-stream models such as ViLBERT \citep{lu2019vilbert} and CLIP~\citep{radford2021learning} have separate encoders for different modalities. 
+This allows flexible use of different models for different modalities, and
+% enables more flexible and efficient modeling of each modality e.g. CNN for images, Transformers for texts. 
+% Moreover, this diagram enables 
+ efficient inference for downstream tasks like image-text retrieval, through the ability of decoupling the encoders and pre-compute image/text features offline.
+% For example, the image encoder itself can be used as self-supervised
+% pre-trained model, and the text encoder can directly apply to many Natural Language Understanding (NLU) downstream tasks. 
+% Furthermore, architecture like CLIP \citep{radford2021learning} achieve remarkable
+% zero-shot performance on image classification and image-text retrieval.
+In this paper, while following the dual-stream approach for its flexible and efficient inference,
+% and more supported downstream tasks, 
+we further propose a new multi-modal interaction mechanism to capture the fine-grained representations. 
+
+% \subsection{Data Augmentation in Vision and NLP}
+
+% Data augmentation has gradually become an essential practice in both vision,
+% and NLP and it brings substantial improvement for both generalization
+% and data-efficiency of the model. Current SOTA vision recognition
+% models \citep{touvron2021training,xie2020self} are trained with various
+% augmentation techniques such as random cropping, flipping, rotation
+% and color-shifting \citep{krizhevsky2012imagenet,sato2015apac,cubuk2019autoaugment,hoffer2020augment}.
+% Augmentation for image has even become the foundation of some self-supervised
+% methods \citep{chen2020improved,xie2021detco}. For NLP methods, the
+% main idea of data augmentation is to generate semantic-consistent
+% variants of the original data \citep{bai2021connecting}. Therefore,
+% lexical replacement such as Word-Net synonym replacement and word
+% embedding substitution is widely used in the literature \citep{zhang2015character,wei2019eda,jiao2019tinybert,wang2015s}.
+% On the other hand, back-translation is a more simple but effective
+% method that translates target language to source language and uses
+% back-translated sentences as augmented data \citep{xie2019unsupervised,sennrich2015improving}.

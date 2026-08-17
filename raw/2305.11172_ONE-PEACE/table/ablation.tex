@@ -1,0 +1,113 @@
+\begin{table*}[t]
+\centering
+\normaltablestyle{6pt}{1.2}
+\begin{tabular}{l|ccc|ccc|c}
+  \multirow{3}*{Structure}
+  & \multicolumn{6}{c|}{COCO zero-shot (5k test set)} & \multirow{2}*{IN-1K}
+  \\
+  & \multicolumn{3}{c|}{Image $\rightarrow$ Text} & \multicolumn{3}{c|}{Text $\rightarrow$ Image} &
+  \\
+  & \footnotesize R@1 & \footnotesize R@5 & \footnotesize R@10 & \footnotesize R@1 & \footnotesize R@5 & \footnotesize R@10 & ZS
+  \\
+  \shline
+  Share ATTN \& FFN & 33.96 & 60.92 & 72.24 & 22.51 & 46.13 & 57.63 & 42.21
+  \\ 
+  No Share & 29.08 & 54.30 & 65.56 & 18.98 & 40.34 & 51.44 & 37.73
+  \\
+  Share FFN & 27.36 & 52.66 & 64.36 & 18.08 & 38.68 & 49.84 & 33.98
+  \\
+  Share ATTN & \textbf{35.94} & \textbf{62.52} & \textbf{72.78} & \textbf{23.87} & \textbf{47.80} & \textbf{59.38} & \textbf{43.24}
+  \\
+\end{tabular}
+\caption{\textbf{Ablation experiments on model structures.} "Share ATTN \& FFN" means share both self-attention layers and FFN layers. "No Share" means separate both self-attention layers and FFN layers. "Share FFN" means separate self-attention layers and share FFN layers. "Share ATTN" means share self-attention layers and separate FFN layers, which is the default setting of \onepeace. "ZS" is short for zero-shot accuracy.}
+\label{tb:structure_ablation}
+\vspace{+1em}
+\end{table*}
+
+\begin{figure*}[t]\centering
+\newcommand{\hei}{0.33\linewidth}
+\subfloat[\textbf{Training loss}\label{pic:ablation_loss}]
+{\includegraphics[width=\hei,height=0.27\linewidth]{pic/ablation_loss1.pdf}}
+\subfloat[\textbf{Training accuracy}\label{pic:ablation_batch_acc}]
+{\includegraphics[width=\hei,height=0.27\linewidth]{pic/ablation_batch_acc.pdf}}
+\subfloat[\textbf{Zero-shot accuracy} \label{pic:ablation_epoch_acc}]
+{\includegraphics[width=\hei,height=0.27\linewidth]{pic/ablation_epoch_acc1.pdf}}
+\caption{\textbf{Training curves of different structures.} The model with shared self-attention layers and separated FFNs ("share attn") outperforms other structures, exhibiting the fastest convergence speed. (The curve appears as a staircase shape because we use exponential moving average to calculate relevant indicators in each epoch.)}
+\label{fig:ablation_shared}
+\end{figure*}
+
+\begin{table*}[t]
+\centering
+\normaltablestyle{6pt}{1.2}
+\begin{tabular}{cccc|ccc|ccc|cc}
+  & & & &\multicolumn{6}{c|}{COCO zero-shot (5k test set)} & \multicolumn{2}{c}{\multirow{2}*{IN-1K}}
+  \\
+  & & & &\multicolumn{3}{c|}{Image $\rightarrow$ Text} &\multicolumn{3}{c|}{Text $\rightarrow$ Image}
+  \\
+  \footnotesize CL & \footnotesize DCL-L & \footnotesize DCL-V & \footnotesize DCL-VL & \footnotesize R@1 & \footnotesize R@5 & \footnotesize R@10 & \footnotesize R@1 & \footnotesize R@5 & \footnotesize R@10 & \footnotesize ZS & \footnotesize FT
+  \\
+\shline
+  \checkmark & & & & 35.94 & 62.52 & 72.78 & 23.87 & 47.80 & 59.38 & 43.24 & 82.20
+  \\ 
+  \checkmark & \checkmark & & & 37.02 & 63.78 & 73.96 & 23.63 & 47.87 & 59.22 & 43.69 & 81.99
+  \\
+  \checkmark & & \checkmark & & 38.88 & 65.34 & 75.76 & 26.05 & 49.78 & 61.26 & 45.94 & 83.32
+  \\
+  \checkmark & \checkmark & \checkmark & & 39.00 & 65.64 & 76.30 & 25.85 & 50.06 & 61.80 & 45.54 & 83.33
+  \\
+  \checkmark & \checkmark & \checkmark & \checkmark & \textbf{39.94} & \textbf{65.94} & \textbf{76.72} & \textbf{26.94}  & \textbf{51.38} & \textbf{62.81} & \textbf{46.41} & \textbf{83.75}
+  \\
+\end{tabular}
+\caption{\textbf{Ablation studies of intra-modal denoising contrastive learning.} "CL" is cross-modal contrastive learning. "DCL-L", "DCL-V", and "DCL-VL" means applying intra-modal denoising contrastive learning to language, vision, and vision-language data, respectively.  "ZS" is short for zero-shot accuracy, "FT" is short for fine-tuning accuracy.}
+\label{tb:loss_ablation}
+\vspace{+1em}
+\end{table*}
+
+\begin{table*}[t]
+\centering
+\normaltablestyle{6pt}{1.2}
+\begin{tabular}{*l| ^c ^c ^c| ^c ^c ^c| ^c ^c ^c}
+  & \multicolumn{6}{c|}{COCO zero-shot (5k test set)} & \multicolumn{2}{c}{\multirow{2}*{IN-1K}}
+  \\
+  & \multicolumn{3}{c|}{Image $\rightarrow$ Text} & \multicolumn{3}{c|}{Text $\rightarrow$ Image} &
+  \\
+  Denoising Loss & \footnotesize R@1 & \footnotesize R@5 
+  & \footnotesize R@10
+  & \footnotesize R@1 & \footnotesize R@5 & \footnotesize R@10
+  & ZS & FT
+  \\
+  \shline
+  None & 35.94 & 62.52 & 72.78 & 23.87 & 47.80 & 59.38 & 43.24 & 82.20
+  \\
+  Smooth L1 Loss & 36.72 & 63.86 & 74.30 & 24.37 & 48.17 & 59.86 & 44.36 & 82.50
+  \\
+  L2 Loss & 37.46 & 64.80 & 74.46 & 25.81 &49.64 & 61.80 & 45.78 & 83.15
+  \\
+  Cosine Loss & 38.28 & 65.80 & 75.18 & 25.47 & 50.02 & 61.59 & 45.15 & 83.07
+  \\ 
+  Denoising Contrastive Loss & \textbf{39.94} & \textbf{65.94} &
+  \textbf{76.72} &
+  \textbf{26.94} & \textbf{51.38} & 
+  \textbf{62.81} &
+  \textbf{46.41} & \textbf{83.75}
+  \\
+\end{tabular}
+\caption{\textbf{Ablation studies of different denoising losses.} Among all the denoising losses, denoising contrastive loss shows the greatest performance improvement in both cross-modal retrieval and image classification tasks.}
+\label{tb:masked_loss_ablation}
+\vspace{+1em}
+\end{table*}
+
+
+% \begin{table*}[t]
+% \centering
+% \normaltablestyle{8pt}{1.3}
+% \begin{tabular}{c|cccc}
+%   Feature Extractor & Random Init. & Init. with Hubert & Init. with Wav2Vec 2.0 & Init. with WavLM
+%   \\
+%   \shline
+%   ESC-50 Acc. & 85.8 &89.6 (+3.8)  & 90.0 (+4.2) & 92.0 (+6.2)
+%   \\
+% \end{tabular}
+% \caption{Ablation studies of pretrained audio feature extractors. We report zero-shot accuracy on the ESC-50 dataset.}
+% \label{tb:audio_ablation}
+% \end{table*}

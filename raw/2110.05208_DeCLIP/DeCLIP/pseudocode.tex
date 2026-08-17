@@ -1,0 +1,64 @@
+
+% \documentclass[11pt]{article}
+% \usepackage{CJK}
+% \usepackage[top=2cm, bottom=2cm, left=2cm, right=2cm]{geometry}
+% \usepackage{amsmath}
+% \usepackage{indentfirst}
+
+% \floatname{algorithm}{算法}
+% \renewcommand{\algorithmicrequire}{\textbf{输入:}}
+% \renewcommand{\algorithmicensure}{\textbf{输出:}}
+
+% TODO Repaint the pseudo code
+\begin{algorithm}
+    \caption{DeCLIP}
+    \begin{algorithmic}[1] %每行显示行号
+        \Require $I$, $\tilde{I}$, $T$, $\tilde{T}$, $image\_encoder$, $text\_encoder$, $Feature\_Queue$
+        % \Ensure $Logits$
+        \Function {Batch-Updating}{$I$, $\tilde{I}$, $T$, $\tilde{T}$}
+            \State \textcolor[RGB]{64,128,128}{$\#$ Get The Features of The Current Batch.}
+            % \State $I_f \gets image\_encoder(I)$
+            % \State $\tilde{I}_f \gets image\_encoder(\tilde{I})$
+            % \State $T_f \gets text\_encoder(T)$
+            % \State $\tilde{T}_f \gets text\_encoder(\tilde{T})$
+            \State $I_f, \tilde{I}_f \gets image\_encoder(I), image\_encoder(\tilde{I})$
+            \State $T_f, \tilde{T}_f \gets text\_encoder(T), text\_encoder(\tilde{T})$
+            \State $T_{NN} \gets$ \Call{Nearest-Neighbor}{$Feature\_Queue, T_f$}
+            \State
+            \State \textcolor[RGB]{64,128,128}{$\#$ Calculate The losses.}
+            \State $L_{CLIP} \gets$ \Call{InfoNCE-Loss}{$I_f, T_f$}
+            \State $L_{SS} \gets$ \Call{Image-SS-Loss}{$I_f, \tilde{I}_f$} + \Call{Text-SS-Loss}{$T_f$}
+            \State $L_{MVS} \gets$ \Call{InfoNCE-Loss}{$I_f, \tilde{T}_f$} + \Call{InfoNCE-Loss}{$\tilde{I}_f, T_f$} + \Call{InfoNCE-Loss}{$\tilde{I}_f, \tilde{T}_f$}
+            \State $L_{NNS} \gets$ \Call{InfoNCE-Loss}{$\tilde{I}_f, \tilde{T}_{NN}$}
+            \State $L_{\workname} \gets (1 - \alpha - \beta - \gamma)L_{CLIP} + \alpha L_{SS} + \beta L_{MVS} + \gamma L_{NNS}$
+            \State
+            \State \textcolor[RGB]{64,128,128}{$\#$ Update The Network.}
+            % \State \Call{Update-NetWork}{$image\_encoder, L_{\workname}$}
+            % \State \Call{Update-NetWork}{$text\_encoder, L_{\workname}$}
+            % \State $Feature\_Queue \gets$ \Call{Update-FeatureQueue}{$Feature\_Queue, T_f$}
+            \State $image\_encoder \gets$ \Call{Backward-Update}{$image\_encoder, L_{\workname}$}
+            \State $text\_encoder \gets$ \Call{Backward-Update}{$text\_encoder, L_{\workname}$}
+            \State $Feature\_Queue \gets$ \Call{FIFO-Update}{$Feature\_Queue, T_f$}
+        \EndFunction
+        \State
+        \Function {Image-SS-Loss}{$I_f, \tilde{I}_f$}
+            \State $z, \tilde{z} \gets image\_encoder.proj(I_f), image\_encoder.proj(\tilde{I}_f)$
+            \State $p, \tilde{p} \gets image\_encoder.pred(z), image\_encoder.pred(\tilde{z})$
+            \State $z, \tilde{z} \gets z.detach(), \tilde{z}.detach()$
+            \State \textcolor[RGB]{64,128,128}{$\#$ Calculate the Negative Cosine Similarity loss.}
+            \State $L_{Image-SS} \gets NCS(p, \tilde{z}) / 2 + NCS(\tilde{p}, z) / 2$  
+            \State \Return{$L_{Image-SS}$}
+        \EndFunction
+        \State
+        \Function {Text-SS-Loss}{$T_f$}
+            \State \textcolor[RGB]{64,128,128}{$\#$ Get The Masking GT when performing the text-encoder.}
+            \State $W_f, W_{gt} \gets T_f.word\_feat, T_f.mask\_id$
+            % \textcolor{gray}{$\#$ $W_f$ and $W_{gt}$ represents the features and masked words, respectively.}
+            \State $W_{pred} \gets text\_encoder.pred(W_f)$
+            \State \textcolor[RGB]{64,128,128}{$\#$ Calculate the Cross-Entropy loss.}
+            \State $L_{Text-SS} \gets CE(W_{gt}, W_{pred})$  
+            \State \Return{$L_{Text-SS}$}
+        \EndFunction
+        
+    \end{algorithmic}
+\end{algorithm}

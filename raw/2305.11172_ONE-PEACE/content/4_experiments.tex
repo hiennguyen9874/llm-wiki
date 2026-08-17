@@ -1,0 +1,175 @@
+\section{Experiments}
+\label{sec:experiments}
+
+\subsection{Results on Vision Tasks}
+\input{table/v_result}
+
+We transfer \onepeace to various mainstream vision benchmarks, including image classification, semantic segmentation, object detection, instance segmentation and video action recognition. 
+We provide the implementation details in Appendix~\ref{app:vision_details}.
+
+\paragraph{Image Classification.} In our experiments, we assess the image classification transfer performance of \onepeace using the ImageNet-1K~\cite{inet1k} dataset, encompassing 1.28 million training images and 50,000 validation images distributed across 1,000 distinct categories. We also use intermediate fine-tuning on ImageNet-21k~\cite{imagenet}. As demonstrated in Table~\ref{tb:inet1k}, \onepeace obtains \textbf{89.8} top-1 accuracy on ImageNet with less token length $(image\_size / patch\_size)^2$. 
+Note that FD-SwinV2-G, BEiT-3, and EVA all rely on the assistance of an external CLIP model for pretraining, while \onepeace is trained from scratch without the help of external models. Even so, \onepeace is able to achieve better results, which demonstrates its strong transferability.
+% The transfer learning capabilities of our approach are commensurate with the current state-of-the-art methods.
+
+\paragraph{Semantic Segmentation.} We experiment on ADE20k~\cite{Zhou2016SemanticUO} using ViT-Adapter~\cite{chen2022vitadapter} for task adaptation and Mask2Former~\cite{mask2former} as the segmentation head. Following common practice, we first fine-tune the segmentation head on coco-stuff~\cite{cocostuff} then fine-tune on ADE20k. As demonstrated in Table~\ref{tb:ade20k}, \onepeace establishes a new state-of-the-art, achieving a mean Intersection over Union (mIoU) of \textbf{63.0}. This result indicates that \onepeace exhibits exceptional transferring performance in the domain of dense prediction tasks.
+
+\paragraph{Object Detection and Instance Segmentation.} We perform fine-tuning experiments on the COCO 2017~\cite{mscoco} dataset. For the backbone, we employ the \onepeace backbone and use the ViTDet~\cite{vitdet} with Cascade Mask-RCNN architecture, which incorporates a straightforward feature pyramid and window attention for addressing object detection and instance segmentation tasks. The model is fine-tuned on the COCO dataset. Soft-NMS~\cite{softnms} is used during the inference stage. As illustrated in Table~\ref{tb:coco}, the instance-level transfer capabilities of \onepeace exhibit a performance that is on par with the current state-of-the-art methods. 
+% We do not use the Objects365 dataset for intermediate fine-tuning.
+
+\paragraph{Video Action Recognition.} We benchmark \onepeace on Kinetics 400~\cite{k400} dataset for video action recognition. Following AIM~\cite{aim}, we keep the whole model frozen and add several MLP adapters in each transformer layer. We use I3D~\cite{k400} head as the classification layer. As demonstrated in Table~\ref{tb:k400}, without fine-tuning the full encoder, ~\onepeace could achieve \textbf{88.1} top-1 accuracy, even outperforming CoCa which is pre-trained on privately collected data, and ViT-22B with 14x more parameters.
+
+\subsection{Results on Audio(-Language) Tasks}
+\input{table/audio_result}
+We evaluate \onepeace on various audio and audio-language tasks, including audio-text retrieval, audio classification, and audio question answering (AQA).
+The implementation details are provided in Appendix~\ref{app:audio_details}.
+
+\paragraph{Audio-Text Retrieval.}
+Table~\ref{tb:audio_text_retrieval} presents the performance of \onepeace and baseline models in the audio-text retrieval task.
+As a general representation model, \onepeace achieves SOTA results on both AudioCaps~\cite{audiocaps} and Clotho~\cite{clotho} datasets, outperforming the previous audio representation model by a large margin.
+On AudioCaps, \onepeace achieves 21.1\% improvement on R@1 in text-to-audio retrieval and 11.4\% improvement on R@1 in audio-to-text retrieval.
+On Clotho, \onepeace achieves 23.1\% improvement on R@1 in text-to-audio retrieval and 5.4\% on R@1 in audio-to-text retrieval.
+
+\paragraph{Audio Classification \& Audio Question Answering.}
+Table~\ref{tb:audio_result} present the results of \onepeace and baseline models in the audio classification and audio question answering (AQA) tasks.
+On ESC-50, \onepeace achieves $91.8$ zero-shot accuracy, outperforming LAION-CLAP by $0.8$.
+On FSD50K, \onepeace significantly outperforms the previous SOTA by $4.1$.
+For the VGGSound dataset, which consists of both visual and audio information, we only utilized the audio information and disregarded the visual information. 
+With this setting, \onepeace achieves $59.6$ score, surpassing the previous SOTA by $0.1$.
+In the audio question answering task, \onepeace outperforms the previous SOTA by $2.7$.
+These results demonstrate the superior ability of \onepeace on audio-related tasks.
+
+
+\subsection{Results on Vision-Language Tasks}
+\input{table/image_text_result}
+\input{table/vl_result}
+
+We conduct experiments on various vision-language tasks, including image-text retrieval, visual grounding, visual question answering, and visual reasoning. the implementation details are provided in Appendix~\ref{app:vision_language_details}.
+
+\paragraph{Image-Text Retrieval.}
+Table~\ref{tb:vl-zeroshot} presents the performance of \onepeace and baseline models on the image-text retrieval task. 
+Under the fine-tuning setting, \onepeace achieves the best performance in both MSCOCO and Flickr30K test sets. 
+This indicates that after combining both cross-modal contrastive learning and intra-modal denoising contrastive learning, \onepeace can effectively transfer to downstream retrieval task.
+Under the zero-shot setting, \onepeace can achieve better or competitive performance compared to previous dual-encoder models like CLIP and Florence.
+Notice that the results of \onepeace are inferior to CoCa, which might be because \onepeace only trained on $6.4$ billion image-text pairs while CoCa trained on up to $32$ billion image-text pairs.
+
+
+\begin{figure*}[t]
+    \centering
+    \includegraphics[width=\linewidth]{pic/grounding_visual.pdf}
+    \caption{\textbf{Visualization of out-of-domain data in visual grounding task.} When given a specific description, both OFA and ONE-PEACE can give the correct result. However, OFA is unable to locate the correct region if we directly provide the name of the Pokémon, while ONE-PEACE can give a correct answer.}
+    \label{fig:grounding_visual}
+    \vspace{+1em}
+\end{figure*}
+
+\paragraph{Visual Grounding.}
+To evaluate the capability of visual grounding, we conduct experiments on RefCOCO, RefCOCO+, and RefCOCOg datasets~\cite{refcoco,refcocog}. 
+Table~\ref{tb:refcoco} presents the results of \onepeace and baseline models. 
+It is worth noting that previous SOTA OFA use additional visual grounding datasets for training (i.e., Visual Genome~\cite{vg}). 
+Without introducing additional visual grounding datasets, \onepeace still achieves new SOTA results on the $3$ datasets. 
+We also compared the visual grounding ability of \onepeace and OFA on an out-of-domain Pokémon picture.\footnote{We use the Hugging Face spaces demo of OFA: \url{https://huggingface.co/spaces/OFA-Sys/OFA-Visual\_Grounding}} 
+As shown in Figure~\ref{fig:grounding_visual}, given a specific description of a Pokémon, both \onepeace and OFA can obtain the correct result. 
+However, when we directly provide the name of the Pokémon, OFA fails to obtain the correct result while ONE-PEACE can give a correct answer.
+
+\paragraph{Vision-Language Understanding.}
+\input{table/vision_language_understanding}
+Table~\ref{tb:vqa-nlvr-ve} presents the results of \onepeace and baselines on two popular multimodal understanding tasks: visual question answering (VQA~\cite{vqa}) and visual reasoning (NLVR-2~\cite{nlvr2}). 
+For the VQA task, \onepeace achieves a score of $82.6$ on the test-dev set and $82.5$ on the test-std set, outperforming previous strong baselines like CoCa and BLIP-2.
+For the NLVR2 task, \onepeace surpasses CoCa with gains of 1.7 and 1.3 on the dev set and test-P set respectively.
+Notice that our results on both tasks are lower than BEiT-3. This may be attributed to two reasons: Firstly, BEiT-3 is pretrained on in-domain datasets such as MSCOCO~\cite{mscoco} and Visual Genome~\cite{vg}, which usually results in better downstream finetuning effects. 
+Secondly, BEiT-3 incorporates pure text data for pretraining, which improves its language understanding ability and consequently enhances its multimodal understanding ability.
+In addition, OFA and BLIP-2 have shown that combined with language pretrained models can improve performance on multimodal understanding tasks. 
+Therefore, we will explore the combination of \onepeace and language pretrained models in the future.
+
+% \subsection{Results on Vision Tasks}
+% \input{table/v_result}
+% We transfer \onepeace to various mainstream vision benchmarks, including image classification, semantic segmentation, object detection, instance segmentation and video action recognition. 
+% We provide the implementation details in Appendix~\ref{app:vision_details}.
+
+% \paragraph{Image Classification.} In our experiments, we assess the image classification transfer performance of \onepeace using the ImageNet-1K~\cite{inet1k} dataset, encompassing 1.28 million training images and 50,000 validation images distributed across 1,000 distinct categories. We also use intermediate fine-tuning on ImageNet-21k~\cite{imagenet}. As demonstrated in Table~\ref{tb:inet1k}, \onepeace obtains \textbf{89.8} top-1 accuracy on ImageNet with less token length $(image\_size / patch\_size)^2$. The transfer learning capabilities of our approach are commensurate with the current state-of-the-art methods.
+
+% \paragraph{Semantic Segmentation.} We experiment on ADE20k~\cite{Zhou2016SemanticUO} using ViT-Adapter~\cite{chen2022vitadapter} for task adaptation and Mask2Former~\cite{mask2former} as the segmentation head. Following common practice, we first fine-tune the segmentation head on coco-stuff~\cite{cocostuff} then fine-tune on ADE20k. As demonstrated in Table~\ref{tb:ade20k}, \onepeace establishes a new state-of-the-art, achieving a mean Intersection over Union (mIoU) of 63.0. This result indicates that \onepeace exhibits exceptional transferring performance in the domain of dense prediction tasks.
+
+% \paragraph{Object Detection and Instance Segmentation.} We perform fine-tuning experiments on the COCO 2017~\cite{mscoco} dataset. For the backbone, we employ the \onepeace backbone and use the ViTDet~\cite{vitdet} architecture, which incorporates a straightforward feature pyramid and window attention for addressing object detection and instance segmentation tasks. The model is fine-tuned on the COCO dataset. Soft-NMS~\cite{softnms} is used during the inference stage. As illustrated in Table~\ref{tb:coco}, the instance-level transfer capabilities of \onepeace exhibit a performance that is on par with the current state-of-the-art methods.
+
+% \paragraph{Video Action Recognition.} We benchmark \onepeace on Kinetics 400~\cite{k400} dataset for video action recognition. Following AIM~\cite{aim}, we keep the whole model frozen and add several MLP adapters in each transformer layer. We use I3D~\cite{k400} head as the classification layer. As demonstrated in Table~\ref{tb:k400}, without fine-tuning the full encoder, ~\onepeace could achieve \textbf{88.1} top-1 accuracy, even outperforming CoCa which is pre-trained on privately collected data, and ViT-22B with 14x more parameters.
+
+% \subsection{Results on Audio(-Language) Tasks}
+% \input{table/audio_result}
+% We evaluate \onepeace on various audio and audio-language tasks, including audio-text retrieval and audio classification.
+% The implementation details are provided in Appendix~\ref{app:audio_details}.
+
+% \paragraph{Audio-Text Retrieval}
+% Table~\ref{tb:audio_text_retrieval} presents the performance of \onepeace and baseline models in the audio-text retrieval task.
+% As a general representation model, \onepeace achieves SOTA results on both AudioCaps~\cite{audiocaps} and Clotho~\cite{clotho} datasets, outperforming the previous audio representation model by a large margin.
+% On AudioCaps, \onepeace achieves 21.1\% improvement on R@1 in text-to-audio retrieval and 11.4\% improvement on R@1 in audio-to-text retrieval.
+% On Clotho, \onepeace achieves 23.1\% improvement on R@1 in text-to-audio retrieval and 5.4\% on R@1 in audio-to-text retrieval.
+
+% \paragraph{Audio Classification}
+% We evaluate the audio classification ability of \onepeace on three popular audio datasets: ESC-50~\cite{esc50}, FSD50K~\cite{fsd50k}, and VGGSound~\cite{vggsound}. 
+% As shown in table~\ref{tb:audio_result}, \onepeace significantly outperforms previous SOTAs on ESC-50 and FSD50K.
+% For the VGGSound dataset, which consists of both visual and audio information, we only utilized the audio information and disregarded the visual information. 
+% With this setting, we achieve $59.6$ score, surpassing the previous SOTA by $0.1$.
+% These results demonstrate the superior audio classification ability of \onepeace.
+
+
+\subsection{Ablation Study}
+\label{sec:ablation}
+\input{table/ablation}
+
+For the following ablation experiments, we utilize VIT-B/16 as the model backbone. The model is trained for 20 epochs with a batch size of 4096. We randomly selected 20 million image-text pairs from Laion-2B as the pretraining dataset.
+
+\paragraph{Ablation on Model Structures.}
+We first conduct ablation experiments to investigate the effects of sharing or separating different modules.
+As shown in Table~\ref{tb:structure_ablation}, sharing both self-attention layers and FFN layers yields better results compared to not sharing. This suggests that utilizing a single Transformer can effectively align the semantic space of vision and language.
+Furthermore, it is more beneficial to separate the FFN layer instead of sharing it. This implies that separating the FFN layer enhances the model's ability to extract modality-specific information, leading to more accurate representations.
+We also find that separating the self-attention layer and sharing the FFN layer yields the poorest results. We speculate that this is due to the self-attention layer playing a more significant role in aligning modalities compared to the FFN layer. Therefore, separating the self-attention layer lead to inferior performance.
+Figure~\ref{fig:ablation_shared} demonstrates the convergence performance of different architectures. 
+Among all the architectures, the model with shared self-attention layers and separated FFNs exhibits the fastest convergence speed.
+
+\paragraph{Effects of Intra-modal Denoising Contrastive Learning.}
+We examine the effects of intra-modal denoising contrastive learning (DCL).
+As shown in Table~\ref{tb:loss_ablation}, applying DCL to language data (DCL-L) can enhance the model's performance in text retrieval tasks.
+Furthermore, applying DCL to vision data (DCL-V) can improve the model's cross-modal retrieval ability, as well as fine-tuning performance in image classification. 
+By applying DCL to vision-language data (DCL-VL), \onepeace achieves the best results in terms of all the evaluation metrics. 
+These results demonstrate that intra-modal denoising contrastive learning can complement cross-modal contrastive learning.
+It not only enables \onepeace to achieve excellent downstream fine-tuning performance but also enhances the model's capability for zero-shot cross-modal retrieval.
+% These results suggest that mask contrastive loss can enhance both zero-shot cross-modal retrieval ability and downstream fine-tuning performance of the model.
+
+\paragraph{Ablation on Different Denoising Losses.}
+We conduct a systematic comparison of different denoising losses, including the smooth L1 loss used in~\cite{data2vec,maskclip}, the L2 loss used in~\cite{data2vec2,dbot}, the cosine loss used in~\cite{mvp,eva,caev2}, and the denoising contrastive loss used in this paper. 
+As shown in Table~\ref{tb:masked_loss_ablation}, different types of denoising loss can improve the performance of the model in both cross-modal retrieval and image classification tasks. 
+Among all the denoising losses, the denoising contrastive loss has the greatest improvement in terms of all the metrics compared to other losses. For example, it increased by $+1.64$ on COCO text retrieval R@1, increased by $+1.47$ on COCO image retrieval R@1, and increased by $+0.6$ on image classification. 
+This indicates that denoising contrastive loss is more compatible with cross-modal contrastive loss than other denoising losses.
+
+% There are two reasons for this: firstly, these two losses conflict with cross-modal contrastive loss, resulting in poor cross-modal retrieval performance.
+% secondly, using L1 or L2 loss to learn target features lead to representation collapse. Previous works used exponential model average (EMA) to avoid this problem. 
+% However, EMA will consume additional GPU memory, which is not friendly to training large models.
+% When we use a relatively "soft" cosine loss as the mask loss, the model can achieve satisfied results in both retrieval and classification tasks. 
+% Furthermore, when we replace the cosine loss with mask contrastive loss, the model achieves comprehensive improvement in all tasks. 
+% This indicates that mask contrastive loss is more compatible with cross-modal contrastive loss than other losses. It can not only improve the model's zero-shot cross-modal retrieval ability, but also enable the model to achieve superior finetuning performance in downstream tasks.
+
+
+
+% \paragraph{Effects of Pretrained Audio Feature Extractor}
+% We also conduct a systematic analysis of the impact of the pretrained audio feature extractor.
+% We find that although the parameters of the feature extractor are only $4.6$M, accounting for only about $1\%$ of the total parameters, it has a significant impact on the model performance. 
+% As shown in Table~\ref{tb:audio_ablation}, the feature extractor with random initialization only achieved $85.3\%$ accuracy on the ESC-50 dataset, while using pretrained feature extractors results in better performance. 
+% Notably, using the WavLM feature extractor can lead to the largest improvement (+6.2).
+%  We attribute this to the fact that WavLM is trained on a more diverse audio dataset compared to Hubert and Wav2Vec 2.0, making its feature extractor more suitable for environmental sound tasks.
+
+\subsection{Emergent Zero-shot Retrieval}
+In our pretraining, we exclusively align other modalities with text which plays as an intermediary role. We assume that our model is able to align those modalities that are not paired in the training data. For example, \onepeace~should be able to align image and audio. Thus, we conduct experiments on the retrieval of those modalities to assess the emergent zero-shot capabilities~\cite{imagebind}. 
+
+To be more specific, we evaluate the audio-to-image, audio+image-to-image, and audio+text-to-image retrieval abilities and demonstrate case studies in Figure~\ref{fig:case1}. 
+The first two cases demonstrate the emergent capability of uni-modal retrieval, while the other cases show that of the retrieval of image based on multimodal inputs. 
+Specifically, we find that \onepeace~is able to retrieve images that contain elements concerning inputs of different modalities, e.g., the model uses the text ``snow'' and the sound of bird chirping to retrieve the images of birds in the snow. These examples demonstrate that \onepeace~has strong potential in emergent zero-shot capabilities. This indicates that for a universal representation model, there is no need to learn all pairing relationships between modalities, but instead it is sufficient for modalities to be aligned to an intermediary one. 
+We provide more quality examples in Appendix \ref{app:emergent_zero_shot}.
+
+\begin{figure*}[t]
+\vskip 0.2in
+    \centering
+    \includegraphics[width=1.0\linewidth]{pic/case1.png}
+    \caption{Examples of emergent zero-shot retrieval. \onepeace~is capable of aligning modalities and modality combinations, where there are no paired data of the modalities in the pretraining dataset. The images are retrieved from ImageNet-1K and MSCOCO.}
+    \label{fig:case1}
+\end{figure*}
+

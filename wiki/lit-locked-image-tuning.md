@@ -5,7 +5,7 @@ description: A contrastive-tuning method that freezes a pretrained image encoder
 tags: [multimodal-learning, contrastive-learning, transfer-learning, zero-shot-transfer, representation-learning]
 status: stable
 created: 2026-08-16
-generated: { by: llm-wiki-agent/1, at: 2026-08-17T02:40:28Z }
+generated: { by: llm-wiki-agent/1, at: 2026-08-17T03:43:14Z }
 sources:
   - id: zhai-2021-lit
     resource: ../raw/2111.07991_Vision Text Dual Encoder/c.tex
@@ -22,6 +22,12 @@ sources:
   - id: zhai-2023-siglip
     resource: ../raw/2303.15343_SigLIP.md
     title: Sigmoid Loss for Language Image Pre-Training
+  - id: chen-2022-pali
+    resource: ../raw/2209.06794_PaLI/main.tex
+    title: "PaLI: A Jointly-Scaled Multilingual Language-Image Model"
+  - id: li-2023-blip2
+    resource: ../raw/2301.12597_BLIP-2/main.tex
+    title: "BLIP-2: Bootstrapping Language-Image Pre-training with Frozen Image Encoders and Large Language Models"
 ---
 
 # LiT locked-image tuning
@@ -56,6 +62,8 @@ Locked-image Tuning (LiT) is a contrastive-tuning method that freezes a strong p
 - Used by: [Chinese CLIP language-specific vision–language pre-training](chinese-clip-language-specific-vision-language-pretraining.md) uses LiT as an initial Chinese text-alignment stage before jointly tuning both encoders.[^yang-2022-chinese-clip]
 - Used by: [AltCLIP multilingual text-encoder alignment](altclip-multilingual-text-encoder-alignment.md) freezes CLIP's image tower during contrastive tuning, but first distills a multilingual XLM-R text encoder from CLIP using parallel text.[^chen-2022-altclip]
 - Extended by: [SigLIP sigmoid contrastive language–image pre-training](siglip-sigmoid-contrastive-language-image-pretraining.md) as SigLiT, which retains LiT’s locked image tower but uses the pairwise sigmoid objective.[^zhai-2023-siglip]
+- Applied by: [PaLI jointly scaled multilingual language-image model](pali-jointly-scaled-multilingual-language-image-model.md) uses LiT to evaluate a frozen ViT-e visual component with an aligned text encoder; this is an auxiliary visual-component evaluation, not PaLI’s generative multimodal training procedure.[^chen-2022-pali]
+- Related: [BLIP-2 bootstrapping frozen vision–language models](blip-2-bootstrapping-frozen-vision-language-models.md) freezes its image encoder too, but Q-Former extracts visual prompts for a frozen LLM rather than LiT’s contrastively trained text encoder.[^li-2023-blip2]
 
 [^zhai-2021-lit]: Zhai et al., “LiT: Zero-Shot Transfer with Locked-image Text Tuning” (2021), [source manuscript](../raw/2111.07991_Vision%20Text%20Dual%20Encoder/c.tex).
 
@@ -66,3 +74,7 @@ Locked-image Tuning (LiT) is a contrastive-tuning method that freezes a strong p
 [^chen-2022-altclip]: Chen et al., “AltCLIP: Altering the Language Encoder in CLIP for Extended Language Capabilities” (2022), [source manuscript](../raw/2211.06679_AltCLIP/main.tex).
 
 [^zhai-2023-siglip]: Zhai et al., “Sigmoid Loss for Language Image Pre-Training” (2023), [source](../raw/2303.15343_SigLIP.md).
+
+[^chen-2022-pali]: Chen et al., “PaLI: A Jointly-Scaled Multilingual Language-Image Model” (2022), [complete manuscript source](../raw/2209.06794_PaLI/main.tex).
+
+[^li-2023-blip2]: Li et al., “BLIP-2: Bootstrapping Language-Image Pre-training with Frozen Image Encoders and Large Language Models” (2023), [complete manuscript source](../raw/2301.12597_BLIP-2/main.tex).

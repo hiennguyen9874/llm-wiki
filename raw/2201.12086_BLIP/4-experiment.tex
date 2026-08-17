@@ -1,0 +1,126 @@
+\vspace{-1ex}
+\section{Experiments and Discussions}
+\label{sec:experiment}
+In this section, we first introduce pre-training details. Then we provide a detailed experimental analysis on our method.
+
+\vspace{-1ex}
+\subsection{Pre-training Details}
+\vspace{-0.5ex}
+
+Our models are implemented in PyTorch~\cite{pytorch} and pre-trained on two 16-GPU nodes.
+The image transformer is initialized from ViT pre-trained on ImageNet~\cite{deit,vit},
+and the text transformer is initialized from BERT$_\mathrm{base}~$\cite{bert}.
+We explore two variants of ViTs: ViT-B/16 and ViT-L/16.
+Unless otherwise specified, all results reported in this paper as ``\name'' uses ViT-B.
+We pre-train the model for 20 epochs using a batch size of 2880 (ViT-B) / 2400 (ViT-L). 
+We use AdamW~\cite{adamw} optimizer with a weight decay of 0.05. 
+The learning rate is warmed-up to $3e$-4 (ViT-B) / $2e$-4 (ViT-L) and decayed linearly with a rate of 0.85.
+We take random image crops of resolution $224\times224$ during pre-training, and increase the image resolution to $384\times384$ during finetuning.
+% \footnote{We use an image size of $480\times480$ for VQA, following~\citet{simvlm}}.
+We use the same pre-training dataset as~\citet{ALBEF} with 14M images in total,
+including two human-annotated datasets (COCO and Visual Genome~\cite{VG}),
+and three web datasets (Conceptual Captions~\cite{cc12m}, Conceptual 12M~\cite{cc12m}, SBU captions~\cite{sbu}).
+We also experimented with an additional web dataset, LAION~\cite{laion}, which contains 115M images with more noisy texts\footnote{We only download images whose shorter edge is larger than 256 pixels from the original LAION400M. Due to the large size of LAION, we only use $1/5$ of it each epoch during pre-training.}.
+More details about the datasets can be found in the appendix.
+
+\input{table/capfilt}
+\input{figure/examples}
+\input{table/generate}
+\input{table/med}
+
+\vspace{-0.5ex}
+\subsection{Effect of CapFilt}
+\vspace{-0.5ex}
+
+In Table~\ref{tbl:capfilt},
+we compare models pre-trained on different datasets to demonstrate the efficacy of CapFilt on downstream tasks, including image-text retrieval and image captioning with finetuned and zero-shot settings.
+
+When only the captioner or the filter is applied to the dataset with 14M images,
+performance improvement can be observed.
+When applied together, their effects compliment each other, leading to substantial improvements compared to using the original noisy web texts.
+
+CapFilt can further boost performance with a larger dataset and a larger vision backbone, which verifies its scalability in both the data size and the model size.
+Furthermore,
+by using a large captioner and filter with ViT-L,
+performance of the base model can also be improved.
+
+
+In Figure~\ref{fig:example},
+we show some example captions and their corresponding images,
+which qualitatively demonstrate the effect of the captioner to generate new textual descriptions, and the filter to remove noisy captions from both the original web texts and the synthetic texts. 
+More examples can be found in the appendix.
+
+
+
+\vspace{-0.5ex}
+\subsection{Diversity is Key for Synthetic Captions}
+\vspace{-0.5ex}
+In CapFilt,
+we employ nucleus sampling~\cite{nucleus} to generate synthetic captions.
+Nucleus sampling is a stochastic decoding method,
+where each token is sampled from a set of tokens whose cumulative probability mass exceeds a threshold $p$ ($p=0.9$ in our experiments). 
+In Table~\ref{tbl:generate},
+we compare it with beam search, a deterministic decoding method which aims to generate captions with the highest probability.
+Nucleus sampling leads to evidently better performance,
+despite being more noisy as suggested by a higher noise ratio from the filter.
+We hypothesis that the reason is that nucleus sampling generates more diverse and surprising captions,
+which contain more new information that the model could benefit from.
+On the other hand,
+beam search tends to generate safe captions that are common in the dataset,
+hence offering less extra knowledge.
+% Here we propose two hypotheses for the advantage of nucleus sampling.
+
+
+
+% (1) \textit{Nucleus sampling provides more new information.}
+% Beam search tends to generate safe captions that are common in the dataset.
+% % thus providing less new information that the model has not already known.
+% On the other hand,
+% nucleus sampling generates more diverse and surprising captions.
+% With the help of the filter to remove the inaccurate ones,
+% captions obtained by nucleus sampling introduce more new information which the model could benefit from.
+
+
+% (2) \textit{Nucleus sampling is implicit ensemble.}
+% \citet{allen_ensemble} proposes a theoretical explanation for ensemble and knowledge distillation.
+% Under a multi-view hypothesis which assumes the existence of multiple feature representations for an image,
+% they interpret ensemble as collecting the views,
+% and KD as teaching new views to the student.
+% Similarly,
+% we can interpret nucleus sampling as \textit{collecting a diverse set of views} for each image,
+% where a view represents a visual concept that can be described in text.
+% Therefore,
+% the synthetic captions can be considered as a result of implicit ensemble from a single model,
+% where multiple views are sampled from the captioner and combined as a sentence\DX{Is this finding important or trivial? It might be a bit high-level to understand in the current form. Is it worth expanding and highlighting, like the MIM section in ALBEF?}.
+
+
+% \subsection{Ablation study}
+\vspace{-0.5ex}
+\subsection{Parameter Sharing and Decoupling}
+\vspace{-0.5ex}
+
+\input{table/independent}
+
+During pre-training, the text encoder and decoder share all parameters except for the self-attention layers.
+In Table~\ref{tbl:med},
+we evaluate models pre-trained with different parameter sharing strategies,
+where pre-training is performed on the 14M images with web texts.
+As the result shows,
+sharing all layers except for SA leads to better performance compared to not sharing,
+while also reducing the model size thus improveing training efficiency.
+If the SA layers are shared, the model's performance would degrade due to the conflict between the encoding task and the decoding task. 
+
+During CapFilt,
+the captioner and the filter are end-to-end finetuned individually on COCO.
+In Table~\ref{tbl:independent},
+we study the effect if the captioner and filter share parameters in the same way as pre-training.
+The performance on the downstream tasks decreases,
+which we mainly attribute to \textit{confirmation bias}.
+Due to parameter sharing,
+noisy captions produced by the captioner are less likely to be filtered out by the filter, as indicated by the lower noise ratio (8\% compared to 25\%).
+
+
+
+
+
+

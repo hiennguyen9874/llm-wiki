@@ -1,0 +1,106 @@
+\paragraph{Original pre-training setup}
+
+We train our \workname model from scratch on the collected 88M dataset, which image encoder are ResNet50 modified from CLIP~\citep{radford2021learning} and ViT-B/32~\citep{dosovitskiy2020image}, text encoder is a 12-layer transformer structure from CLIP~\citep{radford2021learning}, with the context length 77, the transformer width 512, and the transformer heads 8.  Both text projection and visual projection dimensions are 1024. Image SS uses SimSiam~\citep{chen2021exploring} method, prediction module is a 2-layer MLP, which hidden dimensions is 512 and output dimensions is 1024, projection module  is a 3-layer MLP, which hidden and output dimensions are both 1024. Text SS uses the Masked Language Model~\citep{devlin2018bert} to select 15\% of all words in the corpus for random mask as the pretext task. In MVS, image encoder uses augmentation from MoCo v2~\citep{chen2020improved} and text encoder uses EDA~\citep{wei2019eda} as augmentation, NNS is text nearest neighbor specifically finding an additional text supervision for each text by calculating the similarity of the text in a mini-batch. 
+% In addition, loss weight of ${\alpha}$, ${\beta}$ and ${\gamma}$ are all 0.2. During training, ResNet-50 and ViT-B/32 both use the resolution of $224\times224$ pixels, and the text transformer uses input size with a maximum context length of 77. The learnable temperature parameter $\tau$ was initialized to the equivalent of 0.07. 
+% ResNet-50 uses the FP16-SGD optimizer and batch size 10,240  for training, with an initial learning rate of 0.01, warmed up linearly to 0.2 in one epoch steps, which weight decay is 0.0001 and momentum is 0.9.
+% When training ViT-B/32, we use FP16-AdamW-SGD with batch size 20,480 for stable training. In detail, When training the text encoder, we use the SGD optimizer which learning rate warmed up linearly from 1e-3 to 0.02, the weight decay rate is set as 1e-4 and the momentum is set as 0.9. For the image encoder, we use AdamW optimizer which learning rate warmed up linearly from 1e-4 to 1e-3, and the weight decay rate is set as 0.05.
+% ViT-B/32 model uses FP16-AdamW-SGD and batchsize 20480 for training. For the stability of training, the text encode uses SGD optimizer which learning rate warmed up linearly to 0.02 from 1e-3 in one epoch, weight decay is 1e-4 and momentum is 0.9. The image encode uses AdamW optimizer which learning rate warmed up linearly to 1e-3 from 1e-4 in one epoch, and weight decay is set as 0.05.
+Both ResNet-50 and ViT-B/32 use Cosine learning rate decay to train 32 epochs. 
+ResNet-50 requires 80 V100 GPUs for training for 8 days, and ViT-B/32 requires 80 V100 GPUs for training for 10 days. When scaling up models, we use RegNetY-64GF~\citep{2020Designing,goyal2021self} as image encoder and BERT~\citep{devlin2018bert} as text encoder, training 32 epochs with batch size 20,480, which requires 160 V100 GPUs for training for 21 days.
+
+
+
+
+% \workname's pre-training ability by linear classification on frozen features: the pretrained image encoder is fixed and used to extract features. 
+Firstly, the features of each image are extracted from the pretrained image encoder and form a full-batch. 
+Both train and eval resolution are $224\times224$ with frozen visual features.
+% Secondly, we train a fc-based classifier using pytorch’s L-BFGS implementation with maximum 1,000 full-batch iterations.
+Secondly, we train a fc-based classifier by the L-BFGS optimizer with 1,000 full-batch iterations.
+% full-batch 
+% To conduct fair comparison with
+Finally, we determine the L2 regularization strength using a hyperparameter $\lambda$ sweep on the validation sets over the range between 1e-6 and 1e6 with 16 logarithmically spaced steps.
+% For each dataset, the 
+% To conduct fair comparison, the metric and division for each dataset is consistent with that of clip~\citep{radford2021learning}.
+% The individual linear probe scores are provided in Table \ref{tab:downstream datasets}.
+
+
+
+
+
+After pre-training, we use natural language to refer to visual concepts enabling the zero-shot ability of our model.
+As shown in Fig.~\ref{fig:IN_zero_shot}, when using 15M pairs, our \workname-ResNet50 is 10.6\% higher than the number reported in ~\citet{radford2021learning}. 
+More data leads to better accuracy. 
+When the data amount reaches 56M (29M open-source + 27M web-crawled), our model can achieve 60.4\% accuracy, 0.8\% above the CLIP-ResNet50, while using 7.1$\times$ fewer data. 
+As described in Tab.~\ref{tab:zero-shot result}, with our full data, our best ResNet50/ViT-B32 models boost the zero-shot performance to 62.5\% and 66.2\%, nearly 3.0\% higher than the best number reported for these two architectures. Moreover, our \workname-ResNet50 is even 0.3\% better than CLIP-ResNet101, revealing the effectiveness and efficiency of our framework. Scaling up model capacity works in our framework as well. Our biggest \workname-RegNetY-64GF achieves \checkme{73.7\%} accuracy, which is 0.1\% above CLIP ResNet50$\times$64 with fewer parameters. 
+
+
+
+\begin{table*}[t]
+\caption{\label{tab:zero-shot result} Zero-shot top1 performance of \workname on ImageNet dataset. \checkme{We might need model parameters here. We can also put CLIP-ViT-Lx14 on it.} }
+\label{sample-table}
+\begin{center}
+\begin{footnotesize}
+\begin{sc}
+\begin{tabular}{cccccc}
+   \toprule  
+   %\multicolumn{5}{r}{}  \\
+   \textbf{Model}         & \textbf{Backbone} & \textbf{Parameters}  & \textbf{Data Size}   &\textbf{Batch Size}  & \textbf{Zero-Shot} \\
+   \midrule   
+   CLIP         &ResNet50 &24M &400M & 32,768 &59.6	\\
+%   \textbf{DeCLIP}       &\textbf{ResNet50} &24M &\textbf{56M}  & \textbf{10,240} &\textbf{60.4(+0.8)} 	\\
+   DeCLIP       &ResNet50 & \textbf{24M} &\textbf{88M($\downarrow$ 4.5$\times$)}  & \textbf{10,240} &\textbf{62.5($\uparrow$  +2.9)} 	\\
+      CLIP         &ResNet101 &42M &400M & 32,768 &62.2	\\
+
+   \midrule
+   CLIP         &ViT-B/32 &88M &400M & 32,768 &63.2	\\
+   DeCLIP       &ViT-B/32 &\textbf{88M} &\textbf{88M($\downarrow$ 4.5$\times$)}   & \textbf{20,480} &\textbf{66.2($\uparrow$ +3.0)}	\\
+  \midrule
+  CLIP         &ResNet50$\times$64 &291M  &400M & 32,768 &73.6	\\
+  DeCLIP       &RegNetY-64GF &\textbf{276M} &\textbf{88M($\downarrow$ 4.5$\times$)}   & \textbf{20,480} &\textbf{73.7($\uparrow$ +0.1)}	\\
+  \bottomrule
+\end{tabular}
+\end{sc}
+\end{footnotesize}
+\end{center}
+\end{table*}
+
+
+
+\begin{table*}[h]
+\caption{\label{tab:downstream result} Linear probe performance on various pre-trained models over 11 datasets.}
+\label{sample-table}
+\begin{center}
+\begin{scriptsize}
+\begin{sc}
+\begin{tabular}{cccccccccccccc}
+\toprule
+%\rotatebox{90}{Model} & \rotatebox{90}{Backbone}  & \rotatebox{90}{CIFAR10} & \rotatebox{90}{CIFAR100} & \rotatebox{90}{Food101} & \rotatebox{90}{Pets} & \rotatebox{90}{Fowers} & \rotatebox{90}{SUN397} & \rotatebox{90}{Cars} & \rotatebox{90}{DTD} & \rotatebox{90}{Caltech} & \rotatebox{90}{Aircraft} & \rotatebox{90}{ImageNet}    \\
+\textbf{Model} & \textbf{Backbone}  &\textbf{\rot{Pets}} & \textbf{\rot{CIFAR10}} & \textbf{\rot{CIFAR100}}  & \textbf{\rot{SUN}} & \textbf{\rot{Food101}} &\textbf{\rot{Flowers}}       \\
+\midrule\textbf{}
+%ResNet &ResNet50     & 92.4 & 91.8 & 74.5 & 60.5 & 71.3  & 90.8 \\
+CLIP &ResNet50     & 88.2 & 88.7 & 70.3 & 73.3 & 86.4  & 96.1 \\
+De-CLIP &ResNet50   & \textbf{88.7} &\textbf{89.8} & \textbf{71.2 }& 72.8 & 82.7  & \textbf{99.2}  \\
+\midrule
+CLIP &ViT-B/32              & 90.0  & 95.1 & 80.5 & 76.6 & 88.8 & 96.9   \\
+DeCLIP &ViT-B/32            & 89.2  & \textbf{96.5} & \textbf{84.7 }& 75.0 & 85.0 & \textbf{99.1} \\
+% \bottomrule
+
+
+\toprule
+%\rotatebox{90}{Model} & \rotatebox{90}{Backbone}  & \rotatebox{90}{CIFAR10} & \rotatebox{90}{CIFAR100} & \rotatebox{90}{Food101} & \rotatebox{90}{Pets} & \rotatebox{90}{Fowers} & \rotatebox{90}{SUN397} & \rotatebox{90}{Cars} & \rotatebox{90}{DTD} & \rotatebox{90}{Caltech} & \rotatebox{90}{Aircraft} & \rotatebox{90}{ImageNet}    \\
+\textbf{Model} & \textbf{Backbone}  & \textbf{Cars}  & \textbf{Caltech} & \textbf{Aircraft} &\textbf{DTD} & \textbf{ImageNet} & \textbf{Average}    \\
+\midrule
+
+CLIP &ResNet50       & 78.3  & 89.6 & 49.1 & 76.4 &73.3 &79.1\\
+De-CLIP &ResNet50   & \textbf{81.7} & \textbf{93.9} & 48.4 & \textbf{76.8 }&\textbf{74.0} &\textbf{79.9(+0.8)} \\
+\midrule
+CLIP &ViT-B/32               & 81.8 & 93.0 & 52.0 & 76.5 & 76.1 & \textbf{82.5}\\
+DeCLIP &ViT-B/32             & 81.6 & \textbf{94.8 }& \textbf{53.5} & \textbf{78.5} & 75.3 &\textbf{83.0 (+0.5)}\\
+\bottomrule
+
+
+\end{tabular}
+\end{sc}
+\end{scriptsize}
+\end{center}
+\end{table*}

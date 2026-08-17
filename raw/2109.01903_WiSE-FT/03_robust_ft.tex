@@ -1,0 +1,44 @@
+\beforesec
+\section{Weight-space ensembles for fine-tuning} 
+\label{sec:main}
+\postsec
+This section describes and motivates our proposed method, WiSE-FT, which consists of two simple steps.
+First, we fine-tune the zero-shot model on application-specific data. 
+Second, we combine the original zero-shot and fine-tuned models by linearly interpolating between their weights, also referred to as weight-space ensembling.
+WiSE-FT can be implemented in a few lines of PyTorch, and we provide example code in Appendix \ref{sec:pseudo-code}.
+
+The zero-shot model excels under distribution shift while standard fine-tuning achieves high accuracy on the reference distribution.
+Our motivation is to combine these two models into one that achieves the best of both worlds.
+Weight-space ensembles are a natural choice as they ensemble without extra computational cost. 
+Moreover,
+previous work has suggested that interpolation in weight space
+may improve performance when models share part of their optimization trajectory \cite{izmailov2018averaging, neyshabur2020being}.
+
+\smallpara{Step 1: Standard fine-tuning.} 
+As in Section~\ref{sec:expsetup}, we let $\mathcal{S}_{\mathrm{ref}}^\text{tr}$ denote the dataset used for fine-tuning and $g$ denote the image encoder used by CLIP.
+We are now explicit in writing $g\mleft(x, \mathbf{V}_{\text{enc}} \mright)$ where $x$ is an input image and $\mathbf{V}_{\text{enc}}$ are the parameters of the encoder $g$.
+Standard fine-tuning considers the model $f\mleft(x, \theta\mright) = g\left(x, \mathbf{V}_{\text{enc}}\right)^\top \textbf{W}_{\text{classifier}}$ where $\textbf{W}_{\text{classifier}} \in \mathbb{R}^{d \times k}$ is the classification head and $\theta = \left[\mathbf{V}_{\text{enc}}, \textbf{W}_{\text{classifier}} \right]$ are the parameters of $f$. 
+We then solve $\argmin_{\theta} \left\{ \sum_{(x_i, y_i) \in \mathcal{S}^\text{tr}_\mathrm{ref}} \ell\mleft(f(x_i,\theta),\ y_i \mright) + \lambda R(\theta) \right\}$ where $\ell$ is the cross-entropy loss and $R$ is a regularization term (e.g., weight decay).
+We consider the two most common variants of fine-tuning: end-to-end, where all values of $\theta$ are modified, and fine-tuning only a linear classifier, where $\mathbf{V}_{\text{enc}}$ is fixed at the value learned during pre-training. 
+Appendices~\ref{sec:e2e-ft} and \ref{sec:moreclf} provide additional details. %
+
+\smallpara{Step 2: Weight-space ensembling.}
+For a \textit{\ALPHA{}}  $\alpha \in [0,1]$, we consider the \textit{weight-space ensemble} between the zero-shot model with parameters $\theta_0$ and the model obtained via standard fine-tuning with parameters $\theta_1$. 
+The predictions of the weight-space ensemble $\mathsf{wse}$ are given by
+\begin{align}\label{eqn:wse}
+    \mathsf{wse}(x, \alpha) = f\mleft(x, (1-\alpha)\cdot\theta_0 + \alpha\cdot\theta_1 \mright)\ ,
+\end{align}
+i.e., we use the element-wise weighted average of the zero-shot and fined-tuned parameters. 
+When fine-tuning only the linear classifier, weight-space ensembling is equivalent to the traditional output-space ensemble \cite{dietterich2000ensemble, breiman1996bagging, FREUND1997119} $(1-\alpha)\cdot f\mleft(x, \theta_0\mright)  + \alpha\cdot f\mleft(x, \theta_1 \mright)$ since Equation~\ref{eqn:wse} decomposes as $(1-\alpha)\cdot g\mleft(x, \mathbf{V}_{\text{enc}}\mright)^\top \textbf{W}_{\text{zero-shot}} + \alpha \cdot g\mleft(x, \mathbf{V}_{\text{enc}}\mright)^\top \textbf{W}_{\text{classifier}}$.
+ 
+ As neural networks are non-linear with respect
+ to their parameters, ensembling all layers---as we do when end-to-end fine-tuning---typically fails, achieving no better accuracy than a randomly initialized neural network \cite{frankle2020linear}. However, as similarly observed by previous work where part of the optimization trajectory is shared \cite{izmailov2018averaging,frankle2020linear, neyshabur2020being}, we find that the zero-shot and fine-tuned models are connected by a linear path in weight-space along which accuracy remains high (explored further in Section~\ref{sec:landscape}).
+
+Remarkably, as we show in Section \ref{sec:results},  WiSE-FT improves accuracy under distribution shift while maintaining high performance on the reference distribution relative to fine-tuned models. 
+These improvements come without any additional computational cost as a single set of weights is used.
+
+
+
+
+
+

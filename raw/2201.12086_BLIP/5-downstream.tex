@@ -1,0 +1,129 @@
+\vspace{-1.5ex}
+\section{Comparison with State-of-the-arts}
+\label{sec:downstream}
+\vspace{-0.5ex}
+
+\input{table/retrieval}
+\input{table/retrieval_zs}
+
+In this section,
+we compare \name~to existing VLP methods on a wide range of vision-language downstream tasks\footnote{we omit SNLI-VE from the benchmark because its test data has been reported to be noisy~\cite{ve-2.0}}.
+Next we briefly introduce each task and finetuning strategy.
+More details can be found in the appendix.
+
+\vspace{-1ex}
+\subsection{Image-Text Retrieval}
+\vspace{-0.5ex}
+We evaluate \name~for both image-to-text retrieval (TR) and text-to-image retrieval (IR) on COCO and Flickr30K~\cite{flickr} datasets.
+We finetune the pre-trained model using ITC and ITM losses.
+To enable faster inference speed, we follow~\citet{ALBEF} and first select $k$ candidates based on the image-text feature similarity,
+and then rerank the selected candidates based on their pairwise ITM scores.
+We set $k=256$ for COCO and $k=128$ for Flickr30K.
+
+As shown in Table~\ref{tbl:retrieval},
+\name~achieves substantial performance improvement compared with existing methods.
+Using the same 14M pre-training images,
+\name~outperforms the previous best model ALBEF by +2.7\% in average recall@1 on COCO.
+We also perform zero-shot retrieval by directly transferring the model finetuned on COCO to Flickr30K.
+The result is shown in Table~\ref{tbl:retrieval_zs},
+where \name~also outperforms existing methods by a large margin.
+
+\vspace{-1ex}
+\subsection{Image Captioning}
+\vspace{-0.5ex}
+\input{table/caption}
+We consider two datasets for image captioning: NoCaps~\cite{nocaps} and COCO,
+both evaluated using the model finetuned on COCO with the LM loss.
+Similar as~\citet{simvlm},
+we add a prompt ``a picture of'' at the beginning of each caption,
+which leads to slightly better results.
+As shown in Table~\ref{tbl:caption},
+\name~with 14M pre-training images substantially outperforms methods using a similar amount of pre-training data.
+\name~with 129M images achieves competitive performance as LEMON with 200M images.
+Note that LEMON requires a computational-heavy pre-trained object detector and higher resolution (800$\times$1333) input images,
+leading to substantially slower inference time than the detector-free \name~which uses lower resolution (384$\times$384) input images.
+
+\vspace{-1ex}
+\subsection{Visual Question Answering (VQA)}
+\vspace{-0.5ex}
+\input{figure/vqa_visdial}
+
+\input{table/vqa_nlvr}
+
+
+VQA~\cite{VQA} requires the model to predict an answer given an image and a question.
+Instead of formulating VQA as a multi-answer classification task~\cite{uniter,oscar},
+we follow~\citet{ALBEF} and consider it as an answer generation task,
+which enables open-ended VQA.
+As shown in Figure~\ref{fig:vqa_visdial_nlvr}(a),
+during finetuning,
+we rearrange the pre-trained model,
+where an image-question is first encoded into multimodal embeddings and then given to an answer decoder.
+The VQA model is finetuned with the LM loss using ground-truth answers as targets.
+
+The results are shown in Table~\ref{tbl:vqa_nlvr}.
+Using 14M images, \name~outperforms ALBEF by +1.64\% on the test set.
+Using 129M images, \name~achieves better performance than SimVLM which uses $13\times$ more pre-training data and a larger vision backbone with an additional convolution stage.
+
+\vspace{-1ex}
+\subsection{Natural Language Visual Reasoning (NLVR$^2$)}
+\vspace{-0.5ex}
+NLVR$^2$~\cite{NLVR} asks the model to predict whether a sentence describes a pair of images.
+In order to enable reasoning over two images,
+we make a simple modification to our pre-trained model which leads to a more computational-efficient architecture than previous approaches~\cite{ALBEF,simvlm}.
+As shown in Figure~\ref{fig:vqa_visdial_nlvr}(b),
+for each transformer block in the image-grounded text encoder,
+there exist two cross-attention layers to process the two input images,
+and their outputs are merged and fed to the FFN.
+The two CA layers are intialized from the same pre-trained weights.
+The merge layer performs simple average pooling in the first 6 layers of the encoder,
+and performs concatenation followed by a linear projection in layer 6-12.
+An MLP classifier is applied on the output embedding of the \texttt{[Encode]} token.
+As shown in Table~\ref{tbl:vqa_nlvr},
+\name~outperforms all existing methods except for ALBEF which performs an extra step of customized pre-training.
+Interestingly,
+performance on NLVR$^2$ does not benefit much from additional web images,
+possibly due to the domain gap between web data and downstream data.
+
+
+
+\vspace{-1ex}
+\subsection{Visual Dialog (VisDial)}
+\vspace{-0.5ex}
+VisDial~\cite{VisDial} extends VQA in a natural conversational setting,
+where the model needs to predict an answer not only based on the image-question pair, but also considering the dialog history and the image's caption.
+We follow the discriminative setting where the model ranks a pool of answer candidates~\cite{ReDAN,VD-BERT,visdial_eccv}.
+As shown in Figure~\ref{fig:vqa_visdial_nlvr}(c),
+we concatenate image and caption embeddings,
+and pass them to the dialog encoder through cross-attention.
+The dialog encoder is trained with the ITM loss to discriminate whether the answer is true or false for a question,
+given the entire dialog history and the image-caption embeddings.
+As shown in Table~\ref{tbl:visdial},
+our method achieves state-of-the-art performance on VisDial v1.0 validation set.
+% We also perform zero-shot experiments where we directly evaluate the open-ended VQA model without dialog history.
+
+\vspace{-1ex}
+\subsection{Zero-shot Transfer to Video-Language Tasks}
+\vspace{-0.5ex}
+
+\input{table/visdial}
+\input{table/video_retrieval}
+\input{table/video_qa}
+
+Our image-language model has strong generalization ability to video-language tasks.
+In Table~\ref{tbl:video_retrieval} and Table~\ref{tbl:video_qa},
+we perform zero-shot transfer to \textit{text-to-video retrieval} and \textit{video question answering},
+where we directly evaluate the models trained on COCO-retrieval and VQA, respectively.
+To process video input,
+we uniformly sample $n$ frames per video ($n=8$ for retrieval and $n=16$ for QA),
+and concatenate the frame features into a single sequence.
+Note that this simple approach ignores all temporal information.
+
+Despite the domain difference and lack of temporal modeling,
+our models achieve state-of-the-art performance on both video-language tasks.
+For text-to-video retrieval,
+zero-shot \name~even outperforms models finetuned on the target video dataset by +12.4\% in recall@1.
+Further performance improvement can be achieved if the \name~model is used to initialize a video-language model with temporal modeling (\eg~replace our ViT with a TimeSformer~\cite{timesformer}) and finetuned on video data.
+
+
+

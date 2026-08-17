@@ -1,0 +1,214 @@
+
+
+\section{Experiments}
+
+\subsection{Datasets}
+\paragraph{Pre-training datasets}
+\begin{wraptable}{r}{7cm}
+\vspace{-1.2em}
+\caption{\label{tab:pretrain datasets} Details of DeCLIP pre-training datasets.}
+\label{tab:dataset}
+\centering
+\scriptsize
+\begin{sc}
+\begin{tabular}{lc}
+   \toprule  
+   \textbf{Dataset}        & \textbf{Training Size} \\
+   \midrule 
+      CLIP~\citep{radford2021learning}  & 400M \\
+      ALIGN~\citep{jia2021scaling} & 1.8B \\
+   \midrule   
+   CC~\citep{sharma2018conceptual} & 3M	   \\
+   CC-12M~\citep{changpinyo2021conceptual}   & 11M      \\
+   YFCC~\citep{thomee2016yfcc100m}      & 15M	 \\
+   \textbf{DeCLIP open-source data}  & 29M     \\ 
+    \midrule 
+   DeCLIP web-crawled data                & 59M      \\ 
+   \textbf{DeCLIP full data}          & 88M         \\ 
+
+   \bottomrule
+%   \vspace{-2em}
+\end{tabular}
+\end{sc}
+\end{wraptable} 
+We summarize our pre-training dataset as in Tab.~\ref{tab:dataset}. 
+Our \workname full data consists of two parts: open-source data and web-crawled data. The open-source data comes from three different datasets: Conceptual Captions (CC3M)~\citep{sharma2018conceptual}, Conceptual 12M (CC12M)~\citep{changpinyo2021conceptual}, and YFCC~\citep{thomee2016yfcc100m}. Worth mentioning, due to the download failure or non-English caption, we do not obtain the complete data for these datasets.
+We further use the YFCC15M query to crawl about 59M filtered web data on the Internet, together with open-source data to form the 88M \workname full pre-training dataset. More details can be seen in Appendix~\ref{app: pretrain details}.
+
+
+
+
+% Unlike CLIP~\citep{radford2021learning} and ALIGN~\citep{jia2021scaling}, which use 400M/1B dataset collected with difficulty as pre-training dataset, our \workname only uses 88M data composed of open-source data and crawled data. 
+% As shown in Tabel~\ref{tab:pretrain datasets}, the open-source data comes from three different datasets: Conceptual Captions~\citep{sharma2018conceptual}, Conceptual 12M~\citep{changpinyo2021conceptual}, and YFCC~\citep{thomee2016yfcc100m}, the crawled data is collected on the Google Chrome. Conceptual Captions is a 3.3 M image caption open-source data. Due to the failure of the download link, we actually only download about 3M data(CC-3M). Conceptual 12M contains approximately 12M of image-text pairs, which is larger than the CC-3M and covers a more diverse set of visual concepts. Also due to the failure of the download link, we only download about 11M data. YFCC, the Yahoo Flickr Creative Commons 100M data, is a great novel dataset for vision language task. We download about 86.5M data from YFCC website, and use 4 filtering rules to filter the \workname-YFCC15M dataset to benchmark against CLIP-YFCC15M. The four rules are: filtering data with damaged images, filtering data without caption, filtering data with a caption English word ratio less than 0.8, filtering data with a caption only including one part of speech. We use \checkme{wikipedia query frequency top10w} to crawl about 75M web data on Google Chrome, after only removing the non-English data, the remaining 59M, together with open-source data, forming a total of 88M \workname pre-training dataset. For more details of pre-training datasets, please see Appendix \ref{app: pretrain details}.
+
+% \begin{table*}[ht]
+% \caption{\label{tab:pretrain datasets} Details of DeCLIP pre-training datasets.}
+% \label{sample-table}
+% \centering
+% \small
+% \begin{sc}
+% \begin{tabular}{lccr}
+%   \toprule  
+%   \textbf{Dataset}                     & \textbf{Original Size}  & \textbf{Training Size}  &\textbf{Data Type}  \\
+%   \midrule 
+%       CLIP~\citep{radford2021learning}  & - & 400M & open-source \\
+%       ALIGN~\citep{jia2021scaling} & 1B & 1B & open-source \\
+%   \midrule   
+%   CC~\citep{sharma2018conceptual}         & 3.3M  	        & 3M	    &open-source        \\
+%   CC-12M~\citep{changpinyo2021conceptual}              & 12M            & 11M      &open-source     \\
+%   YFCC~\citep{thomee2016yfcc100m}                        & 100M  	        & 15M	    &open-source    \\
+%   \textbf{DeCLIP open-source Data } & \textbf{—}              & \textbf{29M }      &\textbf{open-source}        \\ 
+%   \midrule   
+%   DeCLIP Crawled Data                     & \checkme{??}              & 59M     &Crawled         \\ 
+%   \textbf{DeCLIP Full Data }                        & \textbf{—}              & \textbf{88M }      &\textbf{Mixed}         \\ 
+
+%   \bottomrule
+% \end{tabular}
+% \end{sc}
+% \end{table*}
+
+\paragraph{Downstream datasets} 
+
+% We use the 11 datasets from the well-studied evaluation suite introduced by ~\citep{kornblith2019better},  in order to assess the performance of models on a wider variety of distributions and tasks. 
+
+% To conduct fair comparison, the metric and division for each dataset is consistent with that of clip~\citep{radford2021learning}.
+% We first evaluate the zero-shot recognition ability on standard ImageNet~\citep{deng2009imagenet}.
+We assess our model performances in a wider variety of distributions and tasks. Following the CLIP~\citep{radford2021learning},  we evaluate the image encoder transferability on 11 widely used downstream datasets, such as Food-101, CIFAR-10, etc. 
+To conduct a fair comparison, the metric and division for each dataset that can be collected are consistent with those of CLIP. More details of downstream datasets can be found in Tabel~\ref{tab:downstream datasets} of Appendix \ref{Downstream Datasets}.
+% We use the datasets that can be download completely for fair comparison. The metric and division for each dataset are consitent with thos in CLIP.
+
+% CIFAR-100, SUN397, Stanford Cars, FGVC Aircraft, Describable Textures, Oxford-IIIT Pets, Caltech-101, Oxford Flowers 102.  
+% In order to assess our model performances on a wider variety of distributions and tasks, we evaluate the image encoder transferability of our proposed \workname on 11 widely used downstream datasets: Food-101, CIFAR-10, CIFAR-100, SUN397, Stanford Cars, FGVC Aircraft, Describable Textures, Oxford-IIIT Pets, Caltech-101, Oxford Flowers 102.  
+
+
+
+
+\subsection{Experiments Setup}\label{Training Setup}
+
+\paragraph{Network architectures} Following CLIP, we first consider two different architectures for the image encoder: a modified version of ResNet50~\citep{radford2021learning} and ViT-B/32~\citep{dosovitskiy2020image}. The text encoder is a Transformer~\citep{vaswani2017attention} with the architecture modifications described in~\citet{radford2019language}. The image and text features are projected to the same 1024 dimension, followed by L2 normalization before interaction. Benefiting from the rapid progress of large CV models, we further scale up our model. Our largest model is a RegNetY-64GF~\citep{radosavovic2020designing,goyal2021self} image encoder with a BERT~\citep{devlin2018bert} text encoder, which is on-pair with the largest CLIP-R50$\times$64 model.
+
+\paragraph{Pre-training setup}
+\label{sec:pre-training setup}
+For a fair comparison with CLIP, we train our \workname-ResNet50 and \workname-ViT-B/32 from scratch for 32 epochs. Unless otherwise specified, we use full data, i.e., 88M image-text pairs, to obtain the best performance. The input resolution of the image encoder is $224\times224$, and the maximum context length of the text encoder is 76. 
+The learnable temperature parameter $\tau$ is initialized to 0.07. The loss weights of additional supervision ${\alpha}$, ${\beta}$ and ${\gamma}$ are all set to 0.2.
+More details can be found in Appendix~\ref{app: pretrain details}.
+
+% We train our \workname model from scratch on the collected 88M dataset, which image encoder are ResNet50 modified from CLIP~\citep{radford2021learning} and ViT-B/32~\citep{dosovitskiy2020image}, text encoder is a 12-layer transformer structure from CLIP~\citep{radford2021learning}, with the context length 77, the transformer width 512, and the transformer heads 8.  Both text projection and visual projection dimensions are 1024. Image SS uses SimSiam~\citep{chen2021exploring} method, prediction module is a 2-layer MLP, which hidden dimensions is 512 and output dimensions is 1024, projection module  is a 3-layer MLP, which hidden and output dimensions are both 1024. Text SS uses the Masked Language Model~\citep{devlin2018bert} to select 15\% of all words in the corpus for random mask as the pretext task. In MVS, image encoder uses augmentation from MoCo v2~\citep{chen2020improved} and text encoder uses EDA~\citep{wei2019eda} as augmentation, NNS is text nearest neighbor specifically finding an additional text supervision for each text by calculating the similarity of the text in a mini-batch. 
+% In addition, loss weight of ${\alpha}$, ${\beta}$ and ${\gamma}$ are all 0.2. During training, ResNet-50 and ViT-B/32 both use the resolution of $224\times224$ pixels, and the text transformer uses input size with a maximum context length of 77. The learnable temperature parameter $\tau$ was initialized to the equivalent of 0.07. 
+% ResNet-50 uses the FP16-SGD optimizer and batch size 10,240  for training, with an initial learning rate of 0.01, warmed up linearly to 0.2 in one epoch steps, which weight decay is 0.0001 and momentum is 0.9.
+% When training ViT-B/32, we use FP16-AdamW-SGD with batch size 20,480 for stable training. In detail, When training the text encoder, we use the SGD optimizer which learning rate warmed up linearly from 1e-3 to 0.02, the weight decay rate is set as 1e-4 and the momentum is set as 0.9. For the image encoder, we use AdamW optimizer which learning rate warmed up linearly from 1e-4 to 1e-3, and the weight decay rate is set as 0.05.
+% ViT-B/32 model uses FP16-AdamW-SGD and batchsize 20480 for training. For the stability of training, the text encode uses SGD optimizer which learning rate warmed up linearly to 0.02 from 1e-3 in one epoch, weight decay is 1e-4 and momentum is 0.9. The image encode uses AdamW optimizer which learning rate warmed up linearly to 1e-3 from 1e-4 in one epoch, and weight decay is set as 0.05.
+% Both ResNet-50 and ViT-B/32 use Cosine learning rate decay to train 32 epochs. 
+% ResNet-50 requires 80 V100 GPUs for training for 8 days, and ViT-B/32 requires 80 V100 GPUs for training for 10 days. When scaling up models, we use RegNetY-64GF~\citep{2020Designing,goyal2021self} as image encoder and BERT~\citep{devlin2018bert} as text encoder, training 32 epochs with batch size 20,480, which requires 160 V100 GPUs for training for 21 days.
+
+\paragraph{Downstream evaluation setup}
+We evaluate our model transferability by performing linear classification on frozen features, i.e., the pre-trained image encoder is fixed and serves as a feature extractor.
+After feature extraction, we train the linear classifier with the L-BFGS optimizer as the same in ~\citet{radford2021learning}.
+
+\subsection{Main Results}
+
+\begin{table*}[t]
+\caption{\label{tab:zero-shot result} Zero-shot top1 accuracy on ImageNet. Our \workname shows great data-efficency.}
+\begin{center}
+\begin{footnotesize}
+\begin{sc}
+\begin{tabular}{ccccc}
+   \toprule  
+   %\multicolumn{5}{r}{}  \\
+   \textbf{Method}         & \textbf{Image encoder} & \textbf{\# Params}  & \textbf{Training size}   & \textbf{Zero-shot top1 acc.} \\
+   \midrule
+   CLIP$^\dagger$         &ResNet50 &24M &88M &56.9	\\
+   CLIP         &ResNet50 &24M &400M &59.6	\\
+%   \textbf{DeCLIP}       &\textbf{ResNet50} &24M &\textbf{56M}  & \textbf{10,240} &\textbf{60.4(+0.8)} 	\\
+   DeCLIP       &ResNet50 & \textbf{24M} &\textbf{88M($\downarrow$ 4.5$\times$)} &\textbf{62.5($\uparrow$  +2.9)} 	\\
+      CLIP         &ResNet101 &42M &400M &62.2	\\
+
+   \midrule
+   CLIP$^\dagger$         &ViT-B/32 &88M &88M &57.4	\\
+   CLIP         &ViT-B/32 &88M &400M &63.2	\\
+   DeCLIP       &ViT-B/32 &\textbf{88M} &\textbf{88M($\downarrow$ 4.5$\times$)} &\textbf{66.2($\uparrow$ +3.0)}	\\
+  \midrule
+  CLIP         &ResNet50$\times$64 &291M  &400M &73.6	\\
+  DeCLIP       &RegNetY-64GF &\textbf{276M} &\textbf{88M($\downarrow$ 4.5$\times$)}  &\textbf{73.7($\uparrow$ +0.1)}	\\
+  \bottomrule
+  \multicolumn{5}{l}{$^\dagger$ Our reimplementation.}
+%   \vspace{-3em}
+\end{tabular}
+\end{sc}
+\end{footnotesize}
+\end{center}
+\end{table*}
+
+\paragraph{Zero-shot recognition on ImageNet} 
+After pre-training, we use natural language to refer to visual concepts enabling the zero-shot ability of our model.
+As shown in Fig.~\ref{fig:IN_zero_shot}, our \workname-ResNet50 consistently outperforms the CLIP-ResNet50 across all dataset sizes.
+% when using 15M pairs, our \workname-ResNet50 is 10.6\% higher than the number reported in ~\citet{radford2021learning}. 
+% More data leads to better accuracy. 
+When the data amount reaches 56M (29M open-source + 27M web-crawled), our model can achieve 60.4\% accuracy, 0.8\% above the CLIP-ResNet50, while using 7.1$\times$ fewer data. 
+As described in Tab.~\ref{tab:zero-shot result}, with our full data, our best ResNet50/ViT-B32 models boost the zero-shot performance to 62.5\% and 66.2\%, nearly 3.0\% higher than the best number reported for these two architectures. Moreover, our \workname-ResNet50 is even 0.3\% better than CLIP-ResNet101, revealing the effectiveness and efficiency of our framework. Scaling up model capacity works in our framework as well. Our biggest \workname-RegNetY-64GF achieves 73.7\% accuracy, which is 0.1\% above CLIP ResNet50$\times$64 with fewer parameters. 
+
+\paragraph{Downstream evaluation results} We report our linear probe performance on 11 downstream datasets in Tab.~\ref{tab:downstream result}. 
+Our \workname-ResNet50 outperforms its CLIP counterpart in 8 out of 11 datasets, with a 0.8\% average improvement.
+There are some datasets that our models perform worse than CLIP models, such as SUN and Food101. We conjecture that this is caused by the different distribution of the pre-trained dataset. Interestingly, our ResNet50 and ViT-B/32 models might have distinct performance on several datasets, such as Pets and Aircraft. We infer that these two types of neural networks might have different data preferences, i.e., different feature extraction capacities when they meet the same data.
+% On the downstream visual classification benchmarks, as CLIP, we freeze the learned visual features and only train the classification head. Table \ref{tab:downstream result} compares \workname with CLIP on downstream visual classification benchmarks. With ResNet50 frozen features, \workname outperforms CLIP on downstream 11 visual classification datasets average accuracy and achieves 79.9\% average top1 accuracy, which gets 0.8\% improvement by CLIP's 79.1\%. Specifically, the linear probe of general datasets ImageNet has been improved steadily. With ViT-B/32 frozen features, \workname achieves 82.5\% average top1 accuracy on downstream 11 visual classification datasets, which exceeds CLIP-ViT-B/32 by 0.5\%. We can clearly see that the general visual representations learned by \workname using 88M image-text pairs are better than those learned by CLIP using 400M pairs.
+
+
+
+
+\begin{table*}[t]
+\caption{\label{tab:downstream result} Linear probe performance on 11 downstream datasets. There are some abbreviations. C10/100 is CIFAR10/100. F101 is Food101. Flow is Flowers. Cal is Caltech. Air is Aircraft. IN is ImageNet. Our \workname models achieve higher average accuracy over 11 datasets.}
+\begin{center}
+\begin{scriptsize}
+\begin{sc}
+\resizebox{\textwidth}{!}{
+\begin{tabular}{ccccccccccccc}
+\toprule
+\textbf{Model} &\textbf{\rot{Pets}} & \textbf{\rot{C10}} & \textbf{\rot{C100}}  & \textbf{\rot{SUN}} & \textbf{\rot{F101}} &\textbf{\rot{Flow.}}   & \textbf{\rot{Cars}}  & \textbf{\rot{Cal.}} & \textbf{\rot{Air.}} &\textbf{\rot{DTD}} & \textbf{\rot{IN}} & \textbf{\rot{Avg.}}    \\
+\midrule\textbf{}
+%ResNet &ResNet50     & 92.4 & 91.8 & 74.5 & 60.5 & 71.3  & 90.8 \\
+CLIP-ResNet50$^\dagger$  & 85.1 & 87.3 & 65.0 & 71.3 & 80.8 & 98.2 & 77.2 & 89.6 & 44.8 & 71.0 & 70.8 & 76.5 \\
+CLIP-ResNet50     & 88.2 & 88.7 & 70.3 & \textbf{73.3} & \textbf{86.4}  & 96.1 & 78.3  & 89.6 & \textbf{49.1} & 76.4 &73.3 &79.1 \\
+\workname-ResNet50   & \textbf{88.7} &\textbf{89.8} & \textbf{71.2 }& 72.8 & 82.7  & \textbf{99.2} & \textbf{81.7} & \textbf{93.9} & 48.4 & \textbf{76.8 }&\textbf{74.0} &\textbf{79.9($\uparrow$ +0.8)} \\
+\midrule
+CLIP-ViT-B/32$^\dagger$ & 85.3 & 91.6 & 74.2 & 72.3 & 80.8 & 97.9 & 77.6 & 93.2 & 47.0 & 72.5 & 70.3 & 78.4 \\ 
+CLIP-ViT-B/32              & \textbf{90.0}  & 95.1 & 80.5 & \textbf{76.6} & \textbf{88.8} & 96.9 & \textbf{81.8} & 93.0 & 52.0 & 76.5 & \textbf{76.1} & 82.5  \\
+\workname-ViT-B/32            & 89.2  & \textbf{96.5} & \textbf{84.7 }& 75.0 & 85.0 & \textbf{99.1} & 81.6 & \textbf{94.8 }& \textbf{53.5} & \textbf{78.5} & 75.3 &\textbf{83.0 ($\uparrow$ +0.5)} \\
+
+\bottomrule
+\multicolumn{13}{l}{$^\dagger$ Our reimplementated CLIP model trained on 88M data.}
+\vspace{-1em}
+\end{tabular}}
+\end{sc}
+\end{scriptsize}
+\end{center}
+\end{table*}
+
+% \begin{table*}[h]
+% \setlength{\abovecaptionskip}{0.cm}
+% %\caption{\label{tab:part2 of downstream result} Part2 of Linear probe performance on various pre-trained models over 11 datasets.}
+% \label{sample-table}
+% \begin{center}
+% \begin{small}
+% \begin{sc}
+% \begin{tabular}{lccccccr}
+% \toprule
+% %\rotatebox{90}{Model} & \rotatebox{90}{Backbone}  & \rotatebox{90}{CIFAR10} & \rotatebox{90}{CIFAR100} & \rotatebox{90}{Food101} & \rotatebox{90}{Pets} & \rotatebox{90}{Fowers} & \rotatebox{90}{SUN397} & \rotatebox{90}{Cars} & \rotatebox{90}{DTD} & \rotatebox{90}{Caltech} & \rotatebox{90}{Aircraft} & \rotatebox{90}{ImageNet}    \\
+% \textbf{Model} & \textbf{Backbone}  & \textbf{Cars}  & \textbf{Caltech} & \textbf{Aircraft} &\textbf{DTD} & \textbf{ImageNet} & \textbf{Average}    \\
+% \midrule
+
+% CLIP &ResNet50       & 78.3  & 89.6 & 49.1 & 76.4 &73.3 &79.1\\
+% \textbf{De-CLIP} &\textbf{ResNet50}   & \textbf{81.7 } & \textbf{93.9} & 48.4 & \textbf{76.8}&\textbf{73.8} &\textbf{79.9} \\
+% \midrule
+% CLIP &ViT-B32               & 81.8 & 93.0 & 52.0 & 76.5 &76.1 \\
+% \textbf{DeCLIP} &\textbf{ViT-B32}            \\
+
+% \bottomrule
+% \end{tabular}
+% \end{sc}
+% \end{small}
+% \end{center}
+% \end{table*}
+
+
+
+

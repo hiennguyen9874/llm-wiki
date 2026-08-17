@@ -1,0 +1,28 @@
+\section{Related Work}
+\textbf{Vision Pretraining.}
+Pretraining ConvNets~\cite{krizhevsky2012imagenet} or Transformers~\cite{vaswani2017attention} on large-scale annotated data such as ImageNet~\cite{girshick2014rich, long2015fully, simonyan2014two}, Instagram~\cite{mahajan2018exploring} or JFT~\cite{zhai2021scaling} has become a popular strategy towards solving visual recognition problems including classification, localization, segmentation, video recognition, tracking and many other problems. Recently, self-supervised pretraining approaches have also been explored. BEiT~\cite{bao2021beit} proposes a masked image modeling task following BERT~\cite{devlin2018bert} in natural language processing, and uses quantized visual token ids as prediction targets. MAE~\cite{he2021masked} and SimMIM~\cite{xie2021simmim} remove the need for an image tokenizer and directly use a light-weight decoder or projection layer to regress pixel values.
+Nonetheless,
+these methods only learn models for the vision modality and thus they are not applicable to tasks that require joint reasoning over both image and text inputs.
+
+\textbf{Vision-Language Pretraining.}
+In recent years, rapid progress has been made in vision-language pretraining (VLP),
+which aims to jointly encode vision and language in a fusion model.
+Early work (e.g. LXMERT \cite{tan2019lxmert},
+UNITER \cite{chen2020uniter}, VinVL \cite{Zhang_2021_CVPR}) in this direction relies on pretrained object detection modules such as Fast(er) R-CNN \citep{NIPS2015_14bfa6bb} to extract visual representations.
+Later efforts such as ViLT \cite{kim2021vilt} and VLMo \cite{wang2021vlmo} unify vision and language transformers,
+and train a multimodal transformer from scratch.
+
+\textbf{Image-Text Foundation Models.}
+Recent work has proposed image-text foundation models that can subsume both vision and vision-language pretraining.
+CLIP~\cite{radford2021learning} and ALIGN~\cite{jia2021scaling} demonstrate that dual-encoder models pretrained with contrastive objectives on noisy image-text pairs 
+can learn strong image and text representations for crossmodal alignment tasks and zero-shot image classification.
+Florence~\cite{yuan2021florence} further develops this method with unified contrastive objective~\cite{yang2022unified}, training foundation models that can be adapted for a wide range of vision and image-text benchmarks. To further improve zero-shot image classification accuracy, LiT~\cite{zhai2021lit} and BASIC~\cite{pham2021combined} first pretrain model on an large-scale image annotation dataset with cross-entropy and further finetune with contrastive loss on an noisy alt-text image dataset.
+Another line of research~\cite{wang2021simvlm, wang2022unifying, piergiovanni2022answer} proposes encoder-decoder models trained with generative losses and shows strong results in vision-language benchmarks while the visual encoder still performs competitively on image classification. 
+In this work, we focus on training an image-text foundation model from scratch in a single pretraining stage to unify these approaches.
+While recent works ~\cite{singh2021flava,li2021align,li2022blip} have also explored image-text unification,
+they require multiple pretraining stages of unimodal and multimodal modules to attain good performance.
+For example, ALBEF~\cite{li2021align} combines contrastive loss with masked language modelling (MLM) with a dual-encoder design. 
+However, our approach is simpler and more efficient to train while also enables more model capabilities:
+(1) CoCa only performs one forward and backward propagation for a batch of image-text pairs while ALBEF requires two (one on corrupted inputs and another without corruption),
+(2) CoCa is trained from scratch on the two objectives only while ALBEF is initialized from pretrained visual and textual encoders with additional training signals including momentum modules.
+(3) The decoder architecture with generative loss is preferred for natural language generation and thus directly enables image captioning and zero-shot learning~\cite{wang2021simvlm}.

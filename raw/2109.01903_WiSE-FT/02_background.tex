@@ -1,0 +1,59 @@
+\beforesec
+\section{Background and experimental setup}\label{sec:expsetup}
+\postsec
+
+Our experiments compare the performance of zero-shot models, corresponding fine-tuned models, and models produced by WiSE-FT. 
+To measure robustness, we contrast model accuracy on two related but different distributions, a reference distribution $\mathcal{D}_{\mathrm{ref}}$ which is the target for fine-tuning, and shifted distribution $\mathcal{D}_{\mathrm{shift}}$.\footnote{$\mathcal{D}_{\mathrm{ref}}$ and $\mathcal{D}_{\mathrm{shift}}$ are sometimes referred to as \textit{in-distribution} (ID) and \textit{out-of-distribution} (OOD). In this work, we include evaluations of zero-shot models, which are \textit{not} trained on data from the reference distribution, so referring to $\mathcal{D}_{\mathrm{ref}}$ would be imprecise. For clarity, we avoid the ID/OOD terminology.}
+We assume both distributions have test sets for evaluation, and $\mathcal{D}_{\mathrm{ref}}$ has an associated training set $\mathcal{S}_{\mathrm{ref}}^\text{tr}$ which is typically used for training or fine-tuning.
+The goal for a model is to achieve both high accuracy and consistent performance on the two distributions $\mathcal{D}_{\mathrm{ref}}$ and $\mathcal{D}_{\mathrm{shift}}$.
+This is a natural goal as humans often achieve similar accuracy across the distribution shifts in our study \cite{shankar2020evaluating}.
+
+For a model $f$, we let $\mathsf{Acc}_{\mathrm{ref}}(f)$ and $\mathsf{Acc}_{\mathrm{shift}}(f)$ refer to classification accuracy on the reference and shifted test sets, respectively. 
+We consider $k$-way image classification, where $x_i$ is an image with corresponding label $y_i \in \{1,...,k\}$. 
+The outputs of $f$ are $k$-dimensional vectors of non-normalized class scores.
+
+
+\smallpara{Distribution shifts.}
+\citet{taori2020measuring} categorized distribution shifts into two broad categories:
+(i) \emph{synthetic}, e.g., $\ell_\infty$-adversarial examples or artificial changes in image contrast, brightness, etc. \cite{imagenetc,biggio2013evasion,biggio2018wild,geirhos2018generalisation,alcorn2019strike}; and 
+(ii) \emph{natural}, where samples are not perturbed after acquisition and changes in data distributions arise through naturally occurring variations in lighting, geographic location, crowdsourcing process, image styles, etc. \cite{taori2020measuring, pmlr-v97-recht19a, imagenetr, imageneta, wilds2021}.
+Following \citet{radford2019language}, our focus here is on natural distribution shifts as they are more representative of the real world when no active adversary is present. 
+Specifically, we present our key results for five natural distribution shifts derived from ImageNet (i.e., $\mathcal{S}^\text{tr}_\text{ref}$ is ImageNet):
+\begin{itemize}
+ \item
+ImageNet-V2 (IN-V2) \cite{pmlr-v97-recht19a}, a reproduction of the ImageNet test set with distribution shift
+\item ImageNet-R (IN-R) \cite{imagenetr}, renditions (e.g., sculptures, paintings) for 200 ImageNet classes
+\item ImageNet Sketch (IN-Sketch) \cite{imagenetsketch}, which contains sketches instead of natural images
+\item ObjectNet \cite{objectnet}, a test set of objects in various scenes with 113 classes overlapping with ImageNet
+\item ImageNet-A (IN-A) \cite{imageneta}, a test set of natural images misclassified by a ResNet-50 \cite{he2016deep} for 200 ImageNet classes.
+\end{itemize}
+Figure \ref{fig:data_samples} illustrates the five distribution shifts.
+
+\smallpara{Effective robustness and scatter plots.}
+To compare the robustness of models with different accuracies on the reference distribution, we follow the \emph{effective robustness} framework introduced by \citet{taori2020measuring}.
+Effective robustness quantifies robustness as accuracy \emph{beyond a baseline} trained only on the reference distribution.
+A useful tool for studying (effective) robustness are scatter plots that illustrate model performance under distribution shift  \cite{pmlr-v97-recht19a, taori2020measuring}. 
+These scatter plots display accuracy on the reference distribution on the $x$-axis and accuracy under distribution shift on the $y$-axis, i.e., a model $f$ is shown as a point $\left(\mathsf{Acc}_{\mathrm{ref}}(f),\ \mathsf{Acc}_{\mathrm{shift}}(f)\right)$.
+Figure \ref{fig:fig1} exemplifies these scatter plots with both schematics and real data.
+For the distribution shifts we study, accuracy on the reference distribution is a reliable predictor of accuracy under distribution shift \cite{taori2020measuring, miller21b}. 
+In other words, there exists a function $\beta : [0,1] \rightarrow [0,1]$ such that $\mathsf{Acc}_\mathrm{shift}\mleft(f\mright)$ approximately equals $\beta\mleft(\mathsf{Acc}_\mathrm{ref}\mleft(f\mright)\mright)$ for models $f$ trained on the train set $\mathcal{S}^\text{tr}_\mathrm{ref}$.  
+Effective robustness \cite{taori2020measuring} is accuracy beyond this baseline, defined formally as $\rho(f) = \mathsf{Acc}_\mathrm{shift}(f) -\beta\mleft(\mathsf{Acc}_\mathrm{ref}\mleft(f\mright)\mright)$. 
+
+
+In the corresponding scatter plots, effective robustness is vertical movement above expected accuracy under distribution shift (Figure \ref{fig:fig1}, top).
+Effective robustness thereby disentangles accuracy changes on the reference distribution from the effect of robustness interventions.
+When we say that a model is robust to distribution shift, we mean that effective robustness is positive. \citet{taori2020measuring} observed that no algorithmic robustness intervention consistently achieves substantial effective robustness across the distribution shifts in Figure~\ref{fig:data_samples}---the first method to do so was zero-shot CLIP.
+Empirically, when applying logit (or probit) axis scaling, models trained on the reference distribution approximately lie on a linear trend \cite{taori2020measuring,miller21b}. As in \citet{taori2020measuring}, we apply logit axis scaling and show 95\% Clopper-Pearson confidence intervals for the accuracies of select points.
+
+
+
+ \smallpara{Zero-shot models and CLIP.} We primarily explore CLIP models \cite{radford2021learning}, although we also investigate other zero-shot models including ALIGN \cite{jia2021scaling}, BASIC \cite{pham2021scaling} and a ViT model pre-trained on JFT \cite{dosovitskiy2021an}. Zero-shot models exhibit effective robustness and lie on a qualitatively different linear trend (Figure~\ref{fig:fig1}). 
+CLIP-like models are pre-trained using image-caption pairs from the web.
+Given a set of image-caption pairs $\{(x_1,s_1)...,(x_B,s_B)\}$, CLIP-like models train an image-encoder $g$ and text-encoder $h$ such that the similarity $\left\langle g(x_i), h(s_i)\right\rangle$ is maximized relative to unaligned pairs.
+CLIP-like models perform zero-shot $k$-way classification given an image $x$ and class names $C = \{c_1,...,c_k\}$ by matching $x$ with potential captions.
+For instance, using caption $s_i = \text{``a photo of a \{$c_i$\}''}$ for each class $i$, the zero-shot model predicts the class via $\argmax_j \left\langle g(x), h(s_j) \right\rangle$.\footnote{For improved accuracy, the embedding of a few candidate captions are averaged, e.g., $s_i^{(1)}{=}\text{``a \textit{photo} of a \{$c_i$\}''}$ and $s_i^{(2)}{=}\text{``a \textit{picture} of a \{$c_i$\}''}$ (referred to as prompt ensembling \cite{radford2021learning}).}
+Equivalently, one can construct $\textbf{W}_{\text{zero-shot}} \in \mathbb{R}^{d \times k}$ with columns $h(s_j)$ and compute outputs $f(x) = g(x)^\top \textbf{W}_{\text{zero-shot}}$.
+Unless explicitly mentioned, our experiments use the CLIP model \texttt{ViT-L/14@336px}, although all CLIP models are displayed in our scatter plots (additional details provided in Appendix~\ref{sec:morezs}).
+
+
+

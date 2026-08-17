@@ -1,0 +1,41 @@
+\vspace{-1.5ex}
+\section{Related Work}
+\vspace{-0.5ex}
+\label{sec:related}
+
+\subsection{End-to-end Vision-Language Pre-training}
+\vspace{-0.5ex}
+
+Vision-language pre-training aims to learn multimodal foundation models with improved performance on various vision-and-language tasks.
+% multimodal representation that enables better and faster transfer learning on various vision-and-language downstream tasks.
+Depending on the downstream task, different model architectures have been proposed, including the dual-encoder architecture~\cite{clip,align}, the fusion-encoder architecture~\cite{LXMERT,ALBEF}, the encoder-decoder architecture~\cite{VL_T5,simvlm,pali},
+and more recently, the unified transformer architecture~\cite{blip,beit3}.
+Various pre-training objectives have also been proposed over the years,
+and have progressively converged to a few time-tested ones: image-text contrastive learning~\cite{clip,filip,ALBEF,blip},
+image-text matching~\cite{ALBEF,blip,VLMo},
+and (masked) language modeling~\cite{ALBEF,blip,coca,beit3}.
+
+Most VLP methods perform end-to-end pre-training using large-scale image-text pair datasets.
+As the model size keeps increasing, the pre-training can incur an extremely high computation cost.
+Moreover, it is inflexible for end-to-end pre-trained models to leverage readily-available unimodal pre-trained models,
+such as LLMs~\cite{gpt3,opt,flanT5}.
+
+\vspace{-0.5ex}
+\subsection{Modular Vision-Language Pre-training}
+\vspace{-0.5ex}
+More similar to us are methods that leverage off-the-shelf pre-trained models and keep them frozen during VLP.
+Some methods freeze the image encoder, including the early work which adopts a frozen object detector to extract visual features~\cite{uniter,oscar,vinvl},
+and the recent LiT~\cite{LiT} which uses a frozen pre-trained image encoder for CLIP~\cite{clip} pre-training.
+Some methods freeze the language model to use the knowledge from LLMs for vision-to-language generation tasks~\cite{Frozen,flamingo,vgpt,mapl,pnp-vqa,img2prompt}.
+The key challenge in using a frozen LLM is to align visual features to the text space.
+%
+To achieve this, Frozen~\cite{Frozen} finetunes an image encoder whose outputs are directly used as soft prompts for the LLM.
+Flamingo~\cite{flamingo} inserts new cross-attention layers into the LLM to inject visual features, 
+and pre-trains the new layers on billions of image-text pairs.
+Both methods adopt the language modeling loss,
+where the language model generates texts conditioned on the image.
+
+Different from existing methods,
+BLIP-2 can effectively and efficiently leverage both frozen image encoders and frozen LLMs for various vision-language tasks,
+achieving stronger performance at a lower computation cost.
+

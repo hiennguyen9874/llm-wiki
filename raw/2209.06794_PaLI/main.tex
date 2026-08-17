@@ -1,0 +1,520 @@
+% This must be in the first 5 lines to tell arXiv to use pdfLaTeX, which is strongly recommended.
+\pdfoutput=1
+% In particular, the hyperref package requires pdfLaTeX in order to break URLs across lines.
+
+\documentclass{article}
+
+% Remove the "review" option to generate the final version.
+\usepackage{iclr2023_conference}
+
+% Standard package includes
+\usepackage{times}
+\usepackage{latexsym}
+\usepackage{graphicx}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{booktabs}
+\usepackage{multirow}
+\usepackage{caption}
+\usepackage{sidecap}
+\captionsetup[table]{skip=3pt}
+%\usepackage{comment}
+
+
+\usepackage{xspace}
+\usepackage[T1]{fontenc}
+\usepackage{tabularx}
+
+% wrap table
+\usepackage{wrapfig}
+\usepackage{tabulary}
+
+% This assumes your files are encoded as UTF8
+\usepackage[utf8]{inputenc}
+\newcommand{\nop}[1]{}
+\usepackage{listings}
+
+% This is not strictly necessary, and may be commented out.
+% However, it will improve the layout of the manuscript,
+% and will typically save some space.
+\usepackage{microtype}
+
+% This is also not strictly necessary and may be commented out.
+% However, it will improve the aesthetics of text in
+% the typewriter font.
+\usepackage{inconsolata}
+
+% To add data card as PDF in appendix.
+% \usepackage{pdfpages}
+
+% For PaLM-like datasheet table.
+\usepackage{longtable}
+
+\usepackage{hyperref}
+\hypersetup{
+pdftitle={PaLI: A Jointly-Scaled Multilingual Language-Image Model},
+pdfsubject={Computer Vision and Natural Language Understanding},
+pdfauthor={Xi Chen, Xiao Wang, Soravit Changpinyo, AJ Piergiovanni, Piotr Padlewski,
+Daniel Salz, Sebastian Goodman, Adam Grycner, Basil Mustafa, Lucas Beyer,
+Alexander Kolesnikov, Joan Puigcerver, Nan Ding, Keran Rong, Hassan Akbari,
+Gaurav Mishra, Linting Xue, Ashish Thapliyal, James Bradbury, Weicheng Kuo,
+Mojtaba Seyedhosseini, Chao Jia, Burcu Karagol Ayan, Carlos Riquelme,
+Andreas Steiner, Anelia Angelova, Xiaohua Zhai, Neil Houlsby, Radu Soricut}, 
+pdfkeywords={PaLI, Webli, ViT-e, ViT-4B,  scaling, image captioning, visual question answering, mT5 }
+}
+
+
+\title{\NAME: A Jointly-Scaled Multilingual\\Language-Image Model}
+\author{
+\\
+\vspace{0.2em}
+\textbf{Xi Chen,\hspace{1mm} Xiao Wang,\hspace{1mm} Soravit Changpinyo,\hspace{1mm} AJ Piergiovanni,\hspace{1mm} Piotr Padlewski }\\ 
+\vspace{0.2em}
+\textbf{Daniel Salz, \hspace{1mm}Sebastian Goodman, \hspace{1mm}Adam Grycner,\hspace{1mm} Basil Mustafa,\hspace{1mm} Lucas Beyer} \\
+\vspace{0.2em}
+\textbf{Alexander Kolesnikov,\hspace{1mm} Joan Puigcerver, \hspace{1mm}Nan Ding,\hspace{1mm} Keran Rong, \hspace{1mm}Hassan Akbari} \\
+\vspace{0.2em}
+\textbf{Gaurav Mishra,\hspace{1mm} Linting Xue,\hspace{1mm} Ashish Thapliyal,\hspace{1mm} James Bradbury,\hspace{1mm} Weicheng Kuo} \\
+\vspace{0.2em}
+\textbf{Mojtaba Seyedhosseini,\hspace{1mm} Chao Jia,\hspace{1mm} Burcu Karagol Ayan,\hspace{1mm} Carlos Riquelme}\\
+\vspace{0.2em}
+\textbf{Andreas Steiner,\hspace{1mm} Anelia Angelova,\hspace{1mm} Xiaohua Zhai,\hspace{1mm} Neil Houlsby,\hspace{1mm} Radu Soricut} \\
+Google Research\thanks{Correspondence: pali-communications@google.com} \\}
+\date{September 2022}
+
+\input{macros}
+
+\begin{document}
+
+\maketitle
+
+\begin{abstract}
+Effective scaling and a flexible task interface enable large language models to excel at many tasks.
+We present \textbf{\NAME} (\textbf{Pa}thways \textbf{L}anguage and \textbf{I}mage model), a model that extends this approach to the joint modeling of language and vision.
+\NAME generates text based on visual and textual inputs, and with this interface performs many vision, language, and multimodal tasks, in many languages.
+To train \NAME, we make use of large pre-trained encoder-decoder language models and Vision Transformers (ViTs).
+This allows us to capitalize on their existing capabilities and leverage the substantial cost of training them.
+We find that joint scaling of the vision and language components is important.
+Since existing Transformers for language are much larger than their vision counterparts, we train a large, 4-billion parameter ViT (ViT-e) to quantify the benefits from even larger-capacity vision models.
+To train \NAME, we create a large multilingual mix of pre-training tasks, based on a new image-text training set containing 10B images and texts in over 100 languages.
+\NAME achieves state-of-the-art in multiple vision and language tasks (such as  captioning, visual question-answering, scene-text understanding), while retaining a simple, modular, and scalable design. 
+\end{abstract}
+
+\section{Introduction}
+Increasing neural network capacity has been a successful trend in the modeling of language and vision tasks.
+On the language side, models such as T5~\citep{2020t5}, GPT-3~\citep{brown2020gpt}, Megatron-Turing~\citep{shoeybi2019megatron}, GLaM~\citep{du2022glam}, Chinchilla~\citep{hoffmann2022chinchilla}, and PaLM~\citep{chowdhery2022palm} have shown significant advantages from training large Transformers on large amounts text data.
+On the vision side, CNNs~\citep{mahajan2018exploring,huang2018gpipe,bit-2020}, Vision Transformers~\citep{dosovitskiy-2021-vit}, and other models~\citep{tolstikhin-21-mixer,riquelme-21-vmoe} have seen similar benefits from scale~\citep{zhai-21-scalingvit}, albeit to a lesser extent than in language.
+Language-and-vision modeling has followed a similar trend, e.g., %examples include
+SimVLM~\citep{simvlm}, Florence~\citep{florence}, CoCa~\citep{coca}, GIT~\citep{git}, BEiT-3~\citep{beit3}, and Flamingo~\citep{flamingo}.
+
+We introduce \NAME, a model that performs image-only, language-only, and image+language tasks across many languages, using a single ``image-and-text to text'' interface.
+A key characteristic of \NAME is a more balanced parameter share between the language and vision components, with more capacity to the vision backbone yielding large gains in performance.
+Another key ingredient to \NAME is the reuse of large unimodal backbones for language and vision modeling, in order to transfer existing capabilities and reduce training cost.
+On the language side, we reuse the 13B-parameter model mT5-XXL~\citep{xue-2021-mt5}, which already packages language understanding and generation capabilities.
+We show that these capabilities are maintained and extended into a multimodal setting.
+On the vision side, in addition to reusing the 2B-parameter ViT-G model~\citep{zhai-21-scalingvit}, we train a 4B-parameter model, which we call ViT-e (``enormous'').
+ViT-e achieves good performance on image-only tasks, such as 90.9\% ImageNet fine-tuning, and 84.9\% on ObjectNet~\citep{objectnet}.
+
+We find benefits from jointly scaling both the vision and the language components, with vision providing a better return on investment (accuracy improvement per parameter/FLOP).
+As a result, the capacity of our largest \NAME model, \NAME-17B, is distributed relatively equitably between the two modalities, with the ViT-e component accounting for about 25\% of the total parameter count.
+This is not always the case for prior work in large-capacity vision and language modeling~\citep{git,flamingo}, due to the prior scale mismatch between vision and language backbones. We enable knowledge-sharing between multiple image and/or language tasks by casting them into a generalized VQA-like task.
+We frame all tasks using an ``image+query to answer'' modeling interface, in which both the query and answer are expressed as text tokens.
+This allows \NAME to capitalize on transfer learning across tasks, and enhance language-and-image understanding capabilities
+in a wide range of vision and language problems:
+image captioning, visual question-answering, scene-text understanding, and others (Figure~\ref{fig:model-arch}).
+
+To train \NAME-17B, we build a new high-volume image-and-language dataset \PTDATA, which consists of 10 billion images and tens of billions of image-text pairs.
+Importantly, the \PTDATA dataset contains text in over 100 languages.
+By training the model to perform multimodal tasks in many languages, we greatly increase the task diversity, and test the model's ability to effectively scale both across tasks and across languages.
+As a reference for future usage, we provide a data card to report information about the \PTDATA and its construction.
+
+
+\NAME-17B achieves state-of-the-art (SOTA) results on multiple benchmarks, outperforming some strong models. 
+Specifically, \NAME outperforms recent and concurrent models on the long-standing COCO Captioning benchmark~\citep{coco}, with \textbf{149.1} CIDEr score on the Karpathy split~\citep{cocokarp}. 
+\NAME also achieves a new SOTA of \textbf{84.3\%} on VQAv2~\citep{vqav2} while using an open-vocabulary text generative setting that is similar to Flamingo~\citep{flamingo}.
+This result outperforms even models evaluated in a fixed-vocabulary classification setting, e.g. CoCa~\citep{coca}, SimVLM~\citep{simvlm}, BEiT-3~\citep{beit3}.
+Last but not least, our work provides a scaling roadmap for future multimodal models.
+Our results support the conclusion that scaling the components of each modality yields better performance compared to more skewed alternatives.
+Model scaling is also important for language-image understanding in multiple languages.
+%
+In summary, our contributions are the following:
+\begin{itemize}
+    \item We design a simple, modularized and scalable sequence-to-sequence learning architecture that can be efficiently trained by reusing existing Transformer-based unimodal checkpoints.
+    \item We perform joint scaling on both the language and vision components for a wide range of parameters, and show no saturation of performance on both components for the largest model size we consider, PaLI-17B.
+    More importantly, we show that multimodal performance greatly benefits from scaling the vision component beyond the previous-largest ViT, which provides a scaling roadmap for future vision \& language models.
+    \item We empirically validate that a mixture-of-objectives benefits the performance of large vision \& language models.
+    \item We scale up pre-training data to include over 100 languages, and train a large-capacity multilingual multimodal model. We show that a properly-scaled model can handle well a large number of languages, while still achieving SOTA performance on English-only tasks.
+\end{itemize}
+
+\section{Related Work}
+Pre-trained models have proven effective in both vision~\citep{dosovitskiy-2021-vit,zhai-21-scalingvit} and language~\citep{2020t5,brown2020gpt} tasks.
+Image-text pre-training has also become the default approach to tackle V\&L tasks~\citep{tan2019lxmert,chen2020uniter,zhang2021vinvl,cho2021vlt5,lemon}.
+While benefiting from the text representation and generation capabilities of the Transformer architecture, some of these vision-language models rely on external systems (such as Fast(er) R-CNN~\citep{ren2015faster}) to provide detected object names and the related precomputed dense features.
+Such reliance limited the capability to scale up the model and performance. 
+With the introduction of Vision Transformers~\citep{dosovitskiy-2021-vit}, vision and language modalities can be jointly modeled by transformers in a more scalable fashion~\citep{florence,coca,git,flamingo}.
+
+One approach for image-text pre-training is contrastive learning ~\citep{clip,align}.
+~\citet{lit} show that with a pre-trained and locked vision model, one needs to train only a paired text encoder model to get good language embeddings.
+\citet{florence} extend contrastively pre-trained models to more downstream tasks
+with task-specific adaptations. 
+Beside image and language, MERLOT~\citep{zellers2021merlot} has found success in video understanding and reasoning through video-language pretraining. Another approach is to train vision-language models to generate text autoregressively~\citep{donahue2015long,vinyals2015show}. This approach has the advantage of a unified formulation of vision-language tasks as a text generation problem~\citep{cho2021vlt5,wang2022ofa,piergiovanni2022answerme}. In~\cite{cho2021vlt5}, the vision-language model is trained to recover masked text. SimVLM~\citep{simvlm} propose an image-language pre-training approach leveraging a prefix language modeling objective. The unified framework OFA \citep{wang2022ofa} extends the generation capability to include text to image generation. Concurrent with our work, Unified-IO~\citep{lu2022unified} further scaled up the number of objectives and tasks and demonstrated decent performance across the board through only multi-task pre-training without task-specific fine-tuning.
+
+
+Recent works explore joint vision and language modeling with increased model capacity.
+CoCa~\citep{coca} pre-trains a 2.1B image-text encoder-decoder model jointly with contrastive loss and generative loss.
+GIT~\citep{git} trains a model consisting of a single image encoder and a text decoder with a captioning (generative) loss, where the image encoder is pre-trained with contrastive loss. In their latest version, GIT2, the model size is scaled up to 5.1B, with the majority of parameters on the vision side (4.8B).
+BEiT-3~\citep{beit3} presents an architecture with vision, language, and vision-language experts, operating with a shared multi-head self-attention followed by a switch for ``expert'' modules, resulting in a 1.9B model trained from scratch on a variety of public image, text and image-text datasets.
+Flamingo~\citep{flamingo} is built upon a 70B language model~\citep{hoffmann2022chinchilla} as a decoder-only model whose majority of parameters are frozen in order to preserve language-generation capabilities, along with a 435M vision encoder.
+
+Vision-language pre-training also benefits from automatically mined and filtered large-scale datasets such as Conceptual Captions (CC3M) and CC12M~\citep{cc3m,cc12m}, with 3 and 12 million image-text pairs, respectively.
+With more relaxed filtering, LEMON~\citep{lemon} collected a larger dataset with 200M examples, which is further expanded to 800M examples in GIT~\citep{git}.
+For better scaling the model, larger, noisier datasets such as the ALIGN dataset (1.8B)~\citep{align} have been constructed, which has benefited SimVLM~\citep{simvlm} and CoCa~\citep{coca}. While these image-text datasets have fueled the foundational V\&L models with state-of-the-art performance, they are English-only, and there has been limited attempts to create datasets not English-centric and unlock the multilingual capability of these models.
+\section{The \NAME Model}
+\label{sec:model}
+
+\subsection{Architecture}
+\label{sec:arch}
+With \NAME, we aim to perform both unimodal (language, vision) and multimodal (language and vision) tasks.
+Typically, many of these tasks are best handled by different models.
+For instance, image classification, and many formulations of VQA, require predicting elements from a fixed set,
+while language-only tasks and image captioning require open-vocabulary text generation.
+Similar to the recent work OFA~\citep{wang2022ofa} and a concurrent work~\citep{lu2022unified}, we resolve this by using  a sufficiently general interface for all tasks considered: the model accepts as input an image and text string, and generates text as output.
+The same interface is used both during pre-training and fine-tuning.
+Since all tasks are performed with the same model, i.e. we have no tasks-specific parameters or ``heads'', we use text-based prompts to indicate to the model which task to perform.
+
+\begin{SCfigure}
+\centering
+\includegraphics[width=0.6\linewidth]{figures/pali.pdf}
+\caption{The \NAME main architecture is simple and scalable. It uses an encoder-decoder Transformer model, with a large-capacity ViT component for image processing.}
+\label{fig:model-arch}
+\end{SCfigure}
+
+
+Figure~\ref{fig:model-arch} shows a high-level schematic of the model architecture.
+At its core, \NAME has a text encoder-decoder Transformer~\citep{vaswani2017attention}.
+To include vision as input, the text encoder is fed with a sequence of visual ``tokens'': output patch features of a Vision Transformer which takes as input an image.
+No pooling is applied to the output of the Vision Transformer before passing the visual tokens to the encoder-decoder model via cross-attention.
+We reuse previously trained unimodal checkpoints.
+For the text encoder-decoder, we reuse pre-trained mT5~\citep{xue-2021-mt5} models, while for the image encoder, we reuse large vanilla ViT models~\citep{dosovitskiy-2021-vit,zhai-21-scalingvit}.
+
+\textbf{The visual component}\ \ We introduce and train the largest vanilla ViT architecture to date, named \textbf{ViT-e}.
+ViT-e has the same architecture and uses the same training recipe as the 1.8B parameter ViT-G model \citep{zhai-21-scalingvit}, while scaling to 4B parameters.
+The only other difference is that we apply learning rate cool-down twice, once with and once without inception crop augmentation, and average (``soup'') the weights of the two models as in \citet{model_soup}.
+While the scaling laws have been studied in both the vision domain and the language domain,  scaling behaviour is less explored in combined vision and language models.
+Scaling up vision backbones leads to saturating gains on classification tasks such as ImageNet \citep{zhai-21-scalingvit}. 
+We further confirm this, observing that ViT-e is only marginally better than ViT-G on ImageNet (Table~\ref{tbl:scaling_vit}).
+However, we observe substantial performance improvements from ViT-e on vision-language tasks in \NAME (Section~\ref{sec:results}).
+For example, ViT-e yields almost three additional CIDEr points over ViT-G on the COCO captioning task.
+This hints towards future headroom for vision-language tasks with even larger ViT backbones.
+
+\paragraph{The language component}
+We adopt the mT5~\citep{xue-2021-mt5} backbone as our language component.
+We experiment using the pre-trained mT5-Large (1B parameters) and mT5-XXL (13B parameters), from which we initialize the language encoder-decoder of \NAME.
+We train on a mix of many tasks, including pure language understanding tasks (Section~\ref{sec:mixture}).
+This helps avoid catastrophic forgetting of the mT5's language understanding and generation abilities.
+As a result, \NAME-17B continues to achieve similar levels of language-understanding accuracy on both the English benchmarks~\citep{wang-2019-superglue} and across languages measured by the XTREME benchmark~\citep{pmlr-v119-hu20b} (Section~\ref{sec:results}).
+
+\paragraph{The overall model}
+Three model sizes are considered (Table~\ref{table:model_sizes}): 
+1) \NAME-3B, where the language component is initialized from mT5-Large~\citep{xue-2021-mt5} (1B parameters), and the vision component is ViT-G~\citep{zhai-21-scalingvit} (1.8B parameters).
+2) \NAME-15B, where the language component is initialized from mT5-XXL~\citep{xue-2021-mt5} (13B parameters), and the vision component is ViT-G (1.8B parameters).
+3) \NAME-17B, where the language model is initialized from mT5-XXL, and the vision component is the newly-trained ViT-e model (4B parameters).
+
+
+\subsection{Data}
+\label{sec:data}
+
+\paragraph{\PTDATA Dataset}
+
+Scaling studies for deep learning show that larger models require larger datasets to train effectively~\citep{hoffmann2022chinchilla,scaling_nlp,zhai-21-scalingvit}.
+To unlock the potential of multilingual image-language pre-training, we introduce \PTDATA, a multilingual image-language dataset built from images and texts available on the public web.
+%
+\PTDATA scales up the image language data collection from English-only datasets to 109 languages, which enables us to pre-train \NAME multilingually, and perform downstream tasks across many languages.
+The data collection process is similar to those reported in~\citep{align,lit}.
+Due to the abundance of multilingual content on the internet, the collection process for the \PTDATA dataset can be scaled to cover 10 billion images and 12 billion alt-texts.
+In addition to annotation with web text, we use publicly available automatic service to extract OCR annotations on all images,
+resulting in 29 billion image-OCR pairs.
+To balance quality and retain scale, we filter the dataset to the highest quality subset retaining only the top 10\% scoring of the original \PTDATA image-text pairs (about 1B examples), which we use to train \NAME. % (See Appendix for details). 
+Examples and statistics for the \PTDATA corpus and a complete datasheet~\citep{datacard} are shown in Appendix~\ref{sec:webli_details} (Figure~\ref{fig:webli}) and \ref{data_card}.
+
+
+\paragraph{Training mixture}
+
+To accommodate diverse tasks in the image-language space, we train \NAME using a mixture of eight pre-training tasks.
+This mixture is designed to span a range of general capabilities useful for downstream tasks.
+\textbf{Span corruption on text-only data} uses the same technique described by~\citet{xue-2021-mt5} on text-only examples. 
+\textbf{Split-captioning on \PTDATA alt-text data} is inspired by the pre-training objective of~\citet{simvlm}, and works by splitting each alt-text string randomly into two parts, \capfirst and \capsecond, used for input and target, respectively. \textbf{Captioning on CC3M-35L} with the alt-text string in language \lang as the target, based on the Conceptual Captions~\citep{cc3m} training data and machine translated alt-texts. \textbf{OCR on \PTDATA OCR-text data} uses the concatenation of the annotated OCR texts in language \lang~\citep{prestu} produced by publicly available automatic service for the input image.  \textbf{English and Cross-Lingual VQA} is \qsqcc~\citep{changpinyo-2022-vq2a}, translated in the same way as CC3M-35L. Note that we use English answers in all instances here, as the English-native answers for VQA are often short and too prone to errors to perform out-of-context automatic translation. \textbf{English and Cross-Lingual visual question generation (VQG)} is also based on native and translated \qsqcc-35L VQA triplets.
+Similarly, we use only English answers here. \textbf{English-only Object-Aware (OA) VQA} is based on VQA triplets derived from automatically-produced, non-exhaustive object labels, inspired by~\citet{piergiovanni-2022-OApretr}. The QA pairs include listing all the objects in the image and whether a subset of objects are in the image.
+To create these examples, we require object-level annotations, for which we use Open Images~\citep{kuznetsova2020open}. \textbf{Object detection} is a generative object-detection task inspired by~\citet{Chen2022Pix2seqAL,chen2022unified}.
+
+We specify each task using a training data source and a template-based prompt, and train the model using a language-model--style teacher forcing~\citep{goodfellow-2016-deep} with a standard softmax cross-entropy loss. The coefficients for the training mixture are empirically determined, with 1.6B total examples in the mixture (Appendix \ref{sec:mixture}). 
+The whole mixture is slightly smaller and designed to be cleaner than the datasets used in SimVLM (1.8B), CoCa (1.8B), and Flamingo (2.3B).
+However, unlike the aforementioned datasets, examples in our 1.6B dataset follow a long-tailed distribution over the 100+ languages covered. To prevent leakage between the pre-training examples and the downstream benchmarks. WebLI has undergone near de-duplication~\citep{align} of the images against the train, validation, and test splits of 68 common vision/vision-language datasets. For other datasets in the mixture, we performed the same de-duplication against all the downstream tasks.
+
+\subsection{Model Training}
+\label{sec:training}
+All \NAME variants are trained for one epoch over the entire pre-training dataset (1.6B) with \imres{224} image resolution. Only the parameters of the language component are updated, the vision component is frozen, which is beneficial (Sec.~\ref{sec:ablations}). For the largest model, \NAME-17B, we perform an additional high-res (\imres{588}) phase similar to previous works~\citep{clip,florence,coca}.
+This phase is only for 10k steps, covering 10M examples in total, with all the parameters of \NAME updated.
+More details for training \NAME and the ViT-e backbone are in Appendix~\ref{sec:model_details}.
+\section{Experiments}
+\label{sec:results}
+
+We fine-tune and evaluate \NAME-3B and \NAME-15B checkpoints at \imres{490} resolutions. For \NAME-17B, unless otherwise stated, the checkpoint produced by the two-phase pre-training is fine-tuned and evaluated at \imres{588} resolution. For all the benchmarks, cross-entropy loss is used for fine-tuning. 
+
+\subsection{Image Captioning}
+
+We fine-tune on \textbf{COCO Captions}~\citep{coco} on the widely adopted Karpathy split~\citep{cocokarp}. \NAME outperforms the latest SOTA trained with cross-entropy loss~\citep{beit3}, and establishes a new high of CIDEr score~\citep{cider} at 149.1 (Table~\ref{table:captioning}) for models without CIDEr-optimization. \textbf{NoCaps}~\citep{nocaps} is an evaluation benchmark for image captioning that has similar style to COCO, but targets many more visual concepts than those included in the COCO.
+We follow previous works by evaluating NoCaps using a model fine-tuned on COCO.
+\NAME-17B achieves a 124.4 CIDEr score on test, comparable to the recent result of 124.8 from GIT2 \citep{git}.
+GIT2 achieves 124.2, 125.5, 122.3 on in-domain, near-domain, and out-of-domain splits of the NoCaps test set, respectively.
+\NAME-17B achieves 121.1, 124.4 and 126.7, respectively.
+This suggests that for \NAME-17B, the domain transfer from COCO to NoCaps is slightly sub-optimal compared with models pre-trained with English only.
+Nevertheless, \NAME-17B outperforms all prior models on recognizing and describing long-tail objects outside of COCO's domain. \textbf{TextCaps}~\citep{textcaps} focuses on captioning for images containing text. \textbf{VizWiz-Cap}~\citep{gurari2020captioning} contains images taken by people who are blind, which also involves scene-text understanding.
+We fine-tune on TextCaps and VizWiz-Cap using OCR strings generated by publicly available automatic service, similar to the protocol used in~\citep{tap}. Further details, including results evaluating \NAME-17B without OCR as input, are provided in Appendix~\ref{appendix:no_ocr}.
+
+%
+
+\begin{table*}[ht!]
+\centering
+\caption{CIDEr results for image captioning over the English benchmarks COCO Captions (Karpathy split), NoCaps, TextCaps, and VizWiz-Cap.}
+\resizebox{0.8\linewidth}{!}{%
+\begin{tabular}{lccccccccccc} 
+\toprule
+& \multicolumn{2}{c}{COCO} & & \multicolumn{2}{c}{NoCaps} & & \multicolumn{2}{c}{TextCaps} && \multicolumn{2}{c}{VizWiz-Cap} \\ % && CC3M \\
+\cmidrule{2-3} \cmidrule{5-6} \cmidrule{8-9} \cmidrule{11-12}
+Model & \multicolumn{2}{c}{Karpathy-test} & & val & test & & val & test && test-dev & test-std \\ % && dev \\
+\midrule
+LEMON (0.7B) & \multicolumn{2}{c}{139.1} && 117.3 & 114.3 &&  - & - && - & - \\ % && 136.8  \\
+SimVLM & \multicolumn{2}{c}{143.3} & & 112.2 & 110.3 & & - & - && - & - \\ % && - \\
+CoCa (2.1B) & \multicolumn{2}{c}{143.6} & & 122.4 & 120.6 & & - & - && - & - \\ % && - \\
+GIT (0.7B) & \multicolumn{2}{c}{144.8} & & 125.5 & 123.4 & & 143.7 & 138.2 && 113.1 & 114.4 \\ % && - \\
+GIT2 (5.1B) & \multicolumn{2}{c}{145.0} & & \textbf{126.9} & \textbf{124.8} && 148.6 & 145.0 && 119.4 & 120.8 \\ % && - \\
+OFA (0.9B) & \multicolumn{2}{c}{145.3} & & - & - & & - & - && - & - \\ % && - \\
+Flamingo (80B) & \multicolumn{2}{c}{138.1} & & - & - & & - & - && - & - \\ % && - \\
+BEiT-3 (1.9B) & \multicolumn{2}{c}{147.6} && - & - && - & - && - & - \\ % && - \\
+\midrule
+\NAME-3B & \multicolumn{2}{c}{145.4} & & 121.1 & - & & 143.6 & - && 117.2 & - \\ % && 161.0 \\
+\NAME-15B & \multicolumn{2}{c}{146.2} & & 121.2 & - & & 150.1 & - && 121.7 & - \\ % && TODO \\
+\NAME-17B & \multicolumn{2}{c}{\textbf{149.1}} & & \textbf{127.0} & \textbf{124.4} & & \textbf{160.0} & \textbf{160.4} && \textbf{123.0} & \textbf{124.7} \\ % && \textbf{TODO} \\
+\bottomrule
+\end{tabular}}
+\label{table:captioning}
+\end{table*}
+
+\paragraph{Multilingual captioning on Crossmodal-3600} Following~\citet{xm3600}, we fine-tune \NAME models on COCO-35L, which is COCO captions translated into 35 languages similar to CC3M-35L, before evaluating on Crossmodal-3600. We used the checkpoints pre-trained at \imres{224} resolution and fine-tuned on COCO-35L at the same resolution.
+We normalize the unicode, tokenize, and remove all punctuation before calculating CIDEr scores.
+For languages without word boundaries such as Chinese, Japanese, Korean and Thai, a neural model is used for segmenting the text.
+To illustrate the range of improvements over a variety of language families with different scripts and different resources, we use seven languages in Table~\ref{table:i18n_captioning} to show their exact CIDEr scores, in addition to the 35-language average score. \NAME outperforms previous SOTA by large margins. Note that due to different linguistic structures, the variance of CIDEr scores across different languages does not indicate lower quality of prediction on certain languages. In Appendix~\ref{sec:additional_scaling}, we back-translate the non-English predictions to English, and demonstrated that the capability of PaLI on both English and other languages is rather consistent.
+
+\begin{table*}[ht!]
+\caption{CIDEr scores on image captioning for the Crossmodal-3600 benchmark for seven diverse languages (English, French, Hindi, Hebrew, Romanian, Thai, and Chinese), as well as the average of the 35 languages covered by the benchmark.} 
+\centering
+\resizebox{0.77\linewidth}{!}{%
+\begin{tabular}{lccccccccc}
+\toprule
+Model && en & fr & hi & iw & ro & th & zh & 35-lang avg. \\
+\midrule
+\citet{xm3600} (0.8B) && 57.6 & 40.9 & 20.6 & 16.1 & 13.9 & 35.5 & 19.8 & 28.9 \\
+\midrule
+\NAME-3B && 92.8 & 68.6 & 30.3 & 39.2 & 30.3 & 65.9 & 32.2 & 47.0 \\
+\NAME-17B && \textbf{98.1} & \textbf{75.5} & \textbf{31.3} & \textbf{46.8} & \textbf{35.8} & \textbf{72.1} & \textbf{36.5} & \textbf{53.6} \\
+\bottomrule
+\end{tabular}}
+\label{table:i18n_captioning}
+\end{table*}
+
+\subsection{Visual Question Answering}
+
+All the VQA fine-tuning experiments in this paper are performed in the open-vocabulary setting using the 250k mT5~\citep{xue-2021-mt5} vocabulary (Table~\ref{table:vqa}).
+Most prior works, e.g. SimVLM~\citep{simvlm}, CoCa~\citep{coca} and BEiT-3~\citep{beit3}, use the VQA-as-classification setting, where the best answer among a predefined set (usually of size 3k) needs to be selected.
+Note that the VQA-as-open-generation setting is challenging because:
+(1) The generated text is directly compared to the desired answer and only an exact match is counted as accurate. (2) The \NAME vocabulary covers 100+ languages and is significantly larger than both those used in the classification setting, and those used by previous single-language open-generation models~\citep{flamingo,git}.
+
+\begin{table*}[ht!]
+\caption{VQA Accuracy results on VQAv2, OKVQA, TextVQA, VizWiz-QA, and ANLS result on ST-VQA.
+\NAME models are evaluated in the open-vocabulary generation setting, and still outperform previous models that use closed-vocabulary classification (SimVLM, CoCa, BEiT-3, OFA).
+The result on OKVQA by Flamingo (with ``*'') is obtained in a 32-shot learning setup. Mia~\citep{mia_textvqa} (with ``$\dagger$'') is the winning model of TextVQA Challenge 2021, based on fine-tuning T5-XL~\citep{2020t5}. Numbers shown in gray are from models using closed-vocabulary classification.}
+\centering
+\resizebox{0.92\linewidth}{!}{%
+\begin{tabular}{lccccccccccccc} 
+\toprule
+& \multicolumn{2}{c}{VQAv2} & & OKVQA && \multicolumn{2}{c}{TextVQA} & & \multicolumn{2}{c}{VizWiz-QA}  & & \multicolumn{2}{c}{ST-VQA} \\
+\cmidrule{2-3} \cmidrule{5-5} \cmidrule{7-8} \cmidrule{10-11} \cmidrule{13-14}
+Method & test-dev & test-std && val && val & test && test-dev & test & & val & test \\
+\midrule
+SimVLM & \textcolor{gray}{80.03} & \textcolor{gray}{80.34} && - && - & - && - & -  && - & - \\
+CoCa (2.1B) & \textcolor{gray}{82.3} & \textcolor{gray}{82.3} && - && - & - && - & - && - & - \\
+GIT (0.7B) & 78.56 & 78.81 && - && 59.93 & 59.75 && 68.0 & 67.5  && 69.1 & 69.6 \\
+GIT2 (5.1B) & 81.74 & 81.92 && - && 68.38 & 67.27 && 70.97 & 70.1  && 75.1 & 75.8\\
+OFA (0.9B) & \textcolor{gray}{82.0} & \textcolor{gray}{82.0} && - && - & - && - & - && - & - \\
+Flamingo (80B) & 82.0 & 82.1 && 57.8$^*$ && 57.1 & 54.1 && 65.7 & 65.4 && - & - \\
+BEiT-3 (1.9B) & \textcolor{gray}{84.2} & \textcolor{gray}{84.0} && - && - & - && - & - && - & -\\
+KAT &-&-&&54.4&&-&-&&-&- && - & -\\
+Mia &-&-&&-&&-&\textbf{\textcolor{gray}{73.67}}$^\dagger$&&-&- && - & -\\
+\midrule
+\NAME-3B & 81.4 & - && 52.4 && 60.12 & - && 67.5 & -  && 67.5 & 69.7 \\
+\NAME-15B & 82.9 & - && 56.5 && 65.49 & - && 71.1 & -  && 73.2 & 76.5 \\
+\NAME-17B & \textbf{84.3} & \textbf{84.3} && \textbf{64.5} && \textbf{71.81} & 73.06 && \textbf{74.4} & \textbf{73.3}  && \textbf{77.1} & \textbf{79.9} \\ 
+\bottomrule
+\end{tabular}}
+\label{table:vqa}
+\end{table*}
+
+On \textbf{VQAv2}, \NAME achieves 84.3 accuracy on VQAv2, and outperforms previous SOTA as follows:
+(1) By +2.2 accuracy points on the open-vocabulary generation setting, compared to Flamingo~\citep{flamingo}.
+(2) By +0.3 accuracy points when compared against the best result on the closed-vocabulary classification setting, BEiT-3~\citep{beit3}. \textbf{OKVQA} requires external knowledge to answer its questions, that is, knowledge not directly present in the image input, and instead needs to be indirectly inferred by the model.
+\NAME-17B achieves 64.5 accuracy, pushing SOTA for the pretrain-finetune setup higher by 10.1 accuracy points, compared to KAT~\citep{kat-okvqa-2022} at 54.4 accuracy.
+The best result for the 32-shot learning setup is from Flamingo~\citep{flamingo} at 57.8 accuracy.
+The results from Flamingo and \NAME-17B suggest that leveraging external knowledge does not necessarily require specific training, and instead can be achieved with generic large-capacity models trained on large amounts of data.
+\textbf{TextVQA}~\citep{textvqa}, \textbf{VizWiz-QA}~\citep{gurari2018vizwiz} and \textbf{ST-VQA}~\citep{ST-VQA} require the ability to perform question answering in the presence of text in the input image.
+We fine-tune using OCR strings generated by publicly available automatic service, similar to the protocol in TAP~\citep{tap} and Mia~\citep{mia_textvqa}.
+Evaluation on TextVQA and VizWiz-QA without OCR as input is provided in Appendix~\ref{appendix:no_ocr}.
+
+\textbf{Cross-lingual and Multilingual VQA on xGQA and MaXM} 
+Both xGQA~\citep{xgqa} and MaXM~\citep{maxm} are test-only VQA benchmarks that require multilingual understanding of visual questions.
+The setting in xGQA is cross-lingual (English-answers only), whereas for MaXM it is multilingual (answer in the same language as the question).
+We evaluate \NAME-17B pre-trained at 224 image resolution and fine-tuned on the native and translated VQAv2~\citep{vqav2} (the Karpathy train split) in the 13 languages covered by xGQA and MaXM (VQAv2-13L) at 378 resolution. 
+Table~\ref{table:i18n_vqa} shows significant gains on both benchmarks across all languages.
+
+\begin{table*}[ht!]
+\caption{Cross-lingual VQA results on xGQA~\citep{xgqa} (left) and multilingual VQA results on MaXM~\citep{maxm} (right). All models are fine-tuned on translated VQAv2 in 13 languages. Exact-match accuracy is reported. Referenced MPT results are from \citep{maxm}}
+\centering
+\resizebox{\linewidth}{!}{%
+\begin{tabular}{lcccccccccccccccc} 
+\toprule
+& \multicolumn{8}{c}{xGQA} && \multicolumn{7}{c}{MaXM} \\
+\cmidrule{2-9} \cmidrule{11-17}
+Model & en & bn & de & id & ko & pt & ru & zh && en & fr & hi & iw & ro & th & zh \\ 
+\midrule
+MPT & 41.5 & 38.6 & 40.5 & 39.5 & 38.7 & 39.8 & 39.5 & 39.5 && 36.6 & 36.2 & 55.1 & 40.6 & 42.3 & 50.0 & 30.3 \\
+\NAME-17B & \textbf{54.2} & \textbf{50.0} & \textbf{52.2} & \textbf{50.6} & \textbf{50.4} & \textbf{51.3} & \textbf{50.3} & \textbf{50.6} &&
+\textbf{56.4} & \textbf{46.4} & \textbf{67.3} & \textbf{60.0} & \textbf{57.4} & \textbf{65.6} & \textbf{46.9} \\
+\bottomrule \\
+\end{tabular}}
+\label{table:i18n_vqa}
+\end{table*}
+
+\subsection{Language-understanding Capabilities}
+\label{lang_results}
+Since \NAME is pre-trained with a diverse mixture of multimodal tasks with image and text data, it raises the question on whether it would ``forget'' its language modeling capability, and therefore exhibit inferior performance on language-understanding tasks compared to its unimodal starting checkpoint (mT5-XXL in the case of \NAME-17B). 
+Therefore, we compare mT5-XXL and \NAME-17B on a range of language understanding benchmarks, including the English-only SuperGLUE benchmark~\citep{wang-2019-superglue}, as well as three multilingual benchmarks from the {XTREME}~\citep{pmlr-v119-hu20b}: XNLI~\citep{conneau-etal-2018-xnli}, which is a textual entailment task covering 14 languages, XQuAD~\citep{artetxe-etal-2020-cross} and TyDiQA-GoldP~\citep{clark-etal-2020-tydi}, which are both question-answering tasks covering 10 and 11 languages, respectively.
+For the three {XTREME} benchmarks, we evaluate in the zero-shot (ZS) transfer setting, whereas for SuperGLUE the models are fine-tuned (FT).
+Table~\ref{table:language_understanding} in Appendix~\ref{sec:lang_only} summarizes the results.
+Despite the pre-training mixture heavily favoring the V\&L tasks, \NAME-17B is able to maintain a high-level of language-understanding capabilities for English, and it is on-par with the state-of-the-art mT5-XXL checkpoint on the {XTREME} benchmarks.
+
+
+\subsection{Zero-shot Image Classification}
+We evaluate the \NAME checkpoints (without high-res phase) at \imres{224} resolution on ImageNet and ImageNet OOD evaluation sets: ImageNet~\citep{deng2009imagenet}, \mbox{ImageNet-R}~\citep{hendrycks2021many}, \mbox{ImageNet-A}~\citep{hendrycks2021nae}, \mbox{ImageNet-Sketch}~\citep{wang2019learning}, \mbox{ImageNet-v2}~\citep{recht2019imagenet} and ObjectNet~\citep{objectnet}.
+%
+We use the same interface as for all other tasks.
+Instead of training a classifier on top of \NAME, we condition on the image and use \NAME's decoder to score strings corresponding to each class directly. (See Appendix~\ref{sec:more_zero_shot} for details)
+The top-1 accuracies are presented in Table~\ref{table:imagenet}, where it clearly shows that \NAME-17B is significantly better than smaller variants.
+We are not aware of any previous work for large scale zero-shot evaluation on ImageNet with a generative model.
+However, \NAME with a zero-shot setting outperforms the 1-shot learning result from Flamingo~\citep{flamingo}.
+\begin{table*}[ht!]
+\caption{Top 1 accuracy results of 0-shot image classification on ImageNet, \mbox{ImageNet-R}, \mbox{ImageNet-A}, \mbox{ImageNet-Sketch}, \mbox{Imagenet-v2}, and ObjectNet. Top-5 results are in the Appendix (Table~\ref{table:imagenet_top5}).} 
+\centering
+\resizebox{0.8\linewidth}{!}{%
+\begin{tabular}{lccccccc}
+\toprule
+Model (ImageNet data) & INet &  INet-R &  INet-A  & INet-Sketch &  INet-v2 & ObjNet\\
+\midrule
+% GIT2 (\bf full dataset) & 89.22  &      -       &  -      & -    & - & -    \\
+Flamingo-80B (\bf 1-shot) & 71.9      &      -       &  -      &  -    &  -  & -  \\
+Flamingo-80B (\bf 5-shot) & 77.3 &  -  &  -    &  -    &  -    & -\\
+\midrule
+\NAME-3B  (\bf 0-shot)  & 70.06  &      80.15  &  37.92   &  61.11 &   62.55  & 38.87 \\
+\NAME-15B (\bf 0-shot) & 70.27  &     81.21    &  41.16   &  61.03  &   62.81  & 39.51 \\
+\NAME-17B (\bf 0-shot)  & \textbf{72.11}   &      \textbf{81.97}   &  \textbf{44.70}   &  \textbf{63.83}  &   \textbf{64.46}  & \textbf{42.62} \\
+\bottomrule
+\end{tabular}}
+\label{table:imagenet}
+\end{table*}
+
+
+
+
+
+\begin{figure} %[h] %%[t]
+\centering
+\includegraphics[width=0.68\linewidth]{figures/scaling_task.pdf}
+\caption{\NAME scaling for a number of tasks. We report CIDEr scores for captioning tasks, and accuracy scores for VQA tasks. %, for each model size.
+Both scaling the language side (from 1B to 13B parameters) and the vision side of the model (from 2B to 4B parameters) yield improvements across all tasks. The results represented by solid bars are from the standard \imres{224} resolution pre-training. The empty orange bars correspond to \NAME-17B checkpoints with the high resolution pre-training phase.}
+\label{fig:scaling-main}
+\end{figure}
+
+\subsection{Model Scaling}
+Due to the modular architecture, the image and language components of \NAME can be scaled independently.
+We demonstrate that jointly scaling the capacity of both components leads to performance improvements.
+Figure~\ref{fig:scaling-main} quantifies this improvement across seven V\&L benchmarks where we have also evaluated the \NAME-17B checkpoint without the high resolution pre-training phase for fair comparison. These improvements are noticeable both when scaling the language-model capacity (from L to XXL), and the vision-model capacity (from ViT-G to ViT-e). Figure~\ref{fig:scaling-main} also shows that scaling the visual component is important: when scaling from a ViT-G to a ViT-e model, although the overall model size is increased by only about 13\% (+2B parameters), the average performance improvement over all seven benchmarks (additional +3.2) is larger than the one obtained with much larger increases in the capacity of the language model (+3.1) which takes more parameters (+12B). 
+The high-resolution pre-training phase at \imres{588} resolution brings an additional +2.0 points, which also indicates the potential of scaling up the vision component of the model.
+This observation also resonates with the significant improvement from \NAME-15B to 17B on generative ImageNet zero-shot classification (Table~\ref{table:imagenet}). Table~\ref{table:5b} shows the results of a 5B version of \NAME with mT5-L and ViT-e on two benchmarks, which also resonates with the finding of the benefit of joint scaling.
+For context, in prior work, V\&L scaling is usually conducted at lower model capacity:
+for instance, 
+CoCa~\citep{coca} scales up to 2.1B parameters,
+or scaling is done primarily via the language-modeling backbone, e.g. Flamingo~\citep{flamingo} scales the text backbone to 80B but the image backbone remains at 435M.
+Finally, on the Crossmodal-3600 benchmark, we show that scale has a large impact on multilingual performance as well (Figure~\ref{fig:scaling-lang} in the Appendix).
+
+
+\subsection{Ablation studies}
+\label{sec:ablations}
+We examine the composition of the task mixture and demonstrate the effectiveness of our multiple-objective mixture design.
+To this end, we pre-train a \NAME-3B model with 200M data coverage for each setting, before fine-tuning on a combination of English and multilingual V\&L tasks (Table~\ref{table:abation_mixture}).
+Aside from the four tasks from our main evaluation for \NAME, we also add a VQAv2-based VQG benchmark \citep{akula2021crossvqa}.
+The relative weight of each components remains the same as the full mixture (Table~\ref{table:mixture_ratio}).
+As a first observation, the split-cap objective on WebLI appears to be the most critical, across all benchmarks.
+Second, the object-related components also boost performance on all benchmarks. Third, the captioning objective on CC3M-35L helps on COCO; on XM-3600, its positive  contribution for non-EN languages and the slight degradation for English is a reflection of CC3M-35L having a much higher non-EN example ratio (34/35) compared to WebLI alt-text (60\% English, Figure~\ref{fig:webli}).
+Fourth, adding VQA helps TextVQA; in addition, the VQG objective improves the model's VQG capability without impacting the performance on other benchmarks.
+Last but not least, the OCR objective positively impacts OCR-related tasks such as TextVQA, at a slight negative impact on captioning performance.
+We also note that VQAv2, due to its large training set size, is much less sensitive to the change in pre-training mixture. In addition, we perform ablations to quantify the positive impact of initializing from uni-modal checkpoints, as opposed to from-scratch training (Table~\ref{table:ablation_reuse}); the minor accuracy improvement from freezing the ViT backbone during pre-training (Table~\ref{table:ablation_frozen_vit}); the effect of pretraining with non-English WebLI examples on multi-(cross-)lingual performance (Table~\ref{table:ablation_nonen_webli}).
+
+\begin{table*}[ht]
+\caption{Mixture of objectives (\NAME-3B). TextVQA is fine-tuned with \imres{490} resolution, while all other benchmarks are fine-tuned with \imres{224}. Results for VQAv2 are on the Karpathy validation set. XM-3600 denotes Crossmodal-3600, and ``6L'' is the average of the six non-English languages in Table~\ref{table:i18n_captioning}. The order in which the components are ablated follows the presented order in Sec.~\ref{sec:data}, and "object-related" refers to the object-aware QA and generative object detection components together. TextVQA is fine-tuned without detected OCR string to better showcase the model's OCR capability}
+\centering
+\resizebox{\linewidth}{!}{%
+\small
+\begin{tabular}{cccccc}
+\toprule
+ Component & COCO & TextVQA & VQAv2 & XM-3600 (EN / 6L) & VQG (ZS / FT) \\
+\midrule
+Full mixture & 141.4 & 41.6 & 76.0 & 93.8 / 42.5 & 96.7 / 194.0 \\
+\midrule
+ \emph{w/o} split-cap & 140.4 {\scriptsize{\textcolor{red}{(-1.0)}}} & 38.8 {\scriptsize{\textcolor{red}{(-2.8)}}} & 75.5 {\scriptsize{\textcolor{red}{(-0.5)}}} & 87.5 {\scriptsize{\textcolor{red}{(-6.3)}}} / 41.5 {\scriptsize{\textcolor{red}{(-1.0)}}} & 86.3 {\scriptsize{\textcolor{red}{(-10.4)}}} / 190.5 {\scriptsize{\textcolor{red}{(-3.5)}}} \\
+ \emph{w/o} captioning & 140.5 {\scriptsize{\textcolor{red}{(-0.9)}}} & 41.2 {\scriptsize{\textcolor{red}{(-0.4)}}} & 75.9 {\scriptsize{\textcolor{red}{(-0.1)}}} & 94.9 {\scriptsize{\textcolor{teal}{(+1.1)}}} / 39.9 {\scriptsize{\textcolor{red}{(-2.6)}}} & 101.3 {\scriptsize{\textcolor{teal}{(+4.6)}}} / 193.3 {\scriptsize{\textcolor{red}{(-0.7)}}} \\
+ \emph{w/o} OCR & 142.3 {\scriptsize{\textcolor{teal}{(+0.9)}}} & 39.9 {\scriptsize{\textcolor{red}{(-1.7)}}} & 75.9 {\scriptsize{\textcolor{red}{(-0.1)}}}  & 95.4 {\scriptsize{\textcolor{teal}{(+1.6)}}} / 43.6 {\scriptsize{\textcolor{teal}{(+1.1)}}} & 92.5 {\scriptsize{\textcolor{red}{(-4.2)}}} / 193.7 {\scriptsize{\textcolor{red}{(-0.3)}}} \\
+ \emph{w/o} VQA & 140.9 {\scriptsize{\textcolor{red}{(-0.5)}}} & 40.0 {\scriptsize{\textcolor{red}{(-1.6)}}} & 75.9 {\scriptsize{\textcolor{red}{(-0.1)}}} & 93.9 {\scriptsize{\textcolor{teal}{(+0.1)}}} / 42.7 {\scriptsize{\textcolor{teal}{(+0.2)}}} & 94.1 {\scriptsize{\textcolor{red}{(-2.6)}}} / 193.2 {\scriptsize{\textcolor{red}{(-0.8)}}} \\
+ \emph{w/o} VQG & 141.4 {\scriptsize{(+0.0)}} & 41.3 {\scriptsize{\textcolor{red}{(-0.3)}}} & 75.8 {\scriptsize{\textcolor{red}{(-0.2)}}} & 95.1 {\scriptsize{\textcolor{teal}{(+1.3)}}} / 42.0 {\scriptsize{\textcolor{red}{(-0.5)}}} & 17.9 {\scriptsize{\textcolor{red}{(-78.8)}}} / 188.2 {\scriptsize{\textcolor{red}{(-5.8)}}}\\
+ \emph{w/o} object-related & 140.9 {\scriptsize{\textcolor{red}{(-0.5)}}} & 40.2 {\scriptsize{\textcolor{red}{(-1.4)}}} & 75.4 {\scriptsize{\textcolor{red}{(-0.6)}}} & 90.9 {\scriptsize{\textcolor{red}{(-2.9)}}} / 41.8 {\scriptsize{\textcolor{red}{(-0.7)}}} & 81.7 {\scriptsize{\textcolor{red}{(-15.0)}}} / 189.1 {\scriptsize{\textcolor{red}{(-4.9)}}} \\
+\bottomrule
+\end{tabular}}
+\label{table:abation_mixture}
+\end{table*}
+
+\clearpage
+
+\section*{Ethics statement and broader impacts}
+Large models may have broader societal impact.
+While such models have demonstrated strong performance on public benchmarks, they might contain unknown biases or stereotypes, or propagate inaccurate or otherwise distorted information.
+While we have made efforts to measure some of these issues, such models need to be re-assessed carefully before being used for specific purposes. 
+The dataset used for pre-training is automatically harvested, and filtering of the data is automatic. 
+That process may leave undesirable images or text annotations, descriptions or concepts to be incorporated into the model. 
+We have also attempted to train the model to operate in more than 100 languages, which we believe is an important step forward for image-language models.
+However, languages have various levels of data presence and coverage, so the language-generated text varies in quality depending on the language, and might contain inaccurate or undesirable outputs.  
+
+\section*{Reproducibility statements}
+
+Our model is based on open sourced components - ViT and mT5~\citep{dosovitskiy-2021-vit,xue-2021-mt5}. Model architecture details for each component is in Section~\ref{sec:arch}. The configuration of ViT-e when scaling is provided in Table~\ref{table:model_sizes} and Section~\ref{sec:model_details}.
+We have provided training and fine-tuning details in Section~\ref{sec:training} and in Section~\ref{sec:model_additional} in the Appendix. Data and model cards are also provided in the Appendix.
+
+\section*{Acknowledgements} 
+We would like to thank Erica Moreira, Victor Gomes, Tom Small, Sarah Laszlo, 
+Kathy Meier-Hellstern, Susanna Ricco, Emily Denton, Bo Pang, Wei Li, Jihyung Kil, Tomer Levinboim, Julien Amelot, Zhenhai Zhu, Xiangning Chen, Liang Chen, Filip Pavetic, Daniel Keysers, Matthias Minderer, Josip Djolonga, Ibrahim Alabdulmohsin, Mostafa Dehghani, Yi Tay, Rich Lee, Austin Tarango, Elizabeth Adkison, James Cockerille, Eric Ni, Anna Davies, Maysam Moussalem, Jeremiah Harmsen, Claire Cui, Slav Petrov, Tania Bedrax-Weiss, Joelle Barral, Tom Duerig, Paul Natsev, Fernando Pereira, Jeff Dean, and Zoubin Ghahramani for helpful discussions, feedback, and support.
+
+\bibliography{main}
+\bibliographystyle{iclr2023_conference}
+\clearpage
+
+\appendix
+\input{appendix}
+
+\end{document}

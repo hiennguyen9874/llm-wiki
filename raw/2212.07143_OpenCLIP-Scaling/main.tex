@@ -1,0 +1,786 @@
+\documentclass[11pt,table]{article}
+
+\pdfoutput=1
+
+% CVPR ORIGINAL
+% \documentclass[10pt,twocolumn,letterpaper]{article}
+
+%%%%%%%%% PAPER TYPE  - PLEASE UPDATE FOR FINAL VERSION
+% CVPR ORIGINAL
+% \usepackage[review]{cvpr}      % To produce the REVIEW version
+%\usepackage{cvpr}              % To produce the CAMERA-READY version
+%\usepackage[pagenumbers]{cvpr} % To force page numbers, e.g. for an arXiv version
+
+% Include other packages here, before hyperref.
+\usepackage[utf8]{inputenc} % allow utf-8 input
+\usepackage[T1]{fontenc}    % use 8-bit T1 fonts
+\usepackage[in]{fullpage}
+\usepackage{graphicx}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{booktabs}
+\usepackage[pagebackref,breaklinks,colorlinks]{hyperref}
+%\usepackage{natbib}
+
+% \usepackage[utf8]{inputenc} % allow utf-8 input
+% \usepackage[T1]{fontenc}    % use 8-bit T1 fonts
+% \usepackage{hyperref}       % hyperlinks
+\usepackage{url}            % simple URL typesetting
+\usepackage{booktabs}       % professional-quality tables
+\usepackage{amsfonts}       % blackboard math symbols
+\usepackage{nicefrac}       % compact symbols for 1/2, etc.
+\usepackage{microtype}      % microtypography
+% \usepackage{xcolor}         % colors
+% \usepackage{graphicx}
+\usepackage{listings} % pseudocode, yell at Cade if this breaks something!
+\usepackage{subcaption}
+\usepackage{multirow}
+\usepackage{hhline}
+\usepackage{colortbl}
+% \usepackage{booktabs}
+\usepackage{amsmath}
+\DeclareMathOperator*{\argmax}{argmax} % thin space, limits underneath in displays
+\usepackage{xcolor}
+\usepackage{textcomp}
+
+\definecolor{light-light-gray}{gray}{0.90} 
+\newcommand{\citep}{\cite}
+
+\usepackage[textsize=scriptsize]{todonotes}      % notes in the margins
+% \setuptodonotes{inline}
+%\usepackage[disable]{todonotes} % to disable all comments without deleting them manually
+
+% Support for easy cross-referencing
+\usepackage[capitalize]{cleveref}
+\crefname{section}{Sec.}{Secs.}
+\Crefname{section}{Section}{Sections}
+\Crefname{table}{Table}{Tables}
+\crefname{table}{Tab.}{Tabs.}
+
+
+% CVPR Original
+%%%%%%%%% PAPER ID  - PLEASE UPDATE
+%%%%%%%%% DO NOT FORGET TO PUT PAPER ID  !!!
+% \def\cvprPaperID{1019} % *** Enter the CVPR Paper ID here
+%%%%%%%%% DO NOT FORGET TO PUT PAPER ID  !!!
+
+% CVPR Original
+%\def\confName{CVPR}
+%\def\confYear{2023}
+
+
+\newcommand\cg[1]{{\todo[color=magenta!20]{CG: {#1}}}}
+% \newcommand{\cs}{\textcolor{brown}{\textbf{cs: }}\textcolor{brown}}
+\newcommand\cs[1]{{\todo[color=brown!20]{CS: {#1}}}}
+%\newcommand{\rv}{\textcolor{blue}{\textbf{rv: }}\textcolor{blue}}
+%\newcommand\rv[1]{{\todo[color=blue!20]{RV: {#1}}}}
+% \newcommand{\rb}{\textcolor{aquamarine}{\textbf{rb: }}\textcolor{aquamarine}}
+%\newcommand\rb[1]{{\todo[color=aquamarine!20]{RB: {#1}}}}
+% \newcommand{\ak}{\textcolor{orange}{\textbf{ak: }}\textcolor{orange}}
+%\newcommand\ak[1]{{\todo[color=orange!20]{AK: {#1}}}}
+% \newcommand{\tc}{\textcolor{cyan}{\textbf{tc: }}\textcolor{cyan}}
+%\newcommand\tc[1]{{\todo[color=cyan!20]{TC: {#1}}}}
+%\newcommand{\rw}{\textcolor{olive}{\textbf{rw: }}\textcolor{olive}}
+\newcommand\rw[1]{{\todo[color=olive!20]{RW: {#1}}}}
+\newcommand\jj[1]{{\todo[color=teal!20]{JJ: {#1}}}}
+%\newcommand{\rk}{\textcolor{violet}{\textbf{rk: }}\textcolor{violet}}
+%\newcommand\rk[1]{{\todo[color=violet!20]{RK: {#1}}}}
+%\newcommand{\ps}{\textcolor{pink}{\textbf{ps: }}\textcolor{pink}}
+%\newcommand\ps[1]{{\todo[color=pink!20]{PS: {#1}}}}
+\newcommand\mc[1]{{\todo[color=red!20]{MC: {#1}}}}
+%\newcommand{\mc}{\textcolor{pink}{\textbf{mc: }}\textcolor{pink}}
+%\newcommand{\sk}{\textcolor{orange}{\textbf{sk: }}\textcolor{orange}}
+%\newcommand\sk[1]{{\todo[color=orange!20]{SK: {#1}}}}
+\newcommand\ls[1]{{\todo[color=blue!20]{LS: {#1}}}}
+
+\makeatletter
+\renewcommand\paragraph{\@startsection{paragraph}{4}{\z@}                                     {1.05ex \@plus1ex \@minus.2ex}                                {-.5em}
+{\normalfont\normalsize\bfseries}}
+\makeatother
+
+%\captionsetup[figure]{font=small}
+%\captionsetup[table]{font=small}
+
+
+\usepackage[binary-units=true]{siunitx}
+\sisetup{
+  per-mode = symbol,       % creates a backslash for division as default,% can be overridden individually
+  separate-uncertainty = true,  % dont use "10.0(1)" notation for uncertainties, but do use "10.0 \pm 0.1"
+  list-final-separator = {, and~}  % add Oxford comma for lists
+}
+\DeclareSIUnit\flop{FLOP}
+\DeclareSIUnit[per-mode=symbol]\floppersec{\flop\per\second}
+
+\title{Reproducible scaling laws for contrastive language-image learning}  % **** Enter the paper title here
+
+
+\author{
+\textbf{Mehdi Cherti}$^{1,5}$ §§ \quad \textbf{Romain Beaumont}$^1$ §§ \quad \textbf{Ross Wightman}$^{1,3}$ §§  \\ \textbf{Mitchell Wortsman}$^{4}$ §§ \quad \textbf{Gabriel Ilharco}$^{4}$ §§ \quad \textbf{Cade Gordon}$^{2}$ \\ 
+\textbf{Christoph Schuhmann}$^1$ \quad  \textbf{Ludwig Schmidt}$^{1,4}$ °° \quad \textbf{Jenia Jitsev}$^{1,5}$ §§°° \\
+LAION$^1$ \quad UC Berkeley$^2$ \quad HuggingFace$^{3}$ \quad University of Washington$^4$ \\ 
+Juelich Supercomputing Center (JSC), Research Center Juelich (FZJ)$^{5}$  \\ 
+\texttt{contact@laion.ai, \{m.cherti,j.jitsev\}@fz-juelich.de} \\
+\texttt{§§ Equal first contributions, °° Equal senior contributions}
+}
+
+\begin{document}
+
+\date{}
+
+\maketitle
+
+\begin{abstract}
+Scaling up neural networks has led to remarkable performance  across a wide range of tasks.
+Moreover, performance often follows reliable scaling laws as a function of training set size, model size, and compute, which offers valuable guidance as large-scale experiments are becoming increasingly expensive.
+However, previous work on scaling laws has primarily used private data \& models or  focused on uni-modal language or vision learning.
+To address these limitations, we investigate scaling laws for contrastive language-image pre-training (CLIP) with the public LAION dataset and the open-source OpenCLIP repository.
+Our large-scale experiments involve models trained on up to two billion image-text pairs and identify power law scaling for multiple downstream tasks including zero-shot classification, retrieval, linear probing, and end-to-end fine-tuning.
+We find that the training distribution plays a key role in scaling laws as the OpenAI and OpenCLIP models exhibit different scaling behavior despite identical model architectures and similar training recipes.
+We open-source our evaluation workflow and all models, including the largest public CLIP models, to ensure reproducibility and make scaling laws research more accessible. Source code and instructions to reproduce this study will be available at \url{https://github.com/LAION-AI/scaling-laws-openclip}
+\end{abstract}
+
+
+\section{Introduction}
+\label{sect:introduction}
+
+Large pre-trained models now achieve state-of-the-art performance on a wide range of tasks. 
+In particular, large models have led to substantial advances in speech \citep{radford2022robust}, language \citep{devlin2019bert,t5,Brown2020,hoffmann2022training}, vision \citep{Kolesnikov2020,Zhai2022scaling}, and multi-modal language-vision settings \citep{radford2021learning,ALIGN,basic,ramesh2022hierarchical,rombach2021highresolution}.
+A key ingredient in these breakthroughs has been self- or weakly-supervised learning, which enabled the use of Internet-harvested training sets and reduced the need for explicit human annotation of training data.
+In addition, recent pre-trained models relied on increasing the compute, model, and data scale by orders of magnitude.
+% Importantly, these models are trained with self-supervised losses that do not require manual labeling of the dataset samples. This enables the use of substantially larger datasets than what is possible when using conventional supervised training, which relies on costly human-annotated labels.
+
+\begin{table}[t!]
+\setlength\tabcolsep{3.0pt}
+    \centering
+    \small
+    \begin{tabular}{lllccc}\toprule
+      & Data & Arch. & ImageNet & VTAB+ & COCO  \\\midrule
+    CLIP \cite{radford2021learning} & WIT-400M & L/14 & 75.5  & 55.8  & 61.1\\
+    %\midrule
+%    Ours & LAION-400M & L/14 &  &  &  \\
+    Ours & LAION-2B & L/14 & 75.2 &  54.6	 & 71.1 \\
+    Ours & LAION-2B & H/14 & \underline{78.0} & \underline{56.4} & \underline{73.4} \\\bottomrule
+    \end{tabular}
+    \caption{
+    We study the scaling behavior of large CLIP models using fully open-source training code and data.
+    % NOTE! This next sentence here has very careful tense as to not reveal who we are.
+    All models in our investigation will be made available and include the largest public CLIP models.
+    %This table considers zero-shot models at 224 pixel resolution.
+    This table shows zero-shot performance at 224 pixel resolution, displaying accuracy on ImageNet \cite{Deng2009a}, average accuracy on 35 VTAB+ datasets \cite{Schuhmann2022,zhai2019large}, and image retrieval recall at 5 on MS-COCO image retrieval \cite{lin2014microsoft}.
+    \vspace{-1em}
+    }
+    \label{tab:best_perf}
+\end{table}
+
+When varying model size, compute amount, and data quantity, several papers have empirically observed that both pre-training loss and downstream task performance reliably improve with scale.
+Specifically, researchers have postulated \emph{scaling laws} in the form of power law relationships between model performance and model compute, or data scale \citep{Kaplan2020,tay2021scale,Riquelme2021,Zhai2022scaling}. % which postulate a power law relationship between scale and model performance. %indicating that performance improves when increasing model, data, and training compute scale hand in hand. 
+Such scaling laws allow practitioners to predict model performance for a given model and compute scale, extrapolate to larger scales, and can be used to determine pre-training regimes that obtain optimal model performance for a fixed amount of compute \citep{Kaplan2020,hoffmann2022training}.
+
+% \begin{table}
+% \setlength\tabcolsep{3.0pt}
+%     \centering
+%     \small
+%     \begin{tabular}{ll@{\hskip .3in}rrr}\toprule
+%       Data & Arch. & ImageNet & VTAB+ & MS-COCO  \\\midrule
+%       \multicolumn{5}{l}{\textit{\color{gray}CLIP~\cite{radford2021learning} (private training code and data).}}\\
+%       WIT-400M & L/14 & 75.5  & 55.8  & 61.1\\
+%     %\midrule
+% %    Ours & LAION-400M & L/14 &  &  &  \\
+%     \multicolumn{5}{l}{\textit{\color{gray}Models with open-sourced training code and data.}}\\
+%      LAION-400M & L/14 &  &  &  \\
+%      LAION-2B & L/14 &  &  &  \\
+%      LAION-2B & H/14 & \underline{78.0} & \underline{56.4} & \underline{73.4} \\\bottomrule
+%     \end{tabular}
+%     \caption{
+%     We study the scaling behavior of large CLIP models using open-source training code and data.
+%     % NOTE! This next sentence here has very careful tense as to not reveal who we are.
+%     All models in our investigation will be made available and include the largest public CLIP models.
+%     This table considers zero-shot models at 224 pixel resolution.}
+%     \label{tab:best_perf}
+% \end{table}
+% assignments for scale
+
+%Contrastive language-image models such as CLIP\citep{radford2021learning}, which are pre-trained on weakly aligned text-image pairs, demonstrate strong performance on a broad range of challenging tasks in the zero-shot and few-shot regimes.
+%Moreover, these models demonstrate unprecedented robustness to distribution shifts compared to standard supervised models\citep{radford2021learning, wortsman2022robust}.
+%While previous literature studies scaling laws for language-only \citep{Kaplan2020,tay2021scale,hoffmann2022training} or image-only models\citep{zhai2021scaling,Henighan2020,Riquelme2021}, no such studies systematically vary model, data, and training compute (e.g., samples seen) for contrastive language-vision learning.
+%Until recently, there were no datasets of sufficiently large scale openly available for the broad research community to undertake such experiments. Additionally, the amount of compute required to conduct these experiments poses a challenge for studying scaling trends.
+
+\begin{figure}[!t]
+\begin{subfigure}{\textwidth}
+  \centering
+  \includegraphics[width=\textwidth]{images/gmacs_vs_perf_imagenet_and_robustness.pdf}
+  %\caption{Put your sub-caption here}
+  \caption{Relationship between total training compute and zero-shot classification performance on downstream tasks. \textbf{Left}: ImageNet performance. \textbf{Right}: average performance on five ImageNet robustness datasets (ImageNet-V2~\cite{pmlr-v97-recht19a}, ImageNet-R~\cite{imagenetr}, ImageNet-Sketch~\cite{imagenetsketch}, ObjectNet~\cite{objectnet}, and ImageNet-A~\cite{imageneta}). Scaling model size, data size, and samples seen leads to better performance on zero-shot classification. Models trained on OpenAI's WebImageText (WIT) show a stronger scaling than models trained on LAION.}
+  \label{fig:gmacs_vs_perf_imagenet_and_robustness}
+\end{subfigure}
+\begin{subfigure}{\textwidth}
+  \centering
+  % include second image
+  \includegraphics[width=\textwidth]{images/gmacs_vs_perf_image_retrieval.pdf}
+  \caption{
+  Relationship between total training compute and zero-shot image retrieval performance on MS-COCO (\textbf{Left}) and Flickr30K (\textbf{Right}). Scaling model size, data size, and samples seen leads to better performance on zero-shot image retrieval. Interestingly, in contrast to zero-shot classification (Figure ~\ref{fig:gmacs_vs_perf_imagenet_and_robustness}), models trained on LAION show a stronger scaling trend than OpenAI CLIP models trained on OpenAI's WebImageText (WIT) dataset.}
+  \label{fig:gmacs_vs_perf_retrieval}
+\end{subfigure}
+\caption{Relationship between total training compute and performance in zero-shot classification (\ref{fig:gmacs_vs_perf_imagenet_and_robustness}) and retrieval (\ref{fig:gmacs_vs_perf_retrieval}).
+We fit a power-law on the Pareto frontier of the available models. Since total compute budgets (measured in GMAC) of different trained models are not exactly aligned,  we  divide the total compute scale into bins and select the best model performance from each bin.
+\vspace{-0.8em}}
+\label{fig:fig1}
+\end{figure}
+
+So far, the literature on empirical scaling laws has focused on language-only \citep{Kaplan2020,tay2021scale,hoffmann2022training} or vision-only models \citep{Zhai2022scaling,Henighan2020,Riquelme2021}.
+In the multimodal domain of language and vision, contrastive language-image models such as CLIP \citep{radford2021learning} have recently achieved large performance gains in zero-image classification, for instance improving zero-shot ImageNet accuracy from the prior state-of-the-art of 12\% to 76\%.
+Moreover, these models demonstrate unprecedented robustness to distribution shifts compared to prior supervised models \citep{Taori2020, radford2021learning, wortsman2022robust}.
+However, there is currently no systematic investigation for scaling trends in contrastive language-image learning.
+One substantial challenge in this direction is that until recently, there were no datasets of sufficiently large scale openly available for the research community to undertake such experiments.
+
+%In this work, we make use of the publicly available large-scale LAION-400M\citep{schuhmann2021laion} and LAION-5B\citep{Schuhmann2022} datasets obtained from Common Crawl\citep{common_crawl}, and the open-source OpenCLIP\citep{ilharco_gabriel_2021_5143773} implementation%,
+%and compute resources obtained from academic supercomputing facilities
+%to conduct a reproducible scaling laws study for contrastive language-vision learning. We pre-train OpenCLIP models, while varying model, data, and samples seen. Pre-trained models are evaluated on several downstream tasks, using zero-shot transfer, retrieval, few-shot and full dataset linear probing and fine-tuning.  We observe a consistent increase in performance when scaling model, data, and samples seen, and derive scaling laws of power law form across different downstream tasks. Interestingly, when comparing OpenCLIP and OpenAI CLIP\citep{radford2021learning} models, we find larger scaling coefficients for OpenCLIP models on zero-shot retrieval, while OpenAI CLIP models show stronger scaling for zero-shot classification. Table \ref{tab:best_perf} shows a highlight of two of our models and their results on image classification and retrieval benchmarks.
+
+In this work, we conduct a scaling laws study for contrastive language-vision learning by utilizing the recently released LAION-5B \citep{Schuhmann2022} dataset of 5 billion image-text pairs.
+To ensure that our experiments are fully reproducible, we use the open source OpenCLIP \citep{ilharco_gabriel_2021_5143773} code to train CLIP models while varying model, data, and samples seen.
+We evaluate our CLIP models on several downstream tasks, including zero-shot classification, image retrieval, and fine-tuning via linear probing and end-to-end optimization.
+We observe a consistent increase in performance when scaling model, data, and compute, and derive scaling laws of power law form across different downstream tasks (Figure~\ref{fig:gmacs_vs_perf_imagenet_and_robustness}, ~\ref{fig:gmacs_vs_perf_retrieval}).
+Interestingly, when comparing our OpenCLIP and OpenAI’s original CLIP models, we find larger scaling coefficients for OpenCLIP models on zero-shot retrieval, while OpenAI CLIP models show stronger scaling for zero-shot classification.
+Table \ref{tab:best_perf} shows two of our models and their results on image classification and retrieval benchmarks.
+
+
+% We observe consistent increase of performance across various downstream tasks when increasing model, data, and samples seen. We observe scaling laws of power law form across different downstream tasks.
+
+% By comparing OpenCLIP and OpenAI CLIP\citep{radford2021learning} models, we observe task-dependent scaling laws of power law form. Scaling coefficients are larger for OpenCLIP models on retrieval, while OpenAI CLIP models show higher slope on zero-shot transfer. 
+
+%Since model architectures and pre-training recipes are largely matched, we hypothesize that the training dataset is responsible for the task-dependent differences in scaling behavior we observe.
+%We discuss the results and outline further opportunities provided by large-scale open datasets for reproducible studies of CLIP models at various scales. We conclude with an outlook on constructing foundation datasets\citep{sorscher2022beyond} that can be extracted from unfiltered data crawled from the internet.
+
+We hypothesize that the training dataset is responsible for the task-dependent differences in scaling behavior between the OpenCLIP and OpenAI models.
+Our experiments have used the same ViT architectures as the OpenAI models, and the training recipes are largely matched.
+The main difference in training recipes is the batch size due to different compute environments, and our experiments with varying batch sizes suggest that the batch size changes do not explain the change in scaling trends.
+
+
+Overall our findings highlight the design of pre-training datasets as an important direction to further improve image-text models.
+Dataset designers should measure scaling behavior so that the generalization capabilities of image-text models can continue to improve as we increase model size and the amount of compute.
+Moreover, pre-training datasets should be evaluated on a broad range of downstream tasks because model scaling can differ substantially by task with different pre-training sources leading to different scaling behavior by task.
+We hope that our open-source and reproducible scaling trends offer concrete starting points for improving current image-text datasets and models.
+
+
+% discuss the implications  
+
+% such that scaling coefficients favor one or another model 
+
+% Comparing openCLIP and openAI CLIP models in terms of obtained scaling laws, we observe task-dependent scaling coefficients that favor either openCLIP or openAI CLIP 
+
+%No systematic reproducible studies of scaling laws for this class. Lack of open data and dificulties to obtain compute necessary for conducting experiments hampering progress.
+
+% Datasets crawled from public internet, compute obtained from supercomputing facilities, community driven research. Bringing large scale studies back to academic research.
+
+
+
+% it became possible to drive learning
+
+% Recent line of work on scaling laws in language modeling~\cite{Kaplan2020} and vision ~\cite{Kolesnikov2020, zhai2021scaling} demonstrated strong improvement for model's ability to generalize on unseen test data when increasing model, data, and compute budget scale during the training. In language modeling, very large Transformer networks pre-trained on very large text data have also shown very strong transfer performance on a broad range of novel tasks, compared to pre-trained models of smaller scale~\cite{Brown2020}. In the same line, experimental studies on large-scale pre-training and transfer in image domain found evidence that increasing network model and data size during pre-training results in transfer performance benefits~\cite{Kolesnikov2020,ridnik2021imagenet21k,zhai2021scaling}.
+
+
+% As large-scale pre-training requires heavy computational resources, we make use of a state-of-the art supercomputer (JUWELS Booster~\cite{JUWELSBooster2020}) tailored for distributed training to conduct our experiments.
+
+% (NIH X-ray14, CheXpert, MIMIC-CXR, PadChest)
+
+\section{Background and related work}
+\label{sec:background}
+
+\paragraph{Scaling laws for generalization and transfer.} Strong empirical evidence that increasing model or data scale is beneficial was initially studied in the context of deep learning and computer vision \citep{Sun2017,hestness2017deep}. For instance, in~\citep{hestness2017deep}, the power law relation between scale and model performance was highlighted. Empirical work stimulated theoretical studies that provided justification for the observed generalization boost with scale, investigating generalization error in overparameterized networks in the interpolation regime \citep{Belkin2019,Bubeck2021}.
+
+Early empirical studies focused on the effect of training scale on upstream performance, measuring the test loss from the same distribution used for training. 
+Subsequent studies of large language models such as GPT-3 \citep{Brown2020} demonstrated broad generalization capabilities in models with substantially larger scale. Moreover, neural scaling laws of the power law form were derived for language models, connecting model, data, and training compute scale to performance \citep{Kaplan2020,tay2021scale,hoffmann2022training}. This also allowed accurate prediction of model performance at larger scales, and researchers were able to determine the scale parameters for achieving optimal performance given a fixed amount of compute \citep{hoffmann2022training,koppula2022should}. Scaling law studies were then also studied in the vision domain \citep{Riquelme2021,Zhai2022scaling}, also observing a power law dependency of performance on scale.   
+
+Scaling law studies were also conducted for transfer and out-of-distribution performance \citep{Kaplan2020,tay2021scale,Zhai2022scaling}. In these studies, researchers observed that performance on downstream tasks benefits from increasing model, data, and training compute scale \citep{Kolesnikov2020, Brown2020, Kaplan2020, Zhai2022scaling}. Interestingly, upstream performance does not always correlate with downstream performance \citep{tay2021scale,tay2022scaling}. Since downstream performance most accurately reflects a practical use cases, examining scaling behavior on downstream tasks is increasingly important. Recent work has also studied the effect of scale on other model characteristics, such as performance after pruning and compression \citep{pmlr-v139-rosenfeld21a, chen2021lottery} and on susceptibility to catastrophic forgetting \citep{ramasesh2021effect}.   
+
+%Also Transfer, effect of scale on downstream tasks; out of distribution.  Big Transfer;  Transfer Laws; up stream and downstream NOT necessarily related! paper  other functionality effect of scale. Beyond scaling laws ...
+
+% Consistent reports by empirical studies that larger model and data scale help tremendously with generalization and robustness motivated further theoretical studies. 
+
+% Evidence that increasing training scale may be beneficial for performance of obtained models came already from early empirical studies in vision learning. Then GPT language, then scaling laws motivated by observed strong boost on generalization. Upstream test loss. But also on transfer, out of distribution, downstream performance. Optimal compute allocation for a performance, or prediction of performance when compute is a free choice. 
+
+
+\paragraph{Scaling up language-vision learning.} Learning from very large amounts of weakly aligned image-text pairs has led to the development of models with broad generalization capabilities.
+Notably, work on contrastive language-image pre-training (CLIP \citep{radford2021learning}) showed dramatic improvement compared to the previous state-of-the-art in zero-shot transfer and unprecendented robustness to distribution shift \citep{Taori2020,miller2021accuracy,nguyen2022quality,fang2022data}. 
+The success of the initial CLIP study, which used a private WIT-400M image-text pairs dataset and ViT-L/14 as the largest scale vision encoder, motivated further developments and numerous extensions that increased model and data scale. ALIGN \citep{ALIGN} used a private dataset of 1.8B text-image pairs and a large EfficientNet-L2 as an image encoder. BASIC \citep{basic} employed a large CoAttNet-7 model with 2.4B parameters for the image encoder, also further increasing dataset size up to 6.6B image-text pairs, using supervised visual encoder pre-training and private datasets (ALIGN and JFT-5B). LiT \citep{zhai2021lit} used a private dataset of 4B image-text samples for contrastive learning on a total of 18B samples, scaling the visual encoder up to ViT-g/14, which was pre-trained in a supervised manner using another private dataset (JFT-3B). CoCa \citep{yu2022coca} used ViT-g/14 as a visual encoder and both the ALIGN and JFT private datasets, and an additional text captioning loss based on autoregressive language modeling during pre-training. LiMoE \citep{mustafa2022multimodal} trained a sparse mixture-of-experts (MoE) single tower architecture that share a common backbone for both vision and text using both private 3.6B image-text data from LiT and JFT-4B \citep{Zhai2022scaling}, obtaining a ViT H/14 model at the largest scale. Flamingo \citep{alayrac2022flamingo} uses a large private interleaved image-text dataset, using NFNet-F6 as a visual encoder while scaling up the text encoder from 1.4B to 70B parameters. PaLI \citep{chen2022pali} trained a multi-language multi-task text-image model using ViT-e (4B parameters) as a visual encoder and mT5-XXL (13B parameters) as a text encoder, trained on a private dataset (WebLI) with 29B image-text pairs. While these studies already show clear merits of scaling up, they do not conduct a thorough scaling investigation by systematically scaling model, data and, training compute. Moreover, most studies involve a customized multi-stage training procedure, where encoders may be pre-trained separately with uni-modal losses, and then tuned further with a contrastive image-text loss, while also potentially freezing one of the encoders \citep{basic,zhai2021lit}. This makes it difficult to derive conclusions about the effect of scale as pre-training procedures are heterogeneous. In addition, the private nature of the employed datasets impairs reproduction and validation of the results, especially in cases where pre-trained models are also not publicly available.
+
+\paragraph{Open large-scale language-vision datasets.} Conducting scaling law studies requires sufficiently large pre-training datasets. Earlier efforts to provide open image-text datasets like MS-COCO \citep{lin2014microsoft}, Visual Genome \citep{krishna2017visual}, YFCC-100M \citep{thomee2016yfcc100m}, Conceptual Captions CC3M and CC12M \citep{sharma-etal-2018-conceptual,hu2021scaling} do not match the current scale of private data used to train large-scale language vision models. More recently, larger image-text datasets have been collected from Common Crawl \citep{common_crawl}. The resulting datasets, LAION-400M \citep{schuhmann2021laion} and LAION-5B \citep{Schuhmann2022} are publicly available, enabling training language-vision models at larger scale \citep{rombach2021highresolution, mustafa2022multimodal, ho2022imagen}. Using the LAION toolset \citep{Schuhmann2022}, it also became possible to construct additional open datasets, such as COYO-700M \citep{kakaobrain2022coyo-700m}. 
+
+% Open datasets are instrumental in achieving rigorous reproduction and validation of learning studies
+
+% for reproduction and validation of scaling studies
+
+%Earlier dataset creation efforts such as MS-COCO and Visual Genome curated image and region labels through human annotation \citep{lin2014microsoft, krishna2017visual}.
+%While this resulted in high-quality labels, it also limited the scale of the datasets to only 330K and 5M examples, respectively.
+%The web-harvested YFCC-100M dataset is substantially larger with about 99 million images and one million videos from Flickr, but only contains the user-generated metadata without additional annotations collected specifically for training computer vision models \citep{thomee2016yfcc100m}.
+%As a result, the text associated with an image sometimes has little to no correspondence with the actual image content.
+
+%To address this shortcoming of web-harvested image-text data, the Conceptual Captions dataset (CC3M) started with images and alt-text collected from the web, but then performed additional data cleaning procedures \citep{sharma-etal-2018-conceptual}.
+%To increase the size of the dataset, researchers later relaxed the filtering protocol to arrive at the subsequent CC12M dataset \citep{changpinyo2021conceptual}.
+%Building datasets from alt-text continued with ALT200M \citep{hu2021scaling} and ALIGN \citep{ALIGN}, which increased the dataset size up to 1.8 billion image-text pairs.
+%In contrast to relying on alt-text, RedCaps used the captions provided by Reddit users to collect higher quality captions \citep{desai2021redcaps}.
+
+
+%To the best of our knowledge, the largest multilingual dataset before LAION-5B has around 36 million samples from Wikipedia Image Text \citep{wit}.
+%With the release of LAION-5B, researchers now have access to roughly two orders of magnitude more multilingual samples, which provides new opportunities for research on low-resource languages and multilingual models.
+
+% ----------------------------------------------------------
+
+% A critical ingredient in this new generation of image-text models is the pre-training dataset.
+% All of the aforementioned advances rely on large datasets containing hundreds of millions or even billions of image-text pairs, e.g., 400 million for CLIP \citep{radford2021learning} and 6.6 billion for BASIC \citep{basic}.
+% However, \emph{none of these datasets are publicly available}.
+% While OpenAI still released the CLIP models publicly \citep{radford2021learning}, later papers made neither the pre-training dataset nor the resulting models available to the wider research community \citep{ALIGN,basic,alayrac2022flamingo,parti,imagen,GLIDE,yu2022coca}.
+%As a result, later advances such as in-context learning for image-text models demonstrated by Flamingo \citep{alayrac2022flamingo} are currently not accessible for researchers outside large organizations.
+% As a result, research in this area has pooled into a small number of industrial research labs, limiting transparency and impeding research progress.
+
+% -----------------------------------------------------
+
+
+% \textbf{Large-scale pre-training datasets.}
+% Conducting such studies requires datasets of sufficiently large scale to be able to test hypothesis about model functionality at the upper scale range.
+% describe in more detail dataset situation ?
+% open datasets: previosly only small, curated which does not scale . COCO, CC3, 12, YFCC100M; now LAION; recently also COYO; closed datasets ALIGN BASIC
+
+% Flamingo introduced the first large vision-language model with in-context learning \citep{alayrac2022flamingo}.
+% PALI
+
+% Discuss also shortcomings, non-unified, mixed pre-training procedures, no variation in data scale and samples seen; mention PALI still missing
+
+%Language-vision learning showed remarkable boost for zero-shot transfer. Also strong robustness compared to supervised. Scaling up brings evidence of increasingly stronger performance. No systematic studies that vary model, data, sample seen. Often multi stage training that does not allow conclusions as components are trained in separate regimes and different conditions, making predictions hard. Go through the recent large scale studies and tell what they did. Data is important. Open data is important for reproducible studies. List datasets. LAION fully reproducible collection pipeline. 
+
+
+%\citet{radford2021learning} made a large step forward in multimodal learning for image-text data with their CLIP (Contrastive Language–Image Pre-training) model.
+%The authors proposed a contrastive learning scheme to embed both images and text into a shared representation space, which enabled unparalleled performance in zero-shot image classification.
+%Moreover, CLIP made large progress on multiple challenging distribution shifts \citep{taori2020measuring, wortsman2021robust}.
+
+%After CLIP's initial success, ALIGN and BASIC improved contrastive multimodal learning by increasing the training set size and the batch size used for training \citep{ALIGN, basic}.
+%LiT also increased training scale and experimented with a combination of pre-trained image representations and contrastive fine-tuning to connect frozen image representations to text \citep{zhai2021lit}.
+%Flamingo introduced the first large vision-language model with in-context learning \citep{alayrac2022flamingo}.
+%Other papers have combined contrastive losses with image captioning  to further improve performance \citep{yu2022coca,li2022blip}.
+%Beyond image classification and retrieval, the community later adapted CLIP to further vision tasks such as object navigation and visual question answering \citep{mokady2021clipcap, khandelwal2021simple, shen2021much,cow}.
+
+
+%Another direction that has recently seen large progress in multimodal learning is text-guided image generation \citep{mansimov2015generating, reed2016generative, zhang2017stackgan}.
+%Specifically, DALL-E demonstrated diverse image generation capabilities for text prompts combining multiple concepts \citep{DALL-E}. 
+%GLIDE, DALL-E 2, Imagen, Parti, and Stable Diffusion then improved visual fidelity and text-prompt correspondence \citep{GLIDE, imagen, DALLE-2, parti, rombach2021highresolution}. 
+
+% \textbf{Large-scale pre-training datasets.}
+% Conducting such studies requires datasets of sufficiently large scale to be able to test hypothesis about model functionality at the upper scale range.
+% describe in more detail dataset situation ?
+% open datasets: previosly only small, curated which does not scale . COCO, CC3, 12, YFCC100M; now LAION; recently also COYO; closed datasets ALIGN BASIC
+% \textbf{Contrastive language-image learning.}
+
+
+%-------------------------
+%\textbf{Image-Text Datasets.} Earlier dataset creation efforts such as MS-COCO and Visual Genome curated image and region labels through human annotation \citep{lin2014microsoft, krishna2017visual}.
+%While this resulted in high-quality labels, it also limited the scale of the datasets to only 330K and 5M examples, respectively.
+%The web-harvested YFCC-100M dataset is substantially larger with about 99 million images and one million videos from Flickr, but only contains the user-generated metadata without additional annotations collected specifically for training computer vision models \citep{thomee2016yfcc100m}.
+%As a result, the text associated with an image sometimes has little to no correspondence with the actual image content.
+
+%To address this shortcoming of web-harvested image-text data, the Conceptual Captions dataset (CC3M) started with images and alt-text collected from the web, but then performed additional data cleaning procedures \citep{sharma-etal-2018-conceptual}.
+%To increase the size of the dataset, researchers later relaxed the filtering protocol to arrive at the subsequent CC12M dataset \citep{changpinyo2021conceptual}.
+%Building datasets from alt-text continued with ALT200M \citep{hu2021scaling} and ALIGN \citep{ALIGN}, which increased the dataset size up to 1.8 billion image-text pairs.
+%In contrast to relying on alt-text, RedCaps used the captions provided by Reddit users to collect higher quality captions \citep{desai2021redcaps}.
+
+%Datasets with non-English image-text pairs are less common.
+%As a result, researchers translated English captioning datasets to other languages such as Farsi, Korean, and Japanese \citep{ko-clip, japanese-clip, clip-fa}. %\cg{Moved! Does the comparison work here? It feels odd to have it in related work.}
+%To the best of our knowledge, the largest multilingual dataset before LAION-5B has around 36 million samples from Wikipedia Image Text \citep{wit}.
+%With the release of LAION-5B, researchers now have access to roughly two orders of magnitude more multilingual samples, which provides new opportunities for research on low-resource languages and multilingual models.
+
+% \textbf{Scaling laws for generalization and transfer.} Strong evidence that increasing model and data size for the training may result in steady improvement of generalization comes from language modeling studies systematically looking on the dependency of test error on model, data size, and compute budget used for training~\cite{Brown2020,Kaplan2020,Hernandez2021}. The experiments conducted there set up scaling laws with a power law shape and show consistent further decrease of test error when further increasing model, data size, and compute budget over many orders in magnitude hand in hand. For images, a similar line of work by Henighan et al. shows a decrease of test classification top-1 error when fine-tuning on ImageNet pre-trained generative image models of increasing size~\cite{Henighan2020}. Those works use self-supervised training of autoregressive models, in language modeling performed on text and in image domain on image patches, employing transformer networks as a backbone. Additional backup for this line of work comes from studies that revise the dependency of generalization performance on model, data size, and epoch number during training and report double or multi descent curves for the test error~\cite{Belkin2019,Nakkiran2019,Ascoli2020}. There, keeping on increasing model, data size or training time substantially also shows continuous drop in the test error pointing to generalization improvement, for instance when crossing the interpolation threshold and transiting into the over-parameterized regime by scaling up the model size.
+
+%\textbf{Improving transfer by scaling up pre-training.} Also improvement in transfer on downstream datasets and tasks is strongly evident from large-scale language modeling experiments. In the study by Brown et al. ~\cite{Brown2020}, large transformer networks in the order of hundred billions of parameters (GPT-3) pre-trained on large text datasets in the order of billions of sentences were shown to have much stronger transfer performance than smaller GPT network models, measured by the test error on different downstream tasks. The difference in transfer performance between different sized models was especially pronounced in the very low data regime when doing zero-shot or few-shot transfer with only few examples available during fine-tuning. Further systematic study on transfer improvements induced by increasing scale was done by Hernandez et al.~\cite{Hernandez2021}, who examined scaling laws for transfer on language modeling tasks in the low-data regime, being defined as transfer using less than $10\%$ of the available target data. The authors have shown that increasing model size in the pre-training decreases test error on the target data, emphasizing that test error improvement cannot be observed when increasing model size and training directly from scratch on the target without pre-training. It was also pointed out that the degree of proximity between the source and the target dataset plays a role when predicting effect of the scale on the transfer performance, leading to a revised version of the scaling law that took this additional dependency into account. 
+
+
+% In the image domain, the performed studies on transfer improvement due to scale have still far less systematic character. Models and datasets used for training on images are 3-4 orders of magnitude behind those studied in language modeling~\cite{Brown2020}. Recently, number of works were starting to employ datasets like ImageNet-21k~\cite{Deng2009a}, YFCC-100M~\cite{Thomee2016}, JFT-300M~\cite{Sun2017} or JFT-3B~\cite{zhai2021scaling} that are much larger than standard ImageNet-1k to pre-train large network models on large data and observe the effect of scaling up on transfer. The work on Big Transfer by Kolesnikov et al.~\cite{Kolesnikov2020} performed supervised classification based pre-training on ImageNet-1k, ImageNet-21k, and JFT-300M using different sized deep residual networks (ResNets~\cite{He2016a}) to study the performance of pre-trained models on transfer across different target datasets. They found consistent improvement in transfer performance when using larger models and larger data during pre-training. In the same direction, works by~\cite{ridnik2021imagenet21k, zhai2021scaling} pre-trained different sized network models on ImageNet-1k, ImageNet-21k or JFT-3B~\cite{zhai2021scaling} also observing consistent transfer improvement when scaling-up model and data size during pre-training.
+
+% Central plots:
+% - x: compute scale y: task performance
+% openAI CLIP vs LAION openCLIP
+% dataset dependency of scaling laws
+% Ganguli work (improving functional form, beyond scaling coefficient in power law only, Chinchilla
+% Automated data selection that improves scalability
+
+%\section{Scaling Experiments \& Results}
+%\label{sec:experiments}
+
+% \textbf{Large-scale datasets LAION-400M/2B}
+% Experimental Setup
+\section{Datasets and Methods} 
+\label{sec:datasets_methods}
+
+\subsection{Open large-scale datasets LAION-400M/2B} 
+\label{subsect:pretrain_laion}
+% Re-iterate here the content regarding dataset origins and its content (re-phrasing already existing content we did). Refer to NeurIPS paper.
+% TODO : Ludwig, Romain, Richard, Christoph
+
+We use the LAION-400M \citep{schuhmann2021laion} and LAION-5B \citep{Schuhmann2022} datasets which are open, public image-text datasets validated by the pre-training of state-of-the art multi-modal models such as CLIP \citep{radford2021learning} and Stable Diffusion \citep{rombach2021highresolution}. LAION-5B contains an English image-text subset of 2.32 billion samples, which we refer to as LAION-2B in this work.  Due to its scale, transparency and open-source nature, LAION has already been adopted by various works on language-vision modelling, validating its suitability for systematic scaling law studies. 
+
+
+% Besides the open nature of the datasets, a further advantage is full transparency about the dataset composition and assembly, with software stack and tools released as open-source, increasing reproducibility of experiments.
+% around LAION-400M and LAION-5B 
+% LAION-400M\citep{schuhmann2021laion} and LAION-5B\citep{Schuhmann2022} are open, public image-text datasets validated by pre-training of state-of-the art multi-modal models like CLIP\citep{radford2021learning} and Stable Diffusion\citep{rombach2021highresolution}. Both datasets were composed by obtaining links from Common Crawl\citep{common_crawl}. While LAION-400M contains 414M image-text pairs, LAION-5B is currently the largest public image-text dataset containing over 5.8 billion examples. In both cases, samples are obtained by filtering a subset of Common Crawl with a pre-trained OpenAI ViT B/32 model. LAION-5B contains an English image-text subset of 2.32 billion samples, to which we refer as LAION-2B in this work. Besides the open nature of the datasets, a further advantage is full transparency about the dataset composition and assembly, with software stack and tools around LAION-400M and LAION-5B released as open-source, increasing reproducibility of experiments. LAION-400M was already successfully used by various works on language-vision modelling, further underpinning its suitability for systematic scaling law studies. 
+
+% \footnote{\url{http://commoncrawl.org/}}
+% Moreover, their CLIP embeddings, and kNN indices that allow efficient similarity search ...
+% \textbf{Large-scale multi-modal LAION-400m dataset.} Multi-modal language-vision models like CLIP are trained on hundreds of millions of image-text pairs and then show remarkable capability to perform zero- or few-shot learning and transfer even in the absence of per-sample labels on target image data.
+%Despite this trend, until the release of our LAION-400M dataset~\cite{Schuhmann2021} there had been no publicly available dataset of sufficient scale for training such models from scratch and studying their transfer capabilities, also with regard to the effect of training scale.
+%To address this issue, we built and released the public LAION-400M dataset, containing 414 million CLIP-filtered image-text pairs, their CLIP embeddings, and kNN indices that allow efficient similarity search. This large-scale dataset will be a cornerstone for studying the effect of data scale on downstream transfer performance in this project. 
+
+
+% Specifically, we introduce LAION-5B, the largest public image-text dataset containing over 5.8 billion examples (see Table \ref{fig:sub2} for a comparison).
+% By starting from Common Crawl \citep{common_crawl} and filtering this data source with an existing CLIP model, we derive a dataset consisting of three parts: 2.32 billion English image-text examples, 2.26 billion multilingual examples, and 1.27 billion examples that are not specific to a particular language (e.g., places, products, etc.).
+%Beyond assembling the dataset, we also explore its ethical implications and flaws that emerge with large-scale data collection.
+%By releasing LAION-5B publicly, we offer the first opportunity for the community to audit and refine a dataset of this magnitude. 
+
+%To validate that LAION-5B is indeed suitable for training large image-text models, we conduct multiple experiments.
+%We focus on matching the performance of OpenAI's CLIP models because they are the largest publicly released image-text models.
+%OpenAI's CLIP models were trained on 400~million image-text pairs, and hence we also train CLIP models on a subset of LAION-5B containing the same number of examples (``LAION-400M'').
+%Across a diverse range of problem settings including ImageNet (zero-shot), distribution shifts, VTAB, retrieval, and fine-tuning, our models trained on LAION-400M match or come close to the performance of OpenAI's CLIP models.
+%Our ViT-L/14 models trained with OpenCLIP are the first open source reproductions of the largest CLIP models released by OpenAI.
+
+% Hence we do not only release our dataset, but also our software stack we built for assembling LAION-5B.
+% We view our initial data release and this paper as a first step on the way towards a widely applicable pre-training dataset for multimodal models.
+
+\subsection{Pre-training OpenCLIP across various scales}
+\label{subsect:pretrain}
+%Re-iterate here the content regarding openCLIP pre-training, distributed training (re-phrasing already existing content we did). Refer to NeurIPS paper.
+%TODO : Mehdi, Ross, Cade, Ludwig, Romain
+
+To systematically vary model scale, data scale and the number of samples seen during pre-training, we selected a scale range for each dimension. For model scale, we choose CLIP architectures with ViT-B/32, ViT-B/16, ViT-L/14, ViT-H/14 and ViT-g/14 as visual encoders, scaling the text encoder in accord (see Appendix Table ~\ref{table:openclip_architectures}). For data scale, we use LAION-80M (an 80M subset of LAION-400M), LAION-400M, and LAION-2B. For training duration, we choose 3B, 13B and 34B samples seen scales. Due to compute constraints, for the larger H/14 and g/14 model scales, we conduct only restricted measurements (done for LAION-2B, with 34B samples seen for H/14, and with 13B samples seen for g/14). This selection provides coverage at the scale where we cannot afford to sample with the same density as at the intermediate  and lower model scales. To verify that LAION-80M and LAION-400M are valid subsets of LAION-2B, we conduct a control experiment by extracting a random 400M subset of LAION-2B and comparing our reference OpenCLIP ViT-B/32 models pre-trained on both datasets. When doing so, we found no significant difference (see Appendix Sec. \ref{sec:appendix:control_exp}).
+
+% \citep{ilharco_gabriel_2021_5143773}
+
+Compared to the original CLIP training procedure \citep{radford2021learning}, we work with larger batch sizes and adapt the learning rate accordingly.
+We opt for larger batch sizes to allow for more efficient distributed training; maximizing the local batch size per GPU and using close to one thousand GPUs lead us to global batch sizes in the range of 86-88K samples.
+% There are two motivations for larger batch sizes. First, larger batch sizes allow for more efficient distributed training; maximizing the local batch size per GPU and using close to one thousand GPUs lead us to global batch sizes in the range of 86-88k samples. Second, larger batch sizes tend to improve performance for contrastive image-text learning\cite{radford2021learning, basic}.
+In order to assess the validity of re-using measurements obtained with different batch sizes, we perform a number of control experiments varying batch size from 32K to 86-88K, and observe a difference of $0.2-0.5\%$ across different settings (see Appendix Sec. \ref{sec:appendix:control_exp}), which is small enough not to confound observations on the effect of scale.
+
+For each number of samples seen scale, we execute a separate training experiment with a cosine annealing learning schedule adapted to the number of samples. This allows us to assess performance of models pre-trained with different training durations and avoid suboptimal training when using the same schedule for runs of different length~\citep{hoffmann2022training}. We tune a small number of hyper-parameters (see Appendix Table ~\ref{table:openclip_hyper_parameters}), each scale point to optimize validation loss and prevent training instabilities, and otherwise closely follow the original CLIP training procedure \citep{radford2021learning}, using the InfoNCE loss, Adam with decoupled weight regularization \citep{loshchilov2018decoupled} (i.e., AdamW) as an optimizer, with $\beta_1=0.9$, $\beta_2=0.98$ and weight decay of $0.2$.
+We train the models using mixed precision.
+%\todo{Mehdi: I think we should mention what we observed with loss explosion and fixing it with bfloat16, it was a good insight}
+%\todo{Jenia: Agree - but depending on space constraint, we might shift it to Appendix}
+%With the largest models (ViT-H/14, ViT-g/14), we observed loss spikes during training which affected training performance heavily. We first tried to fix the issue by modifying the learning rate schedule, the learning rate, and by adding gradient clipping, without success. 
+For larger model scales (ViT-L/14, H/14, g/14), we observed loss spikes during training which had an adverse effect on performance. We fixed the issue by switching from mixed precision with float16 to mixed precision with bfloat16.\footnote{We also tried to reduce the learning rate, change the learning rate schedule, and use gradient clipping but none of these changes helped to avoid the training instabilities.} We hypothesize that bfloat16 fixed the issue due to larger models typically showing larger activation values as observed by~\cite{dettmers2022llm}, making bfloat16 more suitable with its wider dynamic range (8 exponent bits). %We then adopted bfloat16 for the remaining models that we train. To make sure there is no performance difference between float16 and bfloat16 on the smallest models, we do a control experiment with ViT-B/32 and observe no performance difference (see Appendix).
+
+% all experiments are full runs with AN OWN LR ANNEALING SCHEDULE adapted to the number of samples seen (3B, 13B or 34B samples).  It avoids the mistake pointed out in Chinchilla paper, where Neural Scaling Laws work was taking early points from the same schedule of a longer run to provide measurements for performance with less samples seen. We do for each samples seen scenario a separate run with ITS OWN LR SCHEDULE
+
+%%% PLUGGING MAIN FIGURE HERE IS POSSIBLE
+
+CLIP pre-training experiments on larger scales require distributed training, as otherwise experiment execution times are intractable. We use OpenCLIP~\citep{ilharco_gabriel_2021_5143773}, an open source software that was adapted for distributed training on supercomputers. Using data parallel training via PyTorch DDP~\cite{li2020pytorch, paszke2019pytorch}, we conduct experiments with up to 1520 NVIDIA A100 GPUs. Distributed training was executed on JUWELS Booster~\citep{JUWELSBooster2020}, the supercomputer at Juelich Supercomputing Center (JSC, Germany), and partly also at Stability AI AWS supercomputer~\citep{stability_hpc} For more details on distributed training procedure and on experiment compute budgets and runtimes, see Appendix Sec.\ref{appendix:distributed_training} and Sec. \ref{sec:appendix:exp_further_results}.
+
+% Distributed training was executed at various supercomputing facilities. 
+% JUWELS Booster\citep{JUWELSBooster2020} supercomputer at Juelich Supercomputing Center and partly also at Stability AI AWS supercomputer\citep{stability_hpc}
+
+% CLIP pre-training experiments on larger scale require distributed training, as otherwise experiment execution times become intractable. We employ OpenCLIP~\citep{ilharco_gabriel_2021_5143773}, an open source software that was adapted for distributed training on supercomputers. Using data parallel training via PyTorch DDP, we were able to conduct experiments with up to 1520 NVIDIA A100 GPUs. Distributed training was executed on JUWELS Booster\citep{JUWELSBooster2020} supercomputer at Juelich Supercomputing Center and partly also at Stability AI AWS supercomputer\citep{stability_hpc}. For more details on distributed training procedure and on experiment compute budgets and runtimes, see Appendix Sec.\ref{appendix:distributed_training} and Sec. \ref{sec:appendix:further_results}.
+
+% \footnote{\url{https://hpc.stability.ai/}}
+% for training CLIP-like models.   To perform distributed We employ 
+
+% We used OpenCLIP~\citep{ilharco_gabriel_2021_5143773}, an open source software for training CLIP-like models. After adapting OpenCLIP for distributed training and execution on JUWELS
+
+% We used between 128 and 400 NVIDIA A100 GPUs to train the models. All trained models may be found in the OpenCLIP repository\footnote{\url{https://github.com/mlfoundations/open_clip}}.
+% For more information about hyper-parameters and training details, see Appendix Sec.~\ref{sec:appendix_experiments_training_details}.
+
+% We used distributed data parallel training (using PyTorch DDP) to train models on multiple NVIDIA A100 GPUs. Training was done using the InfoNCE loss like in \cite{radford2021learning}. We used Adam with decoupled weight regularization (i.e., AdamW) as an optimizer, with $\beta_1=0.9$ and $\beta_2=0.98$ for all models. We used a linear warmup followed by a cosine decay schedule. For regularization we used the same weight decay of $0.2$ for all the models. 
+%Details about different architectures that were used are provided in Tab.~\ref{table:openclip_architectures}.
+%Training hyper-parameters and resources used are provided in Tab.~\ref{table:openclip_hyper_parameters}.
+
+
+% schedule properly chosen
+
+% batch sizes, setup
+
+% and a 80M subset of LAION-400M.
+
+% Further measurements ViT-H/14 and ViT g/14 restricted to ... due to compute resource constraints, chosen such to provide coverage for the points of interest on upper scale range.
+
+% We used OpenCLIP~\citep{ilharco_gabriel_2021_5143773}, an open source software for training CLIP-like models. After adapting OpenCLIP for distributed training and execution on JUWELS Booster supercomputer \cite{JUWELSBooster2020}, we reproduced CLIP models of different size on the LAION-400M subset. We trained ViT-B/32, ViT-B/16, and ViT-L/14 following CLIP~\citep{radford2021learning}, and an additional model that we call ViT-B/16+, a slightly larger version of ViT-B/16.  
+% We followed the same hyper-parameter choices of the original CLIP models.
+% We used between 128 and 400 NVIDIA A100 GPUs to train the models. All trained models may be found in the OpenCLIP repository\footnote{\url{https://github.com/mlfoundations/open_clip}}.
+% For more information about hyper-parameters and training details, see Appendix Sec.~\ref{sec:appendix_experiments_training_details}.
+
+% We used distributed data parallel training (using PyTorch DDP) to train models on multiple NVIDIA A100 GPUs. Training was done using the InfoNCE loss like in \cite{radford2021learning}. We used Adam with decoupled weight regularization (i.e., AdamW) as an optimizer, with $\beta_1=0.9$ and $\beta_2=0.98$ for all models. We used a linear warmup followed by a cosine decay schedule. For regularization we used the same weight decay of $0.2$ for all the models. 
+%Details about different architectures that were used are provided in Tab.~\ref{table:openclip_architectures}.
+%Training hyper-parameters and resources used are provided in Tab.~\ref{table:openclip_hyper_parameters}.
+
+% \subsection{Distributed Training and InfoNCE Loss}
+%\label{sec:appendix_distributed_infonce}
+
+%To properly deal with global batch for contrastive InfoNCE loss in distributed setting, we need additional communication between GPU workers to compute the loss and the gradients for all positive and negative sample pairs correctly. In each worker, we gather all image and text embeddings from the other workers, and use them as negative examples for each image-text pair in the mini-batch.
+
+%A naive implementation of InfoNCE involves materializing a very large $N\times N$ matrix, $N$ being the global batch size. For $N=32768$, the matrix occupies a hefty 8 GB in float32. To remedy this, we use a formulation of the loss like OpenAI ~\cite{radford2021learning} where redundant operations are sharded to local devices while maintaining correct global gradients. This successfully overcomes a significant scaling issue and achieves a memory complexity that scales linearly with global batch size by only materializing 2 matrices of size $n\times N$, $n$ being local batch size per GPU. By turning memory complexity from $\mathcal{O}(N^2)$ into $\mathcal{O}(nN)$, we slash memory overhead due to scaling from GBs down to MBs.
+
+\section{Scaling laws for different downstream tasks}
+\label{subsect:scaling_laws}
+
+\subsection{Zero-shot transfer and robustness}
+\label{subsect:scaling_laws_zeroshot_transfer}
+
+One of the biggest advantages of open-vocabulary models like CLIP is that they can be used on downstream classification tasks by carefully designing text prompts corresponding to class descriptions, without requiring any labeled training example. Moreover, pre-trained CLIP models are observed to excel on out-of-distribution robustness benchmarks \citep{radford2021learning,miller2021accuracy}. In this section, we study the effect of scale on zero-shot classification, including an investigation on robustness benchmarks. We evaluate the models on ImageNet \citep{Deng2009a}, ImageNet distribution shift datasets \citep{imagenetr,imagenetc,imageneta,imagenetsketch,objectnet}, and the visual task adaptation benchmark (VTAB)~\cite{zhai2019large}. We conduct a simple duplication check for downstream datasets based on the perceptual image hash library pHash~\cite{zauner2010implementation}, revealing no or very little overlap with pre-training datasets (see Appendix Sec. \ref{sec:appendix:datasets}).
+
+\paragraph{Evaluation setup.}
+%TODO : Mehdi, Mitchell, Gabriel, Ludwig
+We follow the setup of Radford \textit{et al.}~\cite{radford2021learning}. For each downstream dataset, we use a set of pre-defined prompts for each class, which we collected from prior works~\cite{radford2021learning,zhai2021lit}.
+We compute the embedding of each class by averaging over the embeddings of the prompts obtained using the text tower, then we L2-normalize them. 
+Given a dataset $\{(x_i,y_i)\}_{i=1}^n$, we classify each image as the class that has the largest cosine similarity with the (L2-normalized) image embedding, $\hat{y}_i = \argmax_j (\phi(x_i)^Tc_j)$. We evaluate the models using top-1 accuracy. For comparison to OpenAI CLIP, we take ViT-B/32, B/16, and L/14 models pre-trained on the private WIT-400M dataset.
+
+\textbf{Effect of scale.} Accuracy consistently improves when increasing model, data and samples seen scale hand-in-hand. Accuracy follows power laws, such that larger models benefit from larger data and samples seen scale (Figure \ref{fig:gmacs_vs_perf_imagenet_and_robustness}). The strongest ImageNet accuracy (78\%) is obtained with the largest total pre-training compute, using ViT-H/14 pre-trained on LAION-2B data scale and 34B samples seen. For additional results, see Appendix Sec. \ref{sec:appendix:exp_further_results} and \ref{sec:appendix:further_results} (for instance, additional evidence showing consistency of scaling trends for CLIP and openCLIP observed here across various tasks independent of vision tower architecture in Appendix Fig. \ref{fig:resnet_scaling_trends}, further supporting the results from Fig.~\ref{fig:fig1})
+
+%Im1k
+%C=-0.12 (openCLIP)
+%C=-0.16 (openAI)
+
+%ImageNet-Robustness
+%C=-0.12 (openCLIP)
+%C=-0.24 (openAI)
+% General message: scale improves performance as expected. Power law form observed. CLIP higher slope/stronger scaling than openCLIP. Improvement on accuracy on ImageNet goes hand in hand with improvement in (effective?) robustness. 
+
+Fitting power-law ($E = \beta C^{\alpha}$) on the Pareto frontier of the available models, we measure scaling coefficients $\alpha_{\text{openCLIP}}=-0.11$ and $\alpha_{\text{CLIP}}=-0.16$ for zero-shot top-1 ImageNet and $\alpha_{\text{openCLIP}}=-0.13$ and $\alpha_{\text{CLIP}}=-0.24$ for ImageNet robustness datasets performance \citep{imagenetr,imagenetc,imageneta,imagenetsketch}. For those tasks, we observe a scaling advantage for CLIP pre-trained on WIT-400M over OpenCLIP pretrained on LAION-400M/2B. $\alpha_{\text{openCLIP}}$ is similar for ImageNet and robustness datasets, suggesting that improving accuracy with scale leads to corresponding improvement on robustness benchmarks for OpenCLIP pre-trained on LAION.
+
+We also find bottleneck effects when scaling. For instance, OpenCLIP ViT-B/32 and ViT-B/16 models show no change or deterioration of performance when increasing data scale from 400M to 2B when using a smaller samples seen scale (3B or 13B). Moving to the largest samples seen scale (34B) then shows clear improvement for the larger 2B data scale, indicating that the number samples seen is a bottleneck (see also Appendix Table \ref{table:zeroshot_im1k}).
+
+% Sec. \ref{sec:appendix:further_results})
+
+% : drop from 58.73\% to 57.60\%;
+% : drop from 62.90\% to 
+
+
+Using the obtained power law, we can make a prediction for the performance of a well-tuned ViT-g/14 model when using the largest data scale of 2B and samples seen scale of 34B, giving us error estimate of 20.9\% (79.1\% top-1 accuracy) on ImageNet. We predict even stronger performance at larger scales. For instance, assuming 68B samples seen we estimate top-1 accuracies of 79.7\%, 80.7\%, and 81.9\% for ViT-H/14, ViT-g/14 and ViT-G/14, respectively (see also Appendix Sec. \ref{sec:appendix:predictions}).
+
+% TODO: make a statement on when same performance can be reached by a smaller model, how much do we predict for samples seen / data scale / compute to be necessary (say L/14 ? 68B? 34B samples seen?, or H/14)
+%TODO : Mehdi, Mitchell, Gabriel, Ludwig
+
+%\begin{figure}[]
+%  \centering
+%  \includegraphics[width=\textwidth]{images/gmacs_vs_perf_imagenet_and_robustness.pdf}
+%  \caption{Relationship between total training compute and zero-shot classification performance on downstream tasks. \textbf{Left}: ImageNet performance. %\textbf{Right}: average performance on five ImageNet robustness datasets. Scaling model size, data size, and samples seen budget lead to better performance on %zero-shot classification.}
+%  \label{fig:gmacs_vs_perf_imagenet_and_robustness}
+%\end{figure}
+\subsection{Retrieval}
+\label{subsect:scaling_laws_retrieval}
+
+Retrieval is another common way to evaluate zero-shot capabilities of the models. In this section, we study the effect of scale on both text and image zero-shot retrieval.
+
+\paragraph{Evaluation setup.}
+%TODO : Mehdi, Romain, Mitchell, Gabriel, Ludwig
+We compute text-image scores using the cosine similarity between image and text embeddings and rank the top-K images (resp. text captions) for each text caption (resp. images) when evaluating on image (resp. text) retrieval.
+%We rank the top-K images (resp. text) for each text caption (resp. image) when evaluating image (resp. text) retrieval.
+We evaluate on MS-COCO \citep{lin2014microsoft} and Flickr30K \citep{flickr30_young2014image}, following the evaluation setup and test splits from~\cite{karpathy2015deep}. We use Recall@K as an evaluation metric where $K=5$.%, measuring the fraction of times the correct item is retrived among the top-k results.
+
+\paragraph{Effect of scale.} Again we observe performance consistently improves when increasing scale following power law trends (Figure \ref{fig:gmacs_vs_perf_retrieval}). We measure scaling coefficients $\alpha_{\text{openCLIP}}=-0.08$ and $\alpha_{\text{CLIP}}=-0.05$ for zero-shot retrieval on MS-COCO and $\alpha_{\text{openCLIP}}=-0.19$ and $\alpha_{\text{CLIP}}=-0.10$ for Flickr30K. In contrast to zero-shot accuracy, retrieval performance shows a scaling advantage for OpenCLIP pre-trained on LAION-400M/2B over CLIP pre-trained on WIT-400M. We also observe scale bottleneck effects. For instance, OpenCLIP ViT-L/14 model shows almost no improvement on LAION-400M when increasing the number of samples seen scale from 13B to 34B, indicatating a data scale bottleneck. When increasing data scale to 2B, we then observe clear improvements when going from 13B to 34B samples (see also Appendix Table \ref{table:zeroshot_mscoco_image_retrieval} and \ref{table:zeroshot_mscoco_text_retrieval}).
+
+\begin{figure}
+    \centering
+    \includegraphics[width=\textwidth]{images/imagenet_cifar_lp.pdf}
+    \caption{Scaling model and data size leads to lower error linear classifers on ImageNet~\cite{Deng2009a} and CIFAR-100~\cite{Krizhevsky2009} in both the few-shot and full dataset regime.
+    We train linear probes for models with at least 13B samples seen (also see corresponding Table~\ref{tab:lp}).
+    As discussed in Figure~\ref{fig:fig1}, we fit a power-law on the Pareto frontier of the available models.}
+    \label{fig:lp1}
+\end{figure}
+\begin{figure}
+    \centering
+    \includegraphics[width=0.6\textwidth]{images/imagenet_cifar_lp_vtab.pdf}
+    \caption{Scaling model and data size leads to lower error linear classifers on the visual task adaptation benchmark (VTAB)~\cite{zhai2019large}.
+     We train linear probes for models with at least 13B samples seen (also see corresponding Table~\ref{tab:lp}).
+    As discussed in Figure~\ref{fig:fig1}, we fit a power-law on the Pareto frontier of the available models.}
+    \label{fig:lp2}
+\end{figure}
+%TODO : Mehdi, Romain, Mitchell, Gabriel, Ludwig
+
+% 
+%Im1k
+%C=-0.09 (openCLIP)
+%C=-0.05 (openAI)
+
+%ImageNet-Robustness
+%C=-0.20 (openCLIP)
+%C=-0.10 (openAI)
+
+% General message: scale improves performance as expected. Power law form observed. This time openCLIP higher slope/stronger scaling than CLIP - in contrast to zero-shot classification. 
+% Sec. \ref{sec:appendix:further_results}). 
+
+% The strongest performance is measured when going to largest total pre-training compute (ViT-H/14, LAION-2B data scale and 34B samples seen).   
+
+
+%\begin{figure}[]
+%  \centering
+%  \includegraphics[width=\textwidth]{images/gmacs_vs_perf_retrieval.pdf}
+%  \caption{
+%  Relationship between total training compute and zero-shot retrieval performance on MS-COCO (left) and Flickr30K (right). Scaling model size, data size, and %samples seen budget lead to better performance on zero-shot retrieval. Interestingly, contrary to zero-shot classification (Figure ~\ref{fig:gmacs_vs_perf_imagenet_and_robustness}), models trained on LAION consistently improve over OpenAI CLIP models trained on OpenAI's WIT.}
+%  \label{fig:gmacs_vs_perf_imagenet_and_robustness}
+%\end{figure}
+
+\subsection{Full and few-shot linear probing}
+\label{subsect:scaling_laws_linearprobe}
+
+Another common way to measure the quality of learned representations is by training a linear classifier.
+While this technique underperforms end-to-end fine-tuning, it is often preferred because it requires far less compute~\cite{kornblith2019better, radford2021learning}.
+In this section we train linear classifiers, also referred to as linear probes, on the frozen representations of various CLIP models and examine the effect of data and model scale.
+
+\paragraph{Evaluation setup.}
+Given a CLIP model with an image tower $\phi$, our goal is to learn $W$ such that $W^\top\phi(x)$ classifies $x$ as its label $y$.
+Given a dataset $\{(x_i,y_i)\}_{i=1}^n$, we begin by saving the image features and labels for the dataset.
+That is, for all image label pairs $(x, y)$ in the dataset we cache $(\phi(x), y)$.
+We then train a linear classifier $W$ to minimize the cross entropy loss between $\mathsf{softmax}\left(W^\top \phi(x) \right)$ and $y$.
+In preliminary experiments we found that this softmax regression achieved higher accuracy than linear regression.
+We use mini-batch stochastic optimization with the Adam optimizer~\cite{kingma2014adam}.
+We use batch size 256 and select the best result in a hyper-parameter sweep over learning rate $\{0.1, 0.01, 0.001\}$ and epochs $\{10, 20, 40\}$ individually for each model and dataset.
+For the ImageNet~\cite{Deng2009a} and CIFAR100 datasets~\cite{Krizhevsky2009} we consider 10-shot, 25-shot, and full-dataset linear classifers (Figure~\ref{fig:lp1}).
+Additionally, we train linear classifiers on the visual task adaptation benchmark (VTAB)~\cite{zhai2019large} (Figure~\ref{fig:lp2}).
+
+\paragraph{Effect of scale.}
+For ImageNet, CIFAR100, and VTAB, scaling up consistently improves the accuracy of a linear classifier (Figure~\ref{fig:lp1}, \ref{fig:lp2}).
+For ImageNet and CIFAR100, this is true in both the few-shot and full regimes.
+Moreover, among models trained on the same data distribution, scaling up follows a linear trend on a log-log plot.
+These results are perhaps not too surprising given similar observations for power laws on zero-shot downstream tasks in Section~\ref{subsect:scaling_laws_zeroshot_transfer} as well as the correlation between zero-shot and linear probe performance observed by Radford \textit{et al.}~\cite{radford2021learning}.
+Nonetheless, this result re-affirms that scaling up model and data size leads to contunied accuracy improvements.
+
+\subsection{Fine-tuning}
+\label{subsect:scaling_laws_finetune}
+
+Next, we evaluate the effect of scale on fine-tuning performance. Since fine-tuning is much more compute-intensive than zero-shot and linear probing, we only evaluate a subset of the pre-trained models.
+
+\begin{figure}[!th]
+    \centering
+    \includegraphics[width=\linewidth]{images/finetune-gmacs_vs_perf_imagenet_and_robustness.pdf}
+    % \vspace{-1em}
+    \caption{
+    ImageNet and ImageNet robustness datasets classification performance for fine-tuned models.}
+    \label{fig:ft-imagenet}
+\end{figure}
+\begin{figure}[!th]
+    \centering
+    \includegraphics[width=\linewidth]{images/scaling_finetuning_v4.pdf}
+    \caption{Scaling model and data size leads to lower error after jointly fine-tuning on eight downstream image classification tasks.
+    In this experiment, we fine-tune a single model jointly on all eight tasks, alternating batches from each task.
+    We fine-tune only the parameters of the vision encoder, using a fixed classification head for each task initialized with the weights from the zero-shot model.}
+    \label{fig:ft-eight}
+\end{figure}
+
+%TODO : Ross, Gabriel, Mitchell, Mehdi, Ludwig
+\paragraph{Evaluation setup.} We fine-tune and evaluate on ImageNet with the \textbf{timm} \citep{timm} library, using the image encoder from CLIP models trained on 2B data, 34B samples seen scale. To get the best results, we consider two different schemes, (A) fine-tune directly on ImageNet (B) first fine-tune on a subset of the full ImageNet-22k we call ImageNet-12k\footnote{We filter classes with few examples from the full ImageNet-22k with 14M examples to get a better balanced subset and we end up with 12K classes, 12M training examples, 470K validation examples.} then continue fine-tuning on ImageNet, similar to~\cite{bao2021beit}. We compare the results with OpenAI CLIP models fine-tuned with the same settings, evaluating the models using top-1 accuracy on ImageNet and the ImageNet distribution shift datasets \citep{imagenetr,imagenetc,imageneta,imagenetsketch,objectnet}. The OpenCLIP models range from 82.6 to 88.5\% top-1 on ImageNet, comparable to the best released ImageNet models pretrained on public datasets\cite{bao2021beit}. For additional details, including strong supervised baselines, see Appendix sec. \ref{sec:appendix:finetuning}.
+
+%\todo{Ross: should we mention interesting tidbits like the relative stength on ImageNet-R and Sketch vs weakness on A and this being similar to the zero-shot case?  }
+%\todo{Mehdi: this is just from my understanding, @Ross / @Gabriel please update/correct/extend. also, patching description is missing}
+% Model patching is explained in Appendix, Section B.2.2 Fine Tuning
+
+In addition, we fine-tune and evaluate on eight diverse datasets where zero-shot models perform poorly \cite{radford2021learning,ilharco2022patching}: Cars \citep{cars}, DTD \citep{dtd}, EuroSAT \citep{eurosat}, GTSRB \citep{gtsrb}, MNIST \citep{lecun1998mnist}, RESISC45 \citep{cheng2017remote}, SUN397 \citep{sun397}, and SVHN \citep{svhn}. We fine-tune a single model jointly on the eight downstream tasks following Ilharco et al. \cite{ilharco2022patching}, fine-tuning only the parameters of the vision encoder. The classification heads for each task are obtained using the zero-shot text encoder, and are kept frozen during fine-tuning.
+We fine-tune for 2000 iterations with a batch size of 128, learning rate 1e-5 and a cosine annealing learning rate schedule with 200 warm-up steps and the AdamW optimizer \citep{loshchilov2018decoupled}, with weight decay 0.1.
+We further explore the effect of fine-tuning on zero-shot ImageNet accuracy in the Appendix Sec. \ref{sec:appendix:finetuning}. 
+
+\paragraph{Effect of scale.} For ImageNet fine-tuning, only the models with the largest data and samples seen were fine-tuned. Despite the narrower scale range, a similar relationship in the slope of the OpenAI CLIP vs OpenCLIP fit lines is observed across the model scales (Figure \ref{fig:ft-imagenet}). Moreover, scale consistently improves accuracy when fine-tuning on other downstream tasks (Figure~\ref{fig:ft-eight}).
+While trends vary with the task, we find that the slope of the linear trend relating accuracy and total compute used for pre-training depends on the pre-training dataset, typically favors CLIP WIT-400M, as we observe in zero-shot experiments.
+
+% TODO : Gabriel, Ross, Mitchell, Mehdi, Ludwig
+
+%\subsubsection{Zero-shot transfer and robustness}
+%\textbf{Evaluation setup.}
+%\textbf{Results.}
+
+%\subsection{Evaluation on different downstream tasks}
+%\label{subsect:eval}
+
+%\textbf{Zero-shot transfer.} 
+
+%\textbf{Retrieval.}
+
+%\textbf{Linear probing.}
+%Including few-shot
+
+%\textbf{Fine-tuning.}
+%Including few-shot
+
+%\subsection{Results.}
+%\label{subsect:results}
+
+%\textbf{Effect of scale on zero-shot transfer.}
+
+%\textbf{Effect of scale on retrieval.}
+
+%\textbf{Effect of scale on linear probing and fine-tuning.} Including few-shot.
+
+
+\section{Discussion}
+\label{sec:discussion_and_conclusion}
+
+\paragraph{Larger scale improves performance across different downstream tasks.} In line with previous studies~\citep{Kaplan2020,tay2021scale,Riquelme2021,Zhai2022scaling}, our work observes scaling laws of power law form across various downstream tasks. We empirically find that scaling model, data and training samples seen results in consistent improvements on downstream zero-shot classification, retrieval, linear probing, and fine-tuning performance.
+
+We also observe bottleneck behaviors \citep{Kaplan2020,Zhai2022scaling} that occur when fixing one scaling dimension while increasing others. For instance, OpenCLIP ViT-B/32 and ViT-B/16 are bottlenecked by the number of samples seen at the 13B scale. Increasing the number of samples seen to 34B reveals that LAION-2B brings clear improvement over LAION-400M, which would remain hidden when fixing the number of samples seen scale to a lower value. Similar observations may occur along other scaling dimensions. OpenCLIP ViT L/14 shows an example of data scale bottleneck on LAION-400M scale, as increasing the number of samples seen from 13B to 34B does not lead to improvements. The benefit of using a larger number of samples seen is then revealed when going to the larger LAION-2B dataset. 
+
+Having derived scaling laws from our experimental observations, we are able to make predictions for both smaller and larger scales. Extrapolation has its limits, as saturation effects at both lower and higher scale ranges have been previously observed. We can however extrapolate to scales close to the ones we have already measured. A prediction for larger ViT-g/14 trained on LAION-2B with 34B samples delivers an estimate of 79.1\% ImageNet top-1 accuracy. This may appear at first sight modest compared to results reported by BASIC (85.7\% \citep{basic}), LiT (85.2\% \citep{zhai2021lit}) or CoCA (86.1\% \citep{yu2022coca}).
+However, these works leverage an internal JFT dataset with labels which can be used for supervised pre-training. Moreover, for 973/1000 ImageNet classes, researchers were able to manually identify a correspondance from a JFT class~\cite{wortsman2022robust}. 
+%However, one has to keep in mind that all those works made use of private data labeled with ImageNet class descriptions (JFT dataset), which makes it hard to make straightforward comparison in terms of zero-shot classification, as those models have been exposed to large amount of exact ImageNet labels during pre-training.
+These works also use larger encoders, larger private data, and pre-train the encoders in multiple stages. Nonetheless, we estimate based on our empirical findings that further increasing model and data scale could result in competitive models even without using labeled data, additional supervised pre-training stages or additional losses.
+Finally, we observe that the improvement of zero-shot ImageNet accuracy due to scaling up is accompanied by closely aligned improvements on robustness benchmarks.
+%When scaling up, robustness thus increases accordingly and larger CLIP models are able to further improve on their beneficial robustness properties.   
+
+%General statement - increasing scales hand in hand results in consistent improvement across broad range of downstream tasks. Mention robustness improvement. Note the bottleneck situations (like B/32  or L/14 with fixed samples seen budget of 13B);
+% Larger scale improves generalization and transfer
+
+% Effect of scale shows dependence on task type and pre-training dataset.
+
+\paragraph{Scaling behavior depends on task type and pre-training dataset.} 
+When measuring scaling coefficients for the observed power laws, we see that OpenAI CLIP and OpenCLIP have distinct scaling advantages over each other depending on the downstream task. OpenCLIP pre-trained on LAION-400M/2B data has stronger scaling trends for zero-shot retrieval, while OpenAI CLIP pre-trained on private WIT-400M data shows stronger scaling for zero-shot ImageNet classification.  We hypothesize that the observed differences are due to differences in the pre-training data, as we closely follow the architectures and pre-training recipes used for the OpenAI CLIP models. WIT-400M may have a stronger affinity to ImageNet as a result of the curation procedure, while LAION-400M/2B was filtered by a pre-trained OpenAI ViT-B/32 model relying on its similarity measurements for image-text pairs, which may have rendered the dataset more suitable for retrieval based tasks. This hypothesis can be tested by systematically varying dataset composition procedure (for example by using a stronger L/14 model for filtering crawled data) and observing the effect on scaling behavior across various task types.
+
+% opens venues
+
+% The hypothesis opens venues for further experiments, where dataset composition is systematically varied
+
+% General statement: depending on task, we observe stronger scaling for one or another pre-training dataset, which indicates influence of pre-training dataset type on scaling behavior for specific tasks. 
+
+% Effect of scale depends on task type and pre-training dataset
+
+\paragraph{Limitations of the current study.} Observed scaling laws are based on points we were able to obtain with available compute resources. Therefore, the density of sampling the scales space is low. It is also not possible to conduct full hyper-parameter tuning, especially on larger scales, due to high compute costs. We rely thus on control experiments that look at few hyper-parameters at early pre-training stages and on tuning already performed in previous work to suggest that pre-training for each scale is not far from optimal. It was also not possible to obtain more points for OpenAI CLIP due to the private nature of the WIT-400M dataset. Moreover, we conduct only a simple duplication check for downstream data, which may leave few duplicates undetected. Previous studies \citep{radford2021learning, zhai2021lit} also reported that duplication in test sets do not significantly alter most results, potentially due to the very large scale and diversity of pre-training data. 
+
+
+% No systematic de-dup. No systematic hyperparam scan, single experiments for sanity checking. Points sampled are not dense due to limit. It is not possible to obtain more points from OpenAI CLIP for comparison as dataset and its composition routines are private.
+
+% Batch size discussion?
+\section{Conclusion}
+
+We present a systematic study of scaling laws for contrastive language-image learning, investigating how scale affects performance on several downstream tasks and across adaptation methods. We find---in accord with previous works on uni-modal learning \citep{Kaplan2020,Zhai2022scaling}---a power law relation between scale (model, data and the number of samples seen) and downstream performance in a broad range of settings, including zero-shot classification, retrieval, few- and full-shot linear probing and fine-tuning. Interestingly, the scaling behavior for OpenCLIP-LAION pre-trained models and for OpenAI-WIT-400M pre-trained models differ, showing distinct benefits of one over another on different downstream tasks. We hypothesize that such task-specific scaling differences originate from the different pre-training datasets. Predictions for model performance on larger scales made on the basis of the scaling laws estimate 81.9\% zero-shot top-1 accuracy on ImageNet for a ViT-G/14 CLIP model trained on 68B image-text samples from scratch.
+
+% Here we study purely contrastive pre-trained models, and it may be hypothesized based on current predictions that further increasing model and data scale to match scales of other works could also come close to the performance reported there, without using labeled data, additional supervised pre-training stages or additional losses.
+% Predictions that we make on the grounds of derived scaling laws 
+
+% Using the obtained power law form, we can make prediction for a performance of a well tuned pre-trained ViT-g/14 model when using largest data scale of 2B and largest samples seen budget of 34B, giving us error estimate of 20.8\%, thus predicting 79.2\% zero-shot top-1 ImageNet-1K accuracy for ViT-g/14. Predictions of stronger performance can be obtained for larger samples seen and model scales, for instance assuming 68B samples seen and getting estimates for ViT-H/14 (80\%), ViT-g/14 (81\%) and ViT-G/14 (82.4\%) (see also Appendix Sec. \ref{sec:appendix:predictions}).
+
+% benefiting one over another  
+% one being stronger than another on distinct tasks depending on 
+Our study opens many directions for further investigations. Obtaining more data points for smaller and intermediate scales can provide enough sampling density to better understand the optimal configuration of model size, dataset size and number of samples seen given a fixed compute, similar to works such as~\cite{hoffmann2022training, koppula2022should}. Scaling laws for robustness benchmarks \citep{Taori2020} can be derived when controlling for larger accuracies observed at larger scales. Further, treating vision and text encoder scales separately may lead to modality specific scaling laws. A promising direction is to study the effect of the pre-training dataset on scaling behavior. Our observations so far hint that the data source may strongly influence task-specific scaling. This paves the road for studies on foundation datasets \citep{sorscher2022beyond}. % which composition aims towards strong scaling across broad range of downstream tasks. 
+Having open datasets \citep{schuhmann2021laion,Schuhmann2022} and open source tools \citep{ilharco_gabriel_2021_5143773} at hand, such experiments can be conducted and reproduced in a common effort by the broader research community.   
+
+% towards achieving strong scaling 
+
+% Further, studying behavior of effective robustness can provide
+% vision text encoder separately
+% Important property of effective robustness can be studied by deriving scaling laws. 
+% Power laws across various tasks. Robustness goes along. Predictions see larger scales approaching SOTA. Dataset dependency of scaling behavior for specific tasks. Outlook: Scaling laws for Effective out-of-distribution robustness; More dense point sample on lower-mid-scales to get better prediction for larger scales and optimal model selection given fixed compute. Dataset composition and its effect on scaling behavior. Foundation datasets to obtain models with strong scaling on a broad range of downstream tasks. Democratizing scaling law studies and studies of larger models with strong performance and emergent functions via open source data and models.
+
+% WARNING! Acknowledgments sections to be REMOVED for the anonymous submission !
+\section*{Acknowledgments.}
+We would like to express gratitude to all the people who are working on making code, models and data publicly available, advancing community based research and making research more reproducible. Specifically, we would like to thank all the members of the LAION discord server\footnote{\url{https://discord.gg/BZqhreFazY}} community that was pivotal for the effort to compose LAION-400m and LAION-5B datasets without which this study would be impossible, and openAI for making their pre-trained CLIP models publicly available. We want to thank Hugging Face for providing hosting space for open datasets and models and Stability AI for providing supercomputing resources and storage space.
+
+The authors gratefully acknowledge the Gauss Centre for Supercomputing e.V. \footnote{\url{https://gauss-centre.eu}} for funding this work by providing computing time through the John von Neumann Institute for Computing (NIC) on the GCS Supercomputer JUWELS Booster \citep{JUWELSBooster2020} at Jülich Supercomputing Centre (JSC). We also acknowledge storage resources on JUST \citep{graf2021just} granted and operated by JSC, as well as computing resources from the Helmholtz Data Federation (HDF). Further thank goes for support provided by JSC supercomputing facility administration team, especially to Damian Alvarez for his endurance and patience during the long "de-micing" sessions on JUWELS Booster.
+
+MC and JJ acknowledge partial funding by the Federal Ministry of Education and Research of Germany under BMBF grant no. 01IS22094B WestAI - AI Service Center West.
+
+Special thanks goes also to Richard Vencu (LAION, Stability AI) for his on-going dedication towards enabling a HPC system and infrastructure around it that can be used by broad community of researchers and citizen scientists. 
+
+{\small
+\bibliographystyle{ieee_fullname}
+\bibliography{bibliography}
+}
+
+% WARNING! Appendix sections to be REMOVED for the anonymous submission !
+% (Supplementary has to be submitted as separate pdf)
+\clearpage
+\input{appendix.tex}
+
+\end{document}
+
+
+
+ 

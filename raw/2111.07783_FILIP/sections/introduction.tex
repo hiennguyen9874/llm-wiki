@@ -1,0 +1,67 @@
+
+% \vspace{-1mm}
+\section{Introduction}
+%%
+Large-scale Vision-Language Pre-training (VLP) models like CLIP \citep{radford2021learning} and ALIGN  \citep{jia2021scaling} have recently demonstrated success across 
+various downstream tasks. They learn visual and textual representations from millions of image-text  pairs collected from the Internet and show superior zero-shot ability and robustness. The core technique of these models lies in the global contrastive alignment of the images and texts through a dual-stream model. Such architecture is inference-efficient for downstream tasks like retrieval because the encoders for the two modalities can be decoupled and the image or text representations can be pre-computed offline. 
+% But is this global contrastive alignment good enough for all the downstream tasks? Does this kind of multi-modal fusion sufficiently capture the finer-grained interactions? 
+% We believe that 
+However, CLIP and ALIGN
+% one stream of existing works (especially the well-known CLIP and ALIGN) 
+model the  cross-modal interaction via solely the similarity of the global feature of each modality, lacking the ability of capturing finer-level information like the relationship between visual objects and textual words.
+% (e.g., fine-grained visual objects or textual words). 
+In this paper, we develop a simple yet efficient cross-modal finer-grained interaction mechanism for large-scale VLP.
+
+% why late interaction loss
+To achieve finer-grained cross-modal interaction, previous methods mainly exploited two kinds of methods.
+% VLP frameworks.
+(1) One line of work \citep{chen2020uniter,li2020oscar,m5product,li2020unimo,zhang2021vinvl,capture} uses a pre-trained object detector to extract region-of-interest (ROI) features from images, and then fuses it with the paired text through a VLP model.
+% Then a VLP model fuses the two modalities by 
+% taking the concatenation of the extracted ROI features and the paired text as input. 
+This design complicates the pre-training due to  pre-computing and storing  a large number of ROI features. 
+In addition, the zero-shot ability of these approaches is usually limited by the predefined number of classes and their performance is also restricted by the quality of the detector.
+(2) Another line of work \citep{li2021align, kim2021vilt} 
+% \xd{add reference: simVLM, viln etc} 
+enforces the token-wise or patch-wise representations from both modalities into the same space and models these finer-grained interactions via cross-attention \citep{li2021align} or self-attention \citep{kim2021vilt}. 
+However, these methods are usually less efficient in terms of both training and inference. In particular, during training, cross-attention in \citep{li2021align} requires to be performed in an encoder-decoder structure, while the complexity of the self-attention \citep{kim2021vilt} grows quadratically with the length of the prolonged concatenated sequences of both modalities. During inference, the data from both modalities are intertwined to compute the cross-attention or self-attention, and can not be pre-computed offline as dual-stream models like CLIP and ALIGN.
+This can be less efficient for downstream tasks like image/text retrieval and image classification.
+% as the encoders can not be decoupled and the image or text representations can not be pre-computed offline like CLIP and ALIGN. 
+% \ylw{already mentioned in the above}
+
+In this paper, we propose a large-scale Fine-grained Interactive Language-Image Pre-training framework named FILIP 
+to address these limitations.
+% , and boost the performance on  more grounded vision and language tasks.
+Inspired by \cite{khattab2020colbert}, 
+we model  the fine-grained semantic alignment  through a novel cross-modal
+late interaction mechanism in the contrastive loss, instead of using cross or self-attention.
+Specifically, our fine-grained contrastive learning uses a token-wise maximum similarity between visual  and textual tokens to guide the contrastive objective.
+% , while keeping the training and inference efficient.
+In this way,
+FILIP  successfully leverages the finer-grained expressiveness
+among image patches and textual words 
+while simultaneously gaining the ability to pre-compute image and text representations offline.
+Unlike \cite{khattab2020colbert}, we discard the padded tokens and use average 
+instead summation 
+of token-wise maximum similarities when computing the image-text alignment,
+% between images and texts, 
+which enhances the cross-modal representation learning and stabilizes training.
+Furthermore, we construct a large-scale pre-training dataset named FILIP300M from the Internet.
+% for facilitating the research community. 
+Data cleaning and image-text data augmentation are also explored  and proved useful in this work.
+
+% \xd{remember to fill numbers}
+Extensive experiments show that by effectively learning fine-grained representations,
+% alignment via cross-modal late interaction, 
+FILIP achieves state-of-the-art performance on multiple downstream vision-language tasks, including zero-shot image classification and image-text retrieval. For example, FILIP reaches  77.1\% top-1 accuracy for zero-shot ImageNet classification, surpassing  CLIP with less training data.
+Visualizations on  word-patch alignment further show that FILIP learns meaningful finer-grained features with promising localization ability. 
+
+% On XX and XX, FILIP achieves absolute improvements of XX\% and XX\% compared to XX method. On zero-shot classification and image-text retrieval, our FILIP outperforms current state-of-the-art visual-language pre-training methods.
+
+%To support more downstream generation tasks such as image captioning, FILIP further incorporates a light interaction layer on top of the original dual-encoder architecture. 
+
+
+
+%In the domain of natural language processing, a late interaction loss is proposed in \citep{khattab2020colbert} to model the fine-grained similarity between the   independently encoded query and the document representations from  the BERT model, in order to solve the information retrieval task.
+%Inspired by \cite{khattab2020colbert}, we can delay the interaction without cross-attention or self-attention and yet retain the fine-grained interaction between text and image, through a similar late interaction loss. \footnote{\hou{add description of the functionality of late interaction loss}}
+%In this way, we can leverage the finer-grained expressiveness while simultaneously gaining the ability to pre-compute image and text representations offline. 
+%Unlike the original late interaction loss in \cite{khattab2020colbert}, we do not consider the padded textual tokens when computing the token-wise similarities to avoid letting them mislead the model to align image patches to these padded tokens. In addition, we use average the token-wise maximum similarities instead of original summarization to stabilize training. 

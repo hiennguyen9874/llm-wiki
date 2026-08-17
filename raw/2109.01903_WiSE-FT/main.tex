@@ -1,0 +1,175 @@
+\documentclass{article}
+\usepackage{fullpage}
+\usepackage[svgnames,dvipsnames,color,table]{xcolor}
+\usepackage{hyperref}
+\hypersetup{colorlinks,linkcolor={blue},citecolor={blue},urlcolor={RoyalBlue}} 
+
+\usepackage{amsthm}
+\usepackage{amsmath} %
+\usepackage{nicefrac}
+\usepackage{bm}
+\usepackage{booktabs}
+\usepackage{amsfonts}
+\usepackage{bbm}
+\usepackage{mleftright}
+\usepackage{dsfont}
+\usepackage{amscd,amssymb,amsmath,amsthm,bbold}
+\usepackage{graphicx}
+\usepackage{float}
+\usepackage{multirow}
+\usepackage[numbers]{natbib}
+
+\usepackage{pifont}
+\newcommand{\cmark}{\ding{51}}%
+\newcommand{\xmark}{\ding{55}}%
+\usepackage{microtype}
+\usepackage{enumitem}
+\usepackage{xfrac}
+\usepackage{parskip}
+\usepackage{numprint}
+\usepackage{booktabs} %
+
+\usepackage{dblfloatfix}
+\usepackage{transparent}
+
+\usepackage{algorithm}
+\usepackage{listings}
+
+\usepackage[textsize=scriptsize,textwidth=1.9cm]{todonotes}
+\usepackage{xspace}
+\usepackage{subcaption}
+\usepackage{etoolbox}
+\usepackage{comment}
+\usepackage{etoc}
+\usepackage{wrapfig}
+\usepackage{placeins}
+\usepackage{makecell}
+\usepackage{lipsum,xcolor}
+\newcommand\dunderline[3][-1pt]{{%
+  \sbox0{#3}%
+  \ooalign{\copy0\cr\rule[\dimexpr#1-#2\relax]{\wd0}{#2}}}}
+\newcommand{\customfootnotetext}[2]{{%
+  \renewcommand{\thefootnote}{#1}%
+  \footnotetext[0]{#2}}}%
+
+\DeclareMathOperator*{\argmax}{arg\,max}
+\DeclareMathOperator*{\argmin}{arg\,min}
+
+\usepackage{cleveref}
+\crefformat{section}{\S#2#1#3} %
+\crefformat{subsection}{\S#2#1#3}
+\crefformat{subsubsection}{\S#2#1#3}
+\renewcommand{\floatpagefraction}{.99}%
+
+\usepackage{adjustbox}
+\usepackage{array}
+
+\newcolumntype{R}[2]{%
+    >{\adjustbox{angle=#1,lap=\width-(#2)}\bgroup}%
+    l%
+    <{\egroup}%
+}
+\newcommand*\rot{\multicolumn{1}{R{45}{1em}}}%
+
+
+
+\begin{document}
+
+\date{}
+\title{Robust fine-tuning of zero-shot models}
+\author{
+        Mitchell Wortsman$^{*\dag}$ \\
+        \and 
+        Gabriel Ilharco$^{*\dag}$\\
+        \and 
+        Jong Wook Kim$^\S$\\
+        \and 
+        Mike Li$^{\ddag}$\\
+        \and 
+        Simon Kornblith$^\diamond$ \\
+        \and 
+        Rebecca Roelofs$^\diamond$ \\
+        \and 
+        Raphael Gontijo-Lopes$^\diamond$ \\
+        \and 
+        \setcounter{footnote}{8}
+        Hannaneh Hajishirzi$^{\dag\circ}$ \hspace*{-0.25cm}\\
+        \and 
+        Ali Farhadi$^{\star\dag}$ \hspace*{-0.25cm}\\
+        \and 
+        Hongseok Namkoong$^{\star\ddag}$ \hspace*{-0.25cm}\\
+        \and 
+        Ludwig Schmidt$^{\dag\vartriangle}$ %
+}
+
+
+\maketitle
+\customfootnotetext{$*\star$}{These authors contributed equally.}
+
+\customfootnotetext{$\dag$}
+{University of Washington\enspace
+$^\S$OpenAI\enspace
+$^\ddag$Columbia University\enspace
+$^\diamond$Google Research, Brain Team\enspace
+
+\enspace\hspace{-0.05cm}$^\circ$Allen Institute for Artificial Intelligence\enspace
+$^\vartriangle$Toyota Research Institute
+
+\enspace Code provided at \url{https://github.com/mlfoundations/wise-ft}.\vspace*{-0.5cm}}
+
+\newif\ifcomments
+\commentsfalse
+
+\ifcomments
+    \newcommand\gamaga[1]{{\todo[color=teal]{GI: {#1}}}}
+    \newcommand\ali[1]{{\todo[color=olive]{AF: {#1}}}}
+    \newcommand\hanna[1]{{\todo[color=yellow]{HH: {#1}}}}
+    \newcommand\mw[1]{{\todo[color=purple]{MW: {#1}}}}
+    \newcommand\ludwig[1]{{\todo[color=orange]{LS: {#1}}}}
+    \newcommand\hong[1]{{\todo[color=green]{HN: {#1}}}}
+    \newcommand\mike[1]{{\todo[color=blue]{ML: {#1}}}}
+\else
+    \providecommand{\mw}[1]{}
+    \providecommand{\gamaga}[1]{}
+    \providecommand{\ali}[1]{}
+    \providecommand{\hanna}[1]{}
+    \providecommand{\ludwig}[1]{}
+    \providecommand{\hong}[1]{}
+    \providecommand{\mike}[1]{}
+\fi
+
+\newcommand\ALPHA{mixing coefficient}
+
+
+\makeatletter
+\renewcommand\paragraph{\@startsection{paragraph}{4}{\z@}                                     {1.05ex \@plus1ex \@minus.2ex}                                {-.5em}
+{\normalfont\normalsize\bfseries}}
+\makeatother
+\newcommand{\smallpara}[1]{\textbf{#1}}
+\newcommand{\beforesec}{\vspace*{0em}}
+\newcommand{\postsec}{\vspace*{0em}}
+
+\vspace*{-1cm}
+\input{00_abstract}
+
+\setcounter{footnote}{0}
+\input{01_intro}
+\input{02_background}
+\input{03_robust_ft}
+\input{04_results}
+\input{05_discussion}
+\input{08_related}
+\input{09_conclusion}
+
+
+{\small
+\bibliographystyle{plainnat}
+\bibliography{main}
+}
+
+\input{99_appendix}
+
+
+
+
+\end{document}

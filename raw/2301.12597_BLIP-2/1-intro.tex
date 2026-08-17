@@ -1,0 +1,130 @@
+\vspace{-2ex}
+\section{Introduction}
+\vspace{-0.5ex}
+\label{sec:intro}
+% \DX{Does it make sense if we call the proposed technique as a ``model bootstrapping method" (as opposed to dataset bootstrapping in BLIP1)? 
+% %
+% According to dictionary:  ``In general use, bootstrapping is leveraging a small initial effort into something larger and more significant."
+% %
+% One understanding may be BLIP-2 leverages the pre-trained image models and LLM  WITHOUT training them, and instead uses GMT, a small trainable module that warms up/connects the whole system. So it is kind of \emph{model bootstrapping} in that sense.}
+
+% \DX{Bootstrapping Language and Image Pre-trained Models for Efficient Representation Learning}
+
+% \DX{Bootstrapping Language and Image Pre-trained Models with Generalist Multimodal Transformer}
+
+% \DX{Bootstrapping Language and Image Pre-trained Models with Multimodal Generalist Transformer}
+
+Vision-language pre-training (VLP) research has witnessed a rapid advancement in the past few years,
+where pre-trained models with increasingly larger scale have been developed to continuously push the state-of-the-art on various downstream tasks~\cite{clip,ALBEF,blip,ofa,flamingo,beit3}.
+% There exist several major categories of vision-language pre-trained models:
+% (1) Contrastive models with unimodal encoders (\eg, CLIP~\cite{clip}),
+% (2) Multimodal encoders for vision-language representation learning (\eg, ALBEF~\cite{ALBEF}),
+% (3) Vision-to-language generative models (\eg, Flamingo~\cite{flamingo}),
+% and (4) Unified models with both vision-language understanding and generation capabilities (\eg, BLIP~\cite{blip}).
+However, most state-of-the-art vision-language models incur a high computation cost during pre-training, due to
+end-to-end training using large-scale models and datasets.
+% \DX{Here we say the cost is high. The next para. is about leveraging pre-trained models. Their relation is not made explicit. Could we add a sentence explaining leveraging pre-trained models will help reduce training cost or data demand, thus making the pre-training more label- compute- efficient}
+\input{figure/teaser.tex}
+
+Vision-language research sits at the intersection between vision and language,
+therefore it is naturally expected that vision-language models can harvest from the readily-available unimodal models from the vision and natural language communities.
+In this paper, we propose a \textit{generic} and \textit{compute-efficient} VLP method by 
+bootstrapping from off-the-shelf pre-trained vision models and language models.
+% Since vision-language research sits at the intersection between vision and language,
+% it is naturally expected that vision-language models can harvest from the readily-available pre-trained unimodal models from each individual domain.
+Pre-trained vision models offer high-quality visual representation.
+Pre-trained language models, in particular \textit{large language models} (LLMs), offer strong language generation and zero-shot transfer abilities.
+To reduce computation cost and counteract the issue of catastrophic forgetting, the unimodal pre-trained models remain frozen during the pre-training.
+
+In order to leverage pre-trained unimodal models for VLP, it is key to facilitate cross-modal alignment.
+%
+However, since LLMs have not seen images during their unimodal pre-training, 
+freezing them makes vision-language alignment in particular challenging.
+%
+In this regard, existing methods (\eg~Frozen~\cite{Frozen}, Flamingo~\cite{flamingo}) resort to an image-to-text generation loss,
+which we show is insufficient to bridge the modality gap.
+
+To achieve effective vision-language alignment with frozen unimodal models, we propose a Querying Transformer (\name) pre-trained with a new two-stage pre-training strategy.
+%
+As shown in Figure~\ref{fig:teaser},
+\name~is a lightweight transformer which employs a set of learnable query vectors to extract visual features from the frozen image encoder.
+It acts as an information bottleneck between the frozen image encoder and the frozen LLM,
+where it feeds the most useful visual feature for the LLM to output the desired text.
+In the first pre-training stage,
+we perform vision-language representation learning
+which enforces the \name~to learn visual representation most relevant to the text.
+In the second pre-training stage,
+we perform vision-to-language generative learning by connecting the output of the \name~to a frozen LLM,
+and trains the \name~such that its output visual representation can be interpreted by the LLM.
+
+% \DX{To achieve the vision-language alignment with frozen unimodal models, our paper introduces a two-stage pre-training paradigm, instantiated with a new lightweight architecture Q-Former. The Q-Former aims to extract the most useful visual features for the LLM to output the desired text.}
+
+
+% We achieve vision-language alignment with a lightweight Querying Transformer (\name) and a two-stage pre-training process, as shown in Figure~\ref{fig:teaser}.
+% \name~employs a standard transformer architecture with a set of learnable queries as input.
+% % The queries can interact with both text tokens and the frozen image encoder.
+% The first pre-training stage performs vision-language representation learning by connecting \name~to a frozen image encoder,
+% where the queries learn to extract visual representation most informative of the text\DX{most informative of the text?}.
+% The second pre-training stage performs vision-to-language generative learning by connecting the output of the \name~to a frozen LLM.
+% The \name~acts as an information bottleneck between the frozen image encoder and the frozen LLM,
+% where it extracts the most useful visual feature for the LLM to output the desired text.
+
+% GemFormer has a flexible and adaptable architecture that enables it to perform multiple roles.
+% When bootstrapping from a frozen image encoder,
+% GemFormer employs a set of queries to extract visual information. 
+% The queries also interact with text which enables the \name~to perform vision-language understanding and generation tasks.
+% When bootstrapping from a frozen LLM,
+% GemFormer acts as an information bottleneck between the frozen image encoder and the frozen LLM,
+% where it extracts the most informative visual feature for the LLM to output the desired text.
+
+% There exist two major challenges in leveraging large pre-trained models.
+% The first challenge is \textit{catastrophic forgetting},
+% where the pre-trained models may progressively forget its existing knowledge while being trained on new vision-language objectives~\cite{Frozen,flamingo}.
+% This leads to degraded performance on downstream vision-language tasks,
+% especially under zero-shot transfer.
+% An effective approach to prevent catastrophic forgetting is by freezing the pre-trained models~\cite{Frozen,flamingo,LiT}.
+% However, using frozen models exaggerates the difficulty of the second challenge - \textit{vision-language alignment} -
+% since fine-tuning is usually required to learn fine-grained alignment between vision and language representation~\cite{ALBEF,blip}
+% It is difficult to learn fine-grained alignment between vision and language representation 
+
+% Some work initializes from pre-trained vision models and text models and performs end-to-end vision-language pre-training (\eg BLIP~\cite{blip}).
+% Other work utilizes either frozen pre-trained image models (\eg LiT~\cite{LiT}) or frozen pre-trained language models (\eg Flamingo~\cite{flamingo}) and adapts the other modality to the frozen model.
+
+% In this paper,
+% we propose a new method for building vision-language models with pre-trained unimodal models.
+% Our method achieve vision-language alignment without catastrophic forgetting.
+% The center of our method is a General-purpose Multimodal Transformer (GMT).
+% GMT can connect to a frozen image encoder to perform various vision-language understanding and generation tasks.
+% It can also connect to a frozen LLM at the other end to enhance its generative language abilities and enable zero-shot transfer.
+% We name our overall framework as BLIP-2: Bridging Locked Image and text Pre-trained models.
+% The advantages of BLIP-2 over existing methods include:
+
+We name our VLP framework as BLIP-2: Bootstrapping Language-Image Pre-training with frozen unimodal models.
+The key advantages of BLIP-2 include:
+\vspace{-\topsep}
+\vspace{-0.5ex}
+\begin{itemize} [leftmargin=*]
+    \item BLIP-2 effectively leverages both frozen pre-trained image models and language models.
+    We bridge the modality gap using a \name~pre-trained in two-stages: representation learning stage and generative learning stage.
+    BLIP-2 achieves state-of-the-art performance on various vision-language tasks including visual question answering, image captioning, and image-text retrieval.
+    \item
+    Powered by LLMs (\eg~OPT~\cite{opt}, FlanT5~\cite{flanT5}), BLIP-2 can be prompted to perform zero-shot image-to-text generation that follows natural language instructions, which enables emerging capabilities such as visual knowledge reasoning, visual conversation, etc. (see Figure~\ref{fig:example} for examples).    
+    \item
+    Due to the use of frozen unimodal models and a lightweight \name,
+    BLIP-2 is more compute-efficient than exisiting state-of-the-arts.
+    For example, BLIP-2 outperforms Flamingo~\cite{flamingo} by 8.7\% on zero-shot VQAv2, while using 54$\times$ fewer trainable parameters.
+    Furthermore,
+    our results show that BLIP-2 is a generic method that can harvest more advanced unimodal models for better VLP performance.
+    % Figure~\ref{fig:new_task} shows examples for zero-shot visual story generation, visual question generation, and visual answer explanation.
+    % The proposed \name~enables the \textit{first} multi-task unified model that achieves competitive performance on both image-text retrieval and image captioning tasks using the \textit{same} set of parameters. 
+	% \item BLIP-2 is more data- and compute-efficient than existing methods,
+	% achieving competitive or better performance than state-of-the-art models with substantially fewer parameters.
+	% For example, it outperforms Flamingo~\cite{flamingo} by xx\% on zero-shot VQAv2, while using 50x fewer trainable parameters.
+\end{itemize}
+
+% we propose a more data- and compute-efficient strategy for building vision-language models,
+% where we leverage both frozen image models and frozen large language models (LLMs).
+% The key to our method is a light-weight multimodal transformer.
+% It uses a set of queries to extract visual features from the frozen image encoder,
+% and converts the visual features into text space by aligning an image with its corresponding text.
+% The output of the multimodal transformer can then be used to prompt a frozen LLM to generate text that is grounded on the image.

@@ -1,0 +1,44 @@
+\beforesec
+\section{Related work}\label{sec:related}
+\postsec
+\smallpara{Robustness.}
+Understanding how models perform under distribution shift remains an important goal, as real world models may encounter data from new environments \cite{quinonero2009dataset, torralba2011unbiased}. 
+Previous work has studied model behavior under synthetic \cite{imagenetc,tramer2017ensemble,madry2017towards,geirhos2018generalisation,eykholt2018robust,alcorn2019strike} and natural distribution shift \cite{imagenetr, wilds2021, imagenetsketch, objectnet, imageneta}.
+Interventions used for synthetic shifts do not typically provide robustness to many natural distribution shifts \cite{taori2020measuring}. 
+In contrast, accuracy on the reference distribution is often a reliable predictor for accuracy under distribution shift \cite{yadav2019cold, miller2020effect, taori2020measuring, sun2020scalability, miller21b}. On the other hand, \citet{d2020underspecification} show that accuracy under certain distribution shifts cannot be reliably inferred from accuracy on the reference distribution.
+We observe a similar phenomenon when fine-tuning with different hyperparameters (Section~\ref{sec:results}, Figure~\ref{fig:hparams}).
+
+\smallpara{Pre-training and transfer learning.}
+Pre-training on large amounts of data is a powerful technique for building high-performing machine learning systems %
+\cite{sharif2014cnn, dosovitskiy2021an,kolesnikov2020big,yalniz2019billion,radford2019language,brown2020language}.
+One increasingly popular class of vision models are those pre-trained with auxiliary language supervision, which can be used for zero-shot inference \cite{desai2021virtex,sariyildiz2020learning,zhang2020contrastive,radford2021learning,jia2021scaling,pham2021scaling,zhai21lit}.
+When pre-trained models are adapted to a specific distribution through standard fine-tuning, effective robustness deteriorates at convergence \cite{andreassen2021evolution}.
+In natural language processing, previous work proposed stable fine-tuning methods that incur computational overhead \cite{jiang2019smart,zhu2019freelb}, alleviating problems such as representational collapse \cite{aghajanyan2021better}.
+More generally, a variety of methods have attempted to mitigate catastrophic forgetting \cite{MCCLOSKEY1989109}. \citet{kirkpatrick2017overcoming}; \citet{zenke2017continual} explored weighted quadratic regularization for sequential learning. \citet{xuhong2018explicit} showed that, for fine-tuning, the simple quadratic regularization explored in Section~\ref{sec:results} performs best, while \citet{lubana2021quadratic} explored the connection between quadratic regularization and interpolation.
+\citet{andreassen2021evolution} found that many approaches from continual learning do not provide robustness to multiple natural distribution shifts. Finally, \citet{li2020rethinking} investigate the effect of fine-tuning hyperparameters on performance.
+
+
+\smallpara{Traditional (output-space) ensembles.}
+Traditional ensemble methods, which we refer to as output-space ensembles, combine the predictions (outputs) of many classifiers \cite{dietterich2000ensemble, bauer1999empirical, breiman1996bagging,friedman2001elements, deepensembles, FREUND1997119}. 
+Typically, output-space ensembles outperform individual classifiers and
+provide uncertainty estimates under distribution shift that are more callibrated than baselines \cite{deepensembles,ovadia2019can,stickland2020diverse}. In contrast to these works, we consider the ensemble of two models which have observed different data.
+Output-space ensembles require more computational resources as they require a separate pass through each model.
+Compared to an ensemble of 15 models trained on the same dataset, \citet{mustafa2020deep} find an improvement of 0.8--1.6 pp  under distribution shift (on ImageNetV2, ImageNet-R, ObjectNet, and ImageNet-A) by ensembling a similar number of models pre-trained on different datasets.
+In contrast, we see an improvement of 2--15 pp from ensembling two models. Moreover, as we ensemble in weight-space, no extra compute is required compared to a single model.
+
+\paragraph{Weight-space ensembles.}
+
+Weight-space ensembles linearly interpolate between the weights of different models \cite{frankle2020linear, lucas2021analyzing, goodfellow2014qualitatively, szegedy2016rethinking}. For example, \citet{izmailov2018averaging} average checkpoints saved throughout training for improved performance.
+Indeed, averaging the weights along the training trajectory is a central method in optimization \cite{ruppert1988efficient, polyak1992acceleration, nichol2018first}.
+For instance, \citet{zhang2019lookahead} propose optimizing with a set of fast and slow weights, where every $k$ steps, these two sets of weights are averaged and a new trajectory begins.
+Here, we revisit these techniques from a distributional robustness perspective and consider the weight-space ensemble of models which have observed different data. 
+
+\paragraph{Concurrent and subsequent work.} Topics including robust fine-tuning, ensembles for improved robustness, and interpolating the weights of fine-tuned models are studied in concurrent and subsequent work. \citet{kumar2021finetuning} observe that fine-tuning end-to-end often results in higher accuracy on the reference distribution but lower accuracy under distribution shift, compared to linear classifier fine-tuning. To address this, \citet{kumar2021finetuning} first fine-tune a linear classifier and use this as the initialization for end-to-end fine-tuning. We consider fine-tuning zero-shot models, and so we begin with a classifier (i.e., the zero-shot classifier) which we are using as the initialization for end-to-end fine-tuning. In a separate work, \citet{kumar2021calibrated} find that calibrated output-space ensembles can be used to mitigate accuracy trade-offs. In Figures \ref{fig:ose} and \ref{fig:beyond} of the Appendix, we observe that it is possible to mitigate accuracy trade-offs with output-space ensembles even without calibration.
+
+\citet{hewitt2021ensembles} explore the application of output-space ensembles and distillation to mitigate accuracy trade-offs which arise in fine-tuning models for natural language generation. \citet{hewitt2021ensembles} observe that output-space ensembles mainly outperform distillation, which we observe for a separate domain in Figure~\ref{fig:baselines} of the Appendix.
+\citet{lopes2021no} explore output-space ensembles of models across hyper-parameters, architectures, frameworks, and datasets.
+They find that specializing in subdomains of data leads to high ensemble performance. 
+Finally, \citet{matena2021merging} introduce a method of combining models in weight-space that goes beyond linear interpolation with a single mixing-coefficient as employed in WiSE-FT.
+Specifically, \citet{matena2021merging} employ Fisher information as a measure of per-parameter importance.
+While their experiments do not examine accuracy under distribution shift,
+their goal of combining differing expertise into one shared model is well aligned with ours.
