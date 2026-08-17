@@ -5,7 +5,7 @@ description: Video tasks that recognize, localize, segment, or anticipate action
 tags: [video, temporal-learning, action-understanding]
 status: draft
 created: 2026-08-15
-generated: { by: llm-wiki-agent/1, at: 2026-08-16T10:33:34+07:00 }
+generated: { by: llm-wiki-agent/1, at: 2026-08-17T11:58:42+07:00 }
 sources:
   - id: bmn-paper
     resource: ../raw/BMN/main.tex
@@ -46,6 +46,15 @@ sources:
   - id: lv-mae-paper
     resource: ../raw/LV-MAE/main.tex
     title: "LV-MAE: Learning Long Video Representations through Masked-Embedding Autoencoders"
+  - id: xclip-recognition-paper
+    resource: ../raw/2208.02816_X-CLIP/main.tex
+    title: Expanding Language-Image Pretrained Models for General Video Recognition
+  - id: videoprism-paper
+    resource: ../raw/2402.13217_VideoPrism/main.tex
+    title: "VideoPrism: A Foundational Visual Encoder for Video Understanding"
+  - id: vjepa2-paper
+    resource: ../raw/2506.09985_V-JEPA 2/main.tex
+    title: "V-JEPA 2: Self-Supervised Video Models Enable Understanding, Prediction and Planning"
 ---
 
 # Temporal action understanding
@@ -81,6 +90,10 @@ An untrimmed-video classifier can address varying action locations, durations, a
 
 Temporal action proposal generation returns class-agnostic intervals and confidence scores rather than detections. A two-stage detector can subsequently assign action categories to retrieved proposals. BMN is one such proposal generator: it combines predicted boundaries with a dense start-duration confidence map, while the paper supplies classification separately for its detection evaluation.[^bmn-paper]
 
+## Language-image adaptation for recognition
+
+X-CLIP adapts pretrained image-text encoders to clip classification with cross-frame message-token attention, a temporal integration Transformer, and video-conditioned class-text representations. It is evaluated in fully supervised, few-shot, and cross-dataset zero-shot recognition settings, but still returns one video-level label rather than temporal intervals or frame labels.[^xclip-recognition-paper]
+
 ## Transformer backbone across task granularity
 
 MViT is evaluated as a fixed-clip Transformer backbone for Kinetics, Something-Something-V2, and Charades classification, then as a Kinetics-pretrained backbone with a video-adapted RoI head for AVA human-action detection.[^mvit-paper] The latter localizes actions around annotated frames with regions; it is not evidence that MViT alone outputs temporal action intervals or framewise segmentation.
@@ -91,6 +104,10 @@ ActionFormer directly targets interval-level TAL: it classifies each temporal fe
 
 VideoMAE is a masked-video-pretraining method rather than a task head. Its source transfers a Kinetics-400-pretrained ViT-B to AVA human-action detection and reports 26.7 mAP without labeled-Kinetics fine-tuning and 31.8 mAP with it; this is frame-centered detection evidence, not evidence for temporal action intervals or framewise segmentation.[^videomae-paper]
 
+## Predictive features for action anticipation
+
+V-JEPA 2 evaluates one-second Epic-Kitchens-100 anticipation by giving a frozen attentive probe both observed encoder tokens and predictor-generated tokens for a future masked frame. Its 1B 384-resolution system reports 39.7 mean-class action recall@5, but the source's own ablation obtains 39.1 from encoder outputs without predicted tokens. The result therefore supports strong pretrained context features and a small incremental contribution from the predictor under this protocol, not long-horizon action forecasting generally.[^vjepa2-paper]
+
 ## Long-video classification representations
 
 LV-MAE pretrains a representation over sequences of frozen five-second clip embeddings and evaluates it with linear or attentive probing on Breakfast cooking-activity classification and COIN procedural-task classification. These video-level labels do not make LV-MAE a temporal-interval localizer, action-segmentation model, or online predictor.[^lv-mae-paper]
@@ -100,6 +117,8 @@ LV-MAE pretrains a representation over sequences of frozen five-second clip embe
 InternVideo provides a pretrained ViT-H backbone rather than a new temporal-action-localization head. In the paper's backbone substitution experiments, it pairs that backbone with ActionFormer for THUMOS-14, ActivityNet-v1.3, and FineAction, and with TCANet for HACS Segment; reported average mAP values are 71.58, 39.00, 17.57, and 41.55 respectively.[^internvideo-paper] These results are evidence for the stated backbone/head combinations under their protocols, not a claim that InternVideo alone returns temporal intervals.
 
 InternVideo2 similarly reports its stage-1 features with ActionFormer: 72.0 average mAP on THUMOS14, 43.3 on HACS Segment, 41.2 on ActivityNet, and 27.7 on FineAction. The reported values support those backbone/head evaluations only; InternVideo2 does not itself decode temporal intervals in this setup.[^internvideo2-paper]
+
+VideoPrism preserves spatiotemporal output tokens and evaluates one frozen checkpoint across clip classification, ActivityNet temporal action localization with a G-TAD head, and AVA/AVA-Kinetics spatiotemporal localization with region pooling and cross-attention heads. Its reported frozen-backbone results therefore support transfer of its features across task granularities, not a claim that VideoPrism itself emits temporal intervals or person boxes.[^videoprism-paper]
 
 ## Supervision trade-off
 
@@ -121,6 +140,9 @@ Precise temporal intervals are expensive to annotate. Weakly supervised temporal
 - **Uses:** [InternVideo](internvideo.md) as a pretrained feature backbone evaluated with existing action-recognition, temporal-localization, and spatiotemporal-localization heads.[^internvideo-paper]
 - **Uses:** [InternVideo2](internvideo2.md) as a pretrained feature backbone reported with an ActionFormer temporal-localization head.[^internvideo2-paper]
 - **Uses:** [LV-MAE](lv-mae.md) as a pretrained long-video representation for video-level action and procedural classification, not for localization or segmentation.[^lv-mae-paper]
+- **Includes:** [X-CLIP: CLIP adaptation for video recognition](x-clip-video-recognition.md) as a language-image-pretrained clip classifier, not a temporal localizer or segmenter.[^xclip-recognition-paper]
+- **Uses:** [VideoPrism](videoprism.md) as a frozen feature backbone paired with separate classification, temporal-localization, and spatiotemporal-localization heads.[^videoprism-paper]
+- **Uses:** [V-JEPA 2](v-jepa-2.md) as a frozen predictive video backbone for motion classification and short-horizon action anticipation, not temporal interval decoding.[^vjepa2-paper]
 
 [^bmn-paper]: [BMN: Boundary-Matching Network for Temporal Action Proposal Generation](../raw/BMN/main.tex)
 [^video-temporal-survey]: [Tổng hợp các hướng xử lý video](../raw/TongHopCacHuongXuLyVideo.md)
@@ -135,3 +157,6 @@ Precise temporal intervals are expensive to annotate. Weakly supervised temporal
 [^mat-paper]: [Memory-and-Anticipation Transformer for Online Action Understanding](../raw/Memory-and-AnticipationTransformer/main.tex)
 [^internvideo2-paper]: [InternVideo2: Scaling Foundation Models for Multimodal Video Understanding](../raw/InternVideo2/main.tex)
 [^lv-mae-paper]: [LV-MAE: Learning Long Video Representations through Masked-Embedding Autoencoders](../raw/LV-MAE/main.tex)
+[^xclip-recognition-paper]: [Expanding Language-Image Pretrained Models for General Video Recognition](../raw/2208.02816_X-CLIP/main.tex)
+[^videoprism-paper]: [VideoPrism: A Foundational Visual Encoder for Video Understanding](../raw/2402.13217_VideoPrism/main.tex)
+[^vjepa2-paper]: [V-JEPA 2: Self-Supervised Video Models Enable Understanding, Prediction and Planning](../raw/2506.09985_V-JEPA%202/main.tex)

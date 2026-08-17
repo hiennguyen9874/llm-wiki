@@ -1,5 +1,11 @@
 # Wiki Update Log
 
+## 2026-08-17
+- **Ingest**: Compiled [V-JEPA 2: Self-Supervised Video Models Enable Understanding, Prediction and Planning](../raw/2506.09985_V-JEPA%202/main.tex); created [V-JEPA 2](v-jepa-2.md) and updated [Video temporal representation learning](video-temporal-representation-learning.md), [Temporal action understanding](temporal-action-understanding.md), [Long-video temporal modeling](long-video-temporal-modeling.md), and [Video-language temporal grounding and reasoning](video-language-temporal-grounding-and-reasoning.md).
+- **Ingest**: Compiled [VideoPrism: A Foundational Visual Encoder for Video Understanding](../raw/2402.13217_VideoPrism/main.tex); created [VideoPrism](videoprism.md) and updated [Video temporal representation learning](video-temporal-representation-learning.md), [Temporal action understanding](temporal-action-understanding.md), [Long-video temporal modeling](long-video-temporal-modeling.md), and [Video-language temporal grounding and reasoning](video-language-temporal-grounding-and-reasoning.md).
+- **Ingest**: Compiled [Expanding Language-Image Pretrained Models for General Video Recognition](../raw/2208.02816_X-CLIP/main.tex); created [X-CLIP: CLIP adaptation for video recognition](x-clip-video-recognition.md) and updated [Temporal action understanding](temporal-action-understanding.md) and [Video temporal representation learning](video-temporal-representation-learning.md).
+- **Ingest**: Compiled [X-CLIP: End-to-End Multi-grained Contrastive Learning for Video-Text Retrieval](../raw/2207.07285_X-CLIP/sample-base.tex); created [X-CLIP: multi-grained video-text retrieval](x-clip-video-text-retrieval.md) and updated [Video-language temporal grounding and reasoning](video-language-temporal-grounding-and-reasoning.md).
+
 ## 2026-08-16
 - **Query**: Answered “SO sánh R(2+1)D vs SlowFast vs TCN”; filed [R(2+1)D, SlowFast, and TCN comparison](r-2-plus-1-d-slowfast-tcn-comparison.md).
 - **Query**: Answered “Tìm các hướng xử lý action recognition hiện tại, phương pháp realtime khả thi, phương án kết hợp, hướng không detector, và phát hiện tai nạn giao thông”; filed [real-time action-recognition deployment pattern](real-time-action-recognition-deployment-pattern.md) and updated [production temporal video analytics](production-temporal-video-analytics.md).

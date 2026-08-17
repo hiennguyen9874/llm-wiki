@@ -5,7 +5,7 @@ description: Scalable representations and retrieval mechanisms for preserving fi
 tags: [video, long-context, temporal-learning, efficiency]
 status: draft
 created: 2026-08-15
-generated: { by: llm-wiki-agent/1, at: 2026-08-16T10:46:05+07:00 }
+generated: { by: llm-wiki-agent/1, at: 2026-08-17T11:58:42+07:00 }
 sources:
   - id: vivit-paper
     resource: ../raw/ViViT/main_arxiv.tex
@@ -49,6 +49,12 @@ sources:
   - id: f2g-paper
     resource: ../raw/Foresee-to-Ground/main.tex
     title: "Foresee-to-Ground: From Predictive Temporal Perception to Evidence-Driven Reasoning for Video Temporal Grounding"
+  - id: videoprism-paper
+    resource: ../raw/2402.13217_VideoPrism/main.tex
+    title: "VideoPrism: A Foundational Visual Encoder for Video Understanding"
+  - id: vjepa2-paper
+    resource: ../raw/2506.09985_V-JEPA 2/main.tex
+    title: "V-JEPA 2: Self-Supervised Video Models Enable Understanding, Prediction and Planning"
 ---
 
 # Long-video temporal modeling
@@ -101,6 +107,16 @@ Video Swin Transformer uses joint self-attention inside fixed-size 3D windows an
 
 For interval-level temporal action localization, ActionFormer combines local self-attention with a temporal feature pyramid. Its fixed-size window therefore covers a progressively wider temporal span at coarser levels; the paper gives a window of 19 at a 16×-downsampled level as covering 304 feature-grid steps. On THUMOS14, its ablation reports the same 66.8% average mAP for window size 19 as full attention, while reporting 45.3 versus 57.8 GMACs for a 2,304-step input. This is task- and implementation-specific evidence, not a general long-video guarantee.[^actionformer-paper]
 
+## Short-clip foundation encoders
+
+VideoPrism directly samples eight frames during pretraining and normally 16 during evaluation. Its paper explicitly identifies long-video understanding as unresolved and suggests using the encoder as a component in a larger long-video system. Broad short-clip transfer and an ActivityNet result with an external G-TAD head therefore do not establish persistent memory, full-context retrieval, or arbitrary-duration evidence retention.[^videoprism-paper]
+
+## Progressive training for longer clips
+
+V-JEPA 2 limits the expensive 64-frame, high-resolution regime to a final learning-rate cooldown after most training uses 16-frame 256×256 clips. The paper reports an 8.4× GPU-time reduction versus training its 64-frame 384×384 model at full resolution throughout, plus frozen-probe gains from longer training and evaluation clips. This is efficient bounded-clip scaling: direct context remains about 16 seconds, and the source reports no further understanding-task gains when pretraining with 128 or 256 frames.[^vjepa2-paper]
+
+Its action-conditioned world model also rolls latent states forward autoregressively, but the authors report increasing prediction error and action-search cost with horizon. Evaluated robot planning consequently uses horizon one and manually scheduled image subgoals for pick-and-place, rather than solving long-horizon planning in one rollout.[^vjepa2-paper]
+
 ## Clip-token masked reconstruction
 
 LV-MAE is a hierarchical temporal-compression strategy: a frozen short-video encoder produces one embedding per five-second segment, then a masked autoencoder models the segment sequence. Its reported implementation caps sequences at 256 clip tokens (about 21 minutes 20 seconds at that segment length), so its claim of scalable long-video processing is not evidence of arbitrary-duration global attention.[^lv-mae-paper]
@@ -147,6 +163,8 @@ The source identifies local/hierarchical attention and state-space models as alt
 - **Uses:** [VideoITG](videoitg.md) as instruction-conditioned scoring and top-$k$ selection from a fixed frame budget for a separate answering Video-LLM, not as arbitrary-duration global memory.[^videoitg-paper]
 - **Uses:** [NeuS-QA](neus-qa.md) as temporal-logic-constrained interval retrieval before VLM answering; automaton construction remains a VLM-grounding and compute bottleneck.[^neus-qa-paper]
 - **Uses:** [Foresee-to-Ground (F2G)](foresee-to-ground.md) as a ranked Top-$K$ candidate-span pool with segment evidence before LLM boundary refinement; this does not guarantee arbitrary-duration coverage.[^f2g-paper]
+- **Supports:** [VideoPrism](videoprism.md) when its frozen short-clip features are embedded in a separate long-video mechanism; VideoPrism itself supplies no such mechanism.[^videoprism-paper]
+- **Supports:** [V-JEPA 2](v-jepa-2.md) beyond its bounded 64-frame context and short-horizon latent rollout; progressive-resolution training reduces cost but supplies no persistent memory.[^vjepa2-paper]
 
 [^vivit-paper]: [ViViT: A Video Vision Transformer](../raw/ViViT/main_arxiv.tex)
 [^video-temporal-survey]: [Tổng hợp các hướng xử lý video](../raw/TongHopCacHuongXuLyVideo.md)
@@ -162,3 +180,5 @@ The source identifies local/hierarchical attention and state-space models as alt
 [^videoitg-paper]: [VideoITG: Multimodal Video Understanding with Instructed Temporal Grounding](../raw/VideoITG/main.tex)
 [^neus-qa-paper]: [NeuS-QA: Grounding Long-Form Video Understanding in Temporal Logic and Neuro-Symbolic Reasoning](../raw/NeuS-QA/main.tex)
 [^f2g-paper]: [Foresee-to-Ground: From Predictive Temporal Perception to Evidence-Driven Reasoning for Video Temporal Grounding](../raw/Foresee-to-Ground/main.tex)
+[^videoprism-paper]: [VideoPrism: A Foundational Visual Encoder for Video Understanding](../raw/2402.13217_VideoPrism/main.tex)
+[^vjepa2-paper]: [V-JEPA 2: Self-Supervised Video Models Enable Understanding, Prediction and Planning](../raw/2506.09985_V-JEPA%202/main.tex)

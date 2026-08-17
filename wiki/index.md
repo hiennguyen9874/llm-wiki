@@ -32,10 +32,14 @@ The complete retrieval map for compiled knowledge. See [LLM Wiki Contract](../LL
 - [Temporal Segment Networks](temporal-segment-networks.md) — A video-level action-recognition framework that samples snippets across equal temporal segments and learns their consensus.
 - [Two-stream ConvNets for action recognition](two-stream-convnets-action-recognition.md) — A late-fusion video classifier that separates appearance in RGB frames from motion in stacked optical flow.
 - [UniTime](unitime.md) — An MLLM-based universal video temporal-grounding framework that interleaves textual timestamps with scaled video tokens and retrieves moments coarse-to-fine.
+- [V-JEPA 2](v-jepa-2.md) — A self-supervised video JEPA scaled for motion understanding and anticipation, then post-trained as a latent action-conditioned world model for image-goal robot planning.
 - [VideoITG](videoitg.md) — An instruction-conditioned Video-LLM frame-selection framework and automatically constructed 40K-video temporal-grounding dataset.
 - [Video Swin Transformer](video-swin-transformer.md) — A hierarchical video Transformer that uses alternating local and shifted 3D attention windows to model spacetime efficiently.
 - [VideoMAE](videomae.md) — A self-supervised video-pretraining method that reconstructs heavily tube-masked video cubes with an asymmetric Vision Transformer autoencoder.
+- [VideoPrism](videoprism.md) — A frozen short-clip video encoder pretrained by video-text contrastive learning followed by masked global-local feature distillation with token shuffling.
 - [Video temporal learning](video-temporal-learning.md) — A task taxonomy for learning temporal structure in video, spanning recognition, localization, representation learning, language grounding, and reasoning.
 - [Video temporal representation learning](video-temporal-representation-learning.md) — Pretraining video features to encode appearance, motion, order, dynamics, and longer-range semantics for downstream tasks.
 - [Video-language temporal grounding and reasoning](video-language-temporal-grounding-and-reasoning.md) — Text-conditioned localization and inference over event timing, order, duration, frequency, state changes, and causal relations in video.
 - [ViViT (Video Vision Transformer)](vivit.md) — A family of pure-Transformer video classifiers that tokenizes video as frames or tubelets and offers four space–time attention designs.
+- [X-CLIP: CLIP adaptation for video recognition](x-clip-video-recognition.md) — A language-image-model adaptation for video classification that adds message-token cross-frame attention, temporal integration, and video-conditioned text prompting.
+- [X-CLIP: multi-grained video-text retrieval](x-clip-video-text-retrieval.md) — A CLIP-initialized video-text retriever that combines video-sentence, video-word, sentence-frame, and frame-word similarities through attention-weighted aggregation.

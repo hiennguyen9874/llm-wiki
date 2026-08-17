@@ -5,7 +5,7 @@ description: Text-conditioned localization and inference over event timing, orde
 tags: [video, language, temporal-grounding, temporal-reasoning, video-llm]
 status: draft
 created: 2026-08-15
-generated: { by: llm-wiki-agent/1, at: 2026-08-16T10:46:05+07:00 }
+generated: { by: llm-wiki-agent/1, at: 2026-08-17T11:58:42+07:00 }
 sources:
   - id: video-temporal-survey
     resource: ../raw/TongHopCacHuongXuLyVideo.md
@@ -28,6 +28,15 @@ sources:
   - id: f2g-paper
     resource: ../raw/Foresee-to-Ground/main.tex
     title: "Foresee-to-Ground: From Predictive Temporal Perception to Evidence-Driven Reasoning for Video Temporal Grounding"
+  - id: xclip-paper
+    resource: ../raw/2207.07285_X-CLIP/sample-base.tex
+    title: "X-CLIP: End-to-End Multi-grained Contrastive Learning for Video-Text Retrieval"
+  - id: videoprism-paper
+    resource: ../raw/2402.13217_VideoPrism/main.tex
+    title: "VideoPrism: A Foundational Visual Encoder for Video Understanding"
+  - id: vjepa2-paper
+    resource: ../raw/2506.09985_V-JEPA 2/main.tex
+    title: "V-JEPA 2: Self-Supervised Video Models Enable Understanding, Prediction and Planning"
 ---
 
 # Video-language temporal grounding and reasoning
@@ -56,7 +65,17 @@ It argues that fine-grained temporal reasoning remains difficult for multimodal 
 
 InternVideo’s video–text branch contrastively aligns independently encoded video and text, then uses a caption decoder with cross-attention for multimodal fusion. The paper evaluates it on video retrieval and question answering, but does not report natural-language temporal localization or tests of temporal relations. It is therefore relevant as a source of video–text features, not evidence of the grounding and reasoning capabilities defined here.[^internvideo-paper]
 
+X-CLIP similarly improves whole-video retrieval alignment rather than temporal localization. It contrasts video/sentence, video/word, sentence/frame, and frame/word representations and attention-aggregates their similarities, but its DiDeMo and ActivityNet protocols concatenate captions for video-paragraph retrieval instead of predicting moment boundaries.[^xclip-paper]
+
+VideoPrism's reported Charades-STA experiment also is not temporal grounding: it trims each clip using annotated start/end times and asks the model to retrieve the correct description among that video's sequential descriptions. This can test clip-description discrimination after oracle segmentation, but it cannot show that the model finds the interval boundaries.[^videoprism-paper]
+
 InternVideo2 provides direct but bounded grounding evidence: with CG-DETR, its paper reports finetuned 6B features at 71.42 R1@0.5 and 56.45 R1@0.7 on QVHighlight, plus 70.03 R1@0.5 and 58.79 mIoU on Charades-STA. These evaluate natural-language moment localization under the stated protocols, not general temporal reasoning or arbitrary-duration evidence access.[^internvideo2-paper]
+
+## Post-hoc language alignment of predictive video features
+
+V-JEPA 2 is pretrained without text, then connected to an LLM through projected visual tokens and trained on image/video-text data. In a controlled 18M-example setup with the same frozen vision-encoder protocol and Qwen2-7B backbone, its reported average across seven video-QA benchmarks exceeds the tested image encoders, with larger gains on several temporal benchmarks. A separate 88.5M-example Llama-3.1-8B system reports leading scores among the paper's compared ≤8B systems on PerceptionTest, MVP, TempCompass, TemporalBench, and TOMATO, but not TVBench or MVBench.[^vjepa2-paper]
+
+This is evidence that language-free predictive video features can be aligned later for temporal QA. It is not temporal grounding: the system answers benchmark questions but does not return query-matched start/end boundaries, and performance also depends on the LLM, projector, alignment corpus, frame sampling, and instruction-tuning recipe.[^vjepa2-paper]
 
 ## Timestamp-conditioned MLLM grounding
 
@@ -93,6 +112,9 @@ NeuS-QA makes temporal relations executable: it translates a question into event
 - **Includes:** [VideoITG](videoitg.md) as instruction-conditioned clip retrieval and fixed-budget frame selection for a separate answering Video-LLM; this is not general temporal-reasoning evidence.[^videoitg-paper]
 - **Includes:** [NeuS-QA](neus-qa.md) as a temporal-logic and model-checking retrieval pipeline; its verification is conditional on VLM event grounding.[^neus-qa-paper]
 - **Includes:** [Foresee-to-Ground (F2G)](foresee-to-ground.md) as cited candidate-span selection plus evidence-conditioned boundary refinement; it is grounding evidence, not evidence of general temporal reasoning.[^f2g-paper]
+- **Uses:** [X-CLIP](x-clip-video-text-retrieval.md) as an example of multi-grained video-text retrieval alignment, not as demonstrated temporal grounding or reasoning.[^xclip-paper]
+- **Uses:** [VideoPrism](videoprism.md) as a possible short-clip feature encoder, while treating its oracle-trimmed Charades-STA retrieval protocol as non-grounding evidence.[^videoprism-paper]
+- **Uses:** [V-JEPA 2](v-jepa-2.md) as a language-free pretrained video encoder later aligned with an LLM for temporal QA, not as a temporal-boundary grounding model.[^vjepa2-paper]
 
 [^video-temporal-survey]: [Tổng hợp các hướng xử lý video](../raw/TongHopCacHuongXuLyVideo.md)
 [^internvideo-paper]: [InternVideo: General Video Foundation Models via Generative and Discriminative Learning](../raw/InternVideo/main.tex)
@@ -101,3 +123,6 @@ NeuS-QA makes temporal relations executable: it translates a question into event
 [^videoitg-paper]: [VideoITG: Multimodal Video Understanding with Instructed Temporal Grounding](../raw/VideoITG/main.tex)
 [^neus-qa-paper]: [NeuS-QA: Grounding Long-Form Video Understanding in Temporal Logic and Neuro-Symbolic Reasoning](../raw/NeuS-QA/main.tex)
 [^f2g-paper]: [Foresee-to-Ground: From Predictive Temporal Perception to Evidence-Driven Reasoning for Video Temporal Grounding](../raw/Foresee-to-Ground/main.tex)
+[^xclip-paper]: [X-CLIP: End-to-End Multi-grained Contrastive Learning for Video-Text Retrieval](../raw/2207.07285_X-CLIP/sample-base.tex)
+[^videoprism-paper]: [VideoPrism: A Foundational Visual Encoder for Video Understanding](../raw/2402.13217_VideoPrism/main.tex)
+[^vjepa2-paper]: [V-JEPA 2: Self-Supervised Video Models Enable Understanding, Prediction and Planning](../raw/2506.09985_V-JEPA%202/main.tex)
