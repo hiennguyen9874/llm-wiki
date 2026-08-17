@@ -5,7 +5,7 @@ description: PP-OCRv5 is a 0.07B-parameter OCR pipeline for unified Chinese, Pin
 tags: [ocr, multilingual, handwriting, lightweight-models]
 status: draft
 created: 2026-08-17
-generated: { by: llm-wiki-agent/1, at: 2026-08-17T13:27:19Z }
+generated: { by: llm-wiki-agent/1, at: 2026-08-17T21:53:41+07:00 }
 sources:
   - id: paddleocr3-report
     resource: ../raw/2507.05595_PaddleOCR-3.0/main.tex
@@ -43,6 +43,7 @@ The authors evaluate 17 scenarios using 1 minus normalized edit distance. The de
 - **Part of:** [PaddleOCR 3.0](paddleocr-3.md).
 - **Used by:** [PP-StructureV3](pp-structurev3.md) supplies its OCR stage.
 - **Precedes:** [PP-OCRv6](pp-ocrv6.md), which retains this data-curation methodology while replacing the backbone and both neck designs.[^pp-ocrv6-report]
+- **Benchmarked by:** [Detector–recognizer OCR benchmarks](detector-recognizer-ocr-benchmarks.md), which separates PP-OCRv5's reported results by dataset, task, metric, and protocol.
 
 [^paddleocr3-report]: Cui et al., *PaddleOCR 3.0 Technical Report*, local LaTeX source at [main.tex](../raw/2507.05595_PaddleOCR-3.0/main.tex), including `images/ocr_res_final.png`, `images/pp_ocrv5_benchmark.pdf`, and `images/pp_ocrv5_framwork2.pdf` (accessed 2026-08-17).
 [^pp-ocrv6-report]: Zhang et al., *PP-OCRv6: From 1.5M to 34.5M Parameters, Surpassing Billion-Scale VLMs on OCR Tasks*, local LaTeX source at [main.tex](../raw/2606.13108_PP-OCRv6/main.tex) (accessed 2026-08-17).

@@ -5,7 +5,7 @@ description: Current document OCR spans lightweight detector–recognizer pipeli
 tags: [ocr, document-parsing, vision-language-models, synthesis]
 status: draft
 created: 2026-08-17
-generated: { by: llm-wiki-agent/1, at: 2026-08-17T14:43:44Z }
+generated: { by: llm-wiki-agent/1, at: 2026-08-17T21:53:41+07:00 }
 sources:
   - id: pp-ocrv6-report
     resource: ../raw/2606.13108_PP-OCRv6/main.tex
@@ -98,7 +98,7 @@ Current document OCR is no longer one homogeneous text-recognition task. The des
 
 ### Lightweight detector–recognizer pipelines
 
-Classical two-stage OCR remains the preferred shape when the target is text boxes plus transcription under tight latency, memory, mobile, or hallucination constraints. [PP-OCRv6](pp-ocrv6.md) shares a reparameterizable backbone across detection and CTC recognition at 1.5M–34.5M parameters; [Nemotron OCR v2](nemotron-ocr-v2.md) adds a relational grouping and reading-order stage. These systems are efficient and controllable, but rich document reconstruction requires separate layout and specialist modules.[^pp-ocrv6-report]
+Classical two-stage OCR remains the preferred shape when the target is text boxes plus transcription under tight latency, memory, mobile, or hallucination constraints. [PP-OCRv6](pp-ocrv6.md) shares a reparameterizable backbone across detection and CTC recognition at 1.5M–34.5M parameters; [Nemotron OCR v2](nemotron-ocr-v2.md) adds a relational grouping and reading-order stage. These systems are efficient and controllable, but rich document reconstruction requires separate layout and specialist modules. [Detector–recognizer OCR benchmarks](detector-recognizer-ocr-benchmarks.md) catalogs their incompatible datasets, metrics, variants, and comparison-only baselines.[^pp-ocrv6-report]
 
 ### Modular layout-first document parsing
 

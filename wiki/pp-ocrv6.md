@@ -5,7 +5,7 @@ description: PP-OCRv6 is a 1.5M–34.5M-parameter OCR family that uses a shared 
 tags: [ocr, multilingual, lightweight-models, text-detection, text-recognition]
 status: draft
 created: 2026-08-17
-generated: { by: llm-wiki-agent/1, at: 2026-08-17T13:27:19Z }
+generated: { by: llm-wiki-agent/1, at: 2026-08-17T21:53:41+07:00 }
 sources:
   - id: pp-ocrv6-report
     resource: ../raw/2606.13108_PP-OCRv6/main.tex
@@ -44,5 +44,6 @@ The following are author-reported results on in-house benchmarks:[^pp-ocrv6-repo
 ## Relationships
 
 - **Builds on:** [PP-OCRv5](pp-ocrv5.md)'s data-curation methodology while replacing its separate LCNetV3 and PPHGNetV2 backbone families with LCNetV4.[^pp-ocrv6-report]
+- **Benchmarked by:** [Detector–recognizer OCR benchmarks](detector-recognizer-ocr-benchmarks.md), which retains the reported detection, recognition, robustness, multilingual, hallucination, and runtime protocols.
 
 [^pp-ocrv6-report]: Zhang et al., *PP-OCRv6: From 1.5M to 34.5M Parameters, Surpassing Billion-Scale VLMs on OCR Tasks*, local LaTeX source at [main.tex](../raw/2606.13108_PP-OCRv6/main.tex), including the [system overview](../raw/2606.13108_PP-OCRv6/v6_images_v2/01system.jpg), [LCNetV4 diagram](../raw/2606.13108_PP-OCRv6/v6_images_v2/backbone.png), [detection architecture](../raw/2606.13108_PP-OCRv6/v6_images_v2/ppocrv6_det_pip_ori.png), [recognition architecture](../raw/2606.13108_PP-OCRv6/v6_images_v2/rec.png), [accuracy comparison](../raw/2606.13108_PP-OCRv6/v6_images_v2/v6acc_opt.png), and detector-speed plots (accessed 2026-08-17).

@@ -1,6 +1,7 @@
 # Wiki Update Log
 
 ## 2026-08-17
+- **Query**: Cataloged retained and comparison-only traditional OCR models, datasets, metrics, and reported results in [Detector–recognizer OCR benchmarks](detector-recognizer-ocr-benchmarks.md), with protocol and reproducibility limits.
 - **Update**: Expanded [Current OCR approaches](current-ocr-approaches.md) to cover every retained current model family and distinguish predecessors, aliases, toolkits, datasets, and benchmarks.
 - **Query**: Synthesized the current OCR landscape into [Current OCR approaches](current-ocr-approaches.md), covering architectural families, data and training strategies, decoding, robustness, evaluation, and practical selection.
 - **Ingest**: Compiled [NVIDIA Nemotron Parse v1.1 model card](../raw/NVIDIA-Nemotron-Parse-v1.1.md); created [NVIDIA Nemotron Parse v1.1](nemotron-parse-v1-1.md).

@@ -5,7 +5,7 @@ description: Nemotron OCR v2 is NVIDIA's detector–recognizer OCR system with a
 tags: [ocr, multilingual, text-detection, text-recognition, layout-analysis, reading-order]
 status: draft
 created: 2026-08-17
-generated: { by: llm-wiki-agent/1, at: 2026-08-17T14:21:32Z }
+generated: { by: llm-wiki-agent/1, at: 2026-08-17T21:53:41+07:00 }
 sources:
   - id: nemotron-ocr-v2-model-card
     resource: ../raw/nemotron-ocr-v2.md
@@ -47,5 +47,9 @@ All metrics are NVIDIA reference results and have not been independently reprodu
 - The local source is a model card, not a technical report. It contains no weights, source code, evaluation scripts, model outputs, dataset manifests, or benchmark configurations, so its architectural, training, throughput, and accuracy claims cannot be reproduced from this bundle.[^nemotron-ocr-v2-model-card]
 - The OmniDocBench table states crop mode and a single A100, but does not fully specify batch size, image preprocessing, runtime versions, or exact benchmark release. Its cross-model comparisons are therefore not controlled evidence for deployment selection.[^nemotron-ocr-v2-model-card]
 - The source calls the model commercially usable and names both the NVIDIA Open Model License Agreement and Apache 2.0 as additional information, but does not make the scope of each term clear in this local artifact. Confirm applicable terms from the linked license materials before use.[^nemotron-ocr-v2-model-card]
+
+## Relationships
+
+- **Benchmarked by:** [Detector–recognizer OCR benchmarks](detector-recognizer-ocr-benchmarks.md), which retains the full reported OmniDocBench crop-mode and generated SynthDoG tables alongside the comparison-only baselines.
 
 [^nemotron-ocr-v2-model-card]: NVIDIA, *Nemotron OCR v2 model card*, local [nemotron-ocr-v2.md](../raw/nemotron-ocr-v2.md) (accessed 2026-08-17).
