@@ -1,0 +1,205 @@
+\section{Experiments}
+\label{sec:exp}
+
+\subsection{Scaling Up}
+\input{tabls/ablation_sd_es}
+
+\noindent\textbf{Dataset and Settings.} 
+We first conduct experiments on ImageNet-1K~\cite{imagenet},
+which includes 1.28M training images and 50K validation images across 1,000 categories.
+For fair comparisons,
+we follow most of the training strategies proposed in DeiT~\cite{deit},
+but adopt weaker data augmentation for the tiny model variant.
+Furthermore,
+we adjust the stochastic depth ratio to 0/0.15/0.5 for \ModelName-Ti/S/M.
+Our models are trained using the AdamW optimizer paired with a cosine learning rate schedule over 300 epochs. 
+The initial 5 epochs serve as a period for linear warm-up. 
+Default settings for the learning rate, weight decay, and batch size are 1e-3, 0.05, and 1024, respectively. 
+Moreover, 
+we use BFloat16 precision during training to enhance stability without relying on EMA.
+For the \ModelName-M model, 
+we employ a pretrained \ModelName-S model as a ``teacher'' to guide the training process by aligning the final feature maps through L2 loss.
+For large resolution ($>$224) fine-tuning,
+we use a reduced learning rate (5e-6) and minimal weight decay (1e-8) for 30 epochs.
+
+
+\vspace{0.05cm}
+\noindent\textbf{Effect of Self-Distillation.} 
+Fig. \ref{tab:ablation_sd}\red{a} reveals that when trained from scratch,
+\ModelName-B tends to overfit more easily and underperforms compared to \ModelName-S, 
+whereas \ModelName-M achieves similar performances. 
+Fortunately, 
+our self-distillation has shown to be effective in achieving the desired optimization with marginal additional computational cost. 
+To mitigate teacher's potential overdirection, 
+we experimented with early stopping~\cite{early_stopping} in Fig. \ref{tab:ablation_sd}\red{b}, 
+although it did not yield beneficial outcomes. 
+These findings indicate that self-distillation offers a viable strategy for enhancing the scalability of the Mamba architecture without significant computational overhead.
+
+
+\input{tabls/results_imagenet}
+
+\vspace{0.05cm}
+\noindent\textbf{Results.}
+Table~\ref{results_imagenet} showcases the results on the ImageNet-1K dataset. 
+Notably, 
+\ModelName-M outperforms other isotropic architectures by significant margins, achieving a \textbf{+0.8\%} improvement over ConvNeXt-B~\cite{convnext} and a \textbf{+2.0\%} increase compared to DeiT-B~\cite{deit}, 
+while utilizing fewer parameters. 
+Additionally, \ModelName-M holds its ground against non-isotropic backbones that leverage hierarchical features for enhanced performance. 
+Given Mamba's efficiency in processing long sequences, 
+we further enhance performance by increasing the resolution, achieving a top-1 accuracy of \textbf{84.0\%} with only 74M parameters. 
+This remarkable improvement extends to video tasks, as detailed in Section \ref{sec:short_term}, underscoring \ModelName's effectiveness and scalability.
+
+
+\input{tabls/results_k400}
+\input{tabls/results_ssv2}
+
+\subsection{Short-term Video Understanding}
+\label{sec:short_term}
+
+
+\noindent\textbf{Datasets and Settings.} 
+We evaluate our \ModelName\  on the popular scene-related Kinetics-400~\cite{k400} and temporal-related Something-Something V2~\cite{sth},
+the average video lengths of which are 10s and 4s.
+For supervised pretraining,
+we fine-tune those models pretrained on ImageNet-1K with the same training strategy as VideoMAE~\cite{videomae}.
+Specifically,
+for \ModelName-M,
+the warmup epoch, total epoch, stochastic depth rate, weight decay are set to 5, 50, 0.8, 0.05 for K400,
+and 5, 30, 0.8, 0.05 for SthSth.
+For the smaller models,
+all the hyper-parameters are the same unless we decrease the stochastic depth rate and increase the training epochs.
+Moreover, 
+we linearly scale the base learning rates according to the batch size,
+which are $2e^{-4}\cdot\frac{batchsize}{256}$ for K400 and $4e^{-4}\cdot\frac{batchsize}{256}$ for SthSth.
+As for self-supervised pretraining,
+we adopt the training recipe as in UMT~\cite{umt},
+employing CLIP-ViT-B~\cite{clip} to distill \ModelName-M over 800 epochs. 
+During fine-tuning,
+we use similar hyperparameters as mentioned but opt for a small stochastic depth rate and learning rate for both datasets.
+
+
+\vspace{0.05cm}
+\noindent\textbf{Results.}
+Table \ref{results_k400} and \ref{results_ssv2} list the results on short-term video datasets.
+\textbf{(a) \textit{Supervised}:}
+Compared with the purely attention-based methods~\cite{timesformer,vivit},
+our SSM-based \ModelName-M secures a notable advantage, 
+outperforming ViViT-L~\cite{vivit} by \textbf{+2.0\%} and \textbf{+3.0\%} on the scene-related K400 and the temporally-related SthSthV2 datasets, respectively. 
+This improvement comes with significantly reduced computational demands and less pretraining data.
+Furthermore, 
+\ModelName-M delivers results that are on par with the SOTA UniFormer~\cite{uniformer}, 
+which skillfully integrates convolution with attention in a non-isotropic structure.
+\textbf{(b) \textit{Self-supervised}:}
+The performance of \ModelName\  under masked pretraining surpasses that of the VideoMAE~\cite{videomae}, 
+known for its proficiency in fine-grained action. This achievement underscores the potential of our purely SSM-based model in efficiently and effectively understanding short-term videos, highlighting its suitability for both supervised and self-supervised learning paradigms.
+
+
+\vspace{0.05cm}
+\noindent\textbf{Ablation Studies.} 
+Through comprehensive ablation studies detailed in Fig. \ref{tab:ablation_scan_frame_resolution} and Table \ref{ablation_mask}, 
+we explore various aspects of our model.
+\textbf{(a) \textit{Scan Type}:}
+Among all the methods,
+the spatial-first approach emerges as the most effective, 
+in contrast, 
+the temporal-first strategy is the worst. 
+The superiority of the spatial-first method is attributed to its ability to seamlessly leverage 2D pretrained knowledge by scanning frame by frame.
+\textbf{(b) \textit{Frame and Resolution}:}
+Contrary to findings from ImageNet (see Table \ref{results_imagenet}), 
+higher resolution does not uniformly lead to better performance. 
+Increasing the number of frames consistently enhances results on the K400 dataset. 
+However, 
+this is not the case with SthSthV2, 
+possibly due to the brief duration of its videos, which may not accommodate longer inputs effectively.
+\textbf{(c) \textit{Masked Pretraining}:}
+Our findings reveal that row masking, 
+being particularly compatible with 1D convolution, outperforms commonly used random and tube masking. 
+Clip-row masking excels owing to its higher degree of randomness. 
+Moreover, 
+attention masking stands out as the most efficient by favoring the preservation of adjacent meaningful content. 
+Aligning solely the model's final output proves most effective, 
+likely due to architectural differences. 
+Lastly, an optimal masking ratio (80\%) combined with stronger regularization significantly benefits \ModelName\  during masked pretraining.
+
+
+\input{tabls/ablation_scan_resolution_frame}
+
+\input{tabls/ablation_mask}
+
+
+
+\subsection{Long-term Video Understanding}
+
+
+
+\input{tabls/results_breakfast_coin}
+\input{tabls/results_lvu}
+
+\noindent\textbf{Datasets and Settings.} 
+We rigorously assess \ModelName's proficiency in processing long-term videos by leveraging three comprehensive datasets,
+\textit{i.e.,}
+Breakfast~\cite{breakfast}, COIN~\cite{coin} and Long-form Video Understanding (LVU~\cite{lvu}) benchmark. 
+Specifically,
+Breakfast comprises 1,712 videos, 
+encapsulating 10 intricate cooking activities over 77 hours. 
+COIN features 11,827 videos across 180 unique procedural tasks, 
+with an average duration of 2.36 minutes. 
+The LVU benchmark includes approximately 30K movie clips, 
+lasting between 1 to 3 minutes, 
+and encompasses nine tasks across 3 primary categories: 
+content understanding, metadata prediction, and user engagement. 
+For the regression task among these, we evaluate using mean-squared error, 
+while for the classification tasks, accuracy is the metric of choice.
+In contrast to prior studies~\cite{distant,vis4mer} that rely on features derived from pretrained video models, 
+such as Swin-B~\cite{swin} trained on Kinetics-600, 
+our method employs end-to-end training as detailed in Section \ref{sec:short_term}. 
+Additionally, 
+for fair comparisons, 
+we fine-tune our models pretrained on K400.
+
+\vspace{0.05cm}
+\noindent\textbf{Results.} 
+As illustrated in Figure \ref{fig:comparison_memory_speed}, 
+the linear complexity of \ModelName\  makes it well-suited for end-to-end training with long-duration videos.
+The comparisons in Tables \ref{results_breakfast_coin} and \ref{results_lvu} highlight \ModelName's simplicity and effectiveness against traditional feature-based methods~\cite{vis4mer,distant} on these tasks. 
+It yields significant performance improvements, 
+achieving SOTA results even with smaller model sizes.
+For example, 
+\ModelName-Ti shows a notable increase of \textbf{+6.1\%} over ViS4mer using Swin-B features and a \textbf{+3.0\%} uplift against Turbo's multi-modality alignment approach~\cite{turbo}. 
+Notably, 
+the results underscore the positive impact of the scaling model and frame numbers for long-term tasks. 
+In the diverse and challenging set of nine tasks presented by LVU, 
+our \ModelName-Ti, fine-tuned in an end-to-end manner, 
+delivers outstanding or comparable results to current SOTA methods. 
+These outcomes not only highlight VideoMamba's effectiveness but also its great potential for future long-video comprehension.
+
+
+\subsection{Multi-modality Video Understanding}
+
+\noindent\textbf{Datasets and Settings.} 
+Following UMT~\cite{umt},
+we utilize WebVid-2M~\cite{bain2021frozen} video-text pairs and CC3M~\cite{cc3m} image-text pairs for joint pretraining with four objectives:
+vision-text contrastive learning~\cite{bain2021frozen},
+vision-text matching~\cite{li2021align},
+masked language modeling~\cite{devlin2018bert} and unmasked token alignment~\cite{umt}.
+Initially, 
+we mask 50\% image tokens and 80\% video tokens, 
+conducting pretraining across 8 frames for 10 epochs. 
+Given Mamba's sensitivity to positional information, 
+an additional unmasked tuning phase is carried out for one epoch to refine its comprehension further.
+For evaluation,
+we undertake zero-shot video-text retrieval tasks across five prominent benchmarks, 
+including MSRVTT~\cite{msrvtt}, DiDeMo~\cite{didemo}, ActivityNet~\cite{activitynet}, LSMDC~\cite{lsmdc}, and MSVD~\cite{msvd}.
+ 
+\input{tabls/results_video_text}
+
+\vspace{0.05cm}
+\noindent\textbf{Results.} 
+As indicated in Table \ref{tab:results_video_text}, 
+under the same pretraining corpus and similar training strategies, 
+our \ModelName\  achieves superior zero-shot video retrieval performances to UMT~\cite{umt} based on ViT~\cite{vit}.
+It underscores Mamba's comparable efficiency and scalability to the ViT in handling multi-modal video tasks.
+Notably, 
+for datasets featuring longer video lengths (\textit{e.g.}, ANet and DiDeMo) and more complex scenarios (\textit{e.g.}, LSMDC), 
+\ModelName\  demonstrates a significant improvement. 
+This demonstrates Mamba's aptitude for the demands of cross-modality alignment even in challenging multimodal contexts.

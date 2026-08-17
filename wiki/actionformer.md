@@ -5,11 +5,14 @@ description: A single-stage, anchor-free Transformer for temporal action localiz
 tags: [video, temporal-action-localization, transformer, anchor-free, local-attention]
 status: stable
 created: 2026-08-16
-generated: { by: llm-wiki-agent/1, at: 2026-08-16T10:14:02+07:00 }
+generated: { by: llm-wiki-agent/1, at: 2026-08-17T12:34:53+07:00 }
 sources:
   - id: actionformer-paper
     resource: ../raw/ActionFormer/main.tex
     title: "ActionFormer: Localizing Moments of Actions with Transformers"
+  - id: videomaev2-paper
+    resource: ../raw/2303.16727_VideoMAEV2/videomae_v2.tex
+    title: "VideoMAE V2: Scaling Video Masked Autoencoders with Dual Masking"
 ---
 
 # ActionFormer
@@ -43,5 +46,7 @@ This compilation covers the paper's main and included TeX sections, tables, capt
 - **Applies to:** [Temporal action understanding](temporal-action-understanding.md) as interval-level, single-stage temporal action localization.
 - **Uses:** [Long-video temporal modeling](long-video-temporal-modeling.md) techniques: local temporal attention and a multiscale feature pyramid extend context without full-sequence global attention.
 - **Uses:** [Inflated 3D ConvNets (I3D)](inflated-3d-convnets-i3d.md), [R(2+1)D](r-2-plus-1-d.md), and [SlowFast Networks](slowfast-networks.md) as reported external feature extractors in its evaluations.
+- **Used by:** [VideoMAE V2](videomae-v2.md), which replaces ActionFormer's I3D features with its pretrained features for reported THUMOS14 and FineAction evaluations.[^videomaev2-paper]
 
 [^actionformer-paper]: [ActionFormer: Localizing Moments of Actions with Transformers](../raw/ActionFormer/main.tex)
+[^videomaev2-paper]: [VideoMAE V2: Scaling Video Masked Autoencoders with Dual Masking](../raw/2303.16727_VideoMAEV2/videomae_v2.tex)

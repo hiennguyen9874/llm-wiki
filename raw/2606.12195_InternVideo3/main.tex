@@ -1,0 +1,847 @@
+\documentclass[11pt, letterpaper]{template}
+\usepackage[authoryear, round]{natbib}
+
+\newcommand{\theHalgorithm}{\arabic{algorithm}}
+
+\usepackage{subcaption}
+\usepackage{calc}
+\usepackage[export]{adjustbox}
+\usepackage[version=4]{mhchem}
+\usepackage{multirow}
+\usepackage[T1]{fontenc}
+\usepackage{lmodern}
+
+
+
+\usepackage{longtable}
+\usepackage{framed}
+\definecolor{shadecolor}{RGB}{248,248,248}
+\newenvironment{Shaded}{\begin{snugshade}}{\end{snugshade}}
+
+\usepackage[capitalize,noabbrev]{cleveref}
+
+\usepackage[dvipsnames]{xcolor}
+\hypersetup{
+    colorlinks=true,
+    linkcolor=Cyan,
+    citecolor=Green,
+    filecolor=magenta,
+    urlcolor=magenta,
+}
+
+\theoremstyle{plain}
+\newtheorem{theorem}{Theorem}[section]
+\newtheorem{proposition}[theorem]{Proposition}
+\newtheorem{lemma}[theorem]{Lemma}
+\newtheorem{corollary}[theorem]{Corollary}
+\theoremstyle{definition}
+\newtheorem{definition}[theorem]{Definition}
+\newtheorem{assumption}[theorem]{Assumption}
+\theoremstyle{remark}
+\newtheorem{remark}[theorem]{Remark}
+
+\usepackage[textsize=tiny]{todonotes}
+
+\usepackage{listings}
+\lstset{
+    backgroundcolor=\color[RGB]{245,245,245},
+    breaklines=true,
+    breakindent=0pt,
+    basicstyle=\ttfamily\footnotesize\linespread{0.7},
+    frame=single,
+    frameround = tttt,
+    framerule= 2pt,
+    rulecolor=\color[RGB]{50,50,50},
+    captionpos=b
+}
+
+\usepackage[most]{tcolorbox}
+\definecolor{NavyBlue}{rgb}{0.0, 0.0, 0.5}
+\definecolor{DarkerNavy}{rgb}{0.0, 0.05, 0.3}
+\definecolor{DeepNavy}{rgb}{0.0, 0.0, 0.4}
+\definecolor{DustyBlue}{rgb}{0.2, 0.3, 0.4}
+\tcbset{
+  promptbox/.style={
+    top=5pt,
+    bottom=5pt,
+    colback=lightgray!20,
+    colframe=black,
+    colbacktitle=DustyBlue,
+    enhanced,
+    center,
+    attach boxed title to top center={yshift=-0.1in,xshift=0.0in},
+    boxed title style={boxrule=0pt,colframe=white,},
+    before upper={\parindent0pt\setlength{\parskip}{2pt}},
+  }
+}
+\newtcolorbox{promptbox}[2][]{promptbox, title=#2,#1}
+
+\newtcbtheorem[number within=section]{question}{Question}{
+    top=10pt,
+    colback=lightgray!20,
+    colframe=Black,
+    colbacktitle=DustyBlue,
+    enhanced,
+    center,
+    attach boxed title to top center={yshift=-0.1in,xshift=0.0in},
+    boxed title style={boxrule=0pt,colframe=white,},
+    breakable
+}{qn}
+
+\newtcbtheorem[number within=section]{prompt}{Prompt}{
+    top=10pt,
+    colback=lightgray!20,
+    colframe=Black,
+    colbacktitle=Cerulean,
+    enhanced,
+    center,
+    attach boxed title to top center={yshift=-0.1in,xshift=0.0in},
+    boxed title style={boxrule=0pt,colframe=white,},
+    breakable
+}{pp}
+
+\newtcbtheorem[number within=section]{case}{Case}{
+    top=10pt,
+    colback=lightgray!20,
+    colframe=Black,
+    colbacktitle=Tan,
+    enhanced,
+    center,
+    attach boxed title to top center={yshift=-0.1in,xshift=0.0in},
+    boxed title style={boxrule=0pt,colframe=white,},
+    breakable
+}{cs}
+
+\usepackage{xspace}
+\newcommand{\name}{\texttt{InternVideo3}\xspace}
+
+\newcommand{\tightlist}{%
+\setlength{\itemsep}{0pt}\setlength{\parskip}{0pt}}
+
+\newcommand{\blfootnote}[1]{%
+  \begingroup
+  \renewcommand\thefootnote{}\footnote{#1}%
+  \addtocounter{footnote}{-1}%
+  \endgroup
+}
+
+\usepackage{pifont}
+
+
+\title{\name: Agentify Foundation Models with Multimodal Contextual Reasoning}
+
+\author[1*]{Ziang Yan} \author[2,3*]{Sheng Xia} \author[1*]{Jiashuo Yu} \author[1*]{Yue Wu} \author[1]{Tianxiang Jiang} \author[1]{Songze Li} \author[1]{Kanghui Tian} \author[1]{Yicheng Xu} \author[1]{Yinan He} \author[1]{Kai Chen} \author[3,1]{Limin Wang} \author[1]{Yu Qiao} \author[1$\dagger$]{Yi Wang}
+\affil[1]{Shanghai AI Laboratory} \affil[2]{Shanghai Innovation Institute}
+\affil[3]{Nanjing University}
+\newcommand{\projectpage}{\textbf{Project Page:} \url{https://github.com/OpenGVLab/InternVideo/tree/main/InternVideo3}}
+
+
+\begin{document}
+
+
+\begin{abstract}
+Recent progress in foundation models has increasingly shifted from one-shot prediction toward \emph{agentic} behavior, where models solve tasks through multi-step reasoning, tool use, memory, and self-correction. However, much of the open-source momentum has centered on text-dominant settings such as coding, search, and long-context tool use, while \emph{long-horizon multimodal} tasks remain comparatively underexplored. This gap is especially visible in video, where real-world tasks often require sustained temporal understanding, visually grounded evidence gathering, and iterative interaction with external tools or memory rather than a single-pass question-answering step.
+We present \name, a framework for improving such capabilities through \emph{Multimodal Contextual Reasoning} (MCR), a formulation that treats multimodal understanding as a closed-loop process over a shared evolving context. In MCR, multimodal observations, instructions, intermediate reasoning, tool actions, feedback, and memory are all represented within a unified context that is updated over time. This makes long-video understanding a process of evidence accumulation, belief revision, and verification, and provides a practical abstraction for multimodal agentic behavior.
+To make such long-horizon rollouts efficient, we introduce \emph{Multimodal Multi-head Latent Attention} (M$^2$LA), a token-preserving attention reparameterization that compresses KV-cache states while retaining the full multimodal token stream. We further develop a staged training recipe consisting of continued pretraining after M$^2$LA conversion, short-to-long supervised fine-tuning for video, rule-based reinforcement learning on verifiable tasks, and on-policy distillation from stronger teacher models.
+Experiments on short-video and long-video benchmarks show that \name\ achieves strong performance among open video models, with especially notable gains on long-horizon tasks such as Video-MME, MLVU, and EgoSchema. We also instantiate the model as a video agent with retrieval and verification tools, illustrating how recursive multimodal reasoning can support more robust evidence-grounded behavior. Overall, our results suggest that efficient context handling and closed-loop multimodal reasoning are important ingredients for adapting open multimodal models toward long-horizon visually grounded agency.
+
+\end{abstract}
+
+\blfootnote{*Equal contribution. $\dagger$Corresponding author.}
+
+\maketitle
+
+\section{Introduction}
+
+Foundation models are increasingly evaluated not only by how well they answer questions, but by how well they \emph{act} over extended horizons. Across recent research, two themes have become especially prominent: \emph{agents}, which emphasize multi-step reasoning~\citep{react}, tool use~\citep{schick2023toolformer}, memory~\citep{park2023generative}, and self-correction~\citep{shinn2023reflexion}; and \emph{world modeling}, which emphasizes persistent internal state, temporal abstraction, and reasoning over evolving environments \citep{ha2018world}. Although these directions are often studied separately, they share a common shift in perspective: moving from one-shot prediction toward systems that maintain, update, and act on contextual knowledge over time.
+
+So far, however, much of the open-source progress in agentic AI has concentrated on \emph{text-dominant} settings, including coding agents~\citep{yang2024swe, wang2025openhands}, browser~\citep{yao2022webshop,zhou2024webarena} and search agents~\citep{react,jin2025search,zheng2025deepresearcher}, function calling~\citep{schick2023toolformer, qin2024toolllm}, and ultra-long-context language tasks~\citep{zhang2024bench, bai2025longbench}. By comparison, \emph{visually grounded long-horizon reasoning} remains significantly less developed. Existing multimodal large language models (MLLMs)~\citep{qwen25vl,qwen3vl,internvl35,li2024llava} have made impressive progress on image understanding and short-video QA, but they still struggle on tasks that require sustained temporal understanding, evidence localization, spatial reasoning, iterative evidence gathering, and interaction with external tools or memory. Yet these are precisely the settings in which multimodal agents must operate: the model must determine what it has seen, what remains uncertain, what additional evidence is needed, and whether its current conclusion is sufficiently grounded to answer or act.
+
+This gap matters for both practical and scientific reasons. Practically, many real workloads, including long-form video analysis~\citep{longvideobench,wang2024lvbench}, instructional understanding~\citep{howto100m}, surveillance review~\citep{sultani2018real}, egocentric perception~\citep{ego4d,egoschema}, and evidence-grounded temporal reasoning~\citep{lei2018tvqa,nextgqa,liu2024tempcompass}, cannot be reliably solved by single-pass multimodal QA. They require revisiting observations, preserving relevant memory, localizing supporting evidence, invoking specialized tools, and revising conclusions when new information arrives. Scientifically, these tasks offer a concrete testbed for capabilities often associated with multimodal agency and world-model-like reasoning: latent state tracking~\citep{hansen2022temporal,hansen2024td}, temporal abstraction~\citep{machado2023temporal, kong2024latent}, uncertainty-aware evidence selection~\citep{asai2024self}, and closed-loop interaction between perception and decision making~\citep{ahn2022can,brohan2022rt}. In this sense, long-horizon video reasoning is not merely another benchmark category, but an important substrate for studying visually grounded agency in foundation models.
+
+In this work, we study how to move open multimodal models \emph{toward} this regime by \emph{agentifying their reasoning process} rather than assuming a one-shot mapping from video to answer. We propose \emph{Multimodal Contextual Reasoning} (MCR), a unified formulation in which multimodal observations, task instructions, intermediate reasoning traces, tool actions, feedback, and memory are all represented within a shared evolving context. Under MCR, long-video understanding becomes a recursive process of \emph{observe, reason, act, receive feedback, and update context}. This formulation does not attempt to build a full action-conditioned world simulator. Instead, it provides a practical way for a multimodal foundation model to maintain and refine a task-relevant contextual belief state while reasoning over long visual streams and interacting with tools.
+
+A major obstacle to this paradigm is efficiency. In long multimodal rollouts, the bottleneck is not only the number of visual tokens, but the growing KV-cache required to preserve observations, reasoning traces, tool outputs, and memory across many decoding steps. Existing approaches often reduce cost by aggressive frame subsampling, retrieval, or summarization. While useful, such methods may discard information that later becomes important for reasoning or verification. We therefore pursue a complementary direction: preserving the full multimodal token stream while reducing memory usage \emph{inside} attention. To this end, we introduce \emph{Multimodal Multi-head Latent Attention} (M$^2$LA), a long-context-efficient attention design that compresses cached KV states while reconstructing head-specific representations on the fly. This makes longer multimodal rollouts feasible under practical hardware constraints.
+
+Building on this efficient attention foundation, we develop a staged training recipe tailored to long-horizon multimodal reasoning. Starting from an open multimodal backbone, we first perform continued pretraining after M$^2$LA conversion to recover language capability and multimodal alignment under the new attention parameterization. We then carry out large-scale long-video supervised fine-tuning with a short-to-long curriculum, followed by rule-based reinforcement learning on verifiable tasks and on-policy distillation~\citep{agarwal2024policy,lu2025onpolicydistillation,xu2025speculative} from stronger teacher models. This pipeline strengthens the model's ability to reason over dense visual evidence and extended temporal dependencies without requiring frontier-scale base models.
+
+Empirically, \name\ achieves strong results across short-video, long-video, and spatiotemporal reasoning benchmarks, with especially notable gains on long-horizon tasks such as Video-MME~\citep{videomme}, MLVU~\citep{mlvu}, and EgoSchema~\citep{egoschema}. We further instantiate the model as a video agent with retrieval and verification tools, illustrating how recursive multimodal reasoning can support more robust evidence-grounded behavior. Taken together, our results suggest that \emph{context efficiency} and \emph{closed-loop multimodal reasoning} are useful ingredients for adapting open multimodal models toward long-horizon visually grounded agency.
+
+Our contributions are summarized as follows:
+\begin{itemize}[leftmargin=*]
+    \item We propose \textbf{Multimodal Contextual Reasoning (MCR)}, a unified formulation for long-horizon multimodal reasoning in which observations, intermediate reasoning, tool use, feedback, and memory are represented within a shared evolving context.
+    \item We introduce \textbf{M$^2$LA}, a long-context-efficient attention reparameterization that compresses KV-cache states while preserving the full multimodal token stream, enabling longer multimodal rollouts under constrained hardware budgets.
+    \item We develop a practical training recipe for long-video reasoning, combining continued pretraining after attention conversion, short-to-long supervised fine-tuning, rule-based reinforcement learning on verifiable tasks, and on-policy distillation from stronger teacher models.
+    \item We demonstrate strong results on short-video, long-video, and spatiotemporal reasoning benchmarks, and further present a video-agent instantiation that illustrates the practical value of recursive multimodal reasoning for evidence-grounded behavior.
+\end{itemize}
+
+\section{Related Work}
+
+\paragraph{Multimodal Large Language Models.}
+The rapid development of multimodal large language models has expanded foundation-model capabilities from image-text alignment and image understanding \citep{clip,flamingo,llava,pmlr-v202-li23q,internvl,internvl2} to more general video understanding and multimodal reasoning \citep{internvideo,internvideo2,wang2025internvideo2,videollama2,Llava-onevision,qwen3vl}. Recent open-source video MLLMs achieve strong performance on standard short-to-medium video benchmarks such as VideoMME \citep{videomme}, MVBench \citep{mvbench}, LVBench \citep{wang2024lvbench}, and related instruction-following settings. However, performance still degrades on genuinely long videos or tasks requiring sustained temporal reasoning, evidence localization, and multi-step context accumulation. A common limitation is that multimodal inputs are often treated as passive context to be summarized once, rather than as evolving evidence to be revisited and refined during reasoning. Our work focuses on this longer-horizon regime, where the challenge is not only to perceive visual content, but to maintain and update a coherent multimodal context over time.
+
+\paragraph{Agents.}
+Turning foundation models into agents has become a major research direction since ReAct \citep{react}, which showed the effectiveness of interleaving reasoning and action. Subsequent work extend this paradigm to program synthesis, tool use, GUI interaction, mobile interfaces, and multimodal environments, including ViperGPT \citep{vipergpt}, VisProg \citep{visprog}, CogAgent \citep{cogagent}, AppAgent \citep{appagent}, Mobile-Agent \citep{mobileagent}, and a growing family of coding and search agents~\citep{yang2024swe, wang2025openhands, jin2025search, zheng2025deepresearcher}. In multimodal settings, the core challenge is often not only selecting the next tool, but deciding what perceptual evidence is missing, where to look next, and whether current evidence is sufficient to answer or act. Prior video-agent systems \citep{videoagent1,videoagent2} demonstrate the value of tool-augmented video reasoning, such as frame sampling, temporal grounding, or subtitle retrieval, but they often rely on planner-controller decompositions, short interaction horizons, or task-specific pipelines. Our work instead studies how to support longer-horizon visually grounded reasoning within a unified MLLM context, where observations, intermediate reasoning, tool outputs, and memory are all represented within a common rollout.
+
+\paragraph{World Models and Predictive Video Learning.}
+World models aim to learn compact internal state representations that support prediction, planning, and decision making in partially observed environments. This line of work spans latent dynamics models for reinforcement learning \citep{ha2018world,hafner2019dream,vjepa2}, action-conditioned predictive models, generative simulators, and recent self-supervised predictive representation learning approaches. An influential direction is the \emph{Joint-Embedding Predictive Architecture} (JEPA), learning by predicting missing or future content in a learned embedding space rather than reconstructing pixels \citep{ijepa,vjepa,vjepa2,vjepa21}. JEPA-style methods emphasize learning abstract, predictable, and task-relevant structure while discarding low-level detail unnecessary for downstream reasoning or control. This paradigm has evolved from image representation learning in I-JEPA \citep{ijepa} to video predictive learning in V-JEPA \citep{vjepa}, and more recently to V-JEPA2 \citep{vjepa2}, connecting large-scale video pretraining with understanding, prediction, and robot planning. These works suggest predictive latent representations are a promising substrate for world understanding and, with additional action supervision, for planning. Our work is complementary to this literature. Rather than training a full action-conditioned latent world model from interaction data, we study how a multimodal foundation model can maintain and update a task-relevant \emph{contextual belief state} over long visual streams during reasoning and tool interaction.
+
+\paragraph{Context Modeling and Engineering.}
+Handling long multimodal sequences remains a central challenge in both LLMs and MLLMs. Existing strategies include sparse frame sampling, hierarchical temporal modeling, retrieval-augmented frame selection, summarization, memory tokens, and context compression. For long videos and long documents, systems such as MovieChat \citep{moviechat}, LongVU \citep{longvu}, and Gemini 1.5 \citep{gemini} employ retrieval, summarization, or compression to fit large evidence sets into finite contexts. Meanwhile, recent LLMs have increasingly focused on ultra-long contexts for agentic workloads \citep{deepseekai2026deepseekv4}. However, multimodal agency requires more than simply fitting long context into memory: it requires dynamic, reasoning-guided evidence selection and the preservation of causal dependencies across observations, actions, and feedback. Our M$^2$LA architecture addresses this challenge from an attention-efficiency perspective by compressing KV-cache states without dropping tokens, while MCR provides a formulation for recursively updating multimodal context during long-horizon rollouts.
+
+\paragraph{Reasoning, Reflection, and Test-Time Interaction.}
+Enhancing reasoning in foundation models has progressed through prompting techniques such as Chain-of-Thought \citep{cot}, Tree-of-Thought \citep{tot}, self-reflection, and through learning-based methods such as process supervision, outcome-supervised RL, and test-time scaling. In multimodal settings, these mechanisms become tightly coupled with perception: the model must decide whether current observations suffice, whether more evidence is needed, and which perception or tool operation should be performed next. Visual search and grounding methods such as V* \citep{vstar} suggest that reasoning can guide what evidence to inspect within an image or video. Our work follows this direction, but places reasoning, perception updates, tool feedback, and memory into a single evolving multimodal context. This enables a closed-loop formulation in which belief updates and evidence gathering are part of the same sequence model, rather than auxiliary stages outside it.
+
+
+\section{Method}
+\label{sec:method}
+
+\begin{figure}[t]
+    \centering
+    \includegraphics[width=\linewidth]{figures/iv3-mcr_crop.pdf}
+    \caption{Framework of MCR.}
+    \label{fig:mcr}
+\end{figure}
+
+We present \name, a framework for improving long-horizon multimodal reasoning through three complementary components: 
+(1) \emph{Multimodal Contextual Reasoning} (MCR), a formulation that represents observations, intermediate reasoning, tool actions, feedback, and memory within a shared evolving context; 
+(2) \emph{Multimodal Multi-head Latent Attention} (M$^2$LA), an efficient attention reparameterization that reduces KV-cache cost for long multimodal rollouts; and 
+(3) a staged training recipe that restores pretrained capability after attention conversion and then specializes the model for long-video reasoning. 
+
+The central idea is to treat long-horizon multimodal understanding not as a one-pass mapping from video to answer, but as a closed-loop process in which the model repeatedly observes, reasons, acts, receives feedback, and updates its contextual state. In this section, we first introduce the MCR formulation, then describe the long-context-efficient attention design that makes such rollouts practical, followed by our training recipe and video-agent instantiation.
+
+\subsection{Multimodal Contextual Reasoning}
+
+\paragraph{Motivation.}
+Conventional multimodal QA typically assumes that a model receives a fixed image or video and produces an answer in a single forward pass. This abstraction is effective for short and self-contained examples, but becomes increasingly inadequate for long videos and visually grounded agentic tasks. In these settings, the model must often decide what evidence is already available, what information remains missing, whether to inspect another temporal segment or spatial region, whether to invoke an external tool, and whether its current conclusion should be revised in light of new evidence. These requirements are more naturally captured by an \emph{evolving contextual state} than by a single static prompt.
+
+We therefore formulate multimodal reasoning as \textbf{Multimodal Contextual Reasoning (MCR)}, in which task-relevant information, including multimodal observations, user instructions, intermediate reasoning traces, tool actions, external feedback, and memory, is represented within a shared context that grows over time. This context acts as a task-grounded belief state: it records what the model has observed, what it has inferred, what actions it has taken, and what uncertainty remains.
+
+\paragraph{Closed-Loop Rollout.}
+Given a user query $\mathbf{Q}$ and an initial multimodal observation $\mathbf{V}_{\texttt{init}}$, MCR proceeds through a multi-step rollout. At step $i$, the model conditions on the current visual evidence $\mathbf{V}_i$, the current action trace $\mathbf{A}_i$, the tool or environment feedback $\mathbf{F}_i$, and the accumulated context $\mathbf{C}_i$, and produces an intermediate reasoning state or response $\mathbf{R}_i$:
+\begin{align}
+\mathbf{R}_i \sim f_{\theta}\!\left(\mathbf{Q}\ \middle|\ \mathbf{V}_i,\ \mathbf{A}_i,\ \mathbf{F}_i,\ \mathbf{C}_i\right), \qquad i = 1,2,\dots,N .
+\label{eq:mcr_main_rewrite}
+\end{align}
+The resulting reasoning state triggers an updated action decision, tool call, or perception request:
+\begin{align}
+\mathbf{A}_{i+1} &\sim \rho\!\left(\mathbf{A}_i\ \middle|\ \mathbf{R}_i,\mathbf{F}_i,\mathbf{Q}\right), \\
+\mathbf{F}_{i+1} &\sim \pi\!\left(\mathbf{A}_{i+1}\ \middle|\ \mathbf{R}_i,\mathbf{Q}\right), \\
+\mathbf{V}_{i+1} &\sim \delta\!\left(\mathbf{V}_i\ \middle|\mathbf{C}_{i+1}\right),
+\label{eq:mcr_transition_rewrite}
+\end{align}
+where $\rho(\cdot)$ denotes the policy that selects the next action, $\pi(\cdot)$ denotes environment or tool execution, and $\delta(\cdot)$ denotes the perception update operator that determines what visual evidence should be observed next. Note the newly produced reasoning, action, and feedback are appended to the context:
+\begin{align}
+\mathbf{C}_{i+1} = \mathbf{C}_i \oplus \left(\mathbf{R}_i,\mathbf{A}_{i+1},\mathbf{F}_{i+1}\right),
+\qquad
+\mathbf{C}_1 = \mathbf{T}_{\texttt{sys}},
+\qquad
+(\mathbf{V}_1,\mathbf{A}_1,\mathbf{F}_1)=(\mathbf{V}_{\texttt{init}},\varnothing,\varnothing),
+\label{eq:mcr_context_rewrite}
+\end{align}
+where $\oplus$ denotes context aggregation, optionally combined with summarization or compression to control growth over long rollouts. The rollout terminates after $N$ steps once the model emits a final answer or a termination action:
+$\mathbf{R}_N \models \mathbf{Q}$.
+
+In practice, we implement this process as an autoregressive rollout in which the model alternates between generating intermediate reasoning tokens, tool calls, and final answers, while appending tool outputs and memory summaries back into the same multimodal context.
+
+\paragraph{Interpretation.}
+MCR can be understood as a \emph{contextual belief-update process} implemented inside an MLLM. Rather than learning a standalone action-conditioned world simulator, the model incrementally constructs and revises a task-relevant contextual state through multimodal evidence accumulation, reasoning, and tool interaction. Our goal is therefore not full predictive world modeling, but a practical mechanism for maintaining and updating grounded beliefs over long visual streams. In this sense, MCR is best viewed as a useful abstraction for long-horizon multimodal reasoning and visually grounded agentic behavior.
+
+\paragraph{Actions and Tools in MCR.}
+In our instantiation, actions may include:
+\begin{itemize}[leftmargin=*]
+    \item \textbf{Perceptive actions}, such as requesting a temporal zoom-in, revisiting a segment, or selecting a more informative clip.
+    \item \textbf{Tool actions}, such as invoking ASR, segmentation, temporal grounding, or web search.
+    \item \textbf{Memory actions}, such as reading, writing, or summarizing intermediate context.
+    \item \textbf{Verification actions}, such as checking whether sufficient evidence supports the current answer.
+    \item \textbf{Termination actions}, such as returning the final response.
+\end{itemize}
+This unified view allows diverse agentic behaviors to be represented within the same sequence modeling framework.
+
+\subsection{Long-Context Efficient Attention with M$^2$LA}
+
+MCR places observations, reasoning traces, tool outputs, and memory updates into a shared evolving context. As the rollout grows, the main bottleneck is not only the number of input tokens, but the \emph{KV-cache footprint} required to preserve this context during decoding. This issue is especially severe in multimodal settings, where visual evidence already occupies a large fraction of the context and additional agent-like traces accumulate over multiple reasoning steps.
+
+A straightforward way to reduce this cost is to drop tokens through subsampling, retrieval, or summarization. While useful, such methods may remove information that later becomes important for verification or evidence integration. Since our goal is to preserve as much multimodal evidence as possible while still enabling long-horizon rollouts, we pursue a complementary approach: \emph{compressing cached attention states rather than dropping tokens}. To this end, we introduce \textbf{Multimodal Multi-head Latent Attention} (M$^2$LA), shown in Figure~\ref{fig:method_overview}.
+
+
+M$^2$LA replaces standard GQA-style~\citep{ainslie2023gqa} attention blocks with a latent KV representation. Instead of storing full per-head keys and values for every token in the cache, the model stores a compact latent vector for each token and reconstructs head-specific keys and values on the fly during attention computation. This shifts long-context efficiency from a token-reduction problem outside the model to a state-compression problem inside attention itself. The full multimodal token stream is preserved, but the memory footprint of cached states is substantially reduced.
+
+\begin{figure}[t]
+    \centering
+    \includegraphics[width=\linewidth]{figures/InternVideo3_arch.pdf}
+    \caption{Architecture of \name.}
+    \label{fig:method_overview}
+\end{figure}
+
+\subsubsection{Pretrained Attention Reparameterization}
+
+Our model is built by converting a pretrained GQA-based backbone into the M$^2$LA form. The goal of this conversion is to preserve the original short-context behavior as much as possible while enabling a lower-memory long-context regime.
+
+\paragraph{RoPE-Aware Positional Aggregation.}
+For channels carrying positions, compressing keys across heads can distort the geometric structure induced by RoPE~\citep{su2024roformer}. We therefore aggregate multi-head positional keys into a shared representation in an MQA-like manner, using a learned position-compatible linear aggregation obtained from a lightweight calibration pass. This preserves positional structure while avoiding redundant caching of similar positional channels across heads.
+
+\paragraph{Low-Rank Latent Factorization for Content Channels.}
+For non-positional content channels, we factorize keys and values through a low-rank bottleneck. Specifically, keys and values are first projected into a compact latent space, which is cached, and then head- or group-specific keys and values are reconstructed via learned up-projections. This decouples the KV-cache size from the original number of heads and head dimensions, allowing us to shrink the cache without discarding multimodal tokens.
+
+\paragraph{Modality-Aware Latent Adaptation.}
+A shared latent space is used for both text and vision tokens, but their distributions differ substantially. To accommodate this mismatch, M$^2$LA includes lightweight modality-aware adapters, such as separate affine or linear mappings for text and vision tokens, applied on the cached latent vectors prior to reconstruction. This preserves a unified attention interface while allowing the latent representation to adapt to modality-specific statistics.
+
+\subsubsection{Dynamic Latent Budgeting}
+
+The importance of high-rank visual representations is not uniform across layers or modalities. Early layers often require richer visual detail for alignment and retrieval, while deeper layers rely more heavily on distilled semantic representations. M$^2$LA therefore supports \emph{layer-wise} and \emph{modality-wise} latent dimensions. In practice, we reduce the latent rank more aggressively in layers or modalities where reconstruction fidelity is less critical. This yields a controllable memory--accuracy trade-off and is particularly useful for multimodal agentic rollouts whose context grows over time.
+
+\subsubsection{Compatibility with Head-wise QK-Norm}
+
+Recent backbones such as Qwen3~\citep{yang2025qwen3} employ head-wise QK-Norm~\citep{henry2020query}, applying RMSNorm~\citep{zhang2019root} independently to the query and key vectors of each attention head before RoPE. While beneficial for training stability, this normalization complicates post-training attention reparameterization because it introduces \emph{head-specific} and \emph{input-dependent} scaling factors, making a shared linear aggregation across heads appear invalid.
+
+\paragraph{Conflict with Shared Aggregation.}
+For head $h$, the normalized key can be written as
+\begin{equation}
+\mathrm{RMSNorm}(\mathbf{x}_h) = \frac{\mathbf{x}_h}{\sigma(\mathbf{x}_h)},
+\end{equation}
+where $\sigma(\mathbf{x}_h)$ is the root-mean-square magnitude of the head input. Since $\sigma(\mathbf{x}_h)$ varies with both the head and the input token, one might expect this to obstruct any static aggregation across heads.
+
+\begin{figure}[t]
+    \centering
+    \begin{subfigure}[t]{0.48\linewidth}
+        \centering
+        \includegraphics[width=\linewidth]{figures/norm_dist.png}
+        \caption{The distribution of RMSNorm coefficients in Qwen3 is highly concentrated.}
+        \label{fig:norm_dist}
+    \end{subfigure}\hfill
+    \begin{subfigure}[t]{0.48\linewidth}
+        \centering
+        \includegraphics[width=\linewidth]{figures/norm_surface.png}
+        \caption{Visualization of 2D RMSNorm $Z = X / \sqrt{(X^2 + Y^2 + \epsilon)/2}$, demonstrating good ``flatness'' and linear approximability.}
+        \label{fig:norm_surface}
+    \end{subfigure}
+    \caption{Empirical validation of RMSNorm concentration and 2D geometric ``flatness''.}
+    \label{fig:norm_empirical}
+\end{figure}
+
+\paragraph{Norm Concentration and Linear Approximation.}
+We address this by observing that in high-dimensional pretrained models, the RMS values are often strongly concentrated. If $\sigma(\mathbf{x}_h)$ has small variance around a mean $\mu$, then a first-order approximation yields
+\begin{equation}
+\mathrm{RMSNorm}(\mathbf{x}_h)
+=
+\frac{\mathbf{x}_h}{\sigma(\mathbf{x}_h)}
+\approx
+\frac{1}{\mu}\mathbf{x}_h.
+\end{equation}
+Under this approximation, head-wise RMS normalization behaves approximately as a constant linear scaling, which restores compatibility with a shared latent reparameterization.
+
+Empirically, we validate this approximation on a calibration set and find that a learned linear substitute can reproduce the original normalized outputs with high fidelity. This allows us to replace the original head-wise normalization path with a \emph{Global-Norm-Linear} approximation during the M$^2$LA conversion, making Qwen3-style architectures compatible with our attention reparameterization. Overall, M$^2$LA enables substantially longer MCR rollouts by reducing KV-cache memory while keeping the original multimodal token stream intact.
+
+\subsection{Training Recipe for Long-Horizon Multimodal Reasoning}
+
+\begin{figure}[t]
+    \centering
+    \includegraphics[width=\linewidth]{figures/train_recipe.pdf}
+    \caption{Training recipe of \name.}
+    \label{fig:training}
+\end{figure}
+
+To realize long-horizon multimodal reasoning after M$^2$LA conversion, we adopt a staged training recipe that progressively restores pretrained capability, extends temporal understanding, and strengthens multi-step reasoning through verifiable post-training.
+
+\subsubsection{Continued Pretraining after M$^2$LA Conversion}
+
+Converting a pretrained GQA backbone into M$^2$LA changes the internal attention parameterization and introduces an initial mismatch relative to the original pretrained model. This mismatch affects both language ability and multimodal alignment, especially before the vision encoder and decoder adapt to the new latent attention pathway. We therefore perform a lightweight \textbf{continued pretraining} (CPT) stage to recover these capabilities.
+
+\subsubsection{Short-to-Long Supervised Fine-Tuning}
+
+After CPT, we conduct a \textbf{short-to-long supervised fine-tuning} stage to progressively build long-range temporal competence. Directly training on maximal-length videos often leads to unstable optimization, since the model must simultaneously learn temporal reasoning and extremely long-context attention. We instead use a curriculum that increases both temporal resolution and context length over stages.
+
+\paragraph{Stage 1: Short Context.}
+We begin with videos sampled at 2 fps and capped at 512 frames, corresponding to approximately 32k tokens. This stage establishes basic temporal understanding with manageable computational cost.
+
+\paragraph{Stage 2: Long Context.}
+We increase to 4 fps and up to 2048 frames, supporting contexts up to 256k tokens. This stage makes the model reason over extended durations and finer temporal detail.
+
+\subsubsection{Rule-Based Reinforcement Learning}
+
+While SFT builds a stable initialization, it is limited by the scale and diversity of curated annotations. To further improve verifiable long-horizon reasoning, we apply \textbf{rule-based group sequence policy optimization} (GSPO) on automatically rewardable tasks.
+
+\paragraph{Training Tasks.}
+We use two families of tasks: 1) \textbf{video QA}, where correctness can be checked against reference answers; and 2) \textbf{temporal grounding}, where predictions can be scored by interval IoU against ground-truth moments. To improve training efficiency, we prioritize examples with meaningful policy uncertainty, filtering out samples that are already solved or too noisy.
+
+\paragraph{Optimization.}
+For each video-query pair, we sample a group of candidate responses, compute their rule-based rewards, normalize these rewards within the group, and optimize a clipped policy objective with KL regularization to the SFT reference model. This encourages the policy to improve relative ranking among candidate trajectories while remaining close to the stable supervised initialization. The resulting RL stage strengthens temporal localization, answer calibration, and other aspects of verifiable multimodal reasoning.
+
+\subsubsection{On-Policy Distillation}
+
+Finally, we perform \textbf{video on-policy distillation} from a stronger teacher model. Unlike standard distillation that trains only on teacher-generated outputs, on-policy distillation supervises the student on its own sampled trajectories. For each selected prompt, the student generates a response trajectory and the teacher evaluates the same token sequence under the same prefix. The student is then optimized with a reverse-KL objective toward the teacher distribution:
+\begin{equation}
+\mathcal{L}_{\text{OPD}} =
+\mathbb{E}_{\mathbf{Y}\sim\pi_\theta(\cdot|\mathbf{V},\mathbf{Q})}
+\left[
+\frac{1}{T}\sum_{t=1}^{T}
+\left(
+\log \pi_\theta(y_t|\mathbf{V},\mathbf{Q},\mathbf{Y}_{<t})
+-
+\log \pi_{\text{teacher}}(y_t|\mathbf{V},\mathbf{Q},\mathbf{Y}_{<t})
+\right)
+\right],
+\end{equation}
+where $\pi_{\text{teacher}}$ denotes a teacher model with strong capability (here we use Qwen3-235B). 
+This provides dense supervision on the states actually visited by the student and reduces exposure bias over long reasoning trajectories.
+
+We construct the distillation set from reasoning-heavy video QA and long-form captioning data, keeping only examples where the teacher is correct or significantly more complete while the student remains incorrect, incomplete, or weakly grounded. This stage is useful for transferring stronger behaviors in multi-step reasoning, fine-grained temporal comparison, and long-form visual description.
+
+\subsection{Video-Agent Instantiation}
+
+To illustrate the practical implications of MCR beyond static QA, we instantiate \name\ as a \textbf{video agent} that alternates between coarse perception, memory retrieval, targeted re-perception, tool use, and answer verification.
+
+\paragraph{Hierarchical Memory.}
+Given a video and a query, we first build a hierarchical memory consisting of sampled frames, scene boundaries, clip-level captions, timestamps, and optional subtitle or OCR signals. Each memory entry stores both semantic content and temporal metadata, enabling retrieval by either meaning or time constraints. During rollout, the agent maintains the current evidence window, a retrieved memory subset, and a compact belief summary recording the current hypothesis, unresolved uncertainty, and candidate timestamps.
+
+\paragraph{Question Routing.}
+Before acting, the model predicts a coarse question type, such as \texttt{global}, \texttt{speech}, \texttt{knowledge}, \texttt{temporal}, or \texttt{fine-grained}. This serves as a soft routing prior for deciding whether the current memory suffices or whether an external tool should be invoked.
+
+\paragraph{Tool Set.}
+The controller may call: 1) \texttt{video\_segmentation}, to update scene-level structure; 2) \texttt{asr}, to retrieve spoken content; 3) \texttt{web\_search}, to obtain external factual knowledge; 4) \texttt{temporal\_grounding}, to localize relevant intervals; 5) and internal actions such as \texttt{summarize}, \texttt{verify}, and \texttt{answer}.
+Tool outputs are treated as feedback $\mathbf{F}_{i+1}$ in the MCR framework and appended to the evolving context.
+
+\paragraph{Recursive Verification.}
+Before termination, the agent performs a lightweight self-check that asks whether the answer is adequately supported, what evidence backs it, and whether unresolved conflicts remain. If support is insufficient, the agent issues another retrieval or re-perception step focused on the uncertain segment. This verification mechanism reduces hallucination and encourages evidence-grounded responses.
+
+\paragraph{Integration with M$^2$LA.}
+The video-agent system is tightly coupled with our long-context architecture. Because M$^2$LA reduces the KV-cache footprint of accumulated evidence, feedback, and belief updates, the agent can retain longer histories without repeatedly rebuilding context from scratch. As a result, simple questions can be answered after a coarse pass, while harder temporal or causal questions can trigger additional recursive evidence gathering within the same long-horizon rollout.
+
+\paragraph{Summary.}
+Taken together, MCR provides the \emph{reasoning formulation}, M$^2$LA provides the \emph{efficiency mechanism}, and our staged post-training recipe provides the \emph{capability acquisition path}. This combination yields a more effective long-horizon visual reasoner and supports a practical video-agent instantiation built on top of an open multimodal foundation model.
+
+
+
+
+\section{Data Curation}
+
+We describe below the data used in each stage of the training recipe.
+
+\subsection{Continued Pre-training Data}
+
+The continued pre-training (CPT) corpus comprises \textbf{16M multimodal samples}, corresponding to around \textbf{13.5B tokens}. This stage is not to teach the model new task-specific behaviors, but to \emph{re-stabilize} the converted backbone after the M$^2$LA attention reparameterization and recover its general multimodal capability before downstream long-video training.
+
+We adopt a balanced three-way mixture: 1) text-only data (29.9\% in samples, 3.6B)~\citep{wang2025scireasoner,kuckreja2024geochat,yu2024metamath,hendrycks2020measuring,wei2024measuring}, to recover general language modeling, reasoning, and code ability; 2) image-text pairs (54.9\%, 4.1B)~\citep{Llava-onevision,marti2002iam,yu2016refcoco,hudson2019gqa}, to preserve vision-language alignment and visual grounding; 3) video-caption data (15.2\%, 5.8B)~\citep{zhang2024llava,Maaz2024VideoGPT+,wiedmann2025finevision,yang2025cambrian,wang2023internvid,clark2026molmo2}, to adapt the model to temporal and multimodal inputs under the new attention structure.
+
+\begin{table}[t]
+\label{tab:capability}
+\resizebox{\textwidth}{!}{%
+\begin{tabular}{@{}c l r l r l r l r@{}}
+\toprule
+Category & \multicolumn{2}{c}{\textbf{Perception \& Recognition}} & \multicolumn{2}{c}{\textbf{Spatial-Temporal Understanding}} & \multicolumn{2}{c}{\textbf{Event \& Action Reasoning}} & \multicolumn{2}{c}{\textbf{Holistic Semantics}} \\
+\midrule
+\multirow{6}{*}{Sub-category}
+& Action Recognition           & 12.5 & Temporal Reasoning          & 11.3 & Action Reasoning        & 8.4 & Plot Understanding   & 7.6 \\
+& Object Recognition           & 9.7  & Spatial Perception           & 10.8 & Event Chain Reasoning   & 6.9 & Information Synopsis & 5.5 \\
+& Attribute Perception         & 6.2  & Multi-hop Temporal Reasoning & 4.3  & Object Reasoning        & 2.7 &     -                 & -\\
+& OCR Problems                 & 5.1  & Scene State Tracking         & 3.8  & Anomaly Recognition     & 0.1 &    -                  & -\\
+& Counting Problem             & 1.5  & Egocentric Understanding    & 3.2  &             -            &    -  &      -                & -\\
+& Needle Detail                & 0.4  &      -                        &   -    &          -               &   -   &    -                  & -\\
+\midrule
+\multicolumn{1}{c}{\textbf{Total (100\%)}} & & \textbf{35.4} & & \textbf{33.4} & & \textbf{18.1} & & \textbf{13.1} \\
+\bottomrule
+\end{tabular}%
+}
+\centering
+\caption{Video understanding capability distribution across perception, spatiotemporal understanding, event reasoning, and holistic semantics.}
+\end{table}
+
+\begin{figure}[t]
+    \centering
+    \includegraphics[width=.9\linewidth]{figures/dataset_stats.png}
+    \caption{Overview of the long-video supervision corpus. \textbf{Top:} video length distribution ($N=380K$, mean $15.8$ minutes). \textbf{Bottom:} word-count distribution of context, questions, answers, and multiple-choice options.}
+    \label{fig:dataset_overview}
+\end{figure}
+
+\subsection{Supervised Fine-Tuning Data}
+
+Our supervised fine-tuning (SFT) corpus comprises $\sim$\textbf{7.2M} multimodal samples. The corpus spans long-video understanding~\citep{zhang2024llava}, short-video QA~\citep{caba2015activitynet}, image understanding~\citep{mscoco,lei2018tvqa}, STEM reasoning~\citep{kuckreja2024geochat}, code generation~\citep{gui2025webcode2m}, document comprehension~\citep{mathew2021docvqa,masry2023unichart}, UI grounding~\citep{cheng2024seeclick}, general conversation~\citep{zhang2024llava}, translation~\citep{penedo2026finetranslations}, and spatial reasoning~\citep{yang2025cambrian}. Specifically, the largest components include STEM/science/math (\textbf{22.4\%}), long-video QA (\textbf{17.2\%}), general/conversational data (\textbf{9.9\%}), other video understanding (\textbf{9.1\%}), and image understanding (\textbf{9.1\%}), with additional categories covering translation and language, code generation, chart/document/OCR tasks, UI grounding and long-document understanding, general vision instruction tuning, video reasoning, temporal understanding, and 3D/spatial multimodal tasks. Unless otherwise noted, these datasets are standard public resources or previously used instruction-tuning corpora. Our main data contribution in this stage is the \textbf{long-video supervision component}, which is specifically designed to support long-horizon multimodal reasoning while remaining compatible with broader multimodal and agentic workloads.
+
+\subsubsection{Long-Video Supervised Fine-Tuning Data}
+
+To support long-horizon multimodal reasoning, we curate a large-scale long-video supervised fine-tuning (SFT) corpus through a hierarchical annotation pipeline designed to preserve both \emph{local visual detail} and \emph{global temporal coherence}. The resulting dataset contains \textbf{379K videos} with a mean duration of \textbf{15.8 minutes} (totally $\sim$100K hours), making it better suited to long-context multimodal reasoning than conventional short-video instruction data.
+
+\paragraph{Data Sources.}
+The corpus is constructed from complementary long-form video sources spanning both general and reasoning-intensive domains. The largest portion comes from \textbf{InternVid} (\textbf{188K} videos) \citep{wang2023internvid}, covering broad real-world content with video durations typically ranging from 5 minutes to over 30 minutes. We further include \textbf{115K} YouTube-based reasoning videos, which contain rich instructional, explanatory, and cognitively demanding content, and \textbf{77K} specialized videos from V-MME-style~\citep{videomme} tasks, which provide additional supervision for video-centric reasoning and evaluation-aligned capabilities. This mixture gives the training set both broad coverage and strong emphasis on long-form reasoning.
+
+\paragraph{Hierarchical Narrative Annotation.}
+Because raw long videos often exceed the reliable context window of current MLLMs, we decompose them into scene-consistent clips using scene-aware temporal splitting. This avoids the semantic fragmentation caused by naive uniform chunking and yields shorter segments that remain temporally coherent. Each clip is captioned by a strong teacher model to produce fine-grained, localized descriptions of actions, objects, scene changes, and salient events.
+
+Clip-level captions provide local evidence but do not yield a coherent global understanding of the video. We therefore perform hierarchical caption merging: neighboring clip captions are first aggregated into scene-level summaries, and these scene summaries are then merged into a long-form narrative that preserves temporal order, cross-scene entity consistency, and high-level event structure. The resulting long-form narratives are compact but globally coherent, with an average narrative context length of 96 words. This hierarchical design provides both \emph{locally grounded supervision} through clip-level captioning and \emph{globally coherent supervision} through cross-temporal narrative integration.
+
+\paragraph{QA Synthesis.}
+On top of these hierarchical narratives, we synthesize over \textbf{1M} question-answer pairs spanning four capability dimensions:
+\begin{itemize}[leftmargin=*]
+    \item \textbf{Perception \& Recognition} (\textbf{35.4\%}): including action recognition, object recognition, attribute perception, OCR, and counting;
+    \item \textbf{Spatial-Temporal Understanding} (\textbf{33.4\%}): including temporal reasoning, spatial reasoning, multi-hop temporal inference, scene-state tracking, and egocentric understanding;
+    \item \textbf{Event \& Action Reasoning} (\textbf{18.1\%}): including action reasoning, event-chain reasoning, object-centric reasoning, and anomaly detection;
+    \item \textbf{Holistic Semantics} (\textbf{13.1\%}): including plot understanding and long-form information synopsis.
+\end{itemize}
+
+\paragraph{Analysis.}
+This SFT corpus is tailored to the needs of Multimodal Contextual Reasoning. In particular, the annotation pipeline encourages the model to learn from both \emph{fine-grained local evidence} and \emph{cross-temporal global structure}, which is essential for long-horizon multimodal reasoning. The diversity of QA types further encourages the model not only to recognize content, but also to track state over time, connect distant events, and form coherent high-level interpretations of long videos.
+
+\subsection{Post-Training Data}
+
+The post-training stage uses two types of data, corresponding to the two objectives in our recipe: \textbf{rule-based reinforcement learning} and \textbf{on-policy distillation (OPD)}. In both cases, the data is selected to emphasize \emph{informative} long-horizon video examples rather than easy or low-signal samples.
+
+\paragraph{Data for Rule-Based Reinforcement Learning.}
+For video RL, we construct training data from two complementary sources: temporal grounding and multiple-choice video QA. These tasks provide automatically verifiable rewards, making them suitable for stable large-scale post-training.
+
+For temporal grounding, we run the SFT model on the TimeLens~\citep{zhang2026timelens} training split and compute the intersection-over-union (IoU) between each predicted temporal span and the ground-truth interval. We retain examples with IoU in the range $[0.1, 0.7]$. This removes both near-trivial cases that the model already solves reliably and severely mismatched cases that are too noisy to provide useful reward signals. From the filtered pool, we sample \textbf{5K} examples for RL training.
+
+For multiple-choice video QA, we sample responses from our SFT multiple-choice data using temperature-$1$ decoding. We retain questions for which the sampled responses contain both correct and incorrect answers, yielding examples with meaningful policy uncertainty and non-degenerate reward structure. This produces a training set of \textbf{10K} questions with verifiable correctness signals.
+
+\paragraph{Data for On-Policy Distillation.}
+We focus on examples that reveal a clear teacher--student capability gap. Concretely, we retain samples where the teacher model produces a correct, complete, or well-grounded response, while the student produces an incorrect, incomplete, or weakly grounded one. This filtering ensures distillation is spent on examples that are genuinely informative for the student, rather than on cases the student already handles well or cases where the teacher is unreliable.
+
+This OPD set is drawn from reasoning-intensive video QA and long-form video description data, with an emphasis on examples requiring temporal localization, cross-event comparison, multi-step inference, or dense long-video comprehension. Thus, OPD complements rule-based RL as RL improves performance on verifiable temporal and QA tasks, while OPD transfers stronger teacher behavior on more complex trajectories that are difficult to optimize using hand-designed rewards alone.
+
+\section{Experiments}
+We evaluate \name\ from three complementary perspectives. First, we measure \textbf{general multimodal capability} on standard short-video, long-video, and spatiotemporal reasoning benchmarks. Second, we study \textbf{agentic multimodal reasoning} through a video-agent setup with retrieval, grounding, and verification tools. Third, we analyze the contribution of each component in our recipe, including M$^2$LA, short-to-long training, rule-based RL, and on-policy distillation. Across these experiments, our goal is not only to assess static video QA accuracy, but also to test whether the proposed \emph{Multimodal Contextual Reasoning} framework improves the model's ability to reason over evolving visual evidence under long-horizon constraints.
+
+\paragraph{Model.}
+Our model is built on a Qwen3-based~\citep{yang2025qwen3} multimodal backbone in the 7/8B parameter regime and converted to the proposed M$^2$LA attention form. We then apply the full staged recipe described in Section~\ref{sec:method}: continued pretraining after M$^2$LA conversion, short-to-long SFT on large-scale video data, rule-based RL, and on-policy distillation from stronger teacher models.
+
+\paragraph{Evaluation Protocol.}
+Unless otherwise stated, we follow the official evaluation protocol of each benchmark. For standard benchmark comparisons, we report the scores in their official metric, such as accuracy or average score, and compare against representative open-source video MLLMs. For agentic evaluation, we report task success or answer accuracy under a fixed interaction budget and tool set. Additional implementation details are provided in the appendix.
+
+
+\paragraph{Benchmarks.}
+We evaluate three groups of video-centric tasks, covering long-context understanding, short-video reasoning, and spatiotemporal intelligence:
+\begin{itemize}[leftmargin=*]
+\item \textbf{Long-video understanding}: We evaluate on Video-MME~\citep{videomme} and VideoMME-v2~\citep{fu2026video}, which provide comprehensive video QA tasks over diverse video durations and domains, emphasizing robust multimodal reasoning. LongVideoBench~\citep{longvideobench}, MLVU~\citep{mlvu}, and LVBench~\citep{wang2024lvbench} further stress long-context modeling, requiring models to retrieve sparse evidence and reason over extended videos. VRBench~\citep{yu2025vrbench} focuses on multi-step reasoning over long narrative videos, while EgoSchema~\citep{egoschema} evaluates long-horizon understanding of egocentric human activities.
+
+\item \textbf{Short-video understanding}: We evaluate on NExT-QA~\citep{xiao2021next} and Perception Test~\citep{perceptiontest}, which test causal, semantic, and multimodal reasoning in short videos. MVBench~\citep{mvbench}, TOMATO~\citep{shangguan2025tomato}, MotionBench~\citep{hong2025motionbench}, and TempCompass~\citep{liu2024tempcompass} focus more explicitly on temporal perception, including event ordering, frame-order sensitivity, motion dynamics, and fine-grained temporal changes.
+
+\item \textbf{Spatiotemporal intelligence}: For temporal grounding, we evaluate on QVHighlights~\citep{qvhighlight}, Charades-STA~\citep{charades-sta}, and ActivityNet Captions~\citep{caba2015activitynet}, which require localizing query-relevant moments or densely grounding events in untrimmed videos. For spatial intelligence, we use VSIBench~\citep{yang2025thinking}, MMSIBench~\citep{yang2025mmsi}, MMSIBench-Video~\citep{lin2025mmsi}, and DSIBench~\citep{zhang2025dsi}, which evaluate spatial configuration understanding, multi-view reasoning, dynamic 3D relations, and spatial memory.
+\end{itemize}
+We follow the official evaluation protocol of each benchmark and report the official metrics.
+
+
+\subsection{Main Results}
+\subsubsection{Long-Video Understanding}
+
+\begin{table*}[t]
+    \centering
+\begin{adjustbox}{width=\linewidth,center}
+\renewcommand{\arraystretch}{1.1}
+\setlength{\tabcolsep}{1.5mm}
+\begin{tabular}{lccccccc}
+\toprule
+\textbf{Model} & \textbf{Video-MME} & \textbf{VideoMME-v2} & \textbf{LongVideoBench} & \textbf{MLVU} & \textbf{LVBench} & \textbf{VRBench} & \textbf{EgoSchema} \\
+\midrule
+\multicolumn{8}{l}{\textbf{\textit{Proprietary Models}}} \\
+GPT-5~\citep{gpt5} & 83.3 & 44.7 & 72.6 & 77.7 & 65.2 & - & 75.6 \\
+GPT-5 mini~\citep{gpt5} & 77.3 & - & 69.7 & 69.1 & 54.7 & - & 70.9 \\
+Gemini 3 Pro~\citep{gemini3pro} & 88.6 & 56.8 & 75.9 & 75.7 & 77.0 & 76.1 & 68.9 \\
+Gemini 2.5 Pro~\citep{comanici2025gemini} & 87.8 & - & 76.8 & 81.5 & 75.7 & - & 72.2 \\
+Gemini 2.5 Flash~\citep{comanici2025gemini} & 84.2 & - & 73.1 & 75.1 & 64.9 & - & 70.2 \\
+Claude Sonnet 4.5~\citep{sonnet45} & 74.2 & - & 65.1 & 64.0 & 50.5 & - & 73.1 \\
+\midrule
+\multicolumn{8}{l}{\textbf{\textit{Open-Weight Models}}} \\
+VideoChat-Flash-7B~\citep{li2024videochat} & 65.3 & 27.5 & 64.7 & 56.0 & 48.2 & 50.8 & 51.3 \\
+InternVL3.5-8B~\citep{internvl35} & 66.0 & 26.0 & 62.1 & 53.2 & 43.4 & 64.1 & 58.6 \\
+Qwen3-VL-8B~\citep{qwen3vl} & 71.4 & \textbf{27.9} & 62.4 & 57.6 & \textbf{58.0} & 59.4 & 69.8 \\
+Keye-VL-1.5-8B~\citep{keyevl15} & \underline{73.0} & 23.8 & 66.0 & 53.8 & 42.8 & 53.2 & 56.3 \\
+GLM-4.1V-9B~\citep{hong2025glm} & 68.2 & 26.9 & 65.7 & 56.6 & 44.0 & 59.8 & 62.6 \\
+LLaVA-Video-7B~\citep{zhang2024llava} & 63.3 & 19.9 & 58.2 & 52.8 & 44.2 & - & 57.3 \\
+Molmo2-8B~\citep{clark2026molmo2} & 69.9 & 27.4 & \underline{67.5} & 60.2 & 52.8 & - & 62.0 \\
+MiniCPM-V-4.5-8B~\citep{yu2025minicpm} & 67.9 & 26.5 & 63.9 & 60.6 & 50.4 & 55.9 & 49.6 \\
+Eagle2.5-8B~\citep{chen2026eagle} & 72.4 & 24.9 & 66.4 & 60.4 & 50.9 & 55.7 & \underline{72.2} \\
+InternVideo2.5-7B~\citep{wang2025internvideo2} & 65.1 & 26.4 & 60.6 & \underline{72.8} & 46.4 & 51.9 & 63.9 \\
+InternVideo3 & \textbf{73.8} & \underline{27.6} & 66.8 & \textbf{77.3} & \underline{55.7} & \textbf{69.4} & \textbf{76.6} \\
+\bottomrule
+\end{tabular}
+\end{adjustbox}
+\caption{\textbf{Long-video benchmark results} across long video understanding, captioning, and counting benchmarks. Some entries are unavailable because the corresponding models are not applicable or not evaluated on those benchmarks. The best-performing open-weight model is in \textbf{bold}, and the second best is \underline{underlined}.}
+\label{tab:long_video_benchmark_results}
+\end{table*}
+
+Table~\ref{tab:long_video_benchmark_results} summarizes results on long-video benchmarks. Overall, \name\ performs strongly across this suite and is particularly competitive on benchmarks that require sustained temporal reasoning, long-range evidence integration, and coherent understanding over extended visual context. Among open-weight models, it achieves the best results on \textbf{Video-MME}, \textbf{MLVU}, \textbf{VRBench}, and \textbf{EgoSchema}, while remaining close to the top tier on \textbf{VideoMME-v2} and \textbf{LongVideoBench}. These evaluations are still standard QA-style benchmarks rather than explicit agentic rollouts, thus they test the underlying long-horizon reasoning abilities that a multimodal agent would need.
+
+Specifically, \name\ achieves the best open-weight score on Video-MME with 73.8, slightly surpassing Keye-VL-1.5-8B (73.0), Eagle2.5-8B (72.4), and its base family Qwen3-VL-8B (71.4). On VideoMME-v2, \name\ obtains 27.6, which is slightly below the strongest open baseline Qwen3-VL-8B (27.9) but still among the top open results. This suggests that our post-training and long-horizon adaptation improve performance substantially on most long-video tasks, while some benchmark-specific strengths of the base model remain difficult to fully preserve or exceed.
+
+On LongVideoBench, \name\ reaches 66.8, ranking among the strongest open 8B-scale models and trailing Molmo2-8B (67.5) by only 0.7 points. On MLVU, \name\ achieves 77.3, outperforming all listed open-weight baselines, including InternVideo2.5-7B (72.8), MiniCPM-V-4.5-8B (60.6), Molmo2-8B (60.2), and Eagle2.5-8B (60.4). This is one of the most notable gains and indicates strong improvement on long-form video reasoning beyond short-range event recognition.
+
+On LVBench, \name\ scores 55.7. This is competitive and above many open baselines, including InternVideo2.5-7B (46.4), but remains below Qwen3-VL-8B (58.0). Since \name\ is built on Qwen3-VL-8B, this result also serves as a useful reminder that our long-horizon adaptation is not uniformly dominant on every benchmark: in some cases, the base model retains dataset-specific advantages that our recipe does not fully improve upon. Even so, the model still achieves a strong overall long-video profile across the broader suite.
+
+Two particularly notable results are \textbf{VRBench} and \textbf{EgoSchema}. On \textbf{VRBench}, \name\ achieves 69.4, the best result among open-weight models and substantially above Qwen3-VL-8B (59.4), InternVL3.5-8B (64.1), and Eagle2.5-8B (55.7). On \textbf{EgoSchema}, \name\ reaches 76.6, the best open-weight result in the table, exceeding Eagle2.5-8B (72.2), Qwen3-VL-8B (69.8), and even the reported human score of 76 on this benchmark. We note that surpassing human performance on a single benchmark should be interpreted cautiously, but it nonetheless indicates that an 8B-scale open model can be highly competitive even against much larger systems in some long-video settings.
+
+Relative to the previous InternVideo2.5-7B baseline, the gains are substantial on several representative long-horizon tasks: \textbf{+8.7} on Video-MME (73.8 vs.\ 65.1), \textbf{+6.2} on LongVideoBench (66.8 vs.\ 60.6), \textbf{+4.5} on MLVU (77.3 vs.\ 72.8), \textbf{+9.3} on LVBench (55.7 vs.\ 46.4), \textbf{+17.5} on VRBench (69.4 vs.\ 51.9), and \textbf{+12.7} on EgoSchema (76.6 vs.\ 63.9). Taken together, these results show that our method is effective in the long-video regime that most directly motivates the paper. While it does not outperform every model on every benchmark, it consistently strengthens long-horizon video understanding and brings an 8B-scale open model close to, and in a few cases beyond, the performance of much larger proprietary systems on selected tasks.
+
+\subsubsection{Short-Video Understanding}
+
+\begin{table*}[t]
+    \centering
+\begin{adjustbox}{width=\linewidth,center}
+\renewcommand{\arraystretch}{1.1}
+\setlength{\tabcolsep}{1.5mm}
+\begin{tabular}{lccccccc}
+\toprule
+\textbf{Model} & \textbf{NextQA} & \textbf{PerceptionTest} & \textbf{MVBench} & \textbf{Tomato} & \textbf{MotionBench} & \textbf{TempCompass} & \textbf{Short QA Avg.} \\
+\midrule
+\multicolumn{8}{l}{\textbf{\textit{Proprietary Models}}} \\
+GPT-5~\citep{gpt5} & 86.3 & 79.4 & 74.1 & 53.0 & 65.4 & 80.4 & 73.1\\
+GPT-5 mini~\citep{gpt5} & 83.2 & 72.0 & 66.5 & 44.1 & 59.9 & 74.9 & 66.8\\
+Gemini 3 Pro~\citep{gemini3pro} & 84.3 & 77.6 & 70.4 & 48.3 & 62.6 & 82.8 & 71.0\\
+Gemini 2.5 Pro~\citep{comanici2025gemini} & 85.3 & 78.4 & 70.6 & 48.6 & 62.0 & 81.9 & 71.1\\
+Gemini 2.5 Flash~\citep{comanici2025gemini} & 81.8 & 74.7 & 67.0 & 39.1 & 59.3 & 80.2 & 67.0\\
+Claude Sonnet 4.5~\citep{sonnet45} & 79.2 & 64.3 & 62.1 & 39.6 & 58.5 & 72.8 & 62.8\\
+\midrule
+\multicolumn{8}{l}{\textbf{\textit{Open-Weight Models}}} \\
+VideoChat-Flash-7B~\citep{li2024videochat} & \textbf{85.5} & 76.5 & 74.0 & 32.5 & \underline{60.6} & 69.4 & 66.4\\
+
+InternVL3.5-8B~\citep{internvl35} & 81.7 & 72.7 & 72.1 & 24.6 & 56.6 & 70.3 & 63.0\\
+Qwen3-VL-8B~\citep{qwen3vl} & 83.4 & 72.7 & 68.7 & 35.7 & 56.9 & 74.3 & 65.3\\
+Keye-VL-1.5-8B~\citep{keyevl15} & 75.8 & 64.2 & 56.9 & 33.0 & 55.1 & \textbf{75.5} & 60.1\\
+GLM-4.1V-9B~\citep{hong2025glm} & 81.3 & 74.2 & 68.4 & 30.0 & 59.0 & 72.3 & 64.2\\
+LLaVA-Video-7B~\citep{zhang2024llava} & 83.2 & 68.8 & 58.6 & 24.9 & 54.2 & 66.6 & 59.4\\
+MiniCPM-V-4.5-8B~\citep{yu2025minicpm} & 78.8 & 70.9 & 60.5 & 29.8 & 59.7 & 72.7 & 62.1\\
+Eagle2.5-8B~\citep{chen2026eagle} & 85.0 & 81.0 & 74.8 & 31.0 & 55.7 & \underline{74.4} & \underline{67.0}\\
+InternVideo2.5-7B~\citep{wang2025internvideo2} & 84.9 & 74.9 & \textbf{75.7} & 32.9 & \textbf{60.8} & 70.1 & 66.5\\
+InternVideo3 & \textbf{85.5} & \textbf{81.4} & \underline{75.0} & \textbf{37.4} & \underline{60.6} & 74.0 & \textbf{69.0} \\
+\bottomrule
+\end{tabular}
+\end{adjustbox}
+\caption{\textbf{Short-video benchmark results} across short video question-answering benchmarks. The best-performing open-weight model is in \textbf{bold}, and the second best is \underline{underlined}.}
+\label{tab:short_video_benchmark_results}
+\end{table*}
+
+Table~\ref{tab:short_video_benchmark_results} reports results on short-video benchmarks. Although \name\ is designed primarily for long-horizon multimodal reasoning, it also performs strongly on standard short-video QA, indicating that the proposed attention conversion and long-video-oriented post-training do not come at the expense of short-form capability. More importantly, the model achieves the best \textbf{Short QA Avg.} among the listed open-weight models, suggesting that improvements aimed at long-horizon reasoning also transfer to general short-video understanding.
+
+At the aggregate level, \name\ obtains a \textbf{Short QA Avg. of 69.0}, outperforming Eagle2.5-8B (67.0), InternVideo2.5-7B (66.5), VideoChat-Flash-7B (66.4), and Qwen3-VL-8B (65.3). This shows although our method is motivated by long-context and long-video reasoning, the resulting model remains broadly competitive rather than narrowly specialized.
+
+Concretely, \name\ matches the best reported open-weight score on NextQA with 85.5, tying VideoChat-Flash-7B and slightly exceeding Eagle2.5-8B (85.0), InternVideo2.5-7B (84.9), and Qwen3-VL-8B (83.4). On PerceptionTest, \name\ achieves 81.4, the best open-weight result in the table, slightly above Eagle2.5-8B (81.0) and well above Qwen3-VL-8B (72.7) and InternVideo2.5-7B (74.9). On MVBench, \name\ obtains 75.0, which is highly competitive and close to the best open results, though still below InternVideo2.5-7B (75.7). On Tomato, \name\ reaches 37.4, the strongest open-weight result listed, improving over Qwen3-VL-8B (35.7), Keye-VL-1.5-8B (33.0), Eagle2.5-8B (31.0), and InternVideo2.5-7B (32.9).
+
+The remaining two benchmarks show a similar pattern of broad competitiveness without universal dominance. On MotionBench, \name\ scores 60.6, tying VideoChat-Flash-7B and narrowly trailing InternVideo2.5-7B (60.8). On TempCompass, \name\ achieves 74.0, which is competitive but below the best open results from Keye-VL-1.5-8B (75.5) and Eagle2.5-8B (74.4). These cases are worth noting because they show that the gains from our long-horizon training recipe are not uniform across all short-video tasks. In particular, some short-form benchmarks may still reflect strengths of the base model or of alternative data mixtures that are not the main focus of our method.
+
+Compared with InternVideo2.5-7B, \name\ improves on nearly all reported short-video tasks: \textbf{+0.6} on NextQA, \textbf{+6.5} on PerceptionTest, \textbf{+4.5} on Tomato, and \textbf{+3.9} on TempCompass, while remaining essentially comparable on MVBench and MotionBench. Relative to its base family Qwen3-VL-8B, the gains are also consistent: \textbf{+2.1} on NextQA, \textbf{+8.7} on PerceptionTest, \textbf{+6.3} on MVBench, \textbf{+1.7} on Tomato, \textbf{+3.7} on MotionBench, and a small \textbf{-0.3} on TempCompass. Overall, these results indicate that the model's improvements are not confined to long-video evaluation alone. Instead, better context handling and post-training for long-horizon reasoning appear to also strengthen short-video perception, temporal reasoning, and answer calibration.
+
+\begin{table*}[t]
+    \centering
+\begin{adjustbox}{width=\linewidth,center}
+\renewcommand{\arraystretch}{1.1}
+\setlength{\tabcolsep}{1.5mm}
+\begin{tabular}{lcccccc}
+\toprule
+\textbf{Model} & \multicolumn{3}{c}{\textbf{Temporal Grounding}} & \multicolumn{3}{c}{\textbf{Spatial Intelligence}} \\
+\cmidrule(lr){2-4}\cmidrule(lr){5-7}
+ & \textbf{QVHighlights} & \textbf{Charades-STA} & \textbf{ANet} & \textbf{VSIBench} & \textbf{MMSIBench} & \textbf{MMSIBench-Video} \\
+\midrule
+\multicolumn{7}{l}{\textbf{\textit{Proprietary Models}}} \\
+GPT-5~\citep{gpt5} & 56.8 & 40.5 & 42.9 & \textemdash & 41.9 & 36.8\\
+GPT-5 mini~\citep{gpt5} & \textemdash & \textemdash & \textemdash & \textemdash & 34.9 & \textemdash\\
+Gemini 3 Pro~\citep{gemini3pro} & \textemdash & \textemdash & \textemdash & \textemdash & \textemdash & 38.0\\
+Gemini 2.5 Pro~\citep{comanici2025gemini} & 70.4 & 52.8 & 58.1 & \textemdash & 37.6 & \textemdash\\
+Gemini 2.5 Flash~\citep{comanici2025gemini} & 64.3 & 48.6 & 52.5 & \textemdash & 33.1 & 35.4\\
+\midrule
+\multicolumn{7}{l}{\textbf{\textit{Open-Weight Models}}} \\
+VideoChat-Flash-7B~\citep{li2024videochat} & 32.7 & 39.7 & 24.8 & 32.8 & 27.6 & 28.2 \\
+InternVideo2.5-7B~\citep{wang2025internvideo2} & 32.7 & 39.7 & 24.8 & 33.4 & 26.9 & 27.3 \\
+
+InternVL3.5-8B~\citep{internvl35} & 31.3 & 27.8 & 31.3 & 56.0 & \textbf{30.5} & 29.2 \\
+Qwen3-VL-8B~\citep{qwen3vl} & 59.4 & 48.3 & 46.8 & 59.1 & 27.0 & 27.6\\
+Keye-VL-1.5-8B~\citep{keyevl15} & 55.5 & 45.4 & 41.3 & 36.4 & 26.6 & 26.5 \\
+MiniCPM-V-4.5-8B~\citep{yu2025minicpm} & 28.5 & 30.0 & 22.7 & 32.0 & \underline{28.1} & 23.4\\
+InternVideo3 & \textbf{59.9} & \textbf{50.4} & \textbf{47.9} & \textbf{68.1} & {27.6} & \textbf{30.7}\\
+\bottomrule
+\end{tabular}
+\end{adjustbox}
+\caption{\textbf{Spatiotemporal intelligence results} across temporal grounding and spatial understanding benchmarks.}
+\label{tab:spatiotemporal_intelligence_results}
+\end{table*}
+
+\subsubsection{Spatiotemporal Intelligence}
+
+Table~\ref{tab:spatiotemporal_intelligence_results} reports results on temporal grounding and spatial intelligence benchmarks. Overall, \name\ shows strong performance on \emph{temporal grounding}, where it achieves the best results among the listed open-weight models on all three benchmarks. These evaluations are particularly relevant to our motivation as they test whether the model can identify \emph{when} and \emph{where} relevant evidence appears, rather than only producing the correct final answer. Although the experiments here are still direct benchmark evaluations rather than full agentic interactions, these localization and grounding abilities are important ingredients for downstream multimodal agents.
+
+On the three \textbf{temporal grounding} benchmarks, \name\ achieves 59.9 on QVHighlights, 50.4 on Charades-STA, and 47.9 on ANet, establishing the best open-weight results in the table on all three tasks. Compared with its base model Qwen3-VL-8B, the gains are consistent though moderate: \textbf{+0.5} on QVHighlights, \textbf{+2.1} on Charades-STA, and \textbf{+1.1} on ANet. Compared with earlier open baselines such as VideoChat-Flash-7B and InternVideo2.5-7B, the improvements are much larger. At the same time, proprietary Gemini 2.5 Pro remains clearly ahead on this suite, reaching 70.4/52.8/58.1. We therefore do not claim to close the gap to the strongest proprietary systems, but the results do show that our approach yields a strong and consistent grounding capability within the open 8B regime.
+
+On the \textbf{spatial intelligence} side, \name\ achieves 68.1 on VSIBench, 27.6 on MMSIBench, and 30.7 on MMSIBench-Video. The strongest result here is on VSIBench, where \name\ outperforms all listed baselines by a clear margin, including Qwen3-VL-8B (59.1) and InternVL3.5-8B (56.0). On MMSIBench-Video, \name\ also obtains the best result among the listed models. On MMSIBench, however, \name\ is competitive but not best, trailing InternVL3.5-8B (30.5) and slightly below MiniCPM-V-4.5-8B (28.1). This again reflects the method improves the model substantially on many spatiotemporal tasks, but does not dominate every individual benchmark.
+
+These results are important beyond standalone benchmark scores. A model can answer video QA questions reasonably well by relying on priors or coarse summaries, yet still fail to localize the supporting evidence in time or space. In contrast, temporal grounding and spatial intelligence more directly measure whether the model can connect answers to the relevant evidence. This distinction matters for multimodal agents: before an agent can decide what tool to call, what segment to revisit, or whether a conclusion is sufficiently supported, it must first know \emph{where} and \emph{when} the evidence lies. From this perspective, the strong grounding and spatial results of \name\ provide useful support for the broader claim that better multimodal contextual reasoning can strengthen capabilities relevant to future agentic behavior.
+
+
+
+
+
+\subsection{Inference Efficiency}
+
+\begin{figure}[!ht]
+    \centering
+    \begin{subfigure}[t]{\linewidth}
+        \centering
+        \includegraphics[width=.65\linewidth]{figures/decode_throughput_comparison.png}
+        \caption{Decode throughput.}
+        \label{fig:inference_decode_throughput_a}
+    \end{subfigure}
+
+    \vspace{0.5em}
+    \begin{subfigure}[t]{\linewidth}
+        \centering
+        \includegraphics[width=.8\linewidth]{figures/runtime_stacked_bars.png}
+        \caption{End-to-end latency, decomposed into prefill and decode time.}
+        \label{fig:inference_decode_throughput_b}
+    \end{subfigure}
+    \caption{Inference efficiency of the Qwen3-VL-8B and its M$^2$LA-converted variant on a single H200 GPU. Prefill length varies from 32K to 768K tokens, with decode length fixed to 16K. For 256K+ inputs, both models use 64K chunked prefill and no external inference acceleration. M$^2$LA consistently improves long-context decoding efficiency and remains executable up to 768K prefill tokens, whereas the Qwen3-VL runs out of memory from 512K onward.}
+    \label{fig:inference_decode_throughput}
+\end{figure}
+
+We evaluate the inference efficiency of M$^2$LA during long-context generation. Specifically, we compare the original Qwen3-8B backbone with its M$^2$LA-converted counterpart under identical inference settings. All measurements are conducted on a single H200 GPU, using one warm-up run followed by ten measured runs. We vary the prefill length from 32K to 512K tokens while fixing the decode length to 16K. No external inference acceleration is applied to either model. For inputs of 256K tokens and above, both models use the same chunked prefill strategy with a chunk size of 64K.
+
+Figure~\ref{fig:inference_decode_throughput} shows that M$^2$LA consistently improves decoding efficiency in the long-context regime. At 32K prefill tokens, the converted model reaches 39.96 tok/s during decoding, compared with 21.74 tok/s for the original model, corresponding to a 1.84$\times$ speedup. As the context grows, the benefit becomes more pronounced: decode throughput improves by 4.12$\times$ at 128K, 4.77$\times$ at 256K, and 5.01$\times$ at 384K prefill tokens. In terms of end-to-end latency, M$^2$LA reduces total runtime by 1.83$\times$ at 32K and by more than 4$\times$ in the 256K--384K regime.
+
+The largest advantage appears at the longest contexts. The original model runs out of memory at 512K prefill tokens, whereas the M$^2$LA remains executable and completes the 16K-token decode phase at 8.52 tok/s. This behavior is consistent with the KV-cache analysis under batch size 1 and bf16 precision, where M$^2$LA reduces the KV-cache footprint by roughly 50\% across context lengths.
+
+These results validate the practical efficiency benefit of compressing long-context KV states. In particular, the gains are most significant in the \emph{decode-dominated} regime that arises in long-horizon multimodal reasoning, where the model must preserve large multimodal contexts while generating long intermediate traces, tool calls, and final responses.
+
+
+ 
+
+\subsection{Agentic Video Exploration}
+
+In addition to benchmark evaluation, we instantiate \name\ as a video agent using MCR with access to segmentation, ASR, temporal grounding, search, summarization, and verification tools. Although we leave large-scale quantitative agent evaluation to future work, this setup provides a qualitative illustration of the recursive evidence-gathering behavior enabled by our formulation.
+
+Figures~\ref{fig:agentic_demo1}--\ref{fig:agentic_demo4} show four representative agentic video exploration examples. These demos cover complementary forms of long-horizon multimodal reasoning: attributing a character's action to earlier contextual cues, linking temporally distant scenes through a shared theme, relating visual equipment to downstream battle performance, and inferring a protagonist's emotional state from implicit narrative evidence. In each case, the agent grounds its answer in selected visual evidence rather than relying on a single global video summary, illustrating how iterative evidence collection helps resolve questions that require cross-scene context and implicit reasoning.
+
+\begin{figure}[t]
+    \centering
+    \includegraphics[width=\linewidth]{figures/demo1.pdf}
+    \caption{\textbf{Event Attribution.} A qualitative demo on long-video QA: the model is asked why Angelo is fitting a custom suit, and infers that he wants to look more like a banker after following advice from the man with glasses.}
+    \label{fig:agentic_demo1}
+\end{figure}
+
+\begin{figure}[t] 
+    \centering
+    \includegraphics[width=\linewidth]{figures/demo2.pdf}
+    \caption{\textbf{Logical Linkage.} A qualitative demo on thematic reasoning: the model is asked how soldiers on a forest mission relate to later peace scenes, and explains that the contrast reflects wartime tension and the pursuit of peace.}
+    \label{fig:agentic_demo2}
+\end{figure}
+
+\begin{figure}[t]
+    \centering
+    \includegraphics[width=\linewidth]{figures/demo3.pdf}
+    \caption{\textbf{Relational Reasoning.} A qualitative demo on battle understanding: the model is asked how a character's outfit affects combat performance, and answers that armor, weapons, and gear directly improve fighting ability and survival chances.}
+    \label{fig:agentic_demo3}
+\end{figure}
+
+\begin{figure}[t]
+    \centering
+    \includegraphics[width=\linewidth]{figures/demo4.pdf}
+    \caption{\textbf{Implicit Inference.} A qualitative demo on emotion understanding: the model is asked how the hero feels after learning that his wife chose suicide out of guilt, and answers that he feels desperation and remorse.}
+    \label{fig:agentic_demo4}
+\end{figure}
+
+For long-form video questions, the agent first consults coarse hierarchical memory, identifies uncertain or relevant segments, and then issues targeted tool calls. Speech-heavy questions trigger ASR, event-centric questions trigger temporal grounding, and low-confidence answers trigger a verification step before termination. Compared with a single-pass baseline, this iterative procedure more reliably recovers from incomplete first-pass evidence and reduces errors caused by relying on overly coarse summaries.
+
+These observations support the motivation of MCR: in realistic multimodal settings, the problem is often not only to generate an answer from a fixed prompt, but to determine whether the current evidence is sufficient, what additional evidence is needed, and how that new evidence should update the current belief state.
+
+
+\subsection{Ablation Studies} 
+
+
+\begin{table}[t]
+    \centering
+    \renewcommand{\arraystretch}{1.1}
+    \setlength{\tabcolsep}{2.2mm}
+    \small
+    \begin{tabular}{lccccc}
+        \toprule
+        \textbf{Variant} & \textbf{V-MME} & \textbf{LVB} & \textbf{MLVU} & \textbf{LVBench} & \textbf{Avg.} \\
+        \midrule
+        Full & \textbf{73.1} & \textbf{64.6} & \textbf{75.4} & 54.2 & \textbf{66.8} \\
+        w/o CPT & 68.9 & 62.6 & 72.4 & \textbf{54.7} & 64.7 \\
+        w/o Long Ctx. & 70.4 & 61.6 & 75.1 & 54.5 & 65.4 \\
+        w/o LV Data & 70.9 & \textbf{64.6} & 72.1 & 51.4 & 64.8 \\
+        
+        \bottomrule
+    \end{tabular}
+    \caption{Ablation results on representative long-video benchmarks. V-MME and LVB denote Video-MME and LongVideoBench, respectively. We report the official score for each benchmark and the arithmetic average over the four tasks.}
+    \label{tab:ablation_studies}
+\end{table}
+
+\begin{table}[t]
+    \centering
+    \small
+    \renewcommand{\arraystretch}{1.1}
+    \setlength{\tabcolsep}{4mm}
+    \begin{tabular}{lc}
+        \toprule
+        \textbf{Inference Setting} & \textbf{Video-MME} \\
+        \midrule
+        Direct QA & 73.1 \\
+        Agentic inference (+ MCR) & \textbf{75.8} \\
+        \bottomrule
+    \end{tabular}
+    \caption{Preliminary comparison between direct QA and agentic inference on Video-MME. The agentic setting augments the base model with MCR at inference time.}
+    \label{tab:agentic_videomme}
+\end{table}
+
+To better understand which parts of our recipe matter most for long-horizon video reasoning, we conduct ablations on three representative ingredients: continued pretraining after M$^2$LA conversion (CPT), long-context training (Long Ctx.), and curated long-video supervision (LV Data). Results on four representative long-video benchmarks are shown in Table~\ref{tab:ablation_studies}.
+The full model achieves the best overall average (66.8), indicating that the different stages of our recipe provide complementary gains rather than redundant improvements.
+Removing CPT causes the largest drop on Video-MME (-4.2) and a clear degradation on MLVU (-3.0), reducing the overall average from 66.8 to 64.7. This suggests that continued pretraining is an important recovery stage after M$^2$LA conversion: without it, the model does not fully restore its language-side ability and multimodal alignment before downstream long-video specialization. Interestingly, the effect on LVBench is small, which indicates that some benchmark gains can still be obtained from later stages, but the broader long-video capability is noticeably weaker.
+Removing long-context training lowers the average to 65.4, with the largest drop on LongVideoBench (-3.0). This is consistent with the purpose of the short-to-long curriculum: the model needs explicit exposure to extended contexts in order to make effective use of the efficient attention structure. In other words, M$^2$LA provides the \emph{capacity} for longer reasoning windows, but long-context training is needed for the model to actually learn how to use them.
+Removing curated long-video data reduces the average to 64.8. The largest degradations appear on MLVU (-3.3) and LVBench (-2.8), while LongVideoBench remains unchanged in this setting. This suggests that long-video supervision provides complementary benefits beyond architecture-level context efficiency and context-length scaling: it improves the model's ability to connect distant events, maintain temporally coherent state, and answer questions grounded in long-form narrative structure.
+
+Overall, the ablation results support the design logic of the full recipe. Architectural conversion alone is not sufficient; it must be paired with recovery training, explicit long-context exposure, and broad long-video supervision. These components contribute in different ways, and their combination yields the strongest long-horizon performance.
+
+\paragraph{Agentic Inference.} In addition to the standalone model ablations above, we conduct a small preliminary study of \emph{agentic inference} by using \name\ with MCR at test time. On Video-MME, this increases performance from 73.1 to 75.8 (\textbf{+2.7}). This result is encouraging because it suggests that the model's underlying long-horizon reasoning can be further improved when inference is allowed to revisit evidence and verify intermediate conclusions, consistent with the motivation of MCR.
+
+At the same time, we do not present this as evidence of uniformly better performance across long-video benchmarks. In our current experiments, the agentic setting improves Video-MME but does not consistently help other benchmarks. We therefore view this result as a \emph{proof of concept} rather than a general claim about agentic superiority. One plausible reason is that today's public video benchmarks are still designed primarily for direct question answering and do not always reward multi-step retrieval, verification, or iterative evidence gathering. More systematic evaluation of multimodal agents will likely require benchmarks that explicitly measure such behavior.
+
+Even so, the Video-MME result is useful in two ways. First, it shows that the MCR formulation is not only a conceptual framing for training, but can also be instantiated at inference time in a way that yields measurable gains. Second, it suggests that the direct QA improvements reported in the main benchmark tables are likely conservative with respect to the model's full agentic potential, since current benchmark formats only partially expose the benefits of recursive evidence gathering.
+
+\subsection{Discussion}
+
+Our experiments suggest that longer context alone is not enough. What matters is whether the model can \emph{use} long context as an evolving reasoning substrate. The strongest gains of \name\ appear not simply when more frames are available, but when success depends on maintaining a coherent account of what has happened, what evidence matters, and how observations from distant parts of the video relate to one another.
+
+This is also why our improvements are most substantial on long-video benchmarks and selective temporal reasoning tasks rather than uniformly across all short-form tasks. We view this as evidence for the paper's central claim: long-horizon multimodal agency is a distinct capability axis, and improving it requires more than scaling static multimodal QA.
+
+\section{Conclusive Remarks}
+
+We presented \name, a framework for improving long-horizon multimodal reasoning through \emph{Multimodal Contextual Reasoning} (MCR), efficient long-context attention, and staged post-training. Our central premise is that many video-centric and visually grounded tasks are better modeled not as one-shot multimodal question answering, but as a closed-loop process of evidence accumulation, context updating, tool interaction, and self-correction. Under this view, multimodal understanding becomes a form of recursive contextual reasoning over evolving observations, intermediate conclusions, and external feedback.
+
+To make such rollouts practical, we introduced \emph{Multimodal Multi-head Latent Attention} (M$^2$LA), which compresses KV-cache states while preserving the full multimodal token stream. We further developed a training recipe combining continued pretraining after attention conversion, short-to-long supervised fine-tuning, rule-based reinforcement learning, and on-policy distillation. Together, these components enable a moderate-scale open multimodal backbone to better handle long videos, dense temporal evidence, and extended reasoning trajectories.
+
+Empirically, \name\ achieves strong performance across both short-video and long-video benchmarks, with notable gains on long-horizon tasks such as Video-MME, MLVU, and EgoSchema. Relative to InternVideo2.5-7B, it substantially improves performance on several representative long-video benchmarks, indicating that long-horizon capability can be strengthened through better context handling and long-video-oriented post-training even without moving to a much larger or newer backbone family. We also instantiate the model as a video agent with retrieval and verification tools, illustrating how recursive multimodal reasoning can support more robust evidence-grounded behavior.
+
+More broadly, we view this work as a step \emph{toward} multimodal agents rather than a claim of solving multimodal agency in full generality. Our setting is video-centric, but it highlights a capability that is likely to matter well beyond video: the ability to maintain, update, and verify a multimodal contextual state over long horizons. In this sense, we believe long-video and spatiotemporal reasoning provide a valuable testbed for studying visually grounded agency and world-model-relevant capabilities in foundation models.
+
+At the same time, the open-weight ecosystem has evolved rapidly, and newer model families increasingly adopt stronger native long-context architectures and broader post-training recipes. We therefore view our contribution not as a claim of frontier-wide architectural finality, but as evidence for two broader lessons: first, that \textbf{context efficiency remains crucial} for long-horizon multimodal rollouts; and second, that \textbf{closed-loop multimodal reasoning matters} when models must perceive, remember, verify, and act over extended visual streams. We hope this work helps motivate further research on adapting open multimodal models into more capable and practically useful systems for long-horizon visually grounded tasks.
+
+\section{Limitations, Discussion, and Future Work}
+
+\paragraph{Rapidly Evolving Open-Weight Frontier.}
+A primary limitation of this work is that the open-weight multimodal ecosystem evolved rapidly during the course of the project. Newer model families such as Qwen3.5/3.6/3.7~\citep{qwen35blog}, GLM~\citep{zeng2026glm}, Kimi~\citep{team2026kimi}, StepFun~\citep{huang2026step}, and others~\citep{deepseekai2026deepseekv4, mimov25, minimax2026m3, meituanlongcatteam2026longcatnextlexicalizingmodalitiesdiscrete} now surpass our system on a range of benchmarks and often incorporate stronger native long-context designs. Accordingly, this paper should not be read as claiming state-of-the-art multimodal agency or overall frontier open-model performance. Rather, it studies how far a moderate-scale open multimodal model can be pushed toward long-horizon visually grounded reasoning through better contextual reasoning, long-context efficiency, and post-training.
+
+
+\paragraph{Specific Efficiency Path Versus Broader Efficiency Principle.}
+Our long-context route centers on converting a pretrained GQA backbone into a latent-attention form through M$^2$LA. This was a practical choice when the project began, but it is less directly applicable to newer models that already incorporate native MLA~\citep{liu2024deepseek,guo2025deepseek}, linear attention~\citep{team2025kimi}, or more hierarchical compressed-attention designs \citep{deepseekai2026deepseekv4}. Even so, we believe the broader principle remains important: long-horizon multimodal reasoning requires efficient context handling, and there is continued value in studying how pretrained attention can be adapted into more deployment-friendly forms.
+
+\paragraph{Conceptual Novelty of MCR.}
+The ideas underlying MCR, including closed-loop reasoning, tool use, memory, self-correction, and iterative evidence gathering, are now widely discussed in agent papers and system overviews~\citep{masterman2024landscape, wang2024survey, zhang2025survey, ning2025survey, ning2026code}. Our contribution is therefore less about inventing these ingredients from scratch and more about offering a clear and extensible formulation for long-horizon multimodal reasoning, especially in video-centric settings. We believe this formulation is useful for training, system design, and evaluation, even if many of its high-level ingredients are increasingly shared across the literature.
+
+\paragraph{Implicit Rather Than Full Predictive World Modeling.}
+We position MCR as a form of contextual belief-state modeling relevant to world-model-like capabilities~\citep{vjepa,vjepa2}, not as a full action-conditioned simulator of the environment~\citep{hafner2019dream,hafner2023mastering}. This makes the approach practical for multimodal reasoning tasks, but it also limits its scope relative to predictive world models that explicitly model future environment dynamics. A promising direction is to connect contextual reasoning more tightly with learned predictive models so that multimodal agents can combine evidence gathering with explicit future-state evaluation.
+
+\paragraph{Tool Dependence and System Fragility.}
+The agent behavior depends on external tools such as ASR, temporal grounding, segmentation, retrieval, and search. Errors from these tools can propagate into the shared context and distort later reasoning. In the current work, tool interfaces are lightweight and not jointly optimized with the base model. Future work may explore tighter model--tool integration, uncertainty-aware tool use, and better calibration of tool-derived evidence.
+
+\paragraph{Scope of the Current Evaluation.}
+Our experiments focus primarily on long-video understanding, short-video reasoning, and a video-agent setup with perception tools. This covers an important but still partial slice of multimodal agency. We do not yet evaluate broadly on GUI agents~\citep{xie2024osworld,bonatti2024windows}, browser tasks~\citep{zhou2024webarena,koh2024visualwebarena}, mobile agents~\citep{deng2024mobile,rawles2025androidworld}, embodied robotics~\citep{shridhar2020alfred,yang2025embodiedbench}, or persistent multi-session assistants~\citep{wu2024longmemeval,maharana2024evaluating}. Extending the same contextual reasoning framework to these settings is an important future direction.
+
+Current public evaluation still under-measures many aspects of multimodal agency that motivate this work, such as recursive evidence gathering, memory management, verification quality, and closed-loop decision making over long visual streams. Meanwhile, the broader benchmark emphasis of the field has shifted strongly toward coding, browser, and general tool-use agents. We hope future benchmarks will better reflect visually grounded long-horizon reasoning as a distinct capability axis.
+
+\paragraph{Future Directions.}
+We see several promising directions for follow-up work. First, the idea of adapting pretrained attention into new efficient forms could be explored beyond GQA-to-MLA conversion, including hybrid, hierarchical, linear, or hardware-specialized attention designs. Second, MCR could be tested in broader multimodal agent settings such as GUI interaction, mobile agents, and embodied systems. Third, contextual reasoning should be studied together with stronger predictive world models, enabling agents that not only gather and organize evidence, but also simulate and compare future outcomes. Finally, we believe there is continuing value in \emph{resource-efficient adaptation}: a large part of the community does not train frontier-scale models from scratch, but instead works on making existing open weights more useful for new tasks, domains, and deployment constraints. We hope this work contributes to that broader effort.
+
+\clearpage
+\bibliographystyle{plainnat}
+\bibliography{ref}
+
+\clearpage
+\appendix
+
+\end{document}

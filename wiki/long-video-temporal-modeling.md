@@ -5,7 +5,7 @@ description: Scalable representations and retrieval mechanisms for preserving fi
 tags: [video, long-context, temporal-learning, efficiency]
 status: draft
 created: 2026-08-15
-generated: { by: llm-wiki-agent/1, at: 2026-08-17T11:58:42+07:00 }
+generated: { by: llm-wiki-agent/1, at: 2026-08-17T12:41:57+07:00 }
 sources:
   - id: vivit-paper
     resource: ../raw/ViViT/main_arxiv.tex
@@ -55,6 +55,12 @@ sources:
   - id: vjepa2-paper
     resource: ../raw/2506.09985_V-JEPA 2/main.tex
     title: "V-JEPA 2: Self-Supervised Video Models Enable Understanding, Prediction and Planning"
+  - id: videomamba-paper
+    resource: ../raw/2403.06977_VideoMamba/main.tex
+    title: "VideoMamba: State Space Model for Efficient Video Understanding"
+  - id: internvideo3-paper
+    resource: ../raw/2606.12195_InternVideo3/main.tex
+    title: "InternVideo3: Agentify Foundation Models with Multimodal Contextual Reasoning"
 ---
 
 # Long-video temporal modeling
@@ -141,9 +147,21 @@ This is a fixed-budget proposal-and-refinement mechanism, not lossless global at
 
 NeuS-QA uses a query-conditioned alternative to uniform sampling: it retains a video interval only after a temporal-logic specification over VLM-detected events is satisfied by a frame-based automaton, then extends that interval for answer context. This constrains the answering VLM's input but does not remove the fixed cost of constructing the automaton or guarantee retention when the detector misses an event.[^neus-qa-paper]
 
+## Selective state-space sequence modeling
+
+VideoMamba provides direct state-space evidence beyond the survey's architectural suggestion. It applies bidirectional selective scans to a flattened sequence of spatial patches across frames, giving linear rather than quadratic sequence complexity. In the authors' A100 setup, its 64-frame variant is reported as 6× faster and 40× lower-memory than a joint-attention TimeSformer-Ti baseline.[^videomamba-paper]
+
+This is a bounded-context and baseline-specific result. The long-video tasks use TSN-style sparse sampling with only 32 or 64 frames from videos lasting roughly one to three minutes; the model has no external memory or retrieval mechanism, and the paper explicitly leaves hour-level understanding unvalidated.[^videomamba-paper]
+
+## Latent KV-cache compression for multimodal rollouts
+
+InternVideo3's M²LA takes a different route from dropping or selecting tokens: it converts GQA attention to cache a compact per-token latent representation and reconstruct content keys and values during attention, while retaining a smaller position-aware key path. The source reports roughly 50% lower KV-cache use and, on one H200 with a 16K-token decode, execution through a 768K prefill where its Qwen3-VL-8B baseline is out of memory from 512K. This preserves the input token sequence but remains lossy state compression, and the results are specific to the reported conversion, precision, batch size, and hardware.[^internvideo3-paper]
+
+InternVideo3 combines that capacity with explicit long-context training, hierarchical video memory, targeted retrieval, and iterative verification. Its ablation drops the four-benchmark average from 66.8 to 65.4 without long-context training, indicating that architectural capacity alone did not teach the model to use longer contexts in this setup. The paper does not demonstrate arbitrary-duration memory, and its external tools can introduce errors into the accumulated context.[^internvideo3-paper]
+
 ## Architectural alternatives
 
-The source identifies local/hierarchical attention and state-space models as alternatives to full global attention. It motivates state-space approaches by approximately linear sequence scaling, but does not provide verified comparative evidence that they are preferable for a particular video task.[^video-temporal-survey]
+The survey identifies local/hierarchical attention and state-space models as alternatives to full global attention. VideoMamba substantiates the state-space branch for its tested sparse-frame classification settings, but does not establish that SSMs are preferable for every video task or arbitrary-duration evidence retention.[^video-temporal-survey][^videomamba-paper]
 
 ## Relationships
 
@@ -165,6 +183,8 @@ The source identifies local/hierarchical attention and state-space models as alt
 - **Uses:** [Foresee-to-Ground (F2G)](foresee-to-ground.md) as a ranked Top-$K$ candidate-span pool with segment evidence before LLM boundary refinement; this does not guarantee arbitrary-duration coverage.[^f2g-paper]
 - **Supports:** [VideoPrism](videoprism.md) when its frozen short-clip features are embedded in a separate long-video mechanism; VideoPrism itself supplies no such mechanism.[^videoprism-paper]
 - **Supports:** [V-JEPA 2](v-jepa-2.md) beyond its bounded 64-frame context and short-horizon latent rollout; progressive-resolution training reduces cost but supplies no persistent memory.[^vjepa2-paper]
+- **Uses:** [VideoMamba](videomamba.md) as a linear-sequence-complexity encoder over 32–64 sparsely sampled frames, not as persistent memory or arbitrary-duration retrieval.[^videomamba-paper]
+- **Uses:** [InternVideo3](internvideo3.md) as latent KV-cache compression paired with long-context training and tool-guided hierarchical retrieval; this does not establish arbitrary-duration or lossless memory.[^internvideo3-paper]
 
 [^vivit-paper]: [ViViT: A Video Vision Transformer](../raw/ViViT/main_arxiv.tex)
 [^video-temporal-survey]: [Tổng hợp các hướng xử lý video](../raw/TongHopCacHuongXuLyVideo.md)
@@ -182,3 +202,5 @@ The source identifies local/hierarchical attention and state-space models as alt
 [^f2g-paper]: [Foresee-to-Ground: From Predictive Temporal Perception to Evidence-Driven Reasoning for Video Temporal Grounding](../raw/Foresee-to-Ground/main.tex)
 [^videoprism-paper]: [VideoPrism: A Foundational Visual Encoder for Video Understanding](../raw/2402.13217_VideoPrism/main.tex)
 [^vjepa2-paper]: [V-JEPA 2: Self-Supervised Video Models Enable Understanding, Prediction and Planning](../raw/2506.09985_V-JEPA%202/main.tex)
+[^videomamba-paper]: [VideoMamba: State Space Model for Efficient Video Understanding](../raw/2403.06977_VideoMamba/main.tex)
+[^internvideo3-paper]: [InternVideo3: Agentify Foundation Models with Multimodal Contextual Reasoning](../raw/2606.12195_InternVideo3/main.tex)

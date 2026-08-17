@@ -15,6 +15,7 @@ The complete retrieval map for compiled knowledge. See [LLM Wiki Contract](../LL
 - [Inflated 3D ConvNets (I3D)](inflated-3d-convnets-i3d.md) — A two-stream action-recognition architecture that inflates pretrained 2D image ConvNets into spatiotemporal 3D ConvNets.
 - [InternVideo](internvideo.md) — A video foundation-model system that combines masked-video and video–text pretraining through supervised cross-model attention.
 - [InternVideo2](internvideo2.md) — A staged video foundation-model family that couples unmasked-token distillation, video–audio–speech–text alignment, and video-conditioned next-token prediction.
+- [InternVideo3](internvideo3.md) — A Qwen3-based multimodal model that combines closed-loop multimodal contextual reasoning, latent KV-cache compression, and staged long-video post-training.
 - [Long-video temporal modeling](long-video-temporal-modeling.md) — Scalable representations and retrieval mechanisms for preserving fine-grained events across long video contexts.
 - [LV-MAE](lv-mae.md) — A self-supervised long-video representation learner that reconstructs masked sequences of frozen short-video embeddings.
 - [MS-TCN (Multi-Stage Temporal Convolutional Network)](ms-tcn.md) — A full-resolution frame-level action-segmentation network that sequentially refines temporal class probabilities with stacked dilated-convolution stages.
@@ -37,6 +38,8 @@ The complete retrieval map for compiled knowledge. See [LLM Wiki Contract](../LL
 - [VideoITG](videoitg.md) — An instruction-conditioned Video-LLM frame-selection framework and automatically constructed 40K-video temporal-grounding dataset.
 - [Video Swin Transformer](video-swin-transformer.md) — A hierarchical video Transformer that uses alternating local and shifted 3D attention windows to model spacetime efficiently.
 - [VideoMAE](videomae.md) — A self-supervised video-pretraining method that reconstructs heavily tube-masked video cubes with an asymmetric Vision Transformer autoencoder.
+- [VideoMAE V2](videomae-v2.md) — A scalable video masked-autoencoder framework that masks both encoder and decoder tokens, then progressively adapts a billion-parameter ViT through unlabeled and labeled hybrid video datasets.
+- [VideoMamba](videomamba.md) — An isotropic video backbone that replaces self-attention with bidirectional selective state-space blocks over flattened spatiotemporal patch sequences.
 - [VideoPrism](videoprism.md) — A frozen short-clip video encoder pretrained by video-text contrastive learning followed by masked global-local feature distillation with token shuffling.
 - [Video temporal learning](video-temporal-learning.md) — A task taxonomy for learning temporal structure in video, spanning recognition, localization, representation learning, language grounding, and reasoning.
 - [Video temporal representation learning](video-temporal-representation-learning.md) — Pretraining video features to encode appearance, motion, order, dynamics, and longer-range semantics for downstream tasks.

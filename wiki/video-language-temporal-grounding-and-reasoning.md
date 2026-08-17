@@ -5,7 +5,7 @@ description: Text-conditioned localization and inference over event timing, orde
 tags: [video, language, temporal-grounding, temporal-reasoning, video-llm]
 status: draft
 created: 2026-08-15
-generated: { by: llm-wiki-agent/1, at: 2026-08-17T11:58:42+07:00 }
+generated: { by: llm-wiki-agent/1, at: 2026-08-17T12:41:57+07:00 }
 sources:
   - id: video-temporal-survey
     resource: ../raw/TongHopCacHuongXuLyVideo.md
@@ -37,6 +37,12 @@ sources:
   - id: vjepa2-paper
     resource: ../raw/2506.09985_V-JEPA 2/main.tex
     title: "V-JEPA 2: Self-Supervised Video Models Enable Understanding, Prediction and Planning"
+  - id: videomamba-paper
+    resource: ../raw/2403.06977_VideoMamba/main.tex
+    title: "VideoMamba: State Space Model for Efficient Video Understanding"
+  - id: internvideo3-paper
+    resource: ../raw/2606.12195_InternVideo3/main.tex
+    title: "InternVideo3: Agentify Foundation Models with Multimodal Contextual Reasoning"
 ---
 
 # Video-language temporal grounding and reasoning
@@ -67,6 +73,8 @@ InternVideo’s video–text branch contrastively aligns independently encoded v
 
 X-CLIP similarly improves whole-video retrieval alignment rather than temporal localization. It contrasts video/sentence, video/word, sentence/frame, and frame/word representations and attention-aggregates their similarities, but its DiDeMo and ActivityNet protocols concatenate captions for video-paragraph retrieval instead of predicting moment boundaries.[^xclip-paper]
 
+VideoMamba likewise reports zero-shot whole-video text retrieval rather than temporal grounding. Its gains over similarly trained UMT baselines on datasets including ActivityNet and DiDeMo support video-text alignment, but the model does not return query-conditioned start/end boundaries or evaluate temporal relations.[^videomamba-paper]
+
 VideoPrism's reported Charades-STA experiment also is not temporal grounding: it trims each clip using annotated start/end times and asks the model to retrieve the correct description among that video's sequential descriptions. This can test clip-description discrimination after oracle segmentation, but it cannot show that the model finds the interval boundaries.[^videoprism-paper]
 
 InternVideo2 provides direct but bounded grounding evidence: with CG-DETR, its paper reports finetuned 6B features at 71.42 R1@0.5 and 56.45 R1@0.7 on QVHighlight, plus 70.03 R1@0.5 and 58.79 mIoU on Charades-STA. These evaluate natural-language moment localization under the stated protocols, not general temporal reasoning or arbitrary-duration evidence access.[^internvideo2-paper]
@@ -93,6 +101,12 @@ Foresee-to-Ground (F2G) supplies a different grounding interface: it constructs 
 
 The source reports improvements over direct fine-tuning in its controlled Qwen3-VL-8B comparison and argues that residual errors are mainly limited by candidate-pool coverage. These are source-reported benchmark findings; the method covers single-interval visual grounding, not general multi-event temporal reasoning.[^f2g-paper]
 
+## Closed-loop contextual grounding
+
+InternVideo3's Multimodal Contextual Reasoning (MCR) places observations, reasoning traces, actions, tool feedback, and memory in one evolving context. Its video-agent instantiation can retrieve hierarchical memory, invoke temporal grounding or ASR, revisit evidence, and verify support before answering. This is a general evidence-gathering loop rather than a dedicated boundary decoder, and tool errors can propagate into later reasoning.[^internvideo3-paper]
+
+The source also reports direct temporal-grounding evaluations of 59.9 on QVHighlights, 50.4 on Charades-STA, and 47.9 on ActivityNet Captions under their official metrics. A preliminary Video-MME comparison reports 75.8 with agentic MCR inference versus 73.1 for direct QA, but the main results table reports 73.8 for InternVideo3 and does not fully reconcile the configurations. The paper says agentic inference did not consistently help other benchmarks, so this is proof-of-concept evidence rather than broad agentic superiority.[^internvideo3-paper]
+
 ## Explicit temporal representations
 
 A neuro-symbolic direction translates questions and video events into explicit temporal relations such as *before*, *overlaps*, and *during*, then uses those relations to retrieve evidence before visual-language reasoning. This is a proposed architectural pattern in the source, not a verified general solution.[^video-temporal-survey]
@@ -115,6 +129,8 @@ NeuS-QA makes temporal relations executable: it translates a question into event
 - **Uses:** [X-CLIP](x-clip-video-text-retrieval.md) as an example of multi-grained video-text retrieval alignment, not as demonstrated temporal grounding or reasoning.[^xclip-paper]
 - **Uses:** [VideoPrism](videoprism.md) as a possible short-clip feature encoder, while treating its oracle-trimmed Charades-STA retrieval protocol as non-grounding evidence.[^videoprism-paper]
 - **Uses:** [V-JEPA 2](v-jepa-2.md) as a language-free pretrained video encoder later aligned with an LLM for temporal QA, not as a temporal-boundary grounding model.[^vjepa2-paper]
+- **Uses:** [VideoMamba](videomamba.md) as an aligned video-text feature encoder whose cited evidence is whole-video retrieval, not temporal grounding or reasoning.[^videomamba-paper]
+- **Includes:** [InternVideo3](internvideo3.md) as a long-video MLLM with direct grounding evaluations and an MCR evidence-gathering loop; its broad agent evidence remains preliminary.[^internvideo3-paper]
 
 [^video-temporal-survey]: [Tổng hợp các hướng xử lý video](../raw/TongHopCacHuongXuLyVideo.md)
 [^internvideo-paper]: [InternVideo: General Video Foundation Models via Generative and Discriminative Learning](../raw/InternVideo/main.tex)
@@ -126,3 +142,5 @@ NeuS-QA makes temporal relations executable: it translates a question into event
 [^xclip-paper]: [X-CLIP: End-to-End Multi-grained Contrastive Learning for Video-Text Retrieval](../raw/2207.07285_X-CLIP/sample-base.tex)
 [^videoprism-paper]: [VideoPrism: A Foundational Visual Encoder for Video Understanding](../raw/2402.13217_VideoPrism/main.tex)
 [^vjepa2-paper]: [V-JEPA 2: Self-Supervised Video Models Enable Understanding, Prediction and Planning](../raw/2506.09985_V-JEPA%202/main.tex)
+[^videomamba-paper]: [VideoMamba: State Space Model for Efficient Video Understanding](../raw/2403.06977_VideoMamba/main.tex)
+[^internvideo3-paper]: [InternVideo3: Agentify Foundation Models with Multimodal Contextual Reasoning](../raw/2606.12195_InternVideo3/main.tex)

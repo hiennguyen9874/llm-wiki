@@ -5,7 +5,7 @@ description: Video tasks that recognize, localize, segment, or anticipate action
 tags: [video, temporal-learning, action-understanding]
 status: draft
 created: 2026-08-15
-generated: { by: llm-wiki-agent/1, at: 2026-08-17T11:58:42+07:00 }
+generated: { by: llm-wiki-agent/1, at: 2026-08-17T12:38:10+07:00 }
 sources:
   - id: bmn-paper
     resource: ../raw/BMN/main.tex
@@ -28,6 +28,9 @@ sources:
   - id: videomae-paper
     resource: ../raw/VideoMAE/main.tex
     title: "VideoMAE: Masked Autoencoders are Data-Efficient Learners for Self-Supervised Video Pre-Training"
+  - id: videomaev2-paper
+    resource: ../raw/2303.16727_VideoMAEV2/videomae_v2.tex
+    title: "VideoMAE V2: Scaling Video Masked Autoencoders with Dual Masking"
   - id: actionformer-paper
     resource: ../raw/ActionFormer/main.tex
     title: "ActionFormer: Localizing Moments of Actions with Transformers"
@@ -55,6 +58,9 @@ sources:
   - id: vjepa2-paper
     resource: ../raw/2506.09985_V-JEPA 2/main.tex
     title: "V-JEPA 2: Self-Supervised Video Models Enable Understanding, Prediction and Planning"
+  - id: videomamba-paper
+    resource: ../raw/2403.06977_VideoMamba/main.tex
+    title: "VideoMamba: State Space Model for Efficient Video Understanding"
 ---
 
 # Temporal action understanding
@@ -104,9 +110,15 @@ ActionFormer directly targets interval-level TAL: it classifies each temporal fe
 
 VideoMAE is a masked-video-pretraining method rather than a task head. Its source transfers a Kinetics-400-pretrained ViT-B to AVA human-action detection and reports 26.7 mAP without labeled-Kinetics fine-tuning and 31.8 mAP with it; this is frame-centered detection evidence, not evidence for temporal action intervals or framewise segmentation.[^videomae-paper]
 
+VideoMAE V2 broadens this backbone-transfer evidence to temporal intervals by replacing ActionFormer's I3D features with its pretrained features. The source reports average mAP of 69.6 on THUMOS14 and 18.2 on FineAction without optical flow. These are results for the VideoMAE V2 plus ActionFormer pipeline, not evidence that the pretrained encoder directly predicts interval boundaries.[^videomaev2-paper]
+
 ## Predictive features for action anticipation
 
 V-JEPA 2 evaluates one-second Epic-Kitchens-100 anticipation by giving a frozen attentive probe both observed encoder tokens and predictor-generated tokens for a future masked frame. Its 1B 384-resolution system reports 39.7 mean-class action recall@5, but the source's own ablation obtains 39.1 from encoder outputs without predicted tokens. The result therefore supports strong pretrained context features and a small incremental contribution from the predictor under this protocol, not long-horizon action forecasting generally.[^vjepa2-paper]
+
+## State-space action classification
+
+VideoMamba evaluates a bidirectional selective state-space backbone on trimmed Kinetics-400 and Something-Something V2 recognition and on sparse-frame Breakfast, COIN, and LVU video-level tasks. Its strongest reported masked-pretraining configuration reaches 71.4% top-1 on Something-Something V2, while the long-video experiments use only 32 or 64 TSN-style sparse frames. These results support action-sensitive classification under the stated protocols, not temporal interval localization, framewise segmentation, online detection, or lossless long-video event coverage.[^videomamba-paper]
 
 ## Long-video classification representations
 
@@ -134,6 +146,7 @@ Precise temporal intervals are expensive to annotate. Weakly supervised temporal
 - **Includes:** [Multiscale Vision Transformers (MViT)](multiscale-vision-transformers-mvit.md) as a Transformer backbone evaluated for clip classification and frame-centered human-action detection.[^mvit-paper]
 - **Includes:** [Video Swin Transformer](video-swin-transformer.md) as a local-attention Transformer backbone evaluated for clip-level action recognition.[^video-swin-paper]
 - **Uses:** [VideoMAE](videomae.md) as a self-supervised pretrained backbone for clip classification and frame-centered human-action detection.[^videomae-paper]
+- **Uses:** [VideoMAE V2](videomae-v2.md) as a pretrained backbone evaluated for recognition, frame-centered spatial detection, and ActionFormer-based temporal localization.[^videomaev2-paper]
 - **Includes:** [ActionFormer](actionformer.md) as a single-stage anchor-free Transformer for interval-level temporal action localization.[^actionformer-paper]
 - **Includes:** [Future Transformer (FUTR)](future-transformer-futr.md) as a long-term, framewise action-anticipation model with parallel segment decoding.[^futr-paper]
 - **Includes:** [Memory-and-Anticipation Transformer (MAT)](memory-and-anticipation-transformer-mat.md) as a unified online current-action detection and fixed-gap anticipation model.[^mat-paper]
@@ -143,6 +156,7 @@ Precise temporal intervals are expensive to annotate. Weakly supervised temporal
 - **Includes:** [X-CLIP: CLIP adaptation for video recognition](x-clip-video-recognition.md) as a language-image-pretrained clip classifier, not a temporal localizer or segmenter.[^xclip-recognition-paper]
 - **Uses:** [VideoPrism](videoprism.md) as a frozen feature backbone paired with separate classification, temporal-localization, and spatiotemporal-localization heads.[^videoprism-paper]
 - **Uses:** [V-JEPA 2](v-jepa-2.md) as a frozen predictive video backbone for motion classification and short-horizon action anticipation, not temporal interval decoding.[^vjepa2-paper]
+- **Uses:** [VideoMamba](videomamba.md) as an SSM backbone for short- and minute-scale video classification, not as a temporal localizer or segmenter.[^videomamba-paper]
 
 [^bmn-paper]: [BMN: Boundary-Matching Network for Temporal Action Proposal Generation](../raw/BMN/main.tex)
 [^video-temporal-survey]: [Tổng hợp các hướng xử lý video](../raw/TongHopCacHuongXuLyVideo.md)
@@ -151,6 +165,7 @@ Precise temporal intervals are expensive to annotate. Weakly supervised temporal
 [^mvit-paper]: [Multiscale Vision Transformers](../raw/MViT/mvit_arxiv.tex)
 [^video-swin-paper]: [Video Swin Transformer](../raw/VideoSwin/main.tex)
 [^videomae-paper]: [VideoMAE: Masked Autoencoders are Data-Efficient Learners for Self-Supervised Video Pre-Training](../raw/VideoMAE/main.tex)
+[^videomaev2-paper]: [VideoMAE V2: Scaling Video Masked Autoencoders with Dual Masking](../raw/2303.16727_VideoMAEV2/videomae_v2.tex)
 [^actionformer-paper]: [ActionFormer: Localizing Moments of Actions with Transformers](../raw/ActionFormer/main.tex)
 [^futr-paper]: [Future Transformer for Long-term Action Anticipation](../raw/FutureTransformer/main.tex)
 [^internvideo-paper]: [InternVideo: General Video Foundation Models via Generative and Discriminative Learning](../raw/InternVideo/main.tex)
@@ -160,3 +175,4 @@ Precise temporal intervals are expensive to annotate. Weakly supervised temporal
 [^xclip-recognition-paper]: [Expanding Language-Image Pretrained Models for General Video Recognition](../raw/2208.02816_X-CLIP/main.tex)
 [^videoprism-paper]: [VideoPrism: A Foundational Visual Encoder for Video Understanding](../raw/2402.13217_VideoPrism/main.tex)
 [^vjepa2-paper]: [V-JEPA 2: Self-Supervised Video Models Enable Understanding, Prediction and Planning](../raw/2506.09985_V-JEPA%202/main.tex)
+[^videomamba-paper]: [VideoMamba: State Space Model for Efficient Video Understanding](../raw/2403.06977_VideoMamba/main.tex)

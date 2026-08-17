@@ -5,7 +5,7 @@ description: Pretraining video features to encode appearance, motion, order, dyn
 tags: [video, representation-learning, self-supervised-learning, foundation-models]
 status: draft
 created: 2026-08-15
-generated: { by: llm-wiki-agent/1, at: 2026-08-17T12:03:39+07:00 }
+generated: { by: llm-wiki-agent/1, at: 2026-08-17T12:38:10+07:00 }
 sources:
   - id: video-temporal-survey
     resource: ../raw/TongHopCacHuongXuLyVideo.md
@@ -16,6 +16,9 @@ sources:
   - id: videomae-paper
     resource: ../raw/VideoMAE/main.tex
     title: "VideoMAE: Masked Autoencoders are Data-Efficient Learners for Self-Supervised Video Pre-Training"
+  - id: videomaev2-paper
+    resource: ../raw/2303.16727_VideoMAEV2/videomae_v2.tex
+    title: "VideoMAE V2: Scaling Video Masked Autoencoders with Dual Masking"
   - id: internvideo-paper
     resource: ../raw/InternVideo/main.tex
     title: "InternVideo: General Video Foundation Models via Generative and Discriminative Learning"
@@ -37,6 +40,9 @@ sources:
   - id: vjepa2-paper
     resource: ../raw/2506.09985_V-JEPA 2/main.tex
     title: "V-JEPA 2: Self-Supervised Video Models Enable Understanding, Prediction and Planning"
+  - id: videomamba-paper
+    resource: ../raw/2403.06977_VideoMamba/main.tex
+    title: "VideoMamba: State Space Model for Efficient Video Understanding"
 ---
 
 # Video temporal representation learning
@@ -46,6 +52,8 @@ Video representation learning aims to encode temporal structure—appearance, mo
 ## Pretraining families
 
 The source groups self-supervised video learning into transformation/order prediction, contrastive learning, and masked video modeling.[^video-temporal-survey] Masked video modeling hides a large fraction of spatiotemporal input and trains an encoder-decoder to reconstruct the missing content; its stated motivation is temporal redundancy in video. VideoMAE is a pixel-reconstruction instance that shares a tube mask across frames and feeds only the remaining visible tokens to its encoder during pretraining.[^videomae-paper]
+
+VideoMAE V2 extends this recipe by masking decoder inputs with a distributed running-cell pattern, scaling the encoder to 1.011B parameters, and pretraining on a 1.348M-clip mixed-source corpus before optional supervised Kinetics-710 post-pretraining. Its reported efficiency and transfer gains belong to this combined system; the source does not isolate decoder masking, data scale, model scale, and progressive supervision as independent causes.[^videomaev2-paper]
 
 LV-MAE applies masked modeling at a coarser level: it reconstructs masked sequences of frozen short-video embeddings rather than video pixels. This permits its long-range Transformer to receive one token per five-second segment, but it transfers the short-video encoder's representational limits into the long-video model.[^lv-mae-paper]
 
@@ -66,6 +74,10 @@ Supervised pretraining on a large action-video dataset can also yield transferab
 ## Language-image model adaptation
 
 X-CLIP adapts an image-text-pretrained encoder to clip-level video recognition without a new web-scale video-text pretraining stage. It retains frame-local patch processing while using one temporary message token per frame for cross-frame exchange, then applies a shallow temporal integration Transformer. A video-conditioned prompting module also adapts class-text embeddings to each video's visual content. This is source-specific evidence for transferring an image-text joint space into fully supervised, few-shot, and cross-dataset zero-shot video classification, not evidence for temporal localization or long-video understanding.[^xclip-recognition-paper]
+
+## Selective state-space video representation
+
+VideoMamba supplies a pure state-space alternative to convolutional and attention backbones. It flattens frame-wise spatial patches into one sequence and runs bidirectional selective scans with linear sequence complexity. Its masked regime aligns visible final-layer outputs to a CLIP ViT-B teacher and favors continuity-preserving masks, so the reported representation quality combines the state-space architecture, inherited teacher semantics, and the masking recipe rather than isolating any one cause.[^videomamba-paper]
 
 ## Sequential semantic and contextual distillation
 
@@ -89,6 +101,7 @@ InternVideo2 extends this progressive family with unmasked-token distillation, v
 - **Depends on:** [Long-video temporal modeling](long-video-temporal-modeling.md) when context exceeds a short clip.
 - **Instantiated by:** [Inflated 3D ConvNets (I3D)](inflated-3d-convnets-i3d.md) through ImageNet initialization and supervised Kinetics pretraining.
 - **Instantiated by:** [VideoMAE](videomae.md) through masked pixel reconstruction on unlabeled video clips.[^videomae-paper]
+- **Instantiated by:** [VideoMAE V2](videomae-v2.md) through dual-masked reconstruction and progressive scaling across unlabeled and labeled hybrid datasets.[^videomaev2-paper]
 - **Instantiated by:** [InternVideo](internvideo.md) by coordinating separately pretrained masked-video and video–text encoders.[^internvideo-paper]
 - **Instantiated by:** [InternVideo2](internvideo2.md) through progressive token distillation, multimodal alignment, and video-conditioned next-token prediction.[^internvideo2-paper]
 - **Instantiated by:** [LV-MAE](lv-mae.md) through masked reconstruction of frozen clip-level embeddings for bounded long-video sequences.[^lv-mae-paper]
@@ -96,11 +109,13 @@ InternVideo2 extends this progressive family with unmasked-token distillation, v
 - **Instantiated by:** [X-CLIP: CLIP adaptation for video recognition](x-clip-video-recognition.md) through cross-frame message passing, temporal integration, and video-conditioned class-text representations.[^xclip-recognition-paper]
 - **Instantiated by:** [VideoPrism](videoprism.md) through sequential video-text alignment and masked global-local teacher-feature distillation with token shuffling.[^videoprism-paper]
 - **Instantiated by:** [V-JEPA 2](v-jepa-2.md) through masked EMA-teacher feature prediction, followed separately by action-conditioned latent-dynamics post-training.[^vjepa2-paper]
+- **Instantiated by:** [VideoMamba](videomamba.md) through bidirectional selective state-space scans and optional final-layer masked alignment to a CLIP visual teacher.[^videomamba-paper]
 - **Compared in:** [Video backbones and encoders comparison](video-backbones-and-encoders-comparison.md), which separates backbone architecture, pretraining recipe, corpus scale, and task-specific transfer evidence.
 
 [^video-temporal-survey]: [Tổng hợp các hướng xử lý video](../raw/TongHopCacHuongXuLyVideo.md)
 [^i3d-paper]: [Quo Vadis, Action Recognition? A New Model and the Kinetics Dataset](../raw/I3D/full_kinetics_update_v0.tex)
 [^videomae-paper]: [VideoMAE: Masked Autoencoders are Data-Efficient Learners for Self-Supervised Video Pre-Training](../raw/VideoMAE/main.tex)
+[^videomaev2-paper]: [VideoMAE V2: Scaling Video Masked Autoencoders with Dual Masking](../raw/2303.16727_VideoMAEV2/videomae_v2.tex)
 [^internvideo-paper]: [InternVideo: General Video Foundation Models via Generative and Discriminative Learning](../raw/InternVideo/main.tex)
 [^internvideo2-paper]: [InternVideo2: Scaling Foundation Models for Multimodal Video Understanding](../raw/InternVideo2/main.tex)
 [^lv-mae-paper]: [LV-MAE: Learning Long Video Representations through Masked-Embedding Autoencoders](../raw/LV-MAE/main.tex)
@@ -108,3 +123,4 @@ InternVideo2 extends this progressive family with unmasked-token distillation, v
 [^xclip-recognition-paper]: [Expanding Language-Image Pretrained Models for General Video Recognition](../raw/2208.02816_X-CLIP/main.tex)
 [^videoprism-paper]: [VideoPrism: A Foundational Visual Encoder for Video Understanding](../raw/2402.13217_VideoPrism/main.tex)
 [^vjepa2-paper]: [V-JEPA 2: Self-Supervised Video Models Enable Understanding, Prediction and Planning](../raw/2506.09985_V-JEPA%202/main.tex)
+[^videomamba-paper]: [VideoMamba: State Space Model for Efficient Video Understanding](../raw/2403.06977_VideoMamba/main.tex)

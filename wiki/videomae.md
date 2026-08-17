@@ -5,11 +5,14 @@ description: A self-supervised video-pretraining method that reconstructs heavil
 tags: [video, representation-learning, self-supervised-learning, masked-autoencoder, transformer]
 status: stable
 created: 2026-08-16
-generated: { by: llm-wiki-agent/1, at: 2026-08-16T10:11:45+07:00 }
+generated: { by: llm-wiki-agent/1, at: 2026-08-17T12:34:53+07:00 }
 sources:
   - id: videomae-paper
     resource: ../raw/VideoMAE/main.tex
     title: "VideoMAE: Masked Autoencoders are Data-Efficient Learners for Self-Supervised Video Pre-Training"
+  - id: videomaev2-paper
+    resource: ../raw/2303.16727_VideoMAEV2/videomae_v2.tex
+    title: "VideoMAE V2: Scaling Video Masked Autoencoders with Dual Masking"
 ---
 
 # VideoMAE
@@ -34,6 +37,7 @@ The source also transfers a Kinetics-400-pretrained ViT-B to AVA action detectio
 
 ## Relationships
 
+- **Extended by:** [VideoMAE V2](videomae-v2.md), which adds decoder masking, mixed-source scaling, and progressive supervised adaptation while retaining encoder tube masking.[^videomaev2-paper]
 - **Instantiates:** [Video temporal representation learning](video-temporal-representation-learning.md) through masked pixel reconstruction on unlabeled clips.[^videomae-paper]
 - **Applies to:** [Temporal action understanding](temporal-action-understanding.md) through downstream action classification and AVA human-action detection.[^videomae-paper]
 - **Contrasts with:** [ViViT (Video Vision Transformer)](vivit.md). Both can use joint space–time attention over video tokens, but VideoMAE specifies a self-supervised pretraining objective and asymmetric reconstruction architecture rather than a family of supervised video-classification encoders.[^videomae-paper]
@@ -44,3 +48,4 @@ The source also transfers a Kinetics-400-pretrained ViT-B to AVA action detectio
 The manuscript evaluates fixed clips on Kinetics-400, Something-Something-V2, UCF101, HMDB51, and AVA. It does not establish streaming latency, arbitrary-duration memory, framewise segmentation, or temporal action intervals, and its 2022 comparisons are not evidence of current state of the art.[^videomae-paper] The manuscript text, bibliography files, and all 17 supplied figure PDFs were inspected; plot values are used only where extractable or corroborated by tables/text.
 
 [^videomae-paper]: [VideoMAE: Masked Autoencoders are Data-Efficient Learners for Self-Supervised Video Pre-Training](../raw/VideoMAE/main.tex)
+[^videomaev2-paper]: [VideoMAE V2: Scaling Video Masked Autoencoders with Dual Masking](../raw/2303.16727_VideoMAEV2/videomae_v2.tex)
