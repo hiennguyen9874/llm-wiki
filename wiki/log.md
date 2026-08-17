@@ -1,6 +1,7 @@
 # Wiki Update Log
 
 ## 2026-08-17
+- **Query**: Defined the retained hybrid OCR scope and cataloged its core and boundary models, datasets, metrics, reported results, protocol conflicts, and evidence limits in [Hybrid OCR systems and benchmarks](hybrid-ocr-systems-and-benchmarks.md).
 - **Query**: Cataloged retained end-to-end generative OCR VLMs, datasets, metrics, result vectors, protocol conflicts, and evidence gaps in [End-to-end generative OCR VLM benchmarks](end-to-end-generative-ocr-vlm-benchmarks.md).
 - **Query**: Cataloged retained layout-first modular OCR models, datasets, metrics, result vectors, protocol conflicts, and evidence limits in [Layout-first modular OCR benchmarks](layout-first-modular-ocr-benchmarks.md).
 - **Query**: Cataloged retained and comparison-only traditional OCR models, datasets, metrics, and reported results in [Detector–recognizer OCR benchmarks](detector-recognizer-ocr-benchmarks.md), with protocol and reproducibility limits.

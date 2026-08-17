@@ -24,6 +24,7 @@ The complete retrieval map for compiled knowledge. See [LLM Wiki Contract](../LL
 - [GLM-OCR](glm-ocr.md) — GLM-OCR is a 0.9B two-stage document OCR system that combines PP-DocLayoutV3 region parsing with a CogViT-GLM recognizer using shared-parameter multi-token prediction.
 - [Granite Docling 258M](granite-docling-258m.md) — Granite Docling 258M is IBM's 258M-parameter document-conversion VLM, integrated with Docling to produce structured document outputs.
 - [HunyuanOCR-1.5](hunyuanocr-1.5.md) — HunyuanOCR-1.5 is a lightweight end-to-end OCR VLM with DFlash speculative decoding, multiple inference stacks, and an agentic data-construction workflow.
+- [Hybrid OCR systems and benchmarks](hybrid-ocr-systems-and-benchmarks.md) — Hybrid OCR systems and benchmarks catalogs retained multi-stage OCR models, their datasets, metrics, reported results, protocol boundaries, and evidence limits.
 - [Infinity-Doc-400K](infinity-doc-400k.md) — Infinity-Doc-400K pairs rendered document pages with structured targets using synthetic HTML rendering and cross-validated pseudo-labeling of real documents.
 - [Infinity-Doc2-5M](infinity-doc2-5m.md) — Infinity-Doc2-5M is an approximately 5-million-sample Chinese-and-English multi-task corpus for document structure, element parsing, and document reasoning.
 - [Infinity-Parser2](infinity-parser2.md) — Infinity-Parser2 is a Qwen3.5-based end-to-end document parser trained with multi-task SFT and GRPO using task-native verifiable rewards.
