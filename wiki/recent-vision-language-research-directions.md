@@ -5,7 +5,7 @@ description: A synthesis of 2024–2026 vision–language methods and emerging d
 tags: [multimodal-learning, vision-language-models, research-directions, synthesis]
 status: stable
 created: 2026-08-17
-generated: { by: llm-wiki-agent/1, at: 2026-08-17T04:20:58Z }
+generated: { by: llm-wiki-agent/1, at: 2026-08-18T10:30:22Z }
 sources:
   - id: chuang-2025-meta-clip-2
     resource: ../raw/2507.22062_MetaCLIP 2/paper.tex
@@ -28,6 +28,12 @@ sources:
   - id: zeng-2025-shieldgemma2
     resource: ../raw/2504.01081_ShieldGemma2/main.tex
     title: "ShieldGemma 2: Robust and Tractable Image Content Moderation"
+  - id: simeoni-2025-dinov3
+    resource: ../raw/2508.10104_dinov3/main.tex
+    title: DINOv3
+  - id: microsoft-mage-2026
+    resource: ../raw/2607.24904_Mage-VL/main.tex
+    title: "Mage-VL: An Efficient Codec-Native Streaming Multimodal Foundation Model"
 ---
 
 # Recent vision-language research directions
@@ -48,6 +54,8 @@ Các công trình 2024–2026 trong wiki cho thấy trọng tâm đang dịch ch
 
 **Hàm ý tổng hợp:** encoder vision–language tương lai có xu hướng phục vụ đồng thời retrieval/classification toàn cục và segmentation, localization, grounding ở mức patch; objective đa nhiệm và distillation cục bộ trở thành phần chính của pretraining.
 
+DINOv3 cho thấy một hướng vision-first bổ sung: self-supervised pretraining giữ chất lượng patch qua Gram-matrix regularization, rồi mới distill, scale độ phân giải và tùy chọn gắn text encoder kiểu LiT. Bài báo báo cáo dense/geometry mạnh với backbone frozen, nhưng `dino.txt` vẫn kém một số encoder image–text gốc trên các global alignment và retrieval measures đã chọn.[^simeoni-2025-dinov3]
+
 ### 3. Thích nghi tham số thấp theo miền
 
 [CasPL](caspl-cascade-prompt-learning.md) tách thích nghi thành hai giai đoạn: chưng cất tri thức miền từ teacher vào boosting prompts bằng ảnh không nhãn, đóng băng chúng, rồi học adapting prompts bằng dữ liệu few-shot. Phương pháp có thể bọc CoOp, CoCoOp, MaPLe và PromptSRC mà không thay trọng số CLIP.[^wu-2024-caspl]
@@ -66,7 +74,13 @@ Các công trình 2024–2026 trong wiki cho thấy trọng tâm đang dịch ch
 
 **Hàm ý tổng hợp:** thay vì chỉ scale backbone sinh, nghiên cứu đang quay lại thiết kế encoder chuyên biệt, bidirectional attention, high-resolution cooldown, pooling/compression và kiến trúc phù hợp với serving.
 
-### 6. Safety theo policy và dữ liệu biên
+### 6. Codec-native video và streaming chủ động
+
+[Mage-VL](mage-vl-codec-native-streaming-vision-language-model.md) đưa việc giảm token video vào trước visual encoder: Mage-ViT giữ patch I-frame và chọn patch P-frame bằng tín hiệu motion/residual hoặc coding likelihood, sau đó một gate quyết định có tạo phản hồi streaming hay không. Báo cáo kỹ thuật tự công bố kết quả cao hơn Qwen3-VL-4B cùng LLM trên nhiều tác vụ video/grounding, nhưng cũng kém ở một số tác vụ; số liệu thời gian không hoàn toàn đối xứng vì baseline loại trừ thời gian tải video ước tính.[^microsoft-mage-2026]
+
+**Hàm ý tổng hợp:** hiệu quả video không chỉ là giảm token sau khi encode dày đặc. Codec-derived temporal predictability có thể phân bổ budget trước encoder và kết hợp với policy phản hồi event-driven, nhưng cần replication với codec, latency protocol và stream domain đa dạng.
+
+### 7. Safety theo policy và dữ liệu biên
 
 [ShieldGemma 2](shieldgemma-2-image-content-moderation.md) biến moderation thành phân loại có policy đầu vào, trả xác suất vi phạm có thể đặt ngưỡng. Dữ liệu huấn luyện kết hợp taxonomy tổng hợp, ảnh web được lọc và các ca biên nơi model/rater bất đồng.[^zeng-2025-shieldgemma2]
 
@@ -80,7 +94,8 @@ Các công trình 2024–2026 trong wiki cho thấy trọng tâm đang dịch ch
 4. **Adaptation theo miền không cần nhãn:** kết hợp prompt/adapters, teacher distillation và test-time signals nhưng cần đánh giá stability, calibration và chi phí cập nhật.
 5. **Small specialized encoders:** tối ưu theo Pareto accuracy–latency–memory; kiểm chứng liệu bidirectional early fusion và high-resolution training có tiếp tục hiệu quả khi scale.
 6. **Safety như một tầng có thể cấu hình:** policy tùy biến, threshold calibration, xử lý OCR/text-in-image và đánh giá drift/adversarial boundary sau triển khai.
-7. **Benchmark thực tế hơn:** mở rộng ngôn ngữ, kích thước corpus, truy vấn người dùng thật, tài liệu nhiều trang và báo cáo uncertainty/significance.
+7. **Streaming tiết kiệm và có kiểm toán:** so sánh codec-native với dense video dưới token, frame horizon, video I/O, hardware và độ trễ phản hồi tương đương; đánh giá false trigger, missed event và calibration theo stream domain.
+8. **Benchmark thực tế hơn:** mở rộng ngôn ngữ, kích thước corpus, truy vấn người dùng thật, tài liệu nhiều trang và báo cáo uncertainty/significance.
 
 ## Giới hạn bằng chứng
 
@@ -88,7 +103,7 @@ Các con số giữa bài không so sánh trực tiếp được vì khác dữ 
 
 ## Relationships
 
-- Synthesizes: [Meta CLIP 2](meta-clip-2-worldwide-clip-scaling.md), [SigLIP 2](siglip2-multilingual-vision-language-encoders.md), [TIPSv2](tipsv2-patch-text-aligned-vision-language-pretraining.md), [CasPL](caspl-cascade-prompt-learning.md), [ColPali](colpali-vision-space-document-retrieval.md), [ColQwen2](colqwen2-vision-space-document-retrieval.md), [ModernVBERT](modernvbert-small-visual-document-retriever.md), and [ShieldGemma 2](shieldgemma-2-image-content-moderation.md).
+- Synthesizes: [Meta CLIP 2](meta-clip-2-worldwide-clip-scaling.md), [SigLIP 2](siglip2-multilingual-vision-language-encoders.md), [TIPSv2](tipsv2-patch-text-aligned-vision-language-pretraining.md), [DINOv3](dinov3-self-supervised-visual-foundation-model.md), [CasPL](caspl-cascade-prompt-learning.md), [ColPali](colpali-vision-space-document-retrieval.md), [ColQwen2](colqwen2-vision-space-document-retrieval.md), [ModernVBERT](modernvbert-small-visual-document-retriever.md), [Mage-VL](mage-vl-codec-native-streaming-vision-language-model.md), and [ShieldGemma 2](shieldgemma-2-image-content-moderation.md).
 - Synthesized by: [Vision-language task-to-model map](vision-language-task-to-model-map.md), which maps these research directions to concrete task families and model choices.
 
 [^chuang-2025-meta-clip-2]: Chuang et al., “Meta CLIP 2: A Worldwide Scaling Recipe” (2025), [source](../raw/2507.22062_MetaCLIP%202/paper.tex).
@@ -98,3 +113,5 @@ Các con số giữa bài không so sánh trực tiếp được vì khác dữ 
 [^faysse-2025-colpali-camera-ready]: Faysse et al., “ColPali: Efficient Document Retrieval with Vision Language Models” (2025), [source](../raw/2407.01449_ColPali/iclr2025_conference.tex).
 [^teiletche-2026-modernvbert-camera-ready]: Teiletche et al., “ModernVBERT: Towards Smaller Visual Document Retrievers” (ICLR 2026), [source](../raw/2510.01149_ColModernVBert/iclr2026_conference.tex).
 [^zeng-2025-shieldgemma2]: ShieldGemma Team, “ShieldGemma 2: Robust and Tractable Image Content Moderation” (2025), [source](../raw/2504.01081_ShieldGemma2/main.tex).
+[^simeoni-2025-dinov3]: Siméoni et al., “DINOv3” (technical report, 2025), [complete supplied manuscript source](../raw/2508.10104_dinov3/main.tex).
+[^microsoft-mage-2026]: Microsoft Mage Team, “Mage-VL: An Efficient Codec-Native Streaming Multimodal Foundation Model” (technical report, July 2026), [complete supplied manuscript source](../raw/2607.24904_Mage-VL/main.tex).

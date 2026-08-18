@@ -1,0 +1,216 @@
+\section{Experiments}
+\label{sec:experiments}
+
+\subsection{Experimental Setup}
+\label{sec:exp_setup}
+
+\input{sections/table/summary_img_video}
+\paragraph{Models under evaluation.}
+We evaluate \magevl-4B, which combines the from-scratch \magevit visual tokenizer (\cref{sec:magevit}) with a Qwen3-4B-Instruct-2507 language backbone~\citep{qwen3}. At inference time, videos are represented as codec-token streams on a shared $16{\times}16$ patch grid: anchor frames are encoded densely, whereas predicted frames contribute only patches selected by the codec-derived importance signal. We report three codec-canvas operating points with different accuracy--efficiency trade-offs. The default \emph{tc32} setting uses the largest visual budget and generally delivers the strongest performance; \emph{tc16} provides a balanced configuration with lower evaluation cost and competitive accuracy; and the lightweight \emph{tc8} setting prioritizes latency while retaining much of the higher-budget performance. Their nominal canvas budgets correspond to the visual workloads of 32, 16, and 8 uniformly sampled frames, respectively, enabling matched-budget comparisons with frame-sampling baselines.
+Still images use single-image spatial patchification.
+
+
+
+\paragraph{Baselines.}
+Our primary comparison is Qwen3-VL-4B-Instruct~\citep{qwen3vl}, which uses a language model of the same parameter scale but a conventional dense visual front-end. We additionally compare with Phi-4-Multimodal-Instruct (Phi-4-MM, 5.6B)~\citep{abdin2024phi4} and Phi-4 reasoning-vision (Phi-4-R-V, 15B)~\citep{aneja2026phi4reasoningvision15btechnicalreport}. For the visual-representation study in \cref{sec:magevit_eval}, we compare \magevit with public contrastive and self-supervised encoders, including SigLIP~\citep{zhai2023siglip}, SigLIP2~\citep{tschannen2025siglip}, MetaCLIP2~\citep{model_metaclip2}, AIMv2~\citep{model_aimv2}, DINOv3~\citep{model_dinov3}, MoonViT~\citep{model_moonvit}, and OV-Encoder~\citep{ovencoder2026}.
+
+
+\paragraph{Benchmarks.}
+We organize the evaluation into four groups. First, representation quality (\cref{tab:summary_img_video}) directly evaluates \magevit using linear probes for image classification and attentive probes for video recognition. Second, image understanding (\cref{tab:understand_image}) covers document and chart understanding, OCR, general VQA, and 2D/3D spatial intelligence. Third, video understanding (\cref{tab:understand_video,tab:understand_video_tc8}) covers video QA, temporal grounding, video spatial reasoning, and referring-video tracking. Finally, proactive streaming is evaluated in \cref{sec:streaming_video_understanding} in terms of both response timing and response quality.
+
+
+
+\paragraph{Protocol.}
+All supported downstream benchmarks are evaluated using \texttt{lmms-eval}~\citep{zhang2025lmms} with the official prompt templates and scoring rules. We apply no model-specific prompt tuning, semantic rewriting, or manual output correction. For matched-budget video comparisons, the visual-input budget is controlled as described in \cref{sec:efficiency_analysis}. Temporal-grounding and tracking outputs are parsed using the official evaluation procedures. Wall-clock measurements in \cref{tab:understand_video_tc8} are collected on a single node with eight B200 GPUs.
+
+
+\input{sections/fig/vit_variable_resolution}
+
+
+    
+\subsection{Evaluation of Mage-ViT}
+\label{sec:magevit_eval}
+We evaluate \magevit from three perspectives: representation quality under limited pre-training data, the effect of native-resolution training across visual-token budgets, and robustness to different codec families. Image representations are evaluated using linear probes, while video representations are evaluated using attentive probes. Unless otherwise specified, all visual encoders remain frozen.
+
+
+
+\input{sections/table/dcvc_vs_hevc}
+
+\subsubsection{Learning Strong Visual Representations from Limited Data}
+\label{sec:magevit_data_efficiency}
+
+As summarized in \cref{tab:summary_img_video}, we comprehensively evaluate \magevit on both standard image recognition benchmarks via linear probing and video action/event recognition via attentive probing. Across both modalities, \magevit demonstrates strong representation capacities without requiring massive web-scale pre-training datasets.
+
+
+\paragraph{Image representation performance.}
+On standard 2D image benchmarks, \magevit delivers performance that consistently rivals or exceeds top-tier visual encoders trained on billions of images. Specifically, \magevit achieves the highest top-1 accuracy on CIFAR-10 (\textbf{99.33\%}) and exhibits highly competitive performance on coarse-grained and fine-grained classification tasks, such as SUN397 (\textbf{82.01\%}), Food-101 (\textbf{95.60\%}), and ImageNet-1K (\textbf{85.69\%}). Notably, its performance closely matches SigLIP2 (\textbf{85.92\%} on ImageNet) and surpasses established strong backbones including MetaCLIP2, AIMv2, and OV-Encoder. Importantly, while OV-Encoder relies on a smaller $14\times14$ patch size, \magevit adopts a larger $16\times16$ patch grid, achieving comparable or superior representation quality with fewer visual tokens. This confirms that our pre-training scheme effectively constructs a highly transferable and semantically rich feature space for static visual concepts using significantly fewer visual tokens and pre-training samples.
+
+\paragraph{Video representation performance and temporal adaptation.}
+When extended to temporal video understanding, \magevit demonstrates superior temporal modeling and efficiency, particularly in motion-heavy and long-horizon scenarios:
+\begin{itemize}[leftmargin=*]
+    \item \textbf{Chunk-wise Evaluation:} Under the standard 16-frame uniform sampling protocol, \magevit achieves a top-1 accuracy of \textbf{85.13\%} on HMDB-51 and \textbf{84.83\%} on Kinetics-400 (K400), outperforming strong baselines such as SigLIP (\textbf{78.80\%} and \textbf{79.10\%}) and DINOv3 (\textbf{79.70\%} and \textbf{83.90\%}). On fine-grained action perception benchmarks like Diving-48 (\textbf{60.45\%}), \magevit significantly outperforms traditional image-centric models, highlighting its robust spatial-temporal feature extraction.
+    \item \textbf{Codec-based Sparse Sampling:} When leveraging sparse patch selection across an expanded temporal context of 64 frames under the exact same visual token budget (4096 tokens), \magevit exhibits substantial performance boosts on motion-critical tasks. Specifically, the accuracy on Diving-48 jumps from \textbf{60.45\%} to \textbf{64.14\%} (+3.69\%), and HMDB-51 reaches a peak accuracy of \textbf{85.17\%}. This confirms that the spatio-temporal representations learned by \magevit naturally pair with codec-driven sparse tokenization, enabling the model to capture fine-grained temporal dynamics over longer video horizons without increasing computational or memory overhead.
+\end{itemize}
+
+
+\begin{promptbox}
+\large
+\textbf{\textit{Finding 1:}}
+\textbf{Web-Scale Pre-training is Not Essential for VLM Visual Encoders.}
+Despite being trained from scratch on a modest corpus, \magevit achieves visual representation quality competitive with flagship encoders like SigLIP2, proving that architectural and objective design can effectively substitute for web-scale pre-training data.
+\end{promptbox}
+
+
+
+\subsubsection{Native-Resolution Scaling across Visual-Token Budgets}
+\label{sec:magevit_token_scaling}
+
+
+
+To further evaluate how visual representations adapt to flexible input resolutions, we analyze performance across an increasing visual token budget (from 196 to 676 tokens per image) on Food-101 and ImageNet-1K, as shown in Fig.~\ref{fig:vit_variable_resolution}.
+
+\paragraph{Monotonic resolution scaling vs. fixed-resolution degradation.}
+Visual encoders exhibit fundamentally distinct scaling behaviors depending on their pre-training resolution strategies:
+\begin{itemize}[leftmargin=*]
+    \item \textbf{Fixed-Resolution Baselines (SigLIP2 \& OV-Encoder):} Because these models are pre-trained on fixed spatial grids, evaluating them under larger token budgets introduces severe positional distribution shifts. Consequently, SigLIP2 reaches its peak performance at 256 tokens on ImageNet ($\sim 85.9\%$) and continuously degrades as the token budget expands to 676 ($\sim 84.7\%$). Similarly, OV-Encoder experiences a clear performance drop beyond 484 tokens.
+    \item \textbf{Variable-Resolution Encoders (MoonViT \& \magevit):} Encoders pre-trained with variable-resolution objectives naturally adapt to flexible spatial formats. While MoonViT avoids high-resolution collapse, its overall representation capacity remains low across all budget settings. In contrast, \magevit achieves the best of both worlds: its representation quality monotonically improves as the visual token budget increases—reaching peak accuracy at 676 tokens ($>96.1\%$ on Food-101 and $>86.3\%$ on ImageNet)—while consistently outperforming all baselines at every evaluated resolution.
+\end{itemize}
+This superior extrapolation capacity confirms that \magevit seamlessly accommodates dynamic visual sequence lengths, making it an ideal visual backbone for Large Multimodal Models (LMMs).
+
+\begin{promptbox}
+\large
+\textbf{\textit{Finding 2:}}
+\textbf{Variable-Resolution Pre-training Enables Continuous Monotonic Scaling with Resolution and Token Budgets.}
+While fixed-resolution vision encoders suffer from sharp performance degradation when evaluated at higher resolution budgets, \magevit leverages variable-resolution pre-training to achieve continuous, monotonic quality gains without saturation.
+\end{promptbox}
+
+
+\input{sections/table/understand_image}
+\input{sections/table/understand_video}
+\subsubsection{Robust Token Selection across Codec Families}
+\label{sec:magevit_codec_robustness}
+
+
+
+
+As introduced in \cref{sec:magevit_arch}, \magevit uses a codec-derived importance map to select informative patches from predicted frames. During training, this map is computed from HEVC~\citep{sullivan2012hevc} using motion-vector magnitude and residual energy. Since these signals are specific to the coding process of a traditional codec, an important question is whether the resulting token-selection strategy generalizes to fundamentally different codec families.
+
+We evaluate this by replacing the HEVC-based selector at inference time with DCVC-RT~\citep{jia2025towards}, a neural video codec whose learned probability model estimates local coding cost through negative log-likelihood. No codec-specific retraining or adaptation is applied. As shown in \cref{tab:dcvc_vs_hevc}, the two selectors achieve nearly identical average performance across video QA, temporal grounding, and spatial reasoning benchmarks, while the neural-codec selector uses a smaller average token canvas. Performance also remains comparable across most individual tasks, with no consistent degradation after switching codec families.
+
+These results indicate that codec-guided token selection does not depend on the particular motion-estimation, residual-coding, or probability model used by a codec. Although HEVC and DCVC-RT implement compression through different mechanisms, both assign greater coding cost to regions that are difficult to predict from temporal context. Motion-vector magnitude, residual energy, and neural-codec negative log-likelihood therefore provide different estimates of the same underlying signal: local temporal predictability.
+
+Importantly, \magevit consumes only the resulting patch-importance map, rather than codec-specific syntax or latent representations. The visual tokenizer is therefore decoupled from the mechanism used to estimate coding difficulty. This establishes temporal predictability as a transferable criterion for allocating visual tokens and allows codec-guided tokenization to generalize across traditional and neural compression systems.
+
+
+\subsection{Evaluation of Mage-VL}
+\label{sec:image_video_eval}
+\subsubsection{Image Understanding}
+
+
+\Cref{tab:understand_image} reports model performance across three core capability dimensions: document understanding, which aligns with Microsoft's primary domain applications; general VQA, which evaluates general multimodal proficiency; and spatial intelligence, which represents a core strategic focus of \magevl.
+Against the matched-LLM Qwen3-VL-4B control, \magevl is competitive on aggregate and clearly ahead on the categories that our caption-heavy curriculum targets. On document, OCR, and chart understanding, \magevl leads on the majority of benchmarks---including DocVQA ($95.14$), InfoVQA ($80.33$), ChartQA ($84.88$), OCRBench ($81.80$), and AI2D-with-mask ($83.16$)---consistent with the dense-recaptioning and verbatim-OCR emphasis of our data pipeline. On general VQA, the two models trade wins within small margins, with \magevl achieving top results on MMStar ($67.32$), MME-Perception ($1709.54$), and CV-Bench ($87.79$), while comprehensively surpassing the similarly-sized Phi-4-MM across the board. The clearest and most consistent gains appear in the spatial-intelligence block: \magevl improves over Qwen3-VL on CV-Bench-3D ($94.75$ vs.\ $92.30$), EmbSpatial ($82.67$ vs.\ $77.50$), and dramatically on cross-view point correspondence (CrossPoint $80.00$ vs.\ $26.90$), where codec-aligned patchification preserves the dense, geometrically-consistent structure that viewpoint matching requires. Despite using roughly a quarter of its parameters, \magevl also surpasses Phi-4-R-V (15B) on the large majority of these spatial benchmarks. 
+
+\subsubsection{Video Understanding}
+
+
+\Cref{tab:understand_video} reports video understanding under the same matched-LLM comparison, so that \magevl and Qwen3-VL-4B differ only in the visual front-end.
+\magevl improves on most video-QA benchmarks, including VideoMME ($+4.3$), MLVU ($+7.2$), LongVideoBench ($+3.5$), LVBench ($+2.6$), NextQA ($+3.3$), and especially the long and realistic VideoEval-Pro ($+24.5$). Qwen3-VL remains stronger on MV-Bench, TempCompass, and MMVU, which lean more on dense per-frame appearance than on temporal localization. The gains concentrate in \emph{localization-heavy} regimes: on temporal grounding \magevl improves by $+7.6$, $+17.1$, and $+22.5$ on the Timelens Charades/ActivityNet/QVHighlight splits; on video spatial reasoning by $+11.0$ on VSI-Bench; and on referring-video tracking by roughly $+18$ to $+20$ J\&F points on Ref-DAVIS17, MeViS, and Ref-YouTube-VOS (and $+8.1$ on ReasonVOS).
+ 
+Notably, these competitive long VideoQA capabilities are achieved \emph{without any} long VideoQA SFT; instead, \magevl relies solely on short video SFT alongside detailed video captions. The dense temporal-visual alignment established by video captions enables the base LLM to handle VideoQA tasks zero-shot, bypassing the need for heavy VideoQA instruction tuning. \Cref{tab:understand_video_tc8} further shows that the lightweight tc8 setting preserves most of these gains at a fraction of the visual-token cost, confirming that the advantage does not hinge on a large frame budget.
+
+% Importantly, the training mixture includes short-video QA supervision but no dedicated long-video QA data. Long-video capabilities are instead learned primarily from temporally detailed captions and codec-native long-context training. The strong results on LongVideoBench, LVBench, MLVU-dev, VideoMME, and VideoEval-Pro therefore indicate that short-video instruction tuning can transfer to substantially longer contexts when combined with fine-grained long-video caption supervision. \Cref{tab:understand_video_tc8} further shows that the lower-budget tc8 and tc16 settings retain competitive performance, demonstrating that these capabilities do not depend exclusively on the largest visual budget.
+
+\begin{promptbox}
+\large
+\textbf{\textit{Finding 3:}}
+\textbf{Dense Video Captions Bypass Long VideoQA SFT.}
+Without explicit long VideoQA instruction tuning, fine-tuning solely on video detailed captions (alongside short video SFT) is sufficient for strong VideoQA capabilities. High-quality captioning establishes solid temporal-visual alignment, allowing the base LLM to generalize to long VideoQA zero-shot.
+\end{promptbox}
+
+
+
+\input{sections/table/understand_video_tc8}
+
+Beyond temporal grounding and video-level reasoning, we observe an intriguing positive transfer from dynamic video training to static spatial intelligence. 
+While traditional paradigms often treat spatial reasoning and temporal video understanding as isolated capabilities, exposure to continuous video streams—rich in egocentric perspective shifts, camera trajectories, and object-environment interactions—provides a strong inductive bias for fine-grained 2D/3D geometric perception. 
+Although rigorous single-variable ablations remain challenging due to the tightly coupled joint pre-training recipe, our empirical results across spatial benchmarks (e.g., CV-Bench and EmbSpatial) strongly support this cross-task synergy.
+
+\begin{promptbox}
+\large
+\textbf{\textit{Finding 4:}}
+\textbf{Dynamic Video Training Synergizes with Spatial Intelligence.}
+Incorporating dynamic video sequences with rich viewpoint transitions and spatial interactions enhances 2D/3D spatial reasoning capabilities, allowing \magevl to achieve strong performance on static spatial benchmarks alongside temporal video tasks.
+\end{promptbox}
+
+
+\subsection{Streaming Video Understanding}
+\label{sec:streaming_video_understanding}
+
+To systematically evaluate \magevl in continuous video streams, we investigate both its \emph{response timing} (when to speak) and \emph{response quality} (what to say), accompanied by a qualitative case study on real-world sports broadcasts.
+
+% ------------------ 1. Response Timing ------------------
+\paragraph{Response timing.} 
+We evaluate our codec-native streaming model on the SoccerNet-Caption validation split following the StreamMind evaluation protocol~\citep{ding2025streammindunlockingframerate}. The decision gate is evaluated at every valid streaming position via an $\mathrm{argmax}$ over the \emph{silent}/\emph{speak} logits using exact canvas-position matching with zero temporal tolerance. 
+We report TriggerAcc (fraction of correctly predicted gate positions) and TimVal (which balances speak and silence correctness), both macro-averaged across 98 match halves. Additionally, raw per-position F1, ROC-AUC, and PR-AUC are reported without temporal tolerance. 
+
+For reference, baseline numbers for StreamMind are directly taken from its original publication~\citep{ding2025streammindunlockingframerate}. Notably, StreamMind was explicitly trained in-distribution on SoccerNet-Caption, whereas \magevl achieves superior event-triggering performance under strict, zero-tolerance canvas-position matching without domain-specific over-tuning. Note that JoyAI is evaluated at 1~Hz with a relaxed $\pm1$-second window.
+
+As presented in Table~\ref{tab:response_timing}, JoyAI-VL-Interaction exhibits a severe bias toward predicting silence. Due to the extreme class imbalance in SoccerNet-Caption (where silent frames dominate), JoyAI achieves an artificially inflated TriggerAcc ($97.98\%$) but suffers a severe degradation on precision-sensitive and balanced metrics (e.g., $19.25\%$ TimVal and $3.55\%$ F1). 
+In contrast, \magevl significantly outperforms StreamMind—despite StreamMind being trained \emph{in-distribution} on SoccerNet-Caption—achieving $79.21\%$ TriggerAcc and a state-of-the-art $55.54\%$ TimVal. This superior performance across ROC-AUC ($83.14\%$) and PR-AUC ($9.30\%$) demonstrates that \magevl achieves well-calibrated, timely response triggering without collapsing into trivial silent predictions.
+
+\input{sections/table/response_timing}
+
+% ------------------ 2. Response Quality ------------------
+\paragraph{Response quality.} 
+Beyond timing accuracy, we evaluate the streaming perception quality of \magevl on OVO-Bench~\citep{li2025ovobench} under the recent-window protocol established by SimpleStream~\citep{shen2026simplestream}, where queries are answered using the four most recent frames sampled at 1\,fps. 
+As detailed in Table~\ref{tab:main_ovo}, \magevl achieves $79.84\%$ average accuracy on Real-Time Visual Perception and $48.15\%$ on Backward Tracing, establishing a new state-of-the-art overall OVO-Bench score of $64.00\%$ among streaming architectures. Crucially, this competitive real-time perception capability is attained without requiring streaming-specific fine-tuning or heavy external memory modules.
+
+\input{sections/table/main_ovo}
+
+% ------------------ 3. Qualitative Illustration ------------------
+\paragraph{Qualitative illustration.} 
+Fig.~\ref{fig:streaming_case} presents a qualitative case study on a live 2026 World Cup broadcast between England and Argentina outside the SoccerNet evaluation split. As visualized, our codec front-end dynamically retains spatial patches ($16{\times}16$) associated with salient motion and novel visual details while suppressing temporally predictable background regions. Throughout routine gameplay ($02.16\text{s}$--$24.50\text{s}$), the event gate stays silent. At $29.36\text{s}$, upon detecting an active offensive play—where an England player drives toward the goal under close pursuit by an Argentina defender—the event gate triggers the language decoder to proactively generate a real-time commentary (\emph{``An England player drives toward goal, closely pursued by an Argentina defender as the attack develops.''}). This demonstrates the seamless synergy between codec-native sparse perception and event-driven response generation in demanding live streaming scenarios.
+
+\input{sections/fig/streaming_case}
+
+
+
+
+\subsection{Efficiency Analysis}
+\label{sec:efficiency_analysis}
+
+To understand how codec-native tokenization alters the trade-off between visual budget and downstream accuracy, we analyze both the scaling trends under matched visual input budgets and the wall-clock evaluation efficiency.
+
+% ------------------ 1. Budget Formulation ------------------
+\paragraph{Matched-budget setup.}
+We evaluate \emph{codec-input efficiency} by comparing downstream performance under an equivalent nominal visual input capacity to the vision encoder. 
+For the uniform baseline, \emph{frame-$N$} denotes Qwen3-VL-4B evaluated on $N \in \{4, 8, 16, 32, 64\}$ uniformly sampled RGB frames. For \magevl, \emph{tc-$N$} denotes a target budget of $N$ codec canvases, constructed via adaptive temporal grouping and salient patch packing over an $8\times$ denser source-frame sequence ($8N$ raw frames). Following LLaVA-OneVision-2~\cite{llavaonevision2}, both paradigms share identical vision architectures ($16{\times}16$ patch size, max 150K pixels per input canvas). Consequently, frame-$N$ and tc-$N$ subject the vision backbone to the same nominal token workload, but tc-$N$ adaptively concentrates representation capacity onto motion-salient regions across a significantly wider temporal horizon.
+
+% ------------------ 2. Scaling Curves ------------------
+\input{sections/fig/tc_vs_frame_scaling}
+
+\paragraph{Accuracy-budget scaling.}
+As illustrated in Fig.~\ref{fig:tc_vs_frame_scaling}, codec-native tokenization establishes a consistently superior accuracy-efficiency frontier over uniform sampling across long-video and fine-grained temporal tasks. 
+Crucially, the performance advantage (\emph{green shaded area}) is most pronounced in low-to-medium budget regimes ($N \le 16$). On dense temporal localization benchmarks such as TimeLens-ActivityNet, TimeLens-Charades, and TimeLens-QVHighlights, sparse uniform sampling frequently misses crucial short-duration events, whereas tc-$N$ retains vital temporal evidence even at $N=4$. 
+On long-video QA benchmarks (e.g., VideoMME, LVBench, and MLVU-Dev), tc-$N$ steadily outscales uniform sampling across all budgets ($4 \le N \le 64$). 
+The only notable boundary case occurs on MVBench, where both representations converge at high frame budgets, as its short clip structures offer fewer temporally redundant regions for codec compression to exploit. Overall, codec tokenization acts as a dynamic capacity reallocator—pruning temporal redundancies to maximize information density per visual token.
+
+
+
+% ------------------ 3. Inference Time & Pareto Frontier (Table 5) ------------------
+\paragraph{Pareto efficiency in wall-clock time.}
+Table~\ref{tab:understand_video_tc8} further highlights the practical wall-clock inference advantages of \magevl. 
+By compressing redundant video content prior to vision encoding, \magevl achieves superior accuracy while drastically reducing latency. For instance, on VideoMME, \magevl under \emph{tc8} achieves $57.9\%$ accuracy in just $270\,\mathrm{s}$ wall-clock time—outperforming Qwen3-VL ($59.7\%$ at $463\,\mathrm{s}$) in compute time while matching its accuracy at \emph{tc16} ($61.8\%$ at $439\,\mathrm{s}$). On NExT-QA~\cite{xiao2021next}, \magevl (\emph{tc8}) cuts the evaluation wall-clock time from $1460\,\mathrm{s}$ down to $415\,\mathrm{s}$ ($3.5\times$ speedup) while achieving higher accuracy ($80.8\%$ vs. $79.8\%$). These results confirm that codec-native visual representation delivers genuine end-to-end inference speedups alongside strong empirical accuracy gains.
+
+\begin{promptbox}
+\large
+\textbf{\textit{Finding 5:}}
+\textbf{Codec-Native Inputs Significantly Boost Video Representation Efficiency.}
+By dynamically packing motion-salient patches across extended temporal horizons, codec-native tokenization establishes a superior accuracy-efficiency frontier over uniform frame sampling, achieving substantially higher performance under matched token budgets and up to $3.5\times$ wall-clock inference speedups.
+\end{promptbox}
+
+
+
+
+
+

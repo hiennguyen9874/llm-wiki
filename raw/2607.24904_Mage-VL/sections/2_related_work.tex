@@ -1,0 +1,58 @@
+\section{Related Work}
+\label{sec:related}
+
+\subsection{Visual Tokenization: From Image ViTs to Codec-ViT}
+\label{sec:related_tokenization}
+
+Most VLM visual encoders inherit the dense patch-grid representation introduced by Vision Transformers~\citep{dosovitskiy2021vit}, including CLIP~\citep{radford2021clip}, SigLIP and SigLIP2~\citep{zhai2023siglip,tschannen2025siglip}, DINOv2~\citep{oquab2024dinov2}, and the visual encoders of recent Qwen-VL models~\citep{bai2025qwen25vl,qwen3vl}. To reduce redundant tokens, prior work has explored adaptive pruning and merging, including DynamicViT~\citep{rao2021dynamicvit}, AdaViT~\citep{meng2022adavit}, ToMe~\citep{bolya2023tome}, FastV~\citep{chen2024fastv}, and LLaVA-PruMerge~\citep{shang2024prumerge}.
+
+For video, TimeSformer~\citep{bertasius2021timesformer}, ViViT~\citep{arnab2021vivit}, Video Swin Transformer~\citep{liu2022videoswin}, and VideoMAE~\citep{tong2022videomae} extend visual modeling into the temporal dimension. Video VLMs further reduce token cost through temporal compression or adaptive selection, including LLaMA-VID~\citep{li2023llamavid}, Chat-UniVi~\citep{jin2024chatunivi}, SlowFast-LLaVA~\citep{xu2024slowfastllava}, MovieChat~\citep{song2024moviechat}, LongVU~\citep{shen2024longvu}, and VideoChat-Flash~\citep{videochatflash2025}. However, these methods generally compress features after dense frame encoding or select entire frames, leaving substantial spatio-temporal redundancy unresolved.
+
+Codec-based representations provide a more direct way to exploit temporal redundancy. CoViAR~\citep{wu2018coviar} demonstrated compressed-domain video recognition using motion vectors and residuals, while Video-LaVIT~\citep{videolavit2024} introduced codec-derived motion information into multimodal modeling. OneVision Encoder~\citep{ovencoder2026} further develops codec-aligned patch sparsity, and LLaVA-OneVision-2~\citep{llavaonevision2} incorporates video-native representations into VLM training.
+
+\magevit builds on this direction by representing videos with anchor frames and sparse predicted frames, allocating tokens only to temporally informative regions before expensive visual encoding. Unlike image-centric encoders, \magevit is trained from scratch on both image and video data, while its codec-native design supports efficient long-video processing and incremental streaming.
+
+\subsection{Open Vision--Language Models}
+\label{sec:related_vlm}
+
+Modern VLMs typically connect a pretrained vision encoder to a decoder-only LLM through a lightweight projector. Early works such as Flamingo~\citep{alayrac2022flamingo} and BLIP-2~\citep{li2023blip2} explored efficient vision--language alignment, while LLaVA~\citep{liu2023llava}, MiniGPT-4~\citep{zhu2023minigpt4}, InstructBLIP~\citep{dai2023instructblip}, and LLaVA-1.5~\citep{liu2024llava15} established visual instruction tuning as a standard paradigm.
+
+Recent open VLMs scale this recipe with stronger visual encoders, larger multimodal corpora, and multi-stage training. Representative models include Qwen-VL~\citep{bai2023qwenvl,bai2025qwen25vl,qwen3vl}, InternVL~\citep{internvl3,chen2024nnvl}, DeepSeek-VL~\citep{lu2024deepseekvl}, Pixtral~\citep{agrawal2024pixtral}, Molmo~\citep{deitke2024molmo}, Kimi-VL~\citep{team2026kimi}, LLaVA-OneVision~\citep{li2024llavaonevision15,llavaonevision2}, and Keye-VL~\citep{Keye-VL-1.5}. Compact models such as Phi-3.5-Vision~\citep{abdin2024phi3} and Phi-4-Multimodal~\citep{abdin2024phi4} provide strong smaller-scale baselines, while BAGEL~\citep{deng2025bagel}, Emu3.5~\citep{cui2025emu35nativemultimodalmodels}, Ovis-U1~\cite{wang2025ovis} further unify visual understanding and generation~\cite{zhang2025unified}.
+
+Video VLMs largely extend this image-centric paradigm by aggregating features from sampled frames. VideoChat~\citep{li2023videochat}, Video-ChatGPT~\citep{maaz2023videochatgpt}, Video-LLaMA~\citep{zhang2023videollama}, and Video-LLaVA~\citep{lin2023videollava} introduced early video extensions, while LLaVA-OneVision~\citep{li2024llavaonevision} and LongVA~\citep{zhang2024longva} improve unified image--video modeling and long-context understanding.
+
+Despite these advances, most video VLMs still rely on sampled frames followed by dense per-frame tokenization. \magevl instead trains a video-native visual encoder from scratch and directly consumes sparse codec-aligned visual streams, reducing temporal redundancy before it reaches the language model.
+
+
+
+\subsection{Streaming and Online Video-Language Models}
+\label{sec:related_streaming}
+
+Most video VLMs operate offline, processing sampled frames as a static multi-image input before generating a response. Recent work instead explores continuous video interaction and proactive response timing. VideoLLM-online~\citep{chen2024videollmonline} interleaves streaming perception and language generation, MMDuet~\citep{wang2024mmduet} supports responses at arbitrary moments, and Dispider~\citep{qian2025dispider} decouples perception, decision, and reaction. StreamMind~\citep{ding2025streammind} further introduces event-gated response triggering, while JoyAI~\citep{joyai2026vlinteraction} enables real-time interaction through a multi-agent pipeline.
+
+Another line of work focuses on memory and computational efficiency for long-running streams. Flash-VStream~\citep{zhang2024flashvstream}, StreamingVLM~\citep{xu2026streamingvlmrealtimeunderstandinginfinite}, and InternLM-XComposer2.5-OmniLive~\citep{zhang2024ixc25omnilive} maintain compressed or rolling visual states for long-term streaming understanding. Streaming supervision and evaluation have also been studied using temporally aligned data, such as LiveCC~\citep{chen2025livecclearningvideollm} and MatchTime~\citep{rao2024matchtimeautomaticsoccergame}, together with benchmarks including StreamingBench~\citep{lin2024streamingbench} and OVO-Bench~\citep{li2025ovobench}.
+
+Unlike prior methods that mainly add streaming mechanisms to conventional frame-based encoders, \magevl makes streaming native to the visual front-end. It processes rolling codec-token windows and integrates proactive response triggering with language generation through a dual-system architecture.
+
+
+% \subsection{Open Vision--Language Models}
+% \label{sec:related_vlm}
+
+% Modern VLMs typically combine a pretrained vision encoder with a decoder-only LLM through a lightweight connector. Early works such as Flamingo~\citep{alayrac2022flamingo} and BLIP-2~\citep{li2023blip2} explored efficient vision-language alignment, while LLaVA~\citep{liu2023llava}, MiniGPT-4~\citep{zhu2023minigpt4}, InstructBLIP~\citep{dai2023instructblip}, and LLaVA-1.5~\citep{liu2024llava15} established visual instruction tuning as a standard paradigm.
+
+% Recent open VLMs scale this recipe with stronger visual encoders, larger multimodal corpora, and multi-stage training. Representative models include Qwen-VL~\citep{bai2023qwenvl,bai2025qwen25vl,qwen3vl}, InternVL~\citep{internvl3,chen2024nnvl}, DeepSeek-VL~\citep{lu2024deepseekvl}, Pixtral~\citep{agrawal2024pixtral}, Molmo~\citep{deitke2024molmo}, Kimi-VL~\citep{team2026kimi}, LLaVA-OneVision~\citep{li2024llavaonevision15,llavaonevision2}, and Keye-VL~\citep{Keye-VL-1.5}. Compact models such as Phi-3.5-Vision~\citep{abdin2024phi3} and Phi-4-Multimodal~\citep{abdin2024phi4} provide strong smaller-scale baselines, while BAGEL~\citep{deng2025bagel} and Emu3.5~\citep{cui2025emu35nativemultimodalmodels} further unify visual understanding and generation.
+
+% Video VLMs largely extend this image-centric paradigm by aggregating features from sampled frames. VideoChat~\citep{li2023videochat}, Video-ChatGPT~\citep{maaz2023videochatgpt}, Video-LLaMA~\citep{zhang2023videollama}, and Video-LLaVA~\citep{lin2023videollava} introduced early video extensions, while LLaVA-OneVision~\citep{li2024llavaonevision} and LongVA~\citep{zhang2024longva} improve unified image-video and long-context modeling.
+
+% Despite these advances, most video VLMs still rely on sampled frames followed by dense per-frame tokenization. \magevl instead trains a video-native visual encoder from scratch and directly consumes sparse codec-aligned visual streams, reducing temporal redundancy before it reaches the language model.
+
+% \subsection{Visual Tokenization: From Image ViTs to Codec-ViT}
+% \label{sec:related_tokenization}
+
+% Most VLM visual encoders inherit the dense patch-grid representation introduced by Vision Transformers~\citep{dosovitskiy2021vit}, including CLIP~\citep{radford2021clip}, SigLIP/SigLIP2~\citep{zhai2023siglip,tschannen2025siglip}, DINOv2~\citep{oquab2024dinov2}, and the visual encoders of recent Qwen-VL models~\citep{bai2025qwen25vl,qwen3vl}. To reduce redundant tokens, prior works explore adaptive pruning or merging, including DynamicViT~\citep{rao2021dynamicvit}, AdaViT~\citep{meng2022adavit}, ToMe~\citep{bolya2023tome}, FastV~\citep{chen2024fastv}, and LLaVA-PruMerge~\citep{shang2024prumerge}.
+
+% For video, TimeSformer~\citep{bertasius2021timesformer}, ViViT~\citep{arnab2021vivit}, Video Swin Transformer~\citep{liu2022videoswin}, and VideoMAE~\citep{tong2022videomae} extend visual modeling into the temporal dimension. Video VLMs further reduce token cost through temporal compression or adaptive selection, including LLaMA-VID~\citep{li2023llamavid}, Chat-UniVi~\citep{jin2024chatunivi}, SlowFast-LLaVA~\citep{xu2024slowfastllava}, MovieChat~\citep{song2024moviechat}, LongVU~\citep{shen2024longvu}, and VideoChat-Flash~\citep{videochatflash2025}. However, these methods generally compress features after dense frame encoding or select entire frames, leaving substantial spatio-temporal redundancy unresolved.
+
+% Codec-based representations provide a more direct way to exploit temporal redundancy. CoViAR~\citep{wu2018coviar} demonstrated compressed-domain video recognition using motion vectors and residuals, while Video-LaVIT~\citep{videolavit2024} introduced codec-derived motion information into multimodal modeling. OneVision Encoder~\citep{ovencoder2026} further develops codec-aligned patch sparsity, and LLaVA-OneVision-2~\citep{llavaonevision2} incorporates such video-native representations into VLM training.
+
+% \magevit builds on this direction by representing videos with anchor (I) frames and sparse predicted (P) frames, allocating tokens only to temporally informative regions before expensive visual encoding. Unlike prior image-centric encoders, \magevit is trained from scratch on both image and video data, while its codec-native design enables efficient long-video processing and incremental streaming.

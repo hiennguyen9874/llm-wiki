@@ -1,0 +1,99 @@
+\section{Related Work}
+
+\paragraph{Self-Supervised Learning}
+Learning without annotations requires an artificial learning task that provides supervision in lieu for training.
+The art and challenge of SSL lies in carefully designing these so-called pre-text tasks in order to learn powerful representations for downstream tasks.
+The language domain, by its discrete nature, offers straightforward ways to set up such tasks, which led to many successful unsupervised pre-training approaches for text data.
+Examples include word embeddings~\citep{mikolov2013distributed,bojanowski2017enriching}, sentence representations~\citep{devlin2018bert,liu2019roberta}, and plain language models~\citep{mikolov2010recurrent,zaremba2014recurrent}.
+In contrast, computer vision presents greater challenges due to the continuous nature of the signal. 
+Early attempts mimicking language approaches extracted supervisory signals from parts of an image to predict other parts, \eg by predicting relative patch position~\citep{doersch2015unsupervised}, patch re-ordering~\citep{noroozi2016jigsaw, misra2020self}, or inpainting~\citep{pathakCVPR16context}.
+Other tasks involve re-colorizing images~\citep{zhang2016colorful} or predicting image transformations~\citep{gidaris2018unsupervised}.
+
+
+Among these tasks, \emph{inpainting-based} approaches have gathered significant interest thanks to the flexibility of the patch-based ViT architecture~\citep{he2021masked, bao2021beit, el2021large}.
+The objective is to reconstruct corrupted regions of an image, which can be viewed as a form of denoising auto-encoding and is conceptually related to the masked token prediction task in BERT pretraining~\citep{devlin2018bert}.
+Notably, \citet{he2021masked} demonstrated that pixel-based masked auto-encoders~(MAE) can be used as strong initializations for finetuning on downstream tasks.
+In the following, \citet{baevski2022data2vec,baevski2023efficient,assran2023self} showed that predicting a \emph{learned latent space} instead of the pixel space leads to more powerful, higher-level features---a learning paradigm called JEPA: ``Joint-Embedding Predictive Architecture''~\citep{lecun2022path}.
+Recently, JEPAs have also been extended to video training~\citep{bardes2024revisiting,assran2025vjepa2}.
+
+
+A second line of work, closer to ours, leverages \emph{discriminative signals between images} to learn visual representations. 
+This family of methods traces its origins to early deep learning research~\citep{hadsell2006dimensionality}, but gained popularity with the introduction of instance classification techniques~\citep{dosovitskiy2016discriminative, bojanowski2017unsupervised, wu2018unsupervised}.
+Subsequent advancements introduced contrastive objectives and information-theoretic criteria~\citep{henaff2019data,he2020momentum, chen2020exploring, chen2020simple,grill2020bootstrap, bardes2021vicreg}, as well as self clustering-based strategies~\citep{caron2018deep,asano2019self,caron2020unsupervised,caron2021emerging}.
+More recent approaches, such as iBOT~\citep{zhou2021ibot}, combine these discriminative losses with masked reconstruction objectives.
+All of these methods show the ability to learn strong features and achieve high performance on standard benchmarks like ImageNet~\citep{russakovsky2015imagenet}.
+However, most face challenges scaling to larger model sizes~\citep{chen2021empirical}.
+
+\paragraph{Vision Foundation Models}
+The deep learning revolution began with the AlexNet breakthrough~\citep{krizhevsky2012imagenet}, a deep convolutional neural network that outperformed all previous methods on the ImageNet challenge~\citep{deng2009imagenet,russakovsky2015imagenet}. 
+Already early on, features learned end-to-end on the large manually-labeled ImageNet dataset were found to be highly effective for a wide range of transfer learning tasks~\citep{oquab2014learning}.
+Early work on vision \emph{foundation models} then focused on architecture development, including VGG~\citep{simonyan2015very}, GoogleNet~\citep{szegedy2015going}, and ResNets~\citep{he2016deep}. %
+
+Given the effectiveness of \emph{scaling}, subsequent works explored training larger models on big datasets.
+\citet{sun2017revisiting} expanded supervised training data with the proprietary JFT dataset containing 300 million labeled images, showing impressive results.
+JFT also enabled significant performance gains for \citet{kolesnikov2020big}.
+In parallel, scaling was explored using a combination of supervised and unsupervised data. 
+For instance, an ImageNet-supervised model can be used to produce pseudo-labels for unsupervised data, which then serve to train larger networks~\citep{yalniz2019billion}.
+Subsequently, the availability of large supervised datasets such as JFT also facilitated the adaptation of the transformer architecture to computer vision~\citep{dosovitskiy2020image}.
+In particular, achieving performance comparable to that of the original vision transformer (ViT) without access to JFT requires substantial effort~\citep{touvron2020training, touvron2022deit}. 
+Due to the learning capacity of ViTs, scaling efforts were further extended by \citet{zhai2022scaling}, culminating in the very large ViT-22B encoder~\citep{dehghani2023scaling}.
+
+Given the complexity of manually labeling large datasets, \emph{weakly-supervised training}---where annotations are derived from metadata associated with images---provides an effective alternative to supervised training.
+Early on, \citet{joulin2016learning} demonstrated that a network can be pre-trained by simply predicting all words in the image caption as targets. 
+This initial approach was further refined by leveraging sentence structures~\citep{li2017learning}, incorporating other types of metadata and involve curation~\citep{mahajan2018exploring}, and scaling~\citep{singh2022revisiting}.
+However, weakly-supervised algorithms only reached their full potential with the introduction of contrastive losses and the joint-training of caption representations, as exemplified by Align~\citep{jia2021scaling} and CLIP~\citep{radford2021learning}.
+
+This highly successful approach inspired numerous \emph{open-source reproductions and scaling efforts}. 
+OpenCLIP~\citep{cherti2023reproducible} was the first open-source effort to replicate CLIP by training on the LAION dataset~\citep{schuhmann2021laion}; following works leverage pre-trained backbones by fine-tuning them in a CLIP-style manner~\citep{sun2023eva,sun2024eva}.
+Recognizing that data collection is a critical factor in the success of CLIP training, MetaCLIP~\citep{xu2024demystifying} precisely follows the original CLIP procedure to reproduce its results, whereas \citet{fang2024data} use supervised datasets to curate pretraining data.
+Other works focus on improving the training loss, \eg using a sigmoid loss in SigLIP~\citep{zhai2023sigmoid}, or leveraging a pre-trained image encoder~\citep{zhai2022lit}.
+Ultimately though, the most critical components for obtaining cutting-edge foundation models are abundant high-quality data and substantial compute resources.
+In this vein, SigLIP 2~\citep{tschannen2025siglip} and Perception Encoder (PE)~\citep{bolya2025perception} achieve impressive results after training on more than $40$B image-text pairs.
+The largest PE model is trained on $86$B billion samples with a global batch size of $131$K.
+Finally, a range of more complex and natively multimodal approaches have been proposed; these include contrastive captioning~\citep{yu2022coca}, masked modeling in the latent space~\citep{bao2021beit, wang2022image, fang2022eva, wang2023onepeace}, and auto-regressive training~\citep{fini2024multimodal}.\looseness-1
+
+In contrast, relatively little work has focused on \emph{scaling unsupervised image pretraining}.
+Early efforts include \citet{caron2019unsupervised} and \citet{goyal2019scaling} utilizing the YFCC dataset~\citep{thomee2016yfcc100m}.
+Further progress has been achieved by focusing on larger datasets and models~\citep{goyal2021self, goyal2022vision}, as well as initial attempts at data curation for SSL~\citep{tian2021divide}.
+Careful tuning of the training algorithms, larger architectures, and more extensive training data lead to the impressive results of DINOv2~\citep{oquab2024dinov2}; for the first time, an SSL model matched or surpassed open-source CLIP variants on a range of tasks. 
+This direction has recently been further pushed by~\citet{fan2025scaling} by scaling to larger models without data curation, or by \citet{venkataramanan2025franca} using open datasets and improved training recipes.
+
+\paragraph{Dense Transformer Features}
+\input{figures/analysis/extreme_resolutions}
+
+A broad range of modern vision applications consume \emph{dense features} of pre-trained transformers, including multi-modal models~\citep{liu2023llava,beyer2024paligemma}, generative models~\citep{yu2024repa,yao2025reconstruction}, 3D understanding~\citep{wang2025vggt}, video understanding~\citep{lin2023video,wang2024internvideo2}, and robotics~\citep{driess2023palme,kim24openvla}.
+On top of that, traditional vision tasks such as detection, segmentation, or depth estimation require accurate local descriptors.
+To enhance the quality of SSL-trained local descriptors, a substantial body of work focuses on developing \emph{local SSL losses}.
+Examples include leveraging spatio-temporal consistency in videos, \eg using point track loops as training signal~\citep{jabri2020space}, exploiting the spatial alignment between different crops of the same image~\citep{pinheiro2020unsupervised,bardes2022vicregl}, or enforcing consistency between neighboring patches~\citep{yun2022patch}.
+\citet{darcet2025cluster} show that predicting clustered local patches leads to improved dense representations.
+DetCon~\citep{henaff2021efficient} and ORL~\citep{xie2021unsupervised} perform contrastive learning on region proposals but assume that such proposals exist \emph{a priori}; this assumption is relaxed by approaches such as ODIN~\citep{henaff2022object} and SlotCon~\citep{wen2022slotcon}.
+Without changing the training objective, \citet{darcet2024vision} show that adding register tokens to the input sequence greatly improves dense feature maps, and recent works find this can be done without model training~\citep{jiang2025vision, chen2025vision}.
+ 
+ 
+A recent trend are distillation-based, ``\emph{agglomerative}'' methods that combine information from multiple image encoders with varying in global and local feature quality, trained using different levels of supervision~\citep{ranzinger2024radio, bolya2025perception}: AM-RADIO~\citep{ranzinger2024radio} combines the strengths of the fully-supervised SAM~\citep{kirillov2023segment}, the weakly-supervised CLIP, and the self-supervised DINOv2 into a unified backbone.
+The Perception Encoder~\citep{bolya2025perception} similarly distills SAM(v2) into a specialized dense variant called PEspatial. 
+They use an objective enforcing cosine similarity between student and teacher patches to be high, where their teacher is trained with mask annotations. 
+Similar losses were shown to be effective in the context of style transfer, by reducing the inconsistency between the Gram matrices of feature dimensions~\citep{gatys2016image,johnson2016perceptual,yoo2024sagagan}.
+In this work, we adopt a Gram objective to regularize cosine similarity between student and teacher patches, favoring them being close. 
+In our case, we use earlier iterations of the SSL model itself as the teacher, demonstrating that early-stage SSL models effectively guides SSL training for both global and dense tasks. 
+
+Other works focus on post-hoc improvements to the local features of SSL-trained models.
+For example, \citet{ziegler2022self} fine-tune a pre-trained model with a dense clustering objective; similarly, \citet{salehi2023time} fine-tune by aligning patch features temporally, in both cases enhance the quality of local features.
+Closer to us, \citet{pariza2025near} propose a patch-sorting based objective to encourage the student and teacher to produce features with consistent neighbor ordering. 
+Without finetuning, STEGO~\citep{hamilton2022unsupervised} learns a non-linear projection on top of frozen SSL features to form compact clusters and amplify correlation patterns. 
+Alternatively, \citet{simoncini2024no} augment self-supervised features by concatenating gradients from different self-supervised objectives to frozen SSL features. 
+Recently, \citet{wysoczanska2023clipdino} show that noisy feature maps are significantly improved through a weighted average of patches.    
+
+
+
+
+
+
+Related, but not specific to SSL, some recent works generate high-resolution feature maps from ViT feature maps~\citep{fu2024featup}, which are often low-resolution due to patchification of images. %
+In contrast with this body of work, our models natively deliver high-quality dense feature maps that remain stable and consistent across resolutions, as shown in \cref{fig:visualization-extreme-resolutions}.
+
+
+
+
+
+

@@ -1,0 +1,42 @@
+\section{Mage-ViT}
+\label{sec:magevit}
+
+\input{sections/fig/magevit_framework}
+This section introduces \magevit, the visual encoder at the core of \magevl. \magevit is designed primarily for video, while single images are treated as a degenerate one-frame case. It follows the \emph{codec-aligned sparsity} principle of OneVision-Encoder~\citep{ovencoder2026}: visual tokens should be allocated according to where the codec spends bits, since codec bit allocation provides a natural proxy for spatio-temporal importance. \cref{sec:magevit_arch} describes the architecture, and \cref{sec:magevit_training} describes the pre-training data, objective and the two-stage recipe.
+
+
+
+\subsection{Architecture}
+\label{sec:magevit_arch}
+
+\magevit adopts a Codec-ViT architecture consisting of a codec-driven
+patchifier, a Vision Transformer trunk, and a shared 3D rotary
+positional encoding.
+
+\paragraph{Codec-driven patchifier.} \magevit first divides the input into $16{\times}16$ pixel patches and then performs codec-guided sparse selection. 
+For multi-frame inputs, a per-patch importance tensor $S \in \mathbb{R}^{T\times H\times W}_{\geq 0}$ is estimated to represent how many bits or how much information the codec assigns to that spatio-temporal patch. We adopt the \emph{traditional codecs} HEVC/H.265~\citep{sullivan2012hevc} as the default codec in patch selection, where $S$ is defined as a weighted combination of the magnitude of motion vectors and the residual energy of P-frames. We note that our ViT can robustly support more diverse codecs such as the \emph{neural codecs} DCVC-RT~\citep{jia2025towards}. In this case, $S$ is obtained directly from the codec's learned probability model, where the negative log-likelihood of each patch corresponds to the estimated number of bits required for coding. We observe that the resulting bit-allocation map provides a reliable proxy for local motion and temporal variation. The codec-driven patchifier is illustrated in Fig.~\ref{fig:magevit_framework}.
+
+Based on $S$, the patchifier keeps all I-frame patches, and selects the top-$k$ P-frame patches by importance $S$ within a token budget $B$. For a $64$-frame clip with $16\times16$ tokens in each frame, we select $B=4096$ tokens, corresponding to roughly $75\%$ token reduction. We additionally support two other video input modes: \textit{Chunk-wise patchification,} which follows conventional frame-centric paradigm to partition the input into $C$ temporal chunks and samples one frame per chunk; \textit{Collage patchification,} where one frame is first sampled from each temporal chunk and the sampled frames are vertically concatenated into a single tall 2D canvas. 
+
+
+\paragraph{ViT trunk.} \magevit uses a $24$-layer pre-norm Vision Transformer with hidden dimension $1024$, $16$ attention heads, and GELU MLPs at $4{\times}$ expansion ratio, implemented with Flash Attention 2 \cite{dao2023flashattention2} for both training and inference. The trunk processes variable-length visual token sequences produced by codec-driven sparse selection. Its outputs are passed through the multimodal projector and subsequently consumed by the language model in \magevl (\cref{sec:magevl}). During batched training, padding tokens are masked so that attention respects the valid sequence boundary of each sample.
+
+\paragraph{Shared Positional encoding.} Position information for the ViT trunk is provided by a shared 3D rotary positional encoding~\citep{su2024rope} over the un-pruned spatio-temporal grid.  In this case, the spatial-temporal relations across patches are retained even when large fractions of the grid are dropped by the codec front-end.
+
+\subsection{ViT Pre-training}
+\label{sec:magevit_training}
+
+\magevit is trained from scratch using a two-stage pre-training pipeline.
+
+\paragraph{Data.} We filter the image and video dataset following the filter rules in OneVision Encoder~\citep{ovencoder2026}. For images, we select source images from LAION-400M~\citep{schuhmann2021laion}, COYO-700M~\citep{byeon2022coyo}, OBELICS~\citep{laurenccon2023obelics}, Zero250M~\citep{xie2023ccmb}, and ImageNet-21K~\citep{deng2009imagenet}. For videos, we use videos from HowTo100M~\citep{miech2019howto100m} and Panda-70M~\citep{chen2024panda70m}. It contains a diverse set of publicly available images and videos, spanning natural photographs, artworks, documents, charts, indoor scenes, web videos, robotic trajectories, instructional content, and high-motion clips.
+
+
+\paragraph{Objective.} We train \magevit with a large-scale \emph{cluster-discrimination} objective over the visual representation space. The objective encourages semantically related samples to align with shared visual concept prototypes. Specifically, we extract MetaCLIP features from both image and short-video data, perform K-means clustering over the combined corpus, and assign each training sample to its nearest cluster centers. \magevit is then optimized using negative-sampling cluster discrimination against these visual prototypes. This objective encourages semantically related content, such as text regions, human faces, or traffic signs, to occupy nearby regions in the learned representation space.
+ 
+
+\paragraph{Stage 1: Variable-resolution image pre-training.} 
+We first pre-train \magevit on image data with resolutions ranging from $224$ to $448$ and aspect ratios from $1{:}2$ to $2{:}1$. Images of the same resolution are packed together to better utilize the target token budget, which we find improves optimization efficiency. This stage uses single-image spatial patchification. Since each sample contains only one frame, the temporal prediction pathway remains inactive. We use AdamW with an initial learning rate of $10^{-3}$, cosine decay with warm-up, gradient clipping at $1.0$, bf16 mixed precision, and a large effective batch size obtained through gradient accumulation. The negative-sampling ratio for cluster discrimination is set to $r=0.1$.
+
+
+\paragraph{Stage 2: Joint image and video pre-training.} 
+Starting from the Stage-1 checkpoint, we jointly train \magevit on image and video data. Image resolution varies from $224$ to $448$, while videos are trained at resolution $256$ with 64 frames per clip and a token budget of $4096$. The three patchification modes are mixed during training with approximate proportions of $50\%$ codec, $40\%$ chunk-wise, and $10\%$ collage. The learning rate is reduced to $5\times10^{-5}$. This stage activates codec-driven temporal sparsification and jointly optimizes spatial representation learning and spatio-temporal token selection. Training is conducted in bf16 mixed precision.

@@ -1,0 +1,62 @@
+\section{Discussions}
+
+\subsection{AI4AI Data Pipeline}
+\label{subsec:caption_prompt_ablation}
+
+To evaluate the effectiveness of the prompt optimization pipeline, we conduct an ablation study by training our model on the optimized dataset, replacing the standard LLaVA-OV~1.5 full midtrain data. Performance is measured across nine standard multimodal benchmarks. As summarized in Table~\ref{tab:caption_results}, the optimized caption pipeline leads to consistent improvements across all evaluated tasks.
+
+\input{sections/table/caption_results}
+
+The evaluation results show consistent performance gains across multiple capabilities:
+\begin{enumerate}
+    \item \textbf{Text and Document Comprehension:} The most notable gains are observed on document- and text-heavy benchmarks, such as InfoVQA (+5.62), OCRBench (+3.80), ChartQA (+1.52), and DocVQA (+1.08). This aligns with the explicit OCR quality metric incorporated in the evaluation sub-agent, which encourages the prompt optimization process to retain dense visual text details in the captions.
+    \item \textbf{Generalization Capabilities:} Performance gains also extend to general visual reasoning and perception benchmarks, including RealWorldQA (+3.79) and MMBench-CN (+1.37). This indicates that multi-aspect feedback helps improve caption quality globally without leading to narrow task-specific overfitting.
+\end{enumerate}
+
+\begin{promptbox}
+\large
+\textbf{\textit{Finding 6:}}
+\textbf{AI-Driven Data Pipeline Optimization Enhances Downstream Performance.}
+Iterative dataset optimization guided by multi-dimensional LLM rubric scoring consistently yields global quality gains across diverse benchmarks. When linguistic prompt tuning hits a ceiling, the agent further extends to harness-level code modifications—such as video timestamp overlays—enabling effective code-prompt co-design.
+\end{promptbox}
+
+\paragraph{Emergent Behavior in Video Caption Pipeline.} During the iteration of the video captioning pipeline, the evaluation sub-agent identified a recurring error pattern: the caption model GPT-4.1 frequently struggled with precise temporal localization and timestamp grounding when relying solely on generic text prompts. Modifying the prompt text alone proved insufficient to resolve this bottleneck due to the challenge of implicit temporal alignment across video frames. To address this limitation, the pipeline established a synergy between harness code and prompted model skills. Instead of requiring the model to infer time implicitly through text instructions, the pipeline harness code modifies the input by drawing sequential timestamp overlays directly onto the sampled video frames prior to model encoding. The prompt (skill) then guides the model to utilize its visual OCR recognition capabilities to explicitly anchor events to these rendered timestamps. By converting implicit temporal tracking into a visual text-grounding task, this code-prompt co-design helps reduce temporal hallucinations and improves caption consistency across extended video sequences.
+
+\paragraph{AI-Guided Training Diagnostics \& Recipe Optimization.} Through iterative AI-driven diagnostics, we systematically identified critical data and architectural bottlenecks, which directly guided our training configurations. First, the evaluation agent diagnosed a distinct vulnerability in the model's precise temporal localization capabilities; to remedy this, we strategically supplemented our dataset with high-quality temporal grounding and localization data. Second, scaling investigations revealed that training with a larger number of frames consistently boosts long-video performance, whereas incorporating dedicated long-video SFT data yielded no noticeable improvements, and scaling the spatial resolution beyond 384 pixels offered only marginal gains. Consequently, we adopted a spatial resolution of 384 and set the temporal length of Stage~3 to 384 frames. Finally, we discovered that increasing the RoPE base frequency ($\theta$) to 8M was highly beneficial to stabilizing and enhancing long-context sequence modeling over extended timelines. Together, these AI-derived diagnostics uniquely determined our final training length, hyperparameters, and data recipes.
+
+\input{sections/table/sft_init_rl_optimized}
+
+\subsection{Zero-Vision SFT: Unlocking Agentic Capabilities}
+\label{subsec:zero_vision_sft}
+
+\paragraph{Motivation: Rethinking Visual Post-Training.}
+Despite its strong architectural foundation, our primary model, Mage-VL, currently exhibits a capability gap on complex agentic tasks compared to Qwen3-VL. This gap largely stems from computational resource constraints, the lack of joint text-multimodal mixed pre-training, and omitted RL post-training. To address these limitations under tight compute budgets, two prevailing assumptions often act as bottlenecks: (1) explicit visual-language SFT (Image SFT) is universally considered indispensable before post-training, and (2) Reinforcement Learning (RL) is widely believed to be ineffective on small-data VLM regimes (such as the LLaVA-OV scale). Contrary to these common beliefs, we hypothesize that explicit visual SFT during the instruction-tuning phase may actually induce catastrophic forgetting of intrinsic textual reasoning capabilities, thereby creating a performance ceiling for subsequent RL exploration. Drawing inspiration from Kimi-2.5~\cite{team2026kimi}, we explore whether replacing visual SFT with high-quality, pure-text reasoning instruction tuning post-midtraining can unlock potent multimodal RL capabilities.
+
+\paragraph{Experimental Pipeline and Fine-Grained Empirical Results.}
+We validate our hypothesis using the open-source \textbf{LLaVA-OV-1.5 Quick Start dataset}. Training all models from scratch, we compare two distinct pipelines. The standard baseline follows a three-stage workflow: foundational midtraining on LLaVA-OV-1.5 Quick Start data (Stage 1), standard visual instruction tuning (Stage 2 SFT), and OpenMMReasoner RL~\cite{zhang2026openmmreasoner} (Stage 3). In contrast, our proposed \textit{Zero-Vision SFT (+ RL)} strategy bypasses visual SFT entirely: in Stage 1, we combine LLaVA-OV-1.5 Quick Start midtraining with pure-text math and code instruction data from \texttt{nvidia/Nemotron-Pretraining-SFT-v1}~\cite{nvidia_nemotron_pretraining_sft_v1} under an equivalent token budget to standard visual SFT, before directly applying OpenMMReasoner RL (Stage 2 RL) without any visual instruction tuning.
+
+
+
+As detailed in Table~\ref{tab:sft_init_rl_optimized}, replacing visual SFT with pure-text Zero-Vision SFT in Stage 1 prior to multimodal RL yields impressive performance gains across 24 multimodal image benchmarks, achieving an overall average accuracy of \textbf{54.28\%} vs. \textbf{48.96\%} ($+5.33\%$ absolute margin) and winning in \textbf{19 out of 24} tasks. Crucially, Zero-Vision RL reaches optimal convergence at only \textbf{2,175 steps}, reducing required RL iterations by over \textbf{50.7\%} compared to the Quick Start baseline (4,415 steps).
+
+Analyzing category-level metrics demonstrates that preserving pure-text reasoning capabilities pays off significantly. In \textbf{Reasoning} tasks ($+7.92\%$ avg. gain), Zero-Vision RL surges across all 9 benchmarks, most notably on WeMath-Loose (\textbf{54.86\%} vs. 42.57\%, $+12.29\%$), MathVerse (\textbf{45.48\%} vs. 33.47\%, $+12.01\%$), and MMMU-Pro-Vision (\textbf{32.49\%} vs. 22.95\%, $+9.54\%$). For \textbf{OCR \& Chart} understanding ($+9.52\%$ avg. gain), direct multimodal RL effectively aligns textual logic with dense visual structures, yielding massive jumps on CharXiv-Desc (\textbf{74.48\%} vs. 47.18\%, $+27.30\%$) and ChartQA (\textbf{72.84\%} vs. 71.08\%). Even in \textbf{General VQA} ($+0.64\%$ avg. gain) and \textbf{Others} ($+6.38\%$ avg. gain), direct RL grounds perceptual features effectively without visual SFT, achieving noticeable improvements on MMStar (\textbf{54.80\%} vs. 50.33\%), CV-Bench (\textbf{73.88\%} vs. 69.14\%), and counting tasks like PixmoCount (\textbf{41.76\%} vs. 27.15\%, $+14.61\%$).
+
+\begin{promptbox}
+\large
+\textbf{Finding 7:}
+\textbf{Bypassing Visual SFT Unlocks Multimodal RL and Bridges the Agentic Gap.}
+Challenging the common belief that visual SFT is essential and that RL fails on small-data VLMs, replacing image SFT with high-quality text SFT unlocks potent multimodal RL capabilities. It provides a compute-efficient technical path to address current agentic limitations.
+\end{promptbox}
+
+
+
+
+
+
+
+
+
+
+
+
+

@@ -5,7 +5,7 @@ description: A contrastive-tuning method that freezes a pretrained image encoder
 tags: [multimodal-learning, contrastive-learning, transfer-learning, zero-shot-transfer, representation-learning]
 status: stable
 created: 2026-08-16
-generated: { by: llm-wiki-agent/1, at: 2026-08-17T03:43:14Z }
+generated: { by: llm-wiki-agent/1, at: 2026-08-18T10:26:20Z }
 sources:
   - id: zhai-2021-lit
     resource: ../raw/2111.07991_Vision Text Dual Encoder/c.tex
@@ -28,6 +28,9 @@ sources:
   - id: li-2023-blip2
     resource: ../raw/2301.12597_BLIP-2/main.tex
     title: "BLIP-2: Bootstrapping Language-Image Pre-training with Frozen Image Encoders and Large Language Models"
+  - id: simeoni-2025-dinov3
+    resource: ../raw/2508.10104_dinov3/main.tex
+    title: DINOv3
 ---
 
 # LiT locked-image tuning
@@ -46,6 +49,7 @@ Locked-image Tuning (LiT) is a contrastive-tuning method that freezes a strong p
 - In the paper's private-data experiment, a ViT-g/14 LiT model reported 85.2% ImageNet zero-shot top-1 accuracy and 82.5% ObjectNet accuracy. With public YFCC100m-CLIP plus CC12M data and a pretrained ViT-L/16, it reported 75.7% ImageNet zero-shot accuracy; these are reported experimental results, not directly comparable deployment guarantees.[^zhai-2021-lit]
 - A locked image tower removes its gradient cost and, without image augmentation, permits precomputing image embeddings. The paper reports that this can reduce tuning time and memory use and enable larger text models or batch sizes.[^zhai-2021-lit]
 - More generally pretrained image models—including DINO and MoCo-v3—were better LiT inputs than narrowly pretrained ones when evaluated across image–text tasks. Text-model pretraining had smaller and dataset-dependent benefits; multilingual data, multilingual text pretraining, and multilingual tokenization improved reported long-tail-language results without materially reducing English performance.[^zhai-2021-lit]
+- DINOv3 later reports a LiT-style use of a frozen self-supervised ViT-L: it trains a text encoder from scratch, adds two vision-side transformer layers, and contrastively aligns a concatenation of mean-pooled patches and the CLS token. This is an application-specific extension, not evidence that LiT itself requires those additions.[^simeoni-2025-dinov3]
 
 ## Limits
 
@@ -64,6 +68,7 @@ Locked-image Tuning (LiT) is a contrastive-tuning method that freezes a strong p
 - Extended by: [SigLIP sigmoid contrastive language–image pre-training](siglip-sigmoid-contrastive-language-image-pretraining.md) as SigLiT, which retains LiT’s locked image tower but uses the pairwise sigmoid objective.[^zhai-2023-siglip]
 - Applied by: [PaLI jointly scaled multilingual language-image model](pali-jointly-scaled-multilingual-language-image-model.md) uses LiT to evaluate a frozen ViT-e visual component with an aligned text encoder; this is an auxiliary visual-component evaluation, not PaLI’s generative multimodal training procedure.[^chen-2022-pali]
 - Related: [BLIP-2 bootstrapping frozen vision–language models](blip-2-bootstrapping-frozen-vision-language-models.md) freezes its image encoder too, but Q-Former extracts visual prompts for a frozen LLM rather than LiT’s contrastively trained text encoder.[^li-2023-blip2]
+- Applied by: [DINOv3 self-supervised visual foundation model](dinov3-self-supervised-visual-foundation-model.md) uses a LiT-style contrastive alignment after visual self-supervised pretraining, with a frozen ViT-L backbone plus two vision-side transformer layers.[^simeoni-2025-dinov3]
 
 [^zhai-2021-lit]: Zhai et al., “LiT: Zero-Shot Transfer with Locked-image Text Tuning” (2021), [source manuscript](../raw/2111.07991_Vision%20Text%20Dual%20Encoder/c.tex).
 
@@ -78,3 +83,5 @@ Locked-image Tuning (LiT) is a contrastive-tuning method that freezes a strong p
 [^chen-2022-pali]: Chen et al., “PaLI: A Jointly-Scaled Multilingual Language-Image Model” (2022), [complete manuscript source](../raw/2209.06794_PaLI/main.tex).
 
 [^li-2023-blip2]: Li et al., “BLIP-2: Bootstrapping Language-Image Pre-training with Frozen Image Encoders and Large Language Models” (2023), [complete manuscript source](../raw/2301.12597_BLIP-2/main.tex).
+
+[^simeoni-2025-dinov3]: Siméoni et al., “DINOv3” (technical report, 2025), [complete supplied manuscript source](../raw/2508.10104_dinov3/main.tex).

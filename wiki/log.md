@@ -1,5 +1,11 @@
 # Wiki Update Log
 
+## 2026-08-18
+- **Ingest**: Compiled [MoonViT-SO-400M](../raw/MoonViT-SO-400M.md); created [MoonViT native-resolution vision encoder](moonvit-native-resolution-vision-encoder.md).
+- **Ingest**: Compiled [Mage-ViT: A Codec-Native Visual Encoder Trained from Scratch](../raw/Mage-ViT.md); created [Mage-ViT codec-native visual encoder](mage-vit-codec-native-visual-encoder.md).
+- **Ingest**: Compiled the complete [Mage-VL technical report](../raw/2607.24904_Mage-VL/main.tex), appendices, tables, and supplied architecture/pipeline figures; created [Mage-VL codec-native streaming vision-language model](mage-vl-codec-native-streaming-vision-language-model.md) and updated [DINOv3 self-supervised visual foundation model](dinov3-self-supervised-visual-foundation-model.md), [Recent vision-language research directions](recent-vision-language-research-directions.md), [From unified pretraining to modern vision-language-models](from-unified-pretraining-to-modern-vision-language-models.md), and [Vision-language task-to-model map](vision-language-task-to-model-map.md).
+- **Ingest**: Compiled the complete [DINOv3 technical report](../raw/2508.10104_dinov3/main.tex), appendices, supplied figure sources, and rendered distillation diagram; created [DINOv3 self-supervised visual foundation model](dinov3-self-supervised-visual-foundation-model.md) and updated [LiT locked-image tuning](lit-locked-image-tuning.md), [Vision-language task-to-model map](vision-language-task-to-model-map.md), and [Recent vision-language research directions](recent-vision-language-research-directions.md).
+
 ## 2026-08-17
 - **Query**: Grouped vision-language problems by task and mapped them to model families, concrete models, and evidence boundaries; created [Vision-language task-to-model map](vision-language-task-to-model-map.md).
 - **Query**: Synthesized the transition from FLAVA, BLIP, CoCa, BEiT-3, PaLI, and BLIP-2 to modern modular VLM directions; created [From unified pretraining to modern vision-language models](from-unified-pretraining-to-modern-vision-language-models.md).

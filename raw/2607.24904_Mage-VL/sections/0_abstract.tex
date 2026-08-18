@@ -1,0 +1,31 @@
+% \begin{abstract}
+% We present \magevl, a lightweight and research-friendly vision--language model for image and video
+% understanding at a fixed 4B parameter budget. The system is built from two jointly designed
+% components: \magevit, a from-scratch \emph{Codec-ViT} visual tokenizer that follows the
+% codec-aligned-sparsity principle---spend visual tokens where the codec spends bits---and a
+% Qwen3 LLM that consumes \magevit's variable-length token stream through a
+% lightweight projector. \magevit is \emph{codec-agnostic}: a single per-patch importance interface
+% $S \in \mathbb{R}^{T\times H\times W}$ accepts signals from any traditional codec (H.264/AVC,
+% HEVC/H.265) via bitstream-level motion vectors and residual energy, and from any neural codec (DCVC
+% and successors) via the codec's learned probability or rate map, with no change to the
+% architecture, training objective, or downstream LLM. Built on a $16{\times}16$ patch grid with a
+% shared 3D rotary positional encoding, \magevit supports three patchification modes---dense
+% video-codec, chunk-wise, and single-image spatial---under one ViT trunk, and is pre-trained from
+% scratch with a cluster-discrimination objective and a spatio-temporal coverage regularizer that
+% prevents the codec front-end from collapsing onto a few salient patches. On top of this
+% tokenizer--LLM pair, a four-stage supervised training pipeline---image bootstrap, instruction
+% tuning with medium video, long-form video, and a final codec-stream stage---together with a
+% two-axis data curation pipeline that combines aggressive filtering, dense recaptioning, and
+% domain plus video-duration rebalancing, produces \magevl without any preference- or
+% reinforcement-learning post-training. At the 4B scale, \magevl matches Qwen3-VL-4B on image
+% understanding and surpasses it on multimodal STEM and math reasoning ($+8.2$ on MathVision, $+14.6$
+% on MathVerse-mini, $+10.0$ on CMMU). With the 4B Qwen3 LLM backbone fixed and only the visual
+% front-end swapped from a dense ViT to \magevit, \magevl improves uniformly over Qwen3-VL-4B on
+% every reported video and temporal-grounding benchmark, with the largest gaps on localisation-heavy
+% tasks ($+15.5$ on ActivityNet, $+22.9$ on QVHighlight)---a matched-LLM gap that isolates
+% codec-aligned spatio-temporal sparsity as the source of the gain.
+% \end{abstract}
+
+\begin{abstract}
+Standard Vision-Language Models (VLMs) suffer from Moravec's paradox: they excel at complex offline visual reasoning, but fail and suffer computational inefficiency on simple streaming perception tasks. We present Mage-VL, an efficient codec-native streaming foundation model for real-time multimodal understanding and interaction. At its core, our custom tokenizer, Mage-ViT, replaces uniform frame sampling by selectively encoding dynamic, entropy-rich regions using motion vectors and residual energy across sparse anchor (I) and predicted (P) frames. Operating at a $16\times16$ patch level, this reduces visual token consumption by over 75\% while preserving spatio-temporal context. Trained from scratch on approximately 560M unlabeled images and 100M unlabeled video frames, Mage-ViT matches or outperforms flagship encoders trained on billions of image-text pairs. We establish AI4AI data pipelines, encompassing prompt-code joint optimization for multimodal captioning and AI-driven performance diagnosis to guide training recipes. Furthermore, through a bio-inspired dual-system architecture—a lightweight System 1 event gate and a causal System 2 decoder—Mage-VL enables proactive streaming perception. Extensive evaluations show that Mage-VL-4B matches Qwen3-VL-4B on static tasks while achieving strong gains in video understanding and 2D/3D spatial reasoning with up to 3.5$\times$ wall-clock inference speedup, comprehensively surpassing the 15B Phi-4-reasoning-vision baseline. Beyond model artifacts, we deliver seven key empirical findings covering pre-training data efficiency, variable-resolution scaling, codec system acceleration, VideoQA SFT redundancy, motion-spatial synergy, AI4AI data pipelines, and Zero-Vision SFT for multimodal RL.
+\end{abstract}

@@ -5,7 +5,7 @@ description: A synthesis of the FLAVA–BLIP–CoCa–BEiT-3–PaLI–BLIP-2 tra
 tags: [multimodal-learning, vision-language-models, vision-language-pretraining, research-directions, synthesis]
 status: stable
 created: 2026-08-17
-generated: { by: llm-wiki-agent/1, at: 2026-08-17T04:20:58Z }
+generated: { by: llm-wiki-agent/1, at: 2026-08-18T10:30:22Z }
 sources:
   - id: singh-2022-flava
     resource: ../raw/2112.04482_FLAVA/arxiv_strip.tex
@@ -37,6 +37,9 @@ sources:
   - id: zeng-2025-shieldgemma2
     resource: ../raw/2504.01081_ShieldGemma2/main.tex
     title: "ShieldGemma 2: Robust and Tractable Image Content Moderation"
+  - id: microsoft-mage-2026
+    resource: ../raw/2607.24904_Mage-VL/main.tex
+    title: "Mage-VL: An Efficient Codec-Native Streaming Multimodal Foundation Model"
 ---
 
 # From unified pretraining to modern vision-language models
@@ -76,7 +79,7 @@ CoCa huấn luyện mô hình lớn từ đầu; PaLI khởi tạo từ ViT và 
 
 Các bằng chứng 2024–2026 trong wiki cho thấy nhiều nhánh bổ sung thay vì một kiến trúc thống trị:
 
-1. **Assistant-style generative VLM:** tiếp tục công thức vision encoder → projector/resampler/connector → LLM, rồi bổ sung instruction tuning, dữ liệu xen kẽ ảnh–text, nhiều ảnh/video và tool use. Wiki hiện chưa có concept nguồn chính cho LLaVA, Flamingo hay Qwen2-VL, nên chi tiết của nhánh này là khoảng trống truy hồi, không phải kết luận đã được tài liệu hóa tại đây.
+1. **Assistant-style generative VLM:** tiếp tục công thức vision encoder → projector/resampler/connector → LLM, rồi bổ sung instruction tuning, dữ liệu xen kẽ ảnh–text, nhiều ảnh/video và tool use. [Mage-VL](mage-vl-codec-native-streaming-vision-language-model.md) là bằng chứng mới trong wiki cho biến thể video: Mage-ViT chọn patch từ tín hiệu codec trước projector vào Qwen3-4B, và một gate thêm phản hồi streaming chủ động. Đây là technical report tự đánh giá, không xác nhận toàn bộ nhánh assistant-style hay lợi thế trên mọi video task.[^microsoft-mage-2026] Wiki vẫn chưa có concept nguồn chính cho LLaVA, Flamingo hay Qwen2-VL, nên chi tiết của nhánh này còn là khoảng trống truy hồi.
 2. **Encoder global–dense:** [SigLIP 2](siglip2-multilingual-vision-language-encoders.md) giữ dual-encoder alignment nhưng thêm captioning/grounding, self-distillation và masked-patch prediction để phục vụ cả retrieval lẫn localization và dense prediction.[^tschannen-2025-siglip2]
 3. **Multilingual và culturally broader data:** tokenizer, curation, mixture và model capacity phải được đồng thiết kế; dịch caption hoặc thay text encoder đơn thuần không đủ để bảo đảm chất lượng cân bằng.
 4. **Thích nghi tham số thấp:** [CasPL](caspl-cascade-prompt-learning.md) tách domain knowledge và task knowledge qua cascade prompts, cho thấy hướng freeze backbone rồi học prompt/adapters từ dữ liệu ít nhãn.[^wu-2024-caspl]
@@ -104,7 +107,8 @@ Chuỗi trên chủ yếu phản ánh các bài 2022–2025 có trong kho. Các 
 
 - Synthesizes: [FLAVA](flava-foundational-language-vision-alignment.md), [BLIP](blip-bootstrapping-language-image-pre-training.md), [CoCa](coca-contrastive-captioner-image-text-foundation-model.md), [BEiT-3](beit-3-multiway-masked-multimodal-pretraining.md), [PaLI](pali-jointly-scaled-multilingual-language-image-model.md), and [BLIP-2](blip-2-bootstrapping-frozen-vision-language-models.md).
 - Related: [Evolution of CLIP-style vision–language pretraining](evolution-of-clip-style-vision-language-pretraining.md) expands the dual-encoder branch.
-- Related: [Recent vision-language research directions](recent-vision-language-research-directions.md) expands the 2024–2026 frontier in dense representation, adaptation, document retrieval, efficiency, and safety.
+- Related: [Recent vision-language research directions](recent-vision-language-research-directions.md) expands the 2024–2026 frontier in dense representation, adaptation, document retrieval, efficiency, safety, and streaming.
+- Related: [Mage-VL codec-native streaming vision-language model](mage-vl-codec-native-streaming-vision-language-model.md) illustrates a codec-native video and proactive-streaming assistant-style variant.[^microsoft-mage-2026]
 - Synthesized by: [Vision-language task-to-model map](vision-language-task-to-model-map.md), which reorganizes unified and modular VLMs by downstream problem and system interface.
 
 [^singh-2022-flava]: Singh et al., “FLAVA” (2022), [source manuscript](../raw/2112.04482_FLAVA/arxiv_strip.tex).
@@ -117,3 +121,4 @@ Chuỗi trên chủ yếu phản ánh các bài 2022–2025 có trong kho. Các 
 [^faysse-2025-colpali-camera-ready]: Faysse et al., “ColPali” (2025), [source manuscript](../raw/2407.01449_ColPali/iclr2025_conference.tex).
 [^wu-2024-caspl]: Wu et al., “Cascade Prompt Learning for Vision-Language Model Adaptation” (2024), [source manuscript](../raw/2409.17805_CasPL/main.tex).
 [^zeng-2025-shieldgemma2]: ShieldGemma Team, “ShieldGemma 2” (2025), [source manuscript](../raw/2504.01081_ShieldGemma2/main.tex).
+[^microsoft-mage-2026]: Microsoft Mage Team, “Mage-VL: An Efficient Codec-Native Streaming Multimodal Foundation Model” (technical report, July 2026), [complete supplied manuscript source](../raw/2607.24904_Mage-VL/main.tex).
