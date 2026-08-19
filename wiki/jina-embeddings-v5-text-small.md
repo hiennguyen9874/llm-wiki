@@ -5,7 +5,7 @@ description: A 677M-parameter Qwen3-0.6B-based multilingual text embedding model
 tags: [embedding, retrieval, multilingual, matryoshka, qwen, jina]
 status: stable
 created: 2026-08-19
-generated: { by: llm-wiki-agent/1, at: 2026-08-19T08:55:57Z }
+generated: { by: llm-wiki-agent/1, at: 2026-08-19T20:04:02+07:00 }
 sources:
   - id: jina-v5-small-card
     resource: ../raw/jina-embeddings-v5-text-small.md
@@ -13,6 +13,9 @@ sources:
   - id: jina-v5-text-report
     resource: ../raw/2602.15547_jina-embeddings-v5-text/paper.tex
     title: Jina Embeddings v5 Text: Task-Targeted Embedding Distillation
+  - id: jina-v5-omni-report
+    resource: ../raw/2605.08384_jina-embeddings-v5-omni/main.tex
+    title: jina-embeddings-v5-omni: Geometry-preserving Embeddings via Locked Aligned Towers
   - id: mteb-multilingual-v2-summary
     resource: ../raw/MTEB_Multilingual_v2_summary.csv
     title: MTEB Multilingual v2 summary CSV
@@ -64,7 +67,9 @@ The report states that Matryoshka retrieval performance drops markedly below 256
 
 - **Uses:** [Qwen3-Embedding-4B](qwen3-embedding-4b.md) as the first-stage distillation teacher. [^jina-v5-text-report]
 - **Related to:** [Jina Embeddings v5 Text Nano](jina-embeddings-v5-text-nano.md), the smaller v5 text model trained with the same two-stage regimen. [^jina-v5-text-report]
+- **Extended by:** [Jina Embeddings v5 Omni Small](jina-embeddings-v5-omni-small.md) through [GELATO](gelato.md), without changing this model's text-encoder weights. [^jina-v5-omni-report]
 
 [^jina-v5-small-card]: [jina-embeddings-v5-text-small model card](../raw/jina-embeddings-v5-text-small.md). Benchmark, architecture, language, and training statements are reported by the model card.
 [^jina-v5-text-report]: [Jina Embeddings v5 Text: Task-Targeted Embedding Distillation](../raw/2602.15547_jina-embeddings-v5-text/paper.tex). Author technical report; training and evaluation claims are reported by its authors and were not independently reproduced.
+[^jina-v5-omni-report]: [jina-embeddings-v5-omni: Geometry-preserving Embeddings via Locked Aligned Towers](../raw/2605.08384_jina-embeddings-v5-omni/main.tex). Author technical report; its architecture claim was not independently reproduced.
 [^mteb-multilingual-v2-summary]: [MTEB Multilingual v2 summary CSV](../raw/MTEB_Multilingual_v2_summary.csv). Supplied leaderboard scores; the artifact does not document its evaluation protocol.

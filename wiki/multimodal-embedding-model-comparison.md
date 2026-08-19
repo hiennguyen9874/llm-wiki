@@ -5,11 +5,14 @@ description: A scope-aware comparison of the wiki's 21 documented multimodal emb
 tags: [embedding, multimodal, retrieval, comparison, synthesis]
 status: stable
 created: 2026-08-19
-generated: { by: llm-wiki-agent/1, at: 2026-08-19T17:49:31+07:00 }
+generated: { by: llm-wiki-agent/1, at: 2026-08-19T20:04:02+07:00 }
 sources:
   - id: mmeb-v3-ranking
     resource: ../raw/mmeb_v3_ranking.csv
     title: MMEB v3 ranking CSV
+  - id: jina-v5-omni-report
+    resource: ../raw/2605.08384_jina-embeddings-v5-omni/main.tex
+    title: jina-embeddings-v5-omni: Geometry-preserving Embeddings via Locked Aligned Towers
 ---
 
 # Multimodal embedding model comparison
@@ -29,16 +32,17 @@ The wiki documents 21 concrete multimodal-embedding checkpoints in 14 model line
 
 ## Text–image models at or below 2B
 
-This subset treats “2B” as the checkpoint's published model class; Jina Nano's exact count is disputed (1.04B card vs. 0.986B leaderboard). All four can be used for text↔image/visual-document retrieval, but they do not report one common image-only benchmark.
+This subset treats “2B” as the checkpoint's published model class; Jina Nano/Small exact counts differ between their cards and the leaderboard (1.04B/1.74B versus 0.986B/1.626B). All five can be used for text↔image/visual-document retrieval, but they do not report one common image-only benchmark.
 
 | Model | Retrieval representation | Evidence for text–image work | Reported result | Best fit / caveat |
 |---|---|---|---|---|
 | [Qwen3-VL-Embedding-2B](qwen3-vl-embedding-2b.md) | one dense cosine vector; 64–2,048D Matryoshka | text, images, screenshots, mixed input; 30+ language claim | MMEB-v2: 75.0 Image, 79.2 VisDoc, 73.2 All | **Default choice**: the strongest documented broad multimodal evidence in this size band. Supports instructions, quantization, and 32K context; training disclosure is incomplete. |
 | [UEmbed 2B](uembed.md) | dense EOS vector and learned sparse lexical vector; optional hybrid | text, images, visual documents | MMEB-v2 All: 66.5 dense / 65.5 sparse; its report finds only a small 2B hybrid gain on text/VisDoc and essentially none on image/video | Choose when one serving pass must feed both ANN and inverted sparse search. Image-specific score and output width are not reported; training is English/Chinese-heavy. |
-| [Jina Embeddings v5 Omni Nano](jina-embeddings-v5-omni-nano.md) | 768D dense, truncatable, task adapters | text and image in a text-aligned shared space; image tower can be loaded while unused towers are omitted | No numeric image result in the supplied card; multilingual MTEB text score is 65.52 but may be its paired text-tower submission | Choose for the smallest documented dense deployment and adapter selection. Do **not** infer image ranking from its text score. |
+| [Jina Embeddings v5 Omni Nano](jina-embeddings-v5-omni-nano.md) | 768D dense, truncatable, task adapters | text and image in a text-aligned shared space; image tower can be loaded while unused towers are omitted | Author report: MIEB Image 47.87; MIEB document-retrieval slice 79.25 at a 0.31B text+image path | Choose for the smallest documented dense deployment and adapter selection. This MIEB evidence is not directly comparable with Qwen's MMEB-v2 values. [^jina-v5-omni-report] |
+| [Jina Embeddings v5 Omni Small](jina-embeddings-v5-omni-small.md) | 1,024D dense, truncatable to 32–768D; task adapters | text and image in the same text-aligned space; unused towers can be omitted | Author report: MIEB Image 58.00; MIEB document-retrieval slice 79.25 at a 0.92B text+image path | Choose over Nano when 32K rather than 8K text context, 1,024D output, and stronger reported image score justify the larger footprint. This MIEB evidence is not directly comparable with Qwen's MMEB-v2 values. [^jina-v5-omni-report] |
 | [Vintern-Embedding-1B](vintern-embedding-1b.md) | multi-vector; scoring mechanism and width undisclosed | text-query against image or text document; explicitly lists Vietnamese, English, Chinese | ViDoRe average 82.85 in its card's table, but protocol/metric configuration is not documented | Choose for Vietnamese-first retrieval. It is not directly comparable to Qwen's MMEB-v2 score and has the least deployment detail. |
 
-**Recommendation:** use Qwen 2B unless Vietnamese is primary (evaluate Vintern) or hybrid dense+sparse indexing is a hard requirement (evaluate UEmbed 2B). Jina Nano is the compact dense alternative, but its supplied evidence does not quantify text–image retrieval.
+**Recommendation:** use Qwen 2B unless Vietnamese is primary (evaluate Vintern) or hybrid dense+sparse indexing is a hard requirement (evaluate UEmbed 2B). Choose Jina Omni Small over Nano when 32K context and adapters matter; choose Nano for the smaller footprint. The Jina report supplies MIEB evidence but not a common benchmark with Qwen, so validate both on the target corpus. [^jina-v5-omni-report]
 
 ## Architecture and modality matrix
 
@@ -86,5 +90,7 @@ The raw CSV ranks 89 entries by reported `Overall`; 13 provide nonzero `Overall-
 
 - **Uses benchmark:** [MMEB v3 ranking snapshot](mmeb-v3-ranking-snapshot.md).
 - **Compares:** [Qwen3-VL-Embedding-2B](qwen3-vl-embedding-2b.md), [Qwen3-VL-Embedding-8B](qwen3-vl-embedding-8b.md), [Tianmu-Emb-Uni-8B](tianmu-emb-uni-8b.md), [UEmbed](uembed.md), and the model lines linked above.
+- **Uses method:** [GELATO](gelato.md) for the Jina v5 Omni variants. [^jina-v5-omni-report]
 
 [^mmeb-v3-ranking]: [MMEB v3 ranking CSV](../raw/mmeb_v3_ranking.csv). This supplied, unauthenticated artifact supports only its reported values; it does not define benchmark semantics or explain zero-filled fields.
+[^jina-v5-omni-report]: [jina-embeddings-v5-omni: Geometry-preserving Embeddings via Locked Aligned Towers](../raw/2605.08384_jina-embeddings-v5-omni/main.tex). Author technical report; its architecture and benchmark claims were not independently reproduced.

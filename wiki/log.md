@@ -1,6 +1,20 @@
 # Wiki Update Log
 
 ## 2026-08-19
+- **Query**: Answered “Compare Qwen3-VL-Embedding-2B, harrier-oss-v1-0.6b, Qwen/Qwen3-Embedding-4B, F2LLM-v2-4B”; filed [scope-aware comparison](embedding-model-comparison-qwen3-vl-harrier-qwen3-f2llm.md).
+- **Ingest**: Compiled [zeroentropy/zerank-2 model card](../raw/zerank-2-reranker.md); created [zerank-2](zerank-2.md).
+- **Ingest**: Compiled [XProvence-reranker model card](../raw/xprovence-reranker-bgem3-v2.md); created [XProvence-reranker](xprovence-reranker.md).
+- **Ingest**: Compiled [jina-reranker-v3 model card](../raw/jina-reranker-v3.md); created deprecated [jina-reranker-v3](jina-reranker-v3.md) and updated [jina-reranker-v3.5](jina-reranker-v3-5.md) with reciprocal supersession context.
+- **Ingest**: Compiled [jina-reranker-v3.5 model card](../raw/jina-reranker-v3.5.md) and its local technical-report archive; created [jina-reranker-v3.5](jina-reranker-v3-5.md).
+- **Ingest**: Compiled [ettin-reranker-68m-v1 model card](../raw/ettin-reranker-68m-v1.md); created [ettin-reranker-68m-v1](ettin-reranker-68m-v1.md).
+- **Ingest**: Compiled [Qwen3-VL-Reranker-8B model card](../raw/Qwen3-VL-Reranker-8B.md); updated [Qwen3-VL-Reranker-8B](qwen3-vl-reranker-8b.md) with model-card licensing, deployment, language, and modality evidence.
+- **Ingest**: Compiled [Qwen3-VL-Reranker-2B model card](../raw/Qwen3-VL-Reranker-2B.md); updated [Qwen3-VL-Reranker-2B](qwen3-vl-reranker-2b.md) with model-card licensing, deployment, language, and benchmark evidence.
+- **Ingest**: Compiled [Qwen3-Reranker-8B model card](../raw/Qwen3-Reranker-8B.md); updated [Qwen3-Reranker-8B](qwen3-reranker-8b.md) with model-card implementation, scoring, prompt, license, and language-coverage details.
+- **Ingest**: Compiled [Qwen3-Reranker-4B model card](../raw/Qwen3-Reranker-4B.md); updated [Qwen3-Reranker-4B](qwen3-reranker-4b.md) with model-card deployment, scoring, prompt, license, and language-coverage details.
+- **Ingest**: Compiled [Qwen3-Reranker-0.6B model card](../raw/Qwen3-Reranker-0.6B.md); updated [Qwen3-Reranker-0.6B](qwen3-reranker-0-6b.md) with model-card deployment, scoring, prompt, license, and language-coverage details.
+- **Ingest**: Compiled [Querit-Reranker model card](../raw/Querit-Reranker.md); created [Querit-Reranker](querit-reranker.md).
+- **Ingest**: Compiled [jina-embeddings-v5-omni technical-report LaTeX source](../raw/2605.08384_jina-embeddings-v5-omni/main.tex); created [GELATO](gelato.md) and updated the Jina v5 Omni, Jina v5 Text, and [multimodal embedding model comparison](multimodal-embedding-model-comparison.md) concepts with paper-backed architecture, training, and benchmark evidence.
+- **Update**: Added Jina Embeddings v5 Omni Small to the ≤2B text–image deployment comparison in [multimodal embedding model comparison](multimodal-embedding-model-comparison.md).
 - **Update**: Added the ≤2B text–image deployment comparison to [multimodal embedding model comparison](multimodal-embedding-model-comparison.md).
 - **Query**: Answered “So sánh tất cả các mô hình multimodal embedding”; filed [multimodal embedding model comparison](multimodal-embedding-model-comparison.md).
 - **Ingest**: Compiled [Haon-Chen/e5-omni-7B model card](../raw/e5-omni-7B.md); updated [e5-omni](e5-omni.md) with 7B checkpoint availability, license, and deployment guidance.
