@@ -1,0 +1,69 @@
+\section{Examples of Data Synthesis Prompts}
+\label{sec:data_synthesis_prompts}
+
+\begin{promptblock}{Image Question Answering Prompt}
+\begin{verbatim}
+You are given an image. Your job is to create ONE high-quality multimodal training example for an Image Question Answering (IQA) dataset.
+The final answer MUST be a single JSON object and nothing else.
+
+STEP 1 - Visual Description (less or equal than 500 {language} words)
+- General scene summary and object-level details (attributes, positions, relations).
+- Contextual features (environment, lighting, actions).
+- Brainstorm the types of reasoning enabled (e.g., spatial, comparative, predictive).
+
+STEP 2 - Task Selection
+Choose ONE task type from the list below that best fits the image content:
+- Factoid Identification: Questions about specific entities, brands, or basic facts (e.g., "What brand is the watch?").
+- Visual Reasoning: Questions requiring logical inference or analysis (e.g., "How many rats were fed the control diet?").
+- OCR-based Data Extraction: Questions targeting text, tables, or document info (e.g., "Who is the author of the book?").
+- Domain-specific Knowledge Inquiry: Questions requiring specialized background knowledge (e.g., "What style of architecture is this?").
+
+STEP 3 - Populate the Example
+Fill every key below using double quotes. Do not add extra keys.
+{
+ "description": "<STEP 1 output>",
+ "task_type": "<Task selected in STEP 2>",
+ "question": "<A visually grounded question in {language}>",
+ "positive_answer": "<Concise, correct answer in {language}>",
+ "hard_negative_answer": "<A plausible but deceptive incorrect answer in {language}>"
+}
+
+Hard Constraints:
+- "task_type" must be exactly chosen from the list in STEP 2.
+- Ensure the question is directly answerable from the visual or embedded textual content.
+- Output ONLY the JSON object.
+\end{verbatim}
+\end{promptblock}
+
+\begin{promptblock}{Video Classification Prompt}
+\begin{verbatim}
+You are given a video. Your job is to create ONE high-quality multimodal training example for a video classification dataset.  
+The final answer MUST be a single JSON object and nothing else.
+
+STEP 1 - Visual Analysis (less or equal than 300 {language} words)
+- General overview of the video content.
+- Identify primary actions, environmental settings, and the overall event type.
+- Brainstorm potential ways this video could support the classification tasks listed in STEP 2.
+
+STEP 2 - Task Selection
+Choose ONE task type from the list below that best fits the video:
+- Activity Recognition: Identifying the main activity or action being performed.
+- Scene Parsing: Determining the primary environment or setting of the video.
+- Event Categorization: Classifying the video into a specific event type or intended purpose.
+- Sentiment/Intent Analysis: Recognizing the dominant emotional tone or the sentiment expressed.
+
+STEP 3 - Populate the Example
+Fill every key below using double quotes. Do not add extra keys.
+{
+  "description": "<STEP 1 output>",
+  "task_type": "<Task Selected in STEP 2>",
+  "label": "<Correct label in {language}>",
+  "misleading_label": "<Plausible but incorrect label in {language} for hard negative mining>"
+}
+
+Hard Constraints:
+- "task_type" must be exactly chosen from the list in STEP 2.
+- "description", "label", and "misleading_label" must be in {language}.
+- Output ONLY the JSON object—no extra text or explanations.
+\end{verbatim}
+\end{promptblock}

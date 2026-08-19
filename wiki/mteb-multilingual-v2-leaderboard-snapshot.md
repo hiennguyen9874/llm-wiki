@@ -5,7 +5,7 @@ description: A 45-model CSV ranking snapshot for MTEB Multilingual v2, led by Qw
 tags: [benchmark, embedding, multilingual, mteb, leaderboard]
 status: stable
 created: 2026-08-19
-generated: { by: llm-wiki-agent/1, at: 2026-08-19T08:47:55Z }
+generated: { by: llm-wiki-agent/1, at: 2026-08-19T10:00:46Z }
 sources:
   - id: mteb-multilingual-v2-summary
     resource: ../raw/MTEB_Multilingual_v2_summary.csv
@@ -70,6 +70,6 @@ An em dash represents `NA` or an empty value in the CSV. The table's non-monoton
 
 ## Covered concepts
 
-The snapshot supplies task-category scores for [harrier-oss-v1-0.6b](harrier-oss-v1-0-6b.md), [harrier-oss-v1-270m](harrier-oss-v1-270m.md), [Jina Embeddings v5 Text Small](jina-embeddings-v5-text-small.md), [Jina Embeddings v5 Text Nano](jina-embeddings-v5-text-nano.md), [EmbeddingGemma 300M](embeddinggemma-300m.md), and [Granite Embedding 311M Multilingual R2](granite-embedding-311m-multilingual-r2.md). It does not provide enough model-card detail to create standalone concepts for the other listed models.
+The snapshot supplies task-category scores for [harrier-oss-v1-0.6b](harrier-oss-v1-0-6b.md), [harrier-oss-v1-270m](harrier-oss-v1-270m.md), [Jina Embeddings v5 Omni Nano](jina-embeddings-v5-omni-nano.md), [Jina Embeddings v5 Omni Small](jina-embeddings-v5-omni-small.md), [Jina Embeddings v5 Text Small](jina-embeddings-v5-text-small.md), [Jina Embeddings v5 Text Nano](jina-embeddings-v5-text-nano.md), [EmbeddingGemma 300M](embeddinggemma-300m.md), and [Granite Embedding 311M Multilingual R2](granite-embedding-311m-multilingual-r2.md). It does not provide enough model-card detail to create standalone concepts for the other listed models.
 
 [^mteb-multilingual-v2-summary]: [MTEB Multilingual v2 summary CSV](../raw/MTEB_Multilingual_v2_summary.csv). This is an unauthenticated supplied ranking artifact; model metadata and scores are reproduced as reported.

@@ -1,6 +1,22 @@
 # Wiki Update Log
 
 ## 2026-08-19
+- **Ingest**: Compiled [Qwen3-VL retrieval technical report](../raw/2601.04720_Qwen3-VL-Embedding_Qwen3-VL-Reranker/colm2024_conference.tex); created [Qwen3-VL-Reranker-2B](qwen3-vl-reranker-2b.md) and [Qwen3-VL-Reranker-8B](qwen3-vl-reranker-8b.md), and updated both Qwen3-VL embedding concepts with architecture, training, and evaluation evidence.
+- **Ingest**: Compiled [webAI-ColVec1.1-8b model card](../raw/webAI-ColVec1.1-8b.md); created [webAI-ColVec1.1-8b](webai-colvec1-1-8b.md).
+- **Ingest**: Compiled [webAI-ColVec1.1-4b model card](../raw/webAI-ColVec1.1-4b.md); created [webAI-ColVec1.1-4b](webai-colvec1-1-4b.md).
+- **Ingest**: Compiled [TomoroAI/tomoro-colqwen3-embed-8b model card](../raw/tomoro-colqwen3-embed-8b.md); created [Tomoro ColQwen3 Embed 8B](tomoro-colqwen3-embed-8b.md).
+- **Ingest**: Compiled [TomoroAI/tomoro-colqwen3-embed-4b model card](../raw/tomoro-colqwen3-embed-4b.md); created [Tomoro ColQwen3 Embed 4B](tomoro-colqwen3-embed-4b.md).
+- **Ingest**: Compiled [Omni-Embed-Nemotron-3B model card](../raw/omni-embed-nemotron-3b.md) with the local MMEB v3 ranking snapshot; created [Omni-Embed-Nemotron-3B](omni-embed-nemotron-3b.md).
+- **Ingest**: Compiled [Nemotron ColEmbed VL 8B v2 model card](../raw/nemotron-colembed-vl-8b-v2.md); created [Nemotron-ColEmbed-VL-8B-v2](nemotron-colembed-vl-8b-v2.md).
+- **Ingest**: Compiled [Llama-Nemotron-ColEmbed-VL-3B-v2 model card](../raw/llama-nemotron-colembed-vl-3b-v2.md); created [Llama-Nemotron-ColEmbed-VL-3B-v2](llama-nemotron-colembed-vl-3b-v2.md).
+- **Ingest**: Compiled [jina-embeddings-v5-omni-small model card](../raw/jina-embeddings-v5-omni-small.md) with the local MTEB Multilingual v2 snapshot; created [Jina Embeddings v5 Omni Small](jina-embeddings-v5-omni-small.md) and linked its benchmark coverage.
+- **Ingest**: Compiled [jina-embeddings-v5-omni-nano model card](../raw/jina-embeddings-v5-omni-nano.md) with the local MTEB Multilingual v2 snapshot; created [Jina Embeddings v5 Omni Nano](jina-embeddings-v5-omni-nano.md) and linked its benchmark coverage.
+- **Ingest**: Compiled [UEmbed-4B model card](../raw/UEmbed-4B.md) with the local MMEB v3 ranking snapshot; created [UEmbed-4B](uembed-4b.md).
+- **Ingest**: Compiled [Tianmu-Emb-Uni-8B model card](../raw/Tianmu-Emb-Uni-8B.md); created [Tianmu-Emb-Uni-8B](tianmu-emb-uni-8b.md).
+- **Ingest**: Compiled [Qwen3-VL-Embedding-8B model card](../raw/Qwen3-VL-Embedding-8B.md); created [Qwen3-VL-Embedding-8B](qwen3-vl-embedding-8b.md).
+- **Ingest**: Compiled [Qwen3-VL-Embedding-2B model card](../raw/Qwen3-VL-Embedding-2B.md); created [Qwen3-VL-Embedding-2B](qwen3-vl-embedding-2b.md).
+- **Ingest**: Compiled [EVIE-Preview-4.5B model card](../raw/EVIE-Preview-4.5B.md); created [EVIE-Preview-4.5B](evie-preview-4-5b.md).
+- **Ingest**: Compiled [MMEB v3 ranking CSV](../raw/mmeb_v3_ranking.csv); created [MMEB v3 ranking snapshot](mmeb-v3-ranking-snapshot.md).
 - **Ingest**: Compiled [F2LLM-v2 technical-report LaTeX source](../raw/2603.19223_F2LLM-v2/main.tex); created [F2LLM-v2](f2llm-v2.md) and updated [F2LLM-v2-14B](f2llm-v2-14b.md).
 - **Ingest**: Compiled [Jina Embeddings v5 Text technical-report LaTeX source](../raw/2602.15547_jina-embeddings-v5-text/paper.tex); updated [Jina Embeddings v5 Text Nano](jina-embeddings-v5-text-nano.md) and [Jina Embeddings v5 Text Small](jina-embeddings-v5-text-small.md).
 - **Ingest**: Compiled [Qwen3 Embedding technical report LaTeX source](../raw/2506.05176_Qwen3Embedding/main.tex); created [Qwen3-Embedding-0.6B](qwen3-embedding-0-6b.md), [Qwen3-Embedding-4B](qwen3-embedding-4b.md), and three Qwen3 Reranker concepts; updated [Qwen3-Embedding-8B](qwen3-embedding-8b.md) with the resolvable LaTeX source.
