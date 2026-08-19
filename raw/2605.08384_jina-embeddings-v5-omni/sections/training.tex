@@ -1,0 +1,42 @@
+\label{sec:training:loss}
+
+Projector training uses bidirectional in-batch InfoNCE with Matryoshka representation learning.
+For a batch of $B$ paired examples $\{(\ell_i,r_i)\}_{i=1}^{B}$, let $\mathbf{u}_i$ and $\mathbf{v}_i$ be the left and right embeddings, and let $\mathbf{u}_{i,1:k}$ denote the first $k$ dimensions.
+With temperature $\tau=0.02$,
+\begin{equation*}
+\begin{aligned}
+s_{ij}^{(k)}&=\frac{\cos(\mathbf{u}_{i,1:k},\mathbf{v}_{j,1:k})}{\tau},\\
+p_{\ell\to r}^{(k)}(j|i)&=\frac{\exp(s_{ij}^{(k)})}{\sum_{m=1}^{B}\exp(s_{im}^{(k)})},\\
+p_{r\to \ell}^{(k)}(j|i)&=\frac{\exp(s_{ji}^{(k)})}{\sum_{m=1}^{B}\exp(s_{mi}^{(k)})}.
+\end{aligned}
+\end{equation*}
+\begin{equation*}
+\mathcal{L}_{\mathrm{NCE}}^{(k)}=-\frac{1}{2B}\sum_{i=1}^{B}\left[\log p_{\ell\to r}^{(k)}(i|i)+\log p_{r\to \ell}^{(k)}(i|i)\right].
+\label{eq:infonce}
+\end{equation*}
+The training loss sums this term over Matryoshka prefix dimensions,
+\begin{equation*}
+\begin{aligned}
+\mathcal{L}&=\sum_{k\in\mathcal{K}}\mathcal{L}_{\mathrm{NCE}}^{(k)},\\
+\mathcal{K}_{\mathrm{Small}}&=\{32,64,128,256,512,768,1024\},\\
+\mathcal{K}_{\mathrm{Nano}}&=\{32,64,128,256,512,768\}.
+\end{aligned}
+\label{eq:matryoshka_loss}
+\end{equation*}
+
+We use the AdamW optimizer~\cite{adamw} with $\beta_1{=}0.9$, $\beta_2{=}0.999$, weight decay $0.01$, and global gradient clipping at $\lVert \nabla \rVert_2 \le 1$.
+The learning rate is $2{\cdot}10^{-4}$ with $500$ linear warmup steps.
+Training uses bf16 mixed precision and distributed data parallelism across $4$ NVIDIA H100 GPUs, with global batch size $256$ paired examples.
+Projector training is run separately per modality and per task: the vision projector (\texttt{fc\_vision\_2} plus the vision modality-delimiter embeddings, where applicable) and the audio projector (\texttt{fc\_audio} plus the audio modality-delimiter embeddings) are trained in independent runs, each one using the corresponding frozen LoRA adapter inherited from Jina Embeddings v5 Text and a task-matched source mixture.
+Across both model sizes, the four task variants (retrieval, classification, clustering, text-matching), and the two modalities (vision, audio), this yields $2 \times 4 \times 2 = 16$ projector-training runs in total.
+Each run is trained for $15\,000$ optimizer steps.
+Each batch contains examples from one source dataset sampled by mixture weight.
+Figure~\ref{fig:data-distribution} summarizes the shared projector-training mixture by token share across semantic data types.
+The mixture is full of text-rich and complex images like scans and diagrams, matching practical enterprise search and RAG systems that operate over real-world multimodal documents whose layout, images, and OCR/parsing stages affect retrieval quality~\cite{rag,visrag}.
+
+\begin{figure}[H]
+\centering
+\input{figures/data_distribution}
+\caption{Distribution of input \emph{tokens} across semantic data types, averaged over the four task-specific checkpoints.}
+\label{fig:data-distribution}
+\end{figure}

@@ -5,7 +5,7 @@ description: An approximately 1B-parameter multimodal embedding model with locke
 tags: [embedding, retrieval, multimodal, multilingual, matryoshka, jina]
 status: stable
 created: 2026-08-19
-generated: { by: llm-wiki-agent/1, at: 2026-08-19T20:04:02+07:00 }
+generated: { by: llm-wiki-agent/1, at: 2026-08-19T21:18:01+07:00 }
 sources:
   - id: jina-v5-omni-nano-card
     resource: ../raw/jina-embeddings-v5-omni-nano.md
@@ -31,6 +31,8 @@ The local MTEB Multilingual v2 snapshot ranks Omni Nano **10th of 45**, with Mea
 ## Technical-report results
 
 The report gives Nano a **47.87** aggregate on full MIEB image tasks, **29.73** on the 18-task MMEB-Video suite, and **49.69** on MAEB audio tasks. On its MIEB document-retrieval slice, Nano reports **79.25** using a 0.31B text-plus-image path. In the report's selected four-modality comparison, it reports 65.52 text, 47.87 image, 26.87 video, and 49.69 audio, averaging 47.49. These are author-reported results, not an independent comparison or replication. [^jina-v5-omni-report]
+
+On the report's MS-COCO image–text test, Nano reports a 0.54 centroid distance, 0.35 matched-pair cosine, 0.25 alignment lift, and Recall@1 of **36.6%** image→text / **27.7%** text→image. On Clotho audio–text, it reports 0.63, 0.29, and 0.14 respectively, with Recall@1 **14.1%** audio→text / **14.8%** text→audio. These task-specific retrieval-variant measurements are author-reported; they do not establish general cross-modal performance. [^jina-v5-omni-report]
 
 ## Model size and architecture
 

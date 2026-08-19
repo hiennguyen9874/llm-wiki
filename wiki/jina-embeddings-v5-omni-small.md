@@ -5,7 +5,7 @@ description: A reported 1.74B-parameter multimodal embedding model with locked a
 tags: [embedding, retrieval, multimodal, multilingual, matryoshka, jina]
 status: stable
 created: 2026-08-19
-generated: { by: llm-wiki-agent/1, at: 2026-08-19T20:04:02+07:00 }
+generated: { by: llm-wiki-agent/1, at: 2026-08-19T21:18:01+07:00 }
 sources:
   - id: jina-v5-omni-small-card
     resource: ../raw/jina-embeddings-v5-omni-small.md
@@ -31,6 +31,8 @@ The local MTEB Multilingual v2 snapshot ranks Omni Small **4th of 45**, with Mea
 ## Technical-report results
 
 The report gives Small a **58.00** aggregate on full MIEB image tasks, **39.83** on the 18-task MMEB-Video suite, and **49.96** on MAEB audio tasks. On its MIEB document-retrieval slice, Small reports **79.25** using a 0.92B text-plus-image path. In the report's selected four-modality comparison, it reports 67.00 text, 58.00 image, 41.20 video, and 49.96 audio, averaging 54.04; the latter is just above the report's LCO-Embedding-Omni-3B result (53.83) and below its LCO-Embedding-Omni-7B result (54.43). These are author-reported results, not an independent comparison or replication. [^jina-v5-omni-report]
+
+On the report's MS-COCO image–text test, Small reports a 0.71 centroid distance, 0.40 matched-pair cosine, 0.30 alignment lift, and Recall@1 of **68.0%** image→text / **57.0%** text→image. On Clotho audio–text, it reports 0.64, 0.32, and 0.17 respectively, with Recall@1 **16.3%** audio→text / **15.2%** text→audio. These task-specific retrieval-variant measurements are author-reported; they do not establish general cross-modal performance. [^jina-v5-omni-report]
 
 ## Model size and architecture
 

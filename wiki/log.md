@@ -1,6 +1,11 @@
 # Wiki Update Log
 
 ## 2026-08-19
+- **Query**: Answered “Compare Qwen3-VL-Embedding-2B, harrier-oss-v1-0.6b, Qwen3-Embedding-4B, F2LLM-v2-4B, Qwen3-Embedding-0.6B, jina-embeddings-v5-text-small”; expanded [the scope-aware comparison](embedding-model-comparison-qwen3-vl-harrier-qwen3-f2llm.md).
+- **Ingest**: Compiled [Qwen3-Embedding-4B model card](../raw/Qwen3-Embedding-4B.md); updated [Qwen3-Embedding-4B](qwen3-embedding-4b.md) with license, language and output-dimension coverage, instruction guidance, and deployment interfaces.
+- **Ingest**: Compiled [Qwen3-Embedding-0.6B model card](../raw/Qwen3-Embedding-0.6B.md); updated [Qwen3-Embedding-0.6B](qwen3-embedding-0-6b.md) with licensing, language coverage, output-dimension range, and deployment guidance.
+- **Update**: Reconciled the extracted [jina-reranker-v3.5 technical report](../raw/2607.18152_jina-reranker-v3.5/main.tex); repaired its provenance in the v3 and v3.5 concepts and added the report's stated STARK reranking result to [jina-reranker-v3.5](jina-reranker-v3-5.md).
+- **Update**: Reconciled the rendered assets of the [jina-embeddings-v5-omni technical report](../raw/2605.08384_jina-embeddings-v5-omni/main.tex); added report-backed cross-modal retrieval geometry to the Jina v5 Omni Nano and Small concepts and corrected GELATO’s source-coverage note.
 - **Query**: Answered “Compare Qwen3-VL-Embedding-2B, harrier-oss-v1-0.6b, Qwen/Qwen3-Embedding-4B, F2LLM-v2-4B”; filed [scope-aware comparison](embedding-model-comparison-qwen3-vl-harrier-qwen3-f2llm.md).
 - **Ingest**: Compiled [zeroentropy/zerank-2 model card](../raw/zerank-2-reranker.md); created [zerank-2](zerank-2.md).
 - **Ingest**: Compiled [XProvence-reranker model card](../raw/xprovence-reranker-bgem3-v2.md); created [XProvence-reranker](xprovence-reranker.md).

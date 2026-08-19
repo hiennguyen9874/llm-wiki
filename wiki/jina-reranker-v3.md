@@ -5,14 +5,14 @@ description: A deprecated 0.6B-parameter multilingual listwise document reranker
 tags: [reranking, retrieval, multilingual, listwise, jina, deprecated]
 status: deprecated
 created: 2026-08-19
-generated: { by: llm-wiki-agent/1, at: 2026-08-19T13:20:00Z }
+generated: { by: llm-wiki-agent/1, at: 2026-08-19T14:19:28Z }
 sources:
   - id: jina-reranker-v3-card
     resource: ../raw/jina-reranker-v3.md
     title: jina-reranker-v3 model card
   - id: jina-reranker-v3-5-report
-    resource: ../raw/2607.18152_jina-reranker-v3.5.tar.gz
-    title: jina-reranker-v3.5 technical-report LaTeX archive (arXiv:2607.18152)
+    resource: ../raw/2607.18152_jina-reranker-v3.5/main.tex
+    title: jina-reranker-v3.5 technical-report LaTeX source (arXiv:2607.18152)
 ---
 
 # jina-reranker-v3
@@ -48,4 +48,4 @@ The v3 model card recommends v3.5 as a drop-in upgrade with the same API and str
 - **Superseded by:** [jina-reranker-v3.5](jina-reranker-v3-5.md) for new projects, according to the v3 model card. [^jina-reranker-v3-card]
 
 [^jina-reranker-v3-card]: [jina-reranker-v3 model card](../raw/jina-reranker-v3.md). Architecture, interface, licensing, benchmark, and successor claims are publisher-authored.
-[^jina-reranker-v3-5-report]: [jina-reranker-v3.5 technical-report LaTeX archive](../raw/2607.18152_jina-reranker-v3.5.tar.gz), arXiv:2607.18152. Its v3 comparison result uses a stated top-100 reranking protocol.
+[^jina-reranker-v3-5-report]: [jina-reranker-v3.5 technical-report LaTeX source](../raw/2607.18152_jina-reranker-v3.5/main.tex), arXiv:2607.18152. Its v3 comparison result uses a stated top-100 reranking protocol.

@@ -1,0 +1,46 @@
+% Stacked bar charts of averaged sampling rates across the four task variants.
+% Each row: \bar{label}{percent}{fillcolor}
+\begin{tikzpicture}[
+    barlabel/.style={font=\footnotesize, anchor=east},
+    barvalue/.style={font=\footnotesize, anchor=west, text=black!70},
+    axisrule/.style={black!40, line width=0.4pt},
+]
+    \def\rowh{0.38}
+    \def\scale{0.08} % 1% = 0.08 cm, so 50% = 4 cm
+    \node[font=\footnotesize\bfseries] at (2.0, 0.55) {(a) Image (token share)};
+    \foreach \lbl/\pct/\col [count=\i from 0] in {%
+        natural photos/35.5/orange!65,%
+        medical imagery/30.3/violet!60,%
+        documents \& OCR/23.7/teal!70,%
+        product catalog/5.3/blue!55,%
+        charts \& diagrams/3.6/olive!70,%
+        UI \& screenshots/1.6/gray!65%
+    }{
+        \pgfmathsetmacro{\y}{-\i*\rowh}
+        \pgfmathsetmacro{\w}{\pct*\scale}
+        \node[barlabel] at (-0.1, \y) {\lbl};
+        \fill[\col] (0, \y-0.14) rectangle (\w, \y+0.14);
+        \node[barvalue] at (\w+0.08, \y) {\pct\%};
+    }
+    \draw[axisrule] (0, 0.2) -- (0, -5.5*\rowh);
+
+    \begin{scope}[yshift=-2.9cm]
+    \node[font=\footnotesize\bfseries] at (2.0, 0.55) {(b) Audio (token share)};
+    \foreach \lbl/\pct/\col [count=\i from 0] in {%
+        music/55.0/orange!65,%
+        environmental sounds/25.5/teal!70,%
+        English speech/14.2/blue!55,%
+        multilingual speech/3.1/violet!60,%
+        animal sounds/1.9/olive!70,%
+        emotional speech/0.2/red!55%
+    }{
+        \pgfmathsetmacro{\y}{-\i*\rowh}
+        \pgfmathsetmacro{\w}{\pct*\scale}
+        \node[barlabel] at (-0.1, \y) {\lbl};
+        \fill[\col] (0, \y-0.14) rectangle (\w, \y+0.14);
+        \node[barvalue] at (\w+0.08, \y) {\pct\%};
+    }
+    \draw[axisrule] (0, 0.2) -- (0, -5.5*\rowh);
+    \end{scope}
+
+\end{tikzpicture}

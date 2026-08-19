@@ -1,0 +1,131 @@
+% Struct-IR synthetic-data pipeline (TikZ only; float chrome lives in main.tex).
+% No node shadows: they were covering feedback arrow tips at the borders.
+\begin{tikzpicture}[
+  font=\small,
+  >={Stealth[round,length=2.0mm,width=1.6mm,sep=0.8pt]},
+  card/.style={rectangle, rounded corners=5pt, line width=1pt, draw=#1,
+    text=cInk, align=center, minimum height=10mm, inner sep=4.5pt},
+  card/.default=cProc,
+  proc/.style ={card=cProc, fill=cProcBg, text width=52mm},
+  data/.style ={card=cData, fill=cDataBg, text width=52mm},
+  llm/.style  ={card=cLLM,  fill=cLLMBg,  text width=52mm},
+  retr/.style ={card=cRetr, fill=cRetrBg, text width=52mm},
+  outbox/.style ={card=cOut, fill=cOutBg, text width=52mm},
+  flow/.style={->, line width=1.05pt, draw=cInk!70},
+  loopflow/.style={->, line width=1.05pt, draw=cRetr!85!black, densely dashdotted,
+    >={Stealth[round,length=1.8mm,width=1.5mm,sep=2.8pt]}},
+  title/.style={font=\bfseries\small, text=cInk},
+  doc/.style ={rectangle, rounded corners=5pt, draw=#1, line width=1.1pt, fill=white,
+    text=cInk, align=left, inner sep=5.5pt, text width=42mm, font=\scriptsize},
+  doc/.default=cProc,
+  bubble/.style={rectangle, rounded corners=8pt, draw=cLLM, line width=1.1pt,
+    fill=cLLMBg, text=cInk, align=center, inner sep=6pt, text width=74mm},
+  pill/.style ={rounded corners=4pt, draw=#1!70, line width=0.7pt, fill=#1!12,
+    text=#1!72!black, font=\scriptsize\bfseries, inner xsep=4pt, inner ysep=2pt},
+  pill/.default=cProc,
+  cornerok/.style={circle, fill=cRetr, text=white, font=\scriptsize\bfseries,
+    inner sep=0.3pt, minimum size=4.2mm, draw=white, line width=0.6pt},
+  cornerno/.style={circle, fill=cRej, text=white, font=\scriptsize\bfseries,
+    inner sep=0.3pt, minimum size=4.2mm, draw=white, line width=0.6pt},
+  spot/.style={font=\bfseries\small, text=cInk, align=center},
+  callout/.style={rectangle, rounded corners=7pt, draw=cRetr, line width=1.1pt,
+    fill=cRetrBg, text=cInk, align=left, inner sep=5pt, text width=28mm,
+    font=\scriptsize},
+]
+  \definecolor{cInk}{HTML}{2B2D42}
+  \definecolor{cData}{HTML}{F4A100}  \definecolor{cDataBg}{HTML}{FFF4D9}
+  \definecolor{cProc}{HTML}{3A86FF}  \definecolor{cProcBg}{HTML}{E7F0FF}
+  \definecolor{cLLM}{HTML}{8338EC}   \definecolor{cLLMBg}{HTML}{F3EAFF}
+  \definecolor{cRetr}{HTML}{06A77D}  \definecolor{cRetrBg}{HTML}{DEF6EF}
+  \definecolor{cOut}{HTML}{2A9D8F}   \definecolor{cOutBg}{HTML}{DAF3EF}
+  \definecolor{cRej}{HTML}{E5383B}
+  \definecolor{cPanel}{HTML}{F7F8FC} \definecolor{cPanelLine}{HTML}{DDE3F0}
+
+  % ── Left stack ────────────────────────────────────────────────────────────
+  \node[data] (s1)
+     {\textbf{Anchor record}\\[1pt]
+      {\scriptsize JSON object with typed fields}};
+  \node[llm, below=5.5mm of s1] (s2)
+     {\textbf{(i)~Constraints $\rightarrow$ query}\\[1pt]
+      {\scriptsize Sample typed field constraints;\\[-0.5pt]
+       an LLM paraphrases them into a query}};
+  \node[proc, below=5.5mm of s2] (s3)
+     {\textbf{(ii)~Perturb $\rightarrow$ hard negative}\\[1pt]
+      {\scriptsize Change 1--2 constrained fields to form\\[-0.5pt]
+       a near-duplicate hard negative}};
+  \node[retr, below=5.5mm of s3] (s4)
+     {\textbf{(iii)~Dense-mine candidates}\\[1pt]
+      {\scriptsize Retrieve additional near neighbors}};
+  \node[llm, below=5.5mm of s4] (s5)
+     {\textbf{(iv)~LLM-judge the list}\\[1pt]
+      {\scriptsize Promote true matches, refine over-broad\\[-0.5pt]
+       queries, discard ambiguous cases}};
+  \node[outbox, below=5.5mm of s5] (s6)
+     {\textbf{Training instance}\\[1pt]
+      {\scriptsize query $+$ \textcolor{cRetr}{\checkmark}\,positives $+$ \textcolor{cRej}{$\boldsymbol\times$}\,hard negatives}};
+
+  \foreach \a/\b in {s1/s2, s2/s3, s3/s4, s4/s5, s5/s6}
+    \draw[flow] (\a) -- (\b);
+
+  \node[callout, left=16mm of s5] (loop)
+     {\textbf{\textcolor{cRetr}{Feedback}}\\[2pt]
+      re-enter at~(i)\\[1pt]
+      after promote/refine/discard};
+
+  % ── Right worked example ──────────────────────────────────────────────────
+  \node[bubble, right=24mm of s2] (qb)
+     {\emph{``trail-running shoes \textbf{under \$150}, \textbf{rated 4.5+}, \textbf{released since 2022}''}};
+  \node[spot, above=3.5mm of qb, text width=80mm] (sptitle)
+     {Hard negative keeps the same surface form\\[-1pt]
+      but violates one (or two) constraints};
+
+  \node[pill=cLLM, below=3mm of qb.south, xshift=-26mm] (p1) {price $\le$ \$150};
+  \node[pill=cLLM, right=2mm of p1] (p2) {rating $\ge$ 4.5};
+  \node[pill=cLLM, right=2mm of p2] (p3) {year $\ge$ 2022};
+
+  \node[doc=cRetr, below left=14mm and 3mm of qb.south] (pos)
+     {\textbf{\textcolor{cRetr}{Positive}} (meets all constraints)\\[2.5pt]
+      product:\ trail-running shoe\\
+      price:\ \$129\\
+      rating:\ 4.7 / 5\\
+      released:\ 2023};
+  \node[doc=cRej, below right=14mm and 3mm of qb.south] (neg)
+     {\textbf{\textcolor{cRej}{Hard negative}} (one field perturbed)\\[2.5pt]
+      product:\ trail-running shoe\\
+      \textcolor{cRej}{\textbf{price:\ \$210}}\ {\scriptsize\textcolor{cRej}{($>$ \$150)}}\\
+      rating:\ 4.7 / 5\\
+      released:\ 2023};
+
+  \node[cornerok] at (pos.north east) {\checkmark};
+  \node[cornerno] at (neg.north east) {$\boldsymbol\times$};
+
+  \draw[flow] (pos.north |- p1.south) ++(0,-2mm) -- (pos.north);
+  \draw[flow] (neg.north |- p1.south) ++(0,-2mm) -- (neg.north);
+
+  \begin{scope}[on background layer]
+    \node[fit=(s1)(s6)(loop)(sptitle)(pos)(neg), rounded corners=10pt,
+          fill=cPanel, draw=cPanelLine, line width=0.9pt, inner sep=8mm] (panel) {};
+    \node[title, anchor=north west] at ([shift={(3.5mm,-2.5mm)}]panel.north west)
+      {\structir{} synthetic supervision};
+    \node[fit=(sptitle)(qb)(pos)(neg)(p1)(p3), rounded corners=8pt,
+          fill=white, draw=cPanelLine, line width=0.9pt, inner sep=4.5mm] {};
+  \end{scope}
+
+  % Feedback connectors: short stubs to the border + tipped span in the gutter only
+  \coordinate (aOut) at ([xshift=-2.2mm]s5.west);
+  \coordinate (aIn)  at ([xshift=2.2mm]loop.east);
+  \coordinate (bOut) at ([yshift=2.2mm]loop.north);
+  \coordinate (bUp)  at ([yshift=7.5mm]loop.north);
+  \coordinate (bIn)  at ([xshift=-2.2mm]s2.west);
+  \draw[line width=1.05pt, draw=cRetr!85!black, densely dashdotted]
+    (s5.west) -- (aOut)
+    (aIn) -- (loop.east)
+    (loop.north) -- (bOut)
+    (bIn) -- (s2.west);
+  \fill[cRetr!85!black] (aOut) circle (0.6pt)
+                        (aIn)  circle (0.6pt)
+                        (bOut) circle (0.6pt)
+                        (bIn)  circle (0.6pt);
+  \draw[loopflow] (aOut) -- (aIn);
+  \draw[loopflow] (bOut) -- (bUp) -- (bUp |- bIn) -- (bIn);
+\end{tikzpicture}

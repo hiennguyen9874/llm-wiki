@@ -1,0 +1,20 @@
+Text-only embedding models are long established for retrieval and RAG systems, from bidirectional encoders such as Sentence-BERT~\cite{sentence-bert} and GTE-Qwen2~\cite{gte-qwen2} to LLM-based text-only embedding models such as E5-Mistral~\cite{e5-mistral} and NV-Embed~\cite{nv-embed}.
+Jina Embeddings v5 Text~\cite{jina-v5-text} draws on this tradition: a state-of-the-art model family with task-conditioned LoRA adapters and support for truncation with low performance loss due to Matryoshka representation learning~\cite{matryoshka}.
+
+CLIP~\cite{clip} established contrastive image--text embedding with separately encoded image and text towers, and SigLIP~\cite{siglip}, SigLIP2~\cite{siglip2}, and EVA-CLIP~\cite{eva-clip} refine this paradigm through improved losses, data, and visual training recipes.
+ImageBind~\cite{imagebind} extends contrastive alignment to additional modalities.
+Jina CLIP v1/v2~\cite{jinaclip-v1,jinaclip-v2} maintains text-embedding performance in CLIP-style models, while supporting other media.
+However, contrastively-trained multimodal embedders suffer from a gap between modality-specific regions of the shared representation space~\cite{modality-gap}.
+
+VLM-style architectures tackle this challenge by passing the outputs of non-text media encoders through the same language model as the text token representations. 
+These models, including LLaVA~\cite{llava}, BLIP-2~\cite{blip2}, Qwen2-VL~\cite{qwen2-vl}, and Qwen3-VL~\cite{qwen3-vl}, use projectors or connector modules to connect the encoders to the language model.
+Embedding models derived from VLMs, like E5-V~\cite{e5-v}, GME~\cite{gme-qwen2-vl}, and Qwen3-VL-Embedding~\cite{qwen3-vl-embedding}, demonstrate strong multimodal retrieval performance, but involve adapting the language model, non-text media encoders, or both.
+
+Omni-style systems train or align multiple modalities jointly, supporting video and audio in addition to images, for example, E5-Omni~\cite{e5-omni}, WAVE~\cite{wave}, and LCO-Embedding-Omni~\cite{lco-embedding}. 
+
+We take note of previous work in frozen-tower methods based on the CLIP architecture, such as LiT~\cite{lit} and Nomic Embed Vision~\cite{nomic-embed-vision}, which freeze the text encoder while adapting the other media towers.
+The most relevant prior work is the visual-module-plugin family.
+MARVEL~\cite{marvel} adds a CLIP visual encoder with a linear projection layer to the frozen text retriever T5-ANCE, then finetunes the text retriever end-to-end for multi-modal retrieval.
+VISTA~\cite{vista} extends a frozen text embedding model with a trainable ViT image tokenizer, keeping the text encoder frozen throughout.
+To the best of our knowledge, no previously published work extends a frozen text embedding model to image, video, and audio jointly while keeping all media encoders frozen and training only a single linear projector layer per modality together with a small set of modality delimiter token embeddings.
+     

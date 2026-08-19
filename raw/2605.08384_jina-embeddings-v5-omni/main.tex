@@ -1,0 +1,130 @@
+\documentclass[sigconf]{acmart}
+
+\usepackage{amsmath,amsfonts}
+\let\Bbbk\relax
+\usepackage{amssymb}
+\usepackage{booktabs}
+\usepackage{array}
+\usepackage{multirow}
+\usepackage{tikz}
+\usepackage{fontawesome5}
+\usetikzlibrary{positioning,arrows.meta,fit,backgrounds,calc,decorations.pathreplacing}
+\usepackage{subcaption}
+\captionsetup[figure]{skip=2pt}
+
+\setcopyright{none}
+\settopmatter{printacmref=false, printccs=false, printfolios=false, authorsperrow=4}
+\renewcommand\footnotetextcopyrightpermission[1]{}
+\pagestyle{plain}
+
+\newcommand{\omniBase}{\texttt{jina-\allowbreak embeddings-\allowbreak v5-\allowbreak omni}}
+\newcommand{\omniSmall}{\texttt{jina-\allowbreak embeddings-\allowbreak v5-\allowbreak omni-\allowbreak small}}
+\newcommand{\omniNano}{\texttt{jina-\allowbreak embeddings-\allowbreak v5-\allowbreak omni-\allowbreak nano}}
+\newcommand{\omniSmallRetrieval}{\texttt{jina-\allowbreak embeddings-\allowbreak v5-\allowbreak omni-\allowbreak small-\allowbreak retrieval}}
+\newcommand{\omniNanoRetrieval}{\texttt{jina-\allowbreak embeddings-\allowbreak v5-\allowbreak omni-\allowbreak nano-\allowbreak retrieval}}
+\newcommand{\textSmall}{\texttt{jina-\allowbreak embeddings-\allowbreak v5-\allowbreak text-\allowbreak small}}
+\newcommand{\textNano}{\texttt{jina-\allowbreak embeddings-\allowbreak v5-\allowbreak text-\allowbreak nano}}
+\newcolumntype{L}[1]{>{\raggedright\arraybackslash}p{#1}}
+
+\title{\omniBase{}: Geometry-preserving Embeddings via Locked Aligned Towers}
+
+\author{Florian Hönicke}
+\authornote{Principal contributor.}
+\affiliation{\institution{Jina by Elastic}\city{}\country{}}
+\email{research@jina.ai}
+
+\author{Michael Günther}
+\affiliation{\institution{Jina by Elastic}\city{}\country{}}
+\email{research@jina.ai}
+
+\author{Andreas Koukounas}
+\affiliation{\institution{Jina by Elastic}\city{}\country{}}
+\email{research@jina.ai}
+
+\author{Mohammad Kalim Akram}
+\affiliation{\institution{Jina by Elastic}\city{}\country{}}
+\email{research@jina.ai}
+
+\author{Saba Sturua}
+\affiliation{\institution{Jina by Elastic}\city{}\country{}}
+\email{research@jina.ai}
+
+\author{Han Xiao}
+\affiliation{\institution{Jina by Elastic}\city{}\country{}}
+\email{research@jina.ai}
+
+\renewcommand{\shortauthors}{Hönicke et al.}
+
+\begin{document}
+
+\begin{abstract}
+In this work, we introduce GELATO (Geometry-preserving Embeddings via Locked Aligned TOwers), a novel approach to multimodal embedding models.
+We build on the VLM-style architecture, in which non-text encoders are adapted to produce input for a language model, which in turn generates embeddings for all varieties of input. 
+We present the result: the \omniBase{} suite, a pair of models that encode text, image, audio, and video input into a single semantic embedding space. 
+GELATO extends the two Jina Embeddings v5 Text models to support additional modality by adding encoders for images and audio.
+The backbone text embedding models and the added non-text modality encoders remain frozen. 
+We only trained the connecting components, representing 0.35\% of the total weights of the joint model. 
+Training is therefore much more efficient than full-parameter retraining. 
+Additionally, the language model remains effectively unaltered: the text-encoder weights are bit-identical to the Jina Embeddings v5 Text models.
+Our evaluations show that GELATO produces results competitive with substantially larger, state-of-the-art multimodal embedding models across text, image, and audio benchmarks.
+\end{abstract}
+
+\begin{CCSXML}
+<ccs2012>
+<concept>
+<concept_id>10002951.10003317.10003331</concept_id>
+<concept_desc>Information systems~Multimedia and multimodal retrieval</concept_desc>
+<concept_significance>500</concept_significance>
+</concept>
+<concept>
+<concept_id>10010147.10010178.10010224.10010240</concept_id>
+<concept_desc>Computing methodologies~Image representations</concept_desc>
+<concept_significance>300</concept_significance>
+</concept>
+<concept>
+<concept_id>10010147.10010178.10010179.10010181</concept_id>
+<concept_desc>Computing methodologies~Machine learning</concept_desc>
+<concept_significance>300</concept_significance>
+</concept>
+</ccs2012>
+\end{CCSXML}
+
+\ccsdesc[500]{Information systems~Multimedia and multimodal retrieval}
+\ccsdesc[300]{Computing methodologies~Image representations}
+\ccsdesc[300]{Computing methodologies~Machine learning}
+
+\maketitle
+\pagestyle{plain}
+
+\section{Introduction}
+\label{sec:introduction}
+\input{sections/introduction}
+
+\section{Related Work}
+\label{sec:related}
+\input{sections/related}
+
+\section{Architecture}
+\label{sec:method}
+\input{sections/method}
+
+\section{Training}
+\label{sec:training}
+\input{sections/training}
+
+\section{Evaluation}
+\label{sec:experiments}
+\input{sections/experiments}
+
+\section{Ablation Studies}
+\label{sec:ablation}
+\input{sections/ablations}
+
+\section{Conclusion}
+\label{sec:conclusion}
+\input{sections/conclusion}
+
+\bibliographystyle{ACM-Reference-Format}
+\bibliography{references}
+
+\end{document}

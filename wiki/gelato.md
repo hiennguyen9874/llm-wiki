@@ -5,7 +5,7 @@ description: A frozen-tower method for extending an existing text embedding spac
 tags: [embedding, multimodal, retrieval, alignment, efficient-training]
 status: stable
 created: 2026-08-19
-generated: { by: llm-wiki-agent/1, at: 2026-08-19T20:04:02+07:00 }
+generated: { by: llm-wiki-agent/1, at: 2026-08-19T21:18:01+07:00 }
 sources:
   - id: jina-v5-omni-report
     resource: ../raw/2605.08384_jina-embeddings-v5-omni/main.tex
@@ -39,4 +39,4 @@ The report also finds weaker video performance and weaker Matryoshka preservatio
 - **Implemented by:** [Jina Embeddings v5 Omni Nano](jina-embeddings-v5-omni-nano.md) and [Jina Embeddings v5 Omni Small](jina-embeddings-v5-omni-small.md). [^jina-v5-omni-report]
 - **Extends:** [Jina Embeddings v5 Text Nano](jina-embeddings-v5-text-nano.md) and [Jina Embeddings v5 Text Small](jina-embeddings-v5-text-small.md) without changing their text-encoder weights. [^jina-v5-omni-report]
 
-[^jina-v5-omni-report]: [jina-embeddings-v5-omni: Geometry-preserving Embeddings via Locked Aligned Towers](../raw/2605.08384_jina-embeddings-v5-omni/main.tex). Author technical report; architectural, training, efficiency, and benchmark claims are reported by its authors and were not independently reproduced. Embedded PDF charts were not rendered; compiled performance claims come from the report's prose and tables.
+[^jina-v5-omni-report]: [jina-embeddings-v5-omni: Geometry-preserving Embeddings via Locked Aligned Towers](../raw/2605.08384_jina-embeddings-v5-omni/main.tex). Author technical report; architectural, training, efficiency, and benchmark claims are reported by its authors and were not independently reproduced. Its included architecture image and PDF charts were visually inspected; performance claims remain author-reported.

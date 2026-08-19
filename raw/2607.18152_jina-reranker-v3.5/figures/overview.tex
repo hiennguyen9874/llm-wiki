@@ -1,0 +1,143 @@
+% Unified overview figure — single canvas, centered divider.
+\begin{tikzpicture}[
+  x=1mm, y=1mm,
+  font=\footnotesize,
+  >=Stealth,
+  arr/.style={->, line width=0.75pt, draw=fgmid},
+  arrdash/.style={line width=0.70pt, draw=stage1, dashed},
+  tokq/.style={draw=qedge, fill=qfill, rounded corners=1.5pt, inner sep=2pt, font=\scriptsize},
+  tokd/.style={draw=dedge, fill=dfill, rounded corners=1.5pt, inner sep=2pt, font=\scriptsize},
+  block/.style={draw=boxedge, fill=boxfill, rounded corners=2pt, align=center, inner sep=3pt},
+  stage/.style n args=1{draw=#1, fill=white, rounded corners=2pt, align=center,
+    inner sep=1.5pt, line width=0.75pt, text width=52mm},
+  layer/.style={minimum width=7mm, minimum height=1.7mm, inner sep=0pt},
+  loc/.style  ={layer, fill=localfill,  draw=localedge,  line width=0.3pt,
+    font=\tiny, text=black, align=center},
+  glob/.style ={layer, fill=globalfill, draw=globaledge, line width=0.3pt,
+    font=\tiny, text=black, align=center},
+  gstar/.style={layer, fill=globalfill, draw=globaledge, line width=0.9pt,
+    font=\tiny, text=black, align=center},
+]
+  \definecolor{fgmid}{HTML}{64748B}
+  \definecolor{boxfill}{HTML}{F1F5F9}
+  \definecolor{boxedge}{HTML}{94A3B8}
+  \definecolor{qfill}{HTML}{EDE9FE}
+  \definecolor{qedge}{HTML}{7C3AED}
+  \definecolor{dfill}{HTML}{DCFCE7}
+  \definecolor{dedge}{HTML}{059669}
+  \definecolor{localfill}{HTML}{93C5FD}
+  \definecolor{localedge}{HTML}{3B82F6}
+  \definecolor{globalfill}{HTML}{FDBA74}
+  \definecolor{globaledge}{HTML}{EA580C}
+  \definecolor{stage1}{HTML}{3B82F6}
+  \definecolor{stage2}{HTML}{059669}
+  \definecolor{stage3}{HTML}{7C3AED}
+  \definecolor{scorefill}{HTML}{FEF3C7}
+  \definecolor{scoreedge}{HTML}{D97706}
+
+  \pgfmathsetmacro{\halfW}{75}
+  \pgfmathsetmacro{\cxA}{37.5}
+  \pgfmathsetmacro{\cxB}{112.5}
+
+  % Bounding box: width 150 mm, height 52 mm (y: 4 to -48)
+  \useasboundingbox (0, -48) rectangle (150, 4);
+
+  % ── Panel titles ──────────────────────────────────────────────────────────
+  \node[anchor=north, font=\small\bfseries] at ({\cxA},  0) {(a) Listwise LBNL reranking};
+  \node[anchor=north, font=\small\bfseries] at ({\cxB},  0) {(b) Self-distillation};
+
+  % ── (a) Input tokens (centred at y = -6) ─────────────────────────────────
+  \node[font=\scriptsize, text=fgmid] (ell) at ({\cxA}, -6) {$\cdots$};
+  \node[tokd, left=0.6mm of ell]  (d2) {doc$_2$};
+  \node[tokd, left=0.6mm of d2]   (d1) {doc$_1$};
+  \node[tokq, left=0.6mm of d1]   (q)  {query};
+  \node[tokd, right=0.6mm of ell] (dk) {doc$_k$};
+  \node[tokq, right=0.6mm of dk]  (qs) {query*};
+
+  % ── (a) Hybrid Transformer box ────────────────────────────────────────────
+  % north y = -10  (≈2.5 mm below ell.south ≈ -7.5)
+  % height = 28 mm → south y = -38
+  % width  = 64 mm → west x = 5.5, east x = 69.5
+  % bb.center = (37.5, -24)
+  % layN.south ≈ -33 → 5 mm clearance from box south ✓
+  \begin{scope}[on background layer]
+    \node[block, minimum width=64mm, minimum height=28mm,
+          anchor=north, inner sep=0pt] (bb) at ({\cxA}, -10) {};
+  \end{scope}
+
+  % Header — centred inside box top
+  \node[anchor=north, font=\scriptsize\bfseries] at ($(bb.north)+(0,-1.8)$)
+    {\strut Hybrid Transformer};
+  \node[anchor=north, font=\scriptsize, text=fgmid]
+    at ($(bb.north)+(0,-4.5)$) {\strut (Qwen3-0.6B)};
+
+  % Left description column: moved to far left (x=10) to avoid overlaps with the centered titles
+  \node[anchor=north west, align=left, inner sep=0pt] at ({10}, -18.0) {%
+    {\scriptsize \textbf{L}:\ sliding-window}\\[2pt]
+    {\scriptsize \textbf{G}:\ global}\\[2pt]
+    {\scriptsize \textbf{G*}: final global}%
+  };
+
+  % Right column: 3L2G layer stack, centred at x=55
+  % patlab.north at y=-18; stack total ≈ 14 mm; layN.south ≈ -33 (bb.south -38 → 5 mm inside)
+  \node[anchor=north, font=\scriptsize\bfseries, text=fgmid] (patlab)
+    at ({55}, -14.5) {3L2G};
+  \node[loc,  below=0.4mm of patlab, anchor=north] (lay1) {L};
+  \node[loc,  below=0.3mm of lay1,   anchor=north] (lay2) {L};
+  \node[loc,  below=0.3mm of lay2,   anchor=north] (lay3) {L};
+  \node[glob, below=0.3mm of lay3,   anchor=north] (lay4) {G};
+  \node[glob, below=0.3mm of lay4,   anchor=north] (lay5) {G};
+  \node[gstar,below=2.8mm of lay5.south,  anchor=north] (layN) {G*};
+  \node[font=\scriptsize, text=fgmid, anchor=center, inner sep=0pt] (vdots) 
+    at ($(lay5.south)!0.5!(layN.north)$) {$\vdots$};
+
+  % ── (a) Output row — both nodes share bottom y = -45 ─────────────────────
+  % head centred at x = cxA → arrow from bb.south is perfectly vertical.
+  % out anchored south-west 2 mm right of head.south-east.
+  \node[block, anchor=south, minimum width=22mm] (head)
+    at ({\cxA}, -45) {MLP + cosine};
+  \node[block, anchor=south west, minimum width=18mm,
+        draw=scoreedge, fill=scorefill] (out)
+    at ($(head.south east)+(2,0)$) {\textbf{Ranked list}};
+
+  % Arrows for panel (a)
+  \draw[arr] (ell.south) -- (bb.north);   % ↓ vertical into box
+  \draw[arr] (bb.south)  -- (head.north); % ↓ vertical to MLP  (same x = cxA)
+  \draw[arr] (head.east) -- (out.west);   % → to Ranked list
+
+  % ── (b) Stage boxes (top = token top; bottom = output bottom) ─────────────
+  \coordinate (bAxis) at ({\cxB}, 0);
+  \coordinate (bTop) at (bAxis |- q.north);
+  \coordinate (bBot) at (bAxis |- out.south);
+
+  \node[stage=stage1, anchor=north] (s1) at (bTop) {%
+    \textcolor{stage1}{\scriptsize\bfseries Stage I}\\[0.5pt]
+    \textbf{Full-Attention Teacher}\\[0.5pt]
+    {\scriptsize \textbf{v3.5 Multi-Domain SFT}}%
+  };
+  \node[stage=stage3, anchor=south] (s3) at (bBot) {%
+    \textcolor{stage3}{\scriptsize\bfseries Stage III}\\[0.5pt]
+    \textbf{Teacher-Guided Distillation}\\[0.5pt]
+    {\scriptsize \textbf{Rank, score \& repr} distillation}%
+  };
+  \node[stage=stage2, anchor=center] (s2) at ($(s1.south)!0.5!(s3.north)$) {%
+    \textcolor{stage2}{\scriptsize\bfseries Stage II}\\[0.5pt]
+    \textbf{Sparse-Attention Adaptation}\\[0.5pt]
+    {\scriptsize \textbf{Realignment} $\rightarrow$ \textbf{Full SFT}}%
+  };
+
+  \draw[arr, draw=stage2] ([yshift=-1mm]s1.south) -- ([yshift=1mm]s2.north);
+  \draw[arr, draw=stage3] ([yshift=-1mm]s2.south) -- ([yshift=1mm]s3.north);
+
+  % Frozen teacher: 2-mm right stub → straight down → left into s3
+  \path (s1.east) -- ++(2, 0) coordinate (ftx);
+  \draw[arrdash, ->] (s1.east) -- (ftx) -- (ftx |- s3.east) -- (s3.east);
+  % Two-line label alongside vertical segment (fits within figure right edge)
+  \node[anchor=west, align=center, font=\scriptsize, text=stage1,
+        inner sep=0pt, xshift=1mm]
+    at ($(ftx)!0.40!(ftx |- s3.east)$) {frozen\\[-1pt]teacher};
+
+  % ── Vertical panel divider ─────────────────────────────────────────────────
+  \draw[fgmid!40, line width=0.4pt] ({\halfW}, 0.5) -- ({\halfW}, -47);
+
+\end{tikzpicture}

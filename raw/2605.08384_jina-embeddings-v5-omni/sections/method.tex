@@ -1,0 +1,103 @@
+Figure~\ref{fig:architecture} summarizes the architecture of the \omniBase{} models.
+We extend Jina Embeddings v5 Text from text-only embedding to vision and audio by adding scale-matched Qwen3.5 vision encoders\footnote{\omniSmall{} uses \texttt{Qwen/Qwen3.5-2B}; \omniNano{} uses \texttt{Qwen/Qwen3.5-0.8B}.} and the Qwen2.5-Omni audio encoder to the same text-sequence backbone.
+We chose encoders from trained multimodal language systems rather than bare perceptual encoders such as SigLIP2 or Whisper-large because prior work shows that visual and audio features need explicit language-space alignment or natural-language supervision before they transfer reliably to text-conditioned multimodal tasks~\cite{comp,clap,qwen3.5,qwen2.5-omni}.
+The text processing path of \omniBase{} shares the frozen text-encoder weights of Jina Embeddings v5 Text bit-for-bit: token embeddings pass through the frozen text transformer, the inherited task LoRA adapter is applied, and the final embedding is produced by last-token pooling and L2 normalization.
+
+\subsection{Projectors}
+\label{sec:method:projectors}
+
+\omniBase{} uses image and audio encoders extracted from Qwen3.5 and Qwen2.5-Omni, respectively. Because their output dimensions do not match Jina Embeddings v5 Text's input, we replace the source projection layers with new projectors that map into the text hidden space.
+For audio, we inserted a randomly-initialized \texttt{fc\_audio} layer that projects the encoder's native $1280$ dimension output into \omniSmall{}'s $1024$-dimension input space and \omniNano{}'s $768$-dimension one.
+
+We write each fully connected layer as the same affine map
+\begin{equation*}
+\ell_{W,\mathbf{b}}(\mathbf{x}) = W\mathbf{x} + \mathbf{b},
+\label{eq:linear_layer}
+\end{equation*}
+with layer-specific weights and bias.
+Thus \texttt{fc\_vision\_1} is $\ell_{W_{\text{v1}},\mathbf{b}_{\text{v1}}}$, \texttt{fc\_vision\_2} is $\ell_{W_{\text{v2}},\mathbf{b}_{\text{v2}}}$, and \texttt{fc\_audio} is $\ell_{W_{\text{aud}},\mathbf{b}_{\text{aud}}}$.
+
+For vision, the Qwen3.5 visual projector converts ViT patch tokens into text-token features by applying LayerNorm, a $2{\times}2$ spatial merge, \texttt{fc\_vision\_1}, GELU, and \texttt{fc\_vision\_2}.
+Here, LayerNorm denotes feature normalization on the ViT patch tokens.
+The $2{\times}2$ spatial merge is a fixed space-to-depth (pixel-unshuffle) rearrangement that concatenates four neighboring patch embeddings into one $4d_{\text{vit}}$ vector, reducing the spatial token count by $4\times$; it is the inverse direction of pixel shuffle/sub-pixel rearrangement~\cite{pixel-shuffle} and follows Qwen's visual-merger design~\cite{qwen2-vl,qwen3.5}.
+For each group of four neighboring patch tokens $\mathbf{V}_i = [\mathbf{v}_{i,1}, \ldots, \mathbf{v}_{i,4}] \in \mathbb{R}^{4 \times d_{\text{vit}}}$, the vision projector produces
+\begin{equation*}
+\begin{aligned}
+\mathbf{m}^{(i)}_{\text{vis}} &=
+\bigl[
+\text{LayerNorm}(\mathbf{v}_{i,1});
+\ldots;
+\text{LayerNorm}(\mathbf{v}_{i,4})
+\bigr] \in \mathbb{R}^{4d_{\text{vit}}},\\
+\mathbf{z}^{(i)}_{\text{vis}} &=
+\text{GELU}\!\left(\ell_{W_{\text{v1}},\mathbf{b}_{\text{v1}}}(\mathbf{m}^{(i)}_{\text{vis}})\right),\\
+\mathbf{h}^{(i)}_{\text{vis}} &=
+\ell_{W_{\text{v2}},\mathbf{b}_{\text{v2}}}(\mathbf{z}^{(i)}_{\text{vis}}),
+\qquad i = 1,\ldots,N_{\text{vis}}.
+\end{aligned}
+\label{eq:vis_proj}
+\end{equation*}
+
+Only \texttt{fc\_vision\_2} performs the dimension-specific projection into a text hidden space: in the 2B source checkpoint it maps $4096{\to}2048$ into the Qwen3.5-2B text hidden dimension, and in the 0.8B source checkpoint it maps $3072{\to}1024$ into the Qwen3.5-0.8B text hidden dimension.
+These targets do not match Small's $1024$-dimensional or Nano's $768$-dimensional Jina text backbone, so we keep LayerNorm and \texttt{fc\_vision\_1} frozen but replace \texttt{fc\_vision\_2} with a randomly initialized $4096{\to}1024$ layer for Small and $3072{\to}768$ layer for Nano.
+
+Let $\mathbf{A} = [\mathbf{a}_1, \ldots, \mathbf{a}_K] \in \mathbb{R}^{K \times 1280}$ denote the frozen Qwen2.5-Omni audio encoder states for an input with $K$ audio tokens.
+Each audio token is independently projected into the Jina text hidden dimension by \texttt{fc\_audio}
+\begin{equation*}
+\mathbf{h}^{(i)}_{\text{aud}} =
+\ell_{W_{\text{aud}},\mathbf{b}_{\text{aud}}}(\mathbf{a}_i),
+\qquad i = 1,\ldots,K,
+\label{eq:aud_proj}
+\end{equation*}
+where $W_{\text{aud}} \in \mathbb{R}^{d_{\text{text}} \times 1280}$ and $d_{\text{text}} \in \{1024,768\}$ for Small and Nano.
+
+\subsection{Input Sequence Construction}
+\label{sec:method:input-sequence}
+
+Each input is serialized as one sequence of tokens.
+Text remains ordinary text tokens; non-text modalities are represented by placeholder runs inside modality delimiters.
+An image is encoded as
+\begin{equation*}
+\texttt{<|vision\_start|>} \;\; \underbrace{\texttt{<|image\_pad|>} \times N}_{\text{visual slots}} \;\; \texttt{<|vision\_end|>}
+\label{eq:img_seq}
+\end{equation*}
+with $N$ visual slots.
+An audio input is encoded as
+\begin{equation*}
+\texttt{<|audio\_start|>} \;\; \underbrace{\texttt{<|audio\_pad|>} \times K}_{\text{audio slots}} \;\; \texttt{<|audio\_end|>}
+\label{eq:aud_seq}
+\end{equation*}
+with $K$ audio slots.
+A video is a concatenation of one visual segment per sampled frame:
+\begin{equation*}
+\big\Vert_{f=1}^{F}
+\left(
+\texttt{<|vision\_start|>} \;\; \underbrace{\texttt{<|video\_pad|>} \times S_f}_{\text{frame } f \text{ slots}} \;\; \texttt{<|vision\_end|>}
+\right),
+\label{eq:video_seq}
+\end{equation*}
+where $\Vert$ denotes sequence concatenation.
+If a video contains an audio track, the extracted audio segment precedes the frame sequence:
+\begin{equation*}
+\mathbf{s}_{\text{aud}} \Vert \mathbf{s}_{\text{vid}}.
+\label{eq:video_audio_seq}
+\end{equation*}
+Here, $\mathbf{s}_{\text{aud}}$ is the audio sequence above and $\mathbf{s}_{\text{vid}}$ is the video-frame sequence.
+For mixed-modality inputs, text spans and modality segments are concatenated in document order.
+
+\subsection{Trainable Parameters}
+\label{sec:method:trainable-parameters}
+
+The trainable set is \texttt{fc\_vision\_2}, \texttt{fc\_audio}, and the modality-delimiter embeddings.
+\omniSmall{} learns the vision and audio start/end delimiter embeddings used in Section~\ref{sec:method:input-sequence}; \omniNano{} learns only the audio start/end delimiter embeddings.
+The image, video, and audio placeholder positions are overwritten by projected encoder features rather than learned as standalone token embeddings.
+Projector and delimiter-token training is run separately for retrieval, text-matching, clustering, and classification, while the text transformer, encoder towers, LayerNorm/\texttt{fc\_vision\_1} vision-projector weights, and inherited LoRA adapters stay frozen.
+The base package stores four such task-specific sets alongside the inherited LoRA adapters.
+
+\subsection{Dynamic Weight Loading}
+\label{sec:method:dynamic-loading}
+
+Jina Embeddings v5 Text already uses dynamic adapter selection to route retrieval, classification, clustering, and text-matching inputs through the corresponding task adapter.
+We extend the same task-selection mechanism to the multimodal weights: the selected task variant determines which LoRA adapter, \texttt{fc\_vision\_2}, \texttt{fc\_audio}, and learned special text-token embeddings are loaded or activated.
+The task-specific projector and delimiter-token weights therefore follow the same task-specific variation as Jina Embeddings v5 Text.
+Separately, the model exposes a modality attribute that controls which frozen modality towers are instantiated: text-only loading omits both vision and audio towers, vision-only loading omits the audio tower and \texttt{fc\_audio}, audio-only loading omits the vision tower and vision projector, and omni loading keeps both vision and audio towers.

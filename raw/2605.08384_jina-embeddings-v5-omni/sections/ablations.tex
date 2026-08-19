@@ -1,0 +1,171 @@
+The architecture described in Section~\ref{sec:method} rests on two design choices: which projector layers to train and whether to update an encoder.
+This section uses ablation studies to investigate those choices for GELATO.
+
+\subsection{Trainable Parameters}
+\label{sec:ablation:trainable-parameters}
+
+The released recipe trains only the second fully connected layer of the vision projector (\texttt{fc\_vision\_2}) and the single linear audio projector (\texttt{fc\_audio}).
+This subsection asks whether widening the trainable set --- adding \texttt{fc\_vision\_1}, unfreezing the vision or audio encoder, or running a two-stage continuation --- yields enough improvement to justify the extra parameters and training stages for every task-specific checkpoint.
+We sweep five vision configurations (\S\ref{sec:ablation:vision-projector}) and three audio configurations (\S\ref{sec:ablation:audio}).
+
+\paragraph{Setup.}
+Runs in this subsection start from \omniSmallRetrieval{}, use global batch $128$ ($32$ per rank $\times$ $4\times$H100), and run for $5\,000$ optimizer steps.
+Image ablations use a fast MIEB subset---CIRR-IT2I and NIGHTS-I2I retrieval.
+Audio ablations use an 8-task MAEB subset.
+For these experiments, the primary trainable projector is randomly initialized at load time: \texttt{fc\_vision\_2} for vision runs and \texttt{fc\_audio} for audio runs.
+The remaining layers (encoder, LayerNorm, \texttt{fc\_vision\_1}) retain their pretrained initialization values.
+
+\subsubsection{Vision}
+\label{sec:ablation:vision-projector}
+
+We tested which parts of the Qwen3.5 vision stack to train, keeping the rest frozen, evaluating five configurations.
+%We sweep five trainable sets for the Qwen3.5 vision path (Figure~\ref{fig:ablation-vision-curves}).
+%The Roman numerals below match the figure.
+
+\begin{itemize}
+    \item[I] \textbf{\texttt{fc\_vision\_2} only}, lr~$2{\cdot}10^{-4}$ (our configuration).
+    \item[II] \textbf{\texttt{fc\_vision\_1} + \texttt{fc\_vision\_2}}, lr~$2{\cdot}10^{-4}$; \texttt{fc\_vision\_1} stays at the Qwen3.5 initialization, \texttt{fc\_vision\_2} is reset.
+    \item[III] \textbf{\texttt{fc\_vision\_1} + \texttt{fc\_vision\_2} + vision encoder}, lr~$1{\cdot}10^{-5}$ (dropped $20\times$ because the encoder is unfrozen).
+    \item[IV] \textbf{I, then \texttt{fc\_vision\_1} + \texttt{fc\_vision\_2}}, continuing from the stage-I checkpoint.
+    \item[V] \textbf{I, then \texttt{fc\_vision\_1} + \texttt{fc\_vision\_2} + vision encoder}, continuing from the stage-I checkpoint.
+\end{itemize}
+
+Runs I--III are single-stage ablations from the same reset \texttt{fc\_vision\_2}. Runs IV and V are two-stage continuations that first train run I and then unfreeze additional layers for a second $5\,000$-step stage.
+
+\begin{figure}[t]
+\centering
+\includegraphics[width=\linewidth]{figures/ablations/section_1a_vision_freezing.pdf}
+\caption{Vision ablation tests on CIRR-IT2I and NIGHTS-I2I.
+PRO is \texttt{fc\_vision\_2}, PRO1/2 is \texttt{fc\_vision\_1}+\texttt{fc\_vision\_2}, ViT is the vision encoder, and V adds only $0.001$ over I.
+\label{fig:ablation-vision-curves}}
+\end{figure}
+
+\paragraph{Result:}
+Figure~\ref{fig:ablation-vision-curves} displays the results of these tests.
+The \texttt{fc\_vision\_2}-only recipe (I) is sufficient: it reaches $0.158$, while training \texttt{fc\_vision\_1} from the start (II) ends slightly lower at $0.153$.
+Unfreezing the encoder from step $0$ (III) is clearly harmful, ending at $0.079$.
+The two-stage variants test whether I should be followed by a broader continuation stage.
+Continuing with \texttt{fc\_vision\_1}+\texttt{fc\_vision\_2} (IV) does not improve the checkpoint, and the broader continuation with the encoder unfrozen (V) reaches only $0.159$, an absolute gain of $0.001$ over I on this 2-task subset.
+Run III's collapse to $0.079$ is visible already early in training as a monotone decrease from the shared initial point, indicating that the vision encoder is destabilized as soon as it receives gradients from a randomly initialized \texttt{fc\_vision\_2}; even the $20\times$-reduced learning rate is not enough to prevent the drift when the projector itself has not yet converged.
+Runs IV and V remain near the stage-I plateau throughout their continuation, so the small numerical differences among I, IV, and V at step $5\,000$ reflect noise around a basin the projector-only recipe already reached rather than a continued ascent.
+That gain is too small to justify a production recipe with an additional continuation stage and extra task-specific adapter/projector artifacts for all four variants of each model size, so the released configuration keeps the simpler frozen-tower choice: train \texttt{fc\_vision\_2} and leave \texttt{fc\_vision\_1}, the vision encoder, and inherited LoRA adapters fixed.
+
+\begin{comment}
+\subsection{Vision Encoder}
+\label{sec:ablation:vision-encoder}
+
+The Qwen3.5 control in the encoder-swap sweep tests whether retraining a fresh projector without touching the tower can recover the \texttt{fc\_vision\_2}-only configuration.
+It matches the run-I band on the 2-task fast-eval subset, so at our training budget we \emph{can} recover our configuration by retraining the projector alone.
+The SigLIP2 and CLIP-ViT-L/14 swaps require different modeling wrappers for mismatched image-token shapes and are therefore not part of this controlled sweep.
+This is a genuine gap: we have shown that the \emph{projector} is recoverable from scratch, but not that the encoder itself can be swapped without regression.
+\end{comment}
+
+\subsubsection{Audio}
+\label{sec:ablation:audio}
+
+%We sweep three trainable sets for the Qwen2.5-Omni audio path (Figure~\ref{fig:ablation-audio-freezing}).
+We then tested which parts of the Qwen2.5-Omni audio stack to train, keeping the rest frozen, evaluating three configurations.
+%The Roman numerals below match the figure.
+% The encoder-swap variant 2.b.III keeps the same external projector shape while replacing the tower with Qwen3-Omni's MoE audio encoder and disabling its internal proj1/proj2.
+
+\begin{itemize}
+    \item[I] \textbf{\texttt{fc\_audio} only}, lr~$2{\cdot}10^{-4}$ (our configuration).
+    \item[II] \textbf{\texttt{fc\_audio} + audio encoder}, lr~$1{\cdot}10^{-5}$; starting from the reset projector.
+    \item[III] \textbf{I, then \texttt{fc\_audio} + audio encoder}, continuing from the final I checkpoint, lr~$1{\cdot}10^{-5}$.
+%     \item Same Qwen2.5-Omni audio tower, \texttt{fc\_audio} re-initialized.
+%     \item Swap the audio tower to Qwen3-Omni's MoE audio encoder.
+%         The external projector is $\text{Linear}(1280, d_{\text{text}})$, with proj1/proj2 inside the encoder set to \texttt{Identity} (retaining the merged-projector structure).
+\end{itemize}
+
+Runs I and II are single-stage ablations from the same reset \texttt{fc\_audio}. Run III is a two-stage continuation that first trains run I and then unfreezes the audio encoder for a second $5\,000$-step stage.
+
+\begin{figure}[t]
+\centering
+\includegraphics[width=\linewidth]{figures/ablations/section_1b_audio_freezing.pdf}
+\caption{Audio ablation tests on UrbanSound8K, CommonVoiceMini21, MACS, GigaSpeech, SpokenSQuAD, Clotho, JamAlt Artist, and JamAlt Lyric.
+PRO is \texttt{fc\_audio}, AUD is the audio encoder, and III adds about $0.022$ over I.
+\label{fig:ablation-audio-freezing}}
+\end{figure}
+
+\begin{comment}
+\begin{figure}[t]
+\centering
+\includegraphics[width=\linewidth]{figures/ablations/section_2b_audio_encoder_swap.pdf}
+\caption{Audio encoder swap on the 8-task MAEB subset.
+A fresh projector on Qwen2.5-Omni recovers the main path; swapping to Qwen3-Omni regresses sharply.
+\label{fig:ablation-audio-encoder-swap}}
+\end{figure}
+\end{comment}
+
+\paragraph{Result:}
+Figure~\ref{fig:ablation-audio-freezing} displays the results of these tests.
+The \texttt{fc\_audio}-only recipe (I) is sufficient for this budget: it reaches $0.398$, while unfreezing the audio encoder from step $0$ (II) ends lower at $0.367$.
+The two-stage variant tests whether I should be followed by a broader continuation stage.
+Continuing with \texttt{fc\_audio}+audio encoder (III) reaches $0.419$, an absolute gain of $0.022$ over I.
+Runs I and II diverge within the first $\sim$$1\,000$ steps as the audio encoder begins drifting away from its Qwen2.5-Omni initialization under gradients from a randomly initialized \texttt{fc\_audio}; the curve then plateaus at a lower level than I and does not recover, mirroring the vision-encoder failure mode of run~III in Figure~\ref{fig:ablation-vision-curves}.
+Run III by construction tracks run I through step $5\,000$ and only diverges in the continuation stage, where the $+0.022$ lift accumulates gradually rather than as an abrupt jump --- consistent with steady encoder adaptation from an already-converged projector at a $20\times$-reduced learning rate, rather than a one-off alignment correction at the stage boundary.
+We therefore keep the released recipe frozen for simplicity, while treating audio-encoder adaptation as a promising future training stage.
+
+This converges with the audio--text geometry analysis (\S\ref{sec:exp:modality-geometry}): the larger LCO baselines maintain a $\sim$$11$--$15\%$ lead over the Small variant on Clotho cross-modal retrieval, and MAEB clustering in Table~\ref{tab:benchmark-summary} shows the Small variant at $6.13$ versus the audio-text specialist \texttt{laion/clap-htsat-fused} ($0.19$B) at $22.74$ --- consistent with the linear \texttt{fc\_audio} bridge discarding intra-modal variance that audio-only K-means relies on.
+The single \texttt{fc\_audio} projection is therefore the natural next target for additional trainable parameters, and the $+0.022$ MAEB gain from run III suggests that a budgeted audio-encoder continuation is a promising direction for the next model release.
+% The same-encoder control shows that a freshly re-initialized projector on the same encoder converges back to our configuration, mirroring the vision result.
+% The Qwen3-Omni swap regresses almost every speech-centric task (CommonVoice $0.870 \to 0.025$, GigaSpeech $0.719 \to 0.001$, SpokenSQuAD $0.388 \to 0.013$) while leaving music-artist retrieval roughly unchanged---unsurprising, since artist retrieval is dominated by the pretrained text encoder matching artist names.
+% The drop matches an earlier single-run observation with an alternate projector layout, and we now confirm it under the merged-projector architecture used in this paper: at our training budget, the Qwen3-Omni tower cannot be dropped in without a much longer retraining schedule.
+
+\subsection{Matryoshka Preservation Across Modalities}
+\label{sec:ablation:matryoshka}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=\linewidth]{figures/ablations/section_matryoshka_combined.pdf}
+\caption{Matryoshka prefix tests across modalities.
+Curves show mean nDCG@10; line style indicates modality and color shade indicates model size.
+\label{fig:ablation-matryoshka}}
+\Description{Line chart of mean nDCG@10 versus Matryoshka truncation dimension for text, image, audio, and video retrieval, with small and nano curves for each modality.}
+\end{figure}
+
+Figure~\ref{fig:ablation-matryoshka} shows Matryoshka performance under embedding truncation. Image embeddings behave similarly to text ones: both \omniSmall{} and \omniNano{} lose roughly $0.18$--$0.21$ nDCG@10 when truncated to $32$ dimensions. Audio also preserves most of its score at $256$ dimensions, while video degrades much more heavily at small dimensions, indicating weaker Matryoshka preservation for video embeddings.
+The curves are near-flat from full dimension down to roughly $128$, with degradation only becoming visible below $64$; the Matryoshka loss therefore appears to keep most retrieval-relevant information in the first nibble of the embedding for image, text, and audio.
+The text and image curves overlap almost exactly at every truncation level for a given model size, indicating that the linear \texttt{fc\_vision\_2} projection inherits the prefix structure of the frozen Jina Embeddings v5 Text encoder rather than introducing its own scale-dependent loss.
+The video curve diverges from the others well before $64$ dimensions and crosses below half its full-dimension score around $32$, suggesting that aggregating multi-frame information into a single embedding exhausts the residual capacity of the early prefix dimensions faster than the single-frame image case.
+The Small and Nano curves for each modality track each other closely under truncation, so the released Matryoshka schedule transfers across both model sizes despite their different embedding widths ($1024$ vs.\ $768$) and projector parameter counts.
+
+% Additional vision and audio encoder swaps require wrapper and processor changes beyond the shared-protocol sweeps above, so they are not listed as rows in the ablation summaries.
+
+\subsection{Training Efficiency}
+\label{sec:ablation:efficiency}
+
+This ablation test measures the efficiency gained by GELATO compared to full training.
+Table~\ref{tab:ablation-efficiency} shows that projector training makes vision runs $1.8\times$ faster and audio runs $3.2$--$3.9\times$ faster at the $15$k-step budget, with lower peak GPU memory in every case.
+
+\begin{table}[H]
+  \caption{Training throughput and peak GPU memory.}
+  \label{tab:ablation-efficiency}
+  \centering
+  \small
+  \setlength{\tabcolsep}{2pt}
+  \begin{tabular}{@{}L{0.18\linewidth}L{0.18\linewidth}rrrr@{}}
+    \toprule
+    Setting & Scope & Updated params\textsuperscript{a} & s/step & Peak mem. & $15$k steps \\
+    \midrule
+    \multicolumn{6}{c}{\omniSmall{}} \\
+    \midrule
+    Vision & Projector & $4.20$M & $0.413$ & $7.52$\,GiB & $103.3$\,min \\
+    Vision & Full & $920.6$M & $0.752$ & $12.96$\,GiB & $188.0$\,min \\
+    Audio & Projector & $1.31$M & $0.617$ & $6.06$\,GiB & $154.3$\,min \\
+    Audio & Full & $1232.1$M & $1.989$ & $19.53$\,GiB & $497.3$\,min \\
+    \midrule
+    \multicolumn{6}{c}{\omniNano{}} \\
+    \midrule
+    Vision & Projector & $2.36$M & $0.181$ & $6.94$\,GiB & $45.2$\,min \\
+    Vision & Full & $311.6$M & $0.329$ & $10.02$\,GiB & $82.3$\,min \\
+    Audio & Projector & $0.98$M & $0.447$ & $5.77$\,GiB & $111.7$\,min \\
+    Audio & Full & $847.8$M & $1.764$ & $16.08$\,GiB & $440.9$\,min \\
+    \bottomrule
+  \end{tabular}
+  \\[0.4em]
+  \begin{minipage}{0.97\linewidth}
+  \footnotesize
+  \textsuperscript{a}\,Parameters that actually receive updates. In projector scope these are the trained projector weights (\texttt{fc\_vision\_2} or \texttt{fc\_audio}) plus the modality-delimiter token rows; the token-embedding matrix is held in the optimizer with gradients masked to those rows, so its remaining rows do not change but its optimizer state is included in peak memory.
+  \end{minipage}
+\end{table}
