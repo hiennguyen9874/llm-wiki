@@ -1,6 +1,8 @@
 # Wiki Update Log
 
 ## 2026-08-19
+- **Update**: Added the ≤2B text–image deployment comparison to [multimodal embedding model comparison](multimodal-embedding-model-comparison.md).
+- **Query**: Answered “So sánh tất cả các mô hình multimodal embedding”; filed [multimodal embedding model comparison](multimodal-embedding-model-comparison.md).
 - **Ingest**: Compiled [Haon-Chen/e5-omni-7B model card](../raw/e5-omni-7B.md); updated [e5-omni](e5-omni.md) with 7B checkpoint availability, license, and deployment guidance.
 - **Ingest**: Compiled [Haon-Chen/e5-omni-3B model card](../raw/e5-omni-3B.md); updated [e5-omni](e5-omni.md) with its 3B checkpoint availability, license, and deployment guidance.
 - **Ingest**: Compiled [UEmbed technical-report LaTeX source](../raw/2608.02583_UEmbed/main.tex); created [UEmbed](uembed.md) and updated [UEmbed-4B](uembed-4b.md) with paper-backed results and a training-source naming conflict.
