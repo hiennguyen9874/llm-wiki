@@ -1,0 +1,256 @@
+
+\documentclass{article} % For LaTeX2e
+\usepackage{colm2024_conference}
+
+\usepackage{microtype}
+\usepackage{hyperref}
+\usepackage{url}
+\usepackage{booktabs}
+\definecolor{darkblue}{rgb}{0, 0, 0.5}
+\hypersetup{colorlinks=true, citecolor=darkblue, linkcolor=darkblue, urlcolor=darkblue}
+
+\usepackage{enumitem}
+\usepackage{graphicx}
+\usepackage{url}
+\usepackage{bigfoot}
+\usepackage{booktabs}
+\usepackage{multirow}
+\usepackage[most]{tcolorbox}
+\usepackage{graphicx}
+\usepackage{subcaption}
+\usepackage{etoolbox}
+\usepackage{booktabs}
+\usepackage{bbding} 
+\let\classAND\AND
+\let\AND\relax
+\usepackage{algorithmic}
+\let\algoAND\AND
+\let\AND\classAND
+\AtBeginEnvironment{algorithmic}{\let\AND\algoAND}
+
+\usepackage{algorithm}
+\usepackage{algorithmic}
+
+\usepackage{soul}
+\usepackage{url}
+\usepackage{booktabs}
+\usepackage{arydshln}
+\usepackage{nicefrac}
+\usepackage{multirow}
+\usepackage{tabularx}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{amsfonts}
+\usepackage{mathtools}
+\usepackage{fontawesome}
+
+\usepackage{xcolor,colortbl}
+\usepackage[export]{adjustbox}
+
+\usepackage{wrapfig}
+
+\tcbuselibrary{listings,breakable}
+\tcbset{listing engine=listings,colframe=black,colback=white,size=small}
+
+\usepackage{upquote}
+\definecolor{dkgreen}{rgb}{0,0.6,0}
+\definecolor{gray}{rgb}{0.5,0.5,0.5}
+\definecolor{mauve}{rgb}{0.58,0,0.82}
+\lstset{language=SQL,
+  basicstyle={\small\ttfamily},
+  breaklines=true,
+  columns=flexible,
+  commentstyle=\color{dkgreen},
+  frameshape={}{}{}{},
+  keywordstyle=\color{blue},
+  numbers=none,
+  numberstyle=\tiny\color{gray},
+  showstringspaces=false,
+  stringstyle=\color{mauve},
+  tabsize=4,
+  xleftmargin=0.5em,
+}
+
+\usepackage{xspace}
+
+
+% chuzhe.hby package
+\usepackage{setspace}
+% \usepackage{xcolor,colortbl}
+% \usepackage{subcaption}
+% \usepackage{graphicx}
+
+\tcbset{
+  promptstyle/.style={
+    colback=gray!15,   % 背景色（15% 灰）
+    colframe=gray!60,  % 边框色
+    boxrule=0.4pt,     % 边框粗细
+    arc=2pt,           % 圆角
+    left=4pt,right=4pt,top=4pt,bottom=4pt,  % 内边距
+    fonttitle=\bfseries,
+  }
+}
+\newtcolorbox{promptblock}[1][]{promptstyle,#1}
+
+\usepackage{fvextra}
+\RecustomVerbatimEnvironment{verbatim}{Verbatim}{breaklines=true, breakanywhere=true}
+
+\newcommand{\huggingface}{\raisebox{-1.5pt}{\includegraphics[height=1.05em]{figures/hf-logo.pdf}}\hspace{3.2pt}\xspace}
+\newcommand{\modelscope}{\raisebox{-1.5pt}{\includegraphics[height=1.05em]{figures/modelscope-logo.pdf}}\xspace}
+\newcommand{\github}{\raisebox{-1.5pt}{\includegraphics[height=1.05em]{figures/github-logo.pdf}}\hspace{3.2pt}\xspace}
+
+\newcommand{\graybg}{\rowcolor{gray!20}}
+
+\newcommand{\grayt}{\color{gray!80}}
+
+\newcommand\blfootnote[1]{
+    \begingroup
+    \renewcommand\thefootnote{}\footnote{#1}
+    \addtocounter{footnote}{-1}
+    \endgroup
+}
+\def\colornum#1{
+\newcommand{\MidNumber}{38}  % Define MidNumber
+\newcommand{\MaxNumber}{100} % Define MaxNumber
+\newcommand{\MinNumber}{0}   % Define MinNumber
+\pgfmathsetmacro{\PercentColor}{max(min(100.0*(#1 - \MinNumber)/(\MaxNumber-\MinNumber),100.0),0.00)}
+\hspace{-0.33em}\colorbox{pink!\PercentColor!white}{#1}
+}
+
+\title{\LARGE Qwen3 Embedding: Advancing Text Embedding and Reranking Through Foundation Models}
+
+\author{
+\vspace{-4mm}
+\\
+\normalsize{}
+Yanzhao Zhang*\hspace{3mm} 
+Mingxin Li*\hspace{3mm} 
+Dingkun Long*\hspace{3mm} 
+Xin Zhang*\hspace{3mm} 
+\\
+\normalsize{}
+Huan Lin\hspace{3mm} 
+Baosong Yang\hspace{3mm}
+Pengjun Xie\hspace{3mm}
+An Yang\hspace{3mm} 
+\\
+\normalsize{}
+Dayiheng Liu\hspace{3mm} 
+Junyang Lin\hspace{3mm} 
+Fei Huang\hspace{3mm}
+Jingren Zhou\hspace{3mm}
+\\
+\vspace{20mm}
+\textbf{Tongyi Lab\hspace{3mm}Alibaba Group}
+\vspace{-15mm}
+}
+
+\newcommand{\fix}{\marginpar{FIX}}
+\newcommand{\new}{\marginpar{NEW}}
+
+% \colmfinalcopy % Uncomment for camera-ready version, but NOT for submission.
+\colmfinalcopy
+\begin{document}
+
+
+\maketitle
+
+\begin{center}
+\vspace{-1cm}
+\begin{tabular}{rl}
+\huggingface & \url{https://huggingface.co/Qwen}\\
+\modelscope & \url{https://modelscope.cn/organization/qwen} \\
+\github & \url{https://github.com/QwenLM/Qwen3-Embedding}\\
+\end{tabular}
+\end{center}
+
+\begin{abstract}
+In this work, we introduce the Qwen3 Embedding series, a significant advancement over its predecessor, the GTE-Qwen series, in text embedding and reranking capabilities, built upon the Qwen3 foundation models. Leveraging the Qwen3 LLMs' robust capabilities in multilingual text understanding and generation, our innovative multi-stage training pipeline combines large-scale unsupervised pre-training with supervised fine-tuning on high-quality datasets. Effective model merging strategies further ensure the robustness and adaptability of the Qwen3 Embedding series. During the training process, the Qwen3 LLMs serve not only as backbone models but also play a crucial role in synthesizing high-quality, rich, and diverse training data across multiple domains and languages, thus enhancing the training pipeline. The Qwen3 Embedding series offers a spectrum of model sizes (0.6B, 4B, 8B) for both embedding and reranking tasks, addressing diverse deployment scenarios where users can optimize for either efficiency or effectiveness.
+Empirical evaluations demonstrate that the Qwen3 Embedding series achieves state-of-the-art results across diverse benchmarks. Notably, it excels on the multilingual evaluation benchmark MTEB for text embedding, as well as in various retrieval tasks, including code retrieval, cross-lingual retrieval and multilingual retrieval. To facilitate reproducibility and promote community-driven research and development, the Qwen3 Embedding models are publicly available under the Apache 2.0 license.
+\end{abstract}
+
+\blfootnote{$^{*}$ Equal contribution}
+
+\input{contents/intro}
+\input{contents/model_arc}
+\input{contents/train}
+\input{contents/evaluation}
+
+\section{Conclusion}
+In this technical report, we present the Qwen3-Embedding series, a comprehensive suite of text embedding and reranking models based on the Qwen3 foundation models. These models are designed to excel in a wide range of text embedding and reranking tasks, including multilingual retrieval, code retrieval, and complex instruction following. The Qwen3-Embedding models are built upon a robust multi-stage training pipeline that combines large-scale weakly supervised pre-training on synthetic data with supervised fine-tuning and model merging on high-quality datasets. The Qwen3 LLMs play a crucial role in synthesizing diverse training data across multiple languages and tasks, thereby enhancing the models' capabilities. Our comprehensive evaluations demonstrate that the Qwen3-Embedding models achieve state-of-the-art performance across various benchmarks, including MTEB, CMTEB, MMTEB, and several retrieval benchmarks. We are pleased to open-source the Qwen3-Embedding and Qwen3-Reranker models (0.6B, 4B, and 8B), making them available for the community to use and build upon.
+
+\bibliography{colm2024_conference}
+\bibliographystyle{colm2024_conference}
+
+\clearpage
+\appendix
+\section{Appendix}
+
+\subsection{Synthetic Data} \label{synthetic_data}
+We construct four types of synthetic data—retrieval, bitext mining, semantic textual similarity, and classification to enable the model to adapt to various similarity tasks during pre-training. To ensure both multilingual and cross-lingual diversity, the data is generated using Qwen3 32B. Below is an example of a synthetic retrieval text pair. The retrieval data is synthesized using a document-to-query approach. We collect a multilingual corpus from the pre-training corpus of the Qwen3 base model to serve as the document source. A two-stage generation pipeline is then applied, consisting of: (1) configuration and (2) query generation. In the configuration stage, we use large language models (LLMs) to determine the ``Question Type'', ``Difficulty'', and ``Character'' for the synthetic query. The candidate characters are retrieved from Persona Hub~\citep{ge2024scaling}, selecting the top five most relevant to the given document. This step aims to enhance the diversity of the generated queries. The template used is as follows:
+
+\begin{promptblock}
+    \begin{verbatim}
+Given a **Passage** and **Character**, select the appropriate option from three fields: Character, Question_Type, Difficulty, and return the output in JSON format.
+First, select the Character who are likely to be interested in the Passage from the candidates. Then select the Question_Type that the Character might ask about the Passage; Finally, choose the Difficulty of the possible question based on the Passage, the Character, and the Question_Type.
+Character: Given by input **Character**
+
+Question_Type:
+- keywords: ...
+- acquire_knowledge: ...
+- summary: ...
+- yes_or_no: ...
+- background: ...
+
+Difficulty:
+- high_school: ...
+- university: ...
+- phd: ...
+
+Here are some examples
+<Example1> <Example2> <Example3>
+
+Now, generate the **output** based on the **Passage** and **Character** from user, the **Passage** will be in {language} language and the **Character** will be in English.
+Ensure to generate only the JSON output with content in English.
+
+**Passage**:
+{passage}
+**Character**:
+{character}
+\end{verbatim}
+\end{promptblock}
+
+In the query generation stage, we use the configuration selected in the first stage to guide the generation of queries. Additionally, we explicitly specify the desired length and language of the generated query. The template used is as follows:
+
+\begin{promptblock}
+    \begin{verbatim}
+Given a **Character**, **Passage**, and **Requirement**, generate a query from the **Character**'s perspective that satisfies the **Requirement** and can be used to retrieve the **Passage**. Please return the result in JSON format.
+
+Here is an example:
+<example>
+
+Now, generate the **output** based on the **Character**, **Passage** and **Requirement** from user, the **Passage** will be in {corpus_language} language, the **Character** and **Requirement** will be in English.
+Ensure to generate only the JSON output, with the key in English and the value in {queries_language} language.
+
+**Character**
+{character}
+**Passage**
+{passage}
+**Requirment**
+- Type: {type};
+- Difficulty: {difficulty};
+- Length: the length of the generated sentences should be {length} words;
+- Languange: the language in which the results are generated should be {language} language;
+    \end{verbatim}
+\end{promptblock}
+
+ 
+\input{tables/train_data}
+
+\subsection{Detail Results}
+
+\input{tables/mteb_en.tex}
+\input{tables/mteb_zh.tex}
+\input{tables/mteb_code.tex}
+
+\end{document}

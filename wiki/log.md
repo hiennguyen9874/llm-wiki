@@ -1,6 +1,9 @@
 # Wiki Update Log
 
 ## 2026-08-19
+- **Ingest**: Compiled [F2LLM-v2 technical-report LaTeX source](../raw/2603.19223_F2LLM-v2/main.tex); created [F2LLM-v2](f2llm-v2.md) and updated [F2LLM-v2-14B](f2llm-v2-14b.md).
+- **Ingest**: Compiled [Jina Embeddings v5 Text technical-report LaTeX source](../raw/2602.15547_jina-embeddings-v5-text/paper.tex); updated [Jina Embeddings v5 Text Nano](jina-embeddings-v5-text-nano.md) and [Jina Embeddings v5 Text Small](jina-embeddings-v5-text-small.md).
+- **Ingest**: Compiled [Qwen3 Embedding technical report LaTeX source](../raw/2506.05176_Qwen3Embedding/main.tex); created [Qwen3-Embedding-0.6B](qwen3-embedding-0-6b.md), [Qwen3-Embedding-4B](qwen3-embedding-4b.md), and three Qwen3 Reranker concepts; updated [Qwen3-Embedding-8B](qwen3-embedding-8b.md) with the resolvable LaTeX source.
 - **Ingest**: Compiled [MTEB Multilingual v2 summary CSV](../raw/MTEB_Multilingual_v2_summary.csv); created [MTEB Multilingual v2 leaderboard snapshot](mteb-multilingual-v2-leaderboard-snapshot.md) and updated six covered model concepts.
 - **Ingest**: Compiled [Vintern-Embedding-1B model card](../raw/Vintern-Embedding-1B.md); created [Vintern-Embedding-1B](vintern-embedding-1b.md).
 - **Ingest**: Compiled [Qwen3-Embedding-8B model card](../raw/Qwen3-Embedding-8B.md) and its local technical-report archive; created [Qwen3-Embedding-8B](qwen3-embedding-8b.md).

@@ -1,0 +1,48 @@
+\input{tables/mteb_multilingual}
+
+
+\section{Evaluation}
+We conduct comprehensive and fair evaluations across multiple benchmarks to assess the capabilities of Qwen3 Embedding models.
+
+\subsection{Settings}
+\label{sec:evaluation_settings}
+For the text embedding models, we utilize the Massive Multilingual Text Embedding Benchmark (MMTEB)~\citep{enevoldsen2025mmteb} for evaluation. MMTEB is a large-scale, community-driven expansion of MTEB~\citep{muennighoff-etal-2023-mteb}, covering over 500 quality-controlled evaluation tasks across more than 250 languages. In addition to classic text tasks such as as a variety of retrieval, classification, and semantic textual similarity, MMTEB includes a diverse set of challenging and novel tasks, such as instruction following, long-document retrieval, and code retrieval, representing the largest multilingual collection of evaluation tasks for embedding models to date. Our MMTEB evaluations encompass 216 individual evaluation tasks, consisting of 131 tasks for MTEB (Multilingual) \citep{enevoldsen2025mmteb}, 41 tasks for MTEB (English, v2) \citep{muennighoff-etal-2023-mteb}, 32 tasks for CMTEB \citep{xiao2024cpack}, and 12 code retrieval tasks for MTEB (Code) \citep{enevoldsen2025mmteb}.
+
+Moreover, we select a series of text retrieval tasks to assess the text reranking capabilities of our models. We explore three types of retrieval tasks: (1) Basic Relevance Retrieval, categorized into English, Chinese, and Multilingual, evaluated on MTEB \citep{muennighoff-etal-2023-mteb}, CMTEB \citep{xiao2024cpack}, MMTEB \citep{enevoldsen2025mmteb}, and MLDR \citep{chen-etal-2024-m3}, respectively; (2) Code Retrieval, evaluated on MTEB-Code \citep{enevoldsen2025mmteb}, which comprises only code-related retrieval data.; and (3) Complex Instruction Retrieval, evaluated on FollowIR \citep{weller2024followir}.
+
+\paragraph{Compared Methods}
+We compare our models with the most prominent open-source text embedding models and commercial API services. The open-source models include the GTE \citep{li2023generaltextembeddingsmultistage,zhang-etal-2024-mgte}, E5 \citep{wang2024textembeddingsweaklysupervisedcontrastive}, and BGE \citep{xiao2024cpack} series, as well as NV-Embed-v2 \citep{lee2025nvembed}, GritLM-7B \cite{muennighoff2025generative}. The commercial APIs evaluated are text-embedding-3-large from OpenAI, Gemini-embedding from Google, and Cohere-embed-multilingual-v3.0.
+For reranking, we compare with the rerankers of jina\footnote{
+\url{https://hf.co/jinaai/jina-reranker-v2-base-multilingual}
+}, mGTE \citep{zhang-etal-2024-mgte} and BGE-m3 \citep{chen-etal-2024-m3}.
+
+
+\input{tables/mteb_ezc}
+
+\subsection{Main Results}
+
+
+\paragraph{Embedding} In Table \ref{tab:model_comparison}, we present the evaluation results on MMTEB~\citep{enevoldsen2025mmteb}, which comprehensively covers a wide range of embedding tasks across multiple languages.
+Our Qwen3-Embedding-4B/8B models achieve the best performance, and our smallest model, Qwen3-Embedding-0.6B, only lags behind the best-performing baseline method (Gemini-Embedding), despite having only 0.6B parameters.
+In Table \ref{tab:mteb-ezc}, we present the evaluation results on MTEB (English, v2) \citep{muennighoff-etal-2023-mteb}, CMTEB~\citep{xiao2024cpack}, and MTEB (Code)~\citep{enevoldsen2025mmteb}.
+The scores reflect similar trends as MMTEB, with our Qwen3-Embedding-4B/8B models consistently outperforming others. Notably, the Qwen3-Embedding-0.6B model ranks just behind the Gemini-Embedding, while being competitive with the gte-Qwen2-7B-instruct.
+
+
+\paragraph{Reranking} In Table \ref{tab:main-rerank}, we present the evaluation results on various reranking tasks (\S\ref{sec:evaluation_settings}). We utilize the Qwen3-Embedding-0.6B model to retrieve the top-100 candidates and then apply different reranking models for further refinement. This approach ensures a fair evaluation of the reranking models. Our results indicate that all three Qwen3-Reranker models enhance performance compared to the embedding model and surpass all baseline reranking methods, with Qwen3-Reranker-8B achieving the highest performance across most tasks.
+
+\input{tables/rerank_all}
+
+\subsection{Analysis}
+
+To further analyze and explore the key elements of the Qwen3 Embedding model training framework, we conduct an analysis from the following dimensions:
+
+\noindent \textbf{Effectiveness of Large-Scale Weakly Supervised Pre-Training}
+We first analyze the effectiveness of the large-scale weak supervised training stage for the embedding models. As shown in Table \ref{tab:mteb-analysis}, the Qwen3-Embedding-0.6B model trained solely on synthetic data (without subsequent training stages, as indicated in the first row) achieves reasonable and strong performance compared to the final Qwen3-Embedding-0.6B model (as shown in the last row). If we further remove the weak supervised training stage (i.e., without synthetic data training, as seen in the second row), the final performance shows a clear decline. This indicates that the large-scale weak supervised training stage is crucial for achieving superior performance.
+
+
+\noindent \textbf{Effectiveness of Model Merging}
+Next, we compare the performance differences arising from the model merging stage. As shown in Table \ref{tab:mteb-analysis}, the model trained without model merging techniques (the third row, which uses data sampling to balance various tasks) performs considerably worse than the final Qwen3-Embedding-0.6B model (which employs model merging, as shown in the last row). This indicates that the model merging stage is also critical for developing strong models.
+
+
+\input{tables/mteb_analysis.tex}
+

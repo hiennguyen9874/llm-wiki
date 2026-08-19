@@ -1,0 +1,38 @@
+\section{Experiments}
+
+\subsection{Main Results}
+
+\input{tables/results}
+
+We evaluate F2LLM-v2 on 17 MTEB benchmarks: Multilingual, English, Code, Medical, European, Scandinavian, Indic, German, French, Korean, Polish, Chinese, Japanese, Dutch, Russian, Persian, and Vietnamese, totaling 430 tasks across ten types: retrieval, reranking, classification, clustering, pair classification, multilabel classification, STS, instruction reranking, bitext mining, and summarization. More details on these benchmarks and tasks are given in Appendix~\ref{appendix:mteb}.
+
+
+The main results are presented in Table~\ref{tab:main-results}, along with the models' rankings on the leaderboards. To assess the performance of the smaller models more thoroughly, we also compare specifically with individual models with the same sizes from the Qwen3-Embedding~\citep{2025Qwen3-Embedding} and EmbeddingGemma~\citep{2025EmbeddingGemma} families in Table~\ref{tab:mteb-comparison}. As the results of these models are not complete on several benchmarks, we use the results from the leaderboards when available, and evaluate them on the remaining tasks using the same prompts as those used to evaluate F2LLM-v2.
+
+\input{tables/qwen_comparison}
+
+These results highlight the scalability of the F2LLM-v2 models. Our 14B model achieves state-of-the-art on 11 of the 17 evaluated benchmarks, capturing deep semantic nuances suitable for enterprise-grade database systems where model inference does not present a bottleneck. In comparison, the smaller variants - particularly the 80M and 160M models - demonstrate remarkable efficiency, which is achieved without a proportional degradation in performance, verifying the effectiveness of our pruning and knowledge distillation pipeline. Notably, the 330M and 0.6B models consistently outperform Qwen3-Embedding and EmbeddingGemma on most language-specific benchmarks and the code benchmark, providing an ideal tradeoff between performance and efficiency for edge deployment.
+
+
+
+
+\subsection{Ablation Studies}
+
+For ablation studies, we conduct experiments on a subset of 350 tasks, which are selected based solely on evaluation time to speed up model iterations.
+
+We first examine the effectiveness of knowledge distillation. Starting from the same stage-1 checkpoints, we train another series of models in identical settings as F2LLM-v2, but without knowledge distillation. The results are presented in Table~\ref{tab:results-distillation}, which demonstrates a consistent drop in performance across all five model scales, verifying the effectiveness of our knowledge distillation method in transferring the capabilities of teacher models into significantly more compact students.
+
+\input{tables/distillation}
+
+\begin{figure}
+    \centering
+    \includegraphics[width=0.7\linewidth]{figures/mrl.pdf}
+    \caption{Results of evaluating F2LLM-v2 models at different representation sizes.}
+    \label{fig:mrl_results}
+\end{figure}
+
+% We also verify the effectiveness of MRL by evaluating the models with different representation sizes. The results are plotted in Figure~\ref{fig:mrl_results}, which highlights a clear tradeoff between model size and representation dimension.
+
+We also verify the effectiveness of MRL by evaluating the models at different representation sizes. For each model, we truncate the output embeddings to dimensions ranging from 8 to their full size and measure performance on the ablation task subset. The results, plotted in Figure~\ref{fig:mrl_results}, confirm that MRL successfully concentrates the most critical semantic information in the initial representation dimensions. Performance scales gracefully with the embedding dimension, with the steepest performance gains occurring at the lower dimensions from 8 to 128 and plateauing as the representation approaches its full size. This demonstrates that the leading dimensions effectively capture the most salient semantic features, while subsequent dimensions add progressively finer-grained detail.
+
+These results highlight a crucial tradeoff for practitioners. For example, the 330M model using its full 896-dimensional embedding performs comparably to the much larger 8B and 14B models when their embeddings are truncated to 32 dimensions. This flexibility enables users to dynamically select an optimal balance between performance, inference cost, and storage cost, showcasing the practical utility of MRL for deploying high-quality embeddings across a wide spectrum of hardware constraints.

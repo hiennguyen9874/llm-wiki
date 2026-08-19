@@ -1,0 +1,45 @@
+\begin{figure}
+\centering
+\includegraphics[width=0.9\linewidth]{figures/q3e-model-arc.png}
+\caption{Model architecture of Qwen3-Embedding (left) and Qwen3-Reranker (right).}
+\label{fig:enter-label}
+\end{figure}
+
+\section{Model Architecture}
+\label{sec:model_arc}
+
+The core idea behind embedding and reranking models is to evaluate relevance in a task-aware manner. Given a query $q$ and a document $d$, embedding and reranking models assess their relevance based on a similarity criterion defined by instruction $I$. To enable the models for task-aware relevance estimation, training data is often organized as $\{I_i, q_i, d_i^+, d_{i,1}^-, \cdots, d_{i, n}^-\}$, where $d_i^+$ represents a positive (relevant) document for query $q_i$, and $d_{i,j}^-$ are negative (irrelevant) documents. Training the model on diverse text pairs broadens its applicability to a range of downstream tasks, including retrieval, semantic textual similarity, classification, and clustering.
+
+
+\paragraph{Architecture} The Qwen3 embedding and reranking models are built on the dense version of Qwen3 foundation models and are available in three sizes: 0.6B, 4B, and 8B parameters. We initialize these models using the Qwen3 foundation models to leverage their capabilities in text modeling and instruction following. The model layers, hidden size, and context length for each model configuration are detailed in Table \ref{tab:table-model-arc}.
+
+
+\paragraph{Embedding Models} For text embeddings, we utilize LLMs with causal attention, appending an \verb|[EOS]| token at the end of the input sequence. The final embedding is derived from the hidden state of the last layer corresponding to this \verb|[EOS]| token.
+
+To ensure embeddings follow instructions during downstream tasks, we concatenate the instruction and the query into a single input context, while leaving the document unchanged before processing with LLMs. The input format for queries is as follows:
+\begin{promptblock}
+\begin{verbatim}
+{Instruction} {Query}<|endoftext|>
+\end{verbatim}
+\end{promptblock}
+
+\paragraph{Reranking Models} To more accurately evaluate text similarity, we employ LLMs for point-wise reranking within a single context. Similar to the embedding model, to enable instruction-following capability, we include the instruction in the input context. We use the LLM chat template and frame the similarity assessment task as a binary classification problem. The input to LLMs adheres to the template shown below:
+\begin{promptblock}
+\begin{verbatim}
+<|im_start|>system
+Judge whether the Document meets the requirements based on the Query and the Instruct provided. Note that the answer can only be "yes" or "no".<|im_end|>
+<|im_start|>user
+<Instruct>: {Instruction}
+<Query>: {Query}
+<Document>: {Document}<|im_end|>
+<|im_start|>assistant
+<think>\n\n</think>\n\n
+\end{verbatim}
+\end{promptblock}
+
+To calculate the relevance score based on the given input, we assess the likelihood of the next token being "yes" or "no." This is expressed mathematically as follows:
+\begin{equation*}
+    \textrm{score}(q,d) = \frac{e^{P(\text{yes}|I,q,d)}}{e^{P(\text{yes}|I,q,d)}+e^{P(\text{no}|I,q,d)}}
+\end{equation*}
+
+\input{tables/model_arc}

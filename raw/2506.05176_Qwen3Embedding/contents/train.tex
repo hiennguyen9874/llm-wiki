@@ -1,0 +1,54 @@
+\begin{figure}
+\centering
+\includegraphics[width=\linewidth]{figures/q3e-train-pipeline.png}
+\caption{Training pipeline of Qwen3 Embedding and Reranking models.}
+\label{fig:pipeline}
+\end{figure}
+
+\section{Models Training}
+
+In this section, we describe the multi-stage training pipeline adopted and present the key elements of this training recipe, including training objective, training data synthesis, and filtering of high-quality training data.
+
+\subsection{Training Objective}
+Before introducing our training pipeline, we first outline the optimized loss functions used for the embedding and reranking models during the training process. For the embedding model, we utilize an improved contrastive loss based on the InfoNCE framework~\citep{oord2018representation}. Given a batch of $N$ training instances, the loss is defined as:
+\begin{equation}
+\label{loss:embedding}
+    L_\textrm{embedding} = - \frac{1}{N} \sum_i^N \log\frac{e^{(s(q_i, d_i^+)/\tau)}}{Z_i},
+\end{equation}
+where $s(\cdot, \cdot)$ is a similarity function (we use cosine similarity), $\tau$ is a temperature parameter, and $Z_i$ is the normalization factor that aggregates the similarity scores of the positive pair against various negative pairs:
+\begin{equation*}
+    Z_i = e^{(s(q_i, d_i^+) / \tau)}  + \sum_k^K m_{ik}e^{(s(q_i, d_{i,k}^-)/\tau)} + \sum_{j\neq i} m_{ij}e^{(s(q_i, q_j) / \tau)} + \sum_{j\neq i} m_{ij}e^{(s(d_i^+, d_j) / \tau)} + \sum_{j\neq i} m_{ij}e^{(s(q_i, d_j) / \tau)} 
+\end{equation*}
+where these terms represent similarities with: (1) the positive document $d_i^+$, (2) $K$ hard negatives $d_{i,k}^-$, (3) other in-batch queries $q_j$, (4) other in-batch documents $d_j$ compared against the positive document $d_i^+$. (5) other in-batch documents $d_j$ compared against the query $q_i$. The mask factor $m_{ij}$ is designed to mitigate the impact of false negatives and is defined as:
+\begin{equation*}
+ m_{ij} = 
+\begin{cases} 
+0 & \text{if } s_{ij} > s(q_i, d_i^+) + 0.1 \text{ or } d_j == d_i^+, \\
+1 & \text{otherwise},
+\end{cases}
+\end{equation*}
+among which $ s_{ij} $ is the corresponding score of $ q_i, d_j $ or $ q_i, q_j $. 
+
+For the reranking model, we optimize the Supervised Fine-Tuning (SFT) loss defined as:
+\begin{equation}
+\label{loss:reranking}
+        L_\textrm{reranking} = -\log p(l|\mathcal{P}(q,d)),
+\end{equation}
+where $p(\cdot|*)$ denotes the probability assigned by LLM. The label $l$ is ``yes'' for positive documents and ``no'' for negatives. This loss function encourages the model to assign higher probabilities to correct labels, thereby improving the ranking performance.
+
+\subsection{Multi-stage Training}
+The multi-stage training approach is a common practice for training text embedding models~\citep{li2023generaltextembeddingsmultistage,wang2024textembeddingsweaklysupervisedcontrastive,chen-etal-2024-m3}. This strategy typically begins with initial training on large-scale, semi-supervised data that includes noise, followed by fine-tuning using smaller, high-quality supervised datasets. This two-step process enhances the performance and generalization capabilities of embedding models. Large-scale weakly supervised training data contribute significantly to the model's generalization, while fine-tuning with high-quality data in subsequent stages further improves model performance. Both stages of training for embedding models utilize the optimization objective defined in Equation \ref{loss:embedding}, whereas the reranking model training employs the loss function defined in Equation \ref{loss:reranking} as the optimization target.
+
+Building upon the existing multi-stage training framework, the Qwen3 Embedding series introduces the following key innovations:
+\begin{itemize}
+    \item Large-Scale Synthetic Data-Driven Weak Supervision Training: Unlike previous works (e.g., GTE, E5, BGE models), where weakly supervised training data are primarily collected from open-source communities such as Q$\&$A forums or academic papers, we propose leveraging the text understanding and generation capabilities of foundation models to synthesize pair data directly. This approach allows for arbitrary definition of various dimensions of the desired pair data, such as task, language, length, and difficulty within the synthesis prompts. Compared to data collection from open-domain sources, foundation model-driven data synthesis offers greater controllability, enabling precise management of the quality and diversity of the generated data, particularly in low-resource scenarios and languages.
+    \item High-Quality Synthetic Data Utilization in Supervised Fine Tuning: Due to the exceptional performance of the Qwen3 Foundation model, the synthesized data is of notably high quality. Therefore, in the second stage of supervised training, selective incorporation of this high-quality synthetic data further enhances the overall model performance and generalization capabilities.
+    \item Model Merging: Inspired by previous work~\citep{li2024improving}, after completing the supervised fine-tuning, we applied a model merging technique based on spherical linear interpolation (slerp). This technique involves merging multiple model checkpoints saved during the fine-tuning process. This step aims to boost the model’s robustness and generalization performance across various data distributions.
+\end{itemize}
+It is important to note that the reranking model's training process does not include a first-stage weakly supervised training phase.
+
+
+\subsection{Synthetic Dataset}
+To create a robust synthetic dataset for training models on various similarity tasks, we generate diverse text pairs spanning categories such as retrieval, bitext mining, classification, and semantic textual similarity (STS). The quality of these synthetic data pairs is ensured by utilizing the Qwen3-32B model as the foundational model for data synthesis. We have designed a diverse prompting strategy to improve the variety and authenticity of the generated data. For instance, in the text retrieval task, we synthesize data using the multilingual pre-training corpus from Qwen3. During the data synthesis process, specific roles are assigned to each document to simulate potential users querying that document. This injection of user perspectives enhances the diversity and realism of the synthetic queries. Specifically, we utilize a retrieval model to identify the top five role candidates for each document from a role library and present these documents along with their role candidates to the prompt. This guides the model in outputting the most suitable role configuration for query generation. Moreover, the prompt incorporates various dimensions such as query type (e.g., keyword, factual, summary, judgment), query length, difficulty, and language. This multidimensional approach ensures the quality and diversity of the synthetic data.
+
+Finally, we create a total of approximately 150 million pairs of multi-task weak supervision training data. Our experiments reveal that the embedding model trained with these synthetic data performs exceptionally well in downstream evaluations, particularly surpassing many previously supervised models in the MTEB Multilingual benchmarks. This motivates us to filter the synthetic data to identify high-quality pairs for inclusion in a second stage of supervised training. We employ a simple cosine similarity calculation to select data pairs, retaining those with a cosine similarity greater than 0.7 from randomly sampled data. Ultimately, approximately 12 million high-quality supervised training data pairs are selected for further training.
