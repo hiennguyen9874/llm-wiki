@@ -1,6 +1,8 @@
 # Wiki Update Log
 
 ## 2026-08-19
+- **Query**: Answered “So sánh benchmark giữa tất cả các model”; expanded [reranker model comparison](reranker-model-comparison.md) with protocol-scoped benchmark tables.
+- **Query**: Answered “Check all reranker model, search in raw. Compare it and suggest to me what model should use in usecase”; filed [reranker model comparison](reranker-model-comparison.md).
 - **Query**: Answered “Compare Qwen3-VL-Embedding-2B, harrier-oss-v1-0.6b, Qwen3-Embedding-4B, F2LLM-v2-4B, Qwen3-Embedding-0.6B, jina-embeddings-v5-text-small”; expanded [the scope-aware comparison](embedding-model-comparison-qwen3-vl-harrier-qwen3-f2llm.md).
 - **Ingest**: Compiled [Qwen3-Embedding-4B model card](../raw/Qwen3-Embedding-4B.md); updated [Qwen3-Embedding-4B](qwen3-embedding-4b.md) with license, language and output-dimension coverage, instruction guidance, and deployment interfaces.
 - **Ingest**: Compiled [Qwen3-Embedding-0.6B model card](../raw/Qwen3-Embedding-0.6B.md); updated [Qwen3-Embedding-0.6B](qwen3-embedding-0-6b.md) with licensing, language coverage, output-dimension range, and deployment guidance.
