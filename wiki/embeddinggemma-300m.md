@@ -5,11 +5,14 @@ description: A 300M-parameter Gemma 3-based multilingual text embedding model wi
 tags: [embedding, retrieval, multilingual, matryoshka, gemma]
 status: stable
 created: 2026-08-19
-generated: { by: llm-wiki-agent/1, at: 2026-08-19T08:14:13Z }
+generated: { by: llm-wiki-agent/1, at: 2026-08-19T08:47:55Z }
 sources:
   - id: embeddinggemma-card
     resource: ../raw/embeddinggemma-300m.md
     title: EmbeddingGemma model card
+  - id: mteb-multilingual-v2-summary
+    resource: ../raw/MTEB_Multilingual_v2_summary.csv
+    title: MTEB Multilingual v2 summary CSV
 ---
 
 # EmbeddingGemma 300M
@@ -27,6 +30,12 @@ The model card reports the following MTEB scores for the full-precision checkpoi
 | MTEB Code v1 | 68.76 | 68.76 | 62.96 | 62.96 |
 
 At 768 dimensions, the card's quantization-aware-training checkpoints score 60.62–60.93 Mean (Task) on MTEB Multilingual v2, 69.31–69.49 on English v2, and 67.99–68.70 on Code v1, across Q4_0, Q8_0, and mixed-precision configurations. These are self-reported scores; the card's claim of superiority to comparable-sized open models is not independently established by the source. [^embeddinggemma-card]
+
+A supplied leaderboard CSV ranks the model **18th of 45**, reporting the same 768d aggregates—Mean (Task) **61.15** and Mean (TaskType) **54.31**—and the task-category scores below. The CSV does not document evaluation configuration or metric definitions. [^mteb-multilingual-v2-summary]
+
+| Bitext mining | Classification | Clustering | Instruction reranking | Multilabel classification | Pair classification | Reranking | Retrieval | STS |
+|---:|---:|---:|---:|---:|---:|---:|---:|---:|
+| 64.40 | 60.90 | 51.17 | 5.61 | 24.82 | 81.40 | 63.25 | 62.49 | 74.73 |
 
 ## Model size and architecture
 
@@ -46,3 +55,4 @@ The card reports approximately **320B tokens** drawn from web documents, code an
 The source does not name constituent datasets, give mixture proportions, describe collection dates or licenses, or specify the amount of synthetic versus non-synthetic material; those omissions limit assessment of corpus coverage and provenance. [^embeddinggemma-card]
 
 [^embeddinggemma-card]: [EmbeddingGemma model card](../raw/embeddinggemma-300m.md). Model, training, language, and benchmark claims are reported by the model card.
+[^mteb-multilingual-v2-summary]: [MTEB Multilingual v2 summary CSV](../raw/MTEB_Multilingual_v2_summary.csv). Supplied leaderboard scores; the artifact does not document its evaluation protocol.

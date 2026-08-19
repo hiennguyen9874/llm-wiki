@@ -5,11 +5,14 @@ description: A 270M-parameter multilingual decoder-only embedding model with 640
 tags: [embedding, retrieval, multilingual, decoder-only, harrier, microsoft]
 status: stable
 created: 2026-08-19
-generated: { by: llm-wiki-agent/1, at: 2026-08-19T08:20:17Z }
+generated: { by: llm-wiki-agent/1, at: 2026-08-19T08:47:55Z }
 sources:
   - id: harrier-oss-v1-270m-card
     resource: ../raw/harrier-oss-v1-270m.md
     title: harrier-oss-v1 model card
+  - id: mteb-multilingual-v2-summary
+    resource: ../raw/MTEB_Multilingual_v2_summary.csv
+    title: MTEB Multilingual v2 summary CSV
 ---
 
 # harrier-oss-v1-270m
@@ -19,6 +22,12 @@ harrier-oss-v1-270m is Microsoft's 270M-parameter multilingual text-embedding mo
 ## Benchmarks
 
 The model card reports a **66.5** score on Multilingual MTEB v2. It characterizes the harrier-oss-v1 family as state of the art on that benchmark at release; it does not provide the evaluation date, task-level scores, metric definition, or evaluation configuration in the card. [^harrier-oss-v1-270m-card]
+
+A supplied leaderboard CSV ranks this model **8th of 45** with Mean (Task) **66.55** and Mean (TaskType) **56.90**. Its task-category scores are below; the CSV does not document evaluation configuration or metric definitions. [^mteb-multilingual-v2-summary]
+
+| Bitext mining | Classification | Clustering | Instruction reranking | Multilabel classification | Pair classification | Reranking | Retrieval | STS |
+|---:|---:|---:|---:|---:|---:|---:|---:|---:|
+| 81.54 | 70.84 | 52.51 | -0.47 | 23.97 | 80.12 | 61.90 | 66.38 | 75.35 |
 
 | harrier-oss-v1 variant | Parameters | Embedding dimension | Max tokens | Multilingual MTEB v2 score |
 |---|---:|---:|---:|---:|
@@ -43,3 +52,4 @@ All harrier-oss-v1 models were trained with contrastive-learning objectives on a
 The card does not name the training datasets or teachers, or report corpus size, language/task mixture, sampling, filtering, licenses, training duration, or hyperparameters; it therefore does not support a more specific training-data account. [^harrier-oss-v1-270m-card]
 
 [^harrier-oss-v1-270m-card]: [harrier-oss-v1 model card](../raw/harrier-oss-v1-270m.md). Architecture, capability, benchmark, language, and training claims are reported by the model card.
+[^mteb-multilingual-v2-summary]: [MTEB Multilingual v2 summary CSV](../raw/MTEB_Multilingual_v2_summary.csv). Supplied leaderboard scores; the artifact does not document its evaluation protocol.

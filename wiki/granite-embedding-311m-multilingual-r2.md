@@ -5,11 +5,14 @@ description: A 311M-parameter ModernBERT bi-encoder for multilingual text and co
 tags: [embedding, retrieval, multilingual, code, modernbert, granite]
 status: stable
 created: 2026-08-19
-generated: { by: llm-wiki-agent/1, at: 2026-08-19T15:17:41+07:00 }
+generated: { by: llm-wiki-agent/1, at: 2026-08-19T08:47:55Z }
 sources:
   - id: granite-311m-r2-card
     resource: ../raw/granite-embedding-311m-multilingual-r2.md
     title: Granite-Embedding-311M-Multilingual-R2 model card
+  - id: mteb-multilingual-v2-summary
+    resource: ../raw/MTEB_Multilingual_v2_summary.csv
+    title: MTEB Multilingual v2 summary CSV
 ---
 
 # Granite Embedding 311M Multilingual R2
@@ -34,6 +37,12 @@ The card calls the 65.2 multilingual-retrieval result a 13-point improvement ove
 
 The card's separate Matryoshka table labels a seemingly corresponding “ML MTEB Retrieval” metric as 63.9 at 768 dimensions (and 63.9, 63.8, 63.5, and 62.5 at 512, 384, 256, and 128 dimensions). It does not explain why this conflicts with the 65.2 main-table score, so the benchmark figures should not be treated as directly reconciled. [^granite-311m-r2-card]
 
+A supplied leaderboard CSV ranks the model **44th of 45** with Mean (Task) **55.96** and Mean (TaskType) **49.35**. Its Retrieval score (**65.21**) is consistent to rounding with the card's 65.2 main-table score, but the CSV does not document evaluation configuration or metric definitions. [^mteb-multilingual-v2-summary]
+
+| Bitext mining | Classification | Clustering | Instruction reranking | Multilabel classification | Pair classification | Reranking | Retrieval | STS |
+|---:|---:|---:|---:|---:|---:|---:|---:|---:|
+| 57.92 | 53.34 | 44.42 | -2.42 | 18.50 | 76.11 | 61.99 | 65.21 | 69.05 |
+
 ## Model size and architecture
 
 - **Size and output:** approximately 311M parameters; 768-dimensional embeddings, optionally truncated with Matryoshka Representation Learning to 512, 384, 256, or 128 dimensions. [^granite-311m-r2-card]
@@ -56,3 +65,4 @@ The source says the training data is commercially friendly and elsewhere charact
 Training combined multi-teacher knowledge distillation, contrastive fine-tuning, model merging, and Matryoshka Representation Learning. The tokenizer was derived from Google's Gemma 3 tokenizer and further trained on multilingual text and code spanning more than 200 languages. [^granite-311m-r2-card]
 
 [^granite-311m-r2-card]: [Granite-Embedding-311M-Multilingual-R2 model card](../raw/granite-embedding-311m-multilingual-r2.md). Architecture, training, language, and benchmark claims are reported by the model card.
+[^mteb-multilingual-v2-summary]: [MTEB Multilingual v2 summary CSV](../raw/MTEB_Multilingual_v2_summary.csv). Supplied leaderboard scores; the artifact does not document its evaluation protocol.

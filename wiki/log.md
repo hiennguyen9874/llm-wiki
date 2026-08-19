@@ -1,6 +1,7 @@
 # Wiki Update Log
 
 ## 2026-08-19
+- **Ingest**: Compiled [MTEB Multilingual v2 summary CSV](../raw/MTEB_Multilingual_v2_summary.csv); created [MTEB Multilingual v2 leaderboard snapshot](mteb-multilingual-v2-leaderboard-snapshot.md) and updated six covered model concepts.
 - **Ingest**: Compiled [Vintern-Embedding-1B model card](../raw/Vintern-Embedding-1B.md); created [Vintern-Embedding-1B](vintern-embedding-1b.md).
 - **Ingest**: Compiled [Qwen3-Embedding-8B model card](../raw/Qwen3-Embedding-8B.md) and its local technical-report archive; created [Qwen3-Embedding-8B](qwen3-embedding-8b.md).
 - **Ingest**: Compiled [Octen-Embedding-8B model card](../raw/Octen-Embedding-8B.md); created [Octen-Embedding-8B](octen-embedding-8b.md).

@@ -5,11 +5,14 @@ description: A 239M-parameter EuroBERT-210M-based multilingual text embedding mo
 tags: [embedding, retrieval, multilingual, matryoshka, eurobert, jina]
 status: stable
 created: 2026-08-19
-generated: { by: llm-wiki-agent/1, at: 2026-08-19T08:25:33Z }
+generated: { by: llm-wiki-agent/1, at: 2026-08-19T08:47:55Z }
 sources:
   - id: jina-v5-nano-card
     resource: ../raw/jina-embeddings-v5-text-nano.md
     title: jina-embeddings-v5-text-nano model card
+  - id: mteb-multilingual-v2-summary
+    resource: ../raw/MTEB_Multilingual_v2_summary.csv
+    title: MTEB Multilingual v2 summary CSV
 ---
 
 # Jina Embeddings v5 Text Nano
@@ -19,6 +22,12 @@ Jina Embeddings v5 Text Nano is a 239M-parameter multilingual text embedding mod
 ## Benchmarks
 
 The model card reports an average score of **71.0 on MTEB English v2** and **65.5 on MMTEB**. It claims these results match or exceed other sub-500M embedding models, naming KaLM-mini-v2.5 (494M) and Gemma-300M (308M) as comparisons. The supplied source does not provide task-level scores, evaluation configurations, or an independent comparison, so the aggregate scores and comparative claim are self-reported. [^jina-v5-nano-card]
+
+A supplied leaderboard CSV ranks the model **11th of 45** with Mean (Task) **65.52** and Mean (TaskType) **57.66**. Its task-category scores are below; the CSV does not document evaluation configuration or metric definitions. [^mteb-multilingual-v2-summary]
+
+| Bitext mining | Classification | Clustering | Instruction reranking | Multilabel classification | Pair classification | Reranking | Retrieval | STS |
+|---:|---:|---:|---:|---:|---:|---:|---:|---:|
+| 67.70 | 69.18 | 52.73 | 0.05 | 41.31 | 81.94 | 64.63 | 63.26 | 78.17 |
 
 ## Model size and architecture
 
@@ -41,3 +50,4 @@ The card identifies the teacher model (Qwen3-Embedding-4B) and the use of task-s
 The overview says the model supports text up to **32K tokens**, while the configuration table lists a **maximum sequence length of 8,192**. The supplied source does not explain the discrepancy, so the supported input limit is unresolved. [^jina-v5-nano-card]
 
 [^jina-v5-nano-card]: [jina-embeddings-v5-text-nano model card](../raw/jina-embeddings-v5-text-nano.md). Benchmark, model, language, and training statements are reported by the model card.
+[^mteb-multilingual-v2-summary]: [MTEB Multilingual v2 summary CSV](../raw/MTEB_Multilingual_v2_summary.csv). Supplied leaderboard scores; the artifact does not document its evaluation protocol.

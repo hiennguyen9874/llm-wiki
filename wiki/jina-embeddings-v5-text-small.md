@@ -5,11 +5,14 @@ description: A 677M-parameter Qwen3-0.6B-based multilingual text embedding model
 tags: [embedding, retrieval, multilingual, matryoshka, qwen, jina]
 status: stable
 created: 2026-08-19
-generated: { by: llm-wiki-agent/1, at: 2026-08-19T08:26:44Z }
+generated: { by: llm-wiki-agent/1, at: 2026-08-19T08:47:55Z }
 sources:
   - id: jina-v5-small-card
     resource: ../raw/jina-embeddings-v5-text-small.md
     title: jina-embeddings-v5-text-small model card
+  - id: mteb-multilingual-v2-summary
+    resource: ../raw/MTEB_Multilingual_v2_summary.csv
+    title: MTEB Multilingual v2 summary CSV
 ---
 
 # Jina Embeddings v5 Text Small
@@ -19,6 +22,16 @@ Jina Embeddings v5 Text Small is a 677M-parameter multilingual text embedding mo
 ## Benchmarks
 
 The model card reports averages of **71.7 on MTEB English v2** and **67.7 on MMTEB**. It claims these are the highest scores among multilingual embedding models below 1B parameters. The supplied source gives no task-level scores, evaluation configurations, comparison table, or independent evaluation; the scores and rank claim are therefore self-reported. [^jina-v5-small-card]
+
+A supplied leaderboard CSV ranks the model **5th of 45** with Mean (Task) **67.00** and Mean (TaskType) **58.90**. Its task-category scores are below; the CSV does not document evaluation configuration or metric definitions. [^mteb-multilingual-v2-summary]
+
+| Bitext mining | Classification | Clustering | Instruction reranking | Multilabel classification | Pair classification | Reranking | Retrieval | STS |
+|---:|---:|---:|---:|---:|---:|---:|---:|---:|
+| 69.71 | 71.32 | 53.41 | 1.35 | 41.97 | 82.93 | 65.66 | 64.88 | 78.85 |
+
+## Contradictions
+
+The model card reports **67.7 on MMTEB**, while the supplied CSV reports **67.00 Mean (Task)** for a similarly named multilingual MTEB benchmark. Neither artifact provides enough evaluation detail to determine whether these are the same configuration, so the values are not directly reconciled. [^jina-v5-small-card] [^mteb-multilingual-v2-summary]
 
 ## Model size and architecture
 
@@ -41,3 +54,4 @@ The model card identifies the teacher model and task-specific contrastive-loss t
 - **Related to:** [Jina Embeddings v5 Text Nano](jina-embeddings-v5-text-nano.md), a smaller model in the same v5 text family. [^jina-v5-small-card]
 
 [^jina-v5-small-card]: [jina-embeddings-v5-text-small model card](../raw/jina-embeddings-v5-text-small.md). Benchmark, architecture, language, and training statements are reported by the model card; linked external technical-report material was not inspected.
+[^mteb-multilingual-v2-summary]: [MTEB Multilingual v2 summary CSV](../raw/MTEB_Multilingual_v2_summary.csv). Supplied leaderboard scores; the artifact does not document its evaluation protocol.
