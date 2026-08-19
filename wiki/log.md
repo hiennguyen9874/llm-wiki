@@ -1,1 +1,30 @@
 # Wiki Update Log
+
+## 2026-08-19
+- **Ingest**: Compiled [Vintern-Embedding-1B model card](../raw/Vintern-Embedding-1B.md); created [Vintern-Embedding-1B](vintern-embedding-1b.md).
+- **Ingest**: Compiled [Qwen3-Embedding-8B model card](../raw/Qwen3-Embedding-8B.md) and its local technical-report archive; created [Qwen3-Embedding-8B](qwen3-embedding-8b.md).
+- **Ingest**: Compiled [Octen-Embedding-8B model card](../raw/Octen-Embedding-8B.md); created [Octen-Embedding-8B](octen-embedding-8b.md).
+- **Ingest**: Compiled [Octen-Embedding-4B model card](../raw/Octen-Embedding-4B.md); created [Octen-Embedding-4B](octen-embedding-4b.md).
+- **Ingest**: Compiled [Octen-Embedding-0.6B model card](../raw/Octen-Embedding-0.6B.md); created [Octen-Embedding-0.6B](octen-embedding-0-6b.md).
+- **Ingest**: Compiled [Nemotron-3-Embed-8B-BF16 model card](../raw/Nemotron-3-Embed-8B.md); created [Nemotron-3-Embed-8B-BF16](nemotron-3-embed-8b-bf16.md).
+- **Ingest**: Compiled [Nemotron-3-Embed-1B-BF16 model card](../raw/Nemotron-3-Embed-1B-BF16.md); created [Nemotron-3-Embed-1B-BF16](nemotron-3-embed-1b-bf16.md).
+- **Ingest**: Compiled [mmBERT-small model card](../raw/mmBERT-small.md); created [mmBERT-small](mmbert-small.md).
+- **Ingest**: Compiled [mLateOn model card](../raw/mLateOn.md); created [mLateOn](mlateon.md).
+- **Ingest**: Compiled [llama-embed-nemotron-8b model card](../raw/llama-embed-nemotron-8b.md); created [Llama-Embed-Nemotron-8B](llama-embed-nemotron-8b.md).
+- **Ingest**: Compiled [LFM2.5-Embedding-350M model card](../raw/LFM2.5-Embedding-350M.md); created [LFM2.5-Embedding-350M](lfm2-5-embedding-350m.md).
+- **Ingest**: Compiled [LFM2.5-ColBERT-350M model card](../raw/LFM2.5-ColBERT-350M.md); created [LFM2.5-ColBERT-350M](lfm2-5-colbert-350m.md).
+- **Ingest**: Compiled [KaLM-Embedding-Gemma3-12B-2511 model card](../raw/KaLM-Embedding-Gemma3-12B-2511.md); created [KaLM-Embedding-Gemma3-12B-2511](kalm-embedding-gemma3-12b-2511.md).
+- **Ingest**: Compiled [jina-embeddings-v5-text-small model card](../raw/jina-embeddings-v5-text-small.md); created [Jina Embeddings v5 Text Small](jina-embeddings-v5-text-small.md).
+- **Ingest**: Compiled [jina-embeddings-v5-text-nano model card](../raw/jina-embeddings-v5-text-nano.md); created [Jina Embeddings v5 Text Nano](jina-embeddings-v5-text-nano.md).
+- **Ingest**: Compiled [Jina Embeddings v4 model card](../raw/jina-embeddings-v4.md); created [Jina Embeddings v4](jina-embeddings-v4.md).
+- **Ingest**: Compiled [Jina Code Embeddings 1.5B model card](../raw/jina-code-embeddings-1.5b.md); created [Jina Code Embeddings 1.5B](jina-code-embeddings-1-5b.md).
+- **Ingest**: Compiled [Jina Code Embeddings 0.5B model card](../raw/jina-code-embeddings-0.5b.md); created [Jina Code Embeddings 0.5B](jina-code-embeddings-0-5b.md).
+- **Ingest**: Compiled [DEk21_hcmute_embedding model card](../raw/huydang-dek21-embedding.md); created [DEk21_hcmute_embedding](dek21-hcmute-embedding.md).
+- **Ingest**: Compiled [harrier-oss-v1 model card](../raw/harrier-oss-v1-270m.md); created [harrier-oss-v1-270m](harrier-oss-v1-270m.md).
+- **Ingest**: Compiled [harrier-oss-v1 model card](../raw/harrier-oss-v1-0.6b.md); created [harrier-oss-v1-0.6b](harrier-oss-v1-0-6b.md).
+- **Ingest**: Compiled [Granite-Embedding-311M-Multilingual-R2 model card](../raw/granite-embedding-311m-multilingual-r2.md); created [Granite Embedding 311M Multilingual R2](granite-embedding-311m-multilingual-r2.md).
+- **Ingest**: Compiled [Granite-Embedding-97M-Multilingual-R2 model card](../raw/Granite-Embedding-97M-Multilingual-R2.md); created [Granite Embedding 97M Multilingual R2](granite-embedding-97m-multilingual-r2.md).
+- **Ingest**: Compiled [F2LLM-v2-14B model card](../raw/F2LLM-v2-14B.md); created [F2LLM-v2-14B](f2llm-v2-14b.md).
+- **Ingest**: Compiled [EmbeddingGemma model card](../raw/embeddinggemma-300m.md); created [EmbeddingGemma 300M](embeddinggemma-300m.md).
+- **Ingest**: Compiled [DeepX Embedding v1.0 model card](../raw/deepx-embedding-v1.md); created [DeepX Embedding v1.0](deepx-embedding-v1.md).
+- **Ingest**: Compiled [ColQwen3.5-4.5B-v3 model card](../raw/ColQwen3.5-4.5B-v3.md); created [ColQwen3.5-4.5B-v3](colqwen3-5-4-5b-v3.md).
