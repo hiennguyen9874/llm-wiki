@@ -1,0 +1,57 @@
+
+\begin{table}[t]
+    \centering
+    \small
+    \caption{Generalization of \ours{} across different VLM backbones on MMEB-V2. ``w/o. alignment'' disables all alignment components.}\label{tab:generalization}
+%    \setlength{\tabcolsep}{5.5pt}
+%    \setlength{\extrarowheight}{1.1pt}
+    \begin{tabular}{l c c l
+    }
+    \toprule
+    \textbf{VLM Backbone} & \textbf{Size} & \textbf{Method} & \textbf{MMEB-V2} \\
+    \midrule
+    \multirow{2}{*}{Qwen2.5-VL} & \multirow{2}{*}{3B} 
+    % \footnotemark[1]
+        & w/o. alignment & 61.5 \\
+     &  & \ours{} & 62.9 $\uparrow$ \\
+    \midrule
+    \multirow{2}{*}{Qwen2-VL} & \multirow{2}{*}{2B} 
+        & w/o. alignment & 59.2 \\
+     &  & \ours{} & 60.5 $\uparrow$ \\
+    \midrule
+    \multirow{2}{*}{LLaVA-OV} & \multirow{2}{*}{7B} 
+        & w/o. alignment & 63.7 \\
+     &  & \ours{} & 65.4 $\uparrow$ \\
+    \bottomrule
+    \end{tabular}
+\end{table}
+
+\section{Conclusion}
+
+We introduced \ours{}, a lightweight explicit-alignment recipe that turns off-the-shelf VLM backbones into unified omni-modal embedding models.
+\ours{} keeps the backbone unchanged and adds three simple components: modality-aware temperature calibration to balance logit sharpness across modality compositions; a controllable negative curriculum (with debiasing) to stabilize contrastive optimization under mixed-modality batches; and batch whitening with covariance alignment to harmonize second-order geometry in the shared space.
+Experiments on MMEB-V2 and AudioCaps show consistent gains over strong baselines, indicating that explicit alignment yields more robust omni-modal embeddings with minimal overhead.
+
+
+
+\clearpage
+
+\section*{Limitations}
+While \ours{} achieves strong omni-modal embedding performance with minimal overhead, several limitations remain:
+
+\begin{enumerate}
+    \item \textbf{Scope of alignment.}
+    Our recipe primarily targets similarity geometry and optimization dynamics for retrieval.
+    It does not explicitly improve higher-level reasoning or compositional understanding, so gains may be smaller on tasks that require multi-step inference beyond embedding similarity.
+
+    \item \textbf{Dependence on batch statistics.}
+    Batch whitening and covariance alignment rely on mini-batch estimates, whose quality can vary with batch size, modality composition, and distributed training settings.
+    Although we apply stabilizing tricks (\eg, jitter and shrinkage), these estimates may still be noisy for small or highly imbalanced omni-modal batches.
+
+    \item \textbf{Training and evaluation coverage.}
+    We evaluate on MMEB-V2 and AudioCaps, which cover text/image/video and text--audio retrieval.
+    Broader evaluation on more diverse audio/video domains, long-horizon retrieval settings, and real-world multimodal corpora would further strengthen the conclusions.
+\end{enumerate}
+
+
+

@@ -1,0 +1,52 @@
+\section{Implementation Details}\label{sec:appendix-implementation}
+
+\subsection{Training Data} \label{sec:appendix-data}
+
+We curate a multi-source training mixture that covers text, image, video, and visually-rich document retrieval.
+The composition ratio for each data source is shown in~\autoref{fig:training-data-pie}, and per-dataset retrieval instructions are listed in~\autoref{tab:train_instructions_text} and~\autoref{tab:train_instructions_multimodal}.
+
+\input{figures/training_data_pie}
+
+\paragraph{Text Training Data.}
+To enable text embedding capabilities, we include training pairs from Echo-Embedding~\citep{echoemb} and M3-Embedding~\citep{bgem3}.
+The text subset comprises NLI, DuReader, ELI5, FEVER, HotpotQA, MIRACL, MrTyDi, MSMARCO Passage, MSMARCO Document, Natural Questions, Quora Duplicates, SQuAD, T2Ranking, TriviaQA, and MLDR.
+For standard text tasks we set a maximum sequence length of 1{,}500 tokens; for long-document retrieval (MLDR) we extend this to 1{,}800 tokens.
+
+
+
+\paragraph{Multimodal Training Data.}
+For video retrieval, we utilize VideoCaption300k and VideoQA240k from LLaVA-Hound~\citep{llava-hound}.
+We sample 8 frames per video and allocate up to 200 tokens per frame.
+For visual document retrieval, we incorporate ColPali train (118k), VisRAG-Synthetic (239k), and VisRAG-IID (123k) from ViDoRe~\citep{vidore} and VisRAG~\citep{visrag}.
+For image-text retrieval, we include the MMEB training datasets~\citep{vlm2vec}, covering CIRR, NIGHTS, MSCOCO, VisualNews, N24News, ImageNet-1K, SUN397, VOC2007, HatefulMemes, A-OKVQA, OK-VQA, Visual7W, ChartQA, DocVQA, InfographicsVQA, VisDial, and WebQA.
+For video tasks, the maximum sequence length is 1{,}800 tokens with 8 frames sampled per video and up to 200 tokens per frame.
+For all other multimodal tasks, the maximum sequence length is 1{,}500 tokens, with up to 1{,}000 tokens allocated to the image. 
+\input{figures/combined_training_metrics}
+\input{tables/appendix-train-data-text}
+
+\subsection{Training Details}
+
+We initialize from a pretrained multimodal backbone and add $N{=}16$ special tokens to the tokenizer and embedding matrix.
+Training uses LoRA~\citep{lora2022} applied to the attention and MLP projections (\texttt{q\_proj}, \texttt{k\_proj}, \texttt{v\_proj}, \texttt{up\_proj}, \texttt{down\_proj}, \texttt{gate\_proj}), with the visual encoder frozen.
+We train in \texttt{bf16} mixed precision with DeepSpeed ZeRO and gradient checkpointing enabled.
+
+
+\paragraph{Hyperparameters.}
+We train the \ours models based on Qwen3.5. 
+We use a cosine learning rate schedule with a peak learning rate of $3{\times}10^{-5}$ and a warmup ratio of 0.1. 
+The dense retrieval temperature is set to $\tau{=}0.03$, and the sparse retrieval temperature is $\tau_s{=}32$. 
+For the FLOPS regularizer, we set $\alpha_q = \alpha_d = 1{\times}10^{-4}$ with a linear ramp-up over the first 200 steps. 
+The sparse loss factor $\lambda{=}1.0$ balances the sparse and dense InfoNCE losses equally.
+We train for 1 epoch and fix the random seed to 42. 
+Training is conducted on 16$\times$A100 GPUs for \ours-2B and \ours-4B with a per-device batch size of 16, and on 32$\times$A100 GPUs for \ours-9B with a per-device batch size of 8, ensuring a consistent batch size of 256 across all models.
+
+\subsection{Training Analysis}
+
+Since sparse scores are computed via inner products, sparse training can be unstable due to the large dynamic range of unnormalized similarities.
+We find that incorporating text training data significantly stabilizes and accelerates multimodal sparse model training.
+Following GVE~\citep{gve}, we monitor three key metrics during training: loss, max negative gap, and mean negative gap. The max negative gap is defined as the largest score difference between a positive and the negative within a batch, while the mean negative gap is the average score difference across all positive-negative pairs in a batch. 
+As shown in~\autoref{fig:training-metrics}, when trained with text data, the model learns effective sparse representations rapidly ($<$100 steps). In contrast, training exclusively on multimodal data (\eg image, video) requires nearly 500 steps before the model can reliably distinguish positives from negatives.
+
+
+
+\input{tables/appendix-train-data-multimodal}

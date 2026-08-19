@@ -1,0 +1,72 @@
+\section{Method}
+
+\autoref{fig:arxiv-figure1} illustrates the overall framework of \ours.
+We first review preliminaries on contrastive learning and learned sparse retrieval in~\S\ref{sec:preliminaries}, then present the proposed method in~\S\ref{sec:method}, and finally describe the data curation in~\S\ref{sec:data}.
+
+\subsection{Preliminaries}
+\label{sec:preliminaries}
+
+\paragraph{InfoNCE Loss.}
+Given a query $q$, a positive document $d^{+}$, and a set of in-batch negatives $\{d^{-}_{j}\}_{j=1}^{K}$, the InfoNCE loss encourages the model to assign higher similarity to the positive pair:
+\begin{equation}\label{eq:infonce}
+\mathcal{L}_{\text{InfoNCE}} = -\log \frac{\exp\bigl(\text{sim}(q, d^{+}) / \tau\bigr)}{\sum_{d \in \{d^+\} \cup \mathcal{N}}\exp\bigl(\text{sim}(q, d) / \tau\bigr)},
+\end{equation}
+where $\mathcal{N}$ is the set of in-batch negatives, $\text{sim}(\cdot,\cdot)$ denotes a similarity function (\eg cosine similarity for dense retrieval, inner product for sparse retrieval), and $\tau$ is a temperature hyperparameter.
+
+\paragraph{Learned Sparse Retrieval.}
+SPLADE-based models~\citep{spladev1, spladev2} produce a sparse representation by projecting each token's hidden state onto the vocabulary and aggregating across the sequence with a max-pooling and saturating activation: 
+\begin{equation}\label{eq:splade}
+w_{t} = \max_{i=1}^{L} \log\bigl(1 + \text{ReLU}(\bm{h}_{i}^{\top} \bm{e}_{t})\bigr),
+\end{equation}
+where $\bm{h}_{i}$ is the hidden state of the $i$-th input token, $\bm{e}_{t}$ is the embedding of vocabulary term $t$, $L$ is the sequence length, and $w_{t}$ is the resulting weight for term $t$. The sparse vector $\bm{w} \in \mathbb{R}^{|V|}$ can be served by a standard inverted index.
+
+\subsection{\ours Method}
+\label{sec:method}
+
+The key challenge in adapting sparse retrieval to decoder-only models is that unidirectional attention prevents each position from attending to future tokens, rendering max-pooling over all hidden states ineffective.
+We address this by introducing $N$ special tokens appended to the input sequence and partitioning the vocabulary into $N$ disjoint subsets.
+
+\paragraph{Compressing Vocabulary.}
+LLM tokenizers often contain redundant tokens (\eg whitespace, accents). Before partitioning, we compress the vocabulary via accent stripping, lowercasing, and whitespace collapsing using NLTK~\citep{nltk}. Tokens sharing the same canonical form are merged into a single entry. For example,  Hello, HELLO, and héllò are all combined into hello. During scoring, we retain the maximum weight among them. This reduces the vocabulary size from 248,320 to 184,016. 
+
+\paragraph{Partitioned Sparse Heads.}
+Given an input sequence of length $L$, we append $N{=}16$ learnable special tokens $\langle s_1 \rangle, \dots, \langle s_N \rangle$ at the end. Each special token can attend to all preceding tokens, effectively summarizing the full input. 
+To encourage each special token to capture a distinct semantic subspace, we employ k-means clustering to partition the vocabulary $V$ into $N$ disjoint subsets $V_1, \dots, V_N$ of approximately equal size. 
+
+Each special token $\langle s_k \rangle$ is responsible for producing sparse weights over its assigned subset $V_k$ via a subset-specific sparse head. 
+Let $H_{s_k}$ denote the final hidden state of $\langle s_k \rangle$. We compute the sparse weight for a vocabulary term $t \in V_k$ using a linear projection:
+\begin{equation}\label{eq:subspace-sparse}
+w_{t}^{(k)} = \log\bigl(1 + \text{ReLU}(\bm{W}_{t}^{(k)\top} \bm{h}_{s_k} + b_{t}^{(k)})\bigr),
+\end{equation}
+for all $t \in V_k$, where $\bm{W}_{t}^{(k)}$ and $b_{t}^{(k)}$ are the specific weight vector and bias scalar corresponding to term $t$ in the $k$-th sparse head. The sparse representation is obtained by concatenating all subset vectors:
+\begin{equation}\label{eq:concat-sparse}
+\bm{w} = \bigl[w_{t}^{(1)}\bigr]_{t \in V_1} \oplus \cdots \oplus \bigl[w_{t}^{(N)}\bigr]_{t \in V_N},
+\end{equation}
+where $\oplus$ denotes concatenation. 
+
+\paragraph{Dense Representation.}
+For dense retrieval, we use the hidden state of the EOS token preceding the special tokens as the dense embedding $\bm{d} \in \mathbb{R}^{D}$. When only dense retrieval is needed, the special tokens can be omitted entirely, incurring no extra forward computation.
+
+\paragraph{Unified Objective.}
+We train the model with a combined loss over both retrieval modes:
+\begin{equation}\label{eq:total-loss}
+\begin{split}
+\mathcal{L} ={} & \mathcal{L}_{\text{InfoNCE}}^{\text{dense}} + \lambda\, \mathcal{L}_{\text{InfoNCE}}^{\text{sparse}}  + \alpha_{q}\, \mathcal{L}_{\text{FLOPS}}^{q} + \alpha_{d}\, \mathcal{L}_{\text{FLOPS}}^{d},
+\end{split}
+\end{equation}
+where $\mathcal{L}_{\text{InfoNCE}}^{\text{dense}}$ and $\mathcal{L}_{\text{InfoNCE}}^{\text{sparse}}$ are computed using cosine similarity and inner product, respectively.
+$\mathcal{L}_{\text{FLOPS}}^{q}$ and $\mathcal{L}_{\text{FLOPS}}^{d}$ are FLOPS regularizers~\citep{paria2020flops} that penalize the squared mean term weight across queries and documents respectively, encouraging sparsity.
+$\lambda$, $\alpha_{q}$, and $\alpha_{d}$ are scalar coefficients balancing the four losses. The training details are provided in Appendix~\ref{sec:appendix-implementation}.
+
+\subsection{Data Curation}\label{sec:data}
+
+\paragraph{Data Sources.}
+We draw training pairs from three publicly available datasets, comprising a total of 3.94M samples. 
+(1)~\textbf{Echo-embedding training data}~\citep{echoemb}, which provides large-scale query-document pairs covering a wide range of domains;
+(2)~\textbf{MLDR training data}~\citep{bgem3}, which provides the long document training data; and
+(3)~\textbf{MMEB training sets}~\citep{vlm2vecv2}, which supply multimodal training data across diverse visual and cross-modal tasks. 
+
+\paragraph{Hard Negative Mining.} 
+As demonstrated by previous work~\citep{spladepp}, hard negatives are crucial for training learned sparse retrievers. 
+Because the multimodal datasets lack the negatives required for effective training, we utilize Qwen3-VL-Embedding-8B~\citep{qwenvlembedding} as a teacher model to mine hard negatives for all multimodal data. 
+Specifically, for each query, we use the teacher model to retrieve the top-$k$ most similar non-relevant documents from the corpus, treating these as our hard negatives. 

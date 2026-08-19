@@ -1,0 +1,53 @@
+\section{Analysis}\label{sec:analysis}
+
+To better understand \ours, this section analyzes the model from the following perspectives: 
+(1)~\textbf{Component Analysis:} controlled ablations to validate the contribution of individual design choices (\S\ref{sec:ablation});
+(2)~\textbf{Cross-modal Robustness:} case studies illustrating the model's performance across diverse modalities (\S\ref{sec:case-study}); and
+(3)~\textbf{Practical Advantages:} the utility of sparse retrieval in hybrid scoring, serving efficiency, and agentic search.
+
+\subsection{Component Analysis} \label{sec:ablation}
+
+Unless otherwise noted, ablations in this section use the 2B backbone trained on a random 500k-instance subset from the full mixture, and are evaluated on MMEB-v1~\citep{vlm2vec}. 
+\paragraph{Baseline Comparison.}
+\input{tables/baseline-compare-merged}
+To assess whether the gains in~\S\ref{sec:multimodal-results} are attributable to the \ours recipe, we compare \ours-2B against a SPLADE-based baseline. This baseline shares the same Qwen3.5 backbone, training data, and FLOPS regularization, but adopts bidirectional attention with a standard SPLADE max-pooling head (\autoref{eq:splade}). \autoref{tab:baseline-compare} demonstrates that \ours-2B surpasses this bidirectional baseline in \emph{both} modes: $+3.2$ points for dense (61.3 $\rightarrow$ 64.5) and $+2.1$ for sparse (61.3 $\rightarrow$ 63.4) on average. The margins are most pronounced on IMG-QA ($+8.2$ dense, $+6.0$ sparse), suggesting the standard SPLADE recipe underutilizes the autoregressive backbone's inherent QA capabilities. Thus, our unified causal formulation is intrinsically beneficial to embedding quality, beyond merely offering serving convenience. 
+
+\paragraph{Robustness to Joint Training.}
+\input{figures/ablation_combined}
+A common pitfall in multi-task learning is negative transfer between objectives. To verify if our joint objective (\autoref{eq:total-loss}) compromises either retrieval mode, we train dense-only ($\lambda{=}0$) and sparse-only baselines under identical conditions. As shown in~\autoref{fig:dense-sparse-mode-bar}, the jointly trained \ours model closely matches the performance of both single-mode specialists. This confirms that the dual-mode capability incurs a negligible performance penalty during training. 
+
+\paragraph{Vocabulary Partitioning.}
+The sparse head partitions the vocabulary $V$ into $N$ disjoint subsets. We compare three balanced partitioning strategies: (1)~\textbf{Random} uniform assignment; (2)~\textbf{Max-distance}, which pairs maximally distant $k$-means clusters to enforce semantic diversity within subsets; and (3)~\textbf{Ours (Semantic clustering)}, which assigns individual $k$-means clusters to distinct subsets. Semantic clustering yields the best performance, while random partitioning performs worst. This suggests that grouping semantically related tokens allows each special token to act as a ``soft topic specialist,'' optimizing its limited representational capacity rather than struggling to model unrelated concepts simultaneously.
+
+\paragraph{Hyperparameter Sensitivity.}
+We sweep two hyperparameters specific to the sparse head:
+\textit{Sparse temperature ($\tau_s$).} Unlike the dense head's $[-1,1]$ cosine similarities, sparse inner products have a much larger dynamic range. A shared temperature would therefore over-sharpen the sparse softmax. \autoref{fig:temp-ablation-boxplot} demonstrates that decoupling the temperatures and using a larger $\tau_s$ improves sparse performance without degrading dense retrieval; we use $\tau_s{=}32$ as our default, noting that $\tau_s{=}64$ performs comparably in the single-seed sweeps we report. 
+\textit{Number of special tokens ($N$).} Sweeping $N \in \{2,4,8,16,32\}$ (\autoref{fig:nes-ablation-boxplot}) reveals stable performance up to $N{=}16$, with a clear drop at $N{=}32$. We attribute this degradation to overly small vocabulary subsets and inflated contrastive sequence lengths. We adopt $N{=}16$ as our implementation default. 
+
+\subsection{Case Study} \label{sec:case-study}
+Building upon the examples in~\autoref{fig:arxiv-figure1}(b), we present additional case studies across various modalities. As illustrated in~\autoref{fig:case-study}, our model demonstrates a robust capacity to identify essential components within the input and activate semantically relevant concepts. For instance, it can deduce an image's location as Singapore based on its skyline and accurately identify a rocket as belonging to SpaceX.
+\input{figures/case_study}
+However, we also observe two primary limitations:
+(1) \emph{Generation of Anomalous Tokens}: The model occasionally produces non-standard tokens (\eg ``\_alt''). Unlike traditional masked language models such as BERT, which operate within a restricted and highly structured vocabulary, the exceptionally large vocabulary size of modern LLMs increases the probability of generating such edge-case tokens. This suggests that further vocabulary compression or targeted pruning may be necessary to ensure representational stability. 
+(2) \emph{Limited Multilingual Support}: The model predominantly activates English and Chinese tokens while neglecting other languages. This bias primarily stems from our training corpus, which is heavily skewed toward English and Chinese, as well as the inherent cross-lingual limitations of the underlying foundation model. 
+
+
+\subsection{Practical Advantages}
+
+Sparse retrieval offers structural advantages in real-world deployments. In this section, we examine three aspects of \ours: (1) the \emph{effectiveness} gain from combining its sparse and dense modes via hybrid scoring; (2) the deployment-side \emph{efficiency} enabled by autoregressive serving and native inverted-index compatibility; and (3) its utility as a retriever in downstream \emph{agentic search} workflows.
+
+\paragraph{Effectiveness.} \label{sec:effectiveness}
+
+Because \ours produces sparse and dense representations in a single forward pass, the two modes can be combined without an additional encoding pass. We construct a hybrid score by linearly interpolating the dense and sparse similarities; the detailed formulation and per-modality weights are provided in Appendix~\ref{sec:appendix-ablation-study}. 
+\autoref{tab:effective-analysis} shows hybrid scoring boosts \emph{Text} ($+0.3$) and \emph{VisDoc} ($+0.5$), where exact lexical matching complements dense semantics. In contrast, natural images and video frames carry little surface-form lexical information, leaving sparse retrieval with limited additional signal to contribute. Although sparse retrieval provides potential gains on lexically-dependent tasks, the aggregate improvement appears modest due to dilution across the diverse \mmebv and \beir benchmarks.
+
+
+\paragraph{Efficiency.} \label{sec:efficiency}
+
+\input{tables/effective-analysis}
+\ours offers two deployment-side advantages. First, because the model is purely autoregressive, embedding generation is directly compatible with high-throughput serving stacks such as vLLM~\citep{vllm}. Second, the sparse representations plug into standard inverted indices, enabling scalable lexical retrieval in production environments. We defer a detailed analysis of inverted-index search efficiency to Appendix~\ref{sec:appendix-ablation-study}. 
+
+\paragraph{Application: Agentic Search.} \label{sec:application}
+\input{tables/agent-app}
+As noted by \citet{meng2026revisiting}, LLM agents frequently issue short, keyword-dense queries, a regime where sparse retrieval typically outperforms dense alternatives. 
+To further explore this problem, we test \ours on BrowseComp-Plus~\citep{browsecompplus}, a benchmark where an LLM uses retrieval as a tool during iterative reasoning. We utilize DeepResearch-30A3B~\citep{tongyidr} as the backbone reasoning engine. As shown in~\autoref{tab:agent-app}, the sparse mode of \ours consistently requires fewer tool-call search rounds than its dense counterpart. Recall is higher at the 2B scale and comparable at 4B and 9B. These results validate sparse retrieval as a practical choice for cost-sensitive, iterative reasoning loops where keyword-dense queries dominate. 

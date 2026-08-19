@@ -36,6 +36,10 @@ This supplied CSV lists 89 multimodal embedding entries. Tianmu-Emb-Uni is repor
 
 These are the 13 rows with nonzero Overall-V3 values, and they also occupy the first 13 reported Overall ranks. Overall-V3 is not monotonically ordered by the supplied rank: for example, rank 12 reports 36.35, above ranks 8–11. This indicates that the `Rank` column follows `Overall`, not `Overall-V3`.[^mmeb-v3-ranking]
 
+## Relationships
+
+- **Evaluates:** [e5-omni](e5-omni.md), with separately listed reported entries for its 3B and 7B variants. [^mmeb-v3-ranking]
+
 ## Data-quality limits
 
 - The CSV uses dates such as `26-08-06` without declaring the date convention; they are retained verbatim and not normalized.

@@ -1,0 +1,125 @@
+% This must be in the first 5 lines to tell arXiv to use pdfLaTeX, which is strongly recommended.
+\pdfoutput=1
+% In particular, the hyperref package requires pdfLaTeX in order to break URLs across lines.
+
+\documentclass[11pt]{article}
+
+% Remove the "review" option to generate the final version.
+% \usepackage[review]{ACL}
+\usepackage[final]{ACL}
+
+% Standard package includes
+\usepackage{times}
+\usepackage{latexsym}
+
+% For proper rendering and hyphenation of words containing Latin characters (including in bib files)
+\usepackage[T1]{fontenc}
+% For Vietnamese characters
+% \usepackage[T5]{fontenc}
+% See https://www.latex-project.org/help/documentation/encguide.pdf for other character sets
+
+% This assumes your files are encoded as UTF8
+\usepackage[utf8]{inputenc}
+
+% This is not strictly necessary, and may be commented out.
+% However, it will improve the layout of the manuscript,
+% and will typically save some space.
+\usepackage{microtype}
+
+% This is also not strictly necessary, and may be commented out.
+% However, it will improve the aesthetics of text in
+% the typewriter font.
+\usepackage{inconsolata}
+% \usepackage[ruled,linesnumbered]{algorithm2e}
+\usepackage{multicol}
+\usepackage{tablefootnote}
+\usepackage{booktabs}
+\usepackage{colortbl}
+\usepackage[fleqn]{amsmath}
+\usepackage{multirow}
+\usepackage[normalem]{ulem}
+\useunder{\uline}{\ul}{}
+\usepackage{hyperref}
+\usepackage{graphicx}
+\usepackage{subfigure}
+\usepackage{fixltx2e}
+\usepackage{xcolor}
+\usepackage{algorithm}
+\usepackage{algorithmic}
+\usepackage{adjustbox}
+\usepackage{setspace}
+\usepackage{amsfonts}
+\usepackage[most]{tcolorbox}
+\usepackage{afterpage}
+
+\newtheorem{definition}{Definition}
+
+\newcommand{\ie}{\textit{i.e.}}
+\newcommand{\eg}{\textit{e.g.}}
+\newcommand{\ours}{\texttt{e5-omni}}
+\newcommand{\todo}[1]{\{\textcolor{blue}{\textbf{TODO:} #1}\}}
+\newcommand{\ourLoss}{\mathcal{L}_\ours}
+
+\newcommand{\revise}[1]{\textcolor{blue}{#1}}
+
+
+\title{\ours{}: Explicit Cross-modal Alignment for Omni-modal Embeddings}
+
+\author{Haonan Chen$^*$$^{1}$, Sicheng Gao\thanks{\ \ Co-first authors} \,$^{2}$, Radu Timofte$^{2}$, Tetsuya Sakai$^{3}$, Zhicheng Dou\thanks{\ \ Corresponding authors} \,$^{1}$ \\
+         $^1$Gaoling School of Artificial Intelligence, Renmin University of China \\ 
+         $^2$University of Würzburg $^3$Waseda University  \\ 
+         \texttt{\{hnchen,dou\}@ruc.edu.cn} \\
+        \texttt{\{sicheng.gao,radu.timofte\}@uni-wuerzburg.de} \\
+         \texttt{tetsuya@waseda.jp} \\
+}
+
+\newtcolorbox[list inside=prompt]{prompt}[1][]{
+    colbacktitle=black!60,
+    coltitle=white,
+    fontupper=\footnotesize,
+    boxsep=5pt,
+    left=0pt,
+    right=-1pt,
+    top=0pt,
+    bottom=0pt,
+    boxrule=1pt,
+    width=\textwidth,
+    #1,
+}
+\begin{document}
+\maketitle
+
+\begin{abstract}
+Modern information systems often involve different types of items, \eg, a text query, an image, a video clip, or an audio segment.
+This motivates omni-modal embedding models that map heterogeneous modalities into a shared space for direct comparison.
+However, most recent omni-modal embeddings still rely heavily on implicit alignment inherited from pretrained vision-language model (VLM) backbones.
+In practice, this causes three common issues:
+(i) similarity logits have modality-dependent sharpness, so scores are not on a consistent scale;
+(ii) in-batch negatives become less effective over time because mixed-modality batches create an imbalanced hardness distribution; as a result, many negatives quickly become trivial and contribute little gradient; and
+(iii) embeddings across modalities show mismatched first- and second-order statistics, which makes rankings less stable.
+To tackle these problems, we propose \ours{}, a lightweight explicit alignment recipe that adapts off-the-shelf VLMs into robust omni-modal embedding models.
+\ours{} combines three simple components:
+(1) modality-aware temperature calibration to align similarity scales,
+(2) a controllable negative curriculum with debiasing to focus on confusing negatives while reducing the impact of false negatives, and
+(3) batch whitening with covariance regularization to better match cross-modal geometry in the shared embedding space.
+Experiments on MMEB-V2 and AudioCaps show consistent gains over strong bi-modal and omni-modal baselines, and the same recipe also transfers well to other VLM backbones.
+We release our model checkpoint at \url{https://huggingface.co/Haon-Chen/e5-omni-7B}.
+
+
+\end{abstract}
+
+\input{sections/1_introduction.tex}
+\input{sections/3_methodology.tex}
+\input{sections/4_experiments.tex}
+\input{sections/2_related_work.tex}
+\input{sections/5_conclusion.tex}
+
+% \clearpage
+\input{acl.bbl}
+
+
+\appendix
+
+\input{sections/appendix.tex}
+
+\end{document}

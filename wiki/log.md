@@ -1,6 +1,10 @@
 # Wiki Update Log
 
 ## 2026-08-19
+- **Ingest**: Compiled [Haon-Chen/e5-omni-7B model card](../raw/e5-omni-7B.md); updated [e5-omni](e5-omni.md) with 7B checkpoint availability, license, and deployment guidance.
+- **Ingest**: Compiled [Haon-Chen/e5-omni-3B model card](../raw/e5-omni-3B.md); updated [e5-omni](e5-omni.md) with its 3B checkpoint availability, license, and deployment guidance.
+- **Ingest**: Compiled [UEmbed technical-report LaTeX source](../raw/2608.02583_UEmbed/main.tex); created [UEmbed](uembed.md) and updated [UEmbed-4B](uembed-4b.md) with paper-backed results and a training-source naming conflict.
+- **Ingest**: Compiled [e5-omni technical-report LaTeX source](../raw/2601.03666_e5-omni/acl.tex); created [e5-omni](e5-omni.md) and linked it to the [MMEB v3 ranking snapshot](mmeb-v3-ranking-snapshot.md).
 - **Ingest**: Compiled [Qwen3-VL retrieval technical report](../raw/2601.04720_Qwen3-VL-Embedding_Qwen3-VL-Reranker/colm2024_conference.tex); created [Qwen3-VL-Reranker-2B](qwen3-vl-reranker-2b.md) and [Qwen3-VL-Reranker-8B](qwen3-vl-reranker-8b.md), and updated both Qwen3-VL embedding concepts with architecture, training, and evaluation evidence.
 - **Ingest**: Compiled [webAI-ColVec1.1-8b model card](../raw/webAI-ColVec1.1-8b.md); created [webAI-ColVec1.1-8b](webai-colvec1-1-8b.md).
 - **Ingest**: Compiled [webAI-ColVec1.1-4b model card](../raw/webAI-ColVec1.1-4b.md); created [webAI-ColVec1.1-4b](webai-colvec1-1-4b.md).

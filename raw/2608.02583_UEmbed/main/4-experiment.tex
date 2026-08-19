@@ -1,0 +1,43 @@
+\section{Experiments}\label{sec:experiments}
+
+\subsection{Experimental Setup}\label{sec:exp-setup}
+\input{tables/mmeb}
+\paragraph{Backbones and Model Sizes.}
+We instantiate \ours from the Qwen3.5 family at three scales: 2B, 4B, and 9B parameters.
+For each scale, we train a single checkpoint that supports both dense and sparse retrieval. 
+
+\paragraph{Multimodal Benchmark and Baselines.}
+We evaluate \ours on \mmebv~\citep{vlm2vecv2}, which provides a comprehensive evaluation for multimodal embedding tasks. 
+To comprehensively position our model within the current landscape, we compare it against a diverse selection of current strong baselines:
+(1) Qwen3-VL-Embedding~\citep{qwenvlembedding}, a strong vision-language embedding baseline trained with large-scale data; 
+(2) RzenEmbed~\citep{rzenembed}, for which we adopt the competitive RzenEmbed-V2-7B variant; 
+(3) Embed-RL~\citep{embedrl}, for which both the 2B and 4B versions are selected; 
+(4) Ops-MM-Embed~\citep{ops} and (5) UniME~\citep{unime2025}, where we select both the 2B and 7B versions for a multi-scale comprehensive comparison; 
+(6) GME-7B~\citep{gme}, a robust 7B multimodal retriever; and
+(7) VLM2Vec~\citep{vlm2vecv2}, specifically evaluating the VLM2Vec-V2-2.0B version.
+
+\paragraph{Text Benchmark and Baselines.}
+We evaluate \ours on nine datasets from \beir and adopt nDCG@10 as the evaluation metric. Details of the evaluation setup are provided in Appendix~\ref{sec:appendix-experiment-details}.
+To ensure a fair comparison, we specifically select multimodal embedding models as our dense baselines, intentionally excluding purely text-focused models. Furthermore, we incorporate competitive sparse models to establish a comprehensive evaluation framework. Our selected baselines include:
+(1) GME-7B~\citep{gme}, a robust 7B multimodal embedding model that demonstrates strong text retrieval performance on BEIR; 
+(2) Qwen3-VL-Embedding~\citep{qwenvlembedding}, a powerful vision-language embedding baseline trained on large-scale data that also exhibits competitive text-only retrieval capabilities;
+(3) SPLADE-v3~\citep{spladev3}, representing the latest iteration of the classical sparse retrieval method; and
+(4) Echo-Mistral-SPLADE~\citep{mistralsplade}, which utilizes a powerful LLM backbone to generate highly effective sparse representations.
+
+\subsection{Multimodal Results}\label{sec:multimodal-results}
+
+
+
+\autoref{tab:main_results} reports MMEB-v2 results across all three super-categories. 
+
+\paragraph{\ours is competitive with the strongest open multimodal embedders.}
+\ours-9B (dense) reaches an aggregate score of 71.8. While this is surpassed by Qwen3-VL-Embedding-8B, it is crucial to note that Qwen's models benefit from multi-stage training with vast, proprietary datasets, making a direct comparison challenging. When compared with other models that have publicly available checkpoints and are trained on open datasets, \ours-9B (dense) leads models trained on publicly available data, outperforming models like RzenEmbed-V2-7B (71.1) and Ops-MM-Embed-7B (67.1). At smaller scales, the picture is consistent: \ours-4B (dense) with a score of 70.4 surpasses every other model in the 4B-parameter class, such as Embed-RL-4B (68.1). Furthermore, our most compact model, \ours-2B (dense) at 66.5, is highly competitive with, and even outperforms some, 7B-scale open baselines like UniME-7B (64.1). To better understand the gap between \ours and Qwen3-VL-Embedding, we also conduct an analysis in Appendix~\ref{sec:appendix-case-study}. 
+
+\paragraph{Sparse retrieval remains competitive with dense retrieval in the multimodal regime.}
+Our results demonstrate that sparse embeddings are a viable and powerful alternative to dense ones in the multimodal domain. As shown in the table, the performance of our sparse models is remarkably close to their dense counterparts across all scales, with the overall performance gap being at most 1.0 point (\eg 71.8 vs. 71.0 for the 9B model). To our knowledge, these are the first reported results for sparse multimodal embeddings on this benchmark, and they significantly outperform established dense models. For instance, \ours-4B (sparse) at 69.7 surpasses the dense Ops-MM-Embed-7B (67.1). A closer look reveals that sparse models are particularly effective on Visually-rich Document (VisDoc) tasks, where the performance drop is minimal (\eg 79.2 vs. 79.1 for the 9B model). This suggests that the inherent structure of sparse embeddings may be well-suited for document-based tasks, while the performance gap is slightly more pronounced in the Video category. 
+
+\input{tables/beir}
+\subsection{Text Results}\label{sec:text-results}
+In the dense retrieval setting, as shown in~\autoref{tab:beir}, \ours demonstrates highly competitive performance across the evaluated benchmarks. Our \ours-9B model achieves the highest average nDCG@10 score of \textbf{56.3} among the compared models, with \ours-4B closely following at 56.0. This places our models ahead of strong, recent baselines like Qwen3-VL-Embedding-8B and GME-7B. Furthermore, \ours shows particular strength on specific datasets, such as achieving 89.9 on Quora (\ours-9B) and 40.5 on NFCorpus (\ours-4B).  
+
+In the sparse retrieval setting, \ours-9B reaches an average of \textbf{55.2}, effectively matching the strong specialist model Echo-Mistral-SPLADE (55.2). Crucially, \ours achieves this parity while simultaneously supporting dense retrieval and multimodal inputs within a single backbone. These results position \ours as a unified model that sacrifices little text performance while gaining robust multimodal and dense capabilities. 

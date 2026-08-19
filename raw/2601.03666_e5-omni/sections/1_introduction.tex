@@ -1,0 +1,62 @@
+\section{Introduction}
+
+Modern information retrieval increasingly needs to handle multimodal queries and results in web search, multimedia question answering, and long-document understanding~\citep{MMEB,MMEB-v2,DSE}.
+Recent vision--language models (VLMs) have shown strong multimodal capabilities, and bi-modal embedding models fine-tuned from VLMs perform well on text--image retrieval~\citep{mme5,GME}.
+However, many real-world retrieval scenarios involve additional modalities beyond text and images, such as audio and video.
+Motivated by this, we study an omni-modal setting where heterogeneous items (text, images, audio, and video) are embedded into a shared space for consistent similarity comparison.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{figure}[!t]
+	\centering
+	\includegraphics[width=1.0\linewidth]{figures/intro.pdf}%\vspace{-1ex}
+	\caption{\textbf{Implicit vs.\ explicit alignment for omni-modal embeddings.}
+(a) Implicit alignment leads to modality-dependent sharpness, negative hardness imbalance, and unstable ranking.
+(b) \ours{} performs explicit alignment with three lightweight modules to calibrate cross-modality similarities.
+}\label{fig:introduction}
+\end{figure}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+Recent work has started to move from bi-modal to omni-modal embedding models, e.g., by adopting a VLM-centered bi-encoder architecture~\citep{tevatron-omni,Nemotron,LCO-Embed}.
+However, these methods still largely rely on implicit modality alignment inherited from the generative pretraining of VLMs. Contrastive fine-tuning provides only a limited corrective signal, and it may not fully calibrate modality-specific similarity scales or the local geometry of the shared space.
+As shown in the left part of Fig.~\ref{fig:introduction}, omni-modal contrastive training is challenging because different modalities induce similarity scores with different scales, hardness profiles, and embedding geometry.
+This often leads to three issues:
+(1) Modality-dependent sharpness: using a single global temperature can produce overly sharp logits for some modality compositions but overly flat logits for others, which creates imbalanced contrastive gradients;
+(2) Negative hardness imbalance: negative hardness varies across modalities and shifts during training; when all in-batch negatives are treated equally, optimization can be dominated by many trivially easy negatives, weakening the late-stage learning signal and limiting fine-grained discrimination in mixed-modality batches; and
+(3) Unstable ranking: inconsistent geometry across heterogeneous inputs makes rankings sensitive to small score changes, even when all items are embedded in a single space.
+These issues become more significant in the omni-modal setting, because mini-batches naturally mix diverse modalities and thus amplify scale and geometry mismatch.
+
+
+
+
+In this work, we propose a lightweight explicit alignment method (\ours{}) that turns VLM backbones into robust omni-modal embedding models without modifying the architecture.
+As shown in the right part of Fig.~\ref{fig:introduction}, \ours{} has three components:
+(1) Modality-aware Temperature Calibration.
+We introduce a lightweight calibration module that uses a trainable per-modality scaling vector to calibrate similarity logits across modalities.
+This adaptive rescaling helps balance contrastive training signals across different modality compositions.
+(2) Controllable Negative Curriculum.
+We select in-batch negatives using a quantile-based threshold and gradually increase hardness after a warmup period.
+To mitigate the bias introduced by negative selection, we further incorporate a debiased contrastive objective~\citep{dcl}, which stabilizes optimization in mixed-modality batches.
+(3) Batch Whitening and Covariance Alignment.
+We apply a batch whitening transform~\citep{Whiten} to the embeddings and add a CORAL-style regularizer~\citep{coral} to align mini-batch covariances across modalities.
+This harmonizes second-order geometry in the shared space and leads to more consistent similarity comparisons across diverse omni-modal inputs.
+
+
+
+Empirically, \ours{} delivers consistent improvements on diverse embedding benchmarks, including MMEB-V2~\citep{MMEB-v2} and the AudioCaps text--audio retrieval benchmark~\citep{AudioCaps}.
+Moreover, the gains grow with model scale: upgrading the backbone from 3B to 7B yields larger improvements.
+We also find that \ours{} transfers well to other VLM backbones.
+
+\smallskip
+In summary, our contributions are threefold:
+\begin{itemize}
+\item We propose \ours{}, a lightweight explicit alignment recipe that adapts generative VLMs into omni-modal embedding models without changing the backbone architecture.
+\item We introduce three simple plug-in components: modality-aware logit calibration, a controllable negative curriculum with debiased contrastive learning, and batch whitening with covariance alignment, making omni-modal contrastive training more robust under mixed-modality batches.
+\item We achieve consistent gains on MMEB-V2 and AudioCaps over strong baselines, and show that the recipe benefits more from larger backbones and transfers to other VLMs.
+\end{itemize}
+
+
+
+
+

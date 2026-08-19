@@ -1,0 +1,40 @@
+
+\section{Experiment Details}\label{sec:appendix-experiment-details}
+
+\subsection{Evaluated Models}
+We provide the details of the baselines compared against \ours on the multimodal benchmark \mmebv (\autoref{tab:main_results}) and the text benchmark \beir (\autoref{tab:beir}) in~\autoref{appendix-model-configuration}.
+
+\input{tables/appendix-model-configuration}
+
+\subsection{Evaluation Settings}
+
+\paragraph{Metrics.} For MMEB-v2~\citep{vlm2vecv2}, we use its evaluation metrics for different datasets. For BEIR, we use nDCG@10 as the evaluation metric.
+
+\paragraph{Score Calculation.} Unless otherwise noted, dense scores are cosine similarities of the EOS-token hidden states (\ie the last content token preceding the special tokens, as defined in~\S\ref{sec:method}), and sparse scores are inner products over the partitioned vocabulary representation defined in~\S\ref{sec:method}. 
+ 
+\subsection{Details of Ablation Study}\label{sec:appendix-ablation-study}
+
+\paragraph{Effectiveness.} We further detail the hybrid scoring used in~\S\ref{sec:effectiveness}. Given a query $q$ and a candidate $d$, the hybrid score linearly combines the dense cosine similarity $s_{\text{dense}}(q,d)$ and the sparse inner product $s_{\text{sparse}}(q,d)$ as
+\begin{equation}
+s_{\text{hybrid}}(q, d) = \alpha\, s_{\text{dense}}(q, d) + \beta\, s_{\text{sparse}}(q, d).
+\end{equation}
+Because $s_{\text{dense}}$ and $s_{\text{sparse}}$ lie on very different scales, dense cosine similarities are bounded in $[-1, 1]$ while sparse inner products can take much larger magnitudes. We fix $\alpha = 1.0$ and tune $\beta$ per modality on a held-out split. We use $\beta = 5\mathrm{e}{-8}$ for Text, $\beta = 5\mathrm{e}{-4}$ for Image, $\beta = 1\mathrm{e}{-4}$ for Video, and $\beta = 7\mathrm{e}{-4}$ for VisDoc. The optimum for plain text is several orders of magnitude smaller because raw sparse inner products grow rapidly with the number of activated tokens, whereas the heavier multimodal inputs yield much sparser activation patterns and therefore admit relatively larger $\beta$ values.
+
+
+\paragraph{Efficiency.}
+The sparse representations of \ours integrate natively with inverted indices, opening the door to large-scale lexical retrieval. To quantify this, we benchmark the offline retrieval mode of BrowseComp-Plus, comparing a Faiss-based dense index against a Lucene-backed sparse inverted index.
+\autoref{fig:search-efficiency-comparison} illustrates the latency--accuracy trade-off of our sparse mode: by capping the maximum number of activated tokens per query ($K_{\mathrm{prune}}$), practitioners can flexibly trade search latency for retrieval quality (NDCG@5) to match deployment constraints. While dense search yields slightly higher absolute performance at this corpus size, we expect inverted-index retrieval to become increasingly favorable as the corpus grows; a systematic multi-scale evaluation is left to future work. 
+\input{figures/search_efficiency_comparison}
+
+\subsection{Extra Experiment Results}
+
+To provide a more reliable test of our hyperparameter settings, we report the MMEB-v2 results of models trained with random seed 42. These trends are broadly consistent with the main-paper settings: 
+(1) joint dense-sparse training preserves dense performance while producing a competitive sparse branch ~\autoref{tab:ablation_mode}. 
+(2) using too many special tokens hurts sparse retrieval ~\autoref{tab:ablation_nes}. 
+(3) a higher sparse-training temperature is beneficial ~\autoref{tab:ablation_temperature}. 
+
+\input{tables/appendix-mode-mmeb}
+
+\input{tables/appendix-nes-mmeb}
+
+\input{tables/appendix-temp-mmeb}

@@ -36,6 +36,7 @@ The complete retrieval map for compiled knowledge. See [LLM Wiki Contract](../LL
 - [Tianmu-Emb-Uni-8B](tianmu-emb-uni-8b.md) — An 8B-scale unified multimodal embedding model combining a Qwen3-VL embedding backbone with a Qwen2.5-Omni audio tower, producing 3,584-dimensional vectors and reporting 53.27 across 190 MMEB-V3 tasks.
 - [Tomoro ColQwen3 Embed 4B](tomoro-colqwen3-embed-4b.md) — A 4B-class Qwen3-VL-based multilingual multimodal late-interaction retriever with 320-dimensional token embeddings and reported ViDoRe and video-retrieval results.
 - [Tomoro ColQwen3 Embed 8B](tomoro-colqwen3-embed-8b.md) — An 8B-class Qwen3-VL-based multilingual multimodal late-interaction retriever with 320-dimensional token embeddings and self-reported ViDoRe and video-retrieval results.
+- [UEmbed](uembed.md) — A 2B, 4B, and 9B Qwen3.5 multimodal embedding family that emits dense and learned-sparse vectors from one causal forward pass.
 - [UEmbed-4B](uembed-4b.md) — A 4B-parameter Qwen3.5-based decoder-only multimodal embedding model producing dense and SPLADE-style sparse vectors, with reported MMEB-v3 results.
 - [Vintern-Embedding-1B](vintern-embedding-1b.md) — A reported 0.9B-parameter Vietnamese, English, and Chinese multimodal multi-vector embedding model built on Vintern-1B-v3_5 and trained on more than 1.5M VQA and text-QA pairs.
 - [webAI-ColVec1.1-4b](webai-colvec1-1-4b.md) — A 4.54B-parameter Qwen3.5-based multilingual visual-document retriever producing 640-dimensional token embeddings for ColBERT-style MaxSim late interaction.
@@ -44,6 +45,7 @@ The complete retrieval map for compiled knowledge. See [LLM Wiki Contract](../LL
 - [mmBERT-small](mmbert-small.md) — A 140M-parameter ModernBERT-based multilingual masked-language encoder covering 1,800+ languages, with an 8,192-token context window and 256,000-token Gemma 2 vocabulary.
 - [DEk21_hcmute_embedding](dek21-hcmute-embedding.md) — A Vietnamese legal-text embedding model built from a RoBERTa sentence-transformer with 768-dimensional Matryoshka embeddings and mean pooling.
 - [DeepX Embedding v1.0](deepx-embedding-v1.md) — A 772M-parameter Vietnamese legal retrieval embedding model using Gated DeltaNet-2 linear attention, Hyperloop weight sharing, and 256–1536-dimensional Matryoshka embeddings.
+- [e5-omni](e5-omni.md) — A Qwen2.5-Omni-based 3B/7B omni-modal embedding family that uses explicit temperature, negative-selection, and covariance alignment during contrastive training.
 - [EmbeddingGemma 300M](embeddinggemma-300m.md) — A 300M-parameter Gemma 3-based multilingual text embedding model with 768-dimensional Matryoshka embeddings and on-device deployment focus.
 - [F2LLM-v2](f2llm-v2.md) — An eight-size, Qwen3-based multilingual embedding family trained on a reported 60 million samples in 282 natural and 40+ programming languages.
 - [F2LLM-v2-14B](f2llm-v2-14b.md) — A 13.99B-parameter F2LLM-v2 embedding model with 5,120-dimensional EOS-pooled Matryoshka embeddings and author-reported results on 17 MTEB benchmarks.
