@@ -25,6 +25,8 @@ outputs/                 Disposable or requested query deliverables
   wiki-ingest/            Compile sources into the wiki
   wiki-query/             Retrieve and synthesize knowledge
   wiki-lint/              Audit and repair wiki health
+  qmd-setup/              Set up the optional project-local search cache
+  qmd-retrieval/          Rank query candidates with the search cache
 ```
 
 Keep `wiki/` flat initially. Add a group only when it makes `index.md` materially easier to scan; use plain, plural domain names such as `people/`, `concepts/`, or `projects/`. Paths are stable IDs, so prefer moving a page only when its current path is misleading.
@@ -118,12 +120,13 @@ Log only completed state changes. Read-only queries need no entry.
 ## Retrieval policy
 
 1. Read `wiki/index.md`; follow relevant group indexes and concept descriptions.
-2. Select candidates by title, description, type, tags, and named relationships. Use text search when the index isn't enough.
-3. Read the selected concepts and traverse relationship types that match the question: dependencies for impact, causes and fixes for diagnosis, supersession and contradiction for freshness, and ownership for responsibility.
-4. Check `status`, `stale_after`, `verified`, contradictions, and cited sources. Treat missing verification as unverified, not false.
-5. Answer from the wiki with links to concept pages and distinguish documented facts, synthesis, uncertainty, and missing knowledge.
-6. Consult `raw/` only to verify a disputed citation, fill a provenance gap, or when the user explicitly requests source-level research.
-7. File an answer only when it adds reusable synthesis; transient answers stay in chat or `outputs/`.
+2. Select candidates by title, description, type, tags, and named relationships. Use glob for structural scope and exact text search when the index isn't enough.
+3. When exact retrieval produces too many candidates or misses the user's vocabulary, use the optional project-local QMD cache. Use BM25 `search` for lexical ranking and escalate to hybrid `query` only for an observed semantic miss or a clearly semantic, ambiguous, or cross-concept question. Union QMD results with catalog and exact matches; QMD absence, stale state, or low scores never remove explicit candidates or block retrieval.
+4. Read the selected concepts and traverse relationship types that match the question: dependencies for impact, causes and fixes for diagnosis, supersession and contradiction for freshness, and ownership for responsibility.
+5. Check `status`, `stale_after`, `verified`, contradictions, and cited sources. Treat missing verification as unverified, not false.
+6. Answer from the wiki with links to concept pages and distinguish documented facts, synthesis, uncertainty, and missing knowledge.
+7. Consult `raw/` only to verify a disputed citation, fill a provenance gap, or when the user explicitly requests source-level research.
+8. File an answer only when it adds reusable synthesis; transient answers stay in chat or `outputs/`.
 
 ## Crystallization
 
@@ -156,7 +159,7 @@ Run `python3 tools/wiki_check.py` after wiki mutations and during lint when comm
 
 ## Scale trigger
 
-Use indexes and ordinary text search below roughly 100 concepts. Around 100–200 concepts, measure index size, query cost, and missed retrieval; add local BM25-style search when those measurements show lexical retrieval failures. Add vector search only for observed semantic misses, and a graph engine only when Markdown relationship traversal is the bottleneck. Thresholds trigger evaluation, not automatic infrastructure. Generated search and graph indexes are caches, never sources of truth.
+Use indexes, glob, and ordinary text search below roughly 100 concepts. Around 100–200 concepts, measure index size, query cost, and missed retrieval; enable the project-local QMD BM25 cache when those measurements show lexical ranking failures. Use QMD hybrid/vector retrieval only for observed semantic misses, and add a graph engine only when Markdown relationship traversal is the bottleneck. Thresholds trigger evaluation, not automatic infrastructure. Generated QMD and graph indexes are caches, never sources of truth; retrieval must continue to work when they are absent or stale.
 
 ## Wiki Language
 - Vietnamese
