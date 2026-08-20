@@ -7,11 +7,14 @@ status: stable
 created: 2026-08-11
 generated:
   by: llm-wiki-agent/1
-  at: 2026-08-11T16:13:51Z
+  at: 2026-08-20T16:38:00+07:00
 sources:
   - id: cognitive-behavioral-therapy-raw
     resource: ../raw/CognitiveBehavioralTherapy.md
     title: Cognitive Behavioral Therapy (CBT): Hiểu con người qua mối liên hệ giữa suy nghĩ, cảm xúc và hành vi
+  - id: toxic-positivity-raw
+    resource: ../raw/ToxicPositivity.md
+    title: "TOXIC POSITIVITY: KHI “TÍCH CỰC” TRỞ THÀNH MỘT CÁCH PHỦ NHẬN CẢM XÚC"
 ---
 
 CBT cung cấp một khung để hiểu khoảng cách giữa **điều xảy ra** và **cách một người phản ứng với điều đó**. Thay vì xem hành vi là toàn bộ con người, khung này lần theo chuỗi **tình huống → diễn giải hoặc suy nghĩ tự động → cảm xúc và phản ứng cơ thể → hành vi → hậu quả → niềm tin được củng cố**. Vì vậy, cùng một sự kiện có thể tạo ra những phản ứng rất khác nhau; cách diễn giải thường liên quan đến phản ứng gần hơn bản thân sự kiện.[^cognitive-behavioral-therapy-raw]
@@ -72,8 +75,20 @@ Khung này khuyến khích thay thế phán xét bằng sự tò mò: thay vì �
 
 CBT vốn là một phương pháp trị liệu, không phải phương pháp chẩn đoán người xung quanh. Nguồn mô tả CBT là liệu pháp có cấu trúc, định hướng mục tiêu, tập trung vào hiện tại và thường khuyến khích thực hành giữa các buổi. Nguồn cũng cho biết CBT được nghiên cứu cho nhiều vấn đề sức khỏe tâm thần, nhưng mức độ hiệu quả không giống nhau giữa các tình trạng, nghiên cứu và cá nhân; lựa chọn trị liệu phụ thuộc vào vấn đề, mức độ nghiêm trọng, hoàn cảnh, mong muốn, chuyên môn và khả năng tiếp cận.[^cognitive-behavioral-therapy-raw]
 
+## Relationships
+
+- **Related to:** [Thiên kiến xác nhận như vòng lặp lọc và củng cố niềm tin](confirmation-bias.md) — CBT giúp phân biệt tình huống với diễn giải, kiểm tra suy nghĩ tự động và thu thập dữ liệu mới qua *behavioral experiment*; các thực hành này cũng có thể làm lộ và kiểm tra việc một niềm tin đang được củng cố có chọn lọc.[^cognitive-behavioral-therapy-raw]
+- **Related to:** [Sự bất lực học được và trải nghiệm về khả năng kiểm soát](learned-helplessness.md) — CBT cung cấp cách kiểm tra diễn giải và thử hành vi để thu thập dữ liệu mới; điều này bổ sung cho trọng tâm của learned helplessness về kỳ vọng rằng hành động có thể hay không thể thay đổi kết quả.[^cognitive-behavioral-therapy-raw]
+- **Related to:** [Sự tích cực độc hại như phủ nhận trải nghiệm cảm xúc](toxic-positivity.md) — CBT không đồng nhất với việc ép bản thân nghĩ tích cực: nó kiểm tra diễn giải dựa trên dữ liệu; nguồn về toxic positivity phân biệt *cognitive reappraisal* với việc kìm hoặc phủ nhận cảm xúc.[^cognitive-behavioral-therapy-raw][^toxic-positivity-raw]
+
+- **Related to:** [Sai lầm quy kết cơ bản và cách tách con người khỏi hoàn cảnh](fundamental-attribution-error.md) — **Tổng hợp:** CBT làm rõ chuỗi từ tình huống đến diễn giải, cảm xúc và hành vi; FAE cảnh báo người quan sát không rút gọn hành vi đó thành một nhãn tính cách.
+
+- **Related to:** [Hiệu ứng Dunning–Kruger và hiệu chỉnh tự đánh giá năng lực](dunning-kruger-effect.md) — **Tổng hợp:** việc biến niềm tin thành dự đoán có thể kiểm tra và đối chiếu với kết quả là điểm gặp giữa *behavioral experiment* và thực hành hiệu chỉnh tự đánh giá; đây không phải hướng dẫn điều trị.
+
 ## Độ tin cậy và giới hạn
 
 Trang này tổng hợp nguồn tiếng Việt được cung cấp trong `raw/`. Nguồn quy chiếu Beck Institute, NHS, NIMH, WHO và các tổng quan hoặc phân tích về CBT, nhưng không kèm thư mục hay URL để kiểm tra từng trích dẫn. Các mô tả về bằng chứng vì vậy là điều nguồn báo cáo, chưa phải kiểm chứng độc lập ở cấp nghiên cứu. Không nên dùng trang này để tự chẩn đoán, chẩn đoán người khác, hoặc thay thế tư vấn của chuyên gia sức khỏe tâm thần khi cần hỗ trợ lâm sàng.[^cognitive-behavioral-therapy-raw]
 
-[^cognitive-behavioral-therapy-raw]: Nguồn được cung cấp: “Cognitive Behavioral Therapy (CBT): Hiểu con người qua mối liên hệ giữa suy nghĩ, cảm xúc và hành vi”, `../raw/CognitiveBehavioralTherapy.md`. Đây là bài tổng hợp bằng tiếng Việt; bài có nhắc đến các tổ chức và tổng quan nghiên cứu nhưng không cung cấp thư mục hoặc liên kết để kiểm tra độc lập.
+[^cognitive-behavioral-therapy-raw]: Nguồn được cung cấp: “Cognitive Behavioral Therapy (CBT): Hiểu con người qua mối liên hệ giữa suy nghĩ, cảm xúc và hành vi”, `../raw/CognitiveBehavioralTherapy.md`. Đây là bài tổng hợp bằng tiếng Việt; bài có nhắc đến các tổ chức và tổng quan nghiên cứu nhưng không cung cấp thư mục hoặc liên kết để kiểm tra từng trích dẫn.
+
+[^toxic-positivity-raw]: Nguồn được cung cấp: “TOXIC POSITIVITY: KHI ‘TÍCH CỰC’ TRỞ THÀNH MỘT CÁCH PHỦ NHẬN CẢM XÚC”, `../raw/ToxicPositivity.md`. Đây là bài tổng hợp bằng tiếng Việt có nêu các tổ chức và nghiên cứu, nhưng không cung cấp thư mục hoặc liên kết để kiểm tra độc lập.
