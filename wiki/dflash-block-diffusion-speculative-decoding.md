@@ -5,7 +5,7 @@ description: DFlash conditions a lightweight block-diffusion drafter on frozen t
 tags: [speculative-decoding, diffusion, draft-model, kv-injection, inference]
 status: stable
 created: 2026-08-12
-generated: { by: llm-wiki-agent/1, at: 2026-08-12T14:46:56Z }
+generated: { by: llm-wiki-agent/1, at: 2026-08-20T08:49:07Z }
 sources:
   - id: dflash-2026
     resource: ../raw/arXiv-2602.06036v2/main.tex
@@ -60,6 +60,7 @@ NVIDIA’s target-specific Nemotron 3.5 Lightning DFlash release is an 833M-para
 
 - **Operationalizes:** [Speculative decoding exact sampling](speculative-decoding-exact-sampling.md) by supplying parallel proposals for target verification.
 - **Evaluated by:** [DFlash evaluation and serving trade-offs](dflash-evaluation-and-serving-trade-offs.md).
+- **Extended by:** [DFlash 2 parallel selection and local convolution](dflash-2-parallel-selection-and-local-convolution.md), which adds coherent candidate selection and block-local convolution while retaining parallel drafting.
 - **Extended by:** [DSpark parallel-draft speculative decoding](dspark-parallel-draft-speculative-decoding.md), according to the DSpark model card; the sources do not establish that DSpark preserves every DFlash training and KV-injection detail.
 - **Qualified by:** [Speculative decoding performance trade-offs](speculative-decoding-performance-trade-offs.md), because acceptance, block verification, concurrency, and draft cost determine realized acceleration.
 

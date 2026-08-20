@@ -1,5 +1,8 @@
 # Wiki Update Log
 
+## 2026-08-20
+- **Ingest**: Compiled [DFlash 2: Keep Drafting Parallel](../raw/DFlash2.md); created [parallel selection and local convolution](dflash-2-parallel-selection-and-local-convolution.md) and [evaluation and deployment](dflash-2-evaluation-and-deployment.md), and updated the [base DFlash mechanism](dflash-block-diffusion-speculative-decoding.md) with its extension link.
+
 ## 2026-11-16
 - **Query**: Filed [Expert parallelism và serving trade-offs — bài học cho người mới](expert-parallelism-serving-trade-offs-beginners-guide.md), linked it from Stage 7 of the roadmap, and covered dispatch/combine all-to-all, device placement, communication bottlenecks, capacity padding, total-weight memory, and a PyTorch routing simulation.
 
