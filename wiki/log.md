@@ -1,5 +1,8 @@
 # Wiki Update Log
 
+## 2026-08-20
+- **Query**: Answered “triết lý thiết kế temporal hậu-backbone cho phân loại hành vi video”; expanded [Temporal heads comparison](temporal-heads-comparison.md) with a post-encoder architecture taxonomy, design principles, comparison limits, and practical selection ladder.
+
 ## 2026-08-17
 - **Query**: Answered “tổng hợp các temporal head, so sánh đánh giá”; filed [Temporal heads comparison](temporal-heads-comparison.md) and linked it from the action and video-language temporal taxonomies.
 - **Ingest**: Compiled the [V-JEPA 2 official PyTorch repository](../raw/vjepa2/README.md); created [V-JEPA 2.1](v-jepa-2-1.md) and updated V-JEPA 2, video representation learning, and the encoder comparison.

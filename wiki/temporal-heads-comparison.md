@@ -5,7 +5,7 @@ description: A task-aware comparison of temporal heads and adjacent query-condit
 tags: [video, temporal-modeling, temporal-head, comparison]
 status: stable
 created: 2026-08-17
-generated: { by: llm-wiki-agent/1, at: 2026-08-17T13:47:55+07:00 }
+generated: { by: llm-wiki-agent/1, at: 2026-08-20T11:04:01+07:00 }
 sources:
   - id: tsn-paper
     resource: ../raw/TemporalSegmentNetworks/tsn_pami.tex
@@ -43,11 +43,69 @@ sources:
   - id: detector-tracker-temporal
     resource: ../raw/DetectorTrackerTemporal.md
     title: Detector + Tracker + Temporal Transformer architectures
+  - id: two-stream-paper
+    resource: ../raw/Two-StreamConvNets/flow_net.tex
+    title: Two-Stream Convolutional Networks for Action Recognition in Videos
+  - id: i3d-paper
+    resource: ../raw/I3D/full_kinetics_update_v0.tex
+    title: Quo Vadis, Action Recognition? A New Model and the Kinetics Dataset
+  - id: xclip-recognition-paper
+    resource: ../raw/2208.02816_X-CLIP/main.tex
+    title: Expanding Language-Image Pretrained Models for General Video Recognition
+  - id: lvmae-paper
+    resource: ../raw/LV-MAE/main.tex
+    title: "LV-MAE: Learning Long Video Representations through Masked-Embedding Autoencoders"
+  - id: videoprism-paper
+    resource: ../raw/2402.13217_VideoPrism/main.tex
+    title: "VideoPrism: A Foundational Visual Encoder for Video Understanding"
+  - id: vjepa2-paper
+    resource: ../raw/2506.09985_V-JEPA 2/main.tex
+    title: "V-JEPA 2: Self-Supervised Video Models Enable Understanding, Prediction and Planning"
 ---
 
 # Temporal heads comparison
 
 **Synthesis:** a temporal head should be selected by its required output, not by a single benchmark ranking. In the strict, pipeline-oriented sense, a temporal head maps an ordered feature sequence from a video backbone, detector, or tracker to task outputs. Under that definition, MS-TCN, BMN, ActionFormer, FUTR, and MAT are the clearest task heads in this wiki; TSN is a video-level sampling-and-consensus framework. UniTime, F2G, VideoITG, and NeuS-QA are adjacent query-conditioned grounding or retrieval systems rather than interchangeable lightweight heads.
+
+## Scope: what counts as the temporal architecture
+
+This comparison starts at an ordered sequence of frame, clip, object-track, or scene features and ends at task logits, durations, or boundaries. It therefore excludes temporal computation internal to I3D, SlowFast, R(2+1)D, TimeSformer, ViViT, MViT, Video Swin, VideoMamba, VideoMAE, InternVideo, InternVideo2, VideoPrism, and V-JEPA encoders. It includes a component from those systems only when it operates after an independently identifiable feature sequence—for example score averaging, an attentive probe, X-CLIP's multi-frame integration Transformer, or LV-MAE's Transformer over frozen clip embeddings.
+
+G-TAD, TCANet, CG-DETR, and generic attentive probes occur in reported backbone-plus-head evaluations, but the current wiki does not document their architectures deeply enough for a controlled design comparison. They are retrieval gaps, not evidence that those families are inferior.
+
+## Post-backbone architecture families
+
+| Design family | Wiki instances | Temporal computation after features | Strength | Failure mode / cost |
+| --- | --- | --- | --- | --- |
+| Score averaging and late fusion | [Two-stream ConvNets](two-stream-convnets-action-recognition.md), I3D test-time averaging | Average predictions over samples, time, views, or modalities | Cheapest, stable baseline; preserves pretrained feature quality | Mostly order-invariant; cannot explain boundaries or interactions[^two-stream-paper][^i3d-paper] |
+| Sparse consensus / multiple-instance aggregation | [TSN](temporal-segment-networks.md) | Sample globally distributed snippets; average, max, top-$k$, learned weights, or attention over snippet scores | Fixed cost across video duration; robust global coverage | Sampling can miss brief actions; aggregation discards detailed order[^tsn-paper] |
+| Learned pooling or shallow integration | [X-CLIP recognition](x-clip-video-recognition.md), VideoPrism/V-JEPA 2 attentive probes | A shallow temporal Transformer or attention pool converts frame/token features to one video vector | Good default when one label is required and backbone features are strong | Compresses the sequence before classification; limited boundary and long-context evidence[^xclip-recognition-paper][^videoprism-paper][^vjepa2-paper] |
+| Hierarchical clip-token aggregation | [LV-MAE](lv-mae.md) | A Transformer models one frozen embedding per five-second segment; downstream uses `[CLS]` or attentive probing | Makes minute-scale classification practical | Inherits clip-encoder loss; bounded token cap; can erase short events[^lvmae-paper] |
+| Recurrent sequence model | Generic LSTM/GRU | Update one hidden state per timestep, then classify each state or the final state | Compact, causal, reasonable with limited data | Sequential execution, state bottleneck, weak very-long dependency evidence in this wiki[^production-overview] |
+| Dilated temporal convolution | Generic TCN, [MS-TCN](ms-tcn.md) | Parallel 1D convolutions with exponentially growing receptive field; optionally refine probabilities over stages | Strong efficiency/locality bias; full-resolution outputs; easy causal variant | Finite receptive field; published MS-TCN is acausal; excessive smoothing blurs true transitions[^ms-tcn-paper] |
+| Global self-attention | Generic per-track Transformer, [FUTR](future-transformer-futr.md) encoder | Every sampled timestep can interact before classification or decoding | Flexible long-range order and dependency modeling | Quadratic scaling; higher data need; global access alone does not solve long videos[^futr-paper][^detector-tracker-temporal] |
+| Local/hierarchical attention pyramid | [ActionFormer](actionformer.md) | Local temporal attention at multiple downsampled scales, followed by shared classification/regression heads | Efficient multiscale context and direct labeled intervals | More complex than clip classification; requires dense interval supervision[^actionformer-paper] |
+| Bounded compressed memory | [MAT](memory-and-anticipation-transformer-mat.md) | Compress old history into segment tokens, retain recent detail, and decode current/future logits from past-only memory | Best documented pattern for online bounded-history classification | Compression is lossy; cache and future-gap design are task-specific[^mat-paper] |
+| Dense boundary/proposal map | [BMN](boundary-matching-network.md) | Predict start/end likelihoods and score all valid start-duration candidates | High-recall, class-agnostic modular proposals | Dense interval map; needs a downstream class assignment stage[^bmn-paper] |
+| Ordered learned queries | [FUTR](future-transformer-futr.md) | Fixed ordered queries jointly decode future class and duration sequences | Parallel structured forecasting; avoids autoregressive error propagation | Fixed query budget and duration normalization constrain output form[^futr-paper] |
+| Label-space iterative refinement | [MS-TCN](ms-tcn.md), MAT's deep shared classifier | Later stages consume probabilities or latent future/memory states, with auxiliary/deep supervision | Corrects fragmented or inconsistent predictions without repeatedly exposing raw features | Can reinforce early mistakes; needs carefully weighted smoothing and stage losses[^ms-tcn-paper][^mat-paper] |
+
+## Design philosophy synthesized from the wiki
+
+1. **Choose the output contract before the operator.** One video label needs aggregation; timestep labels need resolution-preserving sequence processing; intervals need classification plus boundary decoding; future sequences need class-and-duration decoding. A larger Transformer cannot repair a mismatched output contract.
+2. **Use the weakest sufficient temporal mechanism.** Begin with mean/top-$k$/attention pooling. Add a shallow TCN or temporal Transformer only when order changes the class; add pyramids, proposal maps, or learned queries only when the output requires boundaries or structured futures. This is synthesis, not a benchmark-derived universal ranking.
+3. **Preserve resolution until the last point that the task permits.** Early averaging is efficient for clip labels but destructive for brief events. Frame segmentation and localization should keep per-timestep features; long videos should compress hierarchically while retaining a recent or high-resolution path.
+4. **Match inductive bias to data and latency.** TCN locality and weight sharing are attractive for smaller datasets and low latency. Global attention is justified by genuine distant dependencies; local/multiscale attention is preferable when sequence length is large and events vary in duration. LSTM/GRU remains a compact causal baseline, not the default for throughput.
+5. **Separate evidence aggregation from decision decoding.** First contextualize or select temporal evidence, then use a task-specific decoder: pooled classifier, per-step classifier, boundary regressor, or class-duration queries. BMN makes this separation explicit; ActionFormer couples both stages for a simpler end-task pipeline.
+6. **Treat causality as an architectural constraint.** Offline bidirectional attention and acausal convolution leak future context. Streaming heads require causal padding/masks, bounded state or memory, and evaluation of detection delay—not only accuracy.
+7. **Refine predictions in label space when continuity matters.** MS-TCN shows that later stages can operate on class probabilities rather than repeatedly mixing high-dimensional visual features. Pair this with bounded smoothing so true short actions and boundaries survive.
+8. **Match token scope to the behavior.** Per-track tokens cannot represent interactions; scene tokens weaken attribution; multi-object tokens capture interactions but make attention scale with both time and object count. Selective escalation is more efficient than always applying the broadest scope.[^detector-tracker-temporal]
+9. **Train intermediate states to carry task semantics.** Auxiliary frame segmentation in FUTR and deep/shared classification in MAT make encoded memory and future queries directly discriminative. Auxiliary losses should support—not contradict—the final granularity.
+10. **Compare heads with a frozen feature protocol.** Hold encoder, sampling rate, feature dimension, labels, context, and hardware fixed. Measure task quality together with parameters, FLOPs, memory, p50/p95 latency, throughput, look-ahead, and detection delay; cross-paper accuracy is not an architecture ranking.
+
+## Practical default ladder
+
+For **one behavior label per video**, benchmark `mean/top-k pooling → attention pooling → small causal TCN → shallow temporal Transformer`; stop at the first model meeting quality and latency. For **framewise behavior**, start with a causal TCN and add probability-refinement stages only if fragmentation is material. For **labeled intervals**, prefer an ActionFormer-style local multiscale pyramid; use BMN-style proposals when class-agnostic modularity is required. For **online current behavior**, use causal TCN for short history and MAT-style compressed memory only when long history adds measured value. For **future action sequences**, use FUTR-style ordered class-duration queries when parallel structured decoding matches the label format.
 
 ## Task-aware comparison
 
@@ -124,7 +182,7 @@ The dedicated model pages are mostly stable and grounded in primary papers. The 
 
 ## Relationships
 
-- **Compares:** [Temporal Segment Networks](temporal-segment-networks.md), [MS-TCN](ms-tcn.md), [Boundary-Matching Network](boundary-matching-network.md), [ActionFormer](actionformer.md), [Future Transformer](future-transformer-futr.md), and [Memory-and-Anticipation Transformer](memory-and-anticipation-transformer-mat.md).
+- **Compares:** [Temporal Segment Networks](temporal-segment-networks.md), [X-CLIP recognition](x-clip-video-recognition.md), [LV-MAE](lv-mae.md), [MS-TCN](ms-tcn.md), [Boundary-Matching Network](boundary-matching-network.md), [ActionFormer](actionformer.md), [Future Transformer](future-transformer-futr.md), and [Memory-and-Anticipation Transformer](memory-and-anticipation-transformer-mat.md).
 - **Applies to:** [Temporal action understanding](temporal-action-understanding.md) by mapping output granularity to task-specific heads.
 - **Extends to:** [Video-language temporal grounding and reasoning](video-language-temporal-grounding-and-reasoning.md) while distinguishing grounding/retrieval systems from strict feature-sequence heads.
 - **Uses:** [Production temporal video analytics](production-temporal-video-analytics.md) for draft per-track, interaction, scene-scope, and deployment trade-offs.
@@ -141,3 +199,9 @@ The dedicated model pages are mostly stable and grounded in primary papers. The 
 [^neus-qa-paper]: [NeuS-QA: Grounding Long-Form Video Understanding in Temporal Logic and Neuro-Symbolic Reasoning](../raw/NeuS-QA/main.tex)
 [^production-overview]: [Tổng quan các phương pháp temporal](../raw/TongQuanCacPhuongPhapTemporal.md)
 [^detector-tracker-temporal]: [Detector + Tracker + Temporal Transformer architectures](../raw/DetectorTrackerTemporal.md)
+[^two-stream-paper]: [Two-Stream Convolutional Networks for Action Recognition in Videos](../raw/Two-StreamConvNets/flow_net.tex)
+[^i3d-paper]: [Quo Vadis, Action Recognition? A New Model and the Kinetics Dataset](../raw/I3D/full_kinetics_update_v0.tex)
+[^xclip-recognition-paper]: [Expanding Language-Image Pretrained Models for General Video Recognition](../raw/2208.02816_X-CLIP/main.tex)
+[^lvmae-paper]: [LV-MAE: Learning Long Video Representations through Masked-Embedding Autoencoders](../raw/LV-MAE/main.tex)
+[^videoprism-paper]: [VideoPrism: A Foundational Visual Encoder for Video Understanding](../raw/2402.13217_VideoPrism/main.tex)
+[^vjepa2-paper]: [V-JEPA 2: Self-Supervised Video Models Enable Understanding, Prediction and Planning](../raw/2506.09985_V-JEPA%202/main.tex)
