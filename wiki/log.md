@@ -1,6 +1,7 @@
 # Wiki Update Log
 
 ## 2026-08-20
+- **Ingest**: Compiled the complete [MoE-ViE manuscript](../raw/2608.17402_MoE-ViE/main.tex), appendices, tables, and supplied architecture, scaling, ablation, and expert-activation figures; created [MoE-ViE mixture-of-experts vision encoder](moe-vie-mixture-of-experts-vision-encoder.md) and updated [CLIP natural-language image pre-training](clip-natural-language-image-pretraining.md), [Recent vision-language research directions](recent-vision-language-research-directions.md), [From unified pretraining to modern vision-language models](from-unified-pretraining-to-modern-vision-language-models.md), and [Vision-language task-to-model map](vision-language-task-to-model-map.md).
 - **Ingest**: Compiled the complete [MOSS-VL technical report](../raw/2608.15045_MOSS-VL/main.tex), appendix, tables, and supplied architecture, position-encoding, latency, overview, and demo figures; created [MOSS-VL real-time vision-language model](moss-vl-realtime-vision-language-model.md) and updated [Recent vision-language research directions](recent-vision-language-research-directions.md), [From unified pretraining to modern vision-language models](from-unified-pretraining-to-modern-vision-language-models.md), and [Vision-language task-to-model map](vision-language-task-to-model-map.md).
 
 ## 2026-08-18

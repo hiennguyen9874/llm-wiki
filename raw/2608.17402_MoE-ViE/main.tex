@@ -1,0 +1,1254 @@
+\documentclass[runningheads]{llncs}
+
+% ---------------------------------------------------------------
+% Include basic ECCV package
+\usepackage{eccv}
+
+
+% ---------------------------------------------------------------
+% Other packages
+
+% Commonly used abbreviations (\eg, \ie, \etc, \cf, \etal, etc.)
+\usepackage{eccvabbrv}
+
+% Include other packages here, before hyperref.
+\usepackage{graphicx}
+\usepackage{booktabs}
+\usepackage{colortbl}
+\usepackage{subcaption}
+
+% The "axessiblity" package can be found at: https://ctan.org/pkg/axessibility?lang=en
+\usepackage[accsupp]{axessibility}  % Improves PDF readability for those with disabilities.
+
+\usepackage{fontawesome5}
+\usepackage{multirow}
+\usepackage{makecell}
+\usepackage{array}
+\usepackage{algorithm}
+\usepackage{algpseudocode}
+\newcommand{\todo}[1]{{\color{orange}{\small\bf\sf [TODO: #1]}}}
+
+
+% ---------------------------------------------------------------
+% Hyperref package
+\usepackage[hypertexnames=false,breaklinks]{hyperref}
+\hypersetup{colorlinks=true, linkcolor=eccvblue, citecolor=eccvblue, urlcolor=eccvblue}
+
+
+% Support for ORCID icon
+\usepackage{orcidlink}
+
+
+\begin{document}
+
+% ---------------------------------------------------------------
+% TODO REVIEW: Replace with your title
+\title{MoE-ViE: Mixture of Experts Vision Encoder for Efficient Image and Video Understanding}
+
+% TODO REVIEW: If the paper title is too long for the running head, you can set
+% an abbreviated paper title here. If not, comment out.
+\titlerunning{MoE-ViE}
+
+% TODO FINAL: Replace with your author list. 
+% Include the authors' OCRID for the camera-ready version, if at all possible.
+\author{Bonan Zhang\inst{1} \and
+Shiyu Dong\inst{1} \and
+Quan Hung Tran\inst{1} \and 
+Katharina Gschwind\inst{\star} \and
+Shuqi Yang\inst{\star} \and
+Sijia Chen\inst{\star} \and
+Adel Ahmadyan\inst{1} \and
+Seungwhan Moon\inst{1} \and
+Lu Zhang\inst{1} \and
+Ahmed Kirmani\inst{1} \and
+Babak Damavandi\inst{1} \and 
+Anuj Kumar\inst{1} 
+}
+
+% TODO FINAL: Replace with an abbreviated list of authors.
+\authorrunning{B.~Zhang et al.}
+% First names are abbreviated in the running head.
+% If there are more than two authors, 'et al.' is used.
+
+% TODO FINAL: Replace with your institution list.
+\institute{$^{1}$Meta\\
+$^{\star}$Work done while at Meta\\
+\email{\{bonanz,shiyudong,quanhungtran,kgschwind,shuqiyang
+,sijiac,ahmadyan,luzhang20,kirmani,babakd,anujk\}@meta.com}}
+
+\maketitle
+
+
+\begin{abstract}
+Vision encoders are a critical component of vision-language models, and scaling their capacity effectively improves performance. However, dense scaling increases compute cost and inference latency. Mixture-of-Experts (MoE) architectures offer a compelling alternative, having enabled efficient scaling in LLMs, yet the MoE design space for CLIP-style vision encoders remains underexplored at State-of-the-Art (SOTA) levels. In this work, we systematically study MoE designs for vision encoder scaling and find that fine-grained MoE topologies yield substantial gains over both dense and standard MoE counterparts. We further propose an auxiliary-loss-free balancing variant for better expert utilization, and design a specialized MoE kernel to mitigate inference latency overhead. To enhance video capabilities while preserving image knowledge, we introduce frame-level distillation paired with a novel freezing mechanism. We pretrain a series of Mixture-of-Experts Vision Encoders (MoE-ViE) across a range of sizes, all consistently outperforming their dense counterparts. Our largest model matches the zero-shot performance of a SOTA encoder $1.7\times$ its size at $76\%$ of its latency. When aligned with an LLM, MoE-ViE surpasses all compared encoders on image and video benchmarks, including those with up to $5\times$ more activated parameters. Code is available at \url{https://github.com/facebookresearch/moe_vie}.
+
+  \keywords{Vision encoder \and Mixture-of-Experts \and CLIP}
+\end{abstract}
+
+
+\section{Introduction}
+\label{sec:intro}
+
+Vision encoders have become a cornerstone in today's vision-language models (VLMs). The pursuit of higher accuracy and broader applicability necessitates the continuous scaling up of vision models, which in turn has been a reliable route to stronger VLM capabilities \cite{pe,internvl2p5,imagebind,eva-clip-18b}. However, scaling dense vision encoders comes with system-level trade-offs \cite{pali,22bscale}. Increasing their capacity typically induces growth in compute cost and inference-time latency. This issue becomes even more acute for high-resolution images or long videos, where moderate increases in encoder cost compound into substantial end-to-end overhead.
+
+Mixture-of-Experts (MoE) offers an alternative scaling mechanism by increasing the total model capacity while only activating a small subset of experts for any given input, thus decoupling model capacity from compute cost \cite{original_moe}. MoE has been widely used in large language models (LLMs) \cite{deepseekv3,gptoss,kimik2,qwen3,mixtral} and has carried over to VLMs \cite{qwen3vl,kimi2p5,seed1p5vl,moe_llava,gemini2p5}. In contrast, applying MoE to vision encoders, particularly to the prevailing contrastive language-image pretraining (CLIP)~\cite{clip}, remains less settled. While prior research provides several attempts on developing MoE vision encoders, none has closed the gap to State-of-the-Art (SOTA) performance on core vision benchmarks \cite{moe_cumo,clip_moe,liemoe,moe_clipup,vmoe}. 
+
+In this work, we present a systematic study of MoE architecture design in vision encoders across multiple scales. We observe that conventional MoE \cite{original_moe}, \ie, treating MoE as a drop-in replacement for dense MLP blocks, provides only limited gains. In comparison, MoE vision encoders with fine-grained expert designs achieve larger, more consistent improvements. This aligns with insights from recent work on MoE-based LLMs \cite{deepseekv3}. MoE with fine-grained expert design is also well matched to the nature of encoding vision information, where a vision encoder is responsible for supporting a wide variety of visual concepts, styles, and domains. We further propose a variant of loss-free balancing \cite{aux_free} to balance expert utilization during training. One practical challenge is the system overhead introduced by memory-bound operations in MoE computations, which can hurt the latency benefits implied by sparsely activated parameters. We therefore develop an MoE kernel in Triton \cite{triton} to overcome this. 
+
+Beyond these architectural choices, we focus on refining our training strategy to emphasize building a unified image and video encoder. We first pretrain on a vast set of image-text pairs via contrastive training and then, following \cite{pe}, we finetune with video data to enhance the model's capability in video understanding. However, we observe that vanilla video finetuning can shift representations in ways that degrade our pretrained image capabilities. We mitigate this by introducing a frame-level distillation during video finetuning and by freezing MoE experts. Together, we are able to preserve the image representation learned during pretraining while allowing video supervision to strengthen video representation. Fig. \ref{overall} summarizes our MoE architecture and training pipeline.
+
+Our investigation yields several key findings:
+\begin{itemize}
+\item We show that with appropriate architectural design, vision encoders with MoE consistently outperform their dense counterparts across multiple scales. This confirms the efficacy of sparse scaling for CLIP-style vision encoders.
+\item We demonstrate that the MoE design proposed in this work substantially improves over prior works on MoE vision encoders across model sizes.
+\item Our trained MoE-ViE achieves SOTA results at all scales on zero-shot image and video benchmarks. Our largest encoder achieves results comparable to the SOTA dense encoder PE\textsubscript{core}G, which is $1.7\times$ larger.
+\item  Our MoE kernel provides $>2.5\times$ speedup in inference latency. It can be used as a drop-in implementation for different MoE topologies.
+ \item Aligned with an LLM, MoE-ViE yields strong downstream results, and matches or exceeds other SOTA encoders in comparable settings.
+\end{itemize}
+
+\begin{figure}[htbp]
+  \centering
+  \includegraphics[height=5cm]{images/arch_v2.pdf}
+  \caption{Illustration of MoE-ViE architecture and training pipeline. MoE-ViE adopts a fine-grained MoE design with optimized MoE kernels for latency reduction. We first perform contrastive pretraining on large-scale image-text pairs. During video finetuning, we introduce frame-level distillation and expert freezing to preserve the pretrained image understanding capabilities.}
+  \label{overall}
+\end{figure}
+
+
+\section{Vision Encoder with MoE}
+
+In this section, we first review the MoE formulation, then present our studies on introducing MoE into CLIP vision encoders, including the architectural design and the control of expert utilization.
+
+\subsection{MoE Preliminaries}
+
+A typical MoE layer replaces the dense MLP block with $N$ experts $\{E_i\}_{i=1}^{N}$. Given an input token $x\in\mathbb{R}^{d}$, a router produces logits
+\begin{equation}
+s = W_r x \in \mathbb{R}^{N}
+\end{equation}
+followed by selecting a subset of experts via top-$k$ routing. The standard Softmax-based gating computes
+\begin{equation}
+\label{router_eq}
+g(x) = \mathrm{Softmax}(\text{top-}k(s))
+\end{equation}
+Denote $\mathcal{T}(x)\subset\{1,\dots,N\}$ to be indices of selected experts, the MoE output is 
+\begin{equation}
+    y = \sum_{e\in \mathcal{T}(x)}{g_e(x)E_e(x)}  
+\end{equation}
+MoE increases the parameter count with $N$ while keeping the per-token compute proportional to $k$ experts, providing a favorable capacity vs. compute trade-off when $k\ll N$.
+
+\subsection{MoE for Vision Encoder}
+
+Adapting MoE to CLIP vision encoders raises three key design questions: (i) what expert topology is most appropriate for vision representations; (ii) how to ensure balanced expert utilization; (iii) how to realize the theoretical efficiency gains promised by MoE. We address these questions in the following sections.
+
+\subsubsection{Architecture Design}
+
+Prior CLIP MoE works replace each dense MLP with $N$ experts whose capacity matches the original MLP \cite{clip_moe,moe_clipup,liemoe,moe_cumo}. We instead adopt a fine-grained expert design, \ie, each expert has reduced hidden width relative to the original dense MLP, enabling more experts under a comparable compute budget. This choice is motivated by the heterogeneous nature of visual features (\eg, color, shape, spatial layout) and by findings from LLMs that finer expert granularity yields more efficient scaling \cite{deepseekmoe}. We apply MoE only to the vision tower and keep the text tower unchanged, since only the vision tower is used in any subsequent VLM alignment. 
+
+In addition to specialized experts, we include $m$ shared experts that are always active, inspired by the idea of retaining a global thumbnail alongside high-resolution tiles in \cite{llava_next} as well as the success in LLMs \cite{deepseekmoe}. The shared experts provide a persistent pathway for global context, while the routed experts capture conditional, token-specific transformations. We demonstrate expert specialization in more detail in Section~\ref{moe_analysis}.
+
+We further replace the standard MoE Softmax gating with a Sigmoid function to avoid potential expert competition \cite{sigmoid2,sigmoid3}. Given logits $s$, we compute\footnote{Some works, \eg, \cite{vmoe}, switch the order of Softmax and top-$k$ selection to enable gradient flow in top-$1$ scenario, which is not needed for Sigmoid. For consistency with recent MoE models \cite{deepseekv3,gshard}, we also adopt this switch.}
+\begin{align}
+    g(x) &= \text{top-}k(\mathrm{Sigmoid}(s))    \\
+    g_e'(x) &= \frac{g_e(x)}{\sum_{i\in \mathcal{T}(x)} g_i(x)}
+\end{align}
+where $g'(x)$ renormalizes the selected scores to keep the mixture scale stable. 
+
+Let there be $cN$ experts in total, where each expert has hidden width reduced by $c$. We reserve the first $m$ experts as shared and route over the remaining specialized experts, \ie, $\mathcal{T}(x)\subset\{m{+}1,\dots,cN\}$. The layer output is
+\begin{equation}
+    y = \sum_{e\in \mathcal{T}(x)}{g'_e(x)E_e(x)}+\lambda \sum_{e=1}^m{E_e(x)}
+\end{equation}
+where hyperparameter $\lambda$ controls the weight of shared experts. We set $\lambda=1$ in all experiments for simplicity, as our model is not sensitive to this choice. Additional details are provided in Appendix~\ref{appx_shard_experts}.
+
+Table~\ref{different_moe} compares MoE designs trained on 12.8B samples from MetaCLIP \cite{metaclip}. We observe consistent improvements from the introduction of MoE, and the fine-grained design leads to stronger performance. 
+
+\begin{table}[htbp]
+\centering
+\caption{Comparison of different MoE designs in vision encoders.}
+\label{different_moe}
+\fontsize{6.5}{8}\selectfont
+\setlength{\tabcolsep}{2.5pt}
+\newcommand{\gc}{\cellcolor{gray!10}}
+\begin{tabular}{l c c c c c c c c c c c c c}
+\toprule
+& & & \multicolumn{6}{c}{\textbf{General Classification}} & \multicolumn{5}{c}{\textbf{Image Retrieval}} \\
+\cmidrule(lr){4-9} \cmidrule(lr){10-14}
+\textbf{Model}
+& \rotatebox{90}{\shortstack{Total\\params}}
+& \rotatebox{90}{\shortstack{Activated\\params}}
+& \rotatebox{90}{Avg.\ Class.}
+& \rotatebox{90}{\shortstack{{\fontsize{7}{8}\selectfont ImageNet}\\{\fontsize{3}{4}\selectfont Val \cite{imagenet1k}}}}
+& \rotatebox{90}{\shortstack{{\fontsize{7}{8}\selectfont ImageNet}\\{\fontsize{3}{4}\selectfont v2 \cite{imagenetv2}}}}
+& \rotatebox{90}{{\fontsize{7}{8}\selectfont ObjectNet \cite{objectnet}}}
+& \rotatebox{90}{\shortstack{{\fontsize{7}{8}\selectfont ImageNet}\\{\fontsize{3}{4}\selectfont Adversarial \cite{imageneta}}}}
+& \rotatebox{90}{\shortstack{{\fontsize{7}{8}\selectfont ImageNet}\\{\fontsize{3}{4}\selectfont Renditions \cite{imagenetr}}}}
+& \rotatebox{90}{Avg.\ Retrieval}
+& \rotatebox{90}{\shortstack{{\fontsize{7}{8}\selectfont COCO}\\{\fontsize{3}{4}\selectfont T$\rightarrow$I \cite{coco}}}}
+& \rotatebox{90}{\shortstack{{\fontsize{7}{8}\selectfont COCO}\\{\fontsize{3}{4}\selectfont I$\rightarrow$T \cite{coco}}}}
+& \rotatebox{90}{\shortstack{{\fontsize{7}{8}\selectfont Flickr30k}\\{\fontsize{3}{4}\selectfont T$\rightarrow$I \cite{flickr}}}}
+& \rotatebox{90}{\shortstack{{\fontsize{7}{8}\selectfont Flickr30k}\\{\fontsize{3}{4}\selectfont I$\rightarrow$T \cite{flickr}}}} \\
+\midrule
+ViT-B/32 dense & 0.1B & 0.1B &  \gc 55.8& 67.5 & 59.3 & 50.6 & 27.8 & 73.7 & \gc 58.4& 36.3 & 54.4 & 63.3 & 79.6 \\
+ViT-B/32 conventional MoE & 0.5B & 0.1B & \gc 59.9& 70.6 & 62.3 & 54.3 & 34.7 & 77.7& \gc 59.7& 37.8 & 56.3 & 64.4 & 80.2 \\
+MoE-ViE-B/32 & 0.5B & 0.1B &\gc \textbf{63.2}& \textbf{72.9}	&	\textbf{64.9}& \textbf{57.7}&	\textbf{40.4} &	\textbf{80.0}	&\gc 	\textbf{61.4}&	\textbf{38.9}& \textbf{56.6}	&\textbf{66.5}	& \textbf{83.5} \\
+\midrule
+ViT-L/16 & 0.3B & 0.3B & \gc78.0 &79.7	&72.6 &74.9	&72.4 &90.5& \gc 68.9&  45.8 &63.8	&75.9 &90.3  \\
+ViT-L/16 conventional MoE & 1.7B & 0.3B & \gc 78.5	&80.2 &72.9	&73.5 &74.9	&90.8& \gc 69.0 &45.5	&63.4 &76.1	&90.8 \\
+MoE-ViE-L/16 & 1.7B & 0.3B & \gc \textbf{79.6} & \textbf{80.7}	&\textbf{74.1} & \textbf{76.5}	& \textbf{75.4} & \textbf{91.5}& \gc \textbf{69.3} & \textbf{46.0}	& \textbf{63.8} & \textbf{76.3}	& \textbf{91.0} \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsubsection{Load Balancing}
+\label{aux_design}
+Compared to prior works designing various auxiliary losses \cite{liemoe,vmoe}, optimized jointly with the main training objective, we propose a variant of the loss-free approach \cite{aux_free}, which decouples the control of expert utilization from the training objective. In loss-free balancing, an extra bias term $b$ is introduced to the router. Given routing logits $s$, the router now selects experts by
+\begin{equation}
+    g(x) = \text{top-}k(\mathrm{Sigmoid}(s)+b) 
+\end{equation}
+During training, the bias for expert $e$ is updated using the observed token load. Let $t_e$ be the number of tokens routed to expert $e$ in the current iteration, and let $\mu_t$ denote the mean token count across experts. The update rule is
+\begin{equation}
+    b_e = b_e - \alpha\ \mathrm{sign}(t_e-\mu_t)
+\end{equation}
+with step size $\alpha$. We notice, however, that the $\mathrm{sign}(\cdot)$ update applies a constant magnitude correction (\eg, $1$ or $-1$) regardless of deviation, which can cause oscillations when routing is close to balanced. Therefore, we propose to replace $\mathrm{sign}(\cdot)$ with z-score, which scales the correction by the degree of imbalance and keeps it normalized for stability. The update of the bias term then becomes
+\begin{equation}
+    b_e = b_e - \alpha \frac{t_e-\mu_t}{\sigma_t}
+\end{equation}
+where $\sigma_t$ is the standard deviation of $\{t_e\}$. We present ablations on different load balancing strategies in Section~\ref{ablation}.
+
+\subsubsection{Scalability}
+
+We then explore the scalability of MoE-ViE under contrastive pretraining. We train our models at multiple scales. At each scale, we train both the baseline dense model and MoE-ViE. All models are trained for $12.8$B samples on MetaCLIP \cite{metaclip} at $224\times224$ resolution, and evaluated using ImageNet-1K classification accuracy \cite{imagenet1k}. Fig. \ref{scaling_law} summarizes the results. Across all scales, MoE-ViE consistently outperforms its dense counterpart under the same compute budget, indicating a desired model capacity vs. compute trade-off. This motivates us to further scale up MoE-ViE as detailed in Section~\ref{main_results}.
+
+\begin{figure}[htbp]
+  \centering
+  \includegraphics[height=5cm]{images/moe_scale.pdf}
+  \caption{MoE-ViE vs. dense models at multiple scales. MoE-ViE consistently outperforms their dense counterparts under the same compute budget.}
+  \label{scaling_law}
+\end{figure}
+
+\subsection{Latency Optimization}
+\label{optimization}
+
+\subsubsection{Inherent MoE Efficiency} Unlike dense networks where FLOPs scale linearly with total parameter count, MoE maintains constant active FLOPs per token by routing inputs to a small subset of experts. Thus, MoE theoretically offers superior representation (via more parameters) without an inherent latency penalty, as its compute cost is governed only by the number of active parameters.
+
+
+\subsubsection{Optimized Kernel} 
+While MoE is theoretically compute-efficient, naive implementations (\eg, sequentially looping over experts in PyTorch) often under-utilize GPUs, mainly due to three factors: (1) fragmenting compute into many small general matrix multiply (GEMM) operations reduces arithmetic intensity; (2) dynamic routing introduces CPU–GPU synchronization to determine per-expert workloads, creating idle hardware “bubbles”; (3) larger intermediate tensors amplify HBM traffic, making memory bandwidth the latency bottleneck.
+
+To realize MoE’s theoretical efficiency in practice, we implement a specialized Triton \cite{triton} kernel with two key optimizations: First, \textit{Grouped GEMM} aggregates all expert matrix multiplications (MatMuls) into a single, unified GPU task, enabling parallel processing across experts and eliminating repeated CPU–GPU handshakes. Second, \textit{Kernel Fusion} combines MatMuls and non-linear activations (\eg, GeLU) into one pass, minimizing round-trips to HBM and reducing data movement. More details are included in Appendix~\ref{appx_kernel}.
+
+These optimizations are not auxiliary architectural tweaks. Instead, they are the necessary implementation mechanisms to faithfully translate MoE’s algorithmic efficiency into practical, hardware-efficient execution.
+
+\section{Robust Video Finetuning}
+\label{video_ft}
+
+Following \cite{pe}, we first pretrain the model on image-text pairs and then finetune on video-text pairs to build a unified vision encoder for both image and video understanding. However, in our experiments, naively finetuning on video data substantially degrades image performance, indicating severe forgetting. Mixing image data into the video stage partially recovers image accuracy, but we find it also limits gains on video understanding (Section~\ref{ablation}).
+
+Recognizing that most VLMs use frame-based vision encoders to encode videos frame by frame \cite{plm,omnivinci}, we regularize the video finetuning with frame-level distillation. We keep a copy of the image-pretrained model as a teacher. For a given video, we randomly sample a frame and feed it through the student and teacher vision towers to obtain logits $S$ and $T$, and minimize the cosine distance 
+\begin{equation}
+\label{similarity}
+    \mathcal{L}_d = 1 - \cos(S, T)
+\end{equation}
+The final loss becomes
+\begin{equation}
+    \mathcal{L}=\mathcal{L}_c+\beta\mathcal{L}_d
+\end{equation}
+where $\mathcal{L}_c$ denotes contrastive training loss, and $\beta$ is the weight of distillation.
+
+We further reduce forgetting by freezing the MoE experts during video finetuning. This aligns with findings that MLP layers store models' acquired knowledge, while attention layers are primarily responsible for feature interaction \cite{attn_insights}. Since our vision encoder operates on individual frames, we do not expect video finetuning to require large changes to the per-frame visual vocabulary. Instead, the adaptation should mainly update how frame features are aggregated for video-specific alignment. 
+
+One issue is that $\mathcal{L}_c$ updates both towers. So when finetuning on videos, the text tower may drift away from the alignment established during pretraining, while $\mathcal{L}_d$ encourages the vision tower to stay close to its image-pretrained teacher, creating an optimization mismatch. We find that an efficient way to eliminate this is to freeze the MLP layers in the text tower as well. Our intuition is that the text tower has already trained on substantially larger and more diverse data, and our primary goal in this stage is to adapt the vision encoder to videos. 
+
+\section{Experiments}
+
+We develop a series of MoE-ViE at various scales by building on top of the standard CLIP vision encoder architecture, where we replace the MLP modules in the vision tower with our proposed MoE blocks. We exclude the first transformer block from this replacement, as this first layer captures general, low-level, visual information, and we did not observe any gains by specializing it with MoE in our experiments. 
+
+\subsection{Zero-Shot Benchmarks}
+\label{main_results}
+
+\subsubsection{Setup} We conduct contrastive pretraining for MoE-ViE on $3.5$B image-text pairs, comprised of $2$B data from MetaCLIP \cite{metaclip}, and $1.5$B proprietary data. Unless otherwise specified, all of our MoE variants use $32$ experts for each MoE layer to maintain a practical compute budget. Each expert is designed to be $1/4$ of the corresponding dense MLP. We include more studies on the impact of the granularity in Appendix~\ref{appx_moe_scaling} and on the number of experts in Appendix~\ref{moe_scaling}.
+
+We first train MoE-ViE-B and MoE-ViE-L models with $1/8$ of experts activated, and then train an MoE-ViE-H with $1/4$ experts activated to explore further scaling. Following \cite{pe}, we perform progressive resolution training, \ie, we increase image resolution as training progresses, for better training efficiency. After pretraining, we perform a short warmup using the pretraining data augmented with CC12M \cite{cc12m} and TreeOfLife \cite{treeoflife}. For video finetuning, we uniformly sample 8 frames per video and use the curated video-text data from \cite{pe,merlot}. Full training and evaluation details are provided in Appendices~\ref{appx_train_spec} and~\ref{appx_eval_spec}, respectively. Additional linear probing and LLM alignment results are reported in Appendix~\ref{appx_additional_results}.
+
+\subsubsection{Video Benchmarks}
+
+We report the zero-shot video understanding capability of MoE-ViE in Table~\ref{general_video} on both classification and retrieval tasks. MoE-ViE achieves SOTA results at all evaluated scales, and even outperforms the larger PE\textsubscript{core}G model, which indicates that MoE scaling transfers effectively from image pretraining to our proposed video finetuning.
+
+
+\begin{table}[htbp]
+\centering
+\caption{Comparison of zero-shot video benchmarks between MoE-ViE and other previous SOTA vision encoders in the literature.}
+\label{general_video}
+\fontsize{6.5}{8}\selectfont
+\newcommand{\gc}{\cellcolor{gray!15}}
+\begin{tabular}{l c c c c c c c c c c c}
+\toprule
+& & & & \multicolumn{5}{c}{\textbf{Video Classification}} & \multicolumn{3}{c}{\textbf{Video Retrieval}} \\
+\cmidrule(lr){5-9} \cmidrule(lr){10-12}
+\textbf{Model}
+& \rotatebox{90}{\shortstack{Total\\params}}
+& \rotatebox{90}{\shortstack{Activated\\params}}
+& \rotatebox{90}{Resolution}
+& \rotatebox{90}{Avg.\ Class.}
+& \rotatebox{90}{K400 \cite{kinetics}}
+& \rotatebox{90}{K600 \cite{kinetics}}
+& \rotatebox{90}{UCF101 \cite{ucf}}
+& \rotatebox{90}{HMDB \cite{hmdb}}
+& \rotatebox{90}{Avg.\ Retrieval}
+& \rotatebox{90}{\shortstack{{\fontsize{7}{8}\selectfont MSR-VTT}\\{\fontsize{3}{4}\selectfont T$\rightarrow$V \cite{msr_vtt}}}}
+& \rotatebox{90}{\shortstack{{\fontsize{7}{8}\selectfont MSR-VTT}\\{\fontsize{3}{4}\selectfont V$\rightarrow$T \cite{msr_vtt}}}} \\
+\midrule
+SigLIP2-B/16 \cite{siglip2} & 0.1B & 0.1B & $224$ & \gc 59.5& 58.7 & 55.0 & 82.0 & 42.3 & \gc 34.3& 38.5 & 30.1 \\
+PE\textsubscript{core}B/16 \cite{pe} & 0.1B & 0.1B & $224$ & \gc 65.9& 65.6 & 65.1 & \textbf{84.6} & 48.2 & \gc 47.5& 47.6 & \textbf{47.3} \\
+MoE-ViE-B/16 & 0.5B & 0.1B & $224$ & \gc \textbf{67.5} & \textbf{68.3} & \textbf{65.6} & 84.5 & \textbf{51.5} & \gc \textbf{47.6}& \textbf{47.9}& 47.2  \\
+\midrule
+SigLIP2-L/16 \cite{siglip2} & 0.3B & 0.3B & $384$ & \gc 66.0& 65.3 & 62.5 & 86.7 & 49.3 & \gc 36.5& 41.5  & 31.4 \\
+PE\textsubscript{core}L/14 \cite{pe} & 0.3B & 0.3B & $336$ & \gc 72.9& 73.4 & \textbf{72.7} & 87.1 & \textbf{58.5} & \gc \textbf{50.2}& 50.3 & \textbf{50.1} \\
+MoE-ViE-L/16 & 1.7B & 0.3B & $384$ & \gc \textbf{73.4}& \textbf{74.5} & 71.8 & \textbf{89.2} & 57.9 & \gc \textbf{50.2}& \textbf{50.5} & 49.8 \\
+\midrule
+InternVL-C/16 \cite{internvl} & 5.5B & 5.5B & $224$ & \gc -& 69.1 & 68.9 & - & - & \gc 42.5& 44.7 & 40.2 \\
+SigLIP2-g-opt/16 \cite{siglip2} & 1.1B & 1.1B & $384$ & \gc 69.8& 69.8 & 67.0 & 90.7 & 51.8 & \gc 38.7& 43.1 & 34.2 \\
+PE\textsubscript{core}G/14 \cite{pe} & 1.9B & 1.9B & $448$ & \gc 76.0& \textbf{76.9} & \textbf{75.1} & 90.7 & 61.1 & \gc \textbf{50.6}& 51.2 & \textbf{49.9} \\
+MoE-ViE-H/14 & 3.5B & 1.1B & $448$ & \gc \textbf{76.5} & \textbf{76.9} & 75.1 & \textbf{92.8} & \textbf{61.3} & \gc \textbf{50.6} & \textbf{51.6} & 49.5 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsubsection{General Image Benchmarks}
+
+Table~\ref{general_image} summarizes zero-shot performance on image classification and retrieval benchmarks. We compare MoE-ViE to both SOTA dense vision encoders and to prior CLIP MoE vision encoders. MoE-ViE achieves the best results at each scale among models with comparable sizes. In particular, MoE-ViE demonstrates consistently high accuracy on the challenging ImageNet-A \cite{imageneta} benchmark, with $+5.6\%$ over PE\textsubscript{core}B, $+0.2\%$ over PE\textsubscript{core}L, and even $+0.6\%$ over PE\textsubscript{core}G which has $1.7\times$ as many activated parameters as MoE-ViE-H.
+
+\begin{table}[htbp]
+\centering
+\caption{Comparison of zero-shot image classification and retrieval between MoE-ViE and other SOTA vision encoders in the literature.}
+\label{general_image}
+\fontsize{6.5}{8}\selectfont
+\setlength{\tabcolsep}{2.5pt}
+\newcommand{\gc}{\cellcolor{gray!10}}
+\resizebox{\textwidth}{!}{%}
+\begin{tabular}{l c c c c c c c c c c c c c c}
+\toprule
+& & & & \multicolumn{6}{c}{\textbf{General Image Classification}} & \multicolumn{5}{c}{\textbf{Image Retrieval}} \\
+\cmidrule(lr){5-10} \cmidrule(lr){11-15}
+\textbf{Model}
+& \rotatebox{90}{\shortstack{Total\\params}}
+& \rotatebox{90}{\shortstack{Activated\\params}}
+& \rotatebox{90}{Resolution}
+& \rotatebox{90}{Avg.\ Class.}
+& \rotatebox{90}{\shortstack{{\fontsize{7}{8}\selectfont ImageNet}\\{\fontsize{3}{4}\selectfont Val \cite{imagenet1k}}}}
+& \rotatebox{90}{\shortstack{{\fontsize{7}{8}\selectfont ImageNet}\\{\fontsize{3}{4}\selectfont v2 \cite{imagenetv2}}}}
+& \rotatebox{90}{{\fontsize{7}{8}\selectfont ObjectNet \cite{objectnet}}}
+& \rotatebox{90}{\shortstack{{\fontsize{7}{8}\selectfont ImageNet}\\{\fontsize{3}{4}\selectfont Adversarial \cite{imageneta}}}}
+& \rotatebox{90}{\shortstack{{\fontsize{7}{8}\selectfont ImageNet}\\{\fontsize{3}{4}\selectfont Renditions \cite{imagenetr}}}}
+& \rotatebox{90}{Avg.\ Retrieval}
+& \rotatebox{90}{\shortstack{{\fontsize{7}{8}\selectfont COCO}\\{\fontsize{3}{4}\selectfont T$\rightarrow$I \cite{coco}}}}
+& \rotatebox{90}{\shortstack{{\fontsize{7}{8}\selectfont COCO}\\{\fontsize{3}{4}\selectfont I$\rightarrow$T \cite{coco}}}}
+& \rotatebox{90}{\shortstack{{\fontsize{7}{8}\selectfont Flickr30k}\\{\fontsize{3}{4}\selectfont T$\rightarrow$I \cite{flickr}}}}
+& \rotatebox{90}{\shortstack{{\fontsize{7}{8}\selectfont Flickr30k}\\{\fontsize{3}{4}\selectfont I$\rightarrow$T \cite{flickr}}}} \\
+\midrule
+LIMOE-B/16 \cite{liemoe} & 0.5B & 0.1B & $224$ & \gc -& 73.7 & - & - & - & - & \gc -& 36.2 & 51.3 &  -& - \\
+CLIP-UP-B/16\cite{moe_clipup} & 0.5B & 0.2B & $224$ & \gc -& 76.9 & - & - & - & - & \gc 74.2 & \textbf{52.1} & \textbf{71.5} & \textbf{80.9} & 92.3 \\
+SigLIP2-B/16 \cite{siglip2} & 0.1B & 0.1B & $224$ & \gc 74.0& 78.2& 71.4 & 73.6 & 55.0 & \textbf{91.7} & \gc 73.7& \textbf{52.1} & 68.9 & 80.7 & 93.0 \\
+PE\textsubscript{core}B/16 \cite{pe} & 0.1B & 0.1B & $224$ & \gc 74.6&	78.4	&71.7	&71.9	&62.4	&88.7 & \gc 74.3& 50.9 & 71.0 & 80.8 & \textbf{94.4} \\
+MoE-ViE-B/16 & 0.5B & 0.1B & $224$ & \gc \textbf{76.8}	& \textbf{79.3}&	\textbf{72.5}	& \textbf{74.4}	& \textbf{68.0}	& 89.9 &\gc \textbf{74.4}&	\textbf{52.1}&	70.7	&\textbf{80.9}	&93.9  \\
+\midrule
+CLIP-MoE-L/14 \cite{clip_moe} & 0.9B & 0.5B & $336$ & \gc -& 74.6 & 68.5 & 33.5 & - & - & \gc 53.6& 46.8 & 65.0 & 42.1 & 60.5 \\
+LIMOE-L/16 \cite{liemoe} & 1.7B & 0.3B & $224$ & \gc -& 78.6 & - & - & - & - & \gc -& 39.6 & 55.7 & - & - \\
+CLIP-UP-L/14 \cite{moe_clipup} & 1.7B & 0.5B & $224$ & \gc -& 81.2 & - & - & - & - & \gc 75.5& 53.9 & 73.8 & 82.0 & 92.4 \\
+SigLIP2-L/16 \cite{siglip2} & 0.3B & 0.3B & $384$ & \gc 85.0& 83.1 & 77.4 & 84.4 & 84.3 & \textbf{95.7} & \gc76.7 & 55.3 & 71.4 & 85.0 & 95.2 \\
+PE\textsubscript{core}L/14 \cite{pe} & 0.3B & 0.3B & $336$ & \gc 86.1& 83.5 & \textbf{77.9} & 84.7 & \textbf{89.0} & 95.2 & \gc \textbf{78.8}& 57.1 & \textbf{75.9} & 85.5 & \textbf{96.6} \\
+MoE-ViE-L/16 & 1.7B & 0.3B & $384$ & \gc \textbf{86.2}& \textbf{83.6} & \textbf{77.9} & \textbf{85.0}& \textbf{89.0} & 95.4 & \gc \textbf{78.8}& \textbf{57.2}	& \textbf{75.9}	&\textbf{85.7}	&96.5  \\
+\midrule
+EVA 18B/14 \cite{eva-clip-18b} & 17.5B & 17.5B & $224$ & \gc 85.4& 83.8 & 77.9 & 82.2 & 87.3 & 95.7 & \gc 77.5& 56.2 & 73.6 & 83.3 & 96.7 \\
+InternVL-C/16 \cite{internvl} & 5.5B & 5.5B & $224$ & \gc 84.1& 83.2 & 77.3 & 80.6 & 83.8 & 95.7 & \gc 78.6& 58.6 & 74.9 & 85.0 & 95.7 \\
+SigLIP2-g-opt/16 \cite{siglip2} & 1.1B & 1.1B & $384$ & \gc 88.0 & 85.0 & 79.8 & 88.0 & 90.5 & 96.6 & \gc 77.6 & 56.1 & 72.8 & \textbf{86.0} & 95.4 \\
+PE\textsubscript{core}G/14 \cite{pe} & 1.9B & 1.9B & $448$ & \gc \textbf{88.6} & \textbf{85.4} & \textbf{80.2} & \textbf{88.2} & 92.6 & \textbf{96.5} & \gc \textbf{78.9} & \textbf{58.1} & \textbf{75.4} & 85.7 & \textbf{96.2} \\
+MoE-ViE-H/14 & 3.5B & 1.1B & $448$ & \gc 88.3 & 85.1 & 80.0 & 87.0 & \textbf{93.2} & 96.2 & \gc 78.2 & 56.8 & 74.6 & 85.4 & 96.0 \\
+\bottomrule
+\end{tabular}
+}
+\end{table}
+
+\subsubsection{Fine-grained Image Benchmarks}
+
+Table~\ref{finegrain_image} presents the results for image classification on fine-grained categories. We see MoE-ViE excels in these tasks. Not only do our MoE-ViE models achieve SOTA results compared with similarly sized models, here, again, our largest model MoE-ViE-H outperforms PE\textsubscript{core}G, whose activated size is $1.7\times$ larger. Additionally, our model demonstrates high accuracy on OCR benchmarks, as evaluated on TextCaps \cite{textcap}. We attribute these achievements to the nature of MoE, applied with the correct topology, enabling experts to specialize in different tasks.
+
+\begin{table}[htbp]
+\centering
+\caption{Comparison of zero-shot fine-grained image classification and OCR benchmarks between MoE-ViE and SOTA dense vision encoders. We re-evaluated part of the OCR results for SigLIP2 and PE if not reported in \cite{siglip2} and \cite{pe}.}
+\label{finegrain_image}
+\fontsize{6.5}{8}\selectfont
+\newcommand{\gc}{\cellcolor{gray!15}}
+\begin{tabular}{l c c c c c c c c c c c c}
+\toprule
+& & & & \multicolumn{6}{c}{\makebox[0pt]{\textbf{Fine-grained Img Classification}}}
+ & \multicolumn{3}{c}{\textbf{OCR}} \\
+\cmidrule(lr){5-10} \cmidrule(lr){11-13}
+\textbf{Model}
+& \rotatebox{90}{\shortstack{Total\\params}}
+& \rotatebox{90}{\shortstack{Activated\\params}}
+& \rotatebox{90}{Resolution}
+& \rotatebox{90}{Avg.\ Class.}
+& \rotatebox{90}{Food101 \cite{food}}
+& \rotatebox{90}{Flowers \cite{flowers}}
+& \rotatebox{90}{Country211 \cite{country}}
+& \rotatebox{90}{Aircrafts \cite{aircraft}}
+& \rotatebox{90}{Cars \cite{cars}}
+& \rotatebox{90}{Average OCR}
+& \rotatebox{90}{\shortstack{{\fontsize{7}{8}\selectfont Text Cap}\\{\fontsize{3}{4}\selectfont T$\rightarrow$I \cite{textcap}}}}
+& \rotatebox{90}{\shortstack{{\fontsize{7}{8}\selectfont Text Cap}\\{\fontsize{3}{4}\selectfont I$\rightarrow$T \cite{textcap}}}} \\
+\midrule
+SigLIP2-B/16 \cite{siglip2} & 0.1B & 0.1B & $224$ & \gc 69.2& 92.8 & 85.7 & 19.2 & 54.8 & \textbf{93.4} & \gc 71.5& 72.3 & 70.7 \\
+PE\textsubscript{core}B/16 \cite{pe} & 0.1B & 0.1B & $224$ & \gc 71.7& 92.5 & 86.5 & 30.5 & 57.0 & 92.1 & \gc 71.6&  72.3&70.9  \\
+MoE-ViE-B/16 & 0.5B & 0.1B & $224$ & \gc \textbf{73.5}	&\textbf{94.2}	&\textbf{87.3}	&\textbf{34.9}	&\textbf{58.2}&	93.1 & \gc \textbf{72.5}& \textbf{72.7} & \textbf{72.3} \\
+\midrule
+SigLIP2-L/16 \cite{siglip2} & 0.3B & 0.3B & $384$ & \gc 76.1&  96.1&  \textbf{90.0}& 31.6 & 67.0 & \textbf{95.8} & \gc 79.2& \textbf{80.2} & 78.2\\
+PE\textsubscript{core}L/14 \cite{pe} & 0.3B & 0.3B & $336$ & \gc 78.1& 96.2 & 87.2 & 45.6 & \textbf{67.8} & 93.7 & \gc 79.2& 79.8 & 78.5 \\
+MoE-ViE-L/16 & 1.7B & 0.3B & $384$ & \gc \textbf{78.9}& \textbf{96.7} & 89.2 & \textbf{47.8}& 65.7 & 94.9 & \gc \textbf{79.7}& 80.0 & \textbf{79.3} \\
+\midrule
+EVA 18B/14 \cite{eva-clip-18b} & 17.5B & 17.5B & $224$ & \gc 75.9& 95.8 & 86.0 & 43.1 & 59.7 & 94.9 & \gc- &  -&  -\\
+InternVL-C/16 \cite{internvl} & 5.5B & 5.5B & $224$ & \gc 72.8& 95.3 & 85.8 & 35.1 & 53.3 & 94.4 & \gc -& - & 72.3 \\
+SigLIP2-g-opt/16 \cite{siglip2} & 1.1B & 1.1B & $384$ & \gc 79.6 & 97.0 & 91.5 & 40.1 & 73.6 & \textbf{95.9} & \gc 79.8& 80.3 & 79.2 \\
+PE\textsubscript{core}G/14 \cite{pe} & 1.9B & 1.9B & $448$ & \gc 83.8 & 96.9 & 91.4 & \textbf{57.6} & 78.2 & 94.7 & \gc 79.1& 79.3 & 78.8 \\
+MoE-ViE-H/14 & 3.5B & 1.1B & $448$ & \gc \textbf{83.9} & \textbf{97.1} & \textbf{92.4} & 54.3 & \textbf{80.1} & 95.5 & \gc \textbf{80.4} & \textbf{80.6} & \textbf{80.2} \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{VLM Alignment}
+\label{subsec:align}
+Since VLMs represent the primary downstream application of vision encoders, evaluating alignment quality is essential to verify that improvements in visual representations translate to gains on end-user tasks such as visual question answering, video understanding, and captioning. Our alignment training follows a standard three-stage pipeline. In Stage~1 (warmup, 8k steps), we train only the two-layer MLP projectors while keeping all other parameters frozen. In Stage~2 (pre-alignment, 15k steps), we explore various training strategies, and find that freezing the encoder parameters for the first 1k iterations to stabilize the loss before transitioning to end-to-end training of all parameters yields the best downstream performance. In Stage~3 (supervised finetuning, 8k steps), we train all parameters of the model. Results are reported in Table~\ref{tab:model_performance} and Table~\ref{tab:qwen} with Llama 3.1 Instruct 8B and Qwen 2.5 VL 7B, respectively. We use the tile-based approach \cite{internvl3,molmo2} to support dynamic resolutions. 
+
+\begin{table}[htbp]
+\centering
+\caption{Alignment comparison across models. Columns are grouped by task type. Llama 3.1 Instruct 8B \cite{llama3} is used as the base LLM, and we use a maximum of 4 tiles.}
+\label{tab:model_performance}
+\fontsize{6.5}{8}\selectfont
+\setlength{\tabcolsep}{3pt}
+\newcommand{\gc}{\cellcolor{gray!15}}
+\resizebox{\textwidth}{!}{%
+\begin{tabular}{l c c c c c c c c c c c c c c}
+\toprule
+& & \multicolumn{6}{c}{\textbf{Image}} & \multicolumn{4}{c}{\textbf{Video}} & \multicolumn{3}{c}{\textbf{Captioning}} \\
+\cmidrule(lr){3-8} \cmidrule(lr){9-12} \cmidrule(lr){13-15}
+\textbf{Model}
+& \rotatebox{90}{\shortstack{Activated\\params}}
+& \rotatebox{90}{Avg.\ Images}
+& \rotatebox{90}{AI2D\cite{ai2d}}
+& \rotatebox{90}{TextVQA\cite{textvqa}}
+& \rotatebox{90}{ChartQA\cite{chartqa}}
+& \rotatebox{90}{DocVQA\cite{docvqa}}
+& \rotatebox{90}{Info.\ QA\cite{infovqa}}
+& \rotatebox{90}{Avg.\ Video}
+& \rotatebox{90}{VideoMME\cite{videomme}}
+& \rotatebox{90}{MVBench\cite{mvbench}}
+& \rotatebox{90}{EgoSchema\cite{egoschema}}
+& \rotatebox{90}{Avg.\ Cap.}
+& \rotatebox{90}{COCO\cite{coco}}
+& \rotatebox{90}{NoCaps\cite{nocaps}} \\
+\midrule
+MetaCLIP-G/14 \cite{metaclip}         & 1.8B & \gc 61.3 & 72.8 & 65.4 & 68.1 & 61.3 & 39.1 & \gc 45.4 & 46.5 & 44.7 & 45.0 & \gc 125.5 & 134.4 & 116.5 \\
+SigLIP2-g-opt/16 \cite{siglip2}       & 1.1B & \gc 59.0 & 72.4 & 70.3 & 63.1 & 55.3 & 34.0 & \gc 49.5 & 46.2 & 48.5 & 53.8 & \gc 129.1 & 137.8 & 120.3 \\
+PE\textsubscript{core}G/14 \cite{pe}  & 1.9B & \gc 69.2 & 69.7 & 74.3 & 73.4 & 81.2 & 47.6 & \gc 48.6 & 46.0 & 48.7 & 51.2 & \gc 123.7 & 134.5 & 112.9 \\
+InternViT2.5/14 \cite{internvl2p5}    & 5.5B & \gc 68.1 & 72.9 & 71.3 & \textbf{74.6} & 74.3 & 47.6 & \gc 48.7 & 46.0 & 49.6 & 50.6 & \gc 123.0 & 132.5 & 113.5 \\
+AIMv2 3B/14 \cite{aimv2}              & 2.7B & \gc 69.8 & 72.2 & \textbf{79.2} & 73.0 & 78.2 & 46.5 & \gc 49.7 & 49.6 & 49.9 & 49.6 & \gc \textbf{130.6} & \textbf{139.7} & \textbf{121.5} \\
+\midrule
+MoE-ViE-H/14                          & 1.1B & \gc \textbf{75.2} & \textbf{84.9} & 75.7 & 74.2 & \textbf{86.1} & \textbf{55.0} & \gc \textbf{58.9} & \textbf{52.0} & \textbf{63.6} & \textbf{61.2} & \gc 127.5 & 135.4 & 119.6 \\
+\bottomrule
+\end{tabular}
+}% end resizebox
+\end{table}
+
+\begin{table}[htbp]
+\centering
+\caption{Alignment comparison across models. Columns are grouped by task type. Qwen 2.5 VL 7B is used as the base LLM, and we use a maximum of 4 tiles.}
+\label{tab:qwen}
+\fontsize{6.5}{8}\selectfont
+\setlength{\tabcolsep}{3pt}
+\newcommand{\gc}{\cellcolor{gray!15}}
+\resizebox{\textwidth}{!}{%
+\begin{tabular}{l c c c c c c c c c c c c c c}
+\toprule
+& & \multicolumn{6}{c}{\textbf{Image}} & \multicolumn{4}{c}{\textbf{Video}} & \multicolumn{3}{c}{\textbf{Captioning}} \\
+\cmidrule(lr){3-8} \cmidrule(lr){9-12} \cmidrule(lr){13-15}
+\textbf{Model}
+& \rotatebox{90}{\shortstack{Activated\\params}}
+& \rotatebox{90}{Avg.\ Images}
+& \rotatebox{90}{AI2D\cite{ai2d}}
+& \rotatebox{90}{TextVQA\cite{textvqa}}
+& \rotatebox{90}{ChartQA\cite{chartqa}}
+& \rotatebox{90}{DocVQA\cite{docvqa}}
+& \rotatebox{90}{Info.\ QA\cite{infovqa}}
+& \rotatebox{90}{Avg.\ Video}
+& \rotatebox{90}{VideoMME\cite{videomme}}
+& \rotatebox{90}{MVBench\cite{mvbench}}
+& \rotatebox{90}{EgoSchema\cite{egoschema}}
+& \rotatebox{90}{Avg.\ Cap.}
+& \rotatebox{90}{COCO\cite{coco}}
+& \rotatebox{90}{NoCaps\cite{nocaps}} \\
+\midrule
+SigLIP2-g-opt/16 \cite{siglip2}       & 1.1B & \gc 62.7 & 75.2 & 70.3 & 71.0 & 60.4 & 36.7 & \gc 55.6 & 52.0 & 52.8 & 62.0 & \gc 130.1 & 139.0 & 121.1 \\
+PE\textsubscript{core}G/14 \cite{pe}  & 1.9B & \gc 65.4 & 72.9 & 67.9 & 75.9 & 68.8 & 41.6 & \gc 54.1 & 48.7 & 52.9 & 60.8 & \gc 123.8 & 135.2 & 112.3 \\
+InternViT2.5/14 \cite{internvl2p5}    & 5.5B & \gc 65.4 & 73.6 & 70.1 & \textbf{78.2} & 65.3 & 39.6 & \gc 52.7 & 50.3 &  51.1 & 56.6 & \gc 128.5 & 138.4 & 118.6 \\
+AIMv2 3B/14 \cite{aimv2}              & 2.7B & \gc 67.6 & 75.2 & \textbf{74.2} & 76.7 & 70.5 &  41.4 & \gc 52.7 & 45.9 & 51.4 & 60.8 & \gc \textbf{130.6} & \textbf{139.2} & \textbf{122.0} \\
+\midrule
+MoE-ViE-H/14                          & 1.1B & \gc \textbf{74.0} & \textbf{86.5} & 72.3 & 73.0 & \textbf{84.1} & \textbf{54.0} & \gc \textbf{59.2} & \textbf{53.4} & \textbf{61.5} & \textbf{62.8} & \gc 129.7 & 138.6 & 120.8 \\
+\bottomrule
+\end{tabular}
+}% end resizebox
+\end{table}
+
+As shown in Table~\ref{tab:model_performance} and Table~\ref{tab:qwen}, MoE-ViE-H achieves strong performance across all evaluation axes. On both image and video benchmarks, our model outperforms all baselines within the same parameter class and even surpasses SOTA models with several times more activated parameters. In captioning, although we do not achieve the highest scores, our results remain highly competitive: among models with fewer than 2B activated parameters, MoE-ViE-H is second only to SigLIP2-g-opt. We provide more analysis on alignment in Appendix~\ref{appx_alignment_results}.
+
+
+\subsection{Latency Comparison}
+With our kernel optimization presented in Section~\ref{optimization}, we achieve inference latency comparable to a dense model (SigLIP2-g-opt) with a similar number of active parameters, despite possessing a significantly larger pool of trainable parameters. As shown in Table~\ref{tab:performance_results}, the MoE kernel provides $>2.5\times$ speedup across different batch sizes compared to the vanilla implementation. Our MoE-ViE runs at roughly 76\% of latency compared to PE\textsubscript{core}G/14, the $1.7\times$ larger SOTA dense vision encoder, while demonstrating comparable performance on accuracy. This confirms that the representational gains of our proposed MoE-ViE are achieved without any unexpected latency regressions. Additionally, we further demonstrate that such efficiency gain is naturally translated to downstream VLMs, detailed in Appendix~\ref{appx_e2e_latency}.
+
+\begin{table}[h]
+\centering
+\caption{Performance comparison between MoE-ViE and dense vision encoders, across different inference batch sizes (\textit{bsz}). Due to difference in patch size, we report latency based on the same number of input tokens (\# tokens = 576) for a fair comparison. } % All latency are reported in milliseconds.
+\label{tab:performance_results}
+\fontsize{6.5}{8}\selectfont
+\begin{tabular}{l c c c c c c}
+\toprule
+\textbf{} & \multirow{2}{*}{\parbox{1.5cm}{\centering \textbf{Activated\\Parameters}}} & \multirow{2}{*}{\parbox{1.5cm}{\centering \textbf{Total\\Parameters}}} & \multicolumn{4}{c}{\textbf{Latency (ms)}} \\
+\cmidrule(lr){4-7}
+\textbf{Model} & & & \textbf{\textit{bsz}=16} & \textbf{32} & \textbf{64} & \textbf{128} \\
+\midrule
+SigLIP2-g-opt/16 \cite{siglip2} & 1.1B & 1.1B & 76.39 & 141.78 & 275.94 & 549.62  \\
+PE\textsubscript{core}G/14 \cite{pe} & 1.9B & 1.9B & 101.21 & 188.76 & 366.23 & 708.62 \\
+\midrule
+MoE-ViE-H/14 (Vanilla Implementation) & 1.1B & 3.5B & 318.76  & 448.93 & 740.84 & 1306.81  \\
+MoE-ViE-H/14 (Optimized Kernel) & 1.1B & 3.5B & 82.59  & 145.82 & 276.87 & 544.96  \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{Ablation Study}
+\label{ablation}
+
+\subsubsection{Auxiliary Loss} Table~\ref{aux_compare} compares different expert balancing algorithms. We conduct these experiments with MoE-ViE-B with patch size $32$, which is faster to train, but exhibits the same routing dynamics as other MoE-ViE variants. As seen, the loss-free approaches (\ie, \cite{aux_free} and ours) outperform other forms on all benchmarks. This aligns with our expectation, since expert utilization is achieved without directly perturbing optimization under the contrastive training objective. Our proposed magnitude-aware method further improves over \cite{aux_free}, indicating a more stable and effective balancing control.
+
+\begin{table}[htbp]
+\centering
+\caption{Comparison of different auxiliary losses for training CLIP vision encoders.}
+\label{aux_compare}
+\fontsize{6.5}{8}\selectfont
+\newcommand{\gc}{\cellcolor{gray!15}}
+\begin{tabular}{l c c c c c c c c c c c}
+\toprule
+& \multicolumn{6}{c}{\textbf{General Classification}} & \multicolumn{5}{c}{\textbf{Image Retrieval}} \\
+\cmidrule(lr){2-7} \cmidrule(lr){8-12}
+\textbf{Auxiliary loss}
+& \rotatebox{90}{Avg.\ Class.}
+& \rotatebox{90}{\shortstack{{\fontsize{7}{8}\selectfont ImageNet}\\{\fontsize{3}{4}\selectfont Val \cite{imagenet1k}}}}
+& \rotatebox{90}{\shortstack{{\fontsize{7}{8}\selectfont ImageNet}\\{\fontsize{3}{4}\selectfont v2 \cite{imagenetv2}}}}
+& \rotatebox{90}{{\fontsize{7}{8}\selectfont ObjectNet \cite{objectnet}}}
+& \rotatebox{90}{\shortstack{{\fontsize{7}{8}\selectfont ImageNet}\\{\fontsize{3}{4}\selectfont Adversarial \cite{imageneta}}}}
+& \rotatebox{90}{\shortstack{{\fontsize{7}{8}\selectfont ImageNet}\\{\fontsize{3}{4}\selectfont Renditions \cite{imagenetr}}}}
+& \rotatebox{90}{Avg.\ Retrieval}
+& \rotatebox{90}{\shortstack{{\fontsize{7}{8}\selectfont COCO}\\{\fontsize{3}{4}\selectfont T$\rightarrow$I \cite{coco}}}}
+& \rotatebox{90}{\shortstack{{\fontsize{7}{8}\selectfont COCO}\\{\fontsize{3}{4}\selectfont I$\rightarrow$T \cite{coco}}}}
+& \rotatebox{90}{\shortstack{{\fontsize{7}{8}\selectfont Flickr30k}\\{\fontsize{3}{4}\selectfont T$\rightarrow$I \cite{flickr}}}}
+& \rotatebox{90}{\shortstack{{\fontsize{7}{8}\selectfont Flickr30k}\\{\fontsize{3}{4}\selectfont I$\rightarrow$T \cite{flickr}}}} \\
+\midrule
+Dense model & \gc 55.8 & 67.5 & 59.3 & 50.6 & 27.8 & 73.7 & \gc 58.4 & 36.3 & 54.4 & 63.3 & 79.6 \\
+Importance and load loss \cite{vmoe} & \gc 59.9 & 70.6 & 62.3 & 54.3 & 34.7 & 77.7 & \gc 59.7 & 37.8 & 56.3 & 64.4 & 80.2 \\
+Entropy loss \cite{liemoe} & \gc 59.9 & 70.7 & 62.2 & 53.9 & 35.5 & 77.1 & \gc 60.0 & 38.5 & 56.4 & 65.0 & 80.1 \\
+Loss-free \cite{aux_free} & \gc 62.6 & 72.5 & 64.4 & 56.4 & 40.0 & 79.9 & \gc 60.9 & \textbf{39.2} & \textbf{56.8} & 65.3 & 82.5 \\
+Ours & \gc \textbf{63.2} & \textbf{72.9} & \textbf{64.9} & \textbf{57.7} & \textbf{40.4} & \textbf{80.0} & \gc \textbf{61.4} & 38.9 & 56.6 & \textbf{66.5} & \textbf{83.5} \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+
+\subsubsection{Video Finetuning} We ablate the video finetuning components introduced in Section~\ref{video_ft} in Fig. \ref{video_ft_ablation}, using MoE-ViE-H. For clarity, we report ImageNet-1K as a representative image benchmark and K400 as a representative video benchmark. 
+
+As shown in Fig. \ref{video_ft_ablation_a}, while naive video finetuning on video data improves video performance, it causes a significant degradation on image benchmarks over time. Mixing image data into the video finetuning partially mitigates this issue, but fails to prevent degradation, and limits our gains on video understanding. We find that applying frame-level distillation without freezing the MLP layers in the text tower sharply hurts image performance. Finally, we see that, individually, both distillation and expert freezing help preserve image performance, and that their combination achieves the best results on both image and video benchmarks.
+
+\begin{figure}[htbp]
+  \centering
+  \begin{subfigure}{0.3\textwidth}
+    \centering
+    \includegraphics[width=\linewidth]{images/video_ft_base_mix_distill_img.pdf}\\[0.5em]
+    \includegraphics[width=\linewidth]{images/video_ft_base_mix_distill_video.pdf}
+    \caption{}
+    \label{video_ft_ablation_a}
+  \end{subfigure}\quad
+  \begin{subfigure}{0.3\textwidth}
+    \centering
+    \includegraphics[width=\linewidth]{images/video_ft_text_img.pdf}\\[0.5em]
+    \includegraphics[width=\linewidth]{images/video_ft_text_video.pdf}
+    \caption{}
+    \label{video_ft_ablation_b}
+  \end{subfigure}\quad
+  \begin{subfigure}{0.3\textwidth}
+    \centering
+    \includegraphics[width=\linewidth]{images/video_ft_ablate_img.pdf}\\[0.5em]
+    \includegraphics[width=\linewidth]{images/video_ft_ablate_video.pdf}
+    \caption{}
+    \label{video_ft_ablation_c}
+  \end{subfigure}
+  \caption{Ablations of different video finetuning methods. (a) Our proposed distillation and freezing techniques outperform finetuning with vanilla video data, or mixed image and video data; (b) We observe significant degradation if we apply frame-level distillation without freezing the text tower; (c) The combination of the proposed distillation and freezing methods yields the best results.}
+  \label{video_ft_ablation}
+\end{figure}
+
+\subsection{Expert Specialization}
+\label{moe_analysis}
+We conduct both qualitative and quantitative analysis of MoE-ViE’s expert activation patterns to better understand how fine-grained MoE captures complex, multi-faceted visual information. Across both tokens and tasks, we observe clear and meaningful expert specialization.
+
+We first project each layer’s features to three principal components using PCA, and map the resulting 3D embeddings to RGB, as in \cite{pe,dinov3}. For each expert, we visualize the tokens routed to it, as shown in Fig.~\ref{fig:expert_activations_per_token}. Since we use top-$k$ routing, these subplots are not mutually exclusive, \ie, a token may appear in multiple expert-specific views. We also illustrate the subplot for the shared expert, which receives all tokens, preserving global context. 
+
+\begin{figure}[t]
+  \centering
+
+  % -------------------- (a) dog row --------------------
+  \begin{subfigure}{\textwidth}
+    \centering
+
+    \begin{subfigure}{0.16\textwidth}
+      \centering
+      \includegraphics[height=2cm,width=\linewidth]{images/expert_activations/per_token_pdf/example1_dog/raw_image.pdf}
+    \end{subfigure}
+    \begin{subfigure}{0.16\textwidth}
+      \centering
+      \includegraphics[height=2cm,width=\linewidth]{images/expert_activations/per_token_pdf/example1_dog/pca_viz_layer_20.pdf}
+    \end{subfigure}
+    \begin{subfigure}{0.16\textwidth}
+      \centering
+      \includegraphics[height=2cm,width=\linewidth]{images/expert_activations/per_token_pdf/example1_dog/expert_11.pdf}
+    \end{subfigure}
+    \begin{subfigure}{0.16\textwidth}
+      \centering
+      \includegraphics[height=2cm,width=\linewidth]{images/expert_activations/per_token_pdf/example1_dog/expert_18.pdf}
+    \end{subfigure}
+    \begin{subfigure}{0.16\textwidth}
+      \centering
+      \includegraphics[height=2cm,width=\linewidth]{images/expert_activations/per_token_pdf/example1_dog/expert_22.pdf}
+    \end{subfigure}
+    \begin{subfigure}{0.16\textwidth}
+      \centering
+      \includegraphics[height=2cm,width=\linewidth]{images/expert_activations/per_token_pdf/example1_dog/expert_29.pdf}
+    \end{subfigure}
+
+    \caption{From left to right: raw image, shared expert, experts 11, 18, 22, 29}
+    \label{fig:exp_examples_dog}
+  \end{subfigure}
+
+  \par\medskip
+
+  % -------------------- (b) churros row --------------------
+  \begin{subfigure}{\textwidth}
+    \centering
+
+    \begin{subfigure}{0.16\textwidth}
+      \centering
+      \includegraphics[height=2cm,width=\linewidth]{images/expert_activations/per_token_pdf/example2_churros/raw_image.pdf}
+    \end{subfigure}
+    \begin{subfigure}{0.16\textwidth}
+      \centering
+      \includegraphics[height=2cm,width=\linewidth]{images/expert_activations/per_token_pdf/example2_churros/pca_viz_layer_20.pdf}
+    \end{subfigure}
+    \begin{subfigure}{0.16\textwidth}
+      \centering
+      \includegraphics[height=2cm,width=\linewidth]{images/expert_activations/per_token_pdf/example2_churros/expert_11.pdf}
+    \end{subfigure}
+    \begin{subfigure}{0.16\textwidth}
+      \centering
+      \includegraphics[height=2cm,width=\linewidth]{images/expert_activations/per_token_pdf/example2_churros/expert_17.pdf}
+    \end{subfigure}
+    \begin{subfigure}{0.16\textwidth}
+      \centering
+      \includegraphics[height=2cm,width=\linewidth]{images/expert_activations/per_token_pdf/example2_churros/expert_19.pdf}
+    \end{subfigure}
+    \begin{subfigure}{0.16\textwidth}
+      \centering
+      \includegraphics[height=2cm,width=\linewidth]{images/expert_activations/per_token_pdf/example2_churros/expert_29.pdf}
+    \end{subfigure}
+
+    \caption{From left to right: raw image, shared expert, experts 11, 17, 19, 29}
+    \label{fig:exp_examples_food}
+  \end{subfigure}
+
+  \caption{MoE Expert activations in layer 20 of MoE-ViE-H/14. Experts specialize for distinct, semantically meaningful, aspects of the image.}
+  \label{fig:expert_activations_per_token}
+\end{figure} 
+
+Such visualization reveals several compelling insights: (1) each expert extracts distinct, semantically meaningful aspects of the image; (2) these specializations are complementary, such that their combined outputs yield richer visual understanding. For example, in Fig.~\ref{fig:expert_activations_per_token}\subref{fig:exp_examples_dog}, expert 11 predominantly activates on tokens corresponding to the dog’s ears, while expert 18 emphasizes the eyes and nose. In Fig.~\ref{fig:expert_activations_per_token}\subref{fig:exp_examples_food}, expert 17 highlights the plate, whereas expert 19 concentrates on the food. In both examples, expert 29 consistently activates on background regions.
+
+\begin{figure}[htbp]
+  \centering
+  % widths for layout (keep your original layout)
+  \newcommand{\yaxw}{0.12\textwidth}
+  \newcommand{\plotw}{0.29\textwidth}
+  % tweak these two until it looks perfect
+  \newcommand{\yaxscale}{1.35} % makes y-axis labels bigger
+  \newcommand{\yaxraise}{1.5ex} % raises y-axis strip up
+  % --- shared y-axis (labels only), scaled ---
+  \begin{subfigure}[b]{\yaxw}
+    \centering
+    \raisebox{\yaxraise}{%
+      \scalebox{\yaxscale}{%
+        \includegraphics[width=\linewidth]{images/expert_activations/per_task_pdf/yaxis_benchmarks.pdf}%
+      }%
+    }
+    \caption*{}
+  \end{subfigure}\hfill
+  % --- three plots (exported without y-axis) ---
+  \begin{subfigure}[b]{\plotw}
+    \centering
+    \includegraphics[width=\linewidth]{images/expert_activations/per_task_pdf/act_experts_tasks_layer_28_no_yaxis.pdf}
+    \caption{MoE layer 29}
+  \end{subfigure}\hfill
+  \begin{subfigure}[b]{\plotw}
+    \centering
+    \includegraphics[width=\linewidth]{images/expert_activations/per_task_pdf/act_experts_tasks_layer_29_no_yaxis.pdf}
+    \caption{MoE layer 30}
+  \end{subfigure}\hfill
+  \begin{subfigure}[b]{\plotw}
+    \centering
+    \includegraphics[width=\linewidth]{images/expert_activations/per_task_pdf/act_experts_tasks_layer_30_no_yaxis.pdf}
+    \caption{Last MoE layer, layer 31}
+  \end{subfigure}
+  \caption{Expert activation across all data for a given task, final layers of MoE-ViE-H/14.}
+\label{fig:expert_activations_per_task}
+\end{figure}
+
+We further quantify expert specialization through per-task expert utilization heatmaps (Fig.~\ref{fig:expert_activations_per_task}) and routing entropy (Table~\ref{routing_entropy}). As shown in Fig.~\ref{fig:expert_activations_per_task}, experts exhibit distinct activation profiles across tasks, consistent with the emergence of task-relevant specialization in deeper MoE layers. Interestingly, on domain-specific benchmarks (\eg, FGVC Aircraft, VTAB Flowers), activations are more imbalanced across experts than on more general benchmarks such as ImageNet or COCO. This concentration may help explain MoE-ViE’s stronger performance on fine-grained image benchmarks. To complement this analysis, we measure routing entropy across tasks and layers, summarized in Table~\ref{routing_entropy}. Entropy consistently decreases with depth, confirming higher specialization at later layers. Moreover, benchmarks spanning narrower visual domains (VTAB Flowers, FGVC Aircraft) exhibit lower entropy overall, indicating stronger semantic specialization.
+
+
+\begin{table}[H]
+\centering
+\caption{Routing entropy averaged over layer ranges.}
+\label{routing_entropy}
+\fontsize{6.5}{8}\selectfont
+\setlength{\tabcolsep}{2.7pt}
+\newcommand{\gc}{\cellcolor{gray!10}}
+\begin{tabular}{lccccc}
+\toprule
+Benchmark & L0--5 & L6--15 & L16--25 & L26--30&Uniform \\
+\midrule
+VTAB Flowers \cite{flowers}   & 3.20 & 3.17 & 2.83 & 2.30 & 3.47 \\
+FGVC Aircraft \cite{aircraft}  & 3.19 & 3.26 & 2.95 & 2.56 & 3.47 \\
+ImageNetV2 \cite{imagenetv2}     & 3.34 & 3.31 & 3.30 & 3.21 & 3.47 \\
+Flickr30k \cite{flickr}      & 3.28 & 3.30 & 3.23 & 3.07 & 3.47 \\
+COCO \cite{coco}  & 3.30 & 3.32 & 3.30 & 3.18 & 3.5 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\section{Related Work}
+
+
+\subsection{Contrastive Language-Image Pretraining}
+
+Contrastive vision-language pretraining (CLIP) has emerged as a foundational approach for building strong and transferable vision encoders \cite{clip,align}. A number of extensions refine either its training objective or supervision signals. For instance, SigLIP \cite{siglip} replaces the Softmax used to compute InfoNCE loss \cite{infonce} with a Sigmoid function, enabling better scaling and efficiency. MaskCLIP \cite{maskclip} augments masked image modeling to train the vision model as a self-distillation. CoCa \cite{cocca} incorporates caption loss in contrastive training, and LocCa \cite{locca} further introduces grounding supervision. SigLIP 2 \cite{siglip2} and PE \cite{pe} integrate several of these ingredients, achieving high accuracy on zero-shot image and video benchmarks. 
+
+\subsection{Mixture-of-Experts (MoE)}
+
+MoE scales model capacity by replacing dense layers with an expert router and a set of expert layers. The learned expert router activates a small subset of experts per input, yielding sparse input-dependent computation. The idea traces back to conditional computation with expert gating formulations \cite{early_moe_1,early_moe_2,early_moe_4}, and has since become a practical mechanism for scaling transformers via sparse top-$k$ routing \cite{original_moe}. MoE has been extensively studied in natural language processing (NLP) \cite{switch,gshard}, and has shown great success in many recent large language models \cite{qwen3,deepseekv3,gptoss,kimik2,mixtral}. Early MoE for vision efforts largely follow supervised training strategies \cite{vmoe,rmoe,adamv} or introduce MoE during the post-training stages \cite{mome,tove,omni_smola}. Later works have introduced MoE into CLIP pretraining \cite{clip}. LIMoE \cite{liemoe} pioneered contrastive learning with sparsely activated experts and demonstrated improved zero-shot image benchmarks. CLIP-MoE \cite{clip_moe} and CLIP-UP \cite{moe_clipup} introduce upcycling techniques to convert pretrained dense CLIP models to MoE variants. Despite these advances, prior MoE vision encoders have not matched performance of SOTA dense models.
+
+\section{Conclusion}
+
+In this work, we present MoE-ViE, an efficient and performant vision encoder with fine-grained MoE, for image and video understanding. By combining our proposed architectural design, kernel optimization, magnitude-aware loss-free load balancing control, and refined video finetuning, MoE-ViE outperforms both prior dense and MoE vision encoders across image and video benchmarks at all scales. Our largest model achieves comparable results to a SOTA dense encoder that is
+$1.7\times$ larger while running at 76\% of its latency, demonstrating the significant potential for further effectively scaling up vision encoders.
+
+\section*{Acknowledgements}
+We would like to thank Giang Nguyen, Jiankun Liu, Zhuangqun Huang, Tuyen Tran, Xiao Zhang, Parisa Hassanzadeh, Lambert Mathias, Po-Yao Huang, Daniel Bolya for their contributions, support and discussions for this project.
+
+\appendix
+
+\section{Architecture Design Ablations}
+\label{supp_a}
+
+This section presents additional analyses of our MoE design, including our study on shared experts, activated experts, and the expert width. Unless otherwise noted, we train MoE-ViE-B with patch size 32 on 12.8B samples from MetaCLIP \cite{metaclip}.
+
+
+\subsection{Number of Shared Experts}
+
+Table~\ref{num_shared_experts} compares models with different numbers of shared experts. To keep the compute budget fixed, we hold the total number of experts constant (32 in this case) and trade off shared experts against sparsely routed experts. We see that introducing shared experts generally improves performance over a fully sparse routing configuration. However, increasing the number of shared experts beyond a small value yields no further gains and can even degrade results. Therefore, we use a single shared expert in all experiments for simplicity.
+
+
+\begin{table}[htbp]
+\centering
+\caption{Ablation on the number of shared experts.}
+\label{num_shared_experts}
+\fontsize{6.5}{8}\selectfont
+\setlength{\tabcolsep}{2.5pt}
+\newcommand{\gc}{\cellcolor{gray!10}}
+\begin{tabular}{c c c c c c c c c c c c}
+\toprule
+& \multicolumn{6}{c}{\textbf{General Classification}} & \multicolumn{5}{c}{\textbf{Image Retrieval}} \\
+\cmidrule(lr){2-7} \cmidrule(lr){8-12}
+\textbf{\# of shared experts}
+& \rotatebox{90}{Avg.\ Class.}
+& \rotatebox{90}{\shortstack{{\fontsize{7}{8}\selectfont ImageNet}\\{\fontsize{3}{4}\selectfont Val \cite{imagenet1k}}}}
+& \rotatebox{90}{\shortstack{{\fontsize{7}{8}\selectfont ImageNet}\\{\fontsize{3}{4}\selectfont v2 \cite{imagenetv2}}}}
+& \rotatebox{90}{{\fontsize{7}{8}\selectfont ObjectNet \cite{objectnet}}}
+& \rotatebox{90}{\shortstack{{\fontsize{7}{8}\selectfont ImageNet}\\{\fontsize{3}{4}\selectfont Adversarial \cite{imageneta}}}}
+& \rotatebox{90}{\shortstack{{\fontsize{7}{8}\selectfont ImageNet}\\{\fontsize{3}{4}\selectfont Renditions \cite{imagenetr}}}}
+& \rotatebox{90}{Avg.\ Retrieval}
+& \rotatebox{90}{\shortstack{{\fontsize{7}{8}\selectfont COCO}\\{\fontsize{3}{4}\selectfont T$\rightarrow$I \cite{coco}}}}
+& \rotatebox{90}{\shortstack{{\fontsize{7}{8}\selectfont COCO}\\{\fontsize{3}{4}\selectfont I$\rightarrow$T \cite{coco}}}}
+& \rotatebox{90}{\shortstack{{\fontsize{7}{8}\selectfont Flickr30k}\\{\fontsize{3}{4}\selectfont T$\rightarrow$I \cite{flickr}}}}
+& \rotatebox{90}{\shortstack{{\fontsize{7}{8}\selectfont Flickr30k}\\{\fontsize{3}{4}\selectfont I$\rightarrow$T \cite{flickr}}}} \\
+\midrule
+0 &  \gc 62.1 & 72.5 & 64.2 & 56.1 & 38.4 & 79.5& \gc 61.1	& 38.8 & 56.4 & 66.2 & 83.0 \\
+1 & \gc \textbf{63.2}& 72.9	&	\textbf{64.9}& 57.7&	\textbf{40.4} &	\textbf{80.0}	&\gc 	\textbf{61.4}&	38.9& \textbf{56.6}	&\textbf{66.5}	& 83.5  \\
+2 &\gc63.0 & \textbf{73.2}&	64.5& \textbf{57.9} & 39.7 &	79.9 &\gc 61.3	& \textbf{39.1} & 56.4	& 66.3& \textbf{83.6} \\
+4 &\gc 62.5& 72.6 & 64.2 & 57.2 & 38.8 & 79.5 &\gc 60.2 & 37.5 & 56.5 & 65.0 & 81.7 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{Weight of Shared Experts}
+\label{appx_shard_experts}
+
+We sweep the scaling factor applied to the shared expert. Table \ref{weight_shared_experts} summarizes the results. Our model performance is largely insensitive to this weight across a broad range, suggesting that it is not a critical hyperparameter. We hypothesize that the scaling mainly affects the initial state. Further training can always adjust model parameters to reach a comparable solution.
+
+\begin{table}[htbp]
+\centering
+\caption{Ablation on the weight of shared experts.}
+\label{weight_shared_experts}
+\fontsize{6.5}{8}\selectfont
+\setlength{\tabcolsep}{2.5pt}
+\newcommand{\gc}{\cellcolor{gray!10}}
+\begin{tabular}{l c c c c c c c c c c c}
+\toprule
+& \multicolumn{6}{c}{\textbf{General Classification}} & \multicolumn{5}{c}{\textbf{Image Retrieval}} \\
+\cmidrule(lr){2-7} \cmidrule(lr){8-12}
+\textbf{$\lambda$}
+& \rotatebox{90}{Avg.\ Class.}
+& \rotatebox{90}{\shortstack{{\fontsize{7}{8}\selectfont ImageNet}\\{\fontsize{3}{4}\selectfont Val \cite{imagenet1k}}}}
+& \rotatebox{90}{\shortstack{{\fontsize{7}{8}\selectfont ImageNet}\\{\fontsize{3}{4}\selectfont v2 \cite{imagenetv2}}}}
+& \rotatebox{90}{{\fontsize{7}{8}\selectfont ObjectNet \cite{objectnet}}}
+& \rotatebox{90}{\shortstack{{\fontsize{7}{8}\selectfont ImageNet}\\{\fontsize{3}{4}\selectfont Adversarial \cite{imageneta}}}}
+& \rotatebox{90}{\shortstack{{\fontsize{7}{8}\selectfont ImageNet}\\{\fontsize{3}{4}\selectfont Renditions \cite{imagenetr}}}}
+& \rotatebox{90}{Avg.\ Retrieval}
+& \rotatebox{90}{\shortstack{{\fontsize{7}{8}\selectfont COCO}\\{\fontsize{3}{4}\selectfont T$\rightarrow$I \cite{coco}}}}
+& \rotatebox{90}{\shortstack{{\fontsize{7}{8}\selectfont COCO}\\{\fontsize{3}{4}\selectfont I$\rightarrow$T \cite{coco}}}}
+& \rotatebox{90}{\shortstack{{\fontsize{7}{8}\selectfont Flickr30k}\\{\fontsize{3}{4}\selectfont T$\rightarrow$I \cite{flickr}}}}
+& \rotatebox{90}{\shortstack{{\fontsize{7}{8}\selectfont Flickr30k}\\{\fontsize{3}{4}\selectfont I$\rightarrow$T \cite{flickr}}}} \\
+\midrule
+10 &  \gc 63.0 & 72.5 & 64.7 & 57.4 & \textbf{40.5} & \textbf{80.1} & \gc 61.3 & 38.6 & 56.2 & \textbf{66.8} & \textbf{83.5} \\
+1 & \gc \textbf{63.2}& \textbf{72.9}	&	\textbf{64.9}& 57.7 &	40.4 &	\textbf{80.0}	&\gc 	\textbf{61.4}&	38.9& \textbf{56.6}	&66.5	& \textbf{83.5}  \\
+0.1 &\gc 63.1 & 73.0	& 64.5 & \textbf{57.8} &	40.1 & 79.8	&\gc 61.1 & \textbf{39.1}	& 56.3	& 66.3 & 82.8 \\
+0.01 &\gc 62.9& 72.6 & 64.5 & 57.2 & 40.4 & 80.0 &\gc 61.1	& 38.6 & 56.4 & 66.7 & 83.0 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{Choice of Top-$k$}
+We study the effect of the number of activated experts $k$, summarized in Table~\ref{top_k}, using a total of 32 fine-grained experts. Performance improves only marginally beyond $k=8$, indicating diminishing returns from additional expert activation. Based on this observation, we set $k\in \{4,8\}$ depending on model size and compute budget, striking a favorable balance between capacity and efficiency.
+
+\begin{table}[htbp]
+\centering
+\caption{Ablations of top-$k$.}
+\label{top_k}
+\fontsize{6.5}{8}\selectfont
+\setlength{\tabcolsep}{2.5pt}
+\newcommand{\gc}{\cellcolor{gray!10}}
+\begin{tabular}{l c c c c c c c c c c c}
+\toprule
+& \multicolumn{6}{c}{\textbf{General Classification}} & \multicolumn{5}{c}{\textbf{Image Retrieval}} \\
+\cmidrule(lr){2-7} \cmidrule(lr){8-12}
+\textbf{$k$}
+& \rotatebox{90}{Avg.\ Class.}
+& \rotatebox{90}{\shortstack{{\fontsize{7}{8}\selectfont ImageNet}\\{\fontsize{3}{4}\selectfont Val \cite{imagenet1k}}}}
+& \rotatebox{90}{\shortstack{{\fontsize{7}{8}\selectfont ImageNet}\\{\fontsize{3}{4}\selectfont v2 \cite{imagenetv2}}}}
+& \rotatebox{90}{{\fontsize{7}{8}\selectfont ObjectNet \cite{objectnet}}}
+& \rotatebox{90}{\shortstack{{\fontsize{7}{8}\selectfont ImageNet}\\{\fontsize{3}{4}\selectfont Adversarial \cite{imageneta}}}}
+& \rotatebox{90}{\shortstack{{\fontsize{7}{8}\selectfont ImageNet}\\{\fontsize{3}{4}\selectfont Renditions \cite{imagenetr}}}}
+& \rotatebox{90}{Avg.\ Retrieval}
+& \rotatebox{90}{\shortstack{{\fontsize{7}{8}\selectfont COCO}\\{\fontsize{3}{4}\selectfont T$\rightarrow$I \cite{coco}}}}
+& \rotatebox{90}{\shortstack{{\fontsize{7}{8}\selectfont COCO}\\{\fontsize{3}{4}\selectfont I$\rightarrow$T \cite{coco}}}}
+& \rotatebox{90}{\shortstack{{\fontsize{7}{8}\selectfont Flickr30k}\\{\fontsize{3}{4}\selectfont T$\rightarrow$I \cite{flickr}}}}
+& \rotatebox{90}{\shortstack{{\fontsize{7}{8}\selectfont Flickr30k}\\{\fontsize{3}{4}\selectfont I$\rightarrow$T \cite{flickr}}}} \\
+\midrule
+4  &\gc 62.4 & 72.6 & 64.3 & 56.9 & 38.0 & 80.0 &\gc 61.0 & 38.4 & 56.0 & 66.3 & 83.2 \\
+8  &\gc 63.2 & 72.9 & 64.9 & 57.7 & 40.4 & 80.0 & \gc 61.4 & 38.9 & 56.6 & 66.5 & 83.5 \\
+16 &\gc 63.1 & 73.0 & 64.8 & 57.5 & 40.3 & 79.8 &\gc 61.4 & 39.1 & 56.5 & 66.3 & 83.6 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{Expert Width}
+\label{appx_moe_scaling}
+We sweep the expert width factor $c$ (\ie, each expert has $\frac{1}{c}\times$ the dense MLP width) to study the effect of expert granularity while keeping the total expert capacity fixed at $8\times$ the MLP size. Finer granularity consistently improves performance across all benchmarks, consistent with our qualitative and quantitative analysis in Section~\ref{moe_analysis}. However, gains saturate below $\frac{1}{4}$ width, suggesting a practical lower bound on useful expert decomposition.
+
+\begin{table}[htbp]
+\centering
+\caption{Ablations of expert width factor $c$.}
+\label{expert_width}
+\fontsize{6.5}{8}\selectfont
+\setlength{\tabcolsep}{2.5pt}
+\newcommand{\gc}{\cellcolor{gray!10}}
+\begin{tabular}{l c c c c c c c c c c c}
+\toprule
+& \multicolumn{6}{c}{\textbf{General Classification}} & \multicolumn{5}{c}{\textbf{Image Retrieval}} \\
+\cmidrule(lr){2-7} \cmidrule(lr){8-12}
+\textbf{$c$}
+& \rotatebox{90}{Avg.\ Class.}
+& \rotatebox{90}{\shortstack{{\fontsize{7}{8}\selectfont ImageNet}\\{\fontsize{3}{4}\selectfont Val \cite{imagenet1k}}}}
+& \rotatebox{90}{\shortstack{{\fontsize{7}{8}\selectfont ImageNet}\\{\fontsize{3}{4}\selectfont v2 \cite{imagenetv2}}}}
+& \rotatebox{90}{{\fontsize{7}{8}\selectfont ObjectNet \cite{objectnet}}}
+& \rotatebox{90}{\shortstack{{\fontsize{7}{8}\selectfont ImageNet}\\{\fontsize{3}{4}\selectfont Adversarial \cite{imageneta}}}}
+& \rotatebox{90}{\shortstack{{\fontsize{7}{8}\selectfont ImageNet}\\{\fontsize{3}{4}\selectfont Renditions \cite{imagenetr}}}}
+& \rotatebox{90}{Avg.\ Retrieval}
+& \rotatebox{90}{\shortstack{{\fontsize{7}{8}\selectfont COCO}\\{\fontsize{3}{4}\selectfont T$\rightarrow$I \cite{coco}}}}
+& \rotatebox{90}{\shortstack{{\fontsize{7}{8}\selectfont COCO}\\{\fontsize{3}{4}\selectfont I$\rightarrow$T \cite{coco}}}}
+& \rotatebox{90}{\shortstack{{\fontsize{7}{8}\selectfont Flickr30k}\\{\fontsize{3}{4}\selectfont T$\rightarrow$I \cite{flickr}}}}
+& \rotatebox{90}{\shortstack{{\fontsize{7}{8}\selectfont Flickr30k}\\{\fontsize{3}{4}\selectfont I$\rightarrow$T \cite{flickr}}}} \\
+\midrule
+1 & \gc 59.9& 70.6 & 62.3 & 54.3 & 34.7 & 77.7& \gc 59.7& 37.8 & 56.3 & 64.4 & 80.2 \\
+2 & 61.0 & 71.1 & 62.6 & 55.0 & 37.2 & 78.9 & 60.3 & 38.0 & 56.4 & 64.9 & 82.0 \\
+4 & \gc 63.2 & 72.9 & 64.9 & 57.7 & 40.4 & 80.0 & \gc 61.4 & 38.9 & 56.6 & 66.5 & 83.5 \\
+8 & 62.8 & 72.7 & 64.2 & 57.9 & 39.6 & 79.5 & 61.0 & 39.0 & 56.1 & 65.9 & 83.1 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\section{MoE Kernel}
+\label{appx_kernel}
+
+\subsection{Limitation of Vanilla MoE Implementation}
+
+The vanilla implementation of MoE processes one expert at a time in a Python \texttt{for} loop. While straightforward to implement, it has
+several performance limitations. First, processing experts sequentially fragments what could be a single large GEMM into many smaller, often highly imbalanced GEMMs. These small GEMMs exhibit low arithmetic intensity and insufficient parallelism, leading to poor GPU utilization and higher latency. Further, dynamic routing requires per-expert index selection to identify routed tokens, followed by separate gather/GEMM/activation/scatter launches for each expert. The resulting CPU-GPU synchronization and kernel-launch overhead can dominate latency when each expert processes only a small number of tokens. In addition, each iteration of the loop materializes multiple intermediate tensors, causing repeated reads and writes to HBM at each step. Moreover, the input is re-gathered per active expert (up to $K$ times under top-$K$ routing), creating redundant memory traffic that often makes bandwidth, instead of compute, the latency bottleneck.
+
+\subsection{Optimized MoE Kernels}
+\label{app:fused}
+
+
+As described in Section~\ref{optimization}, we implement specialized kernels to address each of the above bottlenecks. The optimized implementation (Algorithm~\ref{alg:fused}) uses two custom GPU kernels written in
+Triton~\cite{triton}, a compiler for writing efficient GPU programs
+in Python. Algorithm~\ref{alg:fused} details the resulting procedure. The two optimizations mentioned in Section~\ref{optimization} map to the algorithm as
+follows:
+
+\begin{enumerate}
+  \item \textbf{Grouped GEMM}. % (addresses bottlenecks~1 and~2).
+    Instead of issuing multiple separate small GEMMs
+    in a loop, the optimized kernel fuses all per-expert GEMMs into a single grouped operation executed in one GPU launch, using a 3D grid that parallelizes over tokens, output columns, and experts to improve arithmetic intensity and GPU utilization. A jagged layout handles variable per-expert token counts without padding, and GPU-side \textsc{Sort}/\textsc{CumSum} replaces per-expert \textsc{Where} queries, removing the loop and CPU-GPU synchronization so the forward pass completes in only two kernel launches.
+
+  \item \textbf{Kernel Fusion}. % (addresses bottleneck~3).
+    Each kernel fuses multiple steps to reduce HBM traffic. Kernel~1 computes the gate and up projections together with the SwiGLU activation while keeping intermediates in registers, materializing only the activation output. This roughly
+    halves memory traffic compared to the vanilla implementation. It also folds token gathering into the GEMM via pre-sorted indices, and Kernel~2 similarly fuses the down projection with routing-weight scaling and the output scatter (via atomic adds), writing directly to $\mathbf{Y}$ without intermediate buffers.
+
+\end{enumerate}
+
+\begin{algorithm}[h]
+\caption{Fused MoE FFN -- Optimized Triton Kernel}
+\begin{scriptsize} 
+\label{alg:fused}
+\begin{algorithmic}[1]
+\Require Input tokens $\mathbf{X}\in\mathbb{R}^{B\times D}$; expert weights
+         $\{\mathbf{W}_1^{(e)},\mathbf{W}_3^{(e)},\mathbf{W}_2^{(e)}\}_{e=1}^{E}$;
+         routing indices $\mathbf{T}_{\text{id}}\in\mathbb{Z}^{B\times K}$;
+         routing weights $\mathbf{T}_w\in\mathbb{R}^{B\times K}$
+\Ensure  Output $\mathbf{Y}\in\mathbb{R}^{B\times D}$
+
+\Statex \textbf{--- Phase 1: Route tokens to experts (In-parallel routing) ---}
+\State $(\text{expert}[n],\;\text{pos}[n]) \gets \textsc{Sort}(\mathbf{T}_{\text{id}}.\text{flatten}())$
+    \Comment{Sort by expert ID}
+\State $\text{index}[n] \gets \text{pos}[n] \,/\!/ \;K$
+    \Comment{Map sorted position back to original token index}
+\State $\text{offsets}[e] \gets \textsc{CumSum}(\textsc{BinCount}(\text{expert},\, E))$
+    \Comment{$[E\!+\!1]$; jagged segment boundaries}
+\State $\text{max\_seg} \gets \max_{e}(\text{offsets}[e\!+\!1] - \text{offsets}[e])$
+    \Comment{Longest expert segment}
+
+\Statex
+\Statex \textbf{--- Phase 2: Fused Gate$+$Up projection with SwiGLU (Kernel 1) ---}
+\Statex \Comment{All $E$ experts execute \textbf{in parallel} as a single batched kernel launch}
+\For{each GPU thread block $(m,\, n,\, e)$ \textbf{in parallel}}
+    \Comment{3D grid: $\lceil\text{max\_seg}/B_M\rceil \times \lceil D'/B_N\rceil \times E$}
+    \State $s \gets \text{offsets}[e]$;\enspace $l \gets \text{offsets}[e\!+\!1] - s$
+    \If{$m \cdot B_M \geq l$} \textbf{return} \Comment{Skip blocks beyond this expert's segment}
+    \EndIf
+    \State Load tile of input rows from $\mathbf{X}$ via $\text{index}[s .. s\!+\!l]$
+         \Comment{Indirect gather, fused into GEMM}
+    \State $\mathbf{G}_{\text{tile}} \gets \mathbf{0}$;\enspace $\mathbf{U}_{\text{tile}} \gets \mathbf{0}$
+    \For{$k = 0,\, B_K,\, 2B_K,\, \dots$}
+         \Comment{Tiled matrix multiply over dimension $D$}
+        \State $\mathbf{G}_{\text{tile}} \mathrel{+}= \text{tile}(\mathbf{X}) \cdot \text{tile}(\mathbf{W}_1^{(e)})$
+        \State $\mathbf{U}_{\text{tile}} \mathrel{+}= \text{tile}(\mathbf{X}) \cdot \text{tile}(\mathbf{W}_3^{(e)})$
+    \EndFor
+    \State $\mathbf{A}_{\text{tile}} \gets \text{SiLU}(\mathbf{G}_{\text{tile}}) \odot \mathbf{U}_{\text{tile}}$
+         \Comment{SwiGLU fused in registers, no memory write for $\mathbf{G}, \mathbf{U}$}
+    \State Write $\mathbf{A}_{\text{tile}}$ to activation buffer
+\EndFor
+
+\Statex
+\Statex \textbf{--- Phase 3: Fused Down projection$+$Scatter-Add (Kernel 2) ---}
+\State $\mathbf{Y} \gets \mathbf{0}_{B\times D}$
+\For{each GPU thread block $(m,\, n,\, e)$ \textbf{in parallel}}
+    \Comment{3D grid over segments and output tiles}
+    \State $s \gets \text{offsets}[e]$;\enspace $l \gets \text{offsets}[e\!+\!1] - s$
+    \If{block's $m$-offset $\geq l$} \textbf{return} \EndIf
+    \State $\mathbf{O}_{\text{tile}} \gets \mathbf{0}$
+    \For{$k = 0,\, B_K,\, 2B_K,\, \dots$}
+        \State $\mathbf{O}_{\text{tile}} \mathrel{+}= \text{tile}(\mathbf{A}) \cdot \text{tile}(\mathbf{W}_2^{(e)})$
+    \EndFor
+    \State $\mathbf{O}_{\text{tile}} \gets \mathbf{O}_{\text{tile}} \cdot \mathbf{T}_w[\text{corresponding positions}]$
+         \Comment{Multiply by routing weight}
+    \State $\textsc{AtomicAdd}\bigl(\mathbf{Y}[\text{index}[\cdot]],\;\mathbf{O}_{\text{tile}}\bigr)$
+         \Comment{Scatter-add directly to output}
+\EndFor
+\State \Return $\mathbf{Y}$
+\end{algorithmic}
+\end{scriptsize} 
+\end{algorithm}
+
+We further utilize Grouped GEMM for training. Unlike the inference
+kernel, the training kernel does not fuse activation functions into the
+GEMM.  Instead, the SwiGLU activation is applied as a separate
+PyTorch operator between the up projection and down projection GEMMs.  This
+decoupled design allows us to flexibly experiment with different activation
+types (\eg, SwiGLU, GeLU, SiLU) without modifying or re-autotuning the
+Triton kernel.
+
+\subsection{Summary}
+Grouped GEMM and Kernel Fusion are our necessary implementation
+mechanisms to faithfully translate MoE's algorithmic efficiency into
+practical, hardware-efficient execution. This is an important implementation piece for vision encoders, which process all image patches simultaneously. With high resolution and tiling, a single image can produce tens of thousands of patch tokens, and batched inference further multiplies this by the batch size. Our kernel is designed for this
+regime. The Grouped GEMM formulation maximizes compute utilization across the large token volume, while the jagged-segment layout with per-expert early-exit naturally accommodates the uneven routing distributions that arise from spatially correlated image patches.
+
+By co-designing the MoE architecture with kernel-level optimizations that
+realize its efficiency gains, we reduce vision encoder latency while
+maintaining strong encoding quality, making the approach particularly
+effective for end-to-end VLM applications.
+
+\section{Scaling Experts in MoE}
+\label{moe_scaling}
+
+We conduct additional experiments to study the effect of scaling the number of experts. We train MoE-ViE-B with patch size 32 on 10.9B samples from MetaCLIP \cite{metaclip}. Across all settings, we keep the number of activated experts fixed (\ie, $k=8$) and set each expert MLP to $1/4$ of the corresponding dense MLP width.
+
+Fig.~\ref{scale_experts} shows zero-shot performance on four image classification benchmarks: ImageNet-1K~\cite{imagenet1k}, ImageNetV2~\cite{imagenetv2}, ObjectNet~\cite{objectnet}, and ImageNet-A~\cite{imageneta}. As seen, increasing the total number of experts consistently improves accuracy on all benchmarks. Given our resource constraints, we adopt 32 total experts when scaling to larger vision encoders, which provides a favorable balance between performance and training cost.
+
+\begin{figure}[ht]
+\centering
+\begin{subfigure}[b]{0.45\textwidth}
+    \centering
+    \includegraphics[width=\textwidth]{images/scale_experts_img1k.pdf}
+    \caption{ImageNet 1K}
+    \label{fig:sub1}
+\end{subfigure}
+\hfill
+\begin{subfigure}[b]{0.45\textwidth}
+    \centering
+    \includegraphics[width=\textwidth]{images/scale_experts_imga.pdf}
+    \caption{ImageNet A}
+    \label{fig:sub2}
+\end{subfigure}
+
+\begin{subfigure}[b]{0.45\textwidth}
+    \centering
+    \includegraphics[width=\textwidth]{images/scale_experts_imgv2.pdf}
+    \caption{ImageNetv2}
+    \label{fig:sub3}
+\end{subfigure}
+\hfill
+\begin{subfigure}[b]{0.45\textwidth}
+    \centering
+    \includegraphics[width=\textwidth]{images/scale_experts_obj.pdf}
+    \caption{ObjectNet}
+    \label{fig:sub4}
+\end{subfigure}
+\caption{Image classification accuracy by scaling the number of experts from 16 to 128, while keeping 8 activated experts.}
+\label{scale_experts}
+\end{figure}
+
+
+\section{Implementation Details}
+
+Table~\ref{arch} summarizes the architectures of our MoE-ViE models. Our implementation is based on OpenCLIP \cite{openclip}. Particularly, we remove the class token, as we did not observe any benefits out of it, and instead use the outputs from attention pooling. We adopt 2D RoPE \cite{rope} in the vision tower and absolute positional embedding in the text tower. We further replace standard FFN layers with SwiGLU \cite{glu} style, bringing the vision encoder design closer to that commonly used in LLM decoders. Below we describe the training and evaluation setup in detail.
+
+
+\begin{table}[ht]
+\centering
+\caption{Configurations of MoE-ViE models.}
+\label{arch}
+\fontsize{6.5}{8}\selectfont
+\resizebox{\textwidth}{!}{%}
+\begin{tabular}{l|cc|cc|cc}
+\hline
+Scale & \multicolumn{2}{c|}{\textbf{B}} & \multicolumn{2}{c|}{\textbf{L}} & \multicolumn{2}{c}{\textbf{H}} \\
+Encoder & \text{vision tower} & \text{text tower} & \text{vision tower} & \text{text tower} & \text{vision tower} & \text{text tower} \\
+\hline\hline
+\multirow{2}{*}{Params} & 0.46B & \multirow{2}{*}{0.30B} & 1.67B & \multirow{2}{*}{0.30B} & 3.50B & \multirow{2}{*}{0.81B} \\
+ & (0.10B activated) & & (0.31B activated) & & (1.06B activated) & \\
+Width & 768 & 1024 & 1024 & 1024 & 1280 & 1408 \\
+Depth & 12 & 24 & 24 & 24 & 32 & 34 \\
+\multirow{2}{*}{MLP} & 512 $\times$ 32 & \multirow{2}{*}{2730} & 684 $\times$ 32 & \multirow{2}{*}{2736} & 854 $\times$ 32 & \multirow{2}{*}{3754} \\
+ & (4 activated) & & (4 activated) & & (8 activated) & \\
+Heads & 12 & 16 & 16 & 16 & 16 & 16 \\
+CLIP Dim & 1024 & 1024 & 1024 & 1024 & 1024 & 1024 \\
+Pooling & Attn Pool & EOS Token & Attn Pool & EOS Token & Attn Pool & EOS Token \\
+Context length & -- & 144 & -- & 144 & -- & 144 \\
+Patch size & 16 & -- & 16 & -- & 14 & -- \\
+Pos. embedding & RoPE & Absolute & RoPE & Absolute & RoPE & Absolute \\
+\hline
+\end{tabular}
+}
+\end{table}
+
+\subsection{Training}
+\label{appx_train_spec}
+
+We perform contrastive pretraining of MoE-ViE models with progressively increasing image resolutions. Their schedules are as follows:
+\begin{itemize}
+\item MoE-ViE-B training includes image resolutions $112\times112$, $160\times160$, $224\times224$, 48.1B samples seen in total. 
+\item MoE-ViE-L training includes image resolutions $112\times112$, $160\times160$, $224\times224$, $336\times336$, $384\times384$, 48.2B samples seen in total.
+\item MoE-ViE-H training includes image resolutions $98\times98$,  $154\times154$, $224\times224$, $336\times336$, $448\times448$, 60.9B samples seen in total.
+\end{itemize}
+Our training data contains 2B image-text pairs from MetaCLIP \cite{metaclip} and an additional 1.5B proprietary data. We set learning rate to $10^{-3}$ with cosine decay. We use LAMB \cite{lamb} optimizer with weight decay 0.05 to support the large batch size 262144 being used. $(\beta_1,\beta_2)$ is set to $(0.9, 0.995)$. We reduce the batch size by $2\times$ at the highest resolution to save the compute cost. We only use InfoNCE loss \cite{infonce} during pretraining. 
+
+For video finetuning, we set the learning rate to $10^{-6}$, and train for 20.5M samples for all MoE-ViE sizes. The training data consists of data curated by \cite{pe,merlot}. We use the same optimizer as in pretraining, with batch size of 4096. We uniformly sample 8 frames for each video input. The weight $\beta$ for distillation loss is set to 0.5. For alignment, Table~\ref{tab:training_stages} describes our training configurations in detail.
+
+\subsection{Evaluation}
+\label{appx_eval_spec}
+
+To evaluate zero-shot classification and retrieval capability, we leverage CLIP benchmark framework \cite{clip_bench}. We use the same prompt templates as provided in \cite{pe}. Following \cite{eva-clip-18b}, we report the maximum score obtained under two data preprocessing methods, \ie, with and without center crop. We also perform reweighting \cite{internvl} on the retrieval results. 
+
+We use the popular lmms-eval framework \cite{lmms_eval} to evaluate our alignment results. Greedy decoding is used in all cases.
+
+\section{Additional Results}
+\label{appx_additional_results}
+
+\subsection{Linear Probing}
+% {\color{blue}
+Following recent works \cite{pe,dino,internvl}, we extend our classification evaluation to include linear probing on the ImageNet-1K \cite{imagenet1k}. We show the results in Table~\ref{linear_probing_imagenet1k}, alongside other vision encoders which we benchmark. We see MoE-ViE-H/14 outperforms all encoders tested, even those with significantly more active parameters.
+
+\begin{table}[htbp]
+\centering
+\caption{Linear probing results on ImageNet-1K.}
+\label{linear_probing_imagenet1k}
+\fontsize{6.5}{8}\selectfont
+\setlength{\tabcolsep}{3pt}
+\newcommand{\gc}{\cellcolor{gray!10}}
+
+\begin{tabular}{l c c}
+\toprule
+\textbf{Model} & \textbf{Active Params} & \textbf{ImageNet-1K} \\
+\midrule
+DINOv2-g \cite{dinov2}        & 1.1B & 86.39 \\
+SigLIP2-g-opt/16 \cite{siglip2} & 1.1B & 88.32 \\
+PE\textsubscript{core}G/14 \cite{pe}        & 1.9B & 88.80 \\
+InternViT-6B \cite{internvl}      & 5.5B & 88.44 \\
+MoE-ViE-H/14    & 1.1B   & \textbf{88.85} \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{Alignment}
+\label{appx_alignment_results}
+
+To further investigate the potential of MoE-ViE in the alignment setting, we expand the training pipeline presented in Section~\ref{subsec:align}. We use Llama 3.1 8B Instruct \cite{llama3} as the LLM decoder. As detailed in Table~\ref{tab:training_stages}, we extend both the pre-alignment and supervised fine-tuning stages, scaling the total training data to 42M samples. Table~\ref{tab:model_performance_scaled} reports the results. MoE-ViE-H exhibits strong data scaling behavior: with 42M samples, it surpasses PE\textsubscript{lang}, which is mid-trained on 70M images and uses $1.7\times$ more active parameters, across all three evaluation axes, achieving 81.3 average on image benchmarks, 63.1 on video, and 132.6 on captioning. We posit that, as observed in pretraining, data quality and scale are the decisive factors for absolute alignment performance, and that MoE-ViE's sparse architecture is particularly well-suited to capitalize on these gains.
+
+\begin{table}[htbp]
+  \centering
+  \caption{Training configuration overview across stages. Stage 2a is our 1k sample VE freeze step described in Section~\ref{subsec:align}.}
+  \label{tab:training_stages}
+  \fontsize{6.5}{8}\selectfont
+  \setlength{\tabcolsep}{8pt} 
+  \begin{tabular}{@{}lcccc@{}}
+    \toprule
+    & \textbf{S1} & \textbf{S2a} & \textbf{S2b} & \textbf{S3} \\
+    \midrule
+    Trainable Params & Projector & LLM + Proj. & All & All \\
+    \midrule
+    Steps            & 8,000  & 1,000  & 34,000 & 15,000 \\
+    Global Batch Size& 2,048  & 512    & 512    & 512    \\
+    Total Samples    & 16.4M  & 0.5M   & 17.4M  & 7.7M  \\
+    Learning Rate    & $10^{-4}$ & $4{\times}10^{-5}$ & $4{\times}10^{-5}$ & $10^{-5}$ \\
+    \midrule
+    Max Seq. Length  & 1,280  & 6,144  & 6,144  & 11,520 \\
+    Max Video Frames & 8      & 16     & 16     & 32     \\
+    Max Num. Tiles   & 1      & 4      & 4      & 4      \\
+    \bottomrule
+  \end{tabular}
+\end{table}
+
+\begin{table}[htbp]
+\centering
+\caption{Data scaling experiments with MoE-ViE. Columns are grouped by task type. We use a maximum of 4 tiles.}
+\label{tab:model_performance_scaled}
+\fontsize{6.5}{8}\selectfont
+\setlength{\tabcolsep}{3pt}
+\newcommand{\gc}{\cellcolor{gray!15}}
+\resizebox{\textwidth}{!}{%
+\begin{tabular}{l c c c c c c c c c c c c c c c}
+\toprule
+& & & \multicolumn{6}{c}{\textbf{Image}} & \multicolumn{4}{c}{\textbf{Video}} & \multicolumn{3}{c}{\textbf{Captioning}} \\
+\cmidrule(lr){4-9} \cmidrule(lr){10-13} \cmidrule(lr){14-16}
+\textbf{Model}
+& \rotatebox{90}{\shortstack{Training\\scale}}
+& \rotatebox{90}{\shortstack{Active\\params}}
+& \rotatebox{90}{Avg.\ Images}
+& \rotatebox{90}{AI2D\cite{ai2d}}
+& \rotatebox{90}{TextVQA\cite{textvqa}}
+& \rotatebox{90}{ChartQA\cite{chartqa}}
+& \rotatebox{90}{DocVQA\cite{docvqa}}
+& \rotatebox{90}{Info.\ QA\cite{infovqa}}
+& \rotatebox{90}{Avg.\ Video}
+& \rotatebox{90}{VideoMME\cite{videomme}}
+& \rotatebox{90}{MVBench\cite{mvbench}}
+& \rotatebox{90}{EgoSchema\cite{egoschema}}
+& \rotatebox{90}{Avg.\ Cap.}
+& \rotatebox{90}{COCO\cite{coco}}
+& \rotatebox{90}{NoCaps\cite{nocaps}} \\
+\midrule
+SigLIP2-g-opt/16 \cite{siglip2}              & --     & 1.1B & \gc 59.0 & 72.4 & 70.3 & 63.1 & 55.3 & 34.0 & \gc 49.5 & 46.2 & 48.5 & 53.8 & \gc 129.1 & 137.8 & 120.3 \\
+PE\textsubscript{core}G/14 \cite{pe}         & --     & 1.9B & \gc 69.2 & 69.7 & 74.3 & 73.4 & 81.2 & 47.6 & \gc 48.6 & 46.0 & 48.7 & 51.2 & \gc 123.7 & 134.5 & 112.9 \\
+InternViT2.5/14 \cite{internvl2p5}           & --     & 5.5B & \gc 68.1 & 72.9 & 71.3 & 74.6 & 74.3 & 47.6 & \gc 48.7 & 46.0 & 49.6 & 50.6 & \gc 123.0 & 132.5 & 113.5 \\
+AIMv2 3B/14 \cite{aimv2}                      & --     & 2.7B & \gc 69.8 & 72.2 & 79.2 & 73.0 & 78.2 & 46.5 & \gc 49.7 & 49.6 & 49.9 & 49.6 & \gc 130.6 & 139.7 & 121.5 \\
+\midrule
+MoE-ViE-H/14                                  & 14M    & 1.1B & \gc 75.2 & 84.9 & 75.7 & 74.2 & 86.1 & 55.0 & \gc 58.9 & 52.0 & 63.6 & 61.2 & \gc 127.5 & 135.4 & 119.6 \\
+PE\textsubscript{lang}G/14 \cite{pe}              & {>}70M & 1.9B & \gc 79.3 & 75.0 & 82.3 & 81.8 & 89.8 & 67.8 & \gc 54.1 & 49.6 & 52.6 & 60.0 & \gc 131.9 & 140.3 & 123.4 \\
+MoE-ViE-H/14                                  & 42M    & 1.1B & \gc \textbf{81.3} & 90.5 & 79.9 & 80.8 & 90.4 & 64.8 & \gc \textbf{63.1} & 53.0 & 71.5 & 64.8 & \gc \textbf{132.6} & 141.5 & 123.6 \\
+\bottomrule
+\end{tabular}
+}% end resizebox
+\end{table}
+
+
+\subsection{End-to-End VLM Latency}
+\label{appx_e2e_latency}
+
+In addition to the latency for vision encoder itself reported in Table~\ref{tab:performance_results}, we measure end-to-end inference latency after aligning the vision encoder to an LLM decoder (Llama~3.1 8B Instruct \cite{llama3}). Table~\ref{end2end_latency} compares different vision encoders in the resulting VLM. All of our benchmarking results on latency are conducted on a single H100 GPU. The overall trend matches Table~\ref{tab:performance_results} that MoE-ViE delivers comparable system-level latency while achieving substantially higher accuracy than the dense model with comparable size. Moreover, MoE-ViE attains significantly lower latency than the PE \cite{pe}, with comparable accuracy achieved. These results indicate that the efficiency benefits of MoE-ViE extend beyond the vision encoder and translate directly into improved latency vs. accuracy trade-offs in downstream VLM applications.
+
+\begin{table}[htbp]
+\centering
+\caption{End-to-end latency with different vision encoders.}
+\label{end2end_latency}
+\fontsize{6.5}{8}\selectfont
+\setlength{\tabcolsep}{6pt} 
+\begin{tabular}{lccccc}
+\toprule
+Model & Total params & Active params & Batch size & \# of tiles & Latency (ms) \\
+\midrule
+SigLIP2-g-opt/16 \cite{siglip2}  & 1.1B  & 1.1B & 2 & 4   & 432.8  \\
+PE\textsubscript{core}G/14 \cite{pe} & 1.9B  & 1.9B & 2 & 4  & 493.2  \\
+MoE-ViE-H/14   & 3.5B  & 1.1B & 2 & 4   & 433.3  \\
+\midrule
+SigLIP2-g-opt/16 \cite{siglip2} &1.1B   & 1.1B & 2 & 16  & 523.4  \\
+PE\textsubscript{core}G/14 \cite{pe} & 1.9B & 1.9B & 2 & 16  & 587.4  \\
+MoE-ViE-H/14  & 3.5B  & 1.1B & 2 & 16  & 520.7  \\
+\midrule
+SigLIP2-g-opt/16 \cite{siglip2}  &1.1B  & 1.1B & 2 & 36  & 654.7  \\
+PE\textsubscript{core}G/14 \cite{pe} &1.9B  & 1.9B & 2 & 36  & 744.0  \\
+MoE-ViE-H/14  &3.5B   & 1.1B & 2 & 36  & 660.9  \\
+\midrule
+SigLIP2-g-opt/16 \cite{siglip2} & 1.1B   & 1.1B & 4 & 36  & 1297.9 \\
+PE\textsubscript{core}G/14 \cite{pe} & 1.9B  & 1.9B & 4 & 36  & 1416.8 \\
+MoE-ViE-H/14 & 3.5B    & 1.1B & 4 & 36  & 1300.9 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+% ---- Bibliography ----
+%
+% BibTeX users should specify bibliography style 'splncs04'.
+% References will then be sorted and formatted in the correct style.
+%
+\bibliographystyle{splncs04}
+\bibliography{main}
+\end{document}

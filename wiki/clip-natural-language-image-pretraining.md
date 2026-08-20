@@ -5,7 +5,7 @@ description: A contrastive image–text pre-training method that uses language p
 tags: [multimodal-learning, contrastive-learning, zero-shot-transfer, prompt-engineering, representation-learning]
 status: stable
 created: 2026-08-16
-generated: { by: llm-wiki-agent/1, at: 2026-08-17T04:00:00Z }
+generated: { by: llm-wiki-agent/1, at: 2026-08-20T10:14:19Z }
 sources:
   - id: radford-2021-clip
     resource: ../raw/2103.00020_CLIP/clip_paper.tex
@@ -73,6 +73,9 @@ sources:
   - id: wu-2024-caspl
     resource: ../raw/2409.17805_CasPL/main.tex
     title: Cascade Prompt Learning for Vision-Language Model Adaptation
+  - id: zhang-2026-moe-vie
+    resource: ../raw/2608.17402_MoE-ViE/main.tex
+    title: "MoE-ViE: Mixture of Experts Vision Encoder for Efficient Image and Video Understanding"
 ---
 
 # CLIP natural-language image pre-training
@@ -115,6 +118,7 @@ The paper's FairFace probes further show that adding a `child` class changed the
 - Extended by: [Chinese CLIP language-specific vision–language pre-training](chinese-clip-language-specific-vision-language-pretraining.md) initializes a Chinese text encoder alongside a CLIP vision tower, then unlocks both towers for Chinese-domain adaptation.[^yang-2022-chinese-clip]
 - Extended by: [AltCLIP multilingual text-encoder alignment](altclip-multilingual-text-encoder-alignment.md) retains CLIP's image encoder, but distills an XLM-R text encoder from CLIP before contrastive text-only tuning for bilingual or multilingual support.[^chen-2022-altclip]
 - Extended by: [SigLIP sigmoid contrastive language–image pre-training](siglip-sigmoid-contrastive-language-image-pretraining.md) replaces CLIP's symmetric global-softmax objective with independently scored sigmoid-loss terms for every image–text pair.[^zhai-2023-siglip]
+- Extended by: [MoE-ViE mixture-of-experts vision encoder](moe-vie-mixture-of-experts-vision-encoder.md) retains contrastive image–text pretraining but sparsely scales all but the first vision-transformer FFN; its text tower remains dense during this stage.[^zhang-2026-moe-vie]
 - Extended by: [MetaCLIP metadata-curated language–image pre-training](metaclip-metadata-curated-language-image-pretraining.md) operationalizes the original query-list and approximate class-balancing description as text-metadata curation without a pretrained model filter.[^xu-2024-metaclip]
 - Extended by: [Meta CLIP 2 worldwide CLIP scaling](meta-clip-2-worldwide-clip-scaling.md) retains the CLIP-style dual-encoder setting while scaling metadata, curation, tokenization, training exposure, and capacity for native-language worldwide image–text data.[^chuang-2025-meta-clip-2]
 - Related: [FLAVA foundational language and vision alignment](flava-foundational-language-vision-alignment.md) retains contrastive image-text alignment but adds a fusion transformer plus multimodal masked-modeling and matching objectives for multimodal reasoning.[^singh-2022-flava]
@@ -176,3 +180,5 @@ The paper's FairFace probes further show that adding a `child` class changed the
 [^hassan-2023-promptalign]: Hassan et al., “Align Your Prompts: Test-Time Prompting with Distribution Alignment for Zero-Shot Generalization” (2023), [complete manuscript source](../raw/2311.01459_TDA/Manuscript.tex).
 
 [^wu-2024-caspl]: Wu et al., “Cascade Prompt Learning for Vision-Language Model Adaptation” (2024), [complete source manuscript](../raw/2409.17805_CasPL/main.tex).
+
+[^zhang-2026-moe-vie]: Zhang et al., “MoE-ViE: Mixture of Experts Vision Encoder for Efficient Image and Video Understanding” (supplied manuscript, August 2026), [complete supplied manuscript source](../raw/2608.17402_MoE-ViE/main.tex).

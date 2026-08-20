@@ -5,7 +5,7 @@ description: A synthesis of 2024–2026 vision–language methods and emerging d
 tags: [multimodal-learning, vision-language-models, research-directions, synthesis]
 status: stable
 created: 2026-08-17
-generated: { by: llm-wiki-agent/1, at: 2026-08-20T10:09:14Z }
+generated: { by: llm-wiki-agent/1, at: 2026-08-20T10:14:19Z }
 sources:
   - id: chuang-2025-meta-clip-2
     resource: ../raw/2507.22062_MetaCLIP 2/paper.tex
@@ -37,6 +37,9 @@ sources:
   - id: openmoss-moss-vl-2026
     resource: ../raw/2608.15045_MOSS-VL/main.tex
     title: MOSS-VL Technical Report
+  - id: zhang-2026-moe-vie
+    resource: ../raw/2608.17402_MoE-ViE/main.tex
+    title: "MoE-ViE: Mixture of Experts Vision Encoder for Efficient Image and Video Understanding"
 ---
 
 # Recent vision-language research directions
@@ -75,7 +78,9 @@ DINOv3 cho thấy một hướng vision-first bổ sung: self-supervised pretrai
 
 [ModernVBERT](modernvbert-small-visual-document-retriever.md) kết hợp vision tower SigLIP 2 với text encoder hai chiều trong early fusion, rồi dùng late interaction. Kết quả báo cáo cho thấy mô hình 250M gần ColPali lớn hơn trên các split ViDoRe được thử, với lợi thế chính nằm ở trade-off kích thước/độ trễ thay vì điểm tuyệt đối cao nhất.[^teiletche-2026-modernvbert-camera-ready]
 
-**Hàm ý tổng hợp:** thay vì chỉ scale backbone sinh, nghiên cứu đang quay lại thiết kế encoder chuyên biệt, bidirectional attention, high-resolution cooldown, pooling/compression và kiến trúc phù hợp với serving.
+[MoE-ViE](moe-vie-mixture-of-experts-vision-encoder.md) là hướng sparse scaling cho CLIP-style encoder: thay phần lớn FFN vision bằng expert fine-grained và shared/routed paths, rồi đồng thiết kế grouped GEMM và kernel fusion. Báo cáo cho thấy H/14 có 1.1B tham số kích hoạt (3.5B tổng), latency encoder bằng khoảng 76% PEcoreG/14 1.9B kích hoạt trong phép đo token-matched, nhưng dùng 1.5B cặp proprietary và không có replication độc lập.[^zhang-2026-moe-vie]
+
+**Hàm ý tổng hợp:** thay vì chỉ scale backbone sinh, nghiên cứu đang quay lại thiết kế encoder chuyên biệt, bidirectional attention, high-resolution cooldown, pooling/compression, sparse experts và kernel/serving co-design. So sánh Pareto cần công khai active lẫn total parameters, token budget, batch, preprocessing, hardware và mọi chi phí routing.[^zhang-2026-moe-vie]
 
 ### 6. Codec-native video và streaming/real-time chủ động
 
@@ -108,7 +113,7 @@ Các con số giữa bài không so sánh trực tiếp được vì khác dữ 
 
 ## Relationships
 
-- Synthesizes: [Meta CLIP 2](meta-clip-2-worldwide-clip-scaling.md), [SigLIP 2](siglip2-multilingual-vision-language-encoders.md), [TIPSv2](tipsv2-patch-text-aligned-vision-language-pretraining.md), [DINOv3](dinov3-self-supervised-visual-foundation-model.md), [CasPL](caspl-cascade-prompt-learning.md), [ColPali](colpali-vision-space-document-retrieval.md), [ColQwen2](colqwen2-vision-space-document-retrieval.md), [ModernVBERT](modernvbert-small-visual-document-retriever.md), [Mage-VL](mage-vl-codec-native-streaming-vision-language-model.md), [MOSS-VL](moss-vl-realtime-vision-language-model.md), and [ShieldGemma 2](shieldgemma-2-image-content-moderation.md).
+- Synthesizes: [Meta CLIP 2](meta-clip-2-worldwide-clip-scaling.md), [SigLIP 2](siglip2-multilingual-vision-language-encoders.md), [TIPSv2](tipsv2-patch-text-aligned-vision-language-pretraining.md), [DINOv3](dinov3-self-supervised-visual-foundation-model.md), [CasPL](caspl-cascade-prompt-learning.md), [ColPali](colpali-vision-space-document-retrieval.md), [ColQwen2](colqwen2-vision-space-document-retrieval.md), [ModernVBERT](modernvbert-small-visual-document-retriever.md), [MoE-ViE](moe-vie-mixture-of-experts-vision-encoder.md), [Mage-VL](mage-vl-codec-native-streaming-vision-language-model.md), [MOSS-VL](moss-vl-realtime-vision-language-model.md), and [ShieldGemma 2](shieldgemma-2-image-content-moderation.md).
 - Synthesized by: [Vision-language task-to-model map](vision-language-task-to-model-map.md), which maps these research directions to concrete task families and model choices.
 
 [^chuang-2025-meta-clip-2]: Chuang et al., “Meta CLIP 2: A Worldwide Scaling Recipe” (2025), [source](../raw/2507.22062_MetaCLIP%202/paper.tex).
@@ -121,3 +126,4 @@ Các con số giữa bài không so sánh trực tiếp được vì khác dữ 
 [^simeoni-2025-dinov3]: Siméoni et al., “DINOv3” (technical report, 2025), [complete supplied manuscript source](../raw/2508.10104_dinov3/main.tex).
 [^microsoft-mage-2026]: Microsoft Mage Team, “Mage-VL: An Efficient Codec-Native Streaming Multimodal Foundation Model” (technical report, July 2026), [complete supplied manuscript source](../raw/2607.24904_Mage-VL/main.tex).
 [^openmoss-moss-vl-2026]: OpenMOSS Team, “MOSS-VL Technical Report” (technical report, August 2026), [complete supplied manuscript source](../raw/2608.15045_MOSS-VL/main.tex).
+[^zhang-2026-moe-vie]: Zhang et al., “MoE-ViE: Mixture of Experts Vision Encoder for Efficient Image and Video Understanding” (supplied manuscript, August 2026), [complete supplied manuscript source](../raw/2608.17402_MoE-ViE/main.tex).

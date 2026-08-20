@@ -5,7 +5,7 @@ description: A synthesis of the FLAVA–BLIP–CoCa–BEiT-3–PaLI–BLIP-2 tra
 tags: [multimodal-learning, vision-language-models, vision-language-pretraining, research-directions, synthesis]
 status: stable
 created: 2026-08-17
-generated: { by: llm-wiki-agent/1, at: 2026-08-20T10:09:14Z }
+generated: { by: llm-wiki-agent/1, at: 2026-08-20T10:14:19Z }
 sources:
   - id: singh-2022-flava
     resource: ../raw/2112.04482_FLAVA/arxiv_strip.tex
@@ -43,6 +43,9 @@ sources:
   - id: openmoss-moss-vl-2026
     resource: ../raw/2608.15045_MOSS-VL/main.tex
     title: MOSS-VL Technical Report
+  - id: zhang-2026-moe-vie
+    resource: ../raw/2608.17402_MoE-ViE/main.tex
+    title: "MoE-ViE: Mixture of Experts Vision Encoder for Efficient Image and Video Understanding"
 ---
 
 # From unified pretraining to modern vision-language models
@@ -83,7 +86,7 @@ CoCa huấn luyện mô hình lớn từ đầu; PaLI khởi tạo từ ViT và 
 Các bằng chứng 2024–2026 trong wiki cho thấy nhiều nhánh bổ sung thay vì một kiến trúc thống trị:
 
 1. **Assistant-style generative VLM:** tiếp tục công thức vision encoder → projector/resampler/connector → LLM, rồi bổ sung instruction tuning, dữ liệu xen kẽ ảnh–text, nhiều ảnh/video và tool use. [Mage-VL](mage-vl-codec-native-streaming-vision-language-model.md) là bằng chứng trong wiki cho biến thể video chọn patch từ tín hiệu codec trước projector vào Qwen3-4B và dùng gate cho phản hồi streaming. [MOSS-VL](moss-vl-realtime-vision-language-model.md) cho biến thể khác: Qwen3-8B decoder cross-attend tới visual KV cache thay vì đưa visual patches vào decoded sequence; Realtime-SFT dạy state token silence/response và báo cáo L2-L4 streaming, còn L5 chỉ có bằng chứng định tính. Cả hai là technical report tự đánh giá, không xác nhận toàn bộ nhánh assistant-style hay lợi thế trên mọi video task.[^microsoft-mage-2026][^openmoss-moss-vl-2026] Wiki vẫn chưa có concept nguồn chính cho LLaVA, Flamingo hay Qwen2-VL, nên chi tiết của nhánh này còn là khoảng trống truy hồi.
-2. **Encoder global–dense:** [SigLIP 2](siglip2-multilingual-vision-language-encoders.md) giữ dual-encoder alignment nhưng thêm captioning/grounding, self-distillation và masked-patch prediction để phục vụ cả retrieval lẫn localization và dense prediction.[^tschannen-2025-siglip2]
+2. **Encoder global–dense và sparse scaling:** [SigLIP 2](siglip2-multilingual-vision-language-encoders.md) giữ dual-encoder alignment nhưng thêm captioning/grounding, self-distillation và masked-patch prediction để phục vụ cả retrieval lẫn localization và dense prediction.[^tschannen-2025-siglip2] [MoE-ViE](moe-vie-mixture-of-experts-vision-encoder.md) thay phần lớn FFN của vision tower bằng expert fine-grained để tăng total capacity mà giữ active capacity thấp hơn, đồng thời cần grouped GEMM và kernel fusion để biến lợi ích FLOPs thành latency thực tế. Kết quả đối chiếu là self-reported và bị giới hạn bởi data/protocol riêng.[^zhang-2026-moe-vie]
 3. **Multilingual và culturally broader data:** tokenizer, curation, mixture và model capacity phải được đồng thiết kế; dịch caption hoặc thay text encoder đơn thuần không đủ để bảo đảm chất lượng cân bằng.
 4. **Thích nghi tham số thấp:** [CasPL](caspl-cascade-prompt-learning.md) tách domain knowledge và task knowledge qua cascade prompts, cho thấy hướng freeze backbone rồi học prompt/adapters từ dữ liệu ít nhãn.[^wu-2024-caspl]
 5. **VLM chuyên biệt cho retrieval/RAG:** [ColPali](colpali-vision-space-document-retrieval.md) mã hóa trực tiếp ảnh trang và dùng multi-vector late interaction, bỏ pipeline OCR–layout–chunking nhưng đổi lại tăng chi phí index và scoring.[^faysse-2025-colpali-camera-ready]
@@ -112,6 +115,7 @@ Chuỗi trên chủ yếu phản ánh các bài 2022–2025 có trong kho. Các 
 - Related: [Evolution of CLIP-style vision–language pretraining](evolution-of-clip-style-vision-language-pretraining.md) expands the dual-encoder branch.
 - Related: [Recent vision-language research directions](recent-vision-language-research-directions.md) expands the 2024–2026 frontier in dense representation, adaptation, document retrieval, efficiency, safety, and streaming.
 - Related: [Mage-VL codec-native streaming vision-language model](mage-vl-codec-native-streaming-vision-language-model.md) and [MOSS-VL real-time vision-language model](moss-vl-realtime-vision-language-model.md) illustrate separate codec-native and cross-attention-cache variants for proactive/real-time video interaction.[^microsoft-mage-2026][^openmoss-moss-vl-2026]
+- Related: [MoE-ViE mixture-of-experts vision encoder](moe-vie-mixture-of-experts-vision-encoder.md) illustrates sparse capacity scaling and kernel co-design at the vision-encoder interface used by downstream LLM alignment.[^zhang-2026-moe-vie]
 - Synthesized by: [Vision-language task-to-model map](vision-language-task-to-model-map.md), which reorganizes unified and modular VLMs by downstream problem and system interface.
 
 [^singh-2022-flava]: Singh et al., “FLAVA” (2022), [source manuscript](../raw/2112.04482_FLAVA/arxiv_strip.tex).
@@ -126,3 +130,4 @@ Chuỗi trên chủ yếu phản ánh các bài 2022–2025 có trong kho. Các 
 [^zeng-2025-shieldgemma2]: ShieldGemma Team, “ShieldGemma 2” (2025), [source manuscript](../raw/2504.01081_ShieldGemma2/main.tex).
 [^microsoft-mage-2026]: Microsoft Mage Team, “Mage-VL: An Efficient Codec-Native Streaming Multimodal Foundation Model” (technical report, July 2026), [complete supplied manuscript source](../raw/2607.24904_Mage-VL/main.tex).
 [^openmoss-moss-vl-2026]: OpenMOSS Team, “MOSS-VL Technical Report” (technical report, August 2026), [complete supplied manuscript source](../raw/2608.15045_MOSS-VL/main.tex).
+[^zhang-2026-moe-vie]: Zhang et al., “MoE-ViE: Mixture of Experts Vision Encoder for Efficient Image and Video Understanding” (supplied manuscript, August 2026), [complete supplied manuscript source](../raw/2608.17402_MoE-ViE/main.tex).
