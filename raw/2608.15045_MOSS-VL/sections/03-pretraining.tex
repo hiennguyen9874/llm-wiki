@@ -1,0 +1,78 @@
+\section{Pre-Training}\label{sec:pretraining}
+
+\begin{table}[t]
+  \centering
+  \caption{The \mossvl{} training curriculum: four pre-training stages
+  followed by SFT and Realtime-SFT (\S\ref{sec:posttraining}). The data
+  of each stage is described in the corresponding subsection. Token
+  counts are the tokens fed to the language model, with vision tokens
+  counted after the $2{\times}2$ token compression of the projection
+  module (\S\ref{sec:architecture}); sequence lengths are in tokens.}
+  \label{tab:stages}
+  \input{tables/stages}
+\end{table}
+
+
+\mossvl{} is pre-trained with a four-stage curriculum: vision--language
+alignment, large-scale multimodal pre-training, high-quality multimodal
+pre-training, and a final stage of annealing and long-context training.
+Table~\ref{tab:stages} lists the token budget, sample count, maximum
+sequence length, trainable modules, and peak learning rate of every
+stage, including the two post-training stages of
+\S\ref{sec:posttraining}. The table shows the shape of the
+curriculum: the maximum sequence length grows from 8K to 256K tokens,
+and the token budget shifts toward the later stages while sample counts
+fall by orders of magnitude---many short samples early, far fewer but
+much longer and denser ones late. Throughout, the data is
+decontaminated against our evaluation suites.
+
+A defining trait of this training run is the scale of our data
+synthesis. Alongside data collected and reorganized from existing
+corpora, we synthesize high-quality caption, OCR, grounding, and
+temporal-grounding data at large scale throughout the curriculum. These
+four types cover the perceptual fundamentals of a vision--language
+model---describing scenes, reading embedded text, localizing objects,
+and anchoring events in time---and this synthesized core underpins the
+strong perception and temporal-understanding foundations of the
+released models.
+
+\subsection{Stage 1: Vision--Language Alignment}\label{sec:pt-align}
+
+Stage 1 connects the two pre-trained components. Only the newly
+introduced parameters---the projection module and the cross-attention
+layers---are updated, while the vision encoder and the language model
+remain frozen; the high peak learning rate in Table~\ref{tab:stages}
+applies to these fresh modules alone. The data comprises two
+categories, image captioning and OCR, and sequences stay short at 8K
+tokens.
+
+\subsection{Stage 2: Large-Scale Multimodal Pre-Training}\label{sec:pt-scale}
+
+With the connectors aligned, Stage 2 unfreezes the full model and
+supplies breadth. The mixture spans image and video captioning, OCR,
+grounding, interleaved image--text documents, and text-only
+pre-training corpora, together with multimodal understanding data over
+single images, multi-image sets, videos, and plain text across diverse
+domains, and reasoning data. The context window extends to 64K tokens,
+which admits long interleaved documents and video.
+
+\subsection{Stage 3: High-Quality Multimodal Pre-Training}\label{sec:pt-quality}
+
+Stage 3 spends the largest token budget of the curriculum
+(Table~\ref{tab:stages}) on its highest-quality data. The mixture keeps
+the Stage-2 categories but rebalances them: captioning recedes,
+multimodal understanding and reasoning data take a larger share, and
+mathematics, knowledge-intensive data, and temporal grounding enter the
+mixture. Sequences extend to 128K tokens.
+
+\subsection{Stage 4: Annealing and Long-Context Training}\label{sec:pt-anneal}
+
+The final stage combines long-context training with high-quality
+annealing. One data strand consists of long-video captioning,
+long-video QA, and long-video temporal grounding, together with
+long-document and long-text data, mixed with a small share of the
+regular categories, and stretches sequences to 256K tokens. The other is an annealing mixture that re-weights
+toward mathematics, knowledge-intensive data, and instruction-tuning
+and QA data, and includes identity data. The curriculum yields
+\mossbase{}, the starting point for post-training
+(\S\ref{sec:posttraining}).

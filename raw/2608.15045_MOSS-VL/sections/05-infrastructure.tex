@@ -1,0 +1,36 @@
+\section{Infrastructure}\label{sec:infrastructure}
+
+\mossvl{} is trained on a Megatron-LM stack \citep{Shoeybi2019megatron}
+that combines data, tensor, sequence, and context parallelism to carry
+the curriculum from 8K- to 256K-token sequences
+(Table~\ref{tab:stages}). Variable-length multimodal samples are packed
+into full sequences, keeping batches dense across mixed image, video,
+and text data.
+
+\paragraph{FlashAttention for cross-attention.}
+The gated cross-attention of \S\ref{sec:xattn} has a visibility pattern
+that off-the-shelf attention kernels do not serve: each text query
+attends to the visual tokens of every frame that precedes it in the
+stream (\S\ref{sec:realtime-arch}). Visibility is thus a per-query
+prefix of the key--value sequence, growing frame by frame.
+FlashAttention exposes causal or windowed masks, and materializing the
+pattern as a dense cross-attention mask instead costs memory and
+bandwidth proportional to the product of the text and visual sequence
+lengths. We therefore extend FlashAttention-3
+\citep{Shah2024flashattention} with a compact interface,
+\texttt{cross\_kv\_boundary}, which encodes the visible prefix of each
+query row as one 32-bit integer and carries it through the operator
+schema, the scheduler, and the CUDA forward and backward kernels.
+Key--value tiles beyond a row's boundary are pruned rather than
+computed and masked, so kernel cost tracks visibility. The backend
+covers the dense, variable-length, and KV-cache execution
+paths---which keeps it compatible with packed training---and is
+released with the model as a derivative of the upstream implementation.
+
+\paragraph{Serving and release.}
+Our SGLang \citep{Zheng2023sglang} integration of \mossvl{} is merged
+upstream, and the offline-serving measurements of
+\S\ref{sec:evaluation} (Figure~\ref{fig:efficiency}) run on this stack.
+Real-time interaction ships separately as a Transformers reference
+implementation, released with the model weights on GitHub and
+HuggingFace.

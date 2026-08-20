@@ -1,0 +1,147 @@
+\section{Introduction}\label{sec:introduction}
+
+\begin{figure}[b!]
+  \centering
+  \includegraphics[width=\linewidth]{fig1-overview.pdf}
+  \caption{Results overview. (a) Average scores on four streaming
+  benchmarks against open-source streaming baselines (details in
+  \Cref{tab:streaming}; the StreamingBench average covers its visual
+  groups, \S\ref{sec:eval-streaming}). (b) \mossvl{} against the best competing model on
+  the proactive streaming subsets---PA (Proactive Alerting, OmniMMI),
+  PO (Proactive Output, StreamingBench), and FAR (Forward Active
+  Responding, OVO-Bench), all testing whether the model speaks up
+  unprompted at the right moment---and on selected offline strengths
+  (details in \Cref{tab:streaming,tab:offline}). Green = \mossvl{}; gray =
+  the labeled competitor.}
+  \label{fig:overview}
+\end{figure}
+
+\begin{table}[t]
+  \centering
+  \caption{Levels of video understanding, from offline to real-time. Each
+  level lights up one additional capability axis; the dividing line between
+  the streaming regime (L2--L4) and real-time (L5) is whether the model
+  keeps perceiving \emph{while} it generates---L2--L4 models are blind
+  during a reply, an L5 model is not. \mossrealtime{} achieves L5 behavior,
+  demonstrated through live demos and the released real-time inference
+  code, and is quantitatively validated at levels L2--L4 on four streaming
+  benchmarks; a dedicated benchmark for L5 behavior remains an open
+  problem.}
+  \label{tab:levels}
+  \small
+  \renewcommand{\arraystretch}{1.3}
+  \begin{tabular}{@{}clp{5.4cm}cccc@{}}
+    \toprule
+    & & & \multicolumn{4}{c}{Capability axes} \\
+    \cmidrule(lr){4-7}
+    Level & Regime & Defining behavior
+      & \makecell{Stream.\\input}
+      & \makecell{Silence}
+      & \makecell{Multi-\\resp.}
+      & \makecell{Perceive\\while gen.} \\
+    \midrule
+    L1 & offline & Watches the full video first, then answers questions
+         about it (multi-turn allowed). & \xmark & -- & \xmark & \xmark \\
+    L2 & streaming & Video arrives continuously; the user may ask at any
+         moment and the model answers immediately---but it is blind while
+         replying. & \cmark & \xmark & \xmark & \xmark \\
+    L3 & streaming & Adds \emph{waiting}: if the answer is not yet
+         determinable, the model stays silent until the key evidence
+         appears, then answers. & \cmark & \cmark & \xmark & \xmark \\
+    L4 & streaming & Adds \emph{persistent queries}: one question stays
+         resident and the model re-answers as the scene evolves (still
+         blind during each individual reply). & \cmark & \cmark & \cmark
+         & \xmark \\
+    L5 & real-time & Adds \emph{perception during generation}: the model
+         keeps watching while it speaks, revising or interrupting its own
+         reply the moment the evidence changes. & \cmark & \cmark & \cmark
+         & \cmark \\
+    \bottomrule
+  \end{tabular}
+\end{table}
+
+
+Most open vision--language models understand video offline: given a
+finished clip, they read it end to end and then answer questions about
+it \citep{Bai2025qwen,An2026llava,Team2026gemma}. The settings where
+video understanding matters most do not wait for the clip to end. A
+live assistant watches a scene that is still unfolding, decides for
+itself when something is worth saying, and must keep watching while it
+says it. Table~\ref{tab:levels} organizes this capability space into
+five levels. L1 is the offline regime. L2--L4 form the streaming
+regime occupied by recent streaming models
+\citep{Wang2024videollm,Fu2025vispeak,Xia2025streaming,Lu2026aura}:
+input arrives continuously, deliberate silence and persistent queries
+come into play, yet the model stays blind for the duration of each
+reply. L5 adds the ability that separates real-time interaction from
+everything below: perceiving \emph{while} generating, so a reply can be
+revised or cut short the moment the evidence changes.
+
+\mossvl{} is an open vision--language model family that treats
+real-time interaction as a first-class capability, and it reaches that
+capability by co-design rather than through any single component. The
+architecture enables the behavior: the language decoder attends to
+vision only through gated cross-attention, so visual tokens never enter
+the decoded sequence, and an arriving frame merely appends to the
+cross-attention cache---the model naturally keeps perceiving while it
+generates (\S\ref{sec:architecture}). XRoPE orders text and vision along one
+shared timeline, and absolute timestamp tokens make wall-clock time
+explicit. The data injects the behavior: a synthesized corpus of
+real-time interaction supervises when to speak, when to stay silent,
+and how to revise a reply the scene has overturned
+(\S\ref{sec:posttraining}). The training strategy keeps the stack
+stable: a four-stage pre-training curriculum and standard supervised
+fine-tuning build the offline foundation (\S\ref{sec:pretraining}),
+every real-time-specific choice is concentrated in Realtime-SFT, one
+light final stage, and a single system prompt moves the same weights
+among offline, streaming, and real-time operation. \mossvl{} continues
+a line that began with MOSS-Video-Preview \citep{Wang2026moss}, which
+explored the real-time paradigm; this release redesigns the stack from
+scratch and gives the line its first quantitative streaming evaluation.
+
+Figure~\ref{fig:overview} previews the outcome. Offline,
+\mossinstruct{} is competitive with open models of comparable scale
+and leads the temporal-reasoning video sets Minerva, TOMATO, and
+VideoMME-Logical (\S\ref{sec:eval-offline}). In the streaming regime,
+the wins land precisely where timing is being tested: across four
+streaming benchmarks against open-source streaming baselines,
+\mossrealtime{} posts the best average on three of the four (and is
+second on the fourth), sweeping the three subsets that squarely test
+proactive behavior---66.0 vs.\ 37.5 on OmniMMI's Proactive Alerting
+(\S\ref{sec:eval-streaming}). Efficiency follows from the same design:
+against Qwen3-VL-8B, built on the same Qwen3-8B language backbone, the
+time-to-first-token gap widens from $2.8\times$ to $5.1\times$ as
+visual context grows (\S\ref{sec:eval-efficiency}). L5 behavior itself
+is demonstrated qualitatively, through live demos and the released
+real-time inference code (\S\ref{sec:eval-showcase}); quantitative
+validation covers L2--L4, where public benchmarks exist.
+
+\pagebreak
+In summary, our main contributions are:
+\begin{itemize}[leftmargin=1.5em, itemsep=2pt, topsep=2pt]
+  \item \textbf{A stack co-designed for real-time interaction.} The
+  architecture enables it---gated cross-attention with XRoPE and
+  absolute timestamps lets the model take in new frames naturally
+  while it generates;
+  the data injects it---synthesized streams supervise response
+  timing; the training strategy keeps it stable---the language backbone
+  stays intact behind zero-initialized gates.
+  \item \textbf{Realtime-SFT, an interaction paradigm in one light
+  stage.} Two added state tokens, one shared system prompt, and a
+  reweighted next-token loss---under 3\% of total training
+  tokens---teach when to speak, when to stay silent, and when to
+  revise, delivering the best average on three of four streaming
+  benchmarks and the proactive sweep above.
+  \item \textbf{Timing understanding shows up offline as well.}
+  \mossinstruct{}, trained without the real-time corpus, leads the
+  temporal-reasoning video sets in our
+  comparison---Minerva, TOMATO, VideoMME-Logical---echoing the
+  perception and temporal-understanding foundations laid during
+  pre-training.
+  \item \textbf{More parameters, faster serving.} \mossvl{} spends 11.3B
+  parameters, yet visual tokens stay outside the decoded sequence, so
+  serving latency grows more slowly with visual context than its
+  same-backbone interleaved counterpart---measured in SGLang, not
+  estimated. We release the complete training curriculum and all five
+  checkpoints.
+\end{itemize}

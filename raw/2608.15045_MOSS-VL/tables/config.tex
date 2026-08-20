@@ -1,0 +1,35 @@
+\small
+\setlength{\tabcolsep}{6pt}
+\renewcommand{\arraystretch}{1.15}
+\begin{tabular}{@{}ll@{}}
+\toprule
+\multicolumn{2}{@{}l}{\itshape Language decoder (initialized from Qwen3-8B)} \\
+\midrule
+Layers            & 48 = 36 self-attention + 12 gated cross-attention \\
+Cross-attention placement & every 4th layer (indices $2, 6, \ldots, 46$) \\
+Hidden size / FFN size    & 4096 / 12288 \\
+Attention heads   & 32 query / 8 key--value (GQA), head dim.\ 128 \\
+Position encoding & XRoPE: interleaved 3-axis RoPE $(t,h,w)$, \\
+                  & \quad sections $(24,20,20)$, base $5\times10^{6}$ \\
+Context window    & 262{,}144 tokens \\
+Vocabulary        & 151{,}936 \\
+\midrule
+\multicolumn{2}{@{}l}{\itshape Vision encoder (initialized from Qwen3-VL)} \\
+\midrule
+Layers            & 27 \\
+Hidden size / FFN size & 1152 / 4304 \\
+Attention heads   & 16 \\
+Patch size        & $16\times16$ spatial, 1 frame temporal \\
+Feature levels    & layers $\{8, 16, 24\}$ + final layer \\
+Projection        & $2\times2$ spatial merge + MLP $\rightarrow$ 4096 \\
+Input resolution  & native dynamic, 4096--16.8M pixels \\
+\midrule
+\multicolumn{2}{@{}l}{\itshape Video input} \\
+\midrule
+Frame sampling    & dynamic 1--16 fps, motion-adaptive (1--2 fps typical) \\
+Frames per video  & up to 2{,}048 in training; 768 in our evaluations
+                    (released default 256) \\
+\midrule
+Total parameters  & 11.3B (BF16) \\
+\bottomrule
+\end{tabular}

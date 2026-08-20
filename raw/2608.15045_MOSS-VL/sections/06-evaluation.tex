@@ -1,0 +1,202 @@
+\section{Evaluation}\label{sec:evaluation}
+
+\begin{table}[!t]
+  \centering
+  \caption{Offline results: \mossinstruct{} (0708 release) against
+  open-source models of comparable scale, blocked by capability domain.
+  Bold = best, underline = second best, ``--'' = not reported;
+  LLaVA-OV-2 = LLaVA-OneVision-2-8B. Evaluation protocol and baseline
+  provenance are spelled out in \S\ref{sec:eval-offline}.}
+  \label{tab:offline}
+  \input{tables/offline}
+\end{table}
+
+\begin{figure}[t]
+  \centering
+  \includegraphics[width=\linewidth]{fig-efficiency.pdf}
+  \caption{Measured serving latency of \mossvl{} vs.\ Qwen3-VL-8B --- the
+  same Qwen3-8B language backbone, isolating the vision-integration
+  architecture. Both models serve offline with SGLang on a single H200
+  (TP=1, BF16, identical engine version) with an identical
+  generation-length cap, which every run reaches; every point is the mean
+  of five independent cold starts (error bars: sample std). (a,\,c) With ViT
+  output matched, the time-to-first-token (TTFT) gap widens from $2.8\times$ to
+  $5.1\times$ as visual context grows, and end-to-end latency from
+  $1.9\times$ to $4.3\times$. (b,\,d) On the same video
+  at the same resolution and frame count: Qwen3-VL compresses the
+  temporal axis $2\times$, whereas \mossvl{} forgoes temporal compression
+  so that each arriving frame can be encoded immediately --- carrying
+  about twice the vision tokens on the same input --- yet it never
+  falls behind, and its lead grows with stream length. Slower latency
+  growth follows from the append-only
+  cross-attention design: visual tokens never enter the decoded sequence
+  (\S\ref{sec:architecture}).}
+  \label{fig:efficiency}
+\end{figure}
+
+We evaluate each model in the regime it is built for: \mossinstruct{}
+on an offline suite of 39 benchmarks across five capability domains
+(Table~\ref{tab:offline}), and \mossrealtime{} on four streaming
+benchmarks---OVO-Bench \citep{Li2025bench}, OmniMMI
+\citep{Wang2025omnimmi}, StreamingBench \citep{Lin2024streamingbench},
+and ProactiveVideoQA \citep{Wang2025proactivevideoqa}---which together
+cover levels L2--L4 of the capability hierarchy in
+Table~\ref{tab:levels}. All streaming evaluation is carried out in
+streaming fashion: frames are fed as they would arrive, and every
+model runs under its own streaming protocol. Measured serving
+efficiency (\S\ref{sec:eval-efficiency}) and qualitative real-time
+sessions (\S\ref{sec:eval-showcase}) complete the picture.
+
+\subsection{Offline Results}\label{sec:eval-offline}
+
+Table~\ref{tab:offline} compares \mossinstruct{} with open models of
+comparable scale---Qwen3-VL-8B \citep{Bai2025qwen}, Qwen2.5-VL-7B
+\citep{Bai2025qwenvl25}, LLaVA-OneVision-2-8B \citep{An2026llava}, and
+Gemma-4-12B-IT \citep{Team2026gemma}---over multimodal perception, video
+understanding, grounding, document/OCR, and reasoning.
+\mossvl{} results sample video at 1\,fps with at most 768 frames,
+following a benchmark's official protocol wherever one is prescribed;
+DocVQA and InfoVQA use the validation split. Baseline numbers are
+taken from the respective official reports and reflect their authors'
+inference settings, which may differ from ours, particularly in video
+frame count. The exceptions are the Gemma-4-12B-IT column, which we
+evaluated ourselves under the same protocol as \mossvl{}, and the
+Qwen3-VL entry on OmniDocBench (v1.6), evaluated with the Markdown
+prompt from the official Qwen3-VL cookbook; the remaining OmniDocBench
+baselines are omitted, as their official numbers are not
+metric-comparable.
+
+Perception is the strongest block: \mossinstruct{} takes five of the
+twelve rows---MMBench-EN (88.1), POPE (89.4), V* (89.0), and both
+MME-RealWorld (66.3) and BLINK (78.0) by 8.9-point margins. On video,
+it leads the temporal-reasoning sets---Minerva (40.5),
+TOMATO (39.5), and VideoMME-Logical (17.1), each by 4.9 points or
+more---plus EgoSchema (67.0), consistent with the
+perception and temporal-understanding foundations built in
+\S\ref{sec:pretraining}. The wins extend across the remaining
+domains: the adversarial Ref-Adv grounding set goes to \mossinstruct{}
+by 7.7 points (57.0), OmniDocBench document parsing by 4.0 (88.9), and on
+reasoning it takes VisuLogic (27.5) and shares the top ERQA score
+(45.8). The main gaps sit in MMMU, document understanding, and
+standard grounding, both referring (RefCOCO-REC) and temporal
+(TimeLens); the first two we return to in \S\ref{sec:discussion}.
+
+\subsection{Streaming Benchmarks}\label{sec:eval-streaming}
+
+Table~\ref{tab:streaming} reports subset-level results on the four
+streaming benchmarks. Baselines are open-source streaming
+models---AURA \citep{Lu2026aura}, M4 (released with OmniMMI itself)
+\citep{Wang2025omnimmi}, ROMA \citep{Tian2026roma},
+JoyAI-VL-Interaction \citep{Yao2026joyai}, VideoChat3-4B
+\citep{Li2026videochat3}, ViSpeak-7B \citep{Fu2025vispeak}, and the
+MMDuet family
+\citep{Wang2024videollm,Wang2025proactivevideoqa,Wang2025mmduet2}; the
+panel follows each benchmark's published coverage and therefore differs
+across the four. Baseline numbers are taken from the respective
+official reports, except MMDuet's OmniMMI entry, which its own report
+does not cover and is taken from the ROMA report; \mossrealtime{}
+numbers are from our own evaluation under each benchmark's official
+protocol. %
+\mossrealtime{} runs an 8.2B language backbone, comparable to
+the 7--8B-class baselines; its additional parameters lie outside the
+decoded sequence, in the vision encoder and the cross-attention stack
+(\S\ref{sec:architecture}).
+
+\begin{table}[!t]
+  \centering
+  \caption{Streaming benchmark results: \mossrealtime{} against
+  open-source streaming baselines at subset level. Bold = best,
+  underline = second best; ``--'' = subset not reported in that
+  model's official report. Subset abbreviations, each benchmark's Avg
+  convention, and data provenance are spelled out in
+  \S\ref{sec:eval-streaming}.}
+  \label{tab:streaming}
+  \input{tables/streaming}
+\end{table}
+
+Each benchmark reports at subset level. OVO-Bench separates forward
+active responding (FAR), backward tracing (BT), and real-time visual
+perception (RTVP). OmniMMI covers proactive alerting (PA), dynamic
+state grounding (SG), multi-turn dependency (MD), action prediction
+(AP), and speaker identification (SI); its Avg is the mean of the five
+subsets, shown only for models with all five reported. StreamingBench
+groups real-time visual understanding (RT) and contextual
+understanding (CTX), with proactive output (PO) and sequential QA
+(SQA), subsets of CTX, listed separately for the proactive analysis;
+Avg (visual) is the mean of the RT and CTX group scores---\mossvl{}
+takes no audio input, so the audio-dependent Omni-Source group is not
+evaluated and no official overall score is reported. ProactiveVideoQA
+splits by video source into web (WEB), egocentric (EGO), and TV-series
+(TV) video QA, plus video anomaly detection (VAD).
+
+\mossrealtime{} posts the best average on three of the four
+benchmarks---OVO-Bench (70.2 vs.\ 65.3 for the runner-up), OmniMMI
+(32.7 vs.\ 25.4), and ProactiveVideoQA (47.2 vs.\ 42.7)---and is
+second on StreamingBench's visual average (69.7 vs.\ AURA's 71.1).
+
+The subset pattern says more than the averages. The three subsets that
+squarely test proactive behavior---speaking unprompted, at the right
+moment---all go to \mossrealtime{}: Proactive Alerting on OmniMMI
+(66.0 vs.\ 37.5), Proactive Output on StreamingBench (60.0 vs.\ 53.2),
+and Forward Active Responding on OVO-Bench (62.1 vs.\ 55.8).
+ProactiveVideoQA, proactive in every subset, follows in aggregate, and
+Backward Tracing on OVO-Bench (72.6 vs.\ 60.4) shows the accumulated
+stream history staying usable. The wins concentrate where response
+timing is the skill under test---the behavior Realtime-SFT
+supervises directly (\S\ref{sec:realtime-sft}); where a subset reduces
+to perception QA over the current scene, AURA keeps the edge.
+
+\subsection{Inference Efficiency}\label{sec:eval-efficiency}
+
+Figure~\ref{fig:efficiency} measures serving latency against
+Qwen3-VL-8B, which shares the Qwen3-8B language backbone
+\citep{Yang2025qwen}; the comparison therefore isolates the
+vision-integration architecture. Both models run offline SGLang
+serving on a single H200 (\S\ref{sec:infrastructure}). With ViT output
+matched, the time-to-first-token gap widens from $2.8\times$ to
+$5.1\times$ as visual context grows, and end-to-end latency from
+$1.9\times$ to $4.3\times$. The same-video comparison is stricter for
+us: \mossvl{} forgoes temporal compression so that each arriving frame
+can be encoded immediately (\S\ref{sec:realtime-arch}), and thus
+carries about twice the vision tokens of Qwen3-VL on identical
+input---yet it never falls behind at any measured point. The advantage widens
+with visual context, which is exactly the regime a real-time assistant
+occupies: visual history accumulates by the minute while replies must
+keep arriving on time.
+
+\subsection{Qualitative Results}\label{sec:eval-showcase}
+
+\begin{figure}[t]
+  \centering
+  \includegraphics[width=\linewidth]{fig-showcase.pdf}
+  \caption{\mossrealtime{} in the wild: two screen-captured sessions from
+  the released live demo, running on a single H200, shown as frame strips
+  with excerpts of the model's outputs on a shared timeline (long outputs
+  truncated with ``\ldots''; $t=0$ at the user instruction). (a) Under
+  a standing conditional instruction (``say \emph{great!}\ whenever the
+  cat touches the carrot, otherwise stay silent''), the model stays silent
+  throughout and fires exactly at each of the four contacts; the hollow
+  marker samples one of the silent spans, where the per-frame output is
+  the silence token. (b) Under a
+  single instruction (``commentate the video live''), commentary begins
+  within a second and tracks a free-kick sequence --- set-up, the
+  referee's whistle, the strike, the celebration, and the updated
+  scoreline --- in a professional broadcast register. Outputs are in
+  Chinese, the demo language; English translations of both sessions are
+  given in Appendix~\ref{app:transcripts}, and these and further live
+  cases can be viewed on the official blog
+  (\url{https://openmoss.ai/MOSS-VL/}).}
+  \label{fig:showcase}
+\end{figure}
+
+Figure~\ref{fig:showcase} shows the installed behaviors in live
+operation, with two sessions from the released
+demo. Under a standing conditional instruction, the model holds
+silence over the full stream and fires at each of the four target
+contacts, and only there; under a single commentary instruction, it
+opens within a second and tracks a free-kick sequence through the
+whistle, the strike, the celebration, and the updated scoreline.
+Between them, the sessions exercise the core interaction roles of the
+Realtime-SFT corpus (\S\ref{sec:realtime-sft})---a standing
+instruction that must fire exactly when its condition is met, and
+continuous real-time commentary---under real-world timing.

@@ -1,0 +1,147 @@
+\section{Post-Training}\label{sec:posttraining}
+
+Post-training proceeds in two supervised stages (Table~\ref{tab:stages});
+neither uses reinforcement learning or a thinking mode. Standard
+supervised fine-tuning (SFT) turns \mossbase{} into \mossinstruct{}, an
+offline instruction follower. Realtime-SFT then continues from
+\mossinstruct{} (Table~\ref{tab:lineage}) and installs the real-time
+interaction paradigm: deciding at every frame whether to speak, staying
+silent while nothing needs saying, and revising an answer when the scene
+overturns it. Every real-time-specific design choice in \mossvl{} lives
+in this final stage, which accounts for under 3\% of the total training
+tokens.
+
+\subsection{Supervised Fine-Tuning}\label{sec:sft}
+
+We fine-tune \mossbase{} on 7.6M instruction samples (102.8B tokens)
+with the standard next-token cross-entropy loss over assistant
+responses, with sequences up to 128K tokens (Table~\ref{tab:stages}).
+The samples combine data collected and reorganized from existing
+corpora with data synthesized in house, and all of it passes filtering,
+deduplication, decontamination against our evaluation suites, and
+quality screening before entering the mixture. The
+mixture covers general question answering over single images,
+multi-image sets, videos, and plain text; perception-centric tasks
+including OCR, document understanding, and spatial and temporal
+grounding; image and video captioning; and reasoning-centric tasks
+spanning multimodal reasoning, mathematics and other academic
+disciplines, code, and knowledge-intensive QA, together with identity
+data.
+
+\subsection{Realtime-SFT: Learning When to Speak}\label{sec:realtime-sft}
+
+Realtime-SFT teaches the model to treat incoming video as a stream of
+decisions rather than a finished artifact. Training samples interleave
+text with frames in arrival order: every frame is followed by a decision
+slot, and each slot takes one of three forms---\statetok{silence} (keep
+watching), \statetok{response} followed by text (speak now), or a reply
+that ends with \statetok{silence} (finish speaking). A reply is spread
+over consecutive slots frame by frame, emulating rate-limited real-time
+output, and a single user turn may contain several separate emissions.
+Supporting this costs exactly two new vocabulary entries---the two state
+tokens, initialized from the embeddings of semantically related existing
+tokens. The speak-or-wait decision itself is ordinary next-token
+prediction: whenever the most probable next token is \statetok{silence},
+the model waits for the next frame; otherwise it decodes a reply. No
+dedicated decision head is attached.
+
+\paragraph{Data characteristics.}
+What sets the Realtime-SFT corpus (0.56M samples, ${\approx}$34.8B
+tokens; Table~\ref{tab:stages}) apart is that every sample casts the
+model in an explicit interaction role rather than a plain QA role:
+standing instructions that must fire exactly once when their condition
+is met; resident questions whose answers must update as evidence
+accumulates; continuous real-time commentary; counting that accumulates
+across a stream; probes of whether this is the right moment to speak;
+and video-independent dialogue that maintains identity consistency. A
+further share of offline QA and general multimodal data preserves
+offline ability.
+
+\paragraph{Data construction.}
+The corpus draws on two sources. We first collect open-source datasets
+for streaming video understanding and subject them to strict filtering
+and re-annotation. More important, however, is the data we synthesize
+ourselves, targeting the behaviors that existing datasets provide
+scarcely or not at all: staying silent until evidence appears, revising
+an answer as the scene evolves, and recovering when a new event
+interrupts a reply midway. Synthesis follows the caption-driven pipeline
+introduced in MOSS-Video-Preview \citep{Wang2026moss}: hierarchical,
+densely time-anchored captions are mined for state transitions of a
+focal object; each transition yields a question, an immediately
+answerable reply, and a trajectory of updates; replies are anchored to
+visual moments, laid out over frames with silence in between, and
+filtered for quality. This round upgrades three of the pipeline's four
+stages. Temporal anchoring is now verified frame by frame against the
+actual footage: each reply is assigned the moment its evidence becomes
+visible and the moment it stops being valid. Hand-offs are more
+natural: a reply overtaken by a new event is rewritten as a
+plain-language self-correction instead of being marked with a dedicated
+interrupt token. Finally, a quality gate checks every sample against
+its frames and keeps only those whose replies are grounded in what is
+visible at emission time.
+
+\paragraph{Corpus statistics.}
+The interaction-first emphasis is visible in the numbers. Across the
+corpus the model is supervised on 2.2M emission decisions, 58.7\% of
+which are self-timed rather than prompted by a fresh user question; in
+5.1\% of samples the target event never occurs, and the correct
+behavior is to stay silent throughout. Streams run at 1\,fps for up to
+768 frames (${\approx}$12.8 minutes) per window. The corpus is
+decontaminated against our evaluation suites: benchmark videos are
+excluded via held-out lists.
+
+\subsection{Mode Control and Training Objective}\label{sec:mode-control}
+
+Mode control in \mossvl{} amounts to a single system prompt. The
+streaming and real-time modes share one prompt---real-time operation is
+a special case of streaming---and offline inference uses none. One set
+of weights thus operates in three inference modes with zero architecture
+change. The prompt is reproduced below; the full dialogue template,
+including frame and timestamp interleaving, is given in
+Appendix~\ref{app:template}.
+
+\begin{promptbox}{The shared streaming / real-time system prompt}
+You are a helpful AI assistant specializing in real-time video analysis.
+The video streams to you frame by frame. At every frame, you decide
+independently whether to respond or stay silent --- output
+\statetok{silence} when nothing relevant has happened, and respond when
+the visual content warrants it.
+\end{promptbox}
+
+Supervision covers only what the assistant controls: reply text and the
+two state tokens. System and user turns and the expanded visual tokens
+are excluded from the loss. The central difficulty is imbalance: silence
+slots vastly outnumber emission decisions, and under uniform weights the
+model simply learns to stay silent. We therefore reweight the two state
+tokens with a focal factor and inverse-frequency class coefficients,
+computing the class statistics over the global batch at every step,
+which keeps the class coefficients identical across data-parallel
+ranks:
+\begin{equation}\label{eq:realtime-loss}
+\mathcal{L}=\frac{\sum_i m_i\, w_i\, \ell_i}{\sum_i m_i},\qquad
+w_i=\begin{cases}
+\alpha_{y_i}\,(1-p_i)^{\gamma} & \text{$y_i$ is a state token,}\\
+1 & \text{otherwise,}
+\end{cases}
+\end{equation}
+where $\ell_i$ is the token-level cross-entropy, $m_i$ the supervision
+mask, $p_i$ the predicted probability of the target token, and
+$\gamma=2$. The coefficient $\alpha_k=(n_s+n_r)/(2\,n_k)$, with $n_s$ and
+$n_r$ counting silence and response targets in the current global batch,
+equalizes the nominal, pre-focal weight of the two classes; reply text
+keeps unit weight. Before focal modulation, the decision to speak and
+the decision to stay silent thus carry equal aggregate weight in the
+state-token loss, no matter how rare speaking is.
+
+One further masking choice matters specifically in streams. In offline
+chat, the token closing an assistant turn marks the end of an exchange;
+in a stream, a turn boundary usually means the user interjected while the
+world---and the conversation---continue. We therefore also exclude the
+assistant's turn-final end token from supervision, so the model never
+learns to wrap up merely because a new user turn appears. In a controlled
+single-variable comparison, this masking raised emission frequency by
+39\% and mean reply length by 68\%.
+
+The behaviors installed here are evaluated quantitatively on four
+streaming benchmarks in \S\ref{sec:evaluation} and qualitatively in
+Figure~\ref{fig:showcase}.

@@ -1,5 +1,8 @@
 # Wiki Update Log
 
+## 2026-08-20
+- **Ingest**: Compiled the complete [MOSS-VL technical report](../raw/2608.15045_MOSS-VL/main.tex), appendix, tables, and supplied architecture, position-encoding, latency, overview, and demo figures; created [MOSS-VL real-time vision-language model](moss-vl-realtime-vision-language-model.md) and updated [Recent vision-language research directions](recent-vision-language-research-directions.md), [From unified pretraining to modern vision-language models](from-unified-pretraining-to-modern-vision-language-models.md), and [Vision-language task-to-model map](vision-language-task-to-model-map.md).
+
 ## 2026-08-18
 - **Ingest**: Compiled [MoonViT-SO-400M](../raw/MoonViT-SO-400M.md); created [MoonViT native-resolution vision encoder](moonvit-native-resolution-vision-encoder.md).
 - **Ingest**: Compiled [Mage-ViT: A Codec-Native Visual Encoder Trained from Scratch](../raw/Mage-ViT.md); created [Mage-ViT codec-native visual encoder](mage-vit-codec-native-visual-encoder.md).

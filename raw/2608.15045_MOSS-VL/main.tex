@@ -1,0 +1,98 @@
+\pdfoutput=1
+\documentclass{mosi}
+
+\usepackage{pifont}      %
+\usepackage{enumitem}    %
+\usepackage{float}       %
+\usepackage{makecell}    %
+\usepackage{tabularx}    %
+
+\graphicspath{{assets/}{figures/}{./}}
+
+\makeatletter
+\setlength{\@fptop}{0pt}
+\setlength{\@fpbot}{0pt plus 1fil}
+\makeatother
+
+\definecolor{oursgray}{gray}{0.95}   %
+\newcommand{\up}{$\uparrow$}
+\newcommand{\down}{$\downarrow$}
+\newcommand{\bnum}[1]{\textbf{#1}}   %
+\newcommand{\snum}[1]{\underline{#1}} %
+\newcommand{\cmark}{\ding{51}}
+\newcommand{\xmark}{\textcolor{black!30}{\ding{55}}}
+\newcommand{\statetok}[1]{\texttt{<|#1|>}}
+
+\newcommand{\mossvl}{MOSS-VL}
+\newcommand{\mossbase}{MOSS-VL-Base}
+\newcommand{\mossinstruct}{MOSS-VL-Instruct}
+\newcommand{\mossrealtime}{MOSS-VL-Realtime}
+
+\newtcolorbox{promptbox}[2][]{
+  colback=white, coltext=black,
+  arc=3mm, boxrule=0.5pt, colframe=black!60!white,
+  title={#2}, colbacktitle=black, coltitle=white, fonttitle=\bfseries,
+  top=8pt, bottom=8pt, left=10pt, right=10pt,
+  breakable,
+  before upper={\linespread{1}\selectfont
+    \setlength{\parskip}{1ex plus 0.2ex minus 0.2ex}\setlength{\parindent}{0pt}},
+  #1
+}
+
+\title{MOSS-VL Technical Report}
+
+\author{OpenMOSS Team$^{*}$}
+\authornote{$^{*}$Full contributors are listed in the
+Contributors section.}
+
+\abstract{%
+We present \mossvl{}, an open vision--language model family that treats
+real-time interaction---perceiving while it speaks---as a first-class
+capability. It is co-designed across the stack: the language decoder
+attends to vision only through gated cross-attention, so the model
+can naturally see incoming frames while generating; a synthesized
+interaction corpus
+supervises when to speak, when to stay silent, and when to revise; and
+a staged curriculum concentrates all real-time-specific training in one
+light final stage over a strong offline foundation. Offline,
+\mossinstruct{} is competitive at comparable scale and leads
+temporal-reasoning video sets. Across four
+streaming benchmarks, \mossrealtime{} posts the best average on three
+(second on the fourth) among open-source streaming models, sweeping the
+three subsets that squarely test proactive behavior---66.0 vs.\ 37.5
+for the best baseline on OmniMMI Proactive Alerting. With 11.3B
+parameters but visual tokens outside
+the decoded sequence, \mossvl{} widens its time-to-first-token
+advantage over same-backbone Qwen3-VL-8B from $2.8\times$ to
+$5.1\times$ as visual context grows. We release all five checkpoints,
+the training curriculum, and the real-time inference code at
+\url{https://github.com/OpenMOSS/MOSS-VL}.%
+}
+
+\checkdata[Project]{\url{https://openmoss.ai/MOSS-VL/}}
+\checkdata[Code]{\url{https://github.com/OpenMOSS/MOSS-VL}}
+\checkdata[Models]{\url{https://huggingface.co/OpenMOSS-Team}}
+\checkdata[Contact]{\texttt{pywang24@m.fudan.edu.cn}, \texttt{xpqiu@fudan.edu.cn}}
+
+\begin{document}
+\maketitle
+
+\input{sections/01-introduction}
+\input{sections/02-architecture}
+\input{sections/03-pretraining}
+\input{sections/04-posttraining}
+\input{sections/05-infrastructure}
+\input{sections/06-evaluation}
+\input{sections/07-discussion}
+\input{sections/08-conclusion}
+\input{sections/10-contributions}
+
+\clearpage
+\bibliographystyle{plainnat}
+\bibliography{refs}
+
+\clearpage
+\appendix
+\input{sections/09-appendix}
+
+\end{document}

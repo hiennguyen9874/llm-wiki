@@ -1,0 +1,152 @@
+\section{Architecture}\label{sec:architecture}
+
+\begin{figure}[t]
+  \centering
+  \includegraphics[width=\linewidth]{mossvl-framework.pdf}
+  \caption{\mossvl{} architecture. Images and video frames are encoded by
+  a 27-layer vision encoder at native dynamic resolution, then pooled
+  $2\times2$ and projected into visual tokens; text is tokenized alongside.
+  The LLM decoder (48 layers, initialized from Qwen3-8B) attends to visual
+  tokens only through 12 tanh-gated cross-attention layers
+  (Gated-XAttention, right inset), one in every four; the other 36
+  self-attention layers operate on the text sequence alone, so visual
+  tokens never join the decoded sequence. Cross-attention queries carry
+  text positions and keys carry three-axis XRoPE coordinates $(t,h,w)$.
+  Gates are zero-initialized scalars, so training starts from an intact
+  language backbone.}
+  \label{fig:arch}
+\end{figure}
+
+\begin{figure}[t]
+  \centering
+  \includegraphics[width=\linewidth]{xrope.pdf}
+  \caption{XRoPE, the position encoding of the cross-attention channel.
+  Text tokens and visual patches share one three-axis coordinate space
+  $(t,h,w)$, ordered by their logical position in the stream: a text
+  token advances all three axes together, while a frame anchored at
+  coordinate $t$ tiles its patches from $(t,t,t)$ at the top-left to
+  $(t,t{+}h{-}1,t{+}w{-}1)$ at the bottom-right. The separator token
+  closing each frame on the vision side and that frame's placeholder
+  token in the text stream receive the same coordinate, so both channels
+  advance along a single shared timeline. Rotations are applied to
+  text-side queries and vision-side keys before they meet in
+  cross-attention.}
+  \label{fig:xrope}
+\end{figure}
+
+\begin{table}[t]
+  \centering
+  \caption{\mossvl{} configuration, identical across all released
+  checkpoints. Video-input ranges reflect the native training setup; the
+  released processor defaults to 1\,fps and 256 frames, and our
+  evaluations keep 1\,fps with the cap raised to 768 frames
+  (\S\ref{sec:evaluation}).}
+  \label{tab:config}
+  \input{tables/config}
+\end{table}
+
+\begin{table}[t]
+  \centering
+  \caption{Released \mossvl{} checkpoints. The 0708 run is the subject of
+  this report: \mossbase{} is the pre-trained model, \mossinstruct{} is its
+  instruction-tuned successor, and \mossrealtime{} continues training from
+  \mossinstruct{} with Realtime-SFT. The 0408 checkpoints are an earlier,
+  independently trained run of the same architecture, released alongside
+  for research continuity. All five are available under the OpenMOSS-Team
+  organization on HuggingFace.}
+  \label{tab:lineage}
+  \input{tables/lineage}
+\end{table}
+
+
+\mossvl{} pairs a native-resolution vision encoder with a language
+decoder initialized from Qwen3-8B \citep{Yang2025qwen}, and the two
+interact only through gated cross-attention (Figure~\ref{fig:arch}).
+Visual tokens never enter the decoded sequence: each frame contributes
+a few timestamp tokens and one placeholder token to the text stream,
+while its patch tokens are consumed as cross-attention keys and values.
+Table~\ref{tab:config} lists the configuration.
+
+\subsection{Components and Parameter Accounting}\label{sec:arch-components}
+
+The vision encoder is a 27-layer transformer initialized from the
+Qwen3-VL vision encoder \citep{Bai2025qwen}; it processes images and
+frames at native resolution, from 4{,}096 to 16.8M pixels, drawing
+features from three intermediate layers and the final layer. The
+projection module merges each $2\times2$ patch group and maps it into
+the decoder's hidden space. The decoder stacks 48 layers: 36
+self-attention layers carried over from Qwen3-8B, and 12 gated
+cross-attention layers, one at every fourth position. Of the 11.3B
+total parameters, roughly 8.2B form the language backbone, 2.3B the
+cross-attention stack, and 0.8B the vision encoder and projection
+module.
+
+\subsection{Gated Cross-Attention}\label{sec:xattn}
+
+Each cross-attention layer follows the gated design of Flamingo
+\citep{Alayrac2022flamingo}---queries come from the text hidden
+states, keys and values from the visual tokens---implemented here
+with grouped-query attention (32 query / 8 key--value heads) and
+QK-RMSNorm. The layer wraps its
+attention and feed-forward paths in tanh gates whose scalars are
+zero-initialized, so training starts from an intact language backbone
+(\S\ref{sec:pretraining}). The 36 self-attention layers never see
+visual tokens.
+
+\subsection{XRoPE}\label{sec:xrope}
+
+To our knowledge, XRoPE (cross-attention rotary position embedding) is
+the first position encoding introduced for the cross-attention channel
+of a vision--language architecture: it gives the visual stream position
+information that this channel otherwise lacks. XRoPE places text tokens
+and visual patches in one three-axis coordinate space $(t,h,w)$,
+ordered by their logical position in the stream
+(Figure~\ref{fig:xrope}). A text token advances all three axes
+together, taking coordinate $(x,x,x)$. A frame whose merged patch grid
+is $h'\times w'$ anchors at the coordinate $t$ following the preceding
+text, and its patches tile
+\begin{equation}\label{eq:xrope}
+  \mathbf{p}_{a,b} = (t,\; t+a,\; t+b),
+  \qquad 0 \le a < h',\;\; 0 \le b < w',
+\end{equation}
+so height and width offsets ride on the shared temporal anchor. The
+separator token that closes the frame on the vision side and the
+frame's placeholder token in the text stream both take $(x,x,x)$ with
+$x = \max(t+h',\, t+w')$, and the next text token continues from
+$x+1$: the two channels advance along a single timeline. The 64 rotary
+frequency pairs are split $(24,20,20)$ across $(t,h,w)$, and rotations
+are applied to text-side queries and vision-side keys before they meet
+in cross-attention. The $t$ axis is a relative sequence coordinate,
+not wall-clock time; real timing enters through the timestamp tokens
+of \S\ref{sec:timestamps}.
+
+\subsection{Absolute Timestamps}\label{sec:timestamps}
+
+Positions alone say nothing about wall-clock time, and frame rates
+vary: \mossvl{} samples video at 1--16\,fps, motion-adaptive
+(Table~\ref{tab:config}). Each frame is therefore preceded in the text
+stream by an absolute timestamp,
+\statetok{time\_start}\texttt{X.X seconds}\statetok{time\_end}, so
+the model reads real time from tokens rather than inferring it from
+positions, and timing stays explicit under any sampling rate.
+
+\subsection{Real-Time by Construction}\label{sec:realtime-arch}
+
+When a new frame arrives, only that frame is encoded; its keys and
+values are appended to the cross-attention cache, and earlier frames
+are neither re-encoded nor their keys and values recomputed. The
+decoded sequence grows by the frame's
+timestamp tokens and a single placeholder token---patch tokens stay on
+the vision side---so an arriving stream leaves the decoding state
+intact, and the next generated token already attends to the updated
+cache through the gated layers.
+\S\ref{sec:evaluation} quantifies the efficiency this
+yields at inference time (Figure~\ref{fig:efficiency}).
+
+\subsection{Released Models}\label{sec:released-models}
+
+We release five checkpoints of one architecture
+(Table~\ref{tab:lineage}). The 0708 run---\mossbase{},
+\mossinstruct{}, \mossrealtime{}---is the subject of this report; the
+0408 pair is an earlier, independently trained run of the same
+architecture, released for research continuity.

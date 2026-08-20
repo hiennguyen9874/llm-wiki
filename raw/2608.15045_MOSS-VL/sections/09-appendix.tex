@@ -1,0 +1,134 @@
+\section{Real-Time Interaction Details}
+
+\subsection{Real-Time Dialogue Template}\label{app:template}
+
+
+All three inference modes share the released ChatML-style chat template.
+Offline inference is standard: the full video is encoded as one vision
+block and the model replies as an ordinary chat assistant, with no
+dedicated system prompt. The streaming and real-time modes prepend the
+shared system prompt of \S\ref{sec:mode-control} and lay every
+assistant turn out as an alternating stream of decision slots $t_i$ and
+frame placeholders,
+\begin{center}
+$t_0$\,\statetok{video}\,$t_1$\,\statetok{video}\,$t_2$%
+\,$\cdots$\,\statetok{video}\,$t_N$,
+\end{center}
+so $N$ frames leave the model $N{+}1$ decisions. Each slot takes one of
+three forms: \statetok{silence}---nothing to say at this frame;
+\statetok{response} followed by a text chunk---speaking, not yet
+finished; or a chunk closed by \statetok{silence}---the reply ends
+here. The session below shows the layout end to end. Line breaks in the
+actual byte stream occur only after each role header and after each
+\texttt{<|im\_end|>}; every other break is wrapping, and the italic
+annotations are not part of the stream.
+
+\begin{promptbox}{Real-time session layout (template level)}
+\ttfamily\footnotesize\hyphenpenalty=10000\exhyphenpenalty=10000\raggedright
+<|im\_start|>system\\
+\textrm{\itshape the shared streaming / real-time system prompt (\S\ref{sec:mode-control})}<|im\_end|>\\
+\textrm{\itshape ---~warm-up: the stream is already flowing, nobody has spoken~---}\\
+<|im\_start|>user\\
+<|im\_end|>\\
+<|im\_start|>assistant\\
+<|silence|>\allowbreak<|video|>\allowbreak<|silence|>\allowbreak<|video|>\allowbreak<|silence|>\allowbreak\textrm{\itshape\ \dots\ nothing happens, the model keeps silent\ \dots}\allowbreak<|im\_end|>\\
+\textrm{\itshape ---~a reply spread over consecutive frames; later the instruction fires a second time~---}\\
+<|im\_start|>user\\
+Tell me when the door opens.<|im\_end|>\\
+<|im\_start|>assistant\\
+<|silence|>\allowbreak<|video|>\allowbreak<|silence|>\allowbreak<|video|>\allowbreak<|silence|>\allowbreak<|video|>\allowbreak<|response|>The door is opening,\allowbreak<|video|>\allowbreak<|response|>and a man in a red jacket steps in.<|silence|>\allowbreak<|video|>\allowbreak<|silence|>\allowbreak<|video|>\allowbreak<|response|>The door opens again,\allowbreak<|video|>\allowbreak<|response|>another man, in a white shirt, steps in.<|silence|>\allowbreak<|im\_end|>\\
+\textrm{\itshape ---~leading-slot dropout variant: the frame arrives first~---}\\
+<|im\_start|>user\\
+What is the second man up to?<|im\_end|>\\
+<|im\_start|>assistant\\
+<|video|>\allowbreak<|response|>He is sneaking around,\allowbreak<|video|>\allowbreak<|response|>and has not noticed the first man staring at him.<|silence|><|im\_end|>
+\end{promptbox}
+
+Five details of this layout carry the design:
+\begin{enumerate}[leftmargin=1.5em]
+\item \textbf{The warm-up turn.} A session may open before anyone has
+  spoken: the user turn is empty, and the assistant answers every slot
+  with \statetok{silence}. Silence-by-default is exercised before any
+  instruction exists.
+\item \textbf{One \statetok{response} per speaking frame.} A reply
+  spread over $k$ frames carries $k$ \statetok{response} tokens, one
+  ahead of each chunk---not a single token for the whole reply.
+\item \textbf{Exactly one closing \statetok{silence} per reply}, placed
+  in the same slot as the final chunk. It is the same vocabulary entry
+  as the idle \statetok{silence}, distinguished only by position (after
+  text: the reply is finished; alone after a frame: nothing to say),
+  and it is the model's only end-of-reply signal.
+\item \textbf{The leading slot is an augmentation site.} About half of
+  the training samples keep the slot between the user's message and the
+  next frame (second assistant turn above); the rest drop it (last
+  turn). The model thus handles a question that lands together with a
+  frame and one that lands a beat ahead of it equally well.
+\item \textbf{A turn may contain several replies.} In the second
+  assistant turn the model closes its reply, stays silent for a frame,
+  then fires again unprompted when the door opens a second time---its
+  standing instruction met anew, with no new user turn in between.
+\end{enumerate}
+
+The template keeps each frame as a single \statetok{video} placeholder;
+the processor---the same code path at training and inference
+time---expands it into a timestamped vision block:
+\begin{center}
+\texttt{<|vision\_start|><|time\_start|>7.0 seconds<|time\_end|>%
+<|image\_pad|><|vision\_end|>}
+\end{center}
+The timestamp is plain text carrying the frame's arrival time, so the
+model reads the current stream time directly from its input;
+\statetok{image\_pad} is then replaced by the frame's visual tokens
+according to its resolution. Training and inference must agree on this
+expansion byte for byte---any deviation shifts the model off its
+training distribution and suppresses emission.
+
+At inference the runtime reproduces the training-time alternation with
+a strict handshake: it pushes one frame, waits for the model to emit a
+fresh \statetok{silence}, and only then pushes the next. While a long
+reply is still unfolding, a length budget releases the next frame
+instead, so the stream never stalls behind the reply. Replies therefore
+unfold across consecutive slots, one chunk per frame, exactly as in
+training (\S\ref{sec:realtime-sft}).
+
+\subsection{Live-Demo Session Transcripts}\label{app:transcripts}
+
+Figure~\ref{fig:showcase} shows excerpts of the model's Chinese outputs;
+Table~\ref{tab:transcripts} gives our English translations of both
+sessions, in output order.
+
+\begin{table}[h]
+  \centering
+  \caption{English translations (ours) of the two live-demo sessions in
+  Figure~\ref{fig:showcase}. The figure carries the Chinese excerpts;
+  timestamps and the placement of each output on the stream are read off
+  the figure's timeline.}
+  \label{tab:transcripts}
+  \small
+  \renewcommand{\arraystretch}{1.25}
+  \begin{tabular}{@{}lp{11.2cm}@{}}
+    \toprule
+    Turn & English translation \\
+    \midrule
+    \multicolumn{2}{@{}l}{\itshape (a) Conditional alert} \\
+    User ($t{=}0$) & Watch in real time and judge whether the cat
+      touches the carrot; output ``Great!''\ whenever it does, and stay
+      silent otherwise. \\
+    Model & ``Great!'', emitted at each of the four contacts; every
+      other frame yields the silence token. \\
+    \midrule
+    \multicolumn{2}{@{}l}{\itshape (b) Real-time commentary} \\
+    User ($t{=}0$) & Commentate on the video live. \\
+    Model & Portugal win a crucial free-kick chance; Ronaldo stands
+      over the ball\ldots \\
+    Model & The referee's whistle sounds, and the whole stadium holds
+      its breath. \\
+    Model & Ronaldo takes a measured run-up and strikes---the ball
+      flies straight for the corner of the goal. \\
+    Model & Ronaldo spreads his arms wide, his face full of excitement
+      and pride\ldots \\
+    Model & The score is level---Portugal have pulled back to 3--3
+      against Spain\ldots \\
+    \bottomrule
+  \end{tabular}
+\end{table}
