@@ -1,5 +1,15 @@
 # Wiki Update Log
 
+## 2026-08-21
+- **Ingest**: Compiled [OpenDataLoader PDF README](../raw/opendataloader-pdf.md); created [OpenDataLoader PDF](opendataloader-pdf.md).
+- **Ingest**: Compiled Docling concept documentation for [architecture](../raw/docling-concepts/architecture.md), [document representation](../raw/docling-concepts/docling_document.md), [chunking](../raw/docling-concepts/chunking.md), [serialization](../raw/docling-concepts/serialization.md), [confidence grades](../raw/docling-concepts/confidence_scores.md), [OCR engines](../raw/docling-concepts/OCR.md), and [plugins](../raw/docling-concepts/plugins.md); created [seven Docling concepts](index.md#concepts).
+- **Ingest**: Compiled [Surya Layout (fast) model card](../raw/surya_layout2.md); created [Surya Layout (fast)](surya-layout-fast.md).
+- **Ingest**: Compiled [Marker README](../raw/marker.md); created [Marker](marker.md).
+- **Ingest**: Compiled [lift model card](../raw/lift.md); created [lift](lift.md).
+- **Ingest**: Compiled [MinerU README](../raw/MinerU.md); created [MinerU](mineru.md).
+- **Ingest**: Compiled [Architectural comparison of MinerU, Marker, Docling, and OpenDataLoader-PDF](../raw/ocr-tool-architecture-chatgpt.md); created [PDF-to-Markdown parser architectures](pdf-to-markdown-parser-architectures.md).
+- **Ingest**: Compiled [PDF-to-Markdown tool comparison](../raw/ocr-tool-compare.md); created [PDF-to-Markdown tool selection](pdf-to-markdown-tool-selection.md).
+
 ## 2026-08-17
 - **Query**: Defined the retained hybrid OCR scope and cataloged its core and boundary models, datasets, metrics, reported results, protocol conflicts, and evidence limits in [Hybrid OCR systems and benchmarks](hybrid-ocr-systems-and-benchmarks.md).
 - **Query**: Cataloged retained end-to-end generative OCR VLMs, datasets, metrics, result vectors, protocol conflicts, and evidence gaps in [End-to-end generative OCR VLM benchmarks](end-to-end-generative-ocr-vlm-benchmarks.md).
