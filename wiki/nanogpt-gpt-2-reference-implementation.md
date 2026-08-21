@@ -5,7 +5,7 @@ description: nanoGPT is a compact, now-deprecated PyTorch GPT-2-style implementa
 tags: [nanogpt, gpt-2, decoder-only-transformer, pytorch, reference-implementation]
 status: stable
 created: 2026-08-13
-generated: { by: llm-wiki-agent/1, at: 2026-08-13T09:29:00Z }
+generated: { by: llm-wiki-agent/1, at: 2026-08-21T15:55:51Z }
 sources:
   - id: nanogpt-readme
     resource: ../raw/nanoGPT/README.md
@@ -45,6 +45,7 @@ With targets, `forward()` returns logits at every position and next-token cross-
 ## Relationships
 
 - **Rewrites:** [minGPT educational GPT reference implementation](mingpt-educational-gpt-reference-implementation.md), as stated by nanoGPT’s README.
+- **Superseded as project direction by:** [nanochat modern GPT reference implementation](nanochat-modern-gpt-reference-implementation.md); nanoGPT’s README directs new users to nanochat while this historical implementation remains available.
 - **Implements:** the dense baseline in [Decoder-only Transformer: beginner's guide](decoder-only-transformer-beginners-guide.md).
 - **Operationalizes:** [Causal language modeling: training and sampling](causal-language-modeling-training-and-sampling.md).
 - **Lacks:** [KV caching](kv-caching.md)’s retained decode state.

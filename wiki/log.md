@@ -1,5 +1,10 @@
 # Wiki Update Log
 
+## 2026-08-21
+- **Ingest**: Compiled the [nanochat source bundle](../raw/nanochat/README.md); created its [modern GPT implementation](nanochat-modern-gpt-reference-implementation.md), [distributed Muon–AdamW training](nanochat-distributed-muon-adamw-training.md), and [end-to-end workflow](nanochat-end-to-end-language-model-workflow.md) concepts, and connected nanoGPT and Muon implementation context.
+- **Query**: Answered “Compare minGPT, nanoGPT, microgpt”; filed [minGPT, nanoGPT, and microgpt comparison](mingpt-nanogpt-microgpt-comparison.md).
+- **Ingest**: Compiled [microgpt.py](../raw/microgpt.py); created [microgpt pure-Python GPT reference implementation](microgpt-pure-python-gpt-reference-implementation.md).
+
 ## 2026-08-20
 - **Ingest**: Compiled [DFlash 2: Keep Drafting Parallel](../raw/DFlash2.md); created [parallel selection and local convolution](dflash-2-parallel-selection-and-local-convolution.md) and [evaluation and deployment](dflash-2-evaluation-and-deployment.md), and updated the [base DFlash mechanism](dflash-block-diffusion-speculative-decoding.md) with its extension link.
 
