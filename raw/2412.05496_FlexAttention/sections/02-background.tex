@@ -1,0 +1,48 @@
+\section{Background}
+\subsection{Attention Variants}
+The attention mechanism plays a critical role at the core of Transformers.
+Each attention layer takes three input tensors: a query $\mathbf{Q} \in \mathbb{R}^{B \times H \times Q\_LEN \times D}$, and a key and a value $\mathbf{K},\mathbf{V} \in \mathbb{R}^{B \times H \times KV\_LEN \times D}$, where $B$ denotes the batch size, $H$ is the number of attention heads, $D$ is the feature dimension, and $Q\_LEN$ and $KV\_LEN$ represents the query and key-value lengths, respectively. The attention mechanism first computes a score matrix $\mathbf{S} \in \mathbb{R}^{B \times H \times Q\_LEN \times KV\_LEN}$, which encodes context information by attending each query token to every key token.
+
+
+\begin{equation}
+    \mathbf{S} = \text{softmax}(\frac{\mathbf{Q}\mathbf{K}^T}{\sqrt{d_k}})
+\end{equation}
+
+Next, attention computes the output as $\mathbf{S}\mathbf{V} \in \mathbb{R}^{B\times H \times Q\_LEN \times D}$, weighting the value features by the score matrix. 
+
+Building on this foundational algorithm, ML researchers are exploring methods to enhance it by modifying the score matrix $\mathbf{S}$ for more effective and efficient context extraction.  For example, neighborhood \cite{NAdeliated} and sliding window~\cite{slidingwindow} attention attends each query token only to its neighboring key tokens to reduce computational and memory complexity for large images and long sequences. Softcapping~\cite{gemma2} adds a tanh layer to prevent excessive growth of logits. Alibi~\cite{alibi} embeds an elementwise bias in the score matrix that penalizes distant tokens to allow models trained on short inputs to perform on long prompts. This large design space motivates efficient compiler designs for facilitating the training and inference of attention variants.
+ 
+
+
+\subsection{State-of-the-art Attention Implementations}
+\label{sec:sota_attn}
+
+Many kernels have been manually implemented to efficiently support attention. Among these, the IO-aware FlashAttention \cite{flashattention2} has become one of the most widely adopted solutions. FlashAttention significantly reduces memory access and achieves substantial speedups. 
+Specifically, it avoids materializing the large score matrix $\mathbf{S}$ and computes it on the fly.
+Recently, Flash Attention v3 has been released to further accelerate attention by leveraging advanced hardware features and manually tuning the performance.
+While flash attention delivers state-of-the-art performance, it is specifically tailored towards a limited selection of attention variants (\autoref{tab:evaluation:mods}).
+One recent work FlashMask \cite{wang2024flashmask} extends Flash Attention with a column-wise sparse representation to support more mask designs.
+However, it still lacks of flexibility in terms of score modifications and adds large overhead for complex masks.
+Given that attention variants exhibit diverse computational characteristics such as sparsity and locality, significant manual effort is required to adapt existing attention implementations to support numerous attention variants.
+This lack of flexibility and efficient kernels has become a barrier for machine learning researchers seeking to explore novel attention variants.
+
+
+\subsection{Machine Learning Compilers}
+Many compilers have been built to accelerate machine learning workloads.
+torch.compile \cite{pytorch2} uses TorchDynamo to capture computation graph from an arbitrary code and TorchInductor to optimize the graph.
+TVM \cite{TVM} allows users to describe the computation of a kernel and generate optimized code.
+Mirage \cite{mirage} utilizes $\mu$graph to explore operator-level optimization opportunities. 
+However, these machine learning compilers fail to deliver a satisfactory performance on attention variants due to the special computing patterns in attention.
+First, attention requires fusing two matrix-matrix multiplications (i.e., $QK^T$ and $SV$) while existing machine learning compilers usually focuses on optimizing one matrix-matrix multiplications.
+Second, as shown in Flash Attention \cite{flashattention2}, online softmax significantly reduces memory access and improve performance. Since online softmax is tailored towards attention designs, it is not well supported by existing general machine learning compilers.
+To the best of our knowledge, we are the first to compile arbitrary attention variants while delivering state-of-the-art performance.
+
+
+
+
+
+
+
+
+
+

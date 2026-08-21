@@ -1,6 +1,9 @@
 # Wiki Update Log
 
 ## 2026-08-21
+- **Ingest**: Compiled [FlexAttention: a Programming Model for Generating Optimized Attention Kernels](../raw/2412.05496_FlexAttention/main.tex); created [programming model and template lowering](flexattention-programming-model-and-compilation.md), [BlockMask and paged attention](flexattention-block-sparsity-and-paged-attention.md), and [evaluation and deployment limits](flexattention-evaluation-and-deployment-limits.md).
+
+## 2026-08-21
 - **Ingest**: Compiled the [nanochat source bundle](../raw/nanochat/README.md); created its [modern GPT implementation](nanochat-modern-gpt-reference-implementation.md), [distributed Muon–AdamW training](nanochat-distributed-muon-adamw-training.md), and [end-to-end workflow](nanochat-end-to-end-language-model-workflow.md) concepts, and connected nanoGPT and Muon implementation context.
 - **Query**: Answered “Compare minGPT, nanoGPT, microgpt”; filed [minGPT, nanoGPT, and microgpt comparison](mingpt-nanogpt-microgpt-comparison.md).
 - **Ingest**: Compiled [microgpt.py](../raw/microgpt.py); created [microgpt pure-Python GPT reference implementation](microgpt-pure-python-gpt-reference-implementation.md).
