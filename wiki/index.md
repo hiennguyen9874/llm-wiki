@@ -9,6 +9,7 @@ The complete retrieval map for compiled knowledge. See [LLM Wiki Contract](../LL
 ## Concepts
 
 - [ColQwen3.5-4.5B-v3](colqwen3-5-4-5b-v3.md) — A 4.5B-parameter Qwen3.5-based visual document retrieval model using ColBERT-style late interaction and multilingual training data.
+- [Current embedding-model architecture taxonomy](embedding-model-architecture-taxonomy.md) — A taxonomy of current embedding architectures by retrieval representation, backbone, multimodal composition, and efficiency adaptations.
 - [EVIE-Preview-4.5B](evie-preview-4-5b.md) — A 4.54B-parameter Qwen3.5-based multilingual visual-document retriever producing native 128-dimensional token embeddings for MaxSim late interaction.
 - [LFM2.5-ColBERT-350M](lfm2-5-colbert-350m.md) — A 353M-parameter multilingual late-interaction retriever built from LFM2.5-350M-Base, producing 128-dimensional token vectors scored with MaxSim.
 - [LFM2.5-Embedding-350M](lfm2-5-embedding-350m.md) — A 354M-parameter multilingual dense bi-encoder built from LFM2.5-350M-Base, producing one 1,024-dimensional CLS vector per input and scored with cosine similarity.

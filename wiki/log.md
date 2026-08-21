@@ -1,5 +1,8 @@
 # Wiki Update Log
 
+## 2026-08-21
+- **Query**: Answered “Theo bạn kiến trúc của các mô hình embedding hiện tại đang phát triển theo các hướng nào, gom thành các nhóm kiến trúc mô hình.”; filed [current embedding-model architecture taxonomy](embedding-model-architecture-taxonomy.md).
+
 ## 2026-08-19
 - **Query**: Answered “So sánh benchmark giữa tất cả các model”; expanded [reranker model comparison](reranker-model-comparison.md) with protocol-scoped benchmark tables.
 - **Query**: Answered “Check all reranker model, search in raw. Compare it and suggest to me what model should use in usecase”; filed [reranker model comparison](reranker-model-comparison.md).
