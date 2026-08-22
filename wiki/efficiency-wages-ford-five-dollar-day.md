@@ -5,11 +5,14 @@ description: Why Ford's 1914 doubling of wages was a cost-cutting efficiency wag
 tags: [efficiency-wages, unemployment, henry-ford, five-dollar-day, structural-unemployment, labor-market]
 status: stable
 created: 2026-08-22
-generated: { by: llm-wiki-agent/1, at: 2026-08-22T19:00:00Z }
+generated: { by: llm-wiki-agent/1, at: 2026-08-22T20:05:00Z }
 sources:
   - id: harford-ch8
     resource: ../raw/TheUndercoverEconomistStrikesBack-TimHarford/011-the-invention-of-unemployment.md
     title: "THE INVENTION OF UNEMPLOYMENT - The Undercover Economist Strikes Back (Tim Harford)"
+  - id: mankiw-048
+    resource: ../raw/PrinciplesofMacroeconomics_8thEdition_GregoryMankiw/048-15-4-unions-and-collective-bargaining.md
+    title: "15-4 Unions and Collective Bargaining / 15-5 Theory of Efficiency Wages — Principles of Macroeconomics, 8th Edition (N. Gregory Mankiw)"
 ---
 
 # Efficiency wages and the invention of unemployment — Ford's five-dollar day
@@ -51,6 +54,19 @@ Classical supply-demand predicts unemployment is voluntary — workers could acc
 
 Results: turnover plummeted and labor productivity rose sharply; output rose and profits continued to rise despite recession[^harford-ch8].
 
+## Mankiw's four efficiency-wage theories — why paying above equilibrium is profitable
+
+Mankiw defines efficiency wages as above-equilibrium wages paid by firms to increase worker productivity; unemployment from them resembles that from minimum-wage laws and unions — wages above supply-demand balance → surplus labor — but differs because the constraint is voluntary and profit-maximizing, not legally or cartel-imposed: firms are better off keeping wages high even with a surplus[^mankiw-048]. Normal profit-maximizing intuition (wages are large costs, keep them low) is overturned because higher wages can raise efficiency enough to offset cost[^mankiw-048].
+
+1. **Worker health:** Better-paid workers eat a more nutritious diet, are healthier and more productive; profitable to pay high wages for healthy workers rather than low wages for less healthy ones. Most relevant in less-developed countries where inadequate nutrition is a problem; firms fear cutting wages would hurt health/productivity. Less relevant in rich countries like the U.S. where equilibrium wages are well above adequate-diet level[^mankiw-048].
+2. **Worker turnover:** Workers quit for many reasons; quit frequency depends on benefits of leaving vs staying; higher pay reduces quits. Turnover is costly — hiring and training new workers, and new hires are less productive than experienced ones. Firms with high turnover have higher production costs; paying above equilibrium to reduce turnover can be profitable[^mankiw-048]. Image 000308 not inspected[^mankiw-048].
+3. **Worker quality (adverse selection):** Firms want talented workers but cannot perfectly gauge applicant quality; hiring has randomness. High wage attracts a better applicant pool and raises workforce quality. Cutting wage in a surplus would cause most competent applicants — who have better alternative opportunities — to not apply. If wage-quality effect is strong, paying above clearing is profitable[^mankiw-048].
+4. **Worker effort (shirking/moral hazard):** Many jobs allow discretion over effort; firms monitor but monitoring is costly and imperfect, not all shirkers are caught immediately. High wages make workers eager to keep jobs and motivate best effort; at clearing wage, fired workers could quickly find same-wage jobs elsewhere, so less reason not to shirk. Raising wage above equilibrium provides incentive not to shirk[^mankiw-048]. Image 000309 not inspected[^mankiw-048].
+
+Mankiw's Ford case adds assembly-line interdependence: In 1914 Ford's $5 workday was about twice the going wage, far above the balancing wage; long lines formed exceeding needed workers[^mankiw-048]. Effects matched theory — turnover fell, absenteeism fell, productivity rose so much that production costs fell despite higher wages; Ford called it "one of the finest cost-cutting moves we ever made," and an historian noted it improved discipline, loyal interest, and personal efficiency[^mankiw-048]. Why Ford and not others earlier? Assembly lines made workers highly interdependent — if one absent or slow, others cannot complete tasks — so low turnover, high effort, and high quality became more valuable, making efficiency wages a better strategy for Ford than for other businesses then[^mankiw-048]. Image 000310 not inspected[^mankiw-048].
+
+Source prompts: "Give four explanations for why firms might find it profitable to pay wages above the level that balances quantity of labor supplied and quantity demanded" — health, turnover, quality, effort[^mankiw-048].
+
 ## Efficiency wages as structural unemployment
 
 - **Definition:** *Efficiency wages* — higher than competitive market-clearing but commercially sensible because they secure a loyal, motivated workforce; good for employers and for insiders lucky enough to get the jobs[^harford-ch8].
@@ -64,5 +80,8 @@ Results: turnover plummeted and labor productivity rose sharply; output rose and
 - Contradicts: [Sticky prices, nominal rigidity, and why money matters](sticky-prices-and-monetary-non-neutrality.md) — fairness norms, menu costs and money illusion explain why wages do not fall to clear the market, complementing the efficiency-wage rationale
 - Caused: [Costs of unemployment and recessions](costs-of-unemployment-and-recessions.md)
 - Uses: [Output gaps, potential output, and diagnosing Keynesian versus classical recessions](output-gaps-and-diagnosing-demand-vs-supply-recessions.md)
+- Related: [Unions and collective bargaining — cartel wages, insider-outsider unemployment, and the efficiency debate](unions-and-collective-bargaining.md) — parallel wage-above-equilibrium unemployment via cartel/legal constraint versus voluntary efficiency wage
+- Related: [Price Ceilings, Price Floors, and Tax Incidence — Gasoline Shortages, Rent Control, Minimum Wage, and Who Pays Taxes](price-ceilings-floors-and-tax-incidence.md) — minimum-wage price floor as third wage-above-equilibrium source
 
 [^harford-ch8]: Harford, *The Undercover Economist Strikes Back*, ch. 8 The Invention of Unemployment.
+[^mankiw-048]: Mankiw, *Principles of Macroeconomics* 8th ed., Ch.15-5 Theory of Efficiency Wages and Ford $5-a-day case study (raw/PrinciplesofMacroeconomics_8thEdition_GregoryMankiw/048-15-4-unions-and-collective-bargaining.md).

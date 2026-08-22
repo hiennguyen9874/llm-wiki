@@ -54,5 +54,6 @@ Within a market-price, value-added framework, several categories are omitted or 
 
 - Depends on: [GDP limitations and welfare](gdp-limitations-and-welfare.md)
 - Uses: [Costs of unemployment and recessions](costs-of-unemployment-and-recessions.md)
+- See also: [GDP as well-being measure and productivity mismeasurement — Silicon Valley critique](gdp-well-being-and-productivity-mismeasurement.md)
 
 [^harford-ch4]: Harford, *The Undercover Economist Strikes Back*, ch. 4.

@@ -116,5 +116,6 @@ Overall: gathering evaluative SWB is low-cost and informative; DRM-based time ac
 - Related to: [Critique of the GDP cult and alternative indexes](critique-of-gdp-cult-and-alternative-indexes.md)
 - Related to: [Costs of unemployment and recessions](costs-of-unemployment-and-recessions.md) — unemployment as large happiness penalty
 - Related to: [Sticky prices, nominal rigidity, and why money matters](sticky-prices-and-monetary-non-neutrality.md) — Kahneman's work connects both domains
+- Related to: [Measuring well-being beyond GDP — objective adjustments and subjective surveys](measuring-well-being-beyond-gdp-objective-and-subjective-complements.md) — Mankiw WSJ update: Sacks-Stevenson-Wolfers percentage-increase correlation, Deaton cross-country valuation critique, and Wolfers women's-happiness / children-revealed-preference cautions
 
 [^harford-happynomics]: Harford, *The Undercover Economist Strikes Back*, ch. 12 — HAPPYNOMICS.

@@ -37,6 +37,8 @@ Although not a welfare metric, higher GDP per capita is generally associated wit
 
 These are trickier, competing ways to measure welfare more directly[^harford-ch4]; Harford later evaluates them as cheap to collect but easy to oversell for policy[^harford-happynomics].
 
+Mankiw systematizes the textbook omissions that motivate this search for complements — leisure, nonmarket household and volunteer production, environmental quality, and income distribution — and evaluates the Kennedy critique and international Table 3 evidence; the full Mankiw treatment and the Silicon Valley productivity-mismeasurement debate are compiled in [GDP as well-being measure and productivity mismeasurement — Silicon Valley critique](gdp-well-being-and-productivity-mismeasurement.md)[^mankiw-035].
+
 ## Extended catalogue of omissions (Harford ch. 11)
 
 Beyond the general point, Harford enumerates what GDP conceptually could include but does not: happiness, children's playtime and stable marriages, health/life expectancy, inequality, human rights, corruption, CO₂ emissions, traffic-jam time — an endless list, but the durable distinction is between imponderables and marketable activities lacking a price[^harford-cult-gnp]. See [National income accounting and GDP as market-value output](national-income-accounting-and-gdp.md) for imputed rent, government output at cost, household production, black-market exclusion, and asset/environmental omission.
@@ -48,13 +50,16 @@ Harford cautions against demanding a single welfare number: inflation, inequalit
 ## Relationships
 
 - Depends on: [National income accounting and GDP as market-value output](national-income-accounting-and-gdp.md)
+- Depends on: [GDP as well-being measure and productivity mismeasurement — Silicon Valley critique](gdp-well-being-and-productivity-mismeasurement.md) — Mankiw 10-5 omissions and Table 3
 - Contradicts: naive equation of GDP growth with welfare improvement
 - See also: [Critique of the GDP cult and alternative indexes](critique-of-gdp-cult-and-alternative-indexes.md)
 - Detailed in: [Happynomics, Easterlin paradox, and measuring subjective well-being](happynomics-easterlin-paradox-and-subjective-well-being.md)
 - Detailed in: [Poverty measurement — absolute, relative, and social exclusion](poverty-measurement-absolute-relative-and-social-exclusion.md)
 - Detailed in: [Inequality trends, measurement, and drivers](inequality-trends-measurement-and-drivers.md)
+- Detailed in: [Measuring well-being beyond GDP — objective adjustments and subjective surveys](measuring-well-being-beyond-gdp-objective-and-subjective-complements.md) — Mankiw WSJ beyond-GDP debate (Cameron/Sarkozy, Klenow-Jones, Deaton, Wolfers)
 
 [^harford-ch4]: Harford, *The Undercover Economist Strikes Back*, ch. 4.
 [^harford-cult-gnp]: Harford, *The Undercover Economist Strikes Back*, ch. 11 — THE CULT OF GNP.
 [^harford-happynomics]: Harford, *The Undercover Economist Strikes Back*, ch. 12 — HAPPYNOMICS.
 [^harford-inequality]: Harford, *The Undercover Economist Strikes Back*, ch. 14 — INEQUALITY.
+[^mankiw-035]: Mankiw, *Principles of Macroeconomics* 8th ed., Ch.10 — Silicon Valley productivity / 10-5 well-being (035).

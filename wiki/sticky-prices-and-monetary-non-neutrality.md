@@ -10,6 +10,9 @@ sources:
   - id: harford-ch2
     resource: ../raw/TheUndercoverEconomistStrikesBack-TimHarford/005-the-babysitting-recession.md
     title: "The Babysitting Recession - The Undercover Economist Strikes Back (Tim Harford)"
+  - id: mankiw-053
+    resource: ../raw/PrinciplesofMacroeconomics_8thEdition_GregoryMankiw/053-money-growth-and-inflation-17-2c-menu-costs.md
+    title: "Money Growth and Inflation — 17-2c Menu Costs (Mankiw 8th Ed. Ch.17)"
 ---
 
 # Sticky prices, nominal rigidity, and why money matters
@@ -38,6 +41,7 @@ If prices adjusted with complete freedom, the amount of currency would not matte
 - Extreme case: Coca-Cola at 5 cents from 1886 for more than seventy years — coffee price rose eightfold over same period — because Coke was sold in nickel-only vending machines (refitting for pennies hugely expensive; alternative was doubling to 10 cents), plus laminated trays, building murals advertising 5c, soda-fountain glasses enforcing servings, and long-term fixed-price contracts; boss wrote to President Eisenhower in 1953 proposing a 7.5-cent coin[^harford-ch2].
 - Typical magnitude: Daniel Levy estimated mid-1990s cost of changing one product type's price in a supermarket at 52 cents; with several hundred thousand products, >$100,000 per store, about a third of profits; for a large industrial equipment manufacturer, management time, research, sales-force communication, and renegotiation cost >20% of profits[^harford-ch2].
 - These costs alone slow adjustment even without 70-year rigidity[^harford-ch2].
+- Mankiw complements this: survey evidence typical U.S. firm changes prices about once a year; menu costs defined as deciding on new prices, printing new price lists/catalogs, sending to dealers/customers, advertising new prices, and dealing with customer annoyance over changes[^mankiw-053]. Inflation increases these costs — low inflation makes annual adjustment appropriate, while high inflation or hyperinflation forces daily or more frequent changes to keep up with other prices[^mankiw-053].
 
 ### 3. Coordination problems
 
@@ -64,5 +68,11 @@ If prices adjusted with complete freedom, the amount of currency would not matte
 - Explains: [Capitol Hill Babysitting Cooperative recession and scrip monetary policy](capitol-hill-babysitting-cooperative-recession.md)
 - Depends on: [Business cycle, recession, and Japan's lost growth](business-cycle-recession-and-japan.md)
 - Caused: [Costs of unemployment and recessions](costs-of-unemployment-and-recessions.md)
+- Depends on: [Quantity theory of money, classical dichotomy, and the costs of inflation](quantity-theory-of-money-inflation-and-costs.md) — menu-cost frequency and inflation interaction
+
+## Coverage limits
+
+- Mankiw 053 menu-costs section images not inspected; additional costs (relative-price variability, tax distortions, etc.) compiled in [Quantity theory of money, classical dichotomy, and the costs of inflation](quantity-theory-of-money-inflation-and-costs.md)[^mankiw-053].
 
 [^harford-ch2]: Harford, *The Undercover Economist Strikes Back*, ch. 2 (The Babysitting Recession).
+[^mankiw-053]: Mankiw, *Principles of Macroeconomics* 8th ed., Ch.17 §§17-2c to 17-3 (raw/PrinciplesofMacroeconomics_8thEdition_GregoryMankiw/053-money-growth-and-inflation-17-2c-menu-costs.md).

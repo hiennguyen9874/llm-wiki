@@ -10,6 +10,9 @@ sources:
   - id: harford-ch4
     resource: ../raw/TheUndercoverEconomistStrikesBack-TimHarford/007-just-enough-inflation.md
     title: "JUST ENOUGH INFLATION - The Undercover Economist Strikes Back (Tim Harford)"
+  - id: mankiw-053
+    resource: ../raw/PrinciplesofMacroeconomics_8thEdition_GregoryMankiw/053-money-growth-and-inflation-17-2c-menu-costs.md
+    title: "Money Growth and Inflation — 17-2c Menu Costs (Mankiw 8th Ed. Ch.17)"
 ---
 
 # Deflation, the zero lower bound, and liquidity traps
@@ -64,13 +67,22 @@ Deflation — falling prices year after year — makes debts heavier in real ter
 - Harford's analogy: like a soft-hearted parent's hollow threat — "when we get home it's straight to bed with no supper! Last warning! I mean it!" — the child (public) does not take it seriously, so spending does not revive[^harford-ch4].
 - If the trap is already sprung, printing alone may not suffice; Harford points toward fiscal stimulus (Keynes) as the next lever — bridge to next chapter[^harford-ch4].
 
+## Mankiw: Friedman rule versus practical costs of deflation
+
+- Mankiw notes some economists argue small predictable deflation can be desirable — **Friedman rule**: deflation lowers nominal interest rate via Fisher effect, and a nominal rate close to zero minimizes shoeleather costs, requiring deflation equal to the real interest rate[^mankiw-053].
+- Yet practical costs mirror inflation: falling price level also induces menu costs and relative-price variability; rarely is deflation as steady as Friedman recommends — surprise deflation redistributes wealth toward creditors and away from debtors, particularly painful because debtors are often poorer[^mankiw-053].
+- Historically deflation often signals broader macro difficulty: e.g., monetary contraction reducing aggregate demand, leading to falling incomes and rising unemployment; deflation as symptom of deeper problems[^mankiw-053].
+- Empirical touchstones: U.S. late 19th century and early 1930s; Japan 1998–2012 −4% overall price level; 1880–1896 U.S. −23% which motivated the Wizard of Oz / free-silver debate (see [Quantity theory of money, classical dichotomy, and the costs of inflation](quantity-theory-of-money-inflation-and-costs.md))[^mankiw-053].
+
 ## Relationships
 
 - Depends on: [Sticky prices, nominal rigidity, and why money matters](sticky-prices-and-monetary-non-neutrality.md)
 - Depends on: [Capitol Hill Babysitting Cooperative recession and scrip monetary policy](capitol-hill-babysitting-cooperative-recession.md)
 - Depends on: [Three functions of money as medium, store, and unit of account](functions-of-money-medium-store-unit.md)
+- Depends on: [Quantity theory of money, classical dichotomy, and the costs of inflation](quantity-theory-of-money-inflation-and-costs.md) — Friedman rule, deflation-as-symptom, and 1880–1896/Oz historical deflation
 - Caused: [Inflation targeting and the case for higher inflation (2% vs 3–4% and NGDP)](inflation-targeting-optimal-inflation-and-ngdp.md)
 - Uses: [Hyperinflation and the Brazilian URV ghost currency](hyperinflation-and-brazil-urv-ghost-currency.md)
 - Uses: [Money burning, Yap stones, and the nature of fiat money](money-burning-yap-stone-and-fiat-money.md)
 
 [^harford-ch4]: Harford, *The Undercover Economist Strikes Back*, ch. 4 (JUST ENOUGH INFLATION).
+[^mankiw-053]: Mankiw, *Principles of Macroeconomics* 8th ed., Ch.17 §§17-2c to 17-3 (raw/PrinciplesofMacroeconomics_8thEdition_GregoryMankiw/053-money-growth-and-inflation-17-2c-menu-costs.md).

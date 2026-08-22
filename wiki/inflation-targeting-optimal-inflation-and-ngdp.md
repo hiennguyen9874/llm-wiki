@@ -5,16 +5,19 @@ description: Why central banks target positive inflation, the trade-offs of 2% v
 tags: [inflation, inflation-targeting, monetary-policy, central-banking, gold-standard, nominal-gdp, price-stability, malinvestment]
 status: stable
 created: 2026-08-22
-generated: { by: llm-wiki-agent/1, at: 2026-08-22T15:00:00Z }
+generated: { by: llm-wiki-agent/1, at: 2026-08-22T23:20:00Z }
 sources:
   - id: harford-ch4
     resource: ../raw/TheUndercoverEconomistStrikesBack-TimHarford/007-just-enough-inflation.md
     title: "JUST ENOUGH INFLATION - The Undercover Economist Strikes Back (Tim Harford)"
+  - id: mankiw-070
+    resource: ../raw/PrinciplesofMacroeconomics_8thEdition_GregoryMankiw/070-on-kiwis-and-currencies.md
+    title: "On Kiwis and Currencies — The Goal of 2% Inflation, Rethought (Mankiw 8th Ed. Ch.23 §§23-4c–23-7)"
 ---
 
 # Inflation targeting and the case for higher inflation (2% vs 3–4% and NGDP)
 
-Central banks aim for *just enough* inflation — currently about 2% — not zero, because a small positive buffer eases real wage adjustment and guards against deflation; Harford argues 3–4% may be better, and explains why nominal GDP targeting is a tempting but confusing variant[^harford-ch4].
+Central banks aim for *just enough* inflation — currently about 2% — not zero, because a small positive buffer eases real wage adjustment and guards against deflation; Harford argues 3–4% may be better, and explains why nominal GDP targeting is a tempting but confusing variant[^harford-ch4]. Mankiw's Ch.23 supplement traces how New Zealand's 1989 0–2% experiment became the global norm and why the 2% vs 0% vs 4% choice remains contested via Yellen's greasing and negative-real-rate arguments and Blanchard's 4% proposal[^mankiw-070].
 
 ## Why not zero? Why not gold?
 
@@ -90,11 +93,26 @@ Central banks aim for *just enough* inflation — currently about 2% — not zer
 - Logic: central bank directly affects inflation but only indirectly affects real growth, so NGDP target is a moving inflation target — aim for more inflation when real growth is slow, tighten when fast; gives high-inflation benefits when needed but averages ~2%[^harford-ch4].
 - Harford's caution: theoretically brilliant but practically too clever — public will not understand the moving implicit inflation target, making financial planning harder; credibility and simplicity favor a straightforward 3–4% inflation target instead[^harford-ch4].
 
+## Mankiw supplement: How New Zealand created the 2% norm (Irwin NYT Dec 21 2014 via Mankiw)[^mankiw-070]
+
+- **Accidental origin:** NZ became first formal targeter 25 years before 2014 (Sunday Dec 21 2014 = 25 years after Dec 1989). Reserve Bank Act 1989 made the finance minister and bank governor agree a formal target and gave the bank independence to hit it via interest rates, with dismissal for failure; finance minister David Caygill stressed independence, not targeting, was the main point[^mankiw-070].
+- **Personal history:** Incoming governor Don Brash (ex-NZ Kiwifruit Authority managing director, kiwi farmer/banker, 1988) inherited 1970s–80s high inflation; his uncle's 1971 apple-orchard proceeds put in long-term bonds lost 90% to inflation by maturity[^mankiw-070].
+- **Politics of passage:** Unions feared unemployment focus, some business agreed; majority brushed off concerns, aided by a leading opponent hospitalized and desire to get home for Christmas — quick unanimous vote[^mankiw-070].
+- **Why 0–2%:** 1988 predecessor Roger Douglas had plucked "zero to 1 percent" on TV to shape expectations; Brash and Caygill widened slightly to 0–2% for maneuver room[^mankiw-070].
+- **Self-fulfilling announcement:** Merely announcing 0–2% and granting independence changed expectations — businesses/unions assumed ~2% in wage/price setting; inflation 7.6% (end 1989) → 2% (end 1991); Brash's Jackson Hole campaign spread the experiment; Canada 2% (1991), then Sweden, Britain, eventually all advanced nations[^mankiw-070].
+- **Yellen vs Volcker/Greenspan in 1995–96 FOMC debate:** Volcker/Greenspan wanted near-zero (0–1% allowing measurement error); Yellen warned (1) greasing-the-wheels — firms avoid nominal cuts, preferring hours/layoffs/vacancies, so steady nominal with 2% inflation lets real fall without cuts, reducing layoffs; (2) negative real rates — nominal cannot go below zero (cash hoarding), so zero inflation rules out negative real; with positive inflation, cutting nominal below inflation yields negative real to stimulate in severe recession — "A little inflation permits real interest rates to become negative on the rare occasions when required to counter a recession."[^mankiw-070]. Yellen prevailed in sense that 2% became norm; Volcker-era 10%→4% Volcker disinflation is the pro-zero exhibit (temporary recession, permanent benefit)[^mankiw-070].
+- **Re-thinking after Japan and the Great Recession:** Late-1990s Japan deflation at zero rates; U.S. 1% after 2001; 2007–09 global crisis slashed rates to zero everywhere; Blanchard (IMF 2010 with co-authors) asked whether 4% would give more room — at 2% dollar halves in 35 years, at 4% in 18 years; 3–4% mid-1980s not remembered as nightmare, but changing target risks market disruption and long-rate spike; Vice Chair Stanley Fischer and Yellen reaffirmed 2%[^mankiw-070].
+- **Blinder framing:** Alan Blinder (ex-Fed vice chair, *Hard Heads, Soft Hearts*) — low/moderate inflation costs are "more like a bad cold than a cancer"; prescribing the lobotomy of high unemployment to cure the cold is irrational; better to live with moderate inflation[^mankiw-070].
+- **Additional Mankiw note:** In positive-inflation context, cut in nominal below inflation produces negative real; economy sometimes needs negative real to provide sufficient demand stimulus — an option ruled out by zero inflation; this underpins the 2% buffer logic[^mankiw-070].
+
 ## Relationships
 
 - Depends on: [Sticky prices, nominal rigidity, and why money matters](sticky-prices-and-monetary-non-neutrality.md)
 - Depends on: [Three functions of money as medium, store, and unit of account](functions-of-money-medium-store-unit.md)
 - Depends on: [Deflation, the zero lower bound, and liquidity traps](deflation-zero-lower-bound-and-liquidity-trap.md)
+- Depends on: [The Short-Run Trade-off between Inflation and Unemployment — Phillips Curve, Expectations, Supply Shocks, and Disinflation Costs](phillips-curve-trade-off-inflation-unemployment.md) — expectations and sacrifice-ratio costs of disinflating to zero
+- Depends on: [Six Debates over Macroeconomic Policy — Should Policymakers Try to Stabilize the Economy?](six-debates-over-macroeconomic-policy.md) — full Ch.23 treatment of 2% target pros/cons
 - Contradicts: [Hyperinflation and the Brazilian URV ghost currency](hyperinflation-and-brazil-urv-ghost-currency.md) — that concept shows hyperinflation destroying all three functions; this concept shows 4–5% inflation leaves them intact
 
 [^harford-ch4]: Harford, *The Undercover Economist Strikes Back*, ch. 4 (JUST ENOUGH INFLATION).
+[^mankiw-070]: Mankiw, *Principles of Macroeconomics* 8th ed., Ch.23 — On Kiwis and Currencies / 23-4c to 23-7 (raw/PrinciplesofMacroeconomics_8thEdition_GregoryMankiw/070-on-kiwis-and-currencies.md, images 000449–000457 not inspected).
