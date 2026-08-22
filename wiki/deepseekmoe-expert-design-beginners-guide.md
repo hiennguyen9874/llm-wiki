@@ -5,25 +5,45 @@ description: A beginner-first course on DeepSeekMoE fine-grained routed experts,
 tags: [deepseekmoe, mixture-of-experts, sparse-models, routing, expert-specialization, pytorch, learning-roadmap]
 status: stable
 created: 2026-08-12
-generated: { by: llm-wiki-agent/1, at: 2026-08-12T00:00:00+00:00 }
+generated:
+  by: llm-wiki-agent/1
+  at: 2026-08-22T00:00:00+00:00
 sources:
+  - id: deepseekmoe-concept
+    resource: deepseekmoe-expert-specialization.md
+    title: "DeepSeekMoE expert specialization"
   - id: deepseekmoe-2024
     resource: ../raw/arXiv-2401.06066v1/main.tex
     title: "DeepSeekMoE: Towards Ultimate Expert Specialization in Mixture-of-Experts Language Models"
+  - id: moe-systems
+    resource: mixture-of-experts-training-and-systems-trade-offs.md
+    title: "Mixture-of-Experts training and systems trade-offs"
 ---
 
 # Thiết kế expert và specialization trong DeepSeekMoE — bài học cho người mới
 
-`DeepSeekMoE` không chỉ tăng số lượng `experts`. Nó chia một bank ít expert lớn thành nhiều `fine-grained routed experts` nhỏ hơn, tăng `top-k` theo cùng tỷ lệ để giữ gần nguyên expert-FFN compute, rồi thêm `shared experts` luôn chạy cho mọi token. Ý tưởng là shared path học common features, còn routed path có điều kiện có thể học các phần khác biệt hơn. Đây là architecture hypothesis có bằng chứng ablation của authors, **không phải** bằng chứng rằng mỗi expert có một semantic role rõ ràng như “code expert” hay “math expert”.[^deepseekmoe-2024]
+`DeepSeekMoE` là một biến thể `Mixture-of-Experts` (MoE, hỗn hợp chuyên gia) cho nhánh `FFN`: thay vì chọn vài `experts` lớn, nó chia chúng thành nhiều `fine-grained routed experts` nhỏ hơn và chọn nhiều expert nhỏ hơn cho mỗi token. Một vài `shared experts` luôn chạy để tạo đường tính chung. Khi tăng số expert và `top-k` theo cùng tỉ lệ nghịch với width của mỗi expert, **dominant expert-FFN compute** và số expert parameters có thể gần giữ nguyên; thứ thay đổi là các tổ hợp expert mà router có thể dùng.[^deepseekmoe-2024] Đây là giải thích kiến trúc và bằng chứng ablation của paper, không phải bằng chứng rằng từng expert có nhãn semantic cố định như “code expert”.[^deepseekmoe-concept]
 
-> [!success] Sau bài này
-> Bạn có thể (1) phân biệt `fine-grained expert`, `routed expert`, và `shared expert`; (2) tự kiểm tra vì sao segmentation có thể giữ parameter count và compute gần không đổi; (3) giải thích đúng trade-off của `top-k`; (4) hiểu con số combinatorial capacity nói gì và không nói gì; và (5) chạy một PyTorch reference implementation có kiểm tra routing load và gradient.
+> [!success] Kết quả cần đạt
+> 1. Giải thích được vì sao `m` lần nhiều expert nhỏ hơn và `m` lần lớn hơn `top-k` có thể giữ gần nguyên parameter/FFN-compute budget.
+> 2. Phân biệt được `shared expert` luôn chạy với `routed expert` được chọn theo token.
+> 3. Chạy, đọc, và kiểm chứng một PyTorch reference bằng `torch.testing.assert_close`, gồm weighted sum, accounting và tính position-wise.
+> 4. Báo cáo được trade-off thay vì suy ra latency hoặc semantic specialization từ một con số `top-k`.
 
-Bài này tiếp nối [Mixture-of-Experts và sparse routing — bài học cho người mới](mixture-of-experts-sparse-routing-beginners-guide.md). Bài trước giải thích router và basic `top-1`/`top-k`; bài này chỉ tập trung vào **expert design và specialization** của [DeepSeekMoE expert specialization](deepseekmoe-expert-specialization.md).
+Bài này đi sau [Mixture-of-Experts và sparse routing — bài học cho người mới](mixture-of-experts-sparse-routing-beginners-guide.md). Nếu chưa rõ router, `softmax`, và `top-k`, hãy học bài đó trước; ở đây trọng tâm là **cách phân mảnh và kích hoạt expert** trong DeepSeekMoE.
 
-## 1. Điều kiện tiên quyết: MoE thay phần nào của Transformer?
+## 1. Điều cần biết trước
 
-Trong một `Transformer block`, `self-attention` cho tokens trao đổi information trong sequence. Sau đó, một `FFN` (còn gọi `MLP`) xử lý từng token independently with shared weights. Bỏ qua normalization để tập trung vào phần cần học:
+- Cần biết một `Transformer block` có `self-attention`, residual connection, và một `FFN` position-wise. Xem [Decoder-only Transformer: beginner's guide](decoder-only-transformer-beginners-guide.md).
+- Cần biết `softmax`, phép nhân ma trận, và PyTorch `nn.Linear`.
+- Không cần biết `expert parallelism` hay `all-to-all` để chạy code. Những chủ đề đó cùng `capacity factor`, overflow, và balance loss nằm trong [MoE capacity, load balancing & stability — bài lab cho người mới](moe-capacity-load-balancing-stability-lab.md) và [Expert parallelism và serving trade-offs — bài học cho người mới](expert-parallelism-serving-trade-offs-beginners-guide.md).
+- Không cover: huấn luyện một LLM, kernel production, hay chứng minh một expert chứa một loại kiến thức có thể đọc bằng nhãn người.
+
+## 2. Lý thuyết cốt lõi
+
+### 2.1 MoE thay phần nào?
+
+Bỏ qua normalization, một decoder block rút gọn là:
 
 $$
 u_t = \operatorname{Attention}(x_{1:T})_t + x_t,
@@ -31,292 +51,159 @@ u_t = \operatorname{Attention}(x_{1:T})_t + x_t,
 h_t = \operatorname{FFN}(u_t) + u_t.
 $$
 
-Một dense FFN có hidden width $D$ và intermediate width $D_{ff}$ có dạng:
+`FFN` dense có model width $D$ và intermediate width $D_{ff}$:
 
 $$
-\operatorname{FFN}(u) = W_2\,\phi(W_1u+b_1)+b_2,
+\operatorname{FFN}(u)=W_2\,\phi(W_1u+b_1)+b_2,
 $$
 
-với $W_1\in\mathbb{R}^{D_{ff}\times D}$, $W_2\in\mathbb{R}^{D\times D_{ff}}$, và activation $\phi$ như `GELU` hoặc `SwiGLU`.
-
-`MoE` thay **một số FFN layers** bằng một bank gồm nhiều FFN cùng input/output shape nhưng weights độc lập:
-
-$$
-E_1(u), E_2(u), \ldots, E_N(u).
-$$
-
-Một `router` nhìn token representation $u_t$, chấm affinity cho experts, và chỉ chạy một subset. Attention, residual connection, causal mask, và language-model loss không bị MoE thay thế.
+với $W_1\in\mathbb{R}^{D_{ff}\times D}$, $W_2\in\mathbb{R}^{D\times D_{ff}}$. Trong MoE, chỉ nhánh `FFN` ở một số layers được thay bằng nhiều FFN có weights riêng; attention, causal mask, residual, và language-model loss vẫn là các phần khác của block.[^deepseekmoe-2024]
 
 ```text
 Dense FFN
-u_t ─────────────────────► one shared FFN ─────► residual add
+u_t ─────────────────────► one shared FFN ───► + residual
 
-Routed MoE FFN
-u_t ─► router ─► selected expert FFN(s) ───────► residual add
+DeepSeekMoE FFN
+u_t ─► shared experts (always on) ───────────┐
+  └─► router ─► selected routed experts ─────┼──► sum + residual
+                                             │
 ```
 
-## 2. Conventional `top-k` MoE: điểm xuất phát để so sánh
+### 2.2 Từ router đến `top-k`
 
-Gọi $N$ là số routed experts và $K$ là số experts selected per token. Router có một vector hoặc linear projection cho mỗi expert. Với notation của paper, affinity và sparse gate là:
+Với $N$ routed experts, router tạo một affinity cho mỗi expert rồi `softmax` theo expert:
 
 $$
 s_{i,t}=\operatorname{Softmax}_i(u_t^\top e_i),
 \qquad
+\sum_{i=1}^{N}s_{i,t}=1.
+$$
+
+Nó chỉ giữ $K$ affinity lớn nhất làm gates:
+
+$$
 g_{i,t}=\begin{cases}
-s_{i,t}, & i\in \operatorname{TopK}(s_{:,t},K),\\
+s_{i,t}, & i\in\operatorname{TopK}(s_{:,t},K),\\
 0, & \text{otherwise.}
 \end{cases}
-$$
-
-Output của MoE branch là weighted sum:
-
-$$
+\qquad
 \operatorname{MoE}(u_t)=\sum_{i=1}^{N}g_{i,t}E_i(u_t).
 $$
 
-Vì chỉ $K$ gate values khác 0, token chỉ cần execute $K$ experts. `top-1` chọn một expert; `top-k` với $K>1$ combine nhiều expert outputs.[^deepseekmoe-2024]
+Trong công thức được trình bày của DeepSeekMoE, gates được chọn giữ **raw softmax probability**; chúng không nhất thiết sum bằng 1 sau khi bỏ các expert ngoài `top-k`. Một implementation khác có thể re-normalize gates đã chọn, nhưng đó là semantics khác cần ghi rõ khi so kết quả.[^deepseekmoe-2024]
 
-### Một ví dụ nhỏ
+| Khái niệm | Có chạy cho token này? | Weight trong output | Router quyết định? |
+|---|---|---|---|
+| Dense FFN | Luôn, một lần | implicit 1 | Không |
+| `shared expert` | Luôn | implicit 1 | Không |
+| `routed expert` trong `top-k` | Có | gate $g_{i,t}$ | Có |
+| `routed expert` ngoài `top-k` | Không | 0 | Không được chọn |
 
-Giả sử router có 4 affinities cho token `u`:
+> [!warning] `top-k` không phải semantic classifier
+> Router được tối ưu end-to-end từ training objective. Một histogram route có thể phản ánh token, position, language, syntax, hoặc features khó quan sát. Nó không đủ để kết luận expert đó là “math expert” hay “code expert”.[^deepseekmoe-concept]
 
-| Expert | Router probability | Được chọn bởi `top-2`? | Gate thực thi |
-|---|---:|---|---:|
-| $E_0$ | 0.05 | Không | 0 |
-| $E_1$ | 0.52 | Có | 0.52 |
-| $E_2$ | 0.31 | Có | 0.31 |
-| $E_3$ | 0.12 | Không | 0 |
+### 2.3 Fine-grained expert segmentation: một phép tính trước, rồi mới là trực giác
 
-Token này chạy $E_1(u)$ và $E_2(u)$, rồi nhận $0.52E_1(u)+0.31E_2(u)$. Trong formulation của DeepSeekMoE, selected values là original softmax affinities; tổng selected gates vì thế có thể nhỏ hơn 1. Một library khác có thể re-normalize only selected gates; đó là implementation choice khác và không nên silently assume giống paper.[^deepseekmoe-2024]
-
-> [!warning] Router selection không phải semantic label
-> Router được train từ end-to-end language-model objective. Việc một token được gửi đến expert nào có thể phụ thuộc vào token identity, syntax, language, layer, position, hoặc feature không dễ diễn giải. Routing pattern tự nó không chứng minh expert “biết” một human-defined domain.
-
-## 3. Vấn đề DeepSeekMoE muốn giải quyết
-
-Paper gọi hai failure modes tiềm năng của conventional MoE là `knowledge hybridity` và `knowledge redundancy`.[^deepseekmoe-2024]
-
-### 3.1 `Knowledge hybridity`: một expert lớn phải phục vụ quá nhiều thứ
-
-Nếu chỉ có 8 hoặc 16 experts lớn, một expert có thể được chọn bởi tokens cần rất nhiều functions không giống nhau. Ví dụ minh họa:
-
-```text
-same routed expert
- ├─ punctuation/context pattern
- ├─ English syntax
- ├─ a code identifier
- ├─ arithmetic format
- └─ factual phrase
-```
-
-Vì tất cả phải sống trong weights của một FFN, authors hypothesize rằng expert này phải mix unrelated functions, làm specialization kém focused. Đây là motivation, không phải một theorem rằng 16 experts luôn insufficient hoặc rằng every smaller expert sẽ tự động specialize.[^deepseekmoe-2024]
-
-### 3.2 `Knowledge redundancy`: nhiều routed experts lặp common work
-
-Một token có different conditional needs, nhưng cũng cần common transformations: formatting, basic linguistic patterns, hoặc other broadly useful features. Nếu mọi computation đều đi qua routed experts, nhiều experts có thể independently learn similar common features. Authors hypothesize điều này lãng phí parameter capacity that could instead represent conditional functions.[^deepseekmoe-2024]
-
-DeepSeekMoE có hai design responses tương ứng:
-
-| Potential issue | Design response | Intended effect |
-|---|---|---|
-| `knowledge hybridity` | `fine-grained expert segmentation` | Cho router compose nhiều small functions thay vì chọn few large mixed experts |
-| `knowledge redundancy` | `shared expert isolation` | Đặt common computation vào always-on path, để routed experts concentrate on conditional work |
-
-## 4. Fine-grained expert segmentation
-
-Bắt đầu với conventional MoE có:
-
-- $N$ experts;
-- mỗi expert có intermediate width $D_{ff}$;
-- router chọn `top-K` experts.
-
-Chọn segmentation factor $m$. DeepSeekMoE split mỗi large expert thành $m$ smaller experts:
-
-- number of experts: $N\rightarrow mN$;
-- intermediate width per expert: $D_{ff}\rightarrow D_{ff}/m$;
-- selected experts: $K\rightarrow mK$.
-
-### 4.1 Tại sao total expert parameters gần giữ nguyên?
-
-Parameter count dominant của một two-linear-layer FFN tỷ lệ gần đúng với $2DD_{ff}$; bỏ qua bias và architecture details. Baseline expert bank có:
+Bắt đầu với $N$ experts, mỗi expert có width $D_{ff}$, và `top-K`. Chọn segmentation factor $m$:
 
 $$
-P_{\text{bank}}\approx N(2DD_{ff}).
+N\rightarrow mN,
+\qquad D_{ff}\rightarrow\frac{D_{ff}}{m},
+\qquad K\rightarrow mK.
 $$
 
-Sau segmentation:
+Bỏ qua bias, activation và router, dominant parameter count của FFN hai projections tỷ lệ với $2DD_{ff}$. Vì vậy:
 
 $$
-P_{\text{bank, fine}}\approx mN\left(2D\frac{D_{ff}}{m}\right)
-=N(2DD_{ff}).
+P_{\text{before}}\approx N(2DD_{ff}),
+\qquad
+P_{\text{after}}\approx mN\left(2D\frac{D_{ff}}{m}\right)=P_{\text{before}}.
 $$
 
-Vậy splitting không magic tạo thêm total FFN capacity miễn phí: nó repartitions gần cùng total expert parameters thành nhiều modules nhỏ hơn. Router parameters, bias, normalization, and exact gated-MLP structure can make actual counts differ slightly.
-
-### 4.2 Tại sao routed-FFN compute per token gần giữ nguyên?
-
-Một token ở baseline chạy $K$ experts, mỗi expert width $D_{ff}$:
+Mỗi token cũng giữ gần nguyên active routed-FFN work:
 
 $$
-C_{\text{baseline}}\propto K(2DD_{ff}).
+C_{\text{before}}\propto K(2DD_{ff}),
+\qquad
+C_{\text{after}}\propto mK\left(2D\frac{D_{ff}}{m}\right)=C_{\text{before}}.
 $$
 
-Sau segmentation, token chạy $mK$ experts, mỗi expert width $D_{ff}/m$:
+Đây là **accounting synthesis** từ shape FFN: không phải năng lực miễn phí. Nó chỉ repartition gần cùng parameter bank thành nhiều modules nhỏ hơn. Paper dùng chính strategy giảm intermediate dimension và tăng số activated experts để giữ parameter và compute cost không đổi theo thiết kế.[^deepseekmoe-2024]
 
-$$
-C_{\text{fine}}\propto mK\left(2D\frac{D_{ff}}{m}\right)
-=K(2DD_{ff}).
-$$
+Ví dụ có thể tính tay với $N=16$, $K=2$, $D_{ff}=4096$, $m=4$:
 
-Đây là lý do “`top-k` lớn hơn” không đồng nghĩa automatic more routed-FFN FLOPs: phải xem **expert width có bị giảm tương ứng không**. Với same-width experts, tăng $k$ thực sự tăng expert compute.
-
-> [!note] “Approximately” là quan trọng
-> Equality trên là accounting cho dominant dense matrix multiplies. Thực tế có overhead router, dispatch/combine, kernel launch, padding/capacity slots, activation, and cross-device communication. Smaller experts cũng có thể make hardware utilization worse. Do đó same nominal FFN FLOPs không bảo đảm same training time hay serving latency.
-
-### 4.3 Một worked configuration
-
-Giả sử baseline có 16 experts, `top-2`, mỗi expert intermediate width 4096. Chọn $m=4$:
-
-| Quantity | Baseline | Fine-grained design |
+| Đại lượng | Conventional MoE | Fine-grained MoE |
 |---|---:|---:|
-| Routed expert count | 16 | $4\times16=64$ |
-| Width / expert | 4096 | $4096/4=1024$ |
-| Selected experts / token | 2 | $4\times2=8$ |
-| Routed width processed / token | $2\times4096=8192$ | $8\times1024=8192$ |
-| Expert-bank width total | $16\times4096=65536$ | $64\times1024=65536$ |
+| Số routed experts | 16 | $4\times16=64$ |
+| Width mỗi expert | 4096 | $4096/4=1024$ |
+| Experts chạy/token | 2 | $4\times2=8$ |
+| Routed width chạy/token | $2\times4096=8192$ | $8\times1024=8192$ |
+| Tổng expert width trong bank | $16\times4096=65536$ | $64\times1024=65536$ |
 
-Cả parameter and dominant routed-FFN compute are approximately matched. Khác biệt architecture là token now receives a weighted combination of 8 small expert outputs selected from 64 candidates, not 2 large outputs from 16.
+Điều mới là token có thể combine 8 expert nhỏ từ 64 candidates, thay vì 2 expert lớn từ 16 candidates. Authors gọi motivation là giảm `knowledge hybridity`: một expert lớn, ít về số lượng, có thể phải trộn nhiều functions không liên quan.[^deepseekmoe-2024]
 
-## 5. `Compositional capacity`: số tổ hợp lớn có nghĩa gì?
+### 2.4 `Compositional capacity`: con số tổ hợp nói được gì?
 
-Nếu chỉ quan tâm **unweighted subset of selected experts**, number of possible `top-k` subsets là binomial coefficient:
+Nếu chỉ đếm subset không xét thứ tự hay gate weight, số lựa chọn `top-k` là:
 
 $$
 \binom{N}{K}=\frac{N!}{K!(N-K)!}.
 $$
 
-Ở worked configuration:
+Ví dụ trên thay đổi từ $\binom{16}{2}=120$ thành $\binom{64}{8}=4{,}426{,}165{,}368$ possible subsets; đây là ví dụ minh họa trong paper.[^deepseekmoe-2024]
+
+Diễn giải đúng: router **có nhiều subset khả dĩ hơn** để compose functions nhỏ. Nó không chứng minh rằng training đã dùng mọi subset, mọi subset có ích, các experts disjoint về semantics, hoặc chất lượng/latency nhất định tốt hơn. Gate weights còn continuous, nên binomial coefficient là trực giác về subset availability, không phải số functions model thực hiện.
+
+### 2.5 Shared expert isolation: dành một phần budget cho đường chung
+
+Sau segmentation, lấy $K_s$ experts làm `shared experts`. Mỗi token chạy tất cả chúng; router chỉ chọn among the remaining experts. Tổng số activated small experts vẫn giữ $mK$ khi routed `top-k` giảm còn $mK-K_s$:
 
 $$
-\binom{16}{2}=120,
-\qquad
-\binom{64}{8}=4{,}426{,}165{,}368.
+\underbrace{K_s}_{\text{always-on shared}}
++
+\underbrace{(mK-K_s)}_{\text{selected routed}}
+=mK.
 $$
 
-Đó là comparison trong paper.[^deepseekmoe-2024]
-
-### 5.1 Diễn giải đúng
-
-Fine-grained routing makes far more **available expert subsets**. Nếu small experts học reusable components, router có more ways to combine them for different tokens/contexts. Đây là `compositional capacity`: capacity to form different combinations from a bank of components.
-
-Ví dụ purely illustrative:
-
-```text
-Token/context A → [syntax, English, quotation, common]
-Token/context B → [code-style, identifier, indentation, common]
-Token/context C → [math-format, number-pattern, reasoning, common]
-```
-
-Không cần assign a whole large expert to every combination of needs. Router can select a different subset of smaller transformations.
-
-### 5.2 Bốn điều nó **không** chứng minh
-
-A large $\binom{N}{K}$ does **not** prove:
-
-1. training visits or uses every subset;
-2. each selected subset has useful behavior;
-3. experts have disjoint semantic knowledge;
-4. quality rises with no systems cost.
-
-Actual routing is constrained by learned affinities, data distribution, load balancing, capacity limits, and training dynamics. Moreover, output is a **weighted** sum; gate values vary continuously, so a count of unordered subsets is only a useful intuition, not a count of functions the model realizes. The paper provides ablation and routing-sensitivity evidence consistent with better specialization, but does not directly label individual expert semantics.[^deepseekmoe-2024]
-
-## 6. Shared expert isolation
-
-Fine-grained segmentation addresses the authors’ `hybridity` motivation. `shared expert isolation` addresses their redundancy motivation.
-
-Choose $K_s$ small experts as `shared experts`. Every token runs all of them. The router only chooses among the remaining `routed experts`.
-
-```text
-                         ┌─► Shared expert 0 ─┐
-u_t ─────────────────────► Shared expert 1 ─┼─► sum + residual
-  │                      └───────────────────┘
-  │
-  └─► router ─► top-(mK - K_s) routed experts ─► weighted sum ─┘
-```
-
-With $mN$ total fine-grained experts, complete DeepSeekMoE has:
-
-- $K_s$ always-active shared experts;
-- $mN-K_s$ routed experts;
-- $mK-K_s$ selected routed experts per token.
-
-The total activated small experts remains $mK$:
-
-$$
-K_s+(mK-K_s)=mK.
-$$
-
-Therefore, under the same small-expert width, adding shared experts does not have to change the intended active expert-FFN compute budget; it reallocates part of that budget from conditional routed work to unconditional shared work.[^deepseekmoe-2024]
-
-The complete layer, omitting normalization, is:
+Với $mN$ experts tổng cộng, layer là:
 
 $$
 h_t=
-\underbrace{\sum_{i=1}^{K_s}E_i(u_t)}_{\text{always-on shared path}}
+\underbrace{\sum_{i=1}^{K_s}E_i(u_t)}_{\text{shared path}}
 +
-\underbrace{\sum_{i=K_s+1}^{mN}g_{i,t}E_i(u_t)}_{\text{sparse routed path}}
+\underbrace{\sum_{i=K_s+1}^{mN}g_{i,t}E_i(u_t)}_{\text{routed path}}
 +u_t,
 $$
 
-where only the top-$(mK-K_s)$ routed gates are nonzero.
+trong đó router chọn top-$(mK-K_s)$ chỉ từ routed experts. Authors hypothesize rằng shared path có thể consolidate common knowledge, để routed path tập trung hơn vào phần conditional; đây là intended effect được ablation ủng hộ trong configuration của paper, không phải định luật chung.[^deepseekmoe-2024]
 
-### Why not route every expert?
+```text
+                       ┌─► shared 0 ─┐
+u_t ───────────────────┼─► shared 1 ─┼──► sum
+                       └─────────────┘
+  │
+  └─► router over routed experts ─► top-(mK - Ks) ─► weighted sum ─┘
+```
 
-A shared path gives every token a reliable common transformation without requiring router competition for it. Under the paper’s hypothesis, common knowledge can be consolidated there and routed experts can spend more capacity on conditional distinctions. But always-active means shared-expert compute occurs for **every** token; too much shared capacity reduces the conditional part of the fixed active budget. $K_s$ is a design hyperparameter to validate, not a universally correct constant.[^deepseekmoe-2024]
+Paper báo cáo configuration 16B có 64 fine-grained experts, 2 shared experts và 6 routed experts activated per token; mỗi small expert xấp xỉ một phần tư standard FFN. Tức mỗi token kích hoạt 8 small experts, nhưng chỉ 6 trong số đó do router chọn.[^deepseekmoe-2024]
 
-### Reported DeepSeekMoE 16B configuration
+### 2.6 Balance là điều kiện để specialization có cơ hội xảy ra
 
-The paper reports 2 shared experts and 6 selected routed experts out of 64 fine-grained experts, each roughly one quarter of the standard FFN size. Thus each token activates 8 small experts in total. It also leaves the first Transformer layer dense because load balance in that layer converged slowly in that setup.[^deepseekmoe-2024]
+Nếu router luôn chọn vài experts, experts còn lại thiếu tokens và gradient: đó là `routing collapse`. DeepSeekMoE thêm expert-level auxiliary balance loss. Với $N'=mN-K_s$ routed experts và $K'=mK-K_s$ selected routed experts, paper định nghĩa:
 
-Do not generalize these values to every MoE: later architectures can use different number of experts, $k$, balance mechanisms, placement, and capacity rules.
+$$
+\mathcal{L}_{\mathrm{ExpBal}}=\alpha_1\sum_{i=1}^{N'}f_iP_i,
+\quad
+f_i=\frac{N'}{K'T}\sum_{t=1}^{T}\mathbb{1}(t\text{ chọn }i),
+\quad
+P_i=\frac{1}{T}\sum_{t=1}^{T}s_{i,t}.
+$$
 
-## 7. `top-k` is a multi-dimensional trade-off
+Khi experts nằm trên nhiều devices, paper thêm device-level objective để cân aggregate device work, thay vì ép mọi expert có load bằng hệt nhau. Điều này tách hai mục tiêu: tránh expert không được train và tránh một device thành straggler.[^deepseekmoe-2024] Capacity limits, padding, token drop và `all-to-all` vẫn là những ràng buộc systems riêng; bài code sau cố ý không mô phỏng chúng.[^moe-systems]
 
-It is tempting to say “higher `top-k` is better because it uses more experts.” That sentence misses the design context.
+## 3. Implementation (PyTorch tối thiểu)
 
-| Choice | Potential benefit | Cost or risk | What must be held constant for a fair comparison? |
-|---|---|---|---|
-| Larger $k$, same expert size | More outputs can contribute | More expert FLOPs, dispatch volume, capacity pressure | Parameter count, batch, hardware, router/balance setup |
-| Larger $k$, smaller experts via segmentation | More compositional choices at approximately matched FFN compute | More small-expert routing/packing overhead; no guaranteed semantic specialization | Total bank parameters and active FFN width/FLOPs |
-| `top-1` | Lowest expert calls and simplest dispatch | Less per-token mixture | Expert width/count, capacity and quality target |
-| More shared experts | Common path is always available; may reduce routed redundancy | Less conditional budget; always-on compute | Total active small-expert count and width |
-| More routed experts | More candidate modules | Harder load balance; potentially sparse/undertrained experts | Tokens per batch, capacity, expert placement |
-
-`top-k` also changes training signal: every selected expert receives gradient for that token; non-selected routed experts do not execute that token’s FFN. More selection may distribute signals across components, but it raises the difficulty of routing balanced traffic and efficiently batching each expert.
-
-### `Total parameters`, `active parameters`, and latency remain different
-
-For a bank of $mN$ fine experts, each approximately $P_E/m$ parameters, total expert parameters are roughly $NP_E$. Per token, active expert parameters are roughly $mK\cdot(P_E/m)=KP_E$ before counting attention and other non-expert components. Shared experts are active too.
-
-These arithmetic counts do not include:
-
-- all model weights that must be stored and loaded;
-- attention and dense layers;
-- router computation;
-- capacity padding and dropped/overflow assignments;
-- `all-to-all` communication when experts are on different devices;
-- kernel efficiency and batch-size effects.
-
-Therefore an `active parameters` headline is not an end-to-end latency or cost measurement. Read [Mixture-of-Experts training and systems trade-offs](mixture-of-experts-training-and-systems-trade-offs.md) before making deployment claims.
-
-## 8. PyTorch reference: fine-grained routed + shared experts
-
-The following educational code implements the complete data flow: every token runs `n_shared` experts and is routed to `top_k_routed` experts among the rest. It prioritizes transparent correctness over speed:
-
-- each expert is an ordinary small FFN;
-- selected gates are the raw `softmax` values, matching the paper’s displayed formulation rather than re-normalizing `top-k` gates;
-- `loads` counts routed assignments only;
-- it intentionally excludes capacity limits, load-balance loss, distributed `all-to-all`, and fused kernels.
+Code dưới triển khai **đúng data flow sư phạm**: mọi token chạy mọi `shared` expert, rồi chỉ các pair token–routed-expert có trong `top-k` mới chạy. `router softmax` dùng `float32`; selected gates là raw softmax values như công thức ở trên. Không có attention nên không có `RoPE`, `position_ids`, hay `KV cache`; các convention đó không áp dụng cho FFN position-wise này.
 
 ```python
 import torch
@@ -325,7 +212,7 @@ import torch.nn.functional as F
 
 
 class SmallExpert(nn.Module):
-    """One position-wise FFN. Different instances have different weights."""
+    """Một FFN position-wise; mỗi instance có weights riêng."""
     def __init__(self, d_model: int, d_ff: int):
         super().__init__()
         self.net = nn.Sequential(
@@ -339,7 +226,7 @@ class SmallExpert(nn.Module):
 
 
 class SharedFineGrainedMoE(nn.Module):
-    """Readable reference, not a production distributed MoE kernel."""
+    """Reference dễ inspect; không phải distributed/fused production kernel."""
     def __init__(
         self,
         d_model: int,
@@ -350,7 +237,7 @@ class SharedFineGrainedMoE(nn.Module):
     ):
         super().__init__()
         if n_shared < 0 or n_routed < 1:
-            raise ValueError("n_shared must be >= 0 and n_routed must be >= 1")
+            raise ValueError("n_shared >= 0 and n_routed >= 1 are required")
         if not 1 <= top_k_routed <= n_routed:
             raise ValueError("top_k_routed must satisfy 1 <= k <= n_routed")
 
@@ -365,133 +252,176 @@ class SharedFineGrainedMoE(nn.Module):
         self.router = nn.Linear(d_model, n_routed)
 
     def forward(self, x: torch.Tensor):
-        # x has shape (batch, sequence, d_model); routing is per token.
+        # x: (B, T, D); router quyết định độc lập cho từng token row.
         B, T, D = x.shape
         tokens = x.reshape(B * T, D)
 
-        # Shared branch: every token executes every shared expert.
         shared_out = torch.zeros_like(tokens)
-        for expert in self.shared:
+        for expert in self.shared:                 # every token, every shared expert
             shared_out = shared_out + expert(tokens)
 
-        # Routed branch: only selected token--expert pairs are executed.
-        # fp32 router softmax is an educational stability-minded choice.
+        # fp32 cho softmax; đưa gates về dtype của FFN để nhân output.
         probs = F.softmax(self.router(tokens.float()), dim=-1).to(tokens.dtype)
-        gates, ids = probs.topk(self.top_k_routed, dim=-1)
+        gates, ids = probs.topk(self.top_k_routed, dim=-1)  # (B*T, k)
         routed_out = torch.zeros_like(tokens)
 
+        # Production sẽ pack tokens by expert và dùng batched GEMM lớn hơn.
         for expert_id, expert in enumerate(self.routed):
             token_rows, slots = torch.where(ids == expert_id)
             if token_rows.numel() == 0:
                 continue
-            expert_values = expert(tokens[token_rows])
-            weighted_values = gates[token_rows, slots].unsqueeze(-1) * expert_values
-            routed_out.index_add_(0, token_rows, weighted_values)
+            values = expert(tokens[token_rows])
+            weighted = gates[token_rows, slots].unsqueeze(-1) * values
+            routed_out.index_add_(0, token_rows, weighted)
 
-        # Each token has top_k_routed assignments; shared calls are not included.
         loads = torch.bincount(ids.reshape(-1), minlength=self.n_routed)
-        y = shared_out + routed_out
-        return y.reshape(B, T, D), probs, ids, loads
+        return (shared_out + routed_out).reshape(B, T, D), probs, gates, ids, loads
 ```
 
-### Chạy một correctness smoke test
+> [!warning] `torch.cat`/`index_add_` style này là teaching code, không phải serving code
+> Python loop và gather/scatter nhỏ rất chậm. Runtime thật pack token rows theo expert, chạy grouped/batched GEMM, restore order, và có thể `all-to-all` qua devices.[^moe-systems]
+
+## 4. Xác minh trước khi benchmark
+
+Các tests dùng `float32` trên CPU/GPU. `rtol=1e-5, atol=1e-6` là tolerance phù hợp cho phép tính floating-point nhỏ này; nếu đổi sang `float16`/`bfloat16`, nới tolerance và báo dtype. Test “future leakage” của attention **không áp dụng**: module này không trộn positions. Thay vào đó, Test 4 xác minh property mạnh hơn của code này: đổi token cuối không thể đổi output các token trước.
 
 ```python
+# Chạy sau định nghĩa classes ở Section 3.
 torch.manual_seed(7)
-B, T, D = 3, 5, 16
-n_shared, n_routed, k = 2, 14, 6  # 2 shared + 6 routed = 8 active small experts
-
+B, T, D = 2, 4, 8
 moe = SharedFineGrainedMoE(
-    d_model=D,
-    small_d_ff=32,
-    n_shared=n_shared,
-    n_routed=n_routed,
-    top_k_routed=k,
+    d_model=D, small_d_ff=16,
+    n_shared=2, n_routed=6, top_k_routed=3,
 )
-x = torch.randn(B, T, D, requires_grad=True)
-y, probs, ids, loads = moe(x)
+x = torch.randn(B, T, D, dtype=torch.float32, requires_grad=True)
+y, probs, gates, ids, loads = moe(x)
 
+# Test 1 — shapes và softmax distribution.
 assert y.shape == x.shape
-assert probs.shape == (B * T, n_routed)
-assert ids.shape == (B * T, k)
-assert torch.allclose(probs.sum(dim=-1), torch.ones(B * T), atol=1e-6)
-assert loads.sum().item() == B * T * k  # shared experts are deliberately excluded
+assert ids.shape == (B * T, 3)
+torch.testing.assert_close(
+    probs.sum(dim=-1), torch.ones(B * T), rtol=1e-5, atol=1e-6
+)
 
+# Test 2 — gates chính là probs được chọn theo ids (không re-normalize).
+torch.testing.assert_close(
+    gates, probs.gather(dim=-1, index=ids), rtol=1e-5, atol=1e-6
+)
+
+# Test 3 — independently recompute weighted sum, không dùng index_add_.
+tokens = x.detach().reshape(B * T, D)
+expected_rows = []
+for row in range(B * T):
+    shared_sum = sum((expert(tokens[row:row + 1]) for expert in moe.shared),
+                     torch.zeros_like(tokens[row:row + 1]))
+    routed_sum = sum(
+        (gates[row, slot].detach() * moe.routed[ids[row, slot].item()](tokens[row:row + 1])
+         for slot in range(moe.top_k_routed)),
+        torch.zeros_like(tokens[row:row + 1]),
+    )
+    expected_rows.append(shared_sum + routed_sum)
+expected = torch.cat(expected_rows, dim=0).reshape(B, T, D)
+torch.testing.assert_close(y.detach(), expected, rtol=1e-5, atol=1e-6)
+
+# Test 4 — position-wise: thay token cuối không đổi outputs positions trước nó.
+x_changed = x.detach().clone()
+x_changed[:, -1] += 100.0
+y_changed, *_ = moe(x_changed)
+torch.testing.assert_close(
+    y.detach()[:, :-1], y_changed[:, :-1], rtol=1e-5, atol=1e-6
+)
+
+# Test 5 — mỗi token tạo đúng k routed assignments; shared không được tính vào loads.
+torch.testing.assert_close(
+    loads.sum(), torch.tensor(B * T * moe.top_k_routed), rtol=0, atol=0
+)
+
+# Test 6 — gradient đi vào router qua selected gate values.
 loss = y.square().mean()
 loss.backward()
 assert moe.router.weight.grad is not None
-assert all(e.net[0].weight.grad is not None for e in moe.shared)
-print("routed assignments per expert:", loads.tolist())
-print("router grad norm:", moe.router.weight.grad.norm().item())
+assert torch.isfinite(moe.router.weight.grad).all()
+assert moe.router.weight.grad.norm().item() > 0
+print("OK; routed loads:", loads.tolist())
 ```
 
-For a toy analogue of the paper’s 16B layer, there are 64 total small experts: 2 shared and 62 routed; each token chooses 6 routed experts. The code uses 2 + 14 only to keep the printed histogram readable.
+Nếu Test 3 fail, check pairing `(token_rows, slots)` từ `torch.where(ids == expert_id)`: `slots` chọn đúng gate của expert đó. Nếu Test 4 fail, code đã vô tình đưa operation trộn batch/sequence (ví dụ `BatchNorm` theo tokens) vào module. Nếu Test 5 fail, phân biệt `n_shared` (always-active calls) với routed assignment histogram.
 
-> [!warning] Không dùng code này để benchmark performance
-> The Python loops and boolean indexing create many small operations. Real MoE systems group tokens by expert, execute larger packed batches, restore original order, and exchange tokens across devices when expert parallelism is used. A correct but simple reference can be drastically slower than a fused production implementation.
+## 5. Benchmark / Trade-offs
 
-## 9. Quan sát và debug trước khi nói về specialization
+### 5.1 Giữ cố định cái gì khi so sánh?
 
-Một expert “specialized” phải first be trained and used. Log these signals during training:
+| Thay đổi | Benefit có thể có | Chi phí/risk | Fair comparison phải giữ/đo |
+|---|---|---|---|
+| Tăng `k`, expert size không đổi | Nhiều expert outputs | Expert FLOPs và dispatch assignments tăng | $N$, $D_{ff}$, batch, capacity, hardware |
+| Segmentation $m$, $k\rightarrow mk$, $D_{ff}\rightarrow D_{ff}/m$ | More available compositions ở nominal FFN budget gần bằng | Nhiều small kernels/packing hơn; không đảm bảo specialize | Total bank params, active FFN width, quality |
+| Tăng `shared experts` trong tổng active budget cố định | Common path luôn có mặt | Ít conditional routed slots hơn | $mK$, small expert width |
+| Nhiều routed experts hơn | Nhiều candidates | Ít tokens/expert, imbalance dễ hơn | Batch tokens, balance/capacity, placement |
 
-| Signal | Cách đọc | Warning sign |
-|---|---|---|
-| Routed load per expert | Count assignments in `ids` over batches | Một few experts receive nearly all tokens, hoặc many are nearly always zero |
-| Router probability | Histogram/mean of `probs` | Extremely peaked or unstable distribution can precede collapse |
-| Overflow/drop rate | Fraction assignments rejected by capacity rule | Low active FLOPs but degraded quality due to dropped assignments |
-| Per-device load | Aggregate selected tokens for experts on each device | One device is straggler even if some individual expert loads look reasonable |
-| Ablation | Remove/replace a subset and measure controlled loss/quality | Do not infer semantic roles from a route histogram alone |
+`Total parameters`, `active parameters`, nominal FLOPs, và wall-clock latency là bốn đại lượng khác nhau. Cùng nominal FFN FLOPs vẫn có router cost, padding, packing, small-GEMM utilization, và communication cost; toàn bộ weights vẫn phải giữ trong memory.[^moe-systems]
 
-DeepSeekMoE uses a small expert-level auxiliary balance loss against routing collapse and a separate device-level loss when experts are distributed. The paper argues that forcing strict equal load per expert can harm quality; balancing device computation is a different objective from making every expert equally popular.[^deepseekmoe-2024]
+### 5.2 Mini benchmark đúng phạm vi
 
-### A minimal load statistic for the reference code
+Reference không đủ để tạo performance number có ý nghĩa. Dùng harness sau để **đo trên máy của bạn**, báo hardware/dtype/batch, và so cùng code path. Đây đo MoE FFN cho một tensor; nó không tách `prefill`/`decode` của full Transformer vì module này không có `KV cache`.
 
 ```python
-fraction = loads.float() / loads.sum().clamp_min(1)
-print("routed-load fraction:", fraction.tolist())
-print("least/most loaded expert:", loads.min().item(), loads.max().item())
+import time
+
+def time_forward(module, x, warmup=20, repeats=100):
+    module.eval()
+    with torch.inference_mode():
+        for _ in range(warmup):
+            module(x)
+        if x.is_cuda:
+            torch.cuda.synchronize()
+        start = time.perf_counter()
+        for _ in range(repeats):
+            module(x)
+        if x.is_cuda:
+            torch.cuda.synchronize()
+    return (time.perf_counter() - start) / repeats
+
+# Ví dụ: thay đổi B/T/k chỉ một biến mỗi lần, không khẳng định kết quả trước khi chạy.
+x_bench = torch.randn(8, 128, D, device=next(moe.parameters()).device)
+print("seconds / forward:", time_forward(moe, x_bench))
 ```
 
-A single small batch is noisy, so aggregate over many steps. Balanced traffic is not evidence of semantic specialization, but severe imbalance means unused experts cannot receive enough data/gradient to plausibly develop useful distinct functions.
+Không kết luận từ benchmark này về throughput serving: Python dispatch là bottleneck của toy. Với full model, báo `prefill` và one-token `decode` tách riêng, cùng context length, batch policy, placement, precision, capacity/drop rate, và slowest-rank time.[^moe-systems]
 
-## 10. What evidence supports the DeepSeekMoE claim?
+## 6. Debug checklist
 
-The paper’s 2B ablations compare designs under matched parameter and compute accounting. It reports that fine-grained segmentation and shared experts improve its results, and that removing high-score routed experts affects DeepSeekMoE more than a GShard comparison; the authors interpret this as evidence of reduced redundancy and improved specialization. The paper also reports a 16B configuration broadly comparable to its dense DeepSeek 7B at lower reported expert-FFN FLOPs.[^deepseekmoe-2024]
+| Triệu chứng | Nguyên nhân có thể | Check đầu tiên |
+|---|---|---|
+| `probs.sum(-1)` không gần 1 | `softmax` sai dimension/dtype | Test 1; logits phải shape `(B*T, n_routed)` |
+| Output khác manual sum | Gate và expert output ghép sai slot | Test 3; inspect `ids[row]`, `gates[row]` |
+| `loads.sum()` sai | Đếm shared experts lẫn routed assignments | Phải bằng `B*T*top_k_routed` |
+| Một expert gần luôn 0 load | Collapse hoặc batch quá nhỏ | Aggregate `loads` qua nhiều batches; thêm balance/capacity lab |
+| Gradient router bằng 0/None | Gate bị detach hoặc output không nhân gate | Test 6; check `gates * expert_output` |
+| Toy code chậm | Expected Python gather/scatter overhead | Không tối ưu vòng lặp; dùng packed/fused runtime |
+| Nominal FLOPs tốt nhưng latency xấu | Dispatch/communication/kernel utilization | Profile router, pack, expert GEMM, combine, all-to-all riêng |
 
-This supports a narrower conclusion:
+## 7. Giới hạn & bước tiếp theo
 
-> In the paper’s training, data, and systems configuration, the fine-grained plus shared-expert design was empirically useful and routing ablations were consistent with the authors’ specialization interpretation.
+Lab chứng minh routing arithmetic và code semantics, **không** chứng minh chất lượng LLM, generalization, balance khi train, hay speed production. `Compositional capacity` là số possible subsets; evidence specialization trong paper là ablation/routing-sensitivity evidence, không phải probe trực tiếp gán nhãn semantic cho từng expert.[^deepseekmoe-concept] Paper cũng là author-run evidence trong configuration riêng; hãy đọc [DeepSeekMoE evaluation and deployment trade-offs](deepseekmoe-evaluation-and-deployment-trade-offs.md) trước khi lặp lại claim về quality, FLOPs hoặc inference speed.
 
-It does **not** establish a universal rule that this design wins for every model, dataset, sequence length, or hardware configuration. The paper’s benchmarks are author-run; total weight memory, routing, communication, and kernel efficiency are outside a pure activated-FLOPs comparison. See [DeepSeekMoE evaluation and deployment trade-offs](deepseekmoe-evaluation-and-deployment-trade-offs.md) for the reported comparisons and their qualifications.
+Lộ trình tiếp theo trong Stage 7 của [LLM architecture learning roadmap](llm-architecture-learning-roadmap.md):
 
-## 11. Checklist: đọc một expert design như một engineer
-
-1. **Baseline accounting:** How many experts ($N$), what expert width ($D_{ff}$), and what `top-K`?
-2. **Segmentation accounting:** Is each expert actually smaller by $m$ when expert count and `k` rise by $m$? Verify both bank parameters and active FFN width.
-3. **Shared path:** How many `shared experts` run for every token? Is their compute counted in active parameters/FLOPs?
-4. **Router semantics:** Is `top-k` taken over only routed experts? Are selected gates raw scores or re-normalized?
-5. **Capacity and balance:** What prevents routing collapse and token overflow? Is balance measured per expert, per device, or both?
-6. **Systems:** Where do experts live? What dispatch, `all-to-all`, padding, and batch-size costs are included in a speed claim?
-7. **Evidence:** Are specialization claims direct probes/controlled ablations, or only interpretation of routing statistics? Is the comparison matched on data and training tokens?
-
-## 12. Bài tập
-
-1. Starting from $N=8$, $K=2$, $D_{ff}=512$, choose $m=4$. Calculate fine-grained expert count, width, and number selected per token. Verify both totals in Section 4.
-2. In the PyTorch code, set `n_shared=0`, then `n_shared=2` while keeping `n_shared + top_k_routed` fixed. Explain what compute is now unconditional and what compute remains conditional.
-3. Add a per-expert capacity to the routed branch. Count dropped assignments, then observe how load histogram and drop rate change with $k$.
-4. Run an ablation that zeroes one routed expert at inference. Why would a loss change still not prove that the expert is “a math expert” or “a code expert”?
-5. Read [Auxiliary-loss-free MoE load balancing](auxiliary-loss-free-moe-load-balancing.md) to compare a later router-bias approach with DeepSeekMoE’s auxiliary-loss approach.
+1. [MoE capacity, load balancing & stability — bài lab cho người mới](moe-capacity-load-balancing-stability-lab.md) — thêm capacity, token drop, và quan sát collapse.
+2. [Expert parallelism và serving trade-offs — bài học cho người mới](expert-parallelism-serving-trade-offs-beginners-guide.md) — theo dõi dispatch/combine qua devices.
+3. [Auxiliary-loss-free MoE load balancing](auxiliary-loss-free-moe-load-balancing.md) — so sánh một hướng routing-bias về sau với auxiliary loss của DeepSeekMoE.
 
 ## Relationships
 
-- **Builds on:** [Mixture-of-Experts và sparse routing — bài học cho người mới](mixture-of-experts-sparse-routing-beginners-guide.md) for dense-FFN replacement, router basics, and basic top-$k$ code.
-- **Explains:** [DeepSeekMoE expert specialization](deepseekmoe-expert-specialization.md) through compute accounting, compositional capacity, shared/routed data flow, and a reference implementation.
-- **Uses:** [Mixture-of-Experts training and systems trade-offs](mixture-of-experts-training-and-systems-trade-offs.md) to qualify routing balance, capacity, distributed dispatch, and latency claims.
-- **Evaluated by:** [DeepSeekMoE evaluation and deployment trade-offs](deepseekmoe-evaluation-and-deployment-trade-offs.md), which records the reported results and evidence limits.
-- **Extends:** Stage 7, “Sparse capacity,” of [LLM architecture learning roadmap](llm-architecture-learning-roadmap.md).
+- **Builds on:** [Mixture-of-Experts và sparse routing — bài học cho người mới](mixture-of-experts-sparse-routing-beginners-guide.md) — router, sparse `top-k`, và dense-FFN replacement.
+- **Explains:** [DeepSeekMoE expert specialization](deepseekmoe-expert-specialization.md) — segmentation, shared/routed paths, và balance rationale.
+- **Uses:** [Mixture-of-Experts training and systems trade-offs](mixture-of-experts-training-and-systems-trade-offs.md) — giới hạn capacity, dispatch, communication và latency.
+- **Evaluated by:** [DeepSeekMoE evaluation and deployment trade-offs](deepseekmoe-evaluation-and-deployment-trade-offs.md) — các results được báo cáo và giới hạn deployment.
+- **Extends:** Stage 7, “Sparse capacity,” của [LLM architecture learning roadmap](llm-architecture-learning-roadmap.md).
 
 ## Evidence limits
 
-This is a beginner-oriented synthesis and its PyTorch code is a didactic reference, not DeepSeek’s training or serving implementation. The architecture equations, 16-to-64 illustrative combination count, reported 16B configuration, balance objectives, and author-reported ablations come from the bundled primary DeepSeekMoE v1 paper. `Knowledge hybridity`, `knowledge redundancy`, and expert `specialization` are the authors’ explanatory framing; the source does not directly establish a stable human-readable semantic label for each expert. Same nominal routed-FFN compute also does not imply same wall-clock cost or deployment latency.[^deepseekmoe-2024]
+Đây là synthesis sư phạm và reference PyTorch tự viết; nó không phải DeepSeek training/serving implementation. Các equations, 16→64 illustrative combination count, shared/routed configuration, và balance objectives được kiểm tra trực tiếp với bundled primary paper.[^deepseekmoe-2024] Paper mô tả `knowledge hybridity`, `knowledge redundancy`, và `specialization` như explanatory framing; evidence không xác lập nhãn semantic ổn định cho mỗi expert.[^deepseekmoe-concept] Nominal expert-FFN accounting không bao gồm end-to-end system cost, do đó mọi claim về throughput hay latency cần benchmark trên workload/hardware đích.[^moe-systems]
 
-[^deepseekmoe-2024]: Dai et al., “DeepSeekMoE: Towards Ultimate Expert Specialization in Mixture-of-Experts Language Models” (2024), [source](../raw/arXiv-2401.06066v1/main.tex), Sections 2–6 and Appendix A.
+[^deepseekmoe-concept]: [DeepSeekMoE expert specialization](deepseekmoe-expert-specialization.md) — maintained synthesis, evidence limits, and links to the primary source.
+[^deepseekmoe-2024]: Dai et al., “DeepSeekMoE: Towards Ultimate Expert Specialization in Mixture-of-Experts Language Models” (2024), [bundled primary source](../raw/arXiv-2401.06066v1/main.tex), Sections 2–4 and 6.
+[^moe-systems]: [Mixture-of-Experts training and systems trade-offs](mixture-of-experts-training-and-systems-trade-offs.md) — maintained synthesis; Switch-specific material remains bounded by its stated secondary-source evidence limit.

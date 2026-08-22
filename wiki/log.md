@@ -1,6 +1,7 @@
 # Wiki Update Log
 
 ## 2026-08-22
+- **Update**: Rewrote [Thiết kế expert và specialization trong DeepSeekMoE — bài học cho người mới](deepseekmoe-expert-design-beginners-guide.md) into a sequenced beginner course: explicit segmentation accounting, shared/routed paths and balance objective, a testable PyTorch reference with `torch.testing.assert_close`, benchmark protocol, systems trade-offs, and evidence boundaries from [DeepSeekMoE](../raw/arXiv-2401.06066v1/main.tex).
 - **Update**: Rewrote [Mixture-of-Experts và sparse routing — bài học cho người mới](mixture-of-experts-sparse-routing-beginners-guide.md) as a beginner-first course — clarified dense-vs-MoE block, router softmax with worked numbers, top-1/top-k with gate semantics, total vs active vs FLOPs vs latency, plus a minimal PyTorch toy MoE with `torch.testing.assert_close` verification (rtol/atol), trade-off tables, and debug checklist; sources [MixtureofExperts.md](../raw/MixtureofExperts.md) and [DeepSeekMoE](../raw/arXiv-2401.06066v1/main.tex).
 
 ## 2026-08-21
