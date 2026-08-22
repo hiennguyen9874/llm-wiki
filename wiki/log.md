@@ -1,6 +1,7 @@
 # Wiki Update Log
 
 ## 2026-08-22
+- **Ingest**: Compiled model-to-task taxonomy from [Current OCR approaches](current-ocr-approaches.md) and model/benchmark concepts; created [Task: End-to-end generative OCR](task-end-to-end-generative-ocr.md), [Task: Layout-first modular parsing](task-layout-first-modular-parsing.md), [Task: Detector–recognizer OCR](task-detector-recognizer-ocr.md), [Task: Layout analysis and reading order](task-layout-analysis-reading-order.md), [Task: Table structure recognition](task-table-structure-recognition.md), [Task: Structured extraction and KIE](task-structured-extraction-kie.md), and [Task: Unified perception and grounding](task-unified-perception-grounding.md).
 - **Ingest**: Compiled [NVIDIA Nemotron Parse 2.0 model card](../raw/NVIDIA-Nemotron-Parse-2.0.md); created [NVIDIA Nemotron Parse 2.0](nemotron-parse-2-0.md).
 - **Ingest**: Compiled [Nemotron Table Structure v1 model card](../raw/nemotron-table-structure-v1.md); created [Nemotron Table Structure v1](nemotron-table-structure-v1.md).
 
