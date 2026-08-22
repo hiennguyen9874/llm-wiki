@@ -1,0 +1,89 @@
+---
+title: "Index — N"
+part: 131
+source: "Macroeconomics_Krugman.epub"
+body_tokens: 6784
+max_tokens: 10000
+---
+
+## N
+
+- NAFTA. *See* <a href="#kru_9781319245269_EM_index.xhtml#pau_9781319320164_moO5Cq0E97" id="kru_9781319245269_EM_index.xhtml#pau_9781319320164_7n4Btb8rvN" class="index-locator">North American Free Trade Agreement (NAFTA)</a>
+- **NAFTA-USMCA**, <a href="#kru_9781319245269_ch05_05.xhtml#page151" id="kru_9781319245269_EM_index.xhtml#pau_9781319320164_g2MAy0852O" class="index-locator">151</a>
+- NAIRU. *See* <a href="#kru_9781319245269_EM_index.xhtml#pau_9781319320164_mnC2aainF1" id="kru_9781319245269_EM_index.xhtml#pau_9781319320164_x57AoTsQry" class="index-locator">nonaccelerating inflation rate of unemployment (NAIRU)</a>
+- NASDAQ, <a href="#kru_9781319245269_ch10_04.xhtml#page299" id="kru_9781319245269_EM_index.xhtml#pau_9781319320164_lDoT0ECbOT" class="index-locator">299</a>
+- **national accounts**, <a href="#kru_9781319245269_ch07_02.xhtml#page190" id="kru_9781319245269_EM_index.xhtml#pau_9781319320164_EOuDrsSgJg" class="index-locator">190</a>. *See also* <a href="#kru_9781319245269_EM_index.xhtml#pau_9781319320164_xtr47BqBic" id="kru_9781319245269_EM_index.xhtml#pau_9781319320164_mv0ZXGiv5O" class="index-locator">national income and product accounts</a>
+- National Bureau of Economic Research (NBER), <a href="#kru_9781319245269_ch17_02.xhtml#page512" id="kru_9781319245269_EM_index.xhtml#pau_9781319320164_EC3PuzAEa3" class="index-locator">512</a>
+  - recessions declared by, <a href="#kru_9781319245269_ch06_03.xhtml#page174" id="kru_9781319245269_EM_index.xhtml#pau_9781319320164_odRsdPAJ0J" class="index-locator">174</a>, <a href="#kru_9781319245269_ch06_03.xhtml#page176" id="kru_9781319245269_EM_index.xhtml#pau_9781319320164_sn0mkJJUkE" class="index-locator">176</a>
+- National Cash Register Corporation, <a href="#kru_9781319245269_ch09_07.xhtml#page268" id="kru_9781319245269_EM_index.xhtml#pau_9781319320164_oelH16yInA" class="index-locator">268</a>
+- **national income and product accounts**, <a href="#kru_9781319245269_ch07_02.xhtml#page190" id="kru_9781319245269_EM_index.xhtml#pau_9781319320164_CGanjpgwcY" class="index-locator">190</a>–<a href="#kru_9781319245269_ch07_02.xhtml#page197" id="kru_9781319245269_EM_index.xhtml#pau_9781319320164_icSsQLSChH" class="index-locator">197</a>
+  - circular-flow diagram and, <a href="#kru_9781319245269_ch07_02.xhtml#page190" id="kru_9781319245269_EM_index.xhtml#pau_9781319320164_Pzyh3VVxSt" class="index-locator">190</a>–<a href="#kru_9781319245269_ch07_02.xhtml#page191" id="kru_9781319245269_EM_index.xhtml#pau_9781319320164_lTidZ80NSX" class="index-locator">191</a>
+  - gross domestic product and, <a href="#kru_9781319245269_ch07_02.xhtml#page191" id="kru_9781319245269_EM_index.xhtml#pau_9781319320164_7FQHoTiB9u" class="index-locator">191</a>–<a href="#kru_9781319245269_ch07_02.xhtml#page197" id="kru_9781319245269_EM_index.xhtml#pau_9781319320164_4bdqv6yrNj" class="index-locator">197</a>
+- **national savings**, <a href="#kru_9781319245269_ch10_02.xhtml#page277" id="kru_9781319245269_EM_index.xhtml#pau_9781319320164_AUQrvyQ7OK" class="index-locator">277</a>
+- National Science Foundation, <a href="#kru_9781319245269_ch09_04.xhtml#page256" id="kru_9781319245269_EM_index.xhtml#pau_9781319320164_KrSfYBfkIr" class="index-locator">256</a>
+- national security argument for trade protection, <a href="#kru_9781319245269_ch05_04.xhtml#page150" id="kru_9781319245269_EM_index.xhtml#pau_9781319320164_dhukARr3k7" class="index-locator">150</a>
+- nationalization, partial, of financial system, Great Recession and, <a href="#kru_9781319245269_ch14_06.xhtml#page444" id="kru_9781319245269_EM_index.xhtml#pau_9781319320164_P2b4NFAvGj" class="index-locator">444</a>
+- natural gas industry, fracking and, <a href="#kru_9781319245269_ch03_01.xhtml#page67" id="kru_9781319245269_EM_index.xhtml#pau_9781319320164_hvySR0ewwz" class="index-locator">67</a>
+- **natural rate hypothesis**, <a href="#kru_9781319245269_ch17_04.xhtml#page519" id="kru_9781319245269_EM_index.xhtml#pau_9781319320164_57LSvFxuXQ" class="index-locator">519</a>
+- **natural rate of unemployment**, <a href="#kru_9781319245269_ch08_02.xhtml#page220" id="kru_9781319245269_EM_index.xhtml#pau_9781319320164_yWwy5Pk3Wn" class="index-locator">220</a>–<a href="#kru_9781319245269_ch08_03.xhtml#page228" id="kru_9781319245269_EM_index.xhtml#pau_9781319320164_lvc4FLqHbz" class="index-locator">228</a>
+  - changes in, <a href="#kru_9781319245269_ch08_03.xhtml#page226" id="kru_9781319245269_EM_index.xhtml#pau_9781319320164_XJk7vAhXQH" class="index-locator">226</a>–<a href="#kru_9781319245269_ch08_03.xhtml#page227" id="kru_9781319245269_EM_index.xhtml#pau_9781319320164_H3GaqpwBHS" class="index-locator">227</a>
+  - cyclical unemployment and, <a href="#kru_9781319245269_ch08_03.xhtml#page225" id="kru_9781319245269_EM_index.xhtml#pau_9781319320164_GA30ThdCbN" class="index-locator">225</a>
+  - frictional unemployment and, <a href="#kru_9781319245269_ch08_03.xhtml#page221" id="kru_9781319245269_EM_index.xhtml#pau_9781319320164_d5XkLmdJpG" class="index-locator">221</a>–<a href="#kru_9781319245269_ch08_03.xhtml#page222" id="kru_9781319245269_EM_index.xhtml#pau_9781319320164_4TbRZhZ0kH" class="index-locator">222</a>
+  - inflation and, <a href="#kru_9781319245269_ch16_04.xhtml#page499" id="kru_9781319245269_EM_index.xhtml#pau_9781319320164_c0ldSVsblY" class="index-locator">499</a>–<a href="#kru_9781319245269_ch16_04.xhtml#page500" id="kru_9781319245269_EM_index.xhtml#pau_9781319320164_zqLFmCo6C9" class="index-locator">500</a>
+  - job creation and job destruction and, <a href="#kru_9781319245269_ch08_02.xhtml#page220" id="kru_9781319245269_EM_index.xhtml#pau_9781319320164_k66wua7kn7" class="index-locator">220</a>–<a href="#kru_9781319245269_ch08_03.xhtml#page221" id="kru_9781319245269_EM_index.xhtml#pau_9781319320164_W04ByRcqx5" class="index-locator">221</a>
+  - long-run Phillips curve and, <a href="#kru_9781319245269_ch16_03.xhtml#page498" id="kru_9781319245269_EM_index.xhtml#pau_9781319320164_PiOJrTYpJM" class="index-locator">498</a>–<a href="#kru_9781319245269_ch16_04.xhtml#page499" id="kru_9781319245269_EM_index.xhtml#pau_9781319320164_MyGD3ucySn" class="index-locator">499</a>
+  - NAIRU related to, <a href="#kru_9781319245269_ch16_04.xhtml#page499" id="kru_9781319245269_EM_index.xhtml#pau_9781319320164_iKuXmPetMu" class="index-locator">499</a>
+  - structural unemployment and, <a href="#kru_9781319245269_ch08_03.xhtml#page222" id="kru_9781319245269_EM_index.xhtml#pau_9781319320164_TsSyF09mCE" class="index-locator">222</a>–<a href="#kru_9781319245269_ch08_03.xhtml#page225" id="kru_9781319245269_EM_index.xhtml#pau_9781319320164_xaaSVcMbV3" class="index-locator">225</a>
+- natural resources
+  - overexploitation of, as market failure, <a href="#kru_9781319245269_ch00_02.xhtml#page3" id="kru_9781319245269_EM_index.xhtml#pau_9781319320164_Fb2PQnnIHP" class="index-locator">3</a>
+  - productivity and, <a href="#kru_9781319245269_ch09_03.xhtml#page251" id="kru_9781319245269_EM_index.xhtml#pau_9781319320164_jRdOBdEdEw" class="index-locator">251</a>–<a href="#kru_9781319245269_ch09_03.xhtml#page252" id="kru_9781319245269_EM_index.xhtml#pau_9781319320164_VpkOrgScbY" class="index-locator">252</a>
+  - sustainable long-run economic growth and, <a href="#kru_9781319245269_ch09_05.xhtml#page264" id="kru_9781319245269_EM_index.xhtml#pau_9781319320164_4seLGptsS6" class="index-locator">264</a>–<a href="#kru_9781319245269_ch09_06.xhtml#page265" id="kru_9781319245269_EM_index.xhtml#pau_9781319320164_vCDZjwgXL9" class="index-locator">265</a>
+- NBER. *See* <a href="#kru_9781319245269_EM_index.xhtml#pau_9781319320164_Jir2ipisWD" id="kru_9781319245269_EM_index.xhtml#pau_9781319320164_ILPvTiRcXs" class="index-locator">National Bureau of Economic Research (NBER)</a>
+- NCR Corp., <a href="#kru_9781319245269_ch09_07.xhtml#page268" id="kru_9781319245269_EM_index.xhtml#pau_9781319320164_KbkIuvdLpK" class="index-locator">268</a>
+- **near-moneys**, <a href="#kru_9781319245269_ch14_02.xhtml#page421" id="kru_9781319245269_EM_index.xhtml#pau_9781319320164_ZjEViTPxEA" class="index-locator">421</a>
+- **negative relationships**, <a href="#kru_9781319245269_ch02_app.xhtml#page54" id="kru_9781319245269_EM_index.xhtml#pau_9781319320164_ayNtlrQkMg" class="index-locator">54</a>
+- **net capital inflow**, <a href="#kru_9781319245269_ch10_02.xhtml#page278" id="kru_9781319245269_EM_index.xhtml#pau_9781319320164_WFIrfLmHH9" class="index-locator">278</a>
+- **net exports**, <a href="#kru_9781319245269_ch07_02.xhtml#page197" id="kru_9781319245269_EM_index.xhtml#pau_9781319320164_p8LiEtPDvp" class="index-locator">197</a>
+  - real, effective exchange rate and, <a href="#kru_9781319245269_ch18_03.xhtml#page547" id="kru_9781319245269_EM_index.xhtml#pau_9781319320164_DhoyFHni6S" class="index-locator">547</a>
+- Netherlands
+  - current account surplus of, <a href="#kru_9781319245269_ch18_02.xhtml#page536" id="kru_9781319245269_EM_index.xhtml#pau_9781319320164_1JyxdtsJ7X" class="index-locator">536</a>
+  - productivity and wages in, <a href="#kru_9781319245269_ch05_02.xhtml#page136" id="kru_9781319245269_EM_index.xhtml#pau_9781319320164_6iWnEz8jdx" class="index-locator">136</a>
+- **new classical macroeconomics**, <a href="#kru_9781319245269_ch17_04.xhtml#page519" id="kru_9781319245269_EM_index.xhtml#pau_9781319320164_9a86kQhAOd" class="index-locator">519</a>–<a href="#kru_9781319245269_ch17_04.xhtml#page521" id="kru_9781319245269_EM_index.xhtml#pau_9781319320164_TGzA74iSpD" class="index-locator">521</a>
+- **New Keynesian economics**, <a href="#kru_9781319245269_ch17_04.xhtml#page520" id="kru_9781319245269_EM_index.xhtml#pau_9781319320164_JNZ1zmeGP3" class="index-locator">520</a>
+- New York City
+  - rent controls in, <a href="#kru_9781319245269_ch04_01.xhtml#page103" id="kru_9781319245269_EM_index.xhtml#pau_9781319320164_7t57Fa8pLp" class="index-locator">103</a>, <a href="#kru_9781319245269_ch04_02.xhtml#page104" id="kru_9781319245269_EM_index.xhtml#pau_9781319320164_vXwnudxITe" class="index-locator">104</a>–<a href="#kru_9781319245269_ch04_03.xhtml#page106" id="kru_9781319245269_EM_index.xhtml#pau_9781319320164_hrMId1iW9B" class="index-locator">106</a>
+  - taxicab medallions in, <a href="#kru_9781319245269_ch04_04.xhtml#page117" id="kru_9781319245269_EM_index.xhtml#pau_9781319320164_yGxEUghWue" class="index-locator">117</a>–<a href="#kru_9781319245269_ch04_05.xhtml#page121" id="kru_9781319245269_EM_index.xhtml#pau_9781319320164_rLQKRjxvcT" class="index-locator">121</a>
+- New York Clearinghouse, <a href="#kru_9781319245269_ch14_06.xhtml#page440" id="kru_9781319245269_EM_index.xhtml#pau_9781319320164_t4nGWUKB0m" class="index-locator">440</a>
+- New Zealand
+  - inflation targeting in, <a href="#kru_9781319245269_ch15_04.xhtml#page468" id="kru_9781319245269_EM_index.xhtml#pau_9781319320164_Emt9RHnDfd" class="index-locator">468</a>
+  - productivity and wages in, <a href="#kru_9781319245269_ch05_02.xhtml#page136" id="kru_9781319245269_EM_index.xhtml#pau_9781319320164_6cYRjSk38F" class="index-locator">136</a>
+- Nicaragua, inflation in, <a href="#kru_9781319245269_ch16_01.xhtml#page483" id="kru_9781319245269_EM_index.xhtml#pau_9781319320164_uHYuHdBsZg" class="index-locator">483</a>
+- Nigeria
+  - economic growth of, <a href="#kru_9781319245269_ch09_05.xhtml#page261" id="kru_9781319245269_EM_index.xhtml#pau_9781319320164_EirSiAgv5k" class="index-locator">261</a>
+  - natural resources and real GDP per capita of, <a href="#kru_9781319245269_ch09_03.xhtml#page251" id="kru_9781319245269_EM_index.xhtml#pau_9781319320164_04aiW727L1" class="index-locator">251</a>
+- Nixon, Richard, <a href="#kru_9781319245269_ch17_04.xhtml#page521" id="kru_9781319245269_EM_index.xhtml#pau_9781319320164_kPkTUf4QtB" class="index-locator">521</a>
+- nominal exchange rates, real exchange rates vs., <a href="#kru_9781319245269_ch18_03.xhtml#page543" id="kru_9781319245269_EM_index.xhtml#pau_9781319320164_PpCQhqq9nw" class="index-locator">543</a>–<a href="#kru_9781319245269_ch18_03.xhtml#page545" id="kru_9781319245269_EM_index.xhtml#pau_9781319320164_kvNA1TrAko" class="index-locator">545</a>
+- **nominal GDP**, <a href="#kru_9781319245269_ch07_03.xhtml#page198" id="kru_9781319245269_EM_index.xhtml#pau_9781319320164_gmi9mPpGyF" class="index-locator">198</a>–<a href="#kru_9781319245269_ch07_03.xhtml#page199" id="kru_9781319245269_EM_index.xhtml#pau_9781319320164_AfaBEiDkOH" class="index-locator">199</a>
+  - real GDP vs., <a href="#kru_9781319245269_ch07_03.xhtml#page200" id="kru_9781319245269_EM_index.xhtml#pau_9781319320164_cKJAM7k50n" class="index-locator">200</a>
+- **nominal interest rate**, <a href="#kru_9781319245269_ch08_04.xhtml#page232" id="kru_9781319245269_EM_index.xhtml#pau_9781319320164_WossjAZY4z" class="index-locator">232</a>
+- **nominal wage**, <a href="#kru_9781319245269_ch12_03.xhtml#page359" id="kru_9781319245269_EM_index.xhtml#pau_9781319320164_zAeflX1FSG" class="index-locator">359</a>, <a href="#kru_9781319245269_ch12_03.xhtml#page361" id="kru_9781319245269_EM_index.xhtml#pau_9781319320164_ZtcyZky9yw" class="index-locator">361</a>
+  - changes in, short-run aggregate supply curve and, <a href="#kru_9781319245269_ch12_03.xhtml#page362" id="kru_9781319245269_EM_index.xhtml#pau_9781319320164_bQNDV9xDtz" class="index-locator">362</a>–<a href="#kru_9781319245269_ch12_03.xhtml#page363" id="kru_9781319245269_EM_index.xhtml#pau_9781319320164_gRCLD52pJR" class="index-locator">363</a>
+- **nonaccelerating inflation rate of unemployment (NAIRU)**, <a href="#kru_9781319245269_ch16_04.xhtml#page499" id="kru_9781319245269_EM_index.xhtml#pau_9781319320164_rJfhDnOl2k" class="index-locator">499</a>
+- **nonlinear curves**, <a href="#kru_9781319245269_ch02_app.xhtml#page56" id="kru_9781319245269_EM_index.xhtml#pau_9781319320164_8vuhZBwoWA" class="index-locator">56</a>
+  - slope of, <a href="#kru_9781319245269_ch02_app.xhtml#page56" id="kru_9781319245269_EM_index.xhtml#pau_9781319320164_wiHc9JWfxo" class="index-locator">56</a>–<a href="#kru_9781319245269_ch02_app.xhtml#page58" id="kru_9781319245269_EM_index.xhtml#pau_9781319320164_rZry0omyum" class="index-locator">58</a>
+- **nonlinear relationships**, <a href="#kru_9781319245269_ch02_app.xhtml#page53" id="kru_9781319245269_EM_index.xhtml#pau_9781319320164_HMkhaqlTPR" class="index-locator">53</a>
+- **normal goods**, <a href="#kru_9781319245269_ch03_03.xhtml#page74" id="kru_9781319245269_EM_index.xhtml#pau_9781319320164_nSQEen0Lpx" class="index-locator">74</a>
+- normalization, of aggregate price level measure, <a href="#kru_9781319245269_ch07_04.xhtml#page202" id="kru_9781319245269_EM_index.xhtml#pau_9781319320164_W70VDsz6bi" class="index-locator">202</a>
+- **normative economics**, <a href="#kru_9781319245269_ch02_04.xhtml#page41" id="kru_9781319245269_EM_index.xhtml#pau_9781319320164_qEt3obnCAi" class="index-locator">41</a>–<a href="#kru_9781319245269_ch02_05.xhtml#page42" id="kru_9781319245269_EM_index.xhtml#pau_9781319320164_C15RD4J4bH" class="index-locator">42</a>
+- **North American Free Trade Agreement (NAFTA)**, <a href="#kru_9781319245269_ch05_05.xhtml#page151" id="kru_9781319245269_EM_index.xhtml#pau_9781319320164_Y5z4ECpX0x" class="index-locator">151</a>
+- North Korea, economy of, <a href="#kru_9781319245269_ch00_02.xhtml#page2" id="kru_9781319245269_EM_index.xhtml#pau_9781319320164_CGI2I8vahZ" class="index-locator">2</a>
+- Northern Rock, run on, <a href="#kru_9781319245269_ch14_03.xhtml#page427" id="kru_9781319245269_EM_index.xhtml#pau_9781319320164_ZKucvFbBUG" class="index-locator">427</a>
+- Norway
+  - government debt of, <a href="#kru_9781319245269_ch13_05.xhtml#page404" id="kru_9781319245269_EM_index.xhtml#pau_9781319320164_3CKVgngf1n" class="index-locator">404</a>
+  - inflation targeting in, <a href="#kru_9781319245269_ch15_04.xhtml#page468" id="kru_9781319245269_EM_index.xhtml#pau_9781319320164_STMOXkYCGw" class="index-locator">468</a>
+  - oil trade of, <a href="#kru_9781319245269_ch05_02.xhtml#page137" id="kru_9781319245269_EM_index.xhtml#pau_9781319320164_Z65x5shlRC" class="index-locator">137</a>
+  - productivity and wages in, <a href="#kru_9781319245269_ch05_02.xhtml#page136" id="kru_9781319245269_EM_index.xhtml#pau_9781319320164_NWSx6rsfle" class="index-locator">136</a>
+- Norwegian Air, <a href="#kru_9781319245269_ch02_01.xhtml#page27" id="kru_9781319245269_EM_index.xhtml#pau_9781319320164_JQcppqKtTd" class="index-locator">27</a>
+- numerical graphs, <a href="#kru_9781319245269_ch02_app.xhtml#page59" id="kru_9781319245269_EM_index.xhtml#pau_9781319320164_XvLH464PQ8" class="index-locator">59</a>–<a href="#kru_9781319245269_ch02_app.xhtml#page64" id="kru_9781319245269_EM_index.xhtml#pau_9781319320164_Wf0ezht4Uy" class="index-locator">64</a>
+  - interpreting, <a href="#kru_9781319245269_ch02_app.xhtml#page62" id="kru_9781319245269_EM_index.xhtml#pau_9781319320164_z1T3gpHekT" class="index-locator">62</a>–<a href="#kru_9781319245269_ch02_app.xhtml#page64" id="kru_9781319245269_EM_index.xhtml#pau_9781319320164_ZYuUepNOYR" class="index-locator">64</a>
+  - types of, <a href="#kru_9781319245269_ch02_app.xhtml#page60" id="kru_9781319245269_EM_index.xhtml#pau_9781319320164_a09IXdmVwk" class="index-locator">60</a>–<a href="#kru_9781319245269_ch02_app.xhtml#page62" id="kru_9781319245269_EM_index.xhtml#pau_9781319320164_YTFQL0Zm7v" class="index-locator">62</a>

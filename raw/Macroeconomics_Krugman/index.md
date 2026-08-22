@@ -1,0 +1,154 @@
+---
+title: "Macroeconomics_Krugman"
+source: "Macroeconomics_Krugman.epub"
+parts: 145
+max_tokens: 10000
+---
+
+# Macroeconomics_Krugman
+
+- [Part 1](001-part-1.md) — 232 tokens
+- [Brief Contents](002-brief-contents.md) — 3459 tokens
+- [WHAT’S NEW IN THIS EDITION?](003-whats-new-in-this-edition.md) — 1356 tokens
+- [About the Authors](004-about-the-authors.md) — 451 tokens
+- [Vision and Story of Macroeconomics](005-vision-and-story-of-macroeconomics.md) — 1012 tokens
+- [Engaging Students in the Study of Macroeconomics](006-engaging-students-in-the-study-of-macroeconomics.md) — 807 tokens
+- [Engaging Students with a Narrative Approach](007-engaging-students-with-a-narrative-approach.md) — 1071 tokens
+- [Engaging Students with Effective Tools for Learning](008-engaging-students-with-effective-tools-for-learning.md) — 5643 tokens
+- [Organization of This Book](009-organization-of-this-book.md) — 3482 tokens
+- [Photo Credits](010-photo-credits.md) — 517 tokens
+- [Introduction: An Engine for Growth and Discovery](011-introduction-an-engine-for-growth-and-discovery.md) — 6036 tokens
+- [Chapter 1 First Principles](012-chapter-1-first-principles.md) — 9103 tokens
+- [Chapter 1 First Principles — Principle \#6: Markets Move Toward Equilibrium](013-chapter-1-first-principles-principle-6-markets-move-toward-equilibrium.md) — 8825 tokens
+- [Chapter 1 First Principles — Key Terms](014-chapter-1-first-principles-key-terms.md) — 3345 tokens
+- [Chapter 2 Economic Models: Trade-offs and Trade](015-chapter-2-economic-models-trade-offs-and-trade.md) — 8399 tokens
+- [Chapter 2 Economic Models: Trade-offs and Trade — Comparative Advantage and Gains from Trade](016-chapter-2-economic-models-trade-offs-and-trade-comparative-advantage-a.md) — 9480 tokens
+- [Chapter 2 Economic Models: Trade-offs and Trade — Positive versus Normative Economics](017-chapter-2-economic-models-trade-offs-and-trade-positive-versus-normati.md) — 9841 tokens
+- [Chapter 2 Economic Models: Trade-offs and Trade — Two-Variable Graphs](018-chapter-2-economic-models-trade-offs-and-trade-two-variable-graphs.md) — 9745 tokens
+- [Chapter 2 Economic Models: Trade-offs and Trade — The Arc Method of Calculating the Slope](019-chapter-2-economic-models-trade-offs-and-trade-the-arc-method-of-calcu.md) — 9926 tokens
+- [Chapter 2 Economic Models: Trade-offs and Trade — Reverse Causality](020-chapter-2-economic-models-trade-offs-and-trade-reverse-causality.md) — 3282 tokens
+- [Chapter 3 Supply and Demand](021-chapter-3-supply-and-demand.md) — 9428 tokens
+- [Chapter 3 Supply and Demand — Changes in Income](022-chapter-3-supply-and-demand-changes-in-income.md) — 9956 tokens
+- [Chapter 3 Supply and Demand — Changes in the Number of Producers](023-chapter-3-supply-and-demand-changes-in-the-number-of-producers.md) — 9697 tokens
+- [Chapter 3 Supply and Demand — What Happens When the Supply Curve Shifts](024-chapter-3-supply-and-demand-what-happens-when-the-supply-curve-shifts.md) — 8045 tokens
+- [Chapter 3 Supply and Demand — Problems](025-chapter-3-supply-and-demand-problems.md) — 4104 tokens
+- [Chapter 4 Price Controls and Quotas: Meddling with Markets](026-chapter-4-price-controls-and-quotas-meddling-with-markets.md) — 9896 tokens
+- [Chapter 4 Price Controls and Quotas: Meddling with Markets — \>\> Check Your Understanding 4-1](027-chapter-4-price-controls-and-quotas-meddling-with-markets-check-your-u.md) — 8511 tokens
+- [Chapter 4 Price Controls and Quotas: Meddling with Markets — The Anatomy of Quantity Controls](028-chapter-4-price-controls-and-quotas-meddling-with-markets-the-anatomy-.md) — 9874 tokens
+- [Chapter 4 Price Controls and Quotas: Meddling with Markets — Problems](029-chapter-4-price-controls-and-quotas-meddling-with-markets-problems.md) — 5579 tokens
+- [Chapter 5 International Trade](030-chapter-5-international-trade.md) — 9946 tokens
+- [Chapter 5 International Trade — Sources of Comparative Advantage](031-chapter-5-international-trade-sources-of-comparative-advantage.md) — 9040 tokens
+- [Chapter 5 International Trade — International Trade and Wages](032-chapter-5-international-trade-international-trade-and-wages.md) — 9040 tokens
+- [Chapter 5 International Trade — International Trade Agreements and the World Trade Organization](033-chapter-5-international-trade-international-trade-agreements-and-the-w.md) — 8435 tokens
+- [Chapter 5 International Trade — Problems](034-chapter-5-international-trade-problems.md) — 8688 tokens
+- [Chapter 5 International Trade — Cost and Producer Surplus](035-chapter-5-international-trade-cost-and-producer-surplus.md) — 5601 tokens
+- [Chapter 6 Macroeconomics: The Big Picture](036-chapter-6-macroeconomics-the-big-picture.md) — 6536 tokens
+- [Chapter 6 Macroeconomics: The Big Picture — Charting the Business Cycle](037-chapter-6-macroeconomics-the-big-picture-charting-the-business-cycle.md) — 9252 tokens
+- [Chapter 6 Macroeconomics: The Big Picture — Inflation and Deflation](038-chapter-6-macroeconomics-the-big-picture-inflation-and-deflation.md) — 9642 tokens
+- [Chapter 6 Macroeconomics: The Big Picture — Problems](039-chapter-6-macroeconomics-the-big-picture-problems.md) — 1640 tokens
+- [Chapter 7 GDP and the CPI: Tracking the Macroeconomy](040-chapter-7-gdp-and-the-cpi-tracking-the-macroeconomy.md) — 9667 tokens
+- [Chapter 7 GDP and the CPI: Tracking the Macroeconomy — PITFALLS](041-chapter-7-gdp-and-the-cpi-tracking-the-macroeconomy-pitfalls.md) — 8212 tokens
+- [Chapter 7 GDP and the CPI: Tracking the Macroeconomy — Market Baskets and Price Indexes](042-chapter-7-gdp-and-the-cpi-tracking-the-macroeconomy-market-baskets-and.md) — 9948 tokens
+- [Chapter 7 GDP and the CPI: Tracking the Macroeconomy — Practice questions](043-chapter-7-gdp-and-the-cpi-tracking-the-macroeconomy-practice-questions.md) — 5106 tokens
+- [Chapter 8 Unemployment and Inflation](044-chapter-8-unemployment-and-inflation.md) — 9826 tokens
+- [Chapter 8 Unemployment and Inflation — Check Your Understanding 8-1](045-chapter-8-unemployment-and-inflation-check-your-understanding-8-1.md) — 9970 tokens
+- [Chapter 8 Unemployment and Inflation — \>\> Check Your Understanding 8-2](046-chapter-8-unemployment-and-inflation-check-your-understanding-8-2.md) — 9339 tokens
+- [Chapter 8 Unemployment and Inflation — Key Terms](047-chapter-8-unemployment-and-inflation-key-terms.md) — 6582 tokens
+- [Chapter 9 Long-Run Economic Growth](048-chapter-9-long-run-economic-growth.md) — 8458 tokens
+- [Chapter 9 Long-Run Economic Growth — Accounting for Growth: The Aggregate Production Function](049-chapter-9-long-run-economic-growth-accounting-for-growth-the-aggregate.md) — 9730 tokens
+- [Chapter 9 Long-Run Economic Growth — 5. Protection of Property Rights](050-chapter-9-long-run-economic-growth-5-protection-of-property-rights.md) — 9212 tokens
+- [Chapter 9 Long-Run Economic Growth — Economic Growth and the Environment](051-chapter-9-long-run-economic-growth-economic-growth-and-the-environment.md) — 7247 tokens
+- [Chapter 9 Long-Run Economic Growth — Problems](052-chapter-9-long-run-economic-growth-problems.md) — 2932 tokens
+- [Chapter 10 Savings, Investment Spending, and the Financial System](053-chapter-10-savings-investment-spending-and-the-financial-system.md) — 8856 tokens
+- [Chapter 10 Savings, Investment Spending, and the Financial System — For inquiring minds](054-chapter-10-savings-investment-spending-and-the-financial-system-for-in.md) — 8019 tokens
+- [Chapter 10 Savings, Investment Spending, and the Financial System — Inflation and Interest Rates](055-chapter-10-savings-investment-spending-and-the-financial-system-inflat.md) — 9831 tokens
+- [Chapter 10 Savings, Investment Spending, and the Financial System — Mutual Funds](056-chapter-10-savings-investment-spending-and-the-financial-system-mutual.md) — 9848 tokens
+- [Chapter 10 Savings, Investment Spending, and the Financial System — \>\> Check Your Understanding 10-3](057-chapter-10-savings-investment-spending-and-the-financial-system-check-.md) — 9388 tokens
+- [Chapter 10 Savings, Investment Spending, and the Financial System — How to Calculate the Present Value of One-Year Projects](058-chapter-10-savings-investment-spending-and-the-financial-system-how-to.md) — 5450 tokens
+- [Chapter 11 Income and Expenditure](059-chapter-11-income-and-expenditure.md) — 5730 tokens
+- [Chapter 11 Income and Expenditure — Current Disposable Income and Consumer Spending](060-chapter-11-income-and-expenditure-current-disposable-income-and-consum.md) — 9641 tokens
+- [Chapter 11 Income and Expenditure — 2. Expected Future Real GDP, Production Capacity, and Investment Spending](061-chapter-11-income-and-expenditure-2-expected-future-real-gdp-productio.md) — 6710 tokens
+- [Chapter 11 Income and Expenditure — Income–Expenditure Equilibrium](062-chapter-11-income-and-expenditure-incomeexpenditure-equilibrium.md) — 9936 tokens
+- [Chapter 11 Income and Expenditure — \>\> Quick Review](063-chapter-11-income-and-expenditure-quick-review.md) — 461 tokens
+- [Business case](064-business-case.md) — 8668 tokens
+- [Chapter 12 Aggregate Demand and Aggregate Supply](065-chapter-12-aggregate-demand-and-aggregate-supply.md) — 9862 tokens
+- [Chapter 12 Aggregate Demand and Aggregate Supply — Size of the Existing Stock of Physical Capital](066-chapter-12-aggregate-demand-and-aggregate-supply-size-of-the-existing-.md) — 8748 tokens
+- [Chapter 12 Aggregate Demand and Aggregate Supply — The Long-Run Aggregate Supply Curve](067-chapter-12-aggregate-demand-and-aggregate-supply-the-long-run-aggregat.md) — 8743 tokens
+- [Chapter 12 Aggregate Demand and Aggregate Supply — Shifts of Aggregate Demand: Short-Run Effects](068-chapter-12-aggregate-demand-and-aggregate-supply-shifts-of-aggregate-d.md) — 9965 tokens
+- [Chapter 12 Aggregate Demand and Aggregate Supply — \>\> Check Your Understanding 12-3](069-chapter-12-aggregate-demand-and-aggregate-supply-check-your-understand.md) — 8534 tokens
+- [Chapter 12 Aggregate Demand and Aggregate Supply — Problems](070-chapter-12-aggregate-demand-and-aggregate-supply-problems.md) — 2757 tokens
+- [Chapter 13 Fiscal Policy](071-chapter-13-fiscal-policy.md) — 9398 tokens
+- [Chapter 13 Fiscal Policy — A Cautionary Note: Lags in Fiscal Policy](072-chapter-13-fiscal-policy-a-cautionary-note-lags-in-fiscal-policy.md) — 9376 tokens
+- [Chapter 13 Fiscal Policy — The Business Cycle and the Cyclically Adjusted Budget Balance](073-chapter-13-fiscal-policy-the-business-cycle-and-the-cyclically-adjuste.md) — 9962 tokens
+- [Chapter 13 Fiscal Policy — For inquiring minds](074-chapter-13-fiscal-policy-for-inquiring-minds.md) — 6637 tokens
+- [Chapter 13 Fiscal Policy — Problems](075-chapter-13-fiscal-policy-problems.md) — 8785 tokens
+- [Chapter 14 Money, Banking, and the Federal Reserve System](076-chapter-14-money-banking-and-the-federal-reserve-system.md) — 9394 tokens
+- [Chapter 14 Money, Banking, and the Federal Reserve System — ECONOMICS \>\> in Action](077-chapter-14-money-banking-and-the-federal-reserve-system-economics-in-a.md) — 7424 tokens
+- [Chapter 14 Money, Banking, and the Federal Reserve System — How Banks Create Money](078-chapter-14-money-banking-and-the-federal-reserve-system-how-banks-crea.md) — 9610 tokens
+- [Chapter 14 Money, Banking, and the Federal Reserve System — Open-Market Operations](079-chapter-14-money-banking-and-the-federal-reserve-system-open-market-op.md) — 9141 tokens
+- [Chapter 14 Money, Banking, and the Federal Reserve System — Subprime Lending and the Housing Bubble](080-chapter-14-money-banking-and-the-federal-reserve-system-subprime-lendi.md) — 8517 tokens
+- [Chapter 14 Money, Banking, and the Federal Reserve System — PROBLEMS](081-chapter-14-money-banking-and-the-federal-reserve-system-problems.md) — 4462 tokens
+- [Chapter 15 Monetary Policy](082-chapter-15-monetary-policy.md) — 8254 tokens
+- [Chapter 15 Monetary Policy — The Equilibrium Interest Rate](083-chapter-15-monetary-policy-the-equilibrium-interest-rate.md) — 8981 tokens
+- [Chapter 15 Monetary Policy — Monetary Policy in Practice](084-chapter-15-monetary-policy-monetary-policy-in-practice.md) — 8932 tokens
+- [Chapter 15 Monetary Policy — Changes in the Money Supply and the Interest Rate in the Long Run](085-chapter-15-monetary-policy-changes-in-the-money-supply-and-the-interes.md) — 8104 tokens
+- [Chapter 15 Monetary Policy — The Interest Rate in the Short Run](086-chapter-15-monetary-policy-the-interest-rate-in-the-short-run.md) — 4511 tokens
+- [Chapter 16 Inflation, Disinflation, and Deflation](087-chapter-16-inflation-disinflation-and-deflation.md) — 9110 tokens
+- [Chapter 16 Inflation, Disinflation, and Deflation — The Output Gap and the Unemployment Rate](088-chapter-16-inflation-disinflation-and-deflation-the-output-gap-and-the.md) — 9527 tokens
+- [Chapter 16 Inflation, Disinflation, and Deflation — ECONOMICS \>\> in Action](089-chapter-16-inflation-disinflation-and-deflation-economics-in-action.md) — 7513 tokens
+- [Chapter 16 Inflation, Disinflation, and Deflation — Effects of Expected Deflation](090-chapter-16-inflation-disinflation-and-deflation-effects-of-expected-de.md) — 9307 tokens
+- [Chapter 17 Macroeconomics: Events and Ideas](091-chapter-17-macroeconomics-events-and-ideas.md) — 9688 tokens
+- [Chapter 17 Macroeconomics: Events and Ideas — Rational Expectations and New Classical Economics](092-chapter-17-macroeconomics-events-and-ideas-rational-expectations-and-n.md) — 9826 tokens
+- [Chapter 17 Macroeconomics: Events and Ideas — ECONOMICS \>\> in Action](093-chapter-17-macroeconomics-events-and-ideas-economics-in-action.md) — 5867 tokens
+- [Chapter 18 International Macroeconomics](094-chapter-18-international-macroeconomics.md) — 8906 tokens
+- [Chapter 18 International Macroeconomics — Global comparison](095-chapter-18-international-macroeconomics-global-comparison.md) — 9213 tokens
+- [Chapter 18 International Macroeconomics — Inflation and Real Exchange Rates](096-chapter-18-international-macroeconomics-inflation-and-real-exchange-ra.md) — 9759 tokens
+- [Chapter 18 International Macroeconomics — For inquiring minds](097-chapter-18-international-macroeconomics-for-inquiring-minds.md) — 8768 tokens
+- [Chapter 18 International Macroeconomics — Key Terms](098-chapter-18-international-macroeconomics-key-terms.md) — 9664 tokens
+- [Chapter 18 International Macroeconomics — 3-4 Check Your Understanding](099-chapter-18-international-macroeconomics-3-4-check-your-understanding.md) — 9503 tokens
+- [Chapter 18 International Macroeconomics — 7-2 Check Your Understanding](100-chapter-18-international-macroeconomics-7-2-check-your-understanding.md) — 9054 tokens
+- [Chapter 18 International Macroeconomics — 11-4 Check Your Understanding](101-chapter-18-international-macroeconomics-11-4-check-your-understanding.md) — 9748 tokens
+- [Chapter 18 International Macroeconomics — 16-3 Check Your Understanding](102-chapter-18-international-macroeconomics-16-3-check-your-understanding.md) — 4539 tokens
+- [Glossary](103-glossary.md) — 9692 tokens
+- [Glossary — S](104-glossary-s.md) — 2459 tokens
+- [Index](105-index.md) — 113 tokens
+- [Index — A](106-index-a.md) — 9873 tokens
+- [Index — A (continued)](107-index-a-continued.md) — 3129 tokens
+- [Index — B](108-index-b.md) — 9990 tokens
+- [Index — B (continued)](109-index-b-continued.md) — 3882 tokens
+- [Index — C](110-index-c.md) — 9825 tokens
+- [Index — C (continued)](111-index-c-continued.md) — 9934 tokens
+- [Index — C (continued)](112-index-c-continued.md) — 3144 tokens
+- [Index — D](113-index-d.md) — 9765 tokens
+- [Index — E](114-index-e.md) — 9990 tokens
+- [Index — E (continued)](115-index-e-continued.md) — 6973 tokens
+- [Index — F](116-index-f.md) — 9952 tokens
+- [Index — F (continued)](117-index-f-continued.md) — 7795 tokens
+- [Index — G](118-index-g.md) — 9994 tokens
+- [Index — G (continued)](119-index-g-continued.md) — 9992 tokens
+- [Index — G (continued)](120-index-g-continued.md) — 762 tokens
+- [Index — H](121-index-h.md) — 4130 tokens
+- [Index — I](122-index-i.md) — 9887 tokens
+- [Index — I (continued)](123-index-i-continued.md) — 9955 tokens
+- [Index — I (continued)](124-index-i-continued.md) — 6923 tokens
+- [Index — J](125-index-j.md) — 4603 tokens
+- [Index — L](126-index-l.md) — 9958 tokens
+- [Index — L (continued)](127-index-l-continued.md) — 706 tokens
+- [Index — M](128-index-m.md) — 9910 tokens
+- [Index — M (continued)](129-index-m-continued.md) — 9868 tokens
+- [Index — M (continued)](130-index-m-continued.md) — 6668 tokens
+- [Index — N](131-index-n.md) — 6784 tokens
+- [Index — O](132-index-o.md) — 5018 tokens
+- [Index — P](133-index-p.md) — 9938 tokens
+- [Index — P (continued)](134-index-p-continued.md) — 9133 tokens
+- [Index — Q](135-index-q.md) — 2195 tokens
+- [Index — R](136-index-r.md) — 9899 tokens
+- [Index — R (continued)](137-index-r-continued.md) — 1945 tokens
+- [Index — S](138-index-s.md) — 9949 tokens
+- [Index — S (continued)](139-index-s-continued.md) — 9956 tokens
+- [Index — S (continued)](140-index-s-continued.md) — 4033 tokens
+- [Index — T](141-index-t.md) — 9971 tokens
+- [Index — T (continued)](142-index-t-continued.md) — 1662 tokens
+- [Index — U](143-index-u.md) — 9941 tokens
+- [Index — U (continued)](144-index-u-continued.md) — 3681 tokens
+- [Index — V](145-index-v.md) — 8808 tokens

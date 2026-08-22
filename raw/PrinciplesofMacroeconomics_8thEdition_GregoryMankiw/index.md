@@ -1,0 +1,178 @@
+---
+title: "Principles of Macroeconomics (8th Edition) (N. Gregory Mankiw) (z-library.sk, 1lib.sk, z-lib.sk)"
+source: "Principles of Macroeconomics (8th Edition) (N. Gregory Mankiw) (z-library.sk, 1lib.sk, z-lib.sk).md"
+parts: 169
+max_tokens: 10000
+---
+
+# Principles of Macroeconomics (8th Edition) (N. Gregory Mankiw) (z-library.sk, 1lib.sk, z-lib.sk)
+
+- [MACROECONOMICS](001-macroeconomics.md) — 449 tokens
+- [PRINCIPLES OF MACROECONOMICS Eighth Edition](002-principles-of-macroeconomics-eighth-edition.md) — 1054 tokens
+- [Brief Contents](003-brief-contents.md) — 7651 tokens
+- [Contents](004-contents.md) — 843 tokens
+- [PART II How Markets Work 63](005-part-ii-how-markets-work-63.md) — 825 tokens
+- [PART III Markets and Welfare 131](006-part-iii-markets-and-welfare-131.md) — 760 tokens
+- [PART IV The Data of Macroeconomics 187](007-part-iv-the-data-of-macroeconomics-187.md) — 629 tokens
+- [PART V The Real Economy in the Long Run 229](008-part-v-the-real-economy-in-the-long-run-229.md) — 1110 tokens
+- [PART VI Money and Prices in the Long Run 317](009-part-vi-money-and-prices-in-the-long-run-317.md) — 714 tokens
+- [PART VII The Macroeconomics of Open Economies 367](010-part-vii-the-macroeconomics-of-open-economies-367.md) — 657 tokens
+- [PART VIII Short-Run Economic Fluctuations 415](011-part-viii-short-run-economic-fluctuations-415.md) — 1461 tokens
+- [PART IX Final Thoughts 503](012-part-ix-final-thoughts-503.md) — 152 tokens
+- [Ten Principles of Economics](013-ten-principles-of-economics.md) — 9946 tokens
+- [Ten Principles of Economics — QUESTIONS FOR REVIEW](014-ten-principles-of-economics-questions-for-review.md) — 900 tokens
+- [Thinking Like an Economist](015-thinking-like-an-economist.md) — 8823 tokens
+- [IN THE NEWS](016-in-the-news.md) — 7785 tokens
+- [Interdependence and the Gains from Trade](017-interdependence-and-the-gains-from-trade.md) — 5454 tokens
+- [The Legacy of Adam Smith and David Ricardo](018-the-legacy-of-adam-smith-and-david-ricardo.md) — 883 tokens
+- [Economics within a Marriage](019-economics-within-a-marriage.md) — 1919 tokens
+- [ASK THE EXPERTS](020-ask-the-experts.md) — 3010 tokens
+- [The Market Forces of Supply and Demand](021-the-market-forces-of-supply-and-demand.md) — 9557 tokens
+- [The Market Forces of Supply and Demand — How an Increase in Demand Affects the Equilibrium](022-the-market-forces-of-supply-and-demand-how-an-increase-in-demand-affec.md) — 2289 tokens
+- [Price Increases after Disasters](023-price-increases-after-disasters.md) — 9657 tokens
+- [Price Increases after Disasters — 5-1g Other Demand Elasticities](024-price-increases-after-disasters-5-1g-other-demand-elasticities.md) — 9837 tokens
+- [Price Increases after Disasters — LINES AT THE GAS PUMP](025-price-increases-after-disasters-lines-at-the-gas-pump.md) — 9921 tokens
+- [Price Increases after Disasters — PROBLEMS AND APPLICATIONS](026-price-increases-after-disasters-problems-and-applications.md) — 1526 tokens
+- [Consumers, Producers, and the Efficiency of Markets](027-consumers-producers-and-the-efficiency-of-markets.md) — 7533 tokens
+- [The Invisible Hand Can Park Your Car](028-the-invisible-hand-can-park-your-car.md) — 9377 tokens
+- [The Invisible Hand Can Park Your Car — THE DEADWEIGHT LOSS DEBATE](029-the-invisible-hand-can-park-your-car-the-deadweight-loss-debate.md) — 5340 tokens
+- [Application: International Trade](030-application-international-trade.md) — 5985 tokens
+- [IN THE NEWS](031-in-the-news.md) — 1601 tokens
+- [IN THE NEWS](032-in-the-news.md) — 2321 tokens
+- [ASK THE EXPERTS](033-ask-the-experts.md) — 3577 tokens
+- [The Data of Macroeconomics](034-the-data-of-macroeconomics.md) — 9680 tokens
+- [The Data of Macroeconomics — Silicon Valley Doesn’t Believe U.S. Productivity Is Down](035-the-data-of-macroeconomics-silicon-valley-doesnt-believe-u-s-productiv.md) — 1692 tokens
+- [Measuring Macroeconomic Well-Being](036-measuring-macroeconomic-well-being.md) — 5805 tokens
+- [Measuring the Cost of Living](037-measuring-the-cost-of-living.md) — 3722 tokens
+- [IN THE NEWS](038-in-the-news.md) — 8981 tokens
+- [The Real Economy in the Long Run](039-the-real-economy-in-the-long-run.md) — 9445 tokens
+- [The Real Economy in the Long Run — 12-3f Property Rights and Political Stability](040-the-real-economy-in-the-long-run-12-3f-property-rights-and-political-s.md) — 5218 tokens
+- [IN THE NEWS](041-in-the-news.md) — 3338 tokens
+- [Saving, Investment, and the Financial System](042-saving-investment-and-the-financial-system.md) — 9899 tokens
+- [Saving, Investment, and the Financial System — THE HISTORY OF U.S. GOVERNMENT DEBT](043-saving-investment-and-the-financial-system-the-history-of-u-s-governme.md) — 4214 tokens
+- [The Basic Tools of Finance](044-the-basic-tools-of-finance.md) — 2056 tokens
+- [The Magic of Compounding and the Rule of 70](045-the-magic-of-compounding-and-the-rule-of-70.md) — 9511 tokens
+- [The Magic of Compounding and the Rule of 70 — TABLE 1](046-the-magic-of-compounding-and-the-rule-of-70-table-1.md) — 6278 tokens
+- [Should the minimum wage be raised to \$15 an hour?](047-should-the-minimum-wage-be-raised-to-15-an-hour.md) — 1744 tokens
+- [15-4 Unions and Collective Bargaining](048-15-4-unions-and-collective-bargaining.md) — 5637 tokens
+- [Money and Prices in the Long Run](049-money-and-prices-in-the-long-run.md) — 9993 tokens
+- [The Monetary System — 16-4a How the Fed Influences the Quantity of Reserves](050-the-monetary-system-16-4a-how-the-fed-influences-the-quantity-of-reser.md) — 2440 tokens
+- [IN THE NEWS](051-in-the-news.md) — 4605 tokens
+- [Money Growth and Inflation](052-money-growth-and-inflation.md) — 9973 tokens
+- [Money Growth and Inflation — 17-2c Menu Costs](053-money-growth-and-inflation-17-2c-menu-costs.md) — 6041 tokens
+- [The Macroeconomics of Open Economies](054-the-macroeconomics-of-open-economies.md) — 1966 tokens
+- [The Complicated Politics of Trade Agreements](055-the-complicated-politics-of-trade-agreements.md) — 9672 tokens
+- [The Complicated Politics of Trade Agreements — 18-3b Implications of Purchasing-Power Parity](056-the-complicated-politics-of-trade-agreements-18-3b-implications-of-pur.md) — 4974 tokens
+- [A Macroeconomic Theory of the Open Economy](057-a-macroeconomic-theory-of-the-open-economy.md) — 8870 tokens
+- [Is a Strong Currency Always in a Nation’s Interest?](058-is-a-strong-currency-always-in-a-nations-interest.md) — 4909 tokens
+- [Short-Run Economic Fluctuations](059-short-run-economic-fluctuations.md) — 9186 tokens
+- [Aggregate Demand and Aggregate Supply — FIGURE 6](060-aggregate-demand-and-aggregate-supply-figure-6.md) — 9989 tokens
+- [Aggregate Demand and Aggregate Supply — FIGURE 10](061-aggregate-demand-and-aggregate-supply-figure-10.md) — 1696 tokens
+- [The Origins of the Model of Aggregate Demand and Aggregate Supply](062-the-origins-of-the-model-of-aggregate-demand-and-aggregate-supply.md) — 3353 tokens
+- [The Influence of Monetary and Fiscal Policy on Aggregate Demand](063-the-influence-of-monetary-and-fiscal-policy-on-aggregate-demand.md) — 9941 tokens
+- [The Influence of Monetary and Fiscal Policy on Aggregate Demand — FIGURE 5](064-the-influence-of-monetary-and-fiscal-policy-on-aggregate-demand-figure.md) — 1884 tokens
+- [How Large Is the Fiscal Policy Multiplier?](065-how-large-is-the-fiscal-policy-multiplier.md) — 5970 tokens
+- [The Short-Run Trade-off between Inflation and Unemployment](066-the-short-run-trade-off-between-inflation-and-unemployment.md) — 9992 tokens
+- [The Short-Run Trade-off between Inflation and Unemployment — The Volcker Disinflation](067-the-short-run-trade-off-between-inflation-and-unemployment-the-volcker.md) — 3982 tokens
+- [Six Debates over Macroeconomic Policy](068-six-debates-over-macroeconomic-policy.md) — 1375 tokens
+- [23-2 Should the Government Fight Recessions with Spending Hikes Rather Than Tax Cuts?](069-23-2-should-the-government-fight-recessions-with-spending-hikes-rather.md) — 5713 tokens
+- [On Kiwis and Currencies](070-on-kiwis-and-currencies.md) — 9786 tokens
+- [On Kiwis and Currencies — F](071-on-kiwis-and-currencies-f.md) — 9784 tokens
+- [On Kiwis and Currencies — M](072-on-kiwis-and-currencies-m.md) — 6885 tokens
+- [SUGGESTIONS FOR Summer Reading](073-suggestions-for-summer-reading.md) — 648 tokens
+- [PERCEPTIONS OFA RENEGADE MIND](074-perceptions-ofa-renegade-mind.md) — 516 tokens
+- [How the few control the many and always have – the many do whatever they’re told](075-how-the-few-control-the-many-and-always-have-the-many-do-whatever-they.md) — 9390 tokens
+- [How the few control the many and always have – the many do whatever they’re told — Hired hands](076-how-the-few-control-the-many-and-always-have-the-many-do-whatever-they.md) — 2102 tokens
+- [Renegade Perception](077-renegade-perception.md) — 9415 tokens
+- [Renegade Perception — Moving on America](078-renegade-perception-moving-on-america.md) — 5883 tokens
+- [CHAPTER THREE](079-chapter-three.md) — 9864 tokens
+- [CHAPTER FOUR](080-chapter-four.md) — 9165 tokens
+- [CHAPTER FOUR — How it works – and how it doesn’t](081-chapter-four-how-it-works-and-how-it-doesnt.md) — 6541 tokens
+- [CHAPTER FIVE](082-chapter-five.md) — 9512 tokens
+- [CHAPTER FIVE — Paper can infect houses](083-chapter-five-paper-can-infect-houses.md) — 2688 tokens
+- [CHAPTER SIX](084-chapter-six.md) — 9051 tokens
+- [Sequence of deceit — Where’s the ‘pandemic’?](085-sequence-of-deceit-wheres-the-pandemic.md) — 9227 tokens
+- [CHAPTER SEVEN](086-chapter-seven.md) — 9277 tokens
+- [War on your mind — Cult lab rats](087-war-on-your-mind-cult-lab-rats.md) — 8379 tokens
+- [‘Reframing’ insanity](088-reframing-insanity.md) — 9530 tokens
+- [‘Reframing’ insanity — Black Lies Matter](089-reframing-insanity-black-lies-matter.md) — 8411 tokens
+- [CHAPTER NINE](090-chapter-nine.md) — 9773 tokens
+- [We must have it? So what is it? — The ‘vaccine is working’ scam](091-we-must-have-it-so-what-is-it-the-vaccine-is-working-scam.md) — 9166 tokens
+- [We must have it? So what is it? — ‘Vaccine’ operating system](092-we-must-have-it-so-what-is-it-vaccine-operating-system.md) — 9827 tokens
+- [We must have it? So what is it? — Stolen identity](093-we-must-have-it-so-what-is-it-stolen-identity.md) — 9863 tokens
+- [We must have it? So what is it? — ‘Revolt from God’ is energetic disconnection](094-we-must-have-it-so-what-is-it-revolt-from-god-is-energetic-disconnecti.md) — 9673 tokens
+- [CHAPTER TWELVE](095-chapter-twelve.md) — 8025 tokens
+- [Escaping Wetiko — Synthetic everything](096-escaping-wetiko-synthetic-everything.md) — 9069 tokens
+- [Escaping Wetiko — ‘Vaccine’ transmission](097-escaping-wetiko-vaccine-transmission.md) — 6522 tokens
+- [Cowan-Kaufman-Morell Statement on Virus Isolation (SOVI)](098-cowan-kaufman-morell-statement-on-virus-isolation-sovi.md) — 9591 tokens
+- [Cowan-Kaufman-Morell Statement on Virus Isolation (SOVI) — T](099-cowan-kaufman-morell-statement-on-virus-isolation-sovi-t.md) — 2582 tokens
+- [ICKONIC THE ALTERNATIVE](100-ickonic-the-alternative.md) — 364 tokens
+- [DAVID ICKE THEANSWER](101-david-icke-theanswer.md) — 319 tokens
+- [RENEGADE /'ren·I geid/ THE LIFE STORY OF DAVID ICKE THEFEATURE LENGTH FILM](102-renegade-reni-geid-the-life-story-of-david-icke-thefeature-length-film.md) — 313 tokens
+- [MICROECONOMICS](103-microeconomics.md) — 294 tokens
+- [PRINCIPLES OF MICROECONOMICS Eighth Edition](104-principles-of-microeconomics-eighth-edition.md) — 1136 tokens
+- [Brief ContentsBrief Contents](105-brief-contentsbrief-contents.md) — 1632 tokens
+- [Study and Test Prep](106-study-and-test-prep.md) — 731 tokens
+- [Acknowledgments](107-acknowledgments.md) — 5338 tokens
+- [Contents](108-contents.md) — 848 tokens
+- [PART II How Markets Work 63](109-part-ii-how-markets-work-63.md) — 833 tokens
+- [PART III Markets and Welfare 131](110-part-iii-markets-and-welfare-131.md) — 770 tokens
+- [PART IV The Economics of the Public Sector 187](111-part-iv-the-economics-of-the-public-sector-187.md) — 786 tokens
+- [PART V Firm Behavior and the Organization of Industry 245](112-part-v-firm-behavior-and-the-organization-of-industry-245.md) — 1480 tokens
+- [PART VI The Economics of Labor Markets 359](113-part-vi-the-economics-of-labor-markets-359.md) — 900 tokens
+- [PART VII Topics for Further Study 423](114-part-vii-topics-for-further-study-423.md) — 689 tokens
+- [Ten Principles of Economics](115-ten-principles-of-economics.md) — 10000 tokens
+- [Ten Principles of Economics — QUESTIONS FOR REVIEW](116-ten-principles-of-economics-questions-for-review.md) — 900 tokens
+- [Thinking Like an Economist](117-thinking-like-an-economist.md) — 8152 tokens
+- [ASK THE EXPERTS](118-ask-the-experts.md) — 664 tokens
+- [IN THE NEWS](119-in-the-news.md) — 7762 tokens
+- [Interdependence and the Gains from Trade](120-interdependence-and-the-gains-from-trade.md) — 5455 tokens
+- [The Legacy of Adam Smith and David Ricardo](121-the-legacy-of-adam-smith-and-david-ricardo.md) — 2778 tokens
+- [ASK THE EXPERTS](122-ask-the-experts.md) — 3000 tokens
+- [The Market Forces of Supply and Demand](123-the-market-forces-of-supply-and-demand.md) — 9616 tokens
+- [The Market Forces of Supply and Demand — How an Increase in Demand Affects the Equilibrium](124-the-market-forces-of-supply-and-demand-how-an-increase-in-demand-affec.md) — 2285 tokens
+- [Price Increases after Disasters](125-price-increases-after-disasters.md) — 9523 tokens
+- [Price Increases after Disasters — 5-1g Other Demand Elasticities](126-price-increases-after-disasters-5-1g-other-demand-elasticities.md) — 9885 tokens
+- [Price Increases after Disasters — LINES AT THE GAS PUMP](127-price-increases-after-disasters-lines-at-the-gas-pump.md) — 9919 tokens
+- [Price Increases after Disasters — PROBLEMS AND APPLICATIONS](128-price-increases-after-disasters-problems-and-applications.md) — 1572 tokens
+- [Consumers, Producers, and the Efficiency of Markets](129-consumers-producers-and-the-efficiency-of-markets.md) — 7570 tokens
+- [The Invisible Hand Can Park Your Car](130-the-invisible-hand-can-park-your-car.md) — 9310 tokens
+- [The Invisible Hand Can Park Your Car — THE DEADWEIGHT LOSS DEBATE](131-the-invisible-hand-can-park-your-car-the-deadweight-loss-debate.md) — 5334 tokens
+- [Application: International Trade](132-application-international-trade.md) — 5983 tokens
+- [IN THE NEWS](133-in-the-news.md) — 1595 tokens
+- [IN THE NEWS](134-in-the-news.md) — 2316 tokens
+- [ASK THE EXPERTS](135-ask-the-experts.md) — 3577 tokens
+- [The Economics of the Public Sector](136-the-economics-of-the-public-sector.md) — 3940 tokens
+- [ASK THE EXPERTS](137-ask-the-experts.md) — 1869 tokens
+- [IN THE NEWS](138-in-the-news.md) — 1071 tokens
+- [ASK THE EXPERTS](139-ask-the-experts.md) — 3621 tokens
+- [IN THE NEWS](140-in-the-news.md) — 3571 tokens
+- [Public Goods and Common Resources](141-public-goods-and-common-resources.md) — 6315 tokens
+- [The Case for Toll Roads](142-the-case-for-toll-roads.md) — 5162 tokens
+- [The Design of the Tax System](143-the-design-of-the-tax-system.md) — 9721 tokens
+- [The Design of the Tax System — WHO PAYS THE CORPORATE INCOME TAX?](144-the-design-of-the-tax-system-who-pays-the-corporate-income-tax.md) — 3133 tokens
+- [Firm Behavior and the Organization of Industry](145-firm-behavior-and-the-organization-of-industry.md) — 9586 tokens
+- [The Costs of Production — Lessons from a Pin Factory](146-the-costs-of-production-lessons-from-a-pin-factory.md) — 9881 tokens
+- [The Costs of Production — Shut down if P , AVC.](147-the-costs-of-production-shut-down-if-p-avc.md) — 7273 tokens
+- [The Costs of Production — PROBLEMS AND APPLICATIONS](148-the-costs-of-production-problems-and-applications.md) — 9647 tokens
+- [The Costs of Production — 15-3a The Deadweight Loss](149-the-costs-of-production-15-3a-the-deadweight-loss.md) — 4520 tokens
+- [Price Discrimination in Higher Education](150-price-discrimination-in-higher-education.md) — 9806 tokens
+- [Price Discrimination in Higher Education — 16-2a The Monopolistically Competitive Firm in the Short Run](151-price-discrimination-in-higher-education-16-2a-the-monopolistically-co.md) — 9666 tokens
+- [Price Discrimination in Higher Education — 17-1b Competition, Monopolies, and Cartels](152-price-discrimination-in-higher-education-17-1b-competition-monopolies-.md) — 1620 tokens
+- [ASK THE EXPERTS](153-ask-the-experts.md) — 9923 tokens
+- [ASK THE EXPERTS — QUESTIONS FOR REVIEW](154-ask-the-experts-questions-for-review.md) — 1985 tokens
+- [The Economics of Labor Markets](155-the-economics-of-labor-markets.md) — 3917 tokens
+- [Input Demand and Output Supply: Two Sides of the Same Coin](156-input-demand-and-output-supply-two-sides-of-the-same-coin.md) — 3630 tokens
+- [The Economics of Immigration](157-the-economics-of-immigration.md) — 8091 tokens
+- [Earnings and Discrimination](158-earnings-and-discrimination.md) — 2453 tokens
+- [IN THE NEWS](159-in-the-news.md) — 8938 tokens
+- [Income Inequality and Poverty](160-income-inequality-and-poverty.md) — 2553 tokens
+- [IN THE NEWS](161-in-the-news.md) — 8167 tokens
+- [International Differences in Income Redistribution](162-international-differences-in-income-redistribution.md) — 4198 tokens
+- [PART VII](163-part-vii.md) — 9620 tokens
+- [The Theory of Consumer Choice — 21-4b How Do Wages Affect Labor Supply?](164-the-theory-of-consumer-choice-21-4b-how-do-wages-affect-labor-supply.md) — 6076 tokens
+- [Frontiers of Microeconomics](165-frontiers-of-microeconomics.md) — 9189 tokens
+- [IN THE NEWS](166-in-the-news.md) — 9668 tokens
+- [Using Deviations from Rationality — C](167-using-deviations-from-rationality-c.md) — 9662 tokens
+- [Using Deviations from Rationality — S](168-using-deviations-from-rationality-s.md) — 2683 tokens
+- [SUGGESTIONS FOR Summer Reading](169-suggestions-for-summer-reading.md) — 633 tokens

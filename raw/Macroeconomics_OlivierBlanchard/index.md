@@ -1,0 +1,115 @@
+---
+title: "Macroeconomics (Olivier Blanchard) (z-library.sk, 1lib.sk, z-lib.sk)"
+source: "Macroeconomics (Olivier Blanchard) (z-library.sk, 1lib.sk, z-lib.sk).md"
+parts: 106
+max_tokens: 10000
+---
+
+# Macroeconomics (Olivier Blanchard) (z-library.sk, 1lib.sk, z-lib.sk)
+
+- [MACROECONOMICS](001-macroeconomics.md) — 885 tokens
+- [Flexible Organization](002-flexible-organization.md) — 451 tokens
+- [Brief Contents](003-brief-contents.md) — 9281 tokens
+- [About the Author](004-about-the-author.md) — 491 tokens
+- [A Tour of the World](005-a-tour-of-the-world.md) — 9645 tokens
+- [A Tour of the World — DIG DEEPER](006-a-tour-of-the-world-dig-deeper.md) — 2513 tokens
+- [2-1 AGGREGATE OUTPUT](007-2-1-aggregate-output.md) — 9801 tokens
+- [2-1 AGGREGATE OUTPUT — The Phillips Curve](008-2-1-aggregate-output-the-phillips-curve.md) — 6926 tokens
+- [APPENDIX: The Construction of Real GDP and Chain-Type Indexes](009-appendix-the-construction-of-real-gdp-and-chain-type-indexes.md) — 6351 tokens
+- [3-3 THE DETERMINATION OF EQUILIBRIUM OUTPUT](010-3-3-the-determination-of-equilibrium-output.md) — 4651 tokens
+- [The Lehman Bankruptcy, Fears of Another Great Depression, and Shifts in the Consumption Function](011-the-lehman-bankruptcy-fears-of-another-great-depression-and-shifts-in-.md) — 7478 tokens
+- [Financial Markets I](012-financial-markets-i.md) — 514 tokens
+- [4-1 THE DEMAND FOR MONEY](013-4-1-the-demand-for-money.md) — 886 tokens
+- [Semantic Traps: Money, Income, and Wealth](014-semantic-traps-money-income-and-wealth.md) — 9375 tokens
+- [Semantic Traps: Money, Income, and Wealth — The Liquidity Trap in Action](015-semantic-traps-money-income-and-wealth-the-liquidity-trap-in-action.md) — 4275 tokens
+- [Goods and Financial Markets: The IS-LM Model](016-goods-and-financial-markets-the-is-lm-model.md) — 4429 tokens
+- [5-3 PUTTING THE IS AND LM RELATIONS TOGETHER](017-5-3-putting-the-is-and-lm-relations-together.md) — 4595 tokens
+- [Deficit Reduction: Good or Bad for Investment?](018-deficit-reduction-good-or-bad-for-investment.md) — 6672 tokens
+- [Financial Markets II: The Extended IS-LM Model](019-financial-markets-ii-the-extended-is-lm-model.md) — 9587 tokens
+- [Financial Markets II: The Extended IS-LM Model — Financial Shocks and Policies](020-financial-markets-ii-the-extended-is-lm-model-financial-shocks-and-pol.md) — 6168 tokens
+- [QUESTIONS AND PROBLEMS](021-questions-and-problems.md) — 4187 tokens
+- [7-1 A TOUR OF THE LABOR MARKET](022-7-1-a-tour-of-the-labor-market.md) — 1426 tokens
+- [The Current Population Survey](023-the-current-population-survey.md) — 3479 tokens
+- [From Henry Ford to Jeff Bezos](024-from-henry-ford-to-jeff-bezos.md) — 9321 tokens
+- [APPENDIX: Wage- and Price-Setting Relations versus Labor Supply and Labor Demand](025-appendix-wage-and-price-setting-relations-versus-labor-supply-and-labo.md) — 1012 tokens
+- [The Phillips Curve, the Natural Rate of Unemployment, and Inflation](026-the-phillips-curve-the-natural-rate-of-unemployment-and-inflation.md) — 4948 tokens
+- [Theory ahead of Facts: Milton Friedman and Edmund Phelps](027-theory-ahead-of-facts-milton-friedman-and-edmund-phelps.md) — 9229 tokens
+- [Theory ahead of Facts: Milton Friedman and Edmund Phelps — EXPLORE FURTHER](028-theory-ahead-of-facts-milton-friedman-and-edmund-phelps-explore-furthe.md) — 2374 tokens
+- [APPENDIX: Derivation of the Relation Between Inflation, Expected Inflation, and Unemployment](029-appendix-derivation-of-the-relation-between-inflation-expected-inflati.md) — 1234 tokens
+- [From the Short to the Medium Run: The IS-LM-PC Model](030-from-the-short-to-the-medium-run-the-is-lm-pc-model.md) — 1532 tokens
+- [Okun’s Law across Time and Countries](031-okuns-law-across-time-and-countries.md) — 5185 tokens
+- [Deflation in the Great Depression](032-deflation-in-the-great-depression.md) — 4881 tokens
+- [Oil Price Increases: Why Were the 2000s So Different from the 1970s?](033-oil-price-increases-why-were-the-2000s-so-different-from-the-1970s.md) — 6660 tokens
+- [The Facts of Growth](034-the-facts-of-growth.md) — 1628 tokens
+- [The Construction of PPP Numbers](035-the-construction-of-ppp-numbers.md) — 9367 tokens
+- [The Construction of PPP Numbers — Output and Capital per Worker](036-the-construction-of-ppp-numbers-output-and-capital-per-worker.md) — 1374 tokens
+- [QUESTIONS AND PROBLEMS](037-questions-and-problems.md) — 2241 tokens
+- [Saving, Capital Accumulation, and Output](038-saving-capital-accumulation-and-output.md) — 5430 tokens
+- [Capital Accumulation and Growth in France in the Aftermath of World War II](039-capital-accumulation-and-growth-in-france-in-the-aftermath-of-world-wa.md) — 4231 tokens
+- [Social Security, Saving, and Capital Accumulation in the United States](040-social-security-saving-and-capital-accumulation-in-the-united-states.md) — 4185 tokens
+- [Nudging US Households to Save More](041-nudging-us-households-to-save-more.md) — 4777 tokens
+- [APPENDIX: The Cobb-Douglas Production Function and the Steady State](042-appendix-the-cobb-douglas-production-function-and-the-steady-state.md) — 1295 tokens
+- [Technological Progress and Growth](043-technological-progress-and-growth.md) — 167 tokens
+- [12-1 TECHNOLOGICAL PROGRESS AND THE RATE OF GROWTH](044-12-1-technological-progress-and-the-rate-of-growth.md) — 6386 tokens
+- [The Diffusion of New Technology: Hybrid Corn](045-the-diffusion-of-new-technology-hybrid-corn.md) — 1195 tokens
+- [Management Practices: Another Dimension of Technological Progress](046-management-practices-another-dimension-of-technological-progress.md) — 775 tokens
+- [12-3 INSTITUTIONS, TECHNOLOGICAL PROGRESS, AND GROWTH](047-12-3-institutions-technological-progress-and-growth.md) — 596 tokens
+- [The Importance of Institutions: North Korea and South Korea](048-the-importance-of-institutions-north-korea-and-south-korea.md) — 1016 tokens
+- [What Lies Behind Chinese Growth?](049-what-lies-behind-chinese-growth.md) — 4092 tokens
+- [APPENDIX: How to Measure Technological Progress, and the Application to China](050-appendix-how-to-measure-technological-progress-and-the-application-to-.md) — 1809 tokens
+- [The Challenges of Growth](051-the-challenges-of-growth.md) — 3233 tokens
+- [Job Destruction, Churn and Earnings Losses](052-job-destruction-churn-and-earnings-losses.md) — 1954 tokens
+- [The Long View: Technology, Education, and Inequality](053-the-long-view-technology-education-and-inequality.md) — 2135 tokens
+- [Inequality and the Gini Coefficient](054-inequality-and-the-gini-coefficient.md) — 6709 tokens
+- [Expectations](055-expectations.md) — 270 tokens
+- [Financial Markets and Expectations](056-financial-markets-and-expectations.md) — 9695 tokens
+- [Financial Markets and Expectations — Reintroducing Risk](057-financial-markets-and-expectations-reintroducing-risk.md) — 6109 tokens
+- [Making (Some) Sense of (Apparent) Nonsense: Why the Stock Market Moved Yesterday, and Other Stories](058-making-some-sense-of-apparent-nonsense-why-the-stock-market-moved-yest.md) — 726 tokens
+- [Famous Bubbles: From Tulipmania in 17th-Century Holland to Russia in 1994](059-famous-bubbles-from-tulipmania-in-17th-century-holland-to-russia-in-19.md) — 1640 tokens
+- [The Increase in US Housing Prices During the First Half of the 2000s: Fundamentals or Bubble?](060-the-increase-in-us-housing-prices-during-the-first-half-of-the-2000s-f.md) — 5048 tokens
+- [Expectations, Consumption, and Investment](061-expectations-consumption-and-investment.md) — 3049 tokens
+- [UNUSUAL RETIREMENT PLANS](062-unusual-retirement-plans.md) — 466 tokens
+- [Do People Save Enough for Retirement?](063-do-people-save-enough-for-retirement.md) — 9436 tokens
+- [Do People Save Enough for Retirement? — QUICK CHECK](064-do-people-save-enough-for-retirement-quick-check.md) — 2401 tokens
+- [APPENDIX: Derivation of the Expected Present Value of Profits under Static Expectations](065-appendix-derivation-of-the-expected-present-value-of-profits-under-sta.md) — 758 tokens
+- [Expectations, Output, and Policy](066-expectations-output-and-policy.md) — 6786 tokens
+- [Can a Budget Deficit Reduction Lead to an Output Expansion? Ireland in the 1980s](067-can-a-budget-deficit-reduction-lead-to-an-output-expansion-ireland-in-.md) — 7809 tokens
+- [Openness in Goods and Financial Markets](068-openness-in-goods-and-financial-markets.md) — 9895 tokens
+- [GDP versus GNP: The Example of Kuwait](069-gdp-versus-gnp-the-example-of-kuwait.md) — 6258 tokens
+- [The Goods Market in an Open Economy](070-the-goods-market-in-an-open-economy.md) — 5425 tokens
+- [The G20 and the 2009 Fiscal Stimulus](071-the-g20-and-the-2009-fiscal-stimulus.md) — 1866 tokens
+- [Depreciation and the Trade Balance: the Marshall-Lerner Condition](072-depreciation-and-the-trade-balance-the-marshall-lerner-condition.md) — 1920 tokens
+- [The Disappearance of the Current Account Deficit in Greece: Good News or Bad News?](073-the-disappearance-of-the-current-account-deficit-in-greece-good-news-o.md) — 904 tokens
+- [18-5 SAVING, INVESTMENT, AND THE CURRENT ACCOUNT BALANCE](074-18-5-saving-investment-and-the-current-account-balance.md) — 4143 tokens
+- [APPENDIX: Derivation of the Marshall-Lerner Condition](075-appendix-derivation-of-the-marshall-lerner-condition.md) — 808 tokens
+- [Output, the Interest Rate, and the Exchange Rate](076-output-the-interest-rate-and-the-exchange-rate.md) — 2359 tokens
+- [Capital Flows, Sudden Stops, and the Limits to the Interest Parity Condition](077-capital-flows-sudden-stops-and-the-limits-to-the-interest-parity-condi.md) — 5227 tokens
+- [Monetary Contraction and Fiscal Expansion: The United States in the Early 1980s](078-monetary-contraction-and-fiscal-expansion-the-united-states-in-the-ear.md) — 1328 tokens
+- [US Trade Deficits and Trump Administration Trade Tariffs](079-us-trade-deficits-and-trump-administration-trade-tariffs.md) — 3347 tokens
+- [German Reunification, Interest Rates, and the EMS](080-german-reunification-interest-rates-and-the-ems.md) — 3932 tokens
+- [APPENDIX: Fixed Exchange Rates, Interest Rates, and Capital Mobility](081-appendix-fixed-exchange-rates-interest-rates-and-capital-mobility.md) — 1662 tokens
+- [Exchange Rate Regimes](082-exchange-rate-regimes.md) — 2452 tokens
+- [The Return of Britain to the Gold Standard: Keynes versus Churchill](083-the-return-of-britain-to-the-gold-standard-keynes-versus-churchill.md) — 9669 tokens
+- [Lessons from Argentina’s Currency Board](084-lessons-from-argentinas-currency-board.md) — 6574 tokens
+- [APPENDIX 1: Deriving the IS Relation under Fixed Exchange Rates](085-appendix-1-deriving-the-is-relation-under-fixed-exchange-rates.md) — 465 tokens
+- [APPENDIX 2: The Real Exchange Rate and Domestic and Foreign Real Interest Rates](086-appendix-2-the-real-exchange-rate-and-domestic-and-foreign-real-intere.md) — 2039 tokens
+- [Should Policymakers Be Restrained?](087-should-policymakers-be-restrained.md) — 419 tokens
+- [House Republican Contract with America](088-house-republican-contract-with-america.md) — 9960 tokens
+- [Euro Area Fiscal Rules: A Short History](089-euro-area-fiscal-rules-a-short-history.md) — 5176 tokens
+- [Fiscal Policy: A Summing Up](090-fiscal-policy-a-summing-up.md) — 2089 tokens
+- [Inflation Accounting and the Measurement of Deficits](091-inflation-accounting-and-the-measurement-of-deficits.md) — 4642 tokens
+- [How Countries Decreased Their Debt Ratios after World War II](092-how-countries-decreased-their-debt-ratios-after-world-war-ii.md) — 1148 tokens
+- [22-3 RICARDIAN EQUIVALENCE, CYCLICAL ADJUSTED DEFICITS, AND WAR FINANCE](093-22-3-ricardian-equivalence-cyclical-adjusted-deficits-and-war-finance.md) — 2465 tokens
+- [Deficits, Consumption, and Investment in the United States during World War II](094-deficits-consumption-and-investment-in-the-united-states-during-world-.md) — 9545 tokens
+- [Deficits, Consumption, and Investment in the United States during World War II — EXPLORE FURTHER](095-deficits-consumption-and-investment-in-the-united-states-during-world-.md) — 1231 tokens
+- [Monetary Policy: A Summing Up](096-monetary-policy-a-summing-up.md) — 9080 tokens
+- [Monetary Policy: A Summing Up — 23-4 UNCONVENTIONAL MONETARY POLICY](097-monetary-policy-a-summing-up-23-4-unconventional-monetary-policy.md) — 3605 tokens
+- [LTV Ratios and Housing Price Increases from 2000 to 2007](098-ltv-ratios-and-housing-price-increases-from-2000-to-2007.md) — 9957 tokens
+- [LTV Ratios and Housing Price Increases from 2000 to 2007 — Wage and Price Setting](099-ltv-ratios-and-housing-price-increases-from-2000-to-2007-wage-and-pric.md) — 3800 tokens
+- [24-5 FIRST LESSONS FOR MACROECONOMICS AFTER THE CRISIS](100-24-5-first-lessons-for-macroeconomics-after-the-crisis.md) — 9588 tokens
+- [24-5 FIRST LESSONS FOR MACROECONOMICS AFTER THE CRISIS — Useful Approximations](101-24-5-first-lessons-for-macroeconomics-after-the-crisis-useful-approxim.md) — 6002 tokens
+- [A Guide to Understanding Econometric Results](102-a-guide-to-understanding-econometric-results.md) — 1444 tokens
+- [A Guide to Understanding Econometric Results — Key Terms](103-a-guide-to-understanding-econometric-results-key-terms.md) — 9979 tokens
+- [A Guide to Understanding Econometric Results — Key Terms (continued)](104-a-guide-to-understanding-econometric-results-key-terms-continued.md) — 949 tokens
+- [A Guide to Understanding Econometric Results — Index](105-a-guide-to-understanding-econometric-results-index.md) — 9642 tokens
+- [A Guide to Understanding Econometric Results — K](106-a-guide-to-understanding-econometric-results-k.md) — 9489 tokens
