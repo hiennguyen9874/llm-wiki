@@ -6,6 +6,13 @@ body_tokens: 4187
 max_tokens: 10000
 ---
 
+
+## KEY TERMS
+
+nominal interest rate, 110 real interest rate, 110 risk premium, 114 risk aversion, 114 direct finance, 115 shadow banking, 116 capital ratio, 116 leverage ratio, 116 insolvency, 116 fire sale prices, 117 demand deposits, 118 bank runs, 118 narrow banking, 118 federal deposit insurance, 118 liquidity provision, 118 liquidity, 119 policy rate, 120 borrowing rate, 120
+
+mortgage lenders, 123 subprime mortgages, or subprimes, 123 underwater, 123 structured investment vehicles (SIVs), 123 securitization, 124 mortgage-backed security (MBS), 124 senior securities, 124 junior securities, 124 collateralized debt obligations (CDOs), 124 rating agencies, 124 toxic assets, 124 wholesale funding, 125 liquidity facilities, 126 collateral, 126 Troubled Asset Relief Program (TARP), 126 unconventional monetary policy, 127 American Recovery and Reinvestment Act, 127
+
 # QUESTIONS AND PROBLEMS
 
 ## QUICK CHECK
@@ -221,23 +228,3 @@ Chapter 8 looks at the relation between inflation and unemployment, a relation k
 Chapter 9 presents a model of the short run and the medium run. The model puts together the IS-LM model and the Phillips curve and thus is called the IS-LM-PC model. It describes the dynamics of output and unemployment, in both the short and the medium run.
 
 This page is intentionally left blank
-
-T ing production. Higher production leads to higher employment. Higher employmentleads to lower unemployment. Lower unemployment leads to higher wages. Higher ing production. Higher production leads to higher employment. Higher employment leads to lower unemployment. Lower unemployment leads to higher wages. Higher wages increase production costs, leading firms to increase prices. Higher prices lead workers to ask for higher wages. Higher wages lead to further increases in prices, and so on.
-
-So far, we have simply ignored this sequence of events. By assuming a constant price level in the IS-LM model, we in effect assumed that firms were able and willing to supply any amount of output at a given price level. As long as our focus was on the short run, this assumption was fine. But, as our attention now turns to the medium run, we must now abandon this assumption, explore how prices and wages adjust over time, and how this affects output. This will be our task in this and the next two chapters.
-
-Recall the behavior of theb price level in Figure 5-10.
-
-At the center of the sequence of events described in the first paragraph is the labor market, which is the market in which wages are determined. This chapter focuses on the labor market. It has six sections:
-
-Section 7-1 provides an overview of the labor market.
-
-Section 7-2 focuses on unemployment, how it moves over time, and how its movements affect individual workers.
-
-Sections 7-3 and 7-4 look at wage and price determination.
-
-Section 7-5 then looks at equilibrium in the labor market. It characterizes the natural rate of unemployment, which is the rate of unemployment to which the economy tends to return in the medium run.
-
-Section 7-6 gives a map of where we will be going next.
-
-If you remember one basic message from this chapter, it should be: The natural rate of unemployment is the rate at which the wage demands of workers are consistent with the price decisions of firms.

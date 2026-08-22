@@ -392,13 +392,3 @@ Under the simplifying assumption that firms expect profits and interest rates to
 Movements in profit are closely related to movements in output. Hence, we can think of investment as depending indirectly on current and expected future output movements. Firms that anticipate a long output expansion, and thus a long sequence of high profits, will invest. Movements in output that are not expected to last will have a small effect on investment.
 
 Investment is much more volatile than consumption. But because investment accounts only for 15% of GDP and consumption accounts for 70%, movements in investment and consumption are of roughly equal importance in accounting for movements in aggregate output.
-
-
-## KEY TERMS
-
-permanent income theory of consumption, 314 life-cycle theory of consumption, 314 financial wealth, 314 housing wealth, 314 human wealth, 314 nonhuman wealth, 314 total wealth, 314
-
-panel datasets, 315 static expectations, 322 Tobin’s q, 323 user cost, 324 rental cost, 324 profitability, 326 cash flow, 326
-
-
-## QUESTIONS AND PROBLEMS

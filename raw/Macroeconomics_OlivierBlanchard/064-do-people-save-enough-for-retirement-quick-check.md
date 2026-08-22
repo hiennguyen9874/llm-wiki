@@ -6,6 +6,16 @@ body_tokens: 2401
 max_tokens: 10000
 ---
 
+
+## KEY TERMS
+
+permanent income theory of consumption, 314 life-cycle theory of consumption, 314 financial wealth, 314 housing wealth, 314 human wealth, 314 nonhuman wealth, 314 total wealth, 314
+
+panel datasets, 315 static expectations, 322 Tobin’s q, 323 user cost, 324 rental cost, 324 profitability, 326 cash flow, 326
+
+
+## QUESTIONS AND PROBLEMS
+
 ## QUICK CHECK
 
 1. Using the information in this chapter, label each of the following statements true, false, or uncertain. Explain briefly.

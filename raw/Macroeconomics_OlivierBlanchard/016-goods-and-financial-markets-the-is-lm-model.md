@@ -6,210 +6,212 @@ body_tokens: 4429
 max_tokens: 10000
 ---
 
-# Goods and Financial Markets: The IS-LM Model
+## KEY TERMS
 
-n Chapter 3, we looked at the goods market. In Chapter 4, we looked at financial markets. We now look at goods and financial markets together. By the end of this chapter you will have a framework to think about how output and the interest rate are determined in the short run.
+Federal Reserve Bank (Fed), 67 currency, 68 checkable deposits, 68 bonds, 68 money market funds, 68 money, 69 income, 69 flow, 69 saving, 69 savings, 69 financial wealth, 69 stock, 69 investment, 69 financial investment, 69
 
-In developing this framework, we follow a path first traced by two economists, John Hicks and Alvin Hansen in the late 1930s and early 1940s. When the economist John Maynard Keynes published his General Theory in 1936, there was much agreement that his book was both fundamental and nearly impenetrable. (Try to read it, and you will agree.) There were (and still are) many debates about what Keynes “really meant.” In 1937, John Hicks summarized what he saw as one of Keynes’s main contributions: the joint description of goods and financial markets. His analysis was later extended by Alvin Hansen. Hicks and Hansen called their formalization the IS-LM (investment-saving, liquidity-money) model.
 
-Macroeconomics has made substantial progress since the early 1940s. This is why the IS-LM model is treated in this and the next chapter rather than in Chapter 24 of this book. (If you had taken this course 40 years ago, you would be nearly done!) But to most economists, the IS-LM model still represents an essential building block—one that, despite its simplicity, captures much of what happens in the economy in the short run. This is why the IS-LM model is still taught and used today.
+## QUESTIONS AND PROBLEMS
 
-This chapter develops the basic version of the IS-LM model.
 
-The version of the IS-LM model presented in this book is a bit different (and, you will be happy to know, simpler) than the model developed by Hicks and Hansen. This reflects a change in the way central banks now conduct monetary policy, with a shift in focus from controlling the money stock to controlling the interest rate, as explained in Chapter 4.
+## QUICK CHECK
 
-Section 5-1 looks at equilibrium in the goods market and derives the IS relation.
+1. Using the information in this chapter, label each of the following statements true, false, or uncertain. Explain briefly.
 
-Section 5-2 looks at equilibrium in financial markets and derives the LM relation.
+a. Income and financial wealth are both examples of stock variables.
 
-Sections 5-3 and 5-4 put the IS and LM relations together and use the resulting IS-LM model to study the effects of fiscal and monetary policy—first separately, then together.
+b. The term investment, as used by economists, refers to the purchase of bonds and shares of stock.
 
-Section 5-5 introduces dynamics and explores how the IS-LM model captures what happens in the economy in the short run.
+c. The demand for money does not depend on the interest rate because only bonds earn interest.
 
-If you remember one basic message from this chapter, it should be: In the short run, output is determined by equilibrium in the goods and financial markets.
+d. A large proportion of US currency appears to be held outside the United States.
 
-Much more on the effects of interest rates on both consumption and investment in
+e. The central bank can increase the supply of money by selling bonds.
 
-■The argument still holds if c the firm uses its own funds: The higher the interest rate, the more attractive it is to lend the funds rather than to use them to buy the new machine.
+f. The Federal Reserve can determine the money supply, but it cannot change interest rates.
 
-## Let’s first summarize what we learned in Chapter 3:
+g. Bond prices and interest rates always move in opposite directions.
 
-■ We characterized equilibrium in the goods market as the condition that production, Y, be equal to the demand for goods, Z. We called this condition the IS relation.
+h. An increase in income (GDP) will always be accompanied by an increase in interest rates when the money supply is not increased.
 
-■ We defined demand as the sum of consumption, investment, and government spending. We assumed that consumption was a function of disposable income (income minus taxes), and took investment spending, government spending, and taxes as given:
+i. Once the interest rate is zero, the Fed has no further policy options.
 
-$$
-Z = C (Y - T) + \bar {I} + G
-$$
-
-(In Chapter 3, we assumed, to simplify the algebra, that the relation between consumption, C, and disposable income, Y-T, was linear. Here, we shall not make this assumption but use the more general form $C = C ( Y - T )$ instead.)
-
-■ The equilibrium condition was thus given by
+2. Suppose that a person’s yearly income is \$60,000. Also suppose that this person’s money demand function is given by
 
 $$
-Y = C (Y - T) + \bar {I} + G
+M ^ {d} = \mathbb {S} Y (0. 3 5 - i)
 $$
 
-Using this equilibrium condition, we then looked at the factors that moved equilibrium output. We looked in particular at the effects of changes in government spending and of shifts in consumption demand.
+a. What is this person’s demand for money when the interest rate is 5%? 10%?
 
-The main simplification of this first model was that the interest rate did not affect the demand for goods. Our first task in this chapter is to abandon this simplification and introduce the interest rate in our model of equilibrium in the goods market. For the time being, we focus only on the effect of the interest rate on investment and leave the discussion of its effects on the other components of demand until later.c
+b. Explain how the interest rate affects money demand.
 
-## Investment, Sales, and the Interest Rate
+c. Suppose that the interest rate is 10%. In percentage terms, what happens to this person’s demand for money if the yearly income is reduced by 50%?
 
-In Chapter 3, investment was assumed to be constant. This was for simplicity. Investment is in fact far from constant and depends primarily on two factors:
+d. Suppose that the interest rate is 5%. In percentage terms, what happens to this person’s demand for money if the yearly income is reduced by 50%?
 
-■ The level of sales. Consider a firm facing an increase in sales and needing to increase production. To do so, it may need to buy additional machines or build an additional plant. In other words, it needs to invest. A firm facing low sales will feel no such need and will spend little, if anything, on investment.
+open market operation, 74 expansionary open market operation, 74 contractionary open market operation, 74 Treasury bill (T-bill), 74 financial intermediaries, 76 (bank) reserves, 77 central bank money, 78 reserve ratio, 78 high-powered money, 78 monetary base, 78 federal funds market, 79 federal funds rate, 80 zero lower bound, 81 liquidity trap, 81
 
-The interest rate. Consider a firm deciding whether to buy a new machine. Suppose that to buy the new machine, the firm must borrow. The higher the interest rate, the less attractive it is to borrow and buy the machine. (For the moment, and to keep things simple, we make two simplifications. First, we assume that all firms can borrow at the same interest rate—namely, the interest rate on bonds as determined in Chapter 4. In fact, many firms borrow from banks, possibly at a different rate. We also leave aside the distinction between the nominal interest rate—the interest rate in terms of dollars—and the real interest rate—the interest rate in terms of goods. We return to both issues in Chapter 6.) At a high enough interest rate, the additional profits from using the new machine will not cover interest payments, and the new machine will not be worth buying.
+e. Summarize the effect of income on money demand. In percentage terms, how does this effect depend on the interest rate?
 
-To capture these two effects, we write the investment relation as follows:
+3. Consider a bond that promises to pay \$100 in one year.
 
-$$
-\begin{array}{c} I = I (Y, i) \\ (+, -) \end{array}\tag{5.1}
-$$
+a. What is the interest rate on the bond if its price today is \$75? \$85? \$95?
 
-Equation (5.1) states that investment I depends on production Y and the interest rate i. (We continue to assume that inventory investment is equal to zero, so sales and production are always equal. As a result, Y denotes both sales and production.) The positive sign under Y indicates that an increase in production (equivalently, an increase in sales) leads to an increase in investment. The negative sign under the interest rate i indicates that an increase in the interest rate leads to a decrease in investment.
+b. What is the relation between the price of the bond and the interest rate?
 
-An increase in output leads to an increase in investment. An increase in the interest rate leads to a decrease in investment.
+c. If the interest rate is 8%, what is the price of the bond today?
 
-## Determining Output
-
-Taking into account the investment relation (5.1), the condition for equilibrium in the goods market becomes
+4. Suppose that money demand is given by
 
 $$
-Y = C (Y - T) + I (Y, i) + G\tag{5.2}
+M ^ {d} = \mathbb {S} Y (0. 2 5 - i)
 $$
 
-Production (the left side of the equation) must be equal to the demand for goods (the right side). Equation (5.2) is our expanded IS relation. We can now look at what happens to output when the interest rate changes.
+where \$Y is \$100. Also, suppose that the supply of money is \$20.
 
-Start with Figure 5-1. Measure the demand for goods (Z) on the vertical axis. Measure output (Y) on the horizontal axis. For a given value of the interest rate i, demand is an increasing function of output, for two reasons:
+a. What is the equilibrium interest rate?
 
-■ An increase in output leads to an increase in income and thus to an increase in disposable income. The increase in disposable income leads to an increase in consumption. We studied this relation in Chapter 3.
+b. If the Federal Reserve Bank wants to increase the equilibrium interest rate i by 10 percentage points from its value in part a, at what level should it set the supply of money?
 
-■ An increase in output also leads to an increase in investment. This is the relation between investment and sales that we have introduced in this chapter.
 
-In short, an increase in output leads, through its effects on both consumption and investment, to an increase in the demand for goods. This relation between demand and output, for a given interest rate, is represented by the upward-sloping curve ZZ.
+## DIG DEEPER
 
-Note two characteristics of ZZ in Figure 5-1:
-
-■ Because we have not assumed that the consumption and investment relations in equation (5.2) are linear, ZZ is in general a curve rather than a line, as shown in Figure 5-1. All the arguments that follow would apply if we assumed
-
-![Image 000038](images/image-000038.jpg)  
-Figure 5-1 Equilibrium in the Goods Market
-
-The demand for goods is an increasing function of output. Equilibrium requires that the demand for goods be equal to output.
-
-![Image 000039](images/image-000039.jpg)
-
-![Image 000040](images/image-000040.jpg)
-
-## Figure 5-2
-
-## The IS Curve
-
-(a) An increase in the interest rate decreases the demand for goods at any level of output, leading to a decrease in the equilibrium level of output. (b) Equilibrium in the goods market implies that an inc rease in the interest rate leads to a decrease in output. The IS curve, which gives the relation between the interest rate and output, is therefore downward sloping.
-
-(a)  
-(b)  
-![Image 000041](images/image-000041.jpg)
-
-that the consumption and investment relations were linear and that ZZ were a straight line.
-
-Make sure you understand why the two statements mean the same thing.
-
-■ We have drawn ZZ so that it is flatter than the 45-degree line. Put another, but equivalent, way, we have assumed that an increase in output leads to a less than one-for-one increase in demand. In Chapter 3, where investment was constant, this restriction naturally followed from the assumption that consumers spend only part of their additional income on consumption. But now that we allow investment to respond to production, this restriction may no longer hold. In response to an increase in output, the sum of the increase in consumption and the increase in investment could exceed the initial increase in output. Although this is a theoretical possibility, the empirical evidence suggests that it is not the case in reality. That’s why we shall assume that the response of demand to output is less than one for one and draw ZZ flatter than the 45-degree line.
-
-Equilibrium in the goods market is reached at the point where the demand for goods equals output; that is, at point A, the intersection of ZZ and the 45-degree line. The equilibrium level of output is given by Y.
-
-So far, what we have done is extend, in straightforward fashion, the analysis of Chapter 3. We are now ready to derive the IS curve.
-
-## Deriving the IS Curve
-
-We have drawn the demand relation, ZZ, in Figure 5-1 for a given value of the interest rate. Let’s now derive in Figure 5-2 what happens if the interest rate changes.
-
-Suppose that, in Figure 5-2(a), the demand curve is given by ZZ and the initial equilibrium is at point A. Suppose now that the interest rate increases from its initial value i to i′. At any level of output, the higher interest rate leads to lower investment and lower demand. The demand curve ZZ shifts down to ZZ′: At a given level of output, demand is lower. The new equilibrium is at the intersection of the lower demand curve ZZ′ and the 45-degree line, at point A′. The equilibrium level of output is now equal to Y′.
-
-In words: The increase in the interest rate decreases investment. The decrease in investment leads to a decrease in output, which further decreases consumption and investment, through the multiplier effect.
-
-Can you show graphically the size of the multiplier? (Hint: Look at the ratio of the decrease in equilibrium out-b put to the initial decrease in investment.)
-
-Using Figure 5-2(a), we can find the equilibrium value of output associated with any value of the interest rate. The resulting relation between equilibrium output and the interest rate is drawn in Figure 5-2(b).
-
-Figure 5-2(b) plots equilibrium output Y on the horizontal axis against the interest rate on the vertical axis. Point A in Figure 5-2(b) corresponds to point A in Figure 5-2(a), and point A′ in Figure 5-2(b) corresponds to A′ in Figure 5-2(a). The higher interest rate is associated with a lower level of output.
-
-This relation between the interest rate and output is represented by the downwardsloping curve in Figure 5-2(b). This curve is called the IS curve.
-
-Equilibrium in the goods market implies that an increase in the interest rate leads to a decrease in output. This relation is represented by the b downward-sloping IS curve.
-
-## Shifts of the IS Curve
-
-We have drawn the IS curve in Figure 5-2, taking as given the values of taxes, T, and government spending, G. Changes in either T or G will shift the IS curve.
-
-![Image 000042](images/image-000042.jpg)  
-Figure 5-3  
-Shifts of the IS Curve  
-An increase in taxes shifts the IS curve to the left.
-
-For a given interest rate, an increase in taxes leads to a decrease in output. In graphic terms: An increase in taxes shifts the IS curve to the left.
-
-## Suppose that the
-
-government announces that the Social Security system is in trouble and it may have to cut retirement benefits in the future. How are consumers likely to react? What is then likely to happen to demand and output?
-
-To see how, consider Figure 5-3. The IS curve gives the equilibrium level of output as a function of the interest rate. It is drawn for given values of taxes and spending. Now consider an increase in taxes, from T to T′. At a given interest rate, i, disposable income decreases, leading to a decrease in consumption, leading in turn to a decrease in the demand for goods and a decrease in equilibrium output, from Y to $Y ^ { \prime }$ . The IS curve shifts to the left: At a given interest rate, the equilibrium level of output is lower than it was before the increase in taxes.
-
-More generally, any factor that, for a given interest rate, decreases the equilibrium level of output causes the IS curve to shift to the left. We have looked at an increase in taxes. But the same would hold for a decrease in government spending or in consumer confidence (which decreases consumption given disposable income). Symmetrically, any factor that, for a given interest rate, increases the equilibrium level of output—a decrease in taxes, an increase in government spending, an increase in consumer confidence— causes the IS curve to shift to the right.c
-
-Let’s summarize:
-
-■ Equilibrium in the goods market implies that an increase in the interest rate leads to a decrease in output. This relation is represented by the downward-sloping IS curve.
-
-■ Changes in factors that decrease the demand for goods, given the interest rate, shift the IS curve to the left. Changes in factors that increase the demand for goods, given the interest rate, shift the IS curve to the right.
-
-## 5-2 FINANCIAL MARKETS AND THE LM RELATION
-
-Let’s now turn to financial markets. We saw in Chapter 4 that the interest rate is determined by the equality of the supply of and demand for money:
+5. Suppose that a person’s wealth is \$50,000 and that her yearly income is \$60,000. Also suppose that her money demand function is given by
 
 $$
-M = \mathbb {S} Y L (i)
+M ^ {d} = \mathbb {S} Y (0. 3 5 - i)
 $$
 
-The variable M on the left side is the nominal money stock. We shall ignore here the details of the money-supply process that we saw in Section 4-3, and simply think of the central bank as controlling M directly.
+a. Derive the demand for bonds. Suppose the interest rate increases by 10 percentage points. What is the effect on her demand for bonds?
 
-The right side gives the demand for money, which is a function of nominal income, \$Y, and of the nominal interest rate, i. As we saw in Section 4-1, an increase in nominal income increases the demand for money; an increase in the interest rate decreases the demand for money. Equilibrium requires that money supply (the left side of the equation) be equal to money demand (the right side of the equation).
+b. What are the effects of an increase in wealth on her demand for money and her demand for bonds? Explain in words.
 
-## Real Money, Real Income, and the Interest Rate
+c. What are the effects of an increase in income on her demand for money and her demand for bonds? Explain in words.
 
-From Chapter 2: NominalGDP = RealGDP multiplied by the GDP deflator \$Y = Y P. Equivalently: RealGDP = NominalGDP dividedbytheGDPdeflator \$Y>P = Y.
+d. Consider the statement “When people earn more money, they obviously will hold more bonds.” What is wrong with this statement?
 
-The equation M = \$Y L1i2 gives a relation between money, nominal income, and the interest rate. It will be more convenient here to rewrite it as a relation among real money (that is, money in terms of goods), real income (that is, income in terms of goods), and the interest rate.
+6. The demand for bonds
 
-Recall that nominal income divided by the price level equals real income, Y. Dividing both sides of the equation by the price level P gives
+In this chapter, you learned that an increase in the interest rate makes bonds more attractive, so it leads people to hold more of their wealth in bonds as opposed to money. However, you also learned that an increase in the interest rate reduces the price of bonds.
+
+How can an increase in the interest rate make bonds more attractive and reduce their price?
+
+7. ATMs and credit cards
+
+This problem examines the effect of the introduction of ATMs and credit cards on money demand. For simplicity, let’s examine a person’s demand for money over a period of four days. Suppose that before ATMs and credit cards, this person goes to the bank once at the beginning of each four-day period and withdraws from her savings account all the money she needs for four days. Assume that she needs \$4 per day.
+
+a. How much does this person withdraw each time she goes to the bank? Compute this person’s money holdings for days 1 through 4 (in the morning, before she needs any of the money she withdraws).
+
+b. What is the amount of money this person holds, on average? Suppose now that with the advent of ATMs, this person withdraws money once every two days.
+
+c. Recompute your answer to part a.
+
+d. Recompute your answer to part b.
+
+Finally, with the advent of credit cards, this person pays for all her purchases using her card. She withdraws no money until the fourth day, when she withdraws the whole amount necessary to pay for her credit card purchases over the previous four days.
+
+e. Recompute your answer to part a.
+
+f. Recompute your answer to part b.
+
+g. Based on your previous answers, what do you think has been the effect of ATMs and credit cards on money demand?
+
+8. Money and the banking system
+
+I described a monetary system that included simple banks in Section 4-3. Assume the following:
+
+i. The public holds no currency.
+
+ii. The ratio of reserves to deposits is 0.1.
+
+iii. The demand for money is given by
+
+Fill in the table below using the first entry as an example.
+
+<table><tr><td colspan="4">Initial Money Demand Curve for real income Y and price level P</td><td colspan="4">Final Money Demand Curve for real income Y and price level P</td><td>Action required by the Fed to maintain an interest rate at i*</td></tr><tr><td>Initial  $M^d$  curve</td><td>Y</td><td>P</td><td>$Y</td><td>Final  $M^d$  curve</td><td>Y</td><td>P</td><td>$Y</td><td>Explanation</td></tr><tr><td> $M^d_2$ </td><td>250</td><td>100</td><td>250</td><td> $M^d_3$ </td><td>300</td><td>105</td><td>315</td><td>The Fed must increase the money supply as nominal income rises — both real income and prices rise</td></tr><tr><td> $M^d_2$ </td><td>200</td><td>80</td><td></td><td></td><td>250</td><td>100</td><td></td><td></td></tr><tr><td> $M^d_2$ </td><td>250</td><td>100</td><td></td><td></td><td>300</td><td>100</td><td></td><td></td></tr><tr><td> $M^d_2$ </td><td>250</td><td>100</td><td></td><td></td><td>200</td><td>95</td><td></td><td></td></tr><tr><td> $M^d_2$ </td><td>250</td><td>100</td><td></td><td></td><td>275</td><td>80</td><td></td><td></td></tr></table>
 
 $$
-\frac {M}{P} = Y L (i)\tag{5.3}
+M ^ {d} = \mathbb {S} Y (0. 8 - 4 i)
 $$
 
-Hence, we can restate our equilibrium condition as the condition that the real money supply—that is, the money stock in terms of goods, not dollars—be equal to the real money demand, which depends on real income, Y, and the interest rate, i.
+Initially, the supply of central bank money is \$100 billion, and nominal income is \$5 trillion.
 
-The notion of a “real” demand for money may feel a bit abstract, so an example will help. Instead of thinking of your demand for money in general, think of your demand for coins. Suppose you like to have coins in your pocket to buy two cups of coffee during the day. If a cup costs \$1.20, you will want to keep about \$2.40 in coins. This is your nominal demand for coins. Equivalently, you want to keep enough coins in your pocket to buy two cups of coffee. This is your demand for coins in terms of goods—here in terms of cups of coffee.
+a. What is the demand for central bank money?
 
-From now on, we shall refer to equation (5.3) as the LM relation. The advantage of writing things this way is that real income, Y, appears on the right side of the equation instead of nominal income, \$Y. And real income (equivalently real output) is the variable we focus on when looking at equilibrium in the goods market. To make the reading lighter, we will refer to the left and right sides of equation (5.3) simply as “money supply” and “money demand” rather than the more accurate but heavier “real money supply” and “real money demand.” Similarly, we will refer to income rather than “real income.”
+b. Find the equilibrium interest rate by setting the demand for central bank money equal to the supply of central bank money.
 
-## Deriving the LM Curve
+c. What is the overall supply of money? Is it equal to the overall demand for money at the interest rate you found in part b?
 
-In deriving the IS curve, we took the two policy variables as government spending, G, and taxes, T. In deriving the LM curve—the curve corresponding to the LM relation— we have to decide how we characterize monetary policy: as the choice of M, the money stock, or the choice of i, the interest rate.
+d. What is the effect on the interest rate if central bank money is increased to \$300 billion?
 
-If we think of monetary policy as choosing the nominal money supply, M, and, by implication, given the price level that we shall take as fixed in the short run, choosing M/P, the real money stock, equation (5.3) tells us that real money demand, the right-hand side of the equation, must be equal to the given real money supply, the left-hand side of the equation. Thus, if, for example, real income increases, increasing money demand, the interest rate must increase so that money demand remains equal to the given money supply. In other words, for a given money supply, an increase in income automatically leads to an increase in the interest rate.
+e. If the overall money supply increases to \$3,000 billion, what will be the effect on i? [Hint: Use what you discovered in part c.]
 
-This is the traditional way of deriving the LM relation and the resulting LM curve. As we discussed in Chapter 4, however, the assumption that the central bank chooses the money stock and then just lets the interest rate adjust is at odds with reality today. Although, in the past, central banks thought of the money supply as the monetary policy variable, they now focus directly on the interest rate. They choose an interest rate, call it i, and adjust the money supply so as to achieve it. Thus, in the rest of the book, we shall think of the central bank as choosing the interest rate (and doing what it needs to do with the money supply to achieve this interest rate). This will make for an extremely simple LM curve, namely, a horizontal line (in Figure 5-4) at the value of the interest rate, i, chosen by the central bank.
+The diagram below shows three different money demand curves and a target interest rate i\*
 
-![Image 000043](images/image-000043.jpg)
+9. Understanding the Fed’s actions that are needed to stabilize the interest rate
 
-b shall follow tradition.
+![Image 000037](images/image-000037.jpg)
 
-## Figure 5-4
+10. Choosing the quantity of money or the interest rate
 
-The LM Curve
+Suppose that money demand is given by
 
-The central bank chooses the interest rate (and adjusts the money supply so as to achieve it).
+$$
+M ^ {d} = \mathbb {S} Y (0. 2 5 - i)
+$$
+
+where \$Y is \$100.
+
+a. If the Federal Reserve Bank sets an interest rate target of 5%, what is the money supply the Federal Reserve must create?
+
+b. If the Federal Reserve Bank wants to increase i from 5% to 10%, what is the new level of the money supply the Federal Reserve must set?
+
+c. What is the effect on the Federal Reserve’s balance sheet of the increase in the interest rate from 5% to 10%?
+
+11. Monetary policy in a liquidity trap
+
+Suppose that money demand is given by
+
+$$
+M ^ {d} = \mathbb {S} Y (0. 2 5 - i)
+$$
+
+as long as interest rates are positive. The questions below then refer to situations where the interest rate is zero.
+
+a. What is the demand for money when interest rates are zero and \$Y = 80?
+
+b. If \$Y = 80, what is the smallest value of the money supply at which the interest rate is zero?
+
+c. Once the interest rate is zero, can the central bank continue to increase the money supply?
+
+d. The United States experienced a long period of zero interest rates after 2008. Can you find evidence in the text that the money supply continued to increase over this period?
+
+
+## FURTHER READINGS
+
+While we shall return to many aspects of the financial system throughout the book, you may want to dig deeper and read a textbook on money and banking. Here are four of them:
+
+Money, Banking, and Financial Markets, by Laurence Ball (Worth, 2017)
+
+Money, Banking, and Financial Markets, by Stephen Cecchetti and Kermit Schoenholtz (McGraw-Hill/Irwin, 2017)
+
+e. Go to the database at the Federal Reserve Bank of St. Louis known as FRED. Find the series BOGGMBASE (the central bank money, also called the monetary base) and look at its behavior from 2010 to 2015. What happened to the monetary base? What happened to the federal funds rate in the same period?
+
+
+## EXPLORE FURTHER
+
+
+## 12. Current monetary policy
+
+Go to the website for the Federal Reserve Board of Governors (www.federalreserve.gov) and download the most recent monetary policy press release of the Federal Open Market Committee (FOMC), the body that makes monetary policy decisions. Make sure you get the most recent FOMC press release and not simply the most recent Fed press release.
+
+a. What is the current stance of monetary policy? (Note that policy will be described in terms of increasing or decreasing the federal funds rate as opposed to increasing or decreasing the money supply or the monetary base.)
+
+b. Find a press release announcing a change in the federal funds rate. How did the Federal Reserve explain the need for that change in monetary policy?
+
+Finally, visit the Fed’s website and find various statements explaining the Fed’s current policy on interest rates. These statements set the stage for the analysis in Chapter 5. Some parts of these statements will be clearer once you have read Chapter 5.
+
+Money, the Financial System and the Economy, by R. Glenn Hubbard (Addison-Wesley, 2013) The Economics of Money, Banking, and the Financial System, by Frederic Mishkin (Pearson, 2018)
+
+The Fed maintains a useful website with data on financial markets, information on what the Fed does, recent testimonies by the Fed Chair, and so on (www.federalreserve.gov).

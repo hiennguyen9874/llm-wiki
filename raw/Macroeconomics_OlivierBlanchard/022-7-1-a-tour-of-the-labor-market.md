@@ -6,6 +6,26 @@ body_tokens: 1426
 max_tokens: 10000
 ---
 
+T ing production. Higher production leads to higher employment. Higher employmentleads to lower unemployment. Lower unemployment leads to higher wages. Higher ing production. Higher production leads to higher employment. Higher employment leads to lower unemployment. Lower unemployment leads to higher wages. Higher wages increase production costs, leading firms to increase prices. Higher prices lead workers to ask for higher wages. Higher wages lead to further increases in prices, and so on.
+
+So far, we have simply ignored this sequence of events. By assuming a constant price level in the IS-LM model, we in effect assumed that firms were able and willing to supply any amount of output at a given price level. As long as our focus was on the short run, this assumption was fine. But, as our attention now turns to the medium run, we must now abandon this assumption, explore how prices and wages adjust over time, and how this affects output. This will be our task in this and the next two chapters.
+
+Recall the behavior of theb price level in Figure 5-10.
+
+At the center of the sequence of events described in the first paragraph is the labor market, which is the market in which wages are determined. This chapter focuses on the labor market. It has six sections:
+
+Section 7-1 provides an overview of the labor market.
+
+Section 7-2 focuses on unemployment, how it moves over time, and how its movements affect individual workers.
+
+Sections 7-3 and 7-4 look at wage and price determination.
+
+Section 7-5 then looks at equilibrium in the labor market. It characterizes the natural rate of unemployment, which is the rate of unemployment to which the economy tends to return in the medium run.
+
+Section 7-6 gives a map of where we will be going next.
+
+If you remember one basic message from this chapter, it should be: The natural rate of unemployment is the rate at which the wage demands of workers are consistent with the price decisions of firms.
+
 # 7-1 A TOUR OF THE LABOR MARKET
 
 The total US population in 2018 was 327.2 million (Figure 7-1). Excluding those who were either younger than working age (under 16), in the armed forces, or behind bars, the number of people potentially available for civilian employment, the noninstitutional civilian population, was 257.7 million.

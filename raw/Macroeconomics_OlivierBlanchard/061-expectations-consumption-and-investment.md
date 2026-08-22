@@ -6,126 +6,208 @@ body_tokens: 3049
 max_tokens: 10000
 ---
 
-# Expectations, Consumption, and Investment
+## KEY TERMS
 
-aving looked at the role of expectations in financial markets, we now turn to the role expectations play in determining the two main components of spending—consumption and investment. This description of consumption and investment will be the main building block of the expanded IS-LM model we develop in Chapter 16.
+expected present discounted value, 288 discount factor, 288 discount rate, 288 present discounted value, 289 present value, 289 maturity, 292 default risk, 293 price risk, 293 yield to maturity, 293 yield, 293 short-term interest rate, 293 long-term interest rate, 293 yield curve, 293 term structure of interest rates, 293 government bonds, 294 corporate bonds, 294 bond ratings, 294 risk premium, 294 junk bonds, 294 discount bonds, 294 face value, 294 coupon bonds, 294 coupon payments, 294 coupon rate, 294
 
-Section 15-1 looks at consumption and shows that consumption decisions depend not only on a person’s current income but also on his or her expected future income and on financial wealth.
+current yield, 294 life (of a bond), 294 Treasury bills (T-bills), 294 Treasury notes, 294 Treasury bonds, 294 term premium, 294 indexed bonds, 294 Treasury Inflation Protected Securities (TIPS), arbitrage, 295 expectations hypothesis, 295 n-year interest rate, 296 internal finance, 299 external finance, 299 debt finance, 299 equity finance, 299 stocks or shares, 299 dividends, 299 ex-dividend price, 300 equity premium, 300 random walk, 302 fundamental value, 307 rational speculative bubbles, 307 fads, 309
 
-Section 15-2 turns to investment and shows that investment decisions depend on current and expected profits and on current and expected real interest rates.
+## QUESTIONS AND PROBLEMS
 
-Section 15-3 looks at movements in consumption and investment over time and shows how to interpret those movements in light of what you learned in this chapter.
+## QUICK CHECK
 
-If you remember one basic message from this chapter, it should be: Both consumption and investment decisions depend very much on expectations about the future. >
+1. Using the information in this chapter, label each of the following statements true, false, or uncertain. Explain briefly.
 
-How do people decide how much to consume and how much to save? In Chapter 3, we assumed that consumption depended only on current income. But even then, it was clear that consumption depended on much more, particularly on expectations about the future. We now explore how those expectations affect consumption decisions.
+a. The present discounted value of a stream of returns can be calculated in real or nominal terms.
 
-Friedman received the Nobel Prize in economics in 1976; Modigliani received the Nobel Prize in economics in 1985.
+b. The higher the one-year interest rate, the lower the present discounted value of a payment next year.
 
-From Chapter 3: Consumption spending accounts for 68% of total spending in the United States.
+c. One-year interest rates are normally expected to be constant over time.
 
-The modern theory of consumption, on which this section is based, was developed independently in the 1950s by Milton Friedman of the University of Chicago, who called it the permanent income theory of consumption, and by Franco Modigliani of MIT, who called it the life-cycle theory of consumption. Each chose his label carefully. Friedman’s “permanent income” emphasized that consumers look beyond current income. Modigliani’s “life-cycle” emphasized that consumers’ natural planning horizon is their entire lifetime.
+d. Bonds are a claim to a sequence of constant payments over a number of years.
 
-That’s not to mention the information about consumer behavior increasingly available from the internet. How to best use this information, with machine learning techniques, is one of the frontiers of empirical research today.
+e. Stocks are a claim to a sequence of dividend payments over a number of years.
 
-With a slight abuse of language, we shall use housing wealth to refer not only to housing but also to the other c goods that the consumer may own, from cars to paintings, and so on.
+f. House prices are a claim to a sequence of expected future rents over a number of years.
 
-Humanwealth + Nonhuman cwealth = Totalwealth
+g. The yield curve normally slopes up.
 
-The behavior of aggregate consumption has remained a hot area of research ever since, for two reasons: One is simply the sheer size of consumption as a component of GDP and therefore the need to understand movements in consumption. The other is the increasing availability of large surveys of individual consumers, such as the Panel Study of Income Dynamics (PSID), described in the Focus Box “Up Close and Personal: Learning from Panel Datasets.” These surveys, which were not available when Friedman and Modigliani developed their theories, have allowed economists to steadily improve their understanding of how consumers actually behave. This section summarizes what we know today.
+h. All assets held for one year should have the same expected rate of return.
 
-## The Very Foresighted Consumer
+i. In a bubble, the value of the asset is the expected present value of its future returns.
 
-Let’s start with an assumption that will surely—and rightly—strike you as extreme but will serve as a convenient benchmark. We’ll call it the theory of the very foresighted consumer. How would a foresighted consumer decide how much to consume? She would proceed in two steps:
+j. The overall real value of the stock market does not fluctuate very much over a year.
 
-■ First, she would add up the value of the stocks and bonds she owns, the value of her checking and savings accounts, the value of the house she owns minus the mortgage still due, and so on. This would give her an idea of her financial wealth and her housing wealth.
+k. Indexed bonds protect the holder against unexpected inflation.
 
-She would also estimate what her after-tax labor income was likely to be over her working life and compute the present value of expected after-tax labor income. This would give her an estimate of what economists call her human wealth—to contrast it with her nonhuman wealth, defined as the sum of financial wealth and housing wealth.
+2. For which of the problems listed in parts a through c would you want to use real payments and real interest rates, and for which would you want to use nominal payments and nominal interest rates to compute the expected present discounted value? In each case, explain why.
 
-■ Adding her human wealth and nonhuman wealth, she would have an estimate of her total wealth. She would then decide how much to spend out of this total wealth. A reasonable assumption is that she would decide to spend a proportion of her total wealth such as to maintain roughly the same level of consumption each year throughout her life. If that level of consumption were higher than her current income, she would borrow the difference. If it were lower than her current income, she would save the difference.
+a. Estimating the present discounted value of the profits from an investment in a new machine.
 
-Let’s write this formally. What we have described is a consumption decision of the form
+b. Estimating the present value of a 20-year US Treasury bond.
 
-$$
-C _ {t} = C (\text { total   wealth } _ {t})\tag{15.1}
-$$
+c. Deciding whether to buy or lease a car.
 
-where $C _ { t }$ is consumption at time t, and 1total wealth 2 is the sum of nonhuman wealth (financial plus housing wealth) and human wealth at time t (the expected present value, as of time t, of current and future after-tax labor income).
-
-## Up Close and Personal: Learning from Panel Datasets
-
-Panel datasets show the value of one or more variables for many individuals or many firms over time. We described one such survey, the Current Population Survey (CPS), in Chapter 7. Another is the Panel Study of Income Dynamics (PSID).
-
-The PSID was started in 1968 with approximately 4,800 families. Interviews of these families have been conducted every year since and continue today. The survey has grown as new individuals have joined the original families surveyed, either by marriage or by birth. Each year, the survey asks people about their income, wage rate, number of hours worked, health, and consumption.
-
-By providing five decades of information about individuals and their extended families, the survey has allowed economists to ask and answer questions for which there was previously only anecdotal evidence. Among the many questions for which the PSID has been used are:
-
-How much does consumption respond to transitory movements in income—for example, to the loss of income from becoming unemployed?
-
-How much risk sharing exists within families? For example, when a family member becomes sick or unemployed, how much help does he or she get from other family members?
-
-![Image 000146](images/image-000146.jpg)
-
-How much do people care about staying geographically close to their families? When someone becomes unemployed, for example, how does the probability that he will migrate to another city depend on the number of his family members living in the city where he currently lives?
-
-For a more detailed description, see Katherine A. McGonagle et al., “The Panel Study of Income Dynamics: Overview, Recent Innovations, and Potential for Life Course Research,” Longitudinal and Life Course Studies, 2012, 3(2): pp. 268–284, https://psidonline.isr.umich.edu/llcs2012.pdf.
-
-This description contains much truth. Like the foresighted consumer, we surely think about our wealth and our expected future labor income when deciding how much to consume today. But one cannot help thinking that it assumes too much computation and foresight on the part of the typical consumer.
-
-To get a better sense of what this description implies and what is wrong with it, let’s apply this decision process to a problem facing a typical US college student.
-
-## An Example
-
-Let’s assume you are 19 years old, with three more years of college before you start your first job. You may be in debt today, having taken out a loan to go to college. You may own a car and a few other worldly possessions. For simplicity, let’s assume your debt and your possessions roughly offset each other, so that your nonhuman wealth is equal to zero. Your only wealth therefore is your human wealth, the present value of your expected after-tax labor income.
-
-You expect that your starting annual salary in three years will be around \$40,000 (in 2018 dollars) and will increase by an average of 3% per year in real terms, until your retirement at age 60. About 25% of your income will go to taxes.
-
-Building on what we saw in Chapter 14, let’s compute the present value of your labor income as the value of real expected after-tax labor income, discounted using real interest rates. Let $Y _ { L t }$ denote real labor income in year t. Let $T _ { t }$ denote real taxes in year t. Let $V \big ( Y _ { L t } ^ { e } \mathrm { ~ - ~ } T _ { t } ^ { e } \big )$ denote your human wealth; that is, the expected present value of your after-tax labor income—expected as of year t.
-
-You are welcome to use your own numbers and see whereb the computation takes you.
-
-To make the computation simple, assume the real interest rate at which you can borrow is equal to zero, so the expected present value is simply the sum of expected labor income over your working life and is therefore given by
+3. Compute the two-year nominal interest rate using the exact formula and the approximation formula for each set of assumptions listed in parts a through c.
 
 $$
-V \left(Y _ {L t} ^ {e} - T _ {t} ^ {e}\right) = (4 0, 0 0 0) (0. 7 5) \left[ 1 + (1. 0 3) + (1. 0 3) ^ {2} + \dots + (1. 0 3) ^ {3 8} \right]
+\mathrm{a.} i_t = 2\%; i_{t + 1}^e = 3\%
 $$
 
-The first term (\$40,000) is your initial level of labor income, in year 2018 dollars.
-
-The second term (0.75) comes from the fact that, because of taxes, you keep only 75% of what you earn.
-
-The third term $[ 1 + ( 1 . 0 3 ) + ( 1 . 0 3 ) ^ { 2 } + \cdot \cdot \cdot + ( 1 . 0 3 ) ^ { 3 8 } ]$ reflects the fact that you expect your real income to increase by 3% a year for 39 years (you will start earning income at age 22 and work until age 60).
-
-The computation of the consumption level you can sustain is made much easier by our assumption that the real interest rate you face equals zero. In this case, if you consume one less good today, you can consume exactly one more good next year, and the condition you must satisfy is simply that the sum of consumption over your lifetime is equal to your wealth. So if you want to consume a constant amount each year, you just need to divide your wealth by the remaining number of years you expect to live.
-
-One of the goals of the field of “behavioral economics” has been to assess whether actual behavior looks more like the behavior of the foresighted consumer or more like the cartoon.
-
-Using the properties of geometric series to solve for the sum in brackets gives
-
 $$
-V \left(Y _ {L t} ^ {e} - T _ {t} ^ {e}\right) = (4 0, 0 0 0) (0. 7 5) (7 2. 2) = 2, 1 6 6, 0 0 0
+\mathrm{b.} i_t = 2\%; i_{t + 1}^e = 10\%
 $$
 
-Your wealth today, the expected value of your lifetime after-tax labor income, is around \$2 million.
+c. i = 2%; i<sup>e</sup> = 3%. The term premium on a two-year bond is 1%.
 
-How much should you consume? You can expect to live about 20 years after you retire, so that your expected remaining life today is 62 years. If you want to consume the same amount every year, the constant level of consumption that you can afford equals your total wealth divided by your expected remaining life, or \$2,166,000>62 = \$34,935 a year. Given that your income until you get your first job is equal to zero, this implies you will have to borrow \$34,935 a year for the next three years and begin to save when you get your first job.
+4. The equity premium and the value of stocks
 
-## Toward a More Realistic Description
+a. Explain why, in equation (14.14), it is important that the stock is ex-dividend, that is, it has just paid its dividend and is expected to pay its next dividend in one year.
 
-Your first reaction to this computation may be that this is a stark and slightly sinister way of summarizing your life prospects. You might find yourself more in agreement with the retirement plans described in the cartoon on the next page.
+b. Using of equation (14.14), explain the contribution of each component to today’s stock price.
 
-Your second reaction may be that although you agree with most of the ingredients that went into the computation, you surely do not intend to borrow $\$ 34,935 \times 3=$ over the next three years. For example:
+c. If the risk premium is larger, all else being equal, what happens to the price of the stock today?
 
-1. You might not want to plan for constant consumption over your lifetime. Instead you may be quite happy to defer higher consumption until later. Student life usually does not leave much time for expensive activities. You may want to defer trips to the Galapagos Islands to later in life. You also have to think about the additional expenses that will come with having children, sending them to nursery school, summer camp, college, and so on.
+d. If the one-period interest rate increases, what happens to the price of the stock today?
 
-2. You might find that the amount of computation and foresight involved in the computation we just went through far exceeds the amount you use in your own decisions. You may never have thought until now about exactly how much income you are going to earn and for how many years. You might feel that most consumption decisions are made in a simpler, less forward-looking fashion.
+e. If the expected value of the stock at the beginning of period t + 1 increases, what happens to the value of the stock today?
 
-3. The computation of total wealth is based on forecasts of what is expected to happen. But things can turn out better or worse. What happens if you are unlucky and you become unemployed or sick? How will you pay back what you borrowed? You might want to be prudent, making sure that you can adequately survive even the worst outcomes, and thus decide to borrow much less than \$104,805.
+f. Now look carefully at equation (14.15). Set $i _ { 1 t } = i _ { 1 t + n } = 0 . 0 5$ for all n. Set $x = 0 . 0 3$ . Compute the coefficients on $\$ { D } _ { t + 3 } ^ { e }$ and $\mathbb { S } D _ { t + 1 0 } ^ { e } .$ Compare the effect of a \$1 expected increase in a dividend 3 years from now and 10 years from now.
 
-4. Even if you decide to borrow \$104,805, you might have a hard time finding a bank willing to lend it to you. Why? The bank may worry that you are taking on a commitment you will not be able to afford if times turn bad and that you may not be able or willing to repay the loan. In other words, if you want to borrow this much money, the borrowing rate you face may be much higher than assumed in the computation.
+g. Repeat the computation in part f with $i _ { 1 t } = i _ { 1 t + n } = 0 . 0 8$ for all n and x = 0.05.
 
-These reasons, all good ones, suggest that to characterize consumers’ actual behavior, we must modify the description we gave previously. The last three reasons in particular suggest that consumption depends not only on total wealth but also on current income.
+## 5. Approximating the price of long-term bonds
 
-Take the second reason: You may, because it is a simple rule, decide to let your consumption follow your income and not think about what your wealth might be. In that case your consumption will depend on your current income, not on your wealth.
+The present value of an infinite stream of dollar payments of \$z (that starts next year) is \$z/i when the nominal interest rate, i, is constant. This formula gives the price of a consol—a bond paying a fixed nominal payment each year, forever. It is also a good approximation for the present discounted value of a stream of constant
 
-Now take the third reason: It implies that a safe rule may be to consume no more than your current income. This way, you do not run the risk of accumulating debt that you cannot repay if times turn bad.
+payments over long but not infinite periods, as long as i is constant. Let’s examine how close the approximation is.
+
+a. Suppose that i = 10%. Let $\$ 2$ . What is the present value of the consol?
+
+b. If i = 10%, what is the expected present discounted value of a bond that pays \$z over the next 10 years? 20 years? 30 years? 60 years? (Hint: Use the formula from the chapter but remember to adjust for the first payment.)
+
+c. Repeat the calculations in parts a and b for i = 2% and i = 5%.
+
+## 6. Monetary policy and the stock market
+
+Assume the short term real policy rate, current and expected, had been 2% until now. Suppose the Fed decides to tighten monetary policy and increase the short-term policy rate $( r _ { 1 t } )$ from 2% to 3%.
+
+a. What happens to stock prices if the change in $r _ { 1 t }$ is expected to be temporary, that is, last for only one period? Assume that expected real dividends do not change. Use equation (14.17).
+
+b. What happens to stock prices if the change in $r _ { 1 t }$ is expected to be permanent, that is, is expected to persist? Assume that expected real dividends do not change. Use equation (14.17).
+
+c. What happens to stock prices today if the increase in the real interest rate, current and expected, reflects an increase in expected future output and expected future dividends?
+
+## DIG DEEPER
+
+## 7. Regular IRAs versus Roth IRAs
+
+You want to save \$2,000 today for retirement in 40 years. You have to choose between the two plans listed in (i) and (ii).
+
+i. Pay no taxes today, put the money in an interest-yielding account, and pay taxes equal to 20% of the total amount withdrawn at retirement. (In the United States, such an account is known as a regular individual retirement account [IRA].)
+
+ii. Pay taxes equivalent to 30% of the investment amount today, put the remainder in an interest-yielding account, and pay no taxes when you withdraw your funds at retirement. (In the United States, this is known as a Roth IRA.)
+
+a. What is the expected present discounted value of each of these plans if the real interest rate is 1%? 10%?
+
+b. Which plan would you choose in each case?
+
+## 8. House prices and bubbles
+
+Houses can be thought of as assets with a fundamental value equal to the expected present discounted value of their future real rents.
+
+a. Would you prefer to use real payments and real interest rates to value a house or nominal payments and nominal interest rates?
+
+b. The rent on a house, whether you live in the house yourself and thus save paying the rent to an owner, or whether you own the house and rent it, is like the dividend on a stock. Write the equivalent of equation (14.17) for a house.
+
+c. Why would low interest rates help explain an increase in the price-to-rent ratio?
+
+d. If housing is perceived as a safer investment, what will happen to the price-to-rent ratio?
+
+e. The Focus Box “The Increase in US Housing Prices: Fundamental or Bubble?” has a graph of the price-to-rent ratio. You should be able to find the value of the Case-Shiller home price index and the rental component of the consumer price index in the FRED economic database maintained at the Federal Reserve Bank of St. Louis (variables SPCS20RSA and CUSR0000SEHA, respectively). The graph in Fig ure 1 in this Focus Box ends with data from November 2018. Calculate the percentage increase in the home price index between November 2018 and the latest date available. Calculate the percentage increase in the rent price index from November 2018 to the latest date available. Has the price-to-rent ratio increased or decreased since June 2018?
+
+## EXPLORE FURTHER
+
+## 9. House prices around the world
+
+The Economist annually publishes The Economist House Price Index. It attempts to assess which housing markets, by country, are the most overvalued or undervalued relative to fundamentals. Find the most recent version of this data on the Web.
+
+a. One index of overvaluation is the ratio of house prices to rents. Why might this index help detect a housing price bubble? Using the data you are studying, in which country are house prices most overvalued by the ratio of prices to rents? Would this measure have helped predict the US housing market crash?
+
+b. A second index is the ratio of house prices to income. Why might this index help detect a housing price bubble? Using this data, in which country are houses most overvalued by the ratio of prices to rents? Would this measure have helped predict the US housing market crash?
+
+## 10. Inflation-indexed bonds
+
+Some bonds issued by the US Treasury make payments indexed to inflation. These inflation-indexed bonds compensate investors for inflation. Therefore, the current interest rates on these bonds are real interest rates—interest rates in terms of goods. These interest rates can be used, together with nominal interest rates, to provide a measure of expected inflation. Let’s see how.
+
+Go to the Web site of the Federal Reserve Board and get the most recent statistical release listing interest rates (www.
+
+## FURTHER READINGS
+
+There are many bad books written about the stock market. A good one, and one that is fun to read, is Burton Malkiel, A Random Walk Down Wall Street, 12th ed. (2019, W. W. Norton).
+
+federalreserve.gov/releases/h15/Current). Find the current nominal interest rate on Treasury securities with a five-year maturity. Now find the current interest rate on “inflationindexed” Treasury securities with a five-year maturity. What do you think participants in financial markets believe the average inflation rate will be over the next five years?
+
+A description of some historical bubbles is given by Peter Garber in “Famous First Bubbles,” Journal of Economic Perspectives, Spring 1990, 4(2): pp. 35–54.
+
+## APPENDIX: Deriving the Expected Present Discounted Value Using Real or Nominal Interest Rates
+
+This appendix shows that the two ways of expressing present discounted values, equations (14.1) and (14.3), are equivalent.
+
+Equation (14.1) gives the present value as the sum of current and future expected nominal payments, discounted using current and future expected nominal interest rates:
+
+$$
+\begin{array}{l} \mathbb {S} V _ {t} = \mathbb {S} z _ {t} + \frac {1}{1 + i _ {t}} \mathbb {S} z _ {t + 1} ^ {e} \\ \quad + \frac {1}{(1 + i _ {t}) (1 + i _ {t + 1} ^ {e})} \mathbb {S} z _ {t + 2} ^ {e} + \dots \end{array}\tag{14.1}
+$$
+
+Equation (14.3) gives the present value as the sum of current and future expected real payments, discounted using current and future expected real interest rates:
+
+$$
+V _ {t} = z _ {t} + \frac {1}{1 + r _ {t}} z _ {t + 1} ^ {e} + \frac {1}{(1 + r _ {t}) (1 + r _ {t + 1} ^ {e})} z _ {t + 2} ^ {e} + \dots\tag{14.3}
+$$
+
+Divide both sides of equation (14.1) by the current price level, $P _ { t } ,$ so:
+
+$$
+\frac {\mathbb {S} V _ {t}}{P _ {t}} = \frac {\mathbb {S} z _ {t}}{P _ {t}} + \frac {1}{1 + i _ {t}} \frac {\mathbb {S} z _ {t + 1} ^ {e}}{P _ {t}} + \frac {1}{(1 + i _ {t}) (1 + i _ {t + 1} ^ {e})} \frac {\mathbb {S} z _ {t + 2} ^ {e}}{P _ {t}} + \dots\tag{14.A1}
+$$
+
+Let’s look at each term on the right side of equation (14.A1) and show that it is equal to the corresponding term in equation (14.3):
+
+■ Take the first term, $\mathbb { S } z _ { t } / P _ { t } = z _ { t } ,$ the real value of the current payment. So $\mathbb { S } z _ { t } / P _ { t }$ is the same as $z _ { t } ,$ , the first term on the right of equation (14.3).
+
+■ Take the second term:
+
+$$
+\frac {1}{1 + i _ {t}} \frac {\$ z _ {t + 1} ^ {e}}{P _ {t}}
+$$
+
+Multiply the numerator and the denominator by $P _ { t + 1 } ^ { e } ,$ the price level expected for next year, to get:
+
+$$
+\frac {1}{1 + i _ {t}} \frac {P _ {t + 1} ^ {e}}{P _ {t}} \frac {\$ z _ {t + 1} ^ {e}}{P _ {t + 1} ^ {e}}
+$$
+
+The fraction on the right, $\ S z _ { t + 1 } ^ { e } / P _ { t + 1 } ^ { e } ,$ , is equal to $z _ { t + 1 } ^ { e } ,$ the expected real payment at time $t + 1$ . The fraction in the middle, $P _ { t + 1 } ^ { e } / P _ { t }$ , can be rewritten as $1 + \left[ \left( P _ { t + 1 } ^ { e } - P _ { t } \right) / P _ { t } \right]$ Using the definition of expected inflation as $\left( 1 + \pi _ { t + 1 } ^ { e } \right)$ and rewriting the middle term, we arrive at:
+
+$$
+\frac {(1 + \pi_ {t + 1} ^ {e})}{(1 + i _ {t})} z _ {t + 1} ^ {e}
+$$
+
+Recall the relation among the real interest rate, the nominal interest rate, and expected inflation in equation $( 1 4 . 3 ) \colon ( 1 + r _ { t } ) = ( 1 + i _ { t } ) / ( 1 + \pi _ { t + 1 } ^ { e } )$ . Using this relation in the previous equation gives:
+
+$$
+\frac {1}{(1 + r _ {t})} z _ {t + 1} ^ {e}
+$$
+
+This term is the same as the second term on the right side of equation (14.3).
+
+■ The same method can be used to rewrite the other terms; make sure that you can derive the next one.
+
+We have shown that the right sides of equations (14.A1) and (14.3) are equal to each other. It follows that the terms on the left side are equal, so:
+
+$$
+V _ {t} = \frac {\$ V _ {t}}{P _ {t}}
+$$
+
+This says that the present value of current and future expected real payments, discounted using current and future expected real interest rates (the term on the left side), is equal to the present value of current and future expected nominal payments, discounted using current and future expected nominal interest rates, divided by the current price level (the term on the left side).

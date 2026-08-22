@@ -6,6 +6,46 @@ body_tokens: 2513
 max_tokens: 10000
 ---
 
+
+## KEY TERMS
+
+Great Financial Crisis, 3 European Union (EU), 9 euro area, 9 common currency area, 9
+
+
+## QUESTIONS AND PROBLEMS
+
+
+## QUICK CHECK
+
+1. Using the information in this chapter, label each of the following statements true, false, or uncertain. Explain briefly.
+
+a. Output growth was negative in advanced as well as emerging and developing countries in 2009.
+
+b. World output growth recovered to its pre-recession level after 2009.
+
+c. Stock prices around the world fell between 2007 and 2010 and then recovered to their pre-recession level.
+
+d. The rate of unemployment in the United Kingdom is much lower than in much of the rest of Europe.
+
+e. China’s seemingly high growth rate is a myth; it is a product solely of misleading official statistics.
+
+f. The high rate of unemployment in Europe started when a group of major European countries adopted a common currency.
+
+g. The Federal Reserve lowers interest rates when it wants to avoid a recession and raises interest rates when it wants to slow the rate of growth in the economy.
+
+h. Output per person is different in the euro area, the United States, and China.
+
+i. Interest rates in the United States were at or near zero from 2009 to 2018.
+
+
+## 2. Macroeconomic policy in Europe
+
+Beware of simplistic answers to complicated macroeconomic questions. Consider each of the following statements and comment on whether there is another side to the story.
+
+a. There is a simple solution to the problem of high European unemployment: Reduce labor market rigidities.
+
+b. What can be wrong about joining forces and adopting a common currency? Adoption of the euro is obviously good for Europe.
+
 ## DIG DEEPER
 
 3. Chinese economic growth is the outstanding feature of the world economic scene over the past two decades.
