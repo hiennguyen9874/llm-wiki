@@ -1,5 +1,9 @@
 # Wiki Update Log
 
+## 2026-08-22
+- **Ingest**: Compiled [NVIDIA Nemotron Parse 2.0 model card](../raw/NVIDIA-Nemotron-Parse-2.0.md); created [NVIDIA Nemotron Parse 2.0](nemotron-parse-2-0.md).
+- **Ingest**: Compiled [Nemotron Table Structure v1 model card](../raw/nemotron-table-structure-v1.md); created [Nemotron Table Structure v1](nemotron-table-structure-v1.md).
+
 ## 2026-08-21
 - **Ingest**: Compiled [OpenDataLoader PDF README](../raw/opendataloader-pdf.md); created [OpenDataLoader PDF](opendataloader-pdf.md).
 - **Ingest**: Compiled Docling concept documentation for [architecture](../raw/docling-concepts/architecture.md), [document representation](../raw/docling-concepts/docling_document.md), [chunking](../raw/docling-concepts/chunking.md), [serialization](../raw/docling-concepts/serialization.md), [confidence grades](../raw/docling-concepts/confidence_scores.md), [OCR engines](../raw/docling-concepts/OCR.md), and [plugins](../raw/docling-concepts/plugins.md); created [seven Docling concepts](index.md#concepts).
