@@ -5,11 +5,14 @@ description: Why GDP per person imperfectly tracks welfare and why Silicon Valle
 tags: [gdp, well-being, productivity, measurement, digital-economy, silicon-valley, hal-varian]
 status: stable
 created: 2026-08-22
-generated: { by: llm-wiki-agent/1, at: 2026-08-22T14:00:00Z }
+generated: { by: llm-wiki-agent/1, at: 2026-08-22T10:36:48Z }
 sources:
   - id: mankiw-035
     resource: ../raw/PrinciplesofMacroeconomics_8thEdition_GregoryMankiw/035-the-data-of-macroeconomics-silicon-valley-doesnt-believe-u-s-productiv.md
     title: "The Data of Macroeconomics — Silicon Valley Doesn't Believe U.S. Productivity Is Down (Mankiw 8th, Ch.10)"
+  - id: krugman-ch7-041
+    resource: ../raw/Macroeconomics_Krugman/041-chapter-7-gdp-and-the-cpi-tracking-the-macroeconomy-pitfalls.md
+    title: "Chapter 7 GDP and the CPI: Tracking the Macroeconomy — Pitfalls"
 ---
 
 # GDP as well-being measure and productivity mismeasurement — Silicon Valley critique
@@ -75,6 +78,8 @@ The correlation extends to low birth weight, infant/maternal mortality, malnutri
 
 Conclusion: GDP is a good measure of economic well-being for most — but not all — purposes; it is important to keep in mind what it includes and leaves out[^mankiw-035].
 
+Krugman and Wells make the boundary explicit: real GDP per capita is average aggregate output per person and higher productive capacity expands what society *can* do, not what it necessarily does to improve living standards. Their 2019 cross-country illustration associates higher GDP per capita with higher average life satisfaction but shows diminishing apparent gains at higher income and exceptions such as Costa Rica's higher life satisfaction than Japan's despite lower GDP per capita.[^krugman-ch7-041]
+
 ## 4. Synthesis and limits
 
 - GDP remains useful as ability-to-pay proxy despite omissions, and as the output base for productivity; the Silicon Valley debate highlights a measurement gap for free/quality-adjusted digital services rather than a refutation of GDP's welfare relevance[^mankiw-035].
@@ -92,3 +97,4 @@ Conclusion: GDP is a good measure of economic well-being for most — but not al
 - See also: [Measuring well-being beyond GDP — objective adjustments and subjective surveys](measuring-well-being-beyond-gdp-objective-and-subjective-complements.md) — companion WSJ "Nations Seek Success Beyond GDP" case, Klenow-Jones and Deaton/Wolfers evidence
 
 [^mankiw-035]: Mankiw, *Principles of Macroeconomics* 8th ed., Ch.10 — The Data of Macroeconomics — Silicon Valley Doesn't Believe U.S. Productivity Is Down (035), including Aeppel WSJ July 17 2015 and Mankiw 10-5 / Table 3.
+[^krugman-ch7-041]: Krugman and Wells, *Macroeconomics*, 6th ed., ch. 7, “GDP and the CPI: Tracking the Macroeconomy — Pitfalls” (041).

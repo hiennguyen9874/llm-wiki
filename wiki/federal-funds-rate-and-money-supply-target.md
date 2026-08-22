@@ -5,28 +5,34 @@ description: Mankiw Ch.16 16-4d — what the federal funds rate and discount rat
 tags: [federal-funds-rate, discount-rate, federal-reserve, fomc, monetary-policy, open-market-operations, money-supply, interest-rates]
 status: stable
 created: 2026-08-22
-generated: { by: llm-wiki-agent/1, at: 2026-08-22T17:00:00Z }
+generated: { by: llm-wiki-agent/1, at: 2026-08-22T12:01:31Z }
 sources:
+  - id: krugman-ch14-078
+    resource: ../raw/Macroeconomics_Krugman/078-chapter-14-money-banking-and-the-federal-reserve-system-how-banks-crea.md
+    title: "Chapter 14 Money, Banking, and the Federal Reserve System — How Banks Create Money (Krugman/Wells)"
   - id: mankiw-16-funds
     resource: ../raw/PrinciplesofMacroeconomics_8thEdition_GregoryMankiw/051-in-the-news.md
     title: "IN THE NEWS — A Trip to Jekyll Island and 16-4d The Federal Funds Rate (Mankiw 8th Ed. Ch.16, Part 51)"
+  - id: krugman-ch15-083
+    resource: ../raw/Macroeconomics_Krugman/083-chapter-15-monetary-policy-the-equilibrium-interest-rate.md
+    title: "Chapter 15 Monetary Policy — The Equilibrium Interest Rate (Krugman/Wells)"
 ---
 
 # Federal funds rate, discount rate, and the Fed's money-supply target — how open-market operations hit the FOMC target
 
-In recent years the Fed has conducted monetary policy by choosing a target for the **federal funds rate** — the overnight interbank rate — and using open-market operations to hit it; announcing a funds-rate change *is* committing to the money-supply change needed to achieve it — two sides of the same coin[^mankiw-16-funds].
+In recent years the Fed has conducted monetary policy by choosing a target for the **federal funds rate** — the overnight interbank rate — and using open-market operations to hit it; announcing a funds-rate change *is* committing to the money-supply change needed to achieve it — two sides of the same coin[^mankiw-16-funds][^krugman-ch15-083].
 
 ## What is the federal funds rate?
 
 - The federal funds rate is the short-term interest rate banks charge one another for loans, typically **overnight**, to cover reserve shortfalls[^mankiw-16-funds].
 - Definition from Mankiw glossary: *federal funds rate — the interest rate at which banks make overnight loans to one another*[^mankiw-16-funds].
-- Mechanics: one bank short of reserves borrows reserves from a bank with excess reserves; the price of that temporary loan is the federal funds rate[^mankiw-16-funds].
+- Mechanics: one bank short of reserves borrows reserves from a bank with excess reserves; the price of that temporary loan is the federal funds rate[^mankiw-16-funds]. Krugman/Wells likewise describes the federal funds market as usually overnight borrowing by banks below their reserve requirement from banks with excess reserves[^krugman-ch14-078].
 
 ## How it differs from the discount rate
 
 - The **discount rate** is the interest rate banks pay to borrow **directly from the Federal Reserve** through the **discount window**[^mankiw-16-funds].
 - Borrowing in the federal funds market vs borrowing from the Fed are alternatives; a bank short of reserves will do whichever is cheaper[^mankiw-16-funds].
-- In practice the two rates move closely together[^mankiw-16-funds].
+- In practice the two rates move closely together[^mankiw-16-funds]. Krugman/Wells presents the Fed's normal discount rate as one percentage point above the federal funds rate to discourage routine use of the window, but reports narrower spreads in 2008 (0.25 percentage points) and early 2020 (0.60 points); these are source-era observations[^krugman-ch14-078].
 
 ## Why it matters beyond banks
 
@@ -74,6 +80,8 @@ In recent years the Fed has conducted monetary policy by choosing a target for t
 - Source 051 OCR includes repeated Q&A text; definitions and mechanisms transcribed verbatim.
 - Images 000322–000323 (Senator Aldrich portrait, Jekyll Island context) not material to funds-rate section.
 - Chapter QuickQuiz/Summary/Problems beyond 16-4d not compiled as new claims except all-tools contraction synthesis; full problem set belongs to prior concepts.
-- Comparison of funds-rate operating procedure vs money-supply targeting (e.g., 1979–1982 Volcker period) not in this source; Krugman cross-reference not ingested.
+- Krugman/Wells source 083 was fully read. Its account contrasts a late-1970s/early-1980s money-supply target with the current source-era practice of targeting the federal funds rate while accommodating money-supply changes; it treats this as a change in operating procedure, not in money-market equilibrium. Figure 15-5 was visually inspected.
 
+[^krugman-ch14-078]: Krugman and Wells, *Macroeconomics*, 6th ed., Ch. 14, “Money, Banking, and the Federal Reserve System — How Banks Create Money” (raw/Macroeconomics_Krugman/078-chapter-14-money-banking-and-the-federal-reserve-system-how-banks-crea.md).
 [^mankiw-16-funds]: Mankiw, *Principles of Macroeconomics* 8th ed., Ch.16 — 16-4d The Federal Funds Rate and 16-5 Conclusion excerpt (raw/PrinciplesofMacroeconomics_8thEdition_GregoryMankiw/051-in-the-news.md).
+[^krugman-ch15-083]: Krugman and Wells, *Macroeconomics*, 6th ed., Ch. 15, “Monetary Policy — The Equilibrium Interest Rate” (raw/Macroeconomics_Krugman/083-chapter-15-monetary-policy-the-equilibrium-interest-rate.md, Figure 15-5 visually inspected).

@@ -5,7 +5,7 @@ description: How binding price ceilings create shortages and price floors create
 tags: [price-ceiling, price-floor, shortage, surplus, rent-control, minimum-wage, tax-incidence, elasticity, payroll-tax, luxury-tax, mankiw, problems-and-applications]
 status: stable
 created: 2026-08-22
-generated: { by: llm-wiki-agent/1, at: 2026-08-22T19:00:00Z }
+generated: { by: llm-wiki-agent/1, at: 2026-08-22T21:05:00Z }
 sources:
   - id: mankiw-025
     resource: ../raw/PrinciplesofMacroeconomics_8thEdition_GregoryMankiw/025-price-increases-after-disasters-lines-at-the-gas-pump.md
@@ -13,6 +13,9 @@ sources:
   - id: mankiw-026
     resource: ../raw/PrinciplesofMacroeconomics_8thEdition_GregoryMankiw/026-price-increases-after-disasters-problems-and-applications.md
     title: "Price Increases after Disasters — PROBLEMS AND APPLICATIONS — Principles of Macroeconomics, 8th Edition (N. Gregory Mankiw)"
+  - id: krugman-ch8-045
+    resource: ../raw/Macroeconomics_Krugman/045-chapter-8-unemployment-and-inflation-check-your-understanding-8-1.md
+    title: "Chapter 8 Unemployment and Inflation — Check Your Understanding 8-1 (Krugman/Wells)"
 ---
 
 # Price Ceilings, Price Floors, and Tax Incidence — Gasoline Shortages, Rent Control, Minimum Wage, and Who Pays Taxes
@@ -66,6 +69,10 @@ Labor market analysis (panel a free, panel b with binding minimum): if minimum a
 **Ask the Experts — Minimum Wage $15:** IGM question whether raising federal minimum gradually to $15 by 2020 would substantially lower employment rate for low-wage US workers: distribution shows majority agree (graphic 000154 not visually inspected)[^mankiw-025].
 
 > Coverage note: Images 000145–000154 (Figures 3–5, rent-control and minimum-wage expert polls, 1973 gas-line illustration 000144) were not visually inspected[^mankiw-025].
+
+### Qualification: binding mechanism versus observed effects
+
+The supply-and-demand account describes the effect of a *binding* minimum wage. A second textbook source notes that moderate increases from a low U.S. wage floor have not always been associated with employment declines, and presents employer hiring power as one possible explanation; it nevertheless maintains that a sufficiently high binding minimum wage produces structural unemployment. The size and direction of an actual policy effect therefore cannot be inferred from the diagram alone.[^krugman-ch8-045]
 
 ## 6-1c Evaluating price controls
 
@@ -212,4 +219,5 @@ Capacity fixed ~38,000 → vertical supply; $5$ per-ticket tax paid by buyer shi
 No internal contradictions; source notes unresolved policy trade-offs without choosing one — e.g., advocate versus opponent views on minimum wage targeting and magnitude, and IGM expert splits on rent control and $15 minimum wage effects — presented as disagreement rather than factual contradiction[^mankiw-025].
 
 [^mankiw-025]: Mankiw, *Principles of Macroeconomics* 8th ed., Ch. 6 — Supply, Demand, and Government Policies: Controls on Prices and Taxes (raw/PrinciplesofMacroeconomics_8thEdition_GregoryMankiw/025-price-increases-after-disasters-lines-at-the-gas-pump.md).
+[^krugman-ch8-045]: Krugman and Wells, *Macroeconomics*, Ch. 8, “Unemployment and Inflation — Check Your Understanding 8-1” (raw/Macroeconomics_Krugman/045-chapter-8-unemployment-and-inflation-check-your-understanding-8-1.md).
 [^mankiw-026]: Mankiw, *Principles of Macroeconomics* 8th ed., Ch. 6 — Problems and Applications (raw/PrinciplesofMacroeconomics_8thEdition_GregoryMankiw/026-price-increases-after-disasters-problems-and-applications.md).

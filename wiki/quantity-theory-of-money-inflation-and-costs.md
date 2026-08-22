@@ -5,7 +5,7 @@ description: Mankiw Ch.17 classical theory — 1/P value of money, money supply-
 tags: [quantity-theory, inflation, money-supply, price-level, classical-dichotomy, monetary-neutrality, velocity, quantity-equation, fisher-effect, inflation-tax, hyperinflation, shoeleather-costs, menu-costs, relative-prices, tax-distortions, redistribution, deflation, friedman-rule]
 status: stable
 created: 2026-08-22
-generated: { by: llm-wiki-agent/1, at: 2026-08-22T19:30:00Z }
+generated: { by: llm-wiki-agent/1, at: 2026-08-22T12:11:53Z }
 sources:
   - id: mankiw-052
     resource: ../raw/PrinciplesofMacroeconomics_8thEdition_GregoryMankiw/052-money-growth-and-inflation.md
@@ -13,6 +13,15 @@ sources:
   - id: mankiw-053
     resource: ../raw/PrinciplesofMacroeconomics_8thEdition_GregoryMankiw/053-money-growth-and-inflation-17-2c-menu-costs.md
     title: "Money Growth and Inflation — 17-2c Menu Costs (Mankiw 8th Ed. Ch.17)"
+  - id: krugman-ch8-046
+    resource: ../raw/Macroeconomics_Krugman/046-chapter-8-unemployment-and-inflation-check-your-understanding-8-2.md
+    title: "Chapter 8 Unemployment and Inflation — Check Your Understanding 8-2 (Krugman/Wells)"
+  - id: krugman-ch15-085
+    resource: ../raw/Macroeconomics_Krugman/085-chapter-15-monetary-policy-changes-in-the-money-supply-and-the-interes.md
+    title: "Chapter 15 Monetary Policy — Changes in the Money Supply and the Interest Rate in the Long Run (Krugman/Wells)"
+  - id: krugman-ch16-087
+    resource: ../raw/Macroeconomics_Krugman/087-chapter-16-inflation-disinflation-and-deflation.md
+    title: "Chapter 16 Inflation, Disinflation, and Deflation (Krugman/Wells)"
 ---
 
 # Quantity theory of money, classical dichotomy, and the costs of inflation
@@ -75,6 +84,14 @@ Inflation is an economy-wide fall in the value of money (1/P), not a rise in the
 - Doubling money supply doubles price level, dollar wage, all dollar values; production, employment, real wages, real rates unchanged — irrelevance called **monetary neutrality** (money as yardstick analogy: shortening yard 36→18 inches doubles measured distances nominally but not actual distances)[^mankiw-052].
 - **Realism:** not completely — short-run (within a year or two) monetary changes affect real variables; Hume doubted short-run neutrality too (studied later as short-run non-neutrality explains why Fed changes money over time). Over a decade, changes have significant nominal but negligible real effects; neutrality is good long-run description[^mankiw-052].
 
+### Krugman/Wells: a money-level increase and the nominal interest rate
+
+Starting at long-run macroeconomic equilibrium (potential output), an increase in the money supply initially shifts the vertical money-supply curve right and lowers the equilibrium interest rate. As the aggregate price level rises in the long run, however, money demand at every interest rate rises in the same proportion as prices. Under monetary neutrality—where the price level rises proportionally with the money supply—the money-demand shift matches the supply increase, so the interest rate returns to its original level.[^krugman-ch15-085]
+
+Figure 15-12 depicts this horizon distinction: equilibrium moves from $E_1$ at $r_1$ to a short-run $E_2$ at lower $r_2$, then to long-run $E_3$ at the original $r_1$. The result concerns a change in the **level** of the money supply and the interest rate; it is compatible with the Fisher-effect account that a persistent change in money-growth and expected inflation changes the long-run nominal interest rate.[^krugman-ch15-085][^mankiw-052]
+
+**International evidence is supportive but not exact.** The source's 1983–2018 country scatterplot places average annual money-supply growth and price-level growth broadly near a 45-degree line; it notes that other determinants of prices keep the relationship from being exact. This is descriptive textbook evidence consistent with long-run monetary neutrality, not proof that money is the only cause of inflation in each country.[^krugman-ch15-085]
+
 ## 17-1f Velocity and the quantity equation
 
 - **Velocity of money (V):** speed at which typical dollar travels wallet-to-wallet; number of times per year typical bill used to pay for newly produced good/service[^mankiw-052].
@@ -124,6 +141,14 @@ These five steps are essence of quantity theory[^mankiw-052].
 - During first decade of 2000s one of history's most extreme hyperinflations; same pattern: large budget deficits → large money creation → high inflation; ended April 2009 when central bank stopped printing Zimbabwe dollar and nation used foreign currencies (U.S. dollar, South African rand) as medium[^mankiw-052].
 - Magnitude via denominations: before hyperinflation Z$1 ≈ >$1, notes like $10; Jan 2008 Reserve Bank issued 10-million-Z$ note ≈ $4; year later 10-trillion-Z$ note ≈ $3; older smaller denominations became worthless — restroom sign: "TOILET PAPER ONLY NO ZIM DOLLARS NO NEWSPAPER" (image 000334)[^mankiw-052].
 
+### Krugman/Wells: high-inflation approximation and the seigniorage spiral
+
+The **classical model of the price level** treats real money balances ($M/P$) as always at their long-run equilibrium: a money-supply increase therefore produces a proportionate price-level increase and no lasting change in real GDP. It deliberately omits the short-run AD–AS expansion; the source argues it is a better approximation under persistently high inflation, when workers and firms adjust wages and prices quickly. Figure 16-1 depicts the omitted path from a short-run output expansion to restored potential output at the higher price level.[^krugman-ch16-087]
+
+For a government financing a deficit by money creation, the source expresses real seigniorage as $\Delta M/P=(\Delta M/M)\times(M/P)$. High inflation makes the public reduce real money balances; if the government still needs a fixed real revenue amount, it must accelerate money growth, which raises inflation and induces a further reduction in $M/P$. This feedback can end in hyperinflation and abandonment of the inflation tax.[^krugman-ch16-087]
+
+The chapter's Venezuela chart is descriptive rather than an independent causal estimate: its reported monthly monetary-base and consumer-price changes rise together—10.6% and 11.6% in 2016, 27.5% and 20.8% in 2017, 37.1% and 81.8% in 2018, and 42.9% and 46.4% in 2019.[^krugman-ch16-087]
+
 ## 17-1h The Fisher effect
 
 - Monetary neutrality says money-growth increase raises inflation but not real variables; application to interest rates linking present and future via saving/investment[^mankiw-052].
@@ -152,7 +177,7 @@ Even though inflation has been low past 20 years, it remains closely watched —
 - Typical answer: inflation robs purchasing power because each dollar buys fewer goods — seems to lower living standards[^mankiw-052].
 - **Fallacy:** when prices rise, buyers pay more but sellers — who earn incomes selling services/labor — also get more; inflation in incomes goes hand-in-hand with inflation in prices, so inflation itself does not reduce real purchasing power[^mankiw-052].
 - People believe fallacy by missing monetary neutrality: worker getting 10% raise with 6% inflation → 4% real thinks cheated; real incomes determined by real variables (physical/human capital, natural resources, technology); nominal incomes determined by those plus overall price level. If Fed lowered inflation 6%→0%, nominal raise would fall 10%→4% but real would not rise faster[^mankiw-052].
-- If nominal incomes keep pace, why is inflation a problem? Economists have identified several costs where persistent money growth adversely affects real variables[^mankiw-052].
+- If nominal incomes keep pace, why is inflation a problem? Economists have identified several costs where persistent money growth adversely affects real variables[^mankiw-052]. The level of prices is not itself the problem: a proportional currency redenomination changes listed prices, debts, and wages together, leaving real wages and real incomes unchanged. The rate at which prices change is distinct; the source's 1960–2020 U.S. chart shows a broadly rising price level alongside a volatile inflation rate and brief 2009 deflation.[^krugman-ch8-046]
 
 ### 17-2b Shoeleather costs
 
@@ -258,6 +283,11 @@ Even though inflation has been low past 20 years, it remains closely watched —
 
 - Source `052-money-growth-and-inflation.md` body is 9,973 tokens; images `image-000324.jpg` through `image-000336.jpg` not inspected except as captioned in OCR (cartoon, Figure 1 supply-demand, Figure 2 injection, Figure 3 nominal GDP/M2/velocity scaled 100 in 1960, Figure 4 four hyperinflations log scales, Zimbabwe restroom sign, Figure 5 Treasury bill vs CPI)[^mankiw-052].
 - Source `053-money-growth-and-inflation-17-2c-menu-costs.md` body is 6,041 tokens; images `image-000337.jpg` and `image-000338.jpg` (deflation chart and Wizard of Oz still) not inspected except as captioned[^mankiw-053]; QuickQuiz, CHAPTER QuickQuiz, SUMMARY, KEY CONCEPTS, QUESTIONS and PROBLEMS are reference material not fully compiled as separate claims.
+- Source `085-chapter-15-monetary-policy-changes-in-the-money-supply-and-the-interes.md` was reviewed in full. Figures 15-12 and 15-13 were visually inspected; business-case and practice-prompt images were not used for claims. The raw artifact ends after the opening paragraph of the chapter appendix.
+- Source `087-chapter-16-inflation-disinflation-and-deflation.md` was reviewed in full but ends at the opening of “Moderate Inflation and Disinflation.” Figures 16-1–16-3 were visually inspected; the embedded decorative/cartoon images were not used for claims.[^krugman-ch16-087]
 
 [^mankiw-052]: Mankiw, *Principles of Macroeconomics* 8th ed., Ch.17 — Money Growth and Inflation, §§17-1 to 17-2b (raw/PrinciplesofMacroeconomics_8thEdition_GregoryMankiw/052-money-growth-and-inflation.md).
 [^mankiw-053]: Mankiw, *Principles of Macroeconomics* 8th ed., Ch.17 — Money Growth and Inflation, §§17-2c to 17-3 and Wizard of Oz case study (raw/PrinciplesofMacroeconomics_8thEdition_GregoryMankiw/053-money-growth-and-inflation-17-2c-menu-costs.md).
+[^krugman-ch8-046]: Krugman and Wells, *Macroeconomics*, Ch. 8, “Unemployment and Inflation — Check Your Understanding 8-2” (raw/Macroeconomics_Krugman/046-chapter-8-unemployment-and-inflation-check-your-understanding-8-2.md; Figure 8-12 visually inspected).
+[^krugman-ch15-085]: Krugman and Wells, *Macroeconomics*, 6th ed., Ch. 15, “Changes in the Money Supply and the Interest Rate in the Long Run” (raw/Macroeconomics_Krugman/085-chapter-15-monetary-policy-changes-in-the-money-supply-and-the-interes.md; Figures 15-12–15-13 visually inspected).
+[^krugman-ch16-087]: Krugman and Wells, *Macroeconomics*, 6th ed., Ch. 16, “Inflation, Disinflation, and Deflation” (raw/Macroeconomics_Krugman/087-chapter-16-inflation-disinflation-and-deflation.md; Figures 16-1–16-3 visually inspected).

@@ -5,7 +5,7 @@ description: Mankiw Ch.20 — three facts about fluctuations, AD curve slopes an
 tags: [short-run-fluctuations, business-cycle, aggregate-demand, aggregate-supply, ad-as-model, recession, classical-dichotomy, monetary-neutrality, wealth-effect, interest-rate-effect, exchange-rate-effect, potential-output, short-run-aggregate-supply, sticky-wage, sticky-price, misperceptions, aggregate-demand-shocks, aggregate-supply-shocks, great-depression, great-recession, keynes, history-of-thought, oil-intensity]
 status: stable
 created: 2026-08-22
-generated: { by: llm-wiki-agent/1, at: 2026-08-22T23:20:00Z }
+generated: { by: llm-wiki-agent/1, at: 2026-08-22T11:29:55Z }
 sources:
   - id: mankiw-059
     resource: ../raw/PrinciplesofMacroeconomics_8thEdition_GregoryMankiw/059-short-run-economic-fluctuations.md
@@ -19,6 +19,24 @@ sources:
   - id: mankiw-062
     resource: ../raw/PrinciplesofMacroeconomics_8thEdition_GregoryMankiw/062-the-origins-of-the-model-of-aggregate-demand-and-aggregate-supply.md
     title: "The Origins of the Model of Aggregate Demand and Aggregate Supply (Mankiw 8th Ed. Ch.20 Part 62)"
+  - id: krugman-ch12-065
+    resource: ../raw/Macroeconomics_Krugman/065-chapter-12-aggregate-demand-and-aggregate-supply.md
+    title: "Chapter 12 Aggregate Demand and Aggregate Supply (Krugman/Wells)"
+  - id: krugman-ch12-066
+    resource: ../raw/Macroeconomics_Krugman/066-chapter-12-aggregate-demand-and-aggregate-supply-size-of-the-existing-.md
+    title: "Chapter 12 Aggregate Demand and Aggregate Supply — Size of the Existing Stock of Physical Capital (Krugman/Wells)"
+  - id: krugman-ch12-067
+    resource: ../raw/Macroeconomics_Krugman/067-chapter-12-aggregate-demand-and-aggregate-supply-the-long-run-aggregat.md
+    title: "Chapter 12 Aggregate Demand and Aggregate Supply — The Long-Run Aggregate Supply Curve (Krugman/Wells)"
+  - id: krugman-ch12-068
+    resource: ../raw/Macroeconomics_Krugman/068-chapter-12-aggregate-demand-and-aggregate-supply-shifts-of-aggregate-d.md
+    title: "Chapter 12 Aggregate Demand and Aggregate Supply — Shifts of Aggregate Demand: Short-Run Effects (Krugman/Wells)"
+  - id: krugman-ch12-069
+    resource: ../raw/Macroeconomics_Krugman/069-chapter-12-aggregate-demand-and-aggregate-supply-check-your-understand.md
+    title: "Chapter 12 Aggregate Demand and Aggregate Supply — Check Your Understanding 12-3 (Krugman/Wells)"
+  - id: krugman-ch12-070
+    resource: ../raw/Macroeconomics_Krugman/070-chapter-12-aggregate-demand-and-aggregate-supply-problems.md
+    title: "Chapter 12 Aggregate Demand and Aggregate Supply — Problems (Krugman/Wells)"
 ---
 
 # Short-Run Economic Fluctuations — Three Facts and the Aggregate Demand–Aggregate Supply Model
@@ -47,6 +65,10 @@ The short-run framework must therefore abandon the classical dichotomy and neutr
 - **Definitions:** model of aggregate demand and aggregate supply is the model most economists use to explain short-run fluctuations around long-run trend[^mankiw-059]; aggregate-demand curve shows quantity of goods and services households, firms, government, and foreign customers want to buy at each price level; aggregate-supply curve shows quantity firms produce and sell at each price level[^mankiw-059].
 - **Axes and equilibrium:** Figure 2: vertical axis overall price level, horizontal axis total output of goods and services; price level and quantity adjust to intersection of AD and AS[^mankiw-059].
 - **Not a large micro supply-demand model:** In a single market (e.g., ice cream) buyers substitute to other products and sellers hire workers from other markets when price rises; for the economy as a whole this substitution is impossible because real GDP measures total production in all markets — explaining AD and AS requires a macroeconomic theory[^mankiw-059].
+
+### Krugman/Wells Ch. 12 — short-run macroeconomic equilibrium
+
+The intersection of AD and SRAS is **short-run macroeconomic equilibrium**: quantity of aggregate output supplied equals the quantity demanded by households, businesses, government, and the rest of the world. Its coordinates are the short-run equilibrium aggregate price level ($P_E$) and output ($Y_E$). Above that price level, aggregate supply exceeds demand and price pressure is downward; below it, demand exceeds supply and price pressure is upward.[^krugman-ch12-067]
 
 ## 20–3 The aggregate-demand curve
 
@@ -78,6 +100,18 @@ Downward slope holds other things equal; many other factors change quantity dema
 
 **Table 1 — Why AD slopes downward and why it might shift (Mankiw Ch.20)** summarizes the three slope reasons (wealth, interest-rate, exchange-rate) and four shift categories above[^mankiw-059].
 
+### Krugman/Wells Ch. 12 — AD and the income–expenditure model
+
+Krugman and Wells describe the AD curve as quantity of domestic aggregate output demanded by households, firms, government, and the rest of the world at each aggregate price level. At constant prices this output is $C+I+G+X-IM$; a fall in the price level raises quantity demanded through wealth and interest-rate channels.[^krugman-ch12-065]
+
+The AD curve is derived from the income–expenditure model rather than replacing it. With the price level held fixed, planned aggregate expenditure and real GDP determine a 45-degree-line equilibrium. A lower price level raises planned expenditure at every output level through the two channels, shifts that curve upward, and yields a higher equilibrium GDP; plotting each such equilibrium against its price level traces a movement down the AD curve.[^krugman-ch12-065]
+
+**Movement versus shift.** A price-level change that changes the purchasing power of existing assets is a movement along AD. A change in asset values at a given price level — for example, stock-market or real-estate appreciation — shifts AD. This distinction prevents treating the wealth effect as contradictory to wealth-driven AD shifts.[^krugman-ch12-065]
+
+The source groups AD shifters as expectations (optimism right, pessimism left), independently changed household wealth, the existing physical-capital stock (a relatively small stock raises investment demand), fiscal policy (higher government spending or lower taxes right), and monetary policy (a higher quantity of money right). These initial spending changes can initiate multiplier feedback through disposable income and aggregate spending.[^krugman-ch12-065]
+
+**Policy transmission and movement along AD.** Government purchases shift AD directly because they are a spending component; tax cuts and transfers act indirectly by raising disposable income and consumption. A central-bank money expansion lowers the interest rate at a given price level, increasing consumption and investment and shifting AD right; contraction does the reverse.[^krugman-ch12-066] In 1979–80, the source describes a different case: the price level rose while money grew slowly, eroding real money balances, raising rates, and reducing durable consumption and investment — a movement up and left along AD, not an explanation of why the price level rose.[^krugman-ch12-066]
+
 ## 20–4 The aggregate-supply curve
 
 The AS curve tells total quantity of goods and services firms produce and sell at any given price level; unlike AD which always slopes downward, relationship depends crucially on time horizon: vertical in the long run, upward-sloping in the short run[^mankiw-059].
@@ -85,6 +119,8 @@ The AS curve tells total quantity of goods and services firms produce and sell a
 ### 20–4a Why long-run AS is vertical
 
 In the long run, production (real GDP) depends on supplies of labor, capital, and natural resources and on available technology for turning factors into goods and services — forces studied in the growth analysis, requiring no reference to overall price level, which is determined by quantity of money[^mankiw-059]. Two identical economies except one has twice the money have twice the price level but same output because money does not affect technology or factor supplies[^mankiw-059]. Hence price level does not affect long-run determinants of real GDP → long-run AS is vertical (Figure 4)[^mankiw-059]. This vertical curve is a graphical representation of the classical dichotomy and monetary neutrality — quantity of output (real) does not depend on level of prices (nominal) — believed to work well over many years but not year-to-year, so the curve is vertical only in the long run[^mankiw-059].
+
+Krugman and Wells define the **long-run aggregate supply curve (LRAS)** as the price-level/output relationship when all prices, including nominal wages, are fully flexible. A proportional change to final-good prices and input prices then leaves unit profitability and output unchanged; LRAS is therefore vertical at **potential output** — the real GDP the economy would produce with all prices flexible.[^krugman-ch12-067] Growth in labor-force size, physical and human capital, and labor productivity raises potential output and shifts LRAS right, linking long-run growth to the growth of potential output.[^krugman-ch12-067]
 
 ### 20–4b Why long-run AS might shift — natural level of output
 
@@ -122,6 +158,16 @@ where *a* determines responsiveness to unexpected price changes[^mankiw-060]. Ov
 
 Economists debate which theory is correct; each may contain truth. For the book's purposes similarities matter more than differences — all imply the equation above — and each imperfection is temporary: wages/prices become unstuck and misperceptions corrected, so long-run AS is flexible and vertical[^mankiw-060].
 
+### Krugman/Wells Ch. 12 — profits, costs, and SRAS shifts
+
+Krugman and Wells frame short-run supply through **profit per unit = output price per unit − production cost per unit**. When nominal production costs, especially compensation, are fixed by contracts or informal agreements, a price-level fall reduces unit profit and output; a rise increases them. Thus SRAS is upward sloping. Perfectly competitive firms take prices as given; imperfectly competitive firms commonly adjust both price and output as demand changes, but both cases yield the same positive short-run price–output relationship.[^krugman-ch12-066]
+
+The flexible-price/sticky-wage contrast is a useful simplification, not a sharp empirical divide: some wages change in the short run and some firms avoid price cuts even as demand falls. Nominal wages also eventually adjust when contracts and informal agreements are renegotiated.[^krugman-ch12-066]
+
+At a given aggregate price level, changes in per-unit costs shift SRAS: higher commodity prices or nominal wages reduce supply (left); lower ones increase it (right); higher productivity lowers cost per unit and shifts supply right, while lower productivity does the reverse.[^krugman-ch12-066] Commodity inputs are excluded from the final-goods aggregate price level, so their price changes are distinct cost shocks. The source notes that 1970s oil-price increases could also trigger cost-of-living wage adjustments, adding a second adverse supply shift; it characterizes such clauses as rare today.[^krugman-ch12-066]
+
+**Return to potential output.** Actual output above potential coincides with low unemployment: scarce workers bid nominal wages up, shifting SRAS left until it crosses LRAS. Actual output below potential coincides with high unemployment: nominal wages eventually fall, shifting SRAS right until the curves cross. This describes an adjustment mechanism, not an immediate condition; the source’s Portugal illustration shows nearly 80% of workers had unchanged wages in the deeply depressed 2012 economy, despite widespread unemployment.[^krugman-ch12-067]
+
 ### 20–4e Why the short-run AS might shift
 
 SRAS tells quantity supplied at any given price level; like LRAS it shifts with labor, capital, natural resources, and technology — but has an additional shifter: the **expected price level**[^mankiw-060].
@@ -144,6 +190,16 @@ This plays a key role in the transition from short to long run: in short run exp
 ## 20–5 Two causes of economic fluctuations
 
 Begin from long-run equilibrium (Figure 7): AD crosses LRAS at point A where output at natural level; expected price equals actual price so SRAS also passes through point A[^mankiw-060]. AD-AS analysis uses four steps (Table 3): (1) whether event shifts AD or AS (or both), (2) direction of shift, (3) impact on output and price in short run using diagram, (4) transition from new short-run to new long-run equilibrium[^mankiw-060].
+
+### Krugman/Wells Ch. 12 — shock signatures, gaps, and self-correction
+
+A **demand shock** is any event that shifts AD — including changed expectations or wealth, fiscal or monetary policy, or the physical-capital stock's effect on investment. With SRAS unchanged, a negative shock shifts AD left and lowers both short-run output and the aggregate price level; a positive shock raises both. Thus demand shocks make output and the price level move in the **same** direction.[^krugman-ch12-068]
+
+A **supply shock** shifts SRAS. Higher commodity prices or nominal wages, or lower productivity, are negative shocks: SRAS shifts left, output falls, and the price level rises. Lower costs or higher productivity do the reverse. Supply shocks therefore make output and the price level move in **opposite** directions; the negative case is **stagflation** (falling output with inflation). Monetary and fiscal policy can shift AD more readily than SRAS, which makes supply-shock trade-offs harder to address.[^krugman-ch12-068]
+
+**Long-run equilibrium and gaps.** Long-run macroeconomic equilibrium is where AD, SRAS, and LRAS intersect at potential output. A negative demand shock creates a **recessionary gap** (actual output below potential) and high unemployment; eventual nominal-wage and other sticky-price reductions shift SRAS right until output returns to potential, at a lower price level. A positive shock creates an **inflationary gap** (output above potential) and low unemployment; nominal wages eventually rise, shifting SRAS left until output returns to potential at a higher price level.[^krugman-ch12-068]
+
+The source defines the percentage **output gap** as $((\text{actual output}-\text{potential output})/\text{potential output})\times100$. Under this self-correction account it tends toward zero; this is a model mechanism rather than a claim that adjustment is immediate or that potential output is directly observable.[^krugman-ch12-068]
 
 ### 20–5a Effects of a shift in aggregate demand — pessimism example
 
@@ -196,6 +252,24 @@ Worst macro event in >50 years: real GDP −4.2% Q4 2007–Q2 2009, unemployment
 - **1978–81 OPEC II:** Again restricted supply, price more than doubled; inflation again >10% after having subsided; Fed was not willing to accommodate such large inflation, recession followed; unemployment ~6% (1978–79)→~10% few years later[^mankiw-061].
 - **1986 favorable supply shift:** OPEC squabbling, members reneged on production agreements, world crude price fell by about half; reduced costs made supplying goods more profitable at any price level, AS shifts right (favorable shift — mirror image of Figure 10)[^mankiw-061].
 
+## Policy choices after demand and supply shocks
+
+**Stabilization policy** uses fiscal or monetary policy to reduce the severity of recessions and rein in overly strong expansions.[^krugman-ch12-069] The source's baseline case is for offsetting major **demand** shocks: prompt expansionary policy after a negative AD shock can restore AD and avoid a protracted recessionary gap, unemployment, and deflation; contractionary policy can offset a positive shock because an inflationary gap's short-run output gains are later reversed.[^krugman-ch12-069] It describes monetary policy as the usual tool for closing either kind of gap, while noting that fiscal measures can raise deficits, crowd out private investment, and lower long-run growth.[^krugman-ch12-069]
+
+This is not a guarantee that active policy improves outcomes. The source says policymakers lack perfect information and cannot predict policy effects perfectly, so delayed or mistaken interventions can increase instability; it also describes self-correction as often taking a decade or more, a textbook characterization rather than a universal empirical estimate.[^krugman-ch12-069] Its historical comparison is qualified: pre-World War II unemployment data are less reliable and postwar stability could partly reflect good luck, but the depicted unemployment record appears less volatile after active stabilization became standard practice, despite severe post-2007 disruption.[^krugman-ch12-069]
+
+**Supply shocks present a different choice.** There is no comparably easy policy for directly restoring SRAS. Raising AD after an adverse supply shock limits the output and employment fall but increases inflation; cutting AD curbs inflation but further depresses output and employment. The source presents the 1970s advanced-economy choice to prioritize price stability at the cost of higher unemployment as an example, not as a universally prescribed rule.[^krugman-ch12-069]
+
+## Practice applications — identifying curves, shifts, and trade-offs
+
+The source poses applications rather than providing worked answers; the following is synthesis using the chapter's AD–AS rules.[^krugman-ch12-070]
+
+- A dollar depreciation that makes U.S. output cheaper to foreigners at an unchanged U.S. aggregate price level raises net exports and **shifts AD right**. It is not a movement down AD, which would require a change in the aggregate price level itself.[^krugman-ch12-070]
+- If all wealth is automatically price-indexed, a price-level change no longer changes its real value, eliminating the wealth effect. AD may still slope down through the interest-rate effect; the exercise therefore isolates a mechanism rather than overturning the entire AD relation.[^krugman-ch12-070]
+- Lowering a binding nominal minimum wage reduces firms' labor costs and shifts SRAS right. Higher transfers shift AD right through disposable income; an announced future tax increase can reduce current demand through expectations; lower military spending shifts AD left directly.[^krugman-ch12-070]
+- A sudden productivity improvement during annual wage contracts lowers production costs and shifts SRAS right before nominal wages adjust; because it also raises productive capacity, LRAS shifts right. Conversely, an oil-price increase is an adverse supply shock, while a housing-price decline is an adverse demand shock through household wealth. Taken together, both reduce real GDP, but their price-level effects oppose one another, so the net price effect is indeterminate without relative magnitudes.[^krugman-ch12-070]
+- At potential output, a positive supply shock is preferred because it raises output while reducing price pressure. A positive demand shock creates temporary above-potential output and eventual inflationary adjustment; a negative demand shock creates a recessionary gap. Their relative ranking depends on the weight given to output, unemployment, and price stability. An adverse supply shock is uniquely difficult because it combines lower output with higher prices. In the late-1990s pattern of rapid growth with little inflation, a rightward SRAS shift can offset the price pressure of a rightward AD shift.[^krugman-ch12-070]
+
 ## Context — growth, recession, and scope
 
 On average over the past half century, U.S. real GDP has grown by about 3 percent per year because labor force, capital stock, and technological knowledge grow, allowing higher living standards[^mankiw-059]. In some years the economy contracts: firms unable to sell goods cut production, workers laid off, unemployment widespread, factories idle, real GDP and incomes decline — called recession if relatively mild and depression if more severe[^mankiw-059]. Example: Q4 2007 to Q2 2009 U.S. real GDP fell by 4.2 percent; unemployment rose from 4.4 percent in May 2007 to 10.0 percent in October 2009, highest in more than a quarter century[^mankiw-059].
@@ -241,11 +315,20 @@ The chapter achieves two goals: (1) documenting facts about short-run fluctuatio
 
 ## Coverage limits
 
-- Sources span 059 (9,186 tokens), 060 (9,989 tokens), 061 (1,696 tokens), and 062 (3,353 tokens); Ch.20 now covers §§20-1 to 20-6 complete including Figure 10 adverse SRAS shift A→B stagflation, wage-price spiral, self-correction via falling wages back to A, Figure 11 accommodative AD shift A→C P1→P3, two lessons, Oil case study 1973–75, 1978–81, 1986, and origins/decoupling/conclusion[^mankiw-059][^mankiw-060][^mankiw-061][^mankiw-062]. Images `image-000375.jpg`–`image-000397.jpg` not inspected except as described in OCR (Figures 1–11, Table 1–3, cartoons "You're fired. Pass it on.", massive AD decrease photo, Olivier Blanchard portrait, Figure 10 stagflation and Figure 11 accommodation diagrams)[^mankiw-059][^mankiw-060][^mankiw-061]. Images `image-000398.jpg`–`image-000400.jpg` not inspected except captions (Keynes portrait, Middle East oil)[^mankiw-062].
+- Sources 059–062 cover Mankiw Ch.20 complete as described above. Krugman/Wells source 065 covers the Chapter 12 opening through the wealth-change pitfall; source 066 covers the existing-capital-stock discussion through commodity prices, nominal wages, and productivity as SRAS shifters; source 067 covers LRAS, adjustment from short run to long run, wage stickiness, and the AD–AS model through the definition of short-run equilibrium; source 068 covers demand and supply shocks, long-run equilibrium, output gaps, and self-correction.[^mankiw-059][^mankiw-060][^mankiw-061][^mankiw-062][^krugman-ch12-065][^krugman-ch12-066][^krugman-ch12-067][^krugman-ch12-068]
+- Krugman/Wells Figures 12-1 through 12-4 and Table 12-1 were visually inspected and support the AD, income–expenditure, movement/shift, and shifter summaries. From source 066, Figures 12-5 and 12-6 and Table 12-2 were visually inspected; they support the 1929/1933 SRAS movement and the listed supply shifters. From source 067, Figures 12-7 through 12-11 were visually inspected and support the vertical LRAS, actual-versus-potential output, wage-adjustment, Portugal wage-stickiness, and AD–SRAS-equilibrium summaries. From source 068, Figures 12-12 through 12-17 were visually inspected and support shock directions, long-run equilibrium, recessionary/inflationary gaps, and the oil-shock unemployment context. From source 069, the unemployment and fuel-economy figures (12-18 and 12-19) and the two contextual photographs were inspected; the figures support the qualified historical-stability and 1970s fuel-economy summaries, while the photographs add no analytical claim. Images `image-000375.jpg`–`image-000397.jpg` and `image-000398.jpg`–`image-000400.jpg` from Mankiw were not inspected except as described in OCR.[^krugman-ch12-065][^krugman-ch12-066][^krugman-ch12-067][^krugman-ch12-068][^krugman-ch12-069][^mankiw-059][^mankiw-060][^mankiw-061][^mankiw-062].
 - Mankiw Table 2 QuickQuiz and Summary/Key Concepts/Questions and Problems are reference material summarized via QuickQuiz paragraph, not fully excerpted; 062 QuickQuiz (AD right from confidence), Chapter QuickQuiz 6, Key Concepts, Questions for Review 7, Problems 10 summarized[^mankiw-060][^mankiw-062].
 - 061 truncated mid-sentence after 1986 favorable supply shift opening and FYI heading; 062 completes that favorable shift description and adds opposite-of-stagflation episode[^mankiw-061][^mankiw-062].
+- Krugman/Wells source 070 contains 13 end-of-chapter problems (including multipart diagram exercises), not worked solutions. The three embedded AD–AS diagrams were visually inspected and agree with their supplied descriptions: a price-level movement on SRAS at LRAS, a recessionary gap, and an adverse SRAS shift. The practice-applications section is explicitly derived synthesis; the chapter's two decorative “Work It Out” images add no material claim.[^krugman-ch12-070]
 
 [^mankiw-059]: Mankiw, *Principles of Macroeconomics* 8th ed., Ch.20 — Aggregate Demand and Aggregate Supply, §§20-1 to 20-4d (raw/PrinciplesofMacroeconomics_8thEdition_GregoryMankiw/059-short-run-economic-fluctuations.md).
 [^mankiw-060]: Mankiw, *Principles of Macroeconomics* 8th ed., Ch.20 — Figure 6, §§20-4d to 20-5b (raw/PrinciplesofMacroeconomics_8thEdition_GregoryMankiw/060-aggregate-demand-and-aggregate-supply-figure-6.md).
 [^mankiw-061]: Mankiw, *Principles of Macroeconomics* 8th ed., Ch.20 — Figures 10–11, adverse supply shift, stagflation, accommodation, oil case study (raw/PrinciplesofMacroeconomics_8thEdition_GregoryMankiw/061-aggregate-demand-and-aggregate-supply-figure-10.md).
+[^mankiw-062]: Mankiw, *Principles of Macroeconomics* 8th ed., Ch.20 — origins of the AD–AS model, Keynes, oil decoupling, and conclusion (raw/PrinciplesofMacroeconomics_8thEdition_GregoryMankiw/062-the-origins-of-the-model-of-aggregate-demand-and-aggregate-supply.md).
+[^krugman-ch12-065]: Krugman and Wells, *Macroeconomics*, 6th ed., Ch. 12, “Aggregate Demand and Aggregate Supply” (raw/Macroeconomics_Krugman/065-chapter-12-aggregate-demand-and-aggregate-supply.md). Figures 12-1 through 12-4 and Table 12-1 were visually inspected.
+[^krugman-ch12-066]: Krugman and Wells, *Macroeconomics*, 6th ed., Ch. 12, “Size of the Existing Stock of Physical Capital” through “Changes in Productivity” (raw/Macroeconomics_Krugman/066-chapter-12-aggregate-demand-and-aggregate-supply-size-of-the-existing-.md). Figures 12-5–12-6 and Table 12-2 were visually inspected.
+[^krugman-ch12-067]: Krugman and Wells, *Macroeconomics*, 6th ed., Ch. 12, “The Long-Run Aggregate Supply Curve” through “Short-Run Macroeconomic Equilibrium” (raw/Macroeconomics_Krugman/067-chapter-12-aggregate-demand-and-aggregate-supply-the-long-run-aggregat.md). Figures 12-7–12-11 were visually inspected.
+[^krugman-ch12-068]: Krugman and Wells, *Macroeconomics*, 6th ed., Ch. 12, “Shifts of Aggregate Demand: Short-Run Effects” through the chapter quick review (raw/Macroeconomics_Krugman/068-chapter-12-aggregate-demand-and-aggregate-supply-shifts-of-aggregate-d.md). Figures 12-12–12-17 were visually inspected.
+[^krugman-ch12-069]: Krugman and Wells, *Macroeconomics*, 6th ed., Ch. 12, “Check Your Understanding 12-3” through the chapter summary and practice questions (raw/Macroeconomics_Krugman/069-chapter-12-aggregate-demand-and-aggregate-supply-check-your-understand.md). Figures 12-18–12-19 and the contextual photographs were visually inspected.
+[^krugman-ch12-070]: Krugman and Wells, *Macroeconomics*, 6th ed., Ch. 12, “Problems” (raw/Macroeconomics_Krugman/070-chapter-12-aggregate-demand-and-aggregate-supply-problems.md). The source poses applications; answers above are synthesis from the chapter framework.
 

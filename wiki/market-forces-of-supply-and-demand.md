@@ -5,7 +5,7 @@ description: Mankiw's supply-and-demand framework — competitive markets, laws 
 tags: [supply, demand, equilibrium, competitive-market, law-of-demand, law-of-supply, surplus, shortage, substitutes, complements, normal-good, inferior-good, price-gouging, price-controls, allocation, mankiw]
 status: stable
 created: 2026-08-22
-generated: { by: llm-wiki-agent/1, at: 2026-08-22T16:00:00Z }
+generated: { by: llm-wiki-agent/1, at: 2026-08-22T12:41:58Z }
 sources:
   - id: mankiw-021
     resource: ../raw/PrinciplesofMacroeconomics_8thEdition_GregoryMankiw/021-the-market-forces-of-supply-and-demand.md
@@ -16,6 +16,9 @@ sources:
   - id: mankiw-023
     resource: ../raw/PrinciplesofMacroeconomics_8thEdition_GregoryMankiw/023-price-increases-after-disasters.md
     title: "Price Increases after Disasters — Principles of Macroeconomics, 8th Edition (N. Gregory Mankiw)"
+  - id: krugman-ch3-099
+    resource: ../raw/Macroeconomics_Krugman/099-chapter-18-international-macroeconomics-3-4-check-your-understanding.md
+    title: "Chapter 18 International Macroeconomics — 3-4 Check Your Understanding (Krugman/Wells; raw label)"
 ---
 
 # The Market Forces of Supply and Demand — Competitive Markets, Demand and Supply, and Equilibrium
@@ -176,6 +179,12 @@ Quick-quiz prediction matrix for any combination of shifts[^mankiw-022]:
 
 Mankiw advises testing understanding by explaining entries with a supply-and-demand diagram[^mankiw-022]. Practice prompts: show what happens to pizza market if tomato price rises (input-cost supply shift left); on a separate diagram, show what happens if hamburger price falls (substitute — demand for pizza shifts left)[^mankiw-022].
 
+### Check: simultaneous demand and supply shifts
+
+The Krugman/Wells exercise supplies concrete comparative-statics checks: cheaper gasoline (a complement) shifts demand for large cars right, so both equilibrium price and quantity rise; a technological innovation shifts the supply of recycled paper right, so price falls and quantity rises; and cheaper on-demand films (a substitute) shift cinema demand left, so both price and attendance fall.[^krugman-ch3-099]
+
+A new computer chip simultaneously shifts demand for computers using the older chip left and their supply right. The equilibrium price therefore falls, but the quantity effect is indeterminate: it falls when the demand decrease dominates and rises when the supply increase dominates. The two accompanying diagrams were inspected and show both cases.[^krugman-ch3-099]
+
 ### Application — Price increases after disasters and the price-gouging debate
 
 Hurricanes and other disasters create the textbook conditions for upward price pressure — demand spikes (batteries, water, gasoline, generators, hotel rooms) or supply falls — illustrated by Hurricane Sandy reports of $4 for a can of Coke, $500/night for a Brooklyn hotel, and $6.99 for D-batteries[^mankiw-023]. The policy question is whether to let prices rise or suppress them with anti–price-gouging laws.
@@ -199,6 +208,10 @@ Markets harness supply and demand to allocate scarce resources; prices are the s
 
 > Coverage note: Images 000102–000110 referenced in the sources (Figures 10–12, Table 4, beachfront-land illustration, and Ask the Experts "Price Gouging" Senate Bill 60 / IGM panel vote graphics) were not visually inspected; descriptions follow caption and prose evidence[^mankiw-022]. The Ask the Experts box on price-gouging legislation (Connecticut Senate Bill 60 prohibiting "unconscionably excessive" pricing during severe weather emergencies) was truncated in the extracted source and is not fully synthesized here beyond noting its presence as an application of price-adjustment versus price-control debate[^mankiw-022].
 > Additional note: The price-gouging case above completes that Ask the Experts reference with the Sandy/Irene evidence and Carney's market-allocation argument[^mankiw-023].
+
+## Source coverage
+
+The raw file's filename and frontmatter label it as Chapter 18, but its inspected opening section is explicitly “3-4 Check Your Understanding”; the remaining 243 lines run into answer-key material for chapters 4–7. This ingest compiles only the opening 3-4 section and its two computer-market diagrams; it makes no claims from the remaining material.[^krugman-ch3-099]
 
 ## Key Definitions
 
@@ -238,3 +251,4 @@ No internal contradictions in the source; notes boundary condition that perfectl
 [^mankiw-021]: Mankiw, *Principles of Macroeconomics* 8th ed., Ch. 4 — The Market Forces of Supply and Demand (raw/PrinciplesofMacroeconomics_8thEdition_GregoryMankiw/021-the-market-forces-of-supply-and-demand.md).
 [^mankiw-022]: Mankiw, *Principles of Macroeconomics* 8th ed., Ch. 4 — How an Increase in Demand Affects the Equilibrium / How a Decrease in Supply Affects / Shifts in Both / Table 4 / Conclusion (raw/PrinciplesofMacroeconomics_8thEdition_GregoryMankiw/022-the-market-forces-of-supply-and-demand-how-an-increase-in-demand-affec.md).
 [^mankiw-023]: Mankiw, *Principles of Macroeconomics* 8th ed., Ch. 4 — Price Increases after Disasters: Is Price Gouging Reverse Looting? by John Carney, plus Chapter summary / QuickQuiz / Questions (raw/PrinciplesofMacroeconomics_8thEdition_GregoryMankiw/023-price-increases-after-disasters.md).
+[^krugman-ch3-099]: Krugman and Wells, *Macroeconomics*, 6th ed., Ch. 3, “3-4 Check Your Understanding” (raw/Macroeconomics_Krugman/099-chapter-18-international-macroeconomics-3-4-check-your-understanding.md; two computer-market diagrams inspected).

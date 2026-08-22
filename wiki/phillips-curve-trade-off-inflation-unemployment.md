@@ -5,7 +5,7 @@ description: Mankiw Ch.22 — the Phillips curve as short-run menu, its AD-AS fo
 tags: [phillips-curve, inflation, unemployment, natural-rate, expected-inflation, aggregate-demand, aggregate-supply, stagflation, supply-shock, sacrifice-ratio, disinflation, rational-expectations, credibility, volcker, greenspan, bernanke, financial-crisis, monetary-policy, friedman, phelps]
 status: stable
 created: 2026-08-22
-generated: { by: llm-wiki-agent/1, at: 2026-08-22T23:55:00Z }
+generated: { by: llm-wiki-agent/1, at: 2026-08-22T12:47:26Z }
 sources:
   - id: mankiw-066
     resource: ../raw/PrinciplesofMacroeconomics_8thEdition_GregoryMankiw/066-the-short-run-trade-off-between-inflation-and-unemployment.md
@@ -13,11 +13,37 @@ sources:
   - id: mankiw-067
     resource: ../raw/PrinciplesofMacroeconomics_8thEdition_GregoryMankiw/067-the-short-run-trade-off-between-inflation-and-unemployment-the-volcker.md
     title: "The Short-Run Trade-off between Inflation and Unemployment — The Volcker Disinflation (Mankiw 8th Ed. Ch.22 §§22-4c–22-5)"
+  - id: krugman-ch8-044
+    resource: ../raw/Macroeconomics_Krugman/044-chapter-8-unemployment-and-inflation.md
+    title: "Chapter 8 Unemployment and Inflation (Krugman/Wells)"
+  - id: krugman-ch8-046
+    resource: ../raw/Macroeconomics_Krugman/046-chapter-8-unemployment-and-inflation-check-your-understanding-8-2.md
+    title: "Chapter 8 Unemployment and Inflation — Check Your Understanding 8-2 (Krugman/Wells)"
+  - id: krugman-ch16-087
+    resource: ../raw/Macroeconomics_Krugman/087-chapter-16-inflation-disinflation-and-deflation.md
+    title: "Chapter 16 Inflation, Disinflation, and Deflation (Krugman/Wells)"
+  - id: krugman-ch16-088
+    resource: ../raw/Macroeconomics_Krugman/088-chapter-16-inflation-disinflation-and-deflation-the-output-gap-and-the.md
+    title: "Chapter 16 Inflation, Disinflation, and Deflation — The Output Gap and the Unemployment Rate (Krugman/Wells)"
+  - id: krugman-ch16-089
+    resource: ../raw/Macroeconomics_Krugman/089-chapter-16-inflation-disinflation-and-deflation-economics-in-action.md
+    title: "Chapter 16 Inflation, Disinflation, and Deflation — ECONOMICS >> in Action (Krugman/Wells)"
+  - id: krugman-102
+    resource: ../raw/Macroeconomics_Krugman/102-chapter-18-international-macroeconomics-16-3-check-your-understanding.md
+    title: "Chapter 18 International Macroeconomics — 16-3 Check Your Understanding (Krugman/Wells; raw label)"
 ---
 
 # The Short-Run Trade-off between Inflation and Unemployment — Phillips Curve, Expectations, Supply Shocks, and Disinflation Costs
 
 In the long run inflation and unemployment are largely unrelated — inflation is determined by money-supply growth and unemployment by its natural rate — but in the short run society faces a trade-off that can be exploited only temporarily along a downward-sloping Phillips curve that shifts with expected inflation and with supply shocks[^mankiw-066]. Expanding aggregate demand moves the economy up the short-run aggregate-supply curve to lower unemployment at higher inflation, while contracting it lowers inflation at the cost of higher unemployment; expectations and supply shocks shift the curve so any inflation–unemployment bargain is temporary and, in the long run, unemployment returns to its natural rate regardless of inflation[^mankiw-066].
+
+## 2011 ECB rate hikes — a source-specific policy account
+
+Krugman and Wells characterize the European Central Bank's 2011 interest-rate increases, undertaken while European unemployment remained high, as a policy mistake: the inflation acceleration reflected temporary factors including higher world oil prices, and the ECB reversed the hikes by year-end.[^krugman-ch8-044] This is the textbook's retrospective judgment, not an independent causal evaluation; it illustrates the risk of treating a temporary supply-driven inflation increase as a reason to tighten demand policy during a weak labor market.[^krugman-ch8-044]
+
+## Political incentives behind moderate inflation and disinflation
+
+The source frames a political asymmetry consistent with the short-run trade-off: expansionary policies can yield near-term lower unemployment and electoral gains, whereas disinflation requires a recession and temporarily higher unemployment. It identifies this as a reason fiscally solvent countries can tolerate serious inflation; its account of Britain's 1971 expansionary monetary and fiscal policy and subsequent 26% inflation in 1975 is a source-specific historical interpretation, not an independent causal assessment.[^krugman-ch16-087]
 
 ## 22-1 The Phillips curve — discovery and AD-AS foundation
 
@@ -29,9 +55,10 @@ In the long run inflation and unemployment are largely unrelated — inflation i
 
 **Menu view (Figure 1).** Samuelson and Solow argued the curve offers policymakers a menu: point A = high unemployment with low inflation, point B = low unemployment with high inflation; both low inflation and low unemployment together is impossible according to the historical curve — policymakers must choose a point by altering monetary and fiscal policy to influence aggregate demand[^mankiw-066].
 
-**AD-AS explanation (Figure 2).** The Phillips curve is the mirror of movements along the short-run aggregate-supply curve as aggregate demand shifts[^mankiw-066].
+**AD-AS explanation (Figure 2).** Aggregate-demand movements along short-run aggregate supply provide a closely related, but not identical, representation of the Phillips relationship.[^mankiw-066][^krugman-ch16-088]
 - Numerical illustration with price level = 100 in 2020. In 2021: if aggregate demand is low (outcome A) output = 15,000 price level = 102; if high (outcome B) output = 16,000 price level = 106 — higher demand → higher output and higher price level[^mankiw-066].
 - Translating to unemployment and inflation (price level 100 → inflation is percentage change): outcome A = 7% unemployment, 2% inflation; outcome B = 4% unemployment, 6% inflation because firms need more workers to produce the larger output[^mankiw-066].
+- In Krugman and Wells’ illustration, an AD increase raises output from potential by 4% and the price level by 2%; applying Okun’s-law assumption (a 1pp output-gap rise lowers unemployment 0.5pp) changes unemployment from its 6% natural rate to 4%. This yields a downward SRPC, but the source cautions that SRAS seems to connect inflation with the *change* in unemployment whereas the SRPC uses its *level*.[^krugman-ch16-088]
 - Policy corollary: increases in money supply, government spending, or cuts in taxes expand aggregate demand and move the economy to higher inflation/lower unemployment on the Phillips curve; decreases do the reverse[^mankiw-066].
 
 > **QuickQuiz (22-1).** Draw the downward-sloping Phillips curve; use AD-AS to show policy moving from high inflation to low inflation requires contracting aggregate demand, sliding down short-run AS and along Phillips curve to lower inflation with temporarily higher unemployment[^mankiw-066].
@@ -41,6 +68,8 @@ In the long run inflation and unemployment are largely unrelated — inflation i
 Samuelson–Solow treated the downward slope as stable; Friedman and Phelps (1968) argued it holds only in the short run[^mankiw-066].
 
 ### 22-2a The long-run Phillips curve — vertical at the natural rate
+
+Krugman and Wells' illustrative adjustment starts at 0% expected inflation: policy pushes unemployment from a 6% NAIRU to 4%, producing 2% actual inflation; expectations then rise and successively shift the SRPC upward. Maintaining 4% unemployment would require 4%, then 6%, and continuing inflation. At the NAIRU, actual inflation equals expected inflation, so the long-run curve is vertical rather than a sustainable menu. The plotted 6% NAIRU is an illustration, not an estimate to generalize.[^krugman-ch16-089]
 
 - **Friedman (1968)** "The Role of Monetary Policy" (*American Economic Review*, AEA presidential address: What Monetary Policy Can and Cannot Do) and **Phelps** independently argued monetary policy cannot peg real variables — real interest rate, unemployment, real national income — except for a short time, because classical monetary neutrality implies money growth determines inflation but not the factors determining unemployment (minimum-wage laws, union power, efficiency wages, job search)[^mankiw-066].
 - Quoted Friedman passage: the monetary authority controls nominal quantities (its own liabilities, exchange rate, price level, nominal income, money quantity or their growth rates) but cannot peg real quantities[^mankiw-066].
@@ -54,7 +83,7 @@ Natural does not mean desirable or constant[^mankiw-066]. Example: a newly power
 ### 22-2c–d Reconciling theory and evidence — expected inflation
 
 Classical theory predicted monetary neutrality (vertical) while Phillips/Samuelson/Solow data showed downward slope — Friedman and Phelps reconciled by adding **expected inflation**[^mankiw-066].
-- Expected inflation measures how much people expect the overall price level to change; it affects nominal wages and thus the position of short-run aggregate supply; in short run expected inflation is given, so money shifts AD along a given short-run AS causing unexpected fluctuations in output, prices, unemployment, and inflation[^mankiw-066].
+- Expected inflation measures how much people expect the overall price level to change; it affects nominal wages and thus the position of short-run aggregate supply; in short run expected inflation is given, so money shifts AD along a given short-run AS causing unexpected fluctuations in output, prices, unemployment, and inflation[^mankiw-066]. Krugman and Wells present a one-for-one shift: each additional percentage point of expected inflation raises actual inflation by one point at any given unemployment rate.[^krugman-ch16-088]
 - In long run people come to expect whatever inflation the Fed produces, nominal wages adjust, long-run AS is vertical, and output/employment return to natural levels — same logic as sticky-wage AS: price surprises matter only short run[^mankiw-066].
 
 **Expectations-augmented Phillips equation:**
@@ -69,6 +98,7 @@ where *a* measures responsiveness to unexpected inflation. In short run expected
 
 The **natural-rate hypothesis** claims unemployment eventually returns to its natural (normal) rate regardless of inflation[^mankiw-066].
 
+- Krugman and Wells' Spain 2000–2019 scatter (GDP-deflator inflation) similarly shows relatively high inflation in low-unemployment years and near-zero or negative inflation in ultra-high-unemployment years after the housing-bubble collapse. It is descriptive, not a claim of an exact relationship; the source also cautions that measured Spanish unemployment can include people working off the books.[^krugman-ch16-089]
 - **1961–1968 data (Figure 6):** almost perfect downward Phillips curve — as inflation rose unemployment fell — appearing to confirm a stable menu[^mankiw-066].
 - **Prediction:** Friedman and Phelps boldly predicted in 1968 that trying to exploit the curve would cause it to shift once expectations caught up[^mankiw-066].
 - **Test 1968–1973:** Government expanded aggregate demand via Vietnam War fiscal expansion (rising spending) and accommodative monetary policy (Fed holding down rates, M2 growth ~13%/year 1970–72 vs 7% early 1960s) → inflation stayed high ~5–6% late 1960s–early 1970s vs 1–2% early 1960s[^mankiw-066].
@@ -103,11 +133,11 @@ Within a few years attention shifted from expected-inflation shifts to a second 
 
 ### 22-4a Disinflation and the sacrifice ratio (Figure 10)
 
-**Distinction:** **Disinflation** is a reduction in the rate of inflation, not deflation (reduction in price level) — slowing down vs going in reverse[^mankiw-066].
+**Distinction:** **Disinflation** is a reduction in the rate of inflation, not deflation (reduction in price level) — slowing down vs going in reverse[^mankiw-066]. Krugman and Wells' plot of core inflation (excluding food and energy) against unemployment during U.S. mid-1970s and early-1980s disinflations traces clockwise paths: inflation fell only after extended high unemployment. This is descriptive evidence consistent with the temporary cost in the disinflation account, not evidence of a stable Phillips-curve trade-off.[^krugman-ch8-046]
 
 **Policy:** Chairman Paul Volcker (appointed by Carter two months before October 1979) decided to pursue disinflation via contractionary monetary policy as OPEC imposed its second shock[^mankiw-066].
 
-**Mechanics (Figure 10):** Fed slows money growth → AD contracts → quantity produced falls → unemployment rises: economy moves along short-run Phillips A→B (lower inflation, higher unemployment). Over time people understand prices rising more slowly, expected inflation falls, short-run curve shifts downward, economy moves B→C where unemployment back at natural rate at lower inflation[^mankiw-066]. Reducing inflation requires enduring temporarily high unemployment and low output (movement through B)[^mankiw-066].
+**Mechanics (Figure 10):** Fed slows money growth → AD contracts → quantity produced falls → unemployment rises: economy moves along short-run Phillips A→B (lower inflation, higher unemployment). Over time people understand prices rising more slowly, expected inflation falls, short-run curve shifts downward, economy moves B→C where unemployment back at natural rate at lower inflation[^mankiw-066]. Reducing inflation requires enduring temporarily high unemployment and low output (movement through B)[^mankiw-066]. Krugman and Wells give the early-1980s U.S. episode as an illustration: core CPI inflation fell from about 12% at the end of the 1970s to about 4% by the mid-1980s after contractionary Fed policy; the CBO output-gap series bottomed around −7% in 1982 and did not return to potential until 1987. Their summed 1980–1987 output gap is approximately 18% of an average year's output. The source presents a credible announced disinflation as a possible way to lower expectations and reduce, not eliminate, those costs.[^krugman-ch16-089]
 
 **Sacrifice ratio.** Statistic summarizing cost: number of percentage points of annual output lost per 1 percentage-point reduction in inflation; typical estimate is 5[^mankiw-066]. Example: inflation ~10% → target 4% = 6-point reduction ×5 = 30% of annual output sacrificed. Can be spread: 30% in one year, or ~6% below trend for 5 years, or ~3% below trend for a decade; size depends on Phillips slope and speed of expectation adjustment[^mankiw-066].
 
@@ -167,6 +197,10 @@ Chapter traces evolution: Phillips (1958), Samuelson–Solow (1960), Friedman–
   6. Inflation 4→5% while unemployment 6→7% (both rise = stagflation/rightward shift) → (d) appointment of new Fed chair increases expected inflation (or adverse supply shock, not listed; among options d fits rightward shift; c would be favorable shock). Actual listed answer for 6 is adverse supply or expected-inflation increase — among given options (d) is the shift explanation; (c) newly discovered oil would shift left[^mankiw-067].
 - **Questions/Problems preview:** Draw short-run and long-run trade-offs; "natural" meaning and cross-country variation; shift vs movement exercises (natural-rate rise, oil price decline, government spending rise, expected-inflation decline); recession AD-AS + Phillips A→B and expectations shift; pessimism vs oil-price shock whether Fed can restore original inflation and unemployment; Milton (quick expectations) vs James (sluggish) who favors disinflation; natural-rate misperception 4% vs actual 5%; conditions for more/less severe disinflation recession (short wage contracts, low credibility, quick expectations adjustment); 2008 dual AD fall + AS fall A→B and Fed response to point C trade-off[^mankiw-067].
 
+## Check-your-understanding applications
+
+The source's answers restate the expectations mechanism: once expected and actual inflation adjust, wages adjust and unemployment returns to the natural rate, so the long-run Phillips curve is vertical.[^krugman-102] It gives adverse supply shocks (such as oil-price increases) and attempts to hold unemployment below the natural rate as distinct explanations for simultaneous high inflation and unemployment. It also states that disinflation normally requires output below potential and unemployment above the natural rate, but a credible, announced policy can speed expectations adjustment and reduce—not necessarily eliminate—the output loss.[^krugman-102]
+
 ## Relationships
 
 - Depends on: [Short-Run Economic Fluctuations — Three Facts and the Aggregate Demand–Aggregate Supply Model](short-run-economic-fluctuations-aggregate-demand-supply.md) — AD-AS foundation, short-run vs long-run AS, monetary neutrality, stagflation and accommodation
@@ -185,6 +219,16 @@ Chapter traces evolution: Phillips (1958), Samuelson–Solow (1960), Friedman–
 - Source mankiw-066 is OCR of Mankiw Ch.22 §§22-1 to 22-4c (body_tokens 9,992, truncated at Figure 11 caption); source mankiw-067 completes Ch.22 §§22-4c–22-5 with body_tokens 3,982 (includes Figures 11–13) but PART IX Final Thoughts image truncated[^mankiw-066][^mankiw-067].
 - Images `image-000422.jpg`–`image-000437.jpg` (Figures 1–11) and `image-000438.jpg`–`image-000441.jpg` (Figures 12–13) not inspected — positions described from captions only[^mankiw-066][^mankiw-067].
 - This concept now integrates both OCR parts to cover full Ch.22 QuickQuiz (6 items), Summary, Key Concepts, and Questions/Problems preview via mankiw-067[^mankiw-067].
+- Source `087-chapter-16-inflation-disinflation-and-deflation.md` was reviewed in full but ends immediately after the introduction to “Moderate Inflation and Disinflation”; its three embedded figures were visually inspected, though none is used for this concept's claim.[^krugman-ch16-087]
+- Source `088-chapter-16-inflation-disinflation-and-deflation-the-output-gap-and-the.md` was fully read as stored; Figures 16-4–16-10 were visually inspected. Its figures illustrate the output-gap/cyclical-unemployment relationship, the 1955–1968 inverse unemployment–inflation scatter, SRPC shifts from supply shocks and expected inflation, and the breakdown of a stable U.S. curve after 1969.[^krugman-ch16-088]
+- Source `089-chapter-16-inflation-disinflation-and-deflation-economics-in-action.md` was fully read as stored through its endpoint, which introduces and defines debt deflation. Figures 16-11–16-13 and the global-comparison chart were visually inspected.[^krugman-ch16-089]
 
 [^mankiw-066]: Mankiw, *Principles of Macroeconomics* 8th ed., Ch.22 — The Short-Run Trade-off between Inflation and Unemployment, §§22-1 to 22-4c (raw/PrinciplesofMacroeconomics_8thEdition_GregoryMankiw/066-the-short-run-trade-off-between-inflation-and-unemployment.md).
 [^mankiw-067]: Mankiw, *Principles of Macroeconomics* 8th ed., Ch.22 — The Short-Run Trade-off between Inflation and Unemployment — The Volcker Disinflation, §§22-4c–22-5 (raw/PrinciplesofMacroeconomics_8thEdition_GregoryMankiw/067-the-short-run-trade-off-between-inflation-and-unemployment-the-volcker.md).
+[^krugman-ch8-044]: Krugman and Wells, *Macroeconomics*, Ch. 8, “Unemployment and Inflation” (raw/Macroeconomics_Krugman/044-chapter-8-unemployment-and-inflation.md).
+[^krugman-ch8-046]: Krugman and Wells, *Macroeconomics*, Ch. 8, “Unemployment and Inflation — Check Your Understanding 8-2” (raw/Macroeconomics_Krugman/046-chapter-8-unemployment-and-inflation-check-your-understanding-8-2.md; Figure 8-13 visually inspected).
+[^krugman-ch16-087]: Krugman and Wells, *Macroeconomics*, 6th ed., Ch. 16, “Inflation, Disinflation, and Deflation” (raw/Macroeconomics_Krugman/087-chapter-16-inflation-disinflation-and-deflation.md; reviewed through the artifact's endpoint).
+[^krugman-ch16-088]: Krugman and Wells, *Macroeconomics*, 6th ed., Ch. 16, “The Output Gap and the Unemployment Rate,” “The Short-Run Phillips Curve,” and “Inflation Expectations and the Short-Run Phillips Curve” (raw/Macroeconomics_Krugman/088-chapter-16-inflation-disinflation-and-deflation-the-output-gap-and-the.md; Figures 16-4–16-10 visually inspected).
+[^krugman-ch16-089]: Krugman and Wells, *Macroeconomics*, 6th ed., Ch. 16, “Inflation and Unemployment in the Long Run,” “The Costs of Disinflation,” and “Deflation” (raw/Macroeconomics_Krugman/089-chapter-16-inflation-disinflation-and-deflation-economics-in-action.md; Figures 16-11–16-13 and the global-comparison chart visually inspected).
+
+[^krugman-102]: Krugman and Wells, *Macroeconomics*, 6th ed., answers to “Check Your Understanding” §§16-3–16-4, §§17-1–17-3, and §§18-1–18-4 (raw/Macroeconomics_Krugman/102-chapter-18-international-macroeconomics-16-3-check-your-understanding.md; complete stored artifact; four embedded yuan-market diagrams inspected).

@@ -5,7 +5,7 @@ description: Mankiw Ch.14 14-1 — finance as allocation over time and risk, and
 tags: [finance, present-value, future-value, compounding, discounting, time-value-of-money, interest-rate, investment, loanable-funds, rule-of-70, mankiw]
 status: stable
 created: 2026-08-22
-generated: { by: llm-wiki-agent/1, at: 2026-08-22T23:00:00Z }
+generated: { by: llm-wiki-agent/1, at: 2026-08-22T11:14:59Z }
 sources:
   - id: mankiw-ch14-044
     resource: ../raw/PrinciplesofMacroeconomics_8thEdition_GregoryMankiw/044-the-basic-tools-of-finance.md
@@ -13,6 +13,9 @@ sources:
   - id: mankiw-ch14-045
     resource: ../raw/PrinciplesofMacroeconomics_8thEdition_GregoryMankiw/045-the-magic-of-compounding-and-the-rule-of-70.md
     title: "The Magic of Compounding and the Rule of 70 (Mankiw 8th Ed. Ch.14, Part 45)"
+  - id: krugman-ch10-058
+    resource: ../raw/Macroeconomics_Krugman/058-chapter-10-savings-investment-spending-and-the-financial-system-how-to.md
+    title: "Chapter 10 Savings, Investment Spending, and the Financial System — How to Calculate the Present Value of One-Year Projects (Krugman/Wells)"
 ---
 
 # The Basic Tools of Finance — Present Value, Future Value, Compounding, and Discounting
@@ -80,6 +83,14 @@ Win \$1M choice between \$20,000/year for 50 years (total \$1M) vs immediate \$4
 
 QuickQuiz example: interest rate 7%, present value of \$150 to be received in 10 years is $\$150/(1.07)^{10} \approx \$76$[^mankiw-ch14-045].
 
+### Application 3 — net present value
+
+For a project with payments at different dates, **net present value (NPV)** is the present value of all revenues minus the present value of all costs; choose the available project with the highest NPV.[^krugman-ch10-058] At 10%, an immediate \$100 payoff has NPV \$100; paying \$10 now for \$115 next year has NPV \$94.55; receiving \$119 now while paying \$20 next year has NPV \$100.82. Thus the last project is preferred even though simply adding undiscounted flows would rank the projects incorrectly.[^krugman-ch10-058]
+
+### Bond pricing — discounted contractual cash flows
+
+A bond’s value is the present value of its remaining coupon payments plus repayment of face value at maturity, discounted at the **current market rate on comparable bonds**, rather than its coupon rate when issued.[^krugman-ch10-058] In the source’s example, a \$1,000 bond paying a \$60 annual coupon for five remaining years is worth \$1,043.30 when comparable market rates fall from 6% to 5%, but \$1,000 when the market rate remains 6%.[^krugman-ch10-058] Holding maturity, face value, and coupon fixed, a rise in the current market rate lowers an existing bond’s price, and a fall raises it; issuer default risk also lowers price relative to an otherwise equivalent safer bond.[^krugman-ch10-058]
+
 ## The Magic of Compounding and the Rule of 70
 
 Growth rates that seem small in percentage terms are large after compounding for many years[^mankiw-ch14-045].
@@ -107,8 +118,10 @@ Growth rates that seem small in percentage terms are large after compounding for
 ## Coverage limits
 
 - Source 045 images 000284–000295 not inspected; Figure/table numbers follow prose.
+- Source 058 contains two decorative images marked `aria-hidden`; they do not carry material information and were not inspected.
 - Source 045 truncated mid-Chapter 15 after 15-1a (unemployment measurement through January 2016 BLS example, 60,000-household Current Population Survey header visible; subsequent lines truncated). Full Chapter 15 natural-rate explanations (job search, minimum wage, unions, efficiency wages) not compiled here.
 - Source 044 earlier truncation now resolved for lottery example via 045.
 
 [^mankiw-ch14-044]: Mankiw, *Principles of Macroeconomics* 8th ed., Ch.14 — The Basic Tools of Finance (raw/PrinciplesofMacroeconomics_8thEdition_GregoryMankiw/044-the-basic-tools-of-finance.md).
 [^mankiw-ch14-045]: Mankiw, *Principles of Macroeconomics* 8th ed., Ch.14 — The Magic of Compounding, Rule of 70, Risk and Asset Valuation excerpts (raw/PrinciplesofMacroeconomics_8thEdition_GregoryMankiw/045-the-magic-of-compounding-and-the-rule-of-70.md).
+[^krugman-ch10-058]: Krugman and Wells, *Macroeconomics*, 6th ed., Ch. 10 appendix, “How to Calculate the Present Value of One-Year Projects” (raw/Macroeconomics_Krugman/058-chapter-10-savings-investment-spending-and-the-financial-system-how-to.md).

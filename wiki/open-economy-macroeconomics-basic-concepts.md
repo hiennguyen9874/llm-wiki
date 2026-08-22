@@ -5,8 +5,11 @@ description: Basic open-economy concepts — closed vs open economy, exports/imp
 tags: [open-economy, net-exports, trade-balance, exports, imports, international-trade, net-capital-outflow, nco, saving-investment-identity, exchange-rates, nominal-exchange-rate, real-exchange-rate, purchasing-power-parity, macroeconomics]
 status: stable
 created: 2026-08-22
-generated: { by: llm-wiki-agent/1, at: 2026-08-22T18:00:00Z }
+generated: { by: llm-wiki-agent/1, at: 2026-08-22T11:50:30Z }
 sources:
+  - id: krugman-ch6-038
+    resource: ../raw/Macroeconomics_Krugman/038-chapter-6-macroeconomics-the-big-picture-inflation-and-deflation.md
+    title: "Chapter 6 Macroeconomics: The Big Picture — Inflation and Deflation (Krugman/Wells)"
   - id: mankiw-054
     resource: ../raw/PrinciplesofMacroeconomics_8thEdition_GregoryMankiw/054-the-macroeconomics-of-open-economies.md
     title: "Principles of Macroeconomics 8th Edition — 054 The Macroeconomics of Open Economies (Ch.18 Basic Concepts)"
@@ -16,6 +19,15 @@ sources:
   - id: mankiw-056
     resource: ../raw/PrinciplesofMacroeconomics_8thEdition_GregoryMankiw/056-the-complicated-politics-of-trade-agreements-18-3b-implications-of-pur.md
     title: "Principles of Macroeconomics 8th Edition — 056 The Complicated Politics of Trade Agreements 18-3b Implications of PPP (Mankiw Ch.18)"
+  - id: krugman-ch10-053
+    resource: ../raw/Macroeconomics_Krugman/053-chapter-10-savings-investment-spending-and-the-financial-system.md
+    title: "Chapter 10 Savings, Investment Spending, and the Financial System (Krugman/Wells)"
+  - id: krugman-ch10-054
+    resource: ../raw/Macroeconomics_Krugman/054-chapter-10-savings-investment-spending-and-the-financial-system-for-in.md
+    title: "Chapter 10 Savings, Investment Spending, and the Financial System — For inquiring minds (Krugman/Wells)"
+  - id: krugman-ch14-079
+    resource: ../raw/Macroeconomics_Krugman/079-chapter-14-money-banking-and-the-federal-reserve-system-open-market-op.md
+    title: "Chapter 14 Money, Banking, and the Federal Reserve System — Open-Market Operations (Krugman/Wells)"
 ---
 
 # Open-economy macroeconomics — closed vs open economy, net exports and trade balance, and the increasing openness of the U.S. economy
@@ -132,6 +144,14 @@ Saving = Domestic investment + Net capital outflow
 - Financial system stands between the two sides — e.g., Garcia family saves for retirement, deposits in mutual fund: fund buys General Motors stock → GM builds factory in Ohio (domestic investment); fund also buys Toyota stock → Toyota builds factory in Osaka (U.S. NCO)[^mankiw-055].
 - When national saving exceeds domestic investment, NCO > 0 — nation uses saving to buy assets abroad; when investment exceeds saving, NCO < 0 — foreigners finance domestic investment by purchasing domestic assets[^mankiw-055].
 
+#### Equivalent net-capital-inflow convention
+
+Krugman and Wells define **net capital inflow** as foreign funds entering a country minus domestic funds leaving it: $NCI=IM-X=-NX$. Rearranging the GDP identity gives the equivalent open-economy identity $I=S_{National}+NCI$.[^krugman-ch10-053] It is the same accounting relationship as Mankiw's $S=I+NCO$, because $NCI=-NCO$; the sign convention states whether the cross-border balance is named as an inflow or an outflow.
+
+Their government budget balance is $S_{Government}=T-G-TR$, where $TR$ is government transfers; national saving is $S_{National}=S_{Government}+S_{Private}$.[^krugman-ch10-053] This makes explicit the transfer adjustment that Mankiw incorporates by defining $T$ as taxes net of transfers.[^mankiw-ch13]
+
+**2018 illustration.** The inspected figure reports U.S. investment spending of 21.0% of GDP, financed by private saving (24.1%) and a positive net capital inflow (2.4%), offset by a budget deficit (−5.7%). Germany's 21.8% investment spending was financed by private saving (27.2%) and a budget surplus (1.9%), offset by a capital outflow (NCI −7.3%). The source notes that rounded components need not exactly equal investment because of a statistical discrepancy.[^krugman-ch10-053]
+
 ### 18-1e Summing up — Table 1: three outcomes for an open economy
 
 | | Trade Deficit | Balanced Trade | Trade Surplus |
@@ -145,6 +165,8 @@ Saving = Domestic investment + Net capital outflow
 [^mankiw-055].
 
 Logic: surplus → Y > domestic spending → S > I → must send saving abroad → NCO > 0; deficit → Y < spending → S < I → must finance investment by selling assets abroad → NCO < 0; balanced trade → Y = spending, S = I, NCO = 0[^mankiw-055]. U.S. in recent years is the deficit case[^mankiw-055].
+
+Krugman and Wells give the same high-level distinction: high investment spending relative to saving is associated with trade deficits, while low investment relative to saving is associated with surpluses. They caution that the balance alone has no simple relationship to an economy's productivity or the desirability of its products.[^krugman-ch6-038]
 
 ### Case Study: Is the U.S. trade deficit a national problem?
 
@@ -167,6 +189,16 @@ American press often called U.S. "world's largest debtor" after three decades of
 - Deficit induced by *fall in saving* (1980s): lower saving means less set aside for future — the deficit itself is not the problem; if saving fell without deficit, investment would have to fall, hurting capital stock, productivity and real wages; given saving decline, better to have foreigners invest than no one[^mankiw-055].
 - Deficit induced by *investment boom* (1990s): borrowing to finance new capital that if it earns good return (higher production) economy can handle debt; if projects fail, debt looks less desirable in hindsight[^mankiw-055].
 - Bottom line: like an individual, a nation can go into debt prudently or profligately; trade deficit is not a problem *per se* but can be a symptom[^mankiw-055].
+
+#### Greece: capital inflows and an abrupt external adjustment
+
+Krugman and Wells use Greece as an illustration rather than a general causal estimate. After adopting the euro in 1999, Greece ran large current-account deficits; the source reports a peak near 16% of GDP in the mid-2000s. It attributes the deficits and rapid expansion to optimistic foreign investors and capital inflows. After 2008, those inflows dried up; Greece could no longer sustain the large deficit, was near surplus by 2013, and suffered a severe recession.[^krugman-ch6-038]
+
+The example reinforces that a changing trade/current-account balance can reflect changing saving, investment, and cross-border financing conditions, not a simple verdict on economic performance.[^krugman-ch6-038]
+
+### Global loanable funds market — limiting case
+
+If cross-border capital flows are sufficiently large and investors view foreign and domestic assets and liabilities as equivalent, flows narrow interest-rate differences and can equalize national rates: a **global loanable funds market**.[^krugman-ch10-054] In the source's two-country illustration, a 6% U.S. rate and 2% British rate induce lending from Britain to the United States; flows continue to a common 4%, where U.S. excess borrowing is a capital inflow and British excess lending is a capital outflow.[^krugman-ch10-054] Different currencies and expected exchange-rate movements make this a useful abstraction rather than a general description of actual financial markets.[^krugman-ch10-054]
 
 **ASK THE EXPERTS — Trade Balances and Trade Negotiations** (IGM Economic Experts Panel, Dec 9, 2014 and Mar 22, 2016) — two survey images (000349–000350) included in source but not visually inspected for statement text beyond title; not synthesized beyond existence[^mankiw-055].
 
@@ -208,6 +240,10 @@ Measures price of domestic basket relative to foreign basket[^mankiw-055].
 - **Political motive:** reduce nationalistic feelings, foster shared history/destiny — single money for continent would help[^mankiw-055].
 - **Cost:** only one monetary policy — if nations disagree about best policy they must agree rather than each going its own way; debate whether adoption was good[^mankiw-055].
 - **2010–2015 crisis:** several nations had economic difficulties; Greece ran up large government debt, faced possible default, had to raise taxes and cut spending; some argued problems would have been easier with national monetary policy; possibility of Greece leaving euro and reintroducing own currency discussed but did not occur[^mankiw-055].
+
+### ECB institutional analogy
+
+Krugman/Wells dates the ECB's creation to January 1999, when 11 nations adopted the euro and delegated joint monetary policy; it reports Lithuania as the nineteenth euro adopter in 2015[^krugman-ch14-079]. It characterizes the ECB as analogous to the Fed's Board of Governors, with national central banks playing a role analogous to regional Federal Reserve Banks: national banks provide local services and conduct operations, while monetary-policy decisions sit with the ECB[^krugman-ch14-079]. Its Executive Board is compared with the Fed Board, and its Governing Council — Executive Board plus national-central-bank heads — with the FOMC[^krugman-ch14-079]. These are institutional comparisons and source-era membership facts, not a current governance directory.
 
 QuickQuiz in text: define nominal vs real and relation; if nominal goes 100→120 yen/dollar dollar has appreciated[^mankiw-055].
 
@@ -304,6 +340,9 @@ The chapter's purpose was to develop basic open-economy concepts for the next ch
 - Source 056 images 000354–000357 not visually extracted; Figure 3 German hyperinflation source Sargent 1983 and Big Mac table Jan 2016 data are taken from surrounding prose and tables, which fully encode values[^mankiw-056].
 - QuickQuiz answers for 18-1 and 18-2 were truncated in 055 extraction but definitions sufficient; 056 QuickQuiz on Mexico/Japan answered by synthesis from PPP rule[^mankiw-056].
 - Chapter 18 Problems 1–9, Questions for Review 1–5, and FYI boxes beyond those cited are listed in summary but not synthesized in detail beyond table of key concepts; not needed for durable PPP/price-level synthesis.
+- Krugman/Wells source 053 was compiled through the beginning of a separately stored present-value callout; its Figures 10-1 and 10-2 were visually inspected. Only its open-economy accounting identity, budget-balance definitions, and Figure 10-1 components are used here.
+- Krugman/Wells source 054 is complete; Figures 10-7 and 10-8, which show the two-country autarkic and international equilibria, were visually inspected.
+- Krugman/Wells source 079 is complete. Its ECB account is compiled as a source-era institutional analogy; Figures 14-7 through 14-9 were inspected for related Fed material, not as evidence for the ECB paragraph. No credentials, PII, or disclosure markings detected.
 
 ## Relationships
 
@@ -320,4 +359,8 @@ The chapter's purpose was to develop basic open-economy concepts for the next ch
 
 [^mankiw-054]: Mankiw, *Principles of Macroeconomics* 8th ed., Ch. 18 — Open-Economy Macroeconomics: Basic Concepts (raw/054-the-macroeconomics-of-open-economies.md, part 54, extracted text and Figure 1).
 [^mankiw-055]: Mankiw, *Principles of Macroeconomics* 8th ed., Ch. 18 — Flow of Financial Resources, NCO=NX, Saving–Investment, Exchange Rates, PPP, Euro FYI, and In the News TPP debate (raw/055-the-complicated-politics-of-trade-agreements.md, part 55, body_tokens 9672).
-[^mankiw-056]: Mankiw, *Principles of Macroeconomics* 8th ed., Ch. 18 — Implications of PPP, Limitations, Hamburger Standard, Hyperinflation Figure 3, and Conclusion (raw/056-the-complicated-politics-of-trade-agreements-18-3b-implications-of-pur.md, part 56, body_tokens 4974).
+[^mankiw-056]: Mankiw, *Principles of Macroeconomics* 8th ed., Ch.18 — Implications of PPP, Limitations, Hamburger Standard, Hyperinflation Figure 3, and Conclusion (raw/056-the-complicated-politics-of-trade-agreements-18-3b-implications-of-pur.md, part 56, body_tokens 4974).
+[^krugman-ch6-038]: Krugman and Wells, *Macroeconomics*, 6th ed., ch. 6, “Inflation and Deflation,” international-imbalances section and Figure 6-10 (raw/Macroeconomics_Krugman/038-chapter-6-macroeconomics-the-big-picture-inflation-and-deflation.md; figure visually inspected).
+[^krugman-ch10-053]: Krugman and Wells, *Macroeconomics*, 6th ed., Ch. 10, “Savings, Investment Spending, and the Financial System” (raw/Macroeconomics_Krugman/053-chapter-10-savings-investment-spending-and-the-financial-system.md; Figure 10-1 visually inspected).
+[^krugman-ch10-054]: Krugman and Wells, *Macroeconomics*, 6th ed., Ch. 10, “Savings, Investment Spending, and the Financial System — For inquiring minds” (raw/Macroeconomics_Krugman/054-chapter-10-savings-investment-spending-and-the-financial-system-for-in.md; Figures 10-7–10-8 visually inspected).
+[^krugman-ch14-079]: Krugman and Wells, *Macroeconomics*, 6th ed., Ch. 14, “Money, Banking, and the Federal Reserve System — Open-Market Operations” (raw/Macroeconomics_Krugman/079-chapter-14-money-banking-and-the-federal-reserve-system-open-market-op.md).

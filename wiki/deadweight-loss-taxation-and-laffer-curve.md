@@ -5,11 +5,14 @@ description: Mankiw Ch.8 — how taxes create deadweight loss, why labor-supply 
 tags: [deadweight-loss, taxation, laffer-curve, labor-supply-elasticity, supply-side-economics, tax-revenue, market-efficiency, mankiw]
 status: stable
 created: 2026-08-22
-generated: { by: llm-wiki-agent/1, at: 2026-08-22T22:00:00Z }
+generated: { by: llm-wiki-agent/1, at: 2026-08-22T22:00:01Z }
 sources:
   - id: mankiw-029
     resource: ../raw/PrinciplesofMacroeconomics_8thEdition_GregoryMankiw/029-the-invisible-hand-can-park-your-car-the-deadweight-loss-debate.md
     title: "The Invisible Hand Can Park Your Car — THE DEADWEIGHT LOSS DEBATE — Principles of Macroeconomics, 8th Edition (N. Gregory Mankiw)"
+  - id: krugman-ch17-092
+    resource: ../raw/Macroeconomics_Krugman/092-chapter-17-macroeconomics-events-and-ideas-rational-expectations-and-n.md
+    title: "Chapter 17 Macroeconomics: Events and Ideas — Rational Expectations and New Classical Economics (Krugman/Wells)"
 ---
 
 # Deadweight Loss, Taxation, and the Laffer Curve — Labor Supply Elasticity and How Revenue Varies with Tax Size
@@ -77,6 +80,8 @@ Arthur Laffer, in a Washington restaurant with journalists and politicians, drew
 ### Supply-side economics
 
 Because the rate cut was intended to encourage people to increase quantity of labor supplied, the views of Laffer and Reagan became known as **supply-side economics**[^mankiw-029]. Reagan ran in 1980 on cutting taxes: lower taxes → more incentive to work → higher incomes and well-being; incomes could rise enough that revenue might increase despite lower rates[^mankiw-029].
+
+Krugman and Wells report that Kansas's 2012 large state-tax cuts were followed by growth and job creation below the national average and a sharply higher state deficit; Kansas raised taxes in 2017 amid a fiscal crisis and service cuts. The source treats this as evidence against strong supply-side claims at then-current U.S. tax rates, while agreeing that tax cuts can raise work and investment incentives.[^krugman-ch17-092]
 
 ### Ongoing debate
 
@@ -208,3 +213,4 @@ $2 per unit paid to buyer: demand perceived price falls, quantity rises beyond e
 No internal factual contradiction; source presents unresolved empirical/policy disagreement as view-dependent on labor-supply elasticity: one group sees ~40% labor tax as small distortion (near-vertical supply for prime-age breadwinners) while another sees large distortion via overtime, second earners, elderly retirement, and underground economy — without choosing between them, noting debate persists in political platforms[^mankiw-029]. Laffer-revenue question likewise presented as debated — some view 1980s U.S. cuts as refutation, others as favorable, with intermediate position that cuts sometimes raise revenue for high-rate taxpayers (Sweden 80% example) but normally reduce revenue — presented as disagreement and conditional claim rather than contradiction[^mankiw-029].
 
 [^mankiw-029]: Mankiw, *Principles of Macroeconomics* 8th ed., Ch. 8 — Application: The Costs of Taxation (deadweight loss debate, Figure 6, Laffer curve and supply-side economics, Ask the Experts, summary, problems 1–10) (raw/PrinciplesofMacroeconomics_8thEdition_GregoryMankiw/029-the-invisible-hand-can-park-your-car-the-deadweight-loss-debate.md).
+[^krugman-ch17-092]: Krugman and Wells, *Macroeconomics*, 6th ed., Ch. 17, “Supply-Side Economics” (raw/Macroeconomics_Krugman/092-chapter-17-macroeconomics-events-and-ideas-rational-expectations-and-n.md; complete stored artifact).

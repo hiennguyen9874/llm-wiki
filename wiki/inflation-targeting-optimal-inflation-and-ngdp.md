@@ -5,7 +5,7 @@ description: Why central banks target positive inflation, the trade-offs of 2% v
 tags: [inflation, inflation-targeting, monetary-policy, central-banking, gold-standard, nominal-gdp, price-stability, malinvestment]
 status: stable
 created: 2026-08-22
-generated: { by: llm-wiki-agent/1, at: 2026-08-22T23:20:00Z }
+generated: { by: llm-wiki-agent/1, at: 2026-08-22T12:03:53Z }
 sources:
   - id: harford-ch4
     resource: ../raw/TheUndercoverEconomistStrikesBack-TimHarford/007-just-enough-inflation.md
@@ -13,6 +13,9 @@ sources:
   - id: mankiw-070
     resource: ../raw/PrinciplesofMacroeconomics_8thEdition_GregoryMankiw/070-on-kiwis-and-currencies.md
     title: "On Kiwis and Currencies — The Goal of 2% Inflation, Rethought (Mankiw 8th Ed. Ch.23 §§23-4c–23-7)"
+  - id: krugman-ch15-084
+    resource: ../raw/Macroeconomics_Krugman/084-chapter-15-monetary-policy-monetary-policy-in-practice.md
+    title: "Chapter 15 Monetary Policy — Monetary Policy in Practice (Krugman/Wells)"
 ---
 
 # Inflation targeting and the case for higher inflation (2% vs 3–4% and NGDP)
@@ -105,6 +108,10 @@ Central banks aim for *just enough* inflation — currently about 2% — not zer
 - **Blinder framing:** Alan Blinder (ex-Fed vice chair, *Hard Heads, Soft Hearts*) — low/moderate inflation costs are "more like a bad cold than a cancer"; prescribing the lobotomy of high unemployment to cure the cold is irrational; better to live with moderate inflation[^mankiw-070].
 - **Additional Mankiw note:** In positive-inflation context, cut in nominal below inflation produces negative real; economy sometimes needs negative real to provide sufficient demand stimulus — an option ruled out by zero inflation; this underpins the 2% buffer logic[^mankiw-070].
 
+## Krugman/Wells: inflation targeting as a policy regime
+
+The source describes the Fed's January 2012 announcement of an approximately 2% annual inflation objective as joining other explicit inflation targeters.[^krugman-ch15-084] In this account, targeting is forward-looking—policy responds to forecast inflation—whereas a Taylor-rule approach responds to past inflation and realized output or unemployment gaps. Transparency and accountability are its claimed advantages; the trade-off is that an inflexible target can underweight financial stability or recovery risks.[^krugman-ch15-084] See [Taylor rule, monetary-policy reaction function, and evidence](taylor-rule-monetary-policy-reaction-function-and-evidence.md) for the rule comparison and source-era Fed divergence.
+
 ## Relationships
 
 - Depends on: [Sticky prices, nominal rigidity, and why money matters](sticky-prices-and-monetary-non-neutrality.md)
@@ -116,3 +123,4 @@ Central banks aim for *just enough* inflation — currently about 2% — not zer
 
 [^harford-ch4]: Harford, *The Undercover Economist Strikes Back*, ch. 4 (JUST ENOUGH INFLATION).
 [^mankiw-070]: Mankiw, *Principles of Macroeconomics* 8th ed., Ch.23 — On Kiwis and Currencies / 23-4c to 23-7 (raw/PrinciplesofMacroeconomics_8thEdition_GregoryMankiw/070-on-kiwis-and-currencies.md, images 000449–000457 not inspected).
+[^krugman-ch15-084]: Krugman and Wells, *Macroeconomics*, 6th ed., Ch. 15, “Monetary Policy in Practice” (raw/Macroeconomics_Krugman/084-chapter-15-monetary-policy-monetary-policy-in-practice.md; Figures 15-8–15-11 visually inspected).

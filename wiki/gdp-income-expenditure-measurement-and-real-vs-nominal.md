@@ -5,11 +5,23 @@ description: Mankiw's GDP as market value of final goods and services — income
 tags: [gdp, macroeconomics, national-accounts, measurement, real-gdp, gdp-deflator, consumption, investment]
 status: stable
 created: 2026-08-22
-generated: { by: llm-wiki-agent/1, at: 2026-08-22T12:00:00Z }
+generated: { by: llm-wiki-agent/1, at: 2026-08-22T11:02:32Z }
 sources:
   - id: mankiw-ch10
     resource: ../raw/PrinciplesofMacroeconomics_8thEdition_GregoryMankiw/034-the-data-of-macroeconomics.md
     title: "The Data of Macroeconomics"
+  - id: krugman-ch7-040
+    resource: ../raw/Macroeconomics_Krugman/040-chapter-7-gdp-and-the-cpi-tracking-the-macroeconomy.md
+    title: "Chapter 7 GDP and the CPI: Tracking the Macroeconomy"
+  - id: krugman-ch7-041
+    resource: ../raw/Macroeconomics_Krugman/041-chapter-7-gdp-and-the-cpi-tracking-the-macroeconomy-pitfalls.md
+    title: "Chapter 7 GDP and the CPI: Tracking the Macroeconomy — Pitfalls"
+  - id: krugman-ch7-043
+    resource: ../raw/Macroeconomics_Krugman/043-chapter-7-gdp-and-the-cpi-tracking-the-macroeconomy-practice-questions.md
+    title: "Chapter 7 GDP and the CPI: Tracking the Macroeconomy — Practice questions"
+  - id: krugman-ch10-053
+    resource: ../raw/Macroeconomics_Krugman/053-chapter-10-savings-investment-spending-and-the-financial-system.md
+    title: "Chapter 10 Savings, Investment Spending, and the Financial System (Krugman/Wells)"
 ---
 
 # GDP — income-expenditure identity, measurement rules, components, and real versus nominal
@@ -21,6 +33,15 @@ GDP measures total income and total expenditure simultaneously because every tra
 - For the economy as a whole income must equal expenditure; GDP can be computed either way[^mankiw-ch10].
 - Simple circular-flow: households buy from firms via goods-and-services markets; firms pay factors via factor markets; money flows continuously[^mankiw-ch10]. Simplified assumptions (all goods bought by households, all income spent) are later relaxed — taxes/saving and government/firm purchases split the flow but buyer-seller identity remains[^mankiw-ch10].
 - Reporter statistics — GDP, inflation/deflation, unemployment, retail sales, trade deficit — are macroeconomic, about the entire economy[^mankiw-ch10].
+
+### Three equivalent accounting views
+
+Krugman and Wells' expanded circular-flow diagram distinguishes its real side — goods-and-services transactions among households, firms, government, and the rest of the world — from financial flows. On the real side, GDP can be calculated equivalently as (1) the value of final output, or the sum of firms' value added; (2) aggregate spending on domestically produced final goods and services; or (3) factor income (wages, interest, rent, and profit).[^krugman-ch7-040]
+
+Their ore → steel → car example makes the double-counting rule concrete: $4,200 of ore, $9,000 of steel, and a $21,500 car yield $21,500 GDP, not $34,700 in gross sales, because value added is $4,200 + $4,800 + $12,500. The same $21,500 equals final spending on the car and total factor payments ($15,700 wages, $2,600 interest, $1,000 rent, and $2,200 profit).[^krugman-ch7-040]
+
+> [!note] Source transcription inconsistency
+> Chapter 7's prose identifies the spending components as $C$, $I$, $G$, exports $X$, minus imports $IM$, but its displayed Equation 7-1 is rendered `$GDP = C + I + C + X - IM$`. This page retains the standard $C+I+G+NX$ identity, now independently displayed correctly as $GDP=C+I+G+X-IM$ in Krugman and Wells Ch. 10 as well as in the Mankiw source; the raw Chapter 7 equation should not be treated as evidence that government purchases are consumption.[^krugman-ch7-040][^krugman-ch10-053][^mankiw-ch10]
 
 ## 10-2 Definition — seven phrases
 
@@ -98,9 +119,21 @@ Real (base 2016 prices): 2016 $200; 2017 ($1×150+$2×100)=$350; 2018 ($1×200+$
 - **Inflation rate** between years = (Deflator year2 − Deflator year1)/Deflator year1 ×100. 2017: (171−100)/100×100=71%; 2018: (240−171)/171×100≈40%[^mankiw-ch10].
 - GDP deflator vs. consumer price index (CPI) preview — alternative price measure examined next chapter[^mankiw-ch10].
 
+### Base-year choice and chain-linking
+
+A fixed base year is a useful explanation of real GDP but can give slightly different growth rates depending on whether an early or late year's prices are used: Krugman and Wells' two-good example yields 15% growth at the early prices versus 15.4% at the late prices. Neither is uniquely correct; the source describes the U.S. national accounts as **chain-linking** — averaging growth rates calculated with early and late base-year prices — and reporting real GDP in chained dollars.[^krugman-ch7-041]
+
 ### Half century of real GDP
 
 Quarterly US real GDP since 1965: most obvious feature is growth — 2015 level >4× 1965, ~3% average annual growth enabling higher prosperity than parents/grandparents; growth not steady, interrupted by recessions (shaded bars, old rule-of-thumb two consecutive quarters of falling real GDP) associated with lower incomes, rising unemployment, falling profits, bankruptcies; macro models separate long-run growth from short-run fluctuations[^mankiw-ch10].
+
+## Worked accounting applications
+
+The source's Micronia and Macronia circular-flow exercises make the accounting identities operational. In Micronia, $C=650$, $G=100$, and $X=IM=20$, so $GDP=750$; the $750$ of factor income less $100$ in taxes equals $650$ disposable income and equals consumer spending. In Macronia, $C=510$, $I=110$, $G=150$, and $NX=50-20=30$, so $GDP=800$; $800-100+10=710$ disposable income, which funds $510$ consumption and $200$ private saving.[^krugman-ch7-043]
+
+The supplied 2018 BEA component table yields $C=13{,}998.2$ billion, $I=3{,}628.3$ billion, $G=3{,}591.5$ billion, and $NX=-638.2$ billion, for GDP of $20{,}579.8$ billion (rounding to $20{,}580$ billion).[^krugman-ch7-043] Its Pizzania exercises likewise give the same GDP by each accounting route: when bread and cheese are inputs only, final-pizza spending, total value added, and factor income each equal $200$; when consumers also buy final bread and cheese, all three equal $275$.[^krugman-ch7-043]
+
+The source also applies the final-output rule: a new domestic bottling plant and books newly added to inventories are investment and count in GDP; a U.S.-produced wine export counts; an existing airplane resale and existing stock sale do not. An imported perfume purchase can enter consumption but is offset by imports in $NX$, so it does not add to U.S. GDP.[^krugman-ch7-043]
 
 ## QuickQuiz answers
 
@@ -110,7 +143,7 @@ Quarterly US real GDP since 1965: most obvious feature is growth — 2015 level 
 
 ## Coverage limits
 
-Source images (circular-flow Figure 1, real-GDP Figure 2, table screenshots) not inspected; content derived from extracted OCR text. News sidebar reproduced as in source.
+Mankiw source images (circular-flow Figure 1, real-GDP Figure 2, table screenshots) were not inspected; its content derives from extracted OCR text. For Krugman source 041, the components-of-GDP and GDP-per-capita/life-satisfaction figures were visually inspected; the source ends at the introduction to price indexes and does not cover CPI construction.
 
 ## Relationships
 
@@ -123,3 +156,7 @@ Source images (circular-flow Figure 1, real-GDP Figure 2, table screenshots) not
 - See also: [Business cycle, recession, and Japan's lost growth](business-cycle-recession-and-japan.md)
 
 [^mankiw-ch10]: Mankiw, *Principles of Macroeconomics* 8th ed., ch. 10 — The Data of Macroeconomics (034).
+[^krugman-ch7-040]: Krugman and Wells, *Macroeconomics*, 6th ed., ch. 7, “GDP and the CPI: Tracking the Macroeconomy” (040). The expanded circular-flow and GDP-calculation figures were visually inspected.
+[^krugman-ch7-041]: Krugman and Wells, *Macroeconomics*, 6th ed., ch. 7, “GDP and the CPI: Tracking the Macroeconomy — Pitfalls” (041).
+[^krugman-ch7-043]: Krugman and Wells, *Macroeconomics*, 6th ed., ch. 7, “GDP and the CPI: Tracking the Macroeconomy — Practice questions” (043). Circular-flow diagrams for Micronia and Macronia were visually inspected.
+[^krugman-ch10-053]: Krugman and Wells, *Macroeconomics*, 6th ed., Ch. 10, “Savings, Investment Spending, and the Financial System” (raw/Macroeconomics_Krugman/053-chapter-10-savings-investment-spending-and-the-financial-system.md).

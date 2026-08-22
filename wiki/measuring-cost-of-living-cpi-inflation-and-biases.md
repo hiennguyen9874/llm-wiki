@@ -5,7 +5,7 @@ description: How the CPI measures the cost of the typical consumer's basket, how
 tags: [cpi, inflation, cost-of-living, price-index, bls, gdp-deflator, substitution-bias, new-goods, quality-change]
 status: stable
 created: 2026-08-22
-generated: { by: llm-wiki-agent/1, at: 2026-08-22T14:30:00Z }
+generated: { by: llm-wiki-agent/1, at: 2026-08-22T10:41:19Z }
 sources:
   - id: mankiw-ch11
     resource: ../raw/PrinciplesofMacroeconomics_8thEdition_GregoryMankiw/037-measuring-the-cost-of-living.md
@@ -13,6 +13,15 @@ sources:
   - id: mankiw-038
     resource: ../raw/PrinciplesofMacroeconomics_8thEdition_GregoryMankiw/038-in-the-news.md
     title: "Ch.11 11-1c–11-3 and In the News — Principles of Macroeconomics 8th ed."
+  - id: krugman-ch7-041
+    resource: ../raw/Macroeconomics_Krugman/041-chapter-7-gdp-and-the-cpi-tracking-the-macroeconomy-pitfalls.md
+    title: "Chapter 7 GDP and the CPI: Tracking the Macroeconomy — Pitfalls"
+  - id: krugman-ch7-042
+    resource: ../raw/Macroeconomics_Krugman/042-chapter-7-gdp-and-the-cpi-tracking-the-macroeconomy-market-baskets-and.md
+    title: "Chapter 7 GDP and the CPI: Tracking the Macroeconomy — Market Baskets and Price Indexes"
+  - id: krugman-ch7-043
+    resource: ../raw/Macroeconomics_Krugman/043-chapter-7-gdp-and-the-cpi-tracking-the-macroeconomy-practice-questions.md
+    title: "Chapter 7 GDP and the CPI: Tracking the Macroeconomy — Practice questions"
 ---
 
 # Measuring the Cost of Living — CPI, Inflation, and Biases
@@ -26,12 +35,13 @@ The consumer price index (CPI) measures the overall cost of goods and services b
 - Preceding chapter measured quantity via GDP; this chapter measures cost of living via CPI to convert dollar figures into purchasing power[^mankiw-ch11].
 - When CPI rises, the typical family needs more money to maintain the same standard of living[^mankiw-ch11].
 - **Inflation** — situation where economy's overall price level is rising; **inflation rate** — percentage change in price index from previous period[^mankiw-ch11]. GDP deflator measures inflation from all goods produced; CPI — more relevant to consumers — is what the nightly news reports[^mankiw-ch11]. As a background for later macro policy, inflation is a closely watched performance and policy variable[^mankiw-ch11].
+- The **aggregate price level** is a single measure of the overall level of prices in the economy; a price index is needed because individual consumer prices can move in opposite directions (for example, gasoline falling while rents rise).[^krugman-ch7-041]
 
 ## 11-1 The Consumer Price Index
 
 **Consumer price index (CPI)** — a measure of the overall cost of the goods and services bought by a typical consumer[^mankiw-ch11].
 
-Computed and reported monthly by the Bureau of Labor Statistics (BLS), part of the Department of Labor, from thousands of goods and services[^mankiw-ch11].
+Computed and reported monthly by the Bureau of Labor Statistics (BLS), part of the Department of Labor, from thousands of goods and services[^mankiw-ch11]. The Krugman/Wells source describes field collection at about 23,000 retail outlets in 87 cities and tabulation of about 80,000 prices each month; these figures are source-period-specific, not a claim about current BLS operations.[^krugman-ch7-042]
 
 Also reported: narrow category indexes (food, clothing, energy), **core CPI** (all goods and services excluding food and energy — less volatile, better reflects ongoing trend), and **producer price index (PPI)** — cost of basket bought by firms rather than consumers; PPI changes often predict CPI changes because firms pass costs on[^mankiw-ch11].
 
@@ -77,7 +87,11 @@ BLS weights by consumer spending — "relative importance"[^mankiw-ch11]:
 - **Apparel 3%** — clothing, footwear, jewelry[^mankiw-ch11].
 - **Other goods and services 3%** — catchall (cigarettes, haircuts, funeral expenses)[^mankiw-ch11].
 
-*Source: Bureau of Labor Statistics, as reproduced in Mankiw Figure 1*[^mankiw-ch11].
+*Source: Bureau of Labor Statistics, as reproduced in Mankiw Figure 1*[^mankiw-ch11]. Krugman/Wells' December 2018 breakdown gives the closely matching categories housing 42.2%, food and beverages 14.3%, transportation excluding motor fuel 12.6%, medical care 8.7%, education and communication 6.6%, recreation 5.7%, motor fuel 3.8%, apparel 3.0%, and other goods and services 3.2%; its chart was visually inspected.[^krugman-ch7-042].
+
+### Household baskets need not match the CPI
+
+CPI is a typical-household measure, not an individual cost-of-living index: a household whose expenditure shares differ from the published weights can experience a higher or lower price change. In the source's August 2019 illustration, category CPI values and hypothetical spending shares produce a weighted index of **187.1** for a retired person (60% medical care) and **192.9** for a college student (40% education), both above the all-items CPI of 158.4. These are illustrative basket-specific calculations, not estimates of every retiree's or student's inflation.[^krugman-ch7-043]
 
 ## 11-1b Problems in measuring the cost of living
 
@@ -127,3 +141,7 @@ Collectively these biases mean the CPI overstates inflation; the magnitude is de
 - See also: [GDP limitations and alternative welfare measures](gdp-limitations-and-welfare.md)
 
 [^mankiw-ch11]: Mankiw, *Principles of Macroeconomics* 8th ed., ch. 11 — Measuring the Cost of Living (037).
+[^mankiw-038]: Mankiw, *Principles of Macroeconomics* 8th ed., ch. 11 §§11-1c–11-3 and “In the News” (038).
+[^krugman-ch7-041]: Krugman and Wells, *Macroeconomics*, 6th ed., ch. 7, “GDP and the CPI: Tracking the Macroeconomy — Pitfalls” (041).
+[^krugman-ch7-042]: Krugman and Wells, *Macroeconomics*, 6th ed., ch. 7, “GDP and the CPI: Tracking the Macroeconomy — Market Baskets and Price Indexes” (042). Figure 7-6 was visually inspected.
+[^krugman-ch7-043]: Krugman and Wells, *Macroeconomics*, 6th ed., ch. 7, “GDP and the CPI: Tracking the Macroeconomy — Practice questions” (043).

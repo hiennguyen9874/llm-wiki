@@ -5,11 +5,14 @@ description: How the BLS clipboard-based CPI compares to daily web-scraped alter
 tags: [cpi, inflation, measurement, billion-prices-project, google-price-index, bls, internet]
 status: stable
 created: 2026-08-22
-generated: { by: llm-wiki-agent/1, at: 2026-08-22T12:00:00Z }
+generated: { by: llm-wiki-agent/1, at: 2026-08-22T10:39:04Z }
 sources:
   - id: mankiw-038-news
     resource: ../raw/PrinciplesofMacroeconomics_8thEdition_GregoryMankiw/038-in-the-news.md
     title: "IN THE NEWS — Monitoring Inflation in the Internet Age / Ch.11 11-1c–11-3 — Principles of Macroeconomics 8th ed."
+  - id: krugman-ch7-042
+    resource: ../raw/Macroeconomics_Krugman/042-chapter-7-gdp-and-the-cpi-tracking-the-macroeconomy-market-baskets-and.md
+    title: "Chapter 7 GDP and the CPI: Tracking the Macroeconomy — Market Baskets and Price Indexes"
 ---
 
 # Monitoring Inflation in the Internet Age — Billion Prices Project and Google Price Index
@@ -55,6 +58,12 @@ Web-scraped price indexes — the MIT Billion Prices Project (BPP) and Google Pr
 - Section notes BLS had already adopted several technical changes in response to 1990s studies concluding CPI overstated inflation by ~1 percentage point per year; bias now believed about half as large[^mankiw-038-news].
 - Government programs use CPI to adjust for overall price level; Social Security recipients get annual increases tied to CPI — some economists suggest reducing automatic benefit increases to correct measurement problems[^mankiw-038-news].
 
+## Later textbook case — independent, faster estimates
+
+Krugman/Wells describes the BPP as an independent check where official statistics cannot be trusted: for Argentina during 2007–2016, the source reports a mid-2015 BPP estimate of 27.18% annual inflation versus an official 14.85%. In its U.S. comparison, the respective reported rates were −0.60% and 0.17%.[^krugman-ch7-042] These are historical illustrations, not current estimates or a general verdict on any statistical agency.
+
+The source says PriceStats (owned by State Street Bank) sold BPP-based, real-time estimates to business subscribers a few weeks before official CPI releases. Its distinction is speed, not proof that web prices can replace a representative, spending-weighted CPI: online prices can miss goods, services, and weights in household expenditure.[^krugman-ch7-042]
+
 ## Coverage limits
 
 - Images `image-000239.jpg`, `image-000240.jpg` (GOGO IMAGES CORPORATION/ALAMY "I wonder how much this costs online") not inspected[^mankiw-038-news].
@@ -68,3 +77,4 @@ Web-scraped price indexes — the MIT Billion Prices Project (BPP) and Google Pr
 - See also: [Inflation targeting and the case for higher inflation (2% vs 3–4% and NGDP)](inflation-targeting-optimal-inflation-and-ngdp.md) — why daily vs monthly matters for policy
 
 [^mankiw-038-news]: Mankiw, *Principles of Macroeconomics* 8th ed., "Monitoring Inflation in the Internet Age — Do We Need Google to Measure Inflation?" (Annie Lowrey, Slate Dec 20, 2010) and surrounding Ch.11 text, in 038-in-the-news.md.
+[^krugman-ch7-042]: Krugman and Wells, *Macroeconomics*, 6th ed., ch. 7, “GDP and the CPI: Tracking the Macroeconomy — Market Baskets and Price Indexes” (042).

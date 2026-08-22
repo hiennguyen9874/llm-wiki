@@ -2,11 +2,17 @@
 type: Concept
 title: The Influence of Monetary and Fiscal Policy on Aggregate Demand — Liquidity Preference, Interest-Rate Targets, Multiplier, and Crowding Out
 description: Mankiw Ch.21 — how monetary and fiscal policy shift AD via liquidity preference and the spending/tax multipliers, the net multiplier–crowding-out trade-off, supply-side AS effects, permanent-vs-temporary tax-cut perceptions, active vs passive stabilization debates, automatic stabilizers, and the fiscal multiplier size controversy.
-tags: [aggregate-demand, monetary-policy, fiscal-policy, liquidity-preference, interest-rate-effect, money-supply, federal-funds-rate, zero-lower-bound, liquidity-trap, quantitative-easing, forward-guidance, government-purchases, multiplier-effect, mpc, crowding-out, tax-multiplier, aggregate-supply, supply-side-economics, stabilization-policy, employment-act, keynes, ad-as-model, fiscal-multiplier-debate, automatic-stabilizers, keynesian-economics, animal-spirits]
+tags: [aggregate-demand, monetary-policy, fiscal-policy, fiscal-stimulus-projects, liquidity-preference, interest-rate-effect, money-supply, federal-funds-rate, zero-lower-bound, liquidity-trap, quantitative-easing, forward-guidance, government-purchases, multiplier-effect, mpc, crowding-out, tax-multiplier, aggregate-supply, supply-side-economics, stabilization-policy, employment-act, keynes, ad-as-model, fiscal-multiplier-debate, automatic-stabilizers, keynesian-economics, animal-spirits]
 status: stable
 created: 2026-08-22
-generated: { by: llm-wiki-agent/1, at: 2026-08-22T23:58:00Z }
+generated: { by: llm-wiki-agent/1, at: 2026-08-22T12:44:36Z }
 sources:
+  - id: krugman-cyu-100
+    resource: ../raw/Macroeconomics_Krugman/100-chapter-18-international-macroeconomics-7-2-check-your-understanding.md
+    title: "Chapter 18 International Macroeconomics — 7-2 Check Your Understanding (Krugman/Wells; raw label)"
+  - id: krugman-ch18-097
+    resource: ../raw/Macroeconomics_Krugman/097-chapter-18-international-macroeconomics-for-inquiring-minds.md
+    title: "Chapter 18 International Macroeconomics — For Inquiring Minds (Krugman/Wells)"
   - id: mankiw-063
     resource: ../raw/PrinciplesofMacroeconomics_8thEdition_GregoryMankiw/063-the-influence-of-monetary-and-fiscal-policy-on-aggregate-demand.md
     title: "The Influence of Monetary and Fiscal Policy on Aggregate Demand — Principles of Macroeconomics 8th Edition Ch.21 (Mankiw)"
@@ -16,6 +22,27 @@ sources:
   - id: mankiw-065
     resource: ../raw/PrinciplesofMacroeconomics_8thEdition_GregoryMankiw/065-how-large-is-the-fiscal-policy-multiplier.md
     title: "How Large Is the Fiscal Policy Multiplier? (Mankiw 8th Ed. Ch.21 Part 65)"
+  - id: krugman-ch13-071
+    resource: ../raw/Macroeconomics_Krugman/071-chapter-13-fiscal-policy.md
+    title: "Chapter 13 Fiscal Policy (Krugman/Wells)"
+  - id: krugman-ch13-072
+    resource: ../raw/Macroeconomics_Krugman/072-chapter-13-fiscal-policy-a-cautionary-note-lags-in-fiscal-policy.md
+    title: "Chapter 13 Fiscal Policy — Lags in Fiscal Policy (Krugman/Wells)"
+  - id: krugman-ch13-073
+    resource: ../raw/Macroeconomics_Krugman/073-chapter-13-fiscal-policy-the-business-cycle-and-the-cyclically-adjuste.md
+    title: "Chapter 13 Fiscal Policy — The Business Cycle and the Cyclically Adjusted Budget Balance (Krugman/Wells)"
+  - id: krugman-ch13-074
+    resource: ../raw/Macroeconomics_Krugman/074-chapter-13-fiscal-policy-for-inquiring-minds.md
+    title: "Chapter 13 Fiscal Policy — For Inquiring Minds (Krugman/Wells)"
+  - id: krugman-ch13-075
+    resource: ../raw/Macroeconomics_Krugman/075-chapter-13-fiscal-policy-problems.md
+    title: "Chapter 13 Fiscal Policy — Problems (Krugman/Wells)"
+  - id: krugman-ch15-083
+    resource: ../raw/Macroeconomics_Krugman/083-chapter-15-monetary-policy-the-equilibrium-interest-rate.md
+    title: "Chapter 15 Monetary Policy — The Equilibrium Interest Rate (Krugman/Wells)"
+  - id: krugman-ch15-086
+    resource: ../raw/Macroeconomics_Krugman/086-chapter-15-monetary-policy-the-interest-rate-in-the-short-run.md
+    title: "Chapter 15 Monetary Policy — The Interest Rate in the Short Run (Krugman/Wells)"
 ---
 
 # The Influence of Monetary and Fiscal Policy on Aggregate Demand — Liquidity Preference, Interest-Rate Targets, Multiplier, and Crowding Out
@@ -70,6 +97,8 @@ Can the loanable-funds theory (earlier: interest balances supply of loanable fun
 
 This reverses the order of analysis used for long run[^mankiw-063]. For long-run interest-rate questions use loanable-funds (saving propensities and investment opportunities); for short-run use liquidity preference (monetary policy)[^mankiw-063].
 
+Krugman/Wells makes the reconciliation explicit. In the short run, a money-supply increase first lowers the money-market rate; the resulting rise in investment, output, and saving through the multiplier shifts loanable-funds supply right. The saving increase exactly matches the investment increase, so the loanable-funds rate converges to the money-market rate. In the long run, rising nominal prices shift money demand right, output and saving return to their potential-output levels, and loanable-funds supply returns to its initial position. Thus the source describes the money market as determining the short-run rate and loanable funds as determining the long-run rate.[^krugman-ch15-086]
+
 ### 21-1c Changes in the money supply shift AD
 
 For any given price level, quantity demanded changes shift the entire AD curve[^mankiw-063].
@@ -89,6 +118,10 @@ Reasons: money supply is hard to measure precisely and money demand fluctuates; 
 This does not fundamentally alter analysis — liquidity preference shows monetary policy can be described either in terms of money supply or interest rate[^mankiw-063]. When FOMC sets target at say 6%, bond traders are told to conduct whatever open-market operations ensure equilibrium rate is 6%: to lower target from 6% to 5% traders buy bonds, increasing money and lowering equilibrium rate as in Figure 3; to raise target they sell bonds, decreasing money and raising rate[^mankiw-063].
 
 Lessons: expansionary monetary policy = increase money supply **or** lower interest rate; contractionary = decrease money supply **or** raise interest rate — two sides of same coin[^mankiw-063]. See [Federal funds rate, discount rate, and the Fed's money-supply target — how open-market operations hit the FOMC target](federal-funds-rate-and-money-supply-target.md) for 16-4d detail and [How the Fed controls the money supply — open-market operations, lending, reserve requirements, interest on reserves, and limits](fed-tools-to-control-money-supply.md) for tools.
+
+Krugman/Wells presents the same transmission sequence: an expansion of money supply lowers the short-term rate, raises investment spending and then consumer spending through the multiplier, shifting AD right; contraction reverses each step.[^krugman-ch15-083] Its diagrams were visually inspected. The mechanism is short-run and does not imply that long-term rates move one-for-one with the policy rate; see [Long-term interest rates — expected short rates and maturity risk](long-term-interest-rates-expected-short-rates-and-maturity-risk.md).[^krugman-ch15-083]
+
+**Floating-rate amplification.** In an open economy with a floating exchange rate, an interest-rate cut also reduces foreign demand for domestic currency and raises residents' incentive to invest abroad. The resulting depreciation raises exports and reduces imports, adding a net-export channel to the usual investment and consumption channels of expansionary monetary policy; a rate increase works in reverse.[^krugman-ch18-097] This is regime-conditional rather than an additional independent effect under a fixed-rate commitment.
 
 ### Box — Why the Fed watches the stock market (and vice versa)
 
@@ -115,6 +148,48 @@ Some economists argue possibility of hitting zero bound justifies **setting infl
 ## 21-2 How fiscal policy influences aggregate demand
 
 **Fiscal policy:** government's choices regarding overall level of **government purchases and taxes**[^mankiw-063]. Long-run effects on saving/investment/growth were earlier; in short run primary effect is on AD[^mankiw-063].
+
+### Krugman/Wells Ch. 13 — budget channels and cyclical classification
+
+Government purchases are the directly controlled $G$ term in $GDP=C+I+G+X-IM$. Taxes and transfers act indirectly: disposable income equals income less taxes plus transfers, so a tax cut or transfer increase tends to raise consumption; changes in profit-tax rules can also affect investment incentives. A **transfer** is a payment to households with no current good or service supplied in return, unlike a government purchase.[^krugman-ch13-071]
+
+- **Expansionary fiscal policy** shifts AD right: increase government purchases, cut taxes, or increase transfers. In the source's AD–AS diagrams, this can move a recessionary-gap equilibrium below potential output to potential output, with a higher aggregate price level.[^krugman-ch13-071]
+- **Contractionary fiscal policy** shifts AD left: reduce purchases or transfers, or raise taxes. It can close an inflationary gap by returning output to potential, with a lower aggregate price level.[^krugman-ch13-071]
+- The source frames crowding out as **state-dependent**, not automatic: with unemployed resources in a recessionary gap, fiscal expansion can raise income and spending; near full employment, purchases can displace private spending and borrowing can raise interest rates and displace investment. It also treats Ricardian-equivalence anticipation as a possible dampener, not proof that temporary tax cuts, transfers, or near-term purchases have no expansionary effect.[^krugman-ch13-071]
+
+### Krugman/Wells Ch. 13 — timing, multiplier design, and budget interpretation
+
+**Fiscal-policy timing has three distinct lags:** recognizing a recessionary gap from delayed data, designing and legislating a response, and actually disbursing or spending it. The last is material for public works: planning and surveying precede large outlays. The source illustrates the cumulative problem with the 2009 Recovery Act—passed in Q1 2009, with much of its federal-purchase effect not arriving until 2011. A response can therefore arrive after recovery, amplify an inflationary gap, and destabilize rather than stabilize; that risk is a caution against routine fine-tuning, not a claim that fiscal action is never appropriate.[^krugman-ch13-072]
+
+**Diagnosis is state-dependent.** The quits rate—the fraction of workers voluntarily leaving jobs each month—is a labor-market cross-check on unemployment: workers are less likely to quit when replacement work is hard to find. Figure 13-6 shows high/rising unemployment and low/falling quits in early 2009, versus low unemployment and high quits by late 2017. On the source's account, those indicators made fiscal expansion more compelling in the former depressed economy and raised the likely private-spending and investment crowding-out cost in the latter, relatively tight labor market.[^krugman-ch13-072]
+
+**Instrument and multiplier design:** In the fixed-price, fixed-interest-rate, no-tax/no-trade benchmark, a purchase change has $\Delta Y=\Delta G/(1-MPC)$. A same-sized transfer or tax cut initially affects spending only through the share households consume, so its benchmark transfer multiplier is $MPC/(1-MPC)$—smaller than the purchase multiplier. Thus with $MPC=0.5$, a $50 billion purchase raises GDP by $100 billion, while a $50 billion transfer raises it by $50 billion. Targeting recipients with higher MPC, such as unemployed workers rather than dividend-income recipients, can therefore raise the demand effect per dollar, conditional on the premise about their spending behavior.[^krugman-ch13-072]
+
+Most real taxes are not lump-sum: their revenue rises with GDP. That tax leakage, and cyclical transfer increases such as unemployment insurance, Medicaid, and food stamps, shrink the multiplier but automatically cushion demand shocks. These **automatic stabilizers** expand fiscal support in contractions and contract it in expansions without a new policy decision; the source contrasts them with discretionary fiscal policy, which is a deliberate policymaker action and is generally supported there only for severe or sustained weakness.[^krugman-ch13-072]
+
+**Evidence and the budget balance require qualification.** The source's 2009–13 cross-country plot of cyclically adjusted budget-balance changes and GDP growth has a fitted slope of −1.5, suggesting that a $1 contractionary fiscal change corresponded to a $1.50 GDP decline. It explicitly says this was not a controlled experiment, so it supports direction and a context-specific estimate rather than a universal multiplier.[^krugman-ch13-072] Government budget balance is $S_G=T-G-TR$ (tax revenue minus purchases and transfers); expansionary measures reduce it and contractionary measures increase it, other things equal. But change in the balance is only a quick proxy for fiscal stance because equal budget effects can have unequal GDP effects across instruments, and the cycle itself moves tax revenue and transfers.[^krugman-ch13-072]
+
+### Krugman/Wells Ch. 13 — cyclically adjusted balance and annual balanced-budget rules
+
+The **cyclically adjusted budget balance** estimates the balance that would prevail if real GDP equaled potential output. It removes the temporary effect of a recessionary or inflationary gap on tax revenue and transfers, so it is more informative than the current-year actual balance for assessing whether taxing and spending policies are sustainable over time.[^krugman-ch13-073] This is not a measure of discretionary policy alone: it is an estimate based on potential output.
+
+The source's U.S. series (1964–2019) shows actual deficits generally rising in recessions and falling in expansions, closely tracking unemployment. Its comparison of actual and cyclically adjusted deficits (1965–2019) shows the adjusted series fluctuating less; notably, much of the large actual deficits in 1975, 1983, and 2009 reflects depressed economic conditions rather than a persistent structural fiscal change.[^krugman-ch13-073]
+
+This distinction changes how to interpret a balanced-budget rule. Most economists described by the source favor balancing on average—deficits in bad years offset by surpluses in good years—rather than annually. An annual rule would require tax increases or spending cuts just as automatic stabilizers move the budget toward deficit, making fiscal policy procyclical.[^krugman-ch13-073] The source's U.S. state-and-local example reports employment cuts from 2009 to 2013 under balanced-budget constraints after revenues fell and federal aid ended; it judges that these cuts probably deepened the recession and slowed recovery, though they did not fully offset federal automatic stabilizers.[^krugman-ch13-073]
+
+**Case: stimulus project timing and political assessment.** The source presents Arizona's Solana concentrated-solar plant as an example of 2009-stimulus-related green-energy support: it was built with a $1.45 billion federal loan guarantee, and the project created construction jobs when borrowing was cheap and construction workers were unemployed. It also illustrates two qualifications: projects with a long planning/construction horizon can miss a recession's trough, and subsidies to an overseas firm can draw political opposition even when the work is domestic. The source treats long-run project viability as contingent on continuing renewable-energy policy. These are historical case facts, not an evaluation of the project or a general estimate of stimulus effectiveness.[^krugman-ch13-074]
+
+### Krugman/Wells Ch. 13 — practice applications and tax-adjusted multiplier
+
+The source's practice diagrams confirm the standard gap rule: at unchanged SRAS, $Y<Y_P$ is a recessionary gap requiring expansionary fiscal policy to shift AD right, whereas $Y>Y_P$ is an inflationary gap requiring contractionary fiscal policy to shift AD left.[^krugman-ch13-075] An adverse SRAS shift produces stagflation—output below potential and a higher price level. Fiscal policy cannot restore both targets at once: expansionary policy can return output to potential only with still higher prices, while contractionary policy can limit price pressure only by reducing output further.[^krugman-ch13-075]
+
+In the simplified multiplier model, a change in government purchases has multiplier $1/(1-MPC)$, whereas a transfer change has multiplier $MPC/(1-MPC)$ because only the consumed portion of a transfer changes first-round expenditure. A same-sized purchase change therefore has the larger GDP effect, conditional on the model's assumptions.[^krugman-ch13-075]
+
+If taxes collect a fraction $t$ of each additional dollar of GDP, the induced-spending sequence has ratio $MPC(1-t)$ and the multiplier becomes:
+
+$$\frac{1}{1-MPC(1-t)}$$
+
+A higher $t$ lowers the multiplier because taxes reduce the disposable-income feedback. This explains why automatic stabilizers and a smaller multiplier are compatible: automatic taxes reduce the size of an initial shock, but a discretionary fiscal action must be larger to close a given remaining gap.[^krugman-ch13-075]
 
 ### 21-2a Changes in government purchases
 
@@ -151,6 +226,10 @@ For x between −1 and +1, infinite geometric series 1 + x + x² + x³ + ... = 1
 
 Example MPC ¾ → 1/(1−¾)=4 → $20bn generates $80bn demand[^mankiw-063]. MPC ½ → multiplier 2[^mankiw-063]. Larger MPC → larger multiplier because consumption responds more to income[^mankiw-063].
 
+### Consumption smoothing requires financial access
+
+Expected future disposable income can affect spending today only when a household can save or borrow: saving can transfer current income forward, and borrowing can transfer expected future income backward. If neither is available, current consumption must equal current disposable income, so the MPC is 1 and expectations about future income cannot change current consumption.[^krugman-cyu-100]
+
 ### 21-2d Other applications of the multiplier
 
 Logic not restricted to government purchases — applies to any event altering spending on any component of GDP — consumption, investment, government purchases, or net exports[^mankiw-063].
@@ -159,6 +238,10 @@ Logic not restricted to government purchases — applies to any event altering s
 - Stock market boom increasing household wealth and consumption by $20bn → raises income → more consumption; with multiplier 4 → $80bn AD increase[^mankiw-063].
 
 Multiplier shows how economy amplifies impact of spending changes — small initial change can have large effect on AD and production[^mankiw-063].
+
+### Investment and inventory feedback
+
+A fall in investment spending triggers the same income–consumption multiplier sequence as any other autonomous spending decline. Investment can also amplify fluctuations through the accelerator: firms raise planned investment when they expect faster real-GDP growth and cut it when expected growth slows.[^krugman-cyu-100] Unexpectedly strong sales deplete inventories (negative unplanned inventory investment); weak sales add to them (positive unplanned inventory investment). An inventory overhang can then depress output and planned investment as firms judge existing capacity and stocks sufficient for expected sales.[^krugman-cyu-100]
 
 ### 21-2e The crowding-out effect
 
@@ -319,13 +402,31 @@ Key Concepts (p. 474): theory of liquidity preference, fiscal policy, multiplier
 - Uses: [Estimating stimulus multipliers — IMF, Reinhart-Rogoff, openness, and a four-step fiscal guide](estimating-multipliers-imf-reinhart-rogoff-and-policy-guide.md) — empirical multiplier heterogeneity (closed vs open, rich vs emerging, military vs infrastructure, zero-bound, borrowing constraints) and why precise estimates require humility
 - Depends on: [Production and Growth — Productivity, its Determinants, and Long-Run Growth Policy](production-and-growth-productivity-determinants-and-policy.md) — labor, capital, human capital, and technology as long-run AS determinants that fiscal supply-side effects (roads, incentives) build on
 - Depends on: [Mankiw's Ten Principles of Economics](ten-principles-of-economics-mankiw.md) — "people respond to incentives" underpinning supply-side AS incentive channel
+- Related: [Exchange-rate regimes — fixed and floating rates, intervention, and policy trade-offs](exchange-rate-regimes-fixed-floating-intervention-and-policy-trade-offs.md) — specifies why the added net-export channel requires a floating rate.
 
 ## Coverage limits
 
+- Krugman/Wells Ch. 13 source 071 was fully read. It supports the government-budget channels, expansionary/contractionary classifications, and condition-dependent crowding-out/Ricardian-equivalence account added above. The opening restaurant-closure photograph and Figures 13-1–13-5 were visually inspected; Figure 13-1 reports 2019 spending/tax-revenue shares for four high-income countries, Figures 13-2–13-3 report U.S. 2019 tax and 2018 spending composition, and Figures 13-4–13-5 depict the two gap-closing AD shifts.[^krugman-ch13-071]
+- Krugman/Wells Ch. 13 source 072 was fully read. Its two substantive graphics were visually inspected: Figure 13-6 plots U.S. unemployment (left axis) and quits (right axis) from 2007–2020; Figure 13-7 plots 2009–13 GDP growth against the change in cyclically adjusted budget balance. The three photographs only illustrate road work, money, and the WPA; the globe graphic is decorative.[^krugman-ch13-072]
 - Source 063 body ~9,941 tokens, §§21-1 to 21-2e fully extracted; source 064 adds §§21-2e–21-3a remainder including Figure 5 net summary, 21-2f tax changes, FYI supply-side AS effects, permanent vs temporary tax-cut expectations with 1992 Bush withholding example, highway $10bn QuickQuiz, and 21-3/21-3a stabilization policy and Employment Act of 1946[^mankiw-063][^mankiw-064]; source 065 adds remainder of Ch.21 — "Much Ado about Multipliers" Economist debate (Kahn 1931, G20 2%/1.6%, capacity/type/confidence determinants, Obama 1.6/1.0 vs Cogan-Taylor 1/6, micro vs statistical empirical, closed vs open, rich vs emerging, post-war military vs infrastructure and zero-bound/borrowing-constraint/indebtedness/fiscal-position mismatches, flying-blind bottom line), Keynesians in the White House (Kennedy 1961, Tobin/Solow, General Theory, 1964 investment tax credit, ARRA 2009), IGM Expert Panel July 29 2014 ARRA two questions, 21-3b case against active stabilization (6-month monetary lag, political fiscal lag, forecasting imprecision), 21-3c automatic stabilizers (tax system, UI/welfare, insufficiency, balanced-budget amendment opposition), animal-spirits QuickQuiz, 21-4 conclusion on long-run vs short-run goals, Chapter QuickQuiz 1–6 answers, Summary/Key Concepts 474, and Questions/Problems preview — fully compiled here[^mankiw-065].
 - Figures 1–5 and images 000401–000410 (source 063) not inspected except as described in OCR; Figure 5 (a)/(b) images 000411–000412 and subsequent images 000413–000414 in source 064 not inspected except as described in OCR[^mankiw-063][^mankiw-064]; source 065 images 000415–000421 not inspected except as described in OCR — including IGM panels 000418–000419 and TOLES cartoon 000420[^mankiw-065].
-- No credentials, PII, or disclosure markings detected in any source; no sensitive values stored[^mankiw-063][^mankiw-064][^mankiw-065].
+- Krugman/Wells Ch. 13 source 073 was fully read as stored, but the artifact ends at the start of the subsequent “For Inquiring Minds” box. Figures 13-8 through 13-13 were visually inspected: they show the U.S. deficit against recessions and unemployment, actual versus cyclically adjusted deficits, state/local employment, Greece–Germany 10-year bond rates, and U.S. deficits and public debt–GDP from 1940–2019.[^krugman-ch13-073]
+- Krugman/Wells Ch. 13 source 074 was fully read. Figures 13-14 (2019 versus 2049 projected social-insurance spending) and 13-15 (2008–2018 solar generation) were visually inspected. Long-run debt and implicit-liability material is compiled in [Saving, Investment, and the Financial System](saving-investment-and-the-financial-system.md); this page retains the source's Solana fiscal-stimulus case.[^krugman-ch13-074]
+- Krugman/Wells Ch. 13 source 075 was fully read. Figures 13-un06 and 13-un07 depict recessionary and inflationary gaps respectively; Figure 13-un08 depicts the leftward SRAS shift that creates stagflation; all three and the tax-adjusted multiplier derivation graphic were visually inspected. Other attached images are explicitly decorative and were not inspected. The source's exercises are learning prompts, so only their directly stated multiplier derivation, tax-adjusted multiplier appendix, and diagram-supported policy trade-off are compiled here.[^krugman-ch13-075]
+- Krugman/Wells Ch. 15 source 086 was fully read as stored. Figures 15A-1 and 15A-2 were visually inspected; the final two questions are learning prompts, not independent evidence.[^krugman-ch15-086]
+- Krugman/Wells Ch. 18 source 097 was fully read as stored. Figure 18-9 was visually inspected and supports the floating-rate monetary-transmission sequence added above.[^krugman-ch18-097]
+- Source 100 was fully read. Despite its Chapter 18 raw filename, its body contains answers for Check Your Understanding sections 7-2 through 11-3; its three diagrams (union wage and two loanable-funds shifts) were inspected and agree with the source's accessible descriptions. This page uses only its consumption-smoothing and investment/inventory applications.[^krugman-cyu-100]
+- No credentials, PII, or disclosure markings detected in any source; no sensitive values stored[^mankiw-063][^mankiw-064][^mankiw-065][^krugman-ch13-073][^krugman-ch13-074][^krugman-ch13-075][^krugman-ch15-086].
 
 [^mankiw-063]: Mankiw, *Principles of Macroeconomics* 8th ed., Ch.21 — The Influence of Monetary and Fiscal Policy on Aggregate Demand, §§21-1 to 21-2e (raw/PrinciplesofMacroeconomics_8thEdition_GregoryMankiw/063-the-influence-of-monetary-and-fiscal-policy-on-aggregate-demand.md).
 [^mankiw-064]: Mankiw, *Principles of Macroeconomics* 8th ed., Ch.21 — Figure 5 and §§21-2f–21-3a (raw/PrinciplesofMacroeconomics_8thEdition_GregoryMankiw/064-the-influence-of-monetary-and-fiscal-policy-on-aggregate-demand-figure.md, images 000411–000414 not inspected).
 [^mankiw-065]: Mankiw, *Principles of Macroeconomics* 8th ed., Ch.21 — How Large Is the Fiscal Policy Multiplier?, §§21-3b–21-4, boxes and supplements (raw/PrinciplesofMacroeconomics_8thEdition_GregoryMankiw/065-how-large-is-the-fiscal-policy-multiplier.md, images 000415–000421 not inspected).
+[^krugman-ch13-071]: Krugman and Wells, *Macroeconomics*, 6th ed., Ch. 13, “Fiscal Policy” (raw/Macroeconomics_Krugman/071-chapter-13-fiscal-policy.md). Opening photograph and Figures 13-1–13-5 visually inspected.
+[^krugman-ch13-072]: Krugman and Wells, *Macroeconomics*, 6th ed., Ch. 13, “A Cautionary Note: Lags in Fiscal Policy,” “Fiscal Policy and the Multiplier,” and “The Budget Balance” (raw/Macroeconomics_Krugman/072-chapter-13-fiscal-policy-a-cautionary-note-lags-in-fiscal-policy.md, Figures 13-6–13-7 visually inspected).
+[^krugman-ch13-073]: Krugman and Wells, *Macroeconomics*, 6th ed., Ch. 13, “The Business Cycle and the Cyclically Adjusted Budget Balance” and “Long-Run Implications of Fiscal Policy” (raw/Macroeconomics_Krugman/073-chapter-13-fiscal-policy-the-business-cycle-and-the-cyclic-adjuste.md, Figures 13-8–13-13 visually inspected).
+[^krugman-ch13-074]: Krugman and Wells, *Macroeconomics*, 6th ed., Ch. 13, “For Inquiring Minds: What Happened to the Debt from World War II?”, “Implicit Liabilities,” and “Economics in Action: Who’s Afraid of a Debt Spiral?”, plus the “Here Comes the Sun” business case (raw/Macroeconomics_Krugman/074-chapter-13-fiscal-policy-for-inquiring-minds.md, Figures 13-14–13-15 visually inspected).
+[^krugman-ch13-075]: Krugman and Wells, *Macroeconomics*, 6th ed., Ch. 13, “Problems” and “Appendix: Taxes and the Multiplier” (raw/Macroeconomics_Krugman/075-chapter-13-fiscal-policy-problems.md, Figures 13-un06–13-un08 and multiplier derivation graphic visually inspected).
+[^krugman-ch15-083]: Krugman and Wells, *Macroeconomics*, 6th ed., Ch. 15, “Monetary Policy — The Equilibrium Interest Rate” (raw/Macroeconomics_Krugman/083-chapter-15-monetary-policy-the-equilibrium-interest-rate.md, Figures 15-3, 15-5, and 15-7 visually inspected).
+[^krugman-ch15-086]: Krugman and Wells, *Macroeconomics*, 6th ed., Ch. 15 appendix, “The Interest Rate in the Short Run” and “The Interest Rate in the Long Run” (raw/Macroeconomics_Krugman/086-chapter-15-monetary-policy-the-interest-rate-in-the-short-run.md, Figures 15A-1–15A-2 visually inspected).
+[^krugman-ch18-097]: Krugman and Wells, *Macroeconomics*, 6th ed., Ch. 18, “International Macroeconomics — For Inquiring Minds” (raw/Macroeconomics_Krugman/097-chapter-18-international-macroeconomics-for-inquiring-minds.md; Figure 18-9 inspected).
+[^krugman-cyu-100]: Krugman and Wells, *Macroeconomics*, 6th ed., source artifact labeled “Chapter 18 International Macroeconomics — 7-2 Check Your Understanding,” containing Check Your Understanding answers for Chapters 7–11 (raw/Macroeconomics_Krugman/100-chapter-18-international-macroeconomics-7-2-check-your-understanding.md; three diagrams inspected).

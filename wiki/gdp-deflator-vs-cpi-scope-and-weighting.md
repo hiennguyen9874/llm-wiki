@@ -5,11 +5,14 @@ description: Why the GDP deflator and CPI usually move together but diverge — 
 tags: [gdp-deflator, cpi, inflation, price-index, comparison, oil-prices, imported-goods]
 status: stable
 created: 2026-08-22
-generated: { by: llm-wiki-agent/1, at: 2026-08-22T12:00:00Z }
+generated: { by: llm-wiki-agent/1, at: 2026-08-22T10:39:04Z }
 sources:
   - id: mankiw-038-deflator
     resource: ../raw/PrinciplesofMacroeconomics_8thEdition_GregoryMankiw/038-in-the-news.md
     title: "Ch.11 11-1c The GDP Deflator versus the Consumer Price Index — Principles of Macroeconomics 8th ed."
+  - id: krugman-ch7-042
+    resource: ../raw/Macroeconomics_Krugman/042-chapter-7-gdp-and-the-cpi-tracking-the-macroeconomy-market-baskets-and.md
+    title: "Chapter 7 GDP and the CPI: Tracking the Macroeconomy — Market Baskets and Price Indexes"
 ---
 
 # GDP Deflator versus CPI — Scope and Weighting Differences
@@ -43,6 +46,10 @@ Oil illustration — particularly important: U.S. produces some oil but much is 
 
 Implication: if all prices change proportionately, weighting doesn't matter; if prices of different goods change by varying amounts, weighting matters for overall inflation rate[^mankiw-038-deflator].
 
+## Producer-price comparison
+
+The **producer price index (PPI)** tracks prices of inputs bought by producers, such as raw commodities and electricity, rather than consumer purchases.[^krugman-ch7-042] The source presents the PPI as a potentially earlier signal of inflationary or deflationary pressure because commodity producers may change prices quickly. It also reports that CPI, PPI, and the GDP deflator usually move closely together, but the PPI fluctuates more, reflecting its greater exposure to energy and food price swings.[^krugman-ch7-042] This is a general empirical tendency, not a forecasting guarantee.
+
 ## Empirical pattern — when they diverge
 
 - 1970s: both show high inflation[^mankiw-038-deflator].
@@ -66,3 +73,4 @@ Implication: if all prices change proportionately, weighting doesn't matter; if 
 - See also: [Inflation targeting and the case for higher inflation (2% vs 3–4% and NGDP)](inflation-targeting-optimal-inflation-and-ngdp.md)
 
 [^mankiw-038-deflator]: Mankiw, *Principles of Macroeconomics* 8th ed., ch. 11 §11-1c, in 038-in-the-news.md.
+[^krugman-ch7-042]: Krugman and Wells, *Macroeconomics*, 6th ed., ch. 7, “GDP and the CPI: Tracking the Macroeconomy — Market Baskets and Price Indexes” (042). Figure 7-6 was visually inspected.

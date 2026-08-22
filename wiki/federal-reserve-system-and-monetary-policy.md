@@ -5,8 +5,11 @@ description: Mankiw Ch.16 — the Fed as U.S. central bank, its 1913 origins, bo
 tags: [federal-reserve, central-bank, monetary-policy, money-supply, fomc, open-market-operations, lender-of-last-resort, janet-yellen]
 status: stable
 created: 2026-08-22
-generated: { by: llm-wiki-agent/1, at: 2026-08-22T17:05:00Z }
+generated: { by: llm-wiki-agent/1, at: 2026-08-22T11:47:46Z }
 sources:
+  - id: krugman-ch14-078
+    resource: ../raw/Macroeconomics_Krugman/078-chapter-14-money-banking-and-the-federal-reserve-system-how-banks-crea.md
+    title: "Chapter 14 Money, Banking, and the Federal Reserve System — How Banks Create Money (Krugman/Wells)"
   - id: mankiw-16-1
     resource: ../raw/PrinciplesofMacroeconomics_8thEdition_GregoryMankiw/049-money-and-prices-in-the-long-run.md
     title: "Money and Prices in the Long Run — The Monetary System (Mankiw 8th Ed. Ch.16, Part 49)"
@@ -36,7 +39,8 @@ America's central bank was politically contested from the start, a pattern Lowen
 - Created in 1913 after the 1907 bank-failure panic convinced Congress a central bank was needed to ensure banking-system health[^mankiw-16-1][^mankiw-16-jekyll].
 - Run by the **Board of Governors**: seven members appointed by the president and confirmed by the Senate, with 14-year terms — like lifetime judicial appointments to insulate from short-term politics while formulating monetary policy[^mankiw-16-1].
 - **Chair** is most important among the seven: directs staff, presides over meetings, testifies regularly before Congress; appointed by president to 4-year term — as of the 8th edition press time, Janet Yellen, former economics professor appointed by President Obama in 2014[^mankiw-16-1].
-- System consists of the Board in Washington, D.C., plus **12 regional Federal Reserve Banks** in major cities; regional presidents chosen by each bank's board drawn from regional banking/business community[^mankiw-16-1].
+- System consists of the Board in Washington, D.C., plus **12 regional Federal Reserve Banks** in major cities; regional presidents chosen by each bank's board drawn from regional banking/business community[^mankiw-16-1]. Krugman/Wells characterizes this arrangement as neither wholly governmental nor private: presidential nomination and Senate confirmation create democratic accountability, while long Board terms and indirect appointment insulate decisions from short-term political pressure[^krugman-ch14-078].
+- The regional banks provide banking and supervisory services, including auditing private-sector banks; Figure 14-6 identifies the 12 district-bank cities and places Alaska and Hawaii in the San Francisco district[^krugman-ch14-078].
 
 ## Two jobs
 
@@ -46,7 +50,7 @@ America's central bank was politically contested from the start, a pattern Lowen
 ## The FOMC
 
 - Composed of the 7 governors plus 5 of the 12 regional bank presidents — all 12 attend but only 5 vote at a time, rotating over time[^mankiw-16-1].
-- The New York Fed president always votes — New York is the traditional financial center and all Fed bond purchases/sales are conducted at its trading desk[^mankiw-16-1].
+- The New York Fed president always votes — New York is the traditional financial center and all Fed bond purchases/sales are conducted at its trading desk[^mankiw-16-1]. Krugman/Wells likewise specifies that the remaining four regional-president voting seats rotate among the other eleven presidents and that the Board chair normally chairs the FOMC[^krugman-ch14-078].
 
 ## How the Fed changes the money supply — the helicopter metaphor
 
@@ -78,4 +82,5 @@ America's central bank was politically contested from the start, a pattern Lowen
 - FOMC voting rotation details and New York Fed trading desk mechanics beyond OCR summary not verified.
 - Jekyll Island narrative compiled from Roger Lowenstein Los Angeles Times Nov 2, 2015 as reprinted in Mankiw; original Lowenstein book not consulted.
 
+[^krugman-ch14-078]: Krugman and Wells, *Macroeconomics*, 6th ed., Ch. 14, “Money, Banking, and the Federal Reserve System — How Banks Create Money” (raw/Macroeconomics_Krugman/078-chapter-14-money-banking-and-the-federal-reserve-system-how-banks-crea.md; Figure 14-6 visually inspected).
 [^mankiw-16-1]: Mankiw, *Principles of Macroeconomics* 8th ed., Ch.16 — The Monetary System (raw/PrinciplesofMacroeconomics_8thEdition_GregoryMankiw/049-money-and-prices-in-the-long-run.md).

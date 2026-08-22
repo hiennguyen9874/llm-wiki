@@ -5,8 +5,11 @@ description: "Mankiw Ch.14 14-2 — why risk aversion arises from diminishing ma
 tags: [risk-aversion, diminishing-marginal-utility, utility, insurance, adverse-selection, moral-hazard, diversification, firm-specific-risk, market-risk, standard-deviation, risk-return-tradeoff, mankiw]
 status: stable
 created: 2026-08-22
-generated: { by: llm-wiki-agent/1, at: 2026-08-22T23:00:00Z }
+generated: { by: llm-wiki-agent/1, at: 2026-08-22T11:07:45Z }
 sources:
+  - id: krugman-ch10-055
+    resource: ../raw/Macroeconomics_Krugman/055-chapter-10-savings-investment-spending-and-the-financial-system-inflat.md
+    title: "Chapter 10 Savings, Investment Spending, and the Financial System — Inflation and Interest Rates (Krugman/Wells)"
   - id: mankiw-ch14-045
     resource: ../raw/PrinciplesofMacroeconomics_8thEdition_GregoryMankiw/045-the-magic-of-compounding-and-the-rule-of-70.md
     title: "The Magic of Compounding and the Rule of 70 (Mankiw 8th Ed. Ch.14, Part 45)"
@@ -58,6 +61,8 @@ Folk wisdom "Don't put all your eggs in one basket" becomes diversification scie
 - Beyond 20–30: small additional reductions
 - Risk never eliminated: diversification can eliminate **firm-specific risk** (uncertainty tied to specific company) but not **market risk** (uncertainty affecting all companies, e.g., recession)[^mankiw-ch14-045].
 
+The risk-reduction mechanism requires holdings whose losses are unrelated (independent events): poor performance of one asset then need not impair the others. Krugman and Wells illustrate the same logic with an owner retaining separate bank, home, and business positions rather than concentrating all wealth in the business.[^krugman-ch10-055]
+
 Definitions[^mankiw-ch14-045]:
 
 - **firm-specific risk:** risk affecting only a single company.
@@ -71,6 +76,7 @@ Ten Principles reminder: people face trade-offs; the financial trade-off is risk
 - Example choice: diversified risky stocks 8% mean, standard deviation 20% (95% within ±2 sd: −32% to +48%) vs safe asset 3% mean, sd 0% (bank savings or government bond)[^mankiw-ch14-045].
 - **Figure 3**: each point is an allocation between risky stocks and safe asset; more in stocks → higher expected return **and** higher risk[^mankiw-ch14-045].
 - Which point to choose depends on individual risk aversion (preferences); key insight is that higher average stock return comes at price of higher risk[^mankiw-ch14-045].
+- Different historical windows yield different descriptive return estimates: Krugman and Wells report roughly 7% real stock and 2% real bond returns over the preceding century. This is source-period evidence, not a forecast, and is not directly comparable to Mankiw's two-century 8%/3% illustration above.[^krugman-ch10-055]
 
 QuickQuiz prompt in source: "Describe three ways that a risk-averse person might reduce the risk she faces." — Answer: buy insurance, diversify holdings, choose lower-risk/lower-return portfolio[^mankiw-ch14-045].
 
@@ -87,4 +93,5 @@ QuickQuiz prompt in source: "Describe three ways that a risk-averse person might
 - Images 000285–000287 (Figures 1–3) not inspected; descriptions follow captions and prose.
 - Source truncated after 15-1a; unemployment measurement details beyond BLS survey header not fully compiled here.
 
+[^krugman-ch10-055]: Krugman and Wells, *Macroeconomics*, 6th ed., Ch. 10, “Savings, Investment Spending, and the Financial System — Inflation and Interest Rates” (raw/Macroeconomics_Krugman/055-chapter-10-savings-investment-spending-and-the-financial-system-inflat.md).
 [^mankiw-ch14-045]: Mankiw, *Principles of Macroeconomics* 8th ed., Ch.14 14-2 (raw/PrinciplesofMacroeconomics_8thEdition_GregoryMankiw/045-the-magic-of-compounding-and-the-rule-of-70.md).

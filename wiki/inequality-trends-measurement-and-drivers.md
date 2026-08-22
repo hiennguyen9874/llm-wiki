@@ -5,11 +5,14 @@ description: How global and national inequality is measured with Gini and income
 tags: [inequality, gini, globalization, brazil, china, india, anglosphere, skill-biased-technological-change]
 status: stable
 created: 2026-08-22
-generated: { by: llm-wiki-agent/1, at: 2026-08-22T19:00:00Z }
+generated: { by: llm-wiki-agent/1, at: 2026-08-22T10:56:02Z }
 sources:
   - id: harford-inequality
     resource: ../raw/TheUndercoverEconomistStrikesBack-TimHarford/017-inequality.md
     title: "INEQUALITY - The Undercover Economist Strikes Back (Tim Harford)"
+  - id: krugman-ch9-050
+    resource: ../raw/Macroeconomics_Krugman/050-chapter-9-long-run-economic-growth-5-protection-of-property-rights.md
+    title: "Chapter 9 Long-Run Economic Growth — Protection of Property Rights (Krugman/Wells)"
 ---
 
 # Inequality trends, measurement, and drivers
@@ -65,6 +68,12 @@ Evidence via schooling:
 
 **Future trajectory:** inequality could escalate as technology accelerates, though future tech could in principle favor less-skilled workers[^harford-inequality]. This links to the zero-growth discussion of whether robots could make many people economically redundant, with all returns to capital owners and a need for institutional redesign such as an inalienable portfolio of shares in robot manufacturers at birth — still speculative, far from present, but illustrating that technology has historically both destroyed jobs (mechanized agriculture) and created new ones (web design)[^harford-inequality].
 
+## Growth is not distribution-neutral
+
+Krugman/Wells’ 1953–2018 US series provides a descriptive warning against treating real GDP per capita as the income of a typical household. Real GDP per capita and real median family income grew at nearly the same rate through about 1980; thereafter, GDP per capita continued to rise much faster as income shares at the top increased. The figure indexes end near 330 for GDP per capita and 225 for median income (1953 = 100). This comparison does not establish the cause of the divergence, but it shows why aggregate growth and median-income growth answer different questions.[^krugman-ch9-050]
+
+The same source distinguishes inequality **within** countries from inequality **between** them: it describes rapid growth in China, India, and other emerging economies as creating a large global middle class while advanced-country working-class incomes grew slowly and top incomes rose sharply. It also reports widening recent regional gaps inside wealthy countries—illustrated by Massachusetts real GDP per capita rising by nearly 50% from 1997 to 2018 versus about 10% for Kentucky—and associates lagging regions with joblessness outside the measured labor force and elevated drug-overdose, suicide, and alcohol mortality. These are descriptive accounts, not evidence that growth itself caused those regional social outcomes.[^krugman-ch9-050]
+
 ## Relationships
 
 - Related to: [Poverty measurement — absolute, relative, and social exclusion](poverty-measurement-absolute-relative-and-social-exclusion.md)
@@ -74,3 +83,4 @@ Evidence via schooling:
 - Related to: [Business cycle, recession, and Japan's lost growth](business-cycle-recession-and-japan.md)
 
 [^harford-inequality]: Harford, *The Undercover Economist Strikes Back*, ch. 14 — INEQUALITY.
+[^krugman-ch9-050]: Krugman and Wells, *Macroeconomics*, Ch. 9, “Protection of Property Rights” (raw/Macroeconomics_Krugman/050-chapter-9-long-run-economic-growth-5-protection-of-property-rights.md).

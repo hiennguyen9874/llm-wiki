@@ -5,16 +5,25 @@ description: Material, psychological, and moral costs of joblessness, including 
 tags: [unemployment, recession, happiness, hysteresis, labor-market]
 status: stable
 created: 2026-08-22
-generated: { by: llm-wiki-agent/1, at: 2026-08-22T00:00:00Z }
+generated: { by: llm-wiki-agent/1, at: 2026-08-22T10:28:01Z }
 sources:
   - id: harford-ch4
     resource: ../raw/TheUndercoverEconomistStrikesBack-TimHarford/004-the-economy-a-users-manual.md
     title: "The Economy: A User's Manual - The Undercover Economist Strikes Back (Tim Harford)"
+  - id: krugman-ch6-037
+    resource: ../raw/Macroeconomics_Krugman/037-chapter-6-macroeconomics-the-big-picture-charting-the-business-cycle.md
+    title: "Chapter 6 Macroeconomics: The Big Picture — Charting the Business Cycle (Krugman/Wells)"
 ---
 
 # Costs of unemployment and recessions
 
 Millions become jobless or trapped in disliked jobs during recessions, fearful to leave[^harford-ch4]. The costs extend well beyond lost income.
+
+## Employment, household, and firm costs
+
+The unemployment rate is a commonly used indicator of labor-market conditions: a high rate indicates scarce jobs, and a low rate easier job-finding. The source's 1988–2020 U.S. series shows it rising sharply during and after recessions and generally falling in expansions.[^krugman-ch6-037]
+
+By cutting jobs and making replacement work difficult, recessions reduce household living standards. The source says they are usually associated with more poverty, mortgage-related home loss, and lower health-insurance coverage; firms also experience lower profits, and some small businesses fail.[^krugman-ch6-037]
 
 ## Psychological cost and misery weighting
 
@@ -38,3 +47,4 @@ Benjamin Friedman (Harvard) argues downturns reduce charitable donations and rai
 - Uses: [National income accounting and GDP as market-value output](national-income-accounting-and-gdp.md)
 
 [^harford-ch4]: Harford, *The Undercover Economist Strikes Back*, ch. 4.
+[^krugman-ch6-037]: Krugman and Wells, *Macroeconomics*, Ch. 6, “Charting the Business Cycle” (raw/Macroeconomics_Krugman/037-chapter-6-macroeconomics-the-big-picture-charting-the-business-cycle.md).

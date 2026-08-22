@@ -1,12 +1,30 @@
 ---
 type: Concept
 title: Production and Growth — Productivity, its Determinants, and Long-Run Growth Policy
-description: Mankiw Ch.12 long-run determinants of real GDP per person — cross-country growth variation, productivity as key, four determinants and production-function representation, diminishing returns/catch-up, and saving/FDI/education/health/property rights/free trade/R&D/population policies.
-tags: [productivity, economic-growth, capital, human-capital, natural-resources, technological-knowledge, diminishing-returns, catch-up-effect, production-function, mankiw, saving, investment, property-rights, political-stability, free-trade, research-and-development, patents, population-growth, malthus]
+description: Long-run determinants of real GDP per person — productivity, the aggregate production function and growth accounting, diminishing returns/catch-up, total factor productivity, and saving, education, infrastructure, financial-system, property-rights, trade, R&D, and population policies.
+tags: [productivity, economic-growth, capital, human-capital, natural-resources, technological-knowledge, technology, total-factor-productivity, growth-accounting, productivity-paradox, diminishing-returns, catch-up-effect, production-function, mankiw, krugman-wells, saving, investment, infrastructure, financial-system, property-rights, political-stability, free-trade, research-and-development, patents, population-growth, malthus]
 status: stable
 created: 2026-08-22
-generated: { by: llm-wiki-agent/1, at: 2026-08-22T19:30:00Z }
+generated: { by: llm-wiki-agent/1, at: 2026-08-22T11:00:13Z }
 sources:
+  - id: krugman-ch6-037
+    resource: ../raw/Macroeconomics_Krugman/037-chapter-6-macroeconomics-the-big-picture-charting-the-business-cycle.md
+    title: "Chapter 6 Macroeconomics: The Big Picture — Charting the Business Cycle (Krugman/Wells)"
+  - id: krugman-ch9-048
+    resource: ../raw/Macroeconomics_Krugman/048-chapter-9-long-run-economic-growth.md
+    title: "Chapter 9 Long-Run Economic Growth (Krugman/Wells)"
+  - id: krugman-ch9-049
+    resource: ../raw/Macroeconomics_Krugman/049-chapter-9-long-run-economic-growth-accounting-for-growth-the-aggregate.md
+    title: "Chapter 9 Long-Run Economic Growth — Accounting for Growth: The Aggregate Production Function (Krugman/Wells)"
+  - id: krugman-ch9-050
+    resource: ../raw/Macroeconomics_Krugman/050-chapter-9-long-run-economic-growth-5-protection-of-property-rights.md
+    title: "Chapter 9 Long-Run Economic Growth — Protection of Property Rights (Krugman/Wells)"
+  - id: krugman-ch9-051
+    resource: ../raw/Macroeconomics_Krugman/051-chapter-9-long-run-economic-growth-economic-growth-and-the-environment.md
+    title: "Chapter 9 Long-Run Economic Growth — Economic Growth and the Environment (Krugman/Wells)"
+  - id: krugman-ch9-052
+    resource: ../raw/Macroeconomics_Krugman/052-chapter-9-long-run-economic-growth-problems.md
+    title: "Chapter 9 Long-Run Economic Growth — Problems (Krugman/Wells)"
   - id: mankiw-ch12
     resource: ../raw/PrinciplesofMacroeconomics_8thEdition_GregoryMankiw/039-the-real-economy-in-the-long-run.md
     title: "The Real Economy in the Long Run — Principles of Macroeconomics 8th Edition Ch.12"
@@ -21,6 +39,72 @@ sources:
 # Production and Growth — Productivity, its Determinants, and Long-Run Growth Policy
 
 Long-run living standards are determined by productivity — output per hour worked — which in turn depends on physical capital per worker, human capital per worker, natural resources per worker, and technological knowledge; cross-country gaps and growth rates varied dramatically (1870–2014 US $4,264→$55,860 at 1.80%/yr, Japan 2.59%, Brazil 2.61%, UK 1.42%) and are explained by differences in these determinants rather than short-run fluctuations[^mankiw-ch12]. The aggregate production function $Y=A F(L,K,H,N)$ with constant returns to scale clarifies that $Y/L = A F(1,K/L,H/L,N/L)$[^mankiw-ch12], and policy to raise $Y/L$ works through saving/investment facing diminishing returns and a catch-up effect, plus openness to foreign investment, education with externalities and brain-drain risks, health/nutrition virtuous circles, property rights and political stability, outward-oriented free trade, and support for research and development, while population growth creates both dilution of capital and a scale effect on technological progress[^mankiw-ch12][^mankiw-ch12-040].
+
+## Trend growth versus the business cycle
+
+**Long-run economic growth** is the sustained upward trend in an economy's output; per-capita growth is the relevant trend for higher wages and living standards.[^krugman-ch6-037] It differs from the short-run business cycle: the source cautions that models appropriate for long-run growth need not give the same policy implications in a recession. In particular, it contrasts the short-run paradox of thrift with the longer-run role of saving in supporting growth.[^krugman-ch6-037]
+
+The chapter's Canada–Argentina comparison illustrates that similar starting conditions need not imply similar growth paths. It reports comparable per-capita incomes into the 1930s, then sustained Canadian growth after 1930 and Argentine underperformance after World War II, associating the latter with political instability and poor macroeconomic policies.[^krugman-ch6-037] This is historical illustration, not a complete account of either country's development.
+
+## Krugman/Wells Ch. 9 — measurement, compounding, and productivity
+
+**Real GDP per capita** (real GDP divided by population) is the textbook's summary statistic for long-run economic progress: using real GDP removes price-level changes, while the per-capita adjustment distinguishes more aggregate output from a higher average material standard of living. The source cautions that it is not a policy goal in itself.[^krugman-ch9-048]
+
+- In its Maddison-based series, US real GDP per capita rose 848% from 1900 to 2016 (just over eightfold), an average 1.9% annually. The Rule of 70 implies a doubling in about 37 years at that rate; three doublings explain the approximate eightfold rise. The rule applies only to positive growth rates.[^krugman-ch9-048]
+- A growth rate is a rate of change, not the dollar change in output, and a high rate does not remove an initially lower level. The source's 1980–2018 comparison reports average annual per-capita growth of 7.8% in China, 4.1% in India, 3.7% in Ireland, 3.0% in Bangladesh, 1.6% in the United States, 1.3% in France, 0.5% in Argentina, and −0.4% in Venezuela.[^krugman-ch9-048]
+- Productivity is output per worker (or sometimes per hour); sustained per-capita growth requires it to rise. A higher employment share can temporarily raise output per person, but employment growth normally tracks population growth over the long run. For the twentieth-century United States, the source attributes 1.7 percentage points of 1.9% annual per-capita growth to productivity.[^krugman-ch9-048]
+- The source identifies physical capital (human-made equipment and structures), human capital (workers' education and knowledge), and technological progress (better production methods) as the immediate sources of productivity growth. It notes that economically consequential innovation can be incremental and widely adopted rather than confined to high-technology firms.[^krugman-ch9-048]
+- As a descriptive case, Bangladesh's real GDP per capita tripled from 1990 to 2019 amid political and market reforms, macroeconomic stabilization, and clothing-export growth; the source also reports improved life expectancy, child mortality, and school enrollment. This juxtaposition is not causal identification and does not erase continued low wages and unsafe working conditions.[^krugman-ch9-048]
+
+## Krugman/Wells Ch. 9 — aggregate production, growth accounting, and policy
+
+### Separating inputs from technology
+
+The source represents labor productivity with an **aggregate production function**: real GDP per worker depends on physical capital per worker, human capital per worker, and technology. This is an analytical, hypothetical relationship used to distinguish their respective contributions.[^krugman-ch9-049] One 2015 application to the United States, India, and China specified $y=T K^{1/3}H^{2/3}$, with human capital related to schooling years; it attributed most of China's 1979–2008 relative advance to the technology term $T$. This is a result of that study and specification, not a general causal decomposition.[^krugman-ch9-049]
+
+- Holding human capital and technology fixed, more physical capital raises output per worker but at a diminishing rate. The source illustrates equal $20,000 capital increments producing successively smaller productivity gains ($30,000, $20,000, then $10,000). Diminishing returns mean marginal gains shrink; they do **not** mean added capital reduces productivity.[^krugman-ch9-049]
+- The ceteris-paribus qualification is essential: simultaneous gains in training or technology can change the productivity schedule. Typical estimates reported by the text associate a 1% rise in capital per worker with about a 0.33% rise in output per worker, all else equal.[^krugman-ch9-049]
+- Technological progress shifts the entire production function upward: it permits more output with the same quantities of capital, human capital, and labor.[^krugman-ch9-049]
+
+**Growth accounting** assigns observed productivity growth to the input contributions implied by such a production function; the remaining residual is **total factor productivity (TFP)**, the output attainable from a given amount of factor inputs.[^krugman-ch9-049] The residual is interpreted here as technological progress, but it is an accounting remainder rather than direct measurement of every mechanism behind it. For US nonfarm business from 1948–2019, the cited BLS estimates report 2.1% annual labor-productivity growth, about 49% explained by increased physical and human capital per worker and the remainder by rising TFP.[^krugman-ch9-049]
+
+### Technology, resources, and growth differences
+
+The text labels the gap between conspicuous information technology and weak measured productivity growth the **productivity paradox**. Its BLS chart reports average US TFP growth of 1.9% (1948–1973), 0.4% (1974–1995), 1.6% (1996–2005), and 0.4% (2006–2018). It offers no settled explanation; retail inventory-management adoption is presented as one contributor to the 1996–2005 rebound.[^krugman-ch9-049]
+
+### Barcode diffusion as complementary investment
+
+The source uses bar-code scanning to illustrate that productivity-relevant innovation can be incremental and delayed by **complementarities** rather than a lack of technical value. Scanners first entered commercial use in 1974, but retailers needed scanners and information systems while manufacturers needed product-labeling equipment; each waited for the other side to invest. Only about one-third of US supermarkets adopted scanners in the first decade.[^krugman-ch9-051]
+
+Once complementary investments spread, machine-readable labels supported inventory and sales tracking, restocking, warehousing, and labor management. The source reports estimates that bar-code adoption reduced grocery-retailing labor costs by as much as 40%, and identifies retailing as a leading contributor to US productivity growth in 1995–2005.[^krugman-ch9-051] It also attributes slower European adoption partly to land-use policies that protected small stores unable to afford the technology. These are illustrative historical claims, not an estimate of the causal effect of any contemporary retail technology.[^krugman-ch9-051]
+
+Natural-resource abundance can raise productivity, but the source treats it as less important than human and physical capital for most modern economies; it contrasts oil-based UAE wealth with resource-poor Japan, and resource-rich but poor Nigeria. Malthus's land-constrained stagnation prediction may describe much of pre-eighteenth-century history, but subsequent technological change, capital accumulation, and new cultivable land outweighed population pressure. Finite resources and environmental absorption remain limits the text says are addressed elsewhere, not resolved by this account.[^krugman-ch9-049]
+
+Countries with rapid growth commonly combine high investment financed by domestic or foreign saving, education expansion, and R&D and adoption of technology. The source reports China's 2019 investment share as 43% of GDP versus 21% in the United States, and its adult literacy rising from about 66% in 1980 to 93% in 2018, compared with Argentina's roughly 94% to 96%. These are descriptive comparisons, not sufficient to identify the effect of any one policy.[^krugman-ch9-049]
+
+### Government channels in the source
+
+The source identifies direct support for **infrastructure** (including roads, power, ports, information networks, clean water, and disease control), education, and R&D, plus indirect support for a well-regulated financial system that lets trusted deposits become productive lending. It frames these as channels through which government can promote—or obstruct—the accumulation and application of physical capital, human capital, and technology.[^krugman-ch9-049] It gives ARPANET and subsequent National Science Foundation extension as an example of public R&D contribution, while emphasizing that much R&D is privately financed.[^krugman-ch9-049]
+
+## Krugman/Wells Ch. 9 — institutions and uneven development
+
+**Property rights** are legal rights to dispose of valuable property; **intellectual property rights** let innovators receive the returns from innovations. The source presents credible protection as an innovation incentive: copying may sometimes be intrinsically difficult, but governments generally supply protection. A **patent** is a government-created, temporary monopoly over use or sale, balancing an innovator's incentive against the later social benefit of competition.[^krugman-ch9-050]
+
+Stable, impartially enforced law is likewise presented as a precondition for saving and business investment: honest courts and police, predictable laws, and protection from corruption or arbitrary seizure make returns more secure. The source uses India’s reduction of burdensome business restrictions and associated bribery after 1990 as an illustrative contributor to its subsequent growth, not causal proof. It also cautions that even non-corrupt intervention can weaken productivity when wasteful subsidies, import protection, unnecessary monopoly, or insulation from competition remove incentives.[^krugman-ch9-050]
+
+### Catch-up is conditional, not automatic
+
+The source’s regional examples qualify a mechanical reading of convergence. South Korea’s real GDP per capita rose about 7% annually for over 30 years beginning in the early 1960s; the broader East Asian region averaged about 6% annually since 1975. The text associates this with high saving/investment, widespread basic education, technological progress, and adoption of technologies already developed in richer economies. This supports a **convergence hypothesis**—countries beginning poorer tend to grow faster and income gaps tend to narrow—but not a guarantee: the relevant conditions must also be present.[^krugman-ch9-050]
+
+- In the text’s comparison, Latin America combined lower saving/investment and basic education with inflation, bank failures, political instability, and difficulty adopting external technology. It reports that market-opening reforms did not generally produce an East-Asian-scale surge; Chile is identified as the one sustained-rapid-growth exception in its account.[^krugman-ch9-050]
+- For sub-Saharan Africa, the source links civil war, instability, corruption, insecure property, and inadequate public-health infrastructure to inhibited investment and low productivity. It records a competing view, associated with Jeffrey Sachs, that adverse geography, disease, and poor soil cause poverty and thereby instability. Neither direction is resolved by the source; these mechanisms can reinforce one another.[^krugman-ch9-050]
+- Italy illustrates that earlier success does not ensure persistence: its real GDP per capita quadrupled from 1950 to 1990, then stagnated after the late 1990s and fell after 2008. The text connects slow factors-of-production growth, weak education, declining measured TFP since 2000, seniority-based management rewards, and weak competition to its performance; this is a proposed explanation, not a causal estimate.[^krugman-ch9-050]
+
+### Practice-data checks: compounding and convergence
+
+The source's problem data provide calculations that distinguish growth rates from relative income levels. Starting from the same $20,000 real GDP per capita, 100 years at 2.0% yields about $144,893, whereas 1.5% yields about $88,641—about 1.63 times lower—under constant annual compounding.[^krugman-ch9-052] This is a mechanical projection, not a forecast.
+
+Its World Bank tables also illustrate that convergence is uneven: France rose from 72.6% to 80.0% of US real GDP per capita from 1960 to 2018 and Japan from 49.0% to 89.6%; the United Kingdom was approximately unchanged at 79.4%. Over the same endpoints, Argentina fell from 32.2% to 19.1% of the US level, Ghana from 6.0% to 3.3%, and South Korea rose from 5.4% to 49.0%.[^krugman-ch9-052] These ratios are calculations from the source's dollar figures; they show relative movement, not a causal explanation or complete catch-up.
 
 ## 12-1 Economic growth around the world
 
@@ -224,8 +308,14 @@ Goal: what can government do to raise productivity and living standards given th
 
 ## Coverage limits
 
+- For Krugman/Wells source 050, inspected Figures 9-8 through 9-11: Italy versus UK (1960–2018), Argentina/South Korea/Nigeria (1960–2018, log scale), US real GDP per capita versus median income (1953–2018), and Massachusetts versus Kentucky (1997–2018). The plotted trends accord with the text and accessible figure descriptions. The source's other decorative and illustrative images were not inspected because captions and surrounding text supplied no additional analytical claims.
+
+- For Krugman/Wells Ch. 9 source 048, inspected the three data visualizations (real-GDP-per-capita history, 2018 income map, and 1980–2018 growth-rate chart). The Delhi and Bangladesh photographs and decorative images were not inspected because their captions and surrounding text supplied no additional analytical claims.
 - Images 000261–000266 (patent/new drug illustration, IGM innovation panel 000262, Gordon/Mokyr photos 000263–000265, Malthus portrait 000266) and 000267–000269 (aid experiment photos) not inspected; IGM percentage breakdowns not read; content derived from extracted OCR text.
 - Source 041 contains an anomalous paragraph on Flinders Island / Kremer's population-technology isolation at 3000 B.C. inserted mid-NPR article without transitional logic; treated as OCR paste error and excluded from RCT synthesis — see 12-3i Kremer section for that evidence.
+- For Krugman/Wells source 049, inspected Figures 9-4 through 9-7: the diminishing-returns curve, technology shift, TFP time series, and China–Argentina literacy chart. Their plotted values accord with the extracted captions and accessible descriptions. No other local attachment referenced by this source carried additional analytical content.
+- For Krugman/Wells source 051, the bar-code section was compiled from the source text. Its self-checkout photograph was inspected and adds no analytical claim beyond the caption; environmental material and its CO₂ chart are compiled in [Sustainable growth, climate change, and global cooperation](sustainable-growth-climate-change-and-global-cooperation.md).
+- For Krugman/Wells source 052, inspected the Work It Out capital-productivity graph; it agrees with the extracted values (A: $10,000 capital and $20,000 output per worker; B: $30,000 and $40,000) and adds no claim beyond the source's diminishing-returns exercise. The remaining two referenced images are decorative or a generic Discovering Data marker and add no analytical content.
 
 ## Relationships
 
@@ -239,9 +329,14 @@ Goal: what can government do to raise productivity and living standards given th
 - See also: [Application: International Trade — Welfare Analysis, Winners and Losers, Tariffs and Import Quotas](application-international-trade-welfare-and-tariffs.md) — Isoland trade model and tariffs that 12-3g argues against; comparative advantage logic.
 - See also: [The Legacy of Adam Smith and David Ricardo — Comparative Advantage, Free Trade, and Everyday Applications](legacy-of-adam-smith-and-david-ricardo.md) — Smith/Ricardo lineage for outward-orientation consensus.
 - Related to: [Ten Principles of Economics — property rights](ten-principles-of-economics-mankiw.md) — property-rights prerequisite for invisible hand.
+- Related to: [Business cycle, recession, and Japan's lost growth](business-cycle-recession-and-japan.md) — separates sustained output-per-person growth from short-run recession and expansion.
 - Related to: [Inequality trends, measurement, and drivers](inequality-trends-measurement-and-drivers.md) — Gordon's headwind growing inequality.
 - Related to: [Bastiat's seen and unseen and macro policy fallacies](bastiat-seen-unseen-and-policy-fallacies.md) — seen vs unseen in evaluating 12-3g trade and 12-3h patent incentives.
 
+[^krugman-ch6-037]: Krugman and Wells, *Macroeconomics*, Ch. 6, “Charting the Business Cycle” (raw/Macroeconomics_Krugman/037-chapter-6-macroeconomics-the-big-picture-charting-the-business-cycle.md).
+[^krugman-ch9-048]: Krugman and Wells, *Macroeconomics*, Ch. 9, “Long-Run Economic Growth” (raw/Macroeconomics_Krugman/048-chapter-9-long-run-economic-growth.md).
+[^krugman-ch9-049]: Krugman and Wells, *Macroeconomics*, Ch. 9, “Accounting for Growth: The Aggregate Production Function” (raw/Macroeconomics_Krugman/049-chapter-9-long-run-economic-growth-accounting-for-growth-the-aggregate.md).
+[^krugman-ch9-052]: Krugman and Wells, *Macroeconomics*, Ch. 9, “Long-Run Economic Growth — Problems” (raw/Macroeconomics_Krugman/052-chapter-9-long-run-economic-growth-problems.md).
 [^mankiw-ch12]: Mankiw, *Principles of Macroeconomics* 8th ed., Ch.12 — Production and Growth (raw/PrinciplesofMacroeconomics_8thEdition_GregoryMankiw/039-the-real-economy-in-the-long-run.md).
 [^mankiw-ch12-040]: Mankiw, *Principles of Macroeconomics* 8th ed., Ch.12 12-3f–12-3i (raw/PrinciplesofMacroeconomics_8thEdition_GregoryMankiw/040-the-real-economy-in-the-long-run-12-3f-property-rights-and-political-s.md).
 [^mankiw-ch12-041]: Mankiw, *Principles of Macroeconomics* 8th ed., Ch.12 In the News & 12-4 Conclusion / Summary (raw/PrinciplesofMacroeconomics_8thEdition_GregoryMankiw/041-in-the-news.md).

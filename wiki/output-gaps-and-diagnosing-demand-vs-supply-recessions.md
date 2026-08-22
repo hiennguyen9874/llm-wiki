@@ -5,11 +5,20 @@ description: What the output gap measures, why potential output is notional and 
 tags: [output-gap, potential-output, keynesian, classical, recession, hysteresis, capacity-utilization, inflation, unemployment, aggregate-demand, aggregate-supply]
 status: stable
 created: 2026-08-22
-generated: { by: llm-wiki-agent/1, at: 2026-08-22T18:00:00Z }
+generated: { by: llm-wiki-agent/1, at: 2026-08-22T12:14:53Z }
 sources:
   - id: harford-output-gaps
     resource: ../raw/TheUndercoverEconomistStrikesBack-TimHarford/010-output-gaps.md
     title: "OUTPUT GAPS - The Undercover Economist Strikes Back (Tim Harford)"
+  - id: krugman-ch12-068
+    resource: ../raw/Macroeconomics_Krugman/068-chapter-12-aggregate-demand-and-aggregate-supply-shifts-of-aggregate-d.md
+    title: "Chapter 12 Aggregate Demand and Aggregate Supply — Shifts of Aggregate Demand: Short-Run Effects (Krugman/Wells)"
+  - id: krugman-ch15-084
+    resource: ../raw/Macroeconomics_Krugman/084-chapter-15-monetary-policy-monetary-policy-in-practice.md
+    title: "Chapter 15 Monetary Policy — Monetary Policy in Practice (Krugman/Wells)"
+  - id: krugman-ch16-088
+    resource: ../raw/Macroeconomics_Krugman/088-chapter-16-inflation-disinflation-and-deflation-the-output-gap-and-the.md
+    title: "Chapter 16 Inflation, Disinflation, and Deflation — The Output Gap and the Unemployment Rate (Krugman/Wells)"
 ---
 
 # Output gaps, potential output, and diagnosing Keynesian versus classical recessions
@@ -22,6 +31,20 @@ The output gap — the difference between actual output and potential output —
 - **Framing:** A large gap suggests a Keynesian, babysitting co-op recession with spare capacity to draw on; a small gap suggests a supply-driven recession where stimulus is not called for[^harford-output-gaps].
 - **Potential output is slippery and notional:** It depends on counterfactuals — if the central bank printed more money, employers were more confident, workers could teleport to vacancies, or wishes were horses — so it must be guessed[^harford-output-gaps].
 - **Ideological bias:** Economists predisposed to Keynesian models tend to see slack; classically oriented economists start from actual = potential by definition — economies don't malfunction, so a slowdown must be a fall in potential itself[^harford-output-gaps].
+
+### Textbook AD–AS formulation
+
+Krugman and Wells define the output gap as the percentage difference from potential output: $((\text{actual output}-\text{potential output})/\text{potential output})\times100$. Output below potential is a **recessionary gap** (negative output gap); output above potential is an **inflationary gap** (positive output gap). In their long-run AD–AS account, high unemployment eventually reduces nominal wages and shifts SRAS right after a recessionary gap, while low unemployment eventually raises wages and shifts SRAS left after an inflationary gap; both mechanisms return output to potential.[^krugman-ch12-068]
+
+### Output and cyclical unemployment
+
+At potential output, the actual unemployment rate equals the natural rate. A negative output gap corresponds to unemployment above the natural rate; a positive gap corresponds to unemployment below it. CBO estimates plotted for 1949–February 2020 show cyclical unemployment (actual minus natural unemployment) closely tracking the output gap when the latter is graphed on an inverted scale.[^krugman-ch16-088]
+
+**Okun’s law** summarizes this inverse relationship: modern estimates cited by the source put a 1-percentage-point rise in the output gap with about a 0.5-percentage-point reduction in unemployment. The relationship is not one-for-one because firms also adjust hours, labor-force participation changes with job availability, and labor-productivity growth tends to accelerate in booms and slow in busts.[^krugman-ch16-088]
+
+### Monetary-policy use
+
+Krugman and Wells reports that the federal funds rate generally rose as the U.S. output gap rose and fell as it fell over 1985–2020, with the near-zero-rate periods after 2008 and in 2020 as major exceptions. This is descriptive co-movement, not a causal test: the Fed changes rates in response to its business-cycle diagnosis.[^krugman-ch15-084] See [Taylor rule, monetary-policy reaction function, and evidence](taylor-rule-monetary-policy-reaction-function-and-evidence.md) for the reaction-rule formulation and evidence strategy.
 
 ## Four indicators of whether a gap exists
 
@@ -87,10 +110,16 @@ Harford stresses none is conclusive; they are best used together[^harford-output
 - Uses: [Costs of unemployment and recessions](costs-of-unemployment-and-recessions.md)
 - Uses: [Deflation, the zero lower bound, and liquidity traps](deflation-zero-lower-bound-and-liquidity-trap.md)
 - Uses: [Running the economy as a system](running-the-economy-as-system.md)
+- Depends on: [Short-Run Economic Fluctuations — Three Facts and the Aggregate Demand–Aggregate Supply Model](short-run-economic-fluctuations-aggregate-demand-supply.md) — AD–AS account of recessionary and inflationary gaps
+- Uses: [Natural rate of unemployment — frictional, structural, and cyclical components](natural-rate-of-unemployment-frictional-structural-and-cyclical.md) — the natural rate benchmarks the output gap’s labor-market counterpart
 
 ## Contradictions
 
 - **Interpretation of a given output shortfall:** Keynesian-leaning reading (e.g., Krugman on post-2007 US sectoral unemployment and large US capacity-utilization drop to 67%) sees slack and scope for stimulus vs. classical reading (potential fell with actual; unemployed are structurally unemployable; stimulus only produces inflation as in the 1970s) — Harford presents both without resolving, noting ideology and measurement limits, and treats very large gaps as more plausibly demand-driven[^harford-output-gaps].
 - **US vs UK post-crisis signals:** US data (deep utilization fall, broad unemployment rise, low inflation) pointed toward demand gap; contemporaneous UK data (productivity slump, Bank of England surveys showing little spare capacity) pointed more toward supply — illustrating that indicators do not generalize across economies[^harford-output-gaps].
+- **Self-correction versus hysteresis:** Krugman and Wells' baseline AD–AS model has nominal-wage adjustment return the output gap to zero.[^krugman-ch12-068] Harford argues that demand shortfalls can damage skills, capital, institutions, and thus potential output itself, so a gap may not close simply through this adjustment.[^harford-output-gaps]
 
 [^harford-output-gaps]: Harford, *The Undercover Economist Strikes Back*, ch. 7 Output Gaps.
+[^krugman-ch12-068]: Krugman and Wells, *Macroeconomics*, 6th ed., Ch. 12, “Shifts of Aggregate Demand: Short-Run Effects” through the chapter quick review (raw/Macroeconomics_Krugman/068-chapter-12-aggregate-demand-and-aggregate-supply-shifts-of-aggregate-d.md). Figures 12-12–12-17 were visually inspected.
+[^krugman-ch15-084]: Krugman and Wells, *Macroeconomics*, 6th ed., Ch. 15, “Monetary Policy in Practice” (raw/Macroeconomics_Krugman/084-chapter-15-monetary-policy-monetary-policy-in-practice.md; Figure 15-8 visually inspected).
+[^krugman-ch16-088]: Krugman and Wells, *Macroeconomics*, 6th ed., Ch. 16, “The Output Gap and the Unemployment Rate,” “The Short-Run Phillips Curve,” and “Inflation Expectations and the Short-Run Phillips Curve” (raw/Macroeconomics_Krugman/088-chapter-16-inflation-disinflation-and-deflation-the-output-gap-and-the.md; Figures 16-4–16-10 visually inspected).

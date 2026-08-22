@@ -5,16 +5,33 @@ description: How to compare dollar figures across time, why indexation automates
 tags: [inflation-correction, real-vs-nominal, indexation, interest-rates, regional-price-parities, cpi, purchasing-power]
 status: stable
 created: 2026-08-22
-generated: { by: llm-wiki-agent/1, at: 2026-08-22T12:00:00Z }
+generated: { by: llm-wiki-agent/1, at: 2026-08-22T11:07:45Z }
 sources:
+  - id: krugman-ch10-055
+    resource: ../raw/Macroeconomics_Krugman/055-chapter-10-savings-investment-spending-and-the-financial-system-inflat.md
+    title: "Chapter 10 Savings, Investment Spending, and the Financial System — Inflation and Interest Rates (Krugman/Wells)"
   - id: mankiw-038-correction
     resource: ../raw/PrinciplesofMacroeconomics_8thEdition_GregoryMankiw/038-in-the-news.md
     title: "Ch.11 11-2–11-3 Correcting Economic Variables for the Effects of Inflation — Principles of Macroeconomics 8th ed."
+  - id: krugman-ch6-038
+    resource: ../raw/Macroeconomics_Krugman/038-chapter-6-macroeconomics-the-big-picture-inflation-and-deflation.md
+    title: "Chapter 6 Macroeconomics: The Big Picture — Inflation and Deflation (Krugman/Wells)"
+  - id: krugman-ch7-042
+    resource: ../raw/Macroeconomics_Krugman/042-chapter-7-gdp-and-the-cpi-tracking-the-macroeconomy-market-baskets-and.md
+    title: "Chapter 7 GDP and the CPI: Tracking the Macroeconomy — Market Baskets and Price Indexes"
 ---
 
 # Correcting Economic Variables for Inflation — Dollar Conversions, Regional Parities, Indexation, and Real vs Nominal Interest Rates
 
 A price index lets us turn dollars from different years into comparable purchasing power; the same logic extends to geography (regional price parities), to law and contracts (indexation), and to intertemporal returns, where subtracting inflation from the nominal interest rate yields the real interest rate that measures growth in purchasing power[^mankiw-038-correction].
+
+## Wage growth is not purchasing-power growth
+
+Krugman and Wells illustrate the distinction with U.S. production-worker hourly earnings: $6.57 in January 1980 and $23.88 in January 2020, a 263% nominal increase. Over the same period, the source reports a 232% rise in the overall cost of living, so the typical worker's real living standard rose only slightly. Its category data also show that relative prices can move quite differently: medical care rose 617%, housing 254%, and food 213%.[^krugman-ch6-038]
+
+This is a historical illustration based on the source's cited BLS data, not a general claim that every worker or spending basket experienced the same real-wage change.[^krugman-ch6-038]
+
+The source's hamburger comparison makes the same relative-price point: a McDonald's hamburger rose from $0.15 in 1948 to about $1.00 in 2020 (about 6.5 times), while its reported CPI measure rose about 11 times. The burger was therefore cheaper relative to the consumer basket even though its dollar price was higher.[^krugman-ch6-038]
 
 ## 11-2a Dollar figures from different times
 
@@ -55,6 +72,7 @@ When some dollar amount is automatically corrected for price-level changes by la
 - Private contracts: long-term firm-union contracts include partial/complete indexation to CPI via **cost-of-living allowance (COLA)** automatically raising wage when CPI rises[^mankiw-038-correction].
 - Laws: Social Security benefits adjusted every year to compensate elderly for price increases; federal income-tax brackets (income levels where rates change) are indexed for inflation[^mankiw-038-correction].
 - Many tax-system parts are **not** indexed when perhaps they should be — discussed more fully when covering costs of inflation later in book[^mankiw-038-correction].
+- Krugman/Wells likewise identifies CPI-linked Social Security and disability payments, income-tax brackets, and some private wage contracts with COLAs. Its reported recipient and spending figures are source-period-specific and are not retained as current statistics.[^krugman-ch7-042]
 
 ## 11-2c Real and nominal interest rates
 
@@ -78,6 +96,8 @@ Definitions:
 Approximate Fisher relation:
 
 $$\text{Real interest rate} = \text{Nominal interest rate} - \text{Inflation rate}$$[^mankiw-038-correction]
+
+Loan contracts normally specify a nominal rate because future inflation is not known when parties agree. Accordingly, the relevant ex ante comparison is nominal interest less **expected** inflation; a higher-than-expected inflation outcome lowers the realized real rate, benefiting borrowers relative to lenders, and the reverse holds for lower-than-expected inflation.[^krugman-ch10-055]
 
 Nominal tells how fast dollars in bank account rise; real tells how fast purchasing power rises[^mankiw-038-correction].
 
@@ -108,4 +128,7 @@ Yogi Berra: "A nickel ain't worth a dime anymore" — real values behind nickel/
 - Uses: [Deflation, the zero lower bound, and liquidity traps](deflation-zero-lower-bound-and-liquidity-trap.md) — deflation raising real rate above nominal
 - See also: [GDP Deflator versus CPI — Scope and Weighting Differences](gdp-deflator-vs-cpi-scope-and-weighting.md)
 
+[^krugman-ch10-055]: Krugman and Wells, *Macroeconomics*, 6th ed., Ch. 10, “Savings, Investment Spending, and the Financial System — Inflation and Interest Rates” (raw/Macroeconomics_Krugman/055-chapter-10-savings-investment-spending-and-the-financial-system-inflat.md).
 [^mankiw-038-correction]: Mankiw, *Principles of Macroeconomics* 8th ed., ch. 11 §§11-2–11-3, in 038-in-the-news.md.
+[^krugman-ch6-038]: Krugman and Wells, *Macroeconomics*, Ch. 6, “Inflation and Deflation” (raw/Macroeconomics_Krugman/038-chapter-6-macroeconomics-the-big-picture-inflation-and-deflation.md; Figure 6-8 visually inspected).
+[^krugman-ch7-042]: Krugman and Wells, *Macroeconomics*, 6th ed., ch. 7, “GDP and the CPI: Tracking the Macroeconomy — Market Baskets and Price Indexes” (042).

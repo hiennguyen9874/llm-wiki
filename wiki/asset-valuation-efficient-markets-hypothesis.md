@@ -1,15 +1,24 @@
 ---
 type: Concept
 title: "Asset Valuation and Market Efficiency — Fundamental Analysis, Efficient Markets Hypothesis, and Market Irrationality"
-description: "Mankiw Ch.14 14-3 — how fundamental analysis values stocks as present value of dividends and sale price, why the efficient markets hypothesis implies random walks and favors index funds, and skepticism about bubbles and animal spirits."
-tags: [asset-valuation, fundamental-analysis, efficient-markets-hypothesis, informational-efficiency, random-walk, index-fund, diversification, market-irrationality, speculative-bubble, mankiw]
+description: "How fundamental analysis and expected future payoffs shape asset values, why the efficient markets hypothesis implies random walks and favors index funds, and why behavioral and bubble accounts remain contested."
+tags: [asset-valuation, fundamental-analysis, efficient-markets-hypothesis, informational-efficiency, random-walk, index-fund, diversification, market-irrationality, behavioral-finance, speculative-bubble, housing, mankiw, krugman-wells]
 status: stable
 created: 2026-08-22
-generated: { by: llm-wiki-agent/1, at: 2026-08-22T23:00:00Z }
+generated: { by: llm-wiki-agent/1, at: 2026-08-22T11:14:59Z }
 sources:
   - id: mankiw-ch14-045
     resource: ../raw/PrinciplesofMacroeconomics_8thEdition_GregoryMankiw/045-the-magic-of-compounding-and-the-rule-of-70.md
     title: "The Magic of Compounding and the Rule of 70 (Mankiw 8th Ed. Ch.14, Part 45)"
+  - id: krugman-ch10-056
+    resource: ../raw/Macroeconomics_Krugman/056-chapter-10-savings-investment-spending-and-the-financial-system-mutual.md
+    title: "Chapter 10 Savings, Investment Spending, and the Financial System — Mutual Funds (Krugman/Wells)"
+  - id: krugman-ch10-057
+    resource: ../raw/Macroeconomics_Krugman/057-chapter-10-savings-investment-spending-and-the-financial-system-check-.md
+    title: "Chapter 10 Savings, Investment Spending, and the Financial System — Check Your Understanding 10-3 (Krugman/Wells)"
+  - id: krugman-ch10-058
+    resource: ../raw/Macroeconomics_Krugman/058-chapter-10-savings-investment-spending-and-the-financial-system-how-to.md
+    title: "Chapter 10 Savings, Investment Spending, and the Financial System — How to Calculate the Present Value of One-Year Projects (Krugman/Wells)"
 ---
 
 # Asset Valuation and Market Efficiency — Fundamental Analysis, Efficient Markets Hypothesis, and Market Irrationality
@@ -21,6 +30,10 @@ Having built the two tools of finance — time (present value) and risk — the 
 Introductory framing: supply and demand determine stock price, but willingness to pay depends on perceived value[^mankiw-ch14-045].
 
 - Value of a stock = present value of stream of dividend payments plus final sale price; both depend on company's ability to earn profits[^mankiw-ch14-045].
+
+### Dividend-discount valuation
+
+A share represents a claim on company profits through dividends. Its price can therefore be expressed as the present value of its expected future dividends; unlike a bond, the payment stream has no fixed end date.[^krugman-ch10-058] Under the simplifying assumptions of a constant dividend-growth rate and a discount rate exceeding that growth rate, the source gives the Gordon-growth expression $P=\text{Dividend}/(r-g)$. Actual stock prices must instead use expected, variable dividends, and the source cautions that rumors, fads, and other irrational behavior make them more volatile than bond prices.[^krugman-ch10-058]
 
 ## 14-3a Fundamental Analysis
 
@@ -59,6 +72,14 @@ IAN: IGM-style insert in source: "In general, absent any inside information, an 
 
 QuickQuiz: Fortune's "most respected" companies — according to efficient markets, restricting portfolio to them will **not** earn better-than-average return because respect is public information already in price[^mankiw-ch14-045].
 
+## Asset-demand channels and macroeconomic stakes
+
+An asset's current price reflects its expected future payoffs and resale value: improved expected profitability raises demand for shares and makes existing holders less willing to sell, increasing the current price; worse expectations have the reverse effects.[^krugman-ch10-056] The attractiveness of substitutes matters as well: higher interest rates make bonds more attractive and tend to lower stock and commercial-real-estate demand; lower rates tend to raise it.[^krugman-ch10-056]
+
+Housing follows the same asset logic. Owner-occupiers receive an **implicit rent** — the housing service they provide themselves by not paying a landlord — as well as a prospective resale value. Expected price appreciation and mortgage interest costs consequently affect housing demand.[^krugman-ch10-056]
+
+The macroeconomic stakes are substantial: the source describes a late-1990s technology-stock bubble followed by a sharp decline and the 2001 recession, then a housing-price collapse in 2008 followed by severe financial crisis and recession.[^krugman-ch10-056] Its U.S. series shows mortgage debt rising to about 102% of GDP around 2008 and delinquent single-family mortgages peaking near 11.5% around 2010 after the housing bubble burst; these are descriptive historical associations, not a complete causal account.[^krugman-ch10-056]
+
 ## 14-3c Market Irrationality
 
 Counter-tradition: fluctuations partly psychological[^mankiw-ch14-045].
@@ -67,6 +88,8 @@ Counter-tradition: fluctuations partly psychological[^mankiw-ch14-045].
 - **Greenspan (1990s):** questioned whether boom reflected **"irrational exuberance"**; prices did fall thereafter, but whether exuberance was irrational given information at the time remains debatable[^mankiw-ch14-045].
 - **Speculative bubble:** when price of an asset rises above its apparent fundamental value[^mankiw-ch14-045].
 - Why bubbles possible: stock value depends not only on dividends but also on final sale price — willingness to pay more than worth today if expecting another person to pay even more tomorrow → circular expectations[^mankiw-ch14-045].
+- **Behavioral finance** studies systematic departures from rational choice. The source highlights overconfidence in picking winners, loss aversion that delays realizing losses, and herd behavior that buys after run-ups and sells after declines; it also notes institutional pressures can lead even rational managers to follow the herd.[^krugman-ch10-056]
+- Krugman and Wells characterize stock-price swings as too large to be explained by fundamentals alone as evidence against fully rational markets, while cautioning that policymakers do not assume either universal rationality or an ability to outsmart markets. This reinforces the unresolved debate rather than resolving it.[^krugman-ch10-057]
 
 **Debate**[^mankiw-ch14-045]:
 
@@ -94,17 +117,24 @@ Counter-tradition: fluctuations partly psychological[^mankiw-ch14-045].
 - Depends on: [The Basic Tools of Finance — Present Value, Future Value, Compounding, and Discounting](basic-tools-of-finance-present-value-compounding-and-discounting.md) — present-value formula underpins dividend-discount valuation; compounding intuition behind growth of returns.
 - Depends on: [Managing Risk — Risk Aversion, Insurance, Diversification, and the Trade-off between Risk and Return](managing-risk-risk-aversion-insurance-diversification.md) — risk aversion, firm-specific vs market risk, and risk-return trade-off are inputs to why stocks command 8% vs 3% and why diversification matters for asset valuation.
 - Uses: [Saving, Investment, and the Financial System — Financial Institutions, National Saving Identities, and the Market for Loanable Funds](saving-investment-and-the-financial-system.md) — mutual funds, index vs active, and loanable-funds framing of saving/investment.
-- Contradicts: Efficient markets / informational efficiency vs market irrationality / speculative bubbles / animal spirits — unresolved contradiction noted explicitly without silent choice[^mankiw-ch14-045].
+- Contradicts: Efficient markets / informational efficiency vs market irrationality / speculative bubbles / animal spirits — unresolved contradiction noted explicitly without silent choice.[^mankiw-ch14-045][^krugman-ch10-056]
+- See also: [Saving, Investment, and the Financial System — Financial Institutions, National Saving Identities, and the Market for Loanable Funds](saving-investment-and-the-financial-system.md) — intermediaries and liquidity transformation transmit asset-market stress into credit conditions.
 - See also: [Costs of unemployment and recessions](costs-of-unemployment-and-recessions.md) — macro implications of stock-market fluctuations as preview.
 - See also: [The Market Forces of Supply and Demand — Competitive Markets, Demand and Supply, and Equilibrium](market-forces-of-supply-and-demand.md) — supply/demand price-setting foundation for stock market equilibrium.
 
 ## Contradictions
 
-- Stock-price rationality is an **unresolved contradiction** in the source: efficient markets hypothesis (prices rationally reflect all public information; departures non-persistent and non-exploitable) vs market irrationality / animal spirits / speculative bubbles (psychological waves drive prices above fundamental value)[^mankiw-ch14-045]. Source states both views have correct points and that beating the market remains extremely difficult either way; no synthesis is imposed here.
+- Stock-price rationality is an **unresolved contradiction** in the sources: efficient markets hypothesis (prices rationally reflect all public information; departures non-persistent and non-exploitable) versus market irrationality / speculative bubbles / animal spirits (psychological waves can drive prices away from fundamental value).[^mankiw-ch14-045][^krugman-ch10-056] Both sources caution that examples of a later price collapse do not by themselves prove the earlier price was inefficient, because the relevant adverse information may not then have been public; no synthesis is imposed here.
 
 ## Coverage limits
 
 - Images 000288–000294 (Dilbert cartoon, Ask the Experts diversification, irrational exuberance) not inspected.
+- Krugman/Wells source 056 is complete. The corporate-bond comparison (Figure 10-un02) and mortgage-debt/delinquency series (Figure 10-11) were visually inspected; its Banco Falabella photograph and herd-behavior cartoon are illustrative.
+- Krugman/Wells source 057 is complete; its stock-market material is a chapter summary and review prompt, not a new empirical series.
+- Krugman/Wells source 058 is complete; its two embedded images are marked decorative and were not inspected.
 - Problems and Applications (e.g., Manhattan \$24 at 7% for 400 years), Questions for Review, and FYI boxes beyond those summarized are truncated after CHAPTER QuickQuiz/Summary headers due to file limit; unemployment Chapter 15 content beyond 14-4 is excluded from this concept.
 
 [^mankiw-ch14-045]: Mankiw, *Principles of Macroeconomics* 8th ed., Ch.14 14-3–14-4 (raw/PrinciplesofMacroeconomics_8thEdition_GregoryMankiw/045-the-magic-of-compounding-and-the-rule-of-70.md).
+[^krugman-ch10-056]: Krugman and Wells, *Macroeconomics*, 6th ed., Ch. 10, “Savings, Investment Spending, and the Financial System — Mutual Funds” (raw/Macroeconomics_Krugman/056-chapter-10-savings-investment-spending-and-the-financial-system-mutual.md).
+[^krugman-ch10-057]: Krugman and Wells, *Macroeconomics*, 6th ed., Ch. 10, “Savings, Investment Spending, and the Financial System — Check Your Understanding 10-3” (raw/Macroeconomics_Krugman/057-chapter-10-savings-investment-spending-and-the-financial-system-check-.md).
+[^krugman-ch10-058]: Krugman and Wells, *Macroeconomics*, 6th ed., Ch. 10 appendix, “How to Calculate the Present Value of One-Year Projects” (raw/Macroeconomics_Krugman/058-chapter-10-savings-investment-spending-and-the-financial-system-how-to.md).
