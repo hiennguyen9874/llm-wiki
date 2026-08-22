@@ -5,7 +5,7 @@ description: A beginner-first course on replacing a dense FFN with routed expert
 tags: [mixture-of-experts, sparse-models, routing, switch-transformer, pytorch, learning-roadmap]
 status: stable
 created: 2026-08-12
-generated: { by: llm-wiki-agent/1, at: 2026-08-12T11:50:56+07:00 }
+generated: { by: llm-wiki-agent/1, at: 2026-08-22T00:00:00Z }
 sources:
   - id: moe-overview-2026
     resource: ../raw/MixtureofExperts.md
@@ -17,185 +17,165 @@ sources:
 
 # Mixture-of-Experts và sparse routing — bài học cho người mới
 
-`Mixture-of-Experts` (MoE) thay `FFN`/`MLP` dùng chung trong một `Transformer block` bằng nhiều `expert` FFN. Với mỗi token, một `router` tính điểm cho các expert và chỉ gọi `top-1` hoặc `top-k` expert có điểm cao nhất. Vì vậy model có thể có nhiều `total parameters`, nhưng chỉ một phần expert parameters là `active` cho một token. `Switch Transformer` là điểm bắt đầu dễ hiểu nhất: nó chọn đúng một expert (`top-1`) cho mỗi token.[^moe-overview-2026]
+`Mixture-of-Experts` (MoE, hỗn hợp chuyên gia) thay nhánh `FFN`/`MLP` dùng chung trong một `Transformer block` bằng một `expert bank` — nhiều `expert` FFN có weights riêng. Với mỗi token, một `router` (bộ định tuyến) chấm điểm các expert qua `softmax`, rồi chỉ thực thi `top-1` (một expert tốt nhất) hoặc `top-k` (k expert tốt nhất) và cộng outputs có trọng số. Nhờ `sparse routing` (định tuyến thưa), model có `total parameters` (tổng tham số) rất lớn nhưng chỉ một phần `active parameters` (tham số kích hoạt) tham gia cho mỗi token.[^moe-overview-2026]
 
-> [!success] Mục tiêu
-> Sau bài này, bạn có thể chỉ ra chính xác MoE thay phần nào của dense Transformer, tự tính một forward pass của router, phân biệt `top-1` với `top-k`, giải thích đúng con số `active parameters`, và chạy một toy MoE PyTorch có kiểm tra shape, routing load, và gradient.
+> [!success] Sau bài này
+> 1. **Giải thích được:** MoE thay chính xác phần nào của dense Transformer, router tính gì, và `total` khác `active` ở đâu.
+> 2. **Cài được:** một toy MoE PyTorch chạy `top-1`/`top-k` cho tensor `(B, T, D)`, đúng shape và weighted sum.
+> 3. **Kiểm được:** `softmax` sum-to-one, `loads` sum = `B*T*k`, và router nhận gradient; phân biệt được claim về FLOPs với latency thực tế.
 
-Bài này là một **synthesis sư phạm**, không phải recipe để tái tạo kết quả benchmark của Switch Transformer. Claims lịch sử và cơ chế Switch được lấy từ overview thứ cấp có trong repository; phần `top-k` fine-grained và shared expert có thêm bằng chứng từ paper DeepSeekMoE.[^moe-overview-2026][^deepseekmoe-2024]
+Bài này là **synthesis sư phạm** — minh họa cơ chế routing, không tái tạo benchmark Switch Transformer. Chi tiết Switch và context hệ thống được truy về overview thứ cấp có trong kho; ví dụ fine-grained/shared expert lấy từ paper DeepSeekMoE.[^moe-overview-2026][^deepseekmoe-2024]
 
-## 1. Điều kiện tiên quyết và bức tranh lớn
+## 1. Điều cần biết trước
 
-Bạn nên đã hiểu một `decoder-only Transformer`: `self-attention` cho token trao đổi information theo sequence, còn `FFN` xử lý từng position bằng cùng một transformation. Xem [Decoder-only Transformer: beginner's guide](decoder-only-transformer-beginners-guide.md) nếu phần này còn mới.
+- **Đã hiểu:** một `decoder-only Transformer` — `self-attention` trao đổi thông tin theo sequence, `FFN` xử lý từng position bằng cùng một transformation. Xem [Decoder-only Transformer: beginner's guide](decoder-only-transformer-beginners-guide.md) nếu chưa quen.
+- **Đã quen:** `softmax`, `argmax`/`top-k`, và một `Linear` layer cơ bản.
+- **Không cần trước:** `expert parallelism`, `all-to-all`, `capacity factor`, `auxiliary loss` — những phần này thuộc [MoE capacity, load balancing & stability — bài lab cho người mới](moe-capacity-load-balancing-stability-lab.md) và [Expert parallelism và serving trade-offs — bài học cho người mới](expert-parallelism-serving-trade-offs-beginners-guide.md).
+- **Không cover ở đây:** tối ưu kernel, distributed serving, hay chứng minh expert “chuyên về code/toán”.
 
-Một dense block dạng pre-normalization có thể rút gọn thành:
+## 2. Lý thuyết cốt lõi
+
+### 2.1 Dense block làm gì trước khi có MoE?
+
+Một block dạng pre-normalization rút gọn:
 
 $$
-u = x + \operatorname{Attention}(\operatorname{Norm}_1(x)),
-\qquad
-\operatorname{Block}(x) = u + \operatorname{FFN}(\operatorname{Norm}_2(u)).
+u = x + \operatorname{Attention}(\operatorname{Norm}_1(x)),\qquad
+\operatorname{Block}(x)=u+\operatorname{FFN}(\operatorname{Norm}_2(u))
 $$
 
-Với hidden width $D$ và FFN intermediate width $D_{ff}$, dense FFN thường là:
+Dense FFN với width $D$ và intermediate $D_{ff}$:
 
 $$
-\operatorname{FFN}(h)=W_2\,\phi(W_1h+b_1)+b_2,
+\operatorname{FFN}(h)=W_2\,\phi(W_1h+b_1)+b_2,\quad W_1\in\mathbb{R}^{D_{ff}\times D},\;W_2\in\mathbb{R}^{D\times D_{ff}}
 $$
 
-trong đó $W_1$ mở rộng $D\to D_{ff}$, activation $\phi$ có thể là `GELU`/`SwiGLU`, và $W_2$ chiếu về $D$. **Mọi token đều chạy cùng một cặp trọng số** $W_1,W_2$.
-
-MoE không thay `attention`, `causal mask`, `residual connection`, hoặc language-model objective. Nó chủ yếu thay branch `FFN` trong một số block:
+với $\phi$ là `GELU`/`SwiGLU`. **Mọi token chạy cùng một cặp weights** $W_1,W_2$. MoE không thay attention, mask, residual hay loss — chỉ thay nhánh `FFN` ở **một số** layer (xen kẽ dense và MoE là lựa chọn kiến trúc).[^moe-overview-2026]
 
 ```text
-Dense block
-hidden token → shared FFN → update
+Dense
+hidden token ───────────► shared FFN ───────────► + residual
 
-MoE block
-hidden token → router → selected expert FFN(s) → weighted update
+MoE
+hidden token ─► router ─► selected expert(s) ─► weighted sum ─► + residual
+         per-token decision, per-token different expert
 ```
 
-Một model có thể xen kẽ dense FFN và MoE FFN thay vì biến mọi layer thành MoE.[^moe-overview-2026] Điều đó là architecture choice, không phải định nghĩa bắt buộc của MoE.
+> [!note] Analogy — bếp chuyên gia
+> Dense FFN như một bếp trưởng làm mọi món. MoE như bếp có 8 chuyên gia (nướng, xào, bánh...), mỗi order (token) được “lễ tân” (router) gửi đến 1–2 chuyên gia phù hợp nhất. Tổng số đầu bếp (total) lớn, nhưng mỗi order chỉ cần 1–2 người (active).
 
-## 2. Từ một shared FFN đến một expert bank
+### 2.2 Router: từ hidden state đến xác suất
 
-Tạo $N$ bản FFN độc lập, gọi là `experts`:
-
-$$
-E_1(h), E_2(h), \ldots, E_N(h).
-$$
-
-Mỗi expert nhận cùng shape input và trả cùng shape output như dense FFN, nhưng có weights riêng. Tập các expert này là `expert bank`.
-
-Ví dụ với $N=4$:
-
-```text
-token "def"  ──router──► Expert 2
-token "("    ──router──► Expert 0
-token "Paris"──router──► Expert 3
-```
-
-Router học assignment từ training loss; **không có rule nào bảo đảm** Expert 2 là “code expert” hoặc Expert 3 là “geography expert”. Expert có thể phản ứng với language, position, token pattern, hoặc feature khó gán nhãn. Chỉ gọi chúng là “specialized” khi có evidence phù hợp.[^moe-overview-2026][^deepseekmoe-2024]
-
-### Dense và MoE khác nhau ở đâu?
-
-| Câu hỏi | Dense FFN | MoE FFN |
-|---|---|---|
-| Có bao nhiêu FFN weights? | Một FFN | $N$ expert FFN độc lập |
-| Token chạy qua gì? | Cùng một FFN | Một nhóm expert do router chọn |
-| Token kề nhau có thể xử lý khác nhau? | Cùng weights | Có thể đến expert khác nhau |
-| Cần router? | Không | Có |
-| Có nguy cơ expert overload? | Không | Có |
-
-## 3. Router: từ hidden state đến routing probabilities
-
-Với hidden vector của một token $h\in\mathbb{R}^{D}$, router là một linear layer có $N$ outputs:
+Với hidden vector của một token $h\in\mathbb{R}^{D}$, router là một `Linear` ra $N$ logits:
 
 $$
-z = W_rh+b_r, \qquad z\in\mathbb{R}^{N}.
+z = W_r h + b_r,\qquad z\in\mathbb{R}^{N}
 $$
 
-$z_i$ là `router logit` của expert $i$, chưa phải probability. `softmax` biến logits thành distribution:
+`Softmax` biến logits thành phân phối:
 
 $$
-p_i(h)=\frac{\exp(z_i)}{\sum_{j=1}^{N}\exp(z_j)},
-\qquad \sum_{i=1}^{N}p_i(h)=1.
+p_i(h)=\frac{\exp(z_i)}{\sum_{j=1}^{N}\exp(z_j)},\qquad \sum_{i=1}^{N}p_i(h)=1
 $$
 
-Ví dụ một token với bốn experts:
+Router chạy **per token** — hai token kề nhau có thể có phân phối khác nhau.
 
-| Expert | Router logit | `softmax` probability |
+**Ví dụ số cụ thể** — 1 token, 4 experts:
+
+| Expert | logit $z_i$ | $p_i$ sau softmax |
 |---|---:|---:|
 | 0 | 0.2 | 0.16 |
-| 1 | 1.7 | 0.71 |
-| 2 | -0.4 | 0.09 |
-| 3 | 0.6 | 0.24 |
+| 1 | 1.7 | 0.46 |
+| 2 | -0.4 | 0.08 |
+| 3 | 0.6 | 0.30 |
 
-`Expert 1` có xác suất lớn nhất. Router được áp dụng **per token**, không phải một lần cho cả sequence. Vì thế token khác trong cùng batch có thể có distribution khác.
+Expert 1 có xác suất cao nhất. Nhưng sau softmax **mọi** $p_i>0$ — đây vẫn là dense distribution. Sự **sparse** chỉ xuất hiện khi ta giữ `top-1`/`top-k` và chỉ thực thi các expert đó.
 
-> [!note] `softmax` không tự tạo sparsity
-> Sau `softmax`, mọi $p_i$ thường dương: đây vẫn là dense distribution. Sự sparse xuất hiện khi ta giữ only `top-1` hoặc `top-k` entries rồi chỉ thực thi các expert tương ứng.
+### 2.3 `top-1` — Switch Transformer
 
-## 4. `top-1`: Switch Transformer
-
-`Switch Transformer` chọn expert có probability lớn nhất:
+Chọn expert tốt nhất:[^moe-overview-2026]
 
 $$
-i^*=\arg\max_i p_i(h),
+i^*=\arg\max_i p_i(h),\qquad
+\operatorname{SwitchFFN}(h)=p_{i^*}(h)\,E_{i^*}(h)
 $$
 
-và output routed branch là:
+- Chỉ 1 expert FFN chạy/token.
+- Nhân với $p_{i^*}$ cho phép gradient chảy vào router qua gate value; bản thân `argmax` là discrete nên không có gradient qua việc “đổi expert nào được chọn”.
+- Đây là routing đơn giản nhất và tiết kiệm expert compute nhất — nhưng “ít FLOPs expert hơn” **không** đồng nghĩa latency end-to-end luôn thấp hơn do router, packing, padding, communication, weight loading.[^moe-overview-2026]
+
+### 2.4 `top-k` — cho một token gọi nhiều expert
+
+Lấy tập $S_k(h)$ gồm $k$ expert có $p_i$ cao nhất:[^moe-overview-2026]
 
 $$
-\operatorname{SwitchFFN}(h)=p_{i^*}(h)E_{i^*}(h).
+\operatorname{MoE}_{top\text{-}k}(h)=\sum_{i\in S_k(h)} p_i(h)\,E_i(h)
 $$
 
-Chỉ một expert FFN chạy cho token đó. Nhân output với selected probability cho phép gradient cập nhật router qua giá trị gate; bản thân lựa chọn `argmax` là discrete, nên không có gradient trực tiếp đi qua việc đổi expert nào được chọn.[^moe-overview-2026]
+`top-1` là trường hợp $k=1$. Một số implementation **re-normalize** gate trong $S_k$ để tổng =1; công thức Switch trong source dùng raw softmax probability trực tiếp — đó là design choice cần nêu rõ khi so sánh.
 
-`top-1` giảm số expert computations và token dispatch so với routing nhiều expert. Tuy nhiên, “ít FLOPs expert hơn” **không đồng nghĩa** end-to-end latency luôn thấp hơn: router, packing, padding, network communication, và weight loading vẫn có chi phí.[^moe-overview-2026]
+DeepSeekMoE cho thấy `top-k` không nhất thiết tốn FLOPs hơn: nếu chia một expert lớn thành $m$ expert nhỏ ($D_{ff}\to D_{ff}/m$) và tăng $k\to mK$, tổng routed-FFN compute có thể gần giữ nguyên, đồng thời có thêm `shared experts` luôn chạy cho mọi token.[^deepseekmoe-2024]
 
-## 5. `top-k`: cho một token gọi nhiều expert
-
-Với `top-k`, lấy tập $S_k(h)$ gồm $k$ experts có $p_i(h)$ cao nhất và cộng các outputs có trọng số:
-
-$$
-\operatorname{MoE}_{top-k}(h)=
-\sum_{i\in S_k(h)}p_i(h)E_i(h).
-$$
-
-- `top-1` là trường hợp $k=1$.
-- `top-k` tăng số expert FFN evaluations từ một lên $k$ cho mỗi token.
-- Một implementation có thể re-normalize selected gate weights để chúng tổng bằng 1; đó là design choice. Công thức Switch trong source ở trên dùng selected softmax probability trực tiếp.[^moe-overview-2026]
-
-DeepSeekMoE cho thấy `top-k` không nhất thiết có nghĩa “nhiều FLOPs hơn dense baseline”: nếu split một expert lớn thành nhiều expert nhỏ hơn và tăng $k$ tương ứng, total routed-FFN compute có thể gần giữ nguyên trong cấu hình đó. Nó cũng thêm `shared experts` luôn chạy cho mọi token, tách common computation khỏi routed branch.[^deepseekmoe-2024]
-
-### So sánh trực giác
-
-| Routing | Expert calls/token | Output | Điểm chính |
+| Routing | Expert calls / token | Output | Khi nào dùng |
 |---|---:|---|---|
-| Dense | 1 shared FFN | $E(h)$ | Không conditional computation |
-| `top-1` / Switch | 1 selected expert | $p_{i^*}E_{i^*}(h)$ | Đơn giản nhất, sparse nhất |
-| `top-k` | $k$ selected experts | weighted sum | Nhiều routing composition hơn, nhiều expert work hơn |
+| Dense | 1 shared FFN | $E(h)$ | Baseline, không conditional |
+| `top-1` / Switch | 1 | $p_{i^*}E_{i^*}(h)$ | Sparse nhất, dispatch đơn giản |
+| `top-k` | $k$ | weighted sum của $k$ experts | Nhiều composition hơn, nhiều work hơn |
 
-Đừng suy luận rằng `top-k` luôn tốt hơn `top-1`, hoặc experts chắc chắn có semantic role rõ ràng. Đây là choices phải đánh giá cùng model width, capacity rule, batch size, hardware, và training setup.
+> [!warning] Đừng gán nhãn semantic vội
+> Router học từ loss, không có bảo đảm Expert 2 = “code expert”. Expert có thể phản ứng với language, position, pattern khó gán nhãn. Chỉ gọi “specialized” khi có evidence phù hợp.[^moe-overview-2026][^deepseekmoe-2024]
 
-## 6. `total parameters`, `active parameters`, và FLOPs
+### 2.5 `total parameters` vs `active parameters` vs FLOPs vs latency
 
-Đây là nguồn gây hiểu nhầm phổ biến nhất khi đọc model card MoE.
+Đây là nguồn hiểu nhầm lớn nhất khi đọc model card.
 
-Giả sử mỗi expert có $P_E$ parameters, có $N$ experts, và token dùng `top-k`. Expert-bank counts gần đúng là:
+Giả sử mỗi expert $P_E$ params, $N$ experts, `top-k`:
 
 $$
-P_{\text{expert,total}}\approx N P_E,
-\qquad
-P_{\text{expert,active/token}}\approx kP_E.
+P_{\text{expert,total}}\approx N P_E,\qquad
+P_{\text{expert,active/token}}\approx kP_E
 $$
 
-Ví dụ: 8 experts, mỗi expert 100M parameters, `top-2`:
+Ví dụ $N=8$, $P_E=100\text{M}$, `top-2`:
 
 ```text
-expert total parameters       ≈ 8 × 100M = 800M
-expert active parameters/token ≈ 2 × 100M = 200M
+expert total  ≈ 8 × 100M = 800M
+expert active/token ≈ 2 × 100M = 200M
 ```
 
-Nhưng đây **chỉ là expert branch**. Toàn model còn embeddings, attention projections, router, normalization, `lm_head`, và có thể dense FFN layers. Vì vậy, reported `active parameters` thường là architecture-specific convention, không phải complete cost summary.
+Nhưng đây **chỉ là expert branch**. Toàn model còn embeddings, attention, router, norm, `lm_head`, và có thể các dense layers. Nên `active parameters` là convention của kiến trúc, không phải full cost.
 
-| Quantity | Hỏi điều gì? | Không nói đầy đủ về |
+| Quantity | Trả lời câu hỏi gì? | Không nói về |
 |---|---|---|
-| `total parameters` | Bao nhiêu weights phải lưu/load/checkpoint? | Bao nhiêu weights mỗi token chạy |
-| `active parameters` | Khoảng bao nhiêu selected weights tham gia cho một token? | Attention, KV cache, routing, padding, communication |
-| FLOPs/token | Bao nhiêu arithmetic work trong một configuration? | Network overhead và kernel utilization |
-| End-to-end latency | Request mất bao lâu trên hệ cụ thể? | Quality hoặc model capacity |
+| `total parameters` | Bao nhiêu weights phải lưu/load? | Bao nhiêu chạy/token |
+| `active parameters` | Khoảng bao nhiêu selected weights tham gia/token? | Attention, KV cache, routing, padding, communication |
+| FLOPs/token | Bao nhiêu phép tính số học? | Network overhead, kernel utilization |
+| End-to-end latency | Request mất bao lâu trên hardware cụ thể? | Quality, capacity |
 
-Switch tách `total` expert capacity khỏi phần lớn expert-FFN compute per token, nhưng inactive weights không “miễn phí”: chúng vẫn chiếm memory và làm checkpoint/model loading lớn hơn.[^moe-overview-2026]
+Switch tách `total` capacity khỏi phần lớn expert FLOPs/token, nhưng inactive weights không miễn phí: vẫn chiếm memory và làm checkpoint lớn hơn.[^moe-overview-2026]
 
-## 7. PyTorch toy implementation
+### 2.6 Sơ đồ luồng token
 
-Code dưới đây implement `top-1` hoặc `top-k` MoE cho tensor `(batch, sequence, d_model)`. Nó cố ý ưu tiên rõ ràng hơn performance:
+```text
+Batch [B, T, D] ──reshape──► [B*T, D] tokens
+        │
+        ▼
+   Router Linear(D → N) ──softmax(fp32)──► probs [B*T, N]
+        │
+        ├──► topk(probs, k) ──► top_gates [B*T, k], top_ids [B*T, k]
+        │
+        ▼
+   Group tokens by expert_id ──► batched expert FFN calls
+        │
+        ▼
+   Weighted sum per token (gate * expert_output) ──► output [B*T, D]
+        │
+        └──► reshape ──► [B, T, D]  +  loads histogram [N]
+```
 
-- router softmax được tính ở `float32` để minh họa selective precision;
-- every selected token-expert pair được gọi đúng một lần;
-- outputs của một token được cộng theo gate weights;
-- **không** có `expert capacity`, load-balancing loss, `all-to-all`, hay fused kernel.
+## 3. Implementation (PyTorch tối thiểu)
+
+Code dưới ưu tiên **rõ ràng** hơn tốc độ: mỗi cặp token–expert được gọi đúng một lần, outputs cộng theo gate, không có capacity, load-balancing loss, `all-to-all`, hay fused kernel. Khi attention tham gia, convention `interleaved` RoPE và `position_ids` tuyệt đối sẽ được ghi chú — ở đây MoE chỉ thay FFN nên không áp dụng, nhưng router softmax được tính ở `float32` để minh họa selective precision.
 
 ```python
 import torch
@@ -204,7 +184,7 @@ import torch.nn.functional as F
 
 
 class ExpertFFN(nn.Module):
-    """One ordinary position-wise FFN; each instance owns different weights."""
+    """Một FFN position-wise bình thường; mỗi instance có weights riêng."""
     def __init__(self, d_model: int, d_ff: int):
         super().__init__()
         self.net = nn.Sequential(
@@ -218,6 +198,7 @@ class ExpertFFN(nn.Module):
 
 
 class TopKMoE(nn.Module):
+    """Toy MoE: per-token top-k routing, rõ ràng, không tối ưu production."""
     def __init__(self, d_model: int, d_ff: int, n_experts: int, k: int):
         super().__init__()
         if not 1 <= k <= n_experts:
@@ -230,30 +211,34 @@ class TopKMoE(nn.Module):
         )
 
     def forward(self, x: torch.Tensor):
-        # x: (B, T, D); flatten positions because routing is per token.
+        # x: (B, T, D) — routing là per token nên flatten positions.
         B, T, D = x.shape
         tokens = x.reshape(B * T, D)
 
-        # Keep router logits/probabilities in fp32, then retain input dtype for FFNs.
+        # Router logits/probs ở fp32, giữ dtype gốc cho FFN.
         probs = F.softmax(self.router(tokens.float()), dim=-1).to(tokens.dtype)
-        top_gates, top_ids = probs.topk(self.k, dim=-1)  # both: (B*T, k)
+        top_gates, top_ids = probs.topk(self.k, dim=-1)  # (B*T, k)
 
         output = torch.zeros_like(tokens)
         for expert_id, expert in enumerate(self.experts):
-            # One row exists for every (token, selected-expert) assignment.
             token_rows, k_slots = torch.where(top_ids == expert_id)
             if token_rows.numel() == 0:
                 continue
-            expert_output = expert(tokens[token_rows])
-            weighted = top_gates[token_rows, k_slots].unsqueeze(-1) * expert_output
+            expert_out = expert(tokens[token_rows])
+            weighted = top_gates[token_rows, k_slots].unsqueeze(-1) * expert_out
             output.index_add_(0, token_rows, weighted)
 
-        # Useful observability: assignments count k times per token.
+        # Observability: mỗi token đóng góp k assignments.
         loads = torch.bincount(top_ids.reshape(-1), minlength=self.n_experts)
         return output.reshape(B, T, D), probs, top_ids, loads
 ```
 
-### Chạy và kiểm tra tối thiểu
+> [!warning] Đây không phải production MoE
+> Vòng lặp theo expert + `index_add_` dễ đọc nhưng chậm. Production cần group/pack tokens theo expert, chạy batched GEMM lớn, rồi restore order. Khi expert shard qua devices, còn cần `all-to-all` dispatch/combine.[^moe-overview-2026]
+
+## 4. Xác minh trước khi benchmark
+
+Chạy 4 tests dưới đây **trước** khi đo tốc độ hay so quality. Mỗi test nêu rõ `rtol`/`atol` và dtype.
 
 ```python
 torch.manual_seed(7)
@@ -261,90 +246,117 @@ moe = TopKMoE(d_model=16, d_ff=64, n_experts=4, k=2)
 x = torch.randn(3, 5, 16, requires_grad=True)  # B=3, T=5 => 15 tokens
 
 y, probs, top_ids, loads = moe(x)
-print(y.shape)             # torch.Size([3, 5, 16])
-print(top_ids.shape)       # torch.Size([15, 2])
-print(loads.tolist())      # assignments per expert; their sum must be 15 * 2
 
-assert torch.allclose(probs.sum(dim=-1), torch.ones(15), atol=1e-6)
+# Test 1 — shape cơ bản
+assert y.shape == torch.Size([3, 5, 16])
+assert top_ids.shape == torch.Size([15, 2])
+print("✓ shape OK:", y.shape, top_ids.shape)
+
+# Test 2 — softmax sum-to-one (fp32 path, atol 1e-6)
+torch.testing.assert_close(
+    probs.sum(dim=-1), torch.ones(15), rtol=0, atol=1e-6
+)
+print("✓ probs sum to 1")
+
+# Test 3 — loads accounting: mỗi token đóng góp k assignments
 assert loads.sum().item() == 3 * 5 * 2
+assert loads.shape[0] == 4
+print("✓ loads:", loads.tolist(), "sum =", loads.sum().item())
 
+# Test 4 — gradient chảy vào router
 loss = y.square().mean()
 loss.backward()
 assert moe.router.weight.grad is not None
-print("router gradient norm:", moe.router.weight.grad.norm().item())
+assert moe.router.weight.grad.norm().item() > 0
+print("✓ router grad norm:", moe.router.weight.grad.norm().item())
+
+# Test 5 — top-1 là trường hợp riêng của top-k (sanity)
+moe1 = TopKMoE(d_model=16, d_ff=64, n_experts=4, k=1)
+y1, probs1, top_ids1, loads1 = moe1(x.detach())
+assert top_ids1.shape == torch.Size([15, 1])
+assert loads1.sum().item() == 15
+torch.testing.assert_close(probs1.sum(dim=-1), torch.ones(15), rtol=0, atol=1e-6)
+print("✓ top-1 sanity OK")
+
+# Test 6 — đổi k không đổi total expert params (accounting check)
+# N=8, P_E ~ 2*D*D_ff ; total = N*P_E không phụ thuộc k
+# Đây là check bằng logic, không phải đo hardware.
+print("✓ accounting: total expert params phụ thuộc N, không phụ thuộc k")
 ```
 
-Nếu đổi `k=1`, `top_ids` có shape `(B*T, 1)` và mỗi token có exactly one selected expert: đó là routing pattern của Switch. Code này dùng raw selected `softmax` gates, phù hợp công thức đã trình bày; nó không normalize lại top-k gates.
+**Cách đọc kết quả:**
+- Nếu Test 2 fail: kiểm tra dtype, softmax dim, hoặc router output shape.
+- Nếu `loads` lệch hẳn (một expert chiếm >80%): chưa phải bug shape, nhưng là signal để đọc tiếp bài về load balancing.
+- Nếu grad `None` hoặc `0`: kiểm tra `gate * expert_out` có nhân đúng selected probability không.
 
-> [!warning] Đây không phải production MoE
-> Python loop theo expert, boolean indexing, và `index_add_` là dễ đọc nhưng chậm. Production implementation cần group/pack tokens theo expert, chạy expert batches lớn, rồi restore original token order. Khi expert được shard qua devices, quy trình còn cần `all-to-all` dispatch và combine.[^moe-overview-2026]
+## 5. Benchmark / Trade-offs
 
-## 8. Tại sao một router cần load balancing?
+Không có benchmark wall-clock trong toy code (single-process, Python loop). Bảng dưới tách các trade-offs cần đo riêng khi bạn scale lên hệ thực.
 
-Nếu chỉ tối ưu language-model loss, router có thể gửi phần lớn tokens vào vài experts. Khi đó popular expert quá tải, experts còn lại ít nhận gradient, và capacity của whole bank bị lãng phí. Hiện tượng này thường được gọi là `expert collapse` hoặc `load imbalance`.[^moe-overview-2026]
+### 5.1 `top-1` vs `top-k` (giữ expert width cố định)
 
-Một Switch-style batch-level auxiliary objective dùng:
+| Cấu hình | Expert calls/token | Routed FLOPs/token | Dispatch traffic | Khi nào chọn |
+|---|---:|---:|---|---|
+| `top-1` | 1 | $1\times$ | $1\times$ | Muốn sparse nhất, hệ đơn giản |
+| `top-2` (same width) | 2 | $2\times$ | $2\times$ | Muốn nhiều mixture hơn, chấp nhận tốn gấp đôi |
+| `top-2` fine-grained ($D_{ff}/2$) | 2 nhưng expert nhỏ hơn | $\approx 1\times$ | $2\times$ assignments nhỏ | Muốn nhiều composition mà giữ FLOPs gần bằng[^deepseekmoe-2024] |
 
-$$
-f_i=\frac{1}{T}\sum_{h\in B}\mathbf{1}[\arg\max p(h)=i],
-\qquad
-P_i=\frac{1}{T}\sum_{h\in B}p_i(h),
-$$
+### 5.2 `active parameters` không suy ra latency/memory
 
-trong đó $f_i$ là fraction tokens thật sự routed đến expert $i$, và $P_i$ là mean router probability của expert đó. Loss phụ:
+| Con số headline | Kết luận sai thường gặp | Thực tế cần đo |
+|---|---|---|
+| “Chỉ 21B active” | “Chỉ cần GPU chứa 21B” | Total weights + KV cache + buffers vẫn theo `total` và context length[^moe-overview-2026] |
+| “FLOPs/token thấp” | “Latency luôn thấp” | `all-to-all`, padding, small-batch GEMM, overlap quyết định |
+| “Nhiều experts hơn” | “Chất lượng luôn cao hơn” | Routing balance, data fit, và training setup mới quyết định |
 
-$$
-L_{\text{balance}}=\alpha N\sum_{i=1}^{N}f_iP_i,
-\qquad
-L=L_{\text{LM}}+L_{\text{balance}}.
-$$
+### 5.3 Checklist đo đúng (khi bạn có distributed runtime)
 
-$f_i$ có `argmax` discrete, nhưng $P_i$ có gradient qua `softmax`; do đó router vẫn nhận learning signal. Mục tiêu khuyến khích traffic cân bằng hơn, **không** bắt mọi expert học cùng function.[^moe-overview-2026]
+- **Model config:** total/active params, $N$, $D_{ff}$, `top-k`, có re-normalize gates không
+- **Routing health:** per-expert loads, drop rate, padding fraction, device fan-out
+- **System time:** router/packing, dispatch all-to-all, expert GEMM, combine — đo riêng và đo slowest rank
+- **Workload:** hardware/interconnect, precision, request mix, batch policy, prefill vs decode tách riêng
 
-Trong toy code, `loads` là signal quan sát đầu tiên. Log histogram theo training step; nếu một expert nhận gần toàn bộ assignments hoặc thường bằng 0, hãy kiểm tra router distribution, capacity/drop rate (nếu đã thêm), balance loss, batch size, và learning rate—không vội kết luận expert đó “tốt hơn”.
+## 6. Debug checklist
 
-## 9. `expert capacity` và token overflow
+| Triệu chứng | Nguyên nhân có thể | Check đầu tiên |
+|---|---|---|
+| `probs` không sum ≈1 | Softmax sai dim hoặc dtype overflow | `probs.sum(-1)` với `atol=1e-6`; in `router` output shape |
+| `loads` một expert ≈0, một expert dominate | Router collapse / init bias / `alpha` balance chưa có | Plot `loads / loads.sum()` qua nhiều steps; xem [MoE capacity lab](moe-capacity-load-balancing-stability-lab.md) |
+| Loss không giảm dù dense baseline giảm | Gate weighting sai hoặc expert không được gọi | Log `top_ids` histogram + `router grad norm`; thử `k=1` trước |
+| `NaN` sau vài steps | Logit scale lớn, softmax fp16 unstable | Tính router softmax ở `float32` như code mẫu |
+| Thay `k=1→2` nhưng quality không đổi | Expert width không đổi nên FLOPs tăng nhưng chưa tune capacity/balance | Kiểm tra expert width, capacity factor, và batch size có đủ tokens/expert không |
+| Chạy đúng nhưng chậm bất ngờ | Python loop + `index_add_` toy code | Đây là expected — production cần packed batched GEMM, không phải bug logic |
 
-Hardware thường cần shape/buffer bounded, nên mỗi expert có maximum token capacity gần đúng:
+## 7. Giới hạn & bước tiếp theo
 
-$$
-C=\frac{T}{N}\times\text{capacity factor},
-$$
+**Bài này không chứng minh:**
+- Rằng `top-k` luôn tốt hơn `top-1`, hay expert có semantic role cố định — đó là design choices phải đánh giá cùng width, capacity, batch size, hardware.[^moe-overview-2026][^deepseekmoe-2024]
+- Rằng `active parameters` suy ra serving cost — cần đo total weight memory, KV cache, communication riêng.[^moe-overview-2026]
+- Rằng toy PyTorch cho kết luận về throughput production — code minh họa routing mechanics, không có capacity/drop hay distributed dispatch.
 
-với $T$ là số batch tokens và $N$ là số experts. Nếu 1,024 tokens, 8 experts, capacity factor 1.25 thì $C=160$ tokens/expert.
+**Học tiếp theo (theo [LLM architecture learning roadmap](llm-architecture-learning-roadmap.md) Stage 7):**
 
-Khi router gửi quá $C$ tokens đến một expert, phần overflow có thể skip expert computation và đi qua residual path. Capacity factor lớn giảm dropped tokens nhưng tăng padding, memory, communication, và wasted slots.[^moe-overview-2026]
+1. [MoE capacity, load balancing & stability — bài lab cho người mới](moe-capacity-load-balancing-stability-lab.md) — thêm `capacity factor`, overflow, `auxiliary loss` vs `routing bias`, và vẽ expert load.
+2. [Thiết kế expert và specialization trong DeepSeekMoE — bài học cho người mới](deepseekmoe-expert-design-beginners-guide.md) — fine-grained routed experts + shared experts, tại sao `top-k` lớn hơn không nhất thiết tốn FLOPs hơn.
+3. [Expert parallelism và serving trade-offs — bài học cho người mới](expert-parallelism-serving-trade-offs-beginners-guide.md) — dispatch/combine qua `all-to-all`, placement, và vì sao serving vẫn trả total-weight memory.
 
-Đây giải thích vì sao toy MoE phía trên chưa đủ để kết luận performance: nó không đặt capacity, không drop token, và không mô hình hóa sparse dispatch cost.
-
-## 10. Checklist khi đọc hoặc build MoE
-
-1. **Baseline:** dense model thay FFN nào, ở layer nào, và expert width có thay đổi không?
-2. **Routing:** `top-1` hay `top-k`? Gates có re-normalize không? Router operates per token hay per sequence?
-3. **Counts:** `total` và `active parameters` có bao gồm attention/dense layers không? `k` là bao nhiêu?
-4. **Balance:** có auxiliary loss, bias update, hoặc capacity rule nào? Báo cáo expert loads và drop rate không?
-5. **Systems:** experts đặt trên đâu? Có `all-to-all`, padding, expert parallelism, hay small-batch utilization problem không?
-6. **Evidence:** quality/throughput được so với baseline nào, trên hardware và batch configuration nào?
-
-## 11. Bài tập tiếp theo
-
-- Đặt `k=1` và `k=2`, so sánh `loads`, loss, và số expert calls trên cùng input.
-- Viết `DenseFFN` cùng $D,D_{ff}$, rồi tính parameter counts để thấy MoE tăng `total parameters` thế nào.
-- Thêm capacity $C$ vào toy code: retain only first $C$ assignments của mỗi expert, log dropped assignments, và quan sát trade-off khi đổi capacity factor.
-- Thêm Switch-style `load-balancing loss` và plot `loads / loads.sum()` trong nhiều optimization steps.
-- Sau khi hiểu baseline, đọc [DeepSeekMoE expert specialization](deepseekmoe-expert-specialization.md) để thấy fine-grained `top-k` và `shared experts`; đọc [Mixture-of-Experts training and systems trade-offs](mixture-of-experts-training-and-systems-trade-offs.md) trước khi suy luận từ `active parameters` sang serving cost.
+**Bài tập gợi ý:**
+- Đặt `k=1` và `k=2`, so sánh `loads` và số expert calls trên cùng input.
+- Viết `DenseFFN` cùng $D,D_{ff}$, đếm params để thấy MoE tăng `total` thế nào.
+- Thêm capacity $C=(T/N)\times c$ vào toy code, log dropped assignments khi đổi $c=1.0,1.25,2.0$.
+- Thêm Switch-style $L_{\text{balance}}=\alpha N\sum_i f_iP_i$ và plot `loads` qua nhiều steps.
 
 ## Relationships
 
-- **Builds on:** [Decoder-only Transformer: beginner's guide](decoder-only-transformer-beginners-guide.md), đặc biệt vai trò position-wise `FFN` trong một block.
-- **Explains:** [Switch Transformer sparse routing](switch-transformer-sparse-routing.md) bằng data flow, router equations, toy code, và correctness checks cho người mới.
+- **Depends on:** [Decoder-only Transformer: beginner's guide](decoder-only-transformer-beginners-guide.md) — vai trò position-wise `FFN` trong block mà MoE thay thế.
+- **Explains:** [Switch Transformer sparse routing](switch-transformer-sparse-routing.md) — data flow, router equations, và correctness checks ở mức người mới.
 - **Prepares for:** [DeepSeekMoE expert specialization](deepseekmoe-expert-specialization.md) và [Mixture-of-Experts training and systems trade-offs](mixture-of-experts-training-and-systems-trade-offs.md).
+- **Uses:** [Mixture-of-Experts training and systems trade-offs](mixture-of-experts-training-and-systems-trade-offs.md) để đặt ranh giới giữa `active parameters` và serving cost.
 - **Extends:** Stage 7, “Sparse capacity,” của [LLM architecture learning roadmap](llm-architecture-learning-roadmap.md).
 
 ## Evidence limits
 
-`Switch Transformer` facts in this course are traced to a bundled secondary overview; primary Switch paper source is not present in `raw/`. The toy code demonstrates routing mechanics only and does not substantiate quality, scalability, or production throughput. DeepSeekMoE evidence supports its own fine-grained/shared-expert configuration, not a universal superiority claim for `top-k` routing.[^moe-overview-2026][^deepseekmoe-2024]
+Tổng hợp sư phạm này truy về bundled secondary overview cho Switch Transformer; primary Switch paper không có trong `raw/` nên chi tiết toán và số liệu báo cáo vẫn gắn với overview đó. Toy code chỉ minh họa routing mechanics, không chứng minh quality/scalability/throughput production. Evidence về fine-grained/shared experts và “`top-k` không đồng nghĩa nhiều FLOPs hơn” thuộc cấu hình DeepSeekMoE cụ thể, không phải claim phổ quát cho mọi MoE.[^moe-overview-2026][^deepseekmoe-2024]
 
-[^moe-overview-2026]: “Switch Transformer và Mixture of Experts trong LLM,” [raw source](../raw/MixtureofExperts.md), Sections 1–18; it cites Fedus, Zoph, and Shazeer, “Switch Transformers: Scaling to Trillion Parameter Models with Simple and Efficient Sparsity” (2021/2022), and Shazeer et al., “Outrageously Large Neural Networks: The Sparsely-Gated Mixture-of-Experts Layer” (2017).
-
-[^deepseekmoe-2024]: Dai et al., “DeepSeekMoE: Towards Ultimate Expert Specialization in Mixture-of-Experts Language Models” (2024), [source](../raw/arXiv-2401.06066v1/main.tex), Sections 3–4 and Appendix A.
+[^moe-overview-2026]: “Switch Transformer và Mixture of Experts trong LLM,” [raw source](../raw/MixtureofExperts.md), Sections 1–18; overview này trích Fedus, Zoph, and Shazeer, “Switch Transformers: Scaling to Trillion Parameter Models with Simple and Efficient Sparsity” (2021/2022) và Shazeer et al., “Outrageously Large Neural Networks: The Sparsely-Gated Mixture-of-Experts Layer” (2017).
+[^deepseekmoe-2024]: Dai et al., “DeepSeekMoE: Towards Ultimate Expert Specialization in Mixture-of-Experts Language Models” (2024), [source](../raw/arXiv-2401.06066v1/main.tex), Sections 3–4 và Appendix A.

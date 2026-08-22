@@ -1,5 +1,8 @@
 # Wiki Update Log
 
+## 2026-08-22
+- **Update**: Rewrote [Mixture-of-Experts và sparse routing — bài học cho người mới](mixture-of-experts-sparse-routing-beginners-guide.md) as a beginner-first course — clarified dense-vs-MoE block, router softmax with worked numbers, top-1/top-k with gate semantics, total vs active vs FLOPs vs latency, plus a minimal PyTorch toy MoE with `torch.testing.assert_close` verification (rtol/atol), trade-off tables, and debug checklist; sources [MixtureofExperts.md](../raw/MixtureofExperts.md) and [DeepSeekMoE](../raw/arXiv-2401.06066v1/main.tex).
+
 ## 2026-08-21
 - **Ingest**: Compiled [FlexAttention: a Programming Model for Generating Optimized Attention Kernels](../raw/2412.05496_FlexAttention/main.tex); created [programming model and template lowering](flexattention-programming-model-and-compilation.md), [BlockMask and paged attention](flexattention-block-sparsity-and-paged-attention.md), and [evaluation and deployment limits](flexattention-evaluation-and-deployment-limits.md).
 
