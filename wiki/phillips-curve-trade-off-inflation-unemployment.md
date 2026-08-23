@@ -5,7 +5,7 @@ description: Mankiw Ch.22 — the Phillips curve as short-run menu, its AD-AS fo
 tags: [phillips-curve, inflation, unemployment, natural-rate, expected-inflation, aggregate-demand, aggregate-supply, stagflation, supply-shock, sacrifice-ratio, disinflation, rational-expectations, credibility, volcker, greenspan, bernanke, financial-crisis, monetary-policy, friedman, phelps]
 status: stable
 created: 2026-08-22
-generated: { by: llm-wiki-agent/1, at: 2026-08-22T12:47:26Z }
+generated: { by: llm-wiki-agent/1, at: 2026-08-22T18:07:29Z }
 sources:
   - id: mankiw-066
     resource: ../raw/PrinciplesofMacroeconomics_8thEdition_GregoryMankiw/066-the-short-run-trade-off-between-inflation-and-unemployment.md
@@ -31,6 +31,12 @@ sources:
   - id: krugman-102
     resource: ../raw/Macroeconomics_Krugman/102-chapter-18-international-macroeconomics-16-3-check-your-understanding.md
     title: "Chapter 18 International Macroeconomics — 16-3 Check Your Understanding (Krugman/Wells; raw label)"
+  - id: blanchard-026
+    resource: ../raw/Macroeconomics_OlivierBlanchard/026-the-phillips-curve-the-natural-rate-of-unemployment-and-inflation.md
+    title: "The Phillips Curve, the Natural Rate of Unemployment, and Inflation (Blanchard)"
+  - id: blanchard-027
+    resource: ../raw/Macroeconomics_OlivierBlanchard/027-theory-ahead-of-facts-milton-friedman-and-edmund-phelps.md
+    title: "Theory ahead of Facts: Milton Friedman and Edmund Phelps (Blanchard)"
 ---
 
 # The Short-Run Trade-off between Inflation and Unemployment — Phillips Curve, Expectations, Supply Shocks, and Disinflation Costs
@@ -201,6 +207,14 @@ Chapter traces evolution: Phillips (1958), Samuelson–Solow (1960), Friedman–
 
 The source's answers restate the expectations mechanism: once expected and actual inflation adjust, wages adjust and unemployment returns to the natural rate, so the long-run Phillips curve is vertical.[^krugman-102] It gives adverse supply shocks (such as oil-price increases) and attempts to hold unemployment below the natural rate as distinct explanations for simultaneous high inflation and unemployment. It also states that disinflation normally requires output below potential and unemployment above the natural rate, but a credible, announced policy can speed expectations adjustment and reduce—not necessarily eliminate—the output loss.[^krugman-102]
 
+## Blanchard's expectations-based form and limits
+
+Starting with wage setting and price setting, Blanchard writes the expectations-augmented relation as $\pi_t=\pi_t^e+(m+z)-\alpha u_t$. With the corresponding natural rate $u_n=(m+z)/\alpha$, this becomes $\pi_t-\pi_t^e=-\alpha(u_t-u_n)$: unemployment below the natural rate produces inflation above expectations, while unemployment above it produces inflation below expectations.[^blanchard-026][^blanchard-027]
+
+The source interprets the U.S. record as conditional on expectation formation: roughly anchored expectations supported an inflation–unemployment relation in the 1960s; de-anchoring in the 1970s made last year's inflation salient and yielded an accelerationist relation; renewed central-bank credibility re-anchored expectations by the mid-1990s.[^blanchard-026] Its period-specific fitted lines—$\pi_t-\pi_{t-1}=7.4\%-1.2u_t$ for 1970–95 and $\pi_t=2.8\%-0.16u_t$ for 1996–2018—are descriptive estimates, not stable policy rules.[^blanchard-026]
+
+At high inflation, shorter contracts and wage indexation can amplify the response of inflation to unemployment; as indexation approaches full coverage, the source says the simple relation can become tenuous. Near zero inflation or deflation, resistance to nominal wage cuts can instead weaken it.[^blanchard-027]
+
 ## Relationships
 
 - Depends on: [Short-Run Economic Fluctuations — Three Facts and the Aggregate Demand–Aggregate Supply Model](short-run-economic-fluctuations-aggregate-demand-supply.md) — AD-AS foundation, short-run vs long-run AS, monetary neutrality, stagflation and accommodation
@@ -213,6 +227,7 @@ The source's answers restate the expectations mechanism: once expected and actua
 - Uses: [Output gaps, potential output, and diagnosing Keynesian versus classical recessions](output-gaps-and-diagnosing-demand-vs-supply-recessions.md) — natural rate as potential output benchmark
 - Uses: [Inflation targeting and the case for higher inflation (2% vs 3–4% and NGDP)](inflation-targeting-optimal-inflation-and-ngdp.md) — longer-run inflation target context for disinflation
 - Contradicts: [Deflation, the zero lower bound, and liquidity traps](deflation-zero-lower-bound-and-liquidity-trap.md) — that concept emphasizes deflation dangers; this concept emphasizes disinflation costs and careful distinction of disinflation vs deflation
+- Related to: [Oil-price shocks, markups, potential output, and stagflation](oil-price-shocks-markups-potential-output-and-stagflation.md) — an oil-cost shock shifts the trade-off and raises the policy dilemma.
 
 ## Coverage limits
 
@@ -232,3 +247,5 @@ The source's answers restate the expectations mechanism: once expected and actua
 [^krugman-ch16-089]: Krugman and Wells, *Macroeconomics*, 6th ed., Ch. 16, “Inflation and Unemployment in the Long Run,” “The Costs of Disinflation,” and “Deflation” (raw/Macroeconomics_Krugman/089-chapter-16-inflation-disinflation-and-deflation-economics-in-action.md; Figures 16-11–16-13 and the global-comparison chart visually inspected).
 
 [^krugman-102]: Krugman and Wells, *Macroeconomics*, 6th ed., answers to “Check Your Understanding” §§16-3–16-4, §§17-1–17-3, and §§18-1–18-4 (raw/Macroeconomics_Krugman/102-chapter-18-international-macroeconomics-16-3-check-your-understanding.md; complete stored artifact; four embedded yuan-market diagrams inspected).
+[^blanchard-026]: Blanchard, *Macroeconomics*, Ch. 8 §§8-1–8-2, “The Phillips Curve, the Natural Rate of Unemployment, and Inflation” (raw/Macroeconomics_OlivierBlanchard/026-the-phillips-curve-the-natural-rate-of-unemployment-and-inflation.md; complete stored artifact; Figures 8-1–8-5 visually inspected).
+[^blanchard-027]: Blanchard, *Macroeconomics*, Ch. 8 §§8-3–8-4 and “Theory ahead of Facts: Milton Friedman and Edmund Phelps” (raw/Macroeconomics_OlivierBlanchard/027-theory-ahead-of-facts-milton-friedman-and-edmund-phelps.md; complete stored artifact; Figures 1 and 8-6 visually inspected; images 000078–000079 are decorative focus dividers).

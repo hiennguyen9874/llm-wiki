@@ -5,7 +5,7 @@ description: Why climate change makes environmental protection a condition of su
 tags: [economic-growth, sustainability, climate-change, greenhouse-gases, clean-energy, international-cooperation, environmental-policy]
 status: stable
 created: 2026-08-22
-generated: { by: llm-wiki-agent/1, at: 2026-08-22T11:00:13Z }
+generated: { by: llm-wiki-agent/1, at: 2026-08-22T17:46:30Z }
 sources:
   - id: krugman-ch9-051
     resource: ../raw/Macroeconomics_Krugman/051-chapter-9-long-run-economic-growth-economic-growth-and-the-environment.md
@@ -13,6 +13,9 @@ sources:
   - id: krugman-ch9-052
     resource: ../raw/Macroeconomics_Krugman/052-chapter-9-long-run-economic-growth-problems.md
     title: "Chapter 9 Long-Run Economic Growth — Problems (Krugman/Wells)"
+  - id: blanchard-054
+    resource: ../raw/Macroeconomics_OlivierBlanchard/054-inequality-and-the-gini-coefficient.md
+    title: "Inequality and the Gini Coefficient (Blanchard, Macroeconomics)"
 ---
 
 # Sustainable growth, climate change, and global cooperation
@@ -33,6 +36,14 @@ The source frames burden sharing as a central obstacle. Wealthy economies produc
 - **Global degradation:** Emissions reductions require many countries to act even when costs and historic responsibility are distributed unevenly. The source presents the 2015 Paris Agreement as a commitment by 196 countries to reduce greenhouse-gas emissions and limit warming to no more than 2°C; cooperation between the United States, China, and India, including rich-country financing for poorer countries' transitions, was its stated linchpin.[^krugman-ch9-051]
 
 The account of the United States' planned 2020 withdrawal is contemporaneous to the text and should not be treated as a statement of current treaty participation.[^krugman-ch9-051]
+
+## Carbon externality, pricing, and coordination
+
+Greenhouse-gas emitters do not bear the full climate cost of their choices, so emissions are a negative externality. The Blanchard source therefore presents a price on carbon—such as a carbon tax—as economists' preferred way to internalize that cost.[^blanchard-054] This is an economic-policy recommendation in the source, not evidence that a particular tax rate is optimal.
+
+It also identifies political obstacles: uncertain and delayed benefits, the regressive burden of unmitigated pricing on lower-income households, and disputes over responsibility between economies that emitted earlier and emerging economies now producing large emissions. Compensation through transfers is necessary in the source's account to prevent a carbon price from being regressive.[^blanchard-054] As one coordination proposal, the source reports Nordhaus's idea that carbon-pricing countries levy a carbon tariff on imports from non-pricing countries; it does not establish the proposal's feasibility or effects.[^blanchard-054]
+
+The source's historical figures show emissions and global temperature rising since 1850, with temperature about 1.2°C higher in its source-era series; its scenarios project materially lower warming under progressively stronger policy. These are dated scenarios, not current forecasts.[^blanchard-054]
 
 ## Compatibility with long-run growth
 
@@ -57,3 +68,4 @@ Inspected the CO₂-emissions chart and the electric-vehicle and self-checkout p
 
 [^krugman-ch9-051]: Krugman and Wells, *Macroeconomics*, Ch. 9, “Economic Growth and the Environment” (raw/Macroeconomics_Krugman/051-chapter-9-long-run-economic-growth-economic-growth-and-the-environment.md).
 [^krugman-ch9-052]: Krugman and Wells, *Macroeconomics*, Ch. 9, “Long-Run Economic Growth — Problems” (raw/Macroeconomics_Krugman/052-chapter-9-long-run-economic-growth-problems.md).
+[^blanchard-054]: Blanchard, *Macroeconomics*, ch. 13 focus box, “Inequality and the Gini Coefficient” (raw/Macroeconomics_OlivierBlanchard/054-inequality-and-the-gini-coefficient.md).

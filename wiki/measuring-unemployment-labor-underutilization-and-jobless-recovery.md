@@ -5,11 +5,14 @@ description: How the official unemployment rate is constructed and interpreted, 
 tags: [unemployment, labor-force, labor-force-participation, underemployment, discouraged-workers, jobless-recovery, economic-growth]
 status: stable
 created: 2026-08-22
-generated: { by: llm-wiki-agent/1, at: 2026-08-22T21:05:00Z }
+generated: { by: llm-wiki-agent/1, at: 2026-08-22T21:06:00Z }
 sources:
   - id: krugman-ch8-044
     resource: ../raw/Macroeconomics_Krugman/044-chapter-8-unemployment-and-inflation.md
     title: "Chapter 8 Unemployment and Inflation (Krugman/Wells)"
+  - id: blanchard-023
+    resource: ../raw/Macroeconomics_OlivierBlanchard/023-the-current-population-survey.md
+    title: "The Current Population Survey (Blanchard)"
 ---
 
 # Measuring unemployment, labor underutilization, and jobless recovery
@@ -20,7 +23,7 @@ The official unemployment rate is a useful indicator of overall labor-market con
 
 - **Employment** counts people currently working, full or part time. **Unemployment** counts people without a job who have actively sought one in the previous four weeks; retirement and inability to work do not qualify.[^krugman-ch8-044]
 - The **labor force** is employment plus unemployment. The **labor-force participation rate** is $\frac{\text{labor force}}{\text{population age 16 and older}} \times 100$; the **unemployment rate** is $\frac{\text{unemployed workers}}{\text{labor force}} \times 100$.[^krugman-ch8-044]
-- The source describes the monthly U.S. Current Population Survey as interviewing a random sample of about 60,000 households, then scaling responses using population estimates.[^krugman-ch8-044]
+- The source describes the monthly U.S. Current Population Survey as interviewing a random sample of about 60,000 households, then scaling responses using population estimates.[^krugman-ch8-044] Blanchard adds that sampled households are interviewed for four consecutive months, out for eight, then interviewed for four more, allowing consecutive-month matches to estimate transition probabilities as well as cross-sectional snapshots.[^blanchard-023]
 
 ## Why the headline rate is incomplete
 
@@ -50,6 +53,7 @@ A **jobless recovery** (or growth recession) is positive real-GDP growth while u
 - Related to: [Business cycle, recession, and Japan's lost growth](business-cycle-recession-and-japan.md) — recession dating and the distinction between cyclical fluctuation and long-run growth.
 - Related to: [Beveridge curve and structural versus cyclical unemployment](beveridge-curve-structural-vs-cyclical-unemployment.md) — vacancies help distinguish cyclical movement from structural unemployment.
 - Related to: [Natural rate of unemployment — frictional, structural, and cyclical components](natural-rate-of-unemployment-frictional-structural-and-cyclical.md) — active job search determines inclusion in the official measure, while short search spells contribute to the natural rate.
+- Related to: [Labor-market flows, participation, and unemployment dynamics](labor-market-flows-participation-and-unemployment-dynamics.md) — CPS longitudinal matching exposes the transitions hidden by headline stocks.
 - Uses: [GDP — income-expenditure identity, measurement rules, components, and real versus nominal](gdp-income-expenditure-measurement-and-real-vs-nominal.md) — real GDP is the growth measure used in the jobless-recovery relationship.
 
 ## Coverage limits
@@ -57,3 +61,4 @@ A **jobless recovery** (or growth recession) is positive real-GDP growth while u
 This raw file covers the chapter introduction and sections through the first quick review (unemployment measurement and growth); it does not include the chapter's later treatment of the natural unemployment rate or inflation. The six referenced figures (8-1 through 8-6) were inspected; their plotted patterns support the stated comparisons.[^krugman-ch8-044]
 
 [^krugman-ch8-044]: Krugman and Wells, *Macroeconomics*, Ch. 8, “Unemployment and Inflation” (raw/Macroeconomics_Krugman/044-chapter-8-unemployment-and-inflation.md).
+[^blanchard-023]: Blanchard, *Macroeconomics*, “The Current Population Survey” (raw/Macroeconomics_OlivierBlanchard/023-the-current-population-survey.md).

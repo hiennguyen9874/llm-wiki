@@ -5,7 +5,7 @@ description: Mankiw Ch.14 14-1 — finance as allocation over time and risk, and
 tags: [finance, present-value, future-value, compounding, discounting, time-value-of-money, interest-rate, investment, loanable-funds, rule-of-70, mankiw]
 status: stable
 created: 2026-08-22
-generated: { by: llm-wiki-agent/1, at: 2026-08-22T11:14:59Z }
+generated: { by: llm-wiki-agent/1, at: 2026-08-22T17:49:15Z }
 sources:
   - id: mankiw-ch14-044
     resource: ../raw/PrinciplesofMacroeconomics_8thEdition_GregoryMankiw/044-the-basic-tools-of-finance.md
@@ -16,6 +16,9 @@ sources:
   - id: krugman-ch10-058
     resource: ../raw/Macroeconomics_Krugman/058-chapter-10-savings-investment-spending-and-the-financial-system-how-to.md
     title: "Chapter 10 Savings, Investment Spending, and the Financial System — How to Calculate the Present Value of One-Year Projects (Krugman/Wells)"
+  - id: blanchard-056
+    resource: ../raw/Macroeconomics_OlivierBlanchard/056-financial-markets-and-expectations.md
+    title: "Financial Markets and Expectations"
 ---
 
 # The Basic Tools of Finance — Present Value, Future Value, Compounding, and Discounting
@@ -59,6 +62,14 @@ Derivation: invert the compounding factor — divide by $(1+r)^N$ rather than mu
 Example: \$200 in 10 years at 5% → $\$200/(1.05)^{10} = \$123$; \$123 today at 5% yields \$200 after 10 years[^mankiw-ch14-044].
 
 - **discounting:** the process of finding a present value of a future sum; because earning interest is possible, present value is below $X$ — future sums are discounted by the factor $(1+r)^N$[^mankiw-ch14-044].
+
+### Expected payment streams and units of account
+
+For a sequence of nominal payments, present value is the current payment plus each expected future payment discounted by the product of the current and expected future **nominal** one-period interest rates. Thus a higher expected payment raises present value, while a higher current or expected future nominal rate lowers it.[^blanchard-056]
+
+The analogous calculation in real goods uses real payments and current and expected future **real** rates. Computing a nominal present value with nominal rates and dividing it by today's price level gives the same real value. The unit of the cash-flow forecast and the discount rate must therefore match; the two formulations are equivalent rather than competing rules.[^blanchard-056]
+
+For level payments, the general framework also yields familiar special cases: a finite fixed-payment stream is a discounted geometric sum, while a perpetual fixed payment beginning next period has present value $z/i$ when the interest rate is constant and positive. At a zero rate, discount factors equal one, so the present value is simply the sum of expected payments.[^blanchard-056]
 
 ### Choice example — \$100 today vs \$200 in 10 years
 
@@ -121,6 +132,9 @@ Growth rates that seem small in percentage terms are large after compounding for
 - Source 058 contains two decorative images marked `aria-hidden`; they do not carry material information and were not inspected.
 - Source 045 truncated mid-Chapter 15 after 15-1a (unemployment measurement through January 2016 BLS example, 60,000-household Current Population Survey header visible; subsequent lines truncated). Full Chapter 15 natural-rate explanations (job search, minimum wage, unions, efficiency wages) not compiled here.
 - Source 044 earlier truncation now resolved for lottery example via 045.
+- Blanchard source 056 is complete. Its yield-curve figure was visually inspected for the linked term-structure concept; its remaining diagrams are explanatory rather than additional evidence for this concept.
+
+[^blanchard-056]: Olivier Blanchard, *Macroeconomics*, “Financial Markets and Expectations” ([raw source](../raw/Macroeconomics_OlivierBlanchard/056-financial-markets-and-expectations.md); complete stored artifact reviewed).
 
 [^mankiw-ch14-044]: Mankiw, *Principles of Macroeconomics* 8th ed., Ch.14 — The Basic Tools of Finance (raw/PrinciplesofMacroeconomics_8thEdition_GregoryMankiw/044-the-basic-tools-of-finance.md).
 [^mankiw-ch14-045]: Mankiw, *Principles of Macroeconomics* 8th ed., Ch.14 — The Magic of Compounding, Rule of 70, Risk and Asset Valuation excerpts (raw/PrinciplesofMacroeconomics_8thEdition_GregoryMankiw/045-the-magic-of-compounding-and-the-rule-of-70.md).

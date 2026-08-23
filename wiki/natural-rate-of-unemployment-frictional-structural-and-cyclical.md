@@ -5,7 +5,7 @@ description: Why persistent job search and labor-market mismatches make zero une
 tags: [unemployment, natural-rate, frictional-unemployment, structural-unemployment, cyclical-unemployment, labor-market]
 status: stable
 created: 2026-08-22
-generated: { by: llm-wiki-agent/1, at: 2026-08-22T12:17:23Z }
+generated: { by: llm-wiki-agent/1, at: 2026-08-22T17:28:13Z }
 sources:
   - id: krugman-ch8-044
     resource: ../raw/Macroeconomics_Krugman/044-chapter-8-unemployment-and-inflation.md
@@ -22,6 +22,12 @@ sources:
   - id: krugman-ch16-089
     resource: ../raw/Macroeconomics_Krugman/089-chapter-16-inflation-disinflation-and-deflation-economics-in-action.md
     title: "Chapter 16 Inflation, Disinflation, and Deflation — ECONOMICS >> in Action (Krugman/Wells)"
+  - id: blanchard-024
+    resource: ../raw/Macroeconomics_OlivierBlanchard/024-from-henry-ford-to-jeff-bezos.md
+    title: "From Henry Ford to Jeff Bezos (Blanchard)"
+  - id: blanchard-027
+    resource: ../raw/Macroeconomics_OlivierBlanchard/027-theory-ahead-of-facts-milton-friedman-and-edmund-phelps.md
+    title: "Theory ahead of Facts: Milton Friedman and Edmund Phelps (Blanchard)"
 ---
 
 # Natural rate of unemployment — frictional, structural, and cyclical components
@@ -38,7 +44,7 @@ $$\text{natural unemployment} = \text{frictional unemployment} + \text{structura
 
 $$\text{actual unemployment} = \text{natural unemployment} + \text{cyclical unemployment}$$
 
-The term *natural* does not mean fixed or immune to policy. The source says that it varies with labor-force characteristics, institutions, and public policy.[^krugman-ch8-045]
+The term *natural* does not mean fixed or immune to policy. The source says that it varies with labor-force characteristics, institutions, and public policy.[^krugman-ch8-045] Blanchard's wage-setting/price-setting model supplies one mechanism: changes that raise the wage-setting schedule, such as more generous unemployment benefits in that model, or that lower the price-setting real wage, such as a higher markup, raise the equilibrium rate.[^blanchard-024]
 
 The natural rate is also the labor-market benchmark for potential output: at potential output, actual unemployment equals the natural rate; cyclical unemployment is above zero with a negative output gap and below zero with a positive output gap.[^krugman-ch16-088]
 
@@ -76,9 +82,16 @@ The source highlights three categories of shifts:
 
 The historical estimates reported in the source illustrate variation rather than a constant benchmark: the Congressional Budget Office estimate for the U.S. natural rate was 5.3% in 1950, 6.3% in the late 1970s, and 4.4% by 2020.[^krugman-ch8-045]
 
+## Inflation benchmark and estimation uncertainty
+
+In Blanchard's Phillips-curve formulation, the natural rate is equivalently the unemployment rate at which actual inflation equals expected inflation. Under the linear wage-setting specification, $u_n=(m+z)/\alpha$ and $\pi_t-\pi_t^e=-\alpha(u_t-u_n)$.[^blanchard-027] The source's fitted U.S. estimates illustrate uncertainty and variation, rather than a constant target: it infers roughly 6–7% for 1970–95 and about 5% for 1996–2018, while noting that the regression fits are imprecise and that below-5% unemployment after 2016 coincided with inflation near 2%.[^blanchard-027]
+
+Its account attributes changes over time or across countries to changes in markups, nonlabor input costs, wage-bargaining structure, unemployment benefits, and other wage-setting institutions. These are model-based mechanisms, not proof that any one institutional change caused a particular country's rate.[^blanchard-027]
+
 ## Relationships
 
 - Related to: [Measuring unemployment, labor underutilization, and jobless recovery](measuring-unemployment-labor-underutilization-and-jobless-recovery.md) — active search determines whether a nonworker is counted as unemployed.
+- Related to: [Wage setting, price setting, and the natural rate of unemployment](wage-setting-price-setting-and-natural-rate-of-unemployment.md) — derives the rate as equality of wage-setting and price-setting real wages.
 - Uses: [Job search, matching, and policies to shift the Beveridge curve](job-search-matching-and-policies-to-shift-beveridge-curve.md) — matching institutions and policy mechanisms affecting structural unemployment.
 - Uses: [Beveridge curve and structural versus cyclical unemployment](beveridge-curve-structural-vs-cyclical-unemployment.md) — vacancies help distinguish cyclical movements from structural shifts.
 - Uses: [Price Ceilings, Price Floors, and Tax Incidence — Gasoline Shortages, Rent Control, Minimum Wage, and Who Pays Taxes](price-ceilings-floors-and-tax-incidence.md) — the binding-price-floor mechanism in a labor market.
@@ -91,3 +104,5 @@ The historical estimates reported in the source illustrate variation rather than
 [^krugman-ch8-046]: Krugman and Wells, *Macroeconomics*, Ch. 8, “Unemployment and Inflation — Check Your Understanding 8-2” (raw/Macroeconomics_Krugman/046-chapter-8-unemployment-and-inflation-check-your-understanding-8-2.md).
 [^krugman-ch16-088]: Krugman and Wells, *Macroeconomics*, 6th ed., Ch. 16, “The Output Gap and the Unemployment Rate” (raw/Macroeconomics_Krugman/088-chapter-16-inflation-disinflation-and-deflation-the-output-gap-and-the.md; Figure 16-4 visually inspected).
 [^krugman-ch16-089]: Krugman and Wells, *Macroeconomics*, 6th ed., Ch. 16, “Inflation and Unemployment in the Long Run” (raw/Macroeconomics_Krugman/089-chapter-16-inflation-disinflation-and-deflation-economics-in-action.md; Figure 16-12 visually inspected).
+[^blanchard-024]: Blanchard, *Macroeconomics*, Chapter 7 material including “From Henry Ford to Jeff Bezos” (raw/Macroeconomics_OlivierBlanchard/024-from-henry-ford-to-jeff-bezos.md; Figures 7-6–7-8 visually inspected).
+[^blanchard-027]: Blanchard, *Macroeconomics*, Ch. 8 §§8-3–8-4 and “Theory ahead of Facts: Milton Friedman and Edmund Phelps” (raw/Macroeconomics_OlivierBlanchard/027-theory-ahead-of-facts-milton-friedman-and-edmund-phelps.md; complete stored artifact; its cross-country unemployment figure and Portugal wage-change distributions were visually inspected).

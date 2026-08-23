@@ -1,11 +1,11 @@
 ---
 type: Concept
 title: GDP — income-expenditure identity, measurement rules, components, and real versus nominal
-description: Mankiw's GDP as market value of final goods and services — income equals expenditure, seven definitional rules, C+I+G+NX, and nominal/real/GDP deflator measurement.
+description: GDP's market-value, income-expenditure, and C+I+G+NX measures; its distinction from GNP through net foreign income; and nominal/real GDP and deflator measurement.
 tags: [gdp, macroeconomics, national-accounts, measurement, real-gdp, gdp-deflator, consumption, investment]
 status: stable
 created: 2026-08-22
-generated: { by: llm-wiki-agent/1, at: 2026-08-22T11:02:32Z }
+generated: { by: llm-wiki-agent/1, at: 2026-08-22T17:57:15Z }
 sources:
   - id: mankiw-ch10
     resource: ../raw/PrinciplesofMacroeconomics_8thEdition_GregoryMankiw/034-the-data-of-macroeconomics.md
@@ -22,6 +22,9 @@ sources:
   - id: krugman-ch10-053
     resource: ../raw/Macroeconomics_Krugman/053-chapter-10-savings-investment-spending-and-the-financial-system.md
     title: "Chapter 10 Savings, Investment Spending, and the Financial System (Krugman/Wells)"
+  - id: blanchard-kuwait-069
+    resource: ../raw/Macroeconomics_OlivierBlanchard/069-gdp-versus-gnp-the-example-of-kuwait.md
+    title: "GDP versus GNP: The Example of Kuwait"
 ---
 
 # GDP — income-expenditure identity, measurement rules, components, and real versus nominal
@@ -68,6 +71,12 @@ Computed alongside GDP by the Department of Commerce's Bureau of Economic Analys
 - **Disposable personal income** — personal income minus personal taxes and certain nontax payments (e.g., traffic tickets)[^mankiw-ch10].
 
 These measures usually move together; for monitoring fluctuations choice matters little[^mankiw-ch10].
+
+### Open-economy wedge: the Kuwait example
+
+GDP measures value added within a country's borders, whereas GNP measures value added by domestic factors. With $NI$ denoting net income received from the rest of the world, the source states $GNP = GDP + NI$.[^blanchard-kuwait-069] A country with net foreign assets can therefore have GNP materially above GDP without producing more at home: the asset income is foreign income accruing to domestic factors.[^blanchard-kuwait-069]
+
+Kuwait illustrates this stock–income link. Its government saved and invested part of oil revenue abroad, accumulating foreign assets and the associated income for future generations. In 1989, its reported net income from abroad was 2,473 million Kuwaiti dinars—34% of GDP—so GNP (9,616 million dinars) substantially exceeded GDP (7,143 million dinars).[^blanchard-kuwait-069] Payments to allies during the 1990–1991 Gulf War and reconstruction were financed through a current-account deficit that reduced Kuwait's net foreign assets; reported net income then fell to 941 million dinars by 1994. The source says Kuwait subsequently rebuilt a sizable net foreign-asset position and that net income from abroad was 6% of GDP in 2018.[^blanchard-kuwait-069]
 
 ## 10-3 Components: Y = C + I + G + NX
 
@@ -160,3 +169,4 @@ Mankiw source images (circular-flow Figure 1, real-GDP Figure 2, table screensho
 [^krugman-ch7-041]: Krugman and Wells, *Macroeconomics*, 6th ed., ch. 7, “GDP and the CPI: Tracking the Macroeconomy — Pitfalls” (041).
 [^krugman-ch7-043]: Krugman and Wells, *Macroeconomics*, 6th ed., ch. 7, “GDP and the CPI: Tracking the Macroeconomy — Practice questions” (043). Circular-flow diagrams for Micronia and Macronia were visually inspected.
 [^krugman-ch10-053]: Krugman and Wells, *Macroeconomics*, 6th ed., Ch. 10, “Savings, Investment Spending, and the Financial System” (raw/Macroeconomics_Krugman/053-chapter-10-savings-investment-spending-and-the-financial-system.md).
+[^blanchard-kuwait-069]: Blanchard, *Macroeconomics*, Ch. 17 focus box, “GDP versus GNP: The Example of Kuwait” (raw/Macroeconomics_OlivierBlanchard/069-gdp-versus-gnp-the-example-of-kuwait.md; focus-box image inspected and is decorative).

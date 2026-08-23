@@ -2,10 +2,10 @@
 type: Concept
 title: Production and Growth — Productivity, its Determinants, and Long-Run Growth Policy
 description: Long-run determinants of real GDP per person — productivity, the aggregate production function and growth accounting, diminishing returns/catch-up, total factor productivity, and saving, education, infrastructure, financial-system, property-rights, trade, R&D, and population policies.
-tags: [productivity, economic-growth, capital, human-capital, natural-resources, technological-knowledge, technology, total-factor-productivity, growth-accounting, productivity-paradox, diminishing-returns, catch-up-effect, production-function, mankiw, krugman-wells, saving, investment, infrastructure, financial-system, property-rights, political-stability, free-trade, research-and-development, patents, population-growth, malthus]
+tags: [productivity, economic-growth, capital, human-capital, natural-resources, technological-knowledge, technology, total-factor-productivity, growth-accounting, productivity-paradox, diminishing-returns, catch-up-effect, production-function, mankiw, krugman-wells, blanchard, saving, investment, infrastructure, financial-system, property-rights, political-stability, free-trade, research-and-development, patents, population-growth, malthus]
 status: stable
 created: 2026-08-22
-generated: { by: llm-wiki-agent/1, at: 2026-08-22T11:00:13Z }
+generated: { by: llm-wiki-agent/1, at: 2026-08-22T17:38:20Z }
 sources:
   - id: krugman-ch6-037
     resource: ../raw/Macroeconomics_Krugman/037-chapter-6-macroeconomics-the-big-picture-charting-the-business-cycle.md
@@ -34,6 +34,18 @@ sources:
   - id: mankiw-ch12-041
     resource: ../raw/PrinciplesofMacroeconomics_8thEdition_GregoryMankiw/041-in-the-news.md
     title: "IN THE NEWS — Using Experiments to Evaluate Aid / 12-4 Conclusion (Mankiw 8th)"
+  - id: blanchard-034
+    resource: ../raw/Macroeconomics_OlivierBlanchard/034-the-facts-of-growth.md
+    title: "The Facts of Growth (Blanchard, Macroeconomics)"
+  - id: blanchard-035
+    resource: ../raw/Macroeconomics_OlivierBlanchard/035-the-construction-of-ppp-numbers.md
+    title: "The Construction of PPP Numbers (Blanchard, Macroeconomics)"
+  - id: blanchard-036
+    resource: ../raw/Macroeconomics_OlivierBlanchard/036-the-construction-of-ppp-numbers-output-and-capital-per-worker.md
+    title: "The Construction of PPP Numbers — Output and Capital per Worker (Blanchard, Macroeconomics)"
+  - id: blanchard-041
+    resource: ../raw/Macroeconomics_OlivierBlanchard/041-nudging-us-households-to-save-more.md
+    title: "Nudging US Households to Save More (Blanchard, Macroeconomics)"
 ---
 
 # Production and Growth — Productivity, its Determinants, and Long-Run Growth Policy
@@ -45,6 +57,18 @@ Long-run living standards are determined by productivity — output per hour wor
 **Long-run economic growth** is the sustained upward trend in an economy's output; per-capita growth is the relevant trend for higher wages and living standards.[^krugman-ch6-037] It differs from the short-run business cycle: the source cautions that models appropriate for long-run growth need not give the same policy implications in a recession. In particular, it contrasts the short-run paradox of thrift with the longer-run role of saving in supporting growth.[^krugman-ch6-037]
 
 The chapter's Canada–Argentina comparison illustrates that similar starting conditions need not imply similar growth paths. It reports comparable per-capita incomes into the 1930s, then sustained Canadian growth after 1930 and Argentine underperformance after World War II, associating the latter with political instability and poor macroeconomic policies.[^krugman-ch6-037] This is historical illustration, not a complete account of either country's development.
+
+## Blanchard Ch. 10 — facts, convergence, and the Solow primer
+
+Over very long periods, trend growth dominates even severe business-cycle contractions: Blanchard's 1890–2017 U.S. log-scale chart reports real output rising about 51-fold and output per person about tenfold, with the Great Depression, 1980–82 recession, and Great Recession visibly small relative to the trend.[^blanchard-034] The associated historical account characterizes Europe from the end of the Roman Empire to about 1500 as a Malthusian era of near-zero output-per-person growth; sustained modern per-person growth is historically recent.[^blanchard-035]
+
+Cross-country convergence is **conditional and uneven**, rather than a historical necessity. Among today's OECD members, countries starting with lower 1950 output per person generally grew faster through 2017; but selecting a club of later economic winners can exaggerate this pattern. A cohort defined by a 1950 income threshold still shows broad convergence with exceptions such as Uruguay and Venezuela.[^blanchard-035] Across 85 countries from 1960–2017, there is no comparable all-country relationship: OECD and many Asian economies show catch-up, whereas many African countries did not, often amid conflict. These are descriptive source-era patterns, not a causal explanation of regional outcomes.[^blanchard-035]
+
+The Solow-style starting point is $Y=F(K,N)$. With constant returns to scale, $F(xK,xN)=xY$, so setting $x=1/N$ gives $Y/N=F(K/N,1)$: output per worker depends on capital per worker.[^blanchard-035] Diminishing returns mean moving along this curve via capital accumulation produces successively smaller gains. Technological progress instead shifts the curve upward, producing more output per worker at a given capital-worker ratio.[^blanchard-035][^blanchard-036] Thus a higher saving rate can raise the long-run **level** of output per person, but capital accumulation alone cannot sustain its growth rate indefinitely; sustained per-person growth requires sustained technological progress.[^blanchard-036]
+
+### Human capital and the endogenous-growth qualification
+
+Blanchard extends the production relation to $Y/N=f(K/N,H/N)$: physical capital and workers' skills both raise output per worker, and education and training accumulate the latter.[^blanchard-041] The text treats relative wages as a practical human-capital weighting scheme because they are assumed to reflect relative marginal products, but flags that wage differences unrelated to productivity make this measure contestable.[^blanchard-041] It reports a qualified consensus that raising physical investment or education/training can materially raise the long-run **level** of output per worker, given technological progress, without permanently raising its growth rate. Endogenous-growth models ask whether joint accumulation can alter that conclusion; the source says the issue remains unsettled rather than established.[^blanchard-041]
 
 ## Krugman/Wells Ch. 9 — measurement, compounding, and productivity
 
@@ -316,6 +340,7 @@ Goal: what can government do to raise productivity and living standards given th
 - For Krugman/Wells source 049, inspected Figures 9-4 through 9-7: the diminishing-returns curve, technology shift, TFP time series, and China–Argentina literacy chart. Their plotted values accord with the extracted captions and accessible descriptions. No other local attachment referenced by this source carried additional analytical content.
 - For Krugman/Wells source 051, the bar-code section was compiled from the source text. Its self-checkout photograph was inspected and adds no analytical claim beyond the caption; environmental material and its CO₂ chart are compiled in [Sustainable growth, climate change, and global cooperation](sustainable-growth-climate-change-and-global-cooperation.md).
 - For Krugman/Wells source 052, inspected the Work It Out capital-productivity graph; it agrees with the extracted values (A: $10,000 capital and $20,000 output per worker; B: $30,000 and $40,000) and adds no claim beyond the source's diminishing-returns exercise. The remaining two referenced images are decorative or a generic Discovering Data marker and add no analytical content.
+- For Blanchard sources 035–036, inspected the OECD and 85-country convergence scatterplots and the output-per-worker/capital-per-worker and technology-shift diagrams. They agree with the synthesized conditional-convergence and production-function claims. The 1890–2017 U.S. log-scale chart in source 034 was also inspected; it supports the trend-versus-recession framing. The focus-box marker and a cartoon add no analytical claim.
 
 ## Relationships
 
@@ -340,3 +365,7 @@ Goal: what can government do to raise productivity and living standards given th
 [^mankiw-ch12]: Mankiw, *Principles of Macroeconomics* 8th ed., Ch.12 — Production and Growth (raw/PrinciplesofMacroeconomics_8thEdition_GregoryMankiw/039-the-real-economy-in-the-long-run.md).
 [^mankiw-ch12-040]: Mankiw, *Principles of Macroeconomics* 8th ed., Ch.12 12-3f–12-3i (raw/PrinciplesofMacroeconomics_8thEdition_GregoryMankiw/040-the-real-economy-in-the-long-run-12-3f-property-rights-and-political-s.md).
 [^mankiw-ch12-041]: Mankiw, *Principles of Macroeconomics* 8th ed., Ch.12 In the News & 12-4 Conclusion / Summary (raw/PrinciplesofMacroeconomics_8thEdition_GregoryMankiw/041-in-the-news.md).
+[^blanchard-034]: Blanchard, *Macroeconomics*, ch. 10, “The Facts of Growth” (raw/Macroeconomics_OlivierBlanchard/034-the-facts-of-growth.md).
+[^blanchard-035]: Blanchard, *Macroeconomics*, ch. 10, “The Construction of PPP Numbers” and following chapter material (raw/Macroeconomics_OlivierBlanchard/035-the-construction-of-ppp-numbers.md).
+[^blanchard-036]: Blanchard, *Macroeconomics*, ch. 10 continuation, “Output and Capital per Worker” (raw/Macroeconomics_OlivierBlanchard/036-the-construction-of-ppp-numbers-output-and-capital-per-worker.md).
+[^blanchard-041]: Blanchard, *Macroeconomics*, ch. 11 continuation, “Nudging US Households to Save More” and human-capital/endogenous-growth discussion (raw/Macroeconomics_OlivierBlanchard/041-nudging-us-households-to-save-more.md).

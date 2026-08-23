@@ -5,8 +5,11 @@ description: How life-satisfaction surveys, the Easterlin paradox, and Kahneman'
 tags: [happiness, subjective-well-being, easterlin-paradox, measurement, bht, policy, income]
 status: stable
 created: 2026-08-22
-generated: { by: llm-wiki-agent/1, at: 2026-08-22T18:00:00Z }
+generated: { by: llm-wiki-agent/1, at: 2026-08-22T17:35:32Z }
 sources:
+  - id: blanchard-035
+    resource: ../raw/Macroeconomics_OlivierBlanchard/035-the-construction-of-ppp-numbers.md
+    title: "The Construction of PPP Numbers (Blanchard, Macroeconomics)"
   - id: harford-happynomics
     resource: ../raw/TheUndercoverEconomistStrikesBack-TimHarford/015-happynomics.md
     title: "HAPPYNOMICS - The Undercover Economist Strikes Back (Tim Harford)"
@@ -45,6 +48,8 @@ Richard Easterlin's 1974 paper "Does Economic Growth Improve the Human Lot?" is 
 - **Across societies / over time:** richer societies are not happier than poorer societies. A 10% pay raise makes an individual happier; 10% economic growth does not make society happier. The tension is the *Easterlin paradox*[^harford-happynomics].
 
 Easterlin is often misquoted as proving growth does not lead to happiness. Harford suggests a narrower reading given the 1–3 scale: in the 1950s almost half of Americans already said "very happy" and the average was ~2.5/3, so there was little room to rise — evidence that growth does not eliminate misery rather than that it does not raise happiness[^harford-happynomics].
+
+Blanchard summarizes Stevenson and Wolfers's 2006 Gallup evidence for 131 countries as a positive relationship between PPP GDP per person and average life satisfaction, with the within-country income gradients usually pointing upward at a similar slope.[^blanchard-035] It supports their challenge to a hard income threshold, but the source explicitly retains uncertainty about life-satisfaction changes over time within a country and recognizes income distribution and other welfare dimensions.[^blanchard-035]
 
 ### Three candidate explanations
 
@@ -118,4 +123,5 @@ Overall: gathering evaluative SWB is low-cost and informative; DRM-based time ac
 - Related to: [Sticky prices, nominal rigidity, and why money matters](sticky-prices-and-monetary-non-neutrality.md) — Kahneman's work connects both domains
 - Related to: [Measuring well-being beyond GDP — objective adjustments and subjective surveys](measuring-well-being-beyond-gdp-objective-and-subjective-complements.md) — Mankiw WSJ update: Sacks-Stevenson-Wolfers percentage-increase correlation, Deaton cross-country valuation critique, and Wolfers women's-happiness / children-revealed-preference cautions
 
+[^blanchard-035]: Blanchard, *Macroeconomics*, ch. 10, “The Construction of PPP Numbers” and following chapter material (raw/Macroeconomics_OlivierBlanchard/035-the-construction-of-ppp-numbers.md; Figure 1 inspected).
 [^harford-happynomics]: Harford, *The Undercover Economist Strikes Back*, ch. 12 — HAPPYNOMICS.

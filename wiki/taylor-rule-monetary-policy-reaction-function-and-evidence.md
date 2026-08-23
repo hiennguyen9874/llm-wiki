@@ -5,11 +5,14 @@ description: How inflation and output or unemployment gaps guide an interest-rat
 tags: [taylor-rule, monetary-policy, federal-funds-rate, inflation, output-gap, unemployment-gap, zero-lower-bound, inflation-targeting, quantitative-easing, federal-reserve]
 status: stable
 created: 2026-08-22
-generated: { by: llm-wiki-agent/1, at: 2026-08-22T12:03:53Z }
+generated: { by: llm-wiki-agent/1, at: 2026-08-22T18:09:26Z }
 sources:
   - id: krugman-ch15-084
     resource: ../raw/Macroeconomics_Krugman/084-chapter-15-monetary-policy-monetary-policy-in-practice.md
     title: "Chapter 15 Monetary Policy — Monetary Policy in Practice (Krugman/Wells)"
+  - id: blanchard-096
+    resource: ../raw/Macroeconomics_OlivierBlanchard/096-monetary-policy-a-summing-up.md
+    title: "Monetary Policy: A Summing Up"
 ---
 
 # Taylor rule, monetary-policy reaction function, and evidence
@@ -31,6 +34,16 @@ $$\text{federal funds rate}=2.07+1.28\times\text{core inflation rate}-1.95\times
 Here core inflation is the prior year's change in consumer prices excluding food and energy, and the unemployment gap is actual unemployment minus the Congressional Budget Office estimate of the natural rate.[^krugman-ch15-084] This specification predicts a lower rate when unemployment exceeds its natural rate, and a higher rate when inflation rises.
 
 The source's Figure 15-9 shows the actual funds rate tracking this particular rule fairly closely from 1985 through the end of 2008. Thereafter the rule prescribed substantially negative rates (about −6% in 2009–10 in the figure), while the actual rate remained near zero.[^krugman-ch15-084]
+
+### Blanchard formulation and the Taylor principle
+
+Blanchard expresses the same reaction-function logic as
+
+$$i_t=\bar{i}+a(\pi_t-\bar{\pi})-b(u_t-u_n),$$
+
+where $\bar{i}=r_n+\bar{\pi}$ is the nominal rate consistent with the neutral real rate and inflation target, and $a,b>0$. Thus above-target inflation calls for a higher nominal rate and above-natural unemployment for a lower one.[^blanchard-096]
+
+For the inflation term, the source says $a$ should exceed one: a one-for-one nominal-rate increase leaves the real rate unchanged when inflation rises, whereas an increase greater than one raises the real rate and restrains spending. This is a rule-of-thumb condition, not a claim that any fixed coefficient should be followed blindly; the source notes exchange-rate crises and policy-mix concerns can justify deviations.[^blanchard-096]
 
 ## Rules, targets, and discretion
 
@@ -61,4 +74,5 @@ For five identified contractionary decisions between 1952 and 1984, the textbook
 - The Taylor-rule coefficients, 1985–2020 comparisons, and descriptions of Fed motives are source-era textbook claims; they are not current policy data or an independently evaluated rule.
 - No credentials, private data, or disclosure markings were detected.
 
+[^blanchard-096]: Olivier Blanchard, *Macroeconomics*, “Monetary Policy: A Summing Up” (raw/Macroeconomics_OlivierBlanchard/096-monetary-policy-a-summing-up.md; complete stored artifact reviewed; Figure 23-1 visually inspected).
 [^krugman-ch15-084]: Krugman and Wells, *Macroeconomics*, 6th ed., Ch. 15, “Monetary Policy in Practice” (raw/Macroeconomics_Krugman/084-chapter-15-monetary-policy-monetary-policy-in-practice.md; Figures 15-8–15-11 visually inspected).

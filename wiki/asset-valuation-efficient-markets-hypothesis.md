@@ -5,7 +5,7 @@ description: "How fundamental analysis and expected future payoffs shape asset v
 tags: [asset-valuation, fundamental-analysis, efficient-markets-hypothesis, informational-efficiency, random-walk, index-fund, diversification, market-irrationality, behavioral-finance, speculative-bubble, housing, mankiw, krugman-wells]
 status: stable
 created: 2026-08-22
-generated: { by: llm-wiki-agent/1, at: 2026-08-22T11:14:59Z }
+generated: { by: llm-wiki-agent/1, at: 2026-08-22T17:49:15Z }
 sources:
   - id: mankiw-ch14-045
     resource: ../raw/PrinciplesofMacroeconomics_8thEdition_GregoryMankiw/045-the-magic-of-compounding-and-the-rule-of-70.md
@@ -19,6 +19,18 @@ sources:
   - id: krugman-ch10-058
     resource: ../raw/Macroeconomics_Krugman/058-chapter-10-savings-investment-spending-and-the-financial-system-how-to.md
     title: "Chapter 10 Savings, Investment Spending, and the Financial System — How to Calculate the Present Value of One-Year Projects (Krugman/Wells)"
+  - id: blanchard-057
+    resource: ../raw/Macroeconomics_OlivierBlanchard/057-financial-markets-and-expectations-reintroducing-risk.md
+    title: "Financial Markets and Expectations — Reintroducing Risk"
+  - id: blanchard-058
+    resource: ../raw/Macroeconomics_OlivierBlanchard/058-making-some-sense-of-apparent-nonsense-why-the-stock-market-moved-yest.md
+    title: "Making (Some) Sense of (Apparent) Nonsense: Why the Stock Market Moved Yesterday, and Other Stories"
+  - id: blanchard-059
+    resource: ../raw/Macroeconomics_OlivierBlanchard/059-famous-bubbles-from-tulipmania-in-17th-century-holland-to-russia-in-19.md
+    title: "Famous Bubbles: From Tulipmania in 17th-Century Holland to Russia in 1994"
+  - id: blanchard-060
+    resource: ../raw/Macroeconomics_OlivierBlanchard/060-the-increase-in-us-housing-prices-during-the-first-half-of-the-2000s-f.md
+    title: "The Increase in US Housing Prices During the First Half of the 2000s: Fundamentals or Bubble?"
 ---
 
 # Asset Valuation and Market Efficiency — Fundamental Analysis, Efficient Markets Hypothesis, and Market Irrationality
@@ -72,6 +84,12 @@ IAN: IGM-style insert in source: "In general, absent any inside information, an 
 
 QuickQuiz: Fortune's "most respected" companies — according to efficient markets, restricting portfolio to them will **not** earn better-than-average return because respect is public information already in price[^mankiw-ch14-045].
 
+## Expectations, risk, and macroeconomic news
+
+In the textbook's present-value account, a real stock price equals expected future real dividends discounted by current and expected future real short rates plus an equity premium. Higher expected dividends raise it; higher expected rates or required equity premium lower it.[^blanchard-057] The premium is not necessarily constant: heightened uncertainty or risk aversion can lower stock prices even without a dividend revision, as the source uses to interpret part of the 2008 decline.[^blanchard-058]
+
+The sign of an economic data surprise does not mechanically predict the sign of the stock-market response. Stronger activity can raise dividend expectations, but can also imply monetary tightening and higher discount rates; weak news can depress profit forecasts, or increase prices if it changes expectations toward easier policy or a recovery. The relevant comparison is with prior market expectations and the expected central-bank response, not whether the headline is simply “good” or “bad.”[^blanchard-057][^blanchard-058]
+
 ## Asset-demand channels and macroeconomic stakes
 
 An asset's current price reflects its expected future payoffs and resale value: improved expected profitability raises demand for shares and makes existing holders less willing to sell, increasing the current price; worse expectations have the reverse effects.[^krugman-ch10-056] The attractiveness of substitutes matters as well: higher interest rates make bonds more attractive and tend to lower stock and commercial-real-estate demand; lower rates tend to raise it.[^krugman-ch10-056]
@@ -90,6 +108,12 @@ Counter-tradition: fluctuations partly psychological[^mankiw-ch14-045].
 - Why bubbles possible: stock value depends not only on dividends but also on final sale price — willingness to pay more than worth today if expecting another person to pay even more tomorrow → circular expectations[^mankiw-ch14-045].
 - **Behavioral finance** studies systematic departures from rational choice. The source highlights overconfidence in picking winners, loss aversion that delays realizing losses, and herd behavior that buys after run-ups and sells after declines; it also notes institutional pressures can lead even rational managers to follow the herd.[^krugman-ch10-056]
 - Krugman and Wells characterize stock-price swings as too large to be explained by fundamentals alone as evidence against fully rational markets, while cautioning that policymakers do not assume either universal rationality or an ability to outsmart markets. This reinforces the unresolved debate rather than resolving it.[^krugman-ch10-057]
+
+### Bubbles, fads, and real-time housing diagnosis
+
+A **rational speculative bubble** is a price component above fundamental value that investors may willingly hold because they expect resale at a still higher price. It can satisfy arbitrage even for a fundamentally worthless asset, provided buyers expect the price to keep rising; the present-value derivation then fails because its usual no-explosive-price terminal condition is violated. A **fad** instead denotes extrapolative or excessively optimistic buying after past price gains. These are analytical possibilities, not a retrospective test that proves a particular episode was irrational.[^blanchard-059]
+
+The source's 2000s U.S. housing case makes the identification problem concrete. **Pessimists** viewed the nearly 60% rise in the price-to-rent ratio from the late 1990s to its 2006 peak, together with buyers' high expected capital gains, as evidence inconsistent with fundamentals. **Optimists** cited falling real rates, expanded mortgage access, and higher permissible loan-to-value ratios as fundamental demand drivers. A larger agnostic group judged both mechanisms likely but their relative contributions unidentifiable in real time.[^blanchard-060] The source concludes in retrospect that pessimists were largely right, while emphasizing that policymakers rarely know before a collapse whether a run-up is a bubble; its source-era price-to-rent series was visually inspected.[^blanchard-060]
 
 **Debate**[^mankiw-ch14-045]:
 
@@ -121,6 +145,8 @@ Counter-tradition: fluctuations partly psychological[^mankiw-ch14-045].
 - See also: [Saving, Investment, and the Financial System — Financial Institutions, National Saving Identities, and the Market for Loanable Funds](saving-investment-and-the-financial-system.md) — intermediaries and liquidity transformation transmit asset-market stress into credit conditions.
 - See also: [Costs of unemployment and recessions](costs-of-unemployment-and-recessions.md) — macro implications of stock-market fluctuations as preview.
 - See also: [The Market Forces of Supply and Demand — Competitive Markets, Demand and Supply, and Equilibrium](market-forces-of-supply-and-demand.md) — supply/demand price-setting foundation for stock market equilibrium.
+- Uses: [Long-term interest rates — expected short rates and maturity risk](long-term-interest-rates-expected-short-rates-and-maturity-risk.md) — policy-rate expectations and risk premia are common discount-rate inputs to bond and equity valuation.
+- Related: [Global financial crisis — housing, securitization, and world transmission](global-financial-crisis-housing-securitization-and-world-transmission.md) — the subsequent housing-price collapse and financial transmission, distinct from diagnosing its pre-crisis valuation.
 
 ## Contradictions
 
@@ -133,6 +159,12 @@ Counter-tradition: fluctuations partly psychological[^mankiw-ch14-045].
 - Krugman/Wells source 057 is complete; its stock-market material is a chapter summary and review prompt, not a new empirical series.
 - Krugman/Wells source 058 is complete; its two embedded images are marked decorative and were not inspected.
 - Problems and Applications (e.g., Manhattan \$24 at 7% for 400 years), Questions for Review, and FYI boxes beyond those summarized are truncated after CHAPTER QuickQuiz/Summary headers due to file limit; unemployment Chapter 15 content beyond 14-4 is excluded from this concept.
+- Blanchard sources 057–060 are complete. The real S&P series, the two IS–LM diagrams, and the housing price-to-rent series were visually inspected. Bond/stock-return diagrams are explanatory; the Wasserman and Zweig cartoons and the tulip illustration were not needed for retained claims.
+
+[^blanchard-057]: Olivier Blanchard, *Macroeconomics*, “Financial Markets and Expectations — Reintroducing Risk” ([raw source](../raw/Macroeconomics_OlivierBlanchard/057-financial-markets-and-expectations-reintroducing-risk.md); complete stored artifact reviewed; Figures 14-4, 14-6, and 14-7 visually inspected).
+[^blanchard-058]: Olivier Blanchard, *Macroeconomics*, “Making (Some) Sense of (Apparent) Nonsense: Why the Stock Market Moved Yesterday, and Other Stories” ([raw source](../raw/Macroeconomics_OlivierBlanchard/058-making-some-sense-of-apparent-nonsense-why-the-stock-market-moved-yest.md); complete stored artifact reviewed).
+[^blanchard-059]: Olivier Blanchard, *Macroeconomics*, “Famous Bubbles: From Tulipmania in 17th-Century Holland to Russia in 1994” ([raw source](../raw/Macroeconomics_OlivierBlanchard/059-famous-bubbles-from-tulipmania-in-17th-century-holland-to-russia-in-19.md); complete stored artifact reviewed).
+[^blanchard-060]: Olivier Blanchard, *Macroeconomics*, “The Increase in US Housing Prices During the First Half of the 2000s: Fundamentals or Bubble?” ([raw source](../raw/Macroeconomics_OlivierBlanchard/060-the-increase-in-us-housing-prices-during-the-first-half-of-the-2000s-f.md); complete stored artifact reviewed; Figure 1 visually inspected).
 
 [^mankiw-ch14-045]: Mankiw, *Principles of Macroeconomics* 8th ed., Ch.14 14-3–14-4 (raw/PrinciplesofMacroeconomics_8thEdition_GregoryMankiw/045-the-magic-of-compounding-and-the-rule-of-70.md).
 [^krugman-ch10-056]: Krugman and Wells, *Macroeconomics*, 6th ed., Ch. 10, “Savings, Investment Spending, and the Financial System — Mutual Funds” (raw/Macroeconomics_Krugman/056-chapter-10-savings-investment-spending-and-the-financial-system-mutual.md).

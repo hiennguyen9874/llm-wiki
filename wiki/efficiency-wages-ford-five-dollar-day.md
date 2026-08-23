@@ -5,7 +5,7 @@ description: Why Ford's 1914 doubling of wages was a cost-cutting efficiency wag
 tags: [efficiency-wages, unemployment, henry-ford, five-dollar-day, structural-unemployment, labor-market]
 status: stable
 created: 2026-08-22
-generated: { by: llm-wiki-agent/1, at: 2026-08-22T20:05:00Z }
+generated: { by: llm-wiki-agent/1, at: 2026-08-22T21:06:00Z }
 sources:
   - id: harford-ch8
     resource: ../raw/TheUndercoverEconomistStrikesBack-TimHarford/011-the-invention-of-unemployment.md
@@ -13,6 +13,9 @@ sources:
   - id: mankiw-048
     resource: ../raw/PrinciplesofMacroeconomics_8thEdition_GregoryMankiw/048-15-4-unions-and-collective-bargaining.md
     title: "15-4 Unions and Collective Bargaining / 15-5 Theory of Efficiency Wages — Principles of Macroeconomics, 8th Edition (N. Gregory Mankiw)"
+  - id: blanchard-024
+    resource: ../raw/Macroeconomics_OlivierBlanchard/024-from-henry-ford-to-jeff-bezos.md
+    title: "From Henry Ford to Jeff Bezos (Blanchard)"
 ---
 
 # Efficiency wages and the invention of unemployment — Ford's five-dollar day
@@ -52,7 +55,9 @@ Classical supply-demand predicts unemployment is voluntary — workers could acc
 2. **Reciprocity:** gratitude/obligation led to more vigorous application[^harford-ch8].
 3. **Higher cost of job loss:** at twice the elsewhere wage, workers had much to lose and became "absolutely docile" per contemporary commentary, working hard and following instructions[^harford-ch8].
 
-Results: turnover plummeted and labor productivity rose sharply; output rose and profits continued to rise despite recession[^harford-ch8].
+Results: turnover plummeted and labor productivity rose sharply; output rose and profits continued to rise despite recession[^harford-ch8]. Blanchard reports annual turnover falling from 370% in 1913 to 54% in 1914 and 16% in 1915, with layoffs falling from 62% to 7% and then 0.1%; it attributes the retention and absenteeism improvements primarily to the higher wage, while treating the extent to which productivity/profit gains were caused by worker behavior rather than Model T success as uncertain.[^blanchard-024]
+
+Blanchard also presents Amazon's October 2018 increase of its minimum wage to $15 per hour for 250,000 regular and 100,000 seasonal workers as a possible modern analogue. The source identifies recruitment and retention in a low-unemployment market, adverse-publicity response, and potentially morale/productivity as possible motives, but explicitly says it was too early to know the effects.[^blanchard-024]
 
 ## Mankiw's four efficiency-wage theories — why paying above equilibrium is profitable
 
@@ -81,7 +86,9 @@ Source prompts: "Give four explanations for why firms might find it profitable t
 - Caused: [Costs of unemployment and recessions](costs-of-unemployment-and-recessions.md)
 - Uses: [Output gaps, potential output, and diagnosing Keynesian versus classical recessions](output-gaps-and-diagnosing-demand-vs-supply-recessions.md)
 - Related: [Unions and collective bargaining — cartel wages, insider-outsider unemployment, and the efficiency debate](unions-and-collective-bargaining.md) — parallel wage-above-equilibrium unemployment via cartel/legal constraint versus voluntary efficiency wage
+- Related: [Wage setting, price setting, and the natural rate of unemployment](wage-setting-price-setting-and-natural-rate-of-unemployment.md) — efficiency wages are one wage-setting mechanism.
 - Related: [Price Ceilings, Price Floors, and Tax Incidence — Gasoline Shortages, Rent Control, Minimum Wage, and Who Pays Taxes](price-ceilings-floors-and-tax-incidence.md) — minimum-wage price floor as third wage-above-equilibrium source
 
 [^harford-ch8]: Harford, *The Undercover Economist Strikes Back*, ch. 8 The Invention of Unemployment.
 [^mankiw-048]: Mankiw, *Principles of Macroeconomics* 8th ed., Ch.15-5 Theory of Efficiency Wages and Ford $5-a-day case study (raw/PrinciplesofMacroeconomics_8thEdition_GregoryMankiw/048-15-4-unions-and-collective-bargaining.md).
+[^blanchard-024]: Blanchard, *Macroeconomics*, “From Henry Ford to Jeff Bezos” (raw/Macroeconomics_OlivierBlanchard/024-from-henry-ford-to-jeff-bezos.md).

@@ -5,7 +5,7 @@ description: Why central banks target positive inflation, the trade-offs of 2% v
 tags: [inflation, inflation-targeting, monetary-policy, central-banking, gold-standard, nominal-gdp, price-stability, malinvestment]
 status: stable
 created: 2026-08-22
-generated: { by: llm-wiki-agent/1, at: 2026-08-22T12:03:53Z }
+generated: { by: llm-wiki-agent/1, at: 2026-08-22T18:09:26Z }
 sources:
   - id: harford-ch4
     resource: ../raw/TheUndercoverEconomistStrikesBack-TimHarford/007-just-enough-inflation.md
@@ -16,11 +16,20 @@ sources:
   - id: krugman-ch15-084
     resource: ../raw/Macroeconomics_Krugman/084-chapter-15-monetary-policy-monetary-policy-in-practice.md
     title: "Chapter 15 Monetary Policy — Monetary Policy in Practice (Krugman/Wells)"
+  - id: blanchard-096
+    resource: ../raw/Macroeconomics_OlivierBlanchard/096-monetary-policy-a-summing-up.md
+    title: "Monetary Policy: A Summing Up"
 ---
 
 # Inflation targeting and the case for higher inflation (2% vs 3–4% and NGDP)
 
 Central banks aim for *just enough* inflation — currently about 2% — not zero, because a small positive buffer eases real wage adjustment and guards against deflation; Harford argues 3–4% may be better, and explains why nominal GDP targeting is a tempting but confusing variant[^harford-ch4]. Mankiw's Ch.23 supplement traces how New Zealand's 1989 0–2% experiment became the global norm and why the 2% vs 0% vs 4% choice remains contested via Yellen's greasing and negative-real-rate arguments and Blanchard's 4% proposal[^mankiw-070].
+
+## From money targets to flexible inflation targets
+
+Blanchard attributes the abandonment of money-growth targeting to unstable money demand: it weakened both the medium-run money-growth/inflation relationship and the short-run money-supply/interest-rate relationship. His inspected U.S. 1970–2007 chart illustrates the mismatch: inflation fell in the early 1980s while M1 growth remained high for roughly another decade.[^blanchard-096]
+
+Under **flexible inflation targeting**, the central bank commits to a medium-run inflation target but returns inflation to target over time rather than immediately at the cost of large unemployment fluctuations. With credible expected inflation equal to target, the textbook Phillips curve implies that hitting the target also keeps unemployment at its natural rate—the "divine coincidence"—but the source treats that exact result as an overly strong benchmark because the Phillips curve is imprecise.[^blanchard-096]
 
 ## Why not zero? Why not gold?
 
@@ -121,6 +130,7 @@ The source describes the Fed's January 2012 announcement of an approximately 2% 
 - Depends on: [Six Debates over Macroeconomic Policy — Should Policymakers Try to Stabilize the Economy?](six-debates-over-macroeconomic-policy.md) — full Ch.23 treatment of 2% target pros/cons
 - Contradicts: [Hyperinflation and the Brazilian URV ghost currency](hyperinflation-and-brazil-urv-ghost-currency.md) — that concept shows hyperinflation destroying all three functions; this concept shows 4–5% inflation leaves them intact
 
+[^blanchard-096]: Olivier Blanchard, *Macroeconomics*, “Monetary Policy: A Summing Up” (raw/Macroeconomics_OlivierBlanchard/096-monetary-policy-a-summing-up.md; complete stored artifact reviewed; Figure 23-1 visually inspected).
 [^harford-ch4]: Harford, *The Undercover Economist Strikes Back*, ch. 4 (JUST ENOUGH INFLATION).
 [^mankiw-070]: Mankiw, *Principles of Macroeconomics* 8th ed., Ch.23 — On Kiwis and Currencies / 23-4c to 23-7 (raw/PrinciplesofMacroeconomics_8thEdition_GregoryMankiw/070-on-kiwis-and-currencies.md, images 000449–000457 not inspected).
 [^krugman-ch15-084]: Krugman and Wells, *Macroeconomics*, 6th ed., Ch. 15, “Monetary Policy in Practice” (raw/Macroeconomics_Krugman/084-chapter-15-monetary-policy-monetary-policy-in-practice.md; Figures 15-8–15-11 visually inspected).

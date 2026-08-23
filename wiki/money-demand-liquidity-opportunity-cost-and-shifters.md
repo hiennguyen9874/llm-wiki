@@ -5,11 +5,17 @@ description: Why money demand falls as short-term nominal interest rates rise, a
 tags: [money-demand, liquidity, opportunity-cost, short-term-interest-rates, nominal-interest-rates, price-level, real-gdp, payment-technology, monetary-policy]
 status: stable
 created: 2026-08-22
-generated: { by: llm-wiki-agent/1, at: 2026-08-22T12:01:31Z }
+generated: { by: llm-wiki-agent/1, at: 2026-08-22T17:16:34Z }
 sources:
   - id: krugman-ch15-082
     resource: ../raw/Macroeconomics_Krugman/082-chapter-15-monetary-policy.md
     title: "Chapter 15 Monetary Policy (Krugman/Wells)"
+  - id: blanchard-4-1
+    resource: ../raw/Macroeconomics_OlivierBlanchard/013-4-1-the-demand-for-money.md
+    title: "4-1 The Demand for Money"
+  - id: blanchard-semantic-traps
+    resource: ../raw/Macroeconomics_OlivierBlanchard/014-semantic-traps-money-income-and-wealth.md
+    title: "Semantic Traps: Money, Income, and Wealth"
 ---
 
 # Money demand — liquidity, opportunity cost, and curve shifters
@@ -25,6 +31,10 @@ The money demand curve plots the nominal interest rate vertically and quantity o
 - The curve uses the **nominal**, not real, interest rate. A change in that rate causes a movement along the curve, not a shift.[^krugman-ch15-082]
 
 Figures 15-1 and 15-2 were visually inspected: they respectively show the downward-sloping curve and a rightward shift for increased money demand versus a leftward shift for decreased money demand.[^krugman-ch15-082]
+
+## Nominal-income formulation
+
+Blanchard expresses the same transaction-demand logic as $M^d = YL(i)$, where $Y$ is **nominal** income and $L(i)$ is decreasing in the bond interest rate. The approximation is that economy-wide transactions are proportional to nominal income. Thus, holding real income fixed, a doubling of prices doubles nominal income and the money needed to buy the same basket; a rise in the interest rate reduces desired money balances as wealth shifts toward bonds.[^blanchard-semantic-traps]
 
 ## What shifts money demand
 
@@ -49,6 +59,7 @@ The source compares March 2019 with March 2020: the federal funds rate fell from
 - Depends on: [Kinds of money and measurement — commodity vs fiat and M1/M2](kinds-of-money-and-measurement-m1-m2.md) — identifies the transaction assets whose desired holdings are described here.
 - See also: [Federal funds rate, discount rate, and the Fed's money-supply target](federal-funds-rate-and-money-supply-target.md) — the policy rate that tends to move comparable short-term rates.
 - See also: [Long-term interest rates — expected short rates and maturity risk](long-term-interest-rates-expected-short-rates-and-maturity-risk.md) — explains why long rates may differ from the short-term opportunity cost of holding money.
+- See also: [Money, income, saving, and financial wealth — transactions, stocks, and flows](money-income-saving-and-financial-wealth.md) — distinguishes allocating a given wealth stock to money from saving out of income.
 - See also: [Quantity theory of money, classical dichotomy, and the costs of inflation](quantity-theory-of-money-inflation-and-costs.md) — the long-run money-market account, in which price-level adjustment equilibrates money demand and supply.
 
 ## Coverage limits
@@ -58,3 +69,5 @@ The source compares March 2019 with March 2020: the federal funds rate fell from
 - No credentials, PII, or disclosure markings were detected.
 
 [^krugman-ch15-082]: Krugman and Wells, *Macroeconomics*, 6th ed., Ch. 15, “Monetary Policy” (raw/Macroeconomics_Krugman/082-chapter-15-monetary-policy.md; Figures 15-1–15-2 visually inspected).
+[^blanchard-4-1]: Blanchard, *Macroeconomics*, §4-1, “The Demand for Money” (raw/Macroeconomics_OlivierBlanchard/013-4-1-the-demand-for-money.md; source segment reviewed through its endpoint).
+[^blanchard-semantic-traps]: Blanchard, *Macroeconomics*, “Semantic Traps: Money, Income, and Wealth” (raw/Macroeconomics_OlivierBlanchard/014-semantic-traps-money-income-and-wealth.md; complete stored artifact reviewed; Figure 4-1 visually inspected).

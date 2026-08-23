@@ -5,8 +5,14 @@ description: How deflation redistributes from borrowers to savers, stalls spendi
 tags: [deflation, zero-lower-bound, liquidity-trap, monetary-policy, debt, great-depression, bernanke, gold-standard]
 status: stable
 created: 2026-08-22
-generated: { by: llm-wiki-agent/1, at: 2026-08-22T12:47:26Z }
+generated: { by: llm-wiki-agent/1, at: 2026-08-22T18:07:29Z }
 sources:
+  - id: blanchard-semantic-traps
+    resource: ../raw/Macroeconomics_OlivierBlanchard/014-semantic-traps-money-income-and-wealth.md
+    title: "Semantic Traps: Money, Income, and Wealth"
+  - id: blanchard-liquidity-trap
+    resource: ../raw/Macroeconomics_OlivierBlanchard/015-semantic-traps-money-income-and-wealth-the-liquidity-trap-in-action.md
+    title: "Semantic Traps: Money, Income, and Wealth — The Liquidity Trap in Action"
   - id: harford-ch4
     resource: ../raw/TheUndercoverEconomistStrikesBack-TimHarford/007-just-enough-inflation.md
     title: "JUST ENOUGH INFLATION - The Undercover Economist Strikes Back (Tim Harford)"
@@ -28,6 +34,15 @@ sources:
   - id: krugman-102
     resource: ../raw/Macroeconomics_Krugman/102-chapter-18-international-macroeconomics-16-3-check-your-understanding.md
     title: "Chapter 18 International Macroeconomics — 16-3 Check Your Understanding (Krugman/Wells; raw label)"
+  - id: blanchard-027
+    resource: ../raw/Macroeconomics_OlivierBlanchard/027-theory-ahead-of-facts-milton-friedman-and-edmund-phelps.md
+    title: "Theory ahead of Facts: Milton Friedman and Edmund Phelps (Blanchard)"
+  - id: blanchard-031
+    resource: ../raw/Macroeconomics_OlivierBlanchard/031-okuns-law-across-time-and-countries.md
+    title: "Okun’s Law across Time and Countries"
+  - id: blanchard-032
+    resource: ../raw/Macroeconomics_OlivierBlanchard/032-deflation-in-the-great-depression.md
+    title: "Deflation in the Great Depression"
 ---
 
 # Deflation, the zero lower bound, and liquidity traps
@@ -54,6 +69,7 @@ Deflation — falling prices year after year — makes debts heavier in real ter
 
 - If prices are sticky and do not fall, goods are too expensive relative to what they should be — demand depressed[^harford-ch4].
 - If prices do adjust downward, the expectation of further falls gives everyone an incentive to postpone spending — demand still depressed[^harford-ch4].
+- Near zero inflation, resistance to outright nominal-wage cuts can weaken the usual unemployment–inflation relation: Blanchard's Portugal illustration shows wage changes bunched at zero in low-inflation 2012, unlike the broader distribution during high-inflation 1984. This is evidence of wage rigidity in that setting, not a universal quantitative estimate.[^blanchard-027]
 - Harford calls this "you're stuck" — the core of the Great Depression of the 1930s, which persisted for years[^harford-ch4].
 
 ## Why the gold standard made it worse
@@ -76,13 +92,25 @@ Expected deflation lowers the nominal rate consistent with loan-market equilibri
 
 At that point, holding cash (or reserves) gains purchasing power as prices fall. The source says additional monetary base may consequently remain in bank vaults or private cash balances rather than be spent, limiting conventional monetary expansion.[^krugman-ch16-090]
 
+In the IS–LM–PC account, a recession can become a **deflation spiral**: a negative output gap produces deflation; with the nominal rate constrained at zero, larger deflation raises the real rate, weakens output further, and can produce still more deflation if expectations de-anchor.[^blanchard-031] This is a conditional dynamic mechanism, not a claim that every lower-bound recession spirals.
+
 ## Liquidity traps
 
 - Printing money creates inflation only if people spend it; in a recession with rates at zero, people may hoard new money like the anxious 90-year-old in a cookie jar, because if they wanted to spend they could already borrow for free[^harford-ch4].
 - Liquidity trap: central bank prints vast amounts yet no inflationary pressure emerges because extra cash is hoarded; describes early Great Depression and, for decades considered a curiosity, became active research again after 2008[^harford-ch4].
 - Krugman and Wells define it more narrowly as a state in which conventional slump-fighting policy—cutting nominal rates—is ineffective because rates are at the practical lower bound.[^krugman-ch16-090]
 
+### Portfolio-indifference account and 2008–15 illustration
+
+In Blanchard's two-asset textbook model, when bonds and money both pay zero, people first hold the money needed for transactions and are then indifferent between the two assets. Money demand therefore becomes horizontal at a zero rate: a central-bank bond purchase can be absorbed as higher money holdings without a further fall in the rate.[^blanchard-semantic-traps] This is a simplified zero-floor account; the source notes that large-scale currency-storage costs can make slightly negative bond rates possible.[^blanchard-semantic-traps]
+
+The source's U.S. illustration reports the federal funds rate falling from 5% in mid-2007 to zero by end-2008, where it remained for seven years. It reports checkable deposits rising from $620 billion in mid-2008 to $1,700 billion at end-2015, while bank reserves rose from $10 billion to $700 billion in late 2008 and $2,500 billion by end-2015.[^blanchard-liquidity-trap] These are dated source observations, not current data. The cited figure was inspected and supports the broad rise in deposits and reserves, though its plotted end-2018 reserves are lower than their 2015 high.[^blanchard-liquidity-trap]
+
+Blanchard further states that, in a richer setting with more than one type of bond, open-market purchases can affect other bond rates even after the federal funds rate is at zero; the source defers the mechanism. It also attributes banks' willingness to retain high reserves as rates later rose to the Fed's interest paid on reserves.[^blanchard-liquidity-trap]
+
 ### Historical illustrations in the source
+
+Blanchard's Great-Depression table illustrates the rate channel: U.S. unemployment rose from 3.2% (1929) to 24.9% (1933), while the one-year nominal rate fell from 5.3% to 2.6%; inflation reached −10.8% in 1932. Assuming expected deflation equaled realized deflation, the constructed real rate reached 14.8% in 1932. This calculation is conditional on that expectations assumption, not a directly observed real borrowing rate.[^blanchard-032]
 
 - Figure 16-14 shows U.S. three-month Treasury-bill rates near zero for much of the 1930s and again after late 2008 for nearly eight years; the source also says rates were virtually zero during the coronavirus pandemic.[^krugman-ch16-090]
 - The source presents Japan after its 1990s housing and stock-market bust as a sustained modern illustration: wages and prices fell, the Bank of Japan set the call-money rate to zero, and the economy remained at the lower bound in 2020. It attributes the persistence to the binding constraint, not to a causal estimate of any one policy.[^krugman-ch16-090]
@@ -124,6 +152,8 @@ The source gives the cash-arbitrage intuition for the practical lower bound: whe
 - Uses: [Hyperinflation and the Brazilian URV ghost currency](hyperinflation-and-brazil-urv-ghost-currency.md)
 - Uses: [Money burning, Yap stones, and the nature of fiat money](money-burning-yap-stone-and-fiat-money.md)
 
+[^blanchard-semantic-traps]: Blanchard, *Macroeconomics*, “Semantic Traps: Money, Income, and Wealth” (raw/Macroeconomics_OlivierBlanchard/014-semantic-traps-money-income-and-wealth.md; complete stored artifact reviewed; Figure 4-8 visually inspected).
+[^blanchard-liquidity-trap]: Blanchard, *Macroeconomics*, “The Liquidity Trap in Action” (raw/Macroeconomics_OlivierBlanchard/015-semantic-traps-money-income-and-wealth-the-liquidity-trap-in-action.md; complete stored artifact reviewed; Figure 1 visually inspected).
 [^harford-ch4]: Harford, *The Undercover Economist Strikes Back*, ch. 4 (JUST ENOUGH INFLATION).
 [^mankiw-053]: Mankiw, *Principles of Macroeconomics* 8th ed., Ch.17 §§17-2c to 17-3 (raw/PrinciplesofMacroeconomics_8thEdition_GregoryMankiw/053-money-growth-and-inflation-17-2c-menu-costs.md).
 [^krugman-ch6-038]: Krugman and Wells, *Macroeconomics*, Ch. 6, “Inflation and Deflation” (raw/Macroeconomics_Krugman/038-chapter-6-macroeconomics-the-big-picture-inflation-and-deflation.md).
@@ -132,3 +162,6 @@ The source gives the cash-arbitrage intuition for the practical lower bound: whe
 [^krugman-ch16-090]: Krugman and Wells, *Macroeconomics*, 6th ed., Ch. 16, “Effects of Expected Deflation” (raw/Macroeconomics_Krugman/090-chapter-16-inflation-disinflation-and-deflation-effects-of-expected-de.md; reviewed through its endpoint; Figures 16-14–16-16 visually inspected).
 
 [^krugman-102]: Krugman and Wells, *Macroeconomics*, 6th ed., answers to “Check Your Understanding” §§16-3–16-4, §§17-1–17-3, and §§18-1–18-4 (raw/Macroeconomics_Krugman/102-chapter-18-international-macroeconomics-16-3-check-your-understanding.md; complete stored artifact; four embedded yuan-market diagrams inspected).
+[^blanchard-027]: Blanchard, *Macroeconomics*, Ch. 8 §§8-3–8-4 and “Theory ahead of Facts: Milton Friedman and Edmund Phelps” (raw/Macroeconomics_OlivierBlanchard/027-theory-ahead-of-facts-milton-friedman-and-edmund-phelps.md; complete stored artifact; Portugal wage-change distributions visually inspected).
+[^blanchard-031]: Olivier Blanchard, *Macroeconomics*, stored as “Okun’s Law across Time and Countries” (raw/Macroeconomics_OlivierBlanchard/031-okuns-law-across-time-and-countries.md; Figure 9-3 visually inspected).
+[^blanchard-032]: Olivier Blanchard, *Macroeconomics*, stored as “Deflation in the Great Depression” (raw/Macroeconomics_OlivierBlanchard/032-deflation-in-the-great-depression.md; Table 1 reviewed).

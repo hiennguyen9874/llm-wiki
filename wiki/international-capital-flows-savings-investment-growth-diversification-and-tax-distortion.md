@@ -5,7 +5,7 @@ description: How relative saving, investment opportunities, and interest rates s
 tags: [international-capital-flows, loanable-funds, savings, investment, interest-rates, diversification, foreign-direct-investment, tax-avoidance, current-account, financial-account, macroeconomics]
 status: stable
 created: 2026-08-22
-generated: { by: llm-wiki-agent/1, at: 2026-08-22T12:40:19Z }
+generated: { by: llm-wiki-agent/1, at: 2026-08-22T17:57:15Z }
 sources:
   - id: krugman-ch18-095
     resource: ../raw/Macroeconomics_Krugman/095-chapter-18-international-macroeconomics-global-comparison.md
@@ -13,6 +13,9 @@ sources:
   - id: krugman-ch18-098
     resource: ../raw/Macroeconomics_Krugman/098-chapter-18-international-macroeconomics-key-terms.md
     title: "Chapter 18 International Macroeconomics — Key Terms (Krugman/Wells)"
+  - id: blanchard-kuwait-069
+    resource: ../raw/Macroeconomics_OlivierBlanchard/069-gdp-versus-gnp-the-example-of-kuwait.md
+    title: "GDP versus GNP: The Example of Kuwait"
 ---
 
 # International capital flows — savings, investment opportunities, diversification, and tax distortion
@@ -34,6 +37,10 @@ The source uses 1870–1914 Britain-to-New-World lending as an illustration: rap
 For 2009–2018, the source's figure reports the largest average current-account surpluses as Germany ($257 billion), China ($197 billion), Japan ($135 billion), Netherlands ($75 billion), Switzerland ($65 billion), and South Korea ($64 billion).[^krugman-ch18-095] It attributes China’s inclusion partly to a policy of holding its currency weak for a time. For Germany, Japan, Netherlands, Switzerland, and South Korea, it emphasizes the combination of high saving and slow long-run growth; it also says euro depreciation increased German and Dutch manufacturing exports.[^krugman-ch18-095]
 
 These are period-specific textbook explanations, not a current ranking or a complete causal account of any country’s external position.[^krugman-ch18-095]
+
+### Stock–flow illustration: Kuwait
+
+A current-account surplus can accumulate a net foreign-asset stock whose income then raises national income. The source's Kuwait case attributes that path to saving and investing part of oil revenue abroad for future generations. Its subsequent current-account deficit to meet 1990–1991 Gulf War and reconstruction costs reduced those assets and the income they generated; the source says Kuwait later rebuilt a sizable position.[^blanchard-kuwait-069] This is an illustrative historical mechanism, not evidence that commodity exporters generally follow the same path.
 
 ## Why gross flows run both ways
 
@@ -69,3 +76,4 @@ Those examples support a measurement warning, not an inference that all recorded
 
 [^krugman-ch18-095]: Krugman and Wells, *Macroeconomics*, 6th ed., Ch. 18, “International Macroeconomics — Global comparison” (raw/Macroeconomics_Krugman/095-chapter-18-international-macroeconomics-global-comparison.md).
 [^krugman-ch18-098]: Krugman and Wells, *Macroeconomics*, 6th ed., Ch. 18, “International Macroeconomics — Key Terms” (raw/Macroeconomics_Krugman/098-chapter-18-international-macroeconomics-key-terms.md; figure on foreign-owned U.S. and U.S.-owned foreign assets inspected).
+[^blanchard-kuwait-069]: Blanchard, *Macroeconomics*, Ch. 17 focus box, “GDP versus GNP: The Example of Kuwait” (raw/Macroeconomics_OlivierBlanchard/069-gdp-versus-gnp-the-example-of-kuwait.md; focus-box image inspected and is decorative).

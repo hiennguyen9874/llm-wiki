@@ -5,7 +5,7 @@ description: What the output gap measures, why potential output is notional and 
 tags: [output-gap, potential-output, keynesian, classical, recession, hysteresis, capacity-utilization, inflation, unemployment, aggregate-demand, aggregate-supply]
 status: stable
 created: 2026-08-22
-generated: { by: llm-wiki-agent/1, at: 2026-08-22T12:14:53Z }
+generated: { by: llm-wiki-agent/1, at: 2026-08-22T18:07:29Z }
 sources:
   - id: harford-output-gaps
     resource: ../raw/TheUndercoverEconomistStrikesBack-TimHarford/010-output-gaps.md
@@ -19,6 +19,9 @@ sources:
   - id: krugman-ch16-088
     resource: ../raw/Macroeconomics_Krugman/088-chapter-16-inflation-disinflation-and-deflation-the-output-gap-and-the.md
     title: "Chapter 16 Inflation, Disinflation, and Deflation — The Output Gap and the Unemployment Rate (Krugman/Wells)"
+  - id: blanchard-031
+    resource: ../raw/Macroeconomics_OlivierBlanchard/031-okuns-law-across-time-and-countries.md
+    title: "Okun’s Law across Time and Countries"
 ---
 
 # Output gaps, potential output, and diagnosing Keynesian versus classical recessions
@@ -41,6 +44,8 @@ Krugman and Wells define the output gap as the percentage difference from potent
 At potential output, the actual unemployment rate equals the natural rate. A negative output gap corresponds to unemployment above the natural rate; a positive gap corresponds to unemployment below it. CBO estimates plotted for 1949–February 2020 show cyclical unemployment (actual minus natural unemployment) closely tracking the output gap when the latter is graphed on an inverted scale.[^krugman-ch16-088]
 
 **Okun’s law** summarizes this inverse relationship: modern estimates cited by the source put a 1-percentage-point rise in the output gap with about a 0.5-percentage-point reduction in unemployment. The relationship is not one-for-one because firms also adjust hours, labor-force participation changes with job availability, and labor-productivity growth tends to accelerate in booms and slow in busts.[^krugman-ch16-088]
+
+Blanchard's annual U.S. 1960–2018 regression gives $u_t-u_{t-1}=-0.4(g_Y-3\%)$: output growth of 3% held unemployment roughly constant in that sample, while a 1-point excess reduced it by about 0.4 points.[^blanchard-031] The 3% threshold reflects labor-force and productivity growth; the coefficient is below one because firms partly adjust hours or hoard labor, and stronger employment also draws people into labor-force participation. It varies across countries, so this descriptive estimate does not supersede other Okun coefficients.[^blanchard-031]
 
 ### Monetary-policy use
 
@@ -122,4 +127,5 @@ Harford stresses none is conclusive; they are best used together[^harford-output
 [^harford-output-gaps]: Harford, *The Undercover Economist Strikes Back*, ch. 7 Output Gaps.
 [^krugman-ch12-068]: Krugman and Wells, *Macroeconomics*, 6th ed., Ch. 12, “Shifts of Aggregate Demand: Short-Run Effects” through the chapter quick review (raw/Macroeconomics_Krugman/068-chapter-12-aggregate-demand-and-aggregate-supply-shifts-of-aggregate-d.md). Figures 12-12–12-17 were visually inspected.
 [^krugman-ch15-084]: Krugman and Wells, *Macroeconomics*, 6th ed., Ch. 15, “Monetary Policy in Practice” (raw/Macroeconomics_Krugman/084-chapter-15-monetary-policy-monetary-policy-in-practice.md; Figure 15-8 visually inspected).
-[^krugman-ch16-088]: Krugman and Wells, *Macroeconomics*, 6th ed., Ch. 16, “The Output Gap and the Unemployment Rate,” “The Short-Run Phillips Curve,” and “Inflation Expectations and the Short-Run Phillips Curve” (raw/Macroeconomics_Krugman/088-chapter-16-inflation-disinflation-and-deflation-the-output-gap-and-the.md; Figures 16-4–16-10 visually inspected).
+[^krugman-ch16-088]: Krugman and Wells, *Macroeconomics*, 6th ed., Ch. 16, “The Output Gap and the Unemployment Rate,” “The Short-Run Phillips Curve,” and “Inflation Expectations and the Short-Run Phillips Curve” (raw/Macroeconomics_Krugman/088-chapter-16-inflation-disinflation-and-deflation-the-output-gap-and-the.md; Figures 16-4–16-10 were visually inspected).
+[^blanchard-031]: Olivier Blanchard, *Macroeconomics*, “Okun’s Law across Time and Countries” (raw/Macroeconomics_OlivierBlanchard/031-okuns-law-across-time-and-countries.md; Figure 1 visually inspected).

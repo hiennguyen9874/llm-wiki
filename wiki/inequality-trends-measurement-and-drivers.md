@@ -5,7 +5,7 @@ description: How global and national inequality is measured with Gini and income
 tags: [inequality, gini, globalization, brazil, china, india, anglosphere, skill-biased-technological-change]
 status: stable
 created: 2026-08-22
-generated: { by: llm-wiki-agent/1, at: 2026-08-22T10:56:02Z }
+generated: { by: llm-wiki-agent/1, at: 2026-08-22T17:46:30Z }
 sources:
   - id: harford-inequality
     resource: ../raw/TheUndercoverEconomistStrikesBack-TimHarford/017-inequality.md
@@ -13,6 +13,15 @@ sources:
   - id: krugman-ch9-050
     resource: ../raw/Macroeconomics_Krugman/050-chapter-9-long-run-economic-growth-5-protection-of-property-rights.md
     title: "Chapter 9 Long-Run Economic Growth — Protection of Property Rights (Krugman/Wells)"
+  - id: blanchard-052
+    resource: ../raw/Macroeconomics_OlivierBlanchard/052-job-destruction-churn-and-earnings-losses.md
+    title: "Job Destruction, Churn and Earnings Losses (Blanchard, Macroeconomics)"
+  - id: blanchard-053
+    resource: ../raw/Macroeconomics_OlivierBlanchard/053-the-long-view-technology-education-and-inequality.md
+    title: "The Long View: Technology, Education, and Inequality (Blanchard, Macroeconomics)"
+  - id: blanchard-054
+    resource: ../raw/Macroeconomics_OlivierBlanchard/054-inequality-and-the-gini-coefficient.md
+    title: "Inequality and the Gini Coefficient (Blanchard, Macroeconomics)"
 ---
 
 # Inequality trends, measurement, and drivers
@@ -74,6 +83,20 @@ Krugman/Wells’ 1953–2018 US series provides a descriptive warning against tr
 
 The same source distinguishes inequality **within** countries from inequality **between** them: it describes rapid growth in China, India, and other emerging economies as creating a large global middle class while advanced-country working-class incomes grew slowly and top incomes rose sharply. It also reports widening recent regional gaps inside wealthy countries—illustrated by Massachusetts real GDP per capita rising by nearly 50% from 1997 to 2018 versus about 10% for Kentucky—and associates lagging regions with joblessness outside the measured labor force and elevated drug-overdose, suicide, and alcohol mortality. These are descriptive accounts, not evidence that growth itself caused those regional social outcomes.[^krugman-ch9-050]
 
+## Skill demand, education supply, and wage inequality
+
+The Blanchard sources attribute the post-early-1980s US widening of education wage differentials to demand for highly skilled workers rising faster than their relative supply. In the cited series, the relative wage of workers without a high-school diploma fell 11%, while that for workers with advanced degrees rose 31%.[^blanchard-052] Trade contributed to the demand shift but does not explain its presence in sectors not exposed to foreign competition; the source presents skill-biased technological change as the dominant explanation.[^blanchard-052]
+
+This is not an inevitable result of skill-biased technology. The source describes US educational attainment rising roughly 0.8 year per generation for cohorts born from the 1870s through about 1950, enough to outpace skill-demand growth and accompany falling wage inequality. Educational advance then slowed, while demand continued to rise.[^blanchard-053] Publicly funded broad access to schooling is therefore part of the source's explanation, alongside market incentives; past exclusion of many Black Americans limits any uncomplicated account of that access.[^blanchard-053]
+
+## Top shares, Gini measures, and redistribution
+
+Wage dispersion is not the whole distribution: capital income and capital gains matter especially at the top. In the source's US series, the top 1% income share fell until the late 1970s and then rose from roughly 9% to 22%, while the bottom 50% share fell from about 21% in the early 1970s to below 13%.[^blanchard-053] The source identifies increasing returns to scale in technology and finance as one mechanism for exceptionally large firms, founder wealth, and executive income; it reports corporate-governance explanations as a competing account, not a settled causal decomposition.[^blanchard-053]
+
+The **Gini coefficient** summarizes a Lorenz curve: it is the area between the equal-income diagonal and the observed cumulative-income curve, divided by the total area below that diagonal. It ranges from 0 (equal incomes) to 1 (one person receives all income), but distinct distributions can have the same Gini.[^blanchard-054]
+
+The income definition matters. **Market income** is before taxes and transfers; **disposable income** is after them. The source's 1980s–2010s comparison shows US market and disposable-income Ginis rising, while France's market Gini stayed roughly flat and its disposable-income Gini ended below its 1980s level.[^blanchard-054] It treats this as evidence that institutions, social norms, and redistribution influence outcomes even among countries exposed to similar trade and technology—not as proof that any single policy caused the difference. Tools named by the source include education, minimum wages, and firm-governance rules to affect market income, and progressive taxes, negative income tax, and transfers to affect disposable income.[^blanchard-054]
+
 ## Relationships
 
 - Related to: [Poverty measurement — absolute, relative, and social exclusion](poverty-measurement-absolute-relative-and-social-exclusion.md)
@@ -84,3 +107,6 @@ The same source distinguishes inequality **within** countries from inequality **
 
 [^harford-inequality]: Harford, *The Undercover Economist Strikes Back*, ch. 14 — INEQUALITY.
 [^krugman-ch9-050]: Krugman and Wells, *Macroeconomics*, Ch. 9, “Protection of Property Rights” (raw/Macroeconomics_Krugman/050-chapter-9-long-run-economic-growth-5-protection-of-property-rights.md).
+[^blanchard-052]: Blanchard, *Macroeconomics*, ch. 13 focus box, “Job Destruction, Churn and Earnings Losses” (raw/Macroeconomics_OlivierBlanchard/052-job-destruction-churn-and-earnings-losses.md).
+[^blanchard-053]: Blanchard, *Macroeconomics*, ch. 13 focus box, “The Long View: Technology, Education, and Inequality” (raw/Macroeconomics_OlivierBlanchard/053-the-long-view-technology-education-and-inequality.md).
+[^blanchard-054]: Blanchard, *Macroeconomics*, ch. 13 focus box, “Inequality and the Gini Coefficient” (raw/Macroeconomics_OlivierBlanchard/054-inequality-and-the-gini-coefficient.md).
