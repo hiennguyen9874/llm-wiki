@@ -1,6 +1,7 @@
 # Wiki Update Log
 
 ## 2026-08-23
+- **Query**: Answered “roadmap học và hiểu kinh tế vĩ mô để theo dõi tin tức”; filed [Roadmap học và hiểu kinh tế vĩ mô để theo dõi tin tức](macroeconomics-learning-roadmap.md) after cross-checking chapter references and linked concepts against the wiki log and index.
 - **Ingest**: Compiled [Brief Contents](../raw/Macroeconomics_OlivierBlanchard/003-brief-contents.md); created [Macroeconomics (Blanchard 8th Edition) — Structure and Course Map](blanchard-macroeconomics-8e-structure-and-course-map.md).
 - **Ingest**: Compiled [Organization of This Book](../raw/Macroeconomics_Krugman/009-organization-of-this-book.md); created [Macroeconomics (Krugman/Wells) — Core and Optional Course Map](krugman-wells-macroeconomics-core-optional-course-map.md).
 - **Ingest**: Compiled [Preface to the Seventh Edition and Introduction (Heilbroner, Worldly Philosophers)](../raw/TheWorldlyPhilosopherstheLivesTimesandIdeasoftheGreatEconomicThinkers_RobertLHeilbroner/001-preface-to-the-seventh-edition.md); created [The Worldly Philosophers — economic ideas, social vision, and the scope of economic thought](worldly-philosophers-economic-ideas-social-vision-and-scope.md).
