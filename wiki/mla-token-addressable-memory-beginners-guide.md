@@ -5,7 +5,7 @@ description: A beginner-first course on how MLA compresses each token's KV repre
 tags: [mla, attention, kv-cache, token-addressable-memory, fixed-state, long-context, pytorch, learning-roadmap]
 status: stable
 created: 2026-08-12
-generated: { by: llm-wiki-agent/1, at: 2026-08-12T12:14:42+07:00 }
+generated: { by: llm-wiki-agent/1, at: 2026-08-23T12:00:00Z }
 sources:
   - id: deepseek-v2-2024
     resource: ../raw/arXiv-2405.04434v5/main.tex
@@ -20,222 +20,207 @@ sources:
 
 # MLA và token-addressable memory — bài học cho người mới
 
-`Multi-head Latent Attention` (MLA) không xóa `KV cache`; nó thay K/V lớn của mỗi token bằng một `KV latent` nhỏ dùng chung giữa các heads, cộng với một `rotary key` nhỏ cho position. Vì mỗi token vẫn có một cache entry riêng và query mới vẫn tạo attention weight cho từng token cũ, MLA vẫn là **token-addressable softmax attention**. Nó giảm số bytes **trên mỗi token**, nhưng tổng cache và lượng history phải đọc vẫn tăng tuyến tính theo `context length`. Đây là mốc so sánh quan trọng trước khi học `fixed-state memory`, nơi nhiều token được gộp vào một state có kích thước không tăng theo sequence nhưng không còn các slot độc lập cho từng token.[^deepseek-v2-2024][^fast-weight-programmers-2021]
+`Multi-head Latent Attention` (MLA) không xóa `KV cache` — nó làm mỗi `cache entry` nhỏ hơn. Với mỗi token, MLA thay cặp K/V lớn của nhiều heads bằng một `KV latent` nhỏ (`joint latent`) dùng chung + một `rotary key` nhỏ cho position. Vì mỗi token vẫn có một entry riêng và query mới vẫn tạo một `attention weight` cho từng token cũ, MLA vẫn là **token-addressable softmax attention**. Kết quả: bytes **trên mỗi token** giảm mạnh, nhưng tổng cache và lượng history phải đọc vẫn tăng tuyến tính theo `context length`. Đây là baseline cần nắm trước khi học `fixed-state memory`, nơi nhiều token được gộp vào một `state` có kích thước cố định và không còn slot riêng cho từng token.[^deepseek-v2-2024][^fast-weight-programmers-2021]
 
-> [!success] Mục tiêu
-> Sau bài này, bạn có thể:
-> 1. phân biệt `compression per token` với `fixed-state`;
-> 2. suy ra memory growth của MHA, MLA và fixed-state;
-> 3. giải thích `low-rank KV joint compression` và `decoupled RoPE`;
-> 4. chỉ ra vì sao MLA vẫn `token-addressable`;
-> 5. implement một MLA-like content path tối giản và test cached decode;
-> 6. chọn đúng baseline khi đọc một long-context architecture.
+> [!success] Sau bài này, bạn có thể
+> 1. Phân biệt `compression per token` (làm mỗi entry nhỏ hơn) với `fixed-state` (không còn entry theo token).
+> 2. Viết công thức `memory growth` cho MHA, MLA và fixed-state, và đọc đúng ý nghĩa của "giảm 90% cache".
+> 3. Giải thích `low-rank KV joint compression` và `decoupled RoPE` bằng một hình dung duy nhất.
+> 4. Chỉ ra vì sao MLA vẫn `token-addressable` qua shape của `attention weights`.
+> 5. Implement một MLA-like `content path` tối giản và test `cached decode == full forward`.
+> 6. Chọn baseline đúng khi đọc một long-context architecture (MHA vs GQA vs MLA vs hybrid).
 
-Bài này giả định bạn đã biết Q/K/V, causal mask và `KV caching`. Nếu chưa, nên học [Attention: beginner's guide](attention-beginner-guide.md) và [KV caching: cơ chế, implementation, và kiểm chứng](kv-caching-beginners-guide.md) trước. Code bên dưới là **pedagogical implementation**, không phải kernel MLA production.
+## 1. Điều cần biết trước
 
-## 1. Hai câu hỏi khác nhau: state có nhỏ không, và có tăng theo context không?
+- Đã biết Q/K/V, `scaled dot-product attention`, `causal mask` và `KV caching` cơ bản. Nếu chưa, đọc trước [Attention: beginner's guide](attention-beginner-guide.md) và [KV caching: cơ chế, implementation, và kiểm chứng](kv-caching-beginners-guide.md).
+- Đã hiểu `prefill` (xử lý prompt một lần) và `decode` (sinh từng token) khác nhau ở đâu — xem [LLM inference lifecycle: training, prefill, decode, và latency](llm-inference-lifecycle-training-prefill-decode-and-latency.md).
+- Không cần biết kernel Triton hay distributed training. Code dưới là **pedagogical** (`torch.cat` cho cache) — không phải serving kernel production.
 
-Một optimization có thể làm cache nhỏ hơn mà không làm cache trở thành fixed-size. Luôn tách hai trục:
+**Bài này không cover:** training loss của MLA, MoE routing, quantization hay `PagedAttention`. Chúng thay đổi trục khác và được link ở mục 7.
 
-1. **Per-token state:** mỗi token mới cần thêm bao nhiêu elements?
-2. **Sequence scaling:** số elements tổng có tăng khi thêm token không?
+## 2. Lý thuyết cốt lõi
 
-Giả sử một request có:
+### 2.1 Hai câu hỏi phải tách rời
 
-- $B$: batch size;
-- $L$: số attention layers;
-- $S$: số cached tokens;
-- $H$: số attention heads;
-- $d_h$: dimension của một head;
-- $p$: bytes trên mỗi element.
+Mọi tối ưu long-context đều trả lời hai câu hỏi khác nhau. Nhầm lẫn phổ biến là gộp chúng:
 
-Với standard MHA, mỗi layer cache một K và một V cho từng head của từng token:
-
-$$
-M_{MHA}=BLS(2Hd_h)p.
-$$
-
-Nếu một architecture giảm phần trong ngoặc từ $2Hd_h$ xuống một số nhỏ hơn $r$, memory trở thành:
-
-$$
-M=BLSrp.
-$$
-
-Cache đã nhỏ hơn theo hệ số $2Hd_h/r$, nhưng vẫn tỷ lệ với $S$. Đó chính là kiểu cải thiện của MLA. `Fixed-state memory` khác về bản chất: recurrent state có shape do feature dimensions quyết định, không có sequence axis $S$:
-
-$$
-M_{fixed}\approx BLH(d_kd_v)p,
-$$
-
-có thể cộng thêm normalization state hoặc gates tùy mechanism. Khi $S$ tăng, state shape này không tăng; đổi lại, token cũ không còn nằm trong các slot tách biệt.
+| Câu hỏi | Ý nghĩa | MLA trả lời | Fixed-state trả lời |
+|---|---|---|---|
+| **Mỗi token tốn bao nhiêu?** (`per-token state`) | `bytes/token/layer` | Ít hơn MHA nhiều | Một phần của `state` chung |
+| **Tổng state có tăng theo context?** (`sequence scaling`) | Shape có chứa `S`? | Có — tăng tuyến tính với `S` | Không — shape cố định |
 
 > [!important] Quy tắc đọc paper
-> “Giảm KV cache 90%” không đồng nghĩa với “cache không tăng theo context”. Hãy tìm công thức có còn thừa số `sequence length` hay không.
+> Thấy "giảm KV cache 90%" → hỏi ngay: công thức còn thừa số `S` (sequence length) không? Nếu còn, đó là **giảm slope**, không phải xóa slope.
 
-## 2. Baseline: vì sao standard attention là token-addressable?
+**Công thức tổng quát:**
 
-Ở một head, output tại token $t$ là:
+- $B$: `batch size`, $L$: số `attention layers`, $S$: số `cached tokens`
+- $H$: số `heads`, $d_h$: `dimension` mỗi head, $p$: `bytes/element` (ví dụ BF16 → 2)
 
-$$
-o_t=\sum_{j=1}^{t}\alpha_{t,j}v_j,
-\qquad
-\alpha_{t,j}=\operatorname{softmax}_j
-\left(\frac{q_t^Tk_j}{\sqrt{d_h}}\right).
-$$
-
-Index $j$ có ý nghĩa rõ ràng: nó trỏ tới token thứ $j$ trong history. Query $q_t$ tạo một score riêng với từng $k_j$, rồi dùng weight riêng để lấy $v_j$. Vì vậy:
-
-- cache có một K/V slot cho mỗi token;
-- attention weights có sequence axis dài $S$;
-- query có thể ưu tiên một position cụ thể;
-- decode step mới vẫn phải đọc/chấm điểm history dài $S$.
-
-`Token-addressable` không có nghĩa model chắc chắn nhớ hoặc truy xuất đúng mọi token. Nó chỉ mô tả **cấu trúc retrieval**: từng token vẫn có entry riêng mà query có thể chấm điểm trực tiếp.
-
-## 3. Ý tưởng cốt lõi của MLA: cache latent, không cache K/V đã expand
-
-Với hidden state $h_t\in\mathbb{R}^{d}$, MLA tạo một joint latent nhỏ:
+MHA:
 
 $$
-c_t^{KV}=W^{DKV}h_t,
-\qquad c_t^{KV}\in\mathbb{R}^{d_c},
+M_{MHA}=B \cdot L \cdot S \cdot (2Hd_h) \cdot p
 $$
 
-rồi tạo content key và value từ cùng latent:
+Cơ chế giảm `per-token` xuống $r$ elements:
 
 $$
-k_t^C=W^{UK}c_t^{KV},
-\qquad
-v_t^C=W^{UV}c_t^{KV}.
+M = B \cdot L \cdot S \cdot r \cdot p
 $$
 
-Điểm khác standard MHA nằm ở state được giữ qua decode steps:
+Cache nhỏ hơn theo hệ số $2Hd_h/r$, nhưng vẫn tỷ lệ với $S$. Fixed-state khác bản chất:
+
+$$
+M_{fixed}\approx B \cdot L \cdot H \cdot (d_k d_v) \cdot p
+$$
+
+Không có $S$ — shape do `feature dimensions` quyết định.[^fast-weight-programmers-2021]
+
+**Hình dung:**
+- MHA = tủ hồ sơ: mỗi token = một ngăn riêng, mỗi ngăn dày.
+- MLA = cùng tủ đó nhưng mỗi ngăn mỏng hơn (nén).
+- Fixed-state = bảng trắng: mọi token ghi đè lên nhau trên một mặt phẳng cố định.
+
+### 2.2 Baseline: vì sao standard attention là token-addressable?
+
+Ở một head, token $t$ tính output:
+
+$$
+o_t=\sum_{j=1}^{t}\alpha_{t,j}\,v_j,\qquad
+\alpha_{t,j}=\operatorname{softmax}_j\!\left(\frac{q_t^T k_j}{\sqrt{d_h}}\right)
+$$
+
+Index $j$ chính là **địa chỉ của token thứ $j$**. Query $q_t$ chấm điểm riêng với từng $k_j$, rồi lấy $v_j$ với weight riêng $\alpha_{t,j}$. Hệ quả:
+
+- Cache có một K/V slot cho mỗi token.
+- `Attention weights` có trục dài $S$ — `shape (B, H, 1, S)` khi decode một token.
+- Query có thể "chỉ" vào position cụ thể (ví dụ token chứa đáp án).
+- Mỗi decode step phải đọc và chấm điểm toàn bộ history dài $S$.
+
+> [!note] Token-addressable ≠ nhớ đúng
+> Nó chỉ mô tả **cấu trúc retrieval**: mỗi token có entry riêng để query chấm điểm. Model vẫn có thể học kém và không truy xuất đúng.
+
+### 2.3 Ý tưởng cốt lõi của MLA: cache latent, không cache K/V đã expand
+
+Với hidden state $h_t \in \mathbb{R}^{d}$, MLA tạo một `joint latent` nhỏ:
+
+$$
+c_t^{KV}=W^{DKV}h_t,\qquad c_t^{KV}\in\mathbb{R}^{d_c},\quad d_c \ll H d_h
+$$
+
+Rồi sinh content key/value từ cùng latent:
+
+$$
+k_t^C = W^{UK}c_t^{KV},\qquad v_t^C = W^{UV}c_t^{KV}
+$$
+
+Điểm mấu chốt là **cái gì được giữ qua decode steps**:
 
 ```text
-MHA cache at token t:
-    [K of all heads | V of all heads]       size ≈ 2 H d_h
+MHA cache tại token t:
+  [K của mọi heads | V của mọi heads]     ≈ 2·H·d_h  elements
 
-MLA cache at token t:
-    [joint KV latent c_t | rotary key k_t^R] size = d_c + d_h^R
+MLA cache tại token t:
+  [joint KV latent c_t | rotary key k_t^R] = d_c + d_h^R  elements
+  (không lưu k_t^C, v_t^C đã expand)
 ```
 
-MLA không cần lưu materialized $k_t^C,v_t^C$ cho từng token. Theo DeepSeek-V2, matrix associativity cho phép hấp thụ (`absorb`) up-projections vào query/output paths trong inference.[^deepseek-v2-2024]
-
-Với content score:
+Tại sao không cần lưu $k_t^C, v_t^C$? Nhờ **matrix associativity**, DeepSeek-V2 "hấp thụ" (`absorb`) các up-projections vào đường query/output trong inference[^deepseek-v2-2024]:
 
 $$
-q_t^T k_j^C=q_t^TW^{UK}c_j^{KV}
-=\left((W^{UK})^Tq_t\right)^Tc_j^{KV},
+q_t^T k_j^C = q_t^T W^{UK}c_j^{KV}= \big((W^{UK})^T q_t\big)^T c_j^{KV}
 $$
 
-query có thể được transform trước rồi chấm trực tiếp với cached latent. Tương tự, linear value up-projection có thể được kết hợp với output projection thay vì expand mọi cached value trước mỗi query. Đây là optimization đại số; nó không biến nhiều token thành một state chung.
+Query được biến đổi trước rồi chấm trực tiếp với cached latent. Tương tự, $W^{UV}$ được gộp vào `output projection`. Đây là tối ưu đại số — không phải gộp nhiều token vào một state.
 
-### `Low-rank` ở đây có nghĩa gì?
+**`Low-rank` nghĩa là gì?**
 
-Mapping $h_t\rightarrow c_t^{KV}\rightarrow(k_t^C,v_t^C)$ đi qua bottleneck $d_c\ll Hd_h$. K và V content vì thế cùng được sinh từ một latent có dimension thấp hơn tổng K/V width.
+Đường đi $h_t \to c_t^{KV} \to (k_t^C, v_t^C)$ qua bottleneck $d_c$. K và V content cùng được sinh từ một latent hẹp. Khác với:
 
-Điều này khác với:
+- **Quantization:** giảm bits/element.
+- **Token eviction:** bỏ hẳn entry của một số token.
+- **GQA/MQA:** share nguyên head K/V giữa các query heads.
+- **Fixed-state recurrence:** gộp history vào state không có trục $S$.
 
-- **quantization:** giảm bits trên mỗi element;
-- **token eviction:** bỏ một số token entries;
-- **GQA/MQA:** share whole K/V heads giữa query heads;
-- **fixed-state recurrence:** gộp history vào một state không có sequence axis.
+Các kỹ thuật này có thể kết hợp, nhưng chúng tác động lên trục khác nhau.
 
-Các kỹ thuật có thể được kết hợp, nhưng chúng thay đổi những trục khác nhau.
+### 2.4 Vì sao cần `decoupled RoPE`?
 
-## 4. Vì sao cần `decoupled RoPE`?
-
-Nếu áp dụng RoPE trực tiếp lên content key sau up-projection:
+Nếu áp RoPE trực tiếp lên content key sau up-projection:
 
 $$
-k_{t}^{C,R}=R_tW^{UK}c_t^{KV},
+k_{t}^{C,R}=R_t\,W^{UK}c_t^{KV}
 $$
 
-position-dependent rotation $R_t$ nằm giữa up-projection và latent. Ta không thể dùng một projection cố định để hấp thụ $W^{UK}$ cho mọi cached position, vì $R_t$ thay đổi theo $t$ và matrix multiplication không commutative. Nếu phải reconstruct lại position-rotated key cho toàn prefix ở mỗi step, mục tiêu inference efficiency bị phá vỡ.[^deepseek-v2-2024]
+thì rotation $R_t$ phụ thuộc position $t$ nằm giữa $W^{UK}$ và latent $c_t^{KV}$. Ta không thể dùng một projection cố định để hấp thụ $W^{UK}$ cho mọi cached position — vì $R_t$ thay đổi theo $t$ và matrix multiplication không giao hoán.[^deepseek-v2-2024]
 
-DeepSeek-V2 tách content path và position path:
+MLA tách hai đường:
 
 $$
-q_{t,i}=[q_{t,i}^{C};q_{t,i}^{R}],
-\qquad
-k_{t,i}=[k_{t,i}^{C};k_t^{R}].
+q_{t,i}=[q_{t,i}^{C};\,q_{t,i}^{R}],\qquad
+k_{t,i}=[k_{t,i}^{C};\,k_t^{R}]
 $$
 
-Trong đó:
-
-- $q_{t,i}^{R}$ là rotary query riêng cho head $i$;
-- $k_t^R$ là rotary key được share giữa heads;
-- content K/V vẫn đi qua joint latent;
-- cache giữ cả $c_t^{KV}$ và $k_t^R$.
+- $q_{t,i}^{R}$: rotary query riêng cho head $i$
+- $k_t^{R}$: rotary key **share giữa heads**, nhỏ ($d_h^R$ thấp)
+- Content K/V vẫn đi qua joint latent
+- Cache giữ cả $c_t^{KV}$ và $k_t^{R}$
 
 Attention vẫn chạy theo từng token:
 
 $$
-o_{t,i}=\sum_{j=1}^{t}
-\operatorname{softmax}_j
-\left(
-\frac{q_{t,i}^Tk_{j,i}}{\sqrt{d_h+d_h^R}}
-\right)v_{j,i}^{C}.
+o_{t,i}=\sum_{j=1}^{t}\operatorname{softmax}_j\!\left(\frac{q_{t,i}^T k_{j,i}}{\sqrt{d_h+d_h^R}}\right)v_{j,i}^{C}
 $$
 
-`Query compression` cũng xuất hiện trong MLA để giảm training activation memory, nhưng query của token hiện tại không phải history state cần giữ qua decode steps. Vì vậy query compression tự nó không làm KV cache nhỏ hơn.[^deepseek-v2-2024]
+`Query compression` cũng xuất hiện trong MLA để giảm `training activation memory`, nhưng query của token hiện tại không phải history state cần giữ qua decode — nên nó **không làm KV cache nhỏ hơn**.[^deepseek-v2-2024]
 
-## 5. Memory accounting: MLA giảm slope, không xóa slope
+```text
+h_t ──► W^{DKV} ──► c_t^{KV} ─┬──► W^{UK} ──► k_t^C ─┐
+                             │                      ├──► concat ──► attention
+                             └──► W^{UV} ──► v_t^C ─┘         ▲
+h_t ──► rotary path ──► k_t^R (share) ────────────────────────┘
+         cache = [c_t^{KV} | k_t^R]  × S tokens
+```
 
-MLA của DeepSeek-V2 cache trên mỗi token, mỗi layer:
+### 2.5 Memory accounting: MLA giảm slope, không xóa slope
 
-$$
-d_c+d_h^R
-$$
-
-elements. Tổng raw cache xấp xỉ:
-
-$$
-M_{MLA}=BLS(d_c+d_h^R)p.
-$$
-
-So với:
+Mỗi token mỗi layer, MLA cache:
 
 $$
-M_{MHA}=BLS(2Hd_h)p.
+d_c + d_h^R\quad\text{elements}
 $$
 
-Compression ratio theo element count là:
+Tổng raw cache:
 
 $$
-\frac{M_{MHA}}{M_{MLA}}
-=\frac{2Hd_h}{d_c+d_h^R}.
+M_{MLA}=B\cdot L\cdot S\cdot(d_c+d_h^R)\cdot p
 $$
 
-Trong configuration DeepSeek-V2, $d_c=4d_h$ và $d_h^R=d_h/2$, nên MLA dùng khoảng $4.5d_h$ elements/token/layer, được paper mô tả tương đương GQA có 2.25 KV groups. Đây là configuration-specific comparison, không phải hằng số chung của mọi MLA variant.[^deepseek-v2-2024]
-
-### Ví dụ số học
-
-Giả sử:
-
-- $L=32$, $B=1$, $H=32$, $d_h=128$;
-- BF16, nên $p=2$ bytes;
-- MLA dùng $d_c=512$, $d_h^R=64$.
-
-MHA cần mỗi token trên toàn model:
+So với $M_{MHA}=BLS(2Hd_h)p$, **compression ratio** (tính theo element count):
 
 $$
-32\times(2\times32\times128)\times2
-=524{,}288\text{ bytes}\approx0.5\text{ MiB}.
+\frac{M_{MHA}}{M_{MLA}}=\frac{2Hd_h}{d_c+d_h^R}
 $$
 
-MLA cần:
+Trong config DeepSeek-V2, $d_c=4d_h$ và $d_h^R=d_h/2$ → khoảng $4.5d_h$ elements/token/layer, được mô tả tương đương GQA với 2.25 KV groups. Đây là **con số của một config cụ thể**, không phải hằng số chung của mọi MLA variant.[^deepseek-v2-2024]
 
-$$
-32\times(512+64)\times2
-=36{,}864\text{ bytes}\approx0.035\text{ MiB}.
-$$
+**Ví dụ số học (dễ nhẩm theo):**
 
-Ở 1,024 tokens, hai con số raw cache xấp xỉ 512 MiB và 36 MiB; ở 32,768 tokens, cả hai cùng tăng 32 lần. MLA có đường memory–context với slope thấp hơn nhiều, nhưng slope vẫn khác zero.
+Giả sử $L=32$, $B=1$, $H=32$, $d_h=128$, BF16 ($p=2$), MLA $d_c=512$, $d_h^R=64$:
 
-Production memory còn phụ thuộc cache dtype, allocator, block layout, batching, prefix sharing và temporary buffers. Công thức trên chỉ accounting các retained cache tensors.
+- MHA: $32 \times (2\times32\times128)\times2 = 524{,}288$ bytes/token ≈ **0.50 MiB/token** trên toàn model
+- MLA: $32 \times (512+64)\times2 = 36{,}864$ bytes/token ≈ **0.035 MiB/token**
 
-## 6. Tại sao MLA vẫn là `token-addressable memory`?
+| Context $S$ | MHA raw cache | MLA raw cache |
+|---|---:|---:|
+| 1,024 | ~512 MiB | ~36 MiB |
+| 8,192 | ~4 GiB | ~288 MiB |
+| 32,768 | ~16 GiB | ~1.1 GiB |
+
+Cả hai cùng tăng 32× khi $S$ tăng 32× — MLA có **slope thấp hơn ~14×**, nhưng slope vẫn khác 0. Production memory còn phụ thuộc `dtype`, `allocator`, `block layout`, `batching`, `prefix sharing` và `temporary buffers` — công thức trên chỉ accounting các `retained cache tensors`.
+
+### 2.6 Tại sao MLA vẫn là `token-addressable memory`?
 
 Sau khi cache $S$ tokens, MLA giữ:
 
@@ -243,74 +228,61 @@ $$
 C^{KV}_{1:S}=[c_1^{KV},c_2^{KV},\ldots,c_S^{KV}]
 $$
 
-và position keys tương ứng. Sequence axis vẫn có $S$ entries. Với query mới, attention logits vẫn có shape đại ý:
-
-```text
-(B, H, 1, S)
-```
-
-Mỗi cột cuối cùng tương ứng một token position. Vì vậy MLA vẫn có các tính chất sau:
+và position keys tương ứng. Trục sequence vẫn dài $S$. Query mới tạo logits shape `(B, H, 1, S)` — mỗi cột ứng với một token position.
 
 | Câu hỏi | MLA | Fixed-state memory |
-|---|---:|---:|
-| Có một state entry mới cho mỗi token? | Có | Không |
-| Query tạo score/weight riêng cho từng position? | Có | Không theo recurrent read chuẩn |
-| Có thể chỉ vào token thứ `j` qua attention axis? | Có | Không còn slot `j` độc lập |
-| Decode state tăng theo $S$? | Có | Không |
-| Nhiều associations có bị superpose vào cùng state? | Không theo cache layout | Có |
+|---|:---:|:---:|
+| Có state entry mới cho mỗi token? | ✅ | ❌ |
+| Query tạo score/weight riêng cho từng position? | ✅ | ❌ (đọc state đã gộp) |
+| Có thể chỉ vào token thứ `j` qua attention axis? | ✅ | ❌ (không còn slot `j`) |
+| Decode state tăng theo $S$? | ✅ | ❌ |
+| Nhiều associations bị superpose vào cùng state? | ❌ | ✅ |
 
-Compression có thể làm representation của mỗi token hẹp hơn, nhưng không xóa identity theo position của entry đó. Đây là lý do “latent” trong MLA không nên bị hiểu thành “một latent duy nhất tóm tắt cả context”. Đúng hơn là **một latent cho mỗi token, tại mỗi MLA layer**.
+> Đừng hiểu "latent" trong MLA là "một latent tóm tắt cả context". Đúng hơn là **một latent cho mỗi token, tại mỗi MLA layer**.
 
-## 7. Fixed-state đổi memory scaling bằng một trade-off khác
+### 2.7 Fixed-state đổi memory scaling bằng trade-off khác
 
-Một linear-attention associative memory tối giản cập nhật:
-
-$$
-S_t=S_{t-1}+\phi(k_t)^Tv_t,
-$$
-
-và đọc:
+Một `linear-attention associative memory` tối giản:
 
 $$
-o_t=\phi(q_t)S_t.
+S_t = S_{t-1} + \phi(k_t)^T v_t,\qquad o_t = \phi(q_t)\,S_t
 $$
 
-State $S_t\in\mathbb{R}^{d_k\times d_v}$ có cùng shape ở token 10 và token 1,000,000. Nhưng outer products của nhiều tokens cùng được cộng vào matrix đó. Query không tạo vector weights dài $t$ để chọn một token slot; nó đọc tổ hợp associations đã superpose.
+State $S_t \in \mathbb{R}^{d_k \times d_v}$ có **cùng shape ở token 10 và token 1,000,000**. Outer products của nhiều tokens cùng cộng vào một matrix. Query không tạo vector weights dài $t$ — nó đọc tổ hợp đã superpose.
 
-Điều này tạo trade-off:
+Hệ quả:
 
-- **MLA:** sequence-growing compressed slots, direct token-level retrieval, softmax over history;
-- **fixed-state:** bounded state, recurrent update/read, nhưng có capacity interference và không giữ isolated slot cho mọi token.
+- **MLA:** `sequence-growing compressed slots`, `direct token-level retrieval`, `softmax over history`.
+- **Fixed-state:** `bounded state`, `recurrent update/read`, nhưng có **capacity interference** và không giữ isolated slot.
 
-Phân tích associative memory trong `Linear Transformers Are Secretly Fast Weight Programmers` cho thấy additive memory có giới hạn từ orthogonality của mapped keys; đó là giới hạn biểu diễn, không phải một ngưỡng failure cố định cho mọi model.[^fast-weight-programmers-2021]
+Phân tích trong `Linear Transformers Are Secretly Fast Weight Programmers` chỉ ra: với additive memory, để retrieval không nhiễu cần mapped keys trực giao — đó là giới hạn biểu diễn, không phải ngưỡng failure cố định cho mọi model.[^fast-weight-programmers-2021]
 
-Hybrid architecture tồn tại vì hai phía giải quyết bottleneck khác nhau. Kimi Linear, chẳng hạn, dùng ba fixed-state KDA layers rồi một global MLA layer: KDA giảm sequence-growing state ở phần lớn layers, còn periodic MLA giữ khả năng token-level retrieval. Report này nêu tối đa 75% KV-cache reduction so với full MLA theo layer ratio, nhưng model tổng vẫn có cache tăng theo context ở các MLA layers.[^kimi-linear-2025]
+**Vì sao có hybrid?** Kimi Linear dùng 3 layers fixed-state KDA rồi 1 layer global MLA: KDA giảm sequence-growing state ở đa số layers, periodic MLA giữ khả năng token-level retrieval. Report nêu tối đa 75% KV-cache reduction so với full MLA theo layer ratio, nhưng model tổng vẫn có cache tăng theo context ở các MLA layers.[^kimi-linear-2025]
 
-## 8. Cost không chỉ là cache capacity
+### 2.8 Cost không chỉ là cache capacity
 
-Đừng chỉ so raw bytes. Với decode một token mới:
+Khi decode một token mới:
 
-### MLA
+**MLA:**
+1. Append một latent + một rotary key
+2. Tạo/transform query mới
+3. Chấm query với $S$ cached entries → softmax trên $S$ positions → retrieve value
+4. Cache reads và attention work **tăng với $S$**
 
-- append một latent và một rotary key;
-- tạo/chuyển đổi query mới;
-- chấm điểm query với $S$ cached entries;
-- softmax trên $S$ positions;
-- retrieve value content;
-- cache reads và attention work tăng với $S$.
+**Fixed-state:**
+1. Update state bằng token mới
+2. Read state có shape cố định
+3. Work per-step **không tăng theo $S$**, nhưng representation phải nén history và có thể mất exact retrieval
 
-### Fixed-state recurrence
+> Prefill có thể dùng `chunkwise/parallel algorithms` thay vì recurrence từng token — nên cần đo riêng **prefill latency** và **one-token decode latency**. Đừng suy latency từ bytes.
 
-- update state bằng token mới;
-- read state có fixed shape;
-- recurrent decode state và per-step recurrent work không tăng theo $S$;
-- nhưng representation phải nén/superpose history và có thể mất exact retrieval.
+## 3. Implementation (PyTorch tối thiểu)
 
-`Prefill` là câu chuyện khác: implementation có thể dùng chunkwise/parallel algorithms thay vì chạy Python recurrence từng token. Vì vậy cần đo riêng `prefill latency`, one-token `decode latency`, memory capacity và quality.
+Code dưới chỉ implement **content path** $c^{KV}\to K^C,V^C$ để làm rõ cache semantics. Cố ý bỏ `decoupled RoPE`, `query compression`, `projection absorption` và optimized kernels — những thứ này không đổi bản chất `per-token latent`.
 
-## 9. PyTorch lab: một MLA-like content cache tối giản
-
-Code sau chỉ implement **content path** $c^{KV}\rightarrow K^C,V^C$. Nó cố ý bỏ `decoupled RoPE`, query compression, projection absorption và optimized kernels để làm rõ cache shape. Việc reconstruct K/V từ latent trong code là dễ đọc nhưng không phải đường inference tối ưu được mô tả trong DeepSeek-V2.
+- `position_ids` là **absolute** (0,1,2,...) — không dùng relative offset trong toy này.
+- Cache shape mỗi layer: `(B, S, d_c)` — có trục $S$.
+- Toy dùng `torch.cat` để append — dễ đọc nhưng không phải `paged blocks` của serving.
 
 ```python
 import math
@@ -322,7 +294,7 @@ import torch.nn.functional as F
 
 
 class ToyLatentAttention(nn.Module):
-    """MLA-like content path for studying cache semantics, not production MLA."""
+    """MLA-like content path — học cache semantics, không phải production MLA."""
 
     def __init__(self, d_model: int, n_heads: int, d_latent: int):
         super().__init__()
@@ -337,86 +309,157 @@ class ToyLatentAttention(nn.Module):
         self.v_up = nn.Linear(d_latent, d_model, bias=False)
         self.out_proj = nn.Linear(d_model, d_model, bias=False)
 
-    def _heads(self, x):
+    def _heads(self, x: torch.Tensor) -> torch.Tensor:
         B, T, D = x.shape
         return x.view(B, T, self.n_heads, self.head_dim).transpose(1, 2)
 
     def forward(
         self,
-        x: torch.Tensor,                         # (B, T_new, D)
+        x: torch.Tensor,                          # (B, T_new, D)
         past_latent: Optional[torch.Tensor] = None,  # (B, S_past, d_c)
         use_cache: bool = False,
     ):
         B, T_new, D = x.shape
-        q = self._heads(self.q_proj(x))
-        c_new = self.kv_down(x)                  # one latent per new token
+        q = self._heads(self.q_proj(x))            # (B, H, T_new, d_h)
+        c_new = self.kv_down(x)                    # (B, T_new, d_c) — one latent per token
 
         if past_latent is None:
             c_all = c_new
             past_len = 0
         else:
-            if past_latent.shape[:1] != (B,):
+            if past_latent.shape[0] != B:
                 raise ValueError("cache batch size does not match")
             c_all = torch.cat((past_latent, c_new), dim=1)
             past_len = past_latent.size(1)
 
-        # Pedagogical reconstruction. Optimized MLA absorbs projections.
-        k = self._heads(self.k_up(c_all))         # (B, H, S, d_h)
-        v = self._heads(self.v_up(c_all))
+        # Pedagogical reconstruction — optimized MLA absorbs projections
+        k = self._heads(self.k_up(c_all))          # (B, H, S, d_h)
+        v = self._heads(self.v_up(c_all))          # (B, H, S, d_h)
         scores = (q @ k.transpose(-2, -1)) / math.sqrt(self.head_dim)
 
         S = c_all.size(1)
+        # absolute position_ids: past tokens 0..past_len-1, new tokens past_len..past_len+T_new-1
         q_pos = past_len + torch.arange(T_new, device=x.device)[:, None]
         k_pos = torch.arange(S, device=x.device)[None, :]
         causal = k_pos <= q_pos
         scores = scores.masked_fill(~causal, float("-inf"))
 
-        weights = F.softmax(scores, dim=-1)       # last axis indexes tokens
+        weights = F.softmax(scores, dim=-1)        # last axis indexes tokens
         y = weights @ v
         y = y.transpose(1, 2).contiguous().view(B, T_new, D)
         present = c_all if use_cache else None
         return self.out_proj(y), present, weights
 ```
 
-Ba observations trực tiếp từ code:
+Ba quan sát trực tiếp từ code:
 
-1. `past_latent.shape == (B, S, d_latent)`: latent nhỏ nhưng vẫn có sequence axis `S`.
-2. `weights.shape == (B, H, T_new, S)`: query vẫn address từng cached token.
-3. Mỗi decode step dùng `torch.cat` để thêm một entry: cache không fixed-state.
+1. `past_latent.shape == (B, S, d_latent)` — latent nhỏ nhưng vẫn có trục `S`.
+2. `weights.shape == (B, H, T_new, S)` — query vẫn address từng cached token.
+3. Mỗi decode step `torch.cat` thêm một entry — cache không fixed-state.
 
-### Test cached decode khớp full causal forward
+## 4. Xác minh trước khi benchmark
 
-Vì toy module dùng cùng content equations ở hai paths, output token cuối phải khớp trong numerical tolerance:
+> [!warning] Lab này chỉ chứng minh semantics của toy content cache
+> Full MLA còn `decoupled RoPE`, `query compression` và `projection absorption`. Các test dưới không chứng minh parity với full MLA — chỉ chứng minh **sequence axis và token-addressability** của joint-latent cache.
 
 ```python
+import torch
+
+
 @torch.inference_mode()
 def test_cached_decode_matches_full():
+    """Test 1: cached decode (prefill + 1 step) khớp full causal forward."""
     torch.manual_seed(0)
     layer = ToyLatentAttention(d_model=32, n_heads=4, d_latent=8).eval()
     x = torch.randn(2, 7, 32)
 
     full_y, _, full_w = layer(x, use_cache=False)
 
-    _, cache, _ = layer(x[:, :6], use_cache=True)       # prefill
-    step_y, cache, step_w = layer(
-        x[:, 6:7], past_latent=cache, use_cache=True    # one-token decode
-    )
+    _, cache, _ = layer(x[:, :6], use_cache=True)          # prefill 6 tokens
+    step_y, cache, step_w = layer(x[:, 6:7], past_latent=cache, use_cache=True)
 
+    # Logits/output của token cuối phải khớp trong tolerance
     torch.testing.assert_close(step_y, full_y[:, 6:7], rtol=1e-5, atol=1e-6)
-    assert cache.shape == (2, 7, 8)
-    assert step_w.shape == (2, 4, 1, 7)
-    print("cached decode matches; cache and weights still index 7 tokens")
+    assert cache.shape == (2, 7, 8), f"cache shape {cache.shape} != (2, 7, 8)"
+    assert step_w.shape == (2, 4, 1, 7), f"weights {step_w.shape} != (2, 4, 1, 7)"
+    # Mỗi query position chỉ attend tới quá khứ (causal)
+    assert torch.allclose(step_w.sum(dim=-1), torch.ones_like(step_w.sum(dim=-1)))
+    print("✓ Test 1 passed: cached decode matches full forward, shapes correct")
 
 
+@torch.inference_mode()
+def test_weights_are_token_addressable():
+    """Test 2: attention weights có đúng S cột — mỗi cột là một token."""
+    torch.manual_seed(1)
+    layer = ToyLatentAttention(d_model=32, n_heads=4, d_latent=8).eval()
+    x = torch.randn(1, 5, 32)
+    _, _, weights = layer(x)  # (1, 4, 5, 5) with causal mask
+    assert weights.shape == (1, 4, 5, 5)
+    # Hàng causal: token 0 chỉ thấy 1 token, token 4 thấy 5 tokens
+    # weights[0,0,0] should be [1, 0, 0, 0, 0] (masked future = 0 after softmax)
+    assert weights[0, 0, 0, 1:].abs().max().item() < 1e-6
+    assert weights[0, 0, 4].sum().item() == torch.tensor(1.0).item() or abs(weights[0, 0, 4].sum().item() - 1.0) < 1e-5
+    print("✓ Test 2 passed: weights index tokens — causal structure intact")
+    # In ra để thấy trực quan
+    print(f"  weights[0,0,4] (query cuối attend 5 tokens): {weights[0,0,4].tolist()}")
+
+
+@torch.inference_mode()
+def test_cache_grows_with_sequence():
+    """Test 3: cache tăng tuyến tính với S, không fixed-state."""
+    torch.manual_seed(2)
+    layer = ToyLatentAttention(d_model=32, n_heads=4, d_latent=8).eval()
+    x_short = torch.randn(1, 10, 32)
+    x_long = torch.randn(1, 100, 32)
+    _, cache_short, _ = layer(x_short, use_cache=True)
+    _, cache_long, _ = layer(x_long, use_cache=True)
+    assert cache_short.shape == (1, 10, 8)
+    assert cache_long.shape == (1, 100, 8)
+    assert cache_long.numel() == 10 * cache_short.numel()
+    print(f"✓ Test 3 passed: cache grows linearly — 10 tokens: {cache_short.shape}, 100 tokens: {cache_long.shape}")
+
+
+@torch.inference_mode()
+def test_no_future_leakage():
+    """Test 4: future tokens không ảnh hưởng quá khứ (causal isolation)."""
+    torch.manual_seed(3)
+    layer = ToyLatentAttention(d_model=32, n_heads=4, d_latent=8).eval()
+    x = torch.randn(1, 6, 32)
+    y_full, _, _ = layer(x)
+
+    # Thay token tương lai bằng noise — output của 3 token đầu không đổi
+    x_perturbed = x.clone()
+    x_perturbed[:, 3:] = torch.randn(1, 3, 32)
+    y_perturbed, _, _ = layer(x_perturbed)
+
+    torch.testing.assert_close(y_full[:, :3], y_perturbed[:, :3], rtol=1e-5, atol=1e-6)
+    print("✓ Test 4 passed: no future leakage — past outputs unchanged")
+
+
+# Chạy tất cả
 test_cached_decode_matches_full()
+test_weights_are_token_addressable()
+test_cache_grows_with_sequence()
+test_no_future_leakage()
 ```
 
-> [!warning] Test này không chứng minh parity với full MLA
-> Full MLA còn có `decoupled RoPE`, query compression và inference-time projection absorption. Test chỉ chứng minh semantics của toy joint-latent content cache và làm lộ sequence axis.
+**Cách đọc kết quả:**
+- Nếu Test 1 fail → kiểm tra `causal mask` hoặc `past_len` offset.
+- Nếu Test 4 fail → mask sai, model đang "nhìn" tương lai.
+- Cả 4 tests đều phải pass trước khi đo benchmark — benchmark trên implementation sai là vô nghĩa.
 
-## 10. Lab memory: nhìn slope thay vì chỉ nhìn một con số
+## 5. Benchmark / Trade-offs
 
-Hàm sau so raw cache bytes theo context length. `fixed_state_bytes` là shape accounting cho một matrix state minh họa, không phải implementation của KDA/Mamba.
+### 5.1 Tách prefill và decode
+
+Đừng gộp chung. Hai phase có bottleneck khác nhau:
+
+| Phase | Work chính | MLA cost | Fixed-state cost |
+|---|---:|---:|---:|
+| **Prefill** ($S$ tokens) | Chấm toàn bộ $S\times S$ (có thể chunkwise) | Vẫn $O(S^2)$ scores nhưng mỗi entry nhỏ hơn | Chunkwise parallel, $O(S)$ state updates |
+| **Decode** (1 token) | Chấm 1 query với $S$ history | $O(S)$ reads + $O(S)$ scores — tăng với $S$ | $O(1)$ — đọc state cố định |
+
+### 5.2 Raw KV bytes — nhìn slope thay vì một con số
 
 ```python
 def mha_cache_bytes(B, L, S, H, d_h, bytes_per_element=2):
@@ -428,6 +471,7 @@ def mla_cache_bytes(B, L, S, d_c, d_rope, bytes_per_element=2):
 
 
 def fixed_state_bytes(B, L, H, d_k, d_v, bytes_per_element=2):
+    # Shape accounting cho một matrix state minh họa — không phải KDA/Mamba thực
     return B * L * H * d_k * d_v * bytes_per_element
 
 
@@ -443,88 +487,65 @@ for S in (128, 1_024, 8_192, 32_768):
 ```
 
 Kết quả cần đọc theo **shape trend**:
+- MHA tăng tuyến tính với slope lớn.
+- MLA tăng tuyến tính với slope nhỏ hơn (~14× trong ví dụ).
+- Fixed-state nằm ngang theo $S$.
 
-- MHA tăng tuyến tính với slope lớn;
-- MLA tăng tuyến tính với slope nhỏ hơn;
-- fixed-state nằm ngang theo $S$ trong accounting này.
+> [!warning] Đừng suy latency từ bytes
+> `Projection absorption`, kernels, `memory bandwidth`, batching và hardware có thể thay đổi throughput. Công thức trên chỉ là `retained tensors`. Hãy benchmark trên target implementation, dtype (BF16/FP8) và hardware nếu cần quyết định deployment. Các số cache/throughput trong DeepSeek-V2 là author-reported cho config của họ, không phải universal conversion.[^deepseek-v2-2024]
 
-Đừng suy ra latency trực tiếp từ bytes. Projection absorption, kernels, memory bandwidth, batching và hardware có thể thay đổi throughput. Hãy benchmark target implementation nếu cần quyết định deployment.
+### 5.3 Khi nào chọn gì?
 
-## 11. Các nhầm lẫn thường gặp
+| Mục tiêu | Ưu tiên | Lựa chọn |
+|---|---|---|
+| Retrieval chính xác trên context dài (cần chỉ vào token cụ thể) | Token-addressability | MLA / MHA / GQA |
+| Context cực dài + memory cố định | Bounded state | Fixed-state (KDA, Mamba-2, DeltaNet) |
+| Cân bằng cả hai | Giảm slope nhưng giữ retrieval | **Hybrid** (ví dụ 3×KDA + 1×MLA)[^kimi-linear-2025] |
 
-### “MLA là fixed-state vì nó dùng một latent”
+## 6. Debug checklist
 
-Sai. Đó là một latent **cho mỗi token**. Sau $S$ tokens có $S$ latents trên mỗi MLA layer, cộng position cache.
+| Triệu chứng | Nguyên nhân thường gặp | Check đầu tiên |
+|---|---|---|
+| Cache shape `(B, H, S, d)` thay vì `(B, S, d_c)` | Đang cache K/V đã expand, chưa cache latent | `present.shape` có chứa $S$ × $d_c$ không? |
+| `cached decode != full forward` (Test 1 fail) | `past_len` offset sai hoặc causal mask sai | In `past_len`, `q_pos`, `k_pos` và `causal` matrix |
+| Future leakage (Test 4 fail) | Mask dùng `>=` thay vì `<=`, hoặc thiếu `masked_fill(-inf)` | Kiểm tra `scores` trước softmax có `-inf` ở future không |
+| Throughput không tăng dù cache nhỏ hơn | Bottleneck là compute/bandwidth, không phải capacity | Profile riêng prefill vs decode, đo `memory bandwidth` |
+| `query compression` không giảm cache | Hiểu nhầm — nó giảm `activation memory` khi training, không giảm decode cache | Đọc lại Section 2.4[^deepseek-v2-2024] |
+| OOM ở context dài dù đã MLA | $S$ vẫn nhân với $L$ và $B$; batch lớn vẫn OOM | Tính $M_{MLA}=BLS(d_c+d_h^R)p$ với $B,L,S$ thực tế |
 
-### “Low-rank compression nghĩa là attention gần đúng theo token”
+## 7. Giới hạn & bước tiếp theo
 
-Không nhất thiết theo nghĩa bỏ token hoặc sparse positions. MLA vẫn chạy softmax trên toàn bộ cached positions; bottleneck nằm trong representation K/V. Quality impact phải được đánh giá thực nghiệm.
+**Lab này không chứng minh:**
+- Quality parity giữa MLA và MHA/GQA — cần ablation trên cùng data và task.[^deepseek-v2-2024]
+- Speedup thực tế — phụ thuộc kernel, dtype, hardware. Toy `torch.cat` là teaching, không phải serving (paged blocks).[^deepseek-v2-2024]
+- Fixed-state có luôn kém retrieval — hybrid có thể bù đắp, nhưng trade-off phụ thuộc workload.[^kimi-linear-2025]
 
-### “MLA làm decode $O(1)$ theo context”
+**Học tiếp theo (theo roadmap):**
+1. [Linear attention như fixed-state associative memory — bài học cho người mới](linear-attention-fixed-state-associative-memory-beginners-guide.md) — hiểu `S_t` và `capacity interference`.
+2. [Delta-rule and gated associative memory](delta-rule-and-gated-associative-memory.md) — cách delta correction và decay cải thiện fixed-state.
+3. [Kimi Linear hybrid attention architecture](kimi-linear-hybrid-attention-architecture.md) — vì sao periodic MLA bù retrieval limits của KDA.[^kimi-linear-2025]
+4. [KV-cache compression and trade-offs](kv-cache-compression-and-trade-offs.md) và [PagedAttention KV-cache serving](pagedattention-kv-cache-serving.md) — các kỹ thuật giảm cache ở serving layer.
 
-Sai. Query mới vẫn tương tác với history dài $S$. Cache bytes, cache reads và số token-level scores vẫn tăng với context.
-
-### “Projection absorption làm cache biến mất”
-
-Sai. Absorption tránh materialize expanded content K/V; cached $c_j^{KV}$ và rotary keys của từng token vẫn tồn tại.
-
-### “Query compression giảm decode cache”
-
-Sai. Query hiện tại được dùng để đọc history rồi không cần giữ như K/V history. Query compression chủ yếu nhắm training activation memory trong thiết kế DeepSeek-V2.[^deepseek-v2-2024]
-
-### “Cache nhỏ hơn luôn cho throughput cao hơn cùng tỷ lệ”
-
-Không được bảo đảm. Throughput còn phụ thuộc compute, kernels, memory bandwidth, batch scheduling và model architecture. Các số cache/throughput trong DeepSeek-V2 là author-reported cho configuration của họ, không phải universal conversion rule.[^deepseek-v2-2024]
-
-## 12. Checklist khi phân tích một long-context mechanism
-
-Hãy trả lời lần lượt:
-
-1. **State unit là gì?** K/V head, per-token latent, compressed block hay recurrent matrix?
-2. **Có sequence axis không?** Shape có chứa $S$ không?
-3. **Query address cái gì?** Từng token, từng block hay state đã aggregate?
-4. **Memory formula là gì?** Tách $B,L,S,H,d,p$ thay vì chỉ chép phần trăm.
-5. **Decode work có đọc toàn history không?** Cache capacity nhỏ không đồng nghĩa per-step work fixed.
-6. **Compression có lossy không?** Low-rank, quantization, eviction và aggregation có failure modes khác nhau.
-7. **Position information nằm đâu?** RoPE, decoupled path, NoPE hay recurrent transition?
-8. **Evidence là component ablation hay full-system result?** Không gán throughput toàn model cho riêng MLA nếu nhiều thay đổi cùng lúc.
-9. **Baseline là gì?** MHA, GQA, full MLA hay fixed-state hybrid phải được matched rõ ràng.
-10. **Production conditions là gì?** Context, batch, dtype, hardware và kernel quyết định kết quả thực tế.
-
-## 13. Bài tập
-
-1. Dùng các dimensions của một model bạn chọn để vẽ `context length → raw cache GiB` cho MHA và MLA.
-2. Sửa `ToyLatentAttention` để cache thêm một `position key` nhỏ; xác nhận cache width trở thành `d_latent + d_rope`.
-3. In `step_w[0, 0, 0]` và chứng minh vector có đúng $S$ weights — dấu hiệu trực tiếp của token-addressability.
-4. Thay `d_latent` từ 32 xuống 4, train toy model trên copy task và quan sát quality/capacity trade-off; không so random untrained outputs.
-5. Implement additive fixed-state update $S_t=S_{t-1}+\phi(k_t)^Tv_t$; so sánh state shapes ở 128 và 8,192 tokens.
-6. Benchmark riêng prefill và one-token decode. Không dùng memory formula để thay cho latency measurement.
-7. Đọc [Kimi Linear hybrid attention architecture](kimi-linear-hybrid-attention-architecture.md) và giải thích vì sao periodic MLA làm total model state vẫn sequence-growing dù đa số layers là fixed-state.
-
-## Kết luận
-
-MLA là baseline tốt nhất để bước từ efficient dense attention sang fixed-state long-context mixing vì nó làm rõ một distinction cơ bản:
-
-```text
-MHA:       nhiều bytes/token × số token
-MLA:       ít bytes/token   × số token
-fixed-state: một state có shape cố định, không có slot riêng cho mọi token
-```
-
-MLA giữ lợi thế của global softmax retrieval: query vẫn có thể chấm điểm từng token entry. Cái giá là cache capacity và decode history access vẫn tăng theo context. Fixed-state đổi scaling đó bằng cách aggregate history vào state bounded, nhưng phải chấp nhận superposition, capacity interference và retrieval không còn token-addressable theo cách attention chuẩn. Hybrid designs kết hợp hai loại layer chính vì không có phía nào miễn phí.
+**Bài tập đề xuất:**
+1. Vẽ `context length → raw cache GiB` cho MHA và MLA với dimensions của model bạn chọn.
+2. Sửa `ToyLatentAttention` để cache thêm `position key` nhỏ; xác nhận cache width = $d_c + d_h^R$.
+3. In `step_w[0,0,0]` và chứng minh vector có đúng $S$ weights — dấu hiệu token-addressability.
+4. Thay `d_latent` từ 32 xuống 4, train toy trên copy task và quan sát quality/capacity trade-off.
+5. Implement additive fixed-state $S_t = S_{t-1} + \phi(k_t)^T v_t$; so sánh state shapes ở 128 và 8,192 tokens.
+6. Đọc [Kimi Linear hybrid attention architecture](kimi-linear-hybrid-attention-architecture.md) và giải thích vì sao total model state vẫn sequence-growing dù đa số layers là fixed-state.
 
 ## Relationships
 
 - **Elaborates:** Stage 8 của [LLM architecture learning roadmap](llm-architecture-learning-roadmap.md) bằng lý thuyết, code và memory experiment cho MLA.
-- **Builds on:** [Multi-head Latent Attention](multi-head-latent-attention.md), [KV caching](kv-caching.md), và [Scaled dot-product and multi-head attention](scaled-dot-product-and-multi-head-attention.md).
-- **Contrasts with:** [Linear attention as fixed-state memory](linear-attention-as-fixed-state-memory.md), nơi history được aggregate vào bounded recurrent state thay vì giữ per-token latent slots.
-- **Prepares for:** [Delta-rule and gated associative memory](delta-rule-and-gated-associative-memory.md), [Structured State Space Duality](structured-state-space-duality.md), và [Mamba-2 architecture and parallelism](mamba-2-architecture-and-parallelism.md).
-- **Contextualizes:** [Kimi Linear hybrid attention architecture](kimi-linear-hybrid-attention-architecture.md), nơi periodic MLA bù retrieval limits của fixed-state KDA.[^kimi-linear-2025]
+- **Builds on:** [Multi-head Latent Attention](multi-head-latent-attention.md), [KV caching](kv-caching.md) và [Scaled dot-product and multi-head attention](scaled-dot-product-and-multi-head-attention.md).
+- **Contrasts with:** [Linear attention as fixed-state memory](linear-attention-as-fixed-state-memory.md) — nơi history được aggregate vào bounded recurrent state thay vì giữ per-token latent slots.
+- **Prepares for:** [Delta-rule and gated associative memory](delta-rule-and-gated-associative-memory.md), [Structured State Space Duality](structured-state-space-duality.md) và [Mamba-2 architecture and parallelism](mamba-2-architecture-and-parallelism.md).
+- **Contextualizes:** [Kimi Linear hybrid attention architecture](kimi-linear-hybrid-attention-architecture.md) — nơi periodic MLA bù retrieval limits của fixed-state KDA.[^kimi-linear-2025]
 
 ## Evidence limits
 
-Cơ chế, formulas và dimensions DeepSeek-V2 được lấy từ primary technical report. Các so sánh quality, cache reduction và throughput của report là author-run, architecture- và configuration-specific; bài này không tái lập chúng. Fixed-state contrast dựa trên primary associative-memory analysis và Kimi Linear report. Phần cost decomposition, toy code, tests, checklist và ví dụ số học là **pedagogical synthesis**; toy code không implement full production MLA và không dùng để suy ra quality hay speedup.[^deepseek-v2-2024][^fast-weight-programmers-2021][^kimi-linear-2025]
+Cơ chế, formulas và dimensions DeepSeek-V2 được lấy từ primary technical report. Các so sánh quality, cache reduction và throughput là author-run, architecture- và config-specific; bài này không tái lập chúng. Fixed-state contrast dựa trên primary associative-memory analysis và Kimi Linear report. Phần cost decomposition, toy code, tests, checklist và ví dụ số học là **pedagogical synthesis** — toy code không implement full production MLA và không dùng để suy ra quality hay speedup.[^deepseek-v2-2024][^fast-weight-programmers-2021][^kimi-linear-2025]
 
-[^deepseek-v2-2024]: DeepSeek-AI, “DeepSeek-V2: A Strong, Economical, and Efficient Mixture-of-Experts Language Model,” arXiv:2405.04434v5, [source](../raw/arXiv-2405.04434v5/main.tex), Section 2.1 and Appendices C–D.
-[^fast-weight-programmers-2021]: Imanol Schlag, Kazuki Irie, and Jürgen Schmidhuber, “Linear Transformers Are Secretly Fast Weight Programmers,” ICML 2021, [source](../raw/arXiv-2102.11174v3/main.tex), Sections 3–4.
-[^kimi-linear-2025]: Kimi Team, “Kimi Linear: An Expressive, Efficient Attention Architecture,” arXiv:2510.26692v2, [source](../raw/arXiv-2510.26692v2/main.tex), Sections 1–3 and 6.
+[^deepseek-v2-2024]: DeepSeek-AI, "DeepSeek-V2: A Strong, Economical, and Efficient Mixture-of-Experts Language Model," arXiv:2405.04434v5, [source](../raw/arXiv-2405.04434v5/main.tex), Section 2.1 and Appendices C–D.
+[^fast-weight-programmers-2021]: Imanol Schlag, Kazuki Irie, and Jürgen Schmidhuber, "Linear Transformers Are Secretly Fast Weight Programmers," ICML 2021, [source](../raw/arXiv-2102.11174v3/main.tex), Sections 3–4.
+[^kimi-linear-2025]: Kimi Team, "Kimi Linear: An Expressive, Efficient Attention Architecture," arXiv:2510.26692v2, [source](../raw/arXiv-2510.26692v2/main.tex), Sections 1–3 and 6.

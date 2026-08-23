@@ -1,11 +1,11 @@
 ---
 type: Synthesis
 title: "MoE capacity, load balancing & stability — bài lab cho người mới"
-description: A beginner-first MoE course and PyTorch lab on capacity factor, overflow and token dropping, auxiliary loss and routing bias, routing-collapse diagnosis, and expert-load plots.
+description: A beginner-first MoE lab that makes capacity factor, token dropping, auxiliary loss and routing bias observable through per-expert load plots and verifiable PyTorch code.
 tags: [mixture-of-experts, load-balancing, routing, capacity, pytorch, learning-roadmap]
 status: stable
 created: 2026-08-12
-generated: { by: llm-wiki-agent/1, at: 2026-08-12T11:59:52+07:00 }
+generated: { by: llm-wiki-agent/1, at: 2026-08-23T00:00:00Z }
 sources:
   - id: switch-overview-2026
     resource: ../raw/MixtureofExperts.md
@@ -23,164 +23,175 @@ sources:
 
 # MoE `capacity`, `load balancing` & `stability` — bài lab cho người mới
 
-Một `MoE` chỉ tiết kiệm expert-FFN computation khi router phân phối token đủ đều để các expert có thể chạy trong capacity cố định. Nếu một expert nhận quá nhiều token, implementation phải pad buffer lớn hơn, drop một phần assignment, hoặc để một device trở thành straggler; nếu expert khác hầu như không được chọn, chúng thiếu training signal. Bài này biến các khái niệm đó thành một lab PyTorch: đo và vẽ load của từng expert, thêm `capacity factor`, quan sát overflow, rồi so sánh `auxiliary loss` với `routing bias`.[^switch-overview-2026][^deepseekmoe-2024][^deepseek-v2-2024][^deepseek-v3-2024]
+`MoE` (Mixture-of-Experts) tiết kiệm `expert-FFN` compute chỉ khi `router` chia token đều vào các `expert` có `capacity` (sức chứa) cố định. Nếu một `expert` bị dồn quá nhiều token, hệ thống phải `pad` (đệm chỗ trống), `drop` (bỏ bớt assignment), hoặc để một device thành `straggler` (nút thắt cổ chai). Nếu expert khác không được chọn, nó thiếu `training signal` và không học được gì. Bài lab này biến những ý đó thành thứ đo được: đếm `offered load` (nhu cầu router muốn gửi) vs `accepted load` (thực tế được chạy), tính `capacity factor`, quan sát `overflow`, so sánh hai cơ chế cân bằng `auxiliary loss` và `routing bias`, và vẽ `expert-load` qua nhiều step.[^switch-overview-2026][^deepseekmoe-2024][^deepseek-v2-2024][^deepseek-v3-2024]
 
-> [!success] Mục tiêu học
-> Sau lab, bạn có thể phân biệt `offered load` với `accepted load`; tự tính capacity cho `top-k`; giải thích trade-off của `token dropping`; log `drop rate`, router entropy và expert-load share; nhận diện `routing collapse`; và hiểu tại sao `auxiliary loss` cùng `routing bias` là hai control mechanisms khác nhau.
+> [!success] Sau bài này bạn sẽ
+> 1. **Giải thích được:** tại sao `capacity factor` là budget (ngân sách chỗ) chứ không phải cách sửa router lệch; đọc `offered` vs `accepted` không nhầm lẫn.
+> 2. **Tính được:** `capacity` cho `top-k` bất kỳ; phân biệt `assignment drop` với `fully-dropped token`; hiểu trade-off khi tăng/giảm `capacity factor`.
+> 3. **Cài & kiểm được:** một `CapacityAwareTopKMoE` tối thiểu trong PyTorch, log `drop rate`/`router entropy`/`expert share`, chạy 6 test với `torch.testing.assert_close`, và vẽ hai panel `offered` vs `accepted`.
 
-Bài này tiếp nối [Mixture-of-Experts và sparse routing — bài học cho người mới](mixture-of-experts-sparse-routing-beginners-guide.md), nơi giải thích router và `top-k` cơ bản. Code dưới đây ưu tiên observability và correctness, **không** phải fused hoặc distributed production MoE.
+Bài này nối tiếp [Mixture-of-Experts và sparse routing — bài học cho người mới](mixture-of-experts-sparse-routing-beginners-guide.md) (router và `top-k` cơ bản). Code ưu tiên **dễ quan sát và đúng logic**, không phải `fused kernel` hay `distributed MoE` production.
 
-## 1. Vấn đề thực tế sau `top-k`
+## 1. Điều cần biết trước
 
-Với $T$ token trong một batch, $N$ routed experts, và `top-k` $K$, router tạo đúng $T K$ **token–expert assignments** trước khi áp dụng capacity. Ví dụ $T=12$, $N=4$, $K=2$ tạo 24 assignments:
+- **Đã hiểu:** một `decoder block` — `attention` trao đổi thông tin theo sequence, `FFN` xử lý từng position. [Decoder-only Transformer: beginner's guide](decoder-only-transformer-beginners-guide.md)
+- **Đã quen:** `softmax`, `top-k`, `Linear(D → N)` và cách đọc `loss`. Bài trước [Mixture-of-Experts và sparse routing — bài học cho người mới](mixture-of-experts-sparse-routing-beginners-guide.md) đã cài `TopKMoE` không có capacity.
+- **Chưa cần:** `expert parallelism`, `all-to-all`, `capacity factor`, `auxiliary loss` — chính là nội dung bài này.
+- **Không cover:** kernel tối ưu, sharding qua nhiều GPU, hay chứng minh expert “chuyên về code”.
+
+> [!note] Analogy — căng-tin có N quầy
+> Hãy tưởng tượng $T$ sinh viên (token) mỗi người cầm $K$ phiếu ăn. Router là người hướng dẫn chỉ mỗi sinh viên tới $K$ quầy (expert) phù hợp nhất. Mỗi quầy chỉ có $C$ chỗ ngồi (`capacity`). `Offered load` = số phiếu muốn tới quầy. `Accepted load` = số phiếu thực sự có chỗ. Phiếu dư = `overflow` và bị `drop` theo policy. Căng-tin cân bằng khi mọi quầy đều có khách, không quầy nào quá tải, không quầy nào vắng.
+
+## 2. Lý thuyết cốt lõi
+
+### 2.1 Từ $T$ token tới $TK$ assignments
+
+Với $T$ token trong batch, $N$ routed experts, `top-k` $K$, router tạo đúng $TK$ **token–expert assignments** *trước* khi áp capacity.
 
 ```text
-Token 0 → expert 3, expert 1
-Token 1 → expert 3, expert 0
+Ví dụ: T=12, N=4, K=2 → 24 assignments
+Token 0 → expert 3, 1
+Token 1 → expert 3, 0
 ...
 ```
 
-Nếu router perfectly balanced, mỗi expert nhận trung bình:
+Nếu router chia đều hoàn hảo, mỗi expert nhận trung bình:
 
 $$
-\operatorname{expected\ assignments/expert}=\frac{TK}{N}.
+\mathbb{E}[\text{assignments/expert}] = \frac{TK}{N}
 $$
 
-Đây là điểm dễ nhầm: với `top-1`, $K=1$, nên công thức quen thuộc là $T/N$. Với `top-k`, capacity thường cần tính theo **assignment**, tức có thêm $K$. Một system cụ thể có thể định nghĩa capacity theo token, per device, hoặc theo packed slot khác; luôn kiểm tra definition của implementation trước khi so sánh số liệu.
+Điểm dễ nhầm: với `top-1` ($K=1$) công thức quen thuộc là $T/N$. Với `top-k`, nhớ nhân thêm $K$. Một số hệ thống định nghĩa capacity theo token hoặc theo device — luôn kiểm tra definition trước khi so sánh số liệu.[^switch-overview-2026]
 
-### Ba loại load cần tách riêng
+### 2.2 Ba loại load — đừng chỉ nhìn một
 
-| Metric | Câu hỏi trả lời | Cách tính cho expert $i$ |
+| Metric | Hỏi điều gì? | Tính cho expert $i$ |
 |---|---|---|
-| `offered load` | Router muốn gửi bao nhiêu assignments đến expert? | Count của $i$ trong `top-k` **trước** capacity |
-| `accepted load` | Expert thực sự chạy bao nhiêu assignments? | Count còn lại **sau** capacity/drop policy |
-| `load share` | Expert chiếm bao nhiêu traffic của batch? | `load / total assignments` |
+| `offered load` | Router **muốn** gửi bao nhiêu? | Count của $i$ trong `top-k` **trước** capacity |
+| `accepted load` | Expert **thực sự chạy** bao nhiêu? | Count còn lại **sau** capacity/`drop` |
+| `load share` | Expert chiếm bao nhiêu traffic? | `load / total assignments` |
 
-Không được chỉ nhìn `accepted load`: capacity có thể cắt peak, làm biểu đồ trông cân bằng dù router vẫn luôn dồn demand vào một expert. Vì vậy lab phải vẽ **cả offered lẫn accepted load**.
+> [!warning] Chỉ nhìn `accepted` sẽ bị lừa
+> Capacity có thể cắt đỉnh (peak) của expert quá tải, làm biểu đồ `accepted` trông cân bằng dù router vẫn dồn demand vào một expert. Luôn vẽ **cả offered lẫn accepted**.
 
-## 2. `Capacity factor`, overflow, và `token dropping`
-
-Một implementation thường pre-allocate số slot tối đa cho mỗi expert để giữ tensor shape và work bounded:
-
-$$
-C=\left\lceil \frac{TK}{N}\times c\right\rceil,
-$$
-
-trong đó $c$ là `capacity factor`. Với `top-1`, đây trở về $\lceil(T/N)c\rceil$, công thức Switch-style quen thuộc.[^switch-overview-2026]
-
-Ví dụ: $T=1{,}024$, $N=8$, $K=2$, $c=1.25$:
-
-$$
-C=\left\lceil\frac{1024\times2}{8}\times1.25\right\rceil=320.
-$$
-
-Mỗi expert có tối đa 320 assignment slots, tổng capacity là 2,560 slots trong khi batch chỉ đề xuất 2,048 assignments. Phần chênh là buffer để chịu dao động routing.
-
-| `capacity factor` | Lợi ích | Chi phí/rủi ro |
-|---|---|---|
-| Nhỏ, gần 1 | Ít padding và compute slots | Overflow/drop tăng khi routing lệch hoặc batch nhỏ |
-| Lớn | Ít assignment bị drop | Padding, memory, communication, và compute lãng phí tăng |
-| Không giới hạn trong toy code | Dễ viết | Không mô phỏng bounded buffer hay real system pressure |
-
-Khi offered assignments đến một expert vượt $C$, đó là `overflow`. Một policy đơn giản là giữ các assignments có gate/affinity cao hơn và drop phần còn lại. DeepSeek-V2 mô tả device-level token dropping: giới hạn average device budget ở capacity factor 1.0, rồi drop token có affinity thấp nhất trên device đó; balance losses chỉ khuyến khích chứ không bảo đảm strict balance.[^deepseek-v2-2024]
-
-> [!warning] “Dropped token” cần định nghĩa chính xác
-> Với `top-1`, drop assignment thường có nghĩa token không nhận expert branch và residual path vẫn tồn tại. Với `top-k`, token có thể mất **một số** selected experts nhưng còn experts khác (`partial drop`), hoặc mất tất cả (`fully dropped`). Hãy log assignment drop rate và fully-dropped-token rate riêng; một con số chung dễ che mất failure mode.
-
-`Token dropping` là safety valve cho bounded work, không phải cách chữa router collapse. Nếu drop rate cao, model có thể train trên computation khác với router intended; tăng capacity chỉ che demand concentration và tăng systems cost.
-
-## 3. `Routing collapse` là gì?
-
-`Routing collapse` xảy ra khi router repeatedly selects chỉ một few experts, còn nhiều experts hầu như không nhận token. DeepSeekMoE nêu hai hệ quả: expert không được chọn thiếu training, và imbalance giữa devices tạo compute bottleneck.[^deepseekmoe-2024] DeepSeek-V3 cũng mô tả unbalanced expert load gây routing collapse và làm giảm efficiency khi dùng expert parallelism.[^deepseek-v3-2024]
-
-Ví dụ với 8 experts, `top-1`:
+Ví dụ nhỏ $T=8$, $N=4$, $K=1$:
 
 ```text
-ideal offered share:  [12.5, 12.5, 12.5, 12.5, 12.5, 12.5, 12.5, 12.5] %
-collapsed share:      [78.0,  9.0,  4.0,  3.0,  2.0,  2.0,  1.0,  1.0] %
+top_ids (offered): [0,0,0,0, 1,2,3,1]  → offered = [4,2,1,1]
+capacity C=2                         → accepted = [2,2,1,1]  (expert 0 bị cắt từ 4→2)
 ```
 
-Expert 0 không nhất thiết “tốt hơn”; nó có thể chỉ có initial logit advantage. Vì tokens đi qua expert 0, expert 0 nhận nhiều gradient và có thể tốt lên nhanh hơn. Experts ít được gọi tiếp tục thiếu gradient: feedback loop này làm imbalance kéo dài.
+Panel `offered` lộ collapse, panel `accepted` che nó đi — gap chính là chi phí overflow.
 
-### Signals để chẩn đoán
+### 2.3 `Capacity factor`, `overflow` và `token dropping`
 
-| Signal | Healthy pattern (không phải strict requirement) | Warning sign |
+Để giữ tensor shape cố định, mỗi expert được pre-allocate $C$ slots:[^switch-overview-2026]
+
+$$
+C = \left\lceil \frac{TK}{N}\times c \right\rceil
+$$
+
+với $c$ là `capacity factor`. Với `top-1` công thức trở về $\lceil (T/N)c\rceil$ quen thuộc kiểu Switch.
+
+**Ví dụ tính tay:** $T=1024$, $N=8$, $K=2$, $c=1.25$:
+
+$$
+C = \left\lceil \frac{1024\times2}{8}\times1.25\right\rceil = 320
+$$
+
+Tổng capacity = $8\times320=2560$ slots, trong khi batch chỉ đề xuất $2048$ assignments — phần dư $512$ là buffer chịu dao động.
+
+| `capacity factor` $c$ | Lợi ích | Chi phí / rủi ro |
 |---|---|---|
-| `offered load share` qua nhiều steps | Không một expert chiếm kéo dài phần lớn traffic | Một/few experts dominate; nhiều expert gần 0 |
-| `accepted load` và `drop rate` | Accepted gần offered, low overflow theo chosen budget | Offered peak bị cắt, drop tăng |
-| `max load / mean load` | Gần 1 hơn là tốt cho utilization | Tăng dai dẳng, đặc biệt vượt capacity factor |
-| `router entropy` | Không đột ngột về rất thấp | Distribution rất peaked hoặc dao động mạnh |
-| Expert gradient/update norm | Nhiều experts có signal theo thời gian | Nhiều experts luôn không có/near-zero update |
-| Per-device load | Aggregate work tương đối cân bằng | Một device straggles dù vài experts khác rảnh |
+| Nhỏ (≈1.0) | Ít `padding`, ít compute thừa | `Overflow`/`drop` tăng khi router lệch hoặc batch nhỏ |
+| Lớn (≈1.5–2.0) | Ít assignment bị drop | Lãng phí memory, communication, compute cho slots trống |
+| Vô hạn (toy code) | Dễ viết | Không mô phỏng bounded buffer của hệ thực |
 
-`Router entropy` chỉ là signal phụ. Router có thể có high-probability uncertainty nhưng `top-k` vẫn repeatedly chọn cùng experts; ngược lại, uneven expert use có thể hợp lý trong một batch/domain. Kết luận collapse cần time series, overflow, training quality, và systems context — không chỉ một histogram.
+Khi offered vượt $C$, đó là `overflow`. Policy đơn giản: giữ các assignments có `gate`/`affinity` cao hơn, drop phần còn lại. DeepSeek-V2 mô tả `device-level token dropping` — giới hạn average device budget ở $c=1.0$, drop token có affinity thấp nhất trên device đó; balance losses chỉ khuyến khích chứ không bảo đảm cân bằng tuyệt đối.[^deepseek-v2-2024]
 
-## 4. Hai cách control load
+> [!warning] "Dropped token" cần định nghĩa chính xác
+> - `top-1`: drop assignment ≈ token không nhận expert branch (chỉ còn residual).
+> - `top-k`: token có thể mất **một phần** experts (`partial drop`) hoặc mất **tất cả** (`fully dropped`). Hãy log `assignment drop rate` và `fully-dropped-token rate` riêng.
 
-### 4.1 `Auxiliary loss`: thêm pressure vào training objective
+`Token dropping` là van an toàn cho bounded work, không phải thuốc chữa `routing collapse`. Drop cao nghĩa model đang train trên computation khác với router intended; tăng $c$ chỉ che demand concentration và tăng systems cost.
 
-Gọi $a_i$ là số offered assignments của expert $i$. Một normalization tiện dụng cho `top-k` là:
+### 2.4 `Routing collapse` là gì?
+
+`Routing collapse` = router liên tục chọn chỉ 1–2 experts, nhiều experts gần như không nhận token. Hệ quả: expert vắng khách thiếu training, và imbalance giữa devices tạo bottleneck.[^deepseekmoe-2024][^deepseek-v3-2024]
+
+```text
+8 experts, top-1, share lý tưởng: [12.5, 12.5, 12.5, 12.5, 12.5, 12.5, 12.5, 12.5] %
+share khi collapse:             [78.0,  9.0,  4.0,  3.0,  2.0,  2.0,  1.0,  1.0] %
+```
+
+Expert 0 không nhất thiết “giỏi hơn” — có thể chỉ có lợi thế logit ban đầu. Vì token đi qua nó nhiều, nó nhận nhiều gradient và giỏi lên nhanh hơn → vòng lặp phản hồi làm lệch kéo dài.
+
+**Signals chẩn đoán (quan sát qua nhiều steps, không phải một batch):**
+
+| Signal | Healthy (không phải yêu cầu cứng) | Warning sign |
+|---|---|---|
+| `offered load share` | Không expert nào chiếm phần lớn kéo dài | 1/few experts dominate; nhiều expert ≈0 |
+| `accepted` vs `drop rate` | Accepted ≈ offered, overflow thấp | Offered peak bị cắt, drop tăng |
+| `max load / mean load` | Gần 1 | Tăng dai dẳng, vượt $c$ |
+| `router entropy` | Không lao dốc | Phân phối rất peaked hoặc dao động mạnh |
+| Expert grad norm | Nhiều experts có signal | Nhiều experts luôn ≈0 |
+| Per-device load | Aggregate work tương đối đều | Một device straggle dù experts khác rảnh |
+
+`Router entropy` chỉ là signal phụ — router có thể entropy cao nhưng `top-k` vẫn lặp cùng experts; ngược lại uneven use có thể hợp lý theo domain.
+
+### 2.5 Hai cách control load — khác nhau ở đâu?
+
+#### A. `Auxiliary loss` — thêm áp lực vào training objective
+
+Gọi $a_i$ là offered assignments của expert $i$:
 
 $$
 f_i=\frac{a_i}{TK},\qquad
-P_i=\frac{1}{T}\sum_{t=1}^{T}p_{i,t},
+P_i=\frac{1}{T}\sum_{t=1}^{T}p_{i,t},\qquad
+L_{\text{balance}}=\alpha N\sum_{i=1}^{N}f_iP_i,\quad L=L_{\text{task}}+L_{\text{balance}}
 $$
 
-với $p_{i,t}$ là router probability trước sparse selection. $f_i$ và $P_i$ đều sum to 1 across experts. Một Switch-style form là:
+$f_i,P_i$ đều sum-to-1. Khi uniform $f_i=P_i=1/N$ → $L_{\text{balance}}=1$; khi concentrate → loss lớn hơn. $f_i$ discrete nhưng $P_i$ differentiable qua `softmax` nên router vẫn nhận gradient. DeepSeekMoE dùng expert-level và device-level balance losses riêng.[^deepseekmoe-2024]
+
+`alpha` là trade-off: quá nhỏ → collapse vẫn xảy ra; quá lớn → ép uniform dù specialization hữu ích, làm task quality kém. Luôn log cả task loss và routing metrics khi tune.
+
+#### B. `Routing bias` — đổi cách chọn, không đổi trực tiếp main loss
+
+DeepSeek-V3 dùng bias $b_i$ cho selection:[^deepseek-v3-2024]
 
 $$
-L_{\mathrm{balance}}=\alpha N\sum_{i=1}^{N}f_iP_i,
-\qquad L=L_{\mathrm{task}}+L_{\mathrm{balance}}.
+\text{selected}(t)=\operatorname{TopK}_i(s_{i,t}+b_i)
 $$
 
-Khi uniform, $f_i=P_i=1/N$ và expression bằng $1$. Nếu load/probability cùng concentrate vào một expert, loss lớn hơn. Assignment count $f_i$ là discrete, nhưng $P_i$ differentiable qua `softmax`, nên router vẫn nhận gradient. DeepSeekMoE sử dụng expert-level balance loss để giảm routing-collapse risk, đồng thời dùng device-level loss riêng khi cần cân bằng computation giữa devices.[^deepseekmoe-2024]
-
-`alpha` là trade-off, không phải magic constant:
-
-- quá nhỏ: task loss có thể vẫn cho router collapse;
-- quá lớn: router bị ép uniform ngay cả khi specialization hữu ích, có thể làm task quality kém;
-- đúng value phụ thuộc data, number of experts, batch size, $K$, architecture, và training phase.
-
-Vì vậy, log task loss **và** routing metrics khi tune `alpha`; “load uniform hơn” không tự chứng minh model tốt hơn.
-
-### 4.2 `Routing bias`: thay đổi selection, không trực tiếp thêm main loss
-
-DeepSeek-V3 dùng expert-specific bias $b_i$ cho **top-k selection**:
-
-$$
-\operatorname{selected}(t)=\operatorname{TopK}_i(s_{i,t}+b_i),
-$$
-
-nhưng gate weight dùng để combine expert outputs vẫn được tính từ unmodified affinity $s_{i,t}$. Cuối mỗi training step, bias của expert overloaded giảm $b_i\leftarrow b_i-\gamma$; expert underloaded tăng $b_i\leftarrow b_i+\gamma$.[^deepseek-v3-2024]
-
-Tách hai việc này rất quan trọng:
+nhưng gate weight để combine outputs vẫn tính từ affinity gốc $s_{i,t}$ (không cộng bias). Cuối mỗi step: overloaded → $b_i\leftarrow b_i-\gamma$, underloaded → $b_i\leftarrow b_i+\gamma$.
 
 ```text
-selection score:  affinity + routing bias  → expert nào được chạy?
-mixture weight:   affinity (unmodified)    → expert đã chọn đóng góp bao nhiêu?
+selection score:  affinity + routing bias  → expert nào được CHỌN?
+mixture weight:   affinity (gốc)          → expert đó đóng góp BAO NHIÊU?
 ```
 
-Do đó bias acts như feedback controller cho assignment eligibility, thay vì trực tiếp nói output của một expert phải lớn hơn. V3 vẫn thêm sequence-wise auxiliary loss rất nhỏ để tránh extreme imbalance trong từng sequence; “auxiliary-loss-free” ở đây không có nghĩa mọi balance-related loss đều bằng 0.[^deepseek-v3-2024]
+Bias như bộ điều khiển feedback cho eligibility, không trực tiếp nói output expert phải lớn. V3 vẫn giữ một sequence-wise auxiliary loss rất nhỏ ($\alpha=0.0001$) — “auxiliary-loss-free” không nghĩa mọi balance loss = 0.[^deepseek-v3-2024]
 
-| Mechanism | Tác động chính | Ưu điểm | Giới hạn |
+| Cơ chế | Tác động chính | Ưu điểm | Giới hạn |
 |---|---|---|---|
-| `auxiliary loss` | Gradient của router parameters | Differentiable training objective | `alpha` lớn có thể compete với task objective |
-| `routing bias` | Discrete top-k eligibility từ observed load | Direct feedback on actual assignments | Update speed và delayed/noisy batch statistics cần tune |
-| Device/rank balancing | Aggregate work/communication placement | Giảm straggler và `all-to-all` imbalance | Không bảo đảm individual experts được train đều |
-| Capacity/drop policy | Bounded expert/device work | Protects memory and latency budget | Does not fix offered-load concentration |
+| `auxiliary loss` | Gradient của router weights | Objective differentiable | `alpha` lớn cạnh tranh với task loss |
+| `routing bias` | Eligibility của discrete `top-k` | Feedback trực tiếp trên actual assignments | `gamma` và delay/noise của batch stats cần tune |
+| Device/rank balancing | Aggregate work & communication | Giảm straggler, `all-to-all` imbalance | Không bảo đảm từng expert được train đều |
+| Capacity/drop policy | Bounded work | Bảo vệ memory/latency | Không sửa offered-load concentration |
 
-## 5. Lab: một readable `capacity-aware` MoE
+Sơ đồ luồng (per step):
 
-Code này implements:
+```text
+tokens [B*T, D] → router → probs [B*T, N] ─┬─→ + bias → top-k → offered load
+                                          └─→ gate (probs gốc) → weighted expert outputs
+offered ──capacity C──► accepted (giữ gate cao) → drop rate, entropy
+                      │
+                      └─► bias update (gamma) hoặc auxiliary loss (alpha)
+```
 
-- `top-k` routing per token;
-- `offered_load` before capacity và `accepted_load` after it;
-- keep highest unmodified gate assignments when one expert overflows;
-- `auxiliary_loss` from pre-selection probabilities;
-- optional V3-inspired `routing_bias` update based on **offered** load;
-- metrics needed to plot and diagnose.
+## 3. Implementation (PyTorch tối thiểu)
 
-It deliberately excludes `all-to-all`, padding kernels, expert sharding, shared experts, and distributed synchronization. Capacity is per expert, not per device.
+Code này làm đúng 5 việc: `top-k` per token, đếm `offered` trước capacity và `accepted` sau capacity, giữ assignment có gate cao khi overflow, tính `auxiliary_loss` từ pre-selection probs, và cho phép update `routing_bias` dựa trên **offered** load. Cố ý bỏ `all-to-all`, padding kernels, sharding, shared experts.
 
 ```python
 import math
@@ -217,11 +228,11 @@ class CapacityAwareTopKMoE(nn.Module):
         self.experts = nn.ModuleList(
             [ExpertFFN(d_model, d_ff) for _ in range(n_experts)]
         )
-        # This controller state changes selection only, not output gate values.
+        # Controller state: chỉ ảnh hưởng selection, không đổi output gate.
         self.register_buffer("routing_bias", torch.zeros(n_experts))
 
     def capacity(self, n_tokens: int) -> int:
-        # Capacity unit is a token--expert assignment, so top-k includes k.
+        # Đơn vị là assignment, nên top-k phải nhân K.
         return math.ceil(n_tokens * self.k * self.capacity_factor / self.n_experts)
 
     def forward(self, x: torch.Tensor):
@@ -229,12 +240,12 @@ class CapacityAwareTopKMoE(nn.Module):
         n_tokens = B * T
         tokens = x.reshape(n_tokens, D)
 
-        # fp32 router computation is a stability-minded choice for the toy lab.
+        # Router ở fp32 là lựa chọn stability cho toy lab.
         probs = F.softmax(self.router(tokens.float()), dim=-1).to(tokens.dtype)
         selection_scores = probs + self.routing_bias.to(tokens.dtype)
         _, top_ids = selection_scores.topk(self.k, dim=-1)  # (n_tokens, k)
 
-        # Gates come from unmodified probabilities, then normalize selected gates.
+        # Gate lấy từ probs gốc, rồi normalize trong selected set.
         raw_gates = probs.gather(1, top_ids)
         gates = raw_gates / raw_gates.sum(dim=-1, keepdim=True).clamp_min(1e-9)
 
@@ -248,8 +259,7 @@ class CapacityAwareTopKMoE(nn.Module):
             token_rows, slots = torch.where(top_ids == expert_id)
             if token_rows.numel() == 0:
                 continue
-
-            # On overflow, retain this expert's highest unmodified gates.
+            # Khi overflow, giữ assignments có gate gốc cao nhất.
             order = gates[token_rows, slots].argsort(descending=True)
             keep = order[:cap]
             kept_rows, kept_slots = token_rows[keep], slots[keep]
@@ -260,8 +270,8 @@ class CapacityAwareTopKMoE(nn.Module):
             weighted = gates[kept_rows, kept_slots].unsqueeze(-1) * values
             output.index_add_(0, kept_rows, weighted)
 
-        # A token with no accepted assignment has zero MoE branch here; its block
-        # residual connection, outside this module, still carries the token onward.
+        # Token không có accepted assignment thì MoE branch = 0;
+        # residual của block (bên ngoài module) vẫn đưa token đi tiếp.
         assignment_drop_rate = 1.0 - accepted.float().mean()
         fully_dropped_token_rate = 1.0 - accepted.any(dim=-1).float().mean()
         entropy = -(probs * probs.clamp_min(1e-9).log()).sum(dim=-1).mean()
@@ -278,54 +288,88 @@ class CapacityAwareTopKMoE(nn.Module):
         return output.reshape(B, T, D), stats
 
     def auxiliary_loss(self, probs: torch.Tensor, top_ids: torch.Tensor) -> torch.Tensor:
-        """Switch-style top-k adaptation; add alpha * this result to task loss."""
+        """Switch-style top-k adaptation; cộng alpha * kết quả này vào task loss."""
         offered = torch.bincount(top_ids.reshape(-1), minlength=self.n_experts)
-        f = offered.float() / offered.sum().clamp_min(1)  # realized offered share
-        P = probs.float().mean(dim=0)                     # differentiable mean share
+        f = offered.float() / offered.sum().clamp_min(1)  # offered share
+        P = probs.float().mean(dim=0)                     # mean share (differentiable)
         return self.n_experts * (f * P).sum()
 
     @torch.no_grad()
     def update_routing_bias(self, offered_load: torch.Tensor, gamma: float):
-        """V3-inspired sign update, intentionally simplified for this lab."""
+        """V3-inspired sign update, simplified cho lab."""
         target = offered_load.sum().float() / self.n_experts
         direction = torch.sign(target - offered_load.float())
         self.routing_bias.add_(gamma * direction)
-        self.routing_bias.sub_(self.routing_bias.mean())  # preserve relative biases
+        self.routing_bias.sub_(self.routing_bias.mean())  # giữ relative bias
 ```
 
-### Smoke test: kiểm tra accounting trước khi train
+> [!note] Design choice được nêu rõ
+> Code normalize gate **trước capacity**, sau đó không re-normalize khi token bị `partial drop`. Nhờ vậy output branch giảm khi assignment bị drop và metric dễ diễn giải. Production có thể chọn policy khác — đổi mà không log rõ sẽ làm so sánh misleading.
+
+## 4. Xác minh trước khi benchmark
+
+Chạy 6 test dưới đây **trước** khi đo tốc độ hay so quality. Mỗi test nêu `rtol`/`atol` và dtype.
 
 ```python
 torch.manual_seed(7)
-moe = CapacityAwareTopKMoE(
-    d_model=16, d_ff=64, n_experts=4, k=2, capacity_factor=1.0
-)
+moe = CapacityAwareTopKMoE(d_model=16, d_ff=64, n_experts=4, k=2, capacity_factor=1.0)
 x = torch.randn(3, 5, 16, requires_grad=True)  # 15 tokens, 30 assignments
 
 y, stats = moe(x)
-print("capacity/expert:", stats["capacity"])       # ceil(15 * 2 / 4) = 8
-print("offered:", stats["offered_load"].tolist())
-print("accepted:", stats["accepted_load"].tolist())
-print("assignment drop:", stats["assignment_drop_rate"].item())
 
-assert y.shape == x.shape
-assert stats["offered_load"].sum().item() == 3 * 5 * 2
+# Test 1 — shape cơ bản
+assert y.shape == torch.Size([3, 5, 16])
+assert stats["top_ids"].shape == torch.Size([15, 2])
+print("✓ Test 1 shape OK:", y.shape, stats["top_ids"].shape)
+
+# Test 2 — softmax sum-to-one (fp32 path, atol 1e-6)
+torch.testing.assert_close(
+    stats["probs"].sum(dim=-1), torch.ones(15), rtol=0, atol=1e-6
+)
+print("✓ Test 2 probs sum to 1")
+
+# Test 3 — loads accounting
+assert stats["offered_load"].sum().item() == 3 * 5 * 2  # T*K
 assert (stats["accepted_load"] <= stats["capacity"]).all()
 assert stats["accepted_load"].sum() <= stats["offered_load"].sum()
+print("✓ Test 3 loads:", stats["offered_load"].tolist(),
+      "accepted:", stats["accepted_load"].tolist(),
+      "capacity:", stats["capacity"])
 
-loss = y.square().mean() + 0.01 * moe.auxiliary_loss(
-    stats["probs"], stats["top_ids"]
+# Test 4 — capacity formula cho top-k (assignment unit)
+# C = ceil(T*K/N * c) = ceil(15*2/4 * 1.0) = 8
+torch.testing.assert_close(
+    torch.tensor(stats["capacity"]), torch.tensor(8), rtol=0, atol=0
 )
+print("✓ Test 4 capacity = 8 đúng công thức TK/N")
+
+# Test 5 — gradient chảy vào router (qua gate, không qua argmax)
+loss = y.square().mean() + 0.01 * moe.auxiliary_loss(stats["probs"], stats["top_ids"])
 loss.backward()
 assert moe.router.weight.grad is not None
+assert moe.router.weight.grad.norm().item() > 0
+print("✓ Test 5 router grad norm:", moe.router.weight.grad.norm().item())
+
+# Test 6 — đổi K thay đổi accounting, không đổi total expert params
+moe1 = CapacityAwareTopKMoE(d_model=16, d_ff=64, n_experts=4, k=1, capacity_factor=1.0)
+y1, s1 = moe1(x.detach())
+assert s1["offered_load"].sum().item() == 15          # T*1
+assert stats["offered_load"].sum().item() == 30        # T*2
+print("✓ Test 6 K=1→2: offered 15→30, total expert params phụ thuộc N không phụ thuộc K")
+
+# Bonus — kiểm tra drop semantics
+print(f"  assignment drop: {stats['assignment_drop_rate'].item():.3f}")
+print(f"  fully-dropped token: {stats['fully_dropped_token_rate'].item():.3f}")
 ```
 
-> [!note] Một design choice được nêu rõ
-> Code normalizes selected **pre-capacity** gates, sau đó không re-normalize gate của token bị partial drop. Như vậy output branch giảm khi assignment bị drop và metric dễ diễn giải. Một production implementation có thể dùng policy khác; thay policy mà không log rõ sẽ làm comparison misleading.
+**Cách đọc kết quả:**
+- Test 2 fail → kiểm tra `softmax` dim, dtype, hoặc router shape.
+- `loads` một expert dominate → chưa phải bug shape, nhưng là signal để đọc phần routing collapse.
+- Grad `None`/0 → kiểm tra `gate * expert_out` có nhân đúng selected probability không.
 
-## 6. Vẽ `load` của mỗi expert
+## 5. Lab: vẽ `load` của mỗi expert
 
-Đo qua một batch gần như luôn noisy. Hãy aggregate nhiều optimizer steps. Đoạn dưới là training harness tối thiểu: target chỉ là synthetic tensor để kiểm tra instrumentation, không phải language-model training.
+Một batch đơn lẻ luôn noisy — hãy aggregate nhiều steps. Target dưới là synthetic `tanh(x.roll)` chỉ để kiểm instrumentation, không phải LM training.
 
 ```python
 import matplotlib.pyplot as plt
@@ -333,10 +377,8 @@ import matplotlib.pyplot as plt
 
 def run_lab(use_aux_loss: bool, use_bias_controller: bool, steps: int = 300):
     torch.manual_seed(0)
-    moe = CapacityAwareTopKMoE(
-        d_model=32, d_ff=96, n_experts=8, k=1, capacity_factor=1.0
-    )
-    # Intentional initial advantage: makes the no-balance run easier to diagnose.
+    moe = CapacityAwareTopKMoE(d_model=32, d_ff=96, n_experts=8, k=1, capacity_factor=1.0)
+    # Tạo lợi thế ban đầu để ca "no balance" dễ chẩn đoán.
     with torch.no_grad():
         moe.router.bias[0] = 2.0
 
@@ -346,7 +388,7 @@ def run_lab(use_aux_loss: bool, use_bias_controller: bool, steps: int = 300):
     ]}
 
     for step in range(steps):
-        x = torch.randn(16, 8, 32)       # T = 128 tokens per step
+        x = torch.randn(16, 8, 32)       # T = 128 tokens / step
         target = torch.tanh(x.roll(1, dims=-1))
         y, stats = moe(x)
 
@@ -372,16 +414,15 @@ def run_lab(use_aux_loss: bool, use_bias_controller: bool, steps: int = 300):
     return moe, history
 
 
-# Compare a deliberately unbalanced setup with two balancing mechanisms.
 _, no_balance = run_lab(use_aux_loss=False, use_bias_controller=False)
 _, controlled = run_lab(use_aux_loss=True, use_bias_controller=True)
 ```
 
-### Plot 1: load share của **từng** expert theo step
+### Plot 1: `load share` từng expert theo step
 
 ```python
 def plot_expert_load(history, title):
-    offered = torch.stack(history["offered"]).float()      # (steps, n_experts)
+    offered = torch.stack(history["offered"]).float()      # (steps, N)
     accepted = torch.stack(history["accepted"]).float()
     offered_share = offered / offered.sum(dim=1, keepdim=True).clamp_min(1)
     accepted_share = accepted / accepted.sum(dim=1, keepdim=True).clamp_min(1)
@@ -405,9 +446,9 @@ plot_expert_load(controlled, "B. Auxiliary loss + routing-bias controller")
 plt.show()
 ```
 
-**Cách đọc plot:** ở panel `offered`, mỗi line lý tưởng dao động quanh $1/N$. Nếu expert 0 duy trì cao và nhiều experts bám gần 0, router is collapsed. Ở panel `accepted`, lines có thể nhìn bớt lệch vì capacity clipped expert 0. Nếu hai panel khác xa nhau, đó là evidence capacity đang che offered overload, không phải router đã balanced.
+**Cách đọc:** panel `offered` mỗi line lý tưởng dao động quanh $1/N$. Nếu expert 0 duy trì cao, nhiều experts bám 0 → collapsed. Panel `accepted` có thể trông bớt lệch vì capacity cắt đỉnh. Nếu hai panel khác xa nhau, capacity đang **che** overload, không phải router đã cân.
 
-### Plot 2: average load, capacity, và overflow
+### Plot 2: trung bình load vs capacity
 
 ```python
 def plot_summary(history, title):
@@ -418,8 +459,6 @@ def plot_summary(history, title):
     mean_accepted = accepted.mean(dim=0)
     mean_capacity = torch.tensor(history["capacity"], dtype=torch.float32).mean()
     capacity = mean_accepted.new_full((n_experts,), mean_capacity)
-    # This lab uses the same capacity for every expert. Logging it still makes
-    # the plot correct if a later experiment changes batch-token count.
 
     x = torch.arange(n_experts)
     plt.figure(figsize=(10, 4))
@@ -434,15 +473,15 @@ def plot_summary(history, title):
     plt.show()
 
 
-plot_summary(no_balance, "A. Offered versus accepted assignments")
-plot_summary(controlled, "B. Offered versus accepted assignments")
+plot_summary(no_balance, "A. Offered vs accepted (no balance)")
+plot_summary(controlled, "B. Offered vs accepted (controlled)")
 ```
 
-Trong production lab, lưu `stats["capacity"]` ở mỗi step thay vì reconstruct như snippet minh họa. `mean offered > capacity` cho một expert nghĩa overflow; `mean accepted` sát capacity trong khi offered cao hơn nghĩa drop policy đang frequently activate.
+Lưu `stats["capacity"]` mỗi step trong lab production thay vì reconstruct. `mean offered > capacity` → overflow; `mean accepted` sát capacity trong khi offered cao hơn → drop policy đang active thường xuyên.
 
-## 7. Tính metrics có thể hành động
+## 6. Benchmark / Trade-offs — đo gì, không kết luận gì vội
 
-Thêm summary sau để so sánh conditions. `max/mean` đo concentration trực tiếp; `effective experts` là $\exp(H)$, với $H$ là entropy của average offered share. Nó là “effective number” descriptive, không phải số expert có semantic specialization.
+### 6.1 Metrics có thể hành động
 
 ```python
 def summarize(history):
@@ -453,7 +492,7 @@ def summarize(history):
     mean_load = offered.mean()
     return {
         "max/mean offered load": (offered.mean(dim=0).max() / mean_load).item(),
-        "effective experts (offered)": entropy.exp().item(),
+        "effective experts (offered)": entropy.exp().item(),  # exp(H), descriptive
         "mean assignment drop rate": sum(history["assign_drop"]) / len(history["assign_drop"]),
         "mean fully-dropped token rate": sum(history["full_drop"]) / len(history["full_drop"]),
         "mean router entropy": sum(history["entropy"]) / len(history["entropy"]),
@@ -464,61 +503,80 @@ print("no balance:", summarize(no_balance))
 print("controlled:", summarize(controlled))
 ```
 
-Không hard-code pass/fail threshold như “`max/mean > 2` luôn là collapse”. Threshold hợp lý phụ thuộc $N$, $K$, batch token count, domain mixture, and intended specialization. Để biết random fluctuation alone trông như thế nào, hãy chạy nhiều seeds với router initialization không bị bias.
+Không hard-code ngưỡng kiểu “`max/mean > 2` luôn là collapse”. Ngưỡng phụ thuộc $N,K$, batch tokens, domain mixture, intended specialization. Hãy chạy nhiều seeds với router init không bias để biết fluctuation ngẫu nhiên trông thế nào.
 
-## 8. Diagnosis → nguyên nhân có thể → bước kiểm tra
+### 6.2 Trade-off table — khi nào chọn gì?
 
-| Quan sát | Có thể đang xảy ra | Kiểm tra/response tiếp theo |
+| Điều chỉnh | Giảm được | Trả giá | Khi nào dùng |
+|---|---|---|---|
+| Tăng $c$ (1.0→1.5) | `drop rate` | Padding, memory, communication, compute slots trống tăng | Cần bảo vệ quality khi router chưa cân |
+| Thêm `auxiliary loss` (tăng $\alpha$) | Concentration, `max/mean` | Có thể ép uniform quá mức, task loss xấu đi | Router collapse kéo dài |
+| Thêm `routing bias` ($\gamma$ lớn) | Overload tức thì | Dao động giữa experts nếu $\gamma$ quá lớn | Cần feedback nhanh trên actual assignments |
+| Giảm $N$ hoặc tăng batch tokens | Empty experts, variance | Giảm total capacity | Batch quá nhỏ so với $N K$ |
+| Device-level balancing | Straggler, `all-to-all` imbalance | Không bảo đảm từng expert đều | Per-expert ổn nhưng device chậm |
+
+> [!warning] Uniform hơn ≠ tốt hơn
+> Luôn so sánh validation loss và drop rate cùng lúc. “Load đều hơn” không tự chứng minh model tốt hơn nếu task quality giảm.
+
+## 7. Debug checklist
+
+| Triệu chứng | Nguyên nhân có thể | Check đầu tiên |
 |---|---|---|
-| Offered load concentrate, accepted cũng concentrate | Router collapse thật sự | Inspect router logits/probs, add/tune balance control, check expert gradient coverage |
-| Offered concentrate nhưng accepted capped gần bằng capacity | Capacity che overload, drop policy đang discard demand | Log assignment và fully-token drop; fix router/load or raise budget knowingly |
-| Loads per expert ổn nhưng one device slow | Placement/rank imbalance, not expert-level collapse | Aggregate assignment and communication by device; use device/rank balance or replication |
-| Loads change sharply giữa data domains | Domain shift | Plot per request/domain and serving batch, not just training global average |
-| Uniform load nhưng task loss worse | Balance pressure too strong hoặc capacity too small | Lower `alpha`/bias speed, compare validation loss and drop rate |
-| Many empty experts, low drop | Batch too small relative to $N K$ | Increase tokens per routing group, reduce experts, or accept lower utilization |
-| Router entropy high nhưng same `top-k` repeat | Borderline probabilities still rank same experts | Plot `top_ids`/offered share; entropy alone is insufficient |
+| `probs` không sum ≈1 | Softmax sai dim / fp16 overflow | `probs.sum(-1)` với `atol=1e-6`; in router shape |
+| `offered` concentrate, `accepted` cũng concentrate | Router collapse thật sự | Inspect router logits/probs, tune balance, check grad coverage |
+| `offered` concentrate nhưng `accepted` capped ≈ capacity | Capacity che overload | Log assignment + fully-token drop; fix router hoặc tăng budget có chủ ý |
+| Loads per expert ổn nhưng device chậm | Placement/rank imbalance | Sum assignments theo device, check `all-to-all` |
+| Loads dao động mạnh theo domain | Domain shift | Plot per request/domain, không chỉ global average |
+| Uniform nhưng task loss tệ hơn | Balance pressure quá mạnh hoặc $c$ quá nhỏ | Giảm `alpha`/`gamma`, so validation loss & drop |
+| Nhiều empty experts, drop thấp | Batch quá nhỏ so với $N K$ | Tăng tokens/group, giảm experts |
+| Entropy cao nhưng cùng `top-k` lặp lại | Borderline probs vẫn rank giống nhau | Plot `top_ids`/offered share; entropy alone không đủ |
 
-For distributed MoE, add **three scopes** to the dashboard:
+Cho distributed MoE, thêm **ba scopes** vào dashboard: (1) `expert` — offered/accepted per expert, (2) `device/rank` — aggregate compute & straggler, (3) `communication` — tokens sent/received và `all-to-all` volume. DeepSeekMoE phân biệt expert-level vs device-level loss; DeepSeek-V2 thêm communication balance.[^deepseekmoe-2024][^deepseek-v2-2024]
 
-1. `expert`: offered/accepted assignments per expert, collapse and undertraining;
-2. `device` or `expert-parallel rank`: aggregate compute, stragglers;
-3. `communication`: tokens sent/received per rank and `all-to-all` volume.
+## 8. Lab experiments — mỗi lần đổi một biến
 
-Expert-level uniformity is not the only objective. DeepSeekMoE explicitly distinguishes a small expert-level loss to limit collapse from a device-level loss that promotes balanced device computation.[^deepseekmoe-2024] DeepSeek-V2 further distinguishes expert, device, and communication balance.[^deepseek-v2-2024]
+Lưu plots + validation metrics sau mỗi thí nghiệm:
 
-## 9. Lab experiments
+1. **Capacity sweep:** Giữ router & `alpha` cố định, thử $c=1.0,1.25,1.5$. So offered share (capacity không sửa được router), assignment drop, fully-dropped rate, padding budget.
+2. **Auxiliary-loss sweep:** `alpha` 0, 0.001, 0.01, 0.05. So task/validation loss vs `effective experts` và overflow.
+3. **Bias controller sweep:** `alpha=0`, thử `gamma` 0, 0.001, 0.01. Plot luôn `routing_bias`. Gamma lớn có thể làm load dao động.
+4. **Top-k accounting:** $K=1→2$. Verify offered total $T→2T$, recompute capacity $TK/N$.
+5. **Partial drop:** $K=2$, $c=1.0$, ép router preference. So assignment drop vs fully-dropped-token rate — tại sao cái đầu cao mà cái sau thấp?
+6. **Device aggregation:** Giả sử experts 0–3 ở device 0, 4–7 ở device 1. Sum offered theo group. Per-expert trông ổn nhưng device totals có thể không?
 
-Run one change at a time and save the plots plus validation metrics.
+## 9. Giới hạn & bước tiếp theo
 
-1. **Capacity sweep:** Hold router and `alpha` fixed; try `capacity_factor` 1.0, 1.25, 1.5. Compare offered share (should not be repaired by capacity alone), assignment drop, fully dropped token rate, and padding/capacity budget.
-2. **Auxiliary-loss sweep:** Try `alpha` 0, 0.001, 0.01, 0.05. Compare task/validation loss against `effective experts` and overflow. Do not choose highest uniformity automatically.
-3. **Bias controller sweep:** With `alpha=0`, try `gamma` 0, 0.001, 0.01. Plot `routing_bias` too. A large gamma may make load oscillate between experts rather than converge.
-4. **Top-k accounting:** Change $K$ from 1 to 2. Verify offered assignment total changes from $T$ to $2T$, and recompute capacity using $TK/N$.
-5. **Partial drop:** Set $K=2$, capacity factor 1.0, and force router preference. Compare assignment drop with fully-dropped-token rate. Why can the first be high while the second stays low?
-6. **Device aggregation:** Pretend experts 0–3 are on device 0 and 4–7 on device 1. Sum offered loads by group. Can per-expert plots look acceptable while device totals are not?
+**Bài này không chứng minh:**
+- `top-k` luôn tốt hơn `top-1`, hay expert có role semantic cố định — đó là design choices phải đánh giá cùng width, capacity, batch, hardware.[^switch-overview-2026][^deepseekmoe-2024]
+- `active parameters` suy ra serving cost — cần đo total weight memory, KV cache, communication riêng.[^switch-overview-2026]
+- Toy PyTorch cho kết luận throughput production — code minh họa routing mechanics, không có `all-to-all` hay distributed dispatch.
 
-## 10. Điều cần nhớ trước khi scale up
+**Học tiếp (theo [LLM architecture learning roadmap](llm-architecture-learning-roadmap.md) Stage 7):**
 
-- `Capacity factor` allocates a bounded budget; it does not make router demand balanced.
-- Plot `offered load` and `accepted load` together. The gap is the operational cost of overflow.
-- For `top-k`, count token–expert assignments: expected per-expert load is $TK/N$, not merely $T/N$.
-- `Auxiliary loss` changes optimization pressure; `routing bias` changes top-k selection from observed load. Both require task-quality checks.
-- `Token dropping` can protect fixed compute but may skip some or all routed computation for a token; log the exact drop semantics.
-- A balanced expert histogram does not prove semantic specialization, and expert-level balance does not imply balanced devices or communication.
+1. [Mixture-of-Experts và sparse routing — bài học cho người mới](mixture-of-experts-sparse-routing-beginners-guide.md) — ôn dense-vs-MoE và `top-k` cơ bản nếu cần.
+2. [Thiết kế expert và specialization trong DeepSeekMoE — bài học cho người mới](deepseekmoe-expert-design-beginners-guide.md) — fine-grained routed + shared experts.
+3. [Expert parallelism và serving trade-offs — bài học cho người mới](expert-parallelism-serving-trade-offs-beginners-guide.md) — dispatch/combine qua `all-to-all`, placement, vì sao serving vẫn trả total-weight memory.
+
+> [!success] Điều cần nhớ trước khi scale up
+> - `Capacity factor` là budget có giới hạn — không làm router cân bằng.
+> - Vẽ `offered` và `accepted` cùng nhau; gap là chi phí overflow.
+> - Với `top-k`, đếm assignments: expected/expert = $TK/N$, không phải $T/N$.
+> - `Auxiliary loss` đổi pressure tối ưu; `routing bias` đổi eligibility của `top-k`. Cả hai cần check task quality.
+> - Balanced histogram không chứng minh semantic specialization; expert-level balance không suy ra device/communication balance.
 
 ## Relationships
 
-- **Builds on:** [Mixture-of-Experts và sparse routing — bài học cho người mới](mixture-of-experts-sparse-routing-beginners-guide.md) for the dense-FFN baseline and basic `top-k` routing.
-- **Operationalizes:** [Mixture-of-Experts training and systems trade-offs](mixture-of-experts-training-and-systems-trade-offs.md) through capacity, overflow, balance, and observability.
-- **Explains:** [Auxiliary-loss-free MoE load balancing](auxiliary-loss-free-moe-load-balancing.md) with a transparent routing-bias controller and its limits.
-- **Uses:** [DeepSeekMoE expert specialization](deepseekmoe-expert-specialization.md) and [DeepSeek-V2 architecture, training, and efficiency](deepseek-v2-architecture-training-and-efficiency.md) as expert- and device-level examples.
-- **Extends:** Stage 7, “Sparse capacity,” of [LLM architecture learning roadmap](llm-architecture-learning-roadmap.md).
+- **Depends on:** [Mixture-of-Experts và sparse routing — bài học cho người mới](mixture-of-experts-sparse-routing-beginners-guide.md) — dense-FFN baseline và `top-k` cơ bản.
+- **Operationalizes:** [Mixture-of-Experts training and systems trade-offs](mixture-of-experts-training-and-systems-trade-offs.md) — biến capacity, overflow, balance thành thứ đo được.
+- **Explains:** [Auxiliary-loss-free MoE load balancing](auxiliary-loss-free-moe-load-balancing.md) — cơ chế routing-bias và giới hạn của nó.
+- **Uses:** [DeepSeekMoE expert specialization](deepseekmoe-expert-specialization.md) và [DeepSeek-V2 architecture, training, and efficiency](deepseek-v2-architecture-training-and-efficiency.md) làm ví dụ expert- và device-level.
+- **Extends:** Stage 7, “Sparse capacity,” của [LLM architecture learning roadmap](llm-architecture-learning-roadmap.md).
 
 ## Evidence limits
 
-The lab code and recommended dashboard are pedagogical synthesis, not code from Switch, DeepSeekMoE, DeepSeek-V2, or DeepSeek-V3. The Switch capacity formula and residual-path description come from the bundled secondary overview. DeepSeekMoE/V2/V3 provide primary evidence for their respective balance, drop, and bias mechanisms, but author-reported configurations do not establish universal hyperparameters or performance. In particular, no toy plot can demonstrate production `all-to-all` cost, distributed stragglers, quality at scale, or a human-readable semantic role for an expert.[^switch-overview-2026][^deepseekmoe-2024][^deepseek-v2-2024][^deepseek-v3-2024]
+Lab code và dashboard là tổng hợp sư phạm, không phải code của Switch, DeepSeekMoE, DeepSeek-V2/V3. Công thức capacity và mô tả residual đến từ bundled secondary overview. DeepSeekMoE/V2/V3 cung cấp primary evidence cho cơ chế balance/drop/bias tương ứng, nhưng config báo cáo không thiết lập hyperparameter hay performance phổ quát. Không toy plot nào chứng minh production `all-to-all` cost, distributed straggler, quality ở scale, hay semantic role của expert.[^switch-overview-2026][^deepseekmoe-2024][^deepseek-v2-2024][^deepseek-v3-2024]
 
-[^switch-overview-2026]: “Switch Transformer và Mixture of Experts trong LLM,” [raw source](../raw/MixtureofExperts.md), Sections 7–9; it is a secondary overview of Switch Transformer.
+[^switch-overview-2026]: “Switch Transformer và Mixture of Experts trong LLM,” [raw source](../raw/MixtureofExperts.md), Sections 7–9; overview thứ cấp của Switch Transformer.
 [^deepseekmoe-2024]: Dai et al., “DeepSeekMoE: Towards Ultimate Expert Specialization in Mixture-of-Experts Language Models” (2024), [source](../raw/arXiv-2401.06066v1/main.tex), Section 3.3.
 [^deepseek-v2-2024]: DeepSeek-AI, “DeepSeek-V2: A Strong, Economical, and Efficient Mixture-of-Experts Language Model” (2024), [source](../raw/arXiv-2405.04434v5/main.tex), Sections 2.2–2.3.
 [^deepseek-v3-2024]: DeepSeek-AI, “DeepSeek-V3 Technical Report” (2024), [source](../raw/arXiv-2412.19437v2/main.tex), Section 2.1.
