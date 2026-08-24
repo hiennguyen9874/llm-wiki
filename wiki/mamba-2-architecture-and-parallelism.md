@@ -5,7 +5,7 @@ description: Mamba-2 couples the SSD sequence layer with parallel parameter proj
 tags: [mamba, mamba-2, parallelism, ssm, systems]
 status: stable
 created: 2026-08-01
-generated: { by: llm-wiki-agent/1, at: 2026-08-01T02:14:44Z }
+generated: { by: llm-wiki-agent/1, at: 2026-08-24T04:51:57Z }
 sources:
   - id: dao-gu-2024
     resource: ../raw/arXiv-2405.21060v1/structure.tex
@@ -30,6 +30,7 @@ Mamba-2 retains Mamba's multi-input SSM pattern: $X$ has multiple heads while $B
 
 ## Relationships
 
+- **Extends:** [Mamba selective state spaces and architecture](mamba-selective-state-spaces-and-architecture.md) by reorganizing the original Mamba block’s parameter projections and replacing its selective-scan layer with SSD computation.[^dao-gu-2024]
 - **Uses:** [Structured State Space Duality](structured-state-space-duality.md) for the core SSD layer and its chunked computation.
 - **Adapts concepts from:** [Multi-query and grouped-query attention](multi-query-and-grouped-query-attention.md) to name head-sharing patterns; this is an analogy, not ordinary shared-KV decoding.
 - **Contrasts with:** [Self-attention computational profile](self-attention-computational-profile.md), whose full token interactions require different context-parallel communication.
