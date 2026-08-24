@@ -1,6 +1,7 @@
 # Wiki Update Log
 
 ## 2026-08-24
+- **Query**: Answered “so sánh Mamba-2/3 với KDA, Gated DeltaNet, Gated DeltaNet-2”; filed durable [Mamba-2/3, KDA, Gated DeltaNet, and Gated DeltaNet-2 comparison](mamba-kda-gated-deltanet-comparison.md) as type Synthesis and updated the index.
 - **Update**: Rewrote [Depth and residual-path design — khóa học cho người mới](depth-and-residual-path-design-beginners-course.md) as a top-down course covering the problem, end-to-end standard/AttnRes/mHC flows, direct versus benchmarked impacts, baseline differences, deployment scenarios, then derivation, inspectable PyTorch, verification, and scoped trade-offs.
 - **Update**: Rewrote [SSD → Mamba-2: fixed-state sequence mixing từ trực giác đến implementation — bài học cho người mới](ssd-mamba2-beginners-guide.md) as a top-down course covering problem, end-to-end chunk/state flow, direct versus benchmarked impacts, baseline differences, deployment and measurement, then derivation, PyTorch reference, verification, and scoped trade-offs.
 - **Update**: Rewrote [Delta memory, KDA, và hybrid KDA–MLA — mini-project cho người mới](delta-memory-kda-hybrid-architecture-beginners-project.md) as a top-down course covering the problem, end-to-end KDA and hybrid data flow, direct versus benchmarked impacts, baseline differences, deployment guidance, then derivation, inspectable PyTorch, verification, and scoped trade-offs.
