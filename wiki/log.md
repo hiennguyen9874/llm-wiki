@@ -1,6 +1,8 @@
 # Wiki Update Log
 
 ## 2026-08-24
+- **Ingest**: Compiled [Hyena Hierarchy: Towards Larger Convolutional Language Models](../raw/2302.10866_HyenaHierarchy/main.tex); created [architecture](hyena-hierarchy-architecture.md) and [evaluation and trade-offs](hyena-hierarchy-evaluation-and-trade-offs.md) concepts, including the source’s 100× runtime-claim discrepancy.
+- **Query**: Answered “tại sao mô hình gần đây dùng KDA/linear attention mà không dùng SSM/Mamba (Kimi K3, Qwen, GLM)”; filed durable [Delta-rule (KDA / Gated DeltaNet) vs SSM (Mamba / SSD) trong frontier adoption](delta-rule-vs-ssm-frontier-adoption.md) as type Synthesis, corrected the GLM-5 premise (MLA+DSA, not linear attention), and updated the index.
 - **Query**: Answered “so sánh Mamba-2/3 với KDA, Gated DeltaNet, Gated DeltaNet-2”; filed durable [Mamba-2/3, KDA, Gated DeltaNet, and Gated DeltaNet-2 comparison](mamba-kda-gated-deltanet-comparison.md) as type Synthesis and updated the index.
 - **Update**: Rewrote [Depth and residual-path design — khóa học cho người mới](depth-and-residual-path-design-beginners-course.md) as a top-down course covering the problem, end-to-end standard/AttnRes/mHC flows, direct versus benchmarked impacts, baseline differences, deployment scenarios, then derivation, inspectable PyTorch, verification, and scoped trade-offs.
 - **Update**: Rewrote [SSD → Mamba-2: fixed-state sequence mixing từ trực giác đến implementation — bài học cho người mới](ssd-mamba2-beginners-guide.md) as a top-down course covering problem, end-to-end chunk/state flow, direct versus benchmarked impacts, baseline differences, deployment and measurement, then derivation, PyTorch reference, verification, and scoped trade-offs.
