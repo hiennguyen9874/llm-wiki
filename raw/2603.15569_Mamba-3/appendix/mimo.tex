@@ -1,0 +1,44 @@
+\section{MIMO for Mamba-3}
+\label{app:mimo-for-mamba}
+
+\paragraph{Mamba with MIMO.}
+With a given batch, head, and sequence position $t$, consider the input $\bU_t \in \mathbb{R}^{D}$. Also denote $P, R\in\mathbb{N}$ as the head dimension and MIMO rank, respectively. We first obtain SSM parameters via a set of projections defined in terms of tensor contraction notation as follows:
+
+\begin{align*}
+    \bB_t &= \text{contract}(DNR,D\rightarrow NR)(\bW_B,\bU_t)
+    && \bC_t = \text{contract}(DNR,D\rightarrow NR)(\bW_C,\bU_t),\\
+    \bX'_t &= \text{contract}(PD,D\rightarrow P)(\bW_{X'},\bU_t)
+    && \bX_t = \text{contract}(PR,P\rightarrow PR)(\bW_X,\bX'_t),\\
+\end{align*}
+where $\bW_B, \bW_C, \bW_{X'}, \bW_X$ are model parameters. Additionally, we obtain the residual gate term $\bZ_t$ in the same manner as $\bX_t$ with weights $\bW_{Z'}$ and $\bW_Z$.
+This parameterization is used to prevent the parameter count from increasing by a factor of $R$.
+
+The state update and the SSM output are then computed via the following MIMO SSM:
+\[
+\bH_t \;=\; a_t\,\bH_{t-1} \;+\; \bB_t \bX_t^\top \in \mathbb{R}^{N\times P},
+\qquad
+\bY_t \;=\; \bH_t ^\top \bC_{t} \in \mathbb{R}^{P\times R} .
+\]
+Intermediate output $\bY'_t$ is obtained by the residual function $\phi$, $\bY'_t \gets \phi(\bY_t, \bZ_t)$, where $\phi(\bY_t, \bZ_t):=\bY_t \odot \text{SiLU}(\bZ_t)$ in our case. 
+Finally, the layer output $\bO_t \in \mathbb{R}^D$ is computed via the following down projections:
+\begin{align*}
+    \bO'_t &= \text{contract}(PR,PR\rightarrow P)(\bW_{O'},\bY'_t)
+    && \bO_t = \text{contract}(PD,P\rightarrow D)(\bW_{O},\bO'_t).
+\end{align*}
+
+This formulation enhances the existing Mamba-3 architecture by providing a lightweight parameterization that transforms the set of independent SISO SSMs within each head into a set of MIMO SSMs.
+
+\paragraph{MIMO Parameter Matching.}
+The MIMO variant of Mamba-3 incurs additional parameters compared to its SISO counterpart. We therefore reduce the hidden dimension of the MLP layers to parameter match the SISO variants as follows:
+
+\begin{table}[h]
+    \centering
+    \begin{tabular}{lcccc}
+        \toprule
+        \textbf{Model}& $180\text{M}$ & $440\text{M}$ & $880\text{M}$ & $1.5\text{B}$ \\
+        \midrule
+        SISO MLP dim & 1,500 & 2,048 & 3,072 & 4,096 \\
+        MIMO MLP dim ($R=4$) & 1,264 & 1,792 & 2,800 & 3,824 \\
+        \bottomrule
+    \end{tabular}
+\end{table}

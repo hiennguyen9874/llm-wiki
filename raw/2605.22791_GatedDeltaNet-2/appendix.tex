@@ -1,0 +1,685 @@
+\renewcommand{\thesection}{\Alph{section}}
+\renewcommand\thefigure{S.\arabic{figure}}
+\setcounter{figure}{0}
+\renewcommand\thetable{S.\arabic{table}}
+\setcounter{table}{0}
+
+\section{Chunkwise derivation for Gated DeltaNet-2}
+\label{app_wy}
+
+This appendix gives the exact chunkwise form used in Section~\ref{subsec_chunkwise_training}. We work inside one chunk of length $C$ and write $\rmS_0$ for the state at the start of the chunk. All vectors are for a single head. In particular, $\vk_r,\ve_r,\vq_r,\vb_r,\valpha_r,\boldsymbol{\gamma}_r\in\mathbb{R}^{d_k}$, $\vv_r,\vz_r,\vo_r,\vw_r\in\mathbb{R}^{d_v}$, and $\rmS_r\in\mathbb{R}^{d_k\times d_v}$. The chunk index is suppressed.
+
+The Gated DeltaNet-2 recurrence is
+\begin{align}
+    \rmS_r
+    =
+    \bigl(\rmI - \vk_r\ve_r^\top\bigr)
+    \operatorname{Diag}(\valpha_r)\rmS_{r-1}
+    + \vk_r\vz_r^\top,
+    \qquad
+    \ve_r = \vb_r \odot \vk_r,
+    \qquad
+    \vz_r = \vw_r \odot \vv_r .
+\label{eq_app_gdn2_step}
+\end{align}
+Let
+\begin{align}
+    \boldsymbol{G}_r = \sum_{i=1}^{r}\boldsymbol{g}_i,
+    \qquad
+    \boldsymbol{\gamma}_r = \exp(\boldsymbol{G}_r),
+    \qquad
+    \boldsymbol{\gamma}_0 = \mathbf{1}_{d_k},
+    \qquad
+    \valpha_r = \exp(\boldsymbol{g}_r).
+\label{eq_app_gamma}
+\end{align}
+All exponentials, products, and ratios involving $\boldsymbol{\gamma}$ are elementwise over the key channel axis.
+
+\subsection{Decay-normalized recurrence}
+\label{app_decay_normalized}
+
+Define a normalized state $\widehat{\rmS}_r$ by
+\begin{align}
+    \rmS_r = \operatorname{Diag}(\boldsymbol{\gamma}_r)\widehat{\rmS}_r .
+\label{eq_app_normalized_state}
+\end{align}
+Because $\boldsymbol{\gamma}_0=\mathbf{1}_{d_k}$, the normalized initial state is also $\widehat{\rmS}_0=\rmS_0$. Substituting Eq.~\ref{eq_app_normalized_state} into Eq.~\ref{eq_app_gdn2_step} and using $\boldsymbol{\gamma}_r=\valpha_r\odot\boldsymbol{\gamma}_{r-1}$ gives
+\begin{align}
+    \widehat{\rmS}_r
+    =
+    \bigl(\rmI - \bar{\vk}_r\bar{\ve}_r^\top\bigr)
+    \widehat{\rmS}_{r-1}
+    + \bar{\vk}_r\vz_r^\top,
+    \qquad
+    \bar{\vk}_r = \boldsymbol{\gamma}_r^{-1}\odot\vk_r,
+    \qquad
+    \bar{\ve}_r = \boldsymbol{\gamma}_r\odot\ve_r .
+\label{eq_app_normalized_recurrence}
+\end{align}
+The channel-wise decay has disappeared from the recurrence. It is now carried by the left and right factors of each rank-one edit.
+
+Let $\rmK$, $\rmV$, $\rmB$, and $\rmW$ contain rows $\vk_r^\top$, $\vv_r^\top$, $\vb_r^\top$, and $\vw_r^\top$, respectively. For compact matrix notation, let $\boldsymbol{\gamma}$ contain rows $\boldsymbol{\gamma}_r^\top$. Let $\bar{\rmK}$, $\bar{\rmE}$, and $\rmZ$ contain rows $\bar{\vk}_r^\top$, $\bar{\ve}_r^\top$, and $\vz_r^\top$. Equivalently,
+\begin{align}
+    \bar{\rmK}
+    =
+    \boldsymbol{\gamma}^{-1}\odot\rmK,
+    \qquad
+    \bar{\rmE}
+    =
+    \boldsymbol{\gamma}\odot(\rmB\odot\rmK),
+    \qquad
+    \rmZ
+    =
+    \rmW\odot\rmV .
+\label{eq_app_gate_matrices}
+\end{align}
+Define
+\begin{align}
+    \rmT = \operatorname{tril}(\bar{\rmE}\bar{\rmK}^\top, -1),
+    \qquad
+    \rmA = (\rmI + \rmT)^{-1},
+    \qquad
+    \rmY = \rmA\bar{\rmE},
+    \qquad
+    \rmU = \rmA\rmZ .
+\label{eq_app_wy_definitions}
+\end{align}
+Since $\rmT$ is strictly lower triangular, $\rmA$ is lower triangular with unit diagonal and is obtained by forward substitution.
+
+\subsection{Compact state formula}
+\label{app_state_formula}
+
+Define
+\begin{align}
+    \rmR = \rmU - \rmY\rmS_0 .
+\label{eq_app_residual_matrix}
+\end{align}
+Let row $r$ of $\rmR$ be $\boldsymbol{\rho}_r^\top$, where $\boldsymbol{\rho}_r\in\mathbb{R}^{d_v}$. Then the normalized state after any prefix of the chunk is
+\begin{align}
+    \widehat{\rmS}_r
+    =
+    \rmS_0
+    +
+    \bar{\rmK}_{\le r}^{\top}\rmR_{\le r},
+\label{eq_app_prefix_state}
+\end{align}
+where $\bar{\rmK}_{\le r}$ and $\rmR_{\le r}$ denote the first $r$ rows.
+
+To prove Eq.~\ref{eq_app_prefix_state}, write the rank-one increment at step $r$ as $\bar{\vk}_r\boldsymbol{\rho}_r^\top$. From Eq.~\ref{eq_app_normalized_recurrence}, the residual row is
+\begin{align}
+    \boldsymbol{\rho}_r^\top
+    =
+    \vz_r^\top
+    -
+    \bar{\ve}_r^\top\widehat{\rmS}_{r-1}.
+\label{eq_app_residual_row}
+\end{align}
+Equivalently, in column-vector form, $\boldsymbol{\rho}_r=\vz_r-\widehat{\rmS}_{r-1}^{\top}\bar{\ve}_r$. Using the induction hypothesis $\widehat{\rmS}_{r-1}=\rmS_0+\sum_{s<r}\bar{\vk}_s\boldsymbol{\rho}_s^\top$ gives
+\begin{align}
+    \boldsymbol{\rho}_r^\top
+    =
+    \vz_r^\top
+    -
+    \bar{\ve}_r^\top\rmS_0
+    -
+    \sum_{s<r}
+    \bar{\ve}_r^\top\bar{\vk}_s\,\boldsymbol{\rho}_s^\top .
+\label{eq_app_residual_row_expanded}
+\end{align}
+Since $\rmT_{rs}=\bar{\ve}_r^\top\bar{\vk}_s$ for $s<r$ and $\rmT_{rs}=0$ otherwise, stacking these residual rows over the chunk yields
+\begin{align}
+    (\rmI+\rmT)\rmR
+    =
+    \rmZ-\bar{\rmE}\rmS_0 .
+\label{eq_app_residual_linear_system}
+\end{align}
+Multiplying by $\rmA$ gives $\rmR=\rmA\rmZ-\rmA\bar{\rmE}\rmS_0=\rmU-\rmY\rmS_0$, which is Eq.~\ref{eq_app_residual_matrix}. Substituting the resulting increments into the normalized recurrence proves Eq.~\ref{eq_app_prefix_state}.
+
+Multiplying Eq.~\ref{eq_app_prefix_state} by $\operatorname{Diag}(\boldsymbol{\gamma}_C)$ gives the end-of-chunk state
+\begin{align}
+    \rmS_C
+    =
+    \operatorname{Diag}(\boldsymbol{\gamma}_C)\rmS_0
+    +
+    \rmK_{\mathrm{tail}}^\top
+    \bigl(\rmU-\rmY\rmS_0\bigr),
+\label{eq_app_chunk_state}
+\end{align}
+where row $r$ of $\rmK_{\mathrm{tail}}$ is
+\begin{align}
+    (\rmK_{\mathrm{tail}})_{r,:}
+    =
+    \bigl((\boldsymbol{\gamma}_C/\boldsymbol{\gamma}_r)
+    \odot \vk_r\bigr)^\top .
+\label{eq_app_ktail}
+\end{align}
+This is Eq.~\ref{eq_gdn2_chunk_state} in the main text.
+
+\subsection{Compact output formula}
+\label{app_output_formula}
+
+The output at token $r$ is the column vector $\vo_r=\rmS_r^\top\vq_r$. It is convenient to write the corresponding row vector. Using Eq.~\ref{eq_app_prefix_state},
+\begin{align}
+    \vo_r^\top
+    =
+    (\boldsymbol{\gamma}_r\odot\vq_r)^\top\rmS_0
+    +
+    \sum_{s\le r}
+    \bigl[
+    \vq_r^\top
+    \operatorname{Diag}(\boldsymbol{\gamma}_r/\boldsymbol{\gamma}_s)
+    \vk_s
+    \bigr]
+    \boldsymbol{\rho}_s^\top .
+\label{eq_app_output_token}
+\end{align}
+Define $\rmQ_{\gamma}$ by row $(\rmQ_{\gamma})_{r,:}=(\boldsymbol{\gamma}_r\odot\vq_r)^\top$ and define the causal score matrix
+\begin{align}
+    (\rmA_{qk})_{rs}
+    =
+    \mathbf{1}_{r\ge s}
+    \vq_r^\top
+    \operatorname{Diag}(\boldsymbol{\gamma}_r/\boldsymbol{\gamma}_s)
+    \vk_s .
+\label{eq_app_aqk}
+\end{align}
+Let $\rmO$ contain rows $\vo_r^\top$. Stacking Eq.~\ref{eq_app_output_token} over the chunk gives
+\begin{align}
+    \rmO
+    =
+    \rmQ_{\gamma}\rmS_0
+    +
+    \rmA_{qk}
+    \bigl(\rmU-\rmY\rmS_0\bigr),
+\label{eq_app_chunk_output}
+\end{align}
+which is Eq.~\ref{eq_gdn2_chunk_output} in the main text.
+
+\subsection{Row recurrences}
+\label{app_row_recurrences}
+
+The matrices $\rmY$ and $\rmU$ can also be written row by row. Let row $r$ of $\rmY$ be $\vy_r^\top$ and row $r$ of $\rmU$ be $\vu_r^\top$. Since $(\rmI+\rmT)\rmY=\bar{\rmE}$ and $(\rmI+\rmT)\rmU=\rmZ$,
+\begin{align}
+    \vy_r^\top
+    &=
+    \bar{\ve}_r^\top
+    -
+    \sum_{s<r}
+    \bar{\ve}_r^\top\bar{\vk}_s \, \vy_s^\top,
+\label{eq_app_y_row}\\
+    \vu_r^\top
+    &=
+    \vz_r^\top
+    -
+    \sum_{s<r}
+    \bar{\ve}_r^\top\bar{\vk}_s \, \vu_s^\top .
+\label{eq_app_u_row}
+\end{align}
+Both auxiliaries solve the same lower triangular system with different right-hand sides. This is why the same WY inverse can be shared by the erase-side and write-side computations.
+
+\subsection{Tied-gate reductions}
+\label{app_reductions}
+
+If $\vb_r=\beta_r\mathbf{1}_{d_k}$ and $\vw_r=\beta_r\mathbf{1}_{d_v}$, then $\ve_r=\beta_r\vk_r$ and $\vz_r=\beta_r\vv_r$. Equation~\ref{eq_app_gdn2_step} becomes the KDA update. If the decay is also tied as $\valpha_r=\alpha_r\mathbf{1}_{d_k}$, the recurrence becomes Gated DeltaNet. Thus KDA and Gated DeltaNet are recovered by tying the channel gates rather than by changing the algorithm.
+
+The same reduction holds for the chunkwise form. Under the KDA tying, the definitions in Eq.~\ref{eq_app_gate_matrices} give
+\begin{align}
+    \bar{\ve}_r
+    =
+    \boldsymbol{\gamma}_r\odot(\beta_r\vk_r)
+    =
+    \beta_r(\boldsymbol{\gamma}_r\odot\vk_r)
+    =
+    \beta_r(\boldsymbol{\gamma}_r\odot\boldsymbol{\gamma}_r)\odot\bar{\vk}_r,
+    \qquad
+    \vz_r
+    =
+    \beta_r\vv_r .
+\label{eq_app_tied_gate_factors}
+\end{align}
+Thus $\rmZ$ becomes a scalar row scaling of $\rmV$, while $\bar{\rmE}$ becomes the KDA decay-normalized erase factor. In general, $\bar{\rmE}$ is not a scalar row scaling of $\bar{\rmK}$ when the decay is channel-wise, since each key channel carries its own factor from $\boldsymbol{\gamma}_r$. Equations~\ref{eq_app_wy_definitions}, \ref{eq_app_chunk_state}, and \ref{eq_app_chunk_output} therefore reduce to the KDA chunk equations after substituting the tied factors in Eq.~\ref{eq_app_tied_gate_factors}. If the decay is further tied as in Gated DeltaNet, then $\boldsymbol{\gamma}_r=\gamma_r\mathbf{1}_{d_k}$ and the erase factor simplifies to $\bar{\ve}_r=\beta_r\gamma_r^2\bar{\vk}_r$, recovering the scalar-decay chunkwise form.
+
+At the gradient level, if a thin wrapper sets $\vb_r=\beta_r\mathbf{1}_{d_k}$ and $\vw_r=\beta_r\mathbf{1}_{d_v}$, the scalar gradient is
+\begin{align}
+    \frac{\partial \mathcal{L}}{\partial \beta_r}
+    =
+    \left\langle
+    \frac{\partial \mathcal{L}}{\partial \vb_r},
+    \mathbf{1}_{d_k}
+    \right\rangle
+    +
+    \left\langle
+    \frac{\partial \mathcal{L}}{\partial \vw_r},
+    \mathbf{1}_{d_v}
+    \right\rangle .
+\label{eq_app_beta_gradient}
+\end{align}
+
+\section{Backward derivation}
+\label{app_backward}
+
+We derive the vector-Jacobian products for one chunk using the notation of Appendix~\ref{app_wy}. Let upstream gradients be $\mathrm{d}\rmO$ for the chunk output and $\mathrm{d}\rmS_C$ for the end-of-chunk state. The forward equations are
+\begin{align}
+    \rmR &= \rmU-\rmY\rmS_0,
+\label{eq_app_bwd_R}\\
+    \rmO &= \rmQ_{\gamma}\rmS_0+\rmA_{qk}\rmR,
+\label{eq_app_bwd_O}\\
+    \rmS_C &= \operatorname{Diag}(\boldsymbol{\gamma}_C)\rmS_0+\rmK_{\mathrm{tail}}^\top\rmR,
+\label{eq_app_bwd_S}\\
+    \rmU &= \rmA\rmZ,
+    \qquad
+    \rmY = \rmA\bar{\rmE},
+    \qquad
+    \rmA=(\rmI+\rmT)^{-1},
+    \qquad
+    \rmT=\operatorname{tril}(\bar{\rmE}\bar{\rmK}^\top,-1).
+\label{eq_app_bwd_core}
+\end{align}
+
+\subsection{Output and state paths}
+\label{app_bwd_paths}
+
+From Eq.~\ref{eq_app_bwd_O},
+\begin{align}
+    \mathrm{d}\rmA_{qk}
+    &\mathrel{+}=
+    \mathrm{d}\rmO\,\rmR^\top,
+\label{eq_app_daqk_from_output}\\
+    \mathrm{d}\rmR
+    &\mathrel{+}=
+    \rmA_{qk}^\top\mathrm{d}\rmO,
+\label{eq_app_dR_from_output}\\
+    \mathrm{d}\rmQ_{\gamma}
+    &\mathrel{+}=
+    \mathrm{d}\rmO\,\rmS_0^\top,
+\label{eq_app_dQg_from_output}\\
+    \mathrm{d}\rmS_0
+    &\mathrel{+}=
+    \rmQ_{\gamma}^\top\mathrm{d}\rmO .
+\label{eq_app_dS_from_output}
+\end{align}
+The causal mask is applied to $\mathrm{d}\rmA_{qk}$.
+
+From Eq.~\ref{eq_app_bwd_S},
+\begin{align}
+    \mathrm{d}\rmR
+    &\mathrel{+}=
+    \rmK_{\mathrm{tail}}\mathrm{d}\rmS_C,
+\label{eq_app_dR_from_state}\\
+    \mathrm{d}\rmK_{\mathrm{tail}}
+    &\mathrel{+}=
+    \rmR\,\mathrm{d}\rmS_C^\top,
+\label{eq_app_dKtail_from_state}\\
+    \mathrm{d}\rmS_0
+    &\mathrel{+}=
+    \operatorname{Diag}(\boldsymbol{\gamma}_C)\mathrm{d}\rmS_C,
+\label{eq_app_dS_from_state}\\
+    \mathrm{d}\boldsymbol{\gamma}_C
+    &\mathrel{+}=
+    \mathrm{rowsum}\bigl(\mathrm{d}\rmS_C\odot\rmS_0\bigr).
+\label{eq_app_dgammaC_from_state}
+\end{align}
+Here $\mathrm{rowsum}$ sums over the value dimension and returns a $d_k$-dimensional vector.
+
+The residual relation in Eq.~\ref{eq_app_bwd_R} gives
+\begin{align}
+    \mathrm{d}\rmU
+    &\mathrel{+}=
+    \mathrm{d}\rmR,
+\label{eq_app_dU_from_R}\\
+    \mathrm{d}\rmY
+    &\mathrel{+}=
+    -\mathrm{d}\rmR\,\rmS_0^\top,
+\label{eq_app_dY_from_R}\\
+    \mathrm{d}\rmS_0
+    &\mathrel{+}=
+    -\rmY^\top\mathrm{d}\rmR .
+\label{eq_app_dS_from_R}
+\end{align}
+
+\subsection{Gate-aware WY inverse path}
+\label{app_bwd_wy}
+
+The two auxiliary products yield
+\begin{align}
+    \mathrm{d}\rmA
+    &\mathrel{+}=
+    \mathrm{d}\rmU\,\rmZ^\top,
+    &
+    \mathrm{d}\rmZ
+    &\mathrel{+}=
+    \rmA^\top\mathrm{d}\rmU,
+\label{eq_app_bwd_U}\\
+    \mathrm{d}\rmA
+    &\mathrel{+}=
+    \mathrm{d}\rmY\,\bar{\rmE}^\top,
+    &
+    \mathrm{d}\bar{\rmE}
+    &\mathrel{+}=
+    \rmA^\top\mathrm{d}\rmY .
+\label{eq_app_bwd_Y}
+\end{align}
+Equations~\ref{eq_app_bwd_U} and \ref{eq_app_bwd_Y} are the gate-aware accumulation emphasized in Section~\ref{subsec_gate_aware_backward}. Since $\rmZ=\rmW\odot\rmV$ and $\bar{\rmE}=\boldsymbol{\gamma}\odot(\rmB\odot\rmK)$, the gates must appear inside the products that accumulate $\mathrm{d}\rmA$. A scalar post-scale is correct only in the tied-gate case.
+
+For the inverse,
+\begin{align}
+    \mathrm{d}\rmT
+    =
+    -\operatorname{tril}
+    \bigl(
+    \rmA^\top\mathrm{d}\rmA\rmA^\top,
+    -1
+    \bigr).
+\label{eq_app_dT}
+\end{align}
+The construction of $\rmT$ gives
+\begin{align}
+    \mathrm{d}\bar{\rmE}
+    &\mathrel{+}=
+    \mathrm{d}\rmT\,\bar{\rmK},
+\label{eq_app_dE_from_T}\\
+    \mathrm{d}\bar{\rmK}
+    &\mathrel{+}=
+    \mathrm{d}\rmT^\top\bar{\rmE}.
+\label{eq_app_dKbar_from_T}
+\end{align}
+Only the strictly lower triangular part of $\mathrm{d}\rmT$ is used.
+
+\subsection{Scores and tail keys}
+\label{app_bwd_scores}
+
+The score matrix satisfies $\rmA_{qk}=\operatorname{tril}(\rmQ_{\gamma}\bar{\rmK}^\top)$. Therefore
+\begin{align}
+    \mathrm{d}\rmQ_{\gamma}
+    &\mathrel{+}=
+    \mathrm{d}\rmA_{qk}\,\bar{\rmK},
+\label{eq_app_dQg_from_scores}\\
+    \mathrm{d}\bar{\rmK}
+    &\mathrel{+}=
+    \mathrm{d}\rmA_{qk}^\top\rmQ_{\gamma}.
+\label{eq_app_dKbar_from_scores}
+\end{align}
+The tail key matrix satisfies $(\rmK_{\mathrm{tail}})_{r}=\boldsymbol{\gamma}_C\odot\bar{\vk}_r$. Hence
+\begin{align}
+    \mathrm{d}\bar{\rmK}
+    &\mathrel{+}=
+    \mathrm{d}\rmK_{\mathrm{tail}}\odot\boldsymbol{\gamma}_C,
+\label{eq_app_dKbar_from_tail}\\
+    \mathrm{d}\boldsymbol{\gamma}_C
+    &\mathrel{+}=
+    \sum_{r=1}^{C}
+    \mathrm{d}(\rmK_{\mathrm{tail}})_{r}
+    \odot
+    \bar{\vk}_r .
+\label{eq_app_dgammaC_from_tail}
+\end{align}
+
+\subsection{Elementwise gates and cumulative decay}
+\label{app_bwd_elementwise}
+
+The write-side relation $\rmZ=\rmW\odot\rmV$ gives
+\begin{align}
+    \mathrm{d}\rmW
+    &\mathrel{+}=
+    \mathrm{d}\rmZ\odot\rmV,
+    &
+    \mathrm{d}\rmV
+    &\mathrel{+}=
+    \mathrm{d}\rmZ\odot\rmW .
+\label{eq_app_dW_dV}
+\end{align}
+The erase-side relation $\bar{\rmE}=\boldsymbol{\gamma}\odot(\rmB\odot\rmK)$ gives
+\begin{align}
+    \mathrm{d}\rmB
+    &\mathrel{+}=
+    \mathrm{d}\bar{\rmE}\odot\boldsymbol{\gamma}\odot\rmK,
+\label{eq_app_dB_from_E}\\
+    \mathrm{d}\rmK
+    &\mathrel{+}=
+    \mathrm{d}\bar{\rmE}\odot\boldsymbol{\gamma}\odot\rmB,
+\label{eq_app_dK_from_E}\\
+    \mathrm{d}\boldsymbol{\gamma}
+    &\mathrel{+}=
+    \mathrm{d}\bar{\rmE}\odot\rmB\odot\rmK .
+\label{eq_app_dgamma_from_E}
+\end{align}
+The normalized keys and queries are
+\begin{align}
+    \bar{\rmK} = \boldsymbol{\gamma}^{-1}\odot\rmK,
+    \qquad
+    \rmQ_{\gamma} = \boldsymbol{\gamma}\odot\rmQ .
+\label{eq_app_Kbar_Qg}
+\end{align}
+Their vector-Jacobian products are
+\begin{align}
+    \mathrm{d}\rmK
+    &\mathrel{+}=
+    \mathrm{d}\bar{\rmK}\odot\boldsymbol{\gamma}^{-1},
+\label{eq_app_dK_from_Kbar}\\
+    \mathrm{d}\boldsymbol{\gamma}
+    &\mathrel{+}=
+    -\mathrm{d}\bar{\rmK}\odot\rmK\odot\boldsymbol{\gamma}^{-2},
+\label{eq_app_dgamma_from_Kbar}\\
+    \mathrm{d}\rmQ
+    &\mathrel{+}=
+    \mathrm{d}\rmQ_{\gamma}\odot\boldsymbol{\gamma},
+\label{eq_app_dQ_from_Qg}\\
+    \mathrm{d}\boldsymbol{\gamma}
+    &\mathrel{+}=
+    \mathrm{d}\rmQ_{\gamma}\odot\rmQ .
+\label{eq_app_dgamma_from_Qg}
+\end{align}
+Finally, $\boldsymbol{\gamma}_r=\exp(\boldsymbol{G}_r)$ and $\boldsymbol{G}_r=\sum_{i\le r}\boldsymbol{g}_i$. Therefore
+\begin{align}
+    \mathrm{d}\boldsymbol{G}_r
+    =
+    \mathrm{d}\boldsymbol{\gamma}_r
+    \odot
+    \boldsymbol{\gamma}_r,
+    \qquad
+    \mathrm{d}\boldsymbol{g}_i
+    =
+    \sum_{r\ge i}
+    \mathrm{d}\boldsymbol{G}_r .
+\label{eq_app_dg_reverse_cumsum}
+\end{align}
+In implementation this is a reverse cumulative sum over the chunk.
+
+\subsection{Why scalar post-scaling is invalid}
+\label{app_no_post_scaling}
+
+In KDA, a scalar $\beta_r$ multiplies both the value right hand side and the erase right hand side. For one row, the contribution to $\mathrm{d}\rmA$ from the write auxiliary can be factored as
+\begin{align}
+    \mathrm{d}\vu_r\,(\beta_s\vv_s)^\top
+    =
+    \beta_s\,\mathrm{d}\vu_r\vv_s^\top .
+\label{eq_app_scalar_factor}
+\end{align}
+The scalar factor can be applied after the dot product. Gated DeltaNet-2 replaces $\beta_s\vv_s$ by $\vw_s\odot\vv_s$. Since $\vw_s$ is a different diagonal operator for every row, there is no row scalar or column scalar that can recover
+\begin{align}
+    \mathrm{d}\vu_r\,(\vw_s\odot\vv_s)^\top
+\label{eq_app_vector_factor_write}
+\end{align}
+from $\mathrm{d}\vu_r\vv_s^\top$. The erase side has the same issue with $\vb_s\odot\vk_s$. The gates must be baked into the dot products in Eq.~\ref{eq_app_bwd_U} and Eq.~\ref{eq_app_bwd_Y}.
+
+\section{Layer and kernel implementation}
+\label{app_implementation}
+
+This appendix records the implementation choices needed to reproduce Gated DeltaNet-2. The main text keeps the Triton details brief. Here we describe the computation at the level of kernels and tensor shapes.
+
+\subsection{Layer parameterization}
+\label{app_layer}
+
+The layer computes short-convolutional projections for $\vq$, $\vk$, and $\vv$, followed by head reshaping. The erase and write gates are produced by independent projections,
+\begin{align}
+    \vb = \sigma(\operatorname{Proj}_{b}(\vx)),
+    \qquad
+    \vw = \sigma(\operatorname{Proj}_{w}(\vx)).
+\label{eq_app_layer_gates}
+\end{align}
+The erase projection has shape $d_{\mathrm{model}}\to H d_k$. The write projection has shape $d_{\mathrm{model}}\to H_v d_v$. If grouped value attention is used with $H_v>H$, the key-side tensors $\vq$, $\vk$, the log-decay tensor $\boldsymbol{g}$, and $\vb$ are repeated across the value-head group, while $\vv$ and $\vw$ already live on the value-head axis.
+
+The log-decay is computed outside the kernel in fp32,
+\begin{align}
+    \boldsymbol{g}_t
+    =
+    -\exp(\mathbf{a})\odot
+    \operatorname{softplus}(\operatorname{Proj}_{f}(\vx_t)+\boldsymbol{\delta}).
+\label{eq_app_layer_decay}
+\end{align}
+The vector $\mathbf{a}$ is stored per key head and broadcast across the $d_k$ channels of that head. The bias $\boldsymbol{\delta}$ is stored per key channel. The kernel consumes $\boldsymbol{g}_t$ directly and forms the local cumulative sums in Eq.~\ref{eq_app_gamma}.
+
+If negative eigenvalues are enabled, only the erase gate is scaled by $2$. This changes $\vb_t\in[0,1]^{d_k}$ into $\vb_t\in[0,2]^{d_k}$. The write gate remains in $[0,1]^{d_v}$.
+
+\subsection{Forward kernels}
+\label{app_forward_kernels}
+
+The chunk size is fixed to $C=64$. Each chunk is processed by the following steps.
+
+\paragraph{Intra-chunk products}
+The first kernel forms the causal score matrix $\rmA_{qk}$ and the strictly lower matrix $\rmT$. The Gated DeltaNet-2 specific computation is the row factor of $\rmT$,
+\begin{align}
+    T_{rs}
+    =
+    \bar{\ve}_r^\top\bar{\vk}_s
+    =
+    (\boldsymbol{\gamma}_r\odot\vb_r\odot\vk_r)^\top
+    (\boldsymbol{\gamma}_s^{-1}\odot\vk_s)
+    \qquad
+    s<r .
+\label{eq_app_kernel_T}
+\end{align}
+Thus the erase gate is multiplied into the key tile before the dot product. The score matrix $\rmA_{qk}$ is unchanged apart from the same decay-normalized key factors.
+
+\paragraph{WY solve}
+The second kernel solves $\rmA=(\rmI+\rmT)^{-1}$ by forward substitution. It then exposes the same lower triangular inverse to both right hand sides. This is the compact WY step used in Eq.~\ref{eq_app_wy_definitions}.
+
+\paragraph{Auxiliary construction}
+The third kernel builds
+\begin{align}
+    \rmU = \rmA(\rmW\odot\rmV),
+    \qquad
+    \rmY = \rmA\bar{\rmE}.
+\label{eq_app_kernel_aux}
+\end{align}
+The implementation stores $\rmY$ using the historical buffer name \texttt{w} because KDA used the same buffer for its erase-side auxiliary; this buffer is not the write-gate matrix $\rmW$. The mathematical role is $\rmY$ throughout this paper.
+
+\paragraph{State and output}
+The inter-chunk state recurrence consumes $\rmK_{\mathrm{tail}}$, $\rmY$, and $\rmU$, and applies Eq.~\ref{eq_app_chunk_state}. The output kernel consumes $\rmQ_{\gamma}$, $\rmA_{qk}$, and $\rmR=\rmU-\rmY\rmS_0$, and applies Eq.~\ref{eq_app_chunk_output}. These two kernels do not depend on how the gate factors were produced, so they share the same matrix shapes as KDA.
+
+\subsection{Backward kernels}
+\label{app_backward_kernels}
+
+The backward pass mirrors Appendix~\ref{app_backward}.
+
+\paragraph{Output vector-Jacobian product}
+The first backward kernel computes $\mathrm{d}\rmA_{qk}$ and the output-path contribution to $\mathrm{d}\rmR$ from Eq.~\ref{eq_app_daqk_from_output} and Eq.~\ref{eq_app_dR_from_output}. It is structure-equivalent to the KDA output vector-Jacobian product because it only sees $\rmR$.
+
+\paragraph{State vector-Jacobian product}
+The second backward kernel propagates $\mathrm{d}\rmS_C$ through Eq.~\ref{eq_app_bwd_S}. It is also structure-equivalent to the KDA state vector-Jacobian product because it consumes $\rmK_{\mathrm{tail}}$, $\rmY$, and $\rmU$ as already formed tensors.
+
+\paragraph{Gate-aware WY vector-Jacobian product}
+The third backward kernel implements Eq.~\ref{eq_app_bwd_U}, Eq.~\ref{eq_app_bwd_Y}, and Eq.~\ref{eq_app_dT}. This is the main Gated DeltaNet-2 specific kernel. It accumulates $\mathrm{d}\rmA$ with $\rmZ^\top=(\rmW\odot\rmV)^\top$ and $\bar{\rmE}^\top=(\boldsymbol{\gamma}\odot\rmB\odot\rmK)^\top$. It also emits the direct gradients
+\begin{align}
+    \mathrm{d}\rmW
+    =
+    \mathrm{d}\rmZ\odot\rmV,
+    \qquad
+    \mathrm{d}\rmV
+    =
+    \mathrm{d}\rmZ\odot\rmW,
+    \qquad
+    \mathrm{d}\rmB
+    \mathrel{+}=
+    \mathrm{d}\bar{\rmE}\odot\boldsymbol{\gamma}\odot\rmK .
+\label{eq_app_kernel_gate_grads}
+\end{align}
+The erase-gate gradient has shape $B\times T\times H\times d_k$. The write-gate gradient has shape $B\times T\times H_v\times d_v$.
+
+\paragraph{Intra-chunk vector-Jacobian product}
+The fourth backward kernel propagates through $\rmA_{qk}$ and $\rmT$. It adds the remaining contributions to $\mathrm{d}\rmQ$, $\mathrm{d}\rmK$, $\mathrm{d}\rmB$, and $\mathrm{d}\boldsymbol{g}$. The dependence on the cumulative decay is reduced by a reverse cumulative sum, as in Eq.~\ref{eq_app_dg_reverse_cumsum}.
+
+\subsection{Autotuning and hardware dispatch}
+\label{app_autotune}
+
+The fused WY backward kernel uses the same matrix shapes as the forward solve, but it has a denser set of live accumulators because it emits gradients for $\rmB$ and $\rmW$. On Hopper GPUs we restrict the warp search for this kernel to two and four warps, since the eight-warp schedule can trigger a Triton WGMMA layout assertion for the $64\times64$ accumulator. On Ampere GPUs the full search space is retained. This restriction changes only the schedule, not the mathematical operation.
+
+\subsection{Recurrent decoding kernel}
+\label{app_recurrent_kernel}
+
+A forward-only recurrent kernel is provided for autoregressive decoding at short sequence lengths. It applies Eq.~\ref{eq_app_gdn2_step} token by token. The kernel keeps the state in fp32, multiplies it by $\exp(\boldsymbol{g}_t)$, reads the decayed state along $\vb_t\odot\vk_t$, writes $\vw_t\odot\vv_t$ along $\vk_t$, and returns $\rmS_t^\top\vq_t$. Training uses the chunk kernel.
+
+\subsection{Variable-length sequences}
+\label{app_varlen}
+
+Packed variable-length batches are represented with cumulative sequence lengths. The chunk index construction resets the recurrent state at every sequence boundary. The same layout is used by the chunk forward, the chunk backward, and the recurrent decoding kernel. Padding is removed before the layer and restored after the output projection.
+
+\section{Numerical details and verification}
+\label{app_numerics}
+
+\subsection{Decay precision}
+\label{app_decay_precision}
+
+The decay gate in Eq.~\ref{eq_app_layer_decay} is computed in explicit fp32 before entering the kernels. This is important because the local cumulative sum $\boldsymbol{G}_r=\sum_{i\le r}\boldsymbol{g}_i$ is a path-length-dependent quantity. A low precision mantissa can perturb long products of decays even when each tokenwise gate is small. The kernels therefore receive the log-decay tensor and only compute local cumulative sums and exponentials.
+
+\subsection{Query and key normalization}
+\label{app_qk_norm}
+
+Queries and keys are L2-normalized per head before the recurrent update. With normalized keys, $\vk_t\vk_t^\top$ is a projector in the tied-gate limit. In Gated DeltaNet-2, the erase factor is asymmetric, but normalization still stabilizes the scale of both $\rmA_{qk}$ and $\rmT$. The backward applies the standard L2-normalization vector-Jacobian product.
+
+\subsection{State and accumulator dtypes}
+\label{app_dtype}
+
+The recurrent state is stored in fp32 across chunks and during recurrent decoding. Matrix multiplication accumulators use fp32. The layer output is cast back to the model dtype at the kernel boundary. The WY auxiliaries may be stored in the model dtype after fp32 accumulation, since they are recomputed when the memory-saving training path is used.
+
+\subsection{WY solve precision}
+\label{app_solve_precision}
+
+The triangular solve for $\rmA=(\rmI+\rmT)^{-1}$ is the most precision-sensitive part of the chunk computation. Errors in this solve are propagated through dependent forward-substitution steps. The implementation therefore exposes an explicit precision flag for the solve. The conservative IEEE fp32 path is used when required by the hardware check, while the remaining matrix products can use the faster tensor-core path.
+
+\subsection{Initialization and output gate}
+\label{app_init_output_gate}
+
+All linear layers are initialized with Xavier uniform weights and gain $2^{-2.5}$. Biases are initialized to zero when present. After the attention computation, the output is passed through an RMSNorm and SiLU gate before the final output projection. These choices match the training recipe used for the Gated DeltaNet family and keep the early recurrent state magnitudes controlled.
+
+\subsection{Correctness checks}
+\label{app_correctness}
+
+We verified the chunkwise forward against a tokenwise recurrent reference for random configurations covering different sequence lengths, head counts, key dimensions, value dimensions, initial states, packed layouts, and dtypes. We verified the backward against autograd through the recurrent reference. In fp64 reference tests, gradients for $\rmQ$, $\rmK$, $\rmV$, $\rmB$, $\rmW$, the log-decay, and the initial state agree to machine precision. In production fp32, differences are at the expected tensor-core accumulation noise level. In bfloat16, the error follows the bfloat16 mantissa.
+
+\section{Experimental settings}
+\label{app_experimental_settings}
+
+\subsection{Training}
+
+We evaluate Gated DeltaNet-2 against a Transformer baseline and recent recurrent architectures, including Mamba-2 \citep{pmlr-v235-dao24a}, Gated DeltaNet \citep{yang2025gated}, Kimi Delta Attention (KDA) \citep{team2025kimi}, and Mamba-3 \citep{lahoti2026mamba3}. For each recurrent architecture, we train a recurrent-only model and a hybrid model. The hybrid model follows Section~\ref{subsec_block_design}, using the same recurrent token mixer together with sliding-window attention (SWA) under the same residual block structure. For Mamba-3, we evaluate both SISO and MIMO variants. The Mamba-3 MIMO model uses rank $R=4$.
+
+For fair recurrent comparisons, we match both parameter count and main recurrent state size. Gated DeltaNet, KDA, and Gated DeltaNet-2 use $H=16$ heads with $d_k=128$ and $d_v=128$, giving a per-layer recurrent state of
+\begin{align}
+    H d_k d_v
+    =
+    16 \cdot 128 \cdot 128
+    =
+    262{,}144
+\end{align}
+floats per batch element. Since $d_{\mathrm{model}}=2048$, this equals $128d_{\mathrm{model}}$. For Mamba-2 and Mamba-3, we use expansion factor $2$ and head dimension $64$, and set $d_{\mathrm{state}}=64$. Their main recurrent state size is therefore
+\begin{align}
+    (2d_{\mathrm{model}})d_{\mathrm{state}}
+    =
+    4096 \cdot 64
+    =
+    262{,}144 .
+\end{align}
+Mamba-3 MIMO keeps the same main recurrent state size as the SISO variant while adding the rank-$R$ MIMO parameterization.
+
+Unless stated otherwise, all models have 1.3B parameters and are trained on 100B tokens sampled from FineWeb-Edu \citep{penedo2024fineweb}. We use AdamW with peak learning rate $4\times10^{-4}$, weight decay $0.1$, and gradient clipping at $1.0$. The learning rate follows cosine annealing with a 1B-token warm-up. The global batch size is 0.5M tokens. The training sequence length is 4K tokens. Hybrid models use a 2K SWA window.
+
+\subsection{Evaluation}
+
+\paragraph{Language modeling and common-sense reasoning}
+We use the evaluation suite commonly adopted for pretrained recurrent language models \citep{gu_mamba_2023}. Language modeling quality is measured by perplexity on WikiText \citep[Wiki.][]{merity2016pointer} and LAMBADA \citep[LMB.][]{paperno_lambada_2016}. For zero-shot transfer, we report LAMBADA accuracy together with PIQA \citep{bisk2020piqa}, HellaSwag \citep[Hella.][]{zellers2019hellaswag}, WinoGrande \citep[Wino.][]{sakaguchi2021winogrande}, ARC-Easy and ARC-Challenge \citep[ARC-e and ARC-c][]{arc-ce}, OpenBookQA \citep[OBQA][]{openbookqa}, Social IQa \citep[SIQA][]{sap2019social}, and BoolQ \citep{clark2019boolq}. This mix covers next-token prediction, physical and social reasoning, commonsense completion, and elementary science QA.
+
+\paragraph{In-context retrieval}
+We evaluate retrieval in both controlled synthetic settings and real-data settings. For synthetic retrieval, we use Single Needle-In-A-Haystack (S-NIAH) and Multi-Key Needle-In-A-Haystack (MK-NIAH) tasks from RULER \citep{hsieh2024ruler}. The S-NIAH suite contains three progressively harder cases. S-NIAH-1 is passkey retrieval, S-NIAH-2 asks for a numerical needle, and S-NIAH-3 asks for a word-based needle. We additionally evaluate MK-NIAH-1 where several distractor key-value pairs are present and the model must return the value associated with one requested key.
+
+For real-world retrieval, we follow \citep{arora-2024-jrt}. The suite includes SWDE \citep{lockard_openceres_2019} for structured relation extraction from HTML, FDA \citep{arora_language_2023} for key-value retrieval from PDFs, and question-answering datasets including SQuAD \citep{rajpurkar_know_2018}, TriviaQA \citep{JoshiTriviaQA2017}, DROP \citep{dua2019drop}, and Natural Questions \citep{47761}.

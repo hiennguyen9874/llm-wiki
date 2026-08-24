@@ -1,0 +1,195 @@
+\section{Complex SSM Proofs}
+\subsection{Proof of Proposition \ref{prop:complex-to-real-ssm}}
+\label{app:proof-complex-to-real-ssm}
+\PropComplexRealSSM*
+\begin{proof}[Proof.]
+We first present the derivation for $N=2$; the block-diagonal structure for general even $N$ follows by grouping pairs of coordinates.
+
+Let $h_t + i\hat{h}_t$ denote the complexified hidden state, with parameters 
+$A(t)+i\theta(t)$ and $B(t)+i\hat{B}(t)$ for the transition and input, respectively.  
+By the variation of constants formula (Proposition~\ref{prop:var-const}), applying zero-order hold and Euler's rule over a step $[t_{k-1},t_k]$ gives
+\[
+h_k + i\hat{h}_k 
+= e^{\Delta_t (A_t + i\theta_t)}(h_{k-1}+ i\hat{h}_{k-1})
++ \Delta_t (B_t + i\hat{B}_t)x_t.
+\]
+
+Expanding the exponential,
+\[
+e^{\Delta_t(A_t+i\theta_t)} 
+= e^{\Delta_t A_t}\Big(\cos(\Delta_t\theta_t)+i\sin(\Delta_t\theta_t)\Big),
+\]
+so in real coordinates $\vh_t=\begin{bmatrix}h_t \\ \hat{h}_t\end{bmatrix}\in\mathbb{R}^2$ the recurrence becomes
+\[
+\vh_t
+= e^{\Delta_t A_t}
+\underbrace{\begin{bmatrix}
+    \cos(\Delta_t\theta_t) & -\sin(\Delta_t\theta_t) \\
+    \sin(\Delta_t\theta_t) & \cos(\Delta_t\theta_t)
+\end{bmatrix}}_{R(\Delta_t\theta_t)}
+\vh_{t-1}
++ \Delta_t
+\begin{bmatrix}
+B_t \\ \hat{B}_t
+\end{bmatrix}x_t.
+\]
+
+Stacking across $N/2$ such pairs yields the block-diagonal transition
+\[
+\vh_t
+= e^{\Delta_t A_t}\,\mathrm{Block}\big(\{R(\Delta_t\theta_t[i])\}_{i=1}^{N/2}\big)\vh_{t-1}
++ \Delta_t\begin{bmatrix}\bB_t \\ \hat{\bB}_t\end{bmatrix}x_t.
+\]
+
+For the output, 
+\[
+y_t = \mathrm{Re}\Big((\bC_t+i\hat{\bC}_t)^\top(h_t+i\hat{h}_t)\Big)
+= \begin{bmatrix}\bC_t \\ -\hat{\bC}_t\end{bmatrix}^\top \vh_t,
+\]
+which defines the real projection $\bC_t\in\mathbb{R}^N$ in the proposition.
+This proves the equivalence between complex SSM and the real block-diagonal system with rotations.
+\end{proof}
+
+\subsection{Proof of Proposition \ref{prop:rope-trick}}
+\label{app:proof-rope-trick}
+\PropRoPETrick*
+\begin{proof}[Proof.]
+Consider the SSM
+\begin{equation}
+    \vh_t \;=\; e^{\Delta_t A_t}\,\bR_t\,\vh_{t-1} \;+\; \Delta_t\bB_t x_t, 
+    \qquad 
+    y_t \;=\; \bC_t^\top \vh_t,
+\end{equation}
+where (as in Proposition~\ref{prop:rope-trick}) \(A_t\in\mathbb{R}\) is a scalar (so that \(e^{\Delta_t A_t}\) is a scalar and commutes with rotations), and \(\bR_t\) is block-diagonal orthogonal/unitary, hence \(\bR_t^{-1}=\bR_t^\top\) and the matrices $\bR_i, \bR_j$ commute, i.e. $\bR_i\bR_j=\bR_j\bR_i$.
+
+Unrolling the recurrence with the convention that an empty product is the identity,
+\begin{equation}
+    \vh_t \;=\; \sum_{i=0}^{t} 
+    \bigg(\prod_{s=i+1}^{t} e^{\Delta_s A_s}\bR_s\bigg)\,\Delta_i\bB_i x_i.
+\end{equation}
+Thus
+\begin{align}
+    y_t 
+    \;=\; \bC_t^\top \vh_t
+    \;=\; \sum_{i=0}^{t} \bC_t^\top 
+    \bigg(\prod_{s=i+1}^{t} e^{\Delta_s A_s}\bR_s\bigg)\Delta_i\bB_i x_i.
+\end{align}
+Using its unitary property,
+\begin{align*}
+    \prod_{s=i+1}^{t}\bR_s 
+    = \left(\prod_{s=0}^{t}\bR_s\right)\left(\prod_{s=0}^{i}\bR_s\right)^{-1}
+    = \left(\prod_{s=0}^{t}\bR_s\right)\left(\prod_{s=0}^{i}\bR_s^\top\right).
+\end{align*}
+Since \(e^{\Delta_s A_s}\) are scalars, they commute with rotations; hence
+\begin{align}
+    y_t 
+    &= \sum_{i=0}^{t} 
+       \bC_t^\top \left(\prod_{s=0}^{t}\bR_s\right)
+       \left(\prod_{s=i+1}^{t} e^{\Delta_s A_s}\right)
+       \left(\prod_{s=0}^{i}\bR_s^\top\right) \Delta_i \bB_i x_i \\
+    &= \left[\left(\prod_{s=0}^{t}\bR_s^\top\right)\bC_t\right]^\top 
+       \sum_{i=0}^{t} 
+       \left(\prod_{s=i+1}^{t} e^{\Delta_s A_s}\right)
+       \left(\prod_{s=0}^{i}\bR_s^\top\right)\Delta_i \bB_i x_i.
+\end{align}
+Define the rotated parameters
+\(
+\overline{\bC}_t := \left(\prod_{s=0}^{t}\bR_s^\top\right)\bC_t
+\)
+and
+\(
+\overline{\bB}_i := \left(\prod_{s=0}^{i}\bR_s^\top\right)\bB_i.
+\)
+Then,
+\begin{equation}
+    y_t \;=\; \overline{\bC}_t^\top 
+    \sum_{i=0}^{t} \left(\prod_{s=i+1}^{t} e^{\Delta_s A_s}\right)\Delta_i \overline{\bB}_i x_i.
+\end{equation}
+Equivalently, introducing the rotated state \(\tilde{\vh}_t := \left(\prod_{s=0}^{t}\bR_s^\top\right)\vh_t\),
+\begin{equation}
+    \tilde{\vh}_t \;=\; e^{\Delta_t A_t}\,\tilde{\vh}_{t-1} \;+\; \Delta_t \overline{\bB}_t x_t,
+    \qquad
+    y_t \;=\; \overline{\bC}_t^\top \tilde{\vh}_t,
+\end{equation}
+\end{proof}
+
+\subsection{Proof of Proposition \ref{prop:rope-trick-trap}}
+\label{app:proof-rope-trick-trap}
+\PropRoPETrickTrap*
+\begin{proof}[Proof.]
+We begin from the complex SSM (as in Prop.~\ref{prop:complex-to-real-ssm})
+\begin{align*}
+    \dot{\vh}(t)
+    &= \mathrm{Diag}\,\left(A(t)+i\boldsymbol{\theta}(t)\right)\,\vh(t)
+      \;+\;\left(\bB(t)+i\hat{\bB}(t)\right)\,x(t),\\
+    y(t)
+    &= \mathrm{Re}\,\left((\bC(t)+i\hat{\bC}(t))^\top \vh(t)\right),
+\end{align*}
+
+where $A(t)\in\mathbb{R}$ is a scalar and $\boldsymbol{\theta}(t),\bB(t),\hat{\bB}(t),\bC(t),\hat{\bC}(t)\in\mathbb{R}^{N/2}$.
+
+\medskip
+Recall from Prop.~\ref{prop:var-const},
+\begin{align*}
+\vh_t
+&\approx e^{\Delta_t(A_t+i\boldsymbol{\theta}_t)}\,\vh_{t-1}
+\;+\; \int_{\tau_{t-1}}^{\tau_t}
+      e^{(\tau_t-\tau)(A_t+i\boldsymbol{\theta}_t)}
+      \left(\bB(\tau)+i\hat{\bB}(\tau)\right)\,x(\tau)\,d\tau.
+\end{align*}
+Applying Prop.~\ref{prop:trap} to the above integral, we get 
+\begin{align}
+\label{eq:trap-complex}
+\vh_t
+&= e^{\Delta_t(A_t+i\boldsymbol{\theta}_t)}\,\vh_{t-1}
+  \;+\; \beta_t\,e^{i\Delta_t\boldsymbol{\theta}_t}\left(\bB_{t-1}+i\hat{\bB}_{t-1}\right)x_{t-1}
+  \;+\; \gamma_t\left(\bB_t+i\hat{\bB}_t\right)x_t,
+\end{align}
+where
+\[
+\alpha_t:=e^{\Delta_t A_t},\qquad
+\beta_t:=(1-\lambda_t)\Delta_t e^{\Delta_t A_t},\qquad
+\gamma_t:=\lambda_t\Delta_t,
+\]
+
+\medskip
+Since $e^{\Delta_t(A_t+i\boldsymbol{\theta}_t)}=\alpha_t\,e^{i\Delta_t\boldsymbol{\theta}_t}$ and as shown in Prop.~\ref{prop:complex-to-real-ssm}, multiplication by $e^{i\Delta_t\boldsymbol{\theta}_t}$ is a block-diagonal rotation in real coordinates, we get the real $N$-dimensional recurrence
+\begin{align}
+\label{eq:trap-real-rot}
+\vh_t
+&= \alpha_t\,\bR_t\,\vh_{t-1}
+  \;+\; \beta_t\,\bR_t\,\bB_{t-1}\,x_{t-1}
+  \;+\; \gamma_t\,\bB_t\,x_t,\\[0.25em]
+y_t
+&= \bC_t^\top \vh_t,\nonumber
+\end{align}
+where $\bR_t\coloneqq\mathrm{Block}\left(\{R(\Delta_t\boldsymbol{\theta}_t[i])\}_{i=1}^{N/2}\right)$ where
+\(
+R(\theta)\coloneqq\begin{bmatrix}\cos\theta&-\sin\theta\\ \sin\theta&\cos\theta\end{bmatrix},
+\)
+and projections \\
+\(
+\bB_t\coloneqq\begin{bmatrix}\bB_t\\ \hat{\bB}_t\end{bmatrix},\;
+\bC_t\coloneqq\begin{bmatrix}\bC_t\\ -\hat{\bC}_t\end{bmatrix}.
+\)
+Note that $\bR_t$ is orthogonal, so $\bR_t^{-1}=\bR_t^\top$, and that $\bR_i, \bR_j$ commute, i.e., $\bR_i\bR_j=\bR_j\bR_i$.
+
+\medskip
+We define the following.
+\begin{align*}
+\tilde{\vh}_t
+&:= \left(\prod_{s=0}^{t}\bR_s^\top\right)\vh_t,\qquad
+\overline{\bB}_{t} := \left(\prod_{s=0}^{t}\bR_s^\top\right)\bB_{t},\qquad
+\overline{\bC}_{t} := \left(\prod_{s=0}^{t}\bR_s^\top\right)\bC_{t}.
+\end{align*}
+Left-multiplying \eqref{eq:trap-real-rot} by $\prod_{s=0}^{t}\bR_s^\top$ and using $\bR_t^\top\bR_t=I$,
+\begin{align*}
+\tilde{\vh}_t
+&= \alpha_t\,\tilde{\vh}_{t-1}
+  \;+\; \beta_t\,\overline{\bB}_{t-1}\,x_{t-1}
+  \;+\; \gamma_t\,\overline{\bB}_{t}\,x_t,\\
+y_t
+&= \overline{\bC}_t^\top\,\tilde{\vh}_t.
+\end{align*}
+This is a vanilla scalar-transition SSM with data-dependent rotary embeddings absorbed into $\bB,\bC$ via cumulative products of $\bR_s^\top$.
+\end{proof}

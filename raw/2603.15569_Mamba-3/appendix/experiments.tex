@@ -1,0 +1,18 @@
+\section{Experimental Details}
+\label{app:exp-details}
+
+\textbf{Language Modeling.}
+Our pretraining procedures follow those of \citet{dao2024transformersssmsgeneralizedmodels}'s section D.2. All models at each scale follow the same procedure and were trained with bfloat16. The Mamba family of models were trained using the standard expand factor of $2$ and a $d_\text{state}$ of 128 and head dimension of 64. The Transformer baselines follow~\citet{dao2024transformersssmsgeneralizedmodels}, and the GDN baselines follow~\citep{yang2025gateddeltanetworksimproving} where $q,k_\text{dim}=128,v_\text{dim}=256$. We utilize the Llama-3.1 tokenizer~\citep{grattafiori2024llama3herdmodels} for all models.
+
+We utilize LM Evaluation Harness~\citep{eval-harness} to test the zero-shot language modeling capabilities of our pretrained model on LAMBADA (OpenAI version)~\citep{paperno2016lambadadatasetwordprediction}, HellaSwag~\citep{zellers2019hellaswagmachinereallyfinish}, PIQA~\citep{bisk2019piqareasoningphysicalcommonsense}, Arc-Easy/Arc-Challenge~\citep{clark2018thinksolvedquestionanswering}, WinoGrande~\citep{sakaguchi2019winograndeadversarialwinogradschema}, and OpenBookQA~\citep{mihaylov2018suitarmorconductelectricity}.
+
+\textbf{Real-World and Synthetic Retrieval.}
+For our real-world retrieval tasks, we evaluate on the common suite consisting of SWDE~\citep{arora2025simplelinearattentionlanguage}, SQuAD~\citep{Rajpurkar2018SQuAD2}, FDA~\citep{arora2025simplelinearattentionlanguage}, TriviaQA~\citep{joshi2017triviaqalargescaledistantly}, NQ~\citep{kwiatkowski-etal-2019-natural}, and DROP~\citep{dua2019dropreadingcomprehensionbenchmark}. We utilize the cloze-formatted version of the aforementioned tasks provided by ~\citet{arora2025simplelinearattentionlanguage,arora2024justreadtwiceclosing}, as the original datasets are in a question-answering format, making it challenging for solely pretrained models. All tasks were truncated to match the training context length. The synthetic NIAH tasks~\citep{hsieh2024rulerwhatsrealcontext} were also run with LM Evaluation Harness. 
+
+\textbf{State-Tracking Synthetics.}
+Training follows a sequence length curriculum that sets the minimum length to $3$ and progresses the maximum length from $40$ to $160$.
+Final models are evaluated at $256$ length.
+Each curriculum runs for $10^{4}$ steps with batch size $256$. 
+We use one-layer models for Parity and three-layer models for Modular-arithmetic tasks. 
+The state size is chosen to be $64$,
+and we sweep $d_{\text{model}}\in\{32,64\}$ and $8$ learning rates logarithmically spaced between $10^{-4}$ and $10^{-2}$, reporting the best validation accuracy.

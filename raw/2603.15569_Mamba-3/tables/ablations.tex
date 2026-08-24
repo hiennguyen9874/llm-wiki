@@ -1,0 +1,51 @@
+\newcommand{\ablationstable}{
+\begin{table}[!t]
+    \small
+    \centering
+    \caption{\small\textbf{Left}: Ablations on core modeling components of Mamba-3 SISO, results on test split of dataset. \textbf{Right}: Formal language evaluation (scaled accuracy, \%). Higher is better. SISO models are trained on short sequences and evaluated on longer lengths to test length generalization. For GDN we report the variant with eigenvalue range \([-1,1]\).}
+    \sisetup{detect-weight, table-align-text-post=false, table-space-text-post={*}}
+
+    \makebox[\textwidth][c]{%
+      \begin{subtable}[t]{0.4\textwidth}
+        \centering
+        \begingroup\setlength{\tabcolsep}{4pt}
+        \begin{tabular}{@{}p{0.68\linewidth} S[table-format=2.2]@{}}
+            \toprule
+            \textbf{Model Variant} & {ppl $\downarrow$} \\
+            \midrule
+            Mamba-3 $-$ bias $-$ trap & 16.68 \\
+            Mamba-3 $-$ bias & 16.49 \\
+            Mamba-3 & \Bf 15.72 \\
+            Mamba-3 $+$ conv & 15.85 \\
+            \bottomrule
+        \end{tabular}
+        \endgroup
+        \caption{Component ablation at 440M scale. A combination of our BC bias and exponential-trapezoidal discretization makes the ubiquitous short convolution optional.}
+        \label{tab:abl:meth}
+      \end{subtable}%
+      \hspace{0.03\textwidth}%
+      \begin{subtable}[t]{0.55\textwidth}
+        \centering
+        \begingroup\setlength{\tabcolsep}{4pt}
+        \begin{tabular}{@{}>{\raggedright\arraybackslash}p{0.43\linewidth} S[table-format=3.2] S[table-format=3.2] S[table-format=3.2]@{}}
+            \toprule
+            \textbf{Model} &
+            \multicolumn{1}{l}{\shortstack{Parity $\uparrow$}} &
+            \multicolumn{1}{l}{\shortstack{Arith.\ w/o \\brackets $\uparrow$}} &
+            \multicolumn{1}{l}{\shortstack{Arith.\ w/ \\brackets $\uparrow$}} \\
+            \midrule
+            Mamba-3 & 100.00 & 98.51 & 87.75 \\
+            Mamba-3 (w/ Std. RoPE) & 1.56 & 20.70 & 2.62 \\
+            Mamba-3 (w/o RoPE) & 2.27 & 1.49 & 0.72 \\
+            Mamba-2 & 0.90 & 47.81 & 0.88 \\
+            GDN [-1,1] & 100.00 & 99.25 & 93.50 \\
+            \bottomrule
+        \end{tabular}
+        \endgroup
+        \caption{Performance comparison on formal language tasks. Results show that unlike Mamba-2, Mamba-3 features state-tracking ability stemming from data-dependent RoPE embeddings. 
+        }
+        \label{tab:reasoning}
+      \end{subtable}%
+    }%
+\end{table}
+}

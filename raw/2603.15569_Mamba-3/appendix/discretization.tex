@@ -1,0 +1,158 @@
+\section{Exponential-Trapezoidal Discretization}
+\begin{restatable}[Variation of Constants~\citep{tenenbaum1985ordinary}]{proposition}{PropVarConst}\label{prop:var-const}
+
+Consider the linear SSM
+\begin{equation*}
+    \dot{\vh}(t) = A(t)\,\vh(t) + \bB(t)\,x(t),
+\end{equation*}
+where $\vh(t)\in\mathbb{R}^N$, $A(t)\in\mathbb{R}$ is a scalar decay, and $\bB(t)x(t)\in\mathbb{R}^N$.  
+For $\Delta_t$ discretized time grid $\tau_t = \tau_{t-1} + \Delta_t$, the hidden state satisfies \eqref{eq:exact-step}, which can then be approximated to \eqref{eq:approx-step} with $O(\Delta_t^2)$ error.
+The approximation of the remaining integral on the state-input can have varying error bounds depending on the method used: an example can be found in \Cref{app:trap-error-proof}.
+
+\begin{align}
+\label{eq:exact-step}
+\vh(\tau_t)
+&= \exp\!\left(\int_{\tau_{t-1}}^{\tau_t} A(s)\,ds\right)\vh(\tau_{t-1})
+ + \int_{\tau_{t-1}}^{\tau_t}
+   \exp\!\left(\int_{\tau}^{\tau_t} A(s)\,ds\right)\mB(\tau)x(\tau)\, d\tau, \\
+\label{eq:approx-step}
+\vh_t
+&\approx e^{\Delta_t A_t}\,\vh_{t-1}
+ + \int_{\tau_{t-1}}^{\tau_t} e^{(\tau_t-\tau)A_t}\,\bB(\tau)x(\tau)\,d\tau .
+\end{align}
+
+\end{restatable} \begin{proof}[Proof.]
+Starting from the initial linear SSM, an integrating factor $z(t) \coloneqq e^{\int^t_0 -A(s)ds}$ is applied to facilitate integration.
+\[
+    z(t) \dot{\vh}(t) = z(t)A(t)\vh(t) +z(t)\mB(t)x(t)
+\]
+Considering $z'(t) = -A(t)z(t)$; through rearranging the terms and integrating between the time grid $[\tau_{t-1},\tau_t]$
+\[
+    \int_{\tau_{t-1}}^{\tau_t} \frac{d}{d\tau}\left( z(\tau) \vh(\tau) \right) d\tau = \int_{\tau_{t-1}}^{\tau_t} z(\tau) \mB(\tau)x(\tau) d\tau
+\]
+results in
+\[
+    z(\tau_t)\vh(\tau_t) - z(\tau_{t-1})\vh(\tau_{t-1}) = \int_{\tau_{t-1}}^{\tau_t} z(\tau)\mB(\tau)x(\tau) d\tau,
+\]
+which can be arranged in a more familiar form
+\[
+    \vh(\tau_t) = z(\tau_t)^{-1}z(\tau_{t-1})\vh(\tau_{t-1}) + \int_{\tau_{t-1}}^{\tau_t} z(\tau_t)^{-1}z(\tau)\mB(\tau)x(\tau) d\tau.
+\]
+Substituting the integrating factor $z(\tau)$ corresponds to
+\[
+    \vh(\tau_t) = \exp\left(\int_{\tau_{t-1}}^{\tau_t}A(s)ds\right)\vh(\tau_{t-1}) + \int_{\tau_{t-1}}^{\tau_t} \exp\left(\int_{\tau}^{\tau_t}A(s)ds\right)\mB(\tau)x(\tau) d\tau.
+\]
+We approximate the state-transition integral with a right-hand assumption where $\forall s \in [\tau_{t-1},\tau_t], A(s) \coloneqq A(\tau_t)$ which we refer to as $A_t$,
+\[
+    \vh_t \approx \underbrace{\exp\left(\Delta_t A_t\right)\vh_{t-1}}_\text{right-hand approximation} + \underbrace{\int_{\tau_{t-1}}^{\tau_t} \exp\left((\tau_t -\tau)A_t\right)\mB(\tau)x(\tau) d\tau}_\text{to be approximated}.
+\]
+incurring a local truncation error of order $O(\Delta_t^2)$.
+Thus, we have approximated the exponential dynamics of the adjusted underlying ODE and leave the state-input integral to be approximated with any host of methods.
+\end{proof}
+
+\subsection{Exponential-Trapezoidal Discretization's Mask Matrix}
+\label{app:proof-tensor}
+
+\begin{proof}
+    When viewing the tensor contraction form, let us call $C = (T,N), B=(S,N), L=(T,S), X=(S,P)$ based on the Mamba-2 paper. With this decomposition of our mask, we can view $L = \text{contract}(TZ,ZS\rightarrow TS)(L_1,L_2)$.
+    
+    The original contraction can be seen as
+    $$\text{contract}(TN,SN,TS,SP\rightarrow TP)(C,B,L,X)$$
+    We can now view it as
+    $$\text{contract}(TN,SN,TJ,JS,SP\rightarrow TP)(C,B,L_1,L_2,X)$$
+    This can be broken into the following:
+    \begin{align*}
+        Z &= \text{contract}(SN,SP\rightarrow SNP)(B,X)\\
+        Z' &= \text{contract}(JS,SNP\rightarrow JNP)(L_2,Z)\\
+        H &= \text{contract}(TJ,JNP\rightarrow TNP)(L_1,Z') \\
+        Y &= \text{contract}(TN,TNP\rightarrow TP)(C,H)
+    \end{align*}
+    We can view this step: $\text{contract}(ZS,SNP\rightarrow ZNP)(L_2,Z)$ as a convolution of size two applied on the state-input ($B,X$ outer product) prior to the decay with the traditional SSD $L=L_1$ matrix.
+\end{proof}
+    
+\subsection{Exponential-Trapezoidal Discretization Error Rate}
+\label{app:trap-error-proof}
+\paragraph{Standard assumptions.}
+We assume that: $A(t),\bB(t),x(t)$ are bounded and $C^3$ on each timestep, so that $g(\tau)$ has three bounded derivatives; the map $\vh \mapsto A(t)\vh + \bB(t)x(t)$ is Lipschitz in $\vh$ which is true for linear systems; $\lambda_t$ lies in a bounded interval so that the update is zero-stable.
+
+\begin{proof}
+Let $\vg(\tau) \coloneqq e^{(t_k-\tau) A_k}\,\bB(\tau)x(\tau)$ denote the 
+integrand in the second term of Proposition~\ref{prop:var-const}.  
+Since $A(t),\bB(t),x(t)$ are $C^3$ on $[t_{k-1},t_k]$, the function $g$ has three
+bounded derivatives.  
+A second-order Taylor expansion of $g$ around $t_{k-1}$ gives us,
+\begin{align*}
+\int_{t_{k-1}}^{t_k} g(\tau)\,d\tau
+=
+\Delta_t\, g(t_{k-1})
++ \frac{\Delta_t^2}{2}\, g'(t_{k-1})
++ \frac{\Delta_t^3}{6}\, g''(t_{k-1})
++ O(\Delta_t^4).
+\end{align*}
+
+Recall that the trapezoidal approximation to this integral is given by,
+\begin{align*}
+    Q_\lambda
+    =
+    \Delta_t \Big[(1-\lambda_t)\, g(t_{k-1})
+    + \lambda_t\, g(t_k)\Big].
+\end{align*}
+
+Expanding $g(t_k)$ using Taylor expansion:
+$
+g(t_k)
+= g(t_{k-1}) + \Delta_t g'(t_{k-1})
++ \frac{\Delta_t^2}{2} g''(t_{k-1}) + O(\Delta_t^3)
+$.
+Substituting this into $Q_\lambda$,
+\begin{align*}
+Q_\lambda
+&= \Delta_t\Big[(1-\lambda_t) g(t_{k-1})
+    + \lambda_t g(t_k)\Big] \\
+&= \Delta_t g(t_{k-1})
+  + \lambda_t \Delta_t^2 g'(t_{k-1})
+  + \lambda_t \frac{\Delta_t^3}{2} g''(t_{k-1})
+  + O(\Delta_t^4).
+\end{align*}
+Hence, the error is given by:
+\begin{align*}
+\int_{t_{k-1}}^{t_k} g(\tau)\,d\tau - Q_\lambda
+&= \Big(\tfrac{1}{2} - \lambda_t\Big)\Delta_t^2 g'(t_{k-1})
+ + \Big(\tfrac{1}{6} - \tfrac{\lambda_t}{2}\Big)\Delta_t^3 g''(t_{k-1})
+ + O(\Delta_t^4).
+\end{align*}
+Under the assumption that $\lambda_t = \tfrac{1}{2} + c_t \Delta_t$, where $c_t = O(1)$, then
+$\tfrac{1}{2} - \lambda_t = -c_t \Delta_t = O(\Delta_t)$ and thus the
+$\Delta_t^2$ term is $O(\Delta_t^3)$. Therefore,
+\begin{align*}
+    \int_{t_{k-1}}^{t_k} g(\tau)\,d\tau - Q_\lambda = O(\Delta_t^3),
+\end{align*}
+which yields an $O(\Delta_t^3)$ local truncation error. 
+\end{proof}
+
+\subsection{Exponential-Trapezoidal Parameterization}
+\label{app:trap-param}
+\begin{table}[h]
+    \centering
+    \small
+    \caption{\textbf{Ablations on $\lambda_t$ parameterization in the exponential-trapezoidal update.}} 
+    \begin{tabular}{l l c}
+        \toprule
+        \textbf{Parameterization} & \textbf{Form of $\lambda_t$} & \textbf{ppl $\downarrow$} \\
+        \midrule
+        \textbf{Default} & $\sigma(u_t)$ & \textbf{15.72} \\[5pt]
+        Fixed $1/2$          & $\tfrac{1}{2}$ & 15.76 \\[5pt]
+        No trapezoidal (Euler)      & $1$ & 15.81 \\
+        \bottomrule
+    \end{tabular}
+    \label{tab:lambda_param_abl}
+\end{table}
+
+\textbf{Setting:} All runs use the Mamba-3 (SISO) 440M model trained at Chinchilla scale, with the other architectural and optimization hyperparameters being the same as in Table \ref{tab:downstream_evaluation}.
+
+The default model uses a data-dependent gate 
+$\lambda_t = \sigma(u_t)$, where $u_t$ is a learned projection of the current input token. 
+In \cref{tab:lambda_param_abl}, we try different parameterizations for
+$\lambda_t$ and find that the default parameterization empirically performs the best.
+Hence, we choose the simpler default 
+parameterization that does \emph{not} enforce \(\lambda_t = \tfrac{1}{2}+ O(\Delta_t)\).

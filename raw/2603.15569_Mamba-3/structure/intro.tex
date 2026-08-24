@@ -1,0 +1,45 @@
+\section{Introduction}
+Test-time compute has emerged as a key driver of progress in LLMs, with techniques like chain-of-thought reasoning and iterative refinement demonstrating that inference-time scaling can unlock new capabilities~\citep{wu2025inferencescalinglawsempirical,snell2024scalingllmtesttimecompute}.
+The rapid rise of parallel, agentic workflows has only intensified the need for efficient inference and deployment of such models~\citep{openai_gpt53_codex_2026,anthropic_claude_opus_46_2026}.
+This paradigm shift makes inference efficiency~\citep{kwon2023efficientmemorymanagementlarge,li2024llminferenceservingsurvey} paramount, as the practical impact of AI systems now depends critically on their ability to perform large-scale inference during deployment.
+Model architecture design plays a fundamental role in determining inference efficiency, as architectural choices directly dictate the computational and memory requirements during generation.
+While Transformer-based models~\citep{vaswani2017attention} are the current industry standard, they are fundamentally bottlenecked by linearly increasing memory demands through the KV cache and quadratically increasing compute requirements through the self-attention mechanism.
+These drawbacks have motivated recent lines of work on sub-quadratic models, e.g., state space models (SSMs) and linear attention, which retain constant memory and linear compute while attaining comparable or better performance than their Transformer counterparts.
+These models have made it into the mainstream, with layers such as Mamba-2~\citep{dao2024transformersssmsgeneralizedmodels} and Gated DeltaNet (GDN)~\citep{schlag2021deltarule,yang2025parallelizinglineartransformersdelta} recently incorporated into large-scale hybrid models that match the performance of pure Transformer alternatives with much higher efficiency~\citep{nvidia2025nemotronhfamilyaccurateefficient,qwen3technicalreport,kimiteam2025kimilinearexpressiveefficient,tencenthunyuanteam2025hunyuanturbosadvancinglargelanguage}.
+
+Despite the success of linear models, significant progress remains in improving their performance, in particular on advancing the Pareto frontier between model quality and inference efficiency.
+For example, Mamba-2 was developed to improve training speed and simplicity over Mamba-1~\citep{gu2024mambalineartimesequencemodeling}, by sacrificing some expressivity and thus performing worse for inference-matched models.
+In addition, they have been shown to lack certain capabilities, such as poor state-tracking abilities, e.g., simply determining parity of bit sequences~\citep{grazzi2025unlockingstatetrackinglinearrnns,sarrof2024expressivecapacitystatespace}.
+Finally, despite these sub-quadratic models being prized for theoretically efficient inference and thus their widespread adoption, their inference algorithms are not hardware efficient.
+In particular, because these algorithms were developed from a training perspective, their decoding phase has low arithmetic intensity (the ratio of FLOPs to memory traffic), resulting in large portions of hardware remaining idle. 
+
+To develop more performant models from an inference-first paradigm, we introduce three core methodological changes on top of Mamba-2, influenced by an SSM-centric viewpoint of sub-quadratic models.
+
+\paragraph{Exponential-Trapezoidal Discretization.} 
+We provide a simple technique for discretizing time-varying, selective SSMs.
+Through our framework, we can derive several new discretization methods.
+One of our instantiations, referred to as ``exponential-Euler,'' formalizes Mamba-1 and Mamba-2's heuristic discretization that previously lacked theoretical justification.
+Our new ``exponential-trapezoidal'' instantiation is a more expressive generalization of ``exponential-Euler,'' where the recurrence can be expanded to reveal an implicit convolution applied on the SSM input. 
+Combined with explicit $B,C$ bias terms,
+Mamba-3 can empirically replace the short causal convolution in language model architectures, which was previously hypothesized to be essential for recurrent models.
+
+\paragraph{Complex-valued State Space Model.} By viewing the underlying SSM of Mamba-3 as complex-valued, we enable a more expressive state update than Mamba-2's. This change in update rule, designed to be lightweight for training and inference, overcomes the lack of state-tracking ability common in many current linear models. We show that our complex-valued update rule is equivalent to a data-dependent rotary embedding and can be efficiently computed~\citep{su2023roformerenhancedtransformerrotary}, and empirically demonstrate its ability to solve synthetic tasks outside the capabilities of prior linear models.
+
+\paragraph{Multi-Input, Multi-Output (MIMO) SSM.} To improve FLOP efficiency during decoding, we switch from an outer-product–based state update to a matrix-multiplication–based state update.
+From the view of the signal processing foundations of SSMs, such a transition exactly coincides with the generalization from a single-input single-output (SISO) sequence dynamics to a multiple-input multiple-output (MIMO) one. Here, we find that MIMO is particularly suitable for inference, as the extra expressivity enables more computation during the memory-bound state update during decoding, without increasing the state size and compromising speed.
+
+Put together, these improvements form the core of our \textbf{Mamba-3} layer.
+Methodologically, we note that these all arise naturally from an SSM-centric perspective but are not immediate from other popular viewpoints of modern linear layers such as linear attention or test-time regression;
+we discuss these connections further in~\Cref{sec:related}.
+Empirically, we validate our new model's abilities and capabilities on a suite of synthetic state-tracking and language-modeling tasks.
+
+\begin{itemize}[itemsep=0.1pt,topsep=0pt,leftmargin=*]
+    \item \textbf{Better Quality.} 
+    At 1.5B scale, Mamba-3 (MIMO) improves downstream language modeling accuracy by \textbf{+2.2} over Transformers, \textbf{+1.9 points} over Mamba-2, and \textbf{+1.8} over GDN, while Mamba-3 (SISO) improves over the next best model, GDN, by \textbf{+0.6} points.
+    Furthermore, across state size experiments, Mamba-3 (MIMO) with state size 64 matches the perplexity of Mamba-2 with state size 128, effectively achieving the \textbf{same language modeling performance with half the latency}.
+    \item \textbf{New Capabilities.} Mamba-3's complexification of the SSM state enables it to \textbf{solve synthetic state-tracking tasks that Mamba-2 cannot}. We empirically demonstrate that the efficient RoPE-like calculation is able to near perfectly solve arithmetic tasks, while Mamba-3 without RoPE and Mamba-2 perform no better than random guessing.
+    \item \textbf{Inference Efficiency.} Mamba-3 (MIMO) improves hardware utilization. It increases decoding FLOPs by up to \textbf{4$\times$} relative to Mamba-2 at fixed state size, while maintaining \textbf{similar wall-clock decode latency}, and simultaneously improving perplexity and downstream performance. We release fast training and inference kernels for Mamba-3.\footnote{\url{https://github.com/state-spaces/mamba}.}
+\end{itemize}
+
+Mamba-3 (SISO) improves quality and capability over prior linear models, and Mamba-3 (MIMO) further improves performance over Mamba-3 (SISO) and other strong baselines while matching inference speed with Mamba-2.
+Both of our Mamba-3 variants advance the performance-latency Pareto frontier through their strong modeling capabilities and hardware-efficient design.

@@ -1,0 +1,80 @@
+\subsection{Multi-Input, Multi-Output}
+\label{sec:method:mimo}
+
+Scaling test-time compute has opened new frontiers in model capability, such as agentic workflows, where inference takes up an increasing share of the overall compute budget.
+This has placed a renewed focus on inference efficiency of language models and spurred the adoption of SSMs and sub-quadratic layers which feature fixed-sized hidden states and thus offer lower compute and memory requirements.
+Although these new layers have a lower wall-clock time compared to Transformers, their decoding is heavily memory-bound, resulting in low hardware utilization.
+In this section, we use the SSM perspective to introduce a methodological refinement to the Mamba-3 recurrence that allows for \emph{increased model FLOPs without increasing decoding wall-clock time, resulting in a better model with the same decoding speed.}
+
+\paragraph{Decoding Arithmetic Intensity.}
+To improve hardware efficiency, we need to consider the arithmetic intensity of token generation, 
+defined as FLOPs divided by the number of input-output bytes for a given op. 
+Since SSM decoding saturates the memory bandwidth with idle compute (i.e., being \textit{memory-bound}), we would like to increase its arithmetic intensity to effectively overlay compute with memory I/O.
+More concretely, the arithmetic intensity for a single generation in Mamba is around $2.5$ ops per byte (\Cref{tab:arith_intensity_siso}), while the arithmetic intensity for bfloat16 matmul is about $295$ ops per byte for NVIDIA H100-SXM5~\citep{nvidia_h100_2022}. Consequently, SSM decoding falls far short of a compute-bound regime, and moreover it is not clear how one can adjust the existing parameters in Mamba to mitigate the lack of hardware efficiency. 
+We note that this observation applies generally to other sub-quadratic models, such as causal linear attention.
+
+\input{tables/mimo_arith_intensity}
+
+\paragraph{From SISO to MIMO.}
+
+Consider a single head of a typical SSM with \emph{head dimension} $P$,
+which involves stacking the SISO recurrence $\vh_t \gets \alpha_t\vh_{t-1} + \Delta_t\bB_t x_t$ with $P$ copies sharing the same $\alpha_t, \Delta_t$ and $\bB_t$.
+The resulting broadcasted recurrence $\vh_t \gets \alpha_t \vh_{t-1} + \Delta_t\bB_t \vx_t^\top$ takes vector inputs $\vx_t \in \mathbb{R}^P$ and has matrix-valued states $\vh_t \in \mathbb{R}^{N \times P}$.
+
+Note that the memory traffic (input and output size) is dominated by the state $\vh_t$, while the computation mainly comprises the outer product $\bB_t \vx_t^\top$ which has FLOPs proportional to $NP$.
+By increasing the dimension of the latter terms, transforming $\bB_t \in \mathbb{R}^{N} \to \bB_t \in \mathbb{R}^{N \times R}$ and $\vx_t \in \mathbb{R}^{P} \to \vx_t \in \mathbb{R}^{P \times R}$,
+the memory traffic does not significantly increase (for small $R$) while the FLOPs consumed increase by a factor of $R$ (\Cref{tab:arith_intensity_siso}).
+Thus, this transformation increases the arithmetic intensity of the recurrence.
+Furthermore, the increase in arithmetic intensity is translated into practical gains, since the outer product $\bB_t \vx_t^\top$ becomes a hardware-efficient matrix-matrix product (matmul), which is computed using fast tensor-cores, incurring only a marginal latency cost.
+As a result, the MIMO recurrence is more expressive than the original SISO recurrence, computing $R {\scriptstyle\times}$ more FLOPs while practically preserving the decoding speed.
+
+For similar reasons, the computation of the output from the state, $\vy_t \gets \bC_t^\top \vh_t$ acquires an extra rank $R$ by modifying the output projection as $\bC_t \in \mathbb{R}^{N} \to \bC_t \in \mathbb{R}^{N \times R}$.
+Overall, this transformation is equivalent to expanding the original single-input, single-output (SISO) recurrence to multi-input, multi-output (MIMO).
+
+\paragraph{Training MIMO SSMs.}
+
+While the MIMO formulation is motivated by \emph{inference} efficiency, the \emph{training} algorithms for SSMs (including our developments in \cref{sec:method:trap}, \cref{sec:method:complex}) have been typically developed for SISO models.
+We begin with the observation that 
+MIMO SSMs can be expressed in terms of $R^2$ SISO SSMs, where $R$ SISO SSMs sharing the same recurrence are summed for each of the $R$ MIMO outputs.
+In particular,
+define $ \bC_t^{(i)} \in \mathbb{R}^N, \bB_t^{(j)} \in \mathbb{R}^N, \vx_t^{(j)} \in \mathbb{R}, \Delta_t \in \mathbb{R}$, where $i,j \in \{0, ..., R-1\}$, then we have,
+\begin{align}
+    \vh_t^{(j)} &\gets \alpha_t\vh_{t-1}^{(j)} + \Delta_t\bB_t^{(j)} \vx_t^{(j)} \label{eq:mamba3-mimo-siso-equiv-A}\\ 
+    \vh_t &= \sum_{j=0}^{R-1} \vh_t^{(j)} \label{eq:mamba3-mimo-siso-equiv-B}\\
+    \vy_t^{(i)} &\gets \left(\bC_t^{(i)}\right)^\top \vh_t \label{eq:mamba3-mimo-siso-equiv-C}
+\end{align}
+Thus, $y_t^{(i)} = \sum_j \mathsf{SSM}\!\left(\alpha,\Delta,\bB^{(j)},\bC^{(i)},\vx^{(j)}\right)_t$, where $\mathsf{SSM}\!\left(\alpha,\Delta,\bB^{(j)},\bC^{(i)},\vx^{(j)}\right)_t := \left(\bC_t^{(i)}\right)^\top \vh_t^{(j)}$ with $\vh_t^{(j)}$ from \plaineqref{eq:mamba3-mimo-siso-equiv-A}.
+
+Furthermore, improvements to standard SISO-based SSM models can be directly applied to MIMO models as the underlying SISO training algorithms can be utilized as a black-box.
+This observation allows a MIMO model to be trained by invoking the SISO algorithm $R^2$ times as a black box in parallel.
+In contrast, when computed in the recurrent form, \eqref{eq:mamba3-mimo-siso-equiv-A}, \plaineqref{eq:mamba3-mimo-siso-equiv-B}, and \plaineqref{eq:mamba3-mimo-siso-equiv-C} can be performed sequentially, incurring only an $R$-times overhead relative to SISO SSMs (recall the discussion on MIMO decoding FLOPs).
+
+\paragraph{Chunked Algorithm for MIMO SSMs.}
+Many modern SISO recurrent models, including Mamba-2, are computed using a \emph{chunked} algorithm, where the sequence is divided into chunks of length $C$. Within each chunk, a parallel (but asymptotically slower) algorithm is applied, while a recurrence is computed across chunks.
+Chunked algorithms interpolate between two extremes: a fully parallel and a fully sequential algorithm. By exploiting this structure, we can reduce the training cost of MIMO SSMs to $R$ times that of SISO SSMs.
+This idea also appears in the SSD framework---SSD applies a hardware-friendly quadratic algorithm within each chunk, while using the recurrent form across chunks, and shows that when the state and head dimensions are comparable, setting the chunk size to this dimension yields an overall linear-time algorithm.
+Specifically, SSD's intra-chunk computation incurs $\left(2C^2 N + 2C^2 P\right)$ FLOPs per chunk, giving a total of $\frac{T}{C}\left(2C^2 N + 2C^2 P \right) = 2TC(N+P)$. The inter-chunk computation incurs $4NPC + 2NP$ FLOPs per chunk, for a total of $\frac{T}{C}(4NPC + 2NP) = 4TNP + \frac{T}{C}2NP$ (ignoring negligible terms). Setting $C=P=N$, the total FLOP count is $8TN^2$, which is linear in $T$.
+
+The chunked algorithm for SSD can be naturally generalized into MIMO SSMs.
+In such a case, the FLOP counts of state projection $\bB \vx^\top$ and state emission $\bC^\top \vh$ increase by $R\times$, while the FLOP count of the intrachunk component $\bC^\top\bB$ increases by $R^2\times$. As a result, the intra-chunk computation incurs  $2 \cdot \left(\frac{T}{C} (CR)^2 N + \frac{T}{C} (CR)^2 P\right)$ FLOPs and inter-chunk computation incurs $4\cdot\frac{T}{C}NP(CR) + 2\cdot\frac{T}{C}NP$ FLOPs.
+Thus, setting $CR=N=P$ yields a total FLOP count of $8TRN^2$, an $R$-fold increase in FLOP count. Intuitively, setting MIMO chunk size as $\frac{1}{R}$ times the SISO chunk size, i.e., $C_{\text{MIMO}} \gets \frac{1}{R}C_{\text{SISO}}$, maintains the SISO intra-chunk FLOP count while increasing the number of chunks by a factor of $R$, resulting in an overall $R$-times increase in FLOP count instead of an $R^2$-times increase while keeping the algorithm hardware-friendly.
+
+The training speed of algorithms in practice depends on details of the kernel implementation strategy, architectural choices such as how the MIMO parameters are instantiated, and problem dimensions, but should be no more than $R$ times slower.
+Our released Triton Mamba-3 SISO kernels are roughly on par with the Triton Mamba-2 kernels, and MIMO kernels only incur a slowdown of $2 {\scriptstyle\times}$ when $R=4$, as compute latency can be parallelized with memory movement. \Cref{tab:benchmark} benchmarks the prefill speed of various kernels which is equivalent to the forward pass of the training kernel.
+
+\paragraph{MIMO Instantiation.}
+Among various choices for MIMO parameterizations, Mamba-3's approach achieves a balance that preserves the state size and number of SSMs of its SISO counterpart, while avoiding excessive growth in parameter count.
+The naive conversion of a SISO SSM to a rank $R$ MIMO SSM would incur an $R\times$ increase in parameters as all projections that model the inputs to the SSM, $\bB,\bC,\vx$, would increase.
+Block-level components, such as the gate $\vz$ (which so far has been ignored for simplicity) and output $\vy$ projection would also be impacted.
+This influx in parameter count would be intractable at larger model scales.
+To counteract this, we make the following change.
+Mamba's multi-value attention (MVA) head structure results in shared $\bB, \bC$ across heads, so these components' projections can be directly converted to incorporate the new MIMO rank $R$ with only a slight increase in parameter count from $DN$ to $DNR$ for the entire layer (recall $D$ as the model dimension).
+However, the SSM input $\vx_t$, output $\vy_t$, and gate $\vz_t$ are unique per head and therefore dominate the parameter count.
+Here, directly adjusting the projections would increase the parameter count from $DP$ to $DPR$ for \emph{each head}.
+Instead, we keep the original SISO projection and element-wise scale each dimension of the projected output to size $R$ with a learnable, data-independent vector, resulting in $DP + PR$ parameters for each head.
+This mitigates the multiplicative increase to a more reasonable additive parameter count increase. 
+\Cref{app:mimo-for-mamba} details the parameterization, and all MIMO-variants in our paper are parameter-matched to their SISO counterparts by reducing the MLP width.
+
+\begin{remark}
+    For simplicity, all discussion in this section was for simpler 2-term recurrences such as that arising from exponential-Euler discretization; the generalization to the 3-term exponential-trapezoidal recurrence is similar.
+\end{remark}

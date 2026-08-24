@@ -1,0 +1,81 @@
+\section{Related Work}
+\label{sec:related}
+
+\subsection{Linear-Time Sequence Mixers} 
+\label{sec:related:linear}
+
+A growing body of work seeks to replace the quadratic softmax-based attention mechanism~\citep{vaswani2017attention,bahdanau2016neuralmachinetranslationjointly} with linear runtime alternatives.
+Prominent approaches can be categorized under three broad frameworks: linear attention, test-time training, and state space models. 
+
+Many nascent linear attention (LA) models aimed to approximate softmax attention through kernel feature maps~\citep{linearattention,performer}, while recent models have discarded the feature maps for raw dot-products between queries and keys, modulated by decays or masks~\citep{sun2023retentivenetworksuccessortransformer,yang2024gatedlinearattentiontransformers}.
+More recently, fast-weight programmers~\citet{schlag2021deltarule} that modulate the state memory with key-value pairs have also fallen under the umbrella term ``linear attention.''
+\citet{yang2025gateddeltanetworksimproving,yang2025parallelizinglineartransformersdelta} originated from this line of work and enhanced traditional linear attention by replacing the additive memory update with a delta-rule recurrence.
+This has further spurred on a host of work improving the efficiency and capabilities of linear models built on the delta rule~\citep{kimiteam2025kimilinearexpressiveefficient, hu2025combaimprovingbilinearrnns}.
+
+A parallel line of test-time training (TTT) or test-time regression (TTR) work views sequence modeling as an online learning task during inference.
+Here, the recurrent state represents a compressed summary of past inputs, and recurrent steps update the state to memorize new information~\citep{sun2025learninglearntesttime,zhang2025testtimetrainingright,tandon2025endtoendtesttimetraininglong}.
+Equivalently, these methods can be viewed as optimization of a global regression objective, and recurrent state updates represent iterative optimization procedures such as variants of gradient descent~\citep{wang2025testtimeregressionunifyingframework}.
+
+Structured state space models (SSMs) are another view of modern recurrent models inspired by classical signal processing and dynamical systems.
+Early versions of SSMs such as S4~\citep{S4,S5,DSS} used linear time invariant (LTI) layers with structured state transition matrices, for example diagonal or low-rank plus diagonal, to facilitate efficient computation and stable learning of long-context tasks~\citep{S4,S5,DSS}.
+The introduction of time-varying, input-dependent selectivity to SSMs in Mamba-1 \citep{gu2024mambalineartimesequencemodeling} reduced the disparity between self-attention and linear models on information-dense modalities, notably language modeling.
+Subsequently, Mamba-2 \citep{dao2024transformersssmsgeneralizedmodels} formalized the connection between SSMs and (linear) attention through the structured state space duality (SSD) that we build on in this work.
+
+\subsection{State Tracking and Complex State Space Models}
+
+\paragraph{Expressivity and State Tracking.}
+Recent work characterizes the types of state that recurrent, constant-memory mixers can maintain, revealing algorithmic deficiencies in previous SSM-based models. \citet{merrill2025illusionstatestatespacemodels} show that under finite precision, practical SSMs collapse to $\mathrm{TC}^0$, leading to failures on tasks like permutation composition over $S_5$ unless the primitive is extended.
+Similarly, \citet{yu2025blockbiasedmamba} prove that a single-layer Mamba is not a universal approximator. Several modifications have been proposed to improve expressivity. For instance, the same work shows that a block-biased variant regains the universal approximation property with only minor changes, either through block decomposition or a channel-specific bias. Allowing negative eigenvalues or non-triangular transitions enables linear RNNs---including diagonal and Householder/DeltaNet forms---to capture parity and, under mild assumptions, regular languages \citep{grazzi2025unlockingstatetrackinglinearrnns}. Complex-valued parameterizations provide another avenue for enhanced expressivity.
+
+\paragraph{Complex State Space Models.}
+Structured SSMs prior to Mamba were frequently complex-valued, rooted in traditional SSM theory.
+They also generally excelled in domains such as vision and audio, which have explicit frequency-based information content, rather than language.
+While some models such as H3~\citep{fu2023hungryhungryhipposlanguage}, RetNet~\citep{sun2023retentivenetworksuccessortransformer}, and Megalodon~\citep{ma2024megalodonefficientllmpretraining} kept complex-valued SSMs while targeting language modeling, they still noticeably underperformed Transformers.
+
+Additionally, because these models were LTI and were computed using very different algorithms (in particular, convolutions or explicit recurrence) than modern selective SSMs such as Mamba, they generally did not use the RoPE trick to handle the complex part.
+An exception is RetNet, which introduced a model in between linear attention and Mamba-2 that used constant scalar decays (as opposed to no decay in LA and data-dependent decay in Mamba-2) with an additional constant complex phase that was implemented through RoPE.
+
+In general, complex numbers have been empirically found to be unhelpful for language modeling, and hence were phased out in Mamba-1 and successors, including parallel lines of work on linear attention and test-time training.
+Mamba-3 represents the first modern recurrent model with complex-valued state transitions,
+which were introduced for specific purposes of increasing expressivity and state-tracking ability.
+By incorporating the RoPE trick, this represents, to the best of our knowledge, the first usage of data-dependent RoPE grounded in theoretical motivations.
+
+\subsection{Multi-Input, Multi-Output} 
+S4~\citep{S4} is a single-input, single-output LTI system where each dimension of the input was assigned its own independent SSM.
+Such SISO models have a significantly larger recurrent state than classical RNNs, and necessitated more complicated mathematical machinery to compute them efficiently.
+Aiming to simplify the model, S5~\citep{S5} and LRU~\citep{LRU} replaced the set of SISO SSMs with a multi-input, multi-output SSM applied directly on the entire vectorized input.
+This change reduced the effective state capacity but enabled an alternate computation path by directly computing the recurrence with a parallel scan.
+While this trade-off between state capacity and modeling performance was less pronounced in LTI models, Mamba-1 (S6)~\citep{gu2024mambalineartimesequencemodeling} and Mamba-2~\citep{dao2024transformersssmsgeneralizedmodels} returned to the SISO system due to the importance of a large state size in the time-varying setting.
+The computational bottleneck associated with the increased state size was addressed with a hardware-aware parallel scan algorithm for Mamba-1 and a matrix multiplication-based algorithm for Mamba-2.
+
+The introduction of MIMO to Mamba-3 significantly diverges from prior work. Unlike previous MIMO models, which aimed to simplify training algorithms at the cost of slightly reduced expressivity,
+Mamba-3's MIMO structure is motivated to \emph{increase} modeling power while preserving \emph{inference} efficiency.
+Accordingly, its state expansion is kept at Mamba-1/-2 levels to maintain modeling capabilities while trading off additional training compute.
+
+\subsection{The State Space Model Viewpoint}
+
+Although modern recurrent models have several different viewpoints that largely converge (\cref{sec:related:linear}),
+each framework has slightly different interpretations and motivations that can lead to different design spaces and extensions.
+In particular, linear attention and test-time training are more closely related and can perhaps be lumped together under a framework of \emph{associative memory} that explicitly aims to memorize input data through ``key-value'' stores;
+either through approximations to the canonical KV method (i.e., quadratic attention) in LA,
+or by minimizing soft optimization objectives in TTT.
+On the other hand, state space models have a different lineage, as reflected both in terminology (e.g., $A,B,C,X$ instead of $Q,K,V$) and in their natural extensions.
+Notably, the methodological improvements in Mamba-3 are all associated with the SSM viewpoint specifically and are less motivated from associative memory frameworks.
+
+\begin{enumerate}
+    \item \textbf{Exponential-Trapezoidal Discretization.}
+    The SSM viewpoint entails the discretization of a continuous ODE governing the system;
+    our exponential-trapezoidal discretization falls out of an improved discretization method.
+    As associative memory methods do not use discretization, it is not obvious how to interpret a 3-term recurrence such as exponential-trapezoidal under alternate viewpoints.
+    \item \textbf{Complex-Valued State Transitions.}
+    Complex SSMs have long been a staple of dynamical systems, and it is natural to consider complex values as an extension of selective SSMs.
+    On the other hand, the associative memory framework interprets the $A$ state transition as a coefficient of an objective function, for example corresponding to the weight of an L2 regularization (or weight-decay) term in the optimization objective~\citep{wang2025testtimeregressionunifyingframework}.
+    However, complex values are meaningless as the coefficient of a regression objective;
+    hence, Mamba-3 is not obviously interpretable within these frameworks.
+    \item \textbf{Multi-Input, Multi-Output.}
+    MIMO is a classical concept from the state space model literature and does not naturally appear in associative memory (linear attention or test-time training) frameworks.
+    However, we do note that the MIMO formulation introduced in this paper is not directly tied to SSM theory---and instead is motivated from a computational perspective---and our techniques can be adapted to other modern recurrent models as well.
+\end{enumerate}
+
+There continues to be vigorous progress in the development of linear-time sequence models, and the discussion here only captures a portion of them.
+We anticipate a growing space of unified frameworks, improved understanding, and new generalizations as the development of these models continually evolves.

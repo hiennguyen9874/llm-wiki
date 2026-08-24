@@ -1,0 +1,83 @@
+\begin{table}[t]
+  \centering
+
+  \caption{
+  Arithmetic Intensity for (a) SISO, (b) MIMO.
+  The batch and head dimensions cancel out.
+  The arithmetic intensity of MIMO increases linearly with rank $R$, enabling better hardware utilization during memory-bound phases like decode.
+  Here $N$ is the state size (expansion factor) and $P$ is the head dimension. For Mamba-3, typically $R \ll N, P$.
+  }
+
+  \begin{subtable}[b]{0.48\linewidth}
+    \small\centering
+    \resizebox{\linewidth}{!}{
+      \begin{tabular}{
+        >{\raggedright\arraybackslash}p{0.20\linewidth}
+        >{\raggedright\arraybackslash}p{0.16\linewidth}
+        >{\centering\arraybackslash}p{0.20\linewidth}
+        >{\raggedright\arraybackslash}p{0.35\linewidth}
+      }
+        \toprule
+        \textbf{Input} & \textbf{Output} & \textbf{FLOPs} & \textbf{Arithmetic Intensity} \\
+        \midrule
+        \begin{tabular}[t]{@{}l@{}}
+          $H_t:(N,P)$ \\[2pt]
+          $x_t:(P)$ \\[2pt]
+          $a_t:(1)$ \\[2pt]
+          $b_t:(N)$ \\[2pt]
+          $c_t:(N)$
+        \end{tabular}
+        &
+        $y_t:(P)$
+        &
+        $5NP - P$
+        &
+        \begin{tabular}[t]{@{}l@{}}
+          $\displaystyle \frac{5NP - P}{2(1+2N+P+NP)}$ \\[6pt]
+          $\approx 2.5 = \Theta(1)$
+        \end{tabular}
+        \\
+        \bottomrule
+      \end{tabular}
+    }
+    \caption{SISO (2-byte data).}
+    \label{tab:arith_intensity_siso}
+  \end{subtable}\hfill
+  \begin{subtable}[b]{0.48\linewidth}
+    \small\centering
+    \resizebox{\linewidth}{!}{
+      \begin{tabular}{
+        >{\raggedright\arraybackslash}p{0.20\linewidth}
+        >{\raggedright\arraybackslash}p{0.16\linewidth}
+        >{\centering\arraybackslash}p{0.20\linewidth}
+        >{\raggedright\arraybackslash}p{0.35\linewidth}
+      }
+        \toprule
+        \textbf{Input} & \textbf{Output} & \textbf{FLOPs} & \textbf{Arithmetic Intensity} \\
+        \midrule
+        \begin{tabular}[t]{@{}l@{}}
+          $H_t:(N,P)$ \\[2pt]
+          $x_t:(P,R)$ \\[2pt]
+          $a_t:(1)$ \\[2pt]
+          $b_t:(N,R)$ \\[2pt]
+          $c_t:(N,R)$
+        \end{tabular}
+        &
+        $y_t:(P,R)$
+        &
+        $4NPR+NP-PR$
+        &
+        \begin{tabular}[t]{@{}l@{}}
+          $\displaystyle \frac{4NPR+NP-PR}{2(1+2NR+PR+NP)}$ \\[6pt]
+          $=\Theta(\min(N,P,R))$ \\
+          $=\Theta(R)$, $R \ll N,P$
+        \end{tabular}
+        \\
+        \bottomrule
+      \end{tabular}
+    }
+    \caption{MIMO (2-byte data).}
+    \label{tab:arith_intensity_mimo}
+  \end{subtable}
+  \label{tab:arith_intensity}
+\end{table}

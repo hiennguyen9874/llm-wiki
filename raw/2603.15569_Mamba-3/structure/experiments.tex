@@ -1,0 +1,149 @@
+\input{tables/retrieval}
+\input{tables/ablations}
+\input{tables/decode_cudagraph_timing}
+\section{Empirical Validation}
+\label{sec:empirical_validation}
+We empirically validate our SSM-centric methodological changes through the Mamba-3 model on a host of synthetic and real-world tasks.
+\cref{sec:exp:lm} evaluates Mamba-3 on language modeling and retrieval-based tasks.
+\cref{sec:exp:meth-abl} ablates the effect of our new SSM components such as discretization and complex transitions.
+\cref{sec:exp:pareto} explores the inference efficiency of the Mamba-3 family and MIMO Mamba-3's benefits over the SISO variant under fixed inference compute, and \cref{sec:exp:speed} benchmarks the performance of our Mamba-3 training and inference kernels.
+
+\subsection{Language Modeling}
+\label{sec:exp:lm}
+\input{tables/lm_harness}
+All models are pretrained with 100B tokens of the FineWeb-Edu dataset~\citep{penedo2024finewebdatasetsdecantingweb} with the Llama-3.1 tokenizer~\citep{grattafiori2024llama3herdmodels} at a 2K context length with the same standard training protocol. Training and evaluation details can be found in \cref{app:exp-details}.
+
+Across all four model scales, Mamba-3 outperforms popular baselines at various downstream tasks (\cref{tab:downstream_evaluation}).
+We highlight that Mamba-3 does not utilize the
+external short convolution that has been empirically identified as an important component in many performant linear models~\citep{gu2024mambalineartimesequencemodeling,yang2025gateddeltanetworksimproving,allen2025canon}.
+
+\subsubsection{MIMO}
+We aim to further verify the gain from MIMO by investigating its language-modeling capabilities by training MIMO models with rank $R=4$ under the same settings.
+To ensure that the total parameter count is comparable to SISO-based models, we decrease the inner dimension of the MLP layers in MIMO models to compensate for the increase due to the MIMO projections.
+In the 1.5B-parameter models, for instance, the MLP inner dimension is reduced by only $6.6\%$, from 4096 to 3824. See~\Cref{app:mimo-for-mamba} for more details.
+
+On both validation perplexity and our suite of language evaluation tasks (\cref{tab:downstream_evaluation}), we see significant gains when moving from SISO to MIMO for our Mamba-3 models. Namely, we achieve a significant perplexity gain of $0.11$ on the 1.5B models, and \Cref{fig:pareto} illustrates the downward shift in our validation loss. On the language evaluation front, we see gains on most tasks when compared to SISO, resulting in an average gain of 1.2 percentage points over SISO.
+
+\subsubsection{Retrieval Capabilities}
+\label{sec:exp:retrieval}
+Beyond standard language modeling, an important measure for linear models is their retrieval ability---how well they can recall information from earlier in the sequence~\citep{arora2025mechanisticevaluationtransformersstate,arora2025simplelinearattentionlanguage}. Unlike attention models, which can freely revisit past context with the growing KV cache, linear models must compress context into a fixed-size state. This trade-off is reflected in the Transformer baseline's substantially stronger retrieval scores.  
+To evaluate Mamba-3 under this lens, \cref{tab:niah_n_real} compares it against baselines on both real-world and synthetic needle-in-a-haystack (NIAH) tasks~\citep{hsieh2024rulerwhatsrealcontext}, using our pretrained 1.5B models from \cref{sec:exp:lm}. We restrict the task sequence length to 2K tokens to match the training setup and adopt the cloze-style format for our real-world tasks to mirror the next-token-prediction objective, following~\citet{arora2025simplelinearattentionlanguage,arora2024justreadtwiceclosing}.
+
+Mamba-3 is competitive on real-world associative recall and question-answering (TQA, SQuAD) but struggles when extracting information from semi-structured or unstructured data (SWDE, FDA). On synthetic NIAH tasks, however, Mamba-3 surpasses or matches baselines on most cases and notably demonstrates markedly better out-of-distribution retrieval abilities than its Mamba-2 predecessor.
+
+\paragraph{Improving Retrieval with Hybrid Models.}
+
+Because of the natural retrieval-based weaknesses of fixed state-size, we predict that linear layers will be predominantly used \emph{in hybrid architectures} that mitigate this downside with quadratic self-attention layers.
+To evaluate how Mamba-3 performs within this architectural paradigm, we train our hybrid models at the same scale in an interleaving fashion with a 5:1 ratio of linear layer to NoPE self-attention~\citep{yang2025ropenopeagainnew}.
+As seen in prior work~\citep{waleffe2024empiricalstudymambabasedlanguage}, hybrid models outperform the Transformer baseline.
+We find that the reintroduction of the pre-output projection RMSNorm (pre-gate, grouped RMSNorm in \Cref{tab:niah_n_real}) to the Mamba-3 layer improves the length generalization retrieval abilities at the slight cost of in-context, real-world retrieval tasks and is highly competitive as a linear sequence mixing backbone when mixed with self-attention.
+However, the ideal norm type (grouped vs default) and its placement (pre- vs post-gate) is still unclear due to competing tradeoffs (\Cref{app:additional-results}, \Cref{tab:hybrid_norm_abl}), as we find that hybrid models and their exact characteristics and dynamics are complex and oftentimes unintuitive, a point echoed in 
+recent works such as \citet{cabannes2025shortwindowattentionenables}.
+
+\combinedniahretrievaltable
+
+\subsection{SSM Methodology Ablations}
+\label{sec:exp:meth-abl}
+\ablationstable
+
+\cref{tab:abl:meth} ablates the changes that Mamba-3 introduces to core SSM components, mainly the introduction of BC bias and exponential-trapezoidal discretization. We report the pretraining test perplexity on models at the 440M scale, trained for Chinchilla optimal tokens. We find that the bias and exponential-trapezoidal SSM synergize well and make the short convolution utilized by many current linear models redundant.
+
+We empirically demonstrate that data-dependent RoPE in Mamba-3 enables state tracking.
+Following \citet{grazzi2025unlockingstatetrackinglinearrnns}, we evaluate on tasks from the Chomsky hierarchy---Parity, Modular Arithmetic (without brackets), and Modular Arithmetic (with brackets)---and report scaled accuracies in \Cref{tab:reasoning}.
+Mamba-3 solves Parity and Modular Arithmetic (without brackets), and nearly closes the accuracy gap on Modular Arithmetic (with brackets).
+In contrast, Mamba-3 without RoPE, Mamba-3 with standard RoPE~\citep{su2023roformerenhancedtransformerrotary}, and Mamba-2 fail to learn these tasks.
+We use the state-tracking-enabled variant of GDN and observe that Mamba-3 is competitive---matching parity and approaching its performance on both modular-arithmetic tasks. Experimental settings are covered in \cref{app:exp-details}.
+
+\subsection{Inference Efficiency to Performance Tradeoff}
+\label{sec:exp:pareto}
+
+\latencytable
+
+As $d_\text{state}$ governs the decode runtime for the sub-quadratic models considered in this paper (\Cref{sec:method:mimo}), we use it as a proxy for inference speed.
+By plotting the validation perplexity (a proxy for model performance) as a function of $d_\text{state}$, we aim to formulate a holistic picture about how sub-quadratic models can trade off performance with inference speed. 
+
+\cref{fig:pareto} shows such a Pareto frontier for the Mamba models considered in this paper.
+For each data point, we train a 440M parameter model to $2\times$ Chinchilla optimal tokens on the Fineweb-Edu dataset, where the model is configured with a $d_\text{state}$ of $\{16, 32, 64, 128\}$.
+As expected, we observe an inverse correlation between validation loss and $d_\text{state}$.
+Moreover, there is a general downward shift on the Pareto frontier moving from Mamba-2 to Mamba-3, indicating a stronger model:
+in this setting, Mamba-3 with $2\times$ smaller state size achieves better pretraining perplexity than its Mamba-2 counterpart, resulting in a faster model with the same quality or a better model for the same speed.
+
+A further downward shift is observed when moving from the SISO variant of Mamba-3 to the MIMO variant of Mamba-3 (where we set the MIMO rank $R = 4$ and decrease the MLP inner dimension to parameter match the SISO variants).
+
+We expand the comparison to include the GDN baseline in~\cref{app:additional-results}, \cref{fig:pareto_gdn}, which also shows Mamba-3 comparing favorably to GDN. %
+
+\subsection{Fast Mamba-3 Kernels}
+\label{sec:exp:speed}
+
+\begin{table}[t!]
+\centering
+\caption{Prefill and Prefill+Decode latency across sequence lengths. Mamba-3 adds minimal overhead to its forward-pass and retains competitive decode latencies. Details in \Cref{app:inference-details}.
+}
+\label{tab:full-latency}
+\resizebox{\linewidth}{!}{
+\begin{tabular}{l 
+                c c 
+                c c 
+                c c
+                c c
+                c c}
+\toprule
+\textbf{Model} 
+& \multicolumn{2}{c}{\textbf{512 tokens}}
+& \multicolumn{2}{c}{\textbf{1024 tokens}}
+& \multicolumn{2}{c}{\textbf{2048 tokens}}
+& \multicolumn{2}{c}{\textbf{4096 tokens}}
+& \multicolumn{2}{c}{\textbf{16384 tokens}} \\
+\cmidrule(lr){2-11}
+& Prefill & Prefill+Dec
+& Prefill & Prefill+Dec
+& Prefill & Prefill+Dec
+& Prefill & Prefill+Dec
+& Prefill & Prefill+Dec \\
+\midrule
+vLLM (Llama-3.2-1B) 
+& \Bf 0.26 & \Uline{4.45}
+& \Bf 0.52 & 9.60
+& \Bf 1.08 & 20.37
+& \Bf 2.08 & 58.64
+& \Bf 12.17 & 976.50 \\
+Gated DeltaNet 
+& \Uline{0.51} & 4.56
+& \Uline{1.01} & \Uline{9.11}
+& \Uline{2.01} & \Uline{18.22}
+& \Uline{4.00} & \Uline{36.41}
+& \Uline{16.21} & \Uline{145.87} \\
+Mamba-2 
+& \Uline{0.51} & 4.66
+& 1.02 & 9.32
+& 2.02 & 18.62
+& 4.02 & 37.22
+& 16.22 & 149.02 \\
+Mamba-3 (SISO) 
+& \Uline{0.51} & \Bf 4.39
+& \Uline{1.01} & \Bf 8.78
+& 2.02 & \Bf 17.57
+& 4.01 & \Bf 35.11
+& 16.22 & \Bf 140.61 \\
+Mamba-3 (MIMO $R=4$) 
+& 0.60 & 4.74
+& 1.21 & 9.48
+& 2.42 & 18.96
+& 4.76 & 37.85
+& 19.44 & 151.81 \\
+\bottomrule
+\end{tabular}}
+\end{table}
+
+We complement Mamba-3's methodological advances with optimized kernels that deliver fast inference in practical settings.
+We implement a new series of inference kernels for Mamba-3---using Triton for the forward (prefill) path and CuTe DSL for decode---and compare their per-token decode latency against the released Triton kernels for Mamba-2 and GDN in Table~\ref{tab:benchmark}.\footnote{Details on each kernel DSL and the exact kernel fusion structure is provided in Appendix~\ref{app:inference-details}.}
+The evaluation measures a single decode step at batch size 128 on a single H100 for both FP32 and BF16 datatypes; models are 1.5B parameters with model dimension $2048$ and state dimension $\in \{64, 128\}$.
+Across all configurations, SISO achieves the lowest latency amongst baselines.
+MIMO, with its higher arithmetic intensity, increases the decoding FLOPs without significantly increasing decode runtime.
+Our benchmarks indicate that our CuTe DSL decode implementation is competitive and that the additional components of Mamba-3 (exponential-trapezoidal update, complex-valued state, and MIMO projections) are lightweight.
+This supports our overall inference-first perspective: Mamba-3 admits a \textbf{simple, low-latency implementation} while providing strong empirical performance.
+
+\Cref{tab:full-latency} benchmarks both end-to-end latency across different decoding sequence length and prefill time for the same sequence length.
+The decode time is consistent with \cref{tab:benchmark}, where Mamba-3 (SISO) is fastest; Mamba-3 (MIMO) is on par with Mamba-2; and all linear methods are faster than optimized attention as sequence length grows.
+We also see that MIMO incurs a moderate overhead for prefill, as discussed in \cref{sec:method:mimo}.
+Details of the benchmark are in \cref{app:inference-details}.

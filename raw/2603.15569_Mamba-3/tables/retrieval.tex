@@ -1,0 +1,39 @@
+\newcommand{\combinedniahretrievaltable}{
+\begin{table}[!t]
+    \small
+    \centering
+    \caption{\small Retrieval capabilities measured by a mixture of real-world and synthetic retrieval tasks. Real-world retrieval tasks utilize cloze variants of the original datasets and are truncated to 2K length. Mamba-3 demonstrates strong associative recall, question-answering, and length generalization on needle-in-a-haystack (NIAH), but suffers with information extraction of semi-structured and unstructured data.
+    The Transformer baseline uses RoPE which may explain its length generalization issues, and hybrid models utilize NoPE (no positional embeddings).
+    We find a pre-gate, grouped RMSNorm can be added to Mamba-3 SISO hybrid models to improve the length generalization of the NIAH tasks at a slight decrease in real-world retrieval performance.
+    }
+    \resizebox{\textwidth}{!}{
+    \sisetup{detect-weight,     %
+        table-align-text-post=false,
+         table-space-text-post={*} %
+         }
+    \begin{tabular}{l l*{6}{S[table-format=2.1]}*{9}{S[table-format=2.1]}}
+        \toprule
+        \multicolumn{2}{l}{\textbf{Model (1.5B)}} & {SWDE} & {SQD.} & {FDA} & {TQA} & {NQ} & {Drop} & \multicolumn{3}{c}{NIAH-Single-1} & \multicolumn{3}{c}{NIAH-Single-2} & \multicolumn{3}{c}{NIAH-Single-3} \\
+        \cmidrule(lr){3-8} \cmidrule(lr){9-11} \cmidrule(lr){12-14} \cmidrule(lr){15-17}
+        \multicolumn{2}{l}{Context Length} & \multicolumn{6}{c}{2048} & {1024} & {2048} & {4096} & {1024} & {2048} & {4096} & {1024} & {2048} & {4096} \\
+        \midrule
+        \multirow{5}{*}{\rotatebox[origin=c]{90}{Pure}} & Transformer & 48.9 & 46.6 & 58.4 & 67.5 & 31.7 & 26.4 & 100.0 & 100.0 & 0.0 & 92.2 & 100.0 & 0.0 & 98.6 & 99.4 & 0.0 \\
+        \cmidrule(lr){2-17}
+        & GDN & \Bf 32.7 & \Uline{40.0} & \Bf 28.3 & 63.5 & \Uline{25.7} & 24.5 & \Bf 100.0 & \Bf 100.0 & \Bf 99.8 & \Bf 100.0 & \Uline{93.8} & \Uline{49.8} & 83.8 & 68.4 & \Bf 34.2 \\
+        & Mamba-2 & \Uline{30.7} & 39.1 & \Uline{23.7} & \Uline{64.3} & 25.1 & \Bf 28.5 & \Bf 100.0 & 99.6 & 62.0 & \Bf 100.0 & 53.8 & 11.8 & \Bf 95.8 & \Bf 87.4 & 13.4 \\
+        & \textbf{Mamba-3 SISO} & 28.5 & \Bf 40.1 & 23.4 & \Bf 64.5 & \Bf 26.5 & \Uline{27.4} & \Bf 100.0 & \Bf 100.0 & \Uline{88.2} & \Bf 100.0 & \Bf 95.4 & \Bf 50.6 & \Uline{92.4} & \Uline{81.4} & \Bf 34.2 \\
+        \addlinespace[0.6ex]
+        \cdashline{2-17}
+        \addlinespace[0.6ex]
+        & \textbf{Mamba-3 MIMO} & \Bf 36.3 & \Bf 41.7 & \Bf 29.3 & \Bf 64.5 & \Uline{26.2} & 26.3 & \Bf 100.0 & \Bf 100.0 & \Uline{93.0} & \Bf 100.0 & 86.0 & 40.4 & \Bf 95.8 & \Uline{84.4} & 25.6\\
+        \midrule
+        \multirow{4}{*}{\rotatebox[origin=c]{90}{Hybrid}} & GDN & 54.6 & \Bf 48.4 & 58.8 & 64.9 & 32.7 & \Bf 30.0 & \Bf 100.0 & \Bf 100.0 & \Uline{71.4} & 99.6 & \Bf 100.0 & \Uline{60.2} & 70.0 & 96.2 & \Uline{24.0} \\
+        & Mamba-2 & 58.2 & 45.6 & \Bf 71.0 & \Bf 66.1 & \Bf 33.4 & 28.1 & \Bf 100.0 & \Bf 100.0 & 3.2 & 99.6 & 98.8 & 0.0 & 98.2 & \Uline{98.0} & 0.0 \\
+        & Mamba-3 SISO & \Uline{58.5} & 47.0 & \Uline{65.9} & 64.8 & \Bf 33.4 & 27.0 & \Bf 100.0 & \Bf 100.0 & 36.2 & \Bf 100.0 & \Bf 100.0 & 9.4 & \Bf 99.8 & \Bf 100.0 & 8.8 \\
+        & Mamba-3 SISO Norm$^*$ & \Bf 58.6 & \Uline{47.3} & 52.4 & \Uline{65.7} & 33.3 & \Uline{28.5} & \Bf 100.0 & \Bf 100.0 & \Bf 100.0 & \Bf 100.0 & \Bf 100.0 & \Bf 96.0 & \Bf 99.8 & 97.2 & \Bf 56.8 \\
+        \bottomrule
+    \end{tabular}
+    }
+    \label{tab:niah_n_real}
+\end{table}
+}

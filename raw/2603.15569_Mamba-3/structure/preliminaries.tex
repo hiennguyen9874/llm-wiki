@@ -1,0 +1,87 @@
+\section{Preliminaries}
+\subsection{Notation}
+Scalars are denoted by plain-text letters (e.g., $x, y$). 
+Tensors, including vectors and matrices, are denoted by bold letters (e.g., $\vh, \bC$). 
+The shape of the tensor can be inferred from the context.
+We denote the input sequence length as $T$, the model dimension as $D$, and the SSM state size as $N$. %
+For time indices, we use subscripts (e.g., $x_t$ for the input at time $t$).
+The Hadamard product between two tensors is denoted by $\odot$.
+For a vector $\vv \in \mathbb{R}^d$, we denote $\mathrm{Diag}(\vv) \in \mathbb{R}^{d \times d}$ as the diagonal matrix with the vector $\vv$ as the diagonal, and for products of scalars across time steps, we use the notation $\alpha_{t \cdots s} = \alpha^\times_{t:s} = \prod_{i=s}^{t} \alpha_i$.
+
+\subsection{SSM Preliminaries}
+
+State Space Models (SSMs) describe continuous-time linear dynamics via
+\begin{align*}
+\dot{\vh}(t) &= \bA(t)\,\vh(t) + \bB(t)\,x(t), &
+y(t) &= \bC(t)^\top \vh(t),
+\end{align*}
+where $\vh(t)\!\in\!\mathbb{R}^N$ is the hidden state, $x(t)\!\in\!\mathbb{R}$ the input, and $\bA(t)\!\in\!\mathbb{R}^{N\times N}$, $\bB(t),\bC(t)\!\in\!\mathbb{R}^N$.
+We will occasionally refer to $\bA(t)$ as the \emph{state-transition} and $\bB(t)x(t)$ as the \emph{state-input}; this also extends to their discretized counterparts. 
+For discrete sequences with step size $\Delta_t$,
+Mamba-1 and Mamba-2 \emph{discretized} the system to the following recurrence
+\begin{align*}
+\vh_t &= e^{\Delta_t \bA_t}\,\vh_{t-1} + \Delta_t\,\bB_t\,x_t, &
+y_t &= \bC_t^\top \vh_t .
+\end{align*}
+
+\paragraph{Mamba-2's Parameterization.}
+The core of the Mamba-2 layer~\citep{dao2024transformersssmsgeneralizedmodels} is a \emph{data-dependent} and hardware-efficient SSM.
+Both the state-transition and state-input are made data-dependent through the projection of $\Delta_t \in \mathbb{R}_{>0}$ and $\bB, \bC\in\mathbb{R}^N$ from the current token.
+By parameterizing the state-transition $\bA_t$ as a scalar times identity ($\bA_t = A_t \bm{I}_{N\times N}$, where 
+$A_t \in \mathbb{R}_{<0}$), the SSM recurrence can be efficiently computed with the matrix multiplication tensor cores of GPUs.
+Defining $\alpha_t \coloneqq e^{\Delta_t A_t}\in(0,1)$ and $\gamma_t \coloneqq \Delta_t$, the update becomes
+\begin{equation}
+\label{eq:mamba2-recurrence-prelim}
+\vh_t = \alpha_t\,\vh_{t-1} + \gamma_t\,\bB_t\,x_t, \qquad
+y_t = \bC_t^\top \vh_t .
+\end{equation}
+
+The data-dependent state-transition $\alpha_t$ controls the memory horizon of each SSM within the layer.
+$\Delta_t$ in particular modulates both the state-transition and state-input: a larger $\Delta_t$ forgets faster and up-weights the current token more strongly, while a smaller $\Delta_t$ retains the hidden state with minimal contributions from the current token.
+
+\begin{remark}
+In Mamba-2, $A_t$ is data-independent, since the overall discrete transition $\alpha_t \coloneqq e^{\Delta_t A_t}$ is data-dependent through $\Delta_t$.
+In Mamba-3, we empirically found that data-dependent $A_t$ has similar performance to data-independent $A_t$, and chose the former as a default for consistency so that all SSM parameters are data-dependent.
+\end{remark}
+
+\subsection{Structured Masked Representation and State Space Duality}
+\label{sec:prelim-sma}
+Mamba-2 showed that a large class of SSMs admit a \emph{matrix} form that vectorizes the time-step recurrence.
+Through the state space duality (SSD) framework, recurrent SSMs can be represented within a parallel form that incorporates an element-wise mask to model the state-transition decay.
+
+SSD provides a general framework for a duality between linear recurrence and parallelizable (matrix-multiplication-based) computational forms
+\begin{align}
+    \bY 
+    =
+    (   \bL
+        \odot 
+        \bC {\bB}^{\top}
+    )\bX
+    \label{eq:ssd}
+\end{align}
+where $\bL \in \mathbb{R}^{T \times T}$ is a structured mask,
+$\bB,\bC \in \mathbb{R}^{T \times N}$, $\bX \in \mathbb{R}^{T \times D}$ are the inputs to the SSM and $\bY \in \mathbb{R}^{T \times D}$ is its output.
+Different structures on $\bL$ give rise to various instantiations of SSD.
+
+\Eqref{eq:ssd} also draws a general connection between recurrence and attention, 
+by setting $\bQ\coloneqq\bC$, $\bK\coloneqq\bB$, $\bV\coloneqq\bX$ and viewing $\bL$ as a data-dependent mask.
+In fact, the simplest case of SSD is (causal) linear attention~\citep{linearattention}, where $\bL$ is the causal triangular mask.
+
+Mamba-2 is a generalization where
+\begin{align}
+    \bL
+    =
+        \begin{bmatrix}
+            1 \\
+            \alpha_1 & 1 \\
+            \vdots & & \ddots \\
+            \alpha_{T...1} & \cdots & \alpha_T & 1
+        \end{bmatrix}
+        \cdot
+        \operatorname*{Diag}(\gamma)
+    \label{eq:mamba2-mask}
+\end{align}
+composed of terms $\alpha_t, \gamma_t$ from~\eqref{eq:mamba2-recurrence-prelim}.%
+\footnote{In the original Mamba-2 paper, $\gamma$ does not appear because it is viewed as folded into the $\bB$ term. In this paper, $\bB_t$ represents the continuous parameter, whereas in Mamba-2, $\bB_t$ represents the discretized parameter which is equivalent to $\gamma_t \bB_t$.}
+
+In \Cref{sec:method:trap:ssd}, we show that Mamba-3 is a generalization of Mamba-2 with a more expressive $\bL$, and hence also an instance of SSD.

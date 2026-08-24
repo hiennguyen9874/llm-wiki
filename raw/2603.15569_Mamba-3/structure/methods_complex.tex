@@ -1,0 +1,96 @@
+\subsection{Complex-Valued SSMs}
+\label{sec:method:complex}
+
+Modern SSMs are designed with efficiency as the central goal, motivated by the need to scale to larger models and longer sequences.
+For instance, successive architectures have progressively simplified the state-transition matrix: S4~\citep{S4} used complex-valued Normal Plus Low Rank (NPLR) matrices, Mamba~\citep{gu2024mambalineartimesequencemodeling} reduced this to a diagonal of reals, and Mamba-2~\citep{dao2024transformersssmsgeneralizedmodels} further simplified it to a single scaled identity matrix.
+Although these simplifications largely maintain language modeling performance, recent works~\citep{merrill2025illusionstatestatespacemodels,sarrof2024expressivecapacitystatespace,grazzi2025unlockingstatetrackinglinearrnns} have shown that the restriction to real, non-negative eigenvalue transitions degrades the capabilities of the model on simple state-tracking tasks---here referring primarily to the solvable-group regime ($\text{TC}^0$) such as parity---which can be solved by a one-layer LSTM.
+This limitation, formalized in Theorem 1 of \citep{grazzi2024mambacapableincontextlearning}, arises from restricting the eigenvalues of the transition matrix to real numbers, which cannot represent ``rotational'' hidden state dynamics.
+For instance, consider the parity function on binary inputs $\{0,1\}$, defined as $\sum_t x_t \bmod 2$.
+This task can be performed using update: $\vh_t = \bR(\pi x_t) \vh_{t-1}$, where $\bR(\cdot)$ is a 2-D rotation matrix. 
+Such rotational dynamics cannot be expressed with real eigenvalues. 
+
+\subsubsection{Complex SSM with Exponential-Euler Discretization}
+To recover this capability, we begin with complex SSMs~\plaineqref{eq:complex-ssm}, which \emph{are} capable of representing state-tracking dynamics. 
+We show that, under discretization (\Cref{prop:var-const}), complex SSMs can be formulated as real SSMs with a \emph{block-diagonal transition matrix composed of $2 \times 2$ rotation matrices} (\Cref{prop:complex-to-real-ssm}). 
+We then show that this is equivalent to applying \emph{data-dependent rotary embeddings} on both the input and output projections $\bB, \bC$ respectively.
+This result establishes a theoretical connection between complex SSMs and data-dependent RoPE embeddings (\Cref{prop:rope-trick}).
+Finally, the ``RoPE trick'' used in \citet{su2023roformerenhancedtransformerrotary} allows for an efficient implementation of complex-valued state-transition matrices with minimal computational overhead compared to real-valued SSMs.
+
+\begin{restatable}[Complex-to-Real SSM Equivalence]{proposition}{PropComplexRealSSM}\label{prop:complex-to-real-ssm}
+Consider a complex-valued SSM
+\begin{align}
+\label{eq:complex-ssm}
+    \dot{\vh}(t) &= \mathrm{Diag}\big(A(t) + i \boldsymbol{\theta}(t)\big)\,\vh(t) 
+    + \big(\bB(t) + i\hat{\bB}(t)\big)\,x(t), \\ \nonumber
+    y(t) &= \mathrm{Re}\!\left(
+        \big(\bC(t) + i\hat{\bC}(t)\big)^{\top}\vh(t)
+    \right),
+\end{align}
+where $\vh(t) \in \mathbb{C}^{N/2}$, $\boldsymbol{\theta}(t),\bB(t),\hat{\bB}(t),\bC(t),\hat{\bC}(t)\in\mathbb{R}^{N/2}$, and $x(t),A(t)\in\mathbb{R}$.
+Under exponential-Euler discretization, this system is equivalent to a real-valued SSM
+\begin{align}
+\label{eq:real-ssm}
+    \vh_t &= e^{\Delta_t A_t}\,\bR_t\,\vh_{t-1} + \Delta_t \bB_t x_t, \\  \nonumber
+    y_t   &= \bC_t^{\top}\vh_t,
+\end{align}
+with state $\vh_t \in \mathbb{R}^N$, projections 
+\[
+\bB_t \coloneqq \begin{bmatrix} \bB_t \\ \hat{\bB}_t \end{bmatrix} \in \mathbb{R}^N, 
+\qquad 
+\bC_t \coloneqq \begin{bmatrix} \bC_t \\ -\hat{\bC}_t \end{bmatrix} \in \mathbb{R}^N, 
+\]
+and a transition matrix 
+\[
+\bR_t \;\coloneqq\; \text{Block}\Big(\{R(\Delta_t \boldsymbol{\theta_t}[i])\}_{i=1}^{N/2}\Big)
+\in \mathbb{R}^{N \times N}
+,
+\qquad 
+R(\theta) \coloneqq 
+\begin{bmatrix}
+    \cos(\theta) & -\sin(\theta) \\
+    \sin(\theta) & \cos(\theta)
+\end{bmatrix}.
+\]
+\end{restatable}
+
+The proof is given in \cref{app:proof-complex-to-real-ssm}. 
+
+\Cref{prop:complex-to-real-ssm} shows that the discretized complex SSM of state dimension $N/2$ has an equivalent real SSM with doubled state dimension ($N$), and its transition matrix is a scalar decayed block-diagonal matrix of $2\times2$ data-dependent rotation matrices ($e^{\Delta_t A_t} \bR_t$).
+
+\begin{restatable}[Complex SSM, Data-Dependent RoPE Equivalence]{proposition}{PropRoPETrick}\label{prop:rope-trick} 
+Under the notation established in \Cref{prop:complex-to-real-ssm}, consider the real SSM defined in \eqref{eq:real-ssm} unrolled for $T$ time-steps.
+The output of the above SSM is equivalent to that of a vanilla scalar transition matrix-based SSM~\plaineqref{eq:mamba2-recurrence} with a data-dependent rotary embedding applied on the $\bB,\bC$ components of the SSM, as defined by:
+\begin{equation}
+    \vh_t = e^{\Delta_tA_t}\vh_{t-1} + \left( \prod_{i=0}^t \bR^\top_i \right) \Delta_t\bB_tx_t, \qquad \qquad
+    y_t = \left[\left( \prod_{i=0}^t \bR^\top_i \right)\bC_t\right]^\top\vh_t \qquad
+\end{equation}
+where the matrix product represents right matrix multiplication, e.g., $\prod_{i=0}^1\bR_i = \bR_0 \bR_1$. 
+We refer to the usage of a transformed real-valued SSM to compute the complex SSM as the ``RoPE trick.''
+\end{restatable}
+The proof is given in \cref{app:proof-rope-trick}.
+
+To observe the connection of complex SSMs to RoPE embeddings, note that in the above proposition, the data-dependent rotations $\bR_i$ are aggregated across time-steps and applied to $\bC,\bB$, which, by the state space duality framework, correspond to the query ($\bQ$) and key ($\bK$) components of attention (\Cref{sec:prelim-sma}). 
+Analogously, vanilla RoPE~\citep{su2023roformerenhancedtransformerrotary} applies \emph{data-independent} rotation matrices, where the rotation angles follow a fixed frequency schedule $\boldsymbol{\theta}[i] = 10000^{-2i/N}$. 
+
+\subsubsection{Complex SSM with Exponential-Trapezoidal Discretization}
+
+After deriving the recurrence for complex SSMs with exponential-Euler discretization, the generalization to exponential-trapezoidal discretization is similar.
+\Cref{prop:rope-trick-trap} provides the full recurrence with the RoPE trick for Mamba-3.
+
+\begin{restatable}[Rotary Embedding Equivalence with Exponential-Trapezoidal Discretization]{proposition}{PropRoPETrickTrap}\label{prop:rope-trick-trap}
+
+Discretizing a complex SSM with the exponential-trapezoidal rule (\Cref{prop:trap}) yields the recurrence
+\begin{align}
+    \vh_t 
+    &= \alpha_t \vh_{t-1} 
+    + \beta_t \left(\prod_{i=0}^{t-1} \bR_i^\top \right)\bB_{t-1} x_{t-1} 
+    + \gamma_t \left(\prod_{i=0}^t \bR_i^\top \right)\bB_t x_t, \nonumber \\
+    y_t
+    &= \left[\left(\prod_{i=0}^t \bR_i^\top\right)\bC_t\right]^\top \vh_t .
+\end{align}
+Here, $\bR_t$ is the block-diagonal rotation matrix defined in~\Cref{prop:complex-to-real-ssm}.
+\end{restatable}
+
+The proof is in \cref{app:proof-rope-trick-trap}.
+
+We empirically validate that our complex SSM, implemented via data-dependent RoPE, is capable of solving state-tracking tasks that real-valued SSMs with and without standard RoPE cannot (\Cref{tab:reasoning}), supporting theoretical claims.

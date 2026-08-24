@@ -1,0 +1,31 @@
+\subsection{Mamba-3 Architecture}
+\label{sec:method:arch}
+\begin{figure}[t!]
+    \centering
+    \includegraphics[width=\linewidth]{fig/mamba3-arch.pdf}
+    \caption{Contrasting Mamba-2 and Mamba-3 Architectures: Key updates include exponential-trapezoidal discretization, data-dependent RoPE embeddings, MIMO projections, QK normalization, and learnable biases.}
+    \label{fig:arch_diff}
+\end{figure}
+
+The overall architecture follows Llama~\citep{grattafiori2024llama3herdmodels}, alternating Mamba-3 and SwiGLU blocks with pre-norm. 
+The Mamba-3 block retains the overall layout of its predecessor, while introducing several key modifications.
+
+\paragraph{Updated SSM Recurrence.}
+The SSD layer is replaced with the more expressive complex-valued exponential-trapezoidal SSM defined in Proposition~\ref{prop:rope-trick-trap}.
+Mamba-3 employs the SISO SSM by default to enable fair comparisons with other SISO-like models, but its MIMO variant can be trained and deployed as a stronger alternative to baseline Mamba-3 (\Cref{tab:downstream_evaluation}).
+Our SSM $\bA$ is complex with both real and imaginary components produced by data-dependent projections. With \Cref{fig:arch_diff}, this is partitioned into the real-valued $A$ and imaginary-valued $\Theta$; the former is passed into the SSD black box as in Mamba-2, while the latter is computed through the RoPE trick.
+
+\paragraph{BC / QK Normalization.}
+RMS normalizations are added following the $\bB,\bC$ projection, mirroring the QKNorm commonly used in modern Transformers~\citep{henry2020querykeynormalizationtransformers,wortsman2023smallscaleproxieslargescaletransformer} and other recent linear models~\citep{yang2025gateddeltanetworksimproving, hu2025combaimprovingbilinearrnns}.
+We call this either BC normalization (BCNorm) or QK normalization (QKNorm) interchangeably.
+We find that BCNorm is also able to stabilize large-scale runs, resulting in the removal of the post-gate RMSNorm layer (introduced in Mamba-2 for stability) in our pure Mamba-3 models.
+However, in hybrid models, the removed RMSNorm layer is crucial for long-context extrapolation (\Cref{tab:niah_n_real}).
+
+\paragraph{$\bB, \bC$ Biases.}
+Similarly to~\citet{yu2025blockbiasedmamba}, which proved that adding channel-specific biases to $\bB$ in a blockwise variant of Mamba-1 grants universal approximation capabilities, Mamba-3 incorporates learnable, head-specific, channel-wise biases into the $\bB$ and $\bC$ components after the BCNorm.
+
+We hypothesize that these biases also induce a convolution-like behavior in the model. Specifically, adding biases to $\bB$ and $\bC$ introduces data-independent components into SSMs that function more similarly to convolutions.
+Ablations on the bias parameterization are located in~\cref{app:arch-ablations}.
+
+The combination of data-independent bias parameters, together with exponential-trapezoidal discretization (which itself induces a convolution on the state-input),
+is empirically able to obviate the short causal convolution and its accompanying activation function present in Mamba-2 and most modern recurrent models (\cref{sec:exp:meth-abl}).
