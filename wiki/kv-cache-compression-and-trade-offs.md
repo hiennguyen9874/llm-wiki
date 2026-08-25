@@ -5,7 +5,7 @@ description: KV-cache compression reduces decode-state memory through token rete
 tags: [kv-cache, compression, quantization, inference, decoding, llm-serving]
 status: draft
 created: 2026-08-01
-generated: { by: llm-wiki-agent/1, at: 2026-08-12T00:00:00Z }
+generated: { by: llm-wiki-agent/1, at: 2026-08-25T04:34:59Z }
 sources:
   - id: kv-cache-compression-summary
     resource: ../raw/KVCacheCompressionOptimization.md
@@ -16,6 +16,9 @@ sources:
   - id: deepseek-v4-2026
     resource: ../raw/arXiv-2606.19348v1/main.tex
     title: "DeepSeek-V4: Towards Highly Efficient Million-Token Context Intelligence"
+  - id: hou-etal-2025
+    resource: ../raw/2504.21463_RWKV-X/acl_latex.tex
+    title: "RWKV-X: A Linear Complexity Hybrid Language Model"
 ---
 
 # KV-cache compression and trade-offs
@@ -39,6 +42,8 @@ The factor two is for keys and values. Thus cache bytes grow linearly with conte
 Token-selection methods retain a bounded subset of KV pairs. A simple policy keeps a recent sliding window; sink-token policies also retain selected prompt-initial tokens. Attention-informed policies retain tokens with high accumulated attention (heavy hitters) or select prompt tokens from an observation window near the end of prefill. Per-head or per-layer budgets can reserve more capacity for heads whose attention retrieves distant context.[^kv-cache-compression-summary]
 
 These policies can bound memory more strongly than numeric compression, but permanent eviction cannot recover a token that becomes relevant later. A retained recent window and retrieval-sensitive head budgets are therefore quality safeguards rather than guarantees, especially for long-context retrieval and code workloads.[^kv-cache-compression-summary]
+
+RWKV-X provides primary-source evidence for one retention variant: it scores earlier K/V entries by attention from a recent observation window, retains the top-$m$ entries, and concatenates them with that window. This caps its sparse-layer cache after eviction, but the report does not quantify eviction quality, cache-update overhead, or whether its global chunk-selection scoring is included in end-to-end complexity.[^hou-etal-2025]
 
 ### Lower-precision and aggregate representations
 
@@ -66,6 +71,7 @@ Compression is complementary to architectural and serving-layout choices. Multi-
 - **Implemented architecturally by:** [Multi-head Latent Attention](multi-head-latent-attention.md), which stores a jointly compressed KV latent rather than sharing or evicting conventional K/V heads.[^deepseek-v2-2024]
 - **Addresses:** the decode-time KV-read bottleneck identified in [FlashAttention implementation evolution](flashattention-implementation-evolution.md).[^kv-cache-compression-summary]
 - **Specialized by:** [Compressed sparse and heavily compressed attention](compressed-sparse-and-heavily-compressed-attention.md), which makes learned aggregation part of V4 attention layers.[^deepseek-v4-2026]
+- **Used by:** [RWKV-X hybrid architecture and training](rwkv-x-hybrid-architecture-and-training.md), which retains a score-selected bounded K/V subset plus a recent window in sparse-attention layers.[^hou-etal-2025]
 - **Contrasts with:** [Linear attention as fixed-state memory](linear-attention-as-fixed-state-memory.md), which replaces token-addressable softmax KV storage with a fixed-size state instead of compressing it.[^kv-cache-compression-summary]
 
 ## Evidence limits
@@ -77,3 +83,5 @@ This concept is compiled from a Vietnamese secondary summary that links two KV-c
 [^deepseek-v2-2024]: DeepSeek-AI, “DeepSeek-V2: A Strong, Economical, and Efficient Mixture-of-Experts Language Model,” arXiv:2405.04434v5, [source](../raw/arXiv-2405.04434v5/main.tex), Sections 2.1 and Appendix D.
 
 [^deepseek-v4-2026]: DeepSeek-AI, “DeepSeek-V4: Towards Highly Efficient Million-Token Context Intelligence,” arXiv:2606.19348v1, [source](../raw/arXiv-2606.19348v1/main.tex), Sections 2.3 and 4.5–4.6.
+
+[^hou-etal-2025]: Haowen Hou et al., “RWKV-X: A Linear Complexity Hybrid Language Model,” arXiv:2504.21463, [bundled source](../raw/2504.21463_RWKV-X/acl_latex.tex), Section 3.2 and Appendix “KV Cache Management for Top-k Chunk Sparse Attention”.

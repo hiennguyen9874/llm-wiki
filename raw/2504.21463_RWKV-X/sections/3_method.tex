@@ -1,0 +1,131 @@
+\section{Method}
+
+\begin{figure*}[htbp]
+    \centering
+    \includegraphics[width=\textwidth]{figures/RWKV-X_arch.pdf}
+    \caption{The architecture of RWKV-X, a hybrid model that combines RWKV-7 blocks with Sparse Attention blocks.}
+    \label{fig:rwkvx_arch}
+\end{figure*}
+
+
+\subsection{Preliminaries}
+The core of the Transformer~\cite{vaswani2017attention} architecture is the self-attention mechanism, which enables the model to compare each token with every other token in the input sequence—crucial for modeling long-range dependencies. However, for each query $q$, attention must be computed against all keys $K$ and values $V$, resulting in quadratic complexity with respect to sequence length. This makes full attention inefficient for very long sequences. The computation is defined as:
+\begin{equation}
+\text{Attn}(q, K, V) = \text{softmax}\left(\frac{qK^\top}{\sqrt{d_k}}\right)V
+\end{equation}
+Here, $d_k$ represents the dimensionality of the query and key vectors, which is used to scale the dot product to prevent extremely large values that could destabilize the softmax operation.
+
+To overcome these limitations, recent work explores architectures that combine linear attention with dynamic state control. RWKV-7 offers an efficient alternative to Transformers for long-sequence tasks by blending the recurrence of RNNs with the parallelism of Transformers. It leverages a generalized Delta Rule~\cite{schlag2021linear} with vector-valued gating and context-dependent learning rates to enhance expressivity and efficiency. Inspired by DeltaNet, RWKV-7 further decouples state removal and addition, enabling channel-wise updates of state information.
+
+The core mechanism of RWKV-7 introduces and optimizes the generalized Delta Rule as the foundation for state evolution. The state $S_t$ evolution and transition matrix $M_t$ are formulated as follows:
+\begin{align}
+    & S_t = S_{t-1}M_t + v_t^\top \cdot \tilde{k}_t \\
+    & M_t =  \text{diag}(w_t) - \hat{\kappa}_t^\top (a_t \odot \hat{\kappa}_t)
+\end{align}
+
+where \(w_t\) is the data-dependent decay vector, \(a_t\) is the context-dependent learning rate, \(\hat{\kappa}_t\) is the normalized removal key, \(\tilde{k}_t\) is the replacement key, and \(v_t\) is the value vector.
+
+In this paper, we explore the integration of Transformer and RWKV-7 architectures to build a hybrid model with linear complexity that combines the strengths of both. This model addresses the limitations of each architecture, offering a more efficient and scalable solution for sequence modeling.
+
+\subsection{Top-\(k\) Chunk Sparse Attention}
+
+As shown in Figure~\ref{fig:rwkvx_arch}, we introduce Top-\(k\) Chunk Sparse Attention in RWKV-X, which draws inspiration from Mixture of Block Attention (MoBA)~\cite{lu2025mobamixtureblockattention} and incorporates KV cache management to achieve constant-time complexity during inference decoding.
+Instead of computing attention over the full sequence, Top-\(k\) Chunk Sparse Attention enables each query to attend only to a small, relevant subset of the input, significantly reducing computational cost.
+
+First, given an input sequence of length $N$, it is divided into $n$ equal-sized chunks, where each chunk has a size of $B$.
+For each query token $q$, the model computes a relevance score $s_i$ for each chunk $i$ using the inner product between $q$ and the mean-pooled key vectors in that chunk:
+
+\begin{equation}
+s_i = q \cdot \left( \frac{1}{B} \sum_{j=1}^{B} k_j^{(i)} \right), \quad i = 1, \dots, n
+\end{equation}
+where \( k_j^{(i)} \) denotes the \( j \)-th key vector within the \( i \)-th chunk.
+
+Next, the indices of the top-\( k \) chunks with the highest scores are selected:
+\begin{equation}
+\mathcal{I} = \text{TopK}\left( \{ s_i \}_{i=1}^{n}, k \right)
+\end{equation}
+where \( \mathcal{I} \subseteq \{1, \dots, n\} \) is the set of selected chunk indices.
+
+Finally, attention is computed only over the key-value pairs from the selected chunks:
+\begin{equation}
+\text{Attn}(q, K_{\mathcal{I}}, V_{\mathcal{I}}) = \text{softmax}\left( \frac{q K_{\mathcal{I}}^\top}{\sqrt{d_k}} \right) V_{\mathcal{I}}
+\end{equation}
+
+Top-\(k\) Chunk Sparse Attention reduces the quadratic complexity of standard attention by restricting each query to attend only to a small set of highly relevant chunks. As a result, it preserves the model’s ability to capture long-range dependencies while significantly improving efficiency, particularly on long-context sequences.
+
+\subsubsection{KV Cache Management}
+In the decoding stage of inference, without KV cache management, the sequence length continuously increases. 
+Under such conditions, applying Top-\(k\) Chunk Sparse Attention alone cannot maintain constant space complexity. 
+
+To address this, we propose a KV cache management mechanism inspired by SnapKV~\cite{li2024snapkvllmknowslooking}, aiming to maintain a constant-size cache during decoding. 
+
+We first split the past cache into earlier cached states \((K_{\text{past}}, V_{\text{past}})\) and the recent observation window \((K_{\text{obs}}, V_{\text{obs}})\).
+
+We then compute an importance score vector \(C\) over \(K_{\text{past}}\) by summing the softmax-normalized attention scores between \(Q_{\text{obs}}\) and \(K_{\text{past}}\):
+
+\begin{equation}
+C = \sum_{i=1} \text{softmax}\left( \frac{Q_{\text{obs}} K_{\text{past}}^\top}{\sqrt{d_k}} \right)[i, :]
+\label{eq:importance_score_short}
+\end{equation}
+
+The top-\(m\) keys and values are selected based on \(C\), where \(m\) is a predefined memory budget.
+
+Finally, we reconstruct the compressed past cache by concatenating the selected entries with the observation window, ensuring constant memory usage without loss of critical information. 
+We refer the reader to Appendix~\ref{sec:kv_cache} for more details on KV cache management.
+
+
+\subsubsection{Complexity Analysis}
+\textbf{Complexity Analysis during Training.}
+The complexity of Top-$k$ Chunk Sparse Attention is \( O(kBN) \), where \(N\) is the sequence length, \(B\) is the chunk size, and \(k\) is the number of selected chunks. 
+Since \(k\) and \(B\) are small constants, the complexity scales linearly with \(N\), approaching \(O(N)\).
+
+\textbf{Complexity Analysis during Decoding.}
+During decoding, the past KV cache is compressed to a fixed size \(m\).
+Each step computes attention over \(O(kB + L_{\text{obs}})\) entries, where \(L_{\text{obs}}\) is the observation window size.
+As \(k\), \(B\), and \(L_{\text{obs}}\) are small constants, the total decoding complexity over \(N\) tokens remains \(O(N)\).
+
+We summarize the computational complexity and memory usage of different LLM architectures in Table~\ref{tab:complexity_comparison}, covering both training and decoding scenarios.
+
+\begin{table}[h]
+\centering
+\caption{Comparison of computational complexity and memory usage among different LLM architectures, in terms of training complexity per sequence and decoding complexity per token.}
+\label{tab:complexity_comparison}
+\resizebox{\columnwidth}{!}{
+\begin{tabular}{lccc}
+\toprule
+\textbf{Method} & \textbf{Training} & \textbf{Decoding} & \textbf{Memory} \\
+ & \textbf{Complexity} & \textbf{Complexity} & \textbf{Usage} \\
+\midrule
+Full Attention & \(O(N^2)\) & \(O(N)\) & \(O(N)\) \\
+RWKV-7 & \(O(N)\) & \(O(1)\) & \(O(1)\) \\
+Top-$k$ Chunk & \(O(kBN)\) & \(O(1)\) & \(O(1)\) \\
+RWKV-X & \(O(kBN+N)\) & \(O(1)\) & \(O(1)\) \\
+\bottomrule
+\end{tabular}
+}
+\end{table}
+
+
+\subsection{RWKV-X}
+As shown in Figure~\ref{fig:rwkvx_arch}, RWKV-X is a hybrid architecture that combines RWKV-7 blocks~\cite{peng2025rwkv7gooseexpressivedynamic} with sparse attention blocks.  
+To enhance the model’s capacity for modeling long-range dependencies, sparse attention blocks are periodically inserted between RWKV blocks.
+
+\subsubsection{Block Expansion Method}
+
+RWKV-X is not trained from scratch. Instead, it draws inspiration from the block expansion method of LLaMA Pro~\cite{wu-etal-2024-llama}, adopting interleaved block expansion and a zero-initialization mechanism. 
+This approach minimizes the number of parameters requiring random initialization, ensuring compatibility with the previous RWKV-7 model. 
+Subsequently, RWKV-X undergoes a two-stage training process for block expansion.
+In the first stage, short texts with a context length of 1024 from the MiniPile dataset~\cite{kaddour2023minipilechallengedataefficientlanguage} are used to train the model. 
+During this training phase, all parameters except those of the newly added blocks are frozen. 
+This approach brings the parameters to an aligned state, laying a solid foundation for subsequent long-context pretraining.
+The specific techniques used for long-context continual pretraining are introduced in the following subsection.
+
+\subsubsection{Long-context Continual Pretraining}
+
+In the second stage of long-context continual pretraining, we utilize the ProLong-64K training dataset~\cite{gao2025trainlongcontextlanguagemodels}. Training is conducted with a context length of 64K tokens, and the total training volume amounts to 1 billion tokens.
+During this phase, all model parameters—including those previously frozen—are unfrozen and jointly optimized.
+
+In the long-context continual pretraining stage, we employ the Long-context Cross-Entropy (LongCE) loss~\cite{fang2025wrongperplexitylongcontextlanguage} to emphasize critical tokens. 
+The LongCE loss assigns dynamic weights to each token based on the traditional cross-entropy loss. 
+Critical tokens receive weights greater than 1, while ordinary or out-of-scope tokens receive weights close to 1. 
+This mechanism enables the model to automatically focus on tokens with long-range contextual dependencies, enhancing its performance on long-context data.

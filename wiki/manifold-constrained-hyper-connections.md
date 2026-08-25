@@ -5,8 +5,11 @@ description: Manifold-constrained Hyper-Connections expand a Transformer’s res
 tags: [residual-connections, transformer, training-stability, hyper-connections]
 status: draft
 created: 2026-08-12
-generated: { by: llm-wiki-agent/1, at: 2026-08-12T00:00:00Z }
+generated: { by: llm-wiki-agent/1, at: 2026-08-25T00:00:00Z }
 sources:
+  - id: mhc-2025
+    resource: ../raw/2512.24880_mHC/main.tex
+    title: "mHC: Manifold-Constrained Hyper-Connections"
   - id: deepseek-v4-2026
     resource: ../raw/arXiv-2606.19348v1/main.tex
     title: "DeepSeek-V4: Towards Highly Efficient Million-Token Context Intelligence"
@@ -14,23 +17,25 @@ sources:
 
 # Manifold-constrained Hyper-Connections
 
-Manifold-constrained Hyper-Connections (mHC) expand the residual stream into $n_{hc}$ parallel channels while keeping the inner layer width unchanged. Unlike standard Hyper-Connections, mHC constrains residual mixing to the doubly stochastic Birkhoff polytope, so its residual transformation is non-expansive in spectral norm; DeepSeek-V4 uses $n_{hc}=4$ and reports it as a stability-oriented residual design.[^deepseek-v4-2026]
+Manifold-constrained Hyper-Connections (mHC) expand the residual stream into $n$ channels while retaining a width-$C$ layer function. mHC constrains channel-to-channel residual mixing to the doubly stochastic Birkhoff polytope, which bounds the mixing map’s spectral norm and preserves channel sums; the mHC report evaluates $n=4$ in DeepSeek-V3-style MoE models.[^mhc-2025]
 
-## Residual update
+## Residual update and constraint
 
-For expanded residual state $X_l\in\mathbb{R}^{n_{hc}\times d}$, mHC updates
+For expanded residual state $X_l\in\mathbb{R}^{n\times C}$, mHC updates
 
 $$
-X_{l+1}=B_lX_l+C_l\mathcal{F}_l(A_lX_l).
+X_{l+1}=H_l^{\mathrm{res}}X_l+(H_l^{\mathrm{post}})^\top\mathcal{F}(H_l^{\mathrm{pre}}X_l, W_l).
 $$
 
-The input map $A_l$, residual map $B_l$, and output map $C_l$ are generated from normalized current state plus learned static components. mHC bounds $A_l$ and $C_l$ with sigmoid functions and obtains $B_l$ by exponentiating raw scores then applying 20 Sinkhorn–Knopp row/column normalization iterations.[^deepseek-v4-2026]
+It generates raw input, output, and residual maps from RMS-normalized flattened $X_l$ plus learned static biases. The final input map is $\sigma(\tilde H_l^{\mathrm{pre}})$, the output map is $2\sigma(\tilde H_l^{\mathrm{post}})$, and the residual map applies Sinkhorn–Knopp to exponentiated raw scores. The source uses 20 alternating row/column normalization iterations, so the runtime matrix only approximates the constraint.[^mhc-2025]
 
-A doubly stochastic $B_l$ is non-negative with row and column sums of one, which bounds $\lVert B_l\rVert_2\leq1$; products of such matrices remain doubly stochastic. This supports a mathematical claim about the residual-mixing map, not a proof that the complete nonlinear network is stable or that mHC improves every training run.[^deepseek-v4-2026]
+An exact doubly stochastic $H_l^{\mathrm{res}}$ is non-negative, has every row and column sum to one, and has $\lVert H_l^{\mathrm{res}}\rVert_2\leq1$. Products remain doubly stochastic, so this directly controls the *linear carried residual path* across depth; it neither proves stability of the complete nonlinear network nor guarantees a quality gain in all runs.[^mhc-2025]
 
-## Implementation boundary
+## Reported evidence and systems design
 
-The V4 report says mHC increases activation memory and pipeline communication. Its fused kernels, selective recomputation, and adjusted pipeline overlap reportedly limit mHC’s wall-time overhead to 6.7% of an overlapped 1F1B pipeline stage. That measurement is specific to the reported system and does not establish an overhead bound for other architectures or hardware.[^deepseek-v4-2026]
+In the authors’ 27B comparison, mHC has a final training-loss gap of $-0.021$ relative to the baseline and beats that baseline on all eight listed downstream tasks; it exceeds unconstrained HC on seven of the eight task scores. The 3B/9B/27B compute curve and a 3B, 1T-token run retain a reported loss advantage over the baseline. These are author-run comparisons, not independent replication.[^mhc-2025]
+
+The same report attributes HC’s instability to compounding unconstrained residual maps: its displayed 27B composite gain approaches $3000$, whereas approximate mHC’s displayed composite backward gain peaks around $1.6$. To make the widened path practical, it uses fused mixed-precision kernels, selective activation recomputation, and communication overlap in a DualPipe extension; at $n=4$, it reports 6.7% extra training time. The result is system-, model-, and implementation-specific.[^mhc-2025]
 
 ## Relationships
 
@@ -40,6 +45,7 @@ The V4 report says mHC increases activation memory and pipeline communication. I
 
 ## Evidence limits
 
-The source reports the mechanism and implementation but provides no public ablation isolating mHC from V4’s attention, data, MoE, and optimizer changes. Its stability rationale only applies directly to the constrained linear residual map.[^deepseek-v4-2026]
+The mHC paper provides matched baseline/HC comparisons, but the visible evidence remains author-run and does not isolate every design choice within its DeepSeek-V3-style MoE setup. DeepSeek-V4 supplies a separate deployment use case, but cannot isolate mHC from its attention, data, MoE, and optimizer changes. The stability rationale applies directly only to the constrained linear residual map.[^mhc-2025][^deepseek-v4-2026]
 
+[^mhc-2025]: Zhenda Xie et al., “mHC: Manifold-Constrained Hyper-Connections,” [source](../raw/2512.24880_mHC/main.tex), Sections 1–5 and Appendix A.
 [^deepseek-v4-2026]: DeepSeek-AI, “DeepSeek-V4: Towards Highly Efficient Million-Token Context Intelligence,” arXiv:2606.19348v1, [source](../raw/arXiv-2606.19348v1/main.tex), Sections 2.2 and 4.4.2.

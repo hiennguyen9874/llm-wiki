@@ -1,0 +1,29 @@
+\section{Related Work}
+
+\subsection{Linear Complexity Language Models}
+Traditional transformer-based language models primarily rely on self-attention mechanisms with quadratic complexity, resulting in significant computational demands—especially when processing long sequences. 
+In response, recent research has focused on alternative architectures that achieve linear complexity while maintaining competitive performance.
+Notable examples include State-Space Models~\cite{gu2023mamba}, Linear Attention models~\cite{katharopoulos2020transformers}, and Linear RNNs~\cite{orvieto2023resurrecting}.
+
+The RWKV model\cite{peng2023rwkv} represents a noteworthy advancement, integrating characteristics of both transformers and RNNs. By maintaining a recurrent state representation similar to RNNs, while preserving the parallelizability of transformers during training, RWKV achieves linear complexity without compromising performance. The foundational RWKV-4~\cite{peng2023rwkv} architecture demonstrated that an RNN-like model could deliver competitive performance in language modeling. RWKV-5~\cite{peng2024eagle} introduced matrix-valued states and dynamic recurrence mechanisms, further enhancing efficiency and stability. RWKV-6~\cite{peng2024eagle} improved training stability, facilitating greater scalability, while RWKV-7~\cite{peng2025rwkv7gooseexpressivedynamic} incorporated dynamic state evolution, surpassing traditional attention-based models and enabling more flexible in-context learning.
+These advancements position the RWKV model as an effective and efficient linear complexity language model. As a result, it offers a promising alternative to transformers, maintaining robust language modeling capabilities while being computationally efficient.
+
+\subsection{Hybrid Language Models}
+Recent advances have shown that hybrid models outperform traditional architectures in both accuracy and efficiency. For example, Mamba~\cite{gu2023mamba} integrates retrieval-based and generative components, allowing models to leverage both pre-trained knowledge and external information sources. Building on this paradigm, recent models such as Jamba~\cite{Lieber2024JambaAH}, Zamba~\cite{glorioso2024zambacompact7bssm}, and MiniMax~\cite{minimax2025minimax01scalingfoundationmodels} further enhance hybrid architectures.
+
+Jamba improves multilingual understanding in low-resource settings by refining the interaction between retrieval and generation. Zamba introduces a compact SSM-transformer hybrid design that balances attention capabilities with parameter efficiency. MiniMax combines mixture-of-experts (MoE) with advanced sparse attention mechanisms to scale to longer contexts.
+
+While these hybrid approaches bring notable improvements, they still rely on full attention mechanisms, and thus \textbf{inherently preserving the $O(N^2)$ complexity}, which limits their scalability to truly long-context scenarios.
+
+\subsection{Sparse Attention}
+Native Sparse Attention~\cite{yuan2025nativesparseattentionhardwarealigned} reduces token interactions by structuring keys and values into temporal blocks and processing them through three distinct attention paths: compressed coarse-grained tokens, selectively retained fine-grained tokens, and sliding windows for local contextual information. This approach dynamically selects the most relevant tokens, optimizing the balance between global and local context while significantly reducing computational overhead.
+Similarly, SeerAttention~\cite{gao2025seerattentionlearningintrinsicsparse}, inspired by the gating mechanism in Mixture-of-Experts (MoE) models, enhances efficiency by introducing learnable gating units within the attention mechanism.
+
+Moreover, Mixture of Block Attention (MoBA)~\cite{lu2025mobamixtureblockattention} addresses the inefficiencies of traditional attention mechanisms by partitioning the input context into blocks and employing a gating mechanism to selectively route query tokens to the most relevant blocks. This design not only improves computational efficiency but also enables seamless transitions between full and sparse attention modes.
+However, during autoregressive decoding, MoBA suffers from increasing memory usage as the KV cache grows with the sequence length, leading to a linear space complexity. As a result, it cannot guarantee constant memory consumption during inference, which limits its scalability for long-context generation.
+
+%reference:
+%https://arxiv.org/pdf/2406.07887
+%https://arxiv.org/abs/2403.19887
+%https://huggingface.co/blog/bamba
+%https://arxiv.org/pdf/2501.08313

@@ -1,6 +1,9 @@
 # Wiki Update Log
 
 ## 2026-08-25
+- **Ingest**: Compiled [mHC: Manifold-Constrained Hyper-Connections](../raw/2512.24880_mHC/main.tex); upgraded [Manifold-constrained Hyper-Connections](manifold-constrained-hyper-connections.md) with its direct parameterization, matched 3B/9B/27B evidence, and system-specific overhead and stability limits.
+- **Ingest**: Compiled [RWKV-X: A Linear Complexity Hybrid Language Model](../raw/2504.21463_RWKV-X/acl_latex.tex); created [architecture and training](rwkv-x-hybrid-architecture-and-training.md) and [evaluation and deployment limits](rwkv-x-evaluation-and-deployment-limits.md) concepts, and upgraded [KV-cache compression](kv-cache-compression-and-trade-offs.md) with primary retention evidence and a visible complexity gap.
+- **Ingest**: Compiled [xLSTM: Extended Long Short-Term Memory](../raw/2405.04517_xLSTM/xlstm.tex); created [architecture](xlstm-extended-lstm-architecture.md) and [evaluation and deployment limits](xlstm-evaluation-and-deployment-limits.md) concepts.
 - **Query**: Filed [Gated DeltaNet-2: tách erase và write trong delta rule — khóa học cho người mới](gated-deltanet-2-beginners-course.md) as a top-down course — covers the scalar tie between erase and write in KDA/Gated DeltaNet, channel-wise erase/write decoupling, data flow, direct vs benchmarked impacts, baseline differences, deployment, then derivation, inspectable PyTorch and `torch.testing.assert_close` verification, and scoped benchmark/ablation/throughput evidence from [Gated DeltaNet-2](../raw/2605.22791_GatedDeltaNet-2/main.tex); updated the index.
 - **Update**: Added an interactive Mermaid diagram and an `[!info]` note-link callout to [SSD → Mamba-2: fixed-state sequence mixing từ trực giác đến implementation — bài học cho người mới](ssd-mamba2-beginners-guide.md), covering the SSD block input→projections→SSD mixer→diagonal/right/center/left→gate→output flow with shapes and Obsidian `internal-link` concept nodes.
 
