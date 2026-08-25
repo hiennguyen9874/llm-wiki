@@ -5,7 +5,7 @@ description: DeepSeek Sparse Attention uses a lightweight indexer to select toke
 tags: [attention, sparse-attention, deepseek, multi-head-latent-attention, long-context, inference]
 status: stable
 created: 2026-08-13
-generated: { by: llm-wiki-agent/1, at: 2026-08-14T06:56:09Z }
+generated: { by: llm-wiki-agent/1, at: 2026-08-25T16:13:08Z }
 sources:
   - id: deepseek-v3-2-2025
     resource: ../raw/arXiv-2512.02556v1/main.tex
@@ -16,6 +16,9 @@ sources:
   - id: glm5-code-2026
     resource: ../raw/glm-moe/modular_glm_moe_dsa.py
     title: Hugging Face GLM-MoE-DSA modular implementation
+  - id: longcat-lsa-2026
+    resource: ../raw/2608.01662_LongCatSparseAttention/longcat.tex
+    title: "LongCat Sparse Attention: Taming the Lightning via Streaming-aware Hierarchical Cross-Layer Indexing"
 ---
 
 # DeepSeek Sparse Attention
@@ -33,6 +36,10 @@ $$
 The selected set is the top-$k$ prior entries by $I_{t,s}$. Core attention then attends from the query to only their MLA key-value entries. The report attributes the indexer’s lower cost to few heads and an FP8 implementation, but does not provide an independent latency decomposition.[^deepseek-v3-2-2025]
 
 DSA is instantiated in MLA’s MQA mode: one latent key-value entry is shared across the query heads of a token. The source states that this sharing is required for kernel efficiency. Thus DSA retains MLA’s compressed, token-addressable entries but limits which prior entries each query reads.[^deepseek-v3-2-2025]
+
+## LongCat profile of the residual bottlenecks
+
+A later LongCat report profiles DSA's token-level selections as memory-inefficient: its selected MLA vectors are scattered rather than coalesced, and its stated accelerator measurement reached about 4.5% of peak HBM bandwidth. The report also measures the indexer as 90% of per-layer decode latency at 1,024K context in its BF16, batch-4, $K=2048$ setup. These are useful motivation for LSA, but they are hardware-, kernel-, and configuration-specific measurements rather than properties established for every DSA implementation.[^longcat-lsa-2026]
 
 ## Continued-training recipe
 
@@ -53,6 +60,7 @@ The released implementation scores tokens with weighted ReLU indexer heads and s
 - **Specializes:** [Multi-head Latent Attention](multi-head-latent-attention.md) by selecting a sparse token subset before MQA over MLA entries.[^deepseek-v3-2-2025]
 - **Used by:** [DeepSeek-V3.2 post-training, agentic synthesis, and evaluation limits](deepseek-v3-2-post-training-agentic-evaluation.md) during sparse continued pre-training and post-training.[^deepseek-v3-2-2025]
 - **Addresses:** [KV-cache compression and trade-offs](kv-cache-compression-and-trade-offs.md) at attention-read computation; DSA does not by itself make token cache state fixed-size.[^deepseek-v3-2-2025]
+- **Extended by:** [LongCat Sparse Attention](longcat-sparse-attention.md), which targets reported selected-KV locality and repeated-indexing costs.[^longcat-lsa-2026]
 
 ## Evidence limits
 
@@ -63,3 +71,5 @@ The original mechanism, training counts, parity findings, and cost curves are fr
 [^glm5-report-2026]: GLM-5 Team, “GLM-5: from Vibe Coding to Agentic Engineering,” arXiv:2602.15763v2, [pre-training section](../raw/arXiv-2602.15763v2/2_pretrain.tex), Continued Pre-Training with DSA and efficient-attention ablations.
 
 [^glm5-code-2026]: Hugging Face, “GLM-MoE-DSA modular implementation,” [source](../raw/glm-moe/modular_glm_moe_dsa.py), indexer, attention, and model classes; cross-checked against the generated [modeling module](../raw/glm-moe/modeling_glm_moe_dsa.py).
+
+[^longcat-lsa-2026]: Wen Zan et al., “LongCat Sparse Attention: Taming the Lightning via Streaming-aware Hierarchical Cross-Layer Indexing,” 2026, [source](../raw/2608.01662_LongCatSparseAttention/longcat.tex), Sections 2–4.

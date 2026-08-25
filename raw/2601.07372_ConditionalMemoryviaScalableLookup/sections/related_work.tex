@@ -1,0 +1,43 @@
+\section{Related Work}
+
+\paragraph{$N$-gram Modeling and Embedding Scaling.}
+Originating from Shannon's framework~\citep{shannon1948mathematical}, $N$-gram models rely on local history to predict tokens, traditionally employing smoothing techniques~\citep{kneser1995improved,DBLP:journals/tsp/Katz87} to mitigate data sparsity. Despite the paradigm shift toward neural architectures~\citep{bengio2003neural} for capturing long-range dependencies, the computational efficiency of $N$-gram lookups has been preserved in modern representation learning, as exemplified by seminal works like FastText~\citep{bojanowski2017enriching}.
+
+Recently, this paradigm has resurged as \textit{embedding scaling}. While architectures such as Per-Layer Embeddings~\citep{gemma_3n_2025}, STEM~\citep{sadhukhan2026stem}, L3~\citep{tseng20263} and DeepEmbed~\citep{rwkv_deepembed_wiki_2025} expand capacity via massive tables, a distinct line of pioneering research—most relevant to our approach—integrates compositional $N$-gram structures directly into the representation space. 
+N-Grammer~\citep{roy2022n} directly augments the transformer architecture with $N$-gram that are constructed from a discrete latent text representation, while \citet{feng2023memory} demonstrates the effectiveness of $N$-gram for speech recognition.
+SuperBPE~\citep{liu2025superbpe} and SCONE~\citep{yu2025scaling} explicitly target high-frequency patterns: the former by merging multi-word expressions into ``superword'' tokens, and the latter via an auxiliary encoding model. 
+In parallel, OverEncoding~\citep{huang2025over} and Byte Latent Transformer (BLT)~\citep{pagnoni2025byte} adopt hash $N$-gram embeddings to capture local dependencies at the token and byte levels, respectively. These studies collectively demonstrate the efficacy of scaling parameters through $N$-gram representations with minimal computational overhead. While these approaches offer significant gains in their respective settings, our work diverges fundamentally in two key dimensions. 
+\begin{itemize}
+    \item First, regarding modeling and evaluation protocols. Prior approaches often treat $N$-gram embeddings as external augmentations without validating their efficiency under strictly fair comparison protocols. For instance, SCONE \citep{yu2025scaling} is inference-focused and relies on auxiliary modules that incur additional training FLOPs. Similarly, OverEncoding \citep{huang2025over} fails to yield meaningful improvements on sparse MoE backbones even under a non-isoparametric setting. In contrast, we treat conditional memory as a first-class modeling primitive instantiated via the carefully designed Engram module. By rigorously evaluating this design within our \textit{Sparsity Allocation} framework, we demonstrate its clear advantage over strictly iso-parameter and iso-FLOPs MoE baselines.
+    \item  Second, from a system perspective, we advocate for algorithm-system co-design. Existing approaches place embeddings strictly at the input layer (Layer 0), which inherently serializes memory access and computation~\citep{yu2025scaling,huang2025over}. Engram, conversely, strategically injects memory into deeper layers to enable communication-computation overlap. Furthermore, by exploiting the inherent Zipfian distribution of $N$-grams, we could maximize the utility of the hardware memory hierarchy. This holistic design allows Engram to scale to massive parameters with negligible inference overhead.
+\end{itemize}
+
+\paragraph{High-Cardinality Categorical Embeddings.}
+A closely related representation problem arises in large-scale recommender systems, where models learn embeddings for hundreds of categorical features whose vocabularies may contain millions to billions of IDs~\citep{coleman2023unified}.
+Prior work improves the parameter--accuracy and memory-access trade-offs through multi-hash and compositional representations~\citep{tito2017hash,shi2020compositional},
+frequency-aware hashing and collision management
+~\citep{zhang2020model,tsang2022clustering,zhang2024cafe},
+frequency- or importance-adaptive capacity allocation
+~\citep{ginart2021mixed,joglekar2020neural,liu2021learnable},
+and structured compression based on quantization, tensor decomposition,
+or shared memory layouts
+~\citep{kang2020learning,yin2021tt,desai2021random}.
+Other approaches share representations across multiple categorical fields
+~\citep{coleman2023unified}, generate embeddings without explicit tables
+~\citep{kang2021learning}, or replace arbitrary item IDs with learned
+semantic identifiers
+~\citep{rajput2023recommender,singh2024better}.
+Engram shares with this literature the challenge of representing an
+extremely large discrete key space under a highly skewed access
+distribution, but differs in constructing keys from ordered textual
+$N$-grams and injecting the retrieved representations into intermediate
+Transformer layers through context-aware gating.
+
+\paragraph{Mixture-of-Experts.} MoE architectures decouple model capacity from computational cost by conditionally activating a sparse subset of experts per token, a paradigm introduced by~\citet{shazeer2017outrageously}. Subsequent innovations such as GShard~\citep{lepikhin2020gshard}, BASE~\citep{pmlr-v139-lewis21a}, Switch Transformer~\citep{fedus2022switch} and GLaM~\citep{du2022glam} enabled super-linear parameter scaling while maintaining constant inference costs. More recently, DeepSeek-MoE~\citep{dai2024deepseekmoe} demonstrated superior efficiency, significantly outperforming dense models with equivalent active parameters via fine-grained expert segmentation and shared expert isolation. Adopting this architecture, state-of-the-art models such as DeepSeek-V3~\citep{liu2024deepseek} and Kimi-k2~\citep{kimi-k2} have further pushed total parameters to hundreds of billions scale.
+ 
+\paragraph{Memory Network.}
+Research on memory-augmented networks aims to expand model capacity without a proportional increase in computational cost, broadly categorized into parametric and non-parametric approaches. Parametric memory methods, such as PKM~\citep{lample2019large}, PEER~\citep{he2024mixture}, Selfmem~\citep{cheng2023lift}, Memory+~\citep{berges2024memory} and UltraMem~\citep{huang2024ultra,huang2025ultramemv2}, integrate large-scale, sparse key-value stores directly into the model layers, thereby significantly increasing capacity with negligible impact on FLOPs. 
+Conversely, non-parametric memory approaches like REALM~\citep{guu2020retrieval}, RETRO~\citep{borgeaud2022improving,wang2023shall}, CoG~\citep{lan2023copy,caoretrieval} and PlugLM~\citep{cheng2023decouple} decouple knowledge storage from model processing, treating the external memory as an editable and scalable key-value store that allows the model to adapt to evolving information without expensive retraining.
+
+\paragraph{Mechanisms of Knowledge Storage.}
+Parallel to capacity scaling, substantial research has scrutinized the internal mechanisms governing how Transformers encode and retrieve factual knowledge. The Feed-Forward Networks (FFNs) are widely hypothesized to function as Key-Value memories~\citep{geva2021transformer}. Under this framework, the first layer acts as a pattern detector ("keys") while the second layer projects specific information into the residual stream ("values"). This modularity is evidenced by the identification of specific ``knowledge neurons'' responsible for storing distinct facts~\citep{dai2022knowledge}. Further validation is provided by causal tracing methodologies, which map the information flow of factual recall to specific FFN layers~\citep{meng2022locating}. These insights have enabled precise model editing algorithms such as ROME~\citep{meng2022locating} and MEMIT~\citep{meng2022mass}, which allow for the direct update of factual associations without retraining. Moreover, investigations into internal representations, such as those in Othello-GPT~\citep{li2024emergentworldrepresentationsexploring}, suggest that these storage mechanisms may facilitate the emergence of structured ``world models'' rather than mere statistical memorization.

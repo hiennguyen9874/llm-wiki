@@ -5,7 +5,7 @@ description: Sequential multi-token prediction trains additional causal modules 
 tags: [pretraining, multi-token-prediction, speculative-decoding, language-modeling]
 status: stable
 created: 2026-08-01
-generated: { by: llm-wiki-agent/1, at: 2026-08-14T06:56:09Z }
+generated: { by: llm-wiki-agent/1, at: 2026-08-25T16:21:40Z }
 sources:
   - id: deepseek-v3-2024
     resource: ../raw/arXiv-2412.19437v2/main.tex
@@ -28,6 +28,15 @@ sources:
   - id: qwen38-modeling
     resource: ../raw/Qwen3.8-2.4T-A95B/modeling_qwen3_5_moe.py
     title: Qwen3.5-MoE Transformers reference implementation
+  - id: ling3-card-2026
+    resource: ../raw/Ling-3.0-flash/Ling-3.0-flash.md
+    title: Ling-3.0-flash model card
+  - id: ling3-tiny-card-2026
+    resource: ../raw/Ling-3.0-tiny/Ling-3.0-tiny.md
+    title: Ling-3.0-tiny model card
+  - id: ling3-tiny-architecture-2026
+    resource: ../raw/Ling-3.0-tiny/Ling-3.0-tiny-architecture.png
+    title: Ling-3.0-tiny architecture diagram
 ---
 
 # Sequential multi-token prediction
@@ -50,6 +59,14 @@ In matched small and large MoE ablations, V3’s MTP variants improve most liste
 
 GLM-5 trains three sequential MTP depths with shared parameters rather than allocating one distinct layer per depth. The report’s intent is to preserve a multi-step causal training chain while keeping draft parameter memory comparable to DeepSeek-V3’s single MTP layer. With four speculative steps on a private prompt set, it reports mean accepted length 2.76 versus 2.55 for DeepSeek-V3.2; no latency, distribution, or variance is disclosed.[^glm5-report-2026]
 
+## Ling-3.0-flash deployment declaration
+
+Ling-3.0-flash's diagram declares next-token prediction plus MTP as training objectives. Its card recommends MTP/NEXTN decoding in SGLang and a custom-vLLM configuration with MTP speculation over three proposed tokens. It does not specify the MTP depth, loss weight, proposal acceptance rate, target-verification procedure, or measured end-to-end speedup, so this is evidence of a vendor-declared training and serving path rather than evidence of a reproducible MTP implementation or performance result.[^ling3-card-2026]
+
+## Ling-3.0-tiny deployment declaration
+
+Ling-3.0-tiny’s diagram declares next-token prediction plus MTP objectives, and its SGLang recipe enables built-in MTP/NEXTN. Neither the card nor diagram specifies MTP depth, loss weight, proposal count, target-verification procedure, acceptance rate, or the speed contribution of MTP. This is a vendor-declared training and serving path, not a reproducible MTP implementation or performance result.[^ling3-tiny-card-2026][^ling3-tiny-architecture-2026]
+
 ## Nemotron 3.5 Lightning implementation boundary
 
 [Nemotron 3.5 Lightning](nemotron-3-5-lightning-architecture-and-training.md) reports continued pre-training of MTP layers and MTP-accelerated RL rollouts. Its checkpoint config declares one next-token-prediction extension composed of full attention and MoE blocks. However, the bundled Transformers causal-LM implementation never constructs those configured MTP blocks or computes an MTP loss. This source therefore evidences the released model’s MTP metadata and training claim, but not a runnable implementation or acceptance/speed result for native MTP.[^nemotron-lightning-card][^nemotron-lightning-config][^nemotron-lightning-code]
@@ -60,13 +77,13 @@ Qwen3.8-2.4T-A95B’s configuration declares one MTP hidden layer, but its suppl
 
 ## Relationships
 
-- **Used by:** [DeepSeek-V3 architecture and pretraining](deepseek-v3-architecture-and-pretraining.md) as a one-depth objective and [GLM-5 architecture, pre-training, and systems](glm-5-architecture-pretraining-and-systems.md) with three shared-parameter depths.[^glm5-report-2026]
+- **Used by:** [DeepSeek-V3 architecture and pretraining](deepseek-v3-architecture-and-pretraining.md) as a one-depth objective, [GLM-5 architecture, pre-training, and systems](glm-5-architecture-pretraining-and-systems.md) with three shared-parameter depths, and [Ling-3.0-flash hybrid architecture](ling-3-0-flash-hybrid-architecture.md) and [Ling-3.0-tiny hybrid architecture](ling-3-0-tiny-hybrid-architecture.md) as declared but undisclosed objectives.[^glm5-report-2026][^ling3-card-2026][^ling3-tiny-architecture-2026]
 - **Can operationalize:** [Speculative decoding exact sampling](speculative-decoding-exact-sampling.md) after target verification.
 - **Qualified by:** [Speculative decoding performance trade-offs](speculative-decoding-performance-trade-offs.md), where draft cost, acceptance, verification, and serving overhead determine realized speedup.
 
 ## Evidence limits
 
-This is primary evidence for the V3 implementation and its controlled ablations, but not evidence that sequential MTP is universally better than parallel heads or other draft designs. The stated quality and speed claims are author-run results under undisclosed full system and workload details.[^deepseek-v3-2024]
+The DeepSeek-V3 report is primary evidence for its implementation and controlled ablations, but not evidence that sequential MTP is universally better than parallel heads or other draft designs. Ling-3.0-flash and Ling-3.0-tiny supply only vendor declarations and launch recommendations, not enough detail to identify an MTP implementation or validate its performance. The stated quality and speed claims are author-run results under undisclosed full system and workload details.[^deepseek-v3-2024][^ling3-card-2026][^ling3-tiny-card-2026]
 
 [^deepseek-v3-2024]: DeepSeek-AI, “DeepSeek-V3 Technical Report,” arXiv:2412.19437v2, [source](../raw/arXiv-2412.19437v2/main.tex), Sections 2.2, 5.3, 6.3, and Table 4.
 
@@ -81,3 +98,9 @@ This is primary evidence for the V3 implementation and its controlled ablations,
 [^qwen38-config]: Qwen Team, “Qwen3.8-2.4T-A95B checkpoint configuration,” [config](../raw/Qwen3.8-2.4T-A95B/config.json).
 
 [^qwen38-modeling]: Qwen Team and Hugging Face, “Qwen3.5-MoE Transformers reference implementation,” [source](../raw/Qwen3.8-2.4T-A95B/modeling_qwen3_5_moe.py), `Qwen3_5MoeForCausalLM`.
+
+[^ling3-card-2026]: InclusionAI, “Ling-3.0-flash,” [model card](../raw/Ling-3.0-flash/Ling-3.0-flash.md), architecture diagram, Introduction, and Quickstart.
+
+[^ling3-tiny-card-2026]: InclusionAI, “Ling-3.0-tiny,” [model card](../raw/Ling-3.0-tiny/Ling-3.0-tiny.md), Introduction and Quickstart.
+
+[^ling3-tiny-architecture-2026]: InclusionAI, “Ling-3.0-tiny Architecture,” [included diagram](../raw/Ling-3.0-tiny/Ling-3.0-tiny-architecture.png).

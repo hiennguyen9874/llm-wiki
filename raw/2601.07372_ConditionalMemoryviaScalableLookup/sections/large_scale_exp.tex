@@ -1,0 +1,109 @@
+\section{Large Scale Pre-training}
+\definecolor{refgray}{gray}{0.5}
+\begin{table}[!h]
+    \centering
+        \caption{\textbf{Pre-training performance comparison between dense, MoE, and Engram models}. All models are trained for 262B tokens and are matched in activated parameters (3.8B). Engram-27B is iso-parameters with MoE-27B by reallocating parameters from routed experts~(72 $\to$ 55) to a 5.7B-parameter Engram memory. Engram-40B further increases Engram memory (18.5B parameters) while keeping the activated-parameter budget fixed. Full training-time benchmark trajectories are reported in \autoref{appendix:benchmark_curve}.}
+    \footnotesize
+    \setlength{\tabcolsep}{4.5pt}
+     \begin{tabular}{@{}c l c | c | c c !{\color{refgray}\vrule} >{\color{refgray}}c@{}}
+    \toprule
+        & \textbf{Benchmark \tiny(Metric)} & \textbf{\# Shots} & \textbf{Dense-4B} & \textbf{MoE-27B} & \textbf{Engram-27B} & \textbf{\color{refgray}Engram-40B} \\
+    \midrule
+    & \# Total Params &  & 4.1B & 26.7B & 26.7B & 39.5B \\
+    & \# Activated  \tiny(w/o token embed) &  & 3.8B & 3.8B & 3.8B & 3.8B \\
+    & \# Trained Tokens &  & 262B & 262B & 262B &  262B \\
+    & \# Experts \tiny(shared + routed, top-$k$) &  & - & $2+72$ (top-6) & $2+55$ (top-6) & $2+55$ (top-6) \\
+    & \# Engram Params &  & - & - & 5.7B & 18.5B \\
+    \midrule
+    \multirow{2}{*}{\shortstack{Language\\Modeling}} & Pile {\tiny (loss)} & - & 2.091 & 1.960 & \textbf{1.950} & 1.942 \\
+    & Validation Set {\tiny (loss)} & - & 1.768 & 1.634 & \textbf{1.622} & 1.610 \\
+    \midrule
+    \multirow{15}{*}{\shortstack{Knowledge\\\&\\Reasoning}} 
+    & MMLU {\tiny (Acc.)} & 5-shot & 48.6 & 57.4 & \textbf{60.4} &  60.6 \\
+    & MMLU-Redux {\tiny (Acc.)} & 5-shot & 50.7 & 60.6 & \textbf{64.0} & 64.5 \\
+    & MMLU-Pro {\tiny (Acc.)} & 5-shot & 21.1 & 28.3 & \textbf{30.1} & 31.3  \\
+    & CMMLU {\tiny (Acc.)} & 5-shot & 47.9 & 57.9 & \textbf{61.9} &  63.4 \\
+    & C-Eval {\tiny (Acc.)} & 5-shot & 46.9 & 58.0 & \textbf{62.7} & 63.3 \\
+    & AGIEval {\tiny (Acc.)} & 0-shot & 29.1 & 38.6 & \textbf{41.8} & 45.9 \\
+    & ARC-Easy {\tiny (Acc.)} & 25-shot & 76.8 & 86.5 & \textbf{89.0} & 90.1 \\
+    & ARC-Challenge {\tiny (Acc.)} & 25-shot & 59.3 & 70.1 & \textbf{73.8} &  76.4 \\
+    & TriviaQA {\tiny (EM)} & 5-shot & 33.0 & 48.8 & \textbf{50.7} & 51.8 \\
+    & TriviaQA-ZH {\tiny (EM)} & 5-shot & 62.8 & 74.8 & \textbf{76.3} & 77.9 \\
+    & PopQA {\tiny (EM)} & 15-shot & 15.1 & 19.2 & \textbf{19.4} & 21.2 \\
+    & CCPM {\tiny (Acc.)} & 0-shot & 72.2 & 79.6 & \textbf{87.1} &  87.7 \\
+    & BBH {\tiny (EM)} & 3-shot & 42.8 & 50.9 & \textbf{55.9} &  57.5 \\
+    & HellaSwag {\tiny (Acc.)} & 0-shot & 64.3 & 71.8 & \textbf{72.7} & 73.1 \\
+    & PIQA {\tiny (Acc.)} & 0-shot & 63.8 & 71.9 & \textbf{73.5} &  76.5 \\
+    & WinoGrande {\tiny (Acc.)} & 5-shot & 64.0 & 67.6 & \textbf{67.8} &  68.1 \\
+    \midrule
+    \multirow{4}{*}{\shortstack{Reading\\Comprehension}} 
+    & DROP {\tiny (F1)} & 1-shot & 41.6 & 55.7 & \textbf{59.0} & 60.7 \\
+    & RACE-Middle {\tiny (Acc.)} & 5-shot & 72.4 & 80.9 & \textbf{82.8} & 83.3 \\
+    & RACE-High {\tiny (Acc.)} & 5-shot & 66.0 & 75.4 & \textbf{78.2} & 79.2 \\
+    & C3 {\tiny (Acc.)} & 0-shot & 57.7 & 60.1 & \textbf{63.6} &  61.8 \\
+    \midrule
+    \multirow{8}{*}{\shortstack{Code \& Math}} 
+    & HumanEval {\tiny (Pass@1)} & 0-shot & 26.8 & 37.8 & \textbf{40.8} & 38.4  \\
+    & MBPP {\tiny (Pass@1)} & 3-shot & 35.4 & 46.6 & \textbf{48.2} & 46.2 \\
+    & CruxEval-i {\tiny (EM)} & 0-shot &27.6&30.7 & \textbf{32.2} & 36.2 \\
+    & CruxEval-o {\tiny (EM)} & 0-shot &28.7&34.1 & \textbf{35.0} & 35.3 \\
+    & GSM8K {\tiny (EM)} & 8-shot & 35.5 & 58.4 & \textbf{60.6} & 62.6 \\
+    & MGSM {\tiny (EM)} & 8-shot & 27.0 & 46.8 & \textbf{49.4} &  52.4 \\
+    & MATH {\tiny (EM)} & 4-shot & 15.2 & 28.3 & \textbf{30.7} & 30.6 \\
+    \bottomrule
+    \end{tabular}
+
+    \label{tab:27b_eval}
+\end{table}
+
+
+With the proposed Engram architecture and the empirically derived allocation law, we scale Engram to the multi-billion parameter to validate its efficacy in real-world language model pre-training. Specifically, we train four models:
+(1) \textbf{Dense-4B} (4.1B total parameters),
+(2) \textbf{MoE-27B} (26.7B total parameters),
+(3) \textbf{Engram-27B} (26.7B total parameters), and
+(4) \textbf{Engram-40B} (39.5B total parameters).
+All models are trained using an identical data curriculum (same token budget and order) and are strictly matched in the number of activated parameters.
+
+\subsection{Experimental Setup}
+
+\paragraph{Training Data and Model Configurations} All models are pre-trained on a corpus of 262 billion tokens and we utilize the tokenizer from DeepSeek-v3~\citep{liu2024deepseek} with a vocabulary size of 128k. For modeling, to ensure a controlled comparison, we adhere to a consistent default setting across all models unless explicitly stated otherwise. We utilize a 30-block Transformer with a hidden size of 2560. Each block integrates a Multi-head Latent Attention (MLA)~\citep{deepseekai2024deepseekv2strongeconomicalefficient} with 32 heads, connected to FFNs via mHC~\citep{xie2025mhcmanifoldconstrainedhyperconnections} with an expansion rate of 4. All models are optimized using Muon~\citep{jordan2024muon,liu2025muon}; detailed hyperparameters are listed in the \autoref{appendix:detailed_model_arch}. We instantiate four distinct models:
+
+\begin{itemize}
+    \item \textbf{Dense-4B} serves as the baseline model. It utilizes the backbone architecture described above, incorporating a standard dense FFN into every block.
+
+    \item \textbf{MoE-27B} replaces the standard dense FFN with a DeepSeekMoE module~\citep{dai2024deepseekmoe}. Configured with 72 routed experts and 2 shared experts (activating the top-$k=6$ routed experts per token), this model scales to 26.7B total parameters while maintaining the same activated parameters as Dense-4B.
+
+    \item \textbf{Engram-27B} is strictly derived from the \textbf{MoE-27B} architecture to ensure fair comparison. We reduce the number of routed experts from 72 to 55 and reallocate the freed parameters to a 5.7B-parameter embedding module~($\rho=74.3\%$), keeping the total model size constant at 26.7B. Regarding the Engram configuration, we instantiate the module at layers 2 and 15 and set the maximum $N$-gram size to 3, the number of heads to 8, and the dimension to 1280. For optimization, the embedding parameters are updated using Adam~\citep{kingma2014adam} with a learning rate scaled by $5\times$ and no weight decay, while the convolution parameters are initialized to zero to strictly preserve the identity mapping at the start of training.
+
+    \item \textbf{Engram-40B} retains the same backbone and computation budget as Engram-27B but scales the sparse embedding module to 18.5B parameters (totaling 39.5B parameters). This model is designed to investigate the scaling properties of Engram.
+\end{itemize}
+
+\paragraph{Evaluation Protocol}
+We evaluate models on a diverse suite of benchmarks spanning language modeling, knowledge, reasoning, reading comprehension, and code/math.
+For each benchmark, we follow standard prompting protocols and evaluation metrics.
+
+\begin{itemize}
+    \item \textbf{Language Modeling:}
+    We report loss on the test set of The Pile~\citep{gao2020pile} and an validation set drawn from the same distribution as the training data.
+
+    \item \textbf{Knowledge \& Reasoning:}
+    MMLU~\citep{hendrycks2020measuring}, MMLU-Redux~\citep{gema2025we}, MMLU-Pro~\citep{wang2024mmlu}, CMMLU~\citep{li2024cmmlu}, C-Eval~\citep{huang2023c}, AGIEval~\citep{zhong2024agieval}, ARC-Easy/Challenge~\citep{clark2018think}, TriviaQA~\citep{joshi2017triviaqa}, TriviaQA-ZH (internal), PopQA~\citep{mallen2023not}, CCPM~\citep{li2021ccpm}, BBH~\citep{suzgun2023challenging}, HellaSwag~\citep{zellers2019hellaswag}, PIQA~\citep{bisk2020piqa}, and WinoGrande~\citep{sakaguchi2021winogrande}.
+
+    \item \textbf{Reading Comprehension:}
+    DROP~\citep{dua2019drop}, RACE (Middle/High)~\citep{lai2017race}, and C3~\citep{sun2020investigating}.
+
+    \item \textbf{Code \& Math:}
+    HumanEval~\citep{chen2021evaluatinglargelanguagemodels}, MBPP~\citep{austin2021program}, CruxEval~\citep{gu2024cruxeval}, GSM8K~\citep{cobbe2021training}, MGSM~\citep{shi2022language}, and MATH~\citep{hendrycks2021measuring}.
+\end{itemize}
+
+\subsection{Experimental Results}
+
+\autoref{tab:27b_eval} summarizes the main results.
+First, consistent with prior literature~\citep{shazeer2017outrageously,he2024mixture,borgeaud2022improving}, sparse architectures demonstrate superior scaling laws compared to dense models. Under the same training compute budget, all three sparse variants (MoE-27B, Engram-27B/40B) significantly outperform the iso-FLOPs Dense-4B baseline across all benchmarks.
+
+More importantly, Engram-27B consistently improves over the iso-parameter and iso-FLOPs MoE-27B baseline. Interestingly, these gains are not limited to knowledge-intensive tasks (e.g., MMLU: +3.0, MMLU-Pro: +1.8, CMMLU: +4.0), where memory capacity is intuitively beneficial. We observe even more significant improvements in general-reasoning domains (e.g., BBH: +5.0, ARC-Challenge: +3.7, DROP: +3.3), as well as code and mathematical reasoning (e.g., HumanEval: +3.0, MBPP: +1.6, GSM8K: +2.2, MATH: +2.4). To reduce the impact of benchmark noise and to visualize training dynamics, we provide full benchmark trajectories during pre-training in \autoref{appendix:benchmark_curve}.
+These results support our hypothesis that introducing a dedicated knowledge lookup primitive improves representation efficiency beyond what can be achieved by allocating the entire sparse budget to conditional computation.
+
+Finally, scaling to Engram-40B further reduces pre-training loss and improves performance across most benchmarks. Although it does not yet strictly dominate Engram-27B on every task, this is likely an artifact of under-training. We observe that the training loss gap between Engram-40B and the baselines continues to widen towards the end of training, suggesting that the expanded memory capacity has not yet fully saturated within the current token budget.
+
+

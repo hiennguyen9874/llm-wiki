@@ -1,0 +1,229 @@
+
+\documentclass[11pt, a4paper, logo, copyright, nonumbering]{deepseek}
+\usepackage[authoryear, sort&compress, round]{natbib}
+\usepackage{dblfloatfix}
+\usepackage{ulem}
+\usepackage{caption}
+\usepackage{subcaption}
+\usepackage{makecell}
+\usepackage[utf8]{inputenc}
+% \usepackage{listings}
+% \lstset{breaklines=true}
+\usepackage{dramatist}
+\usepackage{xspace}
+\usepackage{pifont}% http://ctan.org/pkg/pifont
+\usepackage{multirow}
+\usepackage{tcolorbox}
+\usepackage{tabularx}
+\usepackage{xltabular}
+\usepackage{longtable}
+\usepackage{hyperref}
+\AtBeginDocument{
+    \def\sectionautorefname{Section}
+    \def\subsectionautorefname{Section}
+    \def\subsubsectionautorefname{Section}
+}
+\hypersetup{
+    colorlinks=true,
+    linkcolor=blue,
+    citecolor=blue,
+    urlcolor=blue,
+    filecolor=blue
+}
+\usepackage{xcolor}
+\usepackage{array}
+\interfootnotelinepenalty=10000
+
+\usepackage{amsfonts}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{lineno}
+\usepackage{bm}
+\usepackage{booktabs}
+\usepackage{ragged2e}
+
+
+\usepackage[bottom]{footmisc}
+% \linenumbers
+
+\usepackage{CJKutf8}
+% \usepackage{subfigure}
+\usepackage{setspace}
+
+\usepackage{dsfont}
+
+\makeatletter
+\def\@BTrule[#1]{%
+  \ifx\longtable\undefined
+    \let\@BTswitch\@BTnormal
+  \else\ifx\hline\LT@hline
+    \nobreak
+    \let\@BTswitch\@BLTrule
+  \else
+     \let\@BTswitch\@BTnormal
+  \fi\fi
+  \global\@thisrulewidth=#1\relax
+  \ifnum\@thisruleclass=\tw@\vskip\@aboverulesep\else
+  \ifnum\@lastruleclass=\z@\vskip\@aboverulesep\else
+  \ifnum\@lastruleclass=\@ne\vskip\doublerulesep\fi\fi\fi
+  \@BTswitch}
+\makeatother
+
+\addto\extrasenglish{
+    \def\chapterautorefname{Chapter}%
+    \def\sectionautorefname{Section}%
+    \def\paragraphautorefname{Section}
+    \def\subparagraphautorefname{Section}
+    \def\paragraphautorefname{Paragraph}%
+    \def\tableautorefname{Table}%
+    \def\equationautorefname{Equation}%
+}
+
+\newenvironment{indentchunk}[1]%
+ {\begin{list}{}%
+         {\setlength{\leftmargin}{#1}}%
+         \item[]%
+ }
+ {\end{list}}
+ 
+\bibliographystyle{abbrvnat}
+% \bibliography{main}
+
+\reportnumber{001} % Leave blank if n/a
+
+% \renewcommand{\today}{2021-12-08}
+\renewcommand{\today}{}
+
+\title{
+\centering Conditional Memory via Scalable Lookup: \\ A New Axis of Sparsity for Large Language Models
+}
+
+
+\author[]{
+Xin Cheng$^{1,2*}$, Rui Tian$^{2*}$, Wangding Zeng$^{2}$, Damai Dai$^{2}$, Qinyu Chen$^{2}$, 
+
+\vspace{-0.1in}
+Bingxuan Wang$^{2}$, Zhenda Xie$^{2}$, Kezhao Huang$^{2}$, Xingkai Yu$^{2}$
+
+\vspace{-0.1in}
+Chengqi Deng$^{2}$, Shangyan Zhou$^{2}$, Chenggang Zhao$^{2}$, Zhewen Hao$^{2}$
+
+\vspace{-0.1in}
+Yukun Li$^{2}$, Han Zhang$^{2}$, Zhengyan Zhang$^{2}$, Yixuan Wei$^{2}$, M.Y Xu$^{2}$
+
+\vspace{-0.1in}
+Huishuai Zhang$^{1}$, Dongyan Zhao$^{1}$, Wenfeng Liang$^{2}$ \\
+\vspace{-0.1in}
+\small
+$^1$Peking University  \quad $^2$DeepSeek-AI \\
+\small
+\{zhanghuishuai, zhaody\}@pku.edu.cn \\
+\small 
+\{chengxin, tianr22, zengwangding, damai.dai\}@deepseek.com
+
+
+
+\vspace{-0.2in}
+}
+
+\input{commands.tex}
+
+\newcommand{\fix}{\marginpar{FIX}}
+\newcommand{\new}{\marginpar{NEW}}
+
+\begin{abstract}
+While Mixture-of-Experts (MoE) scales capacity via conditional computation, Transformers lack a native primitive for knowledge lookup, forcing them to inefficiently simulate retrieval through computation. To address this, we introduce conditional memory as a complementary sparsity axis, instantiated via \textbf{Engram}, a module that modernizes classic $N$-gram embedding for $\mathcal{O}(1)$ lookup.
+By formulating the \textit{Sparsity Allocation} problem, we uncover a U-shaped scaling law that optimizes the trade-off between neural computation (MoE) and static memory (Engram).
+Guided by this law, we scale Engram to 27B parameters, achieving superior performance over a strictly iso-parameter and iso-FLOPs MoE baseline. 
+Most notably, while the memory module is expected to aid knowledge retrieval (e.g., MMLU $+3.4$; CMMLU $+4.0$), we observe even larger gains in general reasoning (e.g., BBH $+5.0$; ARC-Challenge $+3.7$) and code/math domains~(HumanEval $+3.0$; MATH $+2.4$).
+Mechanistic analyses reveal that Engram relieves the backbone's early layers from static reconstruction, effectively deepening the network for complex reasoning. Furthermore, by delegating local dependencies to lookups, it frees up attention capacity for global context, substantially boosting long-context retrieval (e.g., Multi-Query NIAH: $84.2 \to 97.0$).
+Finally, Engram establishes infrastructure-aware efficiency: its deterministic addressing enables runtime prefetching from host memory, incurring negligible overhead.
+We envision conditional memory as an indispensable modeling primitive for next-generation sparse models. Code available at: \url{https://github.com/deepseek-ai/Engram}.
+\end{abstract}
+
+\begin{document}
+\begin{CJK*}{UTF8}{gbsn}
+
+\maketitle
+\renewcommand{\thefootnote}{*}
+\footnotetext{Equal contribution.}
+\renewcommand{\thefootnote}{\arabic{footnote}}
+
+\input{sections/intro}
+\input{sections/arch}
+\input{sections/scaling_law_exp}
+\input{sections/large_scale_exp}
+\input{sections/long_context_exp}
+\input{sections/analysis}
+\input{sections/related_work}
+
+\section{Conclusion}
+
+In this work, we introduce \textbf{conditional memory} as a complementary sparsity axis to the prevailing conditional computation paradigm (MoE), aiming to resolve the inefficiency of simulating knowledge retrieval through dynamic computation. We instantiate this concept via Engram, a module that modernizes classic $N$-gram embeddings to enable scalable, constant-time $O(1)$ lookups for static patterns.
+
+By formulating the \textit{Sparsity Allocation} problem, we uncover a U-shaped scaling law, demonstrating that a hybrid allocation of sparse capacity between MoE experts and Engram memory strictly outperforms pure MoE baselines. Guided by this law, we scale Engram to 27B parameters, achieving superior performance across diverse domains. Notably, while the memory module intuitively aids knowledge retrieval, we observe even larger gains in general reasoning, code, and mathematics.
+
+Our mechanistic analysis reveals that Engram effectively ``deepen'' the network by relieving early layers from static reconstruction tasks, thereby freeing up attention capacity to focus on global context and complex reasoning. This architectural shift translates into substantial improvements in long-context capabilities, as evidenced by performance gains in LongPPL and RULER. Finally, Engram advocates for infrastructure-aware efficiency as a first-class design principle. Its deterministic addressing allows for the decoupling of storage and compute, enabling the offloading of massive parameter tables to host memory with negligible inference overhead. We envision conditional memory functions as an indispensable modeling primitive for next-generation sparse models.
+
+
+
+\bibliography{ref}
+
+\newpage
+\appendix
+
+\section*{Appendices}
+\section{Detailed Model Architecture and Hyper Parameters}
+\label{appendix:detailed_model_arch}
+\input{tabs/appendix_detailed_arch}
+
+\clearpage
+\section{Full Benchmark Curves}
+\label{appendix:benchmark_curve}
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[height=0.74\textheight, keepaspectratio]{figs/benchmark_curve.pdf}
+    \caption{Last 10k pre-training benchmark curve.}
+    \label{fig:benchmark_curve}
+\end{figure}
+\clearpage
+\section{Case Study of Tokenizer Compression}
+\label{appendix:token_compression}
+
+\newcommand{\spacebox}{\textvisiblespace}
+\begin{table}[h!]
+    \centering
+    \label{tab:token_collisions}
+    \small
+    \begin{tabularx}{\textwidth}{c c c X}
+        \toprule
+        \textbf{Rank} &  \textbf{\makecell{Merge\\Count}} & \textbf{\makecell{Normalized\\Token}} & \multicolumn{1}{c}{\textbf{Original Tokens}} \\
+        \midrule
+        
+        1 & 163 & \texttt{'\spacebox'} & \texttt{'\textbackslash t'}, \texttt{'\textbackslash n'}, \texttt{'\textbackslash r'}, \texttt{'\spacebox'}, \texttt{'\spacebox\spacebox'}, \texttt{'\textbackslash n\textbackslash n'}, \texttt{'\spacebox\spacebox\spacebox'}, \texttt{'\spacebox\textbackslash n'}, ... \\
+        \addlinespace[0.5ex]
+        
+        % % Rank 2: 'a'
+        2 & 54 & \texttt{'a'}  & \texttt{'A'}, \texttt{'a'}, \texttt{'\spacebox a'}, \texttt{'\spacebox A'}, \texttt{'á'}, \texttt{'ä'}, \texttt{'ã'}, \texttt{'ą'}, \texttt{'\spacebox à'}, \texttt{'\spacebox å'}, \texttt{'â'}, ... \\
+        \addlinespace[0.5ex]
+        
+        % % Rank 3: 'o'
+        3 & 40 & \texttt{'o'}  & \texttt{'O'}, \texttt{'o'}, \texttt{'\spacebox o'}, \texttt{'\spacebox O'}, \texttt{'ó'}, \texttt{'ö'}, \texttt{'ô'}, \texttt{'õ'}, \texttt{'ő'}, \texttt{'ò'}, ... \\
+        \addlinespace[0.5ex]
+        
+        % % Rank 4: 'e'
+        4 & 35 & \texttt{'e'}  & \texttt{'E'}, \texttt{'e'}, \texttt{'\spacebox e'}, \texttt{'\spacebox E'}, \texttt{'é'}, \texttt{'è'}, \texttt{'\spacebox é'}, \texttt{'ę'}, \texttt{'ě'}, \texttt{'ê'}, ... \\
+        \addlinespace[0.5ex]
+        
+        % % Rank 5: 'i'
+        5 & 30 & \texttt{'i'}  & \texttt{'I'}, \texttt{'i'}, \texttt{'\spacebox I'}, \texttt{'\spacebox i'}, \texttt{'í'}, \texttt{'ì'}, \texttt{'î'}, \texttt{'ī'}, \texttt{'ï'}, ... \\ 
+        \addlinespace[0.5ex]
+        \bottomrule
+    \end{tabularx}
+    \caption{The table illustrates Top-5 merged tokens by \textit{Tokenizer Compression} and the overall compression ratio is 23.43\% for our 128k tokenizer.}
+\end{table}
+
+\clearpage
+
+\end{CJK*}
+\end{document} 

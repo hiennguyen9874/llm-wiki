@@ -1,0 +1,62 @@
+
+\begin{table}[t]
+\centering
+\caption{
+\textbf{Long-context performance comparison.} Parenthetical values (e.g. \textit{(50k, 1.62)}) denote the pre-training steps and the corresponding loss prior to the long-context extension. Two key findings: (1) With only 82\% of the pre-training FLOPs (41k vs. 50k), Engram-27B matches the baseline's LongPPL~\citep{fangwrong} performance while achieving significantly higher accuracy on RULER~\citep{hsiehruler}; (2) Under both iso-pretraining-loss (46k) and iso-pretraining-FLOPs (50k) settings, Engram-27B substantially outperforms the baseline across all metrics. 
+\textbf{Bold} indicates the best and \underline{underline} the second.
+}
+
+\resizebox{0.95\linewidth}{!}{%
+\begin{tabular}{@{}l cccc cccc cccc@{}}
+\toprule
+\multirow{3}{*}{\textbf{Model}} & \multicolumn{4}{c}{\textbf{LongPPL (32k)}} & \multicolumn{8}{c}{\textbf{RULER (32k)}} \\
+\cmidrule(lr){2-5} \cmidrule(l){6-13}
+ & \multicolumn{4}{c}{Perplexity ($\downarrow$)} & \multicolumn{4}{c}{NIAH Accuracy ($\uparrow$)} & \multicolumn{4}{c}{Other Tasks ($\uparrow$)} \\
+\cmidrule(lr){2-5} \cmidrule(lr){6-9} \cmidrule(l){10-13}
+ & Book & Paper & Code & L-CoT & S & MK & MV & MQ & VT & CWE & FWE & QA \\ \midrule
+
+MoE-27B \textit{(50k, 1.63)} & 4.38 & 2.91 & 2.49 & 14.16 & \textbf{100.0} & 88.0 & 92.7 & 84.2 & 77.0 & \underline{4.5} & 73.0 & 34.5 \\ 
+\midrule
+% === Ours (Engram Variants) ===
+Engram-27B \textit{(41k, 1.66)} & 4.37 & 2.92 & 2.50 & 14.26 & \underline{99.6} & 88.3 & 93.0 & 89.5 & 83.2 & 3.8 & 99.6 & \textbf{44.0}\\
+Engram-27B \textit{(46k, 1.63)} & \underline{4.19} & \underline{2.84} & \underline{2.45} & \underline{13.59} & 97.6 & \underline{89.0} & \underline{95.5} & \textbf{97.0} & \underline{87.2} & 4.3 & \underline{98.6} & 37.5 \\
+Engram-27B \textit{(50k, 1.62)} & \textbf{4.14} & \textbf{2.82} & \textbf{2.44} & \textbf{13.41} & 99.3 & \textbf{89.3} & \textbf{96.5} & \textbf{97.0} & \textbf{89.0} & \textbf{5.9} & \textbf{99.3} & \underline{40.5} \\ \bottomrule
+\end{tabular}%
+}
+
+
+
+\label{tab:long_eval}
+\end{table}
+
+\section{Long Context Training}
+\label{sec:long_ctx}
+
+By offloading local dependency modeling to static lookups, the Engram architecture preserves valuable attention capacity for managing global context. In this section, we empirically verify this structural advantage by conducting long-context extension training~\citep{gao2025train,peng2023yarn}. Through a rigorous evaluation protocol that isolates architectural contributions from base model capabilities, we demonstrate that Engram yields significant gains in long-range retrieval and reasoning tasks.
+
+\subsection{Experimental Setup}
+
+\paragraph{Training Details.} To enable long-context capabilities, we adopt the context expansion strategy introduced in DeepSeek-V3~\citep{liu2024deepseek}. Following the pre-training stage, we apply YaRN~\citep{peng2023yarn} for context window extension in a 32768-token context training stage for 5,000 steps~(30B tokens of high-quality, long-context data). The hyper-parameters are scale $s=10, \alpha=1,\beta=32$ and the scaling factor $f=0.707$.
+
+\paragraph{Model Configurations.} We compare context extensions across four distinct model configurations. We utilize the final pre-training checkpoints (50k steps) for both MoE-27B and Engram-27B. Additionally, to rigorously benchmark architectural efficiency, we select two intermediate checkpoints for Engram-27B at 41k and 46k steps. 
+Despite differing initialization stages, all variants undergo \textit{the exact same} context extension training protocol.
+Crucially, Engram-27B (46k) is selected because it exhibits the same pre-training loss as the fully trained MoE-27B (50k). This creates a controlled "Iso-Loss" setting, ensuring that any performance divergence during context extension is attributable to the architecture rather than the starting quality of the model.
+
+\paragraph{Evaluation Benchmarks.} We assess long-context performance using LongPPL~\citep{fangwrong} and RULER~\citep{hsiehruler}. For LongPPL, we construct evaluation sets spanning four categories: long books, research papers, code repositories, and long chain-of-thought (CoT) trajectories. For RULER, we evaluate on 14 subsets aggregated into 8 categories: Single (S), Multi-keys (MK), Multi-values (MV) and Multi-queries (MQ) Needle-in-a-Haystack; Multi-hop Variable Tracking (VT), Common Words Extraction (CWE), Frequent Words Extraction (FWE), and Question Answering (QA).
+
+\subsection{Experimental Results}
+
+The evaluation results are summarized in~\autoref{tab:long_eval}. To accurately assess the contribution of the Engram architecture, our analysis proceeds in two steps: first, decoupling the impact of base model capability from architectural design, and second, conducting a controlled analysis.
+
+\textbf{1. Long-Context Capability Beyond Attention Mechanics.} 
+While attention mechanisms and positional encoding provide the structural basis for context processing~\citep{su2023roformerenhancedtransformerrotary,press2021train,yang2025path,xiao2023efficient}, our results indicate that long-context performance is not solely determined by architectural priors. Observing the trajectory of Engram (41k $\rightarrow$ 50k), we find that long-context performance improves monotonically with pre-training progression, even when controlling for identical model architecture and a fixed computational budget during the context extension stage.
+This suggests that long-context performance is intrinsically coupled with the general modeling ability of the base model. Consequently, a rigorous architectural comparison must control for this confounding variable by aligning base model loss, rather than merely aligning training steps.
+
+\textbf{2. Architectural Superiority under Controlled Settings.} 
+Guided by the principle above, we benchmark Engram against the MoE baseline. When controlling for base capability, the efficiency gains of the Engram module become evident:
+\begin{itemize}
+    \item \textbf{Iso-Loss Setting (46k vs.\ Baseline):} This setting strictly isolates architectural efficiency. When comparing Engram-27B (46k) against the fully trained MoE-27B (50k)—models aligned on pre-training loss—Engram demonstrates significant gains. Specifically, it outperforms the baseline on complex retrieval tasks (e.g., Multi-Query NIAH: $97.0$ vs.\ $84.2$; VT: $87.2$ vs.\ $77.0$). 
+    % This empirically validates that the performance gain stems specifically from the architecture's ability to offload local patterns, thereby preserving attention capacity for global reasoning.
+    \item \textbf{Iso-FLOPs Setting (50k vs.\ Baseline):} Under the standard iso-compute budget, Engram-27B (50k) further widens this gap, establishing the highest performance across the board.
+    \item \textbf{Extreme Setting ($\approx82\%$ Compute):} Even the early-stopped Engram-27B (41k) remains highly competitive against the fully trained MoE-27B (50k). It matches the baseline on LongPPL and surpasses it on RULER, underscoring the intrinsic superiority of the Engram architecture.
+\end{itemize}

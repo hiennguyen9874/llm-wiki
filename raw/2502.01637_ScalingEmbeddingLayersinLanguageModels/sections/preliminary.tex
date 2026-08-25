@@ -1,0 +1,13 @@
+
+
+
+\section{Preliminaries}\label{sec:preliminary}
+
+We focus on pre-training decoder-only language models with causal language modeling \citep{radford2019language}. We now introduce  notations that will later help us formally describe the proposed \SCONE method. For clarity, we omit details that are not essential to describing our method.
+
+\textbf{Decoder Transformer Model.} Let $\Vtoken$ denote the token vocabulary. The \emph{token embedding layer} is parameterized by a function $\cT : \Vtoken \to \R^d$, mapping each token to a $d$-dimensional embedding vector.
+We abstract the transformer itself as a function $\cA : (\R^{d})^{\le S} \to \R^{d}$, which takes as input a sequence of up to $S$ token embeddings and outputs a single embedding vector\footnote{A decoder transformer typically produces a sequence of embeddings for an input sequence. We define the output as the final token embedding, used either for next-word prediction or as the embedding for a f-gram.}.
+For completeness, we present the pseudocode of a basic next-token prediction model in \Cref{alg:basic-model} (\Cref{sec:add_algorithms}).
+
+\textbf{Efficient Indexing for Large Embedding Layers.}
+Mappings from tokens or f-grams to embedding vectors can be implemented as key--value stores, enabling highly efficient lookup. Hash-based and tree-based data structures support lookup times that are constant or logarithmic in the number of entries, respectively. These data structures make it feasible, in principle, to offload large embedding layers from accelerators with minimal impact on latency. In practice, however, the traditional token embedding layer $\cT$ is kept on accelerator memory, as it is typically shared with the output (logits) layer, which requires fast access for matrix multiplications during next-word prediction. In contrast, the f-gram embedding layer introduced by \SCONE is decoupled from the output layer and can therefore be offloaded, which is critical for maintaining a fixed accelerator memory footprint as the f-gram layer scales. In \Cref{subsec:inference_cost}, we study two strategies for storing the f-gram embedding table. When stored in main system memory, the f-gram embedding table consists of a dense embedding matrix paired with a hash dictionary that maps f-grams to matrix indices. When stored on NVMe solid-state drives, we use the Lightning Memory-Mapped Database (LMDB) \citep{lmdb} to directly map f-grams to their embeddings using a B+ tree data structure.
