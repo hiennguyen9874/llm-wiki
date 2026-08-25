@@ -1,5 +1,9 @@
 # Wiki Update Log
 
+## 2026-08-25
+- **Query**: Filed [Gated DeltaNet-2: tách erase và write trong delta rule — khóa học cho người mới](gated-deltanet-2-beginners-course.md) as a top-down course — covers the scalar tie between erase and write in KDA/Gated DeltaNet, channel-wise erase/write decoupling, data flow, direct vs benchmarked impacts, baseline differences, deployment, then derivation, inspectable PyTorch and `torch.testing.assert_close` verification, and scoped benchmark/ablation/throughput evidence from [Gated DeltaNet-2](../raw/2605.22791_GatedDeltaNet-2/main.tex); updated the index.
+- **Update**: Added an interactive Mermaid diagram and an `[!info]` note-link callout to [SSD → Mamba-2: fixed-state sequence mixing từ trực giác đến implementation — bài học cho người mới](ssd-mamba2-beginners-guide.md), covering the SSD block input→projections→SSD mixer→diagonal/right/center/left→gate→output flow with shapes and Obsidian `internal-link` concept nodes.
+
 ## 2026-08-24
 - **Ingest**: Compiled [Hyena Hierarchy: Towards Larger Convolutional Language Models](../raw/2302.10866_HyenaHierarchy/main.tex); created [architecture](hyena-hierarchy-architecture.md) and [evaluation and trade-offs](hyena-hierarchy-evaluation-and-trade-offs.md) concepts, including the source’s 100× runtime-claim discrepancy.
 - **Query**: Answered “tại sao mô hình gần đây dùng KDA/linear attention mà không dùng SSM/Mamba (Kimi K3, Qwen, GLM)”; filed durable [Delta-rule (KDA / Gated DeltaNet) vs SSM (Mamba / SSD) trong frontier adoption](delta-rule-vs-ssm-frontier-adoption.md) as type Synthesis, corrected the GLM-5 premise (MLA+DSA, not linear attention), and updated the index.

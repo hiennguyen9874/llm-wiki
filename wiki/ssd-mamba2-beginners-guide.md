@@ -5,7 +5,7 @@ description: A top-down beginner course on how SSD combines fixed-state recurren
 tags: [ssd, mamba-2, ssm, recurrence, structured-attention, chunked-training, parallelism, pytorch, learning-roadmap]
 status: stable
 created: 2026-08-12
-generated: { by: llm-wiki-agent/1, at: 2026-08-24T05:23:05Z }
+generated: { by: llm-wiki-agent/1, at: 2026-08-25T03:56:00Z }
 sources:
   - id: dao-gu-2024
     resource: ../raw/arXiv-2405.21060v1/structure.tex
@@ -126,6 +126,55 @@ Luồng gồm sáu bước:
 6. **Expand past contribution:** state đi vào mỗi chunk được đọc bởi các tokens trong chunk; contribution này cộng với local output.
 
 Bốn phần cốt lõi của block algorithm thường được gọi là `diagonal`, `right`, `center`, `left`: local diagonal blocks, input-to-state factors, state-to-state scan và state-to-output factors.[^dao-gu-2024]
+
+### 3.1.1 Biểu đồ tương tác về khối SSD
+
+Diagram dưới gộp cả **data flow của block** (input → projections → SSD mixer → gate → output) và **bốn phần của block algorithm** (`diagonal` / `right` / `center` / `left`), kèm shape cho một head. Node màu nhạt là cơ chế bên trong; node viền xanh là concept mở được khi bấm (ở chế độ đọc Obsidian) hoặc qua link tương đối bên dưới.
+
+```mermaid
+flowchart TD
+    classDef flow fill:#f7f7f7,stroke:#888,stroke-width:1px;
+    classDef concept fill:#e8f0fe,stroke:#4a7dd6,stroke-width:2px,rx:6px,ry:6px;
+
+    IN["block input u<br/>(B, T, D)"] --> PROJ["parallel projections"]
+    PROJ --> X["X value-like<br/>(B,T,H,P) = V"]
+    PROJ --> A["A transition<br/>(B,T,H) scalar"]
+    PROJ --> B["B write/expand<br/>(B,T,H,N) = K"]
+    PROJ --> C["C read/contract<br/>(B,T,H,N) = Q"]
+    PROJ --> Z["gate branch z"]
+
+    X --> CONV["short depthwise conv"]
+    CONV --> SSD["SSD mixer"]
+
+    A --> SSD
+    B --> SSD
+    C --> SSD
+
+    SSD --> DIAG["DIAGONAL<br/>intra-chunk (Q,Q)×(Q,P)"]
+    SSD --> RIGHT["RIGHT<br/>per-chunk final state<br/>(B,C,H,P,N)"]
+    RIGHT --> CENTER["CENTER<br/>chunk 1-SS scan<br/>(B,K,H,P,N)"]
+    CENTER --> LEFT["LEFT<br/>state→output<br/>(B,C,L,H,P)"]
+    DIAG --> ADD["Y = Y_local + Y_past<br/>(B,C,L,H,P)"]
+    LEFT --> ADD
+
+    ADD --> GATE["gate × (elementwise)"]
+    GATE --> NORM["extra normalization"]
+    NORM --> OUT["output projection"]
+    OUT --> RES["residual stream<br/>(B,T,D)"]
+
+    SSD -.-> C1["structured-state-space-duality"]
+    SSD -.-> C2["mamba-2-architecture-and-parallelism"]
+    SSD -.-> C3["linear-attention-as-fixed-state-memory"]
+    SSD -.-> C4["self-attention-computational-profile"]
+    class C1,C2,C3,C4 concept internal-link;
+```
+
+> [!info] Bấm để mở concept
+> Trong Obsidian, các node viền xanh ở trên là link nội bộ (diagram tương tác) — bấm vào node sẽ điều hướng tới note tương ứng. Nếu trình render không hỗ trợ click, dùng link tương đối sau:
+> - [Structured State Space Duality](structured-state-space-duality.md)
+> - [Mamba-2 architecture and parallelism](mamba-2-architecture-and-parallelism.md)
+> - [Linear attention as fixed-state memory](linear-attention-as-fixed-state-memory.md)
+> - [Self-attention computational profile](self-attention-computational-profile.md)
 
 ### 3.2 Chạy ví dụ đơn hàng qua flow
 
