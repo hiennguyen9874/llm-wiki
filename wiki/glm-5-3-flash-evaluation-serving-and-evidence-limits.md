@@ -5,7 +5,7 @@ description: GLM-5.3-Flash reports strong coding and agentic scores and deployme
 tags: [glm-5-3-flash, evaluation, agents, coding, serving, long-context, limitations]
 status: stable
 created: 2026-08-26
-generated: { by: llm-wiki-agent/1, at: 2026-08-26T15:18:07Z }
+generated: { by: llm-wiki-agent/1, at: 2026-08-26T15:27:55Z }
 sources:
   - id: glm53-card
     resource: ../raw/GLM-5.3-Flash/README.md
@@ -74,6 +74,14 @@ The reported production stack uses a dedicated inference engine built on SGLang 
 - ReplaySSM, W8A8 quantization, hybrid INT8/FP8/BF16 cache quantization, and layer splitting;
 - Encode–Prefill–Decode disaggregation, with multimodal encoding, prompt prefill, and decoding independently scheduled across tens of thousands of domestic accelerators;
 - compute-for-bandwidth and communication-for-bandwidth techniques for memory-constrained million-token serving.
+
+### Interpreting EPD disaggregation
+
+EPD separates serving stages, not learned models. **Encode** runs the separate vision path for image or video inputs and produces representations for the text backbone. **Prefill** processes the known prompt, incorporates those representations when present, and builds request state before the first output token. **Decode** then advances that state autoregressively, ordinarily one new token per active request per step. Prefill and decode therefore retain the distinct workload and latency profiles described in the [LLM inference lifecycle](llm-inference-lifecycle-training-prefill-decode-and-latency.md): prefill is prompt-parallel and contributes strongly to TTFT, whereas decode is sequential within each request and contributes strongly to inter-token latency.[^glm53-blog]
+
+“Independently scheduled and scalable worker pools” means the cluster can queue, batch, provision, and scale encode, prefill, and decode capacity separately rather than forcing one fixed pool to run every stage. This permits the worker ratio and scheduling policy to follow the request mix—for example, multimodal volume, prompt length, or concurrent generation—but does not make the stages independent within one request: encode output must reach prefill, and decode must continue from state produced by prefill. For this hybrid model, that state may include KDA convolution/recurrent state and growing DSA attention/indexer caches, as documented by the released reference implementation.[^glm53-modeling]
+
+The blog does not disclose the queue design, worker ratio, placement policy, state-transfer protocol, cache ownership, retry behavior, or communication volume. Consequently, exact handoff mechanics, fault isolation, and the net benefit after coordination and data-transfer cost remain unknown. “Across tens of thousands” supports a fleet-scale deployment claim; it does not establish that one request spans tens of thousands of accelerators.[^glm53-blog]
 
 Z.ai reports a 3× end-to-end serving improvement over its initial baseline and per-token cost and hardware efficiency comparable to mainstream NVIDIA GPUs. The source omits chip models, cluster topology, baseline version, request mix, concurrency, latency objectives, TTFT, decode throughput, power, failure rate, and numerical results, so neither the 3× gain nor cross-vendor parity is independently reproducible.[^glm53-blog]
 
