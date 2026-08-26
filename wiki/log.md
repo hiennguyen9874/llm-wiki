@@ -1,6 +1,7 @@
 # Wiki Update Log
 
 ## 2026-08-26
+- **Update**: Expanded [GLM-5.3-Flash and Qwen3.8-Flash-Next architecture comparison](glm-5-3-flash-and-qwen3-8-flash-next-architecture-comparison.md) with raw-reference per-sparse-layer cache accounting, the GLM expanded-KV implementation boundary, and implementation-level mHC versus Gated Residual comparison.
 - **Query**: Answered “tìm kiếm điểm đột phá kiến trúc và hiệu năng của GLM-5.3-Flash và Qwen3.8-Flash-Next”; filed [architecture comparison](glm-5-3-flash-and-qwen3-8-flash-next-architecture-comparison.md) covering their recurrent-majority hybrid MoE convergence, pooled sparse-attention and four-stream residual differences, conditional memory, context strategy, vendor performance claims, and evidence limits.
 - **Update**: Expanded [GLM-5.3-Flash evaluation, serving, and evidence limits](glm-5-3-flash-evaluation-serving-and-evidence-limits.md) with a lifecycle-grounded interpretation of Encode–Prefill–Decode worker-pool disaggregation, state handoff, cluster-scale meaning, and undisclosed implementation boundaries.
 - **Ingest**: Compiled the [Qwen3.8-Flash-Next release blog](../raw/Qwen3.8-Flash-Next/blog.md) and [Qwen Sparse Attention diagram](../raw/Qwen3.8-Flash-Next/Attention.png); updated QSA, Gated Residual, architecture, evaluation, N-gram memory, and Muon concepts with vendor-reported mechanisms, performance claims, and evidence limits.

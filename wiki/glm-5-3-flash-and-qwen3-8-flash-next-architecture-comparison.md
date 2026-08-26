@@ -5,7 +5,7 @@ description: GLM-5.3-Flash and Qwen3.8-Flash-Next converge on recurrent-majority
 tags: [comparison, glm-5-3-flash, qwen3-8-flash-next, hybrid-attention, sparse-attention, mixture-of-experts, long-context]
 status: stable
 created: 2026-08-26
-generated: { by: llm-wiki-agent/1, at: 2026-08-26T15:34:23Z }
+generated: { by: llm-wiki-agent/1, at: 2026-08-26T16:31:57Z }
 sources:
   - id: glm53-config
     resource: ../raw/GLM-5.3-Flash/config.json
@@ -53,6 +53,26 @@ Hai model hội tụ trên cùng một công thức cấp cao: backbone đa phư
 3. **Residual path trở thành một trục kiến trúc.** GLM chọn mHC để ràng buộc linear carried path không giãn; Qwen chọn gate dữ liệu linh hoạt hơn nhưng không thừa hưởng bảo đảm phổ của mHC. Hiệu quả chất lượng và ổn định riêng của hai lựa chọn chưa có ablation đối đầu.[^glm53-modeling][^qwen38-next-modeling]
 4. **Qwen thêm trục sparse capacity thứ ba.** Ngoài sparse compute của MoE và sparse reads của QSA, bảng N-gram cung cấp conditional lookup dung lượng lớn mà không kích hoạt toàn bộ tham số mỗi token; chi phí thật chuyển sang table memory, hash collision, bandwidth và prefetch.[^qwen38-next-config][^qwen38-next-modeling]
 5. **Co-design mở rộng sang training và serving.** Qwen công bố lịch Muon/AdamW và kernel QSA; GLM công bố Encode–Prefill–Decode disaggregation, cache quantization và worker pools. Vì các bundle không cung cấp đầy đủ kernel, telemetry hay matched ablation, đây là bằng chứng hệ thống do vendor báo cáo chứ chưa phải hiệu quả có thể suy trực tiếp từ config.[^glm53-blog][^qwen38-next-blog]
+
+## Raw reference cache accounting
+
+Các con số dưới đây là **số phần tử cache trên mỗi token tại một sparse-attention layer trong forward path được phát hành**, không phải số đo VRAM hoặc latency production. Chúng loại trừ metadata cache, mask chọn token, recurrent state, vision state và mọi cache/quantization kernel chuyên dụng.[^glm53-modeling][^qwen38-next-modeling]
+
+| Thành phần cached | GLM DSA reference path | Qwen QSA reference path |
+|---|---:|---:|
+| Main attention K/V | `64 × (256 K + 256 V) = 32,768` | `2 × (256 K + 256 V) = 1,024` |
+| Indexer state | `128` key + `128` learned pooling-gate score + `1` validity flag = `257` | `128` raw index key |
+| Tổng xấp xỉ | **33,025** | **1,152** |
+
+GLM tạo latent KV rank 512, nhưng `expand_kv()` mở nó thành K/V của 64 heads trước khi gọi `past_key_values.update()`; indexer cũng cache packed key, pooling-gate score và validity. Vì vậy raw reference path không thiết lập một latent-KV cache nhỏ gọn end-to-end. Qwen gọi `update()` trên K/V của hai KV heads và `update_indexer()` trên raw index keys. Với cùng cách đếm phần tử, Qwen dùng xấp xỉ **28.7× ít hơn** cache tăng-theo-token tại mỗi sparse-attention layer (`33,025 / 1,152`).[^glm53-modeling][^qwen38-next-modeling]
+
+Cả hai vẫn dùng state có kích thước không đổi trong recurrent-majority layers: GLM cache convolution và KDA recurrent state; Qwen cache convolution và Gated DeltaNet recurrent state. Do đó kết quả trên không có nghĩa Qwen nhỏ hơn 28.7× cho **toàn bộ** model hay cho một workload cụ thể. GLM có 11 DSA layers còn Qwen có 12 QSA layers; exact cache footprint còn tùy dtype, allocator, kernel và serving runtime.[^glm53-config][^glm53-modeling][^qwen38-next-config][^qwen38-next-modeling]
+
+## Residual path from implementation
+
+Cả hai mở residual thành bốn streams ở mỗi attention và MoE site, nhưng cách bảo toàn/chuyển thông tin khác nhau. GLM mHC tạo data-dependent `pre` để collapse streams vào sublayer, `post` để đặt output trở lại streams, và ma trận `comb` 4×4 để trộn carried residual; `comb` được softmax rồi row/column-normalize qua 20 Sinkhorn iterations theo config. Qwen Gated Residual dùng RMS-normalized feature-wise read gates qua bottleneck rank 320, lấy trung bình bốn streams để tạo sublayer input, sau đó giữ nguyên carried state và cộng output với bốn scalar injection gates. Nó không thực hiện matrix branch-to-branch mixing hay Sinkhorn projection.[^glm53-config][^glm53-modeling][^qwen38-next-config][^qwen38-next-modeling]
+
+Đây là trade-off cơ chế: GLM có residual mixing bị ràng buộc; Qwen có read gate chi tiết theo feature nhưng write gate theo branch và đường carried identity. Reference code không cung cấp ablation đối đầu, vì vậy không hỗ trợ xếp hạng chất lượng, stability hay overhead thực tế của hai residual designs.
 
 ## Bằng chứng hiệu năng và giới hạn so sánh
 
