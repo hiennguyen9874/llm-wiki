@@ -5,7 +5,7 @@ description: The supplied Muon overview reports lower compute-to-loss requiremen
 tags: [muon, optimizer, scaling-laws, distributed-training, pre-training, mixture-of-experts]
 status: draft
 created: 2026-08-01
-generated: { by: llm-wiki-agent/1, at: 2026-08-01T02:00:00Z }
+generated: { by: llm-wiki-agent/1, at: 2026-08-26T15:18:15Z }
 sources:
   - id: muon-overview-2026
     resource: ../raw/MuonOptimizer.md
@@ -13,6 +13,9 @@ sources:
   - id: kimi-k3-2026
     resource: ../raw/arXiv-2607.24653v1/main.tex
     title: "Kimi K3: Open Frontier Intelligence"
+  - id: qwen38-next-blog
+    resource: ../raw/Qwen3.8-Flash-Next/blog.md
+    title: Qwen3.8-Flash-Next release blog
 ---
 
 # Muon LLM training scaling and operational trade-offs
@@ -33,6 +36,10 @@ Newton–Schulz orthogonalization requires a full momentum matrix, which makes s
 
 Kimi K3 orthogonalizes Q/K/V momentum separately per attention head rather than as one full projection, aiming to prevent large-scale heads from dominating the shared update. For distributed optimizer sharding, each rank retrieves only remote shards needed to assemble its locally owned matrices through pipelined P2P communication, avoiding a full-parameter all-gather buffer. The report claims improved stability and lower overhead but does not isolate end-to-end gains.[^kimi-k3-2026]
 
+## Qwen3.8-Flash-Next schedule claim
+
+Qwen reports refitting its scaling law after changing both architecture and optimizer, then selecting larger learning rates and batch sizes. Its blog says batch-size warmup did not improve the final result and instead required 18.8% more optimizer steps, so the final recipe started directly at the target batch size. The source does not disclose the fitted law, comparison schedule, token budget, loss values, or wall-clock effects; this is architecture- and recipe-specific evidence, not a general result that Muon eliminates batch warmup.[^qwen38-next-blog]
+
 ## Limits for adoption
 
 - Muon requires correct parameter grouping and is not a universal replacement for AdamW.
@@ -45,6 +52,7 @@ Kimi K3 orthogonalizes Q/K/V momentum separately per attention head rather than 
 - **Uses:** [Muon orthogonalized-momentum optimizer](muon-orthogonalized-momentum-optimizer.md) for the matrix update and hybrid parameter partition.
 - **Applies to:** [Mixture-of-Experts training and systems trade-offs](mixture-of-experts-training-and-systems-trade-offs.md), since the reported Moonlight result is an MoE training case; it does not eliminate MoE routing or dispatch costs.
 - **Qualifies:** [Chinchilla compute-optimal training allocation](chinchilla-compute-optimal-training-allocation.md): optimizer choice can alter empirical compute-to-loss results, so its allocation heuristic is not optimizer-invariant.
+- **Applied by:** [Qwen3.8-Flash-Next architecture and implementation](qwen3-8-flash-next-architecture-and-implementation.md), whose blog reports a jointly refitted architecture/optimizer schedule.
 
 ## Evidence limits
 
@@ -53,3 +61,5 @@ The source is a secondary Vietnamese overview. Its primary technical report, imp
 [^muon-overview-2026]: “Muon Optimizer overview (Vietnamese summary),” [raw source](../raw/MuonOptimizer.md), Sections 7–11 and 13–15; it cites “Muon is Scalable for LLM Training” (arXiv:2502.16982).
 
 [^kimi-k3-2026]: Kimi Team, “Kimi K3: Open Frontier Intelligence,” arXiv:2607.24653v1, [source](../raw/arXiv-2607.24653v1/main.tex), Sections 2.5 and 5.2.
+
+[^qwen38-next-blog]: Qwen Team, “Qwen3.8-Flash-Next,” [release blog](../raw/Qwen3.8-Flash-Next/blog.md), Optimization section.

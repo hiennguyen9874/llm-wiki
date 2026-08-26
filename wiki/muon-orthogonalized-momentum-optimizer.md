@@ -5,7 +5,7 @@ description: Muon updates hidden-layer weight matrices using the polar factor of
 tags: [muon, optimizer, pre-training, matrix-optimization, newton-schulz]
 status: draft
 created: 2026-08-01
-generated: { by: llm-wiki-agent/1, at: 2026-08-21T15:55:51Z }
+generated: { by: llm-wiki-agent/1, at: 2026-08-26T15:18:15Z }
 sources:
   - id: muon-overview-2026
     resource: ../raw/MuonOptimizer.md
@@ -22,6 +22,9 @@ sources:
   - id: nanochat-optim-2026
     resource: ../raw/nanochat/nanochat/optim.py
     title: nanochat combined Muon–AdamW optimizer
+  - id: qwen38-next-blog
+    resource: ../raw/Qwen3.8-Flash-Next/blog.md
+    title: Qwen3.8-Flash-Next release blog
 ---
 
 # Muon orthogonalized-momentum optimizer
@@ -54,6 +57,10 @@ $$
 
 The supplied overview reports that weight decay also controlled growing weight and activation scales during long bf16 training.[^muon-overview-2026]
 
+## Qwen3.8-Flash-Next configuration
+
+Qwen's release blog assigns Muon to two-dimensional linear maps in attention, Gated DeltaNet, and MoE experts, while embeddings, the MoE router, and Gated Residual's low-rank parameters remain under AdamW. It also says fused QKV, SwiGLU, and GDN projection matrices are split by their independent transformations before orthogonalization. This reinforces that semantic matrix boundaries—not merely a fused tensor's rank—govern parameter grouping in this implementation.[^qwen38-next-blog]
+
 ## DeepSeek-V4 configuration
 
 DeepSeek-V4 provides primary configuration evidence for a hybrid optimizer: it assigns Muon to most modules while retaining AdamW for embeddings, the prediction head, mHC static biases and gates, and RMSNorm weights. Its implementation applies weight decay, a Nesterov-style momentum update, and RMS-rescales the matrix update; it uses ten hybrid Newton–Schulz iterations, with eight rapid-convergence iterations followed by two stabilizing iterations. These choices are V4-specific rather than Muon requirements.[^deepseek-v4-2026]
@@ -72,6 +79,7 @@ Kimi K3 partitions Q/K/V momentum along the attention-head dimension and orthogo
 - **Applies to:** [Mixture-of-Experts training and systems trade-offs](mixture-of-experts-training-and-systems-trade-offs.md), because the source reports Muon use for expert weight matrices in Moonlight.
 - **Used by:** [DeepSeek-V4 hybrid architecture and pretraining](deepseek-v4-hybrid-architecture-and-pretraining.md), with a Muon-aware distributed implementation.
 - **Implemented by:** [nanochat distributed Muon–AdamW training](nanochat-distributed-muon-adamw-training.md), with optimizer-integrated ZeRO-2-style state sharding.
+- **Used by:** [Qwen3.8-Flash-Next architecture and implementation](qwen3-8-flash-next-architecture-and-implementation.md), with blog-declared matrix splitting and hybrid Muon–AdamW parameter groups.
 
 ## Evidence limits
 
@@ -86,3 +94,5 @@ The core formula, original Newton–Schulz coefficients, and broad configuration
 [^glm5-report-2026]: GLM-5 Team, “GLM-5: from Vibe Coding to Agentic Engineering,” arXiv:2602.15763v2, [pre-training section](../raw/arXiv-2602.15763v2/2_pretrain.tex), Multi-latent Attention ablation.
 
 [^nanochat-optim-2026]: nanochat contributors, [combined Muon–AdamW optimizer](../raw/nanochat/nanochat/optim.py), fused Muon kernel and distributed parameter-group update path.
+
+[^qwen38-next-blog]: Qwen Team, “Qwen3.8-Flash-Next,” [release blog](../raw/Qwen3.8-Flash-Next/blog.md), Optimization section.

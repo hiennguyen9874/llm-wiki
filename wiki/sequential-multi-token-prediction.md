@@ -5,7 +5,7 @@ description: Sequential multi-token prediction trains additional causal modules 
 tags: [pretraining, multi-token-prediction, speculative-decoding, language-modeling]
 status: stable
 created: 2026-08-01
-generated: { by: llm-wiki-agent/1, at: 2026-08-25T16:21:40Z }
+generated: { by: llm-wiki-agent/1, at: 2026-08-26T14:59:28Z }
 sources:
   - id: deepseek-v3-2024
     resource: ../raw/arXiv-2412.19437v2/main.tex
@@ -37,6 +37,21 @@ sources:
   - id: ling3-tiny-architecture-2026
     resource: ../raw/Ling-3.0-tiny/Ling-3.0-tiny-architecture.png
     title: Ling-3.0-tiny architecture diagram
+  - id: glm53-config
+    resource: ../raw/GLM-5.3-Flash/config.json
+    title: GLM-5.3-Flash checkpoint configuration
+  - id: glm53-modeling
+    resource: ../raw/GLM-5.3-Flash/modeling_glm5_next.py
+    title: GLM-5.3-Flash Transformers modeling implementation
+  - id: qwen38-next-card
+    resource: ../raw/Qwen3.8-Flash-Next/README.md
+    title: Qwen3.8-Flash-Next model card
+  - id: qwen38-next-config
+    resource: ../raw/Qwen3.8-Flash-Next/config.json
+    title: Qwen3.8-Flash-Next checkpoint configuration
+  - id: qwen38-next-modeling
+    resource: ../raw/Qwen3.8-Flash-Next/modeling_qwen4_exp.py
+    title: Qwen4-Exp Transformers modeling implementation
 ---
 
 # Sequential multi-token prediction
@@ -67,6 +82,10 @@ Ling-3.0-flash's diagram declares next-token prediction plus MTP as training obj
 
 Ling-3.0-tiny’s diagram declares next-token prediction plus MTP objectives, and its SGLang recipe enables built-in MTP/NEXTN. Neither the card nor diagram specifies MTP depth, loss weight, proposal count, target-verification procedure, acceptance rate, or the speed contribution of MTP. This is a vendor-declared training and serving path, not a reproducible MTP implementation or performance result.[^ling3-tiny-card-2026][^ling3-tiny-architecture-2026]
 
+## GLM-5.3-Flash checkpoint implementation boundary
+
+[GLM-5.3-Flash](glm-5-3-flash-hybrid-multimodal-architecture.md) sets `num_nextn_predict_layers` to one in its checkpoint configuration. The supplied conditional-generation implementation, however, constructs no MTP module or loss and explicitly ignores unexpected layer-45 and per-layer `shared_head` keys. This establishes checkpoint metadata suggestive of one additional prediction layer, not a runnable training or speculative-decoding path in the included reference implementation.[^glm53-config][^glm53-modeling]
+
 ## Nemotron 3.5 Lightning implementation boundary
 
 [Nemotron 3.5 Lightning](nemotron-3-5-lightning-architecture-and-training.md) reports continued pre-training of MTP layers and MTP-accelerated RL rollouts. Its checkpoint config declares one next-token-prediction extension composed of full attention and MoE blocks. However, the bundled Transformers causal-LM implementation never constructs those configured MTP blocks or computes an MTP loss. This source therefore evidences the released model’s MTP metadata and training claim, but not a runnable implementation or acceptance/speed result for native MTP.[^nemotron-lightning-card][^nemotron-lightning-config][^nemotron-lightning-code]
@@ -74,6 +93,10 @@ Ling-3.0-tiny’s diagram declares next-token prediction plus MTP objectives, an
 ## Qwen3.8 checkpoint implementation boundary
 
 Qwen3.8-2.4T-A95B’s configuration declares one MTP hidden layer, but its supplied causal-LM implementation does not construct an MTP module and ignores unexpected `mtp.*` checkpoint keys. This establishes MTP metadata rather than a runnable MTP loss or inference/speculation path.[^qwen38-config][^qwen38-modeling]
+
+## Qwen3.8-Flash-Next implementation boundary
+
+Qwen3.8-Flash-Next's card reports a 4B, one-layer MTP module trained with multiple steps, and its configuration embeds a one-layer full-attention MTP sub-config. However, the supplied Qwen4-Exp causal and conditional generation implementations do not construct an MTP module and ignore unexpected `mtp.*` keys. This establishes declared training and checkpoint metadata, not a runnable MTP objective, proposal path, acceptance rate, or speedup in the local bundle.[^qwen38-next-card][^qwen38-next-config][^qwen38-next-modeling]
 
 ## Relationships
 
@@ -104,3 +127,13 @@ The DeepSeek-V3 report is primary evidence for its implementation and controlled
 [^ling3-tiny-card-2026]: InclusionAI, “Ling-3.0-tiny,” [model card](../raw/Ling-3.0-tiny/Ling-3.0-tiny.md), Introduction and Quickstart.
 
 [^ling3-tiny-architecture-2026]: InclusionAI, “Ling-3.0-tiny Architecture,” [included diagram](../raw/Ling-3.0-tiny/Ling-3.0-tiny-architecture.png).
+
+[^glm53-config]: Z.ai, “GLM-5.3-Flash checkpoint configuration,” [config](../raw/GLM-5.3-Flash/config.json).
+
+[^glm53-modeling]: Z.ai and Hugging Face, “GLM-5.3-Flash Transformers modeling implementation,” [source](../raw/GLM-5.3-Flash/modeling_glm5_next.py), text model and conditional-generation classes.
+
+[^qwen38-next-card]: Qwen Team, “Qwen3.8-Flash-Next,” [model card](../raw/Qwen3.8-Flash-Next/README.md), Model Overview.
+
+[^qwen38-next-config]: Qwen Team, “Qwen3.8-Flash-Next checkpoint configuration,” [config](../raw/Qwen3.8-Flash-Next/config.json), `text_config.mtp`.
+
+[^qwen38-next-modeling]: Qwen Team and Hugging Face, “Qwen4-Exp Transformers modeling implementation,” [source](../raw/Qwen3.8-Flash-Next/modeling_qwen4_exp.py), pretrained, causal-LM, and conditional-generation classes.

@@ -5,7 +5,7 @@ description: N-gram embedding methods augment token representations with learned
 tags: [embeddings, n-grams, conditional-memory, sparse-models, tokenization]
 status: draft
 created: 2026-08-25
-generated: { by: llm-wiki-agent/1, at: 2026-08-25T16:09:50Z }
+generated: { by: llm-wiki-agent/1, at: 2026-08-26T15:18:15Z }
 sources:
   - id: ngram-embedding-overview-2026
     resource: ../raw/N-gramembeddingsinLLM.md
@@ -28,6 +28,15 @@ sources:
   - id: longcat-embedding-scaling-2026
     resource: ../raw/2601.21204_ScalingEmbeddingsOutperformsScalingExpertsinLanguageModels/longcat.tex
     title: "Scaling Embeddings Outperforms Scaling Experts in Language Models"
+  - id: qwen38-next-config
+    resource: ../raw/Qwen3.8-Flash-Next/config.json
+    title: Qwen3.8-Flash-Next checkpoint configuration
+  - id: qwen38-next-modeling
+    resource: ../raw/Qwen3.8-Flash-Next/modeling_qwen4_exp.py
+    title: Qwen4-Exp Transformers modeling implementation
+  - id: qwen38-next-blog
+    resource: ../raw/Qwen3.8-Flash-Next/blog.md
+    title: Qwen3.8-Flash-Next release blog
 ---
 
 # N-gram embeddings and conditional memory
@@ -56,6 +65,7 @@ The supplied overview groups several variants under embedding scaling, over-enco
 - **Engram** places deterministic, multi-head hashed suffix n-gram lookup in selected Transformer layers, applies hidden-state-conditioned gating, and supports sharded training plus proposed host-prefetch inference. See [Engram conditional-memory architecture](engram-conditional-memory-architecture.md).[^conditional-memory-2026]
 - **LongCat-Flash-Lite** is now documented by a technical report as using projected, multi-subtable hashed suffix N-gram embeddings. Its author-run matched scaling study finds a high-sparsity regime where this allocation lowers reported loss more effectively than adding experts, with collision, width, depth, and allocation limits; see [N-gram embedding scaling versus MoE expert scaling](n-gram-embedding-scaling-versus-moe-expert-scaling.md) and [LongCat-Flash-Lite N-gram-embedding architecture](longcat-flash-lite-ngram-embedding-architecture.md).[^longcat-embedding-scaling-2026]
 - **LongCat-2.0** reports 135B N-gram Embedding parameters alongside its MoE and characterizes them as sparse dimensions orthogonal to MoE. Its card does not disclose the lookup mechanism or support its asserted optimal-allocation principles; see [LongCat-2.0 sparse-attention and embedding architecture](longcat-2-0-sparse-attention-and-embedding-architecture.md).[^longcat-2-card-2026]
+- **Qwen3.8-Flash-Next** injects a checkpoint-verified layer-2 memory with eight deterministic hash heads for each of bigrams and trigrams. Its roughly 51.2B parameters are projected, gated against four residual streams, and augmented by a dilated local convolution. The blog says predetermined lookup locations permit host-memory storage with asynchronous prefetch overlapped with model computation, but the supplied implementation does not establish that offload path; see [Qwen3.8-Flash-Next architecture and implementation](qwen3-8-flash-next-architecture-and-implementation.md).[^qwen38-next-config][^qwen38-next-modeling][^qwen38-next-blog]
 - **TN-gram**, **Lngram**, and tokenizer-agnostic Engram are described in the overview as later work on factor sharing/collision reduction, latent rather than token-ID keys, and tokenizer portability, respectively.[^ngram-embedding-overview-2026]
 
 The overview also places fastText character n-grams and CANINE among earlier related representation work. **SuperBPE** is a nearby but different choice: it makes frequent multiword spans tokenizer tokens rather than retaining base tokens and adding an auxiliary n-gram lookup.[^ngram-embedding-overview-2026]
@@ -88,3 +98,9 @@ This page began from one secondary Vietnamese overview. The Over-Encoding, SCONE
 [^longcat-2-card-2026]: Meituan LongCat team, “LongCat-2.0,” [model card](../raw/LongCat-2.0.md), N-gram Embedding section.
 
 [^longcat-flash-lite-card-2026]: Meituan LongCat team, “LongCat-Flash-Lite,” [model card](../raw/LongCat-Flash-Lite.md), Model Introduction and Key Features.
+
+[^qwen38-next-config]: Qwen Team, “Qwen3.8-Flash-Next checkpoint configuration,” [config](../raw/Qwen3.8-Flash-Next/config.json), Per-Layer Embedding fields.
+
+[^qwen38-next-modeling]: Qwen Team and Hugging Face, “Qwen4-Exp Transformers modeling implementation,” [source](../raw/Qwen3.8-Flash-Next/modeling_qwen4_exp.py), `Qwen4ExpTextNGramEmbedding` and `Qwen4ExpTextPLELayer`.
+
+[^qwen38-next-blog]: Qwen Team, “Qwen3.8-Flash-Next,” [release blog](../raw/Qwen3.8-Flash-Next/blog.md), N-gram Embedding section.

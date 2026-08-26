@@ -5,7 +5,7 @@ description: DeepSeek Sparse Attention uses a lightweight indexer to select toke
 tags: [attention, sparse-attention, deepseek, multi-head-latent-attention, long-context, inference]
 status: stable
 created: 2026-08-13
-generated: { by: llm-wiki-agent/1, at: 2026-08-25T16:13:08Z }
+generated: { by: llm-wiki-agent/1, at: 2026-08-26T14:58:40Z }
 sources:
   - id: deepseek-v3-2-2025
     resource: ../raw/arXiv-2512.02556v1/main.tex
@@ -19,6 +19,12 @@ sources:
   - id: longcat-lsa-2026
     resource: ../raw/2608.01662_LongCatSparseAttention/longcat.tex
     title: "LongCat Sparse Attention: Taming the Lightning via Streaming-aware Hierarchical Cross-Layer Indexing"
+  - id: glm53-config
+    resource: ../raw/GLM-5.3-Flash/config.json
+    title: GLM-5.3-Flash checkpoint configuration
+  - id: glm53-modeling
+    resource: ../raw/GLM-5.3-Flash/modeling_glm5_next.py
+    title: GLM-5.3-Flash Transformers modeling implementation
 ---
 
 # DeepSeek Sparse Attention
@@ -55,6 +61,12 @@ GLM-5 reports adapting DSA from its mid-training MLA checkpoint with a 1,000-ste
 
 The released implementation scores tokens with weighted ReLU indexer heads and selects up to 2,048 causal positions, consistent with the core DSA mechanism. GLM differs by applying interleaved RoPE in the indexer and exposing per-layer `full` versus `shared` modes: shared layers reuse the preceding full layer’s top-k positions. Eager/SDPA materializes a sparse additive mask, while another backend may consume indices directly. Cross-layer sharing is code evidence not documented in the GLM-5 report, and the generated module marks Flash-MLA support as incomplete.[^glm5-code-2026]
 
+## GLM-5.3-Flash pooled-index variant
+
+GLM-5.3-Flash combines DSA with a learned k-pool index. Its configured pool width is four and top-k budget is 2,048: the indexer forms learned weighted averages for complete four-token groups, scores and selects up to 512 pools, expands selected pools back to raw token indices for attention, and appends the visible incomplete tail of at most three tokens. This coarsens selection to contiguous groups and reduces candidate scoring count, but still retains token-growing key/index state and may read 2,051 positions when the tail is full.[^glm53-config][^glm53-modeling]
+
+The implementation supports reusing top-k indices across layers, but every `indexer_types` entry in this checkpoint is `full`; GLM-5.3-Flash therefore runs a separate indexer in each of its 11 DSA layers. Its reference eager/SDPA path expands MLA latent entries before caching and materializes a per-query sparse mask, so this bundle does not establish production-kernel latency or latent-cache savings.[^glm53-config][^glm53-modeling]
+
 ## Relationships
 
 - **Specializes:** [Multi-head Latent Attention](multi-head-latent-attention.md) by selecting a sparse token subset before MQA over MLA entries.[^deepseek-v3-2-2025]
@@ -73,3 +85,7 @@ The original mechanism, training counts, parity findings, and cost curves are fr
 [^glm5-code-2026]: Hugging Face, “GLM-MoE-DSA modular implementation,” [source](../raw/glm-moe/modular_glm_moe_dsa.py), indexer, attention, and model classes; cross-checked against the generated [modeling module](../raw/glm-moe/modeling_glm_moe_dsa.py).
 
 [^longcat-lsa-2026]: Wen Zan et al., “LongCat Sparse Attention: Taming the Lightning via Streaming-aware Hierarchical Cross-Layer Indexing,” 2026, [source](../raw/2608.01662_LongCatSparseAttention/longcat.tex), Sections 2–4.
+
+[^glm53-config]: Z.ai, “GLM-5.3-Flash checkpoint configuration,” [config](../raw/GLM-5.3-Flash/config.json), layer and pooled-index settings.
+
+[^glm53-modeling]: Z.ai and Hugging Face, “GLM-5.3-Flash Transformers modeling implementation,” [source](../raw/GLM-5.3-Flash/modeling_glm5_next.py), `Glm5NextTextIndexer` and `Glm5NextTextAttention`.
