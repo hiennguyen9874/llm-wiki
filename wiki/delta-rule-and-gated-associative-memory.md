@@ -5,7 +5,7 @@ description: Delta-rule memory corrects selected key-value associations, while l
 tags: [associative-memory, deltanet, gating, linear-attention]
 status: stable
 created: 2026-07-31
-generated: { by: llm-wiki-agent/1, at: 2026-08-24T02:20:33Z }
+generated: { by: llm-wiki-agent/1, at: 2026-08-27T03:54:56Z }
 sources:
   - id: parallel-deltanet-2024
     resource: ../raw/arXiv-2406.06484v6/neurips_2024.tex
@@ -31,11 +31,24 @@ sources:
   - id: gated-deltanet-2-2026
     resource: ../raw/2605.22791_GatedDeltaNet-2/main.tex
     title: "Gated DeltaNet-2: Decoupling Erase and Write in Linear Attention"
+  - id: user-linear-attention-evolution-map
+    resource: ../raw/user-supplied-linear-attention-evolution.md
+    title: "User-supplied linear attention evolution map"
 ---
 
 # Delta-rule and gated associative memory
 
 The delta rule turns a purely additive associative state into a memory that corrects what a key currently retrieves. Scalar learned decay complements this targeted replacement with broader eviction; Gated DeltaNet combines the two, while Kimi Delta Attention (KDA) makes decay channel-wise for more granular retention control.[^fast-weight-programmers-2021][^gated-deltanet-2025][^kimi-linear-2025]
+
+## Lineage map
+
+The user-supplied map is best read as a mechanism lineage rather than a strict publication chronology. It separates three changes that are often conflated:
+
+- **Interpretation:** `Linear Transformer → Fast-Weight Programmer` reframes the fixed state as a programmable key–value associative memory; it is not necessarily a separate full-model block.
+- **Capacity:** `Linear Transformer → DPFP` expands the feature/address space while retaining additive memory.
+- **Forgetting and editing:** RetNet/Retention adds temporal decay, GLA adds data-dependent element-wise decay, and the delta branch adds key-addressed correction before progressing from scalar decay to channel-wise decay and then separate erase/write gates.[^user-linear-attention-evolution-map]
+
+The strongest directly documented delta lineage is **DeltaNet → Gated DeltaNet → KDA → Gated DeltaNet-2**. RetNet and GLA are adjacent decay/gating branches in this map, not claims that every later delta-rule implementation is a direct code or architecture descendant of them.
 
 ## Delta update
 
@@ -82,6 +95,7 @@ The released K3 reference path confirms the operational split: KDA runs `chunk_k
 ## Relationships
 
 - **Depends on:** [Linear attention as fixed-state memory](linear-attention-as-fixed-state-memory.md), whose additive-state interference motivates corrective updates.
+- **Mapped by:** [LLM architecture development and learning map](llm-architecture-development-and-learning-map.md), which places the delta branch beside feature-capacity and decay branches.
 - **Parallelized by:** [Parallel DeltaNet chunkwise training](parallel-deltanet-chunkwise-training.md), which targets the ungated corrective recurrence.
 - **Implemented by:** [Gated DeltaNet architecture and chunkwise training](gated-deltanet-architecture-and-training.md), with scalar decay and a decay-aware chunkwise extension.[^gated-deltanet-2025]
 - **Generalized by:** [Gated DeltaNet-2 decoupled delta rule and training](gated-deltanet-2-decoupled-delta-rule-and-training.md), which decouples channel-wise active erasure from writing.[^gated-deltanet-2-2026]
@@ -90,7 +104,7 @@ The released K3 reference path confirms the operational split: KDA runs `chunk_k
 
 ## Evidence limits
 
-The original learned-step delta update and its associative-memory comparison are documented in the 2021 primary paper; the KDA recurrence, derivation, pseudocode, and kernel measurements are documented in the Kimi Linear report, while Kimi K3 independently specifies its modified decay and output gate. The derivations support recurrent–chunkwise equivalence, while empirical expressivity and speed remain dependent on model, kernel, precision, and hardware.
+The original learned-step delta update and its associative-memory comparison are documented in the 2021 primary paper; the KDA recurrence, derivation, pseudocode, and kernel measurements are documented in the Kimi Linear report, while Kimi K3 independently specifies its modified decay and output gate. The user-provided lineage map is evidence for the intended conceptual grouping only; it does not independently establish RetNet/GLA equations, chronology, or empirical ordering. The derivations support recurrent–chunkwise equivalence, while empirical expressivity and speed remain dependent on model, kernel, precision, and hardware.
 
 [^parallel-deltanet-2024]: Songlin Yang, Bailin Wang, Yu Zhang, Yikang Shen, and Yoon Kim, “Parallelizing Linear Transformers with the Delta Rule over Sequence Length,” NeurIPS 2024, [source](../raw/arXiv-2406.06484v6/neurips_2024.tex), Sections 2–3 and appendices.
 
@@ -107,3 +121,5 @@ The original learned-step delta update and its associative-memory comparison are
 [^kimi-linear-modeling-2026]: Moonshot AI Team, DeepSeek-AI, and Hugging Face, “Kimi K3 text-backbone reference modeling code,” 2025–2026, [source](../raw/kimi-k3-sources/modeling_kimi_linear.py), `KimiDeltaAttention` and `KimiDynamicCache`.
 
 [^gated-deltanet-2-2026]: Ali Hatamizadeh, Yejin Choi, and Jan Kautz, “Gated DeltaNet-2: Decoupling Erase and Write in Linear Attention,” supplied LaTeX source, [source](../raw/2605.22791_GatedDeltaNet-2/main.tex), Sections 2–3 and Appendix A.
+
+[^user-linear-attention-evolution-map]: User-provided Mermaid diagram, [preserved source](../raw/user-supplied-linear-attention-evolution.md); conceptual map only, without independent chronology or benchmark evidence.

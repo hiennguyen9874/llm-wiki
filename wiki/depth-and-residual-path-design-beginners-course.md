@@ -807,6 +807,7 @@ Bước tiếp theo:
 - **Applied by:** [Kimi K3 hybrid retrieval architecture](kimi-k3-hybrid-retrieval-architecture.md) — Block `AttnRes` trong architecture thật.
 - **Applied by:** [DeepSeek-V4 hybrid architecture and pretraining](deepseek-v4-hybrid-architecture-and-pretraining.md) — `mHC` trong architecture thật.
 - **Elaborates:** Stage 8.1 của [LLM architecture learning roadmap](llm-architecture-learning-roadmap.md).
+- **Extended by:** [So sánh Gated Residual, mHC, AttnRes và họ kiến trúc residual-path](residual-path-architecture-comparison.md).
 
 ## Evidence limits
 

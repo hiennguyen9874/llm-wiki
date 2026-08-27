@@ -7,7 +7,7 @@ status: stable
 created: 2026-08-15
 generated:
   by: llm-wiki-agent/1
-  at: 2026-08-15T10:56:26+07:00
+  at: 2026-08-27T03:54:56Z
 sources:
   - id: vaswani-transformer-2017
     resource: ../raw/arXiv-1706.03762v7/ms.tex
@@ -33,6 +33,9 @@ sources:
   - id: rag-summary
     resource: ../raw/RAG.md
     title: "RAG overview (Vietnamese summary)"
+  - id: user-linear-attention-evolution-map
+    resource: ../raw/user-supplied-linear-attention-evolution.md
+    title: "User-supplied linear attention evolution map"
 ---
 
 # LLM architecture development and learning map
@@ -100,17 +103,46 @@ flowchart TB
     S12 -. ghép hệ thống .-> RAG
 ```
 
+## Nhánh linear attention: tiến hóa của memory update
+
+Bản đồ chi tiết này refine nhánh `Fixed-state memory` thành ba hướng bổ sung: tăng capacity của feature space, thêm decay/forgetting, và chuyển từ additive write sang key-addressed corrective update. Các mũi tên không phải chronology tuyệt đối: `FWP` là cầu nối diễn giải associative-memory, còn `RetNet` và `GLA` là các nhánh decay liên quan; lineage delta rõ nhất là `DeltaNet → Gated DeltaNet → KDA → Gated DeltaNet-2`.[^user-linear-attention-evolution-map]
+
+```mermaid
+flowchart LR
+    LA[Linear Transformer<br/>additive fixed-state memory] --> FWP[Fast-Weight Programmer<br/>associative-memory view]
+    LA --> DPFP[DPFP<br/>feature-map capacity]
+    LA -. fixed temporal decay .-> RET[RetNet / Retention]
+    LA -. data-dependent gating .-> GLA[GLA<br/>element-wise decay]
+    FWP -->|corrective update| DN[DeltaNet]
+    DN -->|scalar forgetting| GDN[Gated DeltaNet]
+    GDN -->|channel-wise decay| KDA[Kimi Delta Attention]
+    KDA -->|separate erase/write| GDN2[Gated DeltaNet-2]
+    GLA -. gating/decay influence .-> GDN
+```
+
+- `LA → FWP` changes the explanatory model: the fixed state is treated as a programmable key–value memory, not as a separate full-model family.
+- `LA → DPFP` expands the feature/address space; it does not itself add eviction or corrective writing.
+- `RetNet/Retention` and `GLA` add forgetting, respectively through temporal decay and data-dependent element-wise decay, but do not by themselves implement DeltaNet's error correction.
+- `DeltaNet → GDN → KDA → GDN2` progressively refines memory editing: targeted correction, scalar broad forgetting, channel-wise retention, then independent erase and write controls.
+
 ## Cách đọc
 
 1. Đi theo hàng **Thứ tự học** từ trái sang phải; mỗi stage yêu cầu một kiểm chứng hoặc bản cài đặt nhỏ trước stage kế tiếp.
 2. Dùng hàng **Tiến hóa** để xác định một cơ chế là backbone, attention/context mechanism, capacity mechanism, hay architecture hệ thống.
 3. Khi đọc một model mới, tách nó thành: token mixer, positional/KV design, FFN/capacity, residual/depth path, training objective và serving/system components. Không suy ra ưu thế toàn mô hình chỉ từ một nhánh cơ chế.
 
+## Evidence limits
+
+Nguồn user-provided này là một conceptual map, không phải primary source cho RetNet hoặc GLA. Wiki hiện có primary-source-backed pages cho additive linear memory, DPFP, DeltaNet, Gated DeltaNet, KDA và Gated DeltaNet-2; vì vậy không dùng riêng sơ đồ này để suy ra ngày công bố, ranking chất lượng hoặc chi tiết implementation của RetNet/GLA.
+
 ## Relationships
 
 - **Extends:** [LLM architecture learning roadmap](llm-architecture-learning-roadmap.md) bằng một biểu diễn trực quan; roadmap là thứ tự học chuẩn tắc chi tiết.
 - **Uses:** [Sequence-model architecture taxonomy](sequence-model-architecture-taxonomy.md) để phân biệt backbone, cơ chế capacity/context và architecture hệ thống.
 - **Uses:** [DeepSeek-V4 and Kimi K3 architecture comparison](deepseek-v4-and-kimi-k3-architecture-comparison.md) như hai ví dụ về trade-off giữa token-addressable compression và hybrid fixed-state retrieval.
+- **Refines:** [Linear attention as fixed-state memory](linear-attention-as-fixed-state-memory.md) và [Delta-rule and gated associative memory](delta-rule-and-gated-associative-memory.md) bằng một lineage tập trung vào memory update.
+
+[^user-linear-attention-evolution-map]: User-provided Mermaid diagram, [preserved source](../raw/user-supplied-linear-attention-evolution.md); conceptual map only, without independent chronology or benchmark evidence.
 
 [^vaswani-transformer-2017]: Vaswani et al., “Attention Is All You Need,” [source](../raw/arXiv-1706.03762v7/ms.tex).
 [^radford-generative-pre-training-2018]: Radford et al., “Improving Language Understanding by Generative Pre-Training,” [source](../raw/gpt.pdf).

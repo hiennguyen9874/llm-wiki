@@ -42,6 +42,7 @@ The same report attributes HC’s instability to compounding unconstrained resid
 - **Used by:** [DeepSeek-V4 hybrid architecture and pretraining](deepseek-v4-hybrid-architecture-and-pretraining.md).
 - **Implemented by:** [DeepSeek-V4 training and serving infrastructure](deepseek-v4-training-and-serving-infrastructure.md) with fused kernels and selective recomputation.
 - **Extends:** ordinary Transformer residual accumulation in [Transformer sequence transduction architecture](transformer-sequence-transduction-architecture.md).
+- **Compared in:** [So sánh Gated Residual, mHC, AttnRes và họ kiến trúc residual-path](residual-path-architecture-comparison.md).
 
 ## Evidence limits
 

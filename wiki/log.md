@@ -1,6 +1,9 @@
 # Wiki Update Log
 
 ## 2026-08-27
+- **Ingest**: Compiled [user-supplied linear attention evolution map](../raw/user-supplied-linear-attention-evolution.md); refined [LLM architecture development and learning map](llm-architecture-development-and-learning-map.md) with the additive → decay → delta → channel-wise erase/write lineage, and linked its provenance-bounded interpretation in [Delta-rule and gated associative memory](delta-rule-and-gated-associative-memory.md).
+- **Ingest**: Preserved the user-supplied [Sparse Attention evolution map](../raw/user-supplied-sparse-attention-evolution.md) and filed [Sparse Attention evolution and architecture comparison](sparse-attention-evolution-and-architecture-comparison.md), consolidating fixed patterns, DSA, pooled QSA/DSA, LSA, CSA/HCA, and recurrent–attention hybrids with explicit cache, locality, and evidence boundaries.
+- **Query**: Answered “SO sánh Gated Residual, mHC, AttnRes và các kiến trúc tương tự trong cùng hướng phát triển”; filed [residual-path architecture comparison](residual-path-architecture-comparison.md) covering multi-stream widening, constrained mixing, depth retrieval, gating, cross-layer routing, systems trade-offs, and evidence limits.
 - **Ingest**: Compiled [On the Design of Qwen3.8-Next Architecture: Evaluation, Efficiency, and Training Stability](../raw/Qwen3.8-Flash-Next-tech_report/qwen3.8-flash-next-tech_report.md) and its referenced figures; updated Qwen3.8-Flash-Next architecture, QSA, Gated Residual, Gated DeltaNet, N-gram memory, Muon scaling/stability, and evaluation concepts with author-run ablations and evidence limits.
 
 ## 2026-08-26

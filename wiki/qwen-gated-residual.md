@@ -54,6 +54,7 @@ Gated Residual is a widened hyper-connection-style residual path, but the releas
 - **Used by:** [Qwen3.8-Flash-Next architecture and implementation](qwen3-8-flash-next-architecture-and-implementation.md) around every token mixer and MoE branch.
 - **Contrasts with:** [Manifold-constrained Hyper-Connections](manifold-constrained-hyper-connections.md), which explicitly constrains residual mixing to the Birkhoff polytope.
 - **Extends:** ordinary residual accumulation in [Transformer sequence transduction architecture](transformer-sequence-transduction-architecture.md).
+- **Compared in:** [So sánh Gated Residual, mHC, AttnRes và họ kiến trúc residual-path](residual-path-architecture-comparison.md).
 
 ## Evidence limits
 

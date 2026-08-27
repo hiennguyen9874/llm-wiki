@@ -61,6 +61,7 @@ All main routing entries are single matched runs without standard deviations. Ab
 - **Routes signals from:** [Delta-rule and gated associative memory](delta-rule-and-gated-associative-memory.md).
 - **Contrasts with:** [Attention Residuals](attention-residuals.md): AttnRes replaces uniform residual aggregation using depth-wise output retrieval, while CLVR additively routes an internal recurrent write signal.
 - **Evaluated alongside:** [Linear-attention architecture frontier and optimizer sensitivity](linear-attention-architecture-frontier-and-optimizer-sensitivity.md).
+- **Compared in:** [So sánh Gated Residual, mHC, AttnRes và họ kiến trúc residual-path](residual-path-architecture-comparison.md).
 - **Open extension to:** [Gated DeltaNet-2 decoupled delta rule and training](gated-deltanet-2-decoupled-delta-rule-and-training.md).
 
 [^linear-attention-architectures-2026]: Tommaso Cerruti, Tim Rieder, George Rowlands, Lingfeng Jin, and Imanol Schlag, “Linear Attention Architectures: Mechanisms, Trade-offs, and Cross-Layer Routing,” supplied LaTeX source, [source](../raw/2607.07953_LinearAttentionArchitectures/template.tex), Abstract; Sections 3, 4.3, 5.6–5.7, and 6–8; Tables 5–6; and Appendix B.
