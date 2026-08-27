@@ -5,7 +5,7 @@ description: Muon updates hidden-layer weight matrices using the polar factor of
 tags: [muon, optimizer, pre-training, matrix-optimization, newton-schulz]
 status: draft
 created: 2026-08-01
-generated: { by: llm-wiki-agent/1, at: 2026-08-26T15:18:15Z }
+generated: { by: llm-wiki-agent/1, at: 2026-08-27T03:11:23Z }
 sources:
   - id: muon-overview-2026
     resource: ../raw/MuonOptimizer.md
@@ -25,6 +25,9 @@ sources:
   - id: qwen38-next-blog
     resource: ../raw/Qwen3.8-Flash-Next/blog.md
     title: Qwen3.8-Flash-Next release blog
+  - id: qwen38-next-report
+    resource: ../raw/Qwen3.8-Flash-Next-tech_report/qwen3.8-flash-next-tech_report.md
+    title: "On the Design of Qwen3.8-Next Architecture: Evaluation, Efficiency, and Training Stability"
 ---
 
 # Muon orthogonalized-momentum optimizer
@@ -59,7 +62,11 @@ The supplied overview reports that weight decay also controlled growing weight a
 
 ## Qwen3.8-Flash-Next configuration
 
-Qwen's release blog assigns Muon to two-dimensional linear maps in attention, Gated DeltaNet, and MoE experts, while embeddings, the MoE router, and Gated Residual's low-rank parameters remain under AdamW. It also says fused QKV, SwiGLU, and GDN projection matrices are split by their independent transformations before orthogonalization. This reinforces that semantic matrix boundaries—not merely a fused tensor's rank—govern parameter grouping in this implementation.[^qwen38-next-blog]
+Qwen assigns Muon to two-dimensional linear maps in attention, Gated DeltaNet, and routed/shared MoE experts. Input/output embeddings, the router, Gated Residual's elongated low-rank maps, GDN decay/write vectors, and output gates remain under AdamW; N-gram tables use Adam without weight decay. Fused QKV and GDN input projections are split per head, while SwiGLU fc1 is split into gate/up halves before orthogonalization. This reinforces that semantic matrix boundaries—not merely a fused tensor's rank—govern parameter grouping.[^qwen38-next-report]
+
+Qwen uses Nesterov momentum 0.95, shape scaling $0.2\sqrt{\max(A,B)}$, eight Polar Express Newton–Schulz steps, and a $10^{-14}$ Frobenius-normalization constant. The report says eight steps reduced gradient-spike magnitude and frequency under stress relative to fewer steps; this is recipe-specific stability evidence, not a universal iteration optimum.[^qwen38-next-report]
+
+For distributed execution, Qwen's Canzona assigns whole matrices across data-parallel ranks by estimated orthogonalization FLOPs, reconstructs tensor-parallel matrices with a fused asynchronous all-to-all pipeline, and captures the many split-matrix kernels in a CUDA graph. The report asserts mathematical equivalence to single-device Muon while preserving ZeRO-1 bucket geometry, but provides no standalone implementation or end-to-end overhead table.[^qwen38-next-report]
 
 ## DeepSeek-V4 configuration
 
@@ -96,3 +103,5 @@ The core formula, original Newton–Schulz coefficients, and broad configuration
 [^nanochat-optim-2026]: nanochat contributors, [combined Muon–AdamW optimizer](../raw/nanochat/nanochat/optim.py), fused Muon kernel and distributed parameter-group update path.
 
 [^qwen38-next-blog]: Qwen Team, “Qwen3.8-Flash-Next,” [release blog](../raw/Qwen3.8-Flash-Next/blog.md), Optimization section.
+
+[^qwen38-next-report]: Qwen Team, “On the Design of Qwen3.8-Next Architecture: Evaluation, Efficiency, and Training Stability,” [technical report](../raw/Qwen3.8-Flash-Next-tech_report/qwen3.8-flash-next-tech_report.md), Section 3.1.

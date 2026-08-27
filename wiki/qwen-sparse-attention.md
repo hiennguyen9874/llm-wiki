@@ -5,7 +5,7 @@ description: Qwen Sparse Attention ranks fixed-size micro-blocks with a lightwei
 tags: [attention, sparse-attention, qwen, long-context, grouped-query-attention]
 status: stable
 created: 2026-08-26
-generated: { by: llm-wiki-agent/1, at: 2026-08-26T15:18:15Z }
+generated: { by: llm-wiki-agent/1, at: 2026-08-27T03:11:23Z }
 sources:
   - id: qwen38-next-card
     resource: ../raw/Qwen3.8-Flash-Next/README.md
@@ -22,6 +22,9 @@ sources:
   - id: qwen38-next-attention-figure
     resource: ../raw/Qwen3.8-Flash-Next/Attention.png
     title: Qwen Sparse Attention diagram
+  - id: qwen38-next-report
+    resource: ../raw/Qwen3.8-Flash-Next-tech_report/qwen3.8-flash-next-tech_report.md
+    title: "On the Design of Qwen3.8-Next Architecture: Evaluation, Efficiency, and Training Stability"
 ---
 
 # Qwen Sparse Attention
@@ -30,7 +33,7 @@ Qwen Sparse Attention (QSA) uses a separate low-width indexer to score contiguou
 
 ## Indexing and attention path
 
-The released implementation projects each hidden state to four 128-dimensional query heads and one shared 128-dimensional key head. It RMS-normalizes both paths, applies the model's partial RoPE, averages raw keys within each complete four-token block, and scores each block by summing ReLU-clipped query–block-key dot products across the four query heads. Top-ranked blocks are expanded to all constituent tokens and overlaid on the ordinary causal mask.[^qwen38-next-modeling]
+The released implementation projects each hidden state to four 128-dimensional query heads and one shared 128-dimensional key head. It averages raw keys within each complete four-token block, RMS-normalizes the queries and pooled keys, applies the model's partial RoPE, and scores each block by summing ReLU-clipped query–block-key dot products across the four query heads. Top-ranked blocks are expanded to all constituent tokens and overlaid on the ordinary causal mask.[^qwen38-next-modeling]
 
 The main attention path is distinct from the indexer: it uses 24 query heads and two KV heads of width 256, Q/K normalization, 64 rotary dimensions, and a learned sigmoid output gate. The supplied diagram makes this separation explicit: a compressed lightweight indexer produces top-k block indices for sparse core attention, while the main attention has separate Q/K/V projections and a sigmoid-gated output.[^qwen38-next-attention-figure] Thus the indexer reduces the set read by the expensive attention operation, but the implementation still caches per-token main-attention K/V and indexer keys for QSA layers.[^qwen38-next-config][^qwen38-next-modeling]
 
@@ -42,6 +45,14 @@ The release blog reports that an optimized QSA attention kernel reaches up to 7.
 
 The supplied Python implementation loops over batches and query positions to construct the selection mask and declares no FlashAttention or FlexAttention support for the text model. It is therefore a semantic reference path, not evidence of those optimized long-context gains; production efficiency depends on specialized serving kernels.[^qwen38-next-blog][^qwen38-next-modeling]
 
+## Training and reported evaluation
+
+QSA is introduced during 256K continued pre-training. The report describes 1,000 indexer-only dense-distillation steps (about 2B tokens), followed by 8,000 joint sparse-training steps (about 200B tokens). The teacher's token attention is max-pooled to blocks for KL distillation; after sparse selection, the backbone and indexer adapt jointly. Direct sparse use after distillation reportedly drops RULER performance, while joint training recovers it.[^qwen38-next-report]
+
+In author-run comparisons, QSA raises the eight-task short-context average from 75.9 to 76.8 and the macro-average over RULER/MRCR settings from 78.76 to 80.93. At one million tokens, RULER rises from 90.08 to 93.00 and MRCR from 20.71 to 26.44. Four-step MTP accepted length is effectively unchanged (4.06 versus 4.07 average) when QSA indices are reused across draft steps. These point estimates lack repeated-seed uncertainty.[^qwen38-next-report]
+
+The report's kernel comparison includes indexer plus sparse core attention and uses FlashInfer paged GQA as the dense baseline. It reports QSA speedups beginning around 64K and reaching 7.6× prefill and 4.9× decode at one million tokens. These are attention-module measurements under specified chunked-prefill and batched-MTP decode workloads, not end-to-end serving throughput.[^qwen38-next-report]
+
 ## Relationships
 
 - **Used by:** [Qwen3.8-Flash-Next architecture and implementation](qwen3-8-flash-next-architecture-and-implementation.md) every fourth language layer.
@@ -50,7 +61,9 @@ The supplied Python implementation loops over batches and query positions to con
 
 ## Evidence limits
 
-The model card, blog, diagram, and reference code establish the selection concept and checkpoint dimensions. The separately supplied technical report was not part of this two-source ingest, and the blog provides no kernel configuration, hardware, absolute latency, or dense-attention quality ablation sufficient to reproduce or independently attribute its speed claims.[^qwen38-next-blog][^qwen38-next-modeling]
+The model card, blog, report, diagram, and reference code establish the selection concept, training procedure, checkpoint dimensions, and author-run ablations. The report does not provide code for the fused QSA kernel, absolute latency tables, repeated-seed uncertainty, or independent replication; its speed and quality results remain workload- and implementation-bound.[^qwen38-next-report][^qwen38-next-modeling]
+
+[^qwen38-next-report]: Qwen Team, “On the Design of Qwen3.8-Next Architecture: Evaluation, Efficiency, and Training Stability,” [technical report](../raw/Qwen3.8-Flash-Next-tech_report/qwen3.8-flash-next-tech_report.md), Section 2.1.2, Tables 2–4, and Figures 3–6.
 
 [^qwen38-next-card]: Qwen Team, “Qwen3.8-Flash-Next,” [model card](../raw/Qwen3.8-Flash-Next/README.md), Highlights and Model Overview.
 

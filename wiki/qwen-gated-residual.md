@@ -5,7 +5,7 @@ description: Qwen Gated Residual carries four widened residual streams while usi
 tags: [residual-connections, qwen, hyper-connections, training-stability]
 status: stable
 created: 2026-08-26
-generated: { by: llm-wiki-agent/1, at: 2026-08-26T15:18:15Z }
+generated: { by: llm-wiki-agent/1, at: 2026-08-27T03:11:23Z }
 sources:
   - id: qwen38-next-card
     resource: ../raw/Qwen3.8-Flash-Next/README.md
@@ -22,6 +22,9 @@ sources:
   - id: qwen38-next-blog
     resource: ../raw/Qwen3.8-Flash-Next/blog.md
     title: Qwen3.8-Flash-Next release blog
+  - id: qwen38-next-report
+    resource: ../raw/Qwen3.8-Flash-Next-tech_report/qwen3.8-flash-next-tech_report.md
+    title: "On the Design of Qwen3.8-Next Architecture: Evaluation, Efficiency, and Training Stability"
 ---
 
 # Qwen Gated Residual
@@ -32,7 +35,15 @@ Qwen Gated Residual expands the language model's residual state into four width-
 
 For widened state $X\in\mathbb{R}^{4d}$, the implementation applies grouped RMS normalization, maps $4d\rightarrow320\rightarrow4d$ with SiLU then sigmoid, multiplies the resulting element-wise gates by the normalized streams, and averages across the four streams to obtain the width-$d$ branch input. A separate projection produces four write coefficients as $2\sigma(\cdot)$; the branch output is multiplied by each coefficient and added to the unchanged widened state. Attention and MoE each have their own Gated Residual module, and a final read-only mixer reduces the four streams before the prediction head.[^qwen38-next-modeling][^qwen38-next-figure]
 
-This design gives the read path feature-level control and the write path branch-level control while preserving a direct carried state. The blog says one branch empirically emerges as a long-range path from the first attention layer into much of the middle and later network; it also attributes activation-outlier suppression and training stability to the gate and says the residual state supports FP8 storage. These are author interpretations without the supporting analysis or an isolated residual ablation in the two sources compiled here.[^qwen38-next-blog]
+This design gives the read path feature-level control and the write path branch-level control while preserving a direct carried state.[^qwen38-next-modeling]
+
+## Ablations, path analysis, and systems trade-offs
+
+On matched 25B-A3B MoE runs, widening with static mHC-style operators raises the nine-benchmark average from 50.91 to 52.49; making read/write data-dependent raises it to 54.47 despite only a 0.002 loss reduction, and GR reaches 54.66. The report finds channel-wise read gates useful, scalar write gates sufficient, and the full branch-mixing matrix unhelpful. In a separate loss comparison, Full Attention Residual plus GatedNorm reaches 1.758 versus 1.762 for GR, so GR is not uniformly superior on loss; it avoids Attention Residual's growing depth cache.[^qwen38-next-report]
+
+An exact decomposition on one matched 20-layer pair attributes GR's difference mainly to amplified adjacent and very long paths at the expense of mid-range paths. Across five GR checkpoints, one of four exchangeable branches becomes long-range; early GDN outputs are preserved and later softmax-attention layers are prominent readers. This is mechanistic evidence for those probed checkpoints, not proof that every trained GR model specializes identically.[^qwen38-next-report]
+
+Reading only the two highest-gated branches looked nearly neutral in pre-training but degraded after post-training, so it was rejected. Storing all four residual branches in FP8 reportedly halves residual-state traffic versus BF16 with almost no quality loss; fused read and write kernels traverse the widened state once in each direction per block. No deployable kernel or independent measurement accompanies those claims.[^qwen38-next-report]
 
 ## Relationship to Hyper-Connections
 
@@ -46,7 +57,9 @@ Gated Residual is a widened hyper-connection-style residual path, but the releas
 
 ## Evidence limits
 
-The architecture diagram, configuration, and reference forward pass establish the mechanism and dimensions. The separately supplied technical report was not part of this two-source ingest; the blog supplies no training curves or isolated measurements that establish quality, stability, FP8 traffic, or latency effects.[^qwen38-next-blog][^qwen38-next-modeling]
+The architecture diagram, configuration, reference forward pass, and technical report establish the mechanism, dimensions, and author-run ablations. The report provides point estimates and selected training curves but no repeated-seed uncertainty, deployable GR kernel, or independent replication; post-training and FP8 claims therefore remain author-reported.[^qwen38-next-report][^qwen38-next-modeling]
+
+[^qwen38-next-report]: Qwen Team, “On the Design of Qwen3.8-Next Architecture: Evaluation, Efficiency, and Training Stability,” [technical report](../raw/Qwen3.8-Flash-Next-tech_report/qwen3.8-flash-next-tech_report.md), Section 2.2, Tables 5–6, and Figure 7.
 
 [^qwen38-next-card]: Qwen Team, “Qwen3.8-Flash-Next,” [model card](../raw/Qwen3.8-Flash-Next/README.md), Highlights and Model Overview.
 

@@ -5,7 +5,7 @@ description: Qwen3.8-Flash-Next reports broad coding, agentic, reasoning, and mu
 tags: [qwen3-8, evaluation, deployment, multimodal, long-context, agentic-models]
 status: stable
 created: 2026-08-26
-generated: { by: llm-wiki-agent/1, at: 2026-08-26T15:18:15Z }
+generated: { by: llm-wiki-agent/1, at: 2026-08-27T03:11:23Z }
 sources:
   - id: qwen38-next-card
     resource: ../raw/Qwen3.8-Flash-Next/README.md
@@ -13,6 +13,9 @@ sources:
   - id: qwen38-next-blog
     resource: ../raw/Qwen3.8-Flash-Next/blog.md
     title: Qwen3.8-Flash-Next release blog
+  - id: qwen38-next-report
+    resource: ../raw/Qwen3.8-Flash-Next-tech_report/qwen3.8-flash-next-tech_report.md
+    title: "On the Design of Qwen3.8-Next Architecture: Evaluation, Efficiency, and Training Stability"
 ---
 
 # Qwen3.8-Flash-Next evaluation and deployment limits
@@ -25,7 +28,9 @@ The card compares Qwen3.8-Flash-Next with Qwen3.8-27B, Qwen3.7-Plus, DeepSeek-V4
 
 The comparison is not one uniform experiment. DeepSWE reports the best result across two agent harnesses; Claude's SWE-bench Pro score is externally published while other models are rerun on a refined benchmark; HLE uses GPT-4o judging; Vision2Web uses a dated GPT-5.4 judge; and some baselines have missing values. CoWorkBench and RecreationBench are explicitly in-house. These choices limit cross-row and cross-model inference.[^qwen38-next-card]
 
-The blog additionally claims training used about one ninth the cost of Qwen3.7-Plus and reports a 14-benchmark base-model table in which Flash-Next leads eight displayed rows. It does not disclose the training-cost denominator, accounting method, run controls, uncertainty, or artifacts needed to reproduce either claim, so neither establishes a general cost/capability ratio.[^qwen38-next-blog]
+The technical report specifies a 14-benchmark base-model comparison: Qwen3.8-Flash-Next-Base leads Qwen3.8-27B-Base on every listed task and Qwen3.7-Plus-Base on eight. Its largest deficits to Plus are 2.59 points on MultiPL-E and 1.60 on MATH. The report attributes this result to 125B backbone parameters with 6B active per token plus 51B N-gram parameters, versus Plus at 397B/17B active, while using about one third the training tokens and roughly one ninth the training FLOPs.[^qwen38-next-report]
+
+This table improves prompt disclosure for several tasks (including shot counts and CoT use), but still provides no evaluation code, predictions, contamination audit, repeated-seed uncertainty, token totals, FLOP accounting method, or matched training controls. It supports an author-reported base-model efficiency result, not independent reproduction or causal attribution to any one component.[^qwen38-next-report]
 
 ## Interface and serving
 
@@ -37,7 +42,7 @@ The card recommends current SGLang, vLLM, TokenSpeed, or KTransformers paths and
 
 The card calls Qwen3.8-Flash-Next an experimental preview and distinguishes it from the managed Qwen3.8-Flash product, which adds production features such as default one-million-token context and built-in tools. Those product features should not be attributed to the supplied checkpoint.[^qwen38-next-card]
 
-The sources compiled here omit the model license, weights, tokenizer/processor configuration, and evaluation or serving artifacts. A separately supplied technical report was not part of this two-source ingest. Although the card frontmatter names a community license and the implementation source headers use Apache-2.0, the absent model license prevents assessment of checkpoint-use terms from these sources.
+The sources compiled here omit the model license, weights, tokenizer/processor configuration, and evaluation or serving artifacts. The technical report adds architecture ablations, training curves, and base-model evaluation, but not reproducibility artifacts. Although the card frontmatter names a community license and the implementation source headers use Apache-2.0, the absent model license prevents assessment of checkpoint-use terms from these sources.
 
 ## Relationships
 
@@ -47,8 +52,10 @@ The sources compiled here omit the model license, weights, tokenizer/processor c
 
 ## Evidence limits
 
-All scores and operational recommendations on this page are attributed to Qwen's card or blog. The compiled sources provide no independent replication, uncertainty estimates, safety evaluation, training-data disclosure, contamination audit, dense-attention or residual ablation, or end-to-end long-context serving benchmark.[^qwen38-next-card][^qwen38-next-blog]
+All scores, ablations, and operational recommendations on this page are attributed to Qwen's card, blog, or technical report. The report adds dense-attention and residual ablations, but the compiled sources still provide no independent replication, uncertainty estimates, safety evaluation, training-data disclosure, contamination audit, or end-to-end long-context serving benchmark.[^qwen38-next-card][^qwen38-next-blog][^qwen38-next-report]
 
 [^qwen38-next-card]: Qwen Team, “Qwen3.8-Flash-Next,” [model card](../raw/Qwen3.8-Flash-Next/README.md), Benchmark Results, Quickstart, Best Practices, release notes, and footnotes.
 
 [^qwen38-next-blog]: Qwen Team, “Qwen3.8-Flash-Next,” [release blog](../raw/Qwen3.8-Flash-Next/blog.md), Introduction, Performance, Base Model Performance, and Develop sections.
+
+[^qwen38-next-report]: Qwen Team, “On the Design of Qwen3.8-Next Architecture: Evaluation, Efficiency, and Training Stability,” [technical report](../raw/Qwen3.8-Flash-Next-tech_report/qwen3.8-flash-next-tech_report.md), Sections 1 and 4 and Table 11.

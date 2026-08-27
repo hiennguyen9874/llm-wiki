@@ -1,5 +1,8 @@
 # Wiki Update Log
 
+## 2026-08-27
+- **Ingest**: Compiled [On the Design of Qwen3.8-Next Architecture: Evaluation, Efficiency, and Training Stability](../raw/Qwen3.8-Flash-Next-tech_report/qwen3.8-flash-next-tech_report.md) and its referenced figures; updated Qwen3.8-Flash-Next architecture, QSA, Gated Residual, Gated DeltaNet, N-gram memory, Muon scaling/stability, and evaluation concepts with author-run ablations and evidence limits.
+
 ## 2026-08-26
 - **Update**: Expanded [GLM-5.3-Flash and Qwen3.8-Flash-Next architecture comparison](glm-5-3-flash-and-qwen3-8-flash-next-architecture-comparison.md) with raw-reference per-sparse-layer cache accounting, the GLM expanded-KV implementation boundary, and implementation-level mHC versus Gated Residual comparison.
 - **Query**: Answered “tìm kiếm điểm đột phá kiến trúc và hiệu năng của GLM-5.3-Flash và Qwen3.8-Flash-Next”; filed [architecture comparison](glm-5-3-flash-and-qwen3-8-flash-next-architecture-comparison.md) covering their recurrent-majority hybrid MoE convergence, pooled sparse-attention and four-stream residual differences, conditional memory, context strategy, vendor performance claims, and evidence limits.

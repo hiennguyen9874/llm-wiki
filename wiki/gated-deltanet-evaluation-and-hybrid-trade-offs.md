@@ -5,11 +5,14 @@ description: Gated DeltaNet reports better matched recurrent-model results than 
 tags: [deltanet, evaluation, hybrid-attention, linear-attention, long-context, mamba]
 status: stable
 created: 2026-08-01
-generated: { by: llm-wiki-agent/1, at: 2026-08-01T02:28:38Z }
+generated: { by: llm-wiki-agent/1, at: 2026-08-27T03:11:23Z }
 sources:
   - id: gated-deltanet-2025
     resource: ../raw/arXiv-2412.06464v3/main.tex
     title: "Gated Delta Networks: Improving Mamba2 with Delta Rule"
+  - id: qwen38-next-report
+    resource: ../raw/Qwen3.8-Flash-Next-tech_report/qwen3.8-flash-next-tech_report.md
+    title: "On the Design of Qwen3.8-Next Architecture: Evaluation, Efficiency, and Training Stability"
 ---
 
 # Gated DeltaNet evaluation and hybrid trade-offs
@@ -34,6 +37,12 @@ H1 reports a 56.40 commonsense average and 39.0 recall average; H2 reports 56.18
 
 On the paper’s single-H100 throughput figure, Gated DeltaNet stays near DeltaNet (about 46K tokens/s across the plotted fixed sequence-length-times-batch configurations) and trails Mamba2 by roughly 2–3K tokens/s. H1/H2 are faster than the standalone gated recurrence in that figure, while the full-attention baseline falls as sequence length increases. These are implementation-specific training-throughput measurements, not decode-latency or universal hardware claims.[^gated-deltanet-2025]
 
+## Qwen hybrid evidence
+
+In Qwen's matched 28-layer 25B-A3B ablation, a three-GDN/one-global-attention hybrid reaches a nine-task average of 53.81, versus 49.87 for full attention and 51.15 for the same schedule using 128-token sliding-window attention. It leads full attention on eight tasks and the sliding-window hybrid on seven, but trails on MMLU and EvalPlus respectively. The checkpoints share a 400B-token/4K stage and an 80B-token/32K continuation, so this supports that hybrid recipe rather than a universal mixer ranking.[^qwen38-next-report]
+
+Qwen also reports that its TileLang FlashQLA kernels are 2–3× faster forward and about 2× faster backward than its FLA Triton baseline across selected NVIDIA GPU settings. The report does not turn these kernel ratios into end-to-end training throughput.[^qwen38-next-report]
+
 ## Limits
 
 - The study uses unaligned pretrained models, and the authors attribute part of the real-world retrieval error to repetition; instruction-tuned behavior was not evaluated.[^gated-deltanet-2025]
@@ -48,3 +57,5 @@ On the paper’s single-H100 throughput figure, Gated DeltaNet stays near DeltaN
 - **Supports hybrid use of:** [Self-attention computational profile](self-attention-computational-profile.md) for local token-addressable access.
 
 [^gated-deltanet-2025]: Songlin Yang, Jan Kautz, and Ali Hatamizadeh, “Gated Delta Networks: Improving Mamba2 with Delta Rule,” ICLR 2025, [source](../raw/arXiv-2412.06464v3/main.tex), Sections 4–5, Tables 1–4, Figures 2–3, and Appendix B.
+
+[^qwen38-next-report]: Qwen Team, “On the Design of Qwen3.8-Next Architecture: Evaluation, Efficiency, and Training Stability,” [technical report](../raw/Qwen3.8-Flash-Next-tech_report/qwen3.8-flash-next-tech_report.md), Section 2.1.1 and Table 1.

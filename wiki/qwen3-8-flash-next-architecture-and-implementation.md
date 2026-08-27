@@ -5,7 +5,7 @@ description: Qwen3.8-Flash-Next is a multimodal 48-layer hybrid MoE checkpoint c
 tags: [qwen3-8, multimodal, hybrid-attention, gated-deltanet, sparse-attention, mixture-of-experts, n-gram-embeddings]
 status: stable
 created: 2026-08-26
-generated: { by: llm-wiki-agent/1, at: 2026-08-26T15:18:15Z }
+generated: { by: llm-wiki-agent/1, at: 2026-08-27T03:11:23Z }
 sources:
   - id: qwen38-next-card
     resource: ../raw/Qwen3.8-Flash-Next/README.md
@@ -28,6 +28,9 @@ sources:
   - id: qwen38-next-blog
     resource: ../raw/Qwen3.8-Flash-Next/blog.md
     title: Qwen3.8-Flash-Next release blog
+  - id: qwen38-next-report
+    resource: ../raw/Qwen3.8-Flash-Next-tech_report/qwen3.8-flash-next-tech_report.md
+    title: "On the Design of Qwen3.8-Next Architecture: Evaluation, Efficiency, and Training Stability"
 ---
 
 # Qwen3.8-Flash-Next architecture and implementation
@@ -54,7 +57,11 @@ The native configured context is 262,144 tokens. The card describes extension to
 
 ## Training-recipe declaration
 
-The blog says Muon handles two-dimensional linear maps in attention, Gated DeltaNet, and MoE experts, while AdamW handles embeddings, the MoE router, and Gated Residual's low-rank parameters. Fused QKV, SwiGLU, and GDN projections are split into their independent transformations before orthogonalization. Qwen also reports refitting its scaling law, selecting larger learning rates and batch sizes, and starting directly at the target batch instead of batch-size warmup; these are training declarations not represented or independently testable in the checkpoint implementation.[^qwen38-next-blog]
+The report says Muon handles two-dimensional linear maps in attention, Gated DeltaNet, and MoE experts, while AdamW handles embeddings, the MoE router, Gated Residual's low-rank parameters, and vector-like gates; N-gram tables use Adam without weight decay. Fused QKV, SwiGLU, and GDN projections are split into their independent transformations before orthogonalization. Qwen refit its scaling law, selected larger learning rates and batch sizes, and started directly at the target batch instead of batch-size warmup. These are author-run training results not represented or independently testable in the checkpoint implementation.[^qwen38-next-report]
+
+## Report-backed design evidence
+
+In a matched 28-layer 25B-A3B ablation, the three-GDN/one-global-attention hybrid averaged 53.81 across nine benchmarks versus 49.87 for full attention and 51.15 for a sliding-window hybrid; individual tasks did not all follow the average. The report also says removing RoPE looked neutral during pre-training but increased endless generation after post-training, and reading only the two highest-gated residual branches looked nearly neutral before post-training but later degraded quality. These negative results support the final periodic-RoPE-attention and dense four-branch read choices, but remain author-run ablations at smaller scales.[^qwen38-next-report]
 
 ## MTP implementation boundary
 
@@ -72,7 +79,9 @@ The card reports one MTP layer trained for multiple steps and allocates 4B param
 
 ## Evidence limits
 
-The sources compiled on this page contain a card, blog, configuration, architecture figure, and generated plus modular Transformers sources, but no weights, tokenizer/processor assets, license file, training data, optimizer implementation, optimized QSA kernels, or benchmark artifacts. A separately supplied technical report was not part of this two-source ingest. The generated configuration and material modeling paths were inspected; the modular source was checked for lineage and relevant definitions rather than treated as independent evidence or re-read line by line.[^qwen38-next-card][^qwen38-next-blog][^qwen38-next-configuration][^qwen38-next-modeling][^qwen38-next-modular]
+The sources compiled on this page contain a card, blog, technical report, configuration, architecture figures, and generated plus modular Transformers sources, but no weights, tokenizer/processor assets, license file, training data, optimizer implementation, optimized QSA kernels, or benchmark artifacts. The report supplies author-run ablations rather than independent replication. Its 25 referenced figures were present; the architecture, QSA, GR-path, and stress-test figures were visually inspected, while the remaining plots were covered through report text and captions. The generated configuration and material modeling paths were inspected; the modular source was checked for lineage and relevant definitions rather than treated as independent evidence or re-read line by line.[^qwen38-next-card][^qwen38-next-report][^qwen38-next-configuration][^qwen38-next-modeling][^qwen38-next-modular]
+
+[^qwen38-next-report]: Qwen Team, “On the Design of Qwen3.8-Next Architecture: Evaluation, Efficiency, and Training Stability,” [technical report](../raw/Qwen3.8-Flash-Next-tech_report/qwen3.8-flash-next-tech_report.md), Sections 2–4.
 
 [^qwen38-next-card]: Qwen Team, “Qwen3.8-Flash-Next,” [model card](../raw/Qwen3.8-Flash-Next/README.md), Highlights, Model Overview, Best Practices, and Citation.
 

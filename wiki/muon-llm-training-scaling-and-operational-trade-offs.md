@@ -5,7 +5,7 @@ description: The supplied Muon overview reports lower compute-to-loss requiremen
 tags: [muon, optimizer, scaling-laws, distributed-training, pre-training, mixture-of-experts]
 status: draft
 created: 2026-08-01
-generated: { by: llm-wiki-agent/1, at: 2026-08-26T15:18:15Z }
+generated: { by: llm-wiki-agent/1, at: 2026-08-27T03:11:23Z }
 sources:
   - id: muon-overview-2026
     resource: ../raw/MuonOptimizer.md
@@ -16,6 +16,9 @@ sources:
   - id: qwen38-next-blog
     resource: ../raw/Qwen3.8-Flash-Next/blog.md
     title: Qwen3.8-Flash-Next release blog
+  - id: qwen38-next-report
+    resource: ../raw/Qwen3.8-Flash-Next-tech_report/qwen3.8-flash-next-tech_report.md
+    title: "On the Design of Qwen3.8-Next Architecture: Evaluation, Efficiency, and Training Stability"
 ---
 
 # Muon LLM training scaling and operational trade-offs
@@ -38,7 +41,15 @@ Kimi K3 orthogonalizes Q/K/V momentum separately per attention head rather than 
 
 ## Qwen3.8-Flash-Next schedule claim
 
-Qwen reports refitting its scaling law after changing both architecture and optimizer, then selecting larger learning rates and batch sizes. Its blog says batch-size warmup did not improve the final result and instead required 18.8% more optimizer steps, so the final recipe started directly at the target batch size. The source does not disclose the fitted law, comparison schedule, token budget, loss values, or wall-clock effects; this is architecture- and recipe-specific evidence, not a general result that Muon eliminates batch warmup.[^qwen38-next-blog]
+Qwen refit its scaling law after changing both architecture and optimizer, predicting larger learning rates and batch sizes. On a 10.8B-A0.89B MoE trained for 4T tokens, the predicted 25.2M-token batch ends at loss 1.5702 versus 1.5774 for the previous 12.6M recipe; 37.7M is nearly flat at 1.5707. Ramping from 6.3M to 25.2M by 524B tokens ends slightly worse and requires 18.8% more optimizer steps, so production starts at the target batch.[^qwen38-next-report]
+
+On a 156B-A7B MoE trained for 419B tokens, the predicted $B=8.4$M and $\eta=1.76\times10^{-3}$ setting ends 0.0078 loss below the Qwen3.5 recipe. Nearby settings from $\eta/\sqrt2$ to $\eta\sqrt2$ and +25% batch lie within 0.0007 loss; the predicted setting has the highest seven-task average, 60.55 versus 56.41 for Qwen3.5. These are single author-run evaluations with narrow top-setting margins, not a disclosed general scaling equation or proof that Muon universally removes batch warmup.[^qwen38-next-report]
+
+## Stability stress tests
+
+At constant 4× optimal learning rate on a 25B-A3B MoE, the report records 183 loss spikes per 10K steps and 213 clipping-threshold crossings in 19,932 steps for Qwen3.5/AdamW. Both Muon runs avoid threshold crossings, and Muon plus Gated Residual records zero loss spikes. In an AdamW-controlled 3× test, adding GatedNorm reduces spikes from 32.0 to 3.2 per 10K and crossings from 256 to 20, isolating the multiplicative gate as one contributor rather than attributing all stability to Muon.[^qwen38-next-report]
+
+For the first 276B production tokens, Qwen reports no loss spike for the full recipe, lower gradient variability, and a 0.058 loss gain over its Qwen3.5/Muon baseline. These comparisons share selected controls but change multiple components in the final recipe and provide no independent replication.[^qwen38-next-report]
 
 ## Limits for adoption
 
@@ -52,14 +63,16 @@ Qwen reports refitting its scaling law after changing both architecture and opti
 - **Uses:** [Muon orthogonalized-momentum optimizer](muon-orthogonalized-momentum-optimizer.md) for the matrix update and hybrid parameter partition.
 - **Applies to:** [Mixture-of-Experts training and systems trade-offs](mixture-of-experts-training-and-systems-trade-offs.md), since the reported Moonlight result is an MoE training case; it does not eliminate MoE routing or dispatch costs.
 - **Qualifies:** [Chinchilla compute-optimal training allocation](chinchilla-compute-optimal-training-allocation.md): optimizer choice can alter empirical compute-to-loss results, so its allocation heuristic is not optimizer-invariant.
-- **Applied by:** [Qwen3.8-Flash-Next architecture and implementation](qwen3-8-flash-next-architecture-and-implementation.md), whose blog reports a jointly refitted architecture/optimizer schedule.
+- **Applied by:** [Qwen3.8-Flash-Next architecture and implementation](qwen3-8-flash-next-architecture-and-implementation.md), whose technical report describes a jointly refitted architecture/optimizer schedule.
 
 ## Evidence limits
 
-The source is a secondary Vietnamese overview. Its primary technical report, implementation measurements, and reported benchmark data have not been independently verified in this wiki.[^muon-overview-2026]
+The general Muon scaling claims still rely on a secondary Vietnamese overview whose underlying primary study has not been independently ingested. Qwen's technical report provides primary evidence for its own scaling-law validation and stress tests, but no repeated-seed uncertainty, general fitted equation, implementation release, or independent replication.[^muon-overview-2026][^qwen38-next-report]
 
 [^muon-overview-2026]: “Muon Optimizer overview (Vietnamese summary),” [raw source](../raw/MuonOptimizer.md), Sections 7–11 and 13–15; it cites “Muon is Scalable for LLM Training” (arXiv:2502.16982).
 
 [^kimi-k3-2026]: Kimi Team, “Kimi K3: Open Frontier Intelligence,” arXiv:2607.24653v1, [source](../raw/arXiv-2607.24653v1/main.tex), Sections 2.5 and 5.2.
 
 [^qwen38-next-blog]: Qwen Team, “Qwen3.8-Flash-Next,” [release blog](../raw/Qwen3.8-Flash-Next/blog.md), Optimization section.
+
+[^qwen38-next-report]: Qwen Team, “On the Design of Qwen3.8-Next Architecture: Evaluation, Efficiency, and Training Stability,” [technical report](../raw/Qwen3.8-Flash-Next-tech_report/qwen3.8-flash-next-tech_report.md), Sections 3.2–3.3, Table 10, and Figures 8–13.

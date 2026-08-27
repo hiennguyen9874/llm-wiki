@@ -5,11 +5,14 @@ description: Gated DeltaNet adds scalar learned decay to DeltaNet’s corrective
 tags: [deltanet, gating, linear-attention, mamba, parallelism]
 status: stable
 created: 2026-08-01
-generated: { by: llm-wiki-agent/1, at: 2026-08-01T02:28:38Z }
+generated: { by: llm-wiki-agent/1, at: 2026-08-27T03:11:23Z }
 sources:
   - id: gated-deltanet-2025
     resource: ../raw/arXiv-2412.06464v3/main.tex
     title: "Gated Delta Networks: Improving Mamba2 with Delta Rule"
+  - id: qwen38-next-report
+    resource: ../raw/Qwen3.8-Flash-Next-tech_report/qwen3.8-flash-next-tech_report.md
+    title: "On the Design of Qwen3.8-Next Architecture: Evaluation, Efficiency, and Training Stability"
 ---
 
 # Gated DeltaNet architecture and chunkwise training
@@ -36,8 +39,9 @@ Two reported hybrids reintroduce token-addressable local context:
 
 - **H1:** alternates Gated DeltaNet and sliding-window-attention blocks.
 - **H2:** repeats Mamba2, Gated DeltaNet, and sliding-window-attention blocks.
+- **Qwen3.8-Flash-Next:** repeats three Gated DeltaNet layers and one global-attention layer. Its variant uses a bounded sigmoid output gate and zero-centered RMSNorm; the report retains RoPE in global attention because a NoPE ablation later produced more endless generation after post-training despite similar pre-training behavior.[^qwen38-next-report]
 
-These are hybrid architectures, not evidence that the fixed-state recurrence alone provides the hybrid models’ retrieval behavior.[^gated-deltanet-2025]
+These are hybrid architectures, not evidence that the fixed-state recurrence alone provides the hybrid models’ retrieval behavior.[^gated-deltanet-2025][^qwen38-next-report]
 
 ## Decay-aware chunkwise algorithm
 
@@ -57,3 +61,5 @@ This is an exact re-expression of the stated gated recurrence. It preserves the 
 The recurrence, block details, derivation, and hybrids are primary-source author claims. The chunkwise derivation establishes equivalence to the stated update, not universal numerical stability or end-to-end speed; those depend on precision, kernels, head size, sequence length, and hardware.
 
 [^gated-deltanet-2025]: Songlin Yang, Jan Kautz, and Ali Hatamizadeh, “Gated Delta Networks: Improving Mamba2 with Delta Rule,” ICLR 2025, [source](../raw/arXiv-2412.06464v3/main.tex), Sections 3–4, Figure 1, and Appendix A.
+
+[^qwen38-next-report]: Qwen Team, “On the Design of Qwen3.8-Next Architecture: Evaluation, Efficiency, and Training Stability,” [technical report](../raw/Qwen3.8-Flash-Next-tech_report/qwen3.8-flash-next-tech_report.md), Section 2.1.1.
