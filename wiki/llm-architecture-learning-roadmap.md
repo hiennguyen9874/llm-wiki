@@ -12,7 +12,7 @@ status: stable
 created: 2026-08-01
 generated:
   by: llm-wiki-agent/1
-  at: 2026-08-15T10:50:26+07:00
+  at: 2026-08-30T11:19:42+07:00
 sources:
   - id: vaswani-transformer-2017
     resource: ../raw/arXiv-1706.03762v7/ms.tex
@@ -71,6 +71,42 @@ sources:
   - id: rag-summary
     resource: ../raw/RAG.md
     title: "RAG overview (Vietnamese summary)"
+  - id: qwen38-next-report
+    resource: ../raw/Qwen3.8-Flash-Next-tech_report/qwen3.8-flash-next-tech_report.md
+    title: "On the Design of Qwen3.8-Next Architecture: Evaluation, Efficiency, and Training Stability"
+  - id: longcat-lsa-2026
+    resource: ../raw/2608.01662_LongCatSparseAttention/longcat.tex
+    title: "LongCat Sparse Attention: Taming the Lightning via Streaming-aware Hierarchical Cross-Layer Indexing"
+  - id: ssm-introduction
+    resource: ../raw/IntroductiontoStateSpaceModels.md
+    title: Introduction to State Space Models
+  - id: mamba-3-2026
+    resource: ../raw/2603.15569_Mamba-3/structure.tex
+    title: "Mamba-3: Improved Sequence Modeling using State Space Principles"
+  - id: gated-deltanet-2-2026
+    resource: ../raw/2605.22791_GatedDeltaNet-2/main.tex
+    title: "Gated DeltaNet-2: Decoupling Erase and Write in Linear Attention"
+  - id: hyena-2023
+    resource: ../raw/2302.10866_HyenaHierarchy/main.tex
+    title: "Hyena Hierarchy: Towards Larger Convolutional Language Models"
+  - id: xlstm-2024
+    resource: ../raw/2405.04517_xLSTM/xlstm.tex
+    title: "xLSTM: Extended Long Short-Term Memory"
+  - id: rwkv-x-2025
+    resource: ../raw/2504.21463_RWKV-X/acl_latex.tex
+    title: "RWKV-X: A Linear Complexity Hybrid Language Model"
+  - id: mixture-of-layers-2026
+    resource: ../raw/2605.09516_MixtureofLayerswithHybridAttention/submission.tex
+    title: "Mixture of Layers with Hybrid Attention: Parallel Thin Blocks for Sparse Transformer Compute"
+  - id: engram-2026
+    resource: ../raw/2601.07372_ConditionalMemoryviaScalableLookup/main.tex
+    title: "Conditional Memory via Scalable Lookup: A New Axis of Sparsity for Large Language Models"
+  - id: flexattention-2024
+    resource: ../raw/2412.05496_FlexAttention/main.tex
+    title: "FlexAttention: A Programming Model for Generating Optimized Attention Kernels"
+  - id: dflash-2026
+    resource: ../raw/arXiv-2602.06036v2/main.tex
+    title: "DFlash: Block Diffusion for Flash Speculative Decoding"
 ---
 
 # LLM architecture learning roadmap
@@ -120,6 +156,26 @@ Stage 9 should be split into **five learning parts**. The first establishes a re
 
 The recommended order is sequential: **9.1 → 9.2 → 9.3 → 9.4 → 9.5**. DeepSeek is read before Kimi not as a chronology claim, but because MLA and fine-grained MoE provide reusable reference points for understanding Kimi's hybrid retrieval and latent experts.
 
+## Further additive stages for complete wiki coverage
+
+These stages and substages are additive: they do not replace or rewrite any existing stage. Take 4.2 after 4.1, 6.2 after 6.1, 7.1 after Stage 7, 8.2–8.5 after the existing 8.1, 9.6–9.8 after 9.5, 10.1–10.2 within Stage 10, and Stage 12 after Stage 11. The order is editorial synthesis; architecture rankings remain workload-, implementation-, and evidence-dependent.[^qwen38-next-report][^mamba-3-2026][^engram-2026]
+
+| Added stage | Learn | Build or verify before continuing | Primary concepts |
+| --- | --- | --- | --- |
+| 4.2. Encoder-only and encoder–decoder practice | Compare bidirectional encoding, causal decoding, and encoder–decoder cross-attention as distinct backbone and objective choices.[^vaswani-transformer-2017][^devlin-bert-2018] | Implement one encoder block and one cross-attention decoder block; verify bidirectional, causal, padding, and cross-attention masks on the same toy input | [Architecture map and masks](architecture-map-and-attention-masks-beginners-course.md), [Transformer sequence transduction](transformer-sequence-transduction-architecture.md), [BERT transfer architecture](bert-bidirectional-transfer-learning.md), [BERT MLM/NSP](bert-masked-language-and-next-sentence-pre-training.md) |
+| 6.2. Sparse-attention architecture | Trace fixed local/block masks through learned token selection, pooled block retrieval, locality-aware index reuse, and compressed-entry attention; separate sparse reads from KV representation and cache retention.[^deepseek-v3-2-2025][^qwen38-next-report][^longcat-lsa-2026][^deepseek-v4-2026] | Implement local attention and a toy block top-k selector; record indexer work, selected-token recall, gather locality, retained cache, and whether remote tokens remain individually addressable | [Sparse Attention evolution](sparse-attention-evolution-and-architecture-comparison.md), [DSA](deepseek-sparse-attention.md), [QSA](qwen-sparse-attention.md), [LongCat Sparse Attention](longcat-sparse-attention.md), [CSA/HCA](compressed-sparse-and-heavily-compressed-attention.md) |
+| 7.1. Sparse capacity beyond MoE | Distinguish routed FFN compute, routed complete blocks, and sparse lookup memory; account separately for total, active, resident, and accessed parameters.[^mixture-of-layers-2026][^engram-2026] | Build a hashed n-gram lookup with collision accounting and a toy whole-block router; compare bytes accessed per token, active FLOPs, dispatch, and parameter residency against a toy MoE | [N-gram embeddings and conditional memory](n-gram-embeddings-and-conditional-memory.md), [Engram](engram-conditional-memory-architecture.md), [SCONE](scone-scalable-contextualized-offloaded-n-gram-embeddings.md), [Over-Encoding](over-encoding-hierarchical-n-gram-input-embeddings.md), [Mixture of Layers](mixture-of-layers-block-routing.md) |
+| 8.2. Recurrent and SSM foundations | Derive continuous, discrete-recurrent, and convolutional SSM views; then trace selective SSMs through Mamba, SSD/Mamba-2, and Mamba-3.[^ssm-introduction][^dao-gu-2024][^mamba-3-2026] | Verify recurrence–convolution equivalence on a toy LTI SSM; annotate what Mamba selection, SSD chunking, and Mamba-3 transitions change in state update and parallel execution | [SSM foundations](state-space-models-continuous-recurrent-convolutional-forms.md), [Mamba selective SSM](mamba-selective-state-spaces-and-architecture.md), [SSD](structured-state-space-duality.md), [Mamba-2](mamba-2-architecture-and-parallelism.md), [Mamba-3](mamba-3-architecture-and-state-space-methods.md) |
+| 8.3. Fixed-state memory-update frontier | Follow additive associative memory through delta correction, scalar forgetting, channel-wise KDA, and independently gated erase/write in Gated DeltaNet-2.[^kimi-linear-2025][^gated-deltanet-2-2026] | Implement the recurrence reductions showing when Gated DeltaNet-2 becomes KDA or Gated DeltaNet; compare interference, overwrite behavior, state size, and chunkwise training constraints | [Delta-rule memory](delta-rule-and-gated-associative-memory.md), [Gated DeltaNet](gated-deltanet-architecture-and-training.md), [Gated DeltaNet-2 course](gated-deltanet-2-beginners-course.md), [Mamba/KDA/Gated DeltaNet comparison](mamba-kda-gated-deltanet-comparison.md) |
+| 8.4. Alternative sequence mixers and bounded hybrids | Compare Hyena's gated long convolutions, xLSTM's scalar/matrix memories, and RWKV-X's recurrent path plus bounded sparse token retention.[^hyena-2023][^xlstm-2024][^rwkv-x-2025] | Build a comparison ledger for recurrence/convolution form, training parallelism, decode state, token addressability, eviction, and unresolved complexity claims; implement one minimal mixer or recurrence | [Hyena](hyena-hierarchy-architecture.md), [xLSTM](xlstm-extended-lstm-architecture.md), [RWKV-X](rwkv-x-hybrid-architecture-and-training.md) |
+| 8.5. Residual-path extensions and cross-layer routing | Extend the existing depth-path stage with feature-gated multi-stream residuals and side routing from recurrent memory; distinguish capacity widening, constrained mixing, depth retrieval, and cross-layer value injection.[^qwen38-next-report][^attnres-2026] | Trace one token through standard residual, mHC, Gated Residual, Block AttnRes, and CLVR diagrams; account for retained state, extra reads/writes, communication, and guarantees that do or do not transfer | [Residual-path comparison](residual-path-architecture-comparison.md), [Qwen Gated Residual](qwen-gated-residual.md), [mHC](manifold-constrained-hyper-connections.md), [Attention Residuals](attention-residuals.md), [CLVR](cross-layer-value-routing-for-delta-memories.md) |
+| 9.6. Long-context architecture archetypes | Compare attention-centric token retrieval, compressed-entry retrieval, and recurrent-majority hybrids under matched addressability, state-growth, locality, and indexer dimensions.[^deepseek-v4-2026][^kimi-k3-2026] | Produce an archetype matrix and trace one remote fact through DeepSeek-V4-style CSA/HCA, GLM-style MLA/DSA, and Kimi-style KDA plus periodic MLA | [DeepSeek-V4 vs Kimi K3](deepseek-v4-and-kimi-k3-architecture-comparison.md), [GLM-5 vs Kimi K3](glm-5-and-kimi-k3-architecture-comparison.md), [Sparse Attention evolution](sparse-attention-evolution-and-architecture-comparison.md) |
+| 9.7. Recurrent-majority frontier models | Read modern hybrids by mixer ratio, periodic-attention core, residual topology, MoE, conditional memory, modality path, and context-growing state rather than by model name alone.[^qwen38-next-report] | Decompose two released checkpoints into a per-layer schedule and state/cache ledger; separate config/code facts from vendor speed and quality claims | [GLM-5.3 vs Qwen3.8-Flash-Next](glm-5-3-flash-and-qwen3-8-flash-next-architecture-comparison.md), [Qwen3.8-A95B](qwen3-8-2-4t-a95b-checkpoint-architecture.md), [Nemotron 3.5 Lightning](nemotron-3-5-lightning-architecture-and-training.md), [Ling-3.0-flash](ling-3-0-flash-hybrid-architecture.md), [LongCat-2.0](longcat-2-0-sparse-attention-and-embedding-architecture.md) |
+| 9.8. Workload-conditioned architecture selection | Choose among recurrent-plus-periodic attention, token-addressable sparse attention, and compressed-entry attention from workload constraints; design matched ablations rather than infer causality from whole-model results.[^deepseek-v4-2026][^kimi-k3-2026][^qwen38-next-report] | Write a requirement ledger and ablation plan covering mixer ratio, retrieval type, MoE routing, residual design, context curriculum, TTFT, decode latency, memory, and long-context recall | [Workload-conditioned selection](workload-conditioned-frontier-llm-architecture-selection.md), [Delta-rule vs SSM adoption](delta-rule-vs-ssm-frontier-adoption.md), [Comparative evidence discipline](comparative-reading-evidence-discipline-beginners-course.md) |
+| 10.1. Programmable attention execution | Separate exact attention semantics, semantic sparsity, block-level skipping, paged KV indirection, and generated kernels.[^flexattention-2024] | Express local, causal, and custom sparse patterns with score/mask modification; inspect the resulting block mask and compare semantic output against a reference implementation | [FlashAttention evolution](flashattention-implementation-evolution.md), [FlexAttention programming model](flexattention-programming-model-and-compilation.md), [FlexAttention BlockMask and paging](flexattention-block-sparsity-and-paged-attention.md), [PagedAttention](pagedattention-kv-cache-serving.md) |
+| 10.2. Draft-model and block-decoding architectures | Extend exact speculative decoding with target-specific parallel drafts, diffusion block drafting, hidden-feature conditioning, candidate-path selection, and the concurrency boundary.[^dflash-2026] | Diagram target, drafter, persistent draft state, verification, and acceptance; measure accepted length and end-to-end latency separately at low and high concurrency | [Speculative decoding trade-offs](speculative-decoding-performance-trade-offs.md), [DSpark](dspark-parallel-draft-speculative-decoding.md), [DFlash](dflash-block-diffusion-speculative-decoding.md), [DFlash 2](dflash-2-parallel-selection-and-local-convolution.md) |
+| 12. Reference-implementation ladder | Consolidate the build-first path by reading progressively richer GPT implementations: scalar autograd, readable PyTorch, GPT-2 reproduction, then a modern cached GPT | Reproduce the same tiny corpus and generation checks where practical; annotate which implementation first introduces tensor autograd, checkpoint import, distributed training, modern attention choices, and KV-cached chat | [microgpt](microgpt-pure-python-gpt-reference-implementation.md), [minGPT](mingpt-educational-gpt-reference-implementation.md), [nanoGPT](nanogpt-gpt-2-reference-implementation.md), [nanochat](nanochat-modern-gpt-reference-implementation.md), [implementation comparison](mingpt-nanogpt-microgpt-comparison.md) |
+
 ## Learning principle
 
 Do not begin by reproducing a frontier model. A learner who can implement and test causal masking, KV caching, and a small dense Transformer can then identify what a later mechanism replaces:
@@ -158,3 +214,15 @@ This roadmap focuses on model architecture and its immediate training/serving im
 [^speculative-decoding-summary]: “Speculative decoding overview,” [source](../raw/SpeculativeDecoding.md). Secondary-source evidence.
 [^qwen35-modeling]: Qwen Team and Hugging Face, “Qwen3.5 Transformers reference modeling implementation,” [source](../raw/Qwen3.5-27B/modeling_qwen3_5.py).
 [^rag-summary]: “RAG overview,” [source](../raw/RAG.md). Secondary-source evidence.
+[^qwen38-next-report]: Qwen Team, “On the Design of Qwen3.8-Next Architecture,” [source](../raw/Qwen3.8-Flash-Next-tech_report/qwen3.8-flash-next-tech_report.md).
+[^longcat-lsa-2026]: LongCat Team, “LongCat Sparse Attention,” [source](../raw/2608.01662_LongCatSparseAttention/longcat.tex).
+[^ssm-introduction]: “Introduction to State Space Models,” [source](../raw/IntroductiontoStateSpaceModels.md). Introductory supplied source; use the linked concept for its evidence boundary.
+[^mamba-3-2026]: Lahoti et al., “Mamba-3: Improved Sequence Modeling using State Space Principles,” [source](../raw/2603.15569_Mamba-3/structure.tex).
+[^gated-deltanet-2-2026]: Hatamizadeh, Choi, and Kautz, “Gated DeltaNet-2,” [source](../raw/2605.22791_GatedDeltaNet-2/main.tex).
+[^hyena-2023]: Poli et al., “Hyena Hierarchy,” [source](../raw/2302.10866_HyenaHierarchy/main.tex).
+[^xlstm-2024]: Beck et al., “xLSTM: Extended Long Short-Term Memory,” [source](../raw/2405.04517_xLSTM/xlstm.tex).
+[^rwkv-x-2025]: Hou et al., “RWKV-X: A Linear Complexity Hybrid Language Model,” [source](../raw/2504.21463_RWKV-X/acl_latex.tex); the linked concept records an unresolved end-to-end complexity gap.
+[^mixture-of-layers-2026]: Ternovtsii and Bilak, “Mixture of Layers with Hybrid Attention,” [source](../raw/2605.09516_MixtureofLayerswithHybridAttention/submission.tex).
+[^engram-2026]: Cheng et al., “Conditional Memory via Scalable Lookup,” [source](../raw/2601.07372_ConditionalMemoryviaScalableLookup/main.tex).
+[^flexattention-2024]: FlexAttention authors, “FlexAttention: A Programming Model for Generating Optimized Attention Kernels,” [source](../raw/2412.05496_FlexAttention/main.tex).
+[^dflash-2026]: DFlash authors, “DFlash: Block Diffusion for Flash Speculative Decoding,” [source](../raw/arXiv-2602.06036v2/main.tex).

@@ -1,5 +1,8 @@
 # Wiki Update Log
 
+## 2026-08-30
+- **Update**: Extended [LLM architecture learning roadmap](llm-architecture-learning-roadmap.md) additively without changing existing stages; added encoder/encoder–decoder practice, sparse attention, conditional memory and block routing, SSM and fixed-state lineages, alternative mixers, residual extensions, frontier archetypes and selection, programmable attention, draft architectures, and a reference-implementation ladder.
+
 ## 2026-08-27
 - **Ingest**: Compiled [user-supplied linear attention evolution map](../raw/user-supplied-linear-attention-evolution.md); refined [LLM architecture development and learning map](llm-architecture-development-and-learning-map.md) with the additive → decay → delta → channel-wise erase/write lineage, and linked its provenance-bounded interpretation in [Delta-rule and gated associative memory](delta-rule-and-gated-associative-memory.md).
 - **Ingest**: Preserved the user-supplied [Sparse Attention evolution map](../raw/user-supplied-sparse-attention-evolution.md) and filed [Sparse Attention evolution and architecture comparison](sparse-attention-evolution-and-architecture-comparison.md), consolidating fixed patterns, DSA, pooled QSA/DSA, LSA, CSA/HCA, and recurrent–attention hybrids with explicit cache, locality, and evidence boundaries.
