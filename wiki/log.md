@@ -1,5 +1,8 @@
 # Wiki Update Log
 
+## 2026-09-01
+- **Query**: Filed [Sparse capacity beyond MoE: compute, block routing và lookup memory — khóa học cho người mới](sparse-capacity-beyond-moe-beginners-course.md) and linked it from Stage 7.1 of the roadmap; distinguished routed FFN compute, routed complete blocks, and sparse lookup memory with total/active/resident/accessed ledgers, collision-aware n-gram lookup, toy MoE/block routing, verification, and evidence-bounded trade-offs.
+
 ## 2026-08-30
 - **Query**: Filed [Sparse-attention architecture: từ chọn vùng đọc đến compressed entries — khóa học cho người mới](sparse-attention-architecture-beginners-course.md) and linked it from Stage 6.2 of the roadmap; covered fixed/local masks, DSA token selection, QSA pooled blocks, LSA locality and index reuse, CSA/HCA compressed entries, inspectable PyTorch, verification metrics, and evidence-bounded trade-offs.
 - **Update**: Extended [LLM architecture learning roadmap](llm-architecture-learning-roadmap.md) additively without changing existing stages; added encoder/encoder–decoder practice, sparse attention, conditional memory and block routing, SSM and fixed-state lineages, alternative mixers, residual extensions, frontier archetypes and selection, programmable attention, draft architectures, and a reference-implementation ladder.
