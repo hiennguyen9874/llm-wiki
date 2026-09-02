@@ -5,7 +5,7 @@ description: A general-purpose recommendation favors recurrent-plus-periodic-lat
 tags: [architecture-selection, hybrid-attention, long-context, mixture-of-experts, serving]
 status: stable
 created: 2026-08-15
-generated: { by: llm-wiki-agent/1, at: 2026-08-15T00:00:00Z }
+generated: { by: llm-wiki-agent/1, at: 2026-09-02T15:06:21+07:00 }
 sources:
   - id: qwen38-config
     resource: ../raw/Qwen3.8-2.4T-A95B/config.json
@@ -90,6 +90,7 @@ mỗi decoder layer: token mixer → residual → RMSNorm → dense/MoE FFN → 
 
 ## Relationships
 
+- **Taught by:** [Workload-conditioned architecture selection — khóa học cho người mới](workload-conditioned-architecture-selection-beginners-course.md), which turns this recommendation into a beginner-first requirement ledger, runnable toy, and matched-ablation procedure.
 - **Synthesizes:** [Qwen3.8-2.4T-A95B checkpoint architecture](qwen3-8-2-4t-a95b-checkpoint-architecture.md), [GLM-5 architecture, pre-training, and systems](glm-5-architecture-pretraining-and-systems.md), and [Kimi K3 hybrid retrieval architecture](kimi-k3-hybrid-retrieval-architecture.md).
 - **Uses framework from:** [Sequence-model architecture taxonomy](sequence-model-architecture-taxonomy.md) and [Mixture-of-Experts training and systems trade-offs](mixture-of-experts-training-and-systems-trade-offs.md).
 - **Depends on:** [LLM inference lifecycle: training, prefill, decode, and latency](llm-inference-lifecycle-training-prefill-decode-and-latency.md) for workload-specific serving evaluation.
