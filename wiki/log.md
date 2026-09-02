@@ -1,5 +1,8 @@
 # Wiki Update Log
 
+## 2026-09-02
+- **Query**: Filed [Residual-path extensions và cross-layer routing — khóa học cho người mới](residual-path-extensions-and-cross-layer-routing-beginners-course.md) and linked it from Stage 8.5 of the roadmap; traced one token through standard residual, mHC, Gated Residual, Block AttnRes, and CLVR with a retained-state/read-write/communication ledger, separated capacity widening, constrained mixing, depth retrieval, and cross-layer value injection with their transferable and non-transferable guarantees, added verified PyTorch toy GR/CLVR code and eight passing tests, and bounded all ablation numbers as author-run.
+
 ## 2026-09-01
 - **Query**: Filed [Sparse capacity beyond MoE: compute, block routing và lookup memory — khóa học cho người mới](sparse-capacity-beyond-moe-beginners-course.md) and linked it from Stage 7.1 of the roadmap; distinguished routed FFN compute, routed complete blocks, and sparse lookup memory with total/active/resident/accessed ledgers, collision-aware n-gram lookup, toy MoE/block routing, verification, and evidence-bounded trade-offs.
 
