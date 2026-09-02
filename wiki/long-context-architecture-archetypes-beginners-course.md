@@ -7,7 +7,7 @@ status: stable
 created: 2026-09-02
 generated:
   by: llm-wiki-agent/1
-  at: 2026-09-02T05:10:00Z
+  at: 2026-09-02T12:04:05+07:00
 sources:
   - id: sparse-evolution
     resource: sparse-attention-evolution-and-architecture-comparison.md
@@ -816,7 +816,7 @@ Bước tiếp theo:
 2. Thay mean bằng trọng số học được và đo mất mát exact-copy theo group size.
 3. Thêm channel decay vào KDA toy và đo interference theo decay rate.
 4. Ghép toy thành block 3:1 KDA/MLA mini và đo exact-copy theo tỉ lệ layer.
-5. Đọc tiếp [Recurrent-majority frontier models (Stage 9.7)](glm-5-3-flash-and-qwen3-8-flash-next-architecture-comparison.md) và [Workload-conditioned selection (Stage 9.8)](workload-conditioned-frontier-llm-architecture-selection.md).
+5. Đọc tiếp [Recurrent-majority frontier models (Stage 9.7)](recurrent-majority-frontier-models-beginners-course.md) và [Workload-conditioned selection (Stage 9.8)](workload-conditioned-frontier-llm-architecture-selection.md).
 
 ## Relationships
 
@@ -824,7 +824,7 @@ Bước tiếp theo:
 - **Uses:** [Multi-head Latent Attention](multi-head-latent-attention.md), [DeepSeek Sparse Attention](deepseek-sparse-attention.md), [Compressed sparse and heavily compressed attention](compressed-sparse-and-heavily-compressed-attention.md), [Delta-rule and gated associative memory](delta-rule-and-gated-associative-memory.md) — core mechanism của từng archetype.
 - **Synthesizes:** [DeepSeek-V4 and Kimi K3 architecture comparison](deepseek-v4-and-kimi-k3-architecture-comparison.md), [GLM-5 and Kimi K3 architecture comparison](glm-5-and-kimi-k3-architecture-comparison.md), và [Sparse Attention evolution and architecture comparison](sparse-attention-evolution-and-architecture-comparison.md) thành một khung archetype thống nhất.
 - **Elaborates:** Stage 9.6 of [LLM architecture learning roadmap](llm-architecture-learning-roadmap.md) — archetype matrix và remote-fact trace.
-- **Prepares for:** [Workload-conditioned frontier LLM architecture selection](workload-conditioned-frontier-llm-architecture-selection.md) và Stage 9.7 recurrent-majority frontier models.
+- **Prepares for:** [Recurrent-majority frontier models](recurrent-majority-frontier-models-beginners-course.md) ở Stage 9.7 và [Workload-conditioned frontier LLM architecture selection](workload-conditioned-frontier-llm-architecture-selection.md).
 
 ## Evidence limits
 
