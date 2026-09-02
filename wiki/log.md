@@ -1,6 +1,7 @@
 # Wiki Update Log
 
 ## 2026-09-02
+- **Query**: Filed [Long-context architecture archetypes — khóa học cho người mới](long-context-architecture-archetypes-beginners-course.md) and linked it from Stage 9.6 of the roadmap; compared attention-centric token retrieval (GLM-style MLA/DSA), compressed-entry retrieval (DeepSeek-V4-style CSA/HCA), and recurrent-majority hybrids (Kimi-style KDA plus periodic MLA) through one remote fact, an archetype matrix on addressability/state-growth/locality/indexer, a hand-computable KDA interference case, and nine passing PyTorch tests executed on torch 2.14 CPU in an isolated venv.
 - **Query**: Filed [Residual-path extensions và cross-layer routing — khóa học cho người mới](residual-path-extensions-and-cross-layer-routing-beginners-course.md) and linked it from Stage 8.5 of the roadmap; traced one token through standard residual, mHC, Gated Residual, Block AttnRes, and CLVR with a retained-state/read-write/communication ledger, separated capacity widening, constrained mixing, depth retrieval, and cross-layer value injection with their transferable and non-transferable guarantees, added verified PyTorch toy GR/CLVR code and eight passing tests, and bounded all ablation numbers as author-run.
 
 ## 2026-09-01
