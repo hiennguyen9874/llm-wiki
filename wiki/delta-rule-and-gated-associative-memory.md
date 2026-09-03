@@ -5,7 +5,7 @@ description: Delta-rule memory corrects selected key-value associations, while l
 tags: [associative-memory, deltanet, gating, linear-attention]
 status: stable
 created: 2026-07-31
-generated: { by: llm-wiki-agent/1, at: 2026-08-27T03:54:56Z }
+generated: { by: llm-wiki-agent/1, at: 2026-09-03T08:19:15Z }
 sources:
   - id: parallel-deltanet-2024
     resource: ../raw/arXiv-2406.06484v6/neurips_2024.tex
@@ -95,6 +95,7 @@ The released K3 reference path confirms the operational split: KDA runs `chunk_k
 ## Relationships
 
 - **Depends on:** [Linear attention as fixed-state memory](linear-attention-as-fixed-state-memory.md), whose additive-state interference motivates corrective updates.
+- **Interpreted by:** [KDA as data-dependent multiplicative positional encoding](kda-as-data-dependent-multiplicative-positional-encoding.md), which expands recurrent writes into ordered transition products and distinguishes them from RoPE.
 - **Mapped by:** [LLM architecture development and learning map](llm-architecture-development-and-learning-map.md), which places the delta branch beside feature-capacity and decay branches.
 - **Parallelized by:** [Parallel DeltaNet chunkwise training](parallel-deltanet-chunkwise-training.md), which targets the ungated corrective recurrence.
 - **Implemented by:** [Gated DeltaNet architecture and chunkwise training](gated-deltanet-architecture-and-training.md), with scalar decay and a decay-aware chunkwise extension.[^gated-deltanet-2025]

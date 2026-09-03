@@ -1,5 +1,8 @@
 # Wiki Update Log
 
+## 2026-09-03
+- **Ingest**: Compiled the user-supplied [note](../raw/why-K3-doesnt-need-RoPE.md) and [diagram](../raw/why-K3-doesnt-need-RoPE.jpeg); filed [KDA as data-dependent multiplicative positional encoding](kda-as-data-dependent-multiplicative-positional-encoding.md), scoped K3’s NoPE claim to its text-backbone MLA layers, and distinguished general non-orthogonal KDA transitions from orthogonal Householder reflections and RoPE.
+
 ## 2026-09-02
 - **Query**: Filed [Workload-conditioned architecture selection — khóa học cho người mới](workload-conditioned-architecture-selection-beginners-course.md) and linked it from Stage 9.8 of the roadmap; turned workload constraints into a requirement ledger and staged matched-ablation plan across mixer ratio, retrieval, MoE, residual design, context curriculum, TTFT, decode latency, memory, and long-context recall, with eight passing PyTorch verification groups on torch 2.13 CPU.
 - **Query**: Filed [Recurrent-majority frontier models — khóa học cho người mới](recurrent-majority-frontier-models-beginners-course.md) and linked it from Stage 9.7 of the roadmap; decomposed GLM-5.3-Flash and Qwen3.8-Flash-Next into exact per-layer schedules and state/cache ledgers, separated mixer, residual, MoE, conditional-memory, modality, and evidence paths, and ran seven passing PyTorch tests on torch 2.13 CPU in an isolated offline venv.

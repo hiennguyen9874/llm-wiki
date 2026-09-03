@@ -5,7 +5,7 @@ description: Kimi K3 combines fixed-state KDA, periodic global MLA, depth-wise A
 tags: [kimi-k3, hybrid-attention, mixture-of-experts, multimodal]
 status: stable
 created: 2026-07-31
-generated: { by: llm-wiki-agent/1, at: 2026-08-01T05:20:09Z }
+generated: { by: llm-wiki-agent/1, at: 2026-09-03T08:19:15Z }
 sources:
   - id: gpt2-kimi3-2026
     resource: ../raw/2026-07-27-from-gpt2-to-kimi-k3.md
@@ -53,6 +53,7 @@ The report attributes an approximately $2.5\times$ overall scaling-efficiency im
 ## Relationships
 
 - **Uses:** [Delta-rule and gated associative memory](delta-rule-and-gated-associative-memory.md) through KDA.
+- **Explained by:** [KDA as data-dependent multiplicative positional encoding](kda-as-data-dependent-multiplicative-positional-encoding.md), which scopes why the text-backbone MLA layers can use NoPE without treating KDA as identical to RoPE.
 - **Uses:** [Multi-head Latent Attention](multi-head-latent-attention.md) in periodic global NoPE gated layers.[^kimi-k3-2026]
 - **Uses:** [Attention Residuals](attention-residuals.md) for depth-wise retrieval.
 - **Uses:** [Stable LatentMoE and Quantile Balancing](stable-latentmoe-and-quantile-balancing.md) for sparse channel capacity.

@@ -5,7 +5,7 @@ description: RoPE encodes absolute token positions by rotating query and key coo
 tags: [rope, positional-encoding, attention, transformer, long-context]
 status: draft
 created: 2026-07-31
-generated: { by: llm-wiki-agent/1, at: 2026-08-01T02:08:42Z }
+generated: { by: llm-wiki-agent/1, at: 2026-09-03T08:19:15Z }
 sources:
   - id: rope-summary
     resource: ../raw/RoPE.md
@@ -53,6 +53,7 @@ The source also characterizes RoPE’s multi-frequency sum as having a soft long
 - **Alternative to:** [ALiBi attention with linear biases](alibi-attention-with-linear-biases.md), which adds a head-specific linear distance bias to attention logits rather than rotating queries and keys.[^rope-summary]
 - **Used by:** [LLaMA efficient pre-trained language models](llama-efficient-pre-trained-language-models.md), whose available summary reports rotary positional embeddings in its decoder-only architecture.
 - **Adapted by:** [Multi-head Latent Attention](multi-head-latent-attention.md), which isolates positional rotation in a shared-key path compatible with joint low-rank KV caching.[^deepseek-v2-2024]
+- **Contrasts with:** [KDA as data-dependent multiplicative positional encoding](kda-as-data-dependent-multiplicative-positional-encoding.md), where ordered learned transitions need not be orthogonal or depend only on relative offset.
 
 [^rope-summary]: “RoPE overview” (Vietnamese summary), [raw source](../raw/RoPE.md), Sections 1–17. This is secondary-source evidence linking to Su et al., “RoFormer: Enhanced Transformer with Rotary Position Embedding” (arXiv:2104.09864); the primary paper has not been independently ingested here.
 
