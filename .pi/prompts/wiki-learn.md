@@ -1,12 +1,10 @@
 ---
-description: Generate a wiki for learn
+description: Generate a wiki course for learning
 skills:
-    - wiki-query
-    - wiki-ingest
-    - obsidian-markdown
+    - wiki-learn
 skills-position: before
 ---
 
-Phân tích yêu cầu bên dưới từ đó dựa vào nội dung wiki, tìm kiếm, đọc wiki, đọc raw nếu cần, đọc kĩ và hiểu rõ vấn đề, dựa vào kiến thức của bạn hãy viết một bài viết chi tiết và dễ hiểu hơn cho người mới, giữ các từ khóa bằng tiếng anh thay vì viết tiếng việt. Output là một wiki file mới. Viết dạng bài viết khóa học cho người mới, bao gồm cả lý thuyết chi tiết và code mẫu nếu cần.
+Tạo một `course` cho người mới từ yêu cầu dưới đây. Giữ từ khóa bằng tiếng Anh, prose tiếng Việt, kèm lý thuyết chi tiết và code mẫu có kiểm chứng. Phải giải thích một cách chi tiết nhất có thể cho người chỉ biết cơ bản toán, giải thích từng công thức, từng shape như thế nào .... Viết một cách dễ hiểu.
 
 $ARGUMENTS
