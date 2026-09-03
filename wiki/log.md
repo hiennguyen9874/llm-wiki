@@ -1,5 +1,8 @@
 # Wiki Update Log
 
+## 2026-09-03
+- **Ingest**: Compiled [WeMM-Embedding README](../raw/WeMM-Embedding/README.md), three model cards, and technical report [main.tex](../raw/WeMM-Embedding/2608.24053-WeMM-Embedding/main.tex); created [WeMM-Embedding](wemm-embedding.md).
+
 ## 2026-08-21
 - **Query**: Answered “Theo bạn kiến trúc của các mô hình embedding hiện tại đang phát triển theo các hướng nào, gom thành các nhóm kiến trúc mô hình.”; filed [current embedding-model architecture taxonomy](embedding-model-architecture-taxonomy.md).
 

@@ -72,3 +72,4 @@ The complete retrieval map for compiled knowledge. See [LLM Wiki Contract](../LL
 - [Jina Embeddings v5 Text Nano](jina-embeddings-v5-text-nano.md) — A 239M-parameter EuroBERT-210M-based multilingual text embedding model with 768-dimensional last-token-pooled, Matryoshka-truncatable vectors.
 - [Jina Embeddings v5 Text Small](jina-embeddings-v5-text-small.md) — A 677M-parameter Qwen3-0.6B-based multilingual text embedding model with 1,024-dimensional last-token-pooled Matryoshka vectors and a 32,768-token input limit.
 - [KaLM-Embedding-Gemma3-12B-2511](kalm-embedding-gemma3-12b-2511.md) — An 11.76B-parameter Gemma 3-derived embedding model with 3,840-dimensional last-token-pooled Matryoshka outputs and self-reported top MMTEB rank as of November 2025.
+- [WeMM-Embedding](wemm-embedding.md) — A 2B, 4B, and 9B Qwen3.5-based universal multimodal embedding family with dedicated-token pooling, Matryoshka outputs, and reported MMEB-v2/v3 leadership.
