@@ -1,0 +1,41 @@
+% \vspace{-10pt}
+\section{Related Work}
+% \vspace{-10pt}
+
+\label{sec:related}
+\paragraph{Discrete diffusion language models}
+Discrete diffusion models adapt the iterative denoising paradigm to categorical spaces.
+Early work on discrete diffusion studies how to design corruption kernels for categorical data, including uniform, structured, nearest-neighbor, and absorbing-state transitions~\citep{D3PM,multinomial_diffusion,ctdd}.
+In language modeling, absorbing-state masking has become a dominant template, in which models learn to recover clean tokens from partially masked sequences~\citep{MDLM,MD4}.
+Other formulations improve or reinterpret this paradigm through discrete score estimation, conditional-distribution modeling, or importance-sampling-based refinement of the reverse process~\citep{SEDD,MDM_secret,edlm, DFM}.
+Recent scaling efforts further show that diffusion language models can be trained or adapted at scaled model sizes up to 100B, substantially improving generation quality and downstream performance~\citep{DiffuLLaMA,llada-moe,LLaDA,dream7b,sdar,dmax,llada20,llada21}.
+Despite this progress, most methods still define learning through a prescribed forward corruption process.
+\method departs from this paradigm by learning refinement directly from sampler-induced intermediate states.
+\vspace{-4pt}
+
+\paragraph{Looped transformers}
+Looped transformers reuse shared parameters across depth to iteratively refine a recurrent state, beginning with Universal Transformers~\citep{dehghani2019universal} and extending to recent reasoning-oriented and recurrent-depth language models~\citep{saunshi2025latentthoughts,geiping2025recurrentdepth}.
+\method belongs to this family but uses the model-generated token draft itself as the recurrent state.
+This draft-space design makes each loop directly supervisable by the clean target, allowing preceding loops to be detached and avoiding BPTT across refinement iterations.
+LoopUS similarly uses random deep supervision to train detached latent refinement trajectories~\citep{park2026loopus}; \method differs by coupling looped computation with sampler-induced diffusion refinement and block-parallel draft generation.
+\vspace{-4pt}
+
+\paragraph{Refinement-based language generation}
+Drafting and refinement have been studied as alternatives to purely left-to-right AR generation.
+Edit-based generation methods revise sequences through insertion, deletion, or iterative rewriting, providing early evidence that language generation can be organized as refinement rather than strict autoregression~\citep{levenshtein,diffuser}.
+Corrector-style samplers further model refinement as a reverse causal process, in which tokens are corrected while conditioning on already generated future context~\citep{correctorar}.
+In diffusion language models, several methods augment masked-diffusion backbones with token-level correction or remasking heads that decide which positions should be revisited during generation~\citep{informedcorrector,remedi,prism, GIDD}.
+Other approaches model refinement at the sequence level, combine diffusion proposals with AR verification and rejection sampling~\citep{selfspec,tidar}, or employ self-correction~\citep{rediff,corrective-dlm,llada21}.
+These methods show that refinement is a useful mechanism for improving draft quality and correcting local errors.
+Nevertheless, most of them still operate within a predefined masking or corruption framework, so the refinement dynamics remain tied to hand-designed intermediate states.
+By contrast, \method treats model-generated drafts themselves as the intermediate states and learns a forward-free refinement operator.
+\vspace{-4pt}
+
+\paragraph{Efficient decoding for language models}
+Improving inference efficiency is a central challenge for language models, especially when generation requires many sequential forward passes.
+For AR models, a large body of work accelerates decoding through multi-token prediction, speculative drafting, verification, and lightweight draft models~\citep{mtp-parallel,deepseek-v3,eagle1,eagle2,eagle3}.
+Diffusion language models offer a different opportunity: they can update multiple tokens per forward pass, but this parallelism often introduces a quality--speed trade-off.
+Prior work improves diffusion decoding by controlling confidence thresholds~\citep{diff-speed-conf, fast-dllm}, prediction entropy~\citep{eb-sampler}, or sampling policies~\citep{seed-diffusion, trace, credit-decoding}.
+Other methods transfer diffusion-forcing ideas to discrete generation~\citep{diffusion-forcing,D2F}, approximate KV-cache reuse~\citep{fast-dllm,fast-dllm2, dKV_Cache}, or combine diffusion proposals with autoregressive likelihood correction~\citep{selfspec,tidar, dflash}.
+These approaches primarily accelerate or stabilize inference under an existing diffusion or hybrid decoding process.
+\method further improves the underlying refinement formulation itself, aligning training with the drafts used at inference time.

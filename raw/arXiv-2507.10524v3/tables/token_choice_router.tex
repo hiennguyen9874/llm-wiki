@@ -1,0 +1,40 @@
+
+\begin{table*}[h!]
+    \caption{
+    Ablation results on token-choice router under different routing configurations. We use the recursion-wise KV caching strategy by default. Coeff denotes coefficient for balancing loss term, or updating coefficient ($u$) for loss-free algorithm. The last highlighted row represents a chosen final strategy, but we added z-loss back in with a small coefficient of 1e-3 since it often stabilizes load balancing. The intermediate best-performing designs (based on performance and routing metrics) are highlighted to illustrate how it was derived.\looseness=-1
+    }
+    \label{tab:ablation_study_token_choice_app}
+    \small
+    \centering
+    \resizebox{\linewidth}{!}{
+    \setlength{\tabcolsep}{3.5pt}
+    \begin{tabular}{lccccc|cc|c|ccccccc}
+    \toprule
+      \multicolumn{6}{c|}{\textbf{Token-choice Configurations}} &  \multicolumn{2}{c|}{\textbf{Router\,Metrics}} & \textbf{NLL}\,$\downarrow$ & \multicolumn{7}{c}{\textbf{Few-shot Accuracy\,$\uparrow$}} \\
+    \cmidrule(l{2pt}r{2pt}){1-6} \cmidrule(l{2pt}r{2pt}){7-8} \cmidrule(l{2pt}r{2pt}){9-9} \cmidrule(l{2pt}r{2pt}){10-16}
+    Balancing & Coeff & \!Func\! & $\alpha$ & Arch & Z-loss & MaxVio\,$\downarrow$ & Entropy\,$\uparrow$ & FineWeb & LD & HS & PQ & WG & ARC & \!MMLU\! & Avg  \\
+    \midrule
+     - & - & \texttt{rand} & - & - &  \cmark & 0.007 & 1.099 & 3.0268 & 24.8 & 32.0 & 61.4 & 52.2 & 35.5 & 26.1 & 38.7 \\
+     \midrule
+     Loss & 0.1 & \texttt{soft} & 1.0 & MLP &  \cmark & 0.200 & 1.076 & 3.0239 & 24.2 & 31.9 & 61.4 & 51.5 & 35.7 & 26.2 & 38.5 \\
+     \rowcolor[gray]{0.9}
+     Loss & 0.01 & \texttt{soft} & 1.0 & MLP &  \cmark & 0.682 & 0.921 & 2.9118 & 28.0 & 33.3 & 62.8 & 49.7 & 36.4 & 26.2 & 39.4 \\
+     \midrule
+     Loss-free & 0.01 & \texttt{soft} & 1.0 & MLP &  \cmark & 1.788 & 0.297 & 2.9078 & 25.5 & 32.5 & 61.3 & 52.3  & 36.1 & 26.0 & 38.9 \\
+     Loss-free & 0.01 & $\sigma$ & 0.1 & MLP &  \cmark & 0.956 & 0.646 & 3.1144 &21.8 & 29.8 & 60.3 &51.6 & 34.0 & 25.7 & 37.2 \\
+     Loss-free & 0.01 & $\sigma$ & 1.0 & MLP &  \cmark & 0.918 & 0.749 & 3.0188 & 23.4 & 31.3 & 59.9 & 50.0 & 35.2 & 25.8 & 37.6 \\
+     \rowcolor[gray]{0.9}
+     Loss-free & 0.001 & \texttt{soft} & 1.0 & MLP &  \cmark & 0.852 & 0.915 & 2.9081 & 25.8 & 33.6 & 62.8 &50.6 & 37.5 & 26.7 & 39.5  \\
+     Loss-free & 0.001 & $\sigma$ & 0.1 & MLP &  \cmark & 1.281 & 0.551 & 2.9165 &23.9 & 33.1 & 61.2 & 51.6 & 37.3 & 26.2 &38.9 \\
+     Loss-free & 0.001 & $\sigma$ & 1.0 & MLP &  \cmark & 0.542 & 0.941 & 3.0188 &24.9 & 32.0 & 61.9 & 51.4 & 35.5 & 25.9 & 38.6 \\
+     \midrule
+     \rowcolor[gray]{0.9}
+     Loss & 0.1 & \texttt{soft} & 1.0 & Linear &  \cmark & 0.492 & 0.960 & 2.9974 &23.7 & 31.3 &  62.2 & 50.3 & 36.7 & 26.0 & 38.4 \\
+     Loss & 0.1 & \texttt{soft} & 1.0 & W-MLP &  \cmark & 0.384  & 1.037 & 3.0293 & 25.3 & 31.5 & 62.2 &51.2 & 36.4 & 26.3 & 38.8 \\
+     \midrule
+     \rowcolor[gray]{0.9}
+     Loss & 0.1 & \texttt{soft} & 1.0 & Linear &  \xmark & 0.266 & 1.056 & 2.9358 & 25.7 & 32.6 & 61.9 & 51.7 & 36.4 & 26.5 & 39.1 \\
+    \bottomrule
+    \end{tabular}
+    }
+\end{table*}

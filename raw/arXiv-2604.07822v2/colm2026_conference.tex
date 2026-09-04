@@ -1,0 +1,721 @@
+
+\documentclass{article} % For LaTeX2e
+% \usepackage[submission]{colm2026_conference}
+\usepackage[final]{colm2026_conference}
+
+
+\usepackage{microtype}
+\usepackage{hyperref}
+\usepackage{url}
+\usepackage{booktabs}
+\usepackage{graphicx}
+\usepackage{subcaption}
+\usepackage{amsmath} 
+\usepackage{wrapfig}
+\usepackage{soul}
+\usepackage{fontawesome5}
+% NOTE: including geometry package
+% The geometery package modifies some page properties when used. This can dramatically change the page margins, leading to severe template violation, and potential desk rejection. If the package is required, it can be used with the "pass" flag to skip the default page modifications, as in the following line:
+% \usepackage[pass]{geometry}
+
+\usepackage{lineno}
+
+\definecolor{darkblue}{rgb}{0, 0, 0.5}
+\hypersetup{colorlinks=true, citecolor=darkblue, linkcolor=darkblue, urlcolor=darkblue}
+
+\newcommand{\hs}[1]{\textcolor{red}{[Huan: #1]}}
+\newcommand{\yy}[1]{\textcolor{blue}{[Yuekun: #1]}}
+\newcommand{\hk}[1]{\textcolor{blue}{[Harsh: #1]}}
+\newcommand{\extrapolation}{extrapolation}
+\newcommand{\systematicity}{systematicity}
+
+\title{Loop, Think, \& Generalize: Implicit Reasoning in Recurrent-Depth Transformers}
+
+% Authors must not appear in the submitted version. This should be be taken care of automatically as long as you are using the "submission" option for the colm2026_conference package. But it's on the authors to verify. Non-anonymous submissions will be rejected without review.
+
+\author{
+Harsh Kohli \hspace{1.1em} Srinivasan Parthasarathy \hspace{1.1em} Huan Sun\thanks{Equal supervision.} \hspace{1.1em} Yuekun Yao\footnotemark[1] \\
+The Ohio State University\\
+\texttt{\{kohli.120,parthasarathy.2,sun.397,yao.1267\}@osu.edu} \\ [0.2em]
+\small \faGithub\ \url{https://github.com/OSU-NLP-Group/Loop-Think-Generalize}
+% \href{https://github.com/OSU-NLP-Group/Loop-Think-Generalize}{\faGithub\ \hspace{0.1em} https://github.com/OSU-NLP-Group/Loop-Think-Generalize}
+% \small \href{https://github.com/OSU-NLP-Group/Loop-Think-Generalize}{\faGithub\ https://github.com/OSU-NLP-Group/Loop-Think-Generalize}
+}
+
+% The \author macro works with any number of authors. There are two commands
+% used to separate the names and addresses of multiple authors: \And and \AND.
+%
+% Using \And between authors leaves it to \LaTeX{} to determine where to break
+% the lines. Using \AND forces a linebreak at that point. So, if \LaTeX{}
+% puts 3 of 4 authors names on the first line, and the last on the second
+% line, try using \AND instead of \And before the third author name.
+
+\newcommand{\fix}{\marginpar{FIX}}
+\newcommand{\new}{\marginpar{NEW}}
+
+\begin{document}
+
+\ifcolmsubmission
+\linenumbers
+\fi
+
+\maketitle
+
+% \begin{abstract}
+% Large reasoning models today rely on explicit intermediate steps, such as Chain-of-Thought, to solve complex problems. However, these methods can be inefficient due to the high cost of generating intermediate tokens, large context-windows and the expense of annotating reasoning steps for training. They also introduce an expression bottleneck, as not all abstract concepts or reasoning processes can be easily articulated. Consequently, there has been growing interest in implicit reasoning approaches such as recurrent-depth architectures \hs{can we add `and looped transformers'? your title says this term but you never mentioned it in abstract.}. We investigate the \hs{potential and }mechanisms of these models through compositional generalization - a task for which traditional transformer-based language models \hs{can we just say `vanilla transformers'} have demonstrated inherent limitations. \hs{i think here we should first talk about the generalization performance, e.g., trained on XX hops, we can observe ... hops or }We conduct a mechanistic analysis to provide clear evidence of implicit, \hs{multi-hop} reasoning with experiments spanning both fixed-recurrence training setups and dynamic\hs{-}recurrence where the depth is sampled from a distribution at each training step. We study out-of-distribution generalization, made possible through inference-time scaling\hs{this sentence needs to be rephrased. very hard to read}, and steps to remedy the resulting \textit{latent overthinking} problem where correct tokens\hs{`tokens' is confusing, because it doesn't predict explicit tokens at intermediate steps} are initially predicted and then subsequently forgotten due to excessive recurrence. Finally, we observe a two-stage learning dynamic: the model requires a prolonged \textit{grokking} phase to acquire low-hop composition indicating slow acquisition of basic compositional ability, after which curriculum learning enables much faster extension to higher-order generalization.
+% \end{abstract}
+
+\begin{abstract}
+% \yy{tweak the title to avoid the large space in between words}
+We study implicit reasoning, i.e.\ the ability to combine knowledge or rules within a single forward pass.
+While transformer-based large language models store substantial factual knowledge and rules, they often fail to compose this knowledge for implicit multi-hop reasoning, suggesting a lack of compositional generalization over their parametric knowledge.
+To address this limitation, we study recurrent-depth transformers, which enables iterative computation over the same transformer layers.
+% \hs{`model' or `layers'?}.
+We investigate two compositional generalization challenges under the implicit reasoning scenario: \textit{systematic generalization}, i.e.\ combining knowledge that is never used for compositions during training, and \textit{depth extrapolation}, i.e.\ generalizing from limited reasoning depth (e.g.\ training on up to 5-hop) to deeper compositions (e.g.\ 10-hop).
+% We demonstrate that although vanilla transformers struggle with both generalization challenges, recurrent-depth transformers, or looped transformers, effectively make such generalization by training (recurrent-depth) transformers from scratch on controlled datasets.
+Through controlled studies with models trained from scratch, we show that while vanilla transformers struggle with both generalization challenges, recurrent-depth transformers can effectively make such generalization.
+For systematic generalization, we find that this ability emerges through a three-stage grokking process, transitioning from memorization to in-distribution generalization and finally to systematic generalization, supported by mechanistic analysis.
+For depth extrapolation, we show that generalization beyond training depth can be unlocked by scaling inference-time recurrence, with more iterations enabling deeper reasoning.
+We further study how training strategies affect extrapolation, providing guidance on training recurrent-depth transformers, and identify a key limitation, \textit{overthinking}, where excessive recurrence degrades predictions and limits generalization to very deep compositions.
+\end{abstract}
+
+\input{intro}
+
+% \input{old_intro}
+
+% \begin{figure*}[t]
+%   \centering
+%   \includegraphics[width=\linewidth]{images/dataset_creation.png}
+%   \caption{Sample multi-hop dataset with $k=3$. Here, intermediate entities for the inferred facts are not verbalized and must be processed \textit{implicitly}. The OOD split contains samples with the number of hops ($k$) greater than those seen during training ($k>3$). }
+%   \label{fig:dataset-creation}
+% \end{figure*}
+
+\begin{figure*}[t]
+  \centering
+  \includegraphics[width=\linewidth]{images/recurrent_model.pdf}
+  \caption{\textbf{Recurrent depth model architecture.} The transformer block is repeated $R$ times. The embedding layer and language model head (LM Head) have tied weights. In our experiments, we use a simple looped transformer similar to \citet{saunshireasoning} without design elements such as input injection, gated halting, and middle looping.}
+  \label{fig:model_diagram}
+\end{figure*}
+
+\section{Related Work}
+
+Several small-scale studies pretrain looped or recurrent-depth transformers on synthetic tasks to better understand their behavior in a controlled setting. Our work best aligns with such studies where we are able to cleanly attribute differences in performance and generalization to specific architectural choices and model design decisions. \citet{yang2024looped} demonstrate how "looping" a transformer block helps to better emulate learning algorithms such as gradient descent for in-context linear regressions, 2-layer neural networks, and decision trees. \citet{fan2024looped} show that such looped transformers offer superior length generalization on algorithmic tasks such as parity and binary addition. \citet{saunshireasoning} conduct a larger-scale pretraining with the 250B tokens of the Pile dataset \citep{gao2020pile} and find that looped versions of transformer models of the same effective depth have a greater inductive bias towards reasoning at the cost of memorization and perplexity.  Based on these results, they propose a regularization term that encourages certain layers to be closer to each other, thus improving the tradeoff between reasoning and fact recall.  
+
+Relative to other works, our targeted setting yields unique insights on training dynamics and model behavior.
+We demonstrate how weight sharing through recurrence can solve systematic composition where vanilla transformers are known to struggle and extrapolation in multi-hop composition is possible with increased recurrence at inference-time. While \citet{fan2024looped} propose looped architectures for length generalization, they assume an oracle number of training iterations based on sample complexity. 
+We believe that our setup is closer to real-world scenarios where task complexity cannot be easily estimated through heuristics (such as input length). 
+Without the assumption of task complexity a priori, we face distinct challenges in training our models. 
+We analyze how best to apply methods like recurrent-depth and common pitfalls to avoid, which can help inform more robust implicit reasoning models in the future. We discuss other related work in Appendix~\ref{app:other_related_work}.
+
+% \section{Experimental Setup}
+\section{Task Formulation}
+
+% We adopt the 2-hop composition setup from \citet{10.5555/3737916.3740933} and extend it for the case of multi-hop \hs{perhaps change to `k-hop (k>2)' as 2-hop is also multi-hop} composition with varying complexity and problem size. While we use the 2-hop composition setup as-is to evaluate ID and OOD performance when the distribution of inferred facts is relatively sparse in our training data \hs{this `while ... when XX' part is hard for people to understand as very likely they are not familiar with the setup in wang et al.}, the multi-hop extension emphasizes learning how to solve for longer inference-chains (ID) and extrapolating to even longer chains at test time (OOD).
+
+% We consider two experimental setups. First, we use a 2-hop composition task where the majority of training samples are atomic facts with a smaller set of 2-hop or \textit{inferred} facts. This setting is used to evaluate systematicity in generalization where the OOD split consists of 2-hop facts that never appear in 2-hop compositions during training. Second, we use a multi-hop training setup where we evaluate the models' abilities to generalize beyond 2 hops. Here, the OOD split consists of samples with longer inference chains (more hops) than the model has seen during training. This setup allows us to study extrapolation and the extent to which increasing recurrence at inference time can scale computation to solve harder problems.
+
+We formally define our implicit reasoning setup using a synthetic multi-hop reasoning task, and categorize three generalization challenges under this formulation: in-distribution generalization, systematic generalization, and depth extrapolation (Figure \ref{fig:dataset-creation}).
+The latter two can be viewed as out-of-distribution (OOD) generalization. Such tasks have been shown to be difficult for vanilla transformers to learn \citep{yao-etal-2025-language-models}, highlighting their limitations in composing parametric knowledge for reasoning \citep{allen2023physics, yang-etal-2024-large-language-models}.
+% In this paper, we use implicit multi-hop reasoning to demonstrate the superiority of looped transformers in reasoning over learned knowledge compared to vanilla transformers.
+
+% \begin{figure*}[t]
+%   \centering
+%   \includegraphics[width=0.5\linewidth]{images/dataset.pdf}
+%   \caption{Sample dataset consisting of up to 2-hop facts. The systematic generalization split consists of 2-hop facts derived from atomics that are never used in any 2-hop composition in the training data. The extrapolation generalization test contains samples with the number of hops ($k$) greater than those seen during training ($k>2$).}
+%   \label{fig:dataset-creation}
+% \end{figure*}
+
+\subsection{Task Definition}
+\begin{wrapfigure}{r}{0.55\linewidth}
+    \centering
+    \vspace{-2.0em}
+    \includegraphics[width=\linewidth]{images/dataset.pdf}
+    \caption{Illustration of systematic and extrapolation generalization tasks with a sample dataset.}
+    \label{fig:dataset-creation}
+    \vspace{-1.0em}
+\end{wrapfigure}
+% Across both setups, we first define a directed knowledge graph (KG) where nodes represent a set of entities $E = \{e_i\}$ and edges represent a set of relations $R = \{r_j\}$. 
+Our implicit reasoning task relies on a directed knowledge graph (KG) where nodes represent a set of entities $E = \{e_i\}$ and edges represent a set of relations $R = \{r_j\}$. 
+The KG is composed of atomic (1-hop) facts, each taking the form of a triplet $(h, r, t)$, where $h, t \in E$ and $r \in R$ (here $h$ and $t$ imply the head and tail entities, respectively).
+
+A $k$-hop inferred fact is defined as a chain of $k$ atomic facts connecting a head entity $h$ to a final tail entity $t$ via a sequence of $k-1$ intermediate entities ($i_1, \dots, i_{k-1}$):
+$$(h, r_1, i_1), (i_1, r_2, i_2), \dots, (i_{k-1}, r_k, t)$$
+    Given the head entity $h$ and the sequence of relations $r_1, \dots, r_k$, we use an auto-regressive decoder-only model to predict the final tail entity $t$. 
+    % The model is provided the query $<e_h><r_1><r_2>...<r_k>$ as an input prefix and its objective is to predict the target which is the final tail entity: $<e_t>$. 
+    The input prefix is $<e_h><r_1><r_2>\dots<r_k>$, and the target is $<e_t>$.
+    Ideally, the model must implicitly perform the $k$-hop traversal, successively retrieving each intermediate entity ($i_1, \dots, i_{k-1}$) until it can resolve the final tail entity $t$.
+
+\subsection{Generalization Challenges}
+% Given the implicit reasoning task defined, we formalize three generalization challenges according to how the inferred facts are combined in each challenge.
+% \yy{need to define the training dataset first. maybe this can be done with a last paragraph in sec 2.1 including the atomic facts definition.}
+% Let the set of atomic facts be \[\mathcal{C} = \{(h, r, t)\}\]
+% which we partition into two disjoint subsets:
+% \[
+% \mathcal{C} = \mathcal{C}_{ID} \cup \mathcal{C}_{OOD}, \quad \mathcal{C}_{ID} \cap \mathcal{C}_{OOD} = \emptyset.
+% \]
+% Given a subset of atomic facts $\mathcal{C}' \subseteq \mathcal{C}$, we define the induced set of $k$-hop inferred facts:
+% \[
+% \mathcal{I}_k(\mathcal{C}') = \{(h, r_1, \dots, r_k, t)\ \mid\ \exists\ i_1, \dots, i_{k-1},\ 
+% (h, r_1, i_1), \dots, (i_{k-1}, r_k, t) \in \mathcal{C}' \}.
+% \]
+% Given the implicit reasoning task defined above, we formalize three generalization challenges based on how the queried inferred facts are combined. 
+% \yy{I disentangled the task and evaluation formalization from the experiment setup details to better clarify our tasks and the motivation behind them. If this does not read well, we can revert to a more natural-language description. This section still needs polishing to ensure everything fits together smoothly, and emphasize why the two ood generalization challenges are important.}
+
+Given a generated knowledge graph, we first define the complete atomic fact set as $\mathcal{C} = \{(h, r, t)\}$, and the induced set of $k$-hop inferred facts from $\mathcal{C}$ as
+\[
+\mathcal{I}_k(\mathcal{C}) = \{(h, r_1, \dots, r_k, t)\ \mid\ \exists\ i_1, \dots, i_{k-1},\ (h, r_1, i_1), \dots, (i_{k-1}, r_k, t) \in \mathcal{C} \}.
+\]
+\paragraph{Training set.} The training set includes two parts: all possible atomic facts $\mathcal{C}$ together with a set of inferred facts $\mathcal{I}_{train}$ up to a maximum depth $k_{train}$ (e.g. $k$-hop facts with $k \in [2, k_{train}]$).
+To characterize different generalization challenges, we partition the atomic fact set into two disjoint subsets
+$\mathcal{C} = \mathcal{C}_{ID} \cup \mathcal{C}_{OOD}$.
+The training inferred facts $\mathcal{I}_{train}$ can then be defined as
+\[
+\mathcal{I}_{train} = \{(h, r_1, \dots, r_k, t)\ \mid\ (h, r_1, \dots, r_k, t) \in \mathcal{I}_k(\mathcal{C}_{ID}),\ k \le k_{\text{train}} \}.
+\]
+
+We then define three generalization challenges:
+\paragraph{In-distribution generalization.}
+The model is evaluated on inferred facts $(h, r_1, \dots, r_k, t) \in \mathcal{I}_k(\mathcal{C}_{ID})$ that are not observed during training, equivalent to randomly sample inferred facts from $\mathcal{I}_k(\mathcal{C}_{ID})$ as held-out test set. 
+Despite its simplicity, previous work shows that vanilla transformers can only learn such tasks through extended training \citep{10.5555/3737916.3740933}.
+
+\paragraph{Systematic generalization.}
+The model is evaluated on inferred facts $(h, r_1, \dots, r_k, t) \in \mathcal{I}_k(\mathcal{C}_{OOD})$, which are induced from atomic facts that are never used in compositions in the training data. 
+This requires the learner to systematically combine its learned knowledge, without having seen combinations of it in training. 
+This setting simulates scenarios where knowledge appears only as plain text in pretraining data (e.g.\ long-tail knowledge), but never forms answers to reasoning queries during training. 
+Previous work \citep{10.5555/3737916.3740933} shows that vanilla transformers completely fail on this generalization challenge.
+% \yy{maybe also cite literature showing that transformers learn knowledge/reasoning from queries instead of declared sentences.} 
+% for the target reasoning question. 
+% Therefore, success in systematic generalization suggests an ability to flexibly manipulate the knowledge acquired by the model.
+% Previous work \citep{wang2024grokking} demonstrates that vanilla transformers completely fail in this generalization challenge.
+% Hence, failures in systematic generalization suggest that the learner can only combine familiar knowledge, but 
+% \yy{better to have an example to demonstrate why this is important in realistic applications.}
+
+\paragraph{Depth extrapolation.}
+The model is evaluated on inferred facts of greater depth than those included in the training dataset, i.e., $(h, r_1, \dots, r_k, t) \in \mathcal{I}_k(\mathcal{C_{ID}})$ with $k$ larger than $k_{train}$.
+Solving this requires the learner to infer the underlying rules of the task and iteratively apply them at depths far beyond those observed during training. 
+This setting simulates scenarios where the complexity (i.e.\ reasoning depth) of training data is limited due to budget constraints, yet we expect the model to generalize beyond training.
+Such depth generalization poses challenges for vanilla transformers in symbolic \citep{kim-linzen-2020-cogs} and knowledge reasoning \citep{yao-etal-2025-language-models}.
+Although related to length generalization, depth extrapolation is conceptually distinct: it measures the depth to which a model can repeatedly apply learned rules over its parametric knowledge beyond training.
+
+% \subsection{Setup 1: Systematicity (2-hop)}
+% \label{sec:setup1}
+% \hs{we need to come up with better names than `systematicity' or `extrapolation'? these two terms are vague and could mean different things depending on different contexts. maybe what questions do you want to answer with each setup? }
+
+% To evaluate systematicity, we adopt the 2-hop compositional setup from \citet{10.5555/3737916.3740933}. This task corresponds to the $k=2$ case: [$(h, r_1, i_1)$, $(i_1, r_2, t)$], where $i_1$ is the single intermediate entity, referred to as the bridge entity.
+
+% \textbf{Data Splits:} The core of this setup is a disjoint split of the atomic facts into two sets, $C_{ID}$ (95\% of atoms) and $C_{OOD}$ (5\% of atoms). This split propagates to the inferred 2-hop facts:
+% \begin{itemize}
+%     \item \textbf{Training Set:} Contains all atomic facts plus a random portion of 2-hop facts deduced only from $C_{ID}$ (denoted $train\_inferred_{ID}$).
+%     \item \textbf{IID Test Set:} Contains unseen 2-hop facts also deduced from $C_{ID}$ (denoted $test\_inferred_{ID}$). This evaluates in-distribution generalization.
+%     \item \textbf{OOD Test Set:} Contains 2-hop facts deduced from $C_{OOD}$ (denoted $inferred_{OOD}$). Since the model never sees any inferred facts derived from $C_{OOD}$ during training, this strictly tests for systematic generalization.
+%     % \hs{this is not true, right? because all atomic facts must be included in the training, but you've never seen 2-hop combinations of atomic facts in the OOD set during training} from $C_{OOD}$
+% \end{itemize}
+
+% \textbf{Configuration:} We follow the exact setup and use a graph with $|E|=2000$ entities, $|R|=200$ relations, and an entity out-degree of 20. We use the inferred-to-atomic fact ratio $\phi = |train\_inferred_{ID}| / |atomic_{ID}| = 7.2$. \hs{You need to describe them based on your context, rather than exactly follow Boshi's paper (his context might be different from yours and you need to be self-contained). for example, it'd be better to directly say what the dataset size it, and how many atomic facts there are, rather than use this ratio?}
+
+% \begin{figure*}[t]
+%   \centering
+%   \includegraphics[width=\linewidth]{images/model_diagram.png}
+%   \caption{\textbf{Recurrent depth model architecture.} The transformer block is repeated $R$ times. The embedding layer and language model head (LM Head) have tied weights. \hs{can we give a citation here (clarify if we use the exact same model architecture or adapt it in XX ways} \hs{the embedder's output should go to each recurrent block, right?}}
+%   \label{fig:model_diagram}
+% \end{figure*}
+
+% \subsection{Setup 2: Extrapolation (multi-hop)}
+% \label{sec:setup2}
+
+% To investigate how our implicit reasoning models scale to deeper $k$-hop composition tasks, we design a dataset from a permutation-based knowledge graph. In this setup, we found that models can sometimes achieve high accuracy via \emph{shortcuts} rather than performing the intended multi-step traversal. For large $k$, the final tail entity $t$ can become nearly determined by a short suffix of the relation sequence. Thus, a model may learn a shallow mapping from the trailing relations to the answer instead of retrieving the intermediate entities. To overcome this, We first construct a set of atomic facts over $|E|=200$ entities and $|R|=10$ relations. For each relation $r \in R$, we sample a random permutation $\pi_r$ over the entity indices and define the atomic facts as
+% \[
+% \forall e_i \in E:\quad (e_i, r, e_{\pi_r(i)}).
+% \]
+% Thus, each relation acts as a bijection over the entity set. Since the out-degree is set to $d=|R|=10$, every entity has exactly one outgoing edge for each relation. This ensures that each relation has full coverage over entities. To generate a $k$-hop example, we sample a starting atomic fact and then iteratively extend it by following outgoing edges from the current tail entity. At each step, one outgoing relation-edge pair is selected uniformly at random. Intermediate entities are used only during construction and are not included in the final training example. 
+
+% We generate datasets for hop lengths $k \in [2,40]$. For each hop length, we construct 15,750 unique examples, which are then randomly split into 15,000 training examples and 750 test examples. This construction yields a controlled multi-hop compositional reasoning dataset in which each atomic relation is deterministic and globally defined over the full entity set, while longer-hop examples require repeated composition of these relation mappings.  In our setup, composing relations corresponds to composing permutations encouraging reliance on the entire relation sequence and retrieval of each intermediate entity.
+
+\section{Recurrent-Depth Transformer}
+\label{sec:model-design}
+% \begin{figure*}[t]
+%   \centering
+%   \includegraphics[width=\linewidth]{images/recurrent_model.pdf}
+%   \caption{\textbf{Recurrent depth model architecture.} The transformer block is repeated $R$ times. The embedding layer and language model head (LM Head) have tied weights. \hs{can we give a citation here (clarify if we use the exact same model architecture or adapt it in XX ways} \hs{the embedder's output should go to each recurrent block, right?}}
+%   \label{fig:model_diagram}
+% \end{figure*}
+\paragraph{Model architecture.}
+Across all experiments we use a decoder-only transformer with a \emph{recurrent-depth} design illustrated in Figure~\ref{fig:model_diagram}. Concretely, we instantiate a GPT-2 style block with $L$ layers and reuse this for $R$ recurrent iterations, yielding an effective rolled-out depth of $D = L \times R$ layers. At each recurrent iteration the same stack of layers is applied to the current hidden states. This allows the model to allocate more computation (increasing $R$) at inference time without changing the architecture or re-training the parameters. We exploit this property in our inference-time scaling experiments described in Section~\ref{sec:multihop}. Formally, let $f_\theta$ denote the $L$ transformer layers with shared parameters~$\theta$, and let $h^{(0)}$ be the input sequence after the initial embedding layer. The model computes
+\[
+    h^{(r+1)} = f_\theta\big(h^{(r)}; m\big), \qquad r = 0, \dots, R-1,
+\]
+where $m$ denotes the causal attention and padding masks. The final representation $h^{(R)}$ is passed through a final layer normalization and a tied output projection to produce logits over the vocabulary at each position. We only supervise the next-token distribution at the final position corresponding to the tail entity $t$. Each entity and relation is represented by a dedicated token (\texttt{$<e_i>$}, \texttt{$<r_j>$}), and the query prefix is mapped to token embeddings. 
+% For our 2-hop experiments for systematicity, we use trainable absolute position embeddings (APE) \citep{NIPS2017_3f5ee243} since they speed up training and the input length is fixed and known in advance. In the multi-hop setup, however, we aim to generalize to arbitrarily long sequences that are not seen during training. For this reason, we use no positional embeddings (NoPE) \citep{kazemnejad2023impact}, which have been shown to generalize better to longer input lengths than those observed during training \citep{wang2024length}.
+
+% Repeated application of shared weights can lead to unstable training dynamics \citep{agarwala2022deep}, which presents a challenge when optimizing recurrent-depth transformers \citep{saunshireasoning}. To ensure stability across experiments and consistency with different random seeds, we draw inspiration from ReZero \citep{bachlechner2021rezero} and Fixup \citep{zhangfixup}. While ReZero stabilizes finite-depth networks by introducing layer-specific learnable gating scalars, this formulation does not cleanly extend \textbf{(make this more clear}) to our setup where we unroll to arbitrary, out-of-distribution depths at inference time. Consequently, we adopt the strict zero-initialization strategy from Fixup for the final layer of each residual branch. In our decoder-only Transformer, we initialize the output projection matrices (\texttt{c\_proj}) of both the multi-head attention and feed-forward blocks to zero. This forces the recurrent block to act as a perfect identity mapping at initialization and ensures that the input-output Jacobian remains stable across an arbitrary number of recurrent iterations similar to ReZero.
+
+We adopt a zero-initialization strategy to stabilize training under repeated application of shared weights.
+Specifically, we initialize the output projection matrices (\texttt{c\_proj}) of both the multi-head attention and feed-forward blocks to zero, so that each recurrent block is an exact identity mapping at initialization.
+This ensures that the input-output Jacobian remains stable even when the model is unrolled to a large number of recurrent iterations.
+This design is motivated by the known instability of deep networks with shared parameters \citep{agarwala2022deep}, which becomes particularly pronounced in recurrent-depth transformers \citep{saunshireasoning}.
+Following \citet{zhang2019fixupinitializationresiduallearning}, this initialization supports stable optimization under unbounded unrolling of the recurrent iterations.
+% While ReZero \citep{bachlechner2021rezero} addresses this issue in finite-depth networks via layer-wise learnable gating scalars, it assumes a fixed number of layers and does not directly apply to our setting, where the same block is recursively applied and the effective depth can grow arbitrarily at inference time. 
+% In contrast, the zero-initialization strategy from Fixup \citep{zhangfixup} naturally supports such unbounded unrolling while maintaining stable optimization across runs.
+
+
+
+% \paragraph{Curriculum learning.}
+% \yy{I will move this paragraph to the experiment section, since the curriculum learning is just a model-agnostic training recipe. }
+% For the multi-hop extrapolation experiments we train the same recurrent-depth model using an easy-to-hard curriculum over hop length ($k$). We initially train on atomic and 2-hop facts until an accuracy threshold ($95\%$) is reached on a held-out 2-hop test split. Next, 3-hop data is included in the training for the next stage of our curriculum until $95\%$ is achieved on the held-out 3-hop test split. This process is repeated for each hop level $k \in \{2, \dots, N_{\max}\}$. To prevent forgetting, at each stage the training data includes all atomic facts and data from previous splits (\textbf{make this more clear}) leading to the current stage (e.g., at stage $k=5$ we jointly train on 2-hop through 5-hop in addition to the atomic facts).
+
+\paragraph{Stopping strategies of the recurrent iterations.} Training the looped transformer requires a stopping strategy to determine the number of recurrent iterations in the forward pass on the input. 
+We consider two stopping strategies: \textit{fixed iteration} and \textit{dynamic iteration}. 
+Fixed iteration determines the recurrent iterations to be the same fixed value for all training instances.
+The dynamic iteration strategy samples the number of recurrent iterations independently for each training batch. Concretely, for the dynamic model we sample
+\[
+R \sim \mathrm{clip}\big(\mathrm{Poisson}(\lambda), R_{\min}, R_{\max}\big),
+\]
+Unless otherwise stated, we set the hyperparameters to \(R_{\min}=2\) and \(R_{\max}=8\).
+% This strategy follows the same spirit of \citet{geiping2025scaling}. 
+Such strategies have been shown to be effective in realistic pretraining \citep{geiping2025scaling, zhu2025scaling}, and here we adopt a simple Poisson distribution to control the sampling distribution.
+Importantly, our strategies contrast with prior studies on the generalization ability of looped transformers, where the iteration number is matched to the complexity of each training instance, assuming oracle access to such complexity.
+Instead, our setup reflects practical scenarios \citep{geiping2025scaling}, where the complexity is unknown and computation cannot be allocated precisely in advance.
+% Importantly, the sampled recurrence is not conditioned on the complexity of the training examples in any given batch to reflect real-world scenarios, where it is hard to estimate complexity and allocate compute a priori.
+% \yy{maybe add one sentence to justify our choice compared to the stopping strategies of bytedance and Kangwook's papers.}
+
+% \section{Results \& Analysis}
+% \label{sec:results}
+% \yy{I think we should split this section into 2 sections for systematicity and extrapolation separately. Will work on it today.}
+% \subsection{Systematicity with 2-hop composition}
+\section{Systematic Generalization}\label{sec:systematicity}
+In this section, we study systematic generalization, i.e.\ whether models can combine parametric knowledge not composed during training for multi-hop tasks. 
+We focus on $2$-hop, as \citet{10.5555/3737916.3740933} shows that vanilla transformers already struggle with this simple task.
+% This setting can simulate tail knowledge that appears only as plain text in pretraining data (e.g.\ A's wife is B), but never forms answers to reasoning queries during training. 
+% Therefore, success in systematic generalization suggests an ability to flexibly manipulate the knowledge acquired by the model.
+\subsection{Experiment Setup} \label{sec:systematicity:setup}
+\paragraph{Dataset.} We construct the dataset by instantiating a knowledge graph with $|E|=2000$ and $|R|=200$, where each entity has average out-degree 20. 
+We then include all 40k atomic facts, randomly partitioned with 95\% $C_{ID}$, and 5\% $C_{OOD}$, together with 273.6k inferred facts for training. 
+% We report more dataset details in Appendix \ref{todo}. \yy{Add dataset statistics and other necessary details in appendix.}
+Our in-distribution set includes 3k held-out two-hop inferred facts composed from $C_{ID}$, and OOD set includes nearly 2k two-hop inferred facts composed from $C_{OOD}$.
+% The training set includes all atomic facts together with approximately 7.2$\times$ as many inferred facts derived from $C_{ID}$.
+% \begin{itemize}
+%     \item \textbf{Training Set:} Contains all atomic facts plus a random portion of 2-hop facts deduced only from $C_{ID}$ (denoted $train\_inferred_{ID}$).
+%     \item \textbf{IID Test Set:} Contains unseen 2-hop facts also deduced from $C_{ID}$ (denoted $test\_inferred_{ID}$). This evaluates in-distribution generalization.
+%     \item \textbf{OOD Test Set:} Contains 2-hop facts deduced from $C_{OOD}$ (denoted $inferred_{OOD}$). Since the model never sees any inferred facts derived from $C_{OOD}$ during training, this strictly tests for systematic generalization.
+%     \end{itemize}
+
+\paragraph{Model.} We train our looped transformer with $L=4$ layers, and use fixed training recurrence with $R \in \{1, 2, 4, 8\}$.
+The model with $R=1$ is equivalent to a 4-layer vanilla transformer. 
+We evaluate the accuracy of the predicted token against the gold answer.
+Absolute position embeddings (APE) \citep{NIPS2017_3f5ee243} are used as positional embeddings in this setup. We do not use dynamic recurrence in this setting, as systematic generalization in the 2-hop task already emerges from weight sharing under fixed recurrence. In the multi-hop setting, however, it improves extrapolation to more complex samples at inference time and helps alleviate latent overthinking, as discussed in Section~\ref{sec:multihop}.
+
+% \subsection{Two-hop in-distribution generalization}
+% \begin{wrapfigure}{r}{0.4\columnwidth}
+%     \centering
+%     \vspace{-20pt}
+%     \includegraphics[width=0.4\columnwidth]{images/composition_r4_logscale.pdf}
+%     \vspace{-10pt}
+%     \caption{Accuracy for the 3 splits in the $R=4$ model, plotted against training epochs.}
+%     \label{fig:composition-r4-logscale}
+%     \vspace{-10pt}
+% \end{wrapfigure}
+% In Figure~\ref{fig:composition-r4-logscale}, we show the accuracy of inferred facts in the train, test ID, and test OOD splits across training epochs (log-scaled) for the model trained with $R=4$. We see that accuracy on the test splits (both ID and OOD) only starts to increase after the model has achieved near-perfect accuracy on the training set - a phenomenon known as delayed generalization or \textit{grokking}. These findings are consistent with \citet{10.5555/3737916.3740933} who show similar delayed generalization for 2-hop ID samples using vanilla transformers.
+% \hk{I have included the grokking training curves and changed some things here. LMK if this is okay}
+% \yy{The paragraph is copied from the old version and need to be adapted.}
+% \yy{Plot a grokking figure (for training, ID and OOD accuracy wrt epochs) here. This is important because we already assume the reviewers understand how the grokking curve looks like in this logit lens study, which is indeed not true. With the figures. we can consider to merge section 4.2 and 4.3.}
+\subsection{Results}
+\label{sec:sys_results}
+% However, no generalization is observed on the OOD split when using a standard transformer-based model as deeper layers lack knowledge of the OOD atomic facts. We confirm that weight sharing through the recurrent-depth approach alleviates this issue. To further explore the effect of increasing the recurrent depth, we vary the number of recurrent iterations $R \in \{1, 2, 4, 8\}$. Here, $R=1$ corresponds to a vanilla 4-layer transformer model without recurrence.
+% \begin{figure}[h]
+%     \centering
+    
+%     \begin{subfigure}[t]{0.48\textwidth}
+%         \centering
+%         \includegraphics[width=\linewidth]{images/composition_test_ood_all.png}
+%     \end{subfigure}%
+%     \hfill
+%     \begin{subfigure}[t]{0.48\textwidth}
+%         \centering
+%         \includegraphics[width=\linewidth]{images/composition_test_ood_vs_time.png}
+%     \end{subfigure}
+    
+%     \caption{
+%     Test OOD accuracy for recurrent-depth models with $R \in \{1,2,4,8\}$. 
+%     \textbf{Left:} Accuracy as a function of training epochs. 
+%     \textbf{Right:} Accuracy as a function of training wall-clock time (hours).
+%     For each configuration, we plot a smoothed accuracy curve given by a rolling mean over 100 epochs and a shaded performance band corresponding to $\pm$ one standard deviation over the same window, capturing short-term variance in model performance.
+%     }
+%     \label{fig:composition-test-ood}
+% \end{figure}
+
+% \begin{figure}[h]
+%     \centering
+%     \includegraphics[width=.48\linewidth]{images/composition_test_ood_2panel_cropped.pdf}
+%     \includegraphics[width=.47\linewidth]{images/composition_r4_logscale.pdf}
+    
+%     \caption{
+%     Test OOD accuracy for recurrent-depth models with $R \in \{1,2,4,8\}$. 
+%     \textbf{Left:} Accuracy as a function of training epochs. 
+%     % \textbf{Right:} Accuracy as a function of training wall-clock time (hours).
+%     We plot a smoothed accuracy curve given by a rolling mean over 100 epochs and a shaded performance band corresponding to $\pm$ one standard deviation over the same window, capturing short-term variance in model performance.
+%     \textbf{Right:} Training dynamics of $R=4$ presenting the training, ID and OOD accuracy as a function of training epochs.
+%     }
+%     \label{fig:composition-test-ood}
+% \end{figure}
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=\columnwidth]{images/composition_3panel.pdf}
+    
+    \caption{
+    Accuracy curves for recurrent-depth models across training epochs and wall-clock time. 
+    \textbf{Left:} Test OOD accuracy for models trained with $R \in \{1,2,4,8\}$, plotted against training epochs. Curves are smoothed with a 100-epoch rolling mean, with shading indicating standard deviation.
+    \textbf{Middle:} Test OOD accuracy for the same models, plotted against training wall-clock time (hours). 
+    \textbf{Right:} Accuracy of the $R=4$ model on the examples from training, ID, and OOD test splits, plotted against training epochs. 
+}
+    \label{fig:composition-test-ood}
+\end{figure}
+% In Figure~\ref{fig:composition-test-ood}, we plot OOD accuracy as a function of training epochs as well as wall-clock time, and observe that setting $R = 4$ leads to faster convergence both in terms of the number of gradient updates and total training time, although all recurrent experiments ($R \in \{2, 4, 8\}$) eventually yield similar performance on this task. The training batch size as well as hardware (1x 40GB A100 GPU) is kept fixed across all experiments.
+
+\paragraph{Recurrent-depth transformers perform systematic generalization, while vanilla transformers do not.}
+On the left of Figure~\ref{fig:composition-test-ood}, we plot OOD accuracy as a function of training epochs.
+% as well as wall-clock time.
+We find that the vanilla transformer (i.e.\ $R=1$) completely fails when the task requires combining unfamiliar atomic facts, while even the simplest $R=2$ recurrence achieves non-trivial generalization performance.
+Increasing training iterations further accelerates the convergence, e.g.\, $R=4$ converges with 2k epoch, while $R=2$ takes 7k. This acceleration is not only in terms of training steps, but also in absolute wall-clock time (Figure~\ref{fig:composition-test-ood}, middle).
+% As Figure~\ref{fig:composition-test-ood} shows, this acceleration is not only in terms of training steps, but also in absolute wall-clock time. Although $R=2$ requires less computation per epoch, it still takes longer overall to reach generalization than $R=4$ and $R=8$.
+% \yy{Are we keeping the wall-clock time figure? If so, add 1-2 sentences to clarify the unique takeaway we can draw from the figure.}
+
+\paragraph{Systematic generalization emerges through a three-stage grokking dynamic.}
+We further analyze the training dynamics of the $R=4$ model (right panel of Figure~\ref{fig:composition-test-ood}) to understand how systematic generalization emerges.
+We observe a three-stage dynamic:
+In the first stage, the model overfits the training set, with only training accuracy improving.
+In the second stage, in-distribution generalization emerges after prolonged training beyond memorization, a phenomenon referred to as \textit{grokking}.
+In the final stage, systematic generalization arises only after the model achieves near-perfect in-distribution accuracy, occurring at a much later point than training overfitting (e.g., $10^4$ vs.\ $10^2$ epochs).
+
+\paragraph{Analyzing model internals with logit lens.}
+We use the logit lens technique \citep{nostalgebraist2020logitlens} to examine how models represent the bridge entity and the final target during different stages of training. After each layer and recurrent iteration, we project the intermediate hidden states through the final layer norm and language modeling head to obtain logits over the output vocabulary. For 2-hop inputs of the form $(h, r_1, r_2)$, where $h$ is the head entity and $r_1, r_2$ are the two relations, we measure at each effective depth the accuracy of predicting the bridge entity at the $r_1$ position and the target entity at the $r_2$ position. 
+% In Figure~\ref{fig:heatmap1}, we present the logit lens of our $R=2$ model calculated on 2-hop examples from Training, Test ID and Test OOD set respectively, across checkpoints from the three stages we saw above. 
+% We also compare with the logits lens calculated on a 8-layer vanilla transformer, guaranteeing the same effective depth as the recurrent-depth model.
+Figure~\ref{fig:heatmap1} shows logits lens for an $R=2$ recurrent-depth model on Training, Test ID, and Test OOD splits, across checkpoints corresponding to the three training stages.
+We compare against an iso-FLOP 8-layer vanilla transformer with matched effective depth.
+The vanilla model exhibits only two training stages and fails to achieve non-zero systematic generalization regardless of training time, consistent with \citet{10.5555/3737916.3740933}. We also include a causal analysis for systematic generalization in Appendix~\ref{app:causal}.
+
+% Figure~\ref{fig:heatmap1} compares this behavior for a recurrent-depth model trained with $R=2$ and an iso-FLOP vanilla transformer with $L=8$. We observe the three stages of grokking for the recurrent model whereas the the vanilla transformer fails to generalize to OOD samples. 
+
+\begin{figure}[h] 
+\centering \includegraphics[width=\linewidth]{images/systematicity_logit_lens_vanilla_vs_recurrent_nested_t.pdf} 
+\caption{Accuracy of predicting bridge and target entities using logit lens at corresponding token positions for the recurrent-depth ($R=2$) and the 8-layer vanilla transformer.} 
+\label{fig:heatmap1} 
+\end{figure}
+
+\paragraph{Grokking marks a transition from memorization to systematic generalization.} 
+We first focus on the recurrent-depth model (Figure~\ref{fig:heatmap1}  left panels), which exhibits distinct mechanisms across the three stages.
+% The results of $R$=2 model across 3 stages demonstrate clearly different mechanisms acquired during training. 
+In Stage 1, the model predicts targets without reliably decoding the bridge, indicating memorization.
+In Stage 2, the bridge becomes decodable, followed by correct target prediction for in-distribution data at deeper effective depths.
+Only in Stage 3 does the model succeed on OOD inputs, marking a transition from rote learning to systematic composition.
+In contrast, although vanilla transformers (right panels) can recover the bridge entity on Test OOD inputs, they fail to perform the second-hop reasoning, as they lack incentives to encode OOD facts in deeper layers.
+% \paragraph{Grokking marks a transition from memorization to systematic generalization.} Although the models can achieve near-perfect accuracy on train samples early in training, logit lens reveals qualitatively different internal behavior across phases. In the first phase, both models can often predict the target even though the bridge is seldom predicted, which indicates memorization instead of systematic generalization. After grokking, however, the models exhibit a different pattern where the bridge information is first decodable, and the target entity is subsequently resolved at later effective depths. As observed by \citet{10.5555/3737916.3740933}, atomic facts from $C_{OOD}$ that are never used in compositions during training are not stored in upper layers of the network. Hence, after resolving the first hop, the $C_{OOD}$ facts are unavailable to the model at the second hop stage. Memory sharing through recurrence helps alleviate this issue, leading to systematic generalization on the OOD test split.
+
+% \paragraph{Analyzing model internals with logit lens.} We use the logit lens technique \citep{nostalgebraist2020logitlens} to interpret how the model resolves the bridge (intermediate) entity and predicts the target at different stages of the training process. We apply logit lens by projecting the intermediate hidden states after each layer and recurrent iteration through the final layer norm and language model head to obtain the logits across our output vocabulary. For 2-hop samples in our training set, $(h, r1, r2)$, where $h$ is the head entity, and $r1$ and $r2$ are the two relations - we use logit lens to calculate the accuracy of predicting the bridge entity and the final target entity at each token position and after each layer and recurrent iteration. 
+
+% We conduct our analysis for two checkpoints for the training run with $R=2$. The first checkpoint corresponds to when the model has achieved near-perfect train accuracy but is yet to generalize to the ID/OOD splits and the second checkpoint is after OOD generalization through an extended grokking phase. 
+% % We plot results from our logit lens analysis in Figure~\ref{fig:heatmap1}.
+% % The horizontal axis shows $rij$, where i and j correspond to the recurrent iteration and layer number respectively, and the vertical axis corresponds to token positions $h$, $r1$, and $r2$.
+
+% \begin{figure}[h]
+%     \centering
+%     % \includegraphics[width=\linewidth]{images/systematicity_logit_lens_vanilla_vs_recurrent_nested.pdf}
+%     \includegraphics[width=\linewidth]{images/systematicity_logit_lens_4panel.pdf}
+%     \caption{
+%     % Accuracy of predicting bridge and target entities using logit lens at corresponding token positions for the recurrent-depth ($R=2$) and the iso-flop (8-layer) vanilla transformer model. The heatmaps illustrate how the entities are retrieved and predicted on the train, ID, and OOD splits, and how this evolves over the three phases during training.
+%     Accuracy of predicting bridge and target entities using logit lens before and
+% after grokking in the 2-hop systematicity setting. At each token position, we apply the
+% language model head to intermediate hidden states after every layer and recurrent iteration
+% of the model trained with $R$=2. The four panels show bridge-entity accuracy (green) and
+% target-entity accuracy (blue) for checkpoints taken before and after the grokking phase. \yy{let's use the old figure for now, and I will think of how to present the new MI results.}
+%     }
+%     \label{fig:heatmap1}
+% \end{figure}
+
+% \paragraph{Grokking marks a transition from memorization to systematic generalization.}
+% We plot results from our logit lens analysis in Figure~\ref{fig:heatmap1}. 
+% The horizontal axis shows $rij$, where i and j correspond to the recurrent iteration and layer number respectively, and the vertical axis corresponds to token positions $h$, $r1$, and $r2$.
+% % \yy{Can you create the same figure with a L=8 vanilla transformer and compare with it here? I expect that vanilla transformer can also derive bridge entity but fail at the 2-hop.}
+% Although both checkpoints achieve close to 100\% accuracy on 2-hop training samples, logit lens reveals qualitatively different behavior consistent with memorization versus systematic generalization. In the earlier checkpoint (Figure~\ref{fig:heatmap1}, left), the model attains high accuracy on the target entity at the final token position even though the bridge is seldom predicted at any layer or token position. This is indicative of memorization in our language model. Post the grokking phase (Figure~\ref{fig:heatmap1}, right), we observe a generalizing circuit: the bridge entity is first reliably retrieved at the token position corresponding to $r1$, and the target entity is subsequently resolved in the following recurrent iteration.
+% % \yy{you cannot claim we find a circuit here. There is no causal study in figure 5, and it only suggests that bridge entity information exist in the output activation.}
+
+\section{Depth Extrapolation}
+In this section, we study depth extrapolation, i.e., whether the model can perform deeper recursions when combining its parametric knowledge than those observed during training. 
+% This setting simulates scenarios where the complexity (i.e., recursion depth) of the training data is limited due to budget constraints, yet we expect the model to generalize well beyond the training complexity.
+% \yy{this intro paragraph can also go to section 2.2.}
+
+\label{sec:multihop}
+
+\begin{figure}[b]
+    \centering
+    \includegraphics[width=\linewidth]{images/main_results_accuracy_region.pdf}
+\caption{Accuracy of recurrent-depth models on multi-hop composition, trained under various fixed and dynamic recurrence setups. The violet dash-dotted horizontal line indicates the training recurrence (or maximum in the dynamic setting), while the teal dashed vertical line marks the maximum ID generalization achieved by each model. The x-axis shows hop complexity and the y-axis shows inference-time recurrence ($r^*$ denotes adaptive halting).}
+    \label{fig:extrapolation}
+\end{figure}
+
+\subsection{Experiment Setup}
+\label{sec:exp_setup}
+
+\paragraph{Curriculum training.}
+Different from 2-hop scenarios, learning $k$-hop tasks generally requires training the model with an easy-to-hard curriculum over hop depth ($k$) as suggested in \citet{yao-etal-2025-language-models}. 
+Specifically, we start with training on atomic and 2-hop facts until an accuracy threshold ($95\%$) is reached on a held-out 2-hop test split. 
+Next, 3-hop data is included in the training for the next stage of our curriculum until $95\%$ is achieved on the held-out 3-hop test split. 
+This process is repeated for each hop level $k \in \{2, \dots, N_{\max}\}$. 
+To prevent forgetting, at each stage we jointly train on all previously introduced facts (e.g., at stage $k=5$ we train on atomic and 2-hop through 5-hop facts).
+
+Due to this threshold-based curriculum, training facts beyond the model’s capability are never exposed.
+That is, if the model fails to achieve above-threshold accuracy on $k$-hop queries, training terminates and $(k+1)$-hop data is never introduced.
+We define the largest such $k$ as the \textit{learnable recursion depth} of the model.
+
+\paragraph{Dataset.} 
+We construct the dataset by instantiating a knowledge graph with $|E|=200$ entities and $|R|=10$ relations, where each entity has an average out-degree of 10. 
+We additionally impose a permutation constraint on the knowledge graph to avoid learning shortcut solutions, for which we provide details in Appendix~\ref{app:permutation}. 
+We pre-generate 2k atomic facts and 15k $k$-hop inferred facts for each $k \in [2, K_{max}]$, with $K_{max}=40$. 
+During training, these facts are progressively introduced following the curriculum described above.
+
+For each model, we evaluate on 750 held-out $k$-hop facts.
+Facts with $k$ up to the model’s learnable recursion depth form the in-distribution test set, while those beyond it constitute the extrapolation test set.
+This split is model-dependent, reflecting each model’s maximum achievable reasoning depth.
+
+
+% To prevent models from learning shortcuts observed in our pilot study, we additionally impose a permutation constraint on the underlying knowledge graph, for which we provide details in Appendix~\ref{sec:permutation}. 
+% To systematically study extrapolation, an ideal design is to create a training set including up to $k_{train}$-hop (e.g.\ 10 or 20) inferred facts, and compare the generalization performance of multiple models trained on this dataset. 
+% However, in practice, we notice that our recurrent-depth transformers vary in the maximal $k_{train}$ value they can overfit during training.
+% For example, $R=2$ can only achieve 100\% training accuracy on the $6$-hop task, and cannot even overfit $7$-hop training instances, regardless of the training epochs or dataset size. 
+% Increasing $R$ extends this maximal $k_{train}$.
+% Hence, we first create a dataset including up to $K=40$ hop inferred facts, which is larger than the maximal $k_{train}$ for all our experimented models through pilot studies, and train all models on this dataset to investigate the effect of recurrent depth on in-distribution generalization performance in Section \ref{sec: extrapolation_id}.
+
+\paragraph{Model.} 
+We follow the model setups in Section \ref{sec:systematicity:setup}, except that we use $R \in $\{1,2,3,4,5,6,7,8\} for fixed iteration.
+Here we use no positional embeddings (NoPE) \citep{kazemnejad2023impact, wang2024length}, which shows better generalization in pilot studies. 
+% In addition to results presented in this section using a 4-layer transformer block in all cases, we present results with changing model size and dynamic train recurrence in Appendix~\ref{fig:ratios}, and varying random seed initializations in Appendix~\ref{app:seeds}.
+In addition to results with $L=4$, we present results with varying model size and dynamic train recurrence in Appendix~\ref{app:ratios}, and across random seed initializations in Appendix~\ref{app:seeds}. We also experiment with larger vanilla transformer models, iso-FLOP with recurrent-depth models using \(R \in \{2,4,6\}\) and report results in Appendix~\ref{app:isoflop_vanilla}.
+% which have been shown to generalize better to longer input lengths than those observed during training \citep{wang2024length}.
+% We next study extrapolation in the multi-hop setting introduced in Section~\ref{sec:setup2}. 
+% In these experiments, we train recurrent-depth models with fixed recurrence $R \in \{1,2,\dots,8\}$, as well as a \emph{dynamic} recurrence variant in which the number of recurrent iterations is sampled independently for each training batch. Concretely, for the dynamic model we sample
+% \[
+% R \sim \mathrm{clip}\big(\mathrm{Poisson}(\lambda), R_{\min}, R_{\max}\big),
+% \]
+% where in our experiments $R_{\min}=2$ and $R_{\max}=8$ so we are in the same range as our fixed recurrence models. Thus, each batch is processed with a recurrence depth drawn from a clipped Poisson distribution, similar in spirit to \citet{geiping2025scaling}. Importantly, the sampled recurrence is not conditioned on the complexity of the training examples in any given batch in order to reflect real-world scenarios where it is hard to estimate complexity and allocate compute a priori.
+
+% \begin{wrapfigure}{r}{0.35\textwidth}
+%     \vspace{-0.8em}
+%     \centering
+%     \includegraphics[width=0.33\textwidth]{images/curriculum_cumulative_updates_vs_hop.pdf}
+%     \vspace{-0.6em}
+%     \caption{Cumulative gradient updates required to first generalize to each hop complexity.}
+%     \label{fig:curriculum-cumulative}
+%     \vspace{-1.0em}
+% \end{wrapfigure}
+% The main results are shown in Figure~\ref{fig:extrapolation}. Across fixed-recurrence models, increasing recurrence during training consistently improves ID generalization when trained using the curriculum learning approach described in Section~\ref{sec:model-design}. Interestingly, higher training recurrence also unlocks OOD generalization starting with the $R=5$ model. This trend becomes clearer for $R=7$ and $R=8$, where allocating extra recurrent steps at inference time enables generalization to complexity well beyond what the model has encountered during training. The dynamic recurrence model not only generalizes substantially better than any fixed-recurrence model but maintains its performance as recurrence increases. We analyze this phenomenon in greater detail later in this section. Additionally, we observe how the models require a prolonged grokking phase to acquire low-hop composition, after which they are able to swiftly generalize to much more complex samples. This suggests that the main difficulty lies in discovering the underlying compositional rule and, once learned, the model can very quickly adapt to samples of much higher complexity. In Figure~\ref{fig:curriculum-cumulative}, we illustrate this for the model trained with dynamic recurrence by plotting the training steps against the ID compositional complexity acquired by the model.
+
+\subsection{In-Distribution Generalization} \label{sec: extrapolation_id}
+\paragraph{Scaling up training-time iteration increases the learnable recursion depth of looped transformers.} 
+Looking at the blue area of Figure \ref{fig:extrapolation}, we find that increasing training recurrent iterations accordingly improves the ID generalization. 
+% As shown in Figure \ref{fig:extrapolation}, across fixed-recurrence models, increasing training recurrent iterations accordingly improves the ID generalization. 
+% \yy{explicitly define "ID generalization". Maybe sth like "maximal complexity of learnable k-hop task (maximal k the model can fit perfectly through training)"}
+This is consistent with previous findings \citep{10.5555/3737916.3740933,yao-etal-2025-language-models} that the learnable recursion depth of a transformer is bounded by the depth of its layers, 
+and we demonstrate that for looped transformers, scaling up training recurrent iterations can also increase its "effective depth", without relying on additional parameters.
+Training with dynamic iteration further increases the learnable recursion depth over the fixed iteration, suggesting that the fixed iteration is not an optimal design choice.
+Interestingly, more recurrent iterations do not always translate into larger learnable depth. (e.g., both R=7 and R=8 learns up to 16-hop task).
+
+\begin{wrapfigure}{r}{0.35\textwidth}
+    \vspace{-0.8em}
+    \centering
+    \includegraphics[width=0.33\textwidth]{images/curriculum_cumulative_updates_vs_hop.pdf}
+    \vspace{-0.6em}
+    \caption{Cumulative gradient updates required to first generalize to each hop complexity.}
+    \label{fig:curriculum-cumulative}
+    \vspace{-1.0em}
+\end{wrapfigure}
+
+\paragraph{Phase transition from prolonged training to rapid learning.}
+We observe that models require a prolonged training phase to acquire low-hop tasks, after which they rapidly generalize to much more complex samples (Figure~\ref{fig:curriculum-cumulative}). 
+We illustrate this for the model trained with dynamic recurrence by plotting training steps against the compositional complexity achieved on in-distribution data.
+This suggests that the main difficulty lies in discovering the underlying compositional rule. 
+Once such a rule is internalized, the model can quickly extend it to samples of much higher complexity. 
+In Figure~\ref{fig:curriculum-cumulative} we observe how the model required over 1.3 million steps for grokking up to 4-hop train samples but was quickly able to learn up to 19-hop samples very few additional steps. Beyond that, for even more complex samples, while each new hop requires additional training steps to cross the 95\% threshold, the model still achieves strong generalization (\textgreater90\%) on hops 20, 21, and 22 within fewer than 8k extra steps per hop which is commensurate with the steps required for each additional hop from 4 through 19. By loading a trained checkpoint (20, say) and continuing training exclusively on 21-hop samples instead of the data mix consisting of samples from all previous stages in our curriculum, generalization over 90\% on the new split can be achieved in as little as 50 additional steps of training.
+
+
+% \yy{Move the curriculum learning analysis to appendix}
+% \yy{we may or may not need this since we don't have a good explanation. } 
+
+
+% \begin{wrapfigure}{r}{0.35\textwidth}
+%     \vspace{-0.8em}
+%     \centering
+%     \includegraphics[width=0.33\textwidth]{images/curriculum_cumulative_updates_vs_hop.pdf}
+%     \vspace{-0.6em}
+%     \caption{Cumulative gradient updates required to first generalize to each hop complexity.}
+%     \label{fig:curriculum-cumulative}
+%     \vspace{-1.0em}
+% \end{wrapfigure}
+
+% \paragraph{Phase transition from prolonged training to rapid learning.}
+% Additionally, we observe that models require a prolonged training phase to acquire low-hop tasks, after which they rapidly generalize to much more complex samples (Figure~\ref{fig:curriculum-cumulative}). 
+% We illustrate this for the model trained with dynamic recurrence by plotting training steps against the compositional complexity achieved on in-distribution data.
+% This suggests that the main difficulty lies in discovering the underlying compositional rule. 
+% Once such a rule is internalized, the model can quickly extend it to samples of much higher complexity. 
+% In Figure~\ref{fig:curriculum-cumulative} we observe how the model required over 1.3 million steps for grokking up to 4-hop train samples but was quickly able to learn up to 19-hop samples very few additional steps. Beyond that, for even more complex samples, while each new hop requires additional training steps to cross the 95\% threshold, the model still achieves strong generalization (\textgreater90\%) on hops 20, 21, and 22 within fewer than 8k extra steps per hop which is commensurate with the steps required for each additional hop from 4 through 19.
+
+\subsection{Depth Extrapolation}
+\paragraph{Scaling inference-time iterations unlocks depth extrapolation.}
+In Figure~\ref{fig:extrapolation}, we observe that when using the same number of recurrent iterations as in training, all models struggle to generalize to tasks of higher complexity than those seen during training. 
+However, this limitation is immediately alleviated when we increase the number of inference-time iterations, with more iterations enabling generalization to progressively harder tasks. 
+Notably, this scaling effect only emerges for $R > 4$, suggesting that sufficient training-time iterations are a prerequisite for benefiting from increased inference-time computation.
+
+\paragraph{The effect of training iteration strategy on extrapolation.}
+% The above results show the maximum reasoning depth each model can solve, 
+The above results characterize the maximum reasoning depth each model can achieve under the curriculum setting,
+but they do not disentangle whether the differences (e.g.\ $R=6$ generalizing to $17$-hop vs.\ $R=8$ to $24$-hop) are due to more training iterations or exposure to more complex training data (e.g.\ $R=6$ is trained up to $13$-hop, while $R=8$ up to $16$-hop). 
+To isolate the effect of the training iteration strategy, we train all models on the same data (up to $12$-hop) and evaluate extrapolation on $12$–$24$ hop tasks.
+
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=\linewidth, trim=0 2 0 0, clip]{images/paper_samehop_accuracy_region_5panel.pdf}
+    \caption{Accuracy of models trained with fixed recurrence $R \in \{5,6,7,8\}$ and dynamic recurrence on up to 12-hop samples.}
+    \label{fig:extrapolation2}
+\end{figure}
+
+
+From Figure~\ref{fig:extrapolation2}, we first find that 
+% First,
+among fixed-iteration models, increasing the number of training-time iterations substantially improves extrapolation when scaling inference-time iterations (e.g.\ $R=6$ extrapolates up to $14$-hop, while $R=8$ reaches $19$-hop). 
+Second, under the same training data, the dynamic iteration strategy achieves comparable extrapolation performance to the $R=8$ model (both reaching $19$-hop). 
+This contrasts with Figure~\ref{fig:extrapolation}, where the dynamic strategy generalizes to significantly higher complexity than $R=8$.
+
+These results suggest that the maximum number of iterations used during training determines the extrapolation range (i.e.\ how far beyond the training complexity the model can generalize), while dynamic iteration effectively exploits this range, since it enables a larger learnable recursion depth.
+Hence, when training data is sufficiently complex, dynamic iteration should be preferred over fixed strategies with the same maximum iteration budget.
+We provide further evidence of this through matched-data experiments in Appendix~\ref{app:matched_data}.
+
+
+% \paragraph{Recurrent iterations unlock the generalization to tasks of unseen complexity.}
+% \yy{In this ood part we should clarify that during inference we evaluate the model with different recurrent iteration number to present a comprehensive picture. Not sure this need to be said here or in the setup part. 
+% This contrasts with the ID generalization part where the training iteration "determines the ID generalization".
+% This could also be used to motivate the adaptive halting: we need a halting method to know when to stop for practical use.} 
+% We present results of \extrapolation\ generalization in Figure \ref{fig:extrapolation2}, where we train different models on data including up to 12-hop tasks and evaluate their generalization performance on up to 24-hop tasks. \yy{this perhaps also should go to the setup part}.
+% We observe that models trained with larger recurrence exhibit stronger inference-time scaling and generalize to samples of higher OOD complexity.
+% \yy{Also compare with vanilla transformer here to show the advantage of looped transformers.}
+% maybe the takeaway here should be that dynamic iteration leads to better extrapolation, but this is not because it achieves better generalization ratio when fitting same training complexity, but because it allows fitting higher training complexity, and the higher training complexity implies generalizing more depth.
+% Or maybe it should be that when your training tasks are complex enough, you want to use dynamic iteration because it allows to fit higher complexity. But when your training data is not complex, you could also consider fixed iteration plus adaptive halting. 
+
+
+
+% \paragraph{Drifting prevents generalization of arbitrary complexity, and addressing it requires dynamic iteration.} 
+% Despite the strong generalization performance, none of our models can solve the $k$-hop task with arbitrary $k$, even though we provide enough inference-time compute (i.e.\ inference iteration). 
+% To study the underlying reason, we analyze the \emph{logit margin}, defined as the difference between the logit of the correct entity and that of the strongest competing token. 
+% Our analysis is illustrated in Figure~\ref{fig:margin}. 
+% Across all fixed-recurrence models, we observe that this margin reaches a peak at or slightly after the iteration where the correct entity is first predicted, and then declines sharply. 
+% For more complex samples with larger hop count $k$, this peak occurs later in recurrence, whereas for simpler samples it is reached earlier. 
+% At the same time, the peak margin itself is consistently smaller for more complex samples (e.g., 16-hop) than for easier ones (e.g., 2-hop), indicating that the model reaches the correct prediction with less confidence on harder samples. 
+% The dynamic recurrence model differs in an important way. Although its margin also rises more slowly and peaks later for more complex samples, once this peak is reached the margin is largely preserved, or declines only slightly, as recurrence increases further. 
+% This suggests that dynamic recurrence training makes the model more robust to latent overthinking caused by drift in representation space: even after arriving at the correct prediction, continued recurrent computation is less likely to overwrite the information needed to preserve that prediction.
+
+% However, while dynamic recurrence improves retention of useful information once the correct answer is reached, it does not fully solve the problem of weak confidence on very difficult compositions (e.g. 30-hop in Figure~\ref{fig:margin}). As hop complexity increases further (for example, approaching $\sim40$ hops), the model is eventually unable to reach the correct prediction even with additional inference-time recurrence.
+
+\paragraph{Scaling inference-time iterations is limited by overthinking.}
+Despite strong generalization performance, we observe performance degradation when using excessively large inference-time iterations. 
+For example, increasing iterations beyond 15 for the R=dynamic does not improve OOD performance (Figure~\ref{fig:extrapolation}), a phenomenon known as \textit{overthinking} \citep{bansal2022end}. 
+% This phenomenon, known as \textit{overthinking} \citep{bansal2022end}, limits recurrent-depth transformers from reliably solving arbitrarily complex tasks.
+% We study this along two key axes: (1) inference iterations, i.e.\ how increasing the number of inference iterations affects extrapolation, and (2) task complexity, i.e.\ how increased task complexity affects extrapolation. 
+We study this along two key axes: (1) inference iterations, i.e.\ how increasing the inference iterations affects the model’s prediction confidence, and (2) task complexity, i.e.\ how increasing task complexity impacts this confidence.
+
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=\linewidth, trim=0 10 0 0, clip]{images/margin_grid_4models.pdf}
+    \caption{Average logit margin across recurrent iterations for fixed-recurrence ($R=6,7,8$) and dynamic-recurrence models. Curves show different hop complexities, and dashed vertical lines indicate the average first-hit iteration $t^*$ (when the correct entity is predicted).}
+    \label{fig:margin}
+\end{figure}
+
+In Figure~\ref{fig:margin}, we analyze the logit margin, defined as the difference between the logit of the correct entity and that of the strongest competing token, and make two observations.
+% Our analysis is illustrated in Figure~\ref{fig:margin}. 
+% We make two observations here. 
+First, across all models and tasks, the margin increases with inference iterations until reaching a peak, and then consistently declines as iterations continue. 
+This suggests that overthinking arises as the iteration number grows, regardless of the task complexity.
+Notably, the dynamic model exhibits a much slower margin decay compared to fixed-iteration models, indicating that dynamic iteration is more robust to overthinking.
+Second, the peak margin decreases as task complexity increases across all models. 
+This implies that for more complex tasks, the model’s predictions are inherently less confident and therefore more susceptible to degradation under additional iterations. 
+As a result, the benefit of increasing inference iterations diminishes for highly complex tasks.
+% Note that although previous work \citep{bansal2022end, geiping2025scaling} fixes overthinking through adding a recall architecture, such methods do not address the issue in implicit reasoning through our experiments.
+Note that although previous work mitigates overthinking by injecting inputs information in every iteration \citep{bansal2022end, geiping2025scaling}, we find that such methods do not resolve the issue in implicit reasoning.
+% For more complex samples with larger hop count $k$, this peak occurs later in recurrence,
+
+
+% Flexibly varying recurrence during training helps the model better preserve relevant information when recurrence is increased arbitrarily at inference time. Notably, although OOD performance in the dynamic model eventually saturates, it does not exhibit the pronounced performance degradation at larger inference-time recurrence values that we observe in the fixed-recurrence models. 
+
+% To better understand this behavior, we analyze the \emph{logit margin}, defined as the difference between the logit of the correct entity and that of the strongest competing token. Our analysis is illustrated in Figure~\ref{fig:margin}. Across all fixed-recurrence models, we observe that this margin reaches a peak at or slightly after the iteration where the correct entity is first predicted, and then declines sharply. For more complex samples with larger hop count $k$, this peak occurs later in recurrence, whereas for simpler samples it is reached earlier. At the same time, the peak margin itself is consistently smaller for more complex samples (e.g., 16-hop) than for easier ones (e.g., 2-hop), indicating that the model reaches the correct prediction with less confidence on harder samples. The dynamic recurrence model differs in an important way. Although its margin also rises more slowly and peaks later for more complex samples, once this peak is reached the margin is largely preserved, or declines only slightly, as recurrence increases further. This suggests that dynamic recurrence training makes the model more robust to latent overthinking caused by drift in representation space: even after arriving at the correct prediction, continued recurrent computation is less likely to overwrite the information needed to preserve that prediction.
+
+% However, while dynamic recurrence improves retention of useful information once the correct answer is reached, it does not fully solve the problem of weak confidence on very difficult compositions (e.g. 30-hop in Figure~\ref{fig:margin}). As hop complexity increases further (for example, approaching $\sim40$ hops), the model is eventually unable to reach the correct prediction even with additional inference-time recurrence.
+
+\begin{wrapfigure}{r}{0.35\textwidth}
+    \vspace{-0.2em}
+    \centering
+    \includegraphics[width=0.33\textwidth]{images/dynamic_adaptive_steps_vs_complexity.pdf}
+    \vspace{-0.8em}
+    \caption{Average recurrent iterations using adaptive halting vs. sample complexity.}
+    \label{fig:adaptive-iterations-vs-hops}
+    \vspace{-1.0em}
+\end{wrapfigure}
+
+\paragraph{Adaptive halting improves inference efficiency.} 
+% Our experiments evaluate the recurrent-depth transformers by search the optimal inference iteration number.
+% But in realistic scenarios, searching hurts the efficiency, and it is hard to determine the optimal iteration number when gold annotations are not available. 
+% Our experiments so far simply search for the optimal number of inference iterations for each input. 
+% However, this is impractical in real-world settings, as such search is computationally expensive and the optimal iteration cannot be determined without gold annotations.
+We flexibly halt recurrence in order to allocate compute proportionate to input complexity.
+Prior work \citep{geiping2025scaling} proposes adaptive halting based on the output distribution $p_t(\cdot \mid x)$, terminating when the change between successive iterations becomes small, measured by $\mathrm{KL}\bigl(p_t ,|, p_{t-1}\bigr) < \varepsilon_{\mathrm{KL}}$.
+In our setting, we find that this criterion often halts the recurrence prematurely, leading to suboptimal performance.
+To address this, we additionally incorporate the entropy of the output distribution, $H(p_t)$, and only stop when both the divergence is small, and the prediction is confident, i.e., 
+
+
+% $\mathrm{KL}\!\bigl(p_t \,\|\, p_{t-1}\bigr) < \varepsilon_{\mathrm{KL}}$
+% and
+% $H(p_t) < H_{\mathrm{thresh}}$.
+\[
+\mathrm{KL}\!\bigl(p_t \,\|\, p_{t-1}\bigr) < \varepsilon_{\mathrm{KL}}
+\qquad\text{and}\qquad
+H(p_t) < H_{\mathrm{thresh}}.
+\]
+
+
+In Figure~\ref{fig:adaptive-iterations-vs-hops}, we plot the number of iterations using both methods against the hop count ($k$), demonstrating that ours results in better allocation of inference-time compute in accordance with task complexity. While the output distribution may change very little across iterations, the entropy is still high, indicating that the model remains uncertain despite this apparent convergence. We compare results using the two methods in Figure~\ref{fig:dynamic-adaptive-rows}. In our setting, combining KL divergence with entropy therefore provides a more reliable halting signal and yields better overall results.
+
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=0.7\linewidth]{images/dynamic_adaptive_rows_only.pdf}
+    \caption{Comparison of adaptive halting based on KL-divergence and entropy (ours) versus KL-divergence alone \citep{geiping2025scaling}.}
+    \label{fig:dynamic-adaptive-rows}
+\end{figure}
+
+% \paragraph{Adaptive halting improves at inference efficiency.} We further propose an adaptive halting mechanism based on the model's predictive distribution, i.e., the softmax-normalized logits $p_t(\cdot \mid x)$ over the vocabulary at the final prediction position after each recurrent iteration. We quantify the change in prediction across successive iterations using the KL divergence, $\mathrm{KL}\!\bigl(p_t \,\|\, p_{t-1}\bigr)$, and measure predictive confidence using entropy $H(p_t)$ and place thresholds on both of these terms ($\varepsilon_{\mathrm{KL}}$ and $H_{\mathrm{thresh}}$ respectively). Recurrence is continued up to a predefined maximum (set to 16 in our experiments) or is halted as soon as both of the following conditions are simultaneously satisfied:
+% \[
+% \mathrm{KL}\!\bigl(p_t \,\|\, p_{t-1}\bigr) < \varepsilon_{\mathrm{KL}}
+% \qquad\text{and}\qquad
+% H(p_t) < H_{\mathrm{thresh}}.
+% \]
+% % In Figure~\ref{fig:extrapolation} we see that the dynamic model with adaptive halting ($r^*$) leads to similar or better performance than any setting of fixed inference-time recurrence. Importantly, this adaptive halting mechanism leads to better inference-time efficiency as we are only spending compute when necessary. 
+% In Figure~\ref{fig:adaptive-iterations-vs-hops}, we visualize the number of iterations before halting is triggered against the hop count ($k$) and observe how the method allows for flexibility in inference-time compute based on sample complexity. We also experiment with a KL-divergence-only halting criterion, similar to \citet{geiping2025scaling}, but find that it often halts recurrence prematurely. While the output distribution may change little across iterations, the entropy is still high, indicating that the model remains uncertain despite this apparent convergence. In our setting, combining KL divergence with entropy therefore provides a more reliable halting signal and yields the best overall results.
+
+% \paragraph{Increasing train-time recurrence improves OOD extrapolation.}
+% In Figure~\ref{fig:extrapolation}, we compared final models from different training configurations, each of which had generalized to a different maximum ID hop complexity in our curriculum setup. Although these results suggest that increasing train-time recurrence improves both ID and OOD performance, better OOD extrapolation cannot (yet) be directly attributed to train recurrence, as these models were also exposed to samples of greater complexity during training. To control for this, we instead compare checkpoints from the $R=5,6,7,8$ and the dynamic-recurrence model taken at the same stage of curriculum training(12-hop). Because all of these checkpoints were exposed to the same training samples, differences in extrapolation can be attributed more directly to the recurrence configuration used during training. As shown in Figure~\ref{fig:extrapolation2}, models trained with larger recurrence exhibit stronger inference-time scaling and generalize to samples of higher OOD complexity.
+
+
+\section{Conclusion}
+We study whether recurrent-depth transformers can compositionally use parametric knowledge for implicit multi-hop reasoning, a task that is challenging for vanilla transformers.
+Through controlled experiments on models trained from scratch, we show that recurrent-depth transformers successfully address both compositional generalization challenges.
+Systematic generalization emerges through a three-stage grokking dynamic, as the model transitions from rote memorization to generalizable solutions.
+Depth extrapolation is enabled by scaling inference-time compute, where additional iterations allow for greater reasoning depth, although latent overthinking limits performance on highly complex tasks.
+Overall, our results highlight recurrent-depth transformers as a promising architecture for compositional reasoning over parametric knowledge.
+
+\section*{Acknowledgments}
+The authors of this paper express their gratitude to Boshi Wang for valuable discussions on this work, and for motivating the permutation-based task formulation for depth exploration described in Appendix~\ref{app:permutation}. We also thank Yupei Du for valuable feedback on this paper, and the OSU NLP and DMRL groups for their thoughtful comments.
+
+This research was supported in part by NSF CAREER \#1942980, Schmidt Sciences, Coefficient Giving (formerly Open Philanthropy) and Ohio Supercomputer Center \citep{Ohio_Supercomputer_Center1987-dl}. The views and conclusions contained herein are those of the authors and should not be interpreted as representing the official policies, either expressed or implied, of the U.S. government. The U.S. Government is authorized to reproduce and distribute reprints for Government purposes notwithstanding any copyright notice herein.
+
+\bibliography{colm2026_conference}
+\bibliographystyle{colm2026_conference}
+
+\appendix
+\input{appendix}
+
+\end{document}

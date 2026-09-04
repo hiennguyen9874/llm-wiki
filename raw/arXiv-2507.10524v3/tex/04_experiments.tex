@@ -1,0 +1,160 @@
+\section{Experiments}
+
+
+We pretrain our models from scratch using a Llama-based Transformer architecture\footnote{Experiments on Llama are conducted without direction or involvement from Google advisors.}~\citep{grattafiori2024llama}, referring to the configurations of SmolLM open-source models~\citep{allal2024SmolLM}, on a deduplicated subset of the FineWeb-Edu dataset~\citep{penedo2024the} in SmolLM-Corpus~\citep{benallal2024smollmcorpus}.
+We evaluate the models on validation set of FineWeb-edu and six few-shot benchmarks~\citep{eval-harness}. Detailed training and evaluation procedures, as well as throughput measurement protocols, are described in \autoref{app:experimental_setup}.
+
+
+\input{tables/main_results}
+
+
+\subsection{Main Results}
+\label{subsec:main_results}
+
+
+\paragraph{MoR outperforms baselines with fewer parameters under equal train compute.}
+Under an equal training budget of 16.5e18 FLOPs, we compared our Mixture-of-Recursions (MoR) model against both Vanilla and Recursive Transformers. As shown in \autoref{tab:main_results}, the MoR model, using an expert-choice router and two recursions, achieves a lower validation loss and surpasses the vanilla baseline in average few-shot accuracy (43.1\% vs. 42.3\%). Remarkably, this superior performance is achieved despite using nearly 50\% fewer parameters. This is attributed to MoR's higher computational efficiency, which allows it to process more training tokens within the same FLOPs budget. Furthermore, as $N_r$ increases to 3 or 4, MoR maintains its competitive accuracy, consistently outperforming the recursive baselines while remaining within a tight margin of the full-capacity vanilla model.\looseness=-1
+
+
+\vspace{-10pt}
+\paragraph{MoR outperforms baselines with less compute at equal data.}
+
+To isolate architectural differences, we analyze performance under a fixed number of training tokens (20B). Specifically, our MoR model with $N_r=2$ outperforms both vanilla and recursive baselines—achieving lower validation loss and higher accuracy—despite using 25\% fewer training FLOPs. This theoretical efficiency translates into significant practical gains: compared to the vanilla baseline, our model reduces training time by 19\% and cuts peak memory usage by 25\%. These improvements stem from our hierarchical filtering and recursion-wise attention mechanism, which shortens sequence lengths to achieve a superior compute-accuracy trade-off, even during pretraining.
+
+
+
+\vspace{-10pt}
+\paragraph{MoR performance varies with routing and caching strategies.}
+
+We also evaluate a few design variants within MoR framework, specifically with $N_r=3$ that is lightweight and still comparable with Vanilla. In this case, using token-choice routing yields lower performance (40.0\%) compared to expert-choice routing (42.6\%), indicating that routing granularity plays a pivotal role in model performance. Additionally, applying KV cache sharing slightly reduces performance compared to independent caching, while providing improved memory efficiency. This trade-off remains favorable for practical deployment when memory usage is a key concern.
+
+
+\input{figs/scaling_laws/scaling_laws_app}
+
+
+\subsection{IsoFLOP Analysis}
+\label{subsec:scaling_laws}
+
+A core criterion for evaluating a new model architectural design is whether performance continues to improve as model and compute scales grow~\citep{kaplan2020scaling}. Therefore, we evaluate MoR against both Vanilla and Recursive Transformers across a wide range of model sizes and computational budgets to show that it maintains competitive or superior predictive performance as the scale increases.
+
+\vspace{-10pt}
+\paragraph{Experimental Setup.}
+
+We experiment with four scales—135M, 360M, 730M, and 1.7B parameters—fixing the number of recursions to three for both Recursive and MoR configurations, resulting in roughly one-third the number of unique parameters. Each model is pretrained under three FLOPs budgets: 2e18, 5e18, and 16.5e18.\looseness=-1
+
+
+\vspace{-10pt}
+\paragraph{MoR is a scalable and parameter-efficient architecture.}
+
+As shown in \autoref{fig:scaling_laws_app}, MoR consistently outperforms recursive baselines across all model sizes and compute budgets. While it underperforms the vanilla model at the smallest model size (135M)—likely due to a recursive capacity bottleneck—this gap closes rapidly at scale. For >360M parameters, MoR not only matches but often exceeds the Vanilla Transformer, particularly under low and mid-range budgets. Overall, these results highlight that MoR is a scalable and efficient alternative to standard Transformers. It achieves strong validation performance with significantly lower parameter counts, making it a strong candidate for both pretraining and large‑scale deployment. Further details are presented in \autoref{app:scaling_laws}.\looseness=-1
+
+
+\subsection{Inference Throughput Evaluation}
+\label{subsec:efficiency}
+
+As a parameter-shared architecture, MoR can leverage continuous depth-wise batching~\citep{bae2024relaxed} to dramatically boost inference throughput compared to Vanilla Transformers. This maintains high and consistent GPU utilization by immediately replacing completed sequences with incoming tokens during decoding. The early-exiting mechanism in MoR further eliminates bubbles in the computational batch.\looseness=-1
+
+\vspace{-10pt}
+\paragraph{Experimental Setup.}
+
+We measure throughput for 360M scale-based MoR models with recursion depths of 2, 3, and 4, trained under a 16.5e18 FLOPs budget. Throughput (tokens/second) is measured based on the generation time for tokens per sample, where the number of tokens is sampled from a normal distribution with a mean of 256, starting without any input prefix. We examine two batching configurations: a fixed batch size of 32 and a (relative) maximum batch size derived by multiplying 32 by the ratio of the maximum batch sizes of vanilla and MoR models. Further details on the experimental setup are provided in \autoref{app:throughput}.\looseness=-1
+
+\vspace{-10pt}
+\paragraph{MoR boosts inference throughput with continuous depth-wise batching.}
+
+
+In \autoref{fig:pareto_frontier_sharing-a}, across both batch settings, all MoR variants outperform the vanilla baseline, which even leverages continuous sequence-wise batching~\citep{yu2022orca, kwon2023efficient}. Increasing recursion depth leads to more tokens exiting early and a further reduction in KV cache usage. This, in turn, boosts throughput significantly (e.g., MoR-4 achieves up to a 2.06$\times$ speedup with $B=\text{Max}$). While there's a slight performance degradation, it can be a favorable trade-off given the substantial throughput gain. These results support that the integration of the depth-wise batching paradigm with early-exiting can significantly accelerate MoR's actual deployment throughput.\looseness=-1
+
+
+\section{Ablation Studies}
+
+
+\input{figs/pareto_frontier_sharing}
+
+
+\subsection{Parameter Sharing Strategies}
+\label{subsec:sharing}
+
+
+\paragraph{Middle-Cycle is the most effective parameter sharing strategy.}
+
+As discussed in \S\ref{subsec:preliminary}, parameter sharing is a key component of Recursive Transformers and MoR. To identify the most effective sharing configuration, we empirically compare four aforementioned strategies: Cycle, Sequence, Middle-Cycle, and Middle-Sequence. We evaluate each strategy on Recursive Transformers based on 135M and 360M model sizes. As shown in \autoref{fig:pareto_frontier_sharing-b}, ``Middle-Cycle'' consistently achieves the lowest validation loss, and its superiority is further confirmed by the detailed results in \autoref{app:parameter_sharing}. Based on these findings, we adopt the ``Middle-Cycle'' configuration for all subsequent MoR and Recursive Transformers presented in this paper.\looseness=-1
+
+
+\subsection{Routing Strategies}
+\label{subsec:ablation_routing}
+
+We conduct an extensive ablation study to understand the impact of various design choices for expert-choice and token-choice routing in our MoR framework. Detailed results are summarized in \autoref{app:router_ablation}.
+\looseness=-1
+
+
+\vspace{-10pt}
+\paragraph{In expert-choice routing, auxiliary loss and linear router yield the best performance.}
+
+For the \textit{expert-choice} routing setup (\textit{Left} of \autoref{tab:ablation_study_router}), we evaluate several design aspects: solution to mitigate causality violation (auxiliary router vs. auxiliary loss), normalization functions (\texttt{sigmoid} vs. \texttt{tanh}), router architectures (MLP, Linear, or Wide-MLP), and the impact of an auxiliary z-loss~\citep{zoph2022st}. To assess how well the router performs dynamic allocation, we measure the proportion of ``dead'' tokens—those never selected by the final recursion in a batch—on the validation dataset. Our key findings are as follows: First, using an auxiliary loss is more effective for inference-time behavior than training a separate auxiliary router. Second, a \texttt{sigmoid} normalization function and a simple linear router architecture yield the best performance. Finally, the auxiliary z-loss has a negligible impact on accuracy, though it does slightly reduce the proportion of dead tokens.\looseness=-1 
+
+
+
+
+\vspace{-10pt}
+\paragraph{In token-choice routing, balancing loss yields stable and accurate routing.}
+For \textit{token-choice} routing (\textit{Right} of \autoref{tab:ablation_study_router}), we follow common MoE practices and enable z-loss by default. We compare two balancing strategies: using a balancing loss and training in a loss-free manner using router bias. While both approaches achieve similar log-probability and few-shot accuracy, the explicit balancing loss yields a significantly lower MaxVio~\citep{wang2024auxiliary} in our MoR architectures, making it the preferable choice for stable routing. However, despite this, the model often struggles to balance loads among its heterogeneous experts, even for nearly half of the training steps. Softmax activation with an MLP router performs best, and removing z-loss—though we add back with a very small coefficient in the final design—results in higher performance and routing stability.\looseness=-1
+
+
+\input{tables/router_ablation}
+
+
+\subsection{KV Caching Strategies}
+\label{subsec:ablation_kv_cache}
+
+
+\paragraph{KV sharing robustly works even in parameter-shared architectures.}
+
+In \autoref{fig:pareto_frontier_sharing-c}, we first investigate the effect of KV sharing in Vanilla and Recursive Transformers. As consistent with prior works~\citep{brandon2024reducing, wu2024layer, sun2024you}, if we pretrain models from the scratch, KV sharing does not often compromise performance due to the greater parameter flexibility. Surprisingly, the Recursive Transformer remains relatively robust to KV sharing, despite its reduced degrees of freedom. We found evidence for this by decomposing the KV pairs at each recursion depth into their magnitude and direction. As detailed in \autoref{app:expanded_kv}, depths that share parameters exhibit highly consistent magnitude patterns and high cosine similarity, providing a clear justification for why KV sharing results in only a slight performance drop.
+
+
+\vspace{-12pt}
+\paragraph{KV sharing degrades expert-choice but benefits token-choice routing in MoR.}
+
+We compare recursion-wise KV caching and recursive KV sharing mechanisms in our MoR framework. 
+We observe that while recursive KV sharing offers the advantages of reduced memory footprint and overall FLOPs\footnote{Although attention FLOPs increase by $N_{\text{ctx}}/k$ than recursion-wise KV caching, reduced KV projection FLOPs lead to an overall reduction.\looseness=-1}, it leads to quite large performance degradation in expert-choice routing under a fixed token setting. This suggest that exclusively updating and attending to the tokens active in that recursion depth may be more beneficial. Conversely, MoR with token-choice routing could benefit from KV sharing, where its weaker, inaccurate routing decisions can be complemented by the additional contextual information provided by shared KV pairs.
+
+
+\vspace{-3pt}
+\section{Analysis}
+
+
+\vspace{-1pt}
+\subsection{Compute-optimal Scaling Analysis}
+\label{subsec:scaling_analysis}
+
+
+\input{figs/isoflops_qualitative}
+
+
+\paragraph{MoR scaling favors model size over training length under isoFLOPs.}
+
+
+As illustrated in \autoref{fig:isoflops_qualitative-a}, MoR exhibits a distinct compute-optimal scaling behavior compared to baselines under isoFLOPs constraints. The flatter slope of MoR's optimal path (a line connecting stars) indicates that it benefits more significantly from increases in parameter count (i.e., less data-hungry). This is likely because the performance of the shared parameter block itself becomes important, even more than feeding in additional data. Therefore, the optimal scaling policy for MoR models favors allocating resources to increasing model capacity by using larger models trained for shorter steps.\looseness=-1
+
+
+\vspace{-3pt}
+\subsection{Routing Analysis}
+
+
+\paragraph{The allocation of recursion depth reflects contextual predictability of the subsequent token.}
+
+In the \textit{Right} of \autoref{fig:mor_overview}, we illustrate each token's recursion depth, which directly indicates how easily the next token can be predicted within the given context. For example, the second subword part (e.g., ``-ensively'') of a word is often straightforward to predict, thus needing fewer steps. As also shown in \autoref{tab:qualitative_highlighted_results}, while the initial generation (opening) of function words like ``{-}{-}{-}'', ``('', ``.'', and ``,'' appears easy for models, predicting their closing parts or the first token immediately following their opening might be more challenging.\looseness=-1
+
+\paragraph{Expert-choice router with auxiliary loss perfectly separates selected from unselected tokens.}
+
+\autoref{fig:isoflops_qualitative-b} visualizes one example of the expert-choice router output distribution at each recursion step in a MoR model with $N_r = 3$. For each recursion step, the normalized counts of routing scores are plotted, distinguishing between tokens selected by the expert (blue) and those not selected (orange). In all steps, auxiliary loss achieves a perfect separation in router outputs, with selected tokens sharply concentrated near a routing score of 1.0 and unselected tokens clustering near 0.0. Router output distributions for the two routing strategies and their associated design choices are detailed in \autoref{app:qualitative_results}.\looseness=-1
+
+
+
+
+\subsection{Test-time Scaling Analysis}
+\paragraph{MoR enables test-time scaling via deeper recursion.}
+
+We visualize how log-likelihood evolves across recursion steps in MoR models with $N_r = \{2,3,4\}$ in \autoref{fig:isoflops_qualitative-c}. The overlaid bars illustrate the performance of each model when the maximum thinking (recursion) depth of tokens gradually increases. This suggests that deeper recursion not only provides additional compute but also enables each subsequent step to specialize further in refining the token representation or ``thought process'' at its particular depth, leading to better performance. Thereby, these results support the view that MoR enables test-time scaling: allocating more recursion steps at inference can improve generation quality.
+

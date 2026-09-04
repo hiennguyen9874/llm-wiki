@@ -1,0 +1,72 @@
+\section{Pre-Training}
+
+In this section, we first describe the Looped Transformer architecture, the choice of loop depth and initialization strategy, and the changes to our pre-training data recipe. Then we evaluate the pretrained base model against open-source models at a comparable parameter scale.
+
+\subsection{Architecture}
+
+To improve the effective depth and reasoning capacity under a fixed parameter budget, Nanbeige4.2-3B adopts a Looped Transformer architecture~\cite{bae2026mixture}. After the hidden states pass through the Transformer layers from bottom to top, they are fed through the same layer stack for an additional pass. It increases the effective computational depth and model capacity without introducing another set of parameters.
+
+\paratitle{Training Looped Transformers from Scratch.}
+One way to obtain a looped model is to first pretrain a standard transformer and then convert it into a looped architecture through upcycling~\cite{zhu2025scaling, yang2026iquest}. We compare this approach against training the looped architecture from scratch. In our experiments, the from-scratch approach performs significantly better, suggesting that the model benefits from adapting representations to repeated layer reuse throughout pre-training rather than introducing the loop only after a model has already been trained.
+
+\paratitle{Loop Depth Selection.}
+We study the number of passes through the shared layer stack. A two-pass configuration provides the most favorable trade-off in our experiments: relative to a standard Transformer, it retains approximately 75\% of the token efficiency and provides a significant capacity gain. Increasing the number of passes provides only marginal additional improvement, but substantially slows training and makes optimization less stable.
+
+\paratitle{KV Cache Sharing and Scaling Configuration.}
+To reduce the inference-memory overhead introduced by repeated computation, we investigate a variant that shares the KV cache across loop passes. Although the sharing configuration reduces the KV-cache by half, its performance gains are consistently lower than those of the full, non-sharing loop configuration. We therefore retain the full loop in Nanbeige4.2-3B to prioritize model performance. In addition to the loop configuration, we tune the depth of the transformer stack and its hidden width, seeking a balance between model capability and efficiency during both training and inference.  
+
+\subsection{Data Recipe}
+
+
+Our pre-training corpus comprises 28T tokens, exceeding that of Nanbeige 4.1 in both scale and data quality.
+We further refine the data mixture by increasing the sampling weights of mathematics, code, and synthetic QA data, which we find particularly beneficial for compact models. We also incorporate a small proportion of agentic trajectory data into the pre-training mixture.
+This mixture represents an initial step toward agentic pre-training. Further scaling the diversity, quality, and coverage of agentic data remains an important direction for future work.
+
+\subsection{Pre-Training Evaluation}
+
+We select a diverse set of benchmarks, including reasoning-oriented metrics (GSM8K~\cite{cobbe2021training}, BBH~\cite{suzgun2023challenging}, and MBPP~\cite{austin2021program}) and knowledge-oriented metrics (MMLU-Pro~\cite{wang2024mmlu}, SuperGPQA~\cite{du2026supergpqa}, and GPQA~\cite{rein2023gpqa}). Table~\ref{tab:pretrain_results} compares Nanbeige4.2-3B-Base with base models of a similar parameter scale, including Nanbeige4-3B-Base, Qwen3.5-4B-Base, and Gemma4-E4B-Base. Nanbeige4.2-3B-Base consistently improves upon Nanbeige4-3B-Base and performs significantly better than the other base models. The results demonstrate the effectiveness of combining the Looped Transformer structure with the improved pre-training data recipe.
+
+
+\begin{table}[t]
+    \centering
+    \caption{Performance comparison of base models. 
+    }
+    \label{tab:pretrain_results}
+    \small
+    \setlength{\tabcolsep}{4pt}
+    \renewcommand{\arraystretch}{1.05}
+    \begin{tabular}{lccrrrrrr}
+        \toprule
+        & \multicolumn{2}{c}{\textbf{Model Size}}
+        & \multicolumn{6}{c}{\textbf{Benchmark Scores}} \\
+        \cmidrule(lr){2-3}
+        \cmidrule(lr){4-9}
+        \textbf{Model}
+        & \textbf{Total}
+        & \textbf{Non-emb.}
+        & \textbf{GSM8K}
+        & \textbf{BBH}
+        & \textbf{MBPP}
+        & \textbf{MMLU-Pro}
+        & \textbf{SuperGPQA}
+        & \textbf{GPQA} \\
+        \midrule
+        Gemma4-E4B
+            & 8B & 4B
+            & 61.8 & 62.5 & 53.5 & 37.6 & 23.3 & 27.5 \\
+        Qwen3.5-4B
+            & 5B & 4B
+            & 84.4 & \underline{79.1} & 57.1
+            & \underline{51.8} & \underline{32.1} & \underline{43.1} \\
+        Nanbeige4-3B
+            & 4B & 3B
+            & \underline{85.9} & 70.7 & \underline{60.7}
+            & 47.6 & 24.8 & 36.2 \\
+        \midrule
+        \textbf{Nanbeige4.2-3B}
+            & \textbf{4B} & \textbf{3B}
+            & \textbf{92.7} & \textbf{81.6} & \textbf{67.6}
+            & \textbf{63.8} & \textbf{35.2} & \textbf{53.3} \\
+        \bottomrule
+    \end{tabular}
+\end{table}

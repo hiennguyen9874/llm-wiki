@@ -1,0 +1,30 @@
+\section{Introduction}\label{sec:intro}
+
+Large Language Models (LLMs) have achieved remarkable performance across a wide range of tasks, yet their reasoning capabilities remain fundamentally constrained by architecture. When faced with problems that require multi-step logical deduction---such as planning, mathematical proof, or algorithmic execution---current models rely heavily on \emph{Chain-of-Thought} (CoT) prompting \citep{wei2022chain}, which externalizes intermediate reasoning as a sequence of generated tokens. We refer to this paradigm as \emph{horizontal recurrence}: the model ``thinks'' by extending the output sequence horizontally, consuming the available context length with each reasoning step.
+ 
+Although horizontal CoT has proven highly effective, it suffers from several fundamental limitations. First, each reasoning step costs one or more tokens, rapidly exhausting the finite context window. Second, the depth of computation available at each token position is fixed by the number of Transformer layers, regardless of problem difficulty. A 32-layer Transformer applies exactly 32 layers of processing, whether the input requires trivial pattern matching or deep recursive evaluation. Third, because intermediate reasoning steps are generated in natural language, they are subject to compounding errors---each token prediction carries forward the risk of hallucination or logical misstep.
+ 
+In this work, we propose an orthogonal paradigm that we call \emph{vertical Chain-of-Thought}: instead of generating more tokens horizontally, the model ``thinks deeper'' by recurrently applying a shared-weight Transformer block in latent space. This approach decouples computational depth from both parameter count and context length. The model can invest more computation in harder instances by simply increasing the recurrence steps during inference, without generating any additional tokens or consuming additional context window space.
+ 
+The key challenge in making depth recurrence work is stability. Na\"ively unrolling a Transformer block for many steps leads to exploding or vanishing gradients, and representation collapse. We address these through three complementary mechanisms, ordered from our reasoning objective down to the physical constraints:
+ 
+\begin{enumerate}
+    \item Silent Thinking: We apply supervision \emph{only} at the final recurrence step, with no intermediate auxiliary losses. This forces the model to develop genuine multi-step reasoning paths rather than learning heuristic shortcuts that satisfy per-step supervision.
+ 
+    \item LayerScale Initialization: Per-channel scaling initialized at $10^{-4}$ after attention and feed-forward sub-layers. This prevents the initial random weights from corrupting the carefully preserved hidden states during early training, acting as a spatial protection for fragile logical representations.
+
+    \item Identity-Biased Recurrence: To solve the physical limit of unrolling a network for 20+ steps, we use a gated recurrence with the gate bias initialized to $-2.0$. The sigmoid gate starts near $0.12$, strongly biased toward preserving the previous hidden state. This creates a temporal gradient highway that enables stable signal propagation, serving as the core engine for infinite depth.
+\end{enumerate}
+ 
+To systematically evaluate the capability of the Depth-Recurrent Transformer, we design a progression of three out-of-distribution (OOD) reasoning tasks. We begin with \emph{Graph Reachability}, providing a strict physical proof of concept using topological masking. We then increase the structural complexity with \emph{Nested Boolean Logic}, demonstrating the model's ability to maintain fragile hierarchical states using relative positioning. Finally, we remove all task-aligned structural inductive biases in a \emph{Relational Composition} task over unstructured text, proving that our invariant reasoning core can autonomously discover complex latent routing paths in natural language. These tasks are chosen because their computational depth is precisely controllable, enabling a rigorous analysis of generalization behavior.
+ 
+Our experiments reveal a consistent pattern that we term the \emph{computational frontier}: a diagonal boundary in the accuracy heatmap (thinking steps $\times$ task complexity) where performance transitions sharply from chance-level to near-perfect. Moreover, the three tasks exhibit qualitatively different generalization profiles under the same recurrent core, which we attribute to the different inductive biases of their respective perception interfaces.
+ 
+Our contributions are summarized as follows:
+\begin{itemize}
+    \item We propose a depth-recurrent Transformer architecture with silent thinking, LayerScale, and identity-biased recurrence, enabling stable recurrence over 20+ steps with fewer than 1M parameters.
+    \item We demonstrate strong OOD generalization across three compositional tasks with varying inductive biases, achieving robust extrapolation to reasoning depths that are strictly longer than those in the training distribution.
+    \item We identify and analyze the computational frontier phenomenon and show how task-specific perception interfaces yield qualitatively different generalization behaviors (precise-but-brittle vs.\ approximate-but-robust).
+    \item We provide evidence that intermediate supervision can be harmful, causing models to learn heuristic shortcuts that collapse under distribution shift.
+\end{itemize}
+

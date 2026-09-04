@@ -1,0 +1,47 @@
+\section{Preliminaries}
+
+\label{sec:prelim}
+
+\paragraph{Discrete diffusion models}
+Let $\dv=(x_1,\dots,x_L)\in\Vcal^L$ denote a discrete sequence over a finite vocabulary $\Vcal$, and let $p_0(\dv)$ denote the target data distribution.
+A diffusion model defines generation through a learned backward process,
+\begin{equation}
+    p_\theta\rbr{\dv_{0:T}} = \textstyle p_T\rbr{\dv_T}\prod_{t=1}^{T}p_{\theta,t}\rbr{\dv_{t-1}\mid \dv_t},
+    \label{eq:backward_joint}
+\end{equation}
+where $\dv_T$ is sampled from a simple initial distribution, $\dv_0$ denotes target samples, and $\dv_{1:T-1}$ are auxiliary intermediate variables. 
+Without additional structure, these intermediate variables are latent, making it generally intractable to directly maximize the marginal likelihood for $p_\theta\rbr{\xb_0}$. Conventional diffusion models bypass this complication by prescribing a forward corruption process,
+\begin{equation}
+    q\rbr{\dv_{0:T}} = \textstyle p\rbr{\xb_0}\prod_{t=1}^{T}q_t\rbr{\dv_t\mid \dv_{t-1}},
+    \label{eq:forward_joint}
+\end{equation}
+which defines an auxiliary joint distribution over clean data and corrupted states. 
+Training can then be written as joint distribution matching, 
+\begin{equation}
+    \min_{\theta}\,\,\KL\!\rbr{
+    q\rbr{\dv_{0:T}}\,\|\, p_\theta\rbr{\dv_{0:T}}
+    }.
+    \label{eq:joint_kl}
+\end{equation}
+For diffusion language modeling, a common choice is masked diffusion models~(MDM), where the forward process $q_t$ is absorbing-state masking corruption~\citep{MD4, MDLM},
+\begin{equation}
+    q_t\rbr{z_i\mid x_i}=\alpha_t \mathbf{1}\{z_i=x_i\}+ (1-\alpha_t)\mathbf{1}\{z_i=\masktoken\}, 
+    \label{eq:mdm_forward}
+\end{equation}
+where each token is either kept unchanged or replaced by a mask token $\masktoken$ controlled by some predefined masking schedule $\alpha_t$.
+The resulting masked diffusion objective reduces to a weighted denoising loss over masking-corrupted positions, 
+\begin{equation}
+    \Lcal_{\mathrm{MDM}}\rbr{\theta} =\textstyle
+    \EE_{t,\dv_0,\dv_t\sim q_t(\cdot\mid \dv_0)}
+    \sbr{\lambda_t\sum_{i:\dv_{t,i}=\masktoken}-\log p_\theta\rbr{\dv_{0,i}\mid \dv_t,t}
+    },
+    \label{eq:mdm_objective}
+\end{equation}
+where $\lambda_t$ is determined by the masking schedule. 
+
+\paragraph{Complications in forward process design}
+The objective in Eq.~\eqref{eq:mdm_objective} highlights the central role of the forward corruption process, which specifies both the training inputs $\dv_t$ and the distributional path $q\rbr{\dv_{0:T}}$ that the learned backward process learns to invert. 
+Thus, the difficulty of learning and inference is strongly determined by how the forward process decomposes the gap between the initial distribution and the target distribution. 
+While Gaussian perturbations provide a natural local geometry in continuous diffusion~\citep{ddpm,score-based}, discrete language modeling has no intrinsic analogue. 
+For MDM with absorbing-state masking in Eq.~\eqref{eq:mdm_forward}, the induced neighborhood of token $a$ degenerates to $\Ncal_t(a)=\cbr{a,\masktoken}$, where each token can only remain unchanged or collapse to the shared absorbing state. Therefore, no direct token-to-token proximity is preserved~\citep{SCUD, mdpo}. 
+As a result, the model is trained on mathematically convenient intermediate states that may be misaligned with the drafts and errors encountered during generation. 

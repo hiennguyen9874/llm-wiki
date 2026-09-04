@@ -1,0 +1,51 @@
+
+
+
+
+
+\begin{table*}[h!]
+    \caption{
+    Ablation results on using expert-choice router with different routing configurations. We use the recursion-wise KV caching strategy by default. Coeff denotes coefficient values for auxiliary loss term, and $\alpha$ denotes scaling term after router function. Dead token ratio are measured within evaluation batch size of 500. Warmup refers to gradually decreasing the capacity from 1.0 to desired value over warmup steps. The last highlighted row represents a chosen final strategy, and intermediate best-performing designs (based on performance and routing metrics) are highlighted to illustrate how it was derived.\looseness=-1
+    }
+    \label{tab:ablation_study_expert_choice_app}
+    \small
+    \centering
+    \resizebox{\linewidth}{!}{
+    \setlength{\tabcolsep}{2pt}
+    \begin{tabular}{lcccccc|cc|c|ccccccc}
+    \toprule
+      \multicolumn{7}{c|}{\textbf{Expert-choice Configurations}} &  \multicolumn{2}{c|}{\textbf{Router\,Metrics}} & \textbf{NLL}\,$\downarrow$ & \multicolumn{7}{c}{\textbf{Few-shot Accuracy\,$\uparrow$}} \\
+    \cmidrule(l{2pt}r{2pt}){1-7} \cmidrule(l{2pt}r{2pt}){8-9} \cmidrule(l{2pt}r{2pt}){10-10} \cmidrule(l{2pt}r{2pt}){11-17}
+    Sampling & Coeff & \!Func\! & $\alpha$ & Arch & Warmup & z-loss & Dead\,$\downarrow$ & Samp-Acc\,$\uparrow$ & FineWeb & LD & HS & PQ & WG & ARC & \!MMLU\! & Avg  \\ 
+    \midrule
+     - & - & \texttt{rand} & - & - & \xmark & \xmark & \,\,\,0.0 & - & 2.9335 & 26.0 & 33.1 & 61.6 & 52.3 & 35.8 & 26.2 & 39.1  \\
+     \midrule
+     Aux\,Router & - & - & - & MLP & \xmark & \xmark & 66.7 & 50.0 & \texttt{NaN} & 0.0 & 25.04 & 49.5 & 49.6 & 23.9 & 23.0 & 28.5  \\
+     Aux\,Router & - & $\sigma$ & 0.1 & MLP & \xmark & \xmark & \,\,\,0.0 & 89.2 & 2.8893 & 26.1 & 33.8 & 62.0 & 51.5 & 36.6 & 26.4 & 39.4 \\
+     \rowcolor[gray]{0.9}
+     Aux\,Router & - & $\sigma$ & 1.0 & MLP & \xmark & \xmark & 66.7 & 50.0 & 2.8867 & 26.4 & 33.6 & 63.0 & 52.4 & 37.0 & 24.1 & 39.8 \\
+     Aux\,Router & - & \texttt{tanh} & 0.1 & MLP & \xmark & \xmark & 66.7 & 98.6 & 2.8720 & 13.9 & 31.8 & 60.7 & 49.3 & 35.8 & 25.8 & 36.2  \\
+     Aux\,Router & - & \texttt{tanh} & 1.0 & MLP & \xmark & \xmark & 66.7 & 97.0 & 3.0624 & 18.26 & 29.7 & 60.1 & 50.9 & 34.6 & 25.5 & 36.5 \\
+     \midrule
+     Aux\,Loss & 0.01 & - & - & MLP & \xmark & \xmark & 66.7 & 50.0 & \texttt{NaN} & 0.0 & 25.04 & 49.5 & 49.6 & 23.9 & 23.0 & 28.5 \\
+     \rowcolor[gray]{0.9}
+     Aux\,Loss & 0.01 & $\sigma$ & 0.1 & MLP & \xmark & \xmark & 0.0 & 99.6 & 2.8967 & 24.8 & 33.6 & 63.3 & 50.3 & 36.6 & 26.6 & 39.2\\
+     Aux\,Loss & 0.01 & $\sigma$ & 1.0 & MLP & \xmark & \xmark & 65.9 & \!\!\!100.0 & 2.9189 & 12.0 & 31.6 & 59.4 & 51.5 & 33.2 & 25.3 & 35.5\\
+     Aux\,Loss & 0.01 & \texttt{tanh} & 0.1 & MLP & \xmark & \xmark & 32.8 & 99.7 & 2.9426 & 23.5 & 32.4 & 62.4 & 49.8 & 35.6 & 26.0 & 38.3 \\
+     Aux\,Loss & 0.01 & \texttt{tanh} & 1.0 & MLP & \xmark & \xmark & 0.0 & 98.8 & 3.2743 & 16.4 & 28.14 & 58.8 & 52.2 & 31.6 & 24.8 & 35.3 \\
+     \midrule
+     Aux\,Loss & 0.1 & $\sigma$ & 0.1 & MLP & \xmark & \xmark & 0.0 & 99.8 & 3.0416 & 21.5 & 31.0 & 61.8 & 50.3 & 35.0 & 26.0 & 37.6 \\
+     \rowcolor[gray]{0.9}
+     Aux\,Loss & \!\!0.001\!\! & $\sigma$ & 0.1 & MLP & \xmark & \xmark & 0.0 & 99.1 & 2.8816 & 27.6 & 34.3 & 63.0 & 51.6 & 36.7 & 26.5 & 40.0 \\
+     Aux\,Loss & \!\!0.001\!\! & \texttt{tanh} & 0.1 & MLP & \xmark & \xmark & 0.0  & 56.4 & 2.9933 & 25.0 & 32.3 & 61.5 & 51.5 & 36.6 & 26.0 & 38.8 \\
+     \midrule
+     \rowcolor[gray]{0.9}
+     Aux\,Loss & \!\!0.001\!\! & $\sigma$ & 0.1 & Linear & \xmark & \xmark & 0.1 & 99.2 & 2.8667 & 27.4 & 34.6 & 63.2 & 51.5 & 37.2 & 26.5 & 40.1  \\
+     Aux\,Loss & \!\!0.001\!\! & $\sigma$ & 0.1 & W-MLP & \xmark & \xmark & 0.4 & 99.2 & 2.8716 & 27.8 & 33.9 & 62.4 & 49.9 & 36.3 & 26.3 & 39.4\\
+     \midrule
+     Aux\,Loss & \!\!0.001\!\! & $\sigma$ & 0.1 & Linear & \cmark & \xmark & 4.9 & 99.1 & 2.8744 & 26.0 & 33.9 & 62.0 & 51.2 & 36.1 & 26.1 & 39.2 \\
+     Aux\,Loss & \!\!0.001\!\! & $\sigma$ & 0.1 & Linear & \xmark & \cmark & 0.0 & 99.3 & 2.8824 & 26.9 & 34.0 & 63.8 & 52.3 & 36.8 & 26.4 & 40.0\\
+    \bottomrule
+    \end{tabular}
+    }
+\end{table*}

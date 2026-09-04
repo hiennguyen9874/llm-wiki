@@ -1,0 +1,52 @@
+\section{Conclusion}
+
+Mixture-of-Recursions (MoR) presents a unified Transformer architecture that simultaneously leverages parameter sharing, adaptive recursion depth, and efficient KV caching without compromising model quality. 
+By dynamically assigning recursion depth to tokens via lightweight routers and selectively caching key-value states for selected tokens, MoR reduces both quadratic attention computation and redundant memory access costs.
+Extensive empirical evaluations show that MoR lowers validation perplexity and improves average few-shot accuracy compared to both vanilla and previous recursive baselines, even with higher inference throughput.
+These results demonstrate that MoR offers an effective path towards achieving large-model capabilities with significantly reduced computational and memory overhead.
+
+
+
+\subsection{Limitations and Future Works}
+
+
+\paragraph{Reasoning MoR models.}
+Recent studies have highlighted the redundancy within reasoning chains and address it by applying token-level adaptive computation, like early-exit mechanisms~\citep{yang2025dynamic, jiang2025flashthink, dai2025s}. Our MoR framework inherently enables latent reasoning by adaptively determining the necessary recursion depth for individual tokens. Therefore, a crucial future work involves exploring how the router can dynamically learn to adjust to the necessity of chain-of-thought (CoT) chains when post-trained on actual reasoning datasets. Developing advanced routing strategies that explicitly align recursion depth with reasoning complexity may enhance reasoning accuracy, computational efficiency, and even interpretability for deliberative reasoning process.
+
+
+
+\vspace{-12pt}
+\paragraph{Further scaling model family.}
+
+Due to current compute constraints, our experiments have been limited to models of up to 1.7 billion parameters.
+The next step is to train Mixture-of-Recursions (MoR) models at a larger scale (over 3 billion parameters) on substantially larger corpora. To enhance the scalability of the MoR architecture, we can first increase the size of the non-shared block. A potential follow-up work could introduce depth-specific LoRA~\citep{bae2024relaxed} or experts (i.e., incorporating Mixture-of-Experts principles) and leverage expert parallelism~\citep{rajbhandari2022deepspeed} to efficiently compute the input at each depth in parallel, which is expected to improve model quality without huge speed bottlenecks. Furthermore, to reduce overall pre-training costs, we could also explore continued pre-training (uptraining), starting from existing pre-trained vanilla LLM checkpoints. As future work, we plan to investigate MoR performance using various initialization strategies for recursive models, as explored in prior work~\citep{bae2024relaxed}.
+
+
+
+\vspace{-12pt}
+\paragraph{Adaptive capacity control.}
+Expert-choice routing offers the significant advantage of guaranteeing perfect load balancing through pre-determined capacity factors~\citep{raposo2024mixture, zhou2022mixture}. However, a limitation arises when we want to allocate different capacities during inference. Specifically, in our MoR models, we observe that when using an auxiliary loss, the router outputs for selected and unselected tokens are almost perfectly separated. This makes it challenging to adjust top-k values after training. Therefore, a more adaptive model design, which can leverage different capacities during both training and inference phases, is needed to address this limitation.
+
+
+
+\vspace{-12pt}
+\paragraph{Compatibility with sparse algorithms.}
+
+Given MoR's token-level adaptive recursion, we can further optimize computation by integrating structured sparsity. This approach allows for the selective activation of subnetworks or parameters~\citep{liu2023deja}, dynamically pruning unnecessary computations at both the token and layer levels~\citep{raposo2024mixture, elhoushi2024layerskip}. This investigation into sparse model designs promises significant efficiency improvements. We believe many sparsity-based techniques, such as pruning~\citep{han2015learning} or quantization~\citep{jacob2018quantization}, are highly complementary to our MoR framework. This will provide deeper insights into effective sparse architectures within recursive models, offering promising directions for future research.
+
+
+
+\vspace{-12pt}
+\paragraph{Expansion to multimodal and non‑text domains.} 
+
+MoR's recursion block is inherently modality-agnostic, allowing its adaptive depth mechanism to extend beyond text processing. This crucial property enables MoR to readily integrate into vision, speech, and unified multimodal transformer architectures. Applying token-adaptive recursion to long-context video or audio streams holds the potential for even greater memory efficiencies and substantial throughput gains, crucial for real-world applications. By dynamically adjusting the processing depth for each token or segment, MoR could unlock these significant benefits.
+
+
+\clearpage
+\subsection{Acknowledgements}
+
+We thank Jacob Eisenstein for valuable feedback on an earlier version of the paper. We also acknowledge the support and helpful conversations from Seungyeon Kim, Mostafa Elhoushi, Pascal Vincent, Irina Rish, Sangdoo Yun, and Baeseong Park. Finally, we thank the Google Cloud Platform for awarding Google Cloud credits for this project, and Google's research grant project for its support.
+\looseness=-1
+
+This work was supported by Institute of Information \& communications Technology Planning \& Evaluation (IITP) grant funded by the Korea government (MSIT) ([RS-2019-II190075, Artificial Intelligence Graduate School Program (KAIST), 5\%], [No. RS-2024-00457882, AI Research Hub Project, 5\%], and [No. 2022-0-00871, Development of AI Autonomy and Knowledge Enhancement for AI Agent Collaboration, 90\%]). This research was also enabled in part by computational resources, software, and technical assistance provided by \href{https://mila.quebec/en}{Mila},  \href{https://www.ulaval.ca/}{ULaval}, \href{https://www.calculquebec.ca/}{ Calcul Québec}, and \href{https://alliancecan.ca/en}{Digital Research Alliance of Canada}.
+\looseness=-1

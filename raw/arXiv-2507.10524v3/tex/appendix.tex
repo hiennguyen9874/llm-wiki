@@ -1,0 +1,367 @@
+\setlength{\cftbeforesecskip}{16pt}
+\setlength{\cftbeforesubsecskip}{4pt}
+\renewcommand\cftsecpagefont{\color{RoyalBlue}}
+\renewcommand\cftsubsecpagefont{\color{RoyalBlue}}
+\renewcommand\cftsubsubsecpagefont{\color{RoyalBlue}}
+\renewcommand{\contentsname}{\large{Contents}}
+{
+  \hypersetup{linkcolor=}
+  \tableofcontents
+}
+
+
+\clearpage
+
+
+\section{Details of Design Choices for Mixture-of-Recursions}
+\label{appx:mor_design_choices}
+
+In this section, we provide detailed descriptions of the design choices employed in Mixture-of-Recursions, expanding upon the summary provided in the main pages.
+
+
+\subsection{Parameter-sharing Strategy}
+\label{app:sharing_strategy}
+
+
+
+\autoref{tab:sharing_strategy_middle} shows formulation and visualization of four parameter-sharing strategies: Cycle, Middle-Cycle, Sequence, and Middle-Sequence. These strategies determine how a shared pool of blocks $\Phi'$ are reused across a total of $L$ unrolled layers. The optimal strategy for parameter sharing in recursive models remains an open question.
+
+In the \textbf{Cycle} strategy, a fixed set of parameters is reused cyclically across all recursion steps. By forcing the model to re-engage with the input through the same shared block, it encourages a deeper, iterative refinement process, akin to ``rethinking'' the problem from the ground up at every stage.
+However, because the same transformations are applied repeatedly regardless of input variation, it may limit the model’s capacity to learn diverse or highly specialized features.
+
+
+On the other hand, the \textbf{Sequence} strategy assigns distinct parameters to each recursion block in sequential order. A potential drawback is that simply applying similar transformations twice in a row may lead to redundant features with diminishing returns. Nevertheless, the use of a fixed, sequential order of layers may provide a stable and predictable structure.
+
+
+Building upon these strategies, the \textbf{Middle} sharing variant further refines parameter reuse by preserving unique parameters at the first and last layers while sharing weights only among the intermediate layers. This approach aims to balance the trade-off between parameter efficiency and representational flexibility, maintaining distinct entry and exit transformations while benefiting from reduced parameter redundancy in the middle layers. In line with recent findings~\citep{kim2023solar, geiping2025scaling}, Middle sharing can capture important input and output nuances more effectively than pure Cycle or Sequence sharing, without significantly increasing model size.
+
+
+
+\input{tables/recursive_sharing_strategy_sequence}
+
+\clearpage
+\subsection{Routing Strategy}
+In this section, we provide an in-depth explanation of the two routing strategies employed in Mixture-of-Recursions: \textit{Expert-choice} and \textit{Token-choice} routers. Each approach has distinct advantages and inherent limitations, which we first outline before discussing the mitigation techniques we utilized.
+
+
+\vspace{-10pt}
+\paragraph{Expert-choice routing.}
+The expert-choice router offers several advantages, including a fixed compute budget that simplifies resource management. However, it suffers from a key issue: the top-$k$ selection operation, which requires information of tokens that appear later in the sequence, violates causality in autoregressive inference. This non-causal dependency (i.e., information leakage) can cause unexpected behavior during inference, potentially reducing model reliability. 
+
+To address these challenges, we explore two approaches: the auxiliary router and the auxiliary loss \citep{raposo2024mixture}. The \textbf{auxiliary router} is an additional lightweight network trained jointly but used only during inference; it predicts whether a token will be among the top-$k$ selection. This additional router is trained with a binary cross-entropy loss, where the top-k selections from the main router are defined as the targets. Importantly, its training is isolated from the main objective through gradient blocking, so it does not affect the primary model training. Meanwhile, the \textbf{auxiliary loss} applies the binary cross-entropy loss to the main router itself, enabling it to simultaneously learn to push top-$k$ tokens towards one and others towards zero during training. This ensures the router can reliably predict which tokens will be selected as top-$k$ during inference.
+
+
+\vspace{-10pt}
+\paragraph{Token-choice routing.}
+In contrast, the token-choice router assigns recursion depths on a per-token basis without enforcing a fixed compute budget, thus avoiding leakage of information across tokens and preserving autoregressive properties. However, this introduces load imbalance across experts, which results in uneven token distribution across experts (or recursion depths), potentially causing inefficient compute allocation and unbalanced training.
+
+To mitigate load imbalance, we employ two solutions from existing literature. \textbf{Balancing Loss}~\citep{lepikhin2020gshard, fedus2022switch} regularizes for a more uniform distribution of tokens across experts. For a sequence of length $T$, a balancing loss for MoR is calculated as follows: 
+\begin{equation*}
+\begin{aligned}
+\mathcal{L}_{\text{Balance}} &= \alpha \sum_{i=1}^{N_r} f_i P_i, \\
+f_i &= \frac{N_r}{T} \sum_{t=1}^T \mathbb{I}(\text{Token } t \text{ selects Expert } i), \\
+P_i &= \frac{1}{T} \sum_{t=1}^T g_t^i,
+\end{aligned}
+\end{equation*}
+where $N_r$ is the total number of experts (which is also the number of recursion), $g_t^i$ is the routing score of expert $i$ for token $t$, $f_i$ represents the fraction of tokens routed to expert $i$, $P_i$ denotes the average routing scores of expert $i$, and $\lambda$ is a hyperparameter controlling the strength of the auxiliary loss.\looseness=-1
+
+\textbf{Loss-free}~\citep{wang2024auxiliary} utilizes router biasing without explicit regularization loss. Specifically, this method adjusts per-expert bias terms \(b_i\) to balance token assignments across experts. During each training batch, routing scores are computed, and the number of tokens assigned to each expert ($c_i$) is counted. The load violation error is calculated as $e_i = \bar{c}_i - c_i$ where \(\bar{c}_i\) is the average token count for expert \(i\). Biases are then updated via $b_i \leftarrow b_i + u \times \operatorname{sign}(e_i)$, where \(u\) is a bias update rate.
+The biased routing scores for selecting top-$k$ expert are calculated as
+\begin{equation*}
+g_{i}^t =
+\begin{cases}
+g_{i}^t, & \text{if } g_{i}^t + b_i \in \texttt{topk}\left(\{g_{j}^t + b_j \mid 1 \leq j \leq N\}, k\right) \\
+0, & \text{otherwise}
+\end{cases}
+\end{equation*}
+Note that the expert bias term is only utilized to adjust the routing strategy by influencing the top-$k$ selection.
+
+
+
+\clearpage
+\subsection{KV Caching Strategy}
+This work investigates two principal strategies for key-value (KV) caching to optimize memory usage during Recursive Transformer computations: \textit{recursion-wise caching} and \textit{recursive KV sharing}.
+
+\vspace{-10pt}
+\paragraph{Recursion-wise caching.} This keeps separate KV caches for each recursion step, ensuring tokens attend only to the KV pairs generated in their current recursion block. This prevents distribution mismatches between recursion steps, helping to maintain model accuracy while reducing memory and computational costs.
+
+
+\vspace{-10pt}
+\paragraph{Recursive KV sharing.} In contrast, recursive sharing reuses KV pairs computed in the first recursion step for all subsequent steps. Although this approach further lowers memory usage and eliminates the need to compute deeper recursion during the prefill phase, it introduces potential mismatches as later recursion steps receive KV representations originally intended for earlier steps. Such mismatch can negatively impact model performance when token routing is precise.
+Therefore, recursion-wise caching is generally preferred in settings with selective token routing to avoid performance degradation, while recursive KV sharing may be considered when memory efficiency is prioritized and prefill time is main bottleneck in the system.
+
+
+
+\section{Experimental Setup}
+\label{app:experimental_setup}
+
+
+\paragraph{Training settings.}
+We utilized a Llama-based Transformer architecture~\citep{grattafiori2024llama}, referring to the configurations of the open-source SmolLM models~\citep{allal2024SmolLM}. All models were pretrained on a deduplicated subset of the FineWeb-Edu dataset~\citep{penedo2024the} in SmolLM-Corpus~\citep{benallal2024smollmcorpus}, which comprises 220 billion tokens sourced from educational materials. Pretraining was conducted using four H100 or A100 GPUs. 
+In our main and isoFLOPs analysis experiments, we utilized a Trapezoid learning rate scheduler, which consists of warmup (about 5\%), stable, and cooldown (20\%) phases. This approach allows us to efficiently continue pretraining for scaling laws from intermediate checkpoints, eliminating the need to train all models independently. In contrast, for all other experiments, we used a simple cosine annealing scheduler.
+
+
+\vspace{-10pt}
+\paragraph{Evaluation settings.}
+
+To assess model performance, we evaluated few-shot accuracy on six benchmarks using the Language Model Evaluation Harness: LAMBADA (LD), HellaSwag (HS), PIQA (PQ), WinoGrande (WG), ARC (Easy and Challenge), and MMLU. For all few-shot datasets, excluding LAMBADA, WinoGrande, and MMLU, we normalized accuracy by the byte length of the target string. We adhered to the standard number of shots for each dataset, and used the continuation task specifically for MMLU for simplicity. 
+All evaluation performance measurements were conducted using a single H100 or A100 GPU.
+
+
+\vspace{-10pt}
+\paragraph{Model architecture details.}
+
+\autoref{tab:model_arch} summarizes the architectural specifications of the four Vanilla Transformer models used as the base for our recursive models. Each model variant differs in scale, ranging from 135M to 1.7B total parameters (including both non-embedding and embedding components). For consistency and comparability, all models are trained using a vocabulary size of 49K and a maximum input sequence length of 2K tokens.
+
+
+\input{tables/model_architecture}
+
+
+\clearpage
+\section{Expanded Results of Main Experiments}
+\label{app:main_results}
+
+
+\subsection{Performance Validation at 1.7B Scale}
+
+We validate our models by scaling up the size to 1.7B, all under the same FLOPs budget. As shown in \autoref{tab:main_results_1_7b}, the MoR model with expert-choice routing shows strong performance, but the vanilla model performs slightly better. While this could be due to the differences in the optimal number of tokens associated with each model's optimal scaling policy, it might also signal that the current architecture design of MoR is not suitable for scaling. Nevertheless, we may be able to further improve performance by increasing the number of non-shared blocks (despite reduced efficiency), applying depth-specific LoRA or MoE to each recursion~\citep{bae2024relaxed}, or uptraining with initialization from a well-pretrained checkpoint. Further validation with larger sizes or training on more tokens is required. 
+
+
+\input{tables/larger_parameters}
+
+
+\subsection{Increasing Recursion Depth under Fixed Parameters}
+
+\autoref{tab:recursion_number_under_same_param} illustrates the performance change when the number of recursions ($N_r$) is increased while the number of unique parameters is fixed at 118M. As the number of recursions rises from 1 (Vanilla) to 2 and 3 (MoR), the negative log-likelihood decreases on both the train and validation sets, and the average few-shot accuracy improves. This demonstrates that the MoR model can effectively scale performance by merely increasing the recursion steps, even with a fixed model size.
+
+
+\input{tables/recursion_number}
+
+
+\clearpage
+\section{Expanded Results of IsoFLOP Analysis}
+\label{app:scaling_laws}
+
+
+In the main paper (\S\ref{subsec:scaling_laws}), we compared Vanilla, Recursive and our Mixture‑of‑Recursions (MoR) models under matched \emph{training compute}. 
+Four base model capacities were studied—135M, 360M, 730M and 1.7B parameters. 
+For recursive and MoR models, we fix the recursion count to $N_r\!=\!3$, so the number of \emph{unique} parameters is roughly one‑third of the vanilla counterpart.  
+Each architecture is trained once for the \emph{largest} compute budget (16.5EB)\footnote{1EB $\,{=}\,10^{18}$ floating‑point operations.} and the resulting checkpoint is re‑used to obtain the 5EB and 2EB variants, as detailed below.
+
+
+\vspace{-10pt}
+\paragraph{FLOPs approximated calculation of Transformers.}
+
+We follow the approximation for calculating FLOPs as detailed in \citet{kaplan2020scaling}. Our analysis solely focuses on forward pass FLOPs, since the FLOPs involved in the backward pass are typically just double those of the forward pass. For most operations within Transformers, which primarily consist of linear projections, the forward pass FLOPs are calculated as two times the number of parameters, excluding the attention mechanism.
+
+Regarding attention, we specifically account for the operations from the dot product between queries and keys and the scaling of values with softmax values. We only calculate FLOPs that contribute to the actual loss, excluding redundant computations in the upper triangular portion due to causality masking. Furthermore, we omit any additional computational costs associated with FlashAttention~\citep{dao2022flashattention}, normalization, and non-linearity operations from our overall FLOPs calculation.
+
+As a result, Vanilla and Recursive Transformers have the same FLOPs. For MoR, the FLOPs calculation varies based on the routing and KV caching strategy. Especially, we calculated FLOPs based on the sequence length at each recursion depth, which is determined by the capacity factor and caching mechanism. In the case of token-choice routing, since the actual token allocation changes at every step, we approximated the FLOPs by assuming perfect balancing.
+Furthermore, we add extra layers to a few MoR models to ensure their effective depth is divisible by the recursion number. For example, in a 135M model with 30 layers, setting a base depth of 10 and applying recursion three times (as in the Middle-Cycle strategy) results in a total of 32 layers. These additional layers introduce extra FLOPs, so we reduce the number of training steps accordingly to maintain our predefined FLOP budget.
+
+
+
+\vspace{-10pt}
+\paragraph{Trapezoid learning‑rate schedule with checkpoint reuse.}
+To avoid retraining every model from scratch for each FLOPs budget, we employ the \textit{trapezoid} schedule~\citep{xing2018walk}. The rule of this scheduler is as follows:\looseness=-1
+\begin{equation*}
+\eta(t)=
+\begin{cases}
+\frac{t}{w}\,\eta_{\max}, & 0 \le t < w             \quad\text{(warm‑up)},\\[4pt]
+\eta_{\max},                            & w \le t < p             \quad\text{(plateau)},\\[2pt]
+\eta_{\max}\!\Bigl(1-\tfrac{t-p}{d}\Bigr), & p\le t < p+d \quad\text{(cool‑down)},
+\end{cases}
+\end{equation*}
+
+where $w$ denotes the warm‑up interval, $p-w$ is the constant‑LR plateau, and $d$ represents the cool-down segment. This stable phase allows us to efficiently manage experiments by saving intermediate checkpoints and then running additional cool-down steps from those points, according to each budget. For the warmup, we allocate \(5\,\%\) of the total training steps of the smallest budget (2EB), and we set the cool‑down steps to \(20\,\%\) of the total training steps for each \emph{corresponding} budget.
+
+
+\clearpage
+\paragraph{Results at a glance.}
+Table~\ref{tab:scaling_laws} reports NLL on FineWeb-Edu validation set and few‑shot accuracy on six benchmarks. Our findings reveal a clear trend: more compute consistently leads to better models, evidenced by lower NLL and improved accuracy with higher FLOPs. However, weight-sharing alone in recursive models degraded performance compared to Vanilla, a clear trade-off for the reduced parameters. Crucially, token-routed MoR models overcome this shortcoming, catching up to and then surpassing Vanilla models from 360M parameters upward, all while utilizing only one-third of the parameters. This performance advantage persists at 730M and 1.7B parameter scales.\looseness=-1
+
+
+\input{tables/scaling_law}
+
+
+\clearpage
+\section{Details of Experimental Settings for Throughput Measurement}
+\label{app:throughput}
+
+We implement a continuous depth-wise batching inference system~\citep{bae2024relaxed, hooper2023speed} to evaluate decoding throughput of MoR models. Queries are enqueued and scheduled dynamically during decoding using 1K samples from the FineWeb-Edu validation set. In particular, for MoR, when some queries exit early, the vacant slots in the batch are immediately filled with new queries waiting in the queue, maintaining a fully utilized batch at all times.\looseness=-1
+
+
+We compare the throughput of Vanilla and MoR models (at a 360M parameter scale) for generating a certain length of tokens per sample, where the number is sampled from a normal distribution with a mean of 256, starting without any input prefix. The speeds of the MoR models are normalized against the speed of the Vanilla Transformer. For pretraining MoR-4 models, we add two additional layers (34 layers in total) before applying recursion. This ensures the total effective depth is divisible by the recursion number (specifically for the Middle-Cycle strategy). Consequently, the speed comparison for MoR-4 is made against a modified vanilla model that includes these two extra layers, resulting in a total of 34 layers (32 original layers + 2 added layers).\looseness=-1
+
+
+We use two batching settings: (1) a \textit{fixed batch size of 32} and (2) a \textit{relative maximum batch size}, derived by multiplying 32 by the ratio of the maximum batch sizes of vanilla and MoR models. Specifically, based on the H100 GPU's VRAM size, we calculated the maximum batch sizes by considering model parameters and their KV cache memory. For simplicity, we omit the memory size from the hidden states at the current position. Under these adaptive conditions, MoR-2 supports a batch size of 42, MoR-3 supports 48, and MoR-4 supports up to 51. By employing recursion-wise KV caching, MoR allows a substantial increase in batch size stemming from its reduced parameter and KV cache memory footprint. 
+
+
+For implementation, we use a queue to enable continuous depth-wise batching and employ FlashAttention 2~\citep{dao2023flashattention} to support variable-length KV caches within a batch. We adopt a \textit{static}-sized cache where each position is updated over time, since this is compatible with \texttt{torch.compile}~\citep{paszke2019pytorch} to further optimize inference speeds. Furthermore, mimicking real-world deployment scenarios~\citep{kwon2023efficient, zhong2024distserve}, we decouple the transformer block phase from the rest of the computation by pre-processing the input embeddings or the first non-shared layer before passing into the transformer blocks. Then, we measured the actual time taken during the forward pass. Note that we include a warmup stage by running the model for 100 iterations before actual measurement, in order to obtain stable timing results. For further optimization, tokens that exited early were accumulated up to the maximum batch size before being processed by the last non-shared layer, classifier, and embedding layers (including the non-shared first layer in the case of MoR models). After this, we queue them for sequential batching by following a FIFO (First-In, First-Out) strategy. For implementation convenience, we exclude the time spent on caching and updating for KV pairs, as these aspects can be significantly optimized through various engineering techniques~\citep{kwon2023efficient}. We leave a more precise speed comparison, which accounts for these considerations, as future work.
+
+
+\clearpage
+\section{Expanded Results of Parameter Sharing Strategy}
+\label{app:parameter_sharing}
+
+This section complements the ablation in \S\ref{subsec:sharing} by providing the full quantitative panorama behind \autoref{fig:pareto_frontier_sharing-b}. We revisit the four weight‑tying schemes—\textit{Cycle}, \textit{Sequence}, \textit{Middle‑Cycle}, and \textit{Middle‑Sequence}—on two base model scales (135M and 360M non‑embedding parameters) and two different recursion depths ($N_{r}=2$ and~3). All models were trained from scratch for 10B tokens under identical optimization hyperparameters. Validation NLL on FineWeb‑Edu and averaged few‑shot accuracy over six benchmarks are summarized in \autoref{tab:revist_sharing_strategy}.
+
+
+\vspace{-10pt}
+\paragraph{Middle‑Cycle is consistently the safest choice.}
+For the 360M models, Middle-Cycle achieves the lowest NLL at both depths ($N_{r}=2$ and $N_{r}=3$) and also shows the largest improvement in average accuracy compared to vanilla reduced models. For the 135M models, while Cycle is slightly ahead at two recursion setting (3.0071 vs. 3.0330), Middle-Cycle overtakes when recursion depth rises (3.1048 vs. 3.1154) and shows a steadier accuracy profile. Meanwhile, pure Sequence sharing records the worst NLL in all four settings, and its accuracy gap widens with recursion depth. The Middle strategy slightly improves the performance of the Sequence, but it still performs worse than the Cycle-based methodology. We visualized the results in \autoref{fig:revisit_sharing_app}.\looseness=-1
+
+
+\input{tables/revisit_sharing_strategy}
+
+
+\clearpage
+
+\input{figs/revisit_sharing/revisit_sharing_app}
+
+
+For fairer comparison, we also compare the Middle-Cycle and Cycle sharing strategies, fixing the number of unique parameters for both models. For 730M model comparison, both strategies use 3 recursion steps. Especially, Middle-Cycle uses 8 layers for the recursion block and 2 unshared layers (1 + 8$\times$3 + 1), resulting in 10 unique layers and 26 effective layers. We compare this to the Cycle strategy with 10 layers per recursion block (10$\times$3), which also has 10 unique layers but a total of 30 effective layers. Despite having fewer effective layers, as shown in \autoref{tab:m_cycle_cycle_compare}, the Middle-Cycle model achieves better performance, with a lower negative log-likelihood (2.7552 vs. 2.7573) and higher average few-shot accuracy (42.32 vs. 41.90). While these results are promising, we leave further validation across more scales as future work. 
+
+\input{tables/m_cycle_vs_cycle}
+
+
+\clearpage
+\paragraph{Behavior under continued pre‑training (up‑training).}
+\autoref{tab:revist_sharing_strategy_uptrain} extends the study by ``up‑training'' models---continuing from open-sourced SmolLM~\citep{allal2024SmolLM} checkpoints for an additional 5B tokens.
+Both Middle strategies demonstrate superior performance across all settings, and notably, they significantly outperform the reduced baseline models that are initialized in the same manner but without recursion.
+The other strategies reach a performance plateau earlier, suggesting that they have limited room for further improvement in capacity.
+
+
+\input{tables/revisit_sharing_strategy_uptrain}
+
+
+\clearpage
+\section{Expanded Results of Design Choices for Router}
+\label{app:router_ablation}
+
+
+\subsection{Details of Design Configurations}\label{appx:router_details}
+
+
+We investigate various router design choices to optimize performance and stability. Specifically, we tune the coefficient values controlling the strength of auxiliary or balancing loss terms (\textit{Coeff}), and adjust the scaling factor applied after the router function ($\alpha$) to modulate routing weights. Moreover, we test different activation functions (\textit{Func}), such as sigmoid or softmax, are evaluated, with architectural variations (\textit{Arch}) of the router network, including linear layer, 2-layer MLP with GELU activation, Wide-MLP that expands the hidden layer size by a factor of four.\looseness=-1
+
+We also incorporate several techniques to stabilize training. To improve training stability, we utilize the \textit{router z-loss}~\citep{zoph2022st}, which penalizes large logits produced by the gating network. Large logits can cause numerical instability and hinder effective training of the router. The z-loss is computed as follows:
+\begin{equation*}
+L_z(x) = \frac{1}{B} \sum_{i=1}^B \left( \log \sum_{j=1}^{N_r} e^{x_j^{(i)}} \right)^2,
+\end{equation*}
+where $B$ is the number of tokens in the batch, $N_r$ is the number of experts, and $x \in \mathbb{R}^{B \times N_r}$ denotes the logits input to the router. This regularization encourages the gating network to produce smaller logits, promoting more stable and reliable routing decisions.
+
+
+\subsection{Router Performance Evaluation Metrics}
+
+
+\paragraph{Expert-choice routing.}
+We evaluate dead token ratio and sampling accuracy to assess the router’s selection behavior. The \textit{dead token ratio} measures the proportion of tokens at specific positions within the batch that are consistently unselected during the final recursion step, indicating a positional bias where certain token positions are systematically neglected by the router. The \textit{sampling accuracy} how well the router used during inference predicts whether a token belongs to the top-$k$ tokens identified during training, reflecting the router’s ability to consistently select the most relevant tokens.
+Ideally, high sampling accuracy with a low dead token ratio indicates a router that both identifies important tokens accurately and maintains diversity in token selection.
+
+
+\vspace{-10pt}
+\paragraph{Token-choice routing.}
+We evaluate the router’s ability to balance token assignments across experts using MaxVio (maximum violation) and entropy metrics. \textit{MaxVio}~\citep{wang2024auxiliary} measures the load imbalance across experts:\looseness=-1
+\begin{equation*}
+\mathrm{MaxVio} = \frac{\max_i \mathrm{Load}_i - \overline{\mathrm{Load}}_i}{\overline{\mathrm{Load}}_i},
+\label{eq:maxvio}
+\end{equation*}
+where $\mathrm{Load}_i$ denotes the actual number of tokens assigned to the $i$-th expert, and $\overline{\mathrm{Load}}_i$ represents the expected load per expert assuming perfect balance.
+
+To measure the diversity of token assignments across experts, we also compute the \textit{Entropy} of the average selection probabilities for each expert:
+\begin{equation*}
+H = - \sum_{i=1}^{N_r} \overline{p}_i \log \overline{p}_i,
+\label{eq:entropy}
+\end{equation*}
+where $\overline{p}_i$ is the average probability of selecting the $i$-th expert over all tokens in the evaluation batch, and $N_r$ is the total number of experts. A higher entropy indicates a more uniform distribution of tokens among experts, reflecting balanced and diverse routing decisions.\looseness=-1
+
+
+
+\subsection{Extended Evaluation Results of Router Designs}
+
+
+The results presented in \autoref{tab:ablation_study_expert_choice_app} indicate that although both the auxiliary router and auxiliary loss methods enhance sampling accuracy, they are also associated with high dead token ratios. In particular, some auxiliary router variants exhibit dead token ratios as high as 66.7\%, suggesting that the router always selects tokens from the same positions across inputs, reflecting a positional bias. Notably, employing a linear router architecture in conjunction with auxiliary loss effectively reduces the dead token ratio without compromising sampling accuracy.\looseness=-1
+
+
+Results from \autoref{tab:ablation_study_token_choice_app} reveal that applying an explicit balancing loss significantly reduces MaxVio and increases entropy, leading to improved load balance without sacrificing overall model performance. Loss-free approaches, while simpler, tend to show higher MaxVio and lower entropy, indicating less balanced token routing. Architectures such as MLP and Linear routers perform comparably under balancing loss, with z-loss often contributing to improved routing stability and model accuracy. Nevertheless, it still struggles to achieve balance during quite long initial stage. The heterogeneity among the experts, stemming from the use of computation blocks with varying recursion depths as experts, likely complicates load balancing.\looseness=-1
+
+
+\input{tables/expert_choice_router}
+
+
+\input{tables/token_choice_router}
+
+
+\section{Expanded Results of KV Cache Sharing Mechanism}
+\label{app:expanded_kv}
+
+\subsection{Key Value Representation Trends in Recursive Transformers}
+
+Sharing KV caches across model depths has emerged as a promising approach to improve inference throughput in Vanilla Transformers~\citep{brandon2024reducing}. This technique can reduce the memory footprint required for KV caches, enabling larger inference batch sizes. Significant speedups can be also achieved by skipping the KV projection and even prefill operations at shared depths, especially with Cycle strategy~\citep{sun2024you}. Due to the high degree of freedom in Vanilla models—where trainable parameters can be well optimized for shared caches—these models exhibit only marginal performance drops when KV caches are shared between adjacent layers.
+In contrast, Recursive Transformers have far fewer parameters available for being optimized to tied KV states. Nevertheless, we hypothesize that similar patterns may emerge between shared blocks. To investigate this, we decomposed the KV states from pretrained Recursive Transformers into magnitude and directional components.\looseness=-1
+
+
+As shown in \autoref{fig:kv_sharing_mag_app}, the sharing of key and value projection layers across recursion depths leads to clear recursive patterns in the \textit{magnitude} values. Although the magnitudes of hidden states tend to increase, the projection layers appear to be trained to produce similar signal sizes at corresponding depths within each recursion.\looseness=-1
+
+
+\input{figs/kv_sharing_mag}
+
+When we measured the cosine similarity in \autoref{fig:kv_sharing_dir_app}, distinct diagonal patterns emerge, suggesting that shared projection layers generate highly similar key and value representations. While sharing value states across recursions appears to be more challenging than sharing key states, these findings suggest that the performance drop from KV cache sharing can be marginal even in Recursive Transformers.\looseness=-1
+
+
+\input{figs/kv_sharing_dir}
+
+
+\subsection{Performance Comparison of KV Sharing Strategy}
+
+
+\paragraph{Experimental results of key-value cache sharing.}
+In \autoref{tab:key_value_sharing_results}, we present the performance results when applying KV cache sharing to Vanilla, Recursive, and MoR models. Especially, we tested various strategies for KV caches, including Cycle or Sequence strategies that share the same concepts as parameter sharing (see \S\ref{app:sharing_strategy} for details). Interestingly, KV cache sharing even improves the performance of vanilla models, where sharing acts as a regularization technique.
+In case of recursive models, we align the sharing strategy for parameters and KV caches. Despite some variations in the results after applying KV sharing, the Middle-Cycle strategy (the best parameter sharing strategy) showed a slight perplexity drop, albeit not substantial.
+
+
+When moving to MoR models, they still introduced a small amount of degradation in our best settings (expert-choice router). However, considering the reduced parameter sizes and cache sizes, we believe this minor drop is acceptable. Furthermore, we explored an alternative sharing strategy (indicated by $\dagger$) that utilized shared caches for inactive (unselected) positions while updating active positions through actual computation. This method is analogous to a recursive caching scheme but initializes inactive positions with key-value pairs from the first recursive iteration. Although it did not provide additional benefits, it is still worth exploring combinations of KV sharing and actual updates.\looseness=-1
+
+
+\input{tables/kv_sharing_results}
+
+
+\clearpage
+
+\paragraph{Relaxation for key-value sharing constraints.}
+We also investigated relaxing the constraints on KV sharing in \autoref{tab:key_value_sharing_relaxation}, similar to the relaxation approach in \citet{bae2024relaxed} for parameter sharing constraints. Specifically, we first re-examined four relaxation techniques for standard Recursive Transformers with very small ranks~\citep{hu2022lora, liu2024dora} or prefix lengths~\citep{liu2021p}. We also experimented with the position encoding~\citep{chen2025inner}, where trainable embeddings are element-wise multiplied with the output of each recursion block. 
+
+Our results show that these techniques do not provide substantial performance improvements when pretraining relaxed models from scratch, consistent with prior studies, as they introduce only a limited number of additional parameters. Although we hypothesize that incorporating prefix-based approaches (such as adding trainable prefixes to attention) into KV sharing might lead to greater benefits, our experiments did not reveal substantial differences in this regard. Further exploration of more sophisticated techniques for efficiently relaxing KV cache sharing constraints remains an open direction for future research.
+
+
+\input{tables/kv_sharing_relaxation}
+
+
+
+\section{Expanded Qualitative Results}
+\label{app:qualitative_results}
+
+
+\subsection{Analysis on Adaptive Computation Paths}
+
+
+\autoref{tab:qualitative_highlighted_results} illustrates a qualitative analysis of the recursion depth assigned to each subword token. This visualization provides a detailed insight into how tokens within each sample exhibit varying levels of recursive processing, showcasing the adaptive computation mechanism within the MoR framework. Notably, some tokens exit early (purple), while others require deeper processing (blue and red), reflecting the model’s ability to focus more compute on challenging parts of the input.
+
+
+\input{tables/qualitative_highlighted_results}
+
+
+\clearpage
+
+
+\subsection{Analysis on Router Weights}
+
+To gain insight into the router output distributions, we visualized the results in \autoref{fig:weight_values_app}. Our analysis reveals that various routing mechanisms are optimized to balance expert loads according to the desired capacity. Notably, expert-choice routers achieved nearly perfect load balancing with the auxiliary loss, resulting in almost binary values (1 or 0) for selected and unselected tokens, respectively. 
+For the auxiliary router, it was able to distinguish between selected and unselected tokens to some extent, but still showed overlapping. Since this strategy allows for different capacity factors during training and inference\footnote{The auxiliary router learns to capture intra-token differences within selected or unselected groups, rather than being biased towards extreme points.}, further research into methodologies that can more distinctly separate inter-cluster variations seems necessary.
+
+Other token-choice strategies also exhibited good balancing properties with reasonable router values, which are used to refine the outputs of the corresponding recursion computation blocks. However, most cases failed to converge to optimal load balancing (i.e., these were edge cases where they achieved their own optimal load balancing), highlighting the challenges of achieving consistent performance in heterogeneous expert settings.
+
+\input{figs/weight_values_app}
+
+

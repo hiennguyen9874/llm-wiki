@@ -1,0 +1,551 @@
+\section{Theoretical Derivations}\label{app:proofs}
+
+\subsection{Proof of Proposition~\ref{prop:joint_surrogate}}
+
+\begin{proof}
+The marginal refinement objective is
+\begin{equation*}
+    \KL\!\rbr{
+        p_0\rbr{\dv}
+        \,\|\,
+         {  \int}
+    K_{\theta,t}\rbr{\dv\mid\dv'}
+    p_{\theta,t}\rbr{\dv'}
+    \,d\dv'
+    }
+    =
+    {  \int}
+    p_0\rbr{\dv}
+    \log
+    \frac{
+        p_0\rbr{\dv}
+    }{
+        {  \int}
+        K_{\theta,t}\rbr{\dv\mid\dv'}
+        p_{\theta,t}\rbr{\dv'}
+        \,d\dv'
+    }
+    \,d\dv .
+\end{equation*}
+By Jensen's inequality and the concavity of $\log$, for every fixed $\dv$,
+\begin{equation*}
+    {  \int}
+    q\rbr{\dv'|\dv}
+    \log \frac{K_{\theta,t}\rbr{\dv\mid\dv'}
+    p_{\theta,t}
+    \rbr{\dv'}}{{q\rbr{\dv'|\dv}}}
+    \,d\dv'
+    \le
+    \log
+    {  \int}
+    {q\rbr{\dv'|\dv}}\frac{K_{\theta,t}\rbr{\dv\mid\dv'}
+    p_{\theta,t}
+    \rbr{\dv'}}{{q\rbr{\dv'|\dv}}}
+    \,d\dv' .
+\end{equation*}
+Multiplying by $p_0\rbr{\dv}$ and integrating over $\dv$ gives
+\begin{equation*}
+    \KL\!\rbr{
+        p_0\rbr{\dv}
+        \,\middle\|\,
+        {  \int}
+        K_{\theta,t}\rbr{\dv\mid\dv'}
+        p_{\theta,t}\rbr{\dv'}
+        \,d\dv'
+    }
+    \le
+    \KL\!\rbr{
+        p_0\rbr{\dv}q(\dv'|\dv)
+        \,\middle\|\,
+        K_{\theta,t}\rbr{\dv\mid\dv'}p_{\theta,t}\rbr{\dv'}
+    }.
+\end{equation*}
+This proves the desired upper bound.
+\end{proof}
+
+
+\subsection{Derivation of Refinement Objective in Eq.~\eqref{eq:conditional_refinement_loss}}
+
+We show that minimizing the joint surrogate reduces to conditional negative log-likelihood training. 
+We have proven that the original matching objective in Eq.~\eqref{eq:ideal_refinement} is upper-bounded by the joint surrogate
+\begin{equation*}
+    \KL\!\rbr{
+        p_0\rbr{\dv}p_{\theta,t}\rbr{\dv'}
+        \,\middle\|\,
+        K_{\theta,t}\rbr{\dv\mid\dv'}p_{\theta,t}\rbr{\dv'}
+    }.
+\end{equation*}
+Expanding the KL divergence gives
+\begin{align*}
+    &
+    \KL\!\rbr{
+        p_0\rbr{\dv}p_{\theta,t}\rbr{\dv'|\dv}
+        \,\middle\|\,
+        K_{\theta,t}\rbr{\dv\mid\dv'}p_{\theta,t}\rbr{\dv'}
+    }
+    \nonumber\\
+    &=
+    {  \int}
+    p_0\rbr{\dv}p_{\theta,t}\rbr{\dv'|\dv}
+    \log
+    \frac{
+        p_0\rbr{\dv}p_{\theta,t}\rbr{\dv'|\dv}
+    }{
+        K_{\theta,t}\rbr{\dv\mid\dv'}p_{\theta,t}\rbr{\dv'}
+    }
+    \,d\dv\,d\dv'
+    \nonumber\\
+    &=
+    {  \int}
+    p_0\rbr{\dv}p_{\theta,t}\rbr{\dv'}
+    \log \rbr{p_0\rbr{\dv}p_{\theta,t}\rbr{\dv'}}
+    \,d\dv\,d\dv'
+    -
+    {  \int}
+    p_0\rbr{\dv}p_{\theta,t}\rbr{\dv'|\dv}
+    \log \rbr{K_{\theta,t}\rbr{\dv\mid\dv'}p_{\theta,t}\rbr{\dv'}}
+    \,d\dv\,d\dv'
+    \nonumber\\
+    &
+    \propto
+    -
+    \EE_{\dv\sim p_0,\,\dv'\sim p_{\theta,t}}
+    \sbr{
+        \log K_{\theta,t}\rbr{\dv\mid\dv'}
+    }.
+\end{align*}
+Therefore, minimizing the joint surrogate over $K_{\theta,t}$ is equivalent to minimizing
+\begin{equation*}
+    \mathcal{L}_{t}\rbr{\theta}
+    =
+    -
+    \EE_{\dv\sim p_0,\,\dv'\sim p_{\theta,t}}
+    \sbr{
+        \log K_{\theta,t}\rbr{\dv\mid\dv'}
+    }.
+\end{equation*}
+This proves Eq.~\eqref{eq:conditional_refinement_loss}.
+
+\subsection{Proof of Proposition~\ref{prop:bon_transition}}
+\label{app:proof_bon_transition}
+
+\begin{proof}
+Given a draft $\dv'$, the self-refinement proposer draws $N$ candidates independently,
+\begin{equation*}
+    \dv_1,\ldots,\dv_N
+    \sim
+    K_{\theta}^{\mathrm{SR}}\rbr{\cdot\mid\dv'}.
+\end{equation*}
+Conditioned on the candidate set $\cbr{\dv_i}_{i=1}^{N}$, the Gumbel-Max selection rule selects candidate $j$ with probability
+\begin{equation*}
+    \PP\rbr{
+        J=j
+        \mid
+        \cbr{\dv_i}_{i=1}^{N}
+    }
+    =
+    \frac{
+        \exp\rbr{\tau\scorer\rbr{\dv_j}}
+    }{
+        \sum_{\ell=1}^{N}
+        \exp\rbr{\tau\scorer\rbr{\dv_\ell}}
+    }.
+    \label{eq:app_bon_selection_prob}
+\end{equation*}
+We first compute the contribution of the event that the first candidate equals a given sequence $\dv$ and is selected. 
+Conditioning on $\dv_1=\dv$ and integrating over the remaining candidates gives
+\begin{equation}
+\begin{aligned}
+    &
+    \PP\rbr{
+        \dv_1=\dv %,\ J=1
+        \mid
+        \dv'
+    }
+    \\
+    &=
+    { \int} \PP\rbr{\texttt{$\xb_1$ is the best among $\cbr{\dv_i}_{i=1}^N$}\mid \xb',\cbr{\dv_i}_{i=1}^N} K_{\theta,\mathrm{SR}}\rbr{\cbr{\dv_i}_{i=1}^N\mid\xb'} \,d\dv_{2:N}\\
+    &=
+    K_{\theta}^{\mathrm{SR}}\rbr{\dv\mid\dv'}
+    {\int}
+    \prod_{i=2}^{N}
+    K_{\theta}^{\mathrm{SR}}\rbr{\dv_i\mid\dv'}
+    \frac{
+        \exp\rbr{\tau\scorer\rbr{\dv}}
+    }{
+        \exp\rbr{\tau\scorer\rbr{\dv}}
+        +
+        \sum_{j=2}^{N}
+        \exp\rbr{\tau\scorer\rbr{\dv_j}}
+    }
+    \,d\dv_{2:N}
+    \\
+    &=
+    K_{\theta}^{\mathrm{SR}}\rbr{\dv\mid\dv'}
+    \EE_{\dv_{2:N}\sim K_{\theta}^{\mathrm{SR}}\rbr{\cdot\mid\dv'}}
+    \sbr{
+        \frac{
+            \exp\rbr{\tau\scorer\rbr{\dv}}
+        }{
+            \exp\rbr{\tau\scorer\rbr{\dv}}
+            +
+            \sum_{j=2}^{N}
+            \exp\rbr{\tau\scorer\rbr{\dv_j}}
+        }
+    }.
+\end{aligned}
+\label{eq:app_first_candidate_contribution}
+\end{equation}
+Therefore, Eq.~\eqref{eq:app_first_candidate_contribution} gives the induced best-of-$N$ refinement transition,
+\begin{equation}
+\begin{aligned}
+    K_{\theta,\psi}^{\mathrm{BoN}}\rbr{\dv\mid\dv'}
+    \propto K_{\theta}^{\mathrm{SR}}\rbr{\dv\mid\dv'}
+    \EE_{\dv_{2:N}\sim K_{\theta}^{\mathrm{SR}}\rbr{\cdot\mid\dv'}}
+    \sbr{
+        \frac{
+            \exp\rbr{\tau\scorer\rbr{\dv}}
+        }{
+            \exp\rbr{\tau\scorer\rbr{\dv}}
+            +
+            \sum_{j=2}^{N}
+            \exp\rbr{\tau\scorer\rbr{\dv_j}}
+        }
+    }.
+\end{aligned}
+\end{equation}
+This proves Proposition~\ref{prop:bon_transition}.
+\end{proof}
+
+\subsection{Derivation of Eq.~\eqref{eq:bon_loss}}
+\label{app:derive_bon_loss}
+
+We derive the tractable scorer objective by plugging the best-of-$N$ refinement transition into the conditional refinement loss. 
+Let $\dv_1\sim p_0$ denote the positive target sequence, and let $\dv_2,\ldots,\dv_N$ be proposal candidates sampled from $K_{\theta}^{\mathrm{SR}}\rbr{\cdot\mid\dv'}$. 
+From Eq.~\eqref{eq:app_first_candidate_contribution}, the first-candidate contribution to the best-of-$N$ transition is
+\begin{equation*}
+\begin{aligned}
+    &
+    K_{\theta}^{\mathrm{SR}}\rbr{\dv_1\mid\dv'}
+    \EE_{\dv_{2:N}\sim K_{\theta}^{\mathrm{SR}}\rbr{\cdot\mid\dv'}}
+    \sbr{
+        \frac{
+            \exp\rbr{\tau\scorer\rbr{\dv_1}}
+        }{
+            \exp\rbr{\tau\scorer\rbr{\dv_1}}
+            +
+            \sum_{j=2}^{N}
+            \exp\rbr{\tau\scorer\rbr{\dv_j}}
+        }
+    } .
+\end{aligned}
+\label{eq:app_positive_transition_contribution}
+\end{equation*}
+Both $N$ and $K_{\theta}^{\mathrm{SR}}\rbr{\dv_1\mid\dv'}$ are independent of the scorer parameters during scorer training, since the proposer is treated with stop-gradient. 
+Thus, the scorer-dependent part of the conditional refinement loss in Eq.~\eqref{eq:conditional_refinement_loss} is
+\begin{equation}
+\begin{aligned}
+    -
+    \EE_{\dv_1\sim p_0}\sbr{
+    \log
+    \EE_{\dv_{2:N}\sim K_{\theta}^{\mathrm{SR}}\rbr{\cdot\mid\dv'}}
+    \sbr{
+        \frac{
+            \exp\rbr{\tau\scorer\rbr{\dv_1}}
+        }{
+            \exp\rbr{\tau\scorer\rbr{\dv_1}}
+            +
+            \sum_{j=2}^{N}
+            \exp\rbr{\tau\scorer\rbr{\dv_j}}
+        }
+    }
+    }.
+\end{aligned}
+\label{eq:app_bon_log_expectation}
+\end{equation}
+To obtain a tractable objective, we apply Jensen's inequality. 
+Since $-\log(\cdot)$ is convex, for any positive random variable $R$,
+\begin{equation*}
+    -\log \EE\sbr{R}
+    \le
+    \EE\sbr{-\log R}.
+    \label{eq:app_jensen_bon}
+\end{equation*}
+Using
+\begin{equation*}
+    R
+    =
+    \frac{
+        \exp\rbr{\tau\scorer\rbr{\dv_1}}
+    }{
+        \exp\rbr{\tau\scorer\rbr{\dv_1}}
+        +
+        \sum_{j=2}^{N}
+        \exp\rbr{\tau\scorer\rbr{\dv_j}}
+    },
+\end{equation*}
+Eq.~\eqref{eq:app_bon_log_expectation} is upper-bounded by
+\begin{equation*}
+\begin{aligned}
+    -
+    \EE_{t,\,\dv_1\sim p_0,\,\cbr{\dv_j}_{j=2}^{N}\sim K_{\theta}^{\mathrm{SR}}\rbr{\cdot\mid\dv'}}\sbr{
+    \log
+    \frac{
+        \exp\rbr{\tau\scorer\rbr{\dv_1}}
+    }{
+        \exp\rbr{\tau\scorer\rbr{\dv_1}}
+        +
+        \sum_{j=2}^{N}
+        \exp\rbr{\tau\scorer\rbr{\dv_j}}
+    }}.
+\end{aligned}
+\end{equation*}
+Therefore, dropping constants independent of the scorer gives
+\begin{equation*}
+\begin{aligned}
+  &\Lcal_{\mathrm{BoN}}\rbr{\psi}\\
+  =&
+  \EE_{t,\,\dv_1\sim p_0,\,\cbr{\dv_j}_{j=2}^{N}\sim K_{\theta}^{\mathrm{SR}}\rbr{\cdot\mid \dv'}}
+  \sbr{
+    -\tau\scorer\rbr{\dv_1}
+    +
+    \log
+    \left(
+        \exp\rbr{\tau\scorer\rbr{\dv_1}}
+        +
+        \sum_{j=2}^{N}
+        \exp\rbr{\tau\scorer\rbr{\dv_j}}
+    \right)
+  }.
+\end{aligned}
+\end{equation*}
+This is Eq.~\eqref{eq:bon_loss}.
+
+\subsection{Properties and Justifications of Recursive Marginal Refinement}
+\label{app:refinement_justification}
+
+Although the learned sampler has the backward-chain form
+\begin{equation*}
+    p_\theta\rbr{\dv_{0:T}}
+    =
+    p_{\theta,T}\rbr{\dv_T}
+    \prod_{t=1}^{T}
+    K_{\theta,t}\rbr{\dv_{t-1}\mid\dv_t},
+\end{equation*}
+its learning procedure differs from conventional diffusion because the intermediate states are sampled from the model rather than generated by a predefined forward corruption path. 
+We justify the recursive marginal refinement objective through two properties.
+
+
+\begin{proposition}[Marginal consistency]
+\label{prop:marginal_consistency_independent}
+Let $\gamma_t\rbr{\dv,\dv'}=p_0\rbr{\dv}p_{\theta,t}\rbr{\dv'}$ be the product joint used in the refinement surrogate. 
+If a refinement kernel $K$ satisfies
+\begin{equation*}
+    \KL\!\rbr{
+        p_0\rbr{\dv}p_{\theta,t}\rbr{\dv'}
+        \,\middle\|\,
+        K\rbr{\dv\mid\dv'}p_{\theta,t}\rbr{\dv'}
+    }
+    =
+    0,
+\end{equation*}
+then the induced refined marginal matches the target distribution:
+\begin{equation*}
+    {\int}
+    K\rbr{\dv\mid\dv'}p_{\theta,t}\rbr{\dv'}\,d\dv'
+    =
+    p_0\rbr{\dv}.
+\end{equation*}
+More generally, if the joint surrogate is small, then the marginal refinement objective is also small:
+\begin{equation*}
+    \KL\!\rbr{
+        p_0
+        \,\middle\|\,
+        Kp_{\theta,t}
+    }
+    \le
+    \KL\!\rbr{
+        p_0\rbr{\dv}p_{\theta,t}\rbr{\dv'}
+        \,\middle\|\,
+        K\rbr{\dv\mid\dv'}p_{\theta,t}\rbr{\dv'}
+    }.
+\end{equation*}
+\end{proposition}
+
+\begin{proof}
+If the joint surrogate equals zero, then the two joint distributions are equal almost everywhere:
+\begin{equation*}
+    p_0\rbr{\dv}p_{\theta,t}\rbr{\dv'}
+    =
+    K\rbr{\dv\mid\dv'}p_{\theta,t}\rbr{\dv'}.
+\end{equation*}
+Integrating both sides over $\dv'$ gives
+\begin{align*}
+    {\int}
+    p_0\rbr{\dv}p_{\theta,t}\rbr{\dv'}\,d\dv'
+    &=
+    {\int}
+    K\rbr{\dv\mid\dv'}p_{\theta,t}\rbr{\dv'}\,d\dv' .
+\end{align*}
+Since $p_{\theta,t}$ is normalized, the left-hand side is $p_0\rbr{\dv}$. 
+Therefore,
+\begin{equation*}
+    p_0\rbr{\dv}
+    =
+    {\int}
+    K\rbr{\dv\mid\dv'}p_{\theta,t}\rbr{\dv'}\,d\dv',
+\end{equation*}
+which proves exact marginal consistency.
+\end{proof}
+
+
+\begin{proposition}[Ideal monotonic refinement]
+\label{prop:ideal_monotonicity}
+Let $\mathcal{K}$ be a refinement family that contains the identity kernel
+\begin{equation*}
+    I\rbr{\dv\mid\dv'}=\mathbf{1}\rbr{\dv=\dv'}.
+\end{equation*}
+Given the current draft marginal $p_{\theta,t}$, define the ideal refinement kernel as
+\begin{equation*}
+    K_t^\star
+    =
+    \arg\min_{K\in\mathcal{K}}
+    \KL\!\rbr{
+        p_0\rbr{\dv}
+        \,\|\,
+        {\int}
+        K\rbr{\dv\mid\dv'}
+        p_{\theta,t}\rbr{\dv'}
+        \,d\dv'
+    }.
+\end{equation*}
+Let the corresponding ideal refined marginal be
+\begin{equation*}
+    p_{\theta,t-1}^{\star}\rbr{\dv}
+    =
+    {\int}
+    K_t^\star\rbr{\dv\mid\dv'}
+    p_{\theta,t}\rbr{\dv'}
+    \,d\dv'.
+\end{equation*}
+Then the ideal refinement step cannot increase the marginal KL to the target distribution:
+\begin{equation*}
+    \KL\!\rbr{
+        p_0\rbr{\dv}
+        \,\|\,
+        p_{\theta,t-1}^{\star}\rbr{\dv}
+    }
+    \le
+    \KL\!\rbr{
+        p_0\rbr{\dv}
+        \,\|\,
+        p_{\theta,t}\rbr{\dv}
+    }.
+\end{equation*}
+\end{proposition}
+
+\begin{proof}
+By definition of $K_t^\star$, we have
+\begin{align*}
+    \KL\!\rbr{
+        p_0\rbr{\dv}
+        \,\|\,
+        p_{\theta,t-1}^{\star}\rbr{\dv}
+    } \nonumber 
+    =
+    \min_{K\in\mathcal{K}}
+    \KL\!\rbr{
+        p_0\rbr{\dv}
+        \,\|\,
+        {\int}
+        K\rbr{\dv\mid\dv'}
+        p_{\theta,t}\rbr{\dv'}
+        \,d\dv'
+    }.
+\end{align*}
+Since $\mathcal{K}$ contains the identity kernel $I\rbr{\dv\mid\dv'}=\mathbf{1}\rbr{\dv=\dv'}$, the minimization over $\mathcal{K}$ includes the choice $K=I$. 
+Therefore,
+\begin{align*}
+    \min_{K\in\mathcal{K}}
+    \KL\!\rbr{
+        p_0\rbr{\dv}
+        \,\|\,
+        {\int}
+        K\rbr{\dv\mid\dv'}
+        p_{\theta,t}\rbr{\dv'}
+        \,d\dv'
+    } \nonumber \\
+   \le
+    \KL\!\rbr{
+        p_0\rbr{\dv}
+        \,\|\,
+        {\int}
+        I\rbr{\dv\mid\dv'}
+        p_{\theta,t}\rbr{\dv'}
+        \,d\dv'
+    }.
+\end{align*}
+The identity kernel preserves the current marginal:
+\begin{equation*}
+    {\int}
+    I\rbr{\dv\mid\dv'}
+    p_{\theta,t}\rbr{\dv'}
+    \,d\dv'
+    =
+    p_{\theta,t}\rbr{\dv}.
+\end{equation*}
+Thus,
+\begin{equation*}
+    \KL\!\rbr{
+        p_0\rbr{\dv}
+        \,\|\,
+        p_{\theta,t-1}^{\star}\rbr{\dv}
+    }
+    \le
+    \KL\!\rbr{
+        p_0\rbr{\dv}
+        \,\|\,
+        p_{\theta,t}\rbr{\dv}
+    },
+\end{equation*}
+which proves the claim.
+\end{proof}
+
+
+\subsection{Interpretation of Empirical Best-of-$N$ Selection}
+\label{app:log_ratio}
+
+Let the proposal marginal induced by the current draft distribution and self-refinement proposer be
+\begin{equation*}
+    p_{\theta,t}^{\mathrm{SR}}\rbr{\dv}
+    =
+    {\int}
+    K_{\theta}^{\mathrm{SR}}\rbr{\dv\mid\dv'}
+    p_{\theta,t}\rbr{\dv'}
+    \,d\dv'.
+    \label{eq:app_sr_marginal}
+\end{equation*}
+The finite-candidate ranking objective contrasts positives $\dv_1\sim p_0$ with proposal samples $\dv_j\sim p_{\theta,t}^{\mathrm{SR}}$. 
+At the population optimum, the score logit satisfies
+\begin{equation*}
+    \tau\scorer^\star\rbr{\dv}
+    =
+    \log p_0\rbr{\dv}
+    -
+    \log p_{\theta,t}^{\mathrm{SR}}\rbr{\dv}
+    +
+    C,
+    \label{eq:app_marginal_log_ratio}
+\end{equation*}
+where $C$ is independent of $\dv$. 
+Thus, the scorer estimates how much more likely a sequence is under the target distribution than under the proposal marginal.
+
+This also motivates the empirical selection rule used in implementation. 
+For candidates generated from a particular draft $\dv'$, ranking by
+\begin{equation*}
+    \log K_{\theta}^{\mathrm{SR}}\rbr{\dv\mid\dv'}
+    +
+    \tau\scorer\rbr{\dv}
+\end{equation*}
+combines the draft-conditioned proposal likelihood with a marginal correction toward the target distribution. 
+This preserves the local preference of the proposer while using the scorer to favor globally more data-like candidates.

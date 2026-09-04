@@ -1,0 +1,32 @@
+
+
+\begin{table*}[!h]
+    \caption{
+    Comparison of MoR, Recursive, and Vanilla Transformers at 1.7B scale under both fixed FLOPs (68.5e18) settings. All models are trained on FineWeb-Edu and evaluated by few-shot accuracy. For the isoFLOP rows, the number of training tokens\,($N_{tok}$) varies by model efficiency.
+    For the model sizes, we report non-embedding parameter counts. $\text{}^\dagger$In recursive models, all tokens go through fixed recursion depths ($N_r$), instead of adaptive depths.
+    \looseness=-1
+    }
+    \label{tab:main_results_1_7b}
+    \small
+    \centering
+    \addtolength{\tabcolsep}{0pt}
+    \resizebox{\textwidth}{!}{
+    \begin{tabular}{l|cc|cc|ccc|cccccc|c}
+    \toprule
+      &  \multicolumn{2}{c|}{\textbf{MoR}} &  \multicolumn{2}{c|}{\textbf{Recursion}} & \multicolumn{3}{c|}{\textbf{Pretrain}} & \multicolumn{7}{c}{\textbf{Few-shot Accuracy\,$\uparrow$}} \\
+    \cmidrule(l{2pt}r{2pt}){2-3} \cmidrule(l{2pt}r{2pt}){4-5} \cmidrule(l{2pt}r{2pt}){6-8} \cmidrule(l{2pt}r{2pt}){9-15} 
+     \textbf{Models} & Type & KV & Share & $N_r$ & Param & FLOPs & $N_{tok}$  & LD & HS & PQ & WG & ARC & \!MMLU\! & Avg  \\
+    \midrule
+    Vanilla & - & - & - & -  & 1.61B &  68.5 & 20B & 40.8 & \textbf{49.4} & \textbf{70.6} & 54.8 & \textbf{47.4} & 30.2 & \textbf{48.9} \\
+    \midrule
+    \multirow{2}{*}{$\text{Recursive}^{\dagger}$} & - & -  & M-Cyc  & 2 & 0.87B & 68.5 & 18B  & 37.3 & 46.5 & 68.9 & 52.6 & 44.2 & 29.6 & 46.5 \\
+     & - & - & M-Cyc & 3 & 0.67B & 68.5 & 20B & 36.4 & 45.3 & 69.5 & 52.7 &  43.9 & 29.1 & 46.2 \\
+     \midrule
+    & Expert & Cache  & M-Cyc  & 2 & 0.87B & 68.5 & 26B & \textbf{41.1} & 47.5 & 70.0 & \textbf{55.6} & 46.0 & \textbf{30.3} & 48.4 \\
+     & Expert & Cache & M-Cyc & 3& 0.67B & 68.5 & 27B  & 37.2 & 46.6& 69.1 & 53.7 & 44.1 & 29.7 & 46.7 \\
+     \cmidrule(l{2pt}r{2pt}){2-15}
+     \multirow{-3.5}{*}{MoR\,(ours)} & Token & Cache & M-Cyc & 3& 0.67B & 68.5  & 30B & 35.6 & 43.2& 68.1 & 53.0 & 43.4 & 29.0 & 45.4 \\
+    \bottomrule
+    \end{tabular}
+    }
+\end{table*}

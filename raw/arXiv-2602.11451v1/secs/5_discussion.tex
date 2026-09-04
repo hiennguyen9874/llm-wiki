@@ -1,0 +1,38 @@
+% \section{Discussion}
+% 1. Should we mention how we used ChatGPT here?
+
+% 2. Mention that we cannot make the model more adaptive as is, but that will be future work. e.g. using RL to find the best trajectory
+
+% Our experiments show that, for a fixed compute budget, the specific choice of trajectory influences performance. 
+% Future work can investigate reinforcement learning or other adaptive optimization techniques to enable the model to dynamically determine the most effective trajectory or budget on a per-instance basis. This could allow the model to learn to allocate computation more efficiently, potentially leading to further gains in both reasoning ability and computational efficiency.
+
+% \hl{future work: more about representation space}
+
+% \section{Discussion and Future Directions}
+
+% \noindent\textit{Summary.}
+% We introduced \textbf{LoopFormer}, a shortcut–modulated looped Transformer that conditions each iteration on normalized time $t$ and step size $\Delta t$, and trains across sampled trajectories with a shortcut–consistency objective. This yields \emph{budget–conditioned} inference (elastic depth) without retraining and, empirically, strong performance–per–compute on language modeling (perplexity) and zero–shot reasoning. Our analyses indicate that (i) looped models benefit from iterative refinement for reasoning, (ii) budgeted runs of \textbf{LoopFormer} avoid representational stagnation typical of naive early–exit variants, and (iii) performance is sensitive to where compute is placed in $t\in[0,1]$, with coarse–to–fine schedules often preferred.
+
+% \medskip
+% \noindent\textit{Limitations.}
+% First, LoopFormer optimizes \emph{global} (sequence–level) budgets and schedules rather than \emph{instance– or token–adaptive} compute. While this avoids collapse from per–token halting policies, it forgoes the potential efficiency of fine–grained allocation. Second, training incurs overhead: each step samples both a full route and shortcut routes and applies a consistency loss; although stable in practice, this adds wall–clock cost and may bias the model toward schedule families seen during training. Third, our conditioning uses fixed sinusoidal time/step embeddings and linear regressors; stronger parameterizations (e.g., learned positional flows or attention–condition coupling) may further improve fidelity under extreme budgets. Fourth, although we evaluate across diverse language corpora and reasoning benchmarks, our experiments are mid–scale; scaling to larger backbones and instruction–tuned settings may reveal new trade–offs in throughput, KV–cache reuse across loops, and memory footprint. Finally, our representation diagnostics (anisotropy, curvature, entropy, CKA) are correlational; establishing causal links to task generalization remains open.
+
+% \medskip
+% \noindent\textit{Opportunities.}
+% Several natural extensions follow. (1) \textbf{Instance–conditioned schedules:} learn a lightweight policy $\pi(\Delta\,|\,X)$ that proposes step sizes conditioned on the input (or intermediate states), trained to optimize accuracy–latency trade–offs; reinforcement learning or differentiable relaxations of discrete step allocations are promising here. (2) \textbf{Planner–refiner loops:} factor loops into a coarse planner (early steps) and a verifier/refiner (late steps), possibly with asymmetric conditioning or cross–step attention, to exploit the early–late bimodality we observe. (3) \textbf{Compatibility with routing:} combine trajectory conditioning with Mixture–of–Depths/MoE routers so that some tokens receive additional looped refinement while others follow shorter routes, retaining our consistency training to prevent collapse. (4) \textbf{Curricula over budgets:} schedule training from short to long trajectories (or vice versa) to shape the trajectory manifold and reduce training cost. (5) \textbf{One–step distillation:} extend shortcut–consistency toward true one–/few–step inference, analogously to shortcut diffusion, using LoopFormer’s $t,\Delta t$ conditioning as a teacher signal. (6) \textbf{Theory and diagnostics:} formalize conditions under which shortcut–consistency prevents representational collapse, and develop metrics that better predict downstream reasoning gains under elastic depth.
+
+% \medskip
+% \noindent\textit{Outlook.}
+% We view LoopFormer as a step toward \emph{controllable, budget–aware} language models: the same parameters can deliver useful outputs under a spectrum of compute budgets without retraining, while maintaining healthy representation dynamics. Realizing the full promise of adaptive latent reasoning likely requires coupling trajectory–aware conditioning with learned schedule policies and larger–scale backbones; we hope our formulation and analyses provide a practical starting point for that line of work.
+
+\section{Discussion and Future Directions}
+
+\noindent We introduced LoopFormer, a looped Transformer that conditions each iteration on normalized time $t$ and step size $\Delta t$, trained across trajectories with a shortcut–consistency loss. This framing induces \emph{loop trajectories} in hidden space: under a fixed budget, shorter routes yield useful intermediate states, and additional steps refine them toward a shared $t{=}1$ endpoint, realizing latent reasoning while supporting budget–conditioned (elastic) inference without retraining. Empirically, LoopFormer delivers strong performance–per–compute on perplexity and consistently improves downstream zero-shot reasoning, while avoiding the representational stagnation seen in naive early-exit baselines. Limitations include global (sequence-level) rather than instance/token-adaptive budgeting, added training overhead from multi-trajectory consistency, and correlational (not causal) representation analyses. Promising directions include instance-conditioned schedule policies and deeper theory/diagnostics of the representation space.
+
+
+\section{ACKNOWLEDGEMENTS}
+
+\noindent We thank Prof.~Colin Raffel (University of Toronto) and Prof.~Ali Etemad (Queen's University) for valuable feedback throughout this project. We also thank Negin Baghbanzadeh and Dev Shah for their help during the early stages of our work on looped vision models.
+
+
+\noindent Resources used in preparing this research were provided, in part, by the Province of Ontario, the Government of Canada through CIFAR, the \href{https://www.alliancecan.ca}{Digital Research Alliance of Canada}, and companies sponsoring the \href{https://www.vectorinstitute.ai/partnerships/current-partners/}{Vector Institute}.

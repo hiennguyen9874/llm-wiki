@@ -1,0 +1,63 @@
+\section{Author List}
+
+Authors are listed in \textbf{alphabetical order by first name}. Names marked with an asterisk (*) denote individuals who were previously affiliated with our team. Yang Song is the corresponding author and can be reached at \texttt{songyang@kanzhun.com}.
+
+Chen Yang, Chengrui Huang, Fufeng Lan, Hanhui Chen, Hao Zhou, Huatong Song\textsuperscript{*}, Jiaqi Cao\textsuperscript{*}, Jiaying Zhu, Jinlin Niu, Kai Wang, Lisheng Huang, Qiliang Liang, Ran Le, Ruixiang Feng\textsuperscript{*}, Shuang Sun\textsuperscript{*}, Tao Gu, Tao Zhang, Tianyu Luo, Yang Song\textsuperscript{\dag}, Yun Xing, Yuntao Wen\textsuperscript{*}, Ziyao Xu, Zongchao Chen, Zongqiang Li
+
+
+
+\section{Evaluation settings}
+\label{app:evaluation}
+
+\subsection{General Inference Settings.}
+
+Unless otherwise specified, we evaluate Nanbeige4.2-3B with the following configuration:
+
+\begin{itemize}[leftmargin=1.5em, itemsep=0.2em, topsep=0.4em]
+    \item Temperature: 0.6
+    \item Top-p: 0.95
+    \item Top-k: 20
+    \item Context Window: 256k tokens
+\end{itemize}
+
+\subsection{Code Agent Evaluation}
+\emph{SWE-bench Verified}: We evaluate models using the OpenHands framework as the agent scaffold with a context window of 256k tokens and a maximum output limit of 32k tokens. The decoding temperature is set to 1.0. Each task run is allocated a 4-hour timeout and capped at a maximum of 250 interaction turns. Final performance metrics are averaged over 8 independent runs.
+
+\emph{SWE-bench Pro}: We evaluate models using the SWE-agent harness with a context window of 256k tokens and a maximum output limit of 32k tokens. The decoding temperature is set to 1.0. Given the increased complexity of long-horizon tasks, each run is granted a 10-hour timeout and a maximum limit of 250 interaction turns. Final results are averaged over 8 independent runs.
+
+\emph{Terminal-Bench 2.0}: We evaluate Terminal-Bench 2.0 using the Harbor/Terminus-2 framework with a JSON output parser. Models are evaluated with a 256k context window, a maximum output limit of 32k tokens, and a temperature of 1.0. Each run is allocated 8 CPU cores, 24GB of RAM, a 4-hour timeout, and a maximum of 250 interaction turns. All reported results are averaged over 8 independent runs.
+
+\subsection{General Agent Evaluation}
+
+\emph{GDPval Rubrics}: We evaluate models using our in-house harness, which provides web-search tools and a sandboxed environment. Final outputs are scored by an agent acting as a judge in the same environment. The judge evaluates each rubric and normalizes the aggregate score to 0--100.
+
+\emph{AgentIF-Oneday}: We follow the same evaluation protocol as for GDPval Rubrics.
+
+\emph{OfficeQA-Pro}: We evaluate models in the most challenging setting using our in-house harness: each question is paired with the complete collection of original PDF materials, without any parser and indication of which documents are relevant.
+
+\emph{Claw-Eval}: 
+We evaluate and report results only on the 157 general tasks.
+We preserve the complete reasoning context during model evaluation~(e.g., The reasoning-parser of the sglang service is not turned on to ensure that the thought process remains in context). For final scoring, content preceding the closing \texttt{</think>} tag is removed. We use DeepSeek-V4-Pro as the judge model and impose an overall task timeout of 3,600 seconds.
+
+\emph{MCP-Atlas}: During evaluation, we enable the system prompt and remove content preceding the closing \texttt{</think>} tag for final scoring. We use GLM-5.1 as the judge model, set the per-call and overall task timeouts to 1,200 and 3,600 seconds, and permit at most 20 tool-use rounds per task.
+
+
+\subsection{OpenClaw-Based Evaluation}
+
+
+To maximize the model's potential, we retain the complete reasoning content throughout evaluation. To enable this setting, the model need to be added to OpenClaw's reasoning-content replay whitelist.
+
+\emph{PinchBench-V2}: We use OpenClaw's default free DuckDuckGo Search backend. Each task is allotted a timeout of 10,800 seconds. We use Qwen3.7-Plus as the judge model.
+
+\emph{Claw-Gym}: We adopt the same evaluation setup as for PinchBench-V2.
+
+\emph{GDPval Rubrics} and \emph{AgentIF-Oneday}: We adopt the same generation setup as for PinchBench-V2. We use Qwen3.7-plus for rubric scoring on the products of the task.
+
+
+\emph{DeepResearch Bench II}: We use Brave Search as the search backend. Each task is allotted a timeout of 3,600 seconds and a maximum of 200 agent turns. We use DeepSeek-V4-Flash as the judge model with \texttt{temperature}$=0$, and follow the official judge prompt and score-aggregation procedure.
+
+\emph{ResearchRubrics}: We adopt the same evaluation setup as for DeepResearch Bench II, while following the official ResearchRubrics judge prompt and benchmark-specific evaluation protocol.
+
+\section{Acknowledgments}
+
+We thank Guoliang Cheng, Jianyong Xia, Kewen Zhu, Shu Xu, Yanxi Xie, and Zhihao Li for their discussions and involvement in this project.

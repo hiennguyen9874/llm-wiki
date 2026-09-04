@@ -1,0 +1,56 @@
+\section{Related Work}
+\label{sec:related_work}
+
+
+
+\paragraph{Recursive Transformers.}
+Parameter sharing provides an orthogonal path to efficiency~\citep{dehghani2018universal,lan2019albert0,xia2019tied,jaegle2021perceiver,takase2021lessons,tan2023sparse,ng2024loop,bae2024relaxed}.
+%
+The \textit{Universal Transformer} first showed that repeatedly applying a single block can match the representational power of deep, non-shared stacks~\citep{dehghani2018universal}. 
+%
+\textit{Looped Transformers} shown to be effective, can act as programmable computers~\citep{giannou2023looped}, learn iterative data-fitting algorithms~\citep{yang2023looped}, generalize to much longer inputs on algorithmic tasks~\citep{fan2024looped}, and illuminate few-shot learning by mimicking multi-step optimizers~\citep{gatmiry2024can}.
+%
+Furthermore, \citet{bae2024relaxed} mitigate the accuracy loss often associated with weight tying by adding low-rank adaptation (LoRA) adapters~\citep{hu2022lora} in each loop, yielding \emph{Relaxed Recursive Transformers}. 
+Recent work further demonstrates that Recursive Transformers excel at latent reasoning via recurrent depth~\citep{geiping2025scaling}.  
+While most prior studies focus on the efficiency gains from weight tying, the \emph{recursive} architecture itself offers a second level: inspired by early-exiting~\citep{schuster2022confident} and compute routing~\citep{raposo2024mixture}, one can vary the number of recursions per input (e.g., per token), allocating compute only where it is most beneficial during both training and inference.\looseness=-1
+
+
+
+\paragraph{Adaptive computation.}
+Many works have shown that \emph{dynamic} compute allocation can markedly reduce the cost of training and inference, from traditional neural networks~\citep{bengio2015conditional, DBLP:conf/eccv/HuangSLSW16, teerapittayanon2016branchynet, panda2016conditional, graves2016adaptive} to large language models~\citep{hou2020dynabert,Elbayad2020Depth-Adaptive,fedus2022switch,bae-etal-2023-fast, elhoushi2024layerskip, raposo2024mixture}.
+%
+Early exiting methods learn to halt processing for ``easy'' samples (e.g., tokens or sequences in language modeling) by skipping the remaining layers~\citep{Elbayad2020Depth-Adaptive, schuster2022confident, dehghani2018universal,mofakhami2024performance}. Alternatively, early exits can be combined with speculative decoding techniques~\citep{chen2023accelerating,leviathan2023fast} during inference by leveraging lower layers for fast drafting~\citep{bae-etal-2023-fast, elhoushi2024layerskip}.
+%
+Recently, \textit{Mixture-of-Depths} (MoD)~\citep{raposo2024mixture} reframed adaptive depth as a routing problem: a router at each layer selects a \emph{subset} of tokens to receive the full computation, while the rest bypass the layer, yielding finer-grained conditional compute.  
+This new form of adaptive allocation is well suited to Transformer architectures and has already been extended to other modalities~\citep{zhang2024p,luo2024gamma}, highlighting a promising paradigm of dynamic compute at token-level granularity.
+%
+MoR applies this routing idea to \emph{recursive} Transformers: tokens are dynamically sent through repeated calls of a single, weight‑tied block instead of through distinct layers. This shift keeps parameter count constant, allows arbitrarily deep (adaptive) compute beyond the model’s physical depth.\looseness=-1
+
+
+
+\vspace{-10pt}
+\paragraph{Routing mechanism.} 
+LLMs have increasingly employed routers to enable adaptive computation, primarily in sparse Mixture-of-Experts (MoE) frameworks~\citep{shazeer2017outrageously, lepikhin2020gshard, dai2022stablemoe, zoph2022st}, i.e., each token is processed by a subset of expert networks chosen by a learned router, dramatically increasing model capacity without a computational overhead. Early MoE architectures~\citep{lepikhin2020gshard, fedus2022switch, jiang2024mixtral} adopted a \textit{token-choice} routing strategy, wherein the router selects the top-k experts for each token based on its hidden state. While effective, this approach often leads to load imbalance across experts, necessitating auxiliary balancing losses. 
+To address this, \textit{expert-choice} routing~\citep{zhou2022mixture, guo2025deepseek} has been proposed, wherein each expert selects the tokens to serve, ensuring perfect load balancing and improved efficiency. 
+Building on this, a few works employed trainable routers to determine which layers to skip~\citep{zeng2023learning, raposo2024mixture, gadhikar2024attention}. Unlike traditional early-exit methods, these expert-choice routing mechanisms enforce a static compute budget by capping the number of tokens processed per layer (or depth). 
+
+
+\vspace{-10pt}
+\paragraph{Key-value caching.}
+Key–value (KV) caching stores the per-token key and value tensors produced at each layer during autoregressive decoding; reusing them eliminates quadratic-time recomputation and boosts throughput~\citep{shazeer2019fast, ge2023model, liu2024minicache, xiao2023efficient, pope2022efficiently, kang2024gear0, brandon2024reducing}.
+%
+Unfortunately, retaining these tensors quickly saturates GPU memory, especially for long contexts and large batches~\citep{chowdhery2023palm, brandon2024reducing}.
+%
+Prior work tackles this issue by quantizing KV activations to lower precision~\citep{hooper2024kvquant0, zhang2024kv}, discarding entries that contribute little to the final output~\citep{zhang2023h2o, liu2023scissorhands}, and sharing keys and values across attention heads~\citep{shazeer2019fast, ainslie2023gqa}.
+%
+\citet{brandon2024reducing} push this idea further, allowing adjacent layers to share the same key and value tensors and achieving additional memory savings with negligible quality loss.
+%
+Our Mixture-of-Recursions offer a complementary avenue: KV caches generated in early recursions can be reused in later ones, potentially reducing memory consumption even further.
+This also provides the advantage of only needing to run the first recursion during prefill phase~\citep{sun2024you} (only with Cycle strategy), promising significant speedups for prompt settings over 1 million tokens. Two caching strategies in MoR can be optimized based on their distinct benefits to suit various deployment settings.\looseness=-1
+
+
+
+\vspace{-10pt}
+\paragraph{Latent reasoning.}
+An emerging line of work enables LLMs to perform reasoning internally within hidden states rather than through explicit verbalization~\citep{goyal2023think, pfau2024let, cheng2024compressed, tack2025llm, konglatent}. Many approaches adopt a \textit{fixed} latent reasoning depth: they insert special tokens or structured prompts (e.g., a learnable ``pause” token~\citep{goyal2023think} or filler punctuation~\citep{pfau2024let}) that allow the model to execute a predetermined number of hidden reasoning passes before producing an answer. Others reuse the model’s hidden states in a closed loop for a fixed number of iterations by feeding final hidden states back as input to simulate chain-of-thought~\citep{hao2024training, shen2025codi, saunshi2025reasoning}. Another line of research enhances latent reasoning by augmenting hidden states with intermediate semantic signals~\citep{zelikman2024quiet, tack2025llm}. However, these methods lack the flexibility to allocate computation where it is most needed, leading to unnecessary overhead on easy inputs and insufficient reasoning on complex ones. 
+This motivates leveraging looping mechanisms for more adaptive latent reasoning~\citep{chen2025inner, geiping2025scaling, saunshi2025reasoning, zeng2025pretraining}.

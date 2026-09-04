@@ -1,0 +1,24 @@
+\section{Related Work}
+\label{sec:related}
+
+\subsection{Chain-of-Thought and Test-Time Compute}
+
+Chain-of-Thought prompting~\citep{wei2022chain} and its variants~\citep{kojima2022large, wang2022self} have become the dominant paradigm for LLM reasoning. Recent work on test-time computing scaling~\citep{snell2024scaling} further demonstrates that allowing models to perform more inference-time computation improves performance. However, all these approaches operate via horizontal token generation, consuming a context window proportional to the reasoning depth. Our work explores an orthogonal axis---vertical depth recurrence in latent space--- that achieves test-time compute scaling without token overhead.
+ 
+\subsection{Pause Tokens and Latent Reasoning}
+
+\citet{goyal2023think} proposed appending learnable ``pause tokens'' to the input, giving the Transformer an additional forward-pass computation before producing output. Recent works, such as Coconut~\citep{hao2024training}, also explore training LLMs to reason in a continuous latent space. Although these share our motivation of providing additional computation at inference time, pause tokens remain fundamentally horizontal: they occupy positions linearly in the sequence and consume the context window. In addition, each pause token still processes through the same fixed number of layers, so the \emph{depth} of computation per position is unchanged. In contrast, our approach increases depth directly by repeatedly applying the same block. Unlike traditional RNNs that compress the entire sequence into a single bottleneck vector $h \in \mathbb{R}^d$, we maintain a full-sequence-length state matrix $H \in \mathbb{R}^{L \times d}$ at every step, preserving rich spatial interactions. Furthermore, unlike horizontal CoT which consumes the finite context window by appending new generated tokens, our recurrence operates strictly in latent space without increasing the sequence length.
+ 
+\subsection{Universal Transformers}
+
+The Universal Transformer (UT)~\citep{dehghani2018universal} introduced weight sharing across layers and used Adaptive Computation Time (ACT)~\citep{graves2016adaptive} for dynamic stopping. Our work builds on this foundation but differs in several critical aspects. First, we use final-step-only supervision (silent thinking) rather than per-step losses, which we show empirically avoids heuristic shortcut learning. Second, we incorporate LayerScale~\citep{touvron2021going} to protect latent representations during early training. Third, we employ an identity-biased gated recurrence with negative bias initialization rather than simple residual connections, which we find essential for stability beyond 10 recurrence steps. Fourth, rather than relying on ACT's complex token-level halting probabilities and ponder cost regularization~\citep{graves2016adaptive}, we completely decouple the computational depth. By treating the recurrence step count $T$ as an externally specified budget, our model natively supports flexible test-time compute scaling without optimization overhead. These differences enable robust out-of-distribution extrapolation rather than merely in-distribution translation.
+ 
+\subsection{Depth and Expressiveness in Transformers}
+
+Theoretical works have established that Transformer depth is a critical factor in expressiveness. \citet{merrill2023expresssive} showed that fixed-depth Transformers are limited to $\mathsf{TC}^0$ circuit complexity, which excludes inherently sequential computations. \citet{feng2023towards} further demonstrated that depth-efficient Transformers cannot solve certain compositional tasks without sufficient layers. By making depth dynamically variable through recurrence, our architecture natively bypasses the $\mathsf{TC}^0$ limitation. This decoupling allows the unrolled reasoning steps to scale strictly with the intrinsic sequential complexity of the input, enabling the model to solve inherently sequential tasks---such as multi-hop routing and nested logic---that fixed-depth networks mathematically cannot.
+ 
+\subsection{Neural Algorithmic Reasoning and Inductive Biases}
+
+Research in Neural Algorithmic Reasoning emphasizes that neural networks must align with the algorithmic primitives of the target task. Graph Neural Networks (GNNs)~\citep{gilmer2017neural, xu2018how} achieve this via message passing over edges. We demonstrate that a Transformer can perfectly simulate an optimal GNN by applying an adjacency mask to its self-attention matrix. We gradually remove these structural priors in our subsequent logic and unstructured text experiments to test the limits of the invariant reasoning core.
+
+

@@ -1,0 +1,81 @@
+\section{Method}
+\label{sec:method}
+ 
+Our architecture consists of two components: a \emph{task-specific perception interface} that encodes the raw input into an initial hidden representation, and a \emph{task-invariant reasoning core} that iteratively refines this representation through shared-weight recurrence. After $T$ recurrence steps ---where $T$ can be flexibly scaled at inference time --- a \emph{task-specific readout head} extracts the final prediction.
+ 
+\subsection{The Invariant Reasoning Core}
+\label{sec:core}
+
+The reasoning core is a single Transformer block $f_\theta$ with shared weights, applied recurrently for $T$ steps. It operates on a hidden state $H^{(t)} \in \mathbb{R}^{L \times d}$, where the initial state $H^{(0)}$ is the output of the task-specific perception interface (Section~\ref{sec:perception}). Let $L$ be the sequence length and $d$ be the hidden dimension. At each step $t \in \{1, \dots, T\}$, the candidate hidden state $\tilde{H}^{(t)} \in \mathbb{R}^{L \times d}$ is computed as:
+\begin{equation}
+    \tilde{H}^{(t)} = f_\theta(H^{(t-1)}, t),
+\end{equation}
+
+Details of $f_\theta$ are provided in Appendix~\ref{app:f-theta-details}.
+
+To ensure that this recurrent core can stably unroll for 20+ steps and learn genuine algorithms, we design it around three specific mechanisms.
+
+\paragraph{Silent Thinking Objective.}
+A fundamental design choice is how to supervise the recurrent steps. Instead of forcing intermediate answers or applying per-step auxiliary losses, we compute the cross-entropy (CE) loss $\text{CE}(\hat{y},\, y)$ \emph{only} on the final thinking step $T$.
+
+During training, $T$ is sampled uniformly from a task-specific range (e.g., $T \sim \mathcal{U}(1, 12)$). This randomized depth acts as a temporal regularizer, encouraging the network to produce stable outputs across a range of computation depths, while the silent thinking objective forces the model to develop its own genuine multi-step reasoning paths.
+ 
+\paragraph{Pre-Layer Normalization and LayerScale.}
+
+For complex symbolic tasks requiring a high step count, the accumulated variance from repeated sub-layer transformations can severely destabilize early training. We use Pre-LayerNorm~\citep{xiong2020layer} and apply learnable per-channel LayerScale~\citep{touvron2021going} after each sub-layer, multiplying the outputs element-wise by a learnable scaling vector $\Gamma \in \mathbb{R}^d$ initialized to $\Gamma_i = 10^{-4}$. By scaling the outputs down to near-zero at initialization, LayerScale forces the early-training dynamics to act almost perfectly as an identity mapping, protecting fragile boolean states to safely bypass the destructive noise introduced by randomly initialized deep layers. As training progresses, the network selectively scales up $\Gamma$ to activate its reasoning capacity.
+ 
+\paragraph{Identity-Biased Gated Recurrence.}
+
+To solve the physical limit of unrolling a network for 20+ steps without vanishing gradients, we combine the new candidate representation $\tilde{H}^{(t)}$ with the previous state $H^{(t-1)}$ through a learned GRU-like gate:
+\begin{align}
+    z^{(t)} &= \sigma\!\left([\tilde{H}^{(t)};, H^{(t-1)}] \cdot W_z + b_z\right) \\
+    H^{(t)} &= z^{(t)} \odot \tilde{H}^{(t)} + (1 - z^{(t)}) \odot H^{(t-1)}
+\end{align}
+
+Here, $[\tilde{H}^{(t)};, H^{(t-1)}] \in \mathbb{R}^{L \times 2d}$ denotes the feature-dimension concatenation of the two states, and $W_z \in \mathbb{R}^{2d \times d}$ projects it to yield $z^{(t)} \in \mathbb{R}^{L \times d}$. The gate operates element-wise at each sequence position; details in Appendix~\ref{app:f-theta-details}.
+
+Critically, we initialize the gate bias $b_z = -2.0$. Because $\sigma(-2.0) \approx 0.12$, the model defaults to retaining 88\% of its previous state. This physically guarantees that the initial signal decays slowly, enabling stable signal propagation through deep temporal unrolling.
+ 
+\paragraph{Depth Embeddings.}
+
+To prevent the model from losing its place within the recurrent loop, we inject a learned step embedding $e_t \in \mathbb{R}^d$ at each iteration before applying the attention block: $H^{(t-1)}_{\text{input}} = H^{(t-1)} + e_t$. Details are given in Appendix~\ref{app:depth-embedding-details}.
+ 
+\subsection{Task-Specific Perception Interfaces}
+\label{sec:perception}
+
+Rather than hardcoding specific task rules into the reasoning core, we design modular perception interfaces that inject varying degrees of structural inductive biases into the initial state $H^{(0)}$. We explore three distinct interface paradigms:
+
+\paragraph{Topological Masking (Strict Structural Priors).}
+
+To enforce physical constraints where computation must strictly follow defined topological pathways (e.g., graph routing), we introduce an adjacency mask. Given an adjacency matrix $A$, we add self-loops ($A_{ii} = 1$) and construct an additive mask matrix $M \in \mathbb{R}^{n \times n}$:
+\begin{equation}
+M_{ij} = 
+\begin{cases} 
+0, & \text{if } A_{ij} = 1 \\
+-\infty, & \text{if } A_{ij} = 0
+\end{cases}
+\end{equation}
+The attention is computed as $\text{softmax}(QK^T/\sqrt{d_k} + M)V$. Physically, the $-\infty$ term forces the attention probability to exactly zero for non-adjacent nodes, perfectly simulating a strict message-passing neural network.
+
+\paragraph{Relative Positional Encoding (Hierarchical Priors).}
+
+For sequences where structural hierarchy depends on relative distances rather than strict adjacency (e.g., evaluating nested symbolic expressions), topological masking is overly restrictive. Instead, we utilize \emph{Rotary Position Embeddings (RoPE)}~\citep{su2024roformer}. By multiplying the query and key vectors with rotation matrices corresponding to their respective absolute positions $m$ and $n$ ($R_{\Theta, m}$ and $R_{\Theta, n}$), the inner product inherently encodes their relative sequence distance $(m - n)$:
+\begin{equation}
+\langle \tilde{q}_m, \tilde{k}_n \rangle = q^T R_{\Theta, m-n} k
+\end{equation}
+
+Under this interface, the attention remains fully bidirectional, relying entirely on the rotational bias to maintain fragile hierarchical states.
+
+\paragraph{Standard Sequence Attention (Task-Agnostic Priors).}
+
+To test the reasoning core's ability to autonomously discover latent routing paths in unstructured sequences (e.g., natural language facts), we remove task-specific structural biases. While we retain standard Rotary Position Embeddings (RoPE) to allow the perception interface to process local word order, the input facts are completely shuffled. Consequently, unlike the logic domain, where relative distance directly correlates with hierarchical depth, the 1D sequence distance in this bag-of-facts provides no meaningful structural hints about the underlying relational graph. The invariant reasoning core must discover the correct pointer-chasing routes entirely on its own.
+
+\subsection{Task-Specific Readout Mechanisms}
+\label{sec:readout}
+
+After the latent reasoning is unrolled for $T$ steps, a readout head decodes the final state $H^{(T)}$. We employ distinct readout mechanisms depending on the interface:
+\begin{itemize}
+    \item Pairwise Node Readout (for Topological domains): The $d$-dimensional representations corresponding to the specific source and target nodes are extracted, concatenated, and passed through an MLP.
+    \item Global Sequence Readout (for Hierarchical domains): The global representation of the \texttt{[CLS]} token at position 0 is extracted and passed through a linear classifier.
+    \item Latent Pointer Readout (for Unstructured domains): Similar to the pairwise readout, the representations of the queried entities are extracted and concatenated. This localized readout forces the unconstrained attention mechanism to actively route information between specific entities across the sequence.
+\end{itemize}

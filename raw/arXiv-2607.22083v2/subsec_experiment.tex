@@ -1,0 +1,170 @@
+\subsection{Evaluation}
+
+We evaluate the model from two complementary perspectives: \textbf{(1) general and agentic capabilities} and \textbf{(2) local personal assistant performance}.
+The first component assesses the model across complex tool-use, coding, and office-agent tasks, as well as mathematical and scientific reasoning, competitive programming, and instruction following. Together, these benchmarks characterize the model's agentic, reasoning, and alignment capabilities under standardized evaluation protocols.
+The second component focuses on practical local assistant applications. Rather than measuring individual capabilities in isolation, these benchmarks evaluate the model within a unified agent framework on end-to-end tasks involving multi-step planning, tool interaction, office productivity, and deep research. This setting more closely reflects how the model would be used in local deployments.
+Together, the two components provide a comprehensive view of the model’s general capability profile and its effectiveness in practical agentic applications.
+
+\subsubsection{General and Agentic Capabilities}
+
+We evaluate Nanbeige4.2-3B across a diverse benchmark suite with four major capability categories:
+
+\begin{itemize}[leftmargin=10pt]
+
+\item \textbf{General Agents.}
+GDPval Rubrics~\cite{fry2025gdpval}, AgentIF-Oneday~\cite{chen2026agentifoneday}, OfficeQA-Pro~\cite{opsahlong2026officeqa}, PinchBench-V2, ClawGym~\cite{bai2026clawgym}, Claw-Eval~\cite{ye2026claw}, and MCP-Atlas~\cite{bandi2026mcpatlas} assess general agent capabilities, including office productivity, multi-step task execution, tool use, and realistic workflow completion.
+
+\item \textbf{Code Agents.}
+SWE-Bench Verified~\cite{jimenez2024swebench}, SWE-Bench Pro~\cite{deng2025swebenchpro}, and Terminal-Bench 2.0~\cite{merrill2026terminalbench} evaluate software engineering performance through repository-level code modification, debugging, terminal interaction, and autonomous development tasks.
+
+\item \textbf{Reasoning.}
+HLE~\cite{phan2025humanitysexam}, SciCode~\cite{tian2024scicode}, GPQA-Diamond, HMMT-Feb-2026~\cite{dekoninck2026matharena}, IMO-Answer-Bench~\cite{luong2025towards}, and LiveCodeBench-V6 cover scientific, mathematical, and code reasoning.
+
+\item \textbf{Alignment.}
+AA-LCR and IF-Bench~\cite{pyatkin2025generalizing} assess long-context reasoning and complex instruction-following abilities. We also include Recruit-Bench, our in-house benchmark that covers both enterprise hiring (B2C) and candidate job-seeking (C2B) scenarios. It evaluates model alignment in realistic enterprise recruitment workflows. 
+
+\end{itemize}
+
+
+For comparison, we include open-source models of similar or larger sizes, including Qwen3.5-4B, Qwen3.5-9B, Gemma4-E4B, and Gemma4-12B. Detailed evaluation settings and benchmark-specific protocols are provided in the Appendix~\ref{app:evaluation}.
+
+
+
+\begin{table*}[t]
+\centering
+\small
+\setlength{\tabcolsep}{5.0pt}
+\renewcommand{\arraystretch}{1.08}
+\caption{Evaluation results across general-agent, code-agent, reasoning, and alignment benchmarks.}
+
+\label{tab:general_agentic}
+\begin{tabular}{lccccc}
+\toprule
+
+& \makecell[c]{Qwen3.5-4B}
+& \makecell[c]{Qwen3.5-9B}
+& \makecell[c]{Gemma4-E4B}
+& \makecell[c]{Gemma4-12B}
+& \makecell[c]{Nanbeige4.2-3B} \\
+\midrule
+\# Total Params        & 5B    & 10B   & 8B    & 12B   & 4B \\
+\# Non-embedding Params& 4B    & 8B    & 4B    & 10B   & 3B \\
+\midrule
+
+\multicolumn{6}{c}{\textit{General Agent}}\\
+\midrule
+
+GDPval Rubrics     & 46.7 & 61.9 & 31.5 & \underline{68.5} & \textbf{74.3}\\
+AgentIF-Oneday    & 56.9 & \underline{60.4} & -- & -- & \textbf{67.5}\\
+OfficeQA-Pro      & 8.3 & \underline{15.8} & 3.1 & 15.3 & \textbf{21.1}\\
+PinchBench-V2     & 63.9 & \underline{68.2} & 33.3 & 53.8 & \textbf{74.7}\\
+ClawGym           & 53.0 & \underline{56.1} & 16.4 & 40.8 & \textbf{65.0}\\
+Claw-Eval $_{\text{\tiny Pass\^{}3}}$        & 36.9 & \underline{47.1} & 15.9 & 25.5 & \textbf{52.2}\\
+MCP-Atlas          & 40.8 & \underline{47.4} & 15.0 & 30.5 & \textbf{57.8}\\
+
+\midrule
+
+\multicolumn{6}{c}{\textit{Code Agent}}\\
+\midrule
+
+SWE-Bench Verified & 38.8 & \underline{53.1} & 14.0 & 44.2 & \textbf{63.6}\\
+SWE-Bench Pro      & 29.4 & \underline{33.8} & 4.0 & 21.9 & \textbf{46.9}\\
+Terminal-Bench 2.0 & 25.8 & \underline{29.2} & 12.4 & 21.1 & \textbf{44.1}\\
+
+\midrule
+
+\multicolumn{6}{c}{\textit{Reasoning}}\\
+\midrule
+
+HLE (w/o Search)    & 6.8 & 12.5 & 4.0 & \underline{14.8} & \textbf{17.8}\\
+SciCode            & 22.7 & {32.7} & 24.9 & \textbf{38.2} & \underline{35.6}\\
+GPQA Diamond       & 78.2 & \underline{81.7} & 60.6 & 78.8 & \textbf{87.4}\\
+HMMT-Feb-2026      & 60.6 & \underline{69.6} & 24.2 & 51.5 & \textbf{82.8}\\
+IMO-Answer-Bench   & 46.8 & \underline{56.3} & 24.0 & 54.5 & \textbf{67.3}\\
+LiveCodeBench-V6   & 55.8 & {65.6} & 55.3 & \underline{72.0} & \textbf{72.5}\\
+
+\midrule
+
+\multicolumn{6}{c}{\textit{Alignment}}\\
+\midrule
+
+AA-LCR             & 52.0 & \underline{58.0} & 30.7 & 55.3 & \textbf{58.7}\\
+IF-Bench           & 41.4 & 54.1 & 44.0 & \textbf{73.5} & \underline{54.6}\\
+Recruit-Bench      & 40.7 & 59.0 & 57.9 & \textbf{69.4} & \underline{63.3}\\
+
+\bottomrule
+\end{tabular}
+\label{tab:overall_benchmarks}
+\end{table*}
+
+
+\paragraph{Overall Results.}
+
+Table~\ref{tab:overall_benchmarks} summarizes the overall evaluation results. With only 3B non-embedding parameters, Nanbeige4.2-3B achieves the best results on all reported general-agent and code-agent benchmarks, outperforming the larger Qwen3.5-9B and Gemma4-12B models. These results cover complex tool-use, office workflows, repository-level software engineering, and terminal-based tasks, demonstrating broad agentic capability rather than specialization in a single environment.
+
+Nanbeige4.2-3B also achieves the best result on five of the six reasoning benchmarks while remaining competitive on alignment tasks. Gemma4-12B performs better on IF-Bench and Recruit-Bench, but Nanbeige4.2-3B provides a stronger overall balance across agentic, reasoning, and alignment evaluations under a substantially smaller parameter budget.
+
+
+
+
+\subsubsection{Local Personal Assistant}
+
+With the small parameter scale, Nanbeige4.2-3B is compact enough for efficient local deployment while retaining strong reasoning and tool-use capabilities. To evaluate its effectiveness as a practical local assistant, we choose OpenClaw, a unified agent framework supporting daily assistance, office productivity, and deep research workflows. We evaluate Nanbeige4.2-3B across three representative local-assistant scenarios:
+
+\begin{itemize}[leftmargin=10pt]
+    \item \textbf{Daily Tasks.}
+    PinchBench-V2 and ClawGym assess common personal-assistant capabilities including task execution, information retrieval, tool interaction, and everyday workflow automation.
+    
+    \item \textbf{Office Tasks.} 
+    GDPval and AgentIF-Oneday evaluate document understanding, office productivity, and multi-step workplace workflows.
+    
+    \item \textbf{Deep Research.}
+    DeepResearch Bench II~\cite{li2026deepresearchbenchii} and ResearchRubrics~\cite{sharma2025researchrubrics} cover long-horizon planning, iterative information retrieval, evidence synthesis, and research-oriented reasoning across multiple external resources.
+\end{itemize}
+
+\begin{table}[t]
+\centering
+\small
+\setlength{\tabcolsep}{5.0pt}
+\renewcommand{\arraystretch}{1.08}
+\caption{Evaluation results on local personal assistant benchmarks under the OpenClaw framework.}
+\label{tab:local_assistant}
+\begin{tabular}{lccc}
+\toprule
+Benchmark
+& \makecell[c]{Qwen3.5-4B}
+& \makecell[c]{Qwen3.5-9B}
+& \makecell[c]{Nanbeige4.2-3B} \\
+\midrule
+
+\multicolumn{4}{c}{\textit{Daily Tasks}}\\
+\midrule
+
+Pinch-Bench-V2          & 63.9 & \underline{68.2} & \textbf{74.7}\\
+Claw-Gym                & 53.0 & \underline{56.1} & \textbf{65.0}\\
+
+\midrule
+
+\multicolumn{4}{c}{\textit{Office Tasks}}\\
+\midrule
+
+GDPval                  & 37.0 & \underline{38.0} & \textbf{68.8}\\
+AgentIF-Oneday         & 27.0 & \underline{32.1} & \textbf{58.9}\\
+
+\midrule
+
+\multicolumn{4}{c}{\textit{Deep Research}}\\
+\midrule
+
+DeepResearch Bench II   & 26.0 & \underline{28.3} & \textbf{33.4}\\
+ResearchRubrics         & 35.1 & \underline{37.2} & \textbf{44.8}\\
+
+\bottomrule
+\end{tabular}
+\label{tab:sub_benchmarks}
+\end{table}
+
+
+\paragraph{Overall Results.}
+
+Table~\ref{tab:sub_benchmarks} reports results obtained with the same OpenClaw scaffold, tool set, and protocol for all models. Nanbeige4.2-3B outperforms Qwen3.5-4B and the larger Qwen3.5-9B on all six benchmarks spanning daily tasks, office workflows, and deep research. The gains are consistent across all three task categories and are especially clear on office workflows, indicating that the model's general agentic capabilities transfer well to a unified local-assistant setting. These results support its use as a compact local personal assistant.

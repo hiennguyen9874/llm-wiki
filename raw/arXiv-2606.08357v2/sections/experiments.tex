@@ -1,0 +1,113 @@
+\vspace{-10pt}
+\section{Evaluations}
+\vspace{-10pt}
+
+\label{sec:experiments}
+
+\input{tables/main_table}
+
+\paragraph{Training setups} We build \method on top of Qwen3-4B-Base~\citep{qwen3} and perform continued pretraining on a curated 10B-token data mixture containing several open-sourced datasets, which we decontaminated against all evaluation benchmarks. 
+The model adopts blockwise causal attention with a block size of $4$, allowing bidirectional attention within each block while preserving causal attention across blocks. 
+We implement this attention pattern with FlexAttention~\citep{flex_attn} to improve training efficiency.
+Training proceeds in two phases:
+1) We continue pretraining for 8B tokens with the self-refinement objective in Eq.~\eqref{eq:self_refine_loss}, with the budget of refinement forwards $K=3$;
+2) We then branch into two refinement variants for the remaining 2B tokens. 
+The self-refinement model continues to optimize the refinement objective, whereas the best-of-N model optimizes Eq.~\eqref{eq:bon_loss} using four model-generated negative candidates per instance~($N=4$). 
+All training is conducted on 64 NVIDIA GH200 GPUs with a global batch size of 128.
+Further implementation details are presented in Appendix~\ref{app:training_details}.
+
+\paragraph{Baseline models}
+We compare \method-4B against representative diffusion base models below 8B parameters, including \textbf{DiffuLLaMA}~\citep{DiffuLLaMA}, \textbf{LLaDA-MoE-7B-A1B-Base}~\citep{llada-moe}, \textbf{LLaDA-8B-Base}~\citep{LLaDA}, \textbf{Dream-7B-Base}~\citep{dream7b}, and \textbf{TiDAR-8B}~\citep{tidar}~(for which we report both the trusting-AR and trusting-diffusion variants). 
+For a controlled efficiency comparison with masked-diffusion training, we further train a \textbf{BlockDiff-4B} baseline using the same training setups as \method, following the blockwise masked diffusion formulation in~\citep{block_diffusion}.
+
+\paragraph{Evaluation benchmarks}
+We evaluate \method and baselines on six benchmarks spanning \textbf{General Knowledge}~(MMLU~\citep{mmlu} and GPQA-Diamond~\citep{gpqa}), \textbf{Mathematical Reasoning}~(GSM8K~\citep{gsm8k} and MATH-500~\citep{math500}), and \textbf{Code Generation}~(HumanEval~\citep{humaneval} and HumanEval+~\citep{humaneval_plus}). 
+All evaluations follow the standard shot settings for base models~\cite{qwen3} and report the final accuracy~(\%). 
+As depicted in Sec.~\ref{sec:parameterization_design}, we investigate \method of two parameterization designs: \emph{Self-refinement} uses greedy decoding, and \emph{Best-of-N} generates candidates via greedy marginal-cost beam search and evaluates them by $\log K_{\theta,\mathrm{SR}}\rbr{\dv\mid\dv'}+\tau\scorer\rbr{\dv}$ with $\tau=0.1$.
+
+\subsection{Main Results}
+
+Table~\ref{tab:main_results} presents the decoding performance of \method and seven diffusion base models across general knowledge, mathematical reasoning, and code generation benchmarks. 
+Overall, \method-4B achieves the strongest diffusion-model performance on four reasoning and coding benchmarks, despite being smaller than several 7-8B competitors. 
+The two variants of \method validate the effectiveness of forward-free refinement. 
+With best-of-N refinement, \method improves over the strongest prior diffusion baselines by at least 2.60\% on mathematical reasoning and 4.27\% on code generation, and delivers gains of roughly 5-15\% over representative larger diffusion models on most reasoning and coding tasks. 
+Notably, \method achieves these gains with only a 10B-token continued-pretraining budget, whereas strong AR-adapted diffusion baselines such as Dream-7B-Base~\citep{dream7b} and TiDAR-8B~\citep{tidar} reportedly use 600B and 50B tokens, respectively.
+Self-refinement also consistently outperforms existing diffusion baselines by at least 4.37\% on reasoning and coding tasks, showing that recursive draft refinement alone is already effective. 
+Under the same initial model and training data, \method also surpasses the BlockDiff-4B baseline trained with a masked-diffusion objective by 5.06\% on average across all evaluated benchmarks~\citep{block_diffusion}. 
+Notably, \method-4B also matches or exceeds the Qwen3-4B AR base model across most of the evaluated benchmarks, suggesting that forward-free refinement can substantially narrow the gap between diffusion and autoregressive language models. 
+
+
+
+
+\subsection{Inference Efficiency}
+\label{sec:exp_inference}
+\begin{figure}[!t]
+    \centering
+    \includegraphics[width=\linewidth]{figures/iteration_scaling_groups_skip_iter1.pdf}
+    \caption{%
+        \textbf{Iterative refinement continuously improves \method.}
+        Accuracy~(\%) of \method~(Best-of-N) and \method~(Self-refine) with increasing number of refinement iterations over initial draft on Mathematics, Coding, and Overall. 
+        We report the gain over the single-iteration baseline of the better variant at each iteration.     
+        For refinement iterations 4 and 5, early stopping is disabled to isolate the effect of additional refinement.
+    }
+    \label{fig:iter-scaling}
+\end{figure}
+\vspace{-10pt}
+
+\paragraph{Improvement through refinement}
+As discussed in Sec.~\ref{sec:discussion}, \method supports flexible inference by applying additional refinement iterations after the initial draft prediction. 
+Figure~\ref{fig:iter-scaling} shows how performance evolves as the number of refinement steps increases. 
+Across benchmarks of different domains, both parameterizations of \method substantially improve over the single-step draft baseline, with overall accuracy increasing from 25.9\% at one refinement step to 56.3\% after five steps. 
+The gains are most pronounced in the early refinement stage: moving from one to three steps improves overall accuracy by nearly 30\%, after which performance begins to converge. 
+This convergence is consistent with a block size of $4$, in which most refinable positions within each block are revisited after a small number of iterations.
+Comparing the two parameterizations, self-refinement is slightly stronger in the low-iteration regime, suggesting that greedy refinement can provide an efficient trajectory when only limited refinement computation is available. 
+As the refinement budget increases, best-of-N becomes more effective and benefits from parallel candidate exploration and scorer-based selection. 
+Overall, \method exhibits consistent self-improvement through iterative refinement and provides a controllable quality-compute tradeoff at inference time.
+
+
+\begin{figure}[!t]
+    \centering
+    \includegraphics[width=\linewidth]{figures/tpf_vs_acc_per_bench.pdf}
+    \caption{%
+\textbf{\method Pareto frontier outperforms open diffusion baselines across math and coding tasks.}
+Accuracy~(\%) of \method~(Best-of-N) and \method~(Self-refine) against tokens-per-forward~(TPF) on GSM8K, MATH-500, HumanEval, and HumanEval+.
+The two \method curves are the Pareto envelopes of a joint sweep over the number of iterations and the confidence threshold for early stop; diffusion baselines follow each model's native TPF schedule.}
+    \label{fig:pareto-frontier}
+\end{figure}
+% \vspace{-10pt}
+
+\paragraph{Speed--quality Pareto frontier}
+A key feature of diffusion language models is their ability to generate multiple tokens per forward pass, often at the expense of sample quality. 
+Figure~\ref{fig:pareto-frontier} compares the speed-quality Pareto frontiers of \method and diffusion baselines. 
+Across a wide range of tasks, both variants of \method achieve 1.5-2.5 tokens per forward while delivering at least 10\% higher decoding accuracy. 
+Moreover, \method matches the best performance of existing diffusion baselines with fewer forward passes, yielding an average generation speedup of 1.5-1.8$\times$ at matched quality.
+Even in the high-throughput regime with more than 2.5 tokens per forward pass, \method remains competitive with, and often surpasses, the diffusion baselines. 
+These results highlight that forward-free refinement improves not only generation quality but also the quality-speed trade-off over existing masking diffusion language models.
+% \vspace{-4pt}
+\subsection{Ablation Studies}
+
+
+\input{tables/bon_alpha}
+\paragraph{Temperature factor in Best-of-N scorer}
+Table~\ref{tab:alpha_ablation} ablates the temperature $\tau$ in Best-of-N selection, where candidates are scored by $\log K_{\theta,\mathrm{SR}}\rbr{\dv\mid\dv'}+\tau\scorer\rbr{\dv}$. 
+As shown in Sec.~\ref{sec:parameterization_design}, the scorer is trained to estimate a correction to the backbone likelihood, corresponding to the log-probability gap between the target  distribution and the proposal distribution. 
+With $\tau=0.1$, Best-of-N achieves the best overall performance and improves the average score of self-refinement by 1.32\%.
+This suggests that the scorer is most effective as a calibrated correction signal rather than a dominant ranking objective. 
+Too large weights preserve similar mathematical performance but degrade coding and overall accuracy, suggesting that over-amplifying the scorer can introduce ranking noise. 
+A reasonably small weight likely flips candidate preferences only when the estimated refinement gap is large, while retaining the backbone likelihood as the primary signal when scorer estimates are uncertain.
+
+\input{tables/bon_width}
+\paragraph{Search width in Best-of-N}
+Table~\ref{tab:bon_width_ablation} studies the effect of increasing the Best-of-N search width from 2 to 4 candidates under different refinement budgets. 
+Although the gains are modest, increasing the width consistently improves performance across mathematics, coding, and overall averages. 
+With two refinement iterations, the larger candidate set improves the overall score by 0.65\%, and with four iterations, it further improves it by 0.52\%. 
+This suggests that broader candidate exploration provides a reliable complementary benefit to iterative refinement, and \method can exploit additional parallel inference computation by using a wider Best-of-N search.
+
+\paragraph{Model parameterization}
+We compare the two refinement parameterizations introduced in Sec.~\ref{sec:parameterization_design}. 
+In Table~\ref{tab:main_results}, Best-of-N achieves better final performance than self-refinement. This improvement comes from its ability to explore multiple candidates in parallel and use the learned scorer to select more reliable refinements. 
+Hypothesically, the scorer may provide a useful correction signal beyond the base model's likelihood, helping rectify generation-format errors in chain-of-thought reasoning and select syntactically or functionally better code snippets.
+This advantage is also reflected in Figure~\ref{fig:pareto-frontier}, where Best-of-N yields a slightly stronger Pareto frontier in the medium-throughput regime. 
+On the other hand, self-refinement is more effective under limited refinement budgets, as shown in Figure~\ref{fig:iter-scaling}, and often performs better in the high-throughput regime above 2.5 TPF. 
+Overall, self-refinement is preferable for fast decoding, while Best-of-N provides stronger quality when additional candidate exploration is affordable.
+

@@ -1,0 +1,52 @@
+\begin{table*}[h!]
+  \caption{
+    Comparison of parameter-sharing strategies (Cycle, Sequence, Middle-Cycle, Middle-Sequence) across two model scales (135M and 360M) and two recursion depths ($N_R = 2$ and $N_R = 3$). All models are pretrained from scratch on 10B tokens. We report validation negative log-likelihood (NLL) on FineWeb-Edu and few-shot accuracy across six tasks. Middle-Cycle consistently outperforms other strategies in both NLL and average task accuracy, especially at higher recursion depth. We highlight the optimal strategy for each setting in gray.\looseness=-1
+    }
+  \label{tab:revist_sharing_strategy}
+  \small
+  \centering
+  \resizebox{\textwidth}{!}{
+  \setlength{\tabcolsep}{4pt}
+  \begin{tabular}{l|ccc|cc|c|cccccc|c}
+  \toprule
+   & \multicolumn{3}{c|}{\textbf{Pretrain}} & \multicolumn{2}{c|}{\textbf{Recursion}} & \textbf{NLL\,$\downarrow$} & \multicolumn{7}{c}{\textbf{Few-shot Accuracy\,$\uparrow$}} \\
+  \cmidrule(l{2pt}r{2pt}){2-4} \cmidrule(l{2pt}r{2pt}){5-6} \cmidrule(l{2pt}r{2pt}){7-7} \cmidrule(l{2pt}r{2pt}){8-14} 
+    \textbf{Base Model} & N-Emb & $N_L$ & $N_{tok}$ & Share & Loop & FineWeb & LD & HS & PQ & WG & ARC & \!MMLU\! & Avg \\
+  \midrule
+  Vanilla\,135M & 106M & 30 & 10B & - & - & 3.0323 & 24.14 & 31.12 & 61.15 & 52.01 & 34.74 & 25.95 & 38.19 \\
+  Vanilla\,135M & \,\,\,53M & 15 & 10B & - & - & 3.0818 & 23.64 & 30.10 & 60.94 & 50.99 & 35.38 & 25.93 & 37.83 \\
+  Vanilla\,135M & \,\,\,35M & 10 & 10B & - & - & 3.1582 & 21.46 & 29.30 & 60.01 & 52.01 & 34.40 & 25.53 & 37.12 \\
+  \midrule
+  \rowcolor[gray]{0.9}
+  Vanilla\,135M & \,\,\,53M & 15 & 10B & Cyc & 2 & 3.0071 & 25.52 & 31.25 & 61.10 & 50.99 & 36.08 & 26.11 & 38.51 \\
+  Vanilla\,135M & \,\,\,53M & 15 & 10B & Seq & 2 & 3.1093 & 22.39 & 29.60 & 61.10 & 50.12 & 34.46 & 25.72 & 37.23 \\
+   Vanilla\,135M & \,\,\,57M & 1+14+1 & 10B & M-Cyc & 2 & 3.0330 & 23.40 & 31.20 & 61.59 & 50.59 & 35.44 & 25.54 & 37.96 \\
+    Vanilla\,135M & \,\,\,57M & 1+14+1 & 10B & M-Seq & 2 & 3.0991 & 21.70 & 30.06 & 60.45 & 49.41 & 35.20 & 25.74 & 37.09 \\
+    \midrule
+    Vanilla\,135M & \,\,\,35M & 10 & 10B & Cyc & 3 & 3.1154 & 21.42 & 30.14 & 60.61 & 49.72 & 34.15 & 25.57 & 36.94 \\
+    Vanilla\,135M & \,\,\,35M & 10 & 10B & Seq & 3 & 3.1637 & 19.99 & 29.39 & 59.25 & 51.62 & 33.79 & 25.32 & 36.56 \\
+    \rowcolor[gray]{0.9}
+    Vanilla\,135M & \,\,\,39M & 1+9+1 & 10B & M-Cyc & 3 & 3.1048 & 22.41 & 30.35 & 61.04 & 49.01 & 34.80 & 25.91 & 37.26 \\
+    Vanilla\,135M & \,\,\,39M & 1+9+1 & 10B & M-Seq & 3 & 3.1602 & 20.69 & 29.35 & 61.43 & 51.30 & 34.40 & 25.51 & 37.11 \\
+    \midrule
+    \midrule
+    Vanilla\,360M & 315M & 32 & 10B & - & - & 2.8471 & 27.27 & 34.78 & 64.20 & 52.80 & 38.29 & 26.72 & 40.68 \\
+    Vanilla\,360M & 157M & 16 & 10B & - & - & 2.8908 & 27.01 & 33.49 & 64.42 & 52.09 & 37.40 & 26.54 & 40.16 \\
+    Vanilla\,360M & \,\,\,98M & 10 & 10B & - & - & 2.9449 & 26.41 & 32.93 & 63.38 & 50.36 & 37.15 & 26.48 & 39.45 \\
+    \midrule
+    Vanilla\,360M & 157M & 16 & 10B & Cyc & 2 & 2.8487 & 28.47 & 34.79 & 63.06 & 49.96 & 37.38 & 26.81 & 40.08 \\
+    Vanilla\,360M & 157M & 16 & 10B & Seq & 2 & 2.9467 & 26.33 & 32.49 & 62.89 & 52.41 & 36.37 & 26.24 & 39.46 \\
+    \rowcolor[gray]{0.9}
+    Vanilla\,360M & 167M & 1+15+1 & 10B & M-Cyc & 2 & 2.8295 & 28.59 & 34.98 & 64.53 & 50.51 & 39.68 & 27.20 & 40.91 \\
+    Vanilla\,360M & 167M & 1+15+1 & 10B & M-Seq & 2 & 2.9303 & 26.14 & 32.71 & 62.79 & 51.38 & 36.31 & 25.73 & 39.18 \\
+    \midrule
+    Vanilla\,360M & \,\,\,98M & 10 & 10B & Cyc & 3 & 2.9363 & 25.87 & 32.98 & 62.89 & 50.28 & 36.35 & 26.54 & 39.15 \\
+    Vanilla\,360M & \,\,\,98M & 10 & 10B & Seq & 3 & 3.0245 & 24.55 & 31.48 & 63.11 & 49.25 & 35.65 & 25.73 & 38.30 \\
+    \rowcolor[gray]{0.9}
+    Vanilla\,360M & 118M & 1+10+1 & 10B & M-Cyc & 3 & 2.8760 & 28.51 & 34.89 & 64.31 & 50.51 & 39.51 & 27.20 & 40.82 \\
+    Vanilla\,360M & 118M & 1+10+1 & 10B & M-Seq & 3 & 2.9753 & 24.18 & 31.89 & 62.08 & 49.72 & 36.47 & 26.27 & 38.44 \\
+    \bottomrule
+  \end{tabular}
+  }
+  
+\end{table*}

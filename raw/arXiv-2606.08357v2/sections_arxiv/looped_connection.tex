@@ -1,0 +1,19 @@
+\subsection{Connection to Looped Transformers}
+\label{sec:looped_connection}
+
+\method can be understood directly as a Looped Transformer, which repeatedly reuses a shared Transformer module to refine a recurrent state, increasing effective computation without increasing the number of distinct model parameters~\citep{dehghani2019universal,saunshi2025latentthoughts,geiping2025recurrentdepth}.
+In \method, the recurrent state is the model-generated block-level token draft itself, together with the confidence and commitment information used by the decoder.
+The same refinement backbone is applied at every loop, and the resulting draft is supplied to the next pass.
+Thus, \method realizes looped computation through explicit sequence refinement rather than through a persistent latent residual stream.
+
+This choice makes supervision particularly simple.
+Each loop state is already a candidate text output and can therefore be compared directly with the clean target.
+Under iteration-sampled training, the earlier passes generate the draft under stop-gradient and only the final refinement pass receives gradients.
+Accordingly, \method does not require BPTT across refinement iterations, although standard backpropagation is still performed within the final Transformer pass.
+Additional loops are also not computationally free: reaching a deeper sampled draft requires additional forward-only refinement passes.
+This detached training strategy is related to random deep supervision for latent Looped Transformers~\citep{park2026loopus}, but here it arises naturally from directly supervised token drafts.
+
+The looped interpretation also clarifies the inference design.
+Reusing the same backbone provides recurrent-depth scaling without increasing parameter count, while the explicit draft state preserves block-parallel token updates and can branch into multiple candidates for Best-of-$N$ selection.
+Latent Looped Transformers may retain a richer hidden state across loops; \method instead restricts the recurrent state to a vocabulary-aligned draft in exchange for direct supervision, interpretable intermediate outputs, and simple branching.
+We view these as complementary designs within the Looped Transformer family rather than claiming that one recurrent state parameterization is universally preferable.

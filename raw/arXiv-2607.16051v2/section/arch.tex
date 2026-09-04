@@ -1,0 +1,398 @@
+\newpage
+
+\input{figures/model}
+
+\section{The Loopie Series}
+
+This section presents the Loopie Series, from its architecture to the evidence for its scalability. We begin by defining Loopie's layer-loop recurrence pattern and contrasting it with the classic model-loop pattern used in prior looped language models. We then motivate the design under a fixed pre-training compute budget, where models that use recurrent depth must be compared against vanilla Transformers that spend the same compute on ordinary non-recurrent capacity. Building on this motivation, we introduce the Loopie Recipe, a compute-matched scaling recipe for choosing stored width, stored depth, and recurrent depth. We next present the main compute-matched results, examine whether the advantage persists across model scales, and isolate the contribution of the layer-loop pattern through ablations. Finally, we discuss why Loopie uses only two recurrent steps.
+
+\subsection{Architecture}
+\label{subsec:architecture}
+
+Loopie largely follows the Qwen3-MoE architecture. In particular, its backbone is a decoder-only Mixture-of-Experts Transformer, and its attention mechanism, sparsity pattern, and other architectural details remain the same as those of the Qwen3-MoE family. Detailed architectural specifications are provided in Appendix~\ref{arch_details}. The key architectural difference lies in how recurrent computation is applied. Instead of simply repeating the entire model multiple times, Loopie adopts a different recurrence pattern that we call \textbf{layer-loop}.
+
+Prior looped language models, such as Ouro and Huginn \citep{zhu2025scalinglatent,geiping2025scalinglatent}, mainly use what we call \textbf{model-loop}. In model-loop recurrence, the entire Transformer stack is unrolled recurrently: for a model with three layers and two loop steps, the computation order is
+\[
+\text{Layer 1} \rightarrow \text{Layer 2} \rightarrow \text{Layer 3}
+\rightarrow \text{Layer 1} \rightarrow \text{Layer 2} \rightarrow \text{Layer 3}.
+\]
+By contrast, Loopie uses \textbf{layer-loop}, in which each layer is applied recurrently before the computation moves to the next layer. For the same three-layer, two-step example, the computation order becomes
+\[
+\text{Layer 1} \rightarrow \text{Layer 1} \rightarrow
+\text{Layer 2} \rightarrow \text{Layer 2} \rightarrow
+\text{Layer 3} \rightarrow \text{Layer 3}.
+\]
+That is, each block performs local iteration on the hidden states and only then passes the resulting recurrent representation to the next layer. Figure~\ref{fig:layer-vs-model-loop} illustrates the difference.
+
+\subsection{Why Layer-Loop?}
+Layer-loop is not merely a different ordering of recurrent computation; it changes where iterative refinement happens inside the model and therefore affects scaling behavior, execution efficiency, and the nature of parameter sharing across effective depth. We adopt layer-loop because it offers three advantages that are especially important for large-scale pre-training.
+
+\paragraph{Better empirical scaling.}
+Layer-loop achieves better performance than model-loop in our pre-training
+experiments. As shown in Figure~\ref{fig:layerloop}, layer-loop initially
+trails model-loop slightly on downstream benchmarks. However, it overtakes
+model-loop after approximately \(1.2\) trillion training tokens and improves
+more rapidly thereafter. The early advantage of
+model-loop therefore does not persist as the training budget increases.
+
+\begin{figure}[!htbp]
+    \centering
+    \includegraphics[width=0.6\linewidth]{figures/layerloop.pdf}
+    \caption{Comparison of the average downstream benchmark scores between the layer-loop and model-loop variants of Loopie-6B-A0.6B. Although layer-loop lags behind model-loop early in training, it surpasses model-loop later.}
+    \label{fig:layerloop}
+\end{figure}
+\FloatBarrier
+
+\paragraph{Infrastructure-friendly execution.}
+Although layer-loop and model-loop have the same nominal number of layer applications and theoretical FLOPs, layer-loop provides better execution locality. Repeated applications of the same layer are adjacent in both the forward and backward computation graphs, which shortens the reuse distance for parameters and gradient contributions and simplifies activation checkpointing and gradient accumulation, especially under parameter sharding or offloading. This locality is particularly beneficial for pipeline parallelism because all recurrent applications of a layer remain within the same pipeline stage before activations are transferred onward. In contrast, model-loop requires each microbatch to traverse the entire pipeline repeatedly and routes the output of the final stage back to the first stage at each loop boundary, introducing cyclic dependencies that may complicate scheduling, increase communication overhead and the number of pipeline bubbles, and reduce device utilization.
+
+\paragraph{Natural parameter-sharing pattern.}
+For example, consider a 48-layer model such as Qwen3-30B-A3B with two model-loop steps. The third physical layer is applied at effective depths \(3\) and \(48 + 3 = 51\). These two invocations occur after markedly different amounts of preceding computation and therefore receive hidden states at widely separated effective depths. Prior analyses suggest that Transformer representations are organized nonuniformly across depth: lower and final layers can differ substantially from the comparatively homogeneous middle layers, while different linguistic abstractions tend to become most accessible at different stages of the network \citep{sun2025transformer,tenney2019bert,jawahar2019bert}. These observations do not directly establish gradient conflict, but they suggest that hidden states at widely separated effective depths need not place identical functional demands on a shared transformation. Thus, model-loop asks a single parameter set to accommodate potentially heterogeneous depth-dependent roles. In contrast, layer-loop reuses a layer at adjacent effective depths, resulting in a more local and potentially more coherent parameter-sharing pattern.
+
+\subsection{Motivation}
+\label{subsec:motivation}
+
+Despite their conceptual appeal, looped Transformers have historically been studied in settings that do not fully reflect the constraints of modern large-scale language model pre-training. In particular, much of the prior work has focused on dense, weight-shared, or recurrent Transformer variants and has evaluated recurrence primarily as a mechanism for improving parameter efficiency~\citep{zhu2025scalinglatent,geiping2025scalinglatent}. This leaves two important issues underexplored.
+
+First, modern frontier language models increasingly rely on Mixture-of-Experts architectures, as exemplified by the recent Qwen3, Kimi K2.5, GLM-5, DeepSeek-V4, and MiniMax-M2 model families~\citep{qwen3,kimi2026kimi25,glm5team2026glm5,deepseekai2026deepseekv4,minimax2026m2}. MoE models expand total model capacity while keeping the number of active parameters per token relatively small, making them substantially more favorable than dense models under both training and inference compute constraints~\citep{shazeer2017outrageously,fedus2022switch,du2022glam,abnar2025parameters}. A practical looped architecture should therefore be compatible with MoE scaling rather than be restricted to dense backbones, because such a restriction would limit its ability to scale to larger model sizes.
+
+Second, pre-training compute is often the dominant constraint in large-model training. It determines how large a model can be, how many tokens it can see, and how many experimental variants can be trained~\citep{kaplan2020scaling,hoffmann2022training}. This creates a key difficulty for looped Transformers: recurrent computation is not free. If a model is looped $N$ times during pre-training, its training compute is also multiplied by approximately $N$. Therefore, a looped model should not merely outperform a vanilla Transformer with the same stored parameter count. To justify recurrence as a scaling strategy, it must compete with vanilla Transformers trained under the same pre-training compute budget.
+
+This requirement is challenging. Prior work suggests that, under fixed-FLOP comparisons, a looped model can have less non-recurrent capacity than a standard Transformer baseline~\citep{csordas2024moeut,frey2026dualpath}. This is consistent with the conventional view that recurrence mainly improves parameter efficiency but not necessarily compute efficiency~\citep{lan2019albert,takase2023lessons}. As a result, prior looped Transformers have not yet provided a clear path toward flagship models at the trillion-parameter scale with frontier-level performance.
+
+Loopie is designed to address this gap. Our central observation is that recurrence becomes competitive under a fixed compute budget only when it is paired with an appropriate recurrence-width-depth trade-off. We formalize this principle as the \textbf{Loopie Recipe}: rather than treating loops as a direct substitute for additional parameters, one should jointly choose stored width, stored depth, and recurrent depth so that the resulting model maximizes performance under a fixed pre-training compute budget. This changes the role of recurrence from a parameter-saving device into a compute-matched scaling mechanism.
+
+\subsection{Loopie Recipe}
+\label{subsec:loopie-recipe}
+
+We now describe the empirical, hardware-aware scaling procedure used to
+instantiate Loopie-20B-A2B. Starting from a strong non-recurrent MoE
+reference, the \textbf{Loopie Recipe} comprises three steps:
+\begin{tcolorbox}[colback=blue!4,colframe=blue!35!black,boxrule=0.5pt,arc=4pt,left=6pt,right=6pt,top=5pt,bottom=5pt]
+(i) constructing a recurrent seed model by halving the number of stored layers; \\
+(ii) executing each stored layer twice using \textit{layer-loop}; and \\
+(iii) using the resulting memory headroom to double the per-device
+microbatch size, then reinvesting the measured training efficiency gain
+into additional model capacity while keeping the optimizer-step time
+approximately matched to the reference model.
+\end{tcolorbox}
+
+In this work, we match models by realized pre-training cost rather than by exact theoretical FLOPs. For every comparison, we fix the hardware allocation, sequence length, number of tokens per optimizer step, activation-checkpointing policy, optimizer, and training data. Architectures may use different per-device microbatch sizes according to their measured memory footprints. When the microbatch size is increased, the number of gradient-accumulation steps is reduced proportionally so that the number of tokens per optimizer step remains unchanged.
+
+We select the Loopie configuration whose measured end-to-end optimizer-step time most closely matches the non-recurrent reference. Since both models use the same token budget and number of optimizer updates, this also approximately matches total wall-clock training cost.
+
+The models are not matched by their theoretical FLOP counts. Loopie performs more nominal computation per token, but the additional work is offset by the higher realized efficiency. We refer to this operationally as a compute-matched comparison. Analytical FLOP and memory models are used only to construct and
+interpret candidate configurations. The final architecture is selected
+using measured end-to-end training time in Megatron-LM~\citep{megatron-lm}.
+
+The measured efficiency gain comes solely from the reduced stored depth, which lowers activation memory and enables us to double the per-device microbatch size while halving the number of gradient-accumulation steps.
+
+\paragraph{Activation memory and microbatch efficiency.}
+Under the checkpointing implementation used in our experiments, all
+recurrent applications of a stored layer are enclosed in the same
+checkpointed unit. Consequently, the dominant activation memory term
+scales with stored depth rather than executed depth. The activation memory $M_{\mathrm{act}}$ during training scales as~\citep{MLSYS2023_80083951,3433701.3433727}
+\[
+M_{\mathrm{act}}
+\propto
+s\,bDL,
+\]
+where $D$ is the hidden dimension, $L$ is the number of stored layers,
+$b$ is the per-device microbatch size, and $s$ is the sequence
+length. The recurrent applications increase the amount of executed computation through the loop count $R$ but do not introduce $R$ independently stored sets of layer-boundary activations under this checkpointing scheme.
+
+For a fixed global batch size \( B \), with per-device microbatch size \( b \) and \( g \) gradient-accumulation steps, we have
+\[
+g = \frac{B}{b}.
+\]
+Reducing $DL$ creates memory headroom that can be used to increase
+$b$. Because the number of gradient-accumulation steps $g$ is
+reduced proportionally, the global batch size remains fixed:
+\[
+b_{1}
+=
+2b_{0},
+\qquad
+g_1
+=
+\frac{g_0}{2}.
+\]
+The larger microbatch exposes more parallel work to each kernel and
+reduces the number of gradient-accumulation micro-steps required for
+each optimizer update.
+
+For a fixed architecture, the corresponding microbatch efficiency gain
+is measured directly as
+\[
+S_{\mathrm{mb}}
+=
+\frac{
+t_{\mathrm{step}}(D,L,R;b,g)
+}{
+t_{\mathrm{step}}(D,L,R;2b,g/2)
+}.
+\]
+This measured quantity is the efficiency factor used by the
+Loopie Recipe.
+
+We use a Qwen3-like 30B-A3B MoE
+Transformer~\citep{qwen3} as the non-recurrent reference, with
+\[
+D_0 = 2048,
+\qquad
+L_0 = 48,
+\qquad
+R_0 = 1.
+\]
+The first step is to construct a recurrent seed model by halving the number of
+stored layers and setting $R=2$:
+\[
+D = 2048,
+\qquad
+L = 24,
+\qquad
+R = 2.
+\]
+The leading-order pre-training compute~\citep{hoffmann2022training} scales as
+\[
+C(D,L,R) \propto L D^2 R.
+\]
+At a fixed width, this transformation preserves the number of Transformer block executions:
+\[
+LR
+=
+24\cdot 2
+=
+48
+=
+L_0R_0,
+\]
+and therefore preserves the leading-order Transformer block compute proxy:
+\[
+LRD^2
+=
+24\cdot 2\cdot 2048^2
+=
+48\cdot 2048^2.
+\]
+
+At the same per-device microbatch size, the dominant activation memory term is reduced by half:
+\[
+\frac{DL}{D_0L_0}
+=
+\frac{2048\cdot 24}{2048\cdot 48}
+=
+0.5.
+\]
+The recurrent seed model therefore performs approximately the same
+leading-order Transformer block work as the reference while requiring substantially less memory for stored activations~\citep{megatron-lm,3433701.3433727}.
+
+The second step is to spend the resulting microbatch efficiency on
+additional model capacity. To satisfy architectural and hardware alignment constraints, we restrict the candidate hidden sizes to multiples of 128. We sweep feasible $(D,L)$ configurations around the recurrent seed model and retain candidates that support a microbatch size twice that of the reference.
+
+Table~\ref{tab:loopie-recipe} lists the candidate configurations. We report the normalized leading-order compute proxy:
+\[
+\widehat{C}
+=
+\frac{LRD^2}{48\cdot 2048^2},
+\]
+and the activation memory proxy at the reference microbatch size,
+\[
+\widehat{M}_{\mathrm{act}}
+=
+\frac{DL}{48\cdot 2048}.
+\]
+These quantities are used to describe the candidates, not to predict
+their final optimizer-step times.
+
+\begin{table}[t]
+    \centering
+    \small
+    \caption{
+    Candidate configurations generated from the Qwen3-like 30B-A3B
+    reference. $\widehat{C}$ is the normalized leading-order Transformer block work
+    proxy, and $\widehat{M}_{\mathrm{act}}$ is the normalized
+    activation memory proxy at a fixed per-device microbatch size.
+    Final compute matching is based on measured optimizer-step wall-clock
+    time.
+    }
+    \label{tab:loopie-recipe}
+    \begin{tabular}{lrrrrr}
+        \toprule
+        Configuration
+        & $D$
+        & $L$
+        & $R$
+        & $\widehat{C}$
+        & $\widehat{M}_{\mathrm{act}}$ \\
+        \midrule
+        Qwen3 30B-A3B
+        & 2048 & 48 & 1 & $1.00\times$ & $1.00\times$ \\
+        \midrule
+        Seed Loopie
+        & 2048 & 24 & 2 & $1.00\times$ & $0.50\times$ \\
+        Loopie candidate 1
+        & 2176 & 25 & 2 & $1.18\times$ & $0.55\times$ \\
+        Loopie candidate 2
+        & 2304 & 27 & 2 & $1.42\times$ & $0.63\times$ \\
+        Loopie candidate 3
+        & 2432 & 28 & 2 & $1.65\times$ & $0.69\times$ \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+We conduct large-scale benchmarking of each candidate configuration in Megatron-LM, following the matching protocol described above. For the reference model and each candidate model, we jointly search over tensor parallelism, expert parallelism, and microbatch size. We then select the candidate whose measured optimizer-step time is closest to that of the non-recurrent reference model:
+\[
+D_1 = 2304,
+\qquad
+L_1 = 27,
+\qquad
+R_1 = 2,
+\]
+which defines Loopie-20B-A2B.
+
+At the reference per-device microbatch size, the dominant
+activation memory proxy of Loopie-20B-A2B relative to the reference is
+\[
+\frac{D_1L_1}{D_0L_0}
+=
+\frac{2304\cdot 27}{2048\cdot 48}
+\approx
+0.633.
+\]
+This expression is a scaling proxy rather than an exact peak-memory
+equation. Candidate feasibility is therefore determined using the
+measured full memory footprint, which also includes parameters,
+optimizer states, temporary buffers, and communication workspaces. The
+measured memory profile of Loopie-20B-A2B permits the per-device
+microbatch size to be doubled:
+\[
+b_{1}
+=
+2b_{0},
+\qquad
+g_1
+=
+\frac{g_0}{2}.
+\]
+This leaves the number of tokens per optimizer step unchanged. The selected model has a normalized leading-order Transformer block compute proxy of
+\[
+\frac{\widehat{C}_1}{\widehat{C}_0}
+=
+\frac{
+27\cdot 2\cdot 2304^2
+}{
+48\cdot 2048^2
+}
+\approx
+1.424.
+\]
+Loopie-20B-A2B matches the reference optimizer-step time only after
+changing the schedule from $(b_0, g_0)$ to $(2b_0, g_0/2)$; thus, the measured efficiency gain is entirely attributable to the doubled
+microbatch size.
+
+The compute-matching criterion is therefore the directly measured relation:
+\[
+t_{\mathrm{step}}
+\left(
+D_1,L_1,R_1;
+2b_{0},g_0/2
+\right)
+\approx
+t_{\mathrm{step}}
+\left(
+D_0,L_0,R_0;
+b_{0},g_0
+\right),
+\]
+rather than an analytical prediction based on $\widehat{C}$. The
+leading-order compute proxy omits lower-order operators, routing and
+communication costs, optimizer overhead, kernel-launch overhead, and
+the effect of the microbatch schedule on realized hardware
+utilization. It is therefore used to characterize nominal work, not to replace end-to-end timing. We evaluated the Loopie Recipe across multiple GPU platforms and observed consistent infrastructure-level gains.
+
+The Loopie Recipe therefore does not claim equality in analytical FLOP estimates. It uses layer-loop recurrence to reduce the stored memory footprint, converts the resulting memory headroom into a doubled per-device microbatch size, spends the measured microbatch efficiency gain on additional model capacity, and selects the final architecture using measured end-to-end optimizer-step time.
+
+\begin{figure}[!htbp]
+    \centering
+    \includegraphics[width=\linewidth]{figures/main.pdf}
+    \caption{Comparison of Loopie-20B-A2B with our reproduction of Qwen3-30B-A3B under matched per-step pre-training wall-clock time in Megatron-LM. The left panel reports the average score across eight downstream benchmarks, while the right panel reports the highest average pre-training throughput achieved for each model during large-scale benchmarking. In the right figure, Loopie-20B-A2B uses EP = 8 and MBS = 2, while Qwen3-30B-A3B uses EP = 8 and MBS = 1. These configurations achieve the highest throughput in a large-scale TP/PP/EP/MBS grid search; the optimal settings may vary across different GPU.}
+    \label{fig:ablation-qwen3}
+\end{figure}
+\FloatBarrier
+
+\subsection{Results}
+
+To test this principle, we compare Loopie against a strong non-recurrent baseline based on the Qwen3-MoE design. Specifically, we train a vanilla 30B-A3B MoE Transformer with a Qwen3-like architecture on 800 billion tokens under the same pre-training compute budget used for Loopie-20B-A2B. As shown in Figure~\ref{fig:ablation-qwen3}, Loopie initially lags behind the larger vanilla baseline during the early phase of training. However, after roughly 600 billion tokens of pre-training, Loopie-20B-A2B overtakes the compute-matched baseline and maintains a consistent advantage thereafter. This result suggests that, with the right scaling recipe, looped MoE models can achieve stronger final performance by using recurrent computation than by allocating the same compute to a larger vanilla Transformer.
+
+\subsection{Scalability}
+\label{subsec:scalability}
+
+A practical recurrent architecture should not only outperform a single compute-matched baseline but also remain effective as the model is scaled. Many architectural ideas show promising results at one small scale yet fail at larger scales for various reasons. We therefore evaluate whether the Loopie design preserves its advantage across a sequence of increasingly large pre-training runs.
+
+\begin{figure}[!htbp]
+    \centering
+    \includegraphics[scale=0.6]{figures/ladder.pdf}
+    \caption{Scaling ladder for Loopie. The horizontal axis denotes the parameter count of the non-recurrent baseline, and the vertical axis reports the average score across eight downstream benchmarks. The Loopie models are not plotted at the parameter counts indicated on the horizontal axis; instead, each Loopie model is sized according to the Loopie Recipe so that its per-step pre-training wall-clock time exactly matches that of the corresponding baseline.}
+    \label{fig:loopie-scalability}
+\end{figure}
+
+We construct a scaling ladder consisting of four non-recurrent MoE baselines and four compute-matched Loopie models. Each Loopie model is obtained by transforming a non-recurrent MoE baseline using the Loopie Recipe. At each rung, the Loopie model uses two layer-loop steps, and its stored width and depth are chosen according to the same compute-matched principle described in Section~\ref{subsec:loopie-recipe}. The goal of this ladder is not to match the stored parameter count but to match the effective pre-training compute of the corresponding vanilla baseline.
+Thus, the Loopie models contain fewer stored parameters while using recurrence to increase effective depth.
+
+For each reference model, we train on a token count equal to 1000× its active MoE parameter count, ensuring that each model is sufficiently overtrained and that its downstream metrics have largely stabilized. We use the same token budget for the corresponding Loopie models, even though these models have fewer active parameters.
+
+For the smallest rung, we train the 0.15B vanilla baseline and its compute-matched 0.10B Loopie counterpart on 150B tokens, placing the models in a heavily overtrained regime relative to standard Chinchilla-style compute-optimal prescriptions. For the 0.25B and 0.50B rungs, we train on 250B and 500B tokens, respectively. For the 1B vanilla baseline and the corresponding 0.70B Loopie model, we also train on 500B tokens due to limited compute. The architectural details for this scaling ladder are provided in Appendix Table~\ref{tab:loopie-scaling-ladder}.
+
+Figure~\ref{fig:loopie-scalability} summarizes the resulting scaling behavior.
+Across all four rungs, Loopie consistently outperforms its compute-matched vanilla counterpart.
+More importantly, the gap does not vanish as model size increases.
+This suggests that Loopie's advantage persists across a meaningful scaling ladder rather than being merely a small-model artifact.
+The result supports the central design hypothesis of the Loopie Series: recurrent layer-loop computation can be converted into scalable modeling gains when stored width, stored depth, and recurrent depth are jointly chosen under a fixed compute budget.
+
+Taken together, the scaling ladder provides evidence that Loopie remains effective beyond an isolated compute-matched comparison.
+As the baseline parameter count grows from 0.15B to 1B, Loopie models continue to deliver stronger downstream accuracy under matched pre-training budgets.
+This behavior is important for large-scale deployment: it indicates that the layer-loop design and the Loopie Recipe are compatible with progressive scaling rather than being limited to a narrow model-size regime.
+
+\subsection{Ablations}
+\label{subsec:ablations}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.6\linewidth]{figures/ablation.pdf}
+    \caption{Layer-loop ablation for Loopie-6B-A0.6B. We report the average score across eight downstream benchmarks for Loopie-6B-A0.6B and Loopie-6B-A0.6B-Ablation. Loopie-6B-A0.6B-Ablation matches Loopie-6B-A0.6B in all architectural details except for the removal of layer-loop recurrence.}
+    \label{fig:ablation-layerloop-6b}
+\end{figure}
+
+In addition to comparing Loopie against a compute-matched vanilla MoE baseline, we further isolate the contribution of the \emph{layer-loop} recurrence schedule. To do so, we conduct a controlled experiment by training a 6B-A0.6B MoE model with the same backbone, optimizer, data mixture, and token budget as Loopie-6B-A0.6B but with the layer-loop pattern removed. This ablated model therefore preserves the overall looped computation budget while testing whether the ordering of recurrent computation is itself important.
+
+Figure~\ref{fig:ablation-layerloop-6b} shows the resulting average score across eight downstream benchmarks. The layer-loop pattern substantially improves downstream performance relative to the matched ablation. Importantly, because neither the number of active parameters nor the overall computation budget increases, the improvement cannot simply be attributed to additional computation.
+
+This result supports the architectural choice made in Loopie. While recurrence increases effective depth, the way recurrence is scheduled matters: naively looping computation is insufficient to achieve high compute efficiency. These ablations suggest that Loopie's gains arise not only from using recurrence but from using recurrence in a form that is aligned with the hierarchical structure of Transformer representations.
+
+\subsection{Why Only Two Loop Steps?}
+\label{subsec:why-two-loops}
+
+Many recurrent language model designs use substantially deeper unrolling. For example, prior looped or latent-recurrent models often use 4, 16, or even more than 30 recurrent steps \citep{zhu2025scalinglatent,geiping2025scalinglatent}. These settings are useful for studying recurrence as a general mechanism for iterative computation. Loopie targets a different regime: large-scale language model pre-training under a fixed compute budget. In this regime, the number of loop steps is not merely an architectural hyperparameter; it is a direct allocation of pre-training FLOPs.
+
+At a fixed stored parameter count and a fixed number of optimizer steps, increasing the number of loop steps usually improves the training curve. However, this comparison is not compute-matched. For a model with $R$ loop steps, the per-token training cost scales approximately linearly with $R$, up to MoE routing and implementation constants:
+\[
+\mathcal{C}(D,L,R)
+\propto
+L D^2 R .
+\]
+Under the same pre-training budget, the model must either be trained on fewer tokens, use a smaller stored architecture, or be compared against a stronger non-recurrent model that spends the same compute on ordinary Transformer capacity. The relevant question is thus not whether a model with $R=4$ outperforms one with $R=2$ at the same stored size but whether the marginal gain from additional recurrence exceeds the gain that could be obtained by reallocating the same FLOPs to width, depth, or data.
+
+\begin{figure}[t]
+    \centering
+    \includegraphics[width=\linewidth]{figures/nx.pdf}
+    \caption{Comparison between $N\times$ layer-loop and $N\times$ stored-layer scaling. We report the average score across eight downstream benchmarks after training each model on 250B tokens while keeping all other architectural details fixed. The shaded gray region denotes the gap between the $N\times$ layer baseline and the $N\times$ loop model.}
+    \label{fig:loop-count-sweep}
+\end{figure}
+
+
+Our loop-count sweep suggests that this marginal return decays rapidly in the large-scale pre-training regime. To isolate whether the gain comes from recurrence rather than simply adding more non-shared layers, we compare a model that uses $N\times$ layer-loop steps with one that has $N\times$ as many stored layers, while holding all other architectural details fixed. Figure~\ref{fig:loop-count-sweep} reports the average score across eight downstream benchmarks after the models are trained on 250B tokens. The shaded gray region highlights the performance gap between the $N\times$ layer baseline and the $N\times$ loop model. For the $2\times$ comparison, we use a $2\times$ stored-layer model only as a conservative proxy for the previous compute-matched setting. Because this model is very small, with only 0.25B active parameters, precise compute matching is difficult under multiple practical constraints, so the actual training compute of the $2\times$ layer baseline is substantially higher than that of the $2\times$ loop model. Thus, the figure should not be read as evidence that $2\times$ looping is dominated by $2\times$ layer scaling; rather, it shows that, when comparing $N\times$ looping against $N\times$ stored-layer scaling, the marginal benefit of recurrence is largest at $R=2$.
+
+We therefore choose $R=2$ for the Loopie Series. This is the smallest nontrivial recurrent setting: each layer performs one ordinary transformation followed by one local refinement step before passing its representation to the next layer. This permits recurrence to change the computation qualitatively while keeping the compute multiplier small enough for scalable pre-training. It also preserves training throughput and makes the comparison against Qwen3-like vanilla MoE baselines stringent: Loopie must outperform these baselines not by using a large amount of extra recurrent computation but by using a small amount of recurrence more effectively.
+
+This choice should not be interpreted as claiming that larger loop counts are ineffective in isolation. Larger $R$ may be useful in settings where inference-time computation is cheap, where adaptive computation is available, or where the goal is to study recurrent reasoning rather than pre-training efficiency. For frontier-scale pre-training, however, the dominant constraint is total compute. Under this constraint, $R=2$ provides the best trade-off we observe between iterative refinement, throughput, and compute-matched scaling.

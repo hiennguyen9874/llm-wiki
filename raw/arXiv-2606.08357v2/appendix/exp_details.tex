@@ -1,0 +1,52 @@
+\section{Experiment Details}
+
+\subsection{Baseline Models}
+
+We compare \method with representative diffusion language models in the sub-8B regime as follows: 
+
+\textbf{DiffuLLaMA}~\citep{DiffuLLaMA} is a 7B-parameter diffusion language model adapted from the autoregressive LLaMA2 backbone. 
+It bridges autoregressive and diffusion-style training by modifying the attention mechanism and mitigating the causal-masking bias inherited from AR pretraining.
+
+\textbf{LLaDA-MoE-7B-A1B-Base}~\citep{llada-moe} is a sparse mixture-of-experts diffusion language model with 7B total parameters and approximately 1B active parameters. 
+It combines masked diffusion modeling with MoE routing to improve model capacity while keeping the inference-time active-parameter budget relatively small.
+
+\textbf{LLaDA-8B-Base}~\citep{LLaDA} is a large masked diffusion language model that uses a forward masking process and a learned reverse generation process. 
+It is parameterized by a Transformer denoiser that predicts masked tokens and is trained by optimizing a likelihood-based diffusion objective.
+
+\textbf{Dream-7B-Base}~\citep{dream7b} is a 7B-parameter diffusion language model that refines sequences through parallel iterative denoising. 
+It is initialized from an autoregressive language model and further trained with diffusion-style objectives and context-adaptive token-level noise scheduling.
+
+\textbf{TiDAR-8B}~\citep{tidar} is an 8B-parameter hybrid model that combines diffusion-based draft generation with autoregressive-style verification or correction. 
+It uses structured attention mechanisms to balance drafting and verification, and we report both its trusting-AR and trusting-diffusion variants when available. Since this model has not been open-sourced yet, all evaluation results are sourced from the original paper~\citep{tidar}.
+
+\textbf{BlockDiff-4B}~\citep{block_diffusion} follows the block diffusion language modeling paradigm. 
+It generates text autoregressively at the block level, while modeling the conditional distribution within each block using discrete diffusion. 
+We train the BlockDiff-4B baseline using the same training setups as \method, following the blockwise masked diffusion formulation in~\citep{block_diffusion}.
+
+\subsection{Evaluation Benchmarks}
+
+We evaluate all models on six benchmarks covering general knowledge, mathematical reasoning, and code generation. 
+Unless otherwise specified, we follow the shot settings described in the main text.
+
+\subsubsection{General Knowledge}
+
+\textbf{MMLU}~\citep{mmlu} is a multitask multiple-choice benchmark covering 57 subjects, including mathematics, history, computer science, law, medicine, and social sciences. 
+In our evaluation, we use the standard test split with 14{,}042 questions.
+
+\textbf{GPQA-Diamond}~\citep{gpqa} is the most challenging 198-question subset of GPQA, consisting of expert-written multiple-choice questions in biology, physics, and chemistry. 
+Following our evaluation loader, we reserve the first 5 examples as in-context exemplars and evaluate on the remaining 193 questions.
+
+\subsubsection{Mathematical Reasoning}
+
+\textbf{GSM8K}~\citep{gsm8k} contains grade-school-level math word problems that require multi-step arithmetic reasoning. 
+We evaluate on the full HuggingFace \texttt{openai/gsm8k} \texttt{main/test} split, which contains 1{,}319 questions.
+
+\textbf{MATH-500}~\citep{math500} is a commonly used 500-problem subset of the MATH benchmark, covering competition-style mathematical reasoning across algebra, geometry, number theory, counting and probability, and related topics.
+
+\subsubsection{Code Generation}
+
+\textbf{HumanEval}~\citep{humaneval} evaluates functional code generation using 164 hand-written Python programming problems. 
+Each problem includes a function signature, docstring, reference solution, and unit tests, and model outputs are evaluated by execution-based pass rates.
+
+\textbf{HumanEval+}~\citep{humaneval_plus} extends HumanEval with substantially more comprehensive test cases and corrected evaluation cases. 
+It provides a stricter execution-based evaluation protocol for assessing the functional correctness of generated code.

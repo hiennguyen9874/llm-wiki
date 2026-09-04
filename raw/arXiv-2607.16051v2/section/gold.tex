@@ -1,0 +1,31 @@
+\section{International Mathematical Olympiad (IMO)}
+
+We follow the generate--verify--refine test-time scaling pipeline of prior work~\citep{shao2025deepseekmathv2selfverifiablemathematicalreasoning} and allocate a large inference-time compute budget to evaluate Loopie-20B-A2B on the 2025 IMO problems. For each problem, we initialize a candidate pool with 64 independently generated solutions and sample 64 verification analyses for each candidate. We rank the candidates according to their average verification scores and retain the top 64 solutions. For each retained solution, we sample eight verification analyses, prioritizing critiques that identify concrete errors, logical gaps, or missing justifications, and use the resulting solution--critique pairs to generate refined solutions. The refined solutions are added back to the candidate pool. This procedure is repeated for up to 16 iterations, with early termination when a candidate passes all 64 verification attempts. Finally, we select the solution with the highest aggregated verification score for evaluation, Each question was scored by GPT-5.5 acting as an LLM-as-a-judge. The evaluation was repeated three times, and the average score was reported. Further details are provided in Appendix E.
+
+\begin{table}[H]
+  \centering
+  \captionsetup{type=table,hypcap=false}
+  \caption{Performance on IMO 2025. The gold, silver, and bronze medal thresholds are 35, 28, and 19 points.
+  }
+  \setlength{\tabcolsep}{5.8pt}
+  \renewcommand{\arraystretch}{1.0}
+  \small
+
+  \begin{tabular}{@{}lccccccc@{}}
+  \toprule
+  \multicolumn{8}{c}{\textbf{IMO 2025}} \\
+  \midrule
+  \textbf{\textcolor{iclrdeepblue}{Loopie-20B-A2B} w/ TTS}
+    & $7$
+    & $7$
+    & $4$
+    & $6$
+    & $7$
+    & $4$
+    & $35$\,\goldmedalicon \\
+  \bottomrule
+  \end{tabular}
+\end{table}
+
+\section{International Physics Olympiad (IPhO)}
+Following the generate--verify--refine pipeline used for IMO, we apply a similar generate--vote--critic test-time scaling strategy to the IPhO problems. Our procedure largely follows prior work~\citep{su01}, while allocating additional refinement rounds to accommodate the longer reasoning chains and more involved calculations required in physics problems. With extensive test-time scaling, Loopie-20B-A2B achieved a gold-medal-level score of 20.3 on the IPhO, surpassing the gold medal threshold of 19.7 points.

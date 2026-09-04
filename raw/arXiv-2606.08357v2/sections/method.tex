@@ -1,0 +1,230 @@
+
+\section{\method: Forward-Free Diffusion Language Model}
+
+\label{sec:method}
+To address these challenges in discrete diffusion, we formulate a forward-free diffusion model in which refinement is learned directly from sampler-induced intermediate drafts. 
+We outline the proposed \method below and defer detailed derivations and proofs to Appendix~\ref{app:proofs}.
+
+\subsection{Diffusion via Recursive Marginal Refinement}
+
+\paragraph{Draft distribution initialization}
+We begin by defining an initial draft distribution $p_{\theta,T}$. 
+Since the goal is to approximate the target data distribution $p_0\rbr{\dv}$, a natural design principle is to make $p_{\theta,T}\rbr{\dv}$ as close as possible to $p_0\rbr{\dv}$, thereby reducing the number of refinement iterations required at inference time. 
+This leads to the initial matching objective
+\begin{equation}
+    \min_{\theta}\KL\!\rbr{p_0(\dv)\,\|\,p_{\theta, T}(\dv)}.
+    \label{eq:init_kl}
+\end{equation}
+If $p_{\theta,T}=p_0$, generation can be performed in a single step and no refinement is needed. 
+In practice, finite model capacity, factorized decoding, and imperfect optimization introduce an approximation gap between $p_{\theta,T}$ and $p_0$.
+
+\paragraph{Recursive marginal refinement} 
+To close this gap, we introduce refinement transitions 
+\begin{equation}
+    K_{ \theta, t}\rbr{\dv\mid \dv'}, \qquad\dv'\sim p_{\theta, t},\qquad t=T, T-1,\ldots,1,
+    \label{eq:refiner_transition}
+\end{equation}
+where each transition maps samples from the current draft distribution toward the target distribution. 
+Applying $K_{\theta,t}$ to the current marginal $p_{\theta,t}$ induces a refined marginal
+\begin{equation}
+     p_{\theta, t-1}(\dv)={\textstyle \int} K_{\theta,t}\rbr{\dv\mid \dv'}p_{\theta, t}(\dv')\,d\dv'.
+    \label{eq:refined_marginal}
+\end{equation}
+Recursive application of these transitions yields a sequence of model-induced marginals
+which progressively closes the gap to the target distribution $p_0$. 
+Unlike conventional diffusion, this path is not prescribed by a hand-designed forward corruption process, but instead emerges from the learned refinement dynamics themselves.
+
+\paragraph{Refinement learning objective}
+Given the current draft marginal $p_{\theta,t}$, the ideal refinement transition should make the next marginal $p_{\theta,t-1}$ closer to $p_0$. 
+Plugging Eq.~\eqref{eq:refined_marginal} into Eq.~\eqref{eq:init_kl} gives
+\begin{equation}
+    \min_{\theta}
+    \KL\!\left(
+        p_0(\dv)
+        \,\middle\|\,
+        {\textstyle \int}
+        K_{\theta,t}(\dv\mid \dv')
+        p_{\theta,t}(\dv')
+        \,d\dv'
+    \right).
+    \label{eq:ideal_refinement}
+\end{equation}
+This objective requires marginalizing over drafts $\dv'$, which makes direct optimization difficult. Variational learning through evidence lower bound~(ELBO) is a potential choice~\citep{alias2017variational}, 
+\begin{proposition}[Joint surrogate for marginal refinement]
+\label{prop:joint_surrogate}
+For any refinement kernel $K_{\theta,t}(\dv\mid\dv')$ and any coupling $\gamma_t(\dv,\dv')$ with marginals $p_0(\dv)$ and $p_{\theta,t}(\dv')$, we have
+\begin{equation}
+\begin{aligned}
+    \KL\!\left(
+        p_0(\dv)
+        \,\middle\|\,
+        {\textstyle \int}
+        K_{\theta,t}(\dv\mid \dv')
+        p_{\theta,t}(\dv')
+        \,d\dv'
+    \right)
+    &\le
+    \KL\!\left(
+        \gamma_t(\dv,\dv')
+        \,\middle\|\,
+        K_{\theta,t}(\dv\mid\dv')p_{\theta,t}(\dv')
+    \right).
+    \label{eq:joint_surrogate_bound}
+\end{aligned}
+\end{equation}
+The equivalency holds if $\gamma_t\rbr{\dv, \dv'} = p_0(\dv)q(\dv'|\dv)$, where $q(\dv'|\dv)=\frac{K_{\theta,t}(\dv\mid\dv')p_{\theta,t}(\dv')}{\int K_{\theta,t}(\dv\mid\dv')p_{\theta,t}(\dv') d\dv' }$.
+\end{proposition}
+However, the ELBO quickly becomes unaffordable in terms of computation and memory cost w.r.t. the model size increasing, due to the requirement of the auxiliary model for posterior $q(\dv'|\dv)$ approximation.
+We hereby introduce a tractable and efficient coupling, which is inherited from the diffusion learning spirit, therefore, without explicit posterior approximation; meanwhile, without predefined forward perturbation, therefore, bypassing the presumed neighborhood in discrete space. 
+Intuitively, we revisit the generation procedure: given the target $\dv$, the model is gradually refining the output $\dv'$ aiming towards $\dv$, which implies ${\gamma\rbr{\dv, \dv'}} =  {p_0\rbr{\dv}}q\rbr{\dv'|\dv}$ should reflect the reverse of such a generation procedure. 
+Such a dependency can be easily induced through the current learned $p_{\theta, t}\rbr{\cdot}$. Concretely, given the context $\dy$ of $\dv$, which could be the prefix or random mask version of $\dv$ in unconditional generation or the corresponding prompts in conditional generation, we can easily construct $q(\dv'|\dv) = p_{\theta, t}\rbr{\dv'|\dy}$. For the detailed efficient implementation of the sampling operation, please refer to~\appref{app:implementation}. 
+With our construction, the refinement kernel is pushing further towards the ground truth $\dv$ from current intermediate output $\dv'$, therefore, we obtain our objective,
+\begin{equation}
+    \min_{\theta} \mathcal{L}_{t}(\theta)
+    :=
+    -
+    \mathbb{E}_{\dv\sim p_0, \dv'\sim p_{\theta,t}}\sbr{
+    \log K_{\theta,t}(\dv\mid\dv')}.
+    \label{eq:conditional_refinement_loss}
+\end{equation}
+This joint probability facilitates learning the marginal objective in Eq.~\eqref{eq:ideal_refinement} through the tractable surrogate established in Proposition~\ref{prop:joint_surrogate}.
+
+
+
+After learning $K_{\theta,t}$, next draft marginal $p_{\theta,t-1}$ becomes available through Eq.~\eqref{eq:refined_marginal} and we repeat the procedure to further reduce the gap between the current draft distribution and the target distribution.
+In \method, the joint $\gamma_t$ is constructed from model-generated drafts $\dv'\sim \ptil_{\theta,t}$ and clean targets $\dv\sim p_0$ under the same conditioning context, rather than from a predefined forward perturbation. 
+Thus, the intermediate states used for learning are induced by the sampler itself.
+This recursive marginal refinement formulation has two practical benefits.
+
+\paragraph{Neighborhood-agnostic refinement}
+By removing the explicit forward corruption process, \method does not require a predefined token-level neighborhood perturbation. 
+This is especially important in discrete language spaces, where there is no canonical metric for deciding which token states should be treated as nearby or easily reversible.
+
+
+\paragraph{Capacity-adaptive refinement}
+In our construction, each refinement transition is trained to move the current draft distribution closer to the target distribution $p_0$. 
+Since $K_{\theta,t}$ is constrained by finite model capacity and finite candidate search, each refinement step closes only the portion of the remaining distributional gap that the current parameterization can represent. 
+As a result, the useful number of refinement steps adapts naturally to the expressiveness of the learned refinement model.
+
+Furthermore, we also provide formal justifications for the good properties of recursive marginal refinement in Appendix~\ref{app:proofs}, showing that the joint surrogate upper-bounds the marginal refinement objective, preserves the target marginal at the optimum, and yields monotonic improvement under ideal refinement.
+
+\subsection{Parameterization Design for Refinement Transitions}
+\label{sec:parameterization_design}
+The \method framework allows flexible parameterizations of the refinement transition $K_{\theta}$. In the following, we discuss two design choices for $K_{\theta}$.
+
+\paragraph{Self-refinement.}
+Given a current draft $\dv'$, the model predicts a clean sequence through a token-factorized conditional distribution, 
+\begin{equation}
+  K_{\theta}^\mathrm{SR}\rbr{\dv\mid \dv'}
+    =\textstyle
+    \prod_{i=1}^{L}
+   K_{\theta}^\mathrm{SR}\rbr{x_i\mid \dv'},
+    \label{eq:self_refine_transition}
+\end{equation}
+where the model conditions on the full current draft and outputs per-token refinement probabilities. Plugging \eqref{eq:self_refine_transition} into Eq.~\eqref{eq:conditional_refinement_loss} gives the self-refinement objective
+\begin{equation}
+   \min_{\theta}  \Lcal_{\mathrm{SR}}(\theta) :=-\EE_{t,\,\dv\sim p_0,\,\dv'_t\sim p_{\theta,t}}
+    \sbr{\textstyle\sum_{i=1}^{L}\log K_{\theta}^\mathrm{SR}(x_i\mid \dv'_t)}.
+    \label{eq:self_refine_loss}
+\end{equation}
+At inference time, the model repeatedly feeds its own predicted draft back into the same refinement operator: $\dv_{k+1} = \operatorname{Decode}\rbr{K_{\theta}^\mathrm{SR}(\cdot\mid y_k)}$, where $\operatorname{Decode}(\cdot)$ can be greedy decoding, sampling, or threshold-based commitment.  This yields a stochastic fixed-point refinement process in which high-quality samples should become increasingly stable as refinement proceeds.
+
+\paragraph{Best-of-$N$ refinement.} 
+The self-refinement parameterization in Eq.~\eqref{eq:self_refine_transition} follows a single refinement trajectory from each draft. 
+To expand the search space, we further introduce a stochastic best-of-$N$ refinement parameterization. 
+Given a current draft $\dv'$, the self-refinement proposer $K_{\theta,\mathrm{SR}}\rbr{\dv\mid\dv'}$ first generates $N$ candidate refined sequences,
+\begin{equation}
+    \cbr{\dv_i}_{i=1}^N\sim K_{\theta}^\mathrm{SR}\rbr{\cdot\mid \dv'}.
+\end{equation}
+We then augment the proposer with a learned scorer $\scorer\rbr{\cdot}$ that evaluates and selects the top candidate via a stochastic best-of-$N$ refinement step, 
+\begin{equation}
+    J=\arg\max_{j\in\sbr{N}}\cbr{\scorer\rbr{\dv_j}+\xi_j},    \qquad
+    \xi_j\sim\mathrm{Gumbel}(0,1), \qquad
+    \dv^\star=\dv_J.
+    \label{eq:gumbel_bon}
+\end{equation}
+By the Gumbel-Max trick~\citep{maddison2014sampling}, the selected samples follows
+\begin{equation}
+ \dv^\star\sim \PP\rbr{\dv^\star=\dv_\ell\mid \cbr{\dv_i}_{i=1}^N}
+    =
+    \textstyle\frac{
+        \exp\rbr{\tau\scorer\rbr{\xb_\ell}}
+    }{
+        \sum_{j=1}^{N}
+        \exp\rbr{\tau\scorer\rbr{\xb_j}}
+    },
+    \label{eq:finite_candidate_softmax}
+\end{equation}
+where $\tau$ is the temperature factor. 
+The finite-candidate selection rule induces a valid refinement parameterization as depicted in Proposition~\ref{prop:bon_transition}.
+\begin{proposition}[Induced best-of-$N$ refinement transition]
+\label{prop:bon_transition}
+Without loss of generality, we assume $\dv_1$ corresponds to the best candidate. This parameterizes the refinement probability as
+\begin{equation}
+    \begin{aligned}
+        &K_{\theta, \psi}^\mathrm{BoN}\rbr{\dv^\star=\dv_1\mid \xb'}\propto\\
+        &
+        K_{\theta}^\mathrm{SR}\rbr{\xb_1\mid\xb'} 
+        \EE_{\xb_{2:N}\sim K_{\theta}^\mathrm{SR}\rbr{\xb_i\mid\xb'} }
+        \sbr{\textstyle\frac{
+        \exp\rbr{\tau\scorer\rbr{\xb_1}}
+    }{
+        \exp\rbr{\tau\scorer\rbr{\xb_1}}+\sum_{j=2}^{N}
+        \exp\rbr{\tau\scorer\rbr{\xb_j}
+    }}},
+     \label{eq:refine_prob_bon}
+    \end{aligned}
+\end{equation}
+\end{proposition}
+which shows that best-of-$N$ refinement selects the self-refinement proposal toward candidates preferred by the learned scorer. 
+Optimizing Eq.~\eqref{eq:conditional_refinement_loss} with the transition defined in Eq.~\eqref{eq:refine_prob_bon} leads to a tractable objective for best-of-$N$ refinement
+\begin{equation}
+  \min_{\psi}   \Lcal_{\mathrm{BoN}}\rbr{\psi}  := 
+  \EE_{t,\,\xb_1\sim p_0,\, \cbr{\dv_i}_{i=2}^N\sim K_{\theta}^\mathrm{SR}\rbr{\cdot\mid \dv'}}\sbr{\textstyle
+   - \scorer\rbr{\xb_1} + \log\sum_{j=1}^N\exp\rbr{\scorer\rbr{\xb_j}}
+  }.
+  \label{eq:bon_loss}
+\end{equation}
+During this stage, the proposal distribution $K_{\theta}^\mathrm{SR}\rbr{\cdot\mid\dv'}$ is treated with stop-gradient, so that $\Lcal_{\mathrm{BoN}}$ optimizes only the scorer head parameters. 
+Through Eq.~\eqref{eq:bon_loss}, the scorer learns how much more likely a candidate is under the target distribution than under the self-refinement proposal, enabling best-of-$N$ decoding to select higher-quality refinements from parallel candidates.
+
+\subsection{Discussions and Implementation}
+\label{sec:discussion}
+We discuss several key properties of \method and its connections to related refinement-based generative modeling frameworks.
+
+\paragraph{Flexible inference}
+The learned refinement chain in Eq.~\eqref{eq:conditional_refinement_loss} naturally induces a sampling procedure of the same form as the backward process in Eq.~\eqref{eq:backward_joint}. 
+However, forward-free refinement also enables more flexible inference beyond a fixed-horizon diffusion sampler. 
+Since each refinement stage is trained to move the current marginal $p_{\theta,t}$ closer to the target distribution $p_0$, any intermediate marginal can serve as an approximate generator when computation is limited. 
+Conversely, once the learned refinement dynamics approach the target distribution, the transition approximately preserves $p_0$: $p_0(\dv_0')
+    \approx
+    {\textstyle \int}
+    K_{\theta}\rbr{\dv_0'\mid \dv_0}
+    p_0(\dv_0)
+    \,d\dv_0,$
+which indicates that $p_0$ is approximately stationary under the learned refinement transition, allowing additional refinement iterations beyond the training horizon. 
+Thus, \method provides a controllable quality-cost tradeoff at inference time, where one can stop early for faster decoding or apply more refinement steps to improve sample quality.
+Detailed empirical studies are provided in Sec.~\ref{sec:exp_inference}.
+
+\paragraph{Connections to iterative refinement methods}
+The proposed formulation is related to several broader ideas in generative modeling and search. 
+Consistency models~\cite{consistency-model} learn direct maps from arbitrary noisy states $\xb_t$ to clean data $\xb_0$ and enforce agreement along a prescribed diffusion trajectory. 
+\method shares the $\xb_0$-prediction perspective but eliminates the prescribed trajectory. This perspective casts \method as a forward-free consistency model, where consistency is induced by the fixed-point behavior of the learned refinement operator rather than imposed along a predefined diffusion trajectory. 
+The proposed best-of-N design is also related to learning-to-search~\citep{learning-to-search}, since the refinement $K_{\theta, \psi}^\mathrm{BoN}$ learns to evaluate among model-generated candidate drafts under the same dynamics used at inference time. 
+Finally, the marginal recursion in Eq.~\eqref{eq:refined_marginal} is conceptually related to power iteration over distributions, where repeated application of an operator moves a distribution toward a fixed point. 
+Variational power methods~\citep{power-iteration} estimate stationary distributions of Markov chains by learning correction ratios from sampled transitions. 
+From this view, the learned scorer acts as a density-ratio correction between target refinements and proposal candidates, allowing best-of-N refinement to reweight sampler-induced candidates toward the target distribution.
+
+
+\paragraph{Key implementation choices}
+We adopt several practical designs to make recursive refinement efficient and stable. 
+\textbf{(1) Iteration-sampled training.} For each sample, we start from a blank sequence and run the proposer for $t$ refinement iterations, where $t\sim\mathrm{Unif}\rbr{\cbr{1,\ldots,K}}$ and $K$ is a hyperparameter. 
+Gradients are stopped through the first $t-1$ refinement steps and applied only to the final step, covering both initial draft prediction and later-stage refinement with limited training overhead. 
+\textbf{(2) Blockwise semi-causal attention.} For sequence generation, we use blockwise semi-causal attention with block size $B$, where token $i$ can attend to token $j$ if their block indices satisfy $b(j)\le b(i)$, allowing bidirectional attention within each block and causal attention across previous blocks, similar to block diffusion~\citep{block_diffusion}. 
+The bidirectional within-block attention enables global refinement and scoring over the current block, while the causal structure across blocks preserves efficient left-to-right block generation. 
+\textbf{(3) Efficient Best-of-$N$ scoring.} For Best-of-$N$ refinement, we generate high-quality candidates using marginal-cost beam search~(Pseudocode in Appendix~\ref{app:implementation}). 
+Empirically, we select candidates using $\log K_{\theta,\mathrm{SR}}\rbr{\dv\mid\dv'}+\tau\scorer\rbr{\dv}$ to combine proposal likelihood with the learned correction and mitigate prediction noise in both proposer and scorer~(justifications for this design is available in Appendix~\ref{app:proofs}). 
+\textbf{(4) Shared backbone.}
+For efficiency, the proposer and scorer share the same backbone parameters, with only a lightweight scorer head added for Best-of-$N$ selection. 
+Further details on the attention mask, training and inference pseudocode, scorer architecture, and hyperparameter choices are provided in Appendix~\ref{app:implementation} and Appendix~\ref{app:training_details}.
+

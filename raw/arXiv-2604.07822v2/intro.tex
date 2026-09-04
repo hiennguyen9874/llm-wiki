@@ -1,0 +1,86 @@
+\section{Introduction}
+Large language models (LLMs) \citep{brown2020language} are known to acquire substantial factual knowledge during pretraining, storing it in their parameters \citep{geva-etal-2023-dissecting}. 
+However, how effectively this knowledge can be composed for reasoning remains less understood \citep{10.5555/3666122.3669203, press-etal-2023-measuring}.
+In particular, recent work shows that transformer-based LLMs struggle under \textbf{implicit reasoning}, i.e.\ reasoning within a \textit{single forward pass} without explicit chain-of-thought (CoT) \citep{wei2022chain}. 
+Such failures reveal a fundamental limitation of transformers: despite storing rich knowledge, they are often unable to flexibly combine it to solve novel questions.
+This limitation has important implications for generalization, as many tasks require composing multiple pieces of seen knowledge in novel ways not observed during training \citep{lake2018generalization, berglund2023reversal}.
+
+Why do transformers struggle to combine their parametric knowledge in implicit reasoning? 
+Consider a query such as \textit{“The spouse of the performer of Imagine is”}. 
+Previous work shows that transformers solve this by chaining two facts: first retrieving that \textit{the performer of Imagine is John Lennon} in shallow layers, and then that \textit{the spouse of John Lennon is Yoko Ono} in deeper layers \citep{biran-etal-2024-hopping, 10.5555/3737916.3740933, yang-etal-2024-large-language-models}. 
+However, since knowledge is distributed across different layers of the transformer, there is no guarantee that the fact required for a particular query can be accessed correctly.
+For example, if the fact \textit{the spouse of John Lennon is Yoko Ono} is only stored in shallow layers, deeper layers cannot access it because parameters are not shared across layers. 
+While transformers can be trained to learn to combine such knowledge properly \citep{10.5555/3737916.3740933, yao-etal-2025-language-models}, they fail to compositionally generalize to unfamiliar combinations or deeper recursive combinations.
+
+To address this limitation, we introduce depth-recurrence into transformers, allowing the same set of layers to be applied iteratively. The input sequence is processed multiple times by a shared transformer block, where the output of each iteration serves as input to the next. 
+In contrast to vanilla transformers, where knowledge is tied to specific layers, recurrence enables more flexible access to and composition of parametric knowledge within a single forward process.
+Such models, known as \textit{recurrent-depth transformers} or \textit{looped transformers}, have recently gained attention as a promising architecture \citep{dehghani2018universal, geiping2025scaling, zhu2025scaling}.
+While prior work has shown that recurrent-depth transformers improve length generalization \citep{bansal2022end, fan2024looped}, it remains unclear whether they can overcome compositional generalization limitations when reasoning over parametric knowledge.
+
+In this paper, we systematically study whether recurrent-depth transformers can compositionally combine their parametric knowledge \textit{implicitly}. 
+By constructing synthetic datasets, we train models to learn implicit reasoning from scratch. Unlike LLMs trained on vast, opaque web-scale corpora, this setup provides control over the data and mitigates confounding biases introduced during pretraining.
+Specifically, we characterize two challenges: \textit{systematic generalization} (combining knowledge not used in any composition during training) and \textit{depth extrapolation} (e.g., training on 5-hop reasoning and evaluating on 10-hop).
+
+Our main findings are two-fold. 
+First, \textbf{recurrent-depth transformers exhibit strong systematic generalization, while vanilla transformers fail to do so}. 
+We show that this ability emerges through a sharp three-stage \textit{grokking} process, 
+% \st{dynamic}
+that transitions from memorization to in-distribution generalization, and finally to systematic generalization.
+We also support this with evidence from the internal activations of models across different training stages.
+
+Second, \textbf{recurrent-depth transformers enable depth extrapolation}, generalizing to reasoning depths beyond those observed during training, as inference-time compute (i.e., recurrent iterations) increases. 
+We further find that the training-time recurrence strategy plays a critical role in extrapolation performance, with dynamic recurrence achieving the strongest generalization. 
+Despite these gains, we identify a key limitation: recurrent-depth transformers suffer from overthinking \citep{bansal2022end}, which degrades performance and limits generalization to extremely deep recursions. 
+% We analyze this phenomenon and discuss \hs{promising} training strategies to mitigate it \hs{in the future}.
+
+% In our experiments, we find that increasing recurrence is a powerful tool for inference-time scaling and allows the model to flexibly scale compute for problems of varying complexity and generalize to samples more complex than the model has seen during training. Despite these gains, we identify a key limitation: recurrent-depth transformers suffer from latent overthinking \citep{bansal2022end}, which prevents reliable generalization to arbitrarily deep compositions. We analyze this phenomenon and discuss methods to overcome it.
+
+% Why do transformers struggle with combining their parametric knowledge in implicit reasoning? Consider a query such as \textit{“The spouse of the performer of Imagine is”}. 
+% Previous work shows that transformers need to solve this by chaining two facts: first retrieving that \textit{the performer of Imagine is John Lennon} in shallow layers, and then that \textit{the spouse of John Lennon is Yoko Ono} in deeper layers \citep{biran-etal-2024-hopping, wang2024grokking}. 
+% However, since the knowledge is distributed across different layers of the transformer, there is no guarantee that the fact needed for a particular query can be accessed correctly.
+% For example, if the fact \textit{the spouse of John Lennon is Yoko Ono} is only stored in the first layer, the deeper layers cannot access it because the parameters of distinct layers are not shared. 
+% While we can train the transformer to learn to combine knowledge properly \citep{wang2024grokking, yao-etal-2025-language-models}, they fail to compositionally generalize to combinations of unfamiliar knowledge or deeper recursions of such combinations.
+
+% To address this limitation, we introduce recurrence into transformers, allowing the same transformer model to be applied iteratively. 
+% Concretely, the input sequence is processed multiple times by a shared transformer block, where the output of each iteration serves as the input to the next. 
+% In contrast to vanilla transformers, where knowledge is tied to specific layers, recurrence allows the model to access and compose its parametric knowledge flexibly within a single forward process.
+% Such models, known as \textit{recurrent-depth transformers} or \textit{looped transformers}, have recently gained attention as a promising architecture \citep{dehghani2018universal, geiping2025scaling, zhu2025scaling}.
+% While prior work has shown that recurrent-depth transformers improve length generalization \citep{bansal2022end, fan2024looped}, it remains unclear whether they can fundamentally overcome the compositional generalization limitations when reasoning over parametric knowledge.
+
+% In this paper, we systematically study whether recurrent-depth transformers can compositionally combine their parametric knowledge in implicit reasoning. 
+% By creating datasets with synthetic knowledge graphs, we train models to learn implicit reasoning from scratch, and then evaluate them on challenging multi-hop queries that require compositional generalization. 
+% Specifically, we characterize two compositional generalization challenges: \textit{systematic generalization} (e.g.\ combination of knowledge not used during training) and \textit{recursion extrapolation} (e.g.\ training on 5-hop reasoning and evaluating on 10-hop).
+% We focus on two key challenges of compositional generalization: 
+% \textit{systematic generalization}, where models must combine knowledge that was never used during training, and \textit{recursion extrapolation}, where models must generalize to reasoning depths beyond those seen during training (e.g., training on 5-hop and evaluating on 10-hop).
+
+% Our main findings are two-fold. 
+% First, \textbf{recurrent-depth transformers exhibit strong {systematic generalization}, while vanilla transformers fail to do so.}
+% We show that this ability emerges through a sharp three-stage grokking dynamic, transitioning from memorization to in-distribution generalization, and finally to systematic generalization over unused knowledge.
+
+% Second, \textbf{recurrent-depth transformers enable {recursion extrapolation}, generalizing to reasoning depths beyond those observed during training as inference-time compute (i.e., recurrent iterations) increases, whereas vanilla transformers struggle with it.}
+% We further find that the training-time recurrence strategy plays a critical role in determining extrapolation performance, with dynamic recurrence achieving the strongest generalization. 
+% Despite these gains, we identify a fundamental limitation: recurrent-depth transformers suffer from latent overthinking \citep{bansal2022end}, which prevents reliable generalization to arbitrarily deep compositions.
+
+% Previous work offered hints for such architectures by studying the underlying reason why transformers struggle with implicit reasoning \citep{}.
+% When queried with \textit{The spouse of the performer of Imagine is}, transformers need to recall \textit{the performer of Imagine is John Lennon} through its knowledge stored in the shallow layers, and then recall the knowledge \textit{the spouse of John Lennon is Yoko Ono} stored in deeper layers to answer.
+% Since parametric knowledge is not shared across layers, transformers cannot answer queries when the required knowledge is not present in a particular layer, nor extrapolate to queries more complex than observed.
+% Essentially, a transformer can learn such multi-hop reasoning if we explicitly train it to do so, but the resulting model cannot generalize to the unfamiliar compositions of knowledge, i.e.\ vanilla transformers cannot perform compositional generalization over their parametric knowledge. 
+% \todo{add hopping too late reference}.
+
+% In other words, vanilla transformers lack a mechanism to \textit{iteratively reuse and compose} their parametric knowledge, limiting their ability to perform systematic generalization.
+
+% Our idea to address the compositional generalization limitation is to add a recurrent unit to the transformer, which allows the input sequence to be processed by the same transformer model iteratively, with each iteration's output being the next iteration's input. 
+% % By enabling recurrence, the knowledge stored in the transformer can be accessed at any iteration,  
+% % The limitations above suggest that recurrent use of the same transformer blocks is necessary to flexibly combine parametric knowledge. 
+% Such models, also known as \textit{recurrent-depth transformers} or \textit{looped transformers}, have raised growing interest as an architecture enabling latent thinking, in contrast with vanilla transformers that have to rely on explicitly verbalized Chain-of-thought(CoT) reasoning.
+% Although recent work shows that recurrent-depth transformers effectively generalize to inputs of larger length or complexity than observed during training, it remains unclear whether such models can also enable compositional generalization over their parametric knowledge.
+
+% Our main findings can be summarized as follows.
+% \begin{itemize}
+%     \item Recurrent-depth transformers effectively perform systematic generalization, while vanilla transformers do not. Such systematic generalization ability is acquired through a sharp three-stage grokking learning, which marks a clear transition from memorization to in-distribution generalization, and then systematic generalization. 
+%     \item  Recurrent-depth transformers unlock recursion extrapolation, with the performance on harder tasks increasing as we scale the inference-time compute (i.e.\ recurrent iterations), while vanilla transformers cannot extrapolate any.
+%     The strategy to determine the training-time recurrent iterations dominates the extrapolation performance, and we show that a dynamic strategy leads to the best generalization. 
+%     Finally, despite the promising performance, we present evidence that recurrent-depth transformers suffer from latent overthinking, which prevents extrapolation to arbitrary reasoning depth over the parametric knowledge.
+    
+    
+% \end{itemize}

@@ -1,0 +1,2122 @@
+\appendix
+
+\phantomsection
+\addcontentsline{toc}{section}{Appendix}
+\newcommand{\appsection}[1]{%
+  \refstepcounter{section}%
+  \section*{\thesection\quad #1}%
+  \addcontentsline{toc}{subsection}{\protect\numberline{\thesection}#1}%
+}
+
+
+
+
+\appsection{Architecture Details}
+\label{arch_details}
+\begin{table}[!hbp]
+\centering
+\caption{Architecture Details of Loopie-20B-A2B and Loopie-6B-A0.6B}
+\vspace{2pt}
+{\small
+\setlength{\tabcolsep}{20pt}
+\renewcommand{\arraystretch}{1.5}
+\begin{tabular}{l|cc}
+\toprule
+ & Loopie-20B-A2B & Loopie-6B-A0.6B  \\
+\midrule
+Layer-loop times & 2 & 2  \\
+QK layer norm & Enabled & Enabled \\
+Num layers & 27 & 18 \\
+Hidden size & 2304 & 1536 \\
+MoE hidden size & 832 & 576 \\
+Attention type & GQA & GQA \\
+Attention heads & 72 & 48 \\
+Attention groups & 36 & 24 \\
+Position embedding type & RoPE & RoPE \\
+Rotary base & 10000 & 10000 \\
+RMSNorm eps & 1e-6 & 1e-6 \\
+MoE router topk & 8 & 8 \\
+Num experts & 128 & 128 \\
+MLP type & SwiGLU & SwiGLU \\
+Tokenizer & Qwen3 & Qwen3 \\
+Vocabulary size & 151936 & 151936 \\
+\bottomrule
+\end{tabular}
+}
+\label{tab:arch_details}
+\end{table}
+
+
+
+
+
+
+
+\newpage
+\appsection{Pre-training Details}
+\begin{table}[!hbp]
+\centering
+\caption{Pre-training Stage-1 Details of Loopie-20B-A2B and Loopie-6B-A0.6B}
+\vspace{2pt}
+{\small
+\setlength{\tabcolsep}{20pt}
+\renewcommand{\arraystretch}{1.5}
+\begin{tabular}{l|cc}
+\toprule
+ & Loopie-20B-A2B & Loopie-6B-A0.6B  \\
+\midrule
+Initialization std & $1/\sqrt{2.5*2304}$ & $1/\sqrt{2.5*1536}$ \\
+LM head Initialization std & $1/\sqrt{2304}$ & $1/\sqrt{1536}$ \\
+Embedding Initialization std & $1/\sqrt{2304}$ & $1/\sqrt{1536}$ \\
+MoE Auxiliary loss coeffient & 0.01 & 0.01 \\
+Learning rate & $3\times10^{-4}$  & $5\times10^{-4}$  \\
+Learning rate schedule & Warmup-then-stable & Warmup-then-stable  \\
+Warmup steps & 6000  & 2000 \\
+Global batch size & 1024  & 1024 \\
+Sequence length & 8192  & 8192 \\
+Optimizer & AdamW  & AdamW \\
+$\beta_1$ & 0.9 & 0.9  \\
+$\beta_2$ & 0.95 & 0.95 \\
+Weight decay & 0.1  & 0.1 \\
+Clip gradient & 1.0  & 1.0 \\
+Adam epsilon & $1\times10^{-15}$ & $1\times10^{-15}$ \\
+\bottomrule
+\end{tabular}
+}
+\label{tab:pretrain-stage1-details}
+\end{table}
+
+
+
+
+
+
+\newpage
+\begin{table}[!hbp]
+\centering
+\caption{Pre-training Stage-2 Details of Loopie-20B-A2B and Loopie-6B-A0.6B}
+\vspace{2pt}
+{\small
+\setlength{\tabcolsep}{20pt}
+\renewcommand{\arraystretch}{1.5}
+\begin{tabular}{l|cc}
+\toprule
+ & Loopie-20B-A2B & Loopie-6B-A0.6B  \\
+\midrule
+Learning rate & $3\times10^{-4}$  & $5\times10^{-4}$  \\
+Learning rate schedule & Constant & Constant  \\
+MoE Auxiliary loss coeffient & 0.01 & 0.01 \\
+Global batch size & 1024  & 1024 \\
+Sequence length & 8192  & 8192 \\
+Optimizer & AdamW  & AdamW \\
+$\beta_1$ & 0.9 & 0.9  \\
+$\beta_2$ & 0.95 & 0.95 \\
+Weight decay & 0.1  & 0.1 \\
+Clip gradient & 1.0  & 1.0 \\
+Adam epsilon & $1\times10^{-15}$ & $1\times10^{-15}$ \\
+\bottomrule
+\end{tabular}
+}
+\label{tab:pretrain-stage2-details}
+\end{table}
+
+
+\vspace{20mm}
+\appsection{Scaling Ladder Details}
+\label{app:scaling-ladder}
+
+\begin{table}[!htbp]
+    \centering
+    \setlength{\tabcolsep}{6pt}
+    \renewcommand{\arraystretch}{1.5}
+    \scalebox{0.85}{%
+    \begin{tabular}{@{}lccccccccccc@{}}
+        \toprule
+        Rung & Model & \makecell{Total\\Params} & \makecell{Active\\Params} & $L$ & $D$ & $D_{\mathrm{MoE}}$ & Heads & \makecell{Head\\Dim} & $N$ & \makecell{Width/\\Depth} & Tokens \\
+        \midrule
+        1 & Vanilla & 1.34B & 0.15B & 27 & 640  & 192 & 20 & 32 & 1 & 23.70 & 150B \\
+          & Loopie  & 1.08B & 0.11B & 15 & 704  & 256 & 22 & 32 & 2 & 23.47 & 150B \\
+        \midrule
+        2 & Vanilla & 2.37B & 0.25B & 30 & 768  & 256 & 24 & 32 & 1 & 25.60 & 250B \\
+          & Loopie  & 1.81B & 0.18B & 17 & 832  & 320 & 26 & 32 & 2 & 24.47 & 250B \\
+        \midrule
+        3 & Vanilla & 4.76B & 0.51B & 36 & 1280 & 320 & 32 & 40 & 1 & 35.56 & 500B \\
+          & Loopie  & 3.78B & 0.41B & 19 & 1280 & 384 & 32 & 40 & 2 & 33.68 & 500B \\
+        \midrule
+        4 & Vanilla & 9.14B & 1.00B & 46 & 1280 & 384 & 40 & 32 & 1 & 27.83 & 500B \\
+          & Loopie  & 6.36B & 0.68B & 25 & 1408 & 448 & 44 & 32 & 2 & 28.16 & 500B \\
+        \bottomrule
+    \end{tabular}%
+    }
+    \caption{Architecture details for the Loopie scaling ladder. Each Loopie model is paired with a non-recurrent vanilla MoE baseline under matched pre-training wall time. Here $D$ denotes hidden dimension, $D_{\mathrm{MoE}}$ denotes each expert's hidden size, $L$ denotes the number of stored Transformer/MoE layers, Heads denotes the number of attention heads, Head Dim denotes the dimension of each attention head, $N$ denotes the number of recurrent layer-loop steps, and Width/Depth denotes $D/(L N)$.}
+    \label{tab:loopie-scaling-ladder}
+\end{table}
+
+
+
+
+
+
+
+
+
+\newpage
+\appsection{Supervised Pre-training Details}
+\begin{table}[!htbp]
+\centering
+\caption{Training hyperparameters for Loopie-20B-A2B and Loopie-6B-A0.6B in Supervised Pre-training.}
+\vspace{2pt}
+{\small
+\setlength{\tabcolsep}{20pt}
+\renewcommand{\arraystretch}{1.5}
+\begin{tabular}{l|cc}
+\toprule
+ & Loopie-20B-A2B & Loopie-6B-A0.6B  \\
+\midrule
+Global batch size & 1024  & 1024 \\
+Sequence length & 131072 & 131072 \\
+Learning rate & $1\times10^{-5}$  & $1\times10^{-5}$  \\
+Learning rate schedule & Warmup-then-stable & Warmup-then-stable  \\
+Warmup steps & 500 & 500 \\
+MoE Auxiliary loss coeffient & 0.01 & 0.01 \\
+Optimizer & AdamW  & AdamW \\
+$\beta_1$ & 0.9 & 0.9  \\
+$\beta_2$ & 0.95 & 0.95 \\
+Weight decay & 0.1  & 0.1 \\
+Clip gradient & 1.0  & 1.0 \\
+Adam epsilon & $1\times10^{-15}$ & $1\times10^{-15}$ \\
+\bottomrule
+\end{tabular}
+}
+\label{tab:spt_details}
+\end{table}
+
+% \appsection{Model Solutions for IMO 2025}
+% \label{app:olympiad-solutions}
+
+% The model’s original response was provided in Markdown format, which cannot be rendered directly in \LaTeX in this context. We therefore used GPT-5.5 to convert the Markdown content into LaTeX and manually verified that the converted version was consistent with the model’s original response. The judgments produced by the GPT-5.5-based evaluator may contain errors. If you identify any incorrect scores among those reported below, we would appreciate it if you could contact us promptly.
+
+
+% \begingroup
+% \definecolor{appendixPurple}{RGB}{92,52,132}
+% \definecolor{appendixProblemBg}{RGB}{248,242,252}
+% \definecolor{appendixVerdictBg}{RGB}{251,247,253}
+% \tcbset{
+%   appendixproblem/.style={
+%     enhanced,
+%     colback=appendixProblemBg,
+%     colframe=black,
+%     colbacktitle=appendixPurple,
+%     coltitle=white,
+%     fonttitle=\bfseries\sffamily,
+%     boxrule=0.6pt,
+%     arc=3mm,
+%     outer arc=3mm,
+%     left=2mm,
+%     right=2mm,
+%     top=2mm,
+%     bottom=2mm,
+%     before skip=12pt,
+%     after skip=12pt
+%   },
+%   appendixverdict/.style={
+%     enhanced jigsaw,
+%     breakable,
+%     frame hidden,
+%     colback=appendixVerdictBg,
+%     borderline west={3pt}{0pt}{appendixPurple},
+%     left=2mm,
+%     right=2mm,
+%     top=1.5mm,
+%     bottom=1.5mm,
+%     before skip=8pt,
+%     after skip=8pt
+%   },
+%   appendixjudge/.style={
+%     enhanced jigsaw,
+%     breakable,
+%     colback=black!2,
+%     colframe=black!30,
+%     boxrule=0.5pt,
+%     arc=1mm,
+%     left=2mm,
+%     right=2mm,
+%     top=1.5mm,
+%     bottom=1.5mm,
+%     before skip=6pt,
+%     after skip=10pt
+%   }
+% }
+% \providecommand{\ii}{\item}
+% \providecommand{\CC}{\mathbb C}
+% \providecommand{\FF}{\mathbb F}
+% \providecommand{\NN}{\mathbb N}
+% \providecommand{\QQ}{\mathbb Q}
+% \providecommand{\RR}{\mathbb R}
+% \providecommand{\ZZ}{\mathbb Z}
+% % \footnotesize
+% \sloppy
+% \setlength{\parindent}{0pt}
+% \setlength{\parskip}{0.08em}
+% \setlength{\abovedisplayskip}{3pt}
+% \setlength{\belowdisplayskip}{3pt}
+% \setlength{\abovedisplayshortskip}{2pt}
+% \setlength{\belowdisplayshortskip}{2pt}
+% \newcommand{\solutionheading}[1]{\par\smallskip\noindent\textbf{#1}\par}
+% \newcommand{\compactbullet}[1]{\par\noindent$\triangleright$~#1\par}
+% \newcommand{\compactnumber}[2]{\par\noindent\textbf{#1.}~#2\par}
+% \newcommand{\judgesummary}[2]{%
+%   \begin{tcolorbox}[appendixverdict]
+%     \textbf{\color{appendixPurple}Judge}\par
+%     \textbf{Reported score:} \(#1/7\).\quad
+%     \textbf{Judge model:} \texttt{gpt-5.5}.\quad
+%     \textbf{Response score tags:} \(#2\).
+%   \end{tcolorbox}%
+% }
+
+% \vspace{1em}
+% % --- begin input: appendix_solutions/imo2025_p1.tex ---
+% \begin{tcolorbox}[appendixproblem,title={IMO 2025 Problem 1}]
+% A line in the plane is called \emph{sunny}
+% if it is not parallel to any of the $x$-axis, the $y$-axis, or the line $x+y=0$.
+
+% Let $n \ge 3$ be a given integer.
+% Determine all nonnegative integers $k$ such that there exist $n$ distinct lines
+% in the plane satisfying both of the following:
+% \begin{itemize}
+% \ii for all positive integers $a$ and $b$ with $a+b\le n+1$,
+%   the point $(a,b)$ lies on at least one of the lines; and
+% \ii exactly $k$ of the $n$ lines are sunny.
+% \end{itemize}
+% \end{tcolorbox}
+% \solutionheading{Solution}
+% \judgesummary{7}{7/7,\ 7/7,\ 7/7}
+% For an integer \(n\ge 3\) define
+% \[
+% P_n = \{(a,b)\in\mathbb{N}^2 \mid a\ge 1,\; b\ge 1,\; a+b\le n+1\}.
+% \]
+% The points of \(P_n\) are exactly the lattice points in the triangle with vertices \((1,1)\), \((1,n)\), \((n,1)\).\\
+% A line is called \emph{sunny} if it is \textbf{not} parallel to the \(x\)-axis, the \(y\)-axis, or the line \(x+y=0\); equivalently, its slope is different from \(0\), \(\infty\), and \(-1\).
+
+% We must determine all non\nobreakdash-negative integers \(k\) for which there exist \(n\) distinct lines satisfying
+
+% \begin{enumerate}
+% \item every point of \(P_n\) lies on at least one of the lines, and
+
+
+% \item exactly \(k\) of the lines are sunny.
+
+
+% \end{enumerate}
+% \medskip
+% \hrule
+% \medskip
+
+% \subsubsection*{1. Constructions for \(k=0,1,3\)}
+
+% \begin{itemize}
+% \item \textbf{\(k=0\).}\\
+% Take the vertical lines \(x=1,x=2,\dots,x=n\). They are distinct, each is parallel to the \(y\)-axis (hence not sunny), and every point \((a,b)\in P_n\) lies on \(x=a\). Thus we obtain a covering with \(0\) sunny lines.
+
+
+% \item \textbf{\(k=1\).}\\
+% Take the vertical lines \(x=1,x=2,\dots,x=n-1\) (there are \(n-1\) of them) and one sunny line through \((n,1)\) with slope \(1\), for instance \(y = x - n + 1\).\\
+% The vertical lines cover all points with first coordinate \(\le n-1\); the only point with \(a=n\) is \((n,1)\) (because \(a+b\le n+1\) forces \(b=1\)). This point lies on the sunny line. Hence all points of \(P_n\) are covered, and exactly one line (the slanted one) is sunny.
+
+
+% \item \textbf{\(k=3\).}\\
+% -- For \(n=3\) we can use three sunny lines that cover \(P_3\), e.g.
+% \[
+%     y = x,\qquad y = -\tfrac12 x + \tfrac52,\qquad y = -2x + 5.
+%     \]
+% A direct check shows they cover the six points \((1,1),(1,2),(1,3),(2,1),(2,2),(3,1)\). All three have slopes \(1,-\frac12,-2\), none of which is \(0,\infty,-1\), so they are sunny.\\
+% -- For \(n>3\) do the following:
+
+% \begin{itemize}
+% \item Add the \(n-3\) horizontal lines \(y=1, y=2, \dots, y=n-3\). (These are not sunny because they are parallel to the \(x\)-axis.)
+
+
+% \item Take the three sunny lines from the \(n=3\) construction and shift each of them upward by \(n-3\) (i.e., replace \(y = f(x)\) by \(y = f(x)+(n-3)\)).\\
+% After this shift, the three lines cover exactly the points of \(P_n\) with \(b\ge n-2\) (the map \((a,b)\mapsto (a,b-(n-3))\) sends that set bijectively onto \(P_3\)). Together with the horizontal lines, every point of \(P_n\) is covered. The three shifted lines remain sunny (slopes unchanged), and the \(n-3\) horizontal lines are not sunny. Hence we obtain exactly three sunny lines.
+
+
+% \end{itemize}
+
+% \end{itemize}
+% Thus for every \(n\ge 3\) the values \(k=0,1,3\) are attainable.
+
+% \medskip
+% \hrule
+% \medskip
+
+% \subsubsection*{2. A lemma for \(n\ge 4\)}
+
+% Consider the three sides of the triangle \(P_n\):
+% \[
+% L_x : x=1,\qquad L_y : y=1,\qquad L_d : x+y=n+1.
+% \]
+% Each side contains \(n\) points of \(P_n\) (the lattice points on that segment), but the three vertices \((1,1)\), \((1,n)\), \((n,1)\) belong to two sides each. Therefore the union \(L_x\cup L_y\cup L_d\) consists of \(3n-3\) distinct points of \(P_n\).
+
+% \textbf{Lemma.} For \(n\ge 4\), any family of \(n\) lines that covers \(P_n\) must contain at least one of the three lines \(L_x, L_y, L_d\).
+
+% \emph{Proof.} Assume, to the contrary, that none of these three lines is among our \(n\) lines. Take any line \(\ell\) used in the covering. Since \(P_n\) is convex, its boundary is the union of the three sides. The intersection \(\ell\cap\partial P_n\) is a convex subset of the triangle, hence either empty, a single point (tangent at a vertex), or a line segment (with two endpoints). In all cases \(\ell\) contains \textbf{at most two distinct boundary points}. Consequently, each of our \(n\) lines can cover at most two of the \(3n-3\) boundary points. Together they can cover at most \(2n\) distinct boundary points. But \(2n < 3n-3\) for \(n\ge 4\), contradicting the fact that all boundary points must be covered. Hence at least one of the three sides must appear. 
+
+% \medskip
+% \hrule
+% \medskip
+
+% \subsubsection*{3. Induction}
+
+% We prove by induction on \(n\) that if a covering of \(P_n\) by \(n\) distinct lines exists, then the number \(k\) of sunny lines among them satisfies \(k\in\{0,1,3\}\).
+
+% \textbf{Base case \(n=3\).}\\
+% Constructions for \(k=0,1,3\) are given in Section~1 (for \(k=1\) we use \(x=1,x=2\) and \(y=x-2\); for \(k=3\) the three sunny lines listed above). It remains to show that \(k=2\) is impossible.
+
+% Assume there is a covering of \(P_3\) with exactly two sunny lines and one non\nobreakdash-sunny line. The non\nobreakdash-sunny line must be horizontal, vertical, or have slope \(-1\). The points of \(P_3\) are
+% \[
+% A=(1,1),\; B=(1,2),\; C=(1,3),\; D=(2,1),\; E=(2,2),\; F=(3,1).
+% \]
+% A line with slope \(0,\infty,\) or \(-1\) can contain at most three of these points (e.g. \(x=1\) contains \(A,B,C\); \(y=1\) contains \(A,D,F\); \(x+y=4\) contains \(C,E,F\)). If it covers \(0\) or \(1\) point, then the two sunny lines would have to cover the remaining \(5\) or \(6\) points. But any sunny line can contain \textbf{at most two} points of \(P_3\) because the only triples of collinear points in \(P_3\) lie on the sides, which have forbidden slopes. Hence two sunny lines cover at most \(4\) distinct points, a contradiction. Thus the non\nobreakdash-sunny line must cover either \(2\) or \(3\) points.
+
+% We now examine all non\nobreakdash-sunny lines that contain at least two points of \(P_3\):
+
+% \begin{table}[htbp]
+% \centering
+% \begin{tabular}{c c c}
+% \hline
+% \textbf{Line} & \textbf{Points covered} & \textbf{Complement $S$} \\
+% \hline
+% $x=1$   & $A,B,C$ & $\{D,E,F\}$ \\
+% $x=2$   & $D,E$   & $\{A,B,C,F\}$ \\
+% $y=1$   & $A,D,F$ & $\{B,C,E\}$ \\
+% $y=2$   & $B,E$   & $\{A,C,D,F\}$ \\
+% $x+y=3$ & $B,D$   & $\{A,C,E,F\}$ \\
+% $x+y=4$ & $C,E,F$ & $\{A,B,D\}$ \\
+% \hline
+% \end{tabular}
+% \caption{Lines, covered points, and their complements}
+% \label{tab:line-complements}
+% \end{table}
+
+% For each \(S\) we check whether it can be covered by two sunny lines.
+
+% \begin{itemize}
+% \item \(S = \{D,E,F\}\): every pair lies on a non\nobreakdash-sunny line (\(D,E\) vertical, \(D,F\) horizontal, \(E,F\) slope \(-1\)). Hence no sunny line can contain two of these points; covering three points with two sunny lines would require at least one sunny line to contain two points -- impossible.
+
+
+% \item \(S = \{A,B,C,F\}\): the only sunny pair is \((B,F)\) (slope \(-\frac12\)). All other pairs are non\nobreakdash-sunny. To cover four points we would need two sunny lines each covering two points, but only one sunny pair exists. Points \(A\) and \(C\) cannot be together on a sunny line (they determine \(x=1\), non\nobreakdash-sunny) and would then need two separate sunny lines, making three sunny lines in total. Impossible.
+
+
+% \item \(S = \{B,C,E\}\): all pairs are non\nobreakdash-sunny, so two sunny lines can cover at most two points.
+
+
+% \item \(S = \{A,C,D,F\}\): the only sunny pair is \((C,D)\) (slope \(-2\)). The remaining points \(A\) and \(F\) cannot be together on a sunny line (they determine \(y=1\), non\nobreakdash-sunny) and would need two separate sunny lines. Impossible.
+
+
+% \item \(S = \{A,C,E,F\}\): the only sunny pair is \((A,E)\) (slope \(1\)). Points \(C\) and \(F\) cannot be together on a sunny line (slope \(-1\)), and would need two separate sunny lines. Impossible.
+
+
+% \item \(S = \{A,B,D\}\): no pair of points in \(S\) lies on a sunny line (\(A,B\) vertical, \(A,D\) horizontal, \(B,D\) slope \(-1\)). Thus two sunny lines cannot cover three points.
+
+
+% \end{itemize}
+% Hence no configuration with exactly one non\nobreakdash-sunny line and two sunny lines can cover \(P_3\). Therefore \(k=2\) is impossible for \(n=3\), and the only possible values are \(k=0,1,3\).
+
+% \textbf{Inductive step.} Let \(n\ge 4\) and suppose a covering of \(P_n\) by \(n\) lines exists with exactly \(k\) sunny lines. By the lemma, at least one of the three sides \(L_x, L_y, L_d\) is among the lines. Remove that side; we are left with \(n-1\) lines. We show that these \(n-1\) lines (possibly after a translation) give a covering of \(P_{n-1}\) with the same \(k\).
+
+% We distinguish three cases.
+
+% \begin{itemize}
+% \item \textbf{Case 1 -- the removed side is \(L_d : x+y=n+1\).}\\
+% All points of \(P_n\) with \(a+b\le n\) (i.e., \(P_{n-1}\)) are not on \(L_d\), so they are covered by the remaining lines. Thus the remaining lines already cover \(P_{n-1}\). They are \(n-1\) distinct lines and keep their sunny status, giving a covering of \(P_{n-1}\) with \(n-1\) lines and \(k\) sunny lines.
+
+
+% \item \textbf{Case 2 -- the removed side is \(L_x : x=1\).}\\
+% The remaining lines cover all points with \(a\ge 2\) (points with \(a=1\) lie on \(L_x\) and are not covered by the others). Translate the whole plane left by one unit: \((x',y') = (x-1,y)\). Under this translation, the set
+% \[
+%   \{(a-1,b) \mid a\ge 2,\; b\ge 1,\; a+b\le n+1\}
+%   \]
+% becomes exactly \(P_{n-1}\). For each of the remaining \(n-1\) lines, apply the same translation to obtain a new line. A point \((a,b)\) with \(a\ge 2\) lies on a line \(L\) in the original configuration iff \((a-1,b)\) lies on the translated line. Hence the translated lines cover \(P_{n-1}\). Translation does not change slopes, so a sunny line remains sunny. The lines are still distinct. We have obtained a covering of \(P_{n-1}\) with \(n-1\) lines and \(k\) sunny lines.
+
+
+% \item \textbf{Case 3 -- the removed side is \(L_y : y=1\).}\\
+% Symmetric to Case~2: translate downward by one unit.
+
+
+% \end{itemize}
+% In each case we have reduced the problem from \(n\) to \(n-1\) while preserving \(k\). Since \(n-1\ge 3\), the induction hypothesis applies and forces \(k\in\{0,1,3\}\). This completes the induction for \(n\ge 4\).
+
+% \medskip
+% \hrule
+% \medskip
+
+% \subsubsection*{4. Conclusion}
+
+% For every \(n\ge 3\) we have shown:
+
+% \begin{itemize}
+% \item There exist coverings with \(k=0,1,3\) sunny lines (explicit constructions).
+
+
+% \item Any covering must have \(k\in\{0,1,3\}\) (by induction, with base \(n=3\)).
+
+
+% \end{itemize}
+% Therefore the set of admissible integers \(k\) is exactly \(\boxed{\{0,1,3\}}\).
+
+% \medskip
+% \hrule
+% \medskip
+% % --- end input: appendix_solutions/imo2025_p1.tex ---
+
+% % --- begin inline judge responses: IMO 2025 P1 ---
+% % Generated from results/p1/judge.json; response wording is unchanged.
+
+% \solutionheading{Judge Response 1}
+% \begin{tcolorbox}[appendixjudge]
+% \textbf{Score:} \(7/7\).\par
+% \textbf{Reason.} The solution gives valid constructions for all claimed values k=0,1,3, proves the key boundary-line lemma correctly for n\ensuremath{\ge}4, handles the n=3 base case including impossibility of k=2, and uses a sound induction reducing by a non-sunny side while preserving the number of sunny lines. The argument is rigorous and complete.\par
+% \end{tcolorbox}
+
+% \solutionheading{Judge Response 2}
+% \begin{tcolorbox}[appendixjudge]
+% \textbf{Score:} \(7/7\).\par
+% \textbf{Reason.} Complete and rigorous solution. The constructions for k=0,1,3 are valid, including the shifted k=3 construction. The boundary-counting lemma is correct for n>=4, and the induction preserves the number of sunny lines because the removed side is always non-sunny. The n=3 base case carefully rules out k=2. Only very minor wording imprecision occurs in referring to P\_n as convex, but the intended convex hull argument is clear and valid.\par
+% \end{tcolorbox}
+
+% \solutionheading{Judge Response 3}
+% \begin{tcolorbox}[appendixjudge]
+% \textbf{Score:} \(7/7\).\par
+% \textbf{Reason.} Complete and rigorous solution. It gives valid constructions for k=0,1,3, proves a correct boundary-line lemma for n\ensuremath{\ge}4, uses induction preserving the number of sunny lines, and handles the n=3 base case including impossibility of k=2 by exhaustive checking. Only minor wording imprecision appears in the induction, but it does not affect correctness.\par
+% \end{tcolorbox}
+% % --- end inline judge responses: IMO 2025 P1 ---
+
+% % --- begin input: appendix_solutions/imo2025_p2.tex ---
+% \begin{tcolorbox}[appendixproblem,title={IMO 2025 Problem 2}]
+% Let $\Omega$ and $\Gamma$ be circles with centres $M$ and $N$, respectively,
+% such that the radius of $\Omega$ is less than the radius of $\Gamma$.
+% Suppose $\Omega$ and $\Gamma$ intersect at two distinct points $A$ and $B$.
+% Line $MN$ intersects $\Omega$ at $C$ and $\Gamma$ at $D$,
+% so that $C$, $M$, $N$, $D$ lie on $MN$ in that order.
+% Let $P$ be the circumcenter of triangle $ACD$.
+% Line $AP$ meets $\Omega$ again at $E \neq A$ and meets $\Gamma$ again at $F \neq A$.
+% Let $H$ be the orthocenter of triangle $PMN$.
+
+% Prove that the line through $H$ parallel to $AP$ is tangent
+% to the circumcircle of triangle $BEF$.
+% \end{tcolorbox}
+
+% \solutionheading{Solution}
+% \judgesummary{7}{7/7,\ 7/7,\ 7/7}
+% We give a coordinate proof. By scaling we may assume \(MN = 1\).\\
+% Let the circles have centres
+
+% \[
+% M=(0,0),\qquad N=(1,0),
+% \]
+
+% radii \(r\) (circle \(\Omega\)) and \(R\) (circle \(\Gamma\)) with \(r<R\).\\
+% Since the circles intersect in two points we have \(|R-r|<1<R+r\).\\
+% Write
+
+% \[
+% a = R-r>0,\qquad b = R+r>1.
+% \]
+
+% Then
+
+% \[
+% r = \frac{b-a}{2},\qquad R = \frac{b+a}{2},\qquad 0<a<1<b.
+% \]
+
+% \medskip
+% \hrule
+% \medskip
+
+% \subsubsection*{1. The points \(A\) and \(B\)}
+
+% The equations are
+
+% \[
+% \Omega:\; x^2+y^2=r^2,\qquad 
+% \Gamma:\; (x-1)^2+y^2=R^2.
+% \]
+
+% Subtracting gives
+
+% \[
+% -2x+1 = R^2-r^2 = ab \;\Longrightarrow\; x = \frac{1-ab}{2}=h.
+% \]
+
+% Substituting into \(\Omega\) yields
+
+% \[
+% t^2 = r^2-h^2 = \frac{(b^2-1)(1-a^2)}{4}>0,
+% \]
+
+% hence
+
+% \[
+% t = \frac{\sqrt{(b^2-1)(1-a^2)}}{2}>0.
+% \]
+
+% Thus
+
+% \[
+% A=(h,t),\qquad B=(h,-t).
+% \]
+
+% \medskip
+% \hrule
+% \medskip
+
+% \subsubsection*{2. The points \(C\) and \(D\)}
+
+% On the line \(MN\) (the \(x\)-axis) we have the intersections
+
+% \[
+% C = (-r,0) = \Bigl(-\frac{b-a}{2},0\Bigr),
+% \qquad 
+% D = (1+R,0) = \Bigl(1+\frac{b+a}{2},0\Bigr)=\Bigl(\frac{b+a+2}{2},0\Bigr).
+% \]
+
+% Because the order is \(C,M,N,D\) we have \(C<0<1<D\).
+
+% \medskip
+% \hrule
+% \medskip
+
+% \subsubsection*{3. Circumcentre \(P\) of \(\triangle ACD\)}
+
+% \(C\) and \(D\) lie on the \(x\)-axis, so the perpendicular bisector of \(CD\) is vertical.\\
+% The midpoint of \(CD\) has \(x\)-coordinate
+
+% \[
+% \frac{x_C+x_D}{2}= \frac{-\frac{b-a}{2}+\frac{b+a+2}{2}}{2}= \frac{a+1}{2}.
+% \]
+
+% Hence \(P\) has \(x\)-coordinate \(p = \dfrac{1+a}{2}\).
+
+% Let \(P=(p,y)\). Using \(PA=PC\) (equivalently \(PA=PD\) because \(P\) lies on the perpendicular bisector of \(CD\)) we obtain
+
+% \[
+% (p-h)^2+(y-t)^2=(p-x_C)^2+y^2.
+% \]
+
+% Insert \(p-h=\frac{a+b}{2}\), \(p-x_C=\frac{b+1}{2}\), \(t^2\) as above. After simplification
+
+% \[
+% y = -\frac{(b^2-1)(1-a^2)}{4t}= -\frac{(b+1)\sqrt{1-a^2}}{2\sqrt{b^2-1}}.
+% \]
+
+% Thus
+
+% \[
+% P=\Bigl(\frac{1+a}{2},\; -\frac{(b+1)\sqrt{1-a^2}}{2\sqrt{b^2-1}}\Bigr).
+% \]
+
+% \medskip
+% \hrule
+% \medskip
+
+% \subsubsection*{4. Direction vector of \(AP\)}
+
+% Set \(\vec v = \overrightarrow{AP}\). Then
+
+% \[
+% \vec v_x = p-h = \frac{a+b}{2},
+% \]
+
+% \[
+% \vec v_y = y-t = -\frac{(b+1)\sqrt{1-a^2}}{2\sqrt{b^2-1}} - \frac{\sqrt{(b^2-1)(1-a^2)}}{2}
+% = -\frac{b t}{b-1}.
+% \]
+
+% So
+
+% \[
+% \boxed{\;\vec v = \Bigl(\frac{a(1+b)}{2},\; -\frac{b t}{b-1}\Bigr)\; }.
+% \]
+
+% \medskip
+% \hrule
+% \medskip
+
+% \subsubsection*{5. The points \(E\) and \(F\)}
+
+% Parametrise the line through \(A\) with direction \(\vec v\) as \(A+\lambda\vec v\).\\
+% For a circle with centre \(O\) and radius \(R\), the second intersection of this line with the circle is \(A+\lambda\vec v\) with
+
+% \[
+% \lambda = -\frac{2\,(A-O)\cdot\vec v}{|\vec v|^2}.
+% \]
+
+% We apply this to \(\Omega\) (\(O=M=(0,0)\)) and to \(\Gamma\) (\(O=N=(1,0)\)).
+
+% \emph{For \(\Omega\):}
+
+% \[
+% A\cdot\vec v = h\,\vec v_x + t\,\vec v_y
+% = -\frac{(1+b)(b-a)}{4},\qquad
+% |\vec v|^2 = \frac{(1+b)(b^2-a^2)}{4(b-1)}.
+% \]
+
+% Hence
+
+% \[
+% \lambda_E = -\frac{2(A\cdot\vec v)}{|\vec v|^2}
+% = \frac{2(b-1)}{b+a}.
+% \]
+
+% \emph{For \(\Gamma\):}
+
+% \[
+% (A-N)\cdot\vec v = (h-1)\,\vec v_x + t\,\vec v_y
+% = -\frac{(1+b)(a+b)}{4},\qquad
+% |\vec v|^2 = \frac{(1+b)(b^2-a^2)}{4(b-1)}.
+% \]
+
+% Thus
+
+% \[
+% \lambda_F = -\frac{2((A-N)\cdot\vec v)}{|\vec v|^2}
+% = \frac{2(b-1)}{b-a}.
+% \]
+
+% Consequently \(E = A+\lambda_E\vec v\) and \(F = A+\lambda_F\vec v\).
+
+% We shift coordinates by \((h,-t)\) so that \(B\) becomes the origin.\\
+% Define
+
+% \[
+% X = x-h,\qquad Y = y+t.
+% \]
+
+% For any point we write \(X',Y'\). Then
+
+% \[
+% X' = \lambda\,\vec v_x,\qquad Y' = 2t + \lambda\,\vec v_y.
+% \]
+
+% Using \(\lambda_E,\lambda_F\) we obtain
+
+% \[
+% E' = \Bigl(\frac{a(b^2-1)}{b+a},\; \frac{2a t}{b+a}\Bigr),\qquad
+% F' = \Bigl(\frac{a(b^2-1)}{b-a},\; -\frac{2a t}{b-a}\Bigr).
+% \]
+
+% \medskip
+% \hrule
+% \medskip
+
+% \subsubsection*{6. Circumcircle of \(\triangle BEF\)}
+
+% Let the circle through \(B',E',F'\) have equation \(X^2+Y^2 + DX + KY = 0\) (centre \((-D/2,-K/2)\)).\\
+% Substituting \(E'\) and \(F'\) and solving for \(D,K\) gives
+
+% \[
+% D = -a b,\qquad K = \frac{a^2(b^2-1)}{2 t}.
+% \]
+
+% (Only one linear equation determines \(D\); the other then yields \(K\).)
+
+% Thus in the shifted coordinates the centre is \((a b/2,\; -K/2)\).\\
+% Transforming back to the original coordinates:
+
+% \[
+% O = \Bigl(h+\frac{a b}{2},\; -t-\frac{K}{2}\Bigr).
+% \]
+
+% Since \(h = \frac{1-ab}{2}\), we have \(h+\frac{a b}{2} = \frac12\).\\
+% Using \(K = \frac{a^2(b^2-1)}{2 t}\) and \(4t^2 = (1-a^2)(b^2-1)\),
+
+% \[
+% O_y = -t-\frac{a^2(b^2-1)}{4t} = -\frac{t}{1-a^2}.
+% \]
+
+% Hence
+
+% \[
+% \boxed{\;O = \Bigl(\frac12,\; -\frac{t}{1-a^2}\Bigr)\; }.
+% \]
+
+% \medskip
+% \hrule
+% \medskip
+
+% \subsubsection*{7. Orthocentre \(H\) of \(\triangle PMN\)}
+
+% Vertices: \(M=(0,0)\), \(N=(1,0)\), \(P=\bigl(\frac{1+a}{2},\, y\bigr)\) with \(y\) as above.\\
+% The altitude from \(P\) is the vertical line \(x = \frac{1+a}{2}\).\\
+% The altitude from \(M\) is perpendicular to \(PN\). Since \(\overrightarrow{PN} = (p-1,\, y)\), its equation is
+
+% \[
+% (p-1)x + y\,y = 0.
+% \]
+
+% Intersecting with the altitude from \(P\) gives
+
+% \[
+% y = -\frac{(p-1)p}{y}.
+% \]
+
+% Using \(p-1 = \frac{a-1}{2}\) and \(y\) from above, after simplification
+
+% \[
+% y = -\frac{t}{b+1}.
+% \]
+
+% Thus
+
+% \[
+% \boxed{\;H = \Bigl(\frac{1+a}{2},\; -\frac{t}{b+1}\Bigr)\; }.
+% \]
+
+% \medskip
+% \hrule
+% \medskip
+
+% \subsubsection*{8. Tangency of the line through \(H\) parallel to \(AP\)}
+
+% The line through \(H\) parallel to \(AP\) is
+
+% \[
+% \ell:\; (x,y) = H + \mu\vec v,\qquad \mu\in\mathbb{R}.
+% \]
+
+% We show that the distance from the centre \(O\) to \(\ell\) equals the radius of the circumcircle of \(\triangle BEF\).
+
+% The distance from a point \(O\) to a line through \(H\) with direction \(\vec v\) is
+
+% \[
+% \operatorname{dist}(O,\ell) = \frac{\bigl|\,(\overrightarrow{HO}\times\vec v)\,\bigr|}{|\vec v|}.
+% \]
+
+% Compute
+
+% \[
+% \vec w = O-H = \Bigl(-\frac{a}{2},\; O_y + \frac{t}{b+1}\Bigr)
+% = \Bigl(-\frac{a}{2},\; t\Bigl(-\frac{1}{1-a^2} + \frac{1}{b+1}\Bigr)\Bigr).
+% \]
+
+% Hence
+
+% \[
+% O_y + \frac{t}{b+1} = t\cdot\frac{-b-a^2}{(1-a^2)(b+1)}.
+% \]
+
+% Now
+
+% \[
+% \vec w \times \vec v = w_x v_y - w_y v_x
+% = \frac{a b t}{2(b-1)} + \frac{a t (b+a^2)}{2(1-a^2)}.
+% \]
+
+% Simplifying the bracket:
+
+% \[
+% \frac{b}{b-1} + \frac{b+a^2}{1-a^2} = \frac{b^2-a^2}{(b-1)(1-a^2)}.
+% \]
+
+% Thus
+
+% \[
+% \bigl|\,\vec w \times \vec v\,\bigr| = \frac{a t}{2}\cdot\frac{b^2-a^2}{(b-1)(1-a^2)}.
+% \]
+
+% Using \(t = \frac{\sqrt{(b^2-1)(1-a^2)}}{2}\),
+
+% \[
+% \bigl|\,\vec w \times \vec v\,\bigr| = \frac{a (b^2-a^2) \sqrt{b^2-1}}{4 (b-1) \sqrt{1-a^2}}.
+% \]
+
+% Now
+
+% \[
+% |\vec v| = \sqrt{\frac{(1+b)(b^2-a^2)}{4(b-1)}},\qquad
+% R_B = \text{radius of }(BEF) = \frac{a \sqrt{b^2-a^2}}{2\sqrt{1-a^2}}.
+% \]
+
+% Multiplying,
+
+% \[
+% |\vec v|\,R_B = \frac{a (b^2-a^2) \sqrt{b+1}}{4 \sqrt{(b-1)(1-a^2)}}.
+% \]
+
+% Since \(\sqrt{b^2-1} = \sqrt{(b-1)(b+1)}\),
+
+% \[
+% \bigl|\,\vec w \times \vec v\,\bigr| = \frac{a (b^2-a^2) \sqrt{b^2-1}}{4 (b-1) \sqrt{1-a^2}}
+% = \frac{a (b^2-a^2) \sqrt{b+1}}{4 \sqrt{(b-1)(1-a^2)}}
+% = |\vec v|\,R_B.
+% \]
+
+% Therefore
+
+% \[
+% \operatorname{dist}(O,\ell) = \frac{\bigl|\,\vec w \times \vec v\,\bigr|}{|\vec v|} = R_B,
+% \]
+
+% i.e. the line \(\ell\) is tangent to the circumcircle of \(\triangle BEF\).
+
+
+
+% \medskip
+% \hrule
+% \medskip
+% % --- end input: appendix_solutions/imo2025_p2.tex ---
+
+% % --- begin inline judge responses: IMO 2025 P2 ---
+% % Generated from results/p2/judge.json; response wording is unchanged.
+
+% \solutionheading{Judge Response 1}
+% \begin{tcolorbox}[appendixjudge]
+% \textbf{Problem score:} \(7/7\).\par
+% \textbf{Verdict:} \texttt{fully\_correct}.\par
+% \smallskip
+% \textbf{Subtasks}\par
+% \textbf{\texttt{S1} (\(1/1\); \texttt{earned}).} The solution sets up coherent coordinates with M=(0,0), N=(1,0), correctly represents the two circles and the order C=(-r,0), M, N, D=(1+R,0). It also uses that P is on the perpendicular bisector of CD and satisfies PA=PC=PD to determine P.\par
+% \smallskip
+% \textbf{\texttt{S2} (\(2/2\); \texttt{earned}).} The solution correctly encodes the circle conditions through the equations x\textasciicircum{}2+y\textasciicircum{}2=r\textasciicircum{}2 and (x-1)\textasciicircum{}2+y\textasciicircum{}2=R\textasciicircum{}2, introduces a=R-r and b=R+r, derives the common chord coordinates A=(h,t), B=(h,-t), and correctly locates C and D using the radii. The two distinct circles and the required order are preserved throughout.\par
+% \smallskip
+% \textbf{\texttt{S3} (\(1/1\); \texttt{earned}).} The second intersections E and F of AP with the two circles are computed using the standard line-circle second-intersection parameter formula. The orthocentre H of triangle PMN is also correctly found by intersecting the vertical altitude from P with the altitude from M.\par
+% \smallskip
+% \textbf{\texttt{S4} (\(1/1\); \texttt{earned}).} The point B is correctly determined as the second common intersection of the two circles. The circumcircle of BEF is accurately formulated after shifting B to the origin, with equation X\textasciicircum{}2+Y\textasciicircum{}2+DX+KY=0, and the centre and radius are correctly derived.\par
+% \smallskip
+% \textbf{\texttt{S5} (\(2/2\); \texttt{earned}).} The solution proves tangency by computing the distance from the centre O of the circumcircle of BEF to the line through H parallel to AP and showing it equals the radius of that circle. The cross-product computation and final simplification are carried out explicitly, and the desired tangency is clearly concluded.\par
+% \smallskip
+% \textbf{Deductions}\par
+% \begin{itemize}[leftmargin=1.5em,itemsep=0.15em,topsep=0.15em]
+% \item There are minor typographical inconsistencies, such as an intermediate incorrect display of p-h and some variable-name ambiguity in the altitude equation, but the subsequent computations use the correct quantities and the argument remains mathematically valid.
+% \end{itemize}
+% \smallskip
+% \textbf{Fatal errors:} none.\par
+% \smallskip
+% \textbf{Full problem assessment.} This is a complete and correct analytic proof. The coordinate normalization is valid, the circle intersections and points C,D are correctly represented, P is computed from the perpendicular bisector and equal-radius condition, and the points E,F,H are obtained accurately. The circle through B,E,F is derived explicitly, including its centre and radius, and the final distance-to-line calculation establishes the required tangency. Minor notation or typographical slips do not affect the correctness of the proof.\par
+% \end{tcolorbox}
+
+% \solutionheading{Judge Response 2}
+% \begin{tcolorbox}[appendixjudge]
+% \textbf{Problem score:} \(7/7\).\par
+% \textbf{Verdict:} \texttt{fully\_correct}.\par
+% \smallskip
+% \textbf{Subtasks}\par
+% \textbf{\texttt{S1} (\(1/1\); \texttt{earned}).} The solution sets a coherent coordinate system with M=(0,0), N=(1,0), correctly represents the two intersecting circles and the order C,M,N,D by taking C=(-r,0), D=(1+R,0). It also uses that P is the circumcentre of ACD: since C,D lie on the x-axis, P lies on the perpendicular bisector of CD and satisfies PA=PC=PD.\par
+% \smallskip
+% \textbf{\texttt{S2} (\(2/2\); \texttt{earned}).} The solution fully determines the metric parameters from the circle conditions by writing r=(b-a)/2, R=(b+a)/2, deriving the common chord coordinate h=(1-ab)/2 and t\textasciicircum{}2=((b\textasciicircum{}2-1)(1-a\textasciicircum{}2))/4. The distinction between the two circles and the order C,M,N,D are maintained throughout. No tangency conclusion is assumed.\par
+% \smallskip
+% \textbf{\texttt{S3} (\(1/1\); \texttt{earned}).} The second intersections E and F of AP with Omega and Gamma are correctly computed using the line parametrization A+lambda v and the standard quadratic-intersection formula. The orthocentre H of triangle PMN is also correctly found from the altitude through P and the altitude through M, yielding H=((1+a)/2,-t/(b+1)).\par
+% \smallskip
+% \textbf{\texttt{S4} (\(1/1\); \texttt{earned}).} The point B is correctly characterized as the other circle intersection, B=(h,-t), equivalently lying on the common chord/radical axis perpendicular to MN. The solution then shifts coordinates so B is the origin and accurately sets up the circumcircle of BEF as X\textasciicircum{}2+Y\textasciicircum{}2+DX+KY=0, solving for its centre O=(1/2,-t/(1-a\textasciicircum{}2)) and radius.\par
+% \smallskip
+% \textbf{\texttt{S5} (\(2/2\); \texttt{earned}).} The final tangency is proved by computing the distance from the centre O of the circumcircle of BEF to the line through H parallel to AP. The cross-product calculation is carried through rigorously and shown to equal |v| times the circle radius, so the distance equals the radius. The solution explicitly concludes that this line is tangent to the circumcircle of BEF.\par
+% \smallskip
+% \textbf{Deductions:} none.\par
+% \smallskip
+% \textbf{Fatal errors:} none.\par
+% \smallskip
+% \textbf{Full problem assessment.} The submitted coordinate proof is complete and mathematically correct. It establishes the full configuration, computes P, the direction AP, the second intersections E and F, the circumcircle of BEF, and the orthocentre H, then verifies the tangency by a valid distance-to-line calculation. There are only minor notational slips, such as an intermediate incorrect expression for v\_x before the corrected boxed value and a reused variable name in the altitude equation, but the subsequent computations use the correct quantities and the argument is unaffected.\par
+% \end{tcolorbox}
+
+% \solutionheading{Judge Response 3}
+% \begin{tcolorbox}[appendixjudge]
+% \textbf{Problem score:} \(7/7\).\par
+% \textbf{Verdict:} \texttt{fully\_correct}.\par
+% \smallskip
+% \textbf{Subtasks}\par
+% \textbf{\texttt{S1} (\(1/1\); \texttt{earned}).} The solution sets up valid coordinates with M=(0,0), N=(1,0), radii r<R, and correctly represents A,B as the two intersections of the circles. It correctly takes C=(-r,0), D=(1+R,0), preserving the order C,M,N,D, and uses that P lies on the perpendicular bisector of CD with PA=PC.\par
+% \smallskip
+% \textbf{\texttt{S2} (\(2/2\); \texttt{earned}).} The circle conditions are fully encoded by the equations x\textasciicircum{}2+y\textasciicircum{}2=r\textasciicircum{}2 and (x-1)\textasciicircum{}2+y\textasciicircum{}2=R\textasciicircum{}2, with parameters a=R-r and b=R+r. The derivation of h and t correctly determines A,B, and the positions of C,D follow from the radii and the prescribed order. The distinct roles of the two circles are maintained throughout.\par
+% \smallskip
+% \textbf{\texttt{S3} (\(1/1\); \texttt{earned}).} The solution correctly parametrizes AP using the direction vector v and obtains the second intersections E and F via the standard line-circle second-intersection formula. It also correctly computes the orthocentre H of triangle PMN as the intersection of the vertical altitude from P with the altitude from M.\par
+% \smallskip
+% \textbf{\texttt{S4} (\(1/1\); \texttt{earned}).} The point B is correctly identified as the second common point of the two original circles, and the shifted coordinates place B at the origin. The circumcircle of BEF is accurately set up as X\textasciicircum{}2+Y\textasciicircum{}2+DX+KY=0, and substituting E and F gives the correct centre O and radius.\par
+% \smallskip
+% \textbf{\texttt{S5} (\(2/2\); \texttt{earned}).} The final tangency is proved by computing the distance from the centre O of the circumcircle of BEF to the line through H parallel to AP and showing it equals the circle's radius. The algebraic simplification is carried out explicitly and correctly, leading to the stated tangency.\par
+% \smallskip
+% \textbf{Deductions:} none.\par
+% \smallskip
+% \textbf{Fatal errors:} none.\par
+% \smallskip
+% \textbf{Full problem assessment.} This is a complete and correct coordinate proof. The configuration is validly parametrized, the points A,B,C,D,P,E,F,H are all computed or characterized correctly, and the circumcircle of BEF is found accurately. The final distance-to-line calculation establishes tangency rigorously. There is a minor typographical inconsistency in Step 4 where v\_x is first written as (a+b)/2 before the boxed and subsequently used value a(1+b)/2 appears; the later computations use the correct value, so this does not affect correctness.\par
+% \end{tcolorbox}
+% % --- end inline judge responses: IMO 2025 P2 ---
+
+% % --- begin input: appendix_solutions/imo2025_p3.tex ---
+% \begin{tcolorbox}[appendixproblem,title={IMO 2025 Problem 3}]
+% A function $f \colon \NN \to \NN$ is said to be \emph{bonza} if
+% \[ f(a)\quad\text{divides}\quad b^a-f(b)^{f(a)} \]
+% for all positive integers $a$ and $b$.
+
+% Determine the smallest real constant $c$ such that $f(n) \leq cn$
+% for all bonza functions $f$ and all positive integers $n$.
+% \end{tcolorbox}
+
+% \solutionheading{Solution}
+% \judgesummary{4}{4/7,\ 4/7,\ 4/7}
+% \textbf{Step 1.  Determine \(f(1)\).}\\
+% Put \(a=b=1\). The condition gives
+% \[
+% f(1) \mid 1 - f(1)^{f(1)}.
+% \]
+% Obviously \(f(1) \mid f(1)^{f(1)}\). Subtracting, we obtain \(f(1) \mid 1\); hence \(f(1)=1\).
+
+% \textbf{Step 2.  \(f(p)=1\) for every odd prime \(p\).}\\
+% Let \(p\) be an odd prime. From \((a,b)=(p,p)\) we get
+% \[
+% f(p) \mid p^{p} - f(p)^{f(p)}.
+% \]
+% Since \(f(p)\) divides \(f(p)^{f(p)}\), it follows that \(f(p) \mid p^{p}\). Thus every prime divisor of \(f(p)\) is \(p\); consequently \(f(p)=p^{e}\) for some integer \(e\ge 0\). If \(e=0\) then \(f(p)=1\); assume \(e\ge 1\) and derive a contradiction.
+
+% Now use \((a,b)=(p,2)\). Because \(f(2) \mid 2^{2}-f(2)^{f(2)}\) and also \(f(2)\mid f(2)^{f(2)}\), we have \(f(2) \mid 4\). Hence \(f(2)=1,2\) or \(4\), all of which are powers of \(2\). Write \(f(2)=2^{s}\) with \(s\in\{0,1,2\}\). Then the condition with \(a=p,b=2\) yields
+% \[
+% f(p) \mid 2^{p} - f(p)^{f(2)} = 2^{p} - p^{e\cdot 2^{s}}.
+% \]
+% Since \(p^{e\cdot 2^{s}} \equiv 0 \pmod p\) and \(2^{p}\equiv 2 \pmod p\) (Fermat\textquoteright{}s little theorem), we obtain
+% \[
+% p \mid 2^{p} - p^{e\cdot 2^{s}} \quad\Longrightarrow\quad p \mid 2,
+% \]
+% which is impossible for an odd prime. Therefore \(e=0\) and \(f(p)=1\). So for every odd prime \(p\) we have \(f(p)=1\).
+
+% \textbf{Step 3.  \(f(n)\) is a power of \(2\) for all \(n\).}\\
+% Suppose an odd prime \(q\) divides \(f(n)\). Choose \(b=q\) (odd). From Step~2, \(f(q)=1\). The condition with \(a=n,b=q\) gives
+% \[
+% f(n) \mid q^{n} - f(q)^{f(n)} = q^{n} - 1.
+% \]
+% Because \(q \mid f(n)\), it follows that \(q \mid q^{n}-1\). But \(q\) also divides \(q^{n}\), so \(q\) divides the difference \((q^{n}-1)-q^{n} = -1\), a contradiction. Hence no odd prime can divide \(f(n)\); therefore \(f(n)\) is a power of \(2\) for every positive integer \(n\).
+
+% \textbf{Step 4.  Odd arguments.}\\
+% If \(n\) is odd, then by Step~3, \(f(n)\) is a power of \(2\). The condition with \(b=n\) gives
+% \[
+% f(n) \mid n^{n} - f(n)^{f(n)} \;\Longrightarrow\; f(n) \mid n^{n}.
+% \]
+% But \(n^{n}\) is odd, while the only power of \(2\) dividing an odd number is \(1\). Hence \(f(n)=1\) for all odd \(n\).
+
+% \textbf{Step 5.  Even arguments -- an upper bound.}\\
+% Let \(n\) be even and write \(n = 2^{r} t\) with \(r\ge 1\) and \(t\) odd. We shall prove \(f(n) \le 4n\).
+
+% From Step~3, \(f(n)=2^{e}\) for some \(e\ge 0\). It suffices to show \(v_{2}(f(n)) \le r+2\).
+
+% Because every odd prime divides \(f(p)=1\), in particular for any odd prime \(p\) we have \(f(p)=1\). Taking such a prime \(p\), the condition with \(a=n,b=p\) yields
+% \[
+% f(n) \mid p^{n} - 1^{f(n)} = p^{n} - 1.
+% \]
+% Thus \(f(n)\) divides \(G(n) := \gcd\limits_{\text{odd prime }p} (p^{n}-1)\). Moreover, any odd prime cannot divide \(G(n)\): if \(p\) were a common divisor, then \(p\mid p^{n}-1\), which is false. Hence \(G(n)\) is a power of \(2\).
+
+% We now determine \(v_{2}\bigl(G(n)\bigr)\). Since \(G(n)\) is the gcd, its \(2\)-adic valuation equals the minimum of \(v_{2}(p^{n}-1)\) over odd primes \(p\). Write \(n=2^{r}t\) with \(t\) odd. For any odd \(p\), using the fact that \(t\) is odd we can reduce the exponent:
+% \[
+% p^{n} = (p^{2^{r}})^{t}.
+% \]
+% We first compute \(v_{2}\bigl(p^{2^{r}}-1\bigr)\).
+
+% \textbf{Lemma.}  For an odd integer \(b\) and any integer \(k\ge 1\),
+% \[
+% v_{2}\bigl(b^{2^{k}}-1\bigr) = v_{2}(b-1) + v_{2}(b+1) + k - 1.
+% \]
+
+% \emph{Proof.}  By induction on \(k\).\\
+% For \(k=1\): \(b^{2}-1 = (b-1)(b+1)\). Since \(b-1\) and \(b+1\) are consecutive even numbers, one of them is exactly divisible by \(2\) but not by \(4\) (valuation \(1\)), the other by at least \(2\). Hence \(v_{2}(b^{2}-1) = v_{2}(b-1)+v_{2}(b+1)\).
+
+% Assume the formula holds for \(k-1\). Then
+% \[
+% b^{2^{k}}-1 = \bigl(b^{2^{k-1}}-1\bigr)\bigl(b^{2^{k-1}}+1\bigr).
+% \]
+% By the induction hypothesis,
+% \[
+% v_{2}\bigl(b^{2^{k-1}}-1\bigr) = v_{2}(b-1)+v_{2}(b+1) + (k-1)-1 = v_{2}(b-1)+v_{2}(b+1)+k-2.
+% \]
+% Now we show \(v_{2}\bigl(b^{2^{k-1}}+1\bigr)=1\). Write \(b = 1+2x\). Using the binomial theorem,
+% \[
+% b^{2^{k-1}} = (1+2x)^{2^{k-1}} = 1 + 2^{k}x + 2^{k+1}\cdot(\text{integer}),
+% \]
+% because all binomial coefficients \(\binom{2^{k-1}}{j}\) for \(j\ge 2\) are multiples of \(2^{k-1}\) and, for \(k\ge 2\), the factor \(2^{k-1}\) already gives an extra factor of \(2\) when \(j\ge 2\). A more elementary way: from the already known fact that \(b^{2^{k-1}} \equiv 1 \pmod{2^{k+1}}\) (a standard lifting\nobreakdash-the\nobreakdash-exponent result), we have \(b^{2^{k-1}} = 1 + 2^{k+1}\cdot m\). Then \(b^{2^{k-1}}+1 = 2 + 2^{k+1}m = 2(1+2^{k}m)\), and \(1+2^{k}m\) is odd. Hence \(v_{2}(b^{2^{k-1}}+1)=1\).
+
+% Therefore
+% \[
+% v_{2}\bigl(b^{2^{k}}-1\bigr) = (v_{2}(b-1)+v_{2}(b+1)+k-2) + 1 = v_{2}(b-1)+v_{2}(b+1)+k-1,
+% \]
+% completing the induction.
+
+% Apply the lemma with \(b=p\) and \(k=r\). For an odd prime \(p\),
+% \[
+% v_{2}\bigl(p^{2^{r}}-1\bigr) = v_{2}(p-1) + v_{2}(p+1) + r - 1.
+% \]
+% Since \(p-1\) and \(p+1\) are consecutive even numbers, their valuations satisfy \(v_{2}(p-1) \ge 1\), \(v_{2}(p+1) \ge 2\) (because one of them is exactly twice an odd number). Hence
+% \[
+% v_{2}\bigl(p^{2^{r}}-1\bigr) \ge 1+2+r-1 = r+2.
+% \]
+% Equality is attained, for instance, when \(p=3\) because \(v_{2}(2)=1\), \(v_{2}(4)=2\).
+
+% Now for an arbitrary odd prime \(p\) and exponent \(n=2^{r}t\) with \(t\) odd, we have
+% \[
+% p^{n} = \bigl(p^{2^{r}}\bigr)^{t}.
+% \]
+% Let \(k = r\) and write \(p^{2^{r}} = 1 + 2^{M}u\) with \(u\) odd, where \(M = v_{2}(p^{2^{r}}-1)\). Because \(t\) is odd,
+% \[
+% p^{n} = \bigl(1+2^{M}u\bigr)^{t} = 1 + t\cdot 2^{M}u + 2^{2M}\cdot(\text{integer}) \equiv 1 + 2^{M}(\text{odd}) \pmod{2^{M+1}}.
+% \]
+% Thus \(v_{2}(p^{n}-1) = M = v_{2}(p^{2^{r}}-1) \ge r+2\). Consequently,
+% \[
+% v_{2}\bigl(p^{n}-1\bigr) \ge r+2 \quad\text{for every odd prime }p.
+% \]
+% The minimum over primes is exactly \(r+2\) (achieved by \(p=3\)). Therefore
+% \[
+% G(n) = \gcd\bigl\{p^{n}-1 : p \text{ odd prime}\bigr\} = 2^{r+2}.
+% \]
+
+% Since \(f(n)\) divides \(G(n)\), we have \(f(n) \le 2^{r+2}\). As \(t \ge 1\), \(2^{r+2} \le 2^{r+2}t = 4n\). Hence for even \(n\),
+% \[
+% f(n) \le 4n.
+% \]
+% Together with Step~4 (odd \(n\) gives \(f(n)=1\)), we obtain \(f(n) \le 4n\) for all \(n\).
+
+% \textbf{Step 6.  Sharpness -- an example attaining \(f(4)=16\).}\\
+% Define
+% \[
+% f(1)=1,\qquad 
+% f(n)=1\ \text{if }n\text{ is odd},\qquad 
+% f(2)=2,
+% \]
+% and for even \(n = 2^{r}t\) with \(r\ge 1\) and \(t\) odd, set
+% \[
+% f(n)=2^{r+2}.
+% \]
+% (When \(n=2\) we have \(r=1, t=1\), but we keep \(f(2)=2\) separately.)
+
+% A direct verification shows that this function satisfies \(f(a)\mid b^{a}-f(b)^{f(a)}\) for all \(a,b\in\mathbb{N}\). The cases are:
+
+% \begin{itemize}
+% \item \textbf{\(a\) odd:} then \(f(a)=1\) and the condition is trivial.
+
+
+% \item \textbf{\(a=2\):} \(f(2)=2\).\\
+% -- \(b\) odd: \(2\mid b^{2}-1\) (since \(b^{2}\) is even).\\
+% -- \(b=2\): \(2\mid 2^{2}-2^{2}=0\).\\
+% -- \(b\) even \(>2\): write \(b=2^{s}u\) (\(s\ge1\), \(u\) odd). Then \(f(b)=2^{s+2}\).
+% \[
+%     b^{2} - f(b)^{2} = 2^{2s}u^{2} - 2^{2(s+2)} = 2^{2s}\bigl(u^{2}-2^{4}\bigr).
+%     \]
+% Because \(u^{2}\) is odd, \(u^{2}-16\) is odd, so the factor in parentheses is odd; the whole expression is divisible by \(2^{2s}\ge 2^{2}\). Since \(f(2)=2\), divisibility holds.
+
+
+% \item \textbf{\(a\) even, \(a>2\) (so \(a=2^{r}t\), \(r\ge1\), \(t\) odd, \(a>2\)):} \(f(a)=2^{r+2}\).\\
+% -- \(b\) odd: we have \(f(b)=1\). We need \(2^{r+2}\mid b^{a}-1\).\\
+% For any odd \(b\), Lemma \(\Rightarrow\) \(b^{2^{r}}\equiv 1\pmod{2^{r+2}}\) (and actually \(v_{2}(b^{2^{r}}-1)\ge r+2\)). Raising to the odd power \(t\) preserves the congruence, so \(b^{a}=(b^{2^{r}})^{t}\equiv 1\pmod{2^{r+2}}\). Hence \(2^{r+2}\mid b^{a}-1\).\\
+% -- \(b=2\): \(f(2)=2\). Then \(2^{r+2}\mid 2^{a} - 2^{2^{r+2}}\). Let \(A = a\), \(B = 2^{r+2}\). The 2\nobreakdash-adic valuation of the difference is \(\min(A,B)\) (because the difference is \(2^{A}(1-2^{B-A})\) or \(2^{B}(2^{A-B}-1)\)). In all cases \(\min(A,B)\ge r+2\) (one checks that \(A\ge 2^{r}\ge 2\) and \(B=2^{r+2}\ge r+2\); the smallest possible value is \(r+2\) when \(a=4\) and \(r=2\) giving equality). Hence the divisibility holds.\\
+% -- \(b\) even \(>2\): write \(b=2^{s}u\) (\(s\ge1\), \(u\) odd). Then \(f(b)=2^{s+2}\). Let \(A = as\), \(B = (s+2)2^{r+2}\). The difference is \(2^{A}u^{a} - 2^{B}\).
+
+% \begin{itemize}
+% \item If \(A<B\): the valuation is \(A\). Since \(A = a s\) and \(a = 2^{r}t\ge 2^{r}\), we have \(A\ge 2^{r}\). For \(r=1\) we have \(a\ge6\) (because \(a>2\)), so \(A\ge6>3\); for \(r\ge2\), \(A\ge4\) and in fact \(A\ge r+2\) (checking the worst case \(a=4\), \(s=1\) gives \(A=4=r+2\)).
+
+
+% \item If \(A>B\): the valuation is \(B\). Then \(B\ge (1+2)2^{r+2}=3\cdot2^{r+2}\ge r+2\).
+
+
+% \item If \(A=B\): the difference is \(2^{A}(u^{a}-1)\). Since \(u^{a}\) is odd, \(u^{a}-1\) is even, so the valuation exceeds \(A\ge r+2\).
+
+
+% \end{itemize}
+
+% \end{itemize}
+% Thus in every subcase \(2^{r+2}\) divides the required expression.
+
+% Because \(f(4)=2^{1+2}=16\) and \(4n = 16\) for \(n=4\), the constant \(c\) cannot be smaller than \(4\).
+
+% \textbf{Conclusion.}\\
+% We have proved \(f(n)\le 4n\) for every bonza function \(f\) and every positive integer \(n\), and the construction shows that \(c=4\) is the smallest possible constant. Therefore
+
+% \[
+% \boxed{4}
+% \]
+
+% \medskip
+% \hrule
+% \medskip
+% % --- end input: appendix_solutions/imo2025_p3.tex ---
+
+% % --- begin inline judge responses: IMO 2025 P3 ---
+% % Generated from results/p3/judge.json; response wording is unchanged.
+
+% \solutionheading{Judge Response 1}
+% \begin{tcolorbox}[appendixjudge]
+% \textbf{Problem score:} \(4/7\).\par
+% \textbf{Verdict:} \texttt{partial}.\par
+% \smallskip
+% \textbf{Subtasks}\par
+% \textbf{\texttt{S1} (\(0/1\); \texttt{partial}).} The solution correctly derives f(1)=1 and later uses the valid fact f(n) divides n\textasciicircum{}n by taking a=b=n. However, it does not derive the key congruence f(b) \ensuremath{\equiv} b mod p for primes p with f(p)>1. Instead, in Step 2 it incorrectly applies the condition for (a,b)=(p,2), writing f(p) | 2\textasciicircum{}p - f(p)\textasciicircum{}\{f(2)\} instead of the correct f(p) | 2\textasciicircum{}p - f(2)\textasciicircum{}\{f(p)\}.\par
+% \smallskip
+% \textbf{\texttt{S2} (\(0/2\); \texttt{not\_earned}).} The classification of the active-prime set S is not proved. The solution falsely claims f(p)=1 for every odd prime p, which is contradicted for example by the identity bonza function. It gives no argument that infinite S forces f(n)=n, no Euclid-style proof that one odd active prime forces infinitely many active primes, and no correct conclusion that non-identity functions have S empty or S=\{2\}.\par
+% \smallskip
+% \textbf{\texttt{S3} (\(2/2\); \texttt{earned}).} Conditional on the remaining S=\{2\} situation, the solution gives a valid upper-bound argument: it proves f(n) is a power of 2 using f(q)=1 for odd primes q, proves f(n)=1 for odd n, and for n=2\textasciicircum{}r t with t odd bounds f(n) by the gcd of p\textasciicircum{}n-1 over odd primes p. The 2-adic valuation computation correctly gives the minimum r+2, attained at p=3, yielding f(n) <= 2\textasciicircum{}\{r+2\} <= 4n.\par
+% \smallskip
+% \textbf{\texttt{S4} (\(2/2\); \texttt{earned}).} The solution defines an explicit extremal function with f(4)=16 and verifies the bonza divisibility condition across the necessary parity cases for a and b. Despite minor slips in wording, such as saying b\textasciicircum{}2 is even for odd b and a typo in the final expression for f(4), the divisibility checks are essentially complete and establish c >= 4.\par
+% \smallskip
+% \textbf{Deductions}\par
+% \begin{itemize}[leftmargin=1.5em,itemsep=0.15em,topsep=0.15em]
+% \item Minor typos in the construction section do not affect the awarded sharpness credit.
+% \end{itemize}
+% \smallskip
+% \textbf{Fatal errors}\par
+% \begin{itemize}[leftmargin=1.5em,itemsep=0.15em,topsep=0.15em]
+% \item Step 2 misapplies the defining divisibility condition by replacing f(2)\textasciicircum{}\{f(p)\} with f(p)\textasciicircum{}\{f(2)\}.
+% \item The resulting conclusion that f(p)=1 for every odd prime p is false and omits the identity-function case and the active-prime classification.
+% \end{itemize}
+% \smallskip
+% \textbf{Full problem assessment.} The solution obtains the correct final answer and contains a valid treatment of the S=\{2\} upper-bound case and a valid extremal construction. However, the global proof is incomplete because it fails to establish the required classification of bonza functions. In particular, it falsely rules out all odd active primes by an incorrect substitution into the defining condition. Therefore the universal upper bound is not proved for all bonza functions, even though the later conditional argument and sharpness construction are sound.\par
+% \end{tcolorbox}
+
+% \solutionheading{Judge Response 2}
+% \begin{tcolorbox}[appendixjudge]
+% \textbf{Problem score:} \(4/7\).\par
+% \textbf{Verdict:} \texttt{partial}.\par
+% \smallskip
+% \textbf{Subtasks}\par
+% \textbf{\texttt{S1} (\(0/1\); \texttt{partial}).} The solution correctly proves f(1)=1 and repeatedly uses the valid consequence f(a) | a\textasciicircum{}a from the case b=a. However, it never derives the key congruence f(b) \ensuremath{\equiv} b mod p when p is prime and f(p)>1. Instead, in Step 2 it miswrites the condition for (a,b)=(p,2) as involving f(p)\textasciicircum{}\{f(2)\} rather than the correct f(2)\textasciicircum{}\{f(p)\}, so the intended congruence argument is absent.\par
+% \smallskip
+% \textbf{\texttt{S2} (\(0/2\); \texttt{not\_earned}).} The solution does not define or classify the active-prime set S. It falsely claims f(p)=1 for every odd prime p, which is contradicted by the identity bonza function f(n)=n. It gives no proof that infinite S forces f(n)=n, no valid Euclid-style argument that an odd active prime forces infinitely many active primes, and no valid classification into the identity, constant-one, and S=\{2\} cases.\par
+% \smallskip
+% \textbf{\texttt{S3} (\(2/2\); \texttt{earned}).} Once one is in the remaining case where all odd primes q satisfy f(q)=1, the solution gives a valid argument: Step 3 shows any odd prime divisor q of f(n) would imply q | q\textasciicircum{}n-1, impossible, so f(n) is a power of 2; Step 4 then shows f(n)=1 for odd n. For even n=2\textasciicircum{}r t, Step 5 uses divisibility by p\textasciicircum{}n-1 for all odd primes p and a correct 2-adic valuation/LTE argument to obtain v\_2(f(n)) <= r+2, hence f(n) <= 2\textasciicircum{}\{r+2\} <= 4n. This earns the upper-bound checkpoint for the S=\{2\} case, although the earlier classification leading to this case was not valid.\par
+% \smallskip
+% \textbf{\texttt{S4} (\(2/2\); \texttt{earned}).} The solution defines an explicit extremal function: f(n)=1 for odd n, f(2)=2, and f(n)=2\textasciicircum{}\{r+2\} for even n=2\textasciicircum{}r t>2. It verifies the bonza divisibility condition in the relevant cases a odd, a=2, and a even greater than 2, splitting further according to the parity and 2-adic valuation of b. The verification is essentially correct despite minor wording slips. Since f(4)=16, it obtains ratio f(4)/4=4 and therefore c>=4.\par
+% \smallskip
+% \textbf{Deductions:} none.\par
+% \smallskip
+% \textbf{Fatal errors}\par
+% \begin{itemize}[leftmargin=1.5em,itemsep=0.15em,topsep=0.15em]
+% \item In Step 2, the condition for (a,b)=(p,2) is written incorrectly as f(p) | 2\textasciicircum{}p - f(p)\textasciicircum{}\{f(2)\} instead of the correct f(p) | 2\textasciicircum{}p - f(2)\textasciicircum{}\{f(p)\}. This leads to the false conclusion that f(p)=1 for every odd prime p.
+% \item The proof incorrectly excludes the identity bonza function f(n)=n, for which f(p)=p for every odd prime p.
+% \end{itemize}
+% \smallskip
+% \textbf{Full problem assessment.} The solution contains a serious invalid classification argument. Its claim that every odd prime p has f(p)=1 is false and comes from substituting the functional equation incorrectly. Consequently, the global proof of the upper bound is not valid as written, because it ignores the identity case and does not prove the official active-prime classification. However, the later argument does correctly prove the required 4n upper bound in the remaining S=\{2\}-type case, and the extremal construction attaining f(4)=16 is essentially fully verified. Thus the solution earns credit for the conditional upper-bound analysis and sharpness construction, but loses the foundational classification points.\par
+% \end{tcolorbox}
+
+% \solutionheading{Judge Response 3}
+% \begin{tcolorbox}[appendixjudge]
+% \textbf{Problem score:} \(4/7\).\par
+% \textbf{Verdict:} \texttt{partial}.\par
+% \smallskip
+% \textbf{Subtasks}\par
+% \textbf{\texttt{S1} (\(0/1\); \texttt{not\_earned}).} The solution correctly derives f(1)=1, and later uses the valid observation that f(n) divides n\textasciicircum{}n. However, it does not derive the key congruence f(b) \ensuremath{\equiv} b mod p for primes p with f(p)>1. Instead, in Step 2 it applies the defining condition with a=p,b=2 incorrectly as f(p) | 2\textasciicircum{}p - f(p)\textasciicircum{}\{f(2)\}, whereas the condition gives f(p) | 2\textasciicircum{}p - f(2)\textasciicircum{}\{f(p)\}. Thus the required prime-congruence mechanism is missing.\par
+% \smallskip
+% \textbf{\texttt{S2} (\(0/2\); \texttt{not\_earned}).} The classification of the active-prime set S is not proved. Step 2 falsely concludes that f(p)=1 for every odd prime p, which is contradicted by the identity bonza function f(n)=n. The proof does not show that infinite S forces the identity, does not prove that an odd prime in S forces S to be infinite, and does not prove the S empty case gives f identically 1.\par
+% \smallskip
+% \textbf{\texttt{S3} (\(2/2\); \texttt{earned}).} Conditional on the remaining case where all odd primes satisfy f(p)=1, the solution gives a valid upper-bound argument. It proves that no odd prime can divide f(n), hence f(n) is a power of 2, and then proves f(n)=1 for odd n. For even n=2\textasciicircum{}r t with t odd, it shows f(n) divides every p\textasciicircum{}n-1 for odd primes p and uses a correct 2-adic valuation/LTE argument to obtain v2(p\textasciicircum{}n-1)\ensuremath{\ge}r+2 with equality at p=3, hence f(n)\ensuremath{\le}2\textasciicircum{}\{r+2\}\ensuremath{\le}4n. This earns the checkpoint for the S=\{2\} case, though it depends on the missing classification from S2.\par
+% \smallskip
+% \textbf{\texttt{S4} (\(2/2\); \texttt{earned}).} The solution defines an explicit extremal function with f(4)=16: f(1)=1, f(n)=1 for odd n, f(2)=2, and f(n)=2\textasciicircum{}\{r+2\} for even n=2\textasciicircum{}r t>2. It checks the bonza divisibility condition in the necessary parity cases for a and b. The verification is somewhat verbose and contains minor slips of wording, but the divisibility checks are essentially correct. This proves c\ensuremath{\ge}4 and, together with the upper-bound argument, identifies the sharp constant.\par
+% \smallskip
+% \textbf{Deductions}\par
+% \begin{itemize}[leftmargin=1.5em,itemsep=0.15em,topsep=0.15em]
+% \item The global proof of the upper bound is incomplete because the solution never validly handles the identity case or the case of odd active primes; it instead incorrectly rules them out.
+% \end{itemize}
+% \smallskip
+% \textbf{Fatal errors}\par
+% \begin{itemize}[leftmargin=1.5em,itemsep=0.15em,topsep=0.15em]
+% \item In Step 2, the defining condition is misapplied: for a=p,b=2 it should be f(p) | 2\textasciicircum{}p - f(2)\textasciicircum{}\{f(p)\}, not f(p) | 2\textasciicircum{}p - f(p)\textasciicircum{}\{f(2)\}. This invalidates the claimed proof that f(p)=1 for all odd primes.
+% \end{itemize}
+% \smallskip
+% \textbf{Full problem assessment.} The solution contains a serious gap in the classification part. It incorrectly proves that f(p)=1 for every odd prime p, which is false for the identity bonza function. Consequently, the solution does not establish the required active-prime dichotomy and does not justify applying the S=\{2\}-type argument to all bonza functions. However, the later argument bounding f(n)\ensuremath{\le}4n in the case where odd primes are inactive is mathematically sound, and the extremal construction attaining f(4)/4=4 is essentially correctly verified. Thus the solution earns the points for the remaining-case upper bound and sharpness construction, but loses the foundational classification points.\par
+% \end{tcolorbox}
+% % --- end inline judge responses: IMO 2025 P3 ---
+
+% % --- begin input: appendix_solutions/imo2025_p4.tex ---
+% \begin{tcolorbox}[appendixproblem,title={IMO 2025 Problem 4}]
+% An infinite sequence $a_1$, $a_2$, \dots\ consists of positive integers
+% has each of which has at least three proper divisors.
+% Suppose that for each $n\geq 1$,
+% $a_{n+1}$ is the sum of the three largest proper divisors of $a_n$.
+% Determine all possible values of $a_1$.
+% \end{tcolorbox}
+% \solutionheading{Solution}
+% \judgesummary{6}{6/7,\ 6/7,\ 6/7}
+% We consider a sequence of positive integers \(a_1,a_2,\dots\) defined by
+
+% \[
+% a_{n+1}=\text{sum of the three largest proper divisors of } a_n,
+% \]
+
+% and we assume that every term \(a_n\) has at least three proper divisors.\\
+% We have to determine all possible values of \(a_1\) for which such an infinite sequence exists.
+
+% \medskip
+% \hrule
+% \medskip
+
+% \subsubsection*{1.  Preliminary facts}
+
+% Let \(N>1\) have proper divisors \(d_1<d_2<\dots<d_k\).\\
+% If \(N\) has \textbf{at least three proper divisors greater than \(1\)}, then the three largest proper divisors are \(N/e_1,N/e_2,N/e_3\) where \(e_1<e_2<e_3\) are the three smallest divisors of \(N\) that are larger than \(1\).\\
+% Hence
+
+% \[
+% F(N):=\sum_{\text{three largest proper divisors}} = N\left(\frac1{e_1}+\frac1{e_2}+\frac1{e_3}\right). \tag{1}
+% \]
+
+% If \(N\) has \textbf{exactly two proper divisors greater than \(1\)}, then the possibilities are
+
+% \begin{itemize}
+% \item \(N=p\,q\) with \(p<q\) distinct primes, and then \(F(N)=\frac{N}{p}+\frac{N}{q}+1\);
+
+
+% \item \(N=p^3\) (a prime cube), and then \(F(N)=\frac{N}{p^2}+\frac{N}{p}+1\).
+
+
+% \end{itemize}
+% These formulas will be used when needed.
+
+% \medskip
+% \hrule
+% \medskip
+
+% \subsubsection*{2.  Two necessary lemmas}
+
+% \textbf{Lemma 1.} \emph{If \(a\) is odd, then \(F(a)<a\).}
+
+% \emph{Proof.}\\
+% We distinguish two subcases.
+
+% \begin{itemize}
+% \item \textbf{Case 1 -- \(a\) has at least three divisors larger than \(1\).}\\
+% Then the three smallest such divisors satisfy \(e_1\ge 3\) (because \(a\) is odd) and \(e_2\ge 5\) (the next odd divisor after \(e_1\) cannot be \(4\)). The third divisor \(e_3\) is at least \(7\) (the next odd after \(5\)). Consequently
+
+% \[
+%   \frac1{e_1}+\frac1{e_2}+\frac1{e_3}\le \frac13+\frac15+\frac17 < 1,
+%   \]
+
+% and \(F(a)\le a\bigl(\frac13+\frac15+\frac17\bigr)<a\).
+
+
+% \item \textbf{Case 2 -- \(a\) has exactly two divisors larger than \(1\).}\\
+% Then \(a\) is either \(p\,q\) (\(p<q\) primes) or \(p^3\).
+
+% \begin{itemize}
+% \item If \(a=p\,q\), then \(F(a)=p+q+1\). Because \(pq-p-q-1=(p-1)(q-1)-2\ge 2\cdot4-2=6>0\) for \((p,q)=(3,5)\), and the product grows, we have \(pq>p+q+1\).
+
+
+% \item If \(a=p^3\), then \(F(a)=p+p^2+1\) and
+
+% \[
+%     p^3-(p+p^2+1)=p^2(p-1)-(p+1)>0\quad\text{for }p\ge 3.
+%     \]
+
+
+% \end{itemize}
+% In both situations \(F(a)<a\).
+
+
+% \end{itemize}
+% \textbf{Lemma 2.} \emph{If \(a\) is even but not divisible by \(3\), then \(F(a)<a\).}
+
+% \emph{Proof.}\\
+% If \(a\) has at least three divisors larger than \(1\), the three smallest are
+
+% \begin{itemize}
+% \item \(2\) (always present because \(a\) is even),
+
+
+% \item either \(3\) (if \(3\mid a\)) or a divisor \(\ge 5\) otherwise; but since \(3\nmid a\), the second smallest is at least \(4\) if \(4\mid a\), or else a prime \(\ge 5\).
+
+
+% \item the third smallest is then at least \(5\).
+
+
+% \end{itemize}
+% Thus in any case we have \(e_1=2,\; e_2\ge 4,\; e_3\ge 5\). Hence
+
+% \[
+% \frac1{e_1}+\frac1{e_2}+\frac1{e_3}\le \frac12+\frac14+\frac15 = \frac{19}{20}<1,
+% \]
+
+% and (1) gives \(F(a)<a\).
+
+% If \(a\) has exactly two divisors larger than \(1\), then \(a=2\,q\) with \(q\) an odd prime \(\ne 3\). Here \(F(a)=\frac a2+\frac aq+1=q+3\), and since \(a=2q\),
+
+% \[
+% 2q-(q+3)=q-3>0\quad\text{for }q\ge5.
+% \]
+
+% The only remaining possibility is \(a=2^3=8\); then \(F(8)=7<8\). So in all cases \(F(a)<a\).
+
+% \medskip
+% \hrule
+% \medskip
+
+% \subsubsection*{3.  A necessary condition on \(a_1\)}
+
+% Applying Lemma 1 to an odd \(a_1\) would give a strictly decreasing sequence, which cannot be infinite.\\
+% Applying Lemma 2 to an even \(a_1\) not divisible by \(3\) also forces a strict decrease at every step, making an infinite sequence impossible.
+
+% Therefore an infinite sequence \textbf{must} have \(a_1\) divisible by \(6\). Write
+
+% \[
+% a_1 = 2^{e}\,3^{f}\,w,
+% \]
+
+% with integers \(e\ge 1,\; f\ge 1\) and \(w\) coprime to \(6\).
+
+% \medskip
+% \hrule
+% \medskip
+
+% \subsubsection*{4.  The behaviour of the sequence}
+
+% We now study the recurrence for the exponents of \(2\) and \(3\).\\
+% Because the three largest proper divisors are \(a_n/e_1,\,a_n/e_2,\,a_n/e_3\) whenever \(a_n\) has at least three divisors larger than \(1\), the multiplier
+
+% \[
+% M(a_n):=\frac{F(a_n)}{a_n}=\frac1{e_1}+\frac1{e_2}+\frac1{e_3}
+% \]
+
+% depends only on the three smallest divisors \(>1\).
+
+% For a number of the form \(2^{e}3^{f}w\) (with \(w\) coprime to \(6\)) and with at least three divisors larger than \(1\), the three smallest divisors larger than \(1\) are:
+
+% \begin{itemize}
+% \item \textbf{If \(e=1\) and \(5\nmid w\):} then \(2,3,6\) are the smallest three (\(w\) has no prime factor \(<6\)). Hence \(M=1\).
+
+
+% \item \textbf{If \(e=1\) and \(5\mid w\):} then \(2,3,5\) are the smallest three (the factor \(5\) appears before \(6\)). Hence \(M=\dfrac12+\dfrac13+\dfrac15=\dfrac{31}{30}\).
+
+
+% \item \textbf{If \(e\ge 2\):} then \(4\) is a divisor, so \(2,3,4\) are the smallest three. Hence \(M=\dfrac12+\dfrac13+\dfrac14=\dfrac{13}{12}\).
+
+
+% \end{itemize}
+% Thus the sequence evolves as follows.
+
+% \begin{itemize}
+% \item \textbf{Case A:} \(e=1\) and \(5\nmid w\) -- the term does not change.
+
+
+% \item \textbf{Case B:} \(e=1\) and \(5\mid w\) -- the term becomes odd because the factor \(31/30\) removes the factor \(2\).
+
+
+% \item \textbf{Case C:} \(e\ge 2\) -- the factor \(13/12\) reduces the exponent of \(2\) by \(2\) and the exponent of \(3\) by \(1\).
+
+
+% \end{itemize}
+% \medskip
+% \hrule
+% \medskip
+
+% \subsubsection*{5.  Necessary conditions}
+
+% Assume the sequence is infinite. Then we never obtain an odd term (otherwise Lemma~1 would give a strictly decreasing tail).
+
+% \begin{itemize}
+% \item From \textbf{Case B} we see that if \(5\mid w\) then after the first step we would get an odd number, and therefore the sequence would terminate. Hence we must have
+
+% \[
+%   5\nmid w. \tag{2}
+%   \]
+
+
+% \item To avoid reaching a number that is even but not divisible by \(3\) (which would fall into the situation of Lemma~2), we must ensure that after every application of factor \(13/12\) we never lose the factor \(3\).\\
+% The factor \(13/12\) decreases the exponent of \(3\) by \(1\) each time we are in Case~C. Starting with exponent \(f\), after \(t\) applications we have \(f-t\). To keep the number divisible by \(3\) at the moment we first have \(e=1\) we need \(f-t\ge 1\).
+
+% How many times do we apply factor \(13/12\)?\\
+% While \(e\ge 2\) we stay in Case~C. After each such step \(e\) decreases by \(2\). If the initial exponent \(e\) is odd, write \(e=2k+1\). After \(k\) steps we reach \(e=1\). If \(e\) is even, then after \(\frac{e}{2}\) steps we would obtain \(e=0\), i.e. an odd number -- impossible. Hence \(e\) must be \textbf{odd}.
+
+% Therefore let \(e=2k+1\). After \(k\) steps of Case~C we have
+
+% \[
+%   e_{k+1}=1,\qquad f_{k+1}=f-k.
+%   \]
+
+% For the next step to stay in Case~A (so that the multiplier is \(1\) and we do not lose the factor \(3\)) we need \(f_{k+1}\ge 1\), i.e.
+
+% \[
+%   f \ge k+1 = \frac{e+1}{2}. \tag{3}
+%   \]
+
+
+% \end{itemize}
+% Conditions (2) and (3) together with \(e\) odd and \(f\ge 1\) are therefore necessary.
+
+% \medskip
+% \hrule
+% \medskip
+
+% \subsubsection*{6.  Sufficiency}
+
+% Conversely, suppose \(a_1\) satisfies
+
+% \begin{itemize}
+% \item \(e\) odd,
+
+
+% \item \(5\nmid w\),
+
+
+% \item \(f \ge \dfrac{e+1}{2}\),
+
+
+% \end{itemize}
+% and write \(a_1=2^{e}3^{f}w\).
+
+% Let \(k=\dfrac{e-1}{2}\). Consider the numbers
+
+% \[
+% a_{1}, a_{2}, \dots, a_{k+1}.
+% \]
+
+% \begin{itemize}
+% \item If \(k=0\) (i.e. \(e=1\)), then \(f\ge 1\) and \(5\nmid w\). The three smallest divisors larger than \(1\) are \(2,3,6\); hence \(M=1\) and \(a_{2}=a_{1}\). The sequence is constant from the start.
+
+
+% \item If \(k\ge 1\), then for \(i=0,1,\dots,k-1\) we have \(e\ge 2\) and the three smallest divisors are \(2,3,4\), so
+
+% \[
+%   a_{i+2}=\frac{13}{12}\,a_{i+1}.
+%   \]
+
+% Since \(a_1\) is divisible by \(12\), all these numbers are integers. After \(k\) such steps
+
+% \[
+%   a_{k+1}=13^{k}\,2^{e-2k}\,3^{f-k}\,w
+%           =2^{1}\,3^{f-k}\,w' ,
+%   \]
+
+% where \(w' = 13^{k} w\) is still coprime to \(6\) and, by (2), also not divisible by \(5\).\\
+% Moreover, \(f-k \ge 1\) by (3), so the exponent of \(3\) is at least \(1\).
+
+% Consequently the three smallest divisors larger than \(1\) of \(a_{k+1}\) are \(2,3,6\) (the factor \(6\) divides it because both \(2\) and \(3\) are present). Hence the multiplier is again \(1\) and
+
+% \[
+%   a_{k+2}=a_{k+1}.
+%   \]
+
+% From this point the sequence remains constant, therefore it is infinite.
+
+
+% \end{itemize}
+% Thus the conditions are also sufficient.
+
+% \medskip
+% \hrule
+% \medskip
+
+% \subsubsection*{7.  Final answer}
+
+% All possible values of \(a_1\) are exactly the positive integers of the form
+
+% \[
+% a_1 = 2^{e}\,3^{f}\,w,
+% \]
+
+% where
+
+% \begin{itemize}
+% \item \(e\) is \textbf{odd},
+
+
+% \item \(w\) is coprime to \(6\) (i.e. \(\gcd(w,2)=\gcd(w,3)=1\)),
+
+
+% \item \(5\nmid w\),
+
+
+% \item \(f \ge \dfrac{e+1}{2}\).
+
+
+% \end{itemize}
+% (Equivalently, \(a_1\) can be written as \(2^{2k+1}\,3^{m}\,n\) with \(k\ge 0\), \(m\ge k+1\), and \(n\) a positive integer coprime to \(6\) and not divisible by \(5\).)
+
+% \medskip
+% \hrule
+% \medskip
+% % --- end input: appendix_solutions/imo2025_p4.tex ---
+
+% % --- begin inline judge responses: IMO 2025 P4 ---
+% % Generated from results/p4/judge.json; response wording is unchanged.
+
+% \solutionheading{Judge Response 1}
+% \begin{tcolorbox}[appendixjudge]
+% \textbf{Problem score:} \(6/7\).\par
+% \textbf{Verdict:} \texttt{essentially\_correct}.\par
+% \smallskip
+% \textbf{Subtasks}\par
+% \textbf{\texttt{S1} (\(1/1\); \texttt{earned}).} The solution explicitly states that the three largest proper divisors are N/e1, N/e2, N/e3 where e1<e2<e3 are the three smallest divisors of N greater than 1, and derives F(N)=N(1/e1+1/e2+1/e3).\par
+% \smallskip
+% \textbf{\texttt{S2} (\(1/2\); \texttt{partial}).} The solution proves useful one-step inequalities F(a)<a for odd a and for even a not divisible by 3, including separate treatment of small-divisor cases. However, it then asserts that this gives a strictly decreasing sequence at every step without rigorously proving that the next terms remain in the odd/even-not-divisible-by-3 descending cases or otherwise cannot later enter the stable family. The required non-survival/descent argument is incomplete.\par
+% \smallskip
+% \textbf{\texttt{S3} (\(1/1\); \texttt{earned}).} For N=2\textasciicircum{}e3\textasciicircum{}f w with e>=2 and f>=1, the solution correctly identifies the three smallest divisors greater than 1 as 2,3,4, computes F(N)=13N/12, and tracks the exponent transition e -> e-2 and f -> f-1, with a factor 13 absorbed into w.\par
+% \smallskip
+% \textbf{\texttt{S4} (\(1/1\); \texttt{earned}).} The solution correctly distinguishes the e=1 cases: if 5 does not divide w, the three smallest divisors are 2,3,6 and F(N)=N; if 5 divides w, the three smallest divisors are 2,3,5 and F(N)=31N/30, which removes the only factor 2 and produces an odd term.\par
+% \smallskip
+% \textbf{\texttt{S5} (\(2/2\); \texttt{earned}).} Using the transition e -> e-2, f -> f-1, the solution derives that e must be positive odd and that f >= (e+1)/2. It excludes factor 5 in w and states equivalently that remaining prime factors are coprime to 30, i.e. at least 7. The converse is proved by iterating to an e=1, 5-free fixed point, giving an infinite admissible sequence.\par
+% \smallskip
+% \textbf{Deductions:} none.\par
+% \smallskip
+% \textbf{Fatal errors}\par
+% \begin{itemize}[leftmargin=1.5em,itemsep=0.15em,topsep=0.15em]
+% \item The exclusion of starting values not divisible by 6 lacks a rigorous proof that after one decreasing step the orbit remains in a descending/non-surviving class; the solution merely asserts strict decrease at every step.
+% \end{itemize}
+% \smallskip
+% \textbf{Full problem assessment.} The solution obtains the correct final characterization and gives a largely correct analysis of the main 6-divisible cases, including the 13/12 transition, the terminal fixed case, the exclusion of factor 5, and the sufficiency construction. The main weakness is in the preliminary exclusion of odd and even-but-not-divisible-by-3 starting values: while the solution proves F(N)<N in those cases for one step, it does not rigorously justify that the subsequent orbit cannot later enter the admissible stable family. This leaves a genuine proof gap in the necessity direction, but the rest of the argument is sound and matches the intended characterization.\par
+% \end{tcolorbox}
+
+% \solutionheading{Judge Response 2}
+% \begin{tcolorbox}[appendixjudge]
+% \textbf{Problem score:} \(6/7\).\par
+% \textbf{Verdict:} \texttt{essentially\_correct}.\par
+% \smallskip
+% \textbf{Subtasks}\par
+% \textbf{\texttt{S1} (\(1/1\); \texttt{earned}).} The solution correctly states that the three largest proper divisors are N/e1, N/e2, N/e3 where e1<e2<e3 are the three smallest divisors of N greater than 1, and derives F(N)=N(1/e1+1/e2+1/e3). It also separately handles cases with only two proper divisors greater than 1.\par
+% \smallskip
+% \textbf{\texttt{S2} (\(1/2\); \texttt{partial}).} The solution proves useful one-step inequalities: for odd a it shows F(a)<a, and for even a not divisible by 3 it shows F(a)<a, including small cases with only two proper divisors greater than 1. However, it does not rigorously justify the key global conclusion that such starting values cannot later enter an infinite admissible orbit. The statement that applying the lemmas gives a strictly decreasing sequence is not proved: for odd terms parity preservation is not explicitly stated, and for even terms not divisible by 3 there is no proof that subsequent terms remain in a descending/non-surviving class.\par
+% \smallskip
+% \textbf{\texttt{S3} (\(1/1\); \texttt{earned}).} For N=2\textasciicircum{}e3\textasciicircum{}f w with e>=2 and f>=1, the solution identifies the three smallest divisors greater than 1 as 2,3,4 and derives the multiplier 1/2+1/3+1/4=13/12. It correctly tracks the exponent transition e -> e-2 and f -> f-1, with a factor 13 absorbed into w.\par
+% \smallskip
+% \textbf{\texttt{S4} (\(1/1\); \texttt{earned}).} The solution correctly distinguishes the terminal case e=1. If 5 does not divide w, it identifies the three smallest divisors as 2,3,6 and obtains F(N)=N. If 5 divides w, it identifies 2,3,5 and obtains the multiplier 31/30, which removes the sole factor 2 and produces an odd term.\par
+% \smallskip
+% \textbf{\texttt{S5} (\(2/2\); \texttt{earned}).} Assuming the sequence has reached the divisible-by-6 regime, the solution correctly derives that the exponent of 2 must be positive and odd, since repeated applications of e -> e-2 must end at e=1 rather than e=0. It derives the bound f >= (e+1)/2 so that a factor 3 remains at the terminal e=1 stage. It also correctly excludes a factor 5 in w and states equivalently that all remaining prime factors are at least 7. The converse is proved: numbers of the stated form iterate via multiplication by 13/12 until e=1, then become fixed, giving an infinite admissible sequence.\par
+% \smallskip
+% \textbf{Deductions}\par
+% \begin{itemize}[leftmargin=1.5em,itemsep=0.15em,topsep=0.15em]
+% \item The exclusion of initial values not divisible by 6 is not fully rigorous because the proof establishes only one-step descent and does not prove that the orbit remains in a descending/non-surviving class.
+% \end{itemize}
+% \smallskip
+% \textbf{Fatal errors:} none.\par
+% \smallskip
+% \textbf{Full problem assessment.} The submitted solution obtains the correct final characterization and gives a largely complete analysis of the main divisible-by-6 dynamics, including the 13/12 transition, the fixed terminal case, the exclusion of factor 5, and the sufficiency construction. The main weakness is in the preliminary exclusion of odd numbers and even numbers not divisible by 3: although the solution proves F(N)<N in these cases, it does not adequately justify that the entire subsequent orbit must keep decreasing or otherwise cannot enter the stable family. This loses one point under the fixed rubric, but the remaining argument is correct and matches the expected classification.\par
+% \end{tcolorbox}
+
+% \solutionheading{Judge Response 3}
+% \begin{tcolorbox}[appendixjudge]
+% \textbf{Problem score:} \(6/7\).\par
+% \textbf{Verdict:} \texttt{essentially\_correct}.\par
+% \smallskip
+% \textbf{Subtasks}\par
+% \textbf{\texttt{S1} (\(1/1\); \texttt{earned}).} The solution correctly states that, when there are at least three divisors greater than 1, the three largest proper divisors are N/e1, N/e2, N/e3 where e1<e2<e3 are the three smallest divisors greater than 1, and derives F(N)=N(1/e1+1/e2+1/e3). It also separately handles the borderline case of exactly two proper divisors greater than 1.\par
+% \smallskip
+% \textbf{\texttt{S2} (\(1/2\); \texttt{partial}).} The solution proves useful inequalities F(a)<a for odd a and for even a not divisible by 3, including separate treatment of cases with exactly two divisors greater than 1. However, it then asserts that this gives a strictly decreasing sequence and hence impossibility. For the odd case this is essentially recoverable since sums of odd divisors remain odd, but for the even-not-divisible-by-3 case the solution does not rigorously prove that later terms cannot become divisible by 6 and enter a nondecreasing/stable orbit. The required descent/non-survival argument for all even nonmultiples of 3 is missing.\par
+% \smallskip
+% \textbf{\texttt{S3} (\(1/1\); \texttt{earned}).} For N=2\textasciicircum{}e3\textasciicircum{}f w with e>=2 and f>=1, the solution correctly identifies the three smallest nontrivial divisors as 2,3,4, obtains F(N)=N(1/2+1/3+1/4)=13N/12, and tracks the exponent transition e -> e-2, f -> f-1 with an extra factor 13 absorbed into w.\par
+% \smallskip
+% \textbf{\texttt{S4} (\(1/1\); \texttt{earned}).} The solution correctly distinguishes the terminal case e=1. If 5 does not divide w, it identifies the three smallest nontrivial divisors as 2,3,6 and obtains F(N)=N. If 5 divides w, it identifies them as 2,3,5 and obtains F(N)=31N/30, which removes the only factor 2 and produces an odd term, which is then treated as non-surviving.\par
+% \smallskip
+% \textbf{\texttt{S5} (\(2/2\); \texttt{earned}).} The solution derives the parity condition e=2k+1 by iterating the transition e -> e-2, derives the lower bound f >= k+1 = (e+1)/2 so that a factor 3 remains when e reaches 1, and excludes factor 5 from w. It also states equivalently that w is coprime to 6 and not divisible by 5, so its prime factors are at least 7. The converse is proved: such numbers iterate by repeated multiplication by 13/12 until reaching an e=1, 5-free term, after which the sequence is constant and hence infinite.\par
+% \smallskip
+% \textbf{Deductions}\par
+% \begin{itemize}[leftmargin=1.5em,itemsep=0.15em,topsep=0.15em]
+% \item Lost 1 point in S2 because the proof does not rigorously justify that an even term not divisible by 3 cannot later enter the admissible stable family after one or more decreasing steps.
+% \end{itemize}
+% \smallskip
+% \textbf{Fatal errors:} none.\par
+% \smallskip
+% \textbf{Full problem assessment.} The submitted solution obtains the correct final characterization and gives a largely complete analysis of the main 2-adic and 3-adic transition, the fixed terminal case, the exclusion of factor 5, and the sufficiency direction. The main gap is in the preliminary exclusion of starting values not divisible by 6: although the solution proves F(N)<N for odd N and for even N not divisible by 3, it does not supply the necessary rigorous argument that the even-not-divisible-by-3 case cannot eventually produce a multiple of 6 and enter an infinite admissible orbit. This is a genuine missing checkpoint in the official scheme, but the rest of the proof is mathematically aligned with the intended solution.\par
+% \end{tcolorbox}
+% % --- end inline judge responses: IMO 2025 P4 ---
+
+% % --- begin input: appendix_solutions/imo2025_p5.tex ---
+% \begin{tcolorbox}[appendixproblem,title={IMO 2025 Problem 5}]
+% Alice and Bazza are playing the \emph{inekoalaty game},
+% a two\nobreakdash-player game whose rules depend on a positive real number $\lambda$ which is known to both players.
+% On the $n$th turn of the game (starting with $n=1$) the following happens:
+% \begin{itemize}
+%   \ii If $n$ is odd, Alice chooses a nonnegative real number $x_n$ such that
+%   \[ x_1 + x_2 + \cdots + x_n \le \lambda n.  \]
+%   \ii If $n$ is even, Bazza chooses a nonnegative real number $x_n$ such that
+%   \[ x_1^2 + x_2^2 + \cdots + x_n^2 \le n.  \]
+% \end{itemize}
+% If a player cannot choose a suitable $x_n$, the game ends and the other player wins.
+% If the game goes on forever, neither player wins.
+% All chosen numbers are known to both players.
+
+% Determine all values of $\lambda$ for which Alice has a winning strategy
+% and all those for which Bazza has a winning strategy.
+% \end{tcolorbox}
+% \solutionheading{Solution}
+% \judgesummary{7}{7/7,\ 7/7,\ 7/7}
+% We denote after \(n\) turns:
+
+% \begin{itemize}
+% \item \(S_n\) = sum of the numbers chosen so far,
+
+
+% \item \(Q_n\) = sum of squares of those numbers.
+
+
+% \end{itemize}
+% The rules are:
+
+% \begin{itemize}
+% \item On odd turn \(n = 2k-1\): Alice chooses \(x\ge 0\) with \(S_{n-1}+x\le \lambda n\).
+
+
+% \item On even turn \(n = 2k\): Bazza chooses \(x\ge 0\) with \(Q_{n-1}+x^2\le n\).
+
+
+% \end{itemize}
+% If a player cannot choose a legal number on his turn, the other wins.
+
+% The game may continue forever (neither wins).
+
+% We determine for which \(\lambda>0\) Alice has a winning strategy, and for which \(\lambda\) Bazza has a winning strategy.
+
+% \medskip
+% \hrule
+% \medskip
+
+% \subsubsection*{Preliminary observations}
+
+% At an even turn \(n\) the square\nobreakdash-sum satisfies \(Q_n\le n\) because the move is only allowed if \(Q_{n-1}+x^2\le n\). Hence after every even turn we have \(Q_{2k}\le 2k\).
+
+% For any numbers \(y_1,\dots,y_k\ge 0\) with \(\sum_{i=1}^{k} y_i^2\le 2k\) (which is exactly the condition that arises at the successive even turns) the Cauchy--Schwarz inequality gives
+
+% \[
+% \biggl(\sum_{i=1}^{k} y_i\biggr)^2 \le k\cdot \sum_{i=1}^{k} y_i^2 \le k\cdot 2k = 2k^2,
+% \]
+
+% so \(\sum_{i=1}^{k} y_i \le \sqrt{2}\,k\).\\
+% This will be used repeatedly.
+
+% \medskip
+% \hrule
+% \medskip
+
+% \subsubsection*{1. Alice has a winning strategy for \(\lambda>\dfrac{1}{\sqrt{2}}\)}
+
+% Alice adopts the following simple strategy:
+
+% \begin{itemize}
+% \item On her first \(k\) turns (turns \(1,3,\dots,2k-1\)) she always chooses \(x=0\).
+
+
+% \item At the first odd turn \(n=2k+1\) for which \(\lambda n - S_n \ge \sqrt{2}\) she chooses \(x = \lambda n - S_n\) (and on all later turns she continues playing the same rule, but this turn will make the game end anyway).
+
+
+% \end{itemize}
+% We show that such a turn always exists and that it makes Bazza lose.
+
+% Because Alice plays \(0\) on all odd turns up to that point, the sum after an even turn \(2m\) is exactly the sum of the numbers Bazza has added on the even turns \(2,4,\dots,2m\). Denote this sum by \(S_{2m}\).\\
+% Using the bound on the squares we have \(Q_{2m}\le 2m\). By Cauchy--Schwarz
+
+% \[
+% S_{2m} = \sum_{i=1}^{m} y_i \le \sqrt{2}\,m,
+% \]
+
+% where each \(y_i\) is Bazza\textquoteright{}s number on turn \(2i\).
+
+% Hence for \(n=2k+1\) we obtain
+
+% \[
+% \lambda n - S_n \ge \lambda(2k+1) - \sqrt{2}\,k.
+% \]
+
+% Because \(\lambda > 1/\sqrt{2}\),
+
+% \[
+% \lambda(2k+1) - \sqrt{2}\,k = 2\lambda k + \lambda - \sqrt{2}\,k = k(2\lambda-\sqrt{2}) + \lambda \;\xrightarrow{k\to\infty}\; \infty .
+% \]
+
+% Thus there exists a \(k\) with \(\lambda(2k+1) - S_{2k} \ge \sqrt{2}\).
+
+% Now let \(n=2k+1\) be the first such index. Alice plays \(x = \lambda n - S_n\) (note that \(x^2\ge 2\)). After her move
+
+% \[
+% Q_{n} = Q_{2k} + x^2 \ge 0 + 2 = 2 .
+% \]
+
+% But the bound for the next even turn \(n+1=2k+2\) is \(Q_{n} \le 2k+2\). Since \(Q_{n}\ge 2 > 2k+2 - x^2\)? Actually we need \(Q_{n} > 2k+2\) to make Bazza unable to move. Because \(x^2 > 2\) and \(Q_{2k}\ge 0\), we have \(Q_{n} > 2k+2\) for sufficiently large \(k\)? Let's check:\\
+% We only know \(x^2\ge 2\), not necessarily larger than \(2k+2\). Wait -- this is a gap!
+
+% We must be more careful: the condition for immediate loss is \(x^2 > 2k+2 - Q_{2k}\). Since \(Q_{2k}\le 2k\), the worst case for Alice is \(Q_{2k}=2k\) (making the right\nobreakdash-hand side as small as possible). In that case the required \(x^2\) is \(>2\). But if \(Q_{2k}\) is smaller, the required \(x^2\) is larger. However, when Alice picks the maximal possible \(x\), we have \(x = \lambda n - S_n\). We need to show that for the \(k\) where this slack first exceeds \(\sqrt{2}\), we still have
+
+% \[
+% x^2 > 2k+2 - Q_{2k}.
+% \]
+
+% Because \(x\) is maximal, we can bound \(Q_{2k}\) using the fact that before her turn the square bound held: \(Q_{2k} + \underbrace{(\text{numbers already chosen on turn }2k)}_{0} \le 2k\)? Actually, at the start of turn \(n=2k+1\), we only know \(Q_{2k}\le 2k\). But we can also bound \(Q_{2k}\) from above by something involving \(S_{2k}\)? Not directly.
+
+% A better approach is to note that after every even turn the sum of squares is exactly \(2k\) if Bazza always chooses the \emph{maximal} addition (the worst case for Alice). If Bazza ever chooses a smaller addition, \(Q_{2k}\) is smaller, which actually makes the condition easier for Alice. Therefore, to prove that Alice \emph{can} win against \emph{any} Bazza strategy, it suffices to consider the hardest case for her, i.e., when Bazza always picks the maximal addition. In that case \(Q_{2k}=2k\), and the condition reduces to \(x^2 > 2\). Since we choose \(x\) with \(x^2 \ge 2\) (actually \(x > \sqrt{2}\) because the slack eventually exceeds \(\sqrt{2}\)), we obtain \(Q_{n} > 2k+2\). Thus Bazza loses.
+
+% But we must verify that the strategy \textquotedblleft{}play 0 until slack > \(\sqrt{2}\)\textquotedblright{} still works when Bazza plays suboptimally (i.e., makes \(Q_{2k}<2k\)). In that situation the required \(x^2\) is larger than \(2\). However, the slack \(\lambda n - S_n\) is still at least \(\lambda n - \sqrt{2}\,k\) (since \(S_n \le \sqrt{2}\,k\)). For large \(n\), \(\lambda n - \sqrt{2}\,k\) grows linearly, while the required \(x^2\) grows at most quadratically (because \(2k+2 - Q_{2k} \le 2k+2\)). Hence for sufficiently large \(n\), the chosen \(x\) will satisfy \(x^2 > 2k+2 - Q_{2k}\) as well. A rigorous way is to prove:
+
+% \[
+% \exists N \text{ such that } \lambda(2N+1) - \sqrt{2}\,N > \sqrt{2N+2}.
+% \]
+
+% Then for any \(Q_{2k}\le 2k\), we have
+
+% \[
+% x = \lambda(2k+1) - S_{2k} \ge \lambda(2k+1) - \sqrt{2}\,k > \sqrt{2k+2} \ge \sqrt{2k+2 - Q_{2k}} \ge \sqrt{2k+2 - Q_{2k}}.
+% \]
+
+% Thus \(x^2 > 2k+2 - Q_{2k}\).
+
+% Indeed, the inequality \(\lambda(2k+1) - \sqrt{2}\,k > \sqrt{2k+2}\) holds for all sufficiently large \(k\) because the left side grows like \(k(2\lambda-\sqrt{2})\) while the right side grows like \(\sqrt{2k}\). Since \(2\lambda-\sqrt{2}>0\), the left side dominates for large \(k\).
+
+% Therefore, Alice\textquoteright{}s strategy works against \emph{any} Bazza play.
+
+% Thus for \(\lambda > 1/\sqrt{2}\) Alice possesses a winning strategy.
+
+% \medskip
+% \hrule
+% \medskip
+
+% \subsubsection*{2. Bazza has a winning strategy for \(\lambda<\dfrac{1}{\sqrt{2}}\)}
+
+% We exhibit a concrete strategy for Bazza that guarantees Alice eventually loses.
+
+% \textbf{Bazza\textquoteright{}s strategy:}\\
+% On every even turn \(n=2k\), choose
+
+% \[
+% y_n = \sqrt{\,n - Q_{n-1}\,}.
+% \]
+
+% (If \(Q_{n-1}=n\) (which can only happen at the very beginning when \(n=2\) and \(Q_1=0\)), we may pick any non\nobreakdash-negative number; the analysis below still works.)
+
+% We first prove by induction that under this strategy the sum after Bazza\textquoteright{}s turn satisfies
+
+% \[
+% S_{2k} \ge k\sqrt{2} \qquad (k\ge 0).
+% \]
+
+% \emph{Base \(k=0\):} \(S_0=0 = 0\cdot\sqrt{2}\).
+
+% \emph{Inductive step:} Assume \(S_{2k} \ge k\sqrt{2}\).\\
+% On turn \(2k+1\) (odd) Alice chooses some \(x\ge 0\) with
+
+% \[
+% x \le \lambda(2k+1) - S_{2k}.
+% \]
+
+% Because \(\lambda < 1/\sqrt{2}\) and \(S_{2k}\ge k\sqrt{2}\),
+
+% \[
+% \lambda(2k+1) - S_{2k} \le \lambda(2k+1) - k\sqrt{2} < \sqrt{2},
+% \]
+
+% where the strict inequality follows from
+
+% \[
+% \lambda(2k+1) - k\sqrt{2} \le \frac{2k+1}{\sqrt{2}} - k\sqrt{2} = \frac{1}{\sqrt{2}} < \sqrt{2}.
+% \]
+
+% Thus \(0\le x \le x_{\max}\) with \(x_{\max} < \sqrt{2}\).
+
+% Bazza then picks \(y = \sqrt{2 - x^2}\) (the maximal allowed). After his move
+
+% \[
+% S_{2k+1} = S_{2k} + x + y.
+% \]
+
+% Consider the function \(\varphi(t)=t+\sqrt{2-t^2}\) on \([0,\sqrt{2}]\). Its derivative
+
+% \[
+% \varphi'(t)=1-\frac{t}{\sqrt{2-t^2}}
+% \]
+
+% vanishes only at \(t=1\), and \(\varphi(0)=\sqrt{2}\), \(\varphi(1)=2\), \(\varphi(\sqrt{2})=\sqrt{2}\). Hence \(\varphi(t) \ge \sqrt{2}\) for all \(t\in[0,\sqrt{2}]\), with equality only at the endpoints. Consequently
+
+% \[
+% S_{2k+1} \ge S_{2k} + \sqrt{2} \ge k\sqrt{2} + \sqrt{2} = (k+1)\sqrt{2}.
+% \]
+
+% This completes the induction.
+
+% Now, for large \(k\),
+
+% \[
+% S_{2k} \ge k\sqrt{2} > \lambda(2k+1)
+% \]
+
+% because \(2\lambda-\sqrt{2}<0\) implies \(\lambda(2k+1) \le 2\lambda k + \lambda < \sqrt{2}\,k\) for all sufficiently large \(k\). (More precisely, solve \(k\sqrt{2} > \lambda(2k+1)\) -- it holds eventually.)
+
+% When \(S_{2k} > \lambda(2k+1)\), Alice cannot choose any non\nobreakdash-negative \(x\) on her next turn, so she loses. Hence Bazza\textquoteright{}s strategy forces a win.
+
+% Therefore for \(\lambda < 1/\sqrt{2}\) Bazza has a winning strategy.
+
+% \medskip
+% \hrule
+% \medskip
+
+% \subsubsection*{3. The critical value \(\lambda = \dfrac{1}{\sqrt{2}}\)}
+
+% We show that \textbf{neither} player can force a win.
+
+% \paragraph*{Alice cannot win}
+
+% Assume Bazza follows the strategy of always choosing the maximal addition (i.e., \(y = \sqrt{2 - x^2}\) on even turns). Then after every even turn we have \(Q_{2k}=2k\).
+
+% Alice\textquoteright{}s move at turn \(2k+1\) is some \(x\) with \(0\le x\le \lambda(2k+1)-S_{2k}\).\\
+% Because we have proved (by induction, or by the same reasoning as in part~2 but without assuming a winning condition) that
+
+% \[
+% S_{2k} \ge k\sqrt{2},
+% \]
+
+% we obtain
+
+% \[
+% \lambda(2k+1)-S_{2k} \le \frac{2k+1}{\sqrt{2}} - k\sqrt{2} = \frac{1}{\sqrt{2}} < \sqrt{2}.
+% \]
+
+% Thus every legal \(x\) satisfies \(x < \sqrt{2}\). Consequently \(x^2 < 2\).
+
+% Even if \(Q_{2k}=2k\), after Alice\textquoteright{}s move we have
+
+% \[
+% Q_{2k+1} = 2k + x^2 < 2k + 2.
+% \]
+
+% Hence Bazza can always move (for example, by choosing \(y=0\)). The game does not end immediately, and in fact Alice never gets a chance to make \(x^2>2\), which is exactly what is needed to win. Therefore Alice has \textbf{no} winning strategy.
+
+% \paragraph*{Bazza cannot win}
+
+% Alice now adopts the strategy of \textbf{always picking \(x=0\)} on her turns.\\
+% Let \(y_1,y_2,\dots,y_k\) be the numbers Bazza chooses on turns \(2,4,\dots,2k\).\\
+% At turn \(2k+1\) (just before Bazza\textquoteright{}s move) we have \(S_{2k+1}=S_{2k}\) (because Alice added nothing) and \(Q_{2k+1}=Q_{2k}\) (again because Alice added nothing).
+
+% The constraints imposed at the even turns are
+
+% \[
+% Q_{2k-2} + y_k^2 \le 2k,
+% \]
+
+% for each \(k\ge 1\) (with \(Q_{2k-2}=0\) when \(k=1\)). Summing these inequalities yields
+
+% \[
+% \sum_{i=1}^{k} y_i^2 \le 2k.
+% \]
+
+% By the Cauchy--Schwarz inequality,
+
+% \[
+% S_{2k} = \sum_{i=1}^{k} y_i \le \sqrt{\,2k \cdot k\,} = \sqrt{2}\,k.
+% \]
+
+% The bound for Alice\textquoteright{}s next turn (turn \(2k+1\)) is
+
+% \[
+% S_{2k} \le \frac{1}{\sqrt{2}}\,(2k+1) = \sqrt{2}\,k + \frac{1}{\sqrt{2}}.
+% \]
+
+% Since \(\sqrt{2}\,k < \frac{2k+1}{\sqrt{2}}\) (as \(0<1/\sqrt{2}\)), we always have \(S_{2k} < \frac{2k+1}{\sqrt{2}}\). Hence Alice can legally choose \(x=0\) on turn \(2k+1\).
+
+% Thus, no matter how Bazza plays, Alice never loses -- Bazza cannot win.
+
+% \paragraph*{Conclusion}
+
+% \begin{itemize}
+% \item For \(\lambda > 1/\sqrt{2}\) Alice has a winning strategy.
+
+
+% \item For \(\lambda < 1/\sqrt{2}\) Bazza has a winning strategy.
+
+
+% \item For \(\lambda = 1/\sqrt{2}\) neither player has a winning strategy.
+
+
+% \end{itemize}
+% \medskip
+% \hrule
+% \medskip
+% % --- end input: appendix_solutions/imo2025_p5.tex ---
+
+% % --- begin inline judge responses: IMO 2025 P5 ---
+% % Generated from results/p5/judge.json; response wording is unchanged.
+
+% \solutionheading{Judge Response 1}
+% \begin{tcolorbox}[appendixjudge]
+% \textbf{Problem score:} \(7/7\).\par
+% \textbf{Verdict:} \texttt{fully\_correct}.\par
+% \smallskip
+% \textbf{Subtasks}\par
+% \textbf{\texttt{S1} (\(1/1\); \texttt{earned}).} The solution defines S\_n and Q\_n as cumulative sum and cumulative square sum, and correctly states the legality conditions on odd and even turns as S\_\{n-1\}+x <= lambda n and Q\_\{n-1\}+x\textasciicircum{}2 <= n. It also uses throughout that Alice loses when the current sum already exceeds the next odd-turn allowance, and Bazza loses when the current square sum already exceeds the next even-turn allowance.\par
+% \smallskip
+% \textbf{\texttt{S2} (\(1/1\); \texttt{earned}).} The solution identifies the threshold as lambda=1/sqrt(2)=sqrt(2)/2. It derives the decisive comparison via terms such as lambda(2k+1)-sqrt(2)k and the sign of 2lambda-sqrt(2), which is the correct asymptotic comparison between Alice's linear slack and Bazza's square-budget-controlled sum.\par
+% \smallskip
+% \textbf{\texttt{S3} (\(2/2\); \texttt{earned}).} For lambda>1/sqrt(2), the solution has Alice play 0 until a sufficiently large odd turn, uses Cauchy to prove Bazza's cumulative even-turn sum is at most sqrt(2)k, and then shows Alice's available slack is eventually larger than sqrt(2k+2). Choosing the maximal legal x then gives x\textasciicircum{}2>2k+2-Q\_\{2k\}, hence Q\_\{2k+1\}>2k+2 and Bazza cannot move. Although the writeup initially considers the insufficient threshold sqrt(2), it explicitly corrects this and gives the valid larger-threshold argument.\par
+% \smallskip
+% \textbf{\texttt{S4} (\(2/2\); \texttt{earned}).} For lambda<1/sqrt(2), the solution gives Bazza the strategy of choosing the maximal legal square-budget-filling move. It proves inductively that while Alice is still able to move, her move is less than sqrt(2), so Bazza's response y=sqrt(2-x\textasciicircum{}2) is legal and increases the total sum by at least sqrt(2). Therefore S\_\{2k\} >= k sqrt(2), and since lambda<1/sqrt(2), eventually S\_\{2k\}>lambda(2k+1), so Alice cannot make the next odd move.\par
+% \smallskip
+% \textbf{\texttt{S5} (\(1/1\); \texttt{earned}).} At lambda=1/sqrt(2), the solution supplies strategies preventing both possible wins. To show Alice cannot force a win, it gives Bazza a maximal square-budget strategy and proves Alice's legal odd moves remain below sqrt(2), so Bazza can always move. To show Bazza cannot force a win, it has Alice always play 0 and uses Cauchy, S\_\{2k\} <= sqrt(k Q\_\{2k\}) <= sqrt(2)k < (2k+1)/sqrt(2), to prove Alice is always able to move.\par
+% \smallskip
+% \textbf{Deductions:} none.\par
+% \smallskip
+% \textbf{Fatal errors:} none.\par
+% \smallskip
+% \textbf{Full problem assessment.} The submitted solution correctly determines the winning regions and the draw case: Alice wins for lambda>sqrt(2)/2, Bazza wins for lambda<sqrt(2)/2, and neither has a winning strategy at equality. The proof contains a few momentary false starts and minor indexing or wording slips, especially in the Alice-winning section, but these are subsequently repaired by a valid argument using a sufficiently large slack exceeding sqrt(2k+2). The core strategies and estimates for all three parameter regimes are mathematically sound.\par
+% \end{tcolorbox}
+
+% \solutionheading{Judge Response 2}
+% \begin{tcolorbox}[appendixjudge]
+% \textbf{Problem score:} \(7/7\).\par
+% \textbf{Verdict:} \texttt{fully\_correct}.\par
+% \smallskip
+% \textbf{Subtasks}\par
+% \textbf{\texttt{S1} (\(1/1\); \texttt{earned}).} The solution defines S\_n and Q\_n as cumulative sum and cumulative sum of squares, and correctly states the legal conditions on odd and even turns as S\_\{n-1\}+x <= lambda n and Q\_\{n-1\}+x\textasciicircum{}2 <= n. This implicitly gives the exact inability criteria, since x=0 is available exactly when the corresponding cumulative inequality already holds.\par
+% \smallskip
+% \textbf{\texttt{S2} (\(1/1\); \texttt{earned}).} The solution identifies the threshold as lambda = 1/sqrt(2) = sqrt(2)/2 and motivates it through the comparison between lambda(2k+1) and sqrt(2)k, i.e. between 2lambda and sqrt(2), using Cauchy-Schwarz.\par
+% \smallskip
+% \textbf{\texttt{S3} (\(2/2\); \texttt{earned}).} For lambda > 1/sqrt(2), Alice plays 0 until the slack is large. The solution correctly proves that while Alice plays 0, Bazza's even-turn contributions have total sum at most sqrt(2)k by Cauchy-Schwarz, so Alice's available slack is at least lambda(2k+1)-sqrt(2)k, which eventually exceeds sqrt(2k+2). Alice then legally chooses x equal to the full slack, making x\textasciicircum{}2 > 2k+2 - Q\_\{2k\}, hence Q\_\{2k+1\} > 2k+2 and Bazza cannot move. The proof contains a brief erroneous intermediate discussion about the 'hardest case', but it is explicitly corrected by the subsequent valid argument.\par
+% \smallskip
+% \textbf{\texttt{S4} (\(2/2\); \texttt{earned}).} For lambda < 1/sqrt(2), Bazza uses the strategy of filling the square budget on each even turn. The solution verifies inductively that Alice's next move x is always less than sqrt(2), so Bazza can legally play y = sqrt(2-x\textasciicircum{}2), and uses the inequality x + sqrt(2-x\textasciicircum{}2) >= sqrt(2) to prove S\_\{2k\} >= k sqrt(2). Then, since k sqrt(2) > lambda(2k+1) for all sufficiently large k, Alice eventually cannot move. There is a minor indexing typo where S\_\{2k+1\} is written after Bazza's move instead of S\_\{2k+2\}, but the intended and justified induction is clear.\par
+% \smallskip
+% \textbf{\texttt{S5} (\(1/1\); \texttt{earned}).} At lambda = 1/sqrt(2), the solution gives strategies preventing both players from forcing a win. To show Alice cannot force a win, Bazza fills the square budget; the solution proves Alice's legal move always has x < sqrt(2), so Q after Alice's move remains below the next even-turn bound and Bazza can always respond. To show Bazza cannot force a win, Alice always plays 0, and Cauchy-Schwarz gives S\_\{2k\} <= sqrt(2)k < (2k+1)/sqrt(2), so Alice remains legal forever.\par
+% \smallskip
+% \textbf{Deductions:} none.\par
+% \smallskip
+% \textbf{Fatal errors:} none.\par
+% \smallskip
+% \textbf{Full problem assessment.} The solution correctly determines the three regimes: Alice wins for lambda > sqrt(2)/2, Bazza wins for lambda < sqrt(2)/2, and neither player has a winning strategy at equality. The main arguments use the correct cumulative sum and square-sum framework, the correct Cauchy-Schwarz comparison, and valid explicit strategies in all cases. There are a few small slips and some self-corrected confusion in the Alice-winning part, plus a minor indexing error in the Bazza-winning induction, but these do not undermine the mathematical proof because the corrected arguments establish the necessary finite losing turns and legality of the strategies.\par
+% \end{tcolorbox}
+
+% \solutionheading{Judge Response 3}
+% \begin{tcolorbox}[appendixjudge]
+% \textbf{Problem score:} \(7/7\).\par
+% \textbf{Verdict:} \texttt{essentially\_correct}.\par
+% \smallskip
+% \textbf{Subtasks}\par
+% \textbf{\texttt{S1} (\(1/1\); \texttt{earned}).} The solution defines S\_n as the cumulative sum and Q\_n as the cumulative sum of squares, and correctly rewrites the odd-turn legality as S\_\{n-1\}+x <= lambda n and the even-turn legality as Q\_\{n-1\}+x\textasciicircum{}2 <= n. This also implicitly gives the correct inability criteria.\par
+% \smallskip
+% \textbf{\texttt{S2} (\(1/1\); \texttt{earned}).} The solution identifies the threshold as lambda = 1/sqrt(2), equivalently sqrt(2)/2, and motivates it via the comparison between Alice's available linear slack lambda(2k+1) and Bazza's Cauchy bound S\_\{2k\} <= sqrt(2)k, i.e. the sign of 2lambda - sqrt(2).\par
+% \smallskip
+% \textbf{\texttt{S3} (\(2/2\); \texttt{earned}).} For lambda > 1/sqrt(2), the solution has Alice play 0 until a sufficiently large odd turn and uses Cauchy's inequality to bound Bazza's cumulative even-turn sum by sqrt(2)k. It then correctly observes that lambda(2k+1)-sqrt(2)k eventually exceeds sqrt(2k+2), so Alice can choose a legal x with x\textasciicircum{}2 > 2k+2-Q\_\{2k\}, forcing Q\_\{2k+1\}>2k+2 and hence Bazza's inability to move. Although the proof initially contains a mistaken intermediate claim about the case Q\_\{2k\}=2k being worst, it explicitly corrects this and gives the valid large-k argument.\par
+% \smallskip
+% \textbf{\texttt{S4} (\(2/2\); \texttt{earned}).} For lambda < 1/sqrt(2), the solution gives Bazza the strategy of filling the square budget on each even turn. Assuming Q\_\{2k\}=2k, after Alice's next move x it correctly gets Bazza's move y=sqrt(2-x\textasciicircum{}2), and uses x <= lambda(2k+1)-S\_\{2k\} < sqrt(2) together with t+sqrt(2-t\textasciicircum{}2) >= sqrt(2) to prove S\_\{2k\} >= k sqrt(2). It then concludes that eventually S\_\{2k\} > lambda(2k+1), so Alice cannot move. There are minor indexing slips, but the intended induction and legality verification are mathematically sound.\par
+% \smallskip
+% \textbf{\texttt{S5} (\(1/1\); \texttt{earned}).} At lambda = 1/sqrt(2), the solution gives strategies preventing each player's win. To prevent Alice from winning, Bazza fills the square budget; the solution shows Alice's legal odd moves then satisfy x < sqrt(2), so Q\_\{2k+1\}<2k+2 and Bazza can always move if Alice has not already lost. To prevent Bazza from winning, Alice always plays 0, and the solution uses Cauchy to show S\_\{2k\} <= sqrt(2)k < (2k+1)/sqrt(2), so Alice remains able to move forever. This establishes neither player has a winning strategy.\par
+% \smallskip
+% \textbf{Deductions:} none.\par
+% \smallskip
+% \textbf{Fatal errors:} none.\par
+% \smallskip
+% \textbf{Full problem assessment.} The solution reaches the correct classification: Alice wins for lambda > sqrt(2)/2, Bazza wins for lambda < sqrt(2)/2, and neither wins at equality. The cumulative reformulation is correct. The proof of Alice's winning strategy above the threshold initially wanders through an incorrect intuition about Bazza saturating the square budget, but it then supplies the correct robust argument using a large-k slack exceeding sqrt(2k+2). The proof of Bazza's winning strategy below the threshold is essentially valid despite minor indexing imprecision. The critical case is handled by giving appropriate counter-strategies preventing each player from forcing a win.\par
+% \end{tcolorbox}
+% % --- end inline judge responses: IMO 2025 P5 ---
+
+% % --- begin input: appendix_solutions/imo2025_p6.tex ---
+% \begin{tcolorbox}[appendixproblem,title={IMO 2025 Problem 6}]
+% Consider a $2025 \times 2025$ grid of unit squares.
+% Matilda wishes to place on the grid some rectangular tiles, possibly of different sizes,
+% such that each side of every tile lies on a grid line
+% and every unit square is covered by at most one tile.
+
+% Determine the minimum number of tiles Matilda needs to place
+% so that each row and each column of the grid has exactly one unit square
+% that is not covered by any tile.
+% \end{tcolorbox}
+% \solutionheading{Solution}
+% \judgesummary{4}{4/7,\ 4/7,\ 4/7}
+% We are given a \(2025\times 2025\) grid of unit squares. We must place tiles (axis\nobreakdash-aligned rectangles that cover whole squares, without overlap) so that each row and each column contains exactly one uncovered square. The uncovered squares can be chosen arbitrarily, but they must form a set of exactly one per row and one per column. We want to minimise the number of tiles used.
+
+% Let \(n = 2025\). The answer will be \(2n-2 = 4048\). We prove that at least \(2n-2\) tiles are necessary and that this number is attainable.
+
+% \medskip
+% \hrule
+% \medskip
+
+% \subsubsection*{1. Reduction to the diagonal case}
+
+% First we may assume that the uncovered squares are exactly the main diagonal squares \((i,i)\) for \(i=1,\dots,n\).\\
+% Indeed, given any placement, let \(\pi\) be the permutation such that row \(i\) has its uncovered square at column \(\pi(i)\). Choose any permutation \(\sigma\) of the rows and define \(\tau = \sigma \circ \pi^{-1}\) for the columns. Renaming the rows by \(\sigma\) and the columns by \(\tau\) transforms the placement into one where the uncovered squares become \((i,i)\). The tiles simply inherit the same numbers (their row and column indices are transformed accordingly), so the number of tiles does not change. Therefore it suffices to prove the lower bound for the diagonal case.
+
+% \medskip
+% \hrule
+% \medskip
+
+% \subsubsection*{2. A simple lower bound}
+
+% Assume the uncovered squares are \((i,i)\) for \(i=1,\dots,n\). Consider the set
+% \[
+% \mathcal{D} = \{\, (i,i+1) \mid 1\le i\le n-1 \,\} \cup \{\, (i+1,i) \mid 1\le i\le n-1 \,\}.
+% \]
+% \(\mathcal{D}\) consists of all cells that lie just above or just below the diagonal; there are exactly \(2(n-1)\) such cells.
+
+% \textbf{Claim.} No single tile can contain two different cells of \(\mathcal{D}\).
+
+% \emph{Proof.} Suppose a tile contains \((i,i+1)\) and another cell \((j,j')\in\mathcal{D}\) with \(i<j\). The tile is defined by an interval \(I\) of rows and an interval \(J\) of columns.
+
+% \begin{itemize}
+% \item Because the tile contains \((i,i+1)\), we have \(i\in I\) and \(i+1\in J\).
+
+
+% \item Because the tile contains \((j,j')\), we have \(j\in I\) and \(j'\in J\).
+
+
+% \end{itemize}
+% Since \(I\) is an interval, it contains every integer between \(i\) and \(j\); in particular it contains \(i+1\).\\
+% Now \(J\) is an interval containing \(i+1\) and \(j'\). We distinguish the possible values of \(j'\).
+
+% \emph{Case 1:} \(j' = j+1\). Then \(J\) contains \(i+1\) and \(j+1\). The interval from \(i+1\) to \(j+1\) necessarily contains every integer between them, in particular it contains \(i+1\) (already) and also \(j+1\). However, more importantly, because \(I\) contains all integers between \(i\) and \(j\), it contains \(i+1\). The cell \((i+1,i+1)\) has row \(i+1\in I\) and column \(i+1\in J\), so it would be covered -- but \((i+1,i+1)\) is uncovered, a contradiction.
+
+% \emph{Case 2:} \(j' = j-1\). Then \(J\) contains \(i+1\) and \(j-1\). The interval between \(i+1\) and \(j-1\) contains \(i+1\) (and possibly other numbers). Since \(i+1\in J\), and \(I\) contains all integers between \(i\) and \(j\), in particular it contains \(i+1\). Hence again \((i+1,i+1)\) belongs to the tile, contradiction.
+
+% If \(j' = i+1\) it is covered by Case~1, if \(j' = i-1\) it is symmetric to Case~1. Thus in every situation the tile would cover an uncovered diagonal cell, which is impossible. 
+
+% Therefore each tile can contain \textbf{at most one} cell from \(\mathcal{D}\). Since \(\mathcal{D}\) must be covered completely, at least \(|\mathcal{D}| = 2(n-1)\) tiles are required.
+
+% \medskip
+% \hrule
+% \medskip
+
+% \subsubsection*{3. Construction with exactly \(2n-2\) tiles}
+
+% We now exhibit a tiling that uses exactly \(2n-2\) tiles. Place the uncovered squares on the main diagonal. For each column we cover the remaining cells as follows:
+
+% \begin{itemize}
+% \item \textbf{Column 1:} the allowed rows are \(2,3,\dots,n\). Take the single tile consisting of rows \(2\) through \(n\) and column \(1\).
+
+
+% \item \textbf{Column \(n\):} the allowed rows are \(1,2,\dots,n-1\). Take the single tile consisting of rows \(1\) through \(n-1\) and column \(n\).
+
+
+% \item \textbf{Columns \(j\) with \(2\le j\le n-1\):} the allowed rows are all rows except \(j\). Split them into two disjoint intervals:
+
+% \begin{itemize}
+% \item rows \(1\) to \(j-1\), together with column \(j\) -- this covers \((1,j),\dots,(j-1,j)\);
+
+
+% \item rows \(j+1\) to \(n\), together with column \(j\) -- this covers \((j+1,j),\dots,(n,j)\).
+
+
+% \end{itemize}
+
+% \end{itemize}
+% Each such tile is a valid rectangle (an interval of rows, a single column). The tiles for different columns are in different columns, hence disjoint; within a column the two tiles are disjoint because they use different rows. All covered cells are covered exactly once, and no tile touches an uncovered square.
+
+% The total number of tiles is
+% \[
+% 1\ (\text{col }1) \;+\; 1\ (\text{col }n) \;+\; 2\,(n-2) \;=\; 2n-2.
+% \]
+
+% \medskip
+% \hrule
+% \medskip
+
+% \subsubsection*{4. Conclusion}
+
+% We have shown that any admissible tiling needs at least \(2n-2\) tiles (via the argument on \(\mathcal{D}\)) and that \(2n-2\) tiles are sufficient (by the explicit construction). Hence the minimum number of tiles for \(n=2025\) is
+
+% \[
+% \boxed{2\cdot 2025 - 2 = 4048}.
+% \]
+% % --- end input: appendix_solutions/imo2025_p6.tex ---
+
+% % --- begin inline judge responses: IMO 2025 P6 ---
+% % Generated from results/p6/judge.json; response wording is unchanged.
+
+% \solutionheading{Judge Response 1}
+% \begin{tcolorbox}[appendixjudge]
+% \textbf{Score:} \(4/7\).\par
+% \textbf{Reason.} The construction with \(2n-2=4048\) tiles is valid, and the lower bound is essentially correct for the special case where the uncovered cells are on the main diagonal. However, the reduction to the diagonal case is invalid: arbitrary permutations of rows and columns do not preserve rectangular tiles, since intervals of rows/columns need not remain intervals. Thus the proof gives no valid lower bound for an arbitrary placement of the uncovered squares, which is the central issue of the problem.\par
+% \end{tcolorbox}
+
+% \solutionheading{Judge Response 2}
+% \begin{tcolorbox}[appendixjudge]
+% \textbf{Score:} \(4/7\).\par
+% \textbf{Reason.} The construction with \(4048\) tiles is valid, and the lower bound for the special case where the uncovered squares are on the main diagonal is essentially correct. However, the crucial \textquotedblleft{}reduction to the diagonal case\textquotedblright{} is invalid: arbitrary permutations of rows and columns do not preserve rectangular tiles, since intervals of rows/columns may become non-intervals. Thus the solution does not prove the needed lower bound for arbitrary placements of the uncovered squares, which is a major gap.\par
+% \end{tcolorbox}
+
+% \solutionheading{Judge Response 3}
+% \begin{tcolorbox}[appendixjudge]
+% \textbf{Score:} \(4/7\).\par
+% \textbf{Reason.} The construction with 4048 tiles is valid, and the lower bound is correctly proved for the special case where the uncovered squares lie on the main diagonal. However, the crucial reduction to the diagonal case is false: arbitrary permutations of rows and columns do not preserve rectangular tiles, since intervals need not map to intervals. Thus the solution does not establish the required lower bound for general configurations of uncovered squares, leaving the main part of the problem unproved.\par
+% \end{tcolorbox}
+% % --- end inline judge responses: IMO 2025 P6 ---
+% \endgroup
+% % % % % % % 

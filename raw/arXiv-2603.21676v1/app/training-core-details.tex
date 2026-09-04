@@ -1,0 +1,56 @@
+\section{Details of the Reasoning Block \texorpdfstring{$f_\theta$}{f-theta}} \label{app:f-theta-details}
+
+The reasoning block $f_\theta$ is a single Pre-LayerNorm Transformer encoder block~\citep{xiong2020layer}. At recurrence step $t$, it receives the depth-conditioned input $\hat{H}^{(t)} = H^{(t-1)} + e_t$, where $e_t$ is the depth embedding defined in Appendix~\ref{app:depth-embedding-details}. The block applies two sub-layers in sequence:
+
+\paragraph{Sub-layer 1: Multi-Head Self-Attention (MHSA).}
+\begin{equation}
+    H' = \hat{H}^{(t)} + \gamma_{\mathrm{attn}} \odot
+         \mathrm{MHSA}\!\left(\mathrm{LN}\!\left(\hat{H}^{(t)}\right),\, M\right),
+\end{equation}
+where $\mathrm{LN}(\cdot)$ is Layer Normalization, $M$ is the task-specific attention mask (the adjacency mask for the topological interface, or no mask for the other two), and $\gamma_{\mathrm{attn}} \in \mathbb{R}^d$ is the LayerScale vector (detailed below).
+
+The attention mechanism computes $h$ parallel heads. For each head $i$:
+\begin{equation}
+    \mathrm{head}_i = \mathrm{softmax}\!\left(
+        \frac{Q_i K_i^\top}{\sqrt{d_k}} + M
+    \right) V_i, \qquad
+    Q_i = \hat{H}^{(t)} W_i^Q,\;
+    K_i = \hat{H}^{(t)} W_i^K,\;
+    V_i = \hat{H}^{(t)} W_i^V,
+\end{equation}
+with $d_k = d / h$. For the hierarchical and unstructured interfaces, Rotary Position Embeddings (RoPE)~\citep{su2024roformer} are applied to the query and key projections before the dot product, so that the inner product implicitly encodes relative position (see Section~\ref{sec:perception}).
+
+\paragraph{Sub-layer 2: Feed-Forward Network (FFN).}
+\begin{align}
+    H'' &= H' + \gamma_{\mathrm{ffn}} \odot \mathrm{FFN}\!\left(\mathrm{LN}(H')\right), \\
+    \mathrm{FFN}(x) &= W_2 \cdot \mathrm{GELU}(W_1 x + b_1) + b_2,
+\end{align}
+where $W_1 \in \mathbb{R}^{d_{\mathrm{ff}} \times d}$, $W_2 \in \mathbb{R}^{d \times d_{\mathrm{ff}}}$, and $d_{\mathrm{ff}}$ is the feedforward dimension.
+
+The output of $f_\theta$ is $\tilde{H}^{(t)} = H''$, which is subsequently combined with $H^{(t-1)}$ through the identity-biased gate (Section~\ref{sec:core}) to produce $H^{(t)}$.
+
+\paragraph{LayerScale.}
+For the hierarchical and unstructured perception interfaces, we apply LayerScale~\citep{touvron2021going} after each sub-layer. The per-channel scaling vectors $\gamma_{\mathrm{attn}}, \gamma_{\mathrm{ffn}} \in \mathbb{R}^d$ are initialized to $10^{-4}$ and learned jointly with all other parameters. For the topological interface, where the hard adjacency mask already strongly constrains the computation, LayerScale is omitted. For the topological interface, the standard PyTorch \texttt{TransformerEncoderLayer} is used; the custom RoPE-integrated attention described above applies only to the hierarchical and unstructured interfaces.
+
+\paragraph{Hyperparameters.}
+Table~\ref{tab:hparams} summarizes the architectural hyperparameters used across the three experiments.
+
+\begin{table}[h]
+    \centering
+    \caption{Architectural hyperparameters for each experiment.}
+    \label{tab:hparams}
+    \begin{tabular}{lccc}
+        \toprule
+        & \textbf{Graph} & \textbf{Nested Expr.} & \textbf{Family} \\
+        \midrule
+        $d$            & 128  & 256  & 256  \\
+        $h$ (heads)    & 4    & 8    & 8    \\
+        $d_\mathrm{ff}$& 256  & 1024 & 1024 \\
+        RoPE           & \texttimes & $\checkmark$ & \checkmark \\
+        LayerScale     & \texttimes & $\checkmark$ & \checkmark \\
+        Gate bias $b_z$& $-2.0$ & $-2.0$ & $-2.0$ \\
+        Train step range $T$ & $[5, 8]$ & $[4, 16]$ & $[1, 12]$ \\
+        $T_{\max}$ & 20 & 28 & 20 \\
+        \bottomrule
+    \end{tabular}
+\end{table}

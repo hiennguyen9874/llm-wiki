@@ -1,0 +1,63 @@
+
+\begin{table*}[t!]
+    \vspace{-3pt}
+    \caption{
+    Ablation results for expert-choice (\textit{Left}) and token-choice (\textit{Right}) routers with various design choices. We use MoR models that apply three recursions to a 360M model with recursion-wise caching. Model performance is measured by NLL and average few-shot accuracy. We evaluate router metrics—dead token ratio (for expert-choice) and MaxVio (for token-choice)—on the validation set. The dead token ratio denotes the proportion of tokens that remain unselected during the last recursion step, measured on 500 samples, each with 2K sequence length. The selected design choice is highlighted in gray.\looseness=-1
+    }
+    \label{tab:ablation_study_router}
+    \small
+    \begin{subtable}[t]{0.5\textwidth}
+    \label{tab:expert_choice_router}
+    \centering
+    \resizebox{\linewidth}{!}{
+    \setlength{\tabcolsep}{2.5pt}
+    \begin{tabular}{lccc|c|c|c}
+    \toprule
+      \multicolumn{4}{c|}{\textbf{Expert-choice Router}} &  \multicolumn{3}{c}{\textbf{Performance\,($\downarrow$ / $\downarrow$ / $\uparrow$)}} \\
+    \cmidrule(l{2pt}r{2pt}){1-4} \cmidrule(l{2pt}r{2pt}){5-7}
+    Sampling & Func & Arch & z-loss & Dead & NLL & Few-shot  \\
+    \midrule
+     Aux\,Rout & $\sigma$ & MLP & \xmark & \,0.0 & 2.8893 & 39.4 \\
+     Aux\,Rout & \,\texttt{tanh}\! & MLP & \xmark  & \!66.7 & 2.8720 & 36.2 \\
+     \midrule
+     Aux\,Loss & $\sigma$ & MLP & \xmark  & \,0.0 & 2.8816 & 40.0 \\
+     Aux\,Loss & \,\texttt{tanh}\! & MLP & \xmark  & 0.0 & 2.9933 & 38.8 \\
+     \midrule
+     \rowcolor[gray]{0.9}
+     Aux\,Loss & $\sigma$ & Linear & \xmark  & \,0.1 & \textbf{2.8667} & \textbf{40.1} \\
+     Aux\,Loss & $\sigma$ & W-MLP & \xmark  & \,0.4 & 2.8716 & 39.4 \\
+     \midrule
+     Aux\,Loss & $\sigma$ & Linear & \cmark  & \,0.0 & 2.8824  & 40.0 \\
+    \bottomrule
+    \end{tabular}
+    }
+    \end{subtable}
+    \hfill
+    \begin{subtable}[t]{0.5\textwidth}
+    \label{tab:token_choice_router}
+    \renewcommand{\arraystretch}{1.04}
+    \centering
+    \resizebox{\linewidth}{!}{
+    \setlength{\tabcolsep}{2.5pt}
+    \begin{tabular}{lccc|c|c|c}
+    \toprule
+      \multicolumn{4}{c|}{\textbf{Token-choice Router}} &  \multicolumn{3}{c}{\textbf{Performance\,($\downarrow$ / $\downarrow$ / $\uparrow$)}} \\
+    \cmidrule(l{2pt}r{2pt}){1-4} \cmidrule(l{2pt}r{2pt}){5-7}
+    Balancing & Func\!\!\! & Arch & z-loss & M-Vio & NLL & Few-shot  \\
+    \midrule
+     Loss\,(0.1) & \texttt{soft} & MLP & \cmark & 0.200 & 3.0239 & 38.5  \\
+     Loss\,(0.01) & \texttt{soft} & MLP & \cmark & 0.682 & 2.9118 & 39.4 \\
+     \midrule
+     Loss-free & \texttt{soft} & MLP & \cmark & 0.852 & 2.9081 & 39.4 \\
+     Loss-free & $\sigma$ & MLP & \cmark & 1.281  & 3.0188 & 37.6 \\
+     \midrule
+     Loss\,(0.1) & \texttt{soft} & Linear & \cmark & 0.492 &  2.9974 & 38.4 \\
+     Loss\,(0.1) & \texttt{soft} & W-MLP & \cmark & 0.384 & 3.0293 & 38.8 \\
+     \midrule
+     \rowcolor[gray]{0.9}
+     Loss\,(0.1) & \texttt{soft} & Linear & \xmark & 0.266 &  \textbf{2.9358} & \textbf{39.1} \\
+    \bottomrule
+    \end{tabular}
+    }
+    \end{subtable}
+\end{table*}

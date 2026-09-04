@@ -1,0 +1,74 @@
+\section{Experiments} \label{sec:experiments}
+
+We evaluate our architecture on three compositional reasoning domains with decreasing structural inductive biases: graph reachability, Boolean logic, and relational text. LayerScale is employed only in Experiments II and III, where the fragile symbolic states and higher step counts demand additional stability; the graph task relies on topological masking for structural regularization and does not require it. The maximum number of evaluated reasoning steps varies across these tasks, reflecting the natural upper bounds of their respective structural complexities. Each figure marks both the depth and the thinking-step training boundaries with dashed lines; axes outside those ranges represent OOD evaluation.
+
+\subsection{Experiment I: Graph Reachability}
+\label{sec:graph}
+
+Given a directed graph $G = (V, E)$, determine whether there exists a directed path from node $s$ to $t$. The model is trained on instances requiring 1--5 hops with 5--8 thinking steps and is evaluated up to 12 hops to test OOD generalizability.
+
+\begin{figure}[tb]
+    \centering
+    \includegraphics[width=.9\columnwidth]{fig/graph_results.pdf}
+    \caption{Accuracy heatmap for the graph reachability task. A sharp computational frontier exists along the diagonal, confirming the strict 1-hop $=$ 1-step physical constraint enforced by adjacency masking. The model generalizes perfectly to 8 hops (OOD) with sufficient steps, but collapses abruptly to chance (${\sim}50\%$) at 10 hops. Dashed vertical lines mark the step training boundary (5--8 thinking steps); columns outside this range are also OOD, yet accuracy is preserved.}
+\label{fig:graph-heatmap}
+\end{figure}
+
+As illustrated in Figure~\ref{fig:graph-heatmap}, we observe a sharp computational frontier. The accuracy transition from chance to perfect resembles a step function: at exactly $N$ thinking steps, the model solves $N$-hop queries. One step fewer and accuracy drops to random. The model achieves 100\% OOD generalization up to 8 hops (1.6$\times$), but collapses abruptly at 10 hops, indicating a clear, rigid generalization boundary enforced by the topological masking. In the step dimension, the model also generalizes stably both below (1--3 steps) and above (12--20 steps) the training range, with the diagonal frontier shifting accordingly.
+ 
+\subsection{Experiment II: Nested Boolean Expression Evaluation}
+\label{sec:logic}
+
+Given a fragile nested boolean expression (e.g., \texttt{!((T\&F)|(!(T|F)))}), evaluate it to \texttt{True} or \texttt{False}. Scaling the model width ($d=256$) and adding LayerScale allowed successful training on nesting depths 1--8.
+
+\begin{figure}[tb]
+    \centering
+    \includegraphics[width=.9\columnwidth]{fig/logic_results.pdf}
+    \caption{Accuracy heatmap for the nested boolean expression evaluation task. Compared to the graph task, the computational frontier here is more gradual. The model exhibits robust out-of-distribution generalization with graceful degradation, maintaining ${>}90\%$ accuracy up to depth 14. Notice that the performance remains highly stable even when the model is unrolled for 24 steps (well beyond the training range of 4--16 steps), which validates the effectiveness of our design.}
+\label{fig:logic-heatmap}
+\end{figure}
+
+As depicted in Figure~\ref{fig:logic-heatmap}, we observe a gradual computational frontier. The model generalizes gracefully beyond training distribution, achieving {>}90\% accuracy at depth 14 (1.75$\times$ OOD). Unlike the graph task, accuracy increases monotonically with more thinking steps without collapsing. The model does not "overthink" or degrade with excessive computation up to 24 steps (OOD in the step dimension), confirming the stability of the negative gate bias.
+
+\subsection{Experiment III: Relational Composition in Unstructured Text}
+\label{sec:text}
+
+To test the reasoning core's capability in a pure language modeling context, we evaluate it on a CLUTRR-style family relationship composition task. The input is a sequence of randomly shuffled natural-language sentences that define relationships (e.g., \texttt{Alice is the parent of Bob}), padded with contradictory distractor sentences to prevent statistical shortcuts. The model must answer a query like \texttt{Alice is the sibling of Eve}.
+
+Na\"ively generating chains of relations (e.g., strictly parents or strictly children) allows models to cheat by simply counting relation words or detecting parity. To enforce true algorithmic deduction (pointer chasing and mathematical offset cancellation), we generate chains using an \emph{Apex Routing Strategy}: the logical path must first move UP the family tree to a common ancestor (using \texttt{parent}), then DOWN (using \texttt{child}). We add \texttt{sibling} (offset 0) to the vocabulary so that the positive and negative offsets can perfectly cancel out. Furthermore, we carefully construct \emph{hard negative samples}---incorrect options deliberately designed to share superficial statistical features with the true answer (e.g., using \texttt{grandparent} as a distractor for \texttt{sibling} since both share an even-step offset). By ensuring that these distractors strictly match the even/odd parity of the correct relation, we plug any shallow statistical shortcuts, forcing the model to perform genuine latent routing rather than surface pattern matching.
+
+The model is trained on depths 2--5 with 1--12 thinking steps, and evaluated up to depth 9 and 20 thinking steps.
+
+\begin{figure}[tb]
+    \centering
+    \includegraphics[width=.9\columnwidth]{fig/family_results.pdf}
+    \caption{Accuracy heatmap for the relational composition task over unstructured text. Without task-aligned structural inductive biases (no adjacency masking; while RoPE is retained for local word order, the fully shuffled input facts ensure that 1D relative positions carry no meaningful structural signal), the task exhibits a strictly monotonic increase in difficulty. The invariant reasoning core discovers latent pointer-chasing routes, achieving solid OOD generalization at depths 6 and 7 when additional thinking steps are provided. Dashed lines mark the training boundaries in both the depth and step dimensions.}
+\label{fig:text-heatmap}
+\end{figure}
+
+As shown in Figure~\ref{fig:text-heatmap}, the results reveal three crucial insights. First, monotonic difficulty: the accuracy strictly decreases as the reasoning depth increases. Because all parity shortcuts are removed, the model is forced to perform genuine latent routing, which naturally gets harder for longer chains. Second, the computational frontier: for any given depth, increasing the number of thinking steps strictly improves accuracy (e.g., at Depth 5, accuracy increases from 63.8\% at 1 step to 81.7\% at 12 steps, remaining stable at 80.6\% at 20 steps (OOD)). Third, robust OOD generalization: despite lacking task-aligned structural hints (no graph mask, and 1D relative positions provide no shortcuts for the fully shuffled sentences), the invariant core successfully generalizes to depths 6 and 7, and further improving with OOD thinking steps (16--20), where depths 7--9 see modest but consistent gains, proving it can autonomously discover pointer-chasing routes in unstructured text.
+
+\subsection{Ablation Analysis: The Danger of Intermediate Supervision}
+\label{sec:ablation}
+
+A natural hypothesis for improving algorithmic reasoning is to apply \emph{intermediate supervision}---computing and averaging the loss at every thinking step to create a gradient highway. To test this, we ablate our silent-thinking objective against an intermediate-supervision baseline on the graph reachability task. This domain is ideal for diagnosis because the adjacency mask provides a physically verifiable ground truth: a model taking $k$ steps can only aggregate information from $k$ hops away. 
+
+\begin{table}[tb]
+    \centering
+    \caption{Comparison of supervision strategies on graph reachability. Intermediate supervision encourages a statistical shortcut (achieving impossibly high accuracy at Step 1 for 12-hop paths), which occupies model capacity and destroys genuine OOD generalization.}
+    \label{tab:ablation-inter}
+    \begin{tabular}{lcc}
+        \toprule
+        \textbf{Supervision Strategy} & \textbf{Step 1 Acc. on 12-hop (Shortcut)} & \textbf{Sufficient-Step OOD Acc.} \\
+        \midrule
+        Intermediate (Per-step) Loss & $\sim$73.0\% & $\sim$50.0\% (Collapse) \\
+        Silent Thinking (Final-step only) & $\sim$50.0\% (Random Guess) & \textbf{Perfect up to 8 hops} \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+As shown in Table~\ref{tab:ablation-inter}, intermediate supervision exhibits an apparent anomaly: it achieves over 70\% accuracy on 12-hop paths after only a \emph{single} thinking step. Under strict topological masking, a 1-step model has absolutely no information about nodes 12 hops away; true accuracy \emph{must} be bounded near 50\%. This mathematically proves that the model has abandoned genuine message-passing. Instead, it learns statistical heuristics---such as estimating reachability from graph density or the source node's degree---to greedily minimize the early-step training loss.
+
+We attribute this to a \emph{bandwidth occupation} failure mode. When penalized at Step 1, the model faces a choice: adopt an "honest strategy" (accepting 50\% early accuracy to learn deep propagation) or a "shortcut strategy" (learning shallow heuristics for immediate reward). Intermediate supervision makes the shortcut irresistible. Once committed to these heuristics, the model loses the incentive to develop the true sequential algorithm, failing on deep OOD paths even when granted a large number of steps at test time.
+
+Our silent thinking explicitly removes this credit assignment shortcut. By computing loss only at the final step, the model is liberated from early-step penalties. It is forced to accept random-guess performance in the early layers and to invest its entire representational capacity in learning the genuine latent algorithm. Ultimately, in algorithmic reasoning---where intermediate states represent unobservable latent computation rather than semantic features---forcing intermediate answers is actively harmful.

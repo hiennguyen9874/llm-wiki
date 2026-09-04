@@ -1,0 +1,113 @@
+\section{Method}
+
+
+\subsection{Preliminary}\label{subsec:preliminary}
+
+\paragraph{Recursive Transformers.}
+The standard Transformer \citep{vaswani2017attention} constructs token representations through a stack of $L$ unique layers, each with a self-attention and a feed-forward network. At time step $t$, the hidden state $h$ evolves as: $\mathbf{h}_t^{\ell+1} = f\bigl(\mathbf{h}_t^{\ell}; \Phi_\ell\bigr),$ where $\ell = 0,\dots,L{-}1$ and $\Phi_\ell$ represents the parameters of the $\ell$-th layer.
+Recursive Transformers~\citep{bae2024relaxed, fan2024looped, giannou2023looped, yang2023looped, saunshi2025reasoning} aim to reduce parameter count by reusing layers across depth. Instead of having $L$ distinct sets of weights, they partition the model into $N_r$ recursion \emph{blocks}, where each block uses a shared pool of parameters $\Phi'$. This design allows for more computation (by increasing the effective network depth) without increasing parameter size. 
+
+
+\input{tables/recursive_sharing_strategy}
+
+
+\vspace{-10pt}
+\paragraph{Parameter-sharing strategies.}
+We examine four parameter-sharing strategies: \textit{Cycle}, \textit{Sequence}, and their variants \textit{Middle-Cycle} and \textit{Middle-Sequence}. \autoref{tab:sharing_strategy} summarizes two main designs, and the full list is provided in \autoref{tab:sharing_strategy_middle} in the Appendix. In Cycle sharing, recursion blocks are reused cyclically. For example, consider an original non-recursive model with $L{=}9$ layers and its recursive counterpart using $N_r{=}3$ recursions. Under the ``Cycle'' strategy, the layers are shared and unrolled as [$(0,1,2),(0,1,2),(0,1,2)$]. In ``Sequence'' sharing, each recursion block reuses the same layer consecutively before moving to the next, resulting in [$(0,0,0),(1,1,1),(2,2,2)$] for the same configuration. Both have the same effective number of layers when unrolled ($L{=}9$), but with a different order. Furthermore, the ``Middle'' variants preserve full-capacity parameters at the first and last layers ($\Phi_0$ and $\Phi_{L-1}$), while sharing weights among the intermediate layers.
+
+
+\vspace{-10pt}
+\paragraph{Enhanced training and inference efficiency in recursive models.}
+
+Parameter sharing strategies can reduce the number of unique trainable parameters by a factor of the recursion number, effectively amortizing the memory footprint of the model. From a distributed training perspective, this becomes highly efficient when using Fully Sharded Data Parallel (FSDP)~\citep{zhao2023pytorch}. While a single \texttt{all-gather} operation would only support one iteration previously (i.e., 1 iter/gather), a recursive model reuses the same gathered parameters across all recursive steps (i.e., $N_r$ iter/gather). Furthermore, recursive architectures enable a novel inference paradigm, continuous depth-wise batching~\citep{bae2024relaxed, hooper2023speed}. This technique allows tokens at different stages to be grouped into a single batch, as they all utilize the same block of parameters. This can eliminate the bubbles—idle periods spent waiting for other samples to complete—thereby leading to significant throughput gains.
+
+
+\vspace{-10pt}
+\paragraph{Limitations in prior works.}
+
+Although model parameters are tied, the distinct KV caches are typically used for each depth. This design fails to reduce the cache sizes, meaning the high retrieval latency still remains a severe inference bottleneck. Moreover, most existing recursive models simply apply a fixed recursion depth to all tokens, ignoring the varying complexity. While post-hoc methods like early-exiting methods can introduce some adaptivity, they often require separate training phases that can degrade performance~\citep{schuster2022confident, elhoushi2024layerskip, bae2024relaxed}. Ideally, the recursion depth should be learned dynamically during pretraining, allowing the model to adapt its computational path to each token's difficulty in a data-driven manner. However, such dynamic paths introduce a new challenge: exited tokens will have missing KV pairs at subsequent recursion depths. Addressing this would require a parallel decoding mechanism~\citep{bae-etal-2023-fast, elhoushi2024layerskip, kim2023speculative} to efficiently compute the actual KV pairs, but this requires separate, complex engineering and complicates the system. 
+
+
+
+\subsection{Mixture-of-Recursions}
+\label{subsec:mor}
+
+We propose \textit{Mixture-of-Recursions} (MoR)—a framework that dynamically adjusts recursion step for each token during \textit{pretraining} and \textit{inference}. The core of MoR lies in two components: a routing mechanism that assigns token-specific recursion steps to adaptively concentrate computation on more challenging tokens, and a KV caching strategy that defines how KV pairs are stored and selectively utilized for attention at each recursive step.\looseness=-1
+
+
+\input{figs/overview/method_figure}
+
+
+\subsubsection{Routing Strategies: Expert-choice vs. Token-choice}
+\label{subsubsec:routing}
+
+
+\paragraph{Expert-choice routing. (\autoref{fig:method_overview-a})}
+Inspired by top-$k$ gating in MoD models~\citep{raposo2024mixture}, 
+in expert-choice routing, each recursion depth becomes an expert and selects their preferred top-$k$ tokens (e.g., for $N_r = 3$, we have three experts: Expert 1 applies the first recursion step, Expert 2 applies the second recursion step, and so on).
+At each recursion step $r$, the corresponding router uses the hidden state $\mathcal{H}_t^r$ (input to the $r$-th recursion block) and its routing parameters $\theta_r$ to compute a scalar score $g_t^r = \mathcal{G}(\theta_r^\top \mathcal{H}_t^r$) for token $t$. Here, $\mathcal{G}$ represents an activation function like \texttt{sigmoid} or \texttt{tanh}.
+Then, the top-$k$ tokens are selected to pass through the recursion block:\looseness=-1
+\begin{align}
+\mathcal{H}_t^{r+1} =
+\begin{cases}
+g_t^r f(\mathcal{H}_t^r,\, \Phi') + \mathcal{H}_t^r, & \text{if } g_t^r > P_\beta({G}^r) \\
+\mathcal{H}_t^r, & \text{otherwise}
+\end{cases}
+\end{align}
+where $P_\beta({G}^r)$ is the $\beta$-percentile threshold over all scores at recursion step $r$.
+
+
+To ensure coherent progression through steps, we adopt \textit{hierarchical filtering}: only tokens selected at recursion step $r$ can be re-evaluated at $r{+}1$. This simulates early-exit behavior while learning from scratch. As deeper layers tend to encode increasingly abstract and sparse information~\citep{li2022lazy, yang2024pyramidinfer, nawrot2024dynamic}, this mechanism prioritizes computation for only the most demanding tokens.
+
+
+\vspace{-10pt}
+\paragraph{Token-choice routing. (\autoref{fig:method_overview-b})}  Unlike expert-choice, where token selection is made at each recursion step, token-choice commits each token to a full sequence of recursion blocks from the start.
+Formally, given the hidden state $\mathcal{H}_t^1$ (in Middle-Cycle strategy, $\mathcal{H}_t^1 = h_t^1$), the router computes a non-linear function (\texttt{softmax} or \texttt{sigmoid}) over experts: ${g}_t = \mathcal{G}(\theta_r^\top \mathcal{H}_t^1)$, where $g_t^j$ denotes the routing score for expert $j \in \{1,\dots,N_r\}$. The token is assigned to expert $i = \arg\max_j g_t^j$ (top-1 gating), which corresponds to sequentially applying the recursion $i$ times. The hidden state is then updated recursively as:
+\begin{align}
+\mathcal{H}_t^{r+1} =
+\begin{cases}
+g_t^r f(\mathcal{H}_t^r,\, \Phi') + \mathcal{H}_t^1, & \text{if } r = i  \\
+g_t^r f(\mathcal{H}_t^r,\, \Phi'), & \text{otherwise} \\
+\end{cases}
+\end{align}
+
+To compare routing strategies under equal compute, we align the token allocation budgets of expert-choice with that of token-choice. Specifically, we calibrate token capacity (i.e., top-\textit{k}) of expert-choice to match the expected token distribution of token-choice routing with perfect load balancing. 
+In perfectly balanced token-choice, each token is assigned to recursion depth $i \in \{1, \dots, N_r\}$ with equal probability $1/N_r$. Thus, recursion step $j$ processes a fraction $(N_r - j + 1)/N_r$ of the tokens. For example, when $N_r = 3$, recursion steps 1, 2, and 3 handle $\{3/3, 2/3, 1/3\}$ of tokens, respectively. Therefore, we apply this same fractional allocation in the top-$k$ selection of the expert-choice routing (i.e., $k$ is sequenced like $N_r / N_r$, $\cdots$, $1 / N_r$ over $N_r$ recursion steps).\looseness=-1
+
+
+\vspace{-12pt}
+\paragraph{Strengths and limitations. (\autoref{tab:method_comparison}--\textit{Left})} 
+Although expert-choice routing guarantees perfect load balancing with static top-$k$ selection, it suffers from information leakage~\citep{zhou2022mixture, wang2024auxiliary, raposo2024mixture}. This violation of causality during training forces to exploit an auxiliary router or a regularization loss~\citep{zhou2022mixture, raposo2024mixture}, aiming to precisely detect top-$k$ tokens at inference without access to future token information. Meanwhile, token-choice is free from such leakage, but typically requires a balancing loss or loss-free algorithms~\citep{wang2024auxiliary, fedus2022switch, zoph2022st} due to its inherent load balancing challenges. We explore each of these components for MoR in further detail (\S\ref{subsec:ablation_routing}).
+
+
+\subsubsection{KV Caching Strategies: Recursion-wise Caching vs. Recursive Sharing}
+\label{subsubsec:kv_cache}
+
+
+Dynamic-depth models often struggle with KV cache consistency during autoregressive decoding. When a token exits early, its corresponding keys and values in deeper layers will be missing, which can be crucial information for subsequent tokens.
+Some methods attempt to reuse stale entries~\citep{schuster2022confident} or run parallel decoding~\citep{bae-etal-2023-fast}, but these solutions still introduce overhead and complexity. To this end, we design and explore two KV cache strategies tailored to MoR models: \emph{recursion-wise caching} and \emph{recursive sharing}.
+
+
+
+\vspace{-12pt}
+\paragraph{Recursion-wise KV caching. (\autoref{fig:method_overview-c}--\textit{Top})}
+
+Inspired by \citet{raposo2024mixture}, we cache KV pairs selectively: only tokens routed to a given recursion step store their key–value entries at that level. Thereby, the KV cache size at each recursion depth is determined exactly by the capacity factor in expert-choice,  or according to actual balancing ratios in token-choice. Attention is then restricted to those locally cached tokens. This design promotes block-local computation, which improves memory efficiency and reduces IO demands. 
+
+
+\vspace{-12pt}
+\paragraph{Recursive KV sharing. (\autoref{fig:method_overview-c}--\textit{Bottom})}
+
+A key design choice for our MoR model is that all tokens traverse at least the first recursion block\footnote{Though this is not a strict requirement of the MoR framework itself.}. We leverage this by caching KV pairs exclusively at this initial step and reusing them across all subsequent recursions. Therefore, the query length might get shorter at each recursion depth based on the selection capacity, but the key and value lengths will consistently maintain the full sequence. This ensures that all tokens can access to past context without recomputation, despite any distribution mismatch.\looseness=-1
+
+
+\input{tables/router_choice}
+
+
+\vspace{-12pt}
+\paragraph{Strengths and limitations. (\autoref{tab:method_comparison}--\textit{Right})}
+
+Recursion-wise caching cuts KV memory and IO to approximately $(N_r + 1)/2N_r$ times across the entire model (when assuming capacity factors follow a sequence like $N_r / N_r$, $\cdots$, $1 / N_r$ over $N_r$ recursion steps). It also reduces per-layer attention FLOPs to a factor of $(k / N_{\text{ctx}})^2$ of those in vanilla models, resulting in substantially improved efficiency for both training and inference phases.
+Meanwhile, recursive sharing can yield maximal memory savings by globally reusing context. Speedups can be further achieved by skipping KV projection and prefill at shared depths (compatible only with Cycle strategy~\citep{sun2024you}). However, attention FLOPs only decrease by $k / N_{\text{ctx}}$, and high volume of KV IO still leads to a decoding bottleneck.\looseness=-1
+
+

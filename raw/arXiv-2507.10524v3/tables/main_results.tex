@@ -1,0 +1,46 @@
+
+
+\begin{table*}[!t]
+    \vspace{-2pt}
+    \caption{
+    Comparison of MoR, Recursive, and Vanilla Transformers under both fixed FLOPs (16.5e18) and token (20B) settings. All models are trained on FineWeb-Edu and evaluated by validation negative log-likelihood\,(NLL) and few-shot accuracy. For the isoFLOP rows, the number of training tokens\,($N_{tok}$) varies by model efficiency. For the fixed-token rows, we report the effective FLOPs consumed.
+    For the model sizes, we report non-embedding parameter counts. For the KV mechanisms, we distinguish between Cache (recursion-wise caching) and Share (recursive sharing). $\text{}^\dagger$In recursive models, all tokens go through fixed recursion depths ($N_r$), instead of adaptive depths.\looseness=-1
+    }
+    \label{tab:main_results}
+    \small
+    \centering
+    \addtolength{\tabcolsep}{-1pt}
+    \resizebox{\textwidth}{!}{
+    \begin{tabular}{l|cc|cc|ccc|c|cccccc|c}
+    \toprule
+      &  \multicolumn{2}{c|}{\textbf{MoR}} &  \multicolumn{2}{c|}{\textbf{Recursion}} & \multicolumn{3}{c|}{\textbf{Pretrain}} & \textbf{NLL\,$\downarrow$} & \multicolumn{7}{c}{\textbf{Few-shot Accuracy\,$\uparrow$}} \\
+    \cmidrule(l{2pt}r{2pt}){2-3} \cmidrule(l{2pt}r{2pt}){4-5} \cmidrule(l{2pt}r{2pt}){6-8} \cmidrule(l{2pt}r{2pt}){9-9} \cmidrule(l{2pt}r{2pt}){10-16} 
+     \textbf{Models} & Type & KV & Share & $N_r$ & Param & FLOPs & $N_{tok}$ & FineWeb & LD & HS & PQ & WG & ARC & \!MMLU\! & Avg  \\
+    \midrule
+    Vanilla & - & - & - & -  & 315M &  16.5 & 20B & 2.7824 & 32.0 & 37.8 & 65.6 & 50.5 & 39.6 & 28.0 & 42.3 \\
+    \midrule
+    \multirow{3}{*}{$\text{Recursive}^{\dagger}$} & - & -  & M-Cyc  & 2 & 167M & 16.5& 20B  & 2.8079 & 31.0 & 37.1 & 66.7 & 52.3 & \textbf{40.8} & 27.5 & 42.6 \\
+     & - & - & M-Cyc & 3 & 118M & 16.5 & 20B & 2.8466 & 29.8 & 35.9 & 65.0 & 52.3 & 39.0 & 27.2 & 41.5 \\
+     & - & - & M-Cyc & 4 & \,\,\,98M & 16.5& 19B  & 2.8781  & 28.2 & 35.4 & 65.5 & {52.5} & 38.0 & 26.8 & 41.0 \\
+     \midrule
+     \rowcolor[gray]{0.9}
+    \cellcolor{white}& Expert & Cache  & M-Cyc  & 2 & 167M & 16.5 & 27B & \textbf{2.7511} & \textbf{34.4} & \textbf{39.3} & 65.7 & 51.2 & 39.6 & \textbf{28.1} & \textbf{43.1} \\
+    \rowcolor[gray]{0.9}
+     \cellcolor{white}& Expert & Cache & M-Cyc & 3& 118M & 16.5 & 30B  & 2.7925 & 33.1 & 37.9 & \textbf{66.9} & 52.1 & 38.3 & 27.4 & 42.6 \\
+     \rowcolor[gray]{0.9}
+     \cellcolor{white}& Expert & Cache & M-Cyc & 4 & \,\,\,98M & 16.5 & 30B & 2.8204 & 30.1 & 37.3 & 65.0 & 51.1 & 38.9 & 27.4 & 41.6 \\
+     \cmidrule(l{2pt}r{2pt}){2-16} 
+     \rowcolor[gray]{0.9}
+     \cellcolor{white}& Expert & Cache  & M-Cyc  & 2 & 167M & 12.3 & 20B & {2.7749} & {33.2} & {38.3} & 65.2 & \textbf{52.6} & 40.1 & \textbf{28.1} & {42.9} \\
+      \cellcolor{white}& Expert & Cache & M-Cyc & 3& 118M & 11.0 & 20B  & 2.8246 & 31.9 & 37.0 & 65.7 & 50.5 & 38.3 & 27.4 & 41.8 \\
+      \cellcolor{white}& Expert & Cache & M-Cyc & 4 & \,\,\,98M & 11.0 & 20B & 2.8519 & 30.2 & 36.5 & 64.3 & 52.3 & 38.6 & 27.2 & 41.5 \\
+     \cmidrule(l{2pt}r{2pt}){2-16} 
+     \cellcolor{white}& Token & Cache & M-Cyc & 3& 118M & 16.5  & 30B & 2.9163 & 27.6 & 34.1 & 63.8 & 50.6 & 37.4 & 26.8 & 40.0 \\
+     \cmidrule(l{2pt}r{2pt}){2-16} 
+     \cellcolor{white}\multirow{-9}{*}{MoR\,(ours)}
+     & Expert & Share & M-Cyc & 3 & 118M & 16.5 & 31B & 2.7983 & 31.7 & 37.2 & 65.1 & 51.0 & 39.0 & 27.1  & 41.9 \\
+    \bottomrule
+    \end{tabular}
+    }
+    \vspace{-1pt}
+\end{table*}

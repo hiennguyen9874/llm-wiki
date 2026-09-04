@@ -1,0 +1,173 @@
+
+
+
+\section{Training and Implementation Details}
+\label{sec:supp_exp_details}
+
+\paragraph{Hardware and framework.}
+All models are trained on 4$\times$H100 (80\,GB) GPUs using the open-source NanoGPT training stack as a reference implementation.
+
+\paragraph{Data and tokens.}
+Unless otherwise specified, we run each experiment for 50{,}000 optimizer steps with a global batch size of 48 sequences and block size 1024 (context length). This corresponds to approximately $\,\sim$25B training tokens in total.
+
+\paragraph{Optimization.}
+We use AdamW with weight decay $2\times 10^{-1}$, cosine learning-rate decay (per NanoGPT), peak learning rate $\texttt{lr}=6\times 10^{-4}$, minimum learning rate $\texttt{min\_lr}=6\times 10^{-5}$, and $4{,}000$ warmup steps, which we found important for stability. Similar to observations in \cite{geiping2025scaling}, we occasionally observe training instabilities at depth; warmup and cosine decay mitigate these in practice. Unless noted, other optimizer and training defaults follow NanoGPT.
+
+\paragraph{Model hyperparameters.}
+Following \cite{saunshi2025reasoning}, we use hidden size $d=2048$ and $n_{\text{heads}}=32$ for all $(k\otimes L)$ configurations. The feed-forward dimension is $d_{\text{ff}}=5120$ with a standard two-layer GELU MLP. All normalizations are RMSNorm. We use learned positional embeddings added to token embeddings (NanoGPT default). We also tested RoPE \cite{su2024roformer} and observed slightly better small-scale performance, but we use learned positions for simplicity and efficiency. We tie input and output embeddings (weight tying).
+
+\paragraph{LoopFormer conditioning.}
+We use two embedding modules, one for normalized time $t\in[0,1]$ and one for step size $\Delta t\in(0,1]$. Each maps a scalar input to a $d$-dimensional conditioning vector via (i) fixed sinusoidal Fourier features of width $D_f=256$ and max period $10{,}000$, followed by (ii) a 2-layer MLP with hidden size $d$ and \texttt{SiLU} nonlinearity:
+\[
+\textstyle \phi(\tau)\;=\;\mathrm{MLP}\big([\cos(\tau\omega_1),\sin(\tau\omega_1),\ldots,\cos(\tau\omega_{D_f/2}),\sin(\tau\omega_{D_f/2})]\big)\in\mathbb{R}^{d},
+\]
+where $\omega_k = \exp\!\big(-\tfrac{k-1}{D_f/2}\log 10{,}000\big)$ for $k=1,\ldots,D_f/2$. Given batchwise scalars $t$ and $\Delta t$, we compute $e_t=\phi(t)$ and $e_{\Delta}=\phi(\Delta t)$ and sum them to obtain the per-iteration conditioning signal $c=e_t+e_{\Delta}\in\mathbb{R}^{d}$.
+
+Conditioning is applied inside each LoopFormer block via an AdaLN-style modulator:
+a small MLP takes $c$ and outputs $4d$ parameters, which we split into
+$(\alpha_{\mathrm{msa}},\;\alpha_{\mathrm{mlp}},\;\gamma_{\mathrm{msa}},\;\gamma_{\mathrm{mlp}})$.
+We use RMSNorm (with no learned affinity) before MHSA and FFN, and apply multiplicative scaling and residual gating as
+\[
+\begin{aligned}
+x &\leftarrow x + \alpha_{\mathrm{msa}}\odot \mathrm{MHSA}\big(\mathrm{RMSNorm}(x)\odot (1+\gamma_{\mathrm{msa}})\big),\\
+x &\leftarrow x + \alpha_{\mathrm{mlp}}\odot \mathrm{FFN}\big(\mathrm{RMSNorm}(x)\odot (1+\gamma_{\mathrm{mlp}})\big),
+\end{aligned}
+\]
+broadcast over the sequence length. The modulator is a \texttt{SiLU} followed by a linear layer with output size $4d$, and is \emph{zero-initialized} (weights and bias), ensuring the initial behavior matches the unmodulated backbone and that conditioning is learned stably.
+
+\paragraph{TMLT baseline.}
+For Time-Modulated Looped Transformers, we follow the authors’ setup and condition each iteration on the loop index, implementing the timestep modulation as described in their paper.
+
+
+\section{Additional Experiments and Ablations}
+\label{sec:supp_ablations}
+
+\subsection{Computational overhead of LoopFormer}
+\label{sec:supp_overhead}
+
+Algorithm~\ref{alg:training} uses a dual-trajectory objective: for every batch we compute (i) the full $L$-loop trajectory for the main LM loss, and (ii) a sampled shorter $M$-loop trajectory for shortcut-consistency. This design adds some overhead during training, however, during the inference, the computational Flops and inference times of LoopFormer scale similar to that of a vanilla transformer. In the following we report the training overhead.
+
+
+
+For clarity, we decompose the per-batch FLOPs into a loop-independent overhead plus a loop-dependent term. Let $C_{\text{io}}$ denote the FLOPs of the embedding / unembedding (non-loop compute), and let $C_{1}$ denote the FLOPs of one loop through the shared $K$-block stack. Then running $\ell$ loops costs
+\[
+C(\ell) \;=\; C_{\text{io}} \;+\; \ell\,C_{1}.
+\]
+LoopFormer computes a full $L$-loop trajectory plus one sampled shorter trajectory of length $M$, where $M \sim \text{Unif}\{1,\dots,L-1\}$. Thus the expected per-batch FLOPs are
+\[
+C(L) + \mathbb{E}_{M}[C(M)]
+\;=\; (C_{\text{io}} + L C_{1}) \;+\; \bigl(C_{\text{io}} + \mathbb{E}[M]\,C_{1}\bigr).
+\]
+Since $M$ is uniform on $\{1,\dots,L-1\}$, we have $\mathbb{E}[M]=L/2$. Plugging in,
+\[
+C(L) + \mathbb{E}_{M}[C(M)]
+\;=\; 2C_{\text{io}} \;+\; \left(L+\tfrac{L}{2}\right)C_{1}
+\;=\; 2C_{\text{io}} \;+\; \tfrac{3L}{2}C_{1}.
+\]
+Relative to the fixed-loop/vanilla training cost $C(L)=C_{\text{io}}+LC_{1}$, the multiplicative overhead is
+\[
+\frac{C(L) + \mathbb{E}_{M}[C(M)]}{C(L)}
+\;=\;
+\frac{2C_{\text{io}} + \tfrac{3L}{2}C_{1}}{C_{\text{io}} + L C_{1}},
+\]
+which, for the regimes considered in this work, is approximately $1.5\times$ the FLOPs of fixed-loop training.
+
+
+We confirm this empirically. Across our settings, LoopFormer requires about $1.5\times$ the training FLOPs of a fixed-loop or vanilla transformer baseline trained under the same token budget and number of iterations. In wall-clock time, this corresponds to an approximate $1.3\times$ slowdown in our setup (measured on 4$\times$H100 GPUs with identical batch size, optimizer, and data). It is worth mentioning that other depth-elastic baselines studied in this work (e.g. TMLT-EE or Base-Loop-EE), also have the same overhead as our LoopFormer.
+
+Overall, LoopFormer pays a modest training overhead to enable elastic-depth inference: a single shared-parameter model that remains robust under aggressive truncation and continues to refine representations as more loops are allocated. The inference on the other has a similar computational FLOPs to that of vanilla or fixed-loop baselines.
+
+
+\subsection{Comparison with Vanilla Transformers under a similar parameter budget}
+
+Here we compare LoopFormer to a vanilla Transformer under a similar  parameter budget. We fix the shared stack to $K=3$ layers, and evaluate LoopFormer at different inference budgets, namely $(3\otimes2)$, $(3\otimes4)$, and $(3\otimes8)$. \autoref{tab:supp:params_matched} reports perplexity and downstream language task accuracy for LoopFormer and a 3-layer vanilla Transformer with a similar number of parameters. We observe that at small compute (few loops), LoopFormer is on par with the vanilla baseline, while increasing the loop budget leads to consistent improvements, allowing our depth-elastic model to substantially outperform the vanilla Transformer.
+
+\input{results/supp_table_2}
+
+
+\subsection{Comparison under FLOPs-matched training}
+As discussed in \autoref{sec:supp_overhead}, elastic-depth training incurs approximately $1.5\times$ the training FLOPs of vanilla or fixed-loop Transformers due to the additional sampled shortcut trajectory. To evaluate LoopFormer under a FLOPs-matched training regime, we train a LoopFormer model for 34k iterations (all other hyperparameters unchanged), resulting in roughly the same total training FLOPs as the baselines trained for 50k iterations. This compute-matched LoopFormer therefore sees about 8B fewer Pile tokens during training. \autoref{tab:supp:flops_matched} reports perplexity and zero-shot reasoning when both training and inference FLOPs are matched. Even under this reduced training budget, LoopFormer remains on par with TMLT and other baselines, while additionally providing depth-elastic inference.
+
+\input{results/supp_table_3}
+
+
+\subsection{PyTorch Pseudocode for LoopFormer}
+\label{appendix:implementation:loopformer}
+
+Algorithm~3 presents a self-contained PyTorch-style pseudocode snippet for the core LoopFormer shared stack. The module consists of a \texttt{LoopFormerBlock}, which applies AdaLN-style modulation to the attention and MLP residual branches using the loop-conditioning vector $c$ (derived from $(t,\Delta t)$), and a \texttt{SharedBlock} that stacks $K$ such blocks to form the shared Transformer $\Phi_k$.
+
+Within each loop iteration, \texttt{SharedBlock} applies all $K$ blocks sequentially to the token states $x$; this entire $K$-block stack is then reused across loops and repeated for $M$ or $L$ iterations during training or inference. This snippet clarifies how LoopFormer handles multiple blocks per loop and how the same shared stack supports variable compute budgets.
+
+\newpage
+
+\begin{center} \label{alg:loopformer_block}
+\begin{minipage}{\textwidth}
+\noindent\rule{\textwidth}{0.4pt}\\[1mm]
+\centering\textbf{Algorithm 3: PyTorch implementation of LoopFormer shared block}\\[1mm]
+\noindent\rule{\textwidth}{0.4pt}\\[2mm]
+\begin{lstlisting}[language=Python, frame=none, numbers=none, xleftmargin=0pt, xrightmargin=0pt]
+# Inputs:
+#   x      : torch.Tensor [B, T, D] - token states.
+#   c      : torch.Tensor [B, D]    - loop-conditioning vector.
+#   config : model config with n_embd, etc.
+#   depth  : int (K) - number of distinct Transformer blocks
+
+
+class LoopFormerBlock(nn.Module):
+
+    def __init__(self, config):
+        super().__init__()
+        d = config.n_embd
+
+        self.ln_1 = nn.RMSNorm(d, elementwise_affine=False)
+        self.attn = CausalSelfAttention(config)
+
+        self.ln_2 = nn.RMSNorm(d, elementwise_affine=False)
+        self.mlp  = MLP(config)
+
+        # Conditioning -> (gate_msa, gate_mlp, scale_msa, scale_mlp)
+        self.adaLN_modulation = nn.Sequential(
+            nn.SiLU(),
+            nn.Linear(d, 4 * d, bias=True),
+        )
+
+        # AdaLN-Zero init: start from identity updates
+        nn.init.zeros_(self.adaLN_modulation[1].weight)
+        nn.init.zeros_(self.adaLN_modulation[1].bias)
+
+    def forward(self, x: torch.Tensor, c: torch.Tensor) -> torch.Tensor:
+        gate_msa, gate_mlp, scale_msa, scale_mlp = \
+            self.adaLN_modulation(c).chunk(4, dim=1)
+
+        # Multi-head attention branch
+        x = x + gate_msa.unsqueeze(1) * self.attn(
+            self.ln_1(x) * (1.0 + scale_msa.unsqueeze(1))
+        )
+
+        # Feed-forward branch
+        x = x + gate_mlp.unsqueeze(1) * self.mlp(
+            self.ln_2(x) * (1.0 + scale_mlp.unsqueeze(1))
+        )
+        return x
+
+
+class SharedBlock(nn.Module):
+
+    def __init__(self, depth: int, config):
+        super().__init__()
+        self.blocks = nn.ModuleList(
+            [LoopFormerBlock(config) for _ in range(depth)]
+        )
+
+    def forward(self, x: torch.Tensor, c: torch.Tensor) -> torch.Tensor:
+        for blk in self.blocks:
+            x = blk(x, c)
+        return x
+\end{lstlisting}
+\noindent\rule{\textwidth}{0.4pt}
+\end{minipage}
+\end{center}
+\clearpage
+
+
+

@@ -1,0 +1,28 @@
+
+\begin{table*}[h]
+    \caption{
+    Experimental results of relaxing parameter sharing and KV cache sharing constraints in Recursive Transformers. All models are trained on FineWeb-Edu with 10B tokens, and we apply the Middle-Cycle parameter sharing for 360M models with 3 recursion depths. We evaluate them based on training NLL and few-shot accuracy across six benchmarks. Relaxation types include encoding trainable embeddings on recursion outputs via element-wise multiplication (Enc), applying LoRA and DoRA to query and value weight matrices, and adaptation prompt tuning (Adapt-P). 
+    }
+    \label{tab:key_value_sharing_relaxation}
+    \small
+    \centering
+    \resizebox{\textwidth}{!}{
+    \setlength{\tabcolsep}{3.5pt}
+    \begin{tabular}{l|cc|ccc|cc|c|cccccc|c}
+    \toprule
+      &  \multicolumn{2}{c|}{\textbf{Pretrain}} &  \multicolumn{3}{c|}{\textbf{Relaxation}} &  \multicolumn{2}{c|}{\textbf{KV Sharing}} & \textbf{NLL\,$\downarrow$} & \multicolumn{7}{c}{\textbf{Few-shot Accuracy\,$\uparrow$}} \\
+    \cmidrule(l{2pt}r{2pt}){2-3} \cmidrule(l{2pt}r{2pt}){4-6} \cmidrule(l{2pt}r{2pt}){7-8} \cmidrule(l{2pt}r{2pt}){9-9} \cmidrule(l{2pt}r{2pt}){10-16} 
+     \textbf{Models} & N-Emb & $N_L$ & Type & Rank & Len & Share & Loop & FineWeb & LD & HS & PQ & WG & ARC & \!MMLU\! & Avg  \\
+    \midrule
+    Recursive & 118M & 1+10+1 & - & - & - & - & - & 2.8854 & 27.3 &	33.8 & 63.3 & 52.3 & 37.5 & 26.8 &	40.2\\
+    Recursive & 118M & 1+10+1 & Enc & - & - & - & - & 2.8604 & 27.3 & 34.6 & 63.9 & 53.4 & 38.6 & 26.7 & 40.2\\
+    Recursive & 124M & 1+10+1 & LoRA & 64 & - & - & - & 2.8599 & 27.3 & 34.6 & 64.3 & 50.9 & 38.0	& 26.9 & 39.7 \\
+    Recursive & 124M & 1+10+1 & DoRA & 64 & - & - & - & 2.8945 & 26.4 &	33.6 & 64.4 & 50.6 & 37.4 &	26.5 & 39.2 \\
+    Recursive & 126M & 1+10+1 & Adapt-P & - & 256 & - & - & 2.8626 & 27.1 & 34.7 & 64.0 & 51.9	& 37.6 & 26.8 & 39.7\\
+    \midrule
+    Recursive & 118M & 1+10+1 & - & - & - & M-Cyc & 3 & 2.8854 & 27.3 &	33.8 & 63.3 & 52.3 & 37.5 & 26.8 & 40.2\\
+    Recursive & 126M & 1+10+1 & Adapt-P & - & 256 & M-Cyc & 3 & 2.9030 & 24.5 & 33.1 & 63.0 & 52.2 & 26.7 & 37.6 &	39.5\\
+    \bottomrule
+    \end{tabular}
+    }
+\end{table*}

@@ -1,0 +1,46 @@
+
+
+\begin{table*}[t!]
+    \caption{
+    Comparison of routing strategies and key-value caching strategies.
+    (\textit{Left}) Summary of two routing strategies: expert-choice and token-choice, highlighting their pros, cons, and mitigating solutions from previous works~\citep{raposo2024mixture, wang2024auxiliary, zoph2022st}. 
+    (\textit{Right}) Relative cost efficiency of caching strategies against a vanilla Transformer (normalized to 1). Here, $N_r$ denotes the number of recursions, and $k$ ($k < N_{\mathrm{ctx}}$) denotes the number of selected tokens per layer. We compare only the recursion blocks, excluding the non-shared layers. KV cache memory and IO are measured across the entire model, whereas attention FLOPs are reported per layer.
+    \looseness=-1
+    }
+    \label{tab:method_comparison}
+    \small
+    \begin{subtable}[t]{0.478\textwidth}
+    \renewcommand{\arraystretch}{1.1}
+    \centering
+    \resizebox{\linewidth}{!}{
+    \setlength{\tabcolsep}{7pt}
+    \begin{tabular}{l|c|c}
+    \toprule
+      &  \textbf{Expert-choice} & \textbf{Token-choice} \\
+    \midrule
+    Pros & Static\,compute\,budget & No\,leakage \\[3pt]
+    Cons & Causality\,violation  & Load\,imbalance\\[1pt]
+    $\llcorner$\,Sol & Aux\,Rout, Aux\,Loss & Bal\,Loss, Loss-free \\
+    \bottomrule
+    \end{tabular}
+    }
+    \end{subtable}
+    \hspace{-4pt}
+    \begin{subtable}[t]{0.522\textwidth}
+    \renewcommand{\arraystretch}{1.1}
+    \centering
+    \resizebox{\linewidth}{!}{
+    \setlength{\tabcolsep}{3.5pt}
+    \begin{tabular}{l|c|c}
+    \toprule
+     & \textbf{\,Recursion-wise\,Caching\,} & \textbf{\,Recursive\,Sharing\,}\\
+    \midrule
+    KV\,Memory  & $(N_r + 1)/2N_r$ & $1/N_r$ \\[3pt]
+     KV\,Cache\,IO  & $(N_r + 1) / 2N_r$ & 1 \\[3pt]
+    Attn\,FLOPs  & $k^2/N_{\mathrm{ctx}}^2$  & $k/ N_{\mathrm{ctx}}$ \\
+    \bottomrule
+    \end{tabular}
+    }
+    \end{subtable}
+    \vspace{-3pt}
+\end{table*}

@@ -1,0 +1,23 @@
+\section{Introduction}\label{sec:intro}
+
+Recent work shows that small language models can achieve strong performance on mathematical reasoning, competitive programming, and other verifiable tasks~\cite{xu2026vibethinker,yang2025nanbeige4}. Other studies investigate compact models that combine reasoning and tool use for specific agentic settings, such as deep search~\cite{yang2026nanbeige4}. However, strong agents must operate across heterogeneous environments, manipulate repositories and office documents, recover from failures, and make progress over long-horizon trajectories. Integrating these capabilities into one small model remains challenging.
+
+Existing research typically equips small language models with advanced agentic capabilities through task-specific training. The resulting models often specialize in a single domain, such as repository-level coding or co-work tasks~\cite{ivison2026tmax,bai2026clawgym}, rather than serving as general-purpose agents. Although effective in their target environments, they leave open whether one compact model can support diverse agentic capabilities without sacrificing general reasoning ability. To investigate this question, we present \textbf{Nanbeige4.2-3B}, a compact model designed to maximize general-purpose agentic capabilities while retaining strong reasoning performance.
+
+Rather than scaling parameters, 
+Nanbeige4.2-3B adopts a Looped Transformer~\cite{bae2026mixture}. The architecture reuses the same Transformer stack to process hidden states for an additional pass, increasing effective model capacity without introducing additional parameters. 
+Pretraining with this looped architecture from scratch on 28T tokens, with an expanded corpus and a refined data mixture, yields a strong base model. This provides a solid foundation for subsequent post-training stages.
+
+After pretraining, we apply supervised fine-tuning (SFT) to develop broad agentic capabilities.
+We first build a hybrid environment pool comprising real-world environments with a large collection of synthesized ones. 
+Within these environments, we construct execution-grounded trajectories across repository-level software engineering, complex tool use, and artifact-centric office tasks, with diverse task assets and agentic scaffolds.
+We then filter trajectories at both the trajectory and turn levels using execution signals and rubric-based assessments to maintain data quality at scale.
+
+Building on the SFT model, we further develop a multi-stage RL pipeline that targets response quality, reasoning efficiency, and stable agentic learning. 
+We first apply a two-stage RLHF across both Think and Non-Think responses to mitigate common failure modes such as hallucinations, repetitive generation, and instruction-following errors.
+We then introduce length-controlled reasoning RL to improve reasoning efficiency by balancing concise reasoning and sufficient exploration. 
+Finally, we perform agentic RL with combined outcome and process rewards to provide denser credit assignment and stabilize learning over complex trajectories.
+
+The resulting model shows a broad agentic capability profile at its scale. Nanbeige4.2-3B achieves strong performance on complex tool-use, office-agent, and code-agent benchmarks, outperforming substantially larger Qwen3.5-9B~\cite{qwen3.5} and Gemma4-12B~\cite{team2026gemma} across diverse evaluations. It also remains competitive in mathematical, coding, and scientific reasoning, as well as alignment. When deployed within a general agent framework such as OpenClaw~\cite{openclaw}, it performs well on daily assistance, office workflows, and deep research, further supporting its use as a compact local assistant.
+
+To the best of our knowledge, Nanbeige4.2-3B is the first open-source model at this scale to demonstrate this combination of code-agent, office-agent, and complex tool-use capabilities while retaining strong general reasoning performance. We open-source Nanbeige4.2-3B to support research on compact general agents and hope this release will encourage further study of how agentic capabilities can be developed under a strict parameter budget.

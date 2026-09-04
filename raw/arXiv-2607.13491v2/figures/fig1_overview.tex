@@ -1,0 +1,190 @@
+% ==========================================================================
+%  Figure 1: DeepLoop overview.
+%  Self-contained: include with \input{figures/fig1_overview.tex}.
+%  Requires: tikz (+ arrows.meta, calc libraries), amsmath.
+%  Helvetica (phv, scaled 0.92) is scoped to this group only.
+% ==========================================================================
+\begingroup
+\makeatletter
+\def\Hv@scale{0.92}%
+\makeatother
+\renewcommand{\sfdefault}{phv}%
+% ---- palette: two colorblind-safe accents (block identity) + neutrals ----
+\definecolor{dlBlue}  {HTML}{4C72B0} % Block 1 / phi_1
+\definecolor{dlOrange}{HTML}{DD8452} % Block 2 / phi_2
+\definecolor{dlInk}   {HTML}{2B2F36} % main text
+\definecolor{dlMut}   {HTML}{6A7280} % muted annotations
+\definecolor{dlLine}  {HTML}{9AA0A8} % neutral borders
+\definecolor{dlArrow} {HTML}{565D66} % arrows
+\begin{tikzpicture}[
+  font=\sffamily,
+  >={Stealth[length=1.7mm,width=1.4mm]},
+  line cap=round, line join=round,
+  every node/.style={text=dlInk, outer sep=0pt},
+  % small sublayer box (unrolled chain)
+  subS/.style 2 args={rectangle, rounded corners=2pt, draw=#1,
+      line width=0.6pt, fill=#2, minimum width=7.6mm, minimum height=6.2mm,
+      inner sep=1pt, font=\sffamily\scriptsize},
+  % large sublayer box (physical panel)
+  subL/.style 2 args={rectangle, rounded corners=2pt, draw=#1,
+      line width=0.6pt, fill=#2, minimum width=11.5mm, minimum height=6.8mm,
+      inner sep=1pt, font=\sffamily\footnotesize},
+  % state chips x_0, x_N, x_i, ...
+  chip/.style={rectangle, rounded corners=2pt, draw=dlLine, fill=black!5,
+      line width=0.6pt, minimum height=6.2mm, minimum width=8.5mm,
+      inner sep=2.5pt, font=\footnotesize},
+  % neutral gray box (Norm, f_j)
+  gray box/.style={rectangle, rounded corners=2pt, draw=dlLine, fill=black!4,
+      line width=0.6pt, font=\sffamily\footnotesize},
+  flow/.style={->, draw=dlArrow, line width=0.6pt,
+      shorten >=1.2pt, shorten <=1.2pt},
+  head/.style={font=\sffamily\small, anchor=base west, inner sep=0pt},
+  mut/.style={font=\sffamily\scriptsize, text=dlMut},
+]
+
+% =========================================================================
+%  (a) PHYSICAL BLOCKS
+% =========================================================================
+\node[head] at (-1.53, 10.15)
+  {{\bfseries (a)\; Physical blocks} \textcolor{dlMut}{---\;
+   $K{=}2$ shared blocks, stored once}};
+
+% Block 1
+\node[rectangle, rounded corners=2pt, draw=dlBlue, fill=dlBlue!6,
+      line width=0.8pt, minimum width=38mm, minimum height=16mm]
+  (B1) at (0.77, 8.90) {};
+\node[font=\sffamily\footnotesize\bfseries, text=dlBlue]
+  at (0.77, 9.37) {Block 1\; ($\phi_1$)};
+\node[subL={dlBlue}{dlBlue!13}, minimum width=13mm]
+  (b1a) at (-0.08, 8.60) {attn};
+\node[subL={dlBlue}{dlBlue!30}, minimum width=13mm]
+  (b1f) at ( 1.62, 8.60) {ffn};
+\draw[flow] (b1a) -- (b1f);
+
+% Block 2
+\node[rectangle, rounded corners=2pt, draw=dlOrange, fill=dlOrange!6,
+      line width=0.8pt, minimum width=38mm, minimum height=16mm]
+  (B2) at (5.37, 8.90) {};
+\node[font=\sffamily\footnotesize\bfseries, text=dlOrange]
+  at (5.37, 9.37) {Block 2\; ($\phi_2$)};
+\node[subL={dlOrange}{dlOrange!13}, minimum width=13mm]
+  (b2a) at (4.52, 8.60) {attn};
+\node[subL={dlOrange}{dlOrange!30}, minimum width=13mm]
+  (b2f) at (6.22, 8.60) {ffn};
+\draw[flow] (b2a) -- (b2f);
+
+\draw[flow] (B1) -- (B2);
+
+% loop-back arc under the two blocks, label set on the wire
+\draw[flow, rounded corners=3pt]
+  (B2.east) -- ++(0.40,0) |- (3.07, 7.55) -| ($(B1.west)+(-0.40,0)$)
+  -- (B1.west);
+\node[font=\sffamily\footnotesize, fill=white, inner sep=2.5pt]
+  at (3.07, 7.55) {loop $\times\,R$ rounds};
+
+% =========================================================================
+%  (b) UNROLLED EXECUTION
+% =========================================================================
+\node[head] at (-1.53, 6.45)
+  {{\bfseries (b)\; Unrolled execution} \textcolor{dlMut}{---\;
+   the same two blocks are revisited in every round}};
+
+\def\yc{5.45}
+% input / output chips
+\node[chip] (xin)  at (-1.105, \yc) {$\mathbf{x}_0$};
+\node[chip] (xout) at (14.085, \yc) {$\mathbf{x}_N$};
+
+% six unrolled 2-sublayer groups
+\foreach \gx/\hue/\pj [count=\i] in
+  {0/dlBlue/1, 2.30/dlOrange/2, 4.82/dlBlue/1,
+   7.12/dlOrange/2, 9.64/dlBlue/1, 11.94/dlOrange/2}{
+  \node[subS={\hue}{\hue!13}] (a\i) at (\gx, \yc) {attn};
+  \node[subS={\hue}{\hue!30}] (f\i) at (\gx+1.04, \yc) {ffn};
+  \draw[flow] (a\i) -- (f\i);
+  \draw[draw=\hue!45, line width=0.5pt, rounded corners=2pt]
+    (\gx-0.51, \yc-0.45) rectangle (\gx+1.55, \yc+0.45);
+  \node[font=\sffamily\scriptsize, text=\hue] at (\gx+0.52, \yc-0.72)
+    {$\phi_{\pj}$};
+}
+
+% chain arrows
+\draw[flow] (xin) -- (a1);
+\foreach \i [evaluate=\i as \j using int(\i+1)] in {1,...,5}{
+  \draw[flow] (f\i) -- (a\j);}
+\draw[flow] (f6) -- (xout);
+
+% round dividers + labels
+\draw[dlLine!70, line width=0.45pt, dash pattern=on 2.6pt off 2pt]
+  (4.08, \yc+0.5) -- (4.08, \yc-1.25);
+\draw[dlLine!70, line width=0.45pt, dash pattern=on 2.6pt off 2pt]
+  (8.90, \yc+0.5) -- (8.90, \yc-1.25);
+\node[mut] at ( 1.67, \yc-1.05) {round $r{=}1$};
+\node[mut] at ( 6.49, \yc-1.05) {round $r{=}2$};
+\node[mut] at (11.31, \yc-1.05) {round $r{=}3$};
+
+% summary line
+\node[font=\sffamily\footnotesize, text=dlInk] at (6.50, 3.90)
+  {$R{=}3$ rounds $\times$ $K{=}2$ blocks $\;\Rightarrow\;$
+   unrolled depth $N{=}KR{=}6$,\quad $M{=}2N{=}12$ sublayer visits};
+
+% =========================================================================
+%  (c) RESIDUAL SUBLAYER
+% =========================================================================
+\node[head] at (-1.53, 3.10) {{\bfseries (c)\; Residual sublayer:}\;\;
+  $\mathbf{x}_{i+1} = \mathrm{Norm}\bigl(\alpha\,\mathbf{x}_i
+    + f_j(\mathrm{Norm}(\mathbf{x}_i);\phi_j)\bigr)$};
+
+% dataflow: skip path is the straight wire, branch dips through f_j
+\def\yd{1.95}
+\node[chip] (ri) at (-1.105, \yd) {$\mathbf{x}_i$};
+\node[circle, draw=dlArrow, fill=white, line width=0.6pt,
+      minimum size=4.2mm, inner sep=0pt, font=\footnotesize]
+  (add) at (5.05, \yd) {$+$};
+\node[gray box, minimum width=13.5mm, minimum height=6.5mm]
+  (nrm) at (6.90, \yd) {Norm};
+\node[chip] (ro) at (8.80, \yd) {$\mathbf{x}_{i+1}$};
+\node[gray box, minimum width=10mm, minimum height=6.5mm]
+  (inrm) at (1.15, 0.85) {Norm};
+\node[gray box, minimum width=21mm, minimum height=8mm]
+  (fj) at (3.10, 0.85) {$f_j(\,\cdot\,;\phi_j)$};
+
+% split point
+\coordinate (sp) at (0.25, \yd);
+\fill[dlArrow] (sp) circle (1.1pt);
+\draw[draw=dlArrow, line width=0.6pt] (ri) -- (sp);
+% skip path (straight wire), scaled by alpha
+\draw[flow] (sp) -- (add);
+\node[font=\sffamily\scriptsize, anchor=south] at (2.65, \yd+0.13)
+  {{\color{dlMut}skip}\; $\times\,\alpha$};
+% branch through inner Norm and f_j into the junction
+\draw[flow, rounded corners=3pt] (sp) |- (inrm.west);
+\draw[flow] (inrm.east) -- (fj.west);
+\draw[flow, rounded corners=3pt] (fj.east) -| (add.south);
+% then Norm, then output
+\draw[flow] (add) -- (nrm);
+\draw[flow] (nrm) -- (ro);
+
+% beta annotation on f_j
+\draw[draw=dlLine, line width=0.45pt, dash pattern=on 1.6pt off 1.4pt]
+  (fj.south) -- ++(0, -0.22);
+\node[font=\sffamily\scriptsize, anchor=north] at (3.10, 0.20)
+  {{\color{dlMut}init gain}\, $\beta$};
+
+% =========================================================================
+%  (d) SCALING RULE
+% =========================================================================
+\node[head] at (10.63, 3.10) {{\bfseries (d)\; Scaling rule}};
+\node[rectangle, rounded corners=2pt, draw=dlInk!75, fill=black!3,
+      line width=0.8pt, minimum width=39mm, minimum height=27mm,
+      text width=32mm, anchor=north east, align=left, inner sep=8pt,
+      font=\sffamily\footnotesize]
+  (rule) at (14.53, 2.70) {%
+    {\bfseries DeepLoop} \; ($p = \tfrac{1}{2}$)\\[5pt]
+    $\alpha = (2N)^{1/2}$\\[2pt]
+    $\beta  = (8N)^{-1/2}$\\[5pt]
+    % {\scriptsize\color{dlMut}accounts for weight tying:\\
+     % each $\phi_j$ is visited $R$ times
+     };
+
+\end{tikzpicture}%
+\endgroup

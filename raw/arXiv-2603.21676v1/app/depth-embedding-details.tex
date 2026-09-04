@@ -1,0 +1,13 @@
+\section{Depth Embeddings} \label{app:depth-embedding-details}
+
+To enable the shared-weight reasoning block $f_\theta$ to track its position within the recurrent loop, we inject a learned \emph{depth embedding} $e_t \in \mathbb{R}^d$ at each step $t \in \{1, \dots, T\}$ before the attention computation:
+\begin{equation}
+    \hat{H}^{(t)} = H^{(t-1)} + \mathbf{1}_L \cdot e_t^\top,
+\end{equation}
+where $\mathbf{1}_L \in \mathbb{R}^L$ is an all-one vector, so that $e_t$ is broadcast identically across all $L$ sequence positions. The embeddings $\{e_t\}_{t=1}^{T_{\max}}$ form a standard learned lookup table $E \in \mathbb{R}^{T_{\max} \times d}$, where $T_{\max}$ is set to cover the maximum number of steps used at both training and test time.
+
+Without depth embeddings, the shared block $f_\theta$ receives identical inputs at each step (modulo the evolving hidden state), making it difficult to distinguish early exploratory steps from later refinement steps. By conditioning each iteration on $e_t$, the model is free to learn step-specialized computation strategies---for example, using early steps to gather local information and later steps to consolidate long-range evidence.
+
+\paragraph{Relationship to positional encodings.}
+
+Depth embeddings are orthogonal to the positional encodings used within the sequence (RoPE or none). The former encodes the model's current position in the \emph{temporal} (recurrent) dimension; the latter encodes positions in the \emph{spatial} (sequence) dimension. Both are applied simultaneously without conflict.

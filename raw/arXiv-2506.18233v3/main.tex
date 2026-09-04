@@ -1,0 +1,1217 @@
+
+\documentclass{article} % For LaTeX2e
+\usepackage{iclr2026_conference,times}
+
+% Optional math commands from https://github.com/goodfeli/dlbook_notation.
+\input{math_commands.tex}
+
+\usepackage{hyperref}
+\usepackage{url}
+\usepackage{microtype}
+\usepackage{booktabs}
+\usepackage{graphicx}
+\usepackage{lineno}
+\usepackage{multirow}
+\usepackage{array}
+\usepackage{colortbl}
+\usepackage{xcolor}
+\usepackage{wrapfig}
+\usepackage{etoc}
+\etocsettagdepth{default}{-1}
+\etocsettagdepth{appendix}{2}
+
+\definecolor{lightblue1}{RGB}{249,250,255}  % 最浅
+\definecolor{lightblue2}{RGB}{229,240,255}
+\definecolor{lightblue3}{RGB}{209,230,255}
+\definecolor{lightblue4}{RGB}{189,220,255}
+\definecolor{lightblue5}{RGB}{169,210,255}  
+\definecolor{lightblue6}{RGB}{149,200,255} % 最深
+\definecolor{lava}{rgb}{0.1, 0.1, 0.1}
+\definecolor{lightblue}{rgb}{0.3, 0.5, 0.9}
+\definecolor{ceruleanblue}{rgb}{0.1, 0.3, 0.7}
+
+\hypersetup{
+    colorlinks=true,
+    linkcolor=lava,
+    citecolor=ceruleanblue,
+    urlcolor=ceruleanblue,
+}
+
+
+\title{Beyond Parameters: Exploring Virtual Logic Depth for Scaling Laws}
+
+% Authors must not appear in the submitted version. They should be hidden
+% as long as the \iclrfinalcopy macro remains commented out below.
+% Non-anonymous submissions will be rejected without review.
+
+\iclrfinalcopy
+
+
+\author{
+\begin{tabular}{l}
+Ruike Zhu$^{1\ddagger}$, 
+Hanwen Zhang$^{1\ddagger}$, 
+Kevin Li$^{1}$,
+Tianyu Shi$^{2*}$,
+Yiqun Duan$^{3}$,\\
+Chi Wang$^{4}$, 
+Tianyi Zhou$^{5}$, 
+Arindam Banerjee$^{1}$,
+Zengyi Qin$^{6*\dag}$ \\[0.5ex]
+$^1$University of Illinois at Urbana-Champaign \quad
+$^2$University of Toronto  \\
+$^3$University of Technology Sydney \quad
+$^4$Google DeepMind \\
+$^5$University of Maryland, College Park \quad
+$^6$Massachusetts Institute of Technology \\
+\small{
+\texttt{tys@cs.toronto.edu}, 
+\texttt{qinzy@alum.mit.edu}
+}
+\end{tabular}
+}
+
+\renewcommand*{\thefootnote}{\fnsymbol{footnote}}
+\footnotetext[1]{Equal advising.}
+\footnotetext[2]{Corresponding author.}
+\renewcommand*{\thefootnote}{\arabic{footnote}}
+
+\vspace{-1ex}
+{\let\thefootnote\relax\footnotetext{\textsuperscript{$\ddagger$}Equal contribution.}}
+
+
+% The \author macro works with any number of authors. There are two commands
+% used to separate the names and addresses of multiple authors: \And and \AND.
+%
+% Using \And between authors leaves it to \LaTeX{} to determine where to break
+% the lines. Using \AND forces a linebreak at that point. So, if \LaTeX{}
+% puts 3 of 4 authors names on the first line, and the last on the second
+% line, try using \AND instead of \And before the third author name.
+
+\newcommand{\fix}{\marginpar{FIX}}
+\newcommand{\new}{\marginpar{NEW}}
+
+%\iclrfinalcopy % Uncomment for camera-ready version, but NOT for submission.
+\begin{document}
+
+\etocdepthtag.toc{default}
+
+\maketitle
+
+\begin{abstract}
+Scaling the size of large language models typically involves 3 dimensions: depth, width, and the number of parameters. 
+In this work, we explore a 4th dimension: \textbf{virtual logical depth}~(VLD), which allows increasing the effective algorithmic depth without changing the overall parameter count by reusing parameters within the model. While parameter reuse is not new, its role in scaling dynamics has remained underexplored. 
+Unlike currently trending test-time methods, which mainly scale in token-wise, VLD alters the internal computation graph scaling during training, inference, or combination. 
+We carefully design controlled experiments and have the following key insights on VLD scaling: 
+1. \textit{Knowledge capacity vs.~parameters.} At a fixed parameter count, VLD leaves knowledge capacity nearly unchanged (with only minor variance), while across models \emph{knowledge capacity scales with the number of parameters};
+2. \textit{Reasoning vs. reuse.} Properly implemented VLD substantially improves \emph{reasoning ability} \emph{without} increasing parameter count, decoupling reasoning from sheer model size. This provides a \textbf{new possibility for scaling} besides the current token-wise test-time scaling used by most reasoning models. 
+3. \textit{Robustness and generality.} The trend of improved reasoning persist across architectures and configurations (e.g., different reuse schedules and step counts), indicating that VLD captures a general scaling behavior.
+These findings not only provide useful insights into the future model scaling strategies, but also introduce an even deeper question: Does super intelligence necessarily require ever-larger models, or could it have some trade-offs by re-using parameters and increasing virtual logic depth? 
+We believe that there are many unknown dynamics within the model scaling that need exploration. 
+Codes are available at \url{https://anonymous.4open.science/r/virtual_logical_depth-8024/}. 
+
+
+%1. VLD scaling forces the \textbf{knowledge capacity} of the model to \textbf{stay almost constant}, though with some non-significant variations. 2. VLD scaling enables the \textbf{reasoning capability} to be \textbf{significantly improved}, if the scaling method is properly implemented. 3. The \textbf{number of parameters is proportional to knowledge capacity}, but not reasoning capability. 
+%Under certain conditions, it is \textbf{not necessary to increase parameter count} to \textbf{improve reasoning.} 
+%4. The above observations \textbf{hold for various model configurations} and are likely to be generally true under the scope of our experiments.
+
+%so we open source our models and code~(\url{https://vldscaling.ngrok.io}) to ensure reproducibility and facilitate future explorations.
+
+% \parbox{\linewidth}{
+% \begin{enumerate}
+%     \item VLD scaling forces the \textbf{knowledge capacity} of the model to \textbf{stay almost constant}, though with some non-significant variations.
+%     \item VLD scaling enables the \textbf{reasoning capability} to be \textbf{significantly improved}, if the scaling method is properly implemented.
+%     \item The \textbf{number of parameters is proportional to knowledge capacity}, but not reasoning capability. Under certain conditions, it is \textbf{not necessary to increase parameter count} to \textbf{improve reasoning.}
+%     \item The above observations \textbf{hold for various model configurations} and are likely to be generally true under the scope of our experiments.
+% \end{enumerate}
+% }
+
+
+\end{abstract}
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=0.93\textwidth]{./figures/main.pdf}
+    \vspace{-28pt}
+    \caption{\textbf{Comparison between classical model size scaling vs. VLD scaling.} Bubble size proportional to total effective depth (base layer depth + virtual logical depth). Blue bubbles represent standard models without VLD scaling but following the classical model size scaling, while green bubbles show models with VLD scaling applied, demonstrating near-vertical scaling paths. VLD scaling significantly enhances reasoning capability (y-axis) while keeping the knowledge capacity (x-axis) almost constant without significant variations.}
+    \label{fig:main}
+\end{figure}
+
+
+\section{Introduction}
+%Scaling up large language models (LLMs) is widely recognized as a key factor in enhancing their general capabilities~\citep{Kaplan2020Scaling, Hoffmann2022Chinchilla, Brown2020GPT3, Wei2022Emergent}. The general concept of model scaling includes several directions, such as model size scaling, data scaling, compute scaling~\citep{Wei2022Emergent}, and the recent inference scaling~\citep{snell2024scaling, jaech2024openai}. The model size scaling direction typically occurs along three dimensions: depth, width, and the total number of parameters~\footnote{Since depth and width directly influence the number of parameters, these three dimensions are not entirely independent. However, the total parameter count can indeed be adjusted independently by modifying the inner dimension of the MLP layer within a transformer block.}. 
+Scaling up large language models (LLMs) has long been regarded as a primary driver of their rapid progress~\citep{Kaplan2020Scaling, Hoffmann2022Chinchilla, Brown2020GPT3, Wei2022Emergent}. Scaling typically proceeds along multiple axes, including model size, data, compute~\citep{Wei2022Emergent}, and more recently inference-time scaling~\citep{snell2024scaling, jaech2024openai}. 
+The model size scaling direction typically occurs along three dimensions: depth, width, and the total number of parameters~\footnote{Since depth and width directly influence the number of parameters, these three dimensions are not entirely independent. However, the total parameter count can indeed be adjusted independently by modifying the inner dimension of the MLP layer within a transformer block.}. 
+Contemporary LLMs often exceed 100B parameters~\citep{Wei2022Emergent}, enabling them to store vast knowledge. However, parameter growth does not straightforwardly translate into stronger reasoning capabilities.
+%In contrast, the human brain exhibits the opposite characteristics. Human memory is relatively limited—hence the invention of tools like pen and paper to compensate for this weakness—yet humans excel at reasoning~\citep{Chollet2019Intelligence, Xu2023BrainInspired, Wang2024Schrodinger}. This cognitive ability is largely supported by a specialized reasoning core located in the prefrontal cortex~\citep{raichle2009brief}.
+
+%This fundamental difference in the strengths and weaknesses of language models and the human brain raises critical questions about the efficacy of the current scaling paradigm in achieving super-intelligence. Ideally, a truly intelligent system would consist of a powerful reasoning core complemented by a selective yet essential memory, with additional domain-specific knowledge retrieved externally as needed~\citep{kumaran2016learning}.
+
+In contrast, human cognition demonstrates the opposite profile. Memory is relatively limited—hence the invention of external storage such as writing—yet reasoning and abstract problem solving are remarkably strong~\citep{Chollet2019Intelligence, Xu2023BrainInspired, Wang2024Schrodinger}, largely supported by specialized circuits in the prefrontal cortex~\citep{raichle2009brief}. This asymmetry highlights a fundamental tension: while current scaling paradigms expand memory-like capacity, they do not necessarily improve reasoning, which is arguably central to achieving super-intelligence. Ideally, an intelligent system would combine (i) a powerful reasoning core, (ii) a compact but essential internal memory, and (iii) external retrieval for domain knowledge~\citep{kumaran2016learning}.
+
+%This insight motivates us to explore new scaling dimensions that \textbf{intentionally limits the knowledge capacity to force it towards improving reasoning capabilities}. We find that simple weight-sharing within the standard transformer architecture performs surprisingly well. This introduces the core concept of this manuscript: \textbf{virtual logical depth}~(VLD). VLD is achieved by repeating transformer layers while sharing weights across these repetitions. Although \textbf{not entirely new}, the intriguing properties of VLD in model scaling is not thoroughly explored. Previous studies~\citep{Lan2020ALBERT, Dehghani2019Universal, Bai2019DEQ, hay2024dynamic, bhojanapalli2021leveraging, reid2021subformer, takase2021lessons, liu2023enhancing} have discussed parameter reuse or layer repetition in different contexts, but their primary focus was not on understanding its dynamics in scaling. The looped transformers~\citep{saunshi2025reasoning} is a pioneering work that studies the reasoning capability among the related work, but we focus more on the model scaling strategy and provide a set of more comprehensive experiments and new conclusions on the VLD scaling law.
+
+Motivated by this perspective, we introduce a new scaling dimension that \textit{deliberately limits knowledge capacity in order to encourage improvements in reasoning}. 
+Specifically, we \textbf{revisit weight sharing} in the transformer architecture and show that repeating layers with tied parameters yield surprisingly strong benefits. We term the resulting phenomenon \textbf{virtual logical depth} (VLD). 
+While related techniques—such as parameter reuse, layer repetition, and equilibrium models~\citep{Lan2020ALBERT, Dehghani2019Universal, Bai2019DEQ, hay2024dynamic, bhojanapalli2021leveraging, reid2021subformer, takase2021lessons, liu2023enhancing}—have been explored in other contexts, their scaling dynamics have remained underexplored. A closely related effort, looped transformers~\citep{saunshi2025reasoning}, studies reasoning capacity, but our focus is on \emph{scaling laws}: we conduct systematic experiments and uncover new properties of VLD as a scaling strategy.
+
+
+Through carefully controlled experiments, we investigated the characteristics of VLD scaling, specifically measuring reasoning capabilities and knowledge capacity under various configurations. We discovered that VLD scaling shows very different properties from classical model size scaling. In brief, VLD scaling \textit{forces the knowledge capacity of the model to stay almost constant (with non-significant variations), while significantly improving the reasoning capability.} We illustrate a part of our main findings in Figure~\ref{fig:main}, which compares the two scaling strategies. These findings hold for various model and experiment configurations, and are likely to be universal under our scope of experiments. Under reasonable conditions, \textit{we don't have to increase the number of parameters in order to increase the inherent reasoning capability of the model}. 
+
+Beyond the scope of this work, we would like to raise a even deeper question: \textit{Do we really need a lot of parameters to achieve super-intelligence?} Of course this first depends on how we define super-intelligence. Humans have poor memory but good reasoning capability and agency capability (e.g., subjective initiatives).\textit{ Under limited human brain capacity, why did the natural evolution chose to allocate more capacity on reasoning capability and agency capability, but only some essential capacity for memory?} It is not impossible that under a small but essential amount of parameters and memory capacity, we will be able to push the reasoning capability and agency capability to the extreme and achieve super-intelligence in the far future. We would like to move a small step towards this ultimate goal, and open-source all source code of our current work to facilitate future research.
+
+\begin{figure}
+    % \hspace*{0.05\textwidth}
+    \includegraphics[width=\linewidth]{figures/repeat_pattern.pdf}
+    \caption{\textbf{Different patterns of parameter reuse to increase VLD while keeping the total number of parameters constant.} (a) an example of a standard transformer with 3 layers. (b) sequentially repeat neighboring layers. (c) cycle-repeat the layers. (d) repeat layers in an inverse-cycle order. Under the same pattern, two layers with the same color share the same parameters. In all cases, the actual number of parameters do not change.}
+    \label{fig:three-patterns}
+\end{figure}
+
+
+
+\section{Related Work}
+\label{related_work}
+
+\paragraph{Parameter Sharing and Layer Reuse.} 
+
+Parameter reuse has garnered considerable attention in recent research. \citep{reid2021subformer} introduced Subformer, which reused 50\% of parameters for compression purposes, while \citep{liu2023enhancing} presented ESP (Efficient Shared Parameterization) that reused central tensor matrices. However, both introduced atypical elements to transformer architectures, complicating direct comparison with standard models. \citep{bhojanapalli2021leveraging} developed Reuse Transformers, exploring attention mechanism reuse while sharing less than 10\% of attention heads. \citep{takase2021lessons} proposed three distinct layer-sharing patterns but conducted experiments only on small networks without scaling analysis. More recently, \citep{hay2024dynamic} proposed Dynamic Layer Tying, employing reinforcement learning to identify optimal layer-sharing configurations. In parallel, several studies have explored Looped Transformers \citep{fan2024not,saunshi2025reasoning,yang2023looped}, which iteratively apply transformer layers to enhance model capabilities without proportionally increasing parameters. Our work builds upon these foundations by systematically analyzing VLD scaling dynamics and its distinct impact on reasoning capability versus knowledge capacity.
+
+
+\paragraph{Measuring Reasoning and Knowledge Capacity.} 
+
+Quantitative assessment of reasoning and knowledge remains challenging. For reasoning capabilities, \citep{ye2024physics} employed synthetic GSM8K benchmarks to isolate inherent reasoning abilities from memorized solutions. Regarding knowledge capacity, \citep{allen2024physics} demonstrated that LLMs store approximately 2 bits of knowledge per parameter, providing a quantitative metric for model memory. \citep{carlini2022quantifying} established methodologies for quantifying memorization in LLMs, offering insights into information retention mechanisms. Understanding how large language models (LLMs) store and retrieve information is central to evaluating their memory mechanisms.  \citep{liang2024self} introduced the SAGE framework, which enhances LLM agents with reflective and memory-augmented abilities.  \citep{xu2025mem}  propose A-Mem, an agentic memory framework designed to enhance the long-term reasoning and adaptability of LLM agents. 
+% Unlike prior memory systems that rely on static workflows or graph-based retrieval, A-Mem adopts principles from the Zettelkasten method to dynamically organize, interlink, and evolve memories. 
+
+
+
+\section{Virtual Logical Depth}
+\label{sec:vld}
+
+%VLD is the effective algorithmic depth of the model minus the number of base layers. See Figure~\ref{fig:three-patterns} for a brief illustration. In this example, there are 3 base layers and 3 VLD layers. We reuse the base layer parameters in different patterns~\citep{takase2021lessons} and produce different types of VLD layers. While many previous work on parameter reuse~\citep{reid2021subformer, liu2023enhancing} attempted to modify the standard transformer architecture, our focus is not a new architecture but a new scaling dimension under a general architecture. Therefore, we keep the standard transformer architecture and only repeat its layers while sharing their weights. We consider three patterns of parameter reuse: sequence, cycle, and inverse cycle, as illustrated in Figure~\ref{fig:three-patterns}~(b-d). In the sequence mode, the neighboring layers share the same parameter. In the cycle mode, a number of layers are grouped into a large block and then the block is repeated. In the inverse cycle mode, a number of layers are grouped into a large block, but the block is reversed when it is repeated. Our VLD strategies follow the insights of \citep{takase2021lessons}. The intuition and detailed implementation of each strategy are provided in the appendix~\ref{sec:d}.
+
+We define \textbf{Virtual Logical Depth (VLD)} as the effective algorithmic depth of a model minus the number of base layers. Figure~\ref{fig:three-patterns} provides an illustration: here, 3 base layers are reused to form 3 VLD layers. Instead of introducing a new architecture, our goal is to establish a new \emph{scaling dimension} within the standard transformer framework. Concretely, we retain the transformer architecture but repeat its layers with shared parameters, following the parameter reuse insights of \citet{takase2021lessons}. 
+
+We explore three reuse patterns—\emph{sequence}, \emph{cycle}, and \emph{inverse cycle}—as shown in Figure~\ref{fig:three-patterns}~(b–d). In the \textbf{sequence} mode, adjacent layers share parameters. In the \textbf{cycle} mode, several layers form a block that is repeated. In the \textbf{inverse cycle} mode, the same block is repeated but in reversed order. Detailed implementation and intuition for each strategy are described in Appendix~\ref{sec:d}.
+
+
+% Layer reuse is implemented during pre-training, with all experiments training models from scratch rather than using post-training methods. We define the core question that we want to explore as follows:
+
+\paragraph{Problem Statement.} Given the VLD scaling and standard model size scaling, find the difference of their influence on knowledge capacity and reasoning capability of the model.
+
+The above question requires us to develop reasonable approaches to measure the knowledge capacity and reasoning capability. Our high-level guideline is that such kind of measurement should be done with rigorously controlled experiments like in~\citep{allen2024physics}. We got inspiration from~\citep{allen2024physics} and develop the measurement approaches as explained in Section~\ref{subsec:knowledge-capacity-measurement} and Section~\ref{subsec:reasoning-measurement}.
+
+
+\subsection{Measurement of Knowledge Capacity} \label{subsec:knowledge-capacity-measurement}
+
+% [TBA: Make it clear that this part has some limitation. It only measures the knowledge capacity on random numbers. There is a gap between remembering real knowledge and random numbers.] 
+
+Knowledge capacity can estimated by measuring the maximum information entropy~\citep{gray2011entropy, volkenstein2009entropy} that a LLM absorbs. For a discrete variable $X$ that has $n$ possible values $x_1, x_2, \cdots, x_n$, the expected information entropy (in bits) for a realization of $X$ is:
+\[
+H(X) = -\sum_{i=1}^n p(x_i) \mathrm{log_2}p(x_i)
+\]
+Given this, we follow these steps to measure the knowledge capacity:
+\paragraph{Step 1: Construct a Random Number Dataset.} We construct a random number dataset, which is a sequence of $k$ numbers, where each number is a realization of $X$, uniformly drawn from the $n$ possible values. The information entropy bits of this dataset is:
+\[
+H_1 = -k\sum_{i=1}^n \frac{1}{n} \mathrm{log_2}\frac{1}{n} = k\mathrm{log_2}n
+\]
+\paragraph{Step 2: Train a LLM to Remember the Random Number Sequence.} Now assuming we train a LLM to fit the dataset. Each random number corresponds to exactly one token. The softmax output of the LLM is a length-$n$ vector that predicts the probability of the next token. If the LLM is not trained at all, the softmax vector could have uniform probability output. But if the LLM is trained to remember the sequence, it should output a higher probability for the correct next token. To be more mathematically specific, we first ensure that each $x_i$ only occupy one token position in the tokenizer, then we build the training set by putting the $k$ realization of $X$ into a fixed-order sequence. After this step, we already obtained a sequence of length $k$ where each token has uniform distribution on $n$ possible values. Then a LLM is trained to fit the sequence. 
+\paragraph{Step 3: Calculate Knowledge Capacity from Softmax Output.} First notice that this experiment only relies on a training set but not a validation set, because the objective is to let the LLM remember the training set as good as possible. Once the training is converged, let the softmax probability output at the $j^{th}$ input for the $i^{th}$ value of $X$ is $p_j(x_i)$. To be clear, $p_j(x_i)$ is the probability that the $(j+1)^{th}$ number in the sequence is $x_i$, predicted by the LLM. The LLM is expected to output a higher probability if that number is really $x_i$ and lower probability otherwise. If the LLM remembers everything and has absolute confidence, then $p_j(x_i)$ is $1$ for the correct $x_i$ and is $0$ otherwise. But in reality the LLM has limited knowledge capacity. We define quantity $H_2$ as:
+\[
+H_2 = -\sum_{j=1}^k\sum_{i=1}^n p_j(x_i) \mathrm{log_2}p_j(x_i)
+\]
+If the LLM remembers everything in the dataset, then $H_2$ should be close to zero~\footnote{There are some boundary conditions to be satisfied before we can make such claim. But as the sequence length becomes extremely long, such as $640k$ in our experiments, the influence of the boundary conditions is averaged out and does not impact the conclusion of our experiments.}. If the LLM remembers nothing, then $H_2$ should be $H_1$. The difference between $H_1$ and $H_2$ is:
+\[
+\Delta H = H_1-H_2
+\]
+The $\Delta H$ is essentially the information entropy that the LLM absorbed, which can be viewed as a form of knowledge capacity. In the case that $H_1$ is larger than the knowledge capacity of the LLM, $H_2$ cannot reach 0 because there is always a part of the information entropy that the LLM cannot absorb. In this case, the difference $\Delta H$ effectively reflects the maximum knowledge capacity of the LLM being trained. We will present more details on how we configured the experiments to measure the knowledge capacity in Section~\ref{sec:experiments} the experiments.
+
+\subsection{Measurement of Reasoning Capability} \label{subsec:reasoning-measurement}
+
+Developing a rigorous measurement of reasoning capability is harder than measuring the knowledge capacity. Reasoning capability does not have a clear unit like information entropy bits as we have in knowledge capacity. Therefore, we adopt widely used empirical metrics as measurements, including accuracy on mathematical problems, scientific reasoning tasks, and code generation benchmarks. To ensure comprehensive evaluation, we employ both synthetic and real-world datasets to assess VLD's impact on reasoning capabilities.
+
+
+% However, we cannot directly use the currently available public training and validation sets because there might be amination issues, where the validation data is somehow presented in the training data to make the model overfit~\citep{xu2024benchmark}. 
+\subsubsection{Synthetic Data}
+
+
+\paragraph{Step 1: Synthesize Large Math Datasets.} Inspired by \citep{ye2024physics}, we synthesize the highly diverse iGSM~\citep{ye2024physics, cobbe2021training} dataset to measure the mathematical reasoning capability of LLMs and study how virtual logical depth influences such capability. In each problem of the iGSM dataset, the problem statement implies the dependencies of a set of variables. Given the value of some variables, the goal is to infer the value of a target variable. The problem difficulty is measured by the number of algebra \textbf{operations} to derive the target value. Since the dataset can theoretically contain more than 90 trillion~\citep{ye2024physics} solution templates, which is much larger than the number of parameters in LLMs, LLMs cannot solve the problems by simply memorizing the solution templates. The process of synthesizing the iGSM dataset is thoroughly described in \citep{ye2024physics} and will not be covered in this manuscript. One example of the synthesized problem is provided below, with additional training data examples included in Appendix~\ref{subsec:random_data}.
+
+
+
+
+
+\vspace{0.2cm}
+\framebox[0.997\linewidth]{%
+\begin{minipage}{0.96\linewidth}
+\textbf{Question:} Question: The number of each Lungs's Platelets equals each Lungs's B Cells. The number of each Pleural Cavity's Platelets equals 0. The number of each Pleural Cavity's B Cells equals 11 more than the sum of each Lungs's Platelets and each Lungs's B Cells. The number of each Lungs's B Cells equals 10. How many B Cells does Pleural Cavity have? \textbf{Solution:} Define Lungs's B Cells as p; so p = 10. Define Lungs's Platelets as r; so r = p = 10. Define Pleural Cavity's B Cells as u; m = r + p = 10 + 10 = 20; so u = 11 + m = 11 + 20 = 8. \textbf{Answer:} 8.~\footnote{In order to control the complexity of pure numerical calculations, all solutions are mod 23. In this example, 11 + 20 := (11 + 20) mod 23 = 8.}.  
+\end{minipage}
+}
+\vspace{0.2cm}
+
+
+
+
+
+\paragraph{Step 2: Train LLM on Synthetic Math Data and Evaluate the Accuracy.} Solving these questions basically requires the LLM to produce operations step-by-step to derive the value of the target variables. The number of steps is a measurement of the problem's complexity. We generated a non-overlapping training set and validation set. The training set contains problems with operations no greater than 15. The validation set contains problems with operations equal to 15, which represents the highest difficulty that the model saw during training. During validation, we feed the problem statement into the LLM and let it generate the solution and final answer. The detailed experiment configurations are described in Section~\ref{sec:experiments}.
+
+
+\subsubsection{Real-World Data Evaluation}
+
+\textbf{Step 1: Construct Multi-Domain Training Corpus.} To validate VLD's effectiveness beyond synthetic scenarios, we construct a comprehensive real-world training corpus spanning multiple reasoning domains. This corpus comprises diverse datasets organized by category as shown in Table~\ref{tab:reasoning_training_data} in the Appendix~\ref{subsec:realworld_data}. This multi-domain approach ensures the model is exposed to diverse reasoning patterns including conversational AI, instruction following, programming tasks, mathematical problem-solving, and scientific reasoning across over 2.3 billion tokens.
+
+
+
+\textbf{Step 2: Evaluate on Real-World Reasoning Benchmarks.} We assess reasoning capability using established benchmarks that evaluate distinct aspects of reasoning. For \textbf{mathematical reasoning}, we use Math500\citep{hendrycks2021measuring} and AIME\citep{aime} to evaluate multi-step mathematical problem solving capabilities. For \textbf{scientific knowledge}, we employ GPQA\citep{rein2024gpqa} to assess graduate-level scientific reasoning and factual knowledge. For \textbf{code generation}, we utilize HumanEval\citep{chen2021evaluating} and MBPP\citep{austin2021program} to measure functional programming and algorithmic reasoning abilities. These benchmarks provide comprehensive coverage of reasoning modalities, enabling assessment of VLD's impact across mathematical, scientific, and computational domains. The detailed experiment configurations are described in Section~\ref{sec:experiments}.
+
+
+
+
+
+
+\section{Experiments}
+\label{sec:experiments}
+
+Our experiments are designed to systematically investigate the distinct impacts of \emph{Virtual Layer Depth (VLD)} scaling on two fundamental aspects of Large Language Models (LLMs): \textbf{knowledge capacity} and \textbf{reasoning capability}. We aim to understand how VLD patterns influence these attributes compared to classical model scaling approaches. Our experiments are centered around two main questions:
+\begin{itemize}
+    \item How does VLD affect knowledge capacity and reasoning capability compared to classical parameter scaling?
+    \item Do the observed effects of VLD persist across both pretraining and fine-tuning regimes?
+\end{itemize}
+
+\paragraph{Shared evaluation protocol.}
+Unless noted otherwise, we align tokenizer/vocabulary, per-layer parameterization, optimizer, schedule, batch size, and decoding settings within each table to isolate the effect of VLD. We denote VLD \emph{Depth $\times k$} as repeating each virtual block $k$ times according to the pattern definitions in Section~\ref{sec:vld}. Reporting is consistent across rows; any deviation is explicitly stated.
+
+
+\subsection{Knowledge Capacity Experiments}
+
+\paragraph{Random Sequence Data Setup.}
+For the knowledge capacity experiment, we construct a high-entropy random number corpus parameterized by $(n,k)$ as in Section~\ref{subsec:knowledge-capacity-measurement}. The $n$ is chosen based on the default vocabulary size of our transformer training pipeline and does not have a specific meaning; we use $n = 50257$. The $k$ is chosen to be sufficiently large so that the dataset contains enough information entropy. Prior research~\citep{allen2024physics} established that approximately $2$ bits of information can be stored per model parameter. With our smallest model containing 5M parameters, we designed experiments to store approximately 10M bits of information (aligning with the $2$ bits per parameter capacity), requiring a sequence length of approximately $k = 640{,}000$ random tokens. Training data examples consist of IID token IDs generated from $[0, 50256]$. 
+
+
+\paragraph{Models \& Metric.}
+We established four 4-layer GPT-2 models with increasing parameter counts (5M, 10M, 15M, and 20M). The layer size we use is $92$ for 5M model and $184$ for 20M model, which is consistent with the settings in \citep{allen2024physics}. To investigate VLD effects while holding parameters fixed, we implemented the three VLD patterns described in Section \ref{sec:vld} on the smallest (5M) and largest (20M) baseline models. For each pattern, we studied repetition factors of $\times\{1,2,3\}$. After training, we input the training sequence to the LLM and computed the sum of entropy of the model's softmax outputs, then compared the total entropy of the dataset with this measured value. The difference, $\Delta H$ (Section~\ref{subsec:knowledge-capacity-measurement}), represents the amount of information successfully absorbed by the model. The mean absorbed information entropy is defined as the average amount of information absorbed per token, calculated as the reduction from the original uncertainty (15.6 bits for $n = 50257$) to what the model predicts. We used a maximum sequence length of $768$ during training and $1024$ during evaluation. The detailed model configuration is listed in the Appendix ~\ref{subsec:gpt2_knowledge}.
+
+
+
+
+% ------------------------- Tables & Figures -------------------------
+\begin{table}[t]
+\centering
+\caption{GPT-2 performance on synthetic GSM-8K tasks across multiple VLD patterns and depths. Accuracy (\%) at controlled operation counts. ``VLD Depth'' denotes the repetition factor applied to the base layer count. Cell shading encodes accuracy (darker = higher); within each VLD pattern, accuracy generally increases with VLD depth, though not strictly monotonically}
+\label{tab:gpt2_synthetic}
+\resizebox{\textwidth}{!}{%
+\footnotesize
+\begin{tabular}{lll>{\centering}p{1.0cm}>{\centering}p{1.0cm}ccc}
+\toprule
+\multirow{2}{*}{\textbf{Model}} & \multirow{2}{*}{\textbf{VLD Pattern}} & \multirow{2}{*}{\textbf{VLD Depth*}} & \multicolumn{3}{c}{\textbf{iGSM Acc.\,(4 Base Layer)}} & & \textbf{iGSM Acc.\,(8 Base Layer)} \\
+\cmidrule(lr){4-6} \cmidrule(lr){8-8}
+& & & \textbf{op15} & \textbf{op20} & \textbf{op21} & & \textbf{op15} \\
+\midrule
+\multirow{16}{*}{\rotatebox{90}{\textbf{GPT-2}}} & Base & -- & 46.3 & 21.8 & 21.2 & & 60.5 \\
+\cmidrule(lr){2-8}
+& \multirow{5}{*}{Cycle} & $\times$1 & \cellcolor{lightblue2}54.9 & \cellcolor{lightblue1}26.4 & \cellcolor{lightblue1}26.2 & & \cellcolor{lightblue2}62.0 \\
+& & $\times$2 & \cellcolor{lightblue4}62.1 & \cellcolor{lightblue2}30.4 & \cellcolor{lightblue3}35.4 & & \cellcolor{lightblue3}63.3 \\
+& & $\times$3 & \cellcolor{lightblue3}61.6 & \cellcolor{lightblue3}30.8 & \cellcolor{lightblue2}32.0 & & \cellcolor{lightblue2}61.0 \\
+& & $\times$4 & \cellcolor{lightblue5}65.7 & \cellcolor{lightblue4}39.2 & \cellcolor{lightblue3}33.0 & & \cellcolor{lightblue4}66.8 \\
+& & $\times$5 & \cellcolor{lightblue6}70.7 & \cellcolor{lightblue5}43.8 & \cellcolor{lightblue4}40.2 & & -- \\
+\cmidrule(lr){2-8}
+& \multirow{3}{*}{Sequence} & $\times$1 & \cellcolor{lightblue2}50.7 & \cellcolor{lightblue1}25.6 & \cellcolor{lightblue1}21.2 & & \cellcolor{lightblue1}59.2 \\
+& & $\times$2 & \cellcolor{lightblue3}51.2 & \cellcolor{lightblue2}27.0 & \cellcolor{lightblue2}22.2 & & \cellcolor{lightblue2}62.1 \\
+& & $\times$3 & \cellcolor{lightblue4}55.5 & \cellcolor{lightblue3}28.0 & \cellcolor{lightblue3}25.0 & & \cellcolor{lightblue3}62.9 \\
+% & & $\times$4 & -- & -- & -- & & -- \\
+\cmidrule(lr){2-8}
+& \multirow{3}{*}{Inv. Cycle} & $\times$1 & \cellcolor{lightblue2}43.9 & \cellcolor{lightblue1}17.4 & \cellcolor{lightblue1}15.8 & & \cellcolor{lightblue2}53.3 \\
+& & $\times$2 & \cellcolor{lightblue3}50.8 & \cellcolor{lightblue2}24.2 & \cellcolor{lightblue2}18.2 & & \cellcolor{lightblue3}62.0 \\
+& & $\times$3 & \cellcolor{lightblue4}54.8 & \cellcolor{lightblue3}25.2 & \cellcolor{lightblue3}22.2 & & \cellcolor{lightblue4}62.8 \\
+
+% & & $\times$4 & -- & -- & -- & & -- \\
+\bottomrule
+\end{tabular}%
+}
+\\[0.5em]
+\noindent\begin{minipage}{\linewidth}
+\raggedright\scriptsize
+\textbf{Notes.} (i) ``op$X$'' denotes test problems with exactly $X$ operations; 
+(ii) rows within each backbone share identical training and decoding settings; 
+(iii) reported numbers are the mean test accuracy over 2--3 checkpoints after training convergence.\\
+\hspace*{0.8em}*\,VLD Depth indicates the multiplication factor applied to the base model's layer count. Models all train from scratch.
+\end{minipage}
+
+\end{table}
+
+
+
+\begin{table}[t]
+\centering
+\vspace{-12pt}
+\caption{LLaMA-3.2-3B-Instruct on real-world benchmarks over Base model vs.\ Cycle-VLD. Performance (\%) under fixed prompts/decoding per benchmark. Both models are fine-tuned on our SFT corpus from the same pretrained weights.}
+\label{tab:llama_realworld}
+\footnotesize
+\begin{tabular}{p{2.5cm}p{1.6cm}>{\centering}p{1.4cm}>{\centering}p{1.3cm}>{\centering}p{1.3cm}>{\centering}p{1.6cm}>{\centering\arraybackslash}p{1.3cm}}
+\toprule
+\multirow{2}{*}{\textbf{Model}} & \multirow{2}{*}{\textbf{VLD Pattern}} & \multicolumn{5}{c}{\textbf{Real-World Benchmarks Performance (\%)}} \\
+\cmidrule(lr){3-7}
+& & \textbf{Math500} & \textbf{GPQA} & \textbf{AIME} & \textbf{HumanEval} & \textbf{MBPP} \\
+& & \textbf{(Acc.)} & \textbf{(Acc.)} & \textbf{(Acc.)} & \textbf{(pass@1)} & \textbf{(pass@1)} \\
+\midrule
+\multirow{2}{*}{\textbf{Llama-3.2-3B-Inst}} & Base  & 30.40 & 29.80 & 3.33 & 37.79 & 38.36 \\
+& Cycle & \textcolor{ceruleanblue}{35.40} & \textcolor{ceruleanblue}{32.32} & \textcolor{ceruleanblue}{6.67} & \textcolor{ceruleanblue}{39.52 }& \textcolor{ceruleanblue}{40.22} \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+
+
+
+
+
+\subsection{Reasoning Capability Experiments}
+
+To ensure comprehensive evaluation and robust validation of VLD's effectiveness, we conduct reasoning capability experiments in two settings: (1) Pretraining with synthetic data for controlled analysis, (2) Post-training with diverse real-world benchmarks for practical validation.
+
+\subsubsection{Pretraining Setting}
+
+\paragraph{Synthetic Data \& Models Setup.}
+For the reasoning capability experiment, we build dataset generated from the iGSM framework~\citep{ye2024physics}, comprising 500K mathematical problem samples with carefully controlled difficulty parameters. Each problem adheres to consistent complexity constraints with a maximum of 15 operational steps, ensuring reliable measurement of reasoning abilities. We generated non-overlapping training and validation sets, with training problems having $\leq$15 operations and validation problems having exactly 15 operations. We constructed four GPT-2 based models with identical per-layer parameter counts but varying native layer depths (4, 8, 12, and 16 layers, corresponding to roughly 50M, 100M, 150M, and 200M parameters). We applied the three VLD patterns to the 4-layer and 8-layer models with multiplication factors of $\times\{1,2,3\}$ (and up to $\times 5$ for cycle pattern). All models were trained to convergence on $8\times$~A100 GPUs using Adam with learning rate $2{\times}10^{-5}$. We place more details of model and training in Appendix ~\ref{subsec:gpt2_reasoning}. 
+
+\paragraph{In-distribution \& Out-of-distribution Evaluation}
+
+To assess VLD's impact on reasoning capabilities, we employ a controlled evaluation protocol measuring exact-answer accuracy across different complexity levels. Our evaluation encompasses both in-distribution and out-of-distribution scenarios to examine reasoning robustness under controlled shifts in problem difficulty. For \textit{In-Distribution evaluation}, we test models on 500 synthetic iGSM samples with exactly 15 operations, matching the maximum complexity seen during training. Each problem requires multi-step mathematical reasoning, and we calculate exact-answer accuracy by comparing model-generated solutions against ground truth labels using string matching on the final numerical answers. To evaluate robustness under \textit{Distribution Shifts}, we assess model performance on higher complexity problems containing 20 and 21 operations, respectively. These out-of-distribution problems maintain the same mathematical reasoning structure but require additional computational steps, allowing us to measure whether VLD improvements generalize beyond the training distribution. All evaluations use identical decoding parameters (greedy decoding) and prompting strategies across model variants to ensure fair comparison. Models generate complete step-by-step solutions, from which we extract final answers for accuracy assessment.
+
+
+
+
+\subsubsection{Post-Training Setting}
+
+\paragraph{Training Data Composing \& Models Setup.} 
+We construct a comprehensive multi-domain SFT corpus for fine-tuning the LLaMA-3.2-3B-Instruct model, totally 2.3 billion tokens. Following the methodology established in \citet{shen2024jetmoe}, we carefully curate datasets across three critical reasoning domains with strategic subset selection to ensure balanced coverage: (1) For natural language understanding and instruction following, we incorporate xP3x \citep{muennighoff2022crosslingual}, OpenAssistant \citep{kopf2024openassistant} , OpenHermes \citep{teknium2023openhermes} , and UltraChat \citep{ding2023enhancing}. (2) For code generation capabilities, we include Magicoder-OSS \citep{wei2023magicoder} , Magicoder-Evol \citep{wei2023magicoder} , Code-290k-ShareGPT, CommitPackFT \citep{muennighoff2023octopack}, and Evol-Code Alpaca \citep{luo2023wizardcoder} . (3) For mathematical reasoning, we utilize Open-web-math \citep{paster2023openwebmath} , algebraic-stack \citep{azerbayev2023llemma} , TemplateGSM \citep{fu2023specializing} , StackMathQA \citep{zhang2024stackmathqa} , and OpenR1-Math-220k \citep{openr1math220k}. This diverse composition ensures comprehensive exposure to varied reasoning patterns and generation challenges across multiple modalities.
+
+For model training, we fine-tune both Base and Cycle VLD variants of LLaMA-3.2-3B-Instruct on the multi-domain corpus using LoRA\citep{hu2022lora} with standard supervised fine-tuning procedures. Both models are initialized with identical pretrained weights to ensure fair comparison, with the Cycle VLD variant incorporating the layer repetition pattern before training commences. We place detailed training configurations, dataset statistics and samples in Appendix~\ref{subsec:llama_setup}.
+
+\paragraph{Test Datasets \& Metrics \& Model Configuration.}
+We conduct comprehensive evaluations on diverse real-world reasoning benchmarks following established evaluation protocols \citep{lighteval}. The evaluation encompasses three critical domains: (1) mathematical reasoning datasets: Math500 \citep{hendrycks2021measuring} and AIME \citep{aime}; (2) scientific reasoning dataset: GPQA \citep{rein2024gpqa}; (3) code generation datasets: HumanEval \citep{chen2021evaluating} and MBPP \citep{austin2021program}. For evaluation metrics, we maintain consistency with prior work \citep{lighteval, hendrycks2021measuring, rein2024gpqa}, employing exact match accuracy for mathematical and scientific reasoning tasks (Math500, AIME, GPQA) and pass@1 accuracy for code generation benchmarks (HumanEval, MBPP) to measure functional correctness. We conduct experiments comparing the LLaMA-3.2-3B-Instruct Base model against the Cycle VLD variant. We maintain consistent hyperparameters, optimizer settings, and evaluation protocols across both configurations to ensure fair comparison. More testing details are provided in Appendix~\ref{subsec:realworld_data}.
+
+
+
+
+
+
+
+
+
+
+\begin{figure}[t]
+    \centering
+    \includegraphics[width=\textwidth]{./figures/gsm.png}
+    \caption{\textbf{Reasoning Capability Under VLD patterns.}
+    (a) Standard scaling with native depth (16-layer $\approx$ 200M; 12-layer $\approx$ 150M). (b--d) Sequence, Cycle, and Inverse Cycle applied to 4-layer (50M; red) and 8-layer (100M; blue) backbones. Train from scratch, test with op15 GSM data.}
+    \label{fig:gsm}
+\end{figure}
+
+
+
+
+
+
+\subsection{Experiment Results and Findings}
+
+
+\paragraph{Primary Finding.} 
+VLD scaling significantly increases reasoning capability while maintaining knowledge capacity nearly constant. As demonstrated in Table~\ref{tab:gpt2_synthetic} and Figure~\ref{fig:gsm}, applying VLD patterns dramatically boosts models' reasoning performance across all tested configurations. Most notably, the cycle pattern achieves substantial improvements, increasing the 4-layer model's accuracy from 46.3\% to 70.7\% with a VLD factor of 5. Simultaneously, Figure~\ref{fig:random} confirms that despite these reasoning enhancements, knowledge storage capacity remains largely unchanged across all VLD patterns and repetition factors. This distinctive attribute clearly differentiates VLD scaling from classical model scaling, enabling substantial reasoning improvements without significantly altering knowledge capacity.
+
+
+
+\begin{wrapfigure}{r}{0.6\textwidth}
+    \centering
+    \includegraphics[width=0.61\textwidth]{./figures/random.png}
+    \caption{\textbf{Knowledge Capacity Under VLD.}
+    (a) Non-VLD: capacity increases with parameter count. (b) At fixed parameters, absorbed information stays nearly constant across VLD depths/patterns for 5M and 20M models.}
+    \label{fig:random}
+\end{wrapfigure}
+
+
+Beyond the primary result, we identify several supplementary findings that warrant further discussion:
+
+
+\textbf{Parameter-efficient reasoning improvements through VLD.} 
+Smaller VLD-augmented models can surpass larger non-VLD baselines on multi-step reasoning (Fig~\ref{fig:main}). For instance, the 50M-parameter model using the cycle pattern (factor 2, effective depth=12) achieves 62.05\% accuracy, surpassing the native 150M-parameter model (12-layer) with only 61.15\% accuracy. This remarkable outcome emphasizes the efficacy of VLD as a parameter-efficient alternative for enhancing reasoning capabilities, indicating that increased reasoning does not necessitate an expansion in model parameters.
+
+\textbf{Robustness under distribution shifts in reasoning depth.} 
+With increasing operation counts (15/20/21 operations), cycle-VLD consistently outperforms corresponding base models across all difficulty levels (Table~\ref{tab:gpt2_synthetic}). This supports improved robustness under controlled shifts in depth-of-reasoning, with larger operation counts corresponding to more challenging mathematical problems.
+
+\textbf{Cross-domain generalization to real-world applications.} 
+VLD benefits transfer beyond synthetic environments to practical applications. Real-world benchmark validation using Llama-3B confirms synthetic results with consistent improvements across mathematical reasoning (Math500, AIME), scientific reasoning (GPQA), and code generation (HumanEval, MBPP) tasks (Table~\ref{tab:llama_realworld}), demonstrating universal applicability.
+
+\textbf{Non-monotonic scaling behavior with occasional performance plateaus.} 
+While general findings indicate consistent trends, scaling exhibits occasional counterintuitive results. For example, cycle pattern shows VLD factor 3 (61.6\%) performing slightly worse than factor 2 (62.1\%) for the 4-layer model, and Figure~\ref{fig:gsm}(c) shows depth 32 yielding lower accuracy than depth 16. These anomalies suggest potential performance bottlenecks when scaling exclusively in single dimensions, consistent with prior research indicating effective scaling requires balancing across multiple dimensions \citep{Wei2022Emergent}. Future work will explore non-monotonic cases at extreme depths, test robustness under broader distribution shifts, and report multi-seed statistics.
+
+
+
+\section{Conclusion}
+
+In this study, we studied Virtual Logical Depth (VLD), a novel scaling dimension that enhances reasoning capabilities without increasing parameter counts. Our experiments demonstrate that while traditional scaling linearly increases knowledge capacity with parameter count, VLD uniquely maintains a nearly constant knowledge capacity but significantly boosts reasoning performance. Remarkably, smaller models with VLD can surpass larger standard models in complex reasoning tasks. Future research should explore combining VLD with classical scaling dimensions and investigate non-monotonic cases at extreme effective depths. Our open-source implementation is available online to facilitate further exploration and practical integration of VLD scaling.
+
+% \paragraph{The scaling result is not strictly monotonic.} There has a few outliers at extreme effective depths (e.g., Figure~\ref{fig:gsm}c), suggesting potential performance bottlenecks when scaling exclusively in a single dimension; balanced scaling across width, depth, data, and compute remains important~\citep{Wei2022Emergent}. While the current experiments already show reasonable results under carefully controlled settings, we plan to further investigate non-monotonic cases at extreme effective depths, extend robustness tests with broader distribution shifts, and report multi-seed statistics in future revisions.
+
+
+
+
+
+% \textbf{Classical scaling exhibits proportional knowledge-parameter relationship.} 
+% Figure~\ref{fig:random}(a) shows a clear upward trend in absorbed information entropy as parameter count increases in standard models, confirming the direct relationship between model size and knowledge capacity \citep{allen2024physics}. Each parameter increment corresponds to proportional entropy absorption increase, reinforcing established theoretical expectations.
+
+% \textbf{VLD scaling preserves knowledge capacity across patterns and depths.} 
+% Figure~\ref{fig:random}(b-d) demonstrates that despite applying different VLD patterns (cycle, inverse cycle, sequence) to significantly increase computational depth, models' absorbed information entropy remains remarkably stable. Minor variations lack statistical significance, indicating VLD scaling primarily influences computational processes rather than storage capacity.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+% \section{Experiments} \label{sec:experiments}
+% Our experiments are designed to systematically investigate the distinct impacts of Virtual Layer Depth (VLD) scaling on two fundamental aspects of Large Language Models (LLMs): knowledge capacity and reasoning capability. We aim to understand how VLD patterns influence these attributes compared to classical model scaling approaches. Our experiments are centered around two main questions:
+% \begin{itemize}
+%     \item how does VLD affect knowledge capacity and reasoning capability compared to classical parameter scaling?
+%     \item How do VLD scaling affect the reasoning capability of LLMs, and can VLD enhance reasoning without significantly altering knowledge capacity?
+% \end{itemize}
+
+% To comprehensively address these questions, we conduct experiments across both pretraining and post-training settings to demonstrate the broad applicability of VLD patterns.
+
+% \subsection{Pretraining Setting Experiments}
+
+% \subsubsection{Knowledge Capacity Evaluation}
+
+% \paragraph{Dataset.} For the knowledge capacity experiment, the random number dataset has two parameters $n$ and $k$ as we explained in Section~\ref{subsec:knowledge-capacity-measurement}. The $n$ is chosen based on the default vocabulary size of our transformer training pipeline and does not have a specific meaning. We use $n=50257$. The $k$ is chosen to be sufficiently large so that the dataset contains enough information entropy. Prior research \citep{allen2024physics} established that approximately 2 bits of information can be stored per model parameter. With our smallest model containing 5M parameters, we designed experiments to store approximately 10M bits of information (aligning with the 2 bits per parameter capacity), requiring a sequence length of approximately $k=640,000$ random numbers.
+
+% Training data examples consist of random token ids generated from 0-50256, e.g., "43497, 6111, 32823, 47737, 46351, 1395, 2263, 48286, 13532 …". We used a maximum sequence length of 768 during training and 1024 during evaluation.
+
+% \paragraph{Experimental Design.} We established four baseline models with increasing parameter counts (5M, 10M, 15M, and 20M). To investigate VLD effects, we implemented the three VLD patterns described in Section 3 on the smallest (5M) and largest (20M) baseline models. For each pattern, we studied repetition factors of 1, 2, and 3, resulting in total computational depths of 1$\times$, 2$\times$, and 3$\times$ the original model depth. The layer size we use is 768, which is consistent with the settings in \citep{allen2024physics}.
+
+% After training, we input the training sequence to the LLM and computed the sum of entropy of the model's softmax outputs, then compared the total entropy of the dataset with this measured value. The difference, which is the $\Delta H$ we mentioned in Section~\ref{subsec:knowledge-capacity-measurement}, represents the amount of information successfully absorbed by the model. The mean absorbed information entropy is defined as the average amount of information absorbed per token, calculated as the reduction in entropy from the original uncertainty (15.6 bits) to what the model actually predicts.
+
+% \subsubsection{Reasoning Capability on Synthetic Data}
+
+% \paragraph{Dataset.} The synthetic dataset is generated through the iGSM framework \citep{ye2024physics}, comprising 500K mathematical problem samples with carefully controlled difficulty parameters. Each problem adheres to consistent complexity constraints with a maximum of 15 operational steps, ensuring reliable measurement of reasoning abilities rather than mere calculation speed or memorization. We generated non-overlapping training and validation sets, with training problems having $\leq$15 operations and validation problems having exactly 15 operations. Detailed dataset specifications are provided in Appendix~\ref{appendix:dataset_details}.
+
+% \paragraph{Controlled VLD Scaling.} We constructed four GPT-2 based models with identical per-layer parameter counts but varying native layer depths (4, 8, 12, and 16 layers, corresponding to 50M, 100M, 150M, and 200M total parameters). We applied the three VLD patterns to the 4-layer and 8-layer models with multiplication factors of 1, 2, and 3. All models were trained to convergence on 8$\times$ A100 GPUs using the Adam optimizer with a learning rate of 0.00002. We tested on 500 synthetic iGSM data samples with exactly 15 operations and calculated accuracy by comparing model-generated answers against ground truth labels. Results are shown in Table~\ref{tab:gpt2_synthetic}.
+
+% \paragraph{Out-of-Distribution Generalization.} To evaluate robustness under distribution shifts, we tested both 4-layer base and cycle-repeat models (trained on less-than 15-operation problems) on higher complexity problems with 15, 20 and 21 operations. A larger number of operations corresponds to more challenging math problems. As expected, performance declines as the operation count increases; however, the cycle-based model consistently outperforms the baseline, supporting our claim that VLD improves reasoning robustness under distribution shifts.
+
+% \subsection{Post-Training Setting Experiments}
+
+% \subsubsection{Real-World Benchmark Evaluation}
+
+% \paragraph{Dataset.} We post-training the llama3.2-3b-instruct\citep{} model on a diverse training dataset comprising natural language, mathematical reasoning, and code-related corpora. This corpus ensures the model is exposed to a wide range of reasoning and generation challenges across modalities. And we evaluate our method on five real-world benchmark datasets: Math500, AIME, GPQA, HumanEval, and MBPP.
+
+% \paragraph{Large-Scale Real-World Validation.} We conducted experiments on the LLaMA-3.2-3B-Instruct\citep{} model using the cycle VLD pattern. Both base and cycle versions were initialized with pre-trained Llama-3.2-3B weights, with the cycle version incorporating VLD-based layer repetition before fine-tuning on the multi-domain corpus. Performance was evaluated across mathematical reasoning (Math500, AIME), scientific reasoning (GPQA), and code generation (HumanEval, MBPP) benchmarks, with results shown in Table~\ref{tab:llama_realworld}.
+
+
+
+% \begin{table}[t]
+% \centering
+% \caption{GPT-2 Model Performance on Synthetic Math Tasks}
+% \label{tab:gpt2_synthetic}
+% \resizebox{\textwidth}{!}{%
+% \begin{tabular}{lll>{\centering}p{1.0cm}>{\centering}p{1.0cm}ccc}
+% \toprule
+% \multirow{2}{*}{\textbf{Model}} & \multirow{2}{*}{\textbf{VLD Pattern}} & \multirow{2}{*}{\textbf{VLD Depth*}} & \multicolumn{3}{c}{\textbf{iGSM Acc. (4 Base Layer)}} & & \textbf{iGSM Acc. (8 Base Layer)} \\
+% \cmidrule(lr){4-6} \cmidrule(lr){8-8}
+% & & & \textbf{op15} & \textbf{op20} & \textbf{op21} & & \textbf{op15} \\
+% \midrule
+% \multirow{16}{*}{\rotatebox{90}{\textbf{GPT-2}}} & Base & -- & 46.3 & 21.8 & 21.2 & & 60.5 \\
+% \cmidrule(lr){2-8}
+% & \multirow{5}{*}{Cycle} & $\times$1 & \cellcolor{lightblue2}54.9 & \cellcolor{lightblue1}26.4 & \cellcolor{lightblue1}26.2 & & \cellcolor{lightblue2}62.0 \\
+% & & $\times$2 & \cellcolor{lightblue4}62.1 & \cellcolor{lightblue2}30.4 & \cellcolor{lightblue3}35.4 & & \cellcolor{lightblue3}63.3 \\
+% & & $\times$3 & \cellcolor{lightblue3}61.6 & \cellcolor{lightblue3}30.8 & \cellcolor{lightblue2}32.0 & & \cellcolor{lightblue2}61.0 \\
+% & & $\times$4 & \cellcolor{lightblue5}65.7 & \cellcolor{lightblue4}39.2 & \cellcolor{lightblue3}33.0 & & \cellcolor{lightblue4}66.8 \\
+% & & $\times$5 & \cellcolor{lightblue6}70.7 & \cellcolor{lightblue5}43.8 & \cellcolor{lightblue4}40.2 & & -- \\
+% \cmidrule(lr){2-8}
+% & \multirow{5}{*}{Sequence} & $\times$1 & \cellcolor{lightblue2}50.7 & \cellcolor{lightblue1}25.6 & \cellcolor{lightblue1}21.2 & & \cellcolor{lightblue1}59.2 \\
+% & & $\times$2 & \cellcolor{lightblue3}51.2 & \cellcolor{lightblue2}27.0 & \cellcolor{lightblue2}22.2 & & \cellcolor{lightblue2}62.1 \\
+% & & $\times$3 & \cellcolor{lightblue4}55.5 & \cellcolor{lightblue3}28.0 & \cellcolor{lightblue3}25.0 & & \cellcolor{lightblue3}62.9 \\
+% & & $\times$4 & -- & -- & -- & & -- \\
+% \cmidrule(lr){2-8}
+% & \multirow{5}{*}{Inv. Cycle} & $\times$1 & \cellcolor{lightblue2}43.9 & \cellcolor{lightblue1}17.4 & \cellcolor{lightblue1}15.8 & & \cellcolor{lightblue1}53.3 \\
+% & & $\times$2 & \cellcolor{lightblue3}50.8 & \cellcolor{lightblue2}24.2 & \cellcolor{lightblue2}18.2 & & \cellcolor{lightblue2}62.0 \\
+% & & $\times$3 & \cellcolor{lightblue4}54.8 & \cellcolor{lightblue3}25.2 & \cellcolor{lightblue3}22.2 & & \cellcolor{lightblue3}62.8 \\
+% & & $\times$4 & -- & -- & -- & & -- \\
+% \bottomrule
+% \end{tabular}%
+% }
+% \\[0.5em]
+% {\footnotesize *VLD Depth indicates the multiplication factor applied to the base model's layer count.}
+% \end{table}
+
+
+
+
+
+
+% \begin{table}[t]
+% \centering
+% \vspace{-15pt}
+% \caption{Llama 3B-instruct Model Performance on Real-World Benchmarks}
+% \label{tab:llama_realworld}
+% \footnotesize
+% \begin{tabular}{p{2.5cm}p{1.6cm}>{\centering}p{1.4cm}>{\centering}p{1.3cm}>{\centering}p{1.3cm}>{\centering}p{1.6cm}>{\centering\arraybackslash}p{1.3cm}}
+% \toprule
+% \multirow{2}{*}{\textbf{Model}} & \multirow{2}{*}{\textbf{VLD Pattern}} & \multicolumn{5}{c}{\textbf{Real-World Benchmarks Acc.}} \\
+% \cmidrule(lr){3-7}
+% & & \textbf{Math500} & \textbf{GPQA} & \textbf{AIME} & \textbf{HumanEval} & \textbf{MBPP} \\
+% \midrule
+% \multirow{2}{*}{\textbf{LLaMA-3.2-3B-Instruct}} & Base & 30.40 & 29.80 & 3.33 & 38.29 & 38.86 \\
+% & Cycle & \textbf{35.40} & \textbf{32.32} & \textbf{6.67} & \textbf{39.52} & \textbf{40.22} \\
+% \bottomrule
+% \end{tabular}
+% \end{table}
+
+
+
+
+
+
+
+
+% \begin{figure}[t]
+%     \centering
+%     \includegraphics[width=\textwidth]{./figures/random.png}
+%     \caption{\textbf{Knowledge capacity (mean absorbed information entropy) of different VLD patterns.} Panel (a) shows how information storage capacity increases with parameter count in standard models without VLD. Panels (b-d) demonstrate that across all three VLD patterns, the information capacity remains nearly constant regardless of effective depth for both 5M and 20M parameter models.}
+%     \label{fig:random}
+% \end{figure}
+
+% \begin{figure}[t]
+%     \centering
+%     \includegraphics[width= \textwidth]{./figures/gsm.png}
+%     \caption{\textbf{Reasoning capability of different VLD patterns.} Panel (a) shows performance scaling with increasing layer count in standard models. The 16-layer base model has 200M parameters, and the 12-layer version has 150M parameters. Panels (b-d) compare performance across three VLD patterns: Sequence, Cycle, and Inverse Cycle, applied to both 4-layer 50M-parameter (blue) and 8-layer 100M-parameter (green) base models.}
+%     \label{fig:gsm}
+% \end{figure}
+
+
+
+% \subsection{Experiment Findings}
+
+% In this section, we present and interpret key findings derived from our carefully controlled experiments described previously. Specifically, we explore how classical scaling and VLD scaling differently influence knowledge capacity and reasoning capability. We organize our experimental results into primary and secondary observations, detailing each with corresponding evidence and insights.
+
+% \paragraph{Primary Finding: VLD scaling significantly increases the reasoning capability while forcing the knowledge capacity to stay almost constant.} As illustrated by Figure~\ref{fig:gsm}, applying VLD patterns dramatically boosts models' reasoning performance. Notably, the accuracy of the 4-layer model increases from 46.3\% to 62.05\% with a cycle VLD factor of 2, marking a substantial improvement. Simultaneously, Figure~\ref{fig:random} confirms that despite these enhancements in reasoning capability, the knowledge storage capacity remains largely unchanged. We also showed this result in Figure~\ref{fig:main}. This distinctive attribute of VLD scaling clearly differentiates it from classical model scaling, as it enables substantial reasoning improvements without significantly altering the knowledge capacity.
+
+% \paragraph{Secondary Finding 1: In classical model size scaling, the knowledge capacity is proportional to the number of parameters.}
+% In Figure~\ref{fig:random}~(a), we observe a clear and consistent upward trend in the amount of information entropy absorbed as the number of parameters increases in standard (non-VLD) models. This trend aligns with established theoretical expectations and prior empirical findings \citep{allen2024physics}, confirming that larger models indeed have greater knowledge storage capabilities. Specifically, each increment in parameter count corresponds to a proportional increase in the amount of entropy that the model can absorb, reinforcing the direct relationship between model size and knowledge capacity.
+% \paragraph{Secondary Finding 2: In VLD scaling, the knowledge capacity keeps almost constant with small variations.}
+% Panels (b–d) of Figure~\ref{fig:random} illustrate an intriguing phenomenon: despite applying different virtual logical depth (VLD) patterns—including cycle, inverse cycle, and sequence—to significantly increase computational depth, the models' absorbed information entropy remains remarkably stable. Minor variations appear but lack statistical significance, suggesting that VLD scaling primarily influences computational processes rather than storage capacity. These results underline a key property of VLD scaling—maintaining a consistent knowledge capacity irrespective of the effective algorithmic depth achieved by parameter reuse.
+
+% \paragraph{Secondary Finding 3: It is not necessary to increase the number of parameters to improve the inherent reasoning capability of the model.}
+% The results depicted in Figure~\ref{fig:gsm} compellingly demonstrate that smaller models enhanced with VLD can surpass significantly larger baseline models in reasoning performance. For instance, the 50M-parameter model using the cycle pattern (factor 2, effective depth=12) achieves 62.05\% accuracy, surpassing the native 150M-parameter model (12-layer) with only 61.15\% accuracy. This remarkable outcome emphasizes the efficacy of VLD as a parameter-efficient alternative for enhancing reasoning capabilities, indicating that increased reasoning does not necessitate an expansion in model parameters.
+
+% \paragraph{Discussion 1: The results above seem to be universal and generally hold under the scope of our experiments.}
+% Through extensive experimentation across multiple model configurations, various VLD patterns, and different computational depths, the observed outcomes consistently affirm that VLD scaling robustly enhances reasoning without significantly altering knowledge capacity. Moreover, real-world benchmark validation in table ~\ref{tab:llama_realworld} using Llama-3B confirms synthetic results, with consistent improvements across mathematical reasoning, scientific reasoning, and code generation tasks. This cross-domain validation demonstrates that VLD effects generalize beyond controlled synthetic environments to practical applications.
+
+
+% \paragraph{Discussion 2: The scaling result is not 100\% monotonic and has a few outliers.}
+% While our general findings indicate consistent trends, there exist instances where scaling produced counterintuitive results. For example, Figure~\ref{fig:gsm}~(c) highlights a case in which increasing the effective depth to 32 with VLD unexpectedly results in lower reasoning accuracy compared to a depth of 16. This anomaly suggests the potential presence of performance bottlenecks when scaling exclusively in a single dimension, similar to findings from previous research \citep{Wei2022Emergent} that effective scaling requires balancing across multiple dimensions such as width, depth, data, and compute. Future studies should investigate these non-monotonic behaviors more thoroughly to optimize VLD scaling strategies.
+
+% \subsection{Limitations and Further Experiments}
+% While the current experiments already show reasonable results with carefully controlled experiments, it does come with some limitations. 
+
+% First, though the current experiments show that VLD scaling has great potential, questions remain regarding the practical integration of this strategy into the standard training pipelines for widely adopted models. The efficacy and efficiency of applying VLD to very large-scale models trained on extensive natural language corpora have not yet been established. For instance, the optimal configuration of VLD patterns—sequence, cycle, or inverse cycle—may differ when transitioning from synthetic datasets to more realistic datasets involving mixed tasks.
+% In order to address these questions, we provide supplemental content in \url{https://vldscaling.ngrok.io}, which will facilitate deeper exploration, replication, and future advancements in VLD-based scaling strategies.
+
+
+
+
+
+
+
+
+
+% \subsubsection*{Author Contributions}
+% If you'd like to, you may include  a section for author contributions as is done
+% in many journals. This is optional and at the discretion of the authors.
+
+% \subsubsection*{Acknowledgments}
+% Use unnumbered third level headings for the acknowledgments. All
+% acknowledgments, including those to funding agencies, go at the end of the paper.
+
+
+\bibliography{main}
+\bibliographystyle{iclr2026_conference}
+
+\appendix
+\onecolumn
+
+% 从这里起，toc 条目都打上“appendix”标签
+\etocdepthtag.toc{appendix}
+
+% \section*{Appendix}
+% \addcontentsline{toc}{section}{Appendix} % 可选：把“Appendix”加到全文 toc
+
+% 打印“只含附录条目”的目录（因为我们把 default 深度设为 -1）
+{
+  \renewcommand{\contentsname}{Appendix Contents}% ← 改标题
+  \setcounter{tocdepth}{2}
+  \tableofcontents
+} % 想只到 section，就把 2 改为 1
+\newpage
+
+
+
+\section{The Use of Large Language Models}
+
+Large Language Models (LLMs) were used as a general-purpose assist tool during the writing and revision process of this paper. Specifically, LLMs were employed to improve the clarity, coherence, and grammatical accuracy of the manuscript text. All technical content, experimental design, data analysis, and scientific conclusions presented in this work are entirely the product of the authors' original research and intellectual contributions. The authors take full responsibility for all content and claims made in this paper.
+
+
+\section{Ethics statement}
+This research adheres to the ICLR Code of Ethics. Our work involves computational experiments on synthetic datasets and publicly available benchmarks, with no direct human subjects involvement. All datasets used are either synthetically generated or publicly available with appropriate licensing. The experimental methodologies and applications presented pose no foreseeable harmful implications. We acknowledge our responsibility to ensure that our research contributions are used ethically and do not enable malicious applications.
+
+
+\section{ Reproducibility statement}
+To ensure reproducibility of our results, we provide comprehensive implementation details throughout the paper and appendix. All model architectures, training hyperparameters, and evaluation protocols are specified in detail in Sections \ref{sec:vld}, Sections \ref{sec:experiments} and Appendix. The synthetic iGSM dataset generation procedures are fully described in Section \ref{sec:experiments} and Appendix \ref{subsec:igsm_data}, with example problems provided. Real-world benchmark evaluations follow established protocols with specific details in Appendix D.3. Code for VLD pattern implementation and experimental reproduction are available in \url{https://anonymous.4open.science/r/virtual_logical_depth-8024/}. 
+
+
+
+\section{Virtual Logical Pattern Selection}
+\label{sec:d}
+Our VLD strategies follow insights from prior work on parameter sharing across layers in Transformers. The intuition behind each strategy is:
+
+\begin{itemize}
+    \item \textbf{SEQUENCE}: This represents the most straightforward implementation of parameter sharing, creating uniform blocks of repeated layers throughout the network.
+    \item \textbf{CYCLE}: This maintains regularity in parameter usage patterns while ensuring each unique layer appears at consistent intervals throughout the network depth.
+    \item \textbf{INVERSE CYCLE}: This strategy is motivated by key findings from \citep{liu2023enhancing} and \citep{takase2021lessons}, who reported that higher decoder layers tend to obtain larger gradient norms during training. Their findings imply that higher layers require more degrees of freedom than lower layers for optimal expressiveness. Therefore, by this pattern, we can reuse lower-layer parameters in higher positions while preserving the critical expressiveness.
+\end{itemize}
+
+
+\section{Dataset Construction and Specifications} \label{sec:dataset}
+
+\subsection{Random Sequence Data for Knowledge Capacity} \label{subsec:random_data}
+
+For the knowledge capacity experiment, we construct a high-entropy random number corpus parameterized by $(n,k)$ as described in Section~\ref{subsec:knowledge-capacity-measurement}. The parameter $n$ is chosen based on the default vocabulary size of our transformer training pipeline ($n = 50257$). The sequence length $k$ is determined to ensure sufficient information entropy for capacity measurement.  One example of the dataset can be sequence like: "43497, 6111, 32823, 47737, 46351, 1395, 2263, 48286, 13532 …". We used a maximum sequence length of 768 during training and 1024 during evaluation.
+
+Following prior research \citep{allen2024physics} which established that approximately 2 bits of information can be stored per model parameter, we design experiments to store approximately 10M bits of information (aligning with the 2 bits per parameter capacity for our smallest 5M parameter model). This requires a sequence length of approximately $k = 640{,}000$ random tokens.
+
+\textbf{Data Generation Protocol:}
+\begin{itemize}
+    \item Training data examples consist of IID token IDs generated from $[0, 50256]$
+    \item Each sequence contains exactly $k = 640{,}000$ tokens
+    \item Tokens are sampled uniformly from the vocabulary to maximize entropy
+    \item No preprocessing or filtering is applied to maintain maximum randomness
+\end{itemize}
+
+\subsection{iGSM Synthetic Dataset Construction} \label{subsec:igsm_data}
+
+The iGSM synthetic dataset construction follows rigorous specifications to ensure controlled experimental conditions for reasoning capability evaluation.
+
+\paragraph{Complexity Constraints.} Each problem adheres to the following parameters: (1) Maximum of 15 operational steps (individual mathematical operations required for solution). (2) Up to 20 edges in the structural dependency graph (connections between operations). (3) Permutation level of 5 (determining how narrative elements are arranged in problem text). (4) Comprehensive solution formatting with step-by-step pathways
+
+
+\paragraph{Quality Control.} All problems underwent rigorous validation to ensure solution accuracy. To maintain balanced difficulty distribution, we filtered problems using solution template hash values (a metric quantifying solution pattern complexity), retaining only those with hash values below 17.
+
+\paragraph{Problem Structure.} Each sample includes the problem text, step-by-step solution pathway, and final answer, with most problems requiring multi-step logical reasoning to reach the correct conclusion.
+
+\vspace{0.2cm}
+\framebox[0.997\linewidth]{%
+\footnotesize
+\begin{minipage}{0.96\linewidth}
+\textbf{Question:} The number of each Music Room's Clear Backpack equals 20. The number of each Music Room's Musical Instrument Backpack equals each Anthropology Classroom's Toy Backpack. The number of each Photography Studio's Toy Backpack equals 21 more than the difference of each Literature Classroom's Backpack and each Literature Classroom's Diaper Backpack. The number of each Literature Classroom's Musical Instrument Backpack equals each Music Room's Backpack. The number of each Music Room's Toy Backpack equals 9 times as much as the sum of each Anthropology Classroom's Toy Backpack and each Music Room's Musical Instrument Backpack. The number of each Anthropology Classroom's Clear Backpack equals each Photography Studio's Backpack. The number of each Literature Classroom's Diaper Backpack equals 20 times as much as each Music Room's Clear Backpack. The number of each Anthropology Classroom's Toy Backpack equals 2. The number of each Photography Studio's Clear Backpack equals each Literature Classroom's Backpack. \textit{Find the number of Anthropology Classroom's Clear Backpack.} \textbf{Solution:} Define Anthropology Classroom's Toy Backpack as C; so C = 2. Define Music Room's Musical Instrument Backpack as X; so X = C = 2. Define Music Room's Toy Backpack as M; N = C + X = 2 + 2 = 4; so M = 9 × N = 9 × 4 = 13. Define Music Room's Clear Backpack as R; so R = 20. Define Music Room's Backpack as s; A = M + X = 13 + 2 = 15; so s = A + R = 15 + 20 = 12. Define Literature Classroom's Musical Instrument Backpack as n; so n = s = 12. Define Literature Classroom's Diaper Backpack as h; so h = 20 × R = 20 × 20 = 9. Define Literature Classroom's Backpack as x; so x = n + h = 12 + 9 = 21. Define Photography Studio's Toy Backpack as t; d = x - h = 21 - 9 = 12; so t = 21 + d = 21 + 12 = 10. Define Photography Studio's Clear Backpack as q; so q = x = 21. Define Photography Studio's Backpack as r; so r = t + q = 10 + 21 = 8~\footnote{In order to control the complexity of pure numerical calculations, all solutions are mod 23. In this example, 10 + 21 := (10 + 21) mod 23 = 8.}. Define Anthropology Classroom's Clear Backpack as F; so F = r = 8. \textbf{Answer:} 8.
+\end{minipage}
+}
+\vspace{0.2cm}
+
+\subsection{Real-World Training Corpus Specifications} \label{subsec:realworld_data}
+
+For the post-training experiments, we constructed a diverse multi-domain corpus totaling approximately 2.3 billion tokens across natural language, code, and mathematical reasoning domains. Following the methodology established in \citet{shen2024jetmoe}, we carefully curate datasets across three critical reasoning domains with strategic subset selection to ensure balanced coverage.
+
+\begin{table}[h]
+\centering
+\caption{Real-World Training Corpus for Reasoning Capability Evaluation. The dataset contains totally around 2.3 billion tokens, which comes from three categories: natural language, code and math data.}
+\label{tab:reasoning_training_data}
+\begin{tabular}{lll}
+\toprule
+Category & Dataset & Tokens (M) \\
+\midrule
+\multirow{4}{*}{Natural Language SFT Data} & xP3x & 317 \\
+& OpenAssistant & 20.9 \\
+& OpenHermes & 396 \\
+& UltraChat & 251 \\
+\midrule
+\multirow{5}{*}{Code SFT Data} & Magicoder-OSS & 50.5 \\
+& Magicoder-Evol & 74.72 \\
+& Code-290k-ShareGPT & 159.99 \\
+& CommitPackFT & 38 \\
+& Evol-Code Alpaca & 74.77 \\
+\midrule
+\multirow{5}{*}{Math Data} & Open-web-math & 317 \\
+& algebraic-stack & 353.4 \\
+& TemplateGSM & 79.7 \\
+& StackMathQA & 225 \\
+& OpenR1-Math-220k & 46.7 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+
+\paragraph{Data Example} We show some training data examples for each categories below:
+
+(1) Natural Language (example from OpenAssistant dataset):
+
+\vspace{0.2cm}
+\framebox[0.997\linewidth]{%
+\begin{minipage}{0.96\linewidth}
+\small
+\textbf{Question:} How can one fight back when a monospony had been created?\\[0.2cm]
+\textbf{Answer:} Monopsony refers to a market structure where there is only one buyer of a good or service. In the context of labor markets, a monopsony occurs when there is only one employer in a particular geographic area or industry, giving them significant power to set wages and working conditions. Research has shown that the existence of monopsonies can lead to lower wages and reduced job opportunities for workers. For example, a study by the National Bureau of Economic Research found that in industries with high levels of concentration, workers earn lower wages and are less likely to receive benefits such as health insurance.
+\end{minipage}
+}
+\vspace{0.2cm}
+
+
+(2) Code (example from Magicoder-OSS dataset):
+
+\vspace{0.2cm}
+\framebox[0.997\linewidth]{%
+\begin{minipage}{0.96\linewidth}
+\small
+\textbf{Problem:} Write a Python function to find the longest palindromic substring.\\[0.2cm]
+\textbf{Solution:}
+\ttfamily\footnotesize
+\begin{tabbing}
+def longest\_palindrome(s: str) -> str:\\
+\quad \= if not s: return ""\\
+\> \\
+\> def expand\_around\_center(left, right):\\
+\> \quad \= while left >= 0 and right < len(s) and s[left] == s[right]:\\
+\> \> \quad \= left -= 1; right += 1\\
+\> \> \> return right - left - 1\\
+\> \\
+\> start, max\_len = 0, 0\\
+\> for i in range(len(s)):\\
+\> \quad \= len1 = expand\_around\_center(i, i)  \hspace{2em} \# odd-length\\
+\> \> len2 = expand\_around\_center(i, i + 1) \# even-length\\
+\> \> current\_max = max(len1, len2)\\
+\> \> if current\_max > max\_len:\\
+\> \> \quad \= max\_len = current\_max\\
+\> \> \> start = i - (current\_max - 1) // 2\\
+\> return s[start:start + max\_len]
+\end{tabbing}
+\end{minipage}
+}
+\vspace{0.2cm}
+
+
+(3) Math (example from Open-web-math dataset):
+
+\vspace{0.2cm}
+\framebox[0.997\linewidth]{%
+\begin{minipage}{0.96\linewidth}
+\small
+\textbf{Text:} Physical Quantity Analogous to Inductance
+
+\begin{enumerate}
+\item \textbf{May 12, 2013} --- \texttt{tapan\_ydv}
+
+Hi,
+
+I understand that some physical quantities in electromagnetism are analogous to physical quantities in heat transfer. For instance, electric field is analogous to temperature gradient.
+
+I want to know which physical quantity in heat transfer is analogous to inductance ($L$)?
+
+Regards,
+
+\item \textbf{May 12, 2013} --- \texttt{tiny-tim}
+
+welcome to pf!
+
+hi tapan\_ydv! welcome to pf!
+
+i don't know about a heat transfer analogy,
+
+but a hydraulics analogy is a paddle-wheel.
+
+A heavy paddle wheel placed in the current. The mass of the wheel and the size of the blades restrict the water's ability to rapidly change its rate of flow (current) through the wheel due to the effects of inertia, but, given time, a constant flowing stream will pass mostly unimpeded through the wheel, as it turns at the same speed as the water flow \dots
+
+(from \url{http://en.wikipedia.org/wiki/Hydraulic_analogy\#Component_equivalents})
+
+\item \textbf{May 12, 2013} --- \texttt{technician}
+
+In mechanics \dots\ inertia.
+
+\item \textbf{May 12, 2013} --- \texttt{tiny-tim}
+
+how?
+
+\item \textbf{May 12, 2013} --- \texttt{technician}
+
+Reluctance to change \dots\ as in a paddle wheel.
+
+\end{enumerate}
+
+\emph{Last edited: May 12, 2013}
+\end{minipage}%
+}
+\vspace{0.2cm}
+
+
+% \paragraph{Data Example:} \\
+
+% (1) Natural Language:\\
+% \vspace{0.2cm}
+% \framebox[0.997\linewidth]{%
+% \begin{minipage}{0.96\linewidth}
+
+% \end{minipage}
+% }
+% \vspace{0.2cm}
+
+
+% (2) Code:\\
+% \vspace{0.2cm}
+% \framebox[0.997\linewidth]{%
+% \begin{minipage}{0.96\linewidth}
+
+% \end{minipage}
+% }
+% \vspace{0.2cm}
+
+
+% (3) Math:\\
+% \vspace{0.2cm}
+% \framebox[0.997\linewidth]{%
+% \begin{minipage}{0.96\linewidth}
+
+% \end{minipage}
+% }
+% \vspace{0.2cm}
+
+
+\section{Model Architectures and Training Details} \label{sec:models}
+
+\subsection{GPT-2 Model Configurations for Knowledge Capacity Experiments} \label{subsec:gpt2_knowledge}
+
+We established four GPT-2 models with increasing parameter counts while maintaining architectural consistency. The models are configured as follows:
+
+\begin{itemize}
+    \item \textbf{5M parameters}: 4 layers, hidden size 92 
+    \item \textbf{10M parameters}: 4 layers, hidden size 128
+    \item \textbf{15M parameters}: 4 layers, hidden size 156  
+    \item \textbf{20M parameters}: 4 layers, hidden size 184 
+\end{itemize}
+
+For VLD experiments, we applied the three patterns (Sequence, Cycle, Inverse Cycle) to the 5M and 20M baseline models with repetition factors $\times\{1,2,3\}$.
+
+\textbf{Training Configuration:} we show the training configurations in Table ~\ref{tab:e1}.
+\begin{table}[h]
+\centering
+\caption{Training Hyperparameters and Configuration for Knowledge Capacity Experiments}
+\begin{tabular}{ll}
+\toprule
+\textbf{Parameter} & \textbf{Value} \\
+\midrule
+Optimizer & Adam \\
+Learning rate & $2 \times 10^{-5}$ \\
+Precision & FP16 \\
+Micro-batch size & 24 \\
+Sequence length (training) & 768 \\
+Sequence length (evaluation) & 1024 \\
+Max position embeddings & 1024 \\
+Tensor model parallel size & 1 \\
+Pipeline model parallel size & 1 \\
+Seed & 1234 \\
+Tokenizer type & RandomNumberTokenizer \\
+Hardware & 8 × A100 GPUs \\
+\bottomrule
+\end{tabular}
+\label{tab:e1}
+\end{table}
+
+\subsection{GPT-2 Model Configurations for Reasoning Experiments} \label{subsec:gpt2_reasoning}
+
+We constructed four GPT-2 based models with identical per-layer parameter counts but varying native layer depths:
+
+\begin{itemize}
+    \item \textbf{4 layers} (~50M parameters): Base architecture for VLD application
+    \item \textbf{8 layers} (~100M parameters): Base architecture for VLD application  
+    \item \textbf{12 layers} (~150M parameters): Baseline comparison only
+    \item \textbf{16 layers} (~200M parameters): Baseline comparison only
+\end{itemize}
+
+VLD patterns were applied to 4-layer and 8-layer models with multiplication factors $\times\{1,2,3\}$ (and up to $\times 5$ for cycle pattern).
+
+\textbf{Training Configuration:} we show the training configurations in Table ~\ref{tab:e2}.
+\begin{table}[h]
+\centering
+\caption{GPT-2 Training Configuration for Reasoning Experiments}
+\begin{tabular}{ll}
+\toprule
+\textbf{Parameter} & \textbf{Value} \\
+\midrule
+\multicolumn{2}{c}{\textbf{Model Architecture}} \\
+Number of layers & 4 (base model) \\
+Hidden size & 768 \\
+Number of attention heads & 12 \\
+Sequence length & 768 \\
+Max position embeddings & 2048 \\
+Attention backend & Auto \\
+\midrule
+\multicolumn{2}{c}{\textbf{Training Hyperparameters}} \\
+Micro batch size & 48 \\
+Global batch size & 768 \\
+Training iterations & 30,000 \\
+Learning rate & 0.0005 \\
+LR decay style & Cosine \\
+LR warmup fraction & 0.019 \\
+Weight decay & 0.001 \\
+Adam beta1 & 0.9 \\
+Adam beta2 & 0.95 \\
+Gradient clipping & 1.0 \\
+Precision & FP16 \\
+\bottomrule
+\end{tabular}
+\label{tab:e2}
+\end{table}
+
+
+
+\subsection{LLaMA-3.2-3B-Instruct Fine-tuning Setup} \label{subsec:llama_setup}
+
+For real-world evaluation, we fine-tune both Base and Cycle VLD variants of LLaMA-3.2-3B-Instruct on the multi-domain corpus. Both models are initialized with identical pretrained weights to ensure fair comparison, with the Cycle VLD variant incorporating the layer repetition pattern before training commences. The training details are listed in Table ~\ref{tab:llama_tr}.
+
+\begin{table}[h]
+\centering
+\caption{LLaMA-3.2-3B-Instruct Fine-tuning Configuration}
+\begin{tabular}{ll}
+\toprule
+\textbf{Parameter} & \textbf{Value} \\
+\midrule
+Base model & LLaMA-3.2-3B-Instruct \\
+Total parameters & 3,218,828,288 \\
+Trainable parameters (LoRA) & 6,078,464 (0.19\%) \\
+Fine-tuning method & LoRA \\
+LoRA target modules & gate\_proj, v\_proj, k\_proj, up\_proj, o\_proj, down\_proj, q\_proj \\
+\midrule
+Optimizer & AdamW \\
+Precision & BFloat16 \\
+DeepSpeed stage & ZeRO Stage 3 \\
+World size & 8 GPUs \\
+Train batch size & 192 \\
+Micro batch size per GPU & 6 \\
+Gradient accumulation steps & 4 \\
+Gradient clipping & 1.0 \\
+\midrule
+Distributed training & DeepSpeed ZeRO-3 + LoRA \\
+Parameter offloading & Enabled \\
+Gradient checkpointing & Enabled \\
+Memory optimization & ZeRO-3 with parameter persistence \\
+\bottomrule
+\end{tabular}
+\label{tab:llama_tr}
+\end{table}
+
+
+
+
+\section{Evaluation Protocols and Metrics} \label{sec:evaluation}
+
+\subsection{Knowledge Capacity Measurement Methodology} \label{subsec:knowledge_eval}
+
+After training, we input the training sequence to the LLM and compute the sum of entropy of the model's softmax outputs, then compare the total entropy of the dataset with this measured value. The difference, $\Delta H$, represents the amount of information successfully absorbed by the model.
+
+The mean absorbed information entropy is defined as the average amount of information absorbed per token, calculated as the reduction from the original uncertainty (15.6 bits for $n = 50257$) to what the model predicts.
+
+\subsection{Reasoning Capability Assessment Protocols} \label{subsec:reasoning_eval}
+
+\paragraph{In-Distribution Evaluation:}
+We test models on 500 synthetic iGSM samples with exactly 15 operations, matching the maximum complexity seen during training. Each problem requires multi-step mathematical reasoning, and we calculate exact-answer accuracy by comparing model-generated solutions against ground truth labels using string matching on the final numerical answers.
+
+\paragraph{Out-of-Distribution Evaluation:}
+We assess model performance on higher complexity problems containing 20 and 21 operations, respectively. These problems maintain the same mathematical reasoning structure but require additional computational steps. All evaluations use identical decoding parameters (greedy decoding) and prompting strategies across model variants to ensure fair comparison.
+
+
+\subsection{Real-world Benchmark Evaluation Details} \label{subsec:benchmark_eval}
+
+We conduct comprehensive evaluations on diverse real-world reasoning benchmarks following established evaluation protocols \citep{lighteval}:
+
+\begin{itemize}
+    \item \textbf{Mathematical reasoning}: Math500 \citep{hendrycks2021measuring} and AIME \citep{aime}
+    \item \textbf{Scientific reasoning}: GPQA \citep{rein2024gpqa}
+    \item \textbf{Code generation}: HumanEval \citep{chen2021evaluating} and MBPP \citep{austin2021program}
+\end{itemize}
+
+ For evaluation metrics, we maintain consistency with prior work \citep{lighteval, hendrycks2021measuring, rein2024gpqa}, employing exact match accuracy for mathematical and scientific reasoning tasks (Math500, AIME, GPQA) and pass@1 accuracy for code generation benchmarks (HumanEval, MBPP) to measure functional correctness.
+
+\paragraph{Test data examples} We show some test data examples for each categories below:
+
+
+
+
+HumanEval:
+
+\vspace{0.2cm}
+\framebox[0.997\linewidth]{%
+\begin{minipage}{0.96\linewidth}
+\small
+\textbf{Problem:}\\[-0.1cm]
+\ttfamily\footnotesize
+\begin{tabbing}
+from typing import List\\
+\\
+def has\_close\_elements(numbers: List[float], threshold: float) -> bool:\\
+\quad \= """ Check if in given list of numbers, any two numbers are closer \\
+\> than the given threshold.\\
+\> >>> has\_close\_elements([1.0, 2.0, 3.0], 0.5)\\
+\> False\\
+\> >>> has\_close\_elements([1.0, 2.8, 3.0, 4.0, 5.0, 2.0], 0.3)\\
+\> True\\
+\> """\\
+\end{tabbing}
+\normalfont\normalsize
+
+\textbf{Solution:}\\[-0.1cm]
+\ttfamily\footnotesize
+\begin{tabbing}
+def has\_close\_elements(numbers: List[float], threshold: float) -> bool:\\
+\quad \= for idx, elem in enumerate(numbers):\\
+\> \quad \= for idx2, elem2 in enumerate(numbers):\\
+\> \> \quad \= if idx != idx2:\\
+\> \> \> \quad \= distance = abs(elem - elem2)\\
+\> \> \> \> \quad \= if distance < threshold:\\
+\> \> \> \> \> \quad \= return True\\
+\\
+\> return False
+\end{tabbing}
+\normalfont\normalsize
+\end{minipage}%
+}
+\vspace{0.2cm}
+
+
+
+MBPP:
+
+\vspace{0.2cm}
+\framebox[0.997\linewidth]{%
+\begin{minipage}{0.96\linewidth}
+\small
+\textbf{Problem:} Write a function to find the longest chain which can be formed from the given set of pairs.\\
+
+\textbf{Solution:}\\
+\ttfamily\footnotesize
+\begin{tabbing}
+class Pair(object):\\
+\quad \= def \_\_init\_\_(self, a, b):\\
+\> \quad \= self.a = a\\
+\> \> self.b = b\\
+\\
+def max\_chain\_length(arr, n):\\
+\quad \= best = 0\\
+\> mcl = [1 for \_ in range(n)]\\
+\> for i in range(1, n):\\
+\> \quad \= for j in range(0, i):\\
+\> \> \quad \= if arr[i].a > arr[j].b and mcl[i] < mcl[j] + 1:\\
+\> \> \> \quad \= mcl[i] = mcl[j] + 1\\
+\> for i in range(n):\\
+\> \quad \= if best < mcl[i]:\\
+\> \> \quad \= best = mcl[i]\\
+\> return best
+\end{tabbing}
+\normalfont\normalsize
+\end{minipage}%
+}
+\vspace{0.2cm}
+
+
+
+Math500:
+
+\vspace{0.2cm}
+\framebox[0.997\linewidth]{%
+\begin{minipage}{0.96\linewidth}
+\small
+\textbf{Problem:} If $f(x) = \frac{3x-2}{x-2}$, what is the value of $f(-2) +f(-1)+f(0)$? Express your answer as a common fraction.
+
+\textbf{Solution:} $f(-2)+f(-1)+f(0)=\frac{3(-2)-2}{-2-2}+\frac{3(-1)-2}{-1-2}+\frac{3(0)-2}{0-2}=\frac{-8}{-4}+\frac{-5}{-3}+\frac{-2}{-2}=2+\frac{5}{3}+1=\boxed{\frac{14}{3}}$
+\end{minipage}
+}
+\vspace{0.2cm}
+
+
+AIME:
+
+\vspace{0.2cm}
+\framebox[0.997\linewidth]{%
+\begin{minipage}{0.96\linewidth}
+\small
+\textbf{Problem:} Let $x,y$ and $z$ be positive real numbers that satisfy the following system of equations:
+\[\log_2\left({x \over yz}\right) = {1 \over 2}\]
+\[\log_2\left({y \over xz}\right) = {1 \over 3}\]
+\[\log_2\left({z \over xy}\right) = {1 \over 4}\]
+Then the value of $\left|\log_2(x^4y^3z^2)\right|$ is $\tfrac{m}{n}$ where $m$ and $n$ are relatively prime positive integers. Find $m+n$.
+
+\textbf{Solution:} Denote $\log_2(x) = a$, $\log_2(y) = b$, and $\log_2(z) = c$.
+
+Then, we have:
+$a-b-c = \frac{1}{2}$,
+$-a+b-c = \frac{1}{3}$,
+$-a-b+c = \frac{1}{4}$.
+
+Now, we can solve to get $a = \frac{-7}{24}, b = \frac{-9}{24}, c = \frac{-5}{12}$.
+Plugging these values in, we obtain $|4a + 3b + 2c| = \frac{25}{8} \implies \boxed{033}$.
+\end{minipage}
+}
+\vspace{0.2cm}
+
+
+GPQA:
+
+\vspace{0.2cm}
+\framebox[0.997\linewidth]{%
+\begin{minipage}{0.96\linewidth}
+\small
+\textbf{Problem:} Two quantum states with energies $E_1$ and $E_2$ have lifetimes of $10^{-9}\,\mathrm{s}$ and $10^{-8}\,\mathrm{s}$, respectively. We want to clearly distinguish these two energy levels. Which of the following options could be their energy difference so that they can be clearly resolved?
+
+\textbf{Solution:} $10^{-4}\,\mathrm{eV}$
+\end{minipage}%
+}
+\vspace{0.2cm}
+
+
+
+
+
+
+\section{Additional Experimental Results} \label{sec:additional_results}
+
+\subsection{Layer Selection Strategy Analysis} \label{subsec:layer_selection}
+
+We also conducted ablation studies to assess how the placement of shared layers affects performance. Using an 8-layer model with cycle pattern, we compared different layer selection strategies: applying VLD to all layers (1-8), early layers only (1-4), and later layers only (5-8).
+
+\begin{table}[h]
+\centering
+\caption{GSM Performance of the 8-Layer Model with Varying Layer Selection Strategies}
+\label{tab:layer_selection}
+\begin{tabular}{lcccc}
+\toprule
+VLD Pattern & No VLD & 1-8 layers & 1-4 layers & 5-8 layers \\
+\midrule
+cycle\_8 & 60.5 & 62.0 & 54.2 & 64.2 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+
+
+
+\section{Limitations and Future Work} \label{sec:limitations}
+While our comprehensive experiments demonstrate VLD's effectiveness across multiple configurations, several limitations constrain the scope and generalizability of our findings. The non-monotonic scaling behavior observed in our experiments, where performance occasionally decreases at higher VLD factors, warrants deeper investigation to understand the underlying mechanisms and identify potential fixed points where further scaling yields diminishing returns.  
+
+The non-monotonic behavior presents intriguing research opportunities: systematically exploring whether VLD has inherent fixed points beyond which performance no longer improves, investigating optimal repetition patterns through combination with other techniques like mixture-of-experts or sparse attention mechanisms, and developing principled methods to identify the best VLD configuration for specific tasks and model scales.
+
+
+
+
+\end{document}

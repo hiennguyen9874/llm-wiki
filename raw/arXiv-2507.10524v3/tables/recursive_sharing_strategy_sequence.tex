@@ -1,0 +1,69 @@
+
+\newcolumntype{M}[1]{>{\centering\arraybackslash}m{#1}}
+
+\begin{table*}[h]
+\centering
+\caption{
+Parameter-sharing strategies in Recursive Transformers. This table shows \textit{Cycle}, \textit{Middle-Cycle}, \textit{Sequence}, and \textit{Middle-Sequence} schemes with layer reuse, where Middle-* retains unique first and last layers.
+}
+\label{tab:sharing_strategy_middle}
+\renewcommand{\arraystretch}{1.}
+\resizebox{\textwidth}{!}{%
+\setlength{\tabcolsep}{7pt}
+\begin{tabular}{
+    l
+  | M{0.32\textwidth} % formula (Cycle)
+  | M{0.16\textwidth} % image (Cycle)
+  | M{0.32\textwidth} % formula (Middle-Cycle)
+  | M{0.16\textwidth}  % image (Middle-Cycle)
+}
+\toprule
+& \multicolumn{2}{c|}{\textbf{Cycle Strategy}} & \multicolumn{2}{c}{\textbf{Middle-Cycle Strategy}} \\
+\cmidrule(l{2pt}r{2pt}){2-3}\cmidrule(l{2pt}r{2pt}){4-5}
+\textbf{Layers} & Equation & Figure & Equation & Figure \\
+\midrule
+Last 
+& -- 
+& 
+& $f\bigl(\mathbf{h}_t^{L-1}; \Phi_{L-1}\bigr)$ 
+& \\
+[10pt]
+Recursion 
+& $f\!\Bigl(\mathbf{h}_t^{\ell}; \Phi'_{\ell \bmod (L/N_r)}\Bigr)$ 
+& \multirow{-2}{*}{\includegraphics[width=0.91\linewidth]{figs/sharing_strategy/sharing_strategy_cycle.pdf}}
+& \!\!\!$f\!\Bigl(\mathbf{h}_t^{\ell}; \Phi'_{(\ell - 1 \bmod ((L-2)/N_r)) + 1}\Bigr)$ 
+& \multirow{-3}{*}{\includegraphics[width=0.91\linewidth]{figs/sharing_strategy/sharing_strategy_middle_cycle.pdf}} \\
+[18pt]
+First 
+& -- 
+& 
+& $f\bigl(\mathbf{h}_t^{0}; \Phi_0\bigr)$ 
+& \\ [5pt]
+\midrule
+% & \multicolumn{4}{c}{} \\[-15pt] % 약간 띄우기
+% \midrule
+& \multicolumn{2}{c|}{\textbf{Sequence Strategy}} & \multicolumn{2}{c}{\textbf{Middle-Sequence Strategy}} \\
+\cmidrule(l{2pt}r{2pt}){2-3}\cmidrule(l{2pt}r{2pt}){4-5}
+\textbf{Layers} & Equation & Figure & Equation & Figure \\
+\midrule
+Last 
+& -- 
+& 
+& $f\bigl(\mathbf{h}_t^{L-1}; \Phi_{L-1}\bigr)$ 
+& \\
+[10pt]
+Recursion 
+& $f\!\Bigl(\mathbf{h}_t^{\ell}; \Phi'_{ \lfloor{\ell / N_r \rfloor}}\Bigr)$ 
+& \multirow{-2}{*}{\includegraphics[width=0.91\linewidth]{figs/sharing_strategy/sharing_strategy_sequence.pdf}} 
+& $f\!\Bigl(\mathbf{h}_t^{\ell}; \Phi'_{\lfloor(\ell - 1) / N_r\rfloor + 1)}\Bigr)$ 
+& \multirow{-3}{*}{\includegraphics[width=0.91\linewidth]{figs/sharing_strategy/sharing_strategy_middle_sequence.pdf}} \\
+[20pt]
+First 
+& -- 
+& 
+& $f\bigl(\mathbf{h}_t^{0}; \Phi_0\bigr)$ 
+& \\[7pt]
+\bottomrule
+\end{tabular}
+}
+\end{table*}
