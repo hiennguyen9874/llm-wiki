@@ -1,6 +1,7 @@
 # Wiki Update Log
 
 ## 2026-09-04
+- **Query**: Answered “Tại sao GPT-6 Astra sử dụng kiến trúc loop?”; compiled the available secondary report into the draft [OpenAI Astra looped-architecture report](openai-astra-looped-architecture-report.md).
 - **Query**: Answered “So sánh loop transformer với tăng độ sâu bằng block hoặc layer”; filed [Looped transformers versus untied depth scaling](looped-transformers-versus-untied-depth-scaling.md).
 - **Ingest**: Compiled [Parcae: Scaling Laws For Stable Looped Language Models](../raw/arXiv-2604.12946v1/main.tex); created [Parcae stable looped transformers](parcae-stable-looped-transformers.md) and [Parcae recurrence scaling laws](parcae-recurrence-scaling-laws.md).
 - **Ingest**: Compiled [Adaptive Depth in Looped Transformers: Diagnosing Learned Halting Gates and Trajectory Readouts](../raw/arXiv-2607.20519v1/main.tex); created [Adaptive-depth trajectory–readout diagnostics](adaptive-depth-trajectory-readout-diagnostics.md) and updated [Ouro looped language models](ouro-looped-language-models.md).
