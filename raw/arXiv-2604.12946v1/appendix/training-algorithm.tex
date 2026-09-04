@@ -1,0 +1,44 @@
+\section{Parcae Forward Pass and Training Algorithms}
+\label{sec:algorithm}
+
+
+A full forward pass of Parcae, combining our dynamical systems blocks $\A, \B, \C, \dt$ and looped models \prelude, \recurrent, \coda blocks can be found in \cref{alg:parcae}.
+
+
+\begin{algorithm}[!ht]
+\caption{Parcae Forward Pass}
+\label{alg:parcae}
+\begin{algorithmic}[1]
+\Require Input sequence $s \in V^n$ and recurrent steps $T$.
+\State $e \gets \text{LN}(\mathcal{P}(s))$ 
+\State $h_0 \sim \mathcal{N}(0, \sigma^2 I_{n \times d})$ 
+\State $\overline{\A}, \overline{\B} \gets \A, \B, \dt$ 
+\For{$t = 1$ to $T$}
+    \State $h_t \gets \overline{\A} h_{t-1} + \overline{\B} e + \overline{\mathcal{R}}(h_t, e)$ 
+\EndFor
+\State \textbf{return} $\mathcal{C}(\C h_T)$
+\end{algorithmic}
+\end{algorithm}
+
+We display our algorithm to sample per-sequence depths during Parcae training while maintaining compute efficiency in Algorithm~\ref{alg:per-sequence-depth}. We do per-sequence depth sampling, but taking the max depth within a batch and performing no state updates at the \emph{beginning} of the recurrent computation. This allows for batched processing of different depths while maintaining efficient gradient flow.
+
+\begin{algorithm}[!ht]
+\caption{Efficient Per-Sequence Stochastic Depth Training}
+\label{alg:per-sequence-depth}
+\begin{algorithmic}[1]
+\Require Batch of sequences $\{s_i\}_{i=1}^{B}$, means $\mu_{\text{rec}}, \mu_{\text{bwd}}$, and sampling distribution $\Lambda$
+\State $\bm{e}^{(i)} \gets \mathcal{P}(s_i)$ for all $i$ \hfill  \textcolor{magenta}{$\triangleright$ \texttt{embed sequences}}
+\State Sample $T^{(i)} \sim \Lambda(\mu_{\text{rec}})$ for each $i \in [B]$
+\State $T_{\max} \gets \max_i T^{(i)}$, \quad $\tau^{(i)} \gets T_{\max} - T^{(i)}$
+\State $\bm{h}_0^{(i)} \sim \mathcal{N}(0, \sigma \bm{I})$ for all $i$
+\State $\overline{\bm{A}}, \overline{\bm{B}} \gets \textsc{Discretize}(\bm{A}, \bm{B}, \dt)$
+\For{$t = 0, \ldots, T_{\max} - 1$}
+    \State \textbf{for all} $i$ \textbf{where} $t < \tau^{(i)}$: \quad $\bm{h}_{t+1}^{(i)} \gets \bm{h}_t^{(i)}$ \hfill  \textcolor{magenta}{$\triangleright$ \texttt{no state update}}
+    \State \textbf{for all} $i$ \textbf{where} $\tau^{(i)} \leq t < T_{\max} - \mu_{\text{bwd}}$: \hfill  \textcolor{magenta}{$\triangleright$ \texttt{without gradients}}
+    \State \quad $\bm{h}_{t+1}^{(i)} \gets \overline{\bm{A}} \bm{h}_t^{(i)} + \overline{\bm{B}} \bm{e}^{(i)} + \mathcal{R}(\bm{h}_t^{(i)}, \bm{e}^{(i)})$
+    \State \textbf{for all} $i$ \textbf{where} $t \geq T_{\max} - \mu_{\text{bwd}}$: \hfill  \textcolor{magenta}{$\triangleright$ \texttt{with gradients}}
+    \State \quad $\bm{h}_{t+1}^{(i)} \gets \overline{\bm{A}} \bm{h}_t^{(i)} + \overline{\bm{B}} \bm{e}^{(i)} + \mathcal{R}(\bm{h}_t^{(i)}, \bm{e}^{(i)})$
+\EndFor
+\State \textbf{return} $\{\mathcal{C}(\bm{C} \bm{h}_{T_{\max}}^{(i)})\}_{i=1}^{B}$
+\end{algorithmic}
+\end{algorithm}

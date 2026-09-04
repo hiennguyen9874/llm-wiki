@@ -1,0 +1,17 @@
+\section{Expanded Setup For Training and Test-Time Scaling Laws}
+\label{sec:scaling-laws-setup}
+
+
+For our scaling laws experiments, we train models under two setups: (1) an isoFLOP training setup where we train models with variable amounts of \meanrecurrence, but with fixed FLOP and parameter budgets, and (2) where we vary \meanrecurrence, but keep data and parameters constant. Additionally, for our unified scaling laws experiments, we reuse the models trained in setup (1) and then evaluate them with varying amounts of test-time recurrences. All of the experiments use the same exact experimental setup for Transformers described in \cref{sec:hyperparameters} and \cref{sec:model-definitions} (i.e., using a \texttt{nanochat} \citep{nanochat}). We will discuss each experiment in detail below.
+
+
+\paragraph{(1) Setup for IsoFLOP Experiments.} For each parameter count (140M and 370M), we fix the total training FLOP budget and vary $\mu_{\text{rec}} \in \{2, 4, 6, 8, 10, 12\}$, adjusting the number of training tokens to maintain the FLOP budget (i.e., increasing $\mu_{\text{rec}}$ reduces the token budget proportionally). For 140M models, we use FLOP budgets of $\{1, 2, 4, 8, 16, 64\} \times 10^{18}$; for 370M models, $\{32, 64, 128\} \times 10^{18}$.
+This yields 36 and 18 trained models for 140M and 370M, respectively. Each model is evaluated on a held-out validation set at $T = \mu_{\text{rec}}$. 
+We use these validation losses to fit the parametric training scaling law $\widehat{\mathcal{L}}_{\text{train}}(\mu_{\text{rec}}, \mathcal{D})$ and to extract optimal $\mu_{\text{rec}}^*$ at each FLOP budget via parabolic fits. 
+Additionally, we train fixed-depth ($\mu_{\text{rec}} = 1$) Parcae models at each FLOP budget to serve as baselines for the looping frontier comparison. Expanded details of the predicted frontiers calculation can be found in \cref{sec:fixed-comparison-expanded}.
+
+
+\paragraph{(2) Setup for Test-Time Saturation and Power Laws.} To study how test-time recurrence scales quality, we train 140M and 370M Parcae models under a fixed data budget of 11.2B tokens with $\mu_{\text{rec}} \in \{2, 4, 6, 8, 10, 12\}$. Each model is then evaluated on a held-out validation set at test-time recurrences $T \in \{1, 2, 3, \ldots, 24\}$, yielding a saturation curve per $\mu_{\text{rec}}$. We fit an independent exponential decay law $\mathcal{L}(T) = \mathcal{L}_\infty + Z \cdot \exp(-z \cdot T)$ to each curve following the procedure in Section~\ref{sec:test-par}. We additionally evaluate the Parcae models from \cref{sec:e2e} (140M--1.3B, trained at $\mu{\text{rec}}=8$) at test-time recurrences $T \in \{1, \ldots, 16\}$ to verify that the saturation behavior is consistent across model sizes.
+
+
+\paragraph{(3) Setup for Unified Scaling Law.} To fit the unified scaling law (\cref{eq:unified}), we reuse the isoFLOP models from setup (1) and evaluate each at test-time recurrences $T \in \{1, 2, 4, 6, 8, 10, 12, 16, 20, 24\}$, yielding approximately 540 data points per model size. We fit all 8 parameters of \cref{eq:unified} jointly on this data using Huber loss on the log loss with L-BFGS over 1,000 random restarts. To validate, we evaluate the unified fit on held-out 140M and 370M Parcae models from \cref{sec:e2e}, which were trained on fixed data budgets outside the isoFLOP sweep, at test-time recurrences $T \in \{1, \ldots, 16\}$.

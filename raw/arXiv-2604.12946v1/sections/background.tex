@@ -1,0 +1,50 @@
+\section{Background}
+\label{sec:background}
+
+We first provide a brief background on looped models (\cref{sec:rdm-basics}), LTI systems (\cref{sec:lti-basics}), and modeling scaling laws (\cref{sec:scaling-laws-basics}).
+Prior work has studied looped architectures along several design axes: loop placement (pre-, mid-, or post-looping)~\citep{saunshiReasoningLatentThoughts2025b}, halting mechanism (explicit
+routers~\citep{baeMixtureofRecursionsLearningDynamic2025, zhuScalingLatentReasoning2025} vs.\
+implicit stochastic depth~\citep{geiping_scaling_2025,
+mcleish_retrofitted_recurrence}), topology (single
+block~\citep{geiping_scaling_2025} or hierarchical~\citep{wangHierarchicalReasoningModel2025b,jolicoeur-martineauLessMoreRecursive2025}) and differentiation (explicit or implicit backpropagation \cite{bai2019deepequilibriummodels}). Our work focuses on implicit-halting middle-looped architectures using explicit differentiation; an extended review is in \cref{sec:lit-review}.
+
+\subsection{Existing Middle-Looped Architectures}
+\label{sec:rdm-basics}
+
+In this paper, we focus on middle-looped architectures \citep{saunshiReasoningLatentThoughts2025b,geiping_scaling_2025}.
+Middle-looped recurrent depth architecture contains three units: an initial \textit{prelude} unit \prelude, a middle \textit{recurrent} unit \recurrent, and a final \textit{coda} unit \coda. Formally, given an input $s \in V^n$, where $V$ is vocabulary and $n$ is sequence dimension, the outputs $p \in \mathbb{R}^{n \times |V|}$ can be computed by the following update rule:
+$e = \mathcal{P}(s),~h_{t+1} = \mathcal{R}(h_t, e),~p = \mathcal{C}(h_T),$
+where $h_0 \sim \mathcal{N}(0, \sigma^2 I_{d\times d})$ and $d$ the embedding dimension.
+Intuitively, \prelude embeds inputs into the latent space, conditioning \recurrent as it recursively updates the hidden state $h_t \in \mathbb{R}^{n \times d}$ for $T$ iterations,
+which \coda uses to generate $p$. Within \recurrent, prior work inject $e$ using addition $h_{t+1} = \mathcal{R}(h_t + e)$ \citep{yangLoopedTransformersAre2023} or concatenation with projection $h_{t+1} = \mathcal{R}(W[h_t; e])$ \citep{geiping_scaling_2025}, where $W \in \mathbb{R}^{d \times 2d}$. 
+
+While looped models can be viewed as weight-sharing layers, modern variants allow for variable depth.
+During training, depth $T$ is sampled per micro-batch \cite{bansalEndtoendAlgorithmSynthesis2022} from $\Lambda$ (e.g., Poisson with mean \meanrecurrence), exposing the model to variable depths for stronger test-time scaling \citep{anilPathIndependentEquilibrium}.
+The training objective thus minimizes the expectation over the dataset and $\Lambda$.
+Lastly, truncated backpropagation through depth, analogous to BPTT \citep{Hinton2013TrainingRN}, limits the backward pass to a constant \meanbackward \citep{geiping_scaling_2025}. 
+
+\paragraph{Stability.}\citet{geiping_scaling_2025} found looped models unstable at scale and adopted a block pattern, combining Pre- and Post-Norm to normalize the residual: $\bar{x}^{(\ell)} = \text{LN}(\text{MHA}(\text{LN}(x^{(\ell-1)})) + x^{(\ell-1)}), \quad x^{(\ell)} = \text{LN}(\text{FFN}(\text{LN}(\bar{x}^{(\ell)})) + \bar{x}^{(\ell)})$
+where $\mathrm{LN}(\cdot)$ denotes layer normalization, $\mathrm{MHA}(\cdot)$ multi-head attention, and $\mathrm{FFN}(\cdot)$ feed-forward networks. We later show that residual normalization is unnecessary when stability is properly controlled.
+
+
+\subsection{Linear Time-Invariant Dynamical Systems}
+\label{sec:lti-basics}
+To study the instability of looped models, we will use an LTI dynamical system as a tractable linear surrogate for complex non-linear looped models.
+In control theory, LTI systems are formalized through first-order differential equations
+$\dot{h}(t)= \A h(t) + \B e(t),~y(t) = \C h(t)$
+that describe the evolution of a hidden state $h(t) \in \mathbb{R}^{d_h}$ given an input signal $e(t) \in \mathbb{R}^{d_e}$,
+where $\A \in \mathbb{R}^{d_h \times d_h}$ governs the dynamics of the system, $\B \in \mathbb{R}^{d_h \times d_e}$ controls how external inputs influence the state, and $\C \in \mathbb{R}^{d_e \times d_h}$ projects the hidden state to the output $y(t) \in \mathbb{R}^{d_e}$. The continuous system can be discretized to obtain 
+$h_{t} = \dA h_{t-1} + \dB e_t,  y_t = \C h_t$
+using a step size $\dt$; for instance, zero-order hold (ZOH) would yield $\dA = \exp(\Delta \A)$ and $\dB = (\Delta \A)^{-1}(\exp(\Delta \A) - I) \cdot \Delta \B$.
+
+LTI systems fall into three regimes: \emph{stable} (bounded and convergent), \emph{marginally stable} (oscillatory), and \emph{unstable} (explosive and divergent). 
+A fundamental property of LTI systems is that their \emph{stability} is determined by the eigenvalues of $\A$.
+Continuous LTI systems require negative eigenvalues of $\A$; Discrete LTI systems requires $\rho(\dA) < 1$ \citep{1082819}, where $\rho$ computes the spectral norm, with unstable systems having $\rho(\dA)>1$. 
+
+\subsection{Modeling Scaling Laws} 
+\label{sec:scaling-laws-basics}
+We follow \citet{hoffmann2022trainingcomputeoptimallargelanguage}, which modeled scaling law behaviors via parabolic and parametric fits for varying model sizes and training tokens with a fixed FLOP budget.
+For parabolic fits, a quadratic is fit to several FLOP budgets to estimate the loss-optimal model size or number of training tokens. For parametric fits, a function form of $\widehat{\mathcal{L}}(N,D) = E + X \cdot N^{-x} + Y \cdot D^{-y}$ is fit using the Huber loss \citep{huber} between the predicted and empirical log loss values for varying parameters $N$ and tokens $D$, using L-BFGS \cite{lbfgs} to minimize.
+
+
+

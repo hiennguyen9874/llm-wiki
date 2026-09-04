@@ -1,0 +1,50 @@
+\newpage
+\section{Glossary}
+
+We include a brief glossary of both notations and common metrics used to define and analyze looped architectures.
+
+\subsection{Notation}
+\label{sec:notation}
+
+\begin{table}[h]
+    \centering
+    \begin{tabular}{lll}
+    \toprule
+         Notation &  Description \\
+    \midrule
+         $d$ & Embedding \textbf{dimension} of the model & \\
+         $t$ & Discrete temporal \textbf{state} axis of \recurrent on $\mathbb{N}$& \\
+         $b$ & Global batch size used during pretraining \\
+    \midrule
+         \prelude & Initial \textbf{prelude} block of a recurrent architecture & \\
+         \recurrent & Middle \textbf{recurrent} block of a recurrent architecture & \\
+         \coda & Final \textbf{coda} block of a recurrent architecture & \\
+         $\A$ & The linear continuous state transition matrix & \\
+         $\B$ & The linear continuous state injection matrix & \\
+         $\C$ & The linear state output matrix & \\
+         $\dt$ & Learnable discrete parameter for decay, discretizing our model & \\
+    \midrule
+         $s$ & Input sequence to a model & \\
+         $e$ & Output embedding of the prelude block \prelude \\
+         $h$ & Hidden embedding of the recurrent block \recurrent \\
+         \meanrecurrence & Mean recurrent forward propagation steps during pre-training \\
+         \meanbackward & Mean recurrent backward propagation steps during pre-training \\
+         $n$ & Sampled number of recurrent steps with no gradient updates \\
+         $k$ & Sampled number of recurrent steps with gradient updates \\
+         $T$ & Sampled or fixed number of recurrent steps actually taken \\
+         $\Lambda$ & Distribution that recurrences are sampled from during training \\
+    \bottomrule
+    \end{tabular}
+    \caption{Glossary of notation and terminology. (\textit{Top}) Frequently used dimensions for tensors. (\textit{Middle}) Definition of Parcae blocks. (\textit{Bottom}) Tensors and distributions are used to express recurrent depth models.} 
+    \label{tab:placeholder}
+\end{table}
+
+\subsection{Common Metrics}
+\label{sec:metrics}
+\begin{itemize}
+    \item Recurrent Residual Metric: $||h_T - h_{T-1}||_2$, where $T \sim \Lambda$. This metric tells us how much we jump around at the final recurrence. Overly small jumps indicate that \recurrent isn't learning anything meaningful, while overly large jumps indicate \recurrent is suffering from state explosion or is unable to learn fixed-point dynamics.
+    \item Recurrent State Norm: $||h_T||$, where $T \sim \Lambda$. In general, we don't want an overly large recurrent state norm as it creates numerical instabilities and leads to overly large gradients.
+\end{itemize}
+
+
+

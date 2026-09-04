@@ -1,0 +1,144 @@
+\section{Model Definitions}
+\label{sec:model-definitions}
+
+As we perform experiments in two setups, one following prior work in recurrent depth models \citep{geiping_scaling_2025} and one following a strong baseline transformer \citep{nanochat}, we separate the model definitions into \cref{sec:rdm-parcae-model-def} and \cref{sec:trans-parcae-model-def}, respectively.
+
+\subsection{Model Definitions for RDM and Parcae Comparison}
+\label{sec:rdm-parcae-model-def}
+
+In this section, we will discuss the model configuration used for models in \cref{sec:e2e} for RDMs \citep{geiping_scaling_2025}. For all \prelude, \recurrent, and \coda modules, we follow \citet{geiping_scaling_2025}, and use standard, causal self-attention and gated SwiGLU MLP \citep{shazeer2020gluvariantsimprovetransformer}. For attention, we use RoPE \citep{su2023roformerenhancedtransformerrotary} with $\theta=50000$ and for normalization we use RMSNorm \citep{zhang2019rootmeansquarelayer}. We use Pre-Norm transformer blocks for all modules within Parcae, and follow \citet{takase2025spikemorestabilizingpretraining}, initializing weights using $\mathcal{N}(0,\frac{2}{5d})$, where $d$ is the model dimension.
+
+\begin{table}[h]
+    \centering
+    \begin{tabular}{ccccc}
+    \toprule
+        & Parcae-100M & Parcae-350M & RDM-100M & RDM-350M \\
+    \midrule
+        \textbf{Parameters} 
+            & 114,242,560 & 378,558,464 & 114,242,560  & 382,765,056 \\ 
+        Layers in \prelude  
+            & 1 & 1 & 1 & 1 \\ 
+        Layers in \coda 
+            & 1 & 1 & 1 & 1 \\ 
+        Layers in \recurrent 
+            & 1 & 2 & 1 & 2 \\
+        $d_{\text{model}}$ 
+            & 1{,}024 & 2{,}048 & 1{,}024 & 2{,}048 \\
+        $d_{\text{intermediate}}$ 
+            & 3{,}520 & 7{,}040 & 3{,}520 & 7{,}040 \\
+    \midrule
+        Attention 
+            & \multicolumn{4}{c}{Causal Self-Attention \citep{vaswani2023attentionneed}} \\
+        MLP 
+            & \multicolumn{4}{c}{SwiGLU \citep{elfwing2017sigmoidweightedlinearunitsneural,shazeer2020gluvariantsimprovetransformer}} \\
+        Pos. Embed. 
+            & \multicolumn{4}{c}{RoPE \citep{su2023roformerenhancedtransformerrotary}} \\
+        Vocab Size 
+            & \multicolumn{4}{c}{65{,}536} \\
+        Norm 
+            & \multicolumn{4}{c}{RMS-Norm \citep{zhang2019rootmeansquarelayer}} \\
+        Init 
+            & \multicolumn{4}{c}{Scaled \citep{takase2025spikemorestabilizingpretraining}} \\
+        Tied Embeddings 
+            & \multicolumn{4}{c}{Yes} \\
+      State Init.
+          & \multicolumn{4}{c}{\texttt{like-init} \citep{geiping_scaling_2025}} \\
+      \meanrecurrence
+          & 16 & 8 & 16 & 8 \\
+      Backprop Depth
+          &  8 & 4 & 8 & 4\\
+      Sampling
+          & \multicolumn{4}{c}{Poisson Distribution} \\
+    \bottomrule
+    \end{tabular}
+    \caption{Model definitions of both Parcae and baseline residual-norm RDMs \citep{geiping_scaling_2025}.}
+    \label{tab:parcae-definitions}
+\end{table}
+
+
+\subsection{Model Definitions for Transformer and Parcae Comparison}
+\label{sec:trans-parcae-model-def}
+
+In this section, we will discuss the model definitions used for our experiments in \cref{sec:e2e} for Transformers. Our architecture is derived from \citet{nanochat}, while being slightly adapted to fit with GPT2 \citep{radford2019language} style parameter classes. Model definitions of both Parcae and baseline Transformers can be found in \cref{tab:transformer-parcae-definitions}, while the difference in parameter count can be found in \cref{tab:transform-parcae-parameter-count}.\footnote{We note that Parcae does technically introduce additional parameters over baseline Transformers; however, they are negligible in comparison to total parameter counts.}
+
+\begin{table}[!h]
+  \centering
+  \small
+  \begin{tabular}{lccccc}
+  \toprule
+      & & Small (140M) & Medium (370M) & Large (770M) & XLarge (1.3B) \\
+  \midrule
+      \multirow{9}{*}{\rotatebox[origin=c]{90}{\textit{Architecture}}}
+      & Layers (Transformer)
+          & 6 & 12 & 18 & 24 \\
+      & Layers in \prelude (Parcae)
+          & 2 & 4 & 6 & 8 \\
+      & Layers in \recurrent (Parcae)
+          & 2 & 4 & 6 & 8 \\
+      & Layers in \coda (Parcae)
+          & 2 & 4 & 6 & 8 \\
+      & $d_{\text{model}}$
+          & 768 & 1{,}024 & 1{,}280 & 1{,}536 \\
+      & $d_{\text{intermediate}}$
+          & 3{,}072 & 4{,}096 & 5{,}120 & 6{,}144 \\
+      & Attention Heads
+          & 6 & 8 & 10 & 12 \\
+      & Head Dimension
+          & 128 & 128 & 128 & 128 \\
+  \midrule
+      \multirow{10}{*}{\rotatebox[origin=c]{90}{\textit{Shared Details}}}
+      & Attention
+          & \multicolumn{4}{c}{Causal Self-Attention \citep{vaswani2023attentionneed} w/ QK-Norm \citep{henry2020querykeynormalizationtransformers} } \\
+      & MLP
+          & \multicolumn{4}{c}{$\text{ReLU}^2$ \citep{zhang2024relu2winsdiscoveringefficient}} \\
+      & Value Embeddings
+          & \multicolumn{4}{c}{Gated, alternating layers \citep{tian2023resformerscalingvitsmultiresolution}} \\
+      & Pos.\ Embed.
+          & \multicolumn{4}{c}{RoPE ($\theta{=}50{,}000$) \citep{su2023roformerenhancedtransformerrotary}} \\
+      & Vocab Size
+          & \multicolumn{4}{c}{32{,}768} \\
+      & Norm
+          & \multicolumn{4}{c}{RMS-Norm (Pre-Norm) \citep{zhang2019rootmeansquarelayer}} \\
+      & Context Length
+          & \multicolumn{4}{c}{2{,}048} \\
+      & Bias
+          & \multicolumn{4}{c}{None} \\
+      & Init.
+          & \multicolumn{4}{c}{Scaled-zero \citep{takase2025spikemorestabilizingpretraining, nanochat}} \\
+      & Tied Embeddings
+          & \multicolumn{4}{c}{Yes} \\
+  \midrule
+      \multirow{5}{*}{\rotatebox[origin=c]{90}{\textit{Parcae}}}
+      & Injection
+          & \multicolumn{4}{c}{Diagonal} \\
+      & State Init.
+          & \multicolumn{4}{c}{\texttt{like-init} \citep{geiping_scaling_2025}} \\
+      & \meanrecurrence
+          & \multicolumn{4}{c}{8} \\
+      & Backprop Depth
+          & \multicolumn{4}{c}{4} \\
+      & Sampling
+          & \multicolumn{4}{c}{Poisson (truncated, per-sequence)} \\
+  \bottomrule
+  \end{tabular}
+  \caption{Model definitions of both Parcae and baseline Transformers.}
+  \label{tab:transformer-parcae-definitions}
+\end{table}
+
+\begin{table}[!h]
+  \centering
+  \small
+  \begin{tabular}{lcccc}
+  \toprule
+      & Small (140M) & Medium (370M) & Large (770M) & XLarge (1.3B) \\
+  \midrule
+      Transformer Parameters & 143,141,184 & 385,903,104 & 773,375,040 & 1,333,868,544 \\
+      Parcae Parameters      & 144,323,136 & 388,003,328 & 776,655,680 & 1,338,591,744 \\
+      \midrule
+      Additional Parameters  & 1{,}181{,}952 & 2{,}100{,}224 & 3{,}280{,}640 & 4{,}723{,}200 \\
+      Additional (\%)        & 0.83\% & 0.54\% & 0.42\% & 0.35\% \\
+  \bottomrule
+  \end{tabular}
+  \caption{Comparison of Parcae and Transformer parameter count.}
+  \label{tab:transform-parcae-parameter-count}
+\end{table}

@@ -1,0 +1,34 @@
+\section{\sysname: A Stable Looped Architecture}
+\label{sec:parcae}
+
+Using our dynamical systems framework, we create \textbf{\emph{\sysname}}, a looped architecture that explicitly satisfies the stability constraints (\cref{sec:rfm-derivation}). 
+Additionally, we propose a per-sequence depth sampling method to stabilize variance introduced by variable depth (\cref{sec:rfm-training}). 
+
+\subsection{Block Design and Stable Parameterization of \sysname}
+\label{sec:rfm-derivation}
+
+We parameterize $\A$ and $\B$ in continuous form, and discretize using a learned $\dt \in \R^{d_h}$with ZOH and Euler schemes (i.e., $\dA = \exp(\dt \A)$ and $\dB = \dt \B$),\footnote{With abuse of notation, we let $\dt \A = \dt \odot \A$ (i.e., elementwise multiplication).} following prior sequence modeling work \citep{gu2024mambalineartimesequencemodeling,dao2024transformersssmsgeneralizedmodels}. 
+To achieve our target stability conditions by constraining the eigenvalues of $\A$ to be negative, we parameterize $\A := \texttt{Diag}(-\exp(\texttt{log\_A}))$ as a negative diagonal matrix, where $\texttt{Diag}(-\exp(\cdot))$ of a vector enforces negativity and $\texttt{log\_A}\in \R^{d_h}$ is our learnable vector. 
+While many formulations of $\A$ would work, ensuring negative eigenvalues in the diagonal case is simple and cheap.
+$\B$ is left unconstrained; however, we introduce a normalization layer to the input $e$ to further stabilize training (see \cref{sec:prelude-norm} for ablation).
+With this, our update rule, given an input sequence $s$, becomes
+\begin{equation}
+    e = \text{LN}(\mathcal{P}(s)), \qquad h_{t+1} = \dA h_t + \dB e + \overline{\mathcal{R}}(h_t, e), \qquad p = \mathcal{C}(\C h_T),
+\end{equation}
+where $h_0 \sim \mathcal{N}(0,~\sigma I_{d_h \times d_h})$ and $T$ is the number of loops.
+
+We parameterize \prelude, $\overline{\mathcal{R}}$, and \coda using $L_{\mathcal{P}},L_{\mathcal{R}}$ and $L_{\mathcal{C}}$ transformer bloc:ks respectively. For exact block architecture, we match two different architectural setups: one for prior RDMs \citep{geiping_scaling_2025} and one for strong Transformer baselines \citep{nanochat}. \sysname's architecture matches RDMs, differing only in residual normalization and the dynamical systems parameters
+(e.g., $\A, \B, \C, \dt$). Against Transformers, we follow a simplified \texttt{nanochat} \citep{nanochat} setup, where we match exact architecture, except we loop the middle third layers and include our dynamical systems parameters and a prelude norm. Exact model definitions and a forward pass can be found in \cref{sec:model-definitions} and \cref{sec:algorithm}, respectively.
+
+
+\subsection{Stable Training Algorithms for \sysname}
+\label{sec:rfm-training}
+
+
+We further stabilize Parcae by adjusting the training objective. Specifically, looped models' training objective is
+$\theta^\star \;=\; \arg\min_{\theta}\; \mathbb{E}_{(x,y)\sim \mathcal{D},\,T\sim \Lambda}\!\left[\;\ell\!\big(f_{\theta}(x;T),\, y\big)\;\right]$, implying that more depths should be sampled per global batch to more faithfully model the expectation over $\Lambda$.
+Thus, we introduce a per-sequence depth sampling algorithm within a micro-batch, which we empirically observe to reduce loss spikes (ablation in \cref{sec:loss-spikes}).
+Additionally, unlike prior work, we parameterize $\Lambda$ based on \meanrecurrence alone, as we find that truncating based on \meanbackward significantly hurts extrapolation to both lower and higher recurrences (ablation in \cref{sec:sampling-truncated-recurrence}).
+Finally, we choose $\mu_{\text{bwd}} = \lceil \frac{\mu_{\text{rec}}}{2} \rceil$ throughout (see \cref{sec:scaling-of-truncated-backpropigation} for ablation). 
+A detailed training algorithm is in \cref{sec:algorithm}. 
+

@@ -1,6 +1,7 @@
 # Wiki Update Log
 
 ## 2026-09-04
+- **Ingest**: Compiled [Parcae: Scaling Laws For Stable Looped Language Models](../raw/arXiv-2604.12946v1/main.tex); created [Parcae stable looped transformers](parcae-stable-looped-transformers.md) and [Parcae recurrence scaling laws](parcae-recurrence-scaling-laws.md).
 - **Ingest**: Compiled [Adaptive Depth in Looped Transformers: Diagnosing Learned Halting Gates and Trajectory Readouts](../raw/arXiv-2607.20519v1/main.tex); created [Adaptive-depth trajectory–readout diagnostics](adaptive-depth-trajectory-readout-diagnostics.md) and updated [Ouro looped language models](ouro-looped-language-models.md).
 - **Ingest**: Compiled [DeepLoop: Depth Scaling for Looped Transformers](../raw/arXiv-2607.13491v2/main.tex); created [DeepLoop residual scaling for looped transformers](deeploop-residual-scaling-for-looped-transformers.md).
 - **Ingest**: Compiled [LoopFormer: Elastic-Depth Looped Transformers for Latent Reasoning via Shortcut Modulation](../raw/arXiv-2602.11451v1/main.tex); created [LoopFormer elastic-depth looped transformers](loopformer-elastic-depth-looped-transformers.md).

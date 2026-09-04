@@ -1,0 +1,19 @@
+\section{Derivation of Instability Conditions of Prior Methods}
+\label{sec:derivation-instabilty}
+
+
+Recall from \cref{sec:rdm-basics}, that \recurrent denotes the full recurrent update $h_{t+1} = \mathcal{R}(h_t,e)$, encompassing all transformer operations, including residual connections. 
+A common interpretation views the residual stream as a communication channel where $h_T$ is the sum of the relative outputs of all previous layers and the original embedding \cite{olsson2022incontextlearninginductionheads}. 
+Applying this to looped models, let $\overline{\mathcal{R}}$ denote the \emph{relative contribution} of the nonlinear operations (i.e., $\overline{\mathcal{R}}(W_1 h_t + W_2 e) = \mathcal{R}(W_1 h_t + W_2 e) - (W_1 h_t + W_2 e)$). 
+This gives the recurrent update rule
+$h_{t+1} = W_1 h_t + W_2 e + \overline{\mathcal{R}}(h_t, e)$
+where we write $\overline{\mathcal{R}}(h_t, e) = \overline{\mathcal{R}}(W_1 h_t + W_2 e)$ for brevity. 
+Although $\overline{\mathcal{R}}$ is highly non-linear, the recurrent update can be exactly formulated as a \emph{non-linear time-variant dynamical system} of the form:
+$h_{t} = \dA h_{t-1} + \dB e + \overline{\mathcal{R}}(h_{t-1}, e), ~ y_t = \C h_t,$
+where $\dA = W_1$, $\dB = W_2$, and $\C \in R^{d_c \times d_h}$ decouples the \coda and \recurrent embedding dimension (i.e.~$p=\mathcal{C}(\C(h_T))$).
+
+
+Using the \emph{relative contribution} representation of looped models above, we can recast
+prior mediums of input injection discussed in \cref{sec:rdm-basics} in a form similar to our framework.
+Specifically, for Pre-Norm looped models using addition as injection \cite{yangLoopedTransformersAre2023}, the dynamical systems update rule can thus be written in the form $h_{t+1} = Ih_t + Ie + \overline{\mathcal{R}}(Ih_t + Ie)$.
+When linearized (i.e., dropping the nonlinear $\overline{\mathcal{R}}$ block), $\dA = I$, meaning that the model is a \emph{marginally-stable} system as all eigenvalues are 1. Alternatively, the update rule for Pre-Norm looped models using concatenation as injection \cite{geiping_scaling_2025} can be rewritten in the form $h_{t+1} = W[h_t;e] + \overline{\mathcal{R}}(W[h_t;e]) = W_1 h_t + W_2 e + \overline{\mathcal{R}}(W_1 h_t + W_2e)$. Here $\dA = W_1$ is unbounded and thus can create an explosion of the state if not carefully maintained during training.

@@ -1,0 +1,100 @@
+\newpage
+
+\section{Hyperparameters and Training Details}
+\label{sec:hyperparameters}
+
+Again, as we perform experiments in two setups, one following prior work in recurrent depth models \citep{geiping_scaling_2025} and one following a strong baseline transformer \citep{nanochat}, we separate the hyperparameter configurations into \cref{sec:rdm-parcae-hyp} and \cref{sec:trans-parcae-hyp}, respectively.
+
+\subsection{Hyperparameters for Parcae and RDM Comparison}
+\label{sec:rdm-parcae-hyp}
+In this section, we will discuss the hyperparameter configuration used in \cref{sec:e2e} for RDMs \citep{geiping_scaling_2025}. We train with a warm-up and cool-down (4096 steps following \citep{geiping_scaling_2025}) and a constant learning rate ($\eta = 4 \times 10^{-3}$ for 100M models and $\eta = 2 \times 10^{-3}$ for 350M models) \citep{pmlr-v202-geiping23a, Zhai_2022_CVPR}. As our optimizer, we use Adam with decoupled weight regularization ($\beta_1 = 0.9, \beta_2 0.95$) \citep{kingma2017adammethodstochasticoptimization, loshchilov2019decoupledweightdecayregularization}, using update clipping \citep{wortsman2023stable} and removing the $\epsilon$ constant \citep{everett2024scalingexponentsparameterizationsoptimizers}. Gradients above 1 are clipped. 
+
+For learning rates, we swept our selection of learning rates for RDMs \citep{geiping_scaling_2025}, over the search space $[2e-4, 4e-4, 6e-4, 8e-4, 1e-3]$, approximately using 10 to 1 token to parameter ratio. We then select the best learning rate for each scale (e.g., 4e-4 for 100M and 2e-4 for 350M). We perform no learning rate sweep for Parcae, using the best learning rate for RDMs \citep{geiping_scaling_2025}. We do this so that our comparison between Parcae and prior methods is fair, as we observed significant divergence in training for RDMs based on learning rate (see \cref{sec:stability-ablations}).
+We stipulate that Parcae models would likely perform better with stronger hyperparameter tuning.
+
+\subsection{Hyperparameters for Parcae and Transformer Comparison}
+\label{sec:trans-parcae-hyp}
+
+
+In this section, we will discuss the hyperparameter configuration used in \cref{sec:e2e} for Transformers. We use a simplified version of \texttt{nanochat} \citep{nanochat}, with the main difference being a simplified learning rate selection. Specifically, in \texttt{nanochat} \citep{nanochat}, different parameter groups have different learning rates (e.g., MLP, value-embeddings, and projection head have different learning rates), which we simplify into just two parameter groups, one for AdamW \citep{kingma2017adammethodstochasticoptimization,loshchilov2019decoupledweightdecayregularization} and one for Muon \citep{jordan2024muon}. A breakdown of which parameters are placed with each of these groups follows \texttt{nanochat} \citep{nanochat}, and can be found in \cref{tab:parameter-groups}.
+
+\begin{table}[!h]
+  \centering
+  \small
+  \begin{tabular}{ll}
+  \toprule
+      \textbf{Optimizer} & \textbf{Parameters} \\
+  \midrule
+      \multirow{5}{*}{AdamW \citep{kingma2017adammethodstochasticoptimization}}
+      & Token embeddings (\texttt{wte}) \\
+      & LM head (\texttt{lm\_head}) \\
+      & Normalization layers (\texttt{RMSNorm}) \\
+      & Value embedding gates (\texttt{ve\_gate}) \\
+      & All 1D parameters \\
+  \midrule
+      \multirow{2}{*}{AdamW \citep{kingma2017adammethodstochasticoptimization} (Parcae only)}
+      & Injection parameters ($\A$, $\dt$, $\B$) \\
+      & Readout projection ($\C$) \\
+  \midrule
+      \multirow{2}{*}{Muon \citep{jordan2024muon}}
+      & Attention projections ($W_Q$, $W_K$, $W_V$, $W_O$) \\
+      & MLP weights ($W_{\text{fc}}$, $W_{\text{proj}}$) \\
+  \bottomrule
+  \end{tabular}
+  \caption{Optimizer parameter group assignment for Parcae and baseline Transformers.}
+  \label{tab:parameter-groups}
+\end{table}
+
+As we simplify the learning rate setup used in \texttt{nanochat} \citep{nanochat}, we perform a rigorous hyperparameter sweep of baseline Transformers to create the strongest baseline. Specifically, for small and medium models, we form a sweep over $\{3e-4, 5e-4, 6e-4, 8e-4, 1e-3, 1.5e-3, 2e-3, 3e-3, 4e-3, 8e-3, 1e-2, 1.5e-2, 2e-2 \}$ for AdamW learning rates and a sweep over $\{3e-4, 5e-4, 1e-3, 2e-3, 4e-3, 8e-3, 1e-2, 1.5e-2, 2e-2\}$ for Muon learning rates using 1:20 param to token ratios for the search, where we find that for both models $8e-3$ works best for both sizes and optimizers. For large and xlarge transformer models, we perform a constrained sweep of learning rate in $\{2e-3, 3e-3, 4e-3, 6e-3, 8e-3\}$ for AdamW \citep{kingma2017adammethodstochasticoptimization}, while keeping the Muon learning rate fixed at $8e{-3}$, using a 1:7 parameter to token ratio, where we find that a learning rate of $6e-3$ performs the best. We perform \emph{no learning rate sweeps for Parcae}, to ensure that we are giving the fairest comparison. We expect that there likely exists a more optimal learning rate for Parcae, which could further improve performance.
+
+Following \texttt{nanochat} \citep{nanochat}, we use a fixed learning rate, with no warmup and 50\% cooldown. For Muon \citep{jordan2024muon}, we use five iterations of polar express orthogonalization \citep{amsel2025polarexpressoptimalmatrix}, factored variance reductions \citep{si2025adamuonadaptivemuonoptimizer}, and cautious weight decay \citep{chen2026cautiousweightdecay}. We train with BF16 mixed precision. For our data pipeline, we use a BOS-aligned dataloader with BestFit-Crop packing \citep{ding2024fewertruncationsimprovelanguage} and training on FineWeb-edu \citep{penedo2024finewebdatasetsdecantingweb}. We clip gradients above 1.
+A table of hyperparameter details can be found in \cref{tab:transformer-parcae-hyperparameters}. 
+
+
+\begin{table}[h]
+  \centering
+  \small
+  \begin{tabular}{lcccc}
+  \toprule
+      & Small (140M) & Medium (370M) & Large (770M) & XLarge (1.3B) \\
+  \midrule
+      Training Tokens
+          & 11.2B & 29.6B & 61.6B & 104B \\
+      Batch Size (sequences)
+          & 256 & 256 & 256 & 256 \\
+      Sequence Length
+          & 2{,}048 & 2{,}048 & 2{,}048 & 2{,}048 \\
+      Precision
+          & \multicolumn{4}{c}{\texttt{bf16-mixed}} \\
+  \midrule
+      AdamW LR
+          & $8 \times 10^{-3}$ & $8 \times 10^{-3}$ & $6 \times 10^{-3}$ & $6 \times 10^{-3}$ \\
+      AdamW $(\beta_1, \beta_2)$
+          & \multicolumn{4}{c}{$(0.8, 0.95)$} \\
+      AdamW Weight Decay
+          & \multicolumn{4}{c}{$0.0$} \\
+      AdamW $\epsilon$
+          & \multicolumn{4}{c}{$10^{-10}$} \\
+  \midrule
+      Muon LR
+          & \multicolumn{4}{c}{$8 \times 10^{-3}$} \\
+      Muon Momentum
+          & \multicolumn{4}{c}{$0.95$} \\
+      Muon Weight Decay
+          & \multicolumn{4}{c}{$0.2$ (linear decay to 0)} \\
+      Muon Orthogonalization Steps
+          & \multicolumn{4}{c}{5} \\
+  \midrule
+      LR Schedule
+          & \multicolumn{4}{c}{Fixed (0\% warmup, 50\% cooldown)} \\
+      Gradient Clipping
+          & \multicolumn{4}{c}{$1.0$} \\
+  \bottomrule
+  \end{tabular}
+  \caption{Hyperparameter used from training Parcae and Transformer models in \cref{sec:e2e} for Transformers.}
+  \label{tab:transformer-parcae-hyperparameters}
+\end{table}
+
+
+
+Lastly, following \texttt{nanochat} \citep{nanochat}, we train our own tokenizer, which we use for all models. Details of the tokenizer training and setup can be found in \cref{sec:tokenizer}.

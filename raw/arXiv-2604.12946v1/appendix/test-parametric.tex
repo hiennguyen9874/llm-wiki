@@ -1,0 +1,99 @@
+\section{Fitting Parametric Functions to Test-Time Looping}
+\label{sec:test-par}
+
+In this section, we provide a more detailed analysis of the test-time scaling laws discussed in \cref{sec:inf-scaling}. Following the setup discussed in \cref{sec:scaling-laws-setup}, we train several Parcae models on varying \meanrecurrence, fixing data and parameter count, and evaluate each at test-time recurrences up to $T=24$.
+
+\paragraph{Choice of Functional Form.}
+We aim to find a parametric function that captures the saturating relationship between test-time recurrence $T$ and validation loss. We consider four candidate functional forms, each with an irreducible loss floor $\mathcal{L}_\infty$ (except the pure power law):
+\begin{enumerate}[label=(\alph*), nosep]
+  \item $\mathcal{L}(T) = \mathcal{L}_\infty + Z \cdot e^{-zT}$ \hfill (exponential decay)
+  \item $\mathcal{L}(T) = \mathcal{L}_\infty + Z \cdot (1+T)^{-z}$ \hfill (shifted power law)
+  \item $\mathcal{L}(T) = \mathcal{L}_\infty + Z \cdot T^{-z}$ \hfill (power law)
+  \item $\mathcal{L}(T) = Z \cdot T^{-z}$ \hfill (power law, no floor)
+\end{enumerate}
+Each form has 3 free parameters ($\mathcal{L}_\infty, Z, z$), except (d), which has 2. We fit each form independently to every test-time curve using least-squares on log-loss, and report the average Huber loss ($\delta = 10^{-3}$) across all curves. To evaluate extrapolation, we additionally fit each form on $T \leq \mu_{\text{rec}}$ and evaluate on held-out $T > \mu_{\text{rec}}$.
+
+\begin{table}[h]
+\centering
+\begin{tabular}{l cccc}
+\toprule
+& $\mathcal{L}_\infty {+} Z e^{-zT}$ & $\mathcal{L}_\infty {+} Z(1{+}T)^{-z}$ & $\mathcal{L}_\infty {+} Z T^{-z}$ & $Z T^{-z}$ \\
+\midrule
+\multicolumn{5}{l}{\textit{In-Distribution}} \\
+\quad 140M & \textbf{2.52} & 5.42 & 11.11 & 112.89 \\
+\quad 370M & \textbf{1.88} & 5.26 & 10.77 & 104.95 \\
+\midrule
+\multicolumn{5}{l}{\textit{Extrapolation ($T > \mu_{\text{rec}}$)}} \\
+\quad 140M & \textbf{3.18} & 21.41 & 43.99 & 397.90 \\
+\quad 370M & \textbf{2.29} & 18.51 & 38.68 & 369.83 \\
+\bottomrule
+\end{tabular}
+\caption{Functional form comparison for test-time scaling. We report average Huber loss ($\times 10^{-7}$) across all per-curve fits, both in-distribution (all $T$) and in extrapolation (fit $T \leq \mu_{\text{rec}}$, evaluate $T > \mu_{\text{rec}}$). Lower is better.}
+\label{tab:functional-form-ablation}
+\end{table}
+
+As shown in \cref{tab:functional-form-ablation}, the exponential decay form achieves the lowest Huber loss both in-distribution ($2.3\times$ better than the shifted power law) and under extrapolation ($7.1\times$ better), consistently across both model sizes. Notably, omitting the irreducible floor $\mathcal{L}_\infty$ (form (d)) increases error by over $40\times$, confirming that test-time scaling saturates to a finite loss determined by training (this is also obvious from looking at \cref{fig:test-time-scaling-laws}). 
+
+While purely speculative, there is a nice connection between the exponential form and Parcae's dynamical systems framework. In classical control theory literature, a stable discrete-time linear system with a spectral radius below unity converges exponentially in the state norm. The observed exponential decay in loss is thus consistent with the dynamical system formulation that Parcae uses.
+
+\paragraph{Recovery of the training law at $T = \mu_\text{rec}$.}
+We additionally observe that the fitted irreducible loss $\mathcal{L}_\infty$ closely matches the empirical loss at $T = \mu_\text{rec}$ (\cref{tab:recovery}), motivating the use of the training scaling law $\hat{\mathcal{L}}_{\mathrm{train}}(\mu_\text{rec}, D)$ as the irreducible floor in a unified law.
+
+\begin{table}[h]
+\centering
+\begin{tabular}{l cc}
+\toprule
+Model & Mean \% Err & Max \% Err \\
+\midrule
+140M & 0.16\% & 0.59\% \\
+370M & 0.05\% & 0.22\% \\
+\bottomrule
+\end{tabular}
+\caption{Mean and max absolute percent error between $\mathcal{L}_\infty$ and $\mathcal{L}(T{=}\mu_\text{rec})$ across all isoFLOP configurations.}
+\label{tab:recovery}
+\end{table}
+
+\paragraph{Conditioning on Training Recurrence.}
+To model test-time scaling across models trained at different \meanrecurrence, the decay rate must depend on the training depth. We compare three forms for the unified test-time law, all using the training scaling law $\hat{\mathcal{L}}_{\mathrm{train}}(\mu_{\text{rec}}, D)$ from \cref{sec:train-scaling} as the irreducible floor:
+\begin{enumerate}[label=(\alph*), nosep]
+  \item $\hat{\mathcal{L}}_{\mathrm{train}} + Z \cdot \exp\!\bigl(-z \cdot \mu_\text{rec}^{-\gamma} \cdot T\bigr)$ \hfill (learned $\gamma$, 3 params)
+  \item $\hat{\mathcal{L}}_{\mathrm{train}} + Z \cdot \exp\!\bigl(-z / \mu_\text{rec}\cdot T\bigr)$ \hfill ($\gamma = 1$, 2 params)
+  \item $\hat{\mathcal{L}}_{\mathrm{train}} + Z \cdot \exp\!\bigl(-z \cdot T\bigr)$ \hfill (no conditioning, 2 params)
+\end{enumerate}
+\begin{table}[h]
+\centering
+\begin{tabular}{l ccc}
+\toprule
+& $Z e^{-z \mu^{-\gamma} T}$ & $Z e^{-z T / \mu}$ ($\gamma{=}1$) & $Z e^{-z T}$ (no $\mu$) \\
+\midrule
+\multicolumn{4}{l}{\textit{Train (isoFLOP)}} \\
+\quad 140M & 0.001116 & 0.001177 & 0.003253 \\
+\quad 370M & 0.000229 & 0.000283 & 0.001438 \\
+\midrule
+\multicolumn{4}{l}{\textit{Test (held-out, $\mu_\text{rec}{=}8$)}} \\
+\quad 140M & \textbf{0.000207} & 0.000212 & 0.000266 \\
+\quad 370M & 0.000133 & \textbf{0.000131} & 0.000189 \\
+\bottomrule
+\end{tabular}
+\caption{Ablation of \meanrecurrence conditioning in the unified test-time law. We report total Huber loss on the isoFLOP training set and on held-out Table~5 models ($\mu_\text{rec} = 8$, fixed data budget). Lower is better.}
+\label{tab:mu-conditioning-ablation}
+\end{table}
+
+As shown in \cref{tab:mu-conditioning-ablation}, removing $\mu_\text{rec}$ conditioning entirely increases training error by $3.5\times$ and held-out error by ${\sim}33\%$, confirming that the decay rate must depend on training depth (also obvious from looking at \cref{fig:test-time-scaling-laws}). The learned $\gamma$ offers a modest improvement (${\sim}8\%$) over $\gamma = 1$ on the training set, with fitted values of $\gamma = 1.19$ (140M) and $\gamma = 1.17$ (370M) consistent across scales; on held-out models, the two are indistinguishable. We therefore adopt $\gamma = 1$ for simplicity, yielding the unified law:
+\begin{equation}
+  \hat{\mathcal{L}}_{\mathrm{unified}}(T \mid \mu_\text{rec}, D) = \underbrace{E + X \cdot N(\mu_\text{rec})^{-x} + Y \cdot D^{-y}}_{\text{Training Law Floor } \hat{\mathcal{L}}_{\mathrm{train}}(\mu_\text{rec}, D)} + \underbrace{Z \cdot \exp\!\left(-\frac{z \cdot T}{\mu_\text{rec}}\right)}_{\text{Test-Time Decay}}
+\end{equation}
+where the test-time term depends on the ratio $T / \mu_\text{rec}$, i.e., the fraction of training depth used at inference.
+
+
+\paragraph{Testing the Unified Parametric Fit.}
+To evaluate generalization, we use the unified law fitted on isoFLOP data to predict the test-time scaling curves of held-out 140M and 370M Parcae models from \cref{sec:e2e}, which were trained on fixed data budgets and are a completely out-of-distribution setting. As shown in \cref{fig:unified-pred}, the unified fit (orange) predicts validation loss within 0.85--1.31\% average error. When the training law floor is replaced with the empirical loss at $T = \mu_\text{rec}$ (oracle, blue), error drops to 0.10--0.17\%, confirming that the test-time decay is faithfully captured and the residual error is attributable to the training law's ${\sim}1\%$ extrapolation gap.
+
+\begin{figure}[!h]
+  \centering
+  \includegraphics[width=\linewidth]{figures/appendix/unified_joint_generalization_exp.pdf}
+  \vspace{-1em}
+  \caption{\textbf{Out-of-Distribution Prediction of Unified Parametric Fit.}
+  We visualize the prediction of our unified parametric fit (orange) and an oracle fit using the empirical loss at $T = \mu_\text{rec}$ for $\widehat{\mathcal{L}}_\text{train}$ (blue) against empirical validation loss with increasing $T$ for models trained in \cref{sec:e2e}.}
+  \label{fig:unified-pred}
+\end{figure}
