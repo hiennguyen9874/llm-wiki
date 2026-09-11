@@ -5,7 +5,7 @@ description: DeepSeek-V4 is a preview MoE family that combines compressed sparse
 tags: [deepseek-v4, mixture-of-experts, long-context, pretraining, hybrid-attention]
 status: draft
 created: 2026-08-12
-generated: { by: llm-wiki-agent/1, at: 2026-08-12T00:00:00Z }
+generated: { by: llm-wiki-agent/1, at: 2026-09-11T05:26:56Z }
 sources:
   - id: deepseek-v4-2026
     resource: ../raw/arXiv-2606.19348v1/main.tex
@@ -36,6 +36,7 @@ The authors report two empirical stability measures: temporarily calculate routi
 - **Extends:** [DeepSeek-V3 architecture and pretraining](deepseek-v3-architecture-and-pretraining.md) with different attention, residual, routing, optimizer, and context designs.
 - **Implemented by:** [DeepSeek-V4 training and serving infrastructure](deepseek-v4-training-and-serving-infrastructure.md).
 - **Extended by:** [DeepSeek-V4 post-training and evaluation limits](deepseek-v4-post-training-and-evaluation-limits.md).
+- **Extended by:** [DeepSeek-V4.1-Flash architecture and pretraining](deepseek-v4-1-flash-architecture-and-pretraining.md), which revises the Flash branch with a causal encoder–decoder split, CSA2, FP4 cache storage, and bounded SWA replay.
 
 ## Evidence limits
 

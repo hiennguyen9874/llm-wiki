@@ -1,12 +1,15 @@
 ---
 type: Concept
 title: DSpark parallel-draft speculative decoding
-description: DSpark is a target-specific parallel-draft family; its Kimi K3 checkpoint discloses Markov and confidence heads, while Nemotron uses a smaller causal sliding-window GQA draft but omits those details.
+description: DSpark is a target-specific parallel-draft family whose Kimi K3 and DeepSeek-V4.1 instances disclose different Markov/confidence designs, while Nemotron exposes a smaller sliding-window draft with fewer details.
 tags: [speculative-decoding, draft-model, dspark, dflash, distillation]
 status: stable
 created: 2026-08-10
-generated: { by: llm-wiki-agent/1, at: 2026-08-12T14:46:56Z }
+generated: { by: llm-wiki-agent/1, at: 2026-09-11T05:35:45Z }
 sources:
+  - id: deepseek-v41-tech-report
+    resource: ../raw/DeepSeek_V41_Tech_Report/DeepSeek_V41_Tech_Report.md
+    title: "DeepSeek-V4.1-Flash: Pushing the Limits of KV Cache Compression"
   - id: kimi-k3-dspark-card
     resource: ../raw/KimiK3DSparkspeculator.md
     title: "Kimi K3 DSpark speculator (Hugging Face model card)"
@@ -16,6 +19,9 @@ sources:
   - id: nemotron-dspark-card
     resource: ../raw/NVIDIA-Nemotron-3.5-Lightning-30B-A3B/DSpark.md
     title: NVIDIA Nemotron 3.5 Lightning DSpark model card
+  - id: deepseek-v41-reference-model
+    resource: ../raw/DeepSeek-V4.1-Flash/inference/model.py
+    title: DeepSeek-V4.1-Flash minimal inference model
 ---
 
 # DSpark parallel-draft speculative decoding
@@ -44,6 +50,12 @@ SpecForge online distillation captures hidden states from a frozen Kimi K3 targe
 
 NVIDIA’s Nemotron 3.5 Lightning DSpark release shows that DSpark topology is target-specific. This checkpoint is a 967M-parameter NVFP4 draft (615M non-embedding parameters) with dense MLPs and causal GQA, a 1,024-token sliding window on every layer, and per-head attention-sink bias. It is intended to accompany the 30B-total/3B-active [Nemotron 3.5 Lightning target](nemotron-3-5-lightning-architecture-and-training.md) in vLLM on DGX Spark or low-concurrency data-centre deployments. Unlike the Kimi card, this card does not disclose block size, confidence-head use, target-feature layers, or training loss, so the shared DSpark name does not establish implementation identity beyond the stated parallel-draft family.[^nemotron-dspark-card]
 
+## DeepSeek-V4.1-Flash instance
+
+The DeepSeek-V4.1-Flash reference defines a three-stage DSpark path over target-layer inputs 37–39. It initializes a five-position proposal with one current token and four noise tokens, uses sliding-window draft attention, sequentially adds a rank-256 Markov-logit bias while sampling the block, and predicts per-position confidence from draft hidden state plus Markov embedding. Its draft MoE has 128 routed experts and activates three.[^deepseek-v41-reference-model]
+
+The technical report clarifies that the confidence head estimates conditional acceptance, the scheduler converts these to prefix-survival estimates, and verification length is selected against profiled engine-throughput curves and current load. DSpark is trained after pretraining against a frozen backbone, then continues alongside post-training without sending draft-objective gradients into the backbone. The readable runtime still omits confidence-scheduled target verification, and the report supplies no acceptance or throughput evaluation for this checkpoint.[^deepseek-v41-tech-report]
+
 ## Long-context extension
 
 The Kimi draft is trained at a 65,536-token context. The published draft config enables YaRN-16 by default with `original_max_position_embeddings=65536` and `max_position_embeddings=1048576`, so 1M-token serving works without a separate draft config override.[^kimi-k3-dspark-card]
@@ -52,15 +64,20 @@ The Kimi draft is trained at a 65,536-token context. The published draft config 
 
 - **Extends:** [DFlash block-diffusion speculative decoding](dflash-block-diffusion-speculative-decoding.md) with the Markov logit-bias and per-position confidence heads, according to the DSpark card.
 - **Drafts for:** [Kimi K3 hybrid retrieval architecture](kimi-k3-hybrid-retrieval-architecture.md); proposals still require target verification as in [Speculative decoding exact sampling](speculative-decoding-exact-sampling.md).
+- **Used by:** [DeepSeek-V4.1-Flash architecture and pretraining](deepseek-v4-1-flash-architecture-and-pretraining.md), whose readable runtime omits the target-verification loop.
 - **Differs from:** the Kimi K3 report's own EAGLE-3-style draft, which fine-tunes the target's pre-trained multi-token-prediction layer over AttnRes features; DSpark is a separate externally trained parallel-draft checkpoint for the same target.[^kimi-k3-dspark-card]
 - **Evaluated by:** [DSpark speculator evaluation and deployment](dspark-speculator-evaluation-and-deployment.md).
 
 ## Evidence limits
 
-The DFlash paper now supplies primary evidence for the base method, but the DSpark model card still does not specify how closely DSpark follows DFlash's KV injection, masking, loss weighting, or shared embedding/head design. It also does not define how the Markov condition is applied or how the confidence head is consumed at runtime. Parameter counts, layer choices, and loss weights are checkpoint-specific and may not generalize to other targets or draft sizes.[^kimi-k3-dspark-card][^dflash-2026]
+The DFlash paper now supplies primary evidence for the base method, but the DSpark model card still does not specify how closely DSpark follows DFlash's KV injection, masking, loss weighting, or shared embedding/head design. It also does not define how the Markov condition is applied or how the confidence head is consumed at runtime. Parameter counts, layer choices, and loss weights are checkpoint-specific and may not generalize to other targets or draft sizes. DeepSeek-V4.1 exposes another forward architecture but still omits its confidence-scheduled verification loop.[^kimi-k3-dspark-card][^dflash-2026][^deepseek-v41-reference-model]
+
+[^deepseek-v41-tech-report]: DeepSeek-AI, “DeepSeek-V4.1-Flash: Pushing the Limits of KV Cache Compression,” [technical report](../raw/DeepSeek_V41_Tech_Report/DeepSeek_V41_Tech_Report.md), Section 2.4.3.
 
 [^kimi-k3-dspark-card]: RadixArk, “Kimi K3 DSpark speculator,” Hugging Face model card, [source](../raw/KimiK3DSparkspeculator.md), Overview, Model Specifications, and Training Details.
 
 [^dflash-2026]: Chen, Liang, and Liu, “DFlash: Block Diffusion for Flash Speculative Decoding,” arXiv:2602.06036v2, [source](../raw/arXiv-2602.06036v2/main.tex), Sections 3–4 and Appendix B.
 
 [^nemotron-dspark-card]: NVIDIA, “NVIDIA Nemotron 3.5 Lightning DSpark,” [model card](../raw/NVIDIA-Nemotron-3.5-Lightning-30B-A3B/DSpark.md), Model Architecture, Use Case, and DSpark Speculative Decoding.
+
+[^deepseek-v41-reference-model]: DeepSeek-AI, [DeepSeek-V4.1-Flash minimal inference model](../raw/DeepSeek-V4.1-Flash/inference/model.py), `ModelArgs`, `DSparkAttention`, `DSparkMarkovHead`, `DSparkConfidenceHead`, `DSparkBlock`, and `Transformer.forward_spec`.

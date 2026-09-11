@@ -5,8 +5,11 @@ description: Auxiliary-loss-free balancing adjusts per-expert routing biases fro
 tags: [mixture-of-experts, load-balancing, routing, distributed-training]
 status: stable
 created: 2026-08-01
-generated: { by: llm-wiki-agent/1, at: 2026-08-14T06:56:09Z }
+generated: { by: llm-wiki-agent/1, at: 2026-09-11T05:35:45Z }
 sources:
+  - id: deepseek-v41-tech-report
+    resource: ../raw/DeepSeek_V41_Tech_Report/DeepSeek_V41_Tech_Report.md
+    title: "DeepSeek-V4.1-Flash: Pushing the Limits of KV Cache Compression"
   - id: deepseek-v3-2024
     resource: ../raw/arXiv-2412.19437v2/main.tex
     title: "DeepSeek-V3 Technical Report"
@@ -31,6 +34,10 @@ The report contrasts this batch-wise method with a sequence-wise auxiliary loss:
 
 Batch-wise balance does not itself guarantee safe inference utilization. V3 combines node-limited routing, large distributed micro-batches, and redundant experts at serving time; the report separately identifies domain-shift load imbalance as an inference concern.[^deepseek-v3-2024]
 
+## Modality-specific extension
+
+DeepSeek-V4.1-Flash maintains separate expert correction biases and load measurements for image and text tokens while retaining original routing scores for selected-expert weighting. Both modalities use a reported bias update speed of 0.001, plus the same small sequence-level balance loss weight of 0.0001. This prevents aggregate balance from hiding modality-specific skew, but the report provides no isolated quality or utilization ablation.[^deepseek-v41-tech-report]
+
 ## GLM-5 implementation evidence
 
 The released GLM-MoE-DSA router implements the same assignment/weight separation: it computes sigmoid affinities in float32, adds `e_score_correction_bias` for grouped top-k selection, gathers and normalizes the unmodified affinities for output weights, then applies a model-specific scaling factor. Its 256 routed experts use top-8 selection and an always-on shared expert. The code exposes the correction bias but not its training-time update rule, so it confirms inference semantics rather than the complete balancing algorithm.[^glm5-code-2026]
@@ -44,6 +51,8 @@ The released GLM-MoE-DSA router implements the same assignment/weight separation
 ## Evidence limits
 
 The mechanism and ablations are author-reported. The comparison changes the balancing strategy in specified 15.7B and 228.7B models, but it does not establish the method’s performance or stability across data mixtures, expert counts, batch sizes, hardware, or production request distributions.[^deepseek-v3-2024]
+
+[^deepseek-v41-tech-report]: DeepSeek-AI, “DeepSeek-V4.1-Flash: Pushing the Limits of KV Cache Compression,” [technical report](../raw/DeepSeek_V41_Tech_Report/DeepSeek_V41_Tech_Report.md), Sections 2.1.1 and 4.2.2.
 
 [^deepseek-v3-2024]: DeepSeek-AI, “DeepSeek-V3 Technical Report,” arXiv:2412.19437v2, [source](../raw/arXiv-2412.19437v2/main.tex), Sections 2.1, 3.2, 5.4, and Appendix B.
 

@@ -5,8 +5,11 @@ description: Manifold-constrained Hyper-Connections expand a Transformer’s res
 tags: [residual-connections, transformer, training-stability, hyper-connections]
 status: draft
 created: 2026-08-12
-generated: { by: llm-wiki-agent/1, at: 2026-08-25T00:00:00Z }
+generated: { by: llm-wiki-agent/1, at: 2026-09-11T05:35:45Z }
 sources:
+  - id: deepseek-v41-tech-report
+    resource: ../raw/DeepSeek_V41_Tech_Report/DeepSeek_V41_Tech_Report.md
+    title: "DeepSeek-V4.1-Flash: Pushing the Limits of KV Cache Compression"
   - id: mhc-2025
     resource: ../raw/2512.24880_mHC/main.tex
     title: "mHC: Manifold-Constrained Hyper-Connections"
@@ -37,6 +40,10 @@ In the authors’ 27B comparison, mHC has a final training-loss gap of $-0.021$ 
 
 The same report attributes HC’s instability to compounding unconstrained residual maps: its displayed 27B composite gain approaches $3000$, whereas approximate mHC’s displayed composite backward gain peaks around $1.6$. To make the widened path practical, it uses fused mixed-precision kernels, selective activation recomputation, and communication overlap in a DualPipe extension; at $n=4$, it reports 6.7% extra training time. The result is system-, model-, and implementation-specific.[^mhc-2025]
 
+## Single-Pass mHC in DeepSeek-V4.1
+
+DeepSeek-V4.1 shifts each block’s input-mixing coefficient from $A_l$ to $A_{l-1}$, removing a same-block dependency so residual update, input mixing, coefficient prediction, pre-normalization, and FP8 conversion can share one Mega-mHC kernel traversal. The report’s accounting falls from $(4n+4)d$ activation reads/writes in its original four-kernel path to the $(2n+2)d$ ideal-map lower bound; it reports negligible quality degradation but no isolated benchmark or end-to-end speedup.[^deepseek-v41-tech-report]
+
 ## Relationships
 
 - **Used by:** [DeepSeek-V4 hybrid architecture and pretraining](deepseek-v4-hybrid-architecture-and-pretraining.md).
@@ -47,6 +54,8 @@ The same report attributes HC’s instability to compounding unconstrained resid
 ## Evidence limits
 
 The mHC paper provides matched baseline/HC comparisons, but the visible evidence remains author-run and does not isolate every design choice within its DeepSeek-V3-style MoE setup. DeepSeek-V4 supplies a separate deployment use case, but cannot isolate mHC from its attention, data, MoE, and optimizer changes. The stability rationale applies directly only to the constrained linear residual map.[^mhc-2025][^deepseek-v4-2026]
+
+[^deepseek-v41-tech-report]: DeepSeek-AI, “DeepSeek-V4.1-Flash: Pushing the Limits of KV Cache Compression,” [technical report](../raw/DeepSeek_V41_Tech_Report/DeepSeek_V41_Tech_Report.md), Section 2.4.1.
 
 [^mhc-2025]: Zhenda Xie et al., “mHC: Manifold-Constrained Hyper-Connections,” [source](../raw/2512.24880_mHC/main.tex), Sections 1–5 and Appendix A.
 [^deepseek-v4-2026]: DeepSeek-AI, “DeepSeek-V4: Towards Highly Efficient Million-Token Context Intelligence,” arXiv:2606.19348v1, [source](../raw/arXiv-2606.19348v1/main.tex), Sections 2.2 and 4.4.2.

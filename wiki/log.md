@@ -1,6 +1,8 @@
 # Wiki Update Log
 
 ## 2026-09-11
+- **Ingest**: Compiled the full [DeepSeek-V4.1-Flash technical report](../raw/DeepSeek_V41_Tech_Report/DeepSeek_V41_Tech_Report.md) and its 15 referenced figures; expanded architecture, CSA2, mHC, Engram, multimodal balancing, DSpark, post-training, effort-control, evaluation, and contradiction coverage, and created [training, serving, and agent infrastructure](deepseek-v4-1-training-serving-and-agent-infrastructure.md).
+- **Ingest**: Compiled [DeepSeek-V4.1-Flash](../raw/DeepSeek-V4.1-Flash/README.md) and its referenced configuration, inference, encoding, evaluation, and LFS-pointer figures; created its [architecture](deepseek-v4-1-flash-architecture-and-pretraining.md), [prompt encoding](deepseek-v4-1-chat-tool-and-reasoning-encoding.md), and [evaluation/interface limits](deepseek-v4-1-flash-post-training-evaluation-and-interface-limits.md), and connected CSA2 and the checkpoint-specific DSpark path to maintained mechanism pages.
 - **Ingest**: Compiled [MoBA: Mixture of Block Attention for Long-Context LLMs](../raw/2502.13189-MoBA/iclr2025_conference.tex) and its material figures; created [Mixture of Block Attention](mixture-of-block-attention.md) and its [evaluation and systems trade-offs](mixture-of-block-attention-evaluation-and-systems-trade-offs.md), and updated the [Sparse Attention evolution](sparse-attention-evolution-and-architecture-comparison.md) synthesis with learned raw-block routing and evidence boundaries.
 
 ## 2026-09-03

@@ -5,8 +5,11 @@ description: Engram injects deterministic hashed n-gram embedding lookup into se
 tags: [embeddings, n-grams, conditional-memory, mixture-of-experts, offloading, sparse-models]
 status: stable
 created: 2026-08-25
-generated: { by: llm-wiki-agent/1, at: 2026-08-25T15:33:29Z }
+generated: { by: llm-wiki-agent/1, at: 2026-09-11T05:35:45Z }
 sources:
+  - id: deepseek-v41-tech-report
+    resource: ../raw/DeepSeek_V41_Tech_Report/DeepSeek_V41_Tech_Report.md
+    title: "DeepSeek-V4.1-Flash: Pushing the Limits of KV Cache Compression"
   - id: conditional-memory-2026
     resource: ../raw/2601.07372_ConditionalMemoryviaScalableLookup/main.tex
     title: "Conditional Memory via Scalable Lookup: A New Axis of Sparsity for Large Language Models"
@@ -45,6 +48,10 @@ At training time, tables are sharded across GPUs; active row retrieval and gradi
 
 This is unlike [SCONE](scone-scalable-contextualized-offloaded-n-gram-embeddings.md), which substitutes a lookup-produced vector at the input interface after training. It is also unlike [Over-Encoding](over-encoding-hierarchical-n-gram-input-embeddings.md), which adds hashed n-gram features directly to token inputs: Engram’s retrieval is fused in intermediate layers and conditioned on an already contextualized hidden state.[^conditional-memory-2026]
 
+## DeepSeek-V4.1 instance
+
+DeepSeek-V4.1-Flash allocates 196B Engram parameters across modules at zero-indexed layers 1 and 14. Each uses n-gram orders 2–4, eight hash heads, and approximately 16M entries per head with FP8 tables and projections. It omits Engram’s short causal convolution, updates tables with momentum followed by Sinkhorn balancing rather than Adam, row-shards them across dedicated process groups during training, and prefetches deterministic host-resident inference lookups via RDMA. These are checkpoint-specific modifications, not changes to Engram’s general definition.[^deepseek-v41-tech-report]
+
 ## Relationships
 
 - **Specific instance of:** [N-gram embeddings and conditional memory](n-gram-embeddings-and-conditional-memory.md).
@@ -55,5 +62,7 @@ This is unlike [SCONE](scone-scalable-contextualized-offloaded-n-gram-embeddings
 ## Evidence limits
 
 The mechanism and systems design are documented in an author paper. Its stated GitHub link and proposed hierarchical cache were not independently inspected in this ingestion; this page does not claim released-code behavior or production performance. Hashing, normalization, gating, placement, table widths, and offload overlap are configuration choices, not universal properties of n-gram memory.[^conditional-memory-2026]
+
+[^deepseek-v41-tech-report]: DeepSeek-AI, “DeepSeek-V4.1-Flash: Pushing the Limits of KV Cache Compression,” [technical report](../raw/DeepSeek_V41_Tech_Report/DeepSeek_V41_Tech_Report.md), Sections 2.4.2, 2.5, and 3.1.3.
 
 [^conditional-memory-2026]: Xin Cheng et al., “Conditional Memory via Scalable Lookup: A New Axis of Sparsity for Large Language Models,” [LaTeX source](../raw/2601.07372_ConditionalMemoryviaScalableLookup/main.tex), Abstract; Sections 1–2; Appendix “Detailed Model Architecture and Hyper Parameters”; and rendered bundled architecture/system figures.
