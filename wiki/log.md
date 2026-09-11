@@ -1,5 +1,8 @@
 # Wiki Update Log
 
+## 2026-09-11
+- **Ingest**: Compiled [MoBA: Mixture of Block Attention for Long-Context LLMs](../raw/2502.13189-MoBA/iclr2025_conference.tex) and its material figures; created [Mixture of Block Attention](mixture-of-block-attention.md) and its [evaluation and systems trade-offs](mixture-of-block-attention-evaluation-and-systems-trade-offs.md), and updated the [Sparse Attention evolution](sparse-attention-evolution-and-architecture-comparison.md) synthesis with learned raw-block routing and evidence boundaries.
+
 ## 2026-09-03
 - **Ingest**: Compiled the user-supplied [note](../raw/why-K3-doesnt-need-RoPE.md) and [diagram](../raw/why-K3-doesnt-need-RoPE.jpeg); filed [KDA as data-dependent multiplicative positional encoding](kda-as-data-dependent-multiplicative-positional-encoding.md), scoped K3’s NoPE claim to its text-backbone MLA layers, and distinguished general non-orthogonal KDA transitions from orthogonal Householder reflections and RoPE.
 

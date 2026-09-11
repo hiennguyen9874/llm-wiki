@@ -5,11 +5,14 @@ description: A source-bounded synthesis of Sparse Attention from fixed masks thr
 tags: [sparse-attention, attention, long-context, kv-cache, architecture, comparison]
 status: draft
 created: 2026-08-27
-generated: { by: llm-wiki-agent/1, at: 2026-08-27T03:53:22Z }
+generated: { by: llm-wiki-agent/1, at: 2026-09-11T04:57:39Z }
 sources:
   - id: user-sparse-attention-map-2026-08-27
     resource: ../raw/user-supplied-sparse-attention-evolution.md
     title: User-supplied Sparse Attention evolution map
+  - id: moba-2025
+    resource: ../raw/2502.13189-MoBA/iclr2025_conference.tex
+    title: "MoBA: Mixture of Block Attention for Long-Context LLMs"
   - id: deepseek-v3-2-2025
     resource: ../raw/arXiv-2512.02556v1/main.tex
     title: "DeepSeek-V3.2: Pushing the Frontier of Open Large Language Models"
@@ -38,7 +41,7 @@ sources:
 
 # Sparse Attention evolution and architecture comparison
 
-Sparse Attention evolves by moving the sparsity decision from a fixed positional mask to learned content retrieval, then changing the retrieval unit from individual tokens to local blocks or compressed entries. The later designs also co-design indexing with memory locality, layer reuse, and KV-cache representation. The recurrent–attention hybrid is a related architectural branch rather than a strict final stage: it places fixed-state sequence mixing in most layers and reserves periodic attention for token-addressable retrieval.[^user-map][^deepseek-dsa][^longcat-lsa][^deepseek-v4][^kimi-linear]
+Sparse Attention evolves by moving the sparsity decision from a fixed positional mask to learned content retrieval, then changing the retrieval unit from raw-token blocks to individual tokens, pooled blocks, or compressed entries. MoBA is an early learned block-routing point in this map: it scores mean-pooled KV blocks but runs core attention over their raw tokens. Later designs also co-design indexing with memory locality, layer reuse, and KV-cache representation. The recurrent–attention hybrid is a related architectural branch rather than a strict final stage: it places fixed-state sequence mixing in most layers and reserves periodic attention for token-addressable retrieval.[^user-map][^moba][^deepseek-dsa][^longcat-lsa][^deepseek-v4][^kimi-linear]
 
 ## How to read the map
 
@@ -62,6 +65,7 @@ flowchart TD
         B4[Block-sparse mask<br/>Bỏ qua các score block bị mask]
     end
     subgraph S2[Giai đoạn 2 — Learned content-based retrieval]
+        M[MoBA<br/>Mean-pool raw KV blocks<br/>Query chọn top-k blocks<br/>Core attention đọc raw tokens]
         C[DeepSeek Sparse Attention — DSA<br/>Indexer học score từng token<br/>Chọn token-level top-k<br/>Core MLA / MQA]
     end
     subgraph S3[Giai đoạn 3 — Tối ưu locality bằng pooling]
@@ -84,6 +88,9 @@ flowchart TD
     A --> B2
     A --> B3
     A --> B4
+    B3 --> M
+    B4 --> M
+    M -. Learned block routing .-> C
     B3 --> C
     B4 --> C
     C -->|Giảm truy cập KV rời rạc| D1
@@ -109,7 +116,7 @@ flowchart TD
     classDef hybrid fill:#ffe4e6,stroke:#e11d48,color:#4c0519;
     class A baseline;
     class B1,B2,B3,B4 fixed;
-    class C learned;
+    class M,C learned;
     class D1,D2 pooled;
     class E,F1,F2 advanced;
     class G1,G2,G3 hybrid;
@@ -124,6 +131,7 @@ flowchart TD
 | Strided / dilated | Fixed positions at predetermined gaps | Spaced tokens | Attention over the fixed pattern | Usually sequence-dependent | Fixed sampling can miss relevant tokens |
 | Local + global / sink | Fixed local region plus fixed anchors | Local tokens and designated global/sink tokens | Sparse fixed pattern | Usually sequence-dependent | Anchors are not content-adaptive retrieval |
 | Block-sparse mask | Fixed open score blocks | Tokens inside open blocks | Block-sparse attention | Depends on cache policy | Block granularity and boundaries |
+| MoBA | Query-to-mean-key top-k over causal KV blocks; current block forced | Raw tokens inside selected blocks | Variable-length softmax attention with online merge | Token-level KV still grows with context | Block-router work, granularity, and selected-block gather |
 | DSA | Learned indexer plus token top-k | Selected individual tokens | MQA over selected MLA entries | Token-level MLA entries still grow with context | Indexer work and scattered KV reads |
 | QSA | Mean-pooled four-token block ranking | Selected blocks expanded to tokens | Causal GQA | Main-attention K/V and index keys remain token-growing | Block false positives and indexer work |
 | GLM pooled DSA | Learned pooling over four-token groups | Selected pools expanded to tokens | MLA/DSA | Token-growing state in the disclosed implementation | Learned indexer and block-level misses |
@@ -149,7 +157,13 @@ Local, strided/dilated, local-plus-global/sink, and block-sparse designs reduce 
 
 Fixed sparsity avoids indexer overhead, but its failure mode is a structural blind spot: if the useful dependency is outside the allowed pattern, the current layer cannot retrieve it directly. It also does not automatically imply a smaller retained KV cache.
 
-## Stage 2 — DSA: learned token-level retrieval
+## Stage 2a — MoBA: learned raw-block routing
+
+[MoBA](mixture-of-block-attention.md) partitions raw token K/V into contiguous blocks, represents each block by its mean key, and routes each query to top-ranked historical blocks plus its causally masked current block. Unlike later pooled-selection designs, block width is not merely a small locality unit: the report uses widths from 512 to 4,096 tokens, and every selected block expands to all of its raw K/V tokens. Unlike CSA/HCA, pooling does not replace the stored KV representation.[^moba]
+
+MoBA preserves the original attention parameters and can switch layers or training stages back to full attention. Its reported implementation dispatches queries by block, runs variable-length FlashAttention separately for current and historical blocks, and combines outputs with online-softmax statistics. The router still scores query–block pairs, so sparse core attention does not remove all history-search work; the practical and asymptotic profile depends on block width, top-k, and how they scale with context.[^moba]
+
+## Stage 2b — DSA: learned token-level retrieval
 
 DSA adds a lightweight learned indexer before core attention. The indexer scores prior token-level MLA entries and selects the top-$k$ positions; core attention then operates only on those selected entries. The reported core-attention change is from approximately $O(L^2)$ to $O(Lk)$ in prefill, but the indexer still examines the history and retains a lower-cost quadratic component at full-sequence scale.[^deepseek-dsa]
 
@@ -231,6 +245,7 @@ The following orders suppress head dimensions, projection widths, block metadata
 |---|---|---|---|
 | Dense full | $O(L^2)$ attention | Reads $O(L)$ cached history | Per-token KV, $O(L)$ |
 | Fixed sparse | Approximately $O(LR)$ if each query reads $R$ fixed positions | Reads $O(R)$ selected positions | May remain $O(L)$ unless old state is discarded |
+| MoBA | Router is about $O(L^2/B)$ and core about $O(LkB)$ for block width $B$ | Scores about $L/B$ blocks and reads up to $kB$ raw tokens | Token-level KV, $O(L)$ |
 | DSA | Indexer remains near $O(L^2)$ at full sequence; core is about $O(Lk)$ | Indexer about $O(L)$ plus core about $O(k)$ | Token-level entries, $O(L)$ |
 | Pooled selection | Candidate scoring shrinks by pool width $r$; core is about $O(LKr)$ for $K$ selected blocks | Pool scoring over about $L/r$ candidates plus at most $Kr$ core tokens | Usually token-level, $O(L)$ |
 | LSA | Same sparse core family, with fewer index passes and hierarchical selection where enabled | Fixed/local regions plus dynamic selection; reuse and partitioning reduce repeated work | Token-level, $O(L)$ aggregate cache |
@@ -256,16 +271,17 @@ The key distinction is between **attention work**, **indexer work**, and **store
 
 ## Relationships
 
-- **Synthesizes:** [Attention design matrix — khóa học cho người mới](attention-design-matrix-beginners-course.md), [DeepSeek Sparse Attention](deepseek-sparse-attention.md), [Qwen Sparse Attention](qwen-sparse-attention.md), [LongCat Sparse Attention](longcat-sparse-attention.md), and [Compressed sparse and heavily compressed attention](compressed-sparse-and-heavily-compressed-attention.md).
+- **Synthesizes:** [Attention design matrix — khóa học cho người mới](attention-design-matrix-beginners-course.md), [Mixture of Block Attention](mixture-of-block-attention.md), [DeepSeek Sparse Attention](deepseek-sparse-attention.md), [Qwen Sparse Attention](qwen-sparse-attention.md), [LongCat Sparse Attention](longcat-sparse-attention.md), and [Compressed sparse and heavily compressed attention](compressed-sparse-and-heavily-compressed-attention.md).
 - **Connects:** [Kimi Linear hybrid attention architecture](kimi-linear-hybrid-attention-architecture.md) and [Kimi K3 hybrid retrieval architecture](kimi-k3-hybrid-retrieval-architecture.md) as the recurrent–periodic-retrieval branch.
 - **Distinguishes:** [KV-cache compression and trade-offs](kv-cache-compression-and-trade-offs.md) from sparse read reduction: a smaller selected set does not necessarily mean a smaller stored cache.
 - **Relates to:** [Self-attention computational profile](self-attention-computational-profile.md) for the dense and restricted-attention cost baseline.
 
 ## Evidence limits
 
-The overall stage ordering and the fixed-pattern taxonomy are a conceptual synthesis from the user-supplied map, not a claim that every method descends directly from the preceding one. DSA, QSA, pooled DSA, LSA, CSA/HCA, and hybrid details are grounded in the cited reports, checkpoint configurations, and implementations, but their speed and quality results remain workload-, kernel-, hardware-, and training-recipe dependent. DSA retains an indexer pass; LSA retains token-level KV state; and compressed entries trade remote token identity for smaller representation. No single cited ablation establishes that the entire five-stage sequence is a universal quality or latency frontier.[^user-map][^deepseek-dsa][^qwen-qsa][^longcat-lsa][^deepseek-v4][^kimi-linear]
+The overall stage ordering and the fixed-pattern taxonomy are a conceptual synthesis from the user-supplied map, not a claim that every method descends directly from the preceding one. MoBA, DSA, QSA, pooled DSA, LSA, CSA/HCA, and hybrid details are grounded in the cited reports, checkpoint configurations, and implementations, but their speed and quality results remain workload-, kernel-, hardware-, and training-recipe dependent. MoBA and DSA retain router/indexer work and token-growing KV state; LSA also retains token-level KV state; and compressed entries trade remote token identity for smaller representation. No single cited ablation establishes that the entire five-stage sequence is a universal quality or latency frontier.[^user-map][^moba][^deepseek-dsa][^qwen-qsa][^longcat-lsa][^deepseek-v4][^kimi-linear]
 
 [^user-map]: User-supplied “Sparse Attention evolution map,” preserved at [raw/user-supplied-sparse-attention-evolution.md](../raw/user-supplied-sparse-attention-evolution.md). The map is treated as conceptual input rather than an independent technical source.
+[^moba]: Enzhe Lu et al., “MoBA: Mixture of Block Attention for Long-Context LLMs,” arXiv:2502.13189, [source](../raw/2502.13189-MoBA/iclr2025_conference.tex), Sections 2–3.
 [^deepseek-dsa]: DeepSeek-AI, “DeepSeek-V3.2: Pushing the Frontier of Open Large Language Models,” [source](../raw/arXiv-2512.02556v1/main.tex), Sections 2.1–2.3.
 [^qwen-qsa]: Qwen Team, “On the Design of Qwen3.8-Next Architecture: Evaluation, Efficiency, and Training Stability,” [technical report](../raw/Qwen3.8-Flash-Next-tech_report/qwen3.8-flash-next-tech_report.md), Section 2.1.2 and cited checkpoint artifacts; cross-checked against the [reference implementation](../raw/Qwen3.8-Flash-Next/modeling_qwen4_exp.py).
 [^glm53-config]: Z.ai, “GLM-5.3-Flash checkpoint configuration,” [config](../raw/GLM-5.3-Flash/config.json), pooled-index and attention settings.

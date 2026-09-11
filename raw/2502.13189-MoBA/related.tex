@@ -1,0 +1,36 @@
+\section{Related Work}
+
+
+The development of efficient attention~\citep{tay2020efficient} mechanisms has been a critical area of research in the field of natural language processing, particularly with the rise of Large Language Models (LLMs). As the demand for handling longer sequences and reducing computational costs grows, efficeint attention techniques have emerged as a promising solution to reduce the quadratic complexity of self-attention mechanisms while maintaining model performance.
+
+\textbf{Static Sparse Patterns:}
+Significant efforts, such as Sparse Transformer~\citep{child2019generating}, Star-Transformer~\citep{guo2019star}, BlockBERT~\citep{qiu2019blockwise}, Longformer~\citep{beltagy2020longformer},
+GMAT~\citep{gupta2020gmat}, ETC~\citep{ainslie2020etc},
+BigBird~\citep{zaheer2020big}, LongT5~\citep{guo2021longt5} and LongNet~\citep{ding2023longnet}, have been dedicated to the design of static attention patterns in LLMs. 
+Their choices of static attention patterns can encompass strided and fixed attention, window attention, global token attention, random attention, dilated attention, block sparse attention, or any combinations of them. 
+In the realm of multimodal models, static sparse attention mechanisms have also been developed, such as axial attention~\citep{ho2019axial} for 2D images and spatial-temporal attention~\citep{opensora} for 3D videos.
+
+\textbf{Dynamic Sparse Patterns:}
+Different from static patterns, dynamic sparse attention techniques adaptively determine which tokens to attend. 
+Reformer~\citep{kitaev2020reformer} and Routing Transformer~\citep{roy2021efficient} respectively employ locality-sensitive hashing~(LSH) and K-means to cluster tokens, and attend to clusters rather than the full context. Memorizing Transformers~\citep{wu2022memorizing} and Unlimiformer~\citep{bertsch2024unlimiformer} dynamically attend to tokens selected by the k-nearest-neighbor~(kNN) algorithms. 
+CoLT5~\citep{ainslie2023colt5} designs a routing modules to select the most important queries and keys.
+%
+Sparse Sinkhorn Attention~\citep{tay2020sparse} learns to permute blocks from the input sequence, allowing dynamic block sparse attention computation.
+
+
+\textbf{Training-free Sparse Attention:}
+In addition to the previously discussed approaches that study training sparse attention models, there are also strategies designed to incorporate sparse attention mechanisms to enhance the efficiency of the two primary stages of model inference --- either the prefill stage or the decode stage, or both of them.
+%
+During the prefill optimization phase, the complete prompt can be utilized for attention profiling, which allows for the exploration of more intricate sparse attention patterns. For instance, MoA~\citep{fu2024moa}, Minference~\citep{jiang2024minference}, and SeerAttention~\citep{gao2024seerattention} have investigated sparse attention configurations such as A-shape, vertical-slash, and dynamic block sparsity.
+%
+In the context of decode optimization, considerable work has been dedicated to compressing and pruning the KV-cache to achieve a balance between the quality and speed of text generation. Notable efforts in this area include H2O~\citep{zhang2024h2o}, StreamingLLM~\citep{xiao2023efficient}, TOVA~\citep{oren2024tova}, FastGen~\citep{ge2023fastgen} and  Quest~\citep{tang2024quest}. Quest, in particular, can be viewed as MoBA with a smaller block size and a specialized block representation function which combines both min and max pooling. Another work closely related to MoBA is Longheads~\citep{lu2024longheads} which can be viewed as MoBA with a top-1 gating network, meaning that each query selects the most relevant KV blocks for attention.
+
+
+\textbf{Beyond Traditional Attention Architecture:} Another line of research  investigates novel model architectures that deviate from the conventional attention mechanism. As architectures change, these methods require training models from scratch and are unable to reuse pre-trained Transformer-based models. 
+ Studies in this domain have explored architectures that are inspired by  Convolutional Neural Networks (CNNs), Recurrent Neural Networks (RNNs), State Space Models (SSMs), or Linear Attention~\citep{katharopoulos2020transformers}, Examples of such models include Hyena~\citep{poli2023hyena},  Performer~\citep{choromanski2020rethinking},
+Linformer~\citep{wang2020linformer},
+RWKV~\cite{peng2023rwkv}, Mamba~\citep{gu2023mamba}, RetNet~\citep{sun2023retentive}, etc.
+
+In summary, the landscape of efficient attention techniques is diverse, encompassing sparse patterns that range from static to dynamic, optimization objectives that span from training to inference, and architectures that extend from traditional attention mechanisms to innovative alternatives.
+%
+Each method presents unique advantages and trade-offs, and the choice of technique often depends on the specific requirements of the application, such as the maximum sequence length, computational resources, and the desired balance between efficiency and performance. As research in this area continues to evolve, it is expected that these methods will play a crucial role in enabling LLMs to tackle increasingly complex tasks while maintaining efficiency and scalability.
