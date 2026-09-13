@@ -1,5 +1,8 @@
 # Wiki Update Log
 
+## 2026-09-13
+- **Query**: Answered “giải thích chi tiết kiến trúc CED, so sánh với decoder-only Transformers và Transformer encoder–decoder gốc”; filed [Causal Encoder-Decoder compared with Transformer architectures](causal-encoder-decoder-vs-transformer-architectures.md), distinguishing one-stream causal depth/cache partitioning from layer-local GPT caching and source–target cross-attention.
+
 ## 2026-09-11
 - **Ingest**: Compiled the full [DeepSeek-V4.1-Flash technical report](../raw/DeepSeek_V41_Tech_Report/DeepSeek_V41_Tech_Report.md) and its 15 referenced figures; expanded architecture, CSA2, mHC, Engram, multimodal balancing, DSpark, post-training, effort-control, evaluation, and contradiction coverage, and created [training, serving, and agent infrastructure](deepseek-v4-1-training-serving-and-agent-infrastructure.md).
 - **Ingest**: Compiled [DeepSeek-V4.1-Flash](../raw/DeepSeek-V4.1-Flash/README.md) and its referenced configuration, inference, encoding, evaluation, and LFS-pointer figures; created its [architecture](deepseek-v4-1-flash-architecture-and-pretraining.md), [prompt encoding](deepseek-v4-1-chat-tool-and-reasoning-encoding.md), and [evaluation/interface limits](deepseek-v4-1-flash-post-training-evaluation-and-interface-limits.md), and connected CSA2 and the checkpoint-specific DSpark path to maintained mechanism pages.
