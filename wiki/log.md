@@ -1,1 +1,33 @@
 # Wiki Update Log
+
+## 2026-09-14
+- **Ingest**: Compiled [vLLM IR: Functional Intermediate Representation](../raw/vllm/design/vllm_ir.md); created [vLLM IR Functional Intermediate Representation](vllm-ir.md).
+- **Ingest**: Compiled [Optimization Levels](../raw/vllm/design/optimization_levels.md); created [vLLM Optimization Levels](vllm-optimization-levels.md) and updated [vLLM torch.compile Fusion Passes](vllm-fusion-passes.md).
+- **Ingest**: Compiled [Multi-Modal Data Processing](../raw/vllm/design/mm_processing.md); created [vLLM Multimodal Data Processing](vllm-multimodal-processing.md).
+- **Ingest**: Compiled [Integration with Hugging Face](../raw/vllm/design/huggingface_integration.md); created [vLLM Hugging Face Integration](vllm-huggingface-integration.md).
+- **Ingest**: Compiled [Dual Batch Overlap](../raw/vllm/design/dbo.md); created [vLLM Dual Batch Overlap (DBO)](vllm-dbo-dual-batch-overlap.md).
+- **Ingest**: Compiled [torch.compile with Multimodal Encoders](../raw/vllm/design/torch_compile_multimodal.md); created [vLLM torch.compile for Multimodal Encoders](vllm-torch-compile-multimodal.md).
+- **Ingest**: Compiled [NIXL push-mode KV transfer](../raw/vllm/design/nixl_kv_push_connector.md); created [vLLM NIXL Push-Mode KV Transfer](vllm-nixl-kv-push-connector.md).
+- **Ingest**: Compiled [Metrics](../raw/vllm/design/metrics.md); created [vLLM Metrics and Observability](vllm-metrics.md).
+- **Ingest**: Compiled [HiSparse local KV offload architecture](../raw/vllm/design/hisparse.md); created [vLLM HiSparse Local KV Offload](vllm-hisparse.md).
+- **Ingest**: Compiled [CustomOp](../raw/vllm/design/custom_op.md); created [vLLM CustomOp Dispatch and Registration](vllm-custom-op.md) and updated [vLLM Plugin System](vllm-plugin-system.md).
+- **Ingest**: Compiled [`torch.compile` integration](../raw/vllm/design/torch_compile.md); created [vLLM torch.compile Integration](vllm-torch-compile.md).
+- **Ingest**: Compiled [NIXL KV Cache Lease Renewal](../raw/vllm/design/nixl_kv_cache_lease.md); created [vLLM NIXL KV Cache Lease Renewal](vllm-nixl-kv-lease.md).
+- **Ingest**: Compiled [LoRA Resolver Plugins](../raw/vllm/design/lora_resolver_plugins.md); created [vLLM LoRA Resolver Plugins](vllm-lora-resolver-plugins.md).
+- **Ingest**: Compiled [Fusion torch.compile passes](../raw/vllm/design/fusions.md); created [vLLM torch.compile Fusion Passes](vllm-fusion-passes.md).
+- **Ingest**: Compiled [Vision Encoder (ViT) CUDA Graphs](../raw/vllm/design/cuda_graphs_multimodal.md); created [vLLM Encoder CUDA Graphs for Vision Transformers](vllm-encoder-cuda-graphs.md) and updated [vLLM CUDA Graphs Modes and Dispatch](vllm-cuda-graphs.md).
+- **Ingest**: Compiled [Automatic Prefix Caching](../raw/vllm/design/prefix_caching.md); created [vLLM Prefix Caching](vllm-prefix-caching.md).
+- **Ingest**: Compiled [Python Multiprocessing](../raw/vllm/design/multiprocessing.md); created [vLLM Python Multiprocessing Method Selection](vllm-python-multiprocessing.md).
+- **Ingest**: Compiled [Logits Processors](../raw/vllm/design/logits_processors.md); created [vLLM Logits Processors](vllm-logits-processors.md).
+- **Ingest**: Compiled [Fused MoE Modular Kernel](../raw/vllm/design/fused_moe_modular_kernel.md); created [vLLM Fused MoE Modular Kernel](vllm-fused-moe-modular-kernel.md) and linked [vLLM Fused MoE Kernel Features](vllm-moe-kernel-features.md).
+- **Ingest**: Compiled [CUDA Graphs](../raw/vllm/design/cuda_graphs.md); created [vLLM CUDA Graphs Modes and Dispatch](vllm-cuda-graphs.md).
+- **Ingest**: Compiled [Plugin System](../raw/vllm/design/plugin_system.md); created [vLLM Plugin System](vllm-plugin-system.md).
+- **Ingest**: Compiled [Fused MoE Kernel Features](../raw/vllm/design/moe_kernel_features.md); created [vLLM Fused MoE Kernel Features](vllm-moe-kernel-features.md).
+- **Ingest**: Compiled [IO Processor Plugins](../raw/vllm/design/io_processor_plugins.md); created [vLLM IO Processor Plugins](vllm-io-processor-plugins.md).
+- **Ingest**: Compiled [Endpoint Plugins](../raw/vllm/design/endpoint_plugins.md); created [vLLM Endpoint Plugins](vllm-endpoint-plugins.md).
+- **Ingest**: Compiled [Attention Backend Feature Support](../raw/vllm/design/attention_backends.md); created [vLLM Attention Backends](vllm-attention-backends.md).
+- **Ingest**: Compiled [Paged Attention](../raw/vllm/design/paged_attention.md); created [vLLM Paged Attention Kernel](vllm-paged-attention-kernel.md).
+- **Ingest**: Compiled [Model Runner V2 Design Document](../raw/vllm/design/model_runner_v2.md); created [vLLM Model Runner V2](vllm-model-runner-v2.md).
+- **Ingest**: Compiled [Hybrid KV Cache Manager](../raw/vllm/design/hybrid_kv_cache_manager.md); created [vLLM Hybrid KV Cache Manager](vllm-hybrid-kv-cache-manager.md).
+- **Ingest**: Compiled [How to debug the vLLM-torch.compile integration](../raw/vllm/design/debug_vllm_compile.md); created [Debugging vLLM-torch.compile Integration](vllm-debug-torch-compile.md).
+- **Ingest**: Compiled [Architecture Overview](../raw/vllm/design/arch_overview.md); created [vLLM Entrypoints](vllm-entrypoints.md), [vLLM V1 Process Architecture](vllm-v1-process-architecture.md), and [vLLM Engine, Worker, and Model Hierarchy](vllm-engine-worker-hierarchy.md).
