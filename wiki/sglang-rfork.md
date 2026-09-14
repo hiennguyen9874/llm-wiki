@@ -5,11 +5,14 @@ description: Zero-copy GPU-to-GPU weight loading for SGLang via R-Fork with NCCL
 tags: [sglang, r-fork, weight-loading, nccl, transfer-engine]
 status: stable
 created: 2026-09-14
-generated: { by: llm-wiki-agent/1, at: 2026-09-14T10:07:17Z }
+generated: { by: llm-wiki-agent/1, at: 2026-09-14T12:37:22Z }
 sources:
   - id: sgl-rfork
     resource: ../raw/sglang/advanced_features/rfork.mdx
     title: R-Fork
+  - id: sgl-p2p-update
+    resource: ../raw/2026-04-29-p2p-update/index.md
+    title: "Updating 1T parameters in seconds — P2P weight transfer in Large Scale Distributed RL"
 ---
 
 R-Fork (Tensor Remote Fork) loads model tensors from a running SGLang seed instance to a new client instance over an inter-node GPU-to-GPU path with zero-copy, reducing weight-loading boot-up time from minutes to seconds[^sgl-rfork].
@@ -65,6 +68,7 @@ python -m sglang.launch_server [args] \
 
 ## Relationships
 
+- Related to [SGLang P2P Weight Transfer for RL](sglang-p2p-weight-transfer.md) — P2P RL update path reuses R-Fork weight-registration info and TransferEngine seed-service mechanism[^sgl-p2p-update].
 - Uses [SGLang Checkpoint Engine Integration](sglang-checkpoint-engine.md) — alternative fast weight-loading path that shards disk reads and pushes weights via checkpoint-engine workers, versus R-Fork's running-instance GPU-to-GPU transfer.
 
 ## Coverage limits
@@ -73,3 +77,5 @@ python -m sglang.launch_server [args] \
 - Linked R-Fork blog was not inspected[^sgl-rfork].
 
 [^sgl-rfork]: R-Fork — `../raw/sglang/advanced_features/rfork.mdx`.
+
+[^sgl-p2p-update]: Updating 1T parameters in seconds — P2P weight transfer in Large Scale Distributed RL — `../raw/2026-04-29-p2p-update/index.md`, covering R-Fork registration-info reuse for RDMA P2P weight updates.

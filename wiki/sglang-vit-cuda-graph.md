@@ -87,5 +87,6 @@ Known supported models at time of writing[^sgl-vit-cg]:
 
 - Uses [SGLang Attention Backends](sglang-attention-backends.md) — Triton versus FA3 argument shapes frozen in the ViT graph follow the same SGLang backend families.
 - Uses [vLLM Encoder CUDA Graphs for Vision Transformers](vllm-encoder-cuda-graphs.md) — companion budget-based encoder-graph design in vLLM; both target ViT launch overhead but differ in per-`S` caching versus token-budget capture.
+- Uses [SGLang Advanced CUDA Graphs](sglang-advanced-cuda-graphs.md) — LLM runner/backend prefill/decode graphs are orthogonal to the ViT per-`S` encoder graphs compiled here.
 
 [^sgl-vit-cg]: Cuda Graph for Multi-Modal Encoder in SGLang — `../raw/sglang/advanced_features/cuda_graph_for_multi_modal_encoder.mdx`, covering ViT motivation, `ViTCudaGraphRunner` scope, per-`S` caching, static buffers, attention-backend freezing, rotary management, enablement commands, and supported Qwen-VL models.

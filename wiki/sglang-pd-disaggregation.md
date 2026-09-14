@@ -10,6 +10,9 @@ sources:
   - id: sgl-pd-disagg
     resource: ../raw/sglang/advanced_features/pd_disaggregation.mdx
     title: PD Disaggregation
+  - id: qwen38-day0
+    resource: ../raw/2026-08-12-qwen3-8-day0-support/index.md
+    title: 'SGLang and Miles Add Day-0 Support for Qwen3.8'
 ---
 
 SGLang PD disaggregation runs prefill and decode in separate instances connected by a KV-cache transfer engine and a PD-aware router, avoiding unified-scheduling prefill interruption and DP-attention imbalance[^sgl-pd-disagg].
@@ -131,6 +134,10 @@ python -m sglang.launch_server \
 - Profile prefill and decode workers separately with dedicated command-line options because of torch-profiler limitations; procedure is in the Benchmark and Profiling guide section `Profile In PD Disaggregation Mode`[^sgl-pd-disagg].
 - For scale deployment with load balancing and fault tolerance, front prefill/decode instances with the SGLang Router / Model Gateway using `--pd-disaggregation` and routing policies; setup is in that guide, not repeated here[^sgl-pd-disagg].
 
+## Qwen3.8 three-state transfer with staging buffer
+
+Qwen3.8 extends PD transfer beyond KV cache to all three GDN serving states through a typed registry, with independent `q`/`k`/`v` convolution-window resharding across TP ranks and MTP draft KV, hidden states, and top-k metadata in the same payload so speculation continues on decode[^qwen38-day0]. A GPU staging buffer coalesces per-layer slices into one bulk RDMA transfer per chunk under a chunk-index plus watermark contract, letting PP prefill and wide-EP decode use independent layouts and be sized in parallel[^qwen38-day0]. Detail and 8K/1K PD endpoints are maintained in [SGLang Qwen3.8 Inference](sglang-qwen3.8-inference.md).
+
 ## Relationships
 
 - Uses [SGLang EPD Disaggregation](sglang-epd-disaggregation.md) — three-tier extension separating the vision encoder from the prefill/decode split covered here.
@@ -138,6 +145,7 @@ python -m sglang.launch_server \
 - Uses [vLLM Disaggregated Prefill](vllm-disaggregated-prefill.md) — vLLM analog separating prefill and decode with connector-mediated KV transfer to tune TTFT/ITL independently.
 - Uses [vLLM Mooncake Connector](vllm-mooncake-connector.md) — vLLM-side Mooncake RDMA transfer analog for the prefill-to-decode leg.
 - Uses [vLLM NIXL Connector Usage](vllm-nixl-connector-usage.md) — vLLM-side NIXL deployment analog for the prefill-to-decode leg.
+- Related to [SGLang Qwen3.8 Inference](sglang-qwen3.8-inference.md) — Qwen3.8 three-state typed transfer with convolution-window resharding and watermarked staging-buffer bulk RDMA.
 
 ## Coverage limits
 
@@ -145,3 +153,4 @@ python -m sglang.launch_server \
 - No latency, throughput, TTFT/ITL, or transfer-bandwidth measurements were in the source[^sgl-pd-disagg].
 
 [^sgl-pd-disagg]: PD Disaggregation — `../raw/sglang/advanced_features/pd_disaggregation.mdx`, covering prefill/decode resource profiles and unified-scheduling prefill interruption plus DP-attention imbalance, Mooncake and NIXL plus Ascend transfer backends with install and `--disaggregation-mode` / `--disaggregation-transfer-backend` / `--disaggregation-ib-device` launch shapes for single-node Llama and multi-node DeepSeek with router commands, Mooncake NVLink variables and prefill/decode thread-pool / queue / bootstrap / heartbeat / waiting timeouts, and `SGLANG_DISAGGREGATION_NIXL_BACKEND` plugin selection.
+[^qwen38-day0]: SGLang and Miles Add Day-0 Support for Qwen3.8 — `../raw/2026-08-12-qwen3-8-day0-support/index.md`, covering typed three-state transfer with convolution-window resharding and watermarked staging-buffer bulk RDMA.

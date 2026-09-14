@@ -176,5 +176,6 @@ Performance examples are linked from the source PR discussion rather than reprod
 - Uses [vLLM Attention Backends](vllm-attention-backends.md) — backend selection determines full-graph capability and automatic mode downgrades.
 - Uses [vLLM Model Runner V2](vllm-model-runner-v2.md) — model-runner warm-up, dummy runs, and explicit graph management are the execution context for dispatcher keys and nested wrappers.
 - Uses [vLLM Encoder CUDA Graphs for Vision Transformers](vllm-encoder-cuda-graphs.md) — vision-encoder budget graphs are orthogonal to the decoder modes and dispatcher compiled here and can be enabled simultaneously.
+- Uses [SGLang Advanced CUDA Graphs](sglang-advanced-cuda-graphs.md) — SGLang runner/backend split with Breakable versus full prefill capture is the companion design for comparing vLLM dispatcher and nested wrappers.
 
 [^cuda-graphs]: CUDA Graphs — `../raw/vllm/design/cuda_graphs.md`, covering motivation, `CudagraphModes`, dispatcher/wrapper design, `BatchDescriptor`, attention-backend compatibility, usage, whole-graph passes, and performance links.

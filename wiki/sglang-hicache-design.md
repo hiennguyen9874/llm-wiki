@@ -99,6 +99,7 @@ timeout = prefetch_timeout_base + prefetch_timeout_per_ki_token * num_token_to_f
 
 ## Relationships
 
+- Related to [SGLang Unified Radix Cache](sglang-unified-radix-cache.md) for the single-topology FULL/SWA/MAMBA component model, sidecar index reuse, session-aware eviction, and Rust core that extend this hierarchy.
 - Uses [SGLang HiCache Best Practices](sglang-hicache-best-practices.md) for deployment-tuned flag combinations, layout/backend compatibility constraints, and HF3FS/Mooncake examples.
 - Depends on [SGLang Attention Backends](sglang-attention-backends.md) for the MHA/MLA execution context underlying the transfer and write-back optimizations.
 

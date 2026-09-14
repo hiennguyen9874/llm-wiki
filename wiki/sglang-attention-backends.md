@@ -169,6 +169,7 @@ With CUDA graph, add capture/replay support[^sgl-attn]:
 
 ## Relationships
 
+- Uses [SGLang Advanced CUDA Graphs](sglang-advanced-cuda-graphs.md) — full prefill capture currently needs FA4/FlashInfer-style extend metadata; BCG avoids compiler-tracing constraints when evolving backends.
 - Uses [vLLM Attention Backends](vllm-attention-backends.md) — companion matrix for vLLM backend selection, useful for comparing SGLang FA3/FlashInfer/Triton coverage and MLA prefill/decode handling.
 
 [^sgl-attn]: Attention Backend — `../raw/sglang/advanced_features/attention_backend.mdx`.

@@ -5,11 +5,17 @@ description: RL post-training integration for SGLang covering engine sleep/wake,
 tags: [sglang, rl, rollout, weight-update, memory-management, determinism]
 status: stable
 created: 2026-09-14
-generated: { by: llm-wiki-agent/1, at: 2026-09-14T17:00:00Z }
+generated: { by: llm-wiki-agent/1, at: 2026-09-14T12:59:16Z }
 sources:
   - id: sgl-rl
     resource: ../raw/sglang/advanced_features/sglang_for_rl.mdx
     title: SGLang for RL Systems
+  - id: sgl-p2p-update
+    resource: ../raw/2026-04-29-p2p-update/index.md
+    title: "Updating 1T parameters in seconds — P2P weight transfer in Large Scale Distributed RL"
+  - id: qwen38-day0
+    resource: ../raw/2026-08-12-qwen3-8-day0-support/index.md
+    title: 'SGLang and Miles Add Day-0 Support for Qwen3.8'
 ---
 
 SGLang supports RL and post-training loops as flexible tooling ("be a library, not a framework") focused on rollout, evaluation, training, and weight-sync pain points: fine-grained sleep/wake, open refit paths, postponable generation, deterministic inference, and cache-aware routing[^sgl-rl].
@@ -82,6 +88,10 @@ Training workers gather weights (typically TP rank 0) and broadcast to the rollo
 
 Python APIs: `engine.init_weights_update_group(...)`, `engine.update_weights_from_distributed(names, dtypes, shapes, ...)`, `engine.destroy_weights_update_group(group_name)`[^sgl-rl].
 
+### P2P RDMA supplement
+
+For large MoE RL, Miles with SGLang supplements NCCL broadcast with an RDMA peer-to-peer path using source-side CPU replicas and Mooncake TransferEngine, cutting 1T-parameter sync from ~53s to ~7.2s; it reuses the same pause-update-continue discipline and is enabled via `--update-weight-transfer-mode p2p`[^sgl-p2p-update]. Detail is maintained in [SGLang P2P Weight Transfer for RL](sglang-p2p-weight-transfer.md).
+
 ## Postponable generation
 
 Multi-turn rollouts stall on long-tail requests; SGLang lets operators pause slow requests and continue later rather than discarding partial work, matching patterns such as APRIL-style early termination and incomplete-response recycling[^sgl-rl].
@@ -119,12 +129,20 @@ Benefits claimed in this source[^sgl-rl]:
 
 Deployment and policy detail is maintained in [SGLang Model Gateway](sglang-model-gateway.md).
 
+## Qwen3.8 colocated LoRA verification
+
+Qwen3.8 Day-0 RL instantiates colocated training with Miles: a BF16 Megatron trainer plus native NVFP4 SGLang rollout engines sharing the same 64 GB300s, with rank-32 adapters on attention projections trained with GRPO; a short GSM8K run shows steadily climbing reward/eval with flat train/rollout KL[^qwen38-day0]. Full inference and kernel context is maintained in [SGLang Qwen3.8 Inference](sglang-qwen3.8-inference.md).
+
 ## Relationships
 
+- Uses [SGLang P2P Weight Transfer for RL](sglang-p2p-weight-transfer.md) — RDMA P2P supplement to NCCL broadcast with CPU replicas and TransferEngine for large-MoE RL updates.
 - Uses [SGLang Deterministic Inference](sglang-deterministic-inference.md) — RL on-policy use of `--enable-deterministic-inference`.
 - Uses [SGLang Model Gateway](sglang-model-gateway.md) — cache-aware gateway routing and fault tolerance for large-scale rollouts.
 - Uses [vLLM Sleep Mode](vllm-sleep-mode.md) — vLLM counterpart for levelled sleep/wake and partial weights/KV-cache restore in RLHF colocation.
 - Uses [SGLang Server Arguments](sglang-server-arguments.md) — launch surface for `--enable-memory-saver` and `--enable-deterministic-inference`.
+- Related to [Miles DeepSeek-V4 Verified RL](miles-deepseek-v4-rl.md) — Day-0 verified RL pipeline pairing SGLang rollout with Miles Megatron training, FP8/QAT/R3 stability, and DAPO verification.
+- Related to [SGLang Qwen3.8 Inference](sglang-qwen3.8-inference.md) — Qwen3.8 colocated BF16-trainer plus NVFP4-rollout rank-32 LoRA GRPO verification on 64 GB300s.
+- Related to [Miles DeepSeek-V4.1 Verified RL](miles-deepseek-v41-rl.md) — V4.1 colocated training and rollout with shared attention state, FP4/FP8 QAT, and bucketed BF16 weight transfer on 16 GB300s.
 
 ## Coverage limits
 
@@ -133,3 +151,6 @@ Deployment and policy detail is maintained in [SGLang Model Gateway](sglang-mode
 - Throughput, stability, and GLM-scale efficiency claims are source statements without supporting measurements in this source[^sgl-rl].
 
 [^sgl-rl]: SGLang for RL Systems — `../raw/sglang/advanced_features/sglang_for_rl.mdx`, covering library-not-framework rationale, `--enable-memory-saver` with `/release_memory_occupation` and `/resume_memory_occupation`, disk / tensor / distributed weight-refit APIs, `/pause_generation` modes with `/continue_generation`, `--enable-deterministic-inference`, and Model Gateway rollout routing.
+
+[^sgl-p2p-update]: Updating 1T parameters in seconds — P2P weight transfer in Large Scale Distributed RL — `../raw/2026-04-29-p2p-update/index.md`, covering RDMA P2P supplement with CPU replicas and TransferEngine, Kimi-K2 53s→7.2s result, and `--update-weight-transfer-mode p2p` usage.
+[^qwen38-day0]: SGLang and Miles Add Day-0 Support for Qwen3.8 — `../raw/2026-08-12-qwen3-8-day0-support/index.md`, covering colocated BF16-trainer plus NVFP4-rollout rank-32 LoRA GRPO GSM8K verification on 64 GB300s.

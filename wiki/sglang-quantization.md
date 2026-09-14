@@ -5,14 +5,22 @@ description: Offline pre-quantized and online dynamic quantization for SGLang co
 tags: [sglang, quantization, fp8, deployment]
 status: stable
 created: 2026-09-14
-generated: { by: llm-wiki-agent/1, at: 2026-09-14T12:00:00Z }
+generated: { by: llm-wiki-agent/1, at: 2026-09-14T14:00:00Z }
 sources:
   - id: sgl-quant
     resource: ../raw/sglang/advanced_features/quantization.mdx
     title: Quantization
+  - id: modelopt-sgl-blog
+    resource: ../raw/2025-12-02-modelopt-quantization/index.md
+    title: "Boost SGLang Inference: Native NVIDIA Model Optimizer Integration for Seamless Quantization and Deployment"
+  - id: cleaner-quant-stack
+    resource: ../raw/2026-07-31-cleaner-quantization-stack/index.md
+    title: "Toward a Cleaner Quantization Stack in SGLang"
 ---
 
 SGLang supports offline quantization that loads pre-quantized weights and online quantization that computes scaling factors at runtime; offline quantization is recommended for performance, usability, and convenience[^sgl-quant].
+
+The implementation is moving to a `Config -> Method -> Scheme -> Kernel` structure that keeps checkpoint-format handling in hardware-agnostic schemes while backend-specific transforms and execution live in reusable kernels; see [SGLang Cleaner Quantization Stack](sglang-cleaner-quantization-stack.md) for the full architecture, reuse example, and roadmap[^cleaner-quant-stack].
 
 ## Offline versus online
 
@@ -109,6 +117,8 @@ On AMD CDNA3 or CDNA4 GPUs, `--quantization quark_int4fp8_moe` replaces high-pre
 - Uses [vLLM Quantization Methods and Toolchains](vllm-quantization-methods.md) — overlapping GPTQ, AWQ, ModelOpt, torchao, and Quark formats with different serving integrations.
 - Uses [vLLM Online Quantization](vllm-online-quantization.md) — load-time dynamic quantization analogue for global, per-layer, mixed-format, and exclusion controls.
 - Uses [vLLM LLM Compressor Quantization Workflows](vllm-llm-compressor-workflows.md) — offline FP8 and INT4 compressed-tensors recipes related to the SGLang LLM Compressor flow.
+- Uses [SGLang Native ModelOpt Quantization](sglang-modelopt-quantization.md) — dedicated native ModelOpt quantize-export-deploy path for NVFP4, MXFP4, and FP8 with reported throughput gains[^modelopt-sgl-blog].
+- Uses [SGLang Cleaner Quantization Stack](sglang-cleaner-quantization-stack.md) — scheme-based `Config -> Method -> Scheme -> Kernel` refactor separating format handling from hardware kernels[^cleaner-quant-stack].
 
 ## Coverage limits
 
@@ -116,3 +126,5 @@ On AMD CDNA3 or CDNA4 GPUs, `--quantization quark_int4fp8_moe` replaces high-pre
 - Forward-looking online-method support and auto-round failure cases reflect this source snapshot and may change with SGLang updates.
 
 [^sgl-quant]: Quantization — `../raw/sglang/advanced_features/quantization.mdx`.
+[^modelopt-sgl-blog]: Boost SGLang Inference: Native NVIDIA Model Optimizer Integration for Seamless Quantization and Deployment — `../raw/2025-12-02-modelopt-quantization/index.md`.
+[^cleaner-quant-stack]: Toward a Cleaner Quantization Stack in SGLang — `../raw/2026-07-31-cleaner-quantization-stack/index.md`.

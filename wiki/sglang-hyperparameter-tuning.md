@@ -85,6 +85,7 @@ Data parallelism is better for throughput; with enough GPU memory, favor data pa
 - Uses [vLLM Chunked Prefill](vllm-chunked-prefill.md) — companion decode-prioritized chunking model useful for comparing SGLang `--chunked-prefill-size` OOM versus prefill-speed trade-offs.
 - Uses [vLLM Memory Conservation](vllm-memory-conservation.md) — companion GPU-memory controls for comparing KV-cache pool, context/batch caps, and CUDA-graph sizing.
 - Uses [vLLM Data Parallel Deployment](vllm-data-parallel-deployment.md) — companion DP/TP trade-off for comparing SGLang favor-DP throughput guidance.
+- Uses [SGLang Advanced CUDA Graphs](sglang-advanced-cuda-graphs.md) — deep dive on BCG versus full prefill replay speed, capture ceiling through `chunked_prefill_size`, and resident-graph memory behind `--cuda-graph-max-bs` sizing.
 
 ## Coverage limits
 

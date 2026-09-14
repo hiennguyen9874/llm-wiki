@@ -5,11 +5,14 @@ description: Per-step adaptive draft verification that budgets cross-request slo
 tags: [vllm, speculative-decoding, dspark]
 status: stable
 created: 2026-09-14
-generated: { by: llm-wiki-agent/1, at: 2026-09-14T09:30:51Z }
+generated: { by: llm-wiki-agent/1, at: 2026-09-14T12:42:01Z }
 sources:
   - id: adaptive-verification
     resource: ../raw/vllm/features/speculative_decoding/adaptive_verification.md
     title: Adaptive Verification
+  - id: dspark-sglang
+    resource: ../raw/2026-07-06-dspark-sglang/index.md
+    title: "DSpark in SGLang: Speculative Decoding with Confidence-Driven, Variable-Length Verification"
 ---
 
 vLLM adaptive verification replaces fixed full-block verification with per-step selection of draft slots under a startup-profiled global token budget to maximize expected accepted tokens per second, so one configuration holds across load without per-deployment `num_speculative_tokens` tuning; it is off by default and today only supported for DSpark with a confidence head[^adaptive-verification].
@@ -75,5 +78,7 @@ This matters less for sparse-attention models like DeepSeek-V4 since the cheap i
 - Uses [vLLM LoRA Adapters](vllm-lora-adapters.md) — unsupported with LoRA because per-token LoRA mapping is built from CPU-side boundaries.
 - Uses [vLLM Tensor and Pipeline Parallel Scaling](vllm-parallelism-scaling.md) — unsupported with pipeline parallelism because cost curves and confidences exist only on the last rank.
 - Uses [vLLM Entrypoints](vllm-entrypoints.md) — enabled through `vllm serve` speculative-config via `enable_adaptive_verification`.
+- Related to [SGLang DSpark Speculative Decoding](sglang-dspark-speculative-decoding.md) — SGLang's per-request SPS-argmax window with ragged CUDA-graph verify and `static` / `compact` / `cap-accept` ceiling observability versus vLLM's global slot budget[^dspark-sglang].
 
 [^adaptive-verification]: Adaptive Verification — `../raw/vllm/features/speculative_decoding/adaptive_verification.md`, covering load-dependent speculative tradeoff, survival-probability slot selection with global cost-model budget, DSpark confidence-head support, `enable_adaptive_verification` usage, attention/cudagraph/LoRA/pipeline-parallel limits, and `VLLM_ADAPTIVE_VERIFICATION_PROFILE_CONTEXT_LEN` tuning.
+[^dspark-sglang]: DSpark in SGLang: Speculative Decoding with Confidence-Driven, Variable-Length Verification — `../raw/2026-07-06-dspark-sglang/index.md`.

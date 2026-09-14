@@ -5,11 +5,14 @@ description: Run Qwen 125B MoE multimodal Qwen3.8-Flash-Next locally via Unsloth
 tags: [qwen, unsloth, gguf, llama-cpp, local-inference, quantization, reasoning, mtp, moe]
 status: stable
 created: 2026-09-14
-generated: { by: llm-wiki-agent/1, at: 2026-09-14T17:00:00Z }
+generated: { by: llm-wiki-agent/1, at: 2026-09-14T23:30:00Z }
 sources:
   - id: qwen38-next
     resource: ../raw/unsloth/models/qwen3.8-next.md
     title: 'Qwen3.8-Flash-Next: How to Run Locally'
+  - id: qwen38-flash-next-day0
+    resource: ../raw/2026-08-26-qwen-flash-next/index.md
+    title: 'Qwen3.8-Flash-Next: Day-0 Support in SGLang'
 ---
 
 Qwen3.8-Flash-Next is Qwen's 125B-parameter MoE multimodal model on the Qwen4 architecture with 262K context and hybrid thinking; Unsloth publishes 1-bit to 8-bit GGUFs plus shared MTP modules for local llama.cpp and Unsloth Desktop runs starting at 75 GB total memory[^qwen38-next].
@@ -194,6 +197,7 @@ All figures are source-reported Unsloth claims[^qwen38-next]:
 - Uses [Quantization Fidelity Evaluation](quantization-fidelity-evaluation.md) — top-1 accuracy, mean KLD, and 99.9% KLD figures used here are the same fidelity signals used to judge quantized models.
 - Uses [Unsloth MTP Local Inference](unsloth-mtp-local-inference.md) — llama.cpp `--spec-type draft-mtp` path with shared-MTP packaging and 1-2 GB extra-memory planning shared with Gemma 4 and Qwen3.6 MTP runs.
 - Related to [Qwen3.6 Local Deployment](qwen3.6.md) — prior Qwen hybrid-thinking local family with the same thinking/instruct sampling split and MTP tuning pattern, now followed by the Qwen4-architecture Qwen3.8-Flash-Next.
+- Related to [SGLang Qwen3.8-Flash-Next Inference](sglang-qwen3.8-flash-next-inference.md) — same 125B-plus-51B identity served at datacenter scale with GDN plus QSA sparse attention, IndexShare MTP, gated-residual kernels, and PLE host offload[^qwen38-flash-next-day0].
 
 ## Coverage limits
 
@@ -202,3 +206,4 @@ All figures are source-reported Unsloth claims[^qwen38-next]:
 - No local attachments were referenced by the source.
 
 [^qwen38-next]: Qwen3.8-Flash-Next: How to Run Locally — `../raw/unsloth/models/qwen3.8-next.md`, 125B MoE Qwen4-architecture identity with 262K context and Claude-4.6-Opus claim, 75-355 GB standard and 76-355 GB MTP hardware tables, thinking/instruct sampling and preserve-thinking plus reasoning-effort controls, Ngram/PLE 4-bit-minimum note with 10-row size/accuracy/KLD table, Unsloth Desktop and llama.cpp install/download/run/serve commands, shared-versus-general MTP size table with 1.3-1.7x and 170 tok/s claims and custom llama.cpp MTP branch commands, and benchmark tradeoff notes.
+[^qwen38-flash-next-day0]: Qwen3.8-Flash-Next: Day-0 Support in SGLang — `../raw/2026-08-26-qwen-flash-next/index.md`, covering datacenter-scale 125B-plus-51B serving with GDN plus QSA, IndexShare MTP, gated-residual kernels, and PLE offload.

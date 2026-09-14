@@ -119,5 +119,6 @@ python3 -m sglang.test.test_deterministic --test-mode radix_cache
 
 - Uses [SGLang Attention Backends](sglang-attention-backends.md) — deterministic mode is restricted to the FlashInfer, FA3, and Triton subset selected via `--attention-backend`.
 - Uses [vLLM Batch Invariance](vllm-batch-invariance.md) — vLLM counterpart via `VLLM_BATCH_INVARIANT` for comparing deterministic-inference enablement and RL reproducibility use cases.
+- Uses [SGLang Advanced CUDA Graphs](sglang-advanced-cuda-graphs.md) — BCG coexistence with deterministic inference without compiler-boundary changes.
 
 [^sgl-det]: Deterministic Inference — `../raw/sglang/advanced_features/deterministic_inference.mdx`.
