@@ -8,6 +8,14 @@ The complete retrieval map for compiled knowledge. See [LLM Wiki Contract](../LL
 
 ## Concepts
 - [Debugging vLLM-torch.compile Integration](vllm-debug-torch-compile.md) — Isolating vLLM-compile failures with tlparse logs and per-subsystem disable flags for Dynamo, dynamic shapes, Inductor, cache, and CUDAGraphs.
+- [GLM-5.3 Local Deployment](glm-5.3.md) — Run Z.ai 744B (40B active) GLM-5.3 locally via Unsloth Dynamic GGUFs with hardware, sampling, reasoning, llama.cpp, and benchmark guidance.
+- [GLM-5.3-Flash Local Deployment](glm-5.3-flash.md) — Run Z.ai 320B (18B active) multimodal GLM-5.3-Flash locally via Unsloth GGUFs with hardware, sampling, reasoning, MTP, and benchmark guidance.
+- [Kimi K3 Local Deployment](kimi-k3.md) — Run Moonshot AI 2.8T (104B active) Kimi K3 locally via Unsloth Dynamic GGUFs with hardware, sampling, reasoning, llama.cpp, and benchmark guidance.
+- [Muse Glimmer Local Deployment](muse-glimmer.md) — Run Meta 30B dense vision Muse Glimmer locally via Unsloth Dynamic GGUFs with hardware, sampling, reasoning, llama.cpp, and benchmark guidance.
+- [Quantization Fidelity Evaluation](quantization-fidelity-evaluation.md) — Judging quantized models with KL divergence, multi-token trajectory checks, leakage-controlled calibration, and careful MMLU replication.
+- [Qwen3.6 Local Deployment](qwen3.6.md) — Run Alibaba Qwen3.6-27B and 35B-A3B hybrid-thinking multimodal models locally via Unsloth GGUF/MLX/NVFP4 with hardware, sampling, reasoning, MTP, and benchmark guidance.
+- [Qwen3.8 Local Deployment](qwen3.8.md) — Run Qwen 27B dense and 2.4T-A95B MoE Qwen3.8 models locally via Unsloth GGUF/NVFP4 with hardware, sampling, reasoning, llama.cpp, and benchmark guidance.
+- [Qwen3.8-Flash-Next Local Deployment](qwen3.8-next.md) — Run Qwen 125B MoE multimodal Qwen3.8-Flash-Next locally via Unsloth GGUFs with hardware, sampling, reasoning, MTP, and benchmark guidance.
 - [SGLang Advanced Features Overview](sglang-advanced-features-overview.md) — SGLang advanced-features map linking server arguments, tuning, backends, decoding, structured outputs, quantization, parallelism, adapters, caching, and observability.
 - [SGLang Attention Backends](sglang-attention-backends.md) — Selection, MHA/MLA support matrices, hybrid prefill-decode, and extension workflow for SGLang attention backends.
 - [SGLang Checkpoint Engine Integration](sglang-checkpoint-engine.md) — Distributed parallel weight loading for SGLang via checkpoint-engine workers with broadcast and P2P modes for single and multi-node setups.
@@ -37,6 +45,9 @@ The complete retrieval map for compiled knowledge. See [LLM Wiki Contract](../LL
 - [SGLang Structured Outputs for Reasoning Models](sglang-structured-outputs-reasoning.md) — Free-form reasoning with constrained final output for thinking models via --reasoning-parser across OpenAI, native, and offline APIs.
 - [SGLang Tool Parser](sglang-tool-parser.md) — Model-specific tool-call parsing for SGLang function calling across OpenAI-compatible, native, and offline APIs with tool_choice and pythonic formats.
 - [SGLang ViT CUDA Graphs for Multimodal Encoders](sglang-vit-cuda-graph.md) — Per-sequence-length CUDA Graph capture and replay for SGLang vision encoders via ViTCudaGraphRunner, enabled by SGLANG_VIT_ENABLE_CUDA_GRAPH.
+- [Unsloth Dynamic GGUF Quantization](unsloth-dynamic-gguf.md) — Post-training GGUF quantization family with per-layer dynamic schemes, chat-oriented imatrix calibration, and versioned v2.0/v3.0 quality-size tradeoffs.
+- [Unsloth Dynamic NVFP4 Quantization](unsloth-dynamic-nvfp4.md) — Blackwell-only 4-bit quantization combining native NVFP4 with per-layer dynamic FP8/BF16 retention for faster inference and lower VRAM.
+- [Unsloth MTP Local Inference](unsloth-mtp-local-inference.md) — Run Gemma 4 and Qwen3.6/3.5 MTP models locally via Unsloth Studio or llama.cpp with draft-token tuning, hardware, and sampling guidance.
 - [vLLM Adaptive Verification for Speculative Decoding](vllm-adaptive-verification.md) — Per-step adaptive draft verification that budgets cross-request slots by survival probability and profiled step cost, currently for DSpark with a confidence head.
 - [vLLM Attention Backends](vllm-attention-backends.md) — Selection, configuration, composite routing, and MLA/sparse variants for vLLM attention backends.
 - [vLLM b12x Quantized Linear and MoE Backends](vllm-b12x-quantization-backends.md) — Optional SM120/SM121 linear and MoE kernels for FP8, MXFP8, NVFP4, and MXFP4 model configurations.
