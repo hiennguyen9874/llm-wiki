@@ -22,6 +22,7 @@ The complete retrieval map for compiled knowledge. See [LLM Wiki Contract](../LL
 - [Qwen3.8-Flash-Next Local Deployment](qwen3.8-next.md) — Run Qwen 125B MoE multimodal Qwen3.8-Flash-Next locally via Unsloth GGUFs with hardware, sampling, reasoning, MTP, and benchmark guidance.
 - [SGLang Advanced CUDA Graphs](sglang-advanced-cuda-graphs.md) — Runner/backend split, Breakable CUDA Graphs, full prefill capture, and graph-memory management for SGLang LLM and diffusion serving.
 - [SGLang Advanced Features Overview](sglang-advanced-features-overview.md) — SGLang advanced-features map linking server arguments, tuning, backends, decoding, structured outputs, quantization, parallelism, adapters, caching, and observability.
+- [SGLang and vLLM Comparison](sglang-vs-vllm.md) — Workload-oriented comparison of SGLang and vLLM across serving architecture, caching, routing, disaggregation, extensibility, LoRA, structured output, quantization, observability, and RL integration.
 - [SGLang Attention Backends](sglang-attention-backends.md) — Selection, MHA/MLA support matrices, hybrid prefill-decode, and extension workflow for SGLang attention backends.
 - [SGLang Checkpoint Engine Integration](sglang-checkpoint-engine.md) — Distributed parallel weight loading for SGLang via checkpoint-engine workers with broadcast and P2P modes for single and multi-node setups.
 - [SGLang Cleaner Quantization Stack](sglang-cleaner-quantization-stack.md) — Scheme-based Config-Method-Scheme-Kernel refactor separating checkpoint format handling from hardware kernel execution.

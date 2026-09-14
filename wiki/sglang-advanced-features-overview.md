@@ -5,7 +5,7 @@ description: SGLang advanced-features map linking server arguments, tuning, back
 tags: [sglang, advanced-features, overview]
 status: stable
 created: 2026-09-14
-generated: { by: llm-wiki-agent/1, at: 2026-09-14T10:14:43Z }
+generated: { by: llm-wiki-agent/1, at: 2026-09-14T16:34:00Z }
 sources:
   - id: sgl-overview
     resource: ../raw/sglang/advanced_features/overview.mdx
@@ -63,6 +63,7 @@ Detail for these listed areas is maintained in dedicated concepts, not duplicate
 - Uses [SGLang Structured Outputs](sglang-structured-outputs.md) — listed advanced-feature area for constrained JSON-schema, regex, EBNF, and structural-tag generation.
 - Uses [SGLang Server Arguments](sglang-server-arguments.md) — listed advanced-feature area for launch and configuration flags.
 - Uses [SGLang Speculative Decoding](sglang-speculative-decoding.md) — listed advanced-feature area for EAGLE-2/EAGLE-3 speculation, FR-Spec, and MTP usage.
+- Related to [SGLang and vLLM Comparison](sglang-vs-vllm.md) — workload-oriented comparison with vLLM across serving, caching, routing, extensibility, and operations.
 
 ## Coverage limits
 

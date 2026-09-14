@@ -1,6 +1,7 @@
 # Wiki Update Log
 
 ## 2026-09-14
+- **Query**: Answered “Compare SGLang and vLLM”; filed [SGLang and vLLM Comparison](sglang-vs-vllm.md) and linked the two stack entry points.
 - **Ingest**: Compiled [Qwen3.8-27B-DSpark](../raw/Qwen3.8-27B-DSpark.md); created [Qwen3.8-27B DSpark Speculator](qwen3.8-dspark.md) and updated [SGLang DSpark Speculative Decoding](sglang-dspark-speculative-decoding.md) and [Qwen3.8 Local Deployment](qwen3.8.md).
 - **Ingest**: Compiled [Kimi K3 DSpark speculator](../raw/Kimi-K3-DSpark.md); created [Kimi K3 DSpark Speculator](kimi-k3-dspark.md) and updated [SGLang DSpark Speculative Decoding](sglang-dspark-speculative-decoding.md) and [Kimi K3 Local Deployment](kimi-k3.md).
 - **Ingest**: Compiled [SGLang and Miles Add Day-0 Support for DeepSeek-V4.1](../raw/2026-09-10-deepseek-v41/index.md); created [SGLang DeepSeek-V4.1 Inference](sglang-deepseek-v41-inference.md) and [Miles DeepSeek-V4.1 Verified RL](miles-deepseek-v41-rl.md) and updated [SGLang DeepSeek-V4 Inference](sglang-deepseek-v4-inference.md), [Miles DeepSeek-V4 Verified RL](miles-deepseek-v4-rl.md), [SGLang for RL Systems](sglang-for-rl.md), and [SGLang Unified Radix Cache](sglang-unified-radix-cache.md).
