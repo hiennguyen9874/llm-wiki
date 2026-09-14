@@ -10,6 +10,7 @@ The complete retrieval map for compiled knowledge. See [LLM Wiki Contract](../LL
 - [Debugging vLLM-torch.compile Integration](vllm-debug-torch-compile.md) — Isolating vLLM-compile failures with tlparse logs and per-subsystem disable flags for Dynamo, dynamic shapes, Inductor, cache, and CUDAGraphs.
 - [vLLM Adaptive Verification for Speculative Decoding](vllm-adaptive-verification.md) — Per-step adaptive draft verification that budgets cross-request slots by survival probability and profiled step cost, currently for DSpark with a confidence head.
 - [vLLM Attention Backends](vllm-attention-backends.md) — Selection, configuration, composite routing, and MLA/sparse variants for vLLM attention backends.
+- [vLLM b12x Quantized Linear and MoE Backends](vllm-b12x-quantization-backends.md) — Optional SM120/SM121 linear and MoE kernels for FP8, MXFP8, NVFP4, and MXFP4 model configurations.
 - [vLLM Batch Invariance](vllm-batch-invariance.md) — Deterministic batch-size-independent inference via VLLM_BATCH_INVARIANT with hardware, backend, and model coverage.
 - [vLLM Context Extension via RoPE Scaling](vllm-context-extension.md) — Extending model context length with rope_parameters overrides via --hf-overrides and --max-model-len for offline and online inference.
 - [vLLM Context Parallel Deployment](vllm-context-parallel-deployment.md) — Prefill and decode context-parallel strategies for long-context serving, including DCP KV-cache sharding and sizing guidance.
@@ -30,6 +31,7 @@ The complete retrieval map for compiled knowledge. See [LLM Wiki Contract](../LL
 - [vLLM Engine, Worker, and Model Hierarchy](vllm-engine-worker-hierarchy.md) — LLMEngine, workers, model runner, model objects, and VllmConfig design rationale.
 - [vLLM Entrypoints](vllm-entrypoints.md) — Offline LLM class versus online vllm serve server for model inference.
 - [vLLM Expert Parallel Deployment](vllm-expert-parallel-deployment.md) — Expert-parallel MoE serving with EP=TP×DP sharding, all-to-all backends, EPLB rebalancing, and prefill/decode disaggregation.
+- [vLLM FP8 ViT Encoder Attention](vllm-fp8-vit-attention.md) — Dynamic or calibrated FP8 QKV quantization for Qwen3-family vision attention on NVIDIA and AMD GPUs.
 - [vLLM Fused MoE Kernel Features](vllm-moe-kernel-features.md) — Selecting vLLM modular MoE All2All backends and experts kernels by activation format, quantization, and compatibility families.
 - [vLLM Fused MoE Modular Kernel](vllm-fused-moe-modular-kernel.md) — Architecture, components, initialization, and extension workflow for vLLM's modular fused MoE kernel.
 - [vLLM Hidden State Extraction](vllm-hidden-state-extraction.md) — Saving intermediate target-model layer activations to .safetensors via method extract_hidden_states for EAGLE-style training, distillation, and analysis.
@@ -41,6 +43,7 @@ The complete retrieval map for compiled knowledge. See [LLM Wiki Contract](../LL
 - [vLLM IO Processor Plugins](vllm-io-processor-plugins.md) — Pre- and post-processing plugins for pooling models that map custom inputs to model prompts and model outputs to custom outputs.
 - [vLLM IR Functional Intermediate Representation](vllm-ir.md) — Functional IR dialect separating op semantics from kernel implementations with late priority-based dispatch and compile lowering.
 - [vLLM KV Offloading Connector](vllm-kv-offloading.md) — Extending vLLM prefix cache with CPU and tiered offload via OffloadingConnector, covering specs, secondary tiers, P2P protocol, tuning, and per-request selective offload.
+- [vLLM LLM Compressor Quantization Workflows](vllm-llm-compressor-workflows.md) — Offline FP8, INT4 W4A16, INT8 W4A8, and INT8 W8A8 recipes that export compressed-tensors checkpoints for vLLM.
 - [vLLM Logits Processors](vllm-logits-processors.md) — Stateful batch-granular logits transforms, BatchUpdate lifecycle, argmax-invariant sampling shortcut, and built-in versus custom extension model.
 - [vLLM LoRA Adapters](vllm-lora-adapters.md) — Per-request LoRA serving offline and online, including static serving, dynamic loading, MoE format mixing, lineage, multimodal defaults, and tuning.
 - [vLLM LoRA Resolver Plugins](vllm-lora-resolver-plugins.md) — On-demand LoRA adapter discovery and loading at request time via LoRAResolver plugins for filesystem, Hugging Face Hub, and custom backends.
@@ -58,6 +61,7 @@ The complete retrieval map for compiled knowledge. See [LLM Wiki Contract](../LL
 - [vLLM NIXL Connector Usage](vllm-nixl-connector-usage.md) — Installing, configuring, deploying, and observing NixlConnector for vLLM disaggregated prefill/decode, including bidirectional multi-turn transfer.
 - [vLLM NIXL KV Cache Lease Renewal](vllm-nixl-kv-lease.md) — Heartbeat-renewed short leases letting prefill reclaim KV blocks quickly on decode failure while keeping them alive under decode overload.
 - [vLLM NIXL Push-Mode KV Transfer](vllm-nixl-kv-push-connector.md) — Push-based disaggregated prefill/decode where prefill WRITEs KV directly into decode's pre-allocated blocks via a dedicated writer thread and PUSH_REG registrations.
+- [vLLM Online Quantization](vllm-online-quantization.md) — Load-time quantization of linear and MoE weights with global, per-layer, mixed-format, and exclusion controls.
 - [vLLM Optimization Levels](vllm-optimization-levels.md) — Preset -O0 through -O3 flags trading startup time for performance via compilation, CUDA-graph, fusion, and autotune defaults.
 - [vLLM Paged Attention Kernel](vllm-paged-attention-kernel.md) — Historical vLLM multi-head query attention CUDA kernel over paged KV cache, covering query/key/value data paths, softmax reduction, and output writeback.
 - [vLLM Parallel Draft Model Speculative Decoding](vllm-parallel-draft-model.md) — Parallel draft-model speculation pairing a target model with a PARD draft model via method draft_model plus parallel_drafting, with offline and online configuration.
@@ -67,6 +71,8 @@ The complete retrieval map for compiled knowledge. See [LLM Wiki Contract](../LL
 - [vLLM Prefix Caching](vllm-prefix-caching.md) — Enabling, workloads, limits, and hash-based full-block reuse in vLLM v1 with LRU eviction, touch-on-hit allocation, cache-salt isolation, and Mamba fine-grained option.
 - [vLLM Prompt Embedding Inputs](vllm-prompt-embeds.md) — Passing precomputed prompt/token embeddings directly to vLLM offline and via OpenAI-compatible Completions and Chat APIs.
 - [vLLM Python Multiprocessing Method Selection](vllm-python-multiprocessing.md) — Best-effort fork/spawn selection, library-use constraints, and worker configuration for vLLM multiprocessing.
+- [vLLM Quantization Methods and Toolchains](vllm-quantization-methods.md) — Choosing vLLM quantization formats, offline toolchains, hardware targets, and out-of-tree integrations.
+- [vLLM Quantized KV Cache](vllm-quantized-kv-cache.md) — FP8 KV-cache formats, calibration strategies, selective layer skips, and attention-backend constraints.
 - [vLLM Reasoning Outputs](vllm-reasoning-outputs.md) — Separate reasoning and content fields for thinking models via reasoning parsers, thinking toggles, budgets, and response controls.
 - [vLLM Sleep Mode](vllm-sleep-mode.md) — Releasing GPU memory via levelled sleep/wake with partial weights and KV-cache restore for RLHF and colocation.
 - [vLLM Speculators Library](vllm-speculators.md) — External Speculators library for training single- and multi-layer draft models with vLLM-generated data and HF-compatible deployment format.
