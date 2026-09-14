@@ -5,7 +5,7 @@ description: Per-request timing metrics returned in API responses via --enable-p
 tags: [vllm, metrics, observability, serving]
 status: stable
 created: 2026-09-14
-generated: { by: llm-wiki-agent/1, at: 2026-09-14T09:19:20Z }
+generated: { by: llm-wiki-agent/1, at: 2026-09-14T12:00:00Z }
 sources:
   - id: per-request-metrics
     resource: ../raw/vllm/features/per_request_metrics.md
@@ -57,9 +57,6 @@ Per-request metrics are available on both `/v1/chat/completions` and `/v1/comple
 
 - Uses [vLLM Metrics and Observability](vllm-metrics.md) — the `metrics` response field gives per-request values for one request, while `/metrics` exposes server-level histograms such as `vllm:time_to_first_token_seconds` aggregated across all requests.
 - Uses [vLLM Entrypoints](vllm-entrypoints.md) — the flag-gated `metrics` field is an online-serving (`vllm serve`) response behavior for OpenAI-compatible chat and completions endpoints.
-
-## Coverage limits
-
-- The speculative-decoding extension under `metrics.speculative_decoding` via `--per-request-spec-decode-metrics` was noted but not compiled; the referenced `../raw/vllm/features/speculative_decoding/acceptance_metrics.md` was inspected only to establish this boundary and awaits its own ingest[^per-request-metrics].
+- [vLLM Per-Request Speculative Decoding Acceptance Metrics](vllm-per-request-spec-decode-metrics.md) — speculative-decoding extension under `metrics.speculative_decoding` via `--per-request-spec-decode-metrics`, sharing the `metrics` object, single-sequence scope, and streaming behavior described here.
 
 [^per-request-metrics]: Per-Request Metrics — `../raw/vllm/features/per_request_metrics.md`, enabling flag, response format and field definitions, single-sequence and multi-prompt suppression, streaming usage-chunk behavior, completions coverage, Prometheus relationship, overhead note, `--disable-log-stats` conflict, and speculative-decoding pointer.
