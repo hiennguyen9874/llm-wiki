@@ -56,7 +56,7 @@ Examples[^arch-overview]:
 - 4 GPUs with `-tp=4`: 1 API server + 1 engine core + 4 workers = 6 processes.
 - 8 GPUs with `-tp=2 -dp=4`: 4 API servers + 4 engine cores + 8 workers + 1 coordinator = 17 processes.
 
-CPU sizing guidance is delegated to the optimization document section on CPU resources for GPU deployments, referenced but not ingested here[^arch-overview].
+CPU sizing guidance is in [vLLM CPU Sizing, NUMA Binding, and Thread Affinity](vllm-cpu-sizing-numa.md)[^arch-overview].
 
 ## Coverage limits
 
@@ -66,5 +66,6 @@ CPU sizing guidance is delegated to the optimization document section on CPU res
 
 - Used by [vLLM Entrypoints](vllm-entrypoints.md) — online serving traffic enters through these processes.
 - Uses [vLLM Engine, Worker, and Model Hierarchy](vllm-engine-worker-hierarchy.md) — engine core and workers host the scheduler, model runner, and model.
+- Uses [vLLM CPU Sizing, NUMA Binding, and Thread Affinity](vllm-cpu-sizing-numa.md) — physical-core minima and NUMA pinning for the process counts above.
 
-[^arch-overview]: Architecture Overview — `../raw/vllm/design/arch_overview.md`, V1 Process Architecture section.
+[^arch-overview]: Architecture Overview — `../raw/vllm/design/arch_overview.md`, V1 Process Architecture section; CPU sizing detail is now compiled in [vLLM CPU Sizing, NUMA Binding, and Thread Affinity](vllm-cpu-sizing-numa.md).

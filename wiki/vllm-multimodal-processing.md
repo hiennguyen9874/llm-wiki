@@ -74,11 +74,13 @@ vLLM recreates Hugging Face processor multimodal outputs without the original te
 ## Relationships
 
 - Uses [vLLM Hugging Face Integration](vllm-huggingface-integration.md) — replays HF processor behavior and tokenizer-adjacent prompt handling without the original text.
+- Uses [vLLM Chunked Prefill](vllm-chunked-prefill.md) — placeholder-to-input correspondence enabling chunked scheduling for multimodal prompts.
+- Uses [vLLM Multimodal Caching and Encoder Batch Parallelism](vllm-multimodal-caching.md) — processor and IPC cache sizing complementing the output-caching path above.
 - Enables [vLLM Prefix Caching](vllm-prefix-caching.md) — placeholder-to-input correspondence is part of what makes prefix reuse possible for multimodal prompts; the prefix-caching concept covers the complementary image-hash `extra hash` mechanism.
 
 ## Coverage limits
 
-- Cross-references to `../configuration/optimization.md` for chunked prefill and `../features/automatic_prefix_caching.md` were not present under `raw/` and were not inspected; maintained prefix-caching synthesis is in [vLLM Prefix Caching](vllm-prefix-caching.md)[^mm-processing].
+- Chunked-prefill detail from `../configuration/optimization.md` is now compiled in [vLLM Chunked Prefill](vllm-chunked-prefill.md); maintained prefix-caching synthesis remains in [vLLM Prefix Caching](vllm-prefix-caching.md)[^mm-processing].
 - The Qwen2-VL slowness issue link, `BaseMultiModalProcessor` and renderer code symbols, and `FusedInputNorm` implementation details were not verified against a live checkout[^mm-processing].
 
 [^mm-processing]: Multi-Modal Data Processing — `../raw/vllm/design/mm_processing.md`, covering `BaseMultiModalProcessor` correspondence, tokenization-before-processing pipeline, dummy text and HF input/output adaptation, `PromptUpdate` detection and `_postprocess_prompt`, processor output caching, and GPU-fused `FusedInputNorm` with `uint8` path, `mm_device_do_normalize`, Qwen2-VL/Qwen2.5-VL defaults, and performance gains.

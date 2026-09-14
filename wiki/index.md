@@ -12,8 +12,10 @@ The complete retrieval map for compiled knowledge. See [LLM Wiki Contract](../LL
 - [vLLM Attention Backends](vllm-attention-backends.md) — Selection, configuration, composite routing, and MLA/sparse variants for vLLM attention backends.
 - [vLLM b12x Quantized Linear and MoE Backends](vllm-b12x-quantization-backends.md) — Optional SM120/SM121 linear and MoE kernels for FP8, MXFP8, NVFP4, and MXFP4 model configurations.
 - [vLLM Batch Invariance](vllm-batch-invariance.md) — Deterministic batch-size-independent inference via VLLM_BATCH_INVARIANT with hardware, backend, and model coverage.
+- [vLLM Chunked Prefill](vllm-chunked-prefill.md) — Default-on decode-prioritized prefill chunking with max_num_batched_tokens tuning for ITL, TTFT, and throughput.
 - [vLLM Context Extension via RoPE Scaling](vllm-context-extension.md) — Extending model context length with rope_parameters overrides via --hf-overrides and --max-model-len for offline and online inference.
 - [vLLM Context Parallel Deployment](vllm-context-parallel-deployment.md) — Prefill and decode context-parallel strategies for long-context serving, including DCP KV-cache sharding and sizing guidance.
+- [vLLM CPU Sizing, NUMA Binding, and Thread Affinity](vllm-cpu-sizing-numa.md) — Physical-core sizing, numactl NUMA pinning for GPU workers, and CPU-backend OpenMP affinity.
 - [vLLM CUDA Graphs Modes and Dispatch](vllm-cuda-graphs.md) — Configurable CUDA Graphs modes, runtime dispatcher, nested wrappers, and attention-backend compatibility for vLLM v1.
 - [vLLM Custom Arguments](vllm-custom-arguments.md) — Passing out-of-spec SamplingParams and REST arguments via SamplingParams.extra_args and vllm_xargs for offline and online inference.
 - [vLLM Custom Logits Processors](vllm-custom-logits-processors.md) — Authoring, loading, and invoking out-of-tree logits processors, including Adapter wrapping and FQCN, entry-point, and class-object loading.
@@ -39,6 +41,7 @@ The complete retrieval map for compiled knowledge. See [LLM Wiki Contract](../LL
 - [vLLM Hugging Face Integration](vllm-huggingface-integration.md) — Resolving model IDs to config, tokenizer, and weights via Hugging Face Hub or local path, with config-class and architecture-registry mapping.
 - [vLLM Hybrid KV Cache Manager](vllm-hybrid-kv-cache-manager.md) — Unified page-size grouping, per-group allocation, and intersected prefix caching for hybrid-attention models.
 - [vLLM IndexCache for DeepSeek Sparse Attention](vllm-index-cache.md) — Reusing DeepSeek DSA top-k indices across layers via use_index_cache, index_topk_freq, and index_topk_pattern.
+- [vLLM Input Processing Performance](vllm-input-processing-tuning.md) — fastokens Rust BPE backend and API-server scale-out for tokenizer and media bottlenecks.
 - [vLLM Interleaved Thinking](vllm-interleaved-thinking.md) — Reasoning between tool calls for chained tool use with intermediate decisions.
 - [vLLM IO Processor Plugins](vllm-io-processor-plugins.md) — Pre- and post-processing plugins for pooling models that map custom inputs to model prompts and model outputs to custom outputs.
 - [vLLM IR Functional Intermediate Representation](vllm-ir.md) — Functional IR dialect separating op semantics from kernel implementations with late priority-based dispatch and compile lowering.
@@ -47,6 +50,7 @@ The complete retrieval map for compiled knowledge. See [LLM Wiki Contract](../LL
 - [vLLM Logits Processors](vllm-logits-processors.md) — Stateful batch-granular logits transforms, BatchUpdate lifecycle, argmax-invariant sampling shortcut, and built-in versus custom extension model.
 - [vLLM LoRA Adapters](vllm-lora-adapters.md) — Per-request LoRA serving offline and online, including static serving, dynamic loading, MoE format mixing, lineage, multimodal defaults, and tuning.
 - [vLLM LoRA Resolver Plugins](vllm-lora-resolver-plugins.md) — On-demand LoRA adapter discovery and loading at request time via LoRAResolver plugins for filesystem, Hugging Face Hub, and custom backends.
+- [vLLM Memory Conservation](vllm-memory-conservation.md) — Reducing vLLM GPU and CPU memory with tensor parallelism, quantization, context and batch caps, CUDA-graph tuning, cache sizes, and multimodal limits.
 - [vLLM Metrics and Observability](vllm-metrics.md) — V1 metrics collection, Prometheus and logging publishers, interval definitions, and deprecation and future-work policy for vLLM observability.
 - [vLLM MLP Speculative Decoding](vllm-mlp-speculative-decoding.md) — MLP draft models conditioning proposals on context vectors and sampled tokens via method mlp_speculator, with independent draft tensor parallelism and IBM accelerator hubs.
 - [vLLM Model Runner V2](vllm-model-runner-v2.md) — Cleaner, async-first, GPU-native reimplementation of the vLLM model runner with decoupled persistent batches, staged writes, Triton sampling, and explicit CUDA-graph management.
@@ -54,6 +58,7 @@ The complete retrieval map for compiled knowledge. See [LLM Wiki Contract](../LL
 - [vLLM Mooncake Store Connector](vllm-mooncake-store-connector.md) — Shared distributed KV-cache pool via Mooncake store for CPU/disk offloading and cross-instance prefix reuse, with single-node, disaggregated, and standalone-store deployments.
 - [vLLM MoRI-IO Connector](vllm-moriio-connector.md) — ROCm MoRI-IO disaggregated prefill/decode KV transfer with WRITE/READ modes, RDMA/xGMI transports, control-plane ports, and vllm-router proxy routing.
 - [vLLM MTP Speculative Decoding](vllm-mtp-speculative-decoding.md) — Native multi-token prediction speculation via method mtp with no separate draft model, including Gemma 4 assistant-checkpoint support and shared-KV wiring.
+- [vLLM Multimodal Caching and Encoder Batch Parallelism](vllm-multimodal-caching.md) — Processor and IPC key-replicated versus shared-memory caches with encoder batch-level data parallelism.
 - [vLLM Multimodal Data Processing](vllm-multimodal-processing.md) — Placeholder-to-input correspondence via HF-processor replay, dummy text, prompt updates, output caching, and GPU-fused normalization.
 - [vLLM Multimodal Inputs](vllm-multimodal-inputs.md) — Passing image, video, audio, embedding, and cached UUID inputs to multimodal models offline and via OpenAI-compatible serving.
 - [vLLM N-Gram Speculative Decoding](vllm-ngram-speculative-decoding.md) — Draft-free speculative decoding that proposes tokens by matching n-grams in the prompt via method ngram with num_speculative_tokens and prompt_lookup_max.
@@ -74,8 +79,10 @@ The complete retrieval map for compiled knowledge. See [LLM Wiki Contract](../LL
 - [vLLM Quantization Methods and Toolchains](vllm-quantization-methods.md) — Choosing vLLM quantization formats, offline toolchains, hardware targets, and out-of-tree integrations.
 - [vLLM Quantized KV Cache](vllm-quantized-kv-cache.md) — FP8 KV-cache formats, calibration strategies, selective layer skips, and attention-backend constraints.
 - [vLLM Reasoning Outputs](vllm-reasoning-outputs.md) — Separate reasoning and content fields for thinking models via reasoning parsers, thinking toggles, budgets, and response controls.
+- [vLLM Request Preemption](vllm-request-preemption.md) — V1 RECOMPUTE preemption on KV shortage with tuning knobs and Prometheus observability.
 - [vLLM Sleep Mode](vllm-sleep-mode.md) — Releasing GPU memory via levelled sleep/wake with partial weights and KV-cache restore for RLHF and colocation.
 - [vLLM Speculators Library](vllm-speculators.md) — External Speculators library for training single- and multi-layer draft models with vLLM-generated data and HF-compatible deployment format.
+- [vLLM Startup Optimization](vllm-startup-optimization.md) — Faster time-to-first-token on repeated boots via compile-cache reuse, kv-cache-memory skip, and eager fallback.
 - [vLLM Structured Outputs](vllm-structured-outputs.md) — Constrained generation via choice, regex, JSON schema, grammar, and structural tags for online and offline inference.
 - [vLLM Suffix Speculative Decoding](vllm-suffix-speculative-decoding.md) — Draft-free speculative decoding that proposes adaptive continuations from prompt and generation suffix matches via method suffix with Arctic Inference.
 - [vLLM Tensor and Pipeline Parallel Scaling](vllm-parallelism-scaling.md) — Single-replica tensor/pipeline strategy selection, multi-node Ray and multiprocessing runtimes, and InfiniBand/GPUDirect networking for vLLM scaling.

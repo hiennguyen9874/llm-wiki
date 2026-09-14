@@ -41,7 +41,7 @@ vLLM loads `config.json`, the tokenizer, and the weights from a local path or th
 
 - vLLM tokenizes with the Hugging Face tokenizer loaded via `AutoTokenizer.from_pretrained` using `model` and `--revision`, implemented in `get_tokenizer` in `vllm/transformers_utils/tokenizer.py`[^hf-integration].
 - A different tokenizer model can be forced with `--tokenizer`, plus `--tokenizer-revision` and `--tokenizer-mode`; see Hugging Face docs for their meanings[^hf-integration].
-- Setting `VLLM_USE_FASTOKENS=1` swaps in a drop-in Rust BPE backend for any loaded HF fast tokenizer; full backend detail lives in the un-ingested `raw/vllm/configuration/optimization.md` `fastokens Backend` section[^hf-integration].
+- Setting `VLLM_USE_FASTOKENS=1` swaps in a drop-in Rust BPE backend for any loaded HF fast tokenizer; full backend detail is in [vLLM Input Processing Performance](vllm-input-processing-tuning.md)[^hf-integration].
 - vLLM caches expensive tokenizer attributes in `vllm.tokenizers.hf.get_cached_tokenizer` after loading[^hf-integration].
 
 ## Model weights
@@ -53,11 +53,12 @@ vLLM loads `config.json`, the tokenizer, and the weights from a local path or th
 ## Coverage limits
 
 - Pinned code links in the source (vLLM `10b67d8` / `127c074`) were not re-verified against a live checkout; line numbers may have drifted[^hf-integration].
-- The `fastokens Backend` cross-reference (`../configuration/optimization.md`) was only spot-checked, not fully ingested[^hf-integration].
+- The `fastokens Backend` detail from `../configuration/optimization.md` is now compiled in [vLLM Input Processing Performance](vllm-input-processing-tuning.md)[^hf-integration].
 
 ## Relationships
 
 - Uses [vLLM Entrypoints](vllm-entrypoints.md) — `vllm serve <model>` is the entry flow that triggers Hub resolution.
+- Uses [vLLM Input Processing Performance](vllm-input-processing-tuning.md) — `VLLM_USE_FASTOKENS` Rust BPE backend replacing the HF fast tokenizer path above.
 - Uses [vLLM LoRA Resolver Plugins](vllm-lora-resolver-plugins.md) — LoRA adapters can also be discovered from filesystem or Hub backends at request time.
 
 [^hf-integration]: Integration with Hugging Face — `../raw/vllm/design/huggingface_integration.md`.
