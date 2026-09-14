@@ -9,13 +9,16 @@ The complete retrieval map for compiled knowledge. See [LLM Wiki Contract](../LL
 ## Concepts
 - [Debugging vLLM-torch.compile Integration](vllm-debug-torch-compile.md) — Isolating vLLM-compile failures with tlparse logs and per-subsystem disable flags for Dynamo, dynamic shapes, Inductor, cache, and CUDAGraphs.
 - [vLLM Attention Backends](vllm-attention-backends.md) — Selection, configuration, composite routing, and MLA/sparse variants for vLLM attention backends.
+- [vLLM Context Parallel Deployment](vllm-context-parallel-deployment.md) — Prefill and decode context-parallel strategies for long-context serving, including DCP KV-cache sharding and sizing guidance.
 - [vLLM CUDA Graphs Modes and Dispatch](vllm-cuda-graphs.md) — Configurable CUDA Graphs modes, runtime dispatcher, nested wrappers, and attention-backend compatibility for vLLM v1.
 - [vLLM CustomOp Dispatch and Registration](vllm-custom-op.md) — Platform-dispatched forward methods, compilation-config enablement, and in-tree versus out-of-tree registration for vLLM custom ops.
+- [vLLM Data Parallel Deployment](vllm-data-parallel-deployment.md) — Replicated-weight data-parallel serving with internal, hybrid, and external load-balancing modes and MoE DP+EP coordination.
 - [vLLM Dual Batch Overlap (DBO)](vllm-dbo-dual-batch-overlap.md) — Overlapping MoE sparse all-to-all with compute by splitting batches into paired microbatches on ping-ponging CPU threads.
 - [vLLM Encoder CUDA Graphs for Vision Transformers](vllm-encoder-cuda-graphs.md) — Budget-based CUDA Graphs capture and replay for vision encoders, with greedy packing, dual-path graphs, video support, and model opt-in protocol.
 - [vLLM Endpoint Plugins](vllm-endpoint-plugins.md) — Out-of-tree HTTP routes for the vLLM OpenAI-compatible server via two-phase EndpointPlugin loading and EngineClient access.
 - [vLLM Engine, Worker, and Model Hierarchy](vllm-engine-worker-hierarchy.md) — LLMEngine, workers, model runner, model objects, and VllmConfig design rationale.
 - [vLLM Entrypoints](vllm-entrypoints.md) — Offline LLM class versus online vllm serve server for model inference.
+- [vLLM Expert Parallel Deployment](vllm-expert-parallel-deployment.md) — Expert-parallel MoE serving with EP=TP×DP sharding, all-to-all backends, EPLB rebalancing, and prefill/decode disaggregation.
 - [vLLM Fused MoE Kernel Features](vllm-moe-kernel-features.md) — Selecting vLLM modular MoE All2All backends and experts kernels by activation format, quantization, and compatibility families.
 - [vLLM Fused MoE Modular Kernel](vllm-fused-moe-modular-kernel.md) — Architecture, components, initialization, and extension workflow for vLLM's modular fused MoE kernel.
 - [vLLM HiSparse Local KV Offload](vllm-hisparse.md) — Local host-tier KV offload for sparse attention with coordinator-owned host blocks, spill-before-free residency, and fused GPU hot lookup.
@@ -35,6 +38,7 @@ The complete retrieval map for compiled knowledge. See [LLM Wiki Contract](../LL
 - [vLLM Plugin System](vllm-plugin-system.md) — Discovery, loading, and plugin groups for extending vLLM out-of-tree via Python entry points and VLLM_PLUGINS filtering.
 - [vLLM Prefix Caching](vllm-prefix-caching.md) — Hash-based full-block prefix reuse in vLLM v1 with LRU eviction, touch-on-hit allocation, and cache-salt isolation.
 - [vLLM Python Multiprocessing Method Selection](vllm-python-multiprocessing.md) — Best-effort fork/spawn selection, library-use constraints, and worker configuration for vLLM multiprocessing.
+- [vLLM Tensor and Pipeline Parallel Scaling](vllm-parallelism-scaling.md) — Single-replica tensor/pipeline strategy selection, multi-node Ray and multiprocessing runtimes, and InfiniBand/GPUDirect networking for vLLM scaling.
 - [vLLM torch.compile for Multimodal Encoders](vllm-torch-compile-multimodal.md) — Compiling multimodal encoders with support_torch_compile gating, encoder compile ranges, and vision troubleshooting.
 - [vLLM torch.compile Fusion Passes](vllm-fusion-passes.md) — Custom Inductor fusion passes controlled by PassConfig that fuse collectives, norms, attention, RoPE, and quantization by token regime and platform.
 - [vLLM torch.compile Integration](vllm-torch-compile.md) — Default V1 torch.compile pipeline covering cache, dynamic shapes, Dynamo capture, Inductor compilation, and piecewise CUDA graphs.

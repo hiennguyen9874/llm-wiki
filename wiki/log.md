@@ -1,6 +1,10 @@
 # Wiki Update Log
 
 ## 2026-09-14
+- **Ingest**: Compiled [Parallelism and Scaling](../raw/vllm/serving/parallelism_scaling.md); created [vLLM Tensor and Pipeline Parallel Scaling](vllm-parallelism-scaling.md).
+- **Ingest**: Compiled [Expert Parallel Deployment](../raw/vllm/serving/expert_parallel_deployment.md); created [vLLM Expert Parallel Deployment](vllm-expert-parallel-deployment.md) and updated [vLLM Data Parallel Deployment](vllm-data-parallel-deployment.md).
+- **Ingest**: Compiled [Data Parallel Deployment](../raw/vllm/serving/data_parallel_deployment.md); created [vLLM Data Parallel Deployment](vllm-data-parallel-deployment.md).
+- **Ingest**: Compiled [Context Parallel Deployment](../raw/vllm/serving/context_parallel_deployment.md); created [vLLM Context Parallel Deployment](vllm-context-parallel-deployment.md).
 - **Ingest**: Compiled [vLLM IR: Functional Intermediate Representation](../raw/vllm/design/vllm_ir.md); created [vLLM IR Functional Intermediate Representation](vllm-ir.md).
 - **Ingest**: Compiled [Optimization Levels](../raw/vllm/design/optimization_levels.md); created [vLLM Optimization Levels](vllm-optimization-levels.md) and updated [vLLM torch.compile Fusion Passes](vllm-fusion-passes.md).
 - **Ingest**: Compiled [Multi-Modal Data Processing](../raw/vllm/design/mm_processing.md); created [vLLM Multimodal Data Processing](vllm-multimodal-processing.md).
