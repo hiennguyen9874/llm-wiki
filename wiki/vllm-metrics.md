@@ -5,7 +5,7 @@ description: V1 metrics collection, Prometheus and logging publishers, interval 
 tags: [vllm, metrics, observability, prometheus]
 status: stable
 created: 2026-09-14
-generated: { by: llm-wiki-agent/1, at: 2026-09-14T00:00:00Z }
+generated: { by: llm-wiki-agent/1, at: 2026-09-14T09:19:20Z }
 sources:
   - id: metrics
     resource: ../raw/vllm/design/metrics.md
@@ -132,6 +132,7 @@ The OTel-gated `vllm:model_forward_time_milliseconds` and `vllm:model_execute_ti
 - Uses [vLLM V1 Process Architecture](vllm-v1-process-architecture.md) — metrics move work from the engine-core inner loop to the API-server outer loop and depend on API-server versus engine-core counts and multiprocess behavior.
 - Uses [vLLM Prefix Caching](vllm-prefix-caching.md) — prefix-cache queries and hits counters are the Prometheus form of the hit-rate mechanism that concept implements.
 - Uses [vLLM LoRA Resolver Plugins](vllm-lora-resolver-plugins.md) — per-adapter running and waiting counts in `lora_requests_info` describe adapters discovered through resolver plugins.
+- [vLLM Per-Request Metrics](vllm-per-request-metrics.md) — per-request `metrics` response field complements the server-aggregated Prometheus histograms described here.
 
 ## Coverage limits
 

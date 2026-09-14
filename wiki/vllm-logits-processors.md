@@ -5,7 +5,7 @@ description: Stateful batch-granular logits transforms, BatchUpdate lifecycle, a
 tags: [vllm, sampling, logits-processors]
 status: stable
 created: 2026-09-14
-generated: { by: llm-wiki-agent/1, at: 2026-09-14T08:40:14Z }
+generated: { by: llm-wiki-agent/1, at: 2026-09-14T09:05:35Z }
 sources:
   - id: logits-processors
     resource: ../raw/vllm/design/logits_processors.md
@@ -96,15 +96,17 @@ Built-ins are always loaded; current examples using this model are Min-P, logit 
 
 Still hard-coded in the sampler and pending refactor to this model: allowed token IDs, bad words, repetition/frequency/presence penalties, temperature, top-k, and top-p[^logits-processors].
 
-Custom out-of-tree processors subclass the same `LogitsProcessor` base and are covered separately in `raw/vllm/features/custom_logitsprocs.md` (not ingested here)[^logits-processors].
+Custom out-of-tree processors subclass the same `LogitsProcessor` base; authoring, loading, and invocation detail lives in [vLLM Custom Logits Processors](vllm-custom-logits-processors.md)[^logits-processors].
 
 ## Coverage limits
 
-- `builtin.py` implementations and the custom-processor feature doc were not ingested; only referenced for extension context[^logits-processors].
+- `builtin.py` implementations were not ingested; only referenced for extension context[^logits-processors].
 - Pseudocode paths (`gpu_model_runner.py`, `gpu_input_batch.py`, `sampler.py`, `interface.py`) are as quoted in the source, not verified against the tree.
 
 ## Relationships
 
 - Uses [vLLM Model Runner V2](vllm-model-runner-v2.md) — persistent-batch reorganization, `SamplingMetadata` handoff, and sampler invocation are the execution context for `update_state()` / `apply()`, including its per-logit index-mapping note for sampling state.
+- Uses [vLLM Custom Arguments](vllm-custom-arguments.md) — out-of-spec per-request processor configuration via `SamplingParams.extra_args` / `vllm_xargs`, validated by `validate_params`.
+- Uses [vLLM Custom Logits Processors](vllm-custom-logits-processors.md) — out-of-tree authoring, Adapter wrapping, loading, and per-request invocation.
 
 [^logits-processors]: Logits Processors — `../raw/vllm/design/logits_processors.md`, covering batch-granular semantics, `update_state`/`apply` lifecycle, argmax-invariant skipping, `LogitsProcessor`/`BatchUpdate` interfaces, batch-construction model with worked examples, and built-in versus custom guidance.

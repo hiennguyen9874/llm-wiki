@@ -1,18 +1,25 @@
 ---
 type: Concept
 title: vLLM Prefix Caching
-description: Hash-based full-block prefix reuse in vLLM v1 with LRU eviction, touch-on-hit allocation, and cache-salt isolation.
+description: Enabling, workloads, limits, and hash-based full-block reuse in vLLM v1 with LRU eviction, touch-on-hit allocation, cache-salt isolation, and Mamba fine-grained option.
 tags: [vllm, kv-cache, prefix-caching, inference-optimization]
 status: stable
 created: 2026-09-14
-generated: { by: llm-wiki-agent/1, at: 2026-09-14T00:00:00Z }
+generated: { by: llm-wiki-agent/1, at: 2026-09-14T09:01:59Z }
 sources:
   - id: prefix-cache
     resource: ../raw/vllm/design/prefix_caching.md
     title: Automatic Prefix Caching
+  - id: apc-feature
+    resource: ../raw/vllm/features/automatic_prefix_caching.md
+    title: Automatic Prefix Caching
 ---
 
-vLLM reuses KV cache for shared prompt prefixes by hashing each full KV block on its tokens plus prefix history, looking hits up in the v1 KV cache manager, and evicting through an LRU free queue[^prefix-cache].
+vLLM reuses KV cache for shared prompt prefixes by hashing each full KV block on its tokens plus prefix history, looking hits up in the v1 KV cache manager, and evicting through an LRU free queue[^prefix-cache]. Automatic Prefix Caching (APC) lets a new query reuse that cached KV and skip computation of the shared part when it shares a prefix with an existing query[^apc-feature].
+
+## Enabling
+
+Set `enable_prefix_caching=True` in the vLLM engine to enable APC[^apc-feature].
 
 ## Hash key
 
@@ -102,12 +109,49 @@ With block size 4 and 10 blocks, the source traces[^prefix-cache]:
 - **Time 5:** request 1 freed.
 - **Time 6:** request 2 with 29 tokens and a 12-token shared prefix touches hits 0–2 out of the free queue before allocating, so allocation reuses 0–2 and evicts 8 of the remaining free heads.
 
+## Example workloads
+
+- **Long document query:** repeated queries against the same long document such as a software manual or annual report. APC processes the document only once; later requests reuse its KV cache instead of recomputing it, with much higher throughput and lower latency[^apc-feature].
+- **Multi-round conversation:** repeated turns in the same chat session. APC reuses processing results for chat history across future rounds, with much higher throughput and lower latency[^apc-feature].
+
+## Limits
+
+APC generally does not reduce vLLM performance. It shortens query processing (the prefilling phase) but not new-token generation (the decoding phase)[^apc-feature]. Expect little gain when:
+
+- vLLM spends most time generating answers, for example when answers are long.
+- New queries share no prefix with existing queries, so no computation can be reused[^apc-feature].
+
+## Hybrid Mamba fine-grained prefix cache
+
+Under `--mamba-cache-mode align`, Mamba state is stored only on the Mamba block grid, so a prefix-cache hit can resume only at a block boundary[^apc-feature]. `--enable-mamba-fine-grained-prefix-cache` additionally stores a checkpoint at the shared-prefix junction — the point where an earlier request with the same prefix stopped — so requests whose shared prefix ends inside a block can still reuse it[^apc-feature].
+
+This helps when many requests share a long system prompt and then diverge. It is off by default and takes effect only when all of the following hold[^apc-feature]:
+
+- `--mamba-cache-mode align`
+- EAGLE/MTP speculative decoding on the Mamba group
+- `--prefix-match-unit` smaller than the Mamba block size
+- the model does not use multi-module MTP
+
+```bash
+vllm serve <hybrid-model> \
+    --mamba-cache-mode align \
+    --prefix-match-unit 64 \
+    --enable-mamba-fine-grained-prefix-cache
+```
+
+`--prefix-match-unit` sets the granularity at which prefix-cache keys are computed and is required for the fine-grained behavior. When unset it defaults to the greatest common divisor of the prefix-cacheable KV cache group block sizes; under `align` that is the block size itself, so no sub-block boundary exists and the flag has no effect[^apc-feature].
+
+Choose a value that divides the block size of every prefix-cacheable KV cache group and is a multiple of the per-state compression ratio for models that use one, such as sparse MLA. vLLM validates both at startup and names the offending sizes in the error. Read the served block size from the startup log; 64 is a reasonable starting point[^apc-feature].
+
 ## Relationships
 
-- Uses [vLLM Hybrid KV Cache Manager](vllm-hybrid-kv-cache-manager.md) intersection logic for models with multiple attention types; this concept covers the base full-attention hash, allocation, free, and eviction mechanism that hybrid coordinators extend.
+- Uses [vLLM Hybrid KV Cache Manager](vllm-hybrid-kv-cache-manager.md) intersection logic for models with multiple attention types; this concept covers the base full-attention hash, allocation, free, and eviction mechanism that hybrid coordinators extend. The Mamba fine-grained checkpoint extends that hybrid coverage to shared prefixes ending inside a Mamba block[^apc-feature].
 
 ## Coverage limits
 
 - Referenced diagrams for component overview, free queue, and example steps were absent from `raw/` and were not inspected[^prefix-cache].
+- The referenced offline example `examples/features/automatic_prefix_caching/automatic_prefix_caching_offline.py` was not present under `raw/` and was not inspected[^apc-feature].
 
 [^prefix-cache]: Automatic Prefix Caching — `../raw/vllm/design/prefix_caching.md`, hash construction and algorithms, multimodal example, cache isolation, data structures, allocation, duplicated blocks, free, eviction, and end-to-end example sections.
+
+[^apc-feature]: Automatic Prefix Caching — `../raw/vllm/features/automatic_prefix_caching.md`, APC definition, `enable_prefix_caching` enablement, hybrid Mamba fine-grained prerequisites and `--prefix-match-unit` guidance, example workloads, and prefill-only limits.
