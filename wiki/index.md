@@ -8,6 +8,35 @@ The complete retrieval map for compiled knowledge. See [LLM Wiki Contract](../LL
 
 ## Concepts
 - [Debugging vLLM-torch.compile Integration](vllm-debug-torch-compile.md) — Isolating vLLM-compile failures with tlparse logs and per-subsystem disable flags for Dynamo, dynamic shapes, Inductor, cache, and CUDAGraphs.
+- [SGLang Advanced Features Overview](sglang-advanced-features-overview.md) — SGLang advanced-features map linking server arguments, tuning, backends, decoding, structured outputs, quantization, parallelism, adapters, caching, and observability.
+- [SGLang Attention Backends](sglang-attention-backends.md) — Selection, MHA/MLA support matrices, hybrid prefill-decode, and extension workflow for SGLang attention backends.
+- [SGLang Checkpoint Engine Integration](sglang-checkpoint-engine.md) — Distributed parallel weight loading for SGLang via checkpoint-engine workers with broadcast and P2P modes for single and multi-node setups.
+- [SGLang Data-Parallel Multimodal Encoder](sglang-dp-multimodal-encoder.md) — Hybrid DP vision encoder with TP language decoder via --mm-enable-dp-encoder for lower TTFT and higher throughput.
+- [SGLang Deterministic Inference](sglang-deterministic-inference.md) — Batch-invariant deterministic inference via --enable-deterministic-inference with FlashInfer, FA3, and Triton backend compatibility and seeded sampling.
+- [SGLang EPD Disaggregation](sglang-epd-disaggregation.md) — Separate encoder, prefill, and decode stages for VLM inference with independent encoder scaling and three-tier deployment.
+- [SGLang Expert Parallelism](sglang-expert-parallelism.md) — Expert-parallel MoE serving with selectable all-to-all and grouped-GEMM backends, TBO/SBO overlap, EPLB rebalancing, and Ascend NPU guidance.
+- [SGLang for RL Systems](sglang-for-rl.md) — RL post-training integration for SGLang covering engine sleep/wake, three weight-refit paths, pause/continue generation, deterministic inference, and gateway routing.
+- [SGLang Forward Hooks](sglang-forward-hooks.md) — JSON-configured PyTorch forward hooks for SGLang submodules with fnmatch targeting, factory resolution, and startup registration.
+- [SGLang HiCache Best Practices](sglang-hicache-best-practices.md) — Hierarchical KV-cache tuning for SGLang covering memory layout, prefetch policies, PD disaggregation, HF3FS and Mooncake deployment, and custom backends.
+- [SGLang HiCache Runtime Storage Attach/Detach](sglang-hicache-runtime-attach-detach.md) — Dynamically attach or detach HiCache L3 storage backends at runtime via HTTP API with idle-state safety checks.
+- [SGLang HiCache System Design](sglang-hicache-design.md) — Three-tier KV-cache hierarchy with HiRadixTree metadata, local-match / prefetch / write-back workflow, multi-rank sync, and zero-copy transfer optimizations.
+- [SGLang Hyperparameter Tuning](sglang-hyperparameter-tuning.md) — Offline batch-inference throughput tuning for SGLang covering queue depth, KV-cache utilization, memory fraction, chunked prefill, CUDA graphs, and parallelism.
+- [SGLang LoRA Serving](sglang-lora-serving.md) — Multi-LoRA serving for SGLang covering dynamic loading, GPU pinning, Triton and ChunkedSGMV backends, and overlap loading.
+- [SGLang Model Gateway](sglang-model-gateway.md) — High-performance model-routing gateway for SGLang with multi-protocol routing, PD disaggregation, load balancing, reliability, and enterprise controls.
+- [SGLang Observability](sglang-observability.md) — SGLang observability covering Prometheus metrics, request logging, request dump and replay, and crash-dump debugging.
+- [SGLang Offline VLM Query](sglang-vlm-offline-query.md) — Query VLMs via offline Engine API with raw images, processor output, or precomputed embeddings for Qwen2.5-VL and Llama 4.
+- [SGLang PD Disaggregation](sglang-pd-disaggregation.md) — Separate prefill and decode instances in SGLang with Mooncake, NIXL, and Ascend KV transfer, PD-aware routing, and tuned timeouts.
+- [SGLang Pipeline Parallelism](sglang-pipeline-parallelism.md) — Pipeline-parallel long-context serving in SGLang with async micro-batching, dynamic chunked prefill, and PP-size tuning.
+- [SGLang Quantization](sglang-quantization.md) — Offline pre-quantized and online dynamic quantization for SGLang covering FP8, AWQ, GPTQ, ModelOpt, torchao, and AMD Quark flows.
+- [SGLang Quantized KV Cache](sglang-quantized-kv-cache.md) — FP8 E4M3/E5M2 and experimental FP4 E2M1 KV-cache quantization for SGLang covering formats, scaling factors, memory savings, accuracy, and backend constraints.
+- [SGLang R-Fork](sglang-rfork.md) — Zero-copy GPU-to-GPU weight loading for SGLang via R-Fork with NCCL and TransferEngine backends for seconds-scale boot-up.
+- [SGLang Reasoning Parser](sglang-reasoning-parser.md) — Separate reasoning and final-answer content for thinking models via --reasoning-parser, separate_reasoning, and per-model parser tags.
+- [SGLang Server Arguments](sglang-server-arguments.md) — Canonical launch and configuration reference for SGLang covering config-file precedence, parallelism, memory, quantization, backends, and disaggregation flags.
+- [SGLang Speculative Decoding](sglang-speculative-decoding.md) — EAGLE-2/EAGLE-3 speculative decoding with draft-model tuning, torch.compile, FR-Spec, and MTP usage.
+- [SGLang Structured Outputs](sglang-structured-outputs.md) — Guaranteed JSON-schema, regex, EBNF, and structural-tag generation across OpenAI, native, and offline APIs with selectable XGrammar, Outlines, and llguidance backends.
+- [SGLang Structured Outputs for Reasoning Models](sglang-structured-outputs-reasoning.md) — Free-form reasoning with constrained final output for thinking models via --reasoning-parser across OpenAI, native, and offline APIs.
+- [SGLang Tool Parser](sglang-tool-parser.md) — Model-specific tool-call parsing for SGLang function calling across OpenAI-compatible, native, and offline APIs with tool_choice and pythonic formats.
+- [SGLang ViT CUDA Graphs for Multimodal Encoders](sglang-vit-cuda-graph.md) — Per-sequence-length CUDA Graph capture and replay for SGLang vision encoders via ViTCudaGraphRunner, enabled by SGLANG_VIT_ENABLE_CUDA_GRAPH.
 - [vLLM Adaptive Verification for Speculative Decoding](vllm-adaptive-verification.md) — Per-step adaptive draft verification that budgets cross-request slots by survival probability and profiled step cost, currently for DSpark with a confidence head.
 - [vLLM Attention Backends](vllm-attention-backends.md) — Selection, configuration, composite routing, and MLA/sparse variants for vLLM attention backends.
 - [vLLM b12x Quantized Linear and MoE Backends](vllm-b12x-quantization-backends.md) — Optional SM120/SM121 linear and MoE kernels for FP8, MXFP8, NVFP4, and MXFP4 model configurations.
