@@ -5,7 +5,7 @@ description: Workload-oriented comparison of SGLang and vLLM across serving arch
 tags: [sglang, vllm, comparison, inference-serving]
 status: stable
 created: 2026-09-14
-generated: { by: llm-wiki-agent/1, at: 2026-09-15T00:00:00Z }
+generated: { by: llm-wiki-agent/1, at: 2026-09-15T18:00:00Z }
 sources:
   - id: sgl-overview
     resource: sglang-advanced-features-overview.md
@@ -58,6 +58,18 @@ sources:
   - id: atomic-sgl-vllm
     resource: ../raw/sglang-vs-vllm/index.md
     title: "SGLang vs vLLM: Which Inference Engine Should You Use? (2026)"
+  - id: jarvis-h100-3way
+    resource: ../raw/vllm-sglang-trtllm-comparison/index.md
+    title: "SGLang vs vLLM: H100 Benchmarks, with TensorRT-LLM"
+  - id: privocto-vllm-sglang
+    resource: ../raw/vllm-sglang/index.md
+    title: "vLLM vs SGLang: Enterprise LLM Inference Comparison"
+  - id: spheron-2026
+    resource: ../raw/vllm-vs-sglang-2026/index.md
+    title: "vLLM vs SGLang 2026: RadixAttention vs PagedAttention Benchmarks"
+  - id: deepinfra-vllm-sglang
+    resource: ../raw/vllm-vs-sglang/index.md
+    title: "vLLM vs SGLang: Performance, Features & Deployment Compared"
 ---
 
 SGLang and vLLM substantially overlap as high-performance inference runtimes, but their documented strengths point in different directions. SGLang is especially cohesive for cache-aware multi-turn and agentic serving, a dedicated routing tier, prefill/decode topologies, and RL rollout control. vLLM presents a particularly explicit engine/process architecture and a broad out-of-tree Python plugin model. For ordinary OpenAI-compatible serving either can fit; the deciding factors should be the exact model, hardware, quantization, attention backend, and measured workload rather than a universal performance claim.[^sgl-overview][^vllm-architecture]
@@ -100,6 +112,66 @@ Prefix-heavy workload with high prefix reuse, such as repeated system prompts an
 
 The source attributes the larger prefix-heavy gap to KV-cache reuse: shared prefixes skip more prefill work under SGLang's RadixAttention. The stated takeaway is that unique-prompt performance is similar, within a few percent, while repeated-context workloads favor SGLang in these snapshots.[^atomic-sgl-vllm]
 
+## Independent H100 three-way benchmark (JarvisLabs 2026)
+
+A third-party H100 benchmark adds TensorRT-LLM as an engine-first path and sweeps concurrency from 60 to 600 plus saturation across Qwen2.5-7B-Instruct, Qwen3-30B-A3B, and Qwen3-32B on ShareGPT chat and RULER 16K long-context workloads; full detail is compiled in [vLLM vs SGLang vs TensorRT-LLM H100 Benchmark](vllm-sglang-trtllm-h100-benchmark.md).[^jarvis-h100-3way]
+
+In those tested configurations vLLM was the strongest general default for combined first-token latency and output throughput, SGLang won decode latency on the 7B and 30B-A3B 16K runs at the cost of higher first-token latency, and TensorRT-LLM showed stable decode kernels on chat but sharply higher first-token latency under load with the published engine builds.[^jarvis-h100-3way] Exact framework versions are not recorded, several ShareGPT TensorRT-LLM builds used `max_batch_size` values below the tested concurrency sweep, and all runs used `vllm bench serve`, so treat the ranking as configuration-specific and validate on deployed versions.[^jarvis-h100-3way]
+
+## Enterprise vendor snapshot (PrivOcto 2026)
+
+A PrivOcto enterprise comparison adds a third vendor-cited snapshot set. It names only one model/hardware pair (Qwen3-Coder-30B on H200 for a single TTFT comparison); the remaining TTFT, throughput, memory, and structured-output numbers are reported without model, precision, harness, or version details, so treat all of them as directional and configuration-specific, not verified results.[^privocto-vllm-sglang]
+
+Reported time-to-first-token snapshots:[^privocto-vllm-sglang]
+
+| Condition | SGLang | vLLM |
+| --- | --- | --- |
+| H100, batch size 1 | 340 ms | 123 ms |
+| Low concurrency, c=1 | 583 ms | 2,141 ms |
+| Concurrency c=1 to c=10 | 583 ms rising to 2,525 ms | ~2,171 ms, described as consistent |
+| H200, Qwen3-Coder-30B | 2,333 ms (12.6% faster) | 2,669 ms |
+
+Reported throughput snapshots:[^privocto-vllm-sglang]
+
+| Condition | SGLang | vLLM |
+| --- | --- | --- |
+| Throughput at c=1 | 220 tok/s | 61 tok/s |
+| Throughput at c=100 | 4,587 tok/s | 4,432 tok/s |
+| Overall throughput on A100 | 1,532 tok/s | 661 tok/s |
+| Batch size 64 on H100 | 460 tok/s | not reported |
+
+Additional vendor-cited claims in the same source:[^privocto-vllm-sglang]
+
+- Memory footprint: ~40GB per GPU for SGLang versus ~75GB for vLLM with tensor parallelism (47% lower), and 7GB versus 21GB on A10; no model or configuration is given.
+- Batch scaling shape: vLLM near-linear to c=50 (~40x) before plateauing at c=100+, while SGLang starts strong with slower scaling at higher concurrency.
+- Multi-turn chat: 4.7x-5x SGLang speedup attributed to RadixAttention prefix caching, with ~10% prefix-caching boost and 50%+ production cache-hit rates claimed.
+- Structured JSON: 4,200 tok/s at 99.8% validity for SGLang with xGrammar versus 820 tok/s at 85% for vLLM with Guidance; the backends differ, so this is a backend-path comparison, not a clean engine comparison.
+- Architecture framing matches the compiled cache contrast: PagedAttention in fixed 16-256-token pages with block-table mapping and under-4% waste versus 60-80% in traditional systems, against RadixAttention radix-tree prefix sharing; the cover diagram was inspected and carries the same throughput-versus-flexibility framing with no additional numbers.
+- Rough cost framing: self-hosted vLLM at USD 0.50-1.00 per million tokens versus USD 20-60 for API services, and 9-10x reduction for SGLang quantized-SLM versus FP16 deployments; no hardware or utilization basis is given.
+- Install, Docker, `vllm serve`, and tensor/pipeline-parallel launch examples were excluded as version-sensitive operations rather than durable selection evidence.
+
+## Spheron 2026 Llama and MoE benchmark
+
+A Spheron comparison on Llama 3.3 70B Instruct FP8 (H100 single-GPU, vLLM v0.18.0 without MRV2 versus SGLang v0.5.9) plus one DeepSeek V4 Flash FP8 point on 8x H100 adds versioned TTFT/throughput evidence; full tables are compiled in [vLLM vs SGLang 2026 Spheron Benchmark](vllm-vs-sglang-2026-spheron-benchmark.md).[^spheron-2026]
+
+Unique-prompt throughput is effectively tied within 5% (for example 1,850 versus 1,920 tok/s at c=50), matching the Atomic near-parity snapshot.[^spheron-2026] With 80% shared 512-token prefix, SGLang TTFT p50 drops from 310 ms to 195 ms at c=50 (37% lower) and from 620 ms to 370 ms at c=100; p95 drops from 580 ms to 340 ms at c=50.[^spheron-2026] Overlap scaling at c=50 runs roughly 7% TTFT reduction at 20% overlap, 15% at 40%, 24% at 60%, 37% at 80%, and 44% at 95%, supporting the source 60%-overlap rule for benchmarking SGLang first.[^spheron-2026] Enabling vLLM APC on the simple shared-system-prompt case narrows the c=10 gap to roughly 15-18%.[^spheron-2026]
+
+The MoE point (DeepSeek V4 Flash, TP8 plus expert parallelism) is within 7% on unique prompts (580 versus 620 tok/s; 890 versus 855 ms TTFT p50) while the 80%-prefix TTFT gap persists (730 versus 520 ms), so workload shape matters more than dense versus MoE in this snapshot.[^spheron-2026] Warm-grammar structured output favors SGLang on repeated schemas (for example nested JSON +18% vLLM versus +4% SGLang warm; deeply nested +42% versus +6%), while speculative decoding favors vLLM (mature Eagle3/EAGLE2 versus experimental SGLang at v0.5.9) and Blackwell B200/GB200 favors vLLM via FlashAttention 4 in v0.17.0+.[^spheron-2026] Cost arithmetic uses `(hourly_rate / 3600) / (tokens_per_sec / 1_000_000)` on dated 24 Jun 2026 Spheron rates; prefix-heavy H100 on-demand is framed as $0.61 vLLM no-APC versus $0.54 vLLM APC-on versus $0.44 SGLang per 1M tokens.[^spheron-2026]
+
+## DeepInfra workload-first framework
+
+A DeepInfra comparison adds benchmark-validity rules and self-host economics rather than new head-to-head runs; full method is compiled in [vLLM vs SGLang DeepInfra Decision Framework](vllm-vs-sglang-deepinfra-framework.md).[^deepinfra-vllm-sglang]
+
+Its version-mismatch critique targets the widely repeated 29% SGLang lead (16,215 versus 12,553 tok/s on Llama 3.1 8B bf16, H100): the paired releases SGLang v0.2.3 and vLLM 0.11.0 are roughly two years apart, so the number cannot rank either engine today. Its unit-conflation warning separates RunPod single-stream decode rates (35.0 versus 32.8 tok/s, 2x H100, 70B distill, 7k context) from aggregate saturated throughput — one predicts per-reader text speed, the other node capacity before queueing.[^deepinfra-vllm-sglang] The stated usability rule is version-matched, flag-matched, and run on your request distribution.[^deepinfra-vllm-sglang]
+
+Workload triage uses four signals: prefix-reuse ratio (below ~20% stops discriminating; cached runs gain ~20% once hits land), batch shape (saturated offline packing versus bursty interactive TTFT), structured-output share with per-schema compiler cost, and dense versus MoE topology.[^deepinfra-vllm-sglang] The same-day prefix probe streams a real 8k+ preamble twice and reads cold-versus-warm TTFT delta at production concurrency, controlling for replica placement, cache aging, and HBM eviction pressure.[^deepinfra-vllm-sglang] Self-host break-even is framed at 8x H100 (~$11,700/month) versus $0.355 per 1M-in/250k-out unit, requiring roughly 12,000 input tok/s sustained; bursty 10-20% utilization, cached-input pricing, and engineer-months favor managed endpoints until saturation, regulatory placement, or modification needs flip the choice.[^deepinfra-vllm-sglang]
+
+## Contradictions
+
+- PrivOcto internal TTFT ranking flips at nominally identical low concurrency (vLLM faster at batch size 1 on H100, SGLang faster at c=1) with no reconciling configuration; neither reading can be used alone.[^privocto-vllm-sglang]
+- PrivOcto's large SGLang throughput and memory leads and its TTFT-instability claim for SGLang sit against the Atomic near-parity unique-prompt snapshot (+3.8% SGLang), the Spheron versioned unique-prompt tie (within 5% on Llama 3.3 70B FP8/H100), and the JarvisLabs configuration-specific vLLM default on Qwen/H100; the sources use different models, hardware, concurrency, and harnesses, so no universal ranking follows.[^privocto-vllm-sglang][^atomic-sgl-vllm][^spheron-2026][^jarvis-h100-3way]
+- PrivOcto's xGrammar-versus-Guidance JSON gap (4,200 versus 820 tok/s) does not transfer to an engine-level structured-output ranking because both engines document multiple backends; select by parser and backend requirements instead.[^privocto-vllm-sglang][^sgl-structured][^vllm-structured]
+
 ## Cache-behavior contrast
 
 SGLang matches each request with a longest-prefix lookup against a radix tree whose nodes map token-sequence prefixes to GPU KV-cache blocks; only the new suffix needs prefill, and the scheduler groups requests with shared prefixes to raise reuse above arrival-order scheduling.[^atomic-sgl-vllm] Practical limits stated in the source:[^atomic-sgl-vllm]
@@ -132,7 +204,7 @@ The following is synthesis from the documented capabilities, not a benchmark res
 - Prefer **SGLang** when the application is dominated by repeated-prefix or multi-turn agent traffic, needs an integrated cache-aware gateway, uses hierarchical cache tiers, requires tightly integrated PD/EPD serving, or needs frequent rollout weight updates and pause/resume control.[^sgl-cache][^sgl-gateway][^sgl-pd][^sgl-rl]
 - Prefer **vLLM** when the application benefits most from a clearly separated general-purpose engine architecture, offline/online API symmetry, or out-of-tree Python plugins for models, platforms, processing, metrics, and endpoints.[^vllm-architecture][^vllm-plugins]
 - Treat **LoRA and structured output as workload-specific ties**: each has meaningful differentiators, so select by adapter lifecycle, parser/backend requirements, and model support rather than the headline feature.[^sgl-lora][^vllm-lora][^sgl-structured][^vllm-structured]
-- For **latency or throughput**, benchmark both on the same model artifact, precision, attention backend, context-length distribution, concurrency, prefix-reuse rate, and output length. The only head-to-head numbers compiled here are the vendor-cited snapshots above, not a controlled benchmark.[^atomic-sgl-vllm]
+- For **latency or throughput**, benchmark both on the same model artifact, precision, attention backend, context-length distribution, concurrency, prefix-reuse rate, and output length. Head-to-head numbers compiled here are the vendor-cited Atomic and PrivOcto snapshots plus the configuration-specific JarvisLabs H100 sweep detailed in [vLLM vs SGLang vs TensorRT-LLM H100 Benchmark](vllm-sglang-trtllm-h100-benchmark.md), the versioned Spheron Llama/MoE snapshots detailed in [vLLM vs SGLang 2026 Spheron Benchmark](vllm-vs-sglang-2026-spheron-benchmark.md), and the DeepInfra validity and workload-triage rules detailed in [vLLM vs SGLang DeepInfra Decision Framework](vllm-vs-sglang-deepinfra-framework.md), not a universal ranking.[^atomic-sgl-vllm][^privocto-vllm-sglang][^jarvis-h100-3way][^spheron-2026][^deepinfra-vllm-sglang]
 
 ## Evaluation checklist
 
@@ -147,14 +219,19 @@ The following is synthesis from the documented capabilities, not a benchmark res
 
 - Compares [SGLang Advanced Features Overview](sglang-advanced-features-overview.md) with [vLLM V1 Process Architecture](vllm-v1-process-architecture.md) as the broad entry points to each serving stack.
 - Uses [SGLang Unified Radix Cache](sglang-unified-radix-cache.md) and [vLLM Prefix Caching](vllm-prefix-caching.md) for the central cache-design contrast.
+- Uses [vLLM vs SGLang vs TensorRT-LLM H100 Benchmark](vllm-sglang-trtllm-h100-benchmark.md) for concurrency-swept Qwen TTFT/decode/throughput evidence with TensorRT-LLM as a third path.
+- Uses [vLLM vs SGLang 2026 Spheron Benchmark](vllm-vs-sglang-2026-spheron-benchmark.md) for versioned Llama 3.3 70B and DeepSeek V4 Flash unique versus prefix-heavy TTFT/throughput, structured-output, speculative-decoding, and cost evidence.
+- Uses [vLLM vs SGLang DeepInfra Decision Framework](vllm-vs-sglang-deepinfra-framework.md) for benchmark-validity checks, four workload signals, TTFT prefix probe, and self-host versus managed-endpoint economics.
 - Uses [SGLang Model Gateway](sglang-model-gateway.md) and [vLLM Plugin System](vllm-plugin-system.md) for integrated routing versus out-of-tree extensibility.
 
 ## Coverage limits
 
 - This comparison is based on the repository's compiled documentation snapshots, not current upstream source inspection.
-- The only head-to-head performance numbers are vendor-cited snapshots without linked methodology; they support no universal speed, efficiency, stability, ecosystem-size, or model-coverage ranking.[^atomic-sgl-vllm]
+- The only head-to-head performance numbers in this page are vendor-cited snapshots without linked methodology (Atomic, PrivOcto) plus the configuration-specific JarvisLabs H100 sweep and the versioned Spheron Llama/MoE snapshots; they support no universal speed, efficiency, stability, ecosystem-size, or model-coverage ranking. The DeepInfra source adds validity rules and workload triage, not new runs.[^atomic-sgl-vllm][^privocto-vllm-sglang][^jarvis-h100-3way][^spheron-2026][^deepinfra-vllm-sglang]
 - The Atomic Chat source's quantization, hardware, provenance, and feature-recency claims are compiled as source-attributed guidance, not independently verified findings; its four illustrative website/UI screenshots were not inspected beyond captions because they carry no additional performance claims.[^atomic-sgl-vllm]
+- The JarvisLabs three-way results are configuration-specific Qwen/H100/BF16 evidence without recorded framework versions; see [vLLM vs SGLang vs TensorRT-LLM H100 Benchmark](vllm-sglang-trtllm-h100-benchmark.md) for scope and per-workload takeaways.[^jarvis-h100-3way]
 - The source's Atomic Chat local-inference product pitch was excluded as non-durable vendor promotion.
+- The PrivOcto source's install, Docker, `vllm serve`, launch-flag, cost-per-token, hardware-support, and model-support claims were treated as version-sensitive operations or unverified vendor framing; only the workload-selection signal (high-concurrency predictable serving versus prefix-heavy agent and structured-output work) is carried above, with limits intact.[^privocto-vllm-sglang]
 - Feature maturity can vary by model, hardware, backend, and release even when both projects document a similarly named capability.
 
 [^sgl-overview]: [SGLang Advanced Features Overview](sglang-advanced-features-overview.md).
@@ -174,3 +251,7 @@ The following is synthesis from the documented capabilities, not a benchmark res
 [^sgl-observability]: [SGLang Observability](sglang-observability.md).
 [^vllm-observability]: [vLLM Metrics and Observability](vllm-metrics.md).
 [^atomic-sgl-vllm]: SGLang vs vLLM: Which Inference Engine Should You Use? (2026) — `../raw/sglang-vs-vllm/index.md`, covering RadixAttention versus PagedAttention behavior, safetensors and quantization guidance, Linux deployment, cache-aware scheduling limits, vendor-cited unique-prompt and prefix-heavy benchmarks, prefix-hit-rate triage, selection guidance, and interchangeability limits.
+[^jarvis-h100-3way]: Jaydev Tonde, SGLang vs vLLM: H100 Benchmarks, with TensorRT-LLM — `../raw/vllm-sglang-trtllm-comparison/index.md` (jarvislabs.ai, 2026-05-18), covering H100 setup, Qwen server/client commands, ShareGPT and RULER 16K sweeps, TTFT/TPOT/ITL/throughput tables, and configuration-sensitive TensorRT-LLM TTFT interpretation.
+[^privocto-vllm-sglang]: vLLM vs SGLang: Enterprise LLM Inference Comparison — `../raw/vllm-sglang/index.md` (privocto.com, 2026-03-15), covering PagedAttention versus RadixAttention framing, H100/H200/A100 TTFT and throughput snapshots without linked methodology, TP and A10 memory claims, multi-turn and xGrammar-versus-Guidance JSON claims, cost framing, and install and deployment examples.
+[^spheron-2026]: Mitrasish Mukherjee, vLLM vs SGLang 2026: RadixAttention vs PagedAttention Benchmarks — `../raw/vllm-vs-sglang-2026/index.md` (spheron.network, 2026-06-23), covering versioned Llama 3.3 70B FP8 unique and 80%-prefix TTFT/throughput tables, overlap-to-hit-rate scaling, DeepSeek V4 Flash MoE point, xgrammar warm/cold overhead, Eagle3/MTP status, Blackwell readiness, H100/H200 cost arithmetic on 24 Jun 2026 rates, and router and flag-migration notes.
+[^deepinfra-vllm-sglang]: DeepInfra, vLLM vs SGLang: Performance, Features & Deployment Compared — `../raw/vllm-vs-sglang/index.md` (deepinfra.com), covering version-mismatched and unit-conflated benchmark critiques, PagedAttention versus RadixAttention origins with V1 and zero-overhead scheduler notes, 2026-07-14 release and star snapshots, four workload signals, streaming TTFT prefix-reuse probe with confounders, 8-GPU self-host versus per-token break-even arithmetic, self-host-win conditions, and engine selection guidance.
