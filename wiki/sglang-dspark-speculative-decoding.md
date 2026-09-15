@@ -5,7 +5,7 @@ description: Confidence-driven variable-length verification with semi-autoregres
 tags: [sglang, speculative-decoding, dspark, cuda-graphs]
 status: stable
 created: 2026-09-14
-generated: { by: llm-wiki-agent/1, at: 2026-09-14T15:00:00Z }
+generated: { by: llm-wiki-agent/1, at: 2026-09-15T23:00:00Z }
 sources:
   - id: dspark-sglang
     resource: ../raw/2026-07-06-dspark-sglang/index.md
@@ -16,6 +16,12 @@ sources:
   - id: qwen38-dspark
     resource: ../raw/Qwen3.8-27B-DSpark.md
     title: Qwen3.8-27B-DSpark
+  - id: nemotron-dspark
+    resource: ../raw/DSpark.md
+    title: NVIDIA Nemotron-3.5-Lightning-30B-A3B-NVFP4-DSpark
+  - id: dflash2
+    resource: ../raw/DFlash2.md
+    title: "DFlash 2: Keep Drafting Parallel"
 ---
 
 DSpark trades fixed full-block verification for confidence-driven per-request verify budgets, pairing a semi-autoregressive block drafter with a scheduler that stops verifying tokens unlikely to be accepted; SGLang serves it with ragged per-request verify under full CUDA graphs, an overlap-aware speculative path, an additive step-cost table, and ceiling observability[^dspark-sglang].
@@ -91,9 +97,13 @@ A long-context checkpoint example is [Kimi K3 DSpark Speculator](kimi-k3-dspark.
 
 A dense-27B checkpoint example is [Qwen3.8-27B DSpark Speculator](qwen3.8-dspark.md): `RadixArk/Qwen3.8-27B-DSpark` for Qwen3.8-27B targets with five 5120-hidden layers, VanillaMarkov rank-256 head, gamma 7 and verify width 8, v2 acceptance +26.00% request-weighted and +26.45% workload-macro over v1, and up to 3.16x autoregressive throughput at concurrency 1 on the reported FP8 setup[^qwen38-dspark].
 
+A Nemotron checkpoint example is [Nemotron 3.5 Lightning DSpark Speculator](nemotron-3.5-lightning-dspark.md): `nvidia/NVIDIA-Nemotron-3.5-Lightning-30B-A3B-NVFP4-DSpark` for Nemotron-3.5-Lightning-30B-A3B targets with 967M dense-GQA drafting, causal sliding-window 1024 attention with per-head sink bias, SPEED-Bench 3.75 overall acceptance at draft length 7, and vLLM serving tuned for DGX Spark and low-concurrency data-centre workflows[^nemotron-dspark].
+
 Roadmap items are a stronger online/adaptive cost model and scheduler, more dense/sparse model coverage, broader parallelism and topology coverage, productionized block-accept and calibration metrics, and hardening of the full-CUDA-graph path with stress/regression testing[^dspark-sglang].
 
 ## Relationships
+
+- Related to [DFlash 2 Parallel Speculative Decoding](dflash2-parallel-speculative-decoding.md) — DFlash 2 path selection beats the DSpark sequential correction on reported five-layer Qwen3-4B / GSM8K (4.61 vs 4.49 at T=0, 4.25 vs 4.08 at T=1) with +2.0M params / +0.6% latency versus +77.8M / +9.6%[^dflash2].
 
 - Uses [SGLang Speculative Decoding](sglang-speculative-decoding.md) — base EAGLE/MTP speculation surface; DSpark is the confidence-scheduled block-drafting alternative.
 - Related to [SGLang DFlash Speculative Decoding](sglang-dflash-speculative-decoding.md) — both draft a whole block per forward, but DFlash uses block diffusion with KV injection while DSpark uses semi-autoregressive drafting with confidence-trimmed verify.
@@ -103,6 +113,7 @@ Roadmap items are a stronger online/adaptive cost model and scheduler, more dens
 - Uses [SGLang Server Arguments](sglang-server-arguments.md) — canonical reference for the launch, parallelism, memory, and DP-attention flags used in DSpark commands.
 - Related to [Kimi K3 DSpark Speculator](kimi-k3-dspark.md) — long-context DSpark checkpoint extending the DFlash backbone with Markov logit-bias and confidence heads.
 - Related to [Qwen3.8-27B DSpark Speculator](qwen3.8-dspark.md) — dense-27B DSpark checkpoint with v1/v2 acceptance and AR/EAGLE/DSpark throughput comparisons.
+- Related to [Nemotron 3.5 Lightning DSpark Speculator](nemotron-3.5-lightning-dspark.md) — 967M DSpark checkpoint for Nemotron-3.5-Lightning-30B-A3B with 3.75 SPEED-Bench acceptance and vLLM/DGX Spark serving.
 
 ## Coverage limits
 
@@ -113,3 +124,5 @@ Roadmap items are a stronger online/adaptive cost model and scheduler, more dens
 [^dspark-sglang]: DSpark in SGLang: Speculative Decoding with Confidence-Driven, Variable-Length Verification — `../raw/2026-07-06-dspark-sglang/index.md`.
 [^kimi-k3-dspark]: Kimi K3 DSpark speculator — `../raw/Kimi-K3-DSpark.md`.
 [^qwen38-dspark]: Qwen3.8-27B-DSpark — `../raw/Qwen3.8-27B-DSpark.md`.
+[^nemotron-dspark]: NVIDIA Nemotron-3.5-Lightning-30B-A3B-NVFP4-DSpark — `../raw/DSpark.md`.
+[^dflash2]: DFlash 2: Keep Drafting Parallel — `../raw/DFlash2.md`.

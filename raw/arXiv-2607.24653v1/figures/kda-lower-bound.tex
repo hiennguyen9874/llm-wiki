@@ -1,0 +1,109 @@
+\definecolor{kdafigink}{HTML}{1C1C1E}
+\definecolor{kdafiggray}{HTML}{777777}
+\definecolor{kdafiggrid}{HTML}{D6D6D8}
+\definecolor{kdafigred}{HTML}{B92622}
+\definecolor{kdafigblue}{HTML}{C8DCF5}
+\definecolor{kdafigbluedark}{HTML}{4779B8}
+\definecolor{kdafigorange}{HTML}{F2C6A0}
+\definecolor{kdafigorangedark}{HTML}{B96A2D}
+
+\begin{subfigure}[t]{0.47\textwidth}
+    \centering
+    \resizebox{\linewidth}{!}{%
+        \begin{tikzpicture}[
+                x=1pt,
+                y=1pt,
+                outer sep=0pt,
+                labeltext/.style={font=\footnotesize, text=kdafigink},
+                smalltext/.style={font=\scriptsize, text=kdafigink},
+                axis/.style={draw=kdafigink, line width=0.55pt, -{Latex[length=4pt,width=3.5pt]}},
+            ]
+            \path[use as bounding box] (-18,0) rectangle (245,158);
+
+            \node[smalltext, text=kdafiggray, anchor=north west] (linearlegend) at (65,150)
+            {Kimi Linear: $g=-e^A\operatorname{Softplus}(z)$};
+            \node[smalltext, text=kdafigred, anchor=north west] at ($(linearlegend.south west)+(0,-1pt)$)
+            {Kimi K3: $g=g_{\min}\operatorname{Sigmoid}(e^A z)$};
+
+            \draw[axis] (28,31) -- (28,144) node[above, labeltext] {$g$};
+            \draw[axis] (28,31) -- (232,31) node[right, labeltext] {$z$};
+            \draw[draw=kdafiggrid, line width=0.45pt, dashed] (28,113) -- (225,113);
+            \draw[draw=kdafigred, line width=0.55pt, dashed] (28,53) -- (225,53);
+            \node[smalltext, anchor=east] at (24,113) {$0$};
+            \node[smalltext, text=kdafigred, anchor=east] at (24,53) {$g_{\min}=-5$};
+
+            \draw[draw=kdafiggray, line width=1pt]
+            plot[domain=-5.5:6, samples=120]
+                ({126.5 + 16.4167*\x}, {113 - 12*ln(1 + exp(\x))});
+            \node[smalltext, text=kdafiggray, anchor=north east] at (230,42) {$-\infty$};
+            \draw[draw=kdafigred, line width=1.2pt]
+            plot[domain=-5.5:6, samples=120]
+                ({126.5 + 16.4167*\x}, {113 - 60/(1 + exp(-\x))});
+            \node[smalltext, text=kdafiggray, anchor=north west] at (32,28) {$A=0$};
+        \end{tikzpicture}%
+    }
+    \caption{Log-decay parameterization.}
+    \label{fig:kda-lower-bound-mapping}
+\end{subfigure}
+\hfill
+\begin{subfigure}[t]{0.47\textwidth}
+    \centering
+    \resizebox{\linewidth}{!}{%
+        \begin{tikzpicture}[
+                x=1pt,
+                y=1pt,
+                outer sep=0pt,
+                labeltext/.style={font=\footnotesize, text=kdafigink},
+                smalltext/.style={font=\scriptsize, text=kdafigink},
+            ]
+            \path[use as bounding box] (0,0) rectangle (226,150);
+
+            \begin{scope}[xshift=-5pt]
+                \path[fill=kdafigorange] (12,120) rectangle (32,100);
+                \path[fill=kdafigblue] (12,100) rectangle (32,80);
+                \path[fill=kdafigorange] (32,100) rectangle (52,80);
+                \path[fill=kdafigblue] (12,80) rectangle (52,60);
+                \path[fill=kdafigorange] (52,80) rectangle (72,60);
+                \path[fill=kdafigblue] (12,60) rectangle (72,40);
+                \path[fill=kdafigorange] (72,60) rectangle (92,40);
+                \draw[draw=kdafigink, line width=0.7pt] (12,40) rectangle (92,120);
+                \foreach \i in {1,...,3} {
+                        \draw[draw=kdafigink, line width=0.4pt] ({12+20*\i},40) -- ({12+20*\i},120);
+                        \draw[draw=kdafigink, line width=0.4pt] (12,{40+20*\i}) -- (92,{40+20*\i});
+                    }
+            \end{scope}
+            \node[fit={(7,40) (87,120)}, inner sep=0pt] (lineargrid) {};
+
+            \begin{scope}[xshift=5pt]
+                \path[fill=kdafigblue] (134,120) rectangle (154,100);
+                \path[fill=kdafigblue] (134,100) rectangle (174,80);
+                \path[fill=kdafigblue] (134,80) rectangle (194,60);
+                \path[fill=kdafigblue] (134,60) rectangle (214,40);
+                \draw[draw=kdafigink, line width=0.7pt] (134,40) rectangle (214,120);
+                \foreach \i in {1,...,3} {
+                        \draw[draw=kdafigink, line width=0.4pt] ({134+20*\i},40) -- ({134+20*\i},120);
+                        \draw[draw=kdafigink, line width=0.4pt] (134,{40+20*\i}) -- (214,{40+20*\i});
+                    }
+            \end{scope}
+            \node[fit={(139,40) (219,120)}, inner sep=0pt] (k3grid) {};
+
+            \node[labeltext, above=5pt of lineargrid] {Kimi Linear};
+            \node[labeltext, above=5pt of k3grid] {Kimi K3};
+
+            \coordinate (decaymid) at ($(lineargrid.east)!0.5!(k3grid.west)$);
+            \draw[draw=kdafigred, line width=0.7pt, -{Latex[length=4pt,width=3pt]}]
+            ($(lineargrid.east)+(8pt,0)$) -- ($(k3grid.west)+(-8pt,0)$);
+            \node[font=\scriptsize, text=kdafigred, above=4pt of decaymid] {lower-bounded};
+
+            \coordinate (legendcenter) at ($(lineargrid.south)!0.5!(k3grid.south)+(0,-10pt)$);
+            \node[draw=kdafigink, fill=kdafigorange, line width=0.4pt, minimum size=8pt, inner sep=0pt, anchor=north]
+            (pairlegend) at ($(legendcenter)+(-39pt,0)$) {};
+            \node[smalltext, right=2pt of pairlegend] (pairlabel) {Position-pair Diagonal};
+            \node[draw=kdafigink, fill=kdafigblue, line width=0.4pt, minimum size=8pt, inner sep=0pt, below=3pt of pairlegend]
+            (tclegend) {};
+            \node[smalltext, right=2pt of tclegend] (tclabel) {Tensor Core};
+        \end{tikzpicture}%
+    }
+    \caption{Diagonal-tile computation.}
+    \label{fig:kda-lower-bound-tiles}
+\end{subfigure}

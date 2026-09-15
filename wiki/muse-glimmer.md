@@ -5,11 +5,14 @@ description: Run Meta 30B dense vision Muse Glimmer locally via Unsloth Dynamic 
 tags: [muse, meta, unsloth, gguf, llama-cpp, local-inference, quantization, reasoning, vision]
 status: stable
 created: 2026-09-14
-generated: { by: llm-wiki-agent/1, at: 2026-09-14T12:00:00Z }
+generated: { by: llm-wiki-agent/1, at: 2026-09-15T16:00:00Z }
 sources:
   - id: muse-glimmer
     resource: ../raw/unsloth/models/muse-glimmer.md
     title: 'Muse Glimmer - How to Run Locally'
+  - id: dflash2
+    resource: ../raw/DFlash2.md
+    title: 'DFlash 2: Keep Drafting Parallel'
 ---
 
 Muse Glimmer is Meta's 30B-parameter dense vision open-weight model for local agentic and coding workflows, presented as the first open model from Meta Superintelligence Labs under Apache 2.0; Unsloth publishes Dynamic 2- to 8-bit GGUFs and day-zero llama.cpp plus Unsloth Desktop run paths for 12GB+ local setups[^muse-glimmer].
@@ -144,6 +147,8 @@ Muse Glimmer 30B High Reasoning versus Gemma4-31B Thinking Mode and Qwen3.6-27B 
 
 ## Relationships
 
+- Related to [DFlash 2 Parallel Speculative Decoding](dflash2-parallel-speculative-decoding.md) — day-zero `incoai/Muse-Glimmer-30B-DFlash2` drafter reports 5.70 mean acceptance (block 16, default sampling) versus 4.44 official DFlash and 4.48 community DSpark, with 3.1–4.6× autoregressive throughput[^dflash2].
+
 - Uses [Unsloth Dynamic GGUF Quantization](unsloth-dynamic-gguf.md) — Muse Glimmer UD-Q2_K_XL through UD-Q8_K_XL instances of Unsloth per-layer dynamic post-training quantization.
 - Uses [Unsloth Dynamic NVFP4 Quantization](unsloth-dynamic-nvfp4.md) — 4-bit hardware table lists `NVFP4` alongside `UD-Q4_K_XL` as a 17GB+ option.
 - Uses [Unsloth MTP Local Inference](unsloth-mtp-local-inference.md) — same Unsloth Desktop plus llama.cpp local-run pattern used for MTP-capable models, although this source does not claim MTP support for Muse Glimmer.
@@ -154,3 +159,4 @@ Muse Glimmer 30B High Reasoning versus Gemma4-31B Thinking Mode and Qwen3.6-27B 
 - No local attachments were referenced by the source.
 
 [^muse-glimmer]: Muse Glimmer - How to Run Locally — `../raw/unsloth/models/muse-glimmer.md`, 30B dense vision identity and first-open-model Apache-2.0 claim, 58GB BF16 and 12GB-58GB hardware tables, temp 1.0 / top-p 0.95 / top-k 64 and 131K-262K context, low/medium/high/xhigh reasoning, harness-persisted agentic memory claim, Unsloth Desktop and llama.cpp install/download/run/server commands with mmproj vision projector, 24GB fine-tune and Kaggle notebook links, and Glimmer vs Gemma4-31B vs Qwen3.6-27B benchmark table.
+[^dflash2]: DFlash 2: Keep Drafting Parallel — `../raw/DFlash2.md`.

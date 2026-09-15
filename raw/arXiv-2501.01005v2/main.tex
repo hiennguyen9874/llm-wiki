@@ -1,0 +1,182 @@
+%%%%%%%% mlsys 2024 EXAMPLE LATEX SUBMISSION FILE %%%%%%%%%%%%%%%%%
+
+\documentclass{article}
+
+% Recommended, but optional, packages for figures and better typesetting:
+\usepackage{microtype}
+\usepackage{listings}
+\usepackage{graphicx}
+\usepackage{subfigure}
+\usepackage{booktabs} % for professional tables
+\usepackage{mathtools}
+\usepackage{etoolbox}
+\usepackage{xspace} 
+\usepackage{caption}
+\usepackage[hyphens]{url}
+\usepackage{hyperref}
+\usepackage{enumitem}
+% \usepackage{subcaption}
+\usepackage{xcolor}
+\usepackage{color}
+\usepackage[T1]{fontenc}
+\usepackage[scaled=0.9]{sourcecodepro}
+\usepackage{makecell}
+\usepackage{booktabs}
+\usepackage{diagbox}
+
+% hyperref makes hyperlinks in the resulting PDF.
+% If your build breaks (sometimes temporarily if a hyperlink spans a page)
+% please comment out the following usepackage line and replace
+% \usepackage{mlsys2024} with \usepackage[nohyperref]{mlsys2024} above.
+%\usepackage{hyperref}
+
+% Attempt to make hyperref and algorithmic work together better:
+\newcommand{\theHalgorithm}{\arabic{algorithm}}
+
+% Use the following line for the initial blind version submitted for review:
+% \usepackage[nohyperref,arxiv]{mlsys2024}
+%\usepackage[arxiv]{mlsys2024}
+
+% If accepted, instead use the following line for the camera-ready submission:
+\usepackage[accepted]{mlsys2024}
+
+\newcommand{\sys}{FlashInfer\xspace}
+\newcommand{\papertitle}{\sys: Efficient and Customizable Attention Engine for LLM Inference Serving}
+\DeclarePairedDelimiter\ceil{\lceil}{\rceil}
+
+% The \mlsystitle you define below is probably too long as a header.
+% Therefore, a short form for the running title is supplied here:
+\mlsystitlerunning{\papertitle}
+
+\newcommand{\todo}[1]{\textcolor{red}{[TODO: #1]}}{\ignorespaces}
+\newcommand{\zihao}[1]{\textcolor{blue}{[zihao: #1]}}{\ignorespaces}
+\newcommand{\arvind}[1]{\textcolor{blue}{[arvind: #1]}}{\ignorespaces}
+\newcommand{\baris}[1]{\textcolor{blue}{[baris: #1]}}{\ignorespaces}
+\newcommand{\stephanie}[1]{\textcolor{blue}{[stephanie: #1]}}{\ignorespaces}
+\newcommand{\luis}[1]{\textcolor{blue}{[luis: #1]}}{\ignorespaces}
+\newcommand{\tq}[1]{\textcolor{blue}{[tianqi: #1]}}{\ignorespaces}
+
+% Colors
+\definecolor{deepblue}{rgb}{0,0,0.5}
+\definecolor{light-gray}{gray}{0.95}
+\definecolor{mygreen}{rgb}{0,0.6,0}
+\definecolor{unpred-color}{rgb}{0, 0.45, 0.69}
+\definecolor{pred-color}{rgb}{0.87, 0.56, 0.19}
+\definecolor{incorrect-color}{rgb}{0, 0.61, 0.45}
+\definecolor{commentgreen}{RGB}{2,112,10}
+\definecolor{eminence}{RGB}{108,48,130}
+\definecolor{weborange}{RGB}{255,165,0}
+\definecolor{frenchplum}{RGB}{129,20,83}
+
+\lstdefinestyle{zihao-style}{
+    keywordstyle=\color{darkgray}\bfseries,
+    morekeywords={with},
+    basicstyle=\fontfamily{SourceCodePro-TLF}\selectfont\scriptsize\linespread{0.8},
+    commentstyle=\color{commentgreen},
+    backgroundcolor=\color{light-gray},
+    language=Python,
+    frame=tlbr,
+    framesep=0.1cm,
+    framerule=0pt,
+    aboveskip=0.3\medskipamount,
+    belowskip=0.3\medskipamount,
+    % keywordstyle=\bfseries,
+    keywordstyle=\bfseries\color{deepblue},
+    breakatwhitespace=false, % sets if automatic breaks should only happen at whitespace
+    breaklines=true, % sets automatic line breaking
+    captionpos=b, % sets the caption-position to bottom
+    numbers=none, % where to put the line-numbers; possible values are (none, left, right)
+    tabsize=2, % sets default tabsize to 2 spaces
+    mathescape=true, % allow $x$ in listings
+    upquote=true,
+    xrightmargin=0.1cm,
+    xleftmargin=0.1cm,
+}
+
+%\lstset{style=zihao-style}
+%\usepackage{sourcecodepro}
+
+\newcommand{\figsize}{\footnotesize}
+
+\begin{document}
+
+\twocolumn[
+\mlsystitle{\papertitle}
+
+% It is OKAY to include author information, even for blind
+% submissions: the style file will automatically remove it for you
+% unless you've provided the [accepted] option to the mlsys2024
+% package.
+
+% List of affiliations: The first argument should be a (short)
+% identifier you will use later to specify author affiliations
+% Academic affiliations should list Department, University, City, Region, Country
+% Industry affiliations should list Company, City, Region, Country
+
+% You can specify symbols, otherwise they are numbered in order.
+% Ideally, you should not use this facility. Affiliations will be numbered
+% in order of appearance and this is the preferred way.
+\mlsyssetsymbol{equal}{*}
+\mlsyssetsymbol{nv-intern}{*}
+
+\begin{mlsysauthorlist}
+\mlsysauthor{Zihao Ye}{nv-intern,uw,nv}
+\mlsysauthor{Lequn Chen}{ppl}
+\mlsysauthor{Ruihang Lai}{cmu}
+\mlsysauthor{Wuwei Lin}{nv}
+\mlsysauthor{Yineng Zhang}{independent}
+\mlsysauthor{Stephanie Wang}{uw}
+\mlsysauthor{Tianqi Chen}{nv,cmu}
+\mlsysauthor{Baris Kasikci}{uw}
+\mlsysauthor{Vinod Grover}{nv}
+\mlsysauthor{Arvind Krishnamurthy}{uw}
+\mlsysauthor{Luis Ceze}{uw,nv}
+\end{mlsysauthorlist}
+
+\mlsysaffiliation{uw}{Paul G. Allen School of Computer Science \& Engineering, University of Washington}
+\mlsysaffiliation{cmu}{Carnegie Mellon University}
+\mlsysaffiliation{nv}{NVIDIA}
+\mlsysaffiliation{ppl}{Perplexity AI}
+\mlsysaffiliation{independent}{Independent Researcher}
+
+\mlsyscorrespondingauthor{Zihao Ye}{zhye@cs.washington.edu}
+
+% You may provide any keywords that you
+% find helpful for describing your paper; these are used to populate
+% the "keywords" metadata in the PDF but will not be shown in the document
+\mlsyskeywords{Machine Learning, MLSys}
+
+\vskip 0.3in
+
+\input{sections/abs.tex}
+]
+\printAffiliationsAndNotice{\textsuperscript{*}Part of the work was done while Zihao Ye was interning at NVIDIA.} 
+
+
+\input{sections/intro.tex}
+%\input{sections/overview.tex}
+\input{sections/background.tex}
+\input{sections/design.tex}
+\input{sections/evaluation.tex}
+\input{sections/related-work.tex}
+\input{sections/discussions.tex}
+\input{sections/conclusion.tex}
+\input{sections/acknowledgements.tex}
+
+\newpage
+\bibliography{references}
+\bibliographystyle{mlsys2024}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% SUPPLEMENTAL CONTENT AS APPENDIX AFTER REFERENCES
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\input{sections/appendix.tex}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+\end{document}

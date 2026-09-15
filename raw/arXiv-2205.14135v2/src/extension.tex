@@ -1,0 +1,51 @@
+\subsection{Extension: Block-Sparse \sysname}
+\label{sec:blocks_sparse}
+
+We extend \sysname to approximate attention:
+we propose block-sparse \sysname, whose IO
+complexity is smaller than \sysname by a factor proportional to the
+sparsity.
+
+Given inputs $\vQ, \vK, \vV \in \mathbb{R}^{N \times d}$ and a mask matrix
+$\tilde{\vM} \in \{ 0, 1 \}^{N \times N}$, we want to compute:
+\begin{equation*}
+  \vS = \vQ \vK^\top \in \mathbb{R}^{N \times N}, \quad \vP = \softmax(\vS \odot \vmathbb{1}_{\tilde{\vM}}) \in \mathbb{R}^{N \times N}, \quad \vO = \vP\vV \in \mathbb{R}^{N \times d},
+\end{equation*}
+where $(\vS \odot \vmathbb{1}_{\tilde{\vM}})_{kl} = \vS_{kl}$ if
+$\tilde{\vM}_{kl} = 1$ and $-\infty$ if $\vM_{kl} = 0$.
+We require $\tilde{\vM}$ to have block form: for some block sizes $B_r, B_c$,
+for all $k, l$, $\tilde{\vM}_{k, l} = \vM_{ij}$ with
+$i = \lfloor k / B_r \rfloor, j = \lfloor l / B_c \rfloor$ for some $\vM \in \{ 0, 1 \}^{N/B_r \times N/B_c}$.
+
+Given a predefined block sparsity mask $\vM \in \{ 0, 1 \}^{N/B_r \times N/B_c}$ we can
+easily adapt~\cref{alg:stream_attn} to only compute the nonzero blocks of the
+attention matrix.
+The algorithm is identical to~\cref{alg:stream_attn}, except we skip zero
+blocks.
+We reproduce the algorithm description in~\cref{alg:blocksparse_stream_attn} in
+\cref{sec:algo_details}.
+
+We also analyze the IO complexity of block-sparse \sysname.
+\begin{proposition}\label{thm:io_complexity_blocksparse}
+  Let $N$ be the sequence length, $d$ be the head dimension, and $M$ be size of
+  SRAM with $d \leq M \leq Nd$.
+  Block-sparse \sysname (\cref{alg:blocksparse_stream_attn}) requires
+  $\Theta ( Nd + N^2 d^2 M^{-1} s )$ HBM accesses where $s$ is the
+  fraction of nonzero blocks in the block-sparsity mask.
+\end{proposition}
+We see that applying block-sparsity yields a direct improvement by the sparsity to the larger term in the IO
+complexity.
+For large sequence lengths $N$, $s$ is often set to
+$N^{-1/2}$~\citep{child2019generating} or
+$N^{-1}\log N$~\citep{zaheer2020bigbird, beltagy2020longformer, dao2021pixelated}, resulting in $\Theta(N\sqrt{N})$ or
+$\Theta(N \log N)$ IO complexity.
+For downstream experiments, we use the fixed butterfly sparsity
+pattern~\citep{dao2021pixelated}, which has been shown to be able to approximate
+arbitrary sparsity~\citep{dao2020kaleidoscope}.
+
+In~\cref{fig:micros} (right), we validate that as the sparsity increases, the
+runtime of block-sparse \sysname improves proportionally.
+On the LRA benchmark, block-sparse \sysname achieves 2.8$\times$
+speedup, while performing on par with standard attention (\cref{sec:exp}).
+
+

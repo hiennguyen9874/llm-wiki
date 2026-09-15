@@ -1,0 +1,380 @@
+
+\section{Model Architecture}
+\label{sec:arch}
+
+\begin{figure}[t]
+    \centering
+    \resizebox{0.9\textwidth}{!}{\input{figures/arch.tex}}
+    \caption{The \kimi{3} architecture, organized around token, channel, and layer mixing, with a native vision pathway at the input.
+        Each block contains three Kimi Delta Attention (KDA) layers followed by one Gated MLA layer, with each attention layer paired with a Stable LatentMoE feed-forward network.
+        Attention Residuals (AttnRes) use learned pseudo-queries ($\bm{w}$) to derive attention weights ($\alpha$) over the embedding and preceding block outputs, enabling selective information flow across depth.
+        \textbf{Top left}: the Stable LatentMoE module with shared and routed experts.
+        \textbf{Bottom left}: the KDA module.
+        \textbf{Bottom right}: the native vision pathway.}
+    \label{fig:arch}
+\end{figure}
+
+The \kimi{3} architecture is designed to scale information flow along three complementary dimensions: sequence length, network depth, and model width.
+Along the sequence dimension, Hybrid Attention combines three Kimi Delta Attention (KDA)~\citep{team2025kimi} layers with one Gated MLA layer in each block, providing an efficient mechanism for long-context token mixing while retaining selective high-capacity attention (\S\ref{sec:hybrid-attn}).
+Along the depth dimension, Attention Residuals (AttnRes)~\citep{kimiteam2026attnres} enable each module to selectively retrieve representations from the embedding, the current block, and preceding blocks, extending information access beyond conventional sequential residual accumulation (\S\ref{sec:attnres}).
+Along the width dimension, each attention layer is followed by a Stable LatentMoE layer that performs sparse channel mixing, effectively activating 16 of 896 routed experts for each token (\S\ref{sec:stable-latent-moe}).
+For native vision, MoonViT-V2 encodes images and videos, and a lightweight projector maps the resulting visual features into the shared embedding space before backbone processing (\S\ref{sec:native-vision}).
+Together with Per-Head Muon (\S\ref{sec:perhead_muon}), these components provide a unified architecture for scaling information flow across tokens, layers, and channels. Combined with refined training and data recipes, they yield an approximately $2.5\times$ improvement in overall scaling efficiency over \kimi{2}.
+Figure~\ref{fig:arch} provides an overview of the architecture.
+
+\subsection{Hybrid Attention}
+\label{sec:hybrid-attn}
+
+\kimi{3} uses a layerwise hybrid of linear and global attention, combining KDA~\citep{team2025kimi} with Gated MLA.
+Each block contains 3 KDA layers followed by 1 Gated MLA layer, giving a $3{:}1$ mixing ratio.
+This pattern is repeated throughout the backbone.
+The two attention mechanisms are described separately below. An additional Gated MLA layer is placed at the end of the backbone, ensuring that the final layer always performs global attention.
+
+\subsubsection{Kimi Delta Attention}
+\label{sec:kda}
+
+KDA extends the delta-rule recurrence~\citep{schlag-2021-deltanet,yang-2025-gdn} with a channel-wise forget gate~\citep{team2025kimi}.
+Consider a sequence of hidden states $\bm{x}_t\in\mathbb{R}^d$, where $t$ indexes the token position and $d$ is the model hidden dimension.
+For clarity, we first describe a single attention head, with query and key vectors $\bm{q}_t,\bm{k}_t\in\mathbb{R}^{d_k}$, value vector $\bm{v}_t\in\mathbb{R}^{d_v}$, and recurrent state $\mathbf{S}_t\in\mathbb{R}^{d_k\times d_v}$.
+KDA applies channel-wise decay before the delta-rule update:
+\begin{equation}
+    \mathbf{S}_t
+    = \left(\mathbf{I}-\beta_t\bm{k}_t\bm{k}_t^{\top}\right)
+    \operatorname{Diag}(\bm{\alpha}_t)\mathbf{S}_{t-1}
+    + \beta_t\bm{k}_t\bm{v}_t^{\top},
+    \qquad
+    \tilde{\bm{o}}_t = \mathbf{S}_t^{\top}\bm{q}_t.
+    \label{eq:recurrent_KDA}
+\end{equation}
+Here, $\bm{\alpha}_t\in(0,1)^{d_k}$ is the channel-wise one-step retention factor, and $\beta_t\in(0,1)$ controls the delta-rule write strength.
+
+Following Kimi Linear~\citep{team2025kimi}, KDA parameterizes the per-head quantities as
+\begin{align}
+    \bm{q}_t^h,\bm{k}_t^h
+     & = \operatorname{L_2Norm}\!\left(\operatorname{Swish}\!\left(\operatorname{ShortConv}\!\left(\mathbf{W}_{q/k}^h\bm{x}_t\right)\right)\right)
+    \in \mathbb{R}^{d_k}, \nonumber                                                                                                                \\
+    \bm{v}_t^h
+     & = \operatorname{Swish}\!\left(\operatorname{ShortConv}\!\left(\mathbf{W}_v^h\bm{x}_t\right)\right)
+    \in \mathbb{R}^{d_v}, \nonumber                                                                                                                \\
+    \beta_t^h
+     & = \operatorname{Sigmoid}\!\left(\mathbf{W}_{\beta}^h\bm{x}_t\right)
+    \in (0,1), \nonumber                                                                                                                           \\
+    \bm{z}_t^h
+     & = \mathbf{W}_{\alpha}^{\uparrow}\mathbf{W}_{\alpha}^{\downarrow}\bm{x}_t + \bm{b}_{\alpha}^h
+    \in \mathbb{R}^{d_k}.
+    \label{eq:kda-param}
+\end{align}
+The query, key, and value projections apply $\operatorname{ShortConv}$ followed by $\operatorname{Swish}$~\citep{yang-2025-gdn}, and the query and key are further normalized with $\operatorname{L_2Norm}$~\citep{yang-2024-parallelizing}.
+The low-rank projection and head-specific bias $\bm{b}_{\alpha}^h\in\mathbb{R}^{d_k}$ produce a fine-grained decay logit $\bm{z}_t^h$ for each key channel.
+The lower-bounded mapping from $\bm{z}_t^h$ to $\bm{\alpha}_t^h$ is introduced after the chunkwise formulation below.
+
+\paragraph{Chunkwise parallel form}
+Following Kimi Linear~\citep{team2025kimi}, KDA is recurrent across chunks and parallel within each chunk.
+For a chunk size $C$, $\mathbf{X}_{[t]}$ stacks the token vectors in the $t$-th chunk for $\mathbf{X}\in\{\mathbf{Q},\mathbf{K},\mathbf{V},\mathbf{O},\mathbf{U},\mathbf{W}\}$.
+The matrix $\mathbf{S}_{[t]}\in\mathbb{R}^{d_k\times d_v}$ denotes the recurrent state entering chunk $t$.
+For positions $1\le i\le j\le C$, define the channel-wise cumulative decay
+\begin{equation}
+    \bm{\gamma}_{[t]}^{i\rightarrow j}
+    := \prod_{r=i}^{j}\bm{\alpha}_{[t]}^r,
+    \qquad
+    \bm{\gamma}_{[t]}^r
+    := \bm{\gamma}_{[t]}^{1\rightarrow r}.
+    \label{eq:kda-cumulative-decay}
+\end{equation}
+As in Kimi Linear, $\bm{\Gamma}_{[t]}^{1\rightarrow C}\in\mathbb{R}^{C\times d_k}$ stacks $\bm{\gamma}_{[t]}^1,\ldots,\bm{\gamma}_{[t]}^C$ row-wise.
+The UT transform produces $\mathbf{U}_{[t]}$ and $\mathbf{W}_{[t]}$, from which we define the pseudo-value term $\widetilde{\mathbf{V}}_{[t]}:=\mathbf{U}_{[t]}-\mathbf{W}_{[t]}\mathbf{S}_{[t]}$.
+Given the incoming state $\mathbf{S}_{[t]}$, all outputs in chunk $t$ are computed in parallel as
+\begin{align}
+    \mathbf{A}_{[t]}
+     & = \operatorname{Tril}\!\left[
+                                  (\mathbf{Q}_{[t]}\odot \bm{\Gamma}_{[t]}^{1\rightarrow C})
+                                  (\mathbf{K}_{[t]}/\bm{\Gamma}_{[t]}^{1\rightarrow C})^{\top}
+                                  \right], \nonumber                        \\
+    \mathbf{O}_{[t]}
+     & = \underbrace{(\bm{\Gamma}_{[t]}^{1\rightarrow C}\odot\mathbf{Q}_{[t]})\mathbf{S}_{[t]}}_{\text{inter-chunk}}
+    + \underbrace{\mathbf{A}_{[t]}\widetilde{\mathbf{V}}_{[t]}}_{\text{intra-chunk}}.
+    \label{eq:kda-chunkwise}
+\end{align}
+For a matrix $\mathbf{M}$, $\operatorname{Tril}(\mathbf{M})$ sets all strictly upper-triangular entries to zero and retains the lower-triangular entries, including the diagonal.
+This mask enforces causal interactions within the chunk, and the diagonal is retained because each output reads the state after the current-token update.
+The first term in $\mathbf{O}_{[t]}$ carries information from preceding chunks, whereas the second term accounts for interactions within the current chunk.
+We refer readers to Kimi Linear~\citep{team2025kimi} for the UT transform and the full derivation of the chunkwise form.
+
+\paragraph{Lower-bounded decay}
+Eq.~\ref{eq:kda-chunkwise} rescales the keys in each chunk by the reciprocal cumulative decay $1/\bm{\Gamma}_{[t]}^{1\rightarrow C}$.
+Because $\bm{\Gamma}_{[t]}^{1\rightarrow C}$ is a product of retention factors in $(0,1)$, this reciprocal can grow without bound and overflow in finite precision~\citep{yang-etal-2024-gla,team2025kimi}.
+Kimi Linear controls this numerical range by computing relative decay in log space and dividing each chunk into secondary $16$-token tiles~\citep{yang-etal-2024-gla,team2025kimi}.
+The off-diagonal tiles can then be computed with dense matrix multiplications on Tensor Cores directly.
+The diagonal tiles, in contrast, still require explicit position-pair computations, which remain the main intra-chunk bottleneck.
+
+\kimi{3} addresses this bottleneck by changing the mapping from the decay logits $\bm{z}_t^h$ to the per-step log-decay $\bm{g}_t^h$.
+Following GDN and Mamba-2, Kimi Linear uses the negative-Softplus mapping $\bm{g}_t^h=-e^{A_h}\operatorname{Softplus}(\bm{z}_t^h)\in(-\infty,0)^{d_k}$~\citep{yang-2025-gdn,mamba2,team2025kimi}.
+\kimi{3} instead uses a scaled sigmoid to bound the log-decay from below:
+\begin{align}
+    \bm{g}_t^h
+     & = g_{\min}\operatorname{Sigmoid}\!\left(e^{A_h}\bm{z}_t^h\right)
+    \in (g_{\min},0)^{d_k}, \nonumber                                   \\
+    \bm{\alpha}_t^h
+     & = \exp(\bm{g}_t^h)
+    \in \left(e^{g_{\min}},1\right)^{d_k},
+    \label{eq:kda-forget-gate}
+\end{align}
+where $A_h$ is a learnable per-head log-scale and $g_{\min}=-5$ is fixed.
+We initialize $A_h=0$, and each bias $\bm{b}_{\alpha}^h$ is initialized following~\citep{team2025kimi,mamba2,yang-2025-gdn}.
+With $g_{\min}=-5$, every retention factor satisfies $\alpha_{t,j}^h>e^{-5}\approx6.7\times10^{-3}$, and the cumulative log-decay over a $16$-token tile lies in $(-80,0)$.
+The corresponding reciprocal rescaling factor is therefore smaller than $e^{80}$ and remains within the BF16 dynamic range.
+This finite range allows both diagonal and off-diagonal tiles to use dense Tensor Core matrix multiplications, eliminating the position-pair diagonal path.
+This parameterization is closely related to the lower-bounded recurrence gates in prior work~\citep{qin2024hgrn2,de2024griffin,peng-2025-rwkv7}.
+Fig.~\ref{fig:kda-lower-bound} illustrates the change in decay parameterization and its computational consequence.
+
+\begin{figure}[t]
+    \centering
+    \input{figures/kda-lower-bound.tex}
+    \caption{Lower-bounded decay and its effect on chunkwise KDA computation.
+        \textbf{(a)} Kimi Linear uses an unbounded negative-Softplus mapping, whereas \kimi{3} bounds the log-decay with a scaled sigmoid; the curves show $A=0$ and $g_{\min}=-5$.
+        \textbf{(b)} Kimi Linear evaluates each diagonal tile with an explicit position-pair computation, while the bounded range in \kimi{3} allows all causal tiles to use dense Tensor Core matrix multiplications.}
+    \label{fig:kda-lower-bound}
+\end{figure}
+
+\paragraph{Full-rank gate}
+Finally, \kimi{3} changes KDA's output gate from the low-rank parameterization used by Kimi Linear~\citep{team2025kimi} to an input-dependent full-rank projection.
+After applying head-wise RMSNorm~\citep{zhang2019root} to the recurrent output, KDA applies data-dependent output gating~\citep{qiu2025gated}:
+\begin{equation}
+    \bm{y}_t
+    = \mathbf{W}_o\!\left[
+        \operatorname{Sigmoid}\!\left(\mathbf{W}_g\bm{x}_t\right)
+        \odot \operatorname{RMSNorm}(\tilde{\bm{o}}_t)
+        \right].
+    \label{eq:kda-output}
+\end{equation}
+
+\subsubsection{Gated MLA}
+\label{sec:gated-mla}
+
+Multi-head Latent Attention (MLA), introduced in DeepSeek-V2~\citep{deepseekv2}, compresses the key--value representation of each token into a low-dimensional latent vector $\bm{c}_t=\mathbf{W}_{c}\bm{x}_t$.
+Instead of caching full head-specific keys and values, MLA caches $\bm{c}_t$ and reconstructs the content keys and values through learned up-projections during attention computation.
+This factorization reduces the KV-cache footprint while retaining global token-to-token attention.
+MLA was subsequently adopted by \kimi{2} and \kimi{2.5}~\citep{kimiteam2025kimik2openagentic,kimik25}, and \kimi{3} retains it in the periodic global-attention layers.
+
+Unlike \kimi{2} and \kimi{2.5}, \kimi{3} follows the hybrid design of Kimi Linear~\citep{team2025kimi} and applies No Position Encoding (NoPE) to all MLA layers.
+Consequently, no explicit positional encoding is applied to their queries or keys.
+The intervening KDA layers provide position-sensitive and recency-aware sequence mixing, while the MLA layers provide unrestricted global content interaction.
+This separation also avoids modifying positional-encoding parameters when extending the context length, such as retuning a RoPE frequency base or applying YaRN~\citep{peng2023yarn}.
+
+In addition, \kimi{3} augments MLA with an input-dependent, channel-wise full-rank output gate.
+Let $\tilde{\bm{o}}_t$ denote the ungated MLA output at position $t$; the gated output is
+\begin{equation}
+    \bm{y}_t
+    = \mathbf{W}_o\!\left[
+        \operatorname{Sigmoid}\!\left(\mathbf{W}_g\bm{x}_t\right)
+        \odot \tilde{\bm{o}}_t
+        \right].
+    \label{eq:gated-mla-output}
+\end{equation}
+The gate projection $\mathbf{W}_g$ is full rank, matching the new parameterization used by KDA in \kimi{3}. This gate allows each token to modulate the channels read from global attention~\citep{qiu2025gated}.
+
+To correct the biased rounding error that arises in flash attention, we adopt the method of~\citep{qiu2025lowprecision} and keep the attention output in FP32 during training.
+This choice doubles the on-chip footprint of the output tile; we therefore redesign the training kernel to overlap it with the KV staging buffers instead of the query tile, freeing shared memory for a deeper KV pipeline and higher training throughput.
+
+\subsection{Attention Residuals}
+\label{sec:attnres}
+
+Standard residual connections~\citep{he2015resnet} compress all prior information into a single state $\bm{h}_l$ over depth --- a bottleneck reminiscent of RNNs over time. For sequence modeling, the Transformer replaced recurrence with attention~\citep{bahdanau2014attention,vaswani-2017-attention}, allowing each position to selectively access all previous positions with data-dependent weights. Attention Residuals (AttnRes)~\citep{kimiteam2026attnres} applies the same methodology to depth: each layer selectively retrieves representations from all preceding layers rather than accumulating them uniformly.
+
+\paragraph{Full Attention Residuals} For each layer $l$, we define a layer-specific learnable pseudo-query $\bm{q}_l = \bm{w}_l \in \mathbb{R}^d$ and keys and values
+\begin{equation}
+    \bm{k}_{i} = \bm{v}_{i} = \begin{cases} \bm{h}_1 & i = 0 \\ f_i(\bm{h}_{i}) & 1 \leq i \leq l-1 \end{cases}
+    \label{eq:attnres-qkv}
+\end{equation}
+where $f_i(\bm{h}_i)$ is the output of layer $i$ and $\bm{h}_1$ is the token embedding. The attention weights follow a softmax kernel $\phi(\bm{q}, \bm{k}) = \exp\left(\bm{q}^\top\operatorname{RMSNorm}(\bm{k})\right)$~\citep{katharopoulos-2020-transformers,zhang2019root}, where the $\operatorname{RMSNorm}$ prevents layers with large-magnitude outputs from dominating the weights:
+\begin{equation}
+    {\alpha_{i \to l}} = \frac{\phi\left(\bm{q}_{l}, \bm{k}_{i}\right)}{\sum_{j=0}^{l-1} \phi\left(\bm{q}_{l}, \bm{k}_{j}\right)},
+    \qquad
+    \bm{h}_{l} = \sum_{i=0}^{l-1} {\alpha_{i \to l}} \cdot \bm{v}_{i}.
+    \label{eq:attnres-full}
+\end{equation}
+Since network depth is modest ($L < 100$), the $O(L^2 d)$ arithmetic of this \emph{full} form is affordable; the practical overhead is the $O(Ld)$ memory (and cross-stage communication under pipeline parallelism) for keeping all layer outputs alive.
+
+\paragraph{Block Attention Residuals} To reduce this overhead, we partition the $L$ layers into $N$ blocks of $S = L/N$ layers each. Within block $n$ (layer indices $\mathcal{B}_n$), layer outputs are reduced to a single representation by summation, $\bm{b}_n = \sum_{j \in \mathcal{B}_n} f_j(\bm{h}_j)$, with $\bm{b}_n^i$ denoting the partial sum over the first $i$ layers of the block; we set $\bm{b}_0 = \bm{h}_1$ so the token embedding is always included as a source. Across blocks, full attention is applied over only the $N$ block-level representations: for the $i$-th layer in block $n$, the value matrix is
+\begin{equation}
+    \mathbf{V} = \begin{cases}
+        [\bm{b}_0, \bm{b}_1, \ldots, \bm{b}_{n-1}]^\top                 & \text{if } i = 1 \text{ (first layer of block } n\text{)} \\
+        [\bm{b}_0, \bm{b}_1, \ldots, \bm{b}_{n-1}, \bm{b}_n^{i-1}]^\top & \text{if } i \geq 2 \text{ (subsequent layers)}
+    \end{cases}
+    \label{eq:attnres-block}
+\end{equation}
+with keys and attention weights following Eq.~\ref{eq:attnres-qkv} and Eq.~\ref{eq:attnres-full}. The final output layer then aggregates all $N$ block representations. Under Block AttnRes, memory and communication overhead drop from $O(Ld)$ to $O(Nd)$, while this block structure also bounds the inference-time state, enabling the parallel inter-block results to be better merged with the sequential intra-block partial sums via online softmax~\citep{milakov2018online}, significantly reducing inference time cost.
+
+Empirically, $N \approx 8$ recovers most of the benefit across model scales~\citep{kimiteam2026attnres}; for \kimi{3}, we partition its layers into 8 blocks with 12-layer size, giving a partial final block and 9 total blocks when counting the embedding layer.
+
+
+\subsection{Stable LatentMoE}
+\label{sec:stable-latent-moe}
+
+Increasing both the expert pool and the number of active experts expands the space of expert specializations, but in a conventional MoE each selected expert receives the full $d$-dimensional token representation, so communication and expert-weight traffic grow with the routing multiplicity.
+LatentMoE~\citep{elango2026latentmoe} makes this expansion affordable by separating the full model width from the routed-expert width: shared experts retain a full-width path for common transformations, whereas specialized routed experts operate in a compact latent space of width $\ell$. This enables \kimi{3} to scale channel mixing to 896 routed experts with 16 active experts per token, corresponding to a sparsity of 56.
+
+This extreme sparsity amplifies two failure modes of the vanilla design.
+First, the routed path composes $\mathbf{W}^{\downarrow}$, a gated multi-branch expert feed-forward network, and $\mathbf{W}^{\uparrow}$ into a chain of nearly four consecutive matrix multiplications.
+This ill-conditioned structure, combined with the 2.8-trillion-parameter scale, produces exploding internal activations in the routed branch.
+Second, balancing the load of nearly $10^3$ experts exceeds the regime in which existing auxiliary-loss-free bias updates remain well behaved.
+Stable LatentMoE addresses these two failure modes with three components: an RMSNorm before the up-projection and Sigmoid Tanh Unit GLU (SiTU-GLU) to suppress activation explosion, and Quantile Balancing (QB) for load balancing.
+
+As illustrated in Fig.~\ref{fig:arch}, the layer follows the shared- and routed-expert organization of DeepSeekMoE~\citep{dai2024deepseekmoe}.
+For $\bm{x}\in\mathbb{R}^{d}$, the shared experts process $\bm{x}$ directly, while the routed path projects it to $\bm{z}=\mathbf{W}^{\downarrow}\bm{x}\in\mathbb{R}^{\ell}$, dispatches $\bm{z}$ to the selected experts, and maps their weighted aggregate back to $\mathbb{R}^{d}$ through $\mathbf{W}^{\uparrow}$:
+\begin{align}
+    \bm{u}
+     & = \sum_{i\in\mathcal{T}_k(\bm{x})} p_i E_i^{\mathrm{routed}}(\mathbf{W}^{\downarrow}\bm{x}), \nonumber \\
+    \bm{y}
+     & = \sum_{j=1}^{N_s} E_j^{\mathrm{shared}}(\bm{x})
+    + \mathbf{W}^{\uparrow}\operatorname{RMSNorm}(\bm{u}).
+    \label{eq:latentmoe}
+\end{align}
+Here, $\bm{u}\in\mathbb{R}^{\ell}$ is the aggregated routed representation, $E_j^{\mathrm{shared}}:\mathbb{R}^{d}\!\rightarrow\!\mathbb{R}^{d}$ and $E_i^{\mathrm{routed}}:\mathbb{R}^{\ell}\!\rightarrow\!\mathbb{R}^{\ell}$ are the shared and routed expert feed-forward networks, and $p_i$ is the router weight defined by the Quantile Balancing rule below.
+\kimi{3} fixes the number of full-width shared experts to $N_s=2$ in every layer.
+
+\subsubsection{Normalized LatentMoE}
+The original LatentMoE directly applies $\mathbf{W}^{\uparrow}$ to the aggregated routed representation $\bm{u}$, whose scale can vary with the selected experts and their routing weights.
+As shown in Eq.~\ref{eq:latentmoe}, \kimi{3} instead inserts RMSNorm~\citep{zhang2019root} between expert aggregation and the up-projection.
+This normalization reduces the sensitivity of the routed branch to scale variation before it is combined with the full-width shared branch.
+Beyond stabilizing training, the additional RMSNorm consistently improves validation loss and downstream benchmarks.
+
+
+\subsubsection{Sigmoid Tanh Unit GLU}
+\label{sec:situ}
+\begin{figure}[t]
+    \centering
+    \input{figures/situglu.tex}
+    \caption{Gate and up branches of GLU, SwiGLU, and SiTU-GLU, together with their scalar responses, where $\sigma$ denotes the sigmoid function.
+        Both branches receive the scalar input $x$, and all curves share the domain $x\in[-10,100]$; the inset magnifies the near-origin region.
+        SiTU-GLU, shown in red with $\beta_1=4$ and $\beta_2=25$, closely follows SwiGLU near the origin and approaches the bound $|f(x)|\leq\beta_1\beta_2=100$ for large positive inputs, whereas SwiGLU remains unbounded.}
+    \label{fig:situglu}
+\end{figure}
+Gated Linear Units (GLUs) modulate a linear value branch with a sigmoid-activated gate, computing $\operatorname{Sigmoid}(\mathbf{W}_g\bm{x})\odot\mathbf{W}_u\bm{x}$~\citep{dauphin2017language}.
+SwiGLU replaces the sigmoid gate with $\operatorname{Swish}(x)=x\operatorname{Sigmoid}(x)$ and yields strong empirical performance in Transformers~\citep{shazeer2020glu}.
+SwiGLU has subsequently become a widely adopted FFN design in large language models, while a complete account of its empirical effectiveness remains open.
+
+However, both multiplicative factors in SwiGLU are unbounded, so coincident large coordinates can produce activation outliers and increase overflow risk in low-precision arithmetic.
+The sigmoid gate of the original GLU avoids unbounded gate growth, but it does not retain the approximately linear positive regime of Swish.
+This motivates an activation that controls large-value growth while preserving the characteristic local and positive-side response of SwiGLU.
+Other recent efforts have explored alternative parameterizations of this trade-off~\citep{jiang2026powlu}.
+
+To satisfy these requirements, we propose Sigmoid Tanh Unit GLU (SiTU-GLU).
+SiTU-GLU applies the smooth cap $\operatorname{softcap}(x,\beta)=\beta\tanh(x/\beta)$ to the linear factor of the Swish gate and independently to the up branch:
+\begin{equation}
+    \operatorname{SiTU\text{-}GLU}(\bm{x})
+    = \left[\beta_1\tanh\!\left(\frac{\mathbf{W}_g\bm{x}}{\beta_1}\right)\odot\operatorname{Sigmoid}(\mathbf{W}_g\bm{x})\right]
+    \odot \left[\beta_2\tanh\!\left(\frac{\mathbf{W}_u\bm{x}}{\beta_2}\right)\right],
+    \label{eq:situglu}
+\end{equation}
+For \kimi{3}, we set the soft-cap hyperparameters to $\beta_1=4$ for the gate branch and $\beta_2=25$ for the up branch.
+The scaled $\tanh$ is approximately linear near the origin and bounded at large magnitude, allowing SiTU-GLU to preserve the local response of SwiGLU while controlling both factors in the product.
+Fig.~\ref{fig:situglu} compares the branch definitions and scalar responses of GLU, SwiGLU, and SiTU-GLU on a common slice.
+
+\S~\ref{app:situglu} gives the local expansion, limiting case, formal output bound, and comparison with hard clamping.
+
+
+\begin{figure}[t]
+    \centering
+    \input{figures/quantile-balancing.tex}
+    \caption{Illustration of Quantile Balancing with $m=8$ tokens, $n=4$ routed experts, and $k=1$ selected expert per token.
+        (a) Token-wise Top-$k$ routing (tokens on the left, experts on the right) produces loads $(4,3,1,0)$; darker circles indicate overheated experts, whereas faded and dashed circles indicate underutilized and dying experts, respectively.
+        (b) Each gray bar is the margin of the currently biased score, $s_{i,j}+b_j^{(t)}-\alpha_i^{(t)}$, so the row-wise maxima reproduce the routing in (a).
+        The dashed red line in each column is the bias adjustment $b_j^{(t)}-\widehat{b}_j^{(t+1)}$, placed at the $(q{+}1)$-th largest margin so that exactly $q=2$ margins exceed it.
+        The marker \textcolor{brickred}{\ensuremath{\bigstar}} denotes the row-wise Top-$k$ choice after subtracting the column adjustments, i.e., the routing in (c).
+        (c) The retained choices yield the balanced load $(2,2,2,2)$; red edges denote assignments changed by QB.}
+    \label{fig:quantile-balancing}
+\end{figure}
+
+\subsubsection{Quantile Balancing}
+\label{sec:qb}
+Unlike auxiliary-loss-based routing~\citep{fedus2022switch}, \kimi{3} adopts auxiliary-loss-free routing~\citep{deepseekaiv3}.
+Load balancing is implemented by adding an expert-specific bias $b_j$ to the router score used for Top-$k$ selection.
+For token $\bm{x}_i$, the router computes $\bm{s}_i=\operatorname{Sigmoid}(\mathbf{W}_r\bm{x}_i)$ and applies
+\begin{equation}
+    \mathcal{T}_i
+    = \operatorname{argtop}_{k}\!\left(\bm{s}_i+\bm{b}\right),
+    \qquad
+    p_{i,j}
+    = \frac{s_{i,j}}{\sum_{r\in\mathcal{T}_i}s_{i,r}},
+    \quad j\in\mathcal{T}_i.
+    \label{eq:moe-routing}
+\end{equation}
+Because $\bm{b}$ is omitted from $p_{i,j}$, it regulates dispatch without altering the mixture weights or the gradient-based optimization of the router.
+The original method updates $\bm{b}$ with the fixed-step rule $b_j^{(t+1)}=b_j^{(t)}+\gamma\operatorname{sign}(\bar{\ell}-\ell_j^{(t)})$~\citep{deepseekaiv3}, for which $\gamma$ trades off slow adaptation against load oscillation.
+Maintaining balanced loads becomes more challenging as LatentMoE increases the routed expert pool to 896 per layer.
+Imbalanced routing slows expert-parallel training and may leave some experts poorly trained~\citep{huang2026step35flash}.
+
+To address this limitation, we introduce Quantile Balancing (QB), which sets each expert bias from the router-score quantile that matches its target load~\citep{su2026qb}.
+Consider a training batch of $m$ tokens routed to $n$ experts with Top-$k$ selection, so the target load is $q:=mk/n$ tokens per expert.
+QB derives the next bias from a single forward pass.
+Routing replaces the Top-$k$ selection with Top-$(k{+}1)$ on the biased score $\bm{s}_i+\bm{b}^{(t)}$: the first $k$ entries are the routes actually taken, while the $(k{+}1)$-th entry is the cutoff $\alpha_i^{(t)}$ that an expert must exceed to enter token $i$'s Top-$k$.
+Taking the cutoff from Top-$(k{+}1)$ routing avoids a separate token-side quantile.
+We then choose each expert bias so that expert $j$ receives its target load: with the cutoffs fixed, the token count routed to expert $j$ under a candidate bias $\widehat{b}_j^{(t+1)}$ is
+\begin{equation*}
+    \sum_{i=1}^{m}\mathbf{1}\!\left[s_{i,j}+\widehat{b}_j^{(t+1)}>\alpha_i^{(t)}\right],
+\end{equation*}
+which is monotonically decreasing in the threshold $-\widehat{b}_j^{(t+1)}$.
+Assuming no ties, setting this count to $q$ makes $-\widehat{b}_j^{(t+1)}$ the $(q{+}1)$-th largest margin $s_{i,j}-\alpha_i^{(t)}$, so that exactly $q$ margins stay above the threshold.
+Since $q/m=k/n$, this is the $(1-k/n)$-quantile of the margins across tokens, giving the QB update
+\begin{align}
+    \widehat{b}_j^{(t+1)}
+     & \leftarrow -\operatorname{quantile}_{1-k/n}\!\left(\bm{s}_{:,j}-\bm{\alpha}^{(t)}\right), \nonumber \\
+    \bm{b}^{(t+1)}
+     & \leftarrow \widehat{\bm{b}}^{(t+1)}
+    - \operatorname{mean}\!\left(\widehat{\bm{b}}^{(t+1)}\right)\mathbf{1}.
+    \label{eq:qb-update}
+\end{align}
+The margins subtract the biased cutoff $\alpha_i^{(t)}$ from the raw score $s_{i,j}$, so the old bias enters the update only through the cutoffs, and the second line removes a common offset that leaves Top-$k$ selection unchanged.
+For causality, the update takes effect only in the next step~\citep{deepseekaiv3}, i.e., a batch is never routed with a bias derived from itself.
+Fig.~\ref{fig:quantile-balancing} illustrates the case $m=8$, $n=4$, and $k=1$, where each expert receives the target load $q=2$.
+The final bias is frozen at inference.
+The balanced-assignment derivation is given in \S~\ref{app:qb-derivation}.
+
+\paragraph{Histogram estimation}
+At scale, the quantile in Eq.~\ref{eq:qb-update} spans the full global batch, whose margins number in the millions and are spread across ranks and accumulation steps, so gathering them for an exact quantile is not viable at training time.
+We instead read each expert's quantile from a histogram of its margins: a single all-reduce sums the per-rank bin counts, and the quantile is recovered from the pooled counts.
+Because counts are additive, the histogram represents the pooled global batch regardless of how tokens are sharded, so the estimate reflects the whole-batch quantile up to the bin width, at a communication cost of only a few hundred bins per expert.
+This histogram estimator is the method we use in practice; we give more detailed descriptions of it and its error bound in \S~\ref{app:qb-histogram}.
+
+
+\subsection{Native Vision}
+\label{sec:native-vision}
+
+\kimi{3} is natively multimodal: text, images, and videos are processed by a single shared backbone within one context, with no post-hoc modality-alignment stage.
+This design is the architectural foundation of the long-horizon, vision-in-the-loop behavior described in \S\ref{sec:intro}. Rendered outputs and the code that produced them live in the same token stream, the model can write code, inspect screenshots or video frames of the result, and iteratively refine visual artifacts---user interfaces, graphics, video---with no cross-model hand-off.
+
+\paragraph{MoonViT-V2}
+A key departure from \kimi{2.5} is that we train \kimi{3} vision encoder, \emph{MoonViT-V2, entirely from scratch with next-token prediction}.
+Prior practice, including \kimi{2.5} itself, initializes the vision encoder from a contrastively pre-trained model such as SigLIP, under the premise that pre-trained visual knowledge gives the model a head start.
+We depart from this practice primarily for training stability.
+When a pre-trained encoder is attached to the LLM, joint optimization becomes unstable: the SigLIP-initialized MoonViT-3D shows persistently higher gradient norms with frequent spikes, while MoonViT-V2 remains stable throughout training (Fig.~\ref{fig:vitgradnorm}).
+Training with next-token prediction also allows the encoder's representations to be shaped directly by the language-modeling objective, rather than by a contrastive loss that favors global semantics over fine-grained textual and structural cues.
+Notably, we find MoonViT-V2 matches the SigLIP-initialized baseline across vision evaluations, indicating that contrastive pre-training is unnecessary as an initialization for multimodal language models at scale.
+
+
+
+\begin{figure}[!th]
+    \centering
+    \includegraphics[width=0.9\linewidth]{figures/vt-grad-norm.pdf}
+    \caption{Vision-tower gradient norms in our pre-training ablations. Compared with the SigLIP-initialized MoonViT-3D, the from-scratch MoonViT-V2 maintains lower gradient norms with fewer spikes, indicating more stable optimization.}
+    \label{fig:vitgradnorm}
+\end{figure}
+
+\paragraph{Architecture}
+This training recipe builds on a vision pathway that follows the overall design of \kimi{2.5}~\citep{kimik25,team2025kimivl}: visual inputs are first encoded by MoonViT-V2 and then mapped by a lightweight MLP projector into the LLM.
+MoonViT-V2 is a 27-layer vision transformer with roughly 0.4B parameters that adopts RMSNorm and removes all bias terms from its linear and attention projections, a design that further stabilizes the from-scratch optimization above.
+Images and videos are processed with fully shared parameters, as in MoonViT-3D: attention is factorized into intra-frame spatial and inter-frame temporal passes, and temporal pooling further compresses tokens along the time dimension.
+Before projection, a pixel-shuffle operation with $2\times2$ downsampling reduces the number of visual tokens by a factor of four, keeping inputs of up to $3584\times3584$ pixels affordable within the 1M-token context.
+
+
+
+
+
+
+\subsection{Per-Head Muon}
+\label{sec:perhead_muon}
+Following \kimi{2}, \kimi{3} adopts Muon~\citep{jordan2024muon} as the optimizer for its matrix parameters. For attention projections, we further refine it into a per-head variant: instead of applying Newton--Schulz orthogonalization to the full $Q$, $K$, and $V$ projection matrices, we partition their momentum matrices along the head dimension and orthogonalize each head's block separately.
+The intuition is that full-matrix orthogonalization treats all heads as a single coupled block, so heads with larger gradient or momentum scales dominate the shared update direction, while smaller-scale heads receive insufficiently normalized updates; per-head orthogonalization equalizes the update scale across heads.
+In practice, this design yields more balanced learning dynamics across heads and improves training stability at larger scales.
+It also slightly reduces optimizer overhead, as Newton--Schulz iterations on tall per-head blocks are cheaper than on the full projection matrix.

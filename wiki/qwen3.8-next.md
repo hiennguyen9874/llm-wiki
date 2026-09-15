@@ -198,6 +198,8 @@ All figures are source-reported Unsloth claims[^qwen38-next]:
 - Uses [Unsloth MTP Local Inference](unsloth-mtp-local-inference.md) — llama.cpp `--spec-type draft-mtp` path with shared-MTP packaging and 1-2 GB extra-memory planning shared with Gemma 4 and Qwen3.6 MTP runs.
 - Related to [Qwen3.6 Local Deployment](qwen3.6.md) — prior Qwen hybrid-thinking local family with the same thinking/instruct sampling split and MTP tuning pattern, now followed by the Qwen4-architecture Qwen3.8-Flash-Next.
 - Related to [SGLang Qwen3.8-Flash-Next Inference](sglang-qwen3.8-flash-next-inference.md) — same 125B-plus-51B identity served at datacenter scale with GDN plus QSA sparse attention, IndexShare MTP, gated-residual kernels, and PLE host offload[^qwen38-flash-next-day0].
+- Related to [Qwen3.8-Flash-Next Architecture and Evaluation](qwen3.8-flash-next-architecture.md) — authoritative tech-report architecture, ablations, and base evaluation.
+- Related to [Qwen3.8-Flash-Next Training and Stability](qwen3.8-flash-next-training.md) — Muon, scaling, and stability recipe behind this checkpoint.
 
 ## Coverage limits
 

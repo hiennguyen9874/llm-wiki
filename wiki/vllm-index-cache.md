@@ -5,7 +5,7 @@ description: Reusing DeepSeek DSA top-k indices across layers via use_index_cach
 tags: [vllm, deepseek, sparse-attention, optimization]
 status: stable
 created: 2026-09-14
-generated: { by: llm-wiki-agent/1, at: 2026-09-14T12:00:00Z }
+generated: { by: llm-wiki-agent/1, at: 2026-09-15T12:00:00Z }
 sources:
   - id: index-cache
     resource: ../raw/vllm/features/index_cache.md
@@ -51,5 +51,6 @@ This saves computation because DSA otherwise computes per-layer top-k selection,
 ## Relationships
 
 - Uses [vLLM Attention Backends](vllm-attention-backends.md) — IndexCache reuses DSA sparse top-k indices within the attention computation those backends provide.
+- Related to [LongCat Sparse Attention](longcat-sparse-attention.md) — concurrent cross-layer distillation design reporting measurable loss at N=4 and adopting N=2, against IndexCache N=4 retention; possible architecture and context-length causes are unresolved.
 
 [^index-cache]: IndexCache — `../raw/vllm/features/index_cache.md`.

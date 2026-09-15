@@ -1,0 +1,8 @@
+\section{Discussions}
+\label{sec:discussions}
+
+Currently, \sys only supports the forward pass for attention computation.
+To extend \sys and apply it to training would require developing customizable backward attention kernel templates, which we plan to explore in future work.
+Regarding the generality of \sys, our approach decouples computation from tile scheduling, allowing for diverse tiling strategies such as FlashDecoding~\cite{flashdecodingpp} and Lean Attention~\cite{sanovar2024lean} by delegating scheduling to a runtime-scheduler rather than embedding it within the attention template.
+This design generalizes scheduling algorithms, as detailed in Algorithm \ref{alg:load-balancing}, for load-balancing and wave-quantization reduction while targeting optimal GPU performance across architectures (e.g., FlashAttention2~\cite{dao2023flashattention2} for Turing/Ampere/Ada and FlashAttention3~\cite{jay2024flashattention3} for Hopper).
+Although frameworks like Triton~\cite{triton} offer GPU-agnostic interfaces, they often lag in adopting new hardware features; our template design space, expressed as $f_\textrm{epilogue}(\textrm{scan}(f_\textrm{logits}(f_{q}(Q)\cdot f_{k}(K)))\cdot f_{v}(V))$, covers most attention functions, including recent variants such as Multi-head Latent Attention (MLA)~\cite{deepseekv2} and the intra-attention component of Linear Attention~\cite{yang2024gatedlinearattentiontransformers}.

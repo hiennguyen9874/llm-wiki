@@ -62,6 +62,7 @@ Hardware support covers Hopper, Blackwell, and Grace Blackwell[^dsv4-rl].
 - Related to [SGLang DeepSeek-V4 Inference](sglang-deepseek-v4-inference.md) — inference-side Day-0 companion (ShadowRadix, spec/MTP, HiSparse, kernels, parallelism) sharing the same source and hardware coverage.
 - Related to [vLLM Sleep Mode](vllm-sleep-mode.md) — vLLM counterpart for levelled sleep/wake and partial restore in colocated rollout/training.
 - Related to [Miles DeepSeek-V4.1 Verified RL](miles-deepseek-v41-rl.md) — V4.1 successor with shared compressed plus window state, FP4/FP8 QAT, recomputed indexer top-k, and colocated 16-GPU DAPO validation.
+- Related to [DeepSeek-V4 Training and Evaluation](deepseek-v4-training-evaluation.md) — canonical tech-report source for pretraining, OPD, FP4 QAT, rollout, DSec, and benchmark context.
 
 ## Coverage limits
 

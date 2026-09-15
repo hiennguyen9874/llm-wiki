@@ -1,0 +1,190 @@
+\input{appendix/appendix-contributions}
+
+
+\section{Details of Sigmoid Tanh Unit GLU}
+\label{app:situglu}
+
+The design goal of SiTU-GLU (\S\ref{sec:situ}) is to bound the SwiGLU product without discarding the characteristic shape of Swish: an approximately linear response around the origin and a vanishing negative tail.
+Fig.~\ref{fig:situglu} shows the gate and up branches together with their complete scalar responses.
+
+\paragraph{Smoothly capping both branches}
+SiTU caps the linear factor of Swish as $\beta_1\tanh(\mathbf{W}_g\bm{x}/\beta_1)$ while retaining the sigmoid factor~\citep{kimik3blog}.
+Because the sigmoid already drives the negative gate response toward zero, this change primarily controls large positive activations without removing the negative tail.
+\kimi{3} applies the same construction to the up branch as $\beta_2\tanh(\mathbf{W}_u\bm{x}/\beta_2)$, preventing either branch from dominating the product.
+
+\paragraph{Local and limiting behavior}
+For a scalar $z$ near the origin, the scaled $\tanh$ satisfies
+\begin{equation}
+    \beta\tanh\!\left(\frac{z}{\beta}\right)
+    = z + O\!\left(\frac{z^3}{\beta^2}\right).
+\end{equation}
+SiTU-GLU therefore matches SwiGLU to first order around the origin.
+It also recovers SwiGLU pointwise as $\beta_1,\beta_2\rightarrow\infty$.
+
+\paragraph{Bounded output}
+Since $|\tanh(z)|<1$ and $0<\operatorname{Sigmoid}(z)<1$, every output coordinate satisfies
+\begin{equation}
+    \left\|\operatorname{SiTU\text{-}GLU}(\bm{x})\right\|_{\infty}
+    \leq \beta_1\beta_2
+    = 100,
+    \label{eq:situglu-bound}
+\end{equation}
+for $\beta_1=4$ and $\beta_2=25$.
+Unlike hard clamping of gate pre-activations, the smooth cap preserves nonzero gradients away from saturation boundaries, which we find to give better training behavior.
+
+\section{Derivation of Quantile Balancing}
+\label{app:qb-derivation}
+
+This appendix derives the Quantile Balancing (QB) updates used in \S\ref{sec:stable-latent-moe} from optimal balanced assignment, following~\citep{su2026qb}; the assignment perspective on expert load balancing goes back to BASE Layers~\citep{lewis2021base} and BIP~\citep{sun2025bip}.
+Let $\bm{s}\in\mathbb{R}^{m\times n}$ collect the router scores of $m$ tokens over $n$ experts, where each token selects exactly $k$ experts and $x_{i,j}\in\{0,1\}$ indicates whether token $i$ is assigned to expert $j$.
+The maximum-score balanced assignment, in which each expert serves exactly $mk/n$ tokens (assumed integral), is
+\begin{equation}
+    \max_{x_{i,j}\in\{0,1\}} \sum_{i,j} x_{i,j}s_{i,j}
+    \qquad \text{s.t.}\qquad
+    \sum_j x_{i,j}=k,
+    \qquad
+    \sum_i x_{i,j}=\frac{mk}{n}.
+    \label{eq:qb-lp}
+\end{equation}
+
+\paragraph{Linear relaxation and duality}
+Relaxing $x_{i,j}\in\{0,1\}$ to $x_{i,j}\in[0,1]$ turns Eq.~\ref{eq:qb-lp} into a linear program, whose optimum is integral by the standard integrality of the bipartite $b$-matching polytope; the relaxation is therefore exact.
+Introducing free multipliers $\alpha_i$ and $\beta_j$ for the token- and expert-side equality constraints, respectively, the relaxed problem can be written in max--min form as
+\begin{equation}
+    \max_{x_{i,j}\in[0,1]}\min_{\alpha_i,\beta_j}\;
+    \sum_{i,j} x_{i,j}s_{i,j}
+    - \sum_i \alpha_i\Big(\sum_j x_{i,j} - k\Big)
+    - \sum_j \beta_j\Big(\sum_i x_{i,j} - \tfrac{mk}{n}\Big).
+    \label{eq:qb-max-min}
+\end{equation}
+The objective is linear in each of $\bm{x}$, $\bm{\alpha}$, and $\bm{\beta}$, and the feasible sets are convex, so the minimax theorem allows exchanging the order of optimization:
+\begin{equation}
+    \min_{\alpha_i,\beta_j}\max_{x_{i,j}\in[0,1]}\;
+    \sum_{i,j} x_{i,j}\big(s_{i,j} - \alpha_i - \beta_j\big)
+    + k\sum_i \alpha_i
+    + \frac{mk}{n}\sum_j \beta_j.
+    \label{eq:qb-min-max}
+\end{equation}
+The inner maximum is separable over entries, with $x_{i,j}^*=1$ if $s_{i,j}-\alpha_i-\beta_j>0$ and $x_{i,j}^*=0$ if $s_{i,j}-\alpha_i-\beta_j<0$; the tie case has measure zero in practice.
+Substituting $x^*$ gives the convex dual objective
+\begin{equation}
+    \min_{\alpha_i,\beta_j}\;
+    \mathcal{L}(\bm{\alpha},\bm{\beta})
+    := \sum_{i,j}\max\big(0,\; s_{i,j} - \alpha_i - \beta_j\big)
+    + k\sum_i \alpha_i
+    + \frac{mk}{n}\sum_j \beta_j.
+    \label{eq:qb-dual}
+\end{equation}
+
+\paragraph{Exact coordinate minimization}
+We minimize Eq.~\ref{eq:qb-dual} by alternately solving for $\bm{\alpha}$ with $\bm{\beta}$ fixed and vice versa; each subproblem admits a closed-form exact solution.
+With $\bm{\beta}$ fixed, the problem decouples over tokens, and for token $i$ we solve
+\begin{equation}
+    \min_{\alpha}\; k\alpha + \sum_{j}\max\big(0,\; s_{i,j} - \beta_j - \alpha\big).
+    \label{eq:qb-alpha-sub}
+\end{equation}
+This objective is piecewise linear in $\alpha$ with slope $k$ minus the number of margins $s_{i,j}-\beta_j$ exceeding $\alpha$; it is therefore minimized exactly when $k$ margins lie above $\alpha$, i.e., for any $\alpha_i^*$ between the $k$-th and $(k{+}1)$-th largest entries of $\bm{s}_i-\bm{\beta}$.
+By convention we take the $(k{+}1)$-th largest entry, which is equivalently the $(1-k/n)$-th quantile:
+\begin{equation}
+    \alpha_i^*
+    = \operatorname{quantile}_{1-k/n}\big(\bm{s}_i - \bm{\beta}\big).
+    \label{eq:qb-alpha-sol}
+\end{equation}
+Symmetrically, with $\bm{\alpha}$ fixed, expert $j$ solves $\min_{\beta}\frac{mk}{n}\beta + \sum_i \max(0, s_{i,j}-\alpha_i-\beta)$, whose minimizer is the $(mk/n{+}1)$-th largest entry of $\bm{s}_{:,j}-\bm{\alpha}$, again the $(1-k/n)$-th quantile:
+\begin{equation}
+    \beta_j^*
+    = \operatorname{quantile}_{1-k/n}\big(\bm{s}_{:,j} - \bm{\alpha}\big).
+    \label{eq:qb-beta-sol}
+\end{equation}
+Both updates are thus the same quantile along the token and expert axes, respectively, which gives the method its name.
+Fig.~\ref{fig:quantile-balancing} illustrates the expert-side update as equalizing the accepted upper tail of each expert's margin distribution, and Alg.~\ref{alg:qb} summarizes the resulting alternating solver.
+
+\begin{algorithm}[t]
+    \caption{The alternating QB solver.\label{alg:qb}}
+    \KwIn{score matrix $\bm{s}\in\mathbb{R}^{m\times n}$}
+    \KwOut{assignment $\bm{x}\in\{0,1\}^{m\times n}$}
+    Initialize $\bm{\beta} = \bm{0}_{1\times n}$\;\DontPrintSemicolon
+    \For{$t = 1, 2, \cdots, T$}{
+        $\bm{\alpha} \leftarrow \operatorname{desc\_sort}(\bm{s}-\bm{\beta},\ \mathrm{axis}{=}1)_{[:,\,k:k+1]}$\;\DontPrintSemicolon
+        $\bm{\beta} \leftarrow \operatorname{desc\_sort}(\bm{s}-\bm{\alpha},\ \mathrm{axis}{=}0)_{[mk/n:\,mk/n+1]}$\;\DontPrintSemicolon
+    }
+    \Return{$\bm{x}$ with $x_{i,j}=1$ \textnormal{if} $j\in\operatorname{argtop}_k(\bm{s}_i-\bm{\beta})$, \textnormal{and} $0$ \textnormal{otherwise}}
+\end{algorithm}
+
+\paragraph{From assignment to routing}
+At the optimum of Eq.~\ref{eq:qb-dual}, $x_{i,j}^*=1$ if and only if $s_{i,j}-\alpha_i^*-\beta_j^*>0$; combined with the token constraint $\sum_j x_{i,j}^*=k$, the selected experts are exactly the Top-$k$ entries of $\bm{s}_i-\bm{\beta}^*$.
+Routing therefore requires only the expert thresholds $\bm{\beta}\in\mathbb{R}^{n}$ (equivalently, the bias $\bm{b}=-\bm{\beta}$ of Eq.~\ref{eq:moe-routing}), while the token thresholds $\bm{\alpha}\in\mathbb{R}^{m}$ are intermediate variables tied to the dynamic training batch and are discarded.
+This asymmetry preserves train--inference consistency: at deployment, routing is a fixed Top-$k$ selection with a frozen bias, and no quantile computation is needed.
+
+\paragraph{Relation to sign-based loss-free updates}
+The expert-side subproblem underlying Eq.~\ref{eq:qb-beta-sol} has (sub)gradient
+\begin{equation}
+    \frac{\partial \mathcal{L}}{\partial \beta_j}
+    = \frac{mk}{n} - \sum_{i=1}^{m}\chi\big(s_{i,j}-\alpha_i-\beta_j>0\big),
+    \label{eq:qb-grad}
+\end{equation}
+i.e., the target load minus the observed load of the expert $j$.
+A SignSGD step on this objective recovers the fixed-step sign update of auxiliary-loss-free balancing~\citep{deepseekaiv3}, up to the sign convention $\bm{b}=-\bm{\beta}$: the sign update retains only the direction of the load error in Eq.~\ref{eq:qb-grad}, whereas QB jumps directly to the exact coordinate minimizer of the same dual objective.
+This view explains both why QB requires no learning-rate-like hyperparameter and why it equilibrates within a few update steps even for nearly $10^3$ experts.
+QB is likewise related to BIP~\citep{sun2025bip}, which solves the same assignment with inequality constraints $\sum_j x_{i,j}\le k$ and $\sum_i x_{i,j}\le mk/n$; the induced non-negativity constraints on $\bm{\alpha}$ and $\bm{\beta}$ add a $\max(0,\cdot)$ clipping to both updates, which can only suppress over-selected experts without promoting under-selected ones, and markedly slows equilibration in our experiments.
+Finally, the resulting fixed-Top-$k$ routing is related to expert-specific threshold routing but differs from Expert Threshold routing, which maintains EMA thresholds and permits a variable number of selected experts per token~\citep{sun2026expertthreshold}.
+
+\section{Histogram-Based Quantile Estimation}
+\label{app:qb-histogram}
+
+The QB update of Eq.~\ref{eq:qb-update} asks for a quantile taken over the whole training step: for each of the $n$ experts, the $(1-k/n)$-th quantile of the margins $s_{i,j}-\alpha_i$, where the token count $m$ spans millions of tokens sharded across data-parallel ranks and gradient-accumulation steps.
+Gathering $O(mn)$ margins for an exact quantile is impractical inside the training loop.
+The key observation is that the update never needs the margins themselves, only their per-expert distribution, which a histogram summarizes at fixed cost.
+\kimi{3} therefore maintains a binned histogram per expert and reads the quantile from it.
+Concretely, we histogram the \emph{required bias} $r_{i,j}:=\alpha_i-s_{i,j}$, the bias that would place expert $j$ exactly at token $i$'s cutoff; negating the margins reverses their order, so the QB target $\widehat{b}_j$ of Eq.~\ref{eq:qb-update} is exactly the $(k/n)$-quantile of $r_{:,j}$.
+
+\paragraph{Binning range}
+The first question is which interval to bin over, and here the required bias helps: its range is bounded by the current bias itself.
+Router scores are sigmoid outputs, so $s_{i,j}\in(0,1)$, and the cutoff $\alpha_i$ is itself the biased score $s_{i,j'}+b_{j'}$ of some expert $j'$, so it lies in $(b_{\min},\,1+b_{\max})$, with $b_{\min}$ and $b_{\max}$ the extremes of the current bias.
+Every $r_{i,j}$ therefore falls in $[b_{\min}-1,\,b_{\max}+1]$.
+We partition this interval into $B$ uniform bins, which we find sufficient in practice, and recompute the range every step, so the bin width $w=(b_{\max}-b_{\min}+2)/B$ stays adapted to the bias as it spreads to correct imbalance.
+
+\paragraph{Accumulation and recovery}
+The rest of the procedure follows the structure of a training step.
+During each forward pass, every rank scatter-adds its local $r_{i,j}$ values into a per-expert count matrix $\mathbf{H}\in\mathbb{N}^{n\times B}$, accumulating over all micro-batches with no communication.
+At the end of the step, a single all-reduce sums the local counts into the global histogram, and every rank recovers the quantile from the same pooled counts.
+Each expert's histogram counts every token once, so the target rank is exactly the target load $q=mk/n$ of \S~\ref{sec:qb}, now taken over the full step: we select the first bin whose cumulative count reaches $\lceil q\rceil$ and interpolate linearly within it.
+If bin $\beta_j$ is selected, with cumulative count $c_j$ before it and $h_j$ counts inside it, then
+\begin{equation*}
+    \widehat{b}_j
+    = b_{\min}-1+\Bigl(\beta_j+\operatorname{clip}\bigl(\tfrac{q-c_j}{h_j},\,0,\,1\bigr)\Bigr)w,
+\end{equation*}
+and the resulting biases are mean-centered as in Eq.~\ref{eq:qb-update}.
+
+\paragraph{Properties}
+Three properties make this estimator practical at scale.
+First, it is accurate: the cumulative counts are exact at bin edges, so the true quantile and its estimate lie in the same bin and the error is bounded by the bin width $w$; with $B=1000$ this is at most a few $10^{-3}$, and we observe no measurable residual load imbalance.
+Second, it is cheap: the only communication is one integer all-reduce of $nB$ values per layer per step, independent of $m$, which in our configuration is below $1\%$ of the cost of exchanging the raw margins over a process group every micro-batch, the natural alternative.
+Third, it estimates the right quantity: because counts are additive, the global histogram is exactly invariant to how tokens are partitioned across ranks or accumulation steps, and the estimate is the quantile of the pooled global batch rather than an average of per-rank quantiles, which generally differs. As a further refinement, maintaining an exponential moving average of the estimated quantiles across steps reduces batch-to-batch sampling noise and can improve load balance still further.
+
+
+
+\section{MoonEP General Upper Bound Proof}
+\label{app:moonep-proof}
+
+
+ Let $m_r(P)$ denote the number of redundant experts placed on rank $r$ under
+ plan $P$. For a router output $I$, the planning objective is to minimize the
+ maximum number of redundant experts on any rank, i.e.,
+ $M(I) = \min_P \max_r \{m_r(P)\}$. We prove that $M(I) \le E/R$ always holds
+ (Theorem 1) and that this bound is essentially tight: there exist router
+ outputs for which $M = \lceil E(R-1)/R^2 \rceil \approx E/R$ (Theorem 2).
+
+\paragraph{Proof of Theorem 1 (General Upper Bound)} 
+The goal is to prove that $M(I) \le E/R$ holds for any router output $I$. Key lemma: there exists a plan $P^*$ such that every EP rank receives exactly the same number of tokens ($S \times K$), and the remote tokens of each rank come from only one other EP rank. The construction is as follows: initially, every rank holds only local tokens, and ranks are classified as underloaded or overloaded accordingly. We repeatedly pick an underloaded rank and an overloaded rank, and migrate tokens from the overloaded rank to fill the underloaded rank exactly up to the balanced value $S \times K$; the overloaded rank may remain overloaded, become exactly balanced, or become underloaded, and is put back into the corresponding set. This is repeated until all ranks are perfectly balanced. Each fill makes one underloaded rank balanced and it never changes afterwards, so the process terminates after at most $R-1$ fills; meanwhile, each rank is filled at most once, so its remote tokens come from a single rank, which proves the lemma. Consequently, supposing all remote tokens of rank $r$ come from rank $s$; these tokens belong to at most $E/R$ local experts on rank $s$, hence $m_r(P^*) \le E/R$, and therefore
+
+\begin{equation}
+    M(I)=\min_{P}\ \max_{r}\big\{m_r(P)\big\} \le \max_{r}\big\{m_r(P^*)\big\} \le \frac{E}{R}
+\end{equation}
+
+
+\paragraph{Proof of Theorem 2 (Tightness of the Upper Bound)} 
+Construct a router output $I^*$ as follows: the experts on EP rank 0 receive no tokens, while all experts on the other $R-1$ ranks share all tokens evenly. Then all $S \times K \times R$ tokens are evenly divided among $E(R-1)/R$ experts, so each expert receives $\frac{SKR^2}{E(R-1)}$ tokens. Under any plan $P$, rank 0 must receive $S \times K$ tokens, all of which are remote, and these tokens involve at least $SK \big/ \frac{SKR^2}{E(R-1)} = \frac{E(R-1)}{R^2}$ distinct experts; taking the ceiling, rank 0 requires at least $\left\lceil\frac{E(R-1)}{R^2}\right\rceil$ redundant experts, hence $M(I^*) \ge \left\lceil\frac{E(R-1)}{R^2}\right\rceil$. Conversely, by constructing a plan with the filling procedure from the proof of Theorem 1 and migrating tokens expert-wise preferentially, the number of redundant experts on every rank can be kept within this value, so equality holds. Since $\left\lceil\frac{E(R-1)}{R^2}\right\rceil \approx \frac{E}{R}$ when $R$ is large, the upper bound in Theorem 1 is essentially tight: there is no general upper bound significantly smaller than $E/R$.
+
+
+\input{appendix/4-post-training-chat-template}

@@ -5,7 +5,7 @@ description: Run Z.ai 320B (18B active) multimodal GLM-5.3-Flash locally via Uns
 tags: [glm, z-ai, unsloth, gguf, llama-cpp, local-inference, quantization, reasoning]
 status: stable
 created: 2026-09-14
-generated: { by: llm-wiki-agent/1, at: 2026-09-14T12:00:00Z }
+generated: { by: llm-wiki-agent/1, at: 2026-09-15T12:00:00Z }
 sources:
   - id: glm53-flash
     resource: ../raw/unsloth/models/glm-5.3-flash.md
@@ -85,6 +85,7 @@ Selected GLM-5.3-Flash scores; comparison columns cover GLM-5.2, DeepSeek-V4-Vis
 
 ## Relationships
 
+- Related to [GLM-5.3-Flash Architecture and Evaluation](glm-5.3-flash-architecture.md) — official 320B (18B active) hybrid linear-sparse plus mHC checkpoint, 1M context, IndexPool, base and full benchmark methodology, and Chinese-chip EPD serving context for these local run paths.
 - Uses [Unsloth Dynamic GGUF Quantization](unsloth-dynamic-gguf.md) — GLM-5.3-Flash UD-IQ1_S through UD-Q6_K_XL instances of Unsloth per-layer dynamic post-training quantization.
 - Uses [Quantization Fidelity Evaluation](quantization-fidelity-evaluation.md) — top-1 accuracy, mean KLD, and KLD 99.9% figures used here are the same fidelity signals used to judge quantized models.
 - Uses [vLLM MTP Speculative Decoding](vllm-mtp-speculative-decoding.md) — MTP speedup context for the reported n=2/n=3 draft-token inference gains, although the local run uses llama.cpp/Unsloth rather than vLLM.

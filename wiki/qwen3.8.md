@@ -5,7 +5,7 @@ description: Run Qwen 27B dense and 2.4T-A95B MoE Qwen3.8 models locally via Uns
 tags: [qwen, unsloth, gguf, llama-cpp, local-inference, quantization, reasoning, vision, mtp, nvfp4]
 status: stable
 created: 2026-09-14
-generated: { by: llm-wiki-agent/1, at: 2026-09-14T15:00:00Z }
+generated: { by: llm-wiki-agent/1, at: 2026-09-15T16:00:00Z }
 sources:
   - id: qwen38
     resource: ../raw/unsloth/models/qwen3.8.md
@@ -16,6 +16,9 @@ sources:
   - id: qwen38-dspark
     resource: ../raw/Qwen3.8-27B-DSpark.md
     title: Qwen3.8-27B-DSpark
+  - id: dflash2
+    resource: ../raw/DFlash2.md
+    title: 'DFlash 2: Keep Drafting Parallel'
 ---
 
 Qwen3.8 is Qwen's family with `Qwen3.8-27B` dense vision-reasoning, `Qwen3.8-2.4T-A95B` MoE (2.4T total, 95B active), and `Qwen3.8-Max`; Unsloth publishes Dynamic V3.0 GGUFs, narrow 1-bit GGUFs, and Blackwell NVFP4 quants for local llama.cpp, Unsloth Desktop, and vLLM runs[^qwen38].
@@ -306,6 +309,8 @@ Qwen3.8-27B text table versus Qwen3.6-27B, Qwen3.7-Plus, Muse Glimmer-30B, and O
 
 ## Relationships
 
+- Related to [DFlash 2 Parallel Speculative Decoding](dflash2-parallel-speculative-decoding.md) — day-zero `incoai/Qwen3.8-27B-DFlash2` drafter reports 4.80 mean acceptance (block 8, default sampling) versus 4.28 MTP and 3.62 community DSpark, with 2.7–3.4× autoregressive throughput at batch size 1 in SGLang[^dflash2].
+
 - Uses [Unsloth Dynamic GGUF Quantization](unsloth-dynamic-gguf.md) — Qwen3.8-27B Dynamic V3.0 GGUFs and 2.4T narrow 1-bit `TQ`/`Q1_0` types as instances of Unsloth per-layer dynamic PTQ without QAT/QAD.
 - Uses [Unsloth Dynamic NVFP4 Quantization](unsloth-dynamic-nvfp4.md) — Blackwell W4A4 path, FP8 KV-cache calibration, and vLLM/SGLang serving context for the Qwen3.8-27B NVFP4 checkpoint named here.
 - Uses [Unsloth MTP Local Inference](unsloth-mtp-local-inference.md) — MTP-enabled local inference with 1-2GB extra-memory planning and vLLM MTP speculative serving shared with Qwen3.6 and Gemma 4 runs.
@@ -330,3 +335,4 @@ Qwen3.8-27B text table versus Qwen3.6-27B, Qwen3.7-Plus, Muse Glimmer-30B, and O
 [^qwen38]: Qwen3.8 - How to Run Locally — `../raw/unsloth/models/qwen3.8.md`, Qwen3.8-27B/2.4T-A95B/Max identity with 256K and 1.01M context claims, 27B 7-56GB and 2.4T 397GB-4.9TB hardware tables, thinking/instruct sampling and preserve-thinking plus reasoning-effort controls, narrow 1-bit BPW/codebook table with large-model PPL/KLD figures, Unsloth Desktop and llama.cpp iq1-narrow/standard install/download/run commands, NVFP4 throughput/accuracy tables with vLLM and SGLang v0.5.19 commands, and 27B text benchmark table plus 2.4T image note.
 [^qwen38-day0]: SGLang and Miles Add Day-0 Support for Qwen3.8 — `../raw/2026-08-12-qwen3-8-day0-support/index.md`, covering datacenter-scale 2.4T-A95B serving with three-state caching, chunked PP prefill, PD staging buffer, fused kernels, and colocated LoRA RL.
 [^qwen38-dspark]: Qwen3.8-27B-DSpark — `../raw/Qwen3.8-27B-DSpark.md`.
+[^dflash2]: DFlash 2: Keep Drafting Parallel — `../raw/DFlash2.md`.

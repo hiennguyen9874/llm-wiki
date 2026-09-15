@@ -1,0 +1,63 @@
+\section{Introduction}
+\label{sec:intro}
+
+
+
+
+
+Transformer models~\citep{vaswani2017attention} have emerged as the most widely used architecture in applications such as natural language processing and image classification.
+Transformers have grown larger~\citep{brown2020language} and deeper~\citep{wang2022deepnet}, but equipping them with longer context remains difficult~\citep{tay2020long}, since the self-attention module at their heart has time and memory complexity quadratic in sequence length.
+An important question is whether making attention faster and more memory-efficient can help Transformer models address their runtime and memory challenges for long sequences.
+
+Many approximate attention methods have aimed to reduce the compute and memory requirements of attention.
+These methods range from sparse-approximation~\citep{kitaev2020reformer, roy2021efficient} to low-rank approximation~\citep{wang2020linformer, katharopoulos2020transformers, choromanski2020rethinking}, and their combinations~\citep{beltagy2020longformer, zaheer2020bigbird, scatterbrain}.
+Although these methods reduce the compute requirements to linear or near-linear in sequence length, many of them do not display wall-clock speedup against standard attention and have not gained wide adoption. One main reason is that they focus on FLOP reduction (which may not correlate with wall-clock speed) and tend to ignore overheads from memory access (IO).
+
+
+
+
+
+\input{figs/banner}
+
+
+
+
+
+In this paper, we argue that a missing principle is making attention algorithms \textit{IO-aware}~\citep{aggarwal1988input}---that is, carefully accounting for reads and writes to different levels of fast and slow memory (e.g., between fast GPU on-chip SRAM and relatively slow GPU high bandwidth memory, or HBM~\citep{jia2018dissecting}, Figure~\ref{fig:banner} left).
+On modern GPUs, compute speed has out-paced memory speed~\citep{nvidia2017nvidia,nvidia2020nvidia,nvidia2022nvidia}, and most operations in Transformers are bottlenecked by memory accesses~\citep{ivanov2021data}.
+IO-aware algorithms have been critical for similar memory-bound operations, when reading and writing data can account for a large portion of the runtime---such as database joins~\citep{ramakrishnan2003database}, image processing~\citep{ragan2013halide}, numerical linear algebra~\citep{blackford2002updated}, and more~\citep{williams2009roofline, hennessy2003memory}.
+However, common Python interfaces to deep learning such as PyTorch and Tensorflow do not allow fine-grained control of memory access.
+
+We propose \sysname, a new attention algorithm that computes exact attention with far fewer memory accesses.
+Our main goal is to avoid reading and writing the attention matrix to and from HBM.
+This requires (i) computing the softmax reduction without access to the whole input (ii) not storing the large intermediate attention matrix for the backward pass.
+We apply two well-established techniques to address these challenges.
+(i) We restructure the attention computation to split the input into blocks and make several passes over input blocks, thus incrementally performing the softmax reduction (also known as \textbf{tiling}). (ii) We store the softmax normalization factor from the forward pass to quickly \textbf{recompute} attention on-chip in the backward pass, which is faster than the standard approach of reading the intermediate attention matrix from HBM.
+We implement \sysname in CUDA to achieve fine-grained control over memory access and fuse all the attention operations into one GPU kernel.
+Even with the increased FLOPs due to recomputation, our algorithm both \textbf{runs faster} (up to 7.6x on GPT-2~\citep{radford2019language}, Figure~\ref{fig:banner} right) and \textbf{uses less memory}---linear in sequence length---than standard attention, thanks to the massively reduced amount of HBM access.
+
+We analyze the IO complexity~\citep{aggarwal1988input} of \sysname, proving that it requires $O(N^2 d^2 M^{-1})$ HBM accesses where $d$ is the head dimension and $M$ is the size of SRAM, as compared to $\Omega(Nd + N^2)$ of standard attention.
+For typical values of $d$ and $M$, \sysname requires many times fewer HBM accesses compared to standard attention (up to 9$\times$ fewer, as shown in~\cref{fig:micros}).
+Moreover, we provide a lower bound, showing that no exact attention algorithm can asymptotically improve on the number of HBM accesses over all SRAM sizes.
+
+We also show that \sysname can serve as a 
+useful primitive for realizing the potential of approximate attention algorithms by overcoming their issues with memory access overhead.
+As a proof of concept, we implement block-sparse \sysname, a sparse attention algorithm that is 2-4$\times$ faster than even \sysname, scaling up to sequence length of 64k.
+We prove that block-sparse \sysname has better IO complexity than \sysname by a factor proportional to the sparsity ratio.
+We discuss further extensions to other operations (attention on multi-GPU, kernel regression, block-sparse matrix multiply) in~\cref{sec:discussion}.
+We open-source \sysname to make it easier to build on this primitive.\footnote{\sysname code is available at \url{https://github.com/HazyResearch/flash-attention}}
+
+We empirically validate that \sysname speeds up model training and improves model quality by modeling longer context. We also benchmark the runtime and memory footprint of \sysname and block-sparse \sysname compared to prior attention implementations.
+\begin{itemize}[itemsep=0.1pt,topsep=0pt,leftmargin=*]
+  \item \textbf{Faster Model Training.} \sysname trains Transformer models faster in wall-clock time. We train BERT-large (seq.\ length 512) 15\% faster than the training speed record in MLPerf 1.1~\citep{mattson2020mlperf}, GPT2 (seq.\ length 1K) 3$\times$ faster than baseline implementations from HuggingFace~\citep{wolf-etal-2020-transformers} and Megatron-LM~\citep{shoeybi2019megatron}, and long-range arena (seq.\ length 1K-4K) 2.4$\times$ faster than baselines.
+  \item \textbf{Higher Quality Models.} \sysname scales Transformers to longer sequences, which improves their quality and enables new capabilities.
+  We observe a 0.7 improvement in perplexity on GPT-2 and 6.4 points of lift from modeling longer sequences on long-document classification~\citep{dai2022revisiting}.
+  \sysname enables the first Transformer that can achieve better-than-chance performance on the Path-X~\citep{tay2020long} challenge, solely from using a longer sequence length (16K).
+  Block-sparse \sysname enables a Transformer to scale to even longer sequences (64K), resulting in the first model that can achieve better-than-chance performance on Path-256.
+  \item \textbf{Benchmarking Attention.} \sysname is up to 3$\times$ faster than the standard attention implementation across common sequence lengths from 128 to 2K and scales up to 64K.
+  Up to sequence length of 512, \sysname is both faster and more memory-efficient than any existing attention method, whereas for sequence length beyond 1K, some approximate attention methods (e.g., Linformer) start to become faster.
+  On the other hand, block-sparse \sysname is faster than all existing approximate attention methods that we know of.
+  
+\end{itemize}
+
+

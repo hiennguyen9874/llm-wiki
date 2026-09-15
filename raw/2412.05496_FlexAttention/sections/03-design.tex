@@ -1,0 +1,343 @@
+
+
+\begin{figure*}
+    \centering
+    \includegraphics[width=\linewidth]{graphs/mask.pdf}
+    \caption{Attention variants and \texttt{mask\_mod} examples, including causal mask, sliding window mask, document mask, and prefixLM mask.}
+    \label{fig:mask_mod}
+\end{figure*}
+
+
+
+\section{Front-end Design and Implementation}
+\label{sec:API}
+
+In this section, we propose a unified abstraction of diverse attention variants.
+This abstraction enables programmers to easily express attention semantics without worrying about implementation details and kernel performance.
+
+
+\subsection{Unified Abstraction}
+\label{sec:score_mod}
+Despite the numerous attention variants designed by machine learning researchers, we unify these variants into two commonly shared patterns. The first pattern masks out features from certain tokens to manage contextual relationships. For example, a causal mask forces a model to predict based on previous tokens and ignore future tokens. A sliding window mask~\cite{slidingwindow} forces a model to concentrate on nearby tokens for the local context. 
+
+The second pattern further adjusts the attention score among tokens in a fine-grained style. For example, \textit{Alibi}~\cite{alibi} adjusts the attention score based on the relative position of two tokens, which helps the model to better understand the context and handle long sequences. It also adds bias to attention scores based on head dimension, which specializes heads on different types of information.
+
+With these insights, we design a unified abstraction including a score modification callable ({\tt score\_mod}) and an attention mask callable ({\tt mask\_mod}).
+It enables users to build a new attention variant by defining how to update scores or calculate boolean masks based on positional information in idiomatic PyTorch code.
+{\small
+\begin{lstlisting}[language=Python]
+def mask_mod(batch_idx: int, head_idx: int, q_idx: int, kv_idx: int) -> bool
+
+def score_mod(score: T, batch_idx: int, head_idx: int, q_idx: int, kv_idx: int) -> T
+\end{lstlisting}
+}
+
+
+Specifically, consider a score matrix $\mathbf{S} \in \mathbb{R}^{B\times H\times M \times N}$. 
+\texttt{mask\_mod} takes the input position and specifies whether the corresponding score scalar is set to {\tt -inf}.
+\texttt{score\_mod} additionally takes the score scalar of arbitrary type T (e.g., \texttt{bfloat16} or \texttt{float32}) and applies updated to the score based on its position.
+
+
+\paragraph{Mapping to concrete examples}
+Our unified abstraction captures the two important patterns in attention variants and enables automated compiler optimizations.
+\autoref{fig:mask_mod} demonstrates 4 example attention variants, 
+each of which has been widely studied and optimized. However, there is a lack of a unified optimization approach that applies to all of them. 
+Instead, our abstraction provides full flexibility in specifying masking and modification to the score matrix, enabling machine learning researchers to easily explore novel attention variants. 
+
+As we discussed earlier, a \texttt{causal mask} forces a token's query feature to only attend to key and value features from previous tokens. This leads to a simple expression of $q\_idx \ge kv\_idx$. Since the causal mask is not related to the batch and head dimension, the \texttt{mask\_mod} does not involve $b$ and $h$ inputs.
+
+A \texttt{sliding window mask} requires a token to only attend to nearby tokens within a certain sliding window size. We can easily describe such requirement as $q\_idx - kv\_idx \le window$.
+
+A \texttt{document mask} trains multiple documents simultaneously and requires a token to only attend to other tokens in the same document. We can record `document\_id` as a mapping from the token index to the document index, and keep the score only if $document\_id[q\_idx] == document\_id[kv\_idx]$.
+
+A \texttt{alibi bias} modifies each score scalar by adding a bias scalar, which scales with the distance between the query index and the key value index. We can easily describe it as $score + alibi\_bias[h] * (q\_idx - kv\_idx)$. Note that we can easily support other score modifications such as scaling the score scalar or even non-linear transformations.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+\paragraph{Why \texttt{mask\_mod}?}
+\texttt{mask\_mod} is a special case of \texttt{score\_mod} and any \texttt{mask\_mod} can be easily converted to a \texttt{score\_mod} semantically.
+However, we still observe two fundamental reasons for distinguishing these two APIs.
+First, \texttt{score\_mod} applies expensive modification to every score scalar. When converting \texttt{mask\_mod} to \texttt{score\_mod}, we multiply each score with $1$ or $0$, leading to extra overhead.
+Second, comparing with \texttt{score\_mod}, \texttt{mask\_mod} provides extra semantic information that certain score computations can be skipped. 
+We exploit this information to further accelerate attention computation, as detailed in \autoref{sec:block_sparsity}.
+
+
+\subsection{Logical Fusion for Composability}
+\label{sec:logical_fusion}
+As many attention variants have been designed, one recent trend is to compose existing attention variants to further extract semantic information.
+We support the logical fusion to enable the composability of mask designs via \texttt{and\_mask} and \texttt{or\_mask}.
+By taking two \texttt{mask\_mod} functions, we can automatically compose them by applying elementwise logical operations.
+The generated \texttt{mask\_mod} can be further combined with other \texttt{mask\_mod} which significantly mitigates the programmability burden when designing attention variants.
+
+\autoref{fig:mask_mod} shows an example of logical fusion. \texttt{PrefixLM} \cite{T5} performs full bidirectional attention on prefix inputs and causal attention on the rest.
+Instead of complex conditional branches, we can build a simple \texttt{prefix mask} and compose it with a causal mask via \texttt{or\_mask}.
+
+
+
+
+
+
+\section{Backend Design and Implementation}
+In this section, we propose a backend design that compiles attention variants to efficient kernels.
+
+
+
+
+
+
+\subsection{Template-based Lowering}
+We build a template-based lowering system that generates optimized GPU kernels, combining the flexibility with state-of-the-art attention optimizations.
+The key innovation of our approach lies in recognizing that attention variants primarily differ in their pointwise score modifications, allowing us to templatize the common computational patterns.
+To this end, we build template-based lowering to capture the common patterns and apply \texttt{score\_mod} elementwisely on score matrix.
+We will present BlockSparsity design on exploiting sparsity from \texttt{mask\_mod} in \autoref{sec:block_sparsity}.
+
+
+Template-based lowering first exploits TorchDynamo \cite{pytorch2} to capture the computation graph of \texttt{score\_mod} and \texttt{mask\_mod}.
+As shown in \autoref{fig:mask_mod}, these two functions are usually lightweight in terms of computation and memory access, and could be fused with other computation in attention.
+Then, we build a highly optimized triton template for high performance.
+The Triton kernel design adopts established optimization techniques for fused attention kernels, including online softmax, careful GPU occupancy management, efficient memory handling via partitioning and broadcasting, and specialized support for grouped query attention (GQA) \cite{GQA}. 
+
+
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=\linewidth]{graphs/lowering_path.pdf}
+    \caption{Compilation from user-defined attention patterns to optimized Triton kernels. \textbf{Top:} User-defined PyTorch functions specify custom masking (\texttt{causal\_mask}) and score modification (\texttt{rel\_pos}) operations. \textbf{Bottom:} \texttt{torch.compile} captures and lowers these operations into Triton primitives. \textbf{Right:} The resulting Triton code blocks are integrated into our attention template, which handles core attention computations while preserving the user-defined modifications.}
+    \label{fig:lowering}
+\end{figure}
+
+We capture these advanced techniques in three handwritten attention kernel templates (forward, backward, and decoding). The templates are designed to accept custom score modification code blocks, which are generated from captured score\_mod and mask\_mod operations using torch.compile. TorchInductor translates these subgraphs into Triton code, dynamically injecting both forward and backward score modification operations into the predefined templates at runtime. This approach results in attention kernels that closely match the performance of manually optimized, variant-specific implementations. Figure~\ref{fig:lowering} illustrates our lowering pipeline, showing how user-defined PyTorch operations are translated into optimized Triton code and integrated into our attention templates.
+
+
+
+
+\subsection{Block Sparsity}
+\label{sec:block_sparsity}
+
+
+
+Attention variants usually show high sparsity such as 50\% sparsity from causal mask and significantly higher sparsity from sliding window mask.
+One natural question is, 
+
+\textit{could our compiler exploit such sparsity for acceleration?}
+
+One naive approach is to check during runtime whether a position is masked out and skip the computation.
+However, this adds a large runtime overhead by iterating through all scalars even if it is masked out.
+Another approach is to pre-compute a mask tensor of shape $B\times H\times Q\_LEN \times KV\_LEN$ and compute a score scalar according to the mask tensor.
+However, this mask tensor adds significant memory overhead, which contradicts the principle of flash attention that avoids realizing the score matrix.
+
+
+
+\paragraph{BlockMask}
+FlexAttention implements a BlockMask data structure to exploit the sparsity while adding only negligible memory overhead.
+We pre-compute a block mask during compilation time to remove the runtime overhead.
+BlockMask first splits the score matrix into blocks along the Q\_LEN and KV\_LEN dimensions.
+Then, BlockMask specifies a block as non-computed if all score scalars in it are masked as {\tt -inf}.
+By recording sparsity at the block level, we do not realize a large sparsity matrix, significantly reducing memory overhead.
+
+Concretely, BlockMask contains two tensors, a \texttt{kv\_num\_block} of shape $B\times H \times Num\_Row$ and a \texttt{kv\_indices} of shape $B\times H \times Num\_Row \times Num\_Col$.
+Here, $Num\_Row$ and $Num\_Col$ are the number of blocks in each row and column along the query and key value dimension, respectively.
+\texttt{kv\_num\_block} stores the number of non-zero blocks for each row and \texttt{kv\_indices} stores the indices of these non-zero blocks.
+By accessing \texttt{kv\_num\_block}, \textit{FlexAttention} skips masked blocks and achieves proportional performance speedup.
+
+
+
+\begin{figure}[t]
+    \centering
+    \includegraphics[width=\linewidth]{graphs/BlockMask_kv.pdf}
+    \caption{BlockMask for Sliding Window Attention. \textbf{Left:} The score matrix is divided into fully visible blocks (green), partially masked blocks (yellow), and oblivious blocks (white). \textbf{Right:} {\tt BlockMask} encoded as an index matrix plus block count per row. \textbf{Top: }{\tt score\_mod} is applied to full \& partial blocks. \textbf{Bottom: }{\tt mask\_mod} is applied to partial blocks. }
+    \label{fig:BLockMask}
+\end{figure}
+
+
+
+\paragraph{Full Block Optimization}
+We split BlockMask into full blocks and partial blocks to further improve the performance.
+Our key idea is to minimize runtime overhead caused by applying \texttt{mask\_mod}, skipping it whenever possible.
+We identify two types of blocks in terms of sparsity.
+\begin{enumerate}
+    \item \underline{Partial blocks} where some score scalars are masked as {\tt -inf}, necessitating the application of \texttt{mask\_mod} elementwise at runtime.
+    \item \underline{Full blocks} where no score scalar is masked, allowing us to skip {\tt mask\_mod} and apply only {\tt score\_mod}. 
+\end{enumerate}
+This optimization yields approximately a 15\% performance improvement for common patterns such as causal masks.
+\autoref{fig:BLockMask} illustrates the BlockMask for sliding window attention. 
+The \texttt{sliding\_win\_mask} is applied only to partial blocks while the \texttt{rel\_pos} score modification is applied elementwise on both full and partial blocks.
+
+
+
+
+
+
+
+
+
+
+
+
+
+\paragraph{BlockMask Guided Indirect Memory Access}
+
+Exploiting sparsity in attention shows significant performance speedup.
+Existing solutions such as FlashAttention iterate through the $KV\_LEN$ dimension and manually specifies the start and end index of iteration based on attention variants. This leads to a significant programmability burden.
+Moreover, it requires extra efforts to ensure that attention scores in the final block are properly masked if the query token index is less than the key token index.
+
+
+
+
+
+
+FlexAttention utilize the BlockMask information to automatically exploit the sparsity in attention variants.
+It first adjusts the workload in each GPU block according to the \texttt{kv\_num\_block}, which specifies the number of score matrix blocks that are not masked out.
+Then, it uses the KV Indices to map to the next block to be processed.
+Here, we utilizes an indirect memory access strategy since the indices need not point to contiguous tokens in the sequence.
+This provides flexibility in compiling various attention patterns, such as sliding window attention, local-global attention, or custom sparse patterns, without modifying kernel.
+
+
+
+\begin{figure}[!h]
+    \centering
+    \includegraphics[width=0.7\linewidth]{graphs/AssignBlockMasktoSM.pdf}
+    \caption{Scheduling full and partial blocks to SM. }
+    \label{fig:blockmaskexc}
+\end{figure}
+
+\paragraph{Data Prefetching Pipeline}
+\textit{FlexAttention} divides the score matrix into tiles along the Q\_LEN dimension to parallelize the computation on multiple Stream Processors(SM). Each SM iterates along the KV\_LEN dimension and processes a row of blocks (Figure \ref{fig:blockmaskexc}).
+Special care needs to be taken in pipelining the data fetch and compute for these blocks.
+When the first score block is being computed from the first kv tile, the second kv tile (shown in dashed borders) is being pre-fetched from HBM to SRAM.
+Our BlockMask access strategy removes conditional branch on checking whether a score scalar is masked out, thus allowing efficient pipelining and hiding data access latency between iterations.
+
+
+
+
+
+
+\paragraph{Overhead Analysis}
+BlockMask representation achieves memory efficiency through a careful balance of granularity and overhead. Although we store auxiliary tensors to encode the sparsity pattern, their memory footprint scales with $O(\lceil Q\_LEN/BS \rceil \times \lceil KV\_LEN/BS \rceil)$, where $BS$ is the block size (=128 by default).
+This is significantly less than the $O(M \times N)$ required for the full score matrix.
+
+
+
+
+
+
+\section{Case Study}
+
+\begin{figure*}[ht]
+\centering
+     \includegraphics[width=\linewidth]{graphs/paged_attention.pdf}
+  \caption{Illustration of \textit{FlexAttention} with paged attention. a) Update physical KV cache with a page table; b) Convert a block mask especially KV Index; c) Physical to logical map for converting \texttt{mask\_mod} and \texttt{score\_mod}.}
+  \label{fig:paged_attention}
+\end{figure*}
+
+
+
+
+
+
+
+
+\subsection{Paged Attention Variants}
+\label{sec:paged_attn}
+
+PagedAttention \cite{PagedAttn} has been widely deployed for inference on a batch of sentence requests to reduce GPU memory consumption.
+However, the current PagedAttention design requires manually rewriting the attention kernel to support page table lookup for its irregular memory accesses.
+Additionally, it is tightly coupled with specific attention mask designs, limiting composability with other attention variants. In this subsection, we explain how \textit{FlexAttention} enables paging support for arbitrary attention variants without manually rewriting the kernels, while still delivering high performance and low memory usage.
+\footnote{Due to the scope of this paper, we focus on supporting KV cache in GPU memory and leave the memory swapping to host disk as future work.}
+
+
+\paragraph{Page Table.}
+PagedAttention introduces a page table to efficiently manage the KV cache and reduce its memory usage.
+As shown in \autoref{fig:paged_attention}(a), a logical KV cache stores the key and value features of each sequence, typically in shape $B\times Max\_len \times D$ where $B$ is the batch size, $Max\_len$ is the maximum context length, and $D$ is the feature dimension.
+Since sequence lengths vary significantly between sentences and could be much shorter than $Max\_len$, a substantial portion of the logical KV cache remains unused.
+To address this fragmentation issue, PagedAttention instead allocates a physical KV cache of shape $1 \times Max\_token \times D$, where $Max\_token$ is the maximum number of tokens across all sentences combined.
+Storing sentences in the physical KV cache reduces fragmentation and enables memory optimizations such as KV block sharing between sentences.
+
+PagedAttention maintains a page table as 2D matrix that maps the batch index and logical KV index to the corresponding physical KV index. Within the attention kernel, one  \texttt{scatter} operation is used efficiently translate indexes using this matrix, while minimizing memory access overhead. During runtime, once a sentence reaches its end token, we clear the corresponding row in the page table and update it with a new request.
+
+
+\paragraph{Fused indirect memory access.}
+Having attention kernel compute on the physical KV cache instead of the logical KV cache, presents several challenges.
+First, the page table adds an extra layer of indirection in memory accesses, which existing designs typically handle with manually rewritten CUDA kernels.
+Second, the page table imposes a significant programming burden on already complex implementations for supporting diverse attention variants.
+
+\textit{FlexAttention} tackles this problem through the BlockMask conversion, eliminating the need for kernel rewrites.
+Our key idea is that since BlockMask already incorporates one layer of indirect memory access to avoid unnecessary computations (\autoref{sec:block_sparsity}), we can merge it with the indirect memory access from the page table to further skip unnecessary memory accesses.
+Specifically, as shown in \autoref{fig:paged_attention}(b), given a BlockMask of an attention variant, we take the kv\_index and map the logical block index to the corresponding physical block index according to the page table.
+During runtime, \textit{FlexAttention} relies on the converted kv\_index to access tokens for a specific sentence from the physical KV cache.
+Note that we keep the kv\_num\_blocks unchanged since paged attention does not change the number of unmasked blocks.
+
+
+
+\paragraph{\texttt{mask\_mod} and \texttt{score\_mod} Conversion}
+\textit{FlexAttention} supports attention variants with \texttt{mask\_mod} and \texttt{score\_mod}, which utilizes position information (e.g., logical KV index) to specify mask and score modifications.
+This position information is changed when using paged attention and operating on the physical KV cache.
+One naive approach is to manually rewrite the \texttt{mask\_mod} and \texttt{score\_mod} to cater to such changes on position information.
+However, this adds an large programmability burden, considering numerous attention variants and even logical fusion of these variants (\autoref{sec:logical_fusion}).
+
+We automatically compile the \texttt{mask\_mod} and \texttt{score\_mod} to support paged attention.
+{\small
+\begin{lstlisting}[language=Python]
+def converted_mask_mod(batch_idx: int, head_idx: int, q_idx: int, physical_kv_idx: int) -> bool
+
+def converted_score_mod(score: T, batch_idx: int, head_idx: int, q_idx: int, physical_kv_idx: int) -> T
+\end{lstlisting}
+}
+Specifically, we maintain a vector mapping physical block indices to logical block indices using $O(1)$ overhead when updating the page table.
+Given the physical KV token index, we can first compute the physical KV block index and offset due to the fixed block size.
+Then, we can lookup the corresponding logical KV block index and regenerate the logical KV token index.
+Finally, we call the user-provided \texttt{mask\_mod} and \texttt{score\_mod} with the generated logical KV token index.
+
+
+\begin{figure}
+    \centering
+    \includegraphics[width=\linewidth]{graphs/offset.pdf}
+    \caption{\texttt{mask\_mod} conversion}
+    \label{fig:offset}
+\end{figure}
+
+
+\subsection{Modification Conversion for Inference}
+In attention variants, the mask and score modifications may change with query indices, which is supported by taking $q\_idx$ in \texttt{mask\_mod} and \texttt{score\_mod}.
+However, LLM inference usually iteratively takes one query token at a time and requires additional context information in terms of the number of query tokens has been processed, namely offset.
+\autoref{fig:offset}(a) shows the difference between causal mask during training and inference.
+To tackle this problem, we automatically convert \texttt{mask\_mod} and \texttt{score\_mod} to their inference counterpart, as shown in \autoref{fig:offset}(b).
+Specifically, we provide a decorator that takes the user-defined \texttt{mask\_mod} and an offset, and generate a converted \texttt{mask\_mod} that consumes the offset information.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+% \subsection{Document Masking}
+

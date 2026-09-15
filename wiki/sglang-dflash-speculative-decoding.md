@@ -5,11 +5,17 @@ description: Block-diffusion drafting with KV injection on the Spec V2 overlap e
 tags: [sglang, speculative-decoding, dflash, diffusion]
 status: stable
 created: 2026-09-14
-generated: { by: llm-wiki-agent/1, at: 2026-09-14T20:30:00Z }
+generated: { by: llm-wiki-agent/1, at: 2026-09-15T17:00:00Z }
 sources:
   - id: dflash-v2
     resource: ../raw/2026-06-15-next-generation-speculative-decoding-dflash-v2/index.md
     title: "The next generation of speculative decoding: DFlash and Spec V2"
+  - id: nemotron-dflash
+    resource: ../raw/DFlash.md
+    title: NVIDIA Nemotron-3.5-Lightning-30B-A3B-NVFP4-DFlash
+  - id: dflash2
+    resource: ../raw/DFlash2.md
+    title: "DFlash 2: Keep Drafting Parallel"
 ---
 
 DFlash pairs a lightweight block-diffusion draft model that proposes a whole token block in one forward pass with per-layer KV injection of target-model hidden states, served on SGLang's Spec V2 overlap engine to beat both baseline and native MTP throughput[^dflash-v2].
@@ -126,7 +132,16 @@ python -m sglang.launch_server \
 
 The same block-diffusion plus KV-injection approach applies to most target LLMs; the source invites teams wanting a custom DFlash speculator to contact Z Lab or Modal[^dflash-v2]. A Modal low-latency SGLang example is also linked from the source[^dflash-v2].
 
+A vLLM/llama.cpp DFlash checkpoint example is [Nemotron 3.5 Lightning DFlash Speculator](nemotron-3.5-lightning-dflash.md): `nvidia/NVIDIA-Nemotron-3.5-Lightning-30B-A3B-NVFP4-DFlash` for Nemotron-3.5-Lightning-30B-A3B targets with an 833M dense-GQA drafter, SPEED-Bench draft-length-7 overall acceptance 3.16, and low-concurrency data-centre/workstation serving on H100, GB200, and RTX 5090[^nemotron-dflash].
+
+## DFlash 2 upgrade
+
+[DFlash 2 Parallel Speculative Decoding](dflash2-parallel-speculative-decoding.md) keeps the one-pass DFlash design and adds a top-16 parallel path selector (+2.0M params, +0.6% cycle latency) plus a block-local two-tap dynamic convolution (+16.5M params, +0.7% latency) for about 21% higher acceptance at about 1.3% combined latency on the reported Qwen3.5-4B setup[^dflash2]. Day-zero drafters are `incoai/Qwen3.8-27B-DFlash2` and `incoai/Muse-Glimmer-30B-DFlash2`, served in SGLang with `--speculative-algorithm DFLASH`[^dflash2].
+
 ## Relationships
+
+- Related to [DFlash Block Diffusion Speculative Decoding](dflash-block-diffusion.md) — original DFlash paper method, training, and benchmark detail behind this serving path.
+- Related to [DFlash 2 Parallel Speculative Decoding](dflash2-parallel-speculative-decoding.md) — one-pass upgrade with path selection and local convolution; see that page for selector/convolution detail and Qwen3.8-27B / Muse Glimmer acceptance.
 
 - Uses [SGLang Speculative Decoding](sglang-speculative-decoding.md) — base EAGLE/MTP entry; DFlash is the parallel-diffusion alternative served on Spec V2.
 - Uses [SGLang Server Arguments](sglang-server-arguments.md) — canonical reference for launch, parallelism, memory, and backend flags used in the DFlash command.
@@ -135,11 +150,14 @@ The same block-diffusion plus KV-injection approach applies to most target LLMs;
 - Related to [vLLM EAGLE Speculative Decoding](vllm-eagle-speculative-decoding.md) — autoregressive EAGLE baseline DFlash is benchmarked against.
 - Related to [vLLM MTP Speculative Decoding](vllm-mtp-speculative-decoding.md) — native-MTP throughput baseline DFlash beats on Qwen3.5-397B-A17B.
 - Related to [vLLM Dynamic Speculative Decoding](vllm-dynamic-speculative-decoding.md) — vLLM dynamic-K table is tested with DFlash among other methods.
+- Related to [Nemotron 3.5 Lightning DFlash Speculator](nemotron-3.5-lightning-dflash.md) — vLLM/llama.cpp DFlash checkpoint for Nemotron-3.5-Lightning-30B-A3B with SPEED-Bench acceptance evidence.
 
 ## Coverage limits
 
 - All four source images were inspected: headline throughput bars, architecture diagram, concurrency 1/32 sweep, and EAGLE-3 versus DFlash draft-latency chart; numeric claims above come from source text plus chart annotations.
-- The DFlash paper, SpecDiff-2, Medusa/EAGLE/MTP papers, host-overhead blog, SGLang PR diffs beyond the source summary, Hugging Face benchmark reproduction scripts, and DFlash training procedure were not inspected; exact training steps and full benchmark harness detail beyond the summary above are not compiled here[^dflash-v2].
+- The original DFlash paper method, training, and systematic benchmarks are now compiled in [DFlash Block Diffusion Speculative Decoding](dflash-block-diffusion.md); SpecDiff-2, Medusa/EAGLE/MTP papers, host-overhead blog, SGLang PR diffs beyond the source summary, and Hugging Face benchmark reproduction scripts were not inspected beyond the descriptions cited here[^dflash-v2].
 - Launch flags, block size 8, and MTP 7-step / DFlash block-16 headline choices are workload-specific optima from the source setup, not universal defaults[^dflash-v2].
 
 [^dflash-v2]: The next generation of speculative decoding: DFlash and Spec V2 — `../raw/2026-06-15-next-generation-speculative-decoding-dflash-v2/index.md`.
+[^nemotron-dflash]: NVIDIA Nemotron-3.5-Lightning-30B-A3B-NVFP4-DFlash — `../raw/DFlash.md`.
+[^dflash2]: DFlash 2: Keep Drafting Parallel — `../raw/DFlash2.md`.

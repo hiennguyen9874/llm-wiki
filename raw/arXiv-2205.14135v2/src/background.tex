@@ -1,0 +1,99 @@
+\section{Background}
+\label{sec:background}
+
+We provide some background on the performance characteristics of common deep
+learning operations on modern hardware (GPUs).
+We also describe the standard implementation of attention.
+
+\subsection{Hardware Performance}
+\label{subsec:hardware}
+
+We focus here on GPUs.
+Performance on other hardware accelerators are similar~\citep{jouppi2017datacenter, jia2019dissecting}.
+
+\textbf{GPU Memory Hierarchy.}
+The GPU memory hierarchy (\cref{fig:banner} left) comprises multiple forms of memory of different
+sizes and speeds, with smaller memory being faster.
+As an example, the A100 GPU has 40-80GB of high bandwidth memory (HBM) with
+bandwidth 1.5-2.0TB/s and 192KB of on-chip SRAM per each of 108 streaming
+multiprocessors with
+bandwidth estimated around 19TB/s~\citep{jia2018dissecting, jia2021dissecting}.
+The on-chip SRAM is an order of magnitude faster than HBM but many orders of
+magnitude smaller in size.
+As compute has gotten faster relative to memory speed~\citep{nvidia2017nvidia,nvidia2020nvidia,nvidia2022nvidia}, operations
+are increasingly bottlenecked by memory (HBM) accesses.
+Thus exploiting fast SRAM becomes more important.
+
+\textbf{Execution Model.}
+GPUs have a massive number of threads to execute an operation
+(called a kernel).
+Each kernel loads inputs from HBM to registers and SRAM, computes, then writes outputs to HBM.
+
+\textbf{Performance characteristics.} Depending on the balance of computation and memory accesses, operations can be
+classified as either compute-bound or memory-bound.
+This is commonly measured by the \emph{arithmetic intensity}~\citep{williams2009roofline},
+which is the number of arithmetic operations per byte of memory access.
+\begin{enumerate}[itemsep=0.1pt,topsep=0pt,leftmargin=*]
+  \item Compute-bound: the time taken by the operation is determined by how many
+  arithmetic operations there are, while time accessing HBM
+  is much smaller. Typical examples are matrix multiply with large inner
+  dimension, and convolution with large number of channels.
+  \item Memory-bound: the time taken by the operation is determined by the
+  number of memory accesses, while time spent in computation is much smaller.
+  Examples include most other operations:
+  elementwise (e.g., activation, dropout), and reduction (e.g., sum,
+  softmax, batch norm, layer norm).
+\end{enumerate}
+
+\textbf{Kernel fusion.}
+The most common approach to accelerate memory-bound operations is
+kernel fusion: if there are multiple operations applied to the same input,
+the input can be loaded once from HBM, instead of multiple times for each operation.
+Compilers can automatically fuse many elementwise operations~\citep{li2020deep, paszke2019pytorch, sabne2020xla}.
+However, in the context of model training, the intermediate values still need
+to be written to HBM to save for the backward pass, reducing the
+effectiveness of naive kernel fusion.
+
+\subsection{Standard Attention Implementation}
+\label{subsec:standard_attn}
+
+Given input sequences $\vQ, \vK, \vV \in \mathbb{R}^{N \times d}$ where $N$ is the sequence length and
+$d$ is the head dimension, we want to compute the attention output $\vO \in \mathbb{R}^{N \times d}$:
+\begin{equation*}
+  \vS = \vQ \vK^\top \in \mathbb{R}^{N \times N}, \quad \vP = \softmax(\vS) \in \mathbb{R}^{N \times N}, \quad \vO = \vP\vV \in \mathbb{R}^{N \times d},
+\end{equation*}
+where $\softmax$ is applied row-wise.
+
+Standard attention implementations materialize the matrices $\vS$ and $\vP$ to HBM, which takes $O(N^2)$ memory.
+Often $N \gg d$ (e.g., for GPT2, $N = 1024$ and $d = 64$).
+We describe the standard attention implementation in~\cref{alg:standard_attn}.
+As some or most of the operations are memory-bound (e.g., softmax), the large number of
+memory accesses translates to slow wall-clock time.
+
+This problem is exacerbated by other elementwise operations applied
+to the attention matrix, such as masking applied to $\vS$ or dropout applied to $\vP$.
+As a result, there have been many attempts to fuse several elementwise
+operations, such as fusing masking with softmax~\citep{shoeybi2019megatron}.
+
+In \cref{sec:theory}, we will show that the standard attention implementation
+performs HBM accesses quadratic in the sequence length $N$.
+We also compare the number of FLOPs and number of HBM accesses of standard
+attention and of our method (\sysname).
+
+\vspace{-0.5em}
+\setcounter{algorithm}{-1}
+\begin{algorithm}[H]
+  \caption{\small\label{alg:standard_attn}Standard Attention Implementation}
+  \begin{algorithmic}[1]
+    \REQUIRE Matrices $\vQ, \vK, \vV \in \mathbb{R}^{N \times d}$ in HBM.
+    \STATE \label{alg:standard_attn_qk} Load $\vQ, \vK$ by blocks from HBM, compute
+    $\vS = \vQ \vK^\top$, write $\vS$ to HBM.
+    \STATE \label{alg:standard_attn_sp} Read $\vS$ from HBM, compute $\vP = \softmax(\vS)$, write $\vP$ to
+    HBM.
+    \STATE \label{alg:standard_attn_pv} Load $\vP$ and $\vV$ by blocks from HBM, compute $\vO = \vP\vV$, write $\vO$ to
+    HBM.
+    \STATE Return $\vO$.
+  \end{algorithmic}
+\end{algorithm}
+\vspace{-1.0em}
+

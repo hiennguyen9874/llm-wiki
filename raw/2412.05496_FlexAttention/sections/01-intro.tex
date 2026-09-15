@@ -1,0 +1,45 @@
+\section{Introduction}
+
+High-performance self-attention kernels, at the heart of Transformers~\cite{transformer}, have become one of the most important building blocks in deep learning. FlashAttention~\cite{flashattention, flashattention2}, the standard kernel strategy for attention, fuses the tensor operations in self-attention into one kernel, drastically improving the runtime and memory consumption. These optimizations are essential in enabling efficient training and decoding, particularly for long sequences. 
+Unfortunately, this performance comes at the cost of flexibility. In exchange for the performance and memory benefits, users are restricted to only the handful of popular attention variants supported. 
+
+However, new attention mechanisms continue to be a focus of significant research. The goal of these changes vary widely, including reductions in computational complexity (Sliding Window Attention ~\cite{slidingwindow}), improvements to training stability (Softcapping ~\cite{gemma2}), ability to work with sequences of differing lengths (Document Masking), better length extrapolation (ALiBI~\cite{alibi}), applying attention to other domains such as images (Neighborhood Attention \cite{NAdeliated}), modifications for better inference throughput (PagedAttention~\cite{PagedAttn}), etc. Furthermore, users often want combinations of these (such as Sliding Window Attention combined with ALiBI), leading to a combinatorial explosion of possible attention kernels. These modifications are not merely speculative either -- many of the most popular Large Language Models (LLMs) released use these variants, such as Sliding Window Attention in Mistral-7B, Softcapping in Gemma-2, or ALiBI in MPT-7B.
+
+The importance of FlashAttention combined with its limited ability to support all attention variants poses a problem for researchers aiming to try new attention variants — a "software lottery" of sorts. If a particular attention variant is not supported by the existing kernels, further exploration can be hindered by slow runtime and memory limitations.
+
+
+This problem is exacerbated by the difficulty of automatically generating fused attention kernels, resisting traditional compiler-based approaches. In addition to all the standard difficulties with generating efficient matrix multiplication-based primitives on accelerators, there also exist several algebraic rewrites that are difficult for compilers to perform. For example, although Mirage~\cite{mirage} is able to generate attention forward from primitive operations, it misses key components for practical usage of attention such as safe softmax or the backwards pass. Furthermore, many variants of attention require block sparsity, a further difficulty for traditional compiler-based approaches.
+
+ 
+\subsection{Our Approach}
+We present \textit{FlexAttention}, a novel compiler-driven programming model that allows implementing the majority of attention variants in a few lines of idiomatic PyTorch code. 
+
+\textbf{Flexible Programming Model. } Instead of a constrained interface designed with specific attention variants in mind, \textit{FlexAttention} is a general programming model for attention that can be used to define many different attention flavors.
+We observe that many attention variants can be defined as a score modification applied on the intermediate score matrix before conducting softmax (Eq. \ref{eq:attn}). Additionally, a good portion of these modifications take the form of masks, which set part of the score matrix to {\tt -inf}. 
+
+{\small
+\begin{align}
+    \text{Attention}(\mathbf{Q}, \mathbf{K}, \mathbf{V}) &= \text{softmax}(\frac{\mathbf{Q}\mathbf{K}^T}{\sqrt{d_k}})\mathbf{V} \nonumber \\ 
+    \text{\textcolor{blue}{Flex}Attention}(\mathbf{Q}, \mathbf{K}, \mathbf{V}) &= \text{softmax}(\text{\textcolor{blue}{mod}}(\frac{\mathbf{Q}\mathbf{K}^T}{\sqrt{d_k}}))\mathbf{V} 
+\label{eq:attn}
+\end{align}
+}% 
+With these insights, we build \textit{FlexAttention}, which takes a score modification callable ({\tt score\_mod}) and an attention mask callable ({\tt mask\_mod}) in addition to tensor inputs. It enables users to implement a new attention variant by defining how to update scores or calculate boolean masks based on positional information. We demonstrate that many existing attention variants (e.g. Alibi, Document Masking, PagedAttention, etc.) can be implemented via \textit{FlexAttention}. In addition, our programming model allows for easy composition of attention variants via nested {\tt score\_mod}s and boolean operations between {\tt mask\_mod}s, solving the combinatorial explosion 
+of attention variants. 
+
+\textbf{Handwritten Template-Based Generation}
+During PyTorch compilation, {\tt score\_mod} and {\tt mask\_mod} are lowered and codegened into the main loop of a handwritten attention kernel. This abstraction allows us to leverage the performance of hand-written kernels behind the scenes, while still providing significant flexibility in the frontend.
+The {\tt torch.compile} lowering framework is natively compatible with PyTorch and offers strong flexibility to handle diverse {\tt score\_mod} and {\tt mask\_mod} defined by the users. Additionally it also supports automatic backward pass generation via {\tt torch.autograd}. 
+We build forward and backward graphs for {\tt score\_mod} and {\tt mask\_mod}, perform operator fusion and produce kernel code blocks to be integrated with attention kernel templates. Compute buffers are pre-allocated for inputs, outputs and saved intermediate values. 
+
+
+\textbf{Block Sparsity Optimization.} In addition to its semantic changes, masking also introduces sparsity.
+To take advantage of this, \textit{FlexAttention} leverages block sparsity and employs a pre-computed {\tt BlockMask}.
+{\tt BlockMask} is a small matrix that tracks block-level sparsity on wether a tiled score matrix block is fully masked out.
+With the help of {\tt torch.vmap}, our {\tt create\_block\_mask} utility automatically generates \texttt{BlockMask} from user defined {\tt mask\_mod}.
+The {\tt BlockMask} unlocks the opportunity to save the work for fully-masked score matrix blocks without loading a large elementwise attention mask. 
+For partially masked score matrix blocks, we can still exploit \texttt{mask\_mod} to elementwisely mask out score scalars, thus maintaining the semantics.
+Additionally, {\tt BlockMask} is implemented as a index vector which can also serve as the mapping used in PagedAttention\cite{PagedAttn} (\autoref{sec:paged_attn}).
+
+
+We evaluate \textit{FlexAttention} on 7 popular attention variants and compare its performance against today's most commonly used infrastructures: PyTorch SPDA, and handwritten kernels from FlashAttention (FAv2 \cite{flashattention2}, FAv3 \cite{FA3} and FAKV\cite{flashdecoding}). We show that \textit{FlexAttention} delivers 0.68x-1.43x the performance of FAv2 and 0.93x-1.45x of FAKV for decoding on conventional attention variants supported by FlashAttention. \textit{FlexAttention} works well with existing ML infrastructure and improves end-to-end performance for inference by 2.04x in gpt-fast for 16k context length and training by 2.4x in torchtune. Additionally, we show that \textit{FlexAttention} supports paged attention at negligible overhead. 

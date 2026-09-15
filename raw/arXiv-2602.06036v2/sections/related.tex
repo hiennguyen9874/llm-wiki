@@ -1,0 +1,19 @@
+\section{Related Work}
+
+\subsection{Speculative Decoding}
+
+Speculative decoding accelerates LLM inference by mitigating the sequential bottleneck of autoregressive generation. Early methods~\cite{leviathan2023fastinferencetransformersspeculative} employ a smaller draft model to propose token sequences that are verified in parallel by a larger target model. Medusa~\cite{cai2024medusasimplellminference} eliminates the external draft model by augmenting the base LLM with multiple prediction heads and using tree attention for parallel verification. The EAGLE series~\cite{li2025eaglespeculativesamplingrequires,li2024eagle2fasterinferencelanguage,li2025eagle3scalinginferenceacceleration} further improves speculative decoding by exploiting feature-level context from the frozen target model. EAGLE-1 predicts future hidden-state distributions to boost acceptance rates, EAGLE-2 introduces adaptive drafting trees, and EAGLE-3 refines training objectives to scale speedups.
+
+Despite these advances, most existing methods rely on autoregressive drafting, which remains inherently sequential, limiting their speedups.
+
+\subsection{Diffusion Language Models}
+
+Diffusion large language models (dLLMs) offer an alternative to autoregressive generation by predicting masked tokens in parallel. LLaDA~\cite{nie2025largelanguagediffusionmodels} was the first to scale dLLMs to billions of parameters, achieving performance comparable to LLaMA-3.1-8B~\cite{grattafiori2024llama3herdmodels}. However, fully parallel diffusion models suffer from fixed-length generation and lack efficient KV cache support. Block diffusion models~\cite{arriola2025blockdiffusioninterpolatingautoregressive} address these issues by denoising sequences block-by-block, blending parallelism with autoregressive structure. Building on this idea, Fast-dLLM v2~\cite{wu2025fastdllmv2efficientblockdiffusion} and SDAR~\cite{cheng2025sdarsynergisticdiffusionautoregressionparadigm} adapt pre-trained autoregressive LLMs into block-diffusion variants, enabling parallel generation while preserving generation quality on specific tasks. Nevertheless, existing dLLMs generally underperform state-of-the-art autoregressive models and often require many denoising steps, which limits their practical inference speed.
+
+\subsection{Diffusion-based Speculative Decoding}
+
+Recent work explores using diffusion models as drafters within speculative decoding. TiDAR~\cite{liu2025tidarthinkdiffusiontalk} jointly trains diffusion and autoregressive objectives, enabling parallel ``thinking'' via diffusion and sequential ``talking'' via autoregressive decoding, though final generation quality is not yet lossless.
+
+Other approaches repurpose autoregressive models for diffusion-style drafting. \citet{samragh2025llmknowsfutureuncovering} observe that autoregressive LLMs implicitly encode future-token information and train a LoRA adapter to enable parallel drafting, while retaining the base model for verification. 
+
+DiffuSpec~\cite{li2025diffuspecunlockingdiffusionlanguage} and SpecDiff-2~\cite{sandler2025specdiff2scalingdiffusiondrafter} employ large pre-trained dLLMs as speculative drafters, with inference-time search or train–test alignment to improve acceptance. However, these approaches rely on massive drafters (\eg, 7B parameters), incurring substantial memory and latency overhead. While they achieve long acceptance lengths, the high drafting cost often offsets the practical speedups in real-world serving scenarios.

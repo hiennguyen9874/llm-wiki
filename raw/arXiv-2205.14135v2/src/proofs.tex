@@ -1,0 +1,211 @@
+\section{Proofs}
+\label{sec:proofs}
+
+\begin{proof}[Proof of \cref{thm:correctness}]
+  We first count the number of FLOPs and extra memory required.
+
+  The dominating FLOPs are from matrix multiplication.
+  In the inner loop, (\cref{alg:stream_attn} line \ref{alg:stream_attn_qk}), we
+  compute $\vQ_i \vK_j^\top \in \mathbb{R}^{B_r \times B_c}$ for $\vQ_i \in \mathbb{R}^{B_r \times d}$ and
+  $\vK_j \in \mathbb{R}^{B_c \times d}$, which takes $O(B_r B_c d)$ FLOPs.
+  We also compute (\cref{alg:stream_attn} line \ref{alg:stream_attn_aggregate}) $\tilde{\vP}_{ij} \vV_j \in \mathbb{R}^{B_r \times d}$ for
+  $\tilde{\vP}_{ij} \in \mathbb{R}^{B_r \times B_c}$ and $\vV_j \in \mathbb{R}^{B_c \times d}$, which takes $O(B_r B_c d)$ FLOPs.
+  We execute the inner loops
+  $T_c T_r = \left\lceil  \frac{N}{B_c} \right\rceil \left\lceil \frac{N}{B_r} \right\rceil$ times.
+  Therefore the total number of FLOPs is
+  \begin{equation*}
+    O \left( \frac{N^2}{B_c B_r} B_r B_c d \right) = O(N^2d).
+  \end{equation*}
+
+  In terms of extra memory required, we see that we need $O(N)$ memory to store
+  the statistics $(\ell, m)$.
+
+  We now prove the algorithm's correctness by induction on $j$ for
+  $0 \leq j \leq T_c$.
+  Let $\vK_{:j} \in \mathbb{R}^{jB_c \times d}$ be the first $jB_c$ rows of $\vK$, and similarly
+  $\vV_{:j} \in \mathbb{R}^{jB_c \times d}$ the the first $jB_c$ rows of $\vV$.
+  Let $\vS_{:, :j} = \vQ \vK_{:j}^\top \in \mathbb{R}^{N \times jB_c}$, and
+  $\vP_{:, :j} = \mathrm{softmax}(\vS_{:, :j}) \in \mathbb{R}^{N \times jB_c}$ (softmax applied row-wise).
+  Let $m^{j}, \ell^{(j)}, \vO^{(j)}$ be the values of $m, \ell, \vO$ in HBM after the
+  $j$-th iteration of the outer loop (\cref{alg:stream_attn} line \ref{alg:stream_attn_outer_loop}).
+  (Note that these values of $m, \ell, \vO$ are updated after each iteration of the outer loop.)
+  We want to show that after the $j$-th iteration of the outer loop, we have
+  computed in HBM:
+  \begin{equation*}
+    m^{(j)} = \mathrm{rowmax}(\vS_{:, :j}) \in \mathbb{R}^N, \quad
+    \ell^{(j)} = \mathrm{rowsum}(\exp(\vS_{:, :j} - m^{(j)})) \in \mathbb{R}^N, \quad
+    \vO^{(j)} = \vP_{:, :j} \vV_{:j} \in \mathbb{R}^{N \times d}.
+  \end{equation*}
+
+  Based on our initialization (\cref{alg:stream_attn} line
+  \ref{alg:stream_attn_init}), this claim is true for $j = 0$ (i.e., before the
+  any iteration of the outer loop is executed).
+  Suppose that the claim holds for some $j = 0, \dots, T_c - 1$.
+  We want to show that the claim also holds for $j + 1$.
+  Indeed, when we update the statistics in the inner loop
+  (\cref{alg:stream_attn} line \ref{alg:stream_attn_statistics}) on the
+  $(j + 1)$-th iteration of the outer loop,
+  we update $m^{(j + 1)} = \max(m^{(j)}, \tilde{m})$ where $\tilde{m} \in \mathbb{R}^N$ is the
+  row-max of $\vS_{:, j:j+1}$, the slice of $\vS$ from column $jB_c$ to column
+  $(j+1)B_c - 1$.
+  This implies that
+  \begin{equation*}
+    m^{(j+1)} = \mathrm{rowmax}(\vS_{:, :j+1}) \in \mathbb{R}^N.
+  \end{equation*}
+  Similarly, we update
+  \begin{equation*}
+    \ell^{(j + 1)} = e^{m^{(j)} - m^{(j+1)}} \ell^{(j)} + e^{\tilde{m} - m^{(j+1)}} \tilde{\ell} ,
+  \end{equation*}
+  where $\tilde{\ell} = \mathrm{rowsum}(\exp(\vS_{:, j:j+1} - \tilde{m})) \in \mathbb{R}^N$.
+  By the same algebraic manipulation in~\cref{sec:implementation}, we obtain:
+  \begin{equation*}
+    \ell^{(j+1)} = \mathrm{rowsum}(\exp(\vS_{:, :j+1} - m^{(j+1)})) \in \mathbb{R}^N.
+  \end{equation*}
+
+  Let $\vV_{j:j+1}$ be the slice of $\vV$ from column $jB_c$ to column $(j+1)B_c - 1$,
+  we also update:
+  \begin{align*}
+    \vO^{(j + 1)}
+    &= \diag(\ell^{(j+1)})^{-1} (\diag(\ell^{(j)})e^{m^{(j)} - m^{(j+1)}} \vO^{(j)} + e^{\tilde{m} - m^{(j+1)}} \exp(\vS_{j:j+1} - \tilde{m}) \vV_{j:j+1} ) \\
+    &= \diag(\ell^{(j+1)})^{-1} (\diag(\ell^{(j)})e^{m^{(j)} - m^{(j+1)}} \vP_{:, :j} \vV_{:j} + e^{-m^{(j+1)}} \exp(\vS_{j:j+1}) \vV_{j:j+1} ) \\
+    &= \diag(\ell^{(j+1)})^{-1} (\diag(\ell^{(j)})e^{m^{(j)} - m^{(j+1)}} \diag(\ell^{(j)}) \exp(\vS_{:, :j} - m^{(j)}) \vV_{:j} + e^{-m^{(j+1)}} \exp(\vS_{j:j+1}) \vV_{j:j+1} ) \\
+    &= \diag(\ell^{(j+1)})^{-1} (e^{- m^{(j+1)}} \exp(\vS_{:, :j}) \vV_{:j} + e^{-m^{(j+1)}} \exp(\vS_{j:j+1}) \vV_{j:j+1} ) \\
+    &= \diag(\ell^{(j+1)})^{-1} (\exp(\vS_{:, :j} - m^{(j+1)}) \vV_{:j} + \exp(\vS_{j:j+1} - m^{(j+1)}) \vV_{j:j+1} ) \\
+    &= \diag(\ell^{(j+1)})^{-1} \left( \exp \left( \begin{bmatrix} \vS_{:, :j} & \vS_{j:j+1} \end{bmatrix} - m^{(j+1)} \right) \right) \begin{bmatrix} \vV_{:j} \\ \vV_{j:j+1} \end{bmatrix} \\
+    &= \softmax(\vS_{:j+1}) \vV_{:j+1}.
+  \end{align*}
+  We then see that the claim is also true for $j + 1$.
+  By induction, the claim is true for all $j = 0, \dots, T_c$.
+
+  When $j = T_c$, we conclude that the final value of $\vO$ in HBM is
+  $\softmax(\vS) \vV = \softmax(\vQ \vK^\top) \vV$.
+
+\end{proof}
+
+\begin{proof}[Proof of \cref{thm:io_complexity}]
+  We first analyze the IO complexity of standard attention implementation.
+  The inputs $\vQ, \vK, \vV \in \mathbb{R}^{N \times d}$ reside in HBM, and
+  the at the end of the algorithm the output $\vO \in \mathbb{R}^{N \times d}$ is
+  written to HBM.
+
+  In the first step of computing the matrix multiply $\vS = \vQ \vK^\top$, the inputs $\vQ, \vK$
+  are read from HBM and the output $\vS \in \mathbb{R}^{N \times N}$ is
+  written to HBM (\cref{alg:standard_attn} line~\ref{alg:standard_attn_qk}).
+  This incurs $\Theta(Nd + N^2)$ HBM accesses.
+
+  In the second step of computing $\vP = \softmax(\vS)$, the input $\vS$ is read from
+  HBM and the output $\vP$ is written to HBM (\cref{alg:standard_attn} line~\ref{alg:standard_attn_sp}).
+  This incurs $\Theta(N^2)$ HBM accesses.
+
+  In the last step of computing $\vO = \vP\vV$, the inputs $\vP, \vV$ are read from global
+  memory and the output $\vO$ is written to HBM (\cref{alg:standard_attn} line~\ref{alg:standard_attn_pv}).
+  This incurs $\Theta(Nd + N^2)$ HBM accesses.
+
+  Overall, standard attention implementation requires $\Theta(Nd + N^2)$ global
+  memory accesses.
+
+  We now analyze the IO complexity of streaming attention.
+
+  Following~\cref{alg:stream_attn}, we see that each element of $\vK$ and $\vV$ is
+  loaded from HBM once (\cref{alg:stream_attn} line~\ref{alg:stream_attn_load_kv}).
+  We make $T_c$ passes over $\vQ$ and $\vO$, each pass loading all of $\vQ$ and all of
+  $\vO$ to HBM (\cref{alg:stream_attn} line~\ref{alg:stream_attn_load_qo}).
+  Therefore the number of HBM accesses is
+  $\Theta \left( Nd + Nd T_c \right) = \Theta(Nd T_c)$.
+
+  We derive the conditions on the block sizes $B_c$ and $B_r$.
+  We need the blocks $\vK_j$ and $\vV_j$ of size $B_c \times d$ to fit into
+  on-chip memory, which translates to:
+  \begin{equation*}
+    B_c d = O(M) \Leftrightarrow B_c = O \left( \frac{M}{d} \right).
+  \end{equation*}
+  Similarly, we need the blocks $\vQ_i, \vO_i$ of size $B_r \times d$ to fit
+  into on-chip memory, which translates to:
+  \begin{equation*}
+    B_r d = O(M) \Leftrightarrow B_r = O \left( \frac{M}{d} \right).
+  \end{equation*}
+  Finally, we need the block $\vS_{ij}$ of size $B_r \times  B_c$ to
+  fit into on-chip memory, which translates to:
+  \begin{equation*}
+    B_r B_c = O(M).
+  \end{equation*}
+  We therefore set:
+  \begin{equation*}
+    B_c = \Theta \left( \frac{M}{d} \right), \qquad
+    B_r = \Theta \left( \min \left( \frac{M}{d}, \frac{M}{B_c} \right) \right) = \Theta \left( \min \left( \frac{M}{d}, d \right) \right).
+  \end{equation*}
+  We then have:
+  \begin{equation*}
+    T_c = \frac{N}{B_c} = \Theta \left( \frac{Nd}{M} \right).
+  \end{equation*}
+
+  As a result, the number of HBM accesses is:
+  \begin{equation*}
+    \Theta \left( Nd T_c \right) = \Theta \left( \frac{N^2 d^2}{M} \right).
+  \end{equation*}
+
+\end{proof}
+
+\begin{proof}[Proof of \cref{thm:lower_bound}]
+  For contradiction, suppose that there exists an algorithm that computes
+  exact attention where the number for HBM access for all $M \in [d, Nd]$ is
+  \begin{equation*}
+    o \left( \frac{N^2d^2}{M} \right).
+  \end{equation*}
+
+  In the regime of $M = \Theta(Nd)$, this results in the number of HBM accesses:
+  \begin{equation*}
+    o \left( \frac{N^2 d^2}{Nd} \right) = o(Nd).
+  \end{equation*}
+  However, the input to attention (matrices $\vQ, \vK, \vV$) and the output $\vO$ have
+  size $Nd$ and they start out being in HBM, so if the algorithm computes exact
+  attention it must incur at least $\Omega(Nd)$ HBM accesses.
+  This is a contradiction.
+\end{proof}
+
+\begin{proof}[Proof of \cref{thm:io_complexity_bwd}]
+  The IO complexity of the attention backward is very similar to the IO
+  complexity of the attention forward (\cref{thm:io_complexity}).
+  Here we provide a sketch of the proof.
+
+  We first analyze the IO complexity of standard attention backward pass.
+  The inputs $\vQ, \vK, \vV, \vdO \in \mathbb{R}^{N \times d}$ reside in HBM, and
+  the at the end of the algorithm the outputs $\vdQ, \vdK, \vdV \in \mathbb{R}^{N \times d}$ are
+  written to HBM.
+
+  At each step of the standard attention backward pass, one needs to load inputs
+  of size $Nd$ or $N^2$ from HBM, and needs to write the outputs of size $N^2$
+  or $Nd$ to HBM.
+  This incurs $\Theta(Nd + N^2)$ HBM accesses.
+
+  We now analyze the IO complexity of \sysname backward pass.
+
+  Similar to~\cref{thm:io_complexity}, we see that each element of $\vK$ and
+  $\vV$ is loaded from HBM once.
+  Each element of $\vdK$ and $\vdV$ is only written to HBM once.
+  We make $T_c$ passes over $\vQ, \vO, \vdO$, each pass loading all of
+  $\vQ, \vO, \vdO$ to HBM.
+  We also make $T_c$ passes over $\vdQ$, each pass reading/writing all of $\vdQ$
+  from/to HBM.
+  Therefore the number of HBM accesses is
+  $\Theta \left( Nd + Nd T_c \right) = \Theta(Nd T_c)$.
+
+  As in the proof of~\cref{thm:io_complexity}, the constraints on the block
+  sizes are that:
+  \begin{equation*}
+    B_c = \Theta \left( \frac{M}{d} \right), \qquad
+    B_r = \Theta \left( \min \left( \frac{M}{d}, d \right) \right).
+  \end{equation*}
+  We then have:
+  \begin{equation*}
+    T_c = \frac{N}{B_c} = \Theta \left( \frac{Nd}{M} \right).
+  \end{equation*}
+
+  As a result, the number of HBM accesses is:
+  \begin{equation*}
+    \Theta \left( Nd T_c \right) = \Theta \left( \frac{N^2 d^2}{M} \right).
+  \end{equation*}
+
+
+\end{proof}
+

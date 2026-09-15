@@ -5,7 +5,7 @@ description: Run Moonshot AI 2.8T (104B active) Kimi K3 locally via Unsloth Dyna
 tags: [kimi, moonshot-ai, unsloth, gguf, llama-cpp, local-inference, quantization, reasoning, vision]
 status: stable
 created: 2026-09-14
-generated: { by: llm-wiki-agent/1, at: 2026-09-14T13:02:19Z }
+generated: { by: llm-wiki-agent/1, at: 2026-09-15T12:00:00Z }
 sources:
   - id: kimi-k3
     resource: ../raw/unsloth/models/kimi-k3.md
@@ -146,6 +146,10 @@ Kimi K3 `(max)` scores with source-selected competitors; HLE-Full, MMMU-Pro, and
 - Uses [Unsloth Dynamic GGUF Quantization](unsloth-dynamic-gguf.md) — Kimi K3 UD-IQ1_S through UD-Q8_K_XL instances of Unsloth per-layer dynamic post-training quantization.
 - Uses [Quantization Fidelity Evaluation](quantization-fidelity-evaluation.md) — top-1 agreement, mean KLD, RMS dp, and PPL figures used here are the same fidelity signals used to judge quantized models.
 - Related to [Kimi K3 DSpark Speculator](kimi-k3-dspark.md) — server-side SGLang speculative-decoding path for the same base model with block-size-7 drafting and 1M-token serving[^kimi-k3-dspark].
+- Related to [Kimi K3 Architecture and Pre-training](kimi-k3-architecture-pretraining.md) — canonical tech-report source for the 2.8T/104B hybrid KDA-MLA design, Stable LatentMoE, MoonViT-V2, and 2.5x scaling claim.
+- Related to [Kimi K3 Post-Training and Agentic RL](kimi-k3-posttraining-agentic-rl.md) — canonical source for SFT, nine domain-effort RL experts, MOPD, MXFP4 QAT, and XTML template.
+- Related to [Kimi K3 Systems and Infrastructure](kimi-k3-systems-infrastructure.md) — canonical source for MoonEP, KDA parallelism, RL infra, AgentENV, and hybrid-cache serving.
+- Related to [Kimi K3 Evaluation and Case Studies](kimi-k3-evaluation.md) — canonical eval source superseding the overlapping benchmark table here.
 
 ## Coverage limits
 

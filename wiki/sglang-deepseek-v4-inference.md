@@ -114,6 +114,7 @@ Spec configs are best-effort per each engine's official recipe: SGLang EAGLE 3/1
 - Related to [Miles DeepSeek-V4 Verified RL](miles-deepseek-v4-rl.md) — training-side Day-0 companion covering Megatron modeling, FP8/QAT/R3 stability, and DAPO verification.
 - Related to [SGLang GLM-5.2 NVFP4 Optimization](sglang-glm52-optimization.md) — TopK-V2 evolution of Lightning TopK plus IndexShare MTP and DSA kernel fusions for GLM-5.2.
 - Related to [SGLang DeepSeek-V4.1 Inference](sglang-deepseek-v41-inference.md) — V4.1 successor with lower compression ratios, four-source KV sharing, Engram tables, and SWA bounded replay.
+- Related to [DeepSeek-V4 Architecture](deepseek-v4-architecture.md) — canonical tech-report source for the hybrid CSA/HCA layout, mHC, and Muon served here.
 
 ## Coverage limits
 

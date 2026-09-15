@@ -113,6 +113,7 @@ The source cites the PagedAttention paper as[^paged-attn]:
 
 ## Relationships
 
+- Related to [PagedAttention for LLM Serving](paged-attention.md) — synthesis: system-level block tables, on-demand growth, sharing with copy-on-write, batching, preemption, and FlashAttention contrast surrounding this kernel.
 - Uses [vLLM Hybrid KV Cache Manager](vllm-hybrid-kv-cache-manager.md) — both describe paged/blocked KV-cache organization; this kernel is the consumer-side attention computation over such blocks.
 
 [^paged-attn]: Paged Attention — `../raw/vllm/design/paged_attention.md`.

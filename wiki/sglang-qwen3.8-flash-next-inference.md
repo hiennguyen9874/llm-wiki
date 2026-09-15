@@ -5,7 +5,7 @@ description: Day-0 SGLang serving for Qwen3.8-Flash-Next 125B MoE with GDN plus 
 tags: [sglang, qwen3.8-flash-next, qwen4, gdn, qsa, sparse-attention, moe, nvfp4, speculative-decoding, quantization]
 status: stable
 created: 2026-09-14
-generated: { by: llm-wiki-agent/1, at: 2026-09-14T23:30:00Z }
+generated: { by: llm-wiki-agent/1, at: 2026-09-15T12:00:00Z }
 sources:
   - id: qwen38-flash-next-day0
     resource: ../raw/2026-08-26-qwen-flash-next/index.md
@@ -155,6 +155,9 @@ Because each token touches only 16 rows, SGLang keeps each rank's vocabulary-par
 - Related to [SGLang Qwen3.8 Inference](sglang-qwen3.8-inference.md) — prior Qwen3.8-2.4T-A95B day-0 stack with 69-GDN/23-GQA plus ReplaySSM, here replaced by 36-GDN/12-QSA plus QSA IndexShare, gated residual, and PLE offload for the Qwen4-preview Flash-Next identity.
 - Related to [Qwen3.8-Flash-Next Local Deployment](qwen3.8-next.md) — same 125B MoE plus 51B N-gram identity served here at datacenter scale rather than via local GGUF runs.
 - Depends on [SGLang Attention Backends](sglang-attention-backends.md) — QSA indexer plus TRTLLM-Gen/FlashAttention sparse-GQA execution with second-stream overlap and CUDA-graph-compatible metadata.
+- Related to [Qwen3.8-Flash-Next Architecture and Evaluation](qwen3.8-flash-next-architecture.md) — authoritative tech-report design, ablations, and base evaluation for this serving stack.
+- Related to [Qwen3.8-Flash-Next Training and Stability](qwen3.8-flash-next-training.md) — Muon, scaling, and stability recipe behind the served checkpoint.
+- Related to [Qwen3.8-Flash-Next HF Release and Serving](qwen3.8-flash-next-hf-release.md) — official HF model card, Qwen4Exp config and code, thinking controls, YaRN extension, and post-trained benchmarks behind this serving stack.
 
 ## Coverage limits
 

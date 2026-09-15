@@ -1,0 +1,157 @@
+\definecolor{qbfigink}{HTML}{1C1C1E}
+\definecolor{qbfiggray}{HTML}{777777}
+\definecolor{qbfiggrid}{HTML}{D6D6D8}
+\definecolor{qbfigred}{HTML}{B92622}
+\definecolor{qbfigredfill}{HTML}{F8E9E8}
+
+\begin{adjustbox}{width=\textwidth,center}
+        \begin{tikzpicture}[
+                        x=1pt,
+                        y=1pt,
+                        outer sep=0pt,
+                        paneltitle/.style={font=\small, text=qbfigink, align=center},
+                        label/.style={font=\scriptsize, text=qbfigink},
+                        small/.style={font=\scriptsize, text=qbfiggray},
+                        token/.style={circle, draw=qbfiggray, fill=white, line width=0.45pt,
+                                        minimum size=7.2pt, inner sep=0pt},
+                        expert/.style={circle, draw=qbfigink, fill=white, line width=0.6pt,
+                                        minimum size=17pt, inner sep=0pt, font=\scriptsize},
+                        loadhigh/.style={expert, draw=qbfigred!82, fill=qbfigred!22,
+                                        text=qbfigink, line width=1.0pt},
+                        loadmedium/.style={expert, draw=qbfigred!72, fill=qbfigred!18,
+                                        text=qbfigink, line width=0.85pt},
+                        loadlow/.style={expert, draw=qbfigred!35, fill=qbfigred!5,
+                                        text=qbfiggray!90, line width=0.5pt},
+                        loadzero/.style={expert, draw=qbfiggray!55, fill=white,
+                                        text=qbfiggray, line width=0.45pt, dashed},
+                        balancedexpert/.style={expert, draw=qbfigred!62,
+                                        fill=qbfigred!13, text=qbfigink, line width=0.75pt},
+                        route/.style={draw=qbfiggray, line width=0.45pt},
+                        reroute/.style={draw=qbfigred, line width=0.7pt},
+                        scorebar/.style={draw=qbfiggray!68, line width=1.25pt, line cap=round},
+                        adjustedpoint/.style={circle, fill=qbfiggray!72, draw=white, line width=0.25pt,
+                                        minimum size=2.8pt, inner sep=0pt},
+                        betacut/.style={draw=qbfigred, line width=0.65pt,
+                                        dash pattern=on 1.4pt off 1.2pt},
+                        qbchoice/.style={fill=qbfigred, draw=qbfigred,
+                                        line width=0.1pt, line join=round},
+                        flow/.style={draw=qbfiggray, line width=0.55pt,
+                                                -{Latex[length=3.8pt,width=3pt]}},
+                ]
+                \path[use as bounding box] (8,55) rectangle (540,215);
+
+                \node[paneltitle, anchor=north] (rawtitle) at (66,205)
+                {(a) Imbalanced routing};
+                \node[paneltitle, anchor=north] (quanttitle) at (266,205)
+                {(b) Quantile Balancing};
+                \node[paneltitle, anchor=north] (balancedtitle) at (466,205)
+                {(c) Balanced routing};
+
+                \node[token] (rawtoken1) at (29,169) {};
+                \node[token, below=6.8pt of rawtoken1] (rawtoken2) {};
+                \node[token, below=6.8pt of rawtoken2] (rawtoken3) {};
+                \node[token, below=6.8pt of rawtoken3] (rawtoken4) {};
+                \node[token, below=6.8pt of rawtoken4] (rawtoken5) {};
+                \node[token, below=6.8pt of rawtoken5] (rawtoken6) {};
+                \node[token, below=6.8pt of rawtoken6] (rawtoken7) {};
+                \node[token, below=6.8pt of rawtoken7] (rawtoken8) {};
+                \node[loadhigh] (rawexpert1) at ($(rawtoken1)+(82pt,-4pt)$) {$E_1$};
+                \node[loadmedium, below=13pt of rawexpert1] (rawexpert2) {$E_2$};
+                \node[loadlow, below=13pt of rawexpert2] (rawexpert3) {$E_3$};
+                \node[loadzero, below=13pt of rawexpert3] (rawexpert4) {$E_4$};
+                \foreach \i in {1,...,8} {
+                                \node[small, text=qbfigink, anchor=east]
+                                at ($(rawtoken\i.west)+(-2pt,0pt)$) {$t_{\i}$};
+                        }
+
+                \draw[route] (rawtoken1) -- (rawexpert1);
+                \draw[route] (rawtoken4) -- (rawexpert1);
+                \draw[route] (rawtoken5) -- (rawexpert1);
+                \draw[route] (rawtoken7) -- (rawexpert1);
+                \draw[route] (rawtoken2) -- (rawexpert2);
+                \draw[route] (rawtoken3) -- (rawexpert2);
+                \draw[route] (rawtoken6) -- (rawexpert2);
+                \draw[route] (rawtoken8) -- (rawexpert3);
+
+                \begin{scope}[xshift=12pt]
+                        \node[small, text=qbfigink] (qbcol1) at (206,184) {$E_1$};
+                        \node[small, text=qbfigink] (qbcol2) at (248,184) {$E_2$};
+                        \node[small, text=qbfigink] (qbcol3) at (290,184) {$E_3$};
+                        \node[small, text=qbfigink] (qbcol4) at (332,184) {$E_4$};
+                        \foreach \y/\i in {169/1,155/2,141/3,127/4,113/5,99/6,85/7,71/8} {
+                                        \node[small, text=qbfigink, anchor=east] at (181,\y) {$t_{\i}$};
+                                }
+
+                        \foreach \y/\endpoint in {169/222,155/206,141/204,127/222,
+                                        113/211,99/208,85/212,71/206} {
+                                        \draw[scorebar] (190,\y) -- (\endpoint,\y);
+                                }
+                        \foreach \y/\endpoint in {169/244,155/263,141/253,127/246,
+                                        113/244,99/263,85/242,71/240} {
+                                        \draw[scorebar] (232,\y) -- (\endpoint,\y);
+                                }
+                        \foreach \y/\endpoint in {169/279,155/281,141/279,127/281,
+                                        113/279,99/287,85/295,71/295} {
+                                        \draw[scorebar] (274,\y) -- (\endpoint,\y);
+                                }
+                        \foreach \y/\endpoint in {169/320,155/324,141/336,127/322,
+                                        113/336,99/320,85/318,71/328} {
+                                        \draw[scorebar] (316,\y) -- (\endpoint,\y);
+                                }
+
+                        \draw[betacut] (212,66) -- (212,174);
+                        \draw[betacut] (253,66) -- (253,174);
+                        \draw[betacut] (287,66) -- (287,174);
+                        \draw[betacut] (328,66) -- (328,174);
+
+                        \foreach \x/\y in {222/169,206/155,204/141,222/127,211/113,208/99,212/85,206/71,
+                                        244/169,263/155,253/141,246/127,244/113,263/99,242/85,240/71,
+                                        279/169,281/155,279/141,281/127,279/113,287/99,295/85,295/71,
+                                        320/169,324/155,336/141,322/127,336/113,320/99,318/85,328/71} {
+                                        \node[adjustedpoint] at (\x,\y) {};
+                                }
+
+                        \foreach \x/\y in {222/169,263/155,336/141,222/127,
+                                        336/113,263/99,295/85,295/71} {
+                                        \draw[qbchoice]
+                                        ($(\x,\y)+(90:3.0pt)$) -- ($(\x,\y)+(126:1.35pt)$) --
+                                        ($(\x,\y)+(162:3.0pt)$) -- ($(\x,\y)+(198:1.35pt)$) --
+                                        ($(\x,\y)+(234:3.0pt)$) -- ($(\x,\y)+(270:1.35pt)$) --
+                                        ($(\x,\y)+(306:3.0pt)$) -- ($(\x,\y)+(342:1.35pt)$) --
+                                        ($(\x,\y)+(18:3.0pt)$) -- ($(\x,\y)+(54:1.35pt)$) -- cycle;
+                                }
+                \end{scope}
+
+                \node[token] (newtoken1) at (428,169) {};
+                \node[token, below=6.8pt of newtoken1] (newtoken2) {};
+                \node[token, below=6.8pt of newtoken2] (newtoken3) {};
+                \node[token, below=6.8pt of newtoken3] (newtoken4) {};
+                \node[token, below=6.8pt of newtoken4] (newtoken5) {};
+                \node[token, below=6.8pt of newtoken5] (newtoken6) {};
+                \node[token, below=6.8pt of newtoken6] (newtoken7) {};
+                \node[token, below=6.8pt of newtoken7] (newtoken8) {};
+                \node[balancedexpert] (newexpert1) at ($(newtoken1)+(82pt,-4pt)$) {$E_1$};
+                \node[balancedexpert, below=13pt of newexpert1] (newexpert2) {$E_2$};
+                \node[balancedexpert, below=13pt of newexpert2] (newexpert3) {$E_3$};
+                \node[balancedexpert, below=13pt of newexpert3] (newexpert4) {$E_4$};
+                \foreach \i in {1,...,8} {
+                                \node[small, text=qbfigink, anchor=east]
+                                at ($(newtoken\i.west)+(-2pt,0pt)$) {$t_{\i}$};
+                        }
+
+                \draw[route] (newtoken1) -- (newexpert1);
+                \draw[route] (newtoken4) -- (newexpert1);
+                \draw[route] (newtoken2) -- (newexpert2);
+                \draw[route] (newtoken6) -- (newexpert2);
+                \draw[route] (newtoken8) -- (newexpert3);
+                \draw[reroute] (newtoken3) -- (newexpert4);
+                \draw[reroute] (newtoken5) -- (newexpert4);
+                \draw[reroute] (newtoken7) -- (newexpert3);
+
+                \coordinate (flowlevel) at ($(rawtoken4)!0.5!(rawtoken5)$);
+                \coordinate (leftflowstart) at ($(rawexpert2.east |- flowlevel)+(19.5pt,0pt)$);
+                \coordinate (rightflowstart) at ($(newtoken4.west)!0.5!(newtoken5.west)+(-55pt,0pt)$);
+                \draw[flow] (leftflowstart) -- ++(24pt,0pt);
+                \draw[flow] (rightflowstart) -- ++(24pt,0pt);
+        \end{tikzpicture}
+\end{adjustbox}
