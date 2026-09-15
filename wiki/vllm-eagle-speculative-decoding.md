@@ -5,11 +5,14 @@ description: EAGLE and Eagle3 draft models proposing tokens for target verificat
 tags: [vllm, speculative-decoding, eagle]
 status: stable
 created: 2026-09-14
-generated: { by: llm-wiki-agent/1, at: 2026-09-14T13:00:00Z }
+generated: { by: llm-wiki-agent/1, at: 2026-09-15T14:00:00Z }
 sources:
   - id: eagle
     resource: ../raw/vllm/features/speculative_decoding/eagle.md
     title: EAGLE Draft Models
+  - id: peagle
+    resource: ../raw/speeding-llm-inference-p-eagle-vllm-speculators/index.md
+    title: Speeding up LLM inference with P-EAGLE in vLLM Speculators
 ---
 
 vLLM runs EAGLE speculative decoding by pairing a target model with an EAGLE (Extrapolation Algorithm for Greater Language-model Efficiency) based draft model that generates proposals for target verification, selected through `speculative_config` with `method: eagle` or `method: eagle3`[^eagle].
@@ -64,5 +67,8 @@ On `vllm<0.7.0`, convert the speculative model with the linked conversion script
 - Related to [vLLM Draft-Model Speculative Decoding](vllm-draft-model.md) — both configure a separate draft model through `speculative_config`, differing only in `method` (`eagle`/`eagle3` versus `draft_model`) and EAGLE-specific draft parallelism.
 - Related to [vLLM Dynamic Speculative Decoding](vllm-dynamic-speculative-decoding.md) — Dynamic SD's batch-size-to-`K` table is tested with Eagle and Eagle-3 and can tune their draft-token count by concurrency.
 - Related to [vLLM Per-Request Speculative Decoding Acceptance Metrics](vllm-per-request-spec-decode-metrics.md) — request-level acceptance metrics are the online-serving counterpart to the offline acceptance-rate extraction referenced for EAGLE.
+- Related to [vLLM P-EAGLE Speculative Decoding](vllm-peagle-speculative-decoding.md) — P-EAGLE extends EAGLE-3 with single-pass K-token prediction depths via `PEagleDraftModel` inheriting from `Eagle3DraftModel`[^peagle].
 
 [^eagle]: EAGLE Draft Models — `../raw/vllm/features/speculative_decoding/eagle.md`, EAGLE/Eagle3 offline `speculative_config` examples with independent `draft_tensor_parallel_size` and `num_speculative_tokens`, Hugging Face speculator hubs, `vllm<0.7.0` conversion-script guidance, and pointer to the offline acceptance-rate example.
+
+[^peagle]: Helen Zhao, Speeding up LLM inference with P-EAGLE in vLLM Speculators — `../raw/speeding-llm-inference-p-eagle-vllm-speculators/index.md` (Red Hat Developer, 2026-09-03), P-EAGLE as parallel EAGLE-3 extension with prediction depths and `PEagleDraftModel` inheritance.

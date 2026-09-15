@@ -5,11 +5,17 @@ description: External Speculators library for training single- and multi-layer d
 tags: [vllm, speculative-decoding, speculators]
 status: stable
 created: 2026-09-14
-generated: { by: llm-wiki-agent/1, at: 2026-09-14T15:00:00Z }
+generated: { by: llm-wiki-agent/1, at: 2026-09-15T14:00:00Z }
 sources:
   - id: speculators
     resource: ../raw/vllm/features/speculative_decoding/speculators.md
     title: vLLM-Project/Speculators
+  - id: fastmtp
+    resource: ../raw/optimize-vllm-speculative-decoding-fastmtp-heads/index.md
+    title: Optimize vLLM speculative decoding with FastMTP heads
+  - id: peagle
+    resource: ../raw/speeding-llm-inference-p-eagle-vllm-speculators/index.md
+    title: Speeding up LLM inference with P-EAGLE in vLLM Speculators
 ---
 
 Speculators is an external `vllm-project` library for accelerating LLM inference through speculative decoding by training efficient draft models that deploy directly into vLLM[^speculators].
@@ -36,6 +42,14 @@ Verification preserves target-model output: accepted tokens are exactly those th
 
 Speculators is most valuable for latency-sensitive, real-time workloads such as conversational AI, interactive coding assistants, and streaming text generation[^speculators].
 
+## Speculators 0.6.0 MTP support
+
+Version 0.6.0 adds FastMTP-style fine-tuning for verifiers that already ship a native MTP head (Qwen3-Next and Qwen3.5 including MoE): `MTPConverter` extracts native `mtp.*` weights, `MTPDraftModel` trains the single head recursively with exponential-decay weighting, and the stitcher returns `mtp.*` keys for standard `method: mtp` serving[^fastmtp]. It is the lightest training path because it reads only the verifier's last-layer hidden states, and it suits domain specialization of a general-data shipped head; verifiers without MTP heads should use EAGLE-3, DFlash, or P-EAGLE instead — see [vLLM FastMTP Fine-Tuning](vllm-fastmtp-fine-tuning.md)[^fastmtp].
+
+## Speculators 0.6.0 P-EAGLE support
+
+Version 0.6.0 also ships P-EAGLE parallel drafting, which predicts K tokens in one forward pass through `PEagleDraftModel` inheriting from `Eagle3DraftModel`, with COD sampling, learnable mask token plus `mask_hidden`, unfrozen embeddings, and flex-attention masking[^peagle]. The end-to-end path covers data preparation, vLLM hidden-state extraction, training, evaluation, and direct `vllm serve` deployment of the best checkpoint[^peagle] — see [vLLM P-EAGLE Speculative Decoding](vllm-peagle-speculative-decoding.md)[^peagle].
+
 ## Resources
 
 - [Speculators examples](https://github.com/vllm-project/speculators/tree/main/examples)[^speculators]
@@ -49,5 +63,11 @@ Speculators is most valuable for latency-sensitive, real-time workloads such as 
 - Related to [vLLM Hidden State Extraction](vllm-hidden-state-extraction.md) — hidden-state saving via `extract_hidden_states` is the in-vLLM mechanism corresponding to Speculators' vLLM-based offline training-data generation.
 - Related to [vLLM EAGLE Speculative Decoding](vllm-eagle-speculative-decoding.md) — EAGLE/Eagle3 models are one family of separate draft models that follow the same propose-then-verify pattern Speculators packages in HF-compatible format.
 - Related to [vLLM MLP Speculative Decoding](vllm-mlp-speculative-decoding.md) — MLP speculators are another small-draft-model family of the kind Speculators trains as single- or multi-layer models.
+- Uses [vLLM FastMTP Fine-Tuning](vllm-fastmtp-fine-tuning.md) — 0.6.0 recursive single-head MTP adaptation path within this library.
+- Uses [vLLM P-EAGLE Speculative Decoding](vllm-peagle-speculative-decoding.md) — 0.6.0 parallel-drafting training and deployment path within this library.
 
 [^speculators]: vLLM-Project/Speculators — `../raw/vllm/features/speculative_decoding/speculators.md`, Speculators library definition and four key features, single-token bottleneck and draft-plus-parallel-verification mechanism, no-quality-loss and 2–3× latency benefit claims, latency-sensitive use cases, and examples plus repository links.
+
+[^fastmtp]: Optimize vLLM speculative decoding with FastMTP heads — `../raw/optimize-vllm-speculative-decoding-fastmtp-heads/index.md`, Speculators 0.6.0 MTPConverter/MTPDraftModel/stitcher path, Qwen3-Next/Qwen3.5 support, last-layer-only training economy, and EAGLE-3/DFlash/P-EAGLE fallback.
+
+[^peagle]: Helen Zhao, Speeding up LLM inference with P-EAGLE in vLLM Speculators — `../raw/speeding-llm-inference-p-eagle-vllm-speculators/index.md` (Red Hat Developer, 2026-09-03), Speculators 0.6.0 P-EAGLE implementation, `PEagleDraftModel` inheritance, COD plus mask plus flex-attention optimizations, and data-to-`vllm serve` workflow.

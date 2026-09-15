@@ -8,10 +8,15 @@ The complete retrieval map for compiled knowledge. See [LLM Wiki Contract](../LL
 
 ## Concepts
 - [Debugging vLLM-torch.compile Integration](vllm-debug-torch-compile.md) — Isolating vLLM-compile failures with tlparse logs and per-subsystem disable flags for Dynamo, dynamic shapes, Inductor, cache, and CUDAGraphs.
+- [Distributed Inference Core Concepts and Scaling Dimensions](distributed-inference-core-concepts.md) — Prefill/decode trade-offs, five KPIs, and five parallelism dimensions with Qwen layout guidance for distributed LLM serving.
+- [Distributed Inference Deployment Blueprints](distributed-inference-blueprints.md) — Six vLLM and llm-d deployment blueprints matched to traffic shapes from high-concurrency chat to edge inference with topology, mechanisms, and cost shapes.
+- [Distributed Inference Optimization Levers](distributed-inference-optimization-levers.md) — Prefill/decode disaggregation decision and sizing, tiered and shared KV-cache architecture, and speculative-decoding selection with production failure modes.
+- [Distributed Inference Troubleshooting and Scaling Roadmap](distributed-inference-troubleshooting-roadmap.md) — TTFT/TPOT troubleshooting recipes, observability signals, canary rollout discipline, and staged scaling roadmap for vLLM and llm-d on OpenShift AI.
 - [GLM-5.3 Local Deployment](glm-5.3.md) — Run Z.ai 744B (40B active) GLM-5.3 locally via Unsloth Dynamic GGUFs with hardware, sampling, reasoning, llama.cpp, and benchmark guidance.
 - [GLM-5.3-Flash Local Deployment](glm-5.3-flash.md) — Run Z.ai 320B (18B active) multimodal GLM-5.3-Flash locally via Unsloth GGUFs with hardware, sampling, reasoning, MTP, and benchmark guidance.
 - [Kimi K3 DSpark Speculator](kimi-k3-dspark.md) — Long-context DSpark draft model for Kimi K3 with 1M-token serving, block-size-7 drafting, and reported acceptance lengths.
 - [Kimi K3 Local Deployment](kimi-k3.md) — Run Moonshot AI 2.8T (104B active) Kimi K3 locally via Unsloth Dynamic GGUFs with hardware, sampling, reasoning, llama.cpp, and benchmark guidance.
+- [llama.cpp vs vLLM Local Inference Choice](llamacpp-vs-vllm.md) — When to use llama.cpp for consumer CPU-first single-user inference versus vLLM for high-concurrency GPU serving, with GuideLLM benchmark context.
 - [Miles DeepSeek-V4 Verified RL](miles-deepseek-v4-rl.md) — Day-0 verified RL training for DeepSeek-V4 with full DP/TP/SP/EP/PP/CP parallelism, TileLang kernels, FP8 rollout and training, attention QAT, routing replay, and deterministic precision controls.
 - [Miles DeepSeek-V4.1 Verified RL](miles-deepseek-v41-rl.md) — Day-0 Miles plus SGLang RL for DeepSeek-V4.1 with shared-state parallelism, FP4 and FP8 quantization-aware training, routing replay, deterministic precision, and colocated rollout.
 - [Muse Glimmer Local Deployment](muse-glimmer.md) — Run Meta 30B dense vision Muse Glimmer locally via Unsloth Dynamic GGUFs with hardware, sampling, reasoning, llama.cpp, and benchmark guidance.
@@ -63,6 +68,7 @@ The complete retrieval map for compiled knowledge. See [LLM Wiki Contract](../LL
 - [SGLang Tool Parser](sglang-tool-parser.md) — Model-specific tool-call parsing for SGLang function calling across OpenAI-compatible, native, and offline APIs with tool_choice and pythonic formats.
 - [SGLang Unified Radix Cache](sglang-unified-radix-cache.md) — One token-keyed radix topology with FULL, SWA, and MAMBA component reuse, native HiCache tiers, session-aware eviction, and an experimental Rust tree core.
 - [SGLang ViT CUDA Graphs for Multimodal Encoders](sglang-vit-cuda-graph.md) — Per-sequence-length CUDA Graph capture and replay for SGLang vision encoders via ViTCudaGraphRunner, enabled by SGLANG_VIT_ENABLE_CUDA_GRAPH.
+- [Speculative Decoding Workload Fit and Tuning](speculative-decoding-practice-guide.md) — When speculative decoding helps, acceptance-rate and draft-token tuning, and vLLM deployment with reported cost evidence.
 - [Unsloth Dynamic GGUF Quantization](unsloth-dynamic-gguf.md) — Post-training GGUF quantization family with per-layer dynamic schemes, chat-oriented imatrix calibration, and versioned v2.0/v3.0 quality-size tradeoffs.
 - [Unsloth Dynamic NVFP4 Quantization](unsloth-dynamic-nvfp4.md) — Blackwell-only 4-bit quantization combining native NVFP4 with per-layer dynamic FP8/BF16 retention for faster inference and lower VRAM.
 - [Unsloth MTP Local Inference](unsloth-mtp-local-inference.md) — Run Gemma 4 and Qwen3.6/3.5 MTP models locally via Unsloth Studio or llama.cpp with draft-token tuning, hardware, and sampling guidance.
@@ -91,6 +97,7 @@ The complete retrieval map for compiled knowledge. See [LLM Wiki Contract](../LL
 - [vLLM Engine, Worker, and Model Hierarchy](vllm-engine-worker-hierarchy.md) — LLMEngine, workers, model runner, model objects, and VllmConfig design rationale.
 - [vLLM Entrypoints](vllm-entrypoints.md) — Offline LLM class versus online vllm serve server for model inference.
 - [vLLM Expert Parallel Deployment](vllm-expert-parallel-deployment.md) — Expert-parallel MoE serving with EP=TP×DP sharding, all-to-all backends, EPLB rebalancing, and prefill/decode disaggregation.
+- [vLLM FastMTP Fine-Tuning](vllm-fastmtp-fine-tuning.md) — FastMTP-style recursive fine-tuning of a single native MTP head in Speculators 0.6.0 to restore multi-step acceptance for vLLM speculative decoding.
 - [vLLM FP8 ViT Encoder Attention](vllm-fp8-vit-attention.md) — Dynamic or calibrated FP8 QKV quantization for Qwen3-family vision attention on NVIDIA and AMD GPUs.
 - [vLLM Fused MoE Kernel Features](vllm-moe-kernel-features.md) — Selecting vLLM modular MoE All2All backends and experts kernels by activation format, quantization, and compatibility families.
 - [vLLM Fused MoE Modular Kernel](vllm-fused-moe-modular-kernel.md) — Architecture, components, initialization, and extension workflow for vLLM's modular fused MoE kernel.
@@ -112,6 +119,7 @@ The complete retrieval map for compiled knowledge. See [LLM Wiki Contract](../LL
 - [vLLM Metrics and Observability](vllm-metrics.md) — V1 metrics collection, Prometheus and logging publishers, interval definitions, and deprecation and future-work policy for vLLM observability.
 - [vLLM MLP Speculative Decoding](vllm-mlp-speculative-decoding.md) — MLP draft models conditioning proposals on context vectors and sampled tokens via method mlp_speculator, with independent draft tensor parallelism and IBM accelerator hubs.
 - [vLLM Model Runner V2](vllm-model-runner-v2.md) — Cleaner, async-first, GPU-native reimplementation of the vLLM model runner with decoupled persistent batches, staged writes, Triton sampling, and explicit CUDA-graph management.
+- [vLLM Model Support Check on Red Hat AI](vllm-model-support-red-hat-ai.md) — Three-step compatibility check for vLLM on Red Hat AI via validated models, architecture lookup, and release-to-image version mapping.
 - [vLLM Mooncake Connector](vllm-mooncake-connector.md) — RDMA-based disaggregated prefill/decode KV transfer via Mooncake with producer/consumer roles, bootstrap and RDMA-registration tuning, and proxy fan-out.
 - [vLLM Mooncake Store Connector](vllm-mooncake-store-connector.md) — Shared distributed KV-cache pool via Mooncake store for CPU/disk offloading and cross-instance prefix reuse, with single-node, disaggregated, and standalone-store deployments.
 - [vLLM MoRI-IO Connector](vllm-moriio-connector.md) — ROCm MoRI-IO disaggregated prefill/decode KV transfer with WRITE/READ modes, RDMA/xGMI transports, control-plane ports, and vllm-router proxy routing.
@@ -126,6 +134,7 @@ The complete retrieval map for compiled knowledge. See [LLM Wiki Contract](../LL
 - [vLLM NIXL Push-Mode KV Transfer](vllm-nixl-kv-push-connector.md) — Push-based disaggregated prefill/decode where prefill WRITEs KV directly into decode's pre-allocated blocks via a dedicated writer thread and PUSH_REG registrations.
 - [vLLM Online Quantization](vllm-online-quantization.md) — Load-time quantization of linear and MoE weights with global, per-layer, mixed-format, and exclusion controls.
 - [vLLM Optimization Levels](vllm-optimization-levels.md) — Preset -O0 through -O3 flags trading startup time for performance via compilation, CUDA-graph, fusion, and autotune defaults.
+- [vLLM P-EAGLE Speculative Decoding](vllm-peagle-speculative-decoding.md) — Parallel EAGLE drafting that predicts K tokens per forward pass in Speculators 0.6.0 with COD sampling, learnable masks, and flex-attention masking.
 - [vLLM Paged Attention Kernel](vllm-paged-attention-kernel.md) — Historical vLLM multi-head query attention CUDA kernel over paged KV cache, covering query/key/value data paths, softmax reduction, and output writeback.
 - [vLLM Parallel Draft Model Speculative Decoding](vllm-parallel-draft-model.md) — Parallel draft-model speculation pairing a target model with a PARD draft model via method draft_model plus parallel_drafting, with offline and online configuration.
 - [vLLM Per-Request Metrics](vllm-per-request-metrics.md) — Per-request timing metrics returned in API responses via --enable-per-request-metrics for billing, SLA monitoring, and latency analysis.
@@ -150,3 +159,5 @@ The complete retrieval map for compiled knowledge. See [LLM Wiki Contract](../LL
 - [vLLM torch.compile Fusion Passes](vllm-fusion-passes.md) — Custom Inductor fusion passes controlled by PassConfig that fuse collectives, norms, attention, RoPE, and quantization by token regime and platform.
 - [vLLM torch.compile Integration](vllm-torch-compile.md) — Default V1 torch.compile pipeline covering cache, dynamic shapes, Dynamo capture, Inductor compilation, and piecewise CUDA graphs.
 - [vLLM V1 Process Architecture](vllm-v1-process-architecture.md) — API server, engine core, GPU worker, and DP coordinator processes and counts.
+- [W8A8 INT8 Accuracy and Performance Results](w8a8-int8-accuracy-performance-results.md) — Llama 3.1 8B Instruct W8A8 INT8 case study where accuracy deltas stayed within benchmark noise while serving throughput and latency improved with load-dependent ITL overhead.
+- [W8A8 INT8 Quantization Mechanics](w8a8-int8-quantization-mechanics.md) — INT8 W8A8 mechanics for Llama 3.1 8B Instruct where SmoothQuant smooths activation outliers via RMSNorm gamma and GPTQ compensates weight-rounding error to cut 14.9 GB to 8.0 GB.

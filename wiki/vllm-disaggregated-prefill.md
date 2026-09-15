@@ -5,7 +5,7 @@ description: Separate prefill and decode vLLM instances with connector-mediated 
 tags: [vllm, disaggregated-prefill, kv-cache, inference-serving]
 status: stable
 created: 2026-09-14
-generated: { by: llm-wiki-agent/1, at: 2026-09-14T18:00:00Z }
+generated: { by: llm-wiki-agent/1, at: 2026-09-15T15:00:00Z }
 sources:
   - id: disagg-prefill
     resource: ../raw/vllm/features/disagg_prefill.md
@@ -105,6 +105,7 @@ Disaggregated prefilling is infrastructure-sensitive, so production use relies o
 - Uses [vLLM NIXL Push-Mode KV Transfer](vllm-nixl-kv-push-connector.md) — push WRITE is one NixlConnector transfer mode for the prefill-to-decode leg; this concept covers the general prefill/decode split and connector catalog.
 - Uses [vLLM NIXL KV Cache Lease Renewal](vllm-nixl-kv-lease.md) — heartbeat-renewed prefill-side leases bound KV retention for the transfer; this concept covers only the general transfer need, not lease mechanics.
 - Uses [vLLM Disaggregated Encoder](vllm-disaggregated-encoder.md) — sibling disaggregation pattern separating vision encoding from prefill/decode; this concept covers only the prefill/decode split.
+- Related to [Distributed Inference Optimization Levers](distributed-inference-optimization-levers.md) — disaggregation decision rule, 1:3 to 1:5 pool sizing, connector selection, and NIXL failure modes for this split.
 
 ## Coverage limits
 
