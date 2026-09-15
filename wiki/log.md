@@ -1,5 +1,8 @@
 # Wiki Update Log
 
+## 2026-09-15
+- **Ingest**: Compiled [SGLang vs vLLM: Which Inference Engine Should You Use? (2026)](../raw/sglang-vs-vllm/index.md); updated [SGLang and vLLM Comparison](sglang-vs-vllm.md) with vendor-cited benchmarks, cache-behavior limits, prefix-hit-rate triage, and interchangeability guidance.
+
 ## 2026-09-14
 - **Query**: Answered “Compare SGLang and vLLM”; filed [SGLang and vLLM Comparison](sglang-vs-vllm.md) and linked the two stack entry points.
 - **Ingest**: Compiled [Qwen3.8-27B-DSpark](../raw/Qwen3.8-27B-DSpark.md); created [Qwen3.8-27B DSpark Speculator](qwen3.8-dspark.md) and updated [SGLang DSpark Speculative Decoding](sglang-dspark-speculative-decoding.md) and [Qwen3.8 Local Deployment](qwen3.8.md).
