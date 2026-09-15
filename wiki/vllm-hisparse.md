@@ -1,18 +1,23 @@
 ---
 type: Concept
 title: vLLM HiSparse Local KV Offload
-description: Local host-tier KV offload for sparse attention with coordinator-owned host blocks, spill-before-free residency, and fused GPU hot lookup.
-tags: [vllm, kv-cache, offloading, sparse-attention]
+description: Hybrid pressure-driven host-tier KV offload for sparse attention with shared-pool hot buffers, three residency states, and GLM-5.3 deployment evidence.
+tags: [vllm, kv-cache, offloading, sparse-attention, hybrid, glm-5.3]
 status: stable
 created: 2026-09-14
-generated: { by: llm-wiki-agent/1, at: 2026-09-14T00:00:00Z }
+generated: { by: llm-wiki-agent/1, at: 2026-09-15T12:00:00Z }
 sources:
   - id: hisparse
     resource: ../raw/vllm/design/hisparse.md
     title: HiSparse local KV offload architecture
+  - id: hybrid-blog
+    resource: ../raw/2026-09-08-glm53-part1-hybrid-sparse-offloading/index.md
+    title: 'GLM 5.3 Optimizations, Part 1: Hybrid HiSparse Offloading in vLLM'
 ---
 
 HiSparse is an experimental local KV connector that spills resident GPU blocks to pinned host memory and serves sparse-attention decode from resident pages first, then GPU hot rows, then pinned host memory inside one fused resolver[^hisparse].
+
+Hybrid HiSparse is a pressure-driven residency policy over the same mechanism: KV starts GPU-resident and only gives up residency page by page when the shared HMA pool runs short, so CPU–GPU transfer cost is paid only under KV-cache pressure at higher concurrency[^hybrid-blog].
 
 > [!warning] Experimental design
 > The source marks HiSparse as experimental and CUDA-only; ROCm is not currently supported[^hisparse].
@@ -151,6 +156,72 @@ choose GPU LRU victim ──► copy pinned host row ──► hot physical row
 
 ROCm is not currently supported because the fused HiSparse cache operations are implemented only by CUDA kernels. A future platform-specific worker may provide the same command, output, and cache-resolution boundaries[^hisparse].
 
+## Hybrid residency policy
+
+Dense offload still bounds concurrency by GPU memory because dense attention needs every token resident; preemption instead drops KV and pays full TTFT again on eviction[^hybrid-blog]. For sparse-MLA KV, the indexer selects top-K tokens and attends only to those, so HiSparse offloads everything except selected tokens to CPU and bounds per-request GPU memory[^hybrid-blog]. Indexer KV stays GPU-resident and grows with context, but it is much smaller, and GLM-5.3 IndexShare means one indexer layer per four sparse-MLA layers[^hybrid-blog].
+
+Residency is tracked per page, with three states as pressure rises and falls[^hybrid-blog]:
+
+- **Full residency**: all sparse-MLA KV stays GPU-resident while completed prefix pages are proactively materialized in host memory.
+- **Mixed residency**: the request tail stays on GPU, older pages live only in CPU, and indexer-selected rows from those pages sit in hot buffers. The block table holds real blocks and null placeholders side by side, and the tail is never evicted.
+- **No residency**: a new request reusing a CPU-only prefix starts with placeholders plus a hot page; rows arrive as the indexer selects them, paying for attended tokens rather than the whole history.
+
+In mixed residency one fused kernel resolves top-K: resident tokens read in place, hot tokens read with LRU refresh, and a miss copies a single row from pinned host memory into an LRU slot. No decode-path step waits on a CPU decision, so the path stays CUDA-graph-capturable[^hybrid-blog].
+
+## Shared-pool hot buffers and proactive staging
+
+Hot buffers are not a separate allocation: a hot-buffer page is an ordinary KV-cache block leased from the same HMA pool and same KV-cache tensor as resident pages, taken when a request first needs one and returned when it does not[^hybrid-blog]. Hot-buffer pages are indexed by tokens, so one page can hold tokens drawn from many CPU blocks; tokens can coexist in hot buffers and GPU-resident pages, reducing CPU reloads[^hybrid-blog]. The resolver hands HMA row IDs for both locations and HMA gathers them with one stride; a block freed by one request can become hot-buffer capacity for another[^hybrid-blog].
+
+HiSparse prepares before pressure arrives: when a cacheable prefix page completes, it queues a CPU copy while continuing to serve from GPU, so a later-full pool can release the GPU slot without another copy[^hybrid-blog]. Even when pressure reaches a newer page first, its GPU slot becomes reusable once the copy is queued, and the CPU copy becomes available for prefix reuse when the transfer completes[^hybrid-blog]. The `hisparse-glm` branch copies all sparse-MLA layers together in one launch after the forward pass, ordered on the model GPU stream[^hybrid-blog].
+
+Defaults and layout from the blog[^hybrid-blog]:
+
+- Hot buffers default to 2× top-K rows per request for high hit rates at small size.
+- MLA KV is identical across TP ranks, so the pinned host pool is allocated per DP replica and shared across its local TP ranks; TP rank 0 writes the shared copy, every rank reads it, with a CUDA event preserving stream ordering.
+- `host_pool_gib` is per DP replica and rounded to whole host blocks.
+
+## Composition with vLLM KV machinery
+
+Hybrid HiSparse is a residency policy over the shared HMA pool and a connector alongside other KV machinery; other cache groups keep normal prefix caching, transfer, and offloading[^hybrid-blog]. Specifically:
+
+- Indexer KV is untouched by HiSparse and can be offloaded independently by the standard OffloadingConnector with ordinary block-granular storage[^hybrid-blog].
+- P/D disaggregation imports can land host-side when a prefix does not fit resident[^hybrid-blog].
+- Speculative decoding works through per-step replayable resolver plans sharing the request hot state[^hybrid-blog].
+
+## GLM-5.3 8×H200 deployment evidence
+
+On a single aggregated 8×H200 node tight on memory for GLM-5.3, Hybrid HiSparse enables full 1M context length — previously impossible on that hardware — with substantially higher concurrency across context lengths[^hybrid-blog].
+
+Benchmark setup both sides used TP8, MTP3, FP8 KV cache, 142K admission limit, `max_num_batched_tokens=32768`, `max_num_seqs=256`, and `gpu_memory_utilization=0.92` on an OpenHands multi-turn agentic workload: 13-turn conversations with 74,160-token first turn, 753-token later turns, and fixed 220-token outputs[^hybrid-blog]. The same host budget was split as 512 GiB offload pool for the baseline versus 384 GiB HiSparse pool plus 128 GiB offloading for cache groups HiSparse does not manage, including indexer KV[^hybrid-blog].
+
+Reproduction pins vLLM `e8ef1e07bd`, planned for wide availability in vLLM v0.30, NVIDIA-only at publication time[^hybrid-blog]:
+
+```bash
+vllm serve zai-org/GLM-5.3 \
+  --tensor-parallel-size 8 --kv-cache-dtype fp8 \
+  --gpu-memory-utilization 0.92 --max-model-len 142000 \
+  --max-num-batched-tokens 32768 --max-num-seqs 256 \
+  --enable-prefix-caching \
+  --attention-config '{"hisparse_config":{"host_pool_gib":384}}' \
+  --kv-transfer-config '{"kv_connector":"OffloadingConnector","kv_role":"kv_both","kv_connector_extra_config":{"spec_name":"TieringOffloadingSpec","cpu_bytes_to_use":137438953472}}' \
+  --speculative-config '{"method":"mtp","num_speculative_tokens":3}' \
+  --enable-auto-tool-choice --tool-call-parser glm47 --reasoning-parser glm45
+```
+
+Omit `--speculative-config` for no-MTP HiSparse; for the no-HiSparse MTP3 baseline omit `--attention-config` and set `cpu_bytes_to_use` to `549755813888` (512 GiB); omit both for the no-MTP baseline[^hybrid-blog]. The padded OpenHands sweep recipe ships `build_openhands_padded_dataset.py`, `install_evalscope_deps.sh`, and `evalscope-all-nodeps.txt` with EvalScope pinned at `acd09b44384d53174768bb1063f675420f76fae9`; interactivity is `1000 / mean_TPOT_ms` and per-GPU logical throughput is EvalScope total divided by eight[^hybrid-blog].
+
+## Capacity-planning notes
+
+The blog calculator estimates ordinary GPU-resident versus hybrid-sparse concurrency from the same available HBM, including the minimum HiSparse host pool needed so CPU memory does not cap the concurrency that GPU-side indexer plus hot buffers can sustain[^hybrid-blog]. Modeling rules and caveats:
+
+- Native indexer offloading is a separate total CPU pool: it extends the prefix cache, but active indexer history still consumes HBM and stays in the running-request limit[^hybrid-blog].
+- Hot buffers add fixed GPU cost per request, so ordinary residency can fit more requests at short contexts; at longer contexts bounding sparse-MLA residency lets HiSparse sustain more[^hybrid-blog].
+- Increasing hot-buffer size trades capacity for hot-cache coverage[^hybrid-blog].
+- MTP can further limit concurrency because hot buffers must hold all verification tokens at once: at publication `(num_speculative_tokens + 2) × top-K` per buffer, subject to change and not yet in the calculator[^hybrid-blog].
+- Estimates are planning aids, not guaranteed serving limits; runtime workspaces, length skew, and scheduling can lower realized concurrency[^hybrid-blog].
+
+Part 2 scope: Hybrid HiSparse matters most on the decode side of P/D deployments where contexts are longest and KV pressure highest, combined with Prefill Context Parallelism, Decode Context Parallelism, and adaptive verification[^hybrid-blog].
+
 ## Main classes
 
 | Class | Inherits / implements | Responsibility |
@@ -187,14 +258,21 @@ The command/result and attention-layer boundaries can be shared. The host alloca
 ## Relationships
 
 - Uses [vLLM Hybrid KV Cache Manager](vllm-hybrid-kv-cache-manager.md) per-group allocation pattern; `HiSparseResidentManager` extends `SingleTypeKVCacheManager` with host-backed holes.
-- Uses [vLLM Prefix Caching](vllm-prefix-caching.md) identity and reuse model; the coordinator's source-prefix mapping and completed-spill publication feed host-page prefix reuse.
-- Uses [vLLM NIXL KV Cache Lease Renewal](vllm-nixl-kv-lease.md) transfer path for the P/D import landing decision; NIXL places fitting prefixes directly in resident pages.
+- Uses [vLLM Prefix Caching](vllm-prefix-caching.md) identity and reuse model; the coordinator's source-prefix mapping and completed-spill publication feed host-page prefix reuse. Hybrid proactive staging extends this by queueing CPU copies of completed prefix pages before pressure arrives[^hybrid-blog].
+- Uses [vLLM KV Offloading Connector](vllm-kv-offloading.md) for indexer KV that HiSparse does not manage, via `OffloadingConnector` with `TieringOffloadingSpec` alongside the 384 GiB HiSparse pool in the GLM-5.3 recipe[^hybrid-blog].
+- Uses [vLLM NIXL KV Cache Lease Renewal](vllm-nixl-kv-lease.md) transfer path for the P/D import landing decision; NIXL places fitting prefixes directly in resident pages. Hybrid imports can land host-side when the prefix does not fit resident[^hybrid-blog].
 - Depends on [vLLM Attention Backends](vllm-attention-backends.md) sparse-attention consumption of a device cache and physical row IDs.
 - Depends on [vLLM CUDA Graphs Modes and Dispatch](vllm-cuda-graphs.md) graph-capturable execution; the fused resolver adds no separate CUDA graph.
+- Related to [vLLM Decode Context Parallelism](vllm-decode-context-parallelism.md) and [vLLM Adaptive Verification for Speculative Decoding](vllm-adaptive-verification.md) — Part 2 combines both with Hybrid HiSparse on the decode side of large P/D deployments[^hybrid-blog].
+- Related to [SGLang HiSparse Hierarchical Sparse-Attention Memory](sglang-hisparse.md) — SGLang-side counterpart keeping full KV in host with a hot device buffer and swap-in kernel; compare with vLLM Hybrid policy that keeps KV GPU-resident until pressure forces page-wise spill[^hybrid-blog].
 
 ## Coverage limits
 
-- Compiled from the design document alone; implementation classes, `MultiConnector`, `OffloadingConnector`, HMA, and NIXL behavior were not verified beyond this source[^hisparse].
-- No local attachments were referenced by the source, so no additional `raw/` evidence was inspected.
+- Design internals compiled from the design document; Hybrid policy, residency states, composition, benchmarks, and deployment recipe compiled from the GLM-5.3 Part 1 blog[^hisparse][^hybrid-blog].
+- Implementation classes, `MultiConnector`, `OffloadingConnector`, HMA, and NIXL behavior were not verified beyond these sources.
+- All three source SVG attachments were inspected via aria-labels plus prose captions (two-request preempt-vs-offload comparison, three-state residency over one shared pool, OpenHands Pareto plus occupancy chart); numeric chart values beyond the prose benchmark setup were not independently extracted.
+- The interactive concurrency calculator iframe, full-screen calculator page, EvalScope repro scripts, HiSparse arXiv paper, and IndexShare paper were not inspected.
 
 [^hisparse]: HiSparse local KV offload architecture — `../raw/vllm/design/hisparse.md`, short version, ownership, code boundary, resident pages, P/D import, indexer offloading, spill transaction, hot lookup and LRU, main classes, performance invariants, and platform-specific sections.
+
+[^hybrid-blog]: GLM 5.3 Optimizations, Part 1: Hybrid HiSparse Offloading in vLLM — `../raw/2026-09-08-glm53-part1-hybrid-sparse-offloading/index.md`, covering pressure-driven hybrid policy, three residency states, shared-pool hot buffers, proactive staging, composition with HMA/offloading/P-D/spec-decode, 2× top-K and per-DP host-pool layout, 8×H200 OpenHands benchmark setup and host-budget split, v0.30/NVIDIA-only status, launch-command appendix, capacity-calculator caveats including MTP buffer sizing, and Part 2 roadmap.

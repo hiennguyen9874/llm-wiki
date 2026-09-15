@@ -10,6 +10,9 @@ sources:
   - id: hybrid-kv
     resource: ../raw/vllm/design/hybrid_kv_cache_manager.md
     title: Hybrid KV Cache Manager
+  - id: hybrid-ssm-disagg
+    resource: ../raw/2026-04-21-hybrid-ssm-disagg/index.md
+    title: Disaggregated Serving for Hybrid SSM Models in vLLM
 ---
 
 vLLM serves hybrid-attention models from one same-page-size block pool by partitioning layers into KV cache groups, allocating different block counts per group, and intersecting per-group prefix-cache hits[^hybrid-kv].
@@ -79,9 +82,15 @@ Three layers[^hybrid-kv]:
 
 For `n` groups of `m` layers each, physical memory has `m` buffers (`KVCacheTensor`s), each shared by `n` layers — one from every group. In the 10-full + 20-sliding-window example, 10 buffers are each shared by 3 layers such as `full.0`, `sw.0`, and `sw.10`; pieces of size `block_size * kv_hidden_size` are selected by allocated `block_id`s, so one logical block maps to `m` physical pieces[^hybrid-kv].
 
+## Relationships
+
+- Used by [vLLM Hybrid SSM Disaggregated Serving](vllm-hybrid-ssm-disaggregation.md) — NIXL dual-descriptor views bridge the pooled FA/Mamba tensors and skip HMA padding on transfer; this concept covers only grouping, allocation, and prefix-cache intersection[^hybrid-ssm-disagg].
+
 ## Coverage limits
 
 - Referenced diagrams for grouping, full-attention and sliding-window prefix caching, overview, and memory layout were absent from `raw/` and were not inspected[^hybrid-kv].
 - Referenced implementation classes and `prefix_caching.md` were not verified beyond this source[^hybrid-kv].
 
 [^hybrid-kv]: Hybrid KV Cache Manager — `../raw/vllm/design/hybrid_kv_cache_manager.md`, What is a hybrid model, Definitions, Allocation, Prefix caching, and Implementation sections.
+
+[^hybrid-ssm-disagg]: Disaggregated Serving for Hybrid SSM Models in vLLM — `../raw/2026-04-21-hybrid-ssm-disagg/index.md` (2026-04-21), covering HMA pooling reuse for dual FA/Mamba NIXL views with FA block-size inflation and Mamba-row padding.

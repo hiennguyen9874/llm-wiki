@@ -68,6 +68,7 @@ On `vllm<0.7.0`, convert the speculative model with the linked conversion script
 - Related to [vLLM Dynamic Speculative Decoding](vllm-dynamic-speculative-decoding.md) — Dynamic SD's batch-size-to-`K` table is tested with Eagle and Eagle-3 and can tune their draft-token count by concurrency.
 - Related to [vLLM Per-Request Speculative Decoding Acceptance Metrics](vllm-per-request-spec-decode-metrics.md) — request-level acceptance metrics are the online-serving counterpart to the offline acceptance-rate extraction referenced for EAGLE.
 - Related to [vLLM P-EAGLE Speculative Decoding](vllm-peagle-speculative-decoding.md) — P-EAGLE extends EAGLE-3 with single-pass K-token prediction depths via `PEagleDraftModel` inheriting from `Eagle3DraftModel`[^peagle].
+- Related to [vLLM Speculative Decoding on AMD GPUs](vllm-speculative-decoding-amd-gpus.md) — EAGLE-3 target-layer fusion plus AMD throughput/acceptance evidence and LightSeek, Red Hat AI, and Inferact checkpoint names.
 
 [^eagle]: EAGLE Draft Models — `../raw/vllm/features/speculative_decoding/eagle.md`, EAGLE/Eagle3 offline `speculative_config` examples with independent `draft_tensor_parallel_size` and `num_speculative_tokens`, Hugging Face speculator hubs, `vllm<0.7.0` conversion-script guidance, and pointer to the offline acceptance-rate example.
 

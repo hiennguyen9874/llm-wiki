@@ -85,6 +85,7 @@ The complete retrieval map for compiled knowledge. See [LLM Wiki Contract](../LL
 - [vLLM Custom Logits Processors](vllm-custom-logits-processors.md) — Authoring, loading, and invoking out-of-tree logits processors, including Adapter wrapping and FQCN, entry-point, and class-object loading.
 - [vLLM CustomOp Dispatch and Registration](vllm-custom-op.md) — Platform-dispatched forward methods, compilation-config enablement, and in-tree versus out-of-tree registration for vLLM custom ops.
 - [vLLM Data Parallel Deployment](vllm-data-parallel-deployment.md) — Replicated-weight data-parallel serving with internal, hybrid, and external load-balancing modes and MoE DP+EP coordination.
+- [vLLM Decode Context Parallelism](vllm-decode-context-parallelism.md) — Sequence-sharded decode KV-cache parallelism with MLA/GQA sizing rules, communication pattern, and Kimi K2.6 long-context throughput evidence.
 - [vLLM Disaggregated Encoder](vllm-disaggregated-encoder.md) — Separate vision-encoder and prefill/decode instances with EC-connector embedding transfer for independent scaling, lower TTFT, and shared encoder-cache reuse.
 - [vLLM Disaggregated Prefill](vllm-disaggregated-prefill.md) — Separate prefill and decode vLLM instances with connector-mediated KV transfer to tune TTFT and ITL independently and control tail ITL without improving throughput.
 - [vLLM Draft-Model Speculative Decoding](vllm-draft-model.md) — Separate small draft model proposing num_speculative_tokens per step for target verification, with optional heterogeneous-vocab Token-Level Intersection.
@@ -102,9 +103,10 @@ The complete retrieval map for compiled knowledge. See [LLM Wiki Contract](../LL
 - [vLLM Fused MoE Kernel Features](vllm-moe-kernel-features.md) — Selecting vLLM modular MoE All2All backends and experts kernels by activation format, quantization, and compatibility families.
 - [vLLM Fused MoE Modular Kernel](vllm-fused-moe-modular-kernel.md) — Architecture, components, initialization, and extension workflow for vLLM's modular fused MoE kernel.
 - [vLLM Hidden State Extraction](vllm-hidden-state-extraction.md) — Saving intermediate target-model layer activations to .safetensors via method extract_hidden_states for EAGLE-style training, distillation, and analysis.
-- [vLLM HiSparse Local KV Offload](vllm-hisparse.md) — Local host-tier KV offload for sparse attention with coordinator-owned host blocks, spill-before-free residency, and fused GPU hot lookup.
+- [vLLM HiSparse Local KV Offload](vllm-hisparse.md) — Hybrid pressure-driven host-tier KV offload for sparse attention with shared-pool hot buffers, three residency states, and GLM-5.3 deployment evidence.
 - [vLLM Hugging Face Integration](vllm-huggingface-integration.md) — Resolving model IDs to config, tokenizer, and weights via Hugging Face Hub or local path, with config-class and architecture-registry mapping.
 - [vLLM Hybrid KV Cache Manager](vllm-hybrid-kv-cache-manager.md) — Unified page-size grouping, per-group allocation, and intersected prefix caching for hybrid-attention models.
+- [vLLM Hybrid SSM Disaggregated Serving](vllm-hybrid-ssm-disaggregation.md) — NIXL dual-descriptor, physical-logical bridging, and 3-descriptor conv transfer for hybrid Mamba-attention prefill/decode disaggregation.
 - [vLLM IndexCache for DeepSeek Sparse Attention](vllm-index-cache.md) — Reusing DeepSeek DSA top-k indices across layers via use_index_cache, index_topk_freq, and index_topk_pattern.
 - [vLLM Input Processing Performance](vllm-input-processing-tuning.md) — fastokens Rust BPE backend and API-server scale-out for tokenizer and media bottlenecks.
 - [vLLM Interleaved Thinking](vllm-interleaved-thinking.md) — Reasoning between tool calls for chained tool use with intermediate decisions.
@@ -132,9 +134,10 @@ The complete retrieval map for compiled knowledge. See [LLM Wiki Contract](../LL
 - [vLLM NIXL Connector Usage](vllm-nixl-connector-usage.md) — Installing, configuring, deploying, and observing NixlConnector for vLLM disaggregated prefill/decode, including bidirectional multi-turn transfer.
 - [vLLM NIXL KV Cache Lease Renewal](vllm-nixl-kv-lease.md) — Heartbeat-renewed short leases letting prefill reclaim KV blocks quickly on decode failure while keeping them alive under decode overload.
 - [vLLM NIXL Push-Mode KV Transfer](vllm-nixl-kv-push-connector.md) — Push-based disaggregated prefill/decode where prefill WRITEs KV directly into decode's pre-allocated blocks via a dedicated writer thread and PUSH_REG registrations.
+- [vLLM on DGX Spark](vllm-dgx-spark.md) — Local vLLM serving on NVIDIA DGX Spark GB10 with unified-memory tuning, NVFP4 MoE model fit, and Nemotron-3-Super evaluation.
 - [vLLM Online Quantization](vllm-online-quantization.md) — Load-time quantization of linear and MoE weights with global, per-layer, mixed-format, and exclusion controls.
 - [vLLM Optimization Levels](vllm-optimization-levels.md) — Preset -O0 through -O3 flags trading startup time for performance via compilation, CUDA-graph, fusion, and autotune defaults.
-- [vLLM P-EAGLE Speculative Decoding](vllm-peagle-speculative-decoding.md) — Parallel EAGLE drafting that predicts K tokens per forward pass in Speculators 0.6.0 with COD sampling, learnable masks, and flex-attention masking.
+- [vLLM P-EAGLE Speculative Decoding](vllm-peagle-speculative-decoding.md) — Parallel EAGLE drafting that predicts K tokens per forward pass with vLLM parallel_drafting serving and Speculators training.
 - [vLLM Paged Attention Kernel](vllm-paged-attention-kernel.md) — Historical vLLM multi-head query attention CUDA kernel over paged KV cache, covering query/key/value data paths, softmax reduction, and output writeback.
 - [vLLM Parallel Draft Model Speculative Decoding](vllm-parallel-draft-model.md) — Parallel draft-model speculation pairing a target model with a PARD draft model via method draft_model plus parallel_drafting, with offline and online configuration.
 - [vLLM Per-Request Metrics](vllm-per-request-metrics.md) — Per-request timing metrics returned in API responses via --enable-per-request-metrics for billing, SLA monitoring, and latency analysis.
@@ -147,7 +150,9 @@ The complete retrieval map for compiled knowledge. See [LLM Wiki Contract](../LL
 - [vLLM Quantized KV Cache](vllm-quantized-kv-cache.md) — FP8 KV-cache formats, calibration strategies, selective layer skips, and attention-backend constraints.
 - [vLLM Reasoning Outputs](vllm-reasoning-outputs.md) — Separate reasoning and content fields for thinking models via reasoning parsers, thinking toggles, budgets, and response controls.
 - [vLLM Request Preemption](vllm-request-preemption.md) — V1 RECOMPUTE preemption on KV shortage with tuning knobs and Prometheus observability.
+- [vLLM Semantic Router Vision Signal Hardening](vllm-semantic-router-vision-hardening.md) — Turning vision embeddings into trustworthy routing signals by enforcing reference parity across the Rust/Candle vision path, with pooling, normalization, and preprocessing fixes.
 - [vLLM Sleep Mode](vllm-sleep-mode.md) — Releasing GPU memory via levelled sleep/wake with partial weights and KV-cache restore for RLHF and colocation.
+- [vLLM Speculative Decoding on AMD GPUs](vllm-speculative-decoding-amd-gpus.md) — Five-method vLLM draft-and-verify comparison on MI300X/MI355X with throughput, acceptance, tuning, and speculator-training guidance.
 - [vLLM Speculators Library](vllm-speculators.md) — External Speculators library for training single- and multi-layer draft models with vLLM-generated data and HF-compatible deployment format.
 - [vLLM Startup Optimization](vllm-startup-optimization.md) — Faster time-to-first-token on repeated boots via compile-cache reuse, kv-cache-memory skip, and eager fallback.
 - [vLLM Structured Outputs](vllm-structured-outputs.md) — Constrained generation via choice, regex, JSON schema, grammar, and structural tags for online and offline inference.
@@ -155,9 +160,12 @@ The complete retrieval map for compiled knowledge. See [LLM Wiki Contract](../LL
 - [vLLM Tensor and Pipeline Parallel Scaling](vllm-parallelism-scaling.md) — Single-replica tensor/pipeline strategy selection, multi-node Ray and multiprocessing runtimes, and InfiniBand/GPUDirect networking for vLLM scaling.
 - [vLLM Text Watermarking](vllm-watermarking.md) — Statistical generation-time watermarking with Gumbel-max and dual-key variants, Philox PRF, context deduplication, speculative-decoding rules, and separate token-ID detection.
 - [vLLM Tool Calling](vllm-tool-calling.md) — Named, auto, required, and none tool-choice modes with model-specific parsers and schema-constrained decoding for vLLM.
+- [vLLM Triton Attention Backend](vllm-triton-attention-backend.md) — Performance-portable Triton paged-attention backend with Q-block tiling, parallel softmax, and persistent kernels for CUDA-graph efficiency.
+- [vLLM TurboQuant KV-Cache Quantization](vllm-turboquant-kv-cache.md) — Storage-only 3–4-bit KV-cache compression whose accuracy and serving trade-offs were measured against FP8 and BF16 across long-context and reasoning workloads.
 - [vLLM torch.compile for Multimodal Encoders](vllm-torch-compile-multimodal.md) — Compiling multimodal encoders with support_torch_compile gating, encoder compile ranges, and vision troubleshooting.
 - [vLLM torch.compile Fusion Passes](vllm-fusion-passes.md) — Custom Inductor fusion passes controlled by PassConfig that fuse collectives, norms, attention, RoPE, and quantization by token regime and platform.
 - [vLLM torch.compile Integration](vllm-torch-compile.md) — Default V1 torch.compile pipeline covering cache, dynamic shapes, Dynamo capture, Inductor compilation, and piecewise CUDA graphs.
+- [vLLM V1 Engine Anatomy and Request Lifecycle](vllm-v1-engine-anatomy.md) — End-to-end V1 mental model from offline LLM construction through scheduling, forward pass, advanced features, multi-GPU scale-up, DP serving, and benchmarking.
 - [vLLM V1 Process Architecture](vllm-v1-process-architecture.md) — API server, engine core, GPU worker, and DP coordinator processes and counts.
 - [W8A8 INT8 Accuracy and Performance Results](w8a8-int8-accuracy-performance-results.md) — Llama 3.1 8B Instruct W8A8 INT8 case study where accuracy deltas stayed within benchmark noise while serving throughput and latency improved with load-dependent ITL overhead.
 - [W8A8 INT8 Quantization Mechanics](w8a8-int8-quantization-mechanics.md) — INT8 W8A8 mechanics for Llama 3.1 8B Instruct where SmoothQuant smooths activation outliers via RMSNorm gamma and GPTQ compensates weight-rounding error to cut 14.9 GB to 8.0 GB.

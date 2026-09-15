@@ -5,11 +5,14 @@ description: FP8 KV-cache formats, calibration strategies, selective layer skips
 tags: [vllm, quantization, kv-cache, fp8, attention]
 status: stable
 created: 2026-09-14
-generated: { by: llm-wiki-agent/1, at: 2026-09-14T09:42:43Z }
+generated: { by: llm-wiki-agent/1, at: 2026-09-15T00:00:00Z }
 sources:
   - id: quantized-kv
     resource: ../raw/vllm/features/quantization/quantized_kvcache.md
     title: Quantized KV Cache
+  - id: turboquant-study
+    resource: ../raw/2026-05-11-turboquant/index.md
+    title: 'A First Comprehensive Study of TurboQuant: Accuracy and Performance'
 ---
 
 FP8 KV-cache storage reduces per-token cache memory, allowing more cached tokens, higher throughput, or longer contexts, but accuracy depends on scale choice and backend support. FlashAttention 3 also executes attention in FP8 when the KV cache is FP8, quantizing queries as well as keys and values[^quantized-kv].
@@ -30,15 +33,24 @@ The documented example uses 512 shuffled chat samples at sequence length 2048, t
 
 `--kv-cache-dtype-skip-layers` or `kv_cache_dtype_skip_layers` leaves sensitive layers in model-native dtype while quantizing the rest. It accepts layer indices or layer-type names such as `sliding_window`, enabling hybrid cache precision where sliding-window attention is more sensitive[^quantized-kv].
 
+## Comparative evidence against TurboQuant
+
+A four-model Red Hat AI study found FP8 remained the best default at 2x KV-cache capacity with negligible accuracy loss and matched BF16 throughput, while storage-only TurboQuant variants added 10–68% latency overhead and reduced throughput to 66–80% of BF16 even as they extended capacity to about 2.3–3.7x; only `4bit_nc` was judged a conditional memory-for-throughput trade-off, with aggressive 3-bit variants degrading long-context and reasoning accuracy[^turboquant-study].
+
+See [vLLM TurboQuant KV-Cache Quantization](vllm-turboquant-kv-cache.md) for variants, per-model AUC and accuracy-recovery numbers, burst-TTFT behavior, and deployment recommendations.
+
 ## Relationships
 
 - Uses [vLLM Attention Backends](vllm-attention-backends.md) — per-head scales and FP8 attention behavior are backend-dependent.
 - Uses [vLLM LLM Compressor Quantization Workflows](vllm-llm-compressor-workflows.md) — supplies the recommended dataset calibration pathway.
 - Uses [vLLM Hybrid KV Cache Manager](vllm-hybrid-kv-cache-manager.md) — selective native/FP8 layer dtypes interact with heterogeneous attention-layer cache organization.
 - Used by [vLLM NIXL Connector Compatibility](vllm-nixl-connector-compatibility.md) — disaggregated prefill/decode requires matching cache dtypes and supports static, not runtime-dynamic, transferred scales.
+- Compared with [vLLM TurboQuant KV-Cache Quantization](vllm-turboquant-kv-cache.md) — FP8-versus-storage-only 3–4-bit accuracy, throughput, TPOT, and burst-TTFT evidence summarized above.
 
 ## Coverage limits
 
-The source does not provide a complete backend-by-format matrix or quantified end-to-end memory, throughput, and accuracy results. The linked LLM Compressor examples and attention implementations were not independently inspected.
+The base source does not provide a complete backend-by-format matrix. Quantified end-to-end memory, throughput, and accuracy comparison against TurboQuant now comes from the second source above; the linked LLM Compressor examples and attention implementations were not independently inspected.
 
 [^quantized-kv]: Quantized KV Cache — `../raw/vllm/features/quantization/quantized_kvcache.md`.
+
+[^turboquant-study]: A First Comprehensive Study of TurboQuant: Accuracy and Performance — `../raw/2026-05-11-turboquant/index.md`.

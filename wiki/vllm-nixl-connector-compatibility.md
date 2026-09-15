@@ -10,6 +10,9 @@ sources:
   - id: nixl-compat
     resource: ../raw/vllm/features/nixl_connector_compatibility.md
     title: NixlConnector Compatibility Matrix
+  - id: hybrid-ssm-disagg
+    resource: ../raw/2026-04-21-hybrid-ssm-disagg/index.md
+    title: Disaggregated Serving for Hybrid SSM Models in vLLM
 ---
 
 NixlConnector disaggregated prefill/decode supports most dense, MLA, sparse-MLA, MoE, and hybrid-SSM combinations for basic transfer, with narrower support for speculative decoding, heterogeneous parallelism, cross-layer blocks, and heterogeneous block sizes, plus a handshake compatibility hash and KV-layout and quantization rules governing valid P/D pairs[^nixl-compat].
@@ -90,6 +93,7 @@ Quantized KV cache (e.g. FP8) requires P and D to use the same `cache_dtype`; mi
 - Uses [vLLM NIXL Push-Mode KV Transfer](vllm-nixl-kv-push-connector.md) — push WRITE versus pull READ is one incompatible P/D pairing choice; this concept covers the compatibility rule, not push threading or wire format.
 - Uses [vLLM Prefix Caching](vllm-prefix-caching.md) — APC is listed here as universally supported under NixlConnector PD serving; this concept covers only the compatibility claim, not cache mechanics.
 - Uses [vLLM Attention Backends](vllm-attention-backends.md) — attention backend must match across P/D for the handshake hash; this concept covers only the matching requirement, not backend selection.
+- Uses [vLLM Hybrid SSM Disaggregated Serving](vllm-hybrid-ssm-disaggregation.md) — Mamba2 hetero-TP transfer mechanism claimed in `v0.20.0`, newer than the 🚧 cell above; treat the matrix cell as point-in-time until re-verified[^hybrid-ssm-disagg].
 
 ## Coverage limits
 
@@ -98,3 +102,5 @@ Quantized KV cache (e.g. FP8) requires P and D to use the same `cache_dtype`; mi
 - The source describes itself as current-state documentation subject to change; treat partial, unknown, and work-in-progress cells as point-in-time rather than guarantees[^nixl-compat].
 
 [^nixl-compat]: NixlConnector Compatibility Matrix — `../raw/vllm/features/nixl_connector_compatibility.md`, covering universally supported features, model-architecture x capability matrix with footnotes 1–6, P/D must-match versus may-differ configuration notes with handshake-hash warning, `LBHNC` / `LBNHC` layout defaults and experimental permute flag, and quantized-KV-cache same-dtype plus static/dynamic/packed-scale rules.
+
+[^hybrid-ssm-disagg]: Disaggregated Serving for Hybrid SSM Models in vLLM — `../raw/2026-04-21-hybrid-ssm-disagg/index.md` (2026-04-21), covering Mamba2 dual-descriptor and DS-layout hetero-TP transfer claimed in `v0.20.0`; matrix values above remain point-in-time.

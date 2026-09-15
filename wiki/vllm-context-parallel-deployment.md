@@ -5,7 +5,7 @@ description: Prefill and decode context-parallel strategies for long-context ser
 tags: [vllm, context-parallel, long-context, kv-cache, tensor-parallel]
 status: stable
 created: 2026-09-14
-generated: { by: llm-wiki-agent/1, at: 2026-09-14T09:00:00Z }
+generated: { by: llm-wiki-agent/1, at: 2026-09-15T12:00:00Z }
 sources:
   - id: cp-deploy
     resource: ../raw/vllm/serving/context_parallel_deployment.md
@@ -62,6 +62,7 @@ Ongoing technical discussion happens in the `#sig-context-parallel` channel of v
 
 ## Relationships
 
+- Uses [vLLM Decode Context Parallelism](vllm-decode-context-parallelism.md) — sequence-dimension sharding mechanism, MLA/GQA sizing constraints, and Kimi K2.6 long-context throughput evidence extending this deployment guidance.
 - Uses [vLLM Paged Attention Kernel](vllm-paged-attention-kernel.md) — decode context parallel shards the paged KV cache that paged attention consumes.
 - Uses [vLLM Hybrid KV Cache Manager](vllm-hybrid-kv-cache-manager.md) — both concern KV-cache organization and growth across prefill and decode.
 - Uses [vLLM Attention Backends](vllm-attention-backends.md) — DCP and DCP+MTP support varies by attention backend and MLA/GQA implementation.

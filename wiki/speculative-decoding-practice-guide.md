@@ -101,6 +101,7 @@ All figures below are source-reported single-setup numbers, not independently ve
 - Related to [vLLM Per-Request Speculative Decoding Acceptance Metrics](vllm-per-request-spec-decode-metrics.md) — request-level acceptance measurement behind the source's acceptance-rate tuning guidance.
 - Related to [SGLang Speculative Decoding](sglang-speculative-decoding.md) — SGLang-side EAGLE/MTP counterpart for cross-engine comparison.
 - Related to [Distributed Inference Optimization Levers](distributed-inference-optimization-levers.md) — EAGLE 3.1/MTP/Medusa/n-gram selection table and constrained-decoding caution; note its measure-first warning for grammar-constrained traffic tensions with the structured-output fit above.
+- Related to [vLLM Speculative Decoding on AMD GPUs](vllm-speculative-decoding-amd-gpus.md) — MI300X/MI355X per-method N optima and per-position acceptance decay grounding the K and acceptance-rate bands above.
 
 ## Coverage limits
 

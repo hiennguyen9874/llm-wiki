@@ -68,6 +68,7 @@ Engines typically keep only the first shipped MTP module and apply it autoregres
 - Related to [vLLM EAGLE Speculative Decoding](vllm-eagle-speculative-decoding.md) — EAGLE is the separate-speculator alternative named in the source when the model lacks MTP support.
 - Related to [vLLM MLP Speculative Decoding](vllm-mlp-speculative-decoding.md) — MLP speculators are another separate-draft alternative when native MTP is unavailable.
 - Uses [vLLM FastMTP Fine-Tuning](vllm-fastmtp-fine-tuning.md) — recursive single-head adaptation that restores later-position acceptance before serving through this native MTP path.
+- Related to [vLLM Speculative Decoding on AMD GPUs](vllm-speculative-decoding-amd-gpus.md) — Gemma 4 assistant wiring plus AMD native-MTP N-sweep and intra-family variance evidence.
 
 [^mtp]: MTP (Multi-Token Prediction) — `../raw/vllm/features/speculative_decoding/mtp.md`, native-MTP `method: mtp` definition and no-draft-model property, MiMo offline/online `num_speculative_tokens: 1` examples, Gemma 4 assistant `Gemma4MTPModel` path with supported IT checkpoints and shared-KV wiring, older-release `draft_model` misclassification warning, and MTP-support plus EAGLE/draft-model fallback notes.
 

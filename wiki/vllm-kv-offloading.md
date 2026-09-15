@@ -5,11 +5,14 @@ description: Extending vLLM prefix cache with CPU and tiered offload via Offload
 tags: [vllm, kv-cache, offloading, prefix-caching, disaggregated-prefill]
 status: stable
 created: 2026-09-14
-generated: { by: llm-wiki-agent/1, at: 2026-09-14T16:30:00Z }
+generated: { by: llm-wiki-agent/1, at: 2026-09-15T12:00:00Z }
 sources:
   - id: kv-offload-usage
     resource: ../raw/vllm/features/kv_offloading_usage.md
     title: KV Offloading Usage Guide
+  - id: tiered-kv-blog
+    resource: ../raw/2026-09-10-tiered-kv-offloading/index.md
+    title: Tiered KV Cache Offloading in vLLM
 ---
 
 `OffloadingConnector` extends the vLLM prefix cache by offloading completed KV blocks to slower but larger tiers — CPU host memory plus optional secondary tiers — as they are produced; hits are promoted back to GPU on demand[^kv-offload-usage].
@@ -32,6 +35,44 @@ GPU <--> CPU primary tier <--> Secondary tier 0, 1, ...
 ## Chunks
 
 The unit of operation is a **chunk** — a fixed-size piece of KV data covering a group of tokens. By default a chunk maps to a single accelerator block; configurable `blocks_per_chunk` allows larger chunks, yielding larger I/Os to host and secondary tiers[^kv-offload-usage].
+
+The tiered framework has been available in vLLM since v0.22[^tiered-kv-blog].
+
+## Host-centric design
+
+The core design principle is that **all KV data flows through host memory (CPU DRAM)**[^tiered-kv-blog]:
+
+```text
+accelerator <-> host primary tier <-> secondary tier 0, 1, ...
+```
+
+On offload, chunks move accelerator → host first, then cascade from the host copy to all secondary tiers. On reload, a secondary tier promotes data into host memory first, then it loads to the accelerator. The first tier holding a chunk serves it[^tiered-kv-blog].
+
+### Just-in-time accelerator allocation
+
+Copying accelerator → host is a fast local PCIe transfer. **Accelerator memory is freed as soon as this copy completes — before any secondary-tier transfer starts**; storage writes, network sends, and remote RDMA proceed from the host copy without touching accelerator memory again. On reload, accelerator memory is allocated only once the data is ready in host, not reserved in advance while waiting for tier transfers. Accelerator memory is therefore held only while actively needed[^tiered-kv-blog].
+
+### Consolidated I/O
+
+In multi-accelerator setups (e.g. `tensor_parallel_size=8`), each device holds a KV shard. The framework consolidates all shards into a single shared host memory region, so secondary tiers see fewer, larger I/O operations — improving storage and network throughput. Without consolidation, 8 accelerators × N blocks means 8N small I/Os; with consolidation, N larger merged I/Os[^tiered-kv-blog].
+
+### Canonical memory layout
+
+The host region uses a canonical layout: each page stores one block of one layer, with all KV heads from across TP ranks gathered into a single contiguous region, so locating any chunk is an offset calculation. The fixed host-side layout is configuration-independent — different accelerator types, attention backends (FlashAttention, FlashInfer, Triton), or parallelism configurations map to the same representation, so nodes with different setups (e.g. TP=2 and TP=4) share KV data directly with no remapping[^tiered-kv-blog].
+
+### Simple secondary tiers
+
+Because all data routes through host memory, secondary tiers are a single process per vLLM instance, transfer with standard CPU libraries (POSIX I/O, S3 SDKs, RDMA verbs), and never touch accelerator memory or APIs — no cross-process coordination or accelerator-layout knowledge required[^tiered-kv-blog].
+
+## Offload and reload lifecycle
+
+Offload path: new KV chunks move accelerator → host via async DMA and accelerator memory is freed immediately, before secondary transfer begins. The tiering manager then cascades chunks to **all** configured secondary tiers simultaneously from the host copy[^tiered-kv-blog].
+
+The host primary tier is a **proper LRU/ARC cache, not a staging buffer**: chunks remain in host memory and serve future hits directly; only when host capacity is exhausted are least-recently-used chunks evicted, and they survive in whichever secondary tier received them[^tiered-kv-blog].
+
+Reload path: the scheduler checks host first for an immediate hit. On host miss, secondary tiers are queried in configured order and the first holder serves the chunk; the tier promotes it back into host asynchronously while the scheduler receives a `RETRY` and re-checks next cycle. Different chunks of the same request can come from different tiers (e.g. one from filesystem, another from a remote peer)[^tiered-kv-blog].
+
+Filesystem and object-store tiers use content-addressed naming — identical token sequences map to the same key, so matching inputs share cached data automatically; multiple instances sharing the same mount or bucket share KV data with no extra configuration[^tiered-kv-blog].
 
 ## Setup
 
@@ -315,15 +356,91 @@ Individual requests can cap offload-eligible tokens with `max_offload_tokens` in
 }
 ```
 
+## P2P use cases
+
+All P2P transfers are host-to-host — no accelerator memory on either side. The P2P tier uses ZMQ for coordination and RDMA via NIXL for bulk transfer[^tiered-kv-blog].
+
+- **Prefill/decode disaggregation:** the prefill instance computes KV chunks and holds them in its host tier; the decode instance pulls them via RDMA. Consolidated I/O turns many small per-GPU transfers into fewer, larger RDMA operations, and with chunked prefill each completed prefill-chunk becomes immediately available for transfer, overlapping computation and movement and reducing time-to-first-token[^tiered-kv-blog].
+- **Load balancing:** pull KV chunks from an overloaded instance to one with available capacity; any node can pull from any peer[^tiered-kv-blog].
+
+Secondary tiers also make KV shareable across nodes for horizontal cache scaling, warm-starting new instances from shared storage, and peer transfer for disaggregated serving or load balancing[^tiered-kv-blog].
+
+## Hybrid model support
+
+The framework integrates with vLLM's hybrid memory allocator and handles models mixing full attention, sliding window, MLA, and Mamba transparently[^tiered-kv-blog].
+
+The canonical layout normalizes all KV formats into a uniform byte-buffer representation with a **fixed byte size per host chunk**, regardless of layer types; different layer types pack different numbers of tokens into the same chunk (e.g. Mamba state layers cover many more tokens per chunk than full-attention layers, so they offload less frequently)[^tiered-kv-blog].
+
+Consequences[^tiered-kv-blog]:
+
+- Sliding-window layers reload only tokens within their window, not full history.
+- State-space (Mamba) layers offload and reload state alongside attention KV.
+
+Reported support includes DeepSeek V4, GLM 5.3, Nemotron 3, and others[^tiered-kv-blog].
+
+## Observability and KV events
+
+The framework exposes Prometheus metrics via the standard `/metrics` endpoint[^tiered-kv-blog]:
+
+- Host cache utilization (primary-tier fill ratio).
+- Transfer throughput (bytes and time for accelerator ↔ host).
+- Per-tier lookup and transfer latencies.
+- Per-tier hit rates.
+
+Secondary tiers can define custom counters, histograms, and gauges that are automatically registered and exposed with no framework changes[^tiered-kv-blog].
+
+As chunks move, the framework emits structured **KV events** reporting which chunks were stored or evicted, from which tier, and with what locality (local vs. remote); secondary tiers can emit their own events. External orchestrators such as llm-d and Dynamo consume these events to route requests to the instance most likely to hit and to orchestrate P2P transfers[^tiered-kv-blog].
+
+## Custom secondary-tier interface
+
+The secondary-tier interface is four core methods[^tiered-kv-blog]:
+
+```python
+class SecondaryTierManager(ABC):
+    def lookup(self, key, req_context) -> LookupResult: ...  # HIT, MISS, or RETRY
+    def submit_store(self, job_metadata: JobMetadata) -> None: ...  # async host -> tier
+    def submit_load(self, job_metadata: JobMetadata) -> None: ...   # async tier -> host
+    def get_finished_jobs(self) -> Iterable[JobResult]: ...  # poll completed transfers
+```
+
+Each tier receives a direct memoryview into the shared host region at construction; `submit_store` reads and `submit_load` writes directly with no intermediate copies or serialization. Each tier manages its own eviction policy independently. A complete in-memory reference implementation lives at `vllm/v1/kv_offload/tiering/example/`; out-of-tree tiers specify `module_path` and load without vLLM code changes[^tiered-kv-blog].
+
+Filesystem-tier highlights from this source are non-blocking lookups, atomic writes, and separate read/write thread pools[^tiered-kv-blog].
+
+## Performance evidence
+
+Main benefit: avoiding repeated prefills by reloading from a cheaper tier instead of recomputing[^tiered-kv-blog].
+
+Source-reported scaling shape (multi-turn workload below)[^tiered-kv-blog]:
+
+- Up to ~64 conversations: HBM holds the working set; all methods perform well.
+- 64–128 conversations: HBM fills; throughput drops without offloading while CPU offloading maintains performance.
+- Beyond 128 conversations: CPU also fills; storage offloading sustains a high hit ratio and more than doubles throughput versus alternatives.
+
+Storage latency is higher than CPU memory so it does not reach peak throughput, but at scale a storage-backed hit beats full recompute decisively[^tiered-kv-blog].
+
+Benchmark setup[^tiered-kv-blog]:
+
+- Model: Qwen/Qwen3.6-35B-A3B on 2× NVIDIA H100 (TP=2).
+- Storage: filesystem backend on local NVMe.
+- Workload: multi-turn conversations, 12K-token initial prompts + 4K tokens per round, 8 rounds; max request concurrency 64; prefiller throughput only (prefill-decode disaggregated).
+- Full results and reproduction scripts: `neuralmagic/fs-offload-experiments` (linked in source, not inspected).
+
 ## Relationships
 
 - Uses [vLLM Prefix Caching](vllm-prefix-caching.md) — offloading extends prefix-cache reuse beyond GPU memory; hits promote back to GPU while hash, salt, and block-granularity semantics remain prefix-cache concepts.
-- Uses [vLLM Disaggregated Prefill](vllm-disaggregated-prefill.md) — `OffloadingConnector` is one catalogued KV-transfer connector; this concept covers its standalone tiered-cache setup while disaggregated prefill covers the prefill/decode split.
+- Uses [vLLM Disaggregated Prefill](vllm-disaggregated-prefill.md) — `OffloadingConnector` is one catalogued KV-transfer connector; this concept covers its standalone tiered-cache setup while disaggregated prefill covers the prefill/decode split. P2P host-to-host RDMA plus chunked-prefill overlap is the offloading-side mechanism for that split.
 - Uses [vLLM HiSparse Local KV Offload](vllm-hisparse.md) — when `OffloadingConnector` is configured with HiSparse it stores and restores the indexer KV group through the generic offload path while HiSparse retains its sparse host tier.
+- Uses [vLLM Hybrid KV Cache Manager](vllm-hybrid-kv-cache-manager.md) — fixed-byte host chunks normalizing full-attention, sliding-window, MLA, and Mamba formats are the offloading-side counterpart to unified page-size grouping and per-group allocation.
+- Uses [vLLM Metrics and Observability](vllm-metrics.md) — `/metrics` Prometheus endpoint and per-tier utilization, throughput, latency, and hit-rate signals extend the base V1 metrics model with offloading-specific observability.
 
 ## Coverage limits
 
 - Linked `disagg_prefill.md` and `nixl_connector_usage.md` backend-selection details were not recompiled here; only the P2P-tier `backends`/`num_threads` mirroring rule stated in this source is covered[^kv-offload-usage].
-- Cited implementation paths (`vllm/v1/kv_offload/cpu/policies/`, `vllm/v1/kv_offload/tiering/base.py`) and the external vLLM blog on the KV Offloading Connector were not inspected; claims rest on the usage-guide prose[^kv-offload-usage].
+- Cited implementation paths (`vllm/v1/kv_offload/cpu/policies/`, `vllm/v1/kv_offload/tiering/base.py`, `vllm/v1/kv_offload/tiering/example/`) were not inspected; claims rest on usage-guide and blog prose[^kv-offload-usage][^tiered-kv-blog].
+- All four local diagrams (`architecture.svg`, `offload-flow.svg`, `consolidated-io.svg`, `performance.svg`) were visually inspected and are reflected in the host-centric, just-in-time, consolidation, and scaling sections[^tiered-kv-blog].
+- Linked usage guide, `llm-d`, Dynamo, and `neuralmagic/fs-offload-experiments` reproduction scripts were not inspected; benchmark figures are source-reported[^tiered-kv-blog].
 
 [^kv-offload-usage]: KV Offloading Usage Guide — `../raw/vllm/features/kv_offloading_usage.md`, covering `OffloadingConnector` DMA-based async offload with CUDA/ROCm/XPU support, `CPUOffloadingSpec` versus `TieringOffloadingSpec` topology with CPU-staged secondary access, chunk sizing, single- and multi-tier setup, full `kv_connector_extra_config` reference, custom eviction policies, filesystem/object-store/P2P secondary tiers with on-disk layout, cross-process hash sharing, P2P environment and `kv_transfer_params` orchestration protocol with handshake, out-of-tree tiers, tuning guidance, and experimental `max_offload_tokens` selective offload.
+
+[^tiered-kv-blog]: Tiered KV Cache Offloading in vLLM — `../raw/2026-09-10-tiered-kv-offloading/index.md` (vLLM blog, 2026-09-10), covering host-centric design with just-in-time accelerator release, consolidated I/O, canonical layout, and CPU-only secondary tiers; LRU/ARC host cache with cascade-to-all offload and RETRY-based reload; filesystem/object/P2P tiers with content-addressed sharing and P/D plus load-balancing uses; hybrid full-attention/sliding-window/MLA/Mamba normalization; Prometheus metrics and KV events for llm-d/Dynamo routing; four-method `SecondaryTierManager` zero-copy interface; and Qwen3.6-35B-A3B 2×H100 NVMe scaling evidence (HBM to ~64, CPU to ~128, storage >2× beyond).
