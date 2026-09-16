@@ -154,6 +154,7 @@ python -m sglang.launch_server --model-path unsloth/Gemma-4-31B-NVFP4 --speculat
 - Uses [vLLM MTP Speculative Decoding](vllm-mtp-speculative-decoding.md) — native MTP speculation matching the built-in MTP tensors and vLLM MTP serve flag.
 - Uses [SGLang Speculative Decoding](sglang-speculative-decoding.md) — EAGLE/NEXTN draft-decoding context for the SGLang NEXTN launch flags.
 - Uses [Quantization Fidelity Evaluation](quantization-fidelity-evaluation.md) — need to validate quantized checkpoints beyond single accuracy numbers and check for generation-length confounds.
+- See also [NVFP4 Format and Scale-Dependent Accuracy](nvfp4-format-accuracy-scale.md) — independent Red Hat multi-model evidence that NVFP4 BF16 recovery improves with scale, with large dense and MoE models near parity.
 
 ## Coverage limits
 

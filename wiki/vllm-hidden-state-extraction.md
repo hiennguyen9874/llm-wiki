@@ -5,8 +5,11 @@ description: Saving intermediate target-model layer activations to .safetensors 
 tags: [vllm, speculative-decoding, hidden-states]
 status: stable
 created: 2026-09-14
-generated: { by: llm-wiki-agent/1, at: 2026-09-15T12:00:00Z }
+generated: { by: llm-wiki-agent/1, at: 2026-09-16T23:00:00Z }
 sources:
+  - id: spec050
+    resource: ../raw/speculators-v050-dflash-support-and-online-training/index.md
+    title: 'Speculators v0.5.0: DFlash support and online training'
   - id: extract-hidden-states
     resource: ../raw/vllm/features/speculative_decoding/extract_hidden_states.md
     title: Hidden State Extraction
@@ -122,9 +125,13 @@ The implementation reuses Eagle-3 hidden-state plumbing plus the KV Connector AP
 
 Storing hidden states in dummy attention layers lets vLLM allocate VRAM and reuse paged-memory machinery for prefix caching, chunked prefill, and batching; the design diagram in the source shows verifier layers feeding the dummy Eagle-3 model, then `FakeAttentionLayer` KV cache, then KV Cache Connector to disk or NCCL toward the training process[^extract-hidden-states-blog].
 
+## Speculators v0.5.0 unified use
+
+Speculators v0.5.0 ships the native path for both online extraction on the fly and offline pregeneration to disk in a shared format, with REST decoupling from vLLM internals[^spec050]. Online flow is server init, prompt inference, temporary disk or RAM-disk write, training load plus delete, then speculator update[^spec050]. Hybrid reuse is supported: seed from partial offline files while generating the missing states, or retain online files after the first epoch for reload on later epochs[^spec050] — see [vLLM Speculators DFlash Training (v0.5.0)](vllm-speculators-dflash-training.md)[^spec050].
+
 ## History and limits at introduction
 
-At introduction only the disk-writing `ExampleHiddenStatesConnector` existed, with blocking writes and active work toward async writes; the `speculative_config` plus `kv_transfer_config` pair had to be used together[^extract-hidden-states-blog]. Single-node `--tensor-parallel-size` and `--data-parallel-size` were supported, only prompt tokens and their hidden states were saved (hence the `v1/completions` with `max_tokens=1` recommendation), and future work targeted device-to-device connectors including multi-node transfer[^extract-hidden-states-blog]. Speculators [PR #353](https://github.com/vllm-project/speculators/pull/353) moved that library onto this native system and enabled online training, planned for `speculators v0.5.0`[^extract-hidden-states-blog]. Later per-request `include_output_tokens`, async writer threads, file locking, and custom-path controls are documented above and supersede the prompt-only limit where enabled.
+At introduction only the disk-writing `ExampleHiddenStatesConnector` existed, with blocking writes and active work toward async writes; the `speculative_config` plus `kv_transfer_config` pair had to be used together[^extract-hidden-states-blog]. Single-node `--tensor-parallel-size` and `--data-parallel-size` were supported, only prompt tokens and their hidden states were saved (hence the `v1/completions` with `max_tokens=1` recommendation), and future work targeted device-to-device connectors including multi-node transfer[^extract-hidden-states-blog]. Speculators [PR #353](https://github.com/vllm-project/speculators/pull/353) moved that library onto this native system and enabled online training, shipped in `speculators v0.5.0`[^extract-hidden-states-blog][^spec050]. Later per-request `include_output_tokens`, async writer threads, file locking, and custom-path controls are documented above and supersede the prompt-only limit where enabled.
 
 > Coverage limit: the source points to a complete offline example at `examples/features/speculative_decoding/extract_hidden_states_offline.py`; that example file was not present in `raw/` and was not inspected, so details beyond the in-source snippet are not compiled here.
 
@@ -135,7 +142,10 @@ At introduction only the disk-writing `ExampleHiddenStatesConnector` existed, wi
 - Related to [vLLM Draft-Model Speculative Decoding](vllm-draft-model.md) — both select behavior through `speculative_config.method`, but this method produces hidden-state files rather than draft verification.
 - Uses [vLLM Custom Arguments](vllm-custom-arguments.md) — offline per-request `kv_transfer_params` travel inside `SamplingParams.extra_args`.
 - Related to [vLLM Speculators Library](vllm-speculators.md) — native extraction replaced Speculators `<0.5.0` patched generation and enabled online training from `speculators v0.5.0` onward.
+- Related to [vLLM Speculators DFlash Training (v0.5.0)](vllm-speculators-dflash-training.md) — unified online/offline consumer of this extraction path with hybrid file reuse.
 - Uses [vLLM Disaggregated Prefill](vllm-disaggregated-prefill.md) — extraction reuses the same KV Connector transfer machinery used for disaggregated KV movement.
 
 [^extract-hidden-states]: Hidden State Extraction — `../raw/vllm/features/speculative_decoding/extract_hidden_states.md`, `extract_hidden_states` speculative plus `ExampleHiddenStatesConnector` producer configuration, offline and online examples, per-request `hidden_states_path` and `include_output_tokens`, server `shared_storage_path`, `allow_custom_save_path`, `num_writer_threads`, and `use_synchronization_lock`, `.safetensors` `hidden_states` / `token_ids` shapes and `load_hidden_states()` reader, unnormalized last-layer note, `/dev/shm` recommendation, custom-path trust warning, and chunked-prefill incompatibility.
 [^extract-hidden-states-blog]: Fynn Schmitt-Ulms, Extracting hidden states from vLLM — `../raw/2026-03-30-extract-hidden-states/index.md` (vLLM blog, 2026-03-30), PR #33736 / `v0.18.0` motivation, Eagle-3 / P-Eagle / DFlash multi-layer requirement, `transformers` versus patching costs, 268 MB sizing example, dummy Eagle-3 plus `FakeAttentionLayer` KV-cache plus KV Connector mechanism with design diagram inspected, offline versus online sinks, single-node TP/DP and prompt-only limits, and Speculators PR #353 / v0.5.0 plus async and device-to-device future work.
+
+[^spec050]: Helen Zhao, Speculators v0.5.0: DFlash support and online training — `../raw/speculators-v050-dflash-support-and-online-training/index.md` (Red Hat Developer, 2026-06-04), unified native online/offline training, REST decoupling, five-step online flow, and hybrid offline/online file reuse.

@@ -5,8 +5,11 @@ description: Lightweight block-diffusion drafter with per-layer target KV inject
 tags: [dflash, speculative-decoding, diffusion, draft-model]
 status: stable
 created: 2026-09-15
-generated: { by: llm-wiki-agent/1, at: 2026-09-15T17:00:00Z }
+generated: { by: llm-wiki-agent/1, at: 2026-09-16T23:00:00Z }
 sources:
+  - id: spec050
+    resource: ../raw/speculators-v050-dflash-support-and-online-training/index.md
+    title: 'Speculators v0.5.0: DFlash support and online training'
   - id: dflash-paper
     resource: ../raw/arXiv-2602.06036v2/main.tex
     title: "DFlash: Block Diffusion for Flash Speculative Decoding"
@@ -105,6 +108,12 @@ EAGLE series exploits frozen-target features but drafts autoregressively with se
 
 Code at `github.com/z-lab/dflash`, models in HF `z-lab/dflash` collection, project at `dflash.z-lab.ai`[^dflash-paper].
 
+## Speculators v0.5.0 training and Gemma 4 evidence
+
+Speculators v0.5.0 provides the vLLM training path for this method with anchor-sampled parallel-block training and `--block-size` / `--max-anchors` controls, plus `vllm>=0.20.0` serving via bundled `speculators_config`[^spec050] — see [vLLM Speculators DFlash Training (v0.5.0)](vllm-speculators-dflash-training.md)[^spec050].
+
+The `RedHatAI/gemma-4-31B-it-speculator.dflash` checkpoint reports average acceptance length 5.17 on math_reasoning, 4.91 on HumanEval, 3.43 on RAG, and 2.53–3.33 on QA/question/summarization/tool-call/translation/writing, with median ITL better than Eagle 3 and standalone FP8 and best when DFlash combines with an FP8 verifier[^spec050].
+
 ## Relationships
 
 - Depends on [Speculative Decoding Foundations](speculative-decoding-foundations.md) — draft-verify-accept with bonus token and acceptance formalism behind the `L`, `tau`, and `eta` trade-off here.
@@ -114,6 +123,7 @@ Code at `github.com/z-lab/dflash`, models in HF `z-lab/dflash` collection, proje
 - Related to [SGLang DSpark Speculative Decoding](sglang-dspark-speculative-decoding.md) — confidence-driven semi-autoregressive alternative benchmarked against this diffusion baseline.
 - Related to [vLLM EAGLE Speculative Decoding](vllm-eagle-speculative-decoding.md) — autoregressive EAGLE/EAGLE-3 baseline beaten in acceptance-normalized speedup here.
 - Related to [SGLang Speculative Decoding](sglang-speculative-decoding.md) — EAGLE/MTP serving entry versus this parallel-diffusion path.
+- Related to [vLLM Speculators DFlash Training (v0.5.0)](vllm-speculators-dflash-training.md) — Speculators anchor-sampled training, Gemma 4 acceptance/ITL evidence, and vLLM serving for this method.
 
 ## Coverage limits
 
@@ -122,3 +132,5 @@ Code at `github.com/z-lab/dflash`, models in HF `z-lab/dflash` collection, proje
 - No credentials, PII, or disclosure boundaries found; authors declare no financial conflicts, UCSD affiliation[^dflash-paper].
 
 [^dflash-paper]: DFlash: Block Diffusion for Flash Speculative Decoding — `../raw/arXiv-2602.06036v2/main.tex` plus `sections/` and `tables/results/`.
+
+[^spec050]: Helen Zhao, Speculators v0.5.0: DFlash support and online training — `../raw/speculators-v050-dflash-support-and-online-training/index.md` (Red Hat Developer, 2026-06-04), Speculators anchor-sampled DFlash training flags, `vllm>=0.20.0` serving, and Gemma 4 31B acceptance plus median-ITL evidence.

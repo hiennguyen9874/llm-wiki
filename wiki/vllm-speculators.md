@@ -5,8 +5,14 @@ description: External Speculators library for training single- and multi-layer d
 tags: [vllm, speculative-decoding, speculators]
 status: stable
 created: 2026-09-14
-generated: { by: llm-wiki-agent/1, at: 2026-09-15T14:00:00Z }
+generated: { by: llm-wiki-agent/1, at: 2026-09-16T23:00:00Z }
 sources:
+  - id: spec050
+    resource: ../raw/speculators-v050-dflash-support-and-online-training/index.md
+    title: 'Speculators v0.5.0: DFlash support and online training'
+  - id: spec020
+    resource: ../raw/speculators-standardized-production-ready-speculative-decoding/index.md
+    title: 'Speculators: Standardized, production-ready speculative decoding'
   - id: speculators
     resource: ../raw/vllm/features/speculative_decoding/speculators.md
     title: vLLM-Project/Speculators
@@ -16,6 +22,9 @@ sources:
   - id: peagle
     resource: ../raw/speeding-llm-inference-p-eagle-vllm-speculators/index.md
     title: Speeding up LLM inference with P-EAGLE in vLLM Speculators
+  - id: spec030
+    resource: ../raw/2025-12-13-speculators-v030/index.md
+    title: Diving into speculative decoding training support for vLLM with Speculators v0.3.0
 ---
 
 Speculators is an external `vllm-project` library for accelerating LLM inference through speculative decoding by training efficient draft models that deploy directly into vLLM[^speculators].
@@ -42,6 +51,81 @@ Verification preserves target-model output: accepted tokens are exactly those th
 
 Speculators is most valuable for latency-sensitive, real-time workloads such as conversational AI, interactive coding assistants, and streaming text generation[^speculators].
 
+## Speculators 0.2.0 standardized release
+
+Version 0.2.0 is the standardized production-ready release: a unified Hugging Face configuration with predictable `speculators_config` in `config.json`, immediate vLLM deployment, single-command conversion utilities, and one clean API across speculative methods instead of separate research repositories and formats[^spec020].
+
+It was motivated by three production blockers: no standard format with fragmented hyperparameters, research code that does not scale to production workloads, and SOTA algorithms needing speculators trained to match the specific verifier output[^spec020].
+
+Supported at release[^spec020]:
+
+- Algorithms: EAGLE, EAGLE-3, HASS.
+- Verifier architectures: Llama-3, Llama-4, Qwen3, gpt-oss.
+
+Released Eagle3 model collection (`RedHatAI/speculator-models`)[^spec020]:
+
+- Llama-3.1-8B-Instruct-speculator.eagle3
+- Llama-3.3-70B-Instruct-speculator.eagle3
+- Llama-4-Maverick-17B-128E-Instruct-speculator.eagle3 (converted from NVIDIA)
+- Qwen3-8B-speculator.eagle3
+- Qwen3-14B-speculator.eagle3
+- Qwen3-32B-speculator.eagle3
+- gpt-oss-20b-speculator.eagle3
+
+One-command serving reads the bundled config to load draft plus verifier together[^spec020]:
+
+```bash
+vllm serve --model RedHatAI/Qwen3-8B-speculator.eagle3
+```
+
+Training was still under development at v0.2.0; the released models used a preliminary version adapted from the original [EAGLE](https://github.com/SafeAILab/EAGLE) and [HASS](https://github.com/HArmonizedSS/HASS) codebases, with a stated roadmap toward modular, integrated, and scalable single-GPU to multi-GPU training[^spec020].
+
+Conversion brings externally trained EAGLE models into the format for immediate vLLM serving; the source example converts `nvidia/Llama-4-Maverick-17B-128E-Eagle3` against `meta-llama/Llama-4-Maverick-17B-128E-Instruct` with `validate=True`, `norm_before_residual=False`, and `eagle_aux_hidden_state_layer_ids=[1, 23, 44]`, then serves with `-tp 8`[^spec020]:
+
+```python
+from speculators.convert.eagle.eagle3_converter import Eagle3Converter
+converter = Eagle3Converter()
+converter.convert(
+    input_path="nvidia/Llama-4-Maverick-17B-128E-Eagle3",
+    output_path="Llama-4-Maverick-17B-128E-Instruct-speculator.eagle3",
+    base_model="meta-llama/Llama-4-Maverick-17B-128E-Instruct",
+    validate=True,
+    norm_before_residual=False,
+    eagle_aux_hidden_state_layer_ids=[1, 23, 44],
+)
+```
+
+```bash
+vllm serve --model Llama-4-Maverick-17B-128E-Instruct-speculator.eagle3 -tp 8
+```
+
+Source-reported performance, not independently verified: typically 1.5–2.5x speedup across math reasoning, coding, text summarization, and RAG, strongest at low request rates where verification is memory-bound and costs roughly one verifier forward pass[^spec020]. Figure 1 math-reasoning curves report 2–2.7x speedup in the low-latency regime for Qwen3-32B on 2xA100, Llama-3.3-70B-Instruct on 4xA100, and Llama-4-Maverick-17B-128E-Instruct on 8xB200, with Llama-4-Maverick sustaining gains into high throughput up to 4.9x latency reduction[^spec020].
+
+Benchmark recipe uses GuideLLM rate sweeps from synchronous to saturated throughput over 600 seconds per scenario, with chat-completions routing so the model chat template is applied[^spec020]:
+
+```bash
+GUIDELLM_PREFERRED_ROUTE="chat_completions" \
+guidellm benchmark \
+  --target "http://localhost:8000/v1" \
+  --data "RedHatAI/speculator_benchmarks" \
+  --data-args '{"data_files": "math_reasoning.jsonl"}' \
+  --rate-type sweep \
+  --max-seconds 600 \
+  --output-path "speculative_decoding_benchmark.json"
+```
+
+User flow is use-case selection (HF-hub, fine-tuned, or compressed model plus HF or custom dataset) → create in Speculators creation and fine-tuning fed by the algorithm set → save as HF-compatible speculator model → deploy in vLLM for performant inference[^spec020]. Model-support roadmap at the time named Qwen3 MoE and Qwen3-VL verifier architectures[^spec020].
+
+## Speculators 0.3.0 Eagle3 training
+
+Version 0.3.0 is the end-to-end Eagle3 release: offline vLLM hidden-state data generation with chat-template preprocessing, assistant-only loss masks, per-sample `.pt` files plus `data_config.json`/`token_freq.pt` and reduced-vocabulary `t2d`/`d2t` mappings, `Eagle3DraftModel` training with train-time testing on FlexAttention plus `torch.compile` and concatenated-sequence packing, and a self-contained `speculators_config` artifact for one-command or `--speculative-config` override serving[^spec030] — see [vLLM Speculators Eagle3 Training (v0.3.0)](vllm-speculators-eagle3-training.md)[^spec030].
+
+## Speculators 0.5.0 DFlash and unified training
+
+Version 0.5.0 adds DFlash block-diffusion training and unifies online and offline training on vLLM's native hidden-states extraction, removing the custom pipeline and direct vLLM Python dependency[^spec050] — see [vLLM Speculators DFlash Training (v0.5.0)](vllm-speculators-dflash-training.md)[^spec050].
+
+DFlash generates a token block in one forward pass with noncausal intra-block attention versus Eagle 3 autoregressive drafting, using anchor-sampled parallel-block training to bound mask cost; the Gemma 4 31B DFlash speculator reports math-reasoning average length 5.17 and HumanEval 4.91, with median-ITL ordering best to worst DFlash+FP8, DFlash, Eagle 3, FP8, then No Spec FP16[^spec050]. DFlash serving requires `vllm>=0.20.0` (PR #38300) and reads bundled `speculators_config`, e.g. `vllm serve -tp 2 RedHatAI/gemma-4-31B-it-speculator.dflash`[^spec050].
+
 ## Speculators 0.6.0 MTP support
 
 Version 0.6.0 adds FastMTP-style fine-tuning for verifiers that already ship a native MTP head (Qwen3-Next and Qwen3.5 including MoE): `MTPConverter` extracts native `mtp.*` weights, `MTPDraftModel` trains the single head recursively with exponential-decay weighting, and the stitcher returns `mtp.*` keys for standard `method: mtp` serving[^fastmtp]. It is the lightest training path because it reads only the verifier's last-layer hidden states, and it suits domain specialization of a general-data shipped head; verifiers without MTP heads should use EAGLE-3, DFlash, or P-EAGLE instead — see [vLLM FastMTP Fine-Tuning](vllm-fastmtp-fine-tuning.md)[^fastmtp].
@@ -55,7 +139,9 @@ Version 0.6.0 also ships P-EAGLE parallel drafting, which predicts K tokens in o
 - [Speculators examples](https://github.com/vllm-project/speculators/tree/main/examples)[^speculators]
 - [GitHub Repository](https://github.com/vllm-project/speculators)[^speculators]
 
-> Coverage limit: the source embeds light- and dark-mode user-flow diagrams at `raw/vllm/assets/features/speculative_decoding/speculators-user-flow-light.svg` and `speculators-user-flow-dark.svg`; only the light SVG header was inspected to confirm it is a flow diagram, and no additional textual claims were compiled from either image.
+> Coverage limit: the vLLM source embeds light- and dark-mode user-flow diagrams at `raw/vllm/assets/features/speculative_decoding/speculators-user-flow-light.svg` and `speculators-user-flow-dark.svg`; only the light SVG header was inspected to confirm it is a flow diagram, and no additional textual claims were compiled from either image.
+>
+> v0.2.0 assets `assets/figure_1_8.png.webp` (Qwen3-32B, Llama-3.3-70B, Llama-4-Maverick latency-vs-RPS with speedup shading) and `assets/figure_2_6.png.webp` (use-case → Speculators create/fine-tune → save HF-compatible speculator → deploy in vLLM flow) were inspected to confirm figure captions; quantitative claims rest on source prose.
 
 ## Relationships
 
@@ -65,9 +151,18 @@ Version 0.6.0 also ships P-EAGLE parallel drafting, which predicts K tokens in o
 - Related to [vLLM MLP Speculative Decoding](vllm-mlp-speculative-decoding.md) — MLP speculators are another small-draft-model family of the kind Speculators trains as single- or multi-layer models.
 - Uses [vLLM FastMTP Fine-Tuning](vllm-fastmtp-fine-tuning.md) — 0.6.0 recursive single-head MTP adaptation path within this library.
 - Uses [vLLM P-EAGLE Speculative Decoding](vllm-peagle-speculative-decoding.md) — 0.6.0 parallel-drafting training and deployment path within this library.
+- Related to [vLLM Speculators Eagle3 Training (v0.3.0)](vllm-speculators-eagle3-training.md) — v0.3.0 end-to-end Eagle3 data-generation, training, and `speculators_config` deployment path within this library.
+- Related to [vLLM Speculators DFlash Training (v0.5.0)](vllm-speculators-dflash-training.md) — v0.5.0 DFlash block-diffusion plus unified native online/offline training path within this library.
+- Related to [Speculative Decoding Workload Fit and Tuning](speculative-decoding-practice-guide.md) — v0.2.0 GuideLLM math-reasoning latency-vs-rate evidence and low-concurrency fit ground that tuning guidance.
 
 [^speculators]: vLLM-Project/Speculators — `../raw/vllm/features/speculative_decoding/speculators.md`, Speculators library definition and four key features, single-token bottleneck and draft-plus-parallel-verification mechanism, no-quality-loss and 2–3× latency benefit claims, latency-sensitive use cases, and examples plus repository links.
 
 [^fastmtp]: Optimize vLLM speculative decoding with FastMTP heads — `../raw/optimize-vllm-speculative-decoding-fastmtp-heads/index.md`, Speculators 0.6.0 MTPConverter/MTPDraftModel/stitcher path, Qwen3-Next/Qwen3.5 support, last-layer-only training economy, and EAGLE-3/DFlash/P-EAGLE fallback.
 
 [^peagle]: Helen Zhao, Speeding up LLM inference with P-EAGLE in vLLM Speculators — `../raw/speeding-llm-inference-p-eagle-vllm-speculators/index.md` (Red Hat Developer, 2026-09-03), Speculators 0.6.0 P-EAGLE implementation, `PEagleDraftModel` inheritance, COD plus mask plus flex-attention optimizations, and data-to-`vllm serve` workflow.
+
+[^spec020]: Alexandre Marques, Speculators: Standardized, production-ready speculative decoding — `../raw/speculators-standardized-production-ready-speculative-decoding/index.md` (Red Hat Developer, 2025-11-19), covering v0.2.0 unified HF `speculators_config` format plus vLLM integration and conversion utilities, EAGLE/EAGLE-3/HASS plus Llama-3/Llama-4/Qwen3/gpt-oss support, seven-model Eagle3 collection, one-command serve and Llama-4-Maverick conversion example, 1.5–2.5x typical and Figure 1 Qwen3-32B/Llama-3.3-70B/Llama-4-Maverick rate-sweep evidence with GuideLLM recipe, preliminary EAGLE/HASS-derived training status, and Qwen3-MoE/Qwen3-VL plus modular training roadmap.
+
+[^spec030]: Fynn Schmitt-Ulms et al., Diving into speculative decoding training support for vLLM with Speculators v0.3.0 — `../raw/2025-12-13-speculators-v030/index.md` (vLLM blog, 2025-12-13), v0.3.0 Eagle3 offline generation, train-time-testing training, and self-contained serving path.
+
+[^spec050]: Helen Zhao, Speculators v0.5.0: DFlash support and online training — `../raw/speculators-v050-dflash-support-and-online-training/index.md` (Red Hat Developer, 2026-06-04), v0.5.0 DFlash single-pass block diffusion with anchor-sampled training, Gemma 4 31B acceptance and median-ITL evidence, PR #38300 / `vllm>=0.20.0` serving, and unified native hidden-states online/offline path.

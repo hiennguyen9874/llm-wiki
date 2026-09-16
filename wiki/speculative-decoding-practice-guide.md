@@ -5,11 +5,14 @@ description: When speculative decoding helps, acceptance-rate and draft-token tu
 tags: [speculative-decoding, vllm, inference-tuning]
 status: stable
 created: 2026-09-15
-generated: { by: llm-wiki-agent/1, at: 2026-09-15T15:00:00Z }
+generated: { by: llm-wiki-agent/1, at: 2026-09-16T12:00:00Z }
 sources:
   - id: spec-practice
     resource: ../raw/how-speculative-decoding-delivers-faster-llm-inference/index.md
     title: How speculative decoding delivers faster LLM inference
+  - id: eagle3-fly
+    resource: ../raw/fly-eagle3-fly-faster-inference-vllm-speculative-decoding/index.md
+    title: 'Fly Eagle(3) fly: Faster inference with vLLM & speculative decoding'
 ---
 
 Speculative decoding pairs a small fast draft model with a large target model that verifies several draft tokens in one parallel forward pass, preserving target output while converting memory-bound sequential decoding into better-utilized parallel verification; it pays off on predictable low-concurrency workloads and fades under saturated batch or creative workloads without domain-aligned draft models[^spec-practice].
@@ -84,6 +87,16 @@ Acceptance rate is the golden metric[^spec-practice]:
 
 Track tokens per second (should rise), time per output token (should fall), time to first token (may rise slightly from draft overhead), and cost per 1,000 tokens (should fall)[^spec-practice]. If the gain is below about 1.5 times, the source advises treating the workload as too unpredictable or the speculator as misaligned[^spec-practice]. For concurrency-varying deployments, prefer a batch-dependent draft-token schedule rather than one static K — see [vLLM Dynamic Speculative Decoding](vllm-dynamic-speculative-decoding.md).
 
+## Eagle 3 request-rate, task, and draft-length evidence
+
+All figures below are source-reported GuideLLM benchmarks from the Eagle 3 Red Hat source, not independently verified[^eagle3-fly]:
+
+- **Request-rate tradeoff:** on MT-Bench two-turn chat with 1024-token cap, Llama 3.1 8B on 1×A100 cuts per-request latency up to 1.8×, and Llama 3.3 70B on 4×A100 up to 1.6× at low request rates; at higher rates the 70B case slows down as compute saturates. The source frames this as memory-bound wins at low concurrency versus compute-bound losses at high batch/throughput[^eagle3-fly].
+- **Task dependence:** Eagle was trained primarily on chat data and transfers unevenly. On Llama 3.3 70B across SpecBench math, RAG, translation plus HumanEval coding, RAG and math reasoning gain up to 2.1× better latency from higher acceptance, while German-to-English translation performs poorly; the source suggests training drafters on the target dataset to close such gaps[^eagle3-fly].
+- **Draft length:** optimal K depends on both rate and task because acceptance is conditional on all prior draft tokens. At low rates a longer draft can pay despite low tail acceptance; at high rates shorten K to avoid drafting likely-rejected tokens. In the source's Llama 3.3 70B tests, translation is optimal at K=1 or even 0, while RAG still improves at K=5, so measure on your own workload[^eagle3-fly].
+- **Greedy versus tree:** tree decoding drafts ~64 tokens across branches with masked attention and verifies in one target pass to raise accepted length by ~1–2 tokens, but spends far more draft/verify compute than adding 1–2 greedy tokens. It wins only for synchronous low-rate latency; past that it slows generation significantly. vLLM does not currently support tree decoding[^eagle3-fly].
+- **Limits:** available Eagle 3 speculators in the source era cover shorter contexts (2048-token cap noted) with few model choices; performance varies with training-data match, so benchmark your workload and consider fine-tuning[^eagle3-fly].
+
 ## Reported measurements and cost math
 
 All figures below are source-reported single-setup numbers, not independently verified[^spec-practice]:
@@ -95,7 +108,7 @@ All figures below are source-reported single-setup numbers, not independently ve
 ## Relationships
 
 - Uses [vLLM Draft-Model Speculative Decoding](vllm-draft-model.md) — current consolidated `speculative_config` reference; source-era split flags are deprecated there.
-- Related to [vLLM EAGLE Speculative Decoding](vllm-eagle-speculative-decoding.md) — EAGLE/Eagle3 draft-model family behind the Red Hat AI `.eagle3` speculators named in the source.
+- Related to [vLLM EAGLE Speculative Decoding](vllm-eagle-speculative-decoding.md) — EAGLE/Eagle3 draft-model family behind the Red Hat AI `.eagle3` speculators named in the source; Eagle 3 mechanism, v0.8.5/v0.9.1 support, and Llama-3.3-70B serve example live there.
 - Related to [vLLM Speculators Library](vllm-speculators.md) — training and packaging path when no matched speculator exists.
 - Related to [vLLM Dynamic Speculative Decoding](vllm-dynamic-speculative-decoding.md) — batch-size-to-K scheduling for the high-concurrency fade the source describes qualitatively.
 - Related to [vLLM Per-Request Speculative Decoding Acceptance Metrics](vllm-per-request-spec-decode-metrics.md) — request-level acceptance measurement behind the source's acceptance-rate tuning guidance.
@@ -108,5 +121,8 @@ All figures below are source-reported single-setup numbers, not independently ve
 - `assets/watch.img` and `assets/watch-2.img` are saved YouTube HTML pages, not the throughput-comparison screenshots the prose references, so the 145 versus 424 tokens/s claim rests on prose alone and was not visually verified.
 - `assets/image2_182.png.webp` (1549×1018) was inspected only to confirm it shows a Hugging Face model list consistent with the Red Hat AI speculator description; no additional model IDs were compiled from the image.
 - Linked AWS code-generation, structured-output, and Trainium examples plus the Red Hat AI Hub collection were not inspected beyond the source's description.
+- Eagle 3 chart assets `spec_decode_mt_bench_1.png.webp`, `spec_decode_llama_3.3_70b.png.webp`, `spec_decode_draft_length.png.webp`, `spec_decode_tree.png.webp`, and `text_generation_example_-_speculative_decoding_vs_baseline_generation_example.png.webp` under `../raw/fly-eagle3-fly-faster-inference-vllm-speculative-decoding/assets/` were enumerated but not pixel-verified; quantitative claims above rest on the source prose and figure captions.
 
 [^spec-practice]: Sawyer Bowerman, How speculative decoding delivers faster LLM inference — `../raw/how-speculative-decoding-delivers-faster-llm-inference/index.md` (Red Hat Developer, 2026-06-12), covering draft-plus-parallel-verify mechanism and lossless claim, hare/tortoise sizing, worked accept/reject example, low-concurrency versus high-batch and creative-workload fit, alignment requirement, Red Hat AI and Speculators paths, vLLM flag examples, K and acceptance-rate tuning bands, TPS/TTFT/TPOT/cost metrics, Qwen3.5-9B DFlash measurement, and cost-savings math.
+
+[^eagle3-fly]: Alexandre Marques, Fly Eagle(3) fly: Faster inference with vLLM & speculative decoding — `../raw/fly-eagle3-fly-faster-inference-vllm-speculative-decoding/index.md` (Red Hat Developer, 2025-07-01), Eagle 3 GuideLLM evidence: MT-Bench rate/latency tradeoff (8B up to 1.8×, 70B up to 1.6× low-rate), SpecBench plus HumanEval task dependence (RAG/math up to 2.1×, de-en translation poor), draft-length tuning (translation K=1/0, RAG K=5), greedy versus 64-token tree tradeoff and vLLM non-support, and 2048-context plus model-availability limits.

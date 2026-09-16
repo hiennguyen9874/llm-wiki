@@ -60,6 +60,7 @@ For FP8 linear layers, vLLM selects a compatible GEMM at load time and logs it. 
 - Produces input for [vLLM Entrypoints](vllm-entrypoints.md) — exported checkpoints load through `LLM` or serving interfaces.
 - Calibrates [vLLM Quantized KV Cache](vllm-quantized-kv-cache.md) — LLM Compressor provides the recommended dataset-based KV scale pathway.
 - Contrasts with [vLLM Online Quantization](vllm-online-quantization.md) — online conversion avoids checkpoint export and calibration.
+- See also [NVFP4 Format and Scale-Dependent Accuracy](nvfp4-format-accuracy-scale.md) — Red Hat NVFP4 release evidence built on an LLM Compressor NVFP4 recipe and served with vLLM, with scale-dependent recovery data.
 
 ## Coverage limits
 
