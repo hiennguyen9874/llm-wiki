@@ -1,0 +1,74 @@
+\section{Introduction}
+Given textual descriptions as queries, text-based person retrieval~\cite{li2017person} is to retrieve images of individuals from a large database, which is different from conventional image-based person re-identification (Re-ID)~\cite{book} and coarse-grained image-text retrieval~\cite{lei2022loopitr}.
+Compared to image-based person re-identification, text-based retrieval offers a convenient and intuitive interaction for describing individual attributes due to the accessibility of textual information. 
+In contrast to general cross-modal retrieval, text-based person retrieval focuses on retrieving images of individuals with finer details. 
+Recently, text-based person retrieval has gained increasing attention across various domains, notably in public safety. 
+Nevertheless, text-based person retrieval remains challenging due to the limited availability of data. 
+As a cross-modal retrieval problem~\cite{KE2024110481, LIU2023109636}, existing pedestrian retrieval datasets typically collect images from pedestrian re-identification datasets and manually annotate the accompanying text descriptions. 
+This approach significantly restricts the collection of datasets. 
+On one hand, due to privacy concerns and the high costs of annotation, collecting adequate data to meet the requirements of deep learning models is difficult. 
+On the other hand, manual annotation is laborious and inevitably introduces annotator bias. 
+Recent studies have employed two strategies to tackle this issue. 
+One line of approaches~\cite{shu2022see, jiang2023cross, bai2023rasa} involves utilizing models pretrained on extensive large-scale image-text pair datasets, thereby leveraging the robust cross-modal alignment capabilities inherent in large-scale vision language models. 
+Another promising strategy~\cite{yang2023towards, zheng2017unlabeled} is to utilize generative model, \eg, GAN~\cite{creswell2018generative}, Diffusion~\cite{rombach2021highresolution, sd15}, 3D human templates~\cite{zheng2022parameter}, to generate specialized data for network pretraining. 
+The strategy of generating person-text data for pretraining can well bypass the privacy issue, while generating high-quality, large-scale samples benefits from the significant advances in diffusion-based generative models.
+In~\cite{yang2023towards}, Yang \etal~ make an early attempt at this thought, leveraging the off-the-shelf diffusion models to generate a large pretraining dataset, called MALS, which contains $1,510,330$ image-text pairs.
+However, we observe that a significant challenge lies in the domain discrepancies that prevail between pretraining datasets and target pedestrian retrieval datasets. 
+These discrepancies, stemming from varying illumination conditions, color distributions, and viewpoints, substantially undermine the efficacy of the prevailing pretraining and fine-tuning paradigm. 
+For instance, as shown in Fig.~\ref{fig: examples}, there is a considerable data bias between the prevailing generated MALS~\cite{yang2023towards} and the real-world text-based pedestrian retrieval dataset CUHK-PEDES~\cite{li2017person}.
+
+
+In an attempt to solve this problem, we present a unified text-based person retrieval pipeline tailored to address domain adaptation at both image and region levels. 
+Our proposed pipeline comprises two integral components: Domain-aware Diffusion (DaD) and Multi-granularity Relation Alignment (MRA). 
+The DaD component bridges the domain gap by diffusing the distribution of synthetically generated images from the source pretraining dataset towards the target domain, exemplified by CUHK-PEDES. 
+This migration process effectively aligns the visual characteristics of the data across domains. 
+In other words, Domain-aware Diffusion generates domain-aligned data for pretraining. 
+The synthetic data forms the Synthetic Domain-Aligned dataset (SDA). 
+We show some examples of SDA in Fig.~\ref{fig: examples}, and it is obvious that the SDA style is closer to the target domain compared to MALS. 
+In Table~\ref{tab: fid}, we report the FID of MALS, GE-SD1.5, and SDA. GE-SD1.5 is a dataset consisting of synthetic images, the generation of which directly adopts Stable Diffusion 1.5~\cite{sd15}, and the prompts to guide the image generation are the text from CUHK-PEDES. The FID of SDA is about $54.85\%, 36.69\%$ lower than that of GE-SD1.5 and MALS respectively, indicating the better synthetic image quality of SDA.
+
+To support a more fine-grained alignment during pretraining, we further augment our SDA with region-phrase level annotation. 
+In specific, we detect arbitrary regions on the domain-aligned pictures based on corresponding image captions with off-the-shelf detectors~\cite{liu2023grounding}.
+Based on this, we introduce  Multi-granularity Relation Alignment (MRA) to conduct a fine-grained alignment.
+It encompasses the co-alignment of image-text pairs and region-phrase correspondence, thus ensuring holistic consistency across modalities. 
+Going beyond image-level alignment, we delve deeper into the region level with MRA, introducing fine-grained local region matching to refine the representations further. 
+This strategic design allows for better capture and alignment of intricate relations within pedestrian images and their corresponding textual descriptions. 
+Extensive experiments on benchmark datasets, \ie, CUHK-PEDES, ICFG-PEDES, and RSTPReid, show that our method outperforms prior art, achieving state-of-the-art performance. 
+The results underscore the effectiveness of our approach in mitigating the adverse effects of domain discrepancies and enhancing the overall retrieval accuracy. 
+In summary, our primary contributions are:
+\begin{itemize}
+    \item We propose Domain-aware Diffusion (DaD) to bridge the domain gap at the image level by aligning the image distributions between pretraining and real-world datasets. Leveraging DaD, we construct a large-scale Synthetic Domain-Aligned dataset (SDA) comprising $1,217,750$ image-text pairs, most of which are annotated with fine-grained region-phrase information, \eg, gender, hat, and pants.
+    \item Building upon SDA, we further introduce a Multi-granularity Relation Alignment (MRA) pretraining framework for region-level adaptation. MRA enhances the alignment between visual regions and their textual descriptions, thereby tackling fine-grained semantic discrepancies.
+    \item Extensive experiments confirm that our dual-level adaptation approach effectively achieves domain alignment between pretraining and target datasets, surpassing the state-of-the-art methods on three real-world datasets, \ie, CUHK-PEDES, ICFG-PEDES, and RSTPReid. 
+\end{itemize}
+
+
+\begin{table}[!t]
+\caption{The FID score of the prevailing generated dataset MALS~\cite{yang2023towards}, GE-SD1.5 by Stable Diffusion1.5, and our SDA dataset with the target dataset CUHK-PEDES. 
+}
+\label{tab: fid}
+\small
+\centering
+\setlength{\tabcolsep}{7pt}
+\begin{tabular}{lccc}
+\hline
+Dataset & GE-SD1.5~\cite{sd15} & MALS~\cite{yang2023towards}  & SDA (Ours) \\
+\shline
+FID $\downarrow$  & 111.41   & 92.25  & \textbf{56.56} \\
+\hline
+\end{tabular}
+\end{table}
+
+
+\begin{figure*}[!t]
+\centering
+\includegraphics[width=1\linewidth]{images/pipeline.pdf}
+\caption{Overview of the proposed Domain-aware Diffusion (DaD) and the Synthetic Domain-Aligned dataset (SDA) construction. 
+First, we obtain DaD by fine-tuning the diffusion model on the real-world target-domain image-text pair and deploy it for accomplishing image-level domain adaptation, followed by data filtering. 
+Second, we construct a synthetic pedestrian image-text pair dataset, SDA, with region annotations using off-the-shelf tools, \ie, Image Captioner and Open-set Object Detector. 
+}
+\label{fig: pipeline}
+\end{figure*}
+
+
+

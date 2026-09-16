@@ -1,0 +1,25 @@
+\section{Introduction}
+\label{sec:intro}
+
+Text-based Person Search (TBPS) is a cross-modal retrieval task that locates target individuals in large image galleries using natural language descriptions~\cite{1}. As a bridge between Person Re-identification (Re-ID) and text-to-image retrieval, TBPS allows for more flexible and descriptive queries than traditional image-based methods. However, TBPS remains challenging due to redundant visual features~\cite{2,3} and the inherent noise in cross-modal correspondence~\cite{xie2025dynamic}. Furthermore, the lack of adaptive mechanisms for handling ambiguous queries during inference limits practical application.
+
+\begin{figure}[h!]
+\centering
+\includegraphics[width=\linewidth]{fig1.pdf}
+\caption{A comparison of TBPS.(a) \textbf{Existing Method:} The search is performed directly using the original text query.(b) \textbf{Our IQE Approach:} We improve the query at inference time without retraining. First, our method finds a relevant anchor image. Then, an MLLM learns key visual details from this image through a Q\&A process. Finally, it fuses these details with the original text to create an improved query and re-ranks the search results.}
+\label{fig:iqe}
+\end{figure}
+
+Most existing methods improve cross-modal alignment using fine-grained annotations or large pre-trained models like CLIP~\cite{4}. While integrated planning and scheduling frameworks have proven effective in optimizing complex systems~\cite{liu2025integratedplanningmachinelevelscheduling}, TBPS methods still mainly rely on \textit{passive alignment}—matching features in the embedding space without actively improving the inputs. Some approaches explore hierarchical visual perception to achieve deeper alignment~\cite{xie2026delvingdeeperhierarchicalvisual,xie2026hvdhumanvisiondrivenvideo}, yet they also suffer from this passive limitation. This leads to two key problems: (1) Methods such as CFAM~\cite{5} depend on manual annotations, but their performance drops when annotations are scarce; (2) Methods like DM-Adapter~\cite{6} and MGRL~\cite{7} cannot refine brief or ambiguous queries at inference, resulting in poor results for incomplete descriptions.
+
+Some recent works have attempted active refinement or interaction. For instance, chat-driven mechanisms have been proposed to generate text for retrieval~\cite{xie2025chat}, though purely generative approaches may hallucinate attributes. Other works like TVFR~\cite{8} are sensitive to the initial query, and AUL~\cite{9} mainly helps during training. \textit{These limitations motivate us to design a method that achieves fine-grained cross-modal alignment during training and actively refines ambiguous or incomplete queries at inference.}
+
+To solve the aforementioned problems, we propose \textbf{CONQUER}, a two-stage framework as illustrated in Fig.~\ref{fig:iqe}. During training, our \textbf{Context-Aware Representation Enhancement (CARE)} module learns robust cross-modal embeddings. Subsequently, at the inference stage, our \textbf{Interactive Query Enhancement (IQE)} module acts as a plug-and-play enhancement that adaptively refines user queries. By leveraging fine-grained attributes extracted from high-confidence candidate images, IQE enriches ambiguous or underspecified descriptions. The enhanced information is then fused with the original query, enabling more accurate re-ranking of the gallery and improved retrieval results.
+
+Our main contributions are as follows:
+\begin{itemize}
+    \item We introduce CARE, a context-aware representation enhancement module that addresses the cross-modal gap by combining multi-granularity representation encoding, complementary pair mining, and context-guided optimal matching via Optimal Transport.
+    \item We develop IQE, an interactive query enhancement strategy that adaptively refines ambiguous or incomplete user queries during inference by leveraging attribute information from candidate images.
+    
+    \item Extensive experiments show that CONQUER achieves state-of-the-art performance on several TBPS benchmarks and demonstrates strong robustness in cross-domain and incomplete-query scenarios.
+\end{itemize}

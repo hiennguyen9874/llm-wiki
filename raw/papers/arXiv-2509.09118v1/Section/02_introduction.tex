@@ -1,0 +1,38 @@
+\section{Introduction}
+The rapid advancement of large-scale vision-language pre-training \cite{chen2023vlp, alip, rwkvclip, wu2023grounded} has been driven by the unprecedented availability of web-sourced image-text pairs. As a milestone in vision-language representation learning, Contrastive Language–Image Pre-training (CLIP) \cite{radford2021learning} employs dual encoders for visual and textual modalities and leverages a contrastive loss mechanism \cite{wang2021understanding} to learn joint representations. Trained on 400 million noisy web-curated image-text pairs, CLIP exhibits strong zero-shot generalization and has been widely adopted for tasks including image classification \cite{abdelfattah2023cdul, peng2023sgva, unicom}, retrieval \cite{sain2023clip, shao2023unified,decoupled}, and grounding \cite{xiao2023clip,mlcd,rice}. However, CLIP shows suboptimal performance in text-based person retrieval, as evidenced by recent studies \cite{shao2023unified, yan2023clip, li2023clip, han2024clip, zhao2025gradeclip}.
+
+\begin{figure}[t!]
+\begin{subfigure}[b]{\linewidth}
+\centering
+\includegraphics[width=1.0\linewidth]{Figure/main-fig1-2.png}
+\vspace{-6mm}
+\subcaption{\small Current work exhibits several deficiencies}
+\end{subfigure}
+\hfill
+\hfill
+\begin{subfigure}[b]{\linewidth}
+\centering
+\includegraphics[width=1.0\linewidth]{Figure/main-fig2-3.png}
+\vspace{-6mm}
+\subcaption{\small Our method for robust person representation learning}
+\end{subfigure}
+\vspace{-7mm}
+\caption{Current human-centric datasets are limited in diversity and scale, complicating model training due to noise interference and hindering the effective learning of fine-grained semantics.}
+\vspace{-5mm}
+\label{fig:motivation}
+\end{figure}
+
+
+CLIP's suboptimal performance in text-based person retrieval stems from two key limitations. First, the scarcity and noise levels in person-centric image-text data pose significant challenges. Existing datasets such as CUHK-PEDES \cite{li2017person}, ICFG-PEDES \cite{ding2021semantically}, and RSTPReid \cite{zhu2021dssl} are constrained in scale due to their reliance on extensive manual annotations. Although large-scale person-centric datasets like LUPerson \cite{fu2021unsupervised} comprise approximately 200K identities and 4 million images, they lack corresponding textual descriptions. Recent efforts~\cite{tan2024harnessing} have employed Multimodal Large Language Models (MLLMs) to address data scarcity by generating synthetic captions. However, these automatically produced annotations frequently contain inaccuracies and semantic misalignments, thereby introducing noise into the training process and requiring the implementation of corrective strategies \cite{zhao2024genixer}. Second, CLIP's global contrastive learning paradigm fails to effectively capture fine-grained visual semantics crucial for distinguishing similar individuals~\cite{yan2023clip, liu2024distilling}. This is particularly problematic as person retrieval often relies on localized attributes (\textit{e.g.}, clothing patterns or accessories) that require precise visual-semantic alignment.
+
+In this work, we advance CLIP for person representation learning through synergistic improvements in data curation and model architecture~(Fig.\ref{fig:motivation}). We initially introduce \textbf{WebPerson}, a large-scale person-centric dataset consisting of 5 million high-quality text-image pairs derived from web-sourced images. After that, we propose the \textbf{GA-DMS}~(\textbf{G}radient-\textbf{A}ttention Guided \textbf{D}ual-\textbf{M}asking \textbf{S}ynergetic) framework, which enhances cross-modal alignment by masking noisy textual tokens based on a gradient-attention similarity score. Meanwhile, we incorporate masked token prediction objectives to enforce the model to predict informative text tokens, thereby enhancing fine-grained semantic representation learning. Extensive experiments demonstrate that GA-DMS establishes new state-of-the-art performance across multiple benchmarks. The main contributions of this paper are summarized as follows:
+\begin{itemize}[noitemsep,topsep=0pt]
+\item We \textbf{design a novel person-centric data construction pipeline} that automatically filters and annotates web-sourced images, yielding the \textbf{WebPerson} dataset with 5 million high-quality image-text pairs.
+
+\item We \textbf{propose the GA-DMS}~(\textbf{G}radient-\textbf{A}ttention Guided \textbf{D}ual-\textbf{M}asking \textbf{S}ynergetic) framework to improve cross-modal alignment through gradient-attention guided noisy text token masking while enhancing fine-grained visual-semantic correspondence via masked informative token prediction objectives.
+
+\item We \textbf{conduct comprehensive experiments and demonstrate that GA-DMS achieves new state-of-the-art performance} across multiple text-based person retrieval datasets.
+\end{itemize}
+
+
+

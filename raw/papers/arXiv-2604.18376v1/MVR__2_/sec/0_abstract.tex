@@ -1,0 +1,257 @@
+\begin{abstract}
+In text-to-image person retrieval tasks, the diversity of natural language expressions and the implicitness of visual semantics often lead to the problem of Expression Drift, where semantically equivalent texts exhibit significant feature discrepancies in the embedding space due to phrasing variations, thereby degrading the robustness of image-text alignment. This paper proposes a semantic compensation framework (MVR) driven by Large Language Models (LLMs), which enhances cross-modal representation consistency through multi-view semantic reformulation and feature compensation. The core methodology comprises three components: \ding{192} \textbf{M}ulti-\textbf{V}iew \textbf{R}eformulation (\textbf{MVR}): A dual-branch prompting strategy combines key feature guidance (extracting visually critical components via feature similarity) and diversity-aware rewriting to generate semantically equivalent yet distributionally diverse textual variants; \ding{193} Textual Feature Robustness Enhancement: A training-free latent space compensation mechanism suppresses noise interference through multi-view feature mean-pooling and residual connections, effectively capturing "Semantic Echoes"; \ding{194} Visual Semantic Compensation: VLM generates multi-perspective image descriptions, which are further enhanced through shared text reformulation to address visual semantic gaps. Experiments demonstrate that our method can improve the accuracy of the original model well without training and performs SOTA on three text-to-image person retrieval datasets.
+\end{abstract}
+
+
+\begin{figure}
+\centering
+\includegraphics[width=\linewidth]{figs/intro.png}
+\caption{Cosine similarity visualization between word vectors and sentences with same meaning but different words/orders. It shows that sentences with the same meaning may pay more attention to different words.}
+\label{fig:intro}
+\end{figure}
+
+
+\section{Introduction}
+Text-to-image person retrieval \cite{CUHK-PEDES, ding2021semantically, zhu2021dssl} targets the challenging task of retrieving person images from a large-scale gallery based on natural language descriptions. As a cross-modal retrieval problem, it demands precise semantic alignment between heterogeneous modalities (i.e., vision and language). In recent years, this task has attracted attention due to its broad applicability, ranging from personal photo album search to intelligent surveillance and public security. The ability to bridge text with visual person representations holds transformative potential across numerous real-world scenarios.
+
+% stands as a foundational task bridging computer vision and natural language processing. 
+
+Recent advances in contrastive learning-based vision-language pretrained model (VLM)~\cite{radford2021learning, li2022blip} have enabled impressive progress by learning joint embeddings from large-scale image-text pairs. Building upon these foundations, many state-of-the-art text-to-image person retrieval methods \cite{HAM, zuo2024plip, hu2024empowering} leverage pretrained VLM to bridge the semantic gap between textual and visual features. However, these methods still face significant challenges when confronted with the inherent diversity of natural language expressions and the ambiguity of visual semantics. On the textual side, the richness of human language (e.g., synonym substitution, syntactic variation) often leads to unintended feature dispersion of semantically equivalent texts in the embedding space. On the visual side, implicit semantics in images (e.g., abstract attributes) are rarely fully captured, resulting in semantic gaps during cross-modal alignment. Achieving robust semantic consistency across modalities remains a critical bottleneck for retrieval performance.
+
+Our motivation stems from a fundamental observation that natural language is inherently diverse and compositional: semantically equivalent statements can be expressed in vastly different ways. Similarly, visual content may contain abstract semantics that can not be precisely captured by raw pixel-based features alone. However, existing methods typically encode each modality as a static point in the embedding space, overlooking the variability and ambiguity present in real-world scenarios. As illustrated in Fig.~\ref{fig:intro}, different textual descriptions of the same person may lead the model to focus on different words, which may get different feature representations. In some cases, some descriptions may lay high attention to non-critical words while diluting the contribution of critical ones, (e.g., the Reformulation 3 in Fig.\ref{fig:intro}), resulting in retrieval failures. This highlights the need for more robust and semantically consistent representations across modalities.
+
+
+To address these issues, we propose a simple yet effective \textbf{training-free semantic compensation framework} (MVR) that enhances both textual and visual representations through multi-view reformulation and cross-modal semantic compensation. Our method is built upon the following two intuitions: (1) semantically robust features can be distilled from multiple reformulations of the same input, and (2) language can serve as a powerful semantic bridge to enhance vision representations. We design two parallel compensation modules: one for text and one for vision. 
+In the textual branch, we leverage large language models (LLMs) in a collaborative fashion to construct multi-view reformulations of a query and integrate their features via residual mean pooling. In the visual branch, we translate image content into natural language using a pre-trained VLM, augment the textual descriptions via multi-view LLM reformulations, and project them back to semantic space to compensate the original visual embedding. 
+
+These reformulations are encoded by frozen text encoders, and their features are aggregated in latent space to form a semantically enriched representation. Together, these modules significantly improve representation robustness under semantic shift and input noise. Note that this entire process requires no training, fine-tuning or additional supervision.
+
+
+To summarize, our main contributions are as follows:
+\begin{itemize}
+\item We identify and systematically address the vulnerability of current text retrieval systems to \textbf{expression variance and semantic drift}.
+\item We introduce a novel training-free \textbf{M}ulti-\textbf{V}iew \textbf{R}eformulation (\textbf{MVR}) framework that enhances both text and visual features through multi-view semantic compensation.
+\item We propose a unified formulation that distills semantically invariant signals via residual composition of frozen encoder features, without training.
+\item Extensive experiments on standard text-to-image person retrieval benchmarks demonstrate that our method significantly improves robustness of features, but the extra computational overhead will not affect its \textbf{real-time performance}.
+\end{itemize}
+
+\begin{figure*}
+\centering
+\includegraphics[width=\textwidth]{figs/main.pdf}
+\caption{Overview of the proposed framework (MVR) for the text-to-image person retrieval, which is a training-free framework could be directly applied to different text-to-image retrieval tasks.}
+\label{fig:main}
+\end{figure*}
+
+
+
+\section{Related Works}
+
+
+
+\subsection{Text-to-Image Person Retrieval}
+
+Text-to-image person retrieval is part of person re-identification
+\cite{zhao2025mos,liu2025try,zhao2025ccup,xu2025identity,xu2026bit,xu2026cmcc,ma2025omniperson}, aims to retrieve pedestrian images using textual descriptions, which is important for applications like surveillance and social media analysis \cite{CUHK-PEDES, ding2021semantically, bai2023text, cao2024empirical}. Early works aligned global visual-textual features in a shared space \cite{zheng2020dual, zhang2018deep,liu2025looking}, with instance loss \cite{zheng2020dual} modeling intra-modal distribution and TIMAM \cite{sarafianos2019adversarial} learning modality-invariant features.
+
+To handle fine-grained matching challenges from high intra-class variations, part-level alignment methods were proposed. These include explicit part detection and alignment \cite{ding2021semantically, wang2020vitaa, li2023dcel,yuan2025modality,li2025text}, and implicit noun-body correspondence learning \cite{shao2023unified}. Some works \cite{wang2020high, chen2022tipcb} segment images and adaptively align text. Semantically aligned networks \cite{ding2021semantically} and multi-level matching frameworks like TIPCB \cite{chen2022tipcb} improve alignment by addressing modality gaps. IVT \cite{shu2022see} uses a unified network and semantic alignment strategies; IRRA \cite{IRRA} enhances global matching via local relation reasoning. RDE \cite{RDE} focuses on hard negatives and noisy correspondence, while DSSL \cite{zhu2021dssl} separates person and surroundings. CADA \cite{lin2024cross} builds bidirectional associations by addressing image-text discrepancies. RaSa \cite{bai2023rasa} enhances robustness with relation and sensitivity-aware representation learning.
+
+
+\subsection{LLM-Driven Person Re-Identification}
+
+Although prior works have focused on multimodal alignment, many suffer from poor generalization. To address this, Large Language Models (LLMs) have been introduced to improve person Re-ID via data generation and feature enhancement.
+
+For data augmentation, LLMs are used to generate synthetic texts or image-text pairs \cite{yang2024mllmreid}. LV-ReID \cite{xia2025lv} combines vision-language alignment via BLIP-2 \cite{li2022blip} with a Q-Former to bridge modalities. TVI-LFM \cite{hu2024empowering} extracts and aligns features from LLM-generated texts to reduce domain gaps. TBPS-CLIP \cite{cao2024empirical} applies basic training tricks to CLIP for lightweight performance. LVLM-ReID \cite{wang2024large} uses LLM prompts to generate semantic tokens capturing pedestrian appearance. \cite{10879282} proposes a human-LLM collaborative method to inject textual descriptions into Re-ID datasets.
+
+Beyond generation, LLMs are also used to enhance feature representation through semantic and cross-modal reasoning \cite{HAM, zuo2024plip, fu2022large}. SPAC \cite{zuo2024plip} combines ResNet101-FPN \cite{he2016deep, lin2017feature} and GPT2 \cite{radford2019language} to generate rich captions. HAM \cite{HAM} enables LLMs to learn human-style annotations for large-scale auto-labeling. CLIP \cite{radford2021learning} is used for attribute recognition with heuristic templates \cite{shao2023unified, HAM}. In \cite{yang2023towards}, diffusion models \cite{rombach2022high} synthesize images, and BLIP-2 \cite{li2022blip} generates captions. LUPerson-MLLM \cite{tan2024harnessing} builds captions using LLM-driven multi-turn dialogues, while LUPerson-T \cite{shao2023unified} generates pseudo-descriptions with a divide-conquer-combine CLIP strategy.
+
+
+
+
+
+
+
+\section{Methods}
+
+
+\subsection{Expression Drift and Semantic Invariance}
+In text-to-image retrieval tasks, natural language serves as a rich medium of semantic description. However, due to the high flexibility and diversity of language, the same visual concept can often be described in various textual forms. For instance, ``a man wearing a blue jacket" and ``a man with a blue jacket" are semantically equivalent, yet due to differences in vocabulary and syntax, some words and order changes may cause the features obtained by the model to undergo feature shift, and the overall features can be affected by some irrelevant words, which impairs the performance of cross-modal matching, as shown in Fig.\ref{fig:intro}.
+
+To better understand the feature shift caused by such variations in expression, we formulate the problem as follows. Given an original text description \( T \) with its corresponding embedding \( \mathbf{v}_T \), and a reformulated version \( T' \) with embedding \( \mathbf{v}_{T'} \), although \( T \approx T' \) semantically, we often observe:
+\begin{equation}
+\|\mathbf{v}_T - \mathbf{v}_{T'}\|_2 \gg 0 
+\end{equation}
+
+Furthermore, due to expression differences, the reformulated text may focus on different semantic cues, leading to shifts in the attention of the encoded features. As the first two lines in Fig.\ref{fig:intro}, the original description \( T \) may emphasize the appearance of the lower body (e.g., pants), while the reformulated version \( T' \) may highlight the upper body (e.g., coat), resulting in the following observations:
+\begin{equation}
+\mathbf{v}_T \cdot \mathbf{e}(\text{pant}) > \mathbf{v}_{T'} \cdot \mathbf{e}(\text{pant}), \quad
+\mathbf{v}_{T'} \cdot \mathbf{e}(\text{coat}) > \mathbf{v}_{T} \cdot \mathbf{e}(\text{coat})
+\end{equation}
+where $v$ is the sentence vector, $e$ is the word embedding.
+
+That is, despite referring to the same visual content, there exists a significant distance between \( T \) and \( T' \) in the feature space. We define this phenomenon as \textbf{Expression Drift}, which introduces instability and inconsistency in image-text alignment tasks.
+
+On the other hand, the prior study~\cite{hu2024empowering,yuan2025poses,yuan2025neighbor} have demonstrated that analogical reasoning in embedding spaces can be represented through vector arithmetic. For example:
+\begin{equation}
+\mathbf{e}(\text{father}) - \mathbf{e}(\text{male}) + \mathbf{e}(\text{female}) \approx \mathbf{e}(\text{mother})
+\end{equation}
+
+Similarly, in the multi-modal embedding space, this property can be observed as:
+\begin{equation}
+\mathbf{v}_{\text{img}}(\text{black coat}) - \mathbf{v}(\text{black}) + \mathbf{v}(\text{red}) \approx \mathbf{v}_{\text{img}}(\text{red coat})
+\end{equation}
+
+These properties inspire us to introduce a compensation mechanism that captures \textbf{Semantic Invariance} — ensuring that different textual expressions conveying the same semantics are aligned consistently in the embedding space.
+
+\subsection{LLM Collaborative Multi-View Reformulation} \label{reformulation}
+
+To alleviate the inconsistency caused by \textbf{Expression Drift}, we propose a LLM Collaborative \textbf{Multi-View Reformulation (MVR)} mechanism. The core idea is to leverage the generative capability of large language models (LLMs) like Grok\cite{grok3}, ChatGPT\cite{openai2024gpt4o}, Qwen\cite{Qwen2.5-VL}, DeepSeek\cite{guo2025deepseek} etc.,to introduce \textbf{linguistic diversity} while preserving the core semantics, thus enhancing the robustness of textual features against natural language variation.
+
+It is designed with two strategies to enhance the stability of textual representations in the embedding space:
+
+\noindent\textbf{Key Feature Consistency}: The reformulated descriptions are constrained to retain visually key semantic words (e.g., colors, body parts, gender) to ensure semantic stability.
+
+\noindent\textbf{Controlled Diversity Imagination}: Within the bounds of real-world plausibility, LLMs are guided to generate diverse expressions from different perspectives and styles, enhancing the generalization of the model to unseen phrasings.
+
+
+\subsubsection{Strategy A: Key Feature Consistent Reformulation} 
+
+\hfill \break
+This strategy explicitly instructs the language model to \textbf{preserve a list of visually significant keywords} from the original description. 
+
+To get the keywords we proposed \textbf{CLIP-based Key Words Extraction.}
+Given a textual input \( T = \{w_1, w_2, \dots, w_n\} \), we aim to extract a set of key semantic tokens \(\mathcal{K}_T\) that are most relevant to the overall sentence-level embedding. We compute the importance of each token by measuring the cosine similarity between its embedding and the global sentence embedding using CLIP~\cite{radford2021learning}. Specifically, we define:
+\begin{equation}
+\mathcal{K}_T = \{ w_i \in T \mid \text{CosSim}(\mathbf{e}_i, \mathbf{v}_T) \geq \delta \}
+\end{equation}
+where, \(\mathbf{v}_T \in \mathbb{R}^d\) denotes the global sentence-level embedding obtained from CLIP's text encoder, \(\mathbf{e}_i \in \mathbb{R}^d\) is the embedding of word \(w_i\), extracted from the token embedding layer. The cosine similarity is defined as:
+\begin{equation}
+\mathcal{K}_T = \{ w_i \mid \tilde{\alpha}_i \geq \delta \}
+\end{equation}
+
+$\delta$ is the threshold to help retain key words. This is just a \textbf{simple and fast} conduction to get keywords, since our focus is to \textbf{validate the idea}, \textbf{NOT} the \textbf{keyword extraction accuracy}. If use a better keywords extractors could be better, but it is just an extra gain, which not affect the conclusion. This choice is empirical and may vary with the dataset and task.
+
+With these keywords, when generating the reformulated description \( T'_a \), the model must satisfy:
+\begin{equation}
+T^a = \text{LLM}(T \mid \text{P}_{\text{key}}; \forall k \in \mathcal{K}_T, \; k \in T^a)  
+\end{equation}
+
+where, $\text{P}_{\text{key}}$ is the prompt with keywords. That is, the reformulated sentence must explicitly retain all keywords in \( \mathcal{K}_T \), ensuring the semantic anchor is preserved and minimizing potential feature drift.
+
+
+\subsubsection{Strategy B: Diversity-aware Reformulation}
+
+\hfill \break
+This strategy allows the LLM to \textbf{generate reformulations with free-form expressions under realistic constraints}, enabling diverse perspectives to emerge without semantic distortion. We guide the language model with:
+\begin{equation}
+T^b = \text{LLM}(T \mid \text{P}_{\text{diverse}}), \quad \text{s.t. } \text{D}(T, T^b) \leq \tau
+\end{equation}
+where, $\text{P}_{\text{diverse}}$ is the prompt with diversity, \(\text{D}(T, T^b)\) denotes the semantic diversity between the original and reformulated texts, denote as temperature \(\tau\), which is the LLM's temperature, controls semantic faithfulness. This constraint ensures reformulated sentence remains anchored to the original text.
+
+
+
+\begin{table*}[tp]
+\caption{Comparisons with state-of-the-art ReID methods under the traditional evaluation setting. \textbf{Bold} indicates performance improvement over the corresponding baseline. \textbf{Gray highlight denotes the state-of-the-art result on that dataset}.}
+\vspace{-0.8em}
+\label{tab:sota-traditional}
+\centering
+\resizebox{0.975\linewidth}{!}{
+\begin{tabular}{c|c|cccc|cccc|cccc}
+\hline
+\multirow{2}{*}{Method} & \multirow{2}{*}{Venue} & \multicolumn{4}{c|}{RSTPReid} & \multicolumn{4}{c|}{CUHK-PEDES} & \multicolumn{4}{c}{ICFG-PEDES}  \\ 
+\cline{3-14} 
+ &  & R1 & R5 & R10 & mAP & R1 & R5 & R10 & mAP & R1 & R5 & R10 & mAP \\ 
+\hline
+CAIBC \cite{wang2022caibc} & ACM MM '22 &47.35 &69.55 &79.00& - & 64.43 & 82.87 & 88.37 & - &- &- &- &-  \\
+LGUR \cite{shao2022learning} & ACM MM '22 & 47.95 & 71.85 & 80.25 & -  & 65.25 & 83.12 & 89.00 & - & 59.02 & 75.32 & 81.56 & - \\
+DCEL \cite{li2023dcel} & ACM MM '23 & 61.35 & 83.95 & 93.46 & - & 73.71 & 89.33 & 93.46 & - & 64.88 & 81.34 & 86.72 & -  \\
+LCR$^2$S \cite{yan2023learning} & ACM MM '23 & 54.95 & 76.65 & 84.70 & 40.92 & 67.36 & 84.19 & 89.62 & 59.20 & 57.93 & 76.08 & 82.40 & 38.21  \\
+
+APTM \cite{yang2023towards} & ACM MM '23 & 67.50 & 85.70 & 91.45 & 52.56 & 76.53 & 90.04 & 94.15 & 66.91 & 68.51 & 82.99 & 87.56 & 41.22  \\
+RaSa \cite{bai2023rasa}& IJCAI '23 & 66.90 & 86.50 & 91.35 & 52.31 & 76.51 & 90.29 & 94.25 & 69.38 & 65.28 & 80.40 & 85.12 & 41.29  \\
+
+CFine \cite{yan2023clip} & TIP '23 & 50.55 &72.50 &81.60 & - & 69.57 & 85.93 & 91.15 & - & 60.83 & 76.55 & 82.42 & -  \\ 
+VGSG \cite{he2023vgsg} & TIP '23 & - & - & - & - & 67.52 & 84.37 & 90.26 & - &60.64 & 76.01 & 82.01  \\
+UniPT \cite{shao2023unified} & ICCV '23 & 51.85 & 74.85 & 82.85 & - & 68.50 & 84.67 & 90.38 & - & 60.09 & 76.19 & 82.46 & -  \\
+CADA \cite{lin2024cross} & TMM '24 & 67.70 & 84.60 & 89.75 & 49.95 & 77.20 & 90.68 & 93.92 & 68.45 & 67.38 & 81.34 & 85.64 & 37.81  \\ 
+TBPS-CLIP \cite{cao2024empirical}  & AAAI '24 & 61.95 & 83.55 & 88.75 & 48.26 & 73.54 & 88.19 & 92.35 & 65.38 & 65.05 & 80.34 & 85.47 & 39.83  \\
+CFAM \cite{zuo2024ufinebench} &  CVPR '24 & 60.51 & 82.85 & 89.71 & 47.64 & 73.67 & 89.71 & 93.57 & 65.94 & 63.57 & 80.57 & 86.32 & 38.34  \\
+UMSA  \cite{zhao2024unifying} & AAAI '24 & 63.40 & 83.30 & 90.30 & 49.28 & 74.25 & 89.83 & 93.58 & 66.15 & 65.62 & 80.54 & 85.83 & 38.78  \\
+LSPM \cite{li2024learning} & TMM '24 & - & - & - & -  & 74.38 & 89.51 & 93.42 & 67.74 & 64.40 & 79.96 & 85.41 & 42.60 \\
+IRLT \cite{liu2024causality} & AAAI '24 & 61.49 & 82.26 & 89.23 & -  & 74.46 & 90.19 & 94.01 & - & 64.72 & 81.35 & 86.31 & - \\
+FSRL \cite{wang2024fine} & ICMR '24 & 60.20 & 81.40 & 88.60 & 47.38 & 74.65 & 89.77 & 94.03 & 67.49 & 64.01 & 80.42 & 85.56 & 39.64  \\
+Propot \cite{yan2024prototypical} & ACM MM '24 & 61.87 & 83.63 & 89.70 & 47.82 & 74.89 & 89.90 & 94.17 & 67.12 & 65.12 & 81.57 & 86.97 & 42.93  \\
+
+PLOT \cite{park2024plot} & ECCV '24 & 61.80 & 82.85 & 89.45 & - & 75.28 & 90.42 & 94.12 & - & 65.76 & 81.39 & 86.73 & -  \\
+AUL \cite{li2024adaptive} & AAAI '24 & 71.65 & 87.55 & 92.05 & -  & 77.23 & 90.43 & 94.25 & - & 69.16 & 83.32 & 88.37 & - \\
+F-WoRA \cite{sun2025data} & WWW '25 & 66.85 & 86.45 & 91.10 & 52.49 & 76.38 & 89.72 & 93.49 & 67.22 & 68.35 & 83.10 & 87.53 & 42.60  \\
+\hline
+IRRA \cite{IRRA} &  CVPR '23 & 60.20 & 81.30 & 88.20 & 47.17  & 73.38 & \textbf{89.93} & 93.71 & 66.10 & 63.46 & 80.25 & 85.82 & 38.06 \\
+\rowcolor[HTML]{EAFAF1} 
+IRRA + \textbf{ours} & - & \textbf{63.10}  & \textbf{82.40}  & \textbf{89.40}  & \textbf{49.21} & \textbf{74.35}  & 89.56 & \textbf{93.83}  & \textbf{66.98} & \textbf{64.51} & \textbf{80.40} & \textbf{85.83} & \textbf{38.70}  \\
+\hline
+RDE \cite{RDE} & CVPR '24 & 65.35 & 83.95 & 89.90 & 50.88  & 75.94 & 90.14 & 94.12 & 67.56 & 67.68 & 82.47 & 87.36 & 40.06 \\
+\rowcolor[HTML]{EAFAF1} 
+RDE + \textbf{ours} & -  & \textbf{67.60} & \textbf{85.15} & \textbf{90.10} & \textbf{52.07} & \textbf{76.23} & \textbf{90.27} & \textbf{94.36} & \textbf{68.10} & \textbf{68.11} & \textbf{82.48} & \textbf{87.40} & \textbf{40.60}  \\
+\hline
+HAM(IRRA) \cite{HAM} & CVPR '25 & 70.80 & 87.50 & 92.40 & 54.52  & 76.25 & 90.63 & \textbf{94.74} & 68.58 & 68.25 & 82.88 & 87.69 & 41.84 \\
+\rowcolor[HTML]{EAFAF1} 
+HAM(IRRA) + \textbf{ours} & - & \textbf{71.05} & \textbf{87.85} & \cellcolor{gray!25}{\textbf{92.70}} & \textbf{55.15} & \textbf{76.79}  & \textbf{90.92} & 94.23 & \textbf{68.99} & \textbf{68.60} & \textbf{83.17} & \textbf{87.78} & \textbf{42.58}  \\
+\hline
+HAM(RDE) \cite{HAM} & CVPR '25 & 71.50 & 86.50 & 91.15 & 55.34  & 77.99 & 91.34 & 95.03 & 69.72 & 69.95 & 83.88 & 88.39 & 42.72 \\ 
+\rowcolor[HTML]{EAFAF1} 
+HAM(RDE) + \textbf{ours} & - & \cellcolor{gray!25}{\textbf{73.75}} & \cellcolor{gray!25}{\textbf{87.90}} & \textbf{92.55} & \cellcolor{gray!25}{\textbf{55.74}} & \cellcolor{gray!25}{\textbf{78.54}} & \cellcolor{gray!25}{\textbf{91.39}} & \cellcolor{gray!25}{\textbf{95.08}} & \cellcolor{gray!25}{\textbf{70.22}} & \cellcolor{gray!25}{\textbf{70.52}} & \cellcolor{gray!25}{\textbf{84.20}} & \cellcolor{gray!25}{\textbf{88.67}} & \cellcolor{gray!25}{\textbf{43.35}}   \\
+
+\hline
+\end{tabular}
+}
+\end{table*}
+
+
+
+
+\subsection{Textual Feature Robustness Compensation} \label{3.3}
+
+Despite the strong expressive power of current language models, textual features derived from a single query often fail to fully capture the inherent semantic richness of natural language, primarily due to \textbf{Expression Drift}---the phenomenon where semantically equivalent queries exhibit distributional discrepancies in the feature space. To mitigate this, we propose a simple yet surprisingly effective \textbf{training-free} mechanism that enhances textual representations via multi-view semantic aggregation, all while keeping the text encoder entirely frozen.
+
+
+\noindent\textbf{Multi-View Textual Feature Extraction.}
+Given an original query text \( T \), we employ the collaborative LLM-based mechanism proposed in Sec.~\ref{reformulation} to construct set of semantically diverse reformulations: 
+\(\mathcal{R}^{\text{text}} = \{T^{a}_{i}, T^{b}_{i}\}_{i=1}^{N}\), where $N$ is the number of reformulations.
+
+
+Each textual reformulation, together with the original input, is encoded via a frozen text encoder \( \boldsymbol{\Phi}(\cdot) \)\cite{hu2024empowering}, and the obtained multi-view diversity textual features are aggregated together to get robust compensation textual feature, as formulated:
+\begin{equation}
+    \hat{\mathbf{v}}^{\text{text}} = \mathbf{\Phi}(T) + \alpha \cdot \textbf{Mean}(\mathbf{\Phi}(R_i)), \forall R_i \in \mathcal{R}^{\text{text}}
+\label{eq:alpha}
+\end{equation}
+where $\alpha$ is a hyperparameter controlling the impact of multi-view semantic for text feature.
+
+This feature compensation preserves the identity-preserving semantics of original query while injecting auxiliary perspectives that improve the robustness and expressiveness of the feature in downstream retrieval tasks.
+
+Moreover, this formulation requires no additional training, gradients, or model updates. Instead, it operates entirely in latent feature space, distilling multi-view semantics into a unified representation. Despite its simplicity, the mechanism significantly improves retrieval robustness, especially under paraphrased, noisy, or domain-shifted queries. We attribute this to its ability to capture what we term \textbf{semantic echoes}---the recurrent core meaning reverberating across diverse linguistic expressions.
+
+\subsection{High-level Semantic Compensation}
+While vision encoders are adept at capturing low-level structures and appearance patterns, they often lack sensitivity to high-level abstract semantics, which are crucial for fine-grained cross-modal alignment. Therefore, we propose a semantic compensation mechanism that projects visual signals into the textual domain via vision-language modeling and reinforces them through multi-view language augmentation.
+
+\noindent\textbf{Visual Description Extraction.}
+Given an input image \( I \), we first generate a high-level semantic description using a pre-trained vision-language model (VLM):
+\begin{equation}
+    S = \text{VLM}(I)
+\end{equation}
+
+where \( S \) is a textual summary of the image content, capturing not only object presence and spatial configurations but also contextual cues and abstract meanings. This serves as a semantic compensation for the image in language space.
+
+\noindent\textbf{Multi-View Reformulation.}
+To comprehensively capture the intrinsic semantic variability of \( S \), we use the same way discussed in (Sec.~\ref{3.3}) to generate a set of diverse yet semantically aligned textual variants \(\mathcal{R}^{\text{img}} = \{S^{a}_{i}, S^{b}_{i}\}_{i=1}^{N}\).
+
+Then, with a frozen vision encoder \( \boldsymbol{\Psi}(\cdot) \) and text encoder \( \boldsymbol{\Phi}(\cdot) \), we can get high-level semantic compensation feature.
+\begin{equation}
+    \hat{\mathbf{v}}^{\text{img}} = \mathbf{\Psi}(I) + \beta \cdot \textbf{Mean}(\mathbf{\Phi}(S_i)), \forall S_i \in \mathcal{R}^{\text{img}}
+\label{eq:beta}
+\end{equation}
+where $\beta$ is a hyperparameter controlling the contribution of multi-view semantic for image feature.
+
+
+This cross-modal compensation mechanism enables the visual representation to benefit from the compositional power of language, effectively aligning the visual semantics with textual space.
+
+

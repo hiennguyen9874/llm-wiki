@@ -1,0 +1,84 @@
+
+\section{GA-DMS Framework}
+This section presents our \textbf{GA-DMS}~(\textbf{G}radient-\textbf{A}ttention Guided \textbf{D}ual-\textbf{M}asking \textbf{S}ynergetic) framework~(Fig.~\ref{fig:method}). In Sec.~\ref{section:importance}, we introduce the Gradient-Attention Similarity Score, which dynamically differentiates noise tokens and informative tokens during the training process. In Sec.~\ref{section:learning}, we present the dual-masking synergetic learning details and the training objective.
+
+\subsection{Gradient-Attention Similarity Score}
+\label{section:importance}
+Existing interpretability research~\cite{selvaraju2017grad} on CLIP-based models has shown that intermediate layer gradients retain fine-grained image-text alignment information. Motivated by prior work~\cite{zhao2025gradeclip}, we introduce a gradient-attention similarity score $\mathbb{S}$ that quantifies each textual token’s contribution to the image–text alignment. We denote the embeddings of the text tokens and image tokens as $T$ and $V$. We first calculate the global cosine similarity $\mathrm{SIM} = T_{eos} V_{cls}^{\mathsf{T}}$. The gradient importance for the $l$-th transformer layer's text token $T_{eos}^l$ is then derived as $g^l= \tfrac{\partial\,\mathrm{SIM}}{\partial\,T_{eos}^l}$.
+
+To capture fine-grained semantics, we integrate a Multi-Scale Pooling (MSP) layer within the transformer architecture. The MSP layer aggregates local contexts at multiple scales $c \in \mathcal{C}$ through average pooling of adjacent $c$ tokens, followed by bilinear interpolation to restore original dimensions. This process yields features enriched with multi-scale local information. The spatial importance $w^{l}$ for each transformer layer $l$ is then computed as:
+\begin{equation}
+\small
+  w^l = \Phi(\mathrm{MSP}(q^l_{eos})\ \mathrm{MSP}(k^l)^{\mathsf{T}})
+\end{equation}
+where $\Phi$ is the normalization function, $q^l_{eos}$ is the \textit{query} embedding for the \texttt{[eos]} token at layer $l$, $k^l$ represent the \textit{key} embedding at layer $l$. The gradient-based score $S_g^{l}$ of the $l$-th transformer layer is defined as:
+\begin{equation}
+\small
+S_g^l = g^l * w^l * v^l
+\end{equation}
+where $v^l$ is the \textit{value} embedding at layer $l$.
+
+Simultaneously, we compute attention-based semantic scores $S_a^l$ for each token based on the attention maps $\mathcal{M}^l$ from the $l$-th transformer layer. We denote the attention score for the \texttt{[eos]} token as $\mathcal{W}^l$, the attention-based semantic score $S_a^l$ is computed as:
+\begin{equation}
+\small
+S_a^l=\tfrac{\mathcal{W}^l}{\sum_{j=1}^{N} \mathcal{W}^l_{j}}
+\end{equation}
+The final gradient-attention similarity score $\mathbb{S}$ for the effective textual tokens is defined as:
+\begin{equation}
+\small
+\mathbb{S} = ReLU(\tfrac{1}{L} \sum_{l \in L} S_g^l * S_a^l)
+\end{equation}
+where $L$ represents the number the final $L$ layers of the transformer, $\mathbb{S} \in \mathbb{R}^{B \times N}$, and $N$ is the number of tokens. This score integrates information from both gradients and attention maps to weight text tokens for masking probability computation.
+
+\subsection{Dual-Masking Synergetic Learning}
+\label{section:learning}
+
+\subsubsection{Noise Token Masking}
+\label{section:noise}
+While Multimodal Large Language Models (MLLMs) inevitably introduce noise during large-scale data generation due to inherent hallucination effects. To mitigate this issue, we employ a noise token masking strategy to reduce the influence of noise tokens based on the gradient-attention similarity score $\mathbb{S}$. We calculate the masking probability for the $i$-th text token $T_i$ as:
+\begin{equation}
+\small
+p(T_i) = \frac{\alpha_n}{1 + e^{-\lambda[(1-s_i) - \gamma ]}} 
+\label{equation:5}
+\end{equation}
+where $s_i \in \mathbb{S}$ is the gradient-attention similarity score for the $i$-th token, $\alpha_n$ is a hyperparameter to set the upper limit of the masking probability for noise tokens. $\lambda$ and $\gamma$ respectively modulate the slope and midpoint of the probability distribution, thereby sharpening the differentiation between noisy and semantically relevant tokens. During training, we dynamically mask textual tokens using $\texttt{[mask]}$ according to these computed probabilities.
+
+Given the embeddings of image-text pairs $\{(v_{\text{cls}}^i, t^i_{\text{eos}})\}_{i=1}^{B} $, we define the ground-truth matching distribution as $q_{i,j}$ and compute the predicted distribution as:
+\begin{equation}
+\small
+p_{i,j} = \frac{\exp(\text{sim}(v^i_{\text{cls}}, t^j_{\text{eos}})/\tau)}{\sum_{b=1}^{B} \exp(\text{sim}(v^i_{\text{cls}}, t^b_{\text{eos}})/\tau)}
+\end{equation}
+where $\tau$ is a temperature parameter. Following~\cite{jiang2023cross}, we adopt the Similarity Distribution Matching (SDM) loss to align the distribution.
+The $\mathcal{L}_{\text{i2t}}$ is defined as:
+\begin{equation}
+\small
+\mathcal{L}_{\text{i2t}} = \frac{1}{B} \sum_{i=1}^{B} \sum_{j=1}^{B} p_{i,j} \log \left( \frac{p_{i,j}}{q_{i,j} + \varepsilon} \right)
+\end{equation}
+where $\varepsilon$ is a small number to avoid numerical problems. We compute a symmetric loss $ \mathcal{L}_{\text{t2i}} $ by swapping $\{(v_{\text{cls}}^i, t^i_{\text{eos}})\}$, and the SDM loss is:
+\begin{equation}
+\small
+\mathcal{L}_{\text{sdm}} = \mathcal{L}_{\text{i2t}} + \mathcal{L}_{\text{t2i}}
+\end{equation}
+
+
+
+\subsubsection{Masked Informative Token Prediction}
+\label{section:semantic}
+To improve fine-grained semantic representation, we selectively mask tokens with strong image-semantic correlations and introduce a masked token prediction task to enhance local semantic learning. Similar to the Equation~\ref{equation:5}, the masking probability for the informative text tokens is defined as:
+\begin{equation}
+\small
+p(T_i)=\frac{\alpha_i}{1 + e^{-\lambda[s_i - \gamma ]}} 
+\end{equation}
+where $\alpha_i$ bounds the maximum masking probability for informative tokens. For effective fine-grained visual-textual fusion during token prediction, we integrate a cross-modal interaction module~\cite{jiang2023cross} as a decoder. This module consists of a multi-head cross-attention followed by four Transformer layers to align modalities in a shared embedding space. A final MLP layer predicts original tokens from the fused representations. Given hidden states ${h_i^m, i \in \mathcal{M}}$ and $\mathcal{M}$ denotes the masked text token set, the distribution of the output token is $\mathbf{m}_i = \text{MLP}(h^m_i)$. The Masked Token Prediction (MTP) loss $\mathcal{L}_{mtp}$ is defined as:
+\begin{equation}
+\small
+\mathcal{L}_{mtp}=-\frac{1}{|\mathcal{M}||\mathcal{V}|}\sum_{i\in\mathcal{M}}\sum_{j\in|\mathcal{V}|}y_j^i\log\frac{\exp(\mathbf{m}_j^i)}{\sum_{k=1}^{|\mathcal{V}|}\exp(\mathbf{m}_k^i)},
+\end{equation}
+where $|\mathcal{V}|$ is the size of vocabulary $\mathcal{V}$, and $y_j$ is a one-hot vocabulary distribution. Finally, the total loss $\mathcal{L}$ is define as:
+\begin{equation}
+\small
+\mathcal{L} = \mathcal{L}_{sdm} + \beta \mathcal{L}_{mtp}
+\end{equation}
+where $\beta$ is a loss weight.
+
+

@@ -1,0 +1,206 @@
+\clearpage
+\setcounter{page}{1}
+\maketitlesupplementary
+
+\section{Computation cost}
+For each generation, for DeepSeek-V3 as example, it requires approximately 0.246 TFLOPs per token, making it highly efficient for multi-round generation. In our setting, producing 15 reformulations incurs a total cost equivalent to only a few billion floating-point operations, which can be completed within ~0.5 seconds either on a local GPU or through official APIs. This efficiency ensures that the proposed approach remains real-time applicable in practical systems.
+
+Additionally, integrating IRRA for retrieval introduces merely \textbf{~0.05 TFLOPs} of extra computation, which is negligible compared to the generation cost. Consequently, in a real end-to-end retrieval pipeline, the overall additional latency of our method is around 0.5 seconds, which is comparable to the inference time of the original backbone model and thus has minimal impact on system responsiveness.
+
+\section{Prompts}
+
+\subsection{Our prompt with $P_{key}$}
+
+\begin{minipage}[t]{0.48\textwidth}
+\begin{tcolorbox}[
+  title=Prompt with $P_{key}$,
+  colback=lightgray,
+  colframe=gray!70,
+  fonttitle=\bfseries,
+  boxrule=0.5pt,
+  arc=3pt,
+  top=1mm, bottom=1mm, left=1mm, right=1mm,
+  sharp corners,
+]
+
+\lstset{
+  basicstyle=\ttfamily,  
+  breaklines=true,            
+  breakatwhitespace=true,       
+  columns=fullflexible,
+  keepspaces=true
+}
+
+\lstdefinelanguage{Prompt}{
+  morekeywords={User, Assistant, System},
+  sensitive=true,
+  morecomment=[l]{//},
+  morestring=[b]",
+}
+
+\footnotesize
+\begin{lstlisting}[language=Prompt]
+System:
+  Instructions:
+    Suppose you now have a picture of a pedestrian, I will give you a caption and its key words list, your task is to rewrite the caption.
+    - Contains every key word must be used, but can change order and replace other words in a similar meaning.
+    - Give me 15 different captions and return them in a list. Give me the list without any statement else.
+User:
+  Caption: {caption}
+  Keywords: {keywords}
+\end{lstlisting}
+
+\end{tcolorbox}
+\end{minipage}
+
+
+
+
+\subsection{Our prompt with $P_{diverse}$}
+
+
+\begin{minipage}[t]{0.48\textwidth}
+\begin{tcolorbox}[
+  title=Prompt with $P_{diverse}$,
+  colback=lightgray,
+  colframe=gray!70,
+  fonttitle=\bfseries,
+  boxrule=0.5pt,
+  arc=3pt,
+  top=1mm, bottom=1mm, left=1mm, right=1mm,
+  sharp corners,
+]
+
+\lstset{
+  basicstyle=\ttfamily,    
+  breaklines=true,              
+  breakatwhitespace=true,      
+  columns=fullflexible,
+  keepspaces=true
+}
+
+\lstdefinelanguage{Prompt}{
+  morekeywords={User, Assistant, System},
+  sensitive=true,
+  morecomment=[l]{//},
+  morestring=[b]",
+}
+\footnotesize
+
+\begin{lstlisting}[language=Prompt]
+System:
+  Instructions:
+    Suppose you now have a picture of a pedestrian, I will give you a caption, your task is to rewrite the caption.
+    - The rewrite caption must contain the content mentioned in the original caption.
+    - You may use your imagination, but make sure that what you rewrite is not beyound real-world logic.
+    - Give me 15 different captions and return them in a list. Give me the list without any statement else.
+User:
+  Caption: {caption}
+\end{lstlisting}
+
+\end{tcolorbox}
+\end{minipage}
+
+
+\section{Examples}
+\subsection{Query compensation with $P_{key}$}
+
+
+
+\begin{minipage}[t]{0.48\textwidth}
+\begin{tcolorbox}[
+  title=Example,
+  colback=lightgray,
+  colframe=gray!70,
+  fonttitle=\bfseries,
+  boxrule=0.5pt,
+  arc=3pt,
+  top=1mm, bottom=1mm, left=1mm, right=1mm,
+  sharp corners,
+]
+
+\lstset{
+  basicstyle=\ttfamily,    
+  breaklines=true,              
+  breakatwhitespace=true,      
+  columns=fullflexible,
+  keepspaces=true
+}
+
+\lstdefinelanguage{Prompt}{
+  morekeywords={User, Assistant, System},
+  sensitive=true,
+  morecomment=[l]{//},
+  morestring=[b]",
+}
+\footnotesize
+
+\begin{lstlisting}[language=Prompt]
+Input:
+    Caption: This man has short black hair and wears a suit jacket,black trousers with a pair of sneakers.He is looking at left side.
+    Keywords: 'man', 'short', 'black', 'hair', 'suit', 'jacket', 'trousers', 'sneakers', 'looking', 'left'.
+Output:
+[
+- A man with short black hair is dressed in a suit jacket and black trousers, paired with sneakers, as he gazes to the left.
+- The individual, sporting short black hair, wears a stylish suit jacket, black trousers, and sneakers while glancing toward the left.
+- A person with short black hair dons a formal suit jacket, black trousers, and casual sneakers, looking off to the left.
+- This gentleman, characterized by his short black hair, is clad in a suit jacket, black trousers, and sneakers, with his gaze directed to the left.
+- The man, featuring short black hair, is attired in a suit jacket, black trousers, and sneakers, and appears to be looking toward the left.
+...
+]
+    
+
+\end{lstlisting}
+
+\end{tcolorbox}
+\end{minipage}
+
+
+\subsection{Query compensation with $P_{kdiversity}$}
+
+\begin{minipage}[t]{0.48\textwidth}
+\begin{tcolorbox}[
+  title=Example,
+  colback=lightgray,
+  colframe=gray!70,
+  fonttitle=\bfseries,
+  boxrule=0.5pt,
+  arc=3pt,
+  top=1mm, bottom=1mm, left=1mm, right=1mm,
+  sharp corners,
+]
+
+\lstset{
+  basicstyle=\ttfamily,    
+  breaklines=true,              
+  breakatwhitespace=true,      
+  columns=fullflexible,
+  keepspaces=true
+}
+
+\lstdefinelanguage{Prompt}{
+  morekeywords={User, Assistant, System},
+  sensitive=true,
+  morecomment=[l]{//},
+  morestring=[b]",
+}
+\footnotesize
+
+\begin{lstlisting}[language=Prompt]
+Input:
+    Caption: This man has short black hair and wears a suit jacket,black trousers with a pair of sneakers.He is looking at left side.
+Output:
+[
+- A man with short black hair is dressed in a suit jacket and black trousers, paired with sneakers. He is glancing toward his left side.
+- This person has short black hair and is attired in a suit jacket, black trousers, and sneakers. He appears to be looking toward the left side.
+- A man sporting short black hair wears a suit jacket, black trousers, and sneakers. He is looking toward the left.
+- This person has short black hair and is wearing a suit jacket, black trousers, and sneakers. He is gazing toward the left.
+- A man with short black hair is wearing a suit jacket, black trousers, and sneakers. His gaze is directed to the left.
+...
+]
+    
+
+\end{lstlisting}
+
+\end{tcolorbox}
+\end{minipage}

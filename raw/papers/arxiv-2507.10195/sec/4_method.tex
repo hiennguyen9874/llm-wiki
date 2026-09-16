@@ -1,0 +1,127 @@
+\section{Methodology}
+\label{method}
+\noindent Building upon the multi-granular annotations in SDA, we propose the Multi-granularity Relation Alignment (MRA) framework. 
+As depicted in Fig.~\ref{fig: framework}, MRA is optimized through two complementary constraints:
+1) fine-grained alignment between image regions and description phrases via Region-Phrase Contrastive (RPC) Learning and Region-Phrase Matching (RPM) Learning; 
+2) coarse-grained alignment between full images and texts through Image-Text Alignment.
+
+
+
+
+\subsection{Region-Phrase Contrastive Learning}
+\noindent Region-Phrase Contrastive (RPC) Learning aligns the region-phrase pair $(I_R, T_R)$ with contrastive learning.
+Fig.~\ref{fig: framework} shows that the $N$ image-text pairs and the $N$ corresponding region-phrase pairs are fed into MRA in a training batch $D$.
+For $N$ pairs of region and phrase $\{(I_R^1, T_R^1), (I_R^2, T_R^2), ...\}^N$, $(I_R^j, T_R^j)$ is a positive match, while $(I_R^j, T_R^{\bar{j}})$ is a negative match ($j, \bar{j} \in [1, N], j \neq \bar{j}$). 
+We first obtain the region embeddings $E_V(I_R)$ and phrase embeddings $E_T(T_R)$ through the Vision Encoder $E_V$ and the Text Encoder $E_T$.
+
+
+\noindent\textbf{Region Encoding.}
+Following the existing work~\cite{yang2023towards}, the Swin Transformer (Swin-Base)~\cite{liu2021swin} is deployed as the Vision Encoder $E_V$. Feeding the region to $E_V$ is a straightforward strategy for region encoding; however, this fashion is not friendly to the small-sized region. In addition, the sole region lacks the surrounding contexts for better representation. With this consideration, we resort to indexing the region features from the full image features. 
+Formally, given the region $I_R$, its corresponding image $I$ is evenly divided into $N^I$ non-overlapping patches (with a patch size of $32 \times 32$) of fixed size first. 
+The image size is set to $224 \times 224$, and $N^I = 49$.
+Then, the sequence of $N^I$ patches is fed into the Transformer block layers of $E_V$, outputting $N^I$ high-dimensional embeddings.
+Region embedding $E_V(I_R)$ derives from $V$: $E_V(I_R)= \{v^{i} | \text{ if } v^{i} \text{ overlaps with } I_R, i=1,2,\dots,N^I\}$.
+Then the mean feature of $E_V(I_R)$ is calculated and used as the \texttt{[CLS]} patch embedding of $I_R$, which is together with the patch features in $E_V(I_R)$ to form the full representation of the region $I_R$.
+
+
+\noindent\textbf{Phrase Encoding.}
+Without loss of generality, we use the first 6 layers of BERT as the Text encoder $E_T$ to extract the textual representation. 
+Specifically, for a given phrase $T_R$, it is first tokenized by a BERT Tokenizer with a vocabulary size of $30,522$. 
+A \texttt{[CLS]} token is added at the beginning of the set of tokens.
+The tokens are then passed into the six Transformer layers of BERT to obtain the textual embedding $E_T(T_R)$.
+
+
+The obtained region and phrase embeddings are first averaged separately and mapped to the low-dimensional region features by different MLPs. 
+Then, we predict the similarity between regions and phrases by calculating the cosine similarity $s(\cdot,\cdot)$ between region and phrase. 
+Given a pair of region and phrase $(I_R, T_R)$, the region-to-phrase similarity is defined as follows:
+\begin{equation}
+\label{eq: S_R2P}
+S_{\text{R2P}} = \frac{\exp(s(I_R, T_R)/\tau)}{\sum_{i=1}^{N}\exp(s(I_R, T_R^i)/\tau)},
+\end{equation}
+where we still use $I_R, T_R$ to represent the respective features for brevity, and $\tau$ is a learnable temperature parameter.
+Similarly, the phrase-to-region similarity is $S_{\text{P2R}}$.
+Finally, the RPC loss function is defined as:
+\begin{equation}
+\label{eq: L_PRC}
+\begin{split}
+\mathcal{L}_{\text{RPC}} = -\frac{1}{2} \mathbb{E}[\log S_{\text{R2P}} + \log S_{\text{P2R}}].
+\end{split}
+\end{equation}
+
+
+\subsection{Region-Phrase Matching Learning.}
+\noindent Region-Phrase Matching (RPM) Learning is a binary classification task used to further differentiate between positive (matched) and negative (unmatched) region-phrase pairs. 
+If a negative sample is randomly selected to form a negative sample pair, the classification problem would be too easy for the model. 
+Therefore, based on RPC, we form negative sample pairs by selecting one hard-negative sample for each region and phrase through a Hard-Negative Sampling strategy. 
+Specifically, for a given region $I_R$, a Hard-Negative Sample $\Bar{T}_R$ is randomly selected in proportion to the similarity score in Eq. \ref{eq: S_R2P}. 
+Similarly, a hard-negative sample for each phrase can be obtained analogously. 
+Then, the $N$ matched region-phrase pairs and $2N$ corresponding mismatched region-phrase pairs are fed into the Fusion Encoder $E_F$ together to obtain the fusion embeddings, as shown in Fig. \ref{fig: framework}.
+
+\noindent\textbf{Fusion Encoder $E_F$.}
+We adopt the last six layers of BERT as $E_F$. 
+$E_F$ takes phrase embedding as inputs and fuses region embedding at each cross-attention module of the Transformer Blocks. 
+Specifically, the phrase embedding is used as a query (q in Fig. \ref{fig: framework}), and the region embedding works as key (k) and value (v). 
+The fusion embedding yielded by the Fusion Encoder is used to perform further cross-modal alignment tasks.
+We project the \texttt{[CLS]} embeddings of the fused embeddings into the two-dimensional space by MLP to get the predicted matching likelihood $\hat{p}_m(I_R, T_R)$.
+
+The Region-Phrase Matching (RPM) loss is obtained by calculating the cross-entropy loss between the predicted matching likelihood and the ground-truth matching likelihood $p_m(I_R, T_R)$:
+\begin{equation}
+\label{eq: L_PRM}
+\begin{split}
+\mathcal{L}_{\text{RPM}} =& - \mathbb{E}[p_{m}(I_R, T_R)\log \hat{p}_{m}(I_R, T_R)\\
+&+ (1-p_{m}(I_R, T_R))\log (1-\hat{p}_{m}(I_R, T_R))],
+\end{split}
+\end{equation}
+\noindent where $p_{m}$ is a ground-truth binary label. If the image and text are true-matches, $p_{m} = 1$, otherwise $p_{m} = 0$.
+
+
+\noindent\textbf{Discussion. Why do we need region-phrase level alignment?}
+While recent methods for image-text matching have productively incorporated both global and local feature representations \cite{jiang2023cross, bai2023rasa, yang2023towards, yan2022clip}, a systematic, explicit alignment between discrete image regions and their corresponding textual phrases remains largely unexplored. This constitutes a significant limitation, as fine-grained cross-modal understanding fundamentally requires the precise grounding of visual constituents within their descriptive linguistic contexts. Our work directly bridges this gap by introducing an explicit region-phrase alignment mechanism, facilitated by the novel structured annotations in our proposed SDA dataset.
+As shown in Table~\ref{tab: abl}, Method M1, which relies solely on global image-text alignment, exhibits a marked performance shortfall relative to our complete MRA framework. This comparative analysis confirms that integrating region-phrase alignment contributes a substantial and quantifiable improvement to retrieval accuracy.
+Furthermore, our investigation into even finer-grained object-word alignment (variants 1 and 2 in Table~\ref{tab: abl}) yields a critical observation: exceeding an optimal level of granularity can be counterproductive. The suboptimal performance of object-word alignment suggests that excessive fragmentation of the representation may introduce noise and disrupt the compositional semantics preserved by phrase-level descriptions. This evidence highlights that region-phrase alignment achieves an effective balance, providing the necessary discriminative detail to surpass global methods while avoiding the loss of contextual coherence inherent in over-segmented approaches.
+
+
+
+\input{sec/5_sota}
+
+
+\subsection{Image-Text Alignment}
+\noindent In addition to region-phrase level alignment (RPC and RPM), we combine the tasks of Image-Text Contrastive (ITC) learning, Image-Text Matching (ITM) learning, and Masked Language Modeling (MLM) to constrain the model to align pedestrian images and text descriptions.
+
+
+\noindent\textbf{Image-Text Contrastive (ITC) Learning} is performed in a similar fashion of RPC. The ITC loss $\mathcal{L}_{\text{ITC}}$ is obtained following Eq.\ref{eq: S_R2P}-\ref{eq: L_PRC}.
+
+
+\noindent\textbf{Image-Text Matching (ITM) Learning.}
+The goal of Image-Text Matching (ITM) Learning is to predict whether the image-text pairs are positive pairs or not.
+The ITM loss $\mathcal{L}_{\text{ITM}}$ is computed similarly using Eq. \ref{eq: L_PRM}.
+
+
+
+
+
+
+
+\noindent\textbf{Masked Language Modeling (MLM).}
+Masked Language Modeling (MLM) predicts masked words using information from matched image-text pairs as clues. 
+In this paper, we randomly mask out text tokens with a probability of $25\%$. 
+Among the masked tokens: 
+1) $10\%$ are replaced by random text tokens; 
+2) $80\%$ are replaced by special text tokens \texttt{[MASK]}; 
+3) the remaining $10\%$ stay unchanged.
+Given a matched $(I, T)$, mask $T$ as $\hat{T}$ and use $\hat{f}^i$ to denotes fused embedding of masked token $\hat{t}^i$.
+We predict what the token $\hat{t}^i$ should be by a classified MLP header, denoted as $\hat{p}_{\text{mask}}^i(I, \hat{T}) = \text{Softmax}(\text{MLP}(\hat{f}^i))$.
+$p_{\text{mask}}^i$ is a one-hot vector representing the ground-truth probability. Then the MLM loss can be formulated as follows by the cross-entropy:
+\begin{equation}
+\label{eq: L_MLM}
+\mathcal{L}_{\text{MLM}} = -\mathbb{E}[p_{\text{mask}}^i(I, \hat{T}) log( \hat{p}_{\text{mask}}^i(I, \hat{T}))].
+\end{equation}
+MRA jointly optimizes Region-Phrase Alignment (RPC and RPM) and Image-Text Alignment. 
+The overall MRA loss is:
+\begin{equation}
+\label{eq: L_MRA}
+\mathcal{L}_{\text{MRA}} = \mathcal{L}_{\text{ITC}} + \mathcal{L}_{\text{ITM}} +\mathcal{L}_{\text{MLM}} + \beta (\mathcal{L}_{\text{RPC}} + \mathcal{L}_{\text{RPM}}),
+\end{equation}
+\noindent where $\beta$ denotes the weight of RPC and RPM loss.
+
+
