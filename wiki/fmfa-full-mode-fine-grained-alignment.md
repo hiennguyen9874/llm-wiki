@@ -5,16 +5,19 @@ description: FMFA augments IRRA with adaptive positive-pair weighting and sparse
 tags: [cross-modal-retrieval, clip, fine-grained-alignment, person-reidentification]
 status: stable
 created: 2026-09-16
-generated: { by: llm-wiki-agent/1, at: 2026-09-16T08:16:49Z }
+generated: { by: llm-wiki-agent/1, at: 2026-09-16T08:40:25Z }
 sources:
   - id: arxiv-2509.13754v2
     resource: ../raw/papers/arXiv-2509.13754v2/sample-acmsmall.tex
     title: Cross-modal Full-mode Fine-grained Alignment for Text-to-Image Person Retrieval
+  - id: fmfa-code
+    resource: ../raw/codes/FMFA/README.md
+    title: Official FMFA PyTorch implementation
 ---
 
 # FMFA full-mode fine-grained person retrieval
 
-FMFA (Full-Mode Fine-grained Alignment) extends IRRA's CLIP dual-encoder framework with two training-only objectives: Adaptive Similarity Distribution Matching (A-SDM), which upweights a true image-text pair when it is not the batch's top-scoring match, and Explicit Fine-grained Alignment (EFA), which constructs token-conditioned visual embeddings from a sparse token-patch similarity matrix. FMFA retains IRRA's identity and masked-language implicit-relation objectives. All interaction modules are removed at inference, leaving global image and text embeddings for efficient retrieval.[^arxiv-2509.13754v2]
+FMFA (Full-Mode Fine-grained Alignment) extends IRRA's CLIP dual-encoder framework with two training-only objectives: Adaptive Similarity Distribution Matching (A-SDM), which upweights a true image-text pair when it is not the batch's top-scoring match, and Explicit Fine-grained Alignment (EFA), which constructs token-conditioned visual embeddings from a sparse token-patch similarity matrix. FMFA retains IRRA's identity and masked-language implicit-relation objectives. All interaction modules are removed at inference, leaving global image and text embeddings for efficient retrieval.[^arxiv-2509.13754v2] The released evaluator confirms this global-only inference path, but the training code materially differs from the manuscript's A-SDM formula and contains reproducibility defects, so it does not identify an unambiguous implementation of the reported experiments.[^fmfa-code]
 
 ## Architecture and objectives
 
@@ -48,9 +51,18 @@ The default setup resizes images to $384\times128$, caps text at 77 tokens, and 
 
 The parameter study reports that both proposed loss weights work best at 1. Setting the EFA weight to 5 or 10 causes training collapse, with all reported CUHK-PEDES retrieval metrics below 1. Removing the constant $+1$ from A-SDM reduces CUHK-PEDES Rank-1 from 74.16 to 26.12, consistent with eliminating gradients from already top-ranked positives.[^arxiv-2509.13754v2]
 
+### Released-code behavior
+
+The standard `run.sh` path selects `build_finetune.py` and jointly optimizes A-SDM, identity, masked-language, and EFA losses. Evaluation calls only `encode_text` and `encode_image`, confirming that token-patch interaction is absent from retrieval scoring.[^fmfa-code]
+
+The implemented A-SDM weight is not the published $1+\alpha(\max_k p_{i,k}-p_{i,i})$. It measures a gap between raw cosine similarities rather than softmax probabilities and hardcodes `1 + 0.1 * gap`; there is no dataset-specific A-SDM coefficient. The CLI option named `--alpha` instead sets Adam's first momentum coefficient. The code also hardcodes EFA margins of 0.1 for text-to-aggregate alignment and 0.9 for patch-to-aggregate alignment across datasets, while the manuscript reports dataset-dependent margins.[^arxiv-2509.13754v2][^fmfa-code]
+
+The release is not self-contained. It supplies no dependency lockfile or trained checkpoint, uses environment-specific defaults, and its training loader requires all three benchmark datasets even when only one is selected because every epoch evaluates CUHK-PEDES, ICFG-PEDES, and RSTPReid. `test.py` always loads `best0.pth`, although training separately saves `best0`, `best1`, and `best2` according to performance on those three datasets. The alternative `--nam` training branch references an undefined `ret` value in its first optimization loop. Static compilation succeeds, but experiments were not run because datasets, checkpoints, and a validated environment are unavailable.[^fmfa-code]
+
 ## Limitations and source ambiguities
 
 - The fixed EFA threshold can discard informative patches. The authors identify semantic information loss as the main limitation and suggest adaptive aggregation as future work.[^arxiv-2509.13754v2]
+- The implementation performs min-max and row normalization without an epsilon or zero-sum guard; it only prints a warning after NaN or infinity has occurred. Degenerate token-patch rows can therefore poison the EFA loss rather than being recovered.[^fmfa-code]
 - Evidence is limited to three person-retrieval datasets and is not independently reproduced here. The paper's “best global method” claim is bounded by its selected comparators, model versions, and metrics.
 - Gains over the reproduced IRRA baseline are generally modest and become especially small with ReID-domain pretrained backbones. No variance across random seeds or significance test is reported.[^arxiv-2509.13754v2]
 - The A-SDM ground-truth distribution equation writes $q_{i,j}=y_{i,j}/\sum_{k=1}^{B}$ without a summand, and the EFA aggregation denominator retains $j$ while summing over $m$. Both appear typographically incomplete and should be checked against the released implementation before reimplementation.[^arxiv-2509.13754v2]
@@ -63,3 +75,4 @@ The parameter study reports that both proposed loss weights work best at 1. Sett
 - **Compared with:** [TBPS-CLIP empirical person-search baseline](tbps-clip-empirical-person-search-baseline.md) is a simpler global CLIP fine-tuning approach without FMFA's explicit token-patch training objective.
 
 [^arxiv-2509.13754v2]: Hao Yin, Xin Man, Feiyu Chen, Jie Shao, and Heng Tao Shen, “Cross-modal Full-mode Fine-grained Alignment for Text-to-Image Person Retrieval,” arXiv:2509.13754v2 / ACM TOMM manuscript, 2025, [`sample-acmsmall.tex`](../raw/papers/arXiv-2509.13754v2/sample-acmsmall.tex). The architecture, A-SDM, EFA, and sparse-similarity figures in the same source bundle were also visually inspected.
+[^fmfa-code]: Yin et al., [`FMFA`](../raw/codes/FMFA/README.md), official PyTorch implementation snapshot. The README and its architecture image, launch and entry-point scripts, dataset construction, model builders, objectives, training processors, evaluator, and options were inspected. All Python files passed static bytecode compilation; runtime training and evaluation were not attempted because dependencies, benchmark datasets, ReID-domain checkpoints, and trained weights are absent.

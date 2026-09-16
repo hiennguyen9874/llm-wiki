@@ -5,16 +5,19 @@ description: GA-DMS uses gradient-and-attention-derived token scores to mask sus
 tags: [cross-modal-retrieval, clip, token-masking, noisy-captions, person-reidentification]
 status: stable
 created: 2026-09-16
-generated: { by: llm-wiki-agent/1, at: 2026-09-16T08:13:46Z }
+generated: { by: llm-wiki-agent/1, at: 2026-09-16T08:44:13Z }
 sources:
   - id: arxiv-2509.09118v1
     resource: ../raw/papers/arXiv-2509.09118v1/main.tex
     title: Gradient-Attention Guided Dual-Masking Synergetic Framework for Robust Text-based Person Retrieval
+  - id: ga-dms-code-2026-03-11
+    resource: ../raw/codes/GA-DMS/README.md
+    title: Official GA-DMS code snapshot, updated 2026-03-11
 ---
 
 # GA-DMS robust text-based person retrieval
 
-GA-DMS adapts CLIP ViT-B/16 to text-based person retrieval with two score-guided masking branches. A gradient-attention similarity score (GASS) estimates each caption token's contribution to global image-text similarity. Low-scoring tokens are preferentially masked before similarity-distribution matching (SDM), while high-scoring tokens are masked and reconstructed through a cross-modal decoder. The model is pretrained on [WebPerson](webperson-person-centric-pretraining-dataset.md), then evaluated by direct transfer or IRRA-style downstream fine-tuning. Reported gains support the combined data-and-training pipeline, but do not cleanly separate WebPerson's contribution from GA-DMS and have not been independently reproduced.[^arxiv-2509.09118v1]
+GA-DMS adapts CLIP ViT-B/16 to text-based person retrieval with two score-guided masking branches. A gradient-attention similarity score (GASS) estimates each caption token's contribution to global image-text similarity. Low-scoring tokens are preferentially masked before similarity-distribution matching (SDM), while high-scoring tokens are masked and reconstructed through a cross-modal decoder. The model is pretrained on [WebPerson](webperson-person-centric-pretraining-dataset.md), then evaluated by direct transfer or IRRA-style downstream fine-tuning. Reported gains support the combined data-and-training pipeline, but do not cleanly separate WebPerson's contribution from GA-DMS and have not been independently reproduced. The released implementation exposes the core mechanism but does not reproduce the manuscript configuration as shipped.[^arxiv-2509.09118v1][^ga-dms-code-2026-03-11]
 
 ## Gradient-attention token scoring
 
@@ -34,6 +37,20 @@ The layer-wise gradient and attention terms are combined, averaged across select
 
 **Synthesis:** the two branches encode opposite assumptions about the score: low-score tokens are treated as unreliable supervision, while high-score tokens are treated as useful reconstruction targets. This is token-level robustness to caption content, unlike methods that identify entire mismatched image-caption pairs.
 
+## Released implementation
+
+The pretraining code computes GASS from the final eight text-transformer blocks, writes each minibatch's detached token scores back into an in-memory dataset, and rebuilds the masking loader each epoch. `FilterDataset` applies sigmoid sampling with the documented caps of 0.2 and 0.3, using complementary score directions for SDM and masked-token prediction. Fine-tuning switches to a conventional IRRA-style model with random 15% token masking rather than retaining GASS.[^ga-dms-code-2026-03-11]
+
+The shipped launcher and data path materially limit reproducibility:[^ga-dms-code-2026-03-11]
+
+- `webreid.py` ignores `--root_dir`, hard-codes an author-local `/mnt/tianluzheng/dataset/WebReid` path, and loads only `100w.json`; the released command therefore does not directly configure the paper's 5M run.
+- `run_ddp.sh` sets learning rate $10^{-5}$ and masked-token loss weight 0.3, versus $10^{-4}$ and 0.4 in the manuscript. Its batch size is 128 per each of eight processes, yielding an apparent global batch of 1,024 rather than the reported 512.
+- In distributed pretraining, token scores are retained only in each process's local Python dataset and are not synchronized. Because `DistributedSampler` reshuffles ownership each epoch, a sample can move to a rank that does not hold its latest score.
+- `requirements.txt` lists only `prettytable` and `easydict`, although the code imports additional packages including NumPy, torchvision, Pillow, PyYAML, `ftfy`, `regex`, `tqdm`, and TensorBoard support. The separate README command installs PyTorch but not all remaining dependencies.
+- `test.py` expects `best.pth`, while training saves dataset-specific `best0.pth`, `best1.pth`, and `best2.pth`; it also builds the pretraining model rather than the fine-tuning model. Evaluation is therefore not wired to the documented training outputs without manual changes.
+
+**Implementation caution:** the GASS routine normalizes the aggregated map globally across the whole minibatch, not independently per sample, and divides EOS attention by the sum of raw importance values rather than by an attention sum. These choices differ from the most direct reading of the paper's normalization description and make one sample's mask scores batch-dependent.[^ga-dms-code-2026-03-11]
+
 ## Reported evidence
 
 After 5M-scale WebPerson pretraining and downstream fine-tuning, the paper reports:[^arxiv-2509.09118v1]
@@ -52,7 +69,7 @@ The source also reports that direct-transfer Rank-1 rises with WebPerson scale f
 
 ## Training and limitations
 
-Pretraining uses $384\times128$ images, text sequences up to 77 tokens, Adam with learning rate $10^{-4}$, cosine scheduling after five warm-up epochs, batch size 512, and 30 epochs on eight A100 80 GB GPUs. SDM temperature is 0.02. The manuscript does not report total training time, GASS overhead, retrieval latency, repeated-run variance, or an independently audited natural-noise benchmark.[^arxiv-2509.09118v1]
+Pretraining uses $384\times128$ images, text sequences up to 77 tokens, Adam with learning rate $10^{-4}$, cosine scheduling after five warm-up epochs, batch size 512, and 30 epochs on eight A100 80 GB GPUs. SDM temperature is 0.02. The manuscript does not report total training time, GASS overhead, retrieval latency, repeated-run variance, or an independently audited natural-noise benchmark.[^arxiv-2509.09118v1] The code snapshot passes Python bytecode compilation, but training and evaluation were not executed because the required datasets, author-local WebPerson layout, checkpoints, and GPU environment were unavailable.[^ga-dms-code-2026-03-11]
 
 - Evidence covers three closely related English-language person-retrieval datasets. Generalization to other retrieval domains, caption styles, languages, and modern backbones remains unknown.
 - The token-score visualization contains selected examples and cannot establish score calibration or systematic hallucination detection.
@@ -66,3 +83,4 @@ Pretraining uses $384\times128$ images, text sequences up to 77 tokens, Adam wit
 - **Compared with:** [RDE for noisy-correspondence person retrieval](rde-noisy-correspondence-person-retrieval.md) filters whole image-caption pairs under correspondence noise, whereas GA-DMS masks individual caption tokens judged unreliable.
 
 [^arxiv-2509.09118v1]: Tianlu Zheng, Yifan Zhang, Xiang An, Ziyong Feng, Kaicheng Yang, and Qichuan Ding, “Gradient-Attention Guided Dual-Masking Synergetic Framework for Robust Text-based Person Retrieval,” arXiv:2509.09118v1, [`main.tex`](../raw/papers/arXiv-2509.09118v1/main.tex). All included sections and tables were inspected; the architecture, data pipeline, examples, token-weight visualizations, and parameter/scale plots were also visually inspected. Results were not independently reproduced.
+[^ga-dms-code-2026-03-11]: Tianlu Zheng et al., [official GA-DMS code snapshot](../raw/codes/GA-DMS/README.md), README dated as updated 2026-03-11, MIT License. The README, launch and entry-point scripts, model/objective code, masking and data-loading code, training processors, checkpoint utility, dependency manifest, and both included figures were inspected. The tree passed `python3 -m compileall`; runtime behavior and reported results were not reproduced.

@@ -5,16 +5,19 @@ description: Bi-IRRA extends IRRA to multilingual person retrieval with bidirect
 tags: [cross-modal-retrieval, multilingual, masked-modeling, person-reidentification]
 status: stable
 created: 2026-09-16
-generated: { by: llm-wiki-agent/1, at: 2026-09-16T08:19:16Z }
+generated: { by: llm-wiki-agent/1, at: 2026-09-16T08:36:02Z }
 sources:
   - id: arxiv-2510.17685v1
     resource: ../raw/papers/arXiv-2510.17685v1/main.tex
     title: Multilingual Text-to-Image Person Retrieval via Bidirectional Relation Reasoning and Aligning
+  - id: bi-irra-code
+    resource: ../raw/codes/Bi-IRRA/README.md
+    title: Official Bi-IRRA PyTorch implementation
 ---
 
 # Bi-IRRA multilingual text-to-image person retrieval
 
-Bi-IRRA extends IRRA from English-only retrieval to training and querying with English plus translated Chinese, French, and German descriptions. Its Bi-directional Implicit Relation Reasoning (Bi-IRR) module reconstructs masked content in both modalities, while Multi-dimensional Global Alignment (Md-GA) aligns unimodal and fused representations. Unlike IRRA's global-only inference, the manuscript says Bi-IRRA uses multimodal fusion representations to compute similarity during inference, but does not specify the retrieval-stage protocol or cost.[^arxiv-2510.17685v1]
+Bi-IRRA extends IRRA from English-only retrieval to English and translated Chinese, French, and German descriptions. Its Bi-directional Implicit Relation Reasoning (Bi-IRR) module reconstructs masked content in both modalities, while Multi-dimensional Global Alignment (Md-GA) aligns unimodal and fused representations.[^arxiv-2510.17685v1] The released code operationalizes one English–target-language pair per training run and implements two-stage retrieval: global cosine similarity selects 256 images per query, then a fusion encoder and binary image-text-matching head re-rank only that shortlist.[^bi-irra-code]
 
 ## Architecture and objectives
 
@@ -50,9 +53,11 @@ The paper reports advantages over reproduced multilingual TIPR and multilingual 
 The reported setup uses $224\times224$ images, 10 epochs, AdamW, and four A40 GPUs. Text length is 77 with batch size 32 for CUHK-PEDES(M), ICFG-PEDES(M), and RSTPReid(M), and 168 with batch size 16 for UFineBench(M). Text and image mask ratios are 0.4 and 0.5; blockwise image masking performs best in the reported comparison.[^arxiv-2510.17685v1]
 
 - Evaluation covers only translated versions of four person-retrieval datasets and four languages; it does not establish behavior for native non-English descriptions, code-switching, unseen languages, or general image-text retrieval.[^arxiv-2510.17685v1]
-- The manuscript reports no repeated-run variance, significance tests, independent reproduction, parameter count, or inference latency. Because A-ITM uses a multimodal interaction encoder, operational cost and scalability need separate verification.[^arxiv-2510.17685v1]
-- The learning-rate description says it starts at $10^{-6}$, “decay[s] to” $5\times10^{-6}$, and peaks at $5\times10^{-5}$; that wording is internally inconsistent and should be checked against code before reproduction.[^arxiv-2510.17685v1]
-- Two method passages appear to contain source/target notation slips: the D-MIM student is once written as $G(\hat I,T^s)$ despite surrounding text and the loss using target text, and the target A-ITM paragraph says $F(T^s)$ where its equation and diagram use $T^t$.[^arxiv-2510.17685v1]
+- The manuscript reports no repeated-run variance, significance tests, independent reproduction, parameter count, or inference latency. The code confirms that fusion is applied only to the global top-256 shortlist, but the operational cost and scalability of that fixed-depth re-ranking remain unreported.[^arxiv-2510.17685v1][^bi-irra-code]
+- The manuscript's ambiguous learning-rate wording is resolved by the code: one warm-up epoch linearly increases $10^{-6}$ to $5\times10^{-5}$, followed by cosine decay toward $5\times10^{-6}$ across the remaining epochs.[^arxiv-2510.17685v1][^bi-irra-code]
+- Two manuscript passages appear to contain source/target notation slips. The code confirms the intended implementation: D-MIM uses unmasked image plus source text as a no-gradient teacher and masked image plus target text as the student; target-language A-ITM also uses target text with the masked image.[^arxiv-2510.17685v1][^bi-irra-code]
+- The release is not self-contained: `README.md` instructs installation from an absent `requirements.txt`, while both supplied YAML files reference an absent `config/config_beit2_base.json`. It declares an MIT license but includes no license text. The code snapshot therefore cannot reproduce the reported experiments without reconstructing dependencies and configuration.[^bi-irra-code]
+- Training and evaluation are hard-wired to distributed execution: `is_using_distributed()` always returns true, training later accesses `model.module`, and evaluation unconditionally calls distributed barriers and reduction. The documented four-process launcher fits these assumptions, but no standalone single-device evaluation or trained-checkpoint loading command is supplied.[^bi-irra-code]
 
 ## Relationships
 
@@ -61,3 +66,4 @@ The reported setup uses $224\times224$ images, 10 epochs, AdamW, and four A40 GP
 - **Uses:** [TBPS-CLIP empirical person-search baseline](tbps-clip-empirical-person-search-baseline.md) supplies the stated image augmentations.[^arxiv-2510.17685v1]
 
 [^arxiv-2510.17685v1]: Min Cao, Xinyu Zhou, Ding Jiang, Bo Du, Mang Ye, and Min Zhang, “Multilingual Text-to-Image Person Retrieval via Bidirectional Relation Reasoning and Aligning,” arXiv:2510.17685v1, 2025, [`main.tex`](../raw/papers/arXiv-2510.17685v1/main.tex). Included result tables and the LDAT, Bi-IRRA, and translation-rewrite figures in the same source bundle were also inspected.
+[^bi-irra-code]: Cao et al., [`Bi-IRRA`](../raw/codes/Bi-IRRA/README.md), official PyTorch implementation snapshot. Code audit covered the README, both supplied YAML configurations, training entry point, dataset pipeline, retrieval model, XVLM loss/projection implementation, evaluator, and launcher. Static Python compilation of the principal entry, model, data, and evaluation modules passed; experiments were not executed because required dependencies, the referenced vision configuration, datasets, and checkpoints are absent.

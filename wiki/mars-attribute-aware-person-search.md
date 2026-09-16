@@ -5,11 +5,14 @@ description: MARS extends a RaSa/ALBEF person-search model with adjective–noun
 tags: [cross-modal-retrieval, attribute-learning, masked-autoencoder, person-reidentification, reranking]
 status: stable
 created: 2026-09-16
-generated: { by: llm-wiki-agent/1, at: 2026-09-16T08:08:28Z }
+generated: { by: llm-wiki-agent/1, at: 2026-09-16T08:48:47Z }
 sources:
   - id: arxiv-2407.04287v1
     resource: ../raw/papers/arXiv-2407.04287v1/main.tex
     title: "MARS: Paying more attention to visual attributes for text-based person search"
+  - id: mars-code
+    resource: ../raw/codes/MARS/README.md
+    title: "Official PyTorch implementation of MARS"
 ---
 
 # MARS attribute-aware text-based person search
@@ -53,13 +56,28 @@ The final configuration shares the global and attribute matching head. A frequen
 
 The paper reports 30 epochs on one Nvidia RTX 4090, batch size 8, AdamW with weight decay 0.02, and learning rates of $10^{-4}$ for positive-relation/replaced-token parameters and $10^{-5}$ elsewhere. Images are resized to $384\times384$ with optional horizontal flip, captions are capped at 70 tokens, the momentum coefficient is 0.995, contrastive temperature is 0.07, and the queue contains 65,536 samples. The code link is <https://github.com/ErgastiAlex/MARS>.[^arxiv-2407.04287v1]
 
+## Released implementation audit
+
+The released snapshot implements the paper's central mechanisms: four-way image/text contrastive learning with momentum queues, probabilistic image–text matching and positive-relation detection, masked-language and replaced-token objectives, a four-block text-conditioned reconstruction decoder, adjective–noun supervision through the shared matching head, and top-128 cross-encoder reranking. The `full_ca` configuration gives all 12 BERT blocks cross-attention in multimodal mode, while text-only encoding still exits after the first six blocks. This was established by static inspection; training and benchmark results were not reproduced.[^mars-code]
+
+Material reproducibility and evaluation issues are:
+
+- All three released dataset configurations use `max_words: 75`, contradicting the manuscript's stated cap of 70. Training first truncates to 75 whitespace-delimited words but tokenizes without `truncation=True`, so WordPiece sequences can exceed 75 tokens; evaluation explicitly truncates to 75 WordPieces.[^mars-code]
+- The program constructs a validation loader but never evaluates it. From the configured starting epoch onward it evaluates the test set after every training epoch and selects `checkpoint_best.pth` by test Rank-1. Thus the released training loop performs test-set model selection rather than a strictly held-out final evaluation.[^mars-code]
+- Despite a nominal non-distributed path, training calls distributed all-gather inside the contrastive queue and an unconditional distributed barrier after each epoch. A directly invoked single-process run without an initialized process group therefore cannot complete. The README instead points to dataset-specific shell scripts, but this snapshot contains none, so the exact launcher and checkpoint arguments are unavailable.[^mars-code]
+- The CUHK-PEDES configuration's validation image root contains `CUHK-PEDESeid`, apparently a path typo. It stays latent because validation is unused. The README also reports RSTPReid Rank-5 as 86.55, whereas the manuscript reports 86.65; no logs in the snapshot resolve which value is authoritative.[^mars-code]
+- Attribute masks are produced by decoding individual BERT tokens and reparsing that tokenized string with spaCy, rather than parsing the original caption and then aligning spans. This makes subword alignment parser-dependent. If an entire constructed batch has no qualifying adjective–noun group, `loss_attribute / count` divides by zero.[^mars-code]
+- The environment recipe pins old `transformers` and `timm` versions but not PyTorch or the full dependency set. `generate_cross_map.py` is a manually edited visualization script with empty checkpoint/config placeholders and a fixed local dataset path, not a runnable reproduction command.[^mars-code]
+
+Python bytecode compilation succeeded for every Python file in the snapshot, but no dependency import, model construction, dataset run, checkpoint evaluation, or GPU/distributed execution was performed.
+
 ## Limitations and source inconsistencies
 
 - Results cover only CUHK-PEDES, ICFG-PEDES, and RSTPReid, with ablation choices made on CUHK-PEDES. Generalization to ordinary image–text retrieval, other attribute parsers/languages, or newer backbones is untested.
 - The top-$k$ cross-encoder reranking improves accuracy but forfeits pure dual-encoder retrieval efficiency. Reported runtime rises from roughly 70 seconds at $k=2$ to about 1,000 seconds at $k=128$ and 2,000 seconds at $k=256$ in the plotted test, without enough protocol detail for external comparison.
 - Chunk extraction assumes adjective–noun structure and averages subrepresentations uniformly. Captions without recognized chunks, relational attributes, negation, and parsing errors are not separately evaluated; the authors report weakness after removing most attribute chunks.
 - The source is an arXiv v1 manuscript containing editorial comments and an obsolete commented abstract with a placeholder result. Treat the active tables and equations as draft evidence rather than a camera-ready specification.
-- The displayed attribute-loss equations omit the leading minus sign expected for cross-entropy, although the prose calls the objective cross-entropy. Implementation should be checked against released code.
+- The displayed attribute-loss equations omit the leading minus sign expected for cross-entropy, although the prose calls the objective cross-entropy. The released implementation resolves this presentation defect by using PyTorch's conventional positive `cross_entropy` loss.[^mars-code]
 - “State-of-the-art” language is metric- and comparator-dependent, as the source table itself contains the exceptions noted above.
 
 ## Relationships
@@ -69,3 +87,5 @@ The paper reports 30 epochs on one Nvidia RTX 4090, batch size 8, AdamW with wei
 - **Compared with:** [TBPS-CLIP empirical person-search baseline](tbps-clip-empirical-person-search-baseline.md) provides a simpler CLIP fine-tuning baseline without MARS's attribute-chunk supervision or cross-encoder reranking.
 
 [^arxiv-2407.04287v1]: Alex Ergasti, Tomaso Fontanini, Claudio Ferrari, Massimo Bertozzi, and Andrea Prati, “MARS: Paying more attention to visual attributes for text-based person search,” arXiv:2407.04287v1, 2024, [`main.tex`](../raw/papers/arXiv-2407.04287v1/main.tex). The architecture, attribute-loss schematic, Grad-CAM comparison, and top-$k$ timing/accuracy plot in the same source bundle were also visually inspected.
+
+[^mars-code]: Ergasti et al., [`MARS` official PyTorch implementation snapshot](../raw/codes/MARS/README.md), including `Retrieval.py`, model, dataset, optimizer, configuration, and visualization files. The README identifies the later ACM TOMM article (DOI 10.1145/3721482); repository commit identity was unavailable in this source snapshot. All three bundled images were visually inspected.

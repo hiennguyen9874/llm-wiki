@@ -5,16 +5,19 @@ description: MRA combines target-style synthetic pretraining data with explicit 
 tags: [cross-modal-retrieval, domain-adaptation, synthetic-data, region-phrase-alignment, person-reidentification]
 status: stable
 created: 2026-09-16
-generated: { by: llm-wiki-agent/1, at: 2026-09-16T08:10:59Z }
+generated: { by: llm-wiki-agent/1, at: 2026-09-16T08:52:04Z }
 sources:
   - id: arxiv-2507.10195
     resource: ../raw/papers/arxiv-2507.10195/main.tex
     title: "Minimizing the Pretraining Gap: Domain-aligned Text-Based Person Retrieval"
+  - id: mra-code
+    resource: ../raw/codes/MRA/README.md
+    title: Official MRA code snapshot
 ---
 
 # MRA domain-aligned text-based person retrieval
 
-This pipeline adapts synthetic pretraining data at two levels: Domain-aware Diffusion (DaD) generates images styled toward the CUHK-PEDES training domain, while Multi-granularity Relation Alignment (MRA) jointly learns global image-text and local region-phrase correspondences. The resulting Synthetic Domain-Aligned (SDA) corpus contains 1,217,750 image-text pairs, most with automatically generated region boxes and phrases. After SDA pretraining, MRA is fine-tuned on each retrieval benchmark and reranks the top 512 dual-encoder candidates with a fusion encoder. Reported improvements support the combined pipeline, but evidence for the individual mechanisms is more limited and all results are author-reported.[^arxiv-2507.10195]
+This pipeline adapts synthetic pretraining data at two levels: Domain-aware Diffusion (DaD) generates images styled toward the CUHK-PEDES training domain, while Multi-granularity Relation Alignment (MRA) jointly learns global image-text and local region-phrase correspondences. The resulting Synthetic Domain-Aligned (SDA) corpus contains 1,217,750 image-text pairs, most with automatically generated region boxes and phrases. After SDA pretraining, MRA is fine-tuned on each retrieval benchmark and uses a fusion encoder to rerank dual-encoder candidates. Reported improvements support the combined pipeline, but evidence for the individual mechanisms is more limited and all results are author-reported.[^arxiv-2507.10195] The released snapshot exposes the intended model and data flow, but its documented launcher cannot run unchanged because of multiple independent name errors, and the release omits DaD construction code and required data and weights.[^mra-code]
 
 ## DaD and SDA construction
 
@@ -35,7 +38,20 @@ MRA shares a Swin-Base vision encoder and a BERT-Base text stack split into a si
 - **Global alignment:** image-text contrastive learning, image-text matching, and masked-language modeling provide coarse supervision. MLM selects 25% of tokens, using an 80/10/10 mask-random-unchanged split.
 - **Objective:** $\mathcal{L}_{MRA}=\mathcal{L}_{ITC}+\mathcal{L}_{ITM}+\mathcal{L}_{MLM}+\beta(\mathcal{L}_{RPC}+\mathcal{L}_{RPM})$, with $\beta=0.8$ selected from the reported sweep. Fine-tuning drops RPC and RPM and optimizes only the three global objectives.
 
-At retrieval time, global image-text similarity selects 512 image candidates per text query; the fusion encoder reranks them. This is more expensive than pure dual-encoder retrieval, and the paper does not report reranking latency.[^arxiv-2507.10195]
+At retrieval time, global image-text similarity selects candidates per text query and the fusion encoder reranks them. The manuscript specifies 512 candidates, while the released configurations use 512 for CUHK-PEDES and ICFG-PEDES, 1,000 for RSTPReid, and 128 when evaluating SDA pretraining against CUHK-PEDES. Downstream evaluation also averages original and horizontally flipped image matching scores, then adds global similarity with weight 0.002.[^arxiv-2507.10195][^mra-code] This is more expensive than pure dual-encoder retrieval, and neither source reports reranking latency.
+
+## Released implementation
+
+The PyTorch snapshot implements Swin-Base image encoding, the split BERT text/fusion stack, global ITC/ITM/MLM objectives, region-phrase contrastive and matching losses, EDA caption augmentation during downstream fine-tuning, random erasing, test-time horizontal flipping, and fusion reranking. Its supplied configurations use 56-token inputs and batch size 40. SDA pretraining is configured for 32 epochs at $224\times224$ with a 2,048-dimensional projection; CUHK-PEDES and ICFG-PEDES fine-tuning use 30 epochs at $384\times256$ with the same projection, while RSTPReid instead uses a 256-dimensional projection and 10 epochs.[^mra-code]
+
+The snapshot is not executable as released without repairs:
+
+- `run.py` interpolates `args.re`, but its parser defines `args.region`; the README commands therefore terminate with `AttributeError` before launching distributed training. This failure was reproduced locally.
+- `dataset/__init__.py` imports `pre_dataset`, `ft_train_dataset`, and `ft_test_dataset` but calls undefined names `RegionTextJsonDataset`, `re_train_dataset`, and `re_test_dataset`, blocking dataset construction.
+- `build_itc_mlp` creates `mlp` but initializes undefined `new_mlp`. This blocks model construction for the 2,048-dimensional SDA, CUHK-PEDES, and ICFG-PEDES configurations; the 256-dimensional RSTPReid branch does not call that function.
+- The region objective is weighted twice during SDA training: `Retrieval.forward` returns $0.8(L_{RPC}+L_{RPM})$, then the training loop multiplies it by the configured `region: 0.8`, yielding an effective coefficient of 0.64 rather than the manuscript's $\beta=0.8$.
+
+Training evaluates the test split after every epoch and selects the saved downstream checkpoint by test Rank-1; it does not use the loaded validation split for selection. This makes ordinary runs test-set-tuned and means their reported best checkpoint is not a validation-selected estimate.[^mra-code] The code is MIT-licensed, but the README separately restricts the downloadable SDA dataset to research and forbids commercial use, so the dataset and implementation have different usage boundaries.
 
 ## Reported evidence
 
@@ -80,3 +96,4 @@ Pretraining uses four RTX 3090 GPUs for 32 epochs, batch size 40, AdamW with wei
 - **Related approach:** [MARS attribute-aware text-based person search](mars-attribute-aware-person-search.md) also introduces local attribute supervision and inference-time cross-modal reranking, but MRA obtains local supervision from synthetic region-phrase boxes during pretraining.
 
 [^arxiv-2507.10195]: Shuyu Yang, Yaxiong Wang, Yongrui Li, Li Zhu, and Zhedong Zheng, “Minimizing the Pretraining Gap: Domain-aligned Text-Based Person Retrieval,” arXiv:2507.10195, ICCV 2025 manuscript, [`main.tex`](../raw/papers/arxiv-2507.10195/main.tex). All included section files and the seven referenced PDF figures were inspected; results were not independently reproduced.
+[^mra-code]: Shuyu Yang et al., official MRA implementation, [`README.md`](../raw/codes/MRA/README.md) and associated source snapshot. All 30 files were inventoried; the README, license, configurations, principal execution/model/data/evaluation paths, and three referenced assets were inspected. The vendored BERT and Swin implementations and utility modules were not audited line by line. Python syntax compilation succeeded, and the launcher failure was reproduced; end-to-end training and evaluation were not attempted because the external datasets, pretrained weights, checkpoints, and GPU environment are absent.

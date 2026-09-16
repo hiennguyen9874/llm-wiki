@@ -5,7 +5,7 @@ description: CONQUER combines training-time cross-modal representation refinemen
 tags: [cross-modal-retrieval, clip, person-reidentification, optimal-transport, query-expansion, multimodal-llm]
 status: stable
 created: 2026-09-16
-generated: { by: llm-wiki-agent/1, at: 2026-09-16T08:21:28Z }
+generated: { by: llm-wiki-agent/1, at: 2026-09-16T08:38:23Z }
 sources:
   - id: arxiv-2601.18625
     resource: ../raw/papers/arXiv-2601.18625v1/main.tex
@@ -60,8 +60,8 @@ The local code mirror identifies itself as the official implementation and links
 - The training model is still named `RDE` and closely follows dual global/token-selection embeddings with TAL-style losses. Pair cleanliness is estimated with two Gaussian mixtures; disagreements are randomly assigned rather than retained as a distinct uncertain set.
 - The implemented OT rematching operates over normalized global embeddings from pairs labeled noisy, not the visual-token/text-token matrices described in the manuscript. Its loss is a symmetric KL between Sinkhorn assignments and similarity distributions. The training script weights context and rematching losses at 0.5 each, rather than the paper’s 0.5/0.1 negative/OT weights.
 - IQE uses a fixed list of 15 pedestrian-attribute questions rather than generated diagnostic questions. It verifies candidates with a yes/no prompt and aggregates generated attribute sentences, but does not implement the stated answer-confidence thresholds, confidence-weighted cross-anchor voting, or validation-alignment safeguard.
-- The supplied IQE shell script invokes a filename absent from the code mirror, selects `RDE` as the base model, and contains environment-specific placeholders. The available `IQE.py` is therefore not directly launched by the documented script without repair.
-- The README names Qwen2.5-VL-7B, while the inspected implementation loads a configurable local model through vLLM; the paper’s claimed LoRA fine-tuning procedure is not documented in the repository files inspected.
+- The supplied IQE shell script invokes a filename absent from the code mirror, selects `RDE` as the base model, and contains environment-specific paths. The available `IQE.py` is also not directly executable as released: it imports `build_clip_model`, which `model/__init__.py` does not export. Its remote-image branch calls `requests` without importing it.
+- The pinned requirements omit runtime imports needed by the released paths, including vLLM, Transformers, Qwen VL utilities, OpenAI, and POT (`ot`); the shell script mentions only some IQE dependencies. The README names Qwen2.5-VL-7B, while the implementation loads a configurable local model through vLLM; the paper’s claimed LoRA fine-tuning procedure is not documented in the repository files inspected.
 
 These discrepancies do not prove that the reported experiments are invalid; they mean the archived manuscript and code are insufficient to identify one unambiguous reproducible configuration.
 
@@ -80,4 +80,4 @@ These discrepancies do not prove that the reported experiments are invalid; they
 - **Evaluated against:** [TBPS-CLIP empirical person-search baseline](tbps-clip-empirical-person-search-baseline.md) provides another CLIP-based comparison across the same three benchmarks.
 
 [^arxiv-2601.18625]: Zequn Xie, “CONQUER: Context-Aware Representation with Query Enhancement for Text-Based Person Search,” arXiv:2601.18625v1 / ICASSP 2026 manuscript, [`main.tex`](../raw/papers/arXiv-2601.18625v1/main.tex). Included sections, result tables, bibliography, and the CARE/IQE figures in the same source bundle were inspected.
-[^conquer-code]: “CONQUER: Context-Aware Representation with Query Enhancement for Text-Based Person Search,” official code mirror, [`README.md`](../raw/codes/CONQUER/README.md). `IQE.py`, model construction, training processor, options, and launch scripts were inspected; the code was not executed and pretrained weights were not validated.
+[^conquer-code]: “CONQUER: Context-Aware Representation with Query Enhancement for Text-Based Person Search,” official code mirror, [`README.md`](../raw/codes/CONQUER/README.md). The source tree and key training/IQE paths, requirements, and launch scripts were inspected; all tracked Python files passed syntax compilation, but dependency installation, runtime execution, datasets, and pretrained weights were not validated.

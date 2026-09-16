@@ -5,16 +5,19 @@ description: IRRA combines CLIP dual encoders, masked-language cross-modal relat
 tags: [cross-modal-retrieval, clip, masked-language-modeling, person-reidentification]
 status: stable
 created: 2026-09-16
-generated: { by: llm-wiki-agent/1, at: 2026-09-16T08:01:59Z }
+generated: { by: llm-wiki-agent/1, at: 2026-09-16T08:46:39Z }
 sources:
   - id: arxiv-2303.12501
     resource: ../raw/papers/arxiv-2303.12501/PaperForReview.tex
     title: Cross-Modal Implicit Relation Reasoning and Aligning for Text-to-Image Person Retrieval
+  - id: irra-code
+    resource: ../raw/codes/IRRA/README.md
+    title: Official IRRA PyTorch implementation
 ---
 
 # IRRA for text-to-image person retrieval
 
-IRRA is a text-to-image person-retrieval framework that fine-tunes CLIP's full image and text encoders while using fine-grained cross-modal interaction only as training supervision. Its core design combines global dual-encoder retrieval with masked-language implicit relation reasoning (IRR), bidirectional similarity distribution matching (SDM), and identity classification. The interaction-only modules are removed at inference, so retrieval requires one global image-text similarity score rather than explicit local-part matching.[^arxiv-2303.12501]
+IRRA is a text-to-image person-retrieval framework that fine-tunes CLIP's full image and text encoders while using fine-grained cross-modal interaction only as training supervision. Its core design combines global dual-encoder retrieval with masked-language implicit relation reasoning (IRR), bidirectional similarity distribution matching (SDM), and identity classification. The interaction-only modules are removed at inference, so retrieval requires one global image-text similarity score rather than explicit local-part matching.[^arxiv-2303.12501] The released code implements this architecture and global-only evaluation, but its default model-selection protocol evaluates and selects checkpoints on the test split, and several configuration and distributed-training paths are incomplete.[^irra-code]
 
 ## Architecture and training
 
@@ -44,6 +47,14 @@ These results are author-reported comparisons, not independently reproduced here
 
 The reported setup resizes images to $384\times128$, limits text to 77 tokens, trains for 60 epochs with Adam and cosine decay, uses five warm-up epochs, and sets the SDM temperature to 0.02. Pretrained modules start at a $10^{-5}$ learning rate and randomly initialized modules at $5\times10^{-5}$. Experiments were run on one RTX 3090 24 GB GPU; the authors provide an implementation link at <https://github.com/anosorae/IRRA>.[^arxiv-2303.12501]
 
+### Released-code behavior
+
+The standard launch script uses batch size 64, image augmentation, and the `sdm+mlm+id` objective for 60 epochs. SDM is implemented as bidirectional $D_{KL}(p\|q)$ between predicted softmax similarities and normalized same-identity labels; the temperature remains fixed rather than learned. The identity and MLM losses have configurable weights that default to 1, and the training loop sums all returned loss terms. Evaluation L2-normalizes independently encoded text and image embeddings, ranks their cosine-similarity matrix, and reports Rank-1/5/10, mAP, and mINP.[^irra-code]
+
+The MLM data path hardcodes selection of 15% of eligible tokens and the 80/10/10 mask/random/unchanged policy. The CLI options `masked_token_rate` and `masked_token_unchanged_rate` are not passed to this implementation, so changing them has no effect. The optimizer generally applies a fivefold learning-rate multiplier to cross-modal, classifier, and MLM-head parameters, but its later bias rule overrides this for their bias tensors and applies only a twofold multiplier.[^irra-code]
+
+By default, `val_dataset` is `test`; training evaluates that split every epoch and saves `best.pth` according to its Rank-1 score. Consequently, the standard path performs test-set model selection rather than reserving the test set for one final evaluation. Setting `--val_dataset val` avoids that behavior where the supplied dataset has a validation split.[^irra-code]
+
 ## Limitations and source inconsistencies
 
 The authors observe that random single-token masking captures word-level semantics but can miss phrase-level meaning; they propose phrase-level masking as future work. They also note relatively low mINP on ICFG-PEDES, indicating weakness on the hardest matching samples.[^arxiv-2303.12501]
@@ -51,6 +62,10 @@ The authors observe that random single-token masking captures word-level semanti
 Two numerical inconsistencies in the manuscript should be resolved against released code or official result tables before exact reuse:
 
 - The CUHK-PEDES prose says the CLIP-ViT-B/16 baseline reaches “Rank-1 accuracy and mAP” of 68.19 and 86.47, but Table 1 assigns 86.47 to Rank-5 and reports mAP as 61.12.
-- Table 1 reports IRRA Rank-5 on CUHK-PEDES as 89.93, while the component ablation table reports 89.83 for the full system.
+- Table 1 reports IRRA Rank-5 on CUHK-PEDES as 89.93, while the component ablation table reports 89.83 for the full system. The release README repeats 89.93 but provides only external model/log links, so the local snapshot does not independently resolve the experimental discrepancy.[^irra-code]
+- The release README reports ICFG-PEDES Rank-5/mAP/mINP as 80.24/38.05/7.92, whereas the manuscript reports 80.25/38.06/7.93. The differences are only 0.01 but show that the two official result tables are not identical.[^arxiv-2303.12501][^irra-code]
+- The release has no dependency lockfile or bundled checkpoints. Its stated requirements omit imported packages including NumPy, Pillow, PyYAML, EasyDict, `regex`, and TensorBoard. Runtime reproduction was not attempted because the benchmark datasets and trained weights are absent.[^irra-code]
+- Distributed support is incomplete: the identity-sampler branch creates a batch sampler but never creates `train_loader`, while the default random-sampler branch has no distributed sampler. The advertised single-GPU path is therefore the better-supported execution mode.[^irra-code]
 
 [^arxiv-2303.12501]: Ding Jiang and Mang Ye, “Cross-Modal Implicit Relation Reasoning and Aligning for Text-to-Image Person Retrieval,” CVPR 2023 manuscript, [`PaperForReview.tex`](../raw/papers/arxiv-2303.12501/PaperForReview.tex). Architecture and qualitative retrieval figures in the same source bundle were also visually inspected.
+[^irra-code]: Jiang and Ye, [`IRRA`](../raw/codes/IRRA/README.md), official PyTorch implementation snapshot. The README, architecture image, license, launch and entry-point scripts, dataset loaders, model and objective definitions, training processor, optimizer and scheduler, checkpoint handling, evaluator, and options were inspected. All 30 Python files passed an in-memory syntax compilation check; runtime training and evaluation were not attempted because dependencies, benchmark datasets, and local trained checkpoints are unavailable.
