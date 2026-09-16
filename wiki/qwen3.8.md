@@ -5,7 +5,7 @@ description: Run Qwen 27B dense and 2.4T-A95B MoE Qwen3.8 models locally via Uns
 tags: [qwen, unsloth, gguf, llama-cpp, local-inference, quantization, reasoning, vision, mtp, nvfp4]
 status: stable
 created: 2026-09-14
-generated: { by: llm-wiki-agent/1, at: 2026-09-15T16:00:00Z }
+generated: { by: llm-wiki-agent/1, at: 2026-09-16T07:14:26Z }
 sources:
   - id: qwen38
     resource: ../raw/unsloth/models/qwen3.8.md
@@ -19,6 +19,9 @@ sources:
   - id: dflash2
     resource: ../raw/DFlash2.md
     title: 'DFlash 2: Keep Drafting Parallel'
+  - id: qwen-community
+    resource: ../raw/2093175583286968499/index.md
+    title: 'Post by @QwenDevs on X'
 ---
 
 Qwen3.8 is Qwen's family with `Qwen3.8-27B` dense vision-reasoning, `Qwen3.8-2.4T-A95B` MoE (2.4T total, 95B active), and `Qwen3.8-Max`; Unsloth publishes Dynamic V3.0 GGUFs, narrow 1-bit GGUFs, and Blackwell NVFP4 quants for local llama.cpp, Unsloth Desktop, and vLLM runs[^qwen38].
@@ -320,6 +323,7 @@ Qwen3.8-27B text table versus Qwen3.6-27B, Qwen3.7-Plus, Muse Glimmer-30B, and O
 - Related to [Muse Glimmer Local Deployment](muse-glimmer.md) — appears as a comparison point in the Qwen3.8-27B benchmark table.
 - Related to [SGLang Qwen3.8 Inference](sglang-qwen3.8-inference.md) — datacenter-scale Day-0 SGLang/Miles serving for the same 2.4T-A95B identity with GDN three-state caching, chunked PP prefill, PD staging buffer, fused kernels, and colocated LoRA RL[^qwen38-day0].
 - Related to [Qwen3.8-27B DSpark Speculator](qwen3.8-dspark.md) — server-side SGLang speculative-decoding path for the 27B dense base with block-size-7 drafting and v1/v2 acceptance plus throughput comparisons[^qwen38-dspark].
+- Related to [Qwen3.8-27B Community Variants](qwen3.8-27b-community-variants.md) — Qwen-curated community GGUF/MLX/AWQ/NVFP4 plus DSpark/DFlash2 variants selected by download heat, org footprint and route representativeness[^qwen-community].
 
 ## Contradictions
 
@@ -336,3 +340,4 @@ Qwen3.8-27B text table versus Qwen3.6-27B, Qwen3.7-Plus, Muse Glimmer-30B, and O
 [^qwen38-day0]: SGLang and Miles Add Day-0 Support for Qwen3.8 — `../raw/2026-08-12-qwen3-8-day0-support/index.md`, covering datacenter-scale 2.4T-A95B serving with three-state caching, chunked PP prefill, PD staging buffer, fused kernels, and colocated LoRA RL.
 [^qwen38-dspark]: Qwen3.8-27B-DSpark — `../raw/Qwen3.8-27B-DSpark.md`.
 [^dflash2]: DFlash 2: Keep Drafting Parallel — `../raw/DFlash2.md`.
+[^qwen-community]: Post by @QwenDevs on X — `../raw/2093175583286968499/index.md`, Qwen-curated Qwen3.8-27B community GGUF/MLX/AWQ/NVFP4 and DSpark/DFlash2 variant survey.

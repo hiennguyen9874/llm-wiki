@@ -5,7 +5,7 @@ description: Workload-oriented comparison of SGLang and vLLM across serving arch
 tags: [sglang, vllm, comparison, inference-serving]
 status: stable
 created: 2026-09-14
-generated: { by: llm-wiki-agent/1, at: 2026-09-15T18:00:00Z }
+generated: { by: llm-wiki-agent/1, at: 2026-09-16T12:00:00Z }
 sources:
   - id: sgl-overview
     resource: sglang-advanced-features-overview.md
@@ -70,6 +70,9 @@ sources:
   - id: deepinfra-vllm-sglang
     resource: ../raw/vllm-vs-sglang/index.md
     title: "vLLM vs SGLang: Performance, Features & Deployment Compared"
+  - id: mayhem-selfhosted
+    resource: ../raw/2069090022117019928/index.md
+    title: "SGLang vs vLLM: A Technical Comparison for Self-Hosted Deployments"
 ---
 
 SGLang and vLLM substantially overlap as high-performance inference runtimes, but their documented strengths point in different directions. SGLang is especially cohesive for cache-aware multi-turn and agentic serving, a dedicated routing tier, prefill/decode topologies, and RL rollout control. vLLM presents a particularly explicit engine/process architecture and a broad out-of-tree Python plugin model. For ordinary OpenAI-compatible serving either can fit; the deciding factors should be the exact model, hardware, quantization, attention backend, and measured workload rather than a universal performance claim.[^sgl-overview][^vllm-architecture]
@@ -165,6 +168,14 @@ A DeepInfra comparison adds benchmark-validity rules and self-host economics rat
 Its version-mismatch critique targets the widely repeated 29% SGLang lead (16,215 versus 12,553 tok/s on Llama 3.1 8B bf16, H100): the paired releases SGLang v0.2.3 and vLLM 0.11.0 are roughly two years apart, so the number cannot rank either engine today. Its unit-conflation warning separates RunPod single-stream decode rates (35.0 versus 32.8 tok/s, 2x H100, 70B distill, 7k context) from aggregate saturated throughput — one predicts per-reader text speed, the other node capacity before queueing.[^deepinfra-vllm-sglang] The stated usability rule is version-matched, flag-matched, and run on your request distribution.[^deepinfra-vllm-sglang]
 
 Workload triage uses four signals: prefix-reuse ratio (below ~20% stops discriminating; cached runs gain ~20% once hits land), batch shape (saturated offline packing versus bursty interactive TTFT), structured-output share with per-schema compiler cost, and dense versus MoE topology.[^deepinfra-vllm-sglang] The same-day prefix probe streams a real 8k+ preamble twice and reads cold-versus-warm TTFT delta at production concurrency, controlling for replica placement, cache aging, and HBM eviction pressure.[^deepinfra-vllm-sglang] Self-host break-even is framed at 8x H100 (~$11,700/month) versus $0.355 per 1M-in/250k-out unit, requiring roughly 12,000 input tok/s sustained; bursty 10-20% utilization, cached-input pricing, and engineer-months favor managed endpoints until saturation, regulatory placement, or modification needs flip the choice.[^deepinfra-vllm-sglang]
+
+## Self-hosted Mayhem snapshots (June 2026)
+
+A Mayhem4Markets X-thread comparison aimed at workstation and server self-hosting adds second-hand Q2 2026 snapshots and a workstation GPU curve; full tables are compiled in [SGLang vs vLLM Self-Hosted Comparison (Mayhem 2026)](sglang-vs-vllm-self-hosted-mayhem.md).[^mayhem-selfhosted]
+
+At high concurrency on Llama-3.3-70B 4-bit with 8x H200, the cited IoT Digital Twin run is about 5,300 tok/s vLLM versus 5,450 tok/s SGLang with narrow lead swaps by concurrency; on H100 80GB the cited Turion run has SGLang ahead up to 30B at 50 requests with single-digit gaps at 70B+, and tighter SGLang p95 TTFT at 100+ requests.[^mayhem-selfhosted] The cited SemiAnalysis InferenceXv2 point is SGLang on GB300 NVL72 with DeepSeek R1 at 25x versus H200 baseline, attributed to piecewise CUDA graphs default since v0.5.10 plus HiSparse sparse attention.[^mayhem-selfhosted] The workstation curve on Qwen3-Coder-30B AWQ 8K context via vLLM is about 4,570 tok/s on RTX 5090 versus 8,425 tok/s on RTX PRO 6000 Blackwell, with 70B FP8 fitting on the PRO 6000 single card but not the 5090; the chart image extends the same table to RTX 4090, H100 PCIe, H200, and B200 rows and footers the data to CloudRift while the prose says VRLA Tech, preserved unresolved.[^mayhem-selfhosted]
+
+The source repeats the familiar cache rule — near-zero gap on unique prompts, about 30% standard and up to 6.4x prefix-heavy SGLang advantage, 3-5x effective prefill-latency gain above roughly 60% overlap — and frames single-GPU differences as compressed because the GPU bottlenecks first.[^mayhem-selfhosted] Its durable deltas beyond existing pages are the self-hosted decision framing, the Anthropic Messages plus gRPC versus SGLang-DSL API contrast, the SGLang RL-rollout-backend role in AReaL/Miles/verl/Tunix, and the explicit workstation fit notes.[^mayhem-selfhosted]
 
 ## Contradictions
 

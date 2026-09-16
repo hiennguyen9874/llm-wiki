@@ -1,6 +1,7 @@
 # Wiki Update Log
 
 ## 2026-09-16
+- **Ingest**: Compiled [Post by @QwenDevs on X](../raw/2093175583286968499/index.md) plus `assets/HQxyoxMb0AA6Nts.jpg`; created [Qwen3.8-27B Community Variants](qwen3.8-27b-community-variants.md) and updated [Qwen3.8 Local Deployment](qwen3.8.md).
 - **Ingest**: Compiled [Patching NVIDIA's driver and vLLM to enable P2P on consumer GPUs](../raw/patching-nvidias-driver-and-vllm-to-enable-p2p-on-consumer-gpus/index.md); created [Consumer-GPU P2P Unlock and vLLM Tuning](vllm-consumer-gpu-p2p-unlock.md) and updated [vLLM Tensor and Pipeline Parallel Scaling](vllm-parallelism-scaling.md).
 - **Ingest**: Compiled [Paged Attention from First Principles: A View Inside vLLM](../raw/paged-attention-from-first-principles-a-view-inside-vllm/index.md); updated [PagedAttention for LLM Serving](paged-attention.md).
 - **Ingest**: Compiled [Speculative Decoding with vLLM — NVIDIA Triton Inference Server](../raw/Speculative_Decoding/index.md); created [Triton Speculative Decoding with vLLM Backend](triton-vllm-speculative-decoding.md).
