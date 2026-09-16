@@ -5,7 +5,7 @@ description: Single-replica tensor/pipeline strategy selection, multi-node Ray a
 tags: [vllm, tensor-parallel, pipeline-parallel, deployment, multi-node]
 status: stable
 created: 2026-09-14
-generated: { by: llm-wiki-agent/1, at: 2026-09-14T09:11:00Z }
+generated: { by: llm-wiki-agent/1, at: 2026-09-16T12:00:00Z }
 sources:
   - id: para-scale
     resource: ../raw/vllm/serving/parallelism_scaling.md
@@ -154,6 +154,8 @@ Confirm operation with detailed NCCL logs (`NCCL_DEBUG=TRACE vllm serve ...`)[^p
 
 ## Operational tips
 
+- Consumer-GPU P2P unlock: on RTX 3090-class rigs without factory P2P, a community driver patch plus vLLM check override and fused-MoE tuning is reported to restore direct GPU-to-GPU transfer; see [Consumer-GPU P2P Unlock and vLLM Tuning](vllm-consumer-gpu-p2p-unlock.md) for procedure, IOMMU tradeoff, and single-rig limits.
+
 - Pre-download Hugging Face models: download on every node to the same path or place the model on a distributed filesystem accessible to all nodes, then pass the path instead of the repository ID; otherwise supply a token via `-e HF_TOKEN=<TOKEN>` to the cluster script[^para-scale].
 - For distributed-debugging detail, the source points to `distributed_troubleshooting.md`, which was absent from `raw/` and was not inspected[^para-scale].
 
@@ -169,5 +171,6 @@ Confirm operation with detailed NCCL logs (`NCCL_DEBUG=TRACE vllm serve ...`)[^p
 - Uses [vLLM Context Parallel Deployment](vllm-context-parallel-deployment.md) — sibling parallelism strategy for long-context prefill/decode, versus TP/PP model-weight sharding here.
 - Uses [vLLM V1 Process Architecture](vllm-v1-process-architecture.md) — engine-core, API-server, and worker process layout underlies the Ray versus multiprocessing executor choice.
 - Uses [vLLM Python Multiprocessing Method Selection](vllm-python-multiprocessing.md) — fork/spawn selection and worker constraints apply to the `mp` distributed-executor backend.
+- Related to [Consumer-GPU P2P Unlock and vLLM Tuning](vllm-consumer-gpu-p2p-unlock.md) — community BAR1 patch plus vLLM override that restores P2P transfer on consumer GPUs lacking factory support.
 
 [^para-scale]: Parallelism and Scaling — `../raw/vllm/serving/parallelism_scaling.md`.

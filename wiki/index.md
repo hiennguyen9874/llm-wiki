@@ -9,6 +9,7 @@ The complete retrieval map for compiled knowledge. See [LLM Wiki Contract](../LL
 ## Concepts
 - [AI Inference, KV Cache, and Serving Optimizations](ai-inference-kv-cache-fundamentals.md) — Autoregressive inference, KV-cache sizing, and runtime plus quantization optimizations that decide serving cost.
 - [Block-Sparse FlashAttention](flashattention-block-sparse.md) — Block-masked FlashAttention variant that skips zero blocks for sparsity-proportional IO and runtime gains to 64K context.
+- [Consumer-GPU P2P Unlock and vLLM Tuning](vllm-consumer-gpu-p2p-unlock.md) — Community driver patch plus vLLM P2P override and fused-MoE tuning that enable direct GPU-to-GPU transfer on consumer cards.
 - [Debugging vLLM-torch.compile Integration](vllm-debug-torch-compile.md) — Isolating vLLM-compile failures with tlparse logs and per-subsystem disable flags for Dynamo, dynamic shapes, Inductor, cache, and CUDAGraphs.
 - [DeepSeek-V3 Architecture and Evaluation](deepseek-v3-architecture.md) — 671B/37B MLA plus auxiliary-loss-free DeepSeekMoE with D=1 MTP, 14.8T pretraining with YaRN 128K and R1-distilled SFT/GRPO, and base plus chat benchmark evidence.
 - [DeepSeek-V3 FP8 Training and Deployment Systems](deepseek-v3-systems.md) — Fine-grained FP8 mixed precision, DualPipe overlap with custom all-to-all kernels, prefill/decode disaggregation with redundant experts, and hardware suggestions behind 2.788M-H800 training.
@@ -118,6 +119,7 @@ The complete retrieval map for compiled knowledge. See [LLM Wiki Contract](../LL
 - [SGLang ViT CUDA Graphs for Multimodal Encoders](sglang-vit-cuda-graph.md) — Per-sequence-length CUDA Graph capture and replay for SGLang vision encoders via ViTCudaGraphRunner, enabled by SGLANG_VIT_ENABLE_CUDA_GRAPH.
 - [Speculative Decoding Foundations](speculative-decoding-foundations.md) — Draft-verify-accept mechanism with lossless rejection-sampling proof, acceptance-rate and speedup math, and applicability limits.
 - [Speculative Decoding Workload Fit and Tuning](speculative-decoding-practice-guide.md) — When speculative decoding helps, acceptance-rate and draft-token tuning, and vLLM deployment with reported cost evidence.
+- [Triton Speculative Decoding with vLLM Backend](triton-vllm-speculative-decoding.md) — Serve EAGLE and draft-model speculative decoding in Triton via the vLLM backend with model-repository setup, Docker serving, generate requests, and GenAI-Perf evaluation.
 - [Unsloth Dynamic GGUF Quantization](unsloth-dynamic-gguf.md) — Post-training GGUF quantization family with per-layer dynamic schemes, chat-oriented imatrix calibration, and versioned v2.0/v3.0 quality-size tradeoffs.
 - [Unsloth Dynamic NVFP4 Quantization](unsloth-dynamic-nvfp4.md) — Blackwell-only 4-bit quantization combining native NVFP4 with per-layer dynamic FP8/BF16 retention for faster inference and lower VRAM.
 - [Unsloth MTP Local Inference](unsloth-mtp-local-inference.md) — Run Gemma 4 and Qwen3.6/3.5 MTP models locally via Unsloth Studio or llama.cpp with draft-token tuning, hardware, and sampling guidance.
