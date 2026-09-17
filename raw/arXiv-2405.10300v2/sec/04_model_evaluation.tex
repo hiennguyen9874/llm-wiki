@@ -1,0 +1,27 @@
+\section{Model Evaluation}
+We compare Grounding DINO 1.5 with other related works on both the zero-shot and fine-tuning settings. The best and the second best results are indicated in \textbf{bold} and with \underline{underline}.
+
+\subsection{Zero-Shot Transfer of Grounding DINO 1.5 Pro}
+
+Following the implementation of Grounding DINO~\cite{GroundingDINO}, we evaluate our model's zero-shot transfer performance on the COCO~\cite{COCO} dataset, which comprises 80 common categories and the LVIS~\cite{LVIS} datasets, which includes 1203 more diverse and long-tailed categories. We report the performance of fixed AP~\cite{FixedAP} on both the LVIS-val and LVIS-minival splits. As shown in Table~\ref{tab:gd-1.5-zero-shot}, our model shows a significant performance improvement compared to the previous Grounding DINO models. For instance, on the COCO zero-shot transfer benchmark, Grounding DINO 1.5 Pro achieves a 54.3 AP, improving upon Grounding DINO Swin-L by 1.8 AP. On the LVIS-minival and LVIS-val zero-shot transfer benchmarks, Grounding DINO 1.5 Pro achieves a 55.7 AP and a 47.6 AP, outperforming the previous best model, DetCLIPv3, by 6.9 AP and 6.2 AP, respectively. Furthermore, compared with the Grounding DINO Swin-T model, our model demonstrates a remarkable improvement of 28.3 AP (55.7 AP vs. 27.4 AP) on the LVIS-minival zero-shot transfer benchmark.
+
+\input{table/gd1.5_zero_shot_v2}
+
+\input{table/gd1.5_zero_shot_odinw13}
+
+We further evaluate the generalization capability of our model in multiple real-world scenarios using the ODinW (Object Detection in the Wild)~\cite{GLIP} benchmark, which encompasses 35 datasets covering a wide range of application domains. We observe that within the ODinW benchmark, several datasets exhibit significant quality issues in terms of the annotated category names. To mitigate such problems, during testing, we performed prompt engineering to refine category names on datasets where their performance was particularly poor to better align their category names with actual testing scenarios. Grounding DINO 1.5 Pro achieves an average of 58.7 AP over 13 datasets on the ODinW13 benchmark and set a new record on the ODinW35 benchmark with an average of 30.2 AP over 35 datasets, improving upon Grounding DINO by 4.2 AP. The comprehensive per-dataset performance of Grounding DINO 1.5 Pro on ODinW13 are presented in Table~\ref{tab:odinw13_zero_shot}. Furthermore, the detailed per-dataset performance of Grounding DINO 1.5 Pro on ODinW35 is available in Appendix Section~\ref{odinw_detailed_performance}.
+
+\subsection{Fine-tuning Results on Downstream Datasets}
+
+We further investigate the transferability of Grounding DINO 1.5 Pro by fine-tuning it on various downstream datasets. As shown in Table~\ref{tab:downstream_finetune}, on the LVIS dataset, the fine-tuned Grounding DINO 1.5 Pro model achieves a 68.1 AP and a 63.5 AP on the LVIS-minival and LVIS-val splits, respectively, which represent an enhancement of 12.4 AP and 15.9 AP over the Grounding DINO 1.5 Pro zero-shot setting.
+
+\input{table/gd1.5_downstream_finetune}
+
+After fine-tuning on the ODinW35 dataset, the Grounding DINO 1.5 Pro model sets new records by achieving an average of 70.6 AP across 35 datasets on the ODinW35 benchmark and 72.4 AP over 13 datasets on the ODinW13 benchmark, respectively. This represents a significant improvement over the zero-shot setting, with respective improvements of 40.5 AP and 13.7 AP. The detailed fine-tuning performance of Grounding DINO 1.5 Pro on the ODinW13 benchmark is reported in Table~\ref{tab:downstream_finetune_odinw13}. 
+
+\input{table/gd1.5_downstream_finetune_odinw13}
+
+\subsection{Main Results of Grounding DINO 1.5 Edge}
+After pre-training on Grounding-20M, we directly evaluate Grounding DINO 1.5 Edge on the COCO dataset and LVIS dataset in a zero-shot manner. Following previous works\cite{GroundingDINO,cheng2024yolo,GLIPv2}, we evaluate on both LVIS-val and LVIS-minival splits and report the fixed AP~\cite{FixedAP} for comparison. The main results are shown in Table~\ref{tab:edge}. 
+Compared with current real-time open-set detectors in an end-to-end test setting, which do not use language cache, Grounding DINO 1.5 Edge achieves a zero-shot AP of 45.0 on COCO.  Regarding the zero-shot performance on LVIS-minival, Grounding DINO 1.5 Edge achieves remarkable performance, an AP score of 36.2, which surpasses all other state-of-the-art algorithms (OmDet-Turbo-T 30.3 AP, YOLO-Worldv2-L 32.9 AP, YOLO-Worldv2-M 30.0 AP, YOLO-Worldv2-S 22.7 AP).  Notably, deploying Grounding DINO 1.5 Edge model optimized with TensorRT on NVIDIA Orin NX achieves an inference speed of over 10 FPS at an input size of 640 $\times$ 640.
+\input{table/gd1.5_edge}

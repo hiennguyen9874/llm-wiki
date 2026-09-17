@@ -1,0 +1,204 @@
+\section{Method}
+\label{sec:method}
+\begin{figure*}[t]
+    \centering
+    \includegraphics[width=1\linewidth]{figures/module_design.pdf}
+    \caption{\textbf{Illustration of different Deep Semantic Injector (DSI) strategies.} 
+    (a) Direct alignment of multi-scale backbone features (\(S_3, S_4, S_5\)). 
+    (b) Hybrid alignment of both backbone features and the AIFI output feature (\(F_5\)). 
+    (c) Our proposed method: Targeted alignment of only the AIFI output feature (\(F_5\)), which possesses the highest-level semantics. This design allows gradients to backpropagate, enhancing both the AIFI module and the backbone.
+    }
+    \label{fig:module_design}
+\vspace{-5mm}
+\end{figure*}
+
+\subsection{Overview}
+\label{subsec:overview}
+In this work, we focus on applying our framework to DETR-based real-time object detectors, \textit{i.e.}, RT-DETR models~\cite{zhao2024detrs}.
+The overall framework of our method is shown in Figure~\ref{fig:overview}, where the proposed modules are highlighted in blue.
+
+\paragraph{Preliminaries.}
+Our model builds upon the RT-DETR architecture, particularly its efficient hybrid encoder, as illustrated in the overall framework. The encoder processes multi-scale feature maps ($S_3$, $S_4$, $S_5$) extracted from a CNN backbone. It consists of two main components:
+\begin{itemize}
+\item \textbf{Attention-based Intra-scale Feature Interaction (AIFI):} To maintain computational efficiency, self-attention is applied only to the highest-level feature map, $S_5 \in \mathbb{R}^{H/32 \times W/32 \times C_5}$. AIFI captures global context and long-range dependencies, producing an enhanced representation denoted as $F_5$.
+\item \textbf{CNN-based Cross-scale Feature Fusion (CCFF):} The semantically enriched $F_5$ is further fused with the lower-level feature maps $S_3$ and $S_4$ to propagate high-level semantics to shallower features, generating the final multi-scale outputs ${P_3, P_4, P_5}$ for the decoder.
+\end{itemize}
+
+\paragraph{Motivation.}
+The design of the hybrid encoder makes the quality of the feature map $F_5$ particularly critical. 
+As the only feature subjected to self-attention, $F_5$ serves as the principal source of high-level, global semantic information for the entire model. Its quality directly affects the subsequent cross-scale fusion in the CCFF module, the initial query selection, and ultimately the performance of the decoder. 
+This dependency leads to what we term the \textit{F5 Semantic Bottleneck}. However, the AIFI module that produces $F_5$ is trained with only indirect supervision, as the gradients from the final detection losses must backpropagate through the decoder and CCFF before reaching $F_5$. Such indirect supervision may be insufficient to fully optimize $F_5$.
+
+To address this issue, we propose the \textbf{Deep Semantic Injector (DSI)}, a lightweight training-only module that explicitly aligns the deep feature $F_5$ with semantically rich representations from a vision foundation model.
+This targeted supervision enhances the semantic expressiveness of $F_5$ and allows its gradient to flow back through AIFI and the backbone, improving both modules synergistically.
+
+With DSI incorporated, the total training objective is defined as:
+\begin{equation}
+\mathcal{L}_{\text{total}} = \mathcal{L}_{\text{det}} + \lambda \mathcal{L}_{\text{DSI}},
+\label{eq:loss_all}
+\end{equation}
+where $\mathcal{L}_{\text{det}}$ denotes the standard detection loss (e.g., classification and bounding box regression), and $\mathcal{L}_{\text{DSI}}$ represents the proposed semantic alignment loss.
+However, achieving stable and task-aligned semantic transfer is challenging because of the large architectural and learning objective disparities between VFMs and resource-constrained detectors.
+An inappropriate choice of $\lambda$ may either provide insufficient semantic supervision in the early stages or excessively dominate the detection objective in later stages, ultimately impeding convergence and degrading performance.
+To adapt to the evolving optimization dynamics during training, we propose \textbf{Gradient-guided Adaptive Modulation (GAM)}, a mechanism that dynamically tunes $\lambda$ based on gradient statistics, ensuring balanced optimization between detection and semantic supervision.
+
+\subsection{Deep Semantic Injector}
+\label{subsec:dsi}
+To address the \textit{F5 Semantic Bottleneck}, we introduce the Deep Semantic Injector (DSI), a training-only module designed to provide explicit and powerful supervision for the feature map $F_5$. The objective of DSI is to enrich the semantic quality of $F_5$ by aligning it with representations from a high-capacity semantic teacher, denoted as $\mathcal{T}$. Given an input image, $\mathcal{T}$ produces a high-quality feature representation $F_{\mathcal{T}} \in \mathbb{R}^{H' \times W' \times C_{\mathcal{T}}}$.
+
+\paragraph{Feature Projector.}
+To align the detector's feature map $F_5 \in \mathbb{R}^{H_5 \times W_5 \times C_5}$ with the teacher's representation $F_{\mathcal{T}}$, differences in both spatial resolution and channel dimensionality must be reconciled.
+The teacher, typically a ViT~\cite{dosovitskiy2020image}, outputs a sequence of patch tokens $T_p \in \mathbb{R}^{N_p \times C_{\mathcal{T}}}$. To enable spatial comparison, $T_p$ is reshaped into a 2D grid representation $F_{\mathcal{T}}^{\text{sp}} \in \mathbb{R}^{H_{\mathcal{T}} \times W_{\mathcal{T}} \times C_{\mathcal{T}}}$, where $N_p = H_{\mathcal{T}} \times W_{\mathcal{T}}$.
+
+We then introduce a lightweight feature projector $\mathcal{P}$ to achieve twofold alignment. First, $F_{\mathcal{T}}^{\text{sp}}$ is interpolated to match the spatial resolution of $F_5$. Meanwhile, $\mathcal{P}$ adjusts the channel dimension of $F_5$ to align with the teacher's semantic space. 
+The complete projection process is summarized as follows:
+\begin{equation}
+F_{\mathcal{T}}^{\text{sp}} = \text{Reshape}(T_p), \quad F_{\mathcal{T}}^{\text{sp}} \in \mathbb{R}^{H_{\mathcal{T}} \times W_{\mathcal{T}} \times C_{\mathcal{T}}},
+\label{eq:reshape}
+\end{equation}
+\begin{equation}
+F_{\mathcal{T}}' = \text{Interpolate}(F_{\mathcal{T}}^{\text{sp}}), \quad F_{\mathcal{T}}' \in \mathbb{R}^{H_5 \times W_5 \times C_{\mathcal{T}}},
+\label{eq:interpolate}
+\end{equation}
+\begin{equation}
+F_5' = \mathcal{P}(F_5), \quad F_5' \in \mathbb{R}^{H_5 \times W_5 \times C_{\mathcal{T}}}
+\label{eq:project}
+\end{equation}
+
+\paragraph{Semantic Injection.}
+As illustrated in Figure~\ref{fig:module_design}, we design three progressively enhanced configurations for semantic injection.
+In configurations (a) and (b), the DSI module performs feature alignment at different hierarchical depths through the Feature Projector, injecting semantic knowledge from the frozen VFM into the detector's feature hierarchy.
+In configuration (c), considering the pivotal role of the AIFI module within the hybrid encoder, the alignment is conducted on its output $F_5$, which contains the richest semantics.
+Without detaching gradients, the DSI loss is allowed to propagate backward, thereby updating the lightweight backbone.
+Consequently, the forward pass leverages the enriched $F_5$ to guide cross-scale fusion in the CCFF module, while the backward path enforces semantic consistency and strengthens the backbone’s representational capacity.
+This dual-directional supervision achieves a unified semantic enhancement of the detector.
+
+\paragraph{Alignment Loss.} 
+To encourage the detector to capture the rich semantic of the teacher's representation, we adopt a cosine similarity loss.
+We maximize the patch-wise cosine similarity between the detector's projected features $F_5'$ and the teacher's projected features $F_{\mathcal{T}}'$, formulated as minimizing the negative cosine similarity averaged over all spatial locations $(i, j)$:
+\begin{equation}
+  \mathcal{L}_{DSI}(F_5', F_{\mathcal{T}}') = - \frac{1}{H_5 W_5} \sum_{i,j} \frac{F_5'(i,j) \cdot F_{\mathcal{T}}'(i,j)}{\|F_5'(i,j)\| \|F_{\mathcal{T}}'(i,j)\|}.
+  \label{eq:cos_sim}
+\end{equation}
+
+\subsection{Gradient-guided Adaptive Modulation}
+\label{subsec:gam}
+To ensure stable and adaptive semantic supervision, we propose a dynamic Gradient-guided Adaptive Modulation (GAM) mechanism that regulates the relative contribution of the AIFI module according to its \textit{gradient norm ratio} rather than the raw loss magnitude. This gradient-based regulation adaptively maintains the effective contribution of AIFI within a desired range, leading to balanced optimization among model components.
+
+Specifically, for each training step $t$ within epoch $e$, we compute the $L_1$ norm of gradients for each major component, including the backbone, AIFI, CCFF, and decoder:
+\begin{equation}
+  \mathcal{C} = \{\text{Backbone, AIFI, CCFF, Decoder}\},
+  \label{eq:component}
+\end{equation}
+\begin{equation}
+  G_t^{(\mathcal{C})} = \| \nabla_{\theta_\mathcal{C}} \mathcal{L}_{total} \|_1.
+  \label{eq:grad}
+\end{equation}
+The total gradient magnitude is given by:
+\begin{equation}
+  G_t^{(total)} = \sum_\mathcal{C} G_t^{(\mathcal{C})},
+  \label{eq:grad_total}
+\end{equation}
+and the relative gradient contribution of AIFI at step $t$ is defined as:
+\begin{equation}
+  r_t = \frac{G_t^{(\text{AIFI})}}{G_t^{(total)}}.
+  \label{eq:aifi_ratio}
+\end{equation}
+We then average the gradient ratios across all training steps within epoch $e$ to obtain:
+\begin{equation}
+  \bar{r}_e = \frac{1}{T_e} \sum_{t=1}^{T_e} r_t,
+  \label{eq:avg_aifi_ratio}
+\end{equation}
+where $T_e$ denotes the number of steps in epoch $e$.
+
+Two hyperparameters govern the modulation process:
+
+\begin{itemize}
+\item \textbf{Target Ratio ($\rho$)}: the desired average gradient ratio of AIFI, representing its ideal relative contribution to optimization.
+\item \textbf{Tolerance Interval ($\delta$)}: a margin that defines an acceptable deviation range $[\rho - \delta, \rho + \delta]$ around the target ratio.
+\end{itemize}
+
+At the end of each epoch, GAM checks whether $\bar{r}e$ lies within the target interval.
+If $\bar{r}e \in [\rho - \delta, \rho + \delta]$, the weight $\lambda{e}$ of $\mathcal{L}_{\text{DSI}}$ remains unchanged.
+Otherwise, $\lambda_{e}$ is adjusted such that the next epoch's AIFI gradient ratio is steered toward the \textit{further boundary} of the target range rather than its midpoint, since only a portion of AIFI’s gradients originates from $\mathcal{L}_{\text{DSI}}$, boundary-based adjustment yields more stable convergence near equilibrium.
+
+\begin{equation}
+    \lambda_{e+1} =
+    \begin{cases}
+    \lambda_e \cdot \dfrac{\rho - \delta}{\bar{r}_e}, & \text{if } \bar{r}_e > \rho + \delta, \\[8pt]
+    \lambda_e \cdot \dfrac{\rho + \delta}{\bar{r}_e}, & \text{if } \bar{r}_e < \rho - \delta, \\[8pt]
+    \lambda_e, & \text{otherwise.}
+    \end{cases}
+    \label{eq:update_method}
+\end{equation}
+
+This update rule drives the effective gradient contribution of AIFI to converge within the desired operational range while preventing oscillations.
+The hyperparameters $\rho$ and $\delta$ offer explicit control over training dynamics: $\rho$ defines the desired supervision intensity, whereas $\delta$ regulates the trade-off between responsiveness and stability.
+A smaller $\delta$ enables faster adaptation but risks instability, while a larger $\delta$ yields smoother yet slower convergence.
+In practice, GAM provides stable convergence and consistently improves semantic alignment without additional tuning overhead.
+
+\begin{table*}[t]
+    \caption{\textbf{Comparison with other real-time object detectors on COCO~\cite{lin2014microsoft} \texttt{val2017}}. Results are sourced from the official publications. Values that were not explicitly reported but derived from publicly available weights via standard evaluation are marked with $^*$.  R18, R34, R50, and R101 refer to ResNet-18, ResNet-34, ResNet-50, and ResNet-101, respectively.} 
+    \label{tab:comparison}
+    \vspace{-5mm}
+    \begin{center}
+    \begin{adjustbox}{width=\textwidth}
+    \begin{tabular}{l | cccc | ccc ccc}
+        \toprule
+        Model & \#Epochs & \#Params. & GFLOPs & Latency (ms) & AP$^{val}$ & AP$^{val}_{50}$ & AP$^{val}_{75}$ & AP$^{val}_S$ & AP$^{val}_M$ & AP$^{val}_L$ \\
+        \midrule
+
+        YOLOv10-S~\cite{wang2024yolov10} & 500 & 7 & 22 & 2.52 & 46.3 & 63.0 & 50.4 & 26.8 & 51.0 & 63.8 \\
+        YOLO11-S~\cite{yolo11} & 500 & 9 & 22 & 2.60 & 47.0 & 63.4$^*$ & 50.5$^*$ & - & - & -\\
+        YOLOv12-S~\cite{tian2025yolov12} & 600 & 9 & 21 & 2.78 & 48.0 & 65.0 & 51.8 & 29.8 & \underline{53.2} & 65.6 \\
+        YOLOv13-S~\cite{lei2025yolov13} & 600 & 9 & 21 & 2.98  & 48.0 & 65.2 & 52.0 & - & - & - \\
+        RT-DETR-R18~\cite{zhao2024detrs} & 120 & 20 & 60 & 4.61  & 46.5 & 63.8 & 50.4 & 28.4 & 49.8 & 63.0 \\
+        RT-DETRv2-S~\cite{lv2024rt} & 120 & 20 & 60 & 4.61  & 48.1 & 65.1 & 52.1$^*$ & 30.2$^*$ & 51.2$^*$ & 64.2$^*$ \\
+        RT-DETRv3-R18~\cite{wang2025rt} & 120 & 20 & 60 & 4.61 & 48.1 & 65.6 & 52.0$^*$ & 30.2$^*$ & 51.5$^*$ & 63.9$^*$ \\
+        D-FINE-S~\cite{peng2024d} & 120 & 10 & 25 & 3.66 & 48.5 & 65.6 & 52.6 & 29.1 & 52.2 & 65.4 \\
+        DEIM-S~\cite{huang2025deim} & 120 & 10 & 25 & 3.66 & \underline{49.0} & \underline{65.9} & \underline{53.1} & \textbf{30.4} & 52.6 & \underline{65.7} \\
+        \rowcolor{aliceblue} \textbf{{\ourmethod}-S (ours)} & 120 & 10 & 25 & 3.66 & \textbf{49.7} & \textbf{66.8} & \textbf{54.1} & \underline{30.2} & \textbf{53.6} & \textbf{66.9} \\
+        
+
+        \midrule
+        YOLOv10-M~\cite{wang2024yolov10} & 500 & 15 & 59 & 4.74 & 51.1 & 68.1 & 55.8 & 33.8 & 56.5 & 67.0 \\
+        YOLO11-M~\cite{yolo11} & 500 & 20 & 68 & 4.85 & 51.5 & 68.1$^*$ & 55.8$^*$ & - & - & - \\
+        YOLOv12-M~\cite{tian2025yolov12} & 600 & 20 & 68 & 4.96 & 52.5 & 69.6 & 57.1 & \textbf{35.7} & \textbf{58.2} & 68.8 \\
+        RT-DETR-R34~\cite{zhao2024detrs} & 120 & 31 & 92 & 6.91 & 48.9 & 66.8 & 52.9 & 30.6 & 52.4 & 66.3 \\
+        RT-DETRv2-M~\cite{lv2024rt} & 120 & 31 & 92 & 6.91 & 49.9 & 67.5 & 54.1$^*$ & 32.0$^*$ & 53.2$^*$ & 66.5$^*$ \\
+        RT-DETRv3-R34~\cite{wang2025rt} & 120 & 31 & 92 & 6.91 & 49.9 & 67.7 & 53.9$^*$ & 31.7$^*$ & 54.0$^*$ & 66.2$^*$ \\
+        D-FINE-M~\cite{peng2024d} & 120 & 19 & 57 & 5.91 & 52.3 & 69.8 & 56.4 & 33.2 & 56.5 & \underline{70.2} \\
+        DEIM-M~\cite{huang2025deim} & 90 & 19 & 57 & 5.91 & \underline{52.7} & \underline{70.0} & \underline{57.3} & \underline{35.3} & 56.7 & 69.5 \\
+        \rowcolor{aliceblue} \textbf{{\ourmethod}-M (ours)} & 90 & 19 & 57 & 5.91 & \textbf{53.5} & \textbf{71.1} & \textbf{58.1} & 34.9 & \underline{57.7} & \textbf{72.1} \\
+        
+
+        \midrule
+        YOLOv10-L~\cite{wang2024yolov10} & 500 & 24 & 120 & 7.38 & 53.2 & 70.1 & 58.1 & 35.8 & 58.5 & 69.4 \\
+        YOLO11-L~\cite{yolo11} & 500 & 25 & 87 & 6.33 & 53.4 & 69.7$^*$ & 58.3$^*$ & - & - & - \\
+        YOLOv12-L~\cite{tian2025yolov12} & 600 & 27 & 89 & 6.85 & 53.7 & 70.7 & 58.5 & \underline{36.9} & 59.5 & 69.9 \\
+        YOLOv13-L~\cite{lei2025yolov13} & 600 & 88 & 28 & 8.63  & 53.4 & 70.9 & 58.1 & - & - & - \\
+        RT-DETR-R50~\cite{zhao2024detrs} & 72 & 42 & 136 & 9.29 & 53.1 & 71.3 & 57.7 & 34.8 & 58.0 & 70.0 \\
+        RT-DETRv2-L~\cite{lv2024rt} & 72 & 42 & 136 & 9.29 & 53.4 & 71.6 & 57.4$^*$ & 36.1$^*$ & 57.9$^*$ & 70.8$^*$ \\
+        RT-DETRv3-R50~\cite{wang2025rt} & 120 & 42 & 136 & 9.29 & 53.4 & 71.7 & 57.3$^*$ & 35.4$^*$ & 57.4$^*$ & 69.8$^*$ \\
+        D-FINE-L~\cite{peng2024d} & 72 & 31 & 91 & 8.07 & 54.0 & 71.6 & 58.4 & 36.5 & 58.0 & \underline{71.9} \\
+        DEIM-L~\cite{huang2025deim} & 50 & 31 & 91 & 8.07 & \underline{54.7} & \underline{72.4} & \underline{59.4} & \underline{36.9} & \underline{59.6} & 71.8 \\
+        \rowcolor{aliceblue} \textbf{{\ourmethod}-L (ours)} & 50 & 31 & 91 & 8.07 & \textbf{55.4} & \textbf{73.0} & \textbf{60.3} & \textbf{37.1} & \textbf{60.1} & \textbf{72.9} \\
+        
+
+        \midrule
+        YOLOv10-X~\cite{wang2024yolov10} & 500 & 30 & 160 & 10.45 & 54.4 & 71.3 & 59.3 & 37.0 & 59.8 & 70.9 \\
+        YOLO11-X~\cite{yolo11} & 500 & 57 & 195 & 11.50 & 54.7 & 71.3$^*$ & 59.7$^*$ & - & - & - \\
+        YOLOv12-X~\cite{tian2025yolov12} & 600 & 59 & 199 & 11.80 & 55.2 & 72.0 & 60.2 & \textbf{39.6} & 60.7 & 70.9 \\
+        YOLOv13-X~\cite{lei2025yolov13} & 600 & 64 & 199 & 14.67  & 54.8 & 72.0 & 59.8 & - & - & - \\
+        RT-DETR-R101~\cite{zhao2024detrs} & 72 & 76 & 259 & 13.88 & 54.3 & 72.7 & 58.6 & 36.0 & 58.8 & 72.1 \\
+        RT-DETRv2-X~\cite{lv2024rt} & 72 & 76 & 259 & 13.88 & 54.3 & 72.8 & 58.8$^*$ & 35.8$^*$ & 58.8$^*$ & 72.1$^*$ \\
+        RT-DETRv3-R101~\cite{wang2025rt} & 120 & 76 & 259 & 13.88 & 54.6 & 73.1 & - & - & - & - \\
+        D-FINE-X~\cite{peng2024d} & 72 & 62 & 202 & 12.90 & 55.8 & 73.7 & 60.2 & 37.3 & 60.5 & 73.4 \\
+        DEIM-X~\cite{huang2025deim} & 50 & 62 & 202 & 12.90 & \underline{56.5} & \underline{74.0} & \underline{61.5} & 38.8 & \underline{61.4} & \underline{74.2} \\
+        \rowcolor{aliceblue} \textbf{{\ourmethod}-X (ours)} & 50 & 62 & 202 & 12.90 & \textbf{57.0} & \textbf{74.6} & \textbf{62.1} & \underline{39.5} & \textbf{61.9} & \textbf{74.8} \\
+        \bottomrule
+    \end{tabular}
+    \end{adjustbox}
+    \end{center}
+    \vspace{-7mm}
+\end{table*}

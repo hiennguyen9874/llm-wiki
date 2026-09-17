@@ -1,0 +1,269 @@
+\documentclass[10pt,twocolumn,letterpaper]{article}
+\usepackage[rebuttal]{cvpr}
+
+% Include other packages here, before hyperref.
+\usepackage{graphicx}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{booktabs}
+\usepackage[dvipsnames,table]{xcolor}
+
+% If you comment hyperref and then uncomment it, you should delete
+% egpaper.aux before re-running latex.  (Or just hit 'q' on the first latex
+% run, let it finish, and you should be clear).
+\usepackage[pagebackref,breaklinks,colorlinks,bookmarks=false]{hyperref}
+
+% Support for easy cross-referencing
+\usepackage[capitalize]{cleveref}
+\crefname{section}{Sec.}{Secs.}
+\Crefname{section}{Section}{Sections}
+\Crefname{table}{Table}{Tables}
+\crefname{table}{Tab.}{Tabs.}
+
+\definecolor{common}{RGB}{200,18,126}
+\definecolor{r1}{RGB}{0,103,165}
+\definecolor{r2}{RGB}{56,116,51}
+\definecolor{r3}{RGB}{148,103,189}
+
+\newcommand{\rone}{{\textbf{[}\textbf{\textcolor{r1}{t9R8}}\textbf{]}}}
+\newcommand{\rtwo}{{\textbf{[}\textbf{\textcolor{r2}{NUaJ}}\textbf{]}}}
+\newcommand{\rthree}{{\textbf{[}\textbf{\textcolor{r3}{xa33}}\textbf{]}}}
+
+\newcommand\todo[1]{\textcolor{red}{#1}}
+
+% If you wish to avoid re-using figure, table, and equation numbers from
+% the main paper, please uncomment the following and change the numbers
+% appropriately.
+%\setcounter{figure}{2}
+%\setcounter{table}{1}
+%\setcounter{equation}{2}
+
+% If you wish to avoid re-using reference numbers from the main paper,
+% please uncomment the following and change the counter for `enumiv' to
+% the number of references you have in the main paper (here, 6).
+%\let\oldthebibliography=\thebibliography
+%\let\oldendthebibliography=\endthebibliography
+%\renewenvironment{thebibliography}[1]{%
+%     \oldthebibliography{#1}%
+%     \setcounter{enumiv}{6}%
+%}{\oldendthebibliography}
+
+
+%%%%%%%%% PAPER ID  - PLEASE UPDATE
+\def\paperID{2875} % *** Enter the Paper ID here
+\def\confName{CVPR}
+\def\confYear{2025}
+
+\newcommand{\ourmethod}{DEIM}
+\newcommand{\ourclsloss}{MAL}
+
+\begin{document}
+
+%%%%%%%%% TITLE - PLEASE UPDATE
+\title{DEIM: DETR with Improved Matching for Fast Convergence}  % **** Enter the paper title here
+\maketitle
+\thispagestyle{empty}
+\appendix
+
+%%%%%%%%% BODY TEXT - ENTER YOUR RESPONSE BELOW
+% \noindent \textbf{Summary.} 
+% All reviewers agreed our work accelerates and improves real-time DETRs. 
+\noindent We sincerely thank the reviewers for their valuable comments and suggestions. A summary is provided: \textbf{Motivation:} clear~\rone\rtwo, extensive analyses~\rone, informative figures~\rtwo; \textbf{Method:} straightforward \rone \rtwo, meaningful~\rone, simple and flexible~\rthree; \textbf{Experiments:} reasonable~\rone~\rtwo, SoTA results~\rone\rthree. Additional experiments requested by reviewers are: 
+
+% %------------------------------------------------------------------------
+% TODO
+\vspace{-1em}
+\begin{table}[ht]
+\centering
+% 如下实验用的是RT-DETRv2-R50模型，除非特别提醒。（a）Mosaic的数据来源;（b）Dense O2O平均目标数; (c) 训练时间；(d)CrowdHuman数据集结果。
+\caption*{\footnotesize \textbf{Table 1.} Unless otherwise stated, the following experiments use the RT-DETRv2-R50 model: (a) Mosaic data; (b) Average objects per training image; (c) GPU training time, training and testing accuracy; and (d) Results on CrowdHuman. Settings from the main paper are highlighted. \label{tab:tabl1}}
+\begin{subtable}[h]{0.232\textwidth}
+\vspace{-1em}
+\resizebox{\textwidth}{!}{%
+\begin{tabular}{@{\hspace{2mm}}lccc@{\hspace{2mm}}}
+\toprule
+\textbf{(a) Mosaic images} & $AP & $AP_{50}$ & $AP_{75}$ \\ \midrule
+\multicolumn{4}{c}{\textbf{Training 12 Epochs}} \\
+W/o Mosaic & 49.6 & 67.1 & 53.6 \\
+Duplication & 50.1 & 67.8 & 54.0 \\ \rowcolor{lightgray!50}
+Random (Ours) & 50.4 & 68.4 & 54.5 \\
+\bottomrule
+\end{tabular}%
+}
+\end{subtable} \hfill
+\begin{subtable}[h]{0.236\textwidth}
+\vspace{-1em}
+\resizebox{\textwidth}{!}{%
+\begin{tabular}{@{\hspace{2mm}}lccc@{\hspace{2mm}}}
+\toprule
+\textbf{(b) Avg \# objects} & $AP & $AP_{50}$ & $AP_{75}$ \\ \midrule
+\multicolumn{4}{c}{\textbf{Training 24 Epochs}} \\
+\sim 10 & 51.7 & 69.5 & 55.8  \\
+\rowcolor{lightgray!50}
+\sim 25 & 52.5 & 70.6 & 56.7 \\
+\sim 50 & 52.2 & 70.1 & 56.4 \\
+\bottomrule
+\end{tabular}%
+}
+\end{subtable}\\ \vspace{1pt}
+\begin{subtable}[h]{0.251\textwidth}
+\resizebox{\textwidth}{!}{%
+\begin{tabular}{@{\hspace{2mm}}lcccc@{\hspace{2mm}}}
+\toprule
+\textbf{(c) Training time}& \#Epoch & \#GPU hr & AP$_{train}$ & AP$_{val}$ \\ \midrule
+% RT-DETRv2-R50 & 36 & 43 & 62.4 & 52.4  \\
+% \rowcolor{lightgray!50}
+% w/ DEIM & 36 & 44 & 63.1 & 53.9 \\ 
+RT-DETRv2-R50 & 1 & 1.181 & - & -  \\
+\rowcolor{lightgray!50}
+w/ DEIM & 1 & 1.183 & - & - \\ 
+\midrule
+RT-DETRv2-R50 & 72 & 85 & 65.1 & 53.4  \\
+\rowcolor{lightgray!50}
+w/ DEIM & 60 & 71 & 64.8 & \bf 54.3 \\ 
+% w/ DEIM & 72 & 87 & & 54.3 \\ 
+\bottomrule
+\end{tabular}%
+}
+\end{subtable}
+\hfill
+\begin{subtable}[h]{0.22\textwidth}
+\centering
+\resizebox{0.85\textwidth}{!}{%
+\begin{tabular}{@{\hspace{2mm}}lccc@{\hspace{2mm}}}
+\toprule
+\textbf{(d) CrowdHuman} & AP & AP$_{50}$ & AP$_{75}$ \\ \midrule
+\multicolumn{4}{c}{\textbf{Training 140 Epochs}} \\
+D-FINE-L & 56.0 & 87.2 & 59.4 \\
+\rowcolor{lightgray!50}
+w/ DEIM  & \bf 57.5 & \bf 87.6 & \bf 62.9 \\
+\bottomrule
+\end{tabular}%
+}
+\\ \vspace{3pt}
+\end{subtable}
+\vspace{-1em}
+\end{table}
+
+% \noindent\textcolor{r1}{\rone\textbf{~Q1: Dense supervision and data diversity.}} 
+
+%This is an interesting question. We balance supervision and data diversity by modifying the image sources used in Mosaic (Table R1(a)): disabling Mosaic (\emph{W/o Mosaic}), randomly selecting images from the left dataset (\emph{Random}), or duplicating the same image three times (\emph{Duplication}).
+
+\noindent\textcolor{r1}{\rone\textbf{~Q1: Dense supervision and data diversity.}} Thanks for the suggestion. To balance supervision and data diversity, we adjusted the image sources in Mosaic (Table 1(a)): disabling Mosaic (\emph{W/o Mosaic}), randomly selecting images from the left dataset (\emph{Random (Ours)}), or duplicating the same image three times (\emph{Duplication}). Our results show that the classical Mosaic, which maintains diversity through randomly selected images, achieves better performance.
+
+%\noindent\textcolor{r1}{\rone\textbf{~Q2: Studies of the number of positive samples.}} 
+% Question: The paper lacks analysis and experiments to independently evaluate the effects of the number of positive samples and other factors.
+%We adjust the average \# of objects per image during training by modifying Dense O2O. As shown in Table 1(b), performance improves significantly when the \# increases from 10 to 25 but declines when it rises to 50 . This drop is likely due to an imbalance in the positive/negative ratio and a significant data distribution shift caused by excessive objects.
+\noindent\textcolor{r1}{\rone\textbf{~Q2: Studies of the number of positive samples.}}
+% Question: The paper lacks analysis and experiments to independently evaluate the effects of the number of positive samples and other factors.
+We adjust the average number of objects per image during training by modifying Dense O2O. As shown in Table 1(b), performance improves significantly when the number increases from 10 to 25 but drops at 50. This decline is likely due to an imbalance in the positive-to-negative ratio and a data distribution shift caused by too many objects.
+
+% \noindent\textcolor{r1}{\rone\textbf{~Q3: Explanation for training schedule.}} 
+% Question: The training schedule is quite complex. For example, Dense O2O is used only during the first 50% of the epochs. Is there an intuitive explanation for why such a schedule is necessary?
+% Dense O2O provides dense supervision, which helps the model optimize in the early stages of training. However, it can cause the augmented data to deviate from the true distribution. As the model learns, aligning with the true data distribution becomes more important, so Dense O2O is disabled later to improve generalization. Similar schedules are used in mainstream object detections like YOLO-X.
+% Dense O2O在实现denser supervision的同时也面临着增强后的数据集偏离真实数据的分布的问题。在训练前期，模型优化需要denser supervision，当模型具备一定的学习能力以后，数据分布就开始影响模型的拟合。这样类似的设置在YOLO-X等检测框架中也同样被应用。
+
+\noindent\textcolor{r1}{\rone\textbf{~Q3: Explanation for training schedule.}} 
+% Question: The training schedule is quite complex. For example, Dense O2O is used only during the first 50% of the epochs. Is there an intuitive explanation for why such a schedule is necessary?
+Dense O2O provides dense supervision, helping the model learn effectively in the early stages of training. However, it can cause the augmented data to differ from the true data distribution. To improve generalization, Dense O2O is disabled later, allowing the model to better align with the true data as training progresses. This approach is similar to strategies used in popular object detectors like YOLOX.
+
+% \noindent\textcolor{r1}{\rone\textbf{~Q4: Modifications to the Mosaic and MixUp.}} 
+% We left them unchanged to highlight Dense O2O's effectiveness in training DETRs. However, we optimized data loading: Mosaic uses caching and MixUp combines images within batches, avoiding extra loading and reducing overhead.
+
+\noindent\textcolor{r1}{\rone\textbf{~Q4: Modifications to the Mosaic and MixUp.}} 
+We kept them unchanged to emphasize Dense O2O's effectiveness in training DETRs. However, we optimized the details: Mosaic now uses caching, and MixUp combines images within batches, reducing extra loading and overhead.
+
+
+\vspace{2pt}
+% \noindent\textcolor{r2}{\rtwo\textbf{~Q1: How the proposed Dense O2O can improve conventional O2O?}} 
+\noindent\textcolor{r2}{\rtwo\textbf{~Q1: Dense O2O vs. O2M.}}
+% Question: What is the positive/negative ratio after applying the augmentation methods to increase the number of ground truths from the image to make it the O2M matching problem? The reason for the slow training of DETR is that a small portion of the predicted bounding box is matched to the ground truth, since it is O2O matching, however, how the augmentation introduced by this paper can improve this problem?
+Dense O2O is not simulating O2M but provides similar supervision within O2O matching. Unlike O2M, which assigns multiple predictions per object (e.g., SimOTA), Dense O2O assigns only one prediction per object and increases the number of objects per image. Additionally, Dense O2O does not require NMS, unlike O2M, making it more efficient and simpler.
+%We need to clarify that Dense O2O is not simulating O2M but instead achieves supervision that approximates O2M within the O2O matching. The two are fundamentally different: (1) O2M assigns multiple predictions to each object during training, while Dense O2O still assigns only one prediction per object and achieves dense supervision by increasing the \# of objects in training images. Referring to Eq. (1) in our paper, O2M increases $M_{i}$ whereas Dense O2O increases $N$ while keeping $M_{i}$ = 1. We found that Dense O2O, with an average of 25 objects per image, achieves a similar \# of positive samples as the O2M approach SimOTA. (2) Like conventional O2O, Dense O2O does not require NMS, whereas O2M does.
+% 首先需要clarify的是Dense O2O并不是simulate O2M，而是在O2O匹配上实现逼近O2M的supervision，两者本质不同：1. O2M是在训练中为每个objects分配多个predictions，而Dense O2O在训练中仍然是一个object只分配一个prediction，但通过增加当前训练图片中的objects来增加positive samples。回到论文中的公式Eq.(1) O2M是增大Mi，而Dense O2O是在保持Mi=1的情况下，增加N； 2. NMS：Dense O2O和conventional O2O一样，不需要NMS，而O2M需要。
+% 通过Table R1 (c)我们发现，Dense O2O实现当平均每张图片中有25个objects时，逼近了SimOTA这种O2M的positive samples数。
+% 
+
+% \noindent\textcolor{r2}{\rtwo\textbf{~Q2: The advantage of Dense O2O over the duplicating the number of ground truth bounding boxes.}}
+\noindent\textcolor{r2}{\rtwo\textbf{~Q2: Dense O2O over Group DETR.}}
+Unlike Group DETR [4], which uses multiple query groups and additional decoders, increasing computational overhead and risking redundant predictions, our Dense O2O approach is simpler and more straightforward. It simply generates more positive samples by increasing the number of objects per training image using standard augmentations, while maintaining the lightweight O2O framework. The differences are detailed in the paper (lines 076–092).
+%\todo{explain the reason then ref to the org paper}
+% What is the advantage of this augmentation method compared to duplicating the number of ground truth bounding boxes (also making it the O2M problem)? If we do the augmentation to simulate the O2M scenario, can we eliminate the NMS postprocessing?
+%The ``duplicating ..." method is likely similar to the approach used in Group DETR, which we have already discussed in the main paper (Lines 080–095).
+% 审稿人这里提到的duplicating the number of ground truth bounding boxes方法应该是类似于Group DETR，我们有在正文中讨论到这类似方法，Line 081 - 084. 
+
+\noindent\textcolor{r2}{\rtwo\textbf{~Q3: Potentially unfair comparison and insignificant improvement.}} 
+% There are some works such as DN-DETR [1], and DINO-DETR [2], which try to accelerate the training of DETR, why does the paper not compare with their method using the same DETR architecture? The comparison from Table 2 comes from the different settings, for DN-DETR, the base is Deformable DETR, and for the paper, the base is RT-DETRv2, which is not fair. 
+% Experiment: Table 2, the improvement of the proposed method is not significant. 
+% We respectfully address these comments and provide clarification. The concurrent RT-DETR is already built on advanced frameworks like DINO, DN-DETR, and Deformable DETR, combining their strengths. Our DEIM achieves over 1 COCO AP improvement on RT-DETR (including its advanced version) by focusing solely on optimizing the training process while requiring fewer resources. Furthermore, DEIM consistently improves performance across various architectures (S, M, L, X, etc.), demonstrating its robustness. %For context, YOLO’s evolution from v6 to v9 over three years achieved a similar $\sim$1 AP gain with comparable latency.
+% Note that AP is the average mAP over IoU 0.5 to 0.95. 1 AP increase means a significant improvement in both object detection and bounding box precision. We argue that achieving such a significant improvement on resource-constrained, sota models underscores the effectiveness and value of DEIM.
+% We would like to clarify.
+Our comparison is fair and we believe the improvement is significant. 
+% RT-DETR, which builds on advanced frameworks like DINO, DN-DETR, and Deformable DETR, already combines their strengths. 
+RT-DETR, built on DINO, DN-DETR, and Deformable DETR, already combines their strengths. Our DEIM further improves RT-DETR (including its advanced version) by over 1 COCO AP through training optimization with fewer resources. It consistently enhances performance across various architectures (S, M, L, X, etc.), showcasing its robustness. 
+% , focusing on optimizing the training process while using fewer resources. 
+For context, COCO AP is the mean Average Precision (mAP) over IoU thresholds from 0.5 to 0.95. A 1 AP increase indicates a sifinicant improvement in both classification accuracy and localization precision.
+This gain in resource-constrained models underscores DEIM's effectiveness and value.
+% For context, AP refers to the average mAP over IoU 0.5 to 0.95, and a 1 AP increase represents a significant improvement in object detection and bounding box precision.
+% We believe this significant gain in resource-constrained models highlights the effectiveness and value of DEIM.
+% We respectfully disagree with these comments. As a reminder, RT-DETR is already built on DINO, DN-DETR, and Deformable DETR, combining the strengths of these frameworks. Our DEIM achieves over 1 COCO AP improvement on this SoTA detector purely by optimizing the training method while using fewer resources. Additionally, DEIM delivers consistent gains across various architectures and datasets. For context, YOLO’s evolution from v6 to v9 over three years achieved $\sim$ 1 AP gain while maintaining similar latency. Achieving such improvement on computation-limited, SoTA models is far from insignificant.
+% 我们不同意审稿人提到的对比不公平及提升不significant。我们需要提醒审稿人的是RT-DETR是已经同时建立在DINO，DN-DETR和Deformable DETR上的，集成了这些框架的优势，RT-DETR中已经较为全面对比这些细节。而我们DEIM仅靠优化训练方法，便能使用更少的训练资源即可在这样SoTA的检测器上继续提升1 COCO AP以上，而且在不同Architecture和datasets下均显示consistent improvement。同时也需要注意的是YOLO从v6发展到v10，约三年，也就做到维持在基本相同的Latency下，提升1 COCO APs左右。这样的improvement在computation-limited和SoTA模型上不能说是不可谓significant。
+
+
+\noindent\textcolor{r2}{\rtwo\textbf{~Q4: Training time.}} 
+% Although, the method achieves nearly equal performance with RT-DETRv2 at 36 epochs (which is half of the training time), however, it cannot indicate the training speed of the proposed method is higher than the RT-DETRv2. Why the Table 2 not include the training speed of the RT-DETRv2 at different epochs to show the efficiency of the convergence of the proposed method?
+% With our optimized data loading for Mosaic and MixUp, Table R1(c) shows that training time is nearly identical with or without DEIM on a single 4090 GPU.
+We provide an efficient implementation using Mosaic with caching and Mixup within batches. Table 1(c) shows the one-epoch training time on a single 4090 GPU, where DEIM is almost as fast as the baseline (1.183 vs. 1.181) and requires less training time to converge (71 vs. 85 hours). This highlights that our approach improves convergence while maintaining efficiency.
+% Optimized data loading with caching ensures no significant difference in training time with or without DEIM, as shown in Table 1(c) on a single 4090 GPU.
+% 因为我们优化了Mosaic和MixUp的数据加载方式，我们可以在Table R1(c)中看得到在单卡4090 GPU下对比当RT-DETRv2-R50在使用和不使用DEIM时整体训练时时间上并无太大区别。
+
+\noindent\textcolor{r2}{\rtwo\textbf{~Q5: Density in Fig.5.}}
+%In Fig.~5, both the red and blue lines are normalized, meaning the total area under each curve equals 1. 
+% The ``density" refers to the normalized probability density. Base and Dense O2O use the same training images. If \# positive samples is 10 and the density is 0.05, this indicates that 5\% of training images have 10 positive samples.
+It shows the normalized probability density. 10 positive samples with a density of 0.05 means 5\% of the images contain 10 positives.
+%It represents the normalized probability density. Both use the same training set. If the \# of positive samples is 10 and the density is 0.05, it means that 5\% of the training images contain 10 positive samples.
+
+% %-------------------------------------------------------------------------
+% \noindent\centerline{\textcolor{r3}{\Large\textbf{--------------\quad}}
+% \textcolor{r3}{\textbf{Reviewer koep}} 
+% \textcolor{r3}{\Large\textbf{\quad--------------}}}
+% %------------------------------------------------------------------------
+
+\vspace{2pt}
+\noindent\textcolor{r3}{\rthree\textbf{~Q1: Longer training.}} 
+% The paper proposes that the method increases training time for real-world deployment, but the testing loss for the model in Figure 1(a) does not show the loss plateauing at the epochs. It would be helpful to understand the overall performance of the method by training the model over the full 72 epochs and performing an ablation study to compare the training accuracy over the epochs.
+%DEIM showed no further improvement with 72 epochs, suggesting it has likely reached its upper bound under the current settings. Notably, as shown in Table 1(c), DEIM achieves much higher validation accuracy but slightly lower training accuracy, indicating reduced overfitting. 
+Training beyond 72 epochs shows little improvement. As shown in Table 1(c), DEIM achieves higher validation accuracy and slightly lower training accuracy, suggesting less overfitting.
+% 有意思的是，DEIM模型的验证集精度更高，但是训练集精度反而稍微低一些，说明可能没有使用DEIM模型对训练集可能相较更容易过拟合。
+
+\noindent\textcolor{r3}{\rthree\textbf{~Q2: Training and inference time.}} For training time, please refer to \textcolor{r2}{\rtwo-\textbf{Q4}}. For inference time, DEIM is a training framework that optimizes the training process, thus it does not impact inference time.  
+% The paper shows that the model performs better with fewer epochs, implying faster training. However, fewer epochs do not necessarily translate to lower overall training time, as the computational cost of the data augmentation techniques used in the DEIM method needs to be analyzed as well. It would be beneficial to provide a comprehensive comparison of the full training time between the DEIM method and the baselines.
+% Please refer to \textcolor{r2}{\rtwo-\textbf{Q4}}.
+
+% \noindent\textcolor{r3}{\rthree\textbf{~Q3: Inference time optimization.}} 
+% % The paper does not provide a detailed analysis of the computational complexity or runtime performance of the proposed DEIM framework. Specifically, the paper only shows the advantages during the training time but this doesnot translate to test time inference time optimization.
+% %DEIM is a training framework that only optimizes the training process to ensure strong flexibility across architectures. Consequently, the inference time is unaffected by DEIM.
+% DEIM is a training framework that optimizes the training process while keeping architecture flexibility. It does not impact inference time. We'll clarify this in the paper
+% DEIM is designed as a training framework, i.e., it solely optimizes the training process to ensure its flexibility. Consequently, the inference time remains identical with/without the DEIM.
+% 我们非常抱歉没有解释清楚，DEIM一个旨在提升基于DETR的实时目标检测器训练框架。为了保证其在不同架构下的灵活性，仅优化训练过程，即有无DEIM训练逻辑上推理时间应该是相同的。
+
+
+\noindent\textcolor{r3}{\rthree\textbf{~Q3: Additional tuning in MAL.}} 
+% The proposed Matchability-Aware Loss (MAL) function, while effective, may require additional tuning or hyperparameter optimization to achieve optimal performance across different architectures or datasets.
+%Our MAL addresses the optimization challenges of VFL, improving performance while reducing the \# of hyperparameters to just one. Remarkably, MAL required only a single tuning in our work and proved transferable across different architectures and datasets, consistently showcasing its effectiveness.
+% Our MAL tackles the optimization challenges of VFL, enhancing performance while reducing the number of hyperparameters to just one. Importantly, we apply the same MAL parameters across various architectures and datasets, consistently demonstrating its effectiveness.
+Our MAL reduces the number of hyperparameters of VFL to just one. Note that we apply the same MAL parameters across various architectures and datasets, demonstrating its effectiveness.
+% 我们的MAL缓解了VFL的优化问题，提升了性能，同时在整体数学表达上比VFL更为简洁，仅有一个超参数，后者则有两个；最后我们在本文的整体实验中MAL仅调整一次，直接迁移到不同的架构和数据集都是有效的。
+
+
+\noindent\textcolor{r3}{\rthree\textbf{~Q4: Experiments on other dataset.}} 
+% The evaluation is primarily focused on the COCO dataset, and the method's effectiveness on other datasets or in more diverse real-world scenarios is not extensively explored. having more datasets evaluations will be helpful.
+%See Table 1(d) for results on CrowdHuman. Compared to the D-FINE, DEIM improves by 1.5 AP, further demonstrating its strong generalization ability in dense crowd scenarios.
+We present results on CrowdHuman in Table 1(d). DEIM shows a 1.5 AP improvement over D-FINE, highlighting its ability to generalize in dense crowd scenarios.
+%%%%%%%%% REFERENCES
+% {\small
+% \bibliographystyle{ieee_fullname}
+% \bibliography{egbib}
+% }
+\fi
+\end{document}

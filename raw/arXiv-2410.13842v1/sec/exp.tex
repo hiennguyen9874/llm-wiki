@@ -1,0 +1,287 @@
+\section{Experiments}
+\subsection{Experiment Setup}
+
+To validate the effectiveness of our proposed methods, we conduct experiments on the COCO~\citep{COCO} and Objects365~\citep{shao2019objects365} datasets. We evaluate our D-FINE using the standard COCO metrics, including Average Precision (AP) averaged over IoU thresholds from 0.50 to 0.95, as well as AP at specific thresholds (AP$_{50}$ and AP$_{75}$) and AP across different object scales: small (AP$_S$), medium (AP$_M$), and large (AP$_L$). Additionally, we provide model efficiency metrics by reporting the number of parameters (\#Params.), computational cost (GFLOPs), and end-to-end latency. The latency is measured using TensorRT FP16 on an NVIDIA T4 GPU.
+
+% \subsection{Implementation Details}
+
+\begin{table}[t]
+
+    \caption{Performance comparison of various real-time object detectors on COCO \texttt{val2017}. }
+    \begin{center}
+    \begin{adjustbox}{width=\columnwidth}
+    \begin{tabular}{l | ccc | ccc ccc}
+    \toprule
+    \hline
+        Model & \#Params. & GFLOPs & Latency (ms) & AP$^{val}$ & AP$^{val}_{50}$ & AP$^{val}_{75}$ & AP$^{val}_S$ & AP$^{val}_M$ & AP$^{val}_L$ \\
+    \midrule
+    \hline
+    \rowcolor{f2ecde}
+    \multicolumn{10}{l}{\emph{Non-end-to-end Real-time Object Detectors}} \\
+    % YOLOv5-L & 46M & 109 & 54 & 49.0 & 67.3 & - & - & - & - \\
+    % YOLOv5-X & 86M & 205 & 43 & 50.7 & 68.9 & - & - & - & - \\
+    YOLOv6-L & 59M & 150  & 9.04 & 52.8 & 70.3 & 57.7 & 34.4 & 58.1 & 70.1 \\
+    YOLOv7-L & 36M & 104  & 16.81 & 51.2 & 69.7 & 55.5 & 35.2 & 55.9 & 66.7 \\
+    YOLOv7-X & 71M  & 189 & 21.57 & 52.9 & 71.1 & 57.4 & 36.9 & 57.7 & 68.6\\
+    YOLOv8-L & 43M & 165  & 12.31 & 52.9 & 69.8 & 57.5 & 35.3 & 58.3 & 69.8 \\
+    YOLOv8-X & 68M & 257  & 16.59 & 53.9 & 71.0 & 58.7 & 35.7 & 59.3 & 70.7 \\
+    YOLOv9-C & 25M & 102 & 10.66 & 53.0 & 70.2 & 57.8 & 36.2 & 58.5 & 69.3 \\
+    YOLOv9-E & 57M & 189 & 20.53 & 55.6 & 72.8 & 60.6 & 40.2 & 61.0 & 71.4 \\
+    Gold-YOLO-L & 75M & 152 & 9.21 & 53.3 & 70.9 & - & 33.8 & 58.9 & 69.9 \\
+    RTMDet-L & 52M & 80 & 14.23 & 51.3 & 68.9 & 55.9 & 33.0 & 55.9 & 68.4 \\
+    RTMDet-X & 95M & 142 & 21.59 & 52.8 & 70.4 & 57.2 & 35.9 & 57.3 & 69.1 \\
+    YOLO11-L & 25M & 87 & 10.28 & 53.4 & 70.1 & 58.2 & 35.6 & 59.1 & 69.2 \\
+    YOLO11-X & 57M & 195 & 14.39 & 54.7 & 71.6 & 59.5 & 37.7 & 59.7 & 70.2 \\ 
+    YOLO11-L$^{\star}$ & 25M & 87 & 6.31 & 52.9 & 69.4 & 57.7 & 35.2 & 58.7 & 68.8 \\
+    YOLO11-X$^{\star}$ & 57M & 195 & 10.52 & 54.1 & 70.8 & 58.9 & 37.0 & 59.2 & 69.7 \\ 
+    \midrule
+    \hline
+    \rowcolor{f2ecde}
+    \multicolumn{10}{l}{\emph{End-to-end Real-time Object Detectors}} \\
+    YOLOv10-L & 24M & 120 & 7.66 & 53.2 & 70.1 & 58.1 & 35.8 & 58.5 & 69.4 \\
+    YOLOv10-X & 30M & 160 & 10.74 & 54.4 & 71.3 & 59.3 & 37.0 & 59.8 & 70.9 \\
+    RT-DETR-R50 & 42M & 136 & 9.12 & 53.1 & 71.3 & 57.7 & 34.8 & 58.0 & 70.0 \\ 
+    RT-DETR-R101 & 76M & 259 & 13.61 & 54.3 & 72.7 & 58.6 & 36.0 & 58.8 & 72.1 \\
+    RT-DETR-HG-L & 32M & 107 & 9.25 & 53.0 & 71.7 & 57.3 & 34.6 & 57.4 & 71.2 \\ 
+    RT-DETR-HG-X & 67M & 234 & 14.01 & 54.8 & 73.1 & 59.4 & 35.7 & 59.6 & 72.9 \\
+    RT-DETRv2-L & 42M & 136 & 9.15 & 53.4 & 71.6 & 57.4 & 36.1 & 57.9 & 70.8 \\ 
+    RT-DETRv2-X & 76M & 259 & 13.66 & 54.3 & 72.8 & 58.8 & 35.8 & 58.8 & 72.1 \\
+    RT-DETRv3-L & 42M & 136 & 9.12 & 53.4 & - & - & - & - & - \\ 
+    RT-DETRv3-X & 76M & 259 & 13.61 & 54.6 & - & - & - & - & - \\
+    LW-DETR-L & 47M & 72 & 8.21 & 49.5 & - & - & - & - & - \\
+    LW-DETR-X & 118M & 174 & 16.06 & 53.0 & - & - & - & - & - \\ 
+    \rowcolor[gray]{0.95}
+    \textbf{D-FINE-L} (Ours) & 31M & 91 & 8.07 & \textbf{54.0} & 71.6 & 58.4 & 36.5 & 58.0 & 71.9\\ \rowcolor[gray]{0.95}
+    \textbf{D-FINE-X} (Ours) & 62M & 202 & 12.89 & \textbf{55.8} & 73.7 & 60.2 & 37.3 & 60.5 & 73.4 \\
+    \midrule
+    \hline
+    \rowcolor{f2ecde}
+    \multicolumn{10}{l}{\emph{End-to-end Real-time Object Detectors (Pretrained on Objects365)}} \\
+    YOLOv10-L & 24M & 120 & 7.66 & 54.0 & 71.0 & 58.9 & 36.5 & 59.2 & 70.5 \\
+    YOLOv10-X & 30M & 160 & 10.74 & 54.9 & 71.9 & 59.8 & 37.6 & 60.2 & 71.7 \\ 
+    RT-DETR-R50 & 42M & 136 & 9.12 & 55.3 & 73.4 & 60.1 & 37.9 & 59.9 & 71.8 \\
+    RT-DETR-R101 & 76M & 259 & 13.61 & 56.2 & 74.6 & 61.3 & 38.3 & 60.5 & 73.5 \\
+    LW-DETR-L & 47M & 72 & 8.21 & 56.1 & 74.6 & 60.9 & 37.2 & 60.4 & 73.0 \\
+    LW-DETR-X & 118M & 174 & 16.06 & 58.3 & 76.9 & 63.3 & 40.9 & 63.3 & 74.8 \\ 
+    \rowcolor[gray]{0.95}
+    \textbf{D-FINE-L} (Ours) & 31M & 91 & 8.07 & \textbf{57.1}& 74.7 & 62.0 & 40.0 & 61.5 & 74.2 \\ \rowcolor[gray]{0.95}
+    \textbf{D-FINE-X} (Ours) & 62M & 202 & 12.89 & \textbf{59.3}& 76.8 & 64.6 & 42.3 & 64.2 & 76.4 \\ 
+    \bottomrule
+    \end{tabular}
+    \end{adjustbox}
+    \end{center}
+    \vspace{-2pt}
+    \footnotesize ${\star}:$ NMS is tuned with a confidence threshold of 0.01.
+    \label{tab:main}
+\end{table}
+
+\subsection{Comparison with Real-Time Detectors}
+
+
+\Cref{tab:main} provides a comprehensive comparison between D-FINE and various real-time object detectors on COCO \texttt{val2017}. D-FINE achieves an excellent balance between efficiency and accuracy across multiple metrics. Specifically, \textbf{D-FINE-L} attains an AP of 54.0\% with 31M parameters and 91 GFLOPs, maintaining a low latency of 8.07 ms. Additionally, \textbf{D-FINE-X} achieves an AP of 55.8\% with 62M parameters and 202 GFLOPs, operating with a latency of 12.89 ms. 
+
+As depicted in \Cref{fig:latency}, which shows scatter plots of latency vs. AP, parameter count vs. AP, and FLOPs vs. AP, D-FINE consistently outperforms other state-of-the-art models across all key dimensions. \textbf{D-FINE-L} achieves a higher AP (54.0\%) compared to YOLOv10-L (53.2\%), RT-DETR-R50 (53.1\%), and LW-DETR-X (53.0\%), while requiring fewer computational resources (91 GFLOPs vs. 120, 136, and 174). Similarly, \textbf{D-FINE-X} surpasses YOLOv10-X and RT-DETR-R101 by achieving superior performance (55.8\% AP vs. 54.4\% and 54.3\%) and demonstrating greater efficiency in terms of lower parameter count, GFLOPs, and latency.
+
+
+We further pretrain D-FINE and YOLOv10 on the Objects365 dataset~\citep{shao2019objects365}, before finetuning them on COCO. After pretraining, both \textbf{D-FINE-L} and \textbf{D-FINE-X} exhibit significant performance improvements, achieving AP of 57.1\% and 59.3\%, respectively. These enhancements enable them to outperform YOLOv10-L and YOLOv10-X by 3.1\% and 4.4\% AP, thereby positioning them as the top-performing models in this comparison. What's more, following the pretraining protocol of YOLOv8~\citep{yolov8}, YOLOv10 is pretrained on Objects365 for 300 epochs. In contrast, D-FINE requires only 21 epochs to achieve its substantial performance gains. These findings corroborate the conclusions of LW-DETR~\citep{chen2024lw}, demonstrating that DETR-based models benefit substantially more from pretraining compared to other detectors like YOLOs.
+
+
+
+\subsection{Effectiveness on various DETR models }
+
+
+\Cref{tab:detr} demonstrates the effectiveness of our proposed FDR and GO-LSD methods across multiple DETR-based object detectors on COCO \texttt{val2017}. Our methods are designed for flexibility and can be seamlessly integrated into any DETR architecture, significantly enhancing performance without increasing the number of parameters and computational burden. Incorporating FDR and GO-LSD into Deformable DETR, DAD-DETR, DN-DETR, and DINO consistently improves detection accuracy, with gains ranging from 2.0\% to 5.3\%. These results highlight the effectiveness of FDR and GO-LSD in enhancing localization precision and maximizing efficiency, demonstrating their adaptability and substantial impact across various end-to-end detection frameworks.
+
+
+
+
+\begin{table}[t]
+    \caption{Effectiveness of FDR and GO-LSD across various DETR models on COCO \texttt{val2017}.}
+    \begin{center}
+    \begin{adjustbox}{width=\columnwidth}
+    \begin{tabular}{l|cc|cccccc}
+    \multicolumn{9}{l}{}\\
+    \toprule
+    % \hline
+        Model & \#Params. & \#Epochs & AP$^{val}$ & AP$^{val}_{50}$ & AP$^{val}_{75}$ & AP$^{val}_S$ & AP$^{val}_M$ & AP$^{val}_L$ \\ 
+    \midrule
+    % \hline
+    % \rowcolor{f2ecde}
+    % \multicolumn{9}{l}{\emph{End-to-end Object Detectors}} \\
+    Deformable-DETR & 40M & 12 & 43.7 & 62.2 & 46.9 & 26.4 & 46.4 & 57.9 \\ \rowcolor[gray]{0.95}
+    + FDR \& GO-LSD & 40M & 12 & 47.1 \textcolor{blue}{(+3.4)} & 64.7 & 50.8 & 29.0 & 50.3 & 62.8 \\
+    \midrule
+    DAB-DETR & 48M & 12 & 44.2 & 62.5 & 47.3 & 27.5 & 47.1 & 58.6 \\ \rowcolor[gray]{0.95}
+    + FDR \& GO-LSD & 48M & 12 & 49.5 \textcolor{blue}{(+5.3)} & 67.2 & 54.1 & 31.8 & 53.2 & 63.3 \\
+    \midrule
+    DN-DETR & 48M &  12 & 46.0 & 64.8 & 49.9 & 27.7 & 49.1 & 62.3 \\ \rowcolor[gray]{0.95}
+    + FDR \& GO-LSD & 48M &  12 & 49.7 \textcolor{blue}{(+3.7)} & 67.5 & 54.4 & 31.8 & 53.4 & 63.8 \\
+    \midrule
+    DINO & 47M &  12 & 49.0 & 66.6 & 53.5 & 32.0 & 52.3 & 63.0 \\ \rowcolor[gray]{0.95}
+    + FDR \& GO-LSD & 47M &  12 & 51.6 \textcolor{blue}{(+2.6)} & 68.6 & 56.3 & 33.8 & 55.6 & 65.3 \\
+    \midrule
+    DINO & 47M &  24 & 50.4 & 68.3 & 54.8 & 33.3 & 53.7 & 64.8 \\ \rowcolor[gray]{0.95}
+    + FDR \& GO-LSD & 47M &  24 & 52.4 \textcolor{blue}{(+2.0)} & 69.5 & 56.9 & 34.6 & 55.7 & 66.2 \\
+    \bottomrule
+    \end{tabular}
+    \end{adjustbox}
+    \end{center}
+    \label{tab:detr}
+\end{table}
+
+
+
+\subsection{Ablation Study}
+\subsubsection{The Roadmap to D-FINE}
+
+
+\Cref{tab:model_modifications} showcases the stepwise progression from the baseline model (RT-DETR-HGNetv2-L~\citep{lv2023detrs}) to our proposed D-FINE framework. Starting with the baseline metrics of 53.0\% AP, 32M parameters, 110 GFLOPs, and 9.25 ms latency, we first remove all the decoder projection layers. This modification reduces GFLOPs to 97 and cuts the latency to 8.02 ms, although it decreases AP to 52.4\%. To address this drop, we introduce the Target Gating Layer, which recovers the AP to 52.8\% with only a marginal increase in computational cost.
+
+
+
+The Target Gating Layer is strategically placed after the decoder's cross-attention module, replacing the residual connection. It allows queries to dynamically switch their focus on different targets across layers, effectively preventing information entanglement. The mechanism operates as follows:
+\begin{equation}
+\mathbf{x} = \sigma\left( \begin{bmatrix} \mathbf{x_1},\mathbf{x_2} \end{bmatrix} \mathbf{W}^T + \mathbf{b} \right)_1 \cdot \mathbf{x_1} + \sigma\left( \begin{bmatrix} \mathbf{x_1},\mathbf{x_2} \end{bmatrix} \mathbf{W}^T + \mathbf{b} \right)_2 \cdot \mathbf{x_2}
+\end{equation}
+where \(\mathbf{x_1}\) represents the previous queries and \(\mathbf{x_2}\) is the cross-attention result. \(\sigma\) is the sigmoid activation function applied to the concatenated outputs, and \([.]\) represents the concatenation operation.
+
+
+Next, we replace the encoder's CSP layers with GELAN layers~\citep{wang2024yolov9}. This substitution increases AP to 53.5\% but also raises the parameter count, GFLOPs, and latency. To mitigate the increased complexity, we reduce the hidden dimension of GELAN, which balances the model's complexity and maintains AP at 52.8\% while improving efficiency. We further optimize the sampling points by implementing uneven sampling across different scales (S: 3, M: 6, L: 3), which slightly increases AP to 52.9\%. However, alternative sampling combinations such as (S: 6, M: 3, L: 3) and (S: 3, M: 3, L: 6) result in a minor performance drop of 0.1\% AP. Adopting the RT-DETRv2 training strategy~\citep{lv2024rtdetrv2} (see \Cref{sec:hyper} for details) enhances AP to 53.0\% without affecting the number of parameters or latency. Finally, the integration of FDR and GO-LSD modules elevates AP to 54.0\%, achieving a 13\% reduction in latency and a 17\% reduction in GFLOPs compared to the baseline model. These incremental modifications demonstrate the robustness and effectiveness of our D-FINE framework.
+
+
+\begin{table}[t]
+    \caption{Step-by-step modifications from baseline model to D-FINE. Each step shows changes in AP, the number of parameters, latency, and FLOPs.}
+    \begin{center}
+    \tabcolsep=0.08cm
+    \begin{adjustbox}{width=\columnwidth}
+    \begin{tabular}{l|cccc}
+        \toprule
+        Model & AP$^{val}$ & \#Params. & Latency (ms) & GFLOPs \\
+        \midrule
+        \textcolor{gray}{baseline}: RT-DETR-HGNetv2-L~\citep{lv2023detrs} & 53.0 & 32M & 9.25 & 110 \\
+        Remove Decoder Projection Layers & 52.4 & 32M & 8.02 & 97 \\
+        % Remove Value and Output Projection Layers & & & & \\
+        + \textbf{Target Gating Layers} & 52.8 & 33M & 8.15 & 98 \\
+        Encoder CSP layers $\rightarrow$ GELAN~\citep{wang2024yolov9} & 53.5 & 46M & 10.69 & 167 \\
+        Reduce Hidden Dimension in GELAN by half & 52.8 & 31M & 8.01 & 91 \\
+        Uneven Sampling Points (S: 3, M: 6, L: 3)& 52.9 & 31M & 7.90 & 91 \\
+        RT-DETRv2 Training Strategy~\citep{lv2024rtdetrv2} & 53.0 & 31M & 7.90 & 91 \\
+        + \textbf{FDR} & 53.5 & 31M & 8.07 & 91 \\
+        + \textbf{GO-LSD}& \textbf{54.0}  \textcolor{blue}{(+1.0)} & \textbf{31M} \textcolor{blue}{(-3\%)}& \textbf{8.07}\textcolor{blue}{(-13\%)}& \textbf{91} \textcolor{blue}{(-17\%)}\\
+        \bottomrule
+    \end{tabular}
+    \end{adjustbox}
+    \end{center}
+    \label{tab:model_modifications}
+\end{table}
+
+
+\begin{table*}[t]
+    \centering
+    \begin{minipage}[t]{0.45\textwidth}
+        \begin{center}
+        \caption{Hyperparameter ablation studies on D-FINE-L. $\epsilon$ is a very small value. $\widetilde{a}$,\ $\widetilde{c}$ indicate that $a$ and $c$ are learnable parameters.}
+        \vspace{-2.5pt}
+        \tabcolsep=0.1cm
+        \renewcommand{\arraystretch}{1.1}
+        \begin{tabular}{c|cccccc}
+            \multicolumn{7}{l}{}\\
+            \toprule
+            $a$,\ $c$ & $\tfrac{1}{4}$,\ $\tfrac{1}{4}$ & $\tfrac{1}{2}$,\ $\tfrac{1}{\epsilon}$ &  $\mathbf{\tfrac{1}{2}}$,\ $\mathbf{\tfrac{1}{4}}$ &  $\tfrac{1}{2}$,\  $\tfrac{1}{8}$ &  $1$,\  $\tfrac{1}{4}$ & $\widetilde{a}$,\ $\widetilde{c}$\\
+            \arrayrulecolor{gray}\midrule
+            AP$^{val}$ & 52.7  & 53.0 & \textbf{53.3} & 53.2 & 53.2 & 53.1 \\
+            \arrayrulecolor{black}\midrule[0.8pt]
+            $N $ & 4 & 8 & 16 & \textbf{32} & 64 & 128 \\
+            \arrayrulecolor{gray}\midrule
+            AP$^{val}$ & 53.3 & 53.4 & 53.5 & \textbf{53.7} & 53.6 & 53.6  \\
+            \arrayrulecolor{black}\midrule[0.8pt]
+            $T $ & 1 & 2.5 & \textbf{5} & 7.5 & 10 & 20\\
+            \arrayrulecolor{gray}\midrule
+            AP$^{val}$ & 53.2  & 53.7 & \textbf{54.0} & 53.8 & 53.7 & 53.5  \\
+            \arrayrulecolor{black}\bottomrule
+        \end{tabular}
+        \end{center}
+        \label{tab:Hyperparamters}
+    \end{minipage}
+    \hfill
+    \begin{minipage}[t]{0.52\textwidth}
+        \begin{center}
+        \caption{Distillation methods comparison in terms of performance, training time, and GPU memory usage. GO-LSD achieves the highest AP$^{val}$ with minimal additional training cost.}
+        % \vspace{-0.5pt}
+        \tabcolsep=0.098cm
+        \renewcommand{\arraystretch}{1}
+        \begin{tabular}{l|ccc}
+        \toprule
+        Methods & AP$^{val}$ & Time/Epoch & Memory\\
+        \midrule
+        \textcolor{gray}{baseline} & 53.0 & 29min & 8552M \\
+        Logit Mimicking & 52.6 & 31min & 8554M \\
+        Feature Imitation & 52.9 & 31min & 8554M \\
+        \midrule
+        \textcolor{gray}{baseline} + FDR & 53.8 & 30min & 8730M \\
+        Localization Distill. & 53.7 & 31min & 8734M \\
+        GO-LSD & \textbf{54.5} & 31min & 8734M \\
+        \bottomrule
+        \end{tabular}
+        \end{center}
+        \label{tab:Distillation}
+    \end{minipage}
+\end{table*}
+
+\subsubsection{Hyperparameter Sensitivity Analysis}
+
+
+\Cref{tab:Hyperparamters} presents a subset of hyperparameter ablation studies evaluating the sensitivity of our model to key parameters in the FDR and GO-LSD modules. We examine the weighting function parameters $a$ and $c$, the number of distribution bins $N$, and the temperature $T$ used for smoothing logits in the KL divergence.
+
+
+\textbf{(1)} Setting $a=\tfrac{1}{2}$ and $c=\tfrac{1}{4}$ yields the highest AP of 53.3\%. Notably, treating $a$ and $c$ as learnable parameters (\(\tilde{a}, \tilde{c}\)) slightly decreases AP to 53.1\%, suggesting that fixed values simplify the optimization process. When $c$ is extremely large, the weighting function approximates the linear function with equal intervals, resulting in a suboptimal AP of 53.0\%. Additionally, values of $a$ that are too large or too small can reduce fineness or limit flexibility, adversely affecting localization precision. \textbf{(2)} Increasing the number of distribution bins improves performance, with a maximum AP of 53.7\% achieved at $N=32$. Beyond $N=32$, no significant gain is observed.
+\textbf{(3)} The temperature $T$ controls the smoothing of logits during distillation. An optimal AP of 54.0\% is achieved at $T=5$, indicating a balance between softening the distribution and preserving effective knowledge transfer.
+
+
+
+\subsubsection{Comparison of Distillation Methods}
+
+
+\Cref{tab:Distillation} compares different distillation methods based on performance, training time, and GPU memory usage. The baseline model achieves an AP of 53.0\%, with a training time of 29 minutes per epoch and memory usage of 8552\,MB on four NVIDIA RTX 4090 GPUs. Due to the instability of one-to-one matching in DETR, traditional distillation techniques like Logit Mimicking and Feature Imitation do not improve performance; Logit Mimicking reduces AP to 52.6\%, while Feature Imitation achieves 52.9\%. Incorporating our FDR module increases AP to 53.8\% with minimal additional training cost. Applying vanilla Localization Distillation~\citep{zheng2022localization} further increases AP to 53.7\%. Our GO-LSD method achieves the highest AP of 54.5\%, with only a 6\% increase in training time and a 2\% rise in memory usage compared to the baseline. Notably, no lightweight optimizations are applied in this comparison, focusing purely on distillation performance.
+
+
+\begin{figure}[t]
+    \centering
+    \begin{minipage}[b]{0.32\linewidth}
+        \centering
+        \includegraphics[width=\linewidth]{fig/Pred_000000089648.jpg}
+    \end{minipage}
+    \begin{minipage}[b]{0.32\linewidth}
+        \centering
+        \includegraphics[width=\linewidth]{fig/Pred_000000132796.jpg}
+    \end{minipage}
+    \begin{minipage}[b]{0.32\linewidth}
+        \centering
+        \includegraphics[width=\linewidth]{fig/Pred_000000142971.jpg}
+    \end{minipage}
+
+    \vspace{0.2cm} % adds a bit of vertical space between the rows
+
+    \begin{minipage}[b]{0.32\linewidth}
+        \centering
+        \includegraphics[width=\linewidth]{fig/Pred_000000261888.jpg}
+    \end{minipage}
+    \begin{minipage}[b]{0.32\linewidth}
+        \centering
+        \includegraphics[width=\linewidth]{fig/Pred_000000365208.jpg}
+    \end{minipage}
+    \begin{minipage}[b]{0.32\linewidth}
+        \centering
+        \includegraphics[width=\linewidth]{fig/Pred_000000551820.jpg}
+    \end{minipage}
+    \caption{Visualization of FDR across detection scenarios with initial and refined bounding boxes, along with unweighted and weighted distributions, highlighting improved localization accuracy.}
+    % \caption{Visualization of FDR across detection scenarios. The images show initial and refined bounding box predictions. The first row under the images presents unweighted edge distributions, while the second row shows weighted distributions, highlighting improved localization accuracy.}
+
+
+    \label{fig:predictions}
+\end{figure}
+
+\subsection{Visualization Analysis}
+
+
+\Cref{fig:predictions} illustrates the process of FDR across various detection scenarios. We display the filtered detection results with two bounding boxes overlaid on the images. The red boxes represent the initial predictions from the first decoder layer, while the green boxes denote the refined predictions from the final decoder layer. The final predictions align more closely with the target objects. The first row under the images shows the unweighted probability distributions for the four edges (left, top, right, bottom). The second row shows the weighted distributions, where the weighting function $W(n)$ has been applied. The red curves represent the initial distributions, while the green curves show the final, refined distributions. The weighted distributions emphasize finer adjustments near accurate predictions and allow for enabling rapid changes for larger adjustments, further illustrating how FDR refines the offsets of initial bounding boxes, leading to increasingly precise localization.

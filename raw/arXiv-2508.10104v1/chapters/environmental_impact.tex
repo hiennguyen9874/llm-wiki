@@ -1,0 +1,34 @@
+\section{Environmental Impact}
+
+\begin{table}[tb]
+  \centering
+  \caption{
+    Carbon footprint of model training.
+    We report the potential carbon emission of reproducing a full model pre-training, computed using a PUE of 1.1 and carbon intensity factor of 0.385kg CO$_2$eq/KWh.
+  }
+  \label{tab:carbon}
+  \begin{tabular}{@{}ll ccccccc@{}}
+    \toprule
+    Model    & Arch.   & GPU type  & Power & Steps   & GPU hours   & PUE & Total power & Emission \\
+             &         &           & (W)   &         &         &     & (MWh)       & (tCO$_2$eq)\\
+    \midrule
+    MetaCLIP & ViT-G  & A100-40GB & 400W  & 390k    & 368,640 & 1.1 & 160         & 62 \\
+    DINOv2   & ViT-g    & A100-40GB & 400W  & 625k    & 22,016  & 1.1 & 9.7         & 3.7 \\
+    DINOv3   & ViT-7B   & H100-SXM5 & 700W  & 1,000k  & 61,440  & 1.1 & 47          & 18 \\
+    \bottomrule
+  \end{tabular}
+\end{table}
+
+To estimate the carbon emission of our pre-training, we follow the methodology used in previous work in natural language processing~\citep{strubell2019energy,touvron2023llama} and SSL~\citep{oquab2024dinov2}.
+We fix the value of all exogenous variables, \ie the Power Usage Effectiveness (PUE) and carbon intensity factor of a power grid to the same value as used by \citet{touvron2023llama}, \ie we assume a PUE of 1.1 and a carbon intensity factor of the US average of 0.385 kg CO$_2$eq/KWh.
+For the power consumption of GPUs, we take their thermal design power: 400W for A100 GPUs and 700W for H100 GPUs.
+We report the details of the computation for the pre-training of our ViT-7B in \cref{tab:carbon}.
+For reference, we provide the analogous data for DINOv2 and MetaCLIP.
+As another point of comparison, the energy required to train one DINOv3 model (47 MWh) is roughly equivalent to that required for 240,000 km of driving with an average electric vehicle. 
+
+\paragraph{Carbon Footprint of the Whole Project}
+In order to compute the carbon footprint of the whole project, we use a rough estimate of a total 9M GPU hours.
+Using the same grid parameters as presented above, we estimate the total footprint to be roughly 2600 tCO$_2$eq.
+For comparison, a full Boeing 777 return flight between Paris and New York corresponds to approximately 560 tCO$_2$eq.
+Supposing 12 such flights per day, the environmental impact of our project represents half of all flights between these two cities for one day.
+This estimate only considers the electricity for powering the GPUs and ignores other emissions, such as cooling, manufacturing, and disposal.

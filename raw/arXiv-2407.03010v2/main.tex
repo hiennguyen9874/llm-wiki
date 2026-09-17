@@ -1,0 +1,902 @@
+% ICCV 2025 Paper Template; see https://github.com/cvpr-org/author-kit
+
+\documentclass[10pt,twocolumn,letterpaper]{article}
+
+%%%%%%%%% PAPER TYPE  - PLEASE UPDATE FOR FINAL VERSION
+\usepackage{iccv}              % To produce the CAMERA-READY version
+% \usepackage[review]{iccv}      % To produce the REVIEW version
+% \usepackage[pagenumbers]{iccv} % To force page numbers, e.g. for an arXiv version
+
+% Import additional packages in the preamble file, before hyperref
+\input{preamble}
+
+% It is strongly recommended to use hyperref, especially for the review version.
+% hyperref with option pagebackref eases the reviewers' job.
+% Please disable hyperref *only* if you encounter grave issues, 
+% e.g. with the file validation for the camera-ready version.
+%
+% If you comment hyperref and then uncomment it, you should delete *.aux before re-running LaTeX.
+% (Or just hit 'q' on the first LaTeX run, let it finish, and you should be clear).
+\definecolor{iccvblue}{rgb}{0.21,0.49,0.74}
+\usepackage[pagebackref,breaklinks,colorlinks,allcolors=iccvblue]{hyperref}
+
+\usepackage{hyperref}
+\usepackage{url}
+\usepackage{booktabs}       % professional-quality tables
+\usepackage{amsfonts}       % blackboard math symbols
+\usepackage{nicefrac}       % compact symbols for 1/2, etc.
+\usepackage{microtype}      % microtypography
+\usepackage{xcolor}         % colors
+\usepackage{kotex}
+\usepackage{adjustbox}
+\usepackage{multirow}
+\usepackage{rotating}
+\usepackage{bbm}
+\usepackage{amsmath}
+\usepackage{color, colortbl}
+\usepackage{soul}
+\usepackage{subcaption}
+% \usepackage{subfig}
+\usepackage{forloop}
+\usepackage{amssymb}
+
+\usepackage{pifont}
+\usepackage{array}
+\usepackage{enumitem}
+
+
+\usepackage{cuted}
+\usepackage{capt-of}
+\usepackage[symbol]{footmisc}
+
+
+%%%%%%%%% PAPER ID  - PLEASE UPDATE
+\def\paperID{8006} % *** Enter the Paper ID here
+\def\confName{ICCV}
+\def\confYear{2025}
+
+
+\newcommand{\edit}{\textcolor{Plum}}
+
+%%%%%%%%% TITLE - PLEASE UPDATE
+\title{CAVIS: Context-Aware Video Instance Segmentation}
+
+%%%%%%%%% AUTHORS - PLEASE UPDATE
+\author{%
+Seunghun Lee\thanks{These authors contribute equally to this work.} , Jiwan Seo$^*$, Kiljoon Han, Minwoo Choi, and Sunghoon Im  \\
+DGIST, Daegu, Korea\\
+\small\texttt{\{lsh5688, eccaron, kiljoon$\_$h, subminu, sunghoonim\}@dgist.ac.kr} \\
+}
+
+\begin{document}
+\maketitle
+
+
+\begin{abstract}
+In this paper, we introduce the Context-Aware Video Instance Segmentation (CAVIS), a novel framework designed to enhance instance association by integrating contextual information adjacent to each object. To efficiently extract and leverage this information, we propose the Context-Aware Instance Tracker (CAIT), which merges contextual data surrounding the instances with the core instance features to improve tracking accuracy. Additionally, we design the Prototypical Cross-frame Contrastive (PCC) loss, which ensures consistency in object-level features across frames, thereby significantly enhancing matching accuracy. CAVIS demonstrates superior performance over state-of-the-art methods on all benchmark datasets in video instance segmentation (VIS) and video panoptic segmentation (VPS). Notably, our method excels on the OVIS dataset, known for its particularly challenging videos. Project page: \href{https://seung-hun-lee.github.io/projects/CAVIS/}{this https URL}
+\end{abstract}
+
+
+\section{Introduction}
+
+
+%%%%   VIS 소개, issue
+Video Instance Segmentation (VIS) is a crucial task that involves segmenting and identifying individual objects within video sequences, applicable in a variety of fields including video understanding, autonomous driving, and video editing \citep{yang2019video}.
+VIS has seen considerable advancements, with developments in both online methods \citep{yang2019video, cao2020sipmask, yang2021crossover, huang2022minvis, wu2022defense, ying2023ctvis, kim2024offline}, which process videos frame-by-frame to adapt in real-time, and offline methods \citep{wang2021end, hwang2021video, wu2022seqformer, cheng2021mask2former, heo2022vita}, which analyze entire videos to understand inter-frame dependencies thoroughly.
+
+%%%%   최근 방법의 간단한 소개, 문제점
+
+Recent advances have brought robust query-based segmentation architectures \citep{cheng2021per, cheng2022masked}, designed to detect instance centers and cluster pixels into instance-specific groups within images. These modern VIS approaches increasingly employ instance center associations across frames to improve tracking accuracy. 
+Techniques such as contrastive learning \citep{wu2022defense, ying2023ctvis} and transformer-based trackers \citep{heo2023generalized, DVIS} leverage the similarities between instance centers for consistent identification of objects across frames.
+However, challenges persist in scenarios with significant occlusions or when multiple similar objects are present, leading to potential tracking inaccuracies as shown in the top row of \figref{fig:motivation}. 
+While some strategies \citep{heo2022vita, heo2023generalized} attempt to use instance features for tracking across segments or entire videos, difficulties remain.
+
+To address this issue, we propose Context-Aware Video Instance Segmentation (CAVIS), a novel framework designed to improve object identification by incorporating contextual information surrounding each instance into the tracking process. This approach draws from insights in neuroscience and cognitive science \citep{bar2004visual, oliva2007role}, emphasizing the importance of contextual cues in human perception for deciphering complex scenes and resolving visual ambiguities.
+An example of the practical application of this principle is shown in \figref{fig:motivation}, where recognizing a person is riding a bicycle, rather than just identifying the bicycle, greatly enhances the accuracy of object identification. 
+
+To achieve this, we design the Context-Aware Instance Tracker (CAIT), featuring advanced modules for extracting and matching context-aware instance features. The context-aware instance feature extractor combines the contextual information at the object's boundary with the core features of each instance. 
+Then, we incorporate these context-aware instance features into a transformer-based tracking architecture \citep{wu2022seqformer, heo2023generalized, DVIS}, enhanced by our context-aware cross-attention mechanism. 
+This adjustment allows for the precise utilization of detailed contextual nuances within each scene. 
+
+
+
+\begin{figure*}[t!]
+     \centering
+     \includegraphics[width=0.95\linewidth]{figure/cavis_motivation.pdf}
+     \vspace{-3mm}
+     \caption{\textbf{Importance of contextual information}. Comparative results showing the state-of-the-art model \citep{zhang2023dvis++} (Top) and CAVIS (Bottom). The frame on the left precedes the right by four frames, during which an occlusion takes place. The standard model, lacking contextual data, fails to consistently track the same bicycle post-occlusion, while CAVIS effectively maintains accurate instance tracking.}
+     \label{fig:motivation}
+     \vspace{-5mm}
+\end{figure*}
+
+
+Furthermore, inspired by a recent study \citep{kim2025visage}, we design the Prototypical Cross-frame Contrastive (PCC) loss, specifically designed to enhance feature consistency across frames. PCC loss correlates each pixel with an object by comparing core instance features against pixel embeddings, enhancing regional consistency within frames and establishing an intra-frame constraint reflective of the feature map’s similarity. This method leverages the close relationship between object features and high-level feature maps, where their similarity guides mask predictions. By constructing instance-wise prototypes, PCC loss maintains frame-to-frame consistency, improving training efficiency and ensuring robust performance in dynamic environments.
+
+Our extensive testing shows that CAVIS significantly outperforms existing state-of-the-art methods across major video segmentation benchmarks, including YTVIS19 \citep{yang2019video}, YTVIS21 \citep{vis2021}, OVIS \citep{qi2022occluded}, and VIPSeg \citep{miao2021vspw}, particularly excelling on OVIS dataset that includes complex videos.
+
+
+\section{Related Works}
+
+\textbf{Video Instance Segmentation.}
+VIS methods learn to associate features frame-to-frame based on instance segmentation architectures. The pioneering MaskTrack R-CNN~\citep{yang2019video} integrates a tracking head into Mask R-CNN~\citep{he2017mask}, utilizing heuristic cues for instance association
+%, introduces a track-head to Mask R-CNN\citep{he2017mask}, utilizing multiple heuristic cues to associate instances.
+Following advancements include SipMask~\citep{cao2020sipmask} and CrossVIS~\citep{yang2021crossover}, which enhance temporal links through cross-frame learning.
+IDOL\citep{wu2022defense} a contrastive learning approach with query-based architectures \citep{zhu2020deformable}, boosting online method performance. 
+Conversely, offline approaches like VisTR \citep{wang2021end} and Seqformer \citep{wu2022seqformer} use the entire video for mask trajectory predictions, with VisTR applying DETR \citep{carion2020end} at the clip level and Seqformer aggregating temporal information via inter-frame queries. 
+Innovations like IFC \citep{hwang2021video} and TeViT \citep{yang2022temporally} improve efficiency by adjusting attention mechanisms within transformer architectures.
+ 
+%adopts DETR \citep{carion2020end} for holistic instance predictions at the clip level, albeit its dense self-attention mechanism over spatio-temporal inputs constrains its applicability.
+% To improve efficiency, IFC \citep{hwang2021video} proposes a transformer architecture with separate spatial and temporal attention. 
+% TeViT \citep{yang2022temporally} extends a vision transformer backbone \citep{dosovitskiy2021an} for effective temporal association.
+%Seqformer \citep{wu2022seqformer} predicts video-level instances by aggregating temporal information with an inter-frame query association approach.
+% By transferring comprehensive knowledge from an offline model, OOKD \citep{kim2024offline} boosts the performance of an online model.
+
+\textbf{Advancements in Query-based Networks.}
+Strong query-based segmentation networks have become prevalent in current VIS methods, with many relying on Mask2Former \citep{cheng2022masked} as their foundation.
+MinVIS \citep{huang2022minvis} achieves tracking through simple post-processing based on cosine similarity between object features, without video learning.
+VITA \citep{heo2022vita} temporally associates frame-level queries to find instance prototypes within a video.
+GenVIS \citep{heo2023generalized} adopts object association approach of VITA and designs a tracking network at the sub-clip level.
+Inspired by SimCLR \citep{chen2020simple}, CTVIS \citep{ying2023ctvis} utilizes contrastive learning with a larger number of frames for comprehensive frame association.
+DVIS \citep{DVIS} introduces a decoupled framework for VIS, dividing it into segmentation, tracking, and refinement tasks, thereby enabling efficient and effective learning.
+
+
+
+\noindent\textbf{Object Tracking with Additional Cues.} 
+Tracking methodologies have been developed across various domains, including video object segmentation (VOS) \citep{xu2018youtube, oh2019video, cheng2021rethinking}, multiple object tracking (MOT) \citep{milan2016mot16, bergmann2019tracking, zhou2020tracking, zhang2021fairmot}, and VIS.
+Despite advancements, many challenging cases persist, prompting research into object association with supplementary data.
+Early approaches leverage spatial-temporal information such as geometric relation between adjacent frames \citep{tang2017multiple} and aggregated object features of previous frames \citep{xu2019spatial}.
+BeyondPixel \citep{sharma2018beyond} improves inter-frame object matching by proposing a new cost that captures 3D pose and shape based on monocular geometry. 
+BATMAN \citep{yu2022batman} combines optical flow and object query features to encode motion and appearance information into bilateral space.
+CAROQ \citep{Choudhuri_2023_CVPR} employs a context feature defined as a memory bank of multi-level image features extracted by a pixel decoder. However, such a full-context-based approach can lead to increased complexity and memory limitations. In contrast, our method takes a memory-efficient approach by focusing on the surrounding features of each object during tracking, enabling effective object matching.
+
+
+
+
+
+
+\section{Preliminary}
+\label{sec:preliminary}
+This section offers a concise introduction to the fundamentals of a query-based segmentation pipeline and outlines a VIS approach that incorporates contrastive loss \citep{wu2022defense, li2023mdqe, ying2023ctvis, li2023tube}.
+
+
+
+\subsection{Query-based instance segmentation}
+Modern VIS methods adopt a query-based instance segmentation pipeline \citep{cheng2021per, cheng2022masked}, including three main components: a backbone encoder, a pixel decoder, and a transformer decoder.
+The backbone encoder and pixel decoder are responsible for extracting multi-scale feature maps from the input image. The transformer decoder employs object queries—sequences of latent vectors—as initial guesses for object centers and utilizes these features to generate object-level features.
+These queries undergo refinement through multiple transformer blocks via a cross-attention mechanism between the object queries and the feature maps. 
+The refined instance features are then used for classification and segmentation tasks through respective prediction heads.
+Typically, the number of object queries, $N$, exceeds the actual number of objects, $N_{GT}$, present in the image. 
+Traditionally, the process involves finding a permutation of $N$ elements, $\sigma \in \mathfrak{S}_{N}$, that optimally assigns the prediction set $\{\hat{y}_i\}_{i=1}^N$ to maximize total similarity to the ground truth (GT) set $\{y_i\}_{i=1}^{N_{GT}}$. This is achieved by minimizing a pair-wise matching cost $\mathcal{L}_{\text {Match}}$, as defined in \citep{cheng2021mask2former}:
+\begin{equation}
+\label{eq:matching}
+    \begin{gathered}
+        \hat{\sigma} = \underset{\sigma \in \mathfrak{S}_{N}}{\arg \min } \sum_{k=1}^{N_{GT}} \mathcal{L}_{\text {Match}}\left(y_k, \hat{y}_{\sigma(k)}\right).
+    \end{gathered}
+\end{equation}
+The network is trained with an objective function,  $\mathcal{L}_{\text{Inst}}$, which consists of a categorical loss ($\mathcal{L}_{\text{Cls}}$), a binary cross-entropy loss for masks ($\mathcal{L}_{\text{Bce}}$), and a dice loss ($\mathcal{L}_{\text {Dice}}$) with the weights $\lambda_{\text {Cls}}$, $\lambda_{\text {Bce}}$, and $\lambda_{\text {Dice}}$ balancing the contributions of each loss component as follows:
+\begin{equation}
+\label{eq:inst}
+\begin{gathered}
+\mathcal{L}_{\text{Inst}} =\lambda_{\text {Cls}} \mathcal{L}_{\text{Cls}} + 
+\lambda_{\text {Bce}} \mathcal{L}_{\text{Bce}} + 
+\lambda_{\text {Dice}} \mathcal{L}_{\text {Dice}}.
+\end{gathered}
+\end{equation}
+The loss is used to train VIS framework with the frame-wise matching relation $\hat{\sigma}^{t}$ as follows: 
+\begin{equation}
+\label{eq:inst}
+\begin{gathered}
+\mathcal{L}_{\text{VIS}}=\sum_{t=1}^{T} \sum_{n=1}^{N_{GT}} \mathcal{L}_{\text{Inst}} \left( y^{t}_{n}, \hat{y}^{t}_{\hat{\sigma}^{t}(n)}  \right).
+\end{gathered}
+\end{equation}
+
+
+
+
+
+\begin{figure*}[t!]
+    \centering
+    \includegraphics[width=0.95\linewidth]{figure/cavis_main_figure.pdf}
+    \vspace{-3mm}
+    \caption{\textbf{Overview of CAVIS}. (a) The extraction of \textbf{context-aware instance features} from the output of an instance segmentation network. (b) CAVIS pipeline through \textbf{context-aware instance matching}. This includes the organization of the surrounding instance features $\tilde{Q}_{t}$, facilitated by Hungarian matching between the ordered instance features $\hat{Q}^{*}_{t}$ and unordered instance features $\hat{Q}_{t}$.}
+    \label{fig:main}
+\end{figure*}
+
+
+\input{table/notations}
+
+
+\subsection{Contrastive learning for VIS}
+In query-based architectures, the order of instance features effectively serves as the identity of each object. By aligning the sequence of instance features across frames, we can facilitate object tracking. Since instance features represent specific objects, inter-frame feature association is used for this alignment.
+To enhance the robustness of instance features for matching objects between frames, the following contrastive loss is integrated within the VIS framework \citep{wu2022defense}:
+\begin{equation}
+\label{eq:contrastive1}
+\resizebox{\hsize}{!}{$
+\begin{aligned}
+\mathcal{L}_{\text {Emb}} (v_t) 
+&= \log \left[1+\sum_{k^{+} \in \mathbf{K}^{+}_{{v_t}}} \sum_{k^{-} \in \mathbf{K}^{-}_{{v_t}}} \exp \left(v_t \cdot k^{-}-v_t \cdot k^{+}\right)\right],
+\end{aligned}
+$}
+\end{equation}
+where $\mathbf{K}^{+}_{v_t}$ represents the sets of positive embeddings corresponding to the same object as $v_t$ from frames other than the $t$-th frame, while $\mathbf{K}^{-}_{v_t}$ includes negative embeddings featuring characteristics of objects different from that of $v_t$.
+
+\section{Method}
+This section describes our Context-Aware Video Instance Segmentation (CAVIS) whose overall pipeline is illustrated in \figref{fig:main}.
+Our CAVIS consists of two key components: Context-Aware Instance Tracker (CAIT) and Prototypical Cross-frame Contrastive (PCC) loss, which are detailed in \secref{sec:catf} and \secref{sec:pcfl}, respectively.
+We describe the training losses for each network in \secref{sec:training}.
+We provide a notation table in \tabref{tab:notations} for better readability.
+
+
+
+
+
+
+
+\subsection{Context-Aware Instance Tracker}
+\label{sec:catf}
+
+\subsubsection{Context-aware feature extraction}
+Following the method outlined in previous VIS studies \citep{huang2022minvis, heo2022vita, heo2023generalized, ying2023ctvis, DVIS}, we employ Mask2Former \citep{cheng2022masked} as our segmentation network $\mathcal{S}$. 
+This framework ingests a series of input frames $\{I_t\}_{t=1}^T$, with $T$ denoting the total number of frames. It extracts feature maps $F$, identifies instance features $\hat{Q}$, and computes both classification scores $O$ and generates segmentation masks $M$ as follows:
+\begin{equation}
+\label{eq:segmentation}
+\begin{gathered}
+\resizebox{0.6\linewidth}{!}{$
+\left\{F_t, \hat{Q}_t, O_t, M_t\right\}_{t=1}^T = \mathcal{S}\left(\left\{I_t\right\}_{t=1}^T\right), 
+$}\\
+\resizebox{\linewidth}{!}{$
+F_t \in \mathbb{R}^{H \times W \times C},~ \hat{Q}_t \in \mathbb{R}^{N \times C},~ O_t \in \mathbb{R}^{N \times K},~ M_t \in \mathbb{R}^{N \times H \times W},
+$}
+\end{gathered}
+\end{equation}
+where $H$, $W$, and $C$ denote the height, width, and channel dimensions of the feature maps, respectively. $N$ indicates the maximum number of detactable objects in a single frame, and $K$ signifies the number of object classes.
+We then extract the instance surrounding features $\tilde{Q}_{t} \in \mathbb{R}^{N \times C}$ capturing data around the object's boundaries essential for detailed context analysis as follows:
+\begin{align}
+\begin{split}
+\tilde{Q}^{n}_{t}=\frac{\sum_{h=1}^H \sum_{w=1}^W \bar{F}^{\{h,w\}}_t * \mathbbm{1}\left(\acute{M}_t^{\{n,h,w\}}>0\right)}{\sum_{h=1}^H \sum_{w=1}^W \mathbbm{1}\left(\acute{M}_t^{\{n,h,w\}}>0\right)}, \\ 
+\bar{F}=\text{Avg}(F),~\acute{M}=\text{Lap}(M),~\forall n=\{1,...,N\},
+\end{split}
+\end{align}
+where $\text{Avg}(\cdot)$ denotes an average filtering process over spatial dimensions, $\text{Lap}(\cdot)$ signifies the application of a Laplacian filter, and $\mathbbm{1}(\cdot)$ is the indicator function that tests for the presence of the object within the filtered mask. We employ the average filter specifically configured with a $9 \times 9$ kernel.
+
+Finally, we combine the core and surrounding features to further enhance instance representations. The context-aware instance feature $Q^{n}_{t} \in \mathbb{R}^{C} $ is generated by concatenating the core instance feature $\hat{Q}^{n}_{t}$ and the instance surrounding feature $\tilde{Q}^{n}_{t}$ along the channel dimension, and subsequently processing this combined feature through a multi-layer perceptron (MLP) as follows:
+\begin{equation}
+\label{eq:ca}
+Q^{n}_{t} = \text{MLP}\left( \text{Concat} \left( \hat{Q}^{n}_{t}, \tilde{Q}^{n}_{t} \right) \right),~~\forall n=\{1,...,N\}.
+\end{equation}
+The MLP is structured with three linear layers, each followed by a ReLU activation function. 
+To promote the learning of discriminative context-aware instance features, we implement a contrastive loss specifically for these features. The context-aware contrastive loss, denoted as $\mathcal{L}_{\text{CTX}}$, leverages the established contrastive loss framework $\mathcal{L}_{\text{Emb}}$ detailed in \equref{eq:contrastive1} as follows:
+\begin{equation}
+\label{eq:ctx_loss}
+\begin{gathered}
+\mathcal{L}_{\text {CTX}}=\sum_{t=1}^{T} \sum_{n=1}^{N_{GT}}\mathcal{L}_{\text {Emb}} \left(Q_{t}^{\hat{\sigma}^{t}(n)}\right), 
+\end{gathered}
+\end{equation}
+where $\hat{\sigma}^{t}$ is a frame-wise matching relation as described in \equref{eq:matching}.
+This design enhances our ability to identify and track the same instances across the entire video. By not solely relying on instance centers, and instead utilizing context-aware instance embeddings, we can more accurately recognize instances throughout the video sequence.
+
+
+
+
+
+\begin{figure*}[t!]
+    \centering
+    \includegraphics[width=1.0\linewidth]{figure/mainresultx3.pdf}
+    \caption{Qualitative comparisons of CAVIS (ours) against state-of-the-art methods: CTVIS \citep{ying2023ctvis} and DVIS++ \citep{zhang2023dvis++} on the OVIS dataset.}
+    \label{fig:vis_result_main}
+\end{figure*}
+
+
+
+
+\subsubsection{Context-aware instance matching}
+We introduce our context-aware tracking network $\mathcal{T}$, which employs a transformer-based tracking network \citep{heo2023generalized, DVIS} to learn associations across adjacent frames. The network comprises six transformer blocks, each featuring cross-attention, self-attention, and feed-forward layers.
+The conventional cross-attention mechanism, denoted as $\text{Attn}(Q, K, V)$, traditionally aligns the current unordered instance features, $\hat{Q}_{t}$, (serving as both the key and value), with the ordered instance features from the previous frame, $\hat{Q}^{*}_{t-1}$, (used as the query). 
+To enhance accuracy, our model employs context-aware instance features, ${Q}^*_{t-1}$ and ${Q}_{t}$, as the query and key, respectively while we still use the instance features $\hat{Q}_t$ as value. 
+This modification leads to a context-aware cross-attention mechanism, formulated as:
+\begin{equation}
+\label{eq:cross_attn}
+\text{Attn}({Q}_{t-1}^*, {Q}_{t}, \hat{Q}_{t}) = \text{softmax} \left( \frac{{Q}_{t-1}^* \cdot \left( {Q}_{t} \right)^T }{\sqrt{C}} \right) \hat{Q}_{t},
+\end{equation}
+where $C$ is the channel dimensions of the feature maps.
+The aligned context-aware instance features $Q_{t}^{*}$ is built by concatenating the aligned instance features $\hat{Q}_{t}^{*}$ and the aligned instance surrounding features $\tilde{Q}_{t}^*$ same as in \equref{eq:ca}.
+We obtain the aligned instance surrounding features $\tilde{Q}_{t}^*$ by using Hungarian matching algorithm \citep{kuhn1955hungarian} on cosine similarity between $\hat{Q}_{t}$ and $\hat{Q}_{t}^{*}$ as follows:
+\begin{align}
+\begin{gathered}
+\tilde{Q}_{t}^{*^{\sigma_H(n)}} = \tilde{Q}_{t}^n,~\forall n =\{1,...,N\}, \\
+~\text{where}~ \sigma_H = ~\text{Hungarian}(\hat{Q}_{t}^{*},\hat{Q}_{t}),~\sigma_H \in \mathbb{R}^N.
+\end{gathered}
+\end{align}
+
+This process is similarly applied to the aligned context-aware features $Q_{t-1}^{*}$ for the previous frame.
+
+
+
+
+%%%%%%%%%%%%%%%%% Main Table %%%%%%%%%%%%%%%%%
+
+
+\input{table/1_main_table}
+
+
+\subsection{Prototypical Cross-frame Contrastive Loss}
+\label{sec:pcfl}
+Current VIS methodologies emphasize the importance of object feature representation learning, especially in tracking tasks where matching object features across frames is crucial. In a query-based segmenter, object features $\hat{Q}_{t}^{n} \in \mathbb{R}^C$ are semantically correlated with each pixel embedding of the feature map $F_{t}^{\{h,w\}} \in \mathbb{R}^C$ from the pixel decoder, as they are used for mask prediction.
+This ensures consistent feature representation within object-containing regions and introduces an intra-frame constraint that reflects similarity within the feature map. By examining the inter-frame relationships of pixel embeddings, our method improves object association, essential for contrastive learning methods that strive to differentiate between similar and dissimilar objects across frames.
+
+
+Given the memory-intensive nature of maintaining individual pixel consistency, we introduce Prototypical Cross-frame Contrastive (PCC) loss. This loss $\mathcal{L}_{\text{PCC}}$ maintains frame-to-frame consistency of pixel embeddings for each instance feature by constructing instance-wise prototypes from predicted masks, defined as follows:
+% \begin{equation}
+% \label{eq:PCCL_loss}
+% \mathcal{L}_{\text {PCC}}=\sum_{t=1}^{T} \sum_{n=1}^{N_{GT}}\mathcal{L}_{\text {Emb}} \left(\eta_{t}^{\hat{\sigma}^{t}(n)}\right), ~~ 
+% \eta_{t}^{n}=\frac{\sum_{h=1}^H \sum_{w=1}^W F_{t}^{\{h,w\}} * \mathbbm{1}\left(M_{t}^{\{h,w\}}==1\right)}{\sum_{h=1}^H \sum_{w=1}^W \mathbbm{1}\left(M_{t}^{\{h,w\}}==1\right)}.
+% \end{equation}
+\begin{equation}
+\label{eq:PCCL_loss}
+\begin{gathered}
+\mathcal{L}_{\text {PCC}} = \sum_{t=1}^{T} \sum_{n=1}^{N_{GT}} \mathcal{L}_{\text {Emb}} \left(\eta_{t}^{\hat{\sigma}^{t}(n)}\right), \\
+\eta_{t}^{n} = \frac{\sum_{h=1}^H \sum_{w=1}^W F_{t}^{\{h,w\}} * \mathbbm{1}\left(M_{t}^{\{h,w\}}==1\right)}{\sum_{h=1}^H \sum_{w=1}^W \mathbbm{1}\left(M_{t}^{\{h,w\}}==1\right)}.
+\end{gathered}
+\end{equation}
+
+
+
+
+
+
+
+\subsection{Training Loss}
+\label{sec:training}
+To train the segmentation network $\mathcal{S}$, we implement an objective function that incorporates the standard video instance segmentation loss $\mathcal{L}_{\text{VIS}}$ in \equref{eq:inst}, context-aware constrative loss $\mathcal{L}_{\text{CTX}}$ in \equref{eq:ctx_loss} and Prototypical Cross-frame Contrastive (PCC) loss in \equref{eq:PCCL_loss} as follows:
+\begin{equation}
+\begin{gathered}
+\mathcal{L}_{\mathcal{S}}=\mathcal{L}_{\text{VIS}} + 
+\lambda_{\text {CTX}} \mathcal{L}_{\text {CTX}}  +
+\lambda_{\text {PCC}} \mathcal{L}_{\text {PCC}}, 
+\end{gathered}
+\end{equation}
+where $\lambda_{\text {CTX}}$ and $\lambda_{\text {PCC}}$ are the weights assigned to balance these losses.
+
+
+
+To train the tracking network $\mathcal{T}$, we calculate the matching cost only for objects that appear for the first time to ensure consistent video-level matching pairs, as implemented in prior work \citep{DVIS}.
+The objective function $\mathcal{L}_{\mathcal{T}}$ incorporating the matching relation $\hat{\sigma}_{\text{con}}$ is defined as follows:
+\begin{equation}
+\begin{gathered}
+\mathcal{L}_{\mathcal{T}}=\sum_{t=1}^{T} \sum_{n=1}^{N_{GT}} \mathcal{L}_{\text{Inst}} \left( y^{t}_{n}, \hat{y}^{t}_{\hat{\sigma}_{\text{con}}(n)} \right), \\
+\hat{\sigma}_{\text{con}}= \underset{\sigma \in \mathfrak{S}_{N}}{\arg \min } \sum_{k=1}^{N_{GT}} \mathcal{L}_{\text {Match }}\left(y_{k}^{f(k)}, \hat{y}_{\sigma(k)}^{f(k)}\right),
+\end{gathered}
+\end{equation}
+where $f(k)$ denotes the frame in which the $k$-th instance first appears.
+
+
+
+
+\section{Experiments}
+We evaluate CAVIS on two major tasks: video instance segmentation (VIS) and video panoptic segmentation (VPS) on four benchmark datasets recognized for their challenges and prevalence in the research community: YouTubeVIS-2019 \citep{yang2019video}, YouTubeVIS-21 \citep{vis2021}, OVIS \citep{qi2022occluded}, and VIPSeg \citep{miao2021vspw}.
+For VIS, performance metrics include average precision (AP) and average recall (AR) as established in previous studies~\citep{yang2019video}. 
+%These metrics assess the accuracy with which our model detects and delineates individual object instances throughout video sequences. 
+In the realm of VPS~\citep{Kim_2020_CVPR}, we further examine our model’s capabilities using the Segmentation and Tracking Quality (STQ) metric, and the Video Panoptic Quality (VPQ) metric.
+%, which evaluates the consistency and accuracy of segmentation across video frames,
+%, which measures the overall quality of both instance and semantic segmentation. STQ emphasizes temporal stability by integrating object identity tracking, while VPQ encapsulates the effectiveness of our model in handling the complex dynamics of video scenes.
+
+
+% segmentation and tracking quality (STQ) \citep{weber2021step} and video panoptic quality (VPQ) \citep{Kim_2020_CVPR} for VPS.
+
+
+
+
+
+
+
+\subsection{Implementation Details}
+We employ Mask2Former \citep{cheng2022masked} as our segmentation network, utilizing three distinct backbone encoders: ResNet-50 \citep{he2016deep}, Swin-L \citep{liu2021swin}, and ViT-L \citep{dosovitskiy2021an}. The ResNet-50 and Swin-L backbones are initialized with parameters pre-trained on the COCO dataset \citep{lin2014microsoft}, while the ViT-L backbone uses initialization parameters from DINOv2 \citep{oquab2023dinov2}. Additionally, for the ViT-L backbone, we employ a memory-efficient version of VIT-Adapter \citep{chen2022vision}, aligning with recent advancements in network efficiency \citep{zhang2023dvis++}. 
+Further details are described in the Supplementary Material.
+
+% For training, we adopt a staged approach where the segmentation network is trained first, followed by the tracking network with all other parameters frozen, promoting stability and efficiency in learning, as suggested by previous studies \citep{DVIS, li2023tcovis}. Optimization is carried out using the AdamW optimizer \citep{loshchilov2017decoupled}, with a starting learning rate of 1e-4 and a weight decay of 5e-2.
+% The training process spans 40k iterations for the segmentation network and 160k iterations for the tracking network, with learning rate reductions scheduled at 28k and 112k iterations, respectively.
+% During training, we sample three frames for the segmentation network and five frames for the tracking network from each of eight batched videos. These frames undergo resizing to ensure the shorter side is between 320 and 640 pixels, while the longer side does not exceed 768 pixels. The loss function weights are set to $\lambda_{\text{cls}} = 2.0$, $\lambda_{\text{bce}} = 5.0$, $\lambda_{\text{dice}} = 5.0$, $\lambda_{\text{ctx}} = 2.0$, and $\lambda_{\text{pro}} = 2.0$ to balance the contributions of each component during training.
+% For inference, the shorter side of input frames is scaled down to 448 pixels to maintain a consistent aspect ratio across inputs. All experiments are conducted using 8 RTX2080Ti GPUs for the ResNet-50 backbone and 8 RTX3090 GPUs for the Swin-L and ViT-L backbones, ensuring adequate computational resources are available for the demands of each model configuration.
+
+
+
+
+\input{table/2_VPS_result}
+
+
+
+\subsection{Comparison to State-of-the-Art Methods}
+
+\textbf{Video Instance Segmentation (VIS).}
+We benchmark CAVIS against leading methods on three established VIS datasets, as detailed in \tabref{tab:main}. CAVIS sets a new state-of-the-art, outperforming the previous top model, DVIS++, by margins of 1.1, 1.4, and 3.7 average precision (AP) points on YouTube-VIS2019, YouTube-VIS2021, and OVIS, respectively. Particularly noteworthy is CAVIS's performance on the OVIS dataset, where it significantly outstrips all competitors. This dataset is renowned for its diversity and the complexity of its video sequences.  
+% \figref{fig:vis_result_main} illustrates how our model proficiently tracks objects even in scenarios marked by severe occlusion, underscoring the robustness of our context-aware video learning approach that leverages surrounding information for instance matching.
+\figref{fig:vis_result_main} illustrates how our model proficiently tracks objects even in scenarios marked by severe occlusion.
+This capability underscores the strength of our context-aware video learning approach, which effectively leverages information from surrounding objects for accurate instance matching, even under severe occlusion.
+
+
+
+\textbf{Video Panoptic Segmentation (VPS).}
+In the realm of VPS, CAVIS also achieves the best performance on the VIPSeg dataset as shown in \tabref{tab:vps}. For the ResNet-50 backbone, it achieves 45.3 in both Video Panoptic Quality (VPQ) and Segmentation and Tracking Quality (STQ). For the ViT-L backbone, the figures reach 58.5 VPQ and 56.1 STQ, demonstrating substantial advancements. Specifically, our model shows significant gains in $\text{VPQ}^{\text{Th}}$—which assesses performance on `thing' classes—with increases of 3.0 and 1.9 for ResNet-50 and ViT-L backbones, respectively, over the previous best models. These improvements highlight the versatility of our context-aware object matching strategy across various video segmentation tasks.
+
+
+%%%%%%%%%%% tables/2_VPS_result.tex %%%%%%%%%%%
+
+
+
+
+
+
+
+
+
+
+
+\subsection{Ablation Study}
+We conduct ablation studies on the OVIS dataset \citep{qi2022occluded} with the ResNet-50 \citep{he2016deep} backbone, detailed in \tabref{tab:re_ablation}.
+We use the same experimental setting as those in the main experiments.
+% For these tests, we sample two frames from each input video for experiments listed in \tabref{tab:re_ablation}-(a), (b), and (d).
+To evaluate the segmentation network across these setups in \tabref{tab:re_ablation}-(a-c), we employ the minimal post-processing method proposed by MinVIS \citep{huang2022minvis}.
+
+\textbf{Ablation study on technical contributions of CAVIS.}
+We conduct a series of experiments in \tabref{tab:re_ablation}-(a) to demonstrate the effectiveness of our key components: the context-aware instance tracker (CAIT) and prototypical cross-frame contrastive (PCC) loss.
+
+% \tabref{tab:re_ablation}-(a) includes six experiments (\romannumeral 1 - \romannumeral 6), where experiment (\romannumeral 1) present our baseline performance of retraining MinVIS \citep{huang2022minvis} to match our settings.
+% Experiments (\romannumeral 1 - \romannumeral 3) show that implementing contrastive learning, whether with standard or context-aware instance features, leads to significant performance gains. Particularly, context-aware instance features result in a notable +2.7 AP improvement over the baseline, a considerable increase compared to the +1.3 AP improvement observed with standard instance features.
+% Further performance boosts are noted when PCC is introduced in experiments (\romannumeral 4 - \romannumeral 6). The most substantial improvement is seen in experiment (\romannumeral 6), which records the highest performance of 29.5 AP by utilizing both $\mathcal{L}_{\text{CTX}}$ and $\mathcal{L}_{\text{PCC}}$. This highlights the synergistic effect of integrating context-aware tracking with cross-frame contrastive loss, significantly enhancing the system's accuracy and effectiveness.
+
+
+
+\tabref{tab:re_ablation}-(a) includes six experiments (\romannumeral 1 - \romannumeral 6), where experiment (\romannumeral 1) present our baseline performance of retraining MinVIS \citep{huang2022minvis} and DVIS \citep{DVIS} to match our settings.
+For segmentation netowrk ($\mathcal{S}$), experiments (\romannumeral 3 - \romannumeral 4) show that implementing contrastive learning with context-aware instance features results in a notable +3.3 AP improvement over the baseline MinVIS.
+Further performance boosts are noted when PCC is introduced in experiments (\romannumeral 5 - \romannumeral 6), which records the highest performance of 30.0 AP by utilizing both $\mathcal{L}_{\text{CTX}}$ and $\mathcal{L}_{\text{PCC}}$. This highlights the synergistic effect of integrating context-aware tracking with cross-frame contrastive loss, significantly enhancing the system's accuracy and effectiveness.
+
+
+We also evaluate the tracking network ($\mathcal{T}$) by initially using each fixed pre-trained segmentation network listed in \tabref{tab:re_ablation}-(\romannumeral 1 - \romannumeral 6). Comparing setups (\romannumeral 5) and (\romannumeral 6), our newly designed context-aware cross-attention improves performance by +2.3 AP over the standard cross-attention, achieving 37.6 AP. These findings validate the efficacy of the context-aware feature, confirming its significant advantages for instance matching in complex video scenarios.
+
+% when we fix our pre-trained segmentation network and further train the tracking network, using cross-attention with $\hat{Q}$ still achieves a high performance of 34.4 AP.
+% Replacing this with context-aware cross-attention further improves the performance by +1.7 AP.
+% These results demonstrate that our newly designed context-aware feature is highly effective for instance matching.
+
+%%%%%%%%%%%%%%%%% Ablation Tables %%%%%%%%%%%%%%%%%
+
+% \input{NIPS24/tables/cavis/ablation_tables}
+\input{table/ablation}
+
+
+% \input{../tables/3_plcl}
+% \input{../tables/4_filter_size}
+% \input{../tables/7_filter_type}
+% \input{../tables/5_frames}
+% \input{../tables/8_tracker}
+
+
+\textbf{Context filter.}
+Given that images feature objects at various scales, identifying the optimal receptive field size that functions effectively across different scenarios is essential. Our experiments, detailed in \tabref{tab:re_ablation}-(b), explore the effects of varying context filter sizes from 3 to 11. The optimal performance is achieved with a filter size of 9; larger sizes led to decreased performance, suggesting that excessively large receptive fields may detract from effective object matching by homogenizing the context features across all objects. Extended analysis on this aspect is provided in our supplementary materials.
+Further investigation into different types of context filters shown in \tabref{tab:re_ablation}-(c) reveals that the average filter, which evenly reflects surrounding information, offers a well-defined benefit. In contrast, the learnable filter, which lacks specific directives on characterizing surrounding information, performs similarly to scenarios without enhanced context features, as demonstrated in \tabref{tab:re_ablation}-(a)-(\romannumeral 2). This indicates the importance of a clearly defined context filter in improving the segmentation and tracking accuracy.
+
+\textbf{The number of adjacent frames used during training.}
+Our fundamental assumption is that the surrounding information between adjacent frames remains relatively stable, thereby aiding object matching. \tabref{tab:re_ablation}-(b) details the performance comparison based on the number of adjacent frames used during training. Utilizing three frames results in the highest performance, achieving 30.0 AP. Increasing the number of frames decreases performance, likely due to larger gaps between sampled frames which lead to more significant changes in the surrounding information, thus complicating object matching. Consequently, we have found that using three frames optimizes training effectiveness.
+
+\textbf{Context feature alignment. }
+The tracking network aligns instance features and produces outputs in varying orders, necessitating the precise alignment of context features for accurate matching in subsequent frames. Misalignment of these features can lead to incorrect matching of context information for each object, significantly impacting performance. As demonstrated in \tabref{tab:re_ablation}-(d), misalignment results in a notable performance drop of 4.4 AP. This underscores the critical need for accurate alignment of context information to ensure robust object tracking performance.
+
+\textbf{Value for context-aware instance matching.}
+Context-aware features ($Q$), which include information on instance features, could be used as the value in context-aware matching. However, during segmenter training, the instance features ($\hat{Q}$) specifically drive the segmentation prediction. Therefore, it is more effective to use instance features as the value for matching, leading to better performance, as shown in \tabref{tab:re_ablation}-(e).
+
+
+
+% % save original \intextsep
+% \newlength{\oldintextsep}
+% \setlength{\oldintextsep}{\intextsep}
+
+% \setlength\intextsep{0pt}
+% \begin{wraptable}{r}{0pt}
+% \begin{tabular}{l|cc}
+% \toprule
+% Method   & Time (ms) & YTVIS19 (AP) \\ \hline
+% % + context learning & 90.22 & 30.0 \\ \hline
+% GenVIS & 80.1 & 50.0 \\
+% DVIS & 78.9 & 51.2 \\
+% Ours & 85.6 & 55.7\\ \bottomrule
+% \end{tabular}
+% \caption{Inference speed.}
+% \label{tab:cost}
+% \end{wraptable}
+
+% \section{Computational Cost}
+% We compare the inference speed of our approach against recent state-of-the-art methods, GenVIS \citep{heo2023generalized} and DVIS \citep{DVIS}, to evaluate the computational cost. As shown in \tabref{tab:cost}, the inference speeds were measured under identical conditions on a 2080ti GPU. Our method requires an additional time cost of 5.5ms and 6.7ms compared to GenVIS and DVIS, respectively. However, this cost is justified by the performance gains of +5.7AP and +4.5AP, demonstrating a reasonable trade-off between increased computation and improved accuracy.
+
+
+
+
+
+
+
+
+
+
+\section{Conclusion}
+In this paper, we introduce Context-Aware Video Instance Segmentation (CAVIS), a pioneering framework designed to enhance the accuracy and reliability of object tracking in complex video scenarios by integrating contextual information surrounding each instance. The introduction of the Context-Aware Instance Tracker (CAIT) and the innovative Prototypical Cross-frame Contrastive (PCC) loss are central to CAVIS's effectiveness. CAIT leverages the surrounding context to enrich the core features of each instance, providing a more holistic view that significantly improves instance detection and segmentation under challenging conditions. Simultaneously, PCC loss ensures consistency of these enriched features across frames, reinforcing the temporal linkage between instances and enhancing the overall tracking robustness.
+Our experiments across multiple challenging benchmarks demonstrate that CAVIS significantly outperforms existing state-of-the-art methods, particularly excelling in scenarios that demand robust tracking capabilities. The integration of CAIT and PCC not only addresses the primary challenges of occlusions and motion but also effectively manages the presence of visually similar objects that can often mislead traditional VIS approaches. 
+
+
+
+
+
+
+
+
+
+
+
+
+\subsubsection*{Acknowledgments}
+This work was supported by Institute of Information \& Communications Technology Planning \& Evaluation(IITP) grant funded by the Korea government(MSIT) (No.RS-2014-II140123, Development of High Performance Visual BigData Discovery Platform for Large-Scale Realtime Data Analysis), the National Research Foundation of Korea (NRF) grant funded by the Korea government (MSIT) (No. RS-2023-00210908) and the Institute of Information \& Communications Technology Planning \& Evaluation(IITP) grant funded by the Korea government(MSIT) (No. RS-2025-02219277, AI Star Fellowship Support Project(DGIST)).
+
+
+{
+    \small
+    \bibliographystyle{ieeenat_fullname}
+    \bibliography{main}
+}
+
+\clearpage
+\appendix
+
+
+
+
+\section{Appendix}
+
+\begin{strip}
+    \centering
+    \includegraphics[width=0.9\linewidth]{figure/supple/R1_Q3.pdf}
+    \captionof{figure}{Potential error due to inaccurate mask predictions from the segmentation network.}
+    \label{a_fig:potential}
+\end{strip}
+
+
+\subsection{Limitation}
+
+
+Video Instance Segmentation (VIS) is an advanced technology designed to perform segmentation and tracking concurrently, capturing the trajectories of individual instances within a video. While this technology has significant benefits, it also poses potential risks if misused, particularly in surveillance applications. Such misuse could lead to severe privacy infringements.
+It is important to note, however, that the dataset used in this study is a standard one within the VIS community and does not include any sensitive or personal information. This precaution helps mitigate the risk of our trained model being used for harmful purposes. Nonetheless, the potential for negative impacts should not be underestimated, and ethical considerations must guide the deployment of VIS technologies.
+
+
+\textbf{Potential error in prediction.}
+Our model is designed to improve tracking accuracy by achieving precise object matching across frames rather than focusing on segmentation performance. Consequently, if the pretrained segmentation network produces inaccurate segmentation results, performance may decrease. However, even in scenarios with imprecise mask predictions, our proposed context-aware modeling can robustly track objects, as demonstrated in \figref{a_fig:potential}.
+
+
+
+\begin{figure*}[t!]
+    \centering
+    \includegraphics[width=0.9\linewidth]{figure/supple/t-sne_figure2.pdf}
+    \caption{Visualization of object embeddings.
+    Each point on the t-SNE \citep{van2008visualizing} plot represents the learned object embeddings. 
+    The three different colors of points indicate the embeddings of three different elephants throughout the entire video.
+    }
+    \label{fig:tsne}
+    \vspace{-5mm}
+\end{figure*}
+
+
+\begin{figure*}[t!]
+    \centering
+    \includegraphics[width=0.9\linewidth]{figure/supple/more_predictions.pdf}
+    \caption{Comparison of VIS results for the video in \figref{fig:tsne}. These results show that our model robustly tracks objects even in scenes with severe occlusions.
+    }
+    \label{fig:pred_elephants}
+    \vspace{-4mm}
+\end{figure*}
+
+
+
+
+
+
+
+\subsection{Experimental Details}
+
+\subsubsection{Datasets}
+
+\textbf{Youtube-VIS 2019 and 2021} YouTube-VIS was introduced by Yang et al. in their pioneering study on the VIS task \citep{yang2019video}. This dataset comprises high-resolution YouTube videos, categorized into 40 distinct classes. The 2019 version of the dataset includes 2,238 videos for training, 302 for validation, and 343 for testing \citep{yang2019video}. The 2021 update expands these numbers to 2,985, 421, and 453 videos for training, validation, and testing, respectively \citep{vis2021}. YouTube-VIS is utilized across various pixel-level video understanding tasks, including VIS, video semantic segmentation, and video object detection.
+
+\textbf{OVIS} The OVIS dataset \citep{qi2022occluded} presents a significant challenge with its frequent occlusions and a realistic representation of common everyday objects. This makes it highly relevant for real-world applications. OVIS videos are longer and contain more objects compared to those in YouTube-VIS, which increases the complexity of segmentation and tracking tasks. The dataset is organized into training, validation, and test sets, with 607, 140, and 154 videos, respectively.
+
+\textbf{VIPSeg} VIPSeg \citep{miao2022large} is a comprehensive Video Panoptic Segmentation dataset that includes 3,536 videos and 84,750 frames, annotated with pixel-level panoptic labels. Unlike earlier VPS datasets that primarily focus on street views, VIPSeg offers a broader range of challenges and practical scenarios. It features 232 diverse settings and is annotated with 58 `thing' classes and 66 `stuff' classes, making it one of the most diverse and challenging datasets available in the field.
+
+
+
+
+\begin{figure*}[!t]
+    \centering
+    \includegraphics[width=0.9\linewidth]{figure/supple/context_size.pdf}
+    \caption{VIS results with various filter sizes.}
+    \label{fig:filter_size}
+\end{figure*}
+
+
+
+
+\subsubsection{Implementation}
+\label{sec:apdx_implementation}
+Our segmentation approach employs the Mask2Former architecture \citep{cheng2022masked}, utilizing the officially recommended hyperparameters. For all experimental settings, we follow established practices by incorporating COCO joint training, as adopted in previous methodologies \citep{wu2022seqformer, heo2022vita, heo2023generalized, ying2023ctvis, DVIS}.
+The tracking network consists of six transformer blocks.
+Within the tracking network's transformer blocks, we innovate by replacing the standard cross-attention layer with the referring cross-attention layer, as introduced in \citep{DVIS}. 
+Additionally, we conduct experiments with the temporal refiner \citep{DVIS} over 160k iterations, specifically analyzing sequences of 15 consecutive frames to enhance tracking accuracy.
+
+For efficient training, we adopt a staged approach where the segmentation network is trained first, followed by the tracking network with all other parameters frozen, promoting stability and efficiency in learning, as suggested by previous studies \citep{DVIS, li2023tcovis}. Optimization is carried out using the AdamW optimizer \citep{loshchilov2017decoupled}, with a starting learning rate of 1e-4 and a weight decay of 5e-2.
+The training process spans 40k iterations for the segmentation network and 160k iterations for the tracking network, with learning rate reductions scheduled at 28k and 112k iterations, respectively.
+During training, we sample three frames for the segmentation network and five frames for the tracking network from each of eight batched videos. These frames undergo resizing to ensure the shorter side is between 320 and 640 pixels, while the longer side does not exceed 768 pixels. The loss function weights are set to $\lambda_{\text{cls}} = 2.0$, $\lambda_{\text{bce}} = 5.0$, $\lambda_{\text{dice}} = 5.0$, $\lambda_{\text{ctx}} = 2.0$, and $\lambda_{\text{pro}} = 2.0$ to balance the contributions of each component during training.
+For inference, the shorter side of input frames is scaled down to 448 pixels to maintain a consistent aspect ratio across inputs. All experiments are conducted using 8 RTX2080Ti GPUs for the ResNet-50 backbone and 8 RTX3090 GPUs for the Swin-L and ViT-L backbones, ensuring adequate computational resources are available for the demands of each model configuration.
+
+
+
+
+
+
+
+\subsection{Further Studies}
+\label{sec:further}
+
+\textbf{Analysis on object embeddings.}
+To demonstrate the effectiveness of our context-aware instance learning, we compare the distribution of object embeddings from three different models, as shown in \figref{fig:tsne}.
+MinVIS does not engage in video learning, resulting in less effective distinction between objects. 
+Compared to MinVIS, CTVIS shows a clearer object distinction by employing contrastive learning among object embeddings, but it still exhibits some overlaps in object clusters.
+In contrast, CAVIS forms much more distinct object clusters, highlighting the advantage of leveraging contextual information for object identification.
+This trends are reflected in the VIS results, as shown in \figref{fig:pred_elephants}.
+
+
+
+
+% % save original \intextsep
+% % \newlength{\oldintextsep}
+% \setlength{\oldintextsep}{\intextsep}
+
+% \setlength\intextsep{0pt}
+% \begin{wraptable}{r}{0pt}
+% \scriptsize\textcolor{\revisioncolor}{
+% \begin{tabular}{c|c|c}
+% \toprule
+% \multirow{2}{*}{Method} & \multicolumn{2}{c}{CL with $\hat{Q}$} \\ 
+% & \multicolumn{1}{c}{\xmark} & \cmark \\ \hline
+% Baseline & 26.4 & 28.2 \\
+% with Appearance loss &  26.9 \tiny{(+0.5)} & 28.3 \tiny{(+0.1)} \\
+% with PCC loss & 28.1 \tiny{\color[HTML]{FE0000} (+1.7)} & 28.9 \tiny{\color[HTML]{FE0000} (+0.7)} \\
+% \bottomrule
+% \end{tabular}}
+% \caption{Appearance loss vs PCC loss.}
+% \label{tab:visage}
+% \end{wraptable}
+
+
+\begin{table*}[t!]
+    \centering
+    \caption{Ablation studies on each component of CAVIS. (a-d) present the results from the segmentation network, while the others present those from the tracking network. ``CL'' denotes contrastive learning.}
+    \resizebox{\textwidth}{!}{%
+    \begin{tabular}{ccc}
+        % First row: (a), (b), (c)
+        \subfloat[Context-aware feature learning, PCC loss]{%
+            \small{\begin{tabular}{cccc|c}
+                \specialrule{1.5pt}{1pt}{1pt} 
+                 & CL with $\hat{Q}$ & $\mathcal{L}_{\text{CTX}}$ & $\mathcal{L}_{\text{PCC}}$ & AP   \\  
+                \specialrule{1.2pt}{1pt}{1pt} 
+                (\romannumeral 1) &    &    &     & 26.4 \\
+                (\romannumeral 2) & \cmark  & &     & 27.9 \\
+                (\romannumeral 3) &   &  \cmark  &     & 29.1 \\ \hline
+                (\romannumeral 4) &   &    &  \cmark   & 27.6 \\
+                (\romannumeral 5) &   \cmark&    &   \cmark  & 28.3 \\
+                (\romannumeral 6) &   &  \cmark  & \cmark    & \textbf{29.5} \\
+                \specialrule{1.5pt}{1pt}{1pt}
+            \end{tabular}}%
+        } 
+        &
+        \subfloat[Context filter size]{%
+            \small{\begin{tabular}{c|c}
+                \specialrule{1.5pt}{1pt}{1pt} \\[-8pt]
+                Filter size & AP \\[2pt]
+                \specialrule{1.2pt}{1pt}{1pt}
+                3 & 27.3 \\
+                5 & 28.3 \\
+                7 & 28.7 \\
+                9 & \textbf{29.5} \\
+                11 & 28.9 \\
+                \specialrule{1.5pt}{1pt}{1pt}
+            \end{tabular}}%
+        } 
+        &
+        \subfloat[Sampled frames]{%
+            \small{\begin{tabular}{c|c}
+                \specialrule{1.5pt}{1pt}{1pt} \\[-6pt]
+                \# of frames & AP \\ [2pt]
+                \specialrule{1.2pt}{1pt}{1pt} \\[-6pt]
+                2 & 29.5 \\[2pt]
+                3 & \textbf{30.0} \\[2pt]
+                4 & 28.7 \\[2pt]
+                \specialrule{1.5pt}{1pt}{1pt}
+            \end{tabular}}%
+        } \\[10pt]
+        % Second row: (d), (e), (f)
+        \subfloat[Context filter type]{%
+            \small{\begin{tabular}{c|cc}
+                \specialrule{1.5pt}{1.0pt}{1.0pt}
+                \multirow{2}{*}{ Metric } & \multicolumn{2}{c}{ Context filter type } \\
+                & Average & Learnable \\
+                \specialrule{1.2pt}{1.0pt}{1.0pt}
+                AP & \textbf{29.5} & 28.4 \\
+                \specialrule{1.5pt}{1.0pt}{1.0pt}
+            \end{tabular}}%
+        } 
+        &
+        \subfloat[Cross-Attention for $\mathcal{T}$]{%
+            \small{\begin{tabular}{c|cc}
+                \specialrule{1.5pt}{1.0pt}{1.0pt}
+                \multirow{2}{*}{ Metric } & \multicolumn{2}{c}{ Cross-Attention} \\
+                & $\hat{Q}$ & $Q$ \\
+                \specialrule{1.2pt}{1.0pt}{1.0pt}
+                AP & 34.4 & \textbf{36.1} \\
+                \specialrule{1.5pt}{1.0pt}{1.0pt}
+            \end{tabular}}%
+        } 
+        &
+        \subfloat[Context alignment]{%
+            \small{\begin{tabular}{c|cc}
+                \specialrule{1.5pt}{1.0pt}{1.0pt}
+                \multirow{2}{*}{ Metric } & \multicolumn{2}{c}{ Context alignment } \\
+                & \xmark & \cmark \\
+                \specialrule{1.2pt}{1.0pt}{1.0pt}
+                AP & 32.8 & \textbf{36.1} \\
+                \specialrule{1.5pt}{1.0pt}{1.0pt}
+            \end{tabular}}%
+        }
+    \end{tabular}%
+    }%
+    \label{tab:ablation}
+\end{table*}
+
+
+
+
+\begin{figure*}[!t]
+    \centering
+    \includegraphics[width=0.95\linewidth]{figure/supple/fast.pdf}
+    \caption{VIS results from our model on a video containing a fast-moving object.}
+    \label{fig:fast-moving}
+    \vspace{-3mm}
+\end{figure*}
+
+
+
+
+% \textbf{Comparison of PCC loss with VISAGE.}
+% VISAGE employs contrastive loss on appearance features extracted from feature maps of the backbone encoder, which are also utilized for object matching during inference. This approach specifically aims to achieve more accurate object matching using appearance features. In contrast, our proposed PCC loss operates on feature maps extracted from the pixel decoder, targeting representation learning at the semantic level. To investigate whether VISAGE's appearance-level contrastive learning also contributes to representation learning, we conducted additional experiments. Using the same baseline architecture and a basic loss function, we tested PCC loss and VISAGE’s appearance loss separately, as shown in \tabref{tab:visage}. The results indicate that our method achieves a +1.7 AP gain over the baseline even without contrastive learning between object features. When combined with contrastive learning, it demonstrates further synergy, achieving 28.9 AP. In contrast, the appearance-level loss results in marginal performance improvements, with gains of only +0.5 AP and +0.1 AP in both cases. These results highlight that the proposed PCC loss facilitates the learning of object feature representations, distinguishing it from existing losses.
+
+
+
+
+
+
+
+\textbf{Effective filter size.}
+Videos often contain objects of varying sizes, and for smaller objects, using an excessively large context area can introduce noise, leading to inaccurate matching as shown in \figref{fig:filter_size}. To better understand this effect, we analyze the impact of different filter sizes to identify the optimal value. Our findings indicate that the overall trend remains consistent, regardless of variations in the number of frames used during training.
+
+
+
+\textbf{Ablation study with minimal setups.}
+To simplify reproducibility, we additionally provide ablation studies on the OVIS dataset \citep{qi2022occluded} with the ResNet-50 \citep{he2016deep} backbone, detailed in \tabref{tab:ablation}. The results exhibit similar trends to those observed in the main text, further validating the consistency of our findings. For these experiments, we train the segmentation network with 2 frames over 40k iterations, while the tracking network is trained with 5 frames over 40k iterations. Experiments (\romannumeral 1 - \romannumeral 3) show that implementing contrastive learning, whether with standard or context-aware instance features, leads to significant performance gains. Particularly, context-aware instance features result in a notable +2.7 AP improvement over the baseline, a considerable increase compared to the +1.3 AP improvement observed with standard instance features.
+
+
+
+
+\textbf{Robustness of our model.}
+Our method does not rely solely on context. By incorporating both context and instance features, our approach shows robustness even in scenes containing fast-moving objects where context changes rapidly, as shown in \figref{fig:fast-moving}. 
+
+
+
+
+
+
+
+
+
+% save original \intextsep
+\newlength{\oldintextsep}
+\setlength{\oldintextsep}{\intextsep}
+
+\setlength\intextsep{0pt}
+\begin{wraptable}{r}{0pt}
+\scriptsize{
+\begin{tabular}{c|c}
+\toprule
+Method & AP \\ \hline
+% + context learning & 90.22 & 30.0 \\ \hline
+MinVIS \citep{huang2022minvis} & 23.3 \\
+DVIS \citep{DVIS} & 31.6 \\
+VITA \citep{heo2022vita} & 32.6 \\
+DVIS++ \citep{zhang2023dvis++} & 37.2 \\
+GenVIS \citep{heo2023generalized} & 37.5 \\
+Ours & \textbf{38.6}\\ \bottomrule
+\end{tabular}}
+\caption{Comparison on YTVIS 2022 dataset.}
+\label{tab:ytvis22}
+\end{wraptable}
+
+
+
+\textbf{Performance on long video.}
+We additionally report the performance on the YouTube-VIS 2022 dataset, a well-known benchmark featuring long video sequences. Its validation set includes 71 additional videos compared to the YouTube-VIS 2021 dataset, making it particularly challenging due to the need for accurately tracking dynamically appearing and disappearing objects over extended periods. We evaluate our model on these 71 long videos and compare it against existing state-of-the-art models with a ResNet-50 backbone. As shown in \tabref{tab:ytvis22}, our approach outperforms existing methods, demonstrating that our context-aware modeling remains effective for robust object matching even in long-range video scenarios.
+
+
+
+
+\begin{table}[!h]
+
+    \centering
+    \small
+    \begin{tabular}{l|ccc}
+        \toprule
+        Method & Time (ms) & YTVIS19 & OVIS \\ 
+        \midrule
+        DVIS \cite{DVIS} & \textbf{78.9} & 51.2 & 30.2 \\
+        GenVIS \cite{heo2023generalized} & 80.1 & 50.0 & 35.8 \\
+        Ours & 85.6 & \textbf{55.7} & \textbf{37.6} \\ 
+        \bottomrule
+    \end{tabular}
+    \vspace{-3mm}
+    \caption{Computational cost.}
+    \label{tab:cost}
+\end{table}
+
+
+
+\begin{figure*}[t!]
+    \centering
+    \includegraphics[width=0.83\linewidth]{figure/supple/cavis_ovis.pdf}
+    \caption{Additional qualitative results on OVIS dataset.}
+    \label{fig:ovis_results}
+\end{figure*}
+
+\textbf{Computational cost.}
+We compare the inference speed of our approach against recent state-of-the-art methods, DVIS \cite{DVIS} and GenVIS \cite{heo2023generalized}, as shown in \tabref{tab:cost}. The inference speeds were measured under identical conditions on a 2080ti GPU using the ResNet-50 backbone. Our method requires an additional time cost of 6.7ms and 5.5ms compared to DVIS and GenVIS, respectively. However, this cost is justified by performance gains of +1.8 AP and +7.6 AP on OVIS, and +4.5 AP and +5.7 AP on YTVIS19, demonstrating a reasonable trade-off between increased computation and improved accuracy.
+
+
+
+
+\textbf{Additional qualitative results.}
+We provide additional qualitative results of CAVIS across various datasets, as depicted in \figref{fig:ovis_results}-\ref{fig:vips_results}. These results underscore the robust capability of CAVIS to track objects in diverse scenarios for both VIS and VPS tasks. Notably, CAVIS excels in environments featuring numerous similar objects, fast-moving objects, and significant occlusions, demonstrating its effectiveness across complex dynamic scenes.
+
+
+
+\begin{figure*}[h!]
+    \centering
+    \includegraphics[width=0.83\linewidth]{figure/supple/cavis_yvis19.pdf}
+    \caption{Additional qualitative results on Youtube-VIS 2019 dataset.}
+    \label{fig:yvis19_results}
+\end{figure*}
+
+\begin{figure*}[t!]
+    \centering
+    \includegraphics[width=0.83\linewidth]{figure/supple/cavis_yvis21.pdf}
+    \caption{Additional qualitative results on Youtube-VIS 2021 dataset.}
+    \label{fig:yvis21_results}
+\end{figure*}
+
+\begin{figure*}[h!]
+    \centering
+    \includegraphics[width=0.83\linewidth]{figure/supple/cavis_vips.pdf}
+    \caption{Additional qualitative results on VIPSeg dataset.}
+    \label{fig:vips_results}
+\end{figure*}
+
+
+
+
+
+
+
+
+
+
+
+
+\end{document}

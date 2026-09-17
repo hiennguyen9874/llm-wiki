@@ -1,0 +1,34 @@
+\begin{table}[!h]
+\setlength{\tabcolsep}{3pt}
+\renewcommand{\arraystretch}{1.25}
+\centering
+\scriptsize
+\resizebox{1.0\linewidth}{!}{
+\begin{tabular}{lclcccccccccccc}
+\toprule
+Method & Backbone & Pre-training data & test size & COCO & \multicolumn{4}{c}{LVIS$^{\mathrm{minival}}$} & \multicolumn{4}{c}{LVIS$^{\mathrm{val}}$} & FPS(A100/TensorRT) & FPS(Orin NX) \\
+& & & & & AP$_\mathrm{all}$  & $AP_\mathrm{r}$ & $AP_\mathrm{c}$ & $AP_\mathrm{f}$ & $AP_\mathrm{all}$ & $AP_\mathrm{r}$ & $AP_\mathrm{c}$ & $AP_\mathrm{f}$ &  &\\
+\midrule
+\multicolumn{14}{c}{\textit{End-to-End Open-Set Object Detection}}\\
+\midrule
+GLIP-T & Swin-T & O365,GoldG,Cap4M & 800 $\times$ 1333 & 46.3 & 26.0 & 20.8 & 21.4 & 31.0 & - & - & - & - & - & - \\
+% GLIPv2-T & Swin-T & O365,GoldG,Cap4M & 800 x 1333 & - & 29.0 & - & - & - & - & -& - & - & - & - \\
+Grounding DINO-T & Swin-T & O365,GoldG,Cap4M & 800 $\times$ 1333 & 48.4 & 27.4 & 18.1 & 23.3 & 32.7 & - & - & - & - &  9.4 / 42.6 & 1.1 \\ %14.3(66.2)
+\midrule
+\multicolumn{14}{c}{\textit{Real-time End-to-End Open-Set Object Detection}}\\
+\midrule
+YOLO-Worldv2-S\dag  & YOLOv8-S & O365,GoldG & 640 $\times$ 640 & - & 22.7 & 16.3 & 20.8 & 25.5 & 17.3 & 11.3 & 14.9	& 22.7 & 47.4 / - & - \\
+YOLO-Worldv2-M\dag  & YOLOv8-M & O365,GoldG & 640 $\times$ 640 & - & 30.0 & 25.0 & 27.2 & 33.4 & 23.5 & 17.1 & 20.0	& 30.1 & 42.7 / - & - \\
+YOLO-Worldv2-L\dag  & YOLOv8-L & O365,GoldG & 640 $\times$ 640 & - & 33.0	& 22.6 & 32.0 & 35.8 & 26.0 & 18.6 & 23.0 & \textbf{32.6} & 37.4 / - & - \\
+YOLO-Worldv2-L\dag  & YOLOv8-L & O365,GoldG,CC3M-Lite & 640 $\times$ 640 & - & 32.9	& 25.3 & 31.1 & \underline{35.8} & 26.1 & 20.6 & 22.6 & \underline{32.3} & 37.4 / - & - \\
+OmDet-Turbo-T$^\ddagger$  & Swin-T  & O365,GoldG & 640 $\times$ 640 & 42.5 & 30.3 & - & - & - & - & - & - & - & 21.5 / 140.0 & - \\
+%\midrule
+%\multicolumn{14}{c}{\textit{Real-time End-to-End Open-Set Object Detection(Ours)}}\\
+\midrule
+Grounding DINO 1.5 Edge & EfficientViT-L1 & Grounding-20M & 640 $\times$ 640 & \underline{42.9} & \underline{33.5} & \underline{28.0} & \underline{34.3} & 33.9 & \underline{27.3} & \underline{26.3} & \underline{25.7} & 29.6 & 21.7 / 111.6 & 10.7 \\ %10.7
+Grounding DINO 1.5 Edge & EfficientViT-L1 & Grounding-20M &  800 $\times$ 1333 & \textbf{45.0} & \textbf{36.2} & \textbf{33.2} & \textbf{36.6} & \textbf{36.3} & \textbf{29.3} & \textbf{28.1} & \textbf{27.6} & 31.6 & 18.5 / 75.2 & 5.5 \\ %5.5
+\bottomrule
+\end{tabular}}
+\caption{Zero-shot Results of Grounding DINO 1.5 Edge on COCO and LVIS. Speed measurement is performed on an A100 GPU, expressed in frames per second (FPS). The format used is PyTorch speed / TensorRT FP32 speed. And FPS on NVIDIA Orin NX is also reported. \dag indicates results of YOLO-World are reproduced by the latest official codes. $^\ddagger$ indicates it uses language cache, which does not calculate the latency of the text encoder.}
+\label{tab:edge}
+\end{table} 

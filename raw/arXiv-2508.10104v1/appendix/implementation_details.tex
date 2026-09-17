@@ -1,0 +1,14 @@
+\section{Implementation Details}
+\label{app:implem-details}
+
+We use multi-crop~\citep{caron2020unsupervised} with $2$ global crops ($256\times256$ px) and $8$ local crops ($112\times112$ px) seen by the student model, resulting in a total sequence length of $3.7$M tokens. 
+The teacher EMA (exponential moving average of the student) processes the global crops only. We apply the $\mathcal{L_{\mathrm{DINO}}}$ loss on the class token of all student local crops and both teacher global crops, and between pairs of different global crops for both models.
+A random proportion in $[0.1, 0.5]$ of the global crops patch tokens seen by the student are masked with 50\% probability, and we apply the $\mathcal{L}_{\mathrm{iBOT}}$ loss between these and the visible tokens seen by the teacher EMA.
+We apply the $\mathcal{L}_{\mathrm{DKoleo}}$ loss to small batches of 16 class tokens of the first global crop seen by the student.
+We train for 1M iterations using a fully-sharded data-parallel setup in Pytorch, using bfloat16 and 8-bit floating-point matrix multiplications.
+We use a constant learning rate of $0.0004$ with a warmup of 100k iterations, a weight decay of $0.04$, a learning rate decay factor of $0.98$ per layer, a stochastic depth (layer dropout) value of $0.4$ and an EMA factor of $0.999$ for the teacher. 
+Remaining hyperparameters can be found in the configuration files in the code release.
+
+For the \gramname step, we use a loss weight of $w_{\mathrm{Gram}} = 2$ and update the Gram teacher every 10k steps for a maximum of three updates.
+For high-resolution adaptation (\cref{sec:algo:hrft}), we sample from the following pairs of global/local/Gram teacher crop resolutions with the following probabilities: $(512, 112, 768)$ with $p=0.3$, $(768, 112, 1152)$ with $p=0.3$, $(768, 168, 1152)$ with $p=0.3$, $(768, 224, 1152)$ with $p=0.05$, and $(768, 336, 1152)$ with $p=0.05$. 
+These values were obtained empirically.

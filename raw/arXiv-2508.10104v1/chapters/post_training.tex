@@ -1,0 +1,86 @@
+\section{Post-Training}
+
+This section presents \emph{post-training} stages. 
+This includes a high-resolution adaptation phase enabling effective inference at different input resolutions (\cref{sec:algo:hrft}), model distillation producing quality and efficient smaller-sized models (\cref{sec:distillation}), and text alignment adding zero-shot capabilities to DINOv3 (\cref{sec:alignementtxt}).
+
+
+\subsection{Resolution Scaling}
+\label{sec:algo:hrft}
+
+We train our model at a relatively small resolution of $256$, which gives us a good trade-off between speed and effectiveness. 
+For a patch size of $16$, this setup leads to the same input sequence length as DINOv2, which was trained with resolution $224$ and patch size $14$.
+However, many contemporary computer vision applications require processing images at significantly higher resolutions, often $512 \times 512$ pixels or greater, to capture intricate spatial information. 
+The inference image resolution is also not fixed in practice and varies depending on specific use cases.
+To address this, we extend our training regime with a high-resolution adaptation step~\citep{touvron2019fixing}. 
+To ensure high performance across a range of resolutions, we utilize \emph{mixed resolutions}, sampling differently-sized pairs of global and local crops per mini-batch.
+Specifically, we consider global crop sizes from $\{512, 768\}$ and local crop sizes from $\{112, 168, 224, 336\}$ and train the model for 10k additional iterations.
+
+Similar to the main training, a key component of this high-resolution adaptation phase is the addition of \gramname, using the 7B teacher as Gram teacher.
+We found this component to be essential: without it, the model performance on dense prediction tasks degrades significantly. 
+The \gramname encourages the model to maintain consistent and robust feature correlations across spatial locations, which is crucial when dealing with the increased complexity of high-resolution inputs. 
+
+Empirically, we observe that this relatively brief but targeted high-resolution step substantially enhances the overall model's quality and allows it to generalize across a wide range of input sizes, as shown visually in \cref{fig:visualization-extreme-resolutions}. 
+In \cref{fig:exp:hrft-resolution}, we compare our 7B model before and after adaptation. 
+We find that resolution scaling leads to a small gain on ImageNet classification (a) with relatively stable performance w.r.t.~resolution. 
+However, in ObjectNet OOD transfer (b), we observe that the performance tends to degrade slightly for lower resolutions, while improving for higher resolutions. 
+This is largely compensated by the improvement in the quality of local features at high resolution, shown by the positive trend in segmentation on ADE20k (c) and tracking on DAVIS (d).
+Adaptation leads to local features that \emph{improve with image size}, leveraging the richer spatial information available at larger resolutions and effectively enabling high-resolution inference.
+Interestingly, the adapted model supports resolutions way beyond the maximum training resolution of 768---we visually observe stable feature maps at resolutions above 4k (\cf \cref{fig:visualization-extreme-resolutions}).
+
+\input{figures/analysis/figure_pre_post_hrft_per_resolution}
+
+
+
+\subsection{Model Distillation}
+\label{sec:distillation}
+\paragraph{A Family of Models for Multiple Use-Cases}
+We perform knowledge distillation of the ViT-7B model into smaller Vision Transformer variants (ViT-S, ViT-B, and ViT-L), which are highly valued by the community for their improved manageability and efficiency. 
+Our distillation approach uses the same training objective as in the first training phase, ensuring consistency in learning signals. 
+However, instead of relying on an exponential moving average (EMA) of model weights, we use the 7B model directly as the teacher to guide the smaller student models. In this case, the teacher model is fixed. 
+We do not observe patch-level consistency issues and therefore do not apply the \gramname technique.
+This strategy enables the distilled models to inherit the rich representational power of the large teacher while being more practical for deployment and experimentation.
+
+Our ViT-7B model is distilled into a series of ViT models with sizes covering a broad range of compute budgets, and allowing proper comparison with concurrent models. They include the standard ViT-S (21M params), B (86M), L (0.3B), along with a 
+custom ViT-S+ (29M) and a
+custom ViT-H+ (0.8B) model
+to close the performance gap with the self-distilled 7B teacher model. Indeed, we observe in DINOv2 that smaller student models can reach a performance on par with their teacher as the distillation.
+As a result, the distilled models deliver frontier-level performance for a fraction of the inference compute as we see in \cref{tab:family:distillation}. 
+We train the models for 1M iterations then perform 250k iterations of learning-rate cooldown following a cosine schedule before applying the high-resolution phase described in \cref{sec:algo:hrft} above without \gramname.
+
+\paragraph{Efficient Multi-Student Distillation}
+As the inference cost for a large teacher can be orders of magnitude higher than for students (see \cref{tab:family-models-flops}), we design a parallel distillation pipeline that allows training multiple students at the same time and sharing the teacher inference across all nodes involved in the training (see \cref{fig:distillation_diagram} for a diagram). Let $C_T$ and $C_S$ be respectively the cost of running the teacher inference and the student training on a single sample, in single-teacher/single-student distillation with batch-size $B$ where each of the $N$ GPUs processes a $B / N$ slice of the data, the teacher inference costs $B/N \times C_T$ and the student training costs $B/N \times C_S$ per GPU. In multi-student distillation, we proceed as follows. Each student $Si$ is assigned a set of $N_{Si}$ GPUs for training, and all $N_T = \sum{N_{Si}}$ GPUs are part of the global inference group. At each iteration, we first run the teacher inference on the global group for a $B/N_T \times C_T$ compute cost per GPU. We then run an \textit{all-gather} collective operation to share the input data and inference result with all compute nodes. Finally, each student group separately performs student training for a $B/N_{Si} \times C_{Si}$ cost.
+
+The above calculations shows that adding an additional student to the distillation pipeline will (1) reduce the per-GPU compute at each iteration, thus globally improving distillation speed, and (2) increase the overall compute only by the training cost of the new student, since the total teacher inference cost is now fixed. The implementation only requires setting up GPU process groups carefully, adapting data-loaders and teacher inference to ensure inputs and outputs are synchronized across groups using NCCL collectives. As the groups are synchronized at each iteration, in order to maximize speed, we adapt the number of GPUs for each student such that their iteration times are roughly the same.
+With this procedure, we seamlessly train multiple students, and produce a whole family of distilled models from our flagship 7B model. 
+
+\begin{figure}[t]
+    \centering
+    \includegraphics{figures/distillation/distillation_diagram_2025_08_04_20_56.pdf}
+    \caption{
+        Multi-student distillation procedure. 
+        In this diagram, we distill 3 students in parallel: we first share teacher inference across all T nodes to save compute, and gather inputs and results on all GPUs. 
+        Then, smaller groups perform student training. We adjust the size of these groups such that the training step has the same duration across all students $Si$, minimizing idle time waiting at the synchronization barrier.
+    }
+    \label{fig:distillation_diagram}
+\end{figure}
+
+
+
+
+
+\subsection{Aligning DINOv3 with Text}
+\label{sec:alignementtxt}
+Open-vocabulary image-text alignment has received significant interest and enthusiasm from the research community, thanks to its potential to enable flexible and scalable multimodal understanding. 
+A large body of work has focused on improving the quality of CLIP \citep{radford2021learning}, which originally learned only a global alignment between image and text representations. 
+While CLIP has demonstrated impressive zero-shot capabilities, its focus on global features limits its ability to capture fine-grained, localized correspondences. 
+More recent works~\citep{zhai2022lit} have shown that effective image-text alignment can be achieved with pre-trained self-supervised visual backbones.  
+This makes it possible to leverage these powerful models in multi-modal settings, facilitating richer and more precise text-to-image associations that extend beyond global semantics while also reducing computational costs, since the visual encoding is already learned.
+
+We align a text encoder with our DINOv3 model by adopting the training strategy previously proposed in \citet{jose2025dinov2}.  
+This approach follows the LiT training paradigm~\citep{zhai2022lit}, training a text representation from scratch to match images to their captions with a contrastive objective, while keeping the vision encoder frozen. 
+To allow for some flexibility on the vision side, two transformer layers are introduced on top of the frozen visual backbone. 
+A key enhancement of this method is the concatenation of the mean-pooled patch embeddings with the output CLS token before matching to the text embeddings.
+This enables aligning both global and local visual features to text, leading to improved performance on dense prediction tasks without requiring additional heuristics or tricks. 
+Furthermore, we use to the same data curation protocol as established in \citet{jose2025dinov2} to ensure consistency and comparability.
+
+

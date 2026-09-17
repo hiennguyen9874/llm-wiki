@@ -1,0 +1,249 @@
+\section{Additional Results}
+
+\subsection{Evolution Over Years}
+In \cref{fig:pcas}, we provide a rough evolution of state-of-the-art performance along years. 
+Here, we provide the precise references and performances that we reported in the figure.
+Please find it in \cref{app:fig:refs}.
+
+\begin{table}[t]
+    \centering
+    \small
+  \caption{
+    Details of year of publication, performance, and reference of the numbers used in \cref{fig:pcas}.
+    For all papers, we report top-1 accuracy of this algorithm with the largest model on ImageNet.
+    For weakly- and self-supervised models, we provide linear probing performance.
+    For dates, we use the year of first appearance on arXiv.
+  }
+  \label{app:fig:refs}
+  \begin{tabular}{@{}l c ll c ll c ll@{}}
+        \toprule
+        && \multicolumn{2}{c}{Supervised} && \multicolumn{2}{c}{Weakly-Supervised} && \multicolumn{2}{c}{Self-Supervised} \\
+        \cmidrule{3-4} \cmidrule{6-7} \cmidrule{9-10}
+        Year && Top-1 & Reference && Top-1 & Reference && Top-1 & Reference \\
+        \midrule
+        2012 && 59.3 & \citet{krizhevsky2012imagenet} && \\
+        2013 \\ 
+        2014 \\
+        2015 && 78.6 & \citet{he2016deep} && 34.9 & \citet{joulin2016learning} \\
+        2016 \\
+        2017 && 80.9 & \citet{xie2017aggregated} && \\
+        2018 &&  & && 83.6 & \citet{mahajan2018exploring} && 38.2 & \citet{caron2018deep} \\
+        2019 && 84.3 & \citet{tan2019efficientnet} && & && 68.6 & \citet{he2020momentum} \\
+        2020 && 87.5 & \citet{kolesnikov2020big} &&  & && 75.3 & \citet{caron2020unsupervised} \\
+        2021 && 88.6 & \citet{dosovitskiy2020image} && 88.4 & \citet{radford2021learning} && 82.3 & \citet{zhou2021ibot} \\
+        2022 && \\
+        2023 && 89.5 & \citet{dehghani2023scaling} && & && 86.5 & \citet{oquab2024dinov2} \\
+        2024 && \\
+        2025 &&  & && 89.3 & \citet{bolya2025perception} && 88.4 & This work \\
+        \bottomrule
+  \end{tabular}
+  \vspace{3em}
+\end{table}
+
+\subsection{Per-Layer Analysis}
+
+In this section, we evaluate the quality of our features across the various layers of the DINOv3 7B model. 
+Specifically, we present results from five representative tasks: classification (IN-1k val, ImageNet-ReAL and ObjectNet), segmentation (ADE20k), depth estimation (NYU), tracking (DAVIS), and 3D correspondence estimation (NAVI).
+For the first 3 benchmarks, a linear layer is trained on the outputs of each backbone layer to assess feature performance as in \cref{sec:results-dense-linear-probing,sec:results-classification-linear}.
+For tracking and correspondence estimation, we use non-parametric approaches as in \cref{sec:results-correspondence-estimation,sec:results-tracking}.
+
+The results are shown in \cref{app:fig:exp:layers}.
+We find that for classification and dense tasks, performance increases smoothly over the layers.
+Depth estimation, tracking, and 3D correspondence estimation peak around layer 32, indicating that, for tasks where geometry plays a significant role, the downstream performance of DINOv3 can be improved by considering earlier layers.
+On the other hand, the performance of intermediate layers only slightly improves compared to the last one, making it a good default choice.
+
+\begin{figure}[t]
+    \centering
+    \begin{subfigure}{0.32\textwidth}
+        \caption{Classification}
+        \label{app:fig:exp:layer-IN}
+        \includegraphics{figures/tikz/per_layer_classif.pdf}
+    \end{subfigure}
+    \hspace{0.1\textwidth}
+    \begin{subfigure}{0.32\textwidth}
+        \caption{Segmentation (ADE20k)}
+        \label{app:fig:exp:layer-ade20k}
+        \includegraphics{figures/tikz/per_layer_ade20k.pdf}
+    \end{subfigure}
+
+    \begin{subfigure}{0.32\textwidth}
+        \caption{Depth (NYU) $\downarrow$}
+        \label{app:fig:exp:layer-nyu}
+        \includegraphics{figures/tikz/per_layer_nyu.pdf}
+    \end{subfigure}%
+    \hfill
+    \begin{subfigure}{0.32\textwidth}
+        \caption{Tracking (DAVIS)}
+        \label{app:fig:exp:layer-davis}
+        \includegraphics{figures/tikz/per_layer_davis.pdf}
+    \end{subfigure}%
+    \hfill
+    \begin{subfigure}{0.32\textwidth}
+        \caption{3D Corr. Estimation (NAVI)}
+        \label{app:fig:exp:layer-navi}
+        \includegraphics{figures/tikz/per_layer_navi.pdf}
+    \end{subfigure}
+    \caption{
+        Results on five benchmarks using features from intermediate layers of DINOv3 7B.
+        Evaluations (a-c) use a linear layer (see \cref{sec:results-dense-linear-probing,sec:results-classification-linear}), while (d, e) use a non-parametric approach (see \cref{sec:results-correspondence-estimation,sec:results-tracking}).
+    }
+    \label{app:fig:exp:layers}
+\end{figure}
+
+\subsection{Additional Results to Main Results Section}
+
+We give additional experimental results complementing the main results in \cref{sec:results}. 
+In \cref{app:tab:results-classification-vtab}, we show per-dataset results for finegrained classification on small datasets with linear probing (Fine-S, see \cref{sec:results-classification-linear}).
+In \cref{app:tab:results-instance-retrieval}, we give full results for the instance recognition evaluation (\cref{sec:results-instance-rec}), adding more metrics.
+Finally, in \cref{app:tab:semantic-segmentation-other-datasets}, we give complementary results for our state-of-the-art semantic segmentation model (\cref{sec:results-segmentation}) on the COCO-Stuff~\citep{caesar2018coco}, PASCAL VOC 2012~\citep{pascal-voc-2012} and Cityscapes~\citep{geiger2013vision} datasets.
+
+\begin{table}[tb]
+    \centering
+    \footnotesize
+    \caption{Per-dataset results for finegrained classification on small datasets with linear probing (Fine-S, see \cref{sec:results-classification-linear}), following \citet{oquab2024dinov2}.
+    }
+    \label{app:tab:results-classification-vtab}
+    \setlength{\tabcolsep}{4pt}
+    \begin{tabular}{@{}ll c ccccccccccccc@{}}
+    \toprule
+    Method & ViT && Food & C10 & C100 & SUN & Cars & Aircr. & VOC & DTD & Pets & Cal101 & Flowers & CUB & Avg \\
+    \midrule
+    \multicolumn{2}{@{}l}{\resultsTableHeaderAgg} && &&&&&&&&&&&& \\
+    AM-RADIOv2.5 & g/14    && 96.5 & 99.5 & 95.0 & 82.8 & 95.4 & 91.7 & 90.3 & 88.6 & 96.7 & 98.8 & 99.7 & 91.5 & 93.9 \\
+    \midrule
+    \multicolumn{2}{@{}l}{\resultsTableHeaderWeakly} && &&&&&&&&&&&& \\
+    SigLIP & g/16          && 97.7 & 99.3 & 92.7 & 85.1 & 96.5 & 88.7 & 91.0 & 87.7 & 98.7 & 90.3 & 99.7 & 90.3 & 93.7 \\
+    PE-core & G/14         && 97.8 & 99.5 & 95.3 & 85.2 & 96.5 & 92.0 & 90.5 & 88.2 & 98.7 & 93.3 & 99.5 & 93.3 & 94.5 \\
+    AIMv2 & 3B/14          && 96.6 & 99.3 & 93.3 & 83.4 & 95.6 & 84.2 & 90.5 & 87.4 & 96.8 & 90.7 & 99.7 & 90.7 & 92.9 \\
+    EVA CLIP & 18B/14      && 96.9 & 99.5 & 95.4 & 85.0 & 95.4 & 81.6 & 90.2 & 87.1 & 98.4 & 90.6 & 99.6 & 90.6 & 92.9 \\
+    \midrule
+    \multicolumn{2}{@{}l}{\resultsTableHeaderSelf} && &&&&&&&&&&&& \\
+    Franca & g/14          && 89.2 & 98.6 & 90.4 & 73.7 & 89.7 & 74.1 & 89.4 & 80.6 & 93.2 & 97.6 & 97.8 & 78.4 & 87.7 \\
+    DINOv2 & g/14          && 95.6 & 99.5 & 94.5 & 78.9 & 94.6 & 88.5 & 88.4 & 86.8 & 96.8 & 95.9 & 99.7 & 91.6 & 92.6 \\
+    Web-DINO & 7B/14       && 96.1 & 99.5 & 93.4 & 77.5 & 95.0 & 88.8 & 87.0 & 79.9 & 92.9 & 93.1 & 99.6 & 78.9 & 90.2 \\
+    \midrule
+    DINOv3 & 7B/16         && 96.9 & 99.6 & 96.0 & 81.1 & 95.0 & 88.2 & 88.2 & 87.2 & 97.0 & 94.8 & 99.7 & 92.4 & 93.0 \\
+    \bottomrule
+    \end{tabular}
+\end{table}
+
+\begin{table}[ht]
+    \centering
+    \small
+    \caption{
+        Full results for instance recognition, presenting additional metrics for \cref{sec:results-instance-rec}.
+    }
+    \label{app:tab:results-instance-retrieval}
+    \begin{tabular}{ll c cc c cc c ccc c c}
+        \toprule
+        & && \multicolumn{2}{c}{Oxford} && \multicolumn{2}{c}{Paris} && \multicolumn{3}{c}{Met} && AmsterTime \\
+        \cmidrule{4-5} \cmidrule{7-8} \cmidrule{10-12} \cmidrule{14-14}
+        Method & ViT && M & H && M & H && GAP & GAP- & ACC && mAP \\
+        \midrule
+        \multicolumn{2}{@{}l}{\resultsTableHeaderAgg} && \\
+        AM-RADIOv2.5 & g/16 && 72.8 & 50.7 && 93.3 & 85.3 && 30.5 & 65.9 & 69.0 && 46.7 \\
+        \midrule
+        \multicolumn{2}{@{}l}{\resultsTableHeaderWeakly} &&  \\
+        SigLIPv2 & g/16     && 49.3 & 25.1 && 79.3 & 60.9 &&  0.0 &  0.0 &  0.2 && 15.5 \\
+        PE-core  & G/14     && 57.4 & 32.7 && 83.6 & 68.9 && 10.6 & 34.8 & 44.9 && 23.1 \\
+        AIMv2    & 3B/14    && 55.0 & 28.8 && 85.6 & 71.4 && 29.5 & 67.3 & 69.9 && 23.1 \\
+        EvaCLIP  & 18B/14   && 55.2 & 27.1 && 81.8 & 65.6 &&  0.5 &  4.3 & 11.0 && 18.9 \\
+        \midrule 
+        \multicolumn{2}{@{}l}{\resultsTableHeaderSelf} & \\
+        Franca   & g/14     && 44.6 & 14.3 && 73.8 & 51.6 && 27.2 & 54.3 & 57.7 && 21.1 \\
+        DINOv2   & g/14     && 78.2 & 58.2 && 92.7 & 84.6 && 44.6 & 73.0 & 75.2 && 48.9 \\
+        Web-DINO   & 7B/14    && 64.1 & 31.2 && 89.8 & 80.3 && 35.2 & 67.3 & 71.3 && 30.6 \\
+        \midrule
+        DINOv3   & 7B/16    && 81.1 & 60.7 && 93.3 & 87.1 && 55.4 & 77.7 & 80.7 && 56.5 \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+
+
+\begin{table}[b]
+\centering
+    \small
+    \caption{
+        Comparison with state-of-the-art systems on semantic segmentation on other datasets, complementary to the ADE20k results in \cref{tab:results-for-ade20k}.
+        We report mIoU scores when evaluating the model in a single- or multi-scale (TTA) setup and compare against the best previously published result for each dataset:
+        \citet{fang2022eva} for COCO-Stuff 164k, \citet{wang2022internimage} for Cityscapes, and \citet{zoph2020rethinking} for VOC 2012.
+        We use input resolutions of 1280 for COCO-Stuff, 1024 for VOC 2012, and 1280 for Cityscapes.
+        All baselines require finetuning of the backbone, while we keep the DINOv3 backbone frozen.
+    }
+   \begin{tabular}{c c cc cc cc}
+        \toprule
+        Method & FT & \multicolumn{2}{c}{COCO-Stuff 164k} & \multicolumn{2}{c}{Cityscapes} & \multicolumn{2}{c}{VOC 2012} \\
+        \cmidrule(lr){3-4} \cmidrule(lr){5-6} \cmidrule(lr){7-8} 
+           &  & Single & TTA & Single & TTA  & Single & TTA \\ 
+        \midrule
+        Previous Best & \orangefire & 53.7 & 53.7 & \textbf{86.3} & \textbf{87.0} & --- & 90.0 \\
+        \midrule
+        DINOv3          & \bluesnow  & \textbf{53.8} & \textbf{54.0} &
+        86.1 & 86.7 &
+        \textbf{90.1} & \textbf{90.4} \\
+        \bottomrule
+    \end{tabular}
+    \label{app:tab:semantic-segmentation-other-datasets}
+\end{table}
+
+\subsection{Classification on OCR-Heavy Datasets}
+
+In this experiment, we evaluate DINOv3 on classification tasks that require some form of character recognition.
+These tasks include street-sign, logo, and product classification.
+We compare our model to the best self-supervised model (DINOv2 g) and the best weakly-supervised one (PE-core G).
+We run this evaluation on images of resolution 512 for our model, and adjust for patch size to match the sequence length for the others.
+We report the result of this experiment in \cref{tab:appendix:logos}.
+
+\begin{table}[t]
+    \centering
+    \small
+    \caption{
+        Comparison of DINOv3 classification performance on OCR-heavy datasets.
+        These are notoriously hard datasets for SSL.
+        We compare DINOv3 with the best DINOv2 model (g), along with the best weakly-supervised PE-core model (G).
+    }
+    \label{tab:appendix:logos}
+    \begin{tabular}{ll c cc ccc}
+        \toprule
+        Model && GTSRB & Logo-2K+ & FlickrLogos-32 & RP2K & Products-10K & SOProducts \\
+        \midrule
+        DINOv2 & ViT-g          & 78.2 & 52.9 & 83.6 & 91.4 & 70.8 & 57.6 \\
+        PE-core & ViT-G              & 94.8 & 93.2 & 99.0 & 93.1 & 80.6 & 80.7 \\
+        \midrule
+        DINOv3-7B & ViT-7B         & 87.5 & 86.0 & 86.3 & 94.7 & 74.5 & 65.2 \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+We see that our new model DINOv3 drastically outperforms its predecessor DINOv2.
+However, the gap with weakly-superpvised models remains large.
+Since our model does not leverage pair image-text data during training, it has a much harder time learning glyph associations.
+Recent work from \citet{fan2025scaling} hints at the impact of training data on the performance on this type of tasks.
+Since the main focus of our work is on improving dense features, we leave closing this gap for future work.
+
+\subsection{Fairness Analysis}
+
+We evaluate the geographical fairness and diversity of the DINOv3 7B model across different income buckets and regions, following the protocol of \citet{goyal2022fairness}.
+For reference, we include the results obtained with DINOv2 and SEERv2. The results indicate that DINOv3 delivers somewhat consistent performance across income categories, although there is a notable performance drop of 23\% in the low-income bucket compared to the highest-income bucket. The medium and high-income buckets exhibit comparable performance. Regionally, DINOv3 achieves relatively good scores across different regions; however, a relative difference of over 14\% is observed between Europe and Africa, which is an improvement over the relative difference of more than 17\% seen with DINOv2.
+
+\begin{table}[t]
+    \centering
+    \caption{Geographical fairness and diversity analysis across income buckets and regions, following the protocol of \citet{goyal2022fairness}.
+    }
+    \label{tab:results-geographical-fairness}
+    \begin{tabular}{llc ccc cccc}
+        \toprule
+        & & \multicolumn{3}{c}{Income Buckets} & \multicolumn{4}{c}{Regions} \\
+        \cmidrule(lr){3-5} \cmidrule(lr){6-9}
+        Method & Arch. & low & medium & high & Africa & Asia & Americas & Europe \\
+        \midrule
+        SEERv2 & RG-10B & 59.7 & 78.5 & 86.6 & 65.9 & 76.3 & 81.1 & 85.6 \\
+        \midrule
+        DINOv2 & ViT-g/14 & 67.4 & 83.3 & 90.5 & 74.0 & 81.6 & 86.2 & 89.7  \\
+        DINOv3 & ViT-7B & 69.6 & 85.7 & 90.9 & 76.7 & 83.0 & 88.0 & 90.7  \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+

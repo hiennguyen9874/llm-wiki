@@ -1,0 +1,88 @@
+\section{\ourmodel{} Model}
+\ourmodel{} integrates four components, as illustrated in Fig. \ref{fig:T-Rex++Model}: i) Image Encoder, ii) Visual Prompt Encoder, iii) Text Prompt Encoder, and iv) Box Decoder. \ourmodel{} adheres to the design principles of DETR~\cite{carion2020end} which is an end-to-end object detection model. These four components collectively facilitate four distinct workflows that encompass a broad range of application scenarios.
+
+
+\subsection{Visual-Text Promptable Object Detection}
+
+\noindent\textbf{Image Encoder.} Mirroring the Deformable DETR~\cite{zhu2020deformable} framework, the image encoder in \ourmodel{} consists of a vision backbone (e.g. Swin Transformer~\cite{liu2021swin}) that extracts multi-scale feature maps from input image. This is followed by several transformer encoder layers~\cite{dosovitskiy2020image} equipped with deformable self-attention~\cite{zhu2020deformable}, which are utilized to refine these extracted feature maps. The feature maps output from the image encoder is denoted as $\boldsymbol{f_i} \in \mathbb{R}^{C_i \times H_i \times W_i}, i \in \{1,2,...,L\}$, where $L$ is the number of feature map layers.
+
+\noindent\textbf{Visual Prompt Encoder.} Visual prompt has been widely used in interactive segmentation~\cite{li2023semantic, zou2023segment, kirillov2023segment}, yet to be fully explored within the domain of object detection. Our method incorporates visual prompts in both box and point formats. The design principle involves transforming user-specified visual prompts from their coordinate space to the image feature space.  Given $K$ user-specified 4D normalized boxes $b_j=(x_j,y_j,w_j,h_j), j \in \{1,2,...,K\}$, or 2D normalized points $p_j=(x_j,y_j), j \in \{1,2,...,K\}$ on a reference image, we initially encode these coordinate inputs into position embeddings through a fixed sine-cosine embedding layer. Subsequently, two distinct linear layers are employed to project these embeddings into a uniform dimension:
+\begin{gather}
+    B = \operatorname{Linear}(\operatorname{PE}(b_1,...b_K); \theta_B) : \mathbb{R}^{K \times 4D} \to \mathbb{R}^{K \times D} \\
+    P = \operatorname{Linear}(\operatorname{PE}(p_1,...p_K); \theta_P) : \mathbb{R}^{K \times 2D} \to \mathbb{R}^{K \times D}
+\end{gather}
+
+where $\operatorname{PE}$ stands for position embedding and $\operatorname{Linear}(\cdot; \theta)$ indicate a linear project operation with parameter $\theta$. Different from the previous method~\cite{li2023semantic} that regards point as a box with minimal width and height, we model box and point as distinct prompt types. We then initiate a learnable content embedding that is broadcasted $K$ times, denoted as $C \in \mathbb{R}^{K \times D}$. Additionally, a universal class token $C' \in \mathbb{R}^{1 \times D}$ is utilized to aggregate features from other visual prompts, accommodating the scenario where users might supply multiple visual prompts within a single image. These content embeddings are concatenated with position embeddings along the channel dimension, and a linear layer is applied for projection, thereby constructing the input query embedding $Q$:
+\begin{equation}
+Q = \begin{cases} 
+\operatorname{Linear}\left(\operatorname{CAT}\left(\left[C; C'\right], \left[B; B'\right]\right); \varphi_B\right) , \operatorname{box} \\
+\operatorname{Linear}\left(\operatorname{CAT}\left(\left[C; C'\right], \left[P; P'\right]\right); \varphi_P\right), \operatorname{ point}
+\end{cases} 
+\end{equation}
+
+where notion $\operatorname{CAT}$ stands for concatenation at channel dimension. $B'$ and $P'$ represent global position embeddings, which are derived from global normalized coordinates $[0.5, 0.5, 1, 1]$ and $[0.5, 0.5]$. The global query serves the purpose of aggregating features from other queries. Subsequently, we employ a multi-scale deformable cross-attention~\cite{zhu2020deformable} layer to extract visual prompt features from the multi-scale feature maps, conditioned on the visual prompts. For the $j$-th prompt, the query feature ${Q'_j}$ after cross attention is computed as:
+\begin{equation}
+{Q'_j} = \begin{cases} 
+\operatorname{MSDeformAttn}(Q_j, b_j, \left\{\boldsymbol{f}_i\right\}_{i=1}^L) , \operatorname{box} \\
+\operatorname{MSDeformAttn}(Q_j, p_j, \left\{\boldsymbol{f}_i\right\}_{i=1}^L) , \operatorname{point}
+\end{cases} 
+\end{equation}
+
+Deformable attention~\cite{zhu2020deformable} was initially employed to address the slow convergence problem encountered in DETR~\cite{carion2020end}. In our approach, we condition deformable attention on the coordinates of visual prompts, i.e., each query will selectively attend to a limited set of multi-scale image features encompassing the regions surrounding the visual prompts. This ensures the capture of visual prompt embeddings representing the objects of interest. Following the extraction process, we use a self-attention layer to regulate the relationships among different queries and a feed-forward layer for projection. The output of the global content query will be used as the final visual prompt embedding $V$.
+\begin{equation}
+    V=\operatorname{FFN}(\operatorname{SelfAttn}(Q'))[-1]
+\end{equation}
+
+\noindent\textbf{Text Prompt Encoder.} We employ the text encoder of CLIP~\cite{clip} to encode category names or short phrases and use the \texttt{[CLS]} token output as the text prompt embedding, denoted as $T$. 
+
+\noindent\textbf{Box Decoder.} We employ a DETR-like decoder for box prediction. Following DINO~\cite{zhang2022dino}, each query is formulated as a 4D anchor coordinate and undergoes iterative refinement across decoder layers. We employ the query selection layer proposed in Grounding DINO~\cite{liu2023grounding} to initialize the anchor coordinates $(x, y, w, h)$. Specifically, We compute the similarity between the encoder feature and the prompt embeddings and select indices with similarity of top 900 to initialize the position embeddings. Subsequently, the detection queries utilize deformable cross-attention~\cite{zhu2020deformable} to focus on the encoded multi-scale image features and are used to predict anchor offsets $(\Delta x, \Delta y, \Delta w, \Delta h)$ at each decoder layer. The final predicted boxes are obtained by summing the anchors and offsets:
+\begin{gather}
+    (\Delta x, \Delta y, \Delta w, \Delta h) = \operatorname{MLP}(Q_{dec}) \\
+    \operatorname{Box} = (x+\Delta x, y+\Delta y, w+\Delta w, h+\Delta h)
+\end{gather}
+Where $Q_{dec}$ are predicted queries from the box decoder. Instead of using a learnable linear layer to predict class labels, following previous open-set object detection methods~\cite{li2022grounded, liu2023grounding}, we utilize the prompt embeddings as the weights for the classification layer:
+\begin{equation}
+    \operatorname{Label} = V \cdot Q_{dec}^T : \mathbb{R}^{C \times D} \times \mathbb{R}^{D \times N}  \rightarrow \mathbb{R}^{C \times N}
+\end{equation}
+
+Where $C$ denotes the total number of visual prompt classes, and $N$ represents the number of detection queries.
+
+Both visual prompt object detection and open-vocabulary object detection tasks share the same image encoder and box decoder.
+
+\subsection{Region-Level Contrastive Alignment}
+To integrate both visual prompt and text prompt within one model, we employ region-level contrastive learning to align these two modalities. Specifically, given an input image and $K$ visual prompt embeddings $V=(v_1, ..., v_K)$ extracted from the visual prompt encoder, along with the text prompt embeddings $T=(t_1, ..., t_K)$ for each prompt region, we calculate the InfoNCE loss~\cite{oord2018representation} between the two types of embeddings:
+\begin{equation}
+    \mathcal{L}_{align} = -\frac{1}{K} \sum_{i=1}^K \log \frac{\exp(v_i \cdot t_i)}{\sum_{j=1}^K \exp(v_i \cdot t_j)}
+\end{equation}
+
+The contrastive alignment can be regarded as a mutual distillation process, whereby each modality contributes to and benefits from the exchange of knowledge. Specifically, text prompts can be seen as a conceptual anchor, around which diverse visual prompts can converge so that the visual prompt can gain general knowledge. Conversely, the visual prompts act as a continuous source of refinement for text prompts. Through exposure to a wide array of visual instances, the text prompt is dynamically updated and enhanced, gaining depth and nuance.
+
+\subsection{Training Strategy and Objective}
+\textbf{Visual prompt training strategy.} For visual prompt training, we adopt the strategy of ``current image prompt, current image detect''. Specifically, for each category in a training set image, we randomly choose between one to all available GT boxes to use as visual prompts. We convert these GT boxes into their center point with a 50\% chance for point prompt training. While using visual prompts from different images for cross-image detection training might seem more effective, creating such image pairs poses challenges in an open-set scenario due to inconsistent label spaces across datasets. Despite its simplicity, our straightforward training strategy still leads to strong generalization capability.
+
+\noindent\textbf{Text prompt training strategy.} \ourmodel{} uses both detection data and grounding data for text prompt training. For detection data, we use the category names in the current image as the positive text prompt and randomly sample negative text prompts in the remaining categories. For grounding data, we extract positive phrases corresponding to the bounding boxes and exclude other words in the caption for text input. Following the methodology of DetCLIP~\cite{yao2022detclip, yao2023detclipv2}, we maintain a global dictionary to sample negative text prompts for grounding data, which are concatenated with the positive text prompts. This global dictionary is constructed by selecting the category names and phrase names that occur more than 100 times in the text prompt training data. 
+
+\noindent\textbf{Training objective.} We employ the L1 loss and GIOU~\cite{rezatofighi2019generalized} loss for box regression. For classification loss, following Grounding DINO~\cite{liu2023grounding}, we apply a contrastive loss that measures the difference between the predicted objects and the prompt embeddings. Specifically, we calculate the similarity between each detection query and the visual prompt or text prompt embeddings through a dot product to predict logits, followed by the computation of a sigmoid focal loss~\cite{lin2017focal} for each logit. The box regression and classification loss are initially employed for bipartite matching~\cite{carion2020end} between predictions and ground truths. Subsequently, we calculate the final losses between ground truths and matched predictions, incorporating the same loss components. We use auxiliary loss after each decoder layer and after the encoder outputs. Following DINO~\cite{zhang2022dino}, we also use denoising training to accelerate convergence. The final loss takes the following form:
+\begin{equation}
+\mathcal{L}_{\text{total}} = \mathcal{L}_{\text{cls}} + \mathcal{L}_{\text{L1}} + \mathcal{L}_{\text{GIoU}} + \mathcal{L}_{\text{DN}} + \mathcal{L}_{\text{align}}
+\end{equation}
+We adopt a cyclical training strategy that alternates between text prompts and visual prompts in successive iterations.
+
+\subsection{Four Inference Workflows}
+\ourmodel{} offers four different workflows by combining text prompts and visual prompts in different ways.
+
+\noindent\textbf{Text prompt workflow.} This workflow exclusively employs text prompts for object detection, which is the same as open-vocabulary object detection. This workflow is suitable for the detection of common objects, where the text prompt can provide clear descriptions.
+
+\noindent\textbf{Interactive visual prompt workflow.} This workflow is designed around a core principle of user-driven interactivity. Given the initial output of \ourmodel{} from the user-provided prompts, users can refine the detection results by adding additional prompts on missed or falsely-detected objects, based on the visualization result. This iterative cycle allows users to fine-tune \ourmodel{}'s performance interactively, ensuring precise detection. This interactive process remains fast and resource-efficient, as \ourmodel{} is a late fusion model that only requires the image encoder to forward once.
+
+
+\noindent\textbf{Generic Visual Prompt Workflow.} In this workflow, users can customize visual embeddings for specific objects by prompting \ourmodel{} with an arbitrary number of example images. This capability is crucial for generic object detection since a class of object may have very diverse instances, thus we need a certain amount of visual examples to represent it. Let ${V_1}, {V_2},...,{V_n}$, represent the visual embeddings obtained from $n$ different images, the generic visual embeddings $V$ are computed as the mean of these embeddings.
+\begin{equation}
+    V = \frac{1}{n} \sum_{i=1}^{n} V_i
+\end{equation}
+
+\noindent\textbf{Mixed Prompt Workflow.} After the alignment between visual and text prompts, they can be used for inference at the same time. This fusion is achieved by averaging their respective embeddings.
+\begin{equation}
+    P_{\text{mixed}} = \frac{T + V}{2}
+\end{equation}
+In this workflow, text prompts contribute to a broad contextual understanding, while visual prompts add precision and concrete visual cues.

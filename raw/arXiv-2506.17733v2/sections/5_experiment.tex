@@ -1,0 +1,70 @@
+
+
+
+\input{sections/tables/coco_compare}
+
+
+\section{Experiments}
+To validate the effectiveness and efficiency of our proposed YOLOv13 model, we conduct extensive experiments. In Sec.~\ref{sec:setting}, we introduce the detailed experimental settings. Then, in Sec.~\ref{sec:cmp}, we compare our proposed method with other existing real-time object detection methods to demonstrate the validity of our method. Finally, we conduct ablation experiments in Sec.~\ref{sec:ablation} to prove the effectiveness of each proposed module.
+
+\subsection{Experimental Setting}
+\label{sec:setting}
+ 
+\subsubsection{Dataset}
+We use the Microsoft COCO (MS COCO) dataset~\cite{mscoco}, the most widely adopted benchmark for the object detection task, to evaluate our YOLOv13 model and other state‐of‐the‐art real‐time detectors. The MS COCO dataset training set (Train2017) contains approximately 118,000 images, and the validation set (Val2017) contains approximately 5,000 images, covering 80 common object categories in natural scenes. In our implementation, all methods are trained on the Train2017 subset and tested on the Val2017 subset.
+
+As the YOLO series continues to evolve, models with greater generality and stronger generalization capabilities become increasingly important. To this end, we include cross-domain generalization under distribution shifts in our evaluation. As a supplementary benchmark, we select the Pascal VOC 2007 dataset~\cite{voc}, which contains a combined total of 5,011 images in the training and validation sets and 4,952 images in the test set, covering 20 common object classes. To evaluate the cross-domain generalization ability, all methods are directly evaluated on the Pascal VOC 2007 test set using the model trained on the MS COCO dataset.
+
+
+\subsubsection{Implementation Details}
+Similar to previous YOLO models, our YOLOv13 family includes four variants: Nano (N), Small (S), Large (L), and Extra-Large (X). For the N, S, L, and X models, the number of hyperedges $M$ is set to 4, 8, 8, and 12, respectively. For all variants, we train the model for 600 epochs with a batch size of 256. The initial learning rate is 0.01 and SGD is used as the optimizer, which is consistent with YOLO11 and YOLOv12 models. A linear decay scheduler is adopted, and a linear warm‐up is applied within the first 3 epochs. During training, the input image size is set to \(640 \times 640\). We employ the same data augmentation techniques as previous YOLO versions, including Mosaic and Mixup. 
+% We use 4 and 8 RTX 4090 GPUs to train YOLOv13‐N and YOLOv13‐S, use 4 and 8 A800 GPUs to train YOLOv13‐P and YOLOv13‐U, respectively. 
+We use 4 and 8 RTX 4090 GPUs to train YOLOv13-N and YOLOv13-S, respectively, and use 4 and 8 A800 GPUs to train YOLOv13-L and YOLOv13-X, respectively.
+Additionally, following the standard practice of previous YOLO series, we evaluate the latency on a single Tesla T4 GPU using TensorRT FP16 for all models. 
+In addition, it should be noted that, to ensure fair and rigorous comparison, we reproduce all variants of the previous YOLO11 and YOLOv12 (v1.0 version) models using their official settings on the same hardware platform as our YOLOv13 model.
+
+
+\subsection{Comparison with Other Methods}
+\label{sec:cmp}
+Table~\ref{tab:coco_compare} shows the quantitative comparison results on the MS COCO dataset. Our proposed method is compared with previous YOLO series models. As mentioned above, our YOLOv13 model and the latest YOLO11 and YOLOv12 models are trained on the same GPUs while the existing methods are trained using their official code and training parameters. From the table, we can observe that all variants of our YOLOv13 model achieve state-of-the-art performance while remaining lightweight. Specifically, compared with the previous YOLOv12 model, our YOLOv13 model can improve $\text{AP}_{50:95}^\text{val}$ by 1.5\%, 0.9\%, 0.4\%, and 0.4\%, and improve $\text{AP}_{50}^\text{val}$ by 1.8\%, 1.0\%, 0.9\%, and 0.9\% in terms of Nano, Small, Large, and Extra-Large models, respectively. In addition, compared with ViT-based methods, our proposed YOLOv13 model can also achieve better detection accuracy with fewer parameters and lower computational complexity. Compared to RT-DETRv2-R18, our YOLOv13-S model can improve $\text{AP}_{50:95}^\text{val}$ by 0.1\% while reducing the number of parameters by 55.0\% and the FLOPs by 65.3\%. Furthermore, from the table, we can observe that our proposed method can achieve more significant advantages in lightweight variants, \eg, the Nano model. This is also the core objective of the YOLO series of models, \ie, more accurate, faster, and lighter. This is because our proposed core HyperACE mechanism can more fully explore the multi-to-multi correlations in complex scenarios. As the high-order version of the traditional self-attention mechanism, HyperACE leverages high-order correlations as guidance to achieve accurate feature enhancement with low parameter counts and computational complexity. These quantitative comparison results prove the effectiveness of our proposed YOLOv13 model.
+\input{sections/figs/fig6-box}
+
+\input{sections/tables/voc_comp}
+
+
+% qualitative
+Figure~\ref{fig:vis_bbox} shows the qualitative comparison results on the MS COCO dataset. Our proposed YOLOv13 model is compared with the existing YOLOv10~\cite{yolov10}, YOLO11~\cite{yolo11}, and YOLOv12~\cite{yolov12} models. From the figure, we can observe that our YOLOv13 model can achieve more accurate detection performance in complex scenes. Specifically, as shown in the last row on the left side of Fig.~\ref{fig:vis_bbox}, our YOLOv13-N model can accurately detect objects in complex multi-object scenes. In contrast, previous models miss small objects such as bowls and vases. This is due to the fact that our proposed HyperACE can establish high-order correlations between multiple related objects, enabling accurate detection of multiple targets in complex scenes. As shown in the second row on the right side, only our method successfully detects the plant behind the vase, which is a challenging scenario. Intuitively, the vase and the plant are strongly associated, leading to a high probability appearance of the plant. Our method can achieve accurate detection by mining such latent correlations. As shown in the third row on the right side, our method can accurately detect the tennis racket held by the athlete, while previous methods either missed it or incorrectly detected the shadow. These qualitative results demonstrate the effectiveness of our proposed method.
+
+
+% generalization ability
+As mentioned above, to validate the generalization ability of our proposed method, we train our YOLOv13 model and previous YOLO models on the MS COCO dataset and test all methods on the Pascal VOC 2007 dataset. The quantitative results are shown in Tab.~\ref{tab:voc_compare}. From the table, we can observe that our proposed YOLOv13 model achieves satisfactory generalization performance. Specifically, compared to the previous YOLOv12 model, our proposed method improves the $\text{AP}_{50:95}^\text{val}$ by 1.0\% and 0.4\% in terms of Nano and Small models, respectively. More significant performance improvements can be achieved compared to earlier models. These results demonstrate the generalization ability of our proposed method.
+
+
+
+\subsection{Ablation Study}
+\label{sec:ablation}
+\subsubsection{FullPAD and HyperACE} To validate the effectiveness and necessity of our proposed FullPAD paradigm and HyperACE mechanism, we evaluate the performance of the proposed YOLOv13-Small model when FullPAD distributes the features to different locations. The quantitative results are shown in Tab.~\ref{tab:distribution}. Specifically, when FullPAD does not distribute any features, it is equivalent to removing the proposed HyperACE, and the results under such setting are shown in the first row of the table. From the table, we can observe that the removal of the proposed HyperACE will reduce the $\text{AP}_{50:95}^\text{val}$ and $\text{AP}_{50}^\text{val}$ by 0.9\% and 1.1\%, respectively. This result demonstrates the effectiveness of adaptive correlation enhancement. In addition, when FullPAD distributes enhanced features only to the backbone-neck (left FullPAD tunnel in Fig.~\ref{fig:framework}), in-neck (middle FullPAD tunnel in Fig.~\ref{fig:framework}), and neck-head (right FullPAD tunnel in Fig.~\ref{fig:framework}), the $\text{AP}_{50:95}^\text{val}$ will decrease by 0.2\%, 0.4\%, and 0.3\%, respectively, compared to the full model. These results demonstrate the necessity of our proposed FullPAD paradigm.
+
+\input{sections/tables/distribution}
+\input{sections/tables/num_edge}
+\input{sections/tables/dsblocks}
+
+
+% Adaptive correlation modeling
+Figure~\ref{fig:vis_soft} shows the visualization of representative hyperedges generated by adaptive hypergraph construction in the proposed HyperACE module. From the figure, we can intuitively observe the high-order visual correlations captured by the proposed HyperACE, which helps to enhance the interpretability of the model. As shown in the first and second column of the figure, HyperACE can effectively model the correlations among multiple foreground objects or partial elements within a scene, \eg, the skis and skistick in the first row, and the cars and multiple traffic lights in the second row. As shown in the third column, our proposed method can also model the correlations between foreground objects and the background scene, \eg, the tennis racket and tennis court in the third row, and the baseball glove and the baseball field in the last row. These visualizations demonstrate the modeling capabilities of our proposed HyperACE module for potential high-order correlations within scenes, enabling the model to enhance features based on multi-to-multi correlations rather than just low-order pairwise correlations.
+\input{sections/figs/fig7-edge}
+\input{sections/tables/epoch}
+\input{sections/tables/latency}
+
+\subsubsection{Number of hyperedges} To validate the effect of the number of hyperedges $M$ on model performance, we set different numbers of hyperedges and test the performance of the YOLOv13-S model. Table~\ref{tab:num_edge} shows the quantitative results. From the table, we can observe that fewer hyperedges result in fewer model parameters and less computational effort, but also lead to a decline in performance. This is due to insufficient correlation modeling of the scene. When the number of hyperedges is increased to 16, the detection performance still improves, but it also brings additional parameters and computational costs. Similar results can be observed for other model variants. Therefore, we set the number of hyperedges for the N, S, L, and X models to 4, 8, 8, and 12, respectively, to balance performance and computational complexity.
+
+\subsubsection{DS blocks} To demonstrate the effectiveness and efficiency of the proposed DS-series blocks, we validate the performance and FLOPs of replacing the DS-series blocks in our YOLOv13-N and Small models with vanilla convolutions. The quantitative results are shown in Tab.~\ref{tab:dsblocks}. From the table, we can observe that the replacement of vanilla convolution blocks with our proposed DS series blocks leads to only a 0.1\% decrease on  $\text{AP}_{50}^\text{val}$ and no decrease on $\text{AP}_{50:95}^\text{val}$ at all, the FLOPs can be reduced by 1.1 G and 4.2 G, and the number of parameters can be reduced by 0.6 M and 2.2 M for the Nano and Small models, respectively. These results prove the efficiency and validity of our proposed DS series blocks.
+
+\subsubsection{Training epochs} Table~\ref{tab:epoch} shows the effect of training epochs on model performance. We validate the performance of Nano and Small models with different numbers training epochs. From the table, we can observe that the best performance could be achieved when trained for 600 epochs, \ie, 41.6\% and 48.0\% in terms of $\text{AP}_{50:95}^\text{val}$ for YOLOv13 Nano and Small models, respectively. More training epochs will lead to overfitting and performance degradation.
+
+% latency
+\subsubsection{Latency on different hardware platforms} Table~\ref{tab:latency} shows the inference latency for all variants of our proposed method on different hardware platforms. For the Nano model of our YOLOv13, the inference latency of 1.25 ms and 1.97 ms are achieved on the RTX 4090 and the Tesla T4 GPU, respectively. Considering the deployment condition without a GPU, the Nano model can also achieve an inference speed of 25 FPS (39.97 ms) on a CPU (Intel Xeon Platinum 8352V). For the Small model with better performance, the inference latency on the Tesla T4 GPU is still less than 3 ms. For the Extra-Large model of YOLOv13, the inference latency on the Tesla T4 GPU is 14.67 ms, while on the 4090 GPU it is only 3.1 ms. These results show the efficiency of our YOLOv13.
+
+% These ablation experiments demonstrate the effectiveness of each proposed module.
+% These ablation experiments demonstrates the effectiveness of each proposed module and the efficiency of our overall design of YOLOv13 model.
+

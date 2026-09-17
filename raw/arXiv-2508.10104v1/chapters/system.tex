@@ -1,0 +1,158 @@
+\section{Training at Scale Without Supervision}
+
+DINOv3 is a next-generation model designed to produce the most robust and flexible visual representations to date by pushing the boundaries of self-supervised learning. 
+We draw inspiration from the success of large language models (LLMs), for which scaling-up the model capacity leads to outstanding \emph{emerging properties}.
+By leveraging models and training datasets that are an order of magnitude larger, we seek to unlock the full potential of SSL and drive a similar paradigm shift for computer vision, unencumbered by the limitations inherent to traditional supervised or task-specific approaches. 
+In particular, SSL produces rich, high-quality visual features that are not biased toward any specific supervision or task, thereby providing a versatile foundation for a wide range of downstream applications. 
+While previous attempts at scaling SSL models have been hindered by issues of instability, this section describes how we harness the benefits of scaling with careful data preparation, design, and optimization. 
+We first describe the dataset creation procedure (\cref{sec:data}), then present the self-supervised SSL recipe used for this first training phase of DINOv3 (\cref{sec:algo}).
+This includes the choice of architecture, loss functions, and optimization techniques. 
+The second training phase, focusing on dense features, will be described in \cref{sec:gram}.
+
+
+
+
+
+
+
+\subsection{Data Preparation}
+\label{sec:data}
+Data scaling is one of the driving factors behind the success of large foundation models~\citep{touvron2023llama,radford2021learning,xu2024demystifying,oquab2024dinov2}.
+However, increasing naively the size of the training data does not necessarily translate into higher model quality and better performance on downstream benchmarks~\citep{goyal2021self,oquab2024dinov2,vo2024automatic}: 
+Successful data scaling efforts typically involve careful data curation pipelines.
+These algorithms may have different objectives: either focusing on improving data \textit{diversity} and \textit{balance}, or data \textit{usefulness}---its relevance to common practical applications.
+For the development of DINOv3, we combine two complementary approaches to improve both the generalizability and performance of the model, striking a balance between the two objectives. 
+
+
+\begin{table}[t]
+    \small
+    \centering
+    \caption{
+        Influence of training data on features quality shown via performance on downstream tasks. 
+        We compare datasets curated with \emph{clustering}~\citep{vo2024automatic} and \emph{retrieval}~\citep{oquab2024dinov2}
+        to \emph{raw} data and
+        to our data mixture. 
+        This ablation study is run for a shorter schedule of 200k iterations.
+    }
+    \label{table:data_ablation}
+    \begin{tabular}{@{} l c ccccc @{}}
+        \toprule 
+        Dataset && IN1k k-NN & IN1k Linear & ObjectNet & iNaturalist 2021 & Paris Retrieval \\
+        \midrule
+        Raw && 80.1 & 84.8 & 70.3 & 70.1 & 63.3 \\
+        Clustering  && 79.4 & 85.4 & 72.3 & 81.3 & 85.2 \\
+        Retrieval && 84.0 & 86.7 & 70.7 & 86.0 & 82.7 \\
+        \midrule
+        \LVDdataset (ours) && \bf 84.6 & \bf 87.2 & \bf 72.8 & \bf 87.0 & \bf 85.9 \\
+        \bottomrule   
+    \end{tabular}
+\end{table}
+
+
+\paragraph{Data Collection and Curation}
+We build our large-scale pre-training dataset by leveraging a large data pool of web images collected from public posts on Instagram. These images already went through platform-level content moderation to help prevent harmful contents and we obtain an initial data pool of approximately 17 billions of images.
+Using this raw data pool, we create three dataset \emph{parts}.
+We construct the first part by applying the automatic curation method based on hierarchical $k$-means from~\citet{vo2024automatic}.  
+We employ DINOv2 as image embeddings, and use 5 levels of clustering with the number of clusters from the lowest to highest levels being $200$M, $8$M, $800$k, $100$k, and $25$k respectively. 
+After building the hierarchy of clusters, we apply the balanced sampling algorithm proposed in~\citet{vo2024automatic}.
+This results in a curated subset of 1,689 million images (named \LVDdataset) that guarantees a balanced coverage of all visual concepts appearing on the web.
+For the second part, we adopt a retrieval-based curation system similar to the procedure proposed by~\citet{oquab2024dinov2}.
+We retrieve images from the data pool that are similar to those from selected seed datasets, creating a dataset that covers visual concepts relevant for downstream tasks.
+For the third part, we use raw publicly available computer vision datasets including ImageNet1k~\citep{deng2009imagenet}, ImageNet22k~\citep{russakovsky2015imagenet}, and Mapillary Street-level Sequences~\citep{Warburg_CVPR_2020}.
+This final part allows us to optimize our model's performance, following \citet{oquab2024dinov2}. 
+
+\paragraph{Data Sampling}
+During pre-training, we use a sampler to mix different data parts together.
+There are several different options for mixing the above data components.
+One is to train with \textit{homogeneous} batches of data that come from a single, randomly selected component in each iteration.
+Alternatively, we can optimize the model on \textit{heterogeneous} batches that are assembled by data from all components, selected using certain ratios.
+Inspired by \citet{charton2024emergent}, who observed that it is beneficial to have homogeneous batches consisting of very high quality data from a small dataset, we randomly sample in each iteration either a homogeneous batch from ImageNet1k alone or a heterogeneous batch mixing data from all other components.
+In our training, homogeneous batches from ImageNet1k account for 10\% of training.
+
+\paragraph{Data Ablation}
+To assess the impact of our data curation technique, we perform an ablation study to compare our data mix against datasets curated with clustering or retrieval-based methods alone, and the raw data pool.
+To this end, we train a model on each dataset and compare their performance on standard downstream tasks.
+For efficiency, we use a shorter schedule of 200k iterations instead of 1M iterations.
+In \cref{table:data_ablation}, it can be seen that no single curation technique works best across all benchmarks, and that our full pipeline allows us to obtain the best of both worlds.
+
+
+\subsection{Large-Scale Training with Self-Supervision}
+\label{sec:algo}
+While models trained with SSL have demonstrated interesting properties~\citep{chen2020big,caron2021emerging}, most SSL algorithms have not been scaled-up to larger models sizes. %
+This is either due to issues with training stability~\citep{darcet2025cluster}, or overly simplistic solutions that fail to capture the full complexity of the visual world. %
+When trained at scale~\citep{goyal2022vision}, models trained with SSL do not necessarily show impressive performance. %
+One notable exception is DINOv2, a model with 1.1 billion parameters trained on curated data, matching the performance of weakly-supervised models like CLIP~\citep{radford2021learning}. 
+A recent effort to scale DINOv2 to 7 billion parameters~\citep{fan2025scaling} demonstrates promising results on global tasks, but with disappointing results on dense prediction.
+Here, we aim to scale up the model and data, and obtain even more powerful visual representations with both improved global and local properties.
+
+
+\begin{table}[t]
+    \centering
+    \small
+    \caption{
+      Comparison of the teacher architectures used in DINOv2 and DINOv3 models.
+      We keep the model $40$ blocks deep, and increase the embedding dimension to $4096$.
+      Importantly, we use a patch size of $16$ pixels, changing the effective sequence length for a given resolution.
+    }
+    \begin{tabular}{l cc}
+        \toprule
+        Teacher model & DINOv2 & DINOv3 \\
+        \midrule
+        Backbone & ViT-giant & ViT-7B \\
+        \#Params & 1.1B & 6.7B \\
+        \#Blocks & 40 & 40 \\
+        Patch Size & 14 & 16 \\
+        Pos.~Embeddings & Learnable & RoPE \\
+        Registers & 4 & 4 \\
+        Embed.~Dim. & 1536 & 4096 \\
+        FFN Type & SwiGLU & SwiGLU \\
+        FFN Hidden Dim. & 4096 & 8192 \\
+        Attn.~Heads & 24 & 32 \\
+        Attn.~Heads Dim. & 64 & 128 \\
+        \midrule
+        DINO Head MLP & 4096-4096-256 & 8192-8192-512 \\
+        DINO Prototypes & 128k & 256k \\
+        iBOT Head MLP & 4096-4096-256 & 8192-8192-384 \\
+        iBOT Prototypes & 128k & 96k \\
+        \bottomrule
+    \end{tabular}
+    \label{tab:models_comparison}
+    \vspace{-0.5em}
+\end{table}
+
+\paragraph{Learning Objective} We train the model with a discriminative self-supervised strategy which is a mix of several self-supervised objectives with both global and local loss terms. 
+Following DINOv2~\citep{oquab2024dinov2},
+we use an image-level objective~\citep{caron2021emerging} $\mathcal{L_{\mathrm{DINO}}}$, and balance it with a patch-level latent reconstruction objective~\citep{zhou2021ibot} $\mathcal{L_{\mathrm{iBOT}}}$. 
+We also replace the centering from DINO with the Sinkhorn-Knopp from SwAV~\citep{caron2020unsupervised} in both objectives.
+Each objective is computed using the output of a dedicated head on top of the backbone network, allowing for some specialization of features before the computation of the losses. 
+Additionally, we use a dedicated layer normalization applied to the backbone outputs of the local and global crops. 
+Empirically, we found this change to stabilize ImageNet kNN-classification late in training (+0.2 accuracy) and improve dense performance (\eg +1 mIoU on ADE20k segmentation, -0.02 RMSE on NYUv2 depth estimation).
+In addition, a Koleo regularizer $\mathcal{L}_{\mathrm{Koleo}}$ is added to encourage the features within a batch to spread uniformly in the space~\citep{sablayrolles2018spreading}. 
+We use a distributed implementation of Koleo in which the loss is applied in small batches of $16$ samples---possibly across GPUs.
+Our initial training phase is carried by optimizing the following loss:
+\begin{equation}
+    \mathcal{L_{\mathrm{Pre}}} = \mathcal{L_{\mathrm{DINO}}} + \mathcal{L}_{\mathrm{iBOT}} + 0.1 * \mathcal{L}_{\mathrm{DKoleo}.}
+\end{equation}
+
+
+\paragraph{Updated Model Architecture}
+For the model scaling aspect of this work, we increase the size of the model to 7B parameters, and provide in \cref{tab:models_comparison} a comparison of the corresponding hyperparameters with the 1.1B parameter model trained in the DINOv2 work. We also employ a custom variant of RoPE: our base implementation assigns coordinates in a normalized $[-1,1]$ box to each patch, then applies a bias in the multi-head attention operation depending on the relative position of two patches. In order to improve the robustness of the model to resolutions, scales and aspect ratios, we employ \textit{RoPE-box jittering}. The coordinate box $[-1,1]$ is randomly scaled to $[-s,s]$, where $s \in [0.5, 2]$.
+Together, these changes enable DINOv3 to better learn detailed and robust visual features, improving its performance and scalability.
+
+
+\paragraph{Optimization}
+Training large models on very large datasets represents a complicated experimental workflow.
+Because the interplay between model capacity and training data complexity is hard to assess \emph{a priori}, it is impossible to guess the right optimization horizon.
+To overcome this, we get rid of all parameter scheduling, and train with constant learning rate, weight decay, and teacher EMA momentum.
+This has two main benefits.
+First, we can continue training as long as downstream performance continues to improve. %
+Second, the number of optimization hyperparameters is reduced, making it easier to choose them properly.
+For the training to start properly, we still use a linear warmup for learning rate and teacher temperature. %
+Following common practices, we use AdamW~\citep{loshchilov2017decoupled}, and set the total batch size to $4096$ images split across $256$ GPUs.
+We train our models using the multi-crop strategy~\citep{caron2020unsupervised}, taking $2$ global crops and $8$ local crops per image.
+We use square images with a side length of $256$/$112$ pixels for global/local crops, which, along with the change in patch size, results in the same effective sequence length per image as in DINOv2 and a total sequence length of $3.7$M tokens per batch.
+Additional hyperparameters can be found in \cref{app:implem-details} and in the code release.
+
+
+
+

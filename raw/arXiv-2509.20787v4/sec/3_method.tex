@@ -1,0 +1,167 @@
+\section{Method}
+
+
+
+
+\paragraph{Overall architecture.} Our overall architecture follows the design of RT-DETR~\cite{lv2024rt}, comprising a backbone, a hybrid encoder, and a decoder. As shown in Table~\ref{tab:main}, for the mainstream variants X, L, M, and S, the backbone is based on DINOv3 with our proposed Spatial Tuning Adapter (STA), while the remaining variants use HGNetv2~\cite{cui2021beyond}. Multi-scale features from the backbone are first processed by the encoder to produce initial detection results and select the top-$K$ candidate bounding boxes. The decoder iteratively refines these candidates to generate the final predictions.
+
+\paragraph{ViT-based variants.} For the larger DEIMv2 variants (S, M, L, X), we carefully design the backbones around the Vision Transformer~\cite{dosovitskiy2020image} (ViT) family, balancing model capacity with efficiency. For L and X, we leverage two public DINOv3 models~\cite{simeoni2025dinov3}: ViT-Small and ViT-Small+, which provide strong semantic representations with 12 layers and a 384-dimensional hidden size. For the lighter S and M variants, we distill compact backbones, ViT-Tiny and ViT-Tiny+, directly from ViT-Small DINOv3, preserving the 12-layer depth while reducing the hidden dimensions to 192 and 256. This design delivers a smooth scaling path across S $\rightarrow$ M $\rightarrow$ L $\rightarrow$ X, ensuring that each variant maintains competitive accuracy while adapting to different efficiency requirements.
+
+\paragraph{HGNetv2-based variants.} 
+HGNetv2~\cite{cui2021beyond}, developed by the Baidu PaddlePaddle team, is widely used in real-time DETR frameworks for its efficiency—for example, D-FINE~\cite{peng2024d} adopts the full HGNetv2 series as its backbone. In our ultra-lightweight DEIMv2 models (Nano, Pico, Femto, and Atto), we also build on HGNetv2-B0, but progressively prune its depth and width to meet different parameter budgets. Specifically, the Pico backbone removes the fourth stage of B0, keeping outputs only up to 1/16 scale. Femto further reduces the number of blocks in Pico’s last stage from two to one. Atto goes a step further by shrinking the channels of that last block from 512 to 256.
+
+
+\paragraph{Spatial Tuning Adapter.}
+To better adapt DINOv3 features for real-time object detection, we propose the Spatial Tuning Adapter (STA), as illustrated in Fig.~\ref{fig:STA}. STA is a fully convolutional network that integrates an ultra-lightweight feedforward network for extracting fine-grained multi-scale details, together with a Bi-Fusion operator that further strengthens feature representations from DINOv3.
+
+\begin{table*}[h]
+\centering
+\caption{\textbf{Detailed training hyperparameters in DEIMv2.} Back. denotes the Backbone. We use \textit{Local Loss} to denote the Fine-Grained Localization (FGL) Loss and the Decoupled Distillation Focal (DDF) Loss in D-FINE~\cite{peng2024d}.}
+\label{tab:hyperparams}
+    \begin{tabular}{l|cccccccc}
+        \toprule
+        \textbf{HyperParams} & \textbf{X} & \textbf{L} & \textbf{M} & \textbf{S} & \textbf{Nano} & \textbf{Pico} & \textbf{Femto} & \textbf{Atto} \\
+        \midrule
+        Resolution & 640 & 640 & 640 & 640 & 640 & 640 & 416 & 320 \\
+        \midrule
+        Weigt Decay & 1.25e-4 & 1.25e-4 & 1e-4 & 1e-4 & 1e-4 & 1e-4 & 1e-4 & 1e-4 \\
+        Base LR & 5e-4 & 5e-4 & 5e-4 & 5e-4 & 8e-4 & 1.6e-3 & 1.6e-3 & 2e-3 \\
+        Min LR & 2.5e-4 & 2.5e-4 & 2.5e-4 & 2.5e-4 & 8e-4 & 8e-4 & 8e-4 & 1e-3 \\
+        Back. LR & 1e-6 & 1.25e-5 & 2.5e-5 & 2.5e-5 & 4e-4 & 8e-4 & 8e-4 & 1e-3 \\
+        Back. MinLR & 5e-7 & 6.25e-6 & 1.25e-5 & 1.25e-5 & 4e-4 & 4e-4 & 4e-4 & 5e-4 \\
+        \midrule
+        Local Loss & \checkmark & \checkmark & \checkmark & \checkmark & \checkmark \\
+        Epochs & 50 & 60 & 90 & 120  & 148 & 468 & 468 & 468 \\
+        \midrule
+        Mosaic$_{prob}$ & 0.5 & 0.5 & 0.5 & 0.5 & 0.5 & 0.5 & 0.5 & 0.3 \\
+        Mosaic$_{epochs}$ & [4, 29] & [4, 34] & [4, 49] & [4, 64] & [4, 78] & [4, 250] & [4, 250] & [4, 250] \\
+        MixUp$_{prob}$ & 0.5 & 0.5 & 0.5 & 0.5 & 0.5 & 0.0 & 0.0 & 0.0 \\
+        MixUp$_{epochs}$ & [4, 29] & [4, 34] & [4, 49] & [4, 64] & [4, 78] & [ ] & [ ] & [ ] \\
+        CopyB$_{prob}$ & 0.5 & 0.5 & 0.5 & 0.5 & 0.4 & 0.0 & 0.0 & 0.0  \\
+        CopyB$_{epoch}$ & [4, 50] & [4, 60] & [4, 90] & [4, 120] & [4, 78] & [ ] & [ ] & [ ]  \\
+        \bottomrule
+    \end{tabular}
+\end{table*}
+
+DINOv3 is based on a ViT backbone, which naturally produces single-scale (1/16) dense features. In object detection, however, objects vary widely in size, and multi-scale features are one of the most effective ways to improve performance. To this end, ViTDet~\cite{li2022exploring} introduced the Feature2Pyramid module, which generates multi-scale features from the final ViT output using deconvolution. In contrast, our STA is even simpler: we directly resize the 1/16-scale features from several ViT blocks (e.g., the 5th, 8th, and 11th) into multiple scales via parameter-free bilinear interpolation. These multi-scale features are further enhanced by the Bi-Fusion operator consisting of $1\times1$ convolution with an ultra-lightweight CNN designed to extract fine-grained details and complement DINOv3’s output features. This design achieves an excellent trade-off between efficiency and accuracy, making it well-suited for real-time detection.
+
+
+
+
+
+
+\begin{table*}[t]
+    \caption{\textbf{Comparison with real-time object detectors on COCO~\cite{lin2014microsoft} \texttt{val2017}, sorted by parameter size.} }
+    \label{tab:XLMS}
+    \begin{center}
+    \begin{adjustbox}{width=\textwidth}
+    \begin{tabular}{l | cccc | ccc ccc}
+        \toprule
+        \hline
+        Model & \#Epochs & \#Params. & GFLOPs & Latency (ms) & AP$^{val}$ & AP$^{val}_{50}$ & AP$^{val}_{75}$ & AP$^{val}_S$ & AP$^{val}_M$ & AP$^{val}_L$ \\
+        \midrule
+        \hline
+        YOLOv10-S~\cite{wang2024yolov10} & 500 & 7 & 22 & 2.52 & 46.3 & 63.0 & 50.4 & 26.8 & 51.0 & 63.8 \\
+        YOLOv9-S~\cite{wang2024yolov9} & 500 & 7 & 26 & 8.05 & 46.8 & 61.8 & 48.6 & 25.7 & 49.9 & 61.0 \\
+        YOLOv12-S-turbo~\cite{tian2025yolov12} & 600 & 9 & 19 & 6.28  & 47.5 & 64.1 & - & - & - & - \\
+        YOLO11-S~\cite{yolo11} & 500 & 9 & 22 & 7.05  & 46.6 & 63.4 & 50.3 & 28.7 & 51.3 & 64.1 \\
+        D-FINE-S~\cite{peng2024d} & 120 & 10 & 25 & 3.66 & 48.5 & 65.6 & 52.6 & 29.1 & 52.2 & 65.4 \\
+        {\ourmethod}-S~\cite{huang2025deim} & 120 & 10 & 25 & 3.66 & 49.0 & 65.9 & 53.1 & 30.4 & 52.6 & 65.7 \\
+        YOLOv8-S~\cite{yolov8} & 500 & 11 & 29 & 6.97  & 44.9 & 61.8 & 48.6 & 25.7 & 49.9 & 61.0 \\
+        \rowcolor[gray]{0.95} \textbf{{\ourmethod}v2-S} & 120 & 10 & 26 & 5.78 & 50.9 & 68.3 & 55.1 & 31.4 & 55.3 & 70.3 \\
+        
+
+        \midrule
+        YOLOv10-M~\cite{wang2024yolov10} & 500 & 15 & 59 & 4.70 & 51.1 & 68.1 & 55.8 & 33.8 & 56.5 & 67.0 \\
+        D-FINE-M~\cite{peng2024d} & 120 & 19 & 57 & 5.91  & 52.3 & 69.8 & 56.4 & 33.2 & 56.5 & 70.2 \\
+        {\ourmethod}-M~\cite{huang2025deim} & 90 & 19 & 57 & 5.91 & 52.7 & 70.0 & 57.3 & 35.3 & 56.7 & 69.5 \\
+        RT-DETRv2-S~\cite{lv2024rt} & 120 & 20 & 60 & 4.61  & 48.1 & 65.1 & 57.4 & 36.1 & 57.9 & 70.8 \\
+        YOLOv12-M-turbo~\cite{tian2025yolov12} & 600 & 20 & 60 & 8.44 & 52.6 & 69.5 & - & - & - & - \\
+        YOLO11-M~\cite{yolo11} & 500 & 20 & 68 & 9.02 & 51.2 & 67.9 & 55.3 & 33.0 & 56.7 & 67.5 \\
+        YOLOv9-M~\cite{wang2024yolov9} & 500 & 20 & 76 & 10.18  & 51.4 & 67.2 & 54.6 & 32.0 & 55.7 & 66.4 \\
+        Gold-YOLO-S~\cite{wang2024gold} & 300 & 22 & 46 &  6.96 & 46.4 & 63.4 & - & 25.3 & 51.3 & 63.6 \\
+        \rowcolor[gray]{0.95} \textbf{{\ourmethod}v2-M} & 90 & 18 & 52 & 8.80 & 53.0 & 70.2 & 57.6 & 34.2 & 57.4 & 71.5 \\
+        
+
+        \midrule
+        YOLOv10-L~\cite{wang2024yolov10} & 500 & 24 & 120 & 7.38 & 53.2 & 70.1 & 58.1 & 35.8 & 58.5 & 69.4 \\
+        YOLO11-L~\cite{yolo11} & 500 & 25 & 87 & 10.41 & 53.4 & 70.1 & 58.2 & 35.6 & 59.1 & 69.2 \\
+        YOLOv9-C~\cite{wang2024yolov9} & 500 & 25 & 102 & 10.76 & 53.0 & 70.2 & 57.8 & 36.2 & 58.5 & 69.3 \\
+        YOLOv8-M~\cite{yolov8} & 500 & 26 & 79 & 9.46 & 50.2 & 67.2 & 54.6 & 32.0 & 55.7 & 66.4 \\
+        YOLOv12-L-turbo~\cite{tian2025yolov12} & 600 & 27 & 82 & 10.45 & 54.0 & 70.6 & - & - & - & - \\
+        YOLOv10-X~\cite{wang2024yolov10} & 500 & 30 & 160 & 10.47 & 54.4 & 71.3 & 59.3 & 37.0 & 59.8 & 70.9 \\
+        D-FINE-L~\cite{peng2024d} & 72 & 31 & 91 & 8.15 & 54.0 & 71.6 & 58.4 & 36.5 & 58.0 & 71.9 \\
+        \ourmethod-L~\cite{huang2025deim} & 50 & 31 & 91 & 8.15 & 54.7 & 72.4 & 59.4 & 36.9 & 59.6 & 71.8 \\
+        RT-DETRv2-M~\cite{lv2024rt} & 120 & 31 & 92 & 6.91  & 49.9 & 67.5 & 58.6 & 35.8 & 58.6 & 72.1 \\
+        Gold-YOLO-M~\cite{wang2024gold} & 300 & 41 & 88 & 9.21 & 51.1 & 68.5 & - & 32.3 & 56.1 & 68.6 \\
+        RT-DETRv2-L~\cite{lv2024rt} & 72 & 42 & 136 & 9.29 & 53.4 & 71.6 & 57.4 & 36.1 & 57.9 & 70.8 \\
+        YOLOv8-L~\cite{yolov8} & 500 & 43 & 165 & 12.20 & 52.9 & 69.8 & 57.5 & 35.3 & 58.3 & 69.8 \\
+        \rowcolor[gray]{0.95} \textbf{\ourmethod v2-L} & 60 & 32 & 96 & 10.47 & 56.0 & 73.4 & 60.9 & 37.5 & 60.8 & 75.2 \\
+        
+
+        \midrule
+        YOLOv9-E~\cite{wang2024yolov9} & 500 & 57 & 189 &  20.52 & 55.6 & 72.8 & 60.6 & 40.2 & 61.0 & 71.4 \\
+        YOLO11-X~\cite{yolo11} & 500 & 57 & 195 & 15.53 & 54.7 & 71.6 & 59.5 & 37.7 & 59.7 & 70.2 \\
+        YOLOv12-X-turbo~\cite{tian2025yolov12} & 600 & 59 & 185 & 15.79 & 55.7 & 72.2 & - & - & - & - \\
+        D-FINE-X~\cite{peng2024d} & 72 & 62 & 202 & 12.90 & 55.8 & 73.7 & 60.2 & 37.3 & 60.5 & 73.4 \\
+        \ourmethod-X~\cite{huang2025deim} & 50 & 62 & 202 & 12.90 & 56.5 & 74.0 & 61.5 & 38.8 & 61.4 & 74.2 \\
+        YOLOv8-X~\cite{yolov8} & 500 & 68 & 257 & 15.89 & 53.9 & 71.0 & 58.7 & 35.7 & 59.3 & 70.7 \\
+        Gold-YOLO-L~\cite{wang2024gold} & 300 & 75 & 152 & 12.31 & 53.3 & 70.9 & - & 33.8 & 58.9 & 69.9 \\
+        RT-DETRv2-X~\cite{lv2024rt} & 72 & 76 & 259 & 13.88 & 54.3 & 72.8 & 58.8 & 35.8 & 58.8 & 72.1 \\
+        \rowcolor[gray]{0.95} \textbf{\ourmethod v2-X} & 50 & 50 & 151 & 13.75 & 57.8 & 75.4 & 63.2 & 39.2 & 62.9 & 75.9  \\
+        \bottomrule
+    \end{tabular}
+    \end{adjustbox}
+    \end{center}
+\end{table*}
+
+\begin{table*}[t]
+    \centering
+    \caption{\textbf{Comparison with real-time object detectors on COCO~\cite{lin2014microsoft} \texttt{val2017} for ultra-light models}.}
+    
+    \label{tab:my_sorted_label_asc}
+    \begin{tabular}{l c c c c}
+        \toprule
+        \hline
+        Model & Input Size & Params (M) & FLOPs (G) & COCO AP \\
+        \midrule
+        \hline
+        NanoDet-M\cite{lyu2021nanodetplus} & 416x416 & 1.0 & 0.7 & 23.5 \\
+        \rowcolor[gray]{0.95} \textbf{DEIMv2-Atto} & 320x320 & 0.5 & 0.8 & \textbf{23.8} \\
+        \midrule
+        YOLOX-Nano\cite{zheng2021yolox} & 416x416 & 0.9 & 1.1 & 25.8 \\
+        PicoDet-S\cite{yu2021pp} & 416x416 & 1.0 & 1.2 & 30.7 \\
+        PP-YOLO-Tiny\cite{long2020pp} & 416x416 & 1.1 & 1.0 & 22.7 \\
+        PicoDet-ShufflenetV2 1x\cite{yu2021pp} & 416x416 & 1.2 & 1.5 & 30.0 \\
+        \rowcolor[gray]{0.95} \textbf{DEIMv2-Femto} & 416x416 & 1.0 & 1.7 & \textbf{31.0} \\
+        \midrule
+        YOLOv10-N\cite{wang2024yolov10} & 640x640 & 2.3 & 6.7 & 38.5 \\
+        YOLOv8-N\cite{yolov8} & 640x640 & 3.2 & 8.7 & 37.4 \\
+        YOLOv6-3.0-N\cite{li2023yolov6} & 640x640 & 4.7 & 11.4 & 37.0 \\
+        \rowcolor[gray]{0.95} \textbf{DEIMv2-Pico} & 640x640 & 1.5 & 5.2 & \textbf{38.5} \\
+        \midrule
+        YOLOv12-N~\cite{tian2025yolov12} & 640x640 & 2.6 & 6.5 & 40.6 \\
+        {\ourmethod}-Nano~\cite{huang2025deim} & 640x640 & 3.6 & 6.9 & 43.0 \\
+        D-FINE-Nano~\cite{peng2024d} & 640x640 & 3.8 & 7.2 & 42.8 \\
+        \rowcolor[gray]{0.95} \textbf{{\ourmethod}v2-Nano} & 640x640 & 3.6 & 6.9 & \textbf{43.0} \\
+        \bottomrule
+    \end{tabular}
+\end{table*}
+
+\paragraph{Efficient Decoder.} 
+We enhance the standard deformable attention decoder~\cite{zhu2020deformable} by incorporating several efficiency-oriented techniques widely adopted in the Transformer community, achieving a favorable performance–cost trade-off. Specifically, we integrate SwiGLUFFN~\cite{shazeer2020glu} to strengthen nonlinear representation capacity, RMSNorm~\cite{zhang2019root} to stabilize and accelerate training efficiently. Noting that object query locations undergo minimal changes during iterative refinement, we further propose sharing a single position embedding across all decoder layers, eliminating redundant computation.
+
+\paragraph{Enhanced Dense O2O.}
+In our previous DEIM~\cite{huang2025deim}, we proposed Dense O2O, which increases the number of objects per training image to provide stronger supervision, improving convergence and performance. Its effectiveness was initially demonstrated using image-level augmentations such as Mosaic and MixUp~\cite{zhang2017mixup}. In DEIMv2, we further explore Dense O2O at the object level with Copy-Blend, which adds new objects without their backgrounds. Unlike Copy-Paste~\cite{ghiasi2021simple}, which fully overwrites the target region, Copy-Blend blends new objects with the image, better suiting our scenario and consistently improving performance.
+
+\paragraph{Training setting and loss.} The overall optimization objective is a weighted sum of five components: Matchability-Aware Loss (MAL)~\cite{huang2025deim}, Fine-Grained Localization (FGL) Loss~\cite{peng2024d}, Decoupled Distillation Focal (DDF) Loss~\cite{peng2024d}, BBox Loss (L1), and GIoU Loss~\cite{rezatofighi2019generalized}. The total loss is defined as:
+\begin{equation}
+    \begin{aligned}
+    L_{total} = & \lambda_1 L_{mal} + \lambda_2 L_{fgl} + \lambda_3 L_{ddf} \\
+    & + \lambda_4 L_{bbox} + \lambda_5 L_{giou}
+    \end{aligned}
+\end{equation}
+with weights set to $\lambda_1 = 1.0$, $\lambda_2 = 0.15$, $\lambda_3 = 1.5$, $\lambda_4 = 5$, and $\lambda_5 = 2$ across all experiments. 
+
+We summarize the training hyperparameters in Table~\ref{tab:hyperparams}, covering input resolution, learning rate, training epochs, and Dense O2O settings. An interesting observation is that applying FGL and DDF losses to ultra-lightweight models degrades performance. We attribute this to their limited capacity and inherently weaker baseline accuracy, which reduces the effectiveness of self-distillation. Consequently, we exclude these two components (i.e., the local loss) from training the Pico, Femto, and Atto variants.
+

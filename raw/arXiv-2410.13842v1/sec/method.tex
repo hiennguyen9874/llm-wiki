@@ -1,0 +1,190 @@
+\section{Preliminaries}
+
+\textbf{Bounding box regression} in object detection has traditionally relied on modeling Dirac delta distributions, either using centroid-based $\{x,y,w,h\}$ or edge-distance $\{\mathbf{c}, \mathbf{d}\}$ forms, where the distances $\mathbf{d}=\{t, b, l, r\}$ are measured from the anchor point \( \mathbf{c} = \{x_c, y_c\} \). However, the Dirac delta assumption, which treats bounding box edges as precise and fixed, makes it difficult to model localization uncertainty, especially in ambiguous cases. This rigid representation not only limits optimization but also leads to significant localization errors with small prediction shifts.
+
+To address these problems, GFocal~\citep{gfocal, gfocalv2} regresses the distances from anchor points to the four edges using discretized probability distributions, offering a more flexible modeling of the bounding box. In practice, bounding box distances $\mathbf{d}=\{t,b,l,r\}$ is modeled as:
+\begin{equation}
+\mathbf{d} = d_{\max}\sum_{n=0}^{N} \frac{n}{N}\mathbf{P}(n),
+\end{equation}
+where $d_{\max}$ is a scalar that limits the maximum distance from the anchor center, and \( \mathbf{P}(n) \) denotes the probability of each candidate distance of four edges. 
+While GFocal introduces a step forward in handling ambiguity and uncertainty through probability distributions, specific challenges in its regression approach persist:
+(1)\textit{ Anchor Dependency}: Regression is tied to the anchor box center, limiting prediction diversity and compatibility with anchor-free frameworks.
+(2)\textit{ No Iterative Refinement}: Predictions are made in one shot without iterative refinements, reducing regression robustness.
+(3)\textit{ Coarse Localization}: Fixed distance ranges and uniform bin intervals can lead to coarse localization, especially for small objects, because each bin represents a wide range of possible values.
+
+\textbf{Localization Distillation (LD)} is a promising approach, demonstrating that transferring localization knowledge is more effective for detection tasks~\citep{zheng2022localization}. Built upon GFocal, it enhances student models by distilling valuable localization knowledge from teacher models, rather than simply mimicking classification logits or feature maps. Despite its advantages, the method still relies on anchor-based architectures and incurs additional training costs.
+
+
+
+
+
+% \textbf{Bounding box regression in DETR} used a one-shot $\{x,y,w,h\}$ prediction process without iterative refinement \citep{carion2020end}. In contrast, Deformable DETR introduced an iterative refinement process across decoder layers. Each layer refines the bounding box predictions from the previous one using a multi-scale deformable attention mechanism \citep{zhu2020deformable}. The bounding box predictions are refined as follows:
+% \begin{equation}
+% \mathbf{b}^{l} = \sigma(\Delta\mathbf{b}^{l} + \sigma^{-1}(\mathbf{b}^{l-1})),
+% \end{equation}
+% where $\mathbf{b}^{l-1}$ represents the bounding box prediction at the $l-1$-th layer, and $\Delta\mathbf{b}^{l}$ is the incremental update to the bounding box prediction at the $l$-th layer. $\sigma$ and $\sigma^{-1}$ denotes the sigmoid function and its inverse. This layer-wise optimization approach has been widely adopted in recent DETR variants, such as \citep{meng2021conditional, zhang2022dino, chen2022group, zhao2024ms}, to improve detection performance. However, despite the iterative refinement, the bounding box predictions in these methods are still based on fixed coordinates and do not fully capture localization uncertainty. This limitation hinders the ability to represent the ambiguity and optimize each edge independently, limiting the model’s robustness.
+
+
+
+
+\section{Method}
+
+
+% In this section, we first review traditional bounding box regression methods and discuss their limitations, particularly with distribution-based approaches. Following this, we present our novel real-time object detector, \textbf{D-FINE}, along with its two key components: \textbf{(1) Fine-grained Distribution Refinement (FDR)} and \textbf{(2) Global Optimal Localization Self-Distillation (GO-LSD)}. These methods are specifically designed to address the challenges in bounding box regression, enhancing the detector's localization accuracy while maintaining real-time processing capabilities.
+
+% \subsection{Preliminaries}
+
+
+
+% \subsection{D-FINE: A Powerful Real-time End-to-end Detector}
+
+% \textbf{D-FINE} is a powerful real-time object detector that excels in terms of speed, size, computational cost, and accuracy. It leverages the proposed FDR and GO-LSD to enhance performance.
+
+We propose \textbf{D-FINE}, a powerful real-time object detector that excels in speed, size, computational cost, and accuracy. D-FINE addresses the shortcomings of existing bounding box regression approaches by leveraging two key components: \textbf{Fine-grained Distribution Refinement (FDR)} and \textbf{Global Optimal Localization Self-Distillation (GO-LSD)}, which work in tandem to significantly enhance performance with negligible additional parameters and training time cost.
+
+% Additionally, D-FINE incorporates \textbf{lightweight optimizations} in computationally intensive modules, achieving a better speed-accuracy balance.
+
+% \textbf{D-FINE} is our proposed powerful real-time object detector, excelling in speed, size, computational cost, and accuracy. It achieves this by leveraging the proposed FDR and GO-LSD, which work in tandem to significantly enhance performance.
+
+% FDR allows the model to iteratively refine bounding box predictions by adjusting the probability distributions representing the residual offsets to the edges, rather than the edges themselves. By focusing on refining these residuals, the optimization becomes more straightforward, enabling the model to make finer, more precise adjustments at each decoder layer. This approach leads to enhanced localization accuracy and reduced errors through progressively simpler optimization targets. As shown in Figure~\ref{fig:main}, except for the first layer, the outputs of D-FINE at each decoder layer are the adjustments for previously predicted distributions. These distributions also act as fine-grained adjustments to the initial bounding boxes. This approach of refining the adjustments themselves allows for more nuanced corrections, enabling the model to iteratively enhance localization precision while reducing errors in a progressive and controlled manner.
+
+
+\textbf{(1) FDR} iteratively optimizes probability distributions that act as corrections to the bounding box predictions, providing a more fine-grained intermediate representation. This approach captures and optimizes the uncertainty of each edge independently. By leveraging the non-uniform weighting function, FDR allows for more precise and incremental adjustments at each decoder layer, improving localization accuracy and reducing prediction errors. FDR operates within an anchor-free, end-to-end framework, enabling a more flexible and robust optimization process.
+% This approach is evidenced in \Cref{tab:Distillation} to be more effective than traditional distillation methods~\citep{Zagoruyko2017AT,TA,DenselyTA,FitNets} and the standard LD technique~\citep{zheng2022localization}. 
+
+\textbf{(2) GO-LSD} distill localization knowledge from refined distributions into shallower layers. As training progresses, the final layer produces increasingly precise soft labels. Shallower layers align their predictions with these labels through GO-LSD, leading to more accurate predictions. As early-stage predictions improve, the subsequent layers can focus on refining smaller residuals. This mutual reinforcement creates a synergistic effect, leading to progressively more accurate localization.
+
+
+% This mutual reinforcement—where earlier layers provide more accurate predictions, allowing the final layer to focus on refining smaller residuals—creates a synergistic effect, leading to progressively more accurate and robust localization results.
+
+% \textbf{(2) GO-LSD} leverages the final layer's refined distributions to distill knowledge into earlier layers, enhancing localization accuracy without additional computational overhead. This approach is more effective than traditional distillation methods~\citep{Zagoruyko2017AT,TA,DenselyTA,FitNets} and the standard LD technique~\citep{zheng2022localization}. As training progresses, the final layer produces increasingly precise soft labels. Through self-distillation, earlier layers align their predictions with these soft labels, simplifying the regression task for subsequent layers. This mutual reinforcement allows the final layer to focus on refining smaller residuals, leading to progressively more accurate localization.
+
+
+To further enhance the efficiency of D-FINE, we streamline computationally intensive modules and operations in existing real-time DETR architectures \citep{lv2023detrs}, making D-FINE faster and more lightweight. Although these modifications typically result in some performance loss, FDR and GO-LSD effectively mitigate this degradation. The detailed modifications are listed in \Cref{tab:model_modifications}.
+
+% Specifically, we remove the input projection layers in the decoder and the projection layers used in cross-attention. Additionally, the CSP layers in the encoder are replaced with GELAN layers \citep{wang2024yolov9} using half the hidden dimensions. 
+
+
+
+
+\subsection{Fine-grained Distribution Refinement}
+\textbf{Fine-grained Distribution Refinement (FDR)} iteratively optimizes a fine-grained distribution generated by the decoder layers, as shown in Figure~\ref{fig:main}. Initially, the first decoder layer predicts preliminary bounding boxes and preliminary probability distributions through a traditional bounding box regression head and a D-FINE head (Both heads are MLP, only the output dimensions are different). Each bounding box is associated with four distributions, one for each edge. The initial bounding boxes serve as reference boxes, while subsequent layers focus on refining them by adjusting distributions in a residual manner. The refined distributions are then applied to adjust the four edges of the corresponding initial bounding box, progressively improving its accuracy with each iteration.
+
+\begin{figure}[t]
+    \centering
+        \centering
+        \includegraphics[width=\textwidth]{fig/MAIN2.pdf}
+        \caption{Overview of D-FINE with FDR. The probability distributions that act as a more fine-grained intermediate representation are iteratively refined by the decoder layers in a residual manner. Non-uniform weighting functions are applied to allow for finer localization.}
+    \label{fig:main}
+\end{figure}
+
+Mathematically, let \( \mathbf{b}^0 = \{x, y, W, H\} \) denote the initial bounding box prediction, where \( \{x, y\} \) represents the predicted center of the bounding box, and \( \{W, H\} \) represent the width and height of the box. We can then convert \( \mathbf{b}^0 \) into the center coordinates \( \mathbf{c}^0 = \{x, y\} \) and the edge distances \( \mathbf{d}^0 = \{t, b, l, r\} \), which represent the distances from the center to the top, bottom, left, and right edges. For the \( l \)-th layer, the refined edge distances \( \mathbf{d}^{l} = \{t^l, b^l, l^l, r^l\} \) are computed as:
+\begin{equation}
+\mathbf{d}^{l} = \mathbf{d}^0 +  \{H, H, W, W\} \cdot \sum_{n=0}^{N} W(n) \mathbf{Pr}^{l}(n), \quad l\in \{1,2,\dots,L\},
+\end{equation}
+where \( \mathbf{Pr}^{l}(n) = \{\Pr_t^l(n), \Pr_b^l(n), \Pr_l^l(n), \Pr_r^l(n)\} \) represents four separate distributions, one for each edge. Each distribution predicts the likelihood of candidate offset values for the corresponding edge. These candidates are determined by the weighting function \( W(n) \), where \(n\) indexes the discrete bins out of \(N\), with each bin corresponding to a potential edge offset. The weighted sum of the distributions produces the edge offsets. These edge offsets are then scaled by the height \(H\) and width \(W\) of the initial bounding box, ensuring the adjustments are proportional to the box size. 
+
+The refined distributions are updated using residual adjustments, defined as follows:
+\begin{equation}
+\mathbf{Pr}^{l}(n) = 
+\text{Softmax}\left(\textit{logits}^{l}(n)\right) = 
+\text{Softmax}\left(\Delta \textit{logits}^{l}(n) + \textit{logits}^{l-1}(n)\right),
+\end{equation}
+where logits from the previous layer \( \textit{logits}^{l-1}(n) \) reflect the confidence in each bin’s offset value for the four edges. The current layer predicts the residual logits \( \Delta \textit{logits}^{l}(n) \), which are added to the previous logits to form updated logits \( \textit{logits}^{l}(n) \). These updated logits are then normalized using the softmax function, producing the refined probability distributions. 
+
+To facilitate precise and flexible adjustments, the weighting function \( W(n) \) is defined as:
+% \begin{equation}
+% W(n) = 
+% \begin{cases} 
+% 2 \cdot W(1)=-2a& \quad n = 0  \vspace{5pt}\\
+% c - c\left(\frac{a}{c} + 1\right)^{1-2\frac{n-1}{N-2}}   \quad &1 \leq n < \frac{N}{2} \vspace{5pt} \\
+%  - c + c\left(\frac{a}{c} + 1\right)^{2\frac{n-1}{N-2}-1}   \quad &\frac{N}{2} \leq n \leq N-1  \vspace{5pt}\\
+% 2 \cdot W(N-1)=2a& \quad n = N,
+% \end{cases}
+% \end{equation}
+\begin{equation}
+W(n) = 
+\begin{cases} 
+2 \cdot W(1)=-2a& \quad n = 0  \vspace{5pt}\\
+c - c\left(\frac{a}{c} + 1\right)^{\frac{N-2n}{N-2}}   \quad &1 \leq n < \frac{N}{2} \vspace{5pt} \\
+ - c + c\left(\frac{a}{c} + 1\right)^{\frac{-N+2n}{N-2}}   \quad &\frac{N}{2} \leq n \leq N-1  \vspace{5pt}\\
+2 \cdot W(N-1)=2a& \quad n = N,
+\end{cases}
+\end{equation}
+where $a$ and $c$ are hyper-parameters controlling the upper bounds and curvature of the function. As shown in Figure~\ref{fig:main}, the shape of \( W(n) \) ensures that when bounding box prediction is near accurate, small curvature in $W(n)$ allows for finer adjustments. Conversely, if the bounding box prediction is far from accurate, the larger curvature near the edges and the sharp changes at the boundaries of \( W(n) \) ensure sufficient flexibility for substantial corrections.
+
+% To improve the accuracy of our distribution predictions and align them with ground truth values, we incorporate Distribution Focal Loss \citep{gfocal} into our methodology. The Distribution Focal Loss \(\mathcal{L}_{\text{DF}}\), incorporating the non-uniform weighting function, is computed as:
+To further improve the accuracy of our distribution predictions and align them with ground truth values, inspired by Distribution Focal Loss (DFL) \citep{gfocal}, we propose a new loss function, Fine-Grained Localization (FGL) Loss, which is computed as:
+\begin{align}
+\mathcal{L}_{\text{FGL}} = 
+\sum_{l=1}^{L} \left( \sum_{k=1}^{K}   \text{IoU}_{k} \left(\omega_{\leftarrow}\cdot
+\textbf{CE}\left(\mathbf{Pr}^{l}(n)_k, n_{\leftarrow}\right) 
++ \omega_{\rightarrow}\cdot
+\textbf{CE}\left(\mathbf{Pr}^{l}(n)_k, n_{\rightarrow}\right)\right) \right)\notag\\
+\omega_{\leftarrow} = 
+\frac{|\phi - W(n_{\rightarrow})|}{|W(n_{\leftarrow}) - W(n_{\rightarrow})|} , \quad
+\omega_{\rightarrow} =
+\frac{|\phi - W(n_{\leftarrow})|}{|W(n_{\leftarrow}) - W(n_{\rightarrow})|}, 
+\quad\quad\quad\quad\quad
+\end{align}
+where \( \mathbf{Pr}^{l}(n)_k \) represents the probability distributions corresponding to the $k$-th prediction. \( \phi \) is the relative offset calculated as \( \phi = (\mathbf{d}^{GT} - \mathbf{d}^0) / \{H, H, W, W\} \). $\mathbf{d}^{GT}$ represents the ground truth edge-distance and \( n_{\leftarrow}, n_{\rightarrow} \) are the bin indices adjacent to \( \phi \). The cross-entropy (CE) losses with weights \( \omega_{\leftarrow} \) and \( \omega_{\rightarrow} \) ensure that the interpolation between bins aligns precisely with the ground truth offset. By incorporating IoU-based weighting, FGL loss encourages distributions with lower uncertainty to become more concentrated, resulting in more precise and reliable bounding box regression.
+% This approach also aligns with the observation that models trained using cross-entropy loss are more effective as teacher models in knowledge distillation tasks~\citep{hinton2015distilling}, providing an ideal framework for GO-LSD.
+
+
+
+% This formulation ensures that the contribution of each bin to the loss is proportional to its difference from the true bounding box location. The inclusion of the IoU weight \(\text{IoU}_{k}\) further adjusts this contribution based on the quality of localization, giving greater influence to predictions with higher IoU scores. This combined weighting mechanism enables more precise localization. This approach also echoes the observation that models trained using cross-entropy loss are more suitable as teacher models in knowledge distillation tasks~\citep{hinton2015distilling}, creating ideal conditions for GO-LSD.
+
+
+% The loss is a weighted sum of cross-entropy losses (CE) applied to the predicted distribution \({\Pr}_i(x)\). \( \omega \) is the ground truth relative offset value ( \( \mathbf{b}_{GT} = \mathbf{b}^0 + \omega\mathbf{b}^0  \), \(\mathbf{b}_{GT}\) represents the ground truth bounding boxes.) Here, \( i_{\text{l}} \) and \( i_{\text{r}} \) are the left and right bin indices surrounding \( \omega\).
+
+
+
+
+
+
+\begin{figure}[t]
+    \centering
+        \centering
+        \includegraphics[width=\textwidth]{fig/LD.pdf}
+        \caption{Overview of GO-LSD process. Localization knowledge from the final layer’s refined distributions is distilled into shallower layers through DDF loss with decoupled weighting strategies.}
+
+    \label{fig:ld}
+\end{figure}
+% We adopt a decoupled approach, focusing the distillation process on the most informative predictions.
+
+\subsection{Global Optimal Localization Self-Distillation}
+
+% \textbf{Global Optimal Localization Self-Distillation} (GO-LSD) utilizes the final layer's refined distribution predictions to distill localization knowledge into the earlier layers of the DETR model, as shown in \Cref{fig:ld}. This approach simplifies the regression task for the later layers, which in turn enhances overall performance. 
+% We begin by applying Hungarian Matching~\citep{carion2020end} to the predictions from each layer to identify optimal bounding box matches. The matching indices from all layers are aggregated into a union set. This union set represents the global optimal matches across all layers.
+% Next, we compute the self-distillation loss between the predicted and target distributions for each prediction. In DETR, outputs are one-to-one matched, which can result in early layers having low-confidence predictions that are nonetheless accurately localized. Improper weighting can lead to non-convergence in distillation losses. 
+
+
+\textbf{Global Optimal Localization Self-Distillation} (GO-LSD) utilizes the final layer's refined distribution predictions to distill localization knowledge into the shallower layers, as shown in \Cref{fig:ld}. 
+This process begins by applying Hungarian Matching~\citep{carion2020end} to the predictions from each layer, identifying the local bounding box matches at every stage of the model. To perform a global optimization, GO-LSD aggregates the matching indices from all layers into a unified union set. This union set combines the most accurate candidate predictions across layers, ensuring that they all benefit from the distillation process. In addition to refining the global matches, GO-LSD also optimizes unmatched predictions during training to improve overall stability, leading to improved overall performance. Although the localization is optimized through this union set, the classification task still follows a one-to-one matching principle, ensuring that there are no redundant boxes. This strict matching means that some predictions in the union set are well-localized but have low confidence scores. These low-confidence predictions often represent candidates with precise localization, which still need to be distilled effectively. 
+
+
+% This strategy simplifies the regression task for the later layers, thereby enhancing overall performance. 
+% The matching indices from all layers are aggregated into a union set, representing the global optimal matches across all layers. **This union set ensures that the distillation process leverages the most accurate predictions from every layer.** Next, we compute the self-distillation loss between the predicted and target distributions for each prediction. In DETR, outputs are one-to-one matched, which can result in shallow layers having low-confidence predictions that are nonetheless accurately localized. Improper weighting can lead to non-convergence in distillation losses.
+
+To address this, we introduce Decoupled Distillation Focal (DDF) Loss, which applies decoupled weighting strategies to ensure that high-IoU but low-confidence predictions are given appropriate weight. The DDF Loss also weights matched and unmatched predictions according to their quantity, balancing their overall contribution and individual losses. This approach results in more stable and effective distillation.
+% , while assigning higher weights to unmatched predictions due to their larger quantity and smaller individual losses, resulting in more stable and effective distillation.
+% \textbf{(1) IoU Score Weighting for Matched Predictions}: For $k$-th prediction within the matched union set, the distillation loss is weighted by the Intersection over Union (IoU) score $\text{IoU}_{k}$.
+% % , scaled by the square root of the proportion of matched predictions $\sqrt{r_m}$.
+% \textbf{(2) Confidence Score Weighting for Unmatched Predictions}: For $k$-th prediction outside the matched union set, we use the teacher model's output classification confidence as a weight $\text{Conf}_{k}$.
+% , scaled by the square root of the proportion of unmatched predictions $\sqrt{r_u}$.
+The Decoupled Distillation Focal Loss $\mathcal{L}_{\text{DDF}}$ is then formulated as:
+\begin{align}
+\mathcal{L}_{\text{DDF}} = 
+T^2\sum_{l=1}^{L-1} \left( {\sum_{k=1}^{K_m} \alpha_{k}\cdot\textbf{KL}\left(\mathbf{Pr}^{l}(n)_k, \mathbf{Pr}^{L}(n)_k\right) + 
+\sum_{k=1}^{K_u} \beta_{k}\cdot\textbf{KL}\left(\mathbf{Pr}^{l}(n)_k, \mathbf{Pr}^{L}(n)_k \right) }\right) \notag \\
+\alpha_{k} = \text{IoU}_{k}\cdot\frac{\sqrt{K_m}}{\sqrt{K_m} + \sqrt{K_u}}, \quad
+\beta_{k} = \text{Conf}_{k}\cdot\frac{\sqrt{K_u}}{\sqrt{K_m} + \sqrt{K_u}},
+\quad\quad\quad\quad\quad\quad\quad
+\end{align}
+% where $\mathbf{Pr}^{l}(n)_k$ and $\mathop{\Pr}\limits^{\rightarrow}{}^{L}(n)_k$ denote the predicted and target distributions, respectively. 
+where \textbf{KL} represents the Kullback-Leibler divergence~\citep{hinton2015distilling}, and \( T \) is the temperature parameter used for smoothing logits. The distillation loss for the $k$-th matched prediction is weighted by \( \alpha_{k} \), where \( K_m \) and \( K_u \) are the numbers of matched and unmatched predictions, respectively. For the $k$-th unmatched prediction, the weight is \( \beta_{k} \), with \( \text{Conf}_{k} \) denoting the classification confidence. 
+
+% To balance supervision, higher weights are assigned to unmatched predictions due to their larger quantity and smaller individual losses. 
+
+
+

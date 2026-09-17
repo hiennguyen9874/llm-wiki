@@ -1,0 +1,74 @@
+\begin{table}[htbp]
+\centering
+\caption{\textbf{Impact of Dense O2O and \ourclsloss.} We conduct experiments with ResNet50~\cite{he2016deep} and ResNet101~\cite{he2016deep}. Experiments are conducted on COCO~\cite{lin2014microsoft} and we report the performance on COCO~\cite{lin2014microsoft} val2017.}
+\resizebox{.45\textwidth}{!}{%
+\begin{tabular}{lcccccc}
+    \toprule
+    Epochs & Dense O2O & \ourclsloss & AP & AP$_{50}$ & AP$_{75}$ \\
+    \hline
+    \rowcolor{f2ecde}
+    \multicolumn{6}{c}{\textbf{ResNet50~\cite{he2016deep}-based}} \\
+    72  &  &   & 53.4 & 71.6 & 57.4 \\
+    \hline
+    \multirow{2}{*}{36} % & \checkmark &  & 53.2 & 71.4 & 57.8 \\
+                        % & \checkmark & \checkmark & 53.4 & 71.3 & 57.9 \\
+                        & \checkmark &  & 53.6 & 71.2 & 57.8 \\   % ToBe Done
+                        & \checkmark & \checkmark & 53.6 & 71.4 & 58.0 \\
+    % \hline
+    % \multirow{2}{*}{48} & \checkmark &  & 53.7 & 71.9 & 58.1 \\
+    %                     & \checkmark & \checkmark & 53.8 & 71.8 & 58.3 \\
+    \midrule
+    \rowcolor{f2ecde}
+    \multicolumn{6}{c}{\textbf{ResNet101~\cite{he2016deep}-based}} \\
+    72  &  &  & 54.3 & 72.9 & 58.8 \\
+    \hline
+    \multirow{2}{*}{36} % & \checkmark &  & 54.1 & 72.3 & 58.4 \\
+                        % & \checkmark & \checkmark & 54.5 & 72.5 & 59.2 \\
+                        & \checkmark &  & 55.1 & 72.8 & 59.1 \\   % ToBe Done
+                        & \checkmark & \checkmark & 55.2 & 73.3 & 59.9 \\
+    % \hline
+    % \multirow{2}{*}{48} & \checkmark &  & 54.5 & 72.9 & 58.9 \\
+    %                     & \checkmark & \checkmark & 55.0 & 73.0 & 59.8 \\
+    \midrule
+\end{tabular}
+}
+\vspace{-0.4cm}
+\label{tab:ab_all} 
+\end{table}
+
+Table~\ref{tab:ab_all} presents the effectiveness of the two core components: Dense O2O and \ourclsloss. Dense O2O significantly accelerates model convergence, achieving performance similar to the baseline after just 36 epochs, as opposed to the 72 epochs required for the original model. When combined with \ourclsloss, our method further improves performance, especially on the ResNet101~\cite{he2016deep} backbone, where we observe a 0.5 AP increase. This improvement is largely driven by better box quality, as evidenced by a 0.8 AP$_{75}$ gain, aligning with our goal of optimizing low-quality matches to improve high-quality box predictions. Overall, Dense O2O and \ourclsloss\ consistently deliver performance gains across both ResNet50~\cite{he2016deep} and ResNet101~\cite{he2016deep} backbones, demonstrating their robustness and generalizability.
+
+\noindent \textbf{Effectiveness of Dense O2O and \ourclsloss{} on D-FINEs~\cite{peng2024d}.} We further validate the effectiveness of Dense O2O and our loss within the D-FINE framework, observing consistent improvements from both components (~\Cref{tab:ab_dfine_all}). Additionally, the improvement is most notable in AP$_{75}$, approaching a 1\% increase, indicating more accurate predictions.
+
+\begin{table}[htbp]
+\centering
+\caption{\textbf{Impact of Dense O2O and \ourclsloss{} on D-FINEs.}}
+\resizebox{.45\textwidth}{!}{%
+\begin{tabular}{lcccccc}
+    \toprule
+    Epoch & Dense O2O & \ourclsloss & AP & AP$_{50}$ & AP$_{75}$ \\
+    \hline
+    \rowcolor{f2ecde}
+    \multicolumn{6}{c}{\textbf{D-FINE-L-based}} \\
+    72 &  &   & 54.0 & 71.6 & 58.4 \\
+    \hline
+    \multirow{2}{*}{36} 
+                        &  &  & 53.5 & 71.2 & 58.2 \\
+                        & \checkmark &  & 54.2 & 72.1 & 58.9 \\
+                        & \checkmark & \checkmark & 54.6 & 72.2 & 59.5 \\
+    \midrule
+    \rowcolor{f2ecde}
+    \multicolumn{6}{c}{\textbf{D-FINE-X-based}} \\
+    72 &  &  & 55.8 & 73.7 & 60.2 \\
+    \hline
+    \multirow{2}{*}{36} 
+                        &  &  & 55.5 & 73.1 & 60.4 \\
+                        & \checkmark &  & 56.0 & 73.6 & 60.9 \\
+                        & \checkmark & \checkmark & 56.2 & 73.8 & 61.2 \\
+
+    \midrule
+\end{tabular}
+}
+\vspace{-0.7cm}
+\label{tab:ab_dfine_all} 
+\end{table}

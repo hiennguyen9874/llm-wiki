@@ -1,0 +1,69 @@
+\section{Experiments}
+
+\subsection{Setup}
+\noindent \textbf{Dataset and Metric.} 
+All experiments are conducted on the COCO 2017~\cite{lin2014microsoft} dataset, using the \texttt{train2017} split for training and \texttt{val2017} for evaluation. We report the standard COCO metrics, including AP~(averaged over uniformly sampled IoU thresholds ranging from 0.50-0.95 with a step size of 0.05), AP$_{50}$, AP$_{75}$, as well as AP at different scales: AP$_S$, AP$_M$, AP$_L$.
+
+\noindent \textbf{Implementation Details.}
+Our experiments are based on the RT-DETR architecture~\cite{zhao2024detrs}, with additional architectural and training refinements from RT-DETRv2~\cite{lv2024rt}, D-FINE~\cite{peng2024d}, and DEIM~\cite{huang2025deim}. For fair comparison, the core hyperparameters remain consistent with those in the corresponding baselines. 
+The DSI employs a pre-trained and frozen DINOv3-ViT-B model as the semantic teacher. All evaluations are conducted using the COCO AP metrics, and inference latency (in milliseconds) is measured on a single NVIDIA T4 GPU under TensorRT FP16 precision.
+
+
+\subsection{Comparison with SOTA}
+We compare our proposed {RT-DETRv4} with recent state-of-the-art real-time detectors, including the latest YOLO series (YOLOv10~\cite{wang2024yolov10}, YOLOv11~\cite{yolo11}, YOLOv12~\cite{tian2025yolov12}, and YOLOv13~\cite{lei2025yolov13}) and DETR-based detectors (RT-DETR~\cite{zhao2024detrs}, RT-DETRv2~\cite{lv2024rt}, RT-DETRv3~\cite{wang2025rt}, D-FINE~\cite{peng2024d}, DEIM~\cite{huang2025deim}, and DEIMv2~\cite{huang2025real}). The results are illustrated in Figure~\ref{fig:coco_ap_latency}, and detailed statistics are provided in Table~\ref{tab:comparison}.
+The results demonstrate that {RT-DETRv4} consistently achieves the best performance across all model scales (S, M, L, and X) without introducing any extra inference and deployment overhead.
+
+Specifically, our \textbf{RT-DETRv4-L} achieves \textbf{55.4 AP} on COCO at \textbf{124 FPS}, outperforming YOLOv13-L (53.4 AP) and DEIM-L (54.7 AP) under comparable or even lower computational budgets.
+The largest variant, \textbf{RT-DETRv4-X}, reaches \textbf{57.0 AP}, exceeding DEIM-X (56.5 AP) without introducing any inference overhead.
+At smaller scales, \textbf{RT-DETRv4-S} and \textbf{RT-DETRv4-M} obtain \textbf{49.7} and \textbf{53.5 AP}, respectively, both clearly surpassing their DEIM counterparts (49.0 and 52.7 AP). 
+
+To ensure a fair comparison within a similar latency regime, we report DEIMv2~\cite{huang2025real} results only in Figure~\ref{fig:coco_ap_latency} and exclude them from Table~\ref{tab:comparison}, as their models generally exhibit higher inference latency. 
+Under comparable inference speeds, our RT-DETRv4-M surpasses DEIMv2-S by a large margin (53.5 AP vs. 50.9 AP at 169 FPS vs. 173 FPS), and RT-DETRv4-L further outperforms DEIMv2-M (55.4 AP vs. 53.0 AP at 124 FPS vs. 113 FPS).
+These results fully demonstrate the effectiveness and great potential of the proposed method.
+Although DEIMv2-X achieves stronger performance, its latency is also higher than that of RT-DETRv4-X.
+Moreover, directly adopting DINOv3 as the backbone to obtain semantic richness is fundamentally constrained by model size and deployment cost, limiting it to the Tiny or Small variants of DINOv3 and making it difficult to scale to more powerful large-scale models. In contrast, our framework remains agnostic to both VFM type and scale, introducing no inference or deployment overhead, offering a more flexible and deployment-friendly solution.
+
+\begin{figure*}[t]
+    \centering
+    \includegraphics[width=1\linewidth]{figures/feature_map_comparison.pdf}
+    \caption{\textbf{Comparison of dense features.} We compare the feature map quality of DEIM-L (top) and \ourmethod-L (bottom) by projecting dense outputs to RGB space using PCA. The visualization reveals that our DSI module substantially enhances the semantic representation of AIFI features, which in turn benefits subsequent CCFF features. From left to right: input image, AIFI feature map $F_5$, and multi-scale CCFF features $P_3$, $P_4$, $P_5$.}
+    \label{fig:feature_map_comparison}
+\vspace{-5mm}
+\end{figure*}
+
+\subsection{Ablation Study}
+We conduct a series of ablation experiments to verify the effectiveness of proposed modules. Unless stated otherwise, all ablation experiments are trained for \textbf{36 epochs}. Unspecified hyperparameters or configurations follow the best settings for the corresponding experimental setup.
+
+\input{sec/exp_results}
+
+\noindent \textbf{Ablation on DSI and GAM.}
+We first assess the effectiveness of DSI and GAM.
+As shown in Table~\ref{tab:ablation_main}, applying DSI can bring a slight performance improvement, while further applying GAM can significantly improve the performance gain (0.5 AP), which fully proves the effectiveness of both.
+To verify the general applicability of our method, we also conduct experiments on RT-DETRv2 and D-FINE, and the results show that our method can bring consistent performance gains to different detectors.
+
+\input{sec/exp_results2}
+
+\noindent \textbf{Ablation on semantic injection position.}
+To validate the choice of injection position, we compare the strategies shown in Figure~\ref{fig:module_design}. Results in Table~\ref{tab:semantic_location} indicate that directly applying semantic supervision to backbone features (\(S_3\), \(S_4\), or \(S_5\)) individually or jointly yields no improvement. Similarly, the hybrid approach (strategy (b)) that aligns both backbone and \(F_5\) features provides no gain (53.8 AP). 
+
+In contrast, our design (strategy (c)), which aligns only the AIFI output \(F_5\), achieves a clear 0.5 AP improvement (54.3 AP). 
+This demonstrates that maintaining richer semantics in \(F_5\) is crucial for enhancing detection performance, as it plays a key role in propagating high-level semantic information to subsequent feature hierarchies. Furthermore, the ineffectiveness of the hybrid approach suggests that simultaneously aligning features from the CNN-based backbone and the Transformer-based AIFI may introduce optimization conflicts or semantic misalignment. Our chosen strategy is not only more effective but also more efficient. It avoids the complexity of multiple intermediate projections and interpolations, and the gradient from the single \(F_5\) alignment loss naturally flows back to synergistically update both AIFI and the backbone, achieving consistent enhancement with a single, targeted objective.
+
+\input{sec/exp_results3}
+
+\noindent \textbf{Design of the feature projector.}
+The feature projector is a crucial component for bridging the student and teacher feature spaces. We explore several architectural choices, as detailed in Table~\ref{tab:ablation_projector}. An linear-based projector yields the best results, striking an optimal balance between expressive power and parameter efficiency. 
+
+
+\noindent \textbf{Choice of loss function.}
+We further study the alignment loss of DSI.
+We compare the Mean Squared Error (MSE) loss and the Cosine Similarity loss in Table \ref{tab:ablation_loss}, with the latter outperforming the former, validating our hypothesis that aligning feature direction is more crucial.
+
+
+\noindent \textbf{Comparison of GAM and static weights.}
+Finally, we validate the proposed GAM against static weights. The superiority of GAM in navigating the training dynamics is further illustrated in Figure~\ref{fig:gam_training_curve}, which plots the validation AP over epochs. As shown, the curve for GAM consistently remains above the baseline and all static weight configurations, demonstrating a clear and stable performance advantage throughout the training process.
+
+Table~\ref{tab:ablation_gam} details the results for static weight and GAM. For static weighting, performance peaks at $\lambda=20$, achieving 55.1 AP, but degrades with either smaller or larger values. However, observing the training curve in Figure~\ref{fig:gam_training_curve}, we find that even this optimal static weight ($\lambda=20$) leads to slower convergence in the early-to-mid stages, highlighting the inherent limitations of a fixed hyperparameter. Our experiments indicate that GAM achieves the best performance (55.4 AP).
+
+\noindent \textbf{Feature visualization.}
+Figure~\ref{fig:feature_map_comparison} visually compares the feature maps between DEIM-L and our RT-DETRv4-L. Notably, our model enriches the semantic content of the AIFI feature $F_5$, leading to more precise and distinguishable object contours and backgrounds across the subsequent multi-scale features $P_3$, $P_4$, and $P_5$. In particular, $P_5$ exhibits a markedly stronger and more concentrated response to object regions.

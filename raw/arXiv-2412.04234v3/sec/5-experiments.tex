@@ -1,0 +1,293 @@
+
+\begin{table*}[t]
+\vspace{-0.2cm}
+    \caption{\textbf{Comparison with real-time object detectors on COCO~\cite{lin2014microsoft} val2017.} By integrating our method into D-FINE-L~\cite{peng2024d} and D-FINE-X~\cite{peng2024d}, we build \ourmethod-D-FINE-L and \ourmethod-D-FINE-X. We compare our method with YOLO-based and DETR-based real-time object detectors. ${\star}$ indicates that the NMS is tuned with a confidence threshold of 0.01.}
+    \vspace{-0.1cm}
+    \centering
+    \resizebox{.94\textwidth}{!}
+    {
+    \begin{tabular}{l | cccc | ccc ccc}
+    \toprule
+    % \hline
+        \textbf{Model} & \textbf{\#Epochs} & \textbf{\#Params} & \textbf{GFLOPs} & \textbf{Latency (ms)} & \textbf{AP$^{val}$} & \textbf{AP$^{val}_{50}$} & \textbf{AP$^{val}_{75}$} & \textbf{AP$^{val}_S$} & \textbf{AP$^{val}_M$} & \textbf{AP$^{val}_L$} \\
+    \midrule
+    % \hline
+    \rowcolor{f2ecde}
+    \multicolumn{11}{c}{\textbf{YOLO-based Real-time Object Detectors}} \\
+    YOLOv8-L~\cite{yolov8} & 500 & 43 & 165  & 12.31 & 52.9 & 69.8 & 57.5 & 35.3 & 58.3 & 69.8 \\
+    YOLOv8-X~\cite{yolov8} & 500 & 68 & 257  & 16.59 & 53.9 & 71.0 & 58.7 & 35.7 & 59.3 & 70.7 \\
+    YOLOv9-C~\cite{wang2024yolov9} & 500 & 25 & 102 & 10.66 & 53.0 & 70.2 & 57.8 & 36.2 & 58.5 & 69.3 \\
+    YOLOv9-E~\cite{wang2024yolov9} & 500 & 57 & 189 & 20.53 & 55.6 & 72.8 & 60.6 & 40.2 & 61.0 & 71.4 \\
+    Gold-YOLO-L~\cite{wang2024gold} & 300 & 75 & 152 & 9.21 & 53.3 & 70.9 & - & 33.8 & 58.9 & 69.9 \\
+    % RTMDet-L & 52M & 80 & 14.23 & 51.3 & 68.9 & 55.9 & 33.0 & 55.9 & 68.4 \\
+    % RTMDet-X & 95M & 142 & 21.59 & 52.8 & 70.4 & 57.2 & 35.9 & 57.3 & 69.1 \\
+    YOLOv10-L$^{\star}$~\cite{wang2024yolov10} & 500 & 24 & 120 & 7.66 & 53.2 & 70.1 & 58.1 & 35.8 & 58.5 & 69.4 \\
+    YOLOv10-X$^{\star}$~\cite{wang2024yolov10} & 500 & 30 & 160 & 10.74 & 54.4 & 71.3 & 59.3 & 37.0 & 59.8 & 70.9 \\
+    YOLO11-L$^{\star}$~\cite{yolo11} & 500 & 25 & 87 & 6.31 & 52.9 & 69.4 & 57.7 & 35.2 & 58.7 & 68.8 \\
+    YOLO11-X$^{\star}$~\cite{yolo11} & 500 & 57 & 195 & 10.52 & 54.1 & 70.8 & 58.9 & 37.0 & 59.2 & 69.7 \\ 
+    \midrule
+    % \hline
+    \rowcolor{f2ecde}
+    \multicolumn{11}{c}{\textbf{DETR-based Real-time Object Detectors}} \\
+    RT-DETR-HG-L~\cite{zhao2024detrs} & 72 & 32 & 107 & 8.77 & 53.0 & 71.7 & 57.3 & 34.6 & 57.4 & 71.2 \\ 
+    RT-DETR-HG-X~\cite{zhao2024detrs} & 72 & 67 & 234 & 13.51 & 54.8 & 73.1 & 59.4 & 35.7 & 59.6 & 72.9 \\
+    % \midrule
+    D-FINE-L~\cite{peng2024d} & 72 & 31 & 91 & 8.07 & 54.0 & 71.6 & 58.4 & 36.5 & 58.0 & 71.9 \\
+    \rowcolor[gray]{0.95} \textbf{\ourmethod-D-FINE-L} & \bf 50 & 31 & 91 & 8.07 & \textbf{54.7} & 72.4 & 59.4 & 36.9 & 59.6 & 71.8 \\ 
+    D-FINE-X~\cite{peng2024d} & 72 & 62 & 202 & 12.89 & 55.8 & 73.7 & 60.2 & 37.3 & 60.5 & 73.4 \\ 
+    \rowcolor[gray]{0.95}
+    \textbf{\ourmethod-D-FINE-X} & \bf 50 & 62 & 202 & 12.89 & \textbf{56.5} & 74.0 & 61.5 & 38.8 & 61.4 & 74.2 \\
+    \bottomrule
+    \end{tabular}
+    % \end{center}
+    \label{tab:comp_rt}
+}
+\vspace{-0.2cm}
+\end{table*}
+
+\section{Experiments}
+\label{sec:exps}
+
+\subsection{Training details}
+For Dense O2O, we apply mosaic augmentation~\cite{bochkovskiy2020yolov4} and mixup augmentation~\cite{zhang2017mixup} to generate additional positive samples per image. The impact of these augmentations is discussed in Section~\ref{sec_discuss}. We train our models on the MS-COCO dataset~\cite{lin2014microsoft} using the AdamW optimizer~\cite{loshchilov2017decoupled}. Standard data augmentations, such as color jitter and zoom-out, are used, as in RT-DETR~\cite{lv2024rt,zhao2024detrs} and D-FINE~\cite{peng2024d}. We employ a flat cosine learning rate scheduler~\cite{lyu2022rtmdet} and propose a novel data augmentation scheduler. A data augmentation warmup strategy is used in the first few training epochs (four usually) for simplifying attention learning. Disabling Dense O2O after 50\% of training epochs leads to better results. Following RT-DETRv2~\cite{zhao2024detrs}, we turn off data augmentation in the last two epochs. Our LR and DataAug schedulers are depicted specifically in Fig.~\ref{fig:sup_train_scheme}. Our backbones are pre-trained on ImageNet1k~\cite{deng2009imagenet}. We evaluate our models on the MS-COCO validation set at a resolution of $640 \times 640$. Additional details about the hyperparameters are provided in the supplementary material.
+
+
+
+
+\begin{table*}[!t]
+\caption{\textbf{Comparison with ResNet-based DETRs on COCO~\cite{lin2014microsoft} val2017.} By integrating our method into ResNet50~\cite{he2016deep} and ResNet101~\cite{he2016deep}, we build \ourmethod-RT-DETRv2-R50 and \ourmethod-RT-DETRv2-R101. We compare our method with competitive DETR-based object detectors that use ResNet50~\cite{he2016deep} or ResNet101~\cite{he2016deep} as backbones.}
+\vspace{-0.15cm}
+\footnotesize
+\centering
+\begin{tabular}{l | ccc | cccccc}
+    \toprule
+    \textbf{Model} & \textbf{\#Epochs} & \textbf{\#Params} & \textbf{GFLOPs} & \textbf{AP$^{val}$} & \textbf{AP$^{val}_{50}$} & \textbf{AP$^{val}_{75}$} & \textbf{AP$^{val}_S$} & \textbf{AP$^{val}_M$} & \textbf{AP$^{val}_L$} \\ 
+    \midrule
+    % \hline
+    \rowcolor{f2ecde}
+    \multicolumn{10}{c}{\textbf{ResNet50~\cite{he2016deep}-based}} \\
+    DETR-DC5~\cite{carion2020end} & 500 & 41 &  187 & 43.3 & 63.1 & 45.9 & 22.5 & 47.3 & 61.1 \\
+    Anchor-DETR-DC5~\cite{wang2022anchor} & 50 & 39 &  172 & 44.2 & 64.7 & 47.5 & 24.7 & 48.2 & 60.6 \\
+    Conditional-DETR-DC5~\cite{meng2021conditional} & 108 & 44 & 195 & 45.1 & 65.4 & 48.5 & 25.3 & 49.0 & 62.2 \\
+    Efficient-DETR~\cite{yao2021efficient} & 36 & 35 &  210 & 45.1 & 63.1 & 49.1 & 28.3 & 48.4 & 59.0 \\
+    SMCA-DETR~\cite{gao2021fast} & 108 & 40 &  152  & 45.6 & 65.5 & 49.1 & 25.9 & 49.3 & 62.6 \\
+    Deformable-DETR~\cite{zhu2020deformable} & 50 & 40 & 173 & 46.2 & 65.2 & 50.0 & 28.8 & 49.2 & 61.7 \\
+    DAB-Deformable-DETR~\cite{liu2022dab} & 50 & 48 &  195 & 46.9 & 66.0 & 50.8 & 30.1 & 50.4 & 62.5 \\
+    % DAB-Deformable-DETR++~\cite{liu2022dab} & 50 & 47 & - & 48.7 & 67.2 & 53.0 & 31.4 & 51.6 & 63.9 \\
+    DN-Deformable-DETR~\cite{li2022dn} & 50 & 48 &  195 & 48.6 & 67.4 & 52.7 & 31.0 & 52.0 & 63.7 \\
+    % DN-Deformable-DETR++~\cite{li2022dn} & 50 & 47 & - & 49.5 & 67.6 & 53.8 & 31.3 & 52.6 & 65.4 \\
+    DINO-Deformable-DETR~\cite{zhang2022dino} & 36 & 47 &  279 & 50.9 & 69.0 & 55.3 & 34.6 & 54.1 & 64.6 \\
+    RT-DETR~\cite{zhao2024detrs} & 72 & 42 & 136 & 53.1 & 71.3 & 57.7 & 34.8 & 58.0 & 70.0 \\ 
+    RT-DETRv2~\cite{lv2024rt} & 72 & 42 & 136 & 53.4 & 71.6 & 57.4 & 36.1 & 57.9 & 70.8 \\ 
+     \rowcolor[gray]{0.95}
+    \textbf{\ourmethod-RT-DETRv2} & \bf 36 & 42 & 136 & 53.9 & 71.7 & 58.6 & 36.7 & 58.9 & 70.9 \\ \rowcolor[gray]{0.95}
+    \textbf{\ourmethod-RT-DETRv2} & \bf 60 & 42 & 136 & \textbf{54.3} & 72.3 & 58.8 & 37.5 & 58.7 & 70.8 \\ \rowcolor[gray]{0.95}
+    \midrule
+    % \hline
+    \rowcolor{f2ecde}
+    \multicolumn{10}{c}{\textbf{ResNet101~\cite{he2016deep}-based}} \\
+    DETR-DC5~\cite{carion2020end} & 500 & 60 &  253 & 44.9 & 64.7 & 47.7 & 23.7 & 49.5 & 62.3 \\
+    Anchor-DETR-DC5~\cite{wang2022anchor} & 50 & - & - & 45.1 & 65.7 & 48.8 & 25.8 & 49.4 & 61.6 \\
+    Conditional-DETR-DC5~\cite{meng2021conditional} & 108 & 63 & 262 & 45.9 & 66.8 & 49.5 & 27.2 & 50.3 & 63.3 \\
+    Efficient-DETR~\cite{yao2021efficient} & 36 & 54 &  289 & 45.7 & 64.1 & 49.5 & 28.2 & 49.1 & 60.2 \\
+    SMCA-DETR~\cite{gao2021fast} & 108 & 58 &  218 & 46.3 & 66.6 & 50.2 & 27.2 & 50.5 & 63.2 \\
+    RT-DETR~\cite{zhao2024detrs}  & 72 & 76 & 259 & 54.3 & 72.7 & 58.6 & 36.0 & 58.8 & 72.1 \\
+    RT-DETRv2~\cite{lv2024rt}  & 72 & 76 & 259 & 54.3 & 72.8 & 58.8 & 35.8 & 58.8 & 72.1 \\
+    \rowcolor[gray]{0.95}
+    \textbf{\ourmethod-RT-DETRv2} & \bf 36 & 76 & 259 & 55.2 & 73.3 & 59.9 & 37.8 & 59.6 & 72.8 \\ \rowcolor[gray]{0.95}
+    \textbf{\ourmethod-RT-DETRv2} & \bf 60 & 76 & 259 & \textbf{55.5} & 73.5 & 60.3 & 37.9 & 59.9 & 73.0 \\
+    \bottomrule
+\end{tabular}
+\vspace{-0.45cm}
+\label{tab:comp_detrs}
+\end{table*}
+
+\subsection{Comparisons with real-time detectors}
+We integrate our method into D-FINE-L~\cite{peng2024d} and D-FINE-X~\cite{peng2024d} building our \ourmethod-D-FINE-L and \ourmethod-D-FINE-X. We then evaluate these models and benchmark their real-time object detection performance against state-of-the-art models, including YOLOv8~\cite{yolov8}, YOLOv9~\cite{wang2024yolov9}, YOLOv10~\cite{wang2024yolov9}, YOLOv11~\cite{yolo11}, as well as DETR-based models like RT-DETRv2~\cite{lv2024rt} and D-FINE~\cite{peng2024d}. Tab.~\ref{tab:comp_rt} compares the models in terms of epochs, parameters, GFLOPs, latency, and detection accuracy. Additional comparisons of smaller model variants (S and M) are included in the supplementary material.
+
+ Our method outperforms the current state-of-the-art models in training cost, inference latency, and detection accuracy, setting a new benchmark for real-time object detection. Note that D-FINE~\cite{peng2024d} is a very recent work that enhances the performance of RT-DETRv2~\cite{lv2024rt} by incorporating distillation and bounding box refinement, establishing itself as a leading real-time detector. Our DEIM further boosts the performance of D-FINE, achieving a 0.7 AP gain while reducing training costs by 30\%, with no added inference latency. The most significant improvement is observed in small object detection, where D-FINE-X~\cite{peng2024d}, when trained with our method, achieves a 1.5 AP gain as \ourmethod-D-FINE-X.
+
+When compared directly to YOLOv11-X~\cite{yolo11}, our \ourmethod-D-FINE-L outperforms this SoTA model, achieving slightly higher performance (54.7 vs. 54.1 AP) and reducing inference time by 20\% (8.07 ms vs. 10.74 ms). Although YOLOv10~\cite{wang2024yolov9} uses a hybrid O2M and O2O assignment strategy, our models consistently outperform YOLOv10, demonstrating the effectiveness of Dense O2O.
+
+Despite significant improvements in small object detection over other DETR-based models, our approach shows a slight decrease in small object AP compared to YOLO models. For example, YOLOv9-E~\cite{wang2024yolov9} outperforms D-FINE-L~\cite{peng2024d} by approximately 1.4 AP on small objects, though our model achieves a higher overall AP (56.5 vs. 55.6). This gap underscores the ongoing challenges in small object detection within the DETR architecture and suggests potential areas for further improvement.
+
+\subsection{Comparisons with ResNet~\cite{he2016deep}-based DETRs}
+Most DETR research uses ResNet~\cite{he2016deep} as the backbone, and to enable a comprehensive comparison across existing DETR variants, we also applied our method to RT-DETRv2~\cite{lv2024rt}, a state-of-the-art DETR variant. The results are summarized in Tab.~\ref{tab:comp_detrs}. Unlike the original DETR, which requires 500 epochs for effective training, recent DETR variants, including ours, reduce training time while improving model performance. Our method shows the most significant improvements, surpassing all variants after just 36 epochs. Specifically, \ourmethod\ reduces training time by half and increases AP by 0.5 and 0.9 on RT-DETRv2~\cite{lv2024rt} with ResNet-50~\cite{he2016deep} and ResNet-101~\cite{he2016deep} backbones, respectively. Moreover, it outperforms DINO-Deformable-DETR~\cite{zhang2022dino} by 2.7 AP with the ResNet-50~\cite{he2016deep} backbone.
+
+\ourmethod\ also significantly enhances small-object detection. For example, while achieving comparable overall AP to RT-DETRv2~\cite{lv2024rt}, our \ourmethod-RT-DETRv2-R50\ surpasses RT-DETRv2 by 1.3 AP on small objects. This improvement is even more pronounced with the larger ResNet-101 backbone, where our \ourmethod-RT-DETRv2-R101\ outperforms RT-DETRv2-R101 by 2.1 AP on small objects. Extending training to 72 epochs further improves overall performance, especially with the ResNet-50 backbone, indicating that smaller models benefit from additional training.
+
+\begin{table}[t]
+\centering
+\caption{\textbf{Comparison of the D-FINE and when with our \ourmethod{} on CrowdHuman~\cite{shao2018crowdhuman}.} Both are trained with 120 epochs.}
+% \small
+\vspace{-0.1cm}
+\resizebox{.44\textwidth}{!}{%
+\begin{tabular}{cccccccc}
+    \toprule
+    Method  & AP & AP$_{50}$ & AP$_{75}$ & AP$_{s}$ & AP$_{m}$ & AP$_{l}$ \\
+    \hline
+    D-FINE-L & 56.0 & 87.2 & 59.4 & 29.0 & 46.1 & 54.6 \\ 
+    w/ DEIM & \bf 57.5 & \bf 87.6 & \bf 62.9 & \bf 33.2 & \bf 48.7 & \bf 55.7 \\ 
+    \bottomrule 
+\end{tabular}%
+}
+\vspace{-0.5cm}
+\label{tab:crowdhuman} 
+\end{table}
+
+% For Additional Crowd-Human Dataset results
+\subsection{Comparisons on CrowdHuman}
+CrowdHuman~\cite{shao2018crowdhuman} is a benchmark dataset designed to evaluate object detectors in dense crowd scenarios. We applied both D-FINE and our proposed method to the CrowdHuman dataset, following the configurations provided in the D-FINE.
+% official repository~\footnote{https://github.com/Peterande/D-FINE/configs/dfine/crowdhuman}. 
+As shown in Tab.~\ref{tab:crowdhuman}, our approach (D-FINE-L enhanced with \ourmethod{}) achieves a notable improvement of 1.5 AP over D-FINE-L. In particular, our method delivers a significant performance boost (greater than 3\% improvement) on small objects (AP$_{s}$) and high-quality detections (AP$_{75}$), demonstrating its ability to detect objects more accurately in challenging scenarios. Furthermore, this experiment underscores the strong generalization capability of \ourmethod{} across diverse datasets, confirming its robustness.
+
+
+\begin{table}[t]
+\centering
+\caption{\textbf{Comparison of Dense O2O methods with different combinations of mosaic and mixup augmentation strategies.} The probability values denote the likelihood of applying mosaic and mixup in each mini-batch during training.}
+\vspace{-0.1cm}
+% \small
+\resizebox{.48\textwidth}{!}{%
+\begin{tabular}{cccccccc}
+    \toprule
+    Mosaic Prob. & Mixup Prob.  & AP & AP$_{50}$ & AP$_{75}$ & AP$_{s}$ & AP$_{m}$ & AP$_{l}$ \\
+    \hline
+    \rowcolor{f2ecde}
+    \multicolumn{8}{c}{\textbf{Training 12 Epochs}} \\
+    0.0 & 0.0 &  49.6 & 67.1 & 53.6 & 31.3 & 54.2 & 67.8 \\ 
+    0.5 & 0.0 &  \bf 50.4 & \bf 68.4 & \bf 54.5 & \bf 32.7 & 54.6 & 68.1 \\ 
+    0.0 & 0.5 &  50.1 & 67.7 & 54.0 & 31.1 & 54.5 & \bf 68.7 \\ 
+    0.5 & 0.5 &  \bf 50.4 & 68.1 & 54.2 & \bf 32.7 & \bf 54.7 & 68.2 \\
+    \midrule 
+    \rowcolor{f2ecde}
+    \multicolumn{8}{c}{\textbf{Training 24 Epochs}} \\
+    0.0 & 0.0 &  51.7 & 69.5 & 55.8 & 32.8 & 56.4 & 69.7 \\ 
+    0.5 & 0.0 &  51.9 & 70.1 & 55.9 & \bf 34.9 & 56.1 & 69.3 \\ 
+    0.0 & 0.5 &  51.5 & 69.4 & 55.5 & 33.2 & 56.3 & 69.3 \\ 
+    0.5 & 0.5 &  \bf 52.5 & \bf 70.6 & \bf 56.7 & \bf 34.9 & \bf 57.1 & \bf 70.1 \\
+    \bottomrule 
+\end{tabular}%
+}
+\vspace{-0.2cm}
+\label{tab:data_aug} 
+\end{table}
+
+\subsection{Analysis}
+\label{sec_discuss}
+In the following studies, we use RT-DETRv2~\cite{lv2024rt} paired with ResNet50~\cite{he2016deep} to conduct experiments and report the performance on MS-COCO val2017 as the default setup unless otherwise specified.
+
+\paragraph{Methods for achieving Dense O2O.} We explored two approaches to implement Dense O2O: mosaic~\cite{bochkovskiy2020yolov4} and mixup~\cite{zhang2017mixup}. Mosaic is a data augmentation that combines four images into one, while mixup overlays two images at a random ratio. Both methods effectively increase the number of targets per image, enhancing supervision during training.
+
+As shown in Tab.~\ref{tab:data_aug}, both mosaic and mixup lead to significant improvements after 12 epochs compared to training without target augmentation, highlighting the effectiveness of Dense O2O. Moreover, combining mosaic and mixup accelerates model convergence, further emphasizing the benefits of augmented supervision. 
+We further tracked the number of positive samples per image over one training epoch, with results shown in Fig.~\ref{fig:data_augs}. Compared to traditional O2O, Dense O2O significantly increases positive samples.
+
+Overall, Dense O2O intensifies supervision by increasing target counts per image, leading to faster model convergence. Mosaic and mixup are simple, computationally efficient techniques that achieve this goal, and their effectiveness suggests further potential for exploring other methods to augment target counts during training.
+
+
+
+
+\begin{table}[t]
+\centering
+\caption{\textbf{Impact of $\gamma$ in \ourclsloss (Eqn.~\ref{eq:xfl}).} We report the performance on COCO~\cite{lin2014microsoft} val2017 for 24 epochs.}
+\vspace{-0.2cm}
+\resizebox{.30\textwidth}{!}{%
+\begin{tabular}{lcccc}
+    \toprule
+    $\gamma$ & 1.3 & 1.5 & 1.8 & 2.0 \\
+    \hline
+    AP & 52.2 & \textbf{52.4} & 52.1 & 51.9 \\
+    \bottomrule 
+\end{tabular}%
+}
+\vspace{-0.2cm}
+\label{tab:gammas}
+\end{table}
+
+\begin{table}[t]
+\centering
+\caption{\textbf{Impact of Dense O2O and \ourclsloss.} We conduct experiments with RT-DETRv2-R50~\cite{lv2024rt} and D-FINE-L~\cite{peng2024d}.}
+\vspace{-0.2cm}
+\resizebox{.43\textwidth}{!}{%
+\begin{tabular}{lcccccc}
+    \toprule
+    Epochs & Dense O2O & \ourclsloss & AP & AP$_{50}$ & AP$_{75}$ \\
+    \hline
+    \rowcolor{f2ecde}
+    \multicolumn{6}{c}{\textbf{RT-DETRv2-R50~\cite{lv2024rt}}} \\
+    72  &  &   & 53.4 & 71.6 & 57.4 \\
+    \hline
+    \multirow{2}{*}{36} 
+                        & \checkmark &  & 53.6 & 71.9 & 58.2 \\   % ToBe Done
+                        & \checkmark & \checkmark & \bf 53.9 & \bf 71.7 & \bf 58.6 \\
+    \midrule
+    \rowcolor{f2ecde}
+    \multicolumn{6}{c}{\textbf{D-FINE-L~\cite{peng2024d}}} \\
+    72 &  &   & 54.0 & 71.6 & 58.4 \\
+    \hline
+    \multirow{2}{*}{36} 
+                        & \checkmark &  & 54.2 & 72.1 & 58.9 \\
+                        & \checkmark & \checkmark & \bf 54.6 & \bf 72.2 & \bf 59.5 \\
+    \midrule
+\end{tabular}
+}
+\vspace{-0.7cm}
+\label{tab:ab_all} 
+\end{table}
+
+
+\paragraph{Impact of $\gamma$ in \ourclsloss (Eqn.~\ref{eq:xfl}). } The results in Table~\ref{tab:gammas} show the effect of different $\gamma$ values on \ourclsloss\ after 24 epochs. Based on these experiments, we empirically set $\gamma$ to 1.5, as it yields the best performance.
+
+\paragraph{Effectiveness of Dense O2O and \ourclsloss.}
+Tab.~\ref{tab:ab_all} presents the effectiveness of the two core components: Dense O2O and \ourclsloss. Dense O2O significantly accelerates model convergence, achieving performance similar to the baseline after just 36 epochs, as opposed to the 72 epochs required for the original model. When combined with \ourclsloss, our method further improves performance. This improvement is largely driven by better box quality, aligning with our goal of optimizing low-quality matches to improve high-quality box predictions. Overall, Dense O2O and \ourclsloss\ consistently deliver performance gains across both RT-DETRv2 and D-FINE, demonstrating their robustness and generalizability.
+
+% \paragraph{Training and inference time.} 
+\paragraph{Training speed.} 
+We provide an efficient implementation using Mosaic with caching and Mixup within batches. Tab.~\ref{tab:ab_time} shows the one-epoch training time on a single 4090 GPU, where DEIM is almost as fast as the baseline (1.183 vs. 1.181) and requires less training time to converge (71 vs. 85 hours). This highlights that our approach improves convergence while maintaining efficiency.
+% For inference time, DEIM is a training framework that optimizes the training process, thus it does not impact inference time.
+
+\begin{table}[t]
+\centering
+\vspace{-0.1cm}
+\caption{\textbf{Training time in GPU hours.}}
+\vspace{-0.1cm}
+\resizebox{.38\textwidth}{!}{%
+\begin{tabular}{lcccccc}
+\toprule
+\textbf{Method}& Epoch & \#GPU hr & AP \\ \midrule
+    RT-DETRv2-R50 & 1 & 1.181 & -  \\
+    w/ DEIM & 1 & 1.183 & - \\ 
+    \midrule
+    RT-DETRv2-R50 & 72 & $~\sim$85 & 53.4  \\
+    w/ DEIM & \bf 60 & \bf $~\sim$71 & \bf 54.3 \\ 
+\bottomrule
+\end{tabular}
+}
+\vspace{-0.2cm}
+\label{tab:ab_time} 
+\end{table}
+
+\paragraph{Finetuning from Object365.} 
+We directly employ the pre-trained Object365 weights from D-FINE and compare the results of fine-tuning with and without DEIM. As shown in Tab.~\ref{tab:ab_obj}, DEIM achieves better performance with fewer fine-tuning epochs. It further validates that DEIM delivers consistent gains, even when pre-trained on larger datasets.
+
+\begin{table}[t]
+\centering
+\vspace{-0.1cm}
+\caption{\textbf{Fine-tuned results from Object365 pre-training.}}
+\vspace{-0.1cm}
+\resizebox{.35\textwidth}{!}{%
+\begin{tabular}{lcccccc}
+\toprule
+\textbf{Method}& Epoch & AP & AP$_{50}$ & AP$_{75}$ \\ \midrule
+    D-FINE-X & 32 & 59.3 & \bf 76.8 & 64.6  \\
+    w/ DEIM & \bf 24 & \bf 59.5 & 76.4 & \bf 65.2 \\ 
+\bottomrule
+\end{tabular}
+}
+\vspace{-0.4cm}
+\label{tab:ab_obj} 
+\end{table}
+
+\section{Conclusion}
+In this paper, we present \ourmethod{}, a method designed to accelerate convergence in DETR-based real-time object detectors by improving matching.
+\ourmethod{} integrates Dense O2O matching, which increases the number of positive samples per image, with \ourclsloss{}, a novel loss designed to optimize matches across varying quality and specifically enhance low-quality matches. 
+This combination substantially improves training efficiency, allowing \ourmethod{} to achieve superior performance in fewer epochs compared to models such as YOLOv11. \ourmethod{} demonstrates clear advantages over SoTA DETR models like RT-DETR and D-FINE, showing measurable gains in detection accuracy and training speed without compromising inference latency. These attributes establish \ourmethod{} as a highly effective solution for real-time applications, with the potential for further refinement and application across other high-performance detection tasks.

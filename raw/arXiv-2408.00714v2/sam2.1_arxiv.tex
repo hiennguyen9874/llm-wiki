@@ -1,0 +1,2045 @@
+\documentclass[]{fairmeta}
+
+\title{\vspace{-1pt}SAM 2: Segment Anything in Images and \textit{Videos}}
+
+\author[*,\dagger]{Nikhila Ravi}
+\author[*]{Valentin Gabeur}
+\author[*]{Yuan-Ting Hu}
+\author[*]{Ronghang Hu}
+\author[*]{Chaitanya Ryali}
+\author[*]{Tengyu Ma}
+\author[*]{\\Haitham Khedr}
+\author[*]{Roman R{\"a}dle}
+\author[]{Chloe Rolland}
+\author[]{Laura Gustafson}
+\author[]{Eric Mintun}
+\author[]{Junting Pan}
+\author[]{Kalyan Vasudev Alwala}
+\author[]{Nicolas Carion}
+\author[]{Chao-Yuan Wu}
+\author[]{Ross Girshick}
+\author[\dagger]{Piotr Doll{\'a}r}
+\author[*,\dagger]{Christoph Feichtenhofer}
+
+\affiliation[]{Meta FAIR}
+
+\contribution[*]{core contributor}
+\contribution[\dagger]{project lead}
+
+\abstract{
+\vspace{-5pt}
+We present Segment Anything Model 2 (SAM 2), a foundation model 
+towards solving promptable visual segmentation in images and \textit{videos}. We build a data engine, which improves model and data via user interaction, to collect the largest video segmentation dataset to date. Our model is a simple transformer architecture with streaming memory for real-time video processing. SAM 2 trained on our data provides strong performance across a wide range of tasks. In video segmentation, we observe better accuracy, using {3\x} fewer interactions than prior approaches. In image segmentation, our model is more accurate and {6\x} faster than the Segment Anything Model (SAM). We believe that our data, model, and insights will serve as a significant milestone for video segmentation and related perception tasks. We are releasing our main model, dataset, as well as code for model training and our demo.
+\vspace{-10pt}
+}
+
+\metadata[Demo]{\url{https://sam2.metademolab.com}}
+\metadata[Code]{\url{https://github.com/facebookresearch/sam2}}
+\metadata[Website]{\url{https://ai.meta.com/sam2}}
+\usepackage{hyperref}
+\usepackage{url}
+\usepackage[T1]{fontenc}    %
+\usepackage{url}            %
+\usepackage{booktabs}       %
+\usepackage{amsfonts}       %
+\usepackage{nicefrac}       %
+\usepackage{microtype}      %
+\usepackage{epsfig, xspace, enumitem}
+\usepackage{graphicx, amsmath, amssymb, caption, subcaption, multirow, overpic, textpos, pifont, adjustbox}
+\usepackage{xcolor}
+\usepackage[utf8x]{inputenc}
+\makeatletter
+\@namedef{ver@everyshi.sty}{}
+\makeatother
+\usepackage{pgf, tikz, pgfplots}
+\usepackage{makecell}
+\usepackage{pgf-pie}
+\usepackage{float}
+\usepackage{wrapfig}
+\usepackage{colortbl}
+
+\definecolor{citecolor}{HTML}{0071BC}
+\definecolor{linkcolor}{HTML}{ED1C24}
+\definecolor{acceptcolor}{HTML}{74C219}
+\definecolor{rejectcolor}{HTML}{DE1616}
+\definecolor{qcolor}{HTML}{536872}
+\definecolor{demphcolor}{RGB}{100,100,100}
+\definecolor{brightlavender}{rgb}{0.75, 0.58, 0.89}
+\definecolor{palered}{rgb}{1.00, 0.70, 0.70}
+\definecolor{palegreen}{rgb}{0.73, 0.96, 0.67}
+\definecolor{paleblue}{rgb}{0.69, 0.84, 1.00}
+\definecolor{paleorange}{rgb}{1.00, 0.86, 0.73}
+\definecolor{palepurple}{rgb}{0.92, 0.85, 1.00}
+\definecolor{paleyellow}{rgb}{1.00, 1.00, 0.50}
+
+\newlength\savewidth\newcommand\shline{\noalign{\global\savewidth\arrayrulewidth
+		\global\arrayrulewidth 1pt}\hline\noalign{\global\arrayrulewidth\savewidth}}
+\newcommand{\tablestyle}[2]{\setlength{\tabcolsep}{#1}\renewcommand{\arraystretch}{#2}\centering\footnotesize}
+\newenvironment{enumeratecard}{\begin{enumerate}[leftmargin=4mm, itemsep=0pt, topsep=3pt]}{\end{enumerate}}
+\renewcommand{\paragraph}[1]{\vspace{1.25mm}\noindent\textbf{#1}}
+\newcolumntype{L}[1]{>{\raggedright\let\newline\\\arraybackslash\hspace{0pt}}m{#1}}
+\newcommand{\app}{\raise.17ex\hbox{$\scriptstyle\sim$}}
+\newcommand{\x}{{\times}}
+\newcommand{\fixme}[1]{{\color{red}{#1}}}
+\newcommand{\fig}[1]{Fig.~\ref{#1}}
+\newcommand{\cmark}{\textcolor{acceptcolor}{\ding{51}}}
+\newcommand{\xmark}{\textcolor{rejectcolor}{\ding{55}}}
+\newcommand{\redacted}{\textbf{\texttt{TBA}}\xspace}
+\newcommand{\qtxt}[1]{{\color{qcolor}{\textit{#1}}}}
+\newcommand{\demph}[1]{\textcolor{demphcolor}{#1}}
+\newcommand{\lr}{\emph{lr}\xspace}
+\newcommand{\ld}{\emph{ld}\xspace}
+\newcommand{\wtd}{\emph{wd}\xspace}
+\newcommand{\drp}{\emph{dp}\xspace}
+\newcommand{\expnum}[2]{{#1}\mathrm{e}^{#2}\xspace}
+\newcommand{\mj}{$\mathcal{J}$\xspace}
+\newcommand{\mf}{$\mathcal{F}$\xspace}
+\newcommand{\mjf}{$\mathcal{J}\&\mathcal{F}$\xspace}
+\newcommand{\mjs}{$\mathcal{J}_s$\xspace}
+\newcommand{\mfs}{$\mathcal{F}_s$\xspace}
+\newcommand{\mju}{$\mathcal{J}_u$\xspace}
+\newcommand{\mfu}{$\mathcal{F}_u$\xspace}
+\newcommand{\mg}{$\mathcal{G}$}
+\newcommand{\mjtr}{$\mathcal{J}_{tr}$\xspace}
+\def\x{$\times$}
+
+
+\definecolor{lightgray}{rgb}{0.95, 0.95, 0.95}
+
+\definecolor{baselinecolor}{gray}{.9}
+\newcommand{\baseline}[1]{\cellcolor{lightgray}{#1}}
+
+
+\newcommand{\figref}[1]{Fig.~\ref{#1}}
+\newcommand{\equref}[1]{Eq.~\eqref{#1}}
+\newcommand{\secref}[1]{\S\ref{#1}}
+\newcommand{\tabref}[1]{Table~\ref{#1}}
+\newcommand{\thmref}[1]{Theorem~\ref{#1}}
+\newcommand{\prgref}[1]{Program~\ref{#1}}
+\newcommand{\algref}[1]{Alg\onedot~\ref{#1}}
+\newcommand{\clmref}[1]{Claim~\ref{#1}}
+\newcommand{\lemref}[1]{Lemma~\ref{#1}}
+\newcommand{\ptyref}[1]{Property\onedot~\ref{#1}}
+
+\newcommand{\imageEmbed}{f}
+\newcommand{\maskPred}{p}
+\newcommand{\memEmbed}{{m}}
+\newcommand{\memBank}{\mathcal{B}}
+\newcommand{\memBankPrompt}{\mathcal{B}_P}
+\newcommand{\memBankNoprompt}{\mathcal{B}_{NP}}
+
+\setlist[enumerate]{itemsep=-0.5mm,partopsep=0pt}
+
+
+\newcommand{\inputfig}[1]{\input{figures/#1.tex}}
+
+\newcommand{\anon}{\textbf{Anonymous}}
+\newcommand{\jf}{$\mathcal{J}\&\mathcal{F}$\xspace}
+
+\newcommand{\savinumvideos}{50.9K\xspace} %
+\newcommand{\savinummasklets}{190.9K\xspace}  %
+\newcommand{\savinummasks}{10.0M\xspace}  %
+\newcommand{\saviVideoDuration}{196.0 hr\xspace}  %
+\newcommand{\savifpsVideoFrames}{4.2M\xspace}  %
+\newcommand{\saviDisappRate}{42.5 $\%$\xspace}  %
+\newcommand{\saviDisappRateNoSpace}{42.5$\%$\xspace}  %
+\newcommand{\savinummaskletsWAuto}{642.6K\xspace}  %
+\newcommand{\savinummaskletsAutoOnly}{451.7K\xspace}  %
+\newcommand{\savinummasksWAuto}{35.5M\xspace}  %
+\newcommand{\saviDisappRateWAuto}{27.7 $\%$\xspace}  %
+\newcommand{\saviAvgMasklets}{3.8\xspace}  %
+\newcommand{\saviAvgMaskletsAutoOnly}{8.9\xspace}  %
+\newcommand{\saviMoreVideoRate}{4.5\x\xspace}  %
+\newcommand{\saviMoreMasksWAutoRate}{53\x\xspace}  %
+\newcommand{\saviMoreMasksRate}{15\x\xspace}  %
+
+
+\newcommand{\saviPhaseOneVideos}{1.4K\xspace}
+\newcommand{\saviPhaseOneMasklets}{16K\xspace}
+
+\newcommand{\saviPhaseTwoMasklets}{63.5K\xspace}
+\newcommand{\saviPhaseThreeMasklets}{197.0K\xspace}  %
+\newcommand{\saviPhaseThreeMaskletsInternal}{6.1K\xspace}  %
+
+\newcommand{\saviValVideos}{155\xspace}
+\newcommand{\saviValMasklets}{293\xspace}
+
+\newcommand{\saviTestVideos}{150\xspace}
+\newcommand{\saviTestMasklets}{278\xspace}
+
+
+\newcommand{\internnumvideos}{62.9K\xspace}  %
+\newcommand{\internnummasklets}{69.6K\xspace}  %
+\newcommand{\internnummasks}{5.4M\xspace} %
+\newcommand{\internnumframes}{6.0M\xspace} %
+\newcommand{\interndisapprate}{36.4 $\%$\xspace} %
+\newcommand{\internvideoduration}{281.8 hr\xspace} %
+
+
+\newcommand{\savReleaseUrl}{\texttt{https://ai.meta.com/datasets/segment-anything-video/}\xspace}
+\newcommand{\savDownloadReleaseUrl}{\texttt{https://ai.meta.com/datasets/segment-anything-video-downloads/}\xspace}
+\newcommand{\savReleaseEmail}{\texttt{segment-anything@meta.com}\xspace}
+
+
+\hyphenation{ViTDet}
+\hyphenation{R-CNN}
+\hyphenation{ViT-H}
+\hyphenation{ViT-L}
+\hyphenation{ViT-B}
+
+
+\renewcommand{\paragraph}[1]{\vspace{1.25mm}\noindent\textbf{#1}}
+\newcommand\blfootnote[1]{\begingroup\renewcommand\thefootnote{}\footnote{#1}\addtocounter{footnote}{-1}\endgroup}
+
+\newcolumntype{x}[1]{>{\centering\arraybackslash}p{#1pt}}
+\newcolumntype{y}[1]{>{\raggedright\arraybackslash}p{#1pt}}
+\newcolumntype{z}[1]{>{\raggedleft\arraybackslash}p{#1pt}}
+
+\begin{document}
+
+\maketitle
+% \vspace{-0.43em}
+
+\section{Introduction}
+\label{sec:intro}
+
+\begin{figure}[t]
+% \vspace{-10pt}
+\centering
+\includegraphics[width=\linewidth]{figs/teaser/teaser_ai.pdf}
+\vspace{-10pt}
+\caption{We introduce the Segment Anything Model 2 (SAM 2), towards solving the promptable visual segmentation task (a) with our foundation model (b), trained on our large-scale SA-V dataset collected through our data engine (c). SAM 2 is capable of interactively segmenting regions through prompts (clicks, boxes, or masks) on one or multiple video frames by utilizing a streaming memory that stores previous prompts and predictions.}
+\label{fig:teaser}
+% \vspace{-10pt}
+\end{figure}
+
+Segment Anything (SA) introduced a foundation model for promptable \textit{segmentation} in \textit{images}~\citep{kirillov2023segment}. However an image is only a static snapshot of the real world in which visual segments can exhibit complex motion, and with the rapid growth of multimedia content, a significant portion is now recorded with a temporal dimension, particularly in \textit{video} data. Many important applications in AR/VR, robotics, autonomous vehicles, and video editing require temporal localization beyond image-level segmentation. We believe a universal visual segmentation system should be applicable to both images \textit{and} videos.
+
+
+Segmentation in video aims to determine the spatio-temporal extent of entities, which presents unique challenges beyond those in images. Entities can undergo significant changes in appearance due to motion, deformation, occlusion, lighting changes, and other factors. Videos often have lower quality than images due to camera motion, blur, and lower resolution. Further, efficient processing of a large number of frames is a key challenge.  While SA successfully addresses segmentation in images, existing video segmentation models and datasets fall short in providing a comparable capability to ``segment \textit{anything} in videos''. 
+
+
+
+
+We introduce the Segment Anything Model 2 (SAM 2), a \textit{unified} model for video and image segmentation (we consider an image as a single-frame video). Our work includes a task, model, and dataset (see \figref{fig:teaser}). %
+
+We focus on the Promptable Visual Segmentation (PVS) \textit{task} that generalizes image segmentation to the video domain. The task takes as input points, boxes, or masks on any frame of the video to define a segment of interest for which the spatio-temporal mask (i.e., a `\textit{masklet}') is to be predicted. Once a masklet is predicted, it can be iteratively refined by providing prompts in additional frames.
+
+Our \textit{model} (\S\ref{sec:model}) produces segmentation masks of the object of interest, in single images \textit{and} across video frames. SAM 2 is equipped with a memory that stores information about the object and previous interactions, which allows it to generate masklet predictions throughout the video, and also effectively correct these based on the stored memory context of the object from previously observed frames. Our streaming architecture is a natural generalization of SAM to the video domain, processing video frames one at a time, equipped with a memory attention module to attend to the previous memories of the target object. When applied to images, the memory is empty and the model behaves like SAM. 
+
+We employ a \textit{data engine} (\S\ref{sec:data}) to generate training data by using our model in the loop with annotators to interactively annotate new and challenging data. Different from most existing video segmentation datasets, our data engine is not restricted to objects of specific categories, but instead targeted to provide training data for segmenting \textit{any} object with a valid boundary, including parts and subparts. Compared to existing model-assisted approaches, our data engine with SAM 2 in the loop is {8.4\x}~faster at comparable quality. Our final Segment Anything Video (SA-V) dataset (\S\ref{sec:dataset}) consists of \savinummasksWAuto masks across \savinumvideos videos, %
+{\saviMoreMasksWAutoRate}~more masks than any existing video segmentation dataset. SA-V is challenging with small objects and parts that get occluded and re-appear throughout the video. Our SA-V dataset is geographically diverse, and a fairness evaluation of SAM 2 indicates minimal performance discrepancy in video segmentation based on perceived gender, and little variance among the three perceived age groups we evaluated.
+
+Our experiments (\secref{sec:zero_shot_experiments}) show that SAM 2 delivers a step-change in the \textit{video} segmentation experience.
+SAM 2 can produce \textit{better} segmentation accuracy while using {3\x}~\textit{fewer} interactions than prior approaches. Further, SAM 2 outperforms prior work in established \textit{video} object segmentation benchmarks, under multiple evaluation settings, \textit{and} delivers better performance compared to SAM on \textit{image} segmentation benchmarks, while being 6\x~faster. SAM 2 is shown to be effective across a variety of video and image distributions as observed through numerous zero-shot benchmarks including 17 for video segmentation and 37 for single-image segmentation.
+
+We are releasing our work under permissive open licences, including the SA-V dataset (CC by 4.0), the SAM~2 model checkpoints\footnote{All the results presented in this paper are based on a new version of SAM 2 (improved over our initial release; denoted as ``SAM 2.1'' in \url{https://github.com/facebookresearch/sam2}), which we will refer to as SAM 2 throughout for brevity.}, training code (Apache 2.0), and code for our interactive online demo (Apache 2.0).
+
+\section{Related work}
+\label{sec:related_work}
+
+\paragraph{Image segmentation.} Segment Anything~\citep{kirillov2023segment} introduces a promptable image segmentation task where the goal is to output a valid segmentation mask given an input prompt such as a bounding box or a point that refers to the object of interest. SAM trained on the SA-1B dataset allows for zero-shot segmentation which enabled its adoption to a wide range of applications. Recent work has extended SAM, e.g., by introducing a High-Quality output token to train on fine-grained masks~\citep{ke2024segment}, or improve SAM's efficiency~\citep{xiong2023efficientsam,zhang2023faster,zhao2023fast}. More broadly, SAM is used in a wide range of applications, including medical imaging~\citep{ma2024segment,deng2023segment,mazurowski2023segment,wu2023medical}, remote sensing~\citep{chen2024rsprompter,ren2024segment}, motion segmentation~\citep{xie2024moving}, and camouflaged object detection~\citep{tang2023can}.
+
+\paragraph{Interactive Video Object Segmentation (iVOS).} Interactive video object segmentation has emerged as a crucial task to efficiently obtain object segmentations in videos (masklets) with user guidance, often in the form of scribbles, clicks, or bounding boxes. A few early approaches~\citep{wang2005interactive,bai2007geodesic,fan2015jumpcut} deploy graph-based optimization to guide the segmentation annotation process. More recent approaches~\citep{heo2020interactive,cheng2021modular,delatolas2024learning} often adopt a modular design, converting user inputs into a mask representation on a single frame and then propagating it to other frames. 
+
+Click-based input is easier to collect~\citep{homayounfar2021videoclick} for interactive video segmentation. 
+Recent works have used a combination of SAM on images with video trackers based on masks~\citep{Cheng2023TrackingAW,yang2023track,cheng2023segment} or points~\citep{rajic2023segment}. However, these approaches have limitations: the tracker may not work for all objects, SAM may not perform well on video frames, and there is no mechanism to interactively refine a model's mistakes, other than re-annotating using SAM in each frame and restarting the tracking from there. 
+
+Our work shares a similar goal to these works to segment objects across videos interactively, and we build a strong unified model that directly takes prompts for interactive video segmentation, along with a large and diverse dataset in pursuit of solving this goal.
+
+\paragraph{Video Object Segmentation (VOS).} The VOS task begins with an object mask as input in the first frame, which must be accurately tracked throughout the video~\citep{Pont-Tuset_arXiv_2017}. The task is referred to as ``semi-supervised VOS'' since the input mask can be seen as supervision signal of the object which is available only in the first frame. This task has drawn significant attention due to its relevance in applications, including video editing or robotics.
+
+Early deep learning based approaches have often used online fine-tuning on the first video frame~\citep{Caelles2016OneShotVO, Perazzi2016LearningVO, Yoon2017PixelLevelMF, Maninis2017VideoOS, Hu2018MaskRNNIL, Bhat2020LearningWT, Robinson2020LearningFA} or on all frames~\citep{Voigtlaender2017OnlineAO} to adapt the model to the target object.
+Faster inference has been achieved with offline-trained models, conditioned either only on the first frame~\citep{Hu2018VideoMatchMB, Chen2018BlazinglyFV}, or also integrating the previous frame~\citep{Oh2018FastVO, Yang2018EfficientVO, Yang2020CollaborativeVO}. This multi-conditioning has been extended to all frames with RNNs~\citep{Xu2018YouTubeVOSSV} and transformers~\citep{Oh2019VideoOS, Cheng2021RethinkingSN, Li2022RecurrentDE, yang2021aot, yang2021aost, cheng2022xmem, yang2022deaot, Wang2022LookBY, cheng2023putting, Goyal2023TAMVTTM,Zhang2023JointMO, wu2023scalable}. % extend a single vision transformer to jointly process the current frame along with all previous frames and associated predictions.
+
+Semi-supervised VOS can be seen as a special case of our Promptable Visual Segmentation (PVS) task, with only a mask prompt in the first video frame. Notably, annotating the required high-quality object mask in the first frame in VOS is practically challenging and time-consuming for inference.
+
+\paragraph{Video segmentation datasets.} Many datasets have been proposed to support the VOS task. Early VOS datasets~\citep{Prest2012LearningOC, Li2013VideoSB, Ochs2014SegmentationOM, fan2015jumpcut}, such as DAVIS~\citep{Pont-Tuset_arXiv_2017, caelles20192019}, include high-quality annotations but their size limits deep-learning based approaches. YouTube-VOS~\citep{Xu2018YouTubeVOSAL} is the first large-scale dataset for VOS. As algorithms became better and benchmark performance started to saturate, researchers have looked at increasing the difficulty of the VOS task by specifically focusing on occlusions~\citep{qi2022occluded, Ding2023MOSEAN}, long videos~\citep{hong2023lvos, hong2024lvos}, extreme transformations~\citep{Tokmakov2022BreakingT}, object diversity~\citep{wang2021unidentified, wang2023towards} or scene diversity~\citep{Athar2022BURSTAB}. 
+
+We find that current video segmentation datasets lack sufficient coverage to achieve the capability of ``segmenting \textit{anything} in videos''. Their annotations typically cover entire objects (not parts) and datasets are often centered around specific object classes, such as people, vehicles, and animals. In comparison to these datasets, our released SA-V dataset not only focuses on whole objects but also extensively covers object parts and contains over an order of magnitude more masks.
+
+\section{Task: promptable visual segmentation}
+\label{sec:task}
+
+Our PVS task allows providing prompts to the model on \textit{any} frame of a video. Prompts can be positive/negative clicks, boxes, or masks, either to define an object to segment or to refine a model-predicted one.  To provide an interactive experience, upon receiving a prompt on a specific frame, the model should immediately respond with a valid segmentation mask of the object on this frame. After receiving initial prompts (either on the same frame or different frames), the model should propagate these prompts to obtain the masklet of the object \textit{across the entire video}, localizing the segmentation mask of the target on every video frame. Additional prompts can be provided to the model on \textit{any} frame to refine the segment throughout the video (example in \figref{fig:PVS_example}). For details on the task, see~\secref{app:sec:task}.
+
+SAM 2 (\secref{sec:model}) is applied as a data collection tool to the PVS task for building our SA-V dataset (\secref{sec:data}). We evaluate the model (\secref{sec:zero_shot_experiments}) by simulating interactive video segmentation scenarios across multiple frames, in the conventional semi-supervised VOS setting where annotations are limited to the first frame, and for image segmentation on the SA benchmarks. 
+
+
+\begin{figure}[t]
+    \centering
+    \vspace{-15pt}
+    \includegraphics[width=\linewidth]{figs/pvs_task_3.pdf}
+    \vspace{-15pt}
+    \caption{Interactive segmentation with SAM 2. Step 1 (selection): we prompt SAM 2 in frame 1 to obtain the segment of the target object (the tongue). Green/red dots indicate positive/negative prompts respectively. SAM 2 automatically propagates the segment to the following frames (blue arrows) to form a \textit{masklet}. If SAM 2 loses the object (after frame 2), we can correct the masklet by providing an additional prompt in a new frame (red arrow). Step 2 (refinement): a single click in frame 3 is sufficient to recover the object and propagate it to obtain the correct masklet. A decoupled SAM + video tracker approach would require several clicks in frame 3 (as in frame 1) to correctly re-annotate the object as the segmentation is restarted from scratch. With SAM 2's memory, a single click can recover the tongue.}  
+    \label{fig:PVS_example}
+    % \vspace{-10pt}
+\end{figure}
+
+\section{Model}
+\label{sec:model}
+
+SAM 2 (\figref{fig:fig_model}) can be seen as a generalization of SAM to the video (and image) domain, taking point, box, and mask prompts on \textit{individual} frames to define the spatial extent of the object to be segmented spatio-temporally. Spatially, the model behaves similarly to SAM. A promptable and \textit{light-weight} mask decoder takes an image embedding and prompts (if any) and outputs a segmentation mask for the frame. Prompts can be \textit{iteratively} added on a frame in order to \textit{refine} the masks.
+
+%Unlike SAM, 
+The frame embedding used by the SAM 2 decoder is not directly from an image encoder and is instead \textit{conditioned} on \textit{memories} of past predictions and \textit{prompted frames}.
+It is possible for prompted frames to also come ``from the future'' relative to the current frame. Memories of frames are created by the \textit{memory encoder} based on the current prediction and placed in a \textit{memory bank} for use in subsequent frames. The \textit{memory attention} operation takes the per-frame embedding from the image encoder and conditions it on the memory bank, before  the mask decoder ingests it to form a prediction. 
+
+We describe individual components and training below and provide more details in Appendix \ref{sec:savi_model_appendix}. 
+
+\paragraph{Image encoder.} For real-time processing of arbitrarily long videos, we take a streaming approach, consuming video frames as they become available. The image encoder is only run \textit{once} for the entire interaction and its role is to provide unconditioned tokens (feature embeddings) representing each frame. We use an MAE \citep{mae} pre-trained Hiera~\citep{hiera, abswin} image encoder, which is \textit{hierarchical}, allowing us to use multiscale features during decoding.
+
+
+\paragraph{Memory attention.} The role of memory attention is to \textit{condition} the current frame features on the past frames features and predictions as well as on any new prompts. We stack $L$ transformer blocks, the first one taking the image encoding from the current frame as input. Each block performs self-attention, followed by cross-attention to memories of (prompted/unprompted) frames and object pointers (see below), stored in a \textit{memory bank} (see below), followed by an MLP. We use \textit{vanilla} attention operations for self- and cross-attention, allowing us to benefit from recent developments in efficient attention kernels \citep{flashattentionv2}. 
+
+
+\paragraph{Prompt encoder and mask decoder.} Our prompt encoder is identical to SAM's and can be prompted by clicks (positive or negative), boxes, or masks to define the extent of the object in a given frame. Sparse prompts are represented by positional encodings summed with learned embeddings for each prompt type, while masks are embedded using convolutions and summed with the frame embedding.
+
+Our decoder design largely follows SAM. We stack ``two-way'' transformer blocks that update prompt and frame embeddings. As in SAM, for ambiguous prompts (i.e., a single click) where there may be multiple compatible target masks, we predict \textit{multiple} masks. This design is important to ensure that the model outputs \textit{valid} masks. In \textit{video}, where ambiguity can extend \textit{across} video frames, the model predicts multiple masks on each frame. If no follow-up prompts resolve the ambiguity, the model only propagates the mask with the highest predicted IoU for the current frame.
+
+Unlike SAM where there is \textit{always} a valid object to segment given a positive prompt, in the PVS task it is possible for \textit{no} valid object to exist on some frames (e.g. due to occlusion). To support this new output mode, we add an additional head that predicts whether the object of interest is present on the current frame. Another novelty are skip connections from our hierarchical image encoder (bypassing the memory attention) to incorporate \textit{high-resolution} embeddings for mask decoding (see \S\ref{sec:savi_model_appendix}).
+
+\begin{figure}[t]
+    \centering
+    \vspace{-15pt}
+    \includegraphics[width=\linewidth]{figs/full_model/sam-v-model_20240715.pdf}
+    \vspace{-20pt}
+    \caption{
+    The SAM 2 architecture. 
+    For a given frame, the segmentation prediction is conditioned on the current prompt \textit{and/or} on previously observed memories.
+    Videos are processed in a \textit{streaming} fashion with frames being consumed one at a time by the image encoder, and cross-attended to memories of the target object from previous frames. The mask decoder, which optionally also takes input prompts, predicts the segmentation mask for that frame. Finally, a memory encoder transforms the prediction and image encoder embeddings (not shown in the figure) for use in future frames. 
+    } 
+    \label{fig:fig_model}
+    \vspace{-10pt}
+\end{figure}
+
+
+\paragraph{Memory encoder.} The memory encoder generates a memory by downsampling the output mask using a convolutional module and summing it element-wise with the \textit{unconditioned frame embedding} from the image-encoder (not shown in \figref{fig:fig_model}), followed by light-weight convolutional layers to fuse the information.
+
+\paragraph{Memory bank.} The memory bank retains information about past predictions for the target object in the video by maintaining a FIFO queue of memories of up to $N$ recent frames and stores information from prompts in a FIFO queue of up to $M$ prompted frames. For instance, in the VOS task where the initial mask is the only prompt, the memory bank consistently retains the first frame's memory along with memories of up to $N$ recent (unprompted) frames. Both sets of memories are stored as \textit{spatial} feature maps.
+
+In addition to the spatial memory, we store a list of \textit{object pointers} as lightweight vectors for high-level semantic information of the object to segment, based on mask decoder output tokens of each frame. Our memory attention cross-attends to both spatial memory features and these object pointers.
+
+We embed temporal position information into the memories of $N$ recent frames, allowing the model to represent short-term object motion, but not into those of prompted frames, because the training signal from prompted frames is sparser and it is more difficult to generalize to the inference setting where prompted frames may come from a very different temporal range than seen during training.
+
+\paragraph{Training.} The model is trained \textit{jointly} on image and video data. Similar to previous work \citep{kirillov2023segment, ritm}, we \textit{simulate} interactive prompting of the model. We sample sequences of 8 frames and randomly select up to 2 frames to prompt and probabilistically receive \textit{corrective} clicks which are sampled using the ground-truth masklet and model predictions during training. The training task is to sequentially (and ``interactively'') predict the ground-truth masklet. Initial prompts to the model can be the ground-truth mask with probability $0.5$, a positive click sampled from the ground-truth mask with probability $0.25$, or a bounding box input with probability $0.25$. See~\S\ref{sec:savi_model_appendix} for more details.
+
+
+\section{Data}
+\label{sec:data}
+
+
+To develop the capability to ``segment anything'' in video, we built a data engine to collect a large and diverse video segmentation dataset. We employ an interactive model in the loop setup with human annotators. Similar to \cite{kirillov2023segment}, we do not impose semantic constraints on the annotated masklets, and focus on both whole objects (e.g., a person) and parts (e.g., a person's hat). Our data engine went through three phases, each categorized based on the level of model assistance provided to annotators. Next, we describe each data engine phase and our SA-V dataset.
+
+\subsection{Data engine}
+\label{sec:data_engine}
+
+\paragraph{Phase 1: SAM per frame.} The initial phase used the image-based interactive SAM~\citep{kirillov2023segment} to assist human annotation. Annotators are tasked with annotating the mask of a target object in every frame of the video at 6 frames per second (FPS) using SAM, and pixel-precise manual editing tools such as a ``brush'' and ``eraser''. There is no tracking model involved to assist with the temporal propagation of masks to other frames. As this is a per-frame method, and all frames require mask annotation from scratch, the process is slow, with an average annotation time of 37.8 seconds per frame in our experiment. However, this yields high-quality \textit{spatial} annotations per frame. In this phase, we collected \saviPhaseOneMasklets masklets across \saviPhaseOneVideos videos. We further use this approach to annotate our SA-V val and test sets to mitigate potential biases of SAM 2 during evaluation.
+
+\paragraph{Phase 2: SAM + SAM 2 Mask.} The second phase added SAM 2 into the loop, where SAM 2 only accepted \emph{masks} as prompts. We refer to this version as SAM 2 Mask. Annotators used SAM and other tools as in Phase~1 to generate \textit{spatial} masks in the first frame, and then use SAM 2 Mask to \textit{temporally} propagate the annotated mask to other frames to get the full spatio-temporal masklets. At any subsequent video frame, annotators can \textit{spatially} modify the predictions made by SAM 2 Mask by annotating a mask from scratch with SAM, a ``brush'' and/or ``eraser'', and re-propagate with SAM 2 Mask, repeating this process until the masklet is correct.  SAM 2 Mask was initially trained on the Phase 1 data and publicly available datasets. During Phase 2, we re-trained and updated SAM 2 Mask in the annotation loop twice using the collected data. %
+In Phase 2, we collected \saviPhaseTwoMasklets masklets. The annotation time went down to 7.4 s/frame, a~$\sim$\textbf{5.1x} speed up over Phase 1.%
+
+
+Despite an improvement in annotation time, this approach requires annotating masks in intermediate frames from scratch without previous memory. We then advanced to develop the fully-featured SAM~2, capable of both interactive segmentation and mask propagation in a \textit{unified} model.
+
+\paragraph{Phase 3: SAM 2.} In the final phase, we utilize the fully-featured SAM 2, which accepts various types of prompts, including points and masks. SAM 2 benefits from memories of objects across the temporal dimension to generate mask predictions. This means annotators only need to provide occasional \textit{refinement} clicks to SAM 2 to edit the predicted masklets in intermediate frames, as opposed to annotating from scratch with a spatial SAM which has no such memory context. During Phase 3, we re-trained and updated SAM 2 using the collected annotations five times. With SAM 2 in the loop, the annotation time per frame went down to 4.5 seconds, a~$\sim$\textbf{8.4x} speed up over Phase 1. In Phase 3, we collected \saviPhaseThreeMasklets~masklets.
+
+\paragraph{Quality verification.} To uphold a high standard for annotation, we introduce a verification step. A separate set of annotators are tasked with verifying the quality of each annotated masklet as ``satisfactory'' (correctly and consistently tracking the target object across all frames) or ``unsatisfactory'' (target object is \textit{well defined} with a clear boundary but the masklet is not correct or consistent). Unsatisfactory masklets were sent back to the annotation pipeline for refinement. Any masklets tracking \textit{not well defined} objects were rejected entirely.
+
+\paragraph{Auto masklet generation.} Ensuring diversity in annotation is important to enable the \textit{anything capability} of our model. As human annotators might typically focus more on salient objects, we augment the annotations with automatically generated masklets (referred to as ``Auto''). This serves a dual purpose of increasing the coverage of annotations and helping identify model failure cases. To generate auto masklets, we prompt SAM 2 with a regular grid of points in the first frame and generate candidate masklets. These are then sent to the masklet verification step for filtering. Automatic masklets tagged as ``satisfactory'' are added to the SA-V dataset. Masklets identified as ``unsatisfactory'' (i.e., model failure cases) are sampled and presented to annotators to refine with SAM 2 in the loop (Phase 3 of the data engine). These automatic masklets cover large salient central objects but also objects of varying sizes and positions in the background.
+
+\begin{table*}[t]
+\vspace{-10pt}
+\resizebox{\textwidth}{!}{
+    \begin{tabular}{llrrccccc}
+    & \multirow{3}{*}{Model in the Loop} & \multirow{3}{*}{\shortstack{Time per \\ Frame}} & \multirow{3}{*}{\shortstack{Edited\\ Frames}} & \multirow{3}{*}{\shortstack{Clicks per \\ Clicked \\ Frame}} & \multicolumn{4}{c}{Phase 1 Mask Alignment Score (IoU>0.75)} \\
+    \addlinespace 
+     \cmidrule(lr){6-9}
+     &  &  &  &   & \multicolumn{1}{c}{All} & \multicolumn{1}{c}{Small} & \multicolumn{1}{c}{Medium} & \multicolumn{1}{c}{Large}\\
+    \midrule
+    Phase 1 & SAM only        & 37.8 s & 100.00 \% & 4.80 & - & - & - & - \\
+    Phase 2 & SAM + SAM 2 Mask & 7.4 s  & 23.25 \% & 3.61 & 86.4 $\%$ & 71.3 $\%$ & 80.4 $\%$ & ~~97.9 $\%$ \\
+    Phase 3 & \textbf{SAM 2}            & \bf 4.5 s & \bf 19.04 \% & \bf 2.68 & \bf 89.1 $\%$ & \bf 72.8 $\%$ & \bf 81.8 $\%$ & \bf 100.0 $\%$ \\
+    \end{tabular}
+}
+\vspace{-5pt}
+    \caption{Evolution of data engine phases showing the average annotation time per frame, the average percent of edited frames per masklet, the number of manual clicks per clicked frame, and Mask Alignment to Phase 1 by mask size.}  
+    \label{tab:data-engine-evolution}
+    % \vspace{-10pt}
+\end{table*}
+
+
+
+
+
+\paragraph{Analysis.} \tabref{tab:data-engine-evolution} shows a comparison of the annotation protocol in each data engine phase through a controlled experiment (details in \secref{sec:data_engine_phase_comp}). We compare the average annotation time per frame, the average percentage of manually edited frames per masklet, and the average number of clicks per clicked frame. For quality evaluation, we define the \emph{Phase 1 Mask Alignment Score} as the percentage of masks whose IoU compared to the corresponding masks in Phase 1 exceeds 0.75. Phase 1 data is chosen as a reference as it has per-frame high quality manual annotations. Phase 3 with SAM 2 in the loop leads to increased efficiency and comparable quality: it is 8.4\x~faster than Phase 1, has the lowest edited frame percentage and clicks per frame, and results in better alignment.
+
+
+
+
+
+
+\setlength\intextsep{0.1pt}
+\begin{wraptable}{r}{0.4\textwidth}
+\input{tab/data_engine_phases}
+
+\vspace{-5pt}
+\caption{Segmentation accuracy (\jf~metric) improvement from adding data from each data engine phase. ``VOS'' is a set of video object segmentation datasets.  Details are in~\S\ref{sec:supp_eval_sz}. %
+}
+\label{tab:data-engine-data-ablation}
+\end{wraptable}
+
+In~\tabref{tab:data-engine-data-ablation}, we show the performance comparison of SAM 2 trained on the available data at the end of each phase keeping the number of iterations \textit{fixed}, therefore measuring solely the impact of the additional data. We evaluate on our own \mbox{SA-V val} set and also on 9 zero-shot benchmarks (see \secref{sec:supp_eval_sz_video} for details) using the standard \jf~accuracy metric (the higher the better) when prompting with 3-clicks on the first frame. We note a consistent improvement after iteratively including the data from each phase, not only on the in-domain SA-V val set, but also on the 9 zero-shot benchmarks.
+
+
+
+\subsection{SA-V dataset}
+\label{sec:dataset}
+
+The SA-V dataset collected with our data engine comprises \savinumvideos videos with \savinummaskletsWAuto masklets. In~\tabref{tab:dataset-stats-comp} we compare the SA-V composition to common VOS datasets across the number of videos, masklets, and masks. Notably, the number of annotated masks is \saviMoreMasksWAutoRate~(\saviMoreMasksRate~without auto) larger than any existing VOS dataset, providing a substantial resource for future work. We are releasing SA-V under a permissive license.
+
+
+\paragraph{Videos.} We collected a new set of \savinumvideos videos captured by crowdworkers. Videos comprise 54\% indoor and 46\% outdoor scenes with an average duration of 14 seconds. Videos feature ``\textit{in-the-wild}'' diverse environments, and cover various everyday scenarios. 
+
+\begin{figure}
+    \centering
+        \includegraphics[width=0.245\linewidth]{figs/dataset_vis/sav_033851/0.jpg}
+        \includegraphics[width=0.245\linewidth]{figs/dataset_vis/sav_033851/6.jpg}
+        \includegraphics[width=0.245\linewidth]{figs/dataset_vis/sav_033851/12.jpg}
+        \includegraphics[width=0.245\linewidth]{figs/dataset_vis/sav_033851/18.jpg}\\
+        
+        \includegraphics[width=0.195\linewidth,height=1.7in]{figs/dataset_vis/sav_000001/0.jpg}
+        \includegraphics[width=0.195\linewidth,height=1.7in]{figs/dataset_vis/sav_000001/6.jpg}
+        \includegraphics[width=0.195\linewidth,height=1.7in]{figs/dataset_vis/sav_000001/12.jpg}
+        \includegraphics[width=0.195\linewidth,height=1.7in]{figs/dataset_vis/sav_000001/18.jpg}
+        \includegraphics[width=0.195\linewidth,height=1.7in]{figs/dataset_vis/sav_000001/24.jpg}\\
+        
+        \includegraphics[width=0.245\linewidth]{figs/dataset_vis/sav_027687/0.jpg}
+        \includegraphics[width=0.245\linewidth]{figs/dataset_vis/sav_027687/6.jpg}
+        \includegraphics[width=0.245\linewidth]{figs/dataset_vis/sav_027687/12.jpg}
+        \includegraphics[width=0.245\linewidth]{figs/dataset_vis/sav_027687/18.jpg}\\
+        
+        \includegraphics[width=0.195\linewidth,height=1.7in]{figs/dataset_vis/sav_015541/0.jpg}
+        \includegraphics[width=0.195\linewidth,height=1.7in]{figs/dataset_vis/sav_015541/6.jpg}
+        \includegraphics[width=0.195\linewidth,height=1.7in]{figs/dataset_vis/sav_015541/12.jpg}
+        \includegraphics[width=0.195\linewidth,height=1.7in]{figs/dataset_vis/sav_015541/18.jpg}
+        \includegraphics[width=0.195\linewidth,height=1.7in]{figs/dataset_vis/sav_015541/24.jpg}\\
+        
+        \includegraphics[width=0.245\linewidth]{figs/dataset_vis/sav_036174/0.jpg}
+        \includegraphics[width=0.245\linewidth]{figs/dataset_vis/sav_036174/6.jpg}
+        \includegraphics[width=0.245\linewidth]{figs/dataset_vis/sav_036174/12.jpg}
+        \includegraphics[width=0.245\linewidth]{figs/dataset_vis/sav_036174/18.jpg}\\
+        
+        \includegraphics[width=0.195\linewidth,height=1.7in]{figs/dataset_vis/sav_006356/0.jpg}
+        \includegraphics[width=0.195\linewidth,height=1.7in]{figs/dataset_vis/sav_006356/6.jpg}
+        \includegraphics[width=0.195\linewidth,height=1.7in]{figs/dataset_vis/sav_006356/12.jpg}
+        \includegraphics[width=0.195\linewidth,height=1.7in]{figs/dataset_vis/sav_006356/18.jpg}
+        \includegraphics[width=0.195\linewidth,height=1.7in]{figs/dataset_vis/sav_006356/24.jpg}\\
+        
+        \includegraphics[width=0.245\linewidth]{figs/dataset_vis/sav_002597/0.jpg}
+        \includegraphics[width=0.245\linewidth]{figs/dataset_vis/sav_002597/6.jpg}
+        \includegraphics[width=0.245\linewidth]{figs/dataset_vis/sav_002597/12.jpg}
+        \includegraphics[width=0.245\linewidth]{figs/dataset_vis/sav_002597/18.jpg}\\
+    \caption{
+    Example videos from the SA-V dataset with masklets overlaid (manual and automatic). Each masklet has a unique color, %
+    and each row represents frames from one video, with 1 second between them. % More examples in \figref{fig:dataset_vis}.
+    } 
+    \label{fig:dataset_vis_main}
+\end{figure}
+
+\paragraph{Masklets.} The annotations comprise \savinummasklets manual~masklet annotations and \savinummaskletsAutoOnly automatic masklets collected using our data engine. Example videos with masklets overlaid (manual and automatic) are shown in~\figref{fig:dataset_vis_main}. SA-V has \saviMoreMasksWAutoRate~(\saviMoreMasksRate~without auto annotations) more masks than the largest VOS dataset. The disappearance rate~\citep{Ding2023MOSEAN} in SA-V Manual (the percentage of annotated masklets that disappear in at least one frame and then re-appear) is \saviDisappRateNoSpace, competitive among existing datasets.
+
+
+
+
+
+
+
+
+\paragraph{SA-V training, validation and test splits.} We split SA-V based on the video authors (and their geographic locations) to ensure minimal overlap of similar objects. To create SA-V val and SA-V test sets, we focus on challenging scenarios in selecting videos, and ask annotators to identify \emph{challenging targets} that are fast-moving, have complex occlusions by other objects as well as disappearance/re-appearance patterns. These targets were annotated at 6 FPS using the data engine Phase 1 setup in \secref{sec:data_engine}. There are \saviValMasklets masklets and \saviValVideos videos in the SA-V val split, and \saviTestMasklets masklets and \saviTestVideos videos in the SA-V test split. 
+
+
+\paragraph{Internal dataset.} We also used internally available licensed video data to further augment our training set. Our internal dataset is comprised of \internnumvideos videos and \internnummasklets masklets annotated in Phase 2 and Phase 3 (see \secref{sec:data_engine}) for training, and 96 videos and 189 masklets annotated using Phase 1 for testing (Internal-test). %
+
+See Appendix \ref{sec:savi_dataset_appendix} for more details on the data engine and SA-V dataset, including a fairness evaluation.
+
+\begin{table*}[t]
+\vspace{-10pt}
+    \input{tab/tab-datasets-stats-comparison}
+    \vspace{-5pt}
+    \caption{Comparison of our datasets with open source VOS datasets in terms of number of videos, duration, number of masklets, masks, frames, and disappearance rate. SA-V Manual contains only manually annotated labels. SA-V Manual+Auto combines manually annotated labels with automatically generated masklets.}
+    \label{tab:dataset-stats-comp}
+    \vspace{-10pt}
+\end{table*}
+
+
+\section{Zero-shot experiments}
+\label{sec:zero_shot_experiments}
+
+Here, we compare SAM 2 with previous work on zero-shot video and image tasks. We report the standard $\mathcal{J}\&\mathcal{F}$ metric \citep{Pont-Tuset_arXiv_2017} for video and mIoU metric for image tasks. 
+Unless otherwise mentioned, the results in this section follow our default setup using Hiera-B+ image encoder with a resolution of 1024 and trained on the full combination of datasets, i.e., SAM 2 (Hiera-B+) in \tabref{tab:main-results} (see also \secref{app:savi_model_training} for details).
+
+% \subsection{Video tasks}
+% \label{sec:zero_shot_video_tasks}
+
+\subsection{Promptable video segmentation}
+\label{sec:eval_sz:pvs}
+
+\begin{figure}[b]
+\vspace{-10pt}
+\centering
+\small
+\begin{tabular}{cc}
+\includegraphics[width=0.4\linewidth]{figs/interactive_eval/savi_vs_xmem_vs_cutie_avgdataset_offline.pdf} & 
+\includegraphics[width=0.4\linewidth]{figs/interactive_eval/savi_vs_xmem_vs_cutie_avgdataset_online.pdf} \\
+(a) \textit{offline} average $\mathcal{J}\&\mathcal{F}$ across datasets (3-click) &
+(b) \textit{online} average $\mathcal{J}\&\mathcal{F}$ across datasets (3-click)
+\end{tabular}
+\vspace{-5pt}
+\caption{Zero-shot accuracy over 9 datasets in interactive offline and online evaluation settings.}
+\vspace{-10pt}
+\label{fig:zero_shot_video_interactive_eval}
+\end{figure}
+
+We first evaluate promptable video segmentation, which involves simulating an interactive setting that resembles the user experience. We have two settings, \textit{offline} evaluation, where multiple passes are made through a video to select frames to interact with based on the largest model error, and \textit{online} evaluation, where the frames are annotated in a single forward pass through the video. These evaluations are conducted on 9 densely annotated zero-shot video datasets using $N_\mathrm{click}=3$ clicks per frame (see \secref{sec:supp_eval_sz_video} for details).
+
+We create two strong baselines, SAM+XMem++ and SAM+Cutie, based on two state-of-the-art models for video object segmentation, XMem++~\citep{bekuzarov2023xmem++} and Cutie~\citep{cheng2023putting}.
+
+We use XMem++ to generate a video segmentation based on mask inputs on one or multiple frames. SAM is used to provide an initial mask or to refine an output (by feeding the current segmentation as a mask prompt to SAM). For the SAM+Cutie baseline, we modify Cutie to allow taking mask inputs on multiple frames.
+
+In \figref{fig:zero_shot_video_interactive_eval}, we report the average $\mathcal{J}\&\mathcal{F}$ accuracy over $N_\mathrm{frame}=1,\ldots,8$ interacted frames. SAM 2 outperforms SAM+XMem++ and SAM+Cutie for both offline and online evaluation settings. Across all 9 datasets (see per-dataset results in \secref{sec:supp_eval_sz_video}), SAM 2 dominates both methods, generating high-quality video segmentation from a few clicks while allowing continued refinement with prompts. Overall, SAM 2 can generate better segmentation accuracy, with $>$3\x~fewer interactions.
+
+\subsection{Semi-supervised video object segmentation}
+\label{sec:eval_sz:semi_supervised_vos}
+
+\begin{table}[ht]
+\vspace{0.5em}
+\centering
+\small
+\begin{tabular}{lccccc}
+Method & 1-click & 3-click & 5-click & bounding box & ground-truth mask\textsuperscript{\textdaggerdbl} \\
+\midrule
+SAM+XMem++ & 56.9 & 68.4 & 70.6 & 67.6 & 72.7 \\
+SAM+Cutie  & 56.7 & 70.1 & 72.2 & 69.4 & 74.1 \\
+\textbf{SAM 2} & \textbf{64.7} & \textbf{75.3} & \textbf{77.6} & \textbf{74.4} & \textbf{79.3}
+
+\end{tabular}
+\vspace{-0.5em}
+\caption{{Zero-shot accuracy across 17 video datasets using different prompts.} We report average accuracy for each type of prompt (1, 3 or 5 clicks, bounding boxes, or ground-truth masks) in the first video frame ({}\textsuperscript{\textdaggerdbl}: this case  directly uses masks as inputs into XMem++ or Cutie without SAM).}
+\vspace{10pt}
+\label{tab:zero_shot_video_1st_frame}
+\end{table}
+
+We evaluate the semi-supervised video object segmentation (VOS) setting \citep{Pont-Tuset_arXiv_2017} with click, box, or mask prompts \textit{only} on the \textit{first frame} of the video. When using click prompts, we interactively sample either 1, 3 or 5 clicks on the first video frame. %, and then track the object based on these clicks.
+
+Similar to the interactive setting in \secref{sec:eval_sz:pvs}, we compare to XMem++ and Cutie, using SAM for click and box prompts, and in their default setting when using mask prompts. We report the standard $\mathcal{J}\&\mathcal{F}$ accuracy \citep{Pont-Tuset_arXiv_2017}, except for on VOST~\citep{Tokmakov2022BreakingT}, where we report the $\mathcal{J}$ metric following its protocol. The results are in \tabref{tab:zero_shot_video_1st_frame}. SAM 2 outperforms both methods on the 17 datasets. The results underline that SAM 2 also excels at the conventional, non-interactive VOS task with mask input, for which these other works are specifically designed. Details are in \secref{app:sec:semi_supervised_vos}.
+
+
+
+\subsection{Image segmentation}
+\label{sec:zero_shot_image_tasks}
+
+We evaluate SAM 2 on the Segment Anything task across 37 zero-shot datasets, including 23 datasets previously used by SAM for evaluation. 1-click and 5-click mIoUs are reported in~\tabref{tab:sam_zs_comparison} and we show the average mIoU by dataset domain and model speed in frames per second (FPS) on a single A100 GPU. 
+
+The first column (SA-23 All) shows accuracy on the 23 datasets from SAM. SAM 2 achieves higher accuracy (58.9 mIoU with 1 click) than SAM (58.1 mIoU with 1 click), \textit{without} using any extra data and while being \textbf{6\x} \textit{faster}. This can be mainly attributed to the smaller but more effective Hiera image encoder in SAM 2.
+
+The bottom row shows how training on our SA-1B and video data mix can further improve accuracy to 61.4\% on average on the 23 datasets. We also see \textit{exceptional} gains on the video benchmarks from SA-23 (video datasets are evaluated as images, identical to~\cite{kirillov2023segment}), and the 14 new video datasets we added.
+% Overall, the findings underscore SAM 2's dual capability in interactive video and image segmentation, a strength derived from our diverse training data that encompasses videos and static images across visual domains. 
+More detailed results including a breakdown by dataset are in~\secref{app:sam_zs}.
+
+
+\begin{table}[t]
+\vspace{-10pt}
+\centering
+\small
+\begin{tabular}{lcccccr}
+&  &
+  \multicolumn{4}{c}{1 (5) click mIoU} &
+   \\
+\cmidrule(lr){3-6}
+\multicolumn{1}{l}{Model}  & \multicolumn{1}{c}{Data} &
+  \multicolumn{1}{c}{SA-23 All} &
+  \multicolumn{1}{c}{SA-23 Image} &
+  \multicolumn{1}{c}{SA-23 Video} &
+  \multicolumn{1}{c}{14 new Video} &
+   \multicolumn{1}{r}{FPS}
+  \\
+\midrule
+SAM & SA-1B & 
+  58.1 (81.3) &
+  60.8 (82.1) &
+  54.5 (80.3) &
+  59.1 (83.4) &
+  21.7 \\
+  
+\textbf{SAM 2}  & SA-1B & 
+  58.9 (81.7) &
+  60.8 (82.1) &
+  56.4 (81.2) &
+  56.6 (83.7) &
+  \textbf{130.1} \\ 
+\textbf{SAM 2} & our mix & 
+  \textbf{61.9 (83.5)} &
+  \textbf{63.3 (83.8)} &
+  \textbf{60.1 (83.2)} &
+  \textbf{69.6 (85.8)} &
+  \textbf{130.1} \\ 
+  
+  % \textbf{61.9 (83.4)} &
+  % \textbf{63.3 (83.6)} &
+  % \textbf{60.1 (83.1)} &
+  % \textbf{69.5 (85.8)} &
+\end{tabular}
+\vspace{-5pt}
+\caption{Zero-shot accuracy on the Segment Anything (SA) task across 37 datasets. The table shows the average 1- and 5-click mIoU of SAM 2 compared to SAM by domains (image/video). We report the average metrics on the 23 datasets used by SAM (SA-23) and the average across 14 additional zero-shot video datasets (as detailed in \secref{app:sam_zs}).}
+\vspace{-5pt}
+\label{tab:sam_zs_comparison}
+\end{table}
+
+\section{Comparison to state-of-the-art in semi-supervised VOS}
+\label{sec:vos_sota}
+
+\begin{table*}[t]
+    \input{tab/tab-mask2masklet-results-oss}
+    \vspace{-5pt}
+    \caption{VOS comparison to prior work. SAM 2 performs well in accuracy (\mjf, \mg) for video segmentation based on first-frame ground-truth mask prompts. SAM 2 performs significantly better on SA-V val/test.
+    }
+    \label{tab:main-results}
+    \vspace{-10pt}
+\end{table*}
+
+Our primary focus is on the general, interactive PVS task, but we also address the specific semi-supervised VOS setting (where the prompt is a ground-truth mask on the first frame), as it is a historically common protocol. 
+We evaluate two versions of SAM 2 with varying image encoder sizes (Hiera-B+/-L) with different speed-vs-accuracy tradeoffs. We measure frames per second (FPS) on a single A100 GPU using a batch-size of one. SAM 2 based on Hiera-B+ and Hiera-L runs at real-time speeds of 43.8 and 30.2 FPS, respectively.
+
+We present a comparison with existing state-of-the-art in \tabref{tab:main-results}, reporting accuracy using standard protocols.
+SAM 2 shows significant improvement over the best existing methods. We observe that using a larger image encoder brings significant accuracy gains across the board.
+
+We also evaluate existing work on the SA-V val and test sets which measure performance for open-world segments of ``any'' object class. When comparing on this benchmark, we see that most previous methods peak at around the same accuracy. The best performance on SA-V val and SA-V test for prior work is significantly lower demonstrating the gap to a ``segment \textit{anything} in videos'' capability. Finally, we see that SAM 2 also brings notable gains in long-term video object segmentation as observed in the LVOS benchmark result. For data and model ablations, see \S\ref{app:sec:ablations}.
+
+\section{Conclusion}
+\label{sec:disc}
+
+We present a natural evolution of Segment Anything into the video domain, based on three key aspects: (i)~extending the promptable segmentation task to video, (ii) equipping the SAM architecture to use memory when applied to video, and (iii) the diverse SA-V dataset for training and benchmarking video segmentation.
+We believe SAM 2 marks a significant advancement in visual perception, positioning our contributions as milestones that will propel further research and applications. % in the field.
+
+\paragraph{Acknowledgements.}
+We thank Alexander Kirillov and Jitendra Malik for discussions on project direction. Thanks to Andrew Huang, Sahir Gomez, Miguel Martin, Devansh Kukreja, and Somya Jain for work on the demo, and to Aohan Lin and Meng Wang for creating the dataset visualizer. We thank Shoubhik Debnath and Sagar Vaze for their work on dataset preparation. Thanks also to William Ngan and Sasha Mitts for their design expertise and to Grant Gardner and George Orlin for leading product management. We are grateful to Joelle Pineau, Daniel Bolya, Kate Saenko, Pengchuan Zhang, and Christopher Chedeau, for valuable discussions. Thanks to Rene Martinez Doehner and Baishan Guo for data support, and to our annotation engineering and management partners: Robert Kuo, Rishi Godugu, Bob Kamma, Ida Cheng, Claudette Ward, Kai Brown, Jake Kinney, Jenny Truong, and Karen Bergan. Thanks to Vispi Cassod, Parth Malani, Shiva Koduvayur, Alexander Miller, and Caleb Ho for their support with compute and infra. Finally, we thank Azita Shokrpour, Mallika Malhotra, Rodrick Shepard, Jonathan Torres, Luc Dahlin, David Soofian, Alex Bosenberg, and Amanda Kallet for project-level support.
+
+
+\clearpage
+\appendix
+
+\section*{Appendix}
+\label{appendix}
+\paragraph{Table of content:}
+\begin{itemize}[itemsep=-1pt,topsep=-1pt]
+\item \S\ref{app:sec:ablations}: Data and Model Ablations 
+\item \S\ref{app:sec:task}: Task Details
+\item \S\ref{sec:limitations}: Limitations
+\item \S\ref{sec:savi_model_appendix}: Model Details
+\item \S\ref{sec:savi_dataset_appendix}: Dataset Details
+\item \S\ref{app:sec:ann_guidelines}: Annotation Guidelines
+\item \S\ref{sec:supp_eval_sz}: Zero-shot Experiments Details
+\item \S\ref{app:sec:cards}: Dataset, Annotation, and Model Cards
+\end{itemize}
+
+
+
+\section{Data and model ablations}
+\label{app:sec:ablations}
+
+This section presents ablations that informed the design decisions for SAM 2. We evaluate on SA-V val, Internal-test, our MOSE development set (``MOSE dev'') which contains 200 randomly-sampled videos from the MOSE training split, excluded from our training data and the average over 9 zero-shot video datasets. As the metric for comparison, we report \jf under 3-click input on the first frame as a balance between the 1-click regime and the VOS-style mask prompts. Additionally, we report the average 1-click mIoU on the 23-dataset benchmark used by SAM for the SA task on images. Unless otherwise specified, we perform our ablations at 512$^2$ spatial resolution, trained with SA-V manual and a 10\% subset of SA-1B. Additional details are in \secref{app:savi_model_training}.
+
+\subsection{Data ablations}
+\label{sec:ablations_subsection}
+
+\begin{table*}[!h]
+    \vspace{5pt}
+    \input{tab/ablation_training_mix}
+    \caption{We train our model on different data mixtures including VOS (DAVIS, MOSE, YouTubeVOS), and subsets of Internal-train, SA-V, and SA-1B. 
+    We report the \jf accuracy when prompted with 3 clicks in the first frame on SA-V val and Internal-test, MOSE, and 9 zero-shot datasets, and the average 1-click mIoU on SA-23 datasets. %
+    }
+    \vspace{10pt}
+    \label{tab:data-mix}
+\end{table*}
+
+\paragraph{Data mix ablation.} In~\tabref{tab:data-mix}, we compare the accuracy of SAM 2 when trained on different data mixtures. We pre-train on SA-1B and then train a separate model for each setting. We fix the number of iterations (200k) and batch size (128) with \textit{only} the training data changing between experiments. We report accuracy on our SA-V val and Internal set, MOSE, 9 zero-shot video benchmarks, and the SA-23 tasks (\S\ref{sec:zero_shot_image_tasks}). 
+
+
+
+
+Row 1 shows that a model purely trained on existing VOS datasets (DAVIS, MOSE, YouTubeVOS) performs well on the in-domain MOSE dev, but \textit{poorly on all the others} including the 9 zero-shot VOS datasets (59.7~\jf). We observe tremendous benefit from adding our data engine data into the training mix, including \textbf{+12.1}\% average performance improvement on  9 zero-shot datasets (row 11 vs 1). This can be attributed to the limited coverage and size of VOS datasets. %
+Adding SA-1B images improves the performance on the image segmentation task (rows 3 vs 4, 5 vs 6, 9 vs 10, 11 vs 12) without degrading the VOS capability.  Training only on SA-V and SA-1B (row 4) is enough to obtain strong performance on all benchmarks except for MOSE (specific object categories). Overall, we obtain the best results when mixing all datasets: VOS, SA-1B, and our data engine data (row 12). 
+
+
+
+\paragraph{Data quantity ablation.} Next, we study the effect of scaling training data. SAM 2 is pre-trained on SA-1B before training on varying sizes of SA-V. We report average \mjf score (when prompted with 3 clicks in the first frame) over 3 benchmarks: SA-V val, zero-shot, and MOSE dev. Fig.~\ref{fig:fig_data-quantity} shows a consistent power law relationship between the quantity of training data and the video segmentation accuracy on all benchmarks.
+
+\begin{figure}[ht]
+\vspace{1em}
+\centering
+\includegraphics[width=0.325\linewidth]{figs/data_scaling/SA-V_val.pdf} 
+\includegraphics[width=0.325\linewidth]{figs/data_scaling/zero-shot.pdf} 
+\includegraphics[width=0.325\linewidth]{figs/data_scaling/MOSE_dev.pdf}
+\vspace{-5pt}
+\caption{SAM 2 accuracy as a function of the SA-V quantity. We report \jf accuracy for 3-click prompts in the first frame on SA-V val (left), 9 zero-shot datasets (center), and MOSE dev (right).}
+\vspace{15pt}
+\label{fig:fig_data-quantity}
+\end{figure}
+
+\paragraph{Data quality ablation.} In \tabref{tab:data-quality}, we experiment with filtering strategies for quality. We subsample 50k masklets from SA-V, either randomly or by taking the masklets that have been \textit{edited the most} by annotators. Filtering based on the number of edited frames leads to strong performance using just 25\% of the data, and outperforms random sampling, but is worse than using all 190k SA-V masklets.
+
+
+\begin{table*}[ht]
+    \vspace{5pt}
+    \input{tab/ablation_data_quality}
+    \vspace{-5pt}
+    \caption{
+    We train our model on different subsets of our SA-V Manual data: 50k randomly sampled masklets, 50k masklets with the most edited frames, and the full SA-V dataset (190k masklets).
+    }
+    \label{tab:data-quality}
+\end{table*}
+
+
+
+
+\subsection{Model architecture ablations}
+
+In this section, we present model ablations that guided design decisions, conducted under a smaller model setup with 512 input resolution by default. For each ablation setting, we report segmentation accuracy for video (\mjf) and image (mIoU) tasks, and its relative video segmentation speed (the maximum inference throughput relative to the ablation default setup in \colorbox{lightgray}{gray}). 
+We find design choices for image and video components to be largely decoupled -- this can be attributed to our modular design and training strategy. 
+
+\subsubsection{Capacity ablations}
+
+
+\begin{table*}[h!]
+        % \vspace{-10pt}
+    \subfloat[ 
+    \textbf{Resolution.} 
+    \label{tab:tab-results-input-resolution}
+    ]{
+        \centering
+        \begin{minipage}{0.48\linewidth}{
+            \begin{center}
+                \tablestyle{2.5pt}{1.08}
+                \scriptsize
+                \begin{tabular}{cccccc}
+                 \multicolumn{1}{c}{} & \multicolumn{3}{c}{\mjf} &  &\multicolumn{1}{c}{mIoU} \\
+                \cmidrule(lr){2-4}\cmidrule(lr){6-6}
+                {\scriptsize res.} & MOSE dev &  SA-V val & {\scriptsize 9 zero-shot} & speed & SA-23 \\
+                \midrule
+                 \baseline{512} & 73.0 & 68.3 & 70.7 & \textbf{1.00\x} & 59.7 \\
+                 768  &  76.1 &  \textbf{71.1} & \textbf{72.5} & 0.43\x & 61.0 \\
+                 1024 & \textbf{77.0}  & 70.1 & 72.3 & 0.22\x &\textbf{61.5}\\
+                \end{tabular}
+            \end{center}
+        }\end{minipage}
+    }
+    \subfloat[\textbf{\#Frames}.
+    \label{tab:tab-results-input-frames}
+    ]{
+        \centering
+        \begin{minipage}{0.48\linewidth}{
+            \begin{center}    
+                \tablestyle{2.5pt}{1.08}
+                \scriptsize
+                \begin{tabular}{cccccc}
+                 \multicolumn{1}{c}{} & \multicolumn{3}{c}{\mjf} &  &\multicolumn{1}{c}{mIoU} \\
+                \cmidrule(lr){2-4}\cmidrule(lr){6-6}
+                \#frames & MOSE dev &  SA-V val & {\scriptsize 9 zero-shot} & speed & SA-23 \\
+                \midrule
+                 4  & 71.1 & 60.0 & 67.7 & 1.00\x & \textbf{60.1}\\
+                 \baseline{8} & 73.0 & \textbf{68.3} & 70.7 & 1.00\x & 59.7 \\
+                 10  &  \textbf{74.5} & 68.1 & \textbf{71.1} & 1.00\x & 59.9\\
+                \end{tabular}
+            \end{center}
+        }\end{minipage}
+    }
+    \hspace{0.2em}
+    \subfloat[ 
+    \textbf{\#Memories.} 
+    \label{tab:tab-results-memory-num-memories}
+    ]{
+        \centering
+        \begin{minipage}{0.48\linewidth}{
+            \begin{center}    
+                \tablestyle{2.5pt}{1.08}
+                \scriptsize
+                \begin{tabular}{cccccc}
+                 \multicolumn{1}{c}{} & \multicolumn{3}{c}{\mjf} &  &\multicolumn{1}{c}{mIoU} \\
+                \cmidrule(lr){2-4}\cmidrule(lr){6-6}
+                \#mem. & MOSE dev &  SA-V val & {\scriptsize 9 zero-shot} & speed & SA-23 \\
+                \midrule
+                 4  &  \textbf{73.5} & 68.6 & 70.5 & \textbf{1.01\x} & \textbf{59.9}\\
+                 \baseline{6} & 73.0 & 68.3 & \textbf{70.7} & 1.00\x & 59.7 \\
+                 8  &  73.2 & \textbf{69.0} & \textbf{70.7} & 0.93\x & \textbf{59.9}\\
+                \end{tabular}
+            \end{center}
+        }\end{minipage}
+    }
+    \subfloat[\textbf{Memory channels.}
+    \label{tab:tab-results-memory-channels}
+    ]{
+        \centering
+        {\footnotesize
+        \begin{minipage}{0.48\linewidth}{
+            \begin{center}    
+                \tablestyle{2.5pt}{1.08}
+                \scriptsize
+                \begin{tabular}{cccccc}
+                 \multicolumn{1}{c}{} & \multicolumn{3}{c}{\mjf} &  &\multicolumn{1}{c}{mIoU} \\
+                \cmidrule(lr){2-4}\cmidrule(lr){6-6}
+                chan. dim. & MOSE dev &  SA-V val & {\scriptsize 9 zero-shot} & speed & SA-23 \\
+                \midrule
+                 \baseline{64}  & 73.0 & \textbf{68.3} & \textbf{70.7} & \textbf{1.00\x} & 59.7 \\
+                 256  &  \textbf{73.4} & 66.4 & 70.0 & 0.92\x & \textbf{60.0}\\
+                 \vspace{0.2em}
+                \end{tabular}
+            \end{center}
+        }\end{minipage}
+        }
+    }
+    \hspace{0.2em}
+    \subfloat[ 
+    \textbf{Memory attention.} 
+    \label{tab:tab-results-memory-attention-size}
+    ]{
+        \centering
+        \begin{minipage}{0.48\linewidth}{
+            \begin{center}    
+                \tablestyle{2.5pt}{1.08}
+                \scriptsize
+                \begin{tabular}{cccccc}
+                 \multicolumn{1}{c}{} & \multicolumn{3}{c}{\mjf} &  &\multicolumn{1}{c}{mIoU} \\
+                \cmidrule(lr){2-4}\cmidrule(lr){6-6}
+                (\#sa, \#ca) & MOSE dev &  SA-V val & {\scriptsize 9 zero-shot} & speed & SA-23 \\
+                \midrule
+                (2, 2)  &  \textbf{73.3} & 67.3 & 70.2 & \textbf{1.13\x} & 59.9\\
+                (3, 2)  &   72.7 & 64.1 & 69.5 & 1.08\x & \textbf{60.0}\\
+                (\baseline{4, 4}) & 73.0 & \textbf{68.3} & \textbf{70.7} & 1.00\x & 59.7 \\
+                \end{tabular}
+            \end{center}
+        }\end{minipage}
+    }
+    \hspace{0.5em}
+    \subfloat[\textbf{Image encoder size}.
+    \label{tab:tab-results-image-encoder}
+    ]{
+        \centering
+        \begin{minipage}{0.48\linewidth}{
+            \begin{center}    
+                \tablestyle{2.5pt}{1.08}
+                \scriptsize
+                \begin{tabular}{cccccc}
+                 \multicolumn{1}{c}{} & \multicolumn{3}{c}{\mjf} &  &\multicolumn{1}{c}{mIoU} \\
+                \cmidrule(lr){2-4}\cmidrule(lr){6-6}
+                img. enc. & MOSE dev &  SA-V val & {\scriptsize 9 zero-shot} & speed & SA-23 \\
+                \midrule
+                 S  & 70.9 & 65.5 &  69.4 & \textbf{1.33\x} & 57.8\\
+                 \baseline{~~B+} & 73.0 & \textbf{68.3} & 70.7 & 1.00\x & 59.7 \\
+                 L  &  \textbf{75.0} & 66.3 & \textbf{71.9} & 0.60\x & \textbf{61.1}\\
+                \end{tabular}
+            \end{center}
+        }\end{minipage}
+    }
+    \vspace{-5pt}
+    \caption{We ablate modeling capacity along input size (resolution, \#frames), memory size (\#memories, memory channel dim) and model size (memory attention, image encoder). Ablation defaults in \colorbox{lightgray}{gray}.}
+    \vspace{1em}
+    \vspace{-10pt}
+\end{table*}
+
+
+\paragraph{Input size.} During training, we sample sequences of frames of fixed resolution  and fixed length (here denoted by \# frames). We ablate their impact in Tables \ref{tab:tab-results-input-resolution}, \ref{tab:tab-results-input-frames}. A higher resolution leads to significant improvements across image and video tasks, and we use a spatial input resolution of 1024$^2$ in our final model. Increasing the number of frames brings notable gains on video benchmarks and we use a default of 8 to balance speed and accuracy.
+
+
+
+
+
+
+\paragraph{Memory size.} Increasing the (maximum) number of memories, $N$, generally helps the performance although there could be some variance, as in \tabref{tab:tab-results-memory-num-memories}. We use a default value of 6 past frames to strike a balance between temporal context length and computational cost. Using fewer channels for memories does not cause much performance regression as in \tabref{tab:tab-results-memory-channels}, while making the memory required for storage 4$\times$ smaller.
+
+
+
+
+
+
+\paragraph{Model size.} More capacity in the image encoder or memory-attention (\#self-/\#cross-attention blocks) generally leads to improved results, as shown in Tables \ref{tab:tab-results-memory-attention-size}, \ref{tab:tab-results-image-encoder}. Scaling the image encoder brings gains on both image and video metrics, while scaling the memory-attention only improves video metrics. We default to using a B+ image encoder, which provides a reasonable balance for speed and accuracy.
+
+
+\subsubsection{Relative positional encoding}
+\label{sec:ablation_pos_enc}
+
+\begin{table}[h]
+\centering
+\vspace{5pt}
+    \footnotesize
+    \begin{tabular}{ccccccccc}
+    \multicolumn{2}{c}{} & \multicolumn{4}{c}{ \mjf} &  &\multicolumn{1}{c}{mIoU} \\
+    \cmidrule(lr){3-6}\cmidrule(lr){8-8}
+    % RPB in img. enc. & 2d-RoPE in mem. attn. & MOSE dev & SA-V val & LVOSv2 val & 9 zero-shot & speed & SA-23 \\
+    RPB & 2d-RoPE & MOSE dev & SA-V val & LVOSv2 val & 9 zero-shot & speed & SA-23 \\
+    \midrule
+    \baseline{}     &   \baseline{\checkmark} & 73.0 & \textbf{68.3} & \textbf{71.6} & 70.7 & 1.00\x & 59.7 \\
+    \checkmark      &   \checkmark    & \textbf{73.6} & 67.9 & 71.0 & \textbf{71.5} & 0.93\x & \textbf{60.0} \\
+      &     & 72.8 & 67.1 & 70.3 & 70.3 & \textbf{1.04\x} & 59.9 \\
+    \end{tabular}
+\caption{We use 2d-RoPE positional encoding in memory attention while removing RPB from the image encoder by default (\colorbox{lightgray}{gray}). Removing RPB also allows us to enable FlashAttention-2 \citep{flashattentionv2}, which gives a significant speed boost at (1024$^2$) resolution. At such higher resolution , the speed gap between 2d-RoPE (1st row) and the no RoPE baseline (3rd row) becomes small (4\%).}
+\label{tab:tab-results-pos-enc}
+\vspace{10pt}
+\end{table}
+
+By default, we always use absolute positional encoding in both the image encoder as well as memory attention. In~\tabref{tab:tab-results-pos-enc}, we study relative positional encoding design choices. Here we also evaluate on LVOSv2 \citep{hong2024lvos} with 3 clicks on the 1st frame as a benchmark for long-term video object segmentation.
+
+While SAM \citep{kirillov2023segment} follows \citet{vitdet} in adding relative positional biases (RPB) to all image encoder layers, \cite{abswin} improve upon this by removing RPB in all but the global attention layers while adopting ``absolute-win'' positional encoding which brings large speed gains. We improve upon this further by removing all RPB from the image encoder, with no performance regression on SA-23 and minimal regression on video benchmarks (see \tabref{tab:tab-results-pos-enc}), while giving a significant speed boost at 1024 resolution.  We also find it is beneficial to use 2d-RoPE \citep{roformer, heo2024rotarypositionembeddingvision} in the memory attention.
+
+\subsubsection{Memory architecture ablations}
+
+\paragraph{Recurrent memory.} We investigate the effectiveness of feeding the memory features to a GRU before adding them to the memory bank. Similar to \secref{sec:ablation_pos_enc}, we also evaluate on LVOSv2 as an additional benchmark for long-term object segmentation. While prior works have commonly employed GRU \citep{cho2014learning} states as a means of incorporating memory into the tracking process, our findings in \tabref{tab:mem_enhance_ablation} suggest that this approach does not provide an improvement (except slightly on LVOSv2). Instead, we find it sufficient to directly store the memory features in the memory bank, which is both simpler and more efficient.
+
+\paragraph{Object pointers.} We ablate the impact of cross-attending to the object pointer vectors from the mask decoder output in other frames (see \secref{sec:model}). The results presented in \tabref{tab:mem_enhance_ablation} show that while cross-attending to object pointers does not enhance average performance across the 9 zero-shot datasets, it significantly boosts performance on SA-V val ~dataset as well as on the challenging LVOSv2 benchmark (validation split). Hence, we default to cross-attending to object pointers together with the memory bank embeddings from the memory encoder.
+
+\begin{table}[ht]
+\centering
+\footnotesize
+\vspace{1em}
+\begin{tabular}{cccccccc}
+\multicolumn{2}{c}{} & \multicolumn{4}{c}{{\footnotesize \mjf}} &  &\multicolumn{1}{c}{{\footnotesize mIoU}} \\
+\cmidrule(lr){3-6}\cmidrule(lr){8-8}
+Object Pointers & GRU & MOSE dev & SA-V val & LVOSv2 val & 9 zero-shot & speed & SA-23 \\
+\midrule
+ & &  \textbf{73.1} & 64.5 & 67.0 & \textbf{70.9} & \textbf{1.00\x} &59.9 \\
+ & \checkmark & 72.3 & 65.3 & 68.9 & 70.5 & 0.97\x & \textbf{60.0} \\
+ \baseline{\checkmark} &  \baseline{} & 73.0 & \textbf{68.3} & \textbf{71.6} & 70.7  & \textbf{1.00\x} & 59.7 \\
+\end{tabular}
+\caption{{Ablations on memory design.} We use object pointers by default (\colorbox{lightgray}{gray}) and also study recurrent GRU memory.}
+\label{tab:mem_enhance_ablation}
+\vspace{10pt}
+\end{table}
+
+
+
+\section{Details on the PVS Task}
+\label{app:sec:task}
+
+The Promptable Visual Segmentation (PVS) task can be seen as an extension of the Segment Anything (SA) task from static images to videos. In the PVS setting, given an input video, the model can be interactively \textit{prompted} with different types of inputs (including clicks, boxes, or masks) on any frame in the video, with the goal of segmenting (and tracking) a valid object throughout the video. When interacting with a video, the model provides an instant response on the frame being prompted (similar to the interactive experience of SAM on images), and also returns the segmentation of the object throughout the entire video in near real-time. Similar to SAM the focus is on \textit{valid} objects which have a clearly defined boundary, and we do \textit{not} consider regions without visual boundaries (e.g. \citet{bekuzarov2023xmem++}).  \figref{fig:promptable_visual_segmentation_task} illustrates the task. 
+
+\begin{figure}[h]
+    \centering
+    \vspace{15pt}
+    \includegraphics[width=\linewidth]{figs/pvs_vs_vos_boldtext.pdf}
+    \caption{An illustration of the Promptable Visual Segmentation task (PVS). Previously studied tasks such as Segment Anything (SA) and semi-supervised Video Object Segmentation (VOS) can be seen as special cases of the PVS task.}
+    \vspace{15pt}
+    \label{fig:promptable_visual_segmentation_task}
+\end{figure}
+
+PVS is related to tasks in the image and video domains. For images, the SA task can be considered a subset of PVS with the video reduced to a single frame. Similarly, traditional semi-supervised and interactive VOS~\citep{Pont-Tuset_arXiv_2017} tasks are special cases of PVS, limited to mask prompts provided only on the \textit{first} frame and \textit{scribbles} on multiple frames to segment objects throughout a video, respectively. In PVS, prompts can either be clicks, masks, or boxes, and the focus is on enhancing the interactive experience, enabling refinement of a segmentation with minimal interaction.
+
+\section{Limitations} 
+\label{sec:limitations}
+
+SAM 2 demonstrates strong performance in both static image and video domains, yet it encounters difficulties in certain scenarios. The model may fail to segment objects across shot changes and can lose track of or confuse objects in crowded scenes, after long occlusions or in extended videos. To alleviate this issue, we designed the ability to prompt SAM 2 in \textit{any} frame: if the model loses the object or makes an error, refinement clicks on additional frames can quickly recover the correct prediction in most cases. SAM 2 also struggles with accurately tracking objects with very thin or fine details especially when they are fast-moving. Another challenging scenario occurs when there are nearby objects with similar appearance (e.g., multiple identical juggling balls). Incorporating more explicit motion modeling into SAM 2 could mitigate errors in such cases. 
+
+While SAM 2 can track multiple objects in a video simultaneously, SAM 2 processes each object separately, utilizing only shared per-frame embeddings without inter-object communication. While this approach is simple, incorporating shared object-level contextual information could aid in improving efficiency.
+
+Our data engine relies on human annotators to verify masklet quality and select frames that require correction. Future developments could include automating this process to enhance efficiency.
+
+
+
+\section{SAM 2 details}
+\label{sec:savi_model_appendix}
+
+\subsection{Architecture}
+
+Here we discuss further architecture details, expanding on the model description in \secref{sec:model}.
+
+\paragraph{Image encoder.} We use a feature pyramid network \citep{fpn} to fuse the stride 16 and 32 features from Stages 3 and 4 of the Hiera image encoder respectively to produce the image embeddings for each frame. In addition, the stride 4 and 8 features from Stages 1 and 2 are not used in the memory attention but are added to the upsampling layers in the mask decoder as shown in Figure \ref{fig:model_digagram_zoomin}, which helps produce high-resolution segmentation details. We follow \citet{abswin} in using \textit{windowed} absolute positional embeddings in the Hiera image encoder. In \cite{abswin}, RPB provided positional information spanning \textit{across} windows in the image encoder, in lieu of which we adopt a simpler approach of interpolating the global positional embedding instead to span across windows. We do not use any relative positional encoding. We train models with varying image encoder sizes -- T, S, B+ and L. We follow \citet{vitdet} and use global attention in only a subset of the image encoder layers (see \tabref{tab:hyperparams}). 
+
+\paragraph{Memory attention.} In addition to sinusoidal absolute positional embeddings, we use 2d spatial Rotary Positional Embedding (RoPE) \citep{roformer, heo2024rotarypositionembeddingvision} in self-attention and cross-attention layers. The object pointer tokens are excluded from RoPE as they do not have specific spatial correspondence. By default, the memory attention uses $L=4$ layers. 
+
+\begin{figure}[h]
+    \centering
+    \vspace{-10pt}
+    \includegraphics[width=0.8\linewidth]{figs/model_diagram_zoomin_v3.pdf}
+    \vspace{-5pt}
+    \caption{Mask decoder architecture. The design largely follows SAM, and we additionally include the stride 4 and 8 features from the image encoder during upsampling. We also use the mask token corresponding to the output mask as an object pointer and generate an occlusion score which indicates if the object of interest is visible in the current frame.}
+    \vspace{-10pt}
+    \label{fig:model_digagram_zoomin}
+\end{figure}
+
+\paragraph{Prompt encoder and mask decoder.} The prompt encoder design follows SAM, and we next discuss additional details on design changes in the mask decoder. We use the mask token corresponding to the output mask as the object pointer token for the frame, which is placed in the memory bank. As discussed in \secref{sec:model}, we also introduce an occlusion prediction head. This is accomplished by including an additional token along with the mask and IoU output tokens. An additional MLP head is applied to this new token to produce a score indicating the likelihood of the object of interest being visible in the current frame (as shown in Figure \ref{fig:model_digagram_zoomin}). In the memory bank, we also add a learned occlusion embedding to the memory features of those frames that are predicted to be occluded (invisible) by the occlusion prediction head.
+
+SAM introduced the ability to output multiple valid masks when faced with ambiguity about the object being segmented in an image. For example, when a person clicks on the tire of a bike, the model can interpret this click as referring to only the tire or the entire bike and output multiple predictions. In videos, this ambiguity can extend across video frames. For example, if in one frame only the tire is visible, a click on the tire might relate to just the tire, or as more of the bike becomes visible in subsequent frames, this click could have been intended for the entire bike. To handle this ambiguity, SAM 2 predicts multiple masks at each step of the video. If further prompts do not resolve the ambiguity, the model selects the mask with the highest predicted IoU for the current frame for further propagation in the video.
+
+\paragraph{Memory encoder and memory bank.} %
+Our memory encoder does not use an additional image encoder and instead reuses the image embeddings produced by the Hiera encoder, which are fused with the predicted mask information to produce memory features (as discussed in \secref{sec:model}). This design allows the memory features to benefit from the strong representations produced by the image encoder (especially when we scale the image encoder to a larger size). Further, we project the memory features in our memory bank to a dimension of 64, and split the 256-dim object pointer into 4 tokens of 64-dim for cross-attention to the memory bank.
+
+\paragraph{Handling multiple objects in a video.} %
+When applying SAM 2 to segment multiple objects in the same video (such as multi-object tracking in the semi-supervised VOS evaluation), we perform inference on each object independently. More specifically, we share the visual features from the image encoder between all the objects in the video but run all the other model components (such as the memory bank and the mask decoder) separately for each object.
+
+\subsection{Training}
+\label{app:savi_model_training}
+
+\subsubsection{Pre-training}
+\label{app:savi_model_pretraining}
+
+We first pre-train SAM 2 on static images on the SA-1B dataset. \tabref{tab:pre-training-hparam} details the settings used during pre-training on SA-1B -- other settings not mentioned here follow \citet{kirillov2023segment}. The image encoder is initialized from MAE pre-trained Hiera \citep{hiera}. Similar to SAM, we filter masks covering more than 90\% of the image and restricted training to 64 randomly sampled masks per image.
+
+Unlike SAM, we found it beneficial to use an $\ell_1$ loss to more aggressively supervise the IoU predictions and to apply a sigmoid activation to the IoU logits to restrict the output into the range between 0 and 1. For multi-mask predictions (on the first click), we supervise the IoU predictions of \textit{all} masks to encourage better learning of when a mask might be bad, but only supervise the mask logits with the lowest segmentation loss (linear combination of focal and dice loss). In SAM, during iterative sampling of points, two iterations were inserted with no additional prompts (only feeding the previous mask logits) -- we do not add such iterations during our training and use 7 correction clicks (instead of 8 in SAM). We also employ horizontal flip augmentation during training and resize the image to a square size of 1024$\times$1024. 
+
+We use AdamW \citep{adamw} and apply layer decay \citep{electra} on the image encoder and follow a reciprocal square-root schedule \citep{zhai2022scaling}. See \tabref{tab:hyperparams} (a) for the hyperparameters in our pre-training stage.
+
+\subsubsection{Full training}
+\label{app:savi_model_fulltraining}
+
+After pre-training, we train SAM 2 on our introduced datasets SA-V + Internal (section \secref{sec:dataset}), a 10\% subset of SA-1B, and a mixture of open-source video datasets including DAVIS~\citep{Pont-Tuset_arXiv_2017, caelles20192019}, MOSE~\citep{Ding2023MOSEAN}, and YouTubeVOS~\citep{Xu2018YouTubeVOSAL}. 
+Our released model is trained on SA-V manual + Internal and SA-1B. 
+
+SAM 2 is designed for two tasks; the PVS task (on videos) and the SA task (on images). 
+Training is done \textit{jointly} on image and video data. To optimize our data usage and computational resources during training, we adopt an alternating training strategy between video data (multiple frames) and static images (one single frame). Specifically, in each training iteration, we sample a full batch either from the image or video dataset, with their sampling probabilities proportional to the size of each data source. This approach allows for a balanced exposure to both tasks and a different batch size for each data source to maximize compute utilization. Settings not explicitly mentioned here for the image task follow settings from the pre-training phase. See \tabref{tab:hyperparams} (b) for the hyperparameters in our full training stage. The training data mixture consists of $\sim$15.2\% SA-1B, $\sim$70\% SA-V and $\sim$14.8\% Internal. The same settings are used when open-source datasets are included, with the change that the additional data is included ($\sim$1.3\% DAVIS, $\sim$9.4\% MOSE, $\sim$9.2\% YouTubeVOS, $\sim$15.5\% SA-1B, $\sim$49.5\% SA-V, $\sim$15.1\% Internal). When training on SA-V and other video datasets, we only use those manually annotated masklets (without adding automatically generated ones), which are sufficient to achieve strong performance based on our analyses.
+
+We apply a series of data augmentations to the training videos (detailed in \tabref{tab:hyperparams}), including random horizontal flips, random affine transforms, random color jittering, and random grayscale transforms, as listed in \tabref{tab:hyperparams}. We also adopt a mosaic transform to simulate challenging scenarios with multiple similar-looking objects -- with 10\% probability, we tile the same training video into a 2$\times$2 grid and select a masklet from one of the 4 quadrants as the target object to segment. In this case, the model must focus on other cues like motion or temporal continuity to distinguish the target object from their identical-looking counterparts in other quadrants. In addition, the videos and objects in each quadrant are smaller in size (only half the original width and height) after this mosaic transform, which also facilitates learning to segment small objects.
+
+\begin{table}[!ht]
+\centering
+\subfloat[{Pre-training}\label{tab:pre-training-hparam}]{
+\centering
+\begin{minipage}{1.0\linewidth}{\begin{center}
+\tablestyle{3pt}{1.00}
+\begin{tabular}{y{120}|x{250}}
+config  & value \\
+\hline
+data & SA-1B \\
+steps & $\sim$90k \\
+resolution & 1024 \\
+precision & bfloat16 \\
+optimizer & AdamW \\
+optimizer momentum & {$\beta_1, \beta_2{=}0.9, 0.999$} \\ 
+gradient clipping & type: $\ell_2$, max: {0.1} \\
+weight decay & 0.1 \\
+learning rate (lr) & 4e-4 \\
+lr schedule & reciprocal sqrt, timescale=1000\\
+warmup & linear, 1k iters \\ 
+cooldown & linear, 5k iters\\
+layer-wise decay & 0.8 (T, S), 0.9 (B+), 0.925 (L) \\
+augmentation & hflip, resize to 1024 (square)\\
+batch size & 256 \\
+drop path & 0.1 (T, S), 0.2 (B+), 0.3 (L) \\
+mask losses (weight) & focal (20), dice (1)\\
+IoU loss (weight) & $\ell_1$ (1)\\
+max \# masks per image & 64 \\
+\# correction points & 7 \\
+global attn. blocks & 5-7-9 (T), 7-10-13 (S), 12-16-20 (B+), 23-33-43 (L)
+\end{tabular}
+\end{center}}\end{minipage}
+}
+\vspace{10pt}
+\hspace{5em}
+\subfloat[{Full training}\label{tab:training-hparam}]{
+\centering
+\begin{minipage}{1.0\linewidth}{\begin{center}
+\tablestyle{3pt}{1.00}
+\begin{tabular}{y{120}|x{250}}
+config  & value \\
+\hline
+data & SA-1B, Internal, SA-V \\
+steps & $\sim$150k \\
+resolution & 1024 \\
+precision & bfloat16 \\
+optimizer & AdamW \\
+optimizer momentum & {$\beta_1, \beta_2{=}0.9, 0.999$} \\ 
+gradient clipping & type: $\ell_2$, max: {0.1} \\
+weight decay & 0.1 \\
+learning rate (lr) & img. enc.: 6e-5, other: 3.0e-4 \\
+lr schedule & cosine\\
+warmup & linear, 7.5k iters \\ 
+layer-wise decay & 0.8 (T, S), 0.9 (B+), 0.925 (L) \\
+image augmentation & hflip, resize to 1024 (square)\\
+video augmentation & hflip, affine (deg: 25, shear: 20), colorjitter (b: 0.1, c: 0.03, s: 0.03, h: null), grayscale (0.05), per frame colorjitter (b: 0.1, c: 0.05, s: 0.05, h: null), mosaic-2$\times$2 (0.1) \\
+batch size & 256 \\
+drop path & 0.1 (T, S), 0.2 (B+), 0.3 (L) \\
+mask losses (weight) & focal (20), dice (1)\\
+IoU loss (weight) & $\ell_1$ (1)\\
+occlusion loss (weight) & cross-entropy (1) \\
+max. masks per frame. & image: 64, video: 3 \\
+\# correction points & 7 \\
+global attn. blocks & 5-7-9 (T), 7-10-13 (S), 12-16-20 (B+), 23-33-43 (L)
+\end{tabular}
+\end{center}}\end{minipage}
+}
+\vspace{-5pt}
+\caption{Hyperparameters and details of SAM 2 pre-training and full training. Note that some settings vary with image encoder size  (T, S, B+, L).}
+\label{tab:hyperparams}
+\end{table}
+
+
+We train by simulating an interactive setting, sampling 8-frame sequences and randomly selecting up to 2 frames (including the first) for corrective clicks. During training, we use ground-truth masklets and model predictions to sample prompts, with initial prompts being the ground-truth mask (50\% probability), a positive click from the ground-truth mask (25\%), or a bounding box input (25\%).
+
+We restrict the maximum number of masklets for each sequence of 8 frames to 3 randomly chosen ones. We reverse the temporal order with a probability of 50\% to help generalization to bi-directional propagation. When we sample corrective clicks, with a small probability of 10\%, we randomly sample clicks from the ground truth mask, irrespective of the model prediction, to allow additional flexibility in mask refinement.
+
+\paragraph{Fine-tuning using 16-frame sequences.} A potential shortcoming of the procedure above is that the model only sees sampled 8-frame sequences during training, which is relatively short compared to the full video length during inference. To alleviate this issue and further boost the segmentation quality on long videos, we introduce an extra fine-tuning stage where we sample 16-frame sequences on challenging videos (those videos with the highest number of edited frames, as described in \secref{app:sec:ann_guidelines}). More specifically, we sort our masklets by number of edited frames and only consider the top 50\% most edited masklets for training, for both SA-V and Internal datasets. We still keep the complete versions of the OSS datasets (DAVIS, MOSE, and YouTubeVOS) in the training mix. We fine-tune for 50k iterations (1/3 of the original schedule) using half of the original learning rate and freeze the image encoder to fit the 16-frame sequence into the 80 GB memory of A100 GPUs.
+
+\paragraph{Losses and optimization.} We supervise the model's predictions using a linear combination of focal and dice losses for the mask prediction, mean-absolute-error (MAE) loss for the IoU prediction, and cross-entropy loss for object prediction with a ratio of 20:1:1:1 respectively. As during pre-training, for multi-mask predictions, we only supervise the mask with the lowest segmentation loss. If the ground-truth does not contain a mask for a frame, we do not supervise any of the mask outputs (but always supervise the occlusion prediction head that predicts whether there should exist a mask in the frame).
+
+
+
+\subsection{Speed benchmarking}
+\label{sec:speed_benchmarking}
+
+We conduct all benchmarking experiments on a single A100 GPU using PyTorch 2.3.1 and CUDA 12.1, under automatic mixed precision with bfloat16. We compile the image encoder with \texttt{torch.compile} for all SAM 2 models and do the same for SAM and HQ-SAM for direct comparison on the SA task (Tables \ref{tab:sam_zs_comparison} and \ref{tab:sam_zs_comparison_full}). The FPS measurements for the SA task were conducted using a batch size of 10 images, which was found to yield the highest FPS across all three model types. For video tasks, we use a batch size of 1 following the common protocol in video segmentation.
+
+\clearpage
+
+\section{Data details}
+\label{sec:savi_dataset_appendix}
+\subsection{SA-V dataset details}
+
+% \setlength\intextsep{1pt}
+\begin{wrapfigure}{r}{0.34\textwidth}
+  \begin{center}
+    \vspace{-15pt}
+    \begin{tabular}{cc}
+    \includegraphics[width=0.39\linewidth]{figs/manual_vs_pseudo/manual.jpg} &
+    \includegraphics[width=0.39\linewidth]{figs/manual_vs_pseudo/manual_and_auto.jpg}\\
+    (a) ML only & (b) With Auto\\
+    \end{tabular}
+  \end{center}
+  \vspace{-0.35cm}
+  \caption{Annotations overlaid on the first frame: (a) manual labels (ML) only, (b) with automatic labels (Auto). Automatic labels increase diversity and coverage.}
+  \label{fig:ml_vs_pl}
+  \vspace{-5pt}
+\end{wrapfigure}
+\textbf{Videos.} Resolutions range from 240p to 4K with 1,401 $\times$ 1,037 on average. Duration ranges from 4 seconds to 2.3 minutes, with an average of 13.8 seconds, totaling 4.2M frames and 196 hours. 
+
+\textbf{Dataset diversity.} As shown in \figref{fig:dataset_diversity}, SA-V videos were recorded across 47 countries (\figref{fig:dataset_geography}), by diverse participants (self-reported demographics in~\figref{fig:dataset_demographics}).  \figref{fig:dataset_mask_size} shows a comparison of mask size distribution (normalized by video resolution) with DAVIS, MOSE, and YouTubeVOS. More than $88\%$ of SA-V masks have a normalized mask area less than 0.1.
+
+
+\textbf{Automatic masklets.} Similar to the approach described by \cite{kirillov2023segment}, automatic masklets are generated by prompting the model with regular grids. We prompt the model with a $32\times 32$ grid on the first frame, and additionally we use a $16\times 16$ grid on 4 zoomed image crops of the first frame (derived from a $2\times 2$ overlapped window) and a $4\times 4$ grid on 16 zoomed image crops of the first frame (derived from a $4\times 4$ overlapped window). We apply two post-processing steps across all frames. First, we remove tiny disconnected components with areas smaller than 200 pixels. Second, we fill in holes in segmentation masks if the area of the hole is less than 200 pixels. By combining these automatically generated masklets with manually created ones, we enhance the coverage of annotations in the SA-V dataset, as illustrated in \figref{fig:ml_vs_pl}. % More examples of the dataset are in~\figref{fig:dataset_vis}. 
+
+
+\newsavebox{\imagebox}
+\label{sec:datasetfairness}
+\begin{figure}[b]
+\savebox{\imagebox}{
+\includegraphics[width=0.38\textwidth]{img/region_map_6_25.png}
+}
+
+\begin{subfigure}[l]{0.25\textwidth}
+%\vspace{-10pt}
+\centering\raisebox{\dimexpr.5\ht\imagebox-.5\height}{
+ \includegraphics[width=0.95\linewidth]{figs/normalized_mask_area.pdf}}
+             \subcaption{Size}
+             \label{fig:dataset_mask_size}
+ \end{subfigure}
+\begin{subfigure}[l]{0.4\textwidth}
+    \centering\usebox{\imagebox}
+    \subcaption{Geography}
+    \label{fig:dataset_geography}
+\end{subfigure}
+\begin{subfigure}[l]{0.31\textwidth}
+\centering\raisebox{\dimexpr.5\ht\imagebox-.4\height}{
+\begin{subfigure}[c]{0.45\textwidth}
+      \renewcommand\thesubfigure{i}
+            \centering
+\begin{tikzpicture}[style={font=\scriptsize}]
+    \pie[text=inside, sum=auto, radius=1.13, color={paleorange!60, palepurple!60}]{274/Male, 236/Female}
+    \end{tikzpicture}
+        \subcaption{Gender}
+\end{subfigure}
+\begin{subfigure}[c]{0.48\textwidth}
+\addtocounter{subfigure}{-2}
+\renewcommand\thesubfigure{ii}
+\begin{tikzpicture}[style={font=\scriptsize}]
+    \pie[text=inside, sum=auto, pos={2,0}, radius=1.13, color={palegreen!60, paleyellow!60, palered!60}]{109/18-24, 305/25-40, 88/41-64}
+\end{tikzpicture}  
+    \subcaption{Age}
+\end{subfigure}
+}
+    \subcaption{Crowdworker Demographics}
+    \label{fig:dataset_demographics}
+\end{subfigure}
+\vspace{-5pt}
+\caption{Dataset distribution: (a) masklets size distribution (normalized by video resolution), (b) geographic diversity of the videos, and (c) self-reported demographics of the crowdworkers who recorded the videos.}
+\label{fig:dataset_diversity}
+\vspace{-10pt}
+\end{figure}
+
+\subsubsection{Fairness evaluation}
+\label{sec:savifairness}
+
+\begin{wraptable}{r}{0.4\textwidth}
+\vspace{-25pt}
+        \centering
+        \small
+        \vspace{-4pt}
+        \begin{tabular}{@{}lccc}
+            & 1-click & 3-click & mask \\ %
+        \midrule
+         \textit{gender} \\
+         male & 81.9 & 95.1 & 95.9 \\
+         female & 75.1 & 94.1 &  95.2 \\
+        \midrule
+         \textit{age}  \\
+         18-26 & 77.2 & 95.0 & 95.7 \\
+         26-50 & 76.7 & 94.7 & 95.8 \\
+         50+  & 81.4  & 95.1 & 96.2 \\
+        \end{tabular}
+    \vspace{-10pt}
+    \caption{Fairness evaluation of SAM 2 (under \jf metric) on protected demographic groups. %
+    }
+    \label{tab:tab-savi-fairness}
+\vspace{-10pt}
+\end{wraptable}
+
+We evaluate SAM 2 for fairness across demographic groups. We collect annotations for the people category in the Ego-Exo4D \citep{grauman2023ego} dataset, which contains self-reported demographic information supplied by the subject of the video. We employ the same annotation setup as for SA-V val and test sets and apply this to 20-second clips from the third-person (exo) videos. We evaluate SAM 2 on this data using 1-, 3-clicks, and ground-truth mask on the first frame. 
+
+\tabref{tab:tab-savi-fairness} shows the comparison in \jf accuracy of SAM 2 for segmenting people across gender and age.  At 3 clicks and with ground-truth mask prompts there is minimal discrepancy. We manually inspect 1 click predictions, and find the model frequently predicts the mask for a part instead of the person. When limiting the comparison to clips where the person is correctly segmented, the gap in 1 click shrinks substantially (\jf male 94.3, female 92.7), suggesting the discrepancy can be partially attributed to ambiguity in the prompt. 
+
+In Appendix \ref{app:sec:cards}, we provide model, data and annotation cards for SA-V.
+
+
+\subsection{Data engine details}
+\label{sec:data_engine_discussion}
+
+\subsubsection{Annotation protocol}
+\label{app:sec:ann_guidelines}
+
+\begin{figure}[htb]
+    \centering
+    \vspace{5pt}
+    \includegraphics[width=\linewidth]{figs/guidelines/guidelines_pdfx.pdf}
+    \vspace{-15pt}
+    \caption{Annotation guideline overview. There are 3 main annotation tasks: masklet selection, masklet tracking, and masklet verification. Each task has a different set of annotators working on it.}
+    \vspace{15pt}
+    \label{fig:samv_annot_guideline}
+\end{figure}
+
+A diagram of the annotation protocol used in our data engine is shown in \figref{fig:samv_annot_guideline}. The annotation task was separated into steps each carried out by a different annotator: Steps 1 and 2 focus on \textit{object selection}, Steps 3 and 4 on \textit{masklet tracking}, and Step 5 on \textit{quality verification}. SAM 2 was deployed on GPU as an API and built into the annotation tool to enable interactive use.   
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Compared to image segmentation annotation, large-scale video segmentation annotation presents unique challenges which require innovations in the annotation task design and protocol. To improve our model's ability to ``segment anything'', it was important to focus annotation on challenging objects where SAM 2 struggled. We leveraged our online model in the loop setup to enable this, requesting annotators to use SAM 2 interactively to identify failure modes and then correct them. 
+
+We found the number of edited frames to be a proxy to the ``challengingness'' of an object as shown in \tabref{tab:data-quality}. Therefore, we asked annotators to annotate objects that required at least 2 edited frames with SAM 2 in the loop. To focus annotation on less prominent and more challenging cases, annotators were presented with videos pre-filled with verified satisfactory \textit{automatic} masklets and asked to find un-annotated challenging objects. We further decouple the object selection task from the annotation task: in the selection task annotators focus on choosing the challenging objects in one frame, while in the annotation task annotators are presented with a challenging target object and requested to annotate the masklet consistently throughout the video.
+
+\subsubsection{Data engine phase comparison} \label{sec:data_engine_phase_comp} The comparison of data engine phases shown in \tabref{tab:data-engine-evolution} was conducted as a controlled experiment using 169 videos and 452 masklets. We ask three subsets of annotators to annotate the same set of objects with the annotation protocol from each phase. We categorize masklets into three buckets based on the mask area in the first frame (small: 1 to $32^2$, medium: $32^2$ to $96^2$, and large: equal or greater than $96^2$). Phase 1 data is used as the quality reference, due to the high quality masks from frame-by-frame manual annotation with SAM.
+
+
+
+\section{Details on zero-shot transfer experiments}
+\label{sec:supp_eval_sz}
+
+In this section, we describe further details of our zero-shot experiments (\secref{sec:zero_shot_experiments}). 
+Unless otherwise noted, the results reported in this section follow our default setup using Hiera-B+ image encoder with a resolution of 1024 and trained on the full combination of datasets, i.e., SAM 2 (Hiera-B+) in \tabref{tab:main-results}.
+
+\subsection{Zero-shot video tasks}
+\label{sec:supp_eval_sz_video}
+
+\subsubsection{Video dataset details} 
+\label{sec:supp_eval_sz_video_datasets}
+
+We evaluate SAM 2 on a diverse benchmark of 17 zero-shot datasets: EndoVis 2018~\citep{allan20202018} contains medical surgery videos with robotic instruments. ESD~\citep{huang2023neuromorphic} contains videos from a robot manipulator camera often with motion blur. LVOSv2~\citep{hong2024lvos} is a benchmark for long-term video object segmentation. LV-VIS~\citep{wang2023towards} contains videos from a diverse set of open-vocabulary object categories. UVO~\citep{wang2021unidentified} contains videos for open-world object segmentation, and VOST~\citep{Tokmakov2022BreakingT} contains videos with objects undergoing large transformations such as egg broken or paper torn. PUMaVOS~\citep{bekuzarov2023xmem++} contains videos with segments around object parts such as a person's cheek. Virtual KITTI 2~\citep{cabon2020virtual} is a synthetic video dataset with driving scenes. VIPSeg~\citep{miao2022large} provides object segmentation in panoptic videos. Wildfires~\citep{toulouse2017computer} contains wildfire videos under different conditions from the Corsican Fire Database. VISOR~\citep{darkhalil2022epic} contains egocentric videos in kitchen scenes with segments around hands and active objects. FBMS~\citep{brox2010freiburg} provides motion segmentation over moving objects in videos. Ego-Exo4D~\citep{grauman2023ego} is a large dataset with egocentric videos around various human activities. Cityscapes~\citep{cordts2016cityscapes} contains videos for urban driving scenes. Lindenthal Camera~\citep{haucke2021exploiting} contains videos in a wildlife park with segments around observed animals such as birds and mammals. HT1080WT Cells~\citep{gomez2021search} contains microscopy videos with cell segments. Drosophila Heart~\citep{fishman2023drosophila} contains microscopy videos for the heart of fruit flies.
+
+Among these 17 zero-shot video datasets above, 9 of them (EndoVis, ESD, LVOSv2, LV-VIS, UVO, VOST, PUMaVOS, Virtual KITTI 2, and VIPSeg) have dense object segments annotated for every video frame. In the remaining 8 datasets (Wildfires, VISOR, FBMS, Ego-Exo4D, Cityscapes, Lindenthal Camera, HT1080WT Cells, and Drosophila Heart), the object segments are sparsely annotated over only a subset of video frames, and we compute the metrics on those frames where the ground-truth segmentation masks are available. In most evaluations of the paper, we only evaluate zero-shot performance on the 9 densely annotated datasets, while in our semi-supervised VOS evaluation (\secref{sec:eval_sz:semi_supervised_vos}), we evaluate on all these 17 datasets listed above.
+
+\subsubsection{Interactive offline and online evaluation details} 
+\label{app:sec:interactive_eval}
+
+\textit{Offline evaluation} involves \textit{multiple passes} over the entire video. We start with click prompts on the first frame, segment the object throughout the entire video, and then in the next pass, we select the frame with the lowest segmentation $\mathrm{IoU}$ w.r.t. the ground-truth as the new frame for prompting. The model then segments the object again throughout the video based on \textit{all} prompts received previously, until reaching a maximum of $N_\mathrm{frame}$ passes (with one new prompted frame in each pass).
+
+\textit{Online evaluation} involves only \textit{one pass} over the entire video. We start with click prompts on the first frame and propagate the prompts across the video, pausing propagation when encountering a frame with a low-quality prediction ($\mathrm{IoU} < 0.75$ with ground-truth). We then add additional click prompts on the paused frame to correct the segment on this frame and resume the propagation \textit{forward}
+until reaching another low quality frame with $\mathrm{IoU} < 0.75$. This is repeated while the number of prompted frames is less than the maximum $N_\mathrm{frame}$. Unlike the previous offline evaluation, in this setting, the new prompts only affect the frames \textit{after} the current paused frame but not the frames before it.
+
+In both settings, we evaluate on 9 densely annotated datasets in \secref{sec:supp_eval_sz_video_datasets} (EndoVis, ESD, LVOSv2, LV-VIS, UVO, VOST, PUMaVOS, Virtual KITTI 2, and VIPSeg). If a video contains multiple objects to segment in its ground-truth annotations, we perform inference on each object independently. We simulate interactive video segmentation with $N_\mathrm{click}=3$ clicks per frame, assuming that the user would visually locate the object to label it (with initial clicks) or to refine the current segmentation prediction of it (with correction clicks). Specifically, when starting the first pass (where there are not any existing predictions yet), we place an initial click on the first frame at the center\footnote{The center of a mask is defined as the mask pixel that has the largest Euclidean distance to the mask boundary.} of the object's ground-truth mask and then interactively add two more clicks based on the center of the error region (between the ground-truth mask and the predicted segments on the first frame). Then in subsequent passes (where there are already predicted segments), we interactively add three clicks based on the center of the error region (between the ground-truth mask and the predicted segments on the frame being prompted).
+
+We report the average $\mathcal{J}\&\mathcal{F}$ metric over $N_\mathrm{frame}=1,\ldots,8$ interacted frames and the $\mathcal{J}\&\mathcal{F}$ metrics under different annotation time on a video based on the following assumptions: 
+\begin{itemize}
+    \item On each frame, it takes $T_\mathrm{loc}=1$ sec for the annotator to visually locate an object in the frame, and $T_\mathrm{click}=1.5$ sec to add each click, following~\citet{delatolas2024learning}.
+    \item In \textit{offline} mode, it takes $T_\mathrm{exam} = 30$ sec on a 300-frame video to examine the results throughout the video in each round, including finding the frame with the worst segmentation quality to add corrections (and for longer or shorter videos, this time is proportional to the video length $L$, assuming the annotator could examine the results at 10 FPS).
+    \item In \textit{online} mode, it takes $T_\mathrm{exam} = 30$ sec on a 300-frame video to follow the results throughout the video in total, including pausing at a frame with low quality for further corrections (and this time is proportional to the video length $L$ similar to the offline mode).
+    \item The annotation time for an object is $\left(T_\mathrm{exam} \cdot \left(L/300\right) + T_\mathrm{loc} + T_\mathrm{click} \cdot N_\mathrm{click}\right) \cdot N_\mathrm{frame}$ in offline mode and $T_\mathrm{exam} \cdot \left(L/300\right) + \left(T_\mathrm{loc} + T_\mathrm{click} \cdot N_\mathrm{click}\right) \cdot N_\mathrm{frame}$ in online mode, where $L$ is the total frame number in the video, $N_\mathrm{frame}=1,\ldots,8$ is the number of frames annotated (i.e., the number of interactive rounds), and $N_\mathrm{click}=3$ is the number of clicks per frame.\footnote{We note that this estimation does not account for the model's tracking FPS. The intuition is that human annotators can only examine the results at a lower speed, and therefore the model's tracking time is covered by $T_\mathrm{exam}$.}
+\end{itemize}
+
+We show per-dataset results of SAM 2 and the two baselines (SAM+XMem++ and SAM+Cutie, see their details below) for interactive offline and online evaluation in \figref{fig:supp_zero_shot_video_offline} and \figref{fig:supp_zero_shot_video_online}. SAM 2 outperforms both baselines with a notable margin on all datasets and settings.
+
+\subsubsection{Semi-supervised VOS evaluation details} 
+\label{app:sec:semi_supervised_vos}
+
+
+\begin{figure}[t]
+\centering
+\small
+\includegraphics[width=0.32\linewidth]{figs/interactive_eval/savi_vs_xmem_vs_cutie_EndoVis_2018_offline.pdf}
+\includegraphics[width=0.32\linewidth]{figs/interactive_eval/savi_vs_xmem_vs_cutie_ESD_offline.pdf}
+\includegraphics[width=0.32\linewidth]{figs/interactive_eval/savi_vs_xmem_vs_cutie_LVOSv2_offline.pdf} \\
+\includegraphics[width=0.32\linewidth]{figs/interactive_eval/savi_vs_xmem_vs_cutie_LV-VIS_offline.pdf}
+\includegraphics[width=0.32\linewidth]{figs/interactive_eval/savi_vs_xmem_vs_cutie_PUMaVOS_offline.pdf}
+\includegraphics[width=0.32\linewidth]{figs/interactive_eval/savi_vs_xmem_vs_cutie_UVO_offline.pdf} \\
+\includegraphics[width=0.32\linewidth]{figs/interactive_eval/savi_vs_xmem_vs_cutie_VIPSeg_offline.pdf}
+\includegraphics[width=0.32\linewidth]{figs/interactive_eval/savi_vs_xmem_vs_cutie_Virtual_KITTI_2_offline.pdf}
+\includegraphics[width=0.32\linewidth]{figs/interactive_eval/savi_vs_xmem_vs_cutie_VOST_offline.pdf} \\
+(a) $\mathcal{J}\&\mathcal{F}$ performance on each dataset with different number of interacted frames (3-click) \\
+
+\vspace{1em}
+\scriptsize
+\begin{tabular}{lcccccccccc}
+       & EndoVis &     &         &        &         &     &        & Virtual &      & \\
+Method & 2018    & ESD & LVOSv2 & LV-VIS & PUMaVOS & UVO & VIPSeg & KITTI 2 & VOST & (average) \\
+\midrule
+SAM + XMem++ & 68.9 & 88.2 & 72.1 & 86.4 & 60.2 & 74.5 & 84.2 & 63.8 & 46.6 & 71.7 \\
+SAM + Cutie & 71.8 & 87.6 & 82.1 & 87.1 & 59.4 & 75.2 & 84.4 & 70.3 & 54.3 & 74.7 \\
+SAM 2 & \textbf{77.0} & \textbf{90.2} & \textbf{87.9} & \textbf{90.3} & \textbf{68.5} & \textbf{79.2} & \textbf{88.3} & \textbf{74.1} & \textbf{67.5} & \textbf{80.3} \\
+\end{tabular}
+
+\vspace{0.5em}
+\small 
+(b) average $\mathcal{J}\&\mathcal{F}$ on each dataset over 8 interacted frames (3-click)
+\caption{Zero-shot performance of SAM 2 vs baselines (SAM+XMem++ and SAM+Cutie) under interactive \textit{offline} evaluation with different numbers of interacted frames, using 3 clicks per interacted frame. See \secref{app:sec:interactive_eval} for details.}
+\label{fig:supp_zero_shot_video_offline}
+\end{figure}
+
+\begin{figure}[t!]
+\centering
+\includegraphics[width=0.32\linewidth]{figs/interactive_eval/savi_vs_xmem_vs_cutie_EndoVis_2018_online.pdf}
+\includegraphics[width=0.32\linewidth]{figs/interactive_eval/savi_vs_xmem_vs_cutie_ESD_online.pdf}
+\includegraphics[width=0.32\linewidth]{figs/interactive_eval/savi_vs_xmem_vs_cutie_LVOSv2_online.pdf} \\
+\includegraphics[width=0.32\linewidth]{figs/interactive_eval/savi_vs_xmem_vs_cutie_LV-VIS_online.pdf}
+\includegraphics[width=0.32\linewidth]{figs/interactive_eval/savi_vs_xmem_vs_cutie_PUMaVOS_online.pdf}
+\includegraphics[width=0.32\linewidth]{figs/interactive_eval/savi_vs_xmem_vs_cutie_UVO_online.pdf} \\
+\includegraphics[width=0.32\linewidth]{figs/interactive_eval/savi_vs_xmem_vs_cutie_VIPSeg_online.pdf}
+\includegraphics[width=0.32\linewidth]{figs/interactive_eval/savi_vs_xmem_vs_cutie_Virtual_KITTI_2_online.pdf}
+\includegraphics[width=0.32\linewidth]{figs/interactive_eval/savi_vs_xmem_vs_cutie_VOST_online.pdf} 
+(a) $\mathcal{J}\&\mathcal{F}$ performance on each dataset with different number of interacted frames (3-click) \\
+
+\vspace{1em}
+\scriptsize
+\begin{tabular}{lcccccccccc}
+       & EndoVis &     &         &        &         &     &        & Virtual &      & \\
+Method & 2018    & ESD & LVOSv2 & LV-VIS & PUMaVOS & UVO & VIPSeg & KITTI 2 & VOST & (average) \\
+\midrule
+SAM + XMem++ & 71.4 & 87.8 & 72.9 & 85.2 & 63.7 & 74.7 & 82.5 & 63.9 & 52.7 & 72.8 \\
+SAM + Cutie & 70.5 & 87.3 & 80.6 & 86.0 & 58.9 & 75.2 & 82.1 & 70.4 & 54.6 & 74.0 \\
+SAM 2 & \textbf{77.5} & \textbf{88.9} & \textbf{87.8} & \textbf{88.7} & \textbf{72.7} & \textbf{78.6} & \textbf{85.5} & \textbf{74.0} & \textbf{65.0} & \textbf{79.8} \\
+\end{tabular}
+
+\vspace{0.5em}
+\small 
+(b) average $\mathcal{J}\&\mathcal{F}$ on each dataset over 8 interacted frames (3-click)
+\caption{Zero-shot performance of SAM 2 vs baselines (SAM+XMem++ and SAM+Cutie) under interactive \textit{online} evaluation with different numbers of interacted frames, using 3 clicks per interacted frame. See \secref{app:sec:interactive_eval} for details.}
+\label{fig:supp_zero_shot_video_online}
+\end{figure}
+
+In \secref{sec:eval_sz:semi_supervised_vos}, we also compare with previous video tracking methods under the semi-supervised VOS setting \citep{Pont-Tuset_arXiv_2017}, where prompts (which can be foreground/background clicks, bounding boxes, or ground-truth object masks) are provided only on the first frame of the video. When using click prompts, we interactively sample either 1, 3 or 5 clicks on the first video frame, and then track the object based on these clicks. Following the click-based evaluation in prior work \citep{kirillov2023segment,ritm}, the initial click is placed on the object center and subsequent clicks are obtained from the center of the error region.
+
+Similar to the interactive setting, here we also use SAM+XMem++ and SAM+Cutie as two baselines. For click or box prompts, SAM is first used to handle click or bounding box inputs, and its output mask is then used as input to XMem++ or Cutie. For mask prompts, the ground-truth object masks on the first frame are directly used as input to XMem++ and Cutie -- this is the standard semi-supervised VOS setting and evaluates XMem++ and Cutie without using SAM.
+
+In this setting, we evaluate on all 17 zero-shot video datasets in \secref{sec:supp_eval_sz_video_datasets}. If a dataset does not follow the standard VOS format, we preprocess it into a format similar to MOSE~\citep{Ding2023MOSEAN}. During processing, we ensure that all objects in each video have a valid non-empty segmentation mask on the first frame to be compatible with semi-supervised VOS evaluation. In case an object doesn't appear in the first frame, we create a separate video for it starting from the first frame where the object appears.
+
+We report the standard $\mathcal{J}\&\mathcal{F}$ metric \citep{Pont-Tuset_arXiv_2017} for this evaluation. If a dataset provides an official evaluation toolkit, we use it for evaluation (on the VOST dataset, we report the $\mathcal{J}$ metric instead, following its official protocol \citep{Tokmakov2022BreakingT}). The results are shown in \tabref{tab:zero_shot_video_1st_frame}, where SAM 2 performs better than both baselines on the majority of the 17 datasets across different types of prompts.
+
+We show per-dataset results of SAM 2 and the two baselines (SAM+XMem++ and SAM+Cutie, see their details below) for semi-supervised VOS evaluation in \figref{fig:supp_zero_shot_video_1st_frame}. SAM 2 outperforms both baselines on the majority of these datasets across different types of prompts.
+
+\begin{figure}[h!]
+\centering
+\includegraphics[width=\linewidth]{figs/zero_shot_videos/1-click.pdf}
+\includegraphics[width=\linewidth]{figs/zero_shot_videos/3-click.pdf}
+\includegraphics[width=\linewidth]{figs/zero_shot_videos/5-click.pdf}
+\includegraphics[width=\linewidth]{figs/zero_shot_videos/bbox.pdf}
+\includegraphics[width=\linewidth]{figs/zero_shot_videos/mask.pdf}
+\caption{Zero-shot performance on 17 video datasets of SAM 2 vs two baselines (SAM+XMem++ and SAM+Cutie) under semi-supervised VOS evaluation using different prompts (1, 3 or 5 clicks, bounding boxes, or ground-truth masks on the first video frame), with the averaged performance across datasets for each type of prompt shown in \tabref{tab:zero_shot_video_1st_frame} in the main text. See \secref{app:sec:semi_supervised_vos} for details.} 
+\label{fig:supp_zero_shot_video_1st_frame}
+\end{figure}
+
+\subsubsection{SAM+XMem++ and SAM+Cutie baseline details}
+
+We adopt SAM+XMem++ and SAM+Cutie as two baselines for promptable video segmentation, where the click (or box) prompts are first processed by SAM to obtain an object mask, and then XMem++ / Cutie models track this SAM mask across the video to obtain the final masklet. In these two baselines, SAM can be used to provide both an \textit{initial} object mask on the first frame, or to \textit{correct} an existing object mask output by XMem++ or Cutie. This is used for subsequent interacted frames during interactive offline and online evaluation, where new positive and negative clicks are provided as corrections over an existing mask.
+
+When using SAM to apply a correction over an existing mask prediction in a given frame, we follow the strategy in EVA-VOS~\citep{delatolas2024learning} to first initialize SAM with the XMem++ or Cutie output mask before incorporating the new correction clicks. Specifically, we first reconstruct the XMem++ or Cutie output mask in SAM by sampling clicks from them and feeding them as inputs to SAM until the reconstructed mask in SAM reaches $\mathrm{IoU} > 0.8$ with the XMem++ or Cutie output mask. Then, to incorporate new positive and negative clicks for correction, we concatenate these additional correction clicks with the initial clicks sampled during mask construction, and feed the joint concatenated list as input into SAM to obtain the final corrected masks. We find that this strategy works better than several alternatives (such as feeding the XMem++ or Cutie output mask as a mask prompt together with new correction clicks into SAM, or taking only the correction clicks as inputs to SAM while ignoring the XMem++ or Cutie output mask).
+
+\subsection{DAVIS interactive benchmark}
+\label{sec:eval_sz:davis_interactive_benchmark}
+
+We also evaluate on the DAVIS interactive benchmark \citep{caelles20182018}, which resembles our interactive offline evaluation in \secref{sec:eval_sz:pvs}, where in each round of interaction, the evaluation server would provide new annotations on frames with the worst segmentation performance. The official DAVIS eval toolkit provides scribble prompts during interactions, while other work such as CiVOS \citep{vujasinovic2022revisiting} has also extended this to cover click prompts.
+
+Here we follow CiVOS to use positive and negative clicks as input prompts and adopt the same strategy for click sampling. We report the $\mathcal{J}\&\mathcal{F}$@60s and AUC-$\mathcal{J}\&\mathcal{F}$ metrics on this benchmark as provided by its evaluator, and compare to two baselines: MiVOS \citep{cheng2021modular}, which directly uses the provided scribbles via a scribble-to-mask module (and is also extended to click prompts in \cite{vujasinovic2022revisiting}), and CiVOS, which samples click from the provided scribbles. The results are shown in \tabref{tab:davis_interactive_eval}, where SAM 2 (based on click inputs) outperforms both baselines under click inputs. We note that SAM 2 often tends to segment object parts (e.g. a person's arm) on the first click while the DAVIS dataset mainly contains whole objects (e.g. an entire person), which could penalize SAM 2's $\mathcal{J}${\&}$\mathcal{F}$ performance on this benchmark.
+
+\begin{table}[t]
+\vspace{10pt}
+\small
+\centering
+\begin{tabular}{lccc}
+{Method} & input type & AUC-$\mathcal{J}${\&}$\mathcal{F}$  & $\mathcal{J}${\&}$\mathcal{F}$@60s \\
+\midrule
+MiVOS \citep{cheng2021modular} & scribbles & 0.87 & 0.88 \\
+\midrule
+MiVOS \citep{cheng2021modular}\textsuperscript{\textdaggerdbl} & clicks & 0.75 & 0.75 \\
+CiVOS \citep{vujasinovic2022revisiting} & clicks & 0.83 & 0.84 \\
+\textbf{SAM 2} & clicks & \textbf{0.86} & \textbf{0.90} \\
+\end{tabular}
+% \vspace{-0.5em}
+\caption{Performance of SAM 2 and other models on the DAVIS interactive benchmark. For SAM 2, we use clicks as inputs following the click sampling strategy from CiVOS~\citep{vujasinovic2022revisiting}. See \S\ref{sec:eval_sz:davis_interactive_benchmark} for details ({}\textsuperscript{\textdaggerdbl}: performance reported in \cite{vujasinovic2022revisiting}).}
+\label{tab:davis_interactive_eval}
+\end{table}
+
+\subsection{Zero-shot image tasks}
+\label{app:sam_zs}
+
+\subsubsection{Dataset details} 
+
+For the interactive segmentation task, we evaluated SAM 2 on a comprehensive suite of 37 datasets. This suite includes the 23 datasets previously used by SAM for zero-shot evaluation. For completeness, we list the 23 datasets: 
+LVIS \citep{Gupta2019},
+ADE20K \citep{Zhou2019},
+Hypersim \citep{hypersim},
+Cityscapes \citep{cordts2016cityscapes},
+BBBC038v1 \citep{cells},
+DOORS \citep{doors},
+DRAM \citep{DRAM},
+EgoHOS \citep{egoHos},
+GTEA \citep{gtea1,gtea2},
+iShape \citep{iShape},
+NDD20 \citep{ndd20},
+NDISPark \citep{ndis1,ndis2},
+OVIS \citep{qi2022occluded},
+PPDLS \citep{plants},
+Plittersdorf \citep{haucke2022socrates},
+STREETS \citep{streets},
+TimberSeg \citep{timberSeg},
+TrashCan \citep{hong2020trashcan},
+VISOR \citep{darkhalil2022epic,EpicKitchens},
+WoodScape \citep{yogamani2019woodscape},
+PIDRay \citep{wang2021towards},
+ZeroWaste-f \citep{zerowaste}, and
+IBD \citep{chen20223D}. For more detailed information about these datasets, we refer the reader to \citet{kirillov2023segment}. In addition to these 23 datasets, we evaluated on frames sampled from 14 video datasets to assess SAM 2's performance on images from the video domain. The video datasets used are listed as follows: 
+Lindenthal Camera Traps (LCT) \citep{haucke2021exploiting},
+VOST \citep{Tokmakov2022BreakingT},
+LV-VIS \citep{wang2023towards},
+FBMS \citep{brox2010freiburg},
+Virtual KITTI 2 \citep{cabon2020virtual},
+Corsican Fire Database (CFD) \citep{toulouse2017computer},
+VIPSeg \citep{miao2022large},
+Drosophila Heart OCM (DH OCM) \citep{fishman2023drosophila},
+EndoVis 2018 \citep{allan20202018},
+ESD \citep{huang2023neuromorphic},
+UVO \citep{wang2021unidentified},
+Ego-Exo4d \citep{grauman2023ego},
+LVOSv2 \citep{hong2024lvos}, and
+HT1080WT \citep{gomez2021search}. \tabref{app:tab:datasets_all} has a more detailed description of these datasets. (Some of these datasets are obtained from the same data source as the zero-shot video datasets in \secref{sec:supp_eval_sz_video_datasets}.)
+
+\subsubsection{Detailed zero-shot experiments}
+\label{app:sam_zs_detailed}
+
+In this section, we include a more detailed version of the experiments in \secref{sec:zero_shot_image_tasks}. We compare SAM 2 to SAM and HQ-SAM with different model sizes in \tabref{tab:sam_zs_comparison_full}. The main metrics we use for evaluation are the 1- and 5-click mIoU and we categorize the results by the dataset domain.
+
+\tabref{tab:sam_zs_comparison_full} first shows a comparison of the models trained only on images (for the SA task) with different image encoder sizes on both the SA-23 benchmark as well as the 14 newly introduced video datasets. SAM 2 (Hiera-B+) trained only on SA-1B outperforms SAM (ViT-H) on 1-click accuracy, and both SAM (ViT-H) and HQ-SAM (ViT-H) on 5-click accuracy while being 6x faster. SAM 2 (Hiera-L) further improves the 1-click accuracy by 1 point on average, but trading off speed. Despite being slower than Hiera-B+, it is still 3.4x faster than SAM (ViT-H) and 1.5x faster than SAM (ViT-B).
+
+The last two rows in \tabref{tab:sam_zs_comparison_full} illustrate the benefits of training with our mix of image and video data, which boosts the average accuracy to 61.4\% across the 23 datasets with the Hirea-B+ image encoder. Additionally, we observe substantial improvements on the video benchmarks of SA-23 as well as the 14 newly introduced video datasets. We note that we do not scale beyond Hiera-L, but expect better performance for a larger model.
+
+\begin{table}[t]
+\vspace{10pt}
+\centering
+\small
+\begin{tabular}{lcccccc}
+&  &
+  \multicolumn{4}{c}{1 (5) click mIoU} &
+   \\
+\cmidrule(lr){3-6}
+Model  & \multicolumn{1}{c}{Data} &
+  \multicolumn{1}{c}{SA-23 All} &
+  \multicolumn{1}{c}{SA-23 Image} &
+  \multicolumn{1}{c}{SA-23 Video} &
+  \multicolumn{1}{c}{14 new Video} &
+   \multicolumn{1}{c}{FPS}
+  \\
+\midrule
+
+
+  
+SAM (ViT-B) & SA-1B &
+  55.9 (80.9) &
+  57.4 (81.3) &
+  54.0 (80.4) &
+  54.5 (82.6) &
+  76.7 \\
+SAM (ViT-H) & SA-1B & 
+  58.1 (81.3) &
+  60.8 (82.1) &
+  54.5 (80.3) &
+  59.1 (83.4) &
+  21.7 \\
+HQ-SAM (ViT-B) & HQSEG-44k &
+  53.9 (72.1) &
+  56.3 (73.9) &
+  50.7 (69.9) &
+  54.5 (75.0) &
+  73.5 \\
+HQ-SAM (ViT-H) & HQSEG-44k &
+  59.1 (79.8) &
+  61.8 (80.5) &
+  55.7 (78.9) & 
+  58.9 (81.6) &
+  21.4 \\
+\midrule
+\textbf{SAM 2} (Hiera-B+) & SA-1B & 
+  58.9 (81.7) &
+  60.8 (82.1) &
+  56.4 (81.2) &
+  56.6 (83.7) &
+  \textbf{130.1} \\ 
+\textbf{SAM 2} (Hiera-L) & SA-1B & 
+  60.0 (81.8) &
+  62.0 (82.2) &
+  57.4 (81.2) &
+  58.5 (83.8) &
+  61.4 \\ 
+\midrule
+
+\textbf{SAM 2} (Hiera-B+) & our mix & 
+  61.9 \textbf{(83.5)} &
+  63.3 \textbf{(83.8)} &
+  60.1 \textbf{(83.2)} &
+  69.6 \textbf{(85.8)} &
+  \textbf{130.1} \\ 
+  
+\textbf{SAM 2} (Hiera-L) & our mix & 
+  \textbf{63.6} \textbf{(83.5)} &
+  \textbf{64.7} (83.7) &
+  \textbf{62.2} \textbf{(83.2)}&
+  \textbf{71.1} (85.7) &
+
+  61.4 \\ 
+
+\end{tabular}
+% \vspace{-5pt}
+\caption{Zero-shot performance on the Segment Anything (SA) task across a suite of 37 datasets. The table shows the average 1- and 5- click mIoU of SAM 2 compared to two baselines, categorized by dataset domain. We report the average metrics on the 23 datasets used by SAM for zero-shot evaluation, as well as the average across 14 newly introduced zero-shot video benchmarks.}
+\label{tab:sam_zs_comparison_full}
+\vspace{5pt}
+\end{table}
+
+\begin{figure*}[h!] %
+        % \vspace{-10pt}
+	\centering
+	\includegraphics[trim={0.75cm 0.5cm 0.75cm 1cm}, clip, width=1.0\linewidth] {figs/zero_shot_SAM/SAM_SAVI_ZS_delta_h_combo_v4_lr0.25x.pdf}
+        \caption{Zero-shot performance of SAM 2 vs SAM on a suite of 37 datasets. The figure shows the center 1 click mIoU delta between SAM 2 and SAM. Datasets derived from video distribution are highlighted in red, while those from image distribution are highlighted in blue.}
+	\label{fig:savi_sam_zs23}
+    \vspace{2em}
+
+    \includegraphics[width=0.9\linewidth]{figs/qualitative_baseline_comparison/swing.pdf}
+    \caption{Comparison between our baseline (Cutie-base+, top row) and our model (SAM 2, bottom row) when prompted with a mask in the first frame.}    \label{fig:qualitative_baseline_comparison}
+\end{figure*}
+
+A breakdown of the accuracy across datasets is presented in \figref{fig:savi_sam_zs23}, where the per-dataset delta in 1-click mIoU relative to SAM is color-coded to indicate the data type (image or video). Notably, SAM 2 (Hiera-B+) surpasses SAM on 29 datasets\footnote{We note that OVIS is not strictly zero-shot for SAM 2 since its videos are used in MOSE (part of our training data mix).}  by up to 53.9 mIoU, despite using a smaller Hiera-B+ image encoder.
+
+\begin{table*}[!ht]
+\vspace{10pt}
+\resizebox{\textwidth}{!}{
+\centering
+\tablestyle{4pt}{1.8}
+\begin{tabular}{L{3.5cm} r | l | L{7cm}| l | L{3.2cm} | l l l l}
+dataset &
+\makecell[l]{abbreviation\\ \& link} &
+\makecell[l]{video\\ type} &
+description &
+\makecell[l]{annotation\\ type} &
+source split &
+\makecell[l]{\# videos \\ sampled} &
+\makecell[l]{\# masklets \\ sampled} &
+\makecell[l]{\# frames \\ sampled} &
+\makecell[l]{\# masks \\ sampled} \\
+\hline
+LV-VIS~\citep{wang2023towards}  &
+\href{https://github.com/haochenheheda/LVVIS}{LV-VIS} &
+Open Vocabulary &
+Large scale open vocabulary video instance segmentation &
+Dense & Validation & 690 & 2536 & 15,604 &  54,077  \\ \hline
+A Drosophila heart optical coherence microscopy database for automatic video segmentation~\citep{fishman2023drosophila}  &
+\href{https://springernature.figshare.com/collections/A\_Drosophila\_heart\_optical\_coherence\_microscopy\_database\_for\_automatic\_video\_segmentation/6448813/1}{DH OCM} &
+Microscopy; heart &
+Segmentation of a fruit fly heart in optical coherence microscopy videos&
+Sparse & All & 213 & 213 & 608,000 &  607,158  \\ \hline
+Video Object Segmentation under Transformations~\citep{Tokmakov2022BreakingT}  &
+\href{https://www.vostdataset.org/}{VOST} &
+Deformation &
+Video object segmentation with emphasis on shape transformations &
+Dense & Validation & 635 & 882 &  67,004 &  89,722 \\ \hline
+Cityscapes-VPS ~\citep{cordts2016cityscapes,kim2020vps}  &
+\href{https://github.com/mcahny/vps}{Cityscapes-VPS} &
+Driving &
+Panoptic segmentation for Cityscapes driving dataset &
+Sparse & Validation Instance & 209 & 1372 & 4,259 & 4,579 \\ \hline
+Corsican Fire Database~\citep{toulouse2017computer}  &
+\href{https://cfdb.univ-corse.fr/index.php}{CFD} &
+Wildfire &
+Segmentation of wildfires &
+Sparse & All & 5 & 5 & 541 &  541 \\ \hline
+Partial and Unusual Masks for Video Object Segmentation~\citep{bekuzarov2023xmem++}   &
+\href{https://max810.github.io/xmem2-project-page/\#pumavos-dataset}{PUMaVOS} &
+Parts &
+Video object segmentation with a focus on parts and practical use cases &
+Dense & All & 24 & 26 & 21,187 &  21,485 \\ \hline
+EPIC-KITCHENS VISOR~\citep{darkhalil2022epic}   &
+\href{https://epic-kitchens.github.io/VISOR/}{VISOR} &
+Egocentric &
+Video object segmentation benchmark containing egocentric videos of cooking with an emphasis on segmenting active objects. &
+Sparse & Validation & 921 & 921 & 736,030 &  4,426 \\ \hline
+HT1080WT cells embedded in 3D collagen type I matrices~\citep{gomez2021search}   &
+\href{https://zenodo.org/records/5777994}{HT1080WT} &
+Microscopy; cells &
+Timelapse videos of HT1080WT cell movement  &
+Sparse & All &60  & 150 & 1,010 &  2,694 \\ \hline
+Freiburg-Berkeley Motion Segmentation Dataset~\citep{brox2010freiburg}   &
+\href{https://lmb.informatik.uni-freiburg.de/resources/datasets/}{FBMS} &
+Moving Object &
+Precise segmentation of moving objects &
+Sparse & All & 45 & 70 & 9734 &  755 \\ \hline
+Virtual KITTI 2 ~\citep{cabon2020virtual}  &
+\href{https://europe.naverlabs.com/research-old2/computer-vision/proxy-virtual-worlds-vkitti-2/}{Virtual KITTI 2} &
+Synthetic; Driving&
+Synthetic driving videos generated by a game engine that recreate real world KITTI videos.  &
+Dense & All from video angle \texttt{Camera\_0} & 996 & 1,638 & 109,368 &  162,708 \\ \hline
+EndoVis 2018~\citep{allan20202018} &
+\href{https://zenodo.org/records/10527017}{EndoVis 2018} &
+Endoscopic video; surgery&
+Segmentation of medical tools in endoscopic videos &
+Dense & All  &  15 &  29 & 2,325 &  4,314 \\ \hline
+Lindenthal Camera Traps~\citep{haucke2021exploiting}  &
+\href{https://lila.science/datasets/lindenthal-camera-traps/}{LCT} &
+Stereo&
+Wildlife videos captured using stereo cameras. &
+Sparse & All  &  12 & 12 & 4,012 & 412 \\ \hline
+LVOSv2~\citep{hong2024lvos}  &
+\href{https://lingyihongfd.github.io/lvos.github.io/}{LVOSv2} &
+Long videos&
+Long-term video object segmentation benchmark, on average 1.14 minutes &
+Dense & Validation &  136 & 225 & 64,523 &  91,510 \\ \hline
+UVO~\citep{wang2021unidentified} &
+\href{https://sites.google.com/view/unidentified-video-object}{UVO} &
+Open World &
+Open World instance segmentation of all objects in a video &
+Dense & Validation  & 54 & 311 & 4,860 &  26,747 \\
+\hline
+EgoExo4d~\citep{grauman2023ego} &
+\href{https://ego-exo4d-data.org/}{EgoExo4d} &
+Egocentric &
+Egocentric videos of participants completing skilled activities. &
+Sparse &
+Validation videos on egocentric cameras & 1185 & 1185 & 327,080 &  9,035 \\ \hline
+VIPSeg~\citep{miao2022large} &
+\href{https://github.com/vipseg-dataset/vipseg-dataset}{VIPSeg} &
+Panoptic &
+Large scale and real world scenarios for video panoptic segmentation &
+Dense & Validation & 152 & 1,457 & 3,416 &  30,408 \\ \hline
+Event-based Segmentation Dataset~\citep{huang2023neuromorphic} &
+\href{https://figshare.com/s/94e5607718545aeb9a4e}{ESD} &
+Clutter & Tabletop object segmentation in an indoor cluttered environment & Dense & All & 135 & 814 & 13,325 &  78,243 \\
+\end{tabular}}
+\caption{Video segmentation datasets used for zero-shot evaluation.}
+\label{app:tab:datasets_all}
+\end{table*}
+
+\begin{figure*}[ht]
+\centering
+\tablestyle{0.9pt}{0.6}\fontsize{6}{7}\selectfont
+\begin{tabular}{cccccc}
+UVO  & Ego-Exo4d  & LVOSv2  & EndoVis 2018  & LCT & VIPSeg  \\
+\includegraphics[height=1.95cm, width=2.7cm]{img/visualize_zero_shot/uvo_op45.jpeg} &
+\includegraphics[height=1.95cm, width=2.7cm]{img/visualize_zero_shot/ego_exo4d.jpeg}  &
+\includegraphics[height=1.95cm, width=2.7cm]{img/visualize_zero_shot/lvos_op45.jpeg}  &
+\includegraphics[height=1.95cm, width=2.7cm] {img/visualize_zero_shot/endovis_op45.jpeg}  &
+\includegraphics[height=1.95cm, width=2.7cm]{img/visualize_zero_shot/lindenthal.jpeg} &
+\includegraphics[height=1.95cm, width=2.7cm]{img/visualize_zero_shot/vipseg_op45.jpeg}
+\end{tabular}\\[0mm]
+\tablestyle{1pt}{0.6}\fontsize{6}{7}\selectfont
+\begin{tabular}{ccccc}
+Virtual KITTI 2 & ESD  & FBMS & HT1080WT & VISOR \\
+\includegraphics[height=1.95cm, width=3.3cm]{img/visualize_zero_shot/vkitti2_op45.jpeg}&
+\includegraphics[height=1.95cm, width=3.24cm]{img/visualize_zero_shot/esd_o45.jpeg} &
+\includegraphics[height=1.95cm, width=3.2cm]{img/visualize_zero_shot/fbms_o45.jpeg} &
+\includegraphics[height=1.95cm, width=3.2cm]{img/visualize_zero_shot/cells.jpeg} &
+\includegraphics[height=1.95cm, width=3.3cm]{img/visualize_zero_shot/visor_o45.jpeg}
+\end{tabular}\\[0mm]
+\tablestyle{1pt}{0.6}\fontsize{6}{7}\selectfont
+\begin{tabular}{cc ccccc}
+PUMaVOS & CFD & Cityscapes-VPS ~ & VOST & DH OCM  & LV-VIS  \\
+\includegraphics[height=1.95cm, width=2.67cm]{img/visualize_zero_shot/pumavos_op45.jpeg} &
+\includegraphics[height=1.95cm, width=2.7cm]{img/visualize_zero_shot/corsican_o45.jpeg}&
+\includegraphics[height=1.95cm, width=2.7cm]{img/visualize_zero_shot/cityscapes_o45.jpeg} &
+\includegraphics[height=1.95cm, width=2.7cm]{img/visualize_zero_shot/vost_op45.jpeg}  &
+\includegraphics[height=1.95cm, width=2.7cm]{img/visualize_zero_shot/heart.jpeg} &
+\includegraphics[height=1.95cm, width=2.7cm]{img/visualize_zero_shot/lv_vis_op45.jpeg}
+\end{tabular}\\ 
+\caption{Examples from SAM 2 zero-shot video benchmark suite.}
+\label{fig:benchmark_examples}
+\end{figure*}
+
+\section{Details on comparison to state-of-the-art in semi-supervised VOS}
+\label{sec:supp_vos_sota}
+
+We provide additional details on the comparison to the previous state-of-the-art in semi-supervised VOS (\secref{sec:vos_sota}). We include results from SAM 2 trained only on SA-1B, SA-V and Internal data, for different encoder sizes.
+
+\textbf{Qualitative comparison:} In \figref{fig:qualitative_baseline_comparison}, we show a comparison between our baseline (Cutie-base+, top row) and our model (SAM 2, bottom row) when prompted with a mask in the first frame. 
+While the mask prompt in the first frame only covers the shirt of the person, the masklet predicted by the baseline wrongfully propagates to the whole person. Our model, however, is able to restrict the masklet to the target object.
+
+\textbf{Quantitative comparison:} In Table~\ref{tab:appendix_detailed_comparison_combo}, we compare the performance of our model to previous approaches on additional semi-supervised VOS metrics. SAM 2 outperforms prior work on all evaluated benchmarks, in all metrics. Note that unlike these previous approaches, SAM 2 is not specialized in the semi-supervised VOS task but is capable of more general promptable segmentation.
+SAM 2 is also not restricted to a specific set of object classes. The performance of our model on the SA-V benchmark (\tabref{tab:appendix_sa-v}) demonstrates its capability to segment anything in a video.
+
+\begin{table*}[t]
+\centering
+\vspace{-15pt}
+    \subfloat[ 
+        Comparisons between SAM 2 and previous work on our SA-V benchmark for the semi-supervised VOS task. We evaluated prior works on SA-V using their open-sourced code and checkpoints.
+        \label{tab:appendix_sa-v}
+    ]{
+        \footnotesize
+        \input{tab/appendix_sa-v}
+    }
+
+    \subfloat[ 
+        Comparisons between SAM 2 and previous work on the LVOS~\citep{hong2023lvos} benchmark.
+        \label{tab:appendix_LVOS}
+    ]{
+        \footnotesize
+        \input{tab/appendix_LVOS}
+    } ~~~~
+    \subfloat[ 
+        Comparisons between SAM 2 and previous work on the LVOSv2~\citep{hong2024lvos} benchmark. We report the performance of prior works as evaluated by the LVOSv2 authors.
+        \label{tab:appendix_LVOSv2}
+    ]{
+        \footnotesize
+        \input{tab/appendix_LVOSv2}
+    }
+
+    \vspace{10pt}
+    \subfloat[ 
+        Comparisons between SAM 2 and previous work on the semi-supervised VOS task.
+        \label{tab:appendix_vos}
+    ]{
+        \footnotesize
+        \input{tab/appendix_vos}
+    }
+
+\caption{Detailed comparisons between SAM 2 and previous work on various benchmarks ({}\textsuperscript{\textdaggerdbl}: a version of the model trained on SA-1B, SA-V, and our internal dataset as described in \secref{sec:dataset}).}
+\label{tab:appendix_detailed_comparison_combo}
+\end{table*}
+
+\clearpage
+\section{Model, data and annotation cards}
+\label{app:sec:cards}
+\subsection{Model card}
+\vspace{2em}
+\begin{table*}[!htbp]\centering\fontsize{7.5}{8.4}\selectfont
+\begin{tabular*}{\linewidth}{r|p{10cm}}
+\multicolumn{2}{l}{\bf\underline{Model Overview}} \\
+Name & SAM 2 (Segment Anything Model 2) \\
+Version & 1.0 \\
+Date & 2024 \\
+Organization & Meta FAIR \\
+Mode type & Promptable segmentation model \\
+Architecture & See Section \ref{sec:model} \\
+Repository & \url{https://github.com/facebookresearch/sam2} \\
+License & Apache 2.0 \\
+\multicolumn{2}{c}{} \\
+\multicolumn{2}{l}{\bf\underline{Intended Use}} \\
+Primary intended users & SAM 2 was designed as a unified model for promptable video and image segmentation tasks. The model was primarily developed for research use cases. SAM 2 is released under an Apache 2.0 license. \\
+Out-of-scope use cases & See Ethical considerations and license for restrictions. \\
+Caveats and recommendations & See Appendix \ref{sec:limitations} for limitations. \\
+\multicolumn{2}{c}{} \\
+\multicolumn{2}{l}{\bf\underline{Relevant Factors}} \\
+Groups & SAM 2 is class agnostic and was designed for promptable image and video segmentation. It can segment and track any object.\\
+Instrumentation and environment & SAM 2 was evaluated across a variety of types of video and image data. The video benchmark suite included domains such as \textit{driving data, microscopy, egocentric video, robotic surgery}. See Table \ref{app:tab:datasets_all} for descriptions of the benchmarks and Figure \ref{fig:benchmark_examples} for example frames. SAM 2 was evaluated on the same suite of image benchmarks as \cite{kirillov2023segment}, which covers domains including \textit{underwater images, paintings, fish-eye images}.  \\
+\multicolumn{2}{c}{} \\
+\multicolumn{2}{l}{\bf\underline{Metrics}} \\
+
+& We evaluate the performance of SAM 2 using the following metrics: \vspace{0.5em} 
+
+\textit{\jf}: We evaluate performance using \jf  \citep{Pont-Tuset_arXiv_2017} for the promptable video segmentation and semi-supervised VOS tasks.
+\newline
+\textit{\mg}: We use \mg \space for evaluation on YTVOS 2019 for the semi-supervised VOS task.
+\newline
+ \textit{mIoU}: We evaluate performance using mIoU for the promptable image segmentation task.
+\\
+
+\multicolumn{2}{c}{} \\
+
+\multicolumn{2}{l}{\bf\underline{Evaluation Data}} \\
+Data sources & See Appendix \ref{sec:supp_eval_sz} \\
+\multicolumn{2}{c}{} \\
+\multicolumn{2}{l}{\bf\underline{Training Data}} \\
+Data source & SAM 2 was trained on the SA-V dataset alongside internally available licensed video data. See Section \ref{sec:data} of the main text for more details and Appendix \ref{app:datacard} for the SA-V dataset data card.\\
+\multicolumn{2}{c}{} \\
+\multicolumn{2}{l}{\bf\underline{Ethical Considerations}} \\
+Data &
+See Section \ref{sec:data} for more details about the SAM 2 training data. In Section \ref{sec:datasetfairness} we show a geographic distribution of the videos and demographic distribution of the crowdworkers who collected the videos in the SA-V dataset. \\
+
+Cost and impact of compute & The released SAM 2 was trained on 256 A100 GPUs for 108 hours. This corresponds to 12165.12 kWH and an estimated emissions of 3.89 metric tons of CO2e \citep{patterson2021carbon, lacoste2019quantifying}. The emissions from training the released SAM 2 are equivalent to \app10k miles driven by an average gasoline-powered passenger vehicle \citep{epa2022}. \\
+Risks and harms & In Section \ref{sec:savifairness} of the main text we analyze SAM 2 performance on people across demographic groups. When using SAM 2 in new settings, we suggest that researchers perform their own fairness evaluation for SAM 2 specific to their use case.  \\
+Use cases & We implore users to use their best judgement. \\
+\end{tabular*}
+\label{tab:modelcard}\vspace{10mm}
+\caption{Model card for SAM 2 following the structure in \cite{mitchell2019model}}
+\end{table*}
+\clearpage
+
+
+\subsection{Dataset card for SA-V dataset}
+\label{app:datacard}
+
+{\fontsize{7.5}{8.4}\selectfont
+\paragraph{Motivation}
+\begin{enumeratecard}
+\item \qtxt{For what purpose was the dataset created? Was there a specific task in mind? Was there a specific gap that needed to be filled? Please provide a description.}
+The dataset was designed for the PVS task. The contributions of our dataset to the vision community are: (1) The dataset, composed of \savinumvideos videos and \savinummaskletsWAuto masklets, is the largest video segmentation dataset publicly available today (see \ref{sec:dataset} for comparisons to current VOS datasets) (2) The dataset is available under a Creative Commons Attribution 4.0 International Public License at \savReleaseUrl, (3) The data is a more geographically diverse, publicly available, video segmentation dataset than its predecessors.
+
+\item \qtxt{Who created the dataset (e.g., which team, research group) and on behalf of which entity (e.g., company, institution, organization)?}
+The dataset was created by Meta FAIR. The underlying videos were collected via a contracted third party company.
+
+\item \qtxt{Who funded the creation of the dataset? }
+The dataset was funded by Meta FAIR.
+
+\item \qtxt{Any other comments?} No.
+
+\end{enumeratecard}
+\paragraph{Composition}
+\begin{enumeratecard}
+\item \qtxt{What do the instances that comprise the dataset represent (e.g., documents, photos, people, countries)? Are there multiple types of instances (e.g., movies, users, and ratings; people and interactions between them; nodes and edges)? Please provide a description.}
+All of the instances in the dataset are videos. Subject matter diversity was encouraged and no specific themes were applied during video collection. Common themes of the video include: locations, objects, scenes. All the videos are distinct, however there are some sets of videos that were taken of the same subject matter.
+
+\item \qtxt{How many instances are there in total (of each type, if appropriate)?}
+There are \savinumvideos videos.
+
+\item \qtxt{Does the dataset contain all possible instances or is it a sample (not necessarily random) of instances from a larger set? If the dataset is a sample, then what is the larger set? Is the sample representative of the larger set (e.g., geographic coverage)? If so, please describe how this representativeness was validated/verified. If it is not representative of the larger set, please describe why not (e.g., to cover a more diverse range of instances, because instances were withheld or unavailable).}
+While the dataset contains all possible instances, reviewers were advised to refuse to annotate content containing explicit imagery. 
+
+\item \qtxt{What data does each instance consist of? ``Raw'' data (e.g., unprocessed text or images) or features? In either case, please provide a description.}
+Each instance is a video.
+
+\item \qtxt{Is there a label or target associated with each instance? If so, please provide a description.}
+Each video is annotated with masklets that track objects throughout the video. There are no categories or text associated with the masklets. The data was annotated at 6 FPS. There are an average of \saviAvgMasklets manual masklets, and \saviAvgMaskletsAutoOnly auto masklets per video, and there are \savinummaskletsWAuto masklets in total.
+
+\item \qtxt{Is any information missing from individual instances? If so, please provide a description, explaining why this information is missing (e.g., because it was unavailable). This does not include intentionally removed information, but might include, e.g., redacted text.}
+No. 
+
+\item \qtxt{Are relationships between individual instances made explicit (e.g., users' movie ratings, social network links)? If so, please describe how these relationships are made explicit.}
+No.
+
+\item \qtxt{Are there any errors, sources of noise, or redundancies in the dataset? If so, please provide a description.}
+For manual masklets, human errors may exist; for example, annotators may miss a frame to check or fix when needed. For auto masklets, as SAM 2 is used to generates them, model errors such as inconsistencies in the masklets may exist.
+
+\item \qtxt{Is the dataset self-contained, or does it link to or otherwise rely on external resources (e.g., websites, tweets, other datasets)? If it links to or relies on external resources, a) are there guarantees that they will exist, and remain constant, over time; b) are there official archival versions of the complete dataset (e.g., including the external resources as they existed at the time the dataset was created); c) are there any restrictions (e.g., licenses, fees) associated with any of the external resources that might apply to a dataset consumer? Please provide descriptions of all external resources and any restrictions associated with them, as well as links or other access points, as appropriate.}
+The dataset is self contained.
+
+\item \qtxt{Does the dataset contain data that might be considered confidential (e.g., data that is protected by legal privilege or by doctor-patient confidentiality, data that includes the content of individuals' non-public communications)? If so, please provide a description.}
+No.
+
+\item \qtxt{Does the dataset contain data that, if viewed directly, might be offensive, insulting, threatening, or might otherwise cause anxiety? If so, please describe why.}
+We have three safety measures to prevent objectionable content: (1) The video collecting crowdworkers were provided instructions to not record videos that might contain objectionable content (e.g.,  graphic, nudity, or inappropriate content). (2) The expert annotators who annotated the videos were provided instructions to flag and reject videos if objectionable content was present. (3) reports about video(s) in the dataset can be submitted to \savReleaseEmail.
+
+\item \qtxt{Does the dataset identify any subpopulations (e.g., by age, gender)? If so, please describe how these subpopulations are identified and provide a description of their respective distributions within the dataset.}
+The dataset does not identify any subpopulations of the people in the videos. The demographics of the crowdworkers who collected the videos in the dataset are presented in \ref{sec:dataset}. 
+
+\item \qtxt{Is it possible to identify individuals (i.e, one or more natural persons), either directly or indirectly (i.e., in combination with other data) from the dataset? If so, please describe how.}
+Videos were subjected to a face blurring model. Reports about videos in the dataset can be submitted to \savReleaseEmail.
+
+\item \qtxt{Does the dataset contain data that might be considered sensitive in any way (e.g., data that reveals race or ethnic origins, sexual orientations, religious beliefs, political opinions or union memberships, or locations; financial or health data; biometric or genetic data; forms of government identification, such as social security numbers; criminal history)? If so, please provide a description.}
+The dataset is not focused on data that may be considered sensitive. Reports about videos in the dataset can be submitted to \savReleaseEmail.
+
+\item \qtxt{Any other comments?} No. 
+\end{enumeratecard}
+
+\paragraph{Collection Process}
+\begin{enumeratecard}
+\item \qtxt{How was the data associated with each instance acquired? Was the data directly observable (e.g., raw text, movie ratings), reported by subjects (e.g., survey responses), or indirectly inferred/derived from other data (e.g., part-of-speech tags, model-based guesses for age or language)? If the data was reported by subjects or indirectly inferred/derived from other data, was the data validated/verified? If so, please describe how.}
+The released masklets associated with each video were collected using two methods. (1) SAM 2 assisted manual annotation (2) automatically generated by SAM 2 and verified by annotators.
+
+\item \qtxt{What mechanisms or procedures were used to collect the data (e.g., hardware apparatuses or sensors, manual human curation, software programs, software APIs)? How were these mechanisms or procedures validated?}
+The videos in the dataset were collected via a contracted third-party vendor. They are videos taken by crowdworkers with unknown equipment.
+
+\item \qtxt{If the dataset is a sample from a larger set, what was the sampling strategy (e.g., deterministic, probabilistic with specific sampling probabilities)?} N/A.
+
+\item \qtxt{Who was involved in the data collection process (e.g., students, crowdworkers, contractors) and how were they compensated (e.g., how much were crowdworkers paid)?}
+(1) The videos in the dataset were collected via a contracted third-party vendor. They are videos taken by crowdworkers who were compensated with an hourly wage set by the vendor.
+(2) The manually collected masklets in the dataset were collected by annotators via another third-party vendor. Annotators were compensated with an hourly wage set by the vendor. 
+
+\item \qtxt{Over what timeframe was the data collected? Does this timeframe match the creation timeframe of the data associated with the instances (e.g., recent crawl of old news articles)? If not, please describe the timeframe in which the data associated with the instances was created.}
+The videos were filmed between November 2023 and March 2024. The masklet annotations were collected between April 2024 and July 2024.
+
+\item \qtxt{Were any ethical review processes conducted (e.g., by an institutional review board)? If so, please provide a description of these review processes, including the outcomes, as well as a link or other access point to any supporting documentation. If the dataset does not relate to people, you may skip the remaining questions in this section.}
+The project underwent an internal review process. 
+
+\item \qtxt{Did you collect the data from the individuals in question directly, or obtain it via third parties or other sources (e.g. websites)?} 
+We contracted with third-party vendors to collect the videos and to generate or review annotations.
+
+\item \qtxt{Were the individuals in question notified about the data collection? If so, please describe (or show with screenshots or other information) how notice was provided, and provide a link or other access point to, or otherwise reproduce, the exact language of the notification itself.}
+The videos were collected by crowdworkers via a contracted third-party vendor. The crowdworkers agreed to consent forms. 
+
+\item \qtxt{Did the individuals in question consent to the collection and use of their data? If so, please describe (or show with screenshots or other information) how consent was requested and provided, and provide a link or other access point to, or otherwise reproduce, the exact language to which the individuals consented.} 
+The videos were collected via a contracted third-party who provided appropriate representations regarding the collection of any notices and consents as required from individuals.
+
+\item \qtxt{If consent was obtained, were the consenting individuals provided with a mechanism to revoke their consent in the future or for certain uses? If so, please provide a description, as well as a link or other access point to the mechanism (if appropriate).}
+Pursuant to the contract, the contracted third-party collected consents and provided opportunity for consent revocation.
+
+\item \qtxt{Has an analysis of the potential impact of the dataset and its use on data subjects (e.g., a data protection impact analysis) been conducted? If so, please provide a description of this analysis, including the outcomes, as well as a link or other access point to any supporting documentation.}
+See detail in \ref{sec:savifairness}.
+
+\item \qtxt{Any other comments?} No.
+\end{enumeratecard}
+
+\paragraph{Preprocessing / Cleaning / Labeling}
+\begin{enumeratecard}
+\item \qtxt{Was any preprocessing / cleaning / labeling of the data done (e.g., discretization or bucketing, tokenization, part-of-speech tagging, SIFT feature extraction, removal of instances, processing of missing values)? If so, please provide a description. If not, you may skip the remaining questions in this section.}
+The videos were re-sampled to 24 fps and converted to mp4 format.
+
+\item \qtxt{Was the ``raw'' data saved in addition to the preprocessed/cleaned/labeled data (e.g., to support unanticipated future uses)? If so, please provide a link or other access point to the ``raw'' data.}
+No.
+\end{enumeratecard}
+
+\paragraph{Uses}
+\begin{enumeratecard}
+\item \qtxt{Has the dataset been used for any tasks already? If so, please provide a description.}
+The dataset has been used to train and evaluate SAM 2.
+
+\item \qtxt{What (other) tasks could the dataset be used for?}
+The data could be used for VOS, iVOS, or PVS tasks. If frames are sampled from the videos, the dataset can be used for the image segmentation task.
+
+\item \qtxt{Is there anything about the composition of the dataset or the way it was collected and preprocessed/cleaned/labeled that might impact future uses? For example, is there anything that a dataset consumer might need to know to avoid uses that could result in unfair treatment of individuals or groups (e.g., stereotyping, quality of service issues) or other risks or harms (e.g., legal risks, financial harms)? If so, please provide a description. Is there anything a dataset consumer could do to mitigate these risks or harms?}
+We have an analysis of the geography and crowdworker demographic of our dataset in \ref{sec:dataset}. While we believe our dataset to be more representative on these factors than most of the publicly existing datasets of its kind at this time, we acknowledge that we do not have parity across all geographic and demographic groups, and we encourage users of the dataset to be mindful of any potential biases models may learn using this dataset.
+
+\item \qtxt{Are there tasks for which the dataset should not be used? If so, please provide a description.} No. Full terms of use for the dataset can be found at \savDownloadReleaseUrl.
+
+\item \qtxt{Any other comments?} No.
+\end{enumeratecard}
+
+\paragraph{Distribution}
+\begin{enumeratecard}
+\item \qtxt{Will the dataset be distributed to third parties outside of the entity (e.g., company, institution, organization) on behalf of which the dataset was created? If so, please provide a description.}
+The dataset will be available under the permissive Creative Commons Attribution 4.0 International Public License.
+
+\item \qtxt{How will the dataset will be distributed (e.g., tarball on website, API, GitHub)? Does the dataset have a digital object identifier (DOI)?}
+The dataset is available at \savReleaseUrl.
+
+\item \qtxt{When will the dataset be distributed?}
+The dataset will be distributed in July 2024.
+
+\item \qtxt{Will the dataset be distributed under a copyright or other intellectual property (IP) license, and/or under applicable terms of use (ToU)? If so, please describe this license and/or ToU, and provide a link or other access point to, or otherwise reproduce, any relevant licensing terms or ToU, as well as any fees associated with these restrictions.}
+Yes, the dataset will be available under the Creative Commons Attribution 4.0 International Public License. The license agreement and terms of use for the dataset can be found at \savDownloadReleaseUrl. Users must agree to the terms of use before downloading or using the dataset.
+
+\item \qtxt{Have any third parties imposed IP-based or other restrictions on the data associated with the instances? If so, please describe these restrictions, and provide a link or other access point to, or otherwise reproduce, any relevant licensing terms, as well as any fees associated with these restrictions.}
+Full terms of use and restrictions on use of the SA-V dataset can be found at \savDownloadReleaseUrl.
+
+\item \qtxt{Do any export controls or other regulatory restrictions apply to the dataset or to individual instances? If so, please describe these restrictions, and provide a link or other access point to, or otherwise reproduce, any supporting documentation.}
+The license and restrictions on use of the SA-V dataset can be found at \savDownloadReleaseUrl.
+
+\item \qtxt{Any other comments?} No.
+\end{enumeratecard}
+
+\paragraph{Maintenance}
+\begin{enumeratecard}
+\item \qtxt{Who will be supporting/hosting/maintaining the dataset?}
+The dataset will be hosted at \savReleaseUrl and maintained by Meta FAIR.
+
+\item \qtxt{How can the owner/curator/manager of the dataset be contacted (e.g., email address)?}
+Please email \savReleaseEmail.
+
+\item \qtxt{Is there an erratum? If so, please provide a link or other access point.} No.
+
+\item \qtxt{Will the dataset be updated (e.g., to correct labeling errors, add new instances, delete instances)? If so, please describe how often, by whom, and how updates will be communicated to dataset consumers (e.g., mailing list, GitHub)?} Updates may be made pursuant to inbound received at \savReleaseEmail.
+
+\item \qtxt{If the dataset relates to people, are there applicable limits on the retention of the data associated with the instances (e.g., were the individuals in question told that their data would be retained for a fixed period of time and then deleted)? If so, please describe these limits and explain how they will be enforced.} There are no limits on data retention.
+
+\item \qtxt{Will older versions of the dataset continue to be supported/hosted/maintained? If so, please describe how. If not, please describe how its obsolescence will be communicated to dataset consumers.} No. If updates are made to the dataset, previous versions will not continue to be hosted.
+
+\item \qtxt{If others want to extend/augment/build on/contribute to the dataset, is there a mechanism for them to do so? If so, please provide a description. Will these contributions be validated/verified? If so, please describe how. If not, why not? Is there a process for communicating/distributing these contributions to dataset consumers? If so, please provide a description.}
+We encourage further annotations for SA-V, but these will not be validated/verified or supported/hosted/maintained by Meta.
+
+\item \qtxt{Any other comments?} No.
+\end{enumeratecard}
+
+\subsection{Data annotation card}
+\label{app:crowdworksheets}
+
+{\fontsize{7.5}{8.4}\selectfont
+\paragraph{Task Formulation}
+\begin{enumeratecard}
+\item \qtxt{At a high level, what are the subjective aspects of your task?} 
+Selecting objects to mask and track in a video is inherently a subjective task, and annotators might differ in their decision to mask objects. 
+
+\item \qtxt{What assumptions do you make about annotators?}
+We assume our annotators understand the PVS task and are well trained on video related tasks. Our annotators worked full time on our annotation task. This made it possible to train the annotators by sharing feedback on a regular basis. 
+
+\item \qtxt{How did you choose the specific wording of your task instructions? What steps, if any, were taken to verify the clarity of task instructions and wording for annotators?}
+(1) The task instructions included visual examples (images and videos) to provide clarity. (2) Annotators were well trained before working on production queues. (3) The research team shared feedback daily and met with the annotators weekly for Q\&A sessions. 
+
+\item \qtxt{What, if any, risks did your task pose for annotators and were they informed of the risks prior to engagement with the task?}
+Annotators were informed to reject objectionable videos.
+
+\item \qtxt{What are the precise instructions that were provided to annotators?} See detail in \ref{fig:samv_annot_guideline} for annotation instructions.
+
+\end{enumeratecard}
+\paragraph{Selecting Annotations}
+\begin{enumeratecard}
+\item \qtxt{Are there certain perspectives that should be privileged? If so, how did you seek these perspectives out?} We chose to work with annotators with previous video annotation experience.
+
+\item \qtxt{Are there certain perspectives that would be harmful to include? If so, how did you screen these perspectives out?} No.
+
+\item \qtxt{Were sociodemographic characteristics used to select annotators for your task? If so, please detail the process.} 
+For masklet annotations, sociodemographic characteristics were not used to select the annotators. For video collection, we emphasized the importance of diversity among the crowdworkers to our third-party vendor. While it was not a strict requirement, we encouraged the inclusion of a diverse group of crowdworkers to enrich the data collection process with a wide range of perspectives. This approach aimed to naturally incorporate diversity without imposing strict selection based on sociodemographic factors.
+
+\item \qtxt{If you have any aggregated socio-demographic statistics about your annotator pool, please describe. Do you have reason to believe that sociodemographic characteristics of annotators may have impacted how they annotated the data? Why or why not?}
+Aggregated socio-demographic statistics about the crowdworkers who collected the videos are presented in \ref{sec:dataset}.
+
+\item \qtxt{Consider the intended context of use of the dataset and the individuals and communities that may be impacted by a model trained on this dataset. Are these communities represented in your annotator pool?}
+The SA-V dataset is a geographically diverse, publicly available, video segmentation dataset, as discussed in \ref{sec:dataset}. In addition, we analyze the responsible AI axes of a model trained on the dataset, as discussed in \ref{sec:savifairness}.
+
+\end{enumeratecard}
+
+\paragraph{Platform and Infrastructure Choices}
+\begin{enumeratecard}
+\item \qtxt{What annotation platform did you utilize? At a high level, what considerations informed your decision to choose this platform? Did the chosen platform sufficiently meet the requirements you outlined for annotator pools? Are any aspects not covered?}
+We used an internal annotation platform.
+
+\item \qtxt{What, if any, communication channels did your chosen platform offer to facilitate communication with annotators? How did this channel of communication influence the annotation process and/or resulting annotations?}
+The research team shared feedback daily and met with the annotators weekly to align on the task instructions and expectations and to hold Q\&A sessions. Outside of those sessions, annotators had access to a spreadsheet and chat group to facilitate communication with the research team. 
+
+\item \qtxt{How much were annotators compensated? Did you consider any particular pay standards, when determining their compensation? If so, please describe.} 
+(1) The video collecting crowdworkers were compensated with an hourly wage set by the vendor. (2) Annotators were compensated with an hourly wage set by the vendor. 
+
+\end{enumeratecard}
+\paragraph{Dataset Analysis and Evaluation}
+\begin{enumeratecard}
+\item \qtxt{How do you define the quality of annotations in your context, and how did you assess the quality in the dataset you constructed?}
+Annotators were required to follow a training before moving to production queues. Annotators followed a 2-day training session led by the vendor and then were asked to annotate jobs from a training queue. Annotators were able to move from training to production after the vendor Q\&A team or the research team reviewed their work and assessed quality. On average, annotators spent 1 - 2 weeks in training before moving to production. Similarly, the vendor and research team Q\&A manually reviewed the production queues’ annotations daily, sharing feedback daily.
+
+\item \qtxt{Have you conducted any analysis on disagreement patterns? If so, what analyses did you use and what were the major findings? Did you analyze potential sources of disagreement?}
+The disagreement patterns were shared daily and weekly during feedback and Q\&A sessions.
+
+\item \qtxt{How do the individual annotator responses relate to the final labels released in the dataset?} The final labels are after data cleaning and post processing from the individual annotator responses.
+
+\end{enumeratecard}
+\paragraph{Dataset Release and Maintenance}
+\begin{enumeratecard}
+\item \qtxt{Do you have reason to believe the annotations in this dataset may change over time? Do you plan to update your dataset?} No.
+
+\item \qtxt{Are there any conditions or definitions that, if changed, could impact the utility of your dataset?} No.
+
+\item \qtxt{Will you attempt to track, impose limitations on, or otherwise influence how your dataset is used? If so, how?}
+The SA-V dataset is released under a permissive CC by 4.0 license.
+
+\item \qtxt{Were annotators informed about how the data is externalized? If changes to the dataset are made, will they be informed?} No.
+
+\item \qtxt{Is there a process by which annotators can later choose to withdraw their data from the dataset? If so, please detail.} No.
+
+\end{enumeratecard}}
+
+\clearpage
+\bibliographystyle{iclr2025_conference}
+\bibliography{sam2}
+
+\end{document}

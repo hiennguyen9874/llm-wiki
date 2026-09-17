@@ -1,0 +1,106 @@
+\section{Introduction} \label{sec:intro}
+
+Object detection is a fundamental task in computer vision, widely applied in fields like autonomous driving~\cite{chen2017multi, chen2016monocular}, robot navigation~\cite{ess2010object}, etc. 
+%
+The growing demand for efficient detectors has spurred the development of real-time detection methods. 
+%
+In particular, YOLO emerges as one of the main paradigms for real-time object detection, owing to its compelling trade-off between latency and accuracy~\cite{wang2024yolov9,wang2024yolov10,zheng2021yolox, bochkovskiy2020yolov4,redmon2016you}.
+%
+YOLO models are widely recognized as one-stage detectors based on convolutional neural networks. \emph{One-to-many (O2M)} assignment strategy has been widely used in YOLO series~\cite{redmon2016you,bochkovskiy2020yolov4,zheng2021yolox,wang2024yolov9}, where each target box is associated with multiple anchors. This strategy is known to be effective, as it provides dense supervision signals, which accelerate convergence and enhance performance~\cite{zheng2021yolox}.
+%
+However, it produces multiple overlapping bounding boxes per object, requiring a hand-crafted Non-Maximum Suppression (NMS) to remove redundancies, introducing latency and instability~\cite{zhao2024detrs, wang2024yolov10}.
+
+The advent of Transformer-based detection (DETR) paradigm~\cite{carion2020end} has attracted significant attention~\cite{chen2023group, zhang2022dino, zong2023detrs}, leveraging multi-head attention to capture global context, thereby enhancing localization and classification. 
+%
+DETRs adopt a \emph{one-to-one (O2O)} matching strategy that leverages the Hungarian~\cite{kuhn1955hungarian} algorithm to establish a unique correspondence between predicted boxes and the ground-truth objects during training, eliminating the need for NMS. 
+%
+This end-to-end framework offers a compelling alternative for real-time object detection.
+
+However, \textbf{slow convergence} remains one of the primary limitations of DETRs, and we hypothesize that the reasons are two-fold.
+ % due to sparse supervision and the prevalence of low-quality matches. 
+%
+\ding{182} \emph{Sparse supervision}: 
+The O2O matching mechanism assigns only one positive sample per target, greatly limiting the number of positive samples. In contrast, O2M generates several times more positive samples. This scarcity of positive samples restricts dense supervision, which impedes effective model learning—particularly for small objects, where dense supervision is crucial for performance.
+\ding{183} \emph{Low-quality matches}: 
+Unlike traditional methods that rely on dense anchors (usually $>8000$), DETR employs a small number (100 or 300) of randomly initialized queries. These queries lack spatial alignment with targets, leading to numerous low-quality matches in the training, where matched boxes have low IoU with the targets but high confidence scores.
+
+To address the scarcity of supervision in DETR, recent studies have relaxed the constraints of O2O matching by incorporating O2M assignments into O2O training, thereby introducing auxiliary positive samples per target to increase supervision. Group DETR~\cite{chen2023group} achieves this by using multiple query groups, each with independent O2O matching, while Co-DETR~\cite{zong2023detrs} incorporates O2M methods from object detectors like Faster R-CNN~\cite{ren2016faster} and FCOS~\cite{tian2022fully}. Although these approaches successfully increase the number of positive samples, they also require additional decoders, which increases computational overhead and risks generating redundant high-quality predictions as traditional detectors.
+In contrast, we propose a novel yet straightforward approach named dense one-to-one (Dense O2O) matching. Our key idea is to increase the number of targets in each training image, which in turn generates more positive samples during the training. Notably, this can be easily achieved using classical techniques such as mosaic~\cite{bochkovskiy2020yolov4} and mixup~\cite{zhang2017mixup} augmentations, which generates additional positive samples per image while preserving the one-to-one matching framework. Dense O2O matching can provide a level of supervision comparable to O2M approaches, without the added complexity and overhead typically associated with O2M methods. 
+
+
+% 逻辑是：sparse queries导致
+Despite attempts to improve query initialization using priors~\cite{zhu2020deformable, li2022dn, zhang2022dino, zhao2024detrs}, which enable more effective query distributions around objects. 
+These improved initialization methods, often relying on limited feature information extracted from the encoder~\cite{zhao2024detrs, zhang2022dino}, tend to cluster queries around a few prominent objects. In contrast, most non-salient objects lack nearby queries, leading to low-quality matches. 
+This issue becomes even more pronounced when using Dense O2O. As the number of targets increases, the disparity between prominent and non-prominent targets grows, leading to a rise in low-quality matches despite the overall increase in matching quantity. In this case, if the loss function has limitations in handling these low-quality matches, this disparity will persist, hindering the model from achieving better performance.
+
+Existing loss functions~\cite{lin2017focal, zhang2021varifocalnet} in DETRs, such as Varifocal Loss (VFL)~\cite{zhang2021varifocalnet}, are tailored to dense anchors where the number of low-quality matches is relatively low. They primarily penalize high-quality matches, especially matches with high IoU but low confidence, and discard low-quality matches. To address low-quality matches and further improve Dense O2O, we propose Matchability-Aware Loss (MAL). MAL scales the penalty based on matchability by incorporating the IoU between matched queries and targets with classification confidence. 
+MAL performs similarly to VFL for high-quality matches but places greater emphasis on low-quality matches, improving the utility of limited positive samples during training. Furthermore, MAL provides a simpler mathematical formulation than VFL.
+% , reducing complexity by eliminating a hyperparameter.
+
+The proposed \ourmethod{} combines Dense O2O with \ourclsloss{} to create an effective training framework.
+We conducted extensive experiments on the COCO~\cite{lin2014microsoft} dataset to evaluate the effectiveness of \ourmethod{}. The results in Fig.~\ref{fig_front_comp}~(a) show that DEIM significantly accelerates the convergence of RT-DETRv2~\cite{lv2024rt} and D-FINE~\cite{peng2024d} and achieves improved performance as well. Specifically, with only half the number of training epochs, our method outperforms RT-DETRv2 and D-FINE by 0.2 and 0.6 AP, respectively. Additionally, our approach enables training a ResNet50-based DETR model on a single 4090 GPU, achieving 53.2\% mAP within a single day (approximately 24 epochs). By incorporating more efficient models, we also introduce a new set of real-time detectors that outperform existing models, including the latest YOLOv11~\cite{yolo11}, setting a new state-of-the-art (SoTA) for real-time object detection (Fig.~\ref{fig_front_comp}~(b)).
+
+
+\begin{figure*}[t]
+    % \vspace{-0.2cm}
+    \centering
+    \small  %
+    \setlength{\abovecaptionskip}{0.cm}
+    \setlength{\belowcaptionskip}{-0.cm}
+    \hfill
+    % \hspace{-0.6cm}
+    \begin{subfigure}{0.33\textwidth}
+        \includegraphics[width=\textwidth]{figs/O2M.png}
+        \caption{\textbf{O2M}: 1 target and 4 pos.}
+        \label{fig:toy_O2M}
+    \end{subfigure}
+    \begin{subfigure}{0.33\textwidth}
+        \includegraphics[width=\textwidth]{figs/O2O.png}
+        \caption{\textbf{O2O}: 1 target and 1 pos.}
+        \label{fig:toy_O2O}
+    \end{subfigure}
+    \begin{subfigure}{0.328\textwidth}
+        \includegraphics[width=\textwidth]{figs/DenseO2O.png}
+        \caption{\textbf{Dense O2O by stitching}: 4 targets and 4 pos.}
+        \label{fig:toy_Dense_O2O}
+    \end{subfigure}
+    % \vspace{0.1mm}
+    % \hspace{-0.9cm}
+    \\
+    \hfill
+    \begin{subfigure}{0.33\textwidth}
+        \includegraphics[width=\textwidth]{figs/Low-Quality-Matching.png}
+        \caption{Low-quality matching}
+        \label{fig:toy_lowquality}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}{0.33\textwidth}
+        \includegraphics[width=\textwidth, height=0.18\textheight]{figs/Loss_VFL.png}
+        \caption{Loss landscape of VFL}
+        \label{fig:lossscape_vfl}
+    \end{subfigure}
+    \begin{subfigure}{0.33\textwidth}
+        \includegraphics[width=\textwidth, height=0.175\textheight]{figs/Loss_MAL.png}
+        \caption{Loss landscape of \ourclsloss}
+        \label{fig:lossscape_ours}
+    \end{subfigure}
+    \hfill
+    \vspace{-0.2cm}
+    \caption{\textbf{An illustration of our proposed \ourmethod.} \textcolor{yellow}{Yellow}, \textcolor{red}{red}, and \textcolor{green}{green} boxes represent the GT, positive and negative samples, respectively. 'pos.' denotes the positive samples. \textit{Top:} Our Dense O2O (Fig.~\ref{fig:toy_Dense_O2O}) can provide the same quality of positive samples as O2M (Fig.~\ref{fig:toy_O2M}). \textit{Bottom:} For the low-quality matching, its loss values when using VFL~\cite{zhang2021varifocalnet} and \ourclsloss\ are marked by \textcolor{red}{$\star$}, indicating \ourclsloss\ can optimize those cases more effectively.}
+    \label{fig:overview}
+\vspace{-0.5cm}
+\end{figure*}
+
+The main contributions of this work are summarized as follows:
+
+\begin{itemize}
+
+\item We introduce \ourmethod{}, a simple and flexible training framework for real-time object detection.
+
+\item \ourmethod{} accelerates the convergence by improving the quantity and quality of matching with Dense O2O and \ourclsloss, respectively. 
+
+\item With our method, existing real-time DETRs achieve better performance while halving training costs. Specifically, our method exceeds YOLOs and establishes a new SoTA in real-time object detection after being paired with efficient models in D-FINE. 
+\end{itemize}
+
+% The code will be made publicly available upon publication.
+

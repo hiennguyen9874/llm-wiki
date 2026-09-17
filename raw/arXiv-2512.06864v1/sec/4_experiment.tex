@@ -1,0 +1,386 @@
+\section{Experiments}
+
+%\todo{Initial paragraph}
+
+%\subsection{Implementation details}
+
+% \paragraph{Datasets.}
+\mypar{Datasets.}
+Our model is trained on synthetic videos from VideoCutLER~\cite{videocutler} and the unlabeled \texttt{train} split of YouTubeVIS-2019~\cite{ytvis2019}. We evaluate our model's performance on the \texttt{val} split of YouTubeVIS-2019 in a class-agnostic manner. YouTubeVIS-2019 contains 2,883 high-resolution YouTube videos, annotated at 6 FPS (2,238 training videos, 302 validation videos, and 343 test videos).
+
+\kaixuan{We don't need to describe UVO-Dense here, right?}
+
+
+% \paragraph{Evaluation metrics.}
+\mypar{Evaluation metrics.}
+Following VideoCutLER~\cite{videocutler}, we use Average Precision (AP) and Average Recall (AR) as evaluation metrics. We evaluate the models in a class-agnostic manner, treating all classes as a single one during evaluation.
+
+% \paragraph{Implementation details.}
+\mypar{Implementation details.}
+For the initial training stage, we use the pretrained VideoMask2Former model~\cite{mask2former, videomask2former} from VideoCutLER~\cite{videocutler} to initialize our VIS model. Then we train the VIS model and quality predictor on synthetic videos from VideoCutLER for 8,000 iterations using a single V100 GPU, with a batch size of 2 and a learning rate of $2 \times 10^{-5}$. For each round of multi-round self-training, we train the VIS model for 10,000 iterations on two V100 GPUs, with a batch size of 4 and a learning rate of $2 \times 10^{-5}$. In practice, we find that two rounds of self-training and a quality score threshold $\tau_{th}$ of 0.75 provide the best performance. 
+
+To balance data distribution between VideoCutLER's~\cite{videocutler} extensive synthetic videos and our pseudo-labeled videos, we implement a balanced stochastic sampling strategy. Each training batch has an equal probability (50\%) of being drawn from either the synthetic videos or the pseudo-labeled set. This prevents overfitting to either domain while maintaining the synthetic data's regularization benefits during self-training. %\todo{move it to implement detail}
+
+% We adopt a balanced stochastic sampling strategy, drawing each training batch with equal probability (50\%) from VideoCutLER's synthetic videos~\cite{videocutler} or pseudo-labeled data. This mitigates domain overfitting while preserving the synthetic data’s regularization benefits in self-training.
+
+\subsection{Experimental results}
+
+
+
+% \paragraph{Comparison with the-state-of-the-art method.}
+\mypar{Comparison with the-state-of-the-art method.}
+We compare AutoQ-VIS with previous top-performing methods on YouTubeVIS-2019~\cite{ytvis2019} in~\cref{tab:ytvis19val}. AutoQ-VIS achieves a remarkable improvement (about 4.4\% $\text{AP}_{50}$). Especially for $\text{AP}_{75}$, AutoQ-VIS can outperform the state-of-the-art VideoCutLER~\cite{videocutler} by 5.3\%. The observed improvements of +2.4\% $\text{AP}_{L}$, +1.2\% $\text{AP}_{M}$, and +0.0\% $\text{AP}_{L}$ suggest that our pipeline primarily enhances segmentation performance for medium and large objects, with negligible gains on other categories.
+
+% To further evaluate the effectiveness of our pipeline, we also compare AutoQ-VIS with the state-of-the-art VideoCutLER~\cite{videocutler} on more challenging UVO-Dense~\cite{uvo} in~\cref{tab:uvo_dense}. AutoQ-VIS demonstrates a performance gain of 1.1\% in $\text{AP}_{50}$, establishing measurable improvements in video instance segmentation accuracy. \todo{mention our change to the quality score threshold, put this in the end}
+
+\begin{table}[!t]
+\resizebox{\columnwidth}{!}{%
+\begin{tabular}{lrrrrrrr}
+\toprule
+
+\multicolumn{1}{c}{}                                 & \multicolumn{7}{c}{\textbf{YouTubeVIS-2019}}   \\  \cline{2-8}
+\multicolumn{1}{c}{\multirow{-2}{*}{\textbf{Method}}} &
+  \multicolumn{1}{l}{\textbf{${\text{AP}}_{50}$}} &
+  \multicolumn{1}{l}{\textbf{${\text{AP}}_{75}$}} &
+  \multicolumn{1}{l}{\textbf{${\text{AP}}$}} &
+  \multicolumn{1}{l}{\textbf{${\text{AP}}_{S}$}} &
+  \multicolumn{1}{l}{\textbf{${\text{AP}}_{M}$}} &
+  \multicolumn{1}{l}{\textbf{${\text{AP}}_{L}$}} &
+  \multicolumn{1}{l}{\textbf{${\text{AR}}_{10}$}} \\ \midrule
+
+% \textbf{Method} & 
+% \textbf{${\text{AP}}_{50}$} &
+% \textbf{${\text{AP}}_{75}$} &
+% \textbf{${\text{AP}}$} & 
+% \textbf{${\text{AP}}_{S}$} & 
+% \textbf{${\text{AP}}_{M}$} & 
+% \textbf{${\text{AP}}_{L}$} & 
+% \textbf{${\text{AR}}_{10}$} \\ \midrule
+
+Theoretical limit                                    & 76.8 & 48.7 & 46.8 & 13.5 & 43.6 & 62.9 & 58.0 \\
+Practical limit                                & 62.7 & 33.2 & 33.9 &  4.3 & 27.3 &  53.2 & 47.5   \\
+AutoQ-VIS                                           & 52.6 & 28.2 & 28.1 & 6.7  & 21.2 & 40.7 & 42.5 \\ 
+\bottomrule
+\end{tabular}%
+}
+\caption{\textbf{Comparison with the theoretical and practical limit.} 
+\textit{Theoretical Limit}: Upper-bound performance achieved by training on ground-truth labels from YouTubeVIS-2019 \texttt{train} split in class-agnostic mode, representing ideal supervision conditions.  
+\textit{Practical Limit}: Best attainable performance when using all pseudo-labels with $\text{IoU}\geq0.5$ against ground truth, simulating perfect pseudo-label selection.
+% \textit{Theoretical limit}: Upper-bound benchmark obtained by training on ground-truth labels from YouTubeVIS-2019 \texttt{train} split in class-agnostic manner. \textit{Practical limit}: Performance ceiling when incorporating all pseudo labels having $\text{IoU}\geq0.5$ with ground truth.
+}
+\label{tab:limit_comparison}
+\end{table}
+
+% \paragraph{Comparison with the theoretical and practical limit.}
+\mypar{Comparison with the theoretical and practical limit.}
+\cref{tab:limit_comparison} reveals a significant performance gap (10.1 $\text{AP}_{50}$) between AutoQ-VIS and the practical upper bound, indicating substantial potential for improvement through enhanced pseudo-label utilization. The theoretical limit represents a fully supervised training using all ground-truth annotations from YouTubeVIS-2019
+\texttt{train} set. The practical limit represents an oracle experiment that simulates perfect pseudo-label selection by using all predictions with $\text{IoU} \geq 0.5$ against ground truth.
+
+% with the best attainable performance when using all pseudo-labels with $\text{IoU}\geq0.5$ against ground truth, simulating perfect pseudo-label selection.
+
+\begin{figure*}[ht]
+    \centering
+    \includegraphics[width=1\linewidth]{figures/big_qualitative_results_5.pdf}
+    \caption{
+        \textbf{The qualitative results of AutoQ-VIS on YouTubeVIS-2019 \texttt{val} split.} The quality scores are shown in the center of each object. The visual results demonstrate AutoQ-VIS' proficiency in simultaneous multi-instance segmentation, persistent object tracking, and per-mask quality assessment across video sequences. %\todo{replace with val results}
+    }
+    \label{fig:big_quali_res}
+\end{figure*}
+
+
+\begin{figure}[ht]
+    \centering
+    \includegraphics[width=1\linewidth]{figures/qualitative_results.pdf}
+    \caption{\textbf{The qualitative comparison on YouTubeVIS-2019 \texttt{val} split.} AutoQ-VIS demonstrates superior instance discovery capabilities compared to VideoCutLER~\cite{videocutler}: (1) Enhanced multi-object detection capacity, particularly for semantically distinct instances (e.g., person and bull in Column 2); (2) Improved segmentation fidelity through precise boundary delineation (e.g., the leopard in Column 3). (3) Better comprehensive instance coverage, eliminating false negatives (e.g., detecting humans in Columns 1 \& 4 that VideoCutLER completely misses, even without occlusion or scale challenges). 
+    % \todo{take some figures from fig 8 make it two column}
+    }
+    % ONUR: I dont want to add limitations, bad examples to this figure. These are our only visual samples
+    \label{fig:qualitative_results}
+\end{figure}
+
+
+% ONUR: we can merge quant and qualitative results?
+% \paragraph{Qualitative results.}
+\mypar{Qualitative results.}
+Qualitative results in~\cref{fig:big_quali_res} illustrate AutoQ-VIS's capability in integrated multi-object segmentation, temporally consistent tracking, and mask-level quality prediction throughout video sequences. Fig.~\ref{fig:qualitative_results} demonstrates AutoQ-VIS's advancements over VideoCutLER~\cite{videocutler}. As we observe, AutoQ-VIS is capable of discovering more objects and producing higher-quality segmentation masks.
+
+\subsection{Ablation studies}
+
+\begin{table}[t]
+\resizebox{\columnwidth}{!}{%
+\begin{tabular}{lrrrrrrr}
+\toprule
+
+\multicolumn{1}{c}{}                                 & \multicolumn{7}{c}{\textbf{YouTubeVIS-2019}}   \\  \cline{2-8}
+\multicolumn{1}{c}{\multirow{-2}{*}{\textbf{Method}}} &
+  \multicolumn{1}{l}{\textbf{${\text{AP}}_{50}$}} &
+  \multicolumn{1}{l}{\textbf{${\text{AP}}_{75}$}} &
+  \multicolumn{1}{l}{\textbf{${\text{AP}}$}} &
+  \multicolumn{1}{l}{\textbf{${\text{AP}}_{S}$}} &
+  \multicolumn{1}{l}{\textbf{${\text{AP}}_{M}$}} &
+  \multicolumn{1}{l}{\textbf{${\text{AP}}_{L}$}} &
+  \multicolumn{1}{l}{\textbf{${\text{AR}}_{10}$}} \\ \midrule
+
+% \textbf{Method} & 
+% \textbf{${\text{AP}}_{50}$} &
+% \textbf{${\text{AP}}_{75}$} &
+% \textbf{${\text{AP}}$} & 
+% \textbf{${\text{AP}}_{S}$} & 
+% \textbf{${\text{AP}}_{M}$} & 
+% \textbf{${\text{AP}}_{L}$} & 
+% \textbf{${\text{AR}}_{10}$} \\ \midrule
+
+w/o quality predictor                            & 50.5 & 25.9 & 27.2 & 5.7 & 19.0 & 40.5 & \textbf{43.3} \\
+w/o DropLoss                                     & 48.0 & 23.7 & 24.6 & 3.8 & 16.9 & 37.8 & 39.2 \\
+w/o resetting each round                         & 51.6 & 28.0 & \textbf{28.2} & 6.4 & \textbf{22.8} & 40.6 & 42.9 \\
+w/o adaptive fusion                              & 49.7 & 26.5 & 26.8 & 6.1 & 18.9 & 40.1 & 41.4 \\
+w/o freezing predictor                           & 49.2 & 25.8 & 26.5 & \textbf{6.9} & 18.8 & 39.3 & 40.9 \\
+AutoQ-VIS                                        & \textbf{52.6} & \textbf{28.2} & 28.1 & 6.7 & 21.2 & \textbf{40.7} & 42.5 \\ 
+VideoCutLER~\cite{videocutler}                   & 48.2 & 22.9 & 24.5 & 6.7 & 17.7 & 36.3 & 42.3 \\
+\bottomrule
+\end{tabular}%
+}
+\caption{
+\textbf{Ablation study on the contribution of each component.} \textit{Without quality predictor:} We remove the quality predictor, and use the confidence score $s_l$ from the class head of VIS model (see~\cref{fig:predictor}) as quality score $Q_l$ with threshold $\tau_{th} = 0.85$. \textit{Without DropLoss:} We use the vanilla loss for the mask head instead of the DropLoss. \textit{Without resetting each round:} The model weights are not reset at the beginning of each round. \textit{Without Adaptive fusion:} Instead of fusing the newly curated annotations and old curated annotations, we simply replace the old curated annotations in the training dataset with new curated annotations. \textit{Without freezing predictor:} We do not freeze the weight of the quality predictor and train it together with the VIS model. %\todo{discuss the new results, show the videocutler here. which has huge impact, which doesn't}
+}
+\label{tab:component_ablation}
+\end{table}
+
+
+% \paragraph{Component ablation analysis.}
+\mypar{Component ablation analysis.}
+\cref{tab:component_ablation} quantifies individual component contributions through progressive additions. The DropLoss contributes the most significant performance improvement (+4.6\% $\text{AP}_{50}$) in our framework. While originally developed by CutLER~\cite{cutler} for image-level segmentation training, this technique was notably absent in VideoCutLER's~\cite{videocutler} video instance segmentation pipeline. Our quantitative results in~\cref{tab:component_ablation} demonstrate the importance of reintroducing DropLoss in our video-domain self-training pipeline.
+
+Subsequent components demonstrate incremental gains: freezing the quality predictor contributes +3.4\% $\text{AP}_{50}$, adaptive fusion adds +2.9\% $\text{AP}_{50}$, and the quality predictor itself provides +2.1\% $\text{AP}_{50}$ improvement. 
+Freezing quality predictor prevents overestimation bias by decoupling the optimization process between the VIS model and the quality predictor. Without parameter freezing, both components would reinforce pseudo-label errors through mutual confirmation during self-training cycles, thereby inducing progressively amplified confidence miscalibration in successive iterations. \kaixuan{Is this explanation reasonable?}
+Adaptive fusion of new curated annotations and old curated annotations helps the model achieve progressive improvements.
+Notably, even the confidence score baseline surpasses VideoCutLER by +2.3 $\text{AP}_{50}$, demonstrating fundamental advantages of our self-training method. While model resetting yields marginal gains (+1.0 $\text{AP}_{50}$, +0.2 $\text{AP}_{75}$), it maintains baseline $\text{AP}$ performance.  
+%\todo{add freezing predictor}
+
+\begin{table}[t]
+\resizebox{\columnwidth}{!}{%
+\begin{tabular}{lrrrrrrr}
+\toprule
+
+\multicolumn{1}{c}{}                                 & \multicolumn{7}{c}{\textbf{YouTubeVIS-2019}}   \\  \cline{2-8}
+\multicolumn{1}{c}{\multirow{-2}{*}{\textbf{Self-training}}} &
+  \multicolumn{1}{l}{\textbf{${\text{AP}}_{50}$}} &
+  \multicolumn{1}{l}{\textbf{${\text{AP}}_{75}$}} &
+  \multicolumn{1}{l}{\textbf{${\text{AP}}$}} &
+  \multicolumn{1}{l}{\textbf{${\text{AP}}_{S}$}} &
+  \multicolumn{1}{l}{\textbf{${\text{AP}}_{M}$}} &
+  \multicolumn{1}{l}{\textbf{${\text{AP}}_{L}$}} &
+  \multicolumn{1}{l}{\textbf{${\text{AR}}_{10}$}} \\ \midrule
+
+% \textbf{Self-training} & 
+% \textbf{${\text{AP}}_{50}$} &
+% \textbf{${\text{AP}}_{75}$} &
+% \textbf{${\text{AP}}$} & 
+% \textbf{${\text{AP}}_{S}$} & 
+% \textbf{${\text{AP}}_{M}$} & 
+% \textbf{${\text{AP}}_{L}$} & 
+% \textbf{${\text{AR}}_{10}$} \\ \midrule
+
+1 round                                                                      & 51.3 & 26.5 & 26.9 & \textbf{7.0} & \textbf{22.3} & 38.4 & \textbf{43.2} \\
+2 rounds                                                                      & \textbf{52.6} & \textbf{28.2} & \textbf{28.1} & 6.7 & 21.2 & \textbf{40.7} & 42.5 \\
+3 rounds                                                                      & 52.0 & 27.0 & 27.7 & 6.2 & 21.8 & 40.1 & 42.1 \\
+\bottomrule
+\end{tabular}%
+}
+\caption{
+\textbf{Ablation study on the number of self-training rounds.} Our framework achieves peak performance (52.6 $\text{AP}_{50}$) at the second round before gradual degradation (-0.6 $\text{AP}_{50}$) from pseudo-label noise accumulation. This establishes round 2 as the optimal stopping point to balance accuracy and error propagation risks.
+}
+\label{tab:round_num}
+\end{table}
+
+
+% \begin{figure}[t]
+%     \centering
+%     \includegraphics[width=1\linewidth]{figures/area_distribution_all_rounds_with_gt.pdf}
+%     \caption{
+%         \textbf{Comparison of the distributions of object areas of the ground truth labels and the pseudo labels at round 2.} Here, \textit{Log Area} denotes the natural logarithm of the normalized area (object area divided by image area). Compared to the ground truth labels, the pseudo labels contain more large objects. \kaixuan{Where should I put the analysis of this figure?}
+%     }
+%     \label{fig:pseudo_labels_and_gt_area}
+% \end{figure}
+
+
+% \paragraph{Self-training round analysis.}
+\mypar{Self-training round analysis.}
+\cref{tab:round_num} tests how many self-training rounds work best. The model hits its peak (52.6 $\text{AP}_{50}$) at round 2, then slowly gets worse. This drop occurs because, as we perform more rounds, mistakes in the pseudo-labels pile up.
+% Based on these results, we recommend stopping after 2 rounds to get the best performance before these errors hurt the model.
+
+\begin{table}[t]
+\resizebox{\columnwidth}{!}{%
+\begin{tabular}{rrrrrrrr}
+\toprule
+
+\multicolumn{1}{c}{}                                 & \multicolumn{7}{c}{\textbf{YouTubeVIS-2019}}   \\  \cline{2-8}
+\multicolumn{1}{c}{\multirow{-2}{*}{\textbf{$\tau_{th}$}}} &
+  \multicolumn{1}{l}{\textbf{${\text{AP}}_{50}$}} &
+  \multicolumn{1}{l}{\textbf{${\text{AP}}_{75}$}} &
+  \multicolumn{1}{l}{\textbf{${\text{AP}}$}} &
+  \multicolumn{1}{l}{\textbf{${\text{AP}}_{S}$}} &
+  \multicolumn{1}{l}{\textbf{${\text{AP}}_{M}$}} &
+  \multicolumn{1}{l}{\textbf{${\text{AP}}_{L}$}} &
+  \multicolumn{1}{l}{\textbf{${\text{AR}}_{10}$}} \\ \midrule
+
+% \textbf{$\tau_{th}$} & 
+% \textbf{${\text{AP}}_{50}$} &
+% \textbf{${\text{AP}}_{75}$} &
+% \textbf{${\text{AP}}$} & 
+% \textbf{${\text{AP}}_{S}$} & 
+% \textbf{${\text{AP}}_{M}$} & 
+% \textbf{${\text{AP}}_{L}$} & 
+% \textbf{${\text{AR}}_{10}$} \\ \midrule
+
+0.95 & 48.7 & 25.3 & 26.1 & 5.9 & 18.8 & 38.5 & 40.7 \\
+0.85 & 48.8 & 24.6 & 26.0 & 5.8 & 18.6 & 38.6 & 41.2 \\
+0.75 & \textbf{52.6} & \textbf{28.2} & \textbf{28.1} & \textbf{6.7} & \textbf{21.2} & \textbf{40.7} & \textbf{42.5} \\
+0.50  & 52.4 & 25.7 & 27.1 & 6.5 & 20.1 & 39.9 & 42.2 \\ \bottomrule
+\end{tabular}%
+}
+\caption{
+\textbf{Ablation study on the quality score threshold $\tau_{th}$.} Optimal performance (52.6 $\text{AP}_{50}$) emerges at $\tau_{th}=0.75$, balancing valid sample retention and noise suppression. Lower threshold ($\tau_{th}=0.50$) degrades results by admitting too many low-quality predictions, while the higher thresholds ($\tau_{th}=0.95$ and $\tau_{th}=0.80$) oversuppress valid samples.
+}
+\label{tab:quality_threshold}
+\end{table}
+
+% \paragraph{Quality score threshold $\tau_{th}$ analysis.}
+\mypar{Quality score threshold $\tau_{th}$ analysis.}
+\cref{tab:quality_threshold} examines the impact of quality score thresholds on pseudo-label selection. We observe a non-monotonic relationship: While lower thresholds ($\tau_{th} \leq 0.75$) generally yield superior performance by retaining more valid samples, excessively lenient selection ($\tau_{th}=0.50$) introduces noisy supervision, degrading results. The optimal balance occurs at $\tau_{th}=0.75$, achieving peak performance.
+
+
+
+% \begin{table}[t]
+% \centering
+% \begin{tabular}{lll}
+% \hline
+% \textbf{Quality Assessment Method} & \textbf{${\rho_{p}}^*$} & \textbf{${\rho_{s}}^\dagger$} \\ \hline
+% Confidence Score $s_l$             & 0.5020                  & 0.4249                        \\
+% Quality Score $Q_l$                & 0.6840                  & 0.5685                        \\ \hline
+% \end{tabular}
+% \caption{
+% \textbf{Correlation coefficient between quality assessment with IoU of pseudo label and ground truth label.} $^\dagger\rho_{p}$: the Pearson correlation coefficient. $^\dagger\rho_{s}$: the Spearman's rank correlation coefficient.
+% }
+% \label{tab:correlation}
+% \end{table}
+
+% ONUR: Remove this table add it as the subtitle, increase the font size in the figure, also maybe you use \ r_{s} for spearman
+
+
+% \begin{figure}[t]
+%     \centering
+%     \begin{subfigure}[b]{0.49\linewidth}
+%         \includegraphics[width=\linewidth]{figures/quality_score_small.pdf}
+%         \caption*{\parbox[c]{\linewidth}{\centering Quality score, $Q_l$ ($\rho_{s}=0.57$)}}
+%     \end{subfigure}
+%     \hfill
+%     \begin{subfigure}[b]{0.49\linewidth}
+%         \includegraphics[width=\linewidth]{figures/confidence_score_small.pdf}
+%         \caption*{\parbox[c]{\linewidth}{\centering Confidence score, $s_l$ ($\rho_{s}=0.42$)}}
+%     \end{subfigure}
+%     % ONUR: 0.0 0.0 coincide, better origins
+%     \caption{
+%     \textbf{Visualized comparison of quality score $Q_l$ and confidence score $s_l$ on YouTubeVIS-2019 \texttt{val} split.} Here, $\rho_{s}$ denotes the Spearman's rank correlation coefficient. Subplot (a) visualizes quality scores $Q_l$ and their ground truth IoU. Subplot (b) visualizes confidence scores $s_l$ and their ground truth IoU. \kaixuan{Maybe we don't need to make it bigger? I want to save space for other content}
+%     %\todo{Make it bigger}
+%     }
+%     \label{fig:distribution}
+% \end{figure}
+
+
+\begin{figure}[t]
+    \centering
+    \begin{subfigure}[b]{0.8\linewidth}
+        \includegraphics[width=\linewidth]{figures/quality_score.pdf}
+        % \caption*{\parbox[c]{\linewidth}{\centering Quality score, $Q_l$ ($\rho_{s}=0.57$)}}
+    \end{subfigure}
+    \par\medskip
+    \begin{subfigure}[b]{0.8\linewidth}
+        \includegraphics[width=\linewidth]{figures/confidence_score.pdf}
+        % \caption*{\parbox[c]{\linewidth}{\centering Confidence score, $s_l$ ($\rho_{s}=0.42$)}}
+    \end{subfigure}
+    % ONUR: 0.0 0.0 coincide, better origins
+    \caption{
+    \textbf{Visualized comparison of quality score $Q_l$ and confidence score $s_l$ on YouTubeVIS-2019 \texttt{val} split.} Here, $\rho_{s}$ denotes the Spearman's rank correlation coefficient. Subplot (a) visualizes quality scores $Q_l$ and their ground truth IoU. Subplot (b) visualizes confidence scores $s_l$ and their ground truth IoU. 
+    %\todo{Make it bigger}
+    }
+    \label{fig:distribution}
+\end{figure}
+
+%\todo{I changed PDF to PNG for fast compilation. Don't forget to change this!}
+
+\mypar{Quality score vs. confidence score.} As shown in \cref{fig:distribution},
+%and \cref{tab:correlation}
+our quality score $Q_s$ has a higher correlation to the IoU of the pseudo label and the ground truth label than the confidence score of VideoMask2Former~\cite{videomask2former}, which proves our quality predictor's effectiveness in pseudo-label quality assessment. This results in a significant improvement in the final VIS model performance (+2.1 $\text{AP}_{50}$) in \cref{tab:component_ablation}.
+
+
+\subsection{Discussion}
+
+% \begin{figure}[t]
+%     \centering
+%     \includegraphics[width=1\linewidth]{figures/area_vs_quality_score.pdf}
+%     \caption{
+%         \textbf{Correlation of the object area and the quality score on YouTubeVIS-2019 \texttt{val} split.} Here, \textit{Log Area} denotes the natural logarithm of the normalized area (object area divided by image area). $\rho_{s}$ denotes Spearman's rank correlation coefficient. As we can see, the quality predictor tends to give lower quality scores to smaller objects. \kaixuan{Where should I put the analysis of this figure?} \todo{change the log? add small, medium, big threshold line}
+%     }
+%     \label{fig:quality_score_and_area}
+% \end{figure}
+
+\begin{figure}[t]
+    \centering
+    \begin{subfigure}[b]{0.8\linewidth}
+        \includegraphics[width=1\linewidth]{figures/qscore_area_category_barplot.pdf}
+    \end{subfigure}
+    \par \medskip
+    \begin{subfigure}[b]{0.8\linewidth}
+        \includegraphics[width=1\linewidth]{figures/IoU_area_category_barplot.pdf}
+    \end{subfigure}
+    
+    \caption{
+        \textbf{Comparison of average ground-truth IoU and quality score across different mask sizes.} The definitions of \textit{Small}, \textit{Medium}, and \textit{Large} follow those in COCO~\cite{coco}. Here, \textit{IoU} refers to the intersection-over-union between the predicted mask and the ground-truth annotation. We compare the average IoU and quality score across these area categories. The results demonstrate a strong alignment between our quality score and the ground-truth IoU, with only a limited overestimation for large objects. This minor bias does not substantially affect the distribution of pseudo labels across training rounds (as shown in~\cref{fig:area_round_comparison}).
+    }
+    \label{fig:area_class_barplot}
+\end{figure}
+
+
+\begin{figure}[t]
+    \centering
+    \includegraphics[width=1.0\linewidth]{figures/area_distribution_all_rounds_kde.pdf}
+    \caption{
+        \textbf{Comparison of object area distributions between pseudo labels across different rounds and ground-truth labels.} Here, \textit{Log Area} refers to the natural logarithm of the normalized area (i.e., object area divided by image area). The definitions of \textit{Small}, \textit{Medium}, and \textit{Large} follow those in COCO~\cite{coco}. \textit{Round 0} denotes pseudo labels produced by the model in the beginning of the self-training. As shown, the object area distributions remain largely stable across different rounds. Nonetheless, relative to the ground truth, our pseudo-label set exhibits a higher proportion of large objects.
+        %\kaixuan{Where should I put the analysis of this figure?} \todo{also show the gt}
+    }
+    \label{fig:area_round_comparison}
+\end{figure}
+
+% \paragraph{Alignment Between Quality Score, IoU, and Area Distributions.}
+\mypar{Alignment Between Quality Score, IoU, and Area Distributions.}
+As shown in~\cref{fig:area_class_barplot,fig:area_round_comparison}, our quality score exhibits a strong alignment with ground-truth IoU across different object sizes, reflecting mask reliability with only a limited overestimation for large instances. This consistency ensures that the confidence assigned to pseudo labels is well aligned with their true segmentation quality. Furthermore, the area distribution analysis across self-training rounds (\cref{fig:area_round_comparison}) indicates that the pseudo-label set remains stable, without substantial drift over iterations. Compared to ground-truth annotations, however, pseudo labels display a bias toward larger objects, which is consistent with the slight overestimation observed in quality scores. Importantly, this bias remains limited and does not hinder the effectiveness of iterative self-training.
+
+\begin{table}[t]
+\resizebox{\columnwidth}{!}{%
+\begin{tabular}{lrrrrrrr}
+\hline
+\multicolumn{1}{c}{\multirow{2}{*}{\textbf{Method}}} & \multicolumn{7}{c}{\textbf{UVO-Dense}}      \\ \cline{2-8} 
+\multicolumn{1}{c}{} & \textbf{${\text{AP}}_{50}$} & \textbf{${\text{AP}}_{75}$} & \textbf{${\text{AP}}$} & \textbf{${\text{AP}}_{S}$} & \textbf{${\text{AP}}_{M}$} & \textbf{${\text{AP}}_{L}$} & \textbf{${\text{AR}}_{10}$} \\ \hline
+CutLER~\cite{cutler}                       & 10.3 & 3.4 & 4.6 & 1.3 & 11.5 & 17.3 & 8.8 \\
+VideoCutLER~\cite{videocutler}                       & 13.5 & 5.1 & 6.2 & 1.7 & 14.8 & 26.5 & 12.3 \\
+AutoQ-VIS                                            & 14.6 & 5.8 & 7.0 & 1.9 & 16.0  & 28.9 & 12.3  \\
+\textit{vs. prev. SOTA}                              & {\color[HTML]{009901} +1.1}    & {\color[HTML]{009901} +0.7} & {\color[HTML]{009901} +0.8} & {\color[HTML]{009901} +0.2} & {\color[HTML]{009901} +1.2} & {\color[HTML]{009901} +2.4} & {\color[HTML]{009901} +0.0} \\ \hline
+\end{tabular}%
+}
+\caption{
+    \textbf{UVO-Dense \texttt{val}.} We reproduced the state-of-the-art VideoCutLER~\cite{videocutler} with the official code and checkpoint. AutoQ-VIS outperforms the previous state-of-the-art VideoCutLER by 1.1 $\text{AP}_{50}$. We evaluate results on UVO-Dense's \texttt{val} split in a class-agnostic manner.
+}
+\label{tab:uvo_dense}
+\end{table}
+
+% \paragraph{Generalizability.}
+\mypar{Generalizability.}
+To further assess the generalizability of our pipeline, we conduct experiments on UVO-Dense~\cite{uvo}. Following the same setup as in YouTubeVIS-2019, we train our model on synthetic videos from VideoCutLER~\cite{videocutler} together with the unlabeled \texttt{train} split of UVO-Dense, and evaluate it on the \texttt{val} split. UVO-Dense comprises 759 videos sourced from Kinetics-400~\cite{kay2017kinetics}, annotated at 30 FPS (503 for training and 256 for validation). Compared to YouTubeVIS-2019, UVO-Dense is considerably more challenging: it contains seven times more instance annotations per video and features crowded scenes with complex background motions. The training procedure remains identical to that used for YouTubeVIS-2019~\cite{ytvis2019}, except that we lower the quality score threshold to 0.3 to accommodate the higher object density in UVO-Dense.
+
+% Table~\ref{tab:uvo_dense}
+\Cref{tab:uvo_dense} compares AutoQ-VIS with prior state-of-the-art methods reported in~\cite{uvo}. AutoQ-VIS achieves a consistent improvement of about 1.1\% in $\text{AP}_{50}$, highlighting the robustness and generalizability of our pipeline.
+
+
+\mypar{Evaluation Scope and Protocol Differences.}
+We do not report results on YouTubeVIS-2021~\cite{ytvis2019}, OVIS~\cite{ovis}, or similar benchmarks because they do not release ground-truth annotations for the \texttt{val} split, and class-agnostic VIS evaluation requires access to these labels. We also clarify why our reproduced VideoCutLER~\cite{videocutler} baseline (48.2 ${\text{AP}}_{50}$) differs from the number in its original paper (50.7 ${\text{AP}}_{50}$): VideoCutLER reports results on the \texttt{train} split, whereas we evaluate on the \texttt{val} split, following same standard VIS evaluation practice.
