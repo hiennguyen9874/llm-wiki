@@ -102,6 +102,8 @@ This page began from one secondary Vietnamese overview. The Over-Encoding, SCONE
 
 [^longcat-flash-lite-card-2026]: Meituan LongCat team, “LongCat-Flash-Lite,” [model card](../raw/LongCat-Flash-Lite.md), Model Introduction and Key Features.
 
+[^longcat-embedding-scaling-2026]: Hong Liu et al. (Meituan LongCat Team), “Scaling Embeddings Outperforms Scaling Experts in Language Models,” [LaTeX source](../raw/2601.21204_ScalingEmbeddingsOutperformsScalingExpertsinLanguageModels/longcat.tex), Abstract and Sections 2–6. Figure attachments were visually inspected.
+
 [^qwen38-next-config]: Qwen Team, “Qwen3.8-Flash-Next checkpoint configuration,” [config](../raw/Qwen3.8-Flash-Next/config.json), Per-Layer Embedding fields.
 
 [^qwen38-next-modeling]: Qwen Team and Hugging Face, “Qwen4-Exp Transformers modeling implementation,” [source](../raw/Qwen3.8-Flash-Next/modeling_qwen4_exp.py), `Qwen4ExpTextNGramEmbedding` and `Qwen4ExpTextPLELayer`.

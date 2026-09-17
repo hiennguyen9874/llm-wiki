@@ -10,6 +10,9 @@ sources:
   - id: instructgpt-summary
     resource: ../raw/InstructGPT.md
     title: "InstructGPT overview (Vietnamese summary)"
+  - id: dpo-summary
+    resource: ../raw/DPO.md
+    title: "DPO overview (Vietnamese summary)"
   - id: grpo-summary
     resource: ../raw/GRPO.md
     title: "GRPO overview (Vietnamese summary)"

@@ -10,9 +10,6 @@ sources:
   - id: flashattention-2022
     resource: ../raw/arXiv-2205.14135v2/streaming_attention_neurips_2022.tex
     title: "FlashAttention: Fast and Memory-Efficient Exact Attention with IO-Awareness"
-  - id: flashattention-summary
-    resource: ../raw/FlashAttention.md
-    title: "FlashAttention overview (Vietnamese summary)"
 ---
 
 # FlashAttention IO-aware exact attention

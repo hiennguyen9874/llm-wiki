@@ -13,6 +13,9 @@ sources:
   - id: flashattention-summary
     resource: ../raw/FlashAttention.md
     title: "FlashAttention overview (Vietnamese summary)"
+  - id: mqa-summary
+    resource: ../raw/MQA.md
+    title: "MQA overview (Vietnamese summary)"
 ---
 
 # Scaled dot-product and multi-head attention

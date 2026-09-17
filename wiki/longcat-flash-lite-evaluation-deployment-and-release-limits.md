@@ -57,3 +57,5 @@ This synthesis is bounded to a vendor card and technical report. No weights, con
 [^longcat-flash-lite-card-2026]: Meituan LongCat team, “LongCat-Flash-Lite,” [model card](../raw/LongCat-Flash-Lite.md), Evaluation Results, Quick Start, Deployment, License Agreement, and Usage Considerations.
 
 [^longcat-flash-lite-sparse-card-2026]: Meituan LongCat team, “LongCat-Flash-Lite-Sparse,” [model card](../raw/LongCat-Flash-Lite-Sparse.md), Evaluation Results.
+
+[^longcat-embedding-scaling-2026]: Hong Liu et al. (Meituan LongCat Team), “Scaling Embeddings Outperforms Scaling Experts in Language Models,” [LaTeX source](../raw/2601.21204_ScalingEmbeddingsOutperformsScalingExpertsinLanguageModels/longcat.tex), Abstract and Sections 2–6. Figure attachments were visually inspected.

@@ -13,9 +13,9 @@ sources:
   - id: flashattention-summary
     resource: ../raw/FlashAttention.md
     title: "FlashAttention overview (Vietnamese summary)"
-  - id: flashattention-2-summary
-    resource: ../raw/FlashAttention-2.md
-    title: "FlashAttention-2 overview (Vietnamese summary)"
+  - id: mqa-summary
+    resource: ../raw/MQA.md
+    title: "MQA overview (Vietnamese summary)"
   - id: flashattention-2-2023
     resource: ../raw/arXiv-2307.08691v1/flash2.tex
     title: "FlashAttention-2: Faster Attention with Better Parallelism and Work Partitioning"

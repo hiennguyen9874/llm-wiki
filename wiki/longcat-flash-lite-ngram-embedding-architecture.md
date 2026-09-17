@@ -46,3 +46,5 @@ The vendor technical report and its figure attachments were inspected, but it re
 [^longcat-flash-lite-card-2026]: Meituan LongCat team, “LongCat-Flash-Lite,” [model card](../raw/LongCat-Flash-Lite.md), Model Introduction and Key Features.
 
 [^longcat-flash-lite-sparse-card-2026]: Meituan LongCat team, “LongCat-Flash-Lite-Sparse,” [model card](../raw/LongCat-Flash-Lite-Sparse.md), Model Introduction.
+
+[^longcat-embedding-scaling-2026]: Hong Liu et al. (Meituan LongCat Team), “Scaling Embeddings Outperforms Scaling Experts in Language Models,” [LaTeX source](../raw/2601.21204_ScalingEmbeddingsOutperformsScalingExpertsinLanguageModels/longcat.tex), Abstract and Sections 2–6. Figure attachments were visually inspected.

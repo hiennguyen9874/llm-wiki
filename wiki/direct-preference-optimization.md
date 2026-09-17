@@ -10,6 +10,9 @@ sources:
   - id: dpo-summary
     resource: ../raw/DPO.md
     title: "DPO overview (Vietnamese summary)"
+  - id: orpo-summary
+    resource: ../raw/ORPO.md
+    title: "ORPO overview (Vietnamese summary)"
 ---
 
 # Direct Preference Optimization

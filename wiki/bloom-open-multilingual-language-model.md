@@ -38,3 +38,5 @@ The overview also describes multilingual and code-generation capabilities as dep
 - **Compared with:** [GPT-3 scaled causal language model](gpt-3-scaled-causal-language-model.md); both are reported GPT-3-scale causal models, while the supplied overview distinguishes BLOOM through intentional multilingual design and conditional weight access.[^bloom-summary]
 
 [^bloom-summary]: “BLOOM overview” (Vietnamese summary), [raw source](../raw/BLOOM.md), Sections 1–3, 6, and 8–10. This is secondary-source evidence linking to the BLOOM paper, model page, and related papers; those primary materials have not been independently ingested here.
+
+[^alibi-summary]: “ALiBi overview” (Vietnamese summary), [raw source](../raw/ALiBi.md), Sections 1–18. This is secondary-source evidence linking to Press, Smith, and Lewis, “Train Short, Test Long: Attention with Linear Biases Enables Input Length Extrapolation” (arXiv:2108.12409) and its implementation repository; those primary materials have not been independently ingested here.

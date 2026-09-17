@@ -7,34 +7,31 @@ status: draft
 created: 2026-08-27
 generated: { by: llm-wiki-agent/1, at: 2026-09-11T04:57:39Z }
 sources:
-  - id: user-sparse-attention-map-2026-08-27
+  - id: user-map
     resource: ../raw/user-supplied-sparse-attention-evolution.md
     title: User-supplied Sparse Attention evolution map
-  - id: moba-2025
+  - id: moba
     resource: ../raw/2502.13189-MoBA/iclr2025_conference.tex
     title: "MoBA: Mixture of Block Attention for Long-Context LLMs"
-  - id: deepseek-v3-2-2025
+  - id: deepseek-dsa
     resource: ../raw/arXiv-2512.02556v1/main.tex
     title: "DeepSeek-V3.2: Pushing the Frontier of Open Large Language Models"
-  - id: qwen38-next-report
+  - id: qwen-qsa
     resource: ../raw/Qwen3.8-Flash-Next-tech_report/qwen3.8-flash-next-tech_report.md
     title: "On the Design of Qwen3.8-Next Architecture: Evaluation, Efficiency, and Training Stability"
-  - id: qwen38-next-modeling
-    resource: ../raw/Qwen3.8-Flash-Next/modeling_qwen4_exp.py
-    title: Qwen3.8-Flash-Next Transformers modeling implementation
   - id: glm53-config
     resource: ../raw/GLM-5.3-Flash/config.json
     title: GLM-5.3-Flash checkpoint configuration
   - id: glm53-modeling
     resource: ../raw/GLM-5.3-Flash/modeling_glm5_next.py
     title: GLM-5.3-Flash Transformers modeling implementation
-  - id: longcat-lsa-2026
+  - id: longcat-lsa
     resource: ../raw/2608.01662_LongCatSparseAttention/longcat.tex
     title: "LongCat Sparse Attention: Taming the Lightning via Streaming-aware Hierarchical Cross-Layer Indexing"
-  - id: deepseek-v4-2026
+  - id: deepseek-v4
     resource: ../raw/arXiv-2606.19348v1/main.tex
     title: "DeepSeek-V4: Towards Highly Efficient Million-Token Context Intelligence"
-  - id: kimi-linear-2025
+  - id: kimi-linear
     resource: ../raw/arXiv-2510.26692v2/main.tex
     title: "Kimi Linear: An Expressive, Efficient Attention Architecture"
 ---
