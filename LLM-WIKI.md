@@ -29,6 +29,17 @@ outputs/                 Disposable or requested query deliverables
   qmd-retrieval/          Rank query candidates with the search cache
 ```
 
+## Wiki states
+
+Classify repository state before retrieval or mutation:
+
+- **Valid empty:** `wiki/index.md` and `wiki/log.md` satisfy their contracts and no concept pages exist.
+- **Populated:** the reserved files are valid and their indexes reach every concept.
+- **Uninitialized:** no concept pages exist and `wiki/` or either reserved file is absent.
+- **Damaged:** any other structurally invalid state, especially existing concepts with a missing, malformed, or incomplete index or log.
+
+An empty candidate set is valid in an initialized wiki. The first successful ingest may atomically create the reserved files, concepts, index entries, and one `Ingest` log entry. A source that is unsafe, unreadable, out of scope, duplicative, or yields no durable knowledge leaves an uninitialized wiki unchanged unless the human explicitly requests an empty scaffold. Repair a damaged wiki through lint before ingestion.
+
 Keep `wiki/` flat initially. Add a group only when it makes `index.md` materially easier to scan; use plain, plural domain names such as `people/`, `concepts/`, or `projects/`. Paths are stable IDs, so prefer moving a page only when its current path is misleading.
 
 ## Ownership
@@ -62,7 +73,10 @@ created: 2026-01-31
 generated: { by: llm-wiki-agent/1, at: 2026-01-31T12:00:00Z }
 sources:
   - id: stable-source-key
-    resource: ../raw/source-file.md
+    resource: ../raw/source-package/README.md
+    scope: ../raw/source-package/
+    kind: code
+    revision: immutable-revision-if-known
     title: Source title
 ---
 ```
@@ -71,18 +85,38 @@ Rules:
 
 - `type` is required. Use a small, domain-shaped vocabulary; default to `Concept`. Preserve unknown types.
 - `title` and `description` are required locally because they make the index sufficient for first-pass retrieval.
-- `status` is `draft`, `stable`, or `deprecated`; an absent value means `stable` under OKF.
+- `status` is `draft`, `stable`, or `deprecated`; an absent value means `stable` under OKF. `draft` has material coverage, provenance, interpretation, or attachment work outstanding. `stable` means intended synthesis coverage is complete and auditable, not that source claims are true or independently verified.
 - `created` never changes. `generated.at` changes only after a meaningful content change.
-- `verified`, `stale_after`, source credibility signals, and attested-computation fields follow OKF v0.2 when applicable. Omit empty metadata.
+- `verified`, `stale_after`, source credibility signals, and attested-computation fields follow OKF v0.2 when applicable. Use `verified` only for an actual verification event, and use `stale_after` for time-sensitive APIs, compatibility, prices, or operational guidance. Omit empty metadata.
 - `source_count`, `last_updated`, and confidence scores are derived or duplicative and aren't stored.
 - Write structured headings, concise prose, lists, and tables. Put the one-paragraph synthesis first.
-- Attribute source-dependent claims with keyed footnotes whose labels match `sources[].id`.
+- Attribute source-dependent claims with keyed footnotes whose labels match `sources[].id`. Put the best available locator in the footnote or adjacent prose: document section, page, equation, figure, or table; immutable revision plus code path and symbol; configuration key; dataset field or query; media region or timestamp; or archived web heading.
 - Link concepts with standard Markdown relative links such as `[Title](concept.md)` or `[Title](../concept.md)` so they work in both Obsidian and ordinary Markdown renderers. Describe the relationship in prose.
 - When relationship semantics aid retrieval, use `## Relationships` bullets labeled with a small open vocabulary such as `Depends on`, `Uses`, `Owned by`, `Caused`, `Fixed by`, `Contradicts`, or `Supersedes`. Add a label only when the source or synthesis supports it.
 - Represent unresolved disagreement under `## Contradictions`; state each claim and its source without silently choosing one.
 - Represent resolved replacement under `## Supersession`. Mark the old concept `deprecated`, link it to the current concept with the effective date and evidence, and link the current concept back with `Supersedes`. Preserve both histories.
 
 Reserved `index.md` and `log.md` files follow their contracts below and aren't concepts.
+
+### Source identity and coverage
+
+`resource` is the canonical resolvable entry point. For a composite source, `scope` is its optional logical package root, `kind` is its optional source class, and `revision` is its immutable version when known. Source identity is the normalized `scope` when present and otherwise the normalized `resource`; a revision distinguishes snapshots where applicable. Every concept compiled from the package cites its canonical entry point. Requests naming a supporting file inside an existing scope reconcile against that package before becoming a new source.
+
+Inventory a logical source's entry point, material includes, imports, attachments, and supporting artifacts. Distinguish inspected material; executed checks; generated, cached, duplicated, vendored, decorative, or irrelevant exclusions; unreadable or unavailable material; and pending review. Persist consequential limits in affected concepts. For a large multipart collection, a `type: SourceMap` concept may hold the package-level ledger when that record is needed for future idempotency; small sources keep coverage with their concepts.
+
+Concepts are knowledge-shaped rather than source-shaped. Split a page when its major parts answer independently retrievable questions, have distinct constraints or relationships, or will be maintained from different future sources. Keep an overview only when it improves navigation.
+
+### Evidence terminology
+
+Use these labels in prose when the distinction is consequential:
+
+- **Reported:** asserted by a source without independent checking.
+- **Observed:** confirmed by static inspection of an artifact.
+- **Reproduced:** confirmed by an executed command, test, or measurement under stated conditions.
+- **Synthesis:** inferred from cited evidence by the agent.
+- **Unverified:** lacking a verification event; this does not mean false.
+
+Independent corroboration may support OKF `verified` metadata when its method and date are recorded.
 
 ## Index contract
 
@@ -119,13 +153,13 @@ Log only completed state changes. Read-only queries need no entry.
 
 ## Retrieval policy
 
-1. Read `wiki/index.md`; follow relevant group indexes and concept descriptions.
-2. Select candidates by title, description, type, tags, and named relationships. Use glob for structural scope and exact text search when the index isn't enough.
+1. Classify the wiki state. For an uninitialized or valid empty wiki, report that no compiled knowledge exists. For a damaged wiki, independently enumerate concept files, disclose the integrity limit, and route repair through lint.
+2. Read `wiki/index.md`; follow relevant group indexes and concept descriptions. Select candidates by title, description, type, tags, named relationships, and source coverage when completeness is part of the question. Use glob for structural scope and exact text search when the index isn't enough.
 3. When exact retrieval produces too many candidates or misses the user's vocabulary, use the optional project-local QMD cache. Use BM25 `search` for lexical ranking and escalate to hybrid `query` only for an observed semantic miss or a clearly semantic, ambiguous, or cross-concept question. Union QMD results with catalog and exact matches; QMD absence, stale state, or low scores never remove explicit candidates or block retrieval.
-4. Read the selected concepts and traverse relationship types that match the question: dependencies for impact, causes and fixes for diagnosis, supersession and contradiction for freshness, and ownership for responsibility.
-5. Check `status`, `stale_after`, `verified`, contradictions, and cited sources. Treat missing verification as unverified, not false.
-6. Answer from the wiki with links to concept pages and distinguish documented facts, synthesis, uncertainty, and missing knowledge.
-7. Consult `raw/` only to verify a disputed citation, fill a provenance gap, or when the user explicitly requests source-level research.
+4. Read the selected concepts and traverse relationship types that match the question: dependencies for impact, causes and fixes for diagnosis, supersession and contradiction for freshness, and ownership for responsibility. Respect recorded source and attachment coverage.
+5. Check `status`, `stale_after`, `verified`, evidence class, contradictions, locators, and cited sources. Treat missing verification as unverified, not false; treat broken or coarse provenance as a retrieval limitation.
+6. Answer with links to concept pages and distinguish documented knowledge, synthesis, uncertainty or dispute, insufficient evidence, and missing knowledge. Absence means "not compiled or not retrieved," not "false."
+7. Consult `raw/` only to verify a disputed citation, fill a provenance gap, or when the user explicitly requests source-level research. Ordinary absence never silently expands into a raw-source search.
 8. File an answer only when it adds reusable synthesis; transient answers stay in chat or `outputs/`.
 
 ## Crystallization
@@ -138,24 +172,29 @@ Screen every input before compilation for credentials, private keys, tokens, PII
 
 ## Idempotency
 
-A source is identified by its normalized `sources[].resource` path because files in `raw/` are immutable. Before ingesting, find every concept already citing that resource. Reconcile the source against those concepts and create a mutation only for missing, changed, or newly connected knowledge. If coverage is complete, report a no-op and leave concept metadata, indexes, and log unchanged. Corrections use a new raw file and therefore a new source identity.
+Identify a source by normalized `sources[].scope` when present and otherwise by normalized `sources[].resource`; include `revision` when it distinguishes snapshots. Before ingesting, find every concept citing the identity, canonical entry point, or a supporting resource within its scope, then reconcile the coverage ledger. Mutate only for missing, changed, or newly connected knowledge. Complete coverage produces a no-op with concept metadata, indexes, and log unchanged. Corrections use a new immutable artifact or revision.
 
 ## Mutation invariants
 
 A wiki-changing operation is complete only when:
 
-- every changed claim has provenance or is explicitly labeled synthesis;
+- the wiki is valid empty or populated, never damaged;
+- every changed material claim has a matching source ID and footnote definition or is visibly labeled synthesis;
+- every declared source supports body content, and local `resource` and `scope` paths resolve;
+- material provenance uses a practical locator where available and consequential coverage limits are visible;
+- evidence labels and concept status reflect how the knowledge was established and how complete the synthesis is;
 - every affected concept, contradiction, typed relationship, and supersession edge is updated;
 - deprecated concepts identify their current replacement when one exists;
 - sensitive values are absent from wiki pages, outputs, and log entries;
 - links resolve where targets exist, and bidirectional context is added when useful rather than mechanically;
 - each changed concept's metadata and nearest index entry agree;
-- `wiki/index.md` still reaches every concept, including deprecated history, through indexes;
-- exactly one operation entry records the completed mutation in `wiki/log.md`.
+- `wiki/index.md` reaches every concept exactly once through indexes;
+- exactly one operation entry records the completed mutation in `wiki/log.md`;
+- structural and semantic validation pass. Repair or revert an incomplete mutation before reporting success.
 
 ## Structural check
 
-Run `python3 tools/wiki_check.py` after wiki mutations and during lint when command execution is available. It enumerates concepts independently of the indexes and checks required metadata, lifecycle values, index coverage, duplicate index entries, and local Markdown link targets. Semantic provenance and contradiction checks remain agent work.
+Run `python3 tools/wiki_check.py` after wiki mutations and during lint when command execution is available. Structural validation requires both reserved files, root `okf_version: "0.2"`, parseable required metadata, valid lifecycle values, complete and unique index coverage, resolvable local Markdown links and source paths/scopes, and agreement among `sources[].id`, body citations, and footnote definitions. Until the checker implements every requirement, verify the remaining joins and root-state rules directly. Semantic evidence classes, source coverage, concept cohesion, maturity, contradiction, and privacy checks remain agent work.
 
 ## Scale trigger
 
