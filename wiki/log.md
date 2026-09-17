@@ -1,6 +1,7 @@
 # Wiki Update Log
 
 ## 2026-09-17
+- **Query**: Answered “SOTA S/M realtime”; filed [Realtime S-M detector selection](realtime-s-m-detector-selection.md) as durable S/M decision synthesis.
 - **Ingest**: Compiled [Temporal-aware Query Routing for Real-time Video Instance Segmentation](../raw/Cheng_Temporal-aware_Query_Routing_for_Real-time_Video_Instance_Segmentation_ICCV_2025_paper/Cheng_Temporal-aware_Query_Routing_for_Real-time_Video_Instance_Segmentation_ICCV_2025_paper.md); updated [Efficient video, edge, and small-object detection](efficient-video-edge-small-object-detection.md).
 - **Ingest**: Compiled [D-FINE-SEG: OBJECT DETECTION AND INSTANCE SEGMENTATIONFRAMEWORK WITH MULTI-BACKEND DEPLOYMENT](../raw/2602.23043v1/2602.23043v1.md) (revision v1); updated [Efficient video, edge, and small-object detection](efficient-video-edge-small-object-detection.md).
 - **Ingest**: Compiled [Boosting Unsupervised Video Instance Segmentation with Automatic Quality-Guided Self-Training](../raw/arXiv-2512.06864v1/main.tex) (revision v1); updated [Efficient video, edge, and small-object detection](efficient-video-edge-small-object-detection.md).
