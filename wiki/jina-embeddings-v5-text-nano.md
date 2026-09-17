@@ -12,10 +12,10 @@ sources:
     title: jina-embeddings-v5-text-nano model card
   - id: jina-v5-text-report
     resource: ../raw/2602.15547_jina-embeddings-v5-text/paper.tex
-    title: Jina Embeddings v5 Text: Task-Targeted Embedding Distillation
+    title: "Jina Embeddings v5 Text: Task-Targeted Embedding Distillation"
   - id: jina-v5-omni-report
     resource: ../raw/2605.08384_jina-embeddings-v5-omni/main.tex
-    title: jina-embeddings-v5-omni: Geometry-preserving Embeddings via Locked Aligned Towers
+    title: "jina-embeddings-v5-omni: Geometry-preserving Embeddings via Locked Aligned Towers"
   - id: mteb-multilingual-v2-summary
     resource: ../raw/MTEB_Multilingual_v2_summary.csv
     title: MTEB Multilingual v2 summary CSV

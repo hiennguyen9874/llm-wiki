@@ -12,7 +12,7 @@ sources:
     title: MMEB v3 ranking CSV
   - id: jina-v5-omni-report
     resource: ../raw/2605.08384_jina-embeddings-v5-omni/main.tex
-    title: jina-embeddings-v5-omni: Geometry-preserving Embeddings via Locked Aligned Towers
+    title: "jina-embeddings-v5-omni: Geometry-preserving Embeddings via Locked Aligned Towers"
 ---
 
 # Multimodal embedding model comparison

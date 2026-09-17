@@ -1,5 +1,8 @@
 # Wiki Update Log
 
+## 2026-09-17
+- **Lint**: Repaired 6 YAML title-quoting defects and 5 index defects (4 descriptions + sorting) across 65 concepts; report saved to [wiki-lint-2026-09-17](../outputs/wiki-lint-2026-09-17.md).
+
 ## 2026-09-03
 - **Ingest**: Compiled [WeMM-Embedding README](../raw/WeMM-Embedding/README.md), three model cards, and technical report [main.tex](../raw/WeMM-Embedding/2608.24053-WeMM-Embedding/main.tex); created [WeMM-Embedding](wemm-embedding.md).
 

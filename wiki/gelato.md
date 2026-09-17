@@ -9,7 +9,7 @@ generated: { by: llm-wiki-agent/1, at: 2026-08-19T21:18:01+07:00 }
 sources:
   - id: jina-v5-omni-report
     resource: ../raw/2605.08384_jina-embeddings-v5-omni/main.tex
-    title: jina-embeddings-v5-omni: Geometry-preserving Embeddings via Locked Aligned Towers
+    title: "jina-embeddings-v5-omni: Geometry-preserving Embeddings via Locked Aligned Towers"
 ---
 
 # GELATO
