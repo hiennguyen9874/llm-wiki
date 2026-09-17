@@ -5,7 +5,7 @@ description: Which instance segmentation model to choose for fast closed-set, op
 tags: [segmentation, realtime, decision, video, open-vocabulary]
 status: draft
 created: 2026-09-17
-generated: { by: llm-wiki-agent/1, at: 2026-09-17T16:55:00Z }
+generated: { by: llm-wiki-agent/1, at: 2026-09-17T18:30:00Z }
 sources:
   - id: rfdetr-2511-09554-v2
     resource: ../raw/arXiv-2511.09554v2/iclr2026_conference.tex
@@ -19,6 +19,11 @@ sources:
     kind: paper
     revision: v5
     title: 'YOLO26: Key Architectural Enhancements and Performance Benchmarking for Real-Time Object Detection'
+  - id: ultralytics-yolo26-doc-9f4ac453
+    resource: ../raw/yolo26.md
+    kind: documentation
+    revision: 'sha256:9f4ac4536d6123446238912e6d4a30240b4f67f29e5cd0e78ec1e7a64ac0f4eb'
+    title: Ultralytics YOLO26
   - id: yoloe-2503-07465-v2
     resource: ../raw/arXiv-2503.07465v2/camera_ready.tex
     scope: ../raw/arXiv-2503.07465v2/
@@ -73,7 +78,9 @@ Synthesis: "SOTA instance segmentation" is now three separate questions — clos
 
 - **Reported:** RF-DETR-Seg adds a lightweight mask branch that bilinearly upsamples the same low-resolution encoder map used for detection, projects it to pixel embeddings, and dots per-decoder-layer query embeddings against it, omitting multi-scale backbone features to save latency[^rfdetr-2511-09554-v2-1].
 - **Reported:** COCO `val2017` (T4 TensorRT) mask AP / latency: Seg-N `40.3` / `3.4` ms, Seg-S `43.1` / `4.4` ms, Seg-M `45.3` / `5.9` ms, Seg-L `47.1` / `8.8` ms, Seg-XL `48.8` / `13.5` ms, Seg-2XL `49.9` / `21.8` ms, Seg-Max `50.5` / `95.6` ms[^rfdetr-2511-09554-v2-2].
-- **Reported:** YOLO26 segmentation e2e box/mask AP at 640 px ranges from N-seg `39.6`/`33.9` (53.3 ms CPU ONNX / 2.1 ms T4) to X-seg `56.5`/`47.0` (787.0 ms / 16.4 ms), with ONNX, TensorRT, CoreML, TFLite, and OpenVINO export and stable FP16/INT8 behavior[^yolo26-2509-25164-v5-4].
+- **Reported:** YOLO26 segmentation e2e box/mask AP at 640 px ranges from N-seg `39.6`/`33.9` (53.3 ms CPU ONNX / 2.1 ms T4) to X-seg `56.5`/`47.0` (787.0 ms / 16.4 ms), with ONNX, TensorRT, CoreML, TFLite, and OpenVINO export and stable FP16/INT8 behavior[^yolo26-2509-25164-v5-4]; the current documentation page lists the same export set as LiteRT rather than TFLite[^ultralytics-yolo26-doc-9f4ac453-1].
+- **Reported:** the YOLO26 instance-segmentation head adds a semantic segmentation loss to improve convergence and an upgraded proto module that aggregates multi-scale information for mask quality, reported at up to +2.5 box AP and +3.7 mask AP over YOLO11 on COCO instance segmentation[^ultralytics-yolo26-doc-9f4ac453-1].
+- **Synthesis:** the Ultralytics documentation page and the v5 architecture/benchmark paper report identical YOLO26l/x-seg box and mask AP (l `54.4`/`45.5`, x `56.5`/`47.0`) and the same N/S/M values as table B, so those numbers are cross-reported by two Ultralytics artifacts; both remain vendor-internal and neither is an independent benchmark[^ultralytics-yolo26-doc-9f4ac453-1][^yolo26-2509-25164-v5-4].
 - **Synthesis:** the caveat matters more than the ranking. RF-DETR Seg-N beats older YOLOv8/11 sizes and FastInst-R50 on the reported table, and the Roboflow same-protocol comparison places RF-DETR Seg-2XL `49.9`/`21.8` ms against YOLO26-X-Seg `46.8`/`12.92` ms; that is one vendor's internal protocol, not an independent leaderboard[^reseach-2026-09-17-7].
 - **Synthesis:** prefer RF-DETR-Seg when accuracy per millisecond dominates and a NAS/fine-tuning workflow is acceptable; prefer YOLO26-Seg when export simplicity and low CPU/ONNX latency dominate.
 
@@ -118,13 +125,14 @@ Synthesis: "SOTA instance segmentation" is now three separate questions — clos
 - **Other YOLO `-seg` variants:** YOLOv5 (limited), YOLOv6, YOLOv7, and YOLOv9 support instance segmentation per the YOLO26 overview but have no compiled COCO mask numbers; only YOLOv8-seg, YOLOv11-seg, and YOLO26-seg do[^reseach-2026-09-17-7].
 - **Open-vocabulary / promptable:** YOLO-World-Seg, YOLOE-seg, SAM, SAM 2/2.1, and SAM 3 — see [Open-vocabulary promptable perception](open-vocabulary-promptable-perception.md).
 - **Video instance segmentation:** SAM 2.1, SAM 3, CAVIS, TAR, MinVIS, DVIS++, GenVIS, and AutoQ-VIS — see [Efficient video, edge, and small-object detection](efficient-video-edge-small-object-detection.md).
-- **Semantic or panoptic only (not instance):** DINOv3/`dino.txt` open-vocabulary semantic segmentation, UPerNet, MambaVision ADE20K, and YOLO26's semantic/depth claims — see [Vision foundation models for detection](vision-foundation-models-for-detection.md).
+- **Semantic or panoptic only (not instance):** DINOv3/`dino.txt` open-vocabulary semantic segmentation, UPerNet, MambaVision ADE20K, and YOLO26's semantic/depth claims — the docs ship `yolo26*-sem` as a separate five-scale task family (Cityscapes mIoU, not instance masks), distinct from `yolo26*-seg`[^ultralytics-yolo26-doc-9f4ac453-2] — see [Vision foundation models for detection](vision-foundation-models-for-detection.md).
 - **Specialist fine-tuning path with a non-COCO benchmark:** D-FINE-SEG, measured on TACO rather than COCO `val2017`[^dfine-seg-2602-23043-v1-1].
 
 ## Open-vocabulary and promptable segmentation
 
 - **Reported:** YOLOE unifies text-prompt, visual-prompt, and prompt-free detection plus segmentation in one YOLO-based real-time model; the segmentation head is YOLACT-style (prototypes plus mask coefficients), and text embeddings are re-parameterized into the last convolution so inference matches native YOLO with zero text-encoder overhead[^yoloe-2503-07465-v2-1].
 - **Reported:** LVIS-val zero-shot segmentation AP^m (text/visual): YOLOE-v8-S `17.7`/`16.8`, M `20.8`/`20.3`, L `23.5`/`22.0`, above LVIS-Base fine-tuned YOLO-Worldv2-M/L by 3.0/3.7 AP^m at M/L[^yoloe-2503-07465-v2-2].
+- **Reported:** the YOLO26 generation ships YOLOE-26, an open-vocabulary detection-plus-segmentation variant that keeps the optional NMS-free end-to-end head so text-, visual-, and prompt-free segmentation stays real-time; YOLOE-26x reports LVIS-minival `40.6`/`38.5`/`31.1` AP for text/visual/prompt-free prompting, which its end-to-end head trails by `1.1`/`2.3`/`1.2` AP[^ultralytics-yolo26-doc-9f4ac453-3]. Per-scale tables and prompt-free variants are compiled in [Open-vocabulary promptable perception](open-vocabulary-promptable-perception.md).
 - **Reported:** SAM 3 Promptable Concept Segmentation takes a noun phrase, image exemplars, or both and returns instance plus semantic masks for every matching instance with identities across video; zero-shot image results include LVIS mask AP `48.5` (versus `38.5` DINO-X) and COCO box AP `56.4`[^sam3-2511-16719-v2-3].
 - **Reported:** SAM 3 is ~850M params (~450M vision, ~300M text, ~100M detector/tracker) with H200 latency of 30 ms per image at 100+ objects; video cost scales with object count unless Object Multiplex buckets memory[^sam3-2511-16719-v2-4].
 - **Synthesis:** "fast open-vocabulary segmentation" and "best open-vocabulary segmentation" are currently different models: YOLOE-Seg is the deployable real-time point, SAM 3 is the quality ceiling at foundation-model cost.
@@ -160,6 +168,7 @@ Synthesis: "SOTA instance segmentation" is now three separate questions — clos
 - The selection is compiled from [Efficient video, edge, and small-object detection](efficient-video-edge-small-object-detection.md), [Open-vocabulary promptable perception](open-vocabulary-promptable-perception.md), [Vision foundation models for detection](vision-foundation-models-for-detection.md), and their primary raw sources; no new raw inspection was performed for this synthesis[^rfdetr-2511-09554-v2-1].
 - Source claims cover to 17/09/2026; newer preprints may change the closed-set and video recommendations, and absolute completeness is infeasible[^reseach-2026-09-17-7].
 - Preference statements are **synthesis** from the cited reported numbers and their stated protocols, not independently verified measurements.
+- **Observed** by static inspection: `raw/yolo26.md` (SHA-256 `9f4ac453…`) was fully read for its segmentation-relevant sections. No model, weight, or example was downloaded or executed; the linked paper `arXiv:2606.03748`, task guides, images, and video were not fetched, so its metrics remain vendor-reported[^ultralytics-yolo26-doc-9f4ac453-1].
 
 [^rfdetr-2511-09554-v2-1]: `raw/arXiv-2511.09554v2/iclr2026_conference.tex`, Sec. Real-Time Instance Segmentation plus Fig. `fig:arch` — shared upsampled map, pixel-embedding projector, per-layer query dot product, no multi-scale backbone features, SAM2 pseudo-label O365 pretraining.
 [^rfdetr-2511-09554-v2-2]: `raw/arXiv-2511.09554v2/iclr2026_conference.tex`, Tab. `tab:coco_seg` plus `supplement.tex` Tab. `tab:coco_seg_scale` — Seg-N `40.3`/`33.6M`/`50.0` GFLOPs/`3.4` ms through Seg-Max `50.5`/`95.6` ms.
@@ -171,4 +180,7 @@ Synthesis: "SOTA instance segmentation" is now three separate questions — clos
 [^sam2-2408-00714-v2-5]: `raw/arXiv-2408.00714v2/sam2.1_arxiv.tex`, Sec. Comparison to state-of-the-art in semi-supervised VOS plus `tab/tab-mask2masklet-results-oss.tex` — Hiera-B+/L MOSE/DAVIS17 J&F at 43.8/30.2 FPS A100 batch-1.
 [^tar-iccv2025-cheng-6]: `raw/Cheng_Temporal-aware_Query_Routing_for_Real-time_Video_Instance_Segmentation_ICCV_2025_paper/Cheng_Temporal-aware_Query_Routing_for_Real-time_Video_Instance_Segmentation_ICCV_2025_paper.md`, Secs. 1/4.1-4.3 Tabs. 1 and 3 — MinVIS 45%/52%/3% time split, TAR FPS/AP deltas, FlashAttention-2 plus op-fusion additive gains.
 [^dfine-seg-2602-23043-v1-1]: `raw/2602.23043v1/2602.23043v1.md`, Secs. 3-6 Tabs. 1-5 — PAN-only mask head, ROI-cropped losses and full-map matcher cost, TACO protocol, and the ~65% segmentation-F1 / ~10% latency summary against YOLO26-seg.
+[^ultralytics-yolo26-doc-9f4ac453-1]: `raw/yolo26.md`, sections “Key Features” / Instance Segmentation Enhancements, “Performance Metrics” / Segmentation (COCO), and “FAQ” — semantic segmentation loss plus upgraded multi-scale proto module, the up to +2.5 box AP / +3.7 mask AP over YOLO11 claim, the n–x-seg box/mask e2e table, and the TensorRT/ONNX/CoreML/LiteRT/OpenVINO export list.
+[^ultralytics-yolo26-doc-9f4ac453-2]: `raw/yolo26.md`, sections “Supported Tasks and Modes” and “Performance Metrics” / Semantic Segmentation (Cityscapes) — `yolo26*-seg` and `yolo26*-sem` listed as separate five-scale tasks with train/val/infer/export support.
+[^ultralytics-yolo26-doc-9f4ac453-3]: `raw/yolo26.md`, section “YOLOE-26: Open-Vocabulary Detection and Segmentation” — open-vocabulary detection plus segmentation via text/visual/prompt-free modes, optional e2e head, LVIS-minival 40.6/38.5/31.1 AP non-e2e and 1.1/2.3/1.2 AP e2e deltas.
 [^reseach-2026-09-17-7]: `raw/reseach.md`, section “7. Instance segmentation không còn là một nhánh riêng” — Roboflow-protocol Seg-N `40.3`/`3.4` ms and Seg-2XL `49.9`/`21.8` ms versus YOLO26-X-Seg `46.8`/`12.92` ms, with the non-independent-benchmark caveat and weekly-preprint incompleteness.

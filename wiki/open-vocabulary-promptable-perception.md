@@ -5,7 +5,7 @@ description: How text prompts, visual exemplars, and concept prompts are replaci
 tags: [detection, segmentation, open-vocabulary, prompting, sam]
 status: draft
 created: 2026-09-17
-generated: { by: llm-wiki-agent/1, at: 2026-09-17T15:30:00Z }
+generated: { by: llm-wiki-agent/1, at: 2026-09-17T05:38:44Z }
 sources:
   - id: rfdetr-2511-09554-v2
     resource: ../raw/arXiv-2511.09554v2/iclr2026_conference.tex
@@ -42,11 +42,16 @@ sources:
     revision: v2
     title: 'SAM 2: Segment Anything in Images and Videos'
   - id: yoloe-2503-07465-v2
-    resource: ../raw/arXiv-2503-07465v2/camera_ready.tex
-    scope: ../raw/arXiv-2503-07465v2/
+    resource: ../raw/arXiv-2503.07465v2/camera_ready.tex
+    scope: ../raw/arXiv-2503.07465v2/
     kind: paper
     revision: v2
     title: 'YOLOE: Real-Time Seeing Anything'
+  - id: ultralytics-yolo26-doc-9f4ac453
+    resource: ../raw/yolo26.md
+    kind: documentation
+    revision: 'sha256:9f4ac4536d6123446238912e6d4a30240b4f67f29e5cd0e78ec1e7a64ac0f4eb'
+    title: Ultralytics YOLO26
   - id: sam3-2511-16719-v2
     resource: ../raw/arXiv-2511.16719v2/main.tex
     scope: ../raw/arXiv-2511.16719v2/
@@ -98,6 +103,7 @@ Synthesis: fixed `class_id ∈ {0,...,79}` formulation is shifting toward `conce
 - **Reported:** LVIS-minival Fixed AP zero-shot text/visual: YOLOE-v8-S 27.9/26.2, M 32.6/31.0, L 35.9/34.2 versus YOLO-Worldv2-S/M/L 24.4/32.4/35.5, with T4 TensorRT FPS 305.8/156.7/102.5 versus 216.4/117.9/80.0 and iPhone-12 CoreML gains around 1.2–1.3×; rare-category gains are +5.2 AP_r at S and +7.6 AP_r at L. YOLO11 variants show the same pattern (e.g. 11-L 35.2 text at 130.5 T4 FPS). Visual YOLOE-v8-L beats T-Rex2 by 3.3 AP_r and 0.9 AP_c with about half the training images (1.4M vs 3.1M)[^yoloe-2503-07465-v2-5].
 - **Reported:** LVIS-val zero-shot segmentation AP^m text/visual: v8-S 17.7/16.8, M 20.8/20.3, L 23.5/22.0, above LVIS-Base fine-tuned YOLO-Worldv2-M/L (17.8/19.8) by 3.0/3.7 AP^m at M/L[^yoloe-2503-07465-v2-5].
 - **Reported:** Prompt-free LVIS-minival Fixed AP: v8-L 27.2 AP and 23.5 AP_r versus GenerateU Swin-T 26.8/20.0 and Swin-L 27.9/22.3, with 47M versus 297M/467M params and 25.3 versus 0.48/0.40 PyTorch T4 FPS; LRPC preserves AP while cutting retrieval work (about 80% fewer of 8,400 anchors at `δ=0.001`), giving 1.7×/1.3× speedups for v8-S/L[^yoloe-2503-07465-v2-6].
+- **Reported:** the later YOLOE-26 variant retains YOLO26's optional one-to-one NMS-free head. Ultralytics documentation reports YOLOE-26x LVIS-minival AP of 40.6 with text prompts, 38.5 with visual prompts, and 31.1 prompt-free for the non-e2e path; its e2e path trails those modes by 1.1, 2.3, and 1.2 AP respectively[^ultralytics-yolo26-doc-9f4ac453-3].
 - **Reported:** COCO transfer: 10-epoch linear probing reaches 35.6/42.2/45.4 box AP and 30.3/35.5/38.3 mask AP for v8-S/M/L; full tuning (160 epochs S, 80 epochs M/L) reaches 45.0/50.4/53.0 box AP and 36.7/40.9/42.7 mask AP, above from-scratch YOLOv8-S/M/L (44.7/50.0/52.4 box, 36.6/40.5/42.3 mask) with about 3–4× fewer epochs[^yoloe-2503-07465-v2-6].
 - **Reported:** Ablation roadmap (v8-L, standard LVIS-minival AP): YOLO-Worldv2-L 33.0 at 100 epochs → 31.0 at 30 epochs → 31.9 with global negative dictionary → 30.0 without cross-modal fusion but 1.28×/1.23× T4/iPhone speedups → 31.5 with MobileCLIP → 33.5 with RepRTA → 33.3 plus segmentation head (YOLOE), with a noted multi-task AP_f cost. SAVPE beats mask-pooling 31.9 vs 30.4 AP (`A=16` balances `A=1/32`); LRPC threshold trades accuracy for speed (e.g. v8-S `δ=0.01` gives 20.8 AP at 106 FPS vs 21.0 AP at 95.8 FPS for `δ=0.001`)[^yoloe-2503-07465-v2-7].
 - **Synthesis:** the durable reuse pattern is **cached embeddings plus re-parameterization for text, low-dimensional decoupled activation for visual cues, and objectness-first lazy retrieval for prompt-free**, rather than cross-modal fusion, heavy visual encoders, or generative LLMs.
@@ -153,6 +159,7 @@ Synthesis: fixed `class_id ∈ {0,...,79}` formulation is shifting toward `conce
 ## Coverage limits
 
 - All capability, AP, and FPS figures are **reported**, not reproduced; CVF, arXiv, Meta, and GitHub sources behind them were not fetched.
+- **Observed** by static inspection: `raw/yolo26.md` (SHA-256 `9f4ac453…`) was fully read for its YOLOE-26 summary. The linked YOLOE page, official `arXiv:2606.03748` paper, weights, and code were not fetched, so these later-variant metrics remain vendor-reported.
 - **Observed** by static inspection: `raw/arXiv-2511.09554v2/iclr2026_conference.tex` Tab. `tab:rf100-vl` plus `supplement.tex` Tab. `tab:rf100-vl-class-names` fully read for specialist-versus-VLM and class-name ablation claims; figures used only via captions/body text. No code was executed.
 - `raw/arXiv-2401.17270v3/main.tex` (revision v3) plus `preamble.tex` were statically inspected; `cvpr.sty` and `ieeenat_fullname.bst` were excluded as vendored templates, `main.bib`/`main.bbl` were used only for identity context, and `figures/*.pdf` were not visually inspected beyond what captions and body text reproduce.
 - `raw/arXiv-2403.14610v1/main.tex` (revision v1) plus `sec/0_abstract.tex`, `sec/1_intro.tex`, `sec/2_related_work.tex`, `sec/3_method.tex`, `sec/4_experiments.tex`, `sec/X_suppl.tex`, and `preamble.tex` were statically inspected; `cvpr.sty`, `llncs.cls`, `splncs04.bst`, `ieeenat_fullname.bst`, `llncsdoc.pdf`, `lncs_readme.txt`, `lncs_history.txt`, and `LICENSE` were excluded as vendored templates or license boilerplate, `main.bib`/`main.bbl` were used only for identity context, `images/*.pdf` were not visually inspected beyond captions and body-text reproduction, and `eijkel2.eps/.pdf` were excluded as template decoration. No code was executed.
@@ -197,13 +204,14 @@ Synthesis: fixed `class_id ∈ {0,...,79}` formulation is shifting toward `conce
 [^sam2-2408-00714-v2-1]: `raw/arXiv-2408.00714v2/sam2.1_arxiv.tex`, Sec. Task: promptable visual segmentation plus Appendix Sec. Details on the PVS Task; Fig. `figs/pvs_vs_vos_boldtext.pdf` via caption and body text.
 [^sam2-2408-00714-v2-2]: `raw/arXiv-2408.00714v2/sam2.1_arxiv.tex`, Sec. Model, prompt-encoder-and-mask-decoder paragraph plus Appendix Sec. Architecture, prompt-encoder-and-mask-decoder and Fig. `figs/model_diagram_zoomin_v3.pdf` via caption and body text.
 [^sam2-2408-00714-v2-3]: `raw/arXiv-2408.00714v2/sam2.1_arxiv.tex`, Sec. Image segmentation Tab. `tab:sam_zs_comparison` plus Appendix Sec. Speed benchmarking (A100, torch.compile, bfloat16).
+[^ultralytics-yolo26-doc-9f4ac453-3]: `raw/yolo26.md`, section “YOLOE-26: Open-Vocabulary Detection and Segmentation” — YOLOE-26 prompt modes, optional e2e head, LVIS-minival non-e2e AP and e2e deltas.
 [^yoloe-2503-07465-v2-1]: `raw/arXiv-2503.07465v2/camera_ready.tex`, title/authors/abstract and Sec. Introduction, RepRTA/SAVPE/LRPC contributions and Fig. Comparison.
 [^yoloe-2503-07465-v2-2]: `raw/arXiv-2503.07465v2/camera_ready.tex`, Sec. Methodology Model Architecture Eq. 1 and Sec. Re-parameterizable Region-Text Alignment Eqs. 2–3 plus Fig. RepRTA structure.
 [^yoloe-2503-07465-v2-3]: `raw/arXiv-2503.07465v2/camera_ready.tex`, Sec. Semantic-Activated Visual Prompt Encoder Eq. 4 plus Fig. SAVPE structure and Sec. Lazy Region-Prompt Contrast Eq. 5.
 [^yoloe-2503-07465-v2-4]: `raw/arXiv-2503.07465v2/camera_ready.tex`, Sec. Experiments Implementation Details and Sec. Training Objective plus Appendix More Implementation Details Tab. Data details and training hyperparameters.
 [^yoloe-2503-07465-v2-5]: `raw/arXiv-2503.07465v2/camera_ready.tex`, Sec. Text and Visual Prompt Evaluation Tabs. Zero-shot detection and Segmentation evaluation on LVIS.
 [^yoloe-2503-07465-v2-6]: `raw/arXiv-2503.07465v2/camera_ready.tex`, Sec. Prompt-free Evaluation Tab. Prompt-free evaluation on LVIS and Sec. Downstream Transferring Tab. Downstream transfer on COCO.
-[^yoloe-2503-07465-v2-7]: `raw/arXiv-2503-07465v2/camera_ready.tex`, Sec. Ablation Study Tabs. Roadmap to YOLOE, Effectiveness of SAVPE, and Effectiveness of LRPC plus Appendix More Analyses for LRPC Fig. Retained anchor points.
+[^yoloe-2503-07465-v2-7]: `raw/arXiv-2503.07465v2/camera_ready.tex`, Sec. Ablation Study Tabs. Roadmap to YOLOE, Effectiveness of SAVPE, and Effectiveness of LRPC plus Appendix More Analyses for LRPC Fig. Retained anchor points.
 [^sam3-2511-16719-v2-1]: `raw/arXiv-2511.16719v2/main.tex`, Sec. Promptable Concept Segmentation (PCS) plus Fig. Task — NP plus positive/negative exemplar prompts, all-instances plus identities, <=30 s video, 3-expert oracle ambiguity handling.
 [^sam3-2511-16719-v2-2]: `raw/arXiv-2511.16719v2/main.tex`, Sec. Model Detector Architecture plus Presence Token plus Image Exemplars, Fig. ModelMain; Appendix Model Details Image/Text Encoders, Fusion Encoder, Decoder, Presence Head, Segmentation Head.
 [^sam3-2511-16719-v2-3]: `raw/arXiv-2511.16719v2/main.tex`, Sec. Model Tracker and Video Architecture plus Training Stages; Appendix Model Details plus Sec. Limitations for linear video cost and parallelization; Introduction for 30 ms H200 latency.

@@ -1,6 +1,8 @@
 # Wiki Update Log
 
 ## 2026-09-17
+- **Update**: Extended [Realtime instance segmentation model selection](realtime-instance-segmentation-selection.md) with [Ultralytics YOLO26](../raw/yolo26.md) segmentation coverage (segmentation-head design and reported over-YOLO11 gains, cross-artifact corroboration of the n–x-seg table, YOLOE-26 open-vocabulary segmentation, semantic-task exclusion, and LiteRT export naming).
+- **Ingest**: Compiled [Ultralytics YOLO26](../raw/yolo26.md); updated [Real-time end-to-end detection without NMS](real-time-end-to-end-detection.md), [Efficient video, edge, and small-object detection](efficient-video-edge-small-object-detection.md), and [Open-vocabulary promptable perception](open-vocabulary-promptable-perception.md) with dual-head defaults, expanded task/variant coverage, YOLOE-26 evidence, and a corrected YOLOE source path.
 - **Update**: Documented the segmentation-capable models excluded from the ≤ M closed-set tables (larger closed-set, classic, other YOLO `-seg`, open-vocabulary, video, semantic-only) in [Realtime instance segmentation model selection](realtime-instance-segmentation-selection.md).
 - **Update**: Added closed-set COCO ≤ M instance-segmentation tables (RF-DETR protocol and YOLO26 protocol) to [Realtime instance segmentation model selection](realtime-instance-segmentation-selection.md) with explicit protocol-separation caveats.
 - **Query**: Answered “mô hình instance segmentation nào SOTA mà vẫn đủ nhanh”; filed [Realtime instance segmentation model selection](realtime-instance-segmentation-selection.md) as durable cross-concept decision synthesis.

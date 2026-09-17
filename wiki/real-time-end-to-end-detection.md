@@ -5,7 +5,7 @@ description: How 2024–2026 real-time detectors converged on NMS-free end-to-en
 tags: [detection, detr, yolo, nms-free, label-assignment]
 status: draft
 created: 2026-09-17
-generated: { by: llm-wiki-agent/1, at: 2026-09-17T04:56:58Z }
+generated: { by: llm-wiki-agent/1, at: 2026-09-17T05:38:44Z }
 sources:
   - id: rfdetr-2511-09554-v2
     resource: ../raw/arXiv-2511.09554v2/iclr2026_conference.tex
@@ -77,6 +77,11 @@ sources:
     kind: paper
     revision: v5
     title: 'YOLO26: Key Architectural Enhancements and Performance Benchmarking for Real-Time Object Detection'
+  - id: ultralytics-yolo26-doc-9f4ac453
+    resource: ../raw/yolo26.md
+    kind: documentation
+    revision: 'sha256:9f4ac4536d6123446238912e6d4a30240b4f67f29e5cd0e78ec1e7a64ac0f4eb'
+    title: Ultralytics YOLO26
 ---
 
 Synthesis: real-time detection is converging from `YOLO = dense + NMS` versus `DETR = sparse queries + bipartite matching` toward NMS-free end-to-end inference, with dense supervision used only during training and refined localization modeling[^reseach-2026-09-17-1].
@@ -85,7 +90,7 @@ Synthesis: real-time detection is converging from `YOLO = dense + NMS` versus `D
 
 - **Reported:** RT-DETRv3 (WACV 2025) adds hierarchical dense positive supervision to fix sparse Hungarian one-to-one supervision, keeping inference end-to-end[^reseach-2026-09-17-2].
 - **Reported:** DEIM (CVPR 2025) introduces Dense one-to-one matching plus Matchability-Aware Loss; paper reports ~50% training-time reduction in its experiments[^reseach-2026-09-17-3][^deim-2412-04234-v3-1].
-- **Reported:** YOLO26 provides native one-to-one NMS-free head, drops DFL, and uses Progressive Loss plus Small-Target-Aware Label Assignment (STAL); primary-paper evidence is now compiled in the YOLO26 section below[^yolo26-2509-25164-v5-2][^yolo26-2509-25164-v5-3][^reseach-2026-09-17-4].
+- **Reported:** YOLO26 provides native one-to-one NMS-free head, drops DFL, and uses Progressive Loss plus Small-Target-Aware Label Assignment (STAL); analysis-paper evidence is compiled in the YOLO26 section below[^yolo26-2509-25164-v5-2][^yolo26-2509-25164-v5-3][^reseach-2026-09-17-4].
 - **Synthesis:** the durable pattern is **train dense → infer sparse**: rich positive signals while learning, simple NMS-free pipeline at deployment.
 
 ## Localization as distribution refinement
@@ -208,6 +213,8 @@ Synthesis: real-time detection is converging from `YOLO = dense + NMS` versus `D
 - **Reported:** identity is `YOLO26: Key Architectural Enhancements and Performance Benchmarking for Real-Time Object Detection` by Sapkota, Cheppally, Sharda, and Karkee (Cornell plus Kansas State), arXiv `2509.25164v5`; it is an analysis/overview of Ultralytics YOLO26 (released September 2025, unveiled at YOLO Vision 2025 in London), framing YOLO26 as deployment-oriented simplification after attention-centric YOLOv12 and hypergraph YOLOv13[^yolo26-2509-25164-v5-1].
 - **Reported:** DFL removal turns distributional box decoding into lighter direct regression; paper argues this cuts inference latency and removes export special-casing for ONNX, TensorRT, CoreML, and TFLite, while YOLOv12/YOLOv13 retain DFL and pay latency plus export costs on constrained devices[^yolo26-2509-25164-v5-2].
 - **Reported:** native end-to-end NMS-free head outputs direct non-redundant boxes with no IoU-threshold post-processing; paper claims up to 43% faster CPU inference for the nano model versus prior YOLO, plus simpler threshold-free deployment and better reproducibility, and presents YOLO26 as the first YOLO release to adopt NMS-free inference while keeping YOLO speed–accuracy balance (YOLOv13 still depends on NMS)[^yolo26-2509-25164-v5-2].
+- **Reported:** Ultralytics documentation clarifies that this path is optional rather than the runtime default: prediction and validation use the higher-accuracy one-to-many head plus NMS unless `nms=False` selects the one-to-one head. The documented raw output changes from `(N, nc + 4, 8400)` to at most 300 detections shaped `(N, 300, 6)`; both heads are trained regardless of the inference choice[^ultralytics-yolo26-doc-9f4ac453-1].
+- **Reported:** The documentation cites `Ultralytics YOLO26: Unified Real-Time End-to-End Vision Models` (`arXiv:2606.03748`) as the complete technical paper. It was not available in the local source bundle; the already compiled `arXiv:2509.25164v5` is an independent analysis/overview, not that official paper[^ultralytics-yolo26-doc-9f4ac453-1].
 - **Reported:** ProgLoss progressively rebalances loss-component weights against easy-example domination late in training, while STAL explicitly prioritizes label assignment for tiny or occluded instances; paper contrasts this lightweight training-side fix with YOLOv12/v13 attention and fusion blocks that raise inference cost for similar small-object gains[^yolo26-2509-25164-v5-3].
 - **Reported:** MuSGD hybridizes SGD generalization with Muon-inspired momentum/curvature behavior from LLM training practice; paper reports faster, smoother convergence in fewer epochs with less hyperparameter sensitivity than the SGD/AdamW setups of YOLOv8–v13, hence shorter development cycles and fewer restarts[^yolo26-2509-25164-v5-3].
 - **Reported:** COCO detection at 640 px, CPU ONNX versus T4 TensorRT10 FP16 with params/FLOPs — N 40.9/40.1 e2e, 38.9 ms / 1.7 ms, 2.4M/5.4B; S 48.6/47.8, 87.2 ms / 2.5 ms, 9.5M/20.7B; M 53.1/52.5, 220.0 ms / 4.7 ms, 20.4M/68.2B; L 55.0/54.4, 286.2 ms / 6.2 ms, 24.8M/86.4B; X 57.5/56.9 e2e, 525.8 ms / 11.8 ms, 55.7M/193.9B[^yolo26-2509-25164-v5-4].
@@ -246,7 +253,7 @@ Synthesis: real-time detection is converging from `YOLO = dense + NMS` versus `D
 | --- | ---: | --- |
 | RF-DETR-2XL | 60.1 | T4 17.2 ms, primary-paper Tab. `tab:coco_det`; DINOv2-B 880px/patch-20/2-win/5-dec/300q[^rfdetr-2511-09554-v2-4] |
 | DEIMv2-X | 57.8 | 50.3M params, uses DINOv3[^deimv2-2509-20787-v4-4] |
-| YOLO26-X | 57.5 (56.9 e2e) | Ultralytics reports 11.8 ms T4 TensorRT; primary-paper Tab. reports 55.7M params / 193.9 GFLOPs / 525.8 ms CPU ONNX[^yolo26-2509-25164-v5-4] |
+| YOLO26-X | 57.5 (56.9 e2e) | The independent analysis paper reports 11.8 ms T4 TensorRT, 55.7M params / 193.9 GFLOPs / 525.8 ms CPU ONNX[^yolo26-2509-25164-v5-4] |
 | RT-DETRv4-X | 57.0 | 78 FPS T4, VFM distillation without inference overhead[^rtdetrv4-2510-25257-v1-4] |
 | DEIM-D-FINE-X | ~56.4–56.5 | CVPR paper reports 78 FPS T4[^deim-2412-04234-v3-6] |
 | RT-DETRv3-R101 | 54.6 | Dense supervision in training |
@@ -266,6 +273,7 @@ Earlier anchors in the same lineage include RT-DETRv2 bag-of-freebies and multi-
 ## Coverage limits
 
 - All AP, latency, and training-time figures are **reported**, not reproduced; external arXiv, CVF, GitHub, Ultralytics, and Roboflow links in the synthesis source were not fetched.
+- **Observed** by static inspection: `raw/yolo26.md` (SHA-256 `9f4ac453…`) was fully read for the dual-head defaults, output schemas, and official-paper identity. No examples were executed; linked guides, code, weights, external images/video, and `arXiv:2606.03748` were not fetched. The linked local `raw/yolo27.md` was inspected only enough to classify it as a separate unreleased preview and was excluded from this YOLO26 ingest.
 - **Observed** by static inspection: `raw/arXiv-2406.03459v1/main.tex` fully read including supplement plus NMS and pretraining tables; `main.bib` checked for citation closure; `main.bbl`, `llncs.cls`, `eccv.sty`, `eccvabbrv.sty`, and `splncs04.bst` excluded as generated or vendored templates; `figures/LWDETR-Encoder.pdf`, `figures/LWDETR-tsm.pdf`, and `figures/LWDETR-lxl.pdf` not visually inspected beyond captions and body-text reproduction, with numeric latency-AP plots already tabulated in `main.tex` TikZ. No code was executed.
 - **Observed** by static inspection: `raw/arXiv-2407.17140v1/main.tex` fully read plus `main.bib` checked for citation closure; `main.bbl` excluded as generated bibliography output and `arxiv.sty` excluded as vendored formatting template. No figures, supplements, or code execution were involved.
 - **Observed** by static inspection: `raw/arXiv-2409.08475v3/main.tex` fully read (595 lines) plus `main.bib` checked for citation closure (110 entries); `main.bbl` excluded as generated bibliography output and `wacv.sty` plus `ieee_fullname.bst` excluded as vendored templates; `README.md` excluded as WACV author-kit boilerplate; `Fig/latency_1130.pdf`, `Fig/rt-detrv3_241130.pdf`, `Fig/mask_self_atte_241130.pdf`, and `Fig/shoulian_1130.pdf` not visually inspected beyond captions and body-text reproduction, with their AP–latency, architecture, mask-attention, and convergence claims tabulated in `main.tex`. No code was executed; promised code URL was not fetched.
@@ -281,6 +289,7 @@ Earlier anchors in the same lineage include RT-DETRv2 bag-of-freebies and multi-
 - Other local `raw/arXiv-*` packages remain unreconciled here except the twelve papers now compiled in this concept.
 - Source claims coverage to 17/09/2026 and states absolute completeness is infeasible because new preprints appear weekly.
 
+[^ultralytics-yolo26-doc-9f4ac453-1]: `raw/yolo26.md`, sections “Overview,” “Usage Examples” / “Dual-Head Architecture,” and “Citations and Acknowledgments” — default one-to-many versus opt-in `nms=False` one-to-one behavior, `(N, nc + 4, 8400)` versus `(N, 300, 6)` outputs, both-head training, and cited official paper `arXiv:2606.03748`.
 [^yolo26-2509-25164-v5-1]: `raw/arXiv-2509.25164v5/template.tex`, title/authors plus Abstract and Sec. Introduction — Sapkota et al., Cornell/Kansas State, September 2025 YOLO Vision 2025 London, edge-first simplification thesis, COCO mAP versus latency framing in Fig. `fig:yolograph`, YOLOv1–v26 comparison Tab. `tab:comparison`.
 [^yolo26-2509-25164-v5-2]: `raw/arXiv-2509.25164v5/template.tex`, Sec. Introduction plus Sec. Architectural Enhancements in YOLO26 / Removal of DFL / End-to-End NMS-Free Inference; Figs. `fig:yolointro`, `fig:simplifiedarchitecture`, `fig:architectures` via captions and body text — DFL-free regression plus export compatibility, one-to-one NMS-free head plus up-to-43% CPU nano gain, first-NMS-free-YOLO claim, YOLOv12/v13 DFL-plus-NMS contrast.
 [^yolo26-2509-25164-v5-3]: `raw/arXiv-2509.25164v5/template.tex`, Sec. Architectural Enhancements / ProgLoss and STAL / MuSGD Optimizer; Fig. `fig:architectures}` panels (c)–(d) via caption and body text — progressive rebalancing, small-target assignment versus attention/fusion cost, SGD-plus-Muon hybrid from LLM practice with fewer-epoch convergence.
