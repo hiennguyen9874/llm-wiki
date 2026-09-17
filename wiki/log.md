@@ -1,6 +1,9 @@
 # Wiki Update Log
 
 ## 2026-09-17
+- **Update**: Documented the segmentation-capable models excluded from the ≤ M closed-set tables (larger closed-set, classic, other YOLO `-seg`, open-vocabulary, video, semantic-only) in [Realtime instance segmentation model selection](realtime-instance-segmentation-selection.md).
+- **Update**: Added closed-set COCO ≤ M instance-segmentation tables (RF-DETR protocol and YOLO26 protocol) to [Realtime instance segmentation model selection](realtime-instance-segmentation-selection.md) with explicit protocol-separation caveats.
+- **Query**: Answered “mô hình instance segmentation nào SOTA mà vẫn đủ nhanh”; filed [Realtime instance segmentation model selection](realtime-instance-segmentation-selection.md) as durable cross-concept decision synthesis.
 - **Update**: Expanded [Realtime N-S-M detector selection](realtime-s-m-detector-selection.md) with true-N evidence and clarified parameter-class, Objects365-pretraining, deployment, and latency-bucket choices.
 - **Query**: Answered “SOTA S/M realtime”; filed [Realtime S-M detector selection](realtime-s-m-detector-selection.md) as durable S/M decision synthesis.
 - **Ingest**: Compiled [Temporal-aware Query Routing for Real-time Video Instance Segmentation](../raw/Cheng_Temporal-aware_Query_Routing_for_Real-time_Video_Instance_Segmentation_ICCV_2025_paper/Cheng_Temporal-aware_Query_Routing_for_Real-time_Video_Instance_Segmentation_ICCV_2025_paper.md); updated [Efficient video, edge, and small-object detection](efficient-video-edge-small-object-detection.md).
