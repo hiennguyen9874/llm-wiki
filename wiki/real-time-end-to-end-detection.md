@@ -5,7 +5,7 @@ description: How 2024–2026 real-time detectors converged on NMS-free end-to-en
 tags: [detection, detr, yolo, nms-free, label-assignment]
 status: draft
 created: 2026-09-17
-generated: { by: llm-wiki-agent/1, at: 2026-09-17T05:38:44Z }
+generated: { by: llm-wiki-agent/1, at: 2026-09-17T06:30:00Z }
 sources:
   - id: rfdetr-2511-09554-v2
     resource: ../raw/arXiv-2511.09554v2/iclr2026_conference.tex
@@ -65,6 +65,12 @@ sources:
     kind: paper
     revision: v1
     title: 'YOLOv11: An Overview of the Key Architectural Enhancements'
+  - id: yolov12-2502-12524-v1
+    resource: ../raw/arXiv-2502.12524v1/main.tex
+    scope: ../raw/arXiv-2502.12524v1/
+    kind: paper
+    revision: v1
+    title: 'YOLOv12: Attention-Centric Real-Time Object Detectors'
   - id: yolov13-2506-17733-v2
     resource: ../raw/arXiv-2506.17733v2/a_main.tex
     scope: ../raw/arXiv-2506.17733v2/
@@ -82,6 +88,11 @@ sources:
     kind: documentation
     revision: 'sha256:9f4ac4536d6123446238912e6d4a30240b4f67f29e5cd0e78ec1e7a64ac0f4eb'
     title: Ultralytics YOLO26
+  - id: ultralytics-yolo27-doc-52318137
+    resource: ../raw/yolo27.md
+    kind: documentation
+    revision: 'sha256:52318137ab7ee6336c52d1566ed1c0a39bc081c97b4736a2e5e5c1cdc18df7b5'
+    title: Ultralytics YOLO27
 ---
 
 Synthesis: real-time detection is converging from `YOLO = dense + NMS` versus `DETR = sparse queries + bipartite matching` toward NMS-free end-to-end inference, with dense supervision used only during training and refined localization modeling[^reseach-2026-09-17-1].
@@ -220,6 +231,17 @@ Synthesis: real-time detection is converging from `YOLO = dense + NMS` versus `D
 - **Reported:** COCO detection at 640 px, CPU ONNX versus T4 TensorRT10 FP16 with params/FLOPs — N 40.9/40.1 e2e, 38.9 ms / 1.7 ms, 2.4M/5.4B; S 48.6/47.8, 87.2 ms / 2.5 ms, 9.5M/20.7B; M 53.1/52.5, 220.0 ms / 4.7 ms, 20.4M/68.2B; L 55.0/54.4, 286.2 ms / 6.2 ms, 24.8M/86.4B; X 57.5/56.9 e2e, 525.8 ms / 11.8 ms, 55.7M/193.9B[^yolo26-2509-25164-v5-4].
 - **Synthesis:** durable reuse is **simplify inference, densify training**: DFL-free regression plus one-to-one NMS-free head for deployment, ProgLoss plus STAL plus MuSGD for stability and small-target recall — the YOLO counterpart to the DETR train-dense/infer-sparse pattern above.
 
+## YOLO27 preview: training-side alignment and scale-split detection
+
+- **Reported:** Ultralytics previews YOLO27 as the successor to YOLO26 with four detection scales (N/S/M/L) and a two-design split: the compact N/S scales keep a streamlined CNN, while M/L replace dense prediction with a transformer decoder over a fixed set of object queries that outputs final detections directly without NMS; both are used through the same `YOLO` interface, and every non-detection task uses the CNN architecture[^ultralytics-yolo27-doc-52318137-2].
+- **Reported:** N/S detection defaults to the one-to-many head plus NMS and exposes an NMS-free head through `nms=False`, the same optional dual-head structure documented for YOLO26; reported speed selects the NMS-free head and N/S accuracy depends on which head is chosen, while pretrained checkpoints retain the full training architecture and may show higher parameter counts[^ultralytics-yolo27-doc-52318137-1][^ultralytics-yolo27-doc-52318137-3].
+- **Reported:** N/S drop the medium prediction map and predict only on a fine map (small objects) and a coarse map (large objects), with a fixed scaling on the fused features keeping the two scales balanced, which the vendor presents as removing a large share of detection-head computation at reliable training accuracy; the early high-resolution feature stage is widened for fine-grained detail[^ultralytics-yolo27-doc-52318137-1].
+- **Reported:** Foreground alignment supervision adds a training-only lightweight branch that learns object-versus-background at every location, aimed at the one-to-many training versus one-to-one deployment supervision gap. Ultralytics reports that gap falling from 0.9 mAP (n) and 0.8 mAP (s) on YOLO26 to 0.4 mAP on YOLO27n/s, with the branch removed for inference and export[^ultralytics-yolo27-doc-52318137-1].
+- **Reported:** YOLO27m pairs the query decoder with a YOLO26-style convolutional backbone; YOLO27l keeps the same FPN/PAN neck and swaps in an UltraViT backbone that uses self-attention in its deepest stage for global context[^ultralytics-yolo27-doc-52318137-2].
+- **Reported:** preliminary 640 px COCO detection is n 42.3 (3.0M / 7.2B), s 49.6 (11.8M / 28.2B), m 55.8 (22.8M / 65.0B), and l 60.4 (72.3M / 165.3B), with latency of 0.62/0.79/1.39/2.32 ms on an RTX PRO 6000 (TensorRT 11, FP16) and 16.1/33.2/67.2/149.6 ms on an AMD EPYC 9655 (ONNX Runtime, FP32); YOLO27l reaches 61.2 mAP at an 800 px input and is described as the first Ultralytics model above 60 mAP on COCO[^ultralytics-yolo27-doc-52318137-3].
+- **Reported:** the vendor states that weights, configurations, and implementation code are not released and that no launch date has been set, so these are preliminary research results that may change[^ultralytics-yolo27-doc-52318137-4].
+- **Synthesis:** YOLO27 extends this concept's `train dense → infer sparse` pattern in two directions rather than replacing it — the compact scales keep a default NMS path but use training-side foreground alignment to shrink the one-to-many/one-to-one gap, while the larger scales adopt the DETR-style sparse query decoder. Reported gains over YOLO26 are accuracy deltas measured on a different host, so they are not latency-comparable, and no YOLO27 point is deployable from this artifact.
+
 ## RT-DETRv4 training-only VFM distillation
 
 - **Reported:** identity is `RT-DETRv4: Painlessly Furthering Real-Time Object Detection with Vision Foundation Models` by Liao et al. (PKU Shenzhen plus Tsinghua), arXiv `2510.25257v1`; it adds a Deep Semantic Injector (DSI) plus Gradient-guided Adaptive Modulation (GAM) to RT-DETR-family detectors, training-only with no inference-architecture change and no deployment overhead[^rtdetrv4-2510-25257-v1-1].
@@ -273,7 +295,8 @@ Earlier anchors in the same lineage include RT-DETRv2 bag-of-freebies and multi-
 ## Coverage limits
 
 - All AP, latency, and training-time figures are **reported**, not reproduced; external arXiv, CVF, GitHub, Ultralytics, and Roboflow links in the synthesis source were not fetched.
-- **Observed** by static inspection: `raw/yolo26.md` (SHA-256 `9f4ac453…`) was fully read for the dual-head defaults, output schemas, and official-paper identity. No examples were executed; linked guides, code, weights, external images/video, and `arXiv:2606.03748` were not fetched. The linked local `raw/yolo27.md` was inspected only enough to classify it as a separate unreleased preview and was excluded from this YOLO26 ingest.
+- **Observed** by static inspection: `raw/yolo26.md` (SHA-256 `9f4ac453…`) was fully read for the dual-head defaults, output schemas, and official-paper identity. No examples were executed; linked guides, code, weights, external images/video, and `arXiv:2606.03748` were not fetched. The linked local `raw/yolo27.md` was excluded from that YOLO26 ingest and is now compiled separately in the YOLO27 section above.
+- **Observed** by static inspection: `raw/yolo27.md` (SHA-256 `52318137…`, 305 lines) was fully read for the two-design split, dual-scale and foreground-alignment supervision, UltraViT backbone, task matrix, preliminary per-task tables, and the unreleased status. No model, weight, or example was downloaded or executed; the YOLO27 waitlist, task guides, and benchmark guides were not fetched, so all YOLO27 figures remain unreleased vendor-preliminary reports.
 - **Observed** by static inspection: `raw/arXiv-2406.03459v1/main.tex` fully read including supplement plus NMS and pretraining tables; `main.bib` checked for citation closure; `main.bbl`, `llncs.cls`, `eccv.sty`, `eccvabbrv.sty`, and `splncs04.bst` excluded as generated or vendored templates; `figures/LWDETR-Encoder.pdf`, `figures/LWDETR-tsm.pdf`, and `figures/LWDETR-lxl.pdf` not visually inspected beyond captions and body-text reproduction, with numeric latency-AP plots already tabulated in `main.tex` TikZ. No code was executed.
 - **Observed** by static inspection: `raw/arXiv-2407.17140v1/main.tex` fully read plus `main.bib` checked for citation closure; `main.bbl` excluded as generated bibliography output and `arxiv.sty` excluded as vendored formatting template. No figures, supplements, or code execution were involved.
 - **Observed** by static inspection: `raw/arXiv-2409.08475v3/main.tex` fully read (595 lines) plus `main.bib` checked for citation closure (110 entries); `main.bbl` excluded as generated bibliography output and `wacv.sty` plus `ieee_fullname.bst` excluded as vendored templates; `README.md` excluded as WACV author-kit boilerplate; `Fig/latency_1130.pdf`, `Fig/rt-detrv3_241130.pdf`, `Fig/mask_self_atte_241130.pdf`, and `Fig/shoulian_1130.pdf` not visually inspected beyond captions and body-text reproduction, with their AP–latency, architecture, mask-attention, and convergence claims tabulated in `main.tex`. No code was executed; promised code URL was not fetched.
@@ -289,6 +312,10 @@ Earlier anchors in the same lineage include RT-DETRv2 bag-of-freebies and multi-
 - Other local `raw/arXiv-*` packages remain unreconciled here except the twelve papers now compiled in this concept.
 - Source claims coverage to 17/09/2026 and states absolute completeness is infeasible because new preprints appear weekly.
 
+[^ultralytics-yolo27-doc-52318137-1]: `raw/yolo27.md`, sections “Key Features” / Dual-scale detection, “Stronger small-object detection,” and “Foreground alignment supervision,” plus the params/FLOPs note — dropped medium prediction map with fixed fused-feature scaling, widened early high-resolution stage, training-only object-versus-background branch, the 0.9/0.8 → 0.4 mAP YOLO26n/s → YOLO27n/s gap, and `nms=False` fused-model speed selection.
+[^ultralytics-yolo27-doc-52318137-2]: `raw/yolo27.md`, sections “Overview,” “Key Features” / Query-based detection without NMS, and “Which YOLO27 Should I Use?” — N/S CNN versus M/L query-decoder split, one-to-many default with the `nms=False` NMS-free option, YOLO27m convolutional backbone, YOLO27l FPN/PAN neck plus deepest-stage-self-attention UltraViT backbone, and the single `YOLO` selection interface.
+[^ultralytics-yolo27-doc-52318137-3]: `raw/yolo27.md`, sections “Overview,” “Performance Metrics” / Detection (COCO), and “FAQ” / “What accuracy and inference speed does YOLO27l achieve on COCO?” — preliminary 640 px n 42.3/0.62 ms/3.0M/7.2B, s 49.6/0.79 ms/11.8M/28.2B, m 55.8/1.39 ms/22.8M/65.0B, l 60.4/2.32 ms/72.3M/165.3B; 61.2 mAP at 800 px; RTX PRO 6000 TensorRT 11 FP16 plus AMD EPYC 9655 ONNX FP32 protocol.
+[^ultralytics-yolo27-doc-52318137-4]: `raw/yolo27.md`, intro info callout, “Preliminary results” note, and FAQ “When will YOLO27 be available?” — unreleased weights/configurations/implementation, no launch date, and features and benchmarks that may change before release.
 [^ultralytics-yolo26-doc-9f4ac453-1]: `raw/yolo26.md`, sections “Overview,” “Usage Examples” / “Dual-Head Architecture,” and “Citations and Acknowledgments” — default one-to-many versus opt-in `nms=False` one-to-one behavior, `(N, nc + 4, 8400)` versus `(N, 300, 6)` outputs, both-head training, and cited official paper `arXiv:2606.03748`.
 [^yolo26-2509-25164-v5-1]: `raw/arXiv-2509.25164v5/template.tex`, title/authors plus Abstract and Sec. Introduction — Sapkota et al., Cornell/Kansas State, September 2025 YOLO Vision 2025 London, edge-first simplification thesis, COCO mAP versus latency framing in Fig. `fig:yolograph`, YOLOv1–v26 comparison Tab. `tab:comparison`.
 [^yolo26-2509-25164-v5-2]: `raw/arXiv-2509.25164v5/template.tex`, Sec. Introduction plus Sec. Architectural Enhancements in YOLO26 / Removal of DFL / End-to-End NMS-Free Inference; Figs. `fig:yolointro`, `fig:simplifiedarchitecture`, `fig:architectures` via captions and body text — DFL-free regression plus export compatibility, one-to-one NMS-free head plus up-to-43% CPU nano gain, first-NMS-free-YOLO claim, YOLOv12/v13 DFL-plus-NMS contrast.

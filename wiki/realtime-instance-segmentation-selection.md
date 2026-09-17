@@ -5,7 +5,7 @@ description: Which instance segmentation model to choose for fast closed-set, op
 tags: [segmentation, realtime, decision, video, open-vocabulary]
 status: draft
 created: 2026-09-17
-generated: { by: llm-wiki-agent/1, at: 2026-09-17T18:30:00Z }
+generated: { by: llm-wiki-agent/1, at: 2026-09-17T18:45:00Z }
 sources:
   - id: rfdetr-2511-09554-v2
     resource: ../raw/arXiv-2511.09554v2/iclr2026_conference.tex
@@ -24,6 +24,11 @@ sources:
     kind: documentation
     revision: 'sha256:9f4ac4536d6123446238912e6d4a30240b4f67f29e5cd0e78ec1e7a64ac0f4eb'
     title: Ultralytics YOLO26
+  - id: ultralytics-yolo27-doc-52318137
+    resource: ../raw/yolo27.md
+    kind: documentation
+    revision: 'sha256:52318137ab7ee6336c52d1566ed1c0a39bc081c97b4736a2e5e5c1cdc18df7b5'
+    title: Ultralytics YOLO27
   - id: yoloe-2503-07465-v2
     resource: ../raw/arXiv-2503.07465v2/camera_ready.tex
     scope: ../raw/arXiv-2503.07465v2/
@@ -82,6 +87,8 @@ Synthesis: "SOTA instance segmentation" is now three separate questions — clos
 - **Reported:** the YOLO26 instance-segmentation head adds a semantic segmentation loss to improve convergence and an upgraded proto module that aggregates multi-scale information for mask quality, reported at up to +2.5 box AP and +3.7 mask AP over YOLO11 on COCO instance segmentation[^ultralytics-yolo26-doc-9f4ac453-1].
 - **Synthesis:** the Ultralytics documentation page and the v5 architecture/benchmark paper report identical YOLO26l/x-seg box and mask AP (l `54.4`/`45.5`, x `56.5`/`47.0`) and the same N/S/M values as table B, so those numbers are cross-reported by two Ultralytics artifacts; both remain vendor-internal and neither is an independent benchmark[^ultralytics-yolo26-doc-9f4ac453-1][^yolo26-2509-25164-v5-4].
 - **Synthesis:** the caveat matters more than the ranking. RF-DETR Seg-N beats older YOLOv8/11 sizes and FastInst-R50 on the reported table, and the Roboflow same-protocol comparison places RF-DETR Seg-2XL `49.9`/`21.8` ms against YOLO26-X-Seg `46.8`/`12.92` ms; that is one vendor's internal protocol, not an independent leaderboard[^reseach-2026-09-17-7].
+- **Reported:** Ultralytics also previews YOLO27-seg, unreleased and preliminary, at 640 px with n 41.8 box / 35.4 mask AP (3.0M / 11.2B, 22.0 ms CPU ONNX, 0.73 ms RTX PRO 6000 TensorRT 11), s 50.0/42.5 (11.6M / 43.1B), m 53.2/45.0 (25.4M / 139.6B), and l 57.7/47.9 (67.5M / 361.9B); the two-architecture split applies to detection only, so all `-seg` scales and every other task keep the CNN architecture[^ultralytics-yolo27-doc-52318137-1].
+- **Synthesis:** YOLO27-seg is deliberately kept out of tables A and B: its numbers are vendor-preliminary, its latency host (RTX PRO 6000 TensorRT 11 FP16 plus AMD EPYC 9655 ONNX FP32) matches neither protocol, and the models are unreleased, so it informs no selection today beyond indicating that the successor family keeps a CNN segmentation path and reports higher mask AP at every scale[^ultralytics-yolo27-doc-52318137-1][^ultralytics-yolo27-doc-52318137-2].
 - **Synthesis:** prefer RF-DETR-Seg when accuracy per millisecond dominates and a NAS/fine-tuning workflow is acceptable; prefer YOLO26-Seg when export simplicity and low CPU/ONNX latency dominate.
 
 ### Closed-set COCO masks, models up to M
@@ -169,6 +176,7 @@ Synthesis: "SOTA instance segmentation" is now three separate questions — clos
 - Source claims cover to 17/09/2026; newer preprints may change the closed-set and video recommendations, and absolute completeness is infeasible[^reseach-2026-09-17-7].
 - Preference statements are **synthesis** from the cited reported numbers and their stated protocols, not independently verified measurements.
 - **Observed** by static inspection: `raw/yolo26.md` (SHA-256 `9f4ac453…`) was fully read for its segmentation-relevant sections. No model, weight, or example was downloaded or executed; the linked paper `arXiv:2606.03748`, task guides, images, and video were not fetched, so its metrics remain vendor-reported[^ultralytics-yolo26-doc-9f4ac453-1].
+- **Observed** by static inspection: `raw/yolo27.md` (SHA-256 `52318137…`, 305 lines) was fully read for the segmentation table, two-architecture scope, and unreleased status. No model, weight, or example was downloaded or executed, and the YOLO27 waitlist and task guides were not fetched, so YOLO27-seg values are vendor-preliminary reports on a third benchmark protocol.
 
 [^rfdetr-2511-09554-v2-1]: `raw/arXiv-2511.09554v2/iclr2026_conference.tex`, Sec. Real-Time Instance Segmentation plus Fig. `fig:arch` — shared upsampled map, pixel-embedding projector, per-layer query dot product, no multi-scale backbone features, SAM2 pseudo-label O365 pretraining.
 [^rfdetr-2511-09554-v2-2]: `raw/arXiv-2511.09554v2/iclr2026_conference.tex`, Tab. `tab:coco_seg` plus `supplement.tex` Tab. `tab:coco_seg_scale` — Seg-N `40.3`/`33.6M`/`50.0` GFLOPs/`3.4` ms through Seg-Max `50.5`/`95.6` ms.
@@ -183,4 +191,7 @@ Synthesis: "SOTA instance segmentation" is now three separate questions — clos
 [^ultralytics-yolo26-doc-9f4ac453-1]: `raw/yolo26.md`, sections “Key Features” / Instance Segmentation Enhancements, “Performance Metrics” / Segmentation (COCO), and “FAQ” — semantic segmentation loss plus upgraded multi-scale proto module, the up to +2.5 box AP / +3.7 mask AP over YOLO11 claim, the n–x-seg box/mask e2e table, and the TensorRT/ONNX/CoreML/LiteRT/OpenVINO export list.
 [^ultralytics-yolo26-doc-9f4ac453-2]: `raw/yolo26.md`, sections “Supported Tasks and Modes” and “Performance Metrics” / Semantic Segmentation (Cityscapes) — `yolo26*-seg` and `yolo26*-sem` listed as separate five-scale tasks with train/val/infer/export support.
 [^ultralytics-yolo26-doc-9f4ac453-3]: `raw/yolo26.md`, section “YOLOE-26: Open-Vocabulary Detection and Segmentation” — open-vocabulary detection plus segmentation via text/visual/prompt-free modes, optional e2e head, LVIS-minival 40.6/38.5/31.1 AP non-e2e and 1.1/2.3/1.2 AP e2e deltas.
+[^ultralytics-yolo27-doc-52318137-1]: `raw/yolo27.md`, sections “Supported Tasks and Modes,” “Performance Metrics” / Segmentation (COCO), and the two-architecture note — seven-task N/S/M/L matrix, CNN-only segmentation path, and preliminary YOLO27n/s/m/l-seg 640 px box/mask AP with params, FLOPs, AMD EPYC 9655 ONNX FP32, and RTX PRO 6000 TensorRT 11 FP16 latency.
+[^ultralytics-yolo27-doc-52318137-2]: `raw/yolo27.md`, intro info callout and FAQ “When will YOLO27 be available?” — unreleased weights, configurations, and implementation code with no launch date, and benchmarks that may change before release.
+[^sam3-2511-16719-v2-5]: `raw/arXiv-2511.16719v2/main.tex`, video object segmentation and interactive promptable-visual-segmentation results tables — MOSEv1 `78.4`, DAVIS17 `92.2`, and SA-V val `83.5` J&F with interactive SA-37 at `43.5` FPS; plus `multiplex.tex` for Object Multiplex bucketed memory and multi-object throughput scaling.
 [^reseach-2026-09-17-7]: `raw/reseach.md`, section “7. Instance segmentation không còn là một nhánh riêng” — Roboflow-protocol Seg-N `40.3`/`3.4` ms and Seg-2XL `49.9`/`21.8` ms versus YOLO26-X-Seg `46.8`/`12.92` ms, with the non-independent-benchmark caveat and weekly-preprint incompleteness.
