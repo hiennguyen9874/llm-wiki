@@ -39,7 +39,7 @@ sources:
     title: FlashAttention-3 related work
 ---
 
-FlashAttention-3 is an exact attention algorithm and Hopper kernel by Shah, Bikshandi, Zhang, Thakkar, Ramani, and Tri Dao that keeps FlashAttention tiling and online softmax while redesigning the kernel around Hopper asynchrony and FP8, reporting 1.5–2.0× over FlashAttention-2 in FP16 forward (up to 740 TFLOPs/s, 75% utilization) and close to 1.2 PFLOPs/s in FP8 on H100[^fa3-abstract][^fa3-intro][^fa3-exp].
+FlashAttention-3 is an exact attention algorithm and Hopper kernel by Shah, Bikshandi, Zhang, Thakkar, Ramani, and Tri Dao that keeps FlashAttention tiling and online softmax while redesigning the kernel around Hopper asynchrony and FP8, reporting 1.5–2.0× over FlashAttention-2 in FP16 forward (up to 740 TFLOPs/s, 75% utilization) and close to 1.2 PFLOPs/s in FP8 on H100[^fa3-main][^fa3-abstract][^fa3-intro][^fa3-exp].
 
 Its thesis is that FlashAttention-2 follows a synchronous model and leaves Hopper throughput on the table: about 35% utilization versus 80–90% for optimized GEMM, because Tensor Cores (WGMMA), data movement (TMA), and low-precision units run asynchronously and need explicit overlap[^fa3-intro].
 

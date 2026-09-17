@@ -147,3 +147,6 @@ Acknowledged deployment limits are a relatively large recommended deployment uni
 - PDF figures under `raw/arXiv-2412.19437v2/figures/` were not visually inspected; DualPipe, FP8-framework, overlap, and NIAH claims follow LaTeX prose, equations, tables, and captions.
 - Cost arithmetic assumes the paper's $2 per H800-hour rental price and official-training scope; independent hardware, utilization, and price validation is out of scope.
 - FP8 loss-error bounds are paper-reported comparisons on 16B- and 230B-scale baselines, not an independent reproduction at 671B scale.
+
+[^v3-report]: DeepSeek-V3 Technical Report — `../raw/arXiv-2412.19437v2/main.tex`, covering cluster layout, DualPipe, all-to-all kernels, memory savings, prefill/decode deployment, cost, and hardware suggestions.
+[^v3-fp8]: DeepSeek-V3 FP8 training section — `../raw/arXiv-2412.19437v2/content/fp8.tex`, covering fine-grained FP8 mixed-precision framework.

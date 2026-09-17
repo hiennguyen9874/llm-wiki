@@ -146,3 +146,7 @@ Distilling R1 into a DeepSeek-V2.5 baseline raises LiveCodeBench-CoT from 31.1 t
 - PDF figures under `raw/arXiv-2412.19437v2/figures/` were not visually inspected; structural and performance claims follow LaTeX prose, equations, and input tables.
 - All benchmark scores are paper-reported internal-framework measurements, not independently verified.
 - Training-cost figures exclude prior research and ablation experiments and assume a $2 per H800-hour rental price; see the systems companion for the full cost breakdown.
+
+[^v3-report]: DeepSeek-V3 Technical Report — `../raw/arXiv-2412.19437v2/main.tex`, covering MLA, DeepSeekMoE with auxiliary-loss-free balancing, MTP, pretraining, SFT/GRPO, and architecture/training claims.
+[^v3-base-eval]: DeepSeek-V3 base evaluation table — `../raw/arXiv-2412.19437v2/tables/base_evaluation.tex`, covering base benchmark scores.
+[^v3-chat-eval]: DeepSeek-V3 chat evaluation table — `../raw/arXiv-2412.19437v2/tables/chat_evaluation.tex`, covering chat benchmark scores.
