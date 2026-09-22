@@ -5,7 +5,7 @@ description: GRPO is an on-policy, PPO-style LLM post-training method that repla
 tags: [grpo, reinforcement-learning, post-training, reasoning, policy-optimization]
 status: draft
 created: 2026-07-31
-generated: { by: llm-wiki-agent/1, at: 2026-08-14T06:56:09Z }
+generated: { by: llm-wiki-agent/1, at: 2026-09-22T15:21:59Z }
 sources:
   - id: grpo-summary
     resource: ../raw/GRPO.md
@@ -25,6 +25,11 @@ sources:
   - id: glm5-report-2026
     resource: ../raw/arXiv-2602.15763v2/0_main.tex
     title: "GLM-5: from Vibe Coding to Agentic Engineering"
+  - id: mimo-v2-6-report-2026
+    resource: ../raw/MiMo-V2.6/MiMo_V2_6_technical_report.md
+    scope: ../raw/MiMo-V2.6/
+    kind: paper
+    title: "MiMo-V2.6: Scaling Reinforcement Learning Towards Self-Improvement"
 ---
 
 # Group Relative Policy Optimization
@@ -83,6 +88,10 @@ GLM-5 reasoning RL retains group-standardized advantages and PPO-style clipping 
 
 The final GLM-5 cross-stage distillation replaces reward advantage with a stopped teacher/student log-probability gap and uses group size 1. That stage reuses the surrounding optimizer machinery but no longer estimates a group-relative reward advantage, so it should be understood as on-policy distillation rather than ordinary GRPO.[^glm5-report-2026]
 
+## MiMo-V2.6 mixed-task variant
+
+MiMo-V2.6 reports asynchronous GRPO over 1,568 prompts and 16 rollouts per prompt, with partial-rollout staleness 4, prompt-mean aggregation, token-level rollout/current importance ratios, and separate entropy-tuned clipping ranges for positive and negative advantages. Its [scaled agentic RL recipe](mimo-v2-6-scaled-agentic-rl.md) adds offline Groupwise Reward Synthesis, online Groupwise Advantage Redistribution, prompt-relative length penalties, segment-level behavior shaping, all-pass/all-fail filtering, and reward-hack correction. These are system-specific extensions, not requirements of GRPO itself.[^mimo-v2-6-report-2026]
+
 ## Relationships
 
 - **Applied by:** [DeepSeek-V2 alignment, evaluation, and limitations](deepseek-v2-alignment-evaluation-and-limitations.md) in a two-stage reward-model recipe and [DeepSeek-V3 post-training, evaluation, and limitations](deepseek-v3-post-training-evaluation-and-limitations.md) with rule- and model-based rewards.[^deepseek-v2-2024][^deepseek-v3-2024]
@@ -102,3 +111,5 @@ The final GLM-5 cross-stage distillation replaces reward advantage with a stoppe
 [^deepseek-v3-2-2025]: DeepSeek-AI, “DeepSeek-V3.2: Pushing the Frontier of Open Large Language Models,” arXiv:2512.02556v1, [source](../raw/arXiv-2512.02556v1/main.tex), Sections 3.1–3.2.
 
 [^glm5-report-2026]: GLM-5 Team, “GLM-5: from Vibe Coding to Agentic Engineering,” arXiv:2602.15763v2, [post-training](../raw/arXiv-2602.15763v2/3_posttrain.tex), Reasoning RL and cross-stage distillation; [agentic RL](../raw/arXiv-2602.15763v2/3.1_agenticRL.tex), asynchronous stability controls.
+
+[^mimo-v2-6-report-2026]: Xiaomi LLM-Core, “MiMo-V2.6: Scaling Reinforcement Learning Towards Self-Improvement,” [technical report](../raw/MiMo-V2.6/MiMo_V2_6_technical_report.md), Sections 4.1, 4.3, and 5.1.

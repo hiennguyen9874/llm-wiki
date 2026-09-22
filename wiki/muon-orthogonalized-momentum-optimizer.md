@@ -5,7 +5,7 @@ description: Muon updates hidden-layer weight matrices using the polar factor of
 tags: [muon, optimizer, pre-training, matrix-optimization, newton-schulz]
 status: draft
 created: 2026-08-01
-generated: { by: llm-wiki-agent/1, at: 2026-08-27T03:11:23Z }
+generated: { by: llm-wiki-agent/1, at: 2026-09-22T15:21:59Z }
 sources:
   - id: muon-overview-2026
     resource: ../raw/MuonOptimizer.md
@@ -28,6 +28,11 @@ sources:
   - id: qwen38-next-report
     resource: ../raw/Qwen3.8-Flash-Next-tech_report/qwen3.8-flash-next-tech_report.md
     title: "On the Design of Qwen3.8-Next Architecture: Evaluation, Efficiency, and Training Stability"
+  - id: mimo-v2-6-report-2026
+    resource: ../raw/MiMo-V2.6/MiMo_V2_6_technical_report.md
+    scope: ../raw/MiMo-V2.6/
+    kind: paper
+    title: "MiMo-V2.6: Scaling Reinforcement Learning Towards Self-Improvement"
 ---
 
 # Muon orthogonalized-momentum optimizer
@@ -68,6 +73,10 @@ Qwen uses Nesterov momentum 0.95, shape scaling $0.2\sqrt{\max(A,B)}$, eight Pol
 
 For distributed execution, Qwen's Canzona assigns whole matrices across data-parallel ranks by estimated orthogonalization FLOPs, reconstructs tensor-parallel matrices with a fused asynchronous all-to-all pipeline, and captures the many split-matrix kernels in a CUDA graph. The report asserts mathematical equivalence to single-device Muon while preserving ZeRO-1 bucket geometry, but provides no standalone implementation or end-to-end overhead table.[^qwen38-next-report]
 
+## MiMo-V2.6 Muown variant
+
+MiMo-V2.6 switches hidden weight matrices from AdamW to Muown during mid-training and retains it for RL. The report describes Muown as Muon plus explicit row-norm control intended to limit spectral-norm drift and weight-decay sensitivity; embeddings, LM head, and MoE router remain on AdamW. Its RL recipe uses Nesterov momentum 0.95, ten Newton–Schulz iterations, an additional update scale reported as 0.5, no weight decay or warmup, a $3\times10^{-6}$ learning rate, and FP32 master weights plus Muown row state carried from SFT for MXFP4 stability. This is configuration evidence, not an isolated Muown-versus-Muon ablation.[^mimo-v2-6-report-2026]
+
 ## DeepSeek-V4 configuration
 
 DeepSeek-V4 provides primary configuration evidence for a hybrid optimizer: it assigns Muon to most modules while retaining AdamW for embeddings, the prediction head, mHC static biases and gates, and RMSNorm weights. Its implementation applies weight decay, a Nesterov-style momentum update, and RMS-rescales the matrix update; it uses ten hybrid Newton–Schulz iterations, with eight rapid-convergence iterations followed by two stabilizing iterations. These choices are V4-specific rather than Muon requirements.[^deepseek-v4-2026]
@@ -105,3 +114,5 @@ The core formula, original Newton–Schulz coefficients, and broad configuration
 [^qwen38-next-blog]: Qwen Team, “Qwen3.8-Flash-Next,” [release blog](../raw/Qwen3.8-Flash-Next/blog.md), Optimization section.
 
 [^qwen38-next-report]: Qwen Team, “On the Design of Qwen3.8-Next Architecture: Evaluation, Efficiency, and Training Stability,” [technical report](../raw/Qwen3.8-Flash-Next-tech_report/qwen3.8-flash-next-tech_report.md), Section 3.1.
+
+[^mimo-v2-6-report-2026]: Xiaomi LLM-Core, “MiMo-V2.6: Scaling Reinforcement Learning Towards Self-Improvement,” [technical report](../raw/MiMo-V2.6/MiMo_V2_6_technical_report.md), Sections 3.2 and 5.1.

@@ -5,7 +5,7 @@ description: DFlash conditions a lightweight block-diffusion drafter on frozen t
 tags: [speculative-decoding, diffusion, draft-model, kv-injection, inference]
 status: stable
 created: 2026-08-12
-generated: { by: llm-wiki-agent/1, at: 2026-08-20T08:49:07Z }
+generated: { by: llm-wiki-agent/1, at: 2026-09-22T15:21:59Z }
 sources:
   - id: dflash-2026
     resource: ../raw/arXiv-2602.06036v2/main.tex
@@ -13,6 +13,11 @@ sources:
   - id: nemotron-dflash-card
     resource: ../raw/NVIDIA-Nemotron-3.5-Lightning-30B-A3B/DFlash.md
     title: NVIDIA Nemotron 3.5 Lightning DFlash model card
+  - id: mimo-v2-6-report-2026
+    resource: ../raw/MiMo-V2.6/MiMo_V2_6_technical_report.md
+    scope: ../raw/MiMo-V2.6/
+    kind: paper
+    title: "MiMo-V2.6: Scaling Reinforcement Learning Towards Self-Improvement"
 ---
 
 # DFlash block-diffusion speculative decoding
@@ -52,6 +57,10 @@ A five-layer diffusion drafter without target features produced only 2.65–3.73
 
 KV injection adds a shared $W_c\in\mathbb{R}^{D\times5D}$ projection plus activations and per-layer projected KV use. For the paper’s Qwen3.5-35B-A3B example at $D=2048$, the shared BF16 projection is about 42 MB versus a reported roughly 70 GB target, but cached target-feature storage grows linearly with the number of extracted layers during offline training.[^dflash-2026]
 
+## MiMo-V2.6 decoder and RL adaptation
+
+[MiMo-V2.6](mimo-v2-6-omnimodal-hybrid-swa-architecture.md) uses a five-layer dense-FFN DFlash-style decoder conditioned on backbone features and a clean anchor token. It predicts seven subsequent tokens in one pass; draft tokens attend bidirectionally within their block and to at most 1,024 backbone positions before the anchor. For RL rollout, the report replaces an inherited MTP-3 setup with an RL-log-adapted FP8 DFlash block-6 configuration, reporting 31.3% higher accepted length, approximately 6% higher mixed-task throughput than block-8, and approximately 10.3% higher per-node throughput than its baseline on the stated long-context workload. Hardware and complete baseline details are not disclosed.[^mimo-v2-6-report-2026]
+
 ## Nemotron 3.5 Lightning checkpoint
 
 NVIDIA’s target-specific Nemotron 3.5 Lightning DFlash release is an 833M-parameter NVFP4 draft (481M non-embedding parameters) with dense MLPs and non-causal, full-sequence GQA. It is intended to accompany the 30B-total/3B-active [Nemotron 3.5 Lightning target](nemotron-3-5-lightning-architecture-and-training.md), not run as a standalone language model. The card reports vLLM and llama.cpp support and positions it for low-concurrency data-centre and workstation serving, but does not disclose its layer count, target-feature injection details, memory footprint, or end-to-end latency.[^nemotron-dflash-card]
@@ -71,3 +80,5 @@ The mechanism and ablations are primary author evidence, but the paper does not 
 [^dflash-2026]: Chen, Liang, and Liu, “DFlash: Block Diffusion for Flash Speculative Decoding,” arXiv:2602.06036v2, [source](../raw/arXiv-2602.06036v2/main.tex), Sections 3–5 and Appendix A–B, F, including the inference/training diagrams and ablation tables.
 
 [^nemotron-dflash-card]: NVIDIA, “NVIDIA Nemotron 3.5 Lightning DFlash,” [model card](../raw/NVIDIA-Nemotron-3.5-Lightning-30B-A3B/DFlash.md), Model Architecture, Use Case, and DFlash Speculative Decoding.
+
+[^mimo-v2-6-report-2026]: Xiaomi LLM-Core, “MiMo-V2.6: Scaling Reinforcement Learning Towards Self-Improvement,” [technical report](../raw/MiMo-V2.6/MiMo_V2_6_technical_report.md), Sections 2.4 and 6.4.
