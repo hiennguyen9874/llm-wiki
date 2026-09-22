@@ -1,6 +1,7 @@
 # Wiki Update Log
 
 ## 2026-09-22
+- **Ingest**: Compiled the [MiMo-V2.6 Pro/Flash release bundle](../raw/MiMo-V2.6-Sources/MiMo-V2.6-Flash-RL.md); updated the [architecture](mimo-v2-6-omnimodal-hybrid-swa-architecture.md) with checkpoint and reference-code behavior, contradictions, and coverage, and created [release interface and evaluation limits](mimo-v2-6-release-interface-and-evaluation-limits.md).
 - **Ingest**: Compiled [MiMo-V2.6: Scaling Reinforcement Learning Towards Self-Improvement](../raw/MiMo-V2.6/MiMo_V2_6_technical_report.md) and its 31 referenced figures; created concepts for its [omni-modal hybrid-SWA architecture](mimo-v2-6-omnimodal-hybrid-swa-architecture.md), [scaled agentic RL](mimo-v2-6-scaled-agentic-rl.md), and [RL infrastructure/evidence limits](mimo-v2-6-rl-infrastructure-and-evidence-limits.md), and updated GRPO, DFlash, and Muon with report-specific variants.
 
 ## 2026-09-17
