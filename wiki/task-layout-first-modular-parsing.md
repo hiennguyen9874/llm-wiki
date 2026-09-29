@@ -5,7 +5,7 @@ description: Layout-first modular parsing groups systems that detect layout regi
 tags: [task, document-parsing, layout-analysis, modular-systems]
 status: stable
 created: 2026-08-22
-generated: { by: llm-wiki-agent/1, at: 2026-08-22T12:00:00+07:00 }
+generated: { by: llm-wiki-agent/1, at: 2026-09-29T15:55:00Z }
 sources:
   - id: current-ocr-approaches
     resource: ../wiki/current-ocr-approaches.md
@@ -32,6 +32,7 @@ Layout-first modular parsing first detects document elements (text blocks, table
 - [PaddleOCR-VL-1.6](paddleocr-vl-1.6.md) — same two-stage path with mined weak-region data and CPT–SFT–GRPO
 - [GLM-OCR](glm-ocr.md) — PP-DocLayoutV3 → CogViT-GLM recognizer (0.9B)
 - [MinerU2.5](mineru2-5.md) / [MinerU2.5-Pro](mineru2-5-pro.md) — 1.2B low-resolution global layout → native-resolution crop recognition
+- [TeleOCR](teleocr.md) — 1.2B deformation-aware polygon layout segmentation → crop recognition in one prompted VLM (digital and camera-captured pages)
 - [FalconOCR](falcon-ocr.md) — 300M PP-DocLayoutV3 → early-fusion text/LaTeX/HTML-table recognizer
 - [PP-StructureV3](pp-structurev3.md) — OCR + layout/article detection + specialist element models + order reconstruction
 - [Surya OCR 2](surya-ocr-2.md) — 650M shared VLM for layout/order/OCR/tables (boundary: can operate layout-first block-parallel or end-to-end)

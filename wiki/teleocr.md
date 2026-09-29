@@ -5,7 +5,7 @@ description: TeleOCR (formerly NaviDC-OCR) is a 1.2B layout-first document parse
 tags: [ocr, document-parsing, camera-captured-documents, layout-analysis, pseudo-labeling]
 status: draft
 created: 2026-09-29
-generated: { by: llm-wiki-agent/1, at: 2026-09-29T15:41:02Z }
+generated: { by: llm-wiki-agent/1, at: 2026-09-29T15:55:00Z }
 sources:
   - id: teleocr-v3
     resource: ../raw/arXiv-2608.12898v3-TeleOCR/main.tex
@@ -43,6 +43,10 @@ All figures below are **reported**, not reproduced. OmniDocBench-style scoring c
 
 On PureDocBench the authors **removed six invalid Markdown predictions** following severe repetitive generation (one Clean, five Real Degraded), stating missing predictions score zero; no Digital Degraded predictions were removed. This is a documented failure mode and scoring intervention, not evidence that all pages were parsed successfully. The visual comparisons in the appendix illustrate warped-region layouts, table reconstruction, and rotated formulas, but are selected examples, not a measured ablation.[^teleocr-v3]
 
+## Contradictions
+
+- The report's prose says TeleOCR "achieves the best performance in text recognition, table reconstruction, and reading order recovery," but its own OmniDocBench v1.6 table records OvisOCR2 with lower text edit distance (0.025 vs 0.027) and lower reading-order edit distance (0.111 vs 0.122). The prose ranking is not supported by the report's own table; the disagreement is recorded unresolved.[^teleocr-v3]
+
 ## Coverage and trust limits
 
 **Observed by static inspection:** `main.tex`, `README.md`, `00README.json`, bibliography metadata and cited figure PDFs (rendered for visual review). The figures add illustrative pipeline and output comparisons; no numerical result is inferred from them beyond the source tables. The remaining bundled `.cls`, `.bst`, `.dtx`, `.ins`, font files and `.bbl` are typesetting/vendor or derived bibliography artifacts; `fig/icon.png` and root `score.png` repeat or decorate report/README material. No code, model weights, benchmark data, scoring scripts, trained judge, or experimental logs are present locally; neither training nor inference was executed. External GitHub/model links and the README's Apache-2.0 tag were not independently verified as a license for this LaTeX bundle. The paper does not report hardware/compute, variance, dataset provenance/overlap audits, detailed stage-3/4 configurations, or component-wise ablations, so causal and reproducibility claims remain limited.[^teleocr-v3]
@@ -50,6 +54,7 @@ On PureDocBench the authors **removed six invalid Markdown predictions** followi
 ## Relationships
 
 - **Uses:** [Task: Layout-first modular parsing](task-layout-first-modular-parsing.md) as its page-layout-then-region-recognition paradigm; polygon segmentation modifies the region representation.[^teleocr-v3]
+- **Cataloged in:** [Layout-first modular OCR benchmarks](layout-first-modular-ocr-benchmarks.md) as a retained layout-first family member; its author-reported numbers remain on this page rather than in that catalog's protocol tables.[^teleocr-v3]
 - **Related to:** [Document-parser data flywheel](document-parser-data-flywheel.md) through pseudo-label filtering and synthetic captured-document generation, without demonstrating the same benchmark-driven iterative cycle.[^teleocr-v3]
 - **Compared with:** [OvisOCR2](ovisocr2.md), [PaddleOCR-VL-1.6](paddleocr-vl-1.6.md), and [MinerU2.5-Pro](mineru2-5-pro.md) in this report's benchmark tables; these are the TeleOCR authors' evaluations, not cross-paper score joins.[^teleocr-v3]
 

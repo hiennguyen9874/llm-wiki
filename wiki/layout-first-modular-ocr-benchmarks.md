@@ -5,7 +5,7 @@ description: Layout-first modular OCR benchmarks catalog retained models, datase
 tags: [ocr, document-parsing, layout-analysis, benchmarks, evaluation]
 status: draft
 created: 2026-08-17
-generated: { by: llm-wiki-agent/1, at: 2026-08-17T14:59:12Z }
+generated: { by: llm-wiki-agent/1, at: 2026-09-29T15:55:00Z }
 sources:
   - id: paddleocr3-report
     resource: ../raw/2507.05595_PaddleOCR-3.0/main.tex
@@ -34,11 +34,17 @@ sources:
   - id: mineru2-5-pro-2605-card
     resource: ../raw/MinerU2.5-Pro-2605-1.2B.md
     title: MinerU2.5-Pro-2605-1.2B model card
+  - id: teleocr-v3
+    resource: ../raw/arXiv-2608.12898v3-TeleOCR/main.tex
+    scope: ../raw/arXiv-2608.12898v3-TeleOCR/
+    kind: paper
+    revision: arXiv:2608.12898v3
+    title: "TeleOCR: Navigating Document Parsing Across Digital and Camera-Captured Documents"
 ---
 
 # Layout-first modular OCR benchmarks
 
-The retained core layout-first modular family consists of [PP-StructureV3](pp-structurev3.md), [PaddleOCR-VL](paddleocr-vl.md), [PaddleOCR-VL-1.5](paddleocr-vl-1.5.md), [PaddleOCR-VL-1.6](paddleocr-vl-1.6.md), [GLM-OCR](glm-ocr.md), [FalconOCR](falcon-ocr.md), [MinerU2.5](mineru2-5.md), and [MinerU2.5-Pro](mineru2-5-pro.md). Each localizes or classifies page regions before crop- or element-level recognition and reassembly. Across the closest common protocol retained here, the author-reported OmniDocBench v1.6 leaderboard places PaddleOCR-VL-1.6 at 96.33 overall, but version, language subset, evaluator, and reporting-source differences prevent this from establishing a universal ranking.[^paddleocr-vl-1-6-report]
+The retained core layout-first modular family consists of [PP-StructureV3](pp-structurev3.md), [PaddleOCR-VL](paddleocr-vl.md), [PaddleOCR-VL-1.5](paddleocr-vl-1.5.md), [PaddleOCR-VL-1.6](paddleocr-vl-1.6.md), [GLM-OCR](glm-ocr.md), [FalconOCR](falcon-ocr.md), [MinerU2.5](mineru2-5.md), and [MinerU2.5-Pro](mineru2-5-pro.md), and [TeleOCR](teleocr.md). Each localizes or classifies page regions before crop- or element-level recognition and reassembly. TeleOCR keeps the region-first shape but replaces rectangular detection with deformation-aware polygon layout segmentation for both digital and camera-captured pages; its author-reported OmniDocBench v1.6, Wild-OmniDocBench v1.5, and PureDocBench values are retained on its concept page rather than merged into the protocol tables below.[^teleocr-v3] Across the closest common protocol retained here, the author-reported OmniDocBench v1.6 leaderboard places PaddleOCR-VL-1.6 at 96.33 overall, but version, language subset, evaluator, and reporting-source differences prevent this from establishing a universal ranking.[^paddleocr-vl-1-6-report]
 
 ## Scope and model coverage
 
@@ -52,6 +58,7 @@ The retained core layout-first modular family consists of [PP-StructureV3](pp-st
 | [FalconOCR](falcon-ocr.md) | PP-DocLayoutV3 regions/order → early-fusion text/formula/table recognizer | 0.3B | Current retained English-focused model |
 | [MinerU2.5](mineru2-5.md) | Low-resolution global layout → native-resolution text/formula/table crops | 1.2B | Current retained baseline |
 | [MinerU2.5-Pro](mineru2-5-pro.md) | MinerU2.5 two-step extraction with a data-centric update | 1.2B | 2604 and 2605 releases retained |
+| [TeleOCR](teleocr.md) | Deformation-aware polygon layout segmentation → same-VLM crop recognition for digital and camera-captured pages | 1.2B | Current model; author-reported results without independent reproduction |
 
 [Surya OCR 2](surya-ocr-2.md) is a boundary case rather than a core member: its optional block mode runs layout before region recognition, but its primary system is described as one shared VLM for full-page layout, order, OCR, and tables. [Nemotron OCR v2](nemotron-ocr-v2.md) is classified with detector–recognizer OCR, while [PP-DocLayoutV2](pp-doclayoutv2.md) and [PP-DocLayoutV3](pp-doclayoutv3.md) are layout components rather than full document parsers. End-to-end models with an optional generated layout trace, such as Qianfan-OCR, are also excluded.
 
@@ -247,7 +254,7 @@ Every numeric result is author- or vendor-reported. The local bundle does not co
 
 ## Relationships
 
-- **Benchmarks:** [PP-StructureV3](pp-structurev3.md), [PaddleOCR-VL](paddleocr-vl.md), [PaddleOCR-VL-1.5](paddleocr-vl-1.5.md), [PaddleOCR-VL-1.6](paddleocr-vl-1.6.md), [GLM-OCR](glm-ocr.md), [FalconOCR](falcon-ocr.md), [MinerU2.5](mineru2-5.md), and [MinerU2.5-Pro](mineru2-5-pro.md).
+- **Benchmarks:** [PP-StructureV3](pp-structurev3.md), [PaddleOCR-VL](paddleocr-vl.md), [PaddleOCR-VL-1.5](paddleocr-vl-1.5.md), [PaddleOCR-VL-1.6](paddleocr-vl-1.6.md), [GLM-OCR](glm-ocr.md), [FalconOCR](falcon-ocr.md), [MinerU2.5](mineru2-5.md), [MinerU2.5-Pro](mineru2-5-pro.md), and [TeleOCR](teleocr.md).
 - **Refines:** the modular layout-first family and evaluation limits in [Current OCR approaches](current-ocr-approaches.md).
 - **Complements:** [Detector–recognizer OCR benchmarks](detector-recognizer-ocr-benchmarks.md), which covers plain text detection and recognition rather than document reconstruction.
 
@@ -259,4 +266,5 @@ Every numeric result is author- or vendor-reported. The local bundle does not co
 [^falcon-perception-report]: Falcon Vision Team, *Falcon Perception*, local source at [main.tex](../raw/2603.27365_FalconPerception/main.tex), especially `sections/ocr.tex` (accessed 2026-08-17).
 [^mineru2-5-card]: OpenDataLab, local [MinerU2.5 model card](../raw/MinerU2.5-2509-1.2B.md); remote benchmark figures were unavailable locally (accessed 2026-08-17).
 [^mineru2-5-pro-card]: OpenDataLab, local [MinerU2.5-Pro-2604 model card](../raw/MinerU2.5-Pro-2604-1.2B.md); remote benchmark figures were unavailable locally (accessed 2026-08-17).
-[^mineru2-5-pro-2605-card]: OpenDataLab, local [MinerU2.5-Pro-2605 model card](../raw/MinerU2.5-Pro-2605-1.2B.md) (accessed 2026-08-17).
+[^mineru2-5-pro-2605-card]: OpenDataLab, local [MinerU2.5-Pro-2605-1.2B model card](../raw/MinerU2.5-Pro-2605-1.2B.md) (accessed 2026-08-17).
+[^teleocr-v3]: Cai et al., *TeleOCR: Navigating Document Parsing Across Digital and Camera-Captured Documents*, arXiv:2608.12898v3, local [main.tex](../raw/arXiv-2608.12898v3-TeleOCR/main.tex) (§§ Data Engineering, Progressive Training, Experimental Evaluation; Tables OmniDocBench v1.6, Wild OmniDocBench v1.5, PureDocBench) and [README.md](../raw/arXiv-2608.12898v3-TeleOCR/README.md) (§ News, Quick Start), inspected 2026-09-29.

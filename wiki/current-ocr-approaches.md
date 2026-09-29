@@ -5,7 +5,7 @@ description: Current document OCR spans lightweight detector–recognizer pipeli
 tags: [ocr, document-parsing, vision-language-models, synthesis]
 status: draft
 created: 2026-08-17
-generated: { by: llm-wiki-agent/1, at: 2026-08-17T22:11:53+07:00 }
+generated: { by: llm-wiki-agent/1, at: 2026-09-29T15:55:00Z }
 sources:
   - id: pp-ocrv6-report
     resource: ../raw/2606.13108_PP-OCRv6/main.tex
@@ -88,6 +88,12 @@ sources:
   - id: surya-ocr-2-card
     resource: ../raw/surya-ocr-2.md
     title: Surya OCR 2 model card
+  - id: teleocr-v3
+    resource: ../raw/arXiv-2608.12898v3-TeleOCR/main.tex
+    scope: ../raw/arXiv-2608.12898v3-TeleOCR/
+    kind: paper
+    revision: arXiv:2608.12898v3
+    title: "TeleOCR: Navigating Document Parsing Across Digital and Camera-Captured Documents"
 ---
 
 # Current OCR approaches
@@ -102,7 +108,7 @@ Classical two-stage OCR remains the preferred shape when the target is text boxe
 
 ### Modular layout-first document parsing
 
-Systems such as [PP-StructureV3](pp-structurev3.md), [PaddleOCR-VL-1.6](paddleocr-vl-1.6.md), [GLM-OCR](glm-ocr.md), and [FalconOCR](falcon-ocr.md) first detect page elements and reading order, then recognize native-resolution crops in parallel. [PP-DocLayoutV3](pp-doclayoutv3.md) illustrates the trend toward jointly predicting classes, boxes, masks, and pairwise order. This decomposition preserves small text and routes formulas and tables to suitable recognizers, at the cost of error propagation across stages and greater system complexity.[^paddleocr-vl-1-6-report][^falcon-perception-report]
+Systems such as [PP-StructureV3](pp-structurev3.md), [PaddleOCR-VL-1.6](paddleocr-vl-1.6.md), [GLM-OCR](glm-ocr.md), and [FalconOCR](falcon-ocr.md) first detect page elements and reading order, then recognize native-resolution crops in parallel. [PP-DocLayoutV3](pp-doclayoutv3.md) illustrates the trend toward jointly predicting classes, boxes, masks, and pairwise order. This decomposition preserves small text and routes formulas and tables to suitable recognizers, at the cost of error propagation across stages and greater system complexity.[^paddleocr-vl-1-6-report][^falcon-perception-report] [TeleOCR](teleocr.md) keeps the two-stage shell but replaces rectangular detection with deformation-aware polygon layout segmentation for camera-captured pages.[^teleocr-v3]
 
 ### End-to-end generative document VLMs
 
@@ -136,6 +142,7 @@ The architectural families above use representative systems. For complete retrie
 | [Qianfan-OCR](qianfan-ocr.md) | Optional Layout-as-Thought emits boxes, labels, and summaries before parsing or understanding.[^qianfan-ocr-report] |
 | [RolmOCR](rolmocr.md) | Metadata-independent PDF-page OCR trained with rotated pages for off-angle robustness.[^rolmocr-card] |
 | [Surya OCR 2](surya-ocr-2.md) | Shared compact VLM for layout, order, OCR, and tables, plus a separate line detector.[^surya-ocr-2-card] |
+| [TeleOCR](teleocr.md) | Decoupled, layout-first parsing of digital and camera-captured pages with deformation-aware polygon layout segmentation.[^teleocr-v3] |
 | [Typhoon OCR](typhoon-ocr.md) | Thai–English extraction using one image-only prompt and rich Markdown/HTML/formula outputs.[^typhoonocr-report] |
 
 Older or release-specific artifacts are represented by their current family pages: [DeepSeek-OCR](deepseek-ocr.md) precedes DeepSeek-OCR 2; [PaddleOCR-VL](paddleocr-vl.md) and [PaddleOCR-VL-1.5](paddleocr-vl-1.5.md) precede 1.6; [Chandra OCR](chandra-ocr.md) is superseded by Chandra OCR 2; `dots.mocr` is the released implementation covered by Multimodal OCR; and Infinity-Parser2-Pro is covered by Infinity-Parser2. [PaddleOCR 3.0](paddleocr-3.md) is a toolkit rather than one model, while [MDPBench](mdpbench.md), [Real5-OmniDocBench](real5-omnidocbench.md), MonkeyDoc, and Infinity-Doc are benchmarks or datasets rather than model families.
@@ -148,7 +155,7 @@ Older or release-specific artifacts are represented by their current family page
 4. **Data-centric specialization:** the frontier is shifting from indiscriminate scaling toward mining unstable predictions, sparse feature regions, and unreliable labels. [Document-parser data flywheel](document-parser-data-flywheel.md) converts observed failures into targeted mined, pseudo-labeled, or synthesized data; [DOM-based document synthesis](dom-based-document-synthesis.md) derives pixels and geometry-aligned labels from the same rendered source.[^paddleocr-vl-1-6-report][^infinity-parser2-report][^ovisocr2-report]
 5. **Progressive post-training:** CPT or pre-alignment establishes broad visual-text competence, SFT teaches canonical structured outputs, and GRPO uses verifiable task-native rewards such as edit similarity, TEDS, CDM, mIoU, syntax validity, and reading-order consistency. Compact models may use teacher RL followed by on-policy distillation and model fusion when direct RL is unstable.[^paddleocr-vl-1-6-report][^ovisocr2-report][^infinity-parser2-report]
 6. **Faster and longer decoding:** compressed visual tokens and sparse MoE decoders reduce prefix and active-parameter cost; multi-token prediction generates several future tokens per step; [MinerU-Diffusion](mineru-diffusion.md) explores block-parallel diffusion instead of autoregression; [Unlimited OCR](unlimited-ocr.md) preserves the full visual prefix while limiting generated-token attention to a sliding window for bounded decode-side KV cache.[^mineru-diffusion-card][^unlimited-ocr-report]
-7. **Robust real-world capture:** training and evaluation increasingly include skew, warping, illumination, screen photography, low resolution, handwriting, old scans, seals, rare scripts, rotated tables, and long-tail layouts. [Real5-OmniDocBench](real5-omnidocbench.md) captures five physical distortion conditions, but remains a targeted rather than comprehensive in-the-wild test.[^real5-source]
+7. **Robust real-world capture:** training and evaluation increasingly include skew, warping, illumination, screen photography, low resolution, handwriting, old scans, seals, rare scripts, rotated tables, and long-tail layouts. [Real5-OmniDocBench](real5-omnidocbench.md) captures five physical distortion conditions, but remains a targeted rather than comprehensive in-the-wild test.[^real5-source] [TeleOCR](teleocr.md) instead folds point- and region-level deformation awareness into the parser, replacing a separate geometric-rectification stage.[^teleocr-v3]
 
 ## Practical selection
 
@@ -202,3 +209,4 @@ Nearly all relevant wiki concepts are `draft`; missing independent verification 
 [^olmocr2-card]: Allen Institute for AI, local [olmOCR-2-7B-1025 model card](../raw/olmOCR-2-7B-1025.md).
 [^rolmocr-card]: Reducto AI, local [RolmOCR model card](../raw/RolmOCR.md).
 [^surya-ocr-2-card]: Datalab, local [Surya OCR 2 model card](../raw/surya-ocr-2.md).
+[^teleocr-v3]: Cai et al., *TeleOCR: Navigating Document Parsing Across Digital and Camera-Captured Documents*, arXiv:2608.12898v3, local [main.tex](../raw/arXiv-2608.12898v3-TeleOCR/main.tex) (§ Related Work; Tables OmniDocBench v1.6, Wild OmniDocBench v1.5, PureDocBench) and [README.md](../raw/arXiv-2608.12898v3-TeleOCR/README.md), inspected 2026-09-29.

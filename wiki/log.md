@@ -1,6 +1,7 @@
 # Wiki Update Log
 
 ## 2026-09-29
+- **Update**: Integrated [TeleOCR](teleocr.md) into the layout-first retrieval graph; added it to [Task: Layout-first modular parsing](task-layout-first-modular-parsing.md), [Layout-first modular OCR benchmarks](layout-first-modular-ocr-benchmarks.md), and [Current OCR approaches](current-ocr-approaches.md), and recorded its prose-vs-table ranking contradiction.
 - **Ingest**: Compiled [TeleOCR arXiv v3 report](../raw/arXiv-2608.12898v3-TeleOCR/main.tex) and bundled README/figures; created [TeleOCR](teleocr.md) with reported results, mechanisms, and reproduction limits.
 
 ## 2026-08-22
