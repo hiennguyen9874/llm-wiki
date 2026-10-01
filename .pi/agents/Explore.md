@@ -2,8 +2,8 @@
 display_name: Explore
 description: Fast codebase exploration agent (read-only)
 tools: read, bash, grep, find, ls
-model: anthropic/claude-sonnet-5-5
-thinking: medium
+model: opencode-go/deepseek-v4.1-flash
+thinking: high
 prompt_mode: replace
 ---
 
