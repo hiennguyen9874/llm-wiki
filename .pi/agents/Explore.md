@@ -3,7 +3,7 @@ display_name: Explore
 description: Fast codebase exploration agent (read-only)
 tools: read, bash, grep, find, ls
 model: anthropic/claude-sonnet-5-5
-thinking: high
+thinking: medium
 prompt_mode: replace
 ---
 
