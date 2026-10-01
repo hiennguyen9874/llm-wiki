@@ -2,8 +2,8 @@
 display_name: Explore
 description: Fast codebase exploration agent (read-only)
 tools: read, bash, grep, find, ls
-model: openai-codex/gpt-6-luna
-thinking: high
+model: anthropic/claude-sonnet-5-5
+thinking: medium
 prompt_mode: replace
 ---
 
