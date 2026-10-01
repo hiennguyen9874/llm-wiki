@@ -1,6 +1,6 @@
 ---
 type: Synthesis
-title: Attention: beginner's guide for causal language models
+title: "Attention: beginner's guide for causal language models"
 description: A beginner-first guide to Q/K/V projections, scaled dot-product attention, causal masking, multi-head attention, implementation shapes, and correctness tests.
 tags: [attention, softmax-attention, multi-head-attention, causal-masking, pytorch, learning-roadmap]
 status: stable

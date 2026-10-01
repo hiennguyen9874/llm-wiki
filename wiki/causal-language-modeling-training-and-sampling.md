@@ -1,6 +1,6 @@
 ---
 type: Synthesis
-title: Causal language modeling: training and sampling
+title: "Causal language modeling: training and sampling"
 description: A beginner-first guide to next-token likelihood, teacher forcing, causal masking, training, debugging, and temperature/top-k/top-p decoding for an autoregressive language model.
 tags: [causal-language-modeling, autoregressive-generation, teacher-forcing, causal-masking, sampling, pytorch]
 status: stable

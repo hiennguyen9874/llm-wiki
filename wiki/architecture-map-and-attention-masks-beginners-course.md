@@ -15,7 +15,7 @@ sources:
     title: Attention Is All You Need
   - id: devlin-bert-2018
     resource: ../raw/arXiv-1810.04805v2/main.tex
-    title: BERT: Pre-training of Deep Bidirectional Transformers for Language Understanding
+    title: "BERT: Pre-training of Deep Bidirectional Transformers for Language Understanding"
 ---
 
 # Architecture map and attention masks — khóa học cho người mới

@@ -1,6 +1,6 @@
 ---
 type: Concept
-title: State-space models: continuous, recurrent, and convolutional forms
+title: "State-space models: continuous, recurrent, and convolutional forms"
 description: A linear time-invariant state-space model becomes a discrete recurrence after discretization, and the same recurrence induces an SSM convolution kernel.
 tags: [sequence-modeling, s4, ssm]
 status: stable
