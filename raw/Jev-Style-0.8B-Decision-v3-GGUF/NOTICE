@@ -1,0 +1,35 @@
+chaoliangUNSW/Jev-Style-0.8B-Decision-v3-GGUF
+Copyright 2026 chaoliangUNSW. Licensed under the Apache License, Version 2.0 (see LICENSE).
+
+This model is a fine-tuned derivative of Qwen3.5-0.8B (https://huggingface.co/Qwen/Qwen3.5-0.8B,
+revision 2fc06364715b967f1860aea9cf38778875588b17), Copyright 2026 Alibaba Cloud, licensed under the Apache
+License, Version 2.0. The LICENSE file in this repository is the license file distributed with Qwen3.5-0.8B.
+
+Modifications relative to Qwen3.5-0.8B:
+- all text-model weights were fine-tuned (full fine-tuning, bf16 training) to score typed decision questions
+  (choice / score / true-false) with a verdict readout: logit(" yes") - logit(" no") at one " ->" slot per
+  option; calibration temperatures were fitted afterwards (readout_config.json);
+- the vision tower (model.visual.*) and the multi-token-prediction head (mtp.*) were removed; the checkpoint
+  is a text-only Qwen3_5ForCausalLM with tied input/output embeddings;
+- converted to GGUF (F16) and quantised (Q8_0, Q4_K_M) with the unmodified llama.cpp tools
+  (https://github.com/ggml-org/llama.cpp, MIT License, Copyright The ggml authors), commit 441df11f65ea0b6d0c72965aaf70c8241070ddcb;
+- the GGUF metadata field general.name was set to "Jev-Style-0.8B-Decision-v3" with gguf-py (llama.cpp,
+  gguf_new_metadata.py); tensor data unchanged;
+- added the runtime script, readout/release configuration files, the integrity manifest and this NOTICE.
+
+jev_score.cpp is original code of this project released under Apache-2.0. It is compiled against
+libllama and uses nlohmann/json (MIT) from llama.cpp's vendor directory at build time; neither
+library is redistributed in this repository.
+
+The question types (choice / score / noul) follow the typed-decision convention of Laya
+(https://github.com/NandhaKishorM/laya, Apache-2.0) so both models can be evaluated on the same
+inputs. No Laya code or weights are included.
+
+Third generation (v3) of the Jev-Style decision series. Earlier generations: v1 =
+chaoliangUNSW/Jev-Style-Qwen3.5-2B-Decision (public GGUF release: chaoliangUNSW/Jev-Style-Qwen3.5-2B-Decision-GGUF) and
+v2 = chaoliangUNSW/Jev-Style-Qwen3.5-2B-Decision-v2, both 2B models built on Qwen3.5-2B-Base. v3 is fine-tuned from
+Qwen3.5-0.8B; no weights of v1 or v2 were reused.
+
+Not affiliated with, endorsed by or connected to TypeSafe or Jev. "Jev-Style" only describes the kind
+of model (a small typed-decision model in a similar style); no Jev weights, code or outputs are included.
+Not affiliated with or endorsed by Alibaba Cloud / the Qwen team or the Laya authors.

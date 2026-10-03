@@ -1,0 +1,136 @@
+
+\providecolor{clmblue}{HTML}{0668E1}
+\providecolor{clmactrule}{HTML}{BFC4C9}
+\providecolor{clmactgrey}{HTML}{6B7075}
+\providecolor{clmactfade}{HTML}{8D939A}
+\providecolor{clmactscaf}{HTML}{B9BEC4}
+
+\lstdefinestyle{clmactstyle}{
+  basicstyle=\ttfamily\scriptsize,
+  columns=fullflexible,
+  keepspaces=true,
+  showstringspaces=false,
+  breaklines=true,
+  breakindent=0pt,
+  breakautoindent=false,
+  postbreak=\mbox{\textcolor{clmactgrey}{$\hookrightarrow$}\space},
+  frame=single,
+  framerule=0.4pt,
+  rulecolor=\color{clmactrule},
+  framesep=4pt,
+  xleftmargin=0pt,
+  xrightmargin=0pt,
+  aboveskip=3pt,
+  belowskip=1pt,
+  escapeinside={(*}{*)},
+  moredelim=[is][\color{clmblue}]{@}{@},
+  moredelim=[is][\color{clmactfade}]{~}{~},
+  moredelim=[is][\color{clmactscaf}]{!}{!},
+}
+
+\providecommand{\clmactcap}[2]{%
+  \par\noindent\footnotesize
+  \parbox[t][2\baselineskip][t]{\linewidth}{\footnotesize
+    \textcolor{clmblue}{\textbf{#1}}\ \textbf{#2}}\par%
+}
+\providecommand{\clmactsrc}[1]{%
+  \par\noindent{\scriptsize\textcolor{clmactgrey}{#1}\par}%
+}
+\providecommand{\clmactcolw}{0.487\linewidth}
+\providecommand{\clmactlabel}[2]{\setcounter{subfigure}{#1}\phantomsubcaption\label{fig:clm-examples-#2}}
+
+\begin{figure}[t]
+\centering
+
+\begin{minipage}[t]{\clmactcolw}
+\clmactlabel{0}{a}
+\clmactcap{(a)}{\ours{} builds in-context scoreboards and trackers to orchestrate and monitor subagents with in-place editing.}
+\begin{lstlisting}[style=clmactstyle]
+!open(p,"w").write("""[[CTX_TURN 1 role=assistant]]!
+## STATE (*\textemdash{}*) Erd(*\H{o}*)s Minimum Overlap Problem (compact)
+@LEDGER TOP:@ 0.9992491 ...
+@AGENTS:@ 21 launched, 5 currently running ...
+@KEY FILES:@ /workspace/subctx_4/h_best_final.npy ...
+@FINDINGS:@ All methods plateau at 0.381157 ...!""")!
+\end{lstlisting}
+\clmactsrc{Erd\H{o}s minimum overlap, step 455}
+\begin{lstlisting}[style=clmactstyle]
+!new="""!@## ORCHESTRATOR STATE (compact)@
+@Budget:@ 7/100 used. All 5 slots BUSY (subctx_0..4 ...
+@Dead ends:@ simple grid(0.822), hexagonal(0.9977) ...
+@Next:@ score my own candidates while workers run ...!"""!
+\end{lstlisting}
+\clmactsrc{Circle packing $N=26$, steps 194, 198}
+
+\vspace{4pt}
+
+\clmactlabel{2}{c}
+\clmactcap{(c)}{\ours{} writes for loops to remove past irrelevant search results or compact overly long outputs when creating a new view.}
+\begin{lstlisting}[style=clmactstyle]
+@for t in turns[1:]:@ !...!
+    !result += f'\n[[CTX_TURN search]]\n!@Searched: {m.group(1).strip()}.@ @No relevant results.@!\n'!
+\end{lstlisting}
+\clmactsrc{BrowseComp-Plus, step 1509}
+\begin{lstlisting}[style=clmactstyle]
+@while i < len(lines):@ !...!
+    !if !@len(body) > 500@!:! !...!
+        !if !'bcp_search' in body!:! !...!
+            !result.append(f"!@[Searched: {query}]@!")!
+        !elif !'bcp_get_document' in body!:! !...!
+            !result.append(f"!@[Retrieved doc {docid}]@!")!
+    !else:!
+        !result.extend(body_lines)!
+\end{lstlisting}
+\clmactsrc{BrowseComp-Plus, step 13}
+\end{minipage}
+\hfill
+\begin{minipage}[t]{\clmactcolw}
+\clmactlabel{1}{b}
+\clmactcap{(b)}{\ours{} creates a new role alongside the original template roles for its own internal notes.}
+\begin{lstlisting}[style=clmactstyle]
+!re.sub(r"!~\[\[CTX_TURN 4 .*?(?=\[\[CTX_TURN 16)~!",!
+  !"""[[CTX_TURN 4 !@role=notes@!]]!
+!STATUS: ... James Gallagher (docid=58939) ...""")!
+\end{lstlisting}
+\clmactsrc{BrowseComp-Plus, step 40}
+
+\vspace{4pt}
+
+\clmactlabel{3}{d}
+\clmactcap{(d)}{\ours{} defines and reuses a function to conveniently compact old results with a reference to its maintained note.}
+\begin{lstlisting}[style=clmactstyle]
+!progress = """![Search progress: VERIFIED ... NEXT: ...]!"""!
+!s = re.sub(..., !@progress@!, s)!
+
+@def compact_turns(text):@
+    !return re.sub(..., lambda m: !m.group(0).split('\n')[0]
+        !+ '\n!@[search results - see progress note]@!', text)!
+@s = compact_turns(s)@
+\end{lstlisting}
+\clmactsrc{BrowseComp-Plus, step 109}
+
+\vspace{4pt}
+
+\clmactlabel{4}{e}
+\clmactcap{(e)}{\ours{} reproduces effective behaviors from existing baselines, preserving important facts and future TODOs in the summary.}
+\begin{lstlisting}[style=clmactstyle]
+!re.sub(r"!~\[\[CTX_TURN 2.*~!",!
+  !"![SUMMARY: ... @Kader Asmal Excellence Award@
+   @launched 2011 by Mrs A Motshekga@ ...]!")!
+\end{lstlisting}
+\clmactsrc{BrowseComp-Plus, step 20}
+\begin{lstlisting}[style=clmactstyle]
+!new="""![EXPLORATION LEDGER - @86 scored attempts@ ...
+Best score: 0.9931 (sum_radii=2.6177) from ...
+@UNTRIED IDEAS (priority order):@
+@1.@ Gradient clipping norm=1.0 with 12k steps
+@2.@ Try lam=2200+uniform(0,2800) with 12k steps ...!"""!
+\end{lstlisting}
+\clmactsrc{Circle packing $N=26$, step 332}
+\end{minipage}
+
+\caption{\textbf{Qualitative examples of CLM context-management behaviors.}
+\oursplural{} treat context as a file and can arbitrarily edit it using general code interface.
+}
+\label{fig:clm-examples}
+\end{figure}

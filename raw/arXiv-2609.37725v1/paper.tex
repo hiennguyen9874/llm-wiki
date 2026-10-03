@@ -1,0 +1,607 @@
+
+\PassOptionsToPackage{table}{xcolor}
+\RequirePackage{amsmath}
+\RequirePackage{amsfonts}
+
+\documentclass{fairmeta}
+\usepackage{newpxtext,newpxmath}\let\laplace\relax
+\renewcommand{\title}[1]{\newcommand{\titlelist}{{\fontsize{24}{28}\selectfont\sffamily\bfseries\color{clmblue} #1}}}
+% Option "twocolumn" available, but please prioritize single-column
+
+\input{math_commands.tex}
+
+\usepackage{xspace}
+\usepackage{verbatim}
+\usepackage{booktabs} 
+\usepackage{arydshln} 
+\usepackage{wrapfig} 
+\usepackage{mathtools}
+
+\usepackage{listings}
+\lstdefinestyle{drctx}{
+  language=Python,
+  basicstyle=\ttfamily\small,
+  keywordstyle=\ttfamily,
+  commentstyle=\color{gray},
+  showstringspaces=false,
+  keepspaces=true,
+  columns=fixed,
+  basewidth=0.53em,
+  escapeinside={(*@}{@*)},
+  xleftmargin=0pt,
+  aboveskip=2pt,
+  belowskip=0pt,
+  frame=none,
+}
+\definecolor{ctxhl}{HTML}{C92A2A}
+\definecolor{evoblue}{HTML}{1F77B4}
+\definecolor{evopurple}{HTML}{7B3FA0}
+\newcommand{\ctxhl}[1]{\textcolor{ctxhl}{#1}}
+\definecolor{readhl}{HTML}{2B8A3E}
+\newcommand{\readhl}[1]{\textcolor{readhl}{#1}}
+\definecolor{clmblue}{HTML}{0668E1}
+\newcommand{\clmhl}[1]{\textcolor{clmblue}{\textbf{#1}}}
+\newcommand{\skl}{{\color{clmblue}s}}
+\definecolor{ctxorigfill}{HTML}{BCD8EE}\definecolor{ctxorigedge}{HTML}{0072B2}\definecolor{ctxorigtext}{HTML}{0B3D6B}
+\definecolor{ctxeditfill}{HTML}{F4C8D6}\definecolor{ctxeditedge}{HTML}{C23A63}\definecolor{ctxedittext}{HTML}{7A2040}
+\newcommand{\ctxboxgeneric}[4]{\tikz[baseline=(ctxn.base)]\node[draw=#1,fill=#2,text=#3,rounded corners=1.6pt,line width=0.45pt,inner xsep=2.6pt,inner ysep=1.4pt,outer sep=0pt](ctxn){\ensuremath{#4}};}
+\newcommand{\ctxorig}[1]{\ctxboxgeneric{ctxorigedge}{ctxorigfill}{ctxorigtext}{#1}}
+\newcommand{\ctxedit}[1]{\ctxboxgeneric{ctxeditedge}{ctxeditfill}{ctxedittext}{#1}}
+\newcommand{\clmhlrm}[1]{\clmhl{#1}}
+\colorlet{metablue}{clmblue}
+\newcommand{\metacolor}[1]{\textcolor{metablue}{#1}}
+
+\usepackage{tocloft}
+\addtocontents{toc}{\protect\setcounter{tocdepth}{-1}}
+\usepackage{csquotes}
+\newtcolorbox{quotebox}{
+  enhanced,
+  breakable,
+  colback=gray!5,
+  colframe=gray!35,
+  boxrule=0.5pt,
+  arc=2pt,
+  left=8pt,
+  right=8pt,
+  top=6pt,
+  bottom=6pt
+}
+
+\newcommand{\pending}{\textcolor{gray}{$\cdot\!\cdot\!\cdot$}}
+
+\usepackage{wrapfig}
+\captionsetup{skip=5pt}
+\usepackage{threeparttable} \usepackage{array}
+
+\usepackage{color-edits}
+\definecolor{oc-orange-9}{HTML}{D9480F}
+\definecolor{oc-cyan-8}{HTML}{0C8599}
+\definecolor{rs-color}{HTML}{e87ea1}
+\definecolor{forestgreen}{HTML}{009B55}
+\addauthor{ss}{oc-orange-9}
+\addauthor{rs}{rs-color}
+
+\newtcolorbox{msgbox}[2][gray]{
+    enhanced, breakable,
+    colback=#1!6, colframe=#1!50!black!40,
+    boxrule=0.5pt, arc=2pt, left=6pt, right=6pt, top=3pt, bottom=3pt,
+    title={\scriptsize\sffamily\bfseries #2}, coltitle=black,
+    colbacktitle=#1!15, toptitle=1.5pt, bottomtitle=1.5pt,
+    before skip=4pt, after skip=4pt
+}
+
+\colorlet{swehl}{metabg}
+\colorlet{storagepink}{metabg}
+\newcommand{\sncell}[1]{\cellcolor{storagepink}{#1}}
+
+\newcommand{\stdnote}[1]{\hspace{0.15em}\raisebox{-0.45ex}{\tiny\textcolor{gray}{$\pm$ #1}}}
+\newcommand{\score}[2]{#1\stdnote{#2}}
+\newcommand{\bscore}[2]{\textbf{#1}\stdnote{#2}}
+\usepackage{amsmath}
+\newcommand{\clip}{\operatorname{clip}}
+\newcommand{\pctscore}[2]{\ensuremath{#1_{\scriptscriptstyle #2}}}
+\newcommand{\bpctscore}[2]{\ensuremath{\mathbf{#1}_{\scriptscriptstyle #2}}}
+
+\newcommand{\ours}{CLM\xspace}
+\newcommand{\oursplural}{CLMs\xspace}
+\newcommand{\OURS}{Context Language Model\xspace}
+\newcommand{\OURSplural}{Context Language Models\xspace}
+\newcommand{\Ours}{context language model\xspace}
+\newcommand{\Oursplural}{context language models\xspace}
+\newcommand{\ourbench}{ContextBench\xspace}
+
+\newcommand{\scott}[1]{\textcolor{violet}{[SY: #1]}}
+\newcommand{\pw}[1]{\textcolor{forestgreen}{[PW: #1]}}
+\newcommand{\nato}[1]{\textcolor{purple}{[NL: #1]}}
+
+\definecolor{tengbrown}{HTML}{7A4E2D}
+\newcommand{\teng}[1]{\textcolor{tengbrown}{\textbf{[Teng: #1]}}}
+\usepackage{tikz}
+\DeclareRobustCommand{\failureid}[1]{%
+  \tikz[baseline=(fid.base)]{%
+    \node[circle, draw, line width=0.35pt, inner sep=0.85pt, outer sep=0pt,
+          font=\scriptsize\sffamily\bfseries\upshape] (fid) {#1};%
+  }%
+}
+
+\newcommand{\fix}{\marginpar{FIX}}
+\newcommand{\new}{\marginpar{NEW}}
+
+\title{\OURSplural}
+
+\author[1,2]{Rulin~Shao}
+\author[3]{Shannon~Zejiang~Shen}
+\author[1,2]{Junjie~Oscar~Yin}
+\author[1]{Yuetai~Li}
+\author[1]{Minheng~Wang}
+\author[1]{Hamish~Ivison}
+\author[1]{Radha~Poovendran}
+\author[4]{Nathan~Lambert}
+\author[1]{Teng~Xiao}
+\author[2]{Mike~Lewis}
+\author[2]{Wen-tau~Yih}
+\author[1,2]{Luke~Zettlemoyer}
+\author[1]{Pang~Wei~Koh}
+
+\affiliation[1]{University of Washington}
+\affiliation[2]{Meta Superintelligence Labs}
+\affiliation[3]{MIT}
+\affiliation[4]{Trillium Labs}
+
+\date{\today}
+\correspondence{Rulin Shao at \email{rulin@cs.washington.edu}}
+\metadata[Code]{\url{https://github.com/facebookresearch/context-language-models}}
+
+\abstract{
+We introduce \clmhl{\OURSplural (\oursplural)}, language models that natively manage their own context. We implement this by treating the \clmhl{context as a file} and allowing the model to make unrestricted updates to this file. This allows the model to learn what is most important to maintain in context, and naturally extends to multi-agent systems where multiple agent contexts coexist as files. Building \oursplural \clmhl{zero-shot} with existing models outperforms SOTA context-management strategies across a variety of tasks: 11.4\% higher accuracy with 21.5\% fewer FLOPs on BrowseComp-Plus, 5\% higher scores with 59\% fewer FLOPs on 12-hour EdgeBench, and 65\% greater improvement with the same compute on a 24-hour multi-repository agent-swarm task.
+Moreover, by shifting context management from external harness control to intrinsic model behavior, \oursplural naturally enable both \clmhl{in-context and parametric learning} of context-management strategies.
+We show that \oursplural can be steered with natural-language instructions evolved through a standard skill-optimization loop, improving held-out accuracy by up to 35.9 points on a context-management task while reducing compute. 
+We also introduce an online reinforcement learning method for \oursplural, improving Qwen3.5-9B performance on BrowseComp-Plus by 47.6\% while using 12\% fewer FLOPs.
+Finally, we co-design \clmhl{Suffix Cache Reuse} for \ours{}
+serving, further reducing server-side compute by 35\% relative to standard SGLang at matched performance.
+}
+
+\usepackage{placeins}
+\begin{document}
+
+\maketitle
+
+\section{Introduction}\label{sec:intro}
+
+Despite the fact that context is the cornerstone that allows a language model (LM) to process and retain information over time,  
+context management is not traditionally a native LM capability.
+Instead, prior work mostly relies on harnesses, either hand-engineered~\citep{cassano2026trainingcomposer,openai2026codex,merrill2026terminal} or optimized offline by agents~\citep{lee2026meta}.
+Recent work adds a constrained set of tools with fixed strategies such as compaction, offloading, and retrieval, to the agent's action space~\citep{yan2026memory,yu2026agentic,li2026acm,liu2026context,zhang2025recursive}. 
+In contrast, we show that giving LMs unrestricted access to manage their own context outperforms human-designed baselines, enabling adaptive and creative context-management strategies to emerge.
+Our findings echo The Bitter Lesson~\citep{sutton2019bitter}: we should let LMs search for and learn better strategies that go far beyond existing human priors.
+
+\begin{figure}[t]
+    \centering
+    \includegraphics[width=\linewidth]{figures/CLM_Teaser_v8.png}
+    \caption{
+\textbf{\OURSplural (\oursplural) natively manage their own context by treating context as a file.}
+\oursplural{} work out of the box and can be further improved through in-context learning and reinforcement learning. 
+\textcolor{clmblue}{(a)} Qualitative examples of creative context-management behaviors introduced by \ours{}.
+\textcolor{clmblue}{(b)} Out of the box, \oursplural{} improve performance at lower cost on BrowseComp-Plus, a deep-research benchmark, and Software World, where an agent swarm jointly optimizes six interdependent repositories.
+\textcolor{clmblue}{(c)} \oursplural{} can follow textual instructions to adopt corresponding context-management strategies (top) or evolve better strategies through a skill-evolution loop on \ourbench{} (bottom).
+\textcolor{clmblue}{(d)} \oursplural{} can explore and internalize context-management strategies through online reinforcement learning. By using a success-gated efficiency advantage for stepwise GRPO, we improve both accuracy and efficiency for \oursplural{} simultaneously.
+}
+    \label{fig:teaser}
+\end{figure}
+
+Concretely, we introduce \clmhl{\OURSplural{} (\oursplural{})}, which are natively capable of managing their own context.
+We show existing LMs can be turned into strong \oursplural 
+and can be further improved through in-context learning and reinforcement learning.
+Formally, a \ours parametrized by \(\theta\) makes context an artifact of the LM: 
+$c_{t+1} = f^{\mathrm{CLM}}_\theta(c_t)$, where $c_t$ is the context at turn $t$ and $f^{\mathrm{CLM}}_\theta$ can be an arbitrary function controlled by \oursplural.
+In contrast, a standard LM simply appends new tokens to the existing context: 
+$c_{t+1} = c_t \oplus f^{\mathrm{LM}}_\theta(c_t)$.
+
+We implement \oursplural by treating \clmhl{context as a file}.
+Specifically, we mirror the context into a storage space with LM write access. The LM can either append newly generated tokens or use Bash  to freely edit the context file, with each modification immediately synchronized to the LM's live context for the next turn.
+This design naturally extends to multi-agent systems, where multiple context files can coexist and be managed by \oursplural for \clmhl{agent-swarm} or \clmhl{subagent} workloads.
+
+Arbitrary context edits in \oursplural pose new challenges for existing serving systems, which typically only reuse cached states for matching prefixes, forcing re-prefilling after in-the-middle edits. 
+We account for this by introducing \clmhl{prefix-reuse FLOPs}, which capture the trajectory-wide inference costs of decoding, prefilling, and re-prefilling in standard LM serving,
+and show that \oursplural{} remain more compute-efficient under standard serving through better context management. 
+We further develop \clmhl{Suffix Cache Reuse (SCR)}, which reuses cached states beyond the matching prefix to reduce re-prefilling while empirically preserving task performance.
+We also introduce \clmhl{\ourbench} as a diagnostic benchmark that decouples context management from reasoning and knowledge, revealing the limitations of existing context management methods.
+
+We show that \oursplural, applied \clmhl{zero-shot} to models like Qwen3.6-27B and GPT5.6-Sol, outperform existing baselines and task-specific harnesses across diverse long-horizon tasks, ranging from hundreds to thousands of turns and up to 24 hours of runtime.
+Compared with existing harness-defined and action-based methods, \ours{} achieves 11.4\% higher accuracy with 21.5\% fewer prefix-reuse FLOPs than the strongest baseline on the deep-research benchmark BrowseComp-Plus~\citep{chen2025browsecomp}, while matching the strongest baseline's accuracy on the terminal-coding benchmark TerminalBench~2.1~\citep{merrill2026terminal} with 29.5\% fewer FLOPs.
+On mathematical optimization tasks, \ours{} outperforms specialized evolutionary harnesses such as OpenEvolve~\citep{openevolve} by up to 16.8\% (Heilbronn) and 3.0\% (circle packing).
+On long-running software optimization, \ours{} outperforms 
+Codex-style summarization: on 12-hour EdgeBench~\citep{zhu2026edgebench} (a 10-task subset), \ours{} scores 5\% higher while using 59\% fewer prefix-reuse FLOPs, and on a 24-hour six-repository agent-swarm task, it achieves 65\% greater end-to-end speedup at the same compute.
+Moreover, when Suffix Cache Reuse is further applied, it helps reduce server-side compute by 35\% with matched performance compared with standard SGLang serving.
+Qualitatively, we find that \oursplural{} come up with novel emergent behaviors such as defining and maintaining trackers for multi-agent orchestration, introducing a new chat role for internal notes, and defining reusable context-management functions.
+
+By shifting context management from external harness control to intrinsic model behavior, \oursplural{} naturally enable \clmhl{in-context learning} and \clmhl{parametric learning} for context management.
+We first show that users can \clmhl{steer} context management simply by telling the agent their desired strategy. 
+In addition, \oursplural can \clmhl{evolve} an in-context skill document that captures useful context-management procedures for future reuse, 
+improving held-out accuracy on \ourbench{} by up to 35.9 points at lower compute.
+For training, we introduce a \clmhl{success-gated efficiency advantage} in stepwise GRPO~\citep{shao2024deepseekmath} that rewards efficient \ours{} trajectories among successful ones.
+Training Qwen3.5-9B on deep research tasks in this manner  improves \ours{} from 28.8\% to 42.5\% on BrowseComp-Plus, outperforming a Codex-style summary harness trained with the same recipe by 0.4 points while using 38.8\% fewer FLOPs.
+Overall, we show that by treating context management as a native LM capability, \oursplural enable more effective and efficient strategies to be searched for and learned.
+
+\section{Related Work}
+\label{sec:related_work}
+
+\textbf{From harness-defined to action-based context management.}
+Most existing harnesses
+compact accumulated histories according to a fixed harness policy~\citep{cassano2026trainingcomposer,openai2026codex,merrill2026terminal,zhou2026mem1}, such as at a predefined length threshold or at every turn.
+Recent work gives the model increasing control through human-defined actions:
+AutoCompact~\citep{zhang2026autocompact} and Self-Compact~\citep{li2026self} let the model decide when to compact; Context-as-a-Tool~\citep{liu2026context} exposes model-triggered compaction over a predefined portion of the context;
+ACM~\citep{li2026acm} adds model-triggered offloading and retrieval; and Sculptor~\citep{li2026sculptor} lets the model select context fragments to operate on.
+Across this progression, model autonomy increases but remains restricted to a human-defined action space.
+Our work pushes this autonomy to its limit by granting the model full agency over its context.
+
+\textbf{Context as a REPL variable.}
+Recursive Language Models (RLMs)~\citep{zhang2025recursive} 
+treat a long input as a read-eval-print loop (REPL) variable that LMs can recursively access on demand. 
+This addresses when and what information to \textit{read} into the context. 
+However, RLMs do not address how the live context itself should be managed. Retrieved information is still appended to the live context, which continues to grow over time.
+In contrast, our work makes the live context editable, giving \oursplural full control over their context.
+
+We provide extended related work in Appendix~\ref{app:extended_related_work}, with more detailed comparisons to existing context-management baselines and a discussion of meta-harness optimization, reinforcement learning, cache reuse, and the relationship between context management and external memory.
+
+\section{Pilot Study with \ourbench: A Diagnostic for Context Management}
+
+We start with a pilot study showing how existing context management strategies can fail in simple tasks.
+To isolate context management from other reasoning or knowledge capabilities, we developed \clmhl{\ourbench}, a diagnostic evaluation suite with the four synthetic tasks shown in
+Figure~\ref{fig:synthetic_task_results_main}: \textbf{Needle Retention} tests selective verbatim retention, simulating the need to preserve important information over time; \textbf{Sudoku Sketchpad} tests surgical in-place updates to the live context by maintaining a Sudoku board as users stream in moves; \textbf{KV Store} and \textbf{Log Triage} test exact recall through offloading and retrieval of massive values and working logs. 
+% 
+We evaluate \ourbench{} with several context-management strategies, including Mini-SWE-Agent~\citep{yang2024sweagent} (the base harness without context management), Codex-style Summary~\citep{openai2026codex}, Context Folding~\citep{sun2025scaling}, and RLM, Self-Compact, and ACM, as introduced in Section~\ref{sec:related_work}. We also evaluate \ours{}, which will be introduced in Section~\ref{sec:method}.
+Details of the evaluation and qualitative examples for \ourbench{} are provided in Appendix~\ref{app:context_bench}.
+
+
+
+
+\begin{figure*}[h]
+\centering
+\hspace*{0.052\linewidth}%
+\begin{minipage}[t]{0.2105\linewidth}\centering
+{\footnotesize\textbf{Needle Retention}}\\[-1pt]{\scriptsize (selective verbatim retention)}\\[2pt]
+\includegraphics[width=\linewidth]{figures/livectxbench/tasks/needle_retention.png}
+\end{minipage}%
+\hspace{0.0337\linewidth}%
+\begin{minipage}[t]{0.2105\linewidth}\centering
+{\footnotesize\textbf{Sudoku Sketchpad}}\\[-1pt]{\scriptsize (in-place surgical editing)}\\[2pt]
+\includegraphics[width=\linewidth]{figures/livectxbench/tasks/sudoku_sketchpad.png}
+\end{minipage}%
+\hspace{0.0337\linewidth}%
+\begin{minipage}[t]{0.2105\linewidth}\centering
+{\footnotesize\textbf{KV Store}}\\[-1pt]{\scriptsize (offloading \& retrieval)}\\[2pt]
+\includegraphics[width=\linewidth]{figures/livectxbench/tasks/kv_store.png}
+\end{minipage}%
+\hspace{0.0337\linewidth}%
+\begin{minipage}[t]{0.2105\linewidth}\centering
+{\footnotesize\textbf{Log Triage}}\\[-1pt]{\scriptsize (offloading \& retrieval)}\\[2pt]
+\includegraphics[width=\linewidth]{figures/livectxbench/tasks/log_triage.png}
+\end{minipage}%
+\hspace*{0.005\linewidth}%
+\\[3pt]
+\includegraphics[width=\textwidth]{figures/gpt54/livectxbench_gpt54_7arm.pdf}
+\caption{
+Illustration of the four tasks in \ourbench{} and a performance comparison of \ours{} against baselines using GPT-5.4 with a 32K context limit.
+}
+\label{fig:synthetic_task_results_main}
+\end{figure*}
+
+We fix the context limit at 32K and vary the context pressure (the ratio of input volume to context limit) up to \(24\times\).
+The results in Figure~\ref{fig:synthetic_task_results_main} show that these fixed strategies cannot adapt well to the live context: Summary-based compaction can lose or hallucinate information on Needle Retention and Sudoku Sketchpad; methods without flexible in-place editing must regenerate the full Sudoku state for every fine-grained user edit; and standard coding tools can offload information on KV Store and Log Triage but cannot evict it from the live context on demand. As a result, none of the existing methods performs perfectly even on these simple tasks. These failures motivate fully adaptive, model-controlled context management.
+
+\section{\OURSplural (\oursplural)}\label{sec:method}
+
+\subsection{Formal Definition and Implementation with Context as a File}
+
+\clmhl{\OURSplural (\oursplural)} generalize the append-only context transition of a standard LM to a model-controlled context transition.
+Standard LMs append model output to the current context:
+\begin{equation}
+c_{t+1} = c_t \oplus f^{\mathrm{LM}}_\theta(c_t),
+\end{equation}
+where \(\oplus\) denotes concatenation. 
+In contrast, \oursplural delegate full responsibility for maintaining the context to the \ours itself, directly creating the next context:
+\begin{equation}\label{eq:clm}
+c_{t+1} = f^{\mathrm{CLM}}_\theta(c_t),
+\end{equation}
+where $f^{\mathrm{CLM}}_\theta$ can be an arbitrary function controlled by \oursplural.
+Eq.~\ref{eq:clm} subsumes prior approaches that expose a set of context-management tools through the harness.
+However, prior work requires context-management functions to be predefined in the harness. Our work instead makes \oursplural responsible for defining these functions themselves as a \textit{meta-capability}, either implicitly through their planning or explicitly as reusable functions, with one explicit example shown in Figure~\ref{fig:clm-examples}\subref{fig:clm-examples-d}.
+
+\textbf{\clmhl{Context-as-a-file} implementation for \oursplural.}
+To implement CLMs, we mirror the LM's live context as a directly editable file and provide its path in the system prompt. 
+The LM can edit this file using general Bash commands, just as it would edit other files in storage.
+Unlike ordinary files, edits to the context file are automatically synchronized with the LM's context and sent to the LLM server for continued generation.
+When the LM does not edit the context file, the generated tokens are appended to the existing context by default.
+This implementation balances context reuse with the flexibility to edit the context.
+
+\textbf{Multi-agent extensions of \oursplural.}
+Our implementation naturally extends to multi-agent workflows by allowing multiple context files to coexist and remain synchronized with their respective LLM servers.
+For example, an \clmhl{agent swarm} can be implemented by initializing the workspace with multiple context files, while \clmhl{subagents} can be initialized and terminated by creating and deleting additional context files.
+
+
+\input{figures/clm_examples}
+\textbf{Qualitative examples.}
+We show qualitative examples of \oursplural{} managing context as a file in Figure~\ref{fig:clm-examples}, revealing both novel context-management behaviors and effective compaction strategies. For multi-agent orchestration, \ours{} maintains an in-context scoreboard and updates agent status through 163 in-place edits while keeping the context at only 6--8K tokens (\subref{fig:clm-examples-a}). It can create new internal roles such as ``notes'' when rewriting its context (\subref{fig:clm-examples-b}), and use loops to remove irrelevant search results or compact overlong observations (\subref{fig:clm-examples-c}). \ours{} can also define and reuse helper functions: in (\subref{fig:clm-examples-d}), it invokes `compact\_turns' 37 times to maintain a progress note while compacting detailed observations. Finally, it reproduces effective compaction behaviors by compressing 21K tokens into answer-relevant summaries or preserving untried ideas for future explorations (\subref{fig:clm-examples-e}).
+We collected these examples from the zero-shot \ours{} evaluation experiments in Section~\ref{sec:agentic_benchmarks}.
+
+
+\textbf{Efficiency metrics for \oursplural.}
+A common serving optimization is prefix-cache reuse, in which cached states are reused for matching prefixes, while all tokens from the first prefix mismatch onward must be re-prefilled, as can occur after an in-the-middle edit. 
+To account for this, we measure theoretical inference FLOPs using a metric we call \clmhl{prefix-reuse FLOPs} (see Appendix~\ref{app:prefix_reuse_flops} for details). Formally,
+\begin{equation}\label{eq:prefix-reuse-flops}
+\mathrm{FLOPs}_{\mathrm{prefix\text{-}reuse}}
+=
+\underbrace{
+\mathrm{FLOPs}_{\mathrm{prefill}}
+\bigl(\text{unmatched context suffix}\bigr)
+}_{\text{tokens from the first prefix mismatch onward}}
++
+\underbrace{
+\mathrm{FLOPs}_{\mathrm{decode}}
+\bigl(\text{generated tokens}\bigr)
+}_{\text{new output tokens}}.
+\end{equation}
+
+
+\subsection{In-Context Learning and Reinforcement Learning for \oursplural}
+\label{sec:method_learning}
+
+By treating context management as an LM-native capability,
+\oursplural can learn better strategies in context or in weights. 
+
+\textbf{\clmhl{Steering} \oursplural with in-context instruction or skill documents.}
+Let $\skl$ denote an in-context instruction or skill document.
+\oursplural can be steered by
+simply providing $\skl$ as additional in-context guidance to the CLM:
+
+\begin{equation}\label{eq:icl_skill}
+c_{t+1}
+=
+f_\theta^{\mathrm{CLM}}(c_t; \skl).
+\end{equation}
+
+\textbf{\clmhl{Evolving} \oursplural with an optimization loop.}
+\oursplural can also be optimized through textual evolution. For task instance \(x\), let \(\tau(x;\skl)\) be the trajectory induced by Eq.~\ref{eq:icl_skill}, and \(R(\tau)\) a trajectory-level reward. We optimize
+\begin{equation}
+\skl^*
+=
+\arg\max_{\skl}
+\mathbb{E}_{x\sim\mathcal{D}}
+\left[
+R\!\left(\tau(x;\skl)\right)
+\right],
+\end{equation}
+while keeping everything else fixed. 
+In our implementation, we use a prompt-evolution loop~\citep{agrawal2026gepa}: In each round, the agent produces rollouts on the training split, and a proposer model uses the resulting traces to generate candidate skills. We evaluate these candidates on the development split and select the skill for the next round. After evolution concludes, we evaluate the final selected skill once on the held-out test split.
+The optimizer may be either a stronger external model (\textit{assisted evolution}) or the agent model itself (\textit{self-evolution}), allowing context-management skills to evolve in context.
+
+\textbf{\clmhl{Reinforcement Learning} for \oursplural.}
+\oursplural can also learn context-management strategies through reinforcement learning and internalize them in model weights. Since context edits change the input across turns, we use stepwise GRPO~\citep{shao2024deepseekmath}. For each prompt, we sample a group of complete agent trajectories and compute the standard GRPO advantage from their trajectory-level outcome rewards. We then assign each trajectory's advantage to all of its constituent segments, so every model call is trained with the outcome of the full trajectory.
+
+Outcome rewards provide only weak supervision for context editing, as successful trajectories can contain inefficient edits and failed trajectories useful ones.
+Simply rewarding edit frequency or removed context volume is also undesirable, as the LM may reward-hack by making unnecessary edits that discard important information or hurt prefix reuse.
+We therefore introduce a \clmhl{success-gated efficiency advantage} that further rewards successful trajectories with lower prefix-reuse FLOPs.
+Let \(c_i\) denote the prefix-reuse FLOPs of trajectory \(\tau_i\), and let \(\mathcal{G}_g^{+}\) denote the successful trajectories in group \(g\). 
+We define
+$
+\bar{c}_g = \frac{1}{|\mathcal{G}_g^{+}|}\sum_{k\in \mathcal{G}_g^{+}} c_k ,
+$
+and
+\begingroup\small 
+\begin{equation}
+A_i^{\mathrm{eff}}
+=
+\begin{cases}
+\operatorname{clip}\!\left(
+\dfrac{\bar{c}_g - c_i}{\bar{c}_g},
+-1,
+1
+\right), & i \in \mathcal{G}_g^{+}, \\[6pt]
+0, & i \notin \mathcal{G}_g^{+}.
+\end{cases}
+\end{equation}
+\endgroup
+When there are fewer than two successful trajectories in a group, we set $A_i^{\mathrm{eff}}=0$ for all trajectories. Thus, the efficiency signal only re-ranks among successful trajectories by inference cost.
+We combine outcome and efficiency advantages as
+$
+A_i
+=
+A_i^{\mathrm{out}}
++
+w_{\mathrm{eff}} A_i^{\mathrm{eff}}
+$
+to encourage trajectories that are both correct and efficient.
+
+\subsection{(More) Efficient \ours Serving with Suffix Cache Reuse}
+
+What if we want to serve \oursplural even more efficiently and reduce the re-prefilling overhead?
+We introduce \clmhl{Suffix Cache Reuse (SCR)}. 
+As shown in Figure~\ref{fig:scr}, when \ctxorig{B} is replaced by \ctxedit{B'} after an edit, SCR reuses the cached states of all surviving tokens, including \ctxorig{C}, and only reprefills the newly inserted or appended tokens \ctxedit{B'}.
+Surviving suffix tokens \ctxorig{C} thus retain stale cache states that encode the previous prefix, which can even be beneficial in some cases, as it retains richer information from the past.
+By contrast, standard prefix-cache reuse must re-prefill all tokens after the first mismatch (\ctxedit{B'} and \ctxorig{C}).
+\footnote{In some LM chat-serving setups, such as Qwen3.6-27B's default chat template and GPT-5.6 Sol served through the stateless Chat Completions API, reasoning tokens from previous turns are stripped before the next turn, forcing the preserved suffix to be re-prefilled. SCR can also reuse the cached states of these preserved tokens.}
+\textbf{Throughout the paper, we report prefix-reuse FLOPs under standard serving; additional SCR savings are reported separately in Section~\ref{sec:scr_results}.}
+
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=\linewidth]{figures/suffix-cache-reuse.png}
+    \caption{
+\textbf{Comparison of standard serving and Suffix Cache Reuse (SCR).} Standard serving reuses only prefix-matched cache, while SCR reuses cached states for all surviving tokens, reducing re-prefilling.}
+    \label{fig:scr}
+\end{figure}
+
+\section{Results}\label{sec:methods}
+
+\subsection{Evaluating \oursplural{} \clmhl{Zero-Shot} on Long-Horizon Agentic Tasks}
+\label{sec:agentic_benchmarks}
+
+We evaluate \oursplural across long-horizon coding, deep research, and open discovery tasks, spanning tens to thousands of agent turns and runtimes from hours to a full day. Our evaluation covers both single- and multi-agent settings, including subagent and agent-swarm workloads for open discovery problems.
+
+\subsubsection{Coding and Deep Research Tasks}
+\label{sec:coding_dr}
+We first evaluate \oursplural on
+two terminal-coding benchmarks, TerminalBench~2.1 (TB2.1)~\citep{merrill2026terminal} and TBLite~\citep{OpenThoughts-TBLite}, and on the deep-research benchmark BrowseComp-Plus (BCP)~\citep{chen2025browsecomp}.\footnote{Deep research requires search tools. Instead of training the agent against a fixed tool interface, we expose the search tools as in-context skills. This follows our less-is-more design principle: we keep as little as possible hard-coded at the harness level, so that tools can be flexibly defined, added, or revised at inference time.}
+We compare \oursplural against MEM1~\citep{zhou2026mem1}, Self-Compact~\citep{li2026self}, ACM~\citep{li2026acm}, and recursive language models (RLM)~\citep{zhang2025recursive} with a shared Mini-SWE-Agent backbone~\citep{merrill2026terminal}.
+To ensure a controlled comparison independent of training data, we evaluate all methods out of the box without training.
+We report performance and prefix-reuse FLOPs on these benchmarks for Qwen3.6-27B with a 32K context budget, with full details in Appendix~\ref{app:eval_config}.
+
+\begin{figure}[t]
+\begin{minipage}[t]{0.56\linewidth}
+\vspace{0pt}
+\centering
+\includegraphics[width=\linewidth]{figures/pareto_q36_main.pdf}
+\caption{\textbf{\oursplural{} perform better than action-based and harness-defined baselines at lower cost on coding and deep research tasks.}
+All methods use Qwen3.6-27B with a 32K context limit and a 100-turn cap.
+Blue dashed lines indicate the Pareto frontier.
+}
+\label{fig:pareto_27b}\label{fig:pareto_27b_d}
+\end{minipage}\hfill
+\begin{minipage}[t]{0.42\linewidth}
+\vspace{0pt}
+\raggedright
+\captionof{table}{\textbf{\oursplural{} outperform specialized OpenEvolve evolutionary workflows on mathematical optimization problems.}
+Best-of-run scores with Claude 4.6 Sonnet and a 32K context limit, capped at 100 scored attempts or five hours. Arrows indicate the direction of improvement; OE stands for OpenEvolve and SA for subagents.}
+\label{tab:openended-main}
+\input{tables/open_problems_main_compact}
+\end{minipage}
+\end{figure}
+
+\textbf{\oursplural outperform harness-defined and action-based baselines.}
+On BCP, \oursplural{} outperform all baselines, scoring 59.4\% at a 32K context limit and exceeding the strongest baseline, Codex-style summarization, by 11.4\% relative. 
+\oursplural{} also use 21.5\% and 28.9\% fewer prefix-reuse FLOPs than the next two strongest methods, Codex-style summarization and MEM1, respectively.
+On coding benchmarks, \oursplural{} match the strongest baseline, Codex-style summarization, on TB2.1 while using only 70\% of its prefix-reuse FLOPs, and exceed it on TBLite (73.7\% against 67.0\%) with 91\% of its FLOPs.
+
+\subsubsection{Open Discovery Problems}
+\label{sec:open_problems_overview}
+Open discovery problems provide longer horizons as our testbeds.
+We consider three types of open discovery problems with increasing horizons:
+(1) \textbf{Mathematical optimization:} four mathematical optimization problems used by AlphaEvolve~\citep{novikov2025alphaevolve} and OpenEvolve~\citep{openevolve}: circle packing, min-max/min-distance 2D, Erd\H{o}s minimum overlap, and the Heilbronn triangle problem.
+(2) \textbf{Single-repository optimization:} ten EdgeBench~\citep{zhu2026edgebench} tasks (EdgeBench-10; Appendix~\ref{app:open_single}), where the agent optimizes within a repository for up to 12 hours.
+(3) \textbf{Multi-repository optimization with agent swarms:} six repositories jointly optimized by multiple agents and evaluated on held-out downstream packages. Runs last over 24 hours.
+
+\textbf{Mathematical optimization: \oursplural{} vs. specialized evolutionary workflows.}
+On mathematical optimization, we compare against OpenEvolve~\citep{openevolve}, a specialized AlphaEvolve-style~\citep{novikov2025alphaevolve} workflow for program generation, evaluation, and evolutionary selection. We also include OpenEvolve-Agent, which replaces its proposer with a Mini-SWE-Agent that can interact with the environment before each submission. 
+For \ours{}, we use the same base harness with a minimal Bash interface and provide the evolutionary algorithm as in-context guidance, leaving planning and context management to the agent.
+Using Claude 4.6 Sonnet and the same evaluator, \ours{} achieves the highest best-of-run score on all four problems (Table~\ref{tab:openended-main}; progress curves in Figure~\ref{fig:openended-progress}). This shows that a general agent with direct context control can outperform a specialized evolutionary workflow with less fixed orchestration.
+
+\begin{figure}[t]
+    \centering
+    \captionsetup[subfigure]{justification=centering}
+    \begin{subfigure}[t]{0.468\linewidth}\centering
+        \includegraphics[height=0.237in]{figures/long_horizon_demo10_legend.pdf}\\[-5pt]
+        \includegraphics[height=1.40in]{figures/long_horizon_demo10_a.pdf}\hspace{-1pt}\includegraphics[height=1.40in]{figures/long_horizon_demo10_sonnet.pdf}
+        \caption{EdgeBench-10 single-repository optimization.}\label{fig:long_horizon_a}\end{subfigure}\hspace{0pt}
+    \begin{subfigure}[t]{0.50\linewidth}\centering
+        \includegraphics[height=0.237in]{figures/long_horizon_demo10_legend_sw.pdf}\\[-5pt]
+        \includegraphics[height=1.40in]{figures/long_horizon_demo10_d.pdf}\hspace{5pt}\includegraphics[height=1.40in]{figures/long_horizon_demo10_e.pdf}
+        \caption{Software World multi-repository optimization.}\label{fig:software_world_b}\end{subfigure}
+    \caption{\textbf{\oursplural outperform Codex-style summary harness on long-horizon repository optimization.}
+(\subref{fig:long_horizon_a}) 
+EdgeBench-10 with a 32K context budget. Curves show best-of-three scores over 12 hours for Qwen3.6-27B and Claude 4.6 Sonnet; end labels show final scores and, for Qwen3.6-27B, mean compute per trial (PF = prefix-reuse PFLOPs).
+(\subref{fig:software_world_b}) Software World with GPT-5.6-Sol and a 272K context budget. Six agents jointly optimize interdependent repositories and are evaluated on four unseen downstream packages; the right panel shows geometric-mean speedup over 17 evaluation tasks.}
+\vspace{-2mm}
+    \label{fig:long_horizon}
+\end{figure}
+
+\textbf{Single-repository optimization under single-agent and subagent settings.}
+On EdgeBench-10, agents optimize a repository for up to 12 hours with verifier feedback; we report the best score over three seeds per task. Figure~\ref{fig:long_horizon} compares the base harness, Codex-style summarization, \ours{}, and \oursplural{} with up to five concurrent subagents under a 32K context budget. With Qwen3.6-27B, \ours{} reaches 44.6 using 179 prefix-reuse PFLOPs per trial, versus 42.3 and 437 PFLOPs for summarization; the subagent variant reaches 44.2 at 181 PFLOPs. With Claude 4.6 Sonnet, \ours{} and its subagent variant reach 51.0 and 50.4, compared with 42.3 for summarization. 
+We find that subagents provide little additional benefit on this single-repository benchmark.
+
+\textbf{Multi-repository optimization with agent swarms.}
+We evaluate \ours{} on \texttt{Software World}, where six agents jointly optimize interdependent Python repositories and are evaluated on four unseen downstream packages (Figure~\ref{fig:software_world_b}, left). This provides an extrinsic test of whether improvements transfer beyond the repositories the agents directly observe. Compared with a summary-based agent swarm at the same spend, \ours{} achieves 65\% greater downstream speedup over the initial releases (Figure~\ref{fig:software_world_b}, right). Full setup and scoring details are provided in Appendix~\ref{app:open_multi}.
+
+\subsection{Learning Better Context-Management Strategies in \clmhl{Context} or in \clmhl{Weights}}
+\oursplural make context management an intrinsic model behavior that can be learned like other skills. In this section, we present in-context learning and reinforcement learning results for \oursplural.
+
+\textbf{Steering context management by simply talking to \oursplural.}
+Users can steer \oursplural{} toward a desired context-management strategy through natural-language instructions. We demonstrate this with three behaviors: triggering compaction at a specified context length, compacting around semantic sub-question boundaries, and backing up the context before compaction. Each behavior is induced by a single sentence appended to the task prompt. As shown in Figure~\ref{fig:steering}, the agent adapts its context-management policy accordingly, without any change to the harness or model parameters. Measurement details are provided in Appendix~\ref{app:steering_setup}.
+
+\begin{figure}[h]
+\begin{minipage}[t]{0.60\linewidth}
+\vspace{0pt}\centering
+\includegraphics[width=\linewidth]{figures/steering_row_narrow.pdf}
+\captionof{figure}{\textbf{One sentence in the prompt changes the context-management policy.}
+Natural-language instructions steer compaction timing, semantic boundaries, and backup behavior. Gray denotes no instruction and blue the instructed setting; exact prompts are in Appendix~\ref{app:steering_setup}.}
+\label{fig:steering}
+\end{minipage}\hfill
+\begin{minipage}[t]{0.38\linewidth}
+\vspace{0pt}\centering
+\includegraphics[width=\linewidth]{figures/selfevo_main_two_rows_kv.pdf}
+\captionof{figure}{\textbf{Textual evolution for \oursplural on KV Store (32K budget).}
+Assisted evolution uses Qwen3.6-27B with Claude Fable 5.1 as proposer; self-evolution uses Opus 5 for both roles. 
+}
+\label{fig:selfevo_evolution}
+\end{minipage}
+\end{figure}
+
+\textbf{Evolving context management via textual evolution with \oursplural.}
+We apply the in-context evolution loop from Section~\ref{sec:method_learning} to \ourbench{} with a 32K context budget.
+In \textcolor{evoblue}{\textbf{assisted evolution}}, Qwen3.6-27B starts without any context-management instruction, with Claude Fable 5.1 serving as the skill proposer; in \textcolor{evopurple}{\textbf{self-evolution}}, Opus 5 serves as both the agent and the proposer.
+Figure~\ref{fig:selfevo_evolution} shows results on KV Store from \ourbench{}, where both settings improve over their initialization and expand the performance--cost Pareto frontier, with evolved skills that can strictly dominate the starting point.
+Additional results are in Appendix~\ref{app:selfevo_full}.
+
+\ifdefined\rltabw\else\newlength{\rltabw}\fi
+\def\rltabbody{\begin{tabular}{lcc}
+\toprule
+\textbf{Method} & \textbf{Acc.\ (\%) $\uparrow$} & \textbf{PFLOPs / Q $\downarrow$} \\
+\midrule
+Summary & 34.7 $\rightarrow$ 42.1 & 4.01 $\rightarrow$ 2.19 \\
+\rowcolor{swehl}
+\ours{} & 28.8 $\rightarrow$ \textbf{42.5} & 1.52 $\rightarrow$ \textbf{1.34} \\
+\bottomrule
+\end{tabular}}
+\settowidth{\rltabw}{\small\setlength{\tabcolsep}{5pt}\rltabbody}
+
+\noindent\begin{minipage}[t]{\dimexpr\linewidth-\rltabw-1.5em\relax}
+\vspace{0pt}
+\textbf{Reinforcement learning for \oursplural.}
+We post-train Qwen3.5-9B on OpenResearcher using the reward formulation from Section~\ref{sec:method_learning} and evaluate on held-out BrowseComp-Plus. Before training, \ours{} with Qwen3.5-9B underperforms the summary harness by six points due to the smaller model's limited context-management capabilities. After RL, it gains 13.7 points to 42.5\%, matching the trained summary harness while using 1.34 versus 2.19 PFLOPs per question. Adding the efficiency reward further reduces inference cost without a clear loss in accuracy for either \ours{} or the summary harness. Full results and reward ablations are provided in Appendix~\ref{app:rl_results}.
+\end{minipage}\hfill
+\begin{minipage}[t]{\rltabw}
+\vspace{0pt}
+\centering
+\small
+\setlength{\tabcolsep}{5pt}
+\rltabbody
+\captionof{table}{\textbf{RL results on BrowseComp-Plus with Qwen3.5-9B.}
+Performance before and after training on OpenResearcher. The RL checkpoint is selected on a held-out validation set.}
+\label{tab:rl_main}
+\end{minipage}
+
+\subsection{(More) Efficient Serving with Suffix Cache Reuse}
+\label{sec:scr_results}
+
+As shown in Figure~\ref{fig:suffix_cache_reuse_wip}, SCR effectively reduces cache re-prefilling, matching the standard SGLang serving with 65.0\% of its empirical prefix-reuse FLOPs on BCP.
+In addition, SCR is not limited to \oursplural. Serving engines commonly strip prior reasoning tokens from chat histories, causing subsequent preserved tokens to be re-prefilled. We show that SCR can also reduce this re-prefilling cost in this more general setting.
+
+We provide further details in Appendix~\ref{app:scr}, including SCR implementation for hybrid models with interleaved full- and linear-attention layers, handling of multiple surviving post-edit spans, a decomposition of savings from reasoning-token stripping, and remaining opportunities for improvement in SGLang serving with SCR.
+
+\begin{figure}[h]
+\centering
+\includegraphics[width=\textwidth]{figures/kvreuse/fig_scr_bcp830_strip.pdf}
+\caption{\textbf{Comparison of Suffix Cache Reuse and standard SGLang serving on BCP with Qwen3.6-27B.} \textit{Left}: Task accuracy and prefix-reuse FLOPs per question. \textit{Right}: Server-side compute decomposition, showing the fraction of prompt tokens by compute type across all turns and turns following context edits.}
+\label{fig:suffix_cache_reuse_wip}
+\end{figure}
+
+\section{Discussion and Future Work}
+
+\textbf{Safety implications of a model-editable context.}
+Granting models write access to their live context enables more flexible on-the-fly context management, but also creates new safety challenges. Editable context can become another channel through which prompt injections or self-generated instructions persist across turns. Recent work has observed such behavior in compaction summaries, including cases where a model inserted unauthorized instructions into its own summary that subsequently affected task behavior~\citep{openai2026selfgeneratedpromptinjections}. As editable context becomes more widely used, future work should characterize these new attack surfaces and develop defenses that preserve the flexibility of model-controlled context while maintaining its integrity.
+
+
+\textbf{Future directions: scaling \ours{} RL and distilling existing harnesses into \oursplural.}
+Future work can scale RL training so that \oursplural{} can explore and learn effective context-management strategies, and develop a harness-to-\ours{} pipeline that distills strategies from existing harnesses into \oursplural{}. This is motivated by the view that, while standard LMs only map input tokens to next-token distributions, harnesses determine how the context is constructed and updated. Since many harness operations can be expressed as context transformations, they can potentially be translated into \ours{} actions and eventually internalized into model weights. From this perspective, harnesses act as a form of procedural memory or task-specific skill that can be developed externally and later absorbed by \oursplural{} for more general use.
+
+\subsubsection*{Acknowledgments}
+We thank Sewon Min and Steven Zijian Chen for helpful discussions. We thank Ilia Kulikov and Mickel Liu for their help with infrastructure questions.
+This work was supported by the Singapore National Research Foundation and the National AI Group in the Singapore Ministry of Digital Development and Information under the AI Visiting Professorship Programme (award number AIVP-2024-001) and the AI2050 program at Schmidt Sciences.
+
+\bibliographystyle{assets/plainnat}
+\bibliography{paper}
+
+\clearpage
+\beginappendix
+\input{appendix_clean}
+
+\end{document}

@@ -1,0 +1,403 @@
+\section{Extended Related Work}
+\label{app:extended_related_work}
+
+\paragraph{Harness-scheduled context management.}
+A common approach is to let the harness determine when and how the context is updated. Systems such as Cursor~\citep{cassano2026trainingcomposer}, Codex~\citep{openai2026codex}, and Terminus2~\citep{merrill2026terminal} trigger compaction when the context reaches a predefined length, using a prescribed summarization procedure. MEM1~\citep{zhou2026mem1} instead updates the context at every turn, combining information retained from previous turns with the new observation rather than carrying forward the full history.
+Reinforcement learning can improve model performance within these harness-scheduled procedures: Composer~\citep{cassano2026trainingcomposer,chan2026composer}, CompactionRL~\citep{li2026compactionrl}, and MEM1 train models to preserve useful information or continue reasoning effectively under context compaction. Although the resulting context depends on the model's generation, the update schedule and procedure remain prescribed by the harness.
+
+\paragraph{Model control within a constrained action space.}
+Another line of work gives the model control over context management through constrained tools that implement predefined strategies, such as compaction, offloading, retrieval, and branching. Self-Compact~\citep{li2026self} and AutoCompact~\citep{zhang2026autocompact} let the model decide when to compact. Context-as-a-Tool~\citep{liu2026context} exposes model-triggered compaction within a structured context workspace, and ACM~\citep{li2026acm} adds offloading and retrieval. AgeMem~\citep{yu2026agentic} combines long-term memory operations with tools for summarizing and filtering the current context. Context Folding~\citep{sun2025scaling} lets the model branch into a sub-trajectory and fold it into a summary upon returning, whereas AgentFold~\citep{ye2025agentfold} condenses recent interactions or consolidates multiple historical steps through folding directives. Sculptor~\citep{li2026sculptor} supports fragment-level summarization, hiding, restoration, and search while preserving message count and order.
+Training can improve how models use these tools: AgentFold uses supervised fine-tuning, while AutoCompact, AgeMem, and Sculptor use reinforcement learning to optimize their respective context-management decisions. However, the available operations and their underlying strategies remain predefined by the tool interfaces. 
+In contrast, \oursplural{} treat \emph{context as a file}, giving the model direct read and write access to its live context through general-purpose programming tools.
+
+\paragraph{Model-controlled context through meta optimization.}
+Meta-optimization gives models control over context management by improving the reusable procedures that govern agent execution. Meta-Harness~\citep{lee2026meta} and AutoMem~\citep{wu2026automem} optimize harnesses or memory-management procedures from trajectory feedback, while Meta Context Engineering~\citep{ye2026meta} co-evolves context-engineering skills and context-construction functions represented as files and code. Related approaches optimize the agent program itself~\citep{zhang2025darwin,zhang2026hyperagents} or evolve prompts through reflection on rollouts~\citep{agrawal2026gepa}.
+From the perspective of \oursplural{}, a harness encodes reusable procedures for managing context. Such procedures can also be expressed as skills that guide the model in editing its live context. Our skill evolution therefore shares the goal of harness optimization: improving reusable context-management procedures through evaluation feedback.
+
+\paragraph{Context as a variable in the environment.}
+Recursive language models (RLMs)~\citep{zhang2025recursive} place a long input in a REPL variable that the model can access programmatically and process through recursive calls. This gives the model control over how it reads the input, but does not expose its own live context for direct editing. The distinction is twofold: RLMs externalize the input rather than the evolving interaction history, and the model's access to its live context remains read-only rather than read--write. \oursplural{} instead make the live context itself editable, including information accumulated during execution.
+The two approaches are complementary: RLM-style access can keep large inputs outside the context until needed, while \oursplural{} can manage the information brought into the context and the history generated while processing it.
+
+\paragraph{Non-prefix KV cache reuse.}
+With standard prefix caching, changing an early part of a prompt forces the serving system to recompute the KV states of everything that follows, even when the later text is unchanged. Prior work relaxes this requirement in different settings. Prompt Cache~\citep{gim2024prompt} precomputes attention states for predefined prompt modules, allowing a module to be reused in prompts that do not share the same preceding text. In retrieval-augmented generation, the same document may appear after different documents or instructions. CacheBlend~\citep{yao2025cacheblend} and EPIC~\citep{hu2025epic} reuse cached document chunks in these new contexts, recomputing selected tokens to account for the changed surroundings.
+PIE~\citep{he2025let} studies cache reuse when a user modifies previously processed code and requests a new completion. It retains cached states for unchanged text after an edit and corrects their rotary positions, avoiding suffix recomputation. Memento~\citep{kontonis2026memento} evicts each completed reasoning block from the KV cache but keeps the cached states of its summary, which were computed while the block was still in context, and finds that these states retain useful information from the evicted block. Suffix Cache Reuse applies the same reuse principle to an agent's live context: when the agent replaces a span, the unchanged suffix retains its cached states rather than being prefilled again. We integrate this mechanism into SGLang for agent-driven context editing and further extend it to hybrid architectures that combine full-attention layers with linear-attention layers.
+
+\paragraph{Reinforcement learning for context management.}
+Context edits break the append-only structure of an agent trajectory: the final context may no longer contain the inputs under which earlier actions were generated. Training must therefore preserve these intermediate contexts and evaluate each generated segment under its original input. ReSum~\citep{wu2025resum} segments trajectories at summarization boundaries and broadcasts the trajectory-level advantage to all segments. Sculptor~\citep{li2026sculptor} similarly preserves training contexts around context modifications and masks previously trained completions to avoid counting them repeatedly. Our stepwise GRPO follows this principle, assigning the final outcome advantage to each segment's policy-gradient loss rather than differentiating through the context edits.
+Prior work also considers efficiency. AgeMem~\citep{yu2026agentic} includes a reward for context compactness, while Sculptor penalizes exceeding tool-call or trajectory-length budgets. Our efficiency signal instead measures trajectory-level inference FLOPs under prefix caching, accounting for the recomputation that context edits can incur. We add a success-gated efficiency advantage that favors lower-cost trajectories only within the successful subset of a rollout group. This distinguishes reducing inference compute from merely shortening the context and avoids giving failed trajectories an efficiency bonus.
+
+
+\paragraph{Success-conditioned efficiency objectives.} Prior work has also conditioned efficiency rewards on task success. \citet{arora2026training} penalize response length only for correct answers, and DDCA~\citep{peng2026think} computes a separate length advantage within the correct-response subset. These objectives primarily measure efficiency through response or trajectory length. Our formulation instead uses trajectory-level FLOPs under prefix caching, capturing the recomputation induced by context edits in addition to generated length.
+
+\paragraph{Context management and external memory.}
+Context management determines what the model sees at each invocation, whereas external memory stores information beyond the current context for later use. Memory-R1~\citep{yan2026memory}, for example, learns to manage stored memories and use retrieved information. These mechanisms work together: an agent can offload information to reduce its context and retrieve it when needed. MemGPT~\citep{packer2023memgpt} connects them through a memory hierarchy, allowing the model to edit a designated, fixed-size block within the context rather than the entire live context. AgeMem~\citep{yu2026agentic} jointly learns external-memory operations and tools that summarize or filter the current context.
+This distinction depends on the role of the information, not its storage format. In \oursplural{}, the context file specifies the input to subsequent model calls. Other files can serve as external memory, with their contents entering the context when retrieved. Making the live context editable therefore complements external memory by letting the model decide how retrieved information is incorporated and when it is removed.
+
+\section{Suffix Cache Reuse}
+\label{app:scr}
+
+\paragraph{Background: radix tree and prefix cache reuse in SGLang.}
+SGLang~\citep{zheng2024sglang} keeps the KV cache of served requests in a radix tree over token sequences: each edge holds a token span and the KV entries computed for it, so requests with a common prefix share one path. A new request walks the tree to its longest matching prefix, reuses the KV entries along that path, and prefills only the remaining tokens; unused nodes are evicted in least-recently-used order. Reuse therefore stops at the first mismatched token. This is exact for append-only histories, since each token's key and value depend on all preceding tokens and, through rotary position encodings, on its absolute position. After an in-the-middle edit, however, every token after the edit is re-prefilled, including text that survived unchanged. For hybrid models, whose linear-attention layers keep a fixed-size recurrent state instead of per-token entries, a match can resume only at a node that stores a state checkpoint. Suffix Cache Reuse keeps this tree as is and extends reuse to the surviving tokens beyond the matched prefix, as described next.
+
+\begin{figure}
+    \centering
+    \includegraphics[width=\linewidth]{figures/full-vs-linear-attention-reuse.png}
+    \caption{\textbf{Suffix Cache Reuse for full attention layers and linear attention layers.}}
+    \label{fig:scr-full-vs-linear}
+\end{figure}
+
+\paragraph{Suffix Cache Reuse implementation for standard \clmhl{full attention} layers.}
+We implement Suffix Cache Reuse as a patch to SGLang. As shown in Figure~\ref{fig:scr-full-vs-linear} (left), consider a context $[A\,B\,C]$ in which an edit replaces $B$ with $B'$. Standard serving matches only $A$ and re-prefills $B'$ and $C$. When a new prompt arrives, Suffix Cache Reuse diffs it against the session's previous prompt to find the spans that survived the edit, and relocates up to $K$ of them, largest first ($K{=}6$ in the main text). For each relocated span such as $C$, it reuses the cached keys and values, re-rotates the keys' rotary position encodings to their new positions, and splices them in after $B'$. Only $B'$ and newly appended tokens are prefilled. Relocated entries live in session-private cache slots, so the shared radix tree never holds a moved entry; if these slots cannot be allocated, the server falls back to standard re-prefilling. Because the reused states were computed under the pre-edit context, Suffix Cache Reuse approximates re-prefilling, and $K$ bounds the number of relocated spans per edit.
+
+\paragraph{Suffix Cache Reuse implementation for \clmhl{linear-attention} layers.}
+In hybrid models such as Qwen3.6-27B\footnote{Qwen3.6-27B is a hybrid model in which 48 of 64 layers use linear attention.}, full-attention and linear-attention layers may be interleaved. As shown in Figure~\ref{fig:scr-full-vs-linear} (right), linear-attention layers maintain a fixed-size recurrent state rather than per-token caches, so there are no token-level entries to relocate. For these layers, we snapshot the recurrent state before the edit and continue from that snapshot, while the edit is reflected only in the 16 full-attention layers that retain token-level context. As a result, the newly inserted \(B'\) is not recomputed in the linear-attention layers, since subsequent tokens depend only on the reused recurrent state. Its representation is still recomputed in the full-attention layers and can influence later linear-attention layers through their inputs.
+
+\paragraph{Suffix Cache Reuse for \clmhl{multiple} surviving post-edit spans.}
+A single edit may leave multiple surviving spans after the edit point. SCR can relocate each span, but every relocation reuses states computed under the pre-edit context and therefore introduces an approximation. When many spans are relocated in the same edit, these approximations can compound before the model has a chance to adapt in subsequent turns. We therefore cap the number of relocated spans per edit at \(K\), reusing the \(K\) longest spans and re-prefilling the rest. This bounds the amount of approximation introduced at once and makes SCR less susceptible to pathological edits with many surviving spans.
+
+We conduct a small-scale sensitivity analysis over \(K\in\{1,2,3,6,12,64\}\) on 64 BrowseComp-Plus questions with Qwen3.6-27B (Figure~\ref{fig:scr_ksweep}). Performance is robust across \(K\), while cache-reuse gains largely saturate by \(K=6\). We therefore use \(K=6\) throughout as a conservative choice that captures most reusable cache while limiting the approximation introduced by any single edit. In this small-scale analysis, varying \(K\) mainly affects cache-reuse efficiency, with no observed performance degradation.
+
+\begin{figure}[h]
+\centering
+\includegraphics[width=\linewidth]{figures/kvreuse/fig_scr_ksweep.pdf}
+\caption{\textbf{Small-scale sensitivity study of relocated spans per edit, \(K\).}
+Results on 64 BrowseComp-Plus questions with Qwen3.6-27B. Left: task accuracy. Middle: prefix-reuse PFLOPs per question. Right: relocated tokens per edited request. Dashed lines show standard SGLang; hollow markers show a repeat run; the shaded column marks \(K{=}6\), used elsewhere. Error bars show \(\pm1\) standard error across questions; the gray band shows \(\pm1\) standard error for standard SGLang.}
+\label{fig:scr_ksweep}
+\end{figure}
+
+\paragraph{Bonus: Suffix Cache Reuse for \clmhl{stripped reasoning tokens} in chat endpoints.}
+Chat templates for reasoning models, including Qwen3.6, often remove the reasoning block from earlier assistant turns once the next user message arrives. Standard serving then re-prefills all preserved text after the first removed block, even when the agent never edits its own context. SCR treats reasoning stripping as another context edit and reuses the cached states of the preserved text, extending its benefit to standard chat serving.
+
+Figure~\ref{fig:scr_strip_savings} shows that this effect accounts for a significant portion of SCR's savings on BrowseComp-Plus. Of the 7.8\% of all prompt tokens reused by SCR beyond prefix-cache hits, 5.3 points come from reasoning stripping and only 2.5 from other context edits. Thus, a large fraction of SCR's benefit applies even to standard reasoning-model serving without model-driven context editing.
+
+\begin{figure}[h]
+\centering
+\includegraphics[width=\linewidth]{figures/kvreuse/fig_scr_strip_savings.pdf}
+\caption{\textbf{Suffix Cache Reuse also benefits standard chat serving.}
+On BrowseComp-Plus, SCR reuses cached states not only after model-driven context edits but also after reasoning tokens are stripped from prior turns in standard chat endpoints. Results use Qwen3.6-27B on 830 questions with \(K=6\).}
+\label{fig:scr_strip_savings}
+\end{figure}
+
+\paragraph{A common serving bottleneck and \clmhl{future improvement space}.}
+Figure~\ref{fig:scr_prefill_split} shows that SCR removes most re-prefilling of unchanged suffix tokens after an edit. Much of the remaining redundant prefill instead comes from unchanged prefixes that standard prefix caching should ideally reuse. This is a limitation of the current SGLang caching implementation for hybrid models, rather than SCR itself. Linear-attention layers maintain recurrent states, which SGLang stores only at cached request boundaries; when a later prompt diverges inside a cached span, no recurrent state is available near the branch point, so cache matching can fall back to a much shorter prefix. This affects both standard prefix caching and the efficiency attainable with SCR. Storing recurrent states at finer-grained locations, such as message boundaries, is therefore a promising direction for improving both.
+
+\begin{figure}[h]
+\centering
+\includegraphics[width=\linewidth]{figures/kvreuse/fig_scr_prefill_split.pdf}
+\caption{\textbf{Remaining re-prefill under Suffix Cache Reuse on BrowseComp-Plus.}
+SCR removes most re-prefilling of unchanged suffix tokens, while substantial unchanged-prefix prefill remains due to the current hybrid-model caching behavior in SGLang. Same runs as Figure~\ref{fig:scr_strip_savings}.}
+\label{fig:scr_prefill_split}
+\end{figure}
+
+\section{Prefix-Reuse FLOPs Computation}
+\label{app:prefix_reuse_flops}
+
+Prefix-reuse FLOPs measure the computation performed by a server with prefix caching over an agent trajectory. At turn $t$ the prompt contains $P_t$ tokens and the model generates $G_t$ tokens. The server reuses the longest prefix of leading messages that also appeared in the prompt of an earlier turn, comprising $R_t$ tokens, and prefills only the remaining $U_t=P_t-R_t$ tokens. Under standard prefix caching, an edit therefore invalidates the cached computation from the edited message onward, and a response is prefilled again when it first appears in a later prompt, in addition to being decoded when it is produced.
+
+Consider a model with $L$ layers of hidden size $d$ and MLP width $d_{\mathrm{ff}}$, of which $L_{\mathrm{attn}}$ are full-attention layers with $h_q$ query heads (with an output gate), $h_{kv}$ key--value heads and head dimension $d_h$, and $L_{\mathrm{lin}}$ are Gated DeltaNet layers with $h_k$ key heads, $h_v$ value heads, head dimensions $d_k$ and $d_v$, and two scalar gates per value head. Linear operations have the same cost per processed token regardless of context length. Counting two FLOPs per multiply-add, this per-token cost is
+\begin{equation}
+C_{\mathrm{token}}
+=\underbrace{6Ld\,d_{\mathrm{ff}}}_{\text{MLP}}
++\underbrace{L_{\mathrm{attn}}\bigl[2d(2h_qd_h+2h_{kv}d_h)+2h_qd_hd\bigr]}_{\text{full-attention projections}}
++\underbrace{L_{\mathrm{lin}}\bigl[2d(2h_kd_k+2h_vd_v+2h_v)+2h_vd_vd\bigr]}_{\text{Gated DeltaNet projections}}.
+\end{equation}
+Only the full-attention layers incur a context-dependent cost. Each query--key pair costs one multiply-add per head dimension for the attention score and one for the weighted value, so the cost per pair is
+\begin{equation}
+C_{\mathrm{attn}}=4L_{\mathrm{attn}}h_qd_h.
+\end{equation}
+Ignoring lower-order boundary terms, a turn costs
+\begin{equation}
+F_t
+=C_{\mathrm{token}}\,(U_t+G_t)
++C_{\mathrm{attn}}\Bigl[\tfrac12\bigl(P_t^2-R_t^2\bigr)+G_tP_t+\tfrac12G_t^2\Bigr],
+\end{equation}
+where the first term inside the brackets counts attention during prefill and the latter two count attention during decoding. The cost of a trajectory of $T$ turns is $\sum_{t=1}^{T}F_t$. We omit the embedding and output layers, the Gated DeltaNet recurrent-state update, and normalization, activation and softmax operations.
+
+\paragraph{Example: Qwen3.6-27B.} Qwen3.6-27B has $L=64$ layers with $d=5120$ and $d_{\mathrm{ff}}=17{,}408$. Its $L_{\mathrm{attn}}=16$ full-attention layers have $h_q=24$, $h_{kv}=4$ and $d_h=256$, and its $L_{\mathrm{lin}}=48$ Gated DeltaNet layers have $h_k=16$, $h_v=48$ and $d_k=d_v=128$. Substituting these values gives $C_{\mathrm{token}}=48.70\times10^{9}$ FLOPs per token, of which the MLP accounts for $34.23\times10^{9}$, the full-attention projections for $3.36\times10^{9}$ and the Gated DeltaNet projections for $11.12\times10^{9}$, and $C_{\mathrm{attn}}=3.93\times10^{5}$ FLOPs per query--key pair.
+
+Figure~\ref{fig:flops_cache} illustrates the computation saved by prefix caching within one turn. \textbf{The lengths are chosen for illustration and do not come from a particular run}: a prompt of $P_t=20{,}000$ tokens and a response of $G_t=500$ tokens, with the reusable prefix $R_t$ set to 18{,}000, 10{,}000 or 0 tokens. When the turn only appends to its context, prefix caching avoids 87\% of the computation the turn would need without a cache, and the turn costs $1.41\times10^{14}$ FLOPs. An edit in the middle of the context leaves 10{,}000 reusable tokens and raises the cost to $5.74\times10^{14}$ FLOPs. An edit at the start, equivalent here to having no reusable prefix, costs $10.81\times10^{14}$ FLOPs, 7.7 times the append-only turn.
+
+\begin{figure}[h]
+\centering
+\includegraphics[width=\linewidth]{figures/flops/flops_cache_bars.pdf}
+\caption{FLOPs of one Qwen3.6-27B turn for illustrative lengths ($P_t=20{,}000$, $G_t=500$) and three reusable-prefix lengths $R_t$. Colors split the FLOPs actually computed by operation; gray shows the additional computation that would be required without prefix caching.}
+\label{fig:flops_cache}
+\end{figure}
+
+\section{\ourbench}
+\label{app:context_bench}
+
+\paragraph{Design and examples of \ourbench tasks.}
+Each \ourbench{} task grades what the agent kept, updated, or offloaded from an input that, at all but the lowest levels, exceeds the context window. The environment delivers the input as a sequence of operations, and each operation arrives as a new user message in one continuous conversation. An operation therefore enters the agent's context before the agent can act on it, and no harness can truncate or offload it on the way in. The agent controls only when the next operation arrives: it runs \texttt{echo READY\_FOR\_NEXT\_OP} once it has handled the current one. The tasks need no search or inference beyond following the instruction, so an agent that could keep everything would answer every query; performance measures how the agent manages its context and nothing else. Every task instance is generated from a seed and checked before use. Of the 32{,}768-token context limit, 2{,}048 tokens are reserved for the model's response, leaving a usable budget of 30{,}720 tokens; a single operation must fit in a fifth of it and everything the task requires the agent to retain in half of it, each with a 10\% margin, so a failure at any level reflects how the context was managed rather than a task that cannot be solved within the budget. Table~\ref{tab:ourbench_tasks} summarizes the four tasks and Figure~\ref{fig:ourbench_examples} shows operations from each.
+
+\begin{table}[h]
+\centering
+\footnotesize
+\setlength{\tabcolsep}{4pt}
+\begin{tabular}{@{}l>{\raggedright\arraybackslash}p{4.4cm}>{\raggedright\arraybackslash}p{3.3cm}>{\raggedright\arraybackslash}p{4.0cm}@{}}
+\toprule
+\textbf{Task} & \textbf{Input stream} & \textbf{Queries} & \textbf{Metric} \\
+\midrule
+Needle Retention & $\sim$4K-token chunks, each with 2--8 needle lines and 140 filler lines & none & needle lines retained verbatim in the final context \\
+Sudoku Sketchpad & one move per turn on a $16{\times}16$ board & current board after each move & board versions reproduced exactly \\
+KV Store & batches of 100 \texttt{SET} operations with random 24-word values & 24 \texttt{GET} queries & exact-value accuracy \\
+Log Triage & batches of 14--54 service log lines & 24 lookup and count queries & exact-answer accuracy \\
+\bottomrule
+\end{tabular}
+\caption{The four \ourbench{} tasks. All metrics are computed from the agent's context; answers held only in files are not credited.}
+\label{tab:ourbench_tasks}
+\end{table}
+
+Context pressure is the total input the environment pushes over an episode divided by the 32{,}768-token context limit, so $1\times$ is the point where an agent that keeps everything would fill its context. Each task reaches higher pressure through one generator setting, with everything else fixed (Figure~\ref{fig:ourbench_pressure}); levels below $1\times$ are included as controls on which keeping everything still fits.
+
+\begin{figure}[h]
+\centering
+\includegraphics[width=\linewidth]{figures/livectxbench/ourbench_pressure_dots.pdf}
+\caption{Context pressure of every \ourbench{} level. Each row varies one generator setting (unit at right); the label on each point is its value. Total input is every message the environment pushes over the episode, including the task instruction and, for Sudoku, the board once per move, counted in o200k tokens; pressure is total input divided by 32{,}768.}
+\label{fig:ourbench_pressure}
+\end{figure}
+
+\begin{figure}[p]
+\centering
+\begin{minipage}{\linewidth}
+\lstset{basicstyle=\ttfamily\scriptsize,breaklines=true,columns=fullflexible,frame=single,framesep=3pt,xleftmargin=4pt,xrightmargin=4pt,moredelim=[is][\color{clmblue}]{@@}{@@}}
+\textbf{\footnotesize Needle Retention} (first of 4 chunks)
+\begin{lstlisting}
+=== chunk 1/4 (3 op(s) remaining after this) ===
+NEEDLES (keep these lines verbatim in your context):
+[n00000i00#f56502a0] glacier orbit lantern lattice quartz ember ember meadow lattice orbit.
+...
+<<<FILLER-BLOCK 00000#d4aff96b START -- delete this entire block (through its END line) from your context this turn>>>
+[f00000x000#...] ...   (140 filler lines)
+<<<FILLER-BLOCK 00000#d4aff96b END>>>
+\end{lstlisting}
+\textbf{\footnotesize Sudoku Sketchpad} (initial board, first move, and expected panel)
+\begin{lstlisting}
+Your STARTING sketchpad (version 0):
+<<<SKETCHPAD BEGIN>>>
+VERSION: 0
+(1,1,.) (1,2,8) (1,3,.) (1,4,G) (1,5,6) (1,6,7) (1,7,C) (1,8,.) ... (1,14,E) (1,15,.) (1,16,4)
+(2,1,.) (2,2,.) (2,3,.) (2,4,E) (2,5,.) (2,6,.) (2,7,B) (2,8,.) ... (2,14,.) (2,15,.) (2,16,6)
+...   (16 rows)
+(16,1,B) (16,2,.) (16,3,.) (16,4,1) (16,5,7) (16,6,4) (16,7,F) ... (16,15,.) (16,16,E)
+<<<SKETCHPAD END>>>
+
+=== board 1 move v1 (3 op(s) remaining after this) ===
+Move (board #1): Place 9 in cell r1c1 (row 1 from the top, column 1 from the left).
+In your sketchpad, set that cell's tuple value to 9 and increment the VERSION line to 1. Leave every other cell unchanged.
+
+@@<<<SKETCHPAD BEGIN>>>@@
+@@VERSION: 1@@
+@@(1,1,9) (1,2,8) (1,3,.) (1,4,G) (1,5,6) (1,6,7) (1,7,C) (1,8,.) ... (1,14,E) (1,15,.) (1,16,4)@@
+@@...   (rows 2-16 unchanged)@@
+@@<<<SKETCHPAD END>>>@@
+\end{lstlisting}
+\textbf{\footnotesize KV Store} (a batch, the last query, and its answer)
+\begin{lstlisting}
+=== set batch (keys 0-99) (25 op(s) remaining after this) ===
+<<<SET-BATCH 0000#9226d9e1 BEGIN -- offload this whole block this turn>>>
+SET K00000 = ember crimson saffron falcon marble quartz thistle mistral cobalt cinder ... #121536ed
+...   (100 SET lines)
+<<<SET-BATCH 0000#9226d9e1 END>>>
+
+=== get 23 (0 op(s) remaining after this) ===
+GET K00114
+(Report the value you stored for K00114 as an ANSWER block for that key.)
+
+@@<<<ANSWER key=K00114>>>@@
+@@garnet copper meadow mistral spruce pewter cinder pewter cobble saffron glacier ... #d17464a7@@
+@@<<<ANSWER END>>>@@
+\end{lstlisting}
+\textbf{\footnotesize Log Triage} (a batch, the last query, and its answer)
+\begin{lstlisting}
+=== log batch (lines 0-13) (35 op(s) remaining after this) ===
+<<<LOG-BATCH 0000#21e46b32 BEGIN -- offload this whole block this turn>>>
+2026-06-20T14:00:01Z [INFO] db-proxy req=49e7a0e2 timeout connection cache miss #f49c3100
+...   (14 log lines)
+<<<LOG-BATCH 0000#21e46b32 END>>>
+
+=== query 23 (0 op(s) remaining after this) ===
+QUERY 23: How many [ERROR] log lines are from service "billing"?
+(Answer with an ANSWER block for qid=23.)
+
+@@<<<ANSWER qid=23>>>@@
+@@4@@
+@@<<<ANSWER END>>>@@
+\end{lstlisting}
+\end{minipage}
+\caption{Operations as the agent receives them, from the smallest level of each task, shortened where marked. \textcolor{clmblue}{Blue} text is the output the agent is expected to produce in response; it is graded from the agent's context. Needle Retention asks for no output: its needles are graded in the final context.}
+\label{fig:ourbench_examples}
+\end{figure}
+
+\paragraph{Detailed instructions for isolated context-management diagnostics.}
+In our pilot study, we provide each harness with a detailed task instruction and a method-specific skill that explains how to use its available tools for context management on that task. This helps isolate context-management capability from differences in task understanding or tool use.
+For each task, every method receives the same task instruction, followed by a skill tailored to its context-management mechanism. The task instruction specifies the input stream, turn protocol, answer format, and grading procedure, without giving context-management advice. The method skill explains how to manage context using the tools exposed by that harness, including the relevant commands or tool calls, when they take effect, how to verify them, and common failure modes. We write each skill to a level of detail comparable to the \ours{} skill, so that baseline performance reflects what the harness enables rather than what the model must infer about how to use it. Table~\ref{tab:ourbench_skills} shows excerpts of each method's KV Store skill. Skills are inserted at the same position relative to the task instruction for all methods, and all are released with the benchmark.
+
+\begin{table}[!htbp]
+\centering
+\scriptsize
+\renewcommand{\arraystretch}{1.3}
+\begin{tabular}{@{}l>{\raggedright\arraybackslash}p{12.4cm}@{}}
+\toprule
+\textbf{Method} & \textbf{Excerpt of the KV Store skill} \\
+\midrule
+\ours{} & \textit{Mechanism:} Your context is mirrored to a file you can edit; changing that file changes what you are holding.\newline \textit{Each batch:} \textcolor{clmblue}{On the SAME turn you read a \texttt{SET-BATCH}, move the whole block out of your context and onto disk with this one command} [a \texttt{python3} heredoc that moves the block to \texttt{/tmp/ctx\_offload/} and leaves one placeholder line].\newline \textit{Each GET:} \textcolor{clmblue}{Recover the value with \texttt{grep -h 'SET <key> =' /tmp/ctx\_offload/*} and then print the ANSWER block.}\newline \textit{Check:} No note, or a token count that did not drop, means the batch is still in your context. \\
+\addlinespace
+ACM & \textit{Mechanism:} \texttt{manage\_context} takes everything since your previous \texttt{manage\_context} call \ldots\ and replaces it with one message \texttt{[summary\_id: N] <summary>}.\newline \textit{Each batch:} \textcolor{clmblue}{Read the gauge after every batch; when it is above 22,000, call \texttt{manage\_context} on your very next turn, before you release another batch.}\newline \textit{Each GET:} \textcolor{clmblue}{Spend one turn on \texttt{query\_memory(N, ``the SET line for key K00084, verbatim'')}} with N the summary whose range covers the key.\newline \textit{Check:} What confirms a compression is the \texttt{[summary\_id: N]} message and a \texttt{[context: \textasciitilde N/M tokens]} readout lower than the turn before. \\
+\addlinespace
+RLM & \textit{Mechanism:} The REPL namespace persists: every variable and function you define survives from one operation to the next. That persistence is your store.\newline \textit{Each batch:} \textcolor{clmblue}{On the first operation define the store and the handler once; on every later operation only call them} [a dictionary filled by a regular expression over the \texttt{SET} lines].\newline \textit{Each GET:} \textcolor{clmblue}{A GET is answered by placing the ANSWER block in \texttt{answer[\textquotedbl content\textquotedbl]}}.\newline \textit{Check:} \texttt{print(out)} shows \texttt{stored N keys so far} growing by one batch per SET operation. \\
+\addlinespace
+Context Folding & \textit{Mechanism:} A branch begins from a copy of a context that already holds every batch and cannot delete anything from MAIN, so MAIN is as full after it as before.\newline \textit{Each batch:} \textcolor{clmblue}{On a \texttt{SET-BATCH}, run one command in MAIN and nothing else: \texttt{echo READY\_FOR\_NEXT\_OP}.} \textcolor{clmblue}{Do not open a branch.}\newline \textit{Each GET:} \textcolor{clmblue}{Answer in MAIN \ldots\ by finding the \texttt{SET <key> =} line in the batch in front of you and printing its value.}\newline \textit{Check:} The \texttt{[context: \textasciitilde N/M tokens]} readout should rise by the size of each batch and by almost nothing else. \\
+\addlinespace
+Self-Compact & \textit{Mechanism:} Compression happens only when C1=Y, C2=Y, C3=Y, N1=N. Then your whole history is replaced by \ldots\ your summary.\newline \textit{Each batch:} \textcolor{clmblue}{On the SAME turn a \texttt{SET-BATCH} arrives, copy the whole block \ldots\ to its own file.} \textcolor{clmblue}{Answer [the probe] so that compression fires as soon as everything you have seen is on disk.}\newline \textit{Each GET:} \textcolor{clmblue}{\texttt{grep -h \textquotedbl\^{}SET K00084 = \textquotedbl\ /tmp/store/*.txt}}, then print the value in an ANSWER block.\newline \textit{Check:} What confirms a store is the count \texttt{grep -c} prints back, equal to 100. \\
+\addlinespace
+Summary & \textit{Mechanism:} At three quarters of the budget (about 24.6K of 32,768 tokens) \ldots\ everything except the system prompt and this task message is then replaced by one message.\newline \textit{Each batch:} \textcolor{clmblue}{On the SAME turn a \texttt{SET-BATCH} arrives, copy the whole block \ldots\ to its own file.} \textcolor{clmblue}{Write the summary as a pointer, not an inventory.}\newline \textit{Each GET:} \textcolor{clmblue}{\texttt{grep -h \textquotedbl\^{}SET K00084 = \textquotedbl\ /tmp/store/*.txt}}, then print the value in an ANSWER block.\newline \textit{Check:} What confirms the store is the \texttt{grep -c} count coming back as 100. \\
+\addlinespace
+Base & \textit{Mechanism:} Every operation arrives as a message in this conversation and stays in your context for the rest of the run; there is no command, tool or edit that takes it back out.\newline \textit{Each batch:} \textcolor{clmblue}{On a \texttt{SET-BATCH}, run one command and nothing else.} \textcolor{clmblue}{Do not copy batches to disk.}\newline \textit{Each GET:} \textcolor{clmblue}{Find the \texttt{SET <key> =} line in the batch that is sitting in your context and print its value verbatim.}\newline \textit{Check:} The \texttt{[context: \textasciitilde N/M tokens]} readout should rise by the size of each batch and by almost nothing else. \\
+\bottomrule
+\end{tabular}
+\caption{Excerpts of each method's KV Store skill. Every skill gives the same four kinds of guidance for its own mechanism: how the mechanism works, what to do with each batch, how to answer a query, and how to confirm that a step worked. \textcolor{clmblue}{Blue} marks the concrete instruction for using the method's own tools; \ldots\ marks omitted text and square brackets paraphrase code.}
+\label{tab:ourbench_skills}
+\end{table}
+
+\section{Experimental Configurations}\label{app:eval_config}
+
+We use the original baseline implementations when available and run all methods with the model and budget specified for each experiment: the summary harness uses the Codex summarization prompts and compacts at 75\% of the budget; Self-Compact uses the original prompts and self-check rubric and asks the model every two turns whether to compress once the context exceeds 37\% of the budget; RLM runs its released harness; ACM runs its released code, in which the model decides when to manage its context. MEM1 is our re-implementation of its inference loop.
+\ours{} receives its editing reminder 2{,}048 tokens before the budget\footnote{In Appendix~\ref{app:context_awareness}, we analyze context-length awareness in existing LMs and find that it degrades at long context lengths. Simple environmental hints substantially improve estimation, so we use them as a temporary augmentation. Future models may acquire stronger context awareness directly or estimate usage on demand through context tools.}, and the base harness has no trigger. 
+Unless stated otherwise, token budgets are counted with the o200k tokenizer and all methods are evaluated with the same base LM.
+
+\paragraph{ContextBench.}
+Every method uses GPT-5.4 through the API with a 32{,}768-token context limit, of which 2{,}048 tokens are reserved for the response, and receives the skill for its harness (Appendix~\ref{app:context_bench}). Each level is run with four seeds, or eight for selected levels to reduce variance. Results are in Figure~\ref{fig:synthetic_task_results_main}.
+
+\paragraph{TerminalBench 2.1.}
+We use the 89 tasks of TerminalBench~2.1, each scored as pass or fail by its verifier. Qwen3.6-27B and Qwen3.5-9B are served with vLLM with thinking enabled and up to 4{,}096 generated tokens per call, with a 32{,}000-token budget; a request that would exceed it ends the run. Every method is limited to 64 turns, each shell command to 180 seconds and each task to four times its default time limit. Whenever a run ends, whether the agent finishes, reaches the turn or time limit, or exceeds the budget, the verifier scores the final state of the container. Results are in Figures~\ref{fig:pareto_27b} and~\ref{fig:pareto_9b_27b}.
+
+\paragraph{TBLite.}
+We use the OpenThoughts-TBLite tasks. The model is served with vLLM with up to 2{,}048 generated tokens per call and a 32{,}000-token budget. Turn and time limits and scoring are as for TerminalBench~2.1. Accuracy is the mean verifier reward. Results are in Figures~\ref{fig:pareto_27b} and~\ref{fig:pareto_9b_27b}.
+
+\paragraph{BrowseComp-Plus.}
+We use all 830 questions over the fixed BrowseComp-Plus corpus. The search tool returns the top 10 snippets of 512 tokens and the document reader is capped at 8{,}192 tokens. Models are served with vLLM with thinking enabled, temperature 0.7, top-$p$ 0.95 and up to 4{,}096 generated tokens per call, with a 23{,}560-token budget and 100 turns; \ours{}'s editing turns do not count toward the turn limit. When a request would exceed the budget, \ours{} rolls back the last turn and retries, up to six times. An answer is correct only if Qwen3.5-27B, judging at temperature 0 with the BrowseComp-Plus grading template, marks it correct and complete; unanswered questions count as wrong. Results are in Figures~\ref{fig:pareto_27b} and~\ref{fig:pareto_9b_27b}.
+
+\paragraph{Math optimization problems.}
+We use circle packing (26 circles in the unit square), Erd\H{o}s' minimum overlap, the min--max distance ratio in the plane, and the Heilbronn triangle problem, with one run per method. The agent writes a program that an evaluator runs and scores. Every method uses Claude 4.6 Sonnet with a 32{,}000-token budget and stops after 100 evaluated attempts or five hours. OpenEvolve runs with a population of 60 in four islands; OpenEvolve-Agent uses a Mini-SWE-Agent proposer with 25 turns per candidate; \ours{} with subagents allows up to five subagents of 40 turns each. Results are in Table~\ref{tab:openended-main} and Figure~\ref{fig:openended-progress}.
+
+\paragraph{EdgeBench-10.}\label{app:open_single}
+We use 10 of the 48 runnable public EdgeBench tasks (Table~\ref{tab:edgebench10_tasks}) with three seeds each. A run lasts 12 hours in a container without network access; each submission is graded by the EdgeBench judge on a 0--100 scale, and a run's score is the higher of its best graded submission and the grade of the final repository. Qwen3.6-27B is served with vLLM at temperature 0.7 with up to 8{,}192 generated tokens per call, and Claude 4.6 Sonnet runs through the API. The budget is 32{,}000 tokens; when a request would exceed it, the harness rolls back the last turn, up to 50 times, and no turn limit applies. \ours{} with subagents runs up to six concurrent subagents of 40 turns each. The 128K results in Figure~\ref{fig:long_horizon_128k_r50} use a 128{,}000-token budget. Cost is prefix-reuse FLOPs per run, including the subagents' computation. Results are in Figures~\ref{fig:long_horizon}(\subref{fig:long_horizon_a}) and~\ref{fig:long_horizon_128k_r50}.
+
+\begin{table}[h]
+\centering
+\scriptsize
+\setlength{\tabcolsep}{4pt}
+\begin{tabular}{@{}lll>{\raggedright\arraybackslash}p{4.2cm}r@{}}
+\toprule
+\textbf{Task} & \textbf{Category} & \textbf{Language} & \textbf{What the verifier scores} & \textbf{Start: files / LOC} \\
+\midrule
+\texttt{ad\_placement\_optimization} & Combinatorial optimization & C++ & solution score over judge cases & 1 / 20 \\
+\texttt{apple\_incremental\_game} & Combinatorial optimization & Python & solution score over judge cases & 3 / 101 \\
+\texttt{graph\_node\_classification} & Science \& ML & Python & held-out accuracy (CPU-only judge) & 2 / 418 \\
+\texttt{grid\_turing\_robot} & Combinatorial optimization & Python & solution score (lower is better) & 3 / 440 \\
+\texttt{juliet\_vulnerability\_analyzer} & Software engineering & Python & hidden evaluator on the Juliet suite & 1 / 9 \\
+\texttt{openrct2\_theme\_park\_ai} & Games \& simulators & JavaScript plugin & park value in a headless OpenRCT2 run & 6 / 5{,}950 \\
+\texttt{schemathesis\_datagen\_pipeline} & Software engineering & Python & fraction of the test suite passing & 416 / 112{,}663 \\
+\texttt{triangulation\_coloring\_optimization} & Combinatorial optimization & Python & coloring ``ugliness'' (lower is better) & 5 / 431 \\
+\texttt{vehicle\_routing\_time\_windows} & Combinatorial optimization & C/C++ & CVRPTW solution quality & 3 / 513 \\
+\texttt{wesnoth\_tactical\_ai} & Games \& simulators & Python & headless Wesnoth matches & 0 / 0 \\
+\bottomrule
+\end{tabular}
+\caption{\textbf{EdgeBench-10 tasks.} Scores are rescaled to 0--100 by the EdgeBench judge. Start: files and lines of code in the working directory before any edit.}
+\label{tab:edgebench10_tasks}
+\end{table}
+
+\paragraph{Software World.}\label{app:open_multi}
+Six agents, one per repository (\texttt{requests}, \texttt{urllib3} and four downstream packages), work in parallel for over 24 hours to make their repositories faster. The score is the geometric-mean speedup, in executed instructions, on 17 held-out CPU benchmarks from four downstream packages the agents never see; a benchmark that breaks counts as 1.0. Every agent runs in the Pi agent harness with Pi's default model and context limit, GPT-5.6-Sol with a 272K-token context. Both swarms, with \ours{} and with summary compaction, use long wakes between work sessions. Cost is cumulative API spend in USD. Results are in Figure~\ref{fig:long_horizon}(\subref{fig:software_world_b}).
+
+\paragraph{In-context steering.}\label{app:steering_setup}
+All three experiments use BrowseComp-Plus questions with Claude 4.6 Sonnet through the API, the unmodified \ours{} harness, no budget reminders, and a run that ends when a request exceeds the budget. Each behavior is induced by an instruction appended after the task message and compared with a no-instruction control on the same questions; confidence intervals are BCa bootstrap intervals over paired differences. Threshold: a 48{,}000-token budget and 200 turns on 30 long questions (at or above the 60th percentile of turn count without instruction), with the instruction to compact once the context passes 16K, 24K or 32K tokens; we report the median context size at the first compaction. Boundaries: sessions of four chained questions with a 24{,}000-token budget and 1{,}000 turns, 189 sessions per condition, 131 of them with a boundary inside the session; we report the rate of compaction within two turns of a question boundary. Backup: a 16{,}000-token budget on 200 questions, 91 of them paired for analysis; we report the fraction of edits preceded by a full copy of the context. Results are in Figure~\ref{fig:steering}.
+The appended instructions are, for the threshold (with $Y\in\{16{,}000, 24{,}000, 32{,}000\}$):
+\begin{quotebox}
+Monitor your context size: every tool result reports your current size. Whenever it exceeds $Y$ tokens, immediately compact your context down to about 4000 tokens. For example: rewrite \mbox{/tmp/.live\_ctx/LIVE\_CTX\_MAIN.txt} to keep only your key findings and current plan (about 4000 tokens).
+\end{quotebox}
+for boundaries:
+\begin{quotebox}
+Please only compress at the boundaries of subtasks. Once a subtask is accomplished, throw out all the context for that subtask. For example: after you write /workspace/answer\_1.txt, rewrite \mbox{/tmp/.live\_ctx/LIVE\_CTX\_MAIN.txt} to drop the Question 1 material, keeping only your answer\_1 conclusion.
+\end{quotebox}
+and for backup:
+\begin{quotebox}
+Before every edit to your context, you must back up the current context file into a new file inside a new folder named compaction\_backup; never overwrite or delete earlier backups.
+\end{quotebox}
+
+\paragraph{In-context evolution.}
+The loop runs on \ourbench{}. Each proposed skill is first run on six training instances; if its accuracy there is at least that of the current frontier, it is run on twelve more, and then on a development split of 102 instances per task with one seed, the only split used to decide frontier membership and selection. For assisted evolution, a test split of 102 instances with three seeds is evaluated once after the archive is frozen. The agent is Qwen3.6-27B served with vLLM, with a 32{,}000-token budget, a 4{,}096-token reserve and 240 turns; a run that exceeds the budget ends. In assisted evolution, Claude Fable 5.1 proposes the skills; in self-evolution, Claude Opus 5 is both the agent and the proposer. Four proposers work in parallel; each reads at least ten rollouts of the current skill, including five successful and failed runs on the same instance, and writes at least four full rewrites, each with a predicted effect on accuracy and cost. A lineage stops after five consecutive proposals without improvement on the development split. Rewards come from the deterministic task graders. A skill enters the Pareto frontier if no earlier skill, the starting point included, is at least as accurate and at least as cheap; the selected skill is the most accurate on the development split, with ties within one standard error broken by cost. Cost is prefix-reuse FLOPs per task over runs that finish within the budget for Qwen3.6-27B, and USD per task for Opus 5. Results are in Figures~\ref{fig:selfevo_evolution} and~\ref{fig:selfevo_evolution_full}.
+
+\paragraph{Reinforcement learning.}
+We train Qwen3.5-9B on 3{,}040 OpenResearcher deep-research prompts using GRPO. Training uses truncated importance sampling, a low-variance KL loss with coefficient 0.01, and dynamic sampling that removes groups with no reward variation. Each step samples 8 prompts with 32 rollouts per prompt. We use a learning rate of \(10^{-6}\), weight decay of 0.1, and a clipping range of \([0.2, 0.28]\), and train for 70 steps. Rollouts are served with SGLang at temperature 0.7 and top-\(p\) 0.95, with thinking enabled and up to 4{,}096 generated tokens per turn. \ours{} uses a 28K context budget with a 2{,}048-token reserve and up to 80 turns, excluding editing turns from the count; the summary harness compacts at 28{,}672 tokens and runs for up to 100 turns.
+We use a binary task reward from GPT-5.4-nano with the DeepSearchQA rubric. For \ours{}, we additionally apply the efficiency advantage from Section~\ref{sec:method_learning} with weight 0.25 to context-management tokens, together with penalties for failed tool calls and malformed outputs. The summary harness is trained with the task reward alone. Training uses 16 H200 GPUs for the policy and 48 for rollout generation. We select the checkpoint with the highest accuracy on 500 held-out OpenResearcher questions, breaking ties within one standard error in favor of the earlier checkpoint, and evaluate it on all 830 BrowseComp-Plus questions using the same judge. Prefix-reuse FLOPs are computed with Qwen3.5-9B model constants and exact token-level prefix matching against the previous turn. Results are reported in Table~\ref{tab:rl_main} and Figure~\ref{fig:rl_curves}.
+
+\section{Supplementary Results}
+
+\paragraph{TerminalBench 2.1, TBLite and BrowseComp-Plus with models of different sizes.}\label{app:full_results}
+Figure~\ref{fig:pareto_9b_27b} places Qwen3.5-9B next to Qwen3.6-27B on the three benchmarks of Figure~\ref{fig:pareto_27b}. \ours{} leaves the decision of when and how to edit the context to the model, so its gains grow with the model's ability to make that decision. With Qwen3.6-27B, \ours{} lies on the Pareto frontier of all three benchmarks and reaches the highest accuracy on BrowseComp-Plus (59.4\%). With Qwen3.5-9B, \ours{} reaches 39.9\% on BrowseComp-Plus, above the summary harness (37.7\%), and the smaller model edits its context less often: on TerminalBench~2.1, Qwen3.5-9B edits its context 1.4 times per task on average and makes no edit in half of the tasks, while Qwen3.6-27B edits 2.6 times per task. The median peak context is correspondingly higher for Qwen3.5-9B, 30.2K tokens of the 32K limit compared with 17.6K for Qwen3.6-27B.
+
+\begin{figure}[!htbp]
+\centering
+\includegraphics[width=0.9\linewidth]{figures/pareto_9b_27b.pdf}
+\caption{\textbf{Qwen3.5-9B and Qwen3.6-27B.} Accuracy against compute for Qwen3.5-9B (top) and Qwen3.6-27B (bottom) on BrowseComp-Plus, TerminalBench~2.1 and TBLite with a 32K context limit. Cost is prefix-reuse PFLOPs per question; dashed lines indicate the Pareto frontier.}
+\label{fig:pareto_9b_27b}
+\end{figure}
+
+\paragraph{Math optimization problems.}
+Figure~\ref{fig:openended-progress} shows the best score so far against the number of scored attempts for each method on the four problems.
+
+\input{tables/open_problems_results}
+
+\paragraph{EdgeBench-10 with a 128K context budget.}
+Figure~\ref{fig:long_horizon_128k_r50} repeats the EdgeBench-10 comparison of Figure~\ref{fig:long_horizon} with a 128K context budget. The three methods that manage context keep improving over the twelve hours, while the base harness stops improving within the first two hours. At a 32K budget, \ours{} with and without subagents end within 0.4 points of each other (44.2 and 44.6). At 128K, \ours{} with subagents reaches 50.2, compared with 47.3 for \ours{} and 47.8 for summarization, using 219, 142 and 222 prefix-reuse PFLOPs per trial.
+
+\begin{figure}[!htbp]
+    \centering
+    \includegraphics[width=0.5\linewidth]{figures/long_horizon_demo10_128k_r50_legend.pdf}\\[-4pt]
+    \begin{subfigure}[t]{0.45\linewidth}\centering\includegraphics[width=\linewidth]{figures/long_horizon_demo10_128k_r50_a.pdf}\caption{Score against time.}\label{fig:long_horizon_128k_r50_a}\end{subfigure}\hspace{0.04\linewidth}
+    \begin{subfigure}[t]{0.24\linewidth}\centering\includegraphics[width=\linewidth]{figures/long_horizon_demo10_128k_r50_c.pdf}\caption{Score against compute.}\label{fig:long_horizon_128k_r50_c}\end{subfigure}
+    \caption{\textbf{EdgeBench-10 single-repository optimization with a 128K context budget.} Qwen3.6-27B, ten tasks, three seeds. End labels give final scores and mean compute per trial (PF = prefix-reuse PFLOPs); insets show the base harness.}
+    \label{fig:long_horizon_128k_r50}
+\end{figure}
+
+\paragraph{In-context evolution.}
+\label{app:selfevo_full}
+Figure~\ref{fig:selfevo_evolution_full} extends Figure~\ref{fig:selfevo_evolution} to all four tasks of \ourbench{}. In assisted evolution, starting without any context-management instruction, the selected skill raises development accuracy from 97.6\% to 100.0\% on Needle Retention, from 45.3\% to 65.8\% on Sudoku Sketchpad, from 22.3\% to 83.8\% on KV Store and from 0.0\% to 100.0\% on Log Triage. On the held-out test split, the selected KV Store skill raises accuracy from 38.3\% to 74.2\%. In self-evolution, Opus 5 starts between 94\% and 100\% accuracy, and the evolved skills either reduce cost at the same or higher accuracy or raise accuracy further.
+
+\begin{figure*}[!htbp]
+\centering
+\includegraphics[width=\textwidth]{figures/selfevo_main_two_rows.pdf}
+\caption{\textbf{Evolving context-management skills on \ourbench{} (32K budget), all four tasks.}
+\textcolor{evoblue}{\textbf{Assisted evolution}} (top): Qwen3.6-27B serves as the agent, while Claude Fable 5.1 proposes the skills; the x-axis shows prefix-reuse PFLOPs per task over solved runs.
+\textcolor{evopurple}{\textbf{Self-evolution}} (bottom): Opus 5 serves as both the agent and the skill proposer; the x-axis shows gateway cost per task in USD.
+Skills are proposed based on training-split rollouts and never use the held-out evaluation set.}
+\label{fig:selfevo_evolution_full}
+\end{figure*}
+
+\paragraph{Reinforcement learning.}\label{app:rl_results}
+Figure~\ref{fig:rl_curves} shows accuracy and compute on BrowseComp-Plus during training for \ours{} and the summary harness, each trained with and without the FLOPs reward.
+
+\begin{figure}[!htbp]
+\centering
+\includegraphics[width=\linewidth]{figures/RL/rl_curves.pdf}
+\caption{\textbf{RL training curves.} Qwen3.5-9B trained on OpenResearcher and evaluated on BrowseComp-Plus with a 32K context limit, through training step 70. (a) Accuracy and prefix-reuse PFLOPs per question against training step. (b) Accuracy against compute, shaded from light to dark by training step.}
+\label{fig:rl_curves}
+\end{figure}
+
+\FloatBarrier
+\section{Analysis on the Context Length Awareness of Existing LMs}
+\label{app:context_awareness}
+An important capability for \oursplural{} is context length awareness: the ability to estimate how much of the context budget has been consumed and to decide when context editing or offloading is needed. Without such awareness, agents may rely on frequent external system interventions, which can leave stale or redundant information in future turns after context editing.
+
+We probe context length awareness with a simple diagnostic. We provide each model with prompts of varying lengths and ask it to estimate the number of tokens in the current context. Figure~\ref{fig:context_length_awareness} compares the models' estimated context lengths against the actual prompt lengths. Interestingly, models tend to predict recurring bucketed values in the longer-context regime, such as 6.2K, 9.8K, or 10.4K tokens. We conjecture that these bucketed estimates may reflect token-counting patterns seen during pretraining or post-training. We further observe that Claude-4.6-Sonnet tends to underestimate context length, while GPT-5.4 achieves the strongest alignment between estimated and actual token counts among the three models. Furthermore, token-count hints improve context-length estimation, and hints closer to the estimation point are more effective.
+These results indicate that existing LMs have limited context-length awareness at long context lengths, where environmental hints can help substantially. Future \ours{} training may incorporate such signals to improve context-length awareness.
+
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=\linewidth]{figures/no_hint_25_50_75_2k_16k_axis20k.png}
+    \caption{Context length awareness. Each point compares a model's estimated context length with the provider-reported prompt length for the same 50 inputs. Panels vary the available hint: none or a token-count anchor at 25\%, 50\%, or 75\% of the input. The dashed line indicates perfect calibration; legend values report mean absolute error (MAE) in tokens.}
+    \label{fig:context_length_awareness}
+\end{figure}
+
