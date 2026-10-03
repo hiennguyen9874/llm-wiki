@@ -43,7 +43,7 @@ sources:
     title: "Tổng hợp kiến trúc Transformer"
   - id: devlin-bert-2018
     resource: ../raw/arXiv-1810.04805v2/main.tex
-    title: BERT: Pre-training of Deep Bidirectional Transformers for Language Understanding
+    title: "BERT: Pre-training of Deep Bidirectional Transformers for Language Understanding"
   - id: llama-summary
     resource: ../raw/LLaMA.md
     title: "LLaMA overview (Vietnamese summary)"

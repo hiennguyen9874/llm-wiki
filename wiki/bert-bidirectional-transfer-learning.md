@@ -9,7 +9,7 @@ generated: { by: llm-wiki-agent/1, at: 2026-07-31T15:22:53Z }
 sources:
   - id: devlin-bert-2018
     resource: ../raw/arXiv-1810.04805v2/main.tex
-    title: BERT: Pre-training of Deep Bidirectional Transformers for Language Understanding
+    title: "BERT: Pre-training of Deep Bidirectional Transformers for Language Understanding"
 ---
 
 # BERT bidirectional transfer learning

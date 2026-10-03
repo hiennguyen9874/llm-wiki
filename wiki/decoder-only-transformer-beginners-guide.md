@@ -1,6 +1,6 @@
 ---
 type: Synthesis
-title: Decoder-only Transformer: beginner's guide
+title: "Decoder-only Transformer: beginner's guide"
 description: A beginner-first guide to the components, data flow, PyTorch implementation, and debugging of a minimal GPT-style decoder-only Transformer.
 tags: [decoder-only-transformer, gpt, causal-language-modeling, transformer, pytorch, learning-roadmap]
 status: stable
