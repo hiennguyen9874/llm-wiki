@@ -4,10 +4,10 @@ Instance configuration under the base contract [`AGENTS.md`](AGENTS.md). Initial
 
 ## Identity
 
-- **Name:** Personal knowledge base
-- **Purpose:** A general-purpose personal knowledge base. It is not bound to one subject; any domain the human curates is eligible.
-- **Inclusion test:** a source or question is in scope when the human supplies or requests it and it yields durable knowledge. Any subject qualifies.
-- **Exclusions:** material the human marks as off-limits.
+- **Name:** Looped Models KB
+- **Purpose:** A research knowledge base on looped, recurrent-depth, and weight-tied transformers: architectures, training stability, scaling laws, adaptive computation and early exit, latent reasoning, inference and serving, and models built on them.
+- **Inclusion test:** a source or question is in scope when it studies, builds, evaluates, or serves repeated application of shared layers or blocks (looped, recurrent-depth, universal, recursive, or layer-reuse transformers), or supplies context needed to interpret such work: untied-depth and MoE baselines, implicit and latent reasoning, systematic generalization, and training recipes used by a looped model.
+- **Exclusions:** general LLM news and architectures with no looped or recurrent-depth connection; standalone agent, data-synthesis, or RL methods not tied to a looped model or comparison; material the human marks as off-limits.
 
 ## Domains
 
@@ -15,11 +15,14 @@ Domains emerge from ingested knowledge. Register a domain when it recurs across 
 
 | Domain | Focus | Course profile | Rules |
 | --- | --- | --- | --- |
-| `ml` | Machine learning, LLM architecture, and LLM-assisted knowledge systems | `ml` | Use `stale_after` for framework APIs, model releases, and benchmarks. |
+| `looped-models` | Looped and recurrent-depth architectures, stability, scaling laws, adaptive depth and early exit, MoE interplay, inference and KV cache | `ml` | State the comparison basis (stored parameters, FLOPs, effective depth, KV cache, wall-clock) for every efficiency or quality claim; distinguish theoretical FLOP savings from measured speed. Use `stale_after` for model releases, benchmarks, and framework APIs. |
+| `reasoning` | Implicit and latent reasoning, grokking, parametric memory, systematic and compositional generalization | `ml` | Name the task family (synthetic vs natural benchmark) a result comes from; do not generalize synthetic findings without labeling them synthesis. |
+| `agent-training` | Post-training and data recipes used by looped models (SFT, RL, trajectory synthesis) | `ml` | Link each concept to the looped model or study that uses it. |
 
 - Name domains as the human does; they may be broad (`health`) or narrow (`home-network`).
 - A concept belongs to its primary domain through tags and, once groups exist, its group path.
 - Domain rules cover things like citation style, verification expectations, or staleness windows.
+- Secondary or rumor reports about unreleased models stay `draft` with claims labeled `Reported` or `Unverified`.
 - An unregistered domain uses the defaults below.
 
 ## Conventions
