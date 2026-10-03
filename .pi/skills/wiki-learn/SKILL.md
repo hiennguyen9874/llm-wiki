@@ -1,53 +1,31 @@
 ---
 name: wiki-learn
-description: Create beginner-first wiki course pages from wiki sources.
+description: Write a beginner-first course page into the wiki from compiled concepts.
 disable-model-invocation: true
 ---
 
 # Wiki Learn
 
-Build one durable beginner-first `course` in `wiki/` that turns scattered wiki concepts into a teachable, verifiable page with theory and runnable code.
-
-Lead word is `course` — every decision serves a single `course` that a newcomer can read, run, and test without re-discovering the source graph.
+Build one durable beginner-first **course**: a wiki page a newcomer can read, practice, and verify without re-walking the source graph.
 
 ## Steps
 
-1. **Map the request to concepts — follow `wiki-query`.**
-   Read `wiki-query` skill and follow its steps 1-2: read `LLM-WIKI.md` and `wiki/index.md`, then translate `$ARGUMENTS` into required concepts, aliases, and constraints. Search progressively: glob for scope, exact text for tags/titles/relationships, then `qmd-retrieval` only on a lexical miss. This step is complete when every needed concept has a candidate path and every retrieval gap is explicit.
+1. **Retrieve: run `wiki-query` steps 1–4** for the topic in `$ARGUMENTS`. Done when every claim the course will make is backed by a wiki concept or raw source, or labeled synthesis or uncertain, and every retrieval gap is explicit.
 
-2. **Retrieve and verify evidence — follow `wiki-query`.**
-   Read `wiki-query` skill and follow its steps 3-4: read every candidate concept, follow its typed relationships (`Depends on`, `Uses`, `Supersedes`, `Contradicts`), and open `raw/` only to verify a disputed citation or fill a provenance gap per the contract's retrieval policy. Check `status`, `stale_after`, verification, and contradictions. This step is complete when each material claim for the `course` is backed by a wiki concept or raw source, or is explicitly marked as synthesis/uncertain — no uncited durable claim remains.
+2. **Plan.** Take the course's primary domain from its concepts' tags and group paths, and pick the course profile `SCOPE.md` maps to it (else the `SCOPE.md` default). Read `references/profiles/<profile>.md` and [`references/TEMPLATE.md`](references/TEMPLATE.md). Choose the slot from Placement and the file name from the template. When `wiki/index.md` already lists a course on the topic, update that page. Done when profile, path, `sources[]`, and a heading outline giving every template block a destination or an omission reason are fixed.
 
-3. **Plan the course slot and outline.**
-   Derive a kebab-case slug from the topic and pick the suffix that matches the form: `-beginners-guide.md` for an explanation, `-beginners-course.md` for a sequenced lesson, `-beginners-project.md` for a build-and-verify lab. Resolve the output slot per Placement rule below and draft the heading outline that will satisfy the Course Template (every template block has a destination or an explicit omission reason). This step is complete when slug, slot, frontmatter `sources[]`, and section plan are fixed and duplicate ingestion is ruled out.
+3. **Draft** at the slot, following the template, the profile, and `obsidian-markdown`. Hold the **beginner bar**: every term, step, and formula is explained at first use for a reader with only foundational knowledge. Done when every template block is present or omitted with a reason, every source-dependent claim carries its `[^id]`, and a reread finds no step that skips the beginner bar.
 
-4. **Draft the course file.**
-   Write the file at the planned slot following `references/TEMPLATE.md` and `obsidian-markdown`. Keep prose Vietnamese, keep technical keywords in English, add English glosses on first use only. Include theory with LaTeX, one inspectable PyTorch example, executable verification tests, and a benchmark or trade-off table when performance is claimed. Attribute every source-dependent claim with a keyed footnote matching `sources[].id`. This step is complete when the file parses as OKF v0.2, renders in Obsidian preview, and every template block is present or explicitly omitted.
-
-5. **Validate, index, and log — follow `wiki-ingest`.**
-   Read `wiki-ingest` and follow its **Validation and commit** gate plus the `LLM-WIKI.md` mutation invariants: fix deterministic errors, update the nearest index, perform the semantic preflight, append exactly one newest-first entry to `wiki/log.md`, then run the structural check and direct checks required by the contract. This step is complete when `wiki/index.md` reaches the new concept (including through a `wiki/learn/` group entry when grouped) and every mutation invariant passes.
+4. **File: run `wiki-ingest` gate 8** with a `Query` log entry, updating the nearest index (and the root summary link when grouped). Done when the index reaches the course and every mutation invariant passes.
 
 ## Placement
 
-Durable `course` pages are queryable knowledge — they belong in `wiki/`, not in `outputs/` or a top-level `learn/` outside the OKF bundle.
+A course is queryable knowledge, so a durable course lives in `wiki/`, where it is indexed, its `sources[].resource` links resolve, and its relationships traverse.
 
-| Slot | When | Indexed | Logged |
-|---|---|---|---|
-| `wiki/<slug>-beginners-guide.md` | Default — durable, reviewed `course` (177 concepts flat today) | `wiki/index.md` | `Query` or `Ingest` entry |
-| `wiki/learn/<slug>.md` with `wiki/learn/index.md` | Graduate here only when `wiki/` flat scanning degrades or `course` count > ~15–20 and a group makes retrieval materially easier | `wiki/learn/index.md` + root summary link in `wiki/index.md` | same as above |
-| `outputs/learn-<slug>-preview.md` | Explicit draft/preview request, or verification fails — not yet durable | not indexed | no log |
+| Slot | When | Index |
+|---|---|---|
+| `wiki/<file>` | Default while `wiki/` is flat | `wiki/index.md` |
+| `wiki/learn/<file>` | Once courses make flat scanning hard (around 15–20) | `wiki/learn/index.md`, linked from the root |
+| `outputs/learn-<slug>-preview.md` | Explicit preview request, or verification fails | Not indexed or logged |
 
-Do not write a durable `course` to `outputs/` or to a top-level `learn/`; `outputs/` is disposable and a top-level `learn/` breaks the contract's "wiki/ is the query surface" and makes `sources[].resource` links and graph traversal inconsistent.
-
-## Course Template
-
-Full block order and field rules are in `references/TEMPLATE.md`. Summary:
-
-Frontmatter: `type: Synthesis` (or `type: Course` if adopted), `title`, `description` (one index-ready sentence), `tags`, `status`, `created`, `generated`, `sources[]`. Body: H1 title → one-paragraph synthesis → `> [!success]` outcome box → Prerequisites/Trước khi đọc → Theory (formulas, tables, `text` diagrams) → Implementation (minimal PyTorch, `interleaved` RoPE convention and absolute `position_ids` documented when attention is involved) → Verification (numbered tests, `torch.testing.assert_close` with `rtol/atol`) → Benchmark/Trade-offs if applicable → Debug checklist → Limitations & Next steps → `## Relationships` with typed bullets → `## Evidence limits` → keyed footnotes. Keep `outputs/` code toy-explicit: `torch.cat` caching is teaching, not serving.
-
-## References
-
-- Template blocks, frontmatter example, and heading skeleton: `references/TEMPLATE.md`
-- Retrieval legwork (steps 1-2 above): `wiki-query` skill — external reference, read on demand; not activated via prompt
-- Ingest and mutation invariants (step 5 above): `wiki-ingest` + `LLM-WIKI.md`, `wiki/index.md`, `wiki/log.md` — external reference, read on demand; not activated via prompt
-- Obsidian rendering (frontmatter, callouts, math, mermaid): `obsidian-markdown` skill (model-invoked, reached via pointer; not listed in prompt)
+A new profile is `references/profiles/<name>.md` with Practice, Verification, Trade-offs, and Vocabulary sections, mapped to a domain in `SCOPE.md`.
