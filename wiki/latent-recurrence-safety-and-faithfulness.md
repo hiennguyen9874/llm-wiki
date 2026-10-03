@@ -35,6 +35,7 @@ HEx-PHI depends on the source's decoding settings and GPT-4o judge; the small PC
 ## Relationships
 
 - Qualifies: [Probing depth-recurrent latent chain-of-thought](probing-depth-recurrent-latent-chain-of-thought.md) — both analyze depth recurrence, but this source offers indirect positive evidence while the probe study finds little rank-trajectory evidence for latent CoT in another model.
+- Related to: [Looped computation and chain-of-thought monitorability](looped-computation-and-chain-of-thought-monitorability.md) — the separate question of whether looping weakens monitoring of textual reasoning traces.
 - Concerns: [Ouro looped language models](ouro-looped-language-models.md) — this page isolates the paper's safety and faithfulness claims from its capability results.
 
 [^zhu2025ouro]: Zhu et al., *Scaling Latent Reasoning via Looped Language Models*, source manuscript, §§6–7 and appendices (arXiv:2510.25741v5, 2025).

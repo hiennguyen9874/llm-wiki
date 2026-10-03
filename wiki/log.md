@@ -1,5 +1,8 @@
 # Wiki Update Log
 
+## 2026-10-03
+- **Ingest**: Compiled [GPT-6 Astra, Looped Transformers, and Hidden Reasoning](../raw/gpt-6-astra-looped-transformers-and/index.md); created [Looped computation and chain-of-thought monitorability](looped-computation-and-chain-of-thought-monitorability.md), updated and retitled [OpenAI GPT-6 Astra looped-architecture report](openai-astra-looped-architecture-report.md), and updated [Ouro looped language models](ouro-looped-language-models.md) and [Latent recurrence safety and faithfulness evidence](latent-recurrence-safety-and-faithfulness.md).
+
 ## 2026-09-04
 - **Ingest**: Compiled [Symbol-Equivariant Recurrent Reasoning Models](../raw/arXiv-2603.02193v1/main_icml2026.tex); created [Symbol-equivariant recurrent reasoning models](symbol-equivariant-recurrent-reasoning-models.md).
 - **Query**: Answered “Tại sao GPT-6 Astra sử dụng kiến trúc loop?”; compiled the available secondary report into the draft [OpenAI Astra looped-architecture report](openai-astra-looped-architecture-report.md).

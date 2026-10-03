@@ -5,7 +5,7 @@ description: Ouro applies a shared transformer stack recurrently and learns an e
 tags: [adaptive-computation, kv-cache, parameter-sharing, recursive-transformers, reasoning]
 status: stable
 created: 2026-09-04
-generated: { by: llm-wiki-agent/1, at: 2026-09-04T03:59:36Z }
+generated: { by: llm-wiki-agent/1, at: 2026-10-03T10:47:00Z }
 sources:
   - id: zhu2025ouro
     resource: ../raw/arXiv-2510.25741v5/paper.tex
@@ -16,6 +16,11 @@ sources:
   - id: popescu2026adaptive
     resource: ../raw/arXiv-2607.20519v1/main.tex
     title: "Adaptive Depth in Looped Transformers: Diagnosing Learned Halting Gates and Trajectory Readouts"
+  - id: raschka2026astra
+    resource: ../raw/gpt-6-astra-looped-transformers-and/index.md
+    scope: ../raw/gpt-6-astra-looped-transformers-and/
+    kind: article
+    title: "GPT-6 Astra, Looped Transformers, and Hidden Reasoning"
 ---
 
 # Ouro looped language models
@@ -53,6 +58,8 @@ The paper compares models trained with substantially different data budgets (for
 
 Benchmark performance generally peaks at or near the trained four-round depth and then degrades for the reported base and thinking models. Adaptive depth changes inference compute but does not eliminate the prefill-cache cost.[^zhu2025ouro]
 
+A later commentary reports that the released Hugging Face `modeling_ouro.py` for Ouro-2.6B-Thinking computes all configured passes before selecting an output, so the public implementation effectively runs a fixed four loops and realizes no adaptive-exit compute savings. This is **Reported** from a secondary source; the modeling code is not captured in `raw/` and was not inspected here.[^raschka2026astra]
+
 ## Relationships
 
 - Contrasts with: [Controlled looped-model architecture ablations](controlled-looped-model-architecture-ablations.md) — its source isolates the effects of moving from full-stack Ouro-style recurrence to a Huginn-style sandwich, rather than evaluating Ouro's adaptive exit design.[^huang2026looped]
@@ -63,4 +70,5 @@ Benchmark performance generally peaks at or near the trained four-round depth an
 
 [^zhu2025ouro]: Zhu et al., *Scaling Latent Reasoning via Looped Language Models*, source manuscript, abstract, §§3–5 and appendices (arXiv:2510.25741v5, 2025).
 [^huang2026looped]: Huang et al., *Towards Looped Models Done Right*, living article, §§1–4 and conclusion (dated July 31, 2026; compiled from `raw/TowardsLoopedModelsDoneRight.md`).
+[^raschka2026astra]: Sebastian Raschka, *GPT-6 Astra, Looped Transformers, and Hidden Reasoning*, Ahead of AI, 2026-09-09 (web capture `raw/gpt-6-astra-looped-transformers-and/index.md`), §2.3.
 [^popescu2026adaptive]: Popescu, Sáez de Ocáriz Borde, and Liò, *Adaptive Depth in Looped Transformers: Diagnosing Learned Halting Gates and Trajectory Readouts*, source manuscript, §§3–6 and appendices (arXiv:2607.20519v1, 2026).
