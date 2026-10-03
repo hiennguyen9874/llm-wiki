@@ -1,6 +1,7 @@
 # Wiki Update Log
 
 ## 2026-10-03
+- **Ingest**: Compiled [Cosmos3-Super-Text2Image model card](../raw/Cosmos3-Super-Text2Image.md); created [Cosmos3-Super-Text2Image Text-to-Image Model](cosmos3-super-text2image.md).
 - **Ingest**: Compiled [Vietnamese diffusion and image-model explainer](../raw/what-is-diffusion-model.md) with user-authorized scope exception; created [Latent Image Generation Pipeline](latent-image-generation.md), [Image Model, Library, and Workflow Roles](image-inference-tool-roles.md), and [Qwen-Image-Edit Semantic and Appearance Control](qwen-image-edit-conditioning.md); added contextual links to [stable-diffusion.cpp](stable-diffusion-cpp.md), [ComfyUI-GGUF](comfyui-gguf.md), and [Qwen-Image-2.1](qwen-image-2-1.md). Preserved unverified examples and version boundaries; contract unchanged.
 - **Ingest**: Compiled [Qwen-Image-2.1-PE-T2I Heretic GGUF README](../raw/Qwen-Image-2.1-PE-T2I-Heretic-GGUF/README.md); created [Qwen-Image-2.1 PE-T2I Rewriter (Heretic GGUF)](qwen-image-2-1-pe-t2i-heretic-gguf.md) and updated [Qwen-Image-2.1 Text-to-Image and Editing Model](qwen-image-2-1.md) and [Qwen-Image-2.1 PE-I2I Rewriter (Heretic GGUF)](qwen-image-2-1-pe-i2i-heretic-gguf.md).
 - **Ingest**: Compiled [Qwen-Image-2.1-PE-I2I Heretic GGUF README](../raw/Qwen-Image-2.1-PE-I2I-Heretic-GGUF/README.md); created [Qwen-Image-2.1 PE-I2I Rewriter (Heretic GGUF)](qwen-image-2-1-pe-i2i-heretic-gguf.md) and updated [Qwen-Image-2.1 Text-to-Image and Editing Model](qwen-image-2-1.md).

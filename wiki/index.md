@@ -8,6 +8,7 @@ The complete retrieval map for compiled knowledge. See [LLM Wiki Contract](../AG
 
 ## Concepts
 - [ComfyUI-GGUF Quantized Model Support](comfyui-gguf.md) — Custom nodes for running GGUF-quantized UNET/DiT and T5 models in ComfyUI.
+- [Cosmos3-Super-Text2Image Text-to-Image Model](cosmos3-super-text2image.md) — NVIDIA 64B Mixture-of-Transformers text-to-image checkpoint in the Cosmos 3 omnimodal world-model family with vLLM-Omni, SGLang, and Diffusers serving under OpenMDW1.1.
 - [FLUX.1-dev Text-to-Image Model](flux-1-dev.md) — Black Forest Labs 12B rectified flow text-to-image model with guidance distillation and non-commercial licensing.
 - [FLUX.1-schnell Text-to-Image Model](flux-1-schnell.md) — Black Forest Labs 12B rectified flow text-to-image model with latent adversarial diffusion distillation for 1-4 step inference under Apache-2.0.
 - [Ideogram 4 Text-to-Image Model](ideogram-4.md) — Ideogram 9.3B open-weight flow-matching text-to-image foundation model with JSON prompting, layout and palette control, and nf4/fp8 releases under a non-commercial license.
