@@ -1,1 +1,33 @@
 # Wiki Update Log
+
+## 2026-10-03
+- **Ingest**: Compiled [Vietnamese diffusion and image-model explainer](../raw/what-is-diffusion-model.md) with user-authorized scope exception; created [Latent Image Generation Pipeline](latent-image-generation.md), [Image Model, Library, and Workflow Roles](image-inference-tool-roles.md), and [Qwen-Image-Edit Semantic and Appearance Control](qwen-image-edit-conditioning.md); added contextual links to [stable-diffusion.cpp](stable-diffusion-cpp.md), [ComfyUI-GGUF](comfyui-gguf.md), and [Qwen-Image-2.1](qwen-image-2-1.md). Preserved unverified examples and version boundaries; contract unchanged.
+- **Ingest**: Compiled [Qwen-Image-2.1-PE-T2I Heretic GGUF README](../raw/Qwen-Image-2.1-PE-T2I-Heretic-GGUF/README.md); created [Qwen-Image-2.1 PE-T2I Rewriter (Heretic GGUF)](qwen-image-2-1-pe-t2i-heretic-gguf.md) and updated [Qwen-Image-2.1 Text-to-Image and Editing Model](qwen-image-2-1.md) and [Qwen-Image-2.1 PE-I2I Rewriter (Heretic GGUF)](qwen-image-2-1-pe-i2i-heretic-gguf.md).
+- **Ingest**: Compiled [Qwen-Image-2.1-PE-I2I Heretic GGUF README](../raw/Qwen-Image-2.1-PE-I2I-Heretic-GGUF/README.md); created [Qwen-Image-2.1 PE-I2I Rewriter (Heretic GGUF)](qwen-image-2-1-pe-i2i-heretic-gguf.md) and updated [Qwen-Image-2.1 Text-to-Image and Editing Model](qwen-image-2-1.md).
+- **Ingest**: Compiled [Qwen-Image-2.1 Text Encoder Heretic GGUF README](../raw/Qwen-Image-2.1-Text-Encoder-Heretic-GGUF/README.md); created [Qwen-Image-2.1 Text Encoder (Heretic)](qwen-image-2-1-text-encoder-heretic.md) and updated [Qwen-Image-2.1 Text-to-Image and Editing Model](qwen-image-2-1.md) and [ComfyUI-GGUF Quantized Model Support](comfyui-gguf.md).
+- **Ingest**: Compiled [Leejet Qwen-Image-2.1-GGUF model card](../raw/leejet-Qwen-Image-2.1-GGUF/README.md); created [Qwen-Image-2.1 GGUF Quantized Checkpoints (Leejet)](qwen-image-2-1-gguf-leejet.md) and updated [Qwen-Image-2.1 Text-to-Image and Editing Model](qwen-image-2-1.md) and [ComfyUI-GGUF Quantized Model Support](comfyui-gguf.md).
+- **Ingest**: Compiled [Ideogram 4 fp8 model card](../raw/ideogram-4-fp8/README.md); created [Ideogram 4 Text-to-Image Model](ideogram-4.md).
+- **Ingest**: Compiled [Z-Image-Turbo model card](../raw/Z-Image-Turbo/README.md); created [Z-Image-Turbo Text-to-Image Model](z-image-turbo.md) and updated [Z-Image-Turbo GGUF Quantized Checkpoints (Unsloth)](z-image-turbo-gguf-unsloth.md).
+- **Ingest**: Compiled [Unsloth Z-Image-Turbo-GGUF model card](../raw/Z-Image-Turbo-GGUF/README.md); created [Z-Image-Turbo GGUF Quantized Checkpoints (Unsloth)](z-image-turbo-gguf-unsloth.md).
+- **Ingest**: Compiled [Z-Image-Lora model card](../raw/Z-Image-Lora/README.md); created [Z-Image Lookalike LoRA Collection (nphSi)](z-image-lookalike-loras.md).
+- **Ingest**: Compiled [Krea 2 - Wulver v0.5 model card](../raw/Wulver/README.md); created [Wulver Krea-2 Anthro Fine-Tune](wulver-krea-2.md).
+- **Ingest**: Compiled [Qwen-Image-Edit-2511-Multiple-Angles-LoRA model card](../raw/Qwen-Image-Edit-2511-Multiple-Angles-LoRA/README.md); created [Qwen-Image-Edit-2511 Multiple-Angles LoRA](qwen-image-edit-2511-multiple-angles-lora.md).
+- **Ingest**: Compiled [Unsloth Qwen-Image-2512-GGUF model card](../raw/Qwen-Image-2512-GGUF/README.md); created [Qwen-Image-2512 GGUF Quantized Checkpoints (Unsloth)](qwen-image-2512-gguf-unsloth.md).
+- **Ingest**: Compiled [Qwen-Image-2.1 model card](../raw/Qwen-Image-2.1/README.md); created [Qwen-Image-2.1 Text-to-Image and Editing Model](qwen-image-2-1.md).
+- **Ingest**: Compiled [Qwen-Image-2.1-viggle-turbo model card](../raw/Qwen-Image-2.1-viggle-turbo/README.md); created [Qwen-Image-2.1 Viggle Turbo Few-Step LoRA](qwen-image-2-1-viggle-turbo.md).
+- **Ingest**: Compiled [Qwen-Image-2.1 Uncensored GGUF model card](../raw/Qwen-Image-2.1-Uncensored-Abenzerps-GGUF/README.md); created [Qwen-Image-2.1 Uncensored GGUF Checkpoints (Abenzerps)](qwen-image-2-1-uncensored-gguf-abenzerps.md).
+- **Ingest**: Compiled [Qwen-Image-2.1-LoRAs model card](../raw/Qwen-Image-2.1-LoRAs/README.md); created [Qwen-Image-2.1 Edit LoRAs (WarmBloodAban)](qwen-image-2-1-edit-loras.md).
+- **Ingest**: Compiled [Unsloth Qwen-Image-2.1-GGUF model card](../raw/Qwen-Image-2.1-GGUF/README.md); created [Qwen-Image-2.1 GGUF Quantized Checkpoints (Unsloth)](qwen-image-2-1-gguf-unsloth.md).
+- **Ingest**: Compiled [Qwen-Image-2.1-Fun-Controlnet-Union model card](../raw/Qwen-Image-2.1-Fun-Controlnet-Union/README.md); created [Qwen-Image-2.1-Fun ControlNet-Union Branch](qwen-image-2-1-fun-controlnet-union.md).
+- **Ingest**: Compiled [Qwen Image 2.1 Fix LoRA model card](../raw/Qwen-Image-2.1-Fix/README.md); updated [Qwen-Image-2.1-Fix LoRA Adapter](qwen-image-2-1-fix.md).
+- **Ingest**: Compiled [Pruna-Qwen-Image-2.1 model card](../raw/Pruna-Qwen-Image-2.1/README.md); created [Pruna Qwen-Image-2.1 Few-Step LoRA Adapters](pruna-qwen-image-2-1.md).
+- **Ingest**: Compiled [Ming-Image-0.1-Design model card](../raw/Ming-Image-0.1-Design/README.md); created [Ming-Image-0.1-Design Text-to-Image Model](ming-image-0-1-design.md).
+- **Ingest**: Compiled [Krea 2 Turbo model card](../raw/Krea-2-Turbo/README.md); created [Krea 2 Turbo Text-to-Image Model](krea-2-turbo.md) and updated [Krea 2 Raw Text-to-Image Model](krea-2-raw.md).
+- **Ingest**: Compiled [Krea 2 Raw model card](../raw/Krea-2-Raw/README.md); created [Krea 2 Raw Text-to-Image Model](krea-2-raw.md).
+- **Ingest**: Compiled [Juggernaut XL v9 model card](../raw/Juggernaut-XL-v9/README.md); created [Juggernaut XL v9 Photorealism Model](juggernaut-xl-v9.md).
+- **Ingest**: Compiled [FLUX.1-schnell model card](../raw/FLUX.1-schnell/README.md); created [FLUX.1-schnell Text-to-Image Model](flux-1-schnell.md).
+- **Ingest**: Compiled [FLUX.1-dev model card](../raw/FLUX.1-dev/README.md); created [FLUX.1-dev Text-to-Image Model](flux-1-dev.md).
+- **Ingest**: Compiled [ComfyUI-GGUF README](../raw/ComfyUI-GGUF.md); created [ComfyUI-GGUF Quantized Model Support](comfyui-gguf.md).
+- **Ingest**: Compiled [Qwen-Image-2.1 GGUF Quants](../raw/Abiray-Qwen-Image-2.1-GGUF/README.md); created [Qwen-Image-2.1 GGUF Quantized Checkpoints (Abiray)](qwen-image-2-1-gguf-abiray.md).
+- **Ingest**: Compiled [Post by @Oluwaphilemon1 on X](../raw/2105477892930949370/index.md); created [Qwen-Image-2.1-Fix LoRA Adapter](qwen-image-2-1-fix.md).
+- **Ingest**: Compiled [stable-diffusion.cpp README](../raw/stable-diffusion.cpp.md); created [stable-diffusion.cpp Local Diffusion Inference](stable-diffusion-cpp.md).
