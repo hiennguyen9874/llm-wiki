@@ -1,11 +1,11 @@
 ---
 type: Concept
-title: Von Decision Model: 395M ModernBERT System One Decisions with Chains and Local Calibration
+title: 'Von Decision Model: 395M ModernBERT System One Decisions with Chains and Local Calibration'
 description: Open-source 395M ModernBERT System One decision model with calibrated Choice/Noul/Score, SystemOne-compatible serving, confidence gating, chain-of-options computation, and local recalibration.
 tags: [von, decision-models, open-weights, calibration, serving]
 status: stable
 created: 2026-10-02
-generated: { by: llm-wiki-agent/1, at: 2026-10-02T23:45:00Z }
+generated: { by: llm-wiki-agent/1, at: 2026-10-03T00:31:59Z }
 sources:
   - id: von-2026
     resource: ../raw/von.md

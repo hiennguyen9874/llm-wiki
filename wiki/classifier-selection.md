@@ -5,7 +5,7 @@ description: When to use Jev or Jev-likes versus frontier LLMs or fine-tuned spe
 tags: [jev, decision-models, agents, build-vs-buy]
 status: stable
 created: 2026-10-02
-generated: { by: llm-wiki-agent/1, at: 2026-10-02T23:45:00Z }
+generated: { by: llm-wiki-agent/1, at: 2026-10-03T00:39:30Z }
 sources:
   - id: reddit-jev-287-2026-09
     resource: ../raw/i-reviewed-287-opensource-jev-projects-here-are/index.md
@@ -234,6 +234,7 @@ Synthesis: default to a general decision model for one-off or varied tasks, fine
 
 ## Relationships
 
+- Uses [Jev and Alternatives: Decision Model Comparison](jev-alternatives-comparison.md) for a model-by-model synthesis of architecture, modalities, deployment, calibration, benchmark boundaries, and conditional workload shortlists; checkpoint-specific evidence remains in the linked model concepts.
 - Decides between [Jev Decision Model](jev-decision-model.md) and [Text Classification Lineage](text-classification-lineage.md) specialists.
 - Reuses [Jev API Patterns](jev-api-patterns.md) for invocation and DIY estimates.
 - Requires [Classifier Calibration](classifier-calibration.md) when decisions depend on confidence.

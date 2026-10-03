@@ -1,11 +1,11 @@
 ---
 type: Concept
-title: Julia 1 Decision Model: 144M Multilingual Typed Decisions and Router Runtime
+title: 'Julia 1 Decision Model: 144M Multilingual Typed Decisions and Router Runtime'
 description: Supersonic Labs Julia 1 turns state plus question plus 2-20 options into choice, noul, or score decisions on a 144.3M mmBERT-small backbone, with reported typed, pilot, and MASSIVE results plus a resident CPU/CUDA and hierarchical routing runtime.
 tags: [julia, decision-models, routing, multilingual]
 status: stable
 created: 2026-10-02
-generated: { by: llm-wiki-agent/1, at: 2026-10-02T23:30:00Z }
+generated: { by: llm-wiki-agent/1, at: 2026-10-03T00:31:59Z }
 sources:
   - id: julia-1-2026-09-24
     resource: ../raw/Julia-1/README.md

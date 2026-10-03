@@ -1,11 +1,11 @@
 ---
 type: Concept
-title: Contrastive Language Models: CLM-v0.1-8B State-Action Verifier
+title: 'Contrastive Language Models: CLM-v0.1-8B State-Action Verifier'
 description: CLM-v0.1-8B contrastive state-action heads on frozen Qwen3-8B, training stages, reported Jev-parity speedups and verifier SOTA, serving usage, and encoder-locked limits.
 tags: [clm, system-one, verifier, contrastive-learning, decision-models]
 status: stable
 created: 2026-10-02
-generated: { by: llm-wiki-agent/1, at: 2026-10-02T18:00:00Z }
+generated: { by: llm-wiki-agent/1, at: 2026-10-03T00:31:59Z }
 sources:
   - id: fahad-mirza-showdown-2026
     resource: ../raw/DecisionModelShowdownCLMvsLayavsOpenJevvsKevvsJev.md

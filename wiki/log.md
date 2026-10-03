@@ -1,5 +1,10 @@
 # Wiki Update Log
 
+## 2026-10-03
+- **Update**: Renamed `wiki/.pi-last-response.md` to [Jev and Alternatives: Decision Model Comparison](jev-alternatives-comparison.md); updated navigation and historical link destinations, preserved content and metadata, and removed the obsolete Git ignore exception.
+- **Ingest**: Finalized the saved response as [Jev and Alternatives: Decision Model Comparison](jev-alternatives-comparison.md), a stable synthesis citing maintained concepts with model matrices, benchmark/calibration boundaries, conditional shortlists, and explicit coverage limits; integrated reciprocal navigation with [Classifier Selection](classifier-selection.md).
+- **Lint**: Repaired the saved comparison as a cited, indexed [draft synthesis](jev-alternatives-comparison.md), corrected Jev's misplaced Von source and four unparseable YAML titles, and preserved the requested page through a narrow Git ignore exception; scoped report saved to [wiki repair report](../outputs/wiki-lint-2026-10-03.md).
+
 ## 2026-10-02
 - **Ingest**: Compiled [Von](../raw/von.md); created [Von Decision Model](von-decision-model.md) covering 395M ModernBERT Choice/Noul/Score, SystemOne-compatible serving, 0.80 confidence gate, band/raw Noul rule, chain-of-options computation, local `von calibrate`, and JevBench v1.4 figures; updated [Jev Decision Model](jev-decision-model.md), [Classifier Selection](classifier-selection.md), [Jev API Patterns](jev-api-patterns.md), and [Classifier Calibration](classifier-calibration.md).
 - **Ingest**: Compiled [OpenJev](../raw/razorback16-openjev.md) (razorback16 diffusion decision server); created [OpenJev Diffusion Decision Server](openjev-diffusion-decision-server.md) covering Jev-compatible wire API, diffusion-canvas readout, images/steps/samples/think/sequential extensions, vLLM/MLX backends with reported latency, routed Laya/Verdict/CLM/JevK5 serving notes and caveats; updated [OpenJev Open-Weights Typed Decision Model](openjev-decision-model.md) and [Jev API Patterns](jev-api-patterns.md) with name-collision contrasts.

@@ -5,7 +5,7 @@ description: What Jev is, how it positions against frontier LLMs and specialist 
 tags: [jev, decision-models, classification]
 status: stable
 created: 2026-10-02
-generated: { by: llm-wiki-agent/1, at: 2026-10-02T23:45:00Z }
+generated: { by: llm-wiki-agent/1, at: 2026-10-03T00:31:59Z }
 sources:
   - id: reddit-jev-287-2026-09
     resource: ../raw/i-reviewed-287-opensource-jev-projects-here-are/index.md
@@ -125,12 +125,11 @@ sources:
     scope: ../raw/openjev-openjev/
     kind: model-card
     title: OpenJev
----
-
   - id: von-2026
     resource: ../raw/von.md
     kind: documentation
     title: Von
+---
 
 # Jev Decision Model: Positioning and Performance
 

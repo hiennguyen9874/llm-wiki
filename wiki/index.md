@@ -6,6 +6,9 @@ okf_version: "0.2"
 
 The complete retrieval map for compiled knowledge. See [LLM Wiki Contract](../LLM-WIKI.md) for storage and maintenance rules.
 
+## Syntheses
+- [Jev and Alternatives: Decision Model Comparison](jev-alternatives-comparison.md) — Comparison of documented Jev-compatible models by architecture, modalities, deployment, calibration, benchmark evidence, and workload fit.
+
 ## Concepts
 - [Bespoke Nimble Open Typed-Decision Recipe](bespoke-nimble-decision-model.md) — Open recipe for a Jev-like single-token typed-decision model on Qwen3.5-9B with contrastive data curation, LoRA recipe, and fitted-temperature calibration.
 - [Classifier Calibration: Temperature Scaling and Calibration Rewards](classifier-calibration.md) — How calibration aligns predicted probabilities with observed frequencies via temperature scaling and RL-style calibration rewards such as RLCR and Jev RLCD.

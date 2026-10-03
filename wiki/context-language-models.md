@@ -1,11 +1,11 @@
 ---
 type: Concept
-title: Context Language Models: Context-as-File Self-Management
+title: 'Context Language Models: Context-as-File Self-Management'
 description: Context Language Models that treat live context as an editable file for zero-shot, learned, and efficiently served long-horizon agency, with ContextBench diagnostics and Suffix Cache Reuse.
 tags: [context-management, agents, evaluation, serving, reinforcement-learning]
 status: stable
 created: 2026-10-02
-generated: { by: llm-wiki-agent/1, at: 2026-10-02T18:30:00Z }
+generated: { by: llm-wiki-agent/1, at: 2026-10-03T00:31:59Z }
 sources:
   - id: clm-paper-2609-37725v1
     resource: ../raw/arXiv-2609.37725v1/paper.tex
