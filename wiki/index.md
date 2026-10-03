@@ -4,7 +4,7 @@ okf_version: "0.2"
 
 # LLM Wiki
 
-The complete retrieval map for compiled knowledge. See [LLM Wiki Contract](../LLM-WIKI.md) for storage and maintenance rules.
+The complete retrieval map for compiled knowledge. See [LLM Wiki Contract](../AGENTS.md) for storage and maintenance rules.
 
 ## Syntheses
 - [Jev and Alternatives: Decision Model Comparison](jev-alternatives-comparison.md) — Comparison of documented Jev-compatible models by architecture, modalities, deployment, calibration, benchmark evidence, and workload fit.
