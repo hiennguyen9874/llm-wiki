@@ -4,10 +4,10 @@ Instance configuration under the base contract [`AGENTS.md`](AGENTS.md). Initial
 
 ## Identity
 
-- **Name:** Personal knowledge base
-- **Purpose:** A general-purpose personal knowledge base. It is not bound to one subject; any domain the human curates is eligible.
-- **Inclusion test:** a source or question is in scope when the human supplies or requests it and it yields durable knowledge. Any subject qualifies.
-- **Exclusions:** material the human marks as off-limits.
+- **Name:** Embedding & Retrieval Models KB
+- **Purpose:** Track, compare, and choose embedding, reranking, and late-interaction retrieval models (text, code, multimodal, visual-document), their architectures, training methods, and benchmarks, to support model selection for retrieval/RAG systems.
+- **Inclusion test:** a source or question is in scope when it yields durable knowledge about a retrieval model, its backbone encoder, its training/alignment method, or a retrieval benchmark or leaderboard.
+- **Exclusions:** general-purpose LLM/chat models without a retrieval role; vector databases and serving infrastructure, unless the source ties them to a specific model; marketing material with no technical substance; material the human marks as off-limits.
 
 ## Domains
 
@@ -15,7 +15,9 @@ Domains emerge from ingested knowledge. Register a domain when it recurs across 
 
 | Domain | Focus | Course profile | Rules |
 | --- | --- | --- | --- |
-| `ml` | Machine learning, LLM architecture, and LLM-assisted knowledge systems | `ml` | Use `stale_after` for framework APIs, model releases, and benchmarks. |
+| `embedding` | Dense, sparse, multi-vector, and multimodal embedding models and their backbones | `ml` | Record params, backbone, pooling, dims/Matryoshka, context, license, languages; label vendor scores as Reported (self-reported). |
+| `reranking` | Cross-encoder, listwise, and multimodal rerankers and context pruners | `ml` | Record scoring mode (pointwise/listwise), context limit, license; scope benchmark comparisons to one protocol. |
+| `benchmarks` | MTEB/MMTEB, RTEB, MMEB, ViDoRe, and leaderboard snapshots | `ml` | Store snapshot date and benchmark version; set `stale_after` (≈90 days) on rankings; never mix scores across benchmark versions. |
 
 - Name domains as the human does; they may be broad (`health`) or narrow (`home-network`).
 - A concept belongs to its primary domain through tags and, once groups exist, its group path.
