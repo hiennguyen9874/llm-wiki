@@ -1,10 +1,14 @@
 ---
+name: Explore
 display_name: Explore
 description: Fast codebase exploration agent (read-only)
-tools: read, bash, grep, find, ls
-model: openai-codex/gpt-5.6-luna
+tools: [read, bash, grep, find, ls]
+skills: false
+extensions: false
+model: opencode-go/deepseek-v4.1-flash
 thinking: high
-prompt_mode: replace
+include_system_prompt: false
+extensions: [pi-commandcode-provider, pi-anthropic-auth, pi-documentation, skills-instructions-rewriter, remove-pi-env-guideline]
 ---
 
 # CRITICAL: READ-ONLY MODE - NO FILE MODIFICATIONS
