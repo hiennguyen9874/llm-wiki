@@ -5,7 +5,7 @@ description: An 8B-parameter Qwen3-based multilingual text embedding model with 
 tags: [embedding, retrieval, multilingual, matryoshka, qwen]
 status: stable
 created: 2026-08-19
-generated: { by: llm-wiki-agent/1, at: 2026-08-19T15:52:34Z }
+generated: { by: llm-wiki-agent/1, at: 2026-10-04T09:52:00Z }
 sources:
   - id: qwen3-embedding-8b-card
     resource: ../raw/Qwen3-Embedding-8B.md
@@ -13,6 +13,10 @@ sources:
   - id: qwen3-embedding-report-latex
     resource: ../raw/2506.05176_Qwen3Embedding/main.tex
     title: Qwen3 Embedding technical report LaTeX source (arXiv:2506.05176)
+  - id: tei-readme
+    resource: ../raw/text-embeddings-inference.md
+    kind: documentation
+    title: Text Embeddings Inference README (v1.9 images)
 ---
 
 # Qwen3-Embedding-8B
@@ -40,6 +44,7 @@ The model card calls its 70.58 MTEB Multilingual result No. 1 as of 2025-06-05, 
 - **Embedding path:** a causal-attention LLM appends an EOS token; the embedding is the final-layer hidden state at that token. Inputs are L2-normalized in the supplied implementation before cosine-similarity scoring. [^qwen3-embedding-8b-card] [^qwen3-embedding-report-latex]
 - **Shape and input limit:** 32K context; maximum 4,096 output dimensions. Matryoshka representation learning permits user-selected dimensions from 32 to 4,096. [^qwen3-embedding-8b-card] [^qwen3-embedding-report-latex]
 - **Instruction handling:** queries concatenate a task instruction and query; documents are left unchanged. The card says instructions generally improve downstream tasks by 1–5% in its evaluation. [^qwen3-embedding-8b-card] [^qwen3-embedding-report-latex]
+- **Serving:** [Text Embeddings Inference (TEI)](text-embeddings-inference.md) lists this checkpoint as a supported Qwen3 embedding model; the README labels it "Very Expensive" at 7.57B parameters. [^tei-readme]
 
 ## Language support
 
@@ -55,3 +60,4 @@ The source does not disclose the Qwen3 pretraining-corpus composition, data lice
 
 [^qwen3-embedding-8b-card]: [Qwen3-Embedding-8B model card](../raw/Qwen3-Embedding-8B.md). Model-card claims and benchmark snapshot.
 [^qwen3-embedding-report-latex]: [Qwen3 Embedding technical report LaTeX source](../raw/2506.05176_Qwen3Embedding/main.tex), arXiv:2506.05176. The entry point and its local inputs contain the report's series-level architecture, training, and evaluation claims.
+[^tei-readme]: [Text Embeddings Inference README](../raw/text-embeddings-inference.md), §Supported Models → Text Embeddings. Upstream-authored compatibility list; no revision recorded.

@@ -5,7 +5,7 @@ description: An Apache-2.0 4B-parameter Qwen3 multilingual text embedding model 
 tags: [embedding, retrieval, multilingual, matryoshka, qwen]
 status: stable
 created: 2026-08-19
-generated: { by: llm-wiki-agent/1, at: 2026-08-19T14:23:16Z }
+generated: { by: llm-wiki-agent/1, at: 2026-10-04T09:52:00Z }
 sources:
   - id: qwen3-embedding-card
     resource: ../raw/Qwen3-Embedding-4B.md
@@ -13,6 +13,10 @@ sources:
   - id: qwen3-embedding-report-latex
     resource: ../raw/2506.05176_Qwen3Embedding/main.tex
     title: Qwen3 Embedding technical report LaTeX source (arXiv:2506.05176)
+  - id: tei-readme
+    resource: ../raw/text-embeddings-inference.md
+    kind: documentation
+    title: Text Embeddings Inference README (v1.9 images)
 ---
 
 # Qwen3-Embedding-4B
@@ -27,7 +31,7 @@ For retrieval, the supplied examples apply a one-sentence task instruction to qu
 
 ## Implementation and deployment
 
-The model card requires `transformers>=4.51.0`; its Sentence Transformers example additionally requires `sentence-transformers>=2.7.0`, and its vLLM example requires `vllm>=0.8.5`. It shows Sentence Transformers, bare Transformers, vLLM embedding, and Text Embeddings Inference (TEI) interfaces. FlashAttention 2 with left padding is recommended for acceleration and memory savings; the TEI example names NVIDIA-GPU and CPU images. [^qwen3-embedding-card]
+The model card requires `transformers>=4.51.0`; its Sentence Transformers example additionally requires `sentence-transformers>=2.7.0`, and its vLLM example requires `vllm>=0.8.5`. It shows Sentence Transformers, bare Transformers, vLLM embedding, and Text Embeddings Inference (TEI) interfaces. FlashAttention 2 with left padding is recommended for acceleration and memory savings; the TEI example names NVIDIA-GPU and CPU images. [^qwen3-embedding-card] TEI's own README lists Qwen3 among its supported embedding architectures and this checkpoint as a supported example; see [Text Embeddings Inference (TEI)](text-embeddings-inference.md). [^tei-readme]
 
 ## Training
 
@@ -48,3 +52,4 @@ The report’s multilingual comparison table lists Qwen3-Embedding-4B ahead of i
 
 [^qwen3-embedding-card]: [Qwen3-Embedding-4B model card](../raw/Qwen3-Embedding-4B.md). Author-reported license, capability, implementation, deployment, and benchmark claims.
 [^qwen3-embedding-report-latex]: [Qwen3 Embedding technical report LaTeX source](../raw/2506.05176_Qwen3Embedding/main.tex), arXiv:2506.05176. Architecture, training, and evaluation claims are report-authored.
+[^tei-readme]: [Text Embeddings Inference README](../raw/text-embeddings-inference.md), §Supported Models → Text Embeddings. Upstream-authored compatibility list; no revision recorded.

@@ -1,5 +1,8 @@
 # Wiki Update Log
 
+## 2026-10-04
+- **Ingest**: Compiled [Text Embeddings Inference README](../raw/text-embeddings-inference.md); created [Text Embeddings Inference (TEI)](text-embeddings-inference.md) and added TEI serving notes to Qwen3-Embedding-0.6B/4B/8B and EmbeddingGemma 300M.
+
 ## 2026-09-17
 - **Lint**: Repaired 6 YAML title-quoting defects and 5 index defects (4 descriptions + sorting) across 65 concepts; report saved to [wiki-lint-2026-09-17](../outputs/wiki-lint-2026-09-17.md).
 

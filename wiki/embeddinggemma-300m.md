@@ -5,7 +5,7 @@ description: A 300M-parameter Gemma 3-based multilingual text embedding model wi
 tags: [embedding, retrieval, multilingual, matryoshka, gemma]
 status: stable
 created: 2026-08-19
-generated: { by: llm-wiki-agent/1, at: 2026-08-19T08:47:55Z }
+generated: { by: llm-wiki-agent/1, at: 2026-10-04T09:52:00Z }
 sources:
   - id: embeddinggemma-card
     resource: ../raw/embeddinggemma-300m.md
@@ -13,6 +13,10 @@ sources:
   - id: mteb-multilingual-v2-summary
     resource: ../raw/MTEB_Multilingual_v2_summary.csv
     title: MTEB Multilingual v2 summary CSV
+  - id: tei-readme
+    resource: ../raw/text-embeddings-inference.md
+    kind: documentation
+    title: Text Embeddings Inference README (v1.9 images)
 ---
 
 # EmbeddingGemma 300M
@@ -43,6 +47,7 @@ A supplied leaderboard CSV ranks the model **18th of 45**, reporting the same 76
 - **Backbone:** built from Gemma 3, initialized from T5Gemma; the card does not disclose layer count, hidden size, attention configuration, tokenizer, or parameter breakdown. [^embeddinggemma-card]
 - **Input and output:** accepts text up to 2,048 tokens and outputs 768-dimensional vectors. MRL permits truncation to 512, 256, or 128 dimensions followed by re-normalization. [^embeddinggemma-card]
 - **Runtime constraint:** activations do not support `float16`; the card recommends `float32` or `bfloat16`. [^embeddinggemma-card]
+- **Serving:** [Text Embeddings Inference (TEI)](text-embeddings-inference.md) supports the Gemma3 architecture and lists this model as a gated example. Because TEI's `--dtype` flag offers `float16`, choose the precision with the card's constraint in mind. [^tei-readme]
 
 ## Language support
 
@@ -56,3 +61,4 @@ The source does not name constituent datasets, give mixture proportions, describ
 
 [^embeddinggemma-card]: [EmbeddingGemma model card](../raw/embeddinggemma-300m.md). Model, training, language, and benchmark claims are reported by the model card.
 [^mteb-multilingual-v2-summary]: [MTEB Multilingual v2 summary CSV](../raw/MTEB_Multilingual_v2_summary.csv). Supplied leaderboard scores; the artifact does not document its evaluation protocol.
+[^tei-readme]: [Text Embeddings Inference README](../raw/text-embeddings-inference.md), §Supported Models → Text Embeddings. Upstream-authored compatibility list; no revision recorded.
