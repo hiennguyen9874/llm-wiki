@@ -72,6 +72,8 @@ Entry points named are `llama-cli` for experimentation and `llama-server` for se
 - Uses [vLLM Disaggregated Prefill](vllm-disaggregated-prefill.md) and [Distributed Inference Deployment Blueprints](distributed-inference-blueprints.md) — prefill/decode separation and llm-d scale-out context.
 - Uses [vLLM Quantization Methods and Toolchains](vllm-quantization-methods.md) and [Unsloth Dynamic GGUF Quantization](unsloth-dynamic-gguf.md) — serving-side quantization and GGUF packaging context.
 - Related to [Speculative Decoding Workload Fit and Tuning](speculative-decoding-practice-guide.md) — when draft-model speculation pays off and how to tune it.
+- Contrasts with [Narrow Single-Model Inference Engines](narrow-inference-engines.md) — single-model engines that beat these general runtimes ~2x in-lane by giving up the model-swappability chosen for here.
+- Related to [ds4, Magnitude and Strata Local Agent Engines](ds4-magnitude-strata-local-agents.md) — ds4, Magnitude and Strata positioned against this llama.cpp/vLLM baseline for local agentic workloads.
 
 ## Coverage limits
 

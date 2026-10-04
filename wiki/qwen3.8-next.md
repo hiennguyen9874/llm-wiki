@@ -200,6 +200,7 @@ All figures are source-reported Unsloth claims[^qwen38-next]:
 - Related to [SGLang Qwen3.8-Flash-Next Inference](sglang-qwen3.8-flash-next-inference.md) — same 125B-plus-51B identity served at datacenter scale with GDN plus QSA sparse attention, IndexShare MTP, gated-residual kernels, and PLE host offload[^qwen38-flash-next-day0].
 - Related to [Qwen3.8-Flash-Next Architecture and Evaluation](qwen3.8-flash-next-architecture.md) — authoritative tech-report architecture, ablations, and base evaluation.
 - Related to [Qwen3.8-Flash-Next Training and Stability](qwen3.8-flash-next-training.md) — Muon, scaling, and stability recipe behind this checkpoint.
+- Related to [Strata Qwen3.8-Flash-Next Quants and Measured Speed](strata-qwen3.8-flash-next-quants-performance.md) — alternative local route that keeps the n-gram table on SSD and runs GSQ-RCO quants on 12 GB GPUs with 32–64 GB RAM via [Strata's tiered offload](strata-tiered-moe-offload.md); also runs Unsloth UD-IQ4_XS/UD-Q4_K_XL.
 
 ## Coverage limits
 

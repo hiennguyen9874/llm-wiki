@@ -79,6 +79,7 @@ Qwen3.8-Flash-Next is a 125B-total / 6B-active sparse MoE plus 51B host-resident
 - Related to [Qwen3.8-Flash-Next Local Deployment](qwen3.8-next.md) — same 125B-plus-51B identity via Unsloth GGUFs and llama.cpp rather than training architecture.
 - Related to [Qwen3.8-Flash-Next Training and Stability](qwen3.8-flash-next-training.md) — optimizer, hyperparameter, and stability choices that make this architecture trainable at scale.
 - Related to [Qwen3.8-Flash-Next HF Release and Serving](qwen3.8-flash-next-hf-release.md) — official HF checkpoint, Transformers code, thinking and YaRN serving, and post-trained evaluation for this architecture.
+- Related to [Strata Tiered MoE Offload Engine](strata-tiered-moe-offload.md) — consumer-PC engine that maps this design onto GPU (mixers, routers, MTP, hot experts), RAM (all experts, CPU-computed), and SSD (n-gram table).
 - Related to [Qwen3.8-2.4T-A95B Architecture and Evaluation](qwen3.8-2.4t-a95b-architecture.md) — prior Qwen3.8 69-GDN/23-GQA flagship family preceding this 3:1 GDN/QSA Flash-Next design.
 
 ## Coverage limits

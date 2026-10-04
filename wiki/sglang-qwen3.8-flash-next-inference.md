@@ -150,6 +150,7 @@ Because each token touches only 16 rows, SGLang keeps each rank's vocabulary-par
 ## Relationships
 
 - Uses [SGLang Speculative Decoding](sglang-speculative-decoding.md) — IndexShare MTP reusing the draft-extend QSA top-k across draft-decode steps to cut draft indexer work from N to one invocation per MTP iteration.
+- Related to [Strata Tiered MoE Offload Engine](strata-tiered-moe-offload.md) — single-user consumer-PC counterpart for the same model, tiering experts across GPU, RAM, and SSD instead of datacenter parallelism.
 - Uses [SGLang Unified Radix Cache](sglang-unified-radix-cache.md) — GDN plus QSA KV management with page-aligned compressed-index ownership following Radix Cache without a separate lifecycle.
 - Uses [SGLang Quantization](sglang-quantization.md) — day-0 `RadixArk/Qwen3.8-Flash-Next-NVFP4` checkpoint context for the 512-expert top-10 MoE.
 - Related to [SGLang Qwen3.8 Inference](sglang-qwen3.8-inference.md) — prior Qwen3.8-2.4T-A95B day-0 stack with 69-GDN/23-GQA plus ReplaySSM, here replaced by 36-GDN/12-QSA plus QSA IndexShare, gated residual, and PLE offload for the Qwen4-preview Flash-Next identity.
