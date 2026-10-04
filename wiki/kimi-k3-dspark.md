@@ -97,6 +97,7 @@ Notable choices are `--speculative-algorithm DSPARK` with `--speculative-dspark-
 - Uses [SGLang DFlash Speculative Decoding](sglang-dflash-speculative-decoding.md) — DSpark extends the DFlash parallel-draft backbone with the Markov logit-bias and confidence heads.
 - Related to [Kimi K3 Local Deployment](kimi-k3.md) — same Kimi K3 base model served here with server-side speculative decoding rather than local GGUF inference.
 - Uses [SGLang Speculative Decoding](sglang-speculative-decoding.md) — base EAGLE/MTP speculation surface this DSpark path is an alternative to.
+- Related to [SGLang Kimi K3 Day-0 Inference](sglang-kimi-k3-inference.md) — day-0 serving stack behind the TP8 + DCP8 recipe. It reports a BS=1 DSpark decode figure on 8×GB300 next to the non-speculative kernel journey, without acceptance-length or workload details.
 
 ## Coverage limits
 

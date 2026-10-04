@@ -198,6 +198,7 @@ Qwen3.8 splits parallelism by phase under PD disaggregation: pure PP prefill wit
 - Uses [vLLM Tensor and Pipeline Parallel Scaling](vllm-parallelism-scaling.md) — vLLM-side TP/PP strategy and multi-node runtime analog for comparing stage-boundary versus sharded-weight communication.
 - Uses [vLLM Context Parallel Deployment](vllm-context-parallel-deployment.md) — CP sharding analog for the TP/CP/PP communication-versus-bubble choice.
 - Related to [SGLang Qwen3.8 Inference](sglang-qwen3.8-inference.md) — Qwen3.8 phase-split pure-PP prefill versus wide-EP decode with last-stage draft-head MTP composition.
+- Related to [SGLang Kimi K3 Day-0 Inference](sglang-kimi-k3-inference.md) — Kimi K3 PP8×TP1 chunked prefill at 1.45–1.72× TEP8 capacity, with about 91% less exposed communication on 8K prompts (2×4 GB300), paired with TP8/DCP8 decode.
 
 ## Coverage limits
 

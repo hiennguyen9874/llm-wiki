@@ -150,6 +150,7 @@ Kimi K3 `(max)` scores with source-selected competitors; HLE-Full, MMMU-Pro, and
 - Related to [Kimi K3 Post-Training and Agentic RL](kimi-k3-posttraining-agentic-rl.md) — canonical source for SFT, nine domain-effort RL experts, MOPD, MXFP4 QAT, and XTML template.
 - Related to [Kimi K3 Systems and Infrastructure](kimi-k3-systems-infrastructure.md) — canonical source for MoonEP, KDA parallelism, RL infra, AgentENV, and hybrid-cache serving.
 - Related to [Kimi K3 Evaluation and Case Studies](kimi-k3-evaluation.md) — canonical eval source superseding the overlapping benchmark table here.
+- Related to [SGLang Kimi K3 Day-0 Inference](sglang-kimi-k3-inference.md) — datacenter SGLang serving on 8×GB300 with KDA/MLA memory sizing, chunked PP8 prefill, DCP decode, and BS=1 and PD-disaggregated benchmarks.
 
 ## Coverage limits
 

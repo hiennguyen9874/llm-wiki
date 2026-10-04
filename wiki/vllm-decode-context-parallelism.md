@@ -115,5 +115,6 @@ Attribution notes: initial DCP work was upstreamed by Moonshot AI (vLLM PR `#237
 - Uses [vLLM Context Parallel Deployment](vllm-context-parallel-deployment.md) — general prefill/decode sharding and DCP sizing guidance that this mechanism, constraint, and benchmark evidence extends.
 - Uses [vLLM Attention Backends](vllm-attention-backends.md) — DCP and DCP+MTP support varies by MLA/GQA backend implementation.
 - Uses [vLLM Paged Attention Kernel](vllm-paged-attention-kernel.md) — DCP shards the paged KV cache consumed during decode attention.
+- Related to [SGLang Kimi K3 Day-0 Inference](sglang-kimi-k3-inference.md) — SGLang's DCP8-inside-TP8 on Kimi K3, reporting about 7.9× logical MLA context capacity, with KDA state left head-sharded. It fills the Kimi K3 DCP data point listed here as pending.
 
 [^dcp-blog]: Efficient Decode Context Parallelism with vLLM for Long Context Workloads — `../raw/2026-08-07-decode-context-parallelism/index.md`.

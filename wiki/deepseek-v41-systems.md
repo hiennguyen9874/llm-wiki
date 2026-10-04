@@ -60,6 +60,7 @@ Tables partition by row across engram-parallel groups trading memory against loo
 
 - Uses [DeepSeek-V4.1-Flash Architecture](deepseek-v41-architecture.md) — CED, CSA2, Engram, and FP4 designs realized by these systems.
 - Related to [SGLang DeepSeek-V4.1 Inference](sglang-deepseek-v41-inference.md) — SGLang flags and measurements for encoder/decoder bounded replay and Engram host offload.
+- Related to [SGLang DeepSeek-V4.1-Flash Kernel Optimization](sglang-deepseek-v41-flash-kernel-optimization.md) — SGLang derivation of the 890-byte logical KV figure, with the caveat that FlashMLA-compatible layouts allocate differently, and BS=1 kernel results obtained without DeepSeek's released V4.1 kernels.
 - Related to [SGLang Unified Radix Cache](sglang-unified-radix-cache.md) — prefix-reuse boundary changed by encoder replay without a window checkpoint.
 - Related to [SGLang HiSparse Hierarchical Sparse-Attention Memory](sglang-hisparse.md) — separate HBM-capacity tradeoff from Engram host offload.
 - Related to [Miles DeepSeek-V4.1 Verified RL](miles-deepseek-v41-rl.md) — colocated rollout/training counterpart to this report's training infrastructure.

@@ -80,6 +80,7 @@ Both modes are opt-in via `--enable-encoder-swa-bounded-replay` and `--enable-de
 
 ## Relationships
 
+- Related to [SGLang DeepSeek-V4.1-Flash Kernel Optimization](sglang-deepseek-v41-flash-kernel-optimization.md) — follow-up BS=1 decode study on 4×GB300 that measures the mHC overlap, Sinkhorn fusion, ratio-2 pooling, and single-token GEMV work round by round, then adds DSpark verify kernels and MoE TP4 with padding.
 - Related to [SGLang DeepSeek-V4 Inference](sglang-deepseek-v4-inference.md) — V4.1 keeps the hybrid sparse-attention plus mHC direction with lower compression ratios, explicit four-source KV sharing, added Engram tables, and SWA bounded replay instead of the V4 ShadowRadix plus C4/C128 plus HiSparse setup.
 - Related to [Miles DeepSeek-V4.1 Verified RL](miles-deepseek-v41-rl.md) — training-side day-0 companion covering Megatron shared-state parallelism, FP4/FP8 quantization-aware training, routing replay, and the DAPO validation run.
 - Related to [SGLang Unified Radix Cache](sglang-unified-radix-cache.md) — encoder-side bounded replay changes the SWA prefix-reuse boundary by rebuilding window KV from the final 128 cached tokens instead of requiring a stored window checkpoint.

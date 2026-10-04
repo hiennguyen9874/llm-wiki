@@ -126,6 +126,7 @@ Use `hidden_size` from the model config, `topk` selected experts, `TOTAL_SEQ_LEN
 ## Relationships
 
 - Uses [vLLM Expert Parallel Deployment](vllm-expert-parallel-deployment.md) — companion EP design for comparing SGLang `--moe-a2a-backend`/`--moe-runner-backend` selection and DeepEP modes against vLLM all-to-all backends, plus shared EPLB rebalancing concept.
+- Related to [SGLang DeepSeek-V4.1-Flash Kernel Optimization](sglang-deepseek-v41-flash-kernel-optimization.md) — BS=1 case where MoE TP4 with intermediate-dimension padding beat EP4 by reducing cross-rank waiting under uneven expert load, using `--moe-a2a-backend none` with `flashinfer_mxfp4`.
 - Uses [SGLang Attention Backends](sglang-attention-backends.md) — attention-backend choice complements MoE runner choice in hybrid prefill/decode and Blackwell FP4 deployments.
 
 [^sgl-ep]: Expert Parallelism — `../raw/sglang/advanced_features/expert_parallelism.mdx`.

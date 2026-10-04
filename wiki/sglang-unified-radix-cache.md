@@ -1,11 +1,12 @@
 ---
 type: Concept
 title: SGLang Unified Radix Cache
-description: One token-keyed radix topology with FULL, SWA, and MAMBA component reuse, native HiCache tiers, session-aware eviction, and an experimental Rust tree core.
+description: One token-keyed radix topology with FULL, SWA, and MAMBA component reuse, native HiCache tiers, session-aware eviction, and a Rust tree core backend.
 tags: [sglang, radix-cache, prefix-caching, hybrid-attention, mamba, hicache, kv-cache]
 status: stable
 created: 2026-09-14
-generated: { by: llm-wiki-agent/1, at: 2026-09-14T12:59:16Z }
+generated: { by: llm-wiki-agent/1, at: 2026-10-04T10:35:00Z }
+stale_after: 2027-04-04
 sources:
   - id: unified-radix-cache
     resource: ../raw/2026-08-11-unified-radix-cache/index.md
@@ -16,6 +17,10 @@ sources:
   - id: qwen38-flash-next-day0
     resource: ../raw/2026-08-26-qwen-flash-next/index.md
     title: 'Qwen3.8-Flash-Next: Day-0 Support in SGLang'
+  - id: urc-sglang-tutorial
+    resource: ../raw/unified-radix-cache/index.md
+    kind: article
+    title: 'Unified Radix Cache in SGLang: one tree for hybrid model prefix caching'
 ---
 
 SGLang Unified Radix Cache replaces a matrix of hybrid cache classes with one token-keyed radix topology plus composable reuse components, keeping FULL, sliding-window, and Mamba state under a shared prefix identity while HiCache, session hints, and a Rust tree core build on that identity[^unified-radix-cache].
@@ -38,6 +43,8 @@ Hybrid cacheable values share the same token prefix but follow different reuse r
 - `SWA` provides window reuse: it requires a contiguous trailing window, while older SWA slots may be empty tombstones whose radix nodes remain in the shared topology[^unified-radix-cache].
 - `MAMBA` provides checkpoint reuse: it requires one recurrent checkpoint at the reusable frontier and copies shared state into a private request slot before mutation[^unified-radix-cache].
 
+Each radix node stores a token span plus one slot per component: `FULL` and `SWA` slots hold KV page indices, while `MAMBA` holds a checkpoint at the node's prefix endpoint. For a candidate boundary at t8 with SWA window W = 4, `FULL` needs KV for the whole path t1–t8, `SWA` only the contiguous window immediately before the boundary (t5–t8), and `MAMBA` the exact checkpoint at t8[^urc-sglang-tutorial]. SWA data outside the required window can stay cached or be evicted independently, leaving an empty tombstone slot; reclaiming part of a node's SWA data starts by splitting the node at the retention boundary. A `MAMBA` checkpoint stays at its original prefix endpoint, and a request reusing it takes a private copy-on-write copy before continuing its state updates[^urc-sglang-tutorial].
+
 Model compositions on the same tree[^unified-radix-cache]:
 
 - DeepSeek-V4: `FULL` plus `SWA`.
@@ -53,6 +60,8 @@ A new family reuses an existing composition, or adds a new `TreeComponent` when 
 During prefix matching, `UnifiedTreeCore` follows the canonical `FULL` path and treats each visited node as a candidate boundary. A `FULL` match alone is insufficient: every active component creates a validator and the reusable boundary advances only when all validators accept the candidate. Rejection does not stop traversal because a later node may still pass[^unified-radix-cache].
 
 In the source example, the walk reaches `n4` but `n1` and `n2` pass every validator while `n3` and `n4` fail at least one check, so `n2` remains the deepest safe result[^unified-radix-cache].
+
+The sglang.io tutorial's animated version of the vote names the failing checks — `n3` has tombstoned SWA window slots and `n4` has no `MAMBA` checkpoint — and stages it as FULL only, FULL + SWA, then FULL + SWA + MAMBA; tokens up to the deepest boundary accepted by all components are reused directly and computation resumes from there[^urc-sglang-tutorial]. Reading this as the same n1–n4 example is Synthesis, based on the tutorial stating it is adapted from the LMSYS article.
 
 After traversal the core builds a `MatchResult`. Component finalizers then prepare selected values for reuse, including the copy needed when a shared Mamba checkpoint becomes private to one request[^unified-radix-cache].
 
@@ -78,6 +87,8 @@ Not every physical pool needs its own component. An anchor determines reuse sema
 
 DeepSeek-V4 makes this concrete. `FULL` covers the logical prefix while `SWA` covers only its trailing window, so both are components with independent device index spaces. In the normalized six-page example, the allocator maps `FULL` tail slots `F4, F5` to `SWA` slots `S0, S1` at runtime. The C4 and C128 compressed KV pools, indexer buffers, and compressor states do not define new reuse boundaries and register as sidecars — three pools following `FULL` and two following `SWA`[^unified-radix-cache].
 
+The tutorial renders the same normalized six-page case at page granularity, keeping only the final two SWA pages: `FULL` page `F4` and its three sidecars share page number 4, the allocator translates `F4` to SWA slot `S0`, and SWA's two sidecars copy page number 0[^urc-sglang-tutorial].
+
 ### Multi-turn benchmark results
 
 Multi-turn workloads grow a reusable conversational prefix each round. If lower tiers preserve that prefix after GPU exhaustion, hit rate should stay high and TTFT should grow more slowly[^unified-radix-cache].
@@ -88,6 +99,15 @@ Per-round hit rate is the sum of cached prefix tokens across requests divided by
 
 - DeepSeek-V4-Flash L3: hit rate near 98%, average TTFT below 9 seconds, 145.5K effective input tokens/s versus 9.4K for L1 and 14.3K for L1 plus L2[^unified-radix-cache].
 - Inkling-Small L3: 96.8% final hit rate, 1.23-second TTFT, 67.1K effective input tokens/s versus 15.5K for L1 and 21.1K for L1 plus L2[^unified-radix-cache].
+
+For DeepSeek-V4-Flash, L3 throughput is about 15.5× the L1-only figure. The tutorial re-plots the per-round hit-rate curves from approximate samples read off the LMSYS figure (Reported, ≈ values; DeepSeek-V4-Flash sampled every 5 rounds)[^urc-sglang-tutorial]:
+
+| Workload (zero-based rounds) | L1 only | L1 + L2 | L1 + L2 + L3 |
+| --- | --- | --- | --- |
+| DeepSeek-V4-Flash, 0–55 | ≈83% → 94% over rounds 5–15; ≈0% from round 20 | Tracks L3 to ≈97% at round 35; ≈0% from round 40 | ≈98% from round 40 to 55 |
+| Inkling-Small, 0–29 | ≈6% at round 1; ≈0% from round 2 | ≈51% at round 1 rising to ≈95% at round 17; ≈62% at round 18; ≈0% from round 19 | Tracks L1 + L2 through round 17; ≈95–97% to round 29 |
+
+Each smaller configuration matches the next one until its capacity runs out, then drops to near-zero hit rate within a few rounds rather than degrading gradually (Synthesis from the sampled curves).
 
 Effective input-token throughput follows `bench_multiturn.py`: sum of complete prompt lengths divided by wall-clock duration. It credits cache-hit prefix tokens, so it measures serving progress under reuse rather than raw prefill compute; the L3 gain comes primarily from keeping reusable prefixes available after smaller tiers reach capacity[^unified-radix-cache].
 
@@ -100,6 +120,8 @@ Applications attach a stable `session_id` to every request. After successful com
 These references change eviction order rather than pinning memory. `FULL` orders candidates by whether they are referenced, their session reference count, and the configured base priority. `SWA` and `MAMBA` first scan unreferenced entries in their own reusable regions, then fall back to referenced entries when more space is needed. The current policy covers GPU L1 and Host L2, not external L3[^unified-radix-cache].
 
 When an application calls `/close_session`, the cache removes that session references without immediately deleting entries. Session generations and bounded closed-session tombstones prevent stale requests finishing after close or reopen from restoring released references[^unified-radix-cache].
+
+The tutorial adds three operational details: only unlocked, eligible `FULL` entries enter this ordering, which usually reclaims unreferenced data first; closing a session leaves other sessions' references on shared prefixes intact; and session retention applies to L1/L2 while the storage backend manages L3 eviction[^urc-sglang-tutorial]. Its example has `A1` (session A), `AB` (shared by A and B, two references), `B1` (session B), and unreferenced `C1` and `C2`. Ordinary LRU orders them by recency alone; under the stated ordering, `C1` and `C2` become the first candidates and the doubly referenced `AB` the most protected (Synthesis; the animation frames were not captured)[^urc-sglang-tutorial].
 
 ### SWE-bench workload results
 
@@ -115,7 +137,7 @@ As a shared prefix grows, traversal, lock bookkeeping, LRU updates, and eviction
 
 The [experimental Rust Unified Radix Cache](https://github.com/sgl-project/sglang/pull/29074) is an opt-in L1-only prototype. Rust owns the radix topology, per-component lock accounting, intrusive LRU lists, and eviction walks. Python remains the single owner of request-to-token mappings and physical KV allocation. After mutating the tree, Rust returns deferred actions for Python to apply to pools. The prototype supports `FULL`, `SWA`, and `MAMBA`, but not HiCache[^unified-radix-cache].
 
-Compared over a 200-turn synthetic conversation adding 100 input and generating 100 output tokens per turn, with the same model, flags, GPUs, and six trials: full attention with Qwen3-32B at TP2, SWA with gpt-oss-20b at TP2, and hybrid SSM with Qwen3-Next-80B-A3B at TP4. Reproduction scripts require a release build of the Rust extension[^unified-radix-cache].
+Compared over a 200-turn synthetic conversation adding 100 input and generating 100 output tokens per turn, with the same model, flags, GPUs, and six trials: full attention with Qwen3-32B at TP2, SWA with gpt-oss-20b at TP2, and hybrid SSM with Qwen3-Next-80B-A3B at TP4. Reproduction scripts require a release build of the Rust extension[^unified-radix-cache]. The tutorial adds that the runs were sequential on the same GPUs and links the scripts under `lm-sys.github.io/scripts/rust_radix_cache/multi_turn`[^urc-sglang-tutorial].
 
 - SWA workload: 38% lower TTFT across all 200 turns and 42% lower over turns 176 to 200[^unified-radix-cache].
 - Full attention: 10% lower overall and 18% lower over the final 25 turns[^unified-radix-cache].
@@ -123,11 +145,15 @@ Compared over a 200-turn synthetic conversation adding 100 input and generating 
 
 The source subtracts the CUDA-event-timed GPU prefill interval from total TTFT. That residual includes tree bookkeeping, scheduling, synchronization, sampling, detokenization, transport, and other uninstrumented work — not a direct CPU timer — so the full Rust versus Python difference cannot be attributed only to radix operations. The hybrid SSM result illustrates the boundary: its residual falls substantially but the larger GPU forward limits visible total TTFT change[^unified-radix-cache].
 
-The follow-up Rust `UnifiedTreeCoreInterface` RFC [#32710](https://github.com/sgl-project/sglang/pull/32710) defines the target ownership boundary with orchestration and pool management in Python behind a replaceable core. It currently supports `FULL` only and publishes no performance results[^unified-radix-cache].
+### Rust core status
+
+The LMSYS article (published 2026-08-11) describes the follow-up Rust `UnifiedTreeCoreInterface` RFC [#32710](https://github.com/sgl-project/sglang/pull/32710) as defining the target ownership boundary, with orchestration and pool management in Python behind a replaceable core; at that time it supported `FULL` only and published no performance results[^unified-radix-cache].
+
+The later, undated sglang.io tutorial reports #32710 as merged ("Add Rust TreeCore backend with shared parity tests"), supporting `FULL`, `SWA`, and `MAMBA` combinations plus HiCache, while session-aware caching still uses the Python tree core[^urc-sglang-tutorial]. This newer status is Reported: the PR was not inspected, and neither source gives performance results for the merged backend.
 
 ## Future work
 
-- Complete the replaceable Rust core tracked in roadmap [#20415](https://github.com/sgl-project/sglang/issues/20415): extend Rust to `SWA`, `MAMBA`, and HiCache while keeping pool allocation and orchestration in Python[^unified-radix-cache].
+- Complete the replaceable Rust core tracked in roadmap [#20415](https://github.com/sgl-project/sglang/issues/20415): extend Rust to `SWA`, `MAMBA`, and HiCache while keeping pool allocation and orchestration in Python[^unified-radix-cache]. The tutorial reports this extension as merged in #32710, with session-aware caching still on the Python core[^urc-sglang-tutorial].
 - Connect GPU L1 directly to external L3 tiers, making Host L2 an optional staging tier and exposing distributed memory as a larger shared cache through coordinated admission, prefetch, transfer, and eviction[^unified-radix-cache].
 - Coordinate agentic KV caching across the serving stack per roadmap [#21846](https://github.com/sgl-project/sglang/issues/21846): extend the same cache identity across routers, prefill and decode workers, and HiCache to coordinate prefetch, demotion, and retention for sessions, subagents, and tool calls[^unified-radix-cache].
 
@@ -138,6 +164,7 @@ The follow-up Rust `UnifiedTreeCoreInterface` RFC [#32710](https://github.com/sg
 - Uses [SGLang HiCache Runtime Storage Attach/Detach](sglang-hicache-runtime-attach-detach.md) for runtime L3 attach/detach mechanics complementary to Unified tier identity.
 - Related to [SGLang DeepSeek-V4 Inference](sglang-deepseek-v4-inference.md) — DeepSeek-V4 `FULL` plus `SWA` composition plus C4/C128 sidecars is the Unified view of the ShadowRadix hybrid layout there.
 - Related to [SGLang Qwen3.8 Inference](sglang-qwen3.8-inference.md) — Qwen3.8 `FULL` plus `MAMBA` GDN-checkpoint composition with copy-on-write and chunk-boundary checkpointing.
+- Related to [SGLang Kimi K3 Day-0 Inference](sglang-kimi-k3-inference.md) — Kimi-K3 `FULL` plus `MAMBA` case: read-only KDA checkpoints restored by copy-on-write. KDA state grows with active branches and MLA KV with cached tokens.
 - Related to [SGLang Qwen3.8-Flash-Next Inference](sglang-qwen3.8-flash-next-inference.md) — GDN plus QSA KV management with paged original K/V and page-aligned compressed-index ownership following Radix Cache.
 - Related to [SGLang HiSparse Hierarchical Sparse-Attention Memory](sglang-hisparse.md) — C4 offload hierarchy operating alongside Unified prefix identity on DeepSeek-V4.
 - Depends on [SGLang Attention Backends](sglang-attention-backends.md) for the hybrid SWA execution context underlying window reuse.
@@ -150,7 +177,9 @@ The follow-up Rust `UnifiedTreeCoreInterface` RFC [#32710](https://github.com/sg
 - Source SVG diagrams for shared topology, component voting, DeepSeek-V4 sidecars, and session eviction were inspected as text; PNG benchmark charts for multi-turn TTFT/hit-rate, Rust TTFT, and SWE-bench hit/TTFT were taken from prose and captions without pixel-level verification[^unified-radix-cache].
 - Server launch and `bench_multiturn.py` commands contain placeholders and were compiled as outlines, not verified as reproducible environments[^unified-radix-cache].
 - Linked PRs, RFC, roadmaps, reproduction scripts, and benchmark records were not inspected beyond the identifiers and claims cited above[^unified-radix-cache].
+- The sglang.io tutorial has no publication date and is a single Markdown capture with no asset files. Its interactive diagrams (radix-tree replay with W = 4 and requests `ABCSFA`, `ABCSFAAPSD`, `ABDWA`; reuse-boundary vote; session-eviction reorder; class-matrix comparison) survive only as captions and labels, so frame-by-frame states were not compiled. Hit-rate curves are the tutorial's approximate re-samples, and the linked HiCache visual lesson and SGLang docs were not inspected[^urc-sglang-tutorial].
 
 [^unified-radix-cache]: Unified Radix Cache: One Tree for Hybrid Model Prefix Caching — `../raw/2026-08-11-unified-radix-cache/index.md`, covering one-tree component design, match/lifecycle hooks, HiCache anchors and sidecars, multi-turn and SWE-bench benchmarks, session-aware eviction, Rust prototype, and future work.
 [^qwen38-day0]: SGLang and Miles Add Day-0 Support for Qwen3.8 — `../raw/2026-08-12-qwen3-8-day0-support/index.md`, covering Qwen3.8 `FULL` plus `MAMBA` GDN-checkpoint composition with copy-on-write and chunk-boundary checkpointing.
+[^urc-sglang-tutorial]: Unified Radix Cache in SGLang: one tree for hybrid model prefix caching (SGLang Team visualized tutorial by Yichi Zhang, adapted from the LMSYS article) — `../raw/unified-radix-cache/index.md`, sections "Design and mechanism", "The safe reuse boundary" (voting scenario label), "Components and sidecars" (index reuse diagram), "Multi-turn benchmark" (inline hit-rate SVG sample titles), "Session-aware eviction", and "Rust tree core".
 [^qwen38-flash-next-day0]: Qwen3.8-Flash-Next: Day-0 Support in SGLang — `../raw/2026-08-26-qwen-flash-next/index.md`, covering GDN plus QSA KV management with paged original K/V and page-aligned compressed-index Radix ownership.

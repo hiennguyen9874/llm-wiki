@@ -119,6 +119,7 @@ Day-0 RL is colocated LoRA training with Miles: BF16 Megatron trainer plus nativ
 - Uses [SGLang Quantization](sglang-quantization.md) — Day-0 NVFP4 plus FP8 checkpoint serving context for the 512-expert top-10 MoE.
 - Depends on [SGLang Expert Parallelism](sglang-expert-parallelism.md) — wide-EP with EPLB decode layout contrasted with pure-PP prefill.
 - Related to [Qwen3.8 Local Deployment](qwen3.8.md) — same 2.4T-A95B identity served here at datacenter scale rather than via local GGUF/NVFP4 runs.
+- Related to [SGLang Kimi K3 Day-0 Inference](sglang-kimi-k3-inference.md) — earlier sibling day-0 stack for a 3:1 KDA/MLA hybrid with copy-on-write recurrent checkpoints and PP8 prefill. The ingested capture of that post does not describe the ReplaySSM mechanism credited to it here.
 - Related to [SGLang Qwen3.8-Flash-Next Inference](sglang-qwen3.8-flash-next-inference.md) — Qwen4-preview Flash-Next sibling with 36-GDN/12-QSA sparse attention plus QSA IndexShare, 4-branch gated residual, and PLE host offload instead of the 69-GDN/23-GQA plus ReplaySSM stack here[^qwen38-flash-next-day0].
 
 ## Coverage limits

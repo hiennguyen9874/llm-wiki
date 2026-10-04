@@ -5,7 +5,7 @@ description: Confidence-driven variable-length verification with semi-autoregres
 tags: [sglang, speculative-decoding, dspark, cuda-graphs]
 status: stable
 created: 2026-09-14
-generated: { by: llm-wiki-agent/1, at: 2026-09-15T23:00:00Z }
+generated: { by: llm-wiki-agent/1, at: 2026-10-04T10:16:30Z }
 sources:
   - id: dspark-sglang
     resource: ../raw/2026-07-06-dspark-sglang/index.md
@@ -22,6 +22,9 @@ sources:
   - id: dflash2
     resource: ../raw/DFlash2.md
     title: "DFlash 2: Keep Drafting Parallel"
+  - id: dsv41-kernel
+    resource: ../raw/deepseek-v4-1-flash-kernel-optimization/index.md
+    title: 'DeepSeek-V4.1 Flash on SGLang: from 35 to 873 tokens/s'
 ---
 
 DSpark trades fixed full-block verification for confidence-driven per-request verify budgets, pairing a semi-autoregressive block drafter with a scheduler that stops verifying tokens unlikely to be accepted; SGLang serves it with ragged per-request verify under full CUDA graphs, an overlap-aware speculative path, an additive step-cost table, and ceiling observability[^dspark-sglang].
@@ -99,6 +102,8 @@ A dense-27B checkpoint example is [Qwen3.8-27B DSpark Speculator](qwen3.8-dspark
 
 A Nemotron checkpoint example is [Nemotron 3.5 Lightning DSpark Speculator](nemotron-3.5-lightning-dspark.md): `nvidia/NVIDIA-Nemotron-3.5-Lightning-30B-A3B-NVFP4-DSpark` for Nemotron-3.5-Lightning-30B-A3B targets with 967M dense-GQA drafting, causal sliding-window 1024 attention with per-head sink bias, SPEED-Bench 3.75 overall acceptance at draft length 7, and vLLM serving tuned for DGX Spark and low-concurrency data-centre workflows[^nemotron-dspark].
 
+A DeepSeek-V4.1-Flash example is [SGLang DeepSeek-V4.1-Flash Kernel Optimization](sglang-deepseek-v41-flash-kernel-optimization.md): the official checkpoint's three-block DSpark drafter at `--speculative-dspark-block-size 5` (up to 6 verify rows per request) with `SGLANG_RAGGED_VERIFY_MODE=static`, `SGLANG_SIMULATE_ACC_LEN=5.5`, and `SGLANG_SIMULATE_ACC_METHOD=match-expected` (accepting 5 or 6 tokens per round; simulation disables the in-graph acceptance path) reports 873.63 tokens/s at BS=1 on 4× GB300 with attention and MoE TP4, versus 223.50 with DSpark off on the same random 4k-in/1k-out input and code[^dsv41-kernel].
+
 Roadmap items are a stronger online/adaptive cost model and scheduler, more dense/sparse model coverage, broader parallelism and topology coverage, productionized block-accept and calibration metrics, and hardening of the full-CUDA-graph path with stress/regression testing[^dspark-sglang].
 
 ## Relationships
@@ -113,6 +118,7 @@ Roadmap items are a stronger online/adaptive cost model and scheduler, more dens
 - Uses [SGLang Server Arguments](sglang-server-arguments.md) — canonical reference for the launch, parallelism, memory, and DP-attention flags used in DSpark commands.
 - Related to [Kimi K3 DSpark Speculator](kimi-k3-dspark.md) — long-context DSpark checkpoint extending the DFlash backbone with Markov logit-bias and confidence heads.
 - Related to [Qwen3.8-27B DSpark Speculator](qwen3.8-dspark.md) — dense-27B DSpark checkpoint with v1/v2 acceptance and AR/EAGLE/DSpark throughput comparisons.
+- Related to [SGLang DeepSeek-V4.1-Flash Kernel Optimization](sglang-deepseek-v41-flash-kernel-optimization.md) — BS=1 verify-shape kernel work (verify/MoE fusion, split-K projections, indexer post-processing, C2 verify compression) for the V4.1-Flash DSpark drafter under static verify and simulated acceptance.
 - Related to [Nemotron 3.5 Lightning DSpark Speculator](nemotron-3.5-lightning-dspark.md) — 967M DSpark checkpoint for Nemotron-3.5-Lightning-30B-A3B with 3.75 SPEED-Bench acceptance and vLLM/DGX Spark serving.
 
 ## Coverage limits
@@ -126,3 +132,4 @@ Roadmap items are a stronger online/adaptive cost model and scheduler, more dens
 [^qwen38-dspark]: Qwen3.8-27B-DSpark — `../raw/Qwen3.8-27B-DSpark.md`.
 [^nemotron-dspark]: NVIDIA Nemotron-3.5-Lightning-30B-A3B-NVFP4-DSpark — `../raw/DSpark.md`.
 [^dflash2]: DFlash 2: Keep Drafting Parallel — `../raw/DFlash2.md`.
+[^dsv41-kernel]: DeepSeek-V4.1 Flash on SGLang: from 35 to 873 tokens/s — `../raw/deepseek-v4-1-flash-kernel-optimization/index.md`, sections "DSpark adaptation and optimization" and "How to reproduce: random 4k/1k, simulated accept length fixed at 5.5" (launch env, `match-expected`, DSpark off/on table).

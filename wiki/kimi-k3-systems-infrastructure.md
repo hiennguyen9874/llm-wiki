@@ -108,6 +108,8 @@ Prefix reusable only when KDA state and MLA KV both restorable at same boundary[
 - Uses [Kimi K3 Post-Training and Agentic RL](kimi-k3-posttraining-agentic-rl.md) — RL rollout pool, throttling, and AgentENV sandboxes that enable its agentic training.
 - Related to [SGLang DSpark Speculative Decoding](sglang-dspark-speculative-decoding.md) — production speculative path consistent with KDA replay and prefix-cache preservation.
 - Related to [Kimi K3 Local Deployment](kimi-k3.md) — same model served by these production techniques.
+- Related to [SGLang Kimi K3 Day-0 Inference](sglang-kimi-k3-inference.md) — open-source serving path for the same model. Its two-ended unified pool keeps native KDA-block and MLA-page sizes, while this report uses uniform byte-size pages. It adds radix copy-on-write KDA checkpoints, chunked PP8 prefill, DCP decode, and GB300 benchmarks.
+- Related to [Kimi Delta Attention (KDA)](kimi-delta-attention.md) — mechanism explainer for the recurrence these kernels and KCP decompose.
 
 ## Coverage limits
 

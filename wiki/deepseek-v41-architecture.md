@@ -71,6 +71,7 @@ All 40 Transformer blocks use DeepSeekMoE with 1 shared plus 384 routed experts 
 ## Relationships
 
 - Related to [SGLang DeepSeek-V4.1 Inference](sglang-deepseek-v41-inference.md) — serving-side companion with shared KV/candidate/selection, Engram host layouts, bounded replay flags, and fusion kernels.
+- Related to [SGLang DeepSeek-V4.1-Flash Kernel Optimization](sglang-deepseek-v41-flash-kernel-optimization.md) — SGLang BS=1 kernel work targeting this architecture's Single-Pass mHC overlap, CSA2 indexer post-processing and pairwise compression, Engram gating, and DSpark verify shapes.
 - Related to [DeepSeek-V4.1-Flash Reference Inference Implementation](deepseek-v41-reference-inference.md) — readable TP conversion plus autoregressive runtime implementing this architecture's sparse attention, Engram, DSpark forward, and vision path.
 - Related to [Miles DeepSeek-V4.1 Verified RL](miles-deepseek-v41-rl.md) — training-side companion with shared-state parallelism and FP4/FP8 QAT discipline.
 - Uses [DeepSeek-V4.1-Flash Systems](deepseek-v41-systems.md) — deployment and distributed-training realization of CED, CSA2, Engram, and FP4 KV.

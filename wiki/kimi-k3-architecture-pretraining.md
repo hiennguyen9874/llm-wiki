@@ -5,7 +5,7 @@ description: 2.8T/104B hybrid KDA-MLA MoE with AttnRes, Stable LatentMoE, MoonVi
 tags: [kimi-k3, moonshot-ai, mixture-of-experts, kimi-delta-attention, mla, attention-residuals, latent-moe, situ-glu, quantile-balancing, moonvit, muon, long-context, pre-training]
 status: stable
 created: 2026-09-15
-generated: { by: llm-wiki-agent/1, at: 2026-09-15T12:00:00Z }
+generated: { by: llm-wiki-agent/1, at: 2026-10-04T10:30:00Z }
 sources:
   - id: k3-main
     resource: ../raw/arXiv-2607.24653v1/main.tex
@@ -19,6 +19,10 @@ sources:
   - id: k3-pretrain
     resource: ../raw/arXiv-2607.24653v1/3-pre-training.tex
     title: Kimi K3 Technical Report — pre-training
+  - id: sglang-k3-day0
+    resource: ../raw/kimi-k3-day0-support/index.md
+    kind: article
+    title: 'Kimi K3: Architecture and SGLang Day-0 Support'
 ---
 
 Kimi K3 is a 2.8T-parameter Mixture-of-Experts model with 104B activated parameters, native vision, and 1M-token context, built to scale information flow across sequence, depth, and width via hybrid KDA-MLA attention, Attention Residuals, and Stable LatentMoE for about 2.5x overall scaling efficiency over Kimi K2[^k3-main][^k3-intro][^k3-pretrain].
@@ -41,7 +45,7 @@ Kimi K2 to K3 architectural deltas[^k3-pretrain]:
 | MTP layers | 1 | 1 |
 | ViT | — | 401M, 27 layers, patch 14, 12 heads |
 
-Each backbone block holds 3 KDA layers plus 1 Gated MLA layer (3:1), plus one final Gated MLA layer so output always uses global attention[^k3-arch].
+Each backbone block holds 3 KDA layers plus 1 Gated MLA layer (3:1), plus one final Gated MLA layer so output always uses global attention[^k3-arch]. That is 23 repeats of 3 KDA + 1 MLA plus the final MLA layer. Both K2 and K3 have one dense layer: the SGLang day-0 post places it first, with Stable LatentMoE in the remaining 92 layers[^k3-pretrain][^sglang-k3-day0]. The KDA mechanism, from linear attention and DeltaNet to channel-wise gating and crosstalk, is explained in [Kimi Delta Attention (KDA)](kimi-delta-attention.md).
 
 ## Hybrid attention
 
@@ -74,6 +78,7 @@ Standard residuals compress all prior depth into one state; AttnRes lets each la
 - Full form: learnable pseudo-query `q_l = w_l`, keys/values from embedding plus prior layer outputs, softmax kernel `exp(q^T RMSNorm(k))`, weighted sum over depth; `O(L^2 d)` arithmetic is affordable for `L<100` but `O(Ld)` memory and pipeline communication for retaining layer outputs[^k3-arch].
 - Block form partitions `L` layers into `N` blocks, sums each block to one representation, attends over `N` block representations plus intra-block partial sum; memory/communication drops to `O(Nd)` and online-softmax merging reduces inference cost[^k3-arch].
 - `N≈8` recovers most benefit; K3 uses 8 blocks of 12 layers plus partial final block and embedding source, i.e. 9 total sources[^k3-arch].
+- **Serving cost (Reported).** The SGLang day-0 post confirms seven 12-layer blocks plus a final 9-layer block. That means `9 × 7168` values per token, which travel with activations through the pipeline, so the block count feeds directly into PP traffic. Blocking shrinks each layer's candidate set from 93 to 9, but all 93 layers still retrieve once. The post cites the AttnRes paper for end-to-end inference latency overhead below 2%, training overhead that is negligible without pipeline parallelism, and training overhead below 4% with it[^sglang-k3-day0].
 
 ## Stable LatentMoE
 
@@ -83,6 +88,8 @@ LatentMoE separates full model width from routed-expert width so 896 routed expe
 u = sum_{i in Top_k} p_i E_i_routed(W_down x)
 y = sum_{j=1..Ns} E_j_shared(x) + W_up RMSNorm(u), Ns=2
 ```
+
+Routing scores the full 7168-d hidden state, while the selected experts compute in the 3584-d latent and project back. The SGLang day-0 post reports that this halves both 16-way all-to-all dispatch traffic and expert weight volume[^sglang-k3-day0].
 
 Extreme sparsity amplifies activation explosion (nearly four chained matmuls in routed branch at 2.8T scale) and load-balancing stress near 1K experts; Stable LatentMoE adds RMSNorm before up-projection, SiTU-GLU, and Quantile Balancing[^k3-arch].
 
@@ -134,6 +141,8 @@ K3 uses Muon for matrix parameters; attention QKV momentum is partitioned along 
 - Uses [Kimi K3 Systems and Infrastructure](kimi-k3-systems-infrastructure.md) — architecture defined here; FlashKDA, intra-device CP, and KDA Context Parallelism that make it trainable are compiled there.
 - Related to [Kimi K3 Local Deployment](kimi-k3.md) — same 2.8T/104B Moonshot model; deployment, GGUF, and sampling guidance live there.
 - Related to [Kimi K3 DSpark Speculator](kimi-k3-dspark.md) — server-side speculative path for the same base model.
+- Related to [Kimi Delta Attention (KDA)](kimi-delta-attention.md) — mechanism-level explainer of the KDA layer used in 69 of 93 layers, including crosstalk and NoPE positioning.
+- Related to [SGLang Kimi K3 Day-0 Inference](sglang-kimi-k3-inference.md) — how SGLang serves this hybrid: KDA checkpoint caching, unified two-state pool, chunked PP8 prefill, and DCP decode.
 
 ## Coverage limits
 
@@ -144,4 +153,5 @@ K3 uses Muon for matrix parameters; attention QKV momentum is partitioned along 
 [^k3-main]: Kimi K3 Technical Report — `../raw/arXiv-2607.24653v1/main.tex`, 2.8T/104B MoE, native vision, 1M context, KDA plus AttnRes plus Stable LatentMoE, ~2.5x over Kimi 2, weights at `https://huggingface.co/moonshotai/Kimi-K3`.
 [^k3-intro]: Kimi K3 Technical Report — `../raw/arXiv-2607.24653v1/1-introduction.tex`, dual-axis scaling thesis, 2.8T/104B/1M identity, KDA plus AttnRes plus 896-expert Stable LatentMoE, multi-effort RL plus MOPD preview, infra preview, open-frontier claim.
 [^k3-arch]: Kimi K3 Technical Report — `../raw/arXiv-2607.24653v1/2-model-architecture.tex`, 3:1 KDA/Gated-MLA hybrid plus final MLA, KDA recurrence/chunkwise/lower-bounded-decay/full-rank gate, Gated MLA NoPE plus FP32 output, full/block AttnRes with 8x12 layout, LatentMoE equation with Ns=2 plus RMSNorm plus SiTU-GLU betas plus QB quantile/histogram, MoonViT-V2 from-scratch design, Per-Head Muon.
-[^k3-pretrain]: Kimi K3 Technical Report — `../raw/arXiv-2607.24653v1/3-pre-training.tex`, four text domains plus vision taxonomy, filtering/rephrasing/coordinate/programmatic data, scaling-law 2.5x plus cosine-over-WSD finding, K2/K3 comparison table, native multimodal recipe with Per-Head Muon/clipping/QB/cosine/0.1 decay/8K-to-64K, NoPE extrapolation plus cleaning/upsampling/synthetic 1M data plus 8K-64K-256K-1M curriculum.
+[^sglang-k3-day0]: Kimi K3: Architecture and SGLang Day-0 Support (SGLang Team, sglang.io) — `../raw/kimi-k3-day0-support/index.md`. Locators: "The Kimi K3 architecture" (first dense FFN, 92 Stable LatentMoE layers, 8 blocks); "KV cache memory estimation" (3 KDA + 1 MLA × 23 + final MLA); "Attention Residual" math/cost note (7×12 + 9 blocks, `9 × 7168`, 93 → 9 candidates, AttnRes-paper <2% / <4% overheads); "LatentMoE" (traffic and weight halving).
+[^k3-pretrain]: Kimi K3 Technical Report — `../raw/arXiv-2607.24653v1/3-pre-training.tex`, "Number of Dense Layers" row (1 in K2 and K3), four text domains plus vision taxonomy, filtering/rephrasing/coordinate/programmatic data, scaling-law 2.5x plus cosine-over-WSD finding, K2/K3 comparison table, native multimodal recipe with Per-Head Muon/clipping/QB/cosine/0.1 decay/8K-to-64K, NoPE extrapolation plus cleaning/upsampling/synthetic 1M data plus 8K-64K-256K-1M curriculum.
