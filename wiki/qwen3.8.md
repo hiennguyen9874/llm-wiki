@@ -343,6 +343,7 @@ Qwen3.8-27B text table versus Qwen3.6-27B, Qwen3.7-Plus, Muse Glimmer-30B, and O
 - Related to [Empero Qwen3.8-27B Ridge GGUF](empero-qwen3.8-27b-ridge-gguf.md) — GDN-aware 3.69-bpw mixed GGUF of the same 27B base with Q8_0 state path, Q6_K MTP head, measured PPL versus own BF16, and llama.cpp/Ollama/vision serving.
 - Related to [Qwen3.8-27B Uncensored Cyber GGUF](qwen3.8-27b-uncensored-cyber-gguf.md) — Cyber-tuned uncensored community GGUF of the same 27B base with a Q4_K_M-to-Q8_0 ladder, BF16/Q8_0 projector, optional MTP head, and card-reported 100/100 cyber plus capability deltas.
 - Related to [ThinkingCap Qwen3.8-27B](thinkingcap-qwen3.8-27b.md) — thinking-efficient BottleCap finetune of the same 27B base; see that page for the 12-benchmark Base-vs-Ours table and vLLM/SGLang plus quant serving.
+- Related to [Qwen3.8-27B Humanlike-Chat 2.0](humanlike-chat-qwen3.8-27b.md) — texting-voice OPD finetune of the abliterated Huihui base with tool-asking behavior, KL-scored GGUF/safetensors ladder, and 24 GB GPTQ-Int4 vLLM recipe.
 
 ## Contradictions
 
