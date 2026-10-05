@@ -154,6 +154,7 @@ All artifact rows are source-reported[^qwen38-dspark].
 - Uses [SGLang Speculative Decoding](sglang-speculative-decoding.md) — base EAGLE/MTP speculation surface this DSpark path is an alternative to.
 - Related to [Qwen3.8 Local Deployment](qwen3.8.md) — same Qwen3.8-27B base family served here with server-side speculative decoding rather than local GGUF/NVFP4 inference.
 - Related to [Kimi K3 DSpark Speculator](kimi-k3-dspark.md) — sibling DSpark checkpoint with the same block-size-7 shape but a 1M-token YaRN serving context versus the 262K context here.
+- Related to [Gittensor Qwen3.8-27B NVFP4 RTX 5090](gittensor-qwen3.8-27b-nvfp4-rtx5090.md) — sibling NVFP4-quantized DSpark v2 drafter (1.41 GB) trained against the Gittensor NVFP4 target, adapted from the stock RadixArk drafter covered here.
 
 ## Coverage limits
 

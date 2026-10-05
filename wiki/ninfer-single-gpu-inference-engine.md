@@ -187,6 +187,7 @@ cmake --build build -j
 - Related to [Narrow Single-Model Inference Engines](narrow-inference-engines.md) — NInfer is one of the six single-model, single-hardware engines in that set, here grounded in its own README rather than secondhand coverage.
 - Related to [Qwen3.6 Local Deployment](qwen3.6.md) — the Unsloth GGUF/MLX/NVFP4 local route for the same Qwen3.6-27B and 35B-A3B models NInfer ships as `.ninfer` artifacts.
 - Related to [Qwen3.8 Local Deployment](qwen3.8.md) — the Unsloth local route for the same Qwen3.8-27B family NInfer ships as `.ninfer` artifacts.
+- Related to [Neroued Qwen3.8-27B NVFP4 NInfer Artifact](neroued-qwen3.8-27b-nvfp4-ninfer.md) — per-artifact card for `qwen3_8_27b_nvfp4.ninfer` with mixed NVFP4/FP8 placement, SHA-256, DFlash2 companion revision, RTX 5090 serve recipes, and reported MTP/EvalScope tables.
 - Related to [Speculative Decoding Foundations](speculative-decoding-foundations.md) — the draft-verify-accept mechanism behind the MTP and DFlash/DFlash2 acceptance and tok/s figures reported here.
 - Related to [NVFP4 Format and Scale-Dependent Accuracy](nvfp4-format-accuracy-scale.md) — the 4-bit weight format behind the NVFP4 artifact and decode rows reported here.
 - Related to [DFlash 2 Parallel Speculative Decoding](dflash2-parallel-speculative-decoding.md) — the baked-in DFlash2 path behind the 186 tok/s at 218K agentic report in the uncensored-5090 thread (**Reported**)[^ninfer-uncensored-5090-thread].

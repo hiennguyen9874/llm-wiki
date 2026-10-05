@@ -5,7 +5,7 @@ description: Run Qwen 27B dense and 2.4T-A95B MoE Qwen3.8 models locally via Uns
 tags: [qwen, unsloth, gguf, llama-cpp, local-inference, quantization, reasoning, vision, mtp, nvfp4]
 status: stable
 created: 2026-09-14
-generated: { by: llm-wiki-agent/1, at: 2026-09-16T07:14:26Z }
+generated: { by: llm-wiki-agent/1, at: 2026-10-05T19:35:00Z }
 sources:
   - id: qwen38
     resource: ../raw/unsloth/models/qwen3.8.md
@@ -324,6 +324,19 @@ Qwen3.8-27B text table versus Qwen3.6-27B, Qwen3.7-Plus, Muse Glimmer-30B, and O
 - Related to [SGLang Qwen3.8 Inference](sglang-qwen3.8-inference.md) — datacenter-scale Day-0 SGLang/Miles serving for the same 2.4T-A95B identity with GDN three-state caching, chunked PP prefill, PD staging buffer, fused kernels, and colocated LoRA RL[^qwen38-day0].
 - Related to [Qwen3.8-27B DSpark Speculator](qwen3.8-dspark.md) — server-side SGLang speculative-decoding path for the 27B dense base with block-size-7 drafting and v1/v2 acceptance plus throughput comparisons[^qwen38-dspark].
 - Related to [Qwen3.8-27B Community Variants](qwen3.8-27b-community-variants.md) — Qwen-curated community GGUF/MLX/AWQ/NVFP4 plus DSpark/DFlash2 variants selected by download heat, org footprint and route representativeness[^qwen-community].
+- Related to [HauhauCS Qwen3.8-27B Aggressive MTP GGUF](hauhaucs-qwen3.8-27b-aggressive-mtp-gguf.md) — Aggressive-uncensored GGUF of the same 27B base with K_P quants, preserved NextN head, FastMTP 32K sidecar plus llama.cpp patch, and Blackwell/Ada TG tables.
+- Related to [JonathanColetti Qwen3.8-27B Uncensored GGUF](jonathancoletti-qwen3.8-27b-uncensored-gguf.md) — Heretic-abliterated community GGUF of the same 27B base with verbatim MTP retention, published f16 imatrix, paired PPL/KL edit-cost evidence, and fused/split MTP speculative-decoding tables.
+- Related to [Dirk Qwen3.8-27B Sharp-Template GGUF](dirk-qwen3.8-27b-gguf.md) — Sharp-retemplated community GGUF ladder for the same 27B base with a `medium`-default effort control and split GSQ-RCO/Unsloth tiers.
+- Related to [ISTA-DASLab Qwen3.8-27B GSQ-RCO GGUF](ista-qwen3.8-27b-gsq-rco-gguf.md) — Authoritative ISTA-DASLab non-uniform GGUF source for the same 27B base with the 2.5–3.5 bpw file table, BF16 versus Unsloth Dynamic fidelity figures, MTP builds, and llama.cpp vision recipes.
+- Related to [Huihui Qwen3.8-27B Abliterated GGUF](huihui-qwen3.8-27b-abliterated-gguf.md) — Abliterated community GGUF family for the same 27B base with layer-selective refusal removal and non-standard `K_L` mixed quantization.
+- Related to [DavidAU Qwen3.8-27B Cold Fusion GAIN GGUF](davidau-qwen3.8-cold-fusion-gain-gguf.md) — Thinking-compression fine-tune of the same 27B base with 1/2-to-1/10 fewer reasoning tokens and NEO-IMATRIX MAX/MTP GGUF packaging.
+- Related to [DavidAU Qwen3.8-27B TURBO Fable Cold Fusion GGUF](davidau-qwen3.8-turbo-fable-cold-fusion-gguf.md) — Heretic-uncensored TURBO fine-tune of the same 27B base with 735 ARC-C, 1/2-to-1/10 thinking reduction, and NEO-CODER MAX/MTP GGUF packaging.
+- Related to [RVN Qwen3.8-27B Heretic Abliterated Uncensored GGUF](rvn-qwen3.8-27b-heretic-abliterated-gguf.md) — Double-refined ARA abliteration of the same 27B base (0–1/100 refusals, KL 0.0085) with multilingual GGUF calibration, embedded-MTP twins, and vision-bridge variants.
+- Related to [Gittensor Qwen3.8-27B NVFP4 RTX 5090](gittensor-qwen3.8-27b-nvfp4-rtx5090.md) — Blackwell NVFP4 server checkpoint of the same 27B base with NVFP4 `lm_head`, removed MTP head, DSpark v2 drafting, and RTX 5090 SparkInfer/SGLang/vLLM serving evidence.
+- Related to [OBLITERATUS Qwen3.8-27B OBLITERATED](obliteratus-qwen3.8-27b-obliterated.md) — Iteratively refined SVD/LEACE complementary-blend abliteration of the same 27B base with greedy plus repetition-penalty serving, thinking-prefill template, and reported −2.1pp MMLU cost.
+- Related to [Cdiamond Qwen3.8-27B iMatrix NVFP4 MTP GGUF](cdiamond-qwen3.8-27b-imatrix-nvfp4-mtp-gguf.md) — iMatrix-guided hybrid NVFP4 GGUF of the same 27B base at 5.01 bpw with embedded MTP, 261.5K occupied-cache 256K profile on a 24 GB card, and `n_max=1` versus `n_max=8` llama.cpp guidance.
+- Related to [Neroued Qwen3.8-27B NVFP4 NInfer Artifact](neroued-qwen3.8-27b-nvfp4-ninfer.md) — NInfer-only mixed NVFP4/FP8 artifact for the same 27B base with DFlash2 companion weights, RTX 5090 serve recipes, and reported MTP/EvalScope tables.
+- Related to [Swift 1.5 Qwen3.8-27B GSQ-RCO GGUF](swift-1.5-qwen3.8-27b-gsq-rco-gguf.md) — Thinking-efficient Swift 1.5 post-train of the same 27B base with a 8.42–11.77 GB GSQ-RCO ladder, Swift-V1MIX refinement, KLD fidelity versus Swift BF16, MTP builds, and llama.cpp serving without a verified vision projector.
 
 ## Contradictions
 
