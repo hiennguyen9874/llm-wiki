@@ -42,6 +42,7 @@ Ports keep landing and Qwen3.8-27B runs on just about everything, per the source
 - Related to [DFlash 2 Parallel Speculative Decoding](dflash2-parallel-speculative-decoding.md) — parallel-drafting upgrade behind the incoai × z-lab DFlash2 entry.
 - Related to [DFlash Block Diffusion Speculative Decoding](dflash-block-diffusion.md) — block-diffusion drafting design behind the DFlash2 entry.
 - Related to [SGLang DFlash Speculative Decoding](sglang-dflash-speculative-decoding.md) — SGLang serving surface named for the DFlash2 entry.
+- Related to [Qwen3.8-27B Ecosystem Survey](qwen3.8-27b-survey.md) — compares the variants named here that have compiled pages, and lists the rest as name-only.
 
 ## Contradictions
 
