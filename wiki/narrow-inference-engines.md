@@ -5,7 +5,7 @@ description: Single-model, single-hardware inference engines that trade generali
 tags: [serving, local-inference, inference-engines, llamacpp, vllm, qwen3.8-flash-next, qwen3.6]
 status: stable
 created: 2026-10-04
-generated: { by: llm-wiki-agent/1, at: 2026-10-04T20:00:00Z }
+generated: { by: llm-wiki-agent/1, at: 2026-10-05T12:00:00Z }
 stale_after: 2027-04-04
 sources:
   - id: narrow-engines-sf
@@ -32,6 +32,10 @@ sources:
     scope: ../raw/yes-bots-we-get-it-strata-is-good-now-please-stop/
     kind: discussion
     title: "Yes bots we get it, Strata is good now please stop (r/LocalLLaMA)"
+  - id: ninfer-readme
+    resource: ../raw/ninfer.md
+    kind: documentation
+    title: "NInfer"
 ---
 
 A cluster of narrow inference engines built for exactly one model family and one GPU family is outrunning general-purpose runtimes in its lane by roughly 2–4x, by giving up model and hardware generality on purpose; the buying risk is not a fake number but a conditional one — swap the model, change the GPU, or wait for the next release and the engine may not support it[^narrow-engines-sf][^overfit-post]. All figures below are **Reported** as stated by the cited source without independent verification here; the Carteakey firsthand post is now compiled directly alongside the secondhand Startup Fortune summary.
@@ -48,7 +52,7 @@ A cluster of narrow inference engines built for exactly one model family and one
 | Engine | Target hardware | Models | Notable trick |
 | --- | --- | --- | --- |
 | Strata | Consumer NVIDIA RTX, 12 GB+ | Qwen3.8-Flash-Next | Per-expert VRAM cache across all layers, native MTP (**Reported**)[^overfit-post] |
-| ninfer | One RTX 5090 (community forks for 3090) | A closed list of Qwen checkpoints | Scratch-written C++/CUDA, no offloading, no multi-GPU (**Reported**)[^overfit-post] |
+| ninfer | One RTX 5090 (community forks for 3090) | A closed list of Qwen checkpoints | Scratch-written C++/CUDA, no offloading, no multi-GPU (**Reported**)[^overfit-post][^ninfer-readme] |
 | DwarfStar (`ds4`) | Metal, CUDA, ROCm; two Macs over RDMA | DeepSeek V4/V4.1 Flash and V4 Pro first, plus GLM 5.x and Qwen3.8-Flash-Next | Aggressive routed-expert quants, compressed KV cache on SSD (**Reported**)[^overfit-post] |
 | Splash | Apple Silicon M3+ | Qwen family | DFlash 2 speculation, per-model kernels and memory plans (**Reported**)[^overfit-post] |
 | llamAmpere | RTX 3090 / 3090 Ti (SM86) | Mainly Qwen3.8-27B | llama.cpp fork with TurboQuant KV and custom verify kernels (**Reported**)[^overfit-post] |
@@ -135,6 +139,8 @@ A cluster of narrow inference engines built for exactly one model family and one
 - Related to [Qwen3.8-Flash-Next Local Deployment](qwen3.8-next.md) — the Unsloth GGUF plus llama.cpp route for the same 125B model Strata specializes in.
 - Related to [Qwen3.6 Local Deployment](qwen3.6.md) — the general local route for the Qwen3.6-35B-A3B model in the Splash report.
 - Related to [Qwen3.8-Flash-Next Architecture and Evaluation](qwen3.8-flash-next-architecture.md) — the 125B/6B-active plus n-gram architecture that makes per-expert caching pay off.
+- Related to [HyperQwen Qwen3.8-27B Serving Stack](hyperqwen-serving-stack.md) — the pinned-vLLM Qwen3.8-27B stack that keeps the batch/concurrency edge cited in the complaint-thread competitive notes.
+- Related to [NInfer Single-GPU Inference Engine](ninfer-single-gpu-inference-engine.md) — NInfer's own README grounding for the row above: five Qwen3.6/3.8 v3 artifacts, RTX-5090-only `sm_120a` build, 1–8 startup-fixed lanes, MTP/DFlash speculation, and RTX 5090 decode/prefill plus EvalScope figures (**Reported**)[^ninfer-readme].
 
 ## Coverage limits
 
@@ -150,3 +156,5 @@ A cluster of narrow inference engines built for exactly one model family and one
 [^strata-video-6x]: "The New Way to Run 125B Models 6x Faster Than llama.cpp (Strata)" — `../raw/the-new-way-to-run-125b-models-6x-faster-than-llama.cpp-(strata).md` (YouTube transcript, English; channel, URL, and publish date not captured — content places it after the 2026-10-01 llama.cpp MTP merge): 6x headline deconstruction (6.2x slowest-vs-fastest, 2–2.5x fair band) and transient-engine-lead vs durable-offload-architecture split.
 
 [^strata-thread-bots]: r/LocalLLaMA thread "Yes bots we get it, Strata is good now please stop" — `../raw/yes-bots-we-get-it-strata-is-good-now-please-stop/index.md` (comments 2026-10-03–2026-10-04): oversaturated-vs-overhyped reframing (kimhaneol, CtrlAltDelve), astroturfing-vs-excitement dispute (danieln1212, vacon04, Fortyseven), HyperQwen concurrency edge (catch23), FreeToken MTP gap (trying4k), and llama.cpp hot-expert fork pointer (zyxciss).
+
+[^ninfer-readme]: NInfer — `../raw/ninfer.md` (README capture): from-scratch C++/CUDA single-RTX-5090 engine with 1–8 startup-fixed lanes, five Qwen3.6/3.8 v3 artifacts, `sm_120a`/CUDA-13.1 build, MTP 1–5 plus 35B-A3B DFlash and Qwen3.8 DFlash2 paths, and RTX 5090 decode/prefill plus EvalScope capability figures.
