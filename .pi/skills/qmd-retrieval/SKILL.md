@@ -28,4 +28,4 @@ qmd query -c wiki --json -n 10 --intent "Trust and freshness controls" \
   "How does the system avoid presenting stale or disputed knowledge as fact?"
 ```
 
-QMD snippets are discovery evidence only. Material answer claims must come from inspected wiki concepts or raw sources allowed by `LLM-WIKI.md`.
+QMD snippets are discovery evidence only. Material answer claims must come from inspected wiki concepts or raw sources opened under `wiki-query` step 4.
