@@ -461,6 +461,7 @@ These are unverified anecdotes from community threads, kept apart from vendor ev
 
 ## Adjacent concepts
 
+- Synthesis side of the voice loop: [TTS Model Survey](tts-model-survey.md) compares every compiled TTS model.
 - Diarization only: [Sortformer Diarizer 4spk v1](diar-sortformer-4spk-v1.md), [Streaming Sortformer v2](diar-streaming-sortformer-4spk-v2.md) / [v2.1](diar-streaming-sortformer-4spk-v2-1.md), [Nemotron 3 Diarization](nemotron-3-diarization.md) and its [GGUF](nemotron-3-diarization-gguf.md). Streaming Sortformer v2 is the frontend in Multitalker Parakeet's cpWER table.[^multitalker-parakeet-card]
 - Speech translation: [Index-Echo S2TT GGUF](index-echo-s2tt-gguf.md) produces timestamped Chinese source transcripts plus English, Spanish, or Japanese translations.[^index-echo-s2tt-gguf]
 - Speech LLM / speech-to-speech without a separate ASR stage: [Ultravox](ultravox.md), [NVIDIA NemotronLabs VoiceChat 11B](nvidia-nemotronlabs-voicechat-11b.md), [PersonaPlex 7B v1](personaplex-7b-v1.md), [Step-Audio-R1.1](step-audio-r1-1.md).
