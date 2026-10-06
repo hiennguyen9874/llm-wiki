@@ -5,7 +5,7 @@ description: NVIDIA 600M-parameter multilingual offline FastConformer-TDT ASR mo
 tags: [stt, asr, multilingual, fastconformer, tdt, nemo]
 status: stable
 created: 2026-10-06
-generated: { by: llm-wiki-agent/1, at: 2026-10-06T14:09:07Z }
+generated: { by: llm-wiki-agent/1, at: 2026-10-06T23:30:00Z }
 stale_after: 2027-10-06
 sources:
   - id: parakeet-v3-card
@@ -16,10 +16,26 @@ sources:
     resource: ../raw/parakeet.md
     kind: documentation
     title: Parakeet ASR server README (achetronic/parakeet)
+  - id: phonon-2-card
+    resource: ../raw/Phonon-2.md
+    kind: documentation
+    title: Phonon-2 model card
   - id: fast-gpu-asr-readme
     resource: ../raw/fast-gpu-asr.md
     kind: documentation
     title: Fast GPU ASR README
+  - id: orukeet-card
+    resource: ../raw/orukeet.md
+    kind: documentation
+    title: Orukeet model card
+  - id: parakeet-redux-card
+    resource: ../raw/parakeet-redux.md
+    kind: documentation
+    title: Moondream Parakeet Redux model card
+  - id: parakeet-ultra-card
+    resource: ../raw/parakeet-ultra.md
+    kind: documentation
+    title: Moondream Parakeet Ultra model card
 ---
 
 Parakeet TDT 0.6B V3 (`nvidia/parakeet-tdt-0.6b-v3`) is NVIDIA's ~600M-parameter multilingual offline ASR model that auto-detects one of 25 European languages and transcribes 16 kHz mono speech into punctuated, capitalized text with word- and segment-level timestamps, using a FastConformer encoder with a TDT decoder served via NeMo, Transformers, and a NeMo-Speech.cpp GGUF runtime (**Reported**).[^parakeet-v3-card]
@@ -114,6 +130,10 @@ All numbers below are source assertions for greedy Transducer decoding without a
 - [Parakeet ASR Server](parakeet-asr-server.md) deploys these weights as a self-hosted Go service via the istupakov ONNX conversion behind a Whisper-compatible REST/SSE API, with CPU/CUDA images and silence-aware long-audio chunking; prefer that page for deployment and operations (**Synthesis**).[^parakeet-server-readme]
 - Served at batch scale by [Fast GPU ASR](fast-gpu-asr.md): that TensorRT library benchmarks these V3 weights with beam-6 TDT search (B300 FP16 batch-256: 19,398.7 RTFx at 4.810% mean English WER over 157.8 h) as its offline batch alternative to this page's NeMo/Transformers/GGUF routes; prefer that page for maximum GPU batch throughput (**Synthesis**).[^fast-gpu-asr-readme]
 - Compare offline multilingual accuracy with [Qwen3-ASR family](qwen3-asr-family.md), [Fun-ASR-MLT-Nano-2512](fun-asr-mlt-nano-2512.md), and [Audio8-ASR-0.1B](audio8-asr-0.1b.md): this page's differentiator in the wiki is the 0.6B TDT greedy WER grid across FLEURS/MLS/CoVoST per language plus the 6.34% English Open ASR average and MUSAN SNR rows (**Synthesis**).[^parakeet-v3-card]
+- Quantized English derivative [Phonon-2](phonon-2.md) keeps this checkpoint's tokenizer and output conventions at ~2.1-bit encoder precision (164 MB download), reporting 5.21% mean WER on its 7-split vendor-run Open ASR table with VoxPopuli/AMI teacher parity; prefer that page for the sub-900MB English operating point and this page for multilingual coverage (**Synthesis**).[^phonon-2-card]
+- Ternary multilingual derivative [Parakeet Redux](parakeet-redux.md) keeps this checkpoint's architecture, tokenizer, and 25 European languages at 1.58-bit encoder precision (178 MB), reporting 113× realtime on eight x86 CPU cores, 6.55% English Open ASR average, 10.56% FLEURS pooled average, and 2.51% TED-LIUM long-form; prefer that page for the CPU/edge operating point and this page for the full-precision teacher baseline (**Synthesis**).[^parakeet-redux-card]
+- Post-trained full-precision derivative [Parakeet Ultra](parakeet-ultra.md) keeps this checkpoint's architecture, tokenizer, 0.6B parameters, and 25 European languages, reporting wins on every headline suite in its card (English 5.80 vs 6.26, FLEURS pooled 9.55 vs 11.62, business 5.79 vs 6.15, noise 5.82 vs 6.72, TED-LIUM 1.94 vs 2.71) plus higher B200 batch throughput via Photon; prefer that page for the accuracy-improved GPU operating point and this page for the teacher baseline (**Synthesis**).[^parakeet-ultra-card]
+- Multilingual finetune [Orukeet](orukeet.md) freezes 12,288 fitted Gabor depthwise taps and retrains the remaining ~626.9M parameters, reporting wins on 61 of 74 splits including FLEURS pooled 9.85% versus 11.01% here and LibriSpeech clean/other 1.46%/2.86% versus 1.93%/3.59% here under different scoring protocols; prefer that page for the accuracy-improved drop-in and this page for the teacher baseline (**Synthesis**).[^orukeet-card]
 
 ## Coverage and limits
 
@@ -124,4 +144,8 @@ All numbers below are source assertions for greedy Transducer decoding without a
 [^parakeet-v3-card]: [Parakeet TDT 0.6B V3 multilingual model card](../raw/parakeet-tdt-0.6b-v3.md) — locators: frontmatter (`pipeline_tag`, `library_name: transformers`, 25-language list, `license: cc-by-4.0`, `datasets: nvidia/Granary + nemo/asr-set-3.0`, per-dataset `model-index` WERs incl. AMI 11.31 / Earnings22 11.42 / GigaSpeech 9.59 / LS-clean 1.93 / LS-other 3.59 / SPGI 3.97 / TEDLIUM 2.75 / VoxPopuli 6.14 and FLEURS/MLS/CoVoST per-language rows); `Description` (600M params, v2→25-language extension, auto language detection, demo link, 25-language list); `Key Features` (punctuation/capitalization, word+segment timestamps, 24-min full / 3-h local audio, CC-BY-4.0, Technical Report link); `License`, `Deployment Geography` (Global), `Use Case`, `Release Date` (08/14/2025), `Model Architecture` (FastConformer-TDT); `Input` (16 kHz mono wav/flac) / `Output` (punctuated capitalized string); `How to Use` (NeMo-Speech.cpp `q8_0.gguf` fences; NeMo `pip install`, `ASRModel.from_pretrained`, `transcribe`, timestamps fence, `change_attention_model(rel_pos_local_attn, [256,256])`, RNNT streaming script fence with `right_context_secs/chunk_secs/left_context_secs/batch_size`; Transformers `pipeline`/`AutoModelForTDT`/`AutoProcessor`/`generate`/`decode(durations)`/training fences; v2 NIM link); `Software Integration` (NeMo 2.4, Ampere/Blackwell/Hopper/Volta, Linux, 2 GB RAM); `Training` (CTC-multilingual init, 150k steps / 128 A100, temp sampling 0.5, stage-2 5k steps / 4 A100 on ~7.5k h, SentencePiece-8192, example script + TDT yaml); `Training Dataset` (10k h human across 8 named sources + 660k h pseudo YTC/MOSEL/YODAS, Interspeech-2025 note); `Evaluation Datasets` (FLEURS/MLS/CoVoST + Open ASR Leaderboard); `Performance` (FLEURS avg 11.97 / MLS 7.83 / CoVoST 11.98 25-row table, English avg-6.34 8-dataset row, MUSAN SNR 10/5/0/-5 table, eval notes 1–2); `Inference` (NeMo engine, A10/A100/A30/H100/L4/L40/T4/V100); `Ethical/Bias/Explainability/Privacy/Safety` subcards; `References [1]–[14]`.
 
 [^parakeet-server-readme]: [Parakeet ASR server README](../raw/parakeet.md) — locators: header (Go server, Parakeet TDT 0.6B via ONNX Runtime, Whisper-compatible API); `Model Architecture` (istupakov ONNX conversion of `nvidia/parakeet-tdt-0.6b-v3`); `Installation` (`ghcr.io/achetronic/parakeet:latest` CPU + `:latest-cuda` GPU images); `API Reference` (Whisper-compatible REST/SSE `transcript.text.delta/done`); `Long Audio` (`-long-audio` silence-aware chunking).
+[^phonon-2-card]: [Phonon-2 model card](../raw/Phonon-2.md) — locators: frontmatter (`base_model: nvidia/parakeet-tdt-0.6b-v3`, `base_model_relation: quantized`); `# Phonon-2` intro (164 MB download, 5.21% seven-set average, ~2.1-bit five-level encoder, VoxPopuli/AMI teacher-parity claim); `## Benchmarks` (8-row vendor-run WER table with teacher 4.96 in the same table).
 [^fast-gpu-asr-readme]: [Fast GPU ASR README](../raw/fast-gpu-asr.md) — locators: `Batched speech recognition at up to 25,000 RTFx on B300` (FP16 beam-6 table, B300 batch-256 Parakeet V3 TDT 19,398.7 RTFx at 4.810% mean WER, 157.8-hour seven-English-dataset suite); `Models and Inference Precision` (Parakeet TDT V3/V2 export support); `Transcribe` (`ASR` fence).
+[^orukeet-card]: [Orukeet model card](../raw/orukeet.md) — locators: intro (parakeet-tdt-0.6b-v3 finetune, 12,288 frozen Gabor kernels, 61/74 wins); `Architecture` (627,008,134 params, 626,897,542 trainable); `Evaluation` (FLEURS pooled 9.85 vs 11.01; LS clean 1.46 vs 1.53 / other 2.86 vs 3.14).
+[^parakeet-redux-card]: [Moondream Parakeet Redux model card](../raw/parakeet-redux.md) — locators: intro (1.58-bit ternary version of `parakeet-tdt-0.6b-v3`, 178 MB, 113× realtime on eight x86 cores); `Benchmarks` (Open ASR 6.55 vs 6.26, FLEURS 10.56 vs 11.62, TED-LIUM 2.51 vs 2.71).
+[^parakeet-ultra-card]: [Moondream Parakeet Ultra model card](../raw/parakeet-ultra.md) — locators: intro (post-trained `parakeet-tdt-0.6b-v3`, same architecture/tokenizer/0.6B full precision, 5-row headline table with Open ASR 5.80 vs 6.26 / FLEURS 9.55 vs 11.62 / business 5.79 vs 6.15 / noise 5.82 vs 6.72 / TED-LIUM 1.94 vs 2.71); `Performance` (B200 128-in-flight, LibriSpeech 9,743× vs 6,005× and AMI 6,688× vs 4,394×); `Benchmarks` (7-row Open ASR, 25-row FLEURS, 3-row AA-WER business, 9-row MUSAN noise, TED-LIUM 1.94 vs 2.71 tables).

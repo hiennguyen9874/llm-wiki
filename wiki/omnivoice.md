@@ -5,13 +5,17 @@ description: Massively multilingual zero-shot TTS model covering 600+ languages 
 tags: [ml, tts, multilingual, voice-cloning, zero-shot]
 status: stable
 created: 2026-10-06
-generated: { by: llm-wiki-agent/1, at: 2026-10-06T00:00:00Z }
+generated: { by: llm-wiki-agent/1, at: 2026-10-06T12:00:00Z }
 stale_after: 2027-10-06
 sources:
   - id: omnivoice-card
     resource: ../raw/OmniVoice.md
     kind: documentation
     title: OmniVoice model card
+  - id: omnivoice-gguf-card
+    resource: ../raw/OmniVoice-GGUF.md
+    kind: documentation
+    title: OmniVoice GGUF model card
 ---
 
 OmniVoice is a massively multilingual zero-shot text-to-speech model supporting over 600 languages, built on a diffusion language-model-style architecture for high-quality speech at up to 40x faster than real time, with zero-shot voice cloning from a short reference clip and attribute-driven voice design (**Reported**).[^omnivoice-card]
@@ -54,6 +58,7 @@ OmniVoice is a massively multilingual zero-shot text-to-speech model supporting 
 - Multilingual zero-shot TTS comparison: [Audio8 TTS Preview 0.6B](audio8-tts-preview-0.6b.md) covers a compact 0.6B DualAR multilingual cloning model with 11 recommended languages and Seed-TTS numbers, while this concept covers a 600+-language diffusion-LM cloning/design model with 0.025 RTF; no shared codebase or vendor claim is asserted (**Synthesis**).[^omnivoice-card]
 - Bilingual real-time TTS contrast: [Breeze TTS 2](breeze-tts-2.md) covers an English-Chinese real-time model with voice clone/design/direction and H100 TTFA/RTF figures, while this concept covers massively multilingual coverage and attribute-driven voice design; no shared codebase or vendor claim is asserted (**Synthesis**).[^omnivoice-card]
 - LLM-based streaming TTS family: [CosyVoice2-0.5B](cosyvoice2-0.5b.md) and [Fun-CosyVoice3-0.5B-2512](fun-cosyvoice3-0.5b-2512.md) cover 0.5B-parameter multilingual zero-shot TTS models with streaming and pronunciation-control features, while this concept covers a Qwen3-0.6B-based diffusion-LM model at 600+-language scale; no shared codebase claim is asserted beyond the comparable voice-cloning role (**Synthesis**).[^omnivoice-card]
+- GGUF edge packaging: [OmniVoice GGUF](omnivoice-gguf.md) covers the third-party GGUF conversion of this model line for the separate omnivoice.cpp runtime (paired base-plus-tokenizer files, F32/BF16/Q8_0/Q4_K_M variants with Q8_0 recommended, CUDA/Vulkan/Metal/CPU backends, CC-BY-NC terms); it is distinct from the audio.cpp-runtime `OmniVoice-GGUF` catalog row (**Synthesis**).[^omnivoice-gguf-card]
 
 ## Coverage and limits
 
@@ -62,3 +67,5 @@ OmniVoice is a massively multilingual zero-shot text-to-speech model supporting 
 - All identity, language-coverage, capability, speed, compatibility, and usage claims are source assertions without independent verification in this wiki; model-release and speed figures carry `stale_after: 2027-10-06` per the `tts` domain rule (**Synthesis**).[^omnivoice-card]
 
 [^omnivoice-card]: [OmniVoice model card](../raw/OmniVoice.md) — locators: frontmatter (`base_model`, `language`, `pipeline_tag`, `library_name`, `tags`); header badges/links (Hugging Face model/Space, arXiv paper 2604.00688, GitHub repo, demo page, Colab badge); intro paragraph (600+ languages, diffusion language-model architecture, cloning/design, speed); `Key Features` section (600+ languages, cloning, voice-design attributes, `[laughter]`/pinyin/phoneme control, RTF 0.025, architecture bullets); `Usage` section (fresh-venv note, NVIDIA-GPU and Apple-Silicon `pip install torch/torchaudio` fences, `pip install omnivoice` fence, Python `from_pretrained`/`generate` fence with `device_map`/`dtype`/`ref_audio`/`ref_text`/24 kHz, GitHub pointer); `Discussion & Communication` section (GitHub Issues, WeChat table); `Citation` section (Zhu et al. 2026 bibtex); `License` section (Apache 2.0 code, CC-BY-NC model, Emilia note); `Disclaimer` section (misuse prohibition, compliance, liability).
+
+[^omnivoice-gguf-card]: [OmniVoice GGUF model card](../raw/OmniVoice-GGUF.md) — locators: intro paragraph (omnivoice.cpp C++17/GGML port, 646 languages, 24 kHz mono, CPU/CUDA/ROCm/Metal/Vulkan); `## Files` variant table (paired base plus tokenizer files, F32/BF16/Q8_0/Q4_K_M sizes and use cases); `## Quick start` fence; `## Backends` table; `## Quantization policy` section; `## License` section (CC-BY-NC conversion terms).

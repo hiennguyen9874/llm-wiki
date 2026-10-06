@@ -36,6 +36,7 @@ IndexTTS2 is IndexTeam's autoregressive zero-shot text-to-speech system whose su
 
 ## Relationships
 
+- Successor release: [IndexTTS-2.5](indextts-2-5.md) claims added Japanese, Spanish, and Arabic support, faster inference, speaking-speed control, and improved Pinyin/CMU/Kana controllability over IndexTTS-2; this concept covers only the IndexTTS2 README fragment, so capability and usage detail lives in the 2.5 concept (**Synthesis**).[^indextts2-readme]
 - Packaged runtime: [audio.cpp GGUF Model Packages](audio-cpp-gguf-packages.md) catalogs `IndexTTS2-GGUF` and `IndexTTS2.5-GGUF` under the `index_tts2` family with original plus F16 plus Q8 weights, while this concept covers only the upstream IndexTTS2 release identity from the README fragment; no shared benchmark or serving claim is asserted (**Synthesis**).[^indextts2-readme]
 - Benchmark baseline: [Higgs TTS 3](higgs-tts-3-4b.md) reports IndexTTS-2 as a comparison baseline in multilingual voice-clone WER/CER tables and Emergent-TTS judge win-rates, while this concept carries no evaluation figures of its own; the comparison direction runs from the Higgs source, not from the IndexTTS-2 fragment (**Synthesis**).[^indextts2-readme]
 

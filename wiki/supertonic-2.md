@@ -5,7 +5,7 @@ description: Lightning-fast 66M-parameter on-device multilingual TTS with ONNX r
 tags: [tts, on-device, multilingual]
 status: stable
 created: 2026-10-06
-generated: { by: llm-wiki-agent/1, at: 2026-10-06T18:00:00Z }
+generated: { by: llm-wiki-agent/1, at: 2026-10-06T23:55:00Z }
 stale_after: 2027-10-06
 sources:
   - id: supertonic-2-card
@@ -81,6 +81,7 @@ Supertonic 2 is Supertone Inc's 66M-parameter on-device multilingual text-to-spe
 - Ultra-lightweight TTS comparison: [Soprano-1.1-80M](soprano-1-1-80m.md) covers an 80M-parameter English-only on-device TTS model with vendor-reported up to 2000x GPU real-time factor and sub-15 ms GPU streaming, while this concept covers a 66M-parameter 5-language on-device TTS with M4 Pro and RTX 4090 CPS/RTF tables; no shared vendor or codebase is asserted (**Synthesis**).[^supertonic-2-card]
 - Real-time TTS comparison: [Breeze TTS 2](breeze-tts-2.md) covers a bilingual real-time TTS model with voice clone/design/direction and H100 latency figures, while this concept covers a 5-language ONNX on-device TTS with 2-step and 5-step throughput tables; no shared vendor or codebase is asserted (**Synthesis**).[^supertonic-2-card]
 - Sub-1B multilingual TTS comparison: [MOSS-TTS-Nano](moss-tts-nano.md) covers a 0.1B-parameter multilingual zero-shot voice-cloning TTS model with 48 kHz stereo output and ONNX CPU streaming, while this concept covers a 66M-parameter multilingual on-device TTS with API/open-model comparative benchmarks; no shared vendor or codebase is asserted (**Synthesis**).[^supertonic-2-card]
+- Direct successor: [Supertonic 3](supertonic-3.md) covers the 31-language follow-up at about 99M parameters with claimed reading-stability, speaker-similarity, and expression-tag improvements but image-only benchmark figures, while this concept covers the 5-language release with numeric characters-per-second and real-time-factor tables; no deprecation of Supertonic 2 is asserted in either capture (**Synthesis**).[^supertonic-2-card]
 
 ## Coverage and limits
 

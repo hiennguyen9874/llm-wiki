@@ -20,6 +20,10 @@ sources:
     resource: ../raw/Claude-pipeline-recommend.md
     kind: llm-response
     title: Claude voice-pipeline research report
+  - id: confucius4-r2t2-readme
+    resource: ../raw/Confucius4-R2T2.md
+    kind: documentation
+    title: Confucius4-R2T2 GitHub README
 ---
 
 Qwen3-ASR is an open-weight automatic speech recognition family from Qwen built on the Qwen3-Omni foundation model, with a 1.7B accuracy flagship and a 0.6B efficiency point for joint language identification plus transcription across 30 languages and 22 Chinese dialects, a separate Qwen3-ForcedAligner-0.6B for word/character timestamps, unified streaming/offline inference with long-audio support including singing and songs with background music, and a full toolkit (`qwen-asr` Transformers and vLLM backends, async serving, Gradio and streaming demos, DashScope APIs, Docker, day-0 vLLM support), reported as state-of-the-art among open-source ASR with the 1.7B competitive against proprietary APIs and the aligner surpassing end-to-end forced-alignment baselines (**Reported**).[^qwen3-asr-readme]
@@ -108,6 +112,7 @@ Public-set WER in percent, lower is better; 1.7B leads most columns with noted e
 
 ## Relationships
 
+- Extended by [Confucius4-R2T2](confucius4-r2t2.md): NetEase Youdao's true-streaming recognizer declares `Qwen/Qwen3-ASR-1.7B` as its base model and adds Longest Stable Prefix training plus append-only 80 ms–2 s chunked decoding with vLLM and WebSocket serving, so read that concept for the low-latency streaming derivative of this family (**Synthesis**).[^confucius4-r2t2-readme]
 - Used by [Audio8-ASR-0.1B](audio8-asr-0.1b.md): that compact model pairs a Qwen3-ASR audio encoder (its card names `Qwen/Qwen3-ASR-0.6B` as the backbone) with a small Qwen-style LM, so read this family concept for the encoder lineage's language coverage, streaming/offline behavior, and serving toolkit (**Synthesis**).[^qwen3-asr-readme]
 - Benchmarked against [Fun-ASR-MLT-Nano-2512](fun-asr-mlt-nano-2512.md), [Fun-ASR-Nano-2512](fun-asr-nano-2512.md), and [GLM-ASR-Nano-2512](glm-asr-nano-2512.md): the card's public, multilingual, singing, and alignment tables carry `Fun-ASR-MLT-Nano`, `Fun-ASR-Nano`, and `GLM-ASR-Nano-2512` columns as baselines, so cross-read those concepts when comparing compact Chinese-oriented ASR checkpoints; the WER numbers above are Qwen3-ASR-side values as reported in this card, not a merged ranking (**Synthesis**).[^qwen3-asr-readme]
 - Vietnamese figures from an AI-compiled report citing the tech report (arXiv 2601.21337): Fleurs-vi 5.55 (1.7B) / 8.52 (0.6B) and MLC-SLM-vi 14.92 / 17.67, with the 0.6B via vLLM reaching 92 ms average TTFT and 2000 s of speech per second at concurrency 128; the report names this family the main Whisper replacement for Vietnamese in [Vietnamese Realtime Voice Agent Stack](vietnamese-realtime-voice-agent-stack.md) and [Whisper Hallucination Mitigation for Vietnamese](whisper-hallucination-mitigation.md) (**Reported**).[^claude-pipeline-report]
@@ -125,3 +130,4 @@ Public-set WER in percent, lower is better; 1.7B leads most columns with noted e
 [^claude-pipeline-report]: [Claude voice-pipeline research report](../raw/Claude-pipeline-recommend.md) — locators: `TL;DR` verified-facts bullet; `Key Findings` 3; `PHẦN 1` §4 Qwen3-ASR row; `Triển khai` scaling bullet; `Recommendations` tier table and replacement triggers.
 
 [^qwen3-asr-hf-card]: [Qwen3-ASR-0.6B-hf Transformers-native model card](../raw/Qwen3-ASR-0.6B-hf.md) — locators: frontmatter (`license`, `pipeline_tag`, `library_name`, 30-language list); `Overview` (1.7B/0.6B family, 52-language claim, Qwen3-Omni lineage, 2000x-throughput sentence, 5-minute/11-language aligner); `Available Checkpoints` table (30 languages, 22 dialects, offline/streaming, speech/singing/songs, 11-language NAR aligner row); `Usage` (`apply_transcription_request` fence with three decode formats; `language` forcing fence; `prompt` hotwords fence; batch fence; chat-template prefill fence with `continue_final_message`; training fence with `output_labels`; forced-alignment fence with `prepare_forced_aligner_inputs` / `decode_forced_alignment` and `nagisa`/`soynlp` note; `pipeline("any-to-any")` fence with `extract_transcription`); `Speed & Memory Improvements` (`torch.compile` fence, A100 2.5x aligner / 2.4x ASR at batch size 4); `Evaluation` (HF Open ASR Leaderboard table dated 26 June 2026, both `-hf` rows); `Citation` (arXiv 2601.21337 BibTeX).
+[^confucius4-r2t2-readme]: [Confucius4-R2T2 GitHub README](../raw/Confucius4-R2T2.md) — locators: frontmatter (`base_model: Qwen/Qwen3-ASR-1.7B`); intro (append-only true streaming, 80 ms–2 s chunks, LSP training); `WebSocket Server` (vLLM backend, FireRedVAD Stream-VAD).
