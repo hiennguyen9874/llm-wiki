@@ -6,6 +6,7 @@ tags: [avatar, gguf, audio-cpp, video-generation, edge-deployment]
 status: stable
 created: 2026-10-06
 generated: { by: llm-wiki-agent/1, at: 2026-10-06T09:07:47Z }
+stale_after: 2027-10-06
 sources:
   - id: liveavatar-gguf-card
     resource: ../raw/LiveAvatar-GGUF.md

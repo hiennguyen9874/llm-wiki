@@ -6,6 +6,7 @@ tags: [ml, tts, voice-cloning, speech-editing, audio-cpp, gguf]
 status: stable
 created: 2026-10-06
 generated: { by: llm-wiki-agent/1, at: 2026-10-06T10:04:37Z }
+stale_after: 2027-10-06
 sources:
   - id: auk-gguf-card
     resource: ../raw/AuK-Base-and-Flash-GGUF.md

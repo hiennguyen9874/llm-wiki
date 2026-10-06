@@ -6,6 +6,7 @@ tags: [tts, voice-cloning, speech-editing, diffusion]
 status: stable
 created: 2026-10-06
 generated: { by: llm-wiki-agent/1, at: 2026-10-06T11:00:00Z }
+stale_after: 2027-10-06
 sources:
   - id: auk-card
     resource: ../raw/AuK.md

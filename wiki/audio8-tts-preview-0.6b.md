@@ -6,6 +6,7 @@ tags: [ml, tts, multilingual, voice-cloning]
 status: stable
 created: 2026-10-06
 generated: { by: llm-wiki-agent/1, at: 2026-10-06T00:00:00Z }
+stale_after: 2027-10-06
 sources:
   - id: audio8-tts-preview-card
     resource: ../raw/Audio8-TTS-Preview-0.6b.md

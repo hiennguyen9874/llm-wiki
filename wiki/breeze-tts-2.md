@@ -6,6 +6,7 @@ tags: [ml, tts, bilingual, voice-cloning, streaming]
 status: stable
 created: 2026-10-06
 generated: { by: llm-wiki-agent/1, at: 2026-10-06T15:00:00Z }
+stale_after: 2027-10-06
 sources:
   - id: breeze-tts-2-card
     resource: ../raw/Breeze-TTS-2.md
