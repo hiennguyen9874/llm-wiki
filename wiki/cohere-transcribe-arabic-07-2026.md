@@ -5,7 +5,7 @@ description: Open-source 2B-parameter Conformer encoder-decoder ASR model for Ar
 tags: [stt, asr, arabic, english, conformer]
 status: stable
 created: 2026-10-06
-generated: { by: llm-wiki-agent/1, at: 2026-10-06T00:00:00Z }
+generated: { by: llm-wiki-agent/1, at: 2026-10-06T21:00:00Z }
 stale_after: 2027-10-06
 sources:
   - id: cohere-arabic-card
@@ -50,7 +50,7 @@ All numbers below are source assertions from the card's leaderboard table dated 
 ## Relationships
 
 - Alternative to [Qwen3-ASR family](qwen3-asr-family.md): that family covers Arabic among 30 languages with streaming/offline inference and timestamp prediction via a forced aligner, while this concept is the Arabic-specialized option with the leaderboard evidence above; the card's table carries a `Qwen3-ASR 1.7B` column as a baseline, so cross-read both when choosing between multilingual and Arabic-focused ASR (**Synthesis**).[^cohere-arabic-card]
-- Preceded by Cohere Transcribe 03-2026 (declared `base_model`): the base leads the MASC clean/noisy subsets while this Arabic-tuned model leads the average, SADA, Common Voice, and Casablanca subsets — compare per-subset rows rather than averages alone when the deployment dialect mix is known (**Synthesis**).[^cohere-arabic-card]
+- Preceded by [Cohere Transcribe 03-2026](cohere-transcribe-03-2026.md) (declared `base_model`): the base leads the MASC clean/noisy subsets while this Arabic-tuned model leads the average, SADA, Common Voice, and Casablanca subsets — compare per-subset rows rather than averages alone when the deployment dialect mix is known (**Synthesis**).[^cohere-arabic-card]
 
 ## Coverage and limits
 

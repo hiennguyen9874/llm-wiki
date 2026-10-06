@@ -5,7 +5,7 @@ description: NVIDIA 600M-parameter multilingual offline FastConformer-TDT ASR mo
 tags: [stt, asr, multilingual, fastconformer, tdt, nemo]
 status: stable
 created: 2026-10-06
-generated: { by: llm-wiki-agent/1, at: 2026-10-06T00:00:00Z }
+generated: { by: llm-wiki-agent/1, at: 2026-10-06T14:09:07Z }
 stale_after: 2027-10-06
 sources:
   - id: parakeet-v3-card
@@ -16,6 +16,10 @@ sources:
     resource: ../raw/parakeet.md
     kind: documentation
     title: Parakeet ASR server README (achetronic/parakeet)
+  - id: fast-gpu-asr-readme
+    resource: ../raw/fast-gpu-asr.md
+    kind: documentation
+    title: Fast GPU ASR README
 ---
 
 Parakeet TDT 0.6B V3 (`nvidia/parakeet-tdt-0.6b-v3`) is NVIDIA's ~600M-parameter multilingual offline ASR model that auto-detects one of 25 European languages and transcribes 16 kHz mono speech into punctuated, capitalized text with word- and segment-level timestamps, using a FastConformer encoder with a TDT decoder served via NeMo, Transformers, and a NeMo-Speech.cpp GGUF runtime (**Reported**).[^parakeet-v3-card]
@@ -108,6 +112,7 @@ All numbers below are source assertions for greedy Transducer decoding without a
 - Multilingual counterpart of [Canary-1b-v2](canary-1b-v2.md): both cover 25 European languages with punctuation and timestamps on NeMo, differing in size (~0.6B TDT here versus ~1B multitask there); compare FLEURS/MLS/CoVoST tables across the two pages when choosing a NeMo multilingual checkpoint (**Synthesis**).[^parakeet-v3-card]
 - Contrast streaming operating points with [Nemotron 3.5 ASR Streaming 0.6B](nemotron-3.5-asr-streaming-0.6b.md) and [Multitalker Parakeet Streaming 0.6B v1](multitalker-parakeet-streaming-0.6b-v1.md): those pages cover cache-aware chunked streaming and overlapped-multitalker streaming respectively, versus this page's offline up-to-24-minute (3-hour local-attention) single-pass transcription with a chunked-inference script as the only streaming path (**Synthesis**).[^parakeet-v3-card]
 - [Parakeet ASR Server](parakeet-asr-server.md) deploys these weights as a self-hosted Go service via the istupakov ONNX conversion behind a Whisper-compatible REST/SSE API, with CPU/CUDA images and silence-aware long-audio chunking; prefer that page for deployment and operations (**Synthesis**).[^parakeet-server-readme]
+- Served at batch scale by [Fast GPU ASR](fast-gpu-asr.md): that TensorRT library benchmarks these V3 weights with beam-6 TDT search (B300 FP16 batch-256: 19,398.7 RTFx at 4.810% mean English WER over 157.8 h) as its offline batch alternative to this page's NeMo/Transformers/GGUF routes; prefer that page for maximum GPU batch throughput (**Synthesis**).[^fast-gpu-asr-readme]
 - Compare offline multilingual accuracy with [Qwen3-ASR family](qwen3-asr-family.md), [Fun-ASR-MLT-Nano-2512](fun-asr-mlt-nano-2512.md), and [Audio8-ASR-0.1B](audio8-asr-0.1b.md): this page's differentiator in the wiki is the 0.6B TDT greedy WER grid across FLEURS/MLS/CoVoST per language plus the 6.34% English Open ASR average and MUSAN SNR rows (**Synthesis**).[^parakeet-v3-card]
 
 ## Coverage and limits
@@ -119,3 +124,4 @@ All numbers below are source assertions for greedy Transducer decoding without a
 [^parakeet-v3-card]: [Parakeet TDT 0.6B V3 multilingual model card](../raw/parakeet-tdt-0.6b-v3.md) — locators: frontmatter (`pipeline_tag`, `library_name: transformers`, 25-language list, `license: cc-by-4.0`, `datasets: nvidia/Granary + nemo/asr-set-3.0`, per-dataset `model-index` WERs incl. AMI 11.31 / Earnings22 11.42 / GigaSpeech 9.59 / LS-clean 1.93 / LS-other 3.59 / SPGI 3.97 / TEDLIUM 2.75 / VoxPopuli 6.14 and FLEURS/MLS/CoVoST per-language rows); `Description` (600M params, v2→25-language extension, auto language detection, demo link, 25-language list); `Key Features` (punctuation/capitalization, word+segment timestamps, 24-min full / 3-h local audio, CC-BY-4.0, Technical Report link); `License`, `Deployment Geography` (Global), `Use Case`, `Release Date` (08/14/2025), `Model Architecture` (FastConformer-TDT); `Input` (16 kHz mono wav/flac) / `Output` (punctuated capitalized string); `How to Use` (NeMo-Speech.cpp `q8_0.gguf` fences; NeMo `pip install`, `ASRModel.from_pretrained`, `transcribe`, timestamps fence, `change_attention_model(rel_pos_local_attn, [256,256])`, RNNT streaming script fence with `right_context_secs/chunk_secs/left_context_secs/batch_size`; Transformers `pipeline`/`AutoModelForTDT`/`AutoProcessor`/`generate`/`decode(durations)`/training fences; v2 NIM link); `Software Integration` (NeMo 2.4, Ampere/Blackwell/Hopper/Volta, Linux, 2 GB RAM); `Training` (CTC-multilingual init, 150k steps / 128 A100, temp sampling 0.5, stage-2 5k steps / 4 A100 on ~7.5k h, SentencePiece-8192, example script + TDT yaml); `Training Dataset` (10k h human across 8 named sources + 660k h pseudo YTC/MOSEL/YODAS, Interspeech-2025 note); `Evaluation Datasets` (FLEURS/MLS/CoVoST + Open ASR Leaderboard); `Performance` (FLEURS avg 11.97 / MLS 7.83 / CoVoST 11.98 25-row table, English avg-6.34 8-dataset row, MUSAN SNR 10/5/0/-5 table, eval notes 1–2); `Inference` (NeMo engine, A10/A100/A30/H100/L4/L40/T4/V100); `Ethical/Bias/Explainability/Privacy/Safety` subcards; `References [1]–[14]`.
 
 [^parakeet-server-readme]: [Parakeet ASR server README](../raw/parakeet.md) — locators: header (Go server, Parakeet TDT 0.6B via ONNX Runtime, Whisper-compatible API); `Model Architecture` (istupakov ONNX conversion of `nvidia/parakeet-tdt-0.6b-v3`); `Installation` (`ghcr.io/achetronic/parakeet:latest` CPU + `:latest-cuda` GPU images); `API Reference` (Whisper-compatible REST/SSE `transcript.text.delta/done`); `Long Audio` (`-long-audio` silence-aware chunking).
+[^fast-gpu-asr-readme]: [Fast GPU ASR README](../raw/fast-gpu-asr.md) — locators: `Batched speech recognition at up to 25,000 RTFx on B300` (FP16 beam-6 table, B300 batch-256 Parakeet V3 TDT 19,398.7 RTFx at 4.810% mean WER, 157.8-hour seven-English-dataset suite); `Models and Inference Precision` (Parakeet TDT V3/V2 export support); `Transcribe` (`ASR` fence).

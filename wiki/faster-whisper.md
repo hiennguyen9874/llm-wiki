@@ -5,7 +5,7 @@ description: CTranslate2-based reimplementation of OpenAI Whisper with batched i
 tags: [stt, whisper, quantization, vad, deployment]
 status: stable
 created: 2026-10-06
-generated: { by: llm-wiki-agent/1, at: 2026-10-06T18:00:00Z }
+generated: { by: llm-wiki-agent/1, at: 2026-10-06T14:07:36Z }
 stale_after: 2027-10-06
 sources:
   - id: faster-whisper-readme
@@ -16,6 +16,10 @@ sources:
     resource: ../raw/Claude-pipeline-recommend.md
     kind: llm-response
     title: Claude voice-pipeline research report
+  - id: distil-large-v3.5-card
+    resource: ../raw/distil-large-v3.5.md
+    kind: documentation
+    title: Distil-Whisper Distil-Large-v3.5 model card
 ---
 
 Faster-Whisper by SYSTRAN is a reimplementation of OpenAI's Whisper model on the CTranslate2 inference engine that claims up to 4x faster transcription than openai/whisper at the same accuracy with less memory, improvable further with 8-bit quantization on CPU and GPU, plus batched inference, word-level timestamps, Silero VAD filtering, and a script plus API for converting Transformers-compatible Whisper checkpoints (**Reported**).[^faster-whisper-readme]
@@ -72,6 +76,7 @@ Faster-Whisper by SYSTRAN is a reimplementation of OpenAI's Whisper model on the
 - Related to [GPT-SoVITS](gpt-sovits.md): that voice-conversion/TTS WebUI names Faster-Whisper Large V3 among its data-preparation ASR options; consult that page for the dataset-tooling context rather than transcription serving (**Synthesis**).[^faster-whisper-readme]
 - Evaluated with [Community-Reported Local ASR/TTS Selection](community-asr-tts-selection.md), [Community-Reported Noisy On-Premise STT Selection](community-noisy-call-stt.md), and [Community-Reported Open STT and Realtime Diarization Selection](community-open-stt-diarization.md): those drafts report production-CPU stability, ~1x-realtime noisy-call baselines, and voice-satellite use for faster-whisper against Parakeet, Whisper Turbo, and Qwen3-ASR alternatives; treat those anecdotes as unverified alongside this page's source-reported benchmarks (**Synthesis**).[^faster-whisper-readme]
 - Configured by [Whisper Hallucination Mitigation for Vietnamese](whisper-hallucination-mitigation.md): an AI-compiled report's `large-v3-turbo` decoding parameters, confidence filters, and Vietnamese phrase blacklist for this runtime, plus the warning to materialize the lazy `transcribe` generator inside `asyncio.to_thread` (Pipecat PR #5931); used as the default STT in [Vietnamese Realtime Voice Agent Stack](vietnamese-realtime-voice-agent-stack.md) (**Reported**).[^claude-pipeline-report]
+- Serves [Distil-Large-v3.5](distil-large-v3.5.md): that checkpoint's card names the `distil-whisper/distil-large-v3.5-ct2` upload for this engine with `beam_size=5, language="en"`; consult that page for the v3.5 short/long-form benchmarks and the sequential-versus-chunked guidance (**Synthesis**).[^distil-large-v3.5-card]
 
 ## Coverage and limits
 
@@ -82,3 +87,5 @@ Faster-Whisper by SYSTRAN is a reimplementation of OpenAI's Whisper model on the
 [^faster-whisper-readme]: [Faster-Whisper README](../raw/faster-whisper.md) — locators: header (SYSTRAN, CTranslate2 engine, up-to-4x-faster/same-accuracy/less-memory claim, 8-bit quantization note); `Benchmark` (13-minute audio link; implementation pins openai/whisper@v20240930, whisper.cpp@v1.7.2, transformers@v4.46.3, faster-whisper@v1.1.0; `Large-v2 model on GPU` table with fp16/int8 and `batch_size=8` rows; `distil-whisper-large-v3 model on GPU` table with `batch_size=16` rows and YT Commons WER; RTX 3070 Ti 8GB CUDA 12.4 note and transformers-OOM footnote; `Small model on CPU` table with fp32/int8 and `batch_size=8` rows; i7-12700K 8-thread note); `Requirements` (Python 3.9+, PyAV-bundled FFmpeg note; cuBLAS-CUDA-12 plus cuDNN-9 note; ctranslate2 CUDA 11/12 downgrade versions 3.24.0 and 4.4.0; Docker image, Linux `pip` plus `LD_LIBRARY_PATH`, and Purfview archive install routes); `Installation` (PyPI fence, master-branch and pinned-commit fences); `Usage` (`WhisperModel` fp16/int8 fences, generator warning plus `list(segments)` fence, `BatchedInferencePipeline` fence with VAD-on-by-default note, `distil-large-v3` fence with `language`/`condition_on_previous_text` args and model-card pointer, `word_timestamps` fence, `vad_filter` plus `vad_parameters` fences with 2-second-silence default and `vad.py` pointer, logging fence, `transcribe.py` pointer); `Community integrations` (14-project list as transcribed above); `Model conversion` (auto-download on `WhisperModel("large-v3")`, `ct2-transformers-converter` fence with `--model`/`--copy_files`/`--quantization` semantics, code-conversion API pointer, local-directory and Hub-name load fences); `Comparing performance against other implementations` (beam-size default 1-vs-5, WER/word-count, `OMP_NUM_THREADS` fence).
 
 [^claude-pipeline-report]: [Claude voice-pipeline research report](../raw/Claude-pipeline-recommend.md) — locators: `PHẦN 2` `Whisper: cấu hình chống hallucination`; `Kỹ thuật tối ưu` (PR #5931); `Recommendations` tier table.
+
+[^distil-large-v3.5-card]: [Distil-Whisper Distil-Large-v3.5 model card](../raw/distil-large-v3.5.md) — locator: `Library Integrations` > `Faster-Whisper` (`distil-whisper/distil-large-v3.5-ct2` model id, transcribe fence with `beam_size=5, language="en"`).

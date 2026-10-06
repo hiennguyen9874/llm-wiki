@@ -1,11 +1,11 @@
 ---
 type: Concept
 title: ASR/STT Model Survey
-description: Survey of every ASR/STT model compiled in the wiki — NVIDIA Parakeet, Nemotron, and Canary; Qwen3-ASR; Fun-ASR and SenseVoice; GLM-ASR; AutoArk ARK and Audio8; VibeVoice-ASR; MOSS-Transcribe; Cohere Arabic; Whisper runtimes — compared by architecture, size, languages, streaming mode, license, reported benchmarks, and edge packaging.
+description: Survey of every ASR/STT model compiled in the wiki — NVIDIA Parakeet, Nemotron, and Canary; Qwen3-ASR; Fun-ASR and SenseVoice; GLM-ASR; AutoArk ARK and Audio8; Hojo-ASR; Higgs Audio STT; Mistral Voxtral; VibeVoice-ASR; MOSS-Transcribe; Cohere Transcribe; Meta Omnilingual; OpenAI Whisper, Distil-Whisper, and Whisper runtimes — compared by architecture, size, languages, streaming mode, license, reported benchmarks, and edge packaging.
 tags: [stt, asr, survey, comparison, streaming, multilingual, benchmarks, edge-deployment]
 status: stable
 created: 2026-10-06
-generated: { by: llm-wiki-agent/1, at: 2026-10-06T12:10:21Z }
+generated: { by: llm-wiki-agent/1, at: 2026-10-06T18:00:00Z }
 stale_after: 2027-10-06
 sources:
   - id: parakeet-ctc-card
@@ -36,6 +36,10 @@ sources:
     resource: ../raw/canary-1b-v2.md
     kind: documentation
     title: Canary-1b-v2 model card
+  - id: canary-qwen-2p5b-card
+    resource: ../raw/canary-qwen-2.5b.md
+    kind: documentation
+    title: Canary-Qwen-2.5B model card
   - id: nemotron-en-stream-card
     resource: ../raw/nemotron-speech-streaming-en-0.6b.md
     kind: documentation
@@ -56,10 +60,26 @@ sources:
     resource: ../raw/Qwen3-ASR-0.6B.md
     kind: documentation
     title: Qwen3-ASR README and model card (family)
+  - id: qwen3-asr-hf-card
+    resource: ../raw/Qwen3-ASR-0.6B-hf.md
+    kind: documentation
+    title: Qwen3-ASR-0.6B-hf Transformers-native model card
   - id: ark-asr-3b-card
     resource: ../raw/ARK-ASR-3B.md
     kind: documentation
     title: ARK-ASR-3B model card
+  - id: ark-asr-06b-card
+    resource: ../raw/ARK-ASR-0.6B.md
+    kind: documentation
+    title: ARK-ASR-0.6B model card
+  - id: hojo-asr-v1-doc
+    resource: ../raw/Hojo-ASR-V1.md
+    kind: documentation
+    title: Hojo-ASR-V1 model card
+  - id: higgs-v3-stt-card
+    resource: ../raw/higgs-audio-v3-stt.md
+    kind: documentation
+    title: Higgs Audio v3 STT model card
   - id: audio8-asr-01b-card
     resource: ../raw/Audio8-ASR-0.1B.md
     kind: documentation
@@ -88,6 +108,10 @@ sources:
     resource: ../raw/cohere-transcribe-arabic-07-2026.md
     kind: documentation
     title: Cohere Transcribe Arabic model card
+  - id: cohere-03-2026-card
+    resource: ../raw/cohere-transcribe-03-2026.md
+    kind: documentation
+    title: Cohere Transcribe model card
   - id: vibevoice-asr-card
     resource: ../raw/VibeVoice-ASR.md
     kind: documentation
@@ -169,9 +193,45 @@ sources:
     resource: ../raw/best_stt_api_for_voice_agents_i_care_more_about.md
     kind: documentation
     title: Best STT API for voice agents? r/AI_Agents thread capture
+  - id: voxtral-mini-3b-card
+    resource: ../raw/Voxtral-Mini-3B-2507.md
+    kind: documentation
+    title: Voxtral Mini 3B 2507 model card
+  - id: voxtral-mini-4b-realtime-card
+    resource: ../raw/Voxtral-Mini-4B-Realtime-2602.md
+    kind: documentation
+    title: Voxtral Mini 4B Realtime 2602 model card
+  - id: voxtral-small-24b-card
+    resource: ../raw/Voxtral-Small-24B-2507.md
+    kind: documentation
+    title: Voxtral Small 24B 2507 model card
+  - id: fast-gpu-asr-readme
+    resource: ../raw/fast-gpu-asr.md
+    kind: documentation
+    title: Fast GPU ASR README
+  - id: omnilingual-readme
+    resource: ../raw/omnilingual-asr.md
+    kind: documentation
+    title: Omnilingual ASR README (1600+ languages)
+  - id: thewhisper-turbo-card
+    resource: ../raw/thewhisper-large-v3-turbo.md
+    kind: documentation
+    title: 'Elastic model: thewhisper-large-v3-turbo'
+  - id: whisper-v3-card
+    resource: ../raw/whisper-large-v3.md
+    kind: documentation
+    title: Whisper large-v3 model card (Hugging Face)
+  - id: whisper-turbo-card
+    resource: ../raw/whisper-large-v3-turbo.md
+    kind: documentation
+    title: Whisper large-v3-turbo model card (Hugging Face)
+  - id: distil-large-v3.5-card
+    resource: ../raw/distil-large-v3.5.md
+    kind: documentation
+    title: Distil-Whisper Distil-Large-v3.5 model card
 ---
 
-The wiki compiles 25 distinct ASR/STT model lines: 11 NVIDIA NeMo checkpoints (Parakeet CTC/RNNT/TDT, Canary, Nemotron streaming, the EOU and multitalker variants), and a second group of LLM-decoder or audio-LLM recognizers (Qwen3-ASR, ARK-ASR, Audio8, Fun-ASR, GLM-ASR, VibeVoice-ASR, MOSS-Transcribe, Cohere Arabic), plus Whisper reached through runtimes and a set of GGUF/ONNX edge packages. The source cards back three broad findings. First, offline English accuracy clusters between about 5% and 7.7% average WER on the Hugging Face Open ASR Leaderboard sets. ARK-ASR-3B reports the lowest figure and Parakeet TDT V2 the best small-model figure. Second, purpose-built streaming models trade about 1.5 WER points for 80 ms latency (Nemotron) or swap language breadth for native clocked streaming (Audio8 Infinite). Third, coverage, license, and deployment target usually decide the choice more than leaderboard rank, especially for Chinese dialects, Arabic, Vietnamese, speaker attribution, and CPU/edge use. Every number below is a vendor or community claim that this wiki has not reproduced (**Synthesis**).
+The wiki compiles 38 distinct ASR/STT model lines: 12 NVIDIA NeMo checkpoints (Parakeet CTC/RNNT/TDT, Canary-1b-v2, Canary-Qwen-2.5B, Nemotron streaming, the EOU and multitalker variants), a second group of LLM-decoder or audio-LLM recognizers (Qwen3-ASR, ARK-ASR 3B and 0.6B, Audio8, Hojo-ASR-V1, Higgs Audio v3 STT, Voxtral Mini 3B / Small 24B / Mini 4B Realtime, Fun-ASR, GLM-ASR, VibeVoice-ASR, MOSS-Transcribe, Cohere Transcribe 03-2026 multilingual plus Arabic), Meta Omnilingual ASR as the massive-multilingual family, upstream OpenAI Whisper Large v3 and Large v3 Turbo plus Distil-Large-v3.5 and TheWhisper-Large-V3-Turbo as the distilled/optimized-Whisper line, plus Whisper reached through runtimes and a set of GGUF/ONNX edge packages. The source cards back three broad findings. First, offline English accuracy clusters between about 5% and 7.7% average WER on the Hugging Face Open ASR Leaderboard sets. ARK-ASR-3B reports the lowest figure and Parakeet TDT V2 the best small-model figure. Second, purpose-built streaming models trade about 1.5 WER points for 80 ms latency (Nemotron) or swap language breadth for native clocked streaming (Audio8 Infinite). Third, coverage, license, and deployment target usually decide the choice more than leaderboard rank, especially for Chinese dialects, Arabic, Vietnamese, speaker attribution, and CPU/edge use. Every number below is a vendor or community claim that this wiki has not reproduced (**Synthesis**).
 
 ## Scope and method
 
@@ -191,24 +251,37 @@ The wiki compiles 25 distinct ASR/STT model lines: 11 NVIDIA NeMo checkpoints (P
 | [Parakeet TDT 0.6B V2](parakeet-tdt-0.6b-v2.md) | NVIDIA | ~0.6B | FastConformer-TDT | en, PnC, word timestamps | offline, ≤24 min per pass | CC-BY-4.0 | 6.05 avg; RTFx 3380 at batch 128[^parakeet-tdt-card] |
 | [Parakeet TDT 0.6B V3](parakeet-tdt-0.6b-v3.md) | NVIDIA | ~0.6B | FastConformer-TDT | 25 European, auto language ID | offline, ≤24 min (≤3 h local attention) | CC-BY-4.0 | en 6.34 avg; FLEURS 11.97 / MLS 7.83 / CoVoST 11.98[^parakeet-v3-card] |
 | [Canary-1b-v2](canary-1b-v2.md) | NVIDIA NeMo | 978M | FastConformer encoder + Transformer decoder (multitask) | 25 European + X↔En translation | offline, auto-chunked long-form | CC-BY-4.0 | Open ASR mean 7.15 at RTFx 749; FLEURS 8.40[^canary-1b-v2-card] |
+| [Canary-Qwen-2.5B](canary-qwen-2.5b.md) | NVIDIA NeMo | 2.5B | SALM (FastConformer encoder + Qwen3-1.7B decoder + LoRA) | en, PnC | offline | CC-BY-4.0 | Open ASR mean 5.63 at RTFx 418; dual ASR/LLM modes[^canary-qwen-2p5b-card] |
 | [Nemotron Speech Streaming EN 0.6B](nemotron-speech-streaming-en-0.6b.md) | NVIDIA | 600M | cache-aware FastConformer-RNNT | en, PnC | streaming 80–1120 ms | NVIDIA Open Model License | 6.93 at 1.12 s → 8.43 at 80 ms[^nemotron-en-stream-card] |
 | [Nemotron 3.5 ASR Streaming 0.6B](nemotron-3.5-asr-streaming-0.6b.md) | NVIDIA | 600M | cache-aware FastConformer-RNNT + language-ID prompt | 40 locales (19 ready, 13 broad, 8 adaptation) | streaming 80–1120 ms | OpenMDW-1.1 | FLEURS ready-tier avg 8.84 at 1.12 s / 10.38 at 80 ms[^nemotron-35-asr-card] |
 | [Parakeet Realtime EOU 120M v1](parakeet-realtime-eou-120m-v1.md) | NVIDIA | 120M | cache-aware FastConformer-RNNT + `<EOU>` token | en | streaming 80–160 ms | NVIDIA Open Model License | 9.30 avg at 160 ms; EOU P50 160 ms[^parakeet-eou-card] |
 | [Multitalker Parakeet Streaming 0.6B v1](multitalker-parakeet-streaming-0.6b-v1.md) | NVIDIA | 600M per speaker instance | FastConformer + speaker-kernel injection | en | streaming (benchmarked at 1.12 s) | NVIDIA Open Model License | cpWER AMI IHM 21.26; single-speaker 7.44[^multitalker-parakeet-card] |
-| [Qwen3-ASR family](qwen3-asr-family.md) | Qwen | 1.7B / 0.6B (+ 0.6B forced aligner) | Qwen3-Omni-based audio LLM | 30 languages + 22 Chinese dialects | unified offline/streaming | Apache-2.0 | 1.7B LibriSpeech 1.63 / 3.38; language ID 97.9%[^qwen3-asr-readme] |
+| [Qwen3-ASR family](qwen3-asr-family.md) | Qwen | 1.7B / 0.6B (+ 0.6B forced aligner) | Qwen3-Omni-based audio LLM | 30 languages + 22 Chinese dialects | unified offline/streaming | Apache-2.0 | 1.7B LibriSpeech 1.63 / 3.38; Open ASR HF snapshot 5.59 / 6.31 (1.7B / 0.6B); language ID 97.9%[^qwen3-asr-readme][^qwen3-asr-hf-card] |
 | [ARK-ASR-3B](ark-asr-3b.md) | AutoArk | 3B (0.6B sibling) | Whisper-style encoder + MLP + Qwen decoder | 19 | offline, 30 s window | Apache-2.0 | 5.04 Open ASR 7-split avg; RTFx 490.98[^ark-asr-3b-card] |
+| [ARK-ASR-0.6B](ark-asr-0.6b.md) | AutoArk | 0.6B decoder + Whisper-style encoder | Whisper-style encoder (RoPE) + MLP + Qwen2 decoder; TD + OPD distillation | 19 | offline, 30 s window | Apache-2.0 | own card: en 6.55 / zh 4.30 avg (`open-audio-opd`); 3B card: en 5.97 (see [Contradictions](#contradictions))[^ark-asr-06b-card][^ark-asr-3b-card] |
+| [Hojo-ASR-V1](hojo-asr-v1.md) | Hojo AI | 4B | Encoder-Adapter-Qwen3 LLM + multi-frame acoustic fusion, RL-tuned | Mandarin, en, Cantonese, Sichuan dialect | offline batch (`hojo-asr`) | Apache-2.0 | 8-set English WER, 5.28 mean (*computed*; protocol not stated)[^hojo-asr-v1-doc] |
+| [Higgs Audio v3 STT](higgs-audio-v3-stt.md) | Boson AI | 2.68B | Whisper-Large-v3 encoder + Qwen3-1.7B decoder, thinking mode | en | offline, 30 s chunks | Apache-2.0 | no numeric WER in card; June 2026 retrain awaits leaderboard re-evaluation[^higgs-v3-stt-card] |
 | [Audio8-ASR-0.1B](audio8-asr-0.1b.md) | AutoArk | 0.104B LM / 0.324B total | Qwen3-ASR encoder + 8-layer Qwen LM | 7 | offline short-form, 30 s cap | CC-BY-NC-4.0 | 7.03 Open ASR 7-split mean; RTFx 741 on H200[^audio8-asr-01b-card] |
 | [Audio8 ASR Infinite](audio8-asr-infinite.md) | Edge0 | Voxtral-Realtime-4B audio tower + Qwen2.5-3B decoder (8.17 GB bf16) | native streaming (DSM-style) + semantic VAD heads | zh, en | streaming: 80/120/160 ms clock, 240–560 ms delay, 24/7 rolling KV | Apache-2.0 | AISHELL-1 CER 1.75; LibriSpeech 3.04 / 6.81 at 480 ms[^audio8-infinite-card] |
+| [Voxtral Mini 4B Realtime 2602](voxtral-mini-4b-realtime-2602.md) | Mistral AI | ~3.4B LM + ~970M causal audio encoder | native streaming, sliding-window attention | 13 | streaming: configurable 80–2400 ms delay (480 ms recommended) | Apache-2.0 | FLEURS avg 8.72 at 480 ms; long/short-form English near offline Transcribe 2.0[^voxtral-mini-4b-realtime-card] |
+| [Voxtral Mini 3B 2507](voxtral-mini-3b-2507.md) | Mistral AI | 3B (Ministral 3B) | audio-text LLM (transcription + audio Q&A + voice function calling) | 8 (en, fr, de, es, it, pt, nl, hi), auto LID | offline; 30 min transcription / 40 min understanding in 32k context | Apache-2.0 | WER figures image-only, none recorded; ~9.5 GB GPU RAM bf16[^voxtral-mini-3b-card] |
+| [Voxtral Small 24B 2507](voxtral-small-24b-2507.md) | Mistral AI | 24B (Mistral Small 3) | audio-text LLM (as Mini 3B; function calling experimental) | 8, auto LID | offline; 30 / 40 min in 32k context | Apache-2.0 | WER figures image-only, none recorded; ~55 GB GPU RAM, TP-2 vLLM[^voxtral-small-24b-card] |
 | [Fun-ASR-Nano-2512](fun-asr-nano-2512.md) | Tongyi Lab / FunAudioLLM | 0.8B | end-to-end LLM-based ASR | zh/en/ja + 7 dialects, 26 accents, lyrics/rap | real-time claimed | Apache-2.0 | AISHELL-1 1.80; industry-set avg 16.72[^fun-asr-nano-card] |
 | [Fun-ASR-MLT-Nano-2512](fun-asr-mlt-nano-2512.md) | FunAudioLLM | 0.8B | same family | 31 (East/Southeast Asian focus, incl. vi) | offline (optional FSMN-VAD segmentation) | Apache-2.0 | no checkpoint-specific results published[^fun-asr-mlt-nano-card] |
 | [GLM-ASR-Nano-2512](glm-asr-nano-2512.md) | zai-org | 1.5B | Transformers seq2seq ASR | en, zh, Cantonese/dialects | offline | MIT | claimed 4.10 avg error (figure only)[^glm-asr-nano-card] |
 | [Cohere Transcribe Arabic 07-2026](cohere-transcribe-arabic-07-2026.md) | Cohere / Cohere Labs | 2B | Conformer encoder + light Transformer decoder | ar (+ dialects), en | offline, auto-chunked long-form | Apache-2.0 | Open Universal Arabic leaderboard avg 25.87 WER / 11.80 CER[^cohere-arabic-card] |
+| [Cohere Transcribe 03-2026](cohere-transcribe-03-2026.md) | Cohere / Cohere Labs | 2B | Conformer encoder + light Transformer decoder | 14 (9 EU + zh, ja, ko, vi + ar) | offline, auto-chunked long-form | Apache-2.0 | Open ASR English avg 5.42, best in its card table[^cohere-03-2026-card] |
 | [VibeVoice-ASR](vibevoice-asr.md) | Microsoft Research | not stated | unified ASR + diarization + timestamps | 50+, code-switching | offline, 60 min single pass | MIT | no numeric results in card text[^vibevoice-asr-card] |
 | [VibeVoice-ASR-Streaming-1.5B](vibevoice-asr-streaming-1.5b.md) | Microsoft Research | 1.5B | unified streaming speaker-attributed ASR | 10 | streaming | MIT | no numeric results in card text[^vibevoice-asr-streaming-1-5b-card] |
 | [VibeVoice-ASR-Streaming-7B](vibevoice-asr-streaming-7b.md) | Microsoft Research | 7B | unified streaming speaker-attributed ASR | 10 | streaming | MIT | no numeric results; card text identical to 1.5B[^vibevoice-asr-streaming-7b-card] |
 | [MOSS-Transcribe-Diarize GGUF](moss-transcribe-cpp-gguf.md) | OpenMOSS (port: moss-transcribe.cpp) | 3.4 GB F32 reference | joint transcription + diarization + timestamps | not stated in package card | long-form, CPU | Apache-2.0 | Q4_0 511 MB, 2.2x F32 speed, word-identical output[^moss-transcribe-cpp-gguf-card] |
 | [SenseVoiceSmall GGUF](sensevoice-small-gguf.md) | FunAudioLLM (audio.cpp export) | 254 MB Q8_0 file | SenseVoice | zh, en, yue, ja, ko | offline CPU | Apache-2.0 | exact-match Mandarin parity with original Q8[^sensevoice-small-gguf-card] |
+| [Omnilingual ASR](omnilingual-asr.md) | Meta | W2V 0.3–6.5B / CTC 0.3–6.5B / LLM 1.6–7.8B | W2V SSL + CTC + LLM with optional language conditioning (+ Unlimited v2, 7B zero-shot) | 1600+, `{lang}_{script}` IDs | offline; Unlimited v2 for unbounded length | Apache-2.0 | 7B LLM-ASR SOTA claim, CER below 10 for 78% of languages[^omnilingual-readme] |
 | Whisper via [Faster-Whisper](faster-whisper.md) | OpenAI weights / SYSTRAN CTranslate2 runtime | tiny … large-v3, turbo, distil-large-v3 | encoder-decoder | multilingual | offline; streaming only via wrappers | not compiled | large-v2: 13 min audio in 59 s int8, 2926 MB VRAM (RTX 3070 Ti)[^faster-whisper-readme] |
+| [TheWhisper-Large-V3-Turbo](thewhisper-large-v3-turbo.md) | TheStage AI (base: OpenAI whisper-large-v3-turbo) | S/M/L/XL Elastic tiers | Whisper encoder-decoder, ANNA-compressed | 28 frontmatter codes; benched en + DE/ES/FR/IT/PT | batch + push streaming (Apple SDK); Docker streaming server | CC-BY-4.0 | en mean 5.88 (L) vs 5.80 original; H100 bs=1 RTFx ~304 vs 109 original[^thewhisper-turbo-card] |
+| [Whisper Large v3 Turbo](whisper-large-v3-turbo.md) | OpenAI | 809M (decoder 32→4 layers) | Whisper encoder-decoder | 90-plus frontmatter codes | offline + sequential/chunked 30 s long-form; not natively streaming | MIT (card frontmatter) | no numeric WER/RTFx in card; qualitative faster/minor-degradation claim[^whisper-turbo-card] |
+| [Distil-Large-v3.5](distil-large-v3.5.md) | Distil-Whisper (HF collaboration) | 756M | distilled Whisper-Large-v3 (2 decoder layers) | en | offline; sequential or chunked long-form; speculative-decoding draft for large-v3 | MIT | short-form avg 7.10 (OOD 7.08) vs turbo 7.25; long-form OOD 11.39 vs turbo 10.25; RTFx 1.46x turbo[^distil-large-v3.5-card] |
+| [Whisper Large v3](whisper-large-v3.md) | OpenAI | 1550M | Whisper encoder-decoder (128 mel bins, Cantonese token) | ~99 frontmatter codes | offline + sequential/chunked 30 s long-form; not natively streaming | Apache-2.0 (card frontmatter) | no numeric WER/RTFx in card; 10–20% error reduction over large-v2 claim[^whisper-v3-card] |
 
 ## English accuracy (Open ASR Leaderboard)
 
@@ -217,20 +290,28 @@ Averages as published or *computed* from per-set cells; lower is better (**Repor
 | Rank | Model | Avg WER | Sets | Notes |
 | ---: | --- | ---: | --- | --- |
 | 1 | ARK-ASR-3B | 5.04 | 7 splits | AMI 8.79 is the best meeting figure in the wiki[^ark-asr-3b-card] |
-| 2 | ARK-ASR-0.6B | 5.97 | 7 splits | sibling row in the ARK card[^ark-asr-3b-card] |
-| 3 | Parakeet TDT 0.6B V2 | 6.05 | 8 | SNR 0 dB → 11.88; μ-law telephony 6.32[^parakeet-tdt-card] |
-| 4 | Parakeet TDT 0.6B V3 | 6.34 | 8 | multilingual model, small English penalty[^parakeet-v3-card] |
-| 5 | Nemotron Speech Streaming EN 0.6B | 6.93 | 8 | **streaming** at 1.12 s; 7.67 at 160 ms[^nemotron-en-stream-card] |
-| 6 | Audio8-ASR-0.1B | 7.03 | 7 splits | 0.1B-LM, H200 RTFx 741[^audio8-asr-01b-card] |
-| 7 | Canary-1b-v2 | 7.15 | 8 | also does translation; RTFx 749[^canary-1b-v2-card] |
-| 8 | Parakeet RNNT 1.1B | 7.19 | 8 (*computed*) | lowercase output[^parakeet-rnnt-11-card] |
-| 9 | Parakeet CTC 1.1B | 7.40 | 8 (*computed*) | lowercase output[^parakeet-ctc-11-card] |
-| 10 | Multitalker Parakeet (single-speaker mode) | 7.44 | 8 | base reported at 7.16 in the same card[^multitalker-parakeet-card] |
-| 11 | Parakeet RNNT 0.6B | 7.56 | 8 (*computed*) | [^parakeet-rnnt-card] |
-| 12 | Parakeet CTC 0.6B | 7.66 | 8 (*computed*) | [^parakeet-ctc-card] |
-| 13 | Parakeet Realtime EOU 120M | 9.30 | 8 | **streaming** at 160 ms, 120M params[^parakeet-eou-card] |
+| 2 | [Hojo-ASR-V1](hojo-asr-v1.md) (4B) | 5.28 | 8 (*computed*) | card prints no average, protocol, or normalization; AMI 8.64[^hojo-asr-v1-doc] |
+| 3 | Cohere Transcribe 03-2026 | 5.42 | 8 | best avg in its card table dated 03.26.2026; LS clean 1.25 / LS other 2.37 best-in-table[^cohere-03-2026-card] |
+| 4 | Qwen3-ASR-1.7B-hf | 5.59 | 7 | HF Open ASR Leaderboard snapshot dated 26 June 2026[^qwen3-asr-hf-card] |
+| 5 | Canary-Qwen-2.5B | 5.63 | 8 | RTFx 418; dual ASR/LLM modes[^canary-qwen-2p5b-card] |
+| 6 | [TheWhisper-Large-V3-Turbo](thewhisper-large-v3-turbo.md) (size L) | 5.88 | 8 | S 6.12 / M 5.90 / XL 5.89; original 5.80 in the same card[^thewhisper-turbo-card] |
+| 7 | [ARK-ASR-0.6B](ark-asr-0.6b.md) | 5.97 | 7 splits | sibling row in the 3B card; its own card reports 6.55 under `open-audio-opd` (see [Contradictions](#contradictions))[^ark-asr-3b-card][^ark-asr-06b-card] |
+| 8 | Parakeet TDT 0.6B V2 | 6.05 | 8 | SNR 0 dB → 11.88; μ-law telephony 6.32[^parakeet-tdt-card] |
+| 9 | Qwen3-ASR-0.6B-hf | 6.31 | 7 | same HF leaderboard snapshot, 26 June 2026[^qwen3-asr-hf-card] |
+| 10 | Parakeet TDT 0.6B V3 | 6.34 | 8 | multilingual model, small English penalty[^parakeet-v3-card] |
+| 11 | Nemotron Speech Streaming EN 0.6B | 6.93 | 8 | **streaming** at 1.12 s; 7.67 at 160 ms[^nemotron-en-stream-card] |
+| 12 | Audio8-ASR-0.1B | 7.03 | 7 splits | 0.1B-LM, H200 RTFx 741[^audio8-asr-01b-card] |
+| 13 | Canary-1b-v2 | 7.15 | 8 | also does translation; RTFx 749[^canary-1b-v2-card] |
+| 14 | Parakeet RNNT 1.1B | 7.19 | 8 (*computed*) | lowercase output[^parakeet-rnnt-11-card] |
+| 15 | Parakeet CTC 1.1B | 7.40 | 8 (*computed*) | lowercase output[^parakeet-ctc-11-card] |
+| 16 | Multitalker Parakeet (single-speaker mode) | 7.44 | 8 | base reported at 7.16 in the same card[^multitalker-parakeet-card] |
+| 17 | Parakeet RNNT 0.6B | 7.56 | 8 (*computed*) | [^parakeet-rnnt-card] |
+| 18 | Parakeet CTC 0.6B | 7.66 | 8 (*computed*) | [^parakeet-ctc-card] |
+| 19 | Parakeet Realtime EOU 120M | 9.30 | 8 | **streaming** at 160 ms, 120M params[^parakeet-eou-card] |
 
-- Qwen3-ASR does not publish an Open ASR average. Its LibriSpeech figures (1.7B: 1.63 clean / 3.38 other; 0.6B: 2.11 / 4.55) and GigaSpeech 8.45 sit in the same band as the leaders above (**Reported**; comparison is **Synthesis**).[^qwen3-asr-readme]
+- Qwen3-ASR now has an Open ASR average from its Transformers-native card snapshot (26 June 2026): 1.7B-hf 5.59 and 0.6B-hf 6.31, slotting fourth and ninth in the table above; its LibriSpeech figures in the family README (1.7B: 1.63 clean / 3.38 other) sit in the same band as the leaders (**Reported**; ordering is **Synthesis**).[^qwen3-asr-readme][^qwen3-asr-hf-card]
+- Not ranked: [Distil-Large-v3.5](distil-large-v3.5.md) reports a 7-set short-form average of 7.10 under its own post-normalization protocol, against 7.14 for Whisper-large-v3 and 7.25 for large-v3-turbo in the same table. It prints no 8-set Open ASR average.[^distil-large-v3.5-card] [Higgs Audio v3 STT](higgs-audio-v3-stt.md) declares its earlier card figures superseded and defers to a pending leaderboard re-evaluation. Voxtral Mini 3B and Small 24B publish WER only as images (**Reported**).[^higgs-v3-stt-card][^voxtral-mini-3b-card][^voxtral-small-24b-card]
+- Hojo-ASR-V1's second place rests on a mean computed from a table whose protocol the card does not state, so treat it as provisional (**Synthesis**).[^hojo-asr-v1-doc]
 - The older Parakeet CTC/RNNT generation (64K-hour English, lowercase output) is 1.1–1.6 points behind TDT V2 (~120K-hour Granary, punctuated output) at the same 0.6B size. Doubling to 1.1B recovers only about 0.3–0.4 points (**Synthesis** from the per-card tables).[^parakeet-tdt-card][^parakeet-rnnt-11-card]
 
 ## Chinese accuracy (CER, lower is better)
@@ -241,7 +322,7 @@ Averages as published or *computed* from per-set cells; lower is better (**Repor
 | ARK-ASR-3B | 1.80 | **4.97** | **4.58** | [^ark-asr-3b-card] |
 | Fun-ASR-nano (0.8B) | 1.80 | 6.60 | 6.01 | [^fun-asr-nano-card] |
 | GLM-ASR-nano (1.5B, in Fun-ASR table) | 1.81 | 6.73 | — | [^fun-asr-nano-card] |
-| ARK-ASR-0.6B | 2.02 | 5.92 | 4.96 | [^ark-asr-3b-card] |
+| ARK-ASR-0.6B | 2.02 | 5.92 | 4.96 | [^ark-asr-3b-card][^ark-asr-06b-card] |
 | Qwen3-ASR-1.7B | — (AISHELL-2 2.71) | 5.88 | 4.97 | [^qwen3-asr-readme] |
 | Qwen3-ASR-0.6B | — (AISHELL-2 3.15) | 6.88 | 5.97 | [^qwen3-asr-readme] |
 | Audio8-ASR-0.1B (internal eval) | — | 8.84 | 7.98 | [^audio8-asr-01b-card] |
@@ -254,15 +335,20 @@ Averages as published or *computed* from per-set cells; lower is better (**Repor
 
 | Model | Languages | Notable coverage |
 | --- | --- | --- |
+| [Omnilingual ASR](omnilingual-asr.md) | 1600+ | broadest in wiki; few-paired-examples extension claim; per-language CER in linked CSV, not compiled[^omnilingual-readme] |
 | VibeVoice-ASR | 50+ | code-switching, no language setting needed[^vibevoice-asr-card] |
 | Nemotron 3.5 ASR | 40 locales (32 usable out of the box) | streaming; vi, ar, hi, ja, ko ready; auto language detection appends an `<xx-XX>` tag[^nemotron-35-asr-card] |
 | Fun-ASR-MLT-Nano | 31 | vi, id, th, ms, fil, ar, hi plus EU languages[^fun-asr-mlt-nano-card] |
 | Qwen3-ASR | 30 + 22 Chinese dialects | singing and BGM audio; language ID 97.9% (1.7B) vs Whisper-large-v3 94.1%[^qwen3-asr-readme] |
 | Canary-1b-v2 / Parakeet TDT V3 | 25 European | Canary adds En↔24 translation; V3 auto-detects language[^canary-1b-v2-card][^parakeet-v3-card] |
 | ARK-ASR-3B | 19 | zh, en, ja, ko + 15 European[^ark-asr-3b-card] |
+| [Cohere Transcribe 03-2026](cohere-transcribe-03-2026.md) | 14 | en, fr, de, it, es, pt, el, nl, pl, zh, ja, ko, vi, ar[^cohere-03-2026-card] |
+| [Voxtral Mini 4B Realtime 2602](voxtral-mini-4b-realtime-2602.md) | 13 | en, fr, es, de, ru, zh, ja, it, pt, nl, ar, hi, ko[^voxtral-mini-4b-realtime-card] |
+| [Voxtral Mini 3B](voxtral-mini-3b-2507.md) / [Small 24B](voxtral-small-24b-2507.md) 2507 | 8 | en, fr, de, es, it, pt, nl, hi with auto language detection[^voxtral-mini-3b-card][^voxtral-small-24b-card] |
 | VibeVoice-ASR-Streaming | 10 | zh, en, fr, de, it, ja, ko, pt, ru, es[^vibevoice-asr-streaming-1-5b-card] |
 | Audio8-ASR-0.1B | 7 | en, zh, fr, ja, yue, de, ko[^audio8-asr-01b-card] |
 | SenseVoiceSmall | 5 | zh, en, yue, ja, ko[^sensevoice-small-gguf-card] |
+| [Hojo-ASR-V1](hojo-asr-v1.md) | 4 | Mandarin, English, Cantonese, Sichuan dialect; zh-en code-switching focus, no Chinese numbers published[^hojo-asr-v1-doc] |
 
 - **Vietnamese:** the wiki has vendor figures for Qwen3-ASR (Fleurs-vi 5.55 for 1.7B, 8.52 for 0.6B) and Nemotron 3.5 (FLEURS-vi 11.18 at 1.12 s, 13.41 at 80 ms). Fun-ASR-MLT-Nano lists Vietnamese without a score. Parakeet V3 and Canary do not cover it (**Reported**).[^qwen3-asr-readme][^nemotron-35-asr-card][^fun-asr-mlt-nano-card] An AI-compiled report also names PhoWhisper-large, ChunkFormer-large-vie (110M), and sherpa-onnx Zipformer VN. None of these has a concept page in this wiki (**Reported**, LLM-generated).[^claude-pipeline-report]
 - **Arabic:** Cohere Transcribe Arabic leads the Open Universal Arabic leaderboard average (25.87 / 11.80), ahead of Qwen3-ASR-1.7B (33.36 / 12.33) and Whisper-large-v3 (36.86 / 17.21) in the card's table. It has no language auto-detection, timestamps, or diarization (**Reported**).[^cohere-arabic-card]
@@ -275,22 +361,28 @@ Averages as published or *computed* from per-set cells; lower is better (**Repor
 | Nemotron 3.5 ASR Streaming 0.6B | cache-aware + language-ID prompt | 80/160/320/560/1120 ms | ready-tier FLEURS 8.84 → 10.38; one H100 sustains ~240 streams at 80 ms and ~2,400 at 1.12 s[^nemotron-35-asr-card] |
 | Parakeet Realtime EOU 120M | cache-aware, 17 layers | 80–160 ms | 9.30 at 160 ms; inline `<EOU>` P50/P90/P95 160/280/320 ms[^parakeet-eou-card] |
 | Audio8 ASR Infinite | native one-token-per-clock streaming, rolling 30 s KV with RoPE re-basing | clock 80/120/160 ms × delay 240–560 ms | evaluated at 480 ms delay; semantic VAD distinguishes pauses from end of turn[^audio8-infinite-card] |
+| Voxtral Mini 4B Realtime 2602 | native streaming, causal encoder + sliding-window attention | `transcription_delay_ms` multiples of 80 ms (80–1200) + 2400 | FLEURS 12.60 → 6.73 avg from 160 ms to 2400 ms; 8.72 at 480 ms[^voxtral-mini-4b-realtime-card] |
 | Qwen3-ASR | unified offline/streaming in one model | not exposed as chunk table | 1.7B 2.69 → 3.33, 0.6B 3.48 → 4.40 (offline → streaming)[^qwen3-asr-readme] |
 | Multitalker Parakeet | one cache-aware instance per speaker, fed by streaming diarization | same 80–1120 ms table | benchmarked only at 1.12 s[^multitalker-parakeet-card] |
 | VibeVoice-ASR-Streaming 1.5B / 7B | streaming who-said-what | not published | not published[^vibevoice-asr-streaming-7b-card] |
 | Whisper (any size) | not natively streaming | wrapper policy (SimulStreaming/LocalAgreement in WhisperLiveKit; VAD-gated realtime/final engines in RealtimeSTT) | wrapper-dependent[^wlk-readme][^realtimestt-readme] |
+| [TheWhisper-Large-V3-Turbo](thewhisper-large-v3-turbo.md) | chunked batch (10–15 s) + Apple push streamer with monotonic partials | `flush()` at VAD pauses; `use_internal_vad`; Docker dynamic-batching queue delays | H100 bs=1 RTFx ~304 (S) vs 109 original; H100 bs=64 ~2033 vs 967; Apple M2 Max RTFx 16.7 guidance[^thewhisper-turbo-card] |
 
 ## Capability matrix
 
 | Capability | Models documented with it |
 | --- | --- |
-| Punctuation + capitalization | Parakeet TDT V2/V3, Canary-1b-v2, Nemotron EN / 3.5. Parakeet CTC/RNNT output lowercase text[^parakeet-tdt-card][^nemotron-en-stream-card][^parakeet-ctc-card] |
-| Word/segment timestamps | Parakeet TDT V2/V3, Canary (ASR word + segment), Parakeet RNNT via Transformers, Qwen3-ForcedAligner (11 languages, ≤5 min, 42.9 ms mean shift), VibeVoice-ASR, MOSS. Cohere Arabic: none; Fun-ASR: TODO[^canary-1b-v2-card][^parakeet-rnnt-card][^qwen3-asr-readme][^cohere-arabic-card][^fun-asr-nano-card] |
+| Punctuation + capitalization | Parakeet TDT V2/V3, Canary-1b-v2, Canary-Qwen-2.5B, Nemotron EN / 3.5, Cohere Transcribe 03-2026 (`punctuation` toggle, on by default). Parakeet CTC/RNNT output lowercase text[^parakeet-tdt-card][^nemotron-en-stream-card][^parakeet-ctc-card][^canary-qwen-2p5b-card][^cohere-03-2026-card] |
+| Word/segment timestamps | Parakeet TDT V2/V3, Canary (ASR word + segment), Parakeet RNNT via Transformers, Qwen3-ForcedAligner (11 languages, ≤5 min, 42.9 ms mean shift), VibeVoice-ASR, MOSS. Cohere Transcribe pair: none; Fun-ASR: TODO[^canary-1b-v2-card][^parakeet-rnnt-card][^qwen3-asr-readme][^cohere-arabic-card][^cohere-03-2026-card][^fun-asr-nano-card] |
 | Speaker attribution in the ASR model | VibeVoice-ASR (offline, 60 min), VibeVoice-ASR-Streaming, MOSS-Transcribe-Diarize, Multitalker Parakeet (needs an external diarizer)[^vibevoice-asr-card][^moss-transcribe-cpp-gguf-card][^multitalker-parakeet-card] |
 | Hotwords / context biasing | Audio8-ASR-0.1B (decode-time logit boost), Fun-ASR Nano/MLT (`hotwords` + ITN), VibeVoice-ASR family[^audio8-asr-01b-card][^fun-asr-mlt-nano-card][^vibevoice-asr-card] |
+| Audio understanding / LLM mode in the same weights | Canary-Qwen-2.5B (`disable_adapter` LLM mode); Voxtral Mini 3B and Small 24B (audio Q&A, summarization, voice-triggered function calling)[^canary-qwen-2p5b-card][^voxtral-mini-3b-card][^voxtral-small-24b-card] |
+| Hallucination / loop control in the pipeline | Higgs Audio v3 STT (deterministic phrase- and word-level repetition-loop collapse in `transcribe.py`)[^higgs-v3-stt-card] |
+| Speculative decoding | Distil-Large-v3.5 as a draft model for Whisper-large-v3: about 2x faster with identical outputs[^distil-large-v3.5-card] |
 | End-of-turn signal | Parakeet Realtime EOU (`<EOU>` token), Audio8 Infinite (semantic VAD heads)[^parakeet-eou-card][^audio8-infinite-card] |
-| Speech translation | Canary-1b-v2 (X↔En, 25 European languages)[^canary-1b-v2-card] |
-| Long audio in one pass | VibeVoice-ASR 60 min; Parakeet TDT 24 min (V3 up to 3 h local attention); Audio8 Infinite unbounded (rolling KV)[^vibevoice-asr-card][^parakeet-v3-card][^audio8-infinite-card] |
+| Speech translation | Canary-1b-v2 (X↔En, 25 European languages); [Whisper Large v3](whisper-large-v3.md) and [Whisper Large v3 Turbo](whisper-large-v3-turbo.md) (`task: translate` to English)[^canary-1b-v2-card][^whisper-v3-card][^whisper-turbo-card] |
+| Language conditioning | Omnilingual LLM-ASR (optional `{lang}_{script}` conditioning); Nemotron 3.5 ASR (language-ID prompt); Qwen3-ASR (language ID 97.9% on 1.7B)[^omnilingual-readme][^nemotron-35-asr-card][^qwen3-asr-readme] |
+| Long audio in one pass | VibeVoice-ASR 60 min; Parakeet TDT 24 min (V3 up to 3 h local attention); Audio8 Infinite unbounded (rolling KV); Voxtral Mini 3B / Small 24B 30 min transcription (40 min understanding); Omnilingual LLM-Unlimited v2 unbounded decoding (no finetuning recipes; CTC/LLM suites capped at 40 s in this source)[^vibevoice-asr-card][^parakeet-v3-card][^audio8-infinite-card][^voxtral-mini-3b-card][^omnilingual-readme] |
 | Noise robustness figures | Parakeet TDT V2/V3 and Canary MUSAN SNR tables; Canary hallucination rate 134.7 chars/min[^parakeet-v3-card][^canary-1b-v2-card] |
 
 ## Edge, CPU, and packaged deployment
@@ -305,6 +397,8 @@ Averages as published or *computed* from per-set cells; lower is better (**Repor
 | [VibeVoice-ASR-Streaming-7B GGUF](vibevoice-asr-streaming-7b-gguf.md) | audio.cpp | BF16 / Q8_0 (recommended) / Q4_K | no quality or speed figures[^vibevoice-asr-streaming-7b-gguf-card] |
 | [Audio Flamingo 3 and Next GGUF](audio-flamingo-3-and-next-gguf.md) | audio.cpp (CUDA) | Q4_K: 6.3 GB peak VRAM | 10 s clip RTF 0.013–0.015 on RTX 5090; non-commercial license[^audio-flamingo-gguf-card] |
 | [Faster-Whisper](faster-whisper.md) int8 | CTranslate2 CPU/GPU | small int8 on CPU: 1477 MB RAM | 13 min audio in 1m42s on an i7-12700K with 8 threads[^faster-whisper-readme] |
+| [TheWhisper-Large-V3-Turbo](thewhisper-large-v3-turbo.md) Apple CoreML / NVIDIA Docker | Apple SDK (ANE/GPU/CPU auto) / CUDA Docker | Apple ~96 MB process mem (M2 Max guidance); NVIDIA L40s/4090/5090/H100, CUDA 12.8+ | Apple RTFx 16.7 + 233 tok/s guidance; NVIDIA H100 bs=64 ~2033 RTFx[^thewhisper-turbo-card] |
+| [Distil-Large-v3.5](distil-large-v3.5.md) GGML / CT2 | whisper.cpp / Faster-Whisper | 756M params | GGML `distil-large-v3.5-ggml` and CTranslate2 `distil-large-v3.5-ct2` weights; no edge speed figures[^distil-large-v3.5-card] |
 | [audio.cpp GGUF Model Packages](audio-cpp-gguf-packages.md) | audio.cpp | — | catalog ASR rows: Qwen3-ASR 0.6B/1.7B + ForcedAligner, Parakeet-TDT-0.6B-v3, Nemotron-3.5-ASR, Canary-180M-Flash, Cohere-Transcribe, Fun-ASR-Nano, VibeVoice-ASR, MOSS-Transcribe-Diarize, Moonshine-Streaming, Granite-Speech-5.0-470M, GigaAM, CrisperWhisper, Citrinet, Kroko, Hviske, Niagara, MMS-Forced-Aligner[^audio-cpp-gguf-readme] |
 
 NeMo-Speech.cpp GGUF paths are documented for Parakeet CTC 1.1B, Parakeet TDT V3, and Nemotron 3.5 (`nemotron-3.5-asr-streaming-0.6b.q8_0.gguf`) (**Reported**).[^parakeet-ctc-11-card][^parakeet-v3-card][^nemotron-35-asr-card]
@@ -313,26 +407,28 @@ NeMo-Speech.cpp GGUF paths are documented for Parakeet CTC 1.1B, Parakeet TDT V3
 
 | License | Models | Commercial-use reading |
 | --- | --- | --- |
-| Apache-2.0 | Qwen3-ASR, ARK-ASR-3B, Audio8 ASR Infinite, Fun-ASR Nano/MLT, Cohere Transcribe Arabic, MOSS-Transcribe-Diarize, SenseVoiceSmall | permissive |
-| MIT | GLM-ASR-Nano, VibeVoice-ASR family | permissive |
-| CC-BY-4.0 | Parakeet CTC/RNNT/TDT, Canary-1b-v2 | permissive with attribution |
+| Apache-2.0 | Qwen3-ASR, ARK-ASR-3B / 0.6B, Hojo-ASR-V1, Higgs Audio v3 STT, Audio8 ASR Infinite, Voxtral Mini 3B / Small 24B / Mini 4B Realtime, Whisper Large v3 (card frontmatter), Fun-ASR Nano/MLT, Cohere Transcribe 03-2026, Cohere Transcribe Arabic, MOSS-Transcribe-Diarize, SenseVoiceSmall, Omnilingual ASR | permissive |
+| MIT | GLM-ASR-Nano, VibeVoice-ASR family, Whisper Large v3 Turbo (card frontmatter), Distil-Large-v3.5 | permissive |
+| CC-BY-4.0 | Parakeet CTC/RNNT/TDT, Canary-1b-v2, Canary-Qwen-2.5B, TheWhisper-Large-V3-Turbo | permissive with attribution |
 | NVIDIA Open Model License | Nemotron Speech Streaming EN, Parakeet Realtime EOU, Multitalker Parakeet | vendor license, check terms |
 | OpenMDW-1.1 | Nemotron 3.5 ASR | card states ready for commercial use |
 | CC-BY-NC-4.0 | Audio8-ASR-0.1B | **non-commercial** |
 | NVIDIA OneWay Noncommercial | Audio Flamingo 3 / Next | **non-commercial** |
 
-The license column follows each concept's compiled card frontmatter (**Reported**). The commercial reading is **Synthesis**, not legal advice.[^audio8-asr-01b-card][^audio-flamingo-gguf-card][^nemotron-35-asr-card]
+The license column follows each concept's compiled card frontmatter (**Reported**). The commercial reading is **Synthesis**, not legal advice.[^audio8-asr-01b-card][^audio-flamingo-gguf-card][^nemotron-35-asr-card][^hojo-asr-v1-doc][^distil-large-v3.5-card]
 
 ## Serving runtimes
 
 | Runtime | ASR engines | Interface |
 | --- | --- | --- |
-| [Faster-Whisper](faster-whisper.md) | Whisper / distil-Whisper (CTranslate2), Silero VAD filter, batched pipeline | Python library[^faster-whisper-readme] |
+| [Faster-Whisper](faster-whisper.md) | Whisper / distil-Whisper (CTranslate2, incl. `distil-large-v3.5-ct2`), Silero VAD filter, batched pipeline | Python library[^faster-whisper-readme][^distil-large-v3.5-card] |
 | [WhisperLiveKit](whisperlivekit.md) | faster-whisper, mlx-whisper, Whisper, FunASR, Voxtral, Qwen3 (vLLM / streaming), Canary, OpenAI API | WebSocket + OpenAI/Deepgram-compatible; SimulStreaming or LocalAgreement policy[^wlk-readme] |
 | [RealtimeSTT](realtimestt.md) | selectable realtime + final engines behind VAD gating | Python library + FastAPI server[^realtimestt-readme] |
 | [Speaches](speaches.md) | faster-whisper | OpenAI-compatible server, SSE streaming[^speaches-readme] |
 | [Parakeet ASR Server](parakeet-asr-server.md) | Parakeet TDT 0.6B (ONNX) | Whisper-compatible REST/SSE[^parakeet-readme] |
-| vLLM / [SGLang-Omni](sglang-omni.md) / [vLLM-Omni](vllm-omni.md) | Qwen3-ASR (`qwen-asr-serve`), ARK-ASR, Cohere Arabic (`/v1/audio/transcriptions`) | OpenAI-compatible[^qwen3-asr-readme][^ark-asr-3b-card][^cohere-arabic-card] |
+| [TheWhisper-Large-V3-Turbo](thewhisper-large-v3-turbo.md) Docker + Apple SDK | TheWhisper S/M/L/XL (Triton ensemble) + CoreML engines | OpenAI-compatible `POST /v1/audio/transcriptions` (Docker); Swift `infer`/`open_streamer` + Flutter `infer` (Apple)[^thewhisper-turbo-card] |
+| [Fast GPU ASR](fast-gpu-asr.md) | Zipformer Transducer/CTC, Parakeet TDT/CTC (TensorRT, NVIDIA GPU only) | Python library; B300 FP16 beam-6 batch-256 reports 25,108.6 RTFx at 5.261% mean WER (Zipformer CR-CTC Transducer) and 19,398.7 RTFx at 4.810% (Parakeet V3 TDT) over 157.8 h of English audio[^fast-gpu-asr-readme] |
+| vLLM / [SGLang-Omni](sglang-omni.md) / [vLLM-Omni](vllm-omni.md) | Qwen3-ASR (`qwen-asr-serve`), ARK-ASR, Cohere Transcribe 03-2026 + Arabic (`/v1/audio/transcriptions`), Voxtral Mini 4B Realtime (`/v1/realtime`), Voxtral Mini 3B / Small 24B (`audio.transcriptions` + chat completions with tools; Small needs TP-2) | OpenAI-compatible[^qwen3-asr-readme][^ark-asr-3b-card][^cohere-03-2026-card][^cohere-arabic-card][^voxtral-mini-4b-realtime-card][^voxtral-mini-3b-card][^voxtral-small-24b-card] |
 | [audio.cpp Framework](audio-cpp-framework.md) | 17+ ASR GGUF families | CLI / server / WebUI[^audio-cpp-gguf-readme] |
 
 ## Selection guide
@@ -340,14 +436,17 @@ The license column follows each concept's compiled card frontmatter (**Reported*
 This section is agent **Synthesis** from the evidence above. Validate any choice on in-domain audio, because no figure here has been reproduced.
 
 - **English realtime voice agent:** [Nemotron Speech Streaming EN 0.6B](nemotron-speech-streaming-en-0.6b.md) at 160–560 ms. Use [Parakeet Realtime EOU 120M](parakeet-realtime-eou-120m-v1.md) when budget is tight or you want ASR-native endpointing.
-- **English batch/offline, best small model:** [Parakeet TDT 0.6B V2](parakeet-tdt-0.6b-v2.md), with very high RTFx and published noise and telephony rows. Move to [ARK-ASR-3B](ark-asr-3b.md) when meeting/AMI accuracy matters more than speed.
-- **Multilingual realtime:** [Nemotron 3.5 ASR](nemotron-3.5-asr-streaming-0.6b.md) for its 19 transcription-ready locales. Use [Qwen3-ASR](qwen3-asr-family.md) for broader and Asian coverage with a unified streaming mode.
+- **English batch/offline, best small model:** [Parakeet TDT 0.6B V2](parakeet-tdt-0.6b-v2.md), with very high RTFx and published noise and telephony rows. Move to [ARK-ASR-3B](ark-asr-3b.md) when meeting/AMI accuracy matters more than speed; use [Canary-Qwen-2.5B](canary-qwen-2.5b.md) (5.63 mean, 2.5B, English-only) when the budget allows a larger SALM and transcript summarization/Q&A in the same weights matters. Use [Cohere Transcribe 03-2026](cohere-transcribe-03-2026.md) (5.42 mean, 14 languages) when multilingual coverage matters more than timestamps.[^parakeet-tdt-card][^ark-asr-3b-card][^canary-qwen-2p5b-card][^cohere-03-2026-card]
+- **English, staying in the Whisper ecosystem:** [Distil-Large-v3.5](distil-large-v3.5.md) as a faster short-form drop-in for large-v3-turbo with whisper.cpp and CT2 weights. For long-form OOD audio, keep turbo or run v3.5 as a speculative draft for exact large-v3 output.[^distil-large-v3.5-card]
+- **Voice commands that should trigger tools directly:** [Voxtral Mini 3B 2507](voxtral-mini-3b-2507.md) (~9.5 GB) or [Voxtral Small 24B 2507](voxtral-small-24b-2507.md) (~55 GB) for transcription, audio Q&A, and function calling in one model. Benchmark WER first, because no numeric figure is compiled.[^voxtral-mini-3b-card][^voxtral-small-24b-card]
+- **Multilingual realtime:** [Nemotron 3.5 ASR](nemotron-3.5-asr-streaming-0.6b.md) for its 19 transcription-ready locales. Use [Qwen3-ASR](qwen3-asr-family.md) for broader and Asian coverage with a unified streaming mode. Use [Voxtral Mini 4B Realtime 2602](voxtral-mini-4b-realtime-2602.md) for 13-language transcription with a tunable 80–2400 ms delay knob and vLLM realtime serving.
 - **European multilingual offline or translation:** [Parakeet TDT V3](parakeet-tdt-0.6b-v3.md) for speed, [Canary-1b-v2](canary-1b-v2.md) when you also need X↔En translation.
-- **Chinese, dialects, Cantonese:** Qwen3-ASR-1.7B, [Fun-ASR-Nano](fun-asr-nano-2512.md) (dialect, lyrics, hip-hop), or ARK-ASR-3B. Use [Audio8 ASR Infinite](audio8-asr-infinite.md) for 24/7 zh/en streaming.
+- **Chinese, dialects, Cantonese:** Qwen3-ASR-1.7B, [Fun-ASR-Nano](fun-asr-nano-2512.md) (dialect, lyrics, hip-hop), or ARK-ASR-3B. [Hojo-ASR-V1](hojo-asr-v1.md) targets Cantonese, Sichuan dialect, and zh-en code-switching but publishes no Chinese figures. Use [Audio8 ASR Infinite](audio8-asr-infinite.md) for 24/7 zh/en streaming.
 - **Vietnamese:** start with Qwen3-ASR or faster-whisper `large-v3-turbo` with hallucination filters, as recommended in the [Vietnamese stack](vietnamese-realtime-voice-agent-stack.md). Use Nemotron 3.5 as a streaming alternative and benchmark on noisy in-house audio.
 - **Arabic:** [Cohere Transcribe Arabic](cohere-transcribe-arabic-07-2026.md) behind a VAD/noise gate.
+- **Massive multilingual / low-resource:** [Omnilingual ASR](omnilingual-asr.md) for 1600+ languages and few-example extension; use the Unlimited v2 variant for long audio, and validate per-language CER in the linked table before relying on the 78%-below-10 headline.[^omnilingual-readme]
 - **Meetings with speakers:** [VibeVoice-ASR](vibevoice-asr.md) (offline, 60 min) or [MOSS-Transcribe-Diarize](moss-transcribe-cpp-gguf.md) (CPU). Alternatively, pair streaming ASR with a diarizer through [Multitalker Parakeet](multitalker-parakeet-streaming-0.6b-v1.md).
-- **CPU/edge:** Fun-ASR-Nano GGUF or SenseVoiceSmall GGUF for CJK, Parakeet via ONNX or NeMo-Speech.cpp for English/European, faster-whisper int8 as the general fallback.
+- **CPU/edge:** Fun-ASR-Nano GGUF or SenseVoiceSmall GGUF for CJK, Parakeet via ONNX or NeMo-Speech.cpp for English/European, faster-whisper int8 as the general fallback. For Apple on-device (iOS/macOS, no server), use [TheWhisper-Large-V3-Turbo](thewhisper-large-v3-turbo.md) CoreML via the TheStage Apple SDK (10 s window, monotonic partials, `flush()` at VAD pauses).[^thewhisper-turbo-card]
 - **Commercial license constraint:** avoid Audio8-ASR-0.1B and Audio Flamingo, and review NVIDIA Open Model License terms.
 
 ## Community-reported field notes
@@ -372,13 +471,16 @@ These are unverified anecdotes from community threads, kept apart from vendor ev
 
 - **Nemotron Speech Streaming EN 0.6B English average:** its own card reports 6.93 at 1.12 s (AMI 11.73, GigaSpeech 9.66, TEDLIUM 3.50).[^nemotron-en-stream-card] The Multitalker Parakeet card lists the same base model at 7.16 (AMI 11.58, GigaSpeech 11.45, TEDLIUM 4.5) and does not state that table's chunk size or checkpoint revision.[^multitalker-parakeet-card] Neither value is chosen here.
 - **Audio8 Infinite vs Nemotron 3.5:** Audio8's comparison table runs itself at 480 ms delay and Nemotron 3.5 at 560 ms on AISHELL and LibriSpeech. The settings differ, and the table covers Nemotron's broad-coverage Mandarin tier, so the gap does not reflect Nemotron's transcription-ready languages (**Reported**; interpretation is **Synthesis**).[^audio8-infinite-card][^nemotron-35-asr-card]
+- **ARK-ASR-0.6B English average:** its own card reports 6.55 across 7 sets under the `open-audio-opd` harness.[^ark-asr-06b-card] The sibling 3B card reports 5.97 for the same checkpoint and set names under the Open ASR Leaderboard protocol, with per-set gaps largest on AMI and Earnings22. The Chinese CER components match.[^ark-asr-3b-card] Neither value is chosen here; the ranking above uses the Leaderboard-protocol row only for comparability with other leaderboard rows.
 - **Qwen3-ASR streaming quality:** the vendor reports a small offline-to-streaming gap (2.69 → 3.33), while one community commenter says it streams worse than Parakeet. No shared measurement resolves this.[^qwen3-asr-readme][^reddit-asr-tts-thread]
 
 ## Coverage and limits
 
 - This survey reads only the compiled concepts and their declared raw sources. No model was downloaded, run, or benchmarked, and no figure was reproduced (**Synthesis**).
-- No numeric benchmark exists in the wiki for VibeVoice-ASR, VibeVoice-ASR-Streaming, GLM-ASR-Nano (figure-only), or Fun-ASR-MLT-Nano. Their rank is unknown, not low.[^vibevoice-asr-card][^glm-asr-nano-card][^fun-asr-mlt-nano-card]
-- No concept page exists for upstream OpenAI Whisper model cards, whisper.cpp, Moonshine, Voxtral, Granite Speech, Canary-180M-Flash, GigaAM, PhoWhisper, ChunkFormer, Zipformer, Kyutai, or proprietary APIs. Their appearance here comes from catalogs, comparison columns, or anecdotes. Compile their primary sources before relying on them.[^audio-cpp-gguf-readme][^claude-pipeline-report]
+- No numeric benchmark exists in the wiki for VibeVoice-ASR, VibeVoice-ASR-Streaming, GLM-ASR-Nano (figure-only), Fun-ASR-MLT-Nano, Voxtral Mini 3B / Small 24B (figure-only), or the current Higgs Audio v3 STT checkpoint (earlier figures superseded). Their rank is unknown, not low.[^vibevoice-asr-card][^glm-asr-nano-card][^fun-asr-mlt-nano-card][^voxtral-mini-3b-card][^voxtral-small-24b-card][^higgs-v3-stt-card]
+- Hojo-ASR-V1's card gives no model URL, release date, evaluation protocol, or Chinese/dialect numbers, so its English mean and dialect positioning are unaudited (**Synthesis**).[^hojo-asr-v1-doc]
+- Omnilingual ASR's headline figure (7B LLM-ASR, CER below 10 for 78% of 1600+ languages) is recorded, but its per-language CER plus training-hours CSV and result figure were unavailable in `raw/` and are not compiled; rank comparisons against Open ASR WER averages should not include it.[^omnilingual-readme]
+- No concept page exists for other upstream OpenAI Whisper size cards (tiny through large-v2), whisper.cpp, Moonshine, Granite Speech, Canary-180M-Flash, GigaAM, PhoWhisper, ChunkFormer, Zipformer, Kyutai, or proprietary APIs. Upstream [Whisper Large v3 Turbo](whisper-large-v3-turbo.md) is now compiled from its Hugging Face card (no numeric WER/RTFx in that source), joined by [Whisper Large v3](whisper-large-v3.md) from its Hugging Face card (no numeric table, 10–20% over large-v2 claim). Their remaining appearance here comes from catalogs, comparison columns, or anecdotes. Compile their primary sources before relying on them.[^audio-cpp-gguf-readme][^claude-pipeline-report][^whisper-turbo-card][^whisper-v3-card] The Voxtral line (Mini 3B, Small 24B, Mini 4B Realtime) and Distil-Large-v3.5 now have their own concepts, which are linked from the catalog above. Distil-Whisper predecessors such as `distil-large-v3` do not.[^voxtral-mini-3b-card][^voxtral-small-24b-card][^voxtral-mini-4b-realtime-card][^distil-large-v3.5-card]
 - Benchmarks and releases are time-sensitive; `stale_after: 2027-10-06` follows the `stt` domain rule.
 
 [^parakeet-ctc-card]: [Parakeet CTC 0.6B](../raw/parakeet-ctc-0.6b.md) — locators: frontmatter `license`, `model-index`; body `Performance` WER table (9 sets incl. Common Voice; this page averages the 8 Open ASR sets excluding Common Voice); `Model Architecture`; `Training` (64K hours).
@@ -388,19 +490,29 @@ These are unverified anecdotes from community threads, kept apart from vendor ev
 [^parakeet-tdt-card]: [Parakeet TDT 0.6B V2](../raw/parakeet-tdt-0.6b-v2.md) — locators: `Model Architecture` (24-minute single pass, RTFx 3380 at batch 128); `Training` (~120K-hour Granary); `Performance` base table (avg 6.05), MUSAN SNR table, telephony table; `License` CC-BY-4.0.
 [^parakeet-v3-card]: [Parakeet TDT 0.6B V3](../raw/parakeet-tdt-0.6b-v3.md) — locators: intro (25 languages, auto LID); `Model Architecture` (24 min full attention / 3 h local attention); `Performance` multilingual averages (FLEURS 11.97, MLS 7.83, CoVoST 11.98), English Open ASR row (avg 6.34), MUSAN table; NeMo-Speech.cpp usage; frontmatter `license`.
 [^canary-1b-v2-card]: [Canary-1b-v2 model card](../raw/canary-1b-v2.md) — locators: `Key Features`; `Model Architecture` (978M, FastConformer + Transformer decoder); `Benchmark Results` (ASR aggregate table, HF Leaderboard mean 7.15 / RTFx 749, AST tables, MUSAN SNR table, hallucination 134.7 chars/min); `How to Use` timestamps; `License/Terms`.
+[^canary-qwen-2p5b-card]: [Canary-Qwen-2.5B model card](../raw/canary-qwen-2.5b.md) — locators: header badges (2.5B, SALM, 418 RTFx); `Model Architecture` (SALM, FastConformer + Qwen3-1.7B, projection + LoRA, `Transcribe the following` prompt); `Limitations` (40 s / 1024 tokens, English-only); `Training` (90k steps, 32×A100, 234K hrs, AMI 15% oversample); `Performance` (Leaderboard mean 5.63 table, MUSAN 138.1 chars/min, SNR table); `Model Fairness Evaluation` (CasualConversations gender/age tables); `How to Use` (SALM ASR vs `disable_adapter` LLM fences, `salm_generate.py` manifest); `Software Integration` (NeMo 2.5.0+, Ampere–Volta, Linux/L4T/Windows).
 [^nemotron-en-stream-card]: [Nemotron Speech Streaming EN 0.6B card](../raw/nemotron-speech-streaming-en-0.6b.md) — locators: `Model Architecture` (600M, cache-aware FastConformer-RNNT); `att_context_size` latency table; WER tables at 1.12/0.56/0.16/0.08 s (line ~620 for 6.93); `License`.
 [^nemotron-35-asr-card]: [Nemotron 3.5 ASR model card](../raw/nemotron-3.5-asr-streaming-0.6b.md) — locators: `License` (OpenMDW-1.1, commercial use); supported-language tier lists; automatic language detection section; `att_context_size` table; H100 throughput comparison; FLEURS LangID/auto tables (ready-tier averages, vi-VN row); NeMo-Speech.cpp `q8_0.gguf` usage.
 [^parakeet-eou-card]: [Parakeet Realtime EOU 120M v1 card](../raw/parakeet_realtime_eou_120m-v1.md) — locators: frontmatter `license`; `Model Architecture` (120M, 17 layers, `[70, 1]`); EOU latency percentiles; 160 ms Open ASR WER table (avg 9.30).
 [^multitalker-parakeet-card]: [Multitalker Parakeet Streaming 0.6B v1 card](../raw/multitalker-parakeet-streaming-0.6b-v1.md) — locators: `Model Architecture` (speaker-kernel injection, multi-instance); latency mapping; multitalker cpWER table with Streaming Sortformer v2 frontend; `Evaluation: Single-speaker Mode ASR Performance` table (base 7.16, single-speaker 7.44, ~line 437); license.
 [^qwen3-asr-readme]: [Qwen3-ASR README and model card](../raw/Qwen3-ASR-0.6B.md) — locators: frontmatter `license`; model/language table (30 languages, 22 dialects, ForcedAligner 11 languages); `Key capabilities`; `qwen-asr-serve` / vLLM serving fences; evaluation tables (public-set WER, internal sets incl. dialect dialog, language-ID accuracy, streaming vs offline, forced-alignment shift).
+[^qwen3-asr-hf-card]: [Qwen3-ASR-0.6B-hf Transformers-native model card](../raw/Qwen3-ASR-0.6B-hf.md) — locators: `Usage` (Transformers `apply_transcription_request`, `transformers>=5.13.0`); `Speed & Memory Improvements` (A100 `torch.compile` 2.5x aligner / 2.4x ASR at batch size 4); `Evaluation` (HF Open ASR Leaderboard table dated 26 June 2026: 1.7B-hf mean 5.59, 0.6B-hf mean 6.31 with per-set cells).
 [^ark-asr-3b-card]: [ARK-ASR-3B model card](../raw/ARK-ASR-3B.md) — locators: frontmatter `license`; `Supported Languages`; `Model Overview`; `Performance > English WER` (3B and 0.6B rows); `Performance > Chinese CER`; RTFx statement; `vLLM Online Serving`.
+[^ark-asr-06b-card]: [ARK-ASR-0.6B model card](../raw/ARK-ASR-0.6B.md) — locators: frontmatter (`license`, `language`); `Abstract` (`Ark-Base+TD+OPD`, TD + OPD recipe, 19 languages); `Model Overview` (Whisper-style encoder + MLP + Qwen2 decoder, 30 s / 16 kHz); `Performance > English WER` (avg 6.55 vs Qwen3-ASR 0.6B 6.93 / 1.7B 6.25); `Performance > Chinese CER` (avg 4.30); `Inference` (Transformers fence, batch JSONL command).
+[^hojo-asr-v1-doc]: [Hojo-ASR-V1 model card](../raw/Hojo-ASR-V1.md) — locators: frontmatter (`license: apache-2.0`); `Overview > Introduction` (Encoder-Adapter-Qwen3 LLM, multi-frame acoustic fusion, RL, Mandarin/English/Cantonese/Sichuan, code-switching focus); `Quickstart` (`hojo-asr` package, `run_infer`); `Evaluation` (8-cell English WER table, no average or protocol); `Roadmap`; `Licence`.
+[^higgs-v3-stt-card]: [Higgs Audio v3 STT model card](../raw/higgs-audio-v3-stt.md) — locators: frontmatter (`license: apache-2.0`, `language: [en]`); `Architecture` (Whisper-Large-v3 encoder, Qwen3-1.7B decoder, 2.68B, 16 kHz, thinking mode); `Update (June 2026)` (retrain splits, repetition-loop collapse in `transcribe.py`, superseded figures, Open ASR Leaderboard re-evaluation pointer); `Usage` (30 s chunk collator, `enable_thinking=True`, lowercase prompt).
+[^voxtral-mini-3b-card]: [Voxtral Mini 3B 2507 model card](../raw/Voxtral-Mini-3B-2507.md) — locators: frontmatter (8-code `language`, `license: apache-2.0`); `Key Features` (auto-LID transcription, 32k context with 30/40-minute limits, Q&A/summarization, voice function calling); `Benchmark Results` (image-only figures); `vLLM > Serve` (~9.5 GB GPU RAM, Small-24B server recommendation); `Transcription` (`TranscriptionRequest` fence).
+[^distil-large-v3.5-card]: [Distil-Whisper Distil-Large-v3.5 model card](../raw/distil-large-v3.5.md) — locators: header (756M, 1.46x turbo RTFx, 7.08 short-form / 11.39 long-form OOD WER); `Performance` (short-form 7-set table: overall 7.10 vs large-v3 7.14 / turbo 7.25; long-form WER and RTFx tables); `Transformers Usage` (sequential, chunked `chunk_length_s=25`, speculative-decoding fences); `Library Integrations` (whisper.cpp GGML, Faster-Whisper `distil-large-v3.5-ct2`, OpenAI format); `License` (MIT).
 [^audio8-asr-01b-card]: [Audio8-ASR-0.1B model card](../raw/Audio8-ASR-0.1B.md) — locators: frontmatter `license` (cc-by-nc-4.0), `language`; `Model Overview` (103,502,336 / 323,990,528 params); `Evaluation Results` table (7-split mean 7.03, RTFx 741.15, WenetSpeech CER); `Related Releases` (ONNX ~1.1 GB, iOS ~200 MB); `Hotword Boosting`.
+[^voxtral-mini-4b-realtime-card]: [Voxtral Mini 4B Realtime 2602 model card](../raw/Voxtral-Mini-4B-Realtime-2602.md) — locators: frontmatter (13-code `language` list, Apache-2.0, Ministral-3-3B-Base-2512 base, `pipeline_tag`); header (<500 ms claim, 13-language and 4B on-device positioning, >12.5 tok/s, BF16); `Key Features` (3.4B LM + 970M causal encoder, sliding-window infinite streaming, 80 ms–2.4 s delay range, use-case list); `Recommended Settings` (temperature 0.0, 80 ms-per-token sizing with 45000/131072 figures, websockets, 480 ms sweet spot, `tekken.json` multiples rule); `Benchmark Results` (FLEURS 6-row × 13-language table, long-form and short-form tables vs Transcribe 2.0); `Usage` (vLLM realtime endpoint, Transformers >= 5.2.0 fence, untested ExecuTorch and community ports).
+[^voxtral-small-24b-card]: [Voxtral Small 24B 2507 model card](../raw/Voxtral-Small-24B-2507.md) — locators: frontmatter (8-code `language` list, Apache-2.0, Mistral-Small-24B-Base-2501 base, `pipeline_tag` audio-text-to-text); `Key Features` (transcription with auto LID, 32k context with 30/40-minute limits, Q&A/summarization, 8-language list, experimental voice function calling, Small-3 text retention); `Benchmark Results` (FLEURS/Common Voice/MLSI WER figure and text figure, both image-only); `Usage` (vLLM/Transformers frameworks, `temperature`/`top_p` defaults, no-system-prompts note); `vLLM > Serve` (TP-2 serve command with mistral tool-call parser, ~55 GB VRAM note).
 [^audio8-infinite-card]: [Audio8 ASR Infinite model card](../raw/Audio8-ASR-Infinite.md) — locators: frontmatter `license`, `language`; `Highlights` (clock, rolling KV, semantic VAD); `Optimized operation points` table; `Architecture` component table; `Checkpoint specification` (8.17 GB); `Evaluation` table at 480 ms vs Voxtral and Nemotron 3.5 at 560 ms.
 [^fun-asr-nano-card]: [Fun-ASR-Nano-2512 model card](../raw/Fun-ASR-Nano-2512.md) — locators: model family table (0.8B; zh/en/ja; dialects/accents); `TODO` (timestamps, diarization unchecked); `Performance` open-source WER table (AISHELL-1, WenetSpeech, incl. GLM-ASR-nano and Whisper-large-v3 columns) and industry WER table (averages 16.72 / 26.13 / 33.39).
 [^fun-asr-mlt-nano-card]: [Fun-ASR-MLT-Nano-2512 model card](../raw/Fun-ASR-MLT-Nano-2512.md) — locators: frontmatter `license`; supported-languages list (31); inference fence with `hotwords`, `itn`, `vad_model="fsmn-vad"`; `Performance` scope note (no MLT-specific column).
 [^fun-asr-nano-gguf-card]: [Fun-ASR-Nano GGUF model card](../raw/Fun-ASR-Nano-GGUF.md) — locators: `Files` table (encoder 470 MB; Q4_K_M 484 MB, Q8_0 805 MB); quantization tier table (CER 8.35/8.25/8.30, speed); CPU claim vs whisper.cpp 22–31%.
 [^glm-asr-nano-card]: [GLM-ASR-Nano-2512 model card](../raw/GLM-ASR-Nano-2512.md) — locators: frontmatter `license` (mit), `language`; `Model Introduction` (1.5B, dialects, low-volume, 4.10 average); `Benchmark` (`bench.png` only).
 [^cohere-arabic-card]: [Cohere Transcribe Arabic model card](../raw/cohere-transcribe-arabic-07-2026.md) — locators: spec table (2B, Conformer encoder-decoder, Apache 2.0); `vLLM Integration`; `Results` leaderboard table dated 07.07.2026 (Average WER/CER rows incl. Qwen3-ASR 1.7B and Whisper Large v3); `Strengths and Limitations`.
+[^cohere-03-2026-card]: [Cohere Transcribe model card](../raw/cohere-transcribe-03-2026.md) — locators: spec table (2B, Conformer encoder-decoder, 14 languages, Apache 2.0); Quick Start / long-form (`audio_chunk_index`, RTFx) / punctuation / batched / non-English fences; `vLLM Integration` (`vllm==0.19.0`, `POST /v1/audio/transcriptions`); `Results` English leaderboard table dated 03.26.2026 (average plus 8 per-set WER columns, 9-model comparison); `Strengths and Limitations` (3x RTF claim, single-language, timestamps/diarization, silence/VAD).
 [^vibevoice-asr-card]: [VibeVoice-ASR model card](../raw/VibeVoice-ASR.md) — locators: frontmatter `license`, `language`; feature list (60-minute single pass in 64K tokens, hotwords, Who/When/What, 50+ languages, code-switching); `Evaluation` (figures only, no text values).
 [^vibevoice-asr-streaming-1-5b-card]: [VibeVoice-ASR-Streaming-1.5B model card](../raw/VibeVoice-ASR-Streaming-1.5B.md) — locators: frontmatter `license`, 10-language list; intro (streaming who-said-what, hotwords); `Evaluation` (figure only).
 [^vibevoice-asr-streaming-7b-card]: [VibeVoice-ASR-Streaming-7B model card](../raw/VibeVoice-ASR-Streaming-7B.md) — locators: frontmatter; H2 checkpoint title; intro and `Evaluation` (figure only; text identical to the 1.5B card apart from the title).
@@ -411,6 +523,9 @@ These are unverified anecdotes from community threads, kept apart from vendor ev
 [^faster-whisper-readme]: [Faster-Whisper README](../raw/faster-whisper.md) — locators: header (CTranslate2, up to 4x claim); `Benchmark` (Large-v2 GPU table, distil-large-v3 table, small model CPU table); `Usage` (`BatchedInferencePipeline`, `turbo`, `distil-large-v3`, VAD filter).
 [^audio-cpp-gguf-readme]: [audio.cpp GGUF Model Packages](../raw/audio.cpp-gguf.md) — locators: package table rows (Canary-180M-Flash, Citrinet, Cohere-Transcribe, CrisperWhisper2.0, Fun-ASR-Nano-2512, GigaAM, Granite-Speech-5.0-470M-TurboCTC, Hviske-v5.3, Kroko, MMS-Forced-Aligner, MOSS-Transcribe-Diarize, Moonshine-Streaming, Nemotron-3.5-ASR, Niagara, Parakeet-TDT-0.6B-v3, Qwen3-ASR-0.6B/1.7B, Qwen3-ForcedAligner, VibeVoice-ASR); ASR CLI example.
 [^parakeet-readme]: [Parakeet ASR server README](../raw/parakeet.md) — locators: intro (Go, ONNX Runtime, Parakeet TDT 0.6B, Whisper-compatible API, SSE); Docker CPU/CUDA images; license section.
+[^fast-gpu-asr-readme]: [Fast GPU ASR README](../raw/fast-gpu-asr.md) — locators: header (SoundsGoodAI, Zipformer plus Parakeet, TensorRT, GPU beam search); `Batched speech recognition at up to 25,000 RTFx on B300` (FP16 beam-6 A100/H200/B300 table; B300 batch-256 25,108.6 RTFx Zipformer / 19,398.7 Parakeet V3 TDT; Open ASR Leaderboard reproduction, 157.8 h); `Models and Inference Precision` (family/checkpoint/decoder table); `Transcribe` (`ASR` fence, word timestamps).
+[^omnilingual-readme]: [Omnilingual ASR README](../raw/omnilingual-asr.md) — locators: header (1600+ languages, few-paired-examples claim, 7B-LLM-ASR SOTA with CER below 10 for 78%); `December 2025 Update` (v2 accuracy suite, Unlimited-length suite, no-finetuning-recipes note); `Model Architectures` table (W2V/CTC/LLM/Unlimited/ZS params, download, VRAM, RTF; footnotes 1–3; tokenizer rows); `Inference` (40-second warning, `ASRInferencePipeline` fence); `Supported Languages` (`{lang}_{script}` format, `lang_ids.py::supported_langs`); `Using the HuggingFace Dataset` (CC-BY-4.0 corpus, `lij_Latn` fence); `Model Download & Storage`; `Training`; `License` (Apache 2.0).
+[^thewhisper-turbo-card]: [Elastic model: thewhisper-large-v3-turbo](../raw/thewhisper-large-v3-turbo.md) — locators: frontmatter (`base_model`, `cc-by-4.0`, 28-code `language` list); `Overview` (ANNA XL/L/M/S bounds); `System Requirements` + `Access Token Setup`; `TheStage Apple SDK` (SwiftPM 1.1.0, batch/streaming fences, 10 s window, audio contract, M2 Max RTFx 16.7 table); `ElasticModels` + `TheWhisper SpeechKit` (JFrog install, `mode='S'`, `chunk_length_s` 15/10, streaming fences); `Quality Benchmarks` (English 9-row and multilingual 16-row WER tables with Mean rows); `Latency Benchmarks` + `Benchmarking Methodology` (batch-1 and batched RTFx tables, 10-minute 16 kHz method); `Serving with Docker Image` + `Invocation` + `Endpoint Parameters` (ECR tag, env-var table, `X-Model-Name` format).
 [^wlk-readme]: [WhisperLiveKit README](../raw/WhisperLiveKit.md) — locators: intro; `--backend-policy` (SimulStreaming / LocalAgreement); `--backend` selector list; API compatibility section.
 [^realtimestt-readme]: [RealtimeSTT README](../raw/RealtimeSTT.md) — locators: intro (VAD-gated recording, realtime + final transcription engines, wake word); server section.
 [^speaches-readme]: [Speaches README](../raw/speaches.md) — locators: overview excerpt (OpenAI-compatible, faster-whisper STT, SSE streaming, dynamic model loading).
@@ -421,3 +536,5 @@ These are unverified anecdotes from community threads, kept apart from vendor ev
 [^reddit-open-stt]: [What's the best open speech to text today? thread capture](../raw/whats_the_best_open_speech_to_text_today.md) — locators: `Comments 36` (Qwen3-ASR least-hallucination remarks; turbo vs large-v3; Moonshine English low-latency remark).
 [^reddit-stt-llm-tts-thread]: [STT -> LLM -> TTS pipeline thread capture](../raw/stt_llm_tts_pipeline.md) — locators: replies on Parakeet v2 vs Whisper (~5x) and v3 multilingual slowdown.
 [^reddit-usable-stt]: [Best STT API for voice agents? thread capture](../raw/best_stt_api_for_voice_agents_i_care_more_about.md) — locators: prompt and top replies (first stable text, partial stability, endpointing, barge-in, entity accuracy checklist).
+[^whisper-v3-card]: [Whisper large-v3 model card](../raw/whisper-large-v3.md) — locators: header (128 mel bins, Cantonese token; 1M weakly + 4M large-v2 pseudo-labeled hours, 2.0 epochs, 10–20% over large-v2); `Model details` (7-row size/parameter table); `Usage` (pipeline, decoding, language/task, timestamp fences); `Additional Speed & Memory Improvements` (sequential vs chunked, torch.compile, Flash-Attention 2, SDPA); `Performance and Limitations` (no numeric table; hallucination/unevenness/repetition notes); frontmatter (`license: apache-2.0`, ~99-code `language` list).
+[^whisper-turbo-card]: [Whisper large-v3-turbo model card](../raw/whisper-large-v3-turbo.md) — locators: header (32→4 decoder-layer pruning, 809M, minor-degradation/faster claim); `Model details` (8-row size/parameter table); `Usage` (pipeline, decoding, language/task, timestamp fences); `Additional Speed & Memory Improvements` (sequential vs chunked, torch.compile, Flash-Attention 2, SDPA); `Performance and Limitations` (no numeric table; hallucination/unevenness/repetition notes); frontmatter (`license: mit`, 90-plus-code `language` list).

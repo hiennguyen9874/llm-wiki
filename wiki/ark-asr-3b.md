@@ -5,7 +5,7 @@ description: 3B-scale multilingual ASR model with Whisper-style encoder and Qwen
 tags: [ml, asr, multilingual, speech-recognition]
 status: stable
 created: 2026-10-06
-generated: { by: llm-wiki-agent/1, at: 2026-10-06T00:00:00Z }
+generated: { by: llm-wiki-agent/1, at: 2026-10-06T12:28:03Z }
 stale_after: 2027-10-06
 sources:
   - id: ark-asr-3b-card
@@ -55,6 +55,10 @@ The card also reports RTFx of 490.98 alongside the 5.04% average WER claim (**Re
 - Leaderboard numbers use the Hugging Face `open_asr_leaderboard` evaluation code; local J/WER evaluation uses `scripts/eval/eval_jwer_ark_asr_transformers.py` with the same model/processor/batch/dtype flags (**Reported**).[^ark-asr-3b-card]
 - Training code is based on `THUNLP/OPD` and `verl`; the OPD recipe uses a stronger ASR teacher to score online student rollouts (**Reported**).[^ark-asr-3b-card]
 - Canonical citation is Lin et al., *Data-Efficient On-Policy Distillation for Automatic Speech Recognition*, arXiv:2605.28139 (2026); code repository is `https://github.com/AutoArk/open-audio-opd`; model-card license field is `apache-2.0` (**Reported**).[^ark-asr-3b-card]
+
+## Relationships
+
+- Sibling efficiency point [ARK-ASR-0.6B](ark-asr-0.6b.md): the 0.6B checkpoint shares this model's encoder-adapter-decoder architecture, `arkasr` remote code, 19-language set, and TD + OPD lineage, and is carried above as the Leaderboard-protocol sibling row; the 0.6B card's own `open-audio-opd` evaluation reports a different English protocol (6.55% avg), so keep the two protocols separate (**Synthesis**).[^ark-asr-3b-card]
 
 ## Coverage and limits
 
