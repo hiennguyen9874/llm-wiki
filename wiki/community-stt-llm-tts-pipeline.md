@@ -1,0 +1,82 @@
+---
+type: Concept
+title: Community-Reported STT-LLM-TTS Pipeline Wiring
+description: Community-reported wiring for a single-GPU local STT → LLM → TTS voice agent with HTTP services, VAD, sample-rate and VRAM practices, and sentence-chunked streaming.
+tags: [stt, llm, tts, vad, pipeline, streaming]
+status: draft
+created: 2026-10-06
+generated: { by: llm-wiki-agent/1, at: 2026-10-06T00:00:00Z }
+stale_after: 2027-10-06
+sources:
+  - id: reddit-stt-llm-tts-thread
+    resource: ../raw/stt_llm_tts_pipeline.md
+    kind: documentation
+    title: STT -> LLM -> TTS pipeline r/LocalLLaMA thread capture
+---
+
+This thread captures community-reported wiring for a local speech-to-text → dialogue-LLM → text-to-speech voice agent on a single RTX 3090: run STT, LLM, and TTS as three separate HTTP services rather than three llama.cpp instances, join them as record-audio → POST-to-STT → POST-to-LLM → POST-to-TTS → play-audio, front the loop with VAD, keep sample rates and VRAM placement explicit, and stream LLM output to TTS by complete sentence; every architecture and performance claim below is an unverified anecdote from anonymous commenters, not a measured result (**Reported**).[^reddit-stt-llm-tts-thread]
+
+## Source scope and request
+
+- The thread starter reports running a 3090 on Ubuntu with llama.cpp serving Qwen 3.6 27B Q4 plus pi-agent for tool calling in the terminal, and asks what framework pipes information from STT to LLM and back out to TTS, including whether that means three llama.cpp instances (**Reported**).[^reddit-stt-llm-tts-thread]
+- The capture holds the prompt plus 30 comments with anonymous authors except the prompt author, vote tallies up to 6, and upstream links to the subreddit thread, speaches, Parakeet and Kokoro servers, Wyoming, WhisperLive, Piper, conversational harnesses, and prior pipeline examples; per-comment votes are omitted here as volatile and non-durable (**Reported**, with omission **Synthesis**).[^reddit-stt-llm-tts-thread]
+
+## Core wiring pattern
+
+- Do not run three llama.cpp instances; run three specialized services joined by HTTP requests: STT takes audio and returns text, the existing llama.cpp plus Qwen LLM is left alone, and TTS takes text and returns audio (**Reported**).[^reddit-stt-llm-tts-thread]
+- The literal loop is record audio → POST to STT server → text → POST to llama.cpp → response → POST to TTS → play audio, with each service as its own process or Docker container and Docker Compose named as the natural way to run them side by side on Ubuntu; a Python script with requests and pyaudio is claimed to wire the whole loop in under 100 lines with no special framework needed (**Reported**).[^reddit-stt-llm-tts-thread]
+- Alternatives named without in-thread evaluation detail: separate inference-service hosting from application development behind go-llm-proxy on a single host endpoint with one API key; a simple Python backend taking frontend audio and passing input/output between FastAPI- or PyTriton-served ASR/TTS services; Go glue and loop code; and Pipecat plus LiveKit named as good end-to-end pipelines but not mandatory (**Reported**).[^reddit-stt-llm-tts-thread]
+
+## Component picks and single-GPU placement
+
+- The top-voted reply recommends faster-whisper on the 3090 behind a ready-made OpenAI-compatible faster-whisper-server endpoint, keeping the existing llama.cpp plus Qwen LLM, and running Piper TTS on CPU so the GPU stays free for STT plus LLM with decent out-of-box voices and Kokoro reserved as a later higher-quality step (**Reported**).[^reddit-stt-llm-tts-thread]
+- That same reply notes faster-whisper-server has since evolved into speaches-ai/speaches from the same author, now bundling STT and TTS in one OpenAI-compatible server that can cover two of the three slots in a single container for fewer moving parts (**Reported**).[^reddit-stt-llm-tts-thread]
+- Keep TTS on CPU on a 24 GB 3090 wanted for faster-whisper plus Qwen; Piper is described as fast enough on CPU that the difference is unnoticeable, while contesting three models for VRAM on one card is described as avoidable pain (**Reported**).[^reddit-stt-llm-tts-thread]
+- Other reported stacks, each tied to its commenter only: whisper plus xtts plus Qwen or MiniMax behind go-llm-proxy with Go glue; Parakeet V3 → Qwen3.6 → Kokoro with OpenWebUI conversation UI; whisper.cpp plus llama.cpp plus Kokoro; Faster-Whisper plus Kokoro plus llama.cpp with Gemma 4 26B; whisper plus Ollama plus GPT-SoVITs on a 3080 Ti wrapped in Python with a Unity 3D avatar; WhisperLive → model → Piper; and Whisper.cpp plus llama.cpp plus Piper in C (**Reported**).[^reddit-stt-llm-tts-thread]
+- One commenter reports running parallelism of at least 2 when more than one voice-assistant service shares the pipeline so requests do not serialize, with low latency named as the key requirement (**Reported**).[^reddit-stt-llm-tts-thread]
+- One commenter reports cutting out the STT → LLM stages with an Omni model in llama.cpp for better latency at the cost of smaller LLM selection, naming Nemotron Nano Omni as by far the smartest one with llama.cpp right now (**Reported**).[^reddit-stt-llm-tts-thread]
+
+## VAD and sample-rate practices
+
+- VAD (Voice Activity Detection) is what turns the loop from walkie-talkie into conversation: it detects when the speaker starts and stops talking so the system knows when to send audio to transcription without button presses, with Silero VAD named as the standard that is small, fast, accurate, and CPU-runnable (**Reported**).[^reddit-stt-llm-tts-thread]
+- Sample-rate mismatches are named as the most confusing early bug source: microphone capture at 48 kHz, Whisper expecting 16 kHz, and TTS output at 22–24 kHz, with garbled transcriptions attributed nine times out of ten to a mismatch somewhere in the chain rather than a model problem (**Reported**).[^reddit-stt-llm-tts-thread]
+- The basic loop is claimed to work in an afternoon once seen as HTTP between three services, while streaming responses so TTS starts before the full reply is done, proper VAD, and latency tuning are named as where the real craft lives (**Reported**).[^reddit-stt-llm-tts-thread]
+
+## Latency: sentence-chunked streaming and RAG
+
+- Chunk and async the llama.cpp → TTS leg: send the first few words or first complete sentence to TTS to generate and stream the first audio quickly for minimal latency, then send the remainder behind it (**Reported**).[^reddit-stt-llm-tts-thread]
+- Prefer the first full sentence over word-by-word for more realistic output from models like Kokoro, illustrated by the contrast between synthesizing `I want a...` versus `I want a pizza right now!`; a follow-up affirms the same finding with the quality difference over word-by-word described as real (**Reported**).[^reddit-stt-llm-tts-thread]
+- For a RAG middle stage of record → STT → Python RAG service → context → llama.cpp → TTS, one reply claims the retrieval step itself is usually negligible with embed query plus vector search sub-200 ms, while the real RAG latency lands on the LLM side processing a bigger prompt, so the lever is keeping retrieved chunks short and surgical with the same streaming plus sentence-chunking strategy (**Reported**).[^reddit-stt-llm-tts-thread]
+- The Wyoming stack used by Home Assistant is reported to do streaming chunked by sentence boundaries; one comment also points to a drop-in NVIDIA Parakeet replacement for Whisper in that stack described as much faster to first text, though whether the intended replacement is STT or TTS cannot be established because the capture literally says `parakeet tts` against Whisper (**Reported**).[^reddit-stt-llm-tts-thread]
+- Short utterances of a few seconds are reported as the likely speech-turn shape; for English-only use Parakeet v2 is recommended over Whisper at about 5x the commenter's tested speed, with Parakeet v3 described as multilingual and not as fast because of increased breadth, and the speed difference simplistically attributed to how the models chunk incoming audio (**Reported**).[^reddit-stt-llm-tts-thread]
+
+## Linked tooling and examples
+
+- [Speaches](speaches.md) evolution from faster-whisper-server plus the history of one commenter breaking away from it toward a fine-tuned own-voice model, custom hotword vocabulary, a Go record-plus-audio client, and separate STT plus LLM-router containers feeding a local Go audio listener so remote-host agents can speak through local speakers (**Synthesis**).[^reddit-stt-llm-tts-thread]
+- Parakeet STT OpenAI-compatible server at `https://github.com/achetronic/parakeet` and Kokoro TTS OpenAI-compatible server at `https://github.com/remsky/Kokoro-FastAPI`, recommended with OpenWebUI conversation UI (**Reported**).[^reddit-stt-llm-tts-thread]
+- [WhisperLiveKit](whisperlivekit.md)-adjacent WhisperLive at `https://github.com/collabora/WhisperLive` plus Piper at `https://github.com/OHF-Voice/piper1-gpl`; Conversational AI Harness at `https://github.com/thomas9120/Conversational-AI-Harness`; `minia` at `https://github.com/fdev31/minia`; `odidere` at `https://code.chimeric.al/chimerical/odidere` described as about 15,000 lines; and a prior C pipeline example at `https://www.reddit.com/r/LocalLLaMA/comments/1nj673e/stt_llm_tts_pipeline_in_c/` (**Reported**).[^reddit-stt-llm-tts-thread]
+
+## Relationships
+
+- Uses [Faster-Whisper](faster-whisper.md): the thread's recommended STT engine and OpenAI-compatible server pattern for the 3090; consult that page for quantization, VAD filtering, and serving detail (**Synthesis**).[^reddit-stt-llm-tts-thread]
+- Uses [Speaches](speaches.md): the thread identifies it as the evolved faster-whisper-server bundling STT plus TTS in one OpenAI-compatible container; consult that page for the combined STT/TTS server alternative (**Synthesis**).[^reddit-stt-llm-tts-thread]
+- Uses [Silero VAD](silero-vad.md): the thread's named standard for start/stop detection and conversational turn-taking; consult that page for footprint, runtimes, and sampling-rate scope (**Synthesis**).[^reddit-stt-llm-tts-thread]
+- Uses [Parakeet ASR Server](parakeet-asr-server.md): the thread's linked `achetronic/parakeet` OpenAI-compatible STT server matches the repository covered there; consult that page for deployment and API detail, and [Parakeet TDT 0.6B V3](parakeet-tdt-0.6b-v3.md) plus [Parakeet TDT 0.6B V2](parakeet-tdt-0.6b-v2.md) for the underlying model tradeoff behind the thread's v2-versus-v3 speed remark (**Synthesis**).[^reddit-stt-llm-tts-thread]
+- Compare cascaded assembly with [HF Speech-to-Speech Pipeline](speech-to-speech-pipeline.md) (threaded VAD → STT → LLM → TTS with queues and Realtime events), [RealtimeVoiceChat](realtime-voice-chat.md) (browser plus RealtimeSTT/RealtimeTTS pipeline), [WhisperLiveKit](whisperlivekit.md) (streaming STT/translation with diarization), and [RealtimeSTT](realtimestt.md) (VAD-gated transcription library): this concept is the community-reported minimal HTTP-plus-Docker-Compose alternative with sentence-chunked TTS streaming (**Synthesis**).[^reddit-stt-llm-tts-thread]
+- Corroborated in design by [Cascaded Voice-Agent Blueprint](cascaded-voice-agent-blueprint.md): that LLM-generated draft independently proposes the same per-stage HTTP services, Docker Compose MVP, and sentence-chunked TTS streaming, and adds VAD defaults, a latency budget, and `generation_id` barge-in; both remain unmeasured (**Synthesis**).[^reddit-stt-llm-tts-thread]
+- Complements [Community-Reported Local ASR/TTS Selection](community-asr-tts-selection.md): that page's model-level Whisper/Parakeet/Kokoro/Qwen comparisons pair with this page's service-wiring, VRAM-placement, and streaming practices (**Synthesis**).[^reddit-stt-llm-tts-thread]
+
+## Contradictions
+
+- Parakeet version pick: one comment recommends Parakeet V3 in a V3 → Qwen3.6 → Kokoro bet, while another recommends Parakeet v2 over Whisper for English short utterances at about 5x speed and explicitly warns v3 is slower from multilingual breadth; no measurement in-thread resolves which version fits a given language and turn shape, so neither recommendation is chosen (**Reported**).[^reddit-stt-llm-tts-thread]
+- Cascade versus Omni shortcut: the dominant pattern keeps separate STT → LLM stages joined by HTTP, while one comment cuts both stages out with an Omni model in llama.cpp for better latency at smaller LLM selection; no latency or quality measurement in-thread resolves the tradeoff (**Reported**).[^reddit-stt-llm-tts-thread]
+
+## Coverage and limits
+
+- Source inspected statically only; no service installed, no audio transcribed or synthesized, no HTTP loop run, no VRAM, latency, WER, or quality claim reproduced, and no linked repository, server, leaderboard, or model page fetched beyond the URLs quoted above (**Synthesis**).[^reddit-stt-llm-tts-thread]
+- Authors are anonymous in the capture (`unknown` except the prompt author), with no capture date, no hardware details for most claims beyond 3090/3080 Ti mentions, no model versions, configs, or measurement protocol; all comparative and performance claims are therefore **Reported** and **Unverified**, and this concept stays `draft` until primary sources or reproductions corroborate them (**Synthesis**).[^reddit-stt-llm-tts-thread]
+- Excluded as non-durable: pleasantries and DM offers, vote tallies, duplicate short acknowledgements, the `minia` share without a fit description, and full repository contents behind the linked attachments (**Synthesis**).[^reddit-stt-llm-tts-thread]
+- Possible entity ambiguity persists: thread `Kokoro`, `Piper`, `Qwen3.6`, `Gemma4 26b`, `MiniMax`, `go-llm-proxy`, `Pipecat`, `Livekit`, `Wyoming`, `Nemotron Nano Omni`, `GPT-SoVITs`, and `Ollama` checkpoints have no primary-source concept in this wiki from this ingest, so no version-to-checkpoint mapping is asserted (**Synthesis**).[^reddit-stt-llm-tts-thread]
+- Model-release and performance remarks carry `stale_after: 2027-10-06` per the `vad`, `stt`, `llm`, and `tts` domain rules (**Synthesis**).[^reddit-stt-llm-tts-thread]
+
+[^reddit-stt-llm-tts-thread]: [STT -> LLM -> TTS pipeline r/LocalLLaMA thread capture](../raw/stt_llm_tts_pipeline.md) — locators: title plus upstream link `https://www.reddit.com/r/LocalLLaMA/comments/1ts0jjb/stt_llm_tts_pipeline/` and prompt paragraph (3090 on Ubuntu, llama.cpp Qwen 3.6 27B Q4 with pi-agent, terminal-only, three-llama.cpp-instances question); top-voted reply (three services plus HTTP list: faster-whisper plus faster-whisper-server OpenAI-compatible POST, untouched llama.cpp plus Qwen, CPU Piper with Kokoro-later note; speaches-ai/speaches evolution note; Go-client plus STT-container plus router personal history; literal `record audio → POST to STT server → text → POST to llama.cpp → response → POST to TTS → play audio` fence; Docker Compose plus under-100-line Python with requests and pyaudio note; VAD walkie-talkie-to-conversation plus Silero VAD remark; 48 kHz mic versus 16 kHz Whisper versus 22–24 kHz TTS mismatch plus nine-times-out-of-ten remark; keep-TTS-on-CPU plus 24GB VRAM remark; afternoon-loop versus streaming-plus-VAD-plus-latency craft remark); sentence-chunking plus RAG replies (first-words-or-sentence async POST, `I want a...` versus `I want a pizza right now!` fence, full-sentence-first plus word-by-word quality remark, sub-200 ms retrieval versus bigger-prompt LLM latency plus short-surgical-chunks remark); go-llm-proxy plus whisper/xtts plus Qwen/MiniMax plus Go-glue remark; Parakeet-V3 → Qwen3.6 → Kokoro bet with `https://github.com/achetronic/parakeet`, `https://github.com/remsky/Kokoro-FastAPI`, and OpenWebUI remarks; Wyoming plus `parakeet tts` plus sentence-boundary-streaming remark; whisper.cpp plus llama.cpp plus kokoro with `https://code.chimeric.al/chimerical/odidere` and 15,000-line remark; Faster-Whisper plus Kokoro plus llama.cpp with Gemma4-26b plus parallelism-2 remark; Parakeet-v2-over-Whisper short-utterance remark with ~5x plus v3-multilingual-slower plus chunking remark; Conversational-AI-Harness `https://github.com/thomas9120/Conversational-AI-Harness`, WhisperLive `https://github.com/collabora/WhisperLive` plus piper1-gpl `https://github.com/OHF-Voice/piper1-gpl`, whisper plus Ollama plus GPT-SoVITs on 3080 Ti plus Unity-avatar remarks; FastAPI-or-PyTriton plus Python-backend plus Pipecat-and-Livekit remark; prior C example `https://www.reddit.com/r/LocalLLaMA/comments/1nj673e/stt_llm_tts_pipeline_in_c/`; Omni-in-llama.cpp plus Nemotron-Nano-Omni remarks.
