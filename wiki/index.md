@@ -9,6 +9,7 @@ The complete retrieval map for compiled knowledge. See [LLM Wiki Contract](../AG
 ## Concepts
 
 - [ARK-ASR-3B](ark-asr-3b.md) — 3B-scale multilingual ASR model with Whisper-style encoder and Qwen decoder, SOTA on Open ASR Leaderboard English short-form at 5.04% average WER.
+- [ASR/STT Model Survey](asr-stt-model-survey.md) — Survey of every ASR/STT model compiled in the wiki — NVIDIA Parakeet, Nemotron, and Canary; Qwen3-ASR; Fun-ASR and SenseVoice; GLM-ASR; AutoArk ARK and Audio8; VibeVoice-ASR; MOSS-Transcribe; Cohere Arabic; Whisper runtimes — compared by architecture, size, languages, streaming mode, license, reported benchmarks, and edge packaging.
 - [AuK](auk.md) — 1.5B open-source foundation model for instruction-driven speech generation and editing across 16 tasks with base and distilled Flash variants and MIT-licensed weights.
 - [AuK Base and Flash GGUF](auk-base-and-flash-gguf.md) — GGUF packaging of Tencent AuK Base and AuK-Flash for audio.cpp with component layout, CLI usage, 16-task C++/Python parity figures, and quantized-component smoke-test scope.
 - [AuK-Flash](auk-flash.md) — Distilled 4-step variant of Tencent's 1.5B AuK speech generation and editing foundation model with 16 instruction-driven tasks and MIT-licensed weights.
