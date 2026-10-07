@@ -5,7 +5,7 @@ description: Survey of every ASR/STT model compiled in the wiki — NVIDIA Parak
 tags: [stt, asr, survey, comparison, streaming, multilingual, benchmarks, edge-deployment]
 status: stable
 created: 2026-10-06
-generated: { by: llm-wiki-agent/1, at: 2026-10-07T03:56:09Z }
+generated: { by: llm-wiki-agent/1, at: 2026-10-07T04:37:10Z }
 stale_after: 2027-10-06
 sources:
   - id: vi-primary-research
@@ -522,7 +522,7 @@ The license column follows each concept's compiled card frontmatter (**Reported*
 | [WhisperLiveKit](whisperlivekit.md) | faster-whisper, mlx-whisper, Whisper, FunASR, Voxtral, Qwen3 (vLLM / streaming), Canary, OpenAI API | WebSocket + OpenAI/Deepgram-compatible; SimulStreaming or LocalAgreement policy[^wlk-readme] |
 | [RealtimeSTT](realtimestt.md) | selectable realtime + final engines behind VAD gating | Python library + FastAPI server[^realtimestt-readme] |
 | [Speaches](speaches.md) | faster-whisper | OpenAI-compatible server, SSE streaming[^speaches-readme] |
-| [Parakeet ASR Server](parakeet-asr-server.md) | Parakeet TDT 0.6B (ONNX) | Whisper-compatible REST/SSE[^parakeet-readme] |
+| [Parakeet ASR Server](parakeet-asr-server.md) | Parakeet TDT 0.6B (ONNX) | Whisper-compatible REST/SSE; full audio upload before streamed decoded text, not native audio-input streaming[^parakeet-readme] |
 | [TheWhisper-Large-V3-Turbo](thewhisper-large-v3-turbo.md) Docker + Apple SDK | TheWhisper S/M/L/XL (Triton ensemble) + CoreML engines | OpenAI-compatible `POST /v1/audio/transcriptions` (Docker); Swift `infer`/`open_streamer` + Flutter `infer` (Apple)[^thewhisper-turbo-card] |
 | [Fast GPU ASR](fast-gpu-asr.md) | Zipformer Transducer/CTC, Parakeet TDT/CTC (TensorRT, NVIDIA GPU only) | Python library; B300 FP16 beam-6 batch-256 reports 25,108.6 RTFx at 5.261% mean WER (Zipformer CR-CTC Transducer) and 19,398.7 RTFx at 4.810% (Parakeet V3 TDT) over 157.8 h of English audio[^fast-gpu-asr-readme] |
 | vLLM / [SGLang-Omni](sglang-omni.md) / [vLLM-Omni](vllm-omni.md) | Qwen3-ASR (`qwen-asr-serve`), ARK-ASR, Cohere Transcribe 03-2026 + Arabic (`/v1/audio/transcriptions`), MOSS-Transcribe-Diarize 0.9B (SGLang Omni `verbose_json` segments, vLLM `--trust-remote-code`), Voxtral Mini 4B Realtime (`/v1/realtime`), Voxtral Mini 3B / Small 24B (`audio.transcriptions` + chat completions with tools; Small needs TP-2) | OpenAI-compatible[^qwen3-asr-readme][^ark-asr-3b-card][^cohere-03-2026-card][^cohere-arabic-card][^moss-transcribe-diarize-card][^voxtral-mini-4b-realtime-card][^voxtral-mini-3b-card][^voxtral-small-24b-card] |
