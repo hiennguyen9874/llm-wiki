@@ -497,6 +497,8 @@ These are unverified anecdotes from community threads and an LLM-generated repor
 
 ## Relationships
 
+- Complements [So sánh công cụ triển khai speech](speech-deployment-tools-comparison.md), which compares deployment layers rather than weights and distinguishes GPU serving, dedicated optimizers, native runtimes, streaming pipelines and orchestration; benchmark definitions and model licenses remain separate selection gates (**Synthesis**).[^faster-qwen3-tts-readme][^sglang-omni-readme][^vllm-omni-readme][^audio-cpp-gguf-readme]
+
 - Uses every TTS concept linked in the [Master catalog](#master-catalog) as its evidence base. Each model page carries the full card detail (**Synthesis**).
 - Complements [ASR/STT Model Survey](asr-stt-model-survey.md), which covers the recognition half of the VAD → STT → LLM → TTS loop (**Synthesis**).
 

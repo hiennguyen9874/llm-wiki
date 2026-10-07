@@ -5,7 +5,7 @@ description: Comparison of open-source realtime voice-agent orchestration framew
 tags: [pipeline, orchestration, webrtc, frameworks]
 status: draft
 created: 2026-10-06
-generated: { by: llm-wiki-agent/1, at: 2026-10-06T18:00:00Z }
+generated: { by: llm-wiki-agent/1, at: 2026-10-07T04:37:10Z }
 stale_after: 2027-10-06
 sources:
   - id: claude-pipeline-report
@@ -34,6 +34,8 @@ Telephony-leaning: Bolna, Dograh, Vocode. Listed but not re-checked: RealtimeSTT
 - Known pitfall: Pipecat once blocked its event loop by iterating faster-whisper's lazy `transcribe` generator; segments must be collected inside `asyncio.to_thread` (PR #5931) (**Reported**).[^claude-pipeline-report]
 
 ## Relationships
+
+- Compared in [So sánh công cụ triển khai speech](speech-deployment-tools-comparison.md): these frameworks belong to the orchestration tier, not the ASR/TTS inference-engine tier; this table remains secondary AI-report evidence, not primary-project verification (**Synthesis**).[^claude-pipeline-report]
 
 - Used by [Vietnamese Realtime Voice Agent Stack](vietnamese-realtime-voice-agent-stack.md) as its orchestration layer (**Synthesis**).[^claude-pipeline-report]
 - Integrates [Silero VAD](silero-vad.md), [Faster-Whisper](faster-whisper.md), and Smart Turn from [Turn Detection Models](turn-detection-models.md) (**Synthesis**).[^claude-pipeline-report]

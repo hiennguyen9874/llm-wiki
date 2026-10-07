@@ -567,6 +567,8 @@ These are unverified anecdotes from community threads, kept apart from vendor ev
 
 ## Adjacent concepts
 
+- Deployment-tool comparison: [So sánh công cụ triển khai speech](speech-deployment-tools-comparison.md) separates native engines, GPU optimizers, API servers, streaming STT policies and voice-agent orchestration; read it before equating an SSE server with native streaming (**Synthesis**).[^parakeet-readme][^wlk-readme]
+
 - Realtime selection synthesis: [Phân nhóm ASR/STT và shortlist realtime](realtime-asr-selection.md) groups the catalog by architecture and streaming semantics, with conditional size tiers, language filters, and an unvalidated deployment shortlist (**Synthesis**).
 
 - Synthesis side of the voice loop: [TTS Model Survey](tts-model-survey.md) compares every compiled TTS model.

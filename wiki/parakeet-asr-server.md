@@ -76,6 +76,8 @@ Parakeet ASR Server (`achetronic/parakeet`) is a lightweight, production-ready s
 
 ## Relationships
 
+- Compared in [So sánh công cụ triển khai speech](speech-deployment-tools-comparison.md): this is an API server over fixed Parakeet weights, not a general inference runtime; full-upload SSE belongs to a different streaming class from microphone WebSocket sessions (**Synthesis**).[^parakeet-readme]
+
 - Uses [Silero VAD](silero-vad.md): optional `silero_vad.onnx` (2.3 MB) supplies the VAD-based chunk-boundary stage with mel-energy and midpoint fallbacks; consult that page for model footprint, runtimes, and sampling-rate scope (**Synthesis**).[^parakeet-readme]
 - Uses [Parakeet TDT 0.6B V3](parakeet-tdt-0.6b-v3.md): this server is a deployment vehicle for those weights via the istupakov ONNX conversion; model-level accuracy, language, and training questions belong on that page (**Synthesis**).[^parakeet-readme]
 - Compare self-hosted serving with [Faster-Whisper](faster-whisper.md) (CTranslate2 Whisper reimplementation), [RealtimeSTT](realtimestt.md) (Python VAD-gated library + server), and [WhisperLiveKit](whisperlivekit.md) (streaming pipeline with diarization): this page's differentiator is Go-based Whisper-compatible batch/SSE transcription of a fixed 0.6B TDT checkpoint with optional CUDA and long-audio chunking (**Synthesis**).[^parakeet-readme]
