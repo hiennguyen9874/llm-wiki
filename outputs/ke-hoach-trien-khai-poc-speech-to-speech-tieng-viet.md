@@ -1,0 +1,410 @@
+# Kế hoạch triển khai PoC speech-to-speech tiếng Việt — Phase 1
+
+> **Loại tài liệu:** kế hoạch triển khai (deliverable trong `outputs/`, không phải tri thức canonical).
+> **Ngày:** 2026-10-07.
+> **Triển khai cho:** [Spec PoC Phase 1](spec-poc-speech-to-speech-tieng-viet.md). Tham chiếu: [thiết kế pipeline](thiet-ke-pipeline-speech-to-speech-tieng-viet.md), [ASR](lua-chon-va-thiet-ke-asr-stt-tieng-viet-realtime.md), [TTS](lua-chon-va-thiet-ke-tts-tieng-viet-realtime.md). Chi tiết lấy thêm từ wiki: [HF Speech-to-Speech](../wiki/speech-to-speech-pipeline.md), [NeMo-Speech.cpp](../wiki/nemo-speech-cpp.md), [VieNeu-TTS v3 Turbo](../wiki/vieneu-tts-v3-turbo.md), [G-OmniVoice](../wiki/g-omnivoice.md), [Gwen-TTS 0.6B](../wiki/gwen-tts-0.6b.md), [Qwen3-ASR](../wiki/qwen3-asr-family.md), [Nemotron 3.5 ASR](../wiki/nemotron-3.5-asr-streaming-0.6b.md).
+> **Nhãn:** **Reported** = nguồn tự công bố; **Synthesis** = đề xuất của kế hoạch; **TBD** = xác minh ở Day 0; **Ngoài wiki** = kiến thức chung chưa được compile vào wiki, phải kiểm tra.
+> Kế hoạch không đổi quyết định nào của spec. Những điểm kế hoạch **đề xuất thêm** được đánh dấu `[ĐX]` và gom lại ở mục 11.
+
+---
+
+## 0. Tóm tắt
+
+- **Khối lượng:** ~10–12 ngày công cho 1 kỹ sư, chia 7 mốc (M0–M6). Day 0 (M0) là go/no-go cho từng run.
+- **Code phải viết** (phần còn lại là cấu hình):
+  1. `tts-proxy`: một proxy `/v1/audio/speech` đứng trước **mọi** TTS HTTP. Nó làm lớp text→speech tối thiểu (spec §3.5) và chuẩn hóa audio contract về đúng định dạng HF s2s cần (R4) `[ĐX]`.
+  2. `clone-tts-server`: một server `/v1/audio/speech` với 2 backend `gwen` và `gomni` (`gomni` chỉ dùng nếu R3 thất bại).
+  3. Bộ đo: ghi âm 2 kênh, phân tích voice-to-voice/barge-in, parse log HF s2s, lấy mẫu VRAM, manifest cho mỗi run, tổng hợp báo cáo.
+  4. Fixture Day 0: `tone-server` (TTS giả phát tone đã biết) và các script kiểm tra R1–R8.
+- **Thứ tự:** M0 Day 0 → M1 vòng R0 chạy được → M2 bộ đo (song song M1) → M3 các thành phần thay thế → M4 pilot → M5 chạy đủ ma trận → M6 báo cáo.
+
+---
+
+## 1. Topology và cổng
+
+```text
+Máy client (trình duyệt + ghi âm 2 kênh)
+   │ HTTPS/WebRTC (R8)
+   ▼
+Máy GPU 24 GB
+ ├─ s2s        speech-to-speech serve           :8765 (TBD)  env-s2s (venv)
+ │    ├─ ASR in-process: Qwen3-ASR 0.6B/1.7B                 (R0,R1,R3–R5)
+ │    └─ TTS in-process: handler omnivoice → G-OmniVoice     (R4, nếu R3 OK)
+ ├─ nemo       nemo-speech serve nemotron-3.5   :8090        binary native   (chỉ R2)
+ ├─ stt-shim   (fallback R1) /v1/audio/transcriptions :8091  env-tools       (chỉ R2, nếu cần)
+ ├─ tts-proxy  /v1/audio/speech                 :8100        env-tools
+ │    ├──► vieneu        Docker api-gpu         :8000        (R0–R3)
+ │    ├──► clone-tts gwen                       :8101        env-gwen (R5)
+ │    └──► clone-tts gomni (fallback R3)        :8102        env-gomni (R4)
+ └─ vram-sampler (nvidia-smi)
+   │ LAN
+   ▼
+Máy LLM: endpoint OpenAI-compatible  http://<llm-host>:<port>/v1
+```
+
+- Tất cả cổng model chỉ bind `127.0.0.1`, trừ cổng s2s phục vụ trình duyệt (**Synthesis**, theo spec §2 và nguyên tắc privacy).
+- `nemo-speech serve` mặc định là `127.0.0.1:8080`, còn `qwen-asr-serve` và VieNeu dùng `8000` (**Reported**). Vì vậy kế hoạch đổi cổng như bảng trên. Cờ đổi cổng của `nemo-speech serve` là **TBD**.
+- Mỗi run chỉ bật 1 ASR + 1 TTS trên GPU (spec Q29). Script `start_run.sh` dừng hết những gì không thuộc run đó.
+
+### 1.1 Môi trường
+
+| Env | Nội dung | Ghi chú |
+|---|---|---|
+| `env-s2s` | Python 3.11, `speech-to-speech[omnivoice]` + extra Qwen3-ASR (**TBD**) | Không cài DeepFilterNet (`numpy<2` xung đột, **Reported**). G-OmniVoice qua handler chạy chung env này |
+| `vieneu` | Docker Compose profile `api-gpu`, cổng 8000 | `VIENEU_MAX_STREAMS=2` |
+| `nemo` | `nemo-speech` build preset `cuda-server` (hoặc installer + bản prebuilt) | GGUF Nemotron 3.5 Q8 được tải và kiểm SHA-256 ở lần chạy đầu (**Reported**) |
+| `env-gwen` | `qwen-tts`, `flash-attn` (tùy chọn), FastAPI | Torch pin riêng |
+| `env-gomni` | `torch==2.8.0+cu128`, `omnivoice`, FastAPI | Chỉ tạo khi R3 thất bại |
+| `env-tools` | `fastapi`, `uvicorn`, `httpx`, `numpy`, `soundfile`, `soxr`, `silero-vad`, `pandas` | proxy, shim, bộ đo |
+
+Pin mọi version (`uv.lock` / `requirements.lock`, digest Docker image, commit/tag `nemo-speech`, HF revision của từng checkpoint). Pre-download weights trước M5 để không tải trong lúc đo.
+
+---
+
+## 2. Cấu trúc repo PoC
+
+Code đặt trong repo riêng (ví dụ `poc-s2s-vi/`), **không** đặt trong repo wiki. Báo cáo kết quả cuối cùng copy về `outputs/` (spec §7).
+
+```text
+poc-s2s-vi/
+  README.md                    cách dựng + chạy 1 run
+  runs.yaml                    R0..R5: asr, tts, voice, cờ s2s (nguồn duy nhất của cấu hình)
+  compose.yaml                 vieneu, tts-proxy, clone-tts-*
+  config/
+    system_prompt.txt          prompt spec §3.2
+    abbrev.yaml                từ điển viết tắt
+    lexicon.yaml               thay thế tên riêng/thuật ngữ (gồm chánh/tránh)
+    voices.yaml                voice_id → preset VieNeu / clone ref (đường dẫn ngoài repo)
+  services/
+    tts_proxy/                 app.py, normalize.py, audio.py, tests/
+    clone_tts/                 app.py, backends/{gwen,gomni}.py
+    stt_shim/                  (fallback R1)
+    tone_server/               fixture Day 0
+  scripts/
+    day0/                      r1_nemo.sh, r2_flags.sh, r3_gomni.py, r4_contract.md, r6_llm_cancel.py, r7_hook.sh, r8_https.md
+    run/                       start_run.sh, stop_all.sh, warmup.py, manifest.py, vram_sampler.sh
+    measure/                   record_stereo.sh, analyze_audio.py, parse_s2s_log.py, aggregate.py
+  protocol/
+    kich_ban.md                kịch bản ~21 lượt (mục 7)
+    phieu_quan_sat.csv         template (spec §5.4)
+    phieu_nghe_tts.csv
+  runs/                        (gitignored) R0/C1/{audio,logs,sheet.csv,manifest.json}
+  reports/
+```
+
+Dữ liệu cá nhân (reference clone, consent, bản ghi giọng tester, log có transcript) để **ngoài** repo, trong thư mục có quyền truy cập hạn chế (spec §3.4, §2).
+
+---
+
+## 3. Mốc M0 — Day 0: xác minh R1–R8 (1–1.5 ngày)
+
+Mục tiêu: chốt tên cờ, audio contract và các phương án dự phòng **trước khi** viết code. Kết quả ghi vào `docs/day0.md` và cập nhật các ô TBD trong `runs.yaml`.
+
+| # | Việc | Cách làm cụ thể | Pass khi | Nếu fail |
+|---|---|---|---|---|
+| R2 | Cờ s2s | `speech-to-speech serve -h`, rồi `serve --stt <x> -h` và `serve --tts <x> -h` cho từng selector: Qwen3-ASR, STT OpenAI-compatible, TTS OpenAI-compatible, `omnivoice`. Lưu output vào `docs/flags/` | Có cờ: chọn checkpoint Qwen 0.6B/1.7B, ép ngôn ngữ vi, `base_url`/model/voice/format cho STT và TTS HTTP, model path cho omnivoice | Tra mã nguồn (`src/speech_to_speech/` argument classes, **Reported** là chưa capture) |
+| R7 | Hook text trước TTS | `grep` trong mã s2s xem có bước tiền xử lý text trước khi gọi handler TTS không | Có hook cắm được `normalize()` | Dùng `tts-proxy` (đã là thiết kế mặc định của kế hoạch) |
+| R4 | Audio contract TTS HTTP | Chạy `tone-server`: trả 1.0 s sine 440 Hz, khai báo lần lượt 24k/48k, `pcm`/`wav`. Trỏ TTS HTTP của s2s vào đó, ghi loopback ở client, đo tần số và độ dài | Ra 440 Hz, dài 1.0 s | Xác định định dạng s2s thực sự chấp nhận; `tts-proxy` resample/đổi định dạng về đúng định dạng đó |
+| R1 | Nemotron `vi-VN` qua HTTP | `nemo-speech serve --asr-model nemotron-3.5`; gửi 1 file wav tiếng Việt 16 kHz mono tới `/v1/audio/transcriptions` với `language=vi-VN`, `language=vi`, và không truyền language | Ra chữ tiếng Việt đúng khi có `vi-VN` (hoặc auto) | (a) `stt-shim` đổi `vi`→`vi-VN`; (b) shim bọc NeMo Python `target_lang=vi-VN`; (c) bỏ R2 khỏi ma trận |
+| R3 | G-OmniVoice qua handler | Trỏ model path của handler `omnivoice` tới `g-group-ai-lab/g-omnivoice`, sinh 1 câu tiếng Việt kèm ref | Nghe ra tiếng Việt với giọng ref | `clone-tts` backend `gomni` đặt sau `tts-proxy` |
+| R6 | LLM hủy được | `r6_llm_cancel.py`: stream một câu trả lời dài, đóng kết nối sau 1 s, theo dõi log hoặc GPU util của server LLM | Server ngừng sinh trong ≤ 1–2 s | Ghi nhận là giới hạn; barge-in vẫn dừng âm thanh nhưng phí compute |
+| R8 | Mic trong trình duyệt từ máy khác | Mở browser demo từ máy client qua `http://<gpu-ip>` | Trình duyệt cho dùng mic | Reverse proxy TLS tự ký (Caddy/nginx) trước cổng s2s; hoặc chạy trình duyệt ngay trên máy GPU |
+| R5 | VRAM | Đo sơ bộ ở M3/M4 bằng `vram_sampler.sh` | Peak < ~22 GB | Giảm precision; giữ 1 ASR + 1 TTS |
+
+Thêm 3 việc Day 0 `[ĐX]`:
+
+- **TTS HTTP của s2s gửi gì:** bật log request ở `tone-server` để ghi lại body/headers mà s2s gửi (`model`, `voice`, `response_format`, `speed`, có `stream` không, có gửi theo câu hay theo mệnh đề không). Từ đó làm `tts-proxy` và `clone-tts` khớp đúng (spec §3.4, TBD).
+- **STT HTTP của s2s gửi gì:** tương tự, dùng một stub `/v1/audio/transcriptions` ghi lại định dạng audio (wav? sample rate?) và các field (`language`, `model`).
+- **Lưu ý ngoài wiki:** quy ước `pcm` của OpenAI TTS API là s16le 24 kHz mono (**Ngoài wiki**). Nếu client s2s ngầm giả định như vậy thì PCM 48 kHz của VieNeu sẽ phát sai tốc độ/cao độ. Đây chính là thứ R4 phải bắt được.
+
+**Đầu ra M0:** `docs/day0.md` (pass/fail + bằng chứng cho từng mục), `runs.yaml` đã điền cờ thật, danh sách run nào bị bỏ hoặc đổi phương án. Nếu Day 0 đổi kiến trúc (ví dụ bỏ R2), cập nhật spec trước khi sang M1.
+
+---
+
+## 4. Mốc M1 — Vòng R0 chạy được (2 ngày)
+
+### 4.1 VieNeu (TTS-VIE)
+
+1. `docker compose --profile api-gpu up -d` với `VIENEU_MAX_STREAMS=2`; pin image digest.
+2. Lấy danh sách preset bằng `GET /v1/voices` hoặc `list_preset_voices()`; chọn 1 giọng Bắc và 1 giọng Nam, ghi vào `voices.yaml`. Pin phiên bản SDK vì roster thay đổi giữa 3.7.1 và 3.8.x (**Reported**).
+3. Warmup: `warmup.py` gửi 3 câu mẫu ngắn/vừa/dài. Server chỉ được coi là ready sau warmup (spec §3.4). Tùy chọn: khóa clock GPU (`nvidia-smi -lgc`, cần root) để tránh phạt 100–300 ms sau khi GPU nghỉ (**Reported**).
+4. Kiểm tra trực tiếp: `curl -X POST :8000/v1/audio/speech -d '{"model":...,"input":"Xin chào, tôi là trợ lý.","voice":"<preset>","response_format":"pcm"}' --output a.pcm`, rồi phát lại ở 48 kHz.
+5. Temperature ~0.8 (**Reported**); cách truyền qua API là **TBD**.
+
+### 4.2 `tts-proxy`
+
+**Hợp đồng vào** (khớp với những gì s2s gửi, xác định ở Day 0):
+
+```text
+POST /v1/audio/speech   { model, input, voice, response_format, ... }
+GET  /health            200 chỉ khi upstream /health OK và đã warmup
+GET  /v1/models         (nếu s2s gọi)
+```
+
+**Xử lý:**
+
+```text
+input ─► normalize() ─► upstream (UPSTREAM_URL, voice map) ─► stream audio
+       └ log content-free                                    └ convert: dtype / sample rate / channels về OUT_FORMAT (R4)
+```
+
+- `normalize.py` cài đúng 5 rule của spec §3.5:
+  1. Unicode NFC.
+  2. Bỏ markdown (`**`, `#`, backtick, bullet `-`/`*`/`1.` đầu dòng, bảng), emoji, URL; giữ dấu câu.
+  3. `abbrev.yaml`: `TP.HCM`, `TP`, `UBND`, `km/h`, `%`, `đ`/`VND`. Match theo ranh giới từ, xử lý `TP.HCM` trước `TP`.
+  4. `lexicon.yaml`: thay thế theo ranh giới từ; bắt đầu với case `chánh` (**Reported/Unverified**, cách thay cụ thể chọn sau khi nghe thử).
+  5. Đếm chữ số còn sót (`\d`), **chỉ log** số lượng, không đọc thành chữ.
+- `audio.py`: chuyển đổi streaming (float32↔s16le, resample bằng `soxr` streaming, downmix về mono). Khi upstream đã đúng định dạng đích thì pass-through.
+- **Cancellation:** client (s2s) ngắt kết nối thì đóng luôn stream tới upstream (`httpx` stream context). Ghi lại upstream có thật sự ngừng tính toán không. Đây là kiểm tra TTS tương tự R6.
+- **Log mỗi request (content-free):** `req_id, run_id, chars_in, chars_out, rules_hit{md,emoji,url,abbrev,lexicon}, digits_left, upstream_ttfb_ms, proxy_ttfb_ms, total_ms, audio_s, cancelled`. Cờ `--log-content` chỉ bật trong phiên test và ghi ra file nằm ngoài repo.
+- **Test:** `tests/test_normalize.py` với khoảng 30 case (markdown, emoji, URL, mỗi viết tắt, lexicon, chuỗi số còn sót, NFC so với NFD). `tests/test_audio.py`: tone 440 Hz 48k→đích, kiểm tra tần số và độ dài.
+
+Chi phí proxy phải nhỏ: `proxy_ttfb_ms − upstream_ttfb_ms` P95 < ~10 ms (**Synthesis**). Đo ở M4.
+
+### 4.3 HF s2s + LLM + browser
+
+1. Cài `env-s2s`, pre-cache Smart Turn v3.2 (`--smart_turn_model_path` cho chế độ offline, **Reported**).
+2. Kiểm tra LLM trước: `curl <llm>/v1/chat/completions` với `stream: true` và system prompt; xác nhận thinking đã tắt (output không có khối reasoning).
+3. Ghép lệnh R0 từ `runs.yaml` (tên cờ có `<…>` lấy từ Day 0):
+
+```bash
+speech-to-speech serve --host 0.0.0.0 \
+  --stt <qwen3-asr-selector> <qwen-model-flag> Qwen/Qwen3-ASR-0.6B <qwen-lang-flag> <vi> \
+  --llm_backend chat-completions \
+  --responses_api_base_url http://<llm-host>:<port>/v1 --model_name <llm-model> \
+  --responses_api_reasoning_effort none \
+  --tts <openai-compatible-tts-selector> <tts-base-url-flag> http://127.0.0.1:8100/v1 <tts-voice-flag> <preset-bac> \
+  <system-prompt-flag-or-session.update>
+# VAD/turn: giữ default (--thresh 0.6, --min_silence_ms 64, --speculative_reopen_ms 800,
+#           Smart Turn v3.2, 600 ms / 2 s / 0.5) — spec Q30. Không truyền các cờ này.
+# Không bật --enable_llm_proxy, không bật --detect_llm_output_language.
+```
+
+4. Pin ngôn ngữ: cờ ngôn ngữ của backend STT, cộng với `session.audio.input.transcription.language` trong session của browser demo (cách đặt trong demo là **TBD**). Qwen3-ASR ép ngôn ngữ bằng tên ngôn ngữ (ví dụ `"English"`), nên giá trị cho tiếng Việt nhiều khả năng là `"Vietnamese"` (**Synthesis**, TBD).
+5. System prompt: dùng cờ instructions nếu có. Nếu không, đặt qua `session.update` của client (**TBD**).
+6. Dự phòng cho Qwen nếu backend in-process không ép được vi: chạy `qwen-asr-serve` (vLLM) và trỏ STT OpenAI-compatible của s2s vào đó (**Reported** là có route `audio.transcriptions`). Nhưng như vậy lại có thêm process, cần ghi rõ trong báo cáo.
+
+**Acceptance M1:** từ máy client, chạy 10 lượt R0/C1 liên tiếp không lỗi. Transcript là tiếng Việt, bot trả lời bằng tiếng Việt, ngắt lời bot thì bot im. Log s2s có latency STT/LLM/first-TTS-audio cho từng response.
+
+---
+
+## 5. Mốc M2 — Bộ đo (1.5 ngày, song song M1)
+
+### 5.1 Ghi âm 2 kênh (voice-to-voice phía client)
+
+Đề xuất `[ĐX]` ghi bằng phần mềm trên máy client (**Ngoài wiki**, cần thử):
+
+- Kênh 1: mic thô (thiết bị mic mà trình duyệt dùng). Kênh 2: monitor/loopback của thiết bị phát.
+- Linux/PipeWire: ghi cả hai nguồn bằng **một** lệnh `ffmpeg -f pulse -i <mic> -f pulse -i <sink>.monitor -filter_complex amerge=inputs=2` ra WAV 48 kHz. macOS cần thiết bị loopback (ví dụ BlackHole + Aggregate Device). Windows dùng WASAPI loopback.
+- **Hiệu chuẩn offset** mỗi phiên: phát một click qua loa (C2/C4) hoặc một click ngắn ở đầu file, đo độ lệch giữa 2 kênh, rồi trừ đi khi phân tích.
+- Phương án dự phòng: audio interface 2 input (mic + line-out loopback bằng cáp).
+
+### 5.2 `analyze_audio.py`
+
+1. Chạy Silero VAD offline riêng từng kênh, ra các đoạn speech.
+2. **Voice-to-voice:** với mỗi lượt, lấy điểm kết thúc đoạn speech của user trên kênh 1 mà ngay sau đó là đoạn bot trên kênh 2. v2v = `bot_onset(ch2) − user_offset(ch1)`.
+3. **Barge-in:** user bắt đầu nói (kênh 1) trong lúc kênh 2 đang có tiếng → thời gian tới khi kênh 2 im. Nếu kênh 2 không im, ghi là "ngắt trượt".
+4. **Ngắt nhầm:** kênh 2 dừng giữa chừng trong khi không có user speech thật.
+5. Ở C2/C4 (loa ngoài), kênh 1 có cả tiếng bot. Chỉ chấp nhận đoạn speech ở kênh 1 khi kênh 2 im, hoặc khi năng lượng kênh 1 vượt mức echo đã hiệu chuẩn. Mọi trường hợp mơ hồ được xuất thành **label track Audacity** để người đo xác nhận bằng tai, sau đó phân tích lại từ label đã sửa (**Synthesis**: bán tự động thay vì tin hoàn toàn vào VAD).
+6. Output: `runs/<R>/<C>/turns.csv` với các cột `turn, type, user_offset_s, bot_onset_s, v2v_ms, bargein_ms, flags`.
+
+### 5.3 Log server
+
+- `parse_s2s_log.py`: rút latency STT, LLM, first-TTS-audio, speech-to-audio cho từng response, cộng các sự kiện turn (reopen/revision) từ log s2s (định dạng log **TBD**, xem ở M1). Join với `turns.csv` **theo thứ tự lượt**, không theo timestamp, vì clock client và server khác nhau.
+- Log `tts-proxy` được join theo `req_id` và thứ tự.
+- `vram_sampler.sh`: `nvidia-smi --query-gpu=timestamp,memory.used,utilization.gpu --format=csv -lms 500` chạy suốt run, lấy peak.
+- `manifest.py`: ghi `run_id`, thời điểm, git commit của repo PoC, version pip, image digest, commit `nemo-speech`, HF revision và checksum của checkpoint, preset/voice, các cờ s2s đầy đủ, driver/CUDA, thời gian warmup.
+
+### 5.4 Phiếu
+
+- `phieu_quan_sat.csv`: đúng cột của spec §5.4 (`run | điều kiện | lượt | loại lượt | v2v_ms | cắt lời sớm? | barge-in kết quả | lỗi ASR | lỗi TTS | ghi chú`). `v2v_ms` được điền tự động từ `turns.csv`.
+- `phieu_nghe_tts.csv`: `run, lượt, lỗi thanh điệu, đọc sai số/tên, ngắt nghỉ lạ, giật/underrun, điểm 1–5, ghi chú`.
+- Mã lỗi cố định để phân loại được ở M6:
+  - ASR: `A-NUM`, `A-NAME`, `A-NEG`, `A-CS` (code-switch), `A-HALLU`, `A-TRUNC`.
+  - TTS: `T-TONE`, `T-NUM`, `T-NAME`, `T-PROS`, `T-GLITCH`.
+  - Turn: `E-CUT` (cắt lời sớm), `E-SLOW` (chờ > ~2 s), `B-MISS`, `B-FALSE`.
+
+**Acceptance M2:** trên một phiên thử 5 lượt, `turns.csv` khớp với đo tay bằng Audacity trong khoảng ±50 ms (**Synthesis**). Log s2s join đúng lượt.
+
+---
+
+## 6. Mốc M3 — Thành phần thay thế (2.5–3 ngày)
+
+### 6.1 ASR-Q17 (R1)
+
+Chỉ đổi checkpoint sang `Qwen/Qwen3-ASR-1.7B` trong `runs.yaml`. Đo peak VRAM cùng VieNeu.
+
+### 6.2 ASR-NEM (R2)
+
+- `nemo-speech serve --asr-model nemotron-3.5 <port-flag> 8090`. Ngôn ngữ đặt theo kết quả R1: field request, cờ server, hoặc `stt-shim`.
+- `stt-shim` (nếu cần, khoảng 0.5 ngày): nhận `/v1/audio/transcriptions` từ s2s, ép `language=vi-VN`, forward sang `nemo`, và bỏ tag `<vi-VN>` nếu có (**Reported**: chế độ auto gắn tag sau dấu câu cuối).
+- Trỏ STT OpenAI-compatible của s2s vào `:8090` hoặc `:8091`. Nhắc lại trong báo cáo: R2 là turn-final qua HTTP, **không** phản ánh lợi thế streaming (spec §3.3).
+
+### 6.3 Reference clone + VieNeu clone (R3)
+
+- Thu 1 reference **có consent bằng văn bản**: 8–10 s, phòng yên tĩnh, 1 người nói, kèm transcript chính xác từng chữ. 8–10 s nằm trong vùng hợp lệ của cả ba model: VieNeu 3–8 s (tự cắt về ≤ 8 s), G-OmniVoice 3–10 s, Gwen "vài giây" (**Reported**). Nên cắt sẵn **≤ 8 s** để cả ba dùng đúng cùng một file `[ĐX]`.
+- VieNeu: đăng ký giọng bằng `POST /v1/voices` (clone từ file upload, **Reported**), ghi `voice_id` vào `voices.yaml`. Nếu API không clone được thì R3 bị bỏ và R4/R5 so với R0 (spec §4).
+- File ref và consent lưu ngoài repo. Không ghi đường dẫn hay embedding vào log.
+
+### 6.4 `clone-tts` server (R5 Gwen; R4 fallback G-OmniVoice) — khoảng 1 ngày
+
+```text
+POST /v1/audio/speech  {model, input, voice, response_format: pcm|wav}
+   → header X-Sample-Rate / X-Channels / X-Dtype; body pcm s16le hoặc wav
+GET  /health → 200 sau khi load + warmup 2 câu
+```
+
+- **Backend `gwen`:** `Qwen3TTSModel.from_pretrained("g-group-ai-lab/gwen-tts-0.6B", device_map="cuda:0", dtype=bfloat16[, attn_implementation="flash_attention_2"])`, rồi `generate_voice_clone(text, language="Vietnamese", ref_audio, ref_text, **cfg)` với cfg khuyến nghị (`temperature=0.3, top_k=20, top_p=0.9, repetition_penalty=2.0, subtalker_*`, **Reported**). Sample rate lấy từ `sr` model trả về.
+- **Backend `gomni`:** `OmniVoice.from_pretrained("g-group-ai-lab/g-omnivoice", device_map="cuda:0", dtype=float16)`, rồi `generate(text, ref_audio, ref_text)`, ra 24 kHz (**Reported**).
+- **Giả-streaming theo câu** `[ĐX]`: tách `input` theo `.?!…;:`, sinh từng câu và stream audio của câu đó ngay khi xong. Cả hai card đều khuyên chia câu (**Reported**). Nếu s2s đã gửi theo mệnh đề (Day 0) thì bước này gần như không làm gì.
+- Mỗi lúc chỉ 1 request (`asyncio.Lock`, model chạy trong thread). Kiểm tra client disconnect **giữa các câu** để hủy; không hủy được giữa một lần `generate` (**Synthesis**, ghi vào báo cáo như một giới hạn).
+- Đặt sau `tts-proxy` để dùng chung lớp text rule và audio contract.
+
+### 6.5 G-OmniVoice qua handler (R4, nếu R3 pass)
+
+`--tts omnivoice --omnivoice_device cuda --omnivoice_ref_audio <ref.wav> --omnivoice_ref_text "<transcript>"` + model path (**TBD**). Handler phải chờ hết câu mới phát (**Reported**).
+
+> **Điểm cần chốt (D1):** nếu R7 cho thấy s2s **không có hook text**, R4 qua handler sẽ **không** đi qua lớp text rule, trong khi R0/R3/R5 có. Như vậy kết quả bị lẫn yếu tố. Đề xuất: khi đó chạy R4 qua `clone-tts gomni` + `tts-proxy`. Chi phí gần bằng 0 vì cùng codebase với Gwen. Việc này lệch khỏi Q19, cần người quyết định.
+
+**Acceptance M3:** mỗi thành phần pass smoke test (1 câu tiếng Việt end-to-end qua s2s ở C1), có peak VRAM của tổ hợp, và `runs.yaml` đủ R0–R5.
+
+---
+
+## 7. Kịch bản hội thoại (protocol/kich_ban.md)
+
+Thứ tự cố định, cùng một tester đọc cho mọi run. Mọi entity là **hư cấu**, không dùng số hay tên thật. Đây là bản nháp (**Synthesis**), được chỉnh ở M4.
+
+| # | Loại | Tester nói | Kiểm tra |
+|---|---|---|---|
+| 1 | thường | "Chào bạn, bạn giúp được tôi những việc gì?" | v2v, giọng |
+| 2 | thường | "Mùa này Đà Lạt thường có thời tiết thế nào?" | |
+| 3 | thường | "Gợi ý cho tôi một món ăn sáng đơn giản." | |
+| 4 | thường | "Làm sao để ngủ ngon hơn?" | |
+| 5 | thường | "Giải thích ngắn gọn trí tuệ nhân tạo là gì." | |
+| 6 | thường | "Nói thêm về ý thứ hai đi." | ngữ cảnh |
+| 7 | entity: tiền + tên | "Tôi muốn chuyển một triệu hai trăm năm mươi nghìn đồng cho anh Nguyễn Văn Bình." | A-NUM, A-NAME |
+| 8 | entity: SĐT | "Số của tôi là không chín một hai, ba bốn năm, sáu bảy tám. Nhắc lại giúp tôi." | A-NUM, T-NUM |
+| 9 | entity: ngày giờ | "Đặt lịch lúc hai giờ rưỡi chiều thứ Sáu, ngày mười bốn tháng mười một." | A-NUM |
+| 10 | entity: địa danh | "Tôi đang ở Thành phố Hồ Chí Minh, muốn đi Buôn Ma Thuột." | A-NAME, T-NAME |
+| 11 | code-switch | "Gửi giúp tôi email về buổi meeting với team marketing." | A-CS |
+| 12 | phủ định | "Đừng hủy lịch hẹn đó." | A-NEG |
+| 13 | sửa lời | "Không, không phải thứ Sáu, là thứ Bảy." | A-NEG, ngữ cảnh |
+| 14 | lệnh ngắn | "Dừng lại." | từ ngắn bị nuốt |
+| 15 | ngập ngừng | "Tôi muốn hỏi về… *(nghỉ 1.5 s)* …cách đăng ký học lái xe." | E-CUT |
+| 16 | ngập ngừng | "Cho tôi biết, ừm… *(nghỉ 2 s)* …giá vé tàu đi Hà Nội." | E-CUT |
+| 17 | barge-in | "Kể cho tôi nghe về lịch sử Hà Nội." → sau ~2 s bot nói: "Thôi, nói ngắn thôi." | B-MISS, thời gian bot im |
+| 18 | barge-in | "Kể tên các tỉnh miền Tây." → "Khoan đã." | |
+| 19 | barge-in | "Kể một câu chuyện cổ tích." → "Đổi chuyện khác đi." | |
+| 20 | đọc số | "Một trăm hai mươi lăm nhân tám bằng bao nhiêu?" | prompt viết số bằng chữ, `digits_left` |
+| 21 | đọc số | "Ba phần trăm của hai triệu đồng là bao nhiêu?" | T-NUM |
+| — | sự kiện nhiễu | Trong lúc bot đang trả lời lượt 2 và lượt 5: ho một tiếng, gõ phím ~2 s | B-FALSE (không tính là lượt) |
+
+---
+
+## 8. Mốc M4 — Pilot (0.5 ngày)
+
+- Chạy R0 × C1–C4 một lượt đầy đủ: đủ kịch bản, đủ thiết bị, đủ phiếu.
+- Sửa harness, kịch bản, vị trí nguồn nhiễu và âm lượng. Chốt và **ghi lại** setup âm thanh: thiết bị, mức âm lượng hệ thống, khoảng cách loa và nguồn nhiễu, nội dung nhiễu (cùng một file TV/nhạc lặp lại).
+- Đo overhead của `tts-proxy`. Kiểm tra `--log_transcripts` ghi ra đúng thư mục ngoài repo.
+- Dữ liệu pilot **không** dùng cho kết quả.
+
+---
+
+## 9. Mốc M5 — Chạy ma trận (1.5–2 ngày)
+
+Quy trình cho mỗi run (tự động hóa bằng `start_run.sh <R>`):
+
+```text
+stop_all → start ASR/TTS của run → health OK → warmup (TTS câu mẫu + 3 lượt hội thoại bỏ đi)
+→ manifest.json → vram_sampler on → [C1 → C2 → C3 → C4]: record_stereo + kịch bản + phiếu
+→ vram_sampler off → copy log s2s/proxy/clone-tts → analyze_audio → kiểm label mơ hồ
+```
+
+- Thứ tự run: R0, R1, R2, R3, R4, R5, rồi **R0′** (R0 lặp lại, chỉ C1) để phát hiện drift do tester mệt, mạng hoặc nhiệt GPU `[ĐX]`.
+- Nghỉ giữa các điều kiện. Một phiên mỗi điều kiện khoảng 10 phút, mỗi run khoảng 1–1.5 giờ tính cả chuyển đổi, nên ~2 run mỗi buổi.
+- Bật `--log_transcripts` trong mọi phiên đo, vì G2 cần transcript. Log có nội dung chỉ nằm trên máy GPU và được xóa theo retention sau khi báo cáo xong (spec §2).
+- Không sửa code hay cấu hình giữa các run. Nếu buộc phải sửa (bug), chạy lại mọi run đã chạy trước đó với bản sửa, hoặc ghi rõ trong báo cáo.
+
+---
+
+## 10. Mốc M6 — Phân tích và báo cáo (1.5 ngày)
+
+`aggregate.py` sinh các bảng. Báo cáo viết vào `outputs/ket-qua-poc-speech-to-speech-tieng-viet-phase-1.md`.
+
+1. **Latency (G1):** v2v P50/P95 cho mỗi run, **gộp C1–C4** (n ≈ 80). Theo từng điều kiện chỉ báo median + max. Với n ≈ 20, P95 thực chất gần bằng max (**Synthesis**) `[ĐX]`. Thêm latency từng stage (STT, LLM, first-TTS-audio) từ log s2s. So với mục tiêu mềm P50 ≤ 1.5 s / P95 ≤ 2.5 s.
+2. **ASR (G2):** đếm lỗi theo mã trên các lượt 7–14, cho mỗi run.
+3. **TTS (G3):** đếm lỗi theo mã, điểm 1–5 trung bình, `digits_left` trung bình mỗi lượt (đo mức LLM tuân thủ prompt).
+4. **Endpointing / barge-in (G4):** `E-CUT`, `E-SLOW`, `B-MISS`, `B-FALSE` theo run × điều kiện; thời gian tới khi bot im (median/max).
+5. **A/B (G5):** chênh lệch của mỗi run so với baseline của nó (R1/R2 so với R0; R4/R5 so với R3). Ghi chú R0′ so với R0 (drift).
+6. **Tài nguyên:** peak VRAM, thời gian warmup.
+7. **Giới hạn:** R2 là turn-final; G-OmniVoice và Gwen không stream; n nhỏ; một tester; các phương án fallback đã kích hoạt ở Day 0.
+8. **Đề xuất Phase 2:** dựa trên số liệu, đối chiếu backlog trong spec §8 (ví dụ: chuyển sang Namo nếu tỷ lệ cắt lời sai > 10%).
+
+---
+
+## 11. Lịch, phụ thuộc và các điểm cần chốt
+
+### 11.1 Lịch dự kiến (1 kỹ sư)
+
+| Ngày | Việc |
+|---|---|
+| 1 | M0: R2, R7, R4 (tone-server), R8, R6 |
+| 1.5 | M0: R1, R3; chốt `runs.yaml`; cập nhật spec nếu cần |
+| 2–3 | M1: VieNeu, tts-proxy (+test), s2s + LLM + browser, R0 chạy được · M2 song song: ghi âm, hiệu chuẩn |
+| 4 | M2: analyze_audio, parse log, manifest, phiếu |
+| 5–6.5 | M3: Q17, NEM (+shim), reference + VieNeu clone, clone-tts (gwen/gomni), handler omnivoice |
+| 7 | M4 pilot |
+| 8–9 | M5 R0–R5 + R0′ |
+| 10–11 | M6 phân tích + báo cáo |
+
+```text
+M0 ─► M1 ─► M3 ─► M4 ─► M5 ─► M6
+  └──► M2 ──────┘
+```
+
+Có thể chạy R0/R1 sớm ngay sau M2 trong khi M3 làm tiếp phần NEM/Gwen. Nhưng mọi run phải dùng cùng một bản harness đã chốt ở M4.
+
+### 11.2 Đề xuất thêm so với spec `[ĐX]`
+
+| # | Đề xuất | Lý do |
+|---|---|---|
+| X1 | Đặt **mọi** TTS HTTP (cả VieNeu) sau `tts-proxy` | Spec đã cho phép khi R7 fail. Làm vậy cho cả 3 backend có chung text rule, audio contract và log, giúp A/B công bằng |
+| X2 | `tone-server` + stub STT ở Day 0 | Biết chính xác s2s gửi/nhận gì, thay vì đoán (R4, Gwen contract) |
+| X3 | Reference clone ≤ 8 s dùng chung | Nằm trong vùng hợp lệ của cả 3 model |
+| X4 | Giả-streaming theo câu trong `clone-tts` | Giảm TTFA cho input nhiều câu, rất ít rủi ro |
+| X5 | Chạy R0′ ở cuối | Phát hiện drift |
+| X6 | Báo P95 trên dữ liệu gộp C1–C4 | n = 20 mỗi điều kiện không đủ cho P95 |
+| X7 | Phân tích audio bán tự động (label Audacity) | Ở chế độ loa ngoài, VAD không phân biệt được user với echo |
+
+### 11.3 Điểm cần người quyết định
+
+| # | Câu hỏi | Mặc định nếu không chốt |
+|---|---|---|
+| D1 | R7 fail: chạy R4 qua handler (lệch text rule) hay qua `clone-tts gomni` + proxy? | Qua proxy (X1) |
+| D2 | Máy/OS client để ghi âm 2 kênh? | Linux + PipeWire |
+| D3 | Một tester cho mọi run? Ai là người cho reference clone? | Một tester; ref là người khác, có consent |
+| D4 | Nơi lưu và thời hạn giữ bản ghi, log có transcript, ref/consent | Trên máy GPU, ngoài repo, xóa sau 30 ngày kể từ khi có báo cáo |
+
+---
+
+## 12. Rủi ro triển khai (bổ sung cho spec §6)
+
+| Rủi ro | Dấu hiệu | Xử lý |
+|---|---|---|
+| Client TTS HTTP của s2s gửi cả câu trả lời một lần, không theo mệnh đề | Log `tone-server` chỉ thấy 1 request mỗi response | Không chunk thêm ở proxy (ngoài phạm vi Phase 1); ghi là yếu tố latency. Giả-streaming theo câu (X4) giảm được một phần cho Gwen/G-Omni |
+| Browser demo không cho đặt session language hay instructions | Không thấy field trong demo | Sửa nhỏ JS của demo, hoặc dùng cờ server; ghi lại thay đổi |
+| Drift clock client giữa 2 nguồn ghi | Offset click đầu và cuối phiên lệch > 20 ms | Ghi bằng audio interface 2 kênh |
+| Echo loa ngoài làm VAD offline sai | Nhiều label mơ hồ ở C2/C4 | Rà tay (X7); giảm âm lượng theo setup đã chốt |
+| Weights tải lại giữa run | Warmup lâu bất thường | Pre-cache, `HF_HUB_OFFLINE=1` (**Reported** cho s2s) |
+| Phạt clock GPU sau khi nghỉ | Lượt đầu mỗi điều kiện chậm hơn rõ | 3 lượt warmup trước mỗi điều kiện, không chỉ đầu run; tùy chọn khóa clock |
+
+---
+
+## 13. Definition of done (trùng tiêu chí của spec §7)
+
+- [ ] `docs/day0.md` có kết quả R1–R8; spec đã được cập nhật theo các cờ và fallback thật.
+- [ ] `runs.yaml`, manifest và log đủ cho R0–R5 × C1–C4 (cộng R0′).
+- [ ] Bảng P50/P95 voice-to-voice và latency từng stage.
+- [ ] Danh sách lỗi ASR/TTS/turn đã phân loại theo mã.
+- [ ] Báo cáo `outputs/ket-qua-poc-speech-to-speech-tieng-viet-phase-1.md` có đề xuất Phase 2 dựa trên số liệu.
+- [ ] Dữ liệu cá nhân nằm ngoài repo, có hạn xóa (D4).
