@@ -5,7 +5,7 @@ description: NVIDIA 600M-parameter cache-aware FastConformer-RNNT streaming mult
 tags: [stt, asr, streaming, multilingual, fastconformer, rnnt, nemo]
 status: stable
 created: 2026-10-06
-generated: { by: llm-wiki-agent/1, at: 2026-10-06T00:00:00Z }
+generated: { by: llm-wiki-agent/1, at: 2026-10-07T03:56:09Z }
 stale_after: 2027-10-06
 sources:
   - id: nemotron-35-asr-card
@@ -65,6 +65,20 @@ All numbers below are source assertions from the card's FLEURS test-set tables i
 - Retrieval anchors at 1.12 s LangID: Spanish 4.11, Italian 4.25, Portuguese 5.48, Hindi 6.81, Korean CER 7.12, English 7.91, German 8.31, French 9.03; Vietnamese 11.18 (80 ms: 13.41); Japanese CER 11.48; Arabic 12.03; Ukrainian 13.07; broad-coverage best Polish 15.15 and worst Hungarian 28.68 / Danish 27.49 / Estonian 26.35 / Romanian 25.90 (**Reported**).[^nemotron-35-asr-card]
 - Auto-detect penalty is small on high-resource Latin-script languages (Spanish 4.13, Italian 4.32, Portuguese 5.47, French 9.02 at 1.12 s) and larger where language confusion costs more (Hindi 8.23 vs 6.81, Russian 10.03 vs 9.17, Ukrainian 14.59 vs 13.07, Bulgarian 21.84 vs 20.53, Croatian 27.46 vs 23.97 at 1.12 s) (**Reported**).[^nemotron-35-asr-card]
 - Frontmatter `model-index` spot-checks match the 1.12 s LangID column for English 7.91, Spanish 4.11, French 9.03, Italian 4.25, Portuguese 5.48, German 8.31, Hindi 6.81, and Korean 7.12 (**Observed** by static inspection).[^nemotron-35-asr-card]
+
+### Vietnamese operating curve
+
+Full vi-VN FLEURS row, source-reported WER%, not reproduced; retrieved again from a byte-identical remote card2026-10-07 (**Reported** results, static row inspection **Observed**).[^nemotron-35-asr-card]
+
+| Chunk | LangID vi-VN | Auto |
+|---|---:|---:|
+|80ms|13.41|13.59|
+|160ms|12.87|13.02|
+|320ms|12.29|12.40|
+|560ms|11.78|12.02|
+|1120ms|11.18|11.22|
+
+Used by [Vietnamese Realtime ASR Selection](vietnamese-realtime-asr-selection.md): start160–320ms as an experiment, not a validated SLA. Chunk size is not total stable-text or endpoint→final latency. The remote re-fetch is not independent corroboration, and Qwen offline FLEURS numbers do not form a matched streaming comparison (**Synthesis**).[^nemotron-35-asr-card]
 
 ## Training data and procedure
 

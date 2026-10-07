@@ -5,9 +5,14 @@ description: Research-report recommendation for an open-source Vietnamese realti
 tags: [pipeline, vad, stt, llm, tts, vietnamese, streaming, noisy-audio]
 status: draft
 created: 2026-10-06
-generated: { by: llm-wiki-agent/1, at: 2026-10-06T18:00:00Z }
+generated: { by: llm-wiki-agent/1, at: 2026-10-07T03:56:09Z }
 stale_after: 2027-10-06
 sources:
+  - id: vi-primary-research
+    resource: ../raw/vietnamese-asr-research-2026-10-07/README.md
+    scope: ../raw/vietnamese-asr-research-2026-10-07/
+    kind: documentation
+    title: Vietnamese ASR primary-source follow-up
   - id: claude-pipeline-report
     resource: ../raw/Claude-pipeline-recommend.md
     kind: llm-response
@@ -15,6 +20,15 @@ sources:
 ---
 
 A Vietnamese-language research report dated 10/2026 concludes that a cascaded Silero VAD → Whisper → Qwen3 → Qwen3-TTS realtime voice chat is buildable, but that a Vietnamese product breaks at the TTS stage because official Qwen3-TTS supports 10 languages without Vietnamese; it therefore recommends VieNeu-TTS v3 Turbo for Vietnamese, keeps Qwen3-TTS for English/Chinese and its other supported languages, and puts every TTS behind one `/v1/audio/speech` endpoint so swapping TTS is only a URL change (**Reported**).[^claude-pipeline-report] For noisy environments it argues that AEC, speaker lock, duration-gated barge-in, confidence gating, and a Vietnamese hallucination blacklist matter more than placing a denoiser in front of ASR (**Reported**).[^claude-pipeline-report]
+
+## ASR primary-source corrections (2026-10-07)
+
+The sections below preserve the original AI-report recommendations, not a current validated stack. Use [Vietnamese Realtime ASR Selection](vietnamese-realtime-asr-selection.md) for updated model/streaming/license filtering (**Synthesis**).[^vi-primary-research]
+
+- Qwen Vietnamese offline WER5.55/8.52 and14.92/17.67 is now directly inspected in paper AppendixTableA.2. Streaming §4.5 uses2s chunks,5-token fallback and four unfixed chunks, evaluates only LibriSpeech/FLEURS-en/zh.92ms TTFT is Table2 concurrency1; concurrency128 TTFT3210ms/P95 6195ms yields throughput2000 audio-seconds/second on complete~2min inputs, not mic stable-text latency (**Reported**).[^vi-primary-research]
+- [PhoWhisper](phowhisper.md) README/card confirm844h finetuning and BSD-3. [ChunkFormer Vietnamese](chunkformer-vietnamese.md) CTC110M card says~3000h/CC-BY-NC-4.0, RNNT113M says~5000h/CC-BY-4.0, so the report's generic110M/~25Kh/NC label is not applicable to every checkpoint. ONNX true-streaming uses a distinct small streaming-trained example; its card returned401, with access/license/WER unresolved (**Reported/Observed**).[^vi-primary-research]
+- [ZipFormer30M](zipformer-30m-vietnamese.md) upstream says6000h and CC-BY-NC-ND-4.0, contradicting the report's Apache label. CPU12s/0.3s file throughput does not establish native streaming; the CPU/edge tier below is a historical unverified recommendation, not approved commercial deployment (**Reported/Synthesis**).[^vi-primary-research]
+- No model execution or independent benchmark occurred; paper/ONNX-code/checkpoint coverage remains partial per ledger. Other VAD/TTS/noise/turn and hardware estimates stay AI-report/draft evidence.[^vi-primary-research]
 
 ## Source and trust
 
@@ -129,8 +143,10 @@ Tier rows are the report's recommendation (**Reported**).[^claude-pipeline-repor
 ## Coverage and limits
 
 - Source inspected statically in full (TL;DR, Key Findings, Part 1 survey §1–§8, Part 2 integration incl. mermaid diagram, reference Python server, docker-compose skeleton, Recommendations, Caveats); no code executed, no model installed, and no latency, VRAM, WER, or accuracy figure reproduced (**Synthesis**).[^claude-pipeline-report]
-- Every cited primary source (model cards, arXiv papers, GitHub issues/PRs, framework docs, blogs) is uncaptured in `raw/`; the report's citations are claims about those sources, not verified quotes, so this concept stays `draft` until primary sources are ingested (**Synthesis**).[^claude-pipeline-report]
+- The original ingest did not capture the report's cited primary sources. The2026-10-07 follow-up captures selected Qwen/PhoWhisper/ChunkFormer/ZipFormer ASR documentation, but not all cited sources or a complete deployment validation; remaining report citations are still unverified secondhand claims, so this concept stays `draft` (**Synthesis**).[^claude-pipeline-report]
 - The reference server and docker-compose are summarized rather than reproduced; the report flags VieNeu streaming field names and vLLM-Omni image tags as unverified (**Synthesis**).[^claude-pipeline-report]
 - Release dates and benchmark numbers carry `stale_after: 2027-10-06` per the `pipeline`, `vad`, `stt`, `llm`, and `tts` domain rules (**Synthesis**).[^claude-pipeline-report]
+
+[^vi-primary-research]: [Primary research capture](../raw/vietnamese-asr-research-2026-10-07/README.md) — `qwen-report.html` §2.4/Table2, §4.5/Table8, AppendixTableA.2; PhoWhisper card/README; ChunkFormer CTC/RNNT cards Model Description/frontmatter and ONNX guide; ZipFormer30M upstream frontmatter/Inference Speed. Ledger records unavailable checkpoint and pending artifacts.
 
 [^claude-pipeline-report]: [Claude voice-pipeline research report](../raw/Claude-pipeline-recommend.md) — locators: title and opening paragraph (Qwen3-TTS lacks Vietnamese, VieNeu recommendation, `/v1/audio/speech` swap); `TL;DR` (recommended 24 GB stack, verified-to-10/2026 facts, noisy-environment bullets); `Key Findings` 1–5; `PHẦN 1` §1 VAD, §2 preprocessing, §3 turn detection, §4 STT/ASR table, §5 LLM table plus serving paragraph, §6 TTS table, §7 speech-to-speech/omni, §8 framework table; `PHẦN 2` `Kiến trúc tổng thể` (mermaid flowchart, transport paragraph), `Qwen3: chọn cỡ và cách gọi`, `Qwen3-TTS: chọn model và cách dùng` (model choice, `qwen-tts` API, vLLM-Omni streaming, Vietnamese options, normalization, G2P issue #207), `Ngân sách độ trễ` table plus `Kỹ thuật tối ưu` and VRAM list, `Code mẫu` (server.py plus usage notes), `Triển khai` (docker-compose, scaling, monitoring, evaluation); `Recommendations` (tier table, `Lộ trình`, `Khi nào nên thay thành phần`); `Caveats`.

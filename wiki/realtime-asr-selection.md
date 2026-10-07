@@ -5,9 +5,12 @@ description: Phân nhóm ASR/STT theo kiến trúc và streaming, đề xuất d
 tags: [stt, asr, streaming, realtime, selection, vietnamese]
 status: draft
 created: 2026-10-06
-generated: { by: llm-wiki-agent/1, at: 2026-10-06T17:08:08Z }
+generated: { by: llm-wiki-agent/1, at: 2026-10-07T03:56:09Z }
 stale_after: 2027-10-06
 sources:
+  - id: vi-selection
+    resource: vietnamese-realtime-asr-selection.md
+    kind: synthesis
   - id: survey
     resource: asr-stt-model-survey.md
     kind: synthesis
@@ -190,7 +193,7 @@ Không đưa ARK, Hojo, Higgs, GLM, Cohere, Canary-Qwen, Voxtral 3B/24B vào sho
 
 **Synthesis:** benchmark Nemotron 3.5 0.6B và Qwen3-ASR 0.6B trước; nâng Qwen lên 1.7B nếu giảm lỗi tên riêng, số, phủ định và code-switch đủ đáng kể. Whisper Turbo là baseline/fallback nếu chấp nhận buffered hoặc end-of-turn.[^nemotron][^qwen][^vn]
 
-Nemotron có FLEURS-vi WER 13.41 tại 80 ms và 11.18 tại 1.12 s (**Reported**). Không đối chiếu trực tiếp với Qwen offline/AI-report để kết luận model nào tốt nhất realtime.[^nemotron][^qwen] Zipformer VN ~30M là ứng viên CPU do báo cáo AI đề xuất; chưa có concept/check primary riêng và benchmark độc lập, nên giữ ở hàng nghiên cứu chứ không shortlist đã xác nhận.[^vn]
+Nemotron có FLEURS-vi WER 13.41 tại 80 ms và 11.18 tại 1.12 s (**Reported**). Không đối chiếu trực tiếp với Qwen offline/AI-report để kết luận model nào tốt nhất realtime.[^nemotron][^qwen] Primary follow-up tại [Vietnamese Realtime ASR Selection](vietnamese-realtime-asr-selection.md) bổ sung [PhoWhisper](phowhisper.md), [ChunkFormer Vietnamese](chunkformer-vietnamese.md) và [ZipFormer30M](zipformer-30m-vietnamese.md). Qwen paper streaming dùng2s chunks/5-token fallback/bốn unfixed chunks, không vi streaming benchmark;92ms TTFT không phải mic latency. ChunkFormer large RNNT113M có CC-BY-4.0 nhưng streaming-trained small checkpoint còn unavailable; CTC110M có NC. ZipFormer30M upstream NC-ND, chưa có native streaming protocol. Không dùng dải size120M/0.6B generic để mặc định mọi checkpoint có vi (**Reported/Synthesis**).[^vi-selection]
 
 ## Gate benchmark
 
@@ -212,6 +215,8 @@ Nemotron có FLEURS-vi WER 13.41 tại 80 ms và 11.18 tại 1.12 s (**Reported*
 - Runtime/backends có thể khác semantics; WLK có Qwen HF adapter, không phủ nhận giới hạn vLLM-only của toolkit gốc. Không chuyển các tuyên bố production/validated của source thành xác minh của wiki.[^qwen][^wlk]
 - Không có target CPU/GPU, ngôn ngữ ưu tiên rõ ràng, số phiên hay latency SLA. Vì vậy status draft: shortlist chưa được validate trên máy đích; không có verified metadata.
 - Benchmark vendor không chung protocol; coverage/language/latency của VibeVoice còn thiếu; Confucius thiếu hardware/protocol, Audio8 còn preview; các nguồn này không chứng minh năng lực production.[^survey][^vibe][^r2t2][^infinite]
+
+[^vi-selection]: [Vietnamese Realtime ASR Selection](vietnamese-realtime-asr-selection.md) — Shortlist; Qwen streaming/efficiency; Chọn runtime; Coverage; primary-source chain2026-10-07, no execution.
 
 [^survey]: [asr-stt-model-survey ](asr-stt-model-survey.md) — sections: Master catalog; Streaming and latency; Selection guide; Coverage and limits.
 [^nemotron]: [nemotron-3.5-asr-streaming-0.6b ](nemotron-3.5-asr-streaming-0.6b.md) — sections: Supported languages and language detection; Streaming operating points; Benchmarks (FLEURS); Coverage and limits.
