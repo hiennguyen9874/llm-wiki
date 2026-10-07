@@ -5,7 +5,7 @@ description: Shortlist TTS realtime tiếng Việt theo chất lượng bằng c
 tags: [tts, vietnamese, streaming, comparison, deployment]
 status: draft
 created: 2026-10-07
-generated: { by: llm-wiki-agent/1, at: 2026-10-07T04:47:01Z }
+generated: { by: llm-wiki-agent/1, at: 2026-10-07T04:54:02Z }
 stale_after: 2027-10-07
 sources:
   - id: vieneu-tts-repo
@@ -218,6 +218,8 @@ C++/GGUF là deployment alternative, không đổi language/weight license: audi
 - Coverage: local docs chỉ được static-inspect như trên; linked weights, code, tests, figure assets, demo audio, license texts, training data và papers ngoài captures còn pending/unavailable theo model concepts; decorative images/boilerplate không dùng để suy performance. Không model install, audio listening, inference, external live research hay independent corroboration trong phiên này.
 
 ## Relationships
+
+- Used by [Vietnamese Speech Pipeline Design](vietnamese-speech-pipeline-design.md): ghép shortlist này với ASR và deployment tools, thêm clause/normalizer, audio-format contract, cancellation và release gates; không bổ sung benchmark hay quality ranking TTS.
 
 - Uses [TTS Model Survey](tts-model-survey.md) để map toàn catalog, nhưng thêm Vietnamese-specific deployment gates và sửa thiếu sót shortlist rộng.[^tts-survey]
 - Uses [VieNeu-TTS v3 Turbo](vieneu-tts-v3-turbo.md), [VoxCPM2](voxcpm2.md), [Supertonic 3](supertonic-3.md) làm ba baseline deployable có điều kiện; quyết định là synthesis từ support/runtime/license claims.[^vieneu-tts-repo][^voxcpm2-card][^supertonic3-card]

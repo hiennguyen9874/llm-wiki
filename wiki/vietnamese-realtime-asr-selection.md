@@ -5,7 +5,7 @@ description: Lựa chọn ASR realtime tiếng Việt theo chất lượng, nati
 tags: [stt, asr, vietnamese, streaming, selection, comparison]
 status: draft
 created: 2026-10-07
-generated: { by: llm-wiki-agent/1, at: 2026-10-07T03:56:09Z }
+generated: { by: llm-wiki-agent/1, at: 2026-10-07T04:54:02Z }
 stale_after: 2027-10-07
 sources:
   - id: primary
@@ -121,6 +121,8 @@ MOSS-Transcribe-Diarize có vi trong challenge list nhưng offline long-form, ph
 5. Chỉ quyết định production sau gate availability, license, target-hardware performance và no-action-on-unstable-text.
 
 ## Relationships và coverage
+
+- Used by [Vietnamese Speech Pipeline Design](vietnamese-speech-pipeline-design.md): ghép shortlist này với TTS, endpointing và runtime thành năm cấu hình không chọn LLM chính, có transcript revision/commit và deployment gates; đây là thiết kế tổng hợp, không validation ASR mới.
 
 - Uses [ASR/STT Model Survey](asr-stt-model-survey.md) và [Realtime shortlist](realtime-asr-selection.md); bổ sung tiếng Việt, primary-paper protocol và license correction.[^survey][^primary]
 - Uses [PhoWhisper](phowhisper.md), [ChunkFormer Vietnamese](chunkformer-vietnamese.md) và [ZipFormer30M](zipformer-30m-vietnamese.md) làm các specialized alternatives newly captured.[^primary]

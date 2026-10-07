@@ -5,7 +5,7 @@ description: Phân nhóm và so sánh runtime CPU/edge, engine GPU, API server, 
 tags: [pipeline, stt, tts, vad, serving, deployment, comparison]
 status: draft
 created: 2026-10-07
-generated: { by: llm-wiki-agent/1, at: 2026-10-07T04:37:10Z }
+generated: { by: llm-wiki-agent/1, at: 2026-10-07T04:54:02Z }
 stale_after: 2027-10-07
 sources:
   - { id: audio-cpp, resource: audio-cpp-framework.md, kind: synthesis, title: audio.cpp Framework }
@@ -161,6 +161,8 @@ Tất cả số dưới đây là **Reported**, chưa chạy lại:
 License runtime không cấp quyền weights, preset voices hay voice cloning. transcribe.cpp MIT, NeMo/vLLM-Omni/Fast GPU ASR Apache-2.0 được nguồn nêu; Speaches và identifier license SGLang-Omni chưa rõ trong capture; không tự điền từ trí nhớ. OmniVoice GGUF NC và mâu thuẫn phạm vi commercial VieNeu giữ nguyên (**Reported/Synthesis**).[^transcribe-cpp][^nemo-cpp][^vllm-omni][^fast-gpu-asr][^speaches][^sglang-omni][^omnivoice-cpp][^vieneu]
 
 ## Relationships
+
+- Used by [Vietnamese Speech Pipeline Design](vietnamese-speech-pipeline-design.md): áp dụng phân tầng công cụ vào năm cấu hình ASR/TTS tiếng Việt với turn owner, adapter contracts, deployment placement và gate kiểm thử; không xác nhận compatibility hay hiệu năng tổ hợp.
 
 - Uses: [ASR/STT Model Survey](asr-stt-model-survey.md) và [TTS Model Survey](tts-model-survey.md) để nối lựa chọn runtime với language/weights; trang này so sánh công cụ, không thay survey model (**Synthesis**).[^asr-survey][^tts-survey]
 - Contrasts with: [Voice Agent Frameworks](voice-agent-frameworks.md) chỉ tập trung orchestration, còn trang này tách các tầng runtime/server/streaming/orchestration và độ mạnh provenance (**Synthesis**).[^frameworks]
