@@ -3,7 +3,8 @@
 > **Loại tài liệu:** bài viết tổng hợp (deliverable trong `outputs/`, không phải tri thức canonical).
 > **Ngày:** 2026-10-07.
 > **Cơ sở:** chỉ dùng wiki đã compile. Điểm xuất phát là [Vietnamese Speech Pipeline Design](../wiki/vietnamese-speech-pipeline-design.md). Tôi đọc trước các trang tổng hợp: các trang `type: Synthesis` và các trang mà `wiki/log.md` ghi là *Answered*/*Reconciled*. Sau đó mới đọc tới các concept về model, runtime và control.
-> **Phạm vi bằng chứng:** không mở `raw/`, không cài đặt, không chạy inference, không đo benchmark. Mọi con số trong bài là của vendor/tác giả/report (**Reported**). Mọi lựa chọn và cấu hình đề xuất là suy luận tổng hợp (**Synthesis**). Không có thành phần nào đã được kiểm chứng end-to-end trên tiếng Việt.
+> **Cập nhật 2026-10-07 (sau khi ingest tài liệu con, theo [review tài liệu thiếu](review-missing-document.md)):** đọc thêm các trang wiki mới về [Smart Turn v3.2](../wiki/smart-turn.md), các trang con của [HF s2s](../wiki/speech-to-speech-cli-and-defaults.md) và [NeMo-Speech.cpp HTTP API](../wiki/nemo-speech-http-api.md), [VieNeu OpenAI API](../wiki/vieneu-tts-openai-speech-api.md). Đã sửa: số liệu Smart Turn tiếng Việt (§5.3), cách nối Nemotron với HF s2s (§5.4, §5.7), hợp đồng audio TTS (§2 nguyên tắc 4), playback buffer (§8.3), mâu thuẫn mở (§11), giới hạn (§13). Phần còn lại giữ nguyên.
+> **Phạm vi bằng chứng:** không mở `raw/` (trừ phần cập nhật nêu trên, chỉ đọc qua wiki), không cài đặt, không chạy inference, không đo benchmark. Mọi con số trong bài là của vendor/tác giả/report (**Reported**). Mọi lựa chọn và cấu hình đề xuất là suy luận tổng hợp (**Synthesis**). Không có thành phần nào đã được kiểm chứng end-to-end trên tiếng Việt.
 
 ---
 
@@ -84,7 +85,7 @@ Các nguyên tắc dưới đây là **Synthesis** rút ra từ các trang tổn
 1. **Tách năm tầng:** model, inference runtime, API server, streaming policy, orchestration. Lý do: một runtime hỗ trợ GGUF không có nghĩa là mọi checkpoint đều streaming. Một endpoint "OpenAI-compatible" không có nghĩa là drop-in. Và license của runtime không thay cho license của weights.
 2. **Mỗi quyết định turn chỉ có một owner.** Gateway (hoặc turn tracker của framework) là nơi duy nhất quyết định close, reopen và commit một lượt. VAD, ASR và TTS chỉ cung cấp tín hiệu.
 3. **ASR nghe audio sau AEC, không qua enhancement.** Denoise chỉ dùng cho nhánh VAD/barge-in, cho tới khi A/B trên WER tiếng Việt chứng minh điều ngược lại.
-4. **Mỗi backend khai báo rõ audio contract:** sample rate, dtype, số kênh, framing, cách cancel. VieNeu SDK trả `float32` 48 kHz, còn HTTP trả `s16le` 48 kHz. MOSS Local có codec stereo nhưng ví dụ stream lại là mono. Higgs dùng SSE base64 WAV.
+4. **Mỗi backend khai báo rõ audio contract:** sample rate, dtype, số kênh, framing, cách cancel. VieNeu SDK trả `float32` 48 kHz, còn HTTP trả `s16le` 48 kHz (mặc định, có thể xin `sample_rate` 24000/16000/8000 qua field của request). Trong HF s2s, `--tts openai` nhận PCM16 thô theo `--openai_tts_sample_rate` rồi chuyển dần về khối 16 kHz mono `int16`, nên trần băng thông của cả pipeline là 16 kHz. MOSS Local có codec stereo nhưng ví dụ stream lại là mono. Higgs dùng SSE base64 WAV.
 5. **Không hành động trên văn bản chưa commit.** Partial dùng cho caption và cho tính toán speculative. Side effect (tool call, phát âm thanh đã cam kết) chỉ chạy sau `turn.commit`.
 6. **Không cộng các con số khác loại.** Chunk size của ASR không phải độ trễ ra văn bản ổn định. TTFT 92 ms của Qwen không phải độ trễ từ mic. TTFA 115 ms của VieNeu không phải độ trễ voice-to-voice. RTF của batch không phải RTF của một stream.
 7. **License là hard gate,** áp dụng trước mọi điểm chất lượng.
@@ -162,15 +163,15 @@ VAD chỉ biết "đang im lặng". Turn detector trả lời câu hỏi "user �
 
 | Model | Tiếng Việt | Kích thước / latency | License |
 |---|---|---|---|
-| **Pipecat Smart Turn v3.x** (pick) | Có. Accuracy 81.27%, **FP 14.84%**, FN 3.88% (vendor, 1.004 mẫu) | ~8M params, CPU int8 8 MB. 12 ms CPU, ~60–65 ms trên cloud | BSD-2 |
+| **Pipecat Smart Turn v3.2** (pick) | Có, nhưng là ngôn ngữ yếu nhất trong 23 ngôn ngữ. Benchmark vendor, 1.004 mẫu vi: GPU fp32 accuracy 82.47%, FPR 9.56%, FNR 7.97%; **CPU int8 (bản HF s2s tải mặc định)** accuracy 79.38%, FPR 8.86%, FNR 11.75% | ~8M params, CPU int8 8 MB, GPU fp32 32 MB. 10 ms trên một số CPU, dưới 100 ms trên đa số cloud, ~65 ms Pipecat Cloud | BSD-2 |
 | Namo (community, `dangvansam`) | Có, do tác giả tự đo | ~200 MB (bản VN), 4–36 ms | Plugin LiveKit, chưa có benchmark độc lập |
 | LiveKit Turn Detector | **Không** (14 ngôn ngữ) | ~25 ms | License riêng của LiveKit |
 
-Tất cả là **Reported** qua AI report, chưa kiểm chứng từ nguồn gốc.
+Smart Turn là **Reported** từ [capture gốc của vendor](../wiki/smart-turn.md) (README + model card + benchmark CPU/GPU). Namo và LiveKit vẫn là **Reported** qua AI report, chưa có nguồn gốc. Số 81.27% / FP 14.84% / FN 3.88% trong AI report **không khớp** capture v3.2; chưa rõ report mô tả bản nào, xem §11.
 
 **Hệ quả thiết kế:**
 
-- FP 14.84% nghĩa là khoảng **1/7 lần** detector báo "hết lượt" trong khi user vẫn đang nói. Vì vậy luôn kèm **fallback timeout 1.2–1.5 s**.
+- FPR 8.86–9.56% nghĩa là cỡ **1/10** quyết định "hết lượt" có thể đến khi user vẫn đang nói (đọc thô, **Synthesis**). Bản CPU còn bỏ sót nhiều hơn (FNR 11.75% so với 7.97%), nên bản GPU fp32 đáng thử nếu có GPU rảnh. Vì vậy luôn kèm timeout dự phòng; với HF s2s thì đó là `--smart_turn_max_wait_ms` (mặc định 2 s), còn thiết kế gateway tự viết dùng 1.2–1.5 s.
 - Nếu tỷ lệ false-interruption tiếng Việt vẫn > 10%, thay sang Namo hoặc một model fine-tune (ngưỡng thay thế, **Reported**).
 - Khi không có semantic detector, dùng 500–800 ms im lặng, tune theo tốc độ nói (**Synthesis**, theo blueprint).
 
@@ -180,6 +181,8 @@ Tất cả là **Reported** qua AI report, chưa kiểm chứng từ nguồn g�
 - Turn được đánh giá là complete: chạy STT/LLM ngay, kèm speculative reopen 800 ms trước khi commit output.
 - Turn được đánh giá là incomplete: chờ 600 ms rồi mới chạy. Output bị gate bởi max wait 2 s.
 - User nói tiếp: turn mở lại thành một revision mới, công việc chưa commit bị bỏ.
+
+Các default này đã được đối chiếu với argument class của HF s2s ([CLI and Defaults](../wiki/speech-to-speech-cli-and-defaults.md), **Observed** trong code): `--thresh 0.6`, `--min_silence_ms 64`, `--min_speech_ms 384`, `--speech_pad_ms 500`, `--speculative_reopen_ms 800`, `--unanswered_reopen_ms 7000`, `--smart_turn_threshold 0.5`, `--smart_turn_incomplete_delay_ms 600`, `--smart_turn_max_wait_ms 2000`. Smart Turn mặc định tải checkpoint v3.2 **CPU**. Lưu ý `min_speech_ms=384`: đoạn nói ngắn hơn ngưỡng này (lệnh một âm tiết) có thể không thành lượt (**Synthesis**, cần thử).
 
 Đây là thiết kế "speculative + revision", khác thiết kế "commit cứng sau timeout" của report. Không nên chép default 64 ms/800 ms/2 s của HF sang cùng bảng tham số với Silero 200–300 ms + 1.2–1.5 s, vì hai triết lý control khác nhau (**Synthesis**).
 
@@ -214,7 +217,7 @@ Các con số là **Reported**. Vai trò là **Synthesis**.
 - Đừng đặt Qwen 5.55 lên trước Nemotron 12.29. Hai con số khác giao thức (offline so với streaming, có LangID) và khác chunk.
 - Đừng so VIVOS với FLEURS. Hai tập khác nhau, normalizer cũng khác.
 - TTFT 92 ms của Qwen 0.6B đo ở concurrency 1, với input ~2 phút có sẵn. Ở concurrency 128, TTFT là 3210 ms (P95 6195 ms). Không con số nào trong đó là độ trễ từ mic.
-- Nemotron phải đặt `vi-VN` tường minh, vì pipeline Transformers mặc định là `en-US`.
+- Nemotron phải đặt `vi-VN` tường minh, vì pipeline Transformers mặc định là `en-US`. Trong NeMo-Speech.cpp, HTTP `/v1/audio/transcriptions` có field `language` ([HTTP API](../wiki/nemo-speech-http-api.md)); giá trị `vi` hay `vi-VN` nào được nhận vẫn phải thử. Trong HF s2s, handler `--stt nemotron-streaming` dùng NeMo `transcribe()` (offline) với `target_lang=auto`, tự phát hiện ngôn ngữ từng utterance và chỉ dùng `--nemotron_streaming_language` làm fallback khi model không phát tag (**Reported**, [STT README](../wiki/speech-to-speech-pipeline.md)); nghĩa là **không ép được `vi-VN`** qua handler này và chịu thêm phạt auto-detect.
 - Tên "0.6B/1.7B" của Qwen chưa tính hết encoder, projector và cache.
 
 **Loại khỏi shortlist tiếng Việt** vì language list không có vi: Parakeet (25 ngôn ngữ châu Âu) và các bản phái sinh, Canary, Voxtral, Audio8, SenseVoiceSmall, GLM-ASR, Hojo, ARK, VibeVoice Streaming, Granite TurboCTC, Distil-Whisper (chỉ English) (**Reported**). Hệ quả thực tế: **default Parakeet TDT của HF s2s và RealtimeSTT không dùng được cho tiếng Việt**. Phải đổi backend.
@@ -327,14 +330,16 @@ Capabilities là **Reported**. Thứ tự ưu tiên là **Synthesis** theo độ
 | Lựa chọn | Phù hợp | Chi phí tích hợp tiếng Việt |
 |---|---|---|
 | **Pipecat** (BSD-2) | Cascade tùy biến; WebRTC (Daily, SmallWebRTC), WS, telephony | Có sẵn `SileroVADAnalyzer`, `LocalSmartTurnAnalyzerV3`, `WhisperSTTService`, `OpenAILLMService(base_url=...)`. Chỉ cần viết một `TTSService` tùy biến có `run_tts()` gọi VieNeu. Nemotron và Qwen streaming cần adapter riêng |
-| **HF speech-to-speech** (Apache-2.0) | Muốn có OpenAI Realtime subset (gồm `response.cancel`, `conversation.item.truncate`) và Smart Turn v3.2 sẵn | Phải đổi default không có vi: `--stt faster-whisper --language vi` hoặc backend Qwen3-ASR; TTS qua OpenAI-compatible `/v1/audio/speech` trỏ tới VieNeu. Nemotron chỉ có qua extra `nemo` với `--stt nemotron-streaming`; **chưa xác nhận hỗ trợ Nemotron 3.5 `vi-VN`** |
+| **HF speech-to-speech** (Apache-2.0) | Muốn có OpenAI Realtime subset (gồm `response.cancel`; `conversation.item.truncate` chỉ được chấp nhận như no-op, không cắt lịch sử phía server) và Smart Turn v3.2 sẵn | Phải đổi default không có vi: `--stt faster-whisper --language vi` hoặc `--stt qwen3-asr --qwen3_asr_language vi`; TTS qua `--tts openai --openai_tts_base_url ...` trỏ tới VieNeu (cờ đã xác nhận trong [CLI and Defaults](../wiki/speech-to-speech-cli-and-defaults.md)). Nemotron có ba đường: extra `nemo` với `--stt nemotron-streaming` (turn-final, auto-detect, không ép `vi-VN`); `--stt openai` trỏ tới `/v1/audio/transcriptions` của NeMo-Speech.cpp; hoặc `--stt openai-realtime` (giao thức khác, chưa chắc tương thích, xem §5.7) |
 | LiveKit Agents (Apache-2.0) | Cần WebRTC SFU / SIP | Turn detector không có vi |
 | TEN / FastRTC | Agora RTC / Gradio WebRTC | Không có lợi thế gì cho tiếng Việt |
 | Gateway FastAPI/asyncio tự viết | Kiểm soát toàn bộ turn và cancel | Report có reference server (`VADIterator` mỗi session, gate barge-in 400 ms, `{"type":"clear"}`). Phải tự làm metrics và cancellation |
 
-So sánh framework là bằng chứng thứ cấp (AI report). Riêng HF s2s có README gốc. Các plugin hiện hành chưa được kiểm tra.
+**Nemotron streaming thật với HF s2s (Synthesis, chưa kiểm chứng).** Backend `--stt openai-realtime` của s2s nói giao thức transcription của OpenAI (`intent=transcription`, audio 24 kHz, model cấu hình trong session), còn `/v1/audio/transcriptions/realtime` của NeMo-Speech.cpp là giao thức riêng, nguồn ghi rõ "không phải OpenAI Realtime API" (dù tên event gần giống, và `/v1/realtime` cũng phục vụ giao thức transcription này khi không nạp VoiceChat). Tài liệu không nói hai bên ghép được; cần thử bằng stub trước khi tính là "stream không cần viết handler". Hai đường còn lại đều turn-final ở s2s. Nguồn: [OpenAI-Compatible Backends](../wiki/speech-to-speech-openai-compatible-backends.md), [NeMo-Speech.cpp HTTP API](../wiki/nemo-speech-http-api.md).
 
-HF s2s còn có các điểm vận hành đáng học: log mặc định không chứa nội dung (content-free; `--log_transcripts` là opt-in), và log độ trễ STT, LLM, first-TTS-audio theo từng response. Một lưu ý bảo mật: LLM proxy của nó **không có auth hay throttling**. Phải để tắt, hoặc đặt sau một gateway có kiểm soát truy cập.
+So sánh framework là bằng chứng thứ cấp (AI report). Riêng HF s2s nay có README gốc và các tài liệu con. Các plugin hiện hành chưa được kiểm tra.
+
+HF s2s còn có các điểm vận hành đáng học: log mặc định không chứa nội dung (content-free; `--log_transcripts` là opt-in), và một bản ghi độ trễ mỗi response ([Latency Instrumentation](../wiki/speech-to-speech-latency-instrumentation.md)): `stt`, `llm`, `tts_ttfa`, `e2e` (từ *ước lượng* cuối tiếng nói tới audio TTS đầu tiên, không gồm playback), `vad_decision_s`, `smart_status`, `hold_s`. Các stage chồng lấn nên không được cộng. `tts_ttfa`/`e2e` chỉ đo cho TTS `qwen3` và `openai`; handler `omnivoice` là `n/a`. Giá trị cũng nằm trong `response.done` metadata (`speech_to_speech.turn_latency`). Một lưu ý bảo mật: LLM proxy của nó **không có auth hay throttling**. Phải để tắt, hoặc đặt sau một gateway có kiểm soát truy cập.
 
 ### 5.8 Deploy tools: chọn đúng tầng
 
@@ -553,7 +558,7 @@ Theo report (**Reported**):
 - Chạy faster-whisper trong `asyncio.to_thread`.
 - **Preemptive ASR + LLM** khi VAD im 200 ms, và cancel nếu user nói tiếp. Cơ chế speculative reopen của HF s2s là phiên bản có kỷ luật của ý tưởng này.
 - Clause chunking để TTS bắt đầu sớm. Blueprint gọi đây là tối ưu quan trọng nhất.
-- Playback buffer nhỏ để chống giật. Client đóng gói sẵn của HF s2s đệm 196 ms khi dùng TTS OpenAI-compatible. Đánh đổi là bớt giật nhưng chậm bắt đầu hơn.
+- Playback buffer nhỏ để chống giật. Chỉ client Python đóng gói sẵn (`local --tts openai`) mặc định đệm 196 ms; browser demo qua WebSocket mặc định 0 ms (chỉnh trong Settings), WebRTC không dùng tùy chọn này. VieNeu khuyến nghị client pre-buffer 150–300 ms ([Streaming Runtime](../wiki/vieneu-tts-streaming-runtime.md)); nguồn demo nêu ví dụ 1200 ms trong một setup TTS cục bộ nhưng nói rõ không phải tối ưu chung. Đánh đổi là bớt giật nhưng chậm bắt đầu hơn.
 
 ### 8.4 Monitoring theo từng turn
 
@@ -659,7 +664,8 @@ Phần này giữ nguyên các mâu thuẫn trong wiki, không chọn bên nào.
 | Enhancement trước ASR | arXiv 2403.06387 (ARN/CrossNet, CHiME-4): giúp ASR | arXiv 2512.17562 và 2603.04710: làm giảm chất lượng ở mọi cấu hình đã thử (Whisper 10 dB: 8.82% → 25.83% semWER). Không có nghiên cứu nào trên tiếng Việt |
 | TEN VAD so với Silero | Vendor: TEN chính xác hơn | Benchmark cộng đồng nhỏ: Silero F1 91.9% so với TEN 69.2% |
 | Default endpoint | HF s2s: `--min_silence_ms` 64 + speculative reopen 800 ms + Smart Turn max wait 2 s | Report: Silero 200–300 ms + fallback 1.2–1.5 s. Đây là hai triết lý control khác nhau |
-| Qwen3-TTS và tiếng Việt | Blueprint dùng `language="vi"` | Card chính thức có 10 ngôn ngữ, không có vi |
+| Qwen3-TTS và tiếng Việt | Blueprint dùng `language="vi"` | Card chính thức (cả Base 0.6B) có 10 ngôn ngữ, không có vi. Card [Gwen-TTS](../wiki/gwen-tts-0.6b.md), bản finetune từ Base, dùng `language="Vietnamese"` trong ví dụ `generate_voice_clone` |
+| Số liệu Smart Turn tiếng Việt | AI report: accuracy 81.27%, FP 14.84%, FN 3.88% | Capture v3.2 của vendor: GPU 82.47% / 9.56% / 7.97%, CPU 79.38% / 8.86% / 11.75% (cùng 1.004 mẫu). Chưa rõ report mô tả bản nào ([Turn Detection Models](../wiki/turn-detection-models.md)) |
 
 ---
 
@@ -676,9 +682,9 @@ Phần này giữ nguyên các mâu thuẫn trong wiki, không chọn bên nào.
 ## 13. Giới hạn của bài viết
 
 - **Không có số đo nào cùng điều kiện** về WER, MOS, TTFA hay voice-to-voice tiếng Việt trên một stack hoàn chỉnh. Tất cả các trang nguồn tổng hợp đều đang ở `status: draft`.
-- Các tham số control (Smart Turn vi, barge-in, denoise, Whisper filter, latency/VRAM budget) và bảng so sánh framework phần lớn dựa trên **AI report thứ cấp**. Các nguồn gốc mà report trích dẫn chưa được capture vào `raw/`.
+- Các tham số control (barge-in, denoise, Whisper filter, latency/VRAM budget) và bảng so sánh framework phần lớn dựa trên **AI report thứ cấp**. Smart Turn, HF s2s (tài liệu con), NeMo-Speech.cpp (server/API) và VieNeu (streaming/API/Docker) nay đã có capture gốc trong `raw/`, nhưng cũng mới chỉ được đọc tĩnh: chưa chạy gì. Namo, LiveKit, TEN và các nguồn gốc khác của report vẫn chưa có.
 - Event schema, cây quyết định và pseudo-code là **đề xuất thiết kế**, không phải API đã triển khai.
-- Không mở `raw/`, không chạy model hay benchmark. Các khẳng định "không có vi" nghĩa là "chưa có trong phạm vi đã compile", không phải bằng chứng là không thể.
+- Bài này chỉ đọc qua wiki, không chạy model hay benchmark. Các khẳng định "không có vi" nghĩa là "chưa có trong phạm vi đã compile", không phải bằng chứng là không thể.
 - Số liệu về model và runtime có `stale_after` khoảng 2027-10. Cần kiểm tra lại release mới trước khi chốt.
 
 ---
@@ -708,10 +714,13 @@ Phần này giữ nguyên các mâu thuẫn trong wiki, không chọn bên nào.
 - [Speech Enhancement Before ASR](../wiki/speech-enhancement-before-asr.md)
 - [Whisper Hallucination Mitigation](../wiki/whisper-hallucination-mitigation.md)
 - [Silero VAD](../wiki/silero-vad.md)
+- [Smart Turn v3.2](../wiki/smart-turn.md)
 
 **Orchestration và runtime**
 
 - [HF Speech-to-Speech Pipeline](../wiki/speech-to-speech-pipeline.md)
+- [HF s2s — CLI and Defaults](../wiki/speech-to-speech-cli-and-defaults.md), [OpenAI-Compatible Backends](../wiki/speech-to-speech-openai-compatible-backends.md), [Realtime Engine](../wiki/speech-to-speech-realtime-engine.md), [Latency Instrumentation](../wiki/speech-to-speech-latency-instrumentation.md), [Browser Demo](../wiki/speech-to-speech-browser-demo.md)
+- [NeMo-Speech.cpp Server](../wiki/nemo-speech-server.md), [HTTP and Realtime API](../wiki/nemo-speech-http-api.md)
 - [Voice Agent Frameworks](../wiki/voice-agent-frameworks.md)
 - [NeMo-Speech.cpp](../wiki/nemo-speech-cpp.md)
 - [Faster-Whisper](../wiki/faster-whisper.md)
@@ -724,7 +733,8 @@ Phần này giữ nguyên các mâu thuẫn trong wiki, không chọn bên nào.
 - [Whisper Large v3 Turbo](../wiki/whisper-large-v3-turbo.md)
 - [PhoWhisper](../wiki/phowhisper.md)
 - [ChunkFormer Vietnamese](../wiki/chunkformer-vietnamese.md)
-- [VieNeu-TTS v3 Turbo](../wiki/vieneu-tts-v3-turbo.md)
+- [VieNeu-TTS v3 Turbo](../wiki/vieneu-tts-v3-turbo.md), [OpenAI Speech API](../wiki/vieneu-tts-openai-speech-api.md), [Streaming Runtime](../wiki/vieneu-tts-streaming-runtime.md)
+- [Qwen3-TTS-12Hz-0.6B-Base](../wiki/qwen3-tts-12hz-0.6b-base.md), [Gwen-TTS 0.6B](../wiki/gwen-tts-0.6b.md)
 - [VoxCPM2](../wiki/voxcpm2.md)
 - [MOSS-TTS Local v1.5](../wiki/moss-tts-local-transformer-v1-5.md)
 - [Kokoro Vietnamese](../wiki/kokoro-vietnamese.md)
