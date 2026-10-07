@@ -1,22 +1,26 @@
 ---
 type: Concept
 title: Jev-27B-VL Vision-Capable System 1 Decisions and Serving
-description: JEV-27B-VL adds zero-shot vision to JEV-27B System 1 decisions, with reported video-recommendation, agent-judge and multimodal-judge results plus 256-option, 256K-context and vLLM serving details.
-tags: [jev, vision, multimodal, recommendation, judge, vllm]
+description: JEV-27B-VL adds zero-shot vision to JEV-27B System 1 decisions, with reported robot-arm and computer-use control plus video-recommendation, agent-judge and multimodal-judge results, 256-option, 256K-context and vLLM serving details.
+tags: [jev, vision, multimodal, recommendation, judge, vllm, agents]
 status: stable
 created: 2026-10-02
-generated: { by: llm-wiki-agent/1, at: 2026-10-02T23:00:00Z }
+generated: { by: llm-wiki-agent/1, at: 2026-10-07T17:00:00Z }
 sources:
   - id: jev-27b-vl-2026-10-01
     resource: ../raw/JEV-27B-VL/README.md
     scope: ../raw/JEV-27B-VL/
     kind: model-card
     title: autotrust/JEV-27B-VL
+  - id: jev-27b-vl-2026-10-03
+    resource: ../raw/JEV-27B-VL.md
+    kind: model-card
+    title: autotrust/JEV-27B-VL — 3 October 2026 update
 ---
 
 # Jev-27B-VL Vision-Capable System 1 Decisions and Serving
 
-Synthesis: `autotrust/JEV-27B-VL` is JEV-27B with vision — the same text System 1 plus zero-shot image decisions whose head never saw images in training — served as calibrated `noul` / `choice` / `score` probabilities over text and images via `POST /v1/decide`, with **reported** recommendation and judge results at frontier level and **observed** vLLM adapter, bias plus temperature, wide-label, and adaptive-thinking mechanics[^jev-27b-vl-2026-10-01].
+Synthesis: `autotrust/JEV-27B-VL` is JEV-27B with vision — the same text System 1 plus zero-shot image decisions whose head never saw images in training — served as calibrated `noul` / `choice` / `score` probabilities over text and images via `POST /v1/decide`, with **reported** 3-October-2026 robot-arm and computer-use control loops alongside recommendation and judge results at frontier level and **observed** vLLM adapter, bias plus temperature, wide-label, and adaptive-thinking mechanics[^jev-27b-vl-2026-10-01][^jev-27b-vl-2026-10-03].
 
 ## Identity and provenance
 
@@ -30,6 +34,17 @@ Synthesis: `autotrust/JEV-27B-VL` is JEV-27B with vision — the same text Syste
 - Decision head was trained on text only; image decisions are zero-shot with ordering demonstrated but image-task calibration not systematically measured — a stated limitation[^jev-27b-vl-2026-10-01].
 - Text parity is **reported**: on 1,000 answer-checking decisions the mean probability difference to JEV-27B is 0.010 and 99.8% fall on the same side of 0.5[^jev-27b-vl-2026-10-01].
 - Demo vignettes are single-pass action probabilities per frame: Mario movement plus jump about 150 ms, Rubik's Cube 11-formula choice about 46 ms, Tetris column plus orientation about 122 ms, Quick Draw 16-way about 270 ms, Snake direction about 300 ms; Quick Draw detail is 88% when finished and 62% at 60% of strokes on 320 sketches versus 6% random[^jev-27b-vl-2026-10-01].
+
+## Embodied and computer-use control — reported 3 October 2026 update
+
+- Every step is one System 1 decision: a camera image or screenshot in, a probability for every action out, in a single forward pass[^jev-27b-vl-2026-10-03].
+- Robot-arm pick and place from a camera image (MuJoCo simulation): at each step System 1 answers two questions from the top camera image — is the target left or right of the gripper, and above or below it — the arm moves accordingly and halves its step whenever an answer flips; it grasps the cube, carries it, and drops it in the tray[^jev-27b-vl-2026-10-03].
+- **Reported** result: 75% of 20 random scenes completed, the best of the JEV family; every grasped cube ended in the tray (15 of 15) and every miss was a grasp 3.0–3.7 cm off target; about 240 ms per decision (239 ms in the family table)[^jev-27b-vl-2026-10-03].
+- Computer use on a real browser (headless Chromium): every clickable element gets a numbered box, System 1 picks the next click (or "the task is complete"), the browser clicks it, and the loop repeats[^jev-27b-vl-2026-10-03].
+- **Reported** result: 95% of 60 random multi-step tasks completed (shop, settings, mail; 3–7 clicks each), about 0.26 s per click; the colour-swatch click carries no text so it is decided from the screenshot alone[^jev-27b-vl-2026-10-03].
+- Same scenes and tasks for every model in the family (**reported**): robot pick-and-place JEV-27B-VL 75% versus [JEV-9B](jev-9b-system1-decisions.md) 50% versus GEV-26B-Decide 40%; computer use with numbered boxes plus element text 95% for all three; numbered boxes only 10% versus 37% versus 15%; time per robot-arm decision 239 ms versus 163 ms versus 61 ms[^jev-27b-vl-2026-10-03].
+- Negative results and guidance: asking System 1 to pick one of 8 motor commands directly completed 0 of 10 scenes — use it for simple visual questions inside a control loop; with numbered boxes alone it often declares the task complete too early, so supply the element text as an accessibility tree would[^jev-27b-vl-2026-10-03].
+- Provenance: demo code is the JEV-9B `vl/demos/` tree (point `JEV_URL` at this server) and per-episode results are under `reports/demos/`; the two demo videos are remote HF links and were not inspected locally[^jev-27b-vl-2026-10-03].
 
 ## Reported applied results
 
@@ -62,12 +77,15 @@ Synthesis: `autotrust/JEV-27B-VL` is JEV-27B with vision — the same text Syste
 - Uses [Classifier Calibration](classifier-calibration.md) per-kind temperatures and ECE limits.
 - Uses [System One Models](system-one-models.md) System 1 versus System 2 framing for image decisions.
 - Informs [Classifier Selection](classifier-selection.md) cold-start recommendation and judge-versus-frontier choices.
+- Compared with [JEV-9B System 1 Decisions and Blocks-of-Experts Serving](jev-9b-system1-decisions.md) and [GEV-26B-Decide Adaptive Thinking and NVFP4 Quantization](gev-26b-decide-nvfp4.md) on the same robot-arm scenes and computer-use tasks, where JEV-27B-VL leads on grasp success while trailing on per-decision latency.
 
 ## Coverage limits
 
 - Inspected `README.md`, `blog/JEV-27B-VL.md`, `config.json`, `calibration.json`, `adapter_vllm/adapter_config.json`, `adapter_vllm/decision_head.json`, `serve_decide.py`, `serve.sh`, `generation_config.json`, preprocessor configs, and `model.safetensors.index.json` metadata by static reading; no server execution, API calls, or benchmark reproduction was performed, so performance numbers are **reported** while interfaces and configs are **observed**.
+- Additionally inspected `../raw/JEV-27B-VL.md` statically (the 3 October 2026 update: robot-arm and computer-use section plus family table); the two demo videos and the referenced JEV-9B `vl/demos/` code and `reports/demos/` per-episode files are remote and were not inspected or executed, so those control-loop figures are **reported** with small-sample limits (20 scenes, 60 tasks).
 - Excluded with reason: `tokenizer.json` and `videos/*.mp4` are Git-LFS pointers whose bytes are unavailable locally; `vocab.json` and `tokenizer_config.json` special-token detail beyond vision delimiters was not needed for retrieval; weight shards are not present, only the 1,199-entry index totalling about 55.6 GB.
 - PNG figures were treated as redundant because their tables are reproduced in prose; two blog images are LFS placeholders and were not visually inspected.
 - Consequential trust limits persist in prose: zero-shot image calibration, single-dataset video recommendation, single-dataset wide-label calibration, and single-fact text-only long-context coverage.
 
 [^jev-27b-vl-2026-10-01]: AutoTrust, “autotrust/JEV-27B-VL,” model card, canonical local entry `../raw/JEV-27B-VL/README.md`, package scope `../raw/JEV-27B-VL/`, release notes 2026-10-01 with blog `blog/JEV-27B-VL.md` 2026-09-30, upstream `https://huggingface.co/autotrust/JEV-27B-VL`. Locators in text: frontmatter and System 1/2 table; “Highlight” video-recommendation, agent-judge, and multimodal-judge tables; “Benchmarks” six-group, fidelity, pressure, and applied-task tables; “Quick start” plus “System 1: POST /v1/decide” and client-side readout; “Choice questions,” “Writing System 1 prompts,” “Context length,” “Serving notes,” and “Limitations”; `adapter_vllm/decision_head.json` slots and bias, `calibration.json` per_kind, `config.json` model_type, `serve_decide.py::PROFILES/READ/s1_dist/s2_dist/decide`, and `serve.sh` flags.
+[^jev-27b-vl-2026-10-03]: AutoTrust, “autotrust/JEV-27B-VL — 3 October 2026 update,” model card, canonical local entry `../raw/JEV-27B-VL.md`, upstream `https://huggingface.co/autotrust/JEV-27B-VL`. Locators in text: “New (3 October 2026): robot arm and computer use” section, family comparison table, control-loop guidance bullets, and demo-code / `reports/demos/` pointer.

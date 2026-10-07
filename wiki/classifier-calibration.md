@@ -5,7 +5,7 @@ description: How calibration aligns predicted probabilities with observed freque
 tags: [calibration, evaluation, reinforcement-learning]
 status: stable
 created: 2026-10-02
-generated: { by: llm-wiki-agent/1, at: 2026-10-02T23:45:00Z }
+generated: { by: llm-wiki-agent/1, at: 2026-10-07T00:00:00Z }
 sources:
   - id: reddit-jev-287-2026-09
     resource: ../raw/i-reviewed-287-opensource-jev-projects-here-are/index.md
@@ -95,6 +95,10 @@ sources:
     resource: ../raw/von.md
     kind: documentation
     title: Von
+  - id: imajev-4b-2026-09-28
+    resource: ../raw/imajev-4b.md
+    kind: model-card
+    title: mohit67890/imajev-4b
 ---
 
 # Classifier Calibration: Temperature Scaling and Calibration Rewards
@@ -122,6 +126,7 @@ Synthesis: calibration makes stated probabilities match empirical frequencies; t
 - Independent local-refit plus measured-gate point: [Von](von-decision-model.md) refits its confidence map with frozen weights via `von calibrate labels.jsonl` (scalar vs feature map by k-fold CV, NLL/ECE for raw/shipped/scalar/map; temperature never changes the answer); **reported** Choice ≥0.80 keeps 25% at 92.4% (90% lower bound 89.4%, n=702), Noul gated on `noul_raw` keeps 16% at 83%, lowest 90%-accurate cutoff 0.82, and out-of-domain gates go flat so only labels plus refit help — **synthesis**: use it as the only here-measured 0.80-gate precedent, not a transferable threshold[^von-2026].
 - Uncalibrated contrast: [Julia 1](julia-1-decision-model.md) **reports** `calibration: null` in `inference-policy.json`, so its probabilities arrive without a fitted temperature; **observed** `julia/model.py` registers a per-type temperature buffer that the inspected forward pass does not apply, and `julia/probabilities.py` collapses decisive legacy distributions to 1.0/0.0 and floors sub-0.01 values before renormalizing — treat that display rule as presentation, not calibration[^julia-1-2026-09-24].
 - Uncalibrated contrast: [NeoHorse-Jev-4B](neohorse-jev-4b-decision-model.md) **reports** no NLL, Brier, or ECE results and documents `confidence` as a local distribution statistic rather than a calibrated P(correct); **synthesis**: set thresholds on independent data and do not rank its Choice/Score `confidence` against fitted-temperature ECE figures such as JEV-9B/27B, Jev-Style, or Jev-Omni without protocol alignment[^neohorse-jev-4b-2026-09-24].
+- Independent single-temperature point: [Imajev-4B](imajev-4b-decision-model.md) ships one temperature 1.305 for every type × option-count bucket fitted on 150 template-generated JevBench-style items; **reported** JevBench hard single-pass ECE 0.113→0.082 and pooled 231-item ECE 0.064→0.046 with `unknown` offsets 0, and warns the same temperature over-softens photo-only verification (previous-version 0.038→0.062) so photo-against-record traffic should serve without calibration or fit its own temperature[^imajev-4b-2026-09-28].
 
 ## Field calibration corroboration
 
@@ -173,6 +178,7 @@ Synthesis: calibration makes stated probabilities match empirical frequencies; t
 - Kev temperature and ECE figures above are **reported** owner README values with calibration scripts and eval reports uninspected; treat refit and confident-error gains as unreproduced[^kev-readme-2026].
 - Nimble temperature and ECE figures above are **reported** single-file README values with calibration sets and merged-weight behavior uninspected; treat the fitted-versus-latest and rating-regression figures as unreproduced[^bespoke-nimble-2026-09].
 - OpenJev temperatures above are pinned-recipe values from **observed** `serve/SERVE.md` plus static helper read with no ECE table or live calibration check in this bundle; treat them as reproduction constants, not a ranked calibration result[^openjev-2026].
+- Imajev temperature and ECE figures above are **reported** single-file model-card values with calibration files and eval harness uninspected; treat the 150-item fit and photo-traffic warning as unreproduced[^imajev-4b-2026-09-28].
 
 [^raschka-jevl-2026-09-29]: S. Raschka, "Language Models for Text Classification: From Bag-of-Words to Jev," Ahead of AI, published 2026-09-29, canonical local entry `../raw/classifier-history-and-jev/index.md`, upstream `https://magazine.sebastianraschka.com/p/classifier-history-and-jev`. Locators in text: §5–§5.3, Figs. 34–37.
 [^jev-27b-2026-10-01]: AutoTrust, "autotrust/JEV-27B," model card, canonical local entry `../raw/JEV-27B/README.md`, package scope `../raw/JEV-27B/`, release notes 2026-10-01, upstream `https://huggingface.co/autotrust/JEV-27B`. Locators: “Blocks of Experts recipe” efficiency point 5; `calibration.json` per_kind; “Evaluation details” ECE row.
@@ -192,3 +198,4 @@ Synthesis: calibration makes stated probabilities match empirical frequencies; t
 [^bespoke-nimble-2026-09]: Bespoke Labs, "Bespoke Nimble," canonical local entry `../raw/nimble.md`, repo `https://github.com/bespokelabsai/nimble`, model `https://huggingface.co/bespokelabs/Bespoke-Nimble-9B`. Locators in text: Probability temperature (fit method, second-set and holdout tables, rating regression, T=1.0 latest and v2 transferred default, merge gap).
 [^openjev-2026]: OpenJev project, "OpenJev," model and serving bundle, canonical local entry `../raw/openjev-openjev/README.md`, package scope `../raw/openjev-openjev/`. Locators: `serve/SERVE.md` env-knob table (`READOUT_T`, `READOUT_NOUL_T/BIAS`, `READOUT_TARGETED`, `READOUT_INSTR_STYLE`); `helper/shim.py::TEMP/NOUL_T/TARGETED`.
 [^von-2026]: Von project, "Von," canonical local entry `../raw/von.md`, upstream `https://huggingface.co/wfzyx/von`. Locators in text: Acting on confidence (sweep method, Choice/Noul keeps, cascade, out-of-domain limit); CLI `von calibrate` row.
+[^imajev-4b-2026-09-28]: mohit67890, "imajev-4b," model card, canonical local entry `../raw/imajev-4b.md`, upstream `https://huggingface.co/mohit67890/imajev-4b`. Locators in text: "Calibration" temperature paragraph plus ECE table.

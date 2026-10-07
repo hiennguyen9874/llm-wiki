@@ -5,7 +5,7 @@ description: The three Jev decision APIs, their request and response shapes, whe
 tags: [jev, api, classification]
 status: stable
 created: 2026-10-02
-generated: { by: llm-wiki-agent/1, at: 2026-10-02T23:45:00Z }
+generated: { by: llm-wiki-agent/1, at: 2026-10-07T00:00:00Z }
 sources:
   - id: jev-9b-v08
     resource: ../raw/JEV-9B/README.md
@@ -93,6 +93,10 @@ sources:
     resource: ../raw/von.md
     kind: documentation
     title: Von
+  - id: imajev-4b-2026-09-28
+    resource: ../raw/imajev-4b.md
+    kind: model-card
+    title: mohit67890/imajev-4b
 ---
 
 # Jev API Patterns: Choice, Noul, and Score
@@ -136,6 +140,7 @@ Synthesis: use Choice for one-answer multi-class, Noul yes-probabilities for bin
 - SGLang Jev-compatible variant: [OpenJev-SGLang Decision Serving](openjev-sglang-decision-serving.md) serves the same three kinds over `POST /v1/systemone` from Qwen3.6-35B-A3B on SGLang 0.5.19; **reported** N+1 one-token calls per request (shared-prefix warmup plus one branch each), `token_ids_logprob` with `logprob_start_len=-1`, up to 64 letter-combination labels (`A–Z` then `AA`, `AB`, …) verified at startup, and text-only chat-template state handling[^openjev-sglang-2026].
 - Open-encoder SystemOne-compatible variant: [Von](von-decision-model.md) serves `POST /v1/systemone` with `decide`/`judge`/`rate` plus multi-question `system_one` in one forward pass; **reported** `band` versus `raw` Noul control, 8192-token middle-truncation with `truncation` field and 422 `refuse` mode, real `usage.input_tokens`, and `confidence_gate(threshold=0.80)` splitting `automatic`/`escalate`[^von-2026].
 - Diffusion-canvas Jev-compatible variant: [OpenJev Diffusion Decision Server (razorback16)](openjev-diffusion-decision-server.md) serves the same three kinds over `POST /v1/systemone` by reading one masked label token per question from a DiffusionGemma 26B-A4B canvas in a read-only pass; **reported** `yes`/`no`, `A`/`B`/`C`, `0`/`1`/`2` single-token labels, `1 − H(p)/ln K` confidence, ~12-question parallel chunks with entropy-triggered re-reads, plus `images`/`steps`/`samples`/`think`/`sequential` extensions and routed `laya-1.0`/`verdict-1.4`/`clm-v0.1`/`jevk5-0.2` models[^razorback16-openjev-2026].
+- Vision Jev-compatible variant: [Imajev-4B Vision Decision Model](imajev-4b-decision-model.md) serves Jev `POST /v1/systemone` plus `images`, `unknown_probability`, and `abstained` with a trained `unknown`; **reported** 0–2 images (≤400,000 px), 32 KB state, 1–8 questions, 2–255 options per choice, 2–10 levels per score, and 4,096-token refusal cap[^imajev-4b-2026-09-28].
 
 ## DIY single-head retrofit
 
@@ -165,6 +170,7 @@ Synthesis: use Choice for one-answer multi-class, Noul yes-probabilities for bin
 - SGLang shapes above are **reported** single-file documentation values with serving code and live deployment uninspected; the source itself recommends SGLang's native decisions endpoint instead — verify current SGLang docs before building[^openjev-sglang-2026].
 - Diffusion-server shapes above are **reported** single-file documentation values with serving code and live deployment uninspected — verify flags and limits against the live repo before building[^razorback16-openjev-2026].
 - Von shapes above are **reported** single-file README values with SDKs and live serving uninspected — verify band/raw, truncation headers, and gate numbers before building[^von-2026].
+- Imajev shapes above are **reported** single-file model-card values with serving code and live deployment uninspected — verify image/state/token limits against the live repo before building[^imajev-4b-2026-09-28].
 - Pi wire-format claims above are **observed** commenter readings of installed `node_modules` files plus docs prose, not reproduced here; installed-code version, Pi revision, and live docs were not verified, and linked Pi classification docs were not inspected beyond the quoted lines[^reddit-pi-jev-2026-09-30].
 
 [^raschka-jevl-2026-09-29]: S. Raschka, "Language Models for Text Classification: From Bag-of-Words to Jev," Ahead of AI, published 2026-09-29, canonical local entry `../raw/classifier-history-and-jev/index.md`, upstream `https://magazine.sebastianraschka.com/p/classifier-history-and-jev`. Locators in text: §3.2–§4, Figs. 25, 28, 31–32.
@@ -185,3 +191,4 @@ Synthesis: use Choice for one-answer multi-class, Noul yes-probabilities for bin
 [^reddit-pi-jev-2026-09-30]: u/Apprehensive_Bed7502 plus commenters, "Pi now supports Jev.," r/PiCodingAgent, post with comments 2026-09-30–2026-10-01, canonical local entry `../raw/pi-now-supports-jev/index.md`, package scope `../raw/pi-now-supports-jev/`, upstream `https://www.reddit.com/r/PiCodingAgent/comments/1wu22ag/pi_now_supports_jev/`. Locators in text: `node_modules/@earendil-works/pi-ai/dist/api/llama-cpp-classify.js:144` `peakConfidence` quote; `node_modules/@earendil-works/pi-coding-agent/docs/llama-cpp.md:91` typed-choice/bool/score quote; `node_modules/@earendil-works/pi-ai/dist/api/system-one-shared.js:108` bool-to-`noul` quote plus choice/score parsing table; generality dispute (`neuronexmachina` pd1sh25/pd3swyq, `Apprehensive_Bed7502` pd21m44, `_reg1z` pdaz4ie) and maintainer evolution reply (`badlogicgames` pd9uh5p).
 [^razorback16-openjev-2026]: razorback16, "OpenJev," project documentation, canonical local entry `../raw/razorback16-openjev.md`, upstream `https://github.com/razorback16/openjev`. Locators: "API" routes, question types, confidence/usage/errors, Jev differences; "Extensions" fields table; "How it works" canvas readout with entropy-0.1 re-reads; "Models" routed-model table.
 [^von-2026]: Von project, "Von," canonical local entry `../raw/von.md`, upstream `https://huggingface.co/wfzyx/von`. Locators in text: Use (single- and multi-question examples); Acting on confidence; Wire protocol; CLI flag/env table.
+[^imajev-4b-2026-09-28]: mohit67890, "imajev-4b," model card, canonical local entry `../raw/imajev-4b.md`, upstream `https://huggingface.co/mohit67890/imajev-4b`. Locators in text: "One request, every answer typed" script plus result JSON; "Technical specification" request-limits row; "Serving" install/serve commands.

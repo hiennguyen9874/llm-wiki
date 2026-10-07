@@ -5,7 +5,7 @@ description: When to use Jev or Jev-likes versus frontier LLMs or fine-tuned spe
 tags: [jev, decision-models, agents, build-vs-buy]
 status: stable
 created: 2026-10-02
-generated: { by: llm-wiki-agent/1, at: 2026-10-03T00:39:30Z }
+generated: { by: llm-wiki-agent/1, at: 2026-10-07T00:00:00Z }
 sources:
   - id: reddit-jev-287-2026-09
     resource: ../raw/i-reviewed-287-opensource-jev-projects-here-are/index.md
@@ -148,6 +148,10 @@ sources:
     resource: ../raw/von.md
     kind: documentation
     title: Von
+  - id: imajev-4b-2026-09-28
+    resource: ../raw/imajev-4b.md
+    kind: model-card
+    title: mohit67890/imajev-4b
 ---
 
 # Classifier Selection: Build, Buy, or Clone for Decision Tasks
@@ -229,6 +233,7 @@ Synthesis: default to a general decision model for one-off or varied tasks, fine
 - Open-weights self-hosted anchor: [OpenJev](openjev-decision-model.md) is a CC BY-NC 4.0 Qwen3.8-27B derivative with Jev-compatible `POST /v1/systemone` and pinned H100 recipe; **reported** 84.0% vs hosted Jev 85.4% on the same 10,000 text questions, 88.0%/87.4%/84.5% on desktop/web agent steps, 39/39 MiniWoB tie, ≈80 ms text / ≈210 ms web serving, plus FP8/MLX/GGUF text-only variants — **synthesis**: shortlist it when near-hosted accuracy with local weights outweighs Apache-2.0 licensing and 80 GB-GPU needs, and do not confuse it with SemIf (formerly OpenJev)[^openjev-2026].
 - SGLang Modal self-host variant: [OpenJev-SGLang Decision Serving](openjev-sglang-decision-serving.md) is a **reported** Qwen3.6-35B-A3B on SGLang 0.5.19 Rust-frontend recipe with Modal B200 scale-to-zero deployment, 64-question / 2–64-answer / 32,768-per-branch limits, and an explicit recommendation to use SGLang's native decisions endpoint instead — **synthesis**: inspect it for the SGLang N+1 readout and Modal operations pattern, not as an accuracy anchor, and verify the native endpoint before new work[^openjev-sglang-2026].
 - Open-weight CPU encoder option: [Von](von-decision-model.md) is an Apache-2.0 395M ModernBERT SystemOne-compatible model (`wfzyx/von`, `von-sdk`, OpenVINO/CUDA/ROCm/MPS); **reported** JevBench v1.4 composite 27.5 with C 75.7, hard 0.373 rising to 0.441 with chains, p50 0.34 s CPU, plus frozen-weight `von calibrate` and English-only limit — **synthesis**: shortlist it for self-hosted CPU routing with measured 0.80 gating where English-only and chain-tail latency are acceptable[^von-2026].
+- Open-weight vision-plus-text option: [Imajev-4B Vision Decision Model](imajev-4b-decision-model.md) is an Apache-2.0 Qwen3.5-4B LoRA with photo-vs-record and two-photo decisions plus trained `unknown`; **reported** JevBench v1.4.2.2 #1 of 91 (67.37), Image JevBench v0.1.3 #1 of 49 (76.39), DecisionBench eng v1 #3 of 56 (79.65), and ImajevBench v2.0-lite 83.9% with 58% automated at 97.5% right at the 90% threshold — **synthesis**: shortlist it when listings, tickets, or checks need a small local model that reads photos against records and routes can't-tell to a person, after measuring thresholds on a few hundred own cases[^imajev-4b-2026-09-28].
 - Local Kev serving pointer is **reported**: a `llama.cpp` `kev`-branch fork adds TypeSafe-API support for `jaredpalmer/kev` plus own checkpoints claimed to halve storage at comparable accuracy, with GGUF download plus README install steps — links uninspected here[^reddit-jev-kev-2026-09].
 - Unverified next-clone pointer is **reported**: the maker of open 4B `Mica-v0.1-4B` on the same `/v1/systemone` API claims it beat Kev and Laya on held-out plus JevBench-hard at ~50 ms on a 3090 and requests outside testing; the Opper author replies they will look — treat as a maker-conflicted pointer, not a ranking[^reddit-jev-kev-2026-09].
 
@@ -261,6 +266,7 @@ Synthesis: default to a general decision model for one-off or varied tasks, fine
 - OpenJev figures above are **reported** bundle values with weights (`model-*.safetensors`), `tokenizer.json`, and `assets/*.png` pixels uninspected and no serving run reproduced here; treat accuracy, latency, and quant deltas as pinned-recipe values only[^openjev-2026].
 - SGLang variant figures above are **reported** single-file documentation values with serving code and live deployment uninspected; the source recommends SGLang's native decisions endpoint instead[^openjev-sglang-2026].
 - Von figures above are **reported** single-file README values with weights, SDKs, serving runs, and benchmark harnesses uninspected[^von-2026].
+- Imajev figures above are **reported** single-file model-card values with weights, serving runs, and leaderboard images uninspected; treat JevBench, Image JevBench, DecisionBench, and ImajevBench figures as unreproduced[^imajev-4b-2026-09-28].
 - Pi-Jev support thread above is single-thread r/PiCodingAgent anecdote (2026-09-30–10-01) with no code executed here; linked Pi docs, Earendil acquisition post, creator essay, CodeAct paper, YouTube demo, `von`/`laya`/`zvec-grep` repos, lean-fork site, and bloat-thread link uninspected; all harness uses, benchmark, maturity-timeline, and motive/payment claims are **reported** perceptions[^reddit-pi-jev-2026-09-30].
 
 [^raschka-jevl-2026-09-29]: S. Raschka, “Language Models for Text Classification: From Bag-of-Words to Jev,” Ahead of AI, published 2026-09-29, canonical local entry `../raw/classifier-history-and-jev/index.md`, upstream `https://magazine.sebastianraschka.com/p/classifier-history-and-jev`. Locators in text: §3.3–§6, Figs. 33, 38–39.
@@ -293,4 +299,5 @@ Synthesis: default to a general decision model for one-off or varied tasks, fine
 [^openjev-2026]: OpenJev project, "OpenJev," model and serving bundle, canonical local entry `../raw/openjev-openjev/README.md`, package scope `../raw/openjev-openjev/`. Locators: "Results" 10,000-question, agent, MiniWoB, language and "Speed" tables; "Formats" deltas; `serve/SERVE.md` pinned recipe and `SHIM_TOKEN` boundary.
 [^openjev-sglang-2026]: openjev-sglang project, "openjev-sglang," canonical local entry `../raw/openjev-sglang.md`. Locators: Qwen3.6-35B-A3B on SGLang 0.5.19 plus Modal B200 recipe; "How inference works" N+1 readout; "Limits and configuration" defaults and env table; top NOTE native-endpoint recommendation.
 [^von-2026]: Von project, "Von," canonical local entry `../raw/von.md`, upstream `https://huggingface.co/wfzyx/von`. Locators in text: Benchmarks table; Acting on confidence gate figures; Chain-of-options; CLI calibrate row.
+[^imajev-4b-2026-09-28]: mohit67890, "imajev-4b," model card, canonical local entry `../raw/imajev-4b.md`, upstream `https://huggingface.co/mohit67890/imajev-4b`. Locators in text: header tier/board links plus sub-caption; "Automate what is clear" threshold table; "Results (2026-09-26)" table.
 [^reddit-pi-jev-2026-09-30]: u/Apprehensive_Bed7502 plus commenters, "Pi now supports Jev.," r/PiCodingAgent, post with comments 2026-09-30–2026-10-01, canonical local entry `../raw/pi-now-supports-jev/index.md`, package scope `../raw/pi-now-supports-jev/`, upstream `https://www.reddit.com/r/PiCodingAgent/comments/1wu22ag/pi_now_supports_jev/`. Locators in text: Pi 0.99.0 classifier claim plus docs/llama.cpp references (post body); premature-abstraction and extension-first remarks (`Ok-Hippo9182` pczbbf5); maintainer alternatives-plus-Decision-API reply (`badlogicgames` pd9uh5p); OMP `find` semantic-grep remarks (`Electronic-Pie-1879` pczik4h, `Suspicious_Echidna53` pczkmew); code-review diffs remark (`gscjj` pczhtl9); skill auto-load remark (`debackerl` pd58li2); pre-LLM navigation remarks (`ArthurOnCode` pczi260/pd2ubm2/pd6ikum); direct-tool benchmark plus embed-in-tools rebuttal (`Mechanical_Monk` pd02hlz/pd0edw2, `BurnerDev` pd0ax8h); local-maturity remarks (`Zestyclose839` pd0aw2c/pd25g96, `addiktion` pd0oym3, `debackerl` pd58tmx); core-vs-extension and acquisition/payment remarks (`gscjj` pczhtl9, `Apprehensive_Bed7502` pczk4ln/pd21m44/pczcxrb, `blakeman8192` pd4zpgz, `neuronexmachina` pd1sh25/pd3swyq, `_reg1z` pdaz4ie).

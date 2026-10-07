@@ -1,22 +1,26 @@
 ---
 type: Concept
 title: JEV-9B System 1 Decisions and Blocks-of-Experts Serving
-description: autotrust/JEV-9B distills TypeSafe Jev 1.13 into calibrated noul/choice/score decisions on a frozen Qwen3.5-9B via Blocks of Experts, with reported KL fidelity, speed, JEV-27B comparison, and vLLM serving details.
-tags: [jev, decision-models, distillation, calibration, vllm, system-one]
+description: autotrust/JEV-9B distills TypeSafe Jev 1.13 into calibrated noul/choice/score decisions on a frozen Qwen3.5-9B via Blocks of Experts, with reported KL fidelity, speed, JEV-27B comparison, zero-shot vision control, and vLLM serving details.
+tags: [jev, decision-models, distillation, calibration, vllm, system-one, vision, multimodal]
 status: stable
 created: 2026-10-02
-generated: { by: llm-wiki-agent/1, at: 2026-10-02T23:55:00Z }
+generated: { by: llm-wiki-agent/1, at: 2026-10-07T18:00:00Z }
 sources:
   - id: jev-9b-v08
     resource: ../raw/JEV-9B/README.md
     scope: ../raw/JEV-9B/
     kind: model-card
     title: autotrust/JEV-9B
+  - id: jev-9b-2026-10-03
+    resource: ../raw/JEV-9B.md
+    kind: model-card
+    title: autotrust/JEV-9B \u2014 3 October 2026 update
 ---
 
 # JEV-9B System 1 Decisions and Blocks-of-Experts Serving
 
-Synthesis: `autotrust/JEV-9B` is AutoTrust's first integrated System 1 + System 2 open model — a frozen Qwen3.5-9B backbone plus a 40.2 M trained System 1 block that reproduces TypeSafe Jev 1.13 output distributions at mean KL ≈0.019 with fitted temperatures ≈1.00 and ECE 0.0007 — served per request from one vLLM engine as calibrated `noul` / `choice` (2–16) / `score` probabilities, with **reported** speed and benchmark parity and **observed** adapter, bias-plus-temperature, and routing mechanics[^jev-9b-v08].
+Synthesis: `autotrust/JEV-9B` is AutoTrust's first integrated System 1 + System 2 open model — a frozen Qwen3.5-9B backbone plus a 40.2 M trained System 1 block that reproduces TypeSafe Jev 1.13 output distributions at mean KL ≈0.019 with fitted temperatures ≈1.00 and ECE 0.0007 — served per request from one vLLM engine as calibrated `noul` / `choice` (2–16) / `score` probabilities, with **reported** speed and benchmark parity, **reported** 3-October-2026 zero-shot vision decisions for robot-arm and computer-use control, and **observed** adapter, bias-plus-temperature, and routing mechanics[^jev-9b-v08][^jev-9b-2026-10-03].
 
 ## Identity and provenance
 
@@ -62,6 +66,17 @@ Synthesis: `autotrust/JEV-9B` is AutoTrust's first integrated System 1 + System 
 - Fresh HN/V2EX illustrations (hand-written expected answers, not a benchmark; inputs from public APIs 25 Sep 2026; per-example outputs in `reports/realworld_9b.json`): 19 HN stories topic + AI-about 38/38, 12 heated comments 22/24, 10 Chinese V2EX posts 18/19, community code-rule/injection/routing/phishing/diff/urgency 14/15; misses are a branded-range-checked-int TypeScript port (0.33; 27B 0.93), CEO wire-fraud at 0.56 (27B 0.84), a comment-intent misread (0.66), and a Chinese paid-tool post at 0.44 (27B 0.77); counting, dates, and an injected instruction were handled on handful-only evidence[^jev-9b-v08].
 - **Synthesis**: pick 9B for routing/moderation/short lists at 2.6× speed with a third of the weight memory; pick 27B for >8 options, unfamiliar families, code-rule/fraud checks, or when System 2 matters (HumanEval 70.7%→78.0%)[^jev-9b-v08].
 
+## Vision: zero-shot images, robot arm and computer use — reported 3 October 2026 update
+
+- Every step is one System 1 decision: camera image or screenshot in, a probability for every action out, in a single forward pass (about 0.2 s on one GPU); run with `bash vl/serve.sh`[^jev-9b-2026-10-03].
+- Robot-arm pick and place from a top camera image (MuJoCo simulation): at each step System 1 answers two questions — is the target left or right of the gripper, above or below it — and the arm moves accordingly, halving its step whenever an answer flips; it grasps the cube, carries it, and drops it in the tray[^jev-9b-2026-10-03].
+- **Reported** result: 10 of 20 random scenes completed (50%); every cube grasped ended in the tray and every miss was a grasp 3–5 cm off target; about 165 ms per decision; asking it to choose one of 8 motor commands directly did not work — a fast visual judge, not an end-to-end controller[^jev-9b-2026-10-03].
+- Computer use on a real browser (headless Chromium): every clickable element gets a numbered box; System 1 picks the next click (or "the task is complete"), the browser clicks it, and the loop repeats[^jev-9b-2026-10-03].
+- **Reported** result: 95% of 60 random multi-step tasks completed (shop, settings, mail; 3–7 clicks each), about 0.2 s per click; colour swatches and switches carry no text, so those clicks are decided from the screenshot alone; with numbered boxes only (no element text) 37% completed; failures skipped a step (the colour) and then checked out an empty cart[^jev-9b-2026-10-03].
+- Image judging, briefly **reported**: VL-RewardBench 74.3%, AgentRewardBench AUROC 0.91, zero-shot short-video recommendation from covers AUC 0.72; code in `vl/demos/`, details in `reports/vl/`[^jev-9b-2026-10-03].
+- How vision serving works **reported**: language weights are bit-identical to Qwen3.5-9B, so `vl/serve.sh` serves the unmodified multimodal Qwen3.5-9B (with its vision encoder) with the System 1 adapter (`vl/adapter_vllm`, the same weights with layer names moved); text decisions match the text-only model (300 test decisions: largest probability difference 0.011); System 2 also reads images; keep `--max-num-seqs 8`; decisions over images are zero-shot[^jev-9b-2026-10-03].
+- Images quick start (**observed** interface, unexecuted): `hf download autotrust/JEV-9B --include "vl/*"` then `bash vl/serve.sh` serving both systems on `:8000`; `POST /v1/decide` takes `kind`/`question`/`options` plus `state` as a text-plus-image list with `{"image": "data:image/png;base64,..."}` entries[^jev-9b-2026-10-03].
+
 ## Serving mechanics — observed
 
 - One vLLM engine serves both systems from pristine weights: base `lm_head` for System 2, LoRA module `jev-decision` (`adapter_vllm/`) for System 1; decision is single prefill `max_tokens=1` constrained to option tokens via `allowed_token_ids` read as log-probs, then + head `bias` / per-kind T from `calibration.json` client-side (the log-softmax normaliser cancels, so the result is exactly the calibrated head distribution)[^jev-9b-v08].
@@ -79,13 +94,16 @@ Synthesis: `autotrust/JEV-9B` is AutoTrust's first integrated System 1 + System 
 - Uses [Classifier Calibration](classifier-calibration.md) per-kind temperatures near 1.00 and ECE limits.
 - Uses [System One Models](system-one-models.md) System 1 vs System 2 framing for the two-block serving.
 - Informs [Classifier Selection](classifier-selection.md) open-clone choice and 9B-vs-27B routing.
+- Compared with [Jev-27B-VL Vision-Capable System 1 Decisions and Serving](jev-27b-vl-multimodal-decisions.md) on the same robot-arm scenes and computer-use tasks: JEV-9B 50% vs 75% grasp success, both 95% computer-use with boxes plus text, 37% vs 10% boxes-only, about 165 ms vs 239 ms per robot-arm decision; demo lineage is JEV-9B `vl/demos/`[^jev-9b-2026-10-03].
 
 ## Coverage limits
 
 - Inspected `README.md` (full), `config.json`, `calibration.json`, `judge_config.json`, `adapter/adapter_config.json`, `adapter_vllm/adapter_config.json`, `adapter_vllm/decision_head.json`, `tokenizer_config.json`, `chat_template.jinja` header, `model.safetensors.index.json` metadata, and report samples `eval_v08_bundle.md`, `eval_s2_9b.md`, and `data_audit.md` by static reading; no server execution, API calls, or benchmark reproduction, so performance numbers are **reported** while interfaces and configs are **observed**.
 - Inspected `adapter/README.md` only to exclude it as an unfilled PEFT template (`[More Information Needed]`).
+- Additionally inspected `../raw/JEV-9B.md` statically (frontmatter tags plus "New (3 October 2026)" vision section, "Images: quick start," and updated `Files` listing); `vl/`, `videos/`, and `reports/vl/` contents and the three demo videos are remote and were not inspected or executed, so robot-arm (20 scenes), computer-use (60 tasks), and image-judge figures are **reported** with small-sample limits.
 - Excluded with reason: per-problem `humaneval_*.json`, per-example `realworld_*.json` beyond card aggregates, `vllm_*.json` and `fanout_*.json` beyond card aggregates, remaining `eval_s2_*.md`, `b0/m0_*.md`, and `review/*.md` as raw-evidence detail not needed for retrieval.
 - Unreadable/unavailable: `tokenizer.json` is a 133-byte Git-LFS pointer; weight shards absent (index only: 5 files, 17.9 GB); `head.safetensors` absent locally though documented in `Files`.
 - Consequential trust limits persist in prose: no Jev-labelled OOD set (53 training domains only), single-dataset calibration, English-centric corpus, `yuri_v1` placeholders teach nothing about memory relevance, escalation threshold unvalidated, and speed comparisons not like-for-like.
 
 [^jev-9b-v08]: AutoTrust, “autotrust/JEV-9B,” model card, canonical local entry `../raw/JEV-9B/README.md`, package scope `../raw/JEV-9B/`, released checkpoint v0.8.0, upstream `https://huggingface.co/autotrust/JEV-9B`. Locators in text: frontmatter and “At a glance”/“Headline results”; “JEV-9B vs JEV-27B”; “How JEV-9B compares” and “Speed vs the hosted TypeSafe Jev 1.13”; “System 1: indistinguishable” KL table; “The Blocks of Experts recipe” and “Training details”; “Benchmark highlights” pressure plus HN/V2EX tables; “Quickstart with vLLM” completions plus client-side math; “What System 1 does,” “Other ways to run it,” “Evaluation details,” “Limitations,” “Files”; `judge_config.json` slots/ids, `calibration.json` per_kind, `adapter_vllm/decision_head.json` bias/ids, `config.json` hidden/vocab, `model.safetensors.index.json` total_size, `reports/eval_v08_bundle.md`, `reports/eval_s2_9b.md`, `reports/data_audit.md`.
+[^jev-9b-2026-10-03]: AutoTrust, “autotrust/JEV-9B — 3 October 2026 update,” model card, canonical local entry `../raw/JEV-9B.md`, upstream `https://huggingface.co/autotrust/JEV-9B`. Locators in text: frontmatter `tags` (`multimodal`, `vision`, `computer-use`, `robotics`); “New (3 October 2026): JEV-9B can see — robot arm and computer use” plus “Images: quick start” (`vl/serve.sh`, `POST /v1/decide` example, `--max-num-seqs 8`, 300-decision text parity); “Files” `vl/` / `videos/` / `reports/vl/` rows.

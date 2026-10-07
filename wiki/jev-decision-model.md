@@ -5,7 +5,7 @@ description: What Jev is, how it positions against frontier LLMs and specialist 
 tags: [jev, decision-models, classification]
 status: stable
 created: 2026-10-02
-generated: { by: llm-wiki-agent/1, at: 2026-10-03T00:31:59Z }
+generated: { by: llm-wiki-agent/1, at: 2026-10-07T00:00:00Z }
 sources:
   - id: reddit-jev-287-2026-09
     resource: ../raw/i-reviewed-287-opensource-jev-projects-here-are/index.md
@@ -129,6 +129,10 @@ sources:
     resource: ../raw/von.md
     kind: documentation
     title: Von
+  - id: imajev-4b-2026-09-28
+    resource: ../raw/imajev-4b.md
+    kind: model-card
+    title: mohit67890/imajev-4b
 ---
 
 # Jev Decision Model: Positioning and Performance
@@ -240,6 +244,7 @@ Synthesis: Jev is a proprietary TypeSafe AI “System One” decision model with
 - Open-weights tuned anchor: [OpenJev](openjev-decision-model.md) is a CC BY-NC 4.0 Qwen3.8-27B derivative with Jev-compatible `POST /v1/systemone` and frozen letter-readout helper; **reported** 84.0% on the same 10,000 text questions as hosted Jev 85.4% (base 80.4%, Nimble 75.7%), 88.0%/87.4%/84.5% on desktop/web agent steps with shuffle flips 18.5%→2.3%, 39/39 MiniWoB tie, and pinned H100 serving (≈80 ms text, ≈210 ms web) — **synthesis**: prefer it as the self-hosted accuracy anchor when non-commercial weights and an 80 GB GPU (or quantized Mac/GGUF text-only builds) are acceptable, and do not confuse it with SemIf (formerly OpenJev)[^openjev-2026].
 - Independent open-weight CPU encoder alternative: [Von](von-decision-model.md) is an Apache-2.0 395M ModernBERT System One model with calibrated Choice/Noul/Score over `/v1/systemone`; **reported** JevBench v1.4 composite 27.5 (C 75.7, hard 0.373, sealed 0.279, p50 0.34 s CPU) with chains lifting hard to 0.441 (McNemar p = 0.065 on 111 items), plus a measured 0.80 confidence gate and English-only limit[^von-2026].
 - Cloudflare first-party multimodal alternative: [Clef-Flash Multimodal Joint-Schema Decisions](clef-flash-multimodal-decisions.md) is a 9B Qwen3.5-9B plus joint-schema-head model with a Jev/SystemOne-compatible API; **reported** Decision Index 0.2.1 leads Jev on 17 rows including BFCL 98.8, API-Bank 93.1, home-appliance simulator 97.7, MMLU 91.8 and ForecastBench Brier 10.6 with p95 latency 122.4 ms versus Jev 536.0 ms, but trails sharply on CLINC150+OOS 66.8 versus Jev 89.3, RAGTruth 35.6 versus 76.5, and MMLU-Pro/BBH/GPQA hard-reasoning rows[^clef-flash-2026]. Its larger sibling [Clef Multimodal Joint-Schema Decisions](clef-multimodal-decisions.md) is a 27B Qwen3.8-27B model with identical decision code; **reported** leads on 11 rows including CLINC150+OOS 97.4, RAGTruth 79.4, GSM8K 80.8 and CRUXEval 86.7 with median/p95 latency 209.3/238.6 ms, plus Typesafe-workflow bests on invoice exact/primary and security incidents[^clef-2026].
+- Independent open-weight vision alternative: [Imajev-4B Vision Decision Model](imajev-4b-decision-model.md) is an Apache-2.0 Qwen3.5-4B LoRA with photo-vs-record and two-photo decisions plus trained `unknown`; **reported** #1 of 91 on JevBench v1.4.2.2 (67.37 vs Jev 1.13.0 63.29), #1 of 49 on Image JevBench v0.1.3 (76.39 vs Jev-Omni 73.10), #3 of 56 on DecisionBench eng v1 (79.65), and 83.9% on ImajevBench v2.0-lite with 58% automated at 97.5% right at the 90% threshold — **synthesis**: prefer it when one small local model must check photos against records with explicit can't-tell routing, after verifying thresholds on own cases[^imajev-4b-2026-09-28].
 
 ## Relationships
 
@@ -271,6 +276,7 @@ Synthesis: Jev is a proprietary TypeSafe AI “System One” decision model with
 - Kev owner figures above are **reported** README values with linked model cards, Hub revisions, eval manifests and `runs/*` logs uninspected; treat Decision Index, validated-context and MMLU-Pro gaps as unreproduced[^kev-readme-2026].
 - Nimble comparison figures above are **reported** single-file README values with dataset files, eval outputs, and Hub revisions uninspected; treat the 324-example gap and narrowness caveat as unreproduced[^bespoke-nimble-2026-09].
 - Von figures above are **reported** single-file README values with weights, SDKs, serving, calibration scripts, and benchmark harnesses uninspected; treat JevBench, gate, and latency figures as unreproduced[^von-2026].
+- Imajev figures above are **reported** single-file model-card values with weights, serving runs, and leaderboard images uninspected; treat JevBench, Image JevBench, DecisionBench, and ImajevBench figures as unreproduced[^imajev-4b-2026-09-28].
 - OpenJev figures above are **reported** bundle values with weights (`model-*.safetensors`), `tokenizer.json`, and `assets/*.png` pixels uninspected and no serving run reproduced here; treat accuracy, latency, and quant deltas as pinned-recipe values only[^openjev-2026].
 
 [^raschka-jevl-2026-09-29]: S. Raschka, “Language Models for Text Classification: From Bag-of-Words to Jev,” Ahead of AI, published 2026-09-29, canonical local entry `../raw/classifier-history-and-jev/index.md`, upstream `https://magazine.sebastianraschka.com/p/classifier-history-and-jev`. Locators in text: §3, §5, Figs. 24, 29–30.
@@ -300,3 +306,4 @@ Synthesis: Jev is a proprietary TypeSafe AI “System One” decision model with
 [^bespoke-nimble-2026-09]: Bespoke Labs, "Bespoke Nimble," canonical local entry `../raw/nimble.md`, repo `https://github.com/bespokelabsai/nimble`, model `https://huggingface.co/bespokelabs/Bespoke-Nimble-9B`. Locators in text: Methodology (contrastive curation, dataset tables, finetuning, 324-example eval table); Capabilities.
 [^openjev-2026]: OpenJev project, "OpenJev," model and serving bundle, canonical local entry `../raw/openjev-openjev/README.md`, package scope `../raw/openjev-openjev/`, Hugging Face `openjev/openjev`. Locators: "Results" 10,000-question, agent/desktop/web, MiniWoB, language/long-doc and "Speed" tables; "Formats" deltas; `serve/SERVE.md` pinned recipe; `helper/shim.py` readout.
 [^von-2026]: Von project, "Von," canonical local entry `../raw/von.md`, upstream `https://huggingface.co/wfzyx/von`. Locators in text: Benchmarks table and footnotes; Acting on confidence gate figures; Chain-of-options; Wire protocol and CLI tables.
+[^imajev-4b-2026-09-28]: mohit67890, "imajev-4b," model card, canonical local entry `../raw/imajev-4b.md`, upstream `https://huggingface.co/mohit67890/imajev-4b`. Locators in text: header leaderboard links plus sub-caption; "Automate what is clear" threshold table; "Results (2026-09-26)" table plus evaluation paragraph.
