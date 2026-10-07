@@ -5,7 +5,7 @@ description: How calibration aligns predicted probabilities with observed freque
 tags: [calibration, evaluation, reinforcement-learning]
 status: stable
 created: 2026-10-02
-generated: { by: llm-wiki-agent/1, at: 2026-10-07T00:00:00Z }
+generated: { by: llm-wiki-agent/1, at: 2026-10-07T12:00:00Z }
 sources:
   - id: reddit-jev-287-2026-09
     resource: ../raw/i-reviewed-287-opensource-jev-projects-here-are/index.md
@@ -99,6 +99,10 @@ sources:
     resource: ../raw/imajev-4b.md
     kind: model-card
     title: mohit67890/imajev-4b
+  - id: quyet-1-0-large-2026
+    resource: ../raw/Quyet-1.0-Large.md
+    kind: model-card
+    title: Quyet-1.0-Large
 ---
 
 # Classifier Calibration: Temperature Scaling and Calibration Rewards
@@ -127,6 +131,7 @@ Synthesis: calibration makes stated probabilities match empirical frequencies; t
 - Uncalibrated contrast: [Julia 1](julia-1-decision-model.md) **reports** `calibration: null` in `inference-policy.json`, so its probabilities arrive without a fitted temperature; **observed** `julia/model.py` registers a per-type temperature buffer that the inspected forward pass does not apply, and `julia/probabilities.py` collapses decisive legacy distributions to 1.0/0.0 and floors sub-0.01 values before renormalizing — treat that display rule as presentation, not calibration[^julia-1-2026-09-24].
 - Uncalibrated contrast: [NeoHorse-Jev-4B](neohorse-jev-4b-decision-model.md) **reports** no NLL, Brier, or ECE results and documents `confidence` as a local distribution statistic rather than a calibrated P(correct); **synthesis**: set thresholds on independent data and do not rank its Choice/Score `confidence` against fitted-temperature ECE figures such as JEV-9B/27B, Jev-Style, or Jev-Omni without protocol alignment[^neohorse-jev-4b-2026-09-24].
 - Independent single-temperature point: [Imajev-4B](imajev-4b-decision-model.md) ships one temperature 1.305 for every type × option-count bucket fitted on 150 template-generated JevBench-style items; **reported** JevBench hard single-pass ECE 0.113→0.082 and pooled 231-item ECE 0.064→0.046 with `unknown` offsets 0, and warns the same temperature over-softens photo-only verification (previous-version 0.038→0.062) so photo-against-record traffic should serve without calibration or fit its own temperature[^imajev-4b-2026-09-28].
+- Independent package-applied point: [Quyet-1.0-Large](quyet-1-0-large-decision-model.md) applies fitted temperatures inside the `quyet` package (stored in the package plus `quyet_config.json`) over option-letter readout, refit for prompt version 2; **reported** mechanism only with no ECE, NLL, Brier, or fit-set figures in this card — **synthesis**: do not rank it against fitted-temperature ECE figures above without a per-workload reliability check[^quyet-1-0-large-2026].
 
 ## Field calibration corroboration
 
@@ -179,6 +184,7 @@ Synthesis: calibration makes stated probabilities match empirical frequencies; t
 - Nimble temperature and ECE figures above are **reported** single-file README values with calibration sets and merged-weight behavior uninspected; treat the fitted-versus-latest and rating-regression figures as unreproduced[^bespoke-nimble-2026-09].
 - OpenJev temperatures above are pinned-recipe values from **observed** `serve/SERVE.md` plus static helper read with no ECE table or live calibration check in this bundle; treat them as reproduction constants, not a ranked calibration result[^openjev-2026].
 - Imajev temperature and ECE figures above are **reported** single-file model-card values with calibration files and eval harness uninspected; treat the 150-item fit and photo-traffic warning as unreproduced[^imajev-4b-2026-09-28].
+- Quyet temperatures above are a **reported** package mechanism with no calibration table in this card and package code plus `quyet_config.json` uninspected; treat fit quality as unmeasured[^quyet-1-0-large-2026].
 
 [^raschka-jevl-2026-09-29]: S. Raschka, "Language Models for Text Classification: From Bag-of-Words to Jev," Ahead of AI, published 2026-09-29, canonical local entry `../raw/classifier-history-and-jev/index.md`, upstream `https://magazine.sebastianraschka.com/p/classifier-history-and-jev`. Locators in text: §5–§5.3, Figs. 34–37.
 [^jev-27b-2026-10-01]: AutoTrust, "autotrust/JEV-27B," model card, canonical local entry `../raw/JEV-27B/README.md`, package scope `../raw/JEV-27B/`, release notes 2026-10-01, upstream `https://huggingface.co/autotrust/JEV-27B`. Locators: “Blocks of Experts recipe” efficiency point 5; `calibration.json` per_kind; “Evaluation details” ECE row.
@@ -199,3 +205,4 @@ Synthesis: calibration makes stated probabilities match empirical frequencies; t
 [^openjev-2026]: OpenJev project, "OpenJev," model and serving bundle, canonical local entry `../raw/openjev-openjev/README.md`, package scope `../raw/openjev-openjev/`. Locators: `serve/SERVE.md` env-knob table (`READOUT_T`, `READOUT_NOUL_T/BIAS`, `READOUT_TARGETED`, `READOUT_INSTR_STYLE`); `helper/shim.py::TEMP/NOUL_T/TARGETED`.
 [^von-2026]: Von project, "Von," canonical local entry `../raw/von.md`, upstream `https://huggingface.co/wfzyx/von`. Locators in text: Acting on confidence (sweep method, Choice/Noul keeps, cascade, out-of-domain limit); CLI `von calibrate` row.
 [^imajev-4b-2026-09-28]: mohit67890, "imajev-4b," model card, canonical local entry `../raw/imajev-4b.md`, upstream `https://huggingface.co/mohit67890/imajev-4b`. Locators in text: "Calibration" temperature paragraph plus ECE table.
+[^quyet-1-0-large-2026]: Chinh Nguyen, "Quyet-1.0-Large," model card, canonical local entry `../raw/Quyet-1.0-Large.md`, upstream `https://huggingface.co/chinhnc/Quyet-1.0-Large`. Locators in text: "How to use" calibrated-temperatures paragraph; prompt version 2 refit note; `quyet_config.json` pointer.

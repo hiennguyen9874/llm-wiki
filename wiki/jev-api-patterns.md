@@ -5,7 +5,7 @@ description: The three Jev decision APIs, their request and response shapes, whe
 tags: [jev, api, classification]
 status: stable
 created: 2026-10-02
-generated: { by: llm-wiki-agent/1, at: 2026-10-07T00:00:00Z }
+generated: { by: llm-wiki-agent/1, at: 2026-10-07T12:00:00Z }
 sources:
   - id: jev-9b-v08
     resource: ../raw/JEV-9B/README.md
@@ -97,6 +97,10 @@ sources:
     resource: ../raw/imajev-4b.md
     kind: model-card
     title: mohit67890/imajev-4b
+  - id: quyet-1-0-large-2026
+    resource: ../raw/Quyet-1.0-Large.md
+    kind: model-card
+    title: Quyet-1.0-Large
 ---
 
 # Jev API Patterns: Choice, Noul, and Score
@@ -141,6 +145,7 @@ Synthesis: use Choice for one-answer multi-class, Noul yes-probabilities for bin
 - Open-encoder SystemOne-compatible variant: [Von](von-decision-model.md) serves `POST /v1/systemone` with `decide`/`judge`/`rate` plus multi-question `system_one` in one forward pass; **reported** `band` versus `raw` Noul control, 8192-token middle-truncation with `truncation` field and 422 `refuse` mode, real `usage.input_tokens`, and `confidence_gate(threshold=0.80)` splitting `automatic`/`escalate`[^von-2026].
 - Diffusion-canvas Jev-compatible variant: [OpenJev Diffusion Decision Server (razorback16)](openjev-diffusion-decision-server.md) serves the same three kinds over `POST /v1/systemone` by reading one masked label token per question from a DiffusionGemma 26B-A4B canvas in a read-only pass; **reported** `yes`/`no`, `A`/`B`/`C`, `0`/`1`/`2` single-token labels, `1 − H(p)/ln K` confidence, ~12-question parallel chunks with entropy-triggered re-reads, plus `images`/`steps`/`samples`/`think`/`sequential` extensions and routed `laya-1.0`/`verdict-1.4`/`clm-v0.1`/`jevk5-0.2` models[^razorback16-openjev-2026].
 - Vision Jev-compatible variant: [Imajev-4B Vision Decision Model](imajev-4b-decision-model.md) serves Jev `POST /v1/systemone` plus `images`, `unknown_probability`, and `abstained` with a trained `unknown`; **reported** 0–2 images (≤400,000 px), 32 KB state, 1–8 questions, 2–255 options per choice, 2–10 levels per score, and 4,096-token refusal cap[^imajev-4b-2026-09-28].
+- Letter-readout Gemma variant: [Quyet-1.0-Large Calibrated Decision Model](quyet-1-0-large-decision-model.md) serves Jev-compatible `choice`/`noul`/`score` via `quyet.load` plus `m.predict(state, questions)` with TypeSafe `/v1/systemone` answer shapes; **reported** option-letter (A, B, ...) next-token readout, 10-option cap, 6,000-token state inside an 8,000-token prompt with state-only truncation, and prompt-version-2 compact-JSON states with refit temperatures[^quyet-1-0-large-2026].
 
 ## DIY single-head retrofit
 
@@ -171,6 +176,7 @@ Synthesis: use Choice for one-answer multi-class, Noul yes-probabilities for bin
 - Diffusion-server shapes above are **reported** single-file documentation values with serving code and live deployment uninspected — verify flags and limits against the live repo before building[^razorback16-openjev-2026].
 - Von shapes above are **reported** single-file README values with SDKs and live serving uninspected — verify band/raw, truncation headers, and gate numbers before building[^von-2026].
 - Imajev shapes above are **reported** single-file model-card values with serving code and live deployment uninspected — verify image/state/token limits against the live repo before building[^imajev-4b-2026-09-28].
+- Quyet shapes above are **reported** single-file model-card values with package code, `quyet_config.json`, weights, and live serving uninspected — verify the 10-option cap, 6,000/8,000-token budget, and prompt-version-2 behavior before building[^quyet-1-0-large-2026].
 - Pi wire-format claims above are **observed** commenter readings of installed `node_modules` files plus docs prose, not reproduced here; installed-code version, Pi revision, and live docs were not verified, and linked Pi classification docs were not inspected beyond the quoted lines[^reddit-pi-jev-2026-09-30].
 
 [^raschka-jevl-2026-09-29]: S. Raschka, "Language Models for Text Classification: From Bag-of-Words to Jev," Ahead of AI, published 2026-09-29, canonical local entry `../raw/classifier-history-and-jev/index.md`, upstream `https://magazine.sebastianraschka.com/p/classifier-history-and-jev`. Locators in text: §3.2–§4, Figs. 25, 28, 31–32.
@@ -192,3 +198,4 @@ Synthesis: use Choice for one-answer multi-class, Noul yes-probabilities for bin
 [^razorback16-openjev-2026]: razorback16, "OpenJev," project documentation, canonical local entry `../raw/razorback16-openjev.md`, upstream `https://github.com/razorback16/openjev`. Locators: "API" routes, question types, confidence/usage/errors, Jev differences; "Extensions" fields table; "How it works" canvas readout with entropy-0.1 re-reads; "Models" routed-model table.
 [^von-2026]: Von project, "Von," canonical local entry `../raw/von.md`, upstream `https://huggingface.co/wfzyx/von`. Locators in text: Use (single- and multi-question examples); Acting on confidence; Wire protocol; CLI flag/env table.
 [^imajev-4b-2026-09-28]: mohit67890, "imajev-4b," model card, canonical local entry `../raw/imajev-4b.md`, upstream `https://huggingface.co/mohit67890/imajev-4b`. Locators in text: "One request, every answer typed" script plus result JSON; "Technical specification" request-limits row; "Serving" install/serve commands.
+[^quyet-1-0-large-2026]: Chinh Nguyen, "Quyet-1.0-Large," model card, canonical local entry `../raw/Quyet-1.0-Large.md`, upstream `https://huggingface.co/chinhnc/Quyet-1.0-Large`. Locators in text: spec table (Architecture, Input, Languages, Weights); "How to use" `quyet.load`/`m.predict` example plus answer-shape and serving paragraphs; prompt version 2, 10-option cap, and state-only truncation rule.
