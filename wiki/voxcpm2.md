@@ -5,7 +5,7 @@ description: 2B-parameter tokenizer-free diffusion-autoregressive multilingual T
 tags: [tts, multilingual, voice-cloning, streaming]
 status: stable
 created: 2026-10-06
-generated: { by: llm-wiki-agent/1, at: 2026-10-06T10:27:56Z }
+generated: { by: llm-wiki-agent/1, at: 2026-10-07T04:10:00Z }
 stale_after: 2027-10-06
 sources:
   - id: voxcpm2-card
@@ -66,6 +66,7 @@ Arabic, Burmese, Chinese, Danish, Dutch, English, Finnish, French, German, Greek
 
 ## Relationships
 
+- Used by [Vietnamese Realtime TTS Selection](vietnamese-realtime-tts-selection.md) as the GPU cloning/style challenger to VieNeu. Explicit Vietnamese support, streaming API and Apache-2.0 justify A/B inclusion, not a claim of better Vietnamese MOS; published RTX 4090 RTF does not establish TTFA or incremental text-input streaming (**Synthesis**).[^voxcpm2-card]
 - Baseline comparison: [Audio8 TTS Preview 0.6B](audio8-tts-preview-0.6b.md) evaluates VoxCPM2 (2.3B main-model parameters excluding AudioVAE) as a baseline on Seed-TTS and CV3 tables, while this concept covers the VoxCPM2 model card itself (2B total, 30 languages, AudioVAE V2, voice design and cloning modes); no shared codebase is asserted (**Synthesis**).[^voxcpm2-card]
 - Real-time TTS comparison: [Breeze TTS 2](breeze-tts-2.md) covers a bilingual real-time TTS model with voice design/direction and H100 TTFA/RTF figures, while this concept covers a 30-language diffusion-autoregressive TTS model with parenthetical voice-design/style syntax and RTX 4090 RTF figures; no shared vendor or codebase is asserted (**Synthesis**).[^voxcpm2-card]
 - Streaming TTS comparison: [CosyVoice2-0.5B](cosyvoice2-0.5b.md) covers a 0.5B LLM-based streaming TTS model with zero-shot/cross-lingual/instruct modes and vLLM support, while this concept covers a 2B diffusion-autoregressive streaming TTS model with `generate_streaming` and Nano-vLLM acceleration; no shared codebase is asserted (**Synthesis**).[^voxcpm2-card]

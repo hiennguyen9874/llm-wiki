@@ -5,7 +5,7 @@ description: Research-report recommendation for an open-source Vietnamese realti
 tags: [pipeline, vad, stt, llm, tts, vietnamese, streaming, noisy-audio]
 status: draft
 created: 2026-10-06
-generated: { by: llm-wiki-agent/1, at: 2026-10-07T03:56:09Z }
+generated: { by: llm-wiki-agent/1, at: 2026-10-07T04:10:00Z }
 stale_after: 2027-10-06
 sources:
   - id: vi-primary-research
@@ -35,6 +35,10 @@ The sections below preserve the original AI-report recommendations, not a curren
 - The source is an AI-compiled survey-plus-integration report (file name attributes it to Claude) written in Vietnamese, self-dated 10/2026, that cites vendor model cards, papers, GitHub issues, and third-party blogs without capturing them; none of those primary sources is in `raw/` (**Observed**).[^claude-pipeline-report]
 - The report itself labels which figures are vendor/author claims (Qwen3-TTS 97 ms, vLLM-Omni 64 ms TTFP, faster-qwen3-tts RTF/TTFA, VieNeu 115 ms and 16 streams, Smart Turn accuracy, Qwen3-ASR and Nemotron WER, Silero v6 16%, TEN VAD vs Silero), which are third-party (VietASR 16.44% Whisper WER, denoise studies, NOVA-VAD), and which are its own engineering estimates (latency and VRAM budgets) (**Reported**).[^claude-pipeline-report]
 - Items it explicitly did not re-check: FireRedVAD, MarbleNet, Cobra, Kyutai, Moshi/Unmute, MiniCPM-o, GLM-4-Voice, Ultravox, LFM2-Audio, CosyVoice 3, F5-TTS-Vietnamese, viXTTS, and small frameworks (Bolna, Dograh, Speaches, LocalAI, xiaozhi); Qwen3.6/3.8 are seen only in secondary sources and excluded from recommendations (**Reported**).[^claude-pipeline-report]
+
+## TTS selection follow-up (2026-10-07)
+
+Use [Vietnamese Realtime TTS Selection](vietnamese-realtime-tts-selection.md) for current local-primary-card filtering of VieNeu, VoxCPM2, Supertonic 3, Higgs TTS 3, Fish S2 Pro and OmniVoice. It distinguishes per-stream RTF/TTFA from batched throughput, frame-level audio output from incremental text input, and Vietnamese-listed support from matched listening quality. This report's VieNeu-only routing, generic VRAM estimates, G2P issue and community checkpoint pointers remain secondary/unverified; the follow-up does not validate the entire stack (**Synthesis**).
 
 ## Recommended stack (single 24 GB GPU)
 

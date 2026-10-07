@@ -5,7 +5,7 @@ description: Supertone's ~99M-parameter on-device multilingual TTS covering 31 l
 tags: [tts, on-device, multilingual]
 status: stable
 created: 2026-10-06
-generated: { by: llm-wiki-agent/1, at: 2026-10-06T23:55:00Z }
+generated: { by: llm-wiki-agent/1, at: 2026-10-07T04:10:00Z }
 stale_after: 2027-10-06
 sources:
   - id: supertonic-3-card
@@ -70,6 +70,7 @@ Supertonic 3 is Supertone Inc's on-device multilingual text-to-speech release, r
 
 ## Relationships
 
+- Used by [Vietnamese Realtime TTS Selection](vietnamese-realtime-tts-selection.md) as the CPU/on-device challenger. Vietnamese is listed, but the card's full-waveform `synthesize` example and missing metric images do not establish frame-level streaming or numeric TTFA; do not transfer Supertonic 2 RTF to this checkpoint (**Synthesis**).[^supertonic-3-card]
 - Direct predecessor: [Supertonic 2](supertonic-2.md) covers the 66M-parameter 5-language ONNX on-device TTS with published characters-per-second and real-time-factor tables, while this concept covers the 31-language successor at about 99M parameters with claimed stability, similarity, and expression-tag deltas but image-only benchmark figures; no deprecation of Supertonic 2 is asserted in this source (**Synthesis**).[^supertonic-3-card]
 - Family origin: [Supertonic](supertonic.md) covers the original repository README with 66M parameters, up-to-167x-real-time claims, numeric throughput tables, and 11-runtime deployment examples, while this concept covers the third-generation 31-language release with Voice Builder custom voices (**Synthesis**).[^supertonic-3-card]
 - Reported comparator: [VoxCPM2](voxcpm2.md) covers a 2B-parameter tokenizer-free diffusion-autoregressive multilingual TTS model that this source names as a much larger open system against which Supertonic 3 claims a competitive WER/CER range at a fraction of the size; the underlying values are image-only and no ranking is reproduced here (**Synthesis**).[^supertonic-3-card]

@@ -5,7 +5,7 @@ description: Dual-autoregressive multilingual TTS model with free-form inline pr
 tags: [tts, multilingual, expressive, streaming]
 status: stable
 created: 2026-10-06
-generated: { by: llm-wiki-agent/1, at: 2026-10-06T00:00:00Z }
+generated: { by: llm-wiki-agent/1, at: 2026-10-07T04:10:00Z }
 stale_after: 2027-10-06
 sources:
   - id: fish-s2pro-card
@@ -51,6 +51,7 @@ Fish Audio S2 Pro is a leading multilingual text-to-speech model combining reinf
 
 ## Relationships
 
+- Included by [Vietnamese Realtime TTS Selection](vietnamese-realtime-tts-selection.md) as an expressive streaming candidate with a commercial-license gate. `vi` is in Other languages, not Tier 1/2; H200~100ms TTFA is not matched Vietnamese quality/latency evidence against consumer-GPU alternatives (**Synthesis**).[^fish-s2pro-card]
 - DualAR lineage: [Audio8 TTS Preview 0.6B](audio8-tts-preview-0.6b.md) describes its DualAR design as inspired by Fish Audio S2 Pro (slow AR semantic token per frame, fast AR codec codebooks conditioned on slow hidden state), while this concept covers the upstream S2 Pro architecture, control, language, and streaming claims; no shared checkpoint is asserted (**Synthesis**).[^fish-s2pro-card]
 - Independent benchmark baseline: [Higgs TTS 3](higgs-tts-3-4b.md) reports Fish Audio S2 Pro scores as a baseline on multilingual voice-clone WER/CER suites and the Emergent-TTS judge win-rate table, while this concept carries S2 Pro's own card claims; prefer the Higgs page for head-to-head numbers (**Synthesis**).[^fish-s2pro-card]
 - Edge/server packaging: [audio.cpp GGUF Model Packages](audio-cpp-gguf-packages.md) already catalogs a `Fish-Audio-S2-Pro-GGUF` entry (`fish_audio`, BF16 + Q8, Fish Audio Research License), while this concept covers the upstream weights, card, and serving claims; prefer the GGUF entry for audio.cpp deployment questions (**Synthesis**).[^fish-s2pro-card]

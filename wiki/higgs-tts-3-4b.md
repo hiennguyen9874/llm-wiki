@@ -5,7 +5,7 @@ description: 4B-parameter multilingual expressive TTS model with zero-shot voice
 tags: [ml, tts, multilingual, voice-cloning, expressive]
 status: stable
 created: 2026-10-06
-generated: { by: llm-wiki-agent/1, at: 2026-10-06T00:00:00Z }
+generated: { by: llm-wiki-agent/1, at: 2026-10-07T04:10:00Z }
 stale_after: 2027-10-06
 sources:
   - id: higgs-v3-card
@@ -72,6 +72,7 @@ Higgs TTS 3 is a ~4B-parameter autoregressive multilingual text-to-speech model 
 
 ## Relationships
 
+- Included by [Vietnamese Realtime TTS Selection](vietnamese-realtime-tts-selection.md) as an expressive candidate with a commercial-license gate. Vietnamese under-5 tier is vendor-reported rather than a matched MOS result; H100617ms is full-response latency, not TTFA, and cannot rank first-audio speed against VieNeu/Fish (**Synthesis**).[^higgs-v3-card]
 - STT sibling in the same upstream family: [Higgs Audio v3 STT](higgs-audio-v3-stt.md) covers the 2.68B Whisper-Large-v3-encoder plus Qwen3-1.7B-decoder transcription checkpoint with thinking mode and repetition-loop post-processing, while this concept covers the 4B TTS weights; no shared checkpoint is asserted (**Synthesis**).[^higgs-v3-card]
 - Packaged for edge/server runtimes: [audio.cpp GGUF Model Packages](audio-cpp-gguf-packages.md) already catalogs a `Higgs-Audio-v3-TTS-4B-GGUF` (`higgs_audio_tts`, BF16 + Q8) entry under the same Boson research/non-commercial license, while this concept covers the upstream `bosonai/higgs-tts-3-4b` weights, card, benchmarks, and serving paths; prefer the GGUF entry for audio.cpp deployment questions (**Synthesis**).[^higgs-v3-card]
 - Compact multilingual cloning contrast: [Audio8 TTS Preview 0.6B](audio8-tts-preview-0.6b.md) covers a 0.6B DualAR cloning model with 11 recommended languages and Seed-TTS/CV3 tables that use Higgs Audio v2 as a baseline, while this concept covers the 4B model that supersedes that baseline on those suites; no shared codebase is asserted (**Synthesis**).[^higgs-v3-card]

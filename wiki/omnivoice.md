@@ -5,7 +5,7 @@ description: Massively multilingual zero-shot TTS model covering 600+ languages 
 tags: [ml, tts, multilingual, voice-cloning, zero-shot]
 status: stable
 created: 2026-10-06
-generated: { by: llm-wiki-agent/1, at: 2026-10-06T12:00:00Z }
+generated: { by: llm-wiki-agent/1, at: 2026-10-07T04:10:00Z }
 stale_after: 2027-10-06
 sources:
   - id: omnivoice-card
@@ -28,7 +28,7 @@ OmniVoice is a massively multilingual zero-shot text-to-speech model supporting 
 
 ## Capabilities
 
-- 600+ languages supported, described as the broadest language coverage among zero-shot TTS models (**Reported**).[^omnivoice-card]
+- 600+ languages supported, described as the broadest language coverage among zero-shot TTS models; Vietnamese `vi` is explicitly present in the captured frontmatter at line 601 (**Reported**, field presence **Observed**).[^omnivoice-card]
 - Voice cloning produces high-quality cloned speech from a short reference audio plus its transcription, characterized in the card as state-of-the-art cloning quality (**Reported**).[^omnivoice-card]
 - Voice design controls voices via assigned speaker attributes such as gender, age, pitch, dialect/accent, and whisper without requiring reference audio (**Reported**).[^omnivoice-card]
 - Fine-grained control supports non-verbal symbols such as `[laughter]` and pronunciation correction via pinyin or phonemes (**Reported**).[^omnivoice-card]
@@ -55,6 +55,7 @@ OmniVoice is a massively multilingual zero-shot text-to-speech model supporting 
 
 ## Relationships
 
+- Included by [Vietnamese Realtime TTS Selection](vietnamese-realtime-tts-selection.md) as a Vietnamese-listed research candidate, not a latency-cleared production pick: weights remain CC-BY-NC and the card's `generate` example returns complete waveforms; RTF0.025 does not establish TTFA or incremental audio (**Synthesis**).[^omnivoice-card]
 - Multilingual zero-shot TTS comparison: [Audio8 TTS Preview 0.6B](audio8-tts-preview-0.6b.md) covers a compact 0.6B DualAR multilingual cloning model with 11 recommended languages and Seed-TTS numbers, while this concept covers a 600+-language diffusion-LM cloning/design model with 0.025 RTF; no shared codebase or vendor claim is asserted (**Synthesis**).[^omnivoice-card]
 - Bilingual real-time TTS contrast: [Breeze TTS 2](breeze-tts-2.md) covers an English-Chinese real-time model with voice clone/design/direction and H100 TTFA/RTF figures, while this concept covers massively multilingual coverage and attribute-driven voice design; no shared codebase or vendor claim is asserted (**Synthesis**).[^omnivoice-card]
 - LLM-based streaming TTS family: [CosyVoice2-0.5B](cosyvoice2-0.5b.md) and [Fun-CosyVoice3-0.5B-2512](fun-cosyvoice3-0.5b-2512.md) cover 0.5B-parameter multilingual zero-shot TTS models with streaming and pronunciation-control features, while this concept covers a Qwen3-0.6B-based diffusion-LM model at 600+-language scale; no shared codebase claim is asserted beyond the comparable voice-cloning role (**Synthesis**).[^omnivoice-card]
