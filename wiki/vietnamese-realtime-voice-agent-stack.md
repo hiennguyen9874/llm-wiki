@@ -5,7 +5,7 @@ description: Research-report recommendation for an open-source Vietnamese realti
 tags: [pipeline, vad, stt, llm, tts, vietnamese, streaming, noisy-audio]
 status: draft
 created: 2026-10-06
-generated: { by: llm-wiki-agent/1, at: 2026-10-07T04:10:00Z }
+generated: { by: llm-wiki-agent/1, at: 2026-10-07T15:04:00Z }
 stale_after: 2027-10-06
 sources:
   - id: vi-primary-research
@@ -17,6 +17,12 @@ sources:
     resource: ../raw/Claude-pipeline-recommend.md
     kind: llm-response
     title: Claude voice-pipeline research report
+  - id: smart-turn-v3.2
+    resource: ../raw/smart-turn/README.md
+    scope: ../raw/smart-turn/
+    kind: documentation
+    revision: github 4786657e242dfe77dd138699ac564ee074a2a543; hf f766f81d3cfdf7737ac64aad813d91bbfd56bf93
+    title: Smart Turn v3.2 (pipecat-ai) capture
 ---
 
 A Vietnamese-language research report dated 10/2026 concludes that a cascaded Silero VAD → Whisper → Qwen3 → Qwen3-TTS realtime voice chat is buildable, but that a Vietnamese product breaks at the TTS stage because official Qwen3-TTS supports 10 languages without Vietnamese; it therefore recommends VieNeu-TTS v3 Turbo for Vietnamese, keeps Qwen3-TTS for English/Chinese and its other supported languages, and puts every TTS behind one `/v1/audio/speech` endpoint so swapping TTS is only a URL change (**Reported**).[^claude-pipeline-report] For noisy environments it argues that AEC, speaker lock, duration-gated barge-in, confidence gating, and a Vietnamese hallucination blacklist matter more than placing a denoiser in front of ASR (**Reported**).[^claude-pipeline-report]
@@ -74,10 +80,10 @@ All rows are the report's recommendation (**Reported**).[^claude-pipeline-report
 | sherpa-onnx Zipformer VN 6000h | ~30M, true streaming on CPU/edge; no independent WER |
 | [Nemotron 3.5 ASR Streaming 0.6B](nemotron-3.5-asr-streaming-0.6b.md) | Yes: FLEURS-vi 13.41 (80 ms) → 11.18 (1.12 s), vendor figures |
 | [Parakeet TDT 0.6B V3](parakeet-tdt-0.6b-v3.md) | No (25 European languages) |
-| Smart Turn v3 | Yes (81.27% accuracy, vendor) |
+| [Smart Turn v3.2](smart-turn.md) | Yes: v3.2 accuracy 82.47% (GPU) / 79.38% (CPU), FPR 9.56/8.86%, FNR 7.97/11.75% (vendor, 1,004 vi samples) |
 | LiveKit turn detectors | No (14 languages) |
 
-All cells are as reported, with the report's own attribution of vendor versus third-party origin (**Reported**).[^claude-pipeline-report]
+All cells are as reported, with the report's own attribution of vendor versus third-party origin (**Reported**); the Smart Turn row now uses the captured primary v3.2 benchmark instead of the report's stale 81.27% figure (**Reported**).[^claude-pipeline-report][^smart-turn-v3.2]
 
 ## LLM choice and invocation
 
@@ -147,10 +153,12 @@ Tier rows are the report's recommendation (**Reported**).[^claude-pipeline-repor
 ## Coverage and limits
 
 - Source inspected statically in full (TL;DR, Key Findings, Part 1 survey §1–§8, Part 2 integration incl. mermaid diagram, reference Python server, docker-compose skeleton, Recommendations, Caveats); no code executed, no model installed, and no latency, VRAM, WER, or accuracy figure reproduced (**Synthesis**).[^claude-pipeline-report]
-- The original ingest did not capture the report's cited primary sources. The2026-10-07 follow-up captures selected Qwen/PhoWhisper/ChunkFormer/ZipFormer ASR documentation, but not all cited sources or a complete deployment validation; remaining report citations are still unverified secondhand claims, so this concept stays `draft` (**Synthesis**).[^claude-pipeline-report]
+- The original ingest did not capture the report's cited primary sources. The 2026-10-07 follow-up captures selected Qwen/PhoWhisper/ChunkFormer/ZipFormer ASR documentation and the primary [Smart Turn v3.2](smart-turn.md) package, but not all cited sources or a complete deployment validation; remaining report citations are still unverified secondhand claims, so this concept stays `draft` (**Synthesis**).[^claude-pipeline-report][^smart-turn-v3.2]
 - The reference server and docker-compose are summarized rather than reproduced; the report flags VieNeu streaming field names and vLLM-Omni image tags as unverified (**Synthesis**).[^claude-pipeline-report]
 - Release dates and benchmark numbers carry `stale_after: 2027-10-06` per the `pipeline`, `vad`, `stt`, `llm`, and `tts` domain rules (**Synthesis**).[^claude-pipeline-report]
 
 [^vi-primary-research]: [Primary research capture](../raw/vietnamese-asr-research-2026-10-07/README.md) — `qwen-report.html` §2.4/Table2, §4.5/Table8, AppendixTableA.2; PhoWhisper card/README; ChunkFormer CTC/RNNT cards Model Description/frontmatter and ONNX guide; ZipFormer30M upstream frontmatter/Inference Speed. Ledger records unavailable checkpoint and pending artifacts.
+
+[^smart-turn-v3.2]: [Smart Turn v3.2](smart-turn.md) — Benchmark (31,527 samples overall and the Vietnamese 1,004-sample CPU/GPU table); Architecture and variants; Coverage and limits.
 
 [^claude-pipeline-report]: [Claude voice-pipeline research report](../raw/Claude-pipeline-recommend.md) — locators: title and opening paragraph (Qwen3-TTS lacks Vietnamese, VieNeu recommendation, `/v1/audio/speech` swap); `TL;DR` (recommended 24 GB stack, verified-to-10/2026 facts, noisy-environment bullets); `Key Findings` 1–5; `PHẦN 1` §1 VAD, §2 preprocessing, §3 turn detection, §4 STT/ASR table, §5 LLM table plus serving paragraph, §6 TTS table, §7 speech-to-speech/omni, §8 framework table; `PHẦN 2` `Kiến trúc tổng thể` (mermaid flowchart, transport paragraph), `Qwen3: chọn cỡ và cách gọi`, `Qwen3-TTS: chọn model và cách dùng` (model choice, `qwen-tts` API, vLLM-Omni streaming, Vietnamese options, normalization, G2P issue #207), `Ngân sách độ trễ` table plus `Kỹ thuật tối ưu` and VRAM list, `Code mẫu` (server.py plus usage notes), `Triển khai` (docker-compose, scaling, monitoring, evaluation); `Recommendations` (tier table, `Lộ trình`, `Khi nào nên thay thành phần`); `Caveats`.

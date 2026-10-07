@@ -110,6 +110,7 @@ Qwen3-TTS runs two autoregressive transformers per decode step: a 28-layer Talke
 - Depends on [Qwen3-TTS-12Hz-0.6B-CustomVoice](qwen3-tts-12hz-0.6b-customvoice.md): the 0.6B CustomVoice checkpoint is one of the accelerated model targets; this wrapper supplies the CUDA-graph/GGML streaming runtime while that concept covers the checkpoint itself (**Synthesis**).[^faster-qwen3-tts-readme]
 - Depends on [Qwen3-TTS-12Hz-1.7B-CustomVoice](qwen3-tts-12hz-1.7b-customvoice.md): the 1.7B CustomVoice checkpoint is the primary benchmark and CustomVoice CLI target here; checkpoint capabilities stay in that concept (**Synthesis**).[^faster-qwen3-tts-readme]
 - Uses [Qwen3-TTS-Tokenizer-12Hz](qwen3-tts-tokenizer-12hz.md): the 12.5 Hz 16-codebook codec whose `chunked_decode` sliding-window pattern this wrapper reuses for streaming chunk decode and ICL reference-context handling (**Synthesis**).[^faster-qwen3-tts-readme]
+- Depends on [Qwen3-TTS-12Hz-0.6B-Base](qwen3-tts-12hz-0.6b-base.md): the cloning checkpoint is another accelerated target (`from_pretrained("Qwen/Qwen3-TTS-12Hz-0.6B-Base")` with `generate_voice_clone`/`generate_voice_clone_streaming`); checkpoint capability and license stay in that concept (**Synthesis**).[^faster-qwen3-tts-readme]
 
 ## Coverage and limits
 

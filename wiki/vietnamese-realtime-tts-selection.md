@@ -5,7 +5,7 @@ description: Shortlist TTS realtime tiếng Việt theo chất lượng bằng c
 tags: [tts, vietnamese, streaming, comparison, deployment]
 status: draft
 created: 2026-10-07
-generated: { by: llm-wiki-agent/1, at: 2026-10-07T04:54:02Z }
+generated: { by: llm-wiki-agent/1, at: 2026-10-07T15:50:00Z }
 stale_after: 2027-10-07
 sources:
   - id: vieneu-tts-repo
@@ -16,6 +16,12 @@ sources:
     resource: ../raw/VieNeu-TTS-v3-Turbo.md
     kind: documentation
     title: VieNeu-TTS v3 Turbo model card (SDK 3.7.1)
+  - id: vieneu-tts-docs
+    resource: ../raw/vieneu-tts-docs/README.md
+    scope: ../raw/vieneu-tts-docs/
+    kind: documentation
+    revision: 85344322b7258b4e25479b692e8e3396baf9db34
+    title: VieNeu-TTS supporting docs (streaming guide and Docker Compose)
   - id: voxcpm2-card
     resource: ../raw/VoxCPM2.md
     kind: documentation
@@ -208,7 +214,7 @@ C++/GGUF là deployment alternative, không đổi language/weight license: audi
 
 - VieNeu FAQ cho phép commercial artifacts/preset voices nhưng roadmap vẫn personal use; không tự chọn cách diễn giải. SDK23/25 voices là khác version, không đồng nhất default. Training corpus gated/collection undisclosed, consent claim không thay user-cloning rights.[^vieneu-v3-card][^vieneu-tts-repo]
 - Higgs card đặt vi tier<5 nhưng thiếu exact score/dataset/normalizer/matched baseline riêng vi. H100617ms là **send-to-full-response**, không TTFA; Fish100ms là H200 thiếu protocol. Không làm matched quality/latency leaderboard từ các con số này.[^higgs3-card][^fish2-card]
-- Supertonic3 plots relative `img/metrics/` không có trong raw; không ghi số quality/latency tưởng tượng. VoxCPM2 full evaluation/accelerator docs và VieNeu `docs/streaming.md`/implementation chưa inspect. LGTM license missing; dots-mf vi quality/TTFA pending.[^supertonic3-card][^voxcpm2-card][^vieneu-tts-repo][^lgtm-card][^dots-mf-card]
+- Supertonic3 plots relative `img/metrics/` không có trong raw; không ghi số quality/latency tưởng tượng. VoxCPM2 full evaluation/accelerator docs chưa inspect. VieNeu `docs/streaming.md` nay đã compile trong [VieNeu-TTS Streaming Runtime and Performance](vieneu-tts-streaming-runtime.md), [VieNeu-TTS OpenAI-Compatible Speech API](vieneu-tts-openai-speech-api.md) và [VieNeu-TTS Docker Compose Deployment](vieneu-tts-docker-deployment.md), nhưng `apps/openai_speech.py`, Dockerfiles và weights vẫn chưa inspect. LGTM license missing; dots-mf vi quality/TTFA pending.[^supertonic3-card][^voxcpm2-card][^vieneu-tts-repo][^vieneu-tts-docs][^lgtm-card][^dots-mf-card]
 - Gwen-TTS 0.6B: card tự báo finetune ~1.000 h audio vi crawl TikTok nhưng thiếu phương pháp thu thập/lọc/consent, hyperparameters và protocol đánh giá; 9 demo voices chỉ là qualitative clips chưa nghe hay reproduce; `library_name: transformers` trong frontmatter mâu thuẫn với `qwen_tts` import ở usage; chưa có TTFA/streaming nên chưa đổi baseline.[^gwen-tts-card]
 - G-OmniVoice: card tự báo held-out vi set nhưng thiếu protocol/dataset/judge/uncertainty; `wer_vs_sim.png` không có trong raw; competitor rows là số in lại, nhãn `VietNeu/v3turbo` chưa khớp naming VieNeu đã compile; chưa có TTFA/streaming nên chưa đổi baseline.[^g-omnivoice-card]
 - Kokoro Vietnamese: weights/config/voicepacks và `vig2p` chưa inspect; chưa có training-data details, quality/latency/streaming benchmarks trong capture. ONNX không tự chứng minh realtime.[^kokoro-vi-concept]
@@ -223,6 +229,7 @@ C++/GGUF là deployment alternative, không đổi language/weight license: audi
 
 - Uses [TTS Model Survey](tts-model-survey.md) để map toàn catalog, nhưng thêm Vietnamese-specific deployment gates và sửa thiếu sót shortlist rộng.[^tts-survey]
 - Uses [VieNeu-TTS v3 Turbo](vieneu-tts-v3-turbo.md), [VoxCPM2](voxcpm2.md), [Supertonic 3](supertonic-3.md) làm ba baseline deployable có điều kiện; quyết định là synthesis từ support/runtime/license claims.[^vieneu-tts-repo][^voxcpm2-card][^supertonic3-card]
+- Depends on [VieNeu-TTS Streaming Runtime and Performance](vieneu-tts-streaming-runtime.md) cho số `max_streams`/TTFA/RTF và điều kiện CPU int8/VNNI của baseline đầu tiên, và trên [VieNeu-TTS Docker Compose Deployment](vieneu-tts-docker-deployment.md) cho profile triển khai `api-gpu`/`api-cpu`; đây là bằng chứng vận hành của tác giả, chưa reproduce (**Reported/Synthesis**).[^vieneu-tts-docs]
 - Uses [Kokoro Vietnamese](kokoro-vietnamese.md) và [sanoTTS](sanotts.md) để bổ sung CPU/ultra-small edge candidates, chưa nâng thành realtime baseline vì thiếu Vietnamese quality/TTFA/streaming evidence (**Synthesis**).[^kokoro-vi-concept][^sanotts-concept]
 - Uses [MOSS-TTS Local v1.5](moss-tts-local-transformer-v1-5.md) như GPU streaming challenger có Vietnamese support; [MOSS-TTS v1.5](moss-tts-v1-5.md) là sibling cloning/control candidate, không đồng nhất serving path (**Synthesis**).[^moss-local-v15-concept][^moss-v15-concept]
 - Complements [Vietnamese Realtime Voice Agent Stack](vietnamese-realtime-voice-agent-stack.md): primary local TTS cards bổ sung cho AI-report routing, không xác minh toàn end-to-end stack.[^vi-stack]
@@ -230,6 +237,7 @@ C++/GGUF là deployment alternative, không đổi language/weight license: audi
 
 [^vieneu-tts-repo]: [VieNeu README](../raw/VieNeu-TTS-repo.md) — v3 Turbo NOTE; §2 SDK `Streaming`, `v3 Nano`, CUDA-graph/VNNI paragraphs; §3 API Server; §4 Benchmarks throughput/streaming tables + machine protocol; §5 LoRA; §6 Model Overview; §7 Roadmap.
 [^vieneu-v3-card]: [VieNeu v3 card](../raw/VieNeu-TTS-v3-Turbo.md) — frontmatter vi/en; Overview/Architecture & Credits; Using SDK streaming/style; Preset Voices23; Usage Rights & Licensing FAQ (artifact scope, commercial use, speaker consent, gated corpus, authoritative SDK list).
+[^vieneu-tts-docs]: [VieNeu supporting docs](../raw/vieneu-tts-docs/README.md) — package ledger; `docs/streaming.md` (API field/format/SSE contract, env table, TTFA/RTF/lead, GPU CUDA-graph vs CPU ONNX mechanism, RTX 3060 `max_streams`/HTTP/cold-GPU/other-machine tables, CPU precision table, troubleshooting); `docker/docker-compose.yml` (profiles, env, healthchecks, GPU reservations).
 [^voxcpm2-card]: [VoxCPM2 card](../raw/VoxCPM2.md) — frontmatter/Supported Languages vi; Highlights; Quick Start Streaming; Model Details (architecture,6.25Hz,~8GB); Fine-tuning; Limitations; License.
 [^supertonic3-card]: [Supertonic3 card](../raw/supertonic-3.md) — frontmatter/Supported Languages vi; Quick Start; Custom Voices and Audio Samples/Voice Builder; Performance Highlights four image-only subsections; License.
 [^higgs3-card]: [Higgs3 card](../raw/higgs-audio-v3-tts-4b.md) — Component Spec; Supported Languages under5 tier vi; Control Tokens; Evaluation Benchmarks; Usage Streaming/Throughput definitions; Creator Use/License.

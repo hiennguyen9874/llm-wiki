@@ -5,7 +5,7 @@ description: Lựa chọn ASR realtime tiếng Việt theo chất lượng, nati
 tags: [stt, asr, vietnamese, streaming, selection, comparison]
 status: draft
 created: 2026-10-07
-generated: { by: llm-wiki-agent/1, at: 2026-10-07T04:54:02Z }
+generated: { by: llm-wiki-agent/1, at: 2026-10-07T15:04:00Z }
 stale_after: 2027-10-07
 sources:
   - id: primary
@@ -117,7 +117,7 @@ MOSS-Transcribe-Diarize có vi trong challenge list nhưng offline long-form, ph
 1. Corpus holdout tiếng Việt tự nhiên: Bắc/Trung/Nam, tên riêng/domain, địa chỉ/số tiền/số điện thoại/ngày, phủ định, code-switch, mic vs8k telephony, tiếng ồn và silence.
 2. Cùng ground truth/normalizer Unicode, dấu, số, punctuation và cùng policy/chunk. Báo WER/CER cùng exact accuracy của số/tên/phủ định; tránh normalizer che mất critical errors.
 3. Đo first partial và first stable text riêng, tỷ lệ sửa partial, word lag, endpoint→final P50/P95, RTF, peak memory/session, concurrency, queue delay và contention LLM/TTS.
-4. VAD/AEC/endpointing tách khỏi ASR; detector Smart Turn Vietnamese và denoise guidance hiện chỉ secondhand AI-report/draft. Denoise A/B thay vì mặc định luôn giúp ASR; không dùng EOU English để tuyên bố endpoint tiếng Việt.
+4. VAD/AEC/endpointing tách khỏi ASR; denoise guidance vẫn secondhand AI-report/draft, còn Smart Turn v3.2 Vietnamese đã có primary vendor benchmark ([Smart Turn v3.2](smart-turn.md)) nhưng chưa tune/đo trên corpus tự thu. Denoise A/B thay vì mặc định luôn giúp ASR; không dùng EOU English để tuyên bố endpoint tiếng Việt.
 5. Chỉ quyết định production sau gate availability, license, target-hardware performance và no-action-on-unstable-text.
 
 ## Relationships và coverage
@@ -139,4 +139,4 @@ MOSS-Transcribe-Diarize có vi trong challenge list nhưng offline long-form, ph
 [^cohere]: [Cohere](cohere-transcribe-03-2026.md) — Model identity; Strengths and limitations; Benchmarks.
 [^usable]: [Usable STT](community-usable-stt-voice-agents.md) — Usable-text evaluation checklist; Logging and diagnosis practice. Community evidence unverified.
 [^noise]: [Enhancement](speech-enhancement-before-asr.md) — Practice; Contradictions; Coverage and limits. Secondhand AI-report evidence.
-[^turn]: [Turn detection](turn-detection-models.md) — Comparison; Operating practice; Coverage and limits. Secondhand AI-report evidence.
+[^turn]: [Turn detection](turn-detection-models.md) — Comparison; Operating practice; Contradictions; Coverage and limits. Smart Turn v3.2 now has a primary captured benchmark via [Smart Turn v3.2](smart-turn.md); LiveKit/Namo/TEN remain secondhand AI-report evidence.
