@@ -4,6 +4,7 @@
 > **Ngày:** 2026-10-07.
 > **Nguồn:** các quyết định đã chốt qua phỏng vấn (Q1–Q30), dựa trên [thiết kế pipeline](thiet-ke-pipeline-speech-to-speech-tieng-viet.md), [ASR](lua-chon-va-thiet-ke-asr-stt-tieng-viet-realtime.md), [TTS](lua-chon-va-thiet-ke-tts-tieng-viet-realtime.md), [HF Speech-to-Speech](../wiki/speech-to-speech-pipeline.md) và [NeMo-Speech.cpp](../wiki/nemo-speech-cpp.md).
 > **Nhãn bằng chứng:** **Reported** = nguồn tự công bố, chưa kiểm chứng; **Synthesis** = suy luận/đề xuất của spec; **TBD** = phải xác minh khi triển khai. Chưa có thành phần nào được chạy thử.
+> **Cập nhật sau review (2026-10-07):** theo [review latency](review-ke-hoach-trien-khai-poc-speech-to-speech.md) và [review streaming](review-streaming-ke-hoach-trien-khai-poc-speech-to-speech.md). Thêm phân tích sàn latency do output gate (§1), bảng mức streaming theo tầng (§2.1), metric timeline theo lượt (§5.3), rủi ro R10–R12 (§6), thứ tự ưu tiên Phase 2 (§8). Không đổi quyết định Q1–Q30.
 
 ---
 
@@ -23,6 +24,14 @@ PoC nghiên cứu nội bộ, không gắn sản phẩm. Phase 1 dựng **một 
 
 - Voice-to-voice (user ngừng nói → nghe tiếng bot, đo phía client): **P50 ≤ 1.5 s, P95 ≤ 2.5 s**.
 - Đây là mục tiêu tham chiếu, không phải gate. Report ước 0.7–1.2 s (**Reported**, chưa đo); tổng các dải của blueprint là 0.95–2.9 s.
+- **Sàn do turn tracker (Synthesis từ Reported):** với default Q30, lượt Smart Turn đánh giá complete chỉ commit output sau grace 800 ms tính từ soft-end; lượt đánh giá incomplete bị giữ output tới mốc 2 s ([HF s2s — Endpointing](../wiki/speech-to-speech-pipeline.md#endpointing-and-turn-taking)). Mô hình phân tích, chưa xác minh trên implementation:
+
+  ```text
+  v2v ≈ (cuối tiếng user → soft-end) + max(output-hold, ASR + LLM tới mệnh đề đầu [+ TTS nếu TTS chỉ chạy sau commit])
+        + TTS tới audio đầu + transport/playback
+  ```
+
+  Hệ quả: lượt complete khó xuống dưới ~0.9 s dù model nhanh. P95 ≤ 2.5 s chỉ đạt được khi dưới ~5% lượt đi nhánh incomplete, hoặc gate mở sớm hơn 2 s. Nếu ASR/LLM đã xong trong grace thì đổi model nhanh hơn không cải thiện v2v. Vì vậy Phase 1 phải đo output-hold riêng (§5.3), chưa tune (Q30).
 
 ### Ràng buộc
 
@@ -57,10 +66,27 @@ HF speech-to-speech `serve`  (máy GPU 24 GB)
 
 **Nguyên tắc (Synthesis):**
 
+- **Streaming theo tầng, commit theo lượt:** mỗi tầng dùng loại chunk riêng (audio frame để vận chuyển, mệnh đề để nói, audio chunk để phát). Có thể tính toán speculative trước commit, nhưng chỉ phát audio hoặc gây side effect sau khi turn commit.
 - Một owner cho quyết định turn: turn tracker của HF s2s. ASR/TTS service chỉ cung cấp tín hiệu.
 - Mỗi run chỉ nạp **1 ASR + 1 TTS** trên GPU; warmup xong mới đo.
 - Mỗi model service có process riêng và environment riêng (tránh xung đột torch/CUDA/numpy).
 - Log mặc định content-free. Chỉ bật `--log_transcripts` cho phiên test có chủ đích, và không đưa log có nội dung ra ngoài máy.
+
+### 2.1 Mức streaming ở Phase 1
+
+Phase 1 **chưa streaming xuyên suốt**. Tên model có chữ "Streaming" không có nghĩa pipeline dùng streaming.
+
+| Tầng | Phase 1 | Trạng thái |
+|---|---|---|
+| Audio vào / VAD / turn tracker | Liên tục theo frame | Có sẵn trong HF s2s (**Reported**) |
+| STT (cả Qwen và Nemotron) | **Turn-final** sau soft-end | Đã chốt (Q22). Nemotron qua HTTP không dùng được lợi thế streaming |
+| LLM | Streaming text (`--responses_api_stream`) | Endpoint thật **TBD** (R6) |
+| LLM → TTS | s2s nhận diện ngôn ngữ trên "each assistant text chunk", nên có chia text trước TTS (**Reported**). Độ mịn (câu, mệnh đề, hay cả câu trả lời) và việc gửi mệnh đề đầu trước khi LLM xong là **TBD** (R11) | Phải xác minh ở Day 0 |
+| TTS VieNeu | Audio-output streaming: nhận một đoạn text hoàn chỉnh, trả PCM dần (**Reported**) | Proxy phải giữ streaming (không gom body) |
+| TTS G-OmniVoice / Gwen | Full waveform theo từng request/câu | Chia waveform đã sinh xong thành gói nhỏ **không** làm audio đầu tới sớm hơn |
+| Playback trình duyệt | Incremental, buffer do demo quản lý | Buffer thực **TBD**; 196 ms chỉ là của client Python |
+
+Chunker theo mệnh đề phải nằm ở **consumer của LLM stream, trước request TTS**, tức là trong s2s. Nếu proxy chỉ nhận cả câu trả lời rồi mới chia, thời gian chờ LLM không lấy lại được (**Synthesis**).
 
 ---
 
@@ -74,7 +100,7 @@ Cờ CLI dưới đây chỉ lấy từ README đã compile vào wiki. Các tên
 |---|---|---|
 | Lệnh | `speech-to-speech serve --host 0.0.0.0 ...` | Default bind `127.0.0.1` (**Reported**) |
 | Extras | `pip install speech-to-speech[omnivoice]` (+ extra Qwen3-ASR nếu có, **TBD**) | Không cài DeepFilterNet ở Phase 1 |
-| Turn/VAD | Giữ default: `--thresh 0.6`, `--min_silence_ms 64`, `--speculative_reopen_ms 800`, Smart Turn v3.2 bật, `--smart_turn_incomplete_delay_ms 600`, `--smart_turn_max_wait_ms 2000`, `--smart_turn_threshold 0.5` | Không trộn với bộ 200–300 ms + 1.2–1.5 s của report. Tune ở Phase 2 dựa trên log |
+| Turn/VAD | Giữ default: `--thresh 0.6`, `--min_silence_ms 64`, `--speculative_reopen_ms 800`, Smart Turn v3.2 bật, `--smart_turn_incomplete_delay_ms 600`, `--smart_turn_max_wait_ms 2000`, `--smart_turn_threshold 0.5` | Không trộn với bộ 200–300 ms + 1.2–1.5 s của report. 64 ms là ngưỡng silence ứng viên, không phải thời điểm bot được nói. Phase 1 đo output-hold và kết quả Smart Turn từng lượt (§5.3); tune ở Phase 2 dựa trên log |
 | Ngôn ngữ | Pin `vi` qua session (`session.audio.input.transcription.language`) và cờ ngôn ngữ của backend STT (**TBD**) | Không để auto-detect |
 | Client | Browser demo của HF s2s qua WebRTC | Truy cập từ máy khác trong LAN cần HTTPS hoặc localhost để trình duyệt cho dùng mic (**Synthesis**, TBD) |
 | Smart Turn tiếng Việt | Vendor báo accuracy 81.27%, FP 14.84% (**Reported**, qua AI report) | Kỳ vọng thỉnh thoảng bị cắt lời; ghi vào log quan sát |
@@ -211,13 +237,21 @@ Cùng một kịch bản cho mọi run, gồm:
 |---|---|---|
 | Latency | Voice-to-voice P50/P95 | Ghi âm stereo: kênh 1 mic user, kênh 2 loa/tai nghe (hoặc loopback); đo khoảng từ cuối tiếng user tới đầu tiếng bot (**Synthesis**) |
 | Latency | STT, LLM, first-TTS-audio, speech-to-audio theo từng response | Log mặc định của HF s2s (**Reported**) |
-| Endpointing | Số lần cắt lời sớm; số lần chờ quá lâu (> ~2 s) | Phiếu quan sát + log turn (reopen/revision) |
-| Barge-in | Ngắt đúng / ngắt trượt / ngắt nhầm; thời gian từ lúc user bắt đầu nói tới lúc bot im | Phiếu quan sát + bản ghi audio |
+| Latency | **Timeline mỗi lượt** (phía server, cùng clock): soft-end → STT start/done → `llm_first_token` → `first_clause_ready`/`tts_request_start` → `llm_done` → output commit (gate mở) → TTS first byte. Tách được output-hold với compute; kiểm TTS có nhận mệnh đề đầu trước `llm_done` không | Log s2s + log `tts-proxy` + tap LLM (kế hoạch §5.3). Mốc nào s2s không log thì ghi là thiếu (**Synthesis**) |
+| Endpointing | Số lần cắt lời sớm; số lần chờ quá lâu (> ~2 s); tỷ lệ lượt Smart Turn đánh giá incomplete; số reopen | Phiếu quan sát + log turn (reopen/revision) |
+| Barge-in | Ngắt đúng / ngắt trượt / ngắt nhầm; **user onset → bot im** (nghe được); **cancel → backend hết compute** (LLM/TTS) | Phiếu quan sát + bản ghi audio; log proxy/tap + GPU util |
 | ASR (định tính) | Số lỗi entity (số, tên, phủ định) trên các lượt entity; transcript rác/hallucination | Đối chiếu kịch bản với transcript (bật `--log_transcripts` cho phiên test) |
 | TTS (định tính) | Lỗi thanh điệu, đọc sai số/tên, ngắt nghỉ lạ, giật/underrun; điểm cảm nhận 1–5 | Phiếu nghe |
 | Tài nguyên | Peak VRAM, thời gian warmup | `nvidia-smi` |
 
 Các số TTFA/RTF/TTFT của vendor **không** được cộng thay cho đo thực (**Synthesis**).
+
+Quy tắc phân tích (**Synthesis**):
+
+- Join log theo ID (`response_id`/`item_id` nếu s2s log, `req_id` của proxy/tap). Chỉ dùng thứ tự lượt làm fallback và đối chiếu chéo với số response/reopen, vì reopen, cancel và nhiều TTS chunk làm lệch thứ tự. Audio phía client vẫn là căn cứ cho v2v.
+- Báo riêng theo loại lượt: bình thường (complete), incomplete/reopen, barge-in, sau idle. Không chỉ nhìn P95 gộp C1–C4.
+- v2v tính tới mệnh đề có nghĩa đầu tiên. Nếu audio đầu chỉ là tiếng đệm ("Vâng…") thì gắn cờ riêng.
+- Tách warm liên tục, lượt sau GPU idle (VieNeu được báo +100–300 ms, **Reported**) và cold start (thời gian warmup). Warmup không được che mất hiện tượng người dùng sẽ gặp.
 
 ### 5.4 Phiếu quan sát (mỗi lượt)
 
@@ -240,12 +274,15 @@ run | điều kiện | lượt | loại lượt | v2v_ms | cắt lời sớm? | 
 | R7 | Hook tiền xử lý text trước TTS trong HF s2s | Đọc code/handler | Đặt rule tối thiểu trong proxy/server TTS |
 | R8 | Trình duyệt chặn mic khi không phải HTTPS/localhost | Mở demo từ máy khác | Reverse proxy TLS tự ký, hoặc chạy trình duyệt trên chính máy GPU |
 | R9 | Mâu thuẫn tham số endpoint (HF s2s default so với report) | — | Giữ default HF s2s ở Phase 1 (đã quyết) |
+| R10 | Trần chất lượng 16 kHz nếu mọi TTS bị đưa về khối 16 kHz `int16` (chi tiết trong kế hoạch §0.1) | Sweep 0–20 kHz qua tone-server, xem phổ loopback | Ghi giới hạn; A/B vẫn công bằng |
+| R11 | s2s chia text LLM → TTS với độ mịn nào; mệnh đề đầu có tới TTS trước khi LLM stream kết thúc không | Tone-server ghi số và thời điểm request TTS cho một câu trả lời ≥ 3 câu; so với `llm_done` | Chia câu ở proxy **không** lấy lại thời gian chờ LLM. Quyết định patch chunker trong s2s (kế hoạch D6) hay ghi giới hạn |
+| R12 | TTS có chạy speculative trong grace 800 ms hay chỉ sau output commit | Nói, dừng, nói tiếp sau ~500 ms; xem tone-server có nhận request TTS của revision bị bỏ không | Không sửa ở Phase 1; dùng kết quả để đọc đúng timeline v2v (§1) |
 
 ---
 
 ## 7. Checklist Phase 1
 
-- [ ] Day 0: xác minh R1–R8.
+- [ ] Day 0: xác minh R1–R8, R10–R12.
 - [ ] Dựng HF s2s `serve` + browser demo WebRTC, nối LLM endpoint, chạy được vòng hội thoại tiếng Việt với R0.
 - [ ] Viết rule text→speech tối thiểu + lexicon khởi đầu.
 - [ ] Dựng VieNeu Docker `api-gpu`, warmup, `VIENEU_MAX_STREAMS` nhỏ.
@@ -263,8 +300,10 @@ run | điều kiện | lượt | loại lượt | v2v_ms | cắt lời sớm? | 
 
 ## 8. Backlog Phase 2 (đã chốt hướng, chưa chi tiết)
 
+**Thứ tự ưu tiên về latency (Synthesis, sau review):** (1) bảo đảm LLM → TTS theo mệnh đề (nếu R11 fail và chưa vá ở Phase 1); (2) A/B grace có kiểm soát `--speculative_reopen_ms` 800 → 600 → 400, đo kèm `E-CUT`/reopen; (3) giữ streaming proxy → browser, tune buffer playback theo v2v, underrun và thời gian bot im; (4) đo LLM tới mệnh đề đầu với context dài; (5) Nemotron streaming nếu timeline R0 cho thấy ASR sau soft-end là nút thắt (có thể kéo về cuối Phase 1, kế hoạch D8); (6) cuối cùng mới tới optimizer (`torch.compile`, vLLM) trên đúng workload hội thoại, không dùng tốc độ batch của vendor. Streaming ASR không vượt qua được output gate.
+
 - Corpus đánh giá ASR có nhãn (3 miền, entity, nhiễu SNR 0/5/10/20 dB, đoạn im lặng/nhạc) → WER/CER + entity exact-match.
-- Handler WebSocket cho Nemotron để có partial; đo lợi ích latency của streaming so với turn-final.
+- Handler WebSocket cho Nemotron để có partial; đo lợi ích latency của streaming so với turn-final. Giữ cache encoder/decoder theo session, flush/finalize tại endpoint; không decode từng chunk độc lập rồi nối text. Chunk 160/320 ms là điểm bắt đầu để thử, không phải v2v. Không gọi LLM cho từng partial; speculation chỉ tại soft-end và hủy khi transcript đổi.
 - Qwen3-ASR buffered streaming qua vLLM Realtime (đang experimental trong HF s2s).
 - Patch speaker lock (ECAPA/CAM++) và denoise chỉ cho nhánh VAD; A/B chống ngắt nhầm.
 - Tune Smart Turn/VAD dựa trên log Phase 1; cân nhắc Namo nếu false-interruption tiếng Việt > 10%.

@@ -6,17 +6,19 @@
 > **Nhãn:** **Reported** = nguồn tự công bố; **Synthesis** = đề xuất của kế hoạch; **TBD** = xác minh ở Day 0; **Ngoài wiki** = kiến thức chung chưa được compile vào wiki, phải kiểm tra.
 > Kế hoạch không đổi quyết định nào của spec. Những điểm kế hoạch **đề xuất thêm** được đánh dấu `[ĐX]` và gom lại ở mục 11.
 > **Đối chiếu `raw/` (2026-10-07):** đã đọc trực tiếp `raw/speech-to-speech.md`, `raw/VieNeu-TTS-repo.md`, `raw/VieNeu-TTS-v3-Turbo.md`, `raw/NeMo-Speech.cpp.md`, `raw/nemotron-3.5-asr-streaming-0.6b.md`, `raw/Qwen3-ASR-0.6B-hf.md`, `raw/g-omnivoice.md`, `raw/gwen-tts-0.6B.md` để chốt các ô TBD. Kết quả ở mục 0.1.
+> **Cập nhật sau review (2026-10-07):** theo [review latency](review-ke-hoach-trien-khai-poc-speech-to-speech.md) và [review streaming](review-streaming-ke-hoach-trien-khai-poc-speech-to-speech.md). Thay đổi chính: Day 0 thêm R11/R12 (độ mịn chunk LLM→TTS, TTS có chạy speculative không); thêm `llm-tap` để đo timeline LLM; acceptance M1 yêu cầu TTS nhận mệnh đề đầu trước khi LLM xong; join log theo ID thay vì thứ tự lượt; báo cáo theo loại lượt; thêm D6–D8. Rủi ro "không chunk thêm" ở §12 không còn được chấp nhận mặc định.
 
 ---
 
 ## 0. Tóm tắt
 
-- **Khối lượng:** ~10–12 ngày công cho 1 kỹ sư, chia 7 mốc (M0–M6). Day 0 (M0) là go/no-go cho từng run.
+- **Khối lượng:** ~10.5–12.5 ngày công cho 1 kỹ sư, chia 7 mốc (M0–M6), cộng tối đa ~1 ngày nếu phải vá chunker trong s2s (D6). Day 0 (M0) là go/no-go cho từng run.
 - **Code phải viết** (phần còn lại là cấu hình):
   1. `tts-proxy`: một proxy `/v1/audio/speech` đứng trước **mọi** TTS HTTP. Nó làm lớp text→speech tối thiểu (spec §3.5) và chuẩn hóa audio contract về đúng định dạng HF s2s cần (R4) `[ĐX]`.
   2. `clone-tts-server`: một server `/v1/audio/speech` với 2 backend `gwen` và `gomni` (`gomni` chỉ dùng nếu R3 thất bại).
   3. Bộ đo: ghi âm 2 kênh, phân tích voice-to-voice/barge-in, parse log HF s2s, lấy mẫu VRAM, manifest cho mỗi run, tổng hợp báo cáo.
-  4. Fixture Day 0: `tone-server` (TTS giả phát tone đã biết) và các script kiểm tra R1–R8.
+  4. Fixture Day 0: `tone-server` (TTS giả phát tone đã biết) và các script kiểm tra R1–R8, R10–R12.
+  5. `llm-tap`: pass-through streaming trước LLM endpoint, chỉ log thời điểm content-free (`req_start`, `llm_first_token`, `llm_done`/`cancelled`) trên cùng clock với `tts-proxy` `[ĐX]`.
 - **Thứ tự:** M0 Day 0 → M1 vòng R0 chạy được → M2 bộ đo (song song M1) → M3 các thành phần thay thế → M4 pilot → M5 chạy đủ ma trận → M6 báo cáo.
 
 ### 0.1 Kết quả đối chiếu `raw/`
@@ -63,6 +65,7 @@ Máy GPU 24 GB
  │    └─ TTS in-process: handler omnivoice → G-OmniVoice     (R4, nếu R3 OK)
  ├─ nemo       nemo-speech serve nemotron-3.5   :8090        binary native   (chỉ R2)
  ├─ stt-shim   (fallback R1) /v1/audio/transcriptions :8091  env-tools       (chỉ R2, nếu cần)
+ ├─ llm-tap    pass-through → LLM endpoint      :8110        env-tools [ĐX]
  ├─ tts-proxy  /v1/audio/speech                 :8100        env-tools
  │    ├──► vieneu        Docker api-gpu         :8000        (R0–R3)
  │    ├──► clone-tts gwen                       :8101        env-gwen (R5)
@@ -127,7 +130,7 @@ Dữ liệu cá nhân (reference clone, consent, bản ghi giọng tester, log c
 
 ---
 
-## 3. Mốc M0 — Day 0: xác minh R1–R8 (1–1.5 ngày)
+## 3. Mốc M0 — Day 0: xác minh R1–R8, R10–R12 (1–1.5 ngày)
 
 Mục tiêu: chốt tên cờ, audio contract và các phương án dự phòng **trước khi** viết code. Kết quả ghi vào `docs/day0.md` và cập nhật các ô TBD trong `runs.yaml`.
 
@@ -141,6 +144,8 @@ Mục tiêu: chốt tên cờ, audio contract và các phương án dự phòng 
 | R6 | LLM hủy được | `r6_llm_cancel.py`: stream một câu trả lời dài, đóng kết nối sau 1 s, theo dõi log hoặc GPU util của server LLM | Server ngừng sinh trong ≤ 1–2 s | Ghi nhận là giới hạn; barge-in vẫn dừng âm thanh nhưng phí compute |
 | R8 | Mic trong trình duyệt từ máy khác | Mở browser demo từ máy client qua `http://<gpu-ip>`. Đồng thời kiểm demo có gửi `session.update` kèm `instructions`, `transcription.language` và `turn_detection.interrupt_response: true` không | Trình duyệt cho dùng mic; ba field trên đặt được | Reverse proxy TLS tự ký (Caddy/nginx) trước cổng s2s; hoặc chạy trình duyệt ngay trên máy GPU |
 | R5 | VRAM | Đo sơ bộ ở M3/M4 bằng `vram_sampler.sh` | Peak < ~22 GB | Giảm precision; giữ 1 ASR + 1 TTS |
+| R11 | Độ mịn chunk LLM → TTS | s2s trỏ TTS vào `tone-server`, LLM qua `llm-tap`. Prompt buộc trả lời ≥ 3 câu. Ghi số request TTS mỗi response, nội dung độ dài (ký tự), và thời điểm request đầu so với `llm_done`. Raw cho biết s2s có "assistant text chunk" (dùng cho `--detect_llm_output_language`), và có cache NLTK, nên nhiều khả năng chia theo câu (**Synthesis**) | ≥ 2 request mỗi response nhiều câu, và request đầu tới trước `llm_done` | D6: vá chunker theo mệnh đề ở consumer LLM trong s2s, hoặc ghi giới hạn. Chia lại ở proxy không lấy lại thời gian chờ LLM |
+| R12 | TTS speculative trong grace | Nói một câu, dừng, nói tiếp sau ~500 ms (trong grace 800 ms). Xem `tone-server` có nhận request TTS của revision bị bỏ không; so thời điểm request TTS với sự kiện commit trong log s2s (nếu có) | Biết TTS chạy trước hay sau output commit | Không sửa; ghi vào `day0.md` để đọc đúng timeline v2v (spec §1) |
 
 Thêm 3 việc Day 0 `[ĐX]`:
 
@@ -188,8 +193,9 @@ input ─► normalize() ─► upstream (UPSTREAM_URL, voice map) ─► stream
   5. Đếm chữ số còn sót (`\d`), **chỉ log** số lượng, không đọc thành chữ.
 - `audio.py`: chuyển đổi streaming (float32↔s16le, resample bằng `soxr` streaming, downmix về mono). Khi upstream đã đúng định dạng đích thì pass-through.
 - **Cancellation:** client (s2s) ngắt kết nối thì đóng luôn stream tới upstream (`httpx` stream context). Ghi lại upstream có thật sự ngừng tính toán không. Đây là kiểm tra TTS tương tự R6.
-- **Log mỗi request (content-free):** `req_id, run_id, chars_in, chars_out, rules_hit{md,emoji,url,abbrev,lexicon}, digits_left, upstream_ttfb_ms, proxy_ttfb_ms, total_ms, audio_s, cancelled`. Cờ `--log-content` chỉ bật trong phiên test và ghi ra file nằm ngoài repo.
+- **Log mỗi request (content-free):** `req_id, run_id, t_recv (wall + monotonic), chars_in, chars_out, rules_hit{md,emoji,url,abbrev,lexicon}, digits_left, upstream_ttfb_ms, proxy_ttfb_ms, total_ms, audio_s, cancelled, t_upstream_end`. `t_recv` dùng để đặt request TTS lên cùng timeline với `llm-tap`; `t_upstream_end` sau `cancelled` cho biết backend có hết compute không. Cờ `--log-content` chỉ bật trong phiên test và ghi ra file nằm ngoài repo.
 - **Test:** `tests/test_normalize.py` với khoảng 30 case (markdown, emoji, URL, mỗi viết tắt, lexicon, chuỗi số còn sót, NFC so với NFD). `tests/test_audio.py`: tone 440 Hz 48k→đích, kiểm tra tần số và độ dài.
+- **Test giữ streaming** `[ĐX]` (rủi ro thật là proxy vô tình biến streaming thành buffered, không phải chi phí một hop localhost): upstream giả trả chunk cách nhau 200 ms; client phải nhận byte đầu trước khi upstream xong (không gom body); resampler giữ state qua chunk (không click/lệch độ dài ở biên); không resample hai lần.
 
 Chi phí proxy phải nhỏ: `proxy_ttfb_ms − upstream_ttfb_ms` P95 < ~10 ms (**Synthesis**). Đo ở M4.
 
@@ -218,7 +224,13 @@ HF_HUB_OFFLINE=1 speech-to-speech serve --host 0.0.0.0 \
 5. System prompt: đặt qua `session.update` → `session.instructions` (**Reported**, raw › Realtime API). Nếu browser demo không cho sửa, sửa nhỏ JS của demo.
 6. Dự phòng cho Qwen nếu backend in-process không ép được vi: chạy `qwen-asr-serve` (vLLM) và trỏ STT OpenAI-compatible của s2s vào đó (**Reported** là có route `audio.transcriptions`). Nhưng như vậy lại có thêm process, cần ghi rõ trong báo cáo.
 
-**Acceptance M1:** từ máy client, chạy 10 lượt R0/C1 liên tiếp không lỗi. Transcript là tiếng Việt, bot trả lời bằng tiếng Việt, ngắt lời bot thì bot im. Log s2s có latency STT/LLM/first-TTS-audio cho từng response.
+7. Trỏ `--responses_api_base_url` vào `llm-tap` (`http://127.0.0.1:8110/v1`), tap forward tới máy LLM. Tap phải pass-through SSE từng event và đóng upstream khi client đóng. Chạy R6 cả có và không có tap để chắc tap không làm hỏng cancel `[ĐX]`.
+
+**Acceptance M1:**
+
+- Từ máy client, chạy 10 lượt R0/C1 liên tiếp không lỗi. Transcript là tiếng Việt, bot trả lời bằng tiếng Việt, ngắt lời bot thì bot im. Log s2s có latency STT/LLM/first-TTS-audio cho từng response.
+- **LLM → TTS theo mệnh đề** `[ĐX]`: với câu trả lời ≥ 2 câu, request TTS đầu (`tts-proxy` `t_recv`) tới **trước** `llm_done` của `llm-tap`. Chunk không cắt giữa số tiền, ngày, viết tắt hoặc ý dang dở (kiểm bằng `--log-content` trong phiên test). Nếu fail thì áp dụng D6 trước M4.
+- `tts-proxy` forward audio đầu khi VieNeu vẫn đang sinh (`proxy_ttfb_ms` ≪ `total_ms`).
 
 ---
 
@@ -244,14 +256,16 @@ HF_HUB_OFFLINE=1 speech-to-speech serve --host 0.0.0.0 \
 
 ### 5.3 Log server
 
-- `parse_s2s_log.py`: rút latency STT, LLM, first-TTS-audio, speech-to-audio cho từng response, cộng các sự kiện turn (reopen/revision) từ log s2s (định dạng log **TBD**, xem ở M1). Join với `turns.csv` **theo thứ tự lượt**, không theo timestamp, vì clock client và server khác nhau.
-- Log `tts-proxy` được join theo `req_id` và thứ tự.
+- `parse_s2s_log.py`: rút latency STT, LLM, first-TTS-audio, speech-to-audio cho từng response, cộng các sự kiện turn (soft-end, kết quả Smart Turn complete/incomplete, reopen/revision, commit) từ log s2s (định dạng log **TBD**, xem ở M1). Mốc nào log không có thì ghi là thiếu, không suy ra.
+- **Join** `[ĐX]`:
+  - Phía server (s2s, `llm-tap`, `tts-proxy`, `clone-tts` cùng chạy trên máy GPU) dùng chung một clock. Join theo ID (`response_id`/`item_id` nếu s2s log, `req_id`) và timestamp để dựng timeline mỗi lượt: `soft_end → stt_done → llm_first_token → tts_req_first → llm_done → commit → tts_first_byte`.
+  - Client ↔ server: clock khác nhau nên chỉ join theo thứ tự lượt làm fallback. Đối chiếu chéo số response, reopen và cancel ở hai phía; lượt lệch được đánh dấu và loại khỏi phân tích stage, vẫn giữ cho v2v. Nếu đã sửa JS demo (R8), log thêm `response_id` kèm `performance.now()` của event audio đầu để join theo ID.
 - `vram_sampler.sh`: `nvidia-smi --query-gpu=timestamp,memory.used,utilization.gpu --format=csv -lms 500` chạy suốt run, lấy peak.
 - `manifest.py`: ghi `run_id`, thời điểm, git commit của repo PoC, version pip, image digest, commit `nemo-speech`, HF revision và checksum của checkpoint, preset/voice, các cờ s2s đầy đủ, driver/CUDA, thời gian warmup.
 
 ### 5.4 Phiếu
 
-- `phieu_quan_sat.csv`: đúng cột của spec §5.4 (`run | điều kiện | lượt | loại lượt | v2v_ms | cắt lời sớm? | barge-in kết quả | lỗi ASR | lỗi TTS | ghi chú`). `v2v_ms` được điền tự động từ `turns.csv`.
+- `phieu_quan_sat.csv`: đúng cột của spec §5.4 (`run | điều kiện | lượt | loại lượt | v2v_ms | cắt lời sớm? | barge-in kết quả | lỗi ASR | lỗi TTS | ghi chú`). `v2v_ms` được điền tự động từ `turns.csv`. `loại lượt` thêm nhãn timing: `normal`, `incomplete` (Smart Turn), `reopen`, `bargein`, `post-idle`, và cờ `filler` nếu audio đầu chỉ là tiếng đệm `[ĐX]`.
 - `phieu_nghe_tts.csv`: `run, lượt, lỗi thanh điệu, đọc sai số/tên, ngắt nghỉ lạ, giật/underrun, điểm 1–5, ghi chú`.
 - Mã lỗi cố định để phân loại được ở M6:
   - ASR: `A-NUM`, `A-NAME`, `A-NEG`, `A-CS` (code-switch), `A-HALLU`, `A-TRUNC`.
@@ -292,6 +306,7 @@ GET  /health → 200 sau khi load + warmup 2 câu
 - **Backend `gomni`:** `OmniVoice.from_pretrained("g-group-ai-lab/g-omnivoice", device_map="cuda:0", dtype=float16)`, rồi `generate(text, ref_audio, ref_text)`, ra 24 kHz (**Reported**).
 - **Giả-streaming theo câu** `[ĐX]`: tách `input` theo `.?!…;:`, sinh từng câu và stream audio của câu đó ngay khi xong. Cả hai card đều khuyên chia câu (**Reported**). Nếu s2s đã gửi theo mệnh đề (Day 0) thì bước này gần như không làm gì.
 - Mỗi lúc chỉ 1 request (`asyncio.Lock`, model chạy trong thread). Kiểm tra client disconnect **giữa các câu** để hủy; không hủy được giữa một lần `generate` (**Synthesis**, ghi vào báo cáo như một giới hạn).
+- Hệ quả barge-in: bot phải im ngay ở client (s2s `response.cancel`/clear) mà không chờ `generate` kết thúc. Nhưng lock vẫn bị giữ tới hết câu đang sinh, nên lượt mới có thể phải chờ GPU. Log `lock_wait_ms` cho mỗi request và đo riêng **user onset → bot im** với **cancel → hết compute** (spec §5.3).
 - Đặt sau `tts-proxy` để dùng chung lớp text rule và audio contract.
 
 ### 6.5 G-OmniVoice qua handler (R4, nếu R3 pass)
@@ -332,6 +347,7 @@ Thứ tự cố định, cùng một tester đọc cho mọi run. Mọi entity l
 | 20 | đọc số | "Một trăm hai mươi lăm nhân tám bằng bao nhiêu?" | prompt viết số bằng chữ, `digits_left` |
 | 21 | đọc số | "Ba phần trăm của hai triệu đồng là bao nhiêu?" | T-NUM |
 | — | sự kiện nhiễu | Trong lúc bot đang trả lời lượt 2 và lượt 5: ho một tiếng, gõ phím ~2 s | B-FALSE (không tính là lượt) |
+| — | idle `[ĐX]` | Im lặng ~30 s trước lượt 20 (không phát audio) | Nhãn `post-idle`: đo phạt sau GPU idle thay vì chỉ che bằng warmup |
 
 ---
 
@@ -340,6 +356,7 @@ Thứ tự cố định, cùng một tester đọc cho mọi run. Mọi entity l
 - Chạy R0 × C1–C4 một lượt đầy đủ: đủ kịch bản, đủ thiết bị, đủ phiếu.
 - Sửa harness, kịch bản, vị trí nguồn nhiễu và âm lượng. Chốt và **ghi lại** setup âm thanh: thiết bị, mức âm lượng hệ thống, khoảng cách loa và nguồn nhiễu, nội dung nhiễu (cùng một file TV/nhạc lặp lại).
 - Đo overhead của `tts-proxy`. Kiểm tra `--log_transcripts` ghi ra đúng thư mục ngoài repo.
+- Đo buffer playback thực của browser demo: khoảng từ `tts_first_byte` (server) tới bot onset (loopback), sau khi trừ network ước lượng. Ghi underrun/giật. Chỉ ghi nhận ở Phase 1; buffer nhỏ nhất chưa chắc tốt nhất, tune ở Phase 2.
 - Dữ liệu pilot **không** dùng cho kết quả.
 
 ---
@@ -366,12 +383,14 @@ stop_all → start ASR/TTS của run → health OK → warmup (TTS câu mẫu + 
 `aggregate.py` sinh các bảng. Báo cáo viết vào `outputs/ket-qua-poc-speech-to-speech-tieng-viet-phase-1.md`.
 
 1. **Latency (G1):** v2v P50/P95 cho mỗi run, **gộp C1–C4** (n ≈ 80). Theo từng điều kiện chỉ báo median + max. Với n ≈ 20, P95 thực chất gần bằng max (**Synthesis**) `[ĐX]`. Thêm latency từng stage (STT, LLM, first-TTS-audio) từ log s2s. So với mục tiêu mềm P50 ≤ 1.5 s / P95 ≤ 2.5 s.
+   - Tách theo loại lượt (`normal`, `incomplete`, `reopen`, `bargein`, `post-idle`); báo tỷ lệ lượt `incomplete` vì nó quyết định P95 (spec §1).
+   - **Phân rã output-hold vs compute** từ timeline server: với mỗi lượt, `commit − soft_end` so với `tts_req_first − soft_end`. Nếu phần lớn lượt có response sẵn sàng trước khi gate mở thì nút thắt là turn tracker, không phải model. Đây là căn cứ cho A/B grace (D7) và Nemotron streaming (D8).
 2. **ASR (G2):** đếm lỗi theo mã trên các lượt 7–14, cho mỗi run.
 3. **TTS (G3):** đếm lỗi theo mã, điểm 1–5 trung bình, `digits_left` trung bình mỗi lượt (đo mức LLM tuân thủ prompt).
 4. **Endpointing / barge-in (G4):** `E-CUT`, `E-SLOW`, `B-MISS`, `B-FALSE` theo run × điều kiện; thời gian tới khi bot im (median/max).
 5. **A/B (G5):** chênh lệch của mỗi run so với baseline của nó (R1/R2 so với R0; R4/R5 so với R3). Ghi chú R0′ so với R0 (drift).
 6. **Tài nguyên:** peak VRAM, thời gian warmup.
-7. **Giới hạn:** R2 là turn-final; G-OmniVoice và Gwen không stream; n nhỏ; một tester; các phương án fallback đã kích hoạt ở Day 0; băng thông audio thực tế tới client (R10).
+7. **Giới hạn:** R2 là turn-final; G-OmniVoice và Gwen không stream; n nhỏ; một tester; các phương án fallback đã kích hoạt ở Day 0; băng thông audio thực tế tới client (R10); độ mịn chunk LLM→TTS thực tế và việc có vá s2s hay không (R11/D6); buffer playback thực của trình duyệt.
 8. **Đề xuất Phase 2:** dựa trên số liệu, đối chiếu backlog trong spec §8 (ví dụ: chuyển sang Namo nếu tỷ lệ cắt lời sai > 10%).
 
 ---
@@ -382,8 +401,8 @@ stop_all → start ASR/TTS của run → health OK → warmup (TTS câu mẫu + 
 
 | Ngày | Việc |
 |---|---|
-| 1 | M0: R2, R7, R4 (tone-server), R8, R6 |
-| 1.5 | M0: R1, R3; chốt `runs.yaml`; cập nhật spec nếu cần |
+| 1 | M0: R2, R7, R4 (tone-server), R8, R6; dựng `llm-tap` (~0.25 ngày) |
+| 1.5 | M0: R1, R3, R11, R12; chốt `runs.yaml`; cập nhật spec nếu cần; quyết D6 nếu R11 fail |
 | 2–3 | M1: VieNeu, tts-proxy (+test), s2s + LLM + browser, R0 chạy được · M2 song song: ghi âm, hiệu chuẩn |
 | 4 | M2: analyze_audio, parse log, manifest, phiếu |
 | 5–6.5 | M3: Q17, NEM (+shim), reference + VieNeu clone, clone-tts (gwen/gomni), handler omnivoice |
@@ -409,6 +428,9 @@ Có thể chạy R0/R1 sớm ngay sau M2 trong khi M3 làm tiếp phần NEM/Gwe
 | X5 | Chạy R0′ ở cuối | Phát hiện drift |
 | X6 | Báo P95 trên dữ liệu gộp C1–C4 | n = 20 mỗi điều kiện không đủ cho P95 |
 | X7 | Phân tích audio bán tự động (label Audacity) | Ở chế độ loa ngoài, VAD không phân biệt được user với echo |
+| X8 | `llm-tap` + timeline server theo ID | Thiếu mốc LLM thì không tách được output-hold với compute; join theo thứ tự dễ gán sai khi có reopen/cancel |
+| X9 | Acceptance M1 về LLM→TTS theo mệnh đề + test giữ streaming của proxy | Đây có thể là tối ưu lớn nhất mà chưa cần đổi model |
+| X10 | Nhãn loại lượt (`incomplete`, `reopen`, `post-idle`, `filler`) + lượt idle trong kịch bản | P95 gộp che mất nhánh chậm; warmup che mất phạt sau idle |
 
 ### 11.3 Điểm cần người quyết định
 
@@ -419,6 +441,9 @@ Có thể chạy R0/R1 sớm ngay sau M2 trong khi M3 làm tiếp phần NEM/Gwe
 | D3 | Một tester cho mọi run? Ai là người cho reference clone? | Một tester; ref là người khác, có consent |
 | D4 | Nơi lưu và thời hạn giữ bản ghi, log có transcript, ref/consent | Trên máy GPU, ngoài repo, xóa sau 30 ngày kể từ khi có báo cáo |
 | D5 | Capture trước vào `raw/` các tài liệu con còn thiếu (s2s `docs/openai-compatible-tts.md`, `docs/openai-compatible-stt.md`, `src/speech_to_speech/STT/README.md`, `TTS/README.md`, `demo/README.md`, `docs/response-latency.md`; NeMo-Speech.cpp `docs/server.md`, `docs/api.md`; VieNeu `docs/streaming.md`) rồi ingest, để Day 0 chỉ còn việc chạy thử? | Có. Tiết kiệm khoảng nửa ngày Day 0 và làm wiki đầy đủ hơn |
+| D6 | R11 fail (s2s gửi cả câu trả lời một lần, hoặc chỉ sau khi LLM xong): vá chunker theo mệnh đề ở consumer LLM trong s2s (lệch nhẹ khỏi "chỉ cấu hình"), hay ghi là giới hạn? | Vá trước M4 nếu ≤ ~1 ngày, áp dụng cho mọi run nên A/B vẫn công bằng; pin commit bản vá trong manifest. Nếu lớn hơn thì ghi giới hạn và đưa lên đầu Phase 2 |
+| D7 | Thêm run tùy chọn **R0-G** (R0 với `--speculative_reopen_ms` 600 rồi 400, chỉ C1/C2) sau M5 nếu còn thời gian? Lệch Q30 nên cần người quyết | Không. Để Phase 2, dựa trên phân rã output-hold ở M6 |
+| D8 | Nếu timeline R0 cho thấy STT sau soft-end chiếm phần lớn v2v (vượt grace), kéo Nemotron streaming về cuối Phase 1? | Không. Ghi làm ưu tiên Phase 2; chưa thêm two-pass |
 
 ---
 
@@ -426,7 +451,9 @@ Có thể chạy R0/R1 sớm ngay sau M2 trong khi M3 làm tiếp phần NEM/Gwe
 
 | Rủi ro | Dấu hiệu | Xử lý |
 |---|---|---|
-| Client TTS HTTP của s2s gửi cả câu trả lời một lần, không theo mệnh đề | Log `tone-server` chỉ thấy 1 request mỗi response | Không chunk thêm ở proxy (ngoài phạm vi Phase 1); ghi là yếu tố latency. Giả-streaming theo câu (X4) giảm được một phần cho Gwen/G-Omni |
+| Client TTS HTTP của s2s gửi cả câu trả lời một lần, không theo mệnh đề, hoặc chỉ gửi sau khi LLM xong (R11) | Log `tone-server` chỉ thấy 1 request mỗi response; request đầu tới sau `llm_done` | **Không chấp nhận mặc định là giới hạn:** áp dụng D6. Chia câu ở proxy sau khi đã nhận cả câu trả lời không lấy lại thời gian chờ LLM, và với VieNeu (đã stream audio) lợi ích rất nhỏ. Giả-streaming theo câu (X4) chỉ giảm phần synthesis cho Gwen/G-Omni |
+| Output gate là nút thắt chính | Response sẵn sàng (`tts_req_first`) trước khi commit; nhiều lượt `incomplete` gần mốc 2 s | Không tune ở Phase 1 (Q30); báo phân rã ở M6 và đề xuất A/B grace (D7) |
+| `llm-tap` làm sai kết quả đo | Khác biệt TTFT hoặc cancel khi có/không có tap | Kiểm ở M1 (R6 hai cách); nếu lệch thì bỏ tap, dùng log server LLM |
 | Browser demo không cho đặt session language hay instructions | Không thấy field trong demo | Sửa nhỏ JS của demo, hoặc dùng cờ server; ghi lại thay đổi |
 | Drift clock client giữa 2 nguồn ghi | Offset click đầu và cuối phiên lệch > 20 ms | Ghi bằng audio interface 2 kênh |
 | Echo loa ngoài làm VAD offline sai | Nhiều label mơ hồ ở C2/C4 | Rà tay (X7); giảm âm lượng theo setup đã chốt |
@@ -437,9 +464,9 @@ Có thể chạy R0/R1 sớm ngay sau M2 trong khi M3 làm tiếp phần NEM/Gwe
 
 ## 13. Definition of done (trùng tiêu chí của spec §7)
 
-- [ ] `docs/day0.md` có kết quả R1–R8; spec đã được cập nhật theo các cờ và fallback thật.
+- [ ] `docs/day0.md` có kết quả R1–R8, R10–R12; spec đã được cập nhật theo các cờ và fallback thật; D6 đã quyết nếu R11 fail.
 - [ ] `runs.yaml`, manifest và log đủ cho R0–R5 × C1–C4 (cộng R0′).
-- [ ] Bảng P50/P95 voice-to-voice và latency từng stage.
+- [ ] Bảng P50/P95 voice-to-voice và latency từng stage, tách theo loại lượt, kèm phân rã output-hold vs compute.
 - [ ] Danh sách lỗi ASR/TTS/turn đã phân loại theo mã.
 - [ ] Báo cáo `outputs/ket-qua-poc-speech-to-speech-tieng-viet-phase-1.md` có đề xuất Phase 2 dựa trên số liệu.
 - [ ] Dữ liệu cá nhân nằm ngoài repo, có hạn xóa (D4).

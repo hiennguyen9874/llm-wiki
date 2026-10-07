@@ -514,6 +514,20 @@ mẫu speech cuối của user
 
 Đo từng cạnh và tổng. Không cộng các tính toán đã chạy chồng lấn.
 
+**Output gate trong thiết kế speculative** (**Synthesis** từ [HF s2s — Endpointing](../wiki/speech-to-speech-pipeline.md#endpointing-and-turn-taking), bổ sung 2026-10-07 sau review PoC). Khi ASR/LLM chạy speculative trong grace trước commit, thời điểm gate mở có thể quyết định latency thay cho tốc độ model:
+
+```text
+v2v ≈ (cuối tiếng user → soft-end) + max(output-hold, ASR + LLM tới mệnh đề đầu)
+      + TTS tới audio đầu + transport/playback
+```
+
+Với default HF s2s, output-hold là 800 ms cho lượt complete và tới 2 s cho lượt incomplete. Nếu TTS chỉ chạy sau commit thì TTS nằm ngoài `max`. Hệ quả:
+
+- Đo riêng output-hold và thời điểm response sẵn sàng trước khi đổi model.
+- Streaming ASR không vượt qua được output gate.
+- Chunker phải nằm ở consumer của LLM stream. Chia câu sau khi đã nhận cả câu trả lời không lấy lại được thời gian chờ LLM.
+- Khi có reopen, cancel hoặc nhiều TTS chunk, join log theo `turn_id`/`revision`/`generation_id`/`chunk_id`, không theo thứ tự lượt.
+
 ### 8.2 Ngân sách tham khảo
 
 Đây là ước lượng của report (**Reported**), **không phải target**.
