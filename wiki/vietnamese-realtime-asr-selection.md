@@ -5,7 +5,7 @@ description: Lựa chọn ASR realtime tiếng Việt theo chất lượng, nati
 tags: [stt, asr, vietnamese, streaming, selection, comparison]
 status: draft
 created: 2026-10-07
-generated: { by: llm-wiki-agent/1, at: 2026-10-07T15:04:00Z }
+generated: { by: llm-wiki-agent/1, at: 2026-10-08T09:00:00Z }
 stale_after: 2027-10-07
 sources:
   - id: primary
@@ -42,6 +42,9 @@ sources:
   - id: turn
     resource: turn-detection-models.md
     kind: synthesis
+  - id: gipformer
+    resource: gipformer1.5-68m-rnnt.md
+    kind: synthesis
 ---
 
 **Synthesis, chưa benchmark deployment:** shortlist tiếng Việt nên bắt đầu bằng Nemotron 3.5 0.6B nếu cần partial độ trễ thấp, Qwen3-ASR 1.7B nếu ưu tiên chất lượng với buffering lớn hơn, Qwen3-ASR 0.6B nếu tiết kiệm tài nguyên, và Whisper large-v3-turbo làm baseline turn-final. ChunkFormer RNNT large 113M là đối thủ chuyên Việt đáng thử cho final-pass; ONNX streaming riêng của family cần gate checkpoint/availability/license. Không có một benchmark cùng audio, normalizer, chunk và hardware để tuyên bố model nào tốt nhất realtime tiếng Việt.[^primary][^qwen][^nemotron][^whisper]
@@ -69,7 +72,10 @@ RTF <1 là điều kiện theo kịp audio, không đủ cho latency usable text
 | [PhoWhisper](phowhisper.md), medium/large | Chuyên vi | medium VIVOS 4.97, CMV 8.27; large 4.67/8.14 | Turn-final/specialized baseline; BSD-3; conversion runtime cần thử[^primary] |
 | [Fun-ASR-MLT-Nano](fun-asr-mlt-nano-2512.md), 800M | Có | Language list + hotwords/ITN, không vi-specific score | Challenger turn-final; không nhầm với Nano zh/en/ja hay WLK SenseVoice; Apache-2.0[^survey] |
 | [Cohere Transcribe](cohere-transcribe-03-2026.md), 2B | Có | Language list; vi plot chưa inspect | Challenger final-pass; no timestamps/diarization, code-switch inconsistent, VAD cần thiết; Apache-2.0[^cohere] |
+| [Gipformer 1.5 68M RNNT](gipformer1.5-68m-rnnt.md), 68M | Chuyên vi | Vendor WER (không tái lập): vivos 4.25, vlsp-t1 13.37, Common-Voice 6.45, Fleurs 12.65; domain vi-asr-tech/edu/finance/pubadmin 27.49/23.32/22.34/14.82; call-center tele-* là private set | CPU/edge final-pass chuyên Việt, nhất là call-center/domain; ONNX int8, MIT. Card không nêu streaming, chunk, RTF, latency hay training data nên chưa là ứng viên partial[^gipformer] |
 | [ZipFormer 30M](zipformer-30m-vietnamese.md) | Chuyên vi | 12s/0.3s CPU claimed; VLSP2020 T1 12.29 | CPU research only; CC-BY-NC-ND, no established native streaming[^primary] |
+
+Gipformer thắng nhiều cột trong bảng của chính vendor (kể cả trước ChunkFormer-large, Qwen3-ASR-1.7B, PhoWhisper-large) nhưng dùng normalizer riêng, test set private, và thua Zipformer-30M ở Common-Voice/vlsp-t1 và Qwen3-ASR-1.7B ở Fleurs; không so trực tiếp với số ở các hàng khác (**Synthesis**).[^gipformer]
 
 Mọi số trên là **Reported** của nguồn, chưa tái lập. Các vai trò là **Synthesis**. FLEURS vs VIVOS/CMV/VLSP/MLC-SLM không chung tập; WER khác tokenizer/normalization cũng không thể xếp hạng trực tiếp. Qwen và Nemotron FLEURS cũng khác protocol offline/streaming và LangID, nên 5.55 vs 12.29 không chứng minh Qwen thắng khi cùng latency.[^primary][^nemotron]
 
@@ -125,6 +131,7 @@ MOSS-Transcribe-Diarize có vi trong challenge list nhưng offline long-form, ph
 - Used by [Vietnamese Speech Pipeline Design](vietnamese-speech-pipeline-design.md): ghép shortlist này với TTS, endpointing và runtime thành năm cấu hình không chọn LLM chính, có transcript revision/commit và deployment gates; đây là thiết kế tổng hợp, không validation ASR mới.
 
 - Uses [ASR/STT Model Survey](asr-stt-model-survey.md) và [Realtime shortlist](realtime-asr-selection.md); bổ sung tiếng Việt, primary-paper protocol và license correction.[^survey][^primary]
+- Uses [Gipformer 1.5 68M RNNT](gipformer1.5-68m-rnnt.md) làm ứng viên CPU/edge chuyên Việt; chỉ đưa vào shortlist partial sau khi xác minh streaming.[^gipformer]
 - Uses [PhoWhisper](phowhisper.md), [ChunkFormer Vietnamese](chunkformer-vietnamese.md) và [ZipFormer30M](zipformer-30m-vietnamese.md) làm các specialized alternatives newly captured.[^primary]
 - Primary research ran2026-10-07; no model execution. Captured package README lưu inspected/pending/excluded assets, unavailable HTTP401/404 và hashes. Paper inspection là targeted, không full paper ingestion. Existing wiki snapshots không được refresh toàn bộ; không claim exhaustive latest global releases.
 - Status draft vì thiếu matched Vietnamese streaming WER, target hardware/SLA và small streaming checkpoint evidence; không có verified metadata. Claim của vendor/author vẫn Reported, HTTP/check/file inspection không verify capability.
@@ -139,4 +146,5 @@ MOSS-Transcribe-Diarize có vi trong challenge list nhưng offline long-form, ph
 [^cohere]: [Cohere](cohere-transcribe-03-2026.md) — Model identity; Strengths and limitations; Benchmarks.
 [^usable]: [Usable STT](community-usable-stt-voice-agents.md) — Usable-text evaluation checklist; Logging and diagnosis practice. Community evidence unverified.
 [^noise]: [Enhancement](speech-enhancement-before-asr.md) — Practice; Contradictions; Coverage and limits. Secondhand AI-report evidence.
+[^gipformer]: [Gipformer 1.5](gipformer1.5-68m-rnnt.md) — Reported benchmark; Deployment relevance; Coverage and limits. Vendor-reported, single model card.
 [^turn]: [Turn detection](turn-detection-models.md) — Comparison; Operating practice; Contradictions; Coverage and limits. Smart Turn v3.2 now has a primary captured benchmark via [Smart Turn v3.2](smart-turn.md); LiveKit/Namo/TEN remain secondhand AI-report evidence.

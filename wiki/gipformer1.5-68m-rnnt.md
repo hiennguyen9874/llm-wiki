@@ -20,7 +20,7 @@ sources:
 
 - Developer G-Group AI Lab; library `onnxruntime`; language `vi`; tags include `rnnt`, `zipformer`, `int8`, `edge-device`; MIT license (frontmatter **Observed**; card links a LICENSE file not captured).[^gipformer-card]
 - Source code at `ggroup-ai-lab/gipformer` (Quick Start) and a browser demo Space; neither captured.[^gipformer-card]
-- Sibling predecessor in the same table: `gipformer-68M-rnnt`.
+- Sibling predecessor in the same table: `gipformer-68M-rnnt`, see [Gipformer 68M RNNT](gipformer-68m-rnnt.md) (its card gives slightly different figures for some shared rows).
 
 ## Reported benchmark (WER %, lower is better)
 
