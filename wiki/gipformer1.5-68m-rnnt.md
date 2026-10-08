@@ -61,6 +61,7 @@ Private call-center sets (tele-*) are not published, so those results cannot be 
 
 - Compared against [ChunkFormer Vietnamese](chunkformer-vietnamese.md), [ZipFormer 30M Vietnamese](zipformer-30m-vietnamese.md), [PhoWhisper](phowhisper.md), [Qwen3-ASR family](qwen3-asr-family.md), and [Parakeet CTC 0.6B](parakeet-ctc-0.6b.md) (Vietnamese checkpoint listed as `nvidia/parakeet-ctc-0.6b-Vietnamese`) in the card's own table.
 - Same developer as [Gwen-TTS 0.6B](gwen-tts-0.6b.md) and [G-OmniVoice](g-omnivoice.md) (G-Group AI Lab).
+- Reference inference code: [Gipformer Inference Repository](gipformer-inference-repo.md) (sherpa-onnx offline recognizer and icefall PyTorch scripts; no streaming code).
 - Candidate for [Vietnamese Realtime ASR Selection](vietnamese-realtime-asr-selection.md) only after streaming behavior is verified.
 
 ## Coverage and limits

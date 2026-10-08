@@ -56,6 +56,7 @@ The card's rankings summary: #1 on 9/12 (the four tele sets, MultiMED, VietMed, 
 
 ## Relationships
 
+- Reference inference code (`--version 1`): [Gipformer Inference Repository](gipformer-inference-repo.md).
 - Superseded in the vendor line by [Gipformer 1.5 68M RNNT](gipformer1.5-68m-rnnt.md), which gains mainly on domain sets, not on private call-center sets.
 - Compared against [ChunkFormer Vietnamese](chunkformer-vietnamese.md), [ZipFormer 30M Vietnamese](zipformer-30m-vietnamese.md), [PhoWhisper](phowhisper.md), [Qwen3-ASR family](qwen3-asr-family.md) and [Parakeet CTC 0.6B](parakeet-ctc-0.6b.md).
 - Shortlist context: [Vietnamese Realtime ASR Selection](vietnamese-realtime-asr-selection.md).

@@ -5,13 +5,19 @@ description: Vietnamese-optimized Qwen3-TTS-0.6B-Base finetune for zero-shot voi
 tags: [tts, vietnamese, voice-cloning, zero-shot]
 status: stable
 created: 2026-10-07
-generated: { by: llm-wiki-agent/1, at: 2026-10-07T13:00:00Z }
+generated: { by: llm-wiki-agent/1, at: 2026-10-08T12:00:00Z }
 stale_after: 2027-10-07
 sources:
   - id: gwen-tts-card
     resource: ../raw/gwen-tts-0.6B.md
     kind: documentation
     title: Gwen-TTS 0.6B model card
+  - id: gwen-tts-repo
+    resource: ../raw/gwen-tts/README.md
+    scope: ../raw/gwen-tts/
+    kind: code
+    revision: f0f24d8636596dc635323e02f41bee42bb64385e
+    title: ggroup-ai-lab/gwen-tts repository snapshot
 ---
 
 Gwen-TTS 0.6B is a Vietnamese-optimized text-to-speech model by G-Group AI Lab, fine-tuned from `Qwen/Qwen3-TTS-12Hz-0.6B-Base` on roughly 1,000 hours of Vietnamese audio crawled from TikTok, offering zero-shot voice cloning from a short reference clip plus its transcript with a vendor-recommended sampling configuration (**Reported**).[^gwen-tts-card]
@@ -35,11 +41,22 @@ Gwen-TTS 0.6B is a Vietnamese-optimized text-to-speech model by G-Group AI Lab, 
 - Practical synthesis tips: apply TTS text normalization (numbers, symbols, abbreviations) proactively and split input into chunks before passing text to the model (**Reported**).[^gwen-tts-card]
 - The `generate_voice_clone` examples return complete waveforms; the card states no time-to-first-audio, streaming, concurrency, VRAM, or CPU/edge figures (**Observed** absence).[^gwen-tts-card]
 
+## Repository, installation, and CLI
+
+- Repository snapshot `f0f24d8` (commit dated 2026-04-03, origin `ggroup-ai-lab/gwen-tts`) is MIT per `pyproject.toml`, version `0.1.0`, `requires-python >=3.11`; dependencies are `qwen-tts>=0.1.1`, `torch>=2.5.0`, `torchaudio>=2.5.0`, `soundfile`, `numpy`, with torch/torchaudio pinned to the `pytorch-cu124` index (**Observed**).[^gwen-tts-repo]
+- README states a tested environment of Python 3.11, CUDA 12.4, NVIDIA driver ≥ 550.54, and VRAM ≥ 4 GB; install is `uv sync --python 3.11` plus `flash-attn --no-build-isolation`. The 4 GB figure is a stated minimum for the tested environment, not a measured footprint (**Reported**).[^gwen-tts-repo]
+- `inference.py` CLI: `--text`, `--speaker` (built-in key), `--ref_audio` with mandatory `--ref_text`, `--model_path` (default `g-group-ai-lab/gwen-tts-0.6B`), `--output` (default `output.wav`), `--device` (default `cuda:0`), `--list_speakers`. It loads in bfloat16, writes one complete WAV, and has no streaming path (**Observed**).[^gwen-tts-repo]
+- The CLI falls back to `sdpa` attention when `flash_attn` fails to import, unlike the card's hard-coded `flash_attention_2` (**Observed**).[^gwen-tts-repo]
+- Code/doc discrepancy: the README example passes `language="Vietnamese"`, but `generate_voice_clone` in `inference.py` has `# language=language` commented out, so the CLI `--language` option has no effect and language is not passed to the model. Whether the API requires or ignores it was not tested (**Observed**, effect **Unverified**).[^gwen-tts-repo]
+- Sampling configuration in `GENERATION_CONFIG` matches the card's recommended values exactly (**Observed**).[^gwen-tts-repo]
+- `data/ref_info.json` maps nine speaker keys to `name`, `audio_path`, and reference `text`; `data/infer_info.json` holds the generated-clip scripts. `.gitignore` excludes `*.safetensors` (weights stay on Hugging Face) and `output*.wav` (**Observed**).[^gwen-tts-repo]
+
 ## Voice samples
 
 - The card publishes nine demo voices, each pairing a reference clip with a generated inference clip hosted under `https://huggingface.co/g-group-ai-lab/gwen-tts-0.6B/resolve/main/data/` (`ref_audio/` plus `infer-audio/`): `yen_nhi`, `my_van`, `ai_vy`, `an_nhi`, `dieu_linh`, `khanh_toan`, `tran_lam`, `nsnd_ha_phuong`, and `nsnd_kim_cuc` (**Reported**, URL pattern **Observed**).[^gwen-tts-card]
 - Inference transcripts span telesales patter, economic-news reading, tech-product review, and sleep-time narration styles, illustrating expressive range; transcripts are demo content, not quality measurements, and are not reproduced here (**Synthesis**).[^gwen-tts-card]
-- Audio clips were not in `raw/` and were not played, so clone quality and speaker similarity are unverified in this wiki (**Synthesis**).[^gwen-tts-card]
+- The repository snapshot contains 9 reference and 9 inference WAV files (`data/ref_audio/` and `data/infer-audio/`) plus an extra unreferenced `ref_audio/tao_thao.wav`; the clips were not played or measured, so clone quality and speaker similarity remain unverified (**Observed** file presence, quality **Unverified**).[^gwen-tts-repo]
+- Several inference clips reuse one script across different reference voices, and the ref_info lists only built-in speakers, so the demo set shows voice transfer, not multi-text coverage (**Synthesis**).[^gwen-tts-repo]
 
 ## Languages
 
@@ -49,7 +66,8 @@ Gwen-TTS 0.6B is a Vietnamese-optimized text-to-speech model by G-Group AI Lab, 
 ## Demo and repository
 
 - Live demo at `https://g-voice.g-ailab.com/tts`, described as integrated with TTS text normalization and serving; source repository at `https://github.com/ggroup-ai-lab/gwen-tts` (**Reported**).[^gwen-tts-card]
-- Neither the demo nor the repository contents were in `raw/` and were not inspected (**Synthesis**).[^gwen-tts-card]
+- The README notes the demo adds TTS text normalization and serving; the repository ships neither normalization code nor a server, only `inference.py` (**Observed**).[^gwen-tts-repo]
+- The live demo was not inspected (**Synthesis**).[^gwen-tts-card]
 
 ## Licensing
 
@@ -70,9 +88,11 @@ Gwen-TTS 0.6B is a Vietnamese-optimized text-to-speech model by G-Group AI Lab, 
 
 ## Coverage and limits
 
-- Source inspected statically only as the single model-card capture in `raw/`; no package installed, no checkpoint downloaded, no audio synthesized, and no cloning-quality, language-coverage, or usage claim reproduced (**Synthesis**).[^gwen-tts-card]
-- Unavailable or uninspected artifacts: Hugging Face checkpoint and weights, `LICENSE` text, GitHub repository contents, live demo, reference and inference audio clips, training dataset, and linked Qwen3-TTS base pages were not in `raw/` and were not fetched (**Synthesis**).[^gwen-tts-card]
+- Sources inspected statically only: the model-card capture and the repository snapshot (README, `pyproject.toml`, `inference.py`, `data/*.json`, `.gitignore`; audio WAVs listed but not decoded; `.git` metadata used only for revision/remote); no package installed, no checkpoint downloaded, no audio synthesized, and no cloning-quality, language-coverage, or usage claim reproduced (**Synthesis**).[^gwen-tts-card]
+- Unavailable or uninspected artifacts: Hugging Face checkpoint and weights, `LICENSE` text, live demo, audio clip content, training dataset, and linked Qwen3-TTS base pages were not in `raw/` and were not fetched (**Synthesis**).[^gwen-tts-card]
 - No numeric benchmark (WER, CER, SIM, MOS), latency, throughput, or VRAM figure appears in the capture; quality comparisons against any baseline are therefore unestablished (**Synthesis**).[^gwen-tts-card]
 - All identity, training-data, capability, usage, language, demo, and licensing claims are source assertions without independent verification in this wiki; model-release figures carry `stale_after: 2027-10-07` per the `tts` domain rule (**Synthesis**).[^gwen-tts-card]
+
+[^gwen-tts-repo]: [ggroup-ai-lab/gwen-tts snapshot](../raw/gwen-tts/README.md) at revision `f0f24d8636596dc635323e02f41bee42bb64385e` — locators: `README.md` `## Installation` (tested environment), `## Quick Start` (Python API, CLI); `pyproject.toml` `[project]` and `[tool.uv.*]`; `inference.py::GENERATION_CONFIG`, `::load_model` (sdpa fallback), `::generate_voice_clone` (`# language=language`), `::main` (argparse); `data/ref_info.json`, `data/infer_info.json`; `data/ref_audio/`, `data/infer-audio/`; `.gitignore`. Excluded: `.git` packfiles and hooks (VCS internals).
 
 [^gwen-tts-card]: [Gwen-TTS 0.6B model card](../raw/gwen-tts-0.6B.md) — locators: frontmatter (`library_name: transformers`, `license: mit`, `language` 11 codes, `pipeline_tag: text-to-speech`, `tags`, `base_model: Qwen/Qwen3-TTS-12Hz-0.6B-Base`); intro plus `Key highlights` bullets (voice cloning from a few seconds of reference, natural expressive Vietnamese, ~1,000 h TikTok-crawled finetune data); `Demo` and `GitHub` link lines; `## How to Use` (`pip install -U qwen-tts`, optional `flash-attn`, normalization-plus-chunking note, `Qwen3TTSModel.from_pretrained` fence with `device_map`/`dtype`/`attn_implementation`, full `generation_config` dict, `generate_voice_clone` fence with `language="Vietnamese"`/`ref_audio`/`ref_text`, `sf.write` line); `## Voice Samples` (9 speaker tables with `yen_nhi`, `my_van`, `ai_vy`, `an_nhi`, `dieu_linh`, `khanh_toan`, `tran_lam`, `nsnd_ha_phuong`, `nsnd_kim_cuc`, `ref_audio/` plus `infer-audio/` audio URLs and transcripts); `## Supported Languages` (Vietnamese primary, 10 others, non-Vietnamese performance caveat); `## Citation` (gwen-tts 2026 bibtex); `## License` (MIT); `## Acknowledgments` (Qwen Team, G-Group AI Lab).
