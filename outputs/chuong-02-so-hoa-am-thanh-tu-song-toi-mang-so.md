@@ -697,7 +697,7 @@ Công cụ: `numpy`, `soundfile`, `soxr`, `scipy`, `librosa` (chỉ để vẽ),
 
 ## 2.15 Liên kết
 
-**Chương sau:** Chương 3 (WAV/header, μ-law/A-law, Opus, container), Chương 4 (STFT, cửa sổ/hop, mel, MFCC), Chương 6 (capture/playback, buffer, jitter, clock drift), Chương 7 (AEC — cần căn chỉnh sample chính xác), Chương 10 (VAD và turn), Chương 16 (dataflow và audio contract toàn pipeline), Chương 20 (latency).
+**Chương sau:** [Chương 3](chuong-03-dinh-dang-file-container-va-codec.md) (WAV/header, μ-law/A-law, Opus, container), Chương 4 (STFT, cửa sổ/hop, mel, MFCC), Chương 6 (capture/playback, buffer, jitter, clock drift), Chương 7 (AEC — cần căn chỉnh sample chính xác), Chương 10 (VAD và turn), Chương 16 (dataflow và audio contract toàn pipeline), Chương 20 (latency).
 
 **Tài liệu thiết kế:** [§3 nguyên tắc 4, §5.1, §5.6, §7.1](thiet-ke-pipeline-speech-to-speech-tieng-viet.md).
 
