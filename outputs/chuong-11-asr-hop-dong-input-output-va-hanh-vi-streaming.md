@@ -2,7 +2,7 @@
 
 > **Loại tài liệu:** bài học chi tiết (deliverable trong `outputs/`, không phải tri thức canonical).
 > **Thuộc:** [Đề cương kiến thức nền tảng cho pipeline speech-to-speech tiếng Việt](de-cuong-kien-thuc-nen-tang-speech-pipeline.md), Phần IV.
-> **Chương trước:** [Chương 10. VAD, endpointing và turn detection](chuong-10-vad-endpointing-va-turn-detection.md). **Chương tiếp theo:** Chương 12. LLM trong vòng hội thoại nói.
+> **Chương trước:** [Chương 10. VAD, endpointing và turn detection](chuong-10-vad-endpointing-va-turn-detection.md). **Chương tiếp theo:** [Chương 12. LLM trong vòng hội thoại nói](chuong-12-llm-trong-vong-hoi-thoai-noi.md).
 > **Phục vụ:** [Thiết kế pipeline speech-to-speech tiếng Việt](thiet-ke-pipeline-speech-to-speech-tieng-viet.md) §5.4 (ASR), §6, §7.2.
 > **Cơ sở:** phần lý thuyết (đặc tả contract, streaming, WER/RTF, revision/stable prefix) là kiến thức giáo trình và kỹ thuật chung. Số liệu và tham số cụ thể lấy từ wiki, gắn nhãn bằng chứng: [Vietnamese Realtime ASR Selection](../wiki/vietnamese-realtime-asr-selection.md), [ASR/STT Model Survey](../wiki/asr-stt-model-survey.md), [Nemotron 3.5 ASR](../wiki/nemotron-3.5-asr-streaming-0.6b.md), [Parakeet Realtime EOU 120M v1](../wiki/parakeet-realtime-eou-120m-v1.md), [Faster-Whisper](../wiki/faster-whisper.md), [Whisper Hallucination Mitigation](../wiki/whisper-hallucination-mitigation.md), [WhisperLiveKit](../wiki/whisperlivekit.md), [Community Usable STT](../wiki/community-usable-stt-voice-agents.md). Số liệu wiki là **Reported** (chưa chạy lại model nào). Ví dụ stable-prefix ở §11.5 chạy bằng script Python thuần (**Reproduced**, script ở "Phụ lục chương"). Suy luận từ số liệu sang trải nghiệm là **Synthesis**.
 
@@ -41,9 +41,9 @@ Trong pipeline cascade, ASR là **hàm từ luồng audio sang luồng text kèm
 |---|---|---|
 | Sample rate | **16 kHz** | Đa số model speech train ở 16 kHz; audio 8 kHz (điện thoại) cần upsample *và* biết rằng băng thông thật vẫn chỉ ~4 kHz (Chương 2–3) |
 | Kênh | **mono** | Stereo phải downmix; không đưa 2 kênh vào model mono |
-| Kiểu mẫu | `float32` trong `[-1, 1]` (hoặc `int16` nếu API ghi rõ) | Sai kiểu/chuẩn hoá là bug phổ biến: tín hiệu quá nhỏ ×32768 hoặc bị clip |
+| Kiểu mẫu | `float32` trong `[-1, 1]` (hoặc `int16` nếu API ghi rõ) | Sai kiểu/chuẩn hoá là bug phổ biến: đưa `int16` vào mà quên chia 32768 thì biên độ lớn gấp ~32768 lần (clip, rác); chia hai lần thì tín hiệu gần như im lặng |
 | Độ dài tối thiểu | tuỳ model | Parakeet Realtime EOU yêu cầu ≥ 160 ms (**Reported**)[^eou] |
-| Độ dài tối đa | tuỳ model | Whisper xử lý cửa sổ 30 s; Nemotron bị chặn bởi bộ nhớ GPU (**Reported**)[^nemotron] |
+| Độ dài tối đa | tuỳ model | Whisper xử lý theo cửa sổ 30 s (kiến thức chung về kiến trúc Whisper; audio dài được cắt/trượt cửa sổ); Nemotron bị chặn bởi bộ nhớ GPU (**Reported**)[^nemotron] |
 | Ngôn ngữ | chỉ định tường minh nếu biết | Nemotron nhận language ID dạng `vi-VN` (**Reported**)[^nemotron]; Whisper dùng `language="vi"` |
 
 Hai kiểu giao input:
@@ -141,7 +141,7 @@ Theo wiki lựa chọn ASR tiếng Việt, "realtime" gồm ba lớp không đ�
 |---|---|---|---|---|---|
 | WER % | 13.41 | 12.87 | 12.29 | 11.78 | 11.18 |
 
-Chunk lớn hơn → WER thấp hơn nhưng first partial muộn hơn; đây là quy luật chung (nhiều lookahead = nhiều ngữ cảnh tương lai). Đừng cộng nhầm: **chunk size là cận dưới của latency, không phải latency**.
+Chunk lớn hơn → WER thấp hơn nhưng first partial muộn hơn; đây là quy luật chung của streaming (nhiều lookahead = nhiều ngữ cảnh tương lai; **Synthesis**). Đừng nhầm: **chunk size là cận dưới của latency, không phải latency**; latency thật còn cộng compute, hàng đợi, transport và commit policy (§11.3.4).
 
 ### 11.3.2 Buffered / policy streaming
 
@@ -159,7 +159,7 @@ Chunk lớn hơn → WER thấp hơn nhưng first partial muộn hơn; đây là
 
 - **RTF** (real-time factor) = thời gian xử lý / thời gian audio. RTF = 0.3 nghĩa là xử lý 10 s audio mất 3 s. **RTFx** = nghịch đảo (3.3×).
 - RTF < 1 chỉ nói rằng hệ thống **theo kịp** luồng audio về lâu dài (không dồn hàng đợi). Nó **không** nói first text xuất hiện sau bao lâu.
-- Ví dụ: Whisper offline có RTF 0.3 nhưng chỉ chạy sau endpoint; 10 s user nói + 1.2 s timeout + 3 s decode = 4+ s sau khi người dùng ngừng, dù RTF "tốt". Ngược lại model streaming RTF 0.8 vẫn cho first partial sớm.
+- Ví dụ (số giả định, **Synthesis**): Whisper turn-final có RTF 0.3 trên một lượt nói 10 s. Sau khi người dùng ngừng, hệ thống chờ endpoint (giả sử 1.2 s im lặng) rồi decode 10 s × 0.3 = 3 s, tổng ≈ 4.2 s mới có text, dù RTF "tốt"; và trong suốt 10 s người dùng nói không có text nào. Ngược lại, một model streaming RTF 0.8 vẫn cho first partial sau vài trăm ms, miễn là nó không dồn hàng đợi.
 - Latency usable text gồm: chunk accumulation + lookahead + compute + scheduling + transport + commit policy; và endpoint→final khác first stable text (**Synthesis**)[^sel][^usable].
 - Nhiều phiên đồng thời cũng đổi bức tranh: paper Qwen3-ASR báo TTFT 0.6B ở concurrency 1 là 92/105 ms (avg/P95) nhưng 3210/6195 ms ở concurrency 128 (vLLM, input ASR ~2 phút có sẵn). Đây là hiệu quả request/decode, **không** phải latency nhận audio từ mic; không được ghép 92 ms với throughput 2000 audio-s/s như cùng một operating point (**Reported**; diễn giải **Synthesis**)[^sel].
 
@@ -174,7 +174,7 @@ Chunk lớn hơn → WER thấp hơn nhưng first partial muộn hơn; đây là
 | Encoder-decoder seq2seq | Whisper, PhoWhisper | Policy trên offline model | Recompute, sửa partial, hallucination im lặng |
 | Compact specialized | ZipFormer 30M, Gipformer 68M | Chưa rõ | Size không bảo đảm streaming |
 
-(**Synthesis** từ tài liệu model trong wiki)[^sel]. Khuyến nghị tham khảo cho tiếng Việt, **chưa benchmark triển khai**: Nemotron 3.5 khi cần partial sớm; Qwen3-ASR 1.7B khi ưu tiên chất lượng và chịu được buffering; Whisper large-v3-turbo làm baseline turn-final; hai-pass (native partial + final-pass bằng Qwen3-ASR 1.7B hoặc ChunkFormer RNNT large) là thiết kế đề xuất, tăng compute và phải reconcile transcript (**Synthesis**)[^sel].
+(**Synthesis** từ tài liệu model trong wiki)[^sel]. Lưu ý: có RNNT head không bảo đảm encoder nhân quả; phải kiểm checkpoint có được huấn luyện streaming không (**Synthesis**)[^sel]. Khuyến nghị tham khảo cho tiếng Việt, **chưa benchmark triển khai**: Nemotron 3.5 khi cần partial sớm; Qwen3-ASR 1.7B khi ưu tiên chất lượng và chịu được buffering; Qwen3-ASR 0.6B khi cần tiết kiệm tài nguyên; Whisper large-v3-turbo làm baseline turn-final; hai-pass (native partial + final-pass bằng Qwen3-ASR 1.7B hoặc ChunkFormer RNNT large) là thiết kế đề xuất, tăng compute và phải reconcile transcript (**Synthesis**)[^sel].
 
 ---
 
@@ -186,7 +186,7 @@ Mỗi lần có audio mới, model buffered cho ra một hypothesis `H_t` cho c�
 
 ### 11.5.2 Ví dụ chạy được (**Reproduced**)
 
-Chuỗi hypothesis mô phỏng tăng dần (không có revision) và `k=2` cho kết quả (số từ đã commit sau mỗi bước):
+Chuỗi hypothesis mô phỏng tăng dần (không có revision) và `k=2` cho kết quả (số từ đã commit sau mỗi bước; script ở Phụ lục chương):
 
 ```text
 t0: committed=0  ''
@@ -201,14 +201,14 @@ t6: committed=9  'tôi muốn đặt vé đi đà nẵng ngày mười'
 Nhận xét:
 
 - Commit luôn **chậm hơn partial một nhịp** (từ cuối của `H_t` chỉ vào stable khi `H_{t+1}` đồng ý). Đây là cái giá của độ ổn định: **word lag ≥ một chu kỳ cập nhật**.
-- Từ "mười lăm" ở cuối ngày chưa commit khi user vừa dứt lời; chờ final. Do đó **con số, tên, ngày** nằm cuối câu thường là phần chưa stable khi endpoint xảy ra.
-- Khi model sửa tiền tố đã commit (không thể xảy ra với policy đúng, nhưng xảy ra với policy rút gọn như "commit sau N token"), phải có kênh `revision` để sửa UI/log.
+- Ở t6, "ngày mười" đã commit nhưng "lăm" thì chưa. Nếu downstream đọc stable prefix lúc này, nó thấy **ngày 10** trong khi người dùng nói **ngày 15**: stable prefix *đúng như một tiền tố* nhưng *sai về nghĩa* nếu bị hiểu là trọn vẹn. Do đó **con số, tên, ngày** nằm cuối câu thường là phần chưa stable khi endpoint xảy ra; chờ final.
+- Commit là **quyết định của policy, không phải bảo đảm đúng**. Ví dụ thứ hai trong script: hai hypothesis đầu cùng ra "tôi muốn **đạt**" nên policy commit "đạt"; hypothesis sau đã sửa thành "đặt" nhưng phần commit bị đóng băng, kết quả là "tôi muốn đạt vé đi" (**Reproduced** trên dữ liệu giả lập). Muốn sửa phải có final-pass hoặc kênh `revision` cho UI/log (§11.6).
 
 ### 11.5.3 Các policy khác
 
 - **AlignAtt/SimulStreaming** (Whisper): dùng attention alignment quyết định đã nghe đủ audio để phát token hay chưa (WLK mặc định; **Reported**)[^wlk].
 - **Giữ N chunk cuối unfixed** (Qwen paper): chỉ cố định phần cũ hơn N chunk.
-- **Native RNNT**: token phát khi encoder/joint quyết định, thường stable hơn vì nhân quả, nhưng vẫn có sửa nếu có decoding beam hoặc LM.
+- **Native RNNT**: với greedy decoding, token đã phát thường là append-only vì encoder nhân quả không nhìn lại; beam search hoặc LM rescoring có thể đổi giả thuyết tốt nhất nên vẫn có sửa (**Synthesis**, kiến thức chung).
 
 ---
 
@@ -231,7 +231,7 @@ Quy tắc reconcile:
 
 ### 11.7.1 Nó là gì
 
-Với model sinh (Whisper, ASR dựa LLM), decoder là mô hình ngôn ngữ có điều kiện: nếu audio không mang đủ thông tin, nó vẫn **viết ra thứ có xác suất cao theo ngôn ngữ** thay vì chuỗi rỗng. Kết quả thường gặp: câu lặp, câu ma ("Hãy subscribe cho kênh La La School Để không bỏ lỡ những video hấp dẫn", "Ghiền Mì Gõ"), vốn là dữ liệu huấn luyện từ phụ đề YouTube (**Reported**, whisperX #1086, whisper.cpp #1051 qua báo cáo trong wiki)[^hallu].
+Với model sinh (Whisper, ASR dựa LLM), decoder là mô hình ngôn ngữ có điều kiện: nếu audio không mang đủ thông tin, nó vẫn **viết ra thứ có xác suất cao theo ngôn ngữ** thay vì chuỗi rỗng. Kết quả thường gặp: câu lặp, câu ma ("Hãy subscribe cho kênh La La School Để không bỏ lỡ những video hấp dẫn", "Ghiền Mì Gõ") (**Reported**, whisperX #1086, whisper.cpp #1051 qua báo cáo trong wiki)[^hallu]. Giải thích phổ biến là dữ liệu huấn luyện weakly-supervised có nhiều phụ đề video kèm câu outro trên đoạn không có lời; đây là giả thuyết hợp lý, wiki không chứng minh (**Synthesis**).
 
 ### 11.7.2 Điều kiện kích hoạt
 
@@ -243,6 +243,8 @@ Với model sinh (Whisper, ASR dựa LLM), decoder là mô hình ngôn ngữ có
 | `condition_on_previous_text=True` | Lỗi lặp lan sang đoạn sau |
 | Auto LangID sai | Sinh text sai ngôn ngữ |
 | Audio rất ngắn (<400 ms) | Dễ sinh 1–2 từ vô nghĩa |
+
+(Bảng là **Synthesis** từ báo cáo trong wiki[^hallu] và kiến thức chung về Whisper, ví dụ cơ chế pad cửa sổ 30 s; chưa đo trên audio tiếng Việt.)
 
 ### 11.7.3 Ba tầng phòng thủ
 
@@ -265,6 +267,8 @@ segments, info = model.transcribe(
 segs = list(segments)  # materialize trong worker thread
 ```
 
+Ghi chú (kiến thức chung về faster-whisper): `beam_size` mặc định của `transcribe` là 5, nên phải đặt tay. Khi chỉ có một nhiệt độ, `log_prob_threshold` và `compression_ratio_threshold` không còn kích hoạt fallback nhiệt độ; cặp `no_speech_threshold` + `log_prob_threshold` vẫn dùng để bỏ segment im lặng. Vì vậy vẫn cần tầng 3 lọc theo `compression_ratio`.
+
 Lưu ý: generator của faster-whisper là **lazy**; lặp nó trên asyncio event loop sẽ chặn pipeline (Pipecat PR #5931; **Reported**)[^hallu].
 
 **Tầng 3: lọc sau decode** (**Reported**)[^hallu]:
@@ -284,7 +288,7 @@ Lưu ý: generator của faster-whisper là **lazy**; lặp nó trên asyncio ev
 
 ## 11.8 Chất lượng output: punctuation, casing, ITN, hotwords
 
-- **Punctuation và casing:** Nemotron phát sẵn (**Reported**)[^nemotron]; Whisper cũng; nhiều model CTC thì không (cần model hậu xử lý). LLM phía sau chịu được text không dấu câu tốt hơn TTS; nhưng giao diện/log cần punctuation.
+- **Punctuation và casing:** Nemotron phát sẵn (**Reported**)[^nemotron]; Whisper cũng; nhiều model CTC thì không (cần model hậu xử lý). LLM phía sau thường vẫn hiểu được text không dấu câu, nhưng hiển thị, log, tách câu và trích thực thể cần punctuation (**Synthesis**).
 - **ITN (inverse text normalization):** đổi "không chín tám ba bốn" thành `0983…`, "hai mươi nghìn đồng" thành `20.000đ`. Là bước đối ngẫu của TTS text normalization (Chương 19). ITN sai là nguồn lỗi nặng cho số điện thoại, tiền, ngày. Fun-ASR-MLT-Nano có hotwords/ITN (**Reported**)[^sel]; nếu model không có, cần tầng rule hoặc LLM sau ASR (**Synthesis**).
 - **Dấu thanh tiếng Việt:** model có thể xuất Unicode NFC hoặc NFD; **chuẩn hoá về NFC** ở adapter, nếu không, so khớp từ khoá và tính WER bị sai (Chương 5).
 - **Hotwords/initial prompt:** `hotwords` cho tên sản phẩm/thương hiệu, hoặc `initial_prompt` ngắn có dấu câu chuẩn (**Reported**)[^hallu]. Không đưa câu dài, không đưa cụm "outro". Với Qwen có context biasing (**Reported** ở mức khả năng)[^sel]. Luôn A/B: hotwords có thể làm model "bịa" từ khoá khi audio không có.
@@ -307,7 +311,7 @@ Lưu ý: generator của faster-whisper là **lazy**; lặp nó trên asyncio ev
 
 $$\text{WER} = \frac{S + D + I}{N}$$
 
-(thay thế, xoá, chèn, trên N từ tham chiếu). Với tiếng Việt, "từ" là từ đơn tiết (tách theo khoảng trắng), mỗi âm tiết đã là một token; WER tiếng Việt ~ tương đương syllable error rate. **CER** (ký tự) nhạy hơn với lỗi dấu thanh. Nên báo cả hai, và báo thêm "WER không dấu" để tách lỗi dấu khỏi lỗi âm vị (**Synthesis**).
+(thay thế, xoá, chèn, trên N từ tham chiếu). WER có thể vượt 100% khi có nhiều lỗi chèn (ví dụ hallucination). Tiếng Việt viết cách theo âm tiết, nên khi tách theo khoảng trắng thì mỗi token là một **âm tiết**, không phải một từ từ vựng ("Đà Nẵng" là hai token); vì vậy WER tiếng Việt thực chất là syllable error rate. Nếu một bài báo dùng word segmentation trước khi chấm thì số không so được với bài tách theo khoảng trắng. **CER** (ký tự) nhạy hơn với lỗi dấu thanh. Nên báo cả hai, và báo thêm "WER không dấu" để tách lỗi dấu khỏi lỗi âm vị (**Synthesis**).
 
 ### 11.10.2 Normalizer khi đánh giá
 
@@ -426,6 +430,7 @@ VAD/endpointing (Ch.10)
 - Chưa chạy lại model ASR nào; mọi số WER, latency, TTFT, throughput là **Reported** qua wiki, và chưa có benchmark khớp (cùng audio, normalizer, chunk, hardware) cho tiếng Việt. Nhận xét như "native RNNT ít hallucinate dạng câu ma" là **Synthesis**, chưa đo.
 - Số liệu hallucination và ngưỡng lọc đến từ một báo cáo AI-compiled (issue GitHub và PR không có trong `raw/`), chưa tune trên audio; trích từ các anecdote cộng đồng (Reddit) là **Reported/Unverified**.
 - Bản chuẩn hoá `TranscriptEvent` ở §11.1.2 là **đề xuất thiết kế** (Synthesis), không phải API của model nào.
+- Ví dụ LocalAgreement chỉ mô phỏng logic commit trên hypothesis giả lập; không tái hiện buffer trimming, prompt nối tiếp hay timestamp như các triển khai thật (whisper_streaming/WLK).
 - Chi tiết `att_context_size` của Nemotron, API của Qwen3-ASR/vLLM, ChunkFormer streaming ONNX chưa đi sâu; model ChunkFormer small streaming có card HTTP 401 nên chưa xác định (**Reported**)[^sel].
 - Chương này chưa đi sâu E2E full-duplex (Chương 15), cancellation (Chương 17), diarization (Chương 14) và ASR đo chất lượng bằng bộ dữ liệu riêng (Chương 21).
 - Số liệu model có hạn dùng (`stale_after` wiki: 2027-10); kiểm tra lại phiên bản.
@@ -443,14 +448,17 @@ def lcp(a, b):
     return n
 
 def local_agreement(hyps, k=2):
+    """Commit tiền tố chung của k hypothesis gần nhất; phần đã commit không bao giờ bị sửa."""
     committed, log = [], []
-    for t, h in enumerate(hyps):
+    for t in range(len(hyps)):
         if t >= k - 1:
-            common = h
-            for prev in hyps[t-k+1:t]:
-                common = common[:lcp(common, prev)]
-            if len(common) > len(committed):
-                committed = common[:]
+            window = hyps[t - k + 1 : t + 1]
+            # phần đã commit bị đóng băng; chỉ so phần đuôi sau nó
+            tails = [h[len(committed):] for h in window]
+            common = tails[0]
+            for tail in tails[1:]:
+                common = common[:lcp(common, tail)]
+            committed = committed + common
         log.append((t, len(committed), " ".join(committed)))
     return log
 
@@ -459,9 +467,14 @@ hyps = [h.split() for h in [
   "tôi muốn đặt vé đi đà nẵng", "tôi muốn đặt vé đi đà nẵng ngày mười",
   "tôi muốn đặt vé đi đà nẵng ngày mười lăm"]]
 for r in local_agreement(hyps): print(r)
+
+# Ví dụ có revision: model sửa "đạt" -> "đặt" sau khi "đạt" đã commit
+hyps2 = [h.split() for h in ["tôi muốn đạt", "tôi muốn đạt vé",
+                             "tôi muốn đặt vé đi", "tôi muốn đặt vé đi huế"]]
+for r in local_agreement(hyps2): print(r)
 ```
 
-Kết quả chạy: số từ commit lần lượt 0, 1, 3, 5, 6, 7, 9; "lăm" cuối còn chưa commit khi chuỗi dừng. Hypothesis là dữ liệu giả lập, **không** phải đầu ra model thật.
+Kết quả chạy (Python 3): ví dụ 1 commit lần lượt 0, 1, 3, 5, 6, 7, 9 từ; "lăm" cuối còn chưa commit khi chuỗi dừng. Ví dụ 2 commit 0, 3, 4, 5 từ với kết quả cuối `tôi muốn đạt vé đi`: chữ "đạt" sai đã bị đóng băng. Hypothesis là dữ liệu giả lập, **không** phải đầu ra model thật.
 
 ### Liên kết sang chương khác
 

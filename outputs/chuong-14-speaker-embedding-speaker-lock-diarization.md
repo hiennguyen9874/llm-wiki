@@ -4,7 +4,7 @@
 > **Thuộc:** [Đề cương kiến thức nền tảng cho pipeline speech-to-speech tiếng Việt](de-cuong-kien-thuc-nen-tang-speech-pipeline.md), Phần IV.
 > **Chương trước:** [Chương 13. TTS: từ văn bản tới waveform](chuong-13-tts-tu-van-ban-toi-waveform.md). **Chương tiếp theo:** Chương 15. Kiến trúc: cascade, end-to-end full-duplex và lai.
 > **Phục vụ:** [Thiết kế pipeline speech-to-speech tiếng Việt](thiet-ke-pipeline-speech-to-speech-tieng-viet.md) §7.3 (gating barge-in, speaker lock), §7.5 (diarization), §9.5 (quyền riêng tư).
-> **Cơ sở:** phần giải thích về speaker embedding (i-vector, x-vector, ECAPA-TDNN, CAM++), chấm điểm cosine/PLDA, FAR/FRR/EER, clustering và DER là kiến thức nền chung, không phải claim lấy từ nguồn wiki. Tham số và hành vi cụ thể lấy từ wiki và gắn nhãn bằng chứng: [Voice-Agent Barge-in and Echo Handling](../wiki/voice-agent-barge-in-and-echo-handling.md), [Nemotron 3 Diarization](../wiki/nemotron-3-diarization.md), [Streaming Sortformer Diarizer 4spk v2.1](../wiki/diar-streaming-sortformer-4spk-v2-1.md), [Multitalker Parakeet Streaming 0.6B v1](../wiki/multitalker-parakeet-streaming-0.6b-v1.md), [Speaker Diarization Core ML](../wiki/speaker-diarization-coreml.md), [Community-Reported Open STT and Realtime Diarization Selection](../wiki/community-open-stt-diarization.md). Số liệu wiki là **Reported** (chưa chạy lại model nào). Mô phỏng ở §14.4 và §14.7 chạy bằng Python thuần (**Reproduced**, script ở "Phụ lục chương") trên dữ liệu **tổng hợp**, chỉ minh hoạ logic và số học, không đo model thật. Suy luận của tác giả là **Synthesis**.
+> **Cơ sở:** phần giải thích về speaker embedding (i-vector, x-vector, ECAPA-TDNN, CAM++), chấm điểm cosine/PLDA, FAR/FRR/EER, clustering và DER là kiến thức nền chung, không phải claim lấy từ nguồn wiki. Tham số và hành vi cụ thể lấy từ wiki và gắn nhãn bằng chứng: [Voice-Agent Barge-in and Echo Handling](../wiki/voice-agent-barge-in-and-echo-handling.md), [Nemotron 3 Diarization](../wiki/nemotron-3-diarization.md), [Streaming Sortformer Diarizer 4spk v2.1](../wiki/diar-streaming-sortformer-4spk-v2-1.md), [Multitalker Parakeet Streaming 0.6B v1](../wiki/multitalker-parakeet-streaming-0.6b-v1.md), [Speaker Diarization Core ML](../wiki/speaker-diarization-coreml.md), [Community-Reported Open STT and Realtime Diarization Selection](../wiki/community-open-stt-diarization.md). Số liệu wiki là **Reported** (chưa chạy lại model nào). Mô phỏng ở §14.4 và ví dụ DER ở §14.6.2 chạy bằng Python thuần (**Reproduced**, script ở "Phụ lục chương") trên dữ liệu **tổng hợp**, chỉ minh hoạ logic và số học, không đo model thật. Suy luận của tác giả là **Synthesis**.
 
 ---
 
@@ -71,8 +71,8 @@ Pooling là bước quan trọng: nó biến chuỗi frame độ dài bất kỳ
 | i-vector | Cổ điển, GMM-UBM + phân tích nhân tố. Hiếm dùng mới. |
 | x-vector | TDNN + statistics pooling, huấn luyện phân loại speaker. Nền cho nhiều hệ sau. |
 | ECAPA-TDNN | x-vector cải tiến: Res2Net block, squeeze-excitation, attentive statistics pooling, multi-layer feature aggregation. Chuẩn phổ biến cho verification. |
-| CAM++ | Mạng nhanh, nhẹ hơn, dùng context-aware masking; thường nhắm tới độ trễ thấp. |
-| ResNet/WeSpeaker | Họ ResNet 2D; nhiều checkpoint mở. Wiki ghi `wespeaker` trong các artifact legacy của Core ML (**Reported**).[^coreml] |
+| CAM++ | Backbone D-TDNN + context-aware masking và pooling đa mức; ít tham số và nhanh hơn ECAPA ở độ chính xác tương đương, hợp với CPU/độ trễ thấp. |
+| ResNet (WeSpeaker) | ResNet 2D trên fbank; WeSpeaker là **toolkit** cung cấp nhiều checkpoint mở (ResNet, ECAPA, CAM++), không phải một kiến trúc. Trang Core ML trích WeSpeaker cho bước embedding và giữ các artifact legacy `wespeaker*.mlmodelc` (**Reported**).[^coreml] |
 
 Wiki nhắc ECAPA/CAM++ như lựa chọn cho speaker lock trong tài liệu hướng dẫn barge-in (**Reported**, nguồn là báo cáo do LLM sinh nên chưa được kiểm chứng độc lập).[^barge] Wiki **không** có trang riêng cho ECAPA hay CAM++, nên chưa có số EER, kích thước hay license tiếng Việt cho chúng: đó là việc phải tự đo trước khi chọn.
 
@@ -87,7 +87,8 @@ cos(a, b) = (a · b) / (‖a‖ ‖b‖)         ∈ [-1, 1]
 - Mạng thường được huấn luyện (loss kiểu AAM-softmax) để **góc** giữa các vector mang thông tin người nói, nên cosine phù hợp hơn khoảng cách Euclid.
 - Nếu đã chuẩn hoá L2 (`‖a‖ = 1`) thì cosine bằng tích vô hướng, rẻ để tính.
 - Giá trị cosine **không** là xác suất và không có ý nghĩa tuyệt đối giữa các model: 0.6 ở model A có thể là "chắc cùng người", ở model B là "chưa chắc". Vì vậy phải **calibrate ngưỡng cho từng model, từng kênh thu** (§14.3.3).
-- PLDA (Probabilistic LDA) là phương pháp chấm điểm khác, thường đi cùng x-vector trong pipeline diarization kiểu pyannote; Core ML của Community-1 có artifact `PLDA` và `PldaRho` (**Reported**).[^coreml]
+- PLDA (Probabilistic LDA) là phương pháp chấm điểm khác, truyền thống đi cùng x-vector (Kaldi, clustering VBx). Bản Core ML của pyannote Community-1 có artifact `PLDA`, `PldaRho` (từ `plda.npz`, `xvec_transform.npz`) và trích VBx cho bước clustering (**Reported**).[^coreml]
+- Trong thực tế verification còn dùng **score normalization** (s-norm/AS-norm: chuẩn hoá điểm theo một cohort impostor) để ngưỡng ổn định hơn giữa các kênh thu (kiến thức nền).
 
 ### 14.2.4 Embedding mang gì và không mang gì
 
@@ -139,7 +140,7 @@ FAR(t) = tỉ lệ impostor được nhận (TV ngắt bot nhầm)
 EER    = giá trị tại FRR = FAR
 ```
 
-Với voice agent, hai lỗi **không cân xứng** (**Synthesis**): từ chối user thật rất khó chịu (user nói mà bot cứ đọc tiếp), trong khi cho TV ngắt nhầm cũng khó chịu nhưng thường dễ phục hồi. Thường đặt ngưỡng thiên về **FRR thấp**, và coi speaker lock như một trong nhiều cổng (kết hợp duration gate) chứ không là cổng duy nhất. Khoảng "0.5–0.6" của wiki là **điểm khởi đầu chưa kiểm chứng**, không phải hằng số.
+Với voice agent, hai lỗi **không cân xứng** (**Synthesis**): từ chối user thật rất khó chịu (user nói mà bot cứ đọc tiếp, user mất quyền điều khiển), còn TV ngắt nhầm làm bot dừng và mất lượt nhưng có thể giảm hậu quả (ví dụ hỏi lại hoặc cho phép nói tiếp phần bị cắt). Mặc định hợp lý là đặt ngưỡng thiên về **FRR thấp**; ở môi trường TV/nhiều người thường trực thì phải dịch điểm vận hành về phía FAR thấp. Dù chọn thế nào, coi speaker lock là một trong nhiều cổng (kết hợp duration gate) chứ không là cổng duy nhất. Khoảng "0.5–0.6" của wiki là **điểm khởi đầu chưa kiểm chứng**, không phải hằng số.
 
 ### 14.3.4 Đoạn ngắn
 
@@ -175,16 +176,18 @@ Script ở Phụ lục tạo 40 "người" là vector ngẫu nhiên chuẩn hoá
 
 Kết quả đã chạy:
 
-| Nhiễu `s` | cosine target TB | cosine impostor TB | ngưỡng tại EER | FRR | FAR |
-|---:|---:|---:|---:|---:|---:|
-| 0.06 | 0.87 | −0.01 | 0.38 | 0.000 | 0.000 |
-| 0.10 | 0.71 | −0.00 | 0.41 | 0.000 | 0.000 |
-| 0.15 | 0.53 | −0.01 | 0.29 | 0.004 | 0.006 |
+| Nhiễu `s` | cosine target TB | cosine impostor TB | ngưỡng tại EER | FRR | FAR | FRR @0.5 | FRR @0.6 |
+|---:|---:|---:|---:|---:|---:|---:|---:|
+| 0.06 | 0.87 | −0.01 | 0.38 | 0.000 | 0.000 | 0.000 | 0.000 |
+| 0.10 | 0.71 | −0.00 | 0.41 | 0.000 | 0.000 | 0.000 | 0.029 |
+| 0.15 | 0.53 | −0.01 | 0.29 | 0.004 | 0.006 | 0.360 | 0.812 |
+
+Khi hai phân phối tách hẳn (FRR = FAR = 0), mọi ngưỡng trong khoảng trống đều đạt EER; script báo ngưỡng **nhỏ nhất** trên lưới 0.01, nên cột "ngưỡng tại EER" ở hai dòng đầu không duy nhất.
 
 Ba bài học (**Synthesis** từ mô phỏng):
 
 1. Nhiễu tăng làm cosine target **tụt** (0.87 → 0.53) mà impostor vẫn quanh 0: ngưỡng tốt **dịch theo điều kiện**, không có ngưỡng tuyệt đối.
-2. Ở `s = 0.15`, cosine target trung bình ≈ 0.53 đã nằm sát vùng "bỏ nếu < 0.5–0.6" của wiki: dùng ngưỡng 0.6 sẽ từ chối khoảng nửa số target. Đó là minh hoạ cho "cần calibrate".
+2. Ở `s = 0.15`, cosine target trung bình ≈ 0.53 nằm ngay trong vùng "bỏ nếu < 0.5–0.6" của wiki: ngưỡng 0.5 đã từ chối 36% target, ngưỡng 0.6 từ chối 81%, trong khi ngưỡng EER của chính dữ liệu này là 0.29. Đó là minh hoạ cho "cần calibrate".
 3. Dữ liệu tổng hợp **quá dễ** (impostor độc lập hoàn toàn nên cosine ≈ 0). Người thật, nhất là cùng giới/vùng miền hoặc TV có giọng giống, cho phân phối impostor rộng hơn nhiều. Đừng đọc EER ≈ 0 ở đây như hiệu năng thật.
 
 ## 14.5 Diarization
@@ -212,7 +215,7 @@ Thay vì cluster, mạng dự đoán trực tiếp **hoạt động của từng
 - Vì mỗi frame có xác suất độc lập theo kênh nên **overlap được biểu diễn tự nhiên** (nhiều kênh cùng cao).
 - **Vấn đề permutation:** kênh nào là người nào? Nếu nhãn kênh tuỳ ý thì loss không xác định. Sortformer giải bằng cách **sắp kênh theo thời điểm xuất hiện (arrival-order)**: người nói đầu tiên ở kênh 0, người thứ hai ở kênh 1,… (**Reported**).[^nemo3][^sort] Nhờ đó huấn luyện có supervision ổn định và kênh có thứ tự dự đoán được.
 - **Streaming:** model giữ **Arrival-Order Speaker Cache (AOSC)** cộng một FIFO queue để nhớ speaker đã gặp qua các chunk, nên nhãn nhất quán khi xử lý dần (**Reported**).[^nemo3][^sort]
-- Giới hạn cứng: số speaker tối đa cố định theo kiến trúc (4 cho Sortformer 4spk, 8 cho Nemotron 3) (**Reported**). Vượt số đó là lỗi thiết kế, không phải tinh chỉnh.
+- Giới hạn cứng: số kênh output cố định theo kiến trúc (4 cho Sortformer 4spk, 8 cho Nemotron 3) (**Reported**). Model không báo lỗi khi có nhiều người hơn, mà **suy giảm âm thầm**: card v2.1 nói rõ "degraded performance on 5 or more speakers", ví dụ DIHARD III ≥5 speaker DER 41.42 so với 15.09 ở ≤4 speaker (**Reported**).[^sort] Vì vậy chọn model theo số người tối đa của tình huống là quyết định thiết kế, không sửa được bằng tinh chỉnh tham số (**Synthesis**).
 
 Quy trình hậu xử lý (**Synthesis** từ mô tả đầu ra của wiki): ngưỡng hoá xác suất → loại đoạn rất ngắn → gộp khoảng lặng nhỏ → xuất `(start, end, speaker_index)`. Hậu xử lý có tham số tối ưu theo từng tập dev, wiki nói điều này với model offline (**Reported**).[^sort]
 
@@ -229,14 +232,14 @@ Input buffer latency = (`CHUNK_LEN` + `RIGHT_CONTEXT`) × 80 ms, **chưa tính t
 | Streaming Sortformer v2.1, low | 1.04 s (RTF 0.093 trên RTX 6000 Ada) | **Reported**[^sort] |
 | Streaming Sortformer v2.1, very high | 30.4 s (RTF 0.002) | **Reported**[^sort] |
 
-Quy luật chung: **latency thấp → ít future context → DER cao hơn**; latency cao → DER thấp nhưng nhãn đến muộn. Wiki ghi DER của v2.1 ở latency 1.04 s, ví dụ DIHARD III full 20.21, CALLHOME-part2 full 11.19, CH109 5.09 (**Reported**, tiếng Anh/Trung/đa nguồn).[^sort] **Chưa có DER tiếng Việt** trong wiki (**Reported** từ thiết kế §7.5).[^design]
+Quy luật chung: **latency thấp → ít future context → DER cao hơn**; latency cao → DER thấp nhưng nhãn đến muộn. Với Nemotron 3, mức suy giảm khá thoải: CALLHOME-Part2 full DER 9.10 (30.4 s) → 10.29 (1.04 s) → 10.66 (0.64 s) → 11.32 (0.32 s) (**Reported**).[^nemo3] Wiki ghi DER của v2.1 ở latency 1.04 s, ví dụ DIHARD III full 20.21, CALLHOME-part2 full 11.19, CH109 5.09 (**Reported**).[^sort] Model được huấn luyện chủ yếu trên tiếng Anh công khai, card cảnh báo có thể suy giảm với ngôn ngữ khác và audio nhiễu (**Reported**).[^sort] **Chưa có DER tiếng Việt** trong wiki (**Reported** từ thiết kế §7.5).[^design]
 
 ### 14.5.5 Diarization + ASR: multitalker
 
 Hai hướng ghép (**Synthesis** dựa trên wiki):
 
 1. **ASR rồi gán nhãn:** chạy ASR thường, sau đó map từng từ/đoạn sang speaker theo timestamp diarization. Đơn giản, nhưng sai khi overlap và khi timestamp ASR lệch.
-2. **Multitalker ASR:** Multitalker Parakeet Streaming 0.6B v1 triển khai **một instance ASR cho mỗi speaker**, mỗi instance nhận cùng audio trộn cộng activity của speaker đó từ diarizer, tiêm "speaker kernel" vào encoder và xuất transcript riêng, cho ra transcript SegLST (**Reported**).[^multi] Ưu: không cần enrollment, xử lý overlap. Giá: tài nguyên nhân theo số speaker; model chỉ English (**Reported** trong bảng wiki), nên **không dùng trực tiếp cho tiếng Việt**.
+2. **Multitalker ASR:** Multitalker Parakeet Streaming 0.6B v1 triển khai **một instance ASR cho mỗi speaker**, mỗi instance nhận cùng audio trộn cộng activity của speaker đó từ diarizer, tiêm "speaker kernel" vào encoder và xuất transcript riêng, cho ra transcript SegLST (**Reported**).[^multi] Ưu: không cần enrollment, xử lý overlap. Giá: tài nguyên nhân theo số speaker; model fine-tune từ base tiếng Anh (Nemotron Speech Streaming EN 0.6B) (**Reported**),[^multi] nên **không dùng trực tiếp cho tiếng Việt**.
 
 Chuỗi này cũng cho thấy diarizer có thể là **tầng trước ASR** (cung cấp activity) chứ không chỉ hậu xử lý.
 
@@ -265,8 +268,8 @@ Hệ đoán: `x` 0–20; `y` 21–35; `x` 35–45; `y` 45–50.
 
 ### 14.6.3 DER không nói gì về
 
-- **Chất lượng transcript:** diarization đúng không đảm bảo ASR đúng. Thước đo ghép là cpWER (concatenated minimum-permutation WER); wiki dùng cpWER cho Multitalker Parakeet (AMI IHM 21.26, single-speaker 7.44; **Reported**).[^multi]
-- **Đếm đúng số speaker:** cần thước đo riêng.
+- **Chất lượng transcript:** diarization đúng không đảm bảo ASR đúng. Thước đo ghép là cpWER (concatenated minimum-permutation WER); wiki ghi cpWER của Multitalker Parakeet là 21.26 trên AMI IHM và 37.44 trên AMI SDM với frontend Streaming Sortformer v2, latency 1.12 s; ở chế độ một người nói, WER trung bình bộ benchmark tiếng Anh là 7.44 (**Reported**).[^multi]
+- **Đếm đúng số speaker:** cần thước đo riêng, ví dụ SCA (tỉ lệ buổi đếm đúng) và MAE số speaker mà card Nemotron 3 công bố (**Reported**).[^nemo3]
 - **Độ trễ:** DER thường báo cho một profile latency, phải đọc kèm.
 - **Dữ liệu tiếng Việt, mic/điện thoại thực tế của bạn:** phải tự đo.
 
@@ -277,14 +280,14 @@ Tài liệu thiết kế: agent một-user **không** đặt diarizer vào criti
 | Tình huống | Khuyến nghị | Lý do |
 |---|---|---|
 | Voice agent 1 user, 1 mic | Không diarizer trong vòng realtime; dùng VAD + (tuỳ chọn) speaker lock | Thêm 0.3–1 s buffer và tài nguyên GPU/CPU mà không đổi quyết định cốt lõi (turn-taking) |
-| Cuộc họp nhiều người, mỗi người một kênh (WebRTC participant) | **Track riêng theo participant**, không cần diarize | Danh tính đã biết từ kênh; chính xác tuyệt đối hơn mọi diarizer |
+| Cuộc họp nhiều người, mỗi người một kênh (WebRTC participant) | **Track riêng theo participant**, không cần diarize | Danh tính đã biết từ kênh, rẻ và chính xác hơn diarize audio trộn; vẫn cần VAD/AEC theo từng kênh vì tiếng người khác có thể lọt vào mic (cùng phòng, loa ngoài) |
 | Nhiều người chung một mic phòng | Diarizer streaming nhưng chạy **song song/nhánh phụ** để gắn nhãn transcript | Lỗi nhãn không được chặn phản hồi |
 | Cần transcript chất lượng cao sau cuộc gọi | Batch offline sau cuộc gọi | Offline thấy toàn bản ghi, cluster tốt hơn; cộng đồng báo offline sạch hơn live (**Reported**)[^community] |
 | Cần biết ai nói để LLM trả lời đúng người | Diarizer trong đường LLM nhưng **chịu trễ nhãn** | Cân nhắc: dùng nhãn tạm, sửa khi nhãn chốt |
 
 Nguyên tắc: **một thành phần chỉ nằm trên critical path khi quyết định realtime phụ thuộc vào kết quả của nó.** Diarization thường chỉ làm giàu dữ liệu, không quyết định ngắt hay tiếp tục nói.
 
-Hệ quả sizing (**Synthesis**): diarizer nhánh phụ không được làm tăng latency end-to-end; cần hàng đợi giới hạn, có thể **bỏ khung** (drop) khi quá tải, và nhãn đến trễ phải được xử lý bằng cơ chế "gắn nhãn sau" ở tầng transcript.
+Hệ quả sizing (**Synthesis**): diarizer nhánh phụ không được làm tăng latency end-to-end; cần hàng đợi giới hạn và nhãn đến trễ phải được xử lý bằng cơ chế "gắn nhãn sau" ở tầng transcript. Khi quá tải, **đừng bỏ lẹ tẻ từng khung** audio: diarizer streaming giữ speaker cache/FIFO liên tục, mất khung làm nhãn đảo hoặc sinh speaker mới. Nên hạ cấp có kiểm soát: đánh dấu đoạn đó là `unknown`, hoặc tắt nhánh live và chuyển sang diarize batch sau cuộc gọi.
 
 ## 14.8 Quyền riêng tư và sinh trắc học
 
@@ -294,7 +297,7 @@ Hệ quả sizing (**Synthesis**): diarizer nhánh phụ không được làm t�
   2. Không ghi embedding, vector, hay audio enrollment vào log, trace, hoặc analytics.
   3. Mã hoá khi lưu; tách khỏi định danh tài khoản nếu có thể; đặt thời hạn lưu và đường xoá theo yêu cầu.
   4. Thông báo cho người dùng khi bật speaker lock/diarization, nhất là với **người thứ ba** bị thu giọng (TV, khách).
-  5. Với đồng thời cloning giọng ở TTS (Ch.13, Ch.23): reference audio cần có sự đồng ý của chủ giọng.
+  5. Nếu dùng clone giọng ở TTS (Ch.13, Ch.23): reference audio cần có sự đồng ý của chủ giọng.
   6. Nhớ ràng buộc license: các model diarization có license khác nhau, ví dụ Nemotron 3 Diarization `openmdw-1.1`, Streaming Sortformer v2.1 NVIDIA Open Model License, bản Core ML Community-1 CC-BY-4.0 với phạm vi ghi trong NOTICE (**Reported**).[^nemo3][^sort][^coreml] Cần đọc kỹ trước khi dùng thương mại.
 - Nhãn diarization (`speaker1`…) có thể kém nhạy cảm hơn embedding, nhưng khi gắn với transcript và thời gian vẫn có thể nhận diện người (**Synthesis**).
 
@@ -303,8 +306,8 @@ Hệ quả sizing (**Synthesis**): diarizer nhánh phụ không được làm t�
 | Nhu cầu | Gợi ý | Ghi chú |
 |---|---|---|
 | Speaker lock trong voice agent | Embedding nhỏ (ECAPA/CAM++-class), tự calibrate | Chưa có bằng chứng tiếng Việt trong wiki; tự đo EER trên dữ liệu thật |
-| Diarization streaming, ≤ 8 người | [Nemotron 3 Diarization](../wiki/nemotron-3-diarization.md) | 100M tham số, 16 kHz mono; **Reported**; chưa có DER tiếng Việt |
-| Diarization streaming, ≤ 4 người | [Streaming Sortformer 4spk v2.1](../wiki/diar-streaming-sortformer-4spk-v2-1.md) | 117M; wiki ghi model mới hơn thay thế (không deprecate) |
+| Diarization streaming, ≤ 8 người | [Nemotron 3 Diarization](../wiki/nemotron-3-diarization.md) | 100M tham số, 16 kHz mono, NeMo trên GPU NVIDIA; **Reported**; chưa có DER tiếng Việt |
+| Diarization streaming, ≤ 4 người | [Streaming Sortformer 4spk v2.1](../wiki/diar-streaming-sortformer-4spk-v2-1.md) | 117M; card giới thiệu Nemotron 3 là bản kế nhiệm nhưng không nêu ngày deprecate |
 | Trên Apple, on-device | [Speaker Diarization Core ML](../wiki/speaker-diarization-coreml.md) | pyannote Community-1 chuyển Core ML, FluidAudio |
 | Chạy trong runtime C++ | [audio.cpp framework](../wiki/audio-cpp-framework.md), [Nemotron 3 Diarization GGUF](../wiki/nemotron-3-diarization-gguf.md) | Xem trang tương ứng |
 | Transcript nhiều người, tiếng Anh | [Multitalker Parakeet Streaming 0.6B v1](../wiki/multitalker-parakeet-streaming-0.6b-v1.md) | English only (theo wiki) |
@@ -387,7 +390,8 @@ for s in (0.06,0.10,0.15):
     for t in [i/100 for i in range(-20,100)]:
         frr=sum(x<t for x in tgt)/len(tgt); far=sum(x>=t for x in imp)/len(imp)
         if best is None or abs(frr-far)<best[0]: best=(abs(frr-far),t,frr,far)
-    print(s, sum(tgt)/len(tgt), sum(imp)/len(imp), best[1:])
+    frr_at=[sum(x<t for x in tgt)/len(tgt) for t in (0.5,0.6)]
+    print(s, sum(tgt)/len(tgt), sum(imp)/len(imp), best[1:], frr_at)
 
 def der(ref,hyp,T=60.0,dt=0.01):
     n=int(T/dt)
@@ -428,8 +432,8 @@ print(der(ref,hyp))
 
 [^design]: [Thiết kế pipeline speech-to-speech tiếng Việt](thiet-ke-pipeline-speech-to-speech-tieng-viet.md) — §7.3 (bảng gating chống ngắt nhầm, lưu ý speaker lock không phải xác thực), §7.5 (Diarization), §9.5 (embedding/reference là dữ liệu nhạy cảm).
 [^barge]: [Voice-Agent Barge-in and Echo Handling](../wiki/voice-agent-barge-in-and-echo-handling.md) — phần duration-gated barge-in với speaker lock (ECAPA/CAM++, ngưỡng ~0.5–0.6); nguồn gốc là báo cáo do LLM sinh (chưa kiểm chứng).
-[^nemo3]: [Nemotron 3 Diarization](../wiki/nemotron-3-diarization.md) — Identity and release (license), Architecture and I/O (output `[T, 8]`, arrival-order, 10 ms), Streaming latency configurations (bảng 0.32/0.64/1.04/30.4 s).
-[^sort]: [Streaming Sortformer Diarizer 4spk v2.1](../wiki/diar-streaming-sortformer-4spk-v2-1.md) — Architecture and streaming mechanism (AOSC, output `T × 4`, 0.08 s), Streaming configurations (bảng latency/RTF), bảng DER (collar, DIHARD III, CALLHOME-part2, CH109).
-[^multi]: [Multitalker Parakeet Streaming 0.6B v1](../wiki/multitalker-parakeet-streaming-0.6b-v1.md) — Architecture (speaker-kernel injection, một instance mỗi speaker), Inference and usage (SegLST output), benchmark cpWER.
-[^coreml]: [Speaker Diarization Core ML](../wiki/speaker-diarization-coreml.md) — Supported Community-1 artifacts (Segmentation, FBank, Embedding, PLDA), Legacy compatibility artifacts (wespeaker), Technical specifications.
+[^nemo3]: [Nemotron 3 Diarization](../wiki/nemotron-3-diarization.md) — Identity and release (license), Architecture and I/O (output `[T, 8]`, arrival-order, 10 ms), Streaming latency configurations (bảng 0.32/0.64/1.04/30.4 s), bảng DER theo latency (CALLHOME-Part2 full), SCA/MAE.
+[^sort]: [Streaming Sortformer Diarizer 4spk v2.1](../wiki/diar-streaming-sortformer-4spk-v2-1.md) — Architecture and streaming mechanism (AOSC, output `T × 4`, 0.08 s), Streaming configurations (bảng latency/RTF), Limitations (tối đa 4 speaker, suy giảm ≥5 speaker và ngoài tiếng Anh), bảng DER (collar, DIHARD III ≤4/≥5/full, CALLHOME-part2, CH109).
+[^multi]: [Multitalker Parakeet Streaming 0.6B v1](../wiki/multitalker-parakeet-streaming-0.6b-v1.md) — Architecture (speaker-kernel injection, một instance mỗi speaker), Inference and usage (SegLST output), Evaluation (cpWER AMI IHM/SDM, frontend Streaming Sortformer v2, latency 1.12 s; bảng WER single-speaker), Relationships (fine-tune từ base EN 0.6B).
+[^coreml]: [Speaker Diarization Core ML](../wiki/speaker-diarization-coreml.md) — Supported Community-1 artifacts (Segmentation, FBank, Embedding, PLDA), Legacy compatibility artifacts (wespeaker), Technical specifications, Citations (WeSpeaker, VBx).
 [^community]: [Community-Reported Open STT and Realtime Diarization Selection](../wiki/community-open-stt-diarization.md) — "Realtime versus diarization split" (pyannote, diart, NeMo streaming, live kém hơn offline); trang status draft, chỉ một thread cộng đồng.

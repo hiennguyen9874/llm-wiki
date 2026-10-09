@@ -2,9 +2,9 @@
 
 > **Loại tài liệu:** bài học chi tiết (deliverable trong `outputs/`, không phải tri thức canonical).
 > **Thuộc:** [Đề cương kiến thức nền tảng cho pipeline speech-to-speech tiếng Việt](de-cuong-kien-thuc-nen-tang-speech-pipeline.md), Phần IV.
-> **Chương trước:** [Chương 12. LLM trong vòng hội thoại nói](chuong-12-llm-trong-vong-hoi-thoai-noi.md). **Chương tiếp theo:** Chương 14. Speaker: embedding, speaker lock, diarization.
+> **Chương trước:** [Chương 12. LLM trong vòng hội thoại nói](chuong-12-llm-trong-vong-hoi-thoai-noi.md). **Chương tiếp theo:** [Chương 14. Speaker: embedding, speaker lock, diarization](chuong-14-speaker-embedding-speaker-lock-diarization.md).
 > **Phục vụ:** [Thiết kế pipeline speech-to-speech tiếng Việt](thiet-ke-pipeline-speech-to-speech-tieng-viet.md) §5.5 (cầu text → speech), §5.6 (TTS tiếng Việt), §8.2 (ngân sách latency), §9.4 (fallback).
-> **Cơ sở:** phần giải thích về kiến trúc TTS (text frontend, acoustic model, vocoder, neural codec, RVQ, flow matching, diffusion), xử lý tín hiệu (resample, lượng tử hoá) và đánh giá (MOS, CMOS) là kiến thức nền chung, không phải claim lấy từ nguồn wiki. Tham số và hành vi cụ thể lấy từ wiki và gắn nhãn bằng chứng: [Vietnamese Realtime TTS Selection](../wiki/vietnamese-realtime-tts-selection.md), [VieNeu-TTS v3 Turbo](../wiki/vieneu-tts-v3-turbo.md), [VieNeu-TTS Streaming Runtime and Performance](../wiki/vieneu-tts-streaming-runtime.md), [VieNeu-TTS OpenAI-compatible Speech API](../wiki/vieneu-tts-openai-speech-api.md), [Qwen3-TTS-Tokenizer-12Hz](../wiki/qwen3-tts-tokenizer-12hz.md), [VietNormalizer](../wiki/vietnormalizer.md), [TTS Model Survey](../wiki/tts-model-survey.md), cùng các trang pipeline ở đầu chương 12. Số liệu wiki là **Reported** (chưa chạy lại model nào). Các mô phỏng ở §13.5, §13.9 và §13.10 chạy bằng script Python thuần (**Reproduced**, script ở "Phụ lục chương"); chúng chỉ minh hoạ số học và logic, không đo model thật. Suy luận của tác giả là **Synthesis**.
+> **Cơ sở:** phần giải thích về kiến trúc TTS (text frontend, acoustic model, vocoder, neural codec, RVQ, flow matching, diffusion), xử lý tín hiệu (resample, lượng tử hoá) và đánh giá (MOS, CMOS) là kiến thức nền chung, không phải claim lấy từ nguồn wiki. Tham số và hành vi cụ thể lấy từ wiki và gắn nhãn bằng chứng: [Vietnamese Realtime TTS Selection](../wiki/vietnamese-realtime-tts-selection.md), [VieNeu-TTS v3 Turbo](../wiki/vieneu-tts-v3-turbo.md), [VieNeu-TTS Streaming Runtime and Performance](../wiki/vieneu-tts-streaming-runtime.md), [VieNeu-TTS OpenAI-compatible Speech API](../wiki/vieneu-tts-openai-speech-api.md), [Qwen3-TTS-Tokenizer-12Hz](../wiki/qwen3-tts-tokenizer-12hz.md), [VietNormalizer](../wiki/vietnormalizer.md), [TTS Model Survey](../wiki/tts-model-survey.md), cùng các trang pipeline ở đầu chương 12. Số liệu wiki là **Reported** (chưa chạy lại model nào). Các mô phỏng ở §13.4.2, §13.8.3 và §13.9 chạy bằng script Python thuần (**Reproduced**, script ở "Phụ lục chương"); chúng chỉ minh hoạ số học và logic, không đo model thật. Suy luận của tác giả là **Synthesis**.
 
 ---
 
@@ -74,7 +74,7 @@ Văn bản của LLM/người dùng chứa thứ **không đọc được trực
 | Viết tắt | `TP.HCM`, `UBND` | Đọc từng chữ cái hay đọc như từ |
 | Từ nước ngoài | `container`, `database` | Giữ nguyên (nếu model xử lý code-switch) hay phiên âm |
 
-Wiki ghi nhận [VietNormalizer](../wiki/vietnormalizer.md): thư viện Python thuần, pipeline cố định 19 bước (NFC → ký tự đặc biệt/URL → dấu câu → … → số → lowercase → từ điển viết tắt → từ điển từ nước ngoài → phiên âm theo luật), tốc độ báo cáo ~0.6 ms/lần gọi (**Reported**). Thư viện **chưa được wiki kiểm chứng** và thiết kế pipeline chưa chọn normalizer nào (**Reported**, theo [Thiết kế pipeline](thiet-ke-pipeline-speech-to-speech-tieng-viet.md) §5.5). Hai điểm kỹ thuật rút ra (**Synthesis**): thứ tự bước quan trọng (lowercase đứng trước từ điển nên mục từ điển tuỳ biến phải viết chữ thường), và normalizer đầu ra lowercase **mất thông tin viết hoa** mà một số model dùng để nhận tên riêng/viết tắt, nên cần test với đúng model TTS đích.
+Wiki ghi nhận [VietNormalizer](../wiki/vietnormalizer.md)[^norm]: thư viện Python thuần, pipeline cố định 19 bước (NFC → ký tự đặc biệt/URL → dấu câu → … → số → lowercase → từ điển viết tắt → từ điển từ nước ngoài → phiên âm theo luật), tốc độ báo cáo ~0.6 ms/lần gọi (**Reported**). Thư viện **chưa được wiki kiểm chứng** và thiết kế pipeline chưa chọn normalizer nào (**Reported**, theo [Thiết kế pipeline](thiet-ke-pipeline-speech-to-speech-tieng-viet.md) §5.5). Hai điểm kỹ thuật rút ra (**Synthesis**): thứ tự bước quan trọng (lowercase đứng trước từ điển nên mục từ điển tuỳ biến phải viết chữ thường), và normalizer đầu ra lowercase **mất thông tin viết hoa** mà một số model dùng để nhận tên riêng/viết tắt, nên cần test với đúng model TTS đích.
 
 > **Quy tắc thiết kế (Synthesis):** tách **text hiển thị** (cho UI, log, history LLM) khỏi **text để đọc** (đưa vào TTS). Không bao giờ ghi text đã normalize vào history LLM.
 
@@ -99,7 +99,7 @@ Nhiều model hiện đại **không** có bước G2P tách rời: backbone đ�
 
 ### 13.3.1 Mel-spectrogram làm biểu diễn trung gian
 
-Acoustic model (Tacotron 2, FastSpeech 2, VITS-style…) sinh **mel-spectrogram**: ma trận `[số frame × số băng mel]` (ví dụ 80 băng, frame 10–12.5 ms). Mel nén thông tin phổ theo thang tai người, bỏ **pha**. Điều này kéo theo việc cần một khối thứ hai để dựng lại pha và waveform.
+Acoustic model (Tacotron 2, FastSpeech 2…) sinh **mel-spectrogram** (riêng VITS gộp luôn vocoder và sinh thẳng waveform): ma trận `[số frame × số băng mel]` (ví dụ 80 băng, frame 10–12.5 ms). Mel nén thông tin phổ theo thang tai người, bỏ **pha**. Điều này kéo theo việc cần một khối thứ hai để dựng lại pha và waveform.
 
 | Họ acoustic model | Cách sinh | Streaming | Đánh đổi |
 |---|---|---|---|
@@ -130,10 +130,13 @@ Mỗi frame codec:  [t1 t2 … t16]        ← 16 codebook (RVQ)
 Tốc độ frame:      12.5 Hz  →  80 ms / frame
 ```
 
+Sinh `K` token cho mỗi frame thường theo **hai tầng AR**: backbone lớn bước một lần mỗi frame, rồi một decoder nhỏ sinh lần lượt các codebook trong frame (ví dụ Fish S2: Slow AR dự đoán codebook semantic, Fast AR dự đoán các codebook dư; VieNeu: acoustic decoder 16 codebook chạy sau mỗi bước backbone) (**Reported**).[^selection][^runtime] Vì vậy "200 token/s" không có nghĩa là 200 bước backbone/s.
+
 Ví dụ trong wiki (đều **Reported** trừ khi ghi khác):
 
-- **Qwen3-TTS-Tokenizer-12Hz:** 12.5 Hz, 16 codebook, decoder ConvNet nhân quả nhẹ, mục tiêu phát gói đầu tức thì. Con số 97 ms end-to-end trong card thuộc **hệ thống** Qwen3-TTS (Dual-Track), không phải đo riêng tokenizer (**Synthesis**). Quan trọng cho tiếng Việt: card Qwen3-TTS chính thức liệt kê 10 ngôn ngữ **không có vi**, nên không dùng out-of-box (**Reported**, [Thiết kế pipeline](thiet-ke-pipeline-speech-to-speech-tieng-viet.md) §5.6).
-- **VieNeu-TTS v3 Turbo:** codec `MOSS-Audio-Tokenizer-Nano`, acoustic decoder 16 codebook, 12.5 frame/s, 80 ms/frame, 48 kHz đầu ra (**Reported**).
+- **Qwen3-TTS-Tokenizer-12Hz:**[^qwen] 12.5 Hz, 16 codebook, decoder ConvNet nhân quả nhẹ, mục tiêu phát gói đầu tức thì. Con số 97 ms end-to-end trong card thuộc **hệ thống** Qwen3-TTS (Dual-Track), không phải đo riêng tokenizer (**Synthesis**). Quan trọng cho tiếng Việt: card Qwen3-TTS chính thức liệt kê 10 ngôn ngữ **không có vi**, nên không dùng out-of-box (**Reported**, [Thiết kế pipeline](thiet-ke-pipeline-speech-to-speech-tieng-viet.md) §5.6).
+- **VieNeu-TTS v3 Turbo:**[^vieneu] codec `MOSS-Audio-Tokenizer-Nano`, acoustic decoder 16 codebook, 12.5 frame/s, 80 ms/frame, 48 kHz đầu ra (**Reported**).
+- **MOSS-Audio-Tokenizer-Nano** (codec của VieNeu, theo README MOSS-TTS-Nano): ~20M tham số, 48 kHz **stereo**, 12.5 Hz, RVQ 16 codebook, bitrate thay đổi 0.125–2 kbps bằng số codebook dùng lúc suy luận (**Reported**).[^moss]
 
 ### 13.4.2 Số học frame: đọc thông số codec
 
@@ -142,7 +145,7 @@ Từ "12.5 Hz" và "48 kHz":
 - 1 frame = `1000 / 12.5 = 80 ms`.
 - Số mẫu mỗi frame = `48000 / 12.5 = 3840` mẫu (tại 24 kHz: 1920; tại 16 kHz: 1280).
 - Số token/s = `12.5 × 16 = 200` token/s. Backbone phải sinh *một frame* (16 token, thường qua một acoustic decoder nhỏ) trong **ít hơn 80 ms** để không tụt sau thời gian thực.
-- Bitrate rất thấp. Với giả định minh hoạ 11 bit/token, 200 token/s ≈ 2.2 kbps, nhỏ hơn hàng chục lần PCM 16 kHz (256 kbps). Nén mạnh như vậy buộc decoder "bịa" lại chi tiết, nên chất lượng phụ thuộc rất nhiều vào decoder (§13.8).
+- Bitrate rất thấp. MOSS-Audio-Tokenizer-Nano báo tối đa 2 kbps với 16 codebook (**Reported**); `2000 / 200 = 10 bit/token`, tức mỗi codebook ~1024 mục (**Synthesis**, suy từ số học, card không ghi kích thước codebook). So sánh: PCM 16 kHz int16 mono = 256 kbps, 48 kHz int16 mono = 768 kbps, tức codec nhỏ hơn hàng trăm lần. Nén mạnh như vậy buộc decoder "bịa" lại chi tiết, nên chất lượng phụ thuộc rất nhiều vào decoder (§13.8).
 
 **Hệ quả với latency (Synthesis):** granularity là 80 ms. Chunk audio đầu tiên nhỏ nhất bằng 1 frame (80 ms âm thanh); TTFA thực = `prefill + thời gian sinh k frame đầu + giải mã codec`. VieNeu GPU dùng chunk đầu 2 frame (160 ms audio), CPU 4 frame (320 ms), các chunk sau 4 frame (**Reported**).
 
@@ -154,16 +157,18 @@ Decoder streaming được **chỉ khi không nhìn trước (no lookahead)**. N
 
 ## 13.5 Các họ sinh: AR, non-AR, flow matching, diffusion
 
+Ví dụ lấy từ catalog và bảng shortlist của wiki.[^survey][^selection][^vieneu]
+
 | Họ | Ví dụ trong wiki (Reported) | Cơ chế sinh | Streaming | Rủi ro điển hình |
 |---|---|---|---|---|
 | **AR trên token codec** | VieNeu v3 Turbo, Higgs TTS 3, Fish S2 Pro (Slow AR + Fast AR), Qwen3-TTS | Từng frame/token | **Tự nhiên, frame-level** | Lặp/bỏ từ, drift giọng, ổn định phụ thuộc sampling |
-| **AR + decoder tinh chỉnh** | VoxCPM2 (2B, 48 kHz, `generate_streaming`) | AR trên biểu diễn liên tục/semi-discrete | Có | Cần GPU lớn (~8 GB VRAM theo card) |
-| **Flow matching / diffusion LM** | VieNeu v3 Nano (flow matching, 48M, ONNX), OmniVoice (diffusion LM) | Lặp `steps` bước (Nano: 16 mặc định, 8 nhanh ~2× nhưng thô hơn) | **Thường chỉ trả cả câu/chunk xong**; RTF rất thấp (OmniVoice 0.025) | Chất lượng theo `steps`; không frame streaming |
+| **AR trên latent liên tục + diffusion cục bộ** | VoxCPM2 (2B, 48 kHz, `generate_streaming`) | Tokenizer-free: `LocEnc → TSLM → RALM → LocDiT`, LM 6.25 Hz, AudioVAE ra 48 kHz | Có (API streaming) | Cần GPU (~8 GB VRAM theo card); RTF ~0.3 (~0.13 với Nano-vLLM) trên 4090; chưa có TTFA |
+| **Flow matching / diffusion LM** | VieNeu v3 Nano (flow matching, 48M, ONNX, **24 kHz**), OmniVoice (diffusion LM) | Lặp `steps` bước (Nano: 16 mặc định, 8 nhanh ~2× nhưng thô hơn) | **Thường chỉ trả cả câu/chunk xong**; RTF rất thấp (OmniVoice 0.025) | Chất lượng theo `steps`; không frame streaming |
 | **Non-AR nhỏ, CPU-first** | Supertonic 3 (~99M ONNX) | Một lượt | `synthesize` trả cả waveform | Latency tuỳ độ dài câu |
 
 **Ba nguyên tắc chọn họ (Synthesis):**
 
-1. **RTF thấp ≠ TTFA thấp.** Model diffusion có thể RTF 0.025 (sinh cả câu nhanh) nhưng người nghe phải chờ hết câu mới nghe; AR frame-level RTF 0.5 vẫn phát được ngay từ frame đầu. Voice agent quan tâm **TTFA và lead**, không chỉ RTF.
+1. **RTF thấp ≠ TTFA thấp.** Với model chỉ trả cả chunk, `TTFA ≈ overhead cố định + RTF × độ dài chunk`: RTF 0.025 với mệnh đề 2 s chỉ tốn ~50 ms tính toán, nhưng với câu 15 s là ~375 ms, và con số RTF công bố thường đo ở GPU mạnh, batch, trạng thái nóng. AR frame-level RTF 0.5 có TTFA gần như không phụ thuộc độ dài câu. Voice agent quan tâm **TTFA (P95) và lead**, không chỉ RTF; một model non-streaming RTF rất thấp + chunker mệnh đề ngắn vẫn có thể đạt TTFA tốt, nhưng phải đo chứ không suy từ RTF (**Synthesis**).[^selection]
 2. **Streaming thật phụ thuộc cả decoder, không chỉ backbone.** AR backbone + decoder cần cả câu ⇒ vẫn không stream.
 3. **Non-streaming chạy được qua "chunker + một request mỗi mệnh đề"**, đổi lấy việc prosody không liền mạch giữa các mệnh đề (xem §13.6.2 và Chương 19).
 
@@ -187,7 +192,7 @@ Lưu ý cloning: **reference audio + transcript** phải *khớp nhau*; transcri
 Prosody gồm cao độ (F0), độ dài âm, nhịp, nhấn, ngắt nghỉ. Với model AR/codec, prosody được quyết định bởi **context**: phần text đã thấy, dấu câu, và *giọng tham chiếu*. Hệ quả thực tế:
 
 - **Dấu câu là công cụ điều khiển prosody chính** (`,` nghỉ ngắn, `.` kết câu, `?` lên giọng, `…` kéo dài). Normalizer không được xoá dấu câu.
-- **Chunk quá ngắn** làm model thiếu context nên giọng cụt, ngữ điệu "đọc từng mẩu"; **chunk quá dài** làm TTFA tăng. Wiki khuyến nghị đơn vị khoảng một câu hoặc 20–60 ký tự (**Reported**, Chương 12 §12.4).
+- **Chunk quá ngắn** làm model thiếu context nên giọng cụt, ngữ điệu "đọc từng mẩu"; **chunk quá dài** làm TTFA tăng. Wiki khuyến nghị đơn vị khoảng một câu hoặc 20–60 ký tự; chunk đầu có thể cắt ở dấu phẩy khi đã có ≥ ~25 ký tự, gộp mảnh < 8 ký tự vào câu sau (**Reported**, [Thiết kế pipeline](thiet-ke-pipeline-speech-to-speech-tieng-viet.md) §5.5; Chương 12 §12.3.2).[^design]
 - **Tốc độ:** nhiều API nhận `speed` nhưng không phải model nào thực thi. Server VieNeu `speed` và `instructions` được nhận để tương thích nhưng **bị bỏ qua** (có header `X-VieNeu-Ignored`) (**Reported**). Đừng giả định tham số có hiệu lực: kiểm bằng nghe và đo độ dài audio.
 - **Cue cảm xúc inline** của VieNeu (`[cuoi]`, `[tho dai]`, `[hang giong]`) là **experimental** (**Reported**); trường `style` đã deprecated, phong cách theo giọng tham chiếu (**Reported**). Kiểm trước khi dùng cho sản phẩm.
 - **Nhiệt độ lấy mẫu:** card VieNeu khuyên ~0.8 cho ổn định; cao hơn tăng biểu cảm nhưng kém ổn định (**Reported**). Mặc định server: temperature 0.8, top_k 25, top_p 0.95, repetition_penalty 1.2 (**Reported**).
@@ -198,14 +203,14 @@ Prosody gồm cao độ (F0), độ dài âm, nhịp, nhấn, ngắt nghỉ. V�
 
 ## 13.7 Output contract của dịch vụ TTS
 
-Pipeline nên coi TTS như một service với hợp đồng rõ ràng. Mẫu hợp đồng (**Synthesis**, phần field cụ thể lấy từ [VieNeu OpenAI-compatible API](../wiki/vieneu-tts-openai-speech-api.md), **Reported**):
+Pipeline nên coi TTS như một service với hợp đồng rõ ràng. Mẫu hợp đồng (**Synthesis**, phần field cụ thể lấy từ [VieNeu OpenAI-compatible API](../wiki/vieneu-tts-openai-speech-api.md), **Reported**):[^api]
 
 | Mục | Điều phải xác định | Ví dụ VieNeu (Reported) |
 |---|---|---|
 | Sample rate | Gốc của model và các rate hỗ trợ | Gốc 48 kHz; hỗ trợ 24 k, 16 k, 8 k (resample từng chunk bằng soxr) |
-| Kênh | Mono hay stereo | PCM s16le mono. (Một codec khác, MOSS-TTS Local v1.5, có codec stereo 48 kHz nhưng ví dụ là mono: phải xác nhận) |
+| Kênh | Mono hay stereo | HTTP `pcm` là s16le **mono**. Lưu ý: codec MOSS-Audio-Tokenizer-Nano được mô tả là 48 kHz stereo, nên cần xác nhận số kênh thật của mảng SDK (`ndim`/shape) trước khi giả định mono |
 | dtype | float32 hay int16 | SDK `infer_stream` trả `np.float32` 48 kHz; HTTP `pcm` là s16le |
-| Container | PCM thô hay WAV | `pcm` không header; `wav` header với độ dài "unknown" để player phát ngay; `mp3/opus/aac/flac` → 400 |
+| Container | PCM thô hay WAV | `pcm` không header; `wav` header với độ dài "unknown" để player phát ngay (một số thư viện đọc WAV không chấp nhận độ dài này, **Synthesis**); `mp3/opus/aac/flac` → 400, cần tự encode (~20–40 ms) |
 | Framing | Chunked raw hay SSE | `stream_format=audio` (chunked) hoặc `sse` (base64 PCM trong `speech.audio.delta`) |
 | Kết thúc | Tín hiệu hết stream | Chunked: đóng body; SSE: `speech.audio.done` kèm `usage` (samples, rate, seconds) |
 | Cancel | Huỷ giữa chừng | Client đóng kết nối; server phải **giải phóng slot** (cần kiểm trong test) |
@@ -239,7 +244,7 @@ Pipeline có **audio contract nội bộ** (Chương 16): ví dụ 16 kHz mono i
 | Đầu vào | Text **đầy đủ** của một đơn vị (câu/mệnh đề) | Text đến **dần dần** (token LLM) trong lúc đang nói |
 | Đầu ra | Audio theo chunk | Audio theo chunk |
 | Ví dụ | VieNeu `infer_stream`, VoxCPM2 `generate_streaming` | CosyVoice bi-streaming, Qwen Dual-Track |
-| Bằng chứng cho tiếng Việt | **Có** (VieNeu, VoxCPM2) | **Chưa có** ứng viên vi nào (**Reported**, [Thiết kế pipeline](thiet-ke-pipeline-speech-to-speech-tieng-viet.md) §5.5) |
+| Bằng chứng cho tiếng Việt | **Có** (VieNeu, VoxCPM2) | **Chưa có** ứng viên vi nào (**Reported**, [Thiết kế pipeline](thiet-ke-pipeline-speech-to-speech-tieng-viet.md) §5.5)[^design][^selection] |
 
 Hệ quả: để nối LLM streaming → TTS không bi-streaming, ta cần **clause chunker**: đủ ngắn để TTFA nhỏ, đủ dài để prosody tốt. Đây là "cầu text → speech" (Chương 19), **không phải** native bi-streaming; đừng gọi sai tên khi viết tài liệu thiết kế.
 
@@ -254,18 +259,18 @@ Giữa các mệnh đề có thể nghe **khe hở** hoặc **đổi ngữ đi�
 
 - **TTFA (time to first audio):** từ lúc gửi request tới **byte audio thật đầu tiên**. Với `wav`, header đến sau ~2 ms nhưng không tính (**Reported**). Gồm: mạng + chờ slot/queue + prefill + frame đầu + giải mã codec + (resample) + đóng gói.
 - **RTF một stream:** `thời gian sinh / thời lượng audio`. `< 1` mới không tụt; `0.5` nghĩa là còn dư một nửa thời gian.
-- **RTF throughput (bulk):** tổng audio sinh ra / tổng thời gian khi **batch** nhiều request. Con số này có thể rất nhỏ (VieNeu ghi bulk RTF 0.011–0.02, **Reported**) nhưng **không phải** tốc độ một stream. Dùng nó để ước tính chi phí batch offline, không để dự đoán độ trễ hội thoại.
+- **RTF throughput (bulk):** tổng thời gian xử lý / tổng audio sinh ra khi **batch** nhiều request. Con số này có thể rất nhỏ (VieNeu ghi bulk RTF 0.011–0.02, ví dụ 30 câu / 130 s audio trong 1.5–2.3 s, **Reported**)[^vieneu] nhưng **không phải** tốc độ một stream. Dùng nó để ước tính chi phí batch offline, không để dự đoán độ trễ hội thoại. Cùng VieNeu trên GPU có **ba** con số RTF khác nhau (**Reported**): bulk 0.011–0.02; một câu không streaming 0.10 (launch-bound); streaming một stream 0.49 trên RTX 3060 (theo nhịp frame + lần gọi codec chung). Luôn hỏi RTF đo ở chế độ nào.
 - **Lead:** `audio đã nhận − thời gian đã trôi kể từ chunk đầu`. Lead âm = có khe im lặng (underrun). VieNeu GPU đo lead tối thiểu +80 ms (≤ 16 stream) và CPU +320 ms; khuyến nghị **pre-buffer 150–300 ms** ở client để hấp thụ jitter (**Reported**).
 - **Số stream đồng thời:** `max_streams`. 16 stream TTS không có nghĩa 16 pipeline; một stream chỉ sống trong lúc bot đang nói, nên 16 stream ước phục vụ khoảng 45–80 user đang chat (tác giả ước, **Reported**).
 
-Số đo VieNeu trên RTX 3060 (**Reported**, nguồn: [Streaming Runtime](../wiki/vieneu-tts-streaming-runtime.md)):
+Số đo VieNeu trên RTX 3060, `infer_stream` in-process, N request bắt đầu cùng lúc (**Reported**, nguồn: [Streaming Runtime](../wiki/vieneu-tts-streaming-runtime.md)):[^runtime]
 
 | `max_streams` | N=1 TTFA / RTF | N=16 TTFA median / RTF | N=32 TTFA / RTF |
 |---|---|---|---|
 | 16 (mặc định) | ~115 ms / 0.49 | 185 ms / 0.59 | — |
 | 32 | 141 ms / 0.70 | 220 ms / 0.82 | ~456 ms / 0.93 (lead âm) |
 
-Hai điểm cấu trúc: (1) chi phí chung của codec ≈ `65 ms + 2.5 ms × số slot đã đặt trước`, gần như **toàn bộ chi phí GPU** và không phụ thuộc số stream đang chạy, nên **mỗi slot dư làm chậm mọi request**; chọn `max_streams` đúng tải thật. (2) CPU fp32 một core-set 6 nhân chỉ chạy đúng 1 stream (RTF 0.55–0.61; hai request cùng lúc RTF 1.19, tức tụt); int8 (cần VNNI) cho 2 stream RTF 0.35 (**Reported**).
+Hai điểm cấu trúc: (1) chi phí chung của codec ≈ `65 ms + 2.5 ms × số slot đã đặt trước`, gần như **toàn bộ chi phí GPU** và không phụ thuộc số stream đang chạy, nên **mỗi slot dư làm chậm mọi request**; chọn `max_streams` đúng tải thật. (2) CPU fp32 trên 6 nhân chỉ chạy đúng 1 stream (RTF 0.55–0.61; hai request cùng lúc RTF 1.19, tức tụt); int8 (cần CPU có VNNI, thiếu VNNI thì model nói lảm nhảm) cho 1 stream RTF 0.35 và 2 stream đồng thời RTF 0.58–0.67, vẫn realtime (**Reported**). Lưu ý: "N cùng lúc" là trường hợp xấu (prefill dồn đống); request đến rải rác giữa 15 stream đang chạy có TTFA ~134 ms ở `max_streams=16` (**Reported**).
 
 ### 13.8.3 Mô phỏng: RTF, chunk đầu, pre-buffer và underrun
 
@@ -299,6 +304,7 @@ Script ở phụ lục mô phỏng một stream 125 frame (10 s) với prefill 2
 | Thành phần | Decimate thô (`x[::3]`) | Low-pass (sinc cửa sổ Hann) rồi decimate |
 |---|---|---|
 | Tone 1 kHz (trong băng) | 1.000 | 1.002 |
+| Tone 7 kHz (trong băng, sát tần cắt) | 1.000 | 0.500 |
 | Tone 10 kHz (ngoài băng) tại 6 kHz | **1.000** (alias đầy đủ) | **0.000** (bị loại) |
 
 Tone 10 kHz vô hại ở 48 kHz nhưng nếu decimate thô nó biến thành một tone 6 kHz **cường độ đầy đủ** trong tín hiệu 16 kHz. Với giọng nói thật, phần "xì" của âm xát (s, x) có năng lượng trên 8 kHz và sẽ gập thành nhiễu tạp trong dải ASR. Tone 7 kHz có biên độ 0.5 trong ví dụ vì tần cắt đặt đúng 7 kHz (điểm −6 dB): minh hoạ rằng bộ lọc thực tế có **dải chuyển tiếp** và bạn mất một ít phần cao sát Nyquist.
@@ -309,9 +315,9 @@ Tone 10 kHz vô hại ở 48 kHz nhưng nếu decimate thô nó biến thành m�
 
 ### 13.9.2 float32 → int16: scale, clip, dither
 
-- Công thức: `int16 = round(clip(x, -1, 1) × 32767)`.
-- **Clip:** nếu mẫu float vượt `[-1, 1]` (TTS đôi khi overshoot), phải clip hoặc giảm gain; nếu để tràn số nguyên sẽ **wrap-around** và phát ra tiếng nổ lớn. Mô phỏng: biên độ đỉnh 1.3 làm 2200/4800 mẫu vượt ngưỡng (**Reproduced**). Hãy **kiểm peak** và dùng limiter nhẹ thay vì để clip cứng.
-- **Lượng tử hoá:** lỗi RMS ≈ 0.3 LSB, SNR ≈ 98 dB với sin toàn thang (**Reproduced**). Với giọng nói bình thường đây không nghe thấy. **Dither** chỉ cần khi tín hiệu rất nhỏ hoặc bit-depth thấp hơn nữa.
+- Công thức: `int16 = round(clip(x, -1, 1) × 32767)`. Một số thư viện dùng `× 32768` rồi clip về 32767; chênh lệch không nghe thấy, quan trọng là **một quy ước** cho cả pipeline.
+- **Clip:** nếu mẫu float vượt `[-1, 1]` (TTS đôi khi overshoot), phải clip hoặc giảm gain; nếu để tràn số nguyên sẽ **wrap-around** và phát ra tiếng nổ lớn. Mô phỏng: sin biên độ đỉnh 1.3 làm 2200/4800 mẫu vượt ngưỡng; nếu ép kiểu không clip, các mẫu này wrap sang dấu ngược (đỉnh dương thành ≈ −31741) (**Reproduced**). Hãy **kiểm peak** và dùng limiter nhẹ thay vì để clip cứng.
+- **Lượng tử hoá:** lỗi RMS ≈ 0.29 LSB (lý thuyết `1/√12`), SNR ≈ 98 dB với sin toàn thang (lý thuyết `6.02 × 16 + 1.76`) (**Reproduced**). Với giọng nói bình thường đây không nghe thấy. **Dither** chỉ cần khi tín hiệu rất nhỏ hoặc bit-depth thấp hơn nữa.
 - Ngược lại int16 → float32: chia 32768; làm **một lần**, đừng cộng dồn nhiều phép scale.
 - **Endianness và interleave:** `s16le` là little-endian; stereo interleave (L R L R). Sai một trong hai gây tiếng rít/nhiễu toàn phần (hay gặp khi đọc PCM thô bằng `np.frombuffer`).
 
@@ -346,11 +352,12 @@ Các hiện tượng dưới đây là **Reported** từ [Streaming Runtime](../
 | **Slot dư** | Chi phí codec tăng theo số slot đặt trước | `max_streams` = tải đồng thời thật |
 | **Hết slot** | Hàng đợi đầy hoặc quá hạn | HTTP `429` + `Retry-After`; thiết kế client retry/fallback |
 | **Một worker sở hữu GPU** | Một scheduler thread, nhiều queue | Scale bằng nhiều container, mỗi cái một GPU; không fork |
-| **Watermark** | Perth watermark theo chunk (mặc định bật) | Biết là có; ảnh hưởng nhẹ tới đo đạc in-process |
+| **Watermark** | Perth watermark theo chunk (`VIENEU_WATERMARK=1` mặc định) | Biết là có; số đo in-process của nguồn tắt watermark, số đo HTTP bật, nên so sánh cùng cấu hình[^api] |
+| **Warmup chưa xong** | Request đầu sau khởi động mất 1–2 s | Chờ `/health` trả `ok` rồi mới đưa traffic vào[^runtime] |
 
 **Bài học tổng quát (Synthesis):** đo TTFA ở **ba trạng thái**: (1) nóng, (2) sau idle, (3) dưới tải đồng thời, và báo cáo P50/P95/max. Một con số TTFA trung bình lấy lúc nóng sẽ đánh giá quá lạc quan.
 
-**Fallback (§9.4 thiết kế):** nếu GPU TTS quá tải/hỏng, phương án suy giảm: hàng đợi ngắn → CPU int8/Nano cho thông báo ngắn → câu trả lời văn bản. Mỗi nấc có chất lượng và latency khác nhau; test nó như một tính năng, không phải ngoại lệ.
+**Fallback.** Tài liệu thiết kế §9.4 chỉ chốt một nguyên tắc: **không đổi backend TTS giữa một câu** vì giọng sẽ đổi; retry, hoặc chuyển sang mệnh đề mới kèm thông báo trạng thái (**Synthesis**).[^design] Một thang suy giảm khả dĩ (**Synthesis** của chương này): retry theo `Retry-After` → backend CPU (Turbo int8; Nano chỉ khi chấp nhận chất lượng thấp hơn và không frame-streaming) cho thông báo ngắn → trả lời bằng văn bản. Chú ý Nano xuất **24 kHz** chứ không phải 48 kHz, nên adapter phải đọc rate từ backend thay vì hard-code (§13.7). Mỗi nấc có chất lượng và latency khác nhau; test nó như một tính năng, không phải ngoại lệ.
 
 ---
 
@@ -392,14 +399,14 @@ Dùng round-trip CER để **bắt lỗi thô và regression** (câu bị bỏ t
 
 ## 13.13 Chọn model: ma trận quyết định (tóm tắt)
 
-Chi tiết ở [Vietnamese Realtime TTS Selection](../wiki/vietnamese-realtime-tts-selection.md) và [Lựa chọn và thiết kế TTS realtime cho tiếng Việt](lua-chon-va-thiet-ke-tts-tieng-viet-realtime.md). Đây là **Synthesis** theo độ phù hợp triển khai, không phải xếp hạng nghe:
+Chi tiết ở [Vietnamese Realtime TTS Selection](../wiki/vietnamese-realtime-tts-selection.md)[^selection] và [Lựa chọn và thiết kế TTS realtime cho tiếng Việt](lua-chon-va-thiet-ke-tts-tieng-viet-realtime.md). Đây là **Synthesis** theo độ phù hợp triển khai, không phải xếp hạng nghe:
 
 | Nhu cầu | Ứng viên đầu tiên | Lưu ý |
 |---|---|---|
 | Baseline realtime vi, frame streaming, CPU/GPU | VieNeu v3 Turbo | License có mâu thuẫn FAQ (Apache) và roadmap ("personal use"): rà trước thương mại |
 | Chất lượng/cloning, có GPU | VoxCPM2 (2B, Apache-2.0) | Chưa có TTFA hay MOS vi |
-| CPU/edge | Supertonic 3, VieNeu v3 Nano | Không frame-level streaming; Nano yếu hơn ở English/code-switch |
-| Expressive, có license thương mại | Higgs TTS 3, Fish S2 Pro | Weights non-commercial |
+| CPU/edge | Supertonic 3 (OpenRAIL-M weights), VieNeu v3 Nano | Không frame-level streaming; Nano 24 kHz, yếu hơn ở English/code-switch |
+| Expressive, chấp nhận mua license thương mại riêng | Higgs TTS 3, Fish S2 Pro | Weights research/non-commercial; sản phẩm cần thỏa thuận thương mại; vi chưa được chứng minh tốt hơn VieNeu/VoxCPM2 |
 | Cloning/accuracy, cần nghe thử | G-OmniVoice, Gwen-TTS | Full waveform, chưa streaming; rà lineage license |
 | **Không dùng out-of-box cho vi** | Qwen3-TTS chính thức | 10 ngôn ngữ, không có vi |
 
@@ -440,7 +447,7 @@ Chi tiết ở [Vietnamese Realtime TTS Selection](../wiki/vietnamese-realtime-t
 
 **Q4.** Chuyển đổi ở **một điểm duy nhất** trên ranh giới cần 16 kHz (thường là đường tới ASR/AEC reference hoặc telephony), không phải ở TTS nếu playback chấp nhận rate cao. Phải *low-pass anti-alias rồi decimate* (resampler chất lượng, giữ trạng thái giữa chunk), rồi `clip` và scale float → int16. Mất: toàn bộ phổ trên 8 kHz (ảnh hưởng cảm nhận độ sáng với người nghe, ít ảnh hưởng ASR), một ít độ chính xác (lượng tử hoá ~98 dB SNR, không nghe thấy), nguy cơ clip nếu peak quá cao, và nguy cơ alias nếu lọc sai.
 
-**Q5.** RTF 0.011–0.02 là **throughput của batch**: tổng audio sinh ra chia tổng thời gian khi gom nhiều request cùng lúc, nên mỗi request vẫn chạy ở tốc độ gần RTF một stream. RTF một stream của VieNeu trên RTX 3060 là 0.49 (1 stream) tới 0.59 (16 stream). Nhầm hai số sẽ dẫn tới ngân sách latency lạc quan sai.
+**Q5.** RTF 0.011–0.02 là **throughput của batch**: tổng thời gian xử lý chia tổng audio sinh ra khi gom nhiều câu cùng lúc, nên mỗi request không hề xong nhanh gấp ~90 lần. Ngay một câu không streaming trên GPU đã là RTF 0.10, còn RTF streaming một stream của VieNeu trên RTX 3060 là 0.49 (1 stream) tới 0.59 (16 stream). Nhầm hai số sẽ dẫn tới ngân sách latency lạc quan sai.
 
 **Q6.** Vì ASR là model mạnh có thể suy đoán đúng từ ngữ cảnh dù TTS phát âm sai nhẹ hoặc sai thanh, nên CER thấp không chứng minh nghe tự nhiên; ngược lại ASR yếu hay lỗi trên giọng/domain lạ làm CER cao dù TTS tốt. Nó không đo prosody, giọng, artifact, nhất quán. Dùng để bắt regression thô, không để xếp hạng; chất lượng phải xác nhận bằng MOS/CMOS hoặc nghe thử của người bản ngữ.
 
@@ -450,7 +457,7 @@ Chi tiết ở [Vietnamese Realtime TTS Selection](../wiki/vietnamese-realtime-t
 
 - Mọi số liệu về model (TTFA, RTF, VRAM, số stream, license) là **Reported** từ wiki, tự đo bởi tác giả model trên một máy (RTX 3060, Windows 11, preset voice, câu 88–147 ký tự), chưa được chạy lại; không có benchmark tiếng Việt cùng điều kiện giữa các ứng viên.
 - Wiki không có MOS/CMOS tiếng Việt, TTFA trên phần cứng đích, hay audit license triển khai; `status` của trang so sánh TTS là `draft`.
-- Kiến thức về text frontend, họ acoustic model/vocoder, RVQ, flow matching/diffusion, MOS/CMOS và resample là giáo trình chuẩn, không phải claim từ nguồn wiki. Bit/token trong §13.4.2 (11 bit) là **giả định minh hoạ**, không phải thông số của codec nào.
+- Kiến thức về text frontend, họ acoustic model/vocoder, RVQ, flow matching/diffusion, MOS/CMOS và resample là giáo trình chuẩn, không phải claim từ nguồn wiki. Bit/token trong §13.4.2 (10 bit) là **suy luận số học** từ bitrate tối đa báo cáo của MOSS-Audio-Tokenizer-Nano, không phải kích thước codebook được card ghi; số kênh thật của đầu ra SDK VieNeu chưa được xác nhận.
 - Mô phỏng §13.8.3 giả định tốc độ sinh hằng số và không có jitter mạng/client; thí nghiệm resample §13.9 dùng tín hiệu sin và bộ lọc sinc-Hann tự viết để minh hoạ aliasing, không phải đánh giá chất lượng resampler thực tế. Không tải weights, không chạy TTS thật hay nghe audio.
 - Không bao quát: huấn luyện TTS, voice conversion, singing, TTS đa người nói trong một lượt hội thoại (Chương 14), đo lường latency end-to-end (Chương 20) và license/privacy chi tiết cho cloning (Chương 23).
 - Chunker, lexicon và bộ regression prompt chi tiết thuộc Chương 19.
@@ -467,8 +474,8 @@ import math, struct
 # --- A. Số học frame codec ---
 fr=12.5; frame_ms=1000/fr
 print("frame_ms",frame_ms,"| samples/frame @48k",48000/fr,"@24k",24000/fr,"@16k",16000/fr)
-n_cb=16; bits=11  # giả định codebook 2048 (chỉ để minh hoạ)
-print("token/s =",fr*n_cb,"| bitrate (giả định 11 bit/token) =",fr*n_cb*bits,"bps")
+n_cb=16; max_bps=2000  # MOSS-Audio-Tokenizer-Nano: tối đa 2 kbps (Reported)
+print("token/s =",fr*n_cb,"| bit/token suy ra =",max_bps/(fr*n_cb),"| PCM16 16k/48k mono kbps =",16*16,16*48)
 
 # --- B. Mô phỏng streaming: TTFA, RTF, lead, underrun ---
 def sim(rtf, first_frames, chunk_frames, prefill_ms, n_frames, frame_ms=80.0, prebuf_ms=0):
@@ -508,9 +515,20 @@ sr=48000; N=4800
 for f in (1000,7000,10000):
     x=tone(f,sr,N); fa=f if f<8000 else abs(16000-f)
     print(f, tone_amp(x[::3],fa,16000), tone_amp(sinc_lp(x,sr,3,7000),fa,16000))
+
+# --- D. float32 -> int16: lượng tử hoá, clip, wrap-around ---
+x=[math.sin(2*math.pi*997*i/48000) for i in range(48000)]
+q=[max(-32768,min(32767,round(v*32767))) for v in x]
+err=[v*32767-k for v,k in zip(x,q)]
+rms=math.sqrt(sum(e*e for e in err)/len(err))
+print("rms LSB",rms,"SNR dB",20*math.log10((32767/math.sqrt(2))/rms))
+y=[1.3*math.sin(2*math.pi*1000*i/48000) for i in range(4800)]
+print("vuot nguong",sum(abs(v)>1 for v in y),"/",len(y))
+w=[(round(v*32767)+32768)%65536-32768 for v in y]   # ép kiểu không clip
+print("wrap min/max",min(w),max(w))
 ```
 
-Kết quả đã chạy: `frame_ms 80.0`, 3840/1920/1280 mẫu mỗi frame ở 48/24/16 kHz, 200 token/s; bảng §13.8.3; tone 10 kHz thành 6 kHz với biên độ 1.000 (decimate thô) so với 0.000 (có low-pass); lỗi lượng tử hoá int16 ≈ 0.297 LSB RMS (SNR ≈ 97.8 dB); biên độ 1.3 làm 2200/4800 mẫu vượt ngưỡng clip.
+Kết quả đã chạy: `frame_ms 80.0`, 3840/1920/1280 mẫu mỗi frame ở 48/24/16 kHz, 200 token/s, 10 bit/token suy ra, PCM16 mono 256/768 kbps; bảng §13.8.3; tone 1/7/10 kHz: 1.000/1.000/1.000 (decimate thô) so với 1.002/0.500/0.000 (có low-pass); lỗi lượng tử hoá int16 ≈ 0.289 LSB RMS (SNR ≈ 98.1 dB); biên độ 1.3 làm 2200/4800 mẫu vượt ngưỡng, ép kiểu không clip cho đỉnh wrap tới ±31741.
 
 Điểm cần tự thử: đổi RTF, số frame chunk đầu (1/2/4) và pre-buffer để thấy trade-off TTFA ↔ underrun; thay `x[::3]` bằng `scipy.signal.resample_poly` (nếu có) để so với bộ lọc tự viết; thử phát PCM s16le với sample rate gắn sai để nghe lỗi "chipmunk".
 
@@ -537,3 +555,4 @@ Kết quả đã chạy: `frame_ms 80.0`, 3840/1920/1280 mẫu mỗi frame ở 4
 [^qwen]: [Qwen3-TTS-Tokenizer-12Hz](../wiki/qwen3-tts-tokenizer-12hz.md) — Design (12.5 Hz, 16 codebook, ConvNet nhân quả), Encode and decode usage; phạm vi 97 ms.
 [^norm]: [VietNormalizer](../wiki/vietnormalizer.md) — Capabilities, Pipeline order; chưa được wiki kiểm chứng.
 [^survey]: [TTS Model Survey](../wiki/tts-model-survey.md) — catalog họ model TTS (AR codec, flow matching, diffusion, non-AR).
+[^moss]: [MOSS-TTS-Nano](../wiki/moss-tts-nano.md) — mục MOSS-Audio-Tokenizer-Nano (~20M, 48 kHz stereo, 12.5 Hz, RVQ-16, 0.125–2 kbps).

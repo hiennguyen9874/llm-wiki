@@ -2,7 +2,7 @@
 
 > **Loại tài liệu:** bài học chi tiết (deliverable trong `outputs/`, không phải tri thức canonical).
 > **Thuộc:** [Đề cương kiến thức nền tảng cho pipeline speech-to-speech tiếng Việt](de-cuong-kien-thuc-nen-tang-speech-pipeline.md), Phần IV.
-> **Chương trước:** [Chương 11. ASR: hợp đồng input/output và hành vi streaming](chuong-11-asr-hop-dong-input-output-va-hanh-vi-streaming.md). **Chương tiếp theo:** Chương 13. TTS: từ văn bản tới waveform.
+> **Chương trước:** [Chương 11. ASR: hợp đồng input/output và hành vi streaming](chuong-11-asr-hop-dong-input-output-va-hanh-vi-streaming.md). **Chương tiếp theo:** [Chương 13. TTS: từ văn bản tới waveform](chuong-13-tts-tu-van-ban-toi-waveform.md).
 > **Phục vụ:** [Thiết kế pipeline speech-to-speech tiếng Việt](thiet-ke-pipeline-speech-to-speech-tieng-viet.md) §5.5 (giao diện LLM), §7.3 (barge-in), §8.1 và §8.3 (latency).
 > **Cơ sở:** phần giải thích về LLM serving (TTFT, KV cache, prefix cache, continuous batching, decoding), prompt engineering và hành vi mô hình là kiến thức nền chung, không phải claim lấy từ nguồn wiki. Tham số và quy tắc cụ thể lấy từ wiki và gắn nhãn bằng chứng: [Vietnamese Speech Pipeline Design](../wiki/vietnamese-speech-pipeline-design.md), [Vietnamese Realtime Voice Agent Stack](../wiki/vietnamese-realtime-voice-agent-stack.md), [Cascaded Voice-Agent Blueprint](../wiki/cascaded-voice-agent-blueprint.md), [Voice-Agent Barge-in and Echo Handling](../wiki/voice-agent-barge-in-and-echo-handling.md), [HF Speech-to-Speech Pipeline](../wiki/speech-to-speech-pipeline.md), [Speech-to-Speech Realtime Engine](../wiki/speech-to-speech-realtime-engine.md), [Community STT-LLM-TTS Wiring](../wiki/community-stt-llm-tts-pipeline.md). Số liệu wiki là **Reported** (chưa chạy lại model nào). Mô phỏng ở §12.7 chạy bằng script Python thuần (**Reproduced**, script ở "Phụ lục chương"); nó chỉ kiểm tra logic điều khiển, không đo model thật. Suy luận của tác giả là **Synthesis**.
 
@@ -58,7 +58,7 @@ Thiết kế wiki không chọn model LLM cụ thể: gateway chỉ yêu cầu s
 - Phần speech chỉ cần *hành vi* của nó (streaming, huỷ được, latency), không cần *danh tính* của nó.
 - Cô lập contract giúp A/B nhiều LLM mà không đổi gateway.
 
-**Hai điều LLM không làm** (dễ gán nhầm lỗi):
+**Những việc LLM không làm** (dễ gán nhầm lỗi):
 
 | Việc | Tầng chịu trách nhiệm |
 |---|---|
@@ -96,9 +96,14 @@ Request tối thiểu cho voice:
 
 Blueprint đề xuất `temperature` 0.4–0.7, `max_tokens` 200–500, `stream=true`, `thinking=false` (**Reported**, chưa đo).[^blueprint]
 
+Hai chi tiết API cần biết (kiến thức nền, kiểm tra lại theo backend):
+
+- OpenAI hiện dùng `max_completion_tokens` cho Chat Completions (`max_tokens` bị deprecated và không dùng được với model reasoning); vLLM và llama.cpp vẫn nhận `max_tokens`. Adapter nên map tham số theo backend.
+- Thêm `"stream_options": {"include_usage": true}` để chunk cuối mang `usage` (prompt tokens, completion tokens, và `prompt_tokens_details.cached_tokens` nếu backend hỗ trợ). Đây là nguồn cho metric trúng prefix cache ở §12.11.1.
+
 ### 12.2.2 Chuỗi sự kiện
 
-Stream trả về qua **SSE** (Server-Sent Events): mỗi dòng `data: {...}` chứa một `delta`, kết thúc bằng `data: [DONE]`. Gateway nên chuẩn hoá thành sự kiện nội bộ:
+Stream trả về qua **SSE** (Server-Sent Events). Với Chat Completions, mỗi dòng `data: {...}` chứa một `choices[0].delta`, kết thúc bằng `data: [DONE]`. Responses API thì khác: các sự kiện có kiểu (`response.output_text.delta`, `response.function_call_arguments.delta`, `response.completed`…) và không có `[DONE]`. Nếu vLLM bật reasoning parser, phần suy nghĩ đi riêng vào `delta.reasoning_content`; adapter phải bỏ trường này khỏi luồng TTS, nhưng thời gian sinh nó vẫn cộng vào TTFC (§12.3.5). Gateway nên chuẩn hoá tất cả thành sự kiện nội bộ:
 
 ```text
 LLMEvent {
@@ -140,7 +145,7 @@ Ngoài huỷ cứng, mọi chunk đến muộn sau khi huỷ phải bị **loạ
 | **Time to first clause (TTFC)** | Từ gửi request đến khi chunker có mệnh đề đầu | **Số cần tối ưu thật sự**; = TTFT + thời gian sinh đủ ~1 mệnh đề |
 | **Total generation time** | Đến `done` | Ít quan trọng nếu TTS đã chạy song song; quan trọng với tải GPU |
 
-Wiki nêu ngân sách tham khảo "LLM TTFT + chunk đầu" 150–350 ms với **giả định Qwen3-8B AWQ trên vLLM, có prefix cache** — đây là ước lượng của report, chưa đo, và wiki nhấn mạnh LLM là dependency ngoài nên pipeline không cam kết tổng ~1 s khi chưa biết endpoint (**Reported / Synthesis**).[^stack][^design]
+HF s2s gọi LLM là tầng tốn compute và có latency cao nhất; một forward pass của model lớn có thể chiếm phần lớn thời gian phản hồi (**Reported**).[^s2s] Wiki nêu ngân sách tham khảo "LLM TTFT + chunk đầu" 150–350 ms với **giả định Qwen3-8B AWQ trên vLLM, có prefix cache** — đây là ước lượng của report, chưa đo, và wiki nhấn mạnh LLM là dependency ngoài nên pipeline không cam kết tổng ~1 s khi chưa biết endpoint (**Reported / Synthesis**).[^stack][^design]
 
 ### 12.3.2 Vì sao chỉ cần "mệnh đề có nghĩa đầu tiên"
 
@@ -166,7 +171,7 @@ Quy tắc chunker khởi điểm của thiết kế (chi tiết ở Chương 19;
 
 ### 12.3.3 Underrun: khi LLM sinh chậm hơn tốc độ nói
 
-Giọng nói tiếng Việt khoảng 4–6 âm tiết/giây (xấp xỉ, **Synthesis**), tương đương vài token/giây tuỳ tokenizer. Hầu hết LLM interactive đều sinh nhanh hơn nhiều, nên thường không là vấn đề. Nhưng với model lớn/CPU/quá tải GPU, tokens/s có thể thấp. Khi đó:
+Giọng nói tiếng Việt khoảng 4–6 âm tiết/giây (xấp xỉ, **Synthesis**). Vì tokenizer đa ngôn ngữ thường tách một âm tiết có dấu thành 1–2 token, tốc độ nói tương đương khoảng 5–12 token/giây (ước lượng, đo lại bằng tokenizer thật). Hầu hết LLM interactive đều sinh nhanh hơn nhiều, nên thường không là vấn đề. Nhưng với model lớn/CPU/quá tải GPU, tokens/s có thể thấp. Khi đó:
 
 ```text
 TTS chunk 1 phát xong → chunk 2 chưa có → khe im lặng → "ngắt quãng"
@@ -203,9 +208,10 @@ Report nói reasoning mode của Qwen3.5 tốn token nên voice phải dùng non
 
 | Backend | Cách thường gặp | Ghi chú |
 |---|---|---|
-| vLLM chat completions | `chat_template_kwargs.enable_thinking=false` | Cần chat template hỗ trợ |
-| Qwen3 dạng soft switch | `/no_think` trong prompt | Không đảm bảo bằng template |
-| Responses API | `reasoning_effort: none` | HF s2s ghi nhận cần `--responses_api_reasoning_effort none` khi provider bỏ qua `enable_thinking` trên đường Responses (**Reported**)[^s2s] |
+| vLLM chat completions | `chat_template_kwargs.enable_thinking=false` | Cần chat template hỗ trợ; template chèn sẵn khối think rỗng vào prompt |
+| Qwen3 (bản hybrid 04/2025) soft switch | `/no_think` trong message | Chỉ là quy ước của Qwen3 hybrid, không áp dụng chung; model vẫn sinh khối `<think></think>` rỗng nên chunker phải lọc |
+| Chọn model non-thinking | Ví dụ `Qwen3-*-Instruct-2507` | Bản Instruct-2507 chỉ có chế độ non-thinking (kiến thức nền theo model card, chưa có trong wiki); HF s2s dùng bản này cho cấu hình local[^s2s] |
+| OpenAI-style reasoning | Chat Completions: `reasoning_effort`; Responses: `reasoning: {"effort": ...}` | Giá trị thấp nhất (`none`/`minimal`) tuỳ model. HF s2s ghi nhận cần `--responses_api_reasoning_effort none` khi provider bỏ qua `enable_thinking` trên đường Responses (**Reported**)[^s2s] |
 | llama.cpp | Tắt reasoning ở server/template | HF s2s ví dụ dùng "reasoning off" (**Reported**)[^s2s] |
 
 Hai lưu ý (**Synthesis**): (1) luôn **kiểm chứng bằng log** rằng output không còn khối `<think>…</think>`; (2) thêm lớp bảo vệ ở chunker: nếu thấy thẻ think, bỏ toàn bộ nội dung trong thẻ, đừng gửi cho TTS.
@@ -289,7 +295,7 @@ Trình tự khi ngắt (**Reported**, từ §7.3 của thiết kế):[^design]
 4. Ghi vào history **phần đã phát** + `[bị ngắt]`.
 5. Client bỏ mọi chunk thuộc generation cũ.
 
-Blueprint còn ghi: worker LLM thoát vòng lặp token khi `generation_id` bị supersede và **không append** câu bị bỏ vào history (**Reported**).[^barge]
+Phác thảo async của nguồn blueprint (tóm trong trang barge-in) còn ghi: worker LLM thoát vòng lặp token khi `generation_id` bị supersede và **không append** câu bị bỏ vào history (**Reported**).[^barge]
 
 ### 12.5.2 "Đã phát" nghĩa là gì: chỉ chính xác tới đâu?
 
@@ -385,6 +391,15 @@ Quy tắc bất biến (**Synthesis**):
 3. **Không chạy tool có side effect** từ đầu ra SPECULATIVE (§12.6.3).
 4. Khi revision đổi (transcript khác), **huỷ chứ đừng "sửa tiếp"**: LLM không thể biên tập một câu trả lời đang sinh dựa trên transcript cũ.
 
+**Output gate quyết định latency thay cho tốc độ LLM.** Khi LLM chạy speculative trong grace trước commit, thiết kế ước lượng (**Synthesis**):[^design]
+
+```text
+v2v ≈ (cuối tiếng user → soft-end) + max(output-hold, ASR + LLM tới mệnh đề đầu)
+      + TTS tới audio đầu + transport/playback
+```
+
+Với default HF s2s, output-hold là 800 ms cho lượt complete và tới 2 s cho lượt incomplete. Hệ quả cho LLM: nếu ASR + TTFC đã nhỏ hơn output-hold, đổi sang LLM nhanh hơn **không** giảm độ trễ nghe được. Hãy đo riêng output-hold và thời điểm response sẵn sàng trước khi đổi model; chunker phải nằm ở consumer của LLM stream chứ không chia câu sau khi đã nhận đủ câu trả lời.[^design]
+
 ### 12.6.3 Tool call và side effect
 
 Tool call (hàm do LLM gọi: tra cứu, đặt lịch, ghi CRM, chuyển tiền) là nơi sai lầm tốn kém nhất. Phân loại:
@@ -432,8 +447,9 @@ history: [('user', 'đổi lịch giúp tôi'),
 
 Đọc kết quả:
 
-- LLM giả có TTFT 150 ms và ~20 ms/token. Chunk đầu được flush sau **355 ms** thay vì phải chờ cả câu trả lời (khoảng 25 token ≈ 650 ms theo cấu hình mô phỏng). Đây chỉ minh hoạ nguyên lý, không phải số của model thật.
-- Sau khi ngắt, history chỉ chứa phần mà TTS "đã phát" (hai chunk), không chứa câu hỏi cuối ("Bạn muốn chọn khung giờ nào ạ?") vốn chưa phát, cùng tag `[bị ngắt]`.
+- LLM giả chờ 150 ms rồi sinh ~20 ms/token (token đầu ra ở ~170 ms). Chunk đầu (10 token) được flush sau **~355 ms** (chạy lại 3 lần: 353–354 ms) thay vì phải chờ cả câu trả lời (29 token, xong ở ~730 ms). Đây chỉ minh hoạ nguyên lý, không phải số của model thật.
+- "Dạ," không bị flush riêng vì luật dấu phẩy chỉ áp dụng khi dấu phẩy nằm sau ký tự thứ 15, nên bẫy "chunk đầu quá ngắn" ở §12.3.2 được tránh.
+- Sau khi ngắt ở 900 ms, history chỉ chứa hai chunk đã phát xong (kết thúc ~855 ms) cùng tag `[bị ngắt]`. Chunk 3 ("Bạn muốn chọn khung giờ nào ạ?") đang phát dở lúc ngắt nên bị bỏ hẳn.
 - Giới hạn của mô phỏng: nó chấm "đã phát" theo **chunk** (mức A ở §12.5.2), và thời gian phát chunk là hằng số; không có mạng, buffer client hay alignment.
 
 ---
@@ -470,7 +486,7 @@ Wiki lưu ý rõ: external LLM nằm ngoài scope nhưng phải tính contention
 1. **Tách thiết bị** khi có thể; quy tắc hiệu quả nhất.
 2. **Giới hạn chia sẻ VRAM** của LLM (ví dụ `--gpu-memory-utilization` ở vLLM) để chừa chỗ cho ASR/TTS; tránh OOM ở thời điểm tải đỉnh.
 3. **Giới hạn độ dài prompt và `max_tokens`**: prefill ngắn, decode ngắn.
-4. **Ưu tiên theo deadline:** nếu stack cho phép, đặt ưu tiên cao hơn cho TTS/ASR streaming so với LLM (MPS, nhiều process, hoặc cluster riêng). Nhiều stack không có tính năng này; đó là một lý do để tách GPU.
+4. **Ưu tiên theo deadline:** GPU không có scheduler theo deadline giữa các process. Các công cụ có sẵn chỉ gần đúng: CUDA stream priority (chỉ trong cùng process), MPS với giới hạn % SM cho từng client, hoặc MIG chia cứng GPU (chỉ trên GPU datacenter). Vì vậy tách GPU thường đơn giản và chắc chắn hơn.
 5. **Hạ độ chính xác LLM** (AWQ/GPTQ/GGUF Q4) để giảm VRAM và băng thông.
 6. **Đo trong tải thật:** concurrency 1/4/8/16, warm/cold, sustained và simultaneous start; chỉ tăng concurrency khi P95 và cadence vẫn đạt, đừng suy từ throughput H100 trong paper (**Reported** gate đánh giá tải).[^design]
 
@@ -521,7 +537,8 @@ Vì vậy, với tiếng Việt, cascade vẫn là con đường đề xuất, v
 | §5.5: system prompt cho nói chuyện | §12.4 |
 | §5.5 / §7.3: chỉ lưu phần đã phát, tag `[bị ngắt]` | §12.5 |
 | §7.3: cancel LLM, TTS, queue, client buffer | §12.2.3, §12.5.1 |
-| §8.1: critical path `asr_done → llm_first_token → first_sentence` | §12.3 |
+| §8.1: critical path "final ASR → mệnh đề có nghĩa đầu tiên → TTS"; output gate speculative | §12.3, §12.6.2 |
+| §8.4: metric `asr_done→llm_first_token`, `first_sentence→tts_first_byte` | §12.11.1 |
 | §8.3: prefix cache, preemptive ASR+LLM, warm-up | §12.3.4, §12.6 |
 | §9.2 / §10: VRAM và tải shared GPU | §12.8 |
 
@@ -543,16 +560,24 @@ Wiki đã đề xuất monitoring per-turn `vad_end→asr_done`, `asr_done→llm
 ### 12.11.2 Vòng điều khiển rút gọn (Synthesis)
 
 ```text
-on turn.commit(transcript, utt_id, rev_id):
-    gen = ++generation_id
-    messages = build(system, history, transcript)
+on turn.soft_end(transcript, utt_id, rev_id):       # có thể chạy speculative
+    gen = ++generation_id; state[gen] = SPECULATIVE
+    messages = build(system, history, transcript)   # history chỉ gồm lượt đã commit
     for ev in llm.stream(messages):                 # SSE
         if gen != generation_id: llm.cancel(); return
         if ev.kind == text_delta:
             for chunk in chunker.feed(ev.text):     # lọc markup, <think>
-                tts_queue.put((gen, chunk))
-        elif ev.kind == tool_call and committed(gen): run_tool(ev, idem_key)
-        elif ev.kind == done: tts_queue.put((gen, chunker.flush()))
+                held[gen].append(chunk)             # giữ ở output gate
+        elif ev.kind == tool_call: pending_tools[gen].append(ev)   # chưa chạy
+        elif ev.kind == done: held[gen].append(chunker.flush())
+        if state[gen] == COMMITTED: tts_queue.put_all(gen, held[gen].drain())
+on turn.commit(gen):                                # hết grace, không reopen
+    state[gen] = COMMITTED
+    history.append(user, transcript)
+    tts_queue.put_all(gen, held[gen].drain())
+    for t in pending_tools[gen]: run_tool(t, idem_key(utt_id, rev_id, t.index))  # tool ghi: sau xác nhận bằng lời
+on turn.reopen:                                     # user nói tiếp
+    generation_id += 1; llm.cancel(); held.clear(); pending_tools.clear()
 on barge_in:
     generation_id += 1; llm.cancel(); tts.cancel(); tts_queue.clear()
     client.send({"type": "clear"})
@@ -602,7 +627,7 @@ on barge_in:
 
 **Q3.** Chỉ lưu phần đã thực sự phát, kèm `[bị ngắt]`, để history phản ánh điều người dùng đã nghe. Lưu cả câu sinh ra khiến LLM tin người dùng đã nghe phần chưa phát. Nếu không có alignment token↔audio thì chỉ chắc chắn ở mức chunk hoặc played offset.
 
-**Q4.** Thinking thêm hàng trăm tới hàng nghìn token trước câu trả lời (tăng TTFC), và nếu rò rỉ thì TTS đọc ra. Cách tắt tuỳ backend: `chat_template_kwargs.enable_thinking=false` (vLLM chat), `/no_think`, `reasoning_effort none` (Responses), hoặc tắt reasoning ở server llama.cpp; luôn kiểm bằng log và lọc thẻ ở chunker.
+**Q4.** Thinking thêm hàng trăm tới hàng nghìn token trước câu trả lời (tăng TTFC), và nếu rò rỉ thì TTS đọc ra. Cách tắt tuỳ backend: `chat_template_kwargs.enable_thinking=false` (vLLM chat), `/no_think`, `reasoning_effort`/`reasoning.effort` mức thấp nhất (API kiểu OpenAI), chọn bản model non-thinking, hoặc tắt reasoning ở server llama.cpp; luôn kiểm bằng log và lọc thẻ ở chunker.
 
 **Q5.** Speculative generation là chạy ASR/LLM sớm (khi VAD im 200 ms, hoặc turn được đánh giá complete với reopen 800 ms) để ẩn latency. Phải discard khi người dùng nói tiếp, khi transcript revision đổi, hoặc khi bị ngắt; output speculative không được phát, ghi history, hay chạy tool trước commit.
 
@@ -702,7 +727,7 @@ asyncio.run(main())
 - Chương 20 (latency): ngân sách và đo end-to-end.
 - Chương 23 (license, privacy, bảo mật): log transcript, hosted LLM, tool và quyền.
 
-[^design]: [Thiết kế pipeline speech-to-speech tiếng Việt](thiet-ke-pipeline-speech-to-speech-tieng-viet.md) — §5.5 (giao diện LLM, chunker, prompt), §7.3 (barge-in, gating, played offset), §8.2–8.4 (latency, monitoring), §9.2 (VRAM), §10 (gate tải). Dựa trên [Vietnamese Speech Pipeline Design](../wiki/vietnamese-speech-pipeline-design.md).
+[^design]: [Thiết kế pipeline speech-to-speech tiếng Việt](thiet-ke-pipeline-speech-to-speech-tieng-viet.md) — §5.5 (giao diện LLM, chunker, prompt), §7.3 (barge-in, gating, played offset), §8.1 (critical path, output gate speculative), §8.2–8.4 (latency, monitoring), §9.2 (VRAM), §10 (gate tải). Dựa trên [Vietnamese Speech Pipeline Design](../wiki/vietnamese-speech-pipeline-design.md).
 [^blueprint]: [Cascaded Voice-Agent Blueprint](../wiki/cascaded-voice-agent-blueprint.md) — Turn flow and defaults (LLM call, sentence-buffered TTS); Hardware tiers and placement; Common failures and fixes. Nguồn: LLM-generated report, chưa đo.
 [^stack]: [Vietnamese Realtime Voice Agent Stack](../wiki/vietnamese-realtime-voice-agent-stack.md) — LLM choice and invocation (kích thước, `enable_thinking`, history 10–20 lượt, `[bị ngắt]`); latency budget (LLM TTFT + chunk đầu 150–350 ms); optimizations (prefix cache, preemptive ASR+LLM, warm-up); hardware tiers; monitoring.
 [^barge]: [Voice-Agent Barge-in and Echo Handling](../wiki/voice-agent-barge-in-and-echo-handling.md) — Interruption procedure (`generation_id`, LLM worker thoát khi superseded, không append history); duration-gated barge-in.

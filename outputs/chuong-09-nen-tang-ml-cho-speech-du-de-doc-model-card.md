@@ -2,9 +2,9 @@
 
 > **Loại tài liệu:** bài học chi tiết (deliverable trong `outputs/`, không phải tri thức canonical).
 > **Thuộc:** [Đề cương kiến thức nền tảng cho pipeline speech-to-speech tiếng Việt](de-cuong-kien-thuc-nen-tang-speech-pipeline.md), Phần IV.
-> **Chương trước:** [Chương 8. Transport mạng cho audio realtime](chuong-08-transport-mang-cho-audio-realtime.md). **Chương tiếp theo:** Chương 10. VAD, endpointing và turn detection.
+> **Chương trước:** [Chương 8. Transport mạng cho audio realtime](chuong-08-transport-mang-cho-audio-realtime.md). **Chương tiếp theo:** [Chương 10. VAD, endpointing và turn detection](chuong-10-vad-endpointing-va-turn-detection.md).
 > **Phục vụ:** [Thiết kế pipeline speech-to-speech tiếng Việt](thiet-ke-pipeline-speech-to-speech-tieng-viet.md) §5.4 (ASR tiếng Việt, ba nghĩa của "realtime"), §5.6 (TTS), §5.8 (deploy tools), §9.2 (VRAM).
-> **Cơ sở:** phần lớn là kiến thức giáo trình về học sâu và nhận dạng tiếng nói (CTC, transducer, attention, Conformer, lượng tử hoá). Những chỗ lấy từ tài liệu thiết kế hoặc wiki được ghi rõ kèm nhãn bằng chứng (**Reported**, **Observed**, **Synthesis**…). Các phép tính ở §9.4, §9.9, §9.10 được chạy bằng script Python thuần (**Reproduced**; script nằm ở "Phụ lục chương"). Mọi con số của model cụ thể (WER, số tham số, số stream) là **Reported** theo model card qua wiki, chưa chạy lại. Chi tiết kiến trúc của từng model (số lớp, kernel size…) là hiểu biết chung, hãy kiểm tra với model card/config bạn tải.
+> **Cơ sở:** phần lớn là kiến thức giáo trình về học sâu và nhận dạng tiếng nói (CTC, transducer, attention, Conformer, lượng tử hoá). Những chỗ lấy từ tài liệu thiết kế hoặc wiki được ghi rõ kèm nhãn bằng chứng (**Reported**, **Observed**, **Synthesis**…). Các phép tính ở §9.3.1 (CTC), §9.4, §9.9 và §9.13.1 (WER) được chạy bằng script Python thuần (**Reproduced**; script nằm ở "Phụ lục chương"). Mọi con số của model cụ thể (WER, số tham số, số stream) là **Reported** theo model card qua wiki, chưa chạy lại. Chi tiết kiến trúc của từng model (số lớp, kernel size…) là hiểu biết chung, hãy kiểm tra với model card/config bạn tải.
 
 ---
 
@@ -78,7 +78,7 @@ Log-mel có 100 frame/s (hop 10 ms). Encoder sâu mà chạy ở 100 frame/s th�
 |---:|---:|---:|---|
 | 4× | 25 fps | 40 ms | Conformer/Zipformer cổ điển, nhiều model ESPnet/WeNet |
 | 8× | 12.5 fps | 80 ms | FastConformer (họ Parakeet/Nemotron), theo hiểu biết chung |
-| 2× (ở giai đoạn đầu) rồi nén thêm | 50 fps | 20 ms | Whisper: conv stride 2 → 1500 frame cho 30 s |
+| 2× | 50 fps | 20 ms | Whisper: 2 lớp conv, lớp thứ hai stride 2, không nén thêm → 1500 frame cho 30 s |
 
 Hệ quả cho pipeline: **frame của encoder là đơn vị nhỏ nhất của độ trễ**. Một model 8× không thể phát hiện gì nhanh hơn 80 ms; chunk 80 ms của Nemotron tương ứng đúng 1 frame encoder (**Synthesis**: suy ra từ chunk 80 ms theo [Nemotron 3.5 ASR Streaming 0.6B](../wiki/nemotron-3.5-asr-streaming-0.6b.md) và giả định FastConformer 8×; hãy xác nhận trong config). Số chunk theo frame (tính ở §9.4): 80/160/320/560/1120 ms ↔ 1/2/4/7/14 frame.
 
@@ -87,7 +87,7 @@ Hệ quả cho pipeline: **frame của encoder là đơn vị nhỏ nhất của
 **Self-attention:** mỗi frame tính "độ liên quan" với mọi frame khác rồi lấy trung bình có trọng số. Tốt cho ngữ cảnh dài, nhưng:
 
 - **Bidirectional (non-causal):** frame t nhìn cả quá khứ lẫn tương lai. Chính xác hơn, nhưng phải có cả câu (hoặc cả cửa sổ) trước khi tính được frame nào. Whisper encoder là loại này: mỗi lần nó xử lý trọn 30 s.
-- **Causal:** frame t chỉ nhìn t và quá khứ. Streaming được, nhưng mất ngữ cảnh tương lai nên WER cao hơn (xem đường cong Nemotron ở §9.5.3).
+- **Causal:** frame t chỉ nhìn t và quá khứ. Streaming được, nhưng mất ngữ cảnh tương lai nên WER cao hơn (đường cong chunk của Nemotron ở §9.5.3 cho thấy cùng xu hướng: ít ngữ cảnh tương lai hơn → WER cao hơn).
 - **Chi phí:** tính attention toàn chuỗi là O(T²) theo thời gian và bộ nhớ. Đây là lý do audio dài (podcast, cuộc họp) cần chunking/long-form riêng (ví dụ ChunkFormer, [wiki](../wiki/chunkformer-vietnamese.md)).
 
 ### 9.2.3 Conformer và FastConformer
@@ -128,7 +128,7 @@ Vấn đề cốt lõi: audio có T' frame, chữ có U token, thường T' ≫ 
 - **Ưu:** đơn giản, **rất nhanh** (một lượt encoder + argmax, song song hoá hoàn toàn), dễ streaming nếu encoder causal/chunked, timestamp theo frame tự nhiên.
 - **Nhược:** WER thường kém transducer/attention cùng cỡ nếu không có LM; không tự sinh dấu câu/viết hoa tốt (trừ khi train với text đã định dạng).
 - **Hành vi lỗi:** thường *bỏ* hoặc *thay* âm; **ít hallucinate** vì không có decoder tự do sinh chữ từ không khí. Trên im lặng nó thường ra chuỗi blank → rỗng. Đây là câu trả lời của Q4 (§9.14).
-- **Gặp ở:** [Parakeet CTC](../wiki/parakeet-ctc-0.6b.md), [ChunkFormer CTC 110M](../wiki/chunkformer-vietnamese.md), Granite TurboCTC (**Reported**).
+- **Gặp ở:** [Parakeet CTC](../wiki/parakeet-ctc-0.6b.md), [ChunkFormer CTC 110M](../wiki/chunkformer-vietnamese.md), [Granite TurboCTC](../wiki/granite-speech-5.0-470m-turboctc.md) (không có vi) (**Reported**).
 
 ### 9.3.2 Transducer: RNN-T và TDT
 
@@ -150,7 +150,7 @@ prediction(y<u) ─┘      token → u += 1 (ở lại frame t, hỏi tiếp)
 ### 9.3.3 Attention encoder-decoder (AED) — họ Whisper
 
 - **Ý tưởng:** encoder biến audio thành chuỗi vector; **decoder** là Transformer autoregressive sinh từng token, mỗi bước dùng **cross-attention** nhìn vào toàn bộ output của encoder.
-- **Whisper cụ thể** (kiến thức chung): input log-mel 80 (v1–v2) hoặc 128 bin (large-v3) cho cửa sổ **cố định 30 s** (pad nếu ngắn), encoder ra 1500 frame (§9.4), decoder sinh token kèm **token đặc biệt điều khiển**: `<|startoftranscript|>`, `<|vi|>` (ngôn ngữ), `<|transcribe|>`/`<|translate|>` (tác vụ), `<|notimestamps|>` hay token timestamp. Huấn luyện bằng ~5 triệu giờ dữ liệu weak supervision (**Reported**, [Whisper large-v3-turbo](../wiki/whisper-large-v3-turbo.md)).
+- **Whisper cụ thể** (kiến thức chung): input log-mel 80 (v1–v2) hoặc 128 bin (large-v3) cho cửa sổ **cố định 30 s** (pad nếu ngắn), encoder ra 1500 frame (§9.4), decoder sinh token kèm **token đặc biệt điều khiển**: `<|startoftranscript|>`, `<|vi|>` (ngôn ngữ), `<|transcribe|>`/`<|translate|>` (tác vụ), `<|notimestamps|>` hay token timestamp. Card ghi huấn luyện trên hơn 5 triệu giờ dữ liệu có nhãn (**Reported**, [Whisper large-v3-turbo](../wiki/whisper-large-v3-turbo.md)); với large-v3 đó là ~1 triệu giờ nhãn yếu + ~4 triệu giờ nhãn giả do large-v2 sinh (**Reported**, [Whisper Large v3](../wiki/whisper-large-v3.md)). Nhãn giả nghĩa là lỗi của model cũ có thể được kế thừa.
 - **Ưu:** mạnh, đa ngôn ngữ, tự có dấu câu/viết hoa, tự dịch, chịu nhiễu tốt vì dữ liệu train rất đa dạng.
 - **Nhược:**
   - **Không streaming tự nhiên:** encoder non-causal trên cửa sổ 30 s; muốn "live" phải bọc ngoài (chia cửa sổ, chồng lấp, commit prefix ổn định như WhisperLiveKit). Bọc WebSocket **không** biến nó thành causal encoder (**Reported**, thiết kế §5.4.1).
@@ -283,7 +283,7 @@ Một số model streaming phát **token end-of-utterance** ngay trong chuỗi t
 
 - **Ký tự:** vocab nhỏ (~100 với tiếng Việt có dấu thêm), nhưng chuỗi dài, mô hình khó học thứ tự.
 - **Từ:** vocab khổng lồ, từ hiếm/OOV không có. Tiếng Việt viết có dấu cách giữa *âm tiết*, không giữa *từ* → "từ" theo chính tả là âm tiết, vocab âm tiết khoảng vài nghìn (Chương 5).
-- **Subword (BPE/SentencePiece/unigram):** cân bằng: ~256–10 000 token, tự chia từ hiếm thành mảnh.
+- **Subword (BPE/SentencePiece/unigram):** cân bằng: model ASR chuyên dụng thường dùng ~256–16 000 token; Whisper dùng byte-level BPE ~51 000 token; LLM thường 100 000+ token. Tự chia từ hiếm thành mảnh.
 
 ### 9.6.2 BPE và SentencePiece (mức khái niệm)
 
@@ -319,7 +319,7 @@ Một số model streaming phát **token end-of-utterance** ngay trong chuỗi t
 
 ### 9.7.2 Temperature và temperature fallback (Whisper)
 
-Whisper có chiến lược dự phòng: giải mã với `temperature=0`; nếu kết quả "trông xấu" (log-prob trung bình thấp, compression ratio cao tức là lặp, hoặc `no_speech_prob` cao) thì **thử lại với temperature cao hơn** (0.2, 0.4, … 1.0). Hệ quả:
+Whisper có chiến lược dự phòng: giải mã với `temperature=0`; nếu kết quả "trông xấu" (log-prob trung bình dưới `log_prob_threshold`, mặc định −1.0; hoặc compression ratio trên `compression_ratio_threshold`, mặc định 2.4, tức là lặp) thì **thử lại với temperature cao hơn** (0.2, 0.4, … 1.0). `no_speech_prob` không kích hoạt fallback: khi `no_speech_prob > no_speech_threshold` (0.6) **và** log-prob thấp, segment bị coi là im lặng và bỏ qua (kiến thức chung về openai-whisper/faster-whisper; các ngưỡng là **Reported**, [Whisper Hallucination Mitigation](../wiki/whisper-hallucination-mitigation.md)). Hệ quả:
 
 - Có thể **tăng đáng kể và không đoán trước độ trễ** (một lượt có thể decode 2–6 lần).
 - Sinh ngẫu nhiên → có thể tạo nội dung bịa.
@@ -429,7 +429,7 @@ Số "0.6B BF16 ≈ 1.2 GB" khớp với ví dụ trong thiết kế §9.2 (**Sy
 KV_bytes = 2 (K và V) × số_lớp × số_đầu_KV × head_dim × độ_dài_token × bytes × số_phiên
 ```
 
-Ví dụ (**Reproduced**, giả định minh hoạ, *không phải* của model cụ thể nào): 28 lớp, 8 đầu KV (GQA), head_dim 128, 4096 token, bf16 → **≈ 0.44 GiB mỗi phiên**; nếu là MHA 32 đầu KV, 32 lớp → **≈ 2.0 GiB mỗi phiên**. Với 16 phiên thì KV một mình có thể vượt 7–32 GiB: đây là lý do **LLM trong voice loop** (Chương 12) thường là thành phần tốn VRAM nhất, và GQA/KV quantization/prefix caching quan trọng.
+Ví dụ (**Reproduced**, giả định minh hoạ, *không phải* của model cụ thể nào): 28 lớp, 8 đầu KV (GQA), head_dim 128, 4096 token, bf16 → **≈ 0.44 GiB mỗi phiên**; nếu là MHA 32 đầu KV, 32 lớp → **≈ 2.0 GiB mỗi phiên**. Với 16 phiên đầy ngữ cảnh thì KV một mình đã khoảng 7–32 GiB: đây là lý do **LLM trong voice loop** (Chương 12) thường là thành phần tốn VRAM nhất, và GQA/KV quantization/prefix caching quan trọng.
 
 ### 9.9.3 Batch, CUDA graph, warmup
 
@@ -437,6 +437,7 @@ Ví dụ (**Reproduced**, giả định minh hoạ, *không phải* của model 
 - **Continuous batching** (LLM/TTS): thêm/bớt phiên giữa các bước decode, giữ GPU bận mà không chờ batch đầy.
 - **CUDA graph:** ghi sẵn chuỗi kernel để giảm overhead phóng kernel; hữu ích khi mỗi bước tính rất nhỏ (decoder token-by-token, streaming chunk nhỏ). Đổi lại: shape phải cố định → cần *padding/bucket*.
 - **Warmup:** lần chạy đầu thường chậm (JIT, cudnn autotune, cấp phát, nạp lazy). **Phải warmup lúc khởi động** và **loại các lần chạy đầu khỏi số đo độ trễ**, nếu không p95/p99 sẽ bị nhiễu.
+- **GPU "nguội" sau khi rảnh:** warmup một lần chưa đủ. Tài liệu VieNeu báo rằng sau ~2 s rảnh, driver NVIDIA hạ GPU về trạng thái tiết kiệm điện, request kế tiếp chậm thêm 100–300 ms (118 ms khi ấm so với 403 ms sau 8 s rảnh trên RTX 3060); cách sửa là khoá xung phía host (`nvidia-smi -lgc`), chạy dummy trong process không hiệu quả (**Reported**, [VieNeu-TTS streaming runtime](../wiki/vieneu-tts-streaming-runtime.md)). Với voice agent lưu lượng thấp, đây thường chính là lượt đầu của mỗi cuộc gọi.
 
 ### 9.9.4 Concurrency và "năng lực" công bố
 
@@ -468,19 +469,19 @@ ASR đi *audio → text*. TTS đi *text → audio*, khó hơn ở chỗ **một 
 
 | Họ | Cơ chế | Tính chất | Ví dụ trong wiki |
 |---|---|---|---|
-| **Acoustic model + vocoder** (2 giai đoạn) | text → mel (FastSpeech/VITS-like) → vocoder (HiFi-GAN…) → waveform | Nhẹ, nhanh, ổn định; khó clone giọng linh hoạt | Kokoro (vi), Supertonic (theo thiết kế §6) |
-| **Neural codec LM** | text → *token audio rời rạc* (từ codec như EnCodec/DAC/…) bằng LM autoregressive → decoder codec → waveform | Tự nhiên, **voice cloning zero-shot**; tốc độ phụ thuộc số token/giây và LM | VieNeu-TTS, nhiều model clone giọng |
-| **Diffusion / flow-matching** | sinh mel hoặc latent bằng quá trình khử nhiễu/dòng liên tục, rồi vocoder | Chất lượng cao; streaming khó hơn (cần chunk/causal) | CosyVoice-họ (flow matching) |
-| **Hybrid LM + flow** | LM sinh token ngữ nghĩa, flow/diffusion dựng âm thanh | Cân bằng ngữ điệu và độ trung thực | CosyVoice 2/3 |
+| **Acoustic model + vocoder** (2 giai đoạn) | text/phoneme → mel hoặc đặc trưng trung gian (FastSpeech/VITS/StyleTTS-like) → vocoder (HiFi-GAN, iSTFTNet…) → waveform | Nhẹ, nhanh, ổn định; khó clone giọng linh hoạt | [Kokoro Vietnamese](../wiki/kokoro-vietnamese.md) (voicepack cố định + G2P `vig2p`) |
+| **Neural codec LM** | text → *token audio rời rạc* (từ codec nhiều codebook) bằng LM autoregressive → decoder codec → waveform | Tự nhiên, **voice cloning zero-shot**; tốc độ phụ thuộc số frame/giây, số codebook và LM | [VieNeu-TTS v3 Turbo](../wiki/vieneu-tts-v3-turbo.md) (backbone + codec MOSS 12.5 frame/s, 16 codebook), [Qwen3-TTS](../wiki/qwen3-tts-tokenizer-12hz.md) (12.5 Hz, 16 codebook) |
+| **Diffusion / flow-matching** | sinh mel hoặc latent bằng quá trình khử nhiễu/dòng liên tục qua nhiều *bước*, rồi decoder/vocoder | Chất lượng cao; số bước là núm chất lượng/tốc độ; streaming khó hơn (cần chunk/causal) | Supertonic (latent + flow matching theo hiểu biết chung; wiki chỉ ghi "configurable inference steps"); [VoxCPM2](../wiki/voxcpm2.md) (diffusion-autoregressive, không dùng tokenizer rời rạc) |
+| **Hybrid LM + flow** | LM sinh token ngữ nghĩa, flow/diffusion dựng mel, rồi vocoder | Cân bằng ngữ điệu và độ trung thực | [CosyVoice2](../wiki/cosyvoice2-0.5b.md)/CosyVoice3 |
 
 Những khái niệm cần nhận ra khi đọc card TTS:
 
-- **Codec / token rate:** số token audio mỗi giây (ví dụ vài chục tới hơn 100 token/s). Token rate × số codebook quyết định chi phí sinh; codebook nhiều → chất lượng cao, sinh chậm.
+- **Codec / frame rate:** số frame audio mỗi giây, từ ~12.5 Hz (Qwen3-TTS tokenizer, codec MOSS của VieNeu; **Reported**) tới 25–75+ Hz ở các codec khác. Mỗi frame có thể gồm nhiều codebook (ví dụ 16); frame rate × số codebook × cách sinh codebook (tuần tự hay song song) quyết định chi phí sinh. Frame 80 ms cũng là đơn vị nhỏ nhất của độ trễ phía TTS, tương tự frame encoder ASR ở §9.2.1.
 - **Vocoder:** mạng chuyển đặc trưng (mel/latent) sang waveform; chất lượng và tốc độ phụ thuộc vocoder, **nhưng log-mel không "đảo" sạch thành audio** nên TTS cần vocoder (Chương 4).
 - **Autoregressive vs non-autoregressive:** AR sinh tuần tự (streaming tự nhiên nhưng có rủi ro lặp/bỏ chữ), non-AR song song (nhanh, ổn định, ít tự nhiên hơn).
 - **Voice cloning:** model nhận **reference audio** (vài giây tới chục giây) + đôi khi **transcript của reference**. Reference là **dữ liệu nhạy cảm** (thiết kế §9.5).
 - **Streaming TTS:** phát audio ngay khi có chunk đầu; chỉ số quan trọng là TTFA và việc phát có **đứt/rè ở biên chunk** không (Chương 13, 19).
-- **Đọc card TTS:** ngoài số tham số, hãy tìm **số stream đồng thời tối đa** (VieNeu `VIENEU_MAX_STREAMS` mặc định 16 trên GPU/1 trên CPU, vượt → HTTP 429; **Reported**, thiết kế §5.8), **sample rate đầu ra** (24 kHz thường gặp; cần resample cho playback/telephony), và **license của giọng/reference**.
+- **Đọc card TTS:** ngoài số tham số, hãy tìm **số stream đồng thời tối đa** (VieNeu `VIENEU_MAX_STREAMS` mặc định 16 trên GPU/1 trên CPU, vượt → HTTP 429; **Reported**, thiết kế §5.8), **sample rate đầu ra** (22.05/24 kHz thường gặp, nhưng VieNeu và VoxCPM2 ra 48 kHz; cần resample cho playback/telephony; **Reported**, thiết kế §4), và **license của giọng/reference**.
 
 ---
 
@@ -585,7 +586,7 @@ Các card thường **chuẩn hoá cả tham chiếu lẫn giả thuyết**: h�
 
 **Q6.** Không. Khác tập (FLEURS vs khác), khác chế độ (offline vs streaming/chunk), khác normalizer, khác đơn vị đếm (âm tiết/từ), có thể khác LangID và concurrency; ngoài ra là số tự báo cáo, chưa tái lập.
 
-**Bài 1.** 4.2 s × 100 = 420 frame; ÷8 = **52.5 → ~52–53 frame** (80 ms/frame, tuỳ padding). Chunk 320 ms = 4 frame ⇒ 52.5/4 ≈ **13–14 chunk**.
+**Bài 1.** 4.2 s × 100 = 420 frame; ÷8 = **52.5 → ~52–53 frame** (80 ms/frame, tuỳ padding). Chunk 320 ms = 4 frame ⇒ 4.2/0.32 = 13.125 ⇒ **14 chunk** (13 chunk đầy + 1 chunk cuối thiếu, phải pad hoặc flush khi hết lượt).
 
 **Bài 2.** `x x _ y y y _ _ z z _ z` → gộp lặp: `x _ y _ z _ z` → bỏ blank: **`xyzz`**. Blank giữa hai `z` giữ lại hai chữ `z`; nếu bỏ blank đó (`z z z`) thì gộp lặp ra `xyz`.
 
@@ -618,7 +619,7 @@ Các card thường **chuẩn hoá cả tham chiếu lẫn giả thuyết**: h�
 - **Lượng tử hoá:** fp16/bf16 → int8 (`int8_float16`) → int4; GGUF/ONNX/CT2 là các hệ đóng gói khác nhau, **không hoán đổi**; luôn đo lại WER.
 - **Đọc benchmark:** WER phụ thuộc tập, normalizer, đơn vị, chế độ streaming, chunk, concurrency. RTF và RTFx ngược chiều; đọc định nghĩa trước khi so sánh.
 
-**Chương tiếp theo:** Chương 10. VAD, endpointing và turn detection.
+**Chương tiếp theo:** [Chương 10. VAD, endpointing và turn detection](chuong-10-vad-endpointing-va-turn-detection.md).
 
 ---
 
@@ -627,7 +628,7 @@ Các card thường **chuẩn hoá cả tham chiếu lẫn giả thuyết**: h�
 - Phần kiến trúc và thuật toán (CTC, RNN-T/TDT, AED, LLM-ASR, cache-aware, KV cache, lượng tử hoá, beam/temperature, LM fusion) là **kiến thức giáo trình**, không phải claim từ nguồn wiki; chi tiết hiện thực của từng model cụ thể (số lớp, hệ số subsampling, kernel, kích thước cache) cần xác nhận bằng config/model card.
 - Giả định FastConformer **subsampling 8× (80 ms/frame)** để suy ra "chunk 80 ms = 1 frame" là **Synthesis**; wiki chỉ ghi chunk 80/160/320/560/1120 ms, không ghi hệ số subsampling.
 - Các con số WER, throughput (~240–~2.400 stream), TTFT (92 ms/3210 ms), số tham số, license, yêu cầu phiên bản đều là **Reported** theo model card/wiki, **chưa chạy lại**; trang wiki mang `stale_after` (đa số tới 2027-10).
-- Các phép tính ở §9.4, §9.9, §9.10 và ví dụ CTC/WER được chạy bằng script Python thuần (**Reproduced**); ví dụ KV cache dùng tham số **minh hoạ**, không phải của model cụ thể.
+- Các phép tính ở §9.4, §9.9, đáp án Bài 1/2/4 và ví dụ CTC/WER được chạy bằng script Python thuần (**Reproduced**); ví dụ KV cache dùng tham số **minh hoạ**, không phải của model cụ thể.
 - Mô tả về họ TTS (§9.11) ở mức khái niệm; nhãn "ví dụ trong wiki" cho từng họ là gợi ý phân loại **Synthesis**, cần kiểm trong trang model tương ứng và Chương 13.
 - Chưa có trong wiki: đo WER sau lượng tử hoá cho tiếng Việt, so sánh độ trễ stable-text giữa native streaming và buffered trên cùng dữ liệu, số đo hallucination giữa các họ.
 - Wiki không có ví dụ code ML ở chương này; không có đoạn code chạy trong repo ngoài script tính toán nhỏ ở phụ lục.
@@ -653,10 +654,15 @@ def ctc(seq, blank="_"):
         if s != prev and s != blank: out.append(s)
         prev = s
     return "".join(out)
-print(ctc("hh_ee_ll_llo"), ctc("hel_lo"), ctc("helo"))   # hello hello helo
+print(ctc("hh_ee_ll_llo"), ctc("hel_lo"), ctc("hello"))  # hello hello helo
+print(ctc("xx_yyy__zz_z"), ctc("xx_yyy__zzz"))            # xyzz xyz  (Bài 2)
+print(kv(32, 8, 128, 2048)*12, kv(32, 32, 128, 2048)*12) # 3.0 12.0 (Bài 4)
 
 # Whisper encoder frames / 30 s
 print(30*100/2)                                          # 1500.0
+
+# Bài 1: frame sau subsampling 8× và số chunk 320 ms cho 4.2 s
+import math; print(4.2*100/8, math.ceil(4.2/0.32))      # 52.5 14
 
 # WER theo âm tiết (Levenshtein)
 def wer(r, h):
@@ -673,9 +679,12 @@ print(wer("tôi muốn đặt vé đi hà nội", "tôi muốn đạt vé đi h�
 
 ---
 
-[^design]: [Thiết kế pipeline speech-to-speech tiếng Việt](thiet-ke-pipeline-speech-to-speech-tieng-viet.md), §5.4.1 (ba nghĩa của "realtime"), §5.4.2 (shortlist, bẫy so sánh, loại khỏi shortlist), §5.4.3 (ba mẫu ghép ASR), §5.8 (deploy tools, quy ước RTF/RTFx), §6 (profile A–E), §9.2 (VRAM), §9.3 (scaling), §9.5 (privacy) (Reported/Synthesis).
-[^nemotron]: [Nemotron 3.5 ASR Streaming 0.6B](../wiki/nemotron-3.5-asr-streaming-0.6b.md), các mục "Architecture and I/O", "Streaming operating points", "Vietnamese operating curve", "Inference and usage", "Training data and procedure" (Reported).
-[^survey]: [ASR/STT Model Survey](../wiki/asr-stt-model-survey.md) và [Phân nhóm ASR/STT và shortlist realtime](../wiki/realtime-asr-selection.md): phân nhóm theo kiến trúc, kích thước, streaming, license (Reported/Synthesis).
-[^whisper]: [Whisper large-v3-turbo](../wiki/whisper-large-v3-turbo.md) (decoder 32→4 lớp, 809M vs 1550M; dữ liệu >5M giờ), [Faster-Whisper](../wiki/faster-whisper.md) (CTranslate2, int8, tới 4× nhanh hơn), [Whisper Hallucination Mitigation](../wiki/whisper-hallucination-mitigation.md) (tham số decode, hallucination tiếng Việt) (Reported).
-[^viasr]: [Gipformer 68M RNN-T](../wiki/gipformer-68m-rnnt.md), [ChunkFormer Vietnamese](../wiki/chunkformer-vietnamese.md), [ZipFormer 30M Vietnamese](../wiki/zipformer-30m-vietnamese.md), [Parakeet Realtime EOU 120M v1](../wiki/parakeet-realtime-eou-120m-v1.md) (Reported).
-[^deploy]: [Audio.cpp GGUF packages](../wiki/audio-cpp-gguf-packages.md), [NeMo-Speech.cpp](../wiki/nemo-speech-cpp.md) (GGUF/ggml, Q8, runtime) (Reported).
+## Nguồn trong wiki và tài liệu thiết kế
+
+- [Thiết kế pipeline speech-to-speech tiếng Việt](thiet-ke-pipeline-speech-to-speech-tieng-viet.md), §5.4.1 (ba nghĩa của "realtime"), §5.4.2 (shortlist, bẫy so sánh, loại khỏi shortlist), §5.4.3 (ba mẫu ghép ASR), §5.8 (deploy tools, quy ước RTF/RTFx), §6 (profile A–E), §9.2 (VRAM), §9.3 (scaling), §9.5 (privacy) (Reported/Synthesis).
+- [Nemotron 3.5 ASR Streaming 0.6B](../wiki/nemotron-3.5-asr-streaming-0.6b.md), các mục "Architecture and I/O", "Streaming operating points", "Vietnamese operating curve", "Inference and usage", "Training data and procedure" (Reported).
+- [ASR/STT Model Survey](../wiki/asr-stt-model-survey.md) và [Phân nhóm ASR/STT và shortlist realtime](../wiki/realtime-asr-selection.md): phân nhóm theo kiến trúc, kích thước, streaming, license (Reported/Synthesis).
+- [Whisper large-v3-turbo](../wiki/whisper-large-v3-turbo.md) (decoder 32→4 lớp, 809M vs 1550M; dữ liệu >5M giờ), [Faster-Whisper](../wiki/faster-whisper.md) (CTranslate2, int8, tới 4× nhanh hơn), [Whisper Hallucination Mitigation](../wiki/whisper-hallucination-mitigation.md) (tham số decode, hallucination tiếng Việt) (Reported).
+- [Gipformer 68M RNN-T](../wiki/gipformer-68m-rnnt.md), [ChunkFormer Vietnamese](../wiki/chunkformer-vietnamese.md), [ZipFormer 30M Vietnamese](../wiki/zipformer-30m-vietnamese.md), [Parakeet Realtime EOU 120M v1](../wiki/parakeet-realtime-eou-120m-v1.md) (Reported).
+- [Audio.cpp GGUF packages](../wiki/audio-cpp-gguf-packages.md), [NeMo-Speech.cpp](../wiki/nemo-speech-cpp.md) (GGUF/ggml, Q8, runtime) (Reported).
+- [Whisper Large v3](../wiki/whisper-large-v3.md) (1M giờ nhãn yếu + 4M giờ nhãn giả), [VieNeu-TTS v3 Turbo](../wiki/vieneu-tts-v3-turbo.md), [VieNeu-TTS streaming runtime](../wiki/vieneu-tts-streaming-runtime.md) (codec 12.5 frame/s, GPU nguội sau idle), [Qwen3-TTS-Tokenizer-12Hz](../wiki/qwen3-tts-tokenizer-12hz.md), [VoxCPM2](../wiki/voxcpm2.md), [CosyVoice2-0.5B](../wiki/cosyvoice2-0.5b.md), [Kokoro Vietnamese](../wiki/kokoro-vietnamese.md) (Reported).
