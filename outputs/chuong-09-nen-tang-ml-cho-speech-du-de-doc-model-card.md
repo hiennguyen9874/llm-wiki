@@ -298,9 +298,9 @@ Một số model streaming phát **token end-of-utterance** ngay trong chuỗi t
 
 | Loại | Ví dụ | Ý nghĩa với pipeline |
 |---|---|---|
-| Ngôn ngữ | `<|vi|>` (Whisper); prompt one-hot `vi-VN` (Nemotron 3.5) | **Phải đặt tường minh**; mặc định có thể là `en-US` (pipeline Transformers của Nemotron mặc định index-0 `en-US`; **Reported**, thiết kế §5.4.2) |
-| Tác vụ | `<|transcribe|>`, `<|translate|>` | Dùng nhầm → ra tiếng Anh thay vì tiếng Việt |
-| Timestamp | `<|0.00|>` … hoặc `<|notimestamps|>` | Bật/tắt ảnh hưởng tốc độ và định dạng |
+| Ngôn ngữ | `<\|vi\|>` (Whisper); prompt one-hot `vi-VN` (Nemotron 3.5) | **Phải đặt tường minh**; mặc định có thể là `en-US` (pipeline Transformers của Nemotron mặc định index-0 `en-US`; **Reported**, thiết kế §5.4.2) |
+| Tác vụ | `<\|transcribe\|>`, `<\|translate\|>` | Dùng nhầm → ra tiếng Anh thay vì tiếng Việt |
+| Timestamp | `<\|0.00\|>` … hoặc `<\|notimestamps\|>` | Bật/tắt ảnh hưởng tốc độ và định dạng |
 | Tag ngôn ngữ phát hiện | `<vi-VN>` sau dấu câu cuối (Nemotron `auto`) | Phải **lọc** trước khi đưa cho LLM/TTS: `strip_lang_tags`/`skip_special_tokens` (**Reported**) |
 | Điều khiển | `<EOU>`, `<blank>`, `<unk>`, BOS/EOS | `<EOU>` là tín hiệu turn; `<unk>` là dấu hiệu tokenizer không phủ ký tự |
 | LLM-ASR | prompt hệ thống, hotword, context | Một cách đưa thuật ngữ/tên riêng (§9.7.4) |
