@@ -74,11 +74,12 @@ Silero VAD by the Silero Team is a MIT-licensed pre-trained enterprise-grade Voi
 - Used by [Cascaded Voice-Agent Blueprint](cascaded-voice-agent-blueprint.md) and [Voice-Agent Barge-in and Echo Handling](voice-agent-barge-in-and-echo-handling.md): those LLM-generated drafts propose gateway endpointing defaults (threshold 0.5, 500 ms silence, 200 ms pre-roll) and always-on interruption scoring on top of this VAD; treat their parameters as unmeasured starting points (**Synthesis**).[^silero-vad-readme]
 - Referenced by [Community-Reported Local ASR/TTS Selection](community-asr-tts-selection.md): that draft names Silero VAD as the only open-weight VAD in a local ASR/TTS thread; treat those install and usage anecdotes as unverified alongside this page's source-reported characteristics (**Synthesis**).[^silero-vad-readme]
 
+- Compared by its vendor with [TEN VAD](ten-vad.md), whose README capture reports PR-curve, transition-latency, and RTF advantages over this VAD (Silero RTF given for one CPU only); see the Contradictions section (**Synthesis**).[^claude-pipeline-report]
 - Recommended VAD in [Vietnamese Realtime Voice Agent Stack](vietnamese-realtime-voice-agent-stack.md) and built into Pipecat per [Voice Agent Frameworks](voice-agent-frameworks.md) (**Synthesis**).[^claude-pipeline-report]
 
 ## Contradictions
 
-- TEN VAD versus Silero: TEN VAD (Agora/TEN, Apache-2.0 with conditions, 10/16 ms hop) is vendor-claimed more accurate than Silero and WebRTC VAD with 32% lower RTF and an 86% smaller library, while a small community NOVA-VAD benchmark with UrbanSound8K noise reports Silero F1 91.9% versus TEN-VAD 69.2%; the report recommends measuring on own data and keeping Silero by default, considering TEN only when 10 ms frames are needed, so neither claim is chosen here (**Reported**).[^claude-pipeline-report]
+- TEN VAD versus Silero: [TEN VAD](ten-vad.md) (Agora/TEN, Apache-2.0 with conditions, 10/16 ms hop) is vendor-claimed more accurate than Silero and WebRTC VAD with 32% lower RTF and an 86% smaller library, while a small community NOVA-VAD benchmark with UrbanSound8K noise reports Silero F1 91.9% versus TEN-VAD 69.2%; the report recommends measuring on own data and keeping Silero by default, considering TEN only when 10 ms frames are needed, so neither claim is chosen here (**Reported**).[^claude-pipeline-report]
 
 ## Coverage and limits
 
