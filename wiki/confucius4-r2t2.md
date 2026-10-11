@@ -5,7 +5,7 @@ description: NetEase Youdao true-streaming ASR model built on Qwen3-ASR-1.7B wit
 tags: [stt, asr, streaming, realtime, low-latency, multilingual, chinese, english, vllm, websocket]
 status: stable
 created: 2026-10-06
-generated: { by: llm-wiki-agent/1, at: 2026-10-06T15:55:25Z }
+generated: { by: llm-wiki-agent/1, at: 2026-10-11T12:00:00Z }
 stale_after: 2027-10-06
 sources:
   - id: confucius4-r2t2-readme
@@ -84,7 +84,7 @@ All figures below are vendor self-reports from the comparison tables at 160 ms c
 - Derived from [Qwen3-ASR family](qwen3-asr-family.md): the card names `Qwen/Qwen3-ASR-1.7B` as the base model, so read that concept for the encoder lineage language coverage, unified streaming/offline behavior, and serving toolkit (**Synthesis**).[^confucius4-r2t2-readme]
 - Compared with [Audio8 ASR Infinite](audio8-asr-infinite.md): both are true-streaming Chinese/English recognizers with 80–160 ms chunk or clock settings, but Audio8 Infinite runs a native one-token-per-clock design with rolling KV cache for 24/7 operation and semantic VAD, while R2T2 keeps the Qwen3-ASR audio-LLM architecture with LSP-gated prefix emission (**Synthesis**).[^confucius4-r2t2-readme]
 - Compared with [Nemotron Speech Streaming EN 0.6B](nemotron-speech-streaming-en-0.6b.md) and [Voxtral Mini 4B Realtime 2602](voxtral-mini-4b-realtime-2602.md): the card benchmarks all three at 160 ms chunks and reports R2T2 ahead, but the protocol and hardware are undisclosed, so treat the ordering as a vendor claim pending independent measurement (**Reported**, caution is **Synthesis**).[^confucius4-r2t2-readme]
-- VAD pairing uses the external FireRedVAD Stream-VAD model, which has no concept page in this wiki; contrast with the in-wiki [Silero VAD](silero-vad.md) frontend pattern when designing the streaming pipeline (**Synthesis**).[^confucius4-r2t2-readme]
+- VAD pairing uses the external Stream-VAD model documented in [FireRedVAD](firered-vad.md) (about 0.57 M parameters, no published streaming metrics); contrast with the in-wiki [Silero VAD](silero-vad.md) frontend pattern when designing the streaming pipeline (**Synthesis**).[^confucius4-r2t2-readme]
 
 ## Coverage and limits
 

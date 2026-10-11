@@ -5,7 +5,7 @@ description: MIT-licensed enterprise-grade pre-trained voice activity detector w
 tags: [vad, endpointing, pytorch, onnx, edge]
 status: stable
 created: 2026-10-06
-generated: { by: llm-wiki-agent/1, at: 2026-10-06T18:00:00Z }
+generated: { by: llm-wiki-agent/1, at: 2026-10-11T20:00:00Z }
 stale_after: 2027-10-06
 sources:
   - id: silero-vad-readme
@@ -75,6 +75,9 @@ Silero VAD by the Silero Team is a MIT-licensed pre-trained enterprise-grade Voi
 - Referenced by [Community-Reported Local ASR/TTS Selection](community-asr-tts-selection.md): that draft names Silero VAD as the only open-weight VAD in a local ASR/TTS thread; treat those install and usage anecdotes as unverified alongside this page's source-reported characteristics (**Synthesis**).[^silero-vad-readme]
 
 - Compared by its vendor with [TEN VAD](ten-vad.md), whose README capture reports PR-curve, transition-latency, and RTF advantages over this VAD (Silero RTF given for one CPU only); see the Contradictions section (**Synthesis**).[^claude-pipeline-report]
+- Compared by [FireRedVAD](firered-vad.md) on its self-built FLEURS-VAD-102 set (F1 95.95, false-alarm rate 9.41%, miss rate 3.95% for Silero versus 97.57 / 2.69% / 3.62% for FireRedVAD); a vendor-reported table with an unreleased test set, so it does not override this page's own sources (**Synthesis**).
+- Compared with [Frame-VAD Multilingual MarbleNet v2.0](frame-vad-multilingual-marblenet-v2-0.md), NVIDIA's 91.5K-parameter NeMo frame VAD, which reports only ROC-AUC on diarization-style sets and no baseline against this VAD, so no head-to-head result exists (**Synthesis**).
+- Compared by [PulseVAD](pulsevad.md), a 2,118-parameter MIT causal CNN VAD trained on this VAD's outputs as labels; its vendor-reported table shows Silero ahead on mean F1 (93.6 vs 90.1), music and noise false alarms, and ahead of or level with it on clean-speech AUC, while PulseVAD claims higher clean-speech F1 (99.3 vs 96.9) and a ~87x smaller file; the vendor's own streaming setup, so no independent head-to-head exists (**Synthesis**).
 - Recommended VAD in [Vietnamese Realtime Voice Agent Stack](vietnamese-realtime-voice-agent-stack.md) and built into Pipecat per [Voice Agent Frameworks](voice-agent-frameworks.md) (**Synthesis**).[^claude-pipeline-report]
 
 ## Contradictions

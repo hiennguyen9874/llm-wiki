@@ -5,7 +5,7 @@ description: Exact dataclass defaults behind the HF speech-to-speech CLI for mod
 tags: [vad, stt, tts, llm, pipeline, configuration]
 status: stable
 created: 2026-10-07
-generated: { by: llm-wiki-agent/1, at: 2026-10-07T14:53:00Z }
+generated: { by: llm-wiki-agent/1, at: 2026-10-11T12:00:00Z }
 stale_after: 2027-10-07
 sources:
   - id: s2s-supporting-docs
@@ -69,7 +69,7 @@ The [HF speech-to-speech pipeline](speech-to-speech-pipeline.md) builds its CLI 
 ## Relationships
 
 - Part of [HF Speech-to-Speech Pipeline](speech-to-speech-pipeline.md): these argument classes are the implementation behind that concept's documented flags and defaults (**Synthesis**).[^s2s-supporting-docs]
-- The VAD group drives [Silero VAD](silero-vad.md) and the FireRed alternative recorded in [turn-detection models](turn-detection-models.md); the TTS groups configure [Qwen3-TTS-12Hz-1.7B-CustomVoice](qwen3-tts-12hz-1.7b-customvoice.md), [Faster Qwen3-TTS](faster-qwen3-tts.md), and [OmniVoice](omnivoice.md) / [G-OmniVoice](g-omnivoice.md); the STT groups configure [Qwen3-ASR family](qwen3-asr-family.md) and the models in [Speech-to-Speech OpenAI-Compatible STT/TTS Backends](speech-to-speech-openai-compatible-backends.md) (**Synthesis**).[^s2s-supporting-docs]
+- The VAD group drives [Silero VAD](silero-vad.md) and the FireRed alternative documented in [FireRedVAD](firered-vad.md); the TTS groups configure [Qwen3-TTS-12Hz-1.7B-CustomVoice](qwen3-tts-12hz-1.7b-customvoice.md), [Faster Qwen3-TTS](faster-qwen3-tts.md), and [OmniVoice](omnivoice.md) / [G-OmniVoice](g-omnivoice.md); the STT groups configure [Qwen3-ASR family](qwen3-asr-family.md) and the models in [Speech-to-Speech OpenAI-Compatible STT/TTS Backends](speech-to-speech-openai-compatible-backends.md) (**Synthesis**).[^s2s-supporting-docs]
 - The measured timing fields that consume the `vad_decision_s`, `smart_*`, and stage settings are defined in [Speech-to-Speech Response Latency Instrumentation](speech-to-speech-latency-instrumentation.md) (**Synthesis**).[^s2s-supporting-docs]
 
 ## Coverage and limits

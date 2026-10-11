@@ -5,7 +5,7 @@ description: Catalog of 92 audio.cpp-native GGUF model packages with audio.cpp f
 tags: [stt, tts, gguf, audio-cpp, edge-deployment]
 status: stable
 created: 2026-10-06
-generated: { by: llm-wiki-agent/1, at: 2026-10-06T18:00:00Z }
+generated: { by: llm-wiki-agent/1, at: 2026-10-11T20:00:00Z }
 stale_after: 2027-10-06
 sources:
   - id: audio-cpp-gguf-readme
@@ -157,6 +157,7 @@ audiocpp_cli --task asr --family qwen3_asr --model Qwen3-ASR-0.6B-GGUF/qwen3-asr
 - Catalog entry for deployed bilingual TTS: [Breeze TTS 2](breeze-tts-2.md) covers the upstream bilingual real-time TTS model, while this catalog covers its `Breeze-TTS-2-GGUF` row (`breeze_tts`, BF16 + Q8 + Q4, non-commercial license); no shared weight file is asserted (**Synthesis**).[^audio-cpp-gguf-readme]
 - Catalog entry for deployed multilingual TTS: [OmniVoice](omnivoice.md) covers the upstream 600+-language zero-shot TTS model, while this catalog covers its `OmniVoice-GGUF` row (`omnivoice`, BF16 + F16 + Q8, CC-BY-NC); no shared weight file is asserted (**Synthesis**).[^audio-cpp-gguf-readme]
 - Catalog entry alongside sibling diarization packaging: [Nemotron 3 Diarization GGUF](nemotron-3-diarization-gguf.md) covers the Nemotron 3 diarization GGUF with usage and performance figures, while this catalog covers the `Sortformer-Diar-4spk-v1-GGUF` row (`sortformer_diar`, F16 + Q8, CC-BY-NC-4.0); the `Nemotron-3.5-ASR-Streaming-0.6B-GGUF` row here is a different streaming-ASR checkpoint, not the diarization model (**Synthesis**).[^audio-cpp-gguf-readme]
+- Catalog entry for deployed VAD packaging: [PulseVAD](pulsevad.md) covers the upstream 2,118-parameter causal CNN VAD (variants, recipe, vendor benchmarks, limits), while this catalog covers its `PulseVAD-GGUF` row (`pulsevad`, F32, MIT); the PulseVAD README does not mention GGUF or audio.cpp, so the link is by name only (**Synthesis**).
 
 ## Coverage and limits
 

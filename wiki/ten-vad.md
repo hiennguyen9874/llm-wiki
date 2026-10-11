@@ -5,7 +5,7 @@ description: TEN framework's low-latency streaming voice activity detector with 
 tags: [vad, endpointing, pipeline, edge, onnx, wasm, license-check]
 status: stable
 created: 2026-10-08
-generated: { by: llm-wiki-agent/1, at: 2026-10-08T18:00:00Z }
+generated: { by: llm-wiki-agent/1, at: 2026-10-11T12:00:00Z }
 stale_after: 2027-10-08
 sources:
   - id: ten-vad
@@ -83,6 +83,8 @@ The Hugging Face card is an older body of the same README: it lists Python/C onl
 - Compared against and positioned as an alternative to [Silero VAD](silero-vad.md); that page records a small community benchmark (Silero F1 91.9% vs TEN 69.2% under UrbanSound8K noise) that conflicts with this vendor claim (**Reported**; both unresolved).[^ten-vad]
 - Sibling of [TEN Turn Detection](ten-turn-detection.md): the TEN ecosystem pairs frame-level VAD (this page) with a text-based finished/unfinished/wait classifier, and a Hugging Face Space demonstrates both together. See [Turn Detection Models](turn-detection-models.md) for the turn-level comparison (**Reported**).[^ten-vad]
 - Part of the TEN Framework listed in [Voice Agent Frameworks](voice-agent-frameworks.md), which records the same license-with-conditions concern (**Synthesis**).[^ten-vad]
+- Also compared in the [FireRedVAD](firered-vad.md) vendor table (FLEURS-VAD-102), where TEN VAD scores F1 95.19, false-alarm rate 15.47%, and miss rate 2.95% — behind Silero VAD on F1 and false alarms, but with the lower miss rate; a third vendor's own benchmark, not independent corroboration (**Synthesis**).
+- Peer of NVIDIA's [Frame-VAD Multilingual MarbleNet v2.0](frame-vad-multilingual-marblenet-v2-0.md) (91.5K parameters, 20 ms frames, ROC-AUC only); the two cards share no benchmark or metric set (**Synthesis**).
 - Selection use (**Synthesis**): consider it where a 10 ms hop, a tiny native library, or browser/mobile deployment matters; otherwise [Silero VAD](silero-vad.md) is the better-documented default, and the pipeline guidance in [Vietnamese Speech Pipeline Design](vietnamese-speech-pipeline-design.md) recommends measuring on in-domain audio before switching.[^ten-vad]
 
 ## Contradictions
