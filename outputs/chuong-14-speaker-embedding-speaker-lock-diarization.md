@@ -437,3 +437,108 @@ print(der(ref,hyp))
 [^multi]: [Multitalker Parakeet Streaming 0.6B v1](../wiki/multitalker-parakeet-streaming-0.6b-v1.md) — Architecture (speaker-kernel injection, một instance mỗi speaker), Inference and usage (SegLST output), Evaluation (cpWER AMI IHM/SDM, frontend Streaming Sortformer v2, latency 1.12 s; bảng WER single-speaker), Relationships (fine-tune từ base EN 0.6B).
 [^coreml]: [Speaker Diarization Core ML](../wiki/speaker-diarization-coreml.md) — Supported Community-1 artifacts (Segmentation, FBank, Embedding, PLDA), Legacy compatibility artifacts (wespeaker), Technical specifications, Citations (WeSpeaker, VBx).
 [^community]: [Community-Reported Open STT and Realtime Diarization Selection](../wiki/community-open-stt-diarization.md) — "Realtime versus diarization split" (pyannote, diart, NeMo streaming, live kém hơn offline); trang status draft, chỉ một thread cộng đồng.
+
+---
+
+## Lưu ý khi thiết kế và hiện thực pipeline: áp dụng chương này
+
+Phần này nối kiến thức của chương với [Thiết kế pipeline speech-to-speech tiếng Việt](thiet-ke-pipeline-speech-to-speech-tieng-viet.md) (gọi tắt là *tài liệu thiết kế*). Mỗi mục chỉ ra: tài liệu thiết kế quyết định gì, chương này giải thích vì sao, và khi hiện thực phải để ý gì. Các con số lấy từ tài liệu thiết kế và wiki là **Reported**; phần nhận định, đối chiếu và checklist là **Synthesis** của chương này, chưa được kiểm chứng bằng chạy thật.
+
+### L1. Speaker lock xuất hiện ở hai chỗ trong thiết kế, với hai ngân sách thời gian khác nhau
+
+Tài liệu thiết kế đặt speaker lock ở **hai vị trí**: trong validity gate sau ASR (sơ đồ §4: "confidence, hallucination filter, entity checks, speaker lock tùy chọn") và trong gating barge-in (§7.3, pseudo-code §7.4 `speaker_lock_ok()`). Đây là hai bài toán khác nhau, nên hiện thực thành hai cấu hình riêng:
+
+| | Lock cho barge-in (§7.3) | Lock trong validity gate (§4) |
+|---|---|---|
+| Câu hỏi | "Có nên dừng bot ngay không?" | "Lượt vừa commit có phải của user không, hay của TV/người khác?" |
+| Độ dài audio có sẵn | 100–500 ms (rất ngắn, §14.3.4) | Cả lượt, thường ≥ 1–2 s (embedding đáng tin hơn nhiều) |
+| Ngân sách thời gian | Vài chục ms, nằm trên đường "user nói → bot im" | Có thể chạy song song với ASR, chỉ cần xong trước `turn.commit` |
+| Hệ quả khi sai | FRR: user không ngắt được bot; FAR: TV ngắt bot | FRR: lượt thật bị bỏ qua (user tưởng bot "điếc"); FAR: LLM trả lời TV |
+| Hành động khi điểm thấp | Không ngắt (hoặc chờ chấm lại) | Hỏi lại hoặc đánh dấu `quality_flags`, **không** lặng lẽ bỏ lượt |
+
+Hệ quả: hai ngưỡng phải calibrate riêng, trên hai phân phối độ dài khác nhau (§14.4 cho thấy ngưỡng tốt dịch theo điều kiện). Ở validity gate, nhất quán với §5.4.3 của thiết kế ("hỏi lại user thay vì đoán"): điểm thấp → hỏi xác nhận, không drop im lặng.
+
+### L2. Đừng gộp duration gate và speaker lock thành một phép AND tại một thời điểm
+
+Pseudo-code §7.4 viết `speech_run_ms(vad_p) >= BARGE_MS and speaker_lock_ok()`. Nếu hiện thực đúng nguyên văn, lock sẽ chấm trên đúng `BARGE_MS` audio (100–500 ms), là vùng embedding nhiễu nhất (§14.3.4). Hiện thực nên là một **máy trạng thái nhiều bước**:
+
+1. Duration gate đạt → hành động "mềm" ngay (ví dụ giảm âm lượng/duck bot, tạm dừng gửi chunk TTS mới) nhưng **chưa** `generation_id++`.
+2. Chấm embedding lại ở các mốc (vd. 300/600/1000 ms) trên buffer tích luỹ; khi đủ tin cậy thì quyết định: ngắt thật (cancel LLM/TTS, `client.clear`) hoặc khôi phục phát.
+3. Có timeout: nếu sau N ms vẫn còn speech liên tục mà điểm lửng lơ, **thiên về ngắt** (FRR thấp, §14.3.3).
+
+Bước 1 giúp latency cảm nhận "bot im khi tôi nói" vẫn nằm trong cửa sổ 100–500 ms của §7.3, trong khi lock vẫn có thêm audio để chấm. Mâu thuẫn về cửa sổ kích hoạt barge-in (§11 của thiết kế: 100–200 ms so với ≥300–500 ms) càng cần đo lại khi có lock, vì lock thêm độ trễ quyết định lên trên duration gate.
+
+### L3. Lệnh ngắn và backchannel: chỗ ba cổng gating đá nhau
+
+Tài liệu thiết kế §10 mục 3 yêu cầu test lệnh ngắn "không"/"dừng"; §7.3 cảnh báo không mặc định coi "ừ/vâng" là backchannel. Kết hợp với chương này:
+
+- Lệnh "dừng" ~200–400 ms là đoạn mà speaker lock **kém tin cậy nhất** (§14.3.4), và Quick ASR gate "≥2 từ" (§7.3) cũng **loại** nó. Nếu bật cả hai, lệnh ngắt quan trọng nhất có thể không bao giờ ngắt được bot.
+- Đề xuất: không dùng lock cho đoạn dưới một độ dài tối thiểu (đo được trên dữ liệu thật); với đoạn ngắn, dựa vào duration gate + một danh sách lệnh dừng tường minh (allow-list "dừng", "thôi", "khoan", "không"...) thay cho luật "≥2 từ".
+- Ghi rõ trong log lý do quyết định (`duration`, `lock_veto`, `quick_asr_veto`, `stop_keyword`) để đo được cổng nào gây missed-interrupt (§8.4 yêu cầu đo tỷ lệ false-interruption).
+
+### L4. Nguồn audio và echo: embedding phải lấy từ cùng một "phiên bản" audio
+
+Thiết kế có hai nhánh audio: nhánh VAD có thể qua denoise, nhánh ASR dùng audio sau AEC gốc (§3 nguyên tắc 3, §4, §7.4 `denoise_opt` chỉ cho VAD).
+
+- **Chọn một nhánh cho embedding và giữ cố định** cho cả enrollment lẫn so sánh (§14.3.4). Khuyến nghị (**Synthesis**): dùng nhánh AEC gốc giống ASR, vì enrollment thường lấy từ lượt đã commit, mà lượt đó đã nằm sẵn trong turn audio buffer (§4) của nhánh này.
+- **Lúc bot đang nói là lúc embedding xấu nhất:** mic chứa echo dư sau AEC lẫn với giọng user. Chính lúc đó lock phải quyết định barge-in. Vì vậy calibrate ngưỡng barge-in trên audio **có bot đang phát qua loa**, không dùng ngưỡng đo khi im lặng.
+- **Giọng bot là một impostor bắt buộc phải có trong tập calibrate.** Thu tiếng VieNeu preset đang dùng phát qua loa thiết bị thật, đưa vào tập impostor (§14.3.3). Echo dư của bot mà lọt qua lock + duration gate thì bot tự ngắt chính mình.
+- **Nếu TTS clone giọng user (Ch.13), speaker lock mất tác dụng**: echo của bot có cùng giọng với user. Hai tính năng này loại trừ nhau trừ khi AEC cực tốt; ghi thành ràng buộc cấu hình.
+
+### L5. Enrollment và cập nhật gắn với `turn.commit`, state theo session
+
+- **Chỉ enroll/cập nhật từ lượt đã commit và đã qua validity gate** (hallucination filter, confidence; §5.4.4, §7.2). Đây là cùng nguyên tắc "không hành động trên văn bản chưa commit" (§3 nguyên tắc 5) áp cho state giọng: partial, đoạn barge-in ngắn, và revision bị reopen không được đụng vào centroid.
+- **Lượt đầu chưa có reference → lock tắt** cho lượt đó và cho barge-in trước khi enroll xong. Thêm điều kiện enroll: lượt đủ dài, VAD confidence cao, ASR ra văn bản có nghĩa (§14.3.2). Nếu lượt đầu là TV/khách, lock khoá nhầm cả phiên: cần đường re-enroll (vd. khi FRR tăng kéo dài, hoặc user nói "không phải tôi").
+- **Cập nhật dần với biên an toàn** (`α` nhỏ, chỉ đoạn điểm cao, §14.3.3) để tránh drift poisoning khi có TV chạy suốt phiên.
+- **State nằm trong session, không chia sẻ** (§7.1: mỗi session state riêng). Khi session đóng (§7.2), xoá centroid cùng lúc với giải phóng cache ASR.
+- **Fail-open:** nếu dịch vụ embedding timeout/lỗi, quay về duration gate thuần, không chặn barge-in. Lock là cổng tùy chọn, không được trở thành điểm hỏng làm user mất quyền ngắt bot.
+
+### L6. Speaker lock không được chạm tới side effect
+
+Thiết kế ghi "Speaker lock **không phải là xác thực**" (§7.3). Khi hiện thực, biến câu đó thành ràng buộc kỹ thuật:
+
+- Kết quả lock **không** được đưa vào prompt LLM như "người dùng đã xác minh", và **không** làm điều kiện cho tool call nhạy cảm (§3 nguyên tắc 5). Tool layer có cơ chế xác thực riêng (OTP, đăng nhập, xác nhận rõ ràng) (§14.3.5).
+- Khi có hồ sơ giọng lưu lâu dài (§14.3.2 cách 3), đặt tên field/feature sao cho không bị hiểu nhầm thành auth (vd. `voice_match_score`, không phải `verified_user`).
+
+### L7. Diarization: theo đúng §7.5 và lộ trình Phase 3
+
+Tài liệu thiết kế §7.5: agent một user không đặt diarizer trên critical path; nhiều user ưu tiên track theo participant; audio trộn thì thử Nemotron 3 Diarization; chưa có DER tiếng Việt. Roadmap §12 chỉ thêm diarization ở Phase 3. Lưu ý khi hiện thực:
+
+- **Track theo participant trước tiên.** Với WebRTC/SFU (Pipecat, LiveKit, §5.7), mỗi participant một track → chạy VAD, Smart Turn, ASR **theo từng track**. Đây cũng là cách duy nhất để turn detection hoạt động đúng: Smart Turn và turn tracker (§5.3) giả định một người nói; audio trộn hai người làm endpointing rối trước cả khi đến diarization.
+- **Diarizer trên audio trộn là nhánh phụ**, nhận bản sao audio, có hàng đợi giới hạn, không chặn `turn.commit`. Nhãn đến sau 0.32–1.04 s buffer cộng thời gian tính (**Reported**, §14.5.4); gắn vào transcript bằng cơ chế "gắn nhãn sau" theo `turn_id`/timestamp. Khi quá tải, đánh nhãn `unknown` chứ không bỏ lẻ tẻ frame (§14.7).
+- **Nếu LLM cần biết ai nói**, đưa nhãn tạm (`speaker1`…) vào history và chấp nhận sửa sau; nhãn chỉ có nghĩa trong phiên, không map sang danh tính.
+- **Kiểm tra giới hạn trước khi chọn model:** Nemotron 3 Diarization tối đa 8 kênh, Sortformer 4spk tối đa 4 và suy giảm âm thầm khi vượt (§14.5.3); cả hai chạy NeMo trên GPU NVIDIA, cần tính vào VRAM/topology §9.1–9.2 như một service riêng. Model huấn luyện chủ yếu tiếng Anh, 16 kHz: với telephony 8 kHz (§5.1) phải đo riêng, upsample không cứu được thông tin.
+- **Multitalker Parakeet là English-only** (§14.5.5): không dùng làm đường tắt cho tiếng Việt; ghép "ASR tiếng Việt theo track/đoạn + nhãn diarization theo timestamp" thay vào.
+
+### L8. Privacy, log và license
+
+Khớp với §9.5 và §10 mục 6 của thiết kế:
+
+- **Embedding, centroid, audio enrollment không vào log, trace, analytics** (§9.5), kể cả khi log "debug". Được phép log **điểm cosine (số vô hướng)** và quyết định gating, vì chúng cần cho calibrate và không tái tạo được giọng. Dùng log content-free như HF s2s (§5.7) làm mặc định.
+- **Giữ embedding trong RAM theo phiên**; lưu lâu dài chỉ khi có đồng ý rõ ràng, có mã hoá, thời hạn và đường xoá (§14.8). Thông báo khi bật lock/diarization, vì giọng người thứ ba (khách, TV) cũng bị xử lý.
+- **License là hard gate** (§3 nguyên tắc 7, Profile F): Nemotron 3 Diarization `openmdw-1.1`, Sortformer NVIDIA Open Model License, Core ML Community-1 CC-BY-4.0 (**Reported**). Checkpoint ECAPA/CAM++ cho speaker lock **chưa có trang wiki**, nên license và chất lượng tiếng Việt của chúng đều là gate mở phải rà trước khi chọn.
+
+### L9. Đánh giá, rollout và metric
+
+- **Bổ sung corpus cho §10 mục 3:** người nói Việt cùng giới/cùng vùng miền làm impostor (khó hơn nhiều so với dữ liệu tổng hợp §14.4), TV/radio tiếng Việt, giọng bot qua loa, user cảm lạnh/thì thầm, đổi mic giữa phiên. Vẽ FRR/FAR theo độ dài đoạn (0.3/0.6/1/2 s) cho từng thiết bị đích.
+- **Rollout theo shadow mode** (Phase 2, §12): ban đầu chỉ tính điểm và log quyết định "lẽ ra đã veto", không tác động. So với nhãn thật để chọn ngưỡng, rồi mới bật. Mỗi lần chỉ đổi một thành phần (§12).
+- **Metric theo turn (§8.4) cần thêm:** tỷ lệ barge-in bị lock veto, tỷ lệ veto sai (user thật), missed-interrupt theo độ dài đoạn, thời gian user-speech → bot im (đo cả bước "duck" và bước cancel thật), số lần re-enroll/phiên. Với diarization: DER/cpWER trên audio tiếng Việt của chính sản phẩm, ghi kèm collar, cách xử lý overlap và profile latency (§14.6).
+- **Có chế độ tắt lock** theo session/thiết bị (thiết bị dùng chung, phòng họp nhỏ), và test nó như một cấu hình được hỗ trợ.
+
+### L10. Checklist "speaker lock / diarization sẵn sàng" trước khi bật
+
+| # | Điều kiện | Liên quan |
+|---|---|---|
+| 1 | Hai cấu hình lock riêng (barge-in và validity gate), mỗi cái có ngưỡng calibrate riêng | §14.3.3, §14.4; thiết kế §4, §7.3 |
+| 2 | Barge-in là máy trạng thái (duck → chấm lại → ngắt/khôi phục), không phải AND một lần | §14.3.4; thiết kế §7.3, §7.4 |
+| 3 | Lệnh dừng ngắn không bị lock hoặc luật "≥2 từ" chặn | §14.3.4, §14.3.6; thiết kế §7.3, §10 (mục 3) |
+| 4 | Một nguồn audio cố định cho enroll và so sánh; calibrate khi bot đang phát | §14.3.4; thiết kế §3 (nguyên tắc 3), §7.4 |
+| 5 | Giọng bot (TTS preset qua loa) có trong tập impostor; lock tắt nếu TTS clone giọng user | §14.3.6; thiết kế §5.6 |
+| 6 | Enroll/cập nhật chỉ từ lượt đã commit, qua validity gate; có re-enroll | §14.3.2, §14.3.3; thiết kế §3 (nguyên tắc 5), §7.2 |
+| 7 | Lock fail-open; có chế độ tắt | §14.3.6; thiết kế §7.3 |
+| 8 | Kết quả lock không dùng làm xác thực, không gate tool call | §14.3.5; thiết kế §3 (nguyên tắc 5), §7.3 |
+| 9 | Diarizer ngoài critical path, hàng đợi giới hạn, suy giảm về `unknown`; ưu tiên track theo participant | §14.7; thiết kế §7.5, §9.1 |
+| 10 | Số speaker tối đa, sample rate và ngôn ngữ của model diarization khớp tình huống thật | §14.5.3, §14.5.4; thiết kế §5.1, §7.5 |
+| 11 | Embedding/centroid không vào log; xoá khi đóng session; consent nếu lưu | §14.8; thiết kế §7.2, §9.5 |
+| 12 | License model embedding và diarizer đã rà | §14.8; thiết kế §3 (nguyên tắc 7), §6 (Profile F) |
+| 13 | FRR/FAR theo độ dài và DER/cpWER đo trên audio tiếng Việt thật; rollout qua shadow mode | §14.4, §14.6; thiết kế §8.4, §10, §12 |

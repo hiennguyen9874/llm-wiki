@@ -556,3 +556,96 @@ Kết quả đã chạy: `frame_ms 80.0`, 3840/1920/1280 mẫu mỗi frame ở 4
 [^norm]: [VietNormalizer](../wiki/vietnormalizer.md) — Capabilities, Pipeline order; chưa được wiki kiểm chứng.
 [^survey]: [TTS Model Survey](../wiki/tts-model-survey.md) — catalog họ model TTS (AR codec, flow matching, diffusion, non-AR).
 [^moss]: [MOSS-TTS-Nano](../wiki/moss-tts-nano.md) — mục MOSS-Audio-Tokenizer-Nano (~20M, 48 kHz stereo, 12.5 Hz, RVQ-16, 0.125–2 kbps).
+
+---
+
+## Lưu ý khi thiết kế và hiện thực pipeline: áp dụng chương này
+
+Phần này nối kiến thức của chương với [Thiết kế pipeline speech-to-speech tiếng Việt](thiet-ke-pipeline-speech-to-speech-tieng-viet.md) (gọi tắt là *tài liệu thiết kế*). Mỗi mục chỉ ra: tài liệu thiết kế quyết định gì, chương này giải thích vì sao, và khi hiện thực phải để ý gì. Các con số lấy từ tài liệu thiết kế và wiki là **Reported**; phần nhận định, đối chiếu và checklist là **Synthesis** của chương này, chưa được kiểm chứng bằng chạy thật.
+
+### L1. Audio contract của TTS: quyết định quan trọng nhất và dễ sai nhất
+
+Tài liệu thiết kế đặt audio contract thành nguyên tắc (§3 nguyên tắc 4) và đưa `sample_rate`, `channels`, `format` vào event `audio.start` (§7.2). Cần lưu ý thêm:
+
+- **Có mâu thuẫn ngầm về sample rate playback.** §7.1 yêu cầu "output giữ sample rate gốc tới tận playback adapter", nhưng nếu dùng HF s2s `--tts openai` thì audio bị chuyển về 16 kHz mono int16, nên trần băng thông cả pipeline là 16 kHz (§3 nguyên tắc 4). Theo §13.9.1, 16 kHz đủ cho ASR nhưng nghe "bí" hơn với người nghe. Phải chọn rõ một trong hai và ghi vào tài liệu: (a) chấp nhận playback 16 kHz để dùng HF s2s nhanh (Profile A), hoặc (b) gateway tự viết/Pipecat giữ 48 kHz (hoặc 24 kHz) tới client.
+- **Nếu chấp nhận 16 kHz, cho resample xảy ra đúng một lần.** Xin `sample_rate=16000` từ server VieNeu (server resample từng chunk bằng soxr, **Reported**) và đặt `--openai_tts_sample_rate` khớp, thay vì nhận 48 kHz rồi để s2s resample lần nữa. Mỗi lần resample thêm sai số và nguy cơ lệch nhãn rate (§13.7.2, §13.9).
+- **Đọc rate từ backend, không hard-code.** VieNeu Turbo gốc 48 kHz, Nano 24 kHz, sanoTTS 22.05 kHz (§5.6). Adapter lấy rate từ `X-Sample-Rate`/`usage` hoặc metadata SDK rồi phát `audio.start(sample_rate, channels)`. Lỗi "chipmunk" (§13.14) là lỗi contract chứ không phải lỗi model.
+- **Xác nhận số kênh trước khi viết adapter.** Codec MOSS-Audio-Tokenizer-Nano và MOSS Local được mô tả là stereo nhưng HTTP `pcm` của VieNeu là mono (§13.7, tài liệu thiết kế §5.6). Kiểm `shape` của mảng SDK trong test đầu tiên.
+- **Chuyển float32 → int16 ở một chỗ, có clip và kiểm peak** (§13.9.2). SDK `infer_stream` trả float32, HTTP trả s16le; nếu một profile dùng SDK in-process và profile khác dùng HTTP, bộ chuyển đổi phải nằm trong adapter chứ không rải ở gateway và client.
+- **Đưa các kiểm tra của §13.9.3 vào contract test** (tài liệu thiết kế §10 mục 5): byte chia hết cho `channels × bytes_per_sample`, peak, tổng duration hợp lý theo số ký tự.
+
+### L2. Cầu text → speech: tách hai luồng text và chọn đơn vị request
+
+Tài liệu thiết kế §5.5 chốt chunker theo mệnh đề + normalizer + lexicon, vì chưa có TTS tiếng Việt bi-streaming (§13.8.1).
+
+- **Event `text.chunk` có cả `raw_text` và `spoken_text` (§7.2): giữ đúng vai trò.** `raw_text` đi vào history LLM, UI, log; `spoken_text` chỉ đi vào TTS (§13.2.1). Nếu đưa text đã normalize vào history, LLM sẽ bắt chước kiểu viết "một triệu hai trăm năm mươi nghìn đồng" ở các lượt sau.
+- **Mỗi mệnh đề là một request TTS và một context mới.** Hệ quả (§13.6.2, §13.10): prosody có thể đứt giữa mệnh đề, giọng có thể drift. Khi hiện thực: cố định preset voice, temperature ~0.8 hoặc thấp hơn, seed nếu backend hỗ trợ; trim silence đầu/cuối chunk; không chuẩn hoá loudness từng chunk theo RMS.
+- **Normalizer không được xoá dấu câu** vì dấu câu là nút điều khiển prosody chính (§13.6.2). Nếu dùng VietNormalizer, chú ý nó lowercase trước bước từ điển, và tài liệu thiết kế ghi rõ wiki chưa chọn normalizer nào đã kiểm chứng.
+- **Lexicon nằm trước normalizer hoặc ngay sau, nhưng trước TTS**, và có regression test riêng (báo cáo `chánh → tránh`, **Reported/Unverified**). Sửa phát âm bằng lexicon rẻ hơn fine-tune nhiều (§13.2.2).
+- **Chunker là nơi đánh đổi TTFA ↔ prosody.** Quy tắc khởi điểm (≥ ~25 ký tự mới cắt ở dấu phẩy cho chunk đầu, gộp mảnh < 8 ký tự) phải được tune bằng nghe thử ba cách cắt như §13.10, không chỉ bằng đo TTFA.
+- **Đừng tin tham số TTS có hiệu lực.** Server VieNeu nhận `speed`/`instructions` nhưng bỏ qua (header `X-VieNeu-Ignored`); cue cảm xúc là experimental (§13.6.2). Thiết kế UI/LLM prompt không được dựa vào chúng.
+
+### L3. Latency: đọc đúng con số TTS trong ngân sách
+
+Tài liệu thiết kế §8 đặt SLO khởi điểm TTFA P95 ~250–400 ms và RTF P95 ≤ 0.7 dưới tải thực (§8.4), và cảnh báo không cộng các số khác loại (§3 nguyên tắc 6).
+
+- **Dùng RTF một stream dưới tải, không dùng bulk RTF.** Bulk 0.011–0.02 và "một câu không streaming" 0.10 đều không áp dụng cho hội thoại; số đúng là RTF streaming 0.49–0.59 (RTX 3060, **Reported**) (§13.8.2).
+- **Ngưỡng RTF ≤ 0.7 có lý do.** Mô phỏng §13.8.3 cho thấy RTF 0.9 đã có underrun khi không pre-buffer; RTF > 1 thì không pre-buffer nào cứu được. Với số đo VieNeu, `max_streams=16` (RTF 0.59) nằm trong SLO, còn 32 (RTF 0.82–0.93, lead âm) thì không.
+- **TTFA P95 phải đo ở ba trạng thái** (§13.11): nóng, sau idle, dưới tải. Số báo cáo cho thấy rủi ro cụ thể: 16 stream bắt đầu đồng loạt có max 339 ms (sát trần 400 ms), và request sau 8 s idle là 403 ms (vượt). Muốn giữ SLO phải khoá clock GPU hoặc chấp nhận lượt đầu sau im lặng chậm hơn.
+- **Pre-buffer phía client cộng thẳng vào voice-to-voice.** 150–300 ms khuyến nghị của VieNeu là van chống jitter, không miễn phí (§13.8.3). Ghi nó thành một dòng riêng trong ngân sách §8.2 thay vì giấu trong "transport/playback". Trong HF s2s, client Python mặc định đệm 196 ms, browser WS mặc định 0 ms (§8.3): hai demo cho cảm nhận latency khác nhau dù cùng backend.
+- **TTS có thể nằm ngoài nhánh `max(...)` của output gate** (§8.1) khi TTS chỉ chạy sau commit. Trong trường hợp đó TTFA cộng thẳng vào v2v, nên chunk đầu ngắn (chunker) có giá trị lớn hơn việc đổi sang model nhanh hơn.
+- **Mốc đo:** `tts_ttfa` tính tới byte audio thật đầu tiên, không phải WAV header (~2 ms, **Reported**). Join log theo `generation_id`/`chunk_id` như §8.1 yêu cầu, vì mỗi lượt có nhiều request TTS.
+
+### L4. Cancel, barge-in và số slot
+
+Tài liệu thiết kế §7.3 yêu cầu cancel LLM + TTS, xoá hàng đợi, `client.clear`, và chỉ lưu phần đã phát.
+
+- **Cancel VieNeu HTTP = đóng kết nối.** Phải có test xác nhận server giải phóng slot sau khi client đóng giữa chừng (§13.7). Nếu slot rò, sau vài lần barge-in hệ thống bắt đầu trả 429 dù tải thấp. Đây đúng là deployment gate "SDK không cancel được" mà §7.3 nêu.
+- **Đọc trước mệnh đề kế tiếp làm tăng số slot mỗi session.** Prefetch giúp không có khe giữa mệnh đề (§13.8.1), nhưng một session có thể giữ 2 slot cùng lúc. Khi đặt `VIENEU_MAX_STREAMS` theo tải thật (§5.8), tính cả prefetch; nhớ rằng mỗi slot dư làm chậm mọi request (~2.5 ms/slot trên mỗi lần gọi codec, **Reported**).
+- **"Phần đã phát" chỉ biết ở độ phân giải mệnh đề/mẫu.** Từ `audio.played(played_sample_offset)` và ranh giới chunk, gateway biết mệnh đề nào đã phát hết; trong một mệnh đề chỉ ước lượng được tỷ lệ, không biết chính xác từ (tài liệu thiết kế §7.3). Lưu `raw_text` của các mệnh đề đã phát xong, cộng phần dở kèm `[bị ngắt]`.
+- **Client bỏ mọi chunk có `generation_id` cũ** kể cả chunk đến sau `client.clear` (do chunk đang bay trên mạng). Không dựa vào việc server dừng đúng lúc.
+- **AEC reference phải là audio thật sự phát ra** (§13.7.2). Với AEC của trình duyệt, điều này tự đúng; nếu làm AEC phía server, reference phải cùng rate và cùng timeline với mic, nên ghi lại đúng chunk đã phát chứ không phải chunk đã nhận.
+
+### L5. Vận hành service TTS
+
+Khớp với tài liệu thiết kế §5.6 ("ba điều dễ hiểu sai"), §9.1 và §13.11 của chương:
+
+- **Readiness = warmup xong.** Chờ `/health` trả `ok` (server VieNeu tự warm; SDK gọi `warm_fused()`); CUDA graph capture ~0.5 s mỗi batch size; request đầu chưa warm mất 1–2 s (**Reported**).
+- **Một process sở hữu GPU TTS.** Scale bằng nhiều container, mỗi cái một GPU, không fork worker (§13.11). Gateway không tự load weights (§9.1).
+- **429 là trạng thái bình thường, không phải lỗi hiếm.** Gateway đọc `Retry-After`, có deadline theo session, và có đường suy giảm.
+- **Fallback theo mệnh đề, không theo chunk.** §9.4 cấm đổi giọng giữa câu. Thang gợi ý (§13.11): retry → backend CPU (Turbo int8 nếu CPU có VNNI) cho câu thông báo ngắn → trả lời bằng văn bản. Backend fallback có rate khác (Nano 24 kHz) nên phải phát `audio.start` mới.
+- **CPU profile (E) chỉ đúng 1–2 stream.** CPU fp32 6 nhân chạy 1 stream; 2 request cùng lúc RTF 1.19 (tụt). int8 không có VNNI làm model nói lảm nhảm (**Reported**). Kiểm cờ CPU trước khi bật int8.
+- **Không bật tối ưu chưa kiểm tương đương.** Bài học `use_cuda_graph` của codec (nhanh 3 lần nhưng audio sai, tương quan 0.2, **Reported**, §13.4.3): mọi bản port/quantize/runtime mới (kể cả port `vieneu_v3_turbo` trên audio.cpp, §5.8) phải qua parity test so với bản gốc.
+- **Watermark:** mặc định bật ở server. So sánh số đo chỉ khi cùng cấu hình watermark (§13.11).
+
+### L6. Đánh giá và release gate cho TTS
+
+Tài liệu thiết kế §10 mục 2 yêu cầu 150–300 prompt, MOS/CMOS mù với 10–20 người nghe Việt.
+
+- **Bộ prompt phải phủ lỗi đặc thù tiếng Việt** ở §13.12.3: cặp tối thiểu thanh điệu, số/tiền/ngày, địa danh/viết tắt, code-switch, câu cực ngắn ("Dạ."), câu dài, nhất quán qua nhiều lượt.
+- **Test cả ranh giới chunk**, không chỉ từng câu riêng: cùng một đoạn đọc theo một request / theo câu / theo mệnh đề (§13.10), vì pipeline thật luôn chạy kiểu thứ ba.
+- **Round-trip CER chỉ để bắt regression thô** (bỏ từ, đọc sai số), không để chọn model (§13.12.2). Thứ tự ứng viên trong §5.6 là độ phù hợp triển khai, không phải xếp hạng nghe.
+- **Đánh giá preset và cloning riêng.** Reference cloning 3–8 s, khớp transcript, sạch nhiễu (§13.6.1); kết quả cloning không suy ra chất lượng preset và ngược lại.
+
+### L7. License, privacy và cloning
+
+- **License là hard gate trước chất lượng** (tài liệu thiết kế §3 nguyên tắc 7). VieNeu Turbo có mâu thuẫn Apache ↔ "personal use" chưa giải quyết (§11); Higgs/Fish là non-commercial. Profile F chỉ dùng VieNeu sau khi rà xong.
+- **Reference audio và speaker embedding là dữ liệu nhạy cảm** (§9.5): giới hạn kích thước/thời lượng, không cho client trỏ URL/path, không ghi vào log. Cloning giọng người thật cần đồng ý rõ ràng; quyền với preset không bao gồm quyền với reference do user đưa (§9.5, **Reported**).
+- **Ghim version SDK và voicepack** (§9.1): số preset VieNeu khác nhau giữa các bản (25 so với 23, §13.6.1), đổi version có thể đổi giọng mặc định.
+
+### L8. Checklist "TTS service sẵn sàng" trước khi ghép vào pipeline
+
+| # | Điều kiện | Liên quan |
+|---|---|---|
+| 1 | Contract ghi đủ `(sample_rate, channels, dtype, endianness, framing, end-of-stream, cancel)` và adapter đọc rate từ backend | §13.7, §13.9.3; thiết kế §3 (nguyên tắc 4), §7.2 |
+| 2 | Đã quyết định playback 16 kHz hay rate gốc; resample đúng một lần, bằng resampler có anti-alias, stateful | §13.9.1; thiết kế §3 (nguyên tắc 4), §7.1 |
+| 3 | `raw_text` và `spoken_text` tách riêng; history chỉ nhận `raw_text` | §13.2.1; thiết kế §7.2 |
+| 4 | Normalizer + lexicon có bộ regression; dấu câu được giữ | §13.2; thiết kế §5.5 |
+| 5 | TTFA P50/P95/max đo ở trạng thái nóng, sau idle và dưới tải; RTF một stream P95 ≤ 0.7 | §13.8.2, §13.11; thiết kế §8.4 |
+| 6 | Pre-buffer client được chọn và tính vào ngân sách v2v | §13.8.3; thiết kế §8.2, §8.3 |
+| 7 | Cancel giữa chunk giải phóng slot; chunk của `generation_id` cũ bị bỏ | §13.7; thiết kế §7.3, §10 (mục 5) |
+| 8 | `max_streams` = tải thật (tính cả prefetch); 429 có xử lý | §13.8.2, §13.11; thiết kế §5.8, §9.1 |
+| 9 | Readiness sau warmup; chiến lược idle clock-down đã chọn | §13.11; thiết kế §5.6, §9.1 |
+| 10 | Fallback theo mệnh đề, đã test như một tính năng | §13.11; thiết kế §9.4 |
+| 11 | Bộ test nghe gồm lỗi đặc thù tiếng Việt và ranh giới chunk | §13.10, §13.12; thiết kế §10.2 |
+| 12 | License weights/voicepack đã rà; reference cloning có consent và không vào log | §13.6.1; thiết kế §9.5, §11 |

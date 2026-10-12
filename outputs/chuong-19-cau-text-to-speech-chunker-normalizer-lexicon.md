@@ -1651,3 +1651,100 @@ LLM chậm 8 tok/s · CPU int8 · 1 slot: thêm trần độ dài cứng (hard_m
 [^vieneurt]: [VieNeu-TTS Streaming Runtime and Performance](../wiki/vieneu-tts-streaming-runtime.md) — mở đầu (1 stream ~115 ms TTFA, RTF 0,49 trên RTX 3060); "Choosing `max_streams`" (slot dư làm chậm mọi request); "CPU: how streaming works, measurements" (prompt gồm reference codes + phonemes; bảng TTFA theo độ dài câu 27/88/147 ký tự: fp32 264–282/313–357/345–401 ms, int8 141–144/163–169/192–194 ms; fp32 đúng một stream, request thứ hai xếp hàng rồi `429`).
 [^ttssel]: [Vietnamese Realtime TTS Selection](../wiki/vietnamese-realtime-tts-selection.md) — thiết kế đề xuất mục 1–2 (LLM streaming → chunker → normalizer → TTS → bounded playback queue; không cắt giữa giá trị đang hoàn thành); đoạn về G2P bug `chánh` → `tránh` (chỉ relayed, dùng như regression case); phần đánh giá (150–300 prompts, lưu raw text và normalized spoken text).
 [^kokoro]: [Kokoro Vietnamese](../wiki/kokoro-vietnamese.md) — G2P tiếng Việt bằng `vig2p`, khớp code inference và training (**Reported**); `vig2p` chưa được inspect.
+
+---
+
+## Ghi chú áp dụng: những điểm quan trọng khi thiết kế và hiện thực tài liệu thiết kế
+
+Phần này nối Chương 19 với [Thiết kế pipeline speech-to-speech tiếng Việt](thiet-ke-pipeline-speech-to-speech-tieng-viet.md) (gọi tắt là "tài liệu thiết kế"). Tài liệu thiết kế §5.5 chỉ liệt kê quy tắc khởi điểm cho chunker, một bảng ví dụ normalizer và một dòng về lexicon. Phần này chốt **cầu text → speech phải có những bất biến nào, đặt ở đâu, ghi lại gì và kiểm bằng gì** khi biến §5.5 thành code. Mọi nhận định ở đây là **Synthesis** từ nội dung chương, trừ khi ghi nhãn khác.
+
+### A. Bảy điều không được thoả hiệp
+
+1. **Chunker là consumer của LLM stream, không phải bước hậu kỳ** (§8.1 tài liệu thiết kế, §19.1). Chunker, ThinkFilter và normalizer sống trong cùng response scope với LLM stream; một instance cho mỗi `generation_id`. Khi huỷ thì vứt bỏ, **không** `flush()` (§19.4.6).
+2. **Chỉ cắt khi đã thấy ký tự sau dấu câu.** Đây là điều kiện để đầu ra không phụ thuộc cách LLM chia token (§19.4.2). Mọi quy tắc thêm sau này (timer, `hard_max`, cắt trước liên từ) phải giữ bất biến này và có fuzz test L2 chứng minh.
+3. **Ba dạng text, ba nơi dùng.** `display_text` cho caption, history, entity, tool; `spoken_text` chỉ cho TTS; `raw_text` cho debug (§19.5.1). Lưu `spoken_text` vào history là lỗi thiết kế, không phải lựa chọn.
+4. **Normalizer chạy sau chunker, theo từng chunk, là hàm thuần.** Không normalize trước chunker (phá dấu câu), không normalize cả câu trả lời (mất streaming) (§19.6.1). Mỗi ký hiệu chỉ một stage sở hữu (§19.6.2).
+5. **Normalizer không sửa nội dung.** Mơ hồ thì theo chính sách đã ghi ra và có test; sai thì đọc nguyên văn và ghi `warnings` (§19.6.4). Gốc của lỗi được sửa ở prompt hoặc lexicon.
+6. **Lexicon là dữ liệu sản phẩm có version, test và scope theo TTS/voice** (§19.7.4). Hai pha (pre-TN bảo vệ, post-TN respelling) cộng danh sách alert; khớp sau NFC, theo ranh giới từ, mục dài trước, hoa thường theo mục (§19.7.2).
+7. **Chính sách đọc gắn với backend và voice, không gắn với code.** Vùng miền (`nghìn`/`ngàn`, `linh`/`lẻ`), code-switch, scope lexicon đều là tham số lấy từ cấu hình voice/TTS đang dùng (§19.6.5, §19.8.1). Đổi backend (kể cả fallback) là đổi cả bộ tham số này.
+
+### B. Đối chiếu từng mục của tài liệu thiết kế
+
+| Mục tài liệu thiết kế | Điều cần giữ đúng khi hiện thực | Chỗ còn thiếu hoặc cần làm rõ (chương này bổ sung) |
+|---|---|---|
+| §0 TL;DR mục 4, §4 sơ đồ (`clause chunker → normalizer + lexicon`) | Cầu là một tầng riêng giữa LLM và TTS router | Sơ đồ thiếu ThinkFilter/lọc markup **trước** chunker và thiếu luồng `display_text` + `segments` đi sang caption/history (§19.1). Lexicon phải tách hai pha quanh normalizer, không phải một khối |
+| §3 nguyên tắc 2 (một owner) | Cầu không quyết định lượt | Cầu chỉ phát `text.chunk`; commit, cancel, cắt history là việc của owner. Cầu không bao giờ tự phát câu đệm (§19.4.6) |
+| §3 nguyên tắc 4 (audio contract) | Mỗi backend khai báo contract | Thêm **text contract** cho mỗi backend: `max_chars`, có nhận code-switch không, có phân biệt hoa thường không, tham số nào bị bỏ qua (VieNeu bỏ qua `speed`, `instructions`, **Reported**)[^vieneuapi]. `hard_max` < `max_chars` (§19.4.5) |
+| §5.5 giao diện LLM, prompt (1–3 câu, không markdown/emoji/URL, tắt thinking) | Prompt là lớp phòng thủ thứ nhất | Vẫn phải có ThinkFilter và stage markup/emoji dù prompt đã cấm (§19.4.6). Thêm vào prompt: số theo quy ước Việt, câu ngắn có dấu phẩy (giảm underrun, §19.3.3). Đo mức tuân thủ bằng `norm_warnings` và `chunk_kind_ratio` (§19.11) |
+| §5.5 chunker: `.?!…;:`, phẩy ≥ ~25 ký tự cho chunk đầu, gộp < 8 ký tự | Dùng làm giá trị khởi điểm | Quy tắc gốc chưa nói gì về dấu câu **bên trong giá trị**: `1.250.000đ`, `3,5`, `14:30`, `TP.HCM`, URL, `TS. Nguyễn`, `v.v.` (§19.4.1). Thiếu ngưỡng phẩy cho chunk sau (`later_comma_min`), trần `hard_max`, ngưỡng không có tác dụng với `:` trong "Có ba bước:" |
+| §5.5 "đơn vị tốt ~20–60 ký tự" (**Reported**)[^blueprint] | Là heuristic, không phải ràng buộc | Đừng đặt `hard_max=60` mặc định: cắt giữa mệnh đề, sau liên từ (§19.3.3). Chỉ hạ `hard_max` khi đo thấy `inter_chunk_gap` P95 cao, và khi đó cắt **trước** liên từ |
+| §5.5 bảng normalizer (tiền, điện thoại, ngày/giờ, %, viết tắt, code-switch) | Các lớp tối thiểu | "Ngày/giờ cần luật theo domain" phải thành chính sách cụ thể: phân số so với ngày, giờ so với thời lượng (`trong 2h` → "hai tiếng"), ngày không tồn tại (§19.6.3). Điện thoại đọc theo nhóm có dấu phẩy để có nhịp. Thêm mã (`VN123`), số La Mã, viết tắt lạ (đánh vần + cảnh báo) |
+| §5.5 "wiki chưa chọn được normalizer đã kiểm chứng" | Không giả định có thư viện | VietNormalizer chỉ là ứng viên đúng slot, chưa chạy (**Reported**)[^vnorm]. Nếu dùng: bọc làm verbalizer cho segment `plain`, tắt `enable_transliteration` khi TTS đọc được code-switch, pin version, chạy toàn bộ L1 trước (§19.6.6) |
+| §5.5 lexicon, issue #207 `chánh` → `tránh` | Có substitution dictionary | Respelling **không** cứu được âm tiết tiếng Việt hợp lệ. `chánh` vào danh sách alert, không vào bảng thay thế; reproduce trên đúng version/voice trước khi làm gì khác (§19.7.3). Issue vẫn là **Reported/Unverified** |
+| §5.5 code-switch "giữ tiếng Anh nếu TTS xử lý được" | Quyết định theo năng lực TTS | Thành tham số `tts_codeswitch` theo backend: VieNeu Turbo bật, Nano tắt (Nano kém ở câu trộn, **Reported**)[^vieneu]. Respelling không phủ hết từ Anh; khi tắt, cần thêm phiên âm theo luật hoặc ràng buộc prompt (§19.8.1) |
+| §5.5 hai nghĩa của "streaming TTS" | Cầu theo mệnh đề, không gọi là bi-streaming | Ngay cả TTS bi-streaming vẫn cần chia câu (CosyVoice2, **Reported**)[^cosy]. Thiết kế cầu không phải viết lại nếu sau này có TTS tiếng Việt nhận text dần |
+| §5.6 VieNeu `/v1/audio/speech` | Một request mỗi chunk | Server tự chia `input` ≤ `max_chars` ở ranh giới câu (**Reported**)[^vieneuapi]; chunk vượt ngưỡng sẽ bị cắt theo luật của server chứ không phải của bạn. Mỗi chunk là request độc lập lấy mẫu với `temperature` 0,8: cố định voice + tham số sampling trong một generation (§19.9.1 điểm 5) |
+| §5.6 preset voice ba vùng | Chọn voice | Voice quyết định tham số vùng của normalizer (`north`). Giọng Nam đọc "một trăm linh năm" là lỗi cấu hình, không phải lỗi TTS (§19.6.5) |
+| §5.7 HF s2s | Dùng `--tts openai` trỏ tới VieNeu | Mặc định `stream_batch_sentences=3` (**Observed**)[^cli]: đặt `1`, nếu không chunk đầu phải chờ ba câu (§19.3.2, chính sách `3sent`). Chưa thấy trong wiki điểm nối normalizer tiếng Việt của HF s2s: phương án khả dĩ là một proxy normalizer đứng giữa `--openai_tts_base_url` và VieNeu (**Unverified**, phải thử). Tắt `--detect_llm_output_language` cho hội thoại tiếng Việt có từ Anh (§19.8.3) |
+| §5.7 Pipecat, `TTSService` tuỳ biến `run_tts()` | Gọi VieNeu trong `run_tts` | Cách Pipecat gom câu trước khi gọi `run_tts` và text nào được ghi vào context chưa được wiki kiểm (**Unverified**). Phải xác nhận: (a) gom câu không cắt trong số/URL; (b) normalizer chạy trong `run_tts` để context vẫn giữ dạng viết; (c) không có lớp nào ghi `spoken_text` vào context |
+| §7.2 `text.chunk(generation_id, chunk_id, raw_text, spoken_text)` | Event có cả hai dạng text | Thêm `display_text`, `segments` (alignment raw ↔ spoken), `kind`, `warnings`, `normalizer_version`, `lexicon_version` (§19.5.2, §19.9.1). Thiếu `display_text` thì không cắt history được; thiếu version thì không truy được câu đọc sai do luật nào |
+| §7.3 history chỉ lưu phần đã phát + `[bị ngắt]` | Cắt theo played offset | Ánh xạ played offset → `display_text` qua `segments`, **bảo thủ**: segment đã viết lại (số, tiền, ngày) chỉ tính khi phát hết (§19.5.3). Ước lượng theo tỷ lệ trên `spoken_text`, không theo `raw_text`. Cần bảng `chunk_id → [mẫu đầu, mẫu cuối)` do TTS adapter ghi |
+| §7.3 "không có alignment thì chỉ khẳng định played offset" | Không giả vờ biết từ nào đã phát | Alignment theo segment là mức trung gian khả thi khi TTS không trả timestamp theo từ; nếu TTS có timestamp thì dùng timestamp |
+| §8.1 output gate speculative | Chunker ở consumer của LLM stream | Cầu là hàm thuần ~0,1 ms nên chạy được trong lúc speculative; chunk speculative mang `turn_id`/`revision`, **không** ghi vào history và bị bỏ khi reopen. Có gửi TTS trước commit hay không là quyết định của owner, không của cầu |
+| §8.3 "clause chunking là tối ưu quan trọng nhất" | Gửi TTS sớm | Lợi ích đến từ việc không chờ LLM, không từ prefill TTS (§19.3.3 hệ quả 3). Khi LLM chậm, chunk đầu ngắn đổi TTFA lấy underrun: đo `inter_chunk_gap` trước khi tune (§19.3.3) |
+| §8.3 playback buffer 150–300 ms | Pre-buffer phía client | Pre-buffer che jitter **trong** một chunk, không che khe giữa chunk do LLM chậm. Hai vấn đề, hai metric: `client_underrun` và `inter_chunk_gap_ms` |
+| §8.4 monitoring (`first_sentence→tts_first_byte`) | Metric theo turn | Thêm bộ metric của cầu §19.11: `ttfc_ms`, độ dài chunk, `chunk_kind_ratio`, `chunks_per_reply`, `inter_chunk_gap_ms` P95, `norm_warnings{type}`, `lexicon_hits`, `alert_hits`, `norm_latency_us`, `spoken_empty_chunks`. Join theo `generation_id` + `chunk_id` |
+| §9.1 pin revision/checksum cho G2P, voicepack, normalizer | Pin phiên bản | Pin cả **lexicon**; ghi version normalizer + lexicon vào mỗi `text.chunk`. Đổi G2P của TTS (`sea-g2p`, `vig2p`) là lý do chạy lại tập nghe cho toàn bộ lexicon |
+| §9.4 fallback (không ghép hai giọng giữa câu) | Retry hoặc chuyển ở mệnh đề mới | Fallback sang backend khác phải đổi theo `tts_codeswitch`, scope lexicon, tham số vùng. Router ngôn ngữ/backend quyết định theo câu trả lời hoặc session, không theo chunk (§19.8.3) |
+| §9.5 log content-free | Metadata only | `raw_text`/`display_text`/`spoken_text` là nội dung: log vận hành chỉ giữ độ dài, `kind`, loại warning, version. Bản ghi đầy đủ chỉ trong corpus opt-in. `lexicon_hits{term}` có thể lộ tên riêng của khách: cân nhắc chỉ lưu id mục |
+| §10 gate 2 (150–300 prompt, test normalizer, lexicon, ranh giới chunk) | Tập nghe | Tách thành ba tầng L1/L2/L3 (§19.10.1). L1 và L2 chạy mỗi commit, 100% PASS. L3 thêm ca CMOS một request so với chia chunk, ca chunk đầu ngắn, một câu cho mỗi mục lexicon, ca alert. Lưu cả `raw_text` và `spoken_text` cho mỗi prompt (**Synthesis** của wiki)[^ttssel] |
+| §10 gate 5 (contract) | Cancel giữa chunk, 429 | Thêm: huỷ giữa chunk không làm `flush()` nhả chunk cũ; chunk `spoken_text` rỗng không gọi TTS; chunk dài hơn `max_chars` không tồn tại |
+
+### C. Những chỗ cần sửa trong pseudo-code §7.4
+
+Pseudo-code §7.4 gói cả cầu vào một dòng `tts.enqueue(gid, normalize_vi(lexicon(clause)))`. Khi hiện thực:
+
+1. **Thứ tự lexicon sai một nửa.** `lexicon` chạy trước `normalize_vi` chỉ đúng cho pha pre-TN. Thành `post_lexicon(normalize(pre_lexicon(clause)))` trên segment, để respelling không bị luật số viết lại và luật số không phá thực thể (§19.7.1).
+2. **Thiếu lọc trước chunker.** `chunker(llm.stream(...))` phải là `chunker(think_filter(llm.stream(...)))`, kèm stage markup/emoji, nếu không ranh giới chunk đã sai trước khi normalizer kịp lọc (§19.4.6).
+3. **Mất `display_text`.** `tts.enqueue` chỉ nhận text đọc; history, caption và cắt history không còn dạng viết. Phát `text.chunk` với đủ trường (§B, dòng §7.2) trước khi đẩy vào hàng TTS.
+4. **`break` khi stale không được flush.** Đúng như pseudo-code đang làm, nhưng phải ghi rõ: không gọi `chunker.flush()` trong `finally`, và đóng LLM stream bằng `aclosing` (Chương 18).
+5. **Chunk rỗng sau normalize.** Chunk chỉ có emoji/markup cho `spoken_text` rỗng: ghi event, không gọi TTS (§19.9.1).
+6. **`history.append(played_part_only() + " [bị ngắt]")`** cần đầu vào cụ thể: danh sách `text.chunk` đã gửi, bảng `chunk_id → khoảng mẫu`, `played_sample_offset`, rồi `played_display_prefix` bảo thủ (§19.5.3). Khi không bị ngắt, history lưu nối các `display_text`, không lưu `spoken_text`.
+7. **Hàng TTS bounded.** `tts.enqueue` phải là `await put` vào queue nhỏ để backpressure lên LLM; có sentinel kết thúc generation (§19.9.1).
+
+### D. Lưu ý theo profile (§6 tài liệu thiết kế)
+
+| Profile | Điểm quan trọng nhất của cầu | Cần tự kiểm |
+|---|---|---|
+| **A — MVP turn-final** | Cầu là phần duy nhất làm audio bắt đầu trước khi LLM xong; làm đúng từ ngày đầu (lộ trình §12 Phase 1 đã ghi normalizer/lexicon) | HF s2s: `stream_batch_sentences=1`, nơi đặt normalizer (proxy hay patch), tắt phát hiện ngôn ngữ theo chunk. Pipecat: gom câu của framework có giữ số/URL không, context lưu dạng viết không |
+| **B — native streaming** | Cầu không đổi; partial ASR không đi vào cầu | Nếu chạy LLM speculative trên partial, chunk speculative bị bỏ khi revision đổi và không bao giờ vào history |
+| **C — quality single-pass** | Như A | Như A; thêm ca L1 cho entity ASR hay sai (số, tên riêng) để biết lỗi nằm ở ASR hay ở normalizer khi bot đọc lại |
+| **D — two-pass** | Bot thường đọc lại số/tên vừa được final-pass xác nhận: đây là chỗ normalizer sai gây hại nhiều nhất | Ca L1 và L3 riêng cho xác nhận lại (số điện thoại, mã đơn, số tiền); round-trip CER trên critical span |
+| **E — CPU/edge** | `VIENEU_MAX_STREAMS` CPU = 1 (**Reported**)[^vieneuapi]: không có prefetch, mỗi chunk xếp hàng sau chunk trước; Nano yếu ở code-switch[^vieneu] | `tts_codeswitch=False` và lexicon scope riêng cho Nano/Kokoro/Supertonic; cân nhắc chiến lược lai §19.9.2 (gộp phần đuôi khi LLM `done`) để giảm số request; đo TTFA theo độ dài chunk trên chính CPU đích |
+| **F — license-strict** | Normalizer/lexicon cũng là thành phần có license | VietNormalizer MIT (**Reported**)[^vnorm], ViSoNorm chưa có license. VoxCPM2/MOSS: G2P và năng lực code-switch chưa có trong wiki, phải chạy L3 trước khi chọn chính sách; lexicon viết cho VieNeu không mặc nhiên đúng |
+
+### E. Thứ tự hiện thực đề xuất
+
+1. **Text contract cho từng backend:** `max_chars`, code-switch, hoa thường, trường bị bỏ qua, voice → vùng. Đây là đầu vào cho mọi bước sau.
+2. **ThinkFilter + markup + ClauseChunker** với fuzz test L2 (bất biến chia token, không cắt trong giá trị, giới hạn độ dài). Chạy với LLM stub trước khi nối LLM thật.
+3. **Normalizer trên segment** với L1 golden ≥ 50 ca cho domain, mỗi ca có `why`; chính sách mơ hồ ghi thành văn bản.
+4. **Lexicon hai pha + alert** dưới dạng dữ liệu có version, scope, test.
+5. **Event `text.chunk` đầy đủ** và bảng `chunk_id → khoảng mẫu`; `played_display_prefix` nối với cắt history của owner (Chương 17).
+6. **Nối vào runtime:** bridge stage trong response scope, hàng TTS bounded, sentinel, không flush khi huỷ (§19.9.1).
+7. **Metric §19.11** và dashboard `inter_chunk_gap`, `chunk_kind_ratio`, `norm_warnings`.
+8. **Tập nghe L3** trên TTS thật; chỉ sau đó mới tune `first_min`, `later_comma_min`, `hard_max` theo số đo thật.
+
+### F. Checklist trước khi coi cầu text → speech là xong
+
+- [ ] Fuzz L2: 0 khác biệt giữa các cách chia token trên toàn bộ câu mẫu, kể cả chia từng ký tự.
+- [ ] Không chunk nào cắt trong số, tiền, giờ, URL, email, viết tắt có trong `ABBR_NOEND`.
+- [ ] Không chunk nào dài hơn `max_chars` của backend đang dùng.
+- [ ] Không có `<think>`, markdown, emoji nào tới TTS (kiểm trên `spoken_text` của tập regression).
+- [ ] L1 golden 100% PASS, có ca cho mỗi ký hiệu và mỗi mục lexicon; mỗi bug đã sửa có ca kèm `why`.
+- [ ] History chỉ chứa `display_text`; cắt history bảo thủ ở segment viết lại, đã test với số điện thoại và số tiền bị ngắt giữa chừng.
+- [ ] Huỷ generation không nhả chunk cũ nào ra hàng TTS.
+- [ ] Mỗi `text.chunk` có `normalizer_version` và `lexicon_version`; log vận hành không chứa nội dung text.
+- [ ] Tham số vùng, `tts_codeswitch`, scope lexicon lấy từ cấu hình voice/backend; fallback đổi theo.
+- [ ] Router ngôn ngữ/backend không quyết định theo chunk.
+- [ ] `inter_chunk_gap_ms` P95 đo được ở client với LLM và TTS thật; giá trị `hard_max` được chọn bằng số đo đó, có ghi lại lý do.
+- [ ] Tập nghe L3 đã chạy trên đúng backend + voice production, gồm ca CMOS ranh giới chunk và ca alert (`chánh`).

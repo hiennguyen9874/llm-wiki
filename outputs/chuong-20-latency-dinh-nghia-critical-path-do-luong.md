@@ -996,3 +996,66 @@ Output:
 [^eou]: [Parakeet Realtime EOU 120M v1](../wiki/parakeet-realtime-eou-120m-v1.md) — mô tả (80–160 ms ASR latency); gạch EOU latency (P50 160, P90 280, P95 320 ms; đánh giá trên audio TTS-generated DialogStudio có 3 s im lặng nối thêm; cảnh báo thực tế biến thiên). **Reported**.
 [^smart]: [Smart Turn](../wiki/smart-turn.md) — gạch "Latency claims" (10 ms trên một số CPU, dưới 100 ms trên hầu hết cloud, ~65 ms Pipecat Cloud 1x với `LocalSmartTurnAnalyzerV3`); "Coverage and limits" (số của vendor, chưa kiểm chứng). **Reported**.
 [^survey]: [ASR/STT Model Survey](../wiki/asr-stt-model-survey.md) — dòng bảng Parakeet TDT 0.6B V2 (RTFx 3380 ở batch 128). **Reported**, mốc đo (batch lớn) theo model card.
+
+---
+
+## Áp dụng vào bản thiết kế: lưu ý và điểm quan trọng khi thiết kế, hiện thực
+
+> Phần này ánh xạ nội dung Chương 20 vào [Thiết kế pipeline speech-to-speech tiếng Việt](thiet-ke-pipeline-speech-to-speech-tieng-viet.md). Mọi nhận định ở đây là **Synthesis** của tác giả dựa trên các mục trong chương (đã dẫn nguồn ở trên) và các mục của bản thiết kế; số liệu nhắc lại giữ nguyên nhãn gốc (**Reported**/**Reproduced**). Chưa có gì được đo trên stack thật.
+
+### A. Năm điều quan trọng nhất
+
+1. **Chốt định nghĩa v2v trước khi viết dòng code đầu tiên.** Con số tiêu đề là D1 (đo ở client, từ mẫu speech cuối tới mẫu bot nghe được), phân rã đo ở server, join theo ID (§20.2.2). Nếu bắt đầu bằng HF s2s, `e2e` của nó là D2 (không gồm mạng, pre-buffer, playback) và **không** so được với `e2e` bản v1 (§20.2.1).
+2. **Với cấu hình speculative của HF s2s, output-hold thường quyết định latency chứ không phải model.** Default 800 ms (complete) / tới 2 s (incomplete) lớn hơn ASR + LLM điển hình, nên v2v ước ≈ 1,4 s ở ví dụ §20.3.3, cao hơn dải 0,7–1,2 s của bảng ngân sách thiết kế §8.2 (bảng đó không có dòng hold, không có playback). Đừng hứa con số của §8.2.
+3. **Xác định nhánh quyết định trước khi chọn đòn bẩy.** Đo tỉ lệ lượt gate-bound (§20.3.4). Nếu gate-bound: đổi ASR/LLM nhanh hơn cho 0 ms; đòn bẩy là hold, TTS, pre-buffer, cold start (§20.9.1).
+4. **Cold start thiết bị ăn vào chunk đầu của mọi lượt.** GPU hạ xung sau ~2 s rảnh; trong hội thoại, chunk đầu của lượt luôn sau khoảng rảnh > 2 s. VieNeu 118 → 403 ms (**Reported**). `warm_fused()` ở thiết kế §5.6 chỉ giải quyết CUDA graph, không giải quyết xung; phải khoá xung ở host (§20.6.4).
+5. **Đo bằng phân phối có điều kiện, không bằng một số.** P50/P95/P99 kèm n, tách theo loại lượt, độ dài, warm/cold, concurrency; không dựng P95 tổng từ P95 từng stage (§20.6).
+
+### B. Lưu ý theo từng mục của bản thiết kế
+
+| Mục thiết kế | Lưu ý từ Chương 20 | Việc cần làm khi hiện thực |
+|---|---|---|
+| §3 nguyên tắc 6 | Mỗi con số phải có mốc đầu, mốc cuối, nơi đo (§20.4) | Trong code và dashboard, đặt tên metric theo cặp mốc (`speech_end→first_audible`), không đặt tên chung chung `latency` |
+| §4 kiến trúc | Pre-buffer client và `outputLatency` nằm trực tiếp trên critical path (§20.2.3) | AudioWorklet ghi `currentFrame` của mẫu đầu được render; báo `prebuffer_wait_ms` riêng |
+| §5.3 hai triết lý endpoint | "Commit cứng sau timeout" và "speculative + hold" cho v2v khác nhau, nhưng speculative không tự động nhanh hơn; giá trị của nó là giảm false cutoff ở cùng mức im lặng (§20.3.3 điểm 2) | So hai triết lý bằng **cặp** chỉ số: v2v P50/P95 và tỉ lệ cắt nhầm; không so chỉ v2v |
+| §5.4 ASR / Profile A | Turn-final: endpoint→final tăng theo độ dài lượt (§20.4.5) | Báo cáo theo bucket độ dài lượt (ví dụ < 3 s, 3–8 s, > 8 s) |
+| §5.4 ASR / Profile B | Chunk 160–320 ms là cận dưới, không phải latency ra text; streaming ASR không vượt qua output gate (§20.3.2) | Chỉ chọn B vì lý do latency khi đã đo được lượt **compute-bound**; nếu không, lý do chọn B là caption/speculation |
+| Profile D two-pass | Final-pass nằm trên nhánh compute; nếu còn slack dưới hold thì không làm tăng v2v (suy từ §20.3.4), nhưng vẫn gây contention GPU | Đo slack trước khi bật D; đo TTFA/TTFC khi final-pass chạy chồng lấn |
+| §5.5 chunker | Chunker đổi số hạng TTFC, không đổi TTFT; chunk đầu ngắn giảm TTFA vì TTFA VieNeu tăng theo số ký tự (§20.4.3, §20.4.4) | Ghi mốc `llm.first_clause` (M7), đo `inter_chunk_gap` để bắt underrun do chunk đầu quá ngắn |
+| §5.6 VieNeu | Có ba RTF khác nhau (bulk, một câu, streaming); TTFA tăng mạnh khi N request bắt đầu cùng lúc; slot dư làm chậm mọi request (§20.4.5, §20.6.5) | Đặt `VIENEU_MAX_STREAMS` theo số stream **đồng thời** đo được, không theo số user; theo dõi tỉ lệ `429` |
+| §5.7 HF s2s instrumentation | `llm` của HF là toàn bộ thời gian sinh, không phải TTFT/TTFC; response bị bỏ không có bản ghi (§20.7.4, §20.7.5) | Bổ sung mốc M6/M7 và bản ghi cho response `cancelled`/`failed`; kiểm tra backend STT đang dùng có nằm trong coverage của `stt` không |
+| §7.2 event schema | Schema chưa có thời điểm và chỉ số mẫu; không có `status` của response (§20.7.1, §20.7.2) | Thêm `t_mono_ns` cho mọi event, `speech_end_sample` trong `turn.commit`, `status` trong bản ghi kết thúc response; giữ `audio.played` làm nguồn cho M11 |
+| §7.3 barge-in | Time-to-silence là một latency riêng, cũng phải đo ở client (§20.7.7) | Đo `user_speech_start→bot_audio_stopped` ở client và `→compute_released` ở server |
+| §8.1 công thức gate | Có biến thể TTS speculative (TTS lọt vào trong `max`, §20.3.2) | Chỉ cân nhắc TTS speculative sau khi đo được tỉ lệ gate-bound cao; phải huỷ được audio đã sinh khi reopen |
+| §8.2 ngân sách | Không phải target; cộng thử ra 554–1395 ms và 950–2900 ms (§20.5.2) | Đo baseline trước, rồi mới phân bổ mục tiêu theo **nhánh** (gate, compute, TTS, transport), không chia đều cho stage (§20.5.4) |
+| §8.3 đòn bẩy | Mỗi đòn bẩy tác động lên một số hạng và có giá (bảng §20.9.2) | Thêm "khoá xung GPU ở host" và "`max_streams` đúng tải" vào danh sách; xem pre-buffer là tham số phải tune theo lead/jitter đo được |
+| §8.4 monitoring | `asr_done→llm_first_token` là TTFT, chưa phải TTFC; câu xác nhận ngắn làm đẹp TTFA mà không đổi thời điểm có nội dung (§20.9.3) | Bổ sung: tỉ lệ gate-bound, slack, `ttfa_any` và `ttfa_content`, `underrun_count`, `prebuffer_wait_ms`, tỉ lệ `429` |
+| §9.1 topology | Readiness chỉ sau warm-up, nhưng warm-up lúc khởi động không chống được hạ xung khi rảnh (§20.6.4) | Khoá xung GPU (`nvidia-smi -lgc`, `-pm 1`) là việc của host/Docker, đưa vào runbook triển khai |
+| §9.5 privacy | Bản ghi latency chỉ cần độ dài, không cần nội dung (§20.7.4) | Log `n_chars`, `n_tokens`, `n_samples`; không log transcript |
+| §10 gate 4 (tải) | Concurrency 1/4/8/16 phải đo cả kiểu đến "cùng lúc" và "rải rác"; closed-loop che mất stall (§20.6.5, §20.6.6) | Harness open-loop, replay audio theo thời gian thực, có khoảng rảnh thật giữa lượt; báo đường cong latency–concurrency |
+| §12 lộ trình | Mỗi lần đổi một thành phần (§10 thiết kế) chưa đủ để kết luận latency (§20.8.2) | A/B ghép cặp theo file, xen kẽ, bootstrap CI; cải thiện vài chục ms cần hàng trăm lượt |
+
+### C. Checklist instrumentation cho Phase 1 (MVP)
+
+Nên có ngay từ ngày đầu, vì thêm sau sẽ mất baseline:
+
+- [ ] Đồng hồ đơn điệu ở mọi host (`time.perf_counter_ns()`, `performance.now()`); mốc audio dùng chỉ số mẫu.
+- [ ] Tập mốc M1–M12 (§20.7.1), mỗi event mang `session_id`, `turn_id`, `revision`, `generation_id`, `chunk_id`.
+- [ ] Client tự tính v2v (D1) từ `speech_end_sample` do server gửi, không cần đồng bộ đồng hồ (§20.7.3).
+- [ ] Ghi log ra hàng đợi, không ghi đồng bộ trên thread audio hay event loop.
+- [ ] Bản ghi cho mọi response, kể cả `cancelled`/`failed`.
+- [ ] Waterfall theo turn hiển thị hai nhánh gate và compute.
+- [ ] Bộ audio cố định có annotation speech-end (để đo D0 bằng black-box harness, §20.7.6) dùng lại cho mọi A/B.
+
+### D. Những sai lầm dễ gặp khi hiện thực
+
+| Sai lầm | Hậu quả | Cách tránh |
+|---|---|---|
+| Báo "TTFA 115 ms" hoặc "TTFT 92 ms" làm latency hệ thống | Kỳ vọng sai hàng trăm ms | Chỉ báo D1 làm con số tiêu đề |
+| Benchmark bằng vòng lặp liên tục | Bỏ sót cold GPU, số đẹp gấp ~3 lần thực tế | Mô phỏng khoảng rảnh 6–20 s; báo riêng chunk đầu của lượt |
+| Join log theo thứ tự lượt khi có reopen | v2v bị thổi phồng (1320 → 3720 ms trong Script 4A) | Join theo `(turn_id, revision, generation_id)` |
+| Chỉ phân tích response hoàn tất | Bỏ sót lượt barge-in/reopen | Ghi và phân tích riêng theo `status` |
+| Đổi ASR/LLM để "giảm latency" khi đang gate-bound | Tốn công, v2v không đổi | Đo slack trước |
+| Hạ `min_silence` hoặc hold mà không đo false cutoff | Nhanh hơn nhưng cắt lời user | Luôn báo kèm tỉ lệ cắt nhầm |
+| Đặt `max_streams` theo số user | Mọi request chậm thêm do slot dư | Đặt theo số stream đồng thời đo được |
+| Pre-buffer cố định lấy từ demo | Hoặc thêm hàng trăm ms, hoặc underrun | Tune theo lead và jitter đo được trên mạng thật |

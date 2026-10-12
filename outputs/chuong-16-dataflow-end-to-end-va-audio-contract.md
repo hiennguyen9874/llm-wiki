@@ -1055,3 +1055,118 @@ E. accepted = 61440 samples; dropped = [(7, 3), (8, 0)]
 [^vieneurt]: [VieNeu-TTS Streaming Runtime and Performance](../wiki/vieneu-tts-streaming-runtime.md) — "Three numbers" (frame codec 80 ms, chunk đầu 2 frame GPU / 4 frame CPU, chunk sau 4 frame = 320 ms; pre-buffer 150–300 ms); GPU mechanism (continuous batching, slot riêng, sampling theo hàng); CPU (lead-in 4 frame, pre-buffer ≥ 300 ms); bảng troubleshooting (giật khi không pre-buffer hoặc RTF > 1).
 [^silero]: [Silero VAD](../wiki/silero-vad.md) — Key characteristics (8 000/16 000 Hz); Dependencies (tensor float32 1-D); Versions and streaming configuration (từ v5 cửa sổ cố định 512 mẫu @16 kHz / 256 @8 kHz; `VADIterator` mỗi session, `reset_states()` khi hết lượt; `speech_pad_ms` 100–200). Phần streaming là AI report thứ cấp.
 [^blueprint]: [Cascaded Voice-Agent Blueprint](../wiki/cascaded-voice-agent-blueprint.md) — "Turn flow and defaults" (client mono 16 kHz s16 PCM 20–32 ms binary, JSON `type` + `sequence`; `PRE_ROLL_MS = 200`, `MAX_UTTERANCE_MS = 30_000`, pre-roll 200–300 ms); "Per-token TTS is rejected" (đơn vị một câu hoặc 20–60 ký tự); "Reference async worker layout" (ring-buffer pre-roll 250 ms) và đoạn đọc tĩnh ghi nhận độ lệch (**Observed**). Nguồn là câu trả lời ChatGPT, chưa kiểm chứng.
+
+---
+
+## 16.17 Lưu ý khi thiết kế và hiện thực pipeline speech-to-speech tiếng Việt
+
+Phần này nối kiến thức của chương với [tài liệu thiết kế pipeline speech-to-speech tiếng Việt](thiet-ke-pipeline-speech-to-speech-tieng-viet.md): mục nào của tài liệu phụ thuộc vào dataflow và audio contract, điều gì phải chốt trước khi viết code, chỗ nào tài liệu còn mơ hồ, và lỗi nào dễ mắc khi hiện thực. Toàn bộ phần này là **Synthesis** từ nội dung chương và tài liệu thiết kế, chưa kiểm chứng bằng implementation. Các lưu ý riêng về transport (WebSocket/WebRTC, backpressure, TURN, token) đã nằm ở Chương 8 §8.17, không lặp lại ở đây.
+
+### 16.17.1 Dataflow chạm vào những mục nào của tài liệu thiết kế
+
+| Mục trong tài liệu thiết kế | Chương này quyết định điều gì | Kiến thức trong chương |
+|---|---|---|
+| §3 nguyên tắc 2 (một owner cho lượt) | Mọi tín hiệu VAD/ASR/Smart Turn đổ về turn owner, gắn chỉ số mẫu | §16.1, §16.4.4 |
+| §3 nguyên tắc 4 (audio contract) | Chín trường của contract, kiểm bằng giá trị thật ở biên | §16.3 |
+| §3 nguyên tắc 5 (không hành động trên văn bản chưa commit) | `turn.commit(turn_id, revision)` là mốc duy nhất cho side effect | §16.3.3, §16.8 |
+| §4 Kiến trúc tổng thể | Sơ đồ cạnh U0–U5, C1–C3, T1–T3, D1–D6 | §16.1 |
+| §5.1 Transport, AEC | Định dạng uplink, nơi resample, lệch sample rate "9/10 lần" | §16.3.2, §16.13 |
+| §5.2–5.3 VAD, turn | Reblock 512, cửa sổ 8 s của Smart Turn quyết định cỡ ring | §16.4, §16.5.1 |
+| §5.6, §5.7 TTS, orchestration | Contract output của VieNeu, trần 16 kHz của HF s2s | §16.3.4–16.3.5, §16.9 |
+| §7.1 Audio ingress | Ring buffer, pre-roll, state theo session, policy gap | §16.5, §16.6.3, §16.7 |
+| §7.2 Event schema | Sáu định danh, phạm vi và quy tắc tăng | §16.8 |
+| §7.3 Barge-in | `played_sample_offset` → bảng `chunk_id → khoảng mẫu` → cắt history | §16.6.4 |
+| §8.1 Critical path | "Mẫu speech cuối" đo bằng chỉ số mẫu, nối wall clock qua neo | §16.6.2 |
+| §9.2–9.3 VRAM, scaling | Ngân sách bộ nhớ audio theo session; batching với state tách theo hàng | §16.5.5, §16.7.2 |
+| §9.5 Privacy | Turn buffer và speaker embedding là dữ liệu nhạy cảm, release đúng hạn | §16.5.3, §16.7.1 |
+| §10 gate 5 Contract tests | Danh sách test cụ thể | §16.12 |
+
+### 16.17.2 Những quyết định phải chốt trước khi viết code
+
+1. **Rate chuẩn của từng đoạn, viết thành bảng.** Uplink: 16 kHz mono f32 trong gateway (§7.1). Downlink: rate gốc của TTS, khai báo trong `audio.start`. Ghi rõ **mọi** phép resample trên tuyến: ở đâu, ai làm, có state hay không. Mục tiêu là tối đa một lần resample mỗi chiều (§16.10).
+2. **Có chấp nhận trần 16 kHz hay không.** Đây là quyết định sản phẩm, không phải chi tiết kỹ thuật. Nếu Profile A chạy trên HF s2s với `--tts openai`, toàn pipeline bị khoá ở băng thông 8 kHz (§16.9). Nếu chấp nhận: xin VieNeu trả `sample_rate=16000` luôn và ghi trần này vào contract. Nếu không: phải dùng gateway tự viết (hoặc sửa handler và transport của HF s2s, **Unverified**) để giữ rate gốc như §7.1 yêu cầu.
+3. **Cỡ ring buffer.** Bằng cửa sổ đọc lùi dài nhất cộng biên: ≥ 8 s nếu dùng Smart Turn, cộng backlog cho phép của ASR streaming. Ghi số này vào config kèm lý do; khi đổi turn detector phải tính lại.
+4. **Ai giữ pre-roll.** Uplink liên tục → gateway lấy pre-roll từ ring. Client gating bằng VAD → client phải gửi kèm pre-roll. Đồng thời liệt kê mọi lớp padding (pre-roll gateway, `speech_pad_ms` của Silero, `--speech_pad_ms 500` của HF s2s) để chúng không cộng dồn ngoài ý muốn (§16.5.2).
+5. **Triết lý commit, vì nó quyết định vòng đời turn buffer.** Commit cứng sau timeout, speculative + revision (HF s2s), hay two-pass (Profile D) cho ba thời gian giữ turn buffer khác nhau (§16.5.3). Chọn một trước khi viết `TurnBuffer.release()`.
+6. **Policy gap uplink.** Chốt: ngưỡng "mất ngắn" (chèn im lặng + đánh dấu), ngưỡng "mất dài" (huỷ lượt hoặc hỏi lại, gợi ý ~500 ms), xử lý frame tới muộn/trùng, và hành vi sau reconnect (§16.6.3).
+7. **Cách đánh số `sequence` downlink.** Reset theo generation (client kiểm cặp `(generation_id, sequence)`) hay liên tục cả session. Chọn một, ghi vào contract, viết test (§16.8.2).
+
+### 16.17.3 Chỗ tài liệu thiết kế còn mơ hồ hoặc thiếu, cần bổ sung
+
+| Vị trí | Vấn đề | Đề xuất bổ sung |
+|---|---|---|
+| §4 "ring buffer 20 ms" | Dễ đọc nhầm thành ring dài 20 ms. 20 ms là **frame transport**; ring phải ≥ 8 s nếu dùng Smart Turn | Sửa thành "frame 20 ms → ring buffer ≥ 8 s, đồng hồ mẫu tuyệt đối" |
+| §3 nguyên tắc 4 so với §6 Profile A và §7.1 | §7.1 muốn "giữ sample rate gốc tới playback", nhưng Profile A gợi ý HF s2s `serve`, vốn ép downlink về 16 kHz | Ghi rõ Profile A qua HF s2s là ngoại lệ có chủ đích, hoặc đổi Profile A sang gateway tự viết |
+| §7.2 danh sách định danh | Không có `chunk_id` ở dòng định danh chung (chỉ xuất hiện trong `text.chunk`, `audio.chunk`) | Đưa `chunk_id` vào danh sách và mô tả phạm vi như §16.8.1 |
+| §7.2 `asr.partial` / `asr.final` | Không mang `turn_id`, `revision`, `audio_range` | Thêm cả ba; `audio_range` theo chỉ số mẫu 16 kHz |
+| §7.2 | Không có sự kiện cho gap và lượt hỏng | Thêm `ingress.gap(w_start, n_samples)` và `turn.invalidated(turn_id, reason)` |
+| §7.2 `audio.chunk` | Không nói `sequence` đánh số theo generation hay theo session; không có offset mẫu | Chốt quy tắc đánh số; thêm `sample_offset` để client và gateway cùng dựng bảng `chunk_id → khoảng mẫu` |
+| §7.1 "policy rõ ràng" cho gap | Chỉ yêu cầu "không nối lệch timeline", chưa có policy cụ thể | Dùng bảng §16.6.3 làm khởi điểm |
+| §7.1 pre-roll | Không nói pre-roll lấy từ đâu, cũng không nói quan hệ với `speech_pad_ms` | Ghi "pre-roll copy từ ring" và bảng các lớp padding |
+| §7.2 "Final-pass chạy lại trên turn audio đã giữ" | Không nói giữ bao lâu, ai release | Thêm vòng đời turn buffer (OPEN → HOLD → RELEASE) và trần độ dài (vd 30 s) |
+| §7.3 bước 5 "chỉ lưu phần đã thực sự phát" | Không nói cơ chế tra từ offset ra text | Thêm bảng `chunk_id → [mẫu đầu, mẫu cuối)` ở TTS adapter; phần phát dở ghi là ước lượng |
+| §7.4 pseudo-code | `silero.score(reblock_512(denoise_opt(frame)))` giả định mỗi frame cho đúng một khối; `asr_stream.feed(frame)` và `last_8s_audio` không nói đọc từ đâu | Viết lại theo mô hình "một ring, nhiều con trỏ đọc" (§16.4.4): reblocker trả 0..n khối; ASR và Smart Turn đọc theo chỉ số mẫu |
+
+### 16.17.4 Lưu ý thiết kế theo từng mục
+
+**Audio contract (§3 nguyên tắc 4).**
+- Viết contract cho **từng cạnh qua ranh giới**, không chỉ cho từng backend. Cùng VieNeu nhưng SDK (f32) và HTTP (s16le) là hai contract khác nhau.
+- Kiểm bằng **giá trị thật** mà backend trả về (`X-Sample-Rate`, header WAV, metadata SSE), không bằng config. Rate không rõ → lỗi contract, không phát.
+- `audio.start` mang format của **chính generation đó**. Fallback TTS (§9.4) có thể đổi rate giữa hai generation; client không được giả định rate cố định cho cả session.
+- MOSS (codec stereo, ví dụ mono) và Higgs (SSE base64 WAV, mỗi event có header) là hai backend dễ vỡ nhất: viết contract test trước khi đưa vào A/B.
+
+**Audio ingress (§7.1).**
+- Một ring buffer theo session là nguồn sự thật. VAD, Smart Turn, ASR streaming và turn buffer mỗi cái một con trỏ đọc. Đừng "đẩy" frame lần lượt qua từng nhánh như pseudo-code §7.4, vì nhánh chậm sẽ chặn nhánh nhanh và mỗi nhánh lại tự dựng timeline riêng.
+- Ring phải **ném lỗi** khi bị đọc quá xa (§16.5.1), không trả dữ liệu đã bị ghi đè.
+- Nhánh denoise (§3 nguyên tắc 3) có frame size, rate và state riêng. Nó đọc ring rồi đưa vào reblocker của VAD; ASR vẫn đọc audio AEC gốc từ ring. Hai nhánh này **chung timeline**, nên độ trễ thuật toán của denoise phải được bù khi so `speech_start` với `audio_range` của ASR.
+- Với tiếng Việt, mất phần đầu âm tiết là mất phụ âm đầu (thông tin phân biệt từ). Test pre-roll với lệnh một âm tiết ("không", "dừng") và lưu ý `--min_speech_ms 384` của HF s2s có thể nuốt luôn các lệnh này (§5.3 thiết kế).
+
+**Event schema và định danh (§7.2).**
+- Mọi sự kiện audio mang **chỉ số mẫu**; mọi sự kiện mang ít nhất một định danh. Bước nào không viết được cột "Định danh" ở bảng §16.10 thì không debug được khi có reopen hoặc barge-in.
+- Định danh không bao giờ tái sử dụng trong session. Không reset `generation_id` khi sang lượt mới.
+- Generation speculative (trên revision chưa commit) vẫn có `generation_id` riêng, và phải bị huỷ khi revision đổi (trace §16.8.3, generation 41).
+- Kiểm stale ở **mọi** consumer: LLM client theo từng delta, chunker, TTS adapter, send loop, client queue. Chỉ kiểm ở client thì GPU vẫn sinh audio thừa.
+
+**Barge-in và history (§7.3).**
+- `played_sample_offset` phải đếm mẫu **đã render**, không tính pre-buffer và underrun (như HF browser demo). Đếm mẫu đã gửi sẽ lưu vào history cả phần người dùng chưa nghe.
+- HF s2s chấp nhận `conversation.item.truncate` như no-op. Nếu dùng HF s2s, việc cắt history phải do gateway của bạn làm.
+- Phần phát dở chỉ là **ước lượng theo ký tự** khi không có alignment. Lưu dạng "đã bắt đầu nói: …" kèm `[bị ngắt]`, không giả vờ biết chính xác từ nào đã phát.
+
+**Latency và đo lường (§8).**
+- Mốc "mẫu speech cuối của user" ở §8.1 phải lấy từ chỉ số mẫu (VAD), rồi quy ra wall clock qua neo `(w, t_wall)`. Dùng thời điểm gói tới làm mốc là đo cả jitter mạng vào endpoint.
+- Log `lag` của ingress. `lag` tăng dần là backlog của gateway, không phải lỗi model.
+- Biết các độ trễ cấu trúc nhỏ: reblock 320 → 512 thêm 0–16 ms (tb 8 ms); chunk đầu VieNeu GPU 160 ms nhỏ hơn pre-buffer 200 ms nên client phải chờ một phần chunk thứ hai. Chúng không lớn, nhưng nếu không biết sẽ đổ lỗi nhầm chỗ.
+- Join log theo `turn_id`/`revision`/`generation_id`/`chunk_id`, không theo thứ tự thời gian (§8.1 thiết kế).
+
+**Bộ nhớ, scaling và privacy (§9).**
+- Audio buffer không phải nút thắt bộ nhớ (~2,4 MB/session trường hợp xấu), nhưng là nơi **rò rỉ** dễ nhất. Đưa "turn buffer = 0 khi idle" và "bảng `chunk_id` được dọn sau khi cắt history" vào test.
+- Chia sẻ weights và process giữ model (§9.1); **không bao giờ** chia sẻ `VADIterator`, ASR cache, resampler, turn buffer. Batching qua session chỉ hợp lệ khi state tách theo hàng (như slot của VieNeu).
+- Callback đến muộn sau khi session đóng phải bị bỏ bằng một session generation kiểm nguyên tử, giống HF s2s. Dùng chung ASR cache giữa user là **sự cố rò rỉ dữ liệu**, không chỉ là bug.
+- Turn buffer, transcript revisions và speaker embedding là dữ liệu nhạy cảm. Release đúng hạn vừa là quản lý bộ nhớ vừa là privacy (§9.5). Giữ lâu hơn cho corpus đánh giá chỉ khi có opt-in.
+
+### 16.17.5 Lưu ý theo profile
+
+| Profile (§6) | Điểm dataflow cần chú ý |
+|---|---|
+| **A** MVP turn-final | Không có U5a. Turn buffer là đầu vào duy nhất của ASR, nên pre-roll và trần lượt quyết định chất lượng. Nếu chạy qua HF s2s: trần 16 kHz, `speech_pad_ms 500` cộng dồn với pre-roll, browser demo uplink 24 kHz (không phải 16 kHz) |
+| **B** native streaming | U5a đọc ring theo chunk 160/320 ms (chia hết cho cả frame 20 ms và khối VAD; 560 ms thì không chia hết cho 512, nhưng vẫn chạy vì đọc theo chỉ số mẫu). ASR cache theo session phải được giải phóng sau final và khi đóng session. `audio_range` của partial phải gắn chỉ số mẫu để turn owner so với VAD |
+| **C** quality single-pass | Buffered ASR có rollback: revision của transcript thay đổi nhiều hơn, nên `revision` và quy tắc "commit một lần" quan trọng hơn ở đây |
+| **D** two-pass | Turn buffer phải sống tới khi final-pass xong. Hai ASR đọc **cùng** timeline (streaming đọc ring, final đọc turn buffer); final thay revision, không đổ vào luồng partial |
+| **E** CPU/edge | Bộ nhớ và CPU cho reblock/resample đáng kể hơn; dùng int16 cho ring nếu cần. VieNeu CPU: chunk đầu 4 frame (320 ms), pre-buffer ≥ 300 ms. Kiểm `lag` để phát hiện CPU không theo kịp thời gian thật |
+| **F** license-strict | Không đổi về dataflow; contract test phải chạy lại khi thay backend vì lý do license (VoxCPM2, MOSS có contract output khác VieNeu) |
+
+### 16.17.6 Bổ sung cho release gates (§10)
+
+- **Gate 5 (contract tests):** dùng bảng §16.12 làm danh sách tối thiểu. Thêm ba test mà §10 chưa nêu: message cắt giữa một mẫu s16 (byte lẻ), `speech_start` ngay sau khi session mở (ring chưa đủ pre-roll), và hai session song song nói xen kẽ không rò state.
+- **Gate 1 (corpus ASR):** thêm biến số **pre-roll** (0 / 200 / 300 ms) và **gap uplink giả lập** (mất 1, 5, 25 frame giữa lượt). Đo riêng lỗi ở âm tiết đầu lượt.
+- **Gate 2 (TTS):** ghi rõ đường nghe khi chấm MOS: rate gốc hay qua trần 16 kHz. Không so điểm của hai đường với nhau. Kiểm spectrogram audio thu ở client để phát hiện trần 8 kHz.
+- **Gate 3 (turn và barge-in):** kiểm cắt history theo `played_sample_offset` (đã phát hết / phát dở / chưa phát) và không có audio của generation cũ sau `clear`.
+- **Gate 4 (tải):** đo bộ nhớ theo session sau N lượt dài (không được tăng tuyến tính theo độ dài cuộc gọi) và `lag` ingress ở concurrency 1/4/8/16.
+
+### 16.17.7 Thứ tự hiện thực gợi ý, khớp lộ trình §12
+
+1. **Phase 1 (MVP):** `AudioContract` + `check` ở mọi cạnh qua ranh giới; ingress có `sequence` và policy gap; ring buffer theo session với đồng hồ mẫu và neo wall clock; reblocker 512 cho Silero; turn buffer có pre-roll, trần và release; `generation_id`, `chunk_id`, `sequence` trên downlink; guard ở client; `audio.played` đếm mẫu đã render; log join theo định danh. Viết contract test cho backend TTS đã chọn **trước** khi ghép vào pipeline. Ghi quyết định về trần 16 kHz.
+2. **Phase 2 (Beta):** con trỏ đọc riêng cho ASR streaming (Profile B) và Smart Turn; nhánh denoise chỉ cho VAD với bù độ trễ; bảng `chunk_id → khoảng mẫu` và cắt history thật; test gap/reconnect; đo `lag` và các độ trễ cấu trúc.
+3. **Phase 3 (Production):** giữ rate gốc tới playback nếu sản phẩm cần; turn buffer cho final-pass (Profile D); test tải bộ nhớ theo session; rà retention của turn buffer và speaker embedding theo §9.5.
+
+**Ba điều dễ bị bỏ qua nhất** (Synthesis): (1) mọi vị trí audio đo bằng **chỉ số mẫu** trên một timeline, mọi gap được lấp đúng thời lượng **và** được đánh dấu; (2) state theo session không bao giờ dùng chung, và mọi buffer có điểm release được test; (3) biết trần băng thông thật của pipeline trước khi đánh giá chất lượng giọng.

@@ -1590,3 +1590,79 @@ state: Turn.LISTENING turn_id 2 rev 1 gid 4
 [^demo]: [Speech-to-Speech Browser Demo](../wiki/speech-to-speech-browser-demo.md) — "Audio pipeline notes" (playback fade 32 frame; ngắt/huỷ/lỗi/disconnect bỏ audio đang chờ; worklet báo số PCM đã render, không tính độ trễ khởi động và underrun; client gửi `conversation.item.truncate` theo số đó, thay đồng hồ lúc nhận sự kiện của SDK; server cục bộ nhận truncate mà không đổi history).
 [^vieneuapi]: [VieNeu-TTS OpenAI-Compatible Speech API](../wiki/vieneu-tts-openai-speech-api.md) — lỗi `429` khi hết slot (kèm `Retry-After`); `/health` (`active`, `waiting`, `max_streams`); `VIENEU_MAX_STREAMS`, `VIENEU_QUEUE`, `VIENEU_QUEUE_TIMEOUT`. Việc slot giải phóng khi request gặp EOS hoặc frame cap lấy từ trang liên kết [VieNeu-TTS Streaming Runtime](../wiki/vieneu-tts-streaming-runtime.md) ("Continuous batching").
 [^frameworks]: [Voice Agent Frameworks](../wiki/voice-agent-frameworks.md) — Pipecat cung cấp interruption handling, per-service TTFB metrics và WebRTC transport khi ghép `SileroVADAnalyzer` + `LocalSmartTurnAnalyzerV3` + `WhisperSTTService` + `OpenAILLMService` + `TTSService` tuỳ biến (**Reported** qua AI report).
+
+---
+
+## Ghi chú áp dụng: những điểm quan trọng khi thiết kế và hiện thực tài liệu thiết kế
+
+Phần này nối Chương 17 với [Thiết kế pipeline speech-to-speech tiếng Việt](thiet-ke-pipeline-speech-to-speech-tieng-viet.md) (gọi tắt là "tài liệu thiết kế"). Nó chỉ ra những gì phải giữ đúng, những chỗ tài liệu thiết kế còn để ngỏ hoặc mới chỉ phác thảo, và thứ tự nên làm. Mọi nhận định ở đây là **Synthesis** từ nội dung chương, trừ khi ghi nhãn khác.
+
+### A. Năm điều không được thoả hiệp
+
+1. **Một owner, một inbox cho mỗi session** (nguyên tắc 2 §3). Trước khi viết code, hãy chỉ ra được **đúng một** dòng code quyết định commit, một dòng quyết định reopen và một dòng tăng `generation_id`. VAD, Smart Turn, ASR, LLM, TTS, client và timer chỉ gửi sự kiện vào inbox (§17.2.3). Nếu dùng WhisperLive/RealtimeSTT, tắt segmentation riêng của chúng, hoặc chỉ dùng chúng như tín hiệu (§5.8 tài liệu thiết kế).
+2. **Phát audio là ranh giới cứng** (nguyên tắc 5 §3). Không chunk audio nào ra client trước `turn.commit` của đúng `(turn_id, revision)`. Ghi history và chạy tool có side effect cũng vậy (thang hành động §17.4.2).
+3. **Cancel là best-effort, lọc theo `generation_id` là bắt buộc.** Không bao giờ coi "đã gửi lệnh huỷ" là "đã hết audio cũ". `/v1/audio/speech` không có huỷ phía server (**Reported**).[^backends] Kiểm generation ở mọi chỗ dữ liệu đổi chủ, nguyên tử ở điểm publish và ở client bằng `floor` chỉ tăng (§17.6.2–17.6.5).
+4. **`generation_id` đơn điệu cả session.** Không reset theo lượt. Cancel cũng tăng. Không có response active thì cancel là no-op, không tăng (§17.6.6).
+5. **History là cái user đã nghe,** tính từ số mẫu client đã render, không phải cái LLM đã sinh (§17.9).
+
+### B. Đối chiếu từng mục của tài liệu thiết kế
+
+| Mục tài liệu thiết kế | Điều cần giữ đúng khi hiện thực | Chỗ còn thiếu hoặc cần làm rõ (chương này bổ sung) |
+|---|---|---|
+| §3 nguyên tắc 2 | Gateway (hoặc turn tracker của framework) là owner duy nhất | Cụ thể hoá thành actor một inbox, xử lý tuần tự, không `await` giữa đọc và ghi trạng thái (§17.2.3) |
+| §3 nguyên tắc 5 | Partial chỉ cho caption và speculation | Thang hành động 8 bậc; idempotency key `(session_id, turn_id, revision, tool_call_index)`; kiểm generation ngay trước khi chạy tool (§17.4) |
+| §5.3 turn detection | Không trộn default HF (64 ms + 800 ms + 2 s) với bảng report (200–300 ms + 1.2–1.5 s) | Chọn **một** trong hai triết lý và ghi vào config: speculative + revision, hoặc commit cứng (grace = 0, §17.3.6). Ngưỡng nói tiếp (HF 192 ms) phải thấp hơn ngưỡng mở lượt/barge-in (384 ms) (**Observed**)[^cli] |
+| §7.1 audio ingress | Pre-roll 200–300 ms | Khi barge-in, turn buffer mở từ **đầu đoạn nói** − pre-roll, không phải từ lúc quyết định; ring buffer phải dài ít nhất `gate + pre-roll` (§17.3.4) |
+| §7.2 event schema | `session_id, turn_id, revision, generation_id, sequence` trên mọi sự kiện | Schema thiếu `turn.open`/`turn.reopen`, `response.created`, `audio.end`, `response.done(status, reason)`, `error`. Cần quy ước phạm vi của `sequence`. Cần nói rõ `client.clear(generation_id)` mang generation **bị huỷ** và client nâng `floor` theo nó. Tên `audio.played` của tài liệu thiết kế tương ứng `client.played` ở §17.5.2 (§17.5) |
+| §7.3 barge-in | Trình tự 6 bước (**Reported**) | Sắp lại theo lý do: tăng generation nguyên tử → `clear` vượt hàng → cancel LLM/TTS → flush giữ sentinel và usage → mở lượt mới → `response.done` → cắt history khi có played offset (§17.8.1). Bước "lưu phần đã phát" không làm đồng bộ được trong `interrupt()`: nó phải chờ `client.played` |
+| §7.3 gating | Bảng duration gate, speaker lock, quick ASR | Thêm ba kết cục cho backchannel (ngắt / ghi nhận / bỏ qua) và danh sách tiếng Việt khởi điểm (§17.7.6); gating hai pha là lựa chọn chưa đo (§17.7.7) |
+| §7.3 đo lường | Đo "âm thanh bot dừng" và "giải phóng compute" | Định nghĩa thành T_silence và T_release, log kèm `(turn, rev, gen)` và lý do cancel (§17.8.4) |
+| §7.3 deployment gate | SDK không huỷ được là gate | Hệ quả cụ thể với VieNeu: slot bị giữ tới EOS, barge-in liên tiếp có thể gây `429`; theo dõi `/health` (§17.8.3) |
+| §7.4 pseudo-code | Chỉ minh hoạ | Xem mục C bên dưới |
+| §8.1 output gate | `v2v ≈ soft-end + max(output-hold, ASR + LLM) + TTS + playback` | Mô phỏng khớp công thức (1 214 ms, **Reproduced** với tham số giả định). Khi ASR + LLM nằm gọn trong grace, đổi model nhanh hơn không giảm latency; giảm grace là quyết định sản phẩm (§17.4.3) |
+| §10 gate 5 | Không stale audio, không duplicate final, sequence/revision đơn điệu, cancel giữa chunk, disconnect/reconnect | Danh sách test phát lại sự kiện ở §17.12 là phiên bản cụ thể của gate này |
+| §11 mâu thuẫn barge-in | 100–200 ms so với 300–500 ms | Chương không chọn bên. Mô phỏng chỉ ra đánh đổi: 150 ms ngắt nhầm "ừ", 400 ms làm gate chiếm phần lớn T_silence (§17.7.2). Phải đo trên dữ liệu tiếng Việt thật |
+
+### C. Những chỗ cần sửa khi biến pseudo-code §7.4 thành code thật
+
+Pseudo-code §7.4 của tài liệu thiết kế là minh hoạ luồng. Khi hiện thực, sáu điểm sau dễ thành bug:
+
+1. **`bot_speaking` là biến riêng.** Nên suy ra từ "có response `RELEASED` chưa nhận `audio.done`" để không lệch trạng thái (§17.3.1).
+2. **`interrupt()` được gọi lại ở mọi frame** khi speech vẫn vượt `BARGE_MS`. Cancel phải là no-op khi response đã `CANCELLED`, nếu không `generation_id` tăng liên tục và cờ discard có thể kẹt (§17.6.4).
+3. **`client.send({"type": "clear"})` không mang generation bị huỷ.** Client cần số đó để nâng `floor`, nếu không chunk rò sau clear vẫn được phát (property test §17.6.5: guard chỉ so `gid == cur` không tốt hơn naive).
+4. **`history.append(played_part_only())` ngay trong `interrupt()`.** Lúc đó server chưa biết client đã phát bao nhiêu. Ghi history khi nhận `client.played(old, offset)` (§17.9.2).
+5. **`if gid != generation_id: break` chỉ kiểm ở chỗ enqueue TTS.** Vẫn cần kiểm ở send loop (nguyên tử với gửi) và ở client. Giữa "kiểm" và "gửi" có `await` là có race (§17.6.3).
+6. **`on_turn_commit` gọi `asr.final` và LLM sau commit.** Như vậy ASR + LLM bị cộng nối tiếp vào latency, không nằm trong `max(...)` của §8.1. Muốn hưởng output gate, response phải được tạo `SPECULATIVE` lúc soft-end, giữ text trong `held` và chỉ thả khi commit (§17.3.3, §17.11). Timer commit phải mang token `(turn_id, revision)` để tự vô hiệu khi reopen.
+
+### D. Lưu ý theo lựa chọn orchestration (§5.7, §6 tài liệu thiết kế)
+
+| Lựa chọn | Có sẵn | Vẫn phải tự làm hoặc tự kiểm |
+|---|---|---|
+| **HF s2s** (Profile A) | Turn tracker một owner, `CancelScope` theo generation, `response.cancel` no-op khi không có response, terminal statuses (**Reported**)[^engine] | `conversation.item.truncate` là no-op: muốn history khớp cái user đã nghe thì tự cắt. Client riêng phải có guard `floor`. Cờ `interrupt_response` quyết định speech khi bot nói chỉ được transcribe hay ngắt |
+| **Pipecat** | Interruption handling của framework (**Reported** qua AI report)[^frameworks] | Kiểm `TTSService` tuỳ biến cho VieNeu có dừng được giữa câu và có bỏ audio của generation cũ không. Kiểm client transport có guard tương đương không. Chưa kiểm plugin hiện hành |
+| **Gateway tự viết** (Profile B/D) | Reference server có gate 400 ms và `{"type":"clear"}` (**Reported**)[^design] | Toàn bộ chương này: owner, hai máy trạng thái, timer token, guard nhiều tầng, cắt history, teardown, metrics |
+| **Profile D (two-pass)** | — | Final-pass thay một revision và commit **một lần**. Không phát audio hay chạy tool trên kết quả first-pass nếu final-pass có thể sửa nó |
+
+### E. Thứ tự hiện thực đề xuất
+
+1. **Event envelope và log** theo `(session, turn, rev, gen, chunk, sequence)`. Chưa có log này thì mọi bước sau không debug được.
+2. **Owner + hai máy trạng thái + timer token,** test bằng phát lại chuỗi sự kiện, chưa cần model thật (khung §17.11).
+3. **Guard ở send loop và client** (`floor`, `cur`, `last_seq`), kèm property test có rò và đảo thứ tự (Script 2).
+4. **Output gate** (speculative + `held`), đo lại công thức §8.1 với model thật.
+5. **Barge-in tối thiểu:** duration gate + AEC trình duyệt. Đo T_silence, T_release, tỷ lệ ngắt nhầm.
+6. **Cắt history theo played offset** (client đếm mẫu đã render).
+7. **Teardown và reconnect** (§17.10).
+8. Chỉ sau khi 1–7 qua gate 5: thêm speaker lock, quick ASR, backchannel ba kết cục, gating hai pha. Mỗi lần chỉ thêm một cổng và đo lại.
+
+### F. Checklist trước khi coi phần điều khiển lượt là xong
+
+- [ ] Một dòng code duy nhất cho commit, reopen, tăng generation.
+- [ ] Không audio nào ra client trước `turn.commit` của đúng revision.
+- [ ] Timer cũ không commit được revision mới.
+- [ ] Cancel khi không có response là no-op; hai barge-in sát nhau không làm response kế tiếp bị nuốt.
+- [ ] 0 ms audio cũ được phát sau khi client xử lý `clear`, kể cả khi TTS rò và mạng đảo thứ tự.
+- [ ] History khớp số mẫu đã render; không có `[bị ngắt]` khi đã phát hết.
+- [ ] Tool call của response bị huỷ không chạy.
+- [ ] Disconnect giữa câu: LLM/TTS bị huỷ, slot TTS về 0, không callback muộn vào session mới.
+- [ ] Mỗi barge-in có log T_silence, T_release, lý do cancel và `(turn, rev, gen)`.
+- [ ] Config ghi rõ triết lý endpoint (speculative hay commit cứng) và đồng hồ của từng timer (audio time hay wall clock).

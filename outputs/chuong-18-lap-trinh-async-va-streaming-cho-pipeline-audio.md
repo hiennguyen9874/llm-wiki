@@ -1813,3 +1813,95 @@ WARNING asyncio: Executing <Task finished name='Task-1' coro=<main() done, defin
 [^blueprint]: [Cascaded Voice-Agent Blueprint](../wiki/cascaded-voice-agent-blueprint.md) — đoạn mô tả `VoiceSession` (bốn `asyncio.Queue`, `generation_id`, `assistant_speaking`, năm coroutine, `asr_worker` gọi Whisper qua `asyncio.to_thread`; **Reported**) và đoạn đọc tĩnh liền sau (không áp `MIN_SPEECH_MS`/`MAX_UTTERANCE_MS`, tăng `generation_id` ở frame đầu vượt ngưỡng, không xoá TTS queue, truyền bytes PCM thô vào `whisper.transcribe`; coi là dàn ý luồng điều khiển, không phải code chạy được; **Observed**). Nguồn là câu trả lời do LLM sinh.
 [^stack]: [Vietnamese Realtime Voice Agent Stack](../wiki/vietnamese-realtime-voice-agent-stack.md) — kiến trúc: gateway asyncio, reference server FastAPI + WebSocket asyncio (`Session` với `VADIterator` mỗi session, gate barge-in 400 ms, transcription qua `asyncio.to_thread`, LLM stream sang TTS queue worker, message `{"type":"clear"}`; body VieNeu và Docker tag cần kiểm lại); "Optimizations" (chạy generator `transcribe` lười tới hết trong `asyncio.to_thread`, PR #5931; nối các stage bằng async queue). **Reported** từ AI report thứ cấp.
 [^ch8]: [Chương 8. Transport mạng cho audio realtime](chuong-08-transport-mang-cho-audio-realtime.md) — §8.4.5 (keepalive, đóng kết nối), §8.5.2 (ba điểm có thể đầy; `await ws.send()` và backpressure tự nhiên), §8.5.3 (credit theo played offset), §8.5.4 (chính sách khi đầy: uplink bỏ frame cũ, downlink chặn producer, control không bao giờ bỏ). Tài liệu cùng bộ, không phải nguồn wiki.
+
+---
+
+## Ghi chú áp dụng: những điểm quan trọng khi thiết kế và hiện thực tài liệu thiết kế
+
+Phần này nối Chương 18 với [Thiết kế pipeline speech-to-speech tiếng Việt](thiet-ke-pipeline-speech-to-speech-tieng-viet.md) (gọi tắt là "tài liệu thiết kế"). Chương 17 đã chốt **ai** quyết định. Phần này chốt **code chạy ở đâu, chờ ở đâu, bỏ gì khi đầy, và dừng thế nào** khi biến tài liệu thiết kế thành một gateway thật. Mọi nhận định ở đây là **Synthesis** từ nội dung chương, trừ khi ghi nhãn khác.
+
+### A. Sáu điều không được thoả hiệp
+
+1. **Không việc nặng nào chạy trên event loop.** Tài liệu thiết kế chỉ nói "chạy faster-whisper trong `asyncio.to_thread`" (§5.4.4, §8.3). Điều đó chưa đủ: phải đưa **cả** `list(segments)` và bộ lọc hậu kỳ vào hàm chạy trong thread. `to_thread(model.transcribe)` rồi lặp trên loop vẫn đứng loop ~0,9 s (§18.3.1, Script 1). Áp dụng cho mọi thứ trả về đối tượng lười, và cho Smart Turn, resample cả turn, `json.dumps` history lớn.
+2. **Mỗi model một executor riêng, có semaphore giới hạn hàng chờ.** Không dồn ASR, Smart Turn, TTS in-process vào default executor (§18.3.3). Số worker bằng số đồng thời model thật sự chịu được trên GPU đó, đo rồi mới chọn.
+3. **Huỷ task ≠ dừng compute.** "Cancel LLM, cancel TTS" ở §7.3 tài liệu thiết kế chỉ bảo đảm gateway ngừng nhận. Lọc theo `generation_id` lo time-to-silence; cờ stop theo bước (hoặc đóng connection tới service) lo time-to-release. Cả hai phải được đo (§18.4.3). Không bao giờ nuốt `CancelledError`.
+4. **Mọi queue đều bounded, mỗi cạnh một policy** (§18.5.2): uplink drop-oldest có đánh dấu gap; partial ASR latest-only; final ASR từ chối có thông báo; text và audio chặn producer + credit; control không bao giờ bỏ và vượt hàng audio. "Bounded queue, backpressure" ở §9.1 tài liệu thiết kế phải được viết ra thành bảng này trong config.
+5. **Backpressure dừng ở biên tài nguyên dùng chung.** Một client chậm không được chặn thread GPU chung hay giữ slot VieNeu theo tốc độ phát (§18.5.4).
+6. **Cadence trước throughput** (§9.3 tài liệu thiết kế). Pacing theo lịch tuyệt đối; continuous batching; số slot giới hạn sao cho một bước < chu kỳ chunk; phần dư nhận `429` và đi fallback, không được làm mọi stream cùng giật (§18.7.3, Script 5 D).
+
+### B. Đối chiếu từng mục của tài liệu thiết kế
+
+| Mục tài liệu thiết kế | Điều cần giữ đúng khi hiện thực | Chỗ còn thiếu hoặc cần làm rõ (chương này bổ sung) |
+|---|---|---|
+| §3 nguyên tắc 2 (một owner) | Owner là một task đọc một inbox | Giữa đọc và ghi trạng thái không có `await`; tăng generation **trước** mọi `await` trong `cancel_response` (§18.4.6). Inbox control không bao giờ bỏ phần tử |
+| §4 kiến trúc | Các mũi tên giữa stage | Mỗi mũi tên là một queue có `maxsize`, policy khi đầy, và ba metric: độ sâu, số bỏ/từ chối, thời gian chờ (§18.5.5). Sơ đồ chưa ghi chỗ chạy của từng khối: xem bảng §18.1 và §18.3.6 |
+| §5.2 VAD (Silero < 1 ms/chunk) | Mỗi session một `VADIterator` | Chi phí inline nhân với số session: 30 session ≈ bão hoà một loop (§18.2.2). Đo loop lag khi tăng session; khi cần, gom batch VAD mỗi 32 ms hoặc chạy nhiều process gateway |
+| §5.3 Smart Turn (10 ms tới < 100 ms) | Chạy khi im lặng đủ lâu | Đây là việc **dài** theo thang §18.1: không gọi inline trên loop. Executor riêng, hoặc service riêng nếu nhiều session |
+| §5.4.4 faster-whisper | `list(segs)` trong worker thread | Đưa cả decode, `list()`, lọc `no_speech_prob`/`compression_ratio`/blacklist vào **một** hàm chạy trong executor riêng `asr` (§18.3.1). Đừng chỉ `to_thread(model.transcribe)` |
+| §5.5 giao diện LLM | Streaming text, `done`, `error`, `cancel` | LLM stream là async generator tiêu thụ trong `aclosing`; bốn loại timeout dưới một deadline tuyệt đối (§18.4.4, §18.6.1–18.6.2). Lỗi LLM thành sự kiện `response.failed` gửi owner, không giết session |
+| §5.6 TTS VieNeu, `/v1/audio/speech` | PCM chunked, sample rate từ `X-Sample-Rate` (**Reported**)[^vieneuapi] | Adapter phải mang phần dư byte lẻ giữa các chunk HTTP (§18.6.3). Đọc response hết tốc độ vào buffer theo generation; credit chỉ áp ở downlink. Hành vi của VieNeu khi client đọc chậm là **Unverified** |
+| §5.6 warmup (`warm_fused()`, GPU hạ clock, CUDA graph ~0,5 s mỗi batch size) | Gọi warmup lúc khởi động | Readiness chỉ báo sẵn sàng **sau** warmup; lần đầu gặp một batch size mới có thể là một lần giật dưới tải, cần đưa vào load test (§18.8.4) |
+| §5.7 HF s2s | `num_pipelines` = số session tối đa (**Observed**)[^cli] | Hàng đợi của HF s2s là theo pipeline, không có admission dùng chung (**Reported**).[^backends] Nhiều gateway gọi một TTS thì cap phải đặt ở TTS service hoặc proxy trước nó (§18.8.1). LLM proxy không có auth/throttling: để tắt hoặc đặt sau gateway |
+| §5.7 gateway tự viết | "Phải tự làm metrics và cancellation" | Khung session `TaskGroup` + response scope, một reader + một writer cho WS, send loop có hàng ưu tiên (§18.4.5, §18.6.4, §18.9) |
+| §5.8 `VIENEU_MAX_STREAMS` (GPU 16, CPU 1), vượt → `429` | Đặt theo tải | Chọn theo `c(S) < chu kỳ frame` và theo stream đang dùng, không theo VRAM hay số user; mỗi slot thừa cộng ~2,5 ms vào mọi lần gọi codec (**Reported**)[^vieneurt] |
+| §7.1 ingress (gap, state theo session) | Policy gap rõ ràng | Drop-oldest ở uplink **là** nguồn gap: mỗi lần bỏ phải ghi gap vào timeline và đếm `uplink_dropped` (§18.5.1). Chặn producer ở uplink chỉ dời backlog ra socket |
+| §7.2 event schema | `generation_id`, `sequence` | Thêm `response.failed(gid, reason)` và `session.end(reason)` là sự kiện đi qua owner (§18.8.5, bài tập 8). Partial là latest-only nên `sequence` của partial có lỗ hổng là bình thường |
+| §7.3 cancel LLM + TTS | Cancel từng handle | Huỷ cả response scope một lần; `await asyncio.wait({task})` thay vì `suppress(CancelledError)` (§18.4.6); set cờ stop cho thread compute; flush `audio_q` sau cùng để mở chỗ cho thread đang chặn |
+| §8.3 playback buffer 150–300 ms | Pre-buffer phía client | Pacer server gửi theo lịch tuyệt đối và credit theo played offset; `sleep(0.02)` tương đối trôi ~149 ms/5 s, ăn hết pre-buffer (§18.7.2, Script 4) |
+| §8.3 preemptive ASR + LLM | Cancel nếu user nói tiếp | Chỉ an toàn khi mọi việc speculative nằm trong response scope huỷ được và ASR thread có cờ stop; nếu không, mỗi reopen để lại một inference "ma" giữ GPU |
+| §8.4 monitoring | Metric theo turn | Thêm metric runtime §18.11: loop lag, queue, executor, task theo session, breaker, `downlink_lead_ms`, `client_underrun_total`, T_silence/T_release |
+| §9.1 admission cap, 429, deadline, breaker, cleanup | Liệt kê như yêu cầu | Cụ thể hoá thành ba tầng admission (session, model, request) §18.8.1; retry theo deadline có jitter §18.8.2; breaker + `/health` §18.8.4; giới hạn theo session §18.8.5 |
+| §9.2 GPU dùng chung ASR/TTS/LLM | Phân bổ VRAM | VRAM đủ không có nghĩa là cadence đủ: LLM chiếm GPU làm bước TTS/ASR streaming chậm lại. Đo P99 thời gian một bước khi LLM đang chạy |
+| §9.3 scaling | `BatchedInferencePipeline` cho turn-final; continuous batching cho TTS | Batch ASR turn-final chỉ khi cửa sổ gom nhỏ so với ngân sách endpoint→final; TTS và ASR streaming không bao giờ static batch (§18.7.3) |
+| §9.4 fallback | Không ghép hai giọng giữa câu | Fallback là câu đệm dựng sẵn cùng giọng, phát từ cache, đi qua owner như response bình thường, ghi history có nhãn (§18.8.3) |
+| §9.5 log content-free | Metadata only | Metric runtime không cần nội dung; đừng log payload trong handler exception của queue/stream |
+| §10 gate 4 (tải) | Concurrency 1/4/8/16; stall, frame rớt, underrun | Cần thêm kịch bản "nhiều phiên bắt đầu cùng lúc" (VieNeu báo max 339 ms ở 16 stream, **Reported**) và "loop bị chiếm" (§18.10.2) |
+| §10 gate 5 (contract) | Cancel giữa chunk, disconnect, timeout, OOM, 429 | Replay theo lịch tuyệt đối + stub backend + assert bất biến sau mỗi kịch bản, gồm `asyncio.all_tasks()` sau teardown và soak 1 000 session (§18.10.3–18.10.4) |
+
+### C. Những chỗ cần sửa khi biến pseudo-code §7.4 thành code async thật
+
+Pseudo-code §7.4 viết đồng bộ để minh hoạ luồng. Chương 17 đã chỉ ra lỗi logic; dưới đây là lỗi **runtime** khi chép thẳng sang asyncio:
+
+1. **`on_audio_frame` làm mọi thứ inline.** `silero.score`, `asr_stream.feed`, `smart_turn.complete(last_8s_audio)` cùng chạy trên loop cho mỗi frame. Tách: `ws_reader` chỉ đẩy frame vào uplink (drop-oldest); một consumer chạy VAD; Smart Turn và ASR feed đi qua executor hoặc service; kết quả về owner bằng sự kiện.
+2. **`asr.final(turn_audio)` là lời gọi đồng bộ.** Phải là `await run_in_executor(ASR_EXECUTOR, _transcribe_turn, ...)` có semaphore; quá hàng chờ thì `Overloaded` → fallback hoặc hỏi lại.
+3. **`for clause in chunker(llm.stream(...))` lặp đồng bộ.** Thành `async with aclosing(...)`: `async for`. Nếu `break` khi stale mà không `aclose()`, HTTP stream tới LLM vẫn mở (Script 2 phần 4).
+4. **`tts.enqueue(...)` không có giới hạn.** Queue text → TTS nhỏ (1–2 mệnh đề), `await put` để LLM không sinh trước quá xa.
+5. **`llm.cancel(); tts.cancel(); tts_queue.clear()` là ba lời gọi rời.** Thay bằng huỷ một response scope; thứ tự: tăng generation → `clear` vào hàng ưu tiên → set cờ stop → huỷ scope và chờ `finally` → flush (§18.4.6).
+6. **`client.send(...)` gọi từ nhiều chỗ.** Chỉ `send_loop` được gọi `ws.send`; nơi khác đẩy vào hàng ưu tiên. Kiểm generation ngay trước `send` không có `await` xen giữa.
+7. **Không có timeout, deadline, lag monitor.** Thêm `asyncio.timeout_at(turn_deadline)` quanh response, task `lag_monitor` cho process, và giới hạn theo session.
+
+### D. Lưu ý theo profile (§6 tài liệu thiết kế)
+
+| Profile | Điểm async/streaming quan trọng nhất | Cần tự kiểm |
+|---|---|---|
+| **A — MVP turn-final** | faster-whisper trong executor riêng, `list()` trong thread; VieNeu qua HTTP chunked | Với Pipecat: phiên bản `WhisperSTTService` đã có bản sửa PR #5931 chưa (**Reported**)[^frameworks]; `TTSService` tuỳ biến dùng client HTTP **async**, không dùng `requests`. Với HF s2s: `num_pipelines` và cap TTS đặt ở đâu |
+| **B — native streaming** | ASR streaming **có cadence**: P99 xử lý một chunk 160/320 ms < chu kỳ chunk; state theo session | NeMo-Speech.cpp chạy inference trên worker pool giới hạn `--threads` (**Reported**)[^nemo]: số session streaming tối đa là một con số phải đo. Uplink tới ASR service cũng cần drop-oldest |
+| **C — Qwen3-ASR buffered** | Partial latest-only; revision huỷ việc cũ | TTFT tăng mạnh theo concurrency (92 ms → 3 210 ms ở 128, **Reported**): admission ở tầng model là bắt buộc, không để hàng chờ vLLM tự phình |
+| **D — two-pass** | Final-pass là service/executor riêng với semaphore riêng | Final-pass chậm không được chặn partial; final mới huỷ final-pass của revision cũ; hàng final bounded, từ chối có thông báo |
+| **E — CPU/edge** | Mọi thứ tranh cùng một bộ lõi; `VIENEU_MAX_STREAMS` CPU = 1 (**Reported**)[^vieneuapi] | Admission chặt nhất: một lượt TTS tại một thời điểm, câu đệm dựng sẵn quan trọng hơn ở mọi profile khác. CPU thuần Python nặng → process pool, không thread (§18.3.2). Đo loop lag trên chính máy đích |
+| **F — license-strict** | Không khác về runtime | VoxCPM2 chỉ có `generate_streaming` trong Python: phải tự viết adapter có cờ stop theo bước và đưa vào executor/service riêng |
+
+### E. Thứ tự hiện thực đề xuất
+
+1. **Khung session:** `TaskGroup` session + response scope, owner một inbox, `ws_reader` và `send_loop` duy nhất, `lag_monitor`. Chạy với backend stub (giống Script 7) trước khi có model.
+2. **Queue và policy theo cạnh** (§18.5.2), kèm ba metric mỗi queue.
+3. **Executor riêng cho ASR** (Profile A) hoặc client async tới ASR service (B/C/D); xác nhận loop lag P99 < 5 ms khi ASR chạy.
+4. **LLM SSE và TTS chunked** trong `aclosing`, bốn loại timeout, adapter byte lẻ; pacer lịch tuyệt đối + credit.
+5. **Cancel đầy đủ:** response scope + cờ stop + guard; đo T_silence, T_release.
+6. **Admission, retry theo deadline, breaker, câu đệm dựng sẵn**, giới hạn theo session.
+7. **Bộ test replay** (jitter, burst, gap, disconnect, reconnect, backend chậm, `429`/`503`, client chậm, loop bị chiếm) và soak 1 000 session; sau đó mới load test concurrency 1/4/8/16 với model thật (gate 4–5).
+
+### F. Checklist trước khi coi runtime là xong
+
+- [ ] Loop lag P99 < 5 ms khi chạy đủ số session mục tiêu với model thật; không cảnh báo slow callback trong debug mode.
+- [ ] Không có `to_thread(f)` nào trả về generator/iterator để lặp trên loop.
+- [ ] Mỗi model có executor riêng và semaphore; hàng chờ executor có metric.
+- [ ] Mọi `asyncio.Queue` có `maxsize` và policy ghi trong config; uplink bỏ frame thì có gap và counter.
+- [ ] Không có `except:`/`except BaseException:` nào nuốt `CancelledError`.
+- [ ] Mọi async generator bọc tài nguyên mạng được tiêu thụ trong `aclosing`.
+- [ ] Sau `cancel_response`: 0 chunk cũ phát sau `clear`; thread/service compute nhả trong ≤ một bước.
+- [ ] Sau teardown: `asyncio.all_tasks()` chỉ còn task của test; slot TTS về 0; socket về mức ban đầu.
+- [ ] Pacer không trôi quá 1 chu kỳ sau 60 s phát liên tục dưới tải.
+- [ ] Một client chậm không làm session khác giật hoặc nhận `429` nhiều hơn.
+- [ ] `429` được xử lý theo deadline có jitter; TTS sập thì breaker mở và lượt kế tiếp fallback trong vài ms.
+- [ ] Số slot TTS/ASR streaming được chọn bằng đo P99 bước dưới tải, có ghi lại lý do.

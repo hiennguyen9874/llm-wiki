@@ -596,3 +596,102 @@ Giới hạn: phép so 2e chỉ đếm *số lần chạy*, không tính kích t
 [^vllmomni]: [vLLM-Omni](../wiki/vllm-omni.md) — Release line 0.26.0/0.28.0/0.30.0 (full-duplex runtime cho MiniCPM-o 4.5, AURA, engine-owned sessions); voice-loop runtime advances; tài liệu realtime duplex API được link nhưng chưa có trong `raw/`.
 [^nemocpp]: [NeMo-Speech.cpp](../wiki/nemo-speech-cpp.md) — bảng Models and applications (dòng Full-duplex voicechat → VoiceChat 11B); Local server (realtime VoiceChat khi load model); Relationships (Serves VoiceChat 11B).
 [^tools]: [So sánh công cụ triển khai speech](../wiki/speech-deployment-tools-comparison.md) — đoạn mở đầu (tách model, runtime, API server, streaming pipeline, orchestration); §3 (vLLM-Omni: full-duplex không áp dụng tự động cho mọi TTS/ASR); §4 (OpenAI-compatible thường là subset); §6 (orchestration). Trang status draft.
+
+---
+
+## Lưu ý khi thiết kế và hiện thực pipeline: áp dụng chương này
+
+Phần này nối kiến thức của chương với [Thiết kế pipeline speech-to-speech tiếng Việt](thiet-ke-pipeline-speech-to-speech-tieng-viet.md) (gọi tắt là *tài liệu thiết kế*). Mỗi mục chỉ ra: tài liệu thiết kế quyết định gì, chương này giải thích vì sao, và khi hiện thực phải để ý gì. Các con số lấy từ tài liệu thiết kế và wiki là **Reported**; phần nhận định, đối chiếu và checklist là **Synthesis** của chương này, chưa được kiểm chứng bằng chạy thật.
+
+### L1. "Chọn cascade" là quyết định có điều kiện: ghi nó thành decision record có ngày hết hạn
+
+Tài liệu thiết kế §2.1 chọn cascade vì trong snapshot wiki chỉ cascade ghép được vòng tiếng Việt hoàn chỉnh, và hẹn đánh giá lại bằng các gate ở §10. §13 ghi số liệu model có `stale_after` khoảng 2027-10. Khi hiện thực:
+
+- **Viết quyết định thành một ADR ngắn** gồm: lý do (bảng gate §15.6.1), giả định (E2E `language: en`, Qwen3-Omni không nói vi, VoiceChat prompt ASCII-only), sáu tín hiệu kích hoạt (§15.7.1) và ngày xem lại. Không có ADR, quyết định sẽ bị tranh luận lại mỗi khi có model mới ra mà không ai biết gate nào đã thay đổi.
+- **Thứ tự gate phải giữ nguyên:** ngôn ngữ *đầu ra* → license weights → phần cứng → mới đến chất lượng/latency (§15.6.1; thiết kế §3 nguyên tắc 7). Lỗi hay gặp là thấy "nghe được tiếng Việt" rồi bỏ qua kiểm tra đầu ra (Qwen3-Omni).
+- **Sửa cách đọc bảng §2.1 của thiết kế.** Bảng đặt "0.170 / 0.240" của PersonaPlex cạnh "~0.7–1.2 s" của cascade trong cùng dòng "Latency được báo cáo". Như §15.3.5 phân tích, hai con số khác định nghĩa (từ lúc user dừng, không có network) và bảng PersonaPlex không ghi đơn vị. Khi trích bảng này vào slide hay báo cáo, ghi chú rõ "không so trực tiếp" để người đọc không kết luận "E2E nhanh gấp 5 lần".
+
+### L2. Năm tầng không chỉ là khái niệm: dùng nó để tổ chức code, config và test
+
+Nguyên tắc 1 của thiết kế (§3) tách model, runtime, API server, streaming policy, orchestration. Biến nó thành cấu trúc hiện thực (§15.5):
+
+- **Mỗi backend khai báo năm tầng trong config**, ví dụ Profile A: model `whisper-large-v3-turbo` / runtime CTranslate2 `int8_float16` / server in-process / policy turn-final sau Smart Turn / orchestration Pipecat. Khi một profile A–F (§6) đổi, diff config cho thấy ngay tầng nào đổi, và quy tắc "mỗi lần chỉ đổi một thành phần" (§12) kiểm tra được.
+- **Không suy năng lực giữa các tầng.** Đây là chỗ thiết kế đã có ví dụ cụ thể: `--stt openai-realtime` của HF s2s và `/v1/audio/transcriptions/realtime` của NeMo-Speech.cpp có tên event gần giống nhưng khác giao thức (§5.7); `conversation.item.truncate` của HF s2s chỉ là no-op (§5.7); handler `nemotron-streaming` dùng `transcribe()` offline nên không phải native streaming (§5.4.2). Mỗi trường hợp là một tuyên bố ở tầng 3 bị đọc nhầm thành năng lực tầng 1 hoặc 4.
+- **Contract test theo tầng** (thiết kế §10 mục 5): tầng 3 test schema, sample rate, cancel; tầng 4 test partial/final, revision đơn điệu; tầng 5 test commit/cancel/`generation_id`. Một lỗi phải khoanh được về đúng một tầng; đó là ưu điểm "quan sát được" của cascade (§15.2.2), đừng đánh mất nó bằng một adapter làm mọi thứ.
+- **License và phần cứng ghi theo tầng**, vì license runtime không thay cho license weights (§3 nguyên tắc 1, 7).
+
+### L3. Cascade phải viết tay turn-taking: chọn một triết lý control và một owner
+
+§15.3.3 và §15.6.2 cho thấy những gì full-duplex "học" được thì cascade phải viết tay: endpointing, reopen, barge-in, chống echo. Tài liệu thiết kế giao việc này cho gateway hoặc turn tracker của framework (§3 nguyên tắc 2) và nêu hai triết lý khác nhau (§5.3, §11: HF s2s speculative + revision so với report commit cứng sau timeout).
+
+- **Chọn một triết lý cho mỗi profile, không trộn tham số.** Nếu dùng HF s2s, turn tracker của nó là owner; gateway bên ngoài không được tự đóng lượt bằng ngưỡng Silero 200–300 ms của report. Nếu dùng gateway tự viết, tắt hoặc bỏ qua cơ chế lượt của framework bên dưới (cùng tinh thần "không để hai owner cùng quyết định segmentation" ở §5.8).
+- **Mọi núm vặn turn-taking phải nằm trong config và được log theo turn** (`vad_decision_s`, `smart_status`, `hold_s`, §5.7). Đây là lợi thế duy nhất của cascade so với turn-taking trong trọng số (§15.3.3: "sai thì sửa trong config"); nếu ngưỡng bị hard-code rải rác thì mất luôn lợi thế đó.
+- **Bảng "cascade bù bằng" ở §15.6.2 là danh sách việc bắt buộc của MVP**, không phải tính năng Phase 3. Lộ trình §12 cho phép bắt đầu half-duplex, nhưng `generation_id`, cancel LLM/TTS và `client.clear` (§7.3) nên có từ lúc bật barge-in đầu tiên, không ghép vá sau.
+
+### L4. Latency: tối ưu đúng chỗ theo hình dạng critical path của cascade
+
+Phép tính §15.2.4 (mô hình số học) khớp với các đòn bẩy trong thiết kế §8:
+
+- **Streaming hạ nguồn (LLM → chunker → TTS) là ưu tiên số một.** Bỏ nó làm critical path gần gấp đôi (kịch bản 1b). Thiết kế §8.1 đã yêu cầu chunker nằm ở consumer của LLM stream; khi hiện thực, kiểm tra không có chỗ nào `await` toàn bộ câu trả lời (ví dụ hàm format/log gom hết text trước khi chunk).
+- **Đừng chọn Profile B chỉ vì "streaming nên nhanh hơn".** Với câu ngắn, ASR turn-final trên GPU đã ngang một chunk streaming (kịch bản 1c). Lý do đúng để chọn B là partial cho caption/speculative và câu dài (thiết kế §6.1 cây quyết định), và streaming ASR không vượt qua được output gate (§8.1).
+- **Sàn của cascade nằm ở khoảng im lặng chốt lượt + output-hold.** Khi P95 không giảm sau khi đã stream mọi tầng, đo riêng `(cuối tiếng user → soft-end)` và output-hold (800 ms / 2 s mặc định HF s2s, §8.1) trước khi đổi model. Nếu sàn này chiếm phần lớn v2v sau khi đã tune, đó chính là tín hiệu kích hoạt số 3 (§15.7.1).
+- **Không cộng P95 từng tầng** (thiết kế §3 nguyên tắc 6, §8.1). Ngân sách §8.2 chỉ để định hướng; số dùng để ra quyết định là v2v đo phía client (§8.4).
+
+### L5. Nút cổ chai text: giữ tốt cái cascade giữ được, vá có chủ đích cái nó mất
+
+Theo §15.2.5, cascade tiếng Việt giữ được thanh điệu khi ASR đúng, nhưng mất cảm xúc, nhấn mạnh, do dự.
+
+- **Vì thanh điệu chỉ mất khi ASR sai, đầu tư vào độ chính xác ASR là đầu tư trực tiếp vào "hiểu đúng"**: `language="vi"` tường minh, `speech_pad_ms` đủ để giữ phụ âm và thanh (§5.2), đo exact match trên critical span (số, tên, phủ định) trong corpus §10. Lỗi lan truyền (§15.2.3) không có cơ chế tự sửa trong cascade, nên validity gate và "hỏi lại khi không chắc" (§5.4.3, §5.5) là bắt buộc, không phải tuỳ chọn.
+- **Ưu tiên ASR có dấu câu** khi so ứng viên: dấu `?` là kênh duy nhất còn lại của ngữ điệu câu sau ASR. Prompt LLM (§5.5) nên dặn coi câu có tiểu từ nghi vấn ("không", "chưa", "à", "nhỉ") là câu hỏi kể cả khi ASR thiếu dấu.
+- **Kênh phụ cảm xúc (C5) để sau MVP.** Thiết kế không có SER; nếu thêm, nó là tín hiệu dạng tag đưa vào prompt, chạy song song ngoài critical path, và cũng phải qua đánh giá trên giọng Việt trước khi bật. Đừng dựa vào tham số `instructions`/cảm xúc của TTS để "bù" (VieNeu server bỏ qua `instructions`, xem Ch.13).
+- **TTS không biết ngữ cảnh hội thoại** (§15.2.3 mục 6): kiểm soát tông giọng ở phía text, qua prompt văn nói ngắn gọn, chunker giữ dấu câu, và test các câu xin lỗi/hỏi lại trong bộ prompt TTS (§10 mục 2).
+
+### L6. Nếu thử biến thể lai (direct audio input): thử như thí nghiệm, sau cùng một hợp đồng
+
+Thiết kế §2.2 coi direct audio input của HF s2s (`--stt none --llm_backend chat-completions`) và mẫu Omni là thử nghiệm. Khi thử (§15.4.2–15.4.3):
+
+- **Giữ nguyên VAD, Smart Turn, barge-in, AEC.** Audio-LLM vẫn nhận đoạn VAD hoàn tất; nó chỉ thay tầng ASR.
+- **Giữ transcript bằng một ASR chạy song song ngoài critical path.** Không có transcript thì mất log theo turn, caption, đo WER, query RAG và history dạng text; các gate §10 mục 1 không chạy được.
+- **Lưu history dạng text**, chỉ gửi audio của lượt hiện tại, để context không đầy nhanh và để đổi backend không mất ngữ cảnh.
+- **Kiểm tra ràng buộc API**: chỉ `chat-completions`, không `responses-api`, phải đổi `--model_name` sang model nhận audio (**Reported**, §15.4.2). Ghi vào contract test.
+- **Mẫu C3 "tai omni, miệng TTS Việt" (§15.4.3)** phải đi qua đúng chunker, normalizer, lexicon §5.5 như cascade, và tính VRAM/license của model 30B-A3B vào profile (§9.2, Profile F). Chỉ giữ lại nếu thắng cascade cùng profile trên corpus §10 và TTFT đo cùng harness.
+
+### L7. Thiết kế cascade "sẵn sàng thay não" ngay từ đầu
+
+§15.7.3 đề xuất giữ các ranh giới sau; đối chiếu với thiết kế:
+
+- **Event schema §7.2 đã gần như độc lập kiến trúc**: `turn.commit`, `audio.start/chunk/played`, `generation_id`, `client.clear`. Giữ nó ổn định; client và hệ thống đo chỉ nói chuyện qua schema này, không gọi thẳng ASR/TTS.
+- **Pseudo-code §7.4 gọi thẳng `asr.final` → `llm.stream` → `tts.enqueue` trong `on_turn_commit`.** Khi hiện thực, gói đoạn này sau một interface "brain" (đầu vào: audio lượt + transcript tuỳ chọn + history; đầu ra: text stream hoặc audio stream, đều mang `generation_id`). Cascade dùng nhánh text→TTS; C1/C3 cắm vào cùng chỗ; C2 bỏ TTS. Chi phí lúc đầu gần bằng không, nhưng thử kiến trúc khác sau này không phải viết lại gateway.
+- **Audio contract đọc từ backend, không hard-code** (§3 nguyên tắc 4): ngoài các TTS 48/24/22.05 kHz, một backend E2E có thể là 24/24 kHz (PersonaPlex) hoặc 16/22.05 kHz (VoiceChat) (**Reported**).
+- **Transport và AEC phía client tách khỏi model** (§4, §5.1): mọi kiến trúc đều cần, kể cả E2E (§15.8).
+- **History dạng text kèm `[bị ngắt]`** (§7.3) là định dạng trung lập để chuyển backend.
+- **Timestamp đo ở cạnh** (client, gateway), không phụ thuộc instrumentation riêng của backend (§8.4). HF s2s chỉ có `tts_ttfa`/`e2e` cho một số TTS (§5.7), nên đừng để harness phụ thuộc vào đó.
+
+### L8. Vận hành: E2E không bỏ được orchestration, và có mô hình tải khác
+
+- **Phần mỏng đi chứ không biến mất** (§15.5.1): dù backend nào, gateway vẫn phải có TLS/auth, admission cap, bounded queue, 429, deadline theo session, cleanup (§9.1, §9.5), log content-free, và không mở LLM proxy không auth (§5.7).
+- **Capacity planning theo hình dạng tải.** Cascade có tải theo đợt nên tận dụng continuous batching (§9.3); VieNeu ước 16 stream phục vụ 45–80 user vì stream chỉ sống khi bot nói (§5.6). Full-duplex chiếm một "khe" cố định suốt cuộc gọi và trễ hạn 80 ms là lỗi nghe được (§15.3.7). Nếu có lúc đánh giá E2E, đo concurrency theo *số cuộc gọi đồng thời giữ được cadence*, không đổi trực tiếp từ số stream TTS của cascade.
+- **Tool và side effect** vẫn tuân thủ "không hành động trên văn bản chưa commit" (§3 nguyên tắc 5). Với E2E, không có `turn.commit` tường minh, nên phải định nghĩa lại điểm commit cho tool trước khi thử (một lý do nữa để tín hiệu kích hoạt số 6 ở §15.7.1 là gate).
+
+### L9. Quy trình đánh giá lại: gắn vào release gates và lộ trình
+
+- **Đánh giá lại dùng đúng gate §10 và cùng harness**, theo quy trình §15.7.2: gate cứng → cùng transport/AEC/harness → corpus §10 (ASR-equivalent, MOS người Việt, turn/barge-in, tải) → so P50/P95 v2v → chỉ chuyển nếu không thua ở kiểm soát/tuân thủ.
+- **Không đưa E2E vào Phase 1–3 (§12)**; thay vào đó có một việc định kỳ "rà model card mới" theo sáu tín hiệu, kết quả cập nhật vào ADR ở L1.
+- **Đọc card theo checklist §15.5.3**, đặc biệt các ràng buộc ẩn với tiếng Việt: ngôn ngữ đầu ra, prompt ASCII-only, dữ liệu huấn luyện, phần cứng tối thiểu, V-model/kiểm thử theo use case.
+
+### L10. Checklist "kiến trúc sẵn sàng" trước khi chốt implementation
+
+| # | Điều kiện | Liên quan |
+|---|---|---|
+| 1 | Có ADR ghi lý do chọn cascade, các gate, sáu tín hiệu kích hoạt và ngày xem lại | §15.6.1, §15.7.1; thiết kế §2.1, §13 |
+| 2 | Mọi số latency E2E trích dẫn đều kèm ghi chú định nghĩa/đơn vị, không so trực tiếp với v2v cascade | §15.3.5; thiết kế §2.1, §3 (nguyên tắc 6) |
+| 3 | Mỗi profile khai báo đủ năm tầng trong config; license ghi riêng cho weights và runtime | §15.5; thiết kế §3 (nguyên tắc 1, 7), §6 |
+| 4 | Không có tuyên bố tầng 2–3 nào được dùng như năng lực tầng 1 khi chưa có test (Nemotron qua HF s2s, `truncate`) | §15.5.2; thiết kế §5.4.2, §5.7 |
+| 5 | Một triết lý turn-taking và một owner cho mỗi profile; mọi ngưỡng nằm trong config và được log theo turn | §15.3.3, §15.6.2; thiết kế §3 (nguyên tắc 2), §5.3, §11 |
+| 6 | `generation_id`, cancel LLM/TTS, `client.clear` có ngay khi bật barge-in | §15.6.2; thiết kế §7.3, §12 |
+| 7 | Không có chỗ nào chờ trọn câu trả lời LLM trước TTS; output-hold được đo riêng | §15.2.4; thiết kế §8.1, §8.3 |
+| 8 | Validity gate + hỏi lại khi mơ hồ; corpus có critical span (số, tên, phủ định) | §15.2.3, §15.2.5; thiết kế §5.4.3, §10 |
+| 9 | Gateway gọi "brain" qua interface trừu tượng; event schema §7.2 là ranh giới duy nhất với client | §15.7.3; thiết kế §7.2, §7.4 |
+| 10 | Audio contract đọc từ backend; transport/AEC tách khỏi model | §15.7.3; thiết kế §3 (nguyên tắc 4), §5.1 |
+| 11 | Harness đo v2v ở cạnh (client/gateway), dùng được cho mọi kiến trúc | §15.7.2; thiết kế §8.4 |
+| 12 | Nếu thử direct audio input: VAD/turn/barge-in giữ nguyên, có ASR song song cho transcript, history dạng text | §15.4.2; thiết kế §2.2 |
