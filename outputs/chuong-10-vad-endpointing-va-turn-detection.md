@@ -468,3 +468,72 @@ print(run(probs, min_sil=100))    # [(540, 1700), (1660, 2500)]
 - Chương 14: speaker embedding cho speaker lock.
 - Chương 15, 17: E2E full-duplex, state machine lượt, cancellation, barge-in.
 - Chương 20–21: đo độ trễ và false-cutoff.
+
+---
+
+## Áp dụng vào thiết kế pipeline: lưu ý khi thiết kế và hiện thực
+
+Phần này nối chương 10 với [Thiết kế pipeline speech-to-speech tiếng Việt](thiet-ke-pipeline-speech-to-speech-tieng-viet.md). Nó ghi lại những điểm của tầng VAD/endpointing/turn detection mà, nếu làm sai, sẽ làm hỏng trải nghiệm bất kể bạn chọn ASR/TTS nào. Mọi nhận định ở đây là **Synthesis** từ các mục trước và tài liệu thiết kế, trừ khi ghi khác; chưa có điểm nào được kiểm chứng bằng chạy thật.
+
+### A. Quyết định phải chốt trước khi viết code
+
+1. **Chọn một triết lý điều khiển lượt cho mỗi profile và ghi rõ trong config** (§10.5). Tài liệu thiết kế có hai bộ số đặt cạnh nhau: §5.2 (Silero 200–300 ms + Smart Turn + fallback 1.2–1.5 s, tức commit cứng) và §5.3 (HF s2s 64/800/2000 ms, tức speculative + revision). Profile A ghi "timeout 1.2–1.5 s" nhưng lại cho phép chạy trên HF s2s `serve`. Nếu chạy A trên HF s2s thì dùng trọn bộ tham số của HF s2s; nếu chạy trên Pipecat hoặc gateway tự viết thì mặc định là commit cứng, và muốn speculative thì phải tự cài reopen, revision và cancellation (§D bên dưới). Không trộn.
+2. **Một owner duy nhất cho quyết định lượt** (nguyên tắc 2, §3 thiết kế). `VADIterator` chỉ phát `start`/`end`; Smart Turn chỉ trả xác suất; endpoint/`<EOU>` của ASR streaming (Nemotron, WhisperLiveKit, RealtimeSTT) cũng chỉ là tín hiệu. `vad_filter` của faster-whisper chỉ lọc im lặng *bên trong* lượt đã cắt (§10.10), không được tự phân đoạn lượt.
+3. **Hai cấu hình VAD tách biệt: khi bot im và khi bot nói** (§10.8). Bộ "bot nói" có threshold cao hơn và duration gate. Mâu thuẫn 100–200 ms so với 300–500 ms (§11 thiết kế) phải được chọn theo môi trường triển khai (tai nghe hay loa ngoài, có AEC tốt không), và ghi lý do vào config.
+4. **Định nghĩa chi phí lỗi theo domain trước khi tune** (§10.7). Domain có đọc số điện thoại, địa chỉ, mã đơn thì cắt ngang (FP) đắt hơn chờ lâu (FN): nâng ngưỡng Smart Turn, kéo dài timeout cho trạng thái "đang đọc số". Domain hỏi–đáp ngắn thì chấp nhận FNR cao hơn.
+
+### B. Audio ingress cho VAD (§4, §7.1 thiết kế)
+
+- **Reblock đúng hợp đồng:** frame transport 20 ms → khối đúng 512 samples float32 `[-1, 1]` ở 16 kHz (256 ở 8 kHz). Giữ phần dư sang khối sau; không zero-pad giữa luồng, không đưa int16 thô. Viết contract test cho việc này (§10 thiết kế, mục 5).
+- **Telephony 8 kHz:** Silero chạy được ở 8 kHz nhưng Smart Turn chỉ nhận 16 kHz. Chọn một timeline chuẩn (thường resample lên 16 kHz ngay ở gateway) để timestamp của VAD, Smart Turn và ASR cùng một trục.
+- **State:** weights dùng chung, state ẩn per-session. Gọi `reset_states()` tại điểm turn tracker xác định là hết lượt (commit/CLOSED) hoặc khi có gap, **không** gọi tại mỗi sự kiện VAD `end`. Trong thiết kế speculative, reset tại `SOFT_ENDED` sẽ làm hỏng chunk đầu khi user nói tiếp.
+- **Gap/drop frame:** đánh dấu discontinuity, reset VAD, không nối lệch timeline (§7.1 thiết kế). Backpressure không được âm thầm bỏ frame của nhánh VAD.
+- **Ring buffer đủ dài:** tối thiểu `min_speech + frame + pre-roll`. Với gateway tự viết (250 + 32 + 300) ≈ 600 ms; với `min_speech_ms 384` của HF s2s ≈ 720 ms. Giữ ≥ 1 s. Riêng turn audio buffer phải giữ toàn lượt (cho ASR final và replay khi reopen) và tối đa 8 s cuối cho Smart Turn; đặt max speech duration để không vượt giới hạn 30 s của Whisper.
+- **Denoise chỉ trên nhánh VAD** (nguyên tắc 3): nhánh VAD (có thể denoise) và nhánh ASR (audio sau AEC gốc) phải chia sẻ cùng chỉ số sample. Nếu denoiser có độ trễ thuật toán, sự kiện VAD bị lệch muộn; bù lại hoặc tăng pre-roll, nếu không đoạn cắt cho ASR sẽ mất âm tiết đầu.
+
+### C. Endpoint manager và Smart Turn (§5.3, §7.4 thiết kế)
+
+- **`min_speech_duration_ms` và `max_speech` phải tự cài:** `VADIterator` không có hai tham số này (§10.2.2), dù §5.2 thiết kế liệt kê `min_speech_duration_ms 250` cạnh các tham số Silero.
+- **Gọi Smart Turn theo sự kiện, không theo frame.** Pseudo-code §7.4 đặt `smart_turn.complete(...)` trong nhánh xử lý mỗi frame; khi hiện thực, chỉ gọi **một lần** cho mỗi đợt im vượt `STOP_MS`, cache kết quả theo `(turn_id, revision)`, và gọi lại trên **toàn bộ lượt hiện tại** (không chỉ đoạn mới) khi user nói thêm (§10.6.3). Input ≤ 8 s, cắt phần đầu, zero-pad ở đầu.
+- **Chạy Smart Turn ngoài event loop** (thread/executor); nếu user nói tiếp trước khi kết quả về, bỏ kết quả vì đã stale.
+- **Timer có tên và được log:** fallback commit (1.2–1.5 s, commit cứng), max wait (2 s, speculative), incomplete delay (600 ms), trần lượt chưa được trả lời (`unanswered_reopen_ms`), timeout user không nói (tầng hội thoại). Đây là các khái niệm khác nhau (§10.3); gộp chung một timer là nguồn bug.
+- **Lệnh ngắn tiếng Việt bị lọc nhiều lớp:** "không", "dừng", "dạ" có thể bị bỏ bởi `min_speech` (250/384 ms), rồi lại bị bỏ bởi luật Whisper "< 2 từ khi VAD < 400 ms" (§5.4.4 thiết kế). Hai lớp phải được tune cùng nhau; cân nhắc ngưỡng riêng cho speech nối tiếp (`min_speech_continuation_ms`) hoặc ghép mảnh ngắn (`short_segment_merge_ms`) như HF s2s.
+- **Pad và pre-roll:** HF s2s mặc định `speech_pad_ms 500`; gateway tự viết dùng pad 100–200 + pre-roll 200–300. Pad quá lớn kéo echo/nhiễu vào ASR và làm hallucination filter phải làm việc nhiều hơn.
+
+### D. Nếu chọn speculative + revision
+
+- Mọi công việc ASR/LLM gắn `(turn_id, revision)`; kết quả của revision cũ bị bỏ. Không TTS, không side effect trước `turn.commit` (nguyên tắc 5).
+- Phân biệt rõ **reopen** (user nói lại trong cửa sổ `speculative_reopen_ms`, trước commit) và **barge-in** (user nói sau commit, khi bot đang/sắp phát). Hai đường xử lý khác nhau, chỉ turn tracker được chọn.
+- Khi reopen, phát lại toàn bộ audio đã tích lũy của lượt cho STT, nên turn audio buffer không được giải phóng ở `SOFT_ENDED`.
+- Theo §8.1 thiết kế, output-hold (800 ms/2 s) có thể chi phối độ trễ hơn tốc độ model. Hạ `min_silence` hay đổi ASR nhanh hơn sẽ không giúp nếu gate là nút thắt; đo `hold_s` trước.
+- Đo tỷ lệ speculative bị huỷ: đó là compute lãng phí và là tín hiệu ngưỡng Smart Turn/`min_silence` đang lệch.
+
+### E. Barge-in (§7.3 thiết kế)
+
+- **Giữ audio đã kích hoạt barge-in.** Gate 300–500 ms nghĩa là lúc quyết định ngắt, user đã nói ít nhất chừng đó. Lượt mới phải bắt đầu từ ring buffer (điểm bắt đầu nói − pre-roll), nếu không mất nguyên vế đầu của câu ngắt lời.
+- Ngưỡng thích ứng đo trong 2–3 s đầu nâng cả threshold thường lẫn gate barge-in (§5.2 thiết kế).
+- Thứ tự huỷ: `generation_id++` → cancel LLM, TTS, queue → `client.clear` → lưu phần đã phát `[bị ngắt]`. VAD và turn tracker chuyển ngay sang lượt mới, không chờ huỷ xong.
+- Speaker lock và backchannel là tín hiệu bổ sung, không phải xác thực; "ừ/vâng" trong một số domain là lời xác nhận (§7.3 thiết kế).
+- Test bắt buộc với loa ngoài phát giọng bot: false barge-in rate là chỉ số chính của tầng này.
+
+### F. Đo, tune và release gate (§8, §10 thiết kế)
+
+- **Log theo sự kiện, mỗi lượt:** `t_vad_start`, `t_vad_end`, xác suất và trạng thái Smart Turn, timer nào đã kích hoạt, số revision/reopen, lý do barge-in. HF s2s đã có `vad_decision_s`, `smart_status`, `hold_s` (**Reported**, [Latency Instrumentation](../wiki/speech-to-speech-latency-instrumentation.md)); gateway tự viết nên có trường tương đương.
+- **`t_user_stop` không lấy từ VAD online,** vì sự kiện `end` đã trễ `min_silence`. Dùng nhãn tay hoặc VAD offline trên audio đã ghi để đo độ trễ endpoint thật.
+- **Chỉ số tối thiểu:** false-cutoff rate, độ trễ endpoint p50/p95, tỷ lệ chờ tới timeout (proxy cho FNR), false barge-in rate, tỷ lệ lệnh ngắn bị mất, tỷ lệ speculative bị huỷ.
+- **Tune theo thứ tự §10.12:** VAD → `min_silence` → ngưỡng Smart Turn (vẽ ROC/PR trên dữ liệu tiếng Việt nội bộ) → gate barge-in. Mỗi lần đổi một tham số (đúng nguyên tắc Phase 2, §12 thiết kế).
+- **Gate thay model:** false-interruption tiếng Việt > 10% sau khi tune thì thử Namo hoặc fine-tune Smart Turn (**Reported**). Trước đó, A/B bản GPU fp32 với bản CPU int8 mặc định vì hai bản lỗi theo hướng khác nhau (§10.7.3).
+- **Pin phiên bản:** Silero (v5 và v6 khác hành vi), checkpoint Smart Turn (CPU/GPU), và giữ bộ audio regression cho mọi lần nâng cấp.
+
+### G. Checklist hiện thực tầng lượt
+
+- [ ] Config ghi rõ triết lý (commit cứng / speculative) và bộ tham số tương ứng, không lấy số từ kiến trúc kia.
+- [ ] Turn tracker là owner duy nhất; VAD, Smart Turn, `<EOU>`, `vad_filter` chỉ cấp tín hiệu.
+- [ ] Reblock 512 samples float32 16 kHz, có contract test; state per-session; reset tại commit hoặc gap.
+- [ ] Ring buffer ≥ `min_speech + frame + pre-roll` (khuyến nghị ≥ 1 s); turn buffer giữ đến commit.
+- [ ] Tự cài `min_speech`/`max_speech` khi dùng `VADIterator`.
+- [ ] Smart Turn gọi theo sự kiện, trên toàn lượt ≤ 8 s, ngoài event loop, bỏ kết quả stale.
+- [ ] Các timer tách riêng, có tên, có log.
+- [ ] Hai cấu hình VAD (bot im / bot nói); barge-in giữ lại audio của lượt mới.
+- [ ] Lệnh ngắn tiếng Việt sống sót qua cả `min_speech` lẫn hallucination filter.
+- [ ] Đo false-cutoff, độ trễ endpoint p50/p95, false barge-in trên dữ liệu tiếng Việt thật trước khi tin số vendor.

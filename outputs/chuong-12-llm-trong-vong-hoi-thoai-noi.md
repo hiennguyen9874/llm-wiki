@@ -727,6 +727,63 @@ asyncio.run(main())
 - Chương 20 (latency): ngân sách và đo end-to-end.
 - Chương 23 (license, privacy, bảo mật): log transcript, hosted LLM, tool và quyền.
 
+---
+
+## Lưu ý khi thiết kế và hiện thực phần LLM của pipeline
+
+Phần này gom các điểm của chương thành checklist áp vào [Thiết kế pipeline speech-to-speech tiếng Việt](thiet-ke-pipeline-speech-to-speech-tieng-viet.md) (§5.5, §7.2–7.4, §8, §9, §10, §12). Các điểm đều là **Synthesis** từ những phần đã dẫn ở trên, trừ chỗ có ghi nhãn khác.
+
+### A. Quyết định thiết kế phải chốt từ đầu
+
+1. **Chọn rõ một trong hai mô hình điều khiển.** Pseudo-code §7.4 của thiết kế gọi LLM *sau* `turn.commit` (commit-then-generate). Turn tracker của HF s2s thì chạy LLM *speculative* trước commit rồi giữ output ở gate (§12.6.2).[^design] Hai mô hình cần state machine, metric và cách huỷ khác nhau. Đừng trộn kiểu "chạy sớm nhưng phát luôn". Nếu dùng speculative, phải có ba trạng thái SPECULATIVE/COMMITTED/DISCARDED và một buffer `held[gen]` như §12.11.2.
+2. **LLM chỉ là service thực thi, không giữ quyền quyết định.** Chỉ gateway được close, reopen và commit lượt (nguyên tắc 2 của thiết kế). Adapter LLM không tự retry, không tự ghi history, không tự chạy tool.
+3. **Coi khả năng cancel là deployment gate.** Trước khi chọn backend hay SDK, chứng minh được hai điều: stream đóng thật, và compute được giải phóng (§12.2.3, §12.5.3). Không đạt thì không dùng backend đó cho full-duplex.
+4. **Thiết kế giao thức `audio.played` ngay từ MVP.** Quy tắc "history chỉ chứa phần đã phát" (§7.3 bước 5) cần client báo ngược `played_sample_offset` (event schema §7.2). Nếu chưa có, ghi rõ là đang ở mức A (theo chunk, §12.5.2). Lưu ý: §7.3 của thiết kế gọi `conversation.item.truncate` của HF s2s là "điểm nối tự nhiên", nhưng engine hiện chỉ nhận event này như no-op (**Reported**).[^engine] Muốn truncate history thật thì gateway phải tự làm.
+5. **Tách đường side effect khỏi đường nói.** Tool ghi chỉ chạy sau commit và sau khi người dùng xác nhận bằng lời. Kèm idempotency key `(session_id, utterance_id, revision, tool_call_index)` và kiểm `generation_id` (§12.6.3). Event schema §7.2 nên có thêm `tool.request`/`tool.result` mang `generation_id`.
+6. **Đặt ngân sách latency cho LLM *sau khi* đo output gate.** Thiết kế không cam kết ~1 s khi chưa biết endpoint LLM (§8.2).[^design] Nếu ASR + TTFC đã nhỏ hơn output-hold (800 ms/2 s), đổi sang LLM nhanh hơn không giảm v2v (§12.6.2).
+7. **Quyết định chỗ đặt LLM cùng lúc với VRAM plan.** Dùng chung GPU với ASR/TTS (§9.2) hay tách GPU, hay dùng hosted. Hosted thì đổi contention lấy RTT, rate limit và việc gửi transcript/history ra ngoài (§12.8.4). Đây là quyết định privacy, không chỉ là quyết định hiệu năng (§9.5).
+
+### B. Khi hiện thực adapter và vòng điều khiển
+
+| Hạng mục | Việc phải làm | Bẫy nếu bỏ qua |
+|---|---|---|
+| Adapter | Chuẩn hoá SSE (Chat Completions, Responses) về `LLMEvent` nội bộ; map tham số theo backend (`max_tokens`/`max_completion_tokens`, `enable_thinking`, `reasoning_effort`); bật `include_usage` | Đổi backend phải sửa gateway; mất metric cached tokens |
+| Thinking | Tắt ở request **và** lọc `<think>…</think>`, `reasoning_content` ở chunker; kiểm bằng log | Bot đọc quá trình suy luận; TTFC tăng mà không rõ lý do |
+| Chunker | Đặt ở consumer của LLM stream; lọc markdown, URL, tag `[bị ngắt]`; luật chunk đầu ≥ ~25 ký tự | Chia câu sau khi nhận đủ câu trả lời làm mất lợi ích streaming (§8.1) |
+| `generation_id` | Kiểm ở **mọi** chặng: vòng token LLM, hàng đợi TTS, worker TTS, client playback | Chunk cũ lọt qua sau barge-in (thử bỏ kiểm tra trong script phụ lục để thấy) |
+| Validity gate | Transcript đáng ngờ → câu hỏi lại soạn sẵn, **không gọi LLM** | LLM trả lời tự tin trên transcript sai |
+| Reopen | Supersede message user cũ bằng transcript gộp; huỷ assistant dở | History có hai lượt user liên tiếp; lượt trả lời lạc đề |
+| Prompt layout | Phần tĩnh (system, tool, persona) lên đầu; dữ liệu động ở cuối; tóm tắt history theo ngưỡng | Mất prefix cache, lượt sau chậm dần |
+| Lỗi giữa stream | Có chính sách cho `error` và `finish_reason=length`: câu fallback ngắn, không tự retry rồi đọc lại từ đầu | Bot lặp nửa câu hoặc dừng cụt |
+| Warm-up | Request giả khi khởi động; readiness chỉ báo ready sau warm-up (§9.1) | Lượt đầu chậm bất thường |
+| Log | Mặc định content-free; transcript chỉ khi opt-in (§9.5) | Rò transcript nhạy cảm vào operational log |
+
+### C. Đo lường và gate trước khi tăng tải
+
+- Log theo từng lượt các metric ở §12.11.1, join theo `turn_id`/`revision`/`generation_id`/`chunk_id` (§8.1 của thiết kế), không theo thứ tự lượt.
+- Tách hai thời điểm: bot hết tiếng (nghe được) và compute được giải phóng. Thêm tỷ lệ speculative bị discard để biết speculative tốn bao nhiêu compute.
+- Theo dõi `tts.inter_chunk_gap_ms` khi LLM dùng chung GPU. Gate tải ở §10 mục 4 (concurrency 1/4/8/16, warm/cold, khởi động đồng loạt) phải chạy với LLM **thật**, không chạy với stub.
+- Bộ test prompt nói chuyện (§12.12 bước 4) nên nằm cùng bộ regression của normalizer (§5.5), vì cả hai cùng quyết định chữ nào tới TTS.
+- Contract test ở §10 mục 5 cần bổ sung cho LLM: cancel giữa stream, `finish_reason=length`, tool-call arguments đến rời rạc, 429/5xx từ provider, chunk đến muộn mang `generation_id` cũ.
+
+### D. Thứ tự đưa vào theo lộ trình §12 của thiết kế
+
+| Phase | Phần LLM nên có |
+|---|---|
+| **1 — MVP** | Adapter + `LLMEvent`; system prompt nói chuyện; thinking off; chunker có lọc; `generation_id`; history mức A (theo chunk) + `[bị ngắt]`; warm-up; metric TTFT/TTFC; commit-then-generate, chưa speculative; chưa có tool ghi |
+| **2 — Beta** | `audio.played` (mức B); validity gate có câu hỏi lại soạn sẵn; prefix cache và đo cached tokens; thử speculative có output gate; A/B LLM bằng bộ prompt riêng, mỗi lần đổi một thành phần |
+| **3 — Production** | Tool có xác nhận bằng lời và idempotency; tóm tắt history theo ngưỡng; tách GPU hoặc giới hạn VRAM LLM; P95 TTFC/underrun dưới tải; fallback khi provider lỗi; rà privacy khi dùng hosted |
+
+### E. Những điều không nên làm
+
+- Không dùng `max_tokens` làm công cụ chính để giữ câu trả lời ngắn.
+- Không phát audio, ghi history hay chạy tool từ output chưa commit.
+- Không "sửa tiếp" câu trả lời khi transcript revision đổi; huỷ và sinh lại.
+- Không chèn timestamp, `session_id` hay tên người dùng vào đầu system prompt.
+- Không đổ lỗi cho LLM khi lỗi nằm ở VAD/turn, ASR, normalizer hay AEC (bảng §12.1).
+- Không coi mọi "ừ/vâng/ok" là backchannel trong luồng xác nhận tool.
+- Không suy năng lực LLM của pipeline từ benchmark throughput trên GPU datacenter, và không cộng các con số latency đo chồng lấn (nguyên tắc 6 của thiết kế).
+
 [^design]: [Thiết kế pipeline speech-to-speech tiếng Việt](thiet-ke-pipeline-speech-to-speech-tieng-viet.md) — §5.5 (giao diện LLM, chunker, prompt), §7.3 (barge-in, gating, played offset), §8.1 (critical path, output gate speculative), §8.2–8.4 (latency, monitoring), §9.2 (VRAM), §10 (gate tải). Dựa trên [Vietnamese Speech Pipeline Design](../wiki/vietnamese-speech-pipeline-design.md).
 [^blueprint]: [Cascaded Voice-Agent Blueprint](../wiki/cascaded-voice-agent-blueprint.md) — Turn flow and defaults (LLM call, sentence-buffered TTS); Hardware tiers and placement; Common failures and fixes. Nguồn: LLM-generated report, chưa đo.
 [^stack]: [Vietnamese Realtime Voice Agent Stack](../wiki/vietnamese-realtime-voice-agent-stack.md) — LLM choice and invocation (kích thước, `enable_thinking`, history 10–20 lượt, `[bị ngắt]`); latency budget (LLM TTFT + chunk đầu 150–350 ms); optimizations (prefix cache, preemptive ASR+LLM, warm-up); hardware tiers; monitoring.

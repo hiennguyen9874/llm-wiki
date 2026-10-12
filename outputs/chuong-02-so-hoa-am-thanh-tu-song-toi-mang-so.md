@@ -709,3 +709,181 @@ Công cụ: `numpy`, `soundfile`, `soxr`, `scipy`, `librosa` (chỉ để vẽ),
 - [Speech-to-Speech OpenAI-Compatible STT/TTS Backends](../wiki/speech-to-speech-openai-compatible-backends.md) — STT nhận WAV PCM16 mono 16 kHz; OpenAI Realtime cần 24 kHz; TTS ngoài bị chuyển về khối int16 16 kHz 512 samples.
 
 **Đọc thêm ngoài wiki (giáo trình/tài liệu chuẩn, gợi ý):** Oppenheim & Schafer, *Discrete-Time Signal Processing* (sampling, multirate); Smith, *Digital Audio Resampling Home Page* (bandlimited interpolation, ccrma.stanford.edu/~jos/resample); Lyons, *Understanding Digital Signal Processing*; tài liệu libsoxr, libsamplerate (Secret Rabbit Code), ffmpeg `aresample` và danh sách sample format (`ffmpeg -sample_fmts`); đặc tả Web Audio API (AudioWorklet, render quantum); Microsoft/IBM RIFF WAVE specification (cấu trúc header, `WAVE_FORMAT_EXTENSIBLE`).
+
+---
+
+## 2.16 Lưu ý khi thiết kế và hiện thực pipeline speech-to-speech tiếng Việt
+
+Phần này đem kiến thức của chương áp vào [tài liệu thiết kế](thiet-ke-pipeline-speech-to-speech-tieng-viet.md). Các khuyến nghị đều là **Synthesis**, chưa kiểm chứng trên implementation nào. Số liệu về backend là **Reported**, lấy lại từ tài liệu thiết kế hoặc trang wiki được dẫn. Hành vi thư viện là kiến thức chung, cần kiểm tra lại với phiên bản bạn cài.
+
+### 2.16.1 Năm quyết định cần chốt trước khi viết code
+
+| # | Quyết định | Khuyến nghị | Lý do / liên hệ |
+|---|---|---|---|
+| 1 | Định dạng uplink trên dây | MVP: `s16le` mono 16 kHz, binary, frame 20 ms (640 B). Production: Opus/WebRTC | Tài liệu thiết kế §5.1 (**Reported**); §2.7.3: rẻ hơn 12 lần so với float32 stereo 48 kHz |
+| 2 | Định dạng chuẩn (canonical) trong gateway | float32 mono 16 kHz, thang [-1, 1]; timeline tính bằng **số mẫu ở 16 kHz** | Một định dạng cho VAD, ASR, ring buffer; transport int16, xử lý float32 (§2.3.2) |
+| 3 | Nơi resample uplink | **Đúng một chỗ.** Ở client thì tiết kiệm băng thông 3 lần. Ở gateway thì kiểm soát được chất lượng resampler và còn bản 48 kHz cho denoise | Khai báo vào contract. Client JS phải có lọc anti-alias, không lấy 1 bỏ 2 (§2.9.2) |
+| 4 | Định dạng downlink | Giữ sample rate gốc của TTS tới playback adapter; `audio.start` mang `format`, `sample_rate`, `channels` | Tài liệu thiết kế §7.1, §7.2 |
+| 5 | Trần băng thông chấp nhận được | Nếu dùng HF s2s `--tts openai`, cả pipeline bị giới hạn ở 16 kHz | Chốt trước khi A/B TTS. Nếu không, phép so VieNeu 48 kHz với TTS 24 kHz qua s2s thực ra so hai bản đã bị cắt về 8 kHz (§2.9.2) |
+
+### 2.16.2 Bản đồ audio contract theo từng biên
+
+Mỗi dòng dưới đây nên có một `AudioFormat` (§2.9.3) và một assert ở code biên:
+
+| Biên | Định dạng | Ai chuyển đổi | Kiểm tra |
+|---|---|---|---|
+| Mic → client | float32 planar, 44.1/48 kHz, render quantum 128 frames (kiến thức chung) | Client: downmix và resample (nếu quyết định 3 chọn client) | Đọc `AudioContext.sampleRate` thật, không giả định 48 kHz |
+| Client → gateway (WS MVP) | `s16le` mono 16 kHz (**Reported**, §5.1) | Client: f32 → s16 (`round`, `clip`, rồi mới ép kiểu) | Gateway ghép byte lẻ (`PcmBytesToSamples`); đo tốc độ mẫu đến (§2.16.9) |
+| Gateway → Silero VAD | tensor 1-D float32, 512 samples @16 kHz / 256 @8 kHz ([Silero VAD](../wiki/silero-vad.md), **Reported**) | Reblocker riêng cho VAD | `len == 512`, `dtype == float32`, `peak ≤ 1` |
+| Gateway → ASR streaming (Nemotron, Profile B/D) | 16 kHz mono, chunk 160/320 ms = 2 560/5 120 samples | Reblocker riêng cho ASR | Không dùng lại khối VAD |
+| Gateway → ASR turn-final qua HTTP | HF s2s gửi WAV PCM16 mono 16 kHz tới `/v1/audio/transcriptions` ([s2s backends](../wiki/speech-to-speech-openai-compatible-backends.md), **Reported**) | Encode WAV từ turn buffer (kèm pre-roll) | Header đúng rate/kênh; độ dài đúng `turn_samples` |
+| s2s → OpenAI Realtime transcription | PCM 24 kHz (**Reported**) | s2s upsample 16 → 24 kHz | Upsample không thêm thông tin (§2.13 Q3) |
+| TTS → gateway | VieNeu HTTP `s16le` 48 kHz (có thể xin 24/16/8 kHz), SDK float32 48 kHz; Nano 24 kHz; sanoTTS 22.05 kHz; MOSS Local codec stereo nhưng ví dụ stream mono; Higgs SSE base64 WAV (**Reported**, §3, §5.6) | **Một adapter cho mỗi backend**, cùng output `(samples, AudioFormat)` | Đọc `X-Sample-Rate`/header WAV và so với contract; xác nhận số kênh của MOSS |
+| Gateway → client playback | Rate gốc của TTS + `audio.start(meta)` | Client resample **một lần** sang rate của `AudioContext` | Kiểm tra `peak ≤ 1` và clip ratio trước khi phát |
+
+### 2.16.3 State theo session và theo chiều
+
+Các state của uplink (một bộ cho mỗi session):
+
+- byte dư chưa đủ một mẫu;
+- `StreamResampler` (nếu resample ở gateway);
+- reblocker cho VAD và reblocker cho ASR streaming;
+- bộ đếm mẫu (đây là đồng hồ của session);
+- ring buffer cho pre-roll và cửa sổ Smart Turn;
+- `VADIterator`;
+- turn buffer.
+
+State của downlink thì theo **từng `generation_id`**: bộ parse header WAV/SSE, byte dư, resampler (nếu có), và bộ đếm mẫu đã gửi/đã phát.
+
+Quy tắc vòng đời:
+
+- **Hết lượt** (§5.2): chỉ gọi `VADIterator.reset_states()`. **Không** reset resampler, reblocker hay bộ đếm mẫu uplink. Timeline phải liên tục suốt session, nếu không timestamp của lượt sau sẽ lệch.
+- **Barge-in** (`generation_id++`, §7.3): bỏ toàn bộ state downlink của generation cũ, kể cả lịch sử bộ lọc resampler. Nếu giữ lại, vài ms "đuôi" của câu cũ sẽ rò sang đầu câu mới.
+- **Lúc bot đang nói**, uplink vẫn chạy để VAD còn chấm điểm cho barge-in. Nếu chạy half-duplex (tắt mic), vẫn phải đếm mẫu bằng cách chèn im lặng hoặc đánh dấu gap, để timeline không bị co lại.
+- **Đóng session:** flush resampler (`last=True`), giải phóng buffer, bỏ các callback tới trễ (§7.2).
+- Không có object audio nào được là singleton hay biến cấp module. Đây chính là quy tắc "không dùng chung cache giữa các user" của §7.1, áp vào tầng DSP.
+
+### 2.16.4 Timeline và offset: đơn vị phải nằm trong tên
+
+- **Đồng hồ uplink là chỉ số mẫu @16 kHz.** Turn start/end, pre-roll, cửa sổ Smart Turn và thời điểm VAD đều tính bằng chỉ số mẫu. Wall-clock chỉ dùng cho metric latency (§8.1).
+- **`audio.played(played_sample_offset)`** (§7.2) phải được định nghĩa theo `sample_rate` đã khai trong `audio.start` của generation đó, **không** theo rate của `AudioContext`. Nếu client resample 24 kHz → 48 kHz rồi báo offset ở 48 kHz, "phần đã phát" lưu vào history (§7.3 bước 5) sẽ bị cắt sai gấp 2 lần.
+- **Ghi đơn vị vào tên trường:** `offset_samples`, `sample_rate_hz`, `duration_ms`. Đừng đặt tên trơn là `frame` hay `chunk`, vì hai từ này có ít nhất ba nghĩa (§2.7.1).
+- **Policy cho gap** (§7.1): khi `sequence` nhảy cóc, chèn im lặng đúng số mẫu bị thiếu để giữ timeline cho VAD/ASR, và gắn cờ `gap` vào metadata của lượt. Không nối liền hai đoạn. Gap dài quá ngưỡng thì xử lý như mất kết nối.
+- **Định cỡ bộ nhớ** (phục vụ test tải §10.4): pre-roll 300 ms = 4 800 samples; cửa sổ Smart Turn 8 s (`last_8s_audio`, §7.4) = 128 000 samples = 512 KB float32 mỗi session. Turn buffer phải có giới hạn, ví dụ 30 s = 480 000 samples ≈ 1.9 MB float32. Lượt dài hơn giới hạn thì cắt, hoặc ép commit kèm cờ.
+
+### 2.16.5 Chọn kích thước khối: căn lưới
+
+| Lựa chọn | Hệ quả |
+|---|---|
+| Transport 20 ms (320 samples) + Silero 512 | Phải chờ thêm trung bình ~8 ms, tối đa 16 ms (§2.7.4); hai lưới trùng nhau sau mỗi 160 ms |
+| Transport 32 ms (512 samples = 1 024 B) | Khớp đúng cửa sổ Silero nên không phải chờ reblock, nhưng mỗi gói phải đợi thêm 12 ms mới đủ để gửi. Tài liệu thiết kế cho phép 20–32 ms (§5.1). Opus thì tự nhiên là 20 ms |
+| Nemotron chunk 160 ms = 2 560 samples | Đúng bằng BCNN(320, 512): cả ba lưới (transport, VAD, ASR) trùng nhau ở mọi biên chunk (**Synthesis**, tính từ §2.7.4) |
+| Nemotron chunk 560 ms (A/B ở Phase 2, §12) = 8 960 samples | 8 960 / 512 = 17.5 nên biên chunk ASR rơi vào giữa cửa sổ VAD. Đây không phải lỗi; chỉ cần nhớ rằng hai reblocker là độc lập |
+| Client 44.1 kHz | 20 ms = 882 samples là số nguyên, nhưng quantum 128 frames thì không ứng với số ms nguyên. Hãy tích luỹ theo **mẫu**, không theo ms (§2.7.2) |
+| Telephony 8 kHz | 20 ms = 160 samples. Silero chạy được trực tiếp ở 8 kHz (256 samples), nhưng nếu ASR chạy ở 16 kHz thì sẽ có hai timeline. Đơn giản nhất: decode → upsample 16 kHz một lần, sau đó mọi thứ dùng chung một đồng hồ |
+
+### 2.16.6 Nhánh VAD và nhánh ASR tách ra từ cùng một frame
+
+- **Nguyên tắc 3** (ASR nghe audio sau AEC, không enhancement) có một hệ quả ở tầng số hoá: nhánh ASR **chỉ** được resample và đổi dtype. Không thêm gain số, không normalize theo lượt, không limiter. Mọi bước "làm đẹp" đều là một biến A/B riêng, phải đo bằng WER (§10.1).
+- **Denoise cho nhánh VAD** (RNNoise/DeepFilterNet, §5.1): nhiều bộ denoise phổ biến làm việc ở 48 kHz với kích thước frame riêng (RNNoise dùng 480 samples/10 ms theo hiểu biết chung; cần kiểm tra lại). Nếu uplink đã là 16 kHz, bạn sẽ phải upsample, vừa tốn CPU vừa không thêm thông tin. Nếu gateway nhận 48 kHz thì có thể denoise trước khi hạ rate. Đây là một lý do cụ thể để quyết định số 3 ở §2.16.1.
+- **Bù trễ giữa hai nhánh:** denoise và resampler đều có trễ thuật toán. Khi đem quyết định VAD áp vào turn buffer (nhánh ASR), phải trừ phần trễ này. Nếu không, điểm bắt đầu lượt bị muộn, và pre-roll 200–300 ms sẽ âm thầm bị ăn bớt, đúng chỗ âm tiết đầu và thanh điệu dễ mất (§5.2 `speech_pad_ms`).
+
+### 2.16.7 Downlink: từ chunk TTS tới loa
+
+- **Adapter TTS** là nơi duy nhất biết định dạng của backend:
+  - VieNeu `pcm` không có header.
+  - VieNeu `wav` streaming chỉ có header ở chunk đầu, với độ dài "unknown".
+  - SSE dùng base64, tốn thêm ~33% băng thông; decode xong vẫn phải qua bộ ghép byte như uplink.
+
+  Nguồn: [VieNeu OpenAI Speech API](../wiki/vieneu-tts-openai-speech-api.md), **Reported**.
+- **Tin header hơn tin config.** Đọc `X-Sample-Rate` (hoặc header WAV) rồi so với contract. Nếu lệch thì báo lỗi rõ ràng và đếm vào metric, đừng âm thầm phát: đây là nguồn gốc của giọng chipmunk/slow-mo (§2.11).
+- **Xin VieNeu trả `sample_rate=24000/16000`** giảm băng thông 2–3 lần, nhưng mất dải cao. Hơn nữa, `AudioContext` 48 kHz sẽ lại upsample lên. Chỉ nên làm vậy khi băng thông thật sự là ràng buộc, và phải có A/B nghe.
+- **Cancel không gây tiếng click:** khi `client.clear` cắt cứng giữa một chu kỳ sóng, biên độ nhảy về 0 và nghe thành tiếng "bụp". Fade-out 5–10 ms phần còn lại trong AudioWorklet thay vì cắt ngay. Cách này hầu như không làm chậm việc âm thanh dừng (§7.3, cần đo).
+- **Biên giữa hai mệnh đề:** mỗi mệnh đề là một request TTS riêng (§5.5). Mẫu đầu và mẫu cuối của mỗi request không chắc bằng 0, nên có thể có click giữa câu. Hãy kiểm tra trong regression; nếu có thì fade/crossfade vài ms ở biên.
+- **Mức âm lượng:** chuẩn hoá đỉnh (khoảng −1 dBFS) hoặc loudness ở adapter. Việc này quan trọng khi fallback đổi TTS (§9.4) và khi chấm A/B/MOS (§10.2). Hai hệ có độ to khác nhau sẽ làm lệch kết quả nghe (người nghe thường thích bản to hơn; kiến thức chung về listening test).
+- **Peak guard bắt buộc ngay trước khi phát.** Downlink là nơi duy nhất một lỗi số hoá (ví dụ quên chia 32768) có thể gây hại trực tiếp cho tai người dùng (§2.13 Q4).
+
+### 2.16.8 Băng thông và ngân sách latency
+
+| Luồng (mỗi session) | Bitrate | Ghi chú |
+|---|---|---|
+| Uplink WS PCM16 16 kHz mono | 256 kbps, 50 message/s ở frame 20 ms | Chạy **liên tục**, vì mic luôn mở để bắt barge-in (§7.3). 100 session ≈ 25.6 Mbps vào gateway |
+| Downlink VieNeu `pcm` 48 kHz | 768 kbps khi bot nói | Xin 24 kHz thì còn 384 kbps; qua SSE base64 thì nhân thêm ~4/3 |
+| Opus thoại | ~16–32 kbps | Lý do production nên dùng WebRTC (§5.1) |
+
+Các phần latency do chương này gây ra, xếp theo độ lớn:
+
+1. Pre-buffer khi phát: 150–300 ms theo khuyến nghị của VieNeu (§8.3, **Reported**). Đây là phần lớn nhất, vượt xa mọi chi phí DSP.
+2. Đóng gói frame transport: 20–32 ms.
+3. Chờ reblock cho VAD: ≤ 16 ms.
+4. Trễ nhóm của resampler: vài ms mỗi lần resample. Thiết kế có hai lần (uplink và downlink); mỗi lần resample thừa lại cộng thêm.
+5. Render quantum của AudioWorklet: 128 frames ≈ 2.7 ms @48 kHz.
+
+Hệ quả: hãy tune pre-buffer và số lần resample trước. Đừng tối ưu chất lượng hay độ dài bộ lọc resampler để đổi lấy latency.
+
+### 2.16.9 Quan sát lỗi số hoá trong production
+
+Các metric dưới đây là **content-free**: không chứa audio hay transcript, nên phù hợp với yêu cầu ở §9.5. Ghi theo từng lượt hoặc theo cửa sổ vài giây:
+
+- `peak_dbfs`, `rms_dbfs`, `clip_ratio`, `dc_mean` của từng nhánh uplink và của downlink.
+- **Tốc độ mẫu đo được** so với tốc độ khai báo, tức số mẫu nhận được chia cho số giây wall-clock, trên một cửa sổ khoảng 10 s. Lệch đúng ×3 hoặc ×0.5 nghĩa là client khai sai rate hoặc sai số kênh. Lệch vài chục tới vài trăm ppm là clock drift (§2.8.5).
+- Số lần có byte lẻ, số gap và tổng ms gap, độ dài hàng đợi reblock, số lần downlink underrun, số lần lệch `X-Sample-Rate`.
+- Cảnh báo khi `rms_dbfs` thấp hơn khoảng −90 dBFS kéo dài (chia 32768 hai lần, hoặc mic bị mute), khi `clip_ratio` cao, hoặc khi xác suất VAD bão hoà ở 1.0 (quên chia 32768).
+
+```python
+class RateMonitor:
+    """So tốc độ mẫu đến với rate khai báo. Content-free, rẻ, chạy mỗi session."""
+    def __init__(self, declared_hz: int, window_s: float = 10.0):
+        self.declared, self.window = declared_hz, window_s
+        self.t0, self.n = None, 0
+
+    def on_samples(self, n: int, now_s: float) -> float | None:
+        if self.t0 is None:
+            self.t0 = now_s
+        self.n += n
+        dt = now_s - self.t0
+        if dt < self.window:
+            return None
+        ratio = self.n / dt / self.declared      # ~1.0 là bình thường; ~3.0 hoặc ~0.5 là sai contract
+        self.t0, self.n = now_s, 0
+        return ratio
+```
+
+(Jitter mạng làm `ratio` dao động quanh 1.0 trên cửa sổ ngắn. Chỉ cảnh báo khi lệch lớn và kéo dài.)
+
+Chỉ dump audio để debug khi đã có opt-in, consent và chính sách retention (§9.5). Không bao giờ dump mặc định.
+
+### 2.16.10 Bổ sung cho contract tests (§10.5) và corpus (§10.1)
+
+1. **Ghép byte:** cắt file PCM16 thành các message có độ dài ngẫu nhiên, kể cả số byte lẻ. Output của ingress phải khớp **từng bit** với khi đọc cả file (ở trường hợp không resample).
+2. **Ma trận định dạng:** rate 8/16/22.05/24/44.1/48 kHz × mono/stereo × `s16le`/`f32le` × PCM/WAV/SSE. Output canonical phải có độ dài ≈ `duration · 16000`, cho phép sai lệch bằng trễ của resampler.
+3. **Drift dài hạn:** stream 60 phút qua ingress, chunk có độ dài thay đổi. Số mẫu ra chỉ được lệch so với lý thuyết vài mẫu, không được lệch hàng trăm ms (§2.8.4).
+4. **Stream so với offline:** resampler stream so với resample cả file, cho phép dung sai (cỡ 1e-3, như ghi chú của Silero ở §2.5.5). Quyết định VAD của hai đường phải trùng nhau trong ±1 cửa sổ.
+5. **Cancel giữa chunk:** sau `client.clear` không còn mẫu nào của generation cũ, và không có bước nhảy biên độ vượt ngưỡng ở điểm cắt.
+6. **Peak guard:** cố tình đưa một buffer int16 chưa chia vào đường phát. Buffer này phải bị chặn hoặc bị limiter xử lý trước khi tới loa.
+7. **Telephony:** đường đúng là μ-law/A-law → decode → 8 kHz → 16 kHz. Thêm test âm tính: resample trên bytes chưa decode phải bị contract từ chối.
+8. **Corpus 8 kHz so với 16 kHz** (§10.1): bản 8 kHz phải là audio cuộc gọi thật, hoặc được mô phỏng theo đúng chuỗi xử lý (lọc băng thoại → G.711 encode/decode). Không được chỉ downsample. Manifest ghi định dạng gốc của từng file. Trộn nhiễu ở SNR 0/5/10/20 dB bằng float32 và scale cả hỗn hợp, không clip (§2.4).
+
+### 2.16.11 Checklist theo lộ trình (§12)
+
+- **Phase 1 — MVP** (thuộc nhóm "audio contract tường minh từ ngày đầu"):
+  - `AudioFormat` kèm assert ở mọi biên.
+  - **Một** hàm quy đổi int16 ↔ float32 duy nhất.
+  - `PcmBytesToSamples`, `StreamResampler` cho mỗi session/chiều, các reblocker riêng.
+  - Timeline bằng số mẫu.
+  - `audio.start` mang format.
+  - Đọc `X-Sample-Rate`.
+  - Peak guard trước khi phát.
+  - Metric sức khoẻ audio (§2.16.9).
+- **Phase 2 — Beta:**
+  - Chuyển sang Opus/WebRTC.
+  - Denoise cho nhánh VAD, có bù trễ.
+  - Căn lưới chunk Nemotron 160/320/560 ms với reblocker.
+  - Fade khi `client.clear`.
+  - Kiểm tra click ở biên mệnh đề.
+  - Chuẩn hoá mức âm trước khi A/B TTS.
+- **Phase 3 — Production:**
+  - Theo dõi và bù clock drift (adaptive resampling) khi tự quản lý audio I/O hoặc AEC.
+  - Parity gate cho runtime native (audio.cpp…) phải gồm cả định dạng đầu ra, không chỉ chất lượng.
+  - Telephony G.711 có test âm tính.
+  - Định cỡ bộ nhớ audio theo số session.

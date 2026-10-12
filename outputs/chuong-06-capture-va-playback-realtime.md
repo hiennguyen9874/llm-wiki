@@ -1061,3 +1061,137 @@ Công cụ: trình duyệt Chrome/Firefox, `python -m http.server` hoặc Vite c
 - [Faster Qwen3-TTS](../wiki/faster-qwen3-tts.md): giữ một output stream mở; `sounddevice.play` từng chunk gây gap.
 
 **Đọc thêm ngoài wiki (tài liệu chuẩn, gợi ý):** W3C *Web Audio API* (AudioWorklet, render quantum, `getOutputTimestamp`, `outputLatency`); W3C *Media Capture and Streams* (getUserMedia, constraints); MDN về AudioWorklet, autoplay policy, cross-origin isolation và `SharedArrayBuffer`; tài liệu PortAudio và python-sounddevice (callback, `CallbackFlags`, `latency`); Ross Bencina, *Real-time audio programming 101: time waits for nothing* (luật của audio thread); tài liệu WebRTC NetEq (jitter buffer thích ứng, PLC).
+
+---
+
+## 6.18 Lưu ý khi thiết kế và hiện thực pipeline speech-to-speech tiếng Việt
+
+Phần này áp kiến thức của chương vào [tài liệu thiết kế](thiet-ke-pipeline-speech-to-speech-tieng-viet.md). Các khuyến nghị là **Synthesis**, chưa kiểm chứng trên implementation nào. Tham số và số liệu lấy từ tài liệu thiết kế hoặc wiki giữ nhãn gốc (**Reported**, **Observed**). Kết quả **Reproduced** duy nhất được dùng là mô phỏng đồ chơi §6.7.3 và kiểm thử logic §6.9.2, không phải đo trên thiết bị hay TTS thật. Bảng lỗi §6.13 và bảng ánh xạ §6.12 vẫn dùng được; mục này tập trung vào **quyết định thiết kế, hợp đồng dữ liệu và thứ tự hiện thực** ở hai đầu realtime.
+
+### 6.18.1 Bảng tra nhanh: kiến thức của chương → quyết định thiết kế
+
+| Kiến thức (mục) | Nơi chạm vào thiết kế | Quyết định / lưu ý |
+|---|---|---|
+| Phần cứng là đồng hồ chủ; callback chỉ chép mẫu (6.2) | §4 client, §5.7 gateway tự viết | Không chạy VAD/resample nặng/mạng trong callback hay `process()`; mọi việc nặng ở Worker/thread khác |
+| Rate thiết bị là 44.1/48 kHz, constraint chỉ là gợi ý (6.3.2–6.3.3) | §5.1 WebSocket PCM16 16 kHz | Chọn rõ một trong ba cách resample (client/worklet/server); đọc và log `getSettings()`, `ctx.sampleRate` |
+| Rate output của worklet là một phần của contract (6.3.3) | Nguyên tắc 4 (audio contract) | Version hoá contract client (như `audio-24k-v2` của HF s2s), kiểm tra trước khi mở session |
+| Mỗi buffer trả giá bằng độ trễ (6.5) | §8.1 critical path, §8.2 ngân sách | Thêm dòng pre-buffer + `outputLatency` vào ngân sách; không tối ưu buffer thiết bị xuống dưới 10 ms |
+| Hàng đợi không giới hạn = rò rỉ độ trễ (6.6.2) | §4 "bounded client queue", §9.1 admission/backpressure | Mọi queue có trần và chính sách (drop hoặc backpressure) được ghi ra |
+| Pre-buffer lượng tử hoá theo chunk; RTF ≥ 1 không buffer nào cứu (6.7) | §5.6 VieNeu, §8.3, §8.4 gate RTF ≤ 0.7 | Pre-buffer theo backend/profile, ≥ chunk đầu; RTF là gate của server, không chữa ở client |
+| Số mẫu là đồng hồ chính (6.8) | §7.1 gap policy, §7.2 event schema | Event mang chỉ số mẫu, không wall clock của server |
+| Playback theo `generation_id`, fade, played offset (6.9) | §7.2 `audio.start/chunk/played`, §7.3 barge-in | Một queue có state machine; lọc generation ở hai chỗ; offset theo rate nguồn |
+| Voice-to-voice đo trên đồng hồ client (6.10) | §8.1, §8.4 "voice-to-voice đo phía client" | Server báo chỉ số mẫu của tiếng nói cuối; client tự trừ |
+| Pre-roll ở gateway; client VAD-gating phải gửi kèm pre-roll (6.11) | §4, §7.1 pre-roll 200–300 ms | Nơi đặt pre-roll đi theo nơi đặt VAD |
+
+### 6.18.2 Audio contract ở biên client
+
+Tài liệu thiết kế yêu cầu mỗi backend khai báo audio contract (nguyên tắc 4). Client cũng là một "backend" có contract riêng, và lỗi ở đây thường im lặng (giọng nhanh/chậm, lách tách, không có mẫu nào).
+
+**Uplink (mic → gateway):**
+
+1. **Chốt một chỗ resample và ghi vào contract.** Với Profile A trên LAN, gửi PCM16 16 kHz mono sau resampler có lọc ở Worker (cách b) hoặc gửi 48 kHz để server resample bằng soxr (cách c). Cách a (`AudioContext({sampleRate:16000})`) chỉ dùng sau khi test trên đúng trình duyệt mục tiêu, và không dùng chung context đó cho playback vì TTS 24/48 kHz sẽ bị hạ băng thông (6.3.3).
+2. **Header frame uplink** mang `sequence` và `capture_sample_index` (chỉ số mẫu đầu frame theo rate đã gửi). Đây là cơ sở cho gap policy §7.1 và cho đo voice-to-voice (6.10.3, 6.18.3).
+3. **Handshake trước byte đầu tiên:** client gửi `format`, `sample_rate`, `channels`, `frame_ms`, `contract_version`, cùng các cờ AEC/NS/AGC thật từ `getSettings()`. Gateway từ chối (hoặc resample) khi không khớp, thay vì đoán.
+4. **Uplink giữ audio sau AEC, không qua enhancement thêm ở client** (nguyên tắc 3). `noiseSuppression` của trình duyệt là một biến A/B, phải được log theo session để không lẫn kết quả WER giữa máy (6.3.2, 6.13 "máy A tốt, máy B tệ").
+
+**Downlink (TTS → loa):**
+
+1. **`audio.start` là bắt buộc trước chunk đầu** và mang `format`, `sample_rate`, `channels`. Client không được giả định rate. Lưu ý trần băng thông của HF s2s: `--tts openai` chuyển về 16 kHz mono `int16` (tài liệu thiết kế nguyên tắc 4, **Reported**), nên khi dùng HF s2s làm orchestrator, VieNeu 48 kHz tới client chỉ còn 16 kHz. Đó là quyết định chất lượng âm thanh, không phải lỗi client; ghi vào profile.
+2. **Framing binary có `generation_id` và `sequence` trong header** (ví dụ ở 6.9.5) để client lọc chunk cũ mà không cần parse JSON. Không dùng base64 (§5.1).
+3. **Một generation = một luồng audio liên tục, một `audio.start`, một `audio.end`.** Clause chunker (§5.5) tạo nhiều request TTS cho một câu trả lời; gateway phải ghép chúng thành một generation phía client. Nếu gửi `audio.end` sau mỗi mệnh đề, state machine 6.9.1 sẽ về `IDLE` và pre-buffer chạy lại ở mỗi mệnh đề.
+4. **Biên giữa hai request TTS** có thể bắt đầu/kết thúc với mức tín hiệu khác 0: fade ngắn hoặc chèn khoảng lặng có chủ đích ở gateway hay client (6.9.3). Đừng fade ở biên chunk **trong cùng** một request, vì cắt đuôi âm tiết làm sai thanh (Chương 5 §5.3).
+5. **Resampler downlink có state theo generation:** tạo ở `audio.start`, flush ở `audio.end`, vứt ở `clear` (6.9.4).
+
+### 6.18.3 Đồng hồ và event schema (§7.1, §7.2)
+
+Đề xuất bổ sung vào event schema §7.2 (**Synthesis**):
+
+```text
+uplink frame header:  sequence, capture_sample_index
+turn.commit(turn_id, revision, speech_end_sample)          # chỉ số mẫu theo stream capture
+audio.start(generation_id, format, sample_rate, channels, chunk_hint_ms?)
+audio.end(generation_id, total_samples)
+audio.played(generation_id, played_sample_offset, underrun_count, underrun_ms, final: bool)
+client.metrics(turn_id, v2v_client_ms, prebuffer_wait_ms, barge_stop_ms, stale_chunk_drop, ...)
+```
+
+Quy ước đi kèm:
+
+- **Mọi mốc thời gian trong pipeline là chỉ số mẫu** của stream tương ứng (VAD start/end, pre-roll, endpoint, played offset). Wall clock chỉ dùng để log ở biên (6.8.3). Nó tránh cả drift lẫn việc phải đồng bộ đồng hồ client–server.
+- **`played_sample_offset` theo rate của generation** (rate trong `audio.start`), không tính pre-buffer và im lặng do underrun, và trừ phần còn nằm trong buffer thiết bị nếu cần chính xác (6.9.2). Ghi rõ quy ước này trong contract; HF s2s có cùng quy ước (**Reported**).
+- **Gap policy §7.1:** gateway phát hiện gap bằng `sequence`. Chèn im lặng đúng độ dài để giữ đồng hồ mẫu thẳng hàng, đánh cờ `gap` cho turn đó, và không để VAD coi đoạn chèn là "im lặng thật" để đóng lượt (gap dài thì reset turn hoặc hỏi lại). Đây là đề xuất, phải test với mạng xấu.
+- **`chunk_hint_ms`** (tuỳ chọn) cho client biết kích thước chunk đầu/sau của backend để đặt pre-buffer không "đặt mò" (6.7.3, bài học 2).
+
+### 6.18.4 Playback queue, pre-buffer và ngân sách latency (§5.6, §8)
+
+- **Pre-buffer là một tham số của profile, không phải hằng số toàn cục.** Khởi điểm: VieNeu GPU 150–300 ms, VieNeu CPU (Profile E) ≥ 300 ms (**Reported**, [VieNeu Streaming Runtime](../wiki/vieneu-tts-streaming-runtime.md)); tối thiểu bằng chunk đầu khi chunk đầu nhỏ hơn chunk sau. Với HF s2s, client Python mặc định 196 ms, browser demo 0 ms, WebRTC không dùng tuỳ chọn này (tài liệu thiết kế §8.3, **Reported**).
+- **Mở cổng sớm khi `audio.end` tới.** Câu trả lời ngắn ("Dạ.", "Vâng ạ.") rất phổ biến trong hội thoại tiếng Việt; không để chúng chờ pre-buffer.
+- **Đưa pre-buffer và `outputLatency` vào ngân sách §8.2.** Hai bảng ngân sách trong tài liệu thiết kế không có dòng nào cho chúng; 150–300 ms pre-buffer có thể chiếm một phần ba ngân sách ~0.7–1.2 s. Khi so sánh với `e2e` của HF s2s (không gồm playback, **Reported**), cộng thêm phần này.
+- **Phân biệt hai loại underrun.** Giữa hai mệnh đề, client có thể cạn audio vì **LLM chưa sinh xong mệnh đề tiếp** (không phải lỗi TTS); trong một mệnh đề, cạn audio là do **RTF/jitter của TTS**. Gắn `chunk_id`/`text.chunk` vào chunk audio để metric underrun tách được hai nguyên nhân, vì cách chữa khác nhau (chunker/LLM so với TTS server).
+- **RTF là gate của server.** Gate §8.4 (TTFA P95 ~250–400 ms, RTF P95 ≤ 0.7) quyết định luôn lượng pre-buffer cần thiết (6.7.3, bài học 4). Ở 32 stream VieNeu RTF ~0.93 và lead tối thiểu âm (**Reported**): đặt `VIENEU_MAX_STREAMS` theo tải đo được, không tăng pre-buffer để che.
+- **Bounded ở mọi tầng:** capture queue (drop frame cũ, đếm), queue câu cho TTS, queue playback (không ghi đè phần chưa phát), socket buffer. Server **pacing** (chỉ gửi trước 0.5–1 s so với `audio.played`) là tối ưu tuỳ chọn cho Phase 2–3, giảm compute bị vứt khi barge-in (6.6.2, chưa đo).
+
+### 6.18.5 Barge-in, flush và history (§7.3)
+
+1. **`client.clear` đi đường nhanh**, không xếp sau audio đã nằm trong hàng đợi gửi của server. Với WebSocket, gateway nên có hàng đợi gửi riêng cho control hoặc chèn control lên đầu (6.9.6).
+2. **Lọc generation ở hai chỗ** (main thread và worklet/callback) và tách `min_gen` (chặn) khỏi `gen` (đang phát) để không chặn nhầm câu trả lời mới (6.13).
+3. **Fade-out 5–10 ms khi clear**, không cắt cứng (6.9.3).
+4. **History chỉ ghi sau khi nhận `audio.played(final=true)`** của generation bị ngắt, có timeout dự phòng (ví dụ vài trăm ms; quá hạn thì ghi theo offset cuối đã nhận và đánh cờ ước lượng). Ghi theo "đã gửi" hay "đã sinh" là sai (6.6.2). Từ offset ra text cần alignment hoặc ranh giới mệnh đề (tài liệu thiết kế §7.3, Chương 17/19).
+5. **Nếu dùng HF s2s:** `conversation.item.truncate` hiện là no-op ở server (**Reported**, tài liệu thiết kế §5.7). Phải tự cắt history ở gateway hoặc chấp nhận history chứa phần chưa phát; ghi rõ đây là deployment gate.
+6. **Đo `barge_stop_ms` ở client** (nhận clear → tín hiệu ra bằng 0) cộng thời gian phát hiện ở server; đó là con số "user-speech → âm thanh bot dừng (nghe được)" của §7.3, tách khỏi thời gian giải phóng compute.
+7. **WebSocket và WebRTC flush ở chỗ khác nhau:** WebSocket flush ở client worklet; WebRTC flush ở server, jitter buffer client còn vài chục ms (**Reported**). Chọn transport (§5.1) kéo theo chỗ đặt logic clear.
+8. **Duck cục bộ (tuỳ chọn):** client có VAD nhẹ có thể giảm âm lượng ngay khi thấy user nói, nhưng **không** tự huỷ generation; owner của quyết định barge-in vẫn là gateway (nguyên tắc 2).
+
+### 6.18.6 AEC, thiết bị và môi trường chạy (§5.1)
+
+- **Barge-in full-duplex trên loa ngoài cần AEC**; không có AEC thì dùng tầng 1 (tắt mic khi bot nói) và chấp nhận không có barge-in (tài liệu thiết kế §5.1, **Reported**). Đây là quyết định theo thiết bị, có thể khác nhau giữa session.
+- **Mic và loa cùng một thiết bị/đồng hồ** khi có thể; mic USB + loa HDMI làm tham chiếu AEC trôi (6.8.2, Chương 7).
+- **Bluetooth** đổi profile sang băng hẹp và thêm trễ output lớn: log loại thiết bị, rate in/out, `outputLatency` theo session; tách kết quả đánh giá theo loại thiết bị.
+- **Điều kiện tiên quyết của trình duyệt:** HTTPS hoặc `localhost`, `ctx.resume()` trong click, xử lý từ chối quyền mic, `devicechange`, tab bị ẩn (6.3.1, 6.3.5). Đưa vào checklist demo và trang lỗi cho người dùng.
+- **Client Python (Profile E, kiosk, robot):** mở đúng rate thiết bị rồi resample bằng soxr; một duplex stream; một output stream mở suốt; blocksize 20 ms; callback chỉ chép; đếm `input_overflow`/`output_underflow` (6.4).
+
+### 6.18.7 Pre-roll và nơi đặt VAD (§4, §7.1)
+
+- **Mặc định đặt pre-roll 200–300 ms ở gateway**, cùng chỗ và cùng đồng hồ mẫu với Silero (tài liệu thiết kế §7.1, **Synthesis**). Lượt tiếng Việt mất âm đầu/phần đầu vần là mất thông tin phân biệt (Chương 5).
+- **Nếu client gate audio bằng VAD cục bộ** (tiết kiệm băng thông mobile), client **bắt buộc** gửi kèm pre-roll và `capture_sample_index` đúng, nếu không gateway không bao giờ thấy phần đầu.
+- Pre-roll, `speech_pad_ms` và `vad_filter` của runtime ASR là ba lớp có thể cắt audio; test cắt đầu/đuôi phải chạy **trên toàn đường** (Chương 5 §5.18.3).
+
+### 6.18.8 Quan sát, đánh giá và contract test (§8.4, §10)
+
+**Metric client gửi về** (bổ sung cho §8.4; content-free theo §9.5): `v2v_client_ms`, `prebuffer_wait_ms`, `underrun_count`/`underrun_ms` (tách giữa/trong mệnh đề), `barge_stop_ms`, `stale_chunk_drop`, `capture_drop`/`input_overflow`, `device_sr_in/out`, `outputLatency`, cờ AEC/NS/AGC thật, loại thiết bị. Không gửi audio hay transcript.
+
+**Contract test bổ sung cho §10 mục 5:**
+
+- Rate downlink 16/24/48 kHz và rate thiết bị 44.1/48 kHz: giọng không nhanh/chậm, `played_sample_offset` khớp rate nguồn (thực hành 6.14 bài 6).
+- Clear giữa chunk; server cố tình bắn tiếp chunk generation cũ sau clear: không mẫu nào phát ra; generation mới vẫn phát.
+- Lượt ngắn dưới ngưỡng pre-buffer có `audio.end`: phát ngay.
+- Nhiều request TTS trong một generation: không click ở biên request, không pre-buffer lại giữa mệnh đề.
+- Gap uplink (bỏ `sequence`), reconnect, đổi thiết bị giữa session: đồng hồ mẫu không lệch, contract được kiểm tra lại.
+- Tải §10 mục 4 (concurrency 1/4/8/16, khởi động đồng loạt): đo underrun phía client, không chỉ RTF phía server.
+
+**Đánh giá turn/barge-in §10 mục 3** phải chạy trên ít nhất một cấu hình loa ngoài có AEC và một cấu hình Bluetooth, vì hai cấu hình này đổi hẳn hành vi echo và độ trễ dừng.
+
+### 6.18.9 Thứ tự hiện thực theo lộ trình (§12)
+
+| Phase | Việc liên quan tới chương này |
+|---|---|
+| **1 — MVP** | Capture AudioWorklet 20 ms + resampler có lọc (hoặc gửi 48 kHz lên server); handshake contract; `audio.start/end` bắt buộc; playback worklet có ring buffer, `generation_id`, pre-buffer cố định theo backend, mở cổng khi `audio.end`, fade, `clear`; `audio.played` theo rate nguồn; pre-roll ở gateway; metric `v2v_client_ms`, `underrun`, `barge_stop_ms`. Half-duplex nếu chưa có AEC |
+| **2 — Beta** | Bật AEC + barge-in full-duplex; history theo `audio.played(final)`; pre-buffer thích ứng; tách underrun giữa/trong mệnh đề; contract test 6.18.8; đo loopback latency trên thiết bị mục tiêu; client Python cho Profile E |
+| **3 — Production** | WebRTC (jitter buffer, AEC tầng 3, flush phía server); server pacing theo `audio.played`; dashboard P95 theo thiết bị/trình duyệt; xử lý đổi thiết bị và Bluetooth; drift control chỉ khi có stream liên tục hoặc AEC tự viết |
+
+### 6.18.10 Checklist rút gọn
+
+- [ ] Callback/`process()` chỉ chép mẫu; không I/O, không lock dài, không model; Python blocksize ≥ 10–20 ms.
+- [ ] Một chỗ resample uplink được chọn và ghi vào contract; resampler có lọc và có state; không `x[::3]`.
+- [ ] Handshake uplink có `sample_rate`, `frame_ms`, `contract_version`, cờ AEC/NS/AGC thật; gateway từ chối khi lệch.
+- [ ] Frame uplink có `sequence` và `capture_sample_index`; gap được phát hiện và có policy.
+- [ ] Mọi mốc thời gian là chỉ số mẫu; `turn.commit` mang `speech_end_sample`.
+- [ ] `audio.start` bắt buộc, mang rate; một generation = một `audio.start` + một `audio.end` dù có nhiều request TTS.
+- [ ] Playback queue bounded, theo `generation_id`, lọc ở main thread **và** worklet, tách `min_gen` khỏi `gen`.
+- [ ] Pre-buffer theo backend/profile, ≥ chunk đầu, mở cổng khi `audio.end`; được tính vào ngân sách §8.2.
+- [ ] Fade khi bắt đầu, khi clear, khi underrun, ở biên request TTS; không fade biên chunk trong cùng request.
+- [ ] `client.clear` đi đường nhanh; `barge_stop_ms` được đo ở client.
+- [ ] `played_sample_offset` theo rate nguồn, không tính pre-buffer/underrun; history chỉ ghi phần đã phát sau `audio.played(final)`.
+- [ ] Pre-roll 200–300 ms ở gateway; client gate bằng VAD thì gửi kèm pre-roll.
+- [ ] Voice-to-voice đo trên đồng hồ client; không cộng `e2e` server với số liệu client khác loại.
+- [ ] Metric client content-free gửi về theo turn; kết quả đánh giá tách theo thiết bị (loa ngoài, tai nghe dây, Bluetooth) và trình duyệt.

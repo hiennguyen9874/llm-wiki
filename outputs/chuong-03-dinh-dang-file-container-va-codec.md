@@ -808,3 +808,165 @@ Tóm lại: PCM để **xử lý**, WAV để **trao đổi file có tự mô t�
 - [Barge-in & Echo Handling](../wiki/voice-agent-barge-in-and-echo-handling.md): vì sao WebRTC (Opus + AEC) cho production.
 
 **Đọc thêm ngoài wiki (đặc tả và tài liệu chuẩn, gợi ý):** Microsoft *Multimedia Programming Interface and Data Specifications 1.0* (RIFF/WAVE) và tài liệu `WAVE_FORMAT_EXTENSIBLE`; EBU Tech 3306 (RF64); ITU-T G.711 và G.722; RFC 6716 (Opus), RFC 7587 (RTP payload cho Opus), RFC 7845 (Ogg Opus); RFC 3551 (RTP A/V profile, payload type 0/8/9); RFC 2586 (`audio/L16`); RFC 4648 (base64); WHATWG HTML Living Standard, mục *Server-sent events*; RFC 9112 (HTTP/1.1 chunked transfer coding); tài liệu ffmpeg (`-f s16le`, `-sample_fmts`, `libopus`); W3C MediaRecorder và WebCodecs; bài báo EnCodec (Défossez et al., 2022), DAC (Kumar et al., 2023), Moshi/Mimi (Kyutai, 2024).
+
+---
+
+## 3.18 Lưu ý khi thiết kế và hiện thực pipeline speech-to-speech tiếng Việt
+
+Phần này đem kiến thức của chương áp vào [tài liệu thiết kế](thiet-ke-pipeline-speech-to-speech-tieng-viet.md), bổ sung cho §2.16 của [Chương 2](chuong-02-so-hoa-am-thanh-tu-song-toi-mang-so.md) (sample rate, dtype, timeline) ở các tầng codec, container và transport framing. Các khuyến nghị đều là **Synthesis**, chưa kiểm chứng trên implementation nào. Thông số backend là **Reported**, lấy lại từ tài liệu thiết kế hoặc trang wiki được dẫn. Hành vi thư viện và stack WebRTC là kiến thức chung, cần kiểm tra lại với phiên bản bạn cài.
+
+### 3.18.1 Sáu quyết định định dạng cần chốt trước khi viết code
+
+| # | Quyết định | Khuyến nghị | Lý do / liên hệ |
+|---|---|---|---|
+| 1 | Codec và framing uplink | MVP: WS binary `s16le` mono 16 kHz, 20 ms/message. Production: WebRTC Opus. **Không** dùng `MediaRecorder` làm đường chính | Tài liệu thiết kế §5.1 (**Reported**); bẫy chunk WebM không độc lập (§3.5.3) |
+| 2 | Định dạng VieNeu trả về | `response_format=pcm`, `stream_format=audio` (chunked), rate lấy từ `X-Sample-Rate` | Không có header để bóc, không base64 (+33%). `wav`/`sse` chỉ dùng cho client "ngây thơ" hoặc kênh chỉ có text ([VieNeu OpenAI Speech API](../wiki/vieneu-tts-openai-speech-api.md), **Reported**) |
+| 3 | Định dạng downlink tới client | MVP: WS binary PCM16 ở rate gốc của TTS + `audio.start(format, sample_rate, channels)`. Production: gateway đẩy PCM vào track WebRTC, stack tự encode Opus | VieNeu không trả `opus` (yêu cầu → `400`), nên encode Opus là việc của gateway/stack (§3.5.2) |
+| 4 | Upload cho ASR HTTP | WAV PCM16 mono 16 kHz, header 44 byte với **size đúng** (đã có đủ utterance) | Khớp cách HF s2s gửi tới `/v1/audio/transcriptions` ([s2s backends](../wiki/speech-to-speech-openai-compatible-backends.md), **Reported**) |
+| 5 | Telephony (nếu có) | G.711 μ-law/A-law 8 kHz do nhà mạng/CPaaS quyết định; decode ở biên, resample 8→16 kHz một lần | §3.6.2; tài liệu thiết kế §5.1 |
+| 6 | Định dạng lưu trữ | Corpus đánh giá, reference voice, ground truth: WAV/FLAC. Dump debug (chỉ khi opt-in): FLAC, hoặc Opus/Ogg ~24 kbps nếu chỉ để nghe lại và ghi rõ đã nén | §3.4; tài liệu thiết kế §9.5, §10 |
+
+Nguyên tắc chi phối cả sáu quyết định: **decode ở biên, xử lý bằng PCM, encode ở biên; mỗi đường audio chỉ nén lossy một lần** (§3.11).
+
+### 3.18.2 Contract theo bốn tầng cho từng cạnh
+
+`AudioFormat` của Chương 2 (§2.9.3) chỉ mô tả tầng 1. Mỗi cạnh của pipeline nên khai đủ bốn tầng, log một lần khi mở session (§3.11 nguyên tắc 4):
+
+```python
+from dataclasses import dataclass
+
+@dataclass(frozen=True)
+class EdgeFormat:
+    # tầng 1: sample format sau decode (AudioFormat của Ch.2)
+    sample_rate_hz: int
+    sample_fmt: str          # "s16le" | "f32le" | "mulaw" | ...
+    channels: int
+    # tầng 2-4
+    codec: str               # "pcm" | "opus" | "g711u" | "g711a"
+    container: str           # "none" | "wav" | "ogg" | "webm" | "rtp"
+    framing: str             # "ws-binary" | "http-chunked" | "sse-base64" | "multipart" | "json-base64"
+    rate_source: str         # "contract" | "x-sample-rate" | "wav-header" | "usage" | "session.start"
+```
+
+Trường `rate_source` buộc người viết adapter trả lời "sample rate lấy từ đâu", đúng nguyên tắc 4 của tài liệu thiết kế (§3). Khi giá trị đọc được (header WAV, `X-Sample-Rate`) khác contract: báo lỗi rõ, đếm metric, không âm thầm phát.
+
+### 3.18.3 Adapter TTS: một adapter mỗi backend, cùng một đầu ra
+
+Đầu ra chung của mọi adapter: `(np.ndarray float32 mono, sample_rate_hz)` theo `generation_id`. Phần khác nhau nằm ở đầu vào:
+
+| Backend (tài liệu thiết kế §5.6) | Đầu vào adapter phải xử lý (**Reported**) | Lưu ý hiện thực |
+|---|---|---|
+| VieNeu HTTP `pcm` + chunked | s16le headerless, 48 kHz mặc định, `X-Sample-Rate` | `PcmAssembler` giữ byte lẻ (§3.10.1). Byte lẻ còn lại khi stream đóng là lỗi contract, không phải "làm tròn" |
+| VieNeu HTTP `wav` | Header ở đầu với size "unknown" | Parse header một lần, bỏ qua size (§3.3.3) |
+| VieNeu `sse` | `speech.audio.delta` base64, `speech.audio.done` có `usage.sample_rate`; với `wav` thì event đầu là header | Parse SSE theo dòng trống, không theo chunk HTTP (§3.7.3). Đối chiếu `usage.output_samples` với số mẫu đã nhận làm kiểm tra toàn vẹn |
+| VieNeu SDK (in-process) | float32 48 kHz, không container | Không chia 32768 lần nữa (§3.11) |
+| Higgs TTS 3 | SSE base64 WAV chunks, 24 kHz | Kiểm tra `RIFF` ở **mỗi** chunk (§3.7.3). Nhớ gate license non-commercial (§5.6) |
+| MOSS-TTS Local (SGLang) | Raw PCM 48 kHz chunked; codec gốc stereo | Số kênh phải đo trên endpoint thật trước khi viết `channels=1` vào contract (§3.8.2) |
+| HF s2s `--tts openai` | PCM16 theo `--openai_tts_sample_rate` | s2s tự đổi về 16 kHz mono: trần băng thông 16 kHz cho cả pipeline (§3 nguyên tắc 4) |
+
+Các điểm dễ sai khi hiện thực:
+
+- **Cancel = đóng stream HTTP.** Khi barge-in (`generation_id++`, §7.3), adapter phải thoát khỏi `async with client.stream(...)` để TCP/HTTP request thực sự bị huỷ, rồi **bỏ** `carry`, `head` và bộ parse SSE của generation cũ. Không gọi `close()` kiểu "báo lỗi byte lẻ" trên stream bị huỷ giữa chừng: cắt giữa sample là bình thường khi cancel.
+- **Mỗi mệnh đề là một request** (§5.5), nên với `wav` mỗi mệnh đề lại có một header. Adapter phải coi mỗi request là một stream mới, không nối byte của hai request vào cùng một `PcmAssembler`.
+- **Lỗi `400` và `429`** là lỗi định dạng/tài nguyên, không phải lỗi tạm thời giống nhau: `400` (ví dụ xin `mp3`/`opus`) là bug cấu hình, không retry; `429` khi vượt `VIENEU_MAX_STREAMS` (§5.8) thì backoff hoặc chuyển backend theo §9.4.
+- **Chunk đầu quyết định TTFA.** Đo thời điểm có **mẫu PCM đầu tiên sau decode**, không phải byte đầu tiên: với `wav`/`sse`, byte đầu là header hoặc JSON.
+
+### 3.18.4 Uplink: từ client tới gateway
+
+- **MVP WebSocket:** client gửi đúng 640 byte/20 ms (hoặc 1 024 byte/32 ms, §2.16.5). Gateway vẫn kiểm tra `len % 2 == 0` và giữ carry, vì proxy hoặc thư viện client có thể không giữ biên như mong đợi. Metadata đi bằng text message `session.start`, không ngầm định.
+- **Nếu buộc phải dùng `MediaRecorder`** (ví dụ demo nhanh trên trình duyệt cũ): một process ffmpeg (hoặc một `av.open` của PyAV) cho mỗi session, đọc/ghi ở hai task riêng (§3.9.2). Timeslice của `recorder.start(ms)` cộng thẳng vào độ trễ uplink: 250 ms là quá lớn cho voice agent. Đây là lý do nên đi thẳng AudioWorklet → PCM.
+- **WebRTC/Opus:**
+  - AEC chạy ở client **trước** khi encode; gateway nhận audio đã qua AEC. Không thể làm AEC "lại" ở gateway trên audio đã nén mà không có tín hiệu tham chiếu đồng bộ.
+  - Một decoder Opus cho mỗi stream, sống suốt session (§3.5.3). Thường stack WebRTC đã lo việc này cùng jitter buffer và PLC; gateway nhận PCM 48 kHz và resample xuống 16 kHz **một lần** (§3.11).
+  - **DTX và VAD:** nếu bật DTX, trong lúc im lặng có thể không có gói nào tới. Tuỳ stack, gateway nhận comfort noise, PLC, hoặc không nhận gì. Trường hợp cuối phải chèn im lặng để giữ timeline (§2.16.4), nếu không VAD sẽ không bao giờ thấy "đủ im lặng" để kết thúc lượt. Hãy kiểm tra hành vi này trước khi bật DTX.
+  - **FEC** đáng bật cho mạng di động; nhớ khai tỉ lệ mất gói dự kiến cho encoder.
+  - Âm tiết đầu bị mất do PLC hoặc gói hỏng ảnh hưởng thanh điệu. Gắn cờ `gap`/`plc` vào metadata lượt để khi phân tích WER biết lượt nào nghe trong điều kiện mạng xấu.
+
+### 3.18.5 Biên ASR: codec ảnh hưởng tới WER
+
+- **Đánh giá ASR trên đúng chuỗi codec dùng thật** (§3.5.1). Corpus §10.1 nên có các biến thể: gốc lossless, Opus ở bitrate production (ví dụ 16/24/32 kbps), và G.711 8 kHz mô phỏng đúng chuỗi xử lý (§2.16.10 mục 8). Cùng ground truth, cùng normalizer. Nếu WER chênh lớn giữa gốc và Opus, bitrate là một tham số cần tune, không phải hằng số.
+- **Không transcode:** Opus (WebRTC) → PCM → MP3 → ASR là hai lần lossy. Mọi đường ASR phải bắt đầu từ PCM sau decode lần đầu.
+- **WAV upload:** ghi header với size thật. Header `0xFFFFFFFF` hợp lệ cho player stream nhưng parser của server ASR có thể từ chối hoặc đọc sai (§3.3.3).
+- **Multipart theo utterance** là đúng cho Profile A/C (turn-final). Đừng dùng nó để giả lập partial bằng cách gửi lại cả utterance tích luỹ: chi phí tăng theo bình phương độ dài lượt (§3.7.5). Cần partial thì chọn Profile B (Nemotron streaming).
+- **OpenAI Realtime transcription** cần PCM 24 kHz base64 (§3.11): tốn thêm một lần resample và +33% băng thông. Chỉ dùng khi backend bắt buộc.
+- **Nạp file đánh giá:** luôn nạp với `sr=None` rồi resample có chủ đích; `librosa.load` mặc định về 22 050 Hz sẽ làm sai cả corpus mà không báo lỗi (§3.9.1).
+
+### 3.18.6 Downlink: từ TTS tới loa
+
+- **Reblock theo frame Opus khi dùng WebRTC.** Chunk TTS có độ dài tuỳ ý (ví dụ bội số 80 ms với codec 12.5 Hz, §3.8.2), còn track WebRTC cần frame đều 20 ms (960 mẫu @48 kHz). Cần một reblocker downlink; frame cuối của một generation được pad im lặng, không chờ mẫu của generation sau.
+- **Barge-in với WebRTC:** RTP không mang `generation_id`. Gateway phải (1) ngừng đẩy frame của generation cũ và xả hàng đợi gửi của chính nó, (2) gửi `client.clear` qua data channel hoặc WS điều khiển. Vài chục ms trong jitter buffer của client không xoá được từ server: tính phần này vào số đo "user nói → âm thanh bot dừng" (§7.3).
+- **Barge-in với WS PCM:** client bỏ mọi `audio.chunk` có `generation_id` cũ, kể cả chunk tới sau `client.clear` (§7.3 bước 6). Fade-out vài ms để tránh click (§2.16.7).
+- **Encoder Opus downlink:** nếu tự encode (không qua stack WebRTC), mỗi session một encoder; encoder có lookahead nên đầu câu mới có thể mang vài ms "đuôi" của câu cũ sau cancel. Chấp nhận được, hoặc reset encoder ở mỗi generation và chịu thêm ~6.5 ms priming (§3.5.3).
+- **Không phát header:** mọi đường downlink phải qua adapter ở §3.18.3. Một route "tiện" chuyển nguyên bytes VieNeu `wav` tới AudioWorklet sẽ sinh click ở đầu mỗi mệnh đề (§3.13).
+
+### 3.18.7 Telephony
+
+- Message 20 ms μ-law = 160 byte, base64 216 ký tự (§3.7.2). Đường vào: base64 → G.711 decode (bảng 256 phần tử) → resampler có state 8→16 kHz → VAD/ASR.
+- Đường ra: TTS (VieNeu có thể xin thẳng `sample_rate=8000`, §3 nguyên tắc 4, giúp bỏ một lần resample, nhưng cần A/B nghe) → resample xuống 8 kHz nếu cần → **encode μ-law sau cùng** → gói đúng 160 byte/20 ms. Pad frame cuối bằng `0xFF` (μ-law) hoặc `0xD5` (A-law), **không** bằng `0x00` (§3.6.1).
+- Message "clear" để flush audio phía nhà cung cấp khác nhau theo CPaaS; kiểm tra tài liệu của provider cụ thể và ánh xạ vào `client.clear` (§7.2).
+- Không dùng `audioop` (đã bị xoá ở Python 3.13); dùng bảng numpy đã đối chiếu (§3.10.4).
+- Trần băng thông thoại 300–3 400 Hz nghĩa là WER trên kênh điện thoại phải đo riêng (§10.1 "call 8 kHz so với mic 16 kHz").
+
+### 3.18.8 Hạ tầng: proxy, buffering và TTFA
+
+- Route TTS stream và WS phải **tắt buffering và nén** ở reverse proxy (ví dụ nginx `proxy_buffering off`; không gzip `audio/*` và `text/event-stream`). Nếu không, TTFA ~115 ms của VieNeu (**Reported**, §5.6) có thể thành hàng trăm ms ở client mà server không thấy.
+- Đo TTFA ở **client cuối** và ở gateway, so hai số liệu; chênh lệch lớn là dấu hiệu buffering (§3.7.4, §8.1).
+- SSE dài nên có heartbeat (dòng comment `:`) để proxy không cắt kết nối nhàn rỗi; parser phải bỏ qua nó.
+- Client HTTP phải iterate stream (`aiter_bytes`/`aiter_lines`), không đọc `.content`. Đặt timeout đọc theo từng chunk thay vì timeout tổng, vì độ dài câu không biết trước.
+
+### 3.18.9 Phần latency do tầng định dạng gây ra
+
+| Nguồn | Độ lớn (kiến thức chung, cần đo) | Cách giảm |
+|---|---|---|
+| Timeslice `MediaRecorder` | Bằng timeslice (thường 100–1 000 ms) | Bỏ MediaRecorder, dùng AudioWorklet/WebRTC |
+| Probe/buffer của ffmpeg khi decode stream | Có thể vài trăm ms nếu để mặc định | `-f` tường minh, `-probesize 32 -analyzeduration 0 -fflags nobuffer` (§3.9.2) |
+| Opus encode + decode | ~26.5 ms mỗi chiều với frame 20 ms (mặc định) | Frame 10 ms đổi lấy overhead gói gần gấp đôi (§3.7.6); thường không đáng |
+| Độ hạt token của neural codec trong TTS | 80 ms/bước ở 12.5 Hz, 40 ms ở 25 fps (§3.8.2) | Nằm trong TTFA của backend; chỉ chọn được khi chọn model |
+| Proxy buffering / gzip | Tới toàn bộ câu | §3.18.8 |
+| base64 | Không đáng kể về latency; tốn CPU và rác bộ nhớ | Binary khi kênh cho phép |
+
+So với pre-buffer phát 150–300 ms (§8.3) và endpointing (§5.3), phần codec nhỏ, **trừ** MediaRecorder và proxy buffering: hai nguồn này có thể lớn hơn mọi thứ khác và hay bị bỏ sót vì không xuất hiện trong log server.
+
+### 3.18.10 Bảo mật, privacy và lưu trữ
+
+- **Decode media không tin cậy là bề mặt tấn công.** Nếu nhận upload (reference voice cho cloning, file test) hoặc WebM/Ogg từ client: whitelist container/codec, giới hạn kích thước và thời lượng (§9.5), decode trong subprocess có timeout và giới hạn tài nguyên, không cho client chỉ định URL/path. Không đưa file người dùng thẳng vào ffmpeg với format tự đoán.
+- **Reference voice** lưu lossless (WAV/FLAC) để chất lượng cloning không phụ thuộc artefact codec, và coi là dữ liệu nhạy cảm (§9.5): không ghi vào operational log, có retention và consent.
+- **Log định dạng, không log nội dung:** `EdgeFormat` của mỗi cạnh, số byte lẻ, số chunk có `RIFF`, số lần lệch rate, số gói PLC/FEC đều content-free. Audio chỉ dump khi opt-in.
+- Metadata container (`LIST`/`INFO` trong WAV, `OpusTags`) có thể chứa thông tin máy/người ghi; xoá khi xuất corpus ra ngoài.
+
+### 3.18.11 Bổ sung cho contract tests (§10.5)
+
+Mỗi mục là một test tự động, chạy được offline bằng fixture tự tạo (code §3.10):
+
+1. **Byte lẻ:** stream PCM16 cắt thành mảnh 1, 3, 7 byte và độ dài ngẫu nhiên → output khớp từng sample với khi đọc cả file.
+2. **WAV lạ:** file có `LIST` trước `data`, `fmt ` 18 byte, float WAV (tag 3), EXTENSIBLE → parse đúng format và offset; không còn click ở đầu.
+3. **WAV stream:** size `0xFFFFFFFF` và `0` → đọc tới khi stream đóng; bản lưu ra file đã được vá header.
+4. **WAV mỗi chunk:** nhiều header `RIFF` giữa stream (kiểu Higgs) → không có xung header trong output.
+5. **SSE:** một event bị cắt giữa hai chunk HTTP, nhiều dòng `data:`, comment heartbeat, `speech.audio.done` tới cuối → số mẫu nhận khớp `usage.output_samples`.
+6. **Lệch rate:** `X-Sample-Rate` khác contract → lỗi rõ ràng + metric, không phát.
+7. **Cancel giữa chunk:** huỷ stream TTS ở byte lẻ → không exception "byte lẻ", không mẫu nào của generation cũ tới client, request upstream bị đóng (kiểm tra phía server mock).
+8. **Định dạng không hỗ trợ:** VieNeu trả `400` cho `opus`/`mp3` → lỗi cấu hình, không retry.
+9. **MediaRecorder:** chuỗi blob WebM thật từ trình duyệt → decode liên tục bằng một decoder; test âm tính: decode blob thứ hai riêng lẻ phải thất bại (để chứng minh test đang kiểm tra đúng điều).
+10. **Opus mất gói:** bỏ ngẫu nhiên 1–5% gói, có và không có FEC → không crash, timeline không co, WER ghi lại để so.
+11. **G.711:** round-trip trên 256 mức; im lặng = `0xFF`/`0xD5`; test âm tính resample trên byte chưa decode (§2.16.10 mục 7).
+12. **Proxy:** đi qua reverse proxy cấu hình production → TTFA đo ở client chênh với server không quá một ngưỡng (ví dụ 50 ms, cần chốt).
+
+### 3.18.12 Checklist theo lộ trình (§12)
+
+- **Phase 1 — MVP** (nhóm "audio contract tường minh từ ngày đầu"):
+  - WS binary PCM16 uplink; `session.start` mang format.
+  - VieNeu `pcm` + chunked; rate từ `X-Sample-Rate`; `PcmAssembler` có carry.
+  - Adapter TTS duy nhất cho mỗi backend, đầu ra chung; cancel đóng HTTP stream.
+  - WAV upload cho ASR HTTP với size đúng.
+  - Proxy tắt buffering cho route audio; đo TTFA ở client.
+  - `EdgeFormat` log khi mở session; test 1–8 ở §3.18.11.
+- **Phase 2 — Beta:**
+  - Chuyển uplink/downlink sang WebRTC Opus; reblock downlink 20 ms; `client.clear` qua data channel.
+  - Kiểm tra hành vi DTX với VAD; bật FEC cho mạng di động.
+  - Corpus ASR có biến thể Opus và G.711; chốt bitrate Opus theo WER, không theo cảm giác.
+  - Test 9–10.
+- **Phase 3 — Production:**
+  - Telephony G.711 (nếu có) với test 11.
+  - Sandbox decode cho mọi media upload; whitelist container/codec.
+  - Lưu reference và corpus lossless, có retention; xoá metadata container khi xuất.
+  - Theo dõi metric định dạng (byte lẻ, header giữa stream, lệch rate, PLC/FEC) trên dashboard theo session.

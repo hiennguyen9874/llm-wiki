@@ -496,3 +496,109 @@ Kết quả chạy (Python 3): ví dụ 1 commit lần lượt 0, 1, 3, 5, 6, 7,
 [^wlk]: [WhisperLiveKit](../wiki/whisperlivekit.md) — streaming policies (SimulStreaming/AlignAtt, LocalAgreement), Qwen3-streaming bounded recompute window 12 s và yêu cầu `--language` tường minh.
 [^sel]: [Vietnamese Realtime ASR Selection](../wiki/vietnamese-realtime-asr-selection.md) — Định nghĩa realtime; Shortlist và bằng chứng tiếng Việt; Qwen streaming và efficiency; Kiến trúc và hướng triển khai; Gate đánh giá đề xuất; dẫn nguồn primary package `../raw/vietnamese-asr-research-2026-10-07/README.md`. Cộng với [ASR/STT Model Survey](../wiki/asr-stt-model-survey.md).
 [^usable]: [Community-Reported Usable STT for Voice Agents](../wiki/community-usable-stt-voice-agents.md) — Usable-text evaluation checklist; Failure order reported; Logging and diagnosis practice (anecdote Reddit, chưa kiểm chứng).
+
+---
+
+## Phụ lục: áp dụng chương 11 vào thiết kế pipeline
+
+> **Mục đích:** gom các lưu ý quan trọng nhất của chương này khi thiết kế và triển khai [Thiết kế pipeline speech-to-speech tiếng Việt](thiet-ke-pipeline-speech-to-speech-tieng-viet.md). Số § có tiền tố "TK" là mục trong bài thiết kế; số § không có tiền tố là mục trong chương này.
+> **Bằng chứng:** toàn bộ phụ lục là **Synthesis**, ghép từ nội dung chương với bài thiết kế. Không có gì ở đây đã được chạy hay đo. Số liệu nào xuất hiện cũng chỉ là **Reported** như ở các mục gốc.
+
+### A. Mỗi profile ứng với một kiểu "realtime" khác nhau
+
+| Profile (TK §6) | Kiểu ASR (§11.3) | Latency ASR chủ yếu đến từ | Phải đo trước tiên |
+|---|---|---|---|
+| **A**: Whisper turbo / Qwen 0.6B | Turn-final | Thời gian chờ endpoint cộng decode cả lượt | endpoint→final P50/P95 theo độ dài lượt; tỷ lệ hallucination |
+| **B**: Nemotron 160/320 ms | Native streaming | Chunk, compute và commit policy | first partial, first stable, rewrite rate, WER theo chunk |
+| **C**: Qwen3-ASR buffered | Buffered/policy | Cửa sổ buffer, rollback, recompute | first stable, word lag, chi phí recompute mỗi phiên |
+| **D**: two-pass | Native + turn-final | Pass 2 cộng thêm vào endpoint→final | Tỷ lệ final khác partial ở span hành động; chi phí pass 2 |
+
+Ba điểm dễ sai khi ghép bảng này với bài thiết kế:
+
+1. **Nemotron trong HF s2s chưa chắc là Profile B.** Handler `--stt nemotron-streaming` gọi `transcribe()` offline với `target_lang=auto` (TK §5.4.2). Như vậy nó là turn-final, không ép được `vi-VN`, và vẫn chịu rủi ro auto LangID (§11.1.3). Muốn có streaming thật thì phải tự viết adapter (NeMo hoặc NeMo-Speech.cpp WS), hoặc thử đường `openai-realtime` nhưng đường này chưa được kiểm chứng (TK §5.7).
+2. **Streaming ASR không vượt qua được output gate.** Trong thiết kế speculative, v2v ≈ soft-end + max(output-hold, ASR + LLM) + TTS (TK §8.1). Nếu output-hold 800 ms – 2 s lớn hơn phần ASR tiết kiệm được, việc chuyển từ A sang B sẽ không cải thiện v2v. Lợi ích của B lúc đó chỉ còn là caption và prefetch. Phải đo output-hold trước khi đổi model.
+3. **Chunk size chỉ là cận dưới của latency** (§11.3.1). Chunk 160 ms không có nghĩa là có text sau 160 ms. Gate chọn chunk phải dựa trên first stable text và WER đo trên tập tiếng Việt của mình, không dựa vào bảng FLEURS.
+
+### B. ASR adapter là một lớp riêng, không nằm trong orchestrator
+
+Trong sơ đồ TK §4, giữa ASR và validity gate cần một **ASR adapter** cho mỗi backend. Adapter có các trách nhiệm sau (§11.1, §11.8, §11.9):
+
+- **Input:** 16 kHz, mono, `float32` trong `[-1, 1]`. Kiểm tra scale `int16` đúng một lần, downmix stereo, resample sau khi decode codec. Với nguồn 8 kHz, gắn flag `narrowband` để phần đánh giá tách riêng.
+- **Ngôn ngữ:** ép `vi` hoặc `vi-VN` theo dạng mà backend nhận. Phải thử thực tế xem NeMo-Speech.cpp nhận giá trị nào (TK §5.4.2). Log `language` và `language_probability` cho mọi turn. Nếu model trả ngôn ngữ khác `vi`, coi đó là quality flag, không âm thầm bỏ qua.
+- **Output:** chuẩn hoá về một schema nội bộ duy nhất. Chuyển Unicode về **NFC**. Lột `<EOU>` và `<xx-XX>` khỏi text, nhưng giữ chúng dưới dạng field (`eou`, `language`). Trường nào model không có thì điền `"unknown"`.
+- **Ánh xạ sang event schema TK §7.2:** schema đó mới có `asr.partial(text, stable_prefix_if_available)` và `asr.final(text, model_id, language, quality_flags)`. Nên bổ sung các trường sau:
+  - `utterance_id` và `revision` (tăng đơn điệu), để ánh xạ được sang `turn_id`/`revision` khi turn bị reopen.
+  - `asr_pass` (1/2) và `model_id`, phục vụ reconcile ở Profile D.
+  - `audio_range` [t0, t1], để join với timeline VAD.
+  - `quality_flags` có cấu trúc rõ: `no_speech_prob`, `avg_logprob`, `compression_ratio`, `filtered_by` (tên luật), `pass_disagreement`, `confidence` (hoặc `"unknown"`).
+  - Tách `text_raw` (đầu ra ASR) và `text_itn` (sau ITN), tương tự cặp `raw_text`/`spoken_text` ở phía TTS.
+- **ITN là chỗ còn thiếu trong bài thiết kế.** TK §5.5 có normalizer cho TTS, nhưng chưa có bước ITN cho đầu ra ASR. Cần quyết định rõ ITN làm bằng rule trong adapter hay giao cho LLM. Dù chọn cách nào cũng phải có regression test cho số điện thoại, tiền, ngày và đơn vị (§11.8).
+- **State và vòng đời:** mỗi session có cache, buffer và ngôn ngữ riêng. Adapter phải hỗ trợ cancel giữa chừng và giải phóng cache khi session đóng (TK §7.2). Với faster-whisper, materialize generator trong worker thread (§11.7.3).
+
+### C. Commit policy: chỗ nào được hành động
+
+- Nguyên tắc 5 của TK §3 ("không hành động trên văn bản chưa commit") là hệ quả trực tiếp của §11.2. Cụ thể hoá nó bằng một bảng phân loại hành động trong code:
+  - **Đảo ngược được** (caption, prefetch RAG, warm-up LLM): được làm trên partial.
+  - **Không đảo ngược được** (tool call, ghi dữ liệu, phát TTS đã cam kết): chỉ làm sau `turn.commit` và trên final.
+- **Phần cuối câu thường chưa stable.** Ví dụ LocalAgreement ở §11.5.2 cho thấy số, ngày, tên ở cuối câu thường chưa commit lúc endpoint xảy ra ("ngày mười" so với "ngày mười lăm"). Vì vậy validity gate (TK §4) phải kiểm riêng các **action-bearing span**: số, tiền, ngày, tên và phủ định. Khi confidence là `"unknown"` hoặc thấp thì read-back, không đoán.
+- **Stable prefix không phải là đúng.** Policy có thể đóng băng một từ sai ("đạt" thay cho "đặt", §11.5.2). Nếu dùng Profile C hoặc WLK thì UI và log phải có kênh revision, còn final-pass hoặc câu hỏi xác nhận là đường sửa duy nhất.
+- **User tự sửa sau commit** ("không, 4 chứ không phải 5") là việc của state machine hội thoại (§11.2.3). Phải có đường cập nhật lại các tool call, field và summary đang chờ. ASR không giải quyết được chuyện này.
+
+### D. Two-pass (Profile D): luật reconcile phải được viết thành code
+
+Các luật ở §11.6, áp vào TK §6 và §7.2:
+
+1. Final của pass 2 **thay thế hoàn toàn** pass 1 trên cùng `utterance_id`. Không merge từng từ, không nối thêm vào caption đã hiển thị.
+2. Nếu final khác partial ở span hành động, huỷ prefetch và speculation tương ứng rồi chạy lại.
+3. Chỉ chạy pass 2 khi có lý do: turn chứa entity, pass 1 có confidence thấp hoặc `"unknown"`, hoặc lượt thuộc luồng quan trọng. Ghi lý do kích hoạt vào log.
+4. Pass 2 cộng trực tiếp vào endpoint→final, nên phải nằm trong ngân sách TK §8.2.
+5. Pass 2 cũng không phải ground truth. Khi hai pass bất đồng ở span hành động, hỏi lại user thay vì chọn một bên (TK §5.4.3).
+
+### E. Hallucination: phòng thủ theo tầng, ở đúng chỗ trong pipeline
+
+| Tầng (§11.7.3) | Chỗ đặt trong kiến trúc TK §4 | Lưu ý khi làm |
+|---|---|---|
+| 1. Không đưa rác vào ASR | Silero VAD + endpoint manager; AEC phía client | VAD gating là lớp chính. `vad_filter` của faster-whisper chỉ là lớp phụ. Echo của bot cũng là "rác" với ASR |
+| 2. Decode bảo thủ | Cấu hình trong ASR adapter (TK §5.4.4) | Đặt tay `beam_size` vì mặc định là 5. Đặt `condition_on_previous_text=False` và `temperature=0` |
+| 3. Lọc sau decode | Validity gate | Ghi `filtered_by` vào log để theo dõi false positive |
+
+Các điểm cần cẩn thận:
+
+- **Luật "< 2 từ khi VAD < 400 ms" xung đột với lệnh ngắn.** "Không", "dừng", "dạ" đều ngắn và mang ý nghĩa quan trọng (TK §5.4.4, §10.3). Đừng âm thầm bỏ những turn này. Có thể hạ chúng xuống mức ask-back, và tune luật trên dữ liệu thật. Thêm vào đó, `min_speech_ms=384` của HF s2s có thể đã chặn các lệnh này trước khi tới ASR (TK §5.3).
+- **Bộ lọc của TK §5.4.4 mới chỉ viết cho Whisper.** Qwen3-ASR có decoder là LLM nên cũng có thể "bịa" (§11.4). Profile A và C vẫn phải chạy bộ test im lặng/nhạc/nhiễu, kể cả khi bộ lọc theo `no_speech_prob` không áp dụng được. Nemotron (RNNT) cũng cần đo lỗi chèn khi có nhiễu.
+- **Blacklist chỉ là bản vá.** Mọi lần lọc phải có log. Ngưỡng đến từ một AI report và chưa được tune (§11.7.4).
+- **Hotwords và initial prompt** chỉ chứa tên riêng và thuật ngữ, không bao giờ chứa câu outro. Phải A/B vì hotword có thể làm model "bịa" chính từ khoá đó (§11.8).
+
+### F. Barge-in và echo: tương tác giữa ASR và control
+
+- ASR nghe cả tiếng bot nếu AEC kém (§11.12). Bước "quick ASR ≥ 2 từ, không trùng câu bot đang phát" ở TK §7.3 chỉ có tác dụng nếu transcript đó không phải echo. Vì vậy cần so khớp với text bot đang phát *sau khi* đã chuẩn hoá NFC/ITN ở cả hai phía.
+- Khi `generation_id++`, phải huỷ cả các job ASR speculative của turn cũ (pass 2, prefetch), không chỉ LLM và TTS.
+- `<EOU>` hoặc endpoint do ASR phát ra chỉ là **một tín hiệu** gửi cho endpoint manager. Endpoint manager vẫn là owner duy nhất của quyết định turn (TK §3, nguyên tắc 2).
+
+### G. Đo lường: thêm mốc ASR vào timeline của TK §8
+
+- Ghi các timestamp `t_first_partial`, `t_first_stable`, `t_asr_final` bên cạnh các mốc trong TK §8.1 và §8.4, dùng chung một đồng hồ và join theo `turn_id`/`revision`. Field `stt` trong log của HF s2s chưa đủ để tách các mốc này.
+- Không báo TTFT server hay RTF như latency người dùng cảm nhận (TK §3, nguyên tắc 6; §11.3.4).
+- Mỗi profile nên có một dashboard riêng gồm: rewrite rate, span survival time, entity accuracy, hallucination rate trên audio im lặng/nhạc, và tỷ lệ turn bị validity gate lọc.
+- Log mặc định không có nội dung (TK §9.5). Các metric cần transcript (rewrite rate, entity accuracy) chỉ đo được trên corpus opt-in, không lấy từ log production.
+
+### H. Đánh giá: bổ sung cho release gate TK §10.1
+
+- Tính WER theo **âm tiết** (tách bằng khoảng trắng), cộng thêm CER và WER không dấu để tách lỗi thanh điệu khỏi lỗi âm vị. Ghi rõ quy ước tách token trong báo cáo (§11.10.1).
+- Dùng **một normalizer duy nhất** cho tham chiếu, cho dự đoán và cho mọi model đem so. Normalizer không được nuốt mất lỗi số hay tên (§11.10.2).
+- So các model trên **cùng giao thức** với policy thật của từng model: Nemotron ở đúng chunk dự kiến, Qwen ở chế độ buffered nếu Profile C dùng buffered. Không đặt số offline của model này cạnh số streaming của model kia (§11.11).
+- Corpus phải có: đoạn im lặng 30 s, nhạc, quạt, loa ngoài, echo của bot, điện thoại 8 kHz, lệnh một âm tiết, dãy số, và code-switch Việt–Anh (§11.13, TK §10.1).
+- Đưa vào **contract test** (TK §10.5): đầu vào `int16` chưa scale, stereo, 48 kHz; token `<EOU>`/`<vi-VN>` lọt vào text; NFD; revision không đơn điệu; final trùng lặp; confidence bị điền giả `1.0`.
+
+### I. Checklist triển khai ASR cho pipeline
+
+- [ ] Mỗi backend ASR có một adapter riêng, cùng xuất một schema nội bộ (có `revision`, `asr_pass`, `quality_flags`, `confidence`/`"unknown"`).
+- [ ] Ngôn ngữ được ép và đã kiểm thử dạng giá trị mà backend nhận; `language` được log cho mọi turn.
+- [ ] Text đã qua NFC, đã lột token đặc biệt, có cả `text_raw` và `text_itn`.
+- [ ] Bảng phân loại hành động (đảo ngược được / không) có trong code; side effect chỉ chạy sau `turn.commit`.
+- [ ] Validity gate kiểm riêng span hành động và có đường read-back.
+- [ ] Ba tầng chống hallucination đã bật, mọi lần lọc có log, luật lệnh ngắn đã được tune.
+- [ ] Profile D có luật reconcile viết bằng code, có điều kiện kích hoạt pass 2 và có log `asr_pass`.
+- [ ] ASR hỗ trợ cancel khi barge-in và giải phóng state khi session đóng.
+- [ ] Timeline có `t_first_partial`, `t_first_stable`, `t_asr_final`; output-hold được đo trước khi chọn giữa A và B.
+- [ ] Benchmark nội bộ dùng cùng audio, normalizer, giao thức và phần cứng cho mọi model ứng viên.

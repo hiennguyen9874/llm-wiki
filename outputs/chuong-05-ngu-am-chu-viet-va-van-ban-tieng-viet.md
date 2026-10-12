@@ -880,3 +880,142 @@ Lời nói tiếng Việt thực tế, nhất là ở môi trường văn phòng
 - [Silero VAD](../wiki/silero-vad.md): `speech_pad_ms`, `min_speech_duration_ms`.
 
 **Đọc thêm ngoài wiki (giáo trình và tài liệu chuẩn, gợi ý):** Đoàn Thiện Thuật, *Ngữ âm tiếng Việt*; Cao Xuân Hạo, *Tiếng Việt: Mấy vấn đề ngữ âm, ngữ pháp, ngữ nghĩa*; Mai Ngọc Chừ, Vũ Đức Nghiệu, Hoàng Trọng Phiến, *Cơ sở ngôn ngữ học và tiếng Việt*; Kirby (2011), *Vietnamese (Hanoi Vietnamese)*, Journal of the International Phonetic Association; Brunelle (2009) về thanh điệu và chất giọng tiếng Việt; Unicode Standard Annex #15 (*Unicode Normalization Forms*); Sproat et al. (2001), *Normalization of non-standard words*; Ebden & Sproat (2015), *The Kestrel TTS text normalization system*; tài liệu VnCoreNLP, underthesea, espeak-ng.
+
+---
+
+## 5.18 Lưu ý khi thiết kế và hiện thực pipeline speech-to-speech tiếng Việt
+
+Phần này áp kiến thức của chương vào [tài liệu thiết kế](thiet-ke-pipeline-speech-to-speech-tieng-viet.md). Các khuyến nghị là **Synthesis**, chưa kiểm chứng trên implementation nào. Tham số và số liệu lấy từ tài liệu thiết kế hoặc wiki giữ nhãn gốc (**Reported**, **Observed**). Các kết quả **Reproduced** là của script ở §5.5.6 và §5.8.3, không phải của một normalizer production. Phần checklist theo tầng ở §5.12 và bảng lỗi ở §5.13 vẫn dùng được; mục này tập trung vào **quyết định thiết kế, hợp đồng dữ liệu và thứ tự hiện thực**.
+
+### 5.18.1 Bảng tra nhanh: kiến thức của chương → quyết định thiết kế
+
+| Kiến thức (mục) | Nơi chạm vào thiết kế | Quyết định / lưu ý |
+|---|---|---|
+| Thanh hỏi/ngã/nặng phân biệt ở giữa–cuối âm tiết (5.3.2) | §5.2 `speech_pad_ms`, §7.1 pre-roll, §5.4.4 `vad_filter` | Không lớp nào được cắt đuôi lượt. Chốt pad bằng test cắt đuôi, không chép số |
+| F0 đi xuống vừa là thanh vừa là ngữ điệu kết câu (5.3.2) | §5.3 Smart Turn (vi yếu nhất) | Đo false-cutoff tách theo thanh của âm tiết cuối; luôn có timeout dự phòng |
+| Một chữ có nhiều cách mã hoá (5.5.2–5.5.3) | Nguyên tắc 4 (audio contract), §7.2 event schema | Thêm **text contract**: mọi `text` trong event là NFC |
+| Kiểu dấu cũ/mới, `i/y` (5.5.4–5.5.5) | §5.5 lexicon, §5.4.4 hotwords, §10 normalizer | Khoá tra cứu được chuẩn hoá; text hiển thị giữ nguyên |
+| Âm tiết ≠ từ; WER tiếng Việt là SER (5.6) | §5.4.2 bẫy so sánh, §10 mục 1 | Ghi rõ đơn vị; báo SER, CER, TER, critical span theo vùng |
+| Ba dạng text: hiển thị / đọc / so sánh (5.1, 5.7, 5.8) | §5.5 "tách text hiển thị khỏi text đọc", §7.2 `text.chunk(raw_text, spoken_text)` | Ba bộ luật khác nhau, ba artifact khác nhau, không dùng chung một hàm `normalize()` |
+| TN bắt buộc trước TTS, wiki chưa có normalizer đã kiểm chứng (5.8) | §5.5 | Normalizer là thành phần tự sở hữu, có version, regression, owner |
+| Chấm = nghìn, phẩy = thập phân; LLM hay viết kiểu Anh (5.8.4) | §5.5 prompt LLM, chunker | Prompt + heuristic + test; chunker không cắt giữa số |
+| Phương ngữ, lỗi "đúng âm sai chữ" (5.4) | §5.6 preset vùng, §10 corpus Bắc/Trung/Nam | Vùng là một thuộc tính của session/persona và của mọi báo cáo |
+| Lệnh một âm tiết, backchannel, pause sau "thì/là" (5.11) | §5.3 `min_speech_ms=384`, §5.4.4 luật "< 2 từ", §7.3 barge-in | Ngoại lệ cho từ khoá lệnh; backchannel xử lý theo trạng thái hội thoại |
+| G2P quy tắc + ngoại lệ; TTS nhận phoneme hay grapheme (5.9) | §5.6 Kokoro `vig2p`, VieNeu | Xác định frontend của từng TTS trước khi thiết kế lexicon |
+
+### 5.18.2 Text contract ở mọi biên
+
+Tài liệu thiết kế yêu cầu mỗi backend khai báo audio contract (nguyên tắc 4). Với tiếng Việt cần một hợp đồng tương đương cho text, vì lỗi Unicode im lặng: không exception, chỉ là lexicon không khớp, WER tăng, TTS đọc lạ.
+
+1. **NFC ở mọi điểm text đi vào hệ thống:** output ASR, partial, output LLM (từng delta), input từ UI, lexicon, hotwords/`initial_prompt`, ground truth đánh giá, file cấu hình. Áp ngay tại adapter, trước khi text chạm logic khác. NFC rẻ, idempotent và không đổi nội dung (5.5.3).
+2. **Làm sạch ký tự lạ ở cùng chỗ:** `ð/Ð` → `đ/Đ`, xoá zero-width/BOM/soft hyphen, NBSP → khoảng trắng (5.5.5). Đây là bảng nhỏ, version hoá cùng normalizer.
+3. **Không tự đổi kiểu dấu hay `i/y` trên text hiển thị và text đọc.** Hai việc đó chỉ dành cho **khoá tra cứu** (lexicon, hotword, entity) và **text so sánh** (đánh giá). TTS đọc `hoà` và `hòa` như nhau; người dùng thấy text của LLM như LLM viết.
+4. **Assert ở biên model và trong contract test** (§10 mục 5): `unicodedata.is_normalized("NFC", s)` cho mọi `asr.final`, `text.chunk.raw_text`, `text.chunk.spoken_text`. Một case NFD và một case "lai" (`ô` + U+0323) phải có trong bộ test, kèm kỳ vọng sau chuẩn hoá.
+5. **Delta streaming của LLM:** byte-level BPE có thể tách một ký tự UTF-8 hoặc một chuỗi chữ cơ sở + combining mark qua hai delta. Ghép delta thành chuỗi rồi mới NFC; không NFC từng mảnh rồi so sánh, và chunker chỉ cắt ở khoảng trắng/dấu câu nên không bao giờ tách combining mark khỏi chữ cơ sở (5.3.3).
+6. **Encoding cũ (TCVN3, VNI) không được vào runtime.** Chuyển mã một lần khi nhập dữ liệu (lexicon, corpus, tài liệu RAG). Phát hiện mojibake bằng tỷ lệ âm tiết không hợp lệ (5.18.4).
+
+Thêm vào event schema §7.2 (**Synthesis**): `text.chunk` mang `raw_text` (dạng hiển thị, NFC), `spoken_text` (sau TN + lexicon) và `normalizer_version`; `asr.final` mang `text_raw` (đúng như model ra, sau NFC) và tuỳ chọn `text_itn`. Log content-free (§9.5) chỉ giữ version và cờ, không giữ text.
+
+### 5.18.3 VAD, endpoint và thanh điệu (§5.2, §5.3, §7.1)
+
+- **Có ba lớp có thể cắt audio:** VAD gateway (`speech_pad_ms`), turn buffer (pre-roll), và VAD bên trong runtime ASR (`vad_filter=True` của faster-whisper, §5.4.4). Pad đủ ở gateway nhưng lớp thứ ba cắt lại thì vẫn mất đuôi. Test cắt đuôi phải chạy **trên toàn đường**, không chỉ trên Silero.
+- **Hai triết lý endpoint (§5.3, §11) xử lý thanh điệu khác nhau.** HF s2s với `--min_silence_ms 64` + `--speech_pad_ms 500` (**Observed**) có pad rộng nên ít rủi ro cắt đuôi, nhưng dựa vào Smart Turn để quyết định hết lượt. Report với Silero 200–300 ms + pad 100–200 ms (**Reported**) có pad hẹp hơn. Đừng trộn tham số giữa hai bộ; chọn một rồi đo.
+- **Smart Turn và thanh cuối câu:** đánh giá false-cutoff/FNR trên corpus §10 mục 3 **tách theo thanh âm tiết cuối** (nặng/huyền so với sắc/hỏi) và theo vùng. Nếu tỷ lệ lệch rõ theo thanh, đó là bằng chứng cho giả thuyết ở 5.3.2 và là lý do ưu tiên Namo/fine-tune (ngưỡng thay > 10%, **Reported**).
+- **Tín hiệu ngôn ngữ cho endpoint chỉ có ở Profile B/D** (có partial). Profile A (turn-final) không có text trước endpoint, nên heuristic "liên từ treo → kéo dài timeout" (5.11.2) không áp được; khi đó chỉ còn Smart Turn + timeout. Nếu pause sau "thì/là" là failure chính trên dữ liệu thật, đó là lý do kỹ thuật để chuyển sang B.
+- **Heuristic trên partial là tín hiệu phụ, không phải owner.** Nó chỉ điều chỉnh timeout gửi vào endpoint manager; quyết định close/reopen vẫn do một owner duy nhất (nguyên tắc 2).
+
+### 5.18.4 ASR và validity gate (§5.4)
+
+**Cấu hình:**
+
+- Ép ngôn ngữ ở **mọi** backend: `language="vi"` (faster-whisper), `--qwen3_asr_language vi`, `vi-VN` cho Nemotron khi runtime cho phép. Với `--stt nemotron-streaming` của HF s2s thì **không ép được** (auto-detect, **Reported**); ghi rõ hạn chế này trong kết quả đánh giá thay vì coi WER của nó là WER của model ở `vi-VN`.
+- Hotwords/`initial_prompt`: NFC, viết theo kiểu dấu của dữ liệu train phổ biến (thường là dạng có trên web), ngắn, kiểm tra trên cả ba giọng vùng (5.4.2). Không đưa câu kiểu "cảm ơn đã xem" vào prompt (**Reported**).
+
+**Validity gate tiếng Việt** (bổ sung cho §5.4.4, **Synthesis**):
+
+| Tín hiệu | Cách dùng | Không được làm |
+|---|---|---|
+| Tỷ lệ âm tiết không hợp lệ theo chính tả Việt (5.2.7) | Cờ cho hallucination ngôn ngữ khác, mojibake, câu bị dịch sang tiếng Anh | Không tự loại turn: tên riêng, từ Anh, địa danh dân tộc là âm tiết "không hợp lệ" nhưng đúng |
+| Blacklist tiếng Việt (§5.4.4) | Kết hợp với bằng chứng âm học (`no_speech_prob`, VAD, RMS) | Không loại chỉ vì khớp regex |
+| Luật "< 2 từ khi VAD < 400 ms" | Áp sau khi đã miễn trừ danh sách lệnh ngắn | Không áp lên "không", "dừng", "thôi", "có", "vâng" khi bot vừa hỏi |
+| Critical span (số, tên, phủ định) | Ở Profile D, so partial và final trên các span này; lệch thì hỏi lại (§5.4.3, §5.7.3) | Không lấy đa số phiếu giữa model |
+
+**Lệnh một âm tiết là xung đột thiết kế, không phải tham số:** `min_speech_duration_ms` 250, `min_speech_ms=384` (HF s2s, **Observed**) và luật "< 2 từ" cùng có thể nuốt lệnh 200–400 ms (5.11.2). Một cách xử lý (**Synthesis**, cần đo): hạ ngưỡng độ dài để đoạn ngắn vẫn tới ASR, rồi để validity gate quyết định dựa trên danh sách từ khoá lệnh + trạng thái hội thoại. Đo bằng thực hành 9 (§5.14) và test "không/dừng" của §10 mục 3.
+
+**ITN đặt ở đâu:** sau `asr.final`, trước UI/entity extraction; **không bắt buộc** trước LLM (5.8.1). Luôn giữ `text_raw` cho log đánh giá và cho final-pass reconciliation, vì ITN có thể đoán sai ("hai mốt" là 21 hay "hai, mốt").
+
+### 5.18.5 Cầu text → speech: LLM, chunker, normalizer, lexicon (§5.5)
+
+**Thứ tự cố định trên đường phát:**
+
+```text
+LLM delta → ghép + NFC → chunker (theo raw_text) → TN (số, tiền, ngày, viết tắt…) → lexicon → [G2P nếu TTS nhận phoneme] → TTS
+                                   └─ raw_text giữ lại cho UI và history
+```
+
+- **Chunker chạy trên `raw_text`, trước TN.** Chunker cần thấy dấu câu và giá trị gốc để biết `1.250.` chưa xong; TN chạy sau trên chunk đã đóng. Quy tắc giữ lại token cuối khi nó trông như số/viết tắt/URL chưa hoàn tất (5.8.6) là phần của chunker, không phải của normalizer.
+- **Dấu chấm trong số không phải dấu kết câu.** Rule flush ở `.` (§5.5, **Reported**) phải bỏ qua `.` nằm giữa hai chữ số và `.` trong viết tắt (`TP.HCM`, `v.v.`, `PGS.TS`). Đây là lỗi dễ gặp nhất khi chép chunker tiếng Anh.
+- **Prompt LLM** (bổ sung cho §5.5, **Synthesis**): quy ước số kiểu Việt hoặc viết số bằng chữ khi nói; không markdown/emoji/URL (**Reported**); xưng hô cố định theo persona; tránh tiểu từ "ạ" ở mọi câu; nếu biết vùng của người dùng thì nêu trong prompt (5.4.3, 5.11.3). Prompt chỉ giảm tần suất lỗi; normalizer vẫn phải xử lý số kiểu Anh (5.8.4).
+- **Normalizer là thành phần tự sở hữu.** Wiki chưa chọn được thư viện nào đã kiểm chứng (§5.5, **Reported**), và WFST tiếng Việt mã nguồn mở là **Unverified** (5.8.6). Bắt đầu bằng luật có thứ tự (5.8.6) với các lớp ở 5.8.2; dùng LLM normalize chỉ cho span mà luật không xử lý, và kiểm tra số ở output khớp số ở input.
+- **Biến thể vùng trong TN:** `nghìn/ngàn`, `linh/lẻ` (5.8.3) là tham số theo giọng preset. Giọng Nam đọc "một trăm linh năm" nghe lệch; gắn tham số này vào cấu hình voice, không hard-code.
+- **Lexicon:**
+  - Khoá tra cứu = NFC + lowercase + chuẩn hoá kiểu dấu (§5.5.6 `place_tone`), để `hòa`/`hoà` cùng khớp; giá trị thay thế giữ nguyên.
+  - Khớp theo ranh giới âm tiết/từ (không thay `pin` trong `Pinterest`); chạy sau TN để viết tắt đã được mở rộng (5.9.3).
+  - Mỗi mục có ca test nghe; version hoá cùng normalizer và pin cùng revision TTS (§9.1), vì respelling hợp với model này có thể sai với model khác.
+  - Lỗi model kiểu `chánh` → `tránh` (VieNeu issue #207, **Reported/Unverified**) không phải lúc nào cũng sửa được bằng respelling (5.9.3); ghi lại thành known issue của voice, không giấu trong lexicon.
+- **Đồng bộ history khi barge-in:** history lưu "phần đã phát" (§7.3) ở dạng **hiển thị**. Vì TN đổi độ dài text (`1.250.000đ` → 9 âm tiết), `audio.played(offset)` chỉ ánh xạ ngược được về mức `chunk_id`, không về ký tự trong `raw_text`, nếu không có alignment (§7.3, **Synthesis**). Lưu các chunk đã phát hết + đánh dấu chunk bị cắt dở là đủ cho phần lớn trường hợp.
+
+### 5.18.6 TTS tiếng Việt (§5.6)
+
+- **Xác định frontend trước khi tích hợp** (5.9.4): TTS nhận phoneme (Kokoro vi với `vig2p`, **Reported**) thì phải dùng đúng G2P và bộ phoneme lúc train, lexicon có thể là phoneme override; TTS nhận grapheme (nhiều TTS dựa trên LLM hoặc codec; frontend của VieNeu chưa được kiểm tra trong wiki) thì lexicon chỉ là respelling và NFC càng quan trọng.
+- **Voice = (giọng, vùng, tham số TN, lexicon).** Preset Bắc/Trung/Nam của VieNeu (**Reported**) cần đi kèm tham số TN vùng và lexicon tương ứng. Với giọng clone, đánh giá thanh điệu theo phương ngữ của reference (5.4.3).
+- **Ranh giới chunk:** không cắt đuôi câu để giảm TTFA; đuôi câu thường mang tắc thanh hầu của nặng/ngã (5.3.3). Đưa ranh giới chunk, code-switch, tiểu từ cuối câu ("ạ", "nhé", "nhỉ"), số và tên riêng vào bộ 150–300 prompts (§10 mục 2).
+- **Chấm thanh điệu riêng** trong MOS/CMOS, và với ASR round-trip thì báo thêm TER (5.3.4) vì CER pha loãng lỗi thanh. ASR round-trip vẫn chỉ là proxy (**Synthesis** của wiki).
+- **Fallback TTS** (§9.4) ở mức mệnh đề cũng phải dùng cùng normalizer và cùng tham số vùng; nếu không, ngoài đổi giọng còn đổi cách đọc số.
+
+### 5.18.7 Barge-in và hội thoại (§7.3)
+
+- **Backchannel phụ thuộc trạng thái:** cùng một "vâng" là backchannel khi bot đang giải thích, là câu trả lời khi bot vừa hỏi xác nhận. Gateway cần biết lượt bot hiện tại có phải câu hỏi chờ xác nhận không (cờ từ LLM hoặc heuristic câu kết thúc bằng "không?", "chứ?", "ạ?"). Đây là state của session, không phải của VAD.
+- **Quick ASR cho barge-in** (§7.3, ≥ 2 từ, **Reported**) mâu thuẫn với lệnh một âm tiết "dừng", "thôi". Danh sách từ khoá ngắt (dừng, thôi, khoan, không, đợi đã) được miễn luật ≥ 2 từ; danh sách backchannel (ừ, ờ, vâng, dạ, ok) không kích hoạt ngắt khi bot không chờ xác nhận. Cả hai danh sách là cấu hình, có test, và phải chạy sau NFC.
+- **Speaker lock không giải quyết backchannel**: chính user nói "ừ". Đừng dùng nó thay cho logic trên.
+
+### 5.18.8 Đánh giá và quan sát (§8.4, §10)
+
+**Giao thức đánh giá text (bổ sung §10 mục 1, 2):**
+
+- Một normalizer đánh giá duy nhất (5.7.2), version hoá, áp **giống hệt** cho ref và hyp; ghi version vào mọi báo cáo. Không bỏ dấu thanh, không đổi từ vùng miền, không dùng chung với TN của đường phát.
+- Báo cáo: SER (gọi đúng tên), CER, TER, exact accuracy critical span (số, tên, địa chỉ, **phủ định**), mỗi chỉ số tách theo vùng Bắc/Trung/Nam và theo điều kiện (8 kHz/16 kHz, SNR). Kèm ma trận nhầm lẫn thanh 6 × 6 theo vùng (5.3.4).
+- Số liệu ngoài (FLEURS, VIVOS, CMV) chỉ dùng để sàng lọc; quyết định chọn model dựa trên corpus của mình chạy qua cùng normalizer (§5.4.2).
+- Bộ regression cho TN/lexicon (5.8.6): mỗi lớp ≥ 5 ca, gồm ca mơ hồ (`1.250`, `3.5`, `1/5`, `2h`, `5-7`), lưu cả `raw_text` và `spoken_text` kỳ vọng; chạy trong CI mỗi lần đổi luật, đổi lexicon hoặc đổi model LLM.
+
+**Chỉ số per-turn content-free** (bổ sung §8.4, tương thích log content-free §9.5):
+
+- Cờ "input không phải NFC" theo biên (ASR, LLM, UI) và số ký tự lạ đã thay; tăng đột ngột thường là đổi model/runtime hoặc client.
+- Tỷ lệ âm tiết không hợp lệ trong `asr.final`; tỷ lệ turn bị validity gate loại và lý do.
+- Số span TN theo lớp, số mục lexicon được áp, số span rơi vào fallback (luật không xử lý được).
+- Cờ "lệnh ngắn được miễn gate", "backchannel bị bỏ qua", "barge-in do từ khoá" để soát false/missed interrupt.
+- `normalizer_version`, `lexicon_version`, voice/vùng, ngôn ngữ ASR thực tế (đặc biệt khi auto-detect).
+
+### 5.18.9 Thứ tự hiện thực theo lộ trình (§12)
+
+| Phase | Việc liên quan tới chương này |
+|---|---|
+| **1 — MVP** | NFC + làm sạch ký tự ở mọi adapter; `language="vi"`; chunker không cắt giữa số/viết tắt; TN tối thiểu (số đếm, tiền, phần trăm, số điện thoại, viết tắt phổ biến) theo 5.8.3; lexicon nhỏ cho tên sản phẩm; normalizer đánh giá + SER/CER; test cắt đuôi để chốt pad |
+| **2 — Beta** | TER và ma trận thanh theo vùng; critical span; ngày giờ/đơn vị/số La Mã; tham số TN theo vùng; danh sách lệnh ngắn và backchannel theo trạng thái; heuristic liên từ treo nếu đã có partial (B); ITN cho UI/entity |
+| **3 — Production** | Final-pass trên critical span (D); CI regression TN/lexicon gắn với mọi đổi model; A/B Smart Turn với Namo/fine-tune nếu false-cutoff theo thanh/vùng vượt ngưỡng; xem xét WFST khi luật đã quá khó bảo trì |
+
+### 5.18.10 Checklist rút gọn
+
+- [ ] NFC + bảng ký tự lạ ở **mọi** biên text (ASR, partial, LLM delta, UI, lexicon, hotword, ground truth); contract test có case NFD và case "lai".
+- [ ] Ba dạng text tách biệt: hiển thị (`raw_text`), đọc (`spoken_text`), so sánh (normalizer đánh giá); không dùng chung một hàm.
+- [ ] `speech_pad_ms`, pre-roll và `vad_filter` của runtime ASR được chốt bằng test cắt đuôi trên toàn đường, với câu kết thúc bằng ngã/nặng và âm tiết tắc.
+- [ ] Ngôn ngữ ASR được ép `vi` ở mọi backend; chỗ nào không ép được thì ghi vào kết quả.
+- [ ] Lệnh một âm tiết không bị nuốt bởi `min_speech_*`, luật "< 2 từ" hay quick ASR của barge-in; có test riêng.
+- [ ] Backchannel/xác nhận được quyết định theo trạng thái hội thoại, không theo danh sách cứng.
+- [ ] Validity gate dùng tỷ lệ âm tiết không hợp lệ như **cờ**, không như luật loại.
+- [ ] Chunker chạy trên `raw_text`, bỏ qua dấu chấm trong số/viết tắt, giữ token cuối chưa hoàn tất.
+- [ ] TN có luật mốt/tư/lăm/linh–lẻ/không trăm, chấm–phẩy kiểu Việt, heuristic số kiểu Anh, tham số vùng; regression ≥ 5 ca/lớp trong CI.
+- [ ] Lexicon tra bằng khoá chuẩn hoá (NFC, lowercase, kiểu dấu), khớp theo ranh giới, chạy sau TN; version hoá và pin cùng TTS.
+- [ ] Frontend của từng TTS (phoneme/grapheme) được xác định từ code/tài liệu; G2P đúng như lúc train nếu có.
+- [ ] Đánh giá: một normalizer chung cho ref/hyp; báo SER, CER, TER, critical span (có phủ định), theo vùng; không bỏ dấu, không đổi từ vùng miền.
+- [ ] Log per-turn content-free có version normalizer/lexicon, cờ NFC, tỷ lệ âm tiết không hợp lệ, cờ gate/miễn trừ.

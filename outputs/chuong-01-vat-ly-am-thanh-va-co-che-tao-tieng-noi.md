@@ -569,3 +569,104 @@ Công cụ: Audacity hoặc Sonic Visualiser hoặc Praat (xem spectrogram, đo 
 - [Turn Detection Models](../wiki/turn-detection-models.md) — độ chính xác end-of-turn tiếng Việt.
 
 **Đọc thêm ngoài wiki (giáo trình chuẩn, gợi ý):** Stevens, *Acoustic Phonetics*; Johnson, *Acoustic and Auditory Phonetics*; Ladefoged & Johnson, *A Course in Phonetics*; Rabiner & Schafer, *Theory and Applications of Digital Speech Processing*; tài liệu Praat (praat.org); ITU-R BS.1770 (loudness), ITU-T P.56 (active speech level); các nghiên cứu ngữ âm thanh điệu tiếng Việt (ví dụ của Michaud, Brunelle, Kirby) cho mô tả F0 và chất giọng theo phương ngữ.
+
+---
+
+## 1.13 Lưu ý khi thiết kế và hiện thực pipeline (áp dụng chương này)
+
+Phần này chuyển kiến thức vật lý của chương thành các quyết định cụ thể cho [Thiết kế pipeline speech-to-speech tiếng Việt](thiet-ke-pipeline-speech-to-speech-tieng-viet.md). Các tham số và claim lấy từ tài liệu thiết kế giữ nguyên nhãn gốc (**Reported**, **Observed**). Mọi khuyến nghị nối chúng với vật lý âm thanh là **Synthesis** của bài viết này: đây là giả thuyết cần đo, chưa phải kết quả đã kiểm chứng.
+
+### 1.13.1 Bảng tra nhanh: vật lý → quyết định thiết kế
+
+| Hiện tượng (mục) | Nơi chạm vào thiết kế | Quyết định / lưu ý |
+|---|---|---|
+| Âm xát s/x/ph, burst nằm trên 4 kHz (1.3.5, 1.5) | §5.1 telephony, §10 corpus | Không hứa chất lượng ASR của mic 16 kHz cho kênh 8 kHz. Đánh giá riêng trục "call 8 kHz"; upsample không khôi phục cue |
+| Tắc cuối không bật hơi, giọng kẹt ở hỏi/ngã/nặng có năng lượng thấp (1.3.5, 1.4.3) | §5.2 `speech_pad_ms`, §7.1 pre-roll | Không cắt audio ở ranh giới VAD thô. Giữ pad/pre-roll và đo xem cắt bao nhiêu ms thì bắt đầu sai thanh |
+| F0 đi xuống ở huyền/nặng giống F0 cuối câu (1.4.4) | §5.3 Smart Turn | Đo false-cutoff tách theo thanh của âm tiết cuối; luôn có timeout dự phòng |
+| dBFS phụ thuộc mic/gain/AGC (1.2.2) | §5.2 ngưỡng thích ứng, §7.3 gate barge-in | Không hard-code ngưỡng RMS dBFS dùng chung mọi thiết bị |
+| Pha và cộng tín hiệu (1.1.4) | §5.1 AEC, §7.3 cancel | Downmix stereo cẩn thận; fade khi cắt audio để tránh click |
+| Vang là bản sao trễ của tiếng nói (1.6.2) | §5.2 endpoint, §7.3 echo | Đuôi vang làm VAD báo kết thúc muộn và làm echo của bot khó khử |
+| Denoiser có thể xoá cue năng lượng thấp (1.6.3) | Mục 3 nguyên tắc 3, §11 | ASR nghe audio sau AEC, không qua enhancement; denoise chỉ cho nhánh VAD |
+| SNR phụ thuộc quy ước đo (1.7) | §10 corpus SNR 0/5/10/20 dB | Chọn và ghi quy ước P_signal; nhiều loại nhiễu mỗi mức; có bản ghi thật |
+
+### 1.13.2 Audio contract và sample rate (Mục 3 nguyên tắc 4, §5.1, §7.1)
+
+- **Khai báo đủ bốn thuộc tính ở mọi ranh giới:** sample rate, dtype (int16/float32, signed), số kênh, framing. Tài liệu thiết kế ghi lệch sample rate là nguyên nhân phổ biến của transcript rác (**Reported**, anecdote). Theo mục 1.8.3, mở spectrogram đầu vào ASR là cách kiểm tra nhanh: file khai báo 16 kHz mà trống trên 4 kHz thì audio từng đi qua 8 kHz.
+- **Kiểm tra DC offset và kiểu dữ liệu** khi decode: trung bình mẫu lệch rõ khỏi 0, hoặc "im lặng" không nằm quanh 0, thường là do đọc PCM signed thành unsigned hoặc sai endianness (1.1.1).
+- **Downmix stereo → mono:** kiểm tra tương quan hai kênh trước khi cộng; hai kênh ngược pha sẽ triệt tiêu (1.1.4). Điều này áp dụng cho backend như MOSS-TTS Local, có codec stereo nhưng ví dụ stream là mono (§5.6, **Reported**).
+- **Trần băng thông của cả pipeline:** trong HF s2s, `--tts openai` đưa audio về 16 kHz mono `int16` (Mục 3, **Reported**). Như vậy dù VieNeu xuất 48 kHz, người nghe chỉ nhận đến 8 kHz, mất phần "air" và đỉnh trên của s/x (1.5.1). Nếu chất lượng nghe là ưu tiên, giữ sample rate gốc của TTS tới tận playback adapter như §7.1 đề xuất, và chấm MOS trên đúng đường audio mà user nghe.
+- **Telephony 8 kHz:** Silero dùng 256 samples ở 8 kHz (§7.1). Decode codec (G.711 μ-law/A-law) đúng trước, rồi mới resample. Một model ASR dùng cho kênh điện thoại nên được đo, và nếu cần thì fine-tune, trên audio 8 kHz thật thay vì dựa vào điểm của audio 16 kHz.
+- **High-pass:** lọc dưới ~80 Hz để bỏ hum 50 Hz và rung bàn là an toàn. Không lọc cao hơn khoảng 150 Hz trên nhánh ASR khi chưa đo, vì F0 giọng nam (~85–180 Hz) và voice bar nằm ở đó, trong khi mel ở tần thấp vẫn giữ một phần thông tin F0 hữu ích cho thanh điệu (1.4.1, 1.8.2).
+
+### 1.13.3 VAD, padding và pre-roll (§5.2, §5.3, §7.1)
+
+- **Đầu và cuối âm tiết là vùng rủi ro cao nhất cho tiếng Việt.** Âm "h" đầu, xát vô thanh đầu từ, tắc cuối -p/-t/-c và phần tắc thanh hầu của thanh nặng đều có năng lượng thấp và dễ bị VAD coi là không phải speech (1.3.5, 1.4.4). Vì thế:
+  - Giữ `speech_pad_ms` (100–200 ms theo report, **Reported**; HF s2s mặc định 500 ms, **Observed**) và pre-roll 200–300 ms (§7.1).
+  - Không để ASR chỉ nhận đúng đoạn VAD = 1. Gửi turn audio kèm pad cả hai đầu.
+  - Pad lớn hơn thì an toàn hơn cho nội dung nhưng thêm độ trễ và kéo thêm nhiễu nền vào ASR. Chọn giá trị bằng đo, không theo cảm giác.
+- **`min_speech_ms`:** default 384 ms của HF s2s (**Observed**) có thể loại các lệnh một âm tiết như "không", "dừng", "ừ" khi nói nhanh. Đo độ dài thực tế của các lệnh này trên corpus trước khi chốt.
+- **Thanh nặng/ngã giọng Bắc:** giọng kẹt không tuần hoàn đều, có thể làm VAD hoặc pitch tracker đánh dấu unvoiced. Đưa vào test set các câu kết thúc bằng thanh nặng/ngã và âm tiết tắc ("đẹp", "mát", "bạc", "mạ") để đo tỉ lệ cắt cụt.
+- **Đuôi vang:** trong phòng có RT60 lớn hoặc far-field, đuôi vang kéo dài "speech" sau khi user dừng, nên endpoint đến muộn hơn (1.6.2). Đo endpoint latency riêng cho điều kiện far-field.
+- **Ngưỡng thích ứng (§5.2):** RMS dBFS đo được phụ thuộc mic, gain và AGC của client (1.2.2). Đo RMS trên đoạn có tiếng (active speech) thay vì cả cửa sổ, và hiệu chỉnh lại theo từng session như tài liệu thiết kế đề xuất. AGC của trình duyệt có thể đổi mức giữa chừng; đừng giả định mức nền cố định trong cả cuộc gọi.
+
+### 1.13.4 Turn detection và thanh điệu (§5.3, §10 mục 3)
+
+- Model end-of-turn dùng prosody phải phân biệt F0 đi xuống do thanh huyền/nặng với F0 đi xuống do hết câu (1.4.4). Đây là lý do hợp lý để nghi ngờ hiệu năng tiếng Việt; Smart Turn v3.2 có tiếng Việt là ngôn ngữ yếu nhất trong 23 ngôn ngữ (**Reported**, §5.3).
+- Khi đánh giá false-cutoff, **phân tầng kết quả theo thanh của âm tiết cuối** trước điểm dừng (đặc biệt huyền và nặng) và theo phương ngữ. Một tỉ lệ trung bình dưới 10% có thể che một tỉ lệ cao ở một thanh cụ thể.
+- Ngữ điệu câu hỏi và nhấn mạnh chồng lên thanh điệu; giọng Nam nhập hỏi/ngã. Corpus turn-taking phải có cả ba vùng Bắc/Trung/Nam.
+
+### 1.13.5 Tiền xử lý và nhánh ASR (Mục 3 nguyên tắc 3, §5.1, §11)
+
+- **Không denoise nhánh ASR** cho tới khi A/B trên WER/CER tiếng Việt cho thấy có lợi (thực hành **Reported** trong wiki; bằng chứng còn mâu thuẫn, §11). Về vật lý, denoiser có thể xoá chính các cue năng lượng thấp (xát, tắc cuối, giọng kẹt) hoặc thêm artifact mà ASR chưa gặp lúc train (1.6.3).
+- **Không dùng denoiser để chữa vang.** Vang không phải nhiễu cộng; nếu cần thì dùng dereverberation riêng (ví dụ WPE) và cũng phải A/B.
+- **Chấp nhận rằng đầu vào đã qua xử lý:** trình duyệt/điện thoại đã chạy `echoCancellation`, `noiseSuppression`, `autoGainControl` (§5.1). Ghi lại cấu hình này theo session để khi phân tích lỗi phân biệt được lỗi model với lỗi xử lý phía client.
+- **Babble và TV nền** có cấu trúc giống tiếng nói, nên là nguồn false trigger và transcript lẫn lời người khác lớn nhất. Đây là trường hợp cần speaker lock hoặc quick-ASR gate ở §7.3, không phải VAD chặt hơn.
+
+### 1.13.6 Echo, barge-in và playback (§5.1, §7.3, §8.3)
+
+- **AEC dựa trên pha và mức:** trừ ước lượng echo chỉ hiệu quả khi tham chiếu (audio bot vừa phát) khớp thời gian với mic. Nếu tự so sánh "audio bot vs mic" (tầng production ở §5.1), phải bù trễ đường phát, đảo cực và chênh gain, không so mẫu-theo-mẫu trực tiếp (1.1.4).
+- **Đuôi vang của giọng bot** quay lại mic sau khi bot dừng. Sau `client.clear`, giữ gate barge-in thêm một khoảng ngắn hoặc trừ năng lượng echo dự kiến, để đuôi vang không bị coi là user nói (Synthesis, cần đo).
+- **Chuẩn hoá loudness TTS:** các backend và voice khác nhau xuất độ to khác nhau. Chuẩn hoá ở tầng playback (theo LUFS, giữ peak dưới 0 dBFS với headroom vài dB) giúp user không phải chỉnh volume và giữ mức echo ổn định, nên ngưỡng barge-in cũng ổn định hơn (1.2.4).
+- **Tránh click:** khi barge-in (`client.clear`), khi nối chunk TTS hoặc khi fallback sang mệnh đề mới, áp fade-out/fade-in ngắn (vài ms) thay vì cắt cứng. Một bước nhảy biên độ tạo vạch dọc phủ toàn dải trên spectrogram (1.8.3), nghe thành tiếng "tách" và có thể kích hoạt VAD.
+- **Không clip:** khi cộng hay khuếch đại audio, scale cả tín hiệu thay vì clip cứng. Clipping thêm hài tần cao mà ASR và AEC đều xử lý kém.
+
+### 1.13.7 TTS tiếng Việt (§5.5, §5.6, §10 mục 2)
+
+- **Thanh điệu là lỗi người Việt nghe ra ngay.** Chấm riêng thanh điệu trong MOS/CMOS, có các cặp tối thiểu sáu thanh ("ma, mà, má, mả, mã, mạ") và các âm tiết tắc. Vocoder/codec nén mạnh có thể làm mờ giọng kẹt, khiến ngã/nặng nghe giống sắc/huyền (1.4.4).
+- **ASR round-trip CER là proxy kém cho thanh điệu:** ASR có language model có thể "sửa" thanh sai từ ngữ cảnh. Không dùng nó thay cho người nghe.
+- **Phân biệt sample rate và chất lượng:** 48 kHz không tự động nghe tốt hơn 24 kHz nếu đường phát cuối cùng chỉ 16 kHz (1.13.2). So sánh các TTS trên cùng đường phát.
+- **Nối chunk theo mệnh đề (§5.5):** ranh giới chunk là nơi dễ có click và đứt đường F0. Đưa ranh giới chunk vào bộ regression nghe thử.
+
+### 1.13.8 Dựng corpus đánh giá (§10)
+
+Ngoài checklist ở 1.7.3:
+
+- **Ghi quy ước đo vào metadata của từng mẫu:** P_signal theo cả file hay active speech, loại và nguồn nhiễu, SNR đạt được, `gain` chống clip, RIR nếu có, seed.
+- **Bộ cặp tối thiểu theo ngữ âm:** x/s, ph/h, sắc/nặng trong âm tiết tắc, hỏi/ngã (Bắc), các tên riêng và số có âm xát. Chạy cùng bộ trên mic 16 kHz và kênh 8 kHz để thấy phần lỗi do mất băng thông.
+- **Điều kiện tách biệt:** sạch, nhiễu cộng (nhiều loại ở mỗi mức SNR), vang/far-field, telephony, có và không có denoise. Mỗi lần chỉ đổi một trục để quy được lỗi về nguyên nhân.
+- **Bản ghi thật:** Lombard và xử lý của thiết bị không mô phỏng được bằng trộn nhiễu (1.6.3). Tỉ lệ nhỏ bản ghi thật vẫn cần có để kiểm tra kết quả của corpus tổng hợp.
+- **Quyền và privacy (§9.5):** giọng nói ghi để đánh giá là dữ liệu nhạy cảm; cần consent, access control và retention.
+
+### 1.13.9 Quan sát vận hành (§8.4, §9.5)
+
+Các chỉ số âm học dưới đây là metadata, không chứa nội dung, nên phù hợp với log content-free. Ghi theo từng turn:
+
+- Sample rate và số kênh khai báo so với đo được; ước lượng băng thông hiệu dụng (có năng lượng trên 4 kHz hay không).
+- Peak dBFS, RMS dBFS trên active speech, tỉ lệ mẫu chạm full-scale (clipping), DC offset.
+- Ước lượng mức nền và SNR lúc bắt đầu session; cờ AEC/NS/AGC phía client.
+- Độ dài pad và pre-roll thực tế, độ dài đoạn speech bị bỏ vì ngắn hơn `min_speech_ms`.
+
+Khi WER hoặc tỉ lệ false-cutoff tăng, các chỉ số này giúp tách lỗi do tín hiệu (sample rate, clipping, ồn, vang) khỏi lỗi do model trước khi đổi model.
+
+### 1.13.10 Checklist rút gọn
+
+- [ ] Mọi ranh giới audio khai báo sample rate, dtype, số kênh; có test 48k/24k/16k/8k và mono/stereo (§10 mục 5).
+- [ ] Spectrogram đầu vào ASR được kiểm tra trong contract test để bắt audio từng qua 8 kHz.
+- [ ] `speech_pad_ms`, pre-roll và `min_speech_ms` được chọn từ đo trên câu kết thúc bằng tắc cuối và thanh nặng/ngã.
+- [ ] Ngưỡng VAD/barge-in thích ứng theo session; không hard-code theo dBFS của một thiết bị.
+- [ ] Nhánh ASR không qua denoise; denoise (nếu có) chỉ cho nhánh VAD, có A/B WER/CER tiếng Việt.
+- [ ] False-cutoff của turn detector được báo cáo theo thanh cuối và theo phương ngữ.
+- [ ] Playback có chuẩn hoá loudness, headroom, fade khi cắt/nối; không clip cứng.
+- [ ] MOS TTS có tiêu chí thanh điệu riêng và được nghe trên đúng đường phát thực tế.
+- [ ] Corpus SNR ghi rõ quy ước, nhiều loại nhiễu mỗi mức, có bản ghi thật, far-field và telephony tách trục.
+- [ ] Log theo turn có chỉ số âm học content-free để chẩn đoán lỗi tín hiệu.

@@ -442,6 +442,105 @@ Tầng 1 **tắt mic** khi bot nói: đơn giản nhưng không có barge-in. T�
 
 **Chương tiếp theo:** Chương 8. Transport mạng cho audio realtime (WebSocket, WebRTC, Opus, jitter buffer).
 
+---
+
+## 7.12 Lưu ý khi thiết kế và hiện thực pipeline speech-to-speech tiếng Việt
+
+Phần này áp kiến thức của chương vào [tài liệu thiết kế](thiet-ke-pipeline-speech-to-speech-tieng-viet.md). Các khuyến nghị ở đây là **Synthesis** và chưa được kiểm chứng trên implementation nào. Tham số lấy từ tài liệu thiết kế hoặc wiki giữ nguyên nhãn gốc (**Reported**, **Observed**). Kết quả **Reproduced** duy nhất được dùng là hai mô phỏng đồ chơi ở §7.3.4 và §7.6.2. Bảng lỗi §7.10 và bảng vị trí §7.8 vẫn dùng được. Mục này tập trung vào **quyết định thiết kế, chỗ đặt từng khối và thứ tự hiện thực** của front-end âm học.
+
+### 7.12.1 Bảng tra nhanh: kiến thức của chương → quyết định thiết kế
+
+| Kiến thức (mục) | Nơi chạm vào thiết kế | Quyết định / lưu ý |
+|---|---|---|
+| AEC cần tham chiếu là chính audio đang phát (7.2.2) | §4 client AEC, §5.1 WebSocket MVP | Audio bot phải phát qua đường mà trình duyệt dùng làm tham chiếu. Kiểm tra bằng thử nghiệm loa ngoài, đừng suy ra từ cờ đã bật |
+| Căn trễ, clock drift (7.2.3) | §5.1, Chương 6 §6.8 | Mic và loa nên dùng cùng thiết bị. Không tự làm AEC phía server ở các Phase 1–2 |
+| Double-talk = barge-in (7.3.3) | §7.3 barge-in | Không tin tuyệt đối vào AEC. Luôn có cổng thời lượng, và có thêm speaker lock hoặc quick ASR khi cần |
+| AEC chưa hội tụ ở vài trăm ms đầu (7.3.4) | §7.3, §7.4 `interrupt()` | Đầu mỗi generation, cổng barge-in phải chặt hơn (xem 7.12.4) |
+| Ba tầng echo (7.4.3) | §5.1, §12 lộ trình | Tầng 1 ở Phase 1, tầng 2 ở Phase 2, tầng 3 ở Phase 3. Chọn tầng theo thiết bị, không cố định cho mọi session |
+| Enhancement có thể làm WER tệ hơn (7.5) | Nguyên tắc 3, §11 | Nhánh ASR mặc định không denoise. Chỉ bật khi A/B bằng WER/CER tiếng Việt cho thấy lợi |
+| AGC, clipping (7.6) | §5.1 cờ `autoGainControl` | Client không tự nhân gain. Đếm clipping ở cả uplink lẫn audio TTS |
+| Kiến trúc hai nhánh (7.7.1) | §4 sơ đồ, §7.4 pseudo-code | Nhánh VAD làm việc trên bản sao. Mọi quyết định cắt audio cho ASR dùng chỉ số mẫu của **audio gốc** |
+| Ngưỡng thích ứng (7.7.2) | §5.2 | Chỉ hiệu chuẩn khi bot im lặng, cập nhật bằng EMA, có ngưỡng riêng cho lúc bot đang nói |
+| Đo thay vì cảm tính (7.9) | §8.4, §10 | Thêm metric echo/false barge-in và ma trận thiết bị vào release gates |
+
+### 7.12.2 AEC và đường phát audio (§4, §5.1)
+
+1. **Đường phát quyết định AEC có chạy được hay không.** Với Profile A qua WebSocket, audio TTS phát qua AudioWorklet trong `AudioContext` của chính trang. Việc trình duyệt có lấy đường này làm tham chiếu AEC hay không **khác nhau theo trình duyệt** (7.2.2, 7.4.2). Vì vậy kiểm tra loa ngoài ở §7.9.2 bước 2 là **gate bắt buộc** trước khi bật barge-in full-duplex, không phải bước tuỳ chọn.
+2. **Không đổi thiết bị output bằng `setSinkId`** hoặc phát qua tab/ứng dụng khác khi đang dựa vào AEC của trình duyệt. Nếu sản phẩm cần chọn loa, test lại AEC trên từng tổ hợp.
+3. **Gửi cờ thật lên gateway trong handshake.** Gửi `echoCancellation/noiseSuppression/autoGainControl` lấy từ `getSettings()` cùng loại thiết bị (tai nghe dây, loa ngoài, Bluetooth). Gateway dùng các giá trị này để **chọn tầng echo cho session**: AEC tắt hoặc không rõ, mà lại dùng loa ngoài, thì chuyển về tầng 1 (half-duplex) thay vì để bot tự ngắt. Contract phía client được mô tả ở Chương 6 §6.18.2.
+4. **WebRTC (Phase 3) giải bài toán tham chiếu tốt hơn** vì AEC3 thấy luôn track phát ra (7.4.2). Khi chuyển transport, **đo lại toàn bộ** số liệu echo và barge-in; không dùng lại ngưỡng đã tune cho WebSocket.
+5. **Không tự làm AEC phía server** trong Phase 1–2. Việc này đòi căn trễ mẫu chính xác giữa mic và `played_sample_offset`, và phải xử lý drift (7.2.2, Chương 6 §6.8). Chi phí cao mà lợi ích chưa rõ.
+6. **Mức âm lượng phát của bot là một tham số front-end.** TTS càng to thì echo càng mạnh và loa càng dễ méo phi tuyến; phần méo này AEC tuyến tính không trừ được (7.2.1). Nên chuẩn hoá loudness giữa các backend TTS. Đây cũng là điều kiện để A/B VieNeu và VoxCPM2 công bằng. Chuyển `float32` sang `s16le` phải có clamp hoặc limiter, không để tràn số.
+
+### 7.12.3 Hai nhánh trong code (§4, §7.4)
+
+Pseudo-code §7.4 đã tách `denoise_opt(frame)` cho nhánh VAD và `asr_stream.feed(frame)` cho audio gốc. Khi hiện thực, cần thêm các điểm sau:
+
+- **Denoise trả về bản sao, không sửa tại chỗ.** Buffer gốc được dùng chung cho ASR streaming, turn audio buffer và pre-roll. Nếu denoiser ghi đè lên buffer này, nguyên tắc 3 bị phá mà không ai nhận ra.
+- **Bù trễ của denoiser.** Denoiser theo khối (có lookahead, buffer nội bộ) làm nhánh VAD trễ hơn audio gốc vài chục ms. Mốc VAD start/end dùng để cắt turn audio cho ASR phải được **trừ đi độ trễ này theo chỉ số mẫu**. Nếu không, pre-roll 200–300 ms và `speech_pad_ms` bị lệch, và có thể mất phụ âm đầu hoặc thanh điệu ở âm tiết cuối (7.7.1, Chương 5). Độ trễ cụ thể phải đo trên denoiser thật; wiki chưa có số.
+- **Trễ của denoiser cộng thẳng vào critical path** của endpoint và barge-in (§8.1). Ghi nó thành một dòng riêng trong ngân sách §8.2.
+- **Mỗi session có state denoiser riêng**, giống state VAD (§7.1). Reset khi kết thúc session, không dùng chung giữa các user.
+- **Tách process hoặc environment cho denoiser.** DeepFilterNet cần `numpy<2` và xung đột với Pocket TTS trong HF s2s (§9.1, **Reported**). Denoiser chạy CPU; cần đo CPU/session khi tính concurrency.
+- **Cờ tắt/bật theo profile.** `denoise_vad = off | rnnoise | deepfilternet` và `denoise_asr = off` (mặc định) là cấu hình, không phải hằng số trong code, để A/B mà không phải build lại.
+
+### 7.12.4 VAD, ngưỡng thích ứng và barge-in (§5.2, §7.3)
+
+1. **Ngưỡng phụ thuộc trạng thái.** Tách `threshold_listening` (khởi điểm 0,5) khỏi `threshold_bot_speaking` (0,7 theo "soft half-duplex", **Reported**). Tương tự, tách cổng barge-in khỏi `min_speech` của endpoint. Trong pseudo-code §7.4 mới chỉ có một `BARGE_MS`.
+2. **Cổng chặt hơn ở đầu mỗi generation.** Mô phỏng §7.3.4 cho thấy bộ lọc thích nghi cần vài trăm ms để hội tụ. Đề xuất (**Synthesis**, chưa đo): trong khoảng đầu sau `audio.start`, nâng cổng thời lượng hoặc yêu cầu thêm quick ASR. Đo tỉ lệ false barge-in theo vị trí trong câu trả lời để biết khoảng này có cần không và dài bao nhiêu.
+3. **Hiệu chuẩn nền chỉ khi bot im lặng và không có lời nói rõ.** Nếu bot chào trước, 2–3 s đầu đầy echo, nên giả định "2–3 s đầu yên tĩnh" (**Reported**) sai ngay từ đầu (7.7.2). Hoãn hiệu chuẩn, rồi cập nhật nền bằng EMA trong các đoạn im lặng giữa các lượt.
+4. **Hai giá trị mâu thuẫn của trigger window (100–200 ms và 300–500 ms) là cấu hình theo môi trường**, không phải một hằng số (§11). Môi trường sạch dùng tai nghe ưu tiên độ nhạy; loa ngoài hoặc nơi ồn ưu tiên chống ngắt giả. Chọn bằng số đo §7.9.
+5. **Tham số HF s2s không trộn với tham số report.** HF s2s mặc định `--thresh 0.6`, `--speech_pad_ms 500` (**Observed**, §5.3), khác bộ Silero 0,5 / 100–200 ms. Tài liệu thiết kế không liệt kê cờ nào của HF s2s cho ngưỡng thích ứng theo nền. Nếu dùng HF s2s, phải tự thêm cơ chế này hoặc ghi rõ ngưỡng cố định là một giới hạn của profile.
+6. **Speaker lock lấy mẫu giọng sạch.** Embedding người dùng chỉ lấy từ đoạn nói khi bot **không** phát và đủ dài, để không "enroll" nhầm echo hoặc TV nền. Ngưỡng cosine ~0,5–0,6 (**Reported**) phải hiệu chuẩn theo từng thiết bị, vì AEC và NS làm thay đổi embedding. Embedding là dữ liệu nhạy cảm, không ghi vào log (§9.5).
+
+### 7.12.5 Echo lọt vào ASR và validity gate (§5.4.4, §7.2)
+
+Front-end không chặn được hết echo. Lớp phòng thủ cuối là so với **text bot vừa nói**, vì gateway biết chính xác text đó:
+
+- **Text echo filter (Synthesis):** nếu transcript của một lượt bắt đầu trong lúc bot đang nói (hoặc ngay sau đó) trùng phần lớn với `spoken_text` của generation hiện tại, coi đó là echo. Bỏ lượt, đếm metric, và không gửi sang LLM. Đây là phiên bản ở tầng text của "quick ASR ≥ 2 từ, không trùng câu bot đang phát" (§7.3, **Reported**), và là chốt chặn vòng lặp "bot tự nói chuyện với mình" (7.1).
+- So khớp phải dùng text **sau normalizer** (số đã đọc thành chữ, §5.5), vì ASR nghe "một triệu hai trăm…" chứ không nghe "1.250.000đ".
+- Echo dư và audio bị denoise/clip đều làm tăng ảo giác Whisper (7.5.2). Bộ lọc §5.4.4 (`no_speech_prob`, `compression_ratio`, blacklist) vẫn cần, nhưng **đừng hạ ngưỡng lọc để "che" echo**. Sửa ở front-end trước.
+
+### 7.12.6 Gain, loudness và clipping (§5.1)
+
+- **Giữ `autoGainControl: true` làm mặc định của tầng 2** (**Reported**). Biến này phải được log để A/B tắt riêng khi VAD báo "luôn có tiếng" trong phòng ồn (7.6.3, 7.10).
+- **Không nhân gain trong AudioWorklet capture.** Nếu bắt buộc phải nhân (mic quá nhỏ), đặt limiter **sau** AEC, không đặt trước, và đếm số mẫu `|x| ≥ 0,99` trên mỗi turn (7.6.2, 7.9.1).
+- **Không chuẩn hoá loudness trên đường realtime vào ASR** khi chưa đo được lợi ích. Với file offline (corpus đánh giá §10) thì chuẩn hoá được, nhưng phải dùng **cùng** quy trình cho mọi model được so sánh.
+- **Telephony 8 kHz (§5.1):** audio đã qua xử lý của nhà mạng. Không chồng thêm NS/AGC khi chưa A/B, vì mỗi tầng cộng thêm méo (7.5.2, ý 4).
+
+### 7.12.7 Quan sát và đánh giá (§8.4, §10)
+
+**Metric theo session/turn** (content-free theo §9.5): cờ AEC/NS/AGC thật, loại thiết bị, tầng echo được chọn, `bg_vad_prob` và `bg_rms` lúc hiệu chuẩn, ngưỡng đang dùng, `false_barge_in` (barge-in kích hoạt rồi được phân loại là echo/nhiễu), `echo_turn_dropped` (bị text echo filter loại), `clip_count`, trễ của denoiser.
+
+**Bổ sung cho release gates §10:**
+
+- **Mục 1 (corpus ASR):** chạy SNR 0/5/10/20 dB **ba cấu hình**: không denoise, denoise nhánh ASR, denoise chỉ nhánh VAD. So WER/CER và độ chính xác của các critical span (số, tên, phủ định), không chỉ WER tổng. Đây là bằng chứng duy nhất để giải mâu thuẫn §11 cho tiếng Việt.
+- **Mục 3 (turn/barge-in):** thêm kịch bản **bot nói dài, user im lặng, loa ngoài**. Mục tiêu là 0 false barge-in trong nhiều phút (7.9.1). Thêm kịch bản double-talk thật (user ngắt giữa câu) để đo miss rate và thời gian tới khi âm thanh dừng.
+- **Ma trận thiết bị:** tai nghe dây (baseline không echo), loa ngoài laptop, Bluetooth, mobile. Kết hợp với ít nhất hai trình duyệt mục tiêu. Báo cáo kết quả **tách theo ô**, không gộp, vì AEC phụ thuộc phần cứng/OS (7.11).
+- **Ghi âm sau xử lý** trong test (opt-in, có retention, §9.5) để nghe lại và so phổ khi có lỗi (7.9.2, bước 5).
+
+### 7.12.8 Thứ tự hiện thực theo lộ trình (§12)
+
+| Phase | Việc liên quan tới chương này |
+|---|---|
+| **1 — MVP** | Tầng 1 (tắt mic khi bot nói) hoặc tầng 2 chỉ với tai nghe. Bật ba cờ `getUserMedia` và log `getSettings()`. Không denoise nhánh nào. Chưa có ngưỡng thích ứng, chỉ dùng Silero 0,5. Có đếm clipping. Chạy bước 1–2 của §7.9.2 để biết AEC của trình duyệt mục tiêu có dùng được với đường phát của mình không |
+| **2 — Beta** | Tầng 2 với barge-in full-duplex, có cổng thời lượng và ngưỡng theo trạng thái. Chọn tầng echo theo session từ cờ và thiết bị. Thêm ngưỡng thích ứng (hiệu chuẩn khi bot im, EMA), text echo filter, speaker lock. Thêm denoise **chỉ cho nhánh VAD**, có bù trễ. A/B enhancement theo SNR. Chạy ma trận thiết bị |
+| **3 — Production** | Tầng 3: WebRTC AEC3 cộng so sánh với audio bot đã phát. Tune lại toàn bộ ngưỡng sau khi đổi transport. Calibrate speaker lock theo thiết bị. Có dashboard false barge-in và miss rate theo thiết bị/trình duyệt. Chỉ bật enhancement cho ASR nếu A/B tiếng Việt cho thấy lợi |
+
+### 7.12.9 Checklist rút gọn
+
+- [ ] Audio bot phát qua đường mà AEC của trình duyệt thấy được. Đã kiểm tra bằng loa ngoài với user im lặng, không suy ra từ cờ.
+- [ ] Cờ AEC/NS/AGC thật và loại thiết bị được gửi trong handshake và log theo session. Tầng echo được chọn theo session.
+- [ ] Không có loa ngoài + AEC hoạt động → half-duplex, không bật barge-in.
+- [ ] Nhánh ASR nhận audio sau AEC, **không** enhancement. Denoise (nếu có) chạy trên bản sao, chỉ cho VAD/barge-in.
+- [ ] Trễ của denoiser đã đo, được bù khi cắt turn audio, và có dòng riêng trong ngân sách latency.
+- [ ] Ngưỡng VAD và cổng barge-in tách theo trạng thái (đang nghe / bot đang nói). Cổng chặt hơn ở đầu mỗi generation nếu số đo cho thấy cần.
+- [ ] Hiệu chuẩn nền chỉ khi bot im lặng, cập nhật bằng EMA. Ghi rõ nếu profile (ví dụ HF s2s) chỉ có ngưỡng cố định.
+- [ ] Trigger window là cấu hình theo môi trường. Giá trị được chọn bằng số đo, không chọn một bên của §11.
+- [ ] Text echo filter so transcript với `spoken_text` đã normalize của generation hiện tại.
+- [ ] Speaker lock enroll từ đoạn sạch (bot im lặng). Embedding không vào log.
+- [ ] Client không tự nhân gain. Clipping được đếm ở uplink và ở chuyển đổi định dạng TTS. Loudness TTS đồng đều giữa các backend.
+- [ ] Release gates có kịch bản echo (loa ngoài, user im lặng), double-talk, SNR ba cấu hình denoise, và ma trận thiết bị × trình duyệt báo cáo tách ô.
+
 [^barge-in]: [Voice-Agent Barge-in and Echo Handling](../wiki/voice-agent-barge-in-and-echo-handling.md): `## Echo-avoidance tiers` (bảng ba tầng), `## Noise-robust gating (Claude report)` (ngưỡng 0,7, 300–500 ms, ngưỡng thích ứng, speaker lock, backchannel), `## Contradictions` (cửa sổ trigger), `## Coverage and limits`. Nguồn gốc: `raw/ChatGPT-pipeline-recommend.md` §6–7 và `raw/Claude-pipeline-recommend.md` mục `Ngưỡng thích ứng`, `Barge-in và echo`.
 
 [^speech-enhancement]: [Speech Enhancement Before ASR](../wiki/speech-enhancement-before-asr.md): `## Evidence that enhancement hurts ASR`, `## Evidence that enhancement helps ASR`, `## Practice`, `## Contradictions`, `## Coverage and limits`. Nguồn gốc: `raw/Claude-pipeline-recommend.md`, `PHẦN 1` §2 `Tiền xử lý cho môi trường ồn`.

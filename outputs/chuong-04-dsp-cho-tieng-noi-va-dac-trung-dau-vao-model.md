@@ -912,3 +912,152 @@ class StreamingHighPass:
 - [Qwen3-TTS Tokenizer 12Hz](../wiki/qwen3-tts-tokenizer-12hz.md): codec 12.5 Hz phía TTS.
 
 **Đọc thêm ngoài wiki (giáo trình và tài liệu chuẩn, gợi ý):** Rabiner & Schafer, *Theory and Applications of Digital Speech Processing*; Jurafsky & Martin, *Speech and Language Processing* (chương về ASR và đặc trưng); Oppenheim & Schafer, *Discrete-Time Signal Processing* (DFT, cửa sổ, FIR/IIR); Davis & Mermelstein (1980) về MFCC; Griffin & Lim (1984), *Signal estimation from modified short-time Fourier transform*; de Cheveigné & Kawahara (2002) YIN; Mauch & Dixon (2014) pYIN; Gulati et al. (2020) Conformer; Rekesh et al. (2023) Fast Conformer; Radford et al. (2022) Whisper; Kong et al. (2020) HiFi-GAN; Siuzdak (2023) Vocos; tài liệu librosa (`stft`, `filters.mel`, `pyin`), torchaudio (`transforms.MelSpectrogram`, `compliance.kaldi.fbank`), NeMo (`AudioToMelSpectrogramPreprocessor`), SciPy (`signal.butter`, `sosfilt`).
+
+---
+
+## 4.17 Lưu ý khi thiết kế và hiện thực pipeline speech-to-speech tiếng Việt
+
+Phần này áp kiến thức DSP và đặc trưng của chương vào [tài liệu thiết kế](thiet-ke-pipeline-speech-to-speech-tieng-viet.md). Các khuyến nghị là **Synthesis**, chưa kiểm chứng trên implementation nào. Tham số và số liệu lấy từ tài liệu thiết kế hoặc wiki giữ nhãn gốc (**Reported**, **Observed**). Hành vi và giá trị mặc định của thư viện là kiến thức chung, cần kiểm tra lại với phiên bản bạn cài. Phần audio contract ở mức sample (dtype, sample rate, resample, reblock) đã có ở [Chương 2 §2.16](chuong-02-so-hoa-am-thanh-tu-song-toi-mang-so.md); ở đây chỉ nhắc lại khi nó ảnh hưởng tới đặc trưng đầu vào model.
+
+### 4.17.1 Bảng tra nhanh: kiến thức của chương → quyết định thiết kế
+
+| Kiến thức (mục) | Nơi chạm vào thiết kế | Quyết định / lưu ý |
+|---|---|---|
+| Đặc trưng là hợp đồng train ↔ chạy (4.1, 4.5.7) | Mục 3 nguyên tắc 4, §5.8 (port GGUF/ONNX, audio.cpp), §12 Phase 3 | Mỗi checkpoint có một "feature contract" được pin cùng revision weights. Port sang runtime khác chỉ sau parity gate trên đặc trưng **và** trên WER |
+| `n_mels` 80 vs 128 (4.8.2) | §5.4.2 Whisper turbo, PhoWhisper (convert sang CT2) | Đọc `num_mel_bins` của từng checkpoint; không dùng chung một extractor cho turbo (128) và PhoWhisper (80, cần kiểm tra) |
+| Whisper luôn xử lý cửa sổ 30 s (4.8.2) | Profile A, §8.2, §9.3 | Turn ngắn vẫn tốn compute encoder như 30 s; capacity tính theo số turn, không theo số giây audio. Batching (`BatchedInferencePipeline`) có lợi rõ |
+| Hallucination khi bằng chứng âm học yếu (4.8.2) | §5.4.4 | Gate trước ASR bằng VAD + RMS + thời lượng, lọc sau decode; không chỉ dựa vào blacklist |
+| Smart Turn: ≤ 8 s, cắt đầu, pad đầu, gọi lại trên toàn lượt (4.8.3) | §5.3, §7.4 `smart_turn.complete(last_8s_audio)` | Giữ turn buffer riêng ≥ 8 s; luôn đưa phần **cuối** lượt |
+| Frame encoder FastConformer 80 ms (4.8.4, 4.9.3) | Profile B, §5.4.2 chunk 160/320 ms | Chunk ASR là bội của 80 ms; reblocker ASR tách khỏi reblocker VAD |
+| CMVN per-utterance không streaming được (4.5.6) | §5.4.1 ba nghĩa của "realtime" | Không tự bọc model offline thành streaming bằng cách tính đặc trưng/chuẩn hoá trên từng chunk |
+| Thang int16 vs float (4.5.7) | Profile D/E/F: ChunkFormer, ZipFormer, sherpa | Gateway giữ float32 [-1, 1]; nhân 32 768 chỉ trong adapter của model cần, có test |
+| Thông tin ngã/nặng nằm ở giữa–cuối âm tiết (4.4.4) | §5.2 `speech_pad_ms`, §7.1 pre-roll, §10 corpus | Không cắt đuôi; đo WER/CER theo thanh |
+| Lọc/STFT streaming cần state (4.7.3, 4.9.2) | §7.1 "mỗi session có state riêng" | Mọi đối tượng có bộ nhớ (filter, resampler, VAD, log-mel streaming, ASR cache) là per-session, có `reset()` rõ ràng |
+| Mỗi tầng có đồng hồ riêng (4.9.1, 4.9.4) | §7.1 "không ép chung chunk" | Ring buffer + timestamp tính bằng mẫu; mỗi consumer đọc theo nhịp của mình |
+| Vocoder/codec cần ngữ cảnh ở biên chunk (4.10.3) | §5.5, §5.6 TTS streaming | Ranh giới chunk TTS là điểm phải nghe thử và regression |
+
+### 4.17.2 Feature contract: pin, kiểm tra, không đoán
+
+1. **Mỗi model một bản ghi feature contract** gồm đủ các dòng của bảng §4.5.7, lấy từ `preprocessor_config.json` (Whisper/PhoWhisper), `model_config.yaml` mục `preprocessor:` (Nemotron/NeMo), recipe (ChunkFormer/ZipFormer), `inference.py` (Smart Turn). Lưu cạnh revision và checksum của weights, đúng như §9.1 yêu cầu pin revision cho runtime và weights.
+2. **Không tự viết extractor nếu runtime đã có.** Faster-Whisper, NeMo, `qwen-asr`, Smart Turn inference đã mang extractor của chúng. Chỉ tự viết khi port (audio.cpp, NeMo-Speech.cpp, ONNX tự gọi) hoặc khi cần streaming mà runtime không hỗ trợ.
+3. **Khi tự viết hoặc port, parity là release gate:**
+   - Mức đặc trưng: sai số tuyệt đối tối đa trên log-mel so với extractor gốc, cùng file, loại trừ vài frame biên (§4.11.2). Ngưỡng gợi ý 1e-4–1e-3.
+   - Mức đầu ra: WER/CER trên cùng tập tiếng Việt so với runtime gốc. Đặc trưng khớp nhưng WER lệch nghĩa là lỗi nằm ở chỗ khác (quantization, decoding).
+   - Tài liệu thiết kế đã ghi port `vieneu_v3_turbo` của audio.cpp "chưa được kiểm tra parity" và GGUF giữa các runtime không thay thế nhau được (§5.8, **Reported**); PhoWhisper convert sang CT2 "cần test parity" (§5.4.2, **Reported**). Feature contract là phần đầu tiên của các parity test đó.
+4. **Assert ở biên model**, không chỉ ở biên transport: shape (`(n_mels, T)` hay `(T, n_mels)`), `n_mels`, dtype, khoảng giá trị (log-mel kiểu Whisper sau chuẩn hoá có max − min ≤ 2 trong mỗi cửa sổ, do kẹp 8 đơn vị log10 rồi chia 4; giá trị lệch đều ~+2.26 so với bản tham chiếu là dấu hiệu nhầm thang int16, §4.5.7).
+5. **Tham số decode không bù được lỗi đặc trưng.** Khi WER tiếng Việt kém bất thường, kiểm tra feature contract và spectrogram đầu vào (§4.4.3) trước khi tune `beam_size`, prompt hay đổi model.
+
+### 4.17.3 Gateway ingress và các buffer (§7.1, §7.4)
+
+Pseudo-code ở §7.4 tài liệu thiết kế gọi `silero.score(reblock_512(...))`, `asr_stream.feed(frame)` và `smart_turn.complete(last_8s_audio)`. Để ba lời gọi đó đúng về DSP:
+
+| Consumer | Đơn vị đọc | Buffer cần giữ | Reset khi |
+|---|---|---|---|
+| Silero VAD | 512 mẫu @16 kHz (+ context 64 mẫu nếu tự gọi ONNX, kiến thức chung) | Phần dư < 512 mẫu, state model | `reset_states()` khi hết lượt (**Reported**, §5.2); state mới khi session mới |
+| ASR streaming (Nemotron) | Bội của 80 ms: 2 560 mẫu (160 ms), 5 120 mẫu (320 ms) | Phần dư, cache encoder/decoder | Theo chính sách session/turn của runtime; giải phóng khi session đóng (§7.2) |
+| Smart Turn | Toàn lượt, tối đa 8 s **cuối** | Turn buffer ≥ 8 s, kể cả khi lượt dài hơn | Khi lượt commit hoặc reopen thành revision mới |
+| ASR turn-final / final-pass | Toàn lượt + pre-roll 200–300 ms (**Synthesis** của thiết kế) + pad cuối | Turn buffer đầy đủ (không giới hạn 8 s) | Sau khi final được chấp nhận |
+| Gate RMS / sàn nhiễu | Khung 20–32 ms | Thống kê trượt của sàn nhiễu | Hiệu chỉnh lại theo session (§5.2) |
+
+Lưu ý:
+
+- **Một ring buffer theo thời gian, nhiều con trỏ đọc.** Timestamp mọi sự kiện (VAD start/end, chunk ASR, commit) tính bằng chỉ số mẫu ở 16 kHz, không bằng số lần gọi hay wall-clock. Số frame mel mỗi lần `push` không cố định (§4.11.3).
+- **Turn buffer cho Smart Turn và cho ASR là hai thứ khác nhau:** Smart Turn chỉ cần 8 s cuối; ASR cần cả lượt. Đừng cắt turn buffer ASR về 8 s vì tiện.
+- **Pre-roll lấy từ ring buffer**, không phải từ đoạn VAD = 1, nên ring buffer phải giữ ít nhất pre-roll + độ trễ quyết định VAD (≥ 32 ms + `min_speech_duration_ms`) phía trước điểm VAD start.
+- **Gap và packet thiếu (§7.1):** chèn im lặng đúng độ dài để giữ timeline, đồng thời đánh dấu khoảng đó. Im lặng số tuyệt đối gặp floor log (§4.5.3) và có thể làm Whisper/Smart Turn phản ứng lạ; dither nhẹ hoặc lặp sàn nhiễu là phương án cần A/B, không phải mặc định.
+- **High-pass, nếu dùng,** đặt một lần ở gateway, ≤ 80–100 Hz, IIR có state per session (§4.7, §4.11.5). Áp cho cả nhánh VAD và ASR thì phải nhất quán giữa lúc đánh giá và lúc chạy. Đây là bộ lọc khác về bản chất với denoise (nguyên tắc 3 vẫn giữ: ASR không qua enhancement).
+
+### 4.17.4 VAD, Smart Turn và thanh điệu (§5.2, §5.3)
+
+- **Độ trễ thuật toán của VAD** tối thiểu là một cửa sổ 32 ms cộng thời gian chờ đủ cửa sổ sau reblock. Các ngưỡng `min_silence_duration_ms` 200–300 ms (**Reported**) hay `--min_silence_ms 64` của HF s2s (**Observed**) cộng lên trên sàn đó; 64 ms chỉ là 2 cửa sổ Silero, nên hệ HF s2s dựa vào Smart Turn và speculative reopen chứ không vào VAD để quyết định hết lượt (§5.3).
+- **`speech_pad_ms` và pre-roll có cơ sở DSP:** bằng chứng phân biệt ngã/nặng (glottal stop, creaky, kết thúc đột ngột) nằm ở giữa và **cuối** âm tiết (§4.4.4). Giá trị 100–200 ms (**Reported**) là khởi điểm; chọn giá trị cuối cùng bằng thí nghiệm cắt đuôi ở §4.13 bài 6.
+- **Ngưỡng thích ứng (§5.2)** dùng RMS dBFS (§4.6.1). Tính RMS trên khung 20–32 ms cùng nhịp với VAD; ước lượng sàn nhiễu bằng percentile thấp (ví dụ 10–20%) thay vì trung bình, để một tiếng động lớn trong 2–3 s đầu không đẩy sàn lên.
+- **Smart Turn:**
+  - Nếu tự tích hợp (gateway tự viết, Pipecat), dùng code inference của Smart Turn để tính đặc trưng; đừng tự sinh log-mel trừ khi đã parity với `inference.py` (§4.8.3, chưa xác minh trong wiki).
+  - Gọi lại trên **toàn lượt** khi user nói tiếp (**Reported**). Chi phí mỗi lần gọi gần như cố định theo 8 s đầu vào, nên tần suất gọi là tham số compute, không phải tham số chất lượng.
+  - Tiếng Việt là ngôn ngữ yếu nhất của Smart Turn (**Reported**, §5.3). Prosody cuối câu tiếng Việt vừa là thanh điệu vừa là ngữ điệu (**Synthesis**), nên khi đo false-cutoff hãy tách theo thanh của âm tiết cuối.
+
+### 4.17.5 ASR theo từng profile (§5.4, §6)
+
+**Profile A (Whisper turbo / PhoWhisper, turn-final):**
+
+- turbo kế thừa 128 mel của large-v3 (**Reported**); PhoWhisper fine-tune từ Whisper và thường 80 mel, kiểm tra checkpoint. Faster-Whisper đọc cấu hình từ model đã convert; khi convert PhoWhisper sang CT2, xác nhận `num_mel_bins` và `preprocessor_config.json` đi cùng.
+- Mỗi turn tốn một lần encoder 30 s bất kể độ dài (§4.8.2). Hệ quả: (1) latency ASR turn-final gần như không giảm khi turn ngắn đi; (2) gửi nhầm clip không có tiếng nói vào ASR vừa tốn compute vừa là nguồn hallucination.
+- **Gate trước ASR** (bổ sung cho §5.4.4): bỏ turn có RMS active speech gần sàn nhiễu, hoặc tổng thời lượng VAD = 1 dưới ngưỡng. Gate sau decode dùng `no_speech_prob`, `avg_logprob`, `compression_ratio` và luật "< 2 từ khi VAD < 400 ms" (**Reported**). Các ngưỡng này tune trên corpus §10 mục 1, đặc biệt nhóm im lặng/nhạc/quạt và lệnh ngắn "không", "dừng".
+- `vad_filter=True` của faster-whisper là lớp VAD thứ hai trong cùng pipeline (**Reported**). Nó cắt audio theo Silero bên trong runtime, nên có thể cắt bớt phần pad mà gateway đã giữ cho thanh điệu. Kiểm tra bằng thí nghiệm cắt đuôi; nếu thấy mất đuôi, tăng `speech_pad_ms` của lớp này hoặc tắt nó khi gateway đã gate tốt.
+- Audio rất nhỏ (far-field, gain thấp) bị Whisper "thấy" gần như im lặng vì chuẩn hoá cố định, không có AGC (§4.8.2). Nếu cần chuẩn hoá mức, làm ở gateway theo RMS active speech, có giới hạn gain, và A/B WER trước khi bật.
+
+**Profile B (Nemotron 3.5, native streaming):**
+
+- Chunk là (R+1) × 80 ms theo `att_context_size` (**Reported**). Sàn độ trễ = chờ chunk + lookahead + ~15 ms STFT + compute + commit (§4.9.3). Chọn 160/320 ms là chọn điểm trên đường WER 12.87/12.29 (**Reported**, FLEURS vi-VN) đổi lấy độ trễ; ghi chunk vào mọi số đo, theo nguyên tắc 6 "không cộng con số khác loại".
+- Đọc `normalize` trong preprocessor của checkpoint. Nếu là `per_feature` thì checkpoint đó không được thiết kế cho streaming theo chunk (§4.5.6).
+- Khi dùng NeMo-Speech.cpp hoặc port GGUF, đặc trưng được tính trong runtime C++: parity của nó với NeMo Python là một mục kiểm tra riêng.
+- Đường `--stt openai-realtime` của HF s2s gửi audio 24 kHz (**Reported**). Model 16 kHz phía sau sẽ phải resample lại; upsample 16 → 24 → 16 kHz không thêm thông tin, chỉ thêm chi phí và rủi ro lệch (Chương 2).
+
+**Profile C/D (Qwen3-ASR, two-pass):**
+
+- Final-pass chạy lại trên **turn audio đã giữ ở 16 kHz float32**, không trên audio đã qua codec lần nữa và không trên chuỗi partial (§7.2). Thêm một vòng encode/decode lossy chỉ để chuyển giữa service là mất mát không cần thiết; dùng PCM qua mạng nội bộ.
+- Partial của model streaming và final của model khác dùng đặc trưng khác nhau; chênh lệch giữa chúng không chỉ do model mà còn do đặc trưng và ngữ cảnh. Đây là thêm một lý do để không so confidence giữa hai model (§7.2).
+
+**Profile E/F (ChunkFormer, ZipFormer, sherpa-onnx, CPU):**
+
+- Kaldi fbank: cửa sổ Povey, pre-emphasis 0.97, `snip_edges`, mel HTK, `num_mel_bins` mặc định không phải 80, thang int16 ở nhiều recipe (§4.8.5). Đây là họ dễ lệch nhất khi tự viết adapter; chốt bằng parity test.
+- Trên CPU, chi phí trích đặc trưng không đáng kể so với encoder, nhưng **không** nên tính lại log-mel cho cả lượt mỗi lần gọi khi có thể cache theo frame (Smart Turn và ASR streaming đọc cùng ring buffer nhưng dùng đặc trưng khác nhau, nên cache chỉ có ích trong cùng một model).
+
+### 4.17.6 Latency: phần nào là do DSP (§8)
+
+Các thành phần độ trễ thuật toán dưới đây là **cận dưới**, không phụ thuộc GPU nhanh tới đâu (**Synthesis** từ §4.9):
+
+| Thành phần | Cận dưới | Ghi chú |
+|---|---|---|
+| Frame transport | 20 ms | Một frame phải đến đủ mới xử lý |
+| Cửa sổ Silero | 32 ms + chờ reblock | Quyết định VAD đầu tiên sau khi có đủ 512 mẫu |
+| Ngưỡng im lặng VAD | 64 ms (HF s2s) đến 200–300 ms (report) | Lớn nhất trong các thành phần DSP; là tham số control |
+| Lookahead STFT | ~15 ms | window − hop |
+| Chunk ASR streaming | 80–1 120 ms (Nemotron) | Cộng lookahead phải nếu có |
+| Whisper turn-final | Chờ hết lượt + encoder 30 s cố định | Không có partial |
+| Pre-buffer playback | 0–300 ms (§8.3) | Đổi chống giật lấy độ trễ |
+
+Dùng bảng này khi đọc bản ghi `vad_decision_s`, `stt`, `tts_ttfa`, `e2e` của HF s2s (§5.7): nếu một stage chậm hơn cận dưới nhiều thì vấn đề nằm ở compute/scheduling; nếu sát cận dưới thì chỉ đổi được bằng cách đổi tham số control (chunk, ngưỡng im lặng, pre-buffer).
+
+### 4.17.7 TTS, vocoder và playback (§5.5, §5.6, §8.3)
+
+- **TTS dùng đồng hồ khác ASR:** mel ~10.7–11.6 ms/frame (hop 256 ở 24/22.05 kHz) hoặc token codec 80 ms (12.5 Hz) (§4.9.1). Kích thước chunk audio trả về và TTFA phụ thuộc vào bước này cộng với chunk của server; đừng suy TTFA từ kích thước chunk ASR hay từ RTF.
+- **Biên chunk TTS:** vocoder/codec decoder cần ngữ cảnh (receptive field); server TTS streaming tốt sẽ chồng lấn hoặc giữ state (§4.10.3). Nếu tự ghép chunk từ nhiều request (chunker theo mệnh đề, §5.5), mỗi request là một lần sinh độc lập: chỗ nối là ranh giới prosody, cần fade ngắn vài ms và phải có trong bộ regression nghe thử.
+- **Không dùng Griffin-Lim** hay đảo mel thủ công làm fallback cho sản phẩm: chất lượng "kim loại" và tốn nhiều vòng lặp (§4.10.2). Fallback đúng là một TTS khác ở mức mệnh đề (§9.4).
+- **Sample rate đầu ra** khác nhau theo backend: VieNeu 48 kHz (SDK float32, HTTP `s16le`), Nano 24 kHz, sanoTTS 22.05 kHz (**Reported**, §5.6). Resample ở playback adapter phải có state và anti-alias (§4.7.3). Với HF s2s `--tts openai`, cả đường phát bị đưa về 16 kHz (**Reported**, nguyên tắc 4); khi A/B TTS, so trên cùng đường phát.
+- **Kiểm tra thanh điệu của TTS bằng F0:** so contour F0 (pYIN, §4.6.3) của TTS với giọng người cho các cặp tối thiểu sáu thanh. Đây là công cụ chẩn đoán bổ sung cho MOS/CMOS ở §10 mục 2, không thay người nghe. Nhớ rằng pitch tracker hay báo sai ở đoạn creaky của ngã/nặng.
+
+### 4.17.8 Đánh giá và quan sát (§8.4, §10)
+
+**Bổ sung cho corpus và contract test (§10):**
+
+- **Contract test cho đặc trưng** (§10 mục 5): parity log-mel cho từng model tự port; shape/`n_mels`/dtype ở biên model; cùng một file đi qua đường streaming và offline cho cùng số frame (sai khác chỉ ở biên).
+- **Test cắt đuôi:** các câu kết thúc bằng thanh ngã/nặng và âm tiết tắc, đo WER/CER khi pad cuối là 0/50/100/150/200 ms. Kết quả này chốt `speech_pad_ms`, pre-roll và cấu hình `vad_filter`.
+- **Test hallucination:** im lặng số, sàn nhiễu phòng, quạt, nhạc, TV, "ừ" 0.4 s, audio rất nhỏ (−50 dBFS active speech). Mỗi mẫu ghi output, `no_speech_prob`, `avg_logprob`, `compression_ratio`, RMS và thời lượng VAD, để tune gate trước và sau ASR cùng lúc.
+- **Phân tầng kết quả** theo thanh, phương ngữ, băng thông (16 kHz so với 8 kHz upsample) và mức đầu vào. Trung bình chung che mất lỗi tập trung ở một thanh.
+
+**Chỉ số per-turn content-free** (bổ sung cho §8.4 và log content-free ở §9.5):
+
+- RMS dBFS active speech, ước lượng sàn nhiễu, tỉ lệ clipping, DC offset.
+- Thời lượng turn audio, thời lượng VAD = 1, pad/pre-roll thực tế, cờ "turn bị gate trước ASR".
+- `no_speech_prob`, `avg_logprob`, `compression_ratio` (Whisper), cờ "transcript bị lọc" và lý do.
+- Số lần gọi Smart Turn mỗi lượt và xác suất cuối.
+- Phiên bản feature contract/model đang chạy, để quy được thay đổi WER về đúng thay đổi.
+
+Khi WER, hallucination hoặc false-cutoff tăng, xem các chỉ số này và spectrogram đầu vào (§4.4.3) trước khi đổi model.
+
+### 4.17.9 Checklist rút gọn
+
+- [ ] Mỗi model có feature contract (§4.5.7) được pin cùng revision weights.
+- [ ] Mọi extractor tự viết/port có parity test trên log-mel và trên WER/CER tiếng Việt.
+- [ ] Assert shape, `n_mels`, dtype, khoảng giá trị ở biên model; thang int16 chỉ trong adapter của model cần.
+- [ ] Ring buffer theo mẫu; reblocker riêng cho VAD (512) và ASR streaming (bội 80 ms); turn buffer riêng cho Smart Turn (8 s cuối) và cho ASR (cả lượt + pre-roll).
+- [ ] Mọi thành phần có state (filter, resampler, VAD, log-mel, ASR cache) là per-session, có reset rõ ràng.
+- [ ] Không dùng `filtfilt` hay CMVN per-utterance trên đường streaming.
+- [ ] Gate trước ASR (VAD, RMS, thời lượng) và lọc sau decode được tune trên corpus hallucination tiếng Việt.
+- [ ] `speech_pad_ms`, pre-roll, `vad_filter` được chốt bằng test cắt đuôi trên ngã/nặng và âm tiết tắc.
+- [ ] Final-pass chạy trên PCM 16 kHz đã giữ, không qua codec lossy thêm lần nào.
+- [ ] Số đo latency ghi kèm chunk/ngưỡng và được so với cận dưới DSP ở §4.17.6.
+- [ ] Biên chunk TTS có fade và nằm trong bộ regression nghe; A/B TTS trên cùng đường phát.
+- [ ] Log per-turn có chỉ số âm học và chất lượng decode content-free cùng phiên bản feature contract.

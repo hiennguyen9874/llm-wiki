@@ -688,3 +688,129 @@ print(wer("tôi muốn đặt vé đi hà nội", "tôi muốn đạt vé đi h�
 - [Gipformer 68M RNN-T](../wiki/gipformer-68m-rnnt.md), [ChunkFormer Vietnamese](../wiki/chunkformer-vietnamese.md), [ZipFormer 30M Vietnamese](../wiki/zipformer-30m-vietnamese.md), [Parakeet Realtime EOU 120M v1](../wiki/parakeet-realtime-eou-120m-v1.md) (Reported).
 - [Audio.cpp GGUF packages](../wiki/audio-cpp-gguf-packages.md), [NeMo-Speech.cpp](../wiki/nemo-speech-cpp.md) (GGUF/ggml, Q8, runtime) (Reported).
 - [Whisper Large v3](../wiki/whisper-large-v3.md) (1M giờ nhãn yếu + 4M giờ nhãn giả), [VieNeu-TTS v3 Turbo](../wiki/vieneu-tts-v3-turbo.md), [VieNeu-TTS streaming runtime](../wiki/vieneu-tts-streaming-runtime.md) (codec 12.5 frame/s, GPU nguội sau idle), [Qwen3-TTS-Tokenizer-12Hz](../wiki/qwen3-tts-tokenizer-12hz.md), [VoxCPM2](../wiki/voxcpm2.md), [CosyVoice2-0.5B](../wiki/cosyvoice2-0.5b.md), [Kokoro Vietnamese](../wiki/kokoro-vietnamese.md) (Reported).
+
+---
+
+## 9.18 Lưu ý khi thiết kế và hiện thực pipeline speech-to-speech tiếng Việt
+
+Phần này nối kiến thức ML của chương với [tài liệu thiết kế pipeline speech-to-speech tiếng Việt](thiet-ke-pipeline-speech-to-speech-tieng-viet.md): mục nào của tài liệu dựa trên kiến thức này, điều gì phải chốt trước khi viết code, và lỗi nào dễ mắc khi hiện thực. Toàn bộ phần này là **Synthesis** từ nội dung chương và tài liệu thiết kế, chưa kiểm chứng bằng implementation. Mọi con số model trích lại vẫn là **Reported**.
+
+> **Quy ước tham chiếu:** `§9.x` có ghi "tài liệu thiết kế" hoặc nằm trong cột "Mục trong tài liệu thiết kế" là mục của tài liệu thiết kế; các `§9.x` khác (ví dụ §9.3.5, §9.9.2) là mục của chương này. Các số `§5`, `§6`, `§7`, `§8`, `§10`, `§12` luôn là mục của tài liệu thiết kế.
+
+### 9.18.1 Kiến thức ML chạm vào những mục nào của tài liệu thiết kế
+
+| Mục trong tài liệu thiết kế | Kiến thức ML quyết định điều gì | Phần trong chương |
+|---|---|---|
+| §0, §6 Profile A–F, §6.1 cây quyết định | Họ model (CTC/transducer/AED/LLM-ASR) quyết định có partial hay không, nên quyết định profile | §9.3.5 |
+| §5.4.1 Ba nghĩa của "realtime" | Native cache-aware, buffered, turn-final; chunk ≠ độ trễ; RTF < 1 chưa đủ | §9.4, §9.5, §9.10 |
+| §5.4.2 Shortlist, bẫy so sánh | Đọc card 10 bước; WER khác tập/normalizer/giao thức; đặt `vi-VN` tường minh | §9.6.3, §9.12, §9.13 |
+| §5.4.3 Ba mẫu ghép ASR | Transducer cho partial, AED/LLM-ASR cho final; final-pass không phải ground truth | §9.3, §9.7 |
+| §5.4.4 Cấu hình faster-whisper | Temperature fallback, beam, `condition_on_previous_text`, hallucination của decoder tự do | §9.3.3, §9.7.1–9.7.2 |
+| §5.5 Cầu text → speech | Tokenizer không dùng chung; lọc token đặc biệt; ITN/TN; NFC | §9.6, §9.7.5 |
+| §5.6 TTS tiếng Việt | Codec frame rate, AR vs non-AR, sample rate đầu ra, max streams | §9.11 |
+| §5.8 Deploy tools | GGUF/ONNX/CT2 không hoán đổi; parity; RTF vs RTFx; số của model EN không chuyển sang vi | §9.8.3, §9.10 |
+| §7.1, §7.2 Ingress, event schema | Cache/state encoder theo session; thứ tự chunk; confidence không cùng thang | §9.5.2 |
+| §7.3 Barge-in | Reset state ASR, huỷ decode autoregressive của LLM/TTS | §9.5.2, §9.9.3 |
+| §8 Latency | Sàn độ trễ theo frame/chunk; đuôi do fallback; warmup; GPU nguội | §9.4, §9.7.2, §9.9.3 |
+| §9.2 VRAM | weights = params × byte, cộng KV/encoder cache, workspace, nhiều model chung GPU | §9.8, §9.9 |
+| §9.3 Scaling | Batch vs cadence; số stream công bố là trần của riêng ASR | §9.9.3–9.9.4 |
+| §10 Release gates | WER theo âm tiết, normalizer chung, critical span, đo lại sau lượng tử hoá | §9.8.2, §9.13 |
+
+### 9.18.2 Những quyết định phải chốt trước khi viết code
+
+1. **Họ ASR theo yêu cầu partial, không theo bảng WER.** Câu hỏi đầu tiên của cây quyết định §6.1 ("cần caption live hoặc speculative LLM trên partial?") thực chất là câu hỏi họ model: có → transducer cache-aware (Profile B, Nemotron); không → AED/LLM-ASR turn-final (Profile A/C). Đừng chọn Whisper rồi mới cố "làm cho nó streaming": bọc WebSocket không biến encoder 30 s thành causal (§9.3.3).
+2. **Giao thức đo chung cho mọi ứng viên ASR.** Trước khi A/B ở phase 2 (§12), chốt: đơn vị WER (âm tiết), một normalizer duy nhất cho cả tham chiếu và giả thuyết, dạng số (đọc hay viết), có/không dấu câu, và tập test giống traffic thật. Không có bước này thì so sánh Nemotron 12.29 với Qwen 5.55 sẽ lặp lại đúng cái bẫy §5.4.2 đã cảnh báo (§9.13).
+3. **Ngôn ngữ đặt tường minh ở mọi tầng, kể cả qua wrapper.** Nemotron qua Transformers mặc định `en-US`; handler `--stt nemotron-streaming` của HF s2s dùng `target_lang=auto` và **không ép được** `vi-VN`; faster-whisper phải `language="vi"`. Ghi vào config và thêm contract test "audio tiếng Việt ngắn không ra tiếng Anh" (§9.6.3, §9.14).
+4. **Định dạng văn bản ở ranh giới ASR → LLM → TTS.** Chốt ASR xuất dạng nào (có PnC? số dạng đọc hay viết? có tag `<vi-VN>`?), và ai chịu trách nhiệm: lọc special token, chuẩn NFC, ITN cho LLM/hiển thị, TN cho TTS. Ba tokenizer không chung nhau; chỉ văn bản sạch đi qua ranh giới (§9.6.2, §9.7.5).
+5. **Dtype/runtime cho từng model và ngân sách VRAM có đủ thành phần.** Lập bảng VRAM theo §9.18.3 trước khi mua/thuê GPU, không chỉ cộng weights như ví dụ "0.6B BF16 ≈ 1.2 GB" ở §9.2 tài liệu thiết kế.
+6. **Vòng đời state theo session.** Với Profile B/D, encoder cache của ASR streaming là state per session: tạo khi mở phiên, reset khi hết lượt/barge-in, giải phóng khi đóng (§7.2 tài liệu thiết kế nói "giải phóng cache ASR"). Chốt điều này trong interface adapter ASR từ đầu, vì đây là nguồn bug khó tái hiện nhất (§9.5.2).
+
+### 9.18.3 Ngân sách VRAM: đọc lại §9.2 của tài liệu thiết kế
+
+Bảng §9.2 của tài liệu thiết kế chỉ phân bổ theo model. Khi hiện thực cần cộng đủ các thành phần ở §9.9.2. Ví dụ cho GPU 12 GB (Whisper turbo `int8_float16` + VieNeu + LLM 4B 4-bit), số **minh hoạ**, không phải số đo:
+
+| Thành phần | Ước lượng | Căn cứ |
+|---|---:|---|
+| Whisper turbo weights int8 | ~0.8 GB | 809M × 1 byte (§9.9.1) |
+| LLM 4B weights 4-bit | ~2.0 GB (+ scale lượng tử) | 4B × 0.5 byte |
+| VieNeu GPU | ~1–3 GB | thiết kế §9.2 ghi 2–3 GB, peak 1.1 GB ở 16 streams (**Reported**) |
+| KV cache LLM | ~0.25 GiB/phiên ở 2048 token (giả định 32 lớp, 8 đầu KV) → 8 phiên ≈ 2 GiB | §9.9.2, Bài 4 |
+| CUDA context/workspace | vài trăm MB tới >1 GB **mỗi process** | §9.9.2 |
+| Headroom phân mảnh | 10–20% | §9.9.2 |
+
+Hệ quả thiết kế:
+
+- §9.1 tài liệu thiết kế khuyên **tách environment/process** cho ASR, TTS, ONNX. Điều đó đúng về dependency, nhưng mỗi process có CUDA context riêng, nên overhead nhân theo số service trên cùng GPU. Với GPU 12 GB, đây có thể là khác biệt giữa vừa và OOM.
+- KV cache của LLM tăng theo số phiên × độ dài ngữ cảnh, nên **giới hạn lịch sử hội thoại** (cắt/tóm tắt history) là một tham số VRAM, không chỉ là tham số chất lượng. Tag `[bị ngắt]` và lịch sử dài ở §7.3 đều tốn KV.
+- Đặt TTS trên CPU (anecdote cộng đồng ở §9.2) là cách giải phóng cả weights lẫn context của một process trên GPU.
+- Tên "0.6B/1.7B" của Qwen3-ASR chưa gồm hết encoder/projector/cache: đọc kích thước file thật và đo `nvidia-smi` sau warmup, không dựa vào tên (§9.3.4).
+
+### 9.18.4 Lưu ý thiết kế theo từng mục
+
+**ASR streaming và chọn chunk (§5.4.1, §5.4.3, Profile B/D).**
+- Chunk là nhịp cập nhật; độ trễ do chờ chunk trung bình ≈ chunk/2, tối đa ≈ chunk, chưa kể lookahead, compute, queue và commit (§9.4). Với chunk 320 ms, phần "chờ chunk" chỉ 160–320 ms, nhỏ so với fallback timeout 1.2–1.5 s hoặc output-hold 800 ms–2 s ở §8.1 tài liệu thiết kế. Hệ quả: hạ chunk từ 320 xuống 80 ms (WER 12.29 → 13.41, **Reported**) hiếm khi đáng nếu endpoint chưa được tối ưu. Tune endpoint trước, chunk sau.
+- Đường cong chunk của Nemotron cho thấy lợi ích giảm dần sau 320 ms (§9.5.3); thử 160/320/560 ms như §12 phase 2 là hợp lý, và đo **stable-text latency** cùng **endpoint → final**, không đo "thời gian một chunk".
+- Audio chunk phải đến **đúng thứ tự và không mất**: mất một chunk làm cache lệch với audio thật. Nếu transport có gap (Chương 8), adapter ASR phải chèn im lặng đúng độ dài hoặc reset state và đánh dấu turn hỏng, đúng với yêu cầu "không nối lệch timeline" ở §7.1.
+- Số ~240 stream/H100 ở chunk 80 ms là trần của riêng ASR (§9.9.4); khi có VAD, LLM, TTS cùng GPU thì con số thực thấp hơn nhiều. Lập kế hoạch năng lực bằng test tải toàn pipeline (§10 mục 4).
+
+**Two-pass và revision (§5.4.3, §7.2, Profile D).**
+- Model partial (transducer) và model final (AED/LLM-ASR) có hành vi lỗi khác nhau: transducer hay bỏ/thay âm, decoder tự do có thể bịa hoặc "sửa cho trôi chảy" (§9.3.5). Vì vậy bất đồng giữa hai pass ở số, tên riêng, phủ định là **tín hiệu để hỏi lại**, đúng như §5.4.3 khuyên, không phải để chọn bên nào "đúng hơn".
+- Confidence của CTC/transducer (theo frame/token) và của AED (avg log-prob) không cùng thang (§7.2 tài liệu thiết kế); đừng so trực tiếp hay đặt chung một ngưỡng.
+
+**faster-whisper và hallucination (§5.4.4, Profile A/E).**
+- Lý do của từng tham số nằm ở §9.3.3 và §9.7.2: `temperature=0.0` tắt fallback (fallback có thể decode 2–6 lần, tạo đuôi p99 không đoán trước); `condition_on_previous_text=False` chặn lỗi lặp lan sang đoạn sau; `beam_size` 1–3 vì chi phí ~tuyến tính theo beam.
+- Whisper luôn pad về 30 s nên **lệnh ngắn không rẻ hơn câu dài** ở phía encoder (§9.4), và cửa sổ pad dài là không gian cho hallucination. Hai hệ quả: (1) VAD/pre-roll phải cắt sạch im lặng trước ASR; (2) ước lượng throughput turn-final theo số lượt, không theo số giây audio.
+- Lớp phòng thủ nhiều tầng (VAD trước, decode an toàn, lọc sau) ở §5.4.4 là cùng logic với Bài 9 của chương. Blacklist chỉ là một tín hiệu; luật "< 2 từ" phải tune vì lệnh ngắn "không"/"dừng" là hợp lệ.
+- Generator của faster-whisper chạy decode lười: materialize trong worker thread (`asyncio.to_thread`) như §5.4.4, nếu không event loop bị chặn đúng lúc cần xử lý barge-in.
+
+**Ranh giới văn bản ASR → LLM → TTS (§5.5).**
+- Thêm một bước `sanitize_asr_text` cố định: bỏ special token/tag (`<vi-VN>`, `<|...|>`, `<EOU>`), chuẩn NFC, gộp khoảng trắng. Token rò sang TTS sẽ bị đọc thành tiếng (§9.6.3).
+- Biết ASR xuất số dạng đọc hay viết: nếu dạng đọc, cần ITN trước khi đưa cho LLM/tool (ví dụ số điện thoại, số tiền); phía TTS normalizer ở §5.5 làm TN ngược lại. Đừng để LLM tự "đoán" chuyển dạng cho dữ liệu quan trọng.
+- Hotword/`initial_prompt` cho tên riêng (§5.4.4) có rủi ro false-positive: từ hotword xuất hiện khi không ai nói (§9.7.4). Đo tỷ lệ này trong corpus, đặc biệt với prompt LLM-ASR.
+
+**TTS (§5.6).**
+- Đọc card TTS theo §9.11: họ kiến trúc (codec LM, flow, acoustic+vocoder), codec frame rate, sample rate đầu ra, max streams, license giọng/reference. VieNeu dùng codec 12.5 frame/s (80 ms/frame), tức chunk audio đầu tiên không thể nhỏ hơn bội số 80 ms (**Synthesis** từ §9.11).
+- TTS autoregressive có rủi ro **lặp/bỏ chữ**, tương tự decoder ASR; đây là lý do §10 mục 2 cần ASR round-trip CER làm proxy, nhưng chỉ là proxy.
+- "Bulk RTF 0.011–0.02" của VieNeu là throughput batch, RTF một stream là 0.49 (**Reported**, §5.6). Luôn đọc định nghĩa RTF/RTFx và điều kiện concurrency trước khi đưa số vào ngân sách latency (§9.10).
+
+**Deploy, lượng tử hoá và runtime (§5.8, Profile E).**
+- Lượng tử hoá đổi chất lượng, phải đo lại trên tiếng Việt. Bằng chứng ngay trong tài liệu thiết kế: Smart Turn v3.2 CPU int8 có accuracy 79.38%, FNR 11.75%, so với GPU fp32 82.47%, FNR 7.97% trên cùng 1.004 mẫu vi (**Reported**, §5.3). Khác biệt có thể không chỉ do lượng tử hoá, nhưng đủ để không coi int8 là "miễn phí" cho ASR/TTS.
+- Q8 GGUF của NeMo-Speech.cpp, port `vieneu_v3_turbo` trên audio.cpp và PhoWhisper convert sang CT2 đều cần **parity test**: cùng audio, so transcript/waveform với bản gốc trước khi so tốc độ (§9.8.3). GGUF không hoán đổi giữa runtime.
+- Số tốc độ 27 ms CPU / 2.3 ms RTX 4090 là của model EN; với Nemotron 3.5 vi phải đo lại trên phần cứng đích (§5.8).
+
+**Latency (§8).**
+- Warmup **mọi** model lúc khởi động và loại các lần chạy đầu khỏi số đo p95/p99 (§9.9.3); readiness chỉ báo sau warmup (§9.1 tài liệu thiết kế).
+- Warmup một lần chưa đủ: GPU hạ xung sau ~2 s rảnh làm request kế tiếp chậm thêm 100–300 ms (**Reported**, VieNeu). Với voice agent lưu lượng thấp, đây là lượt đầu của mỗi cuộc gọi; cân nhắc khoá xung phía host và đo riêng "lượt đầu sau idle" trong §8.4.
+- CUDA graph cần shape cố định (VieNeu capture ~0.5 s mỗi batch size, §5.6): chọn tập batch size/bucket hữu hạn và capture hết lúc khởi động, nếu không phiên đầu tiên chạm batch size mới sẽ trả chi phí capture.
+- TTFT co giãn mạnh theo tải (Qwen3-ASR 0.6B: 92 ms ở concurrency 1, 3210 ms ở 128, **Reported**). Số đưa vào ngân sách §8.2 phải đo ở concurrency dự kiến.
+
+**Scaling (§9.3 tài liệu thiết kế).**
+- Batch tăng throughput nhưng kéo dài độ trễ từng phiên; voice realtime ưu tiên cadence (§9.9.3). Với ASR turn-final, `BatchedInferencePipeline` chỉ nên gom các lượt đến gần nhau, có deadline gom tối đa nhỏ.
+- Continuous batching cho LLM/TTS phải hỗ trợ **huỷ giữa chừng** một phiên trong batch, vì barge-in (§7.3) yêu cầu giải phóng compute, không chỉ ngừng phát.
+
+### 9.18.5 Lưu ý theo profile
+
+| Profile (§6) | Họ ASR (§9.3) | Lưu ý ML riêng |
+|---|---|---|
+| **A** MVP turn-final | AED (Whisper turbo) hoặc LLM-ASR (Qwen3-ASR 0.6B) | Hallucination là rủi ro số một: cấu hình §5.4.4 bắt buộc; lệnh ngắn không rẻ hơn câu dài; `int8_float16` phải đo lại WER |
+| **B** native streaming | Transducer cache-aware (Nemotron) | `vi-VN` tường minh; state per session; chunk 160–320 ms; lọc tag ngôn ngữ; đo stable-text, không đo chunk |
+| **C** quality single-pass | LLM-ASR buffered (Qwen3-ASR) | Buffered ≠ cache-aware: có rollback/revision; TTFT co giãn theo tải; tên "1.7B" chưa gồm hết encoder/cache |
+| **D** two-pass | Transducer + AED/LLM-ASR (hoặc ChunkFormer RNNT) | Hai họ lỗi khác nhau; confidence khác thang; tốn VRAM của hai model + hai state; bất đồng ở critical span → hỏi lại |
+| **E** CPU/edge | Transducer Q8 GGUF hoặc AED CT2 int8 | Parity GGUF; int8 CPU cần đo WER; TTS ONNX INT8 chỉ khi có VNNI; số tốc độ EN không chuyển sang vi |
+| **F** license-strict | Theo license, không theo họ | Đọc bước 10 của §9.12: license weights ≠ license runtime; nhãn huấn luyện synthetic/lineage dữ liệu cũng là vấn đề license |
+
+### 9.18.6 Bổ sung cho release gates (§10)
+
+- **Corpus ASR** (bổ sung §10 mục 1): báo WER theo **âm tiết** và ghi rõ normalizer; thêm chỉ số riêng cho lỗi **dấu thanh** và critical span (số, tên, phủ định) vì WER đếm chúng như mọi lỗi khác (§9.13.1). Thêm đoạn im lặng, nhạc, nhiễu dài để đo tỷ lệ hallucination cho từng họ model.
+- **Gate lượng tử hoá:** mỗi lần đổi dtype/runtime (fp16 → `int8_float16`, NeMo → Q8 GGUF, PyTorch → ONNX INT8), chạy lại cùng corpus ASR/TTS; chỉ chấp nhận khi WER/CER và chỉ số critical span không xấu quá ngưỡng đã chốt.
+- **Gate streaming ASR:** first partial, first-stable-text, tỷ lệ partial bị sửa, endpoint → final ở P50/P95, cho từng chunk size thử nghiệm; kèm test "reset state sau barge-in" và "mất một chunk".
+- **Gate ngôn ngữ:** clip tiếng Việt 0.5–2 s không được ra tiếng Anh hay tag lạ; text gửi sang TTS không chứa special token.
+- **Gate tải** (bổ sung §10 mục 4): đo VRAM đỉnh sau warmup ở concurrency mục tiêu, với lịch sử hội thoại dài tối đa (KV cache đầy), và độ trễ lượt đầu sau idle.
+
+### 9.18.7 Thứ tự hiện thực gợi ý, khớp lộ trình §12
+
+1. **Phase 1:** chọn họ ASR theo yêu cầu partial; cấu hình `language` tường minh; cấu hình decode an toàn cho Whisper; bước `sanitize_asr_text`; warmup + readiness; bảng VRAM có đủ thành phần; harness WER theo âm tiết với một normalizer chung.
+2. **Phase 2:** A/B ASR bằng cùng harness, mỗi model đúng policy streaming của nó; quét chunk 160/320/560 ms; đo lại sau lượng tử hoá; thêm metric stable-text và hallucination theo lượt.
+3. **Phase 3:** two-pass có điều kiện chỉ cho critical span; parity gate trước khi chuyển sang GGUF/native; test tải với KV đầy, đo lượt đầu sau idle; kế hoạch năng lực từ số đo toàn pipeline, không từ số stream của card.
+
+**Ba điều dễ bị bỏ qua nhất** (Synthesis): (1) chunk size, TTFT ở concurrency 1 và "RTF" trên card không phải độ trễ người dùng cảm nhận; (2) mọi đổi dtype/runtime/wrapper (kể cả handler đặt `target_lang=auto`) đều có thể đổi chất lượng tiếng Việt và phải đo lại; (3) state ASR, KV cache và CUDA context là chi phí theo phiên và theo process, không nằm trong con số "params × byte".

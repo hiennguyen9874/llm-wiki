@@ -675,3 +675,97 @@ Ba lớp: (1) **hàng đợi ứng dụng có chặn** (`maxsize`) để produce
 [^vieneu-api]: [VieNeu-TTS OpenAI-compatible Speech API](../wiki/vieneu-tts-openai-speech-api.md), phần mở đầu và mục tích hợp client Pipecat/LiveKit/Vercel AI SDK (Reported).
 [^backends]: [Speech-to-Speech OpenAI-compatible Backends](../wiki/speech-to-speech-openai-compatible-backends.md), các mục về kiểm tra khởi động, huỷ trong lúc kết nối/upload, `--stt openai-realtime`/`vllm-realtime` qua WebSocket và giới hạn hàng đợi (Reported).
 [^frameworks]: [Voice Agent Frameworks](../wiki/voice-agent-frameworks.md), bảng so sánh framework (cột transport) và mục MVP route (Reported).
+
+---
+
+## 8.17 Lưu ý khi thiết kế và hiện thực transport cho pipeline tiếng Việt
+
+Phần này nối kiến thức của chương với [tài liệu thiết kế pipeline speech-to-speech tiếng Việt](thiet-ke-pipeline-speech-to-speech-tieng-viet.md): mục nào của tài liệu chịu ảnh hưởng của transport, điều gì phải chốt trước khi viết code, và lỗi nào dễ mắc khi hiện thực. Toàn bộ phần này là **Synthesis** từ nội dung chương và tài liệu thiết kế, chưa kiểm chứng bằng implementation.
+
+### 8.17.1 Transport chạm vào những mục nào của tài liệu thiết kế
+
+| Mục trong tài liệu thiết kế | Transport quyết định điều gì | Kiến thức trong chương |
+|---|---|---|
+| §4 Kiến trúc tổng thể | Cạnh "Client → Gateway" và "playback → `audio.played`" | §8.1, §8.10 |
+| §5.1 Transport, AEC | WebSocket cho MVP, WebRTC cho production; AEC tầng 3 phụ thuộc WebRTC | §8.4, §8.6.4 |
+| §5.7 Orchestration | Pipecat/SmallWebRTC, HF s2s Realtime, LiveKit SFU; giao thức NeMo khác OpenAI Realtime | §8.6.6, §8.9.4 |
+| §6 Profile A–F | Mỗi profile ngầm chọn một transport | §8.12 |
+| §7.1 Audio ingress | Frame 20 ms, reblock 512 mẫu, xử lý gap | §8.3.3 |
+| §7.2 Event schema | `generation_id`, `sequence`, `audio.start`, `audio.played`, `client.clear` | §8.4.2, §8.10 |
+| §7.3 Barge-in | Flush audio đang bay, lưu "phần đã phát" | §8.5, §8.10 |
+| §8 Latency | Số hạng "transport/playback" trong công thức v2v | §8.2.3, §8.5, §8.6.5 |
+| §9.1, §9.3 Topology, scaling | Admission cap, bounded queue, backpressure/429 | §8.5.4, §8.11 |
+| §9.5 Privacy | TLS, auth, token, giới hạn tài nguyên | §8.4.6, §8.11 |
+| §10 Release gates | Contract test, test tải, test cancel/reconnect | §8.9.3, §8.14 |
+
+### 8.17.2 Những quyết định phải chốt trước khi viết code
+
+1. **Transport cho MVP là gì, và chỉ một.** §5.1 đề xuất WebSocket PCM16 cho MVP, nhưng Profile A ở §6 lại gợi ý "Pipecat + SmallWebRTC, hoặc HF s2s `serve`". Đây không mâu thuẫn về kỹ thuật nhưng là hai đường hiện thực khác nhau: WebSocket dễ gỡ lỗi trên LAN; SmallWebRTC cho AEC tốt hơn nhưng kéo theo ICE/TURN ngay từ đầu. Chọn một và ghi rõ lý do; đừng làm cả hai song song ở phase 1.
+2. **Hợp đồng audio từng hướng, viết thành văn bản.** Uplink: PCM16 `s16le`, 16 kHz, mono, frame 20 ms (640 byte). Downlink: sample rate **do server khai báo trong `audio.start`**, không hard-code. Lý do: VieNeu HTTP mặc định 48 kHz (có thể xin 24/16/8 kHz), NeMo VoiceChat 24 kHz, NeMo `/v1/audio/speech` 22,05 kHz, còn HF s2s với `--tts openai` đưa mọi thứ về 16 kHz mono (trần băng thông 16 kHz cho cả pipeline).[^vieneu-api][^nemo-api] Nếu muốn giọng 48 kHz đến tai người dùng thì **không** được đi qua đường resample 16 kHz đó.
+3. **Ai sở hữu "phần đã phát".** §7.3 yêu cầu lưu vào history chỉ phần đã thực sự phát, kèm `[bị ngắt]`. Với HF s2s, `conversation.item.truncate` chỉ là no-op, lịch sử phía server không bị cắt.[^s2s-engine] Vậy nếu dùng HF s2s, việc cắt history phải do gateway của bạn làm, dựa trên `audio.played(played_sample_offset)` do client báo về; đừng giả định engine đã làm.
+4. **Đơn vị huỷ và khoá phân xử.** Chốt `generation_id` là khoá duy nhất để loại audio cũ, và nó phải đi kèm **mọi** chunk audio (header binary hoặc text frame đi trước), không chỉ trong sự kiện control.
+5. **Ngân sách audio đang bay (in-flight lead).** Chọn một giá trị `MAX_LEAD` (ví dụ 1–2 s) cho credit backpressure ở §8.5.3. Giá trị này đồng thời là **trần thời gian audio cũ có thể còn phải flush** khi barge-in, và phải lớn hơn pre-buffer client (VieNeu khuyến nghị 150–300 ms theo §8.3 tài liệu thiết kế), nếu không client sẽ underrun.
+6. **Lộ trình sang WebRTC.** Nếu mục tiêu cuối là Internet/mobile, quyết định ngay từ đầu rằng pipeline nằm sau một interface `Transport` (bài tập 6 §8.14), để §12 phase 2–3 thêm WebRTC mà không sửa ASR/LLM/TTS.
+
+### 8.17.3 Lưu ý thiết kế theo từng mục
+
+**Ingress (§7.1).**
+- Giữ frame transport 20 ms (tương thích Opus/RTP khi chuyển sang WebRTC) và để gateway **reblock** thành 512 mẫu cho Silero, đúng như §7.1. Đừng ép client gửi 32 ms chỉ để khớp VAD: khi chuyển WebRTC, frame sẽ là 20 ms dù muốn hay không.
+- Chính sách gap phải rõ: uplink bị bỏ frame cũ khi quá tải (§8.5.4) nghĩa là timeline audio có lỗ. Gateway phải biết có lỗ (đếm `sequence` hoặc metric `uplink_dropped`) để không "nối lệch timeline" như §7.1 cảnh báo; tối thiểu là chèn im lặng đúng độ dài hoặc đánh dấu turn bị hỏng.
+- Pre-roll 200–300 ms cho ASR chỉ có nghĩa khi uplink **liên tục**. Nếu dùng VAD gate phía client để tiết kiệm băng thông, client phải tự giữ pre-speech padding (HF s2s làm vậy khi gửi audio cho STT từ xa).[^backends]
+
+**Event schema (§7.2).** Schema hiện có các sự kiện pipeline, nhưng thiếu các sự kiện tầng transport. Nên bổ sung:
+- `session.start` / `session.ready` với định dạng uplink, và quy tắc "cấu hình bất biến sau frame audio đầu tiên" (giống NeMo `session.update`).[^nemo-api]
+- `error(code)` với mã phân biệt được: quá tải/hết slot (tương tự `session_limit_reached` của HF s2s), sai định dạng, auth, timeout.[^s2s-engine]
+- `session.end` kèm bộ đếm received/sent/dropped để có số liệu vận hành theo phiên.
+- Header binary cố định cho downlink (ví dụ `generation_id` + `sequence`) để client lọc chunk cũ mà không phải ghép với text frame.
+
+**Barge-in (§7.3).**
+- Đo "user-speech → âm thanh bot dừng" phải tính cả đuôi không flush được từ xa: chunk đã nằm trong socket buffer (WebSocket) hoặc jitter buffer trình duyệt (WebRTC). Chunk downlink càng lớn và `MAX_LEAD` càng lớn thì đuôi này càng dài.
+- `client.clear` phải đi **cùng kết nối** với audio; nếu tách kênh (ví dụ DataChannel + media track trong WebRTC) thì client vẫn phải lọc theo `generation_id`.
+- Với WebRTC, dùng `output_audio_buffer.clear` để flush phía server; `input_audio_buffer.append` bị từ chối trên transport này.[^s2s-engine] Code client viết cho WebSocket sẽ không chạy nguyên xi trên WebRTC.
+- Huỷ phải xuyên đến TTS: nếu TTS gọi qua HTTP (`/v1/audio/speech` của VieNeu), huỷ = đóng connection, và cần contract test xác nhận server **thực sự dừng sinh** chứ không chỉ ngừng gửi.
+
+**Latency (§8).**
+- Số hạng "transport/playback" trong công thức v2v ở §8.1 gồm: đóng gói frame (20 ms), jitter buffer WebRTC (20–100 ms thích ứng) hoặc đuôi HOL của TCP khi mạng mất gói, pre-buffer client (0–300 ms), và chunk TTS đầu tiên. Đo nó **phía client**, như §8.4 đã yêu cầu cho voice-to-voice.
+- Backend "OpenAI-compatible" chưa chắc stream: NeMo `/v1/audio/speech` đệm toàn bộ rồi mới trả.[^nemo-api] Một backend như vậy biến TTFA thành "thời gian sinh cả mệnh đề", phá ngân sách §8.2 dù model nhanh.
+- Ngân sách latency trong §8.2 (network + jitter 30–200 ms) là ước lượng của report; mô hình đồ chơi §8.2.3 cho thấy đuôi p99 trên TCP có thể thêm cỡ một RTT. Hãy đo trên mạng thật của người dùng mục tiêu (4G/Wi-Fi Việt Nam), không suy từ loopback.
+
+**Topology và scaling (§9.1, §9.3).**
+- Gateway là thành phần public duy nhất (§9.1). Mọi hàng đợi trong gateway có `maxsize`; uplink bỏ frame cũ, downlink chặn producer, control không bao giờ bỏ (§8.5.4).
+- HF s2s không có hàng đợi admission dùng chung hay ngân sách đồng thời toàn endpoint;[^backends] VieNeu trả HTTP 429 khi vượt `VIENEU_MAX_STREAMS` (§5.8 tài liệu thiết kế). Gateway phải tự có admission cap và phải biết chuyển 429 của TTS thành hành vi rõ ràng cho người dùng (retry mệnh đề mới, theo §9.4), không phải im lặng.
+- Docker: WebRTC dial phía server, WebSocket dial phía trình duyệt, nên `host.docker.internal` chỉ đúng cho một trong hai.[^browser-demo] Cấu hình URL riêng cho từng transport trong Compose.
+- WebRTC qua Internet cần TURN; demo HF không có TURN dự phòng.[^browser-demo] Thêm TURN vào danh sách container ở §9.1 khi bước sang phase 3.
+
+**Privacy và bảo mật (§9.5).**
+- `wss://`/HTTPS bắt buộc ngoài localhost; trình duyệt không cấp mic nếu không có secure context.
+- Không nhúng API key dài hạn vào client; gateway cấp token ngắn hạn. Nếu buộc phải đặt token trong query string, nhớ rằng URL có thể vào log proxy, mâu thuẫn với yêu cầu "log content-free" của §9.5.
+- Kiểm `Origin` khi nhận WebSocket; giới hạn kích thước message, thời lượng phiên, số phiên đồng thời.
+- Proxy SDP (nếu có) chỉ chuyển tới URL cố định, không theo URL client gửi lên, để không thành open proxy.[^browser-demo] Đây cùng tinh thần với quy tắc "không cho client tự trỏ tới URL/path reference" của §9.5 và cảnh báo LLM proxy không auth của HF s2s ở §5.7.
+
+### 8.17.4 Lưu ý theo profile
+
+| Profile (§6) | Transport hợp lý | Lưu ý riêng |
+|---|---|---|
+| **A** MVP turn-final | WebSocket binary trên LAN, hoặc SmallWebRTC | Chưa cần ASR streaming nên uplink có thể đệm theo turn; vẫn phải có `generation_id` và `clear` cho downlink |
+| **B** native streaming | WebRTC (theo §6) | Partial chỉ sớm khi uplink đều; mất gói/HOL làm partial "dồn cục". NeMo realtime transcription là giao thức riêng, không phải OpenAI Realtime |
+| **C** quality single-pass | Như A hoặc B | Transport không đổi; chú ý revision transcript đi trên kênh control, theo đúng thứ tự |
+| **D** two-pass | WebRTC + gateway sở hữu commit | Turn audio giữ cho final-pass là audio **sau** transport; nếu là Opus thì final-pass cũng nghe audio lossy |
+| **E** CPU/edge | WebSocket loopback | Mạng gần như không mất gói nên TCP đủ; tập trung vào backpressure vì CPU chậm dễ làm hàng đợi phình |
+| **F** license-strict | Không đổi | Rà license của cả thư viện transport (aiortc, SFU, TURN server) như với runtime |
+
+### 8.17.5 Bổ sung cho release gates (§10)
+
+- **Contract test transport** (bổ sung §10 mục 5): sample rate thực của downlink so với khai báo; byte đầu tiên đến trước khi sinh xong (streaming thật); chunk sau `clear` bị client bỏ; đóng connection HTTP giữa chừng làm TTS dừng sinh; reconnect tạo phiên mới sạch (không phát tiếp audio cũ); message quá cỡ bị từ chối.
+- **Corpus ASR** (bổ sung §10 mục 1): thêm biến số **đường truyền**: WebSocket-PCM so với WebRTC-Opus, cùng audio. Chênh lệch WER do Opus hiện là **Unverified**; đừng giả định bằng 0.
+- **Test mạng xấu**: dùng `tc netem` giả lập mất gói 1–5%, jitter, RTT 100–300 ms; đo underrun, p95/p99 thời gian đến chunk, và thời gian `clear` → im lặng.
+- **Test tải** (bổ sung §10 mục 4): client chậm cố tình (không đọc socket) không được làm tăng RAM server hay ảnh hưởng phiên khác; số frame bị bỏ được ghi metric.
+- **Feature parity**: nếu hỗ trợ cả WebSocket và WebRTC, chạy cùng bộ test barge-in trên cả hai; demo HF cho thấy hai transport có thể khác nhau về noise gate, replay và load balancer.[^browser-demo]
+
+### 8.17.6 Thứ tự hiện thực gợi ý, khớp lộ trình §12
+
+1. **Phase 1:** WebSocket, PCM16 16 kHz uplink 20 ms; text cho control, binary cho audio; handshake định dạng; hàng đợi có chặn hai chiều; `generation_id` + `client.clear`; `audio.played` từ AudioWorklet; ping/pong; log metric transport theo phiên. Viết contract test cho backend TTS đã chọn trước khi tích hợp vào pipeline.
+2. **Phase 2:** credit backpressure theo `audio.played`; đo `clear` → im lặng; test mạng xấu bằng `netem`; tách interface `Transport` nếu chưa có.
+3. **Phase 3:** thêm WebRTC (SmallWebRTC/aiortc hoặc SFU nếu cần nhiều người/SIP), TURN, token ngắn hạn, kiểm `Origin`, admission cap; chạy lại toàn bộ gate §10 với biến số transport. Telephony 8 kHz chỉ khi có yêu cầu, kèm corpus call 8 kHz ở §10.
+
+**Ba điều dễ bị bỏ qua nhất** (Synthesis): (1) không hard-code sample rate downlink; (2) mọi chunk audio mang `generation_id` và mọi hàng đợi có `maxsize`; (3) "OpenAI-compatible" phải được chứng minh bằng contract test cho từng backend, gồm cả streaming và cancel.
