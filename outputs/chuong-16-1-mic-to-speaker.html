@@ -1,0 +1,2797 @@
+<!doctype html>
+<html lang="vi">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>16.1 — Một khung audio đi từ mic tới loa</title>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&amp;family=Geist:wght@400;500;600&amp;family=Geist+Mono:wght@400;500;600&amp;display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      :root {
+        --paper: #f5f5f5;
+        --ink: #2d3142;
+        --muted: #4f5d75;
+        --soft: #7a8399;
+        --accent: #eb6c36;
+        --rule: rgba(45, 49, 66, 0.12);
+        --serif: "Instrument Serif", Georgia, serif;
+        --sans: "Geist", Arial, sans-serif;
+        --mono: "Geist Mono", monospace;
+      }
+      * {
+        box-sizing: border-box;
+      }
+      html {
+        scroll-behavior: smooth;
+      }
+      body {
+        margin: 0;
+        background: var(--paper);
+        color: var(--ink);
+        font-family: var(--sans);
+        font-size: 16px;
+        line-height: 1.6;
+      }
+      main {
+        max-width: 1360px;
+        margin: auto;
+        padding: 48px 40px;
+      }
+      h1 {
+        font: 400 40px/1.16 var(--serif);
+        margin: 12px 0 20px;
+      }
+      h2 {
+        font-size: 24px;
+        line-height: 1.3;
+        margin: 0 0 12px;
+      }
+      h3 {
+        font-size: 20px;
+        margin: 0 0 12px;
+      }
+      p {
+        margin: 0 0 16px;
+      }
+      .eyebrow {
+        font: 500 12px var(--mono);
+        letter-spacing: 0.12em;
+        color: var(--muted);
+      }
+      .lead {
+        font-size: 20px;
+        max-width: 960px;
+        color: var(--muted);
+      }
+      a {
+        color: #2e5aa8;
+        text-underline-offset: 4px;
+      }
+      nav {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 12px 24px;
+        padding: 20px 0;
+        border-top: 1px solid var(--rule);
+        border-bottom: 1px solid var(--rule);
+        margin: 32px 0;
+      }
+      nav a {
+        font-size: 16px;
+      }
+      section {
+        margin: 56px 0;
+      }
+      .section-intro {
+        max-width: 1000px;
+        color: var(--muted);
+      }
+      .diagram {
+        overflow-x: auto;
+        margin: 20px -8px 24px;
+      }
+      .diagram svg {
+        width: 100%;
+        min-width: 1040px;
+        display: block;
+      }
+      .name {
+        font: 600 16px var(--sans);
+        fill: var(--ink);
+      }
+      .sub {
+        font: 400 12px var(--sans);
+        fill: var(--muted);
+      }
+      .tech {
+        font: 400 12px var(--mono);
+        fill: var(--muted);
+      }
+      .tag {
+        font: 500 8px var(--mono);
+        fill: var(--muted);
+        letter-spacing: 0.08em;
+      }
+      .edge {
+        font: 500 12px var(--mono);
+        fill: var(--muted);
+      }
+      .caption {
+        font: 500 12px var(--mono);
+        fill: var(--muted);
+        letter-spacing: 0.08em;
+      }
+      .note,
+      .legend {
+        font: 400 12px var(--sans);
+        fill: var(--muted);
+      }
+      .box {
+        stroke-width: 1;
+      }
+      .cards {
+        display: grid;
+        grid-template-columns: 1.2fr 1fr 0.9fr;
+        gap: 20px;
+      }
+      .card {
+        background: white;
+        border: 1px solid var(--rule);
+        border-radius: 8px;
+        padding: 20px;
+      }
+      .card h3 {
+        font-size: 20px;
+      }
+      .card p {
+        font-size: 16px;
+        color: var(--muted);
+      }
+      .table-scroll {
+        overflow: auto;
+      }
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 16px;
+        min-width: 1000px;
+      }
+      th {
+        text-align: left;
+        font-weight: 600;
+        background: #ececec;
+      }
+      td,
+      th {
+        vertical-align: top;
+        padding: 16px 12px;
+        border-bottom: 1px solid var(--rule);
+      }
+      td:first-child {
+        width: 64px;
+      }
+      code {
+        font: 400 12px var(--mono);
+        background: #ececec;
+        padding: 4px;
+        border-radius: 4px;
+      }
+      .callout {
+        border-left: 4px solid var(--accent);
+        padding: 16px 20px;
+        margin: 24px 0;
+        background: rgba(235, 108, 54, 0.04);
+      }
+      .callout strong {
+        font: italic 400 24px var(--serif);
+      }
+      .units {
+        display: grid;
+        grid-template-columns: 160px 1fr;
+        gap: 12px;
+        align-items: center;
+        margin: 20px 0;
+      }
+      .strip {
+        display: grid;
+        gap: 4px;
+      }
+      .strip span {
+        border: 1px solid #bfc0c0;
+        background: #ececec;
+        text-align: center;
+        padding: 8px 0;
+        font: 12px var(--mono);
+      }
+      .units-label {
+        font-size: 16px;
+      }
+      .two-col {
+        display: grid;
+        grid-template-columns: 1.2fr 1fr;
+        gap: 32px;
+      }
+      .note-small {
+        font-size: 16px;
+        color: var(--muted);
+      }
+      ol,
+      ul {
+        padding-left: 24px;
+      }
+      li {
+        margin-bottom: 8px;
+      }
+      .id-table {
+        min-width: 800px;
+      }
+      .id-table td:first-child {
+        width: 180px;
+      }
+      footer {
+        font-size: 12px;
+        color: var(--muted);
+        border-top: 1px solid var(--rule);
+        padding-top: 24px;
+        margin-top: 48px;
+      }
+      footer p {
+        margin-bottom: 12px;
+      }
+      .badge {
+        display: inline-block;
+        border: 1px solid #bfc0c0;
+        border-radius: 4px;
+        padding: 4px 8px;
+        font: 12px var(--mono);
+      }
+      @media (max-width: 800px) {
+        main {
+          padding: 24px 16px;
+        }
+        h1 {
+          font-size: 32px;
+        }
+        .cards,
+        .two-col {
+          grid-template-columns: 1fr;
+        }
+        .lead {
+          font-size: 16px;
+        }
+        .units {
+          grid-template-columns: 112px 1fr;
+        }
+        .strip span {
+          font-size: 8px;
+        }
+        section {
+          margin: 40px 0;
+        }
+      }
+      @media print {
+        main {
+          padding: 0;
+        }
+        nav {
+          display: none;
+        }
+        .diagram svg {
+          min-width: 0;
+        }
+        section {
+          break-before: page;
+        }
+        .cards {
+          break-inside: avoid;
+        }
+        table {
+          font-size: 12px;
+          min-width: 0;
+        }
+        td,
+        th {
+          padding: 8px;
+        }
+        .table-scroll {
+          overflow: visible;
+        }
+        a {
+          color: var(--ink);
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <header>
+        <p class="eyebrow">VOICE PIPELINE / CHƯƠNG 16.1 / ARCHITECTURE</p>
+        <h1>Một khung audio đi từ mic tới loa</h1>
+        <p class="lead">
+          Không phải một chuỗi model dùng chung chunk size: đây là một timeline
+          audio, nhiều cửa sổ đọc, một turn owner và một đường phát có kiểm
+          soát.
+        </p>
+        <p>
+          <span class="badge">4 FIGURES · 1280 × 720</span>
+          <span class="badge">STATIC · DEFAULT LIGHT</span>
+          <span class="badge">DESIGN / SYNTHESIS</span>
+        </p>
+      </header>
+      <nav aria-label="Mục lục">
+        <a href="#overview">01 Tổng quan</a><a href="#uplink">02 Uplink</a
+        ><a href="#control">03 Điều khiển + text</a
+        ><a href="#downlink">04 Downlink</a><a href="#ids">Định danh + huỷ</a
+        ><a href="#sources">Nguồn + giới hạn</a>
+      </nav>
+      <section id="overview">
+        <h2>01. Toàn bộ vòng hội thoại</h2>
+        <p class="section-intro">
+          Bắt đầu tại mic, đi sang phải tới quyết định lượt, rồi quay về loa ở
+          hàng dưới. Hộp tổng hợp giữ sơ đồ dễ đọc; nhãn cạnh và bảng bên dưới
+          cho phép lần theo từng contract. “Một khung” không được bảo toàn thành
+          một khung đầu ra: audio → transcript → token → mệnh đề → audio mới.
+        </p>
+        <div class="diagram">
+          <svg
+            viewBox="0 0 1280 720"
+            role="img"
+            aria-labelledby="overview-title overview-desc"
+          >
+            <title id="overview-title">Một lượt audio đi từ mic tới loa</title>
+            <desc id="overview-desc">
+              Luồng audio người dùng được phân tích trên cùng timeline, turn
+              owner mở phản hồi LLM và TTS, rồi client phát và báo phần đã
+              render.
+            </desc>
+            <defs>
+              <marker
+                id="overview-arrow-muted"
+                markerWidth="8"
+                markerHeight="8"
+                refX="8"
+                refY="4"
+                orient="auto"
+              >
+                <path d="M0 0 L8 4 L0 8 Z" fill="#4f5d75" />
+              </marker>
+              <marker
+                id="overview-arrow-accent"
+                markerWidth="8"
+                markerHeight="8"
+                refX="8"
+                refY="4"
+                orient="auto"
+              >
+                <path d="M0 0 L8 4 L0 8 Z" fill="#eb6c36" />
+              </marker>
+              <marker
+                id="overview-arrow-link"
+                markerWidth="8"
+                markerHeight="8"
+                refX="8"
+                refY="4"
+                orient="auto"
+              >
+                <path d="M0 0 L8 4 L0 8 Z" fill="#2e5aa8" />
+              </marker>
+            </defs>
+            <rect width="1280" height="720" fill="#f5f5f5" />
+            <text x="40" y="64" class="caption" text-anchor="start">
+              01 / TOÀN CẢNH
+            </text>
+            <text x="40" y="96" class="note" text-anchor="start">
+              Đọc theo chiều kim đồng hồ; ngoài C1, VAD / Smart Turn cũng gửi
+              tín hiệu tới owner.
+            </text>
+            <path
+              class="connector"
+              d="M280 176 H344"
+              fill="none"
+              stroke="#4f5d75"
+              stroke-width="1.2"
+              marker-end="url(#overview-arrow-muted)"
+            />
+            <g class="edge-label">
+              <rect
+                x="284"
+                y="148"
+                width="56"
+                height="20"
+                rx="4"
+                fill="#f5f5f5"
+              />
+              <text x="312" y="160" class="edge" text-anchor="middle">
+                U0–U4
+              </text>
+            </g>
+            <path
+              class="connector"
+              d="M584 176 H648"
+              fill="none"
+              stroke="#4f5d75"
+              stroke-width="1.2"
+              marker-end="url(#overview-arrow-muted)"
+            />
+            <g class="edge-label">
+              <rect
+                x="596"
+                y="148"
+                width="40"
+                height="20"
+                rx="4"
+                fill="#f5f5f5"
+              />
+              <text x="616" y="160" class="edge" text-anchor="middle">U5*</text>
+            </g>
+            <path
+              class="connector"
+              d="M888 176 H952"
+              fill="none"
+              stroke="#4f5d75"
+              stroke-width="1.2"
+              marker-end="url(#overview-arrow-muted)"
+            />
+            <g class="edge-label">
+              <rect
+                x="904"
+                y="148"
+                width="32"
+                height="20"
+                rx="4"
+                fill="#f5f5f5"
+              />
+              <text x="920" y="160" class="edge" text-anchor="middle">C1</text>
+            </g>
+            <path
+              class="connector"
+              d="M1072 232 V392"
+              fill="none"
+              stroke="#4f5d75"
+              stroke-width="1.2"
+              marker-end="url(#overview-arrow-muted)"
+            />
+            <g class="edge-label">
+              <rect
+                x="1080"
+                y="300"
+                width="32"
+                height="20"
+                rx="4"
+                fill="#f5f5f5"
+              />
+              <text x="1096" y="312" class="edge" text-anchor="middle">C2</text>
+            </g>
+            <path
+              class="connector"
+              d="M952 448 H888"
+              fill="none"
+              stroke="#4f5d75"
+              stroke-width="1.2"
+              marker-end="url(#overview-arrow-muted)"
+            />
+            <g class="edge-label">
+              <rect
+                x="892"
+                y="420"
+                width="56"
+                height="20"
+                rx="4"
+                fill="#f5f5f5"
+              />
+              <text x="920" y="432" class="edge" text-anchor="middle">
+                T1–T3
+              </text>
+            </g>
+            <path
+              class="connector"
+              d="M648 448 H584"
+              fill="none"
+              stroke="#4f5d75"
+              stroke-width="1.2"
+              marker-end="url(#overview-arrow-muted)"
+            />
+            <g class="edge-label">
+              <rect
+                x="588"
+                y="420"
+                width="56"
+                height="20"
+                rx="4"
+                fill="#f5f5f5"
+              />
+              <text x="616" y="432" class="edge" text-anchor="middle">
+                D1–D3
+              </text>
+            </g>
+            <path
+              class="connector"
+              d="M344 448 H280"
+              fill="none"
+              stroke="#4f5d75"
+              stroke-width="1.2"
+              marker-end="url(#overview-arrow-muted)"
+            />
+            <g class="edge-label">
+              <rect
+                x="284"
+                y="420"
+                width="56"
+                height="20"
+                rx="4"
+                fill="#f5f5f5"
+              />
+              <text x="312" y="432" class="edge" text-anchor="middle">
+                D4–D6
+              </text>
+            </g>
+            <path
+              class="connector"
+              d="M160 488 V576 Q160 584 168 584 H1216 Q1224 584 1224 576 V184 Q1224 176 1216 176 H1192"
+              fill="none"
+              stroke="#4f5d75"
+              stroke-width="1.2"
+              marker-end="url(#overview-arrow-muted)"
+              stroke-dasharray="4,4"
+            />
+            <g class="edge-label">
+              <rect
+                x="640"
+                y="556"
+                width="96"
+                height="20"
+                rx="4"
+                fill="#f5f5f5"
+              />
+              <text x="688" y="568" class="edge" text-anchor="middle">
+                C3 / PLAYED
+              </text>
+            </g>
+            <g class="node" data-name="Mic + capture worklet">
+              <rect
+                x="40"
+                y="136"
+                width="240"
+                height="96"
+                rx="8"
+                fill="#f5f5f5"
+              />
+              <rect
+                class="box"
+                x="40"
+                y="136"
+                width="240"
+                height="96"
+                rx="8"
+                fill="#ffffff"
+                stroke="#2d3142"
+              />
+              <text x="52" y="156" class="tag" text-anchor="start">CLIENT</text>
+              <text x="160.0" y="180" class="name" text-anchor="middle">
+                Mic + capture worklet
+              </text>
+              <text x="160.0" y="200" class="tech" text-anchor="middle">
+                AEC / NS / AGC
+              </text>
+              <text x="160.0" y="220" class="tech" text-anchor="middle">
+                resample + seq + capture time
+              </text>
+            </g>
+            <g class="node" data-name="Ingress + ring buffer">
+              <rect
+                x="344"
+                y="136"
+                width="240"
+                height="96"
+                rx="8"
+                fill="#f5f5f5"
+              />
+              <rect
+                class="box"
+                x="344"
+                y="136"
+                width="240"
+                height="96"
+                rx="8"
+                fill="rgba(235,108,54,0.08)"
+                stroke="#eb6c36"
+              />
+              <text x="356" y="156" class="tag" text-anchor="start">
+                SESSION
+              </text>
+              <text x="464.0" y="180" class="name" text-anchor="middle">
+                Ingress + ring buffer
+              </text>
+              <text x="464.0" y="200" class="sub" text-anchor="middle">
+                f32 · 16 kHz · mono
+              </text>
+              <text x="464.0" y="220" class="sub" text-anchor="middle">
+                timeline w · buffer ≥ 8 s
+              </text>
+            </g>
+            <g class="node" data-name="Bốn cửa sổ phân tích">
+              <rect
+                x="648"
+                y="136"
+                width="240"
+                height="96"
+                rx="8"
+                fill="#f5f5f5"
+              />
+              <rect
+                class="box"
+                x="648"
+                y="136"
+                width="240"
+                height="96"
+                rx="8"
+                fill="#ffffff"
+                stroke="#2d3142"
+              />
+              <text x="660" y="156" class="tag" text-anchor="start">
+                SESSION + MODEL
+              </text>
+              <text x="768.0" y="180" class="name" text-anchor="middle">
+                Bốn cửa sổ phân tích
+              </text>
+              <text x="768.0" y="200" class="sub" text-anchor="middle">
+                VAD · Smart Turn
+              </text>
+              <text x="768.0" y="220" class="tech" text-anchor="middle">
+                ASR streaming / turn-final
+              </text>
+            </g>
+            <g class="node" data-name="Turn owner">
+              <rect
+                x="952"
+                y="136"
+                width="240"
+                height="96"
+                rx="8"
+                fill="#f5f5f5"
+              />
+              <rect
+                class="box"
+                x="952"
+                y="136"
+                width="240"
+                height="96"
+                rx="8"
+                fill="rgba(235,108,54,0.08)"
+                stroke="#eb6c36"
+              />
+              <text x="964" y="156" class="tag" text-anchor="start">
+                SESSION
+              </text>
+              <text x="1072.0" y="180" class="name" text-anchor="middle">
+                Turn owner
+              </text>
+              <text x="1072.0" y="200" class="sub" text-anchor="middle">
+                turn_id · revision
+              </text>
+              <text x="1072.0" y="220" class="sub" text-anchor="middle">
+                chỉ owner đổi state lượt
+              </text>
+            </g>
+            <g class="node" data-name="LLM client ↔ server">
+              <rect
+                x="952"
+                y="392"
+                width="240"
+                height="96"
+                rx="8"
+                fill="#f5f5f5"
+              />
+              <rect
+                class="box"
+                x="952"
+                y="392"
+                width="240"
+                height="96"
+                rx="8"
+                fill="#ffffff"
+                stroke="#2d3142"
+              />
+              <text x="964" y="412" class="tag" text-anchor="start">
+                SESSION / BACKEND
+              </text>
+              <text x="1072.0" y="436" class="name" text-anchor="middle">
+                LLM client ↔ server
+              </text>
+              <text x="1072.0" y="456" class="tech" text-anchor="middle">
+                stream + cancel
+              </text>
+              <text x="1072.0" y="476" class="tech" text-anchor="middle">
+                generation_id
+              </text>
+            </g>
+            <g class="node" data-name="Text → mệnh đề → lời đọc">
+              <rect
+                x="648"
+                y="392"
+                width="240"
+                height="96"
+                rx="8"
+                fill="#f5f5f5"
+              />
+              <rect
+                class="box"
+                x="648"
+                y="392"
+                width="240"
+                height="96"
+                rx="8"
+                fill="#ffffff"
+                stroke="#2d3142"
+              />
+              <text x="660" y="412" class="tag" text-anchor="start">
+                SESSION
+              </text>
+              <text x="768.0" y="436" class="name" text-anchor="middle">
+                Text → mệnh đề → lời đọc
+              </text>
+              <text x="768.0" y="456" class="tech" text-anchor="middle">
+                chunker + normalizer + lexicon
+              </text>
+              <text x="768.0" y="476" class="sub" text-anchor="middle">
+                raw_text ≠ spoken_text
+              </text>
+            </g>
+            <g class="node" data-name="TTS adapter ↔ VieNeu">
+              <rect
+                x="344"
+                y="392"
+                width="240"
+                height="96"
+                rx="8"
+                fill="#f5f5f5"
+              />
+              <rect
+                class="box"
+                x="344"
+                y="392"
+                width="240"
+                height="96"
+                rx="8"
+                fill="#ffffff"
+                stroke="#2d3142"
+              />
+              <text x="356" y="412" class="tag" text-anchor="start">
+                SESSION / BACKEND
+              </text>
+              <text x="464.0" y="436" class="name" text-anchor="middle">
+                TTS adapter ↔ VieNeu
+              </text>
+              <text x="464.0" y="456" class="tech" text-anchor="middle">
+                HTTP s16le / SDK f32
+              </text>
+              <text x="464.0" y="476" class="sub" text-anchor="middle">
+                giữ sample rate gốc
+              </text>
+            </g>
+            <g class="node" data-name="Client queue → worklet → loa">
+              <rect
+                x="40"
+                y="392"
+                width="240"
+                height="96"
+                rx="8"
+                fill="#f5f5f5"
+              />
+              <rect
+                class="box"
+                x="40"
+                y="392"
+                width="240"
+                height="96"
+                rx="8"
+                fill="#ffffff"
+                stroke="#2d3142"
+              />
+              <text x="52" y="412" class="tag" text-anchor="start">CLIENT</text>
+              <text x="160.0" y="436" class="name" text-anchor="middle">
+                Client queue → worklet → loa
+              </text>
+              <text x="160.0" y="456" class="sub" text-anchor="middle">
+                bounded · bỏ generation cũ
+              </text>
+              <text x="160.0" y="476" class="sub" text-anchor="middle">
+                đếm mẫu thực sự đã render
+              </text>
+            </g>
+            <line x1="40" y1="664" x2="1240" y2="664" stroke="#bfc0c0" />
+            <text x="40" y="696" class="legend" text-anchor="start">
+              U = uplink · C = control · T = text · D = downlink · Nét đứt C3 =
+              phản hồi playback
+            </text>
+          </svg>
+        </div>
+        <div class="cards">
+          <article class="card">
+            <h3>Hai đồng hồ phần cứng</h3>
+            <p>
+              Mic đẩy uplink theo thời gian thật; loa kéo downlink theo nhịp
+              render. 48 kHz là rate minh hoạ phổ biến, không phải rate cố định
+              của mọi AudioContext.
+            </p>
+          </article>
+          <article class="card">
+            <h3>Một Session / user</h3>
+            <p>
+              Ring, resampler, VAD state, ASR cache và bộ đếm không dùng chung
+              giữa user. Backend có thể giữ weights dùng chung; weights ≠ state
+              hội thoại.
+            </p>
+          </article>
+          <article class="card">
+            <h3>Một turn owner</h3>
+            <p>
+              VAD, Smart Turn và ASR cung cấp tín hiệu. Chỉ owner chuyển state
+              lượt và quyết định commit; model không tự quyết định thay owner.
+            </p>
+          </article>
+        </div>
+      </section>
+      <section id="uplink">
+        <h2>02. Uplink: chuẩn hoá một lần, đọc theo nhiều nhịp</h2>
+        <p class="section-intro">
+          U3 và resample được gộp trong một hộp nhưng vẫn là hai contract riêng.
+          WS PCM16 16 kHz và WebRTC Opus 48 kHz là hai lựa chọn transport, không
+          phải hai chặng nối tiếp. Các hộp nhánh gộp adapter phía Session với
+          lời gọi model phía backend; nhãn ghi rõ state riêng và weights chia
+          sẻ.
+        </p>
+        <div class="diagram">
+          <svg
+            viewBox="0 0 1280 720"
+            role="img"
+            aria-labelledby="uplink-title uplink-desc"
+          >
+            <title id="uplink-title">
+              Uplink: một timeline, bốn cửa sổ đọc
+            </title>
+            <desc id="uplink-desc">
+              Audio mic được chuẩn hoá thành f32 16 kHz trong ring buffer; VAD,
+              Smart Turn và hai đường ASR đọc các cửa sổ riêng trên cùng chỉ số
+              mẫu.
+            </desc>
+            <defs>
+              <marker
+                id="uplink-arrow-muted"
+                markerWidth="8"
+                markerHeight="8"
+                refX="8"
+                refY="4"
+                orient="auto"
+              >
+                <path d="M0 0 L8 4 L0 8 Z" fill="#4f5d75" />
+              </marker>
+              <marker
+                id="uplink-arrow-accent"
+                markerWidth="8"
+                markerHeight="8"
+                refX="8"
+                refY="4"
+                orient="auto"
+              >
+                <path d="M0 0 L8 4 L0 8 Z" fill="#eb6c36" />
+              </marker>
+              <marker
+                id="uplink-arrow-link"
+                markerWidth="8"
+                markerHeight="8"
+                refX="8"
+                refY="4"
+                orient="auto"
+              >
+                <path d="M0 0 L8 4 L0 8 Z" fill="#2e5aa8" />
+              </marker>
+            </defs>
+            <rect width="1280" height="720" fill="#f5f5f5" />
+            <text x="40" y="52" class="caption" text-anchor="start">
+              02 / UPLINK · U0–U5
+            </text>
+            <path
+              class="connector"
+              d="M280 144 H344"
+              fill="none"
+              stroke="#4f5d75"
+              stroke-width="1.2"
+              marker-end="url(#uplink-arrow-muted)"
+            />
+            <g class="edge-label">
+              <rect
+                x="296"
+                y="116"
+                width="32"
+                height="20"
+                rx="4"
+                fill="#f5f5f5"
+              />
+              <text x="312" y="128" class="edge" text-anchor="middle">U0</text>
+            </g>
+            <path
+              class="connector"
+              d="M584 144 H648"
+              fill="none"
+              stroke="#4f5d75"
+              stroke-width="1.2"
+              marker-end="url(#uplink-arrow-muted)"
+            />
+            <g class="edge-label">
+              <rect
+                x="600"
+                y="116"
+                width="32"
+                height="20"
+                rx="4"
+                fill="#f5f5f5"
+              />
+              <text x="616" y="128" class="edge" text-anchor="middle">U1</text>
+            </g>
+            <path
+              class="connector"
+              d="M888 144 H952"
+              fill="none"
+              stroke="#4f5d75"
+              stroke-width="1.2"
+              marker-end="url(#uplink-arrow-muted)"
+            />
+            <g class="edge-label">
+              <rect
+                x="904"
+                y="116"
+                width="32"
+                height="20"
+                rx="4"
+                fill="#f5f5f5"
+              />
+              <text x="920" y="128" class="edge" text-anchor="middle">U2</text>
+            </g>
+            <path
+              class="connector"
+              d="M1072 192 V232 Q1072 240 1064 240 H248 Q240 240 240 248 V320"
+              fill="none"
+              stroke="#4f5d75"
+              stroke-width="1.2"
+              marker-end="url(#uplink-arrow-muted)"
+            />
+            <g class="edge-label">
+              <rect
+                x="672"
+                y="212"
+                width="32"
+                height="20"
+                rx="4"
+                fill="#f5f5f5"
+              />
+              <text x="688" y="224" class="edge" text-anchor="middle">U4</text>
+            </g>
+            <path
+              class="connector"
+              d="M360 360 H640"
+              fill="none"
+              stroke="#4f5d75"
+              stroke-width="1.2"
+              marker-end="url(#uplink-arrow-muted)"
+            />
+            <g class="edge-label">
+              <rect
+                x="480"
+                y="332"
+                width="40"
+                height="20"
+                rx="4"
+                fill="#f5f5f5"
+              />
+              <text x="500" y="344" class="edge" text-anchor="middle">U5v</text>
+            </g>
+            <path
+              class="connector"
+              d="M360 448 H640"
+              fill="none"
+              stroke="#4f5d75"
+              stroke-width="1.2"
+              marker-end="url(#uplink-arrow-muted)"
+            />
+            <g class="edge-label">
+              <rect
+                x="480"
+                y="420"
+                width="40"
+                height="20"
+                rx="4"
+                fill="#f5f5f5"
+              />
+              <text x="500" y="432" class="edge" text-anchor="middle">U5s</text>
+            </g>
+            <path
+              class="connector"
+              d="M360 536 H640"
+              fill="none"
+              stroke="#4f5d75"
+              stroke-width="1.2"
+              marker-end="url(#uplink-arrow-muted)"
+            />
+            <g class="edge-label">
+              <rect
+                x="480"
+                y="508"
+                width="40"
+                height="20"
+                rx="4"
+                fill="#f5f5f5"
+              />
+              <text x="500" y="520" class="edge" text-anchor="middle">U5a</text>
+            </g>
+            <path
+              class="connector"
+              d="M360 624 H640"
+              fill="none"
+              stroke="#4f5d75"
+              stroke-width="1.2"
+              marker-end="url(#uplink-arrow-muted)"
+            />
+            <g class="edge-label">
+              <rect
+                x="480"
+                y="596"
+                width="40"
+                height="20"
+                rx="4"
+                fill="#f5f5f5"
+              />
+              <text x="500" y="608" class="edge" text-anchor="middle">U5t</text>
+            </g>
+            <g class="node" data-name="Mic + xử lý trình duyệt">
+              <rect
+                x="40"
+                y="96"
+                width="240"
+                height="96"
+                rx="8"
+                fill="#f5f5f5"
+              />
+              <rect
+                class="box"
+                x="40"
+                y="96"
+                width="240"
+                height="96"
+                rx="8"
+                fill="#ffffff"
+                stroke="#2d3142"
+              />
+              <text x="52" y="116" class="tag" text-anchor="start">CLIENT</text>
+              <text x="160.0" y="140" class="name" text-anchor="middle">
+                Mic + xử lý trình duyệt
+              </text>
+              <text x="160.0" y="160" class="sub" text-anchor="middle">
+                f32 · AudioContext ≈ 48 kHz
+              </text>
+              <text x="160.0" y="180" class="tech" text-anchor="middle">
+                128 frame / render quantum
+              </text>
+            </g>
+            <g class="node" data-name="Capture worklet">
+              <rect
+                x="344"
+                y="96"
+                width="240"
+                height="96"
+                rx="8"
+                fill="#f5f5f5"
+              />
+              <rect
+                class="box"
+                x="344"
+                y="96"
+                width="240"
+                height="96"
+                rx="8"
+                fill="#ffffff"
+                stroke="#2d3142"
+              />
+              <text x="356" y="116" class="tag" text-anchor="start">
+                CLIENT STATE
+              </text>
+              <text x="464.0" y="140" class="name" text-anchor="middle">
+                Capture worklet
+              </text>
+              <text x="464.0" y="160" class="sub" text-anchor="middle">
+                resample → 16 kHz · f32 → s16
+              </text>
+              <text x="464.0" y="180" class="sub" text-anchor="middle">
+                320 samples / 20 ms · 640 B
+              </text>
+            </g>
+            <g class="node" data-name="Transport: chọn một">
+              <rect
+                x="648"
+                y="96"
+                width="240"
+                height="96"
+                rx="8"
+                fill="#f5f5f5"
+              />
+              <rect
+                class="box"
+                x="648"
+                y="96"
+                width="240"
+                height="96"
+                rx="8"
+                fill="#ffffff"
+                stroke="#2d3142"
+              />
+              <text x="660" y="116" class="tag" text-anchor="start">
+                CONNECTION
+              </text>
+              <text x="768.0" y="140" class="name" text-anchor="middle">
+                Transport: chọn một
+              </text>
+              <text x="768.0" y="160" class="tech" text-anchor="middle">
+                WS binary: s16le / 16 kHz
+              </text>
+              <text x="768.0" y="180" class="sub" text-anchor="middle">
+                hoặc WebRTC: Opus / 48 kHz
+              </text>
+            </g>
+            <g class="node" data-name="Decode → resample">
+              <rect
+                x="952"
+                y="96"
+                width="240"
+                height="96"
+                rx="8"
+                fill="#f5f5f5"
+              />
+              <rect
+                class="box"
+                x="952"
+                y="96"
+                width="240"
+                height="96"
+                rx="8"
+                fill="#ffffff"
+                stroke="#2d3142"
+              />
+              <text x="964" y="116" class="tag" text-anchor="start">
+                SESSION STATE
+              </text>
+              <text x="1072.0" y="140" class="name" text-anchor="middle">
+                Decode → resample
+              </text>
+              <text x="1072.0" y="160" class="tech" text-anchor="middle">
+                U3: f32 @ transport rate
+              </text>
+              <text x="1072.0" y="180" class="sub" text-anchor="middle">
+                U4: f32 · 16 kHz · mono
+              </text>
+            </g>
+            <g class="node" data-name="Ring buffer chung">
+              <rect
+                x="120"
+                y="320"
+                width="240"
+                height="320"
+                rx="8"
+                fill="#f5f5f5"
+              />
+              <rect
+                class="box"
+                x="120"
+                y="320"
+                width="240"
+                height="320"
+                rx="8"
+                fill="rgba(235,108,54,0.08)"
+                stroke="#eb6c36"
+              />
+              <text x="132" y="340" class="tag" text-anchor="start">
+                SESSION
+              </text>
+              <text x="240.0" y="364" class="name" text-anchor="middle">
+                Ring buffer chung
+              </text>
+              <text x="240.0" y="384" class="sub" text-anchor="middle">
+                16 kHz · f32 · mono
+              </text>
+              <text x="240.0" y="404" class="tech" text-anchor="middle">
+                w = sample write index
+              </text>
+              <text x="240.0" y="424" class="sub" text-anchor="middle">
+                dung lượng ≥ 8 s
+              </text>
+              <text x="240.0" y="464" class="sub" text-anchor="middle">
+                4 reader độc lập
+              </text>
+              <text x="240.0" y="484" class="sub" text-anchor="middle">
+                không nối qua VAD
+              </text>
+              <text x="240.0" y="524" class="sub" text-anchor="middle">
+                Turn buffer giữ bản sao
+              </text>
+              <text x="240.0" y="544" class="tech" text-anchor="middle">
+                pre-roll + speech + pad
+              </text>
+            </g>
+            <g class="node" data-name="Reblock 512 → [denoise?] → Silero VAD">
+              <rect
+                x="640"
+                y="320"
+                width="560"
+                height="80"
+                rx="8"
+                fill="#f5f5f5"
+              />
+              <rect
+                class="box"
+                x="640"
+                y="320"
+                width="560"
+                height="80"
+                rx="8"
+                fill="#ffffff"
+                stroke="#2d3142"
+              />
+              <text x="652" y="340" class="tag" text-anchor="start">
+                SESSION VAD STATE / SHARED WEIGHTS
+              </text>
+              <text x="920.0" y="364" class="name" text-anchor="middle">
+                Reblock 512 → [denoise?] → Silero VAD
+              </text>
+              <text x="920.0" y="384" class="sub" text-anchor="middle">
+                512 samples = 32 ms · prob → turn owner
+              </text>
+            </g>
+            <g class="node" data-name="Cửa sổ cuối ≤ 8 s → Smart Turn">
+              <rect
+                x="640"
+                y="408"
+                width="560"
+                height="80"
+                rx="8"
+                fill="#f5f5f5"
+              />
+              <rect
+                class="box"
+                x="640"
+                y="408"
+                width="560"
+                height="80"
+                rx="8"
+                fill="#ffffff"
+                stroke="#2d3142"
+              />
+              <text x="652" y="428" class="tag" text-anchor="start">
+                SESSION READ WINDOW / CLASSIFIER
+              </text>
+              <text x="920.0" y="452" class="name" text-anchor="middle">
+                Cửa sổ cuối ≤ 8 s → Smart Turn
+              </text>
+              <text x="920.0" y="472" class="sub" text-anchor="middle">
+                complete / incomplete → turn owner
+              </text>
+            </g>
+            <g class="node" data-name="Chunk 160 / 320 ms → ASR streaming">
+              <rect
+                x="640"
+                y="496"
+                width="560"
+                height="80"
+                rx="8"
+                fill="#f5f5f5"
+              />
+              <rect
+                class="box"
+                x="640"
+                y="496"
+                width="560"
+                height="80"
+                rx="8"
+                fill="#ffffff"
+                stroke="#2d3142"
+              />
+              <text x="652" y="516" class="tag" text-anchor="start">
+                SESSION ASR CACHE / SHARED WEIGHTS
+              </text>
+              <text x="920.0" y="540" class="name" text-anchor="middle">
+                Chunk 160 / 320 ms → ASR streaming
+              </text>
+              <text x="920.0" y="560" class="sub" text-anchor="middle">
+                2 560 / 5 120 samples · cache riêng / session
+              </text>
+            </g>
+            <g class="node" data-name="Turn buffer → ASR turn-final">
+              <rect
+                x="640"
+                y="584"
+                width="560"
+                height="64"
+                rx="8"
+                fill="#f5f5f5"
+              />
+              <rect
+                class="box"
+                x="640"
+                y="584"
+                width="560"
+                height="64"
+                rx="8"
+                fill="#ffffff"
+                stroke="#2d3142"
+              />
+              <text x="652" y="604" class="tag" text-anchor="start">
+                TURN AUDIO / SHARED WEIGHTS
+              </text>
+              <text x="920.0" y="628" class="name" text-anchor="middle">
+                Turn buffer → ASR turn-final
+              </text>
+            </g>
+            <line x1="40" y1="664" x2="1240" y2="664" stroke="#bfc0c0" />
+            <text x="40" y="696" class="legend" text-anchor="start">
+              Cam = audio timeline chung · Mỗi Session có state riêng; backend
+              có thể chia sẻ weights
+            </text>
+          </svg>
+        </div>
+        <div class="table-scroll">
+          <table>
+            <thead>
+              <tr>
+                <th>Cạnh</th>
+                <th>Đường đi</th>
+                <th>Payload / format</th>
+                <th>Framing / nhịp</th>
+                <th>State / owner / ID</th>
+                <th>Kết thúc / kiểm soát</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><code>U0</code></td>
+                <td>Mic → capture</td>
+                <td>
+                  f32 [-1,1] · AudioContext (thường 48 kHz) · mono khi yêu cầu
+                </td>
+                <td>128 frame ≈ 2,67 ms @48 kHz · 512 byte</td>
+                <td>Trình duyệt</td>
+                <td>Mất quyền mic / đổi thiết bị</td>
+              </tr>
+              <tr>
+                <td><code>U1</code></td>
+                <td>Capture → transport</td>
+                <td>s16le · 16 kHz · mono</td>
+                <td>320 mẫu / 20 ms · 640 byte + seq + capture time</td>
+                <td>Client: resampler + seq</td>
+                <td>Tắt mic → ngừng gửi + event đóng</td>
+              </tr>
+              <tr>
+                <td><code>U2</code></td>
+                <td>Transport → gateway</td>
+                <td>WS binary 16 kHz s16le; hoặc WebRTC Opus 48 kHz</td>
+                <td>WS 1 message/frame; RTP 20 ms</td>
+                <td>Kết nối</td>
+                <td>Close / timeout → teardown session</td>
+              </tr>
+              <tr>
+                <td><code>U3</code></td>
+                <td>Decode → resample</td>
+                <td>f32 · rate gốc transport</td>
+                <td>Theo message; ghép byte lẻ trước decode</td>
+                <td>Session: byte lẻ còn dư</td>
+                <td>Gap → policy rõ ràng; không lặng lẽ co timeline</td>
+              </tr>
+              <tr>
+                <td><code>U4</code></td>
+                <td>Resample → ring</td>
+                <td>f32 · 16 kHz · mono · liên tục</td>
+                <td>64 KB/s f32</td>
+                <td>Session: lịch sử bộ lọc + ring + w</td>
+                <td>Chỉ resample khi cần; duy trì state qua frame</td>
+              </tr>
+              <tr>
+                <td><code>U5v</code></td>
+                <td>Ring → VAD</td>
+                <td>f32 · 16 kHz</td>
+                <td>512 mẫu / 32 ms · 2 048 byte</td>
+                <td>Session: VADIterator</td>
+                <td>Reset state VAD khi hết lượt</td>
+              </tr>
+              <tr>
+                <td><code>U5s</code></td>
+                <td>Ring → Smart Turn</td>
+                <td>f32 · 16 kHz</td>
+                <td>≤ 8 s cuối; gọi khi có ứng viên end</td>
+                <td>Cửa sổ session; classifier không giữ state giữa lần gọi</td>
+                <td>complete / incomplete là tín hiệu, không tự commit</td>
+              </tr>
+              <tr>
+                <td><code>U5a</code></td>
+                <td>Ring → ASR streaming</td>
+                <td>f32 · 16 kHz</td>
+                <td>160/320 ms · 2 560/5 120 mẫu (+ lookahead)</td>
+                <td>Session: encoder / decoder cache</td>
+                <td>Giải phóng cache sau final / session close</td>
+              </tr>
+              <tr>
+                <td><code>U5t</code></td>
+                <td>Ring → turn buffer → final ASR</td>
+                <td>f32 16 kHz, hoặc WAV PCM16 khi gửi HTTP</td>
+                <td>Cả lượt: pre-roll + speech + pad</td>
+                <td>Turn: mở ở speech_start</td>
+                <td>Đóng khi commit xong; trần độ dài → buộc endpoint</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <h3 style="margin-top: 32px">Cùng 160 ms audio, ba cách chia khối</h3>
+        <p class="note-small">
+          Minh hoạ số học tại 16 kHz: 2 560 mẫu = 8 frame uplink × 320 = 5 khối
+          VAD × 512 = 1 chunk ASR 160 ms. Không cần chờ đủ 160 ms mới chạy VAD;
+          đây chỉ là mốc khớp pha.
+        </p>
+        <div class="units">
+          <div class="units-label">Transport</div>
+          <div class="strip" style="grid-template-columns: repeat(8, 1fr)">
+            <span>20 ms</span><span>20 ms</span><span>20 ms</span
+            ><span>20 ms</span><span>20 ms</span><span>20 ms</span
+            ><span>20 ms</span><span>20 ms</span>
+          </div>
+          <div class="units-label">Silero VAD</div>
+          <div class="strip" style="grid-template-columns: repeat(5, 1fr)">
+            <span>32 ms</span><span>32 ms</span><span>32 ms</span
+            ><span>32 ms</span><span>32 ms</span>
+          </div>
+          <div class="units-label">ASR streaming</div>
+          <div class="strip"><span>160 ms = 2 560 samples</span></div>
+        </div>
+        <div class="callout">
+          <strong>Ring buffer là nguồn sự thật về audio user.</strong>
+          <p>
+            Mỗi reader lấy khoảng mẫu riêng trên timeline w. ASR không cần gom
+            output VAD; Smart Turn không cần đọc đúng chunk ASR. Turn buffer sao
+            chép pre-roll + lượt để không mất audio khi ring quay vòng.
+          </p>
+        </div>
+      </section>
+      <section id="control">
+        <h2>03. Tín hiệu không phải quyết định; token không phải mệnh đề</h2>
+        <p class="section-intro">
+          C1 chở hypothesis của ASR; tín hiệu VAD và Smart Turn đi riêng tới
+          owner. C2 là mốc commit. T1 đi qua LLM client trước khi tới chunker;
+          T2 và T3 giữ cùng chunk_id để nối text với audio về sau.
+        </p>
+        <div class="diagram">
+          <svg
+            viewBox="0 0 1280 720"
+            role="img"
+            aria-labelledby="control-title control-desc"
+          >
+            <title id="control-title">Turn owner và đường text streaming</title>
+            <desc id="control-desc">
+              VAD, Smart Turn và ASR gửi tín hiệu đến turn owner duy nhất; lượt
+              được commit dẫn tới LLM, chunker và chuẩn hoá text cho TTS.
+            </desc>
+            <defs>
+              <marker
+                id="control-arrow-muted"
+                markerWidth="8"
+                markerHeight="8"
+                refX="8"
+                refY="4"
+                orient="auto"
+              >
+                <path d="M0 0 L8 4 L0 8 Z" fill="#4f5d75" />
+              </marker>
+              <marker
+                id="control-arrow-accent"
+                markerWidth="8"
+                markerHeight="8"
+                refX="8"
+                refY="4"
+                orient="auto"
+              >
+                <path d="M0 0 L8 4 L0 8 Z" fill="#eb6c36" />
+              </marker>
+              <marker
+                id="control-arrow-link"
+                markerWidth="8"
+                markerHeight="8"
+                refX="8"
+                refY="4"
+                orient="auto"
+              >
+                <path d="M0 0 L8 4 L0 8 Z" fill="#2e5aa8" />
+              </marker>
+            </defs>
+            <rect width="1280" height="720" fill="#f5f5f5" />
+            <text x="40" y="52" class="caption" text-anchor="start">
+              03 / CONTROL + TEXT · C1–C2 / T1–T3
+            </text>
+            <text x="40" y="624" class="note" text-anchor="start">
+              C3 từ playback là phản hồi cắt history, không phải tín hiệu commit
+              lượt (xem hình 04).
+            </text>
+            <path
+              class="connector"
+              d="M280 136 H328 Q336 136 336 144 V256 Q336 264 344 264 H424"
+              fill="none"
+              stroke="#4f5d75"
+              stroke-width="1.2"
+              marker-end="url(#control-arrow-muted)"
+            />
+            <g class="edge-label">
+              <rect
+                x="284"
+                y="108"
+                width="40"
+                height="20"
+                rx="4"
+                fill="#f5f5f5"
+              />
+              <text x="304" y="120" class="edge" text-anchor="middle">VAD</text>
+            </g>
+            <path
+              class="connector"
+              d="M280 280 H352 Q360 280 360 288 V296 Q360 304 368 304 H424"
+              fill="none"
+              stroke="#4f5d75"
+              stroke-width="1.2"
+              marker-end="url(#control-arrow-muted)"
+            />
+            <g class="edge-label">
+              <rect
+                x="284"
+                y="252"
+                width="40"
+                height="20"
+                rx="4"
+                fill="#f5f5f5"
+              />
+              <text x="304" y="264" class="edge" text-anchor="middle">END</text>
+            </g>
+            <path
+              class="connector"
+              d="M280 424 H376 Q384 424 384 416 V352 Q384 344 392 344 H424"
+              fill="none"
+              stroke="#4f5d75"
+              stroke-width="1.2"
+              marker-end="url(#control-arrow-muted)"
+            />
+            <g class="edge-label">
+              <rect
+                x="304"
+                y="396"
+                width="32"
+                height="20"
+                rx="4"
+                fill="#f5f5f5"
+              />
+              <text x="320" y="408" class="edge" text-anchor="middle">C1</text>
+            </g>
+            <path
+              class="connector"
+              d="M664 288 H840"
+              fill="none"
+              stroke="#4f5d75"
+              stroke-width="1.2"
+              marker-end="url(#control-arrow-muted)"
+            />
+            <g class="edge-label">
+              <rect
+                x="704"
+                y="260"
+                width="96"
+                height="20"
+                rx="4"
+                fill="#f5f5f5"
+              />
+              <text x="752" y="272" class="edge" text-anchor="middle">
+                C2 / COMMIT
+              </text>
+            </g>
+            <path
+              class="connector"
+              d="M1008 240 V168"
+              fill="none"
+              stroke="#2e5aa8"
+              stroke-width="1.2"
+              marker-end="url(#control-arrow-link)"
+            />
+            <g class="edge-label">
+              <rect
+                x="1016"
+                y="200"
+                width="64"
+                height="20"
+                rx="4"
+                fill="#f5f5f5"
+              />
+              <text x="1048" y="212" class="edge" text-anchor="middle">
+                REQUEST
+              </text>
+            </g>
+            <path
+              class="connector"
+              d="M924 168 V240"
+              fill="none"
+              stroke="#2e5aa8"
+              stroke-width="1.2"
+              marker-end="url(#control-arrow-link)"
+            />
+            <path
+              class="connector"
+              d="M960 336 V488"
+              fill="none"
+              stroke="#4f5d75"
+              stroke-width="1.2"
+              marker-end="url(#control-arrow-muted)"
+            />
+            <g class="edge-label">
+              <rect
+                x="968"
+                y="408"
+                width="88"
+                height="20"
+                rx="4"
+                fill="#f5f5f5"
+              />
+              <text x="1012" y="420" class="edge" text-anchor="middle">
+                T1 / DELTA
+              </text>
+            </g>
+            <path
+              class="connector"
+              d="M840 536 H664"
+              fill="none"
+              stroke="#4f5d75"
+              stroke-width="1.2"
+              marker-end="url(#control-arrow-muted)"
+            />
+            <g class="edge-label">
+              <rect
+                x="736"
+                y="508"
+                width="32"
+                height="20"
+                rx="4"
+                fill="#f5f5f5"
+              />
+              <text x="752" y="520" class="edge" text-anchor="middle">T2</text>
+            </g>
+            <path
+              class="connector"
+              d="M424 536 H280"
+              fill="none"
+              stroke="#4f5d75"
+              stroke-width="1.2"
+              marker-end="url(#control-arrow-muted)"
+            />
+            <g class="edge-label">
+              <rect
+                x="336"
+                y="508"
+                width="32"
+                height="20"
+                rx="4"
+                fill="#f5f5f5"
+              />
+              <text x="352" y="520" class="edge" text-anchor="middle">T3</text>
+            </g>
+            <g class="node" data-name="Silero VAD">
+              <rect
+                x="40"
+                y="96"
+                width="240"
+                height="80"
+                rx="8"
+                fill="#f5f5f5"
+              />
+              <rect
+                class="box"
+                x="40"
+                y="96"
+                width="240"
+                height="80"
+                rx="8"
+                fill="#ffffff"
+                stroke="#2d3142"
+              />
+              <text x="52" y="116" class="tag" text-anchor="start">
+                SESSION SIGNAL
+              </text>
+              <text x="160.0" y="140" class="name" text-anchor="middle">
+                Silero VAD
+              </text>
+              <text x="160.0" y="160" class="tech" text-anchor="middle">
+                prob / speech_start / end
+              </text>
+            </g>
+            <g class="node" data-name="Smart Turn">
+              <rect
+                x="40"
+                y="240"
+                width="240"
+                height="80"
+                rx="8"
+                fill="#f5f5f5"
+              />
+              <rect
+                class="box"
+                x="40"
+                y="240"
+                width="240"
+                height="80"
+                rx="8"
+                fill="#ffffff"
+                stroke="#2d3142"
+              />
+              <text x="52" y="260" class="tag" text-anchor="start">
+                END CANDIDATE SIGNAL
+              </text>
+              <text x="160.0" y="284" class="name" text-anchor="middle">
+                Smart Turn
+              </text>
+              <text x="160.0" y="304" class="tech" text-anchor="middle">
+                complete / incomplete
+              </text>
+            </g>
+            <g class="node" data-name="ASR adapters">
+              <rect
+                x="40"
+                y="384"
+                width="240"
+                height="80"
+                rx="8"
+                fill="#f5f5f5"
+              />
+              <rect
+                class="box"
+                x="40"
+                y="384"
+                width="240"
+                height="80"
+                rx="8"
+                fill="#ffffff"
+                stroke="#2d3142"
+              />
+              <text x="52" y="404" class="tag" text-anchor="start">
+                TURN / REV / AUDIO RANGE
+              </text>
+              <text x="160.0" y="428" class="name" text-anchor="middle">
+                ASR adapters
+              </text>
+              <text x="160.0" y="448" class="tech" text-anchor="middle">
+                asr.partial / asr.final
+              </text>
+            </g>
+            <g class="node" data-name="Turn owner">
+              <rect
+                x="424"
+                y="224"
+                width="240"
+                height="160"
+                rx="8"
+                fill="#f5f5f5"
+              />
+              <rect
+                class="box"
+                x="424"
+                y="224"
+                width="240"
+                height="160"
+                rx="8"
+                fill="rgba(235,108,54,0.08)"
+                stroke="#eb6c36"
+              />
+              <text x="436" y="244" class="tag" text-anchor="start">
+                SESSION
+              </text>
+              <text x="544.0" y="268" class="name" text-anchor="middle">
+                Turn owner
+              </text>
+              <text x="544.0" y="288" class="sub" text-anchor="middle">
+                turn_id · revision
+              </text>
+              <text x="544.0" y="308" class="sub" text-anchor="middle">
+                nhận tín hiệu → quyết định
+              </text>
+              <text x="544.0" y="328" class="sub" text-anchor="middle">
+                turn.commit: một lần / lượt
+              </text>
+              <text x="544.0" y="348" class="tech" text-anchor="middle">
+                generation_id: response/cancel
+              </text>
+            </g>
+            <g class="node" data-name="LLM client">
+              <rect
+                x="840"
+                y="240"
+                width="240"
+                height="96"
+                rx="8"
+                fill="#f5f5f5"
+              />
+              <rect
+                class="box"
+                x="840"
+                y="240"
+                width="240"
+                height="96"
+                rx="8"
+                fill="#ffffff"
+                stroke="#2d3142"
+              />
+              <text x="852" y="260" class="tag" text-anchor="start">
+                SESSION
+              </text>
+              <text x="960.0" y="284" class="name" text-anchor="middle">
+                LLM client
+              </text>
+              <text x="960.0" y="304" class="tech" text-anchor="middle">
+                stream + cancel
+              </text>
+              <text x="960.0" y="324" class="sub" text-anchor="middle">
+                bỏ delta stale theo generation
+              </text>
+            </g>
+            <g class="node" data-name="LLM server">
+              <rect
+                x="840"
+                y="72"
+                width="240"
+                height="96"
+                rx="8"
+                fill="#f5f5f5"
+              />
+              <rect
+                class="box"
+                x="840"
+                y="72"
+                width="240"
+                height="96"
+                rx="8"
+                fill="#ffffff"
+                stroke="#2d3142"
+              />
+              <text x="852" y="92" class="tag" text-anchor="start">
+                BACKEND
+              </text>
+              <text x="960.0" y="116" class="name" text-anchor="middle">
+                LLM server
+              </text>
+              <text x="960.0" y="136" class="sub" text-anchor="middle">
+                token delta → client
+              </text>
+              <text x="960.0" y="156" class="tech" text-anchor="middle">
+                weights backend
+              </text>
+            </g>
+            <g class="node" data-name="Clause chunker">
+              <rect
+                x="840"
+                y="488"
+                width="240"
+                height="96"
+                rx="8"
+                fill="#f5f5f5"
+              />
+              <rect
+                class="box"
+                x="840"
+                y="488"
+                width="240"
+                height="96"
+                rx="8"
+                fill="#ffffff"
+                stroke="#2d3142"
+              />
+              <text x="852" y="508" class="tag" text-anchor="start">
+                SESSION
+              </text>
+              <text x="960.0" y="532" class="name" text-anchor="middle">
+                Clause chunker
+              </text>
+              <text x="960.0" y="552" class="sub" text-anchor="middle">
+                token → raw_text
+              </text>
+              <text x="960.0" y="572" class="tech" text-anchor="middle">
+                generation_id + chunk_id
+              </text>
+            </g>
+            <g class="node" data-name="Normalizer + lexicon">
+              <rect
+                x="424"
+                y="488"
+                width="240"
+                height="96"
+                rx="8"
+                fill="#f5f5f5"
+              />
+              <rect
+                class="box"
+                x="424"
+                y="488"
+                width="240"
+                height="96"
+                rx="8"
+                fill="#ffffff"
+                stroke="#2d3142"
+              />
+              <text x="436" y="508" class="tag" text-anchor="start">
+                SESSION
+              </text>
+              <text x="544.0" y="532" class="name" text-anchor="middle">
+                Normalizer + lexicon
+              </text>
+              <text x="544.0" y="552" class="sub" text-anchor="middle">
+                raw_text → spoken_text
+              </text>
+              <text x="544.0" y="572" class="sub" text-anchor="middle">
+                giữ nguyên chunk_id
+              </text>
+            </g>
+            <g class="node" data-name="TTS adapter">
+              <rect
+                x="40"
+                y="488"
+                width="240"
+                height="96"
+                rx="8"
+                fill="#f5f5f5"
+              />
+              <rect
+                class="box"
+                x="40"
+                y="488"
+                width="240"
+                height="96"
+                rx="8"
+                fill="#ffffff"
+                stroke="#2d3142"
+              />
+              <text x="52" y="508" class="tag" text-anchor="start">
+                SESSION
+              </text>
+              <text x="160.0" y="532" class="name" text-anchor="middle">
+                TTS adapter
+              </text>
+              <text x="160.0" y="552" class="sub" text-anchor="middle">
+                spoken_text → request D1
+              </text>
+              <text x="160.0" y="572" class="tech" text-anchor="middle">
+                handle theo generation_id
+              </text>
+            </g>
+            <line x1="40" y1="664" x2="1240" y2="664" stroke="#bfc0c0" />
+            <text x="40" y="696" class="legend" text-anchor="start">
+              C1/C2 = event điều khiển · T1 = delta · T2/T3 = mệnh đề · Xanh =
+              request / stream backend
+            </text>
+          </svg>
+        </div>
+        <div class="table-scroll">
+          <table>
+            <thead>
+              <tr>
+                <th>Cạnh</th>
+                <th>Đường đi</th>
+                <th>Payload / format</th>
+                <th>Framing / nhịp</th>
+                <th>State / owner / ID</th>
+                <th>Kết thúc / kiểm soát</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><code>C1</code></td>
+                <td>ASR adapter → owner</td>
+                <td>asr.partial / asr.final</td>
+                <td>Một hypothesis</td>
+                <td>ASR adapter; turn_id, revision, audio_range</td>
+                <td>Chuẩn hoá transcript trước khi phát event</td>
+              </tr>
+              <tr>
+                <td><code>C2</code></td>
+                <td>Owner → orchestration / LLM client</td>
+                <td>turn.commit(turn_id, revision)</td>
+                <td>Một lần / lượt</td>
+                <td>Turn owner</td>
+                <td>Side effect chỉ sau commit</td>
+              </tr>
+              <tr>
+                <td><code>T1</code></td>
+                <td>LLM stream → chunker</td>
+                <td>Token delta</td>
+                <td>Token / nhóm token</td>
+                <td>LLM client; generation_id</td>
+                <td>Đóng stream khi cancel; kiểm stale từng delta</td>
+              </tr>
+              <tr>
+                <td><code>T2</code></td>
+                <td>Chunker → normalizer</td>
+                <td>text.chunk(raw_text)</td>
+                <td>Mệnh đề có ý nghĩa</td>
+                <td>Chunker; generation_id + chunk_id</td>
+                <td>
+                  Flush dấu câu / newline; giữ raw_text để hiển thị/history
+                </td>
+              </tr>
+              <tr>
+                <td><code>T3</code></td>
+                <td>Normalizer → TTS adapter</td>
+                <td>spoken_text</td>
+                <td>Cùng mệnh đề với T2</td>
+                <td>Normalizer; cùng generation_id + chunk_id</td>
+                <td>NFC, số/tiền/ngày, viết tắt và lexicon</td>
+              </tr>
+              <tr>
+                <td><code>C3</code></td>
+                <td>Client → gateway history</td>
+                <td>audio.played(generation_id, played_sample_offset)</td>
+                <td>Định kỳ + lúc bị ngắt</td>
+                <td>Client; offset theo rate audio.start</td>
+                <td>Không đếm im lặng khởi động / underrun</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="two-col" style="margin-top: 32px">
+          <article>
+            <h3>Vì sao cần clause chunker?</h3>
+            <p>
+              LLM sinh token theo tốc độ model, còn TTS cần một đoạn có nghĩa để
+              giữ prosody. Chunker tích luỹ token rồi flush thành mệnh đề: dấu
+              <code>.?!…;:</code> hoặc newline; quy tắc khởi điểm của chương cho
+              phép chunk đầu cắt tại dấu phẩy khi ≥ khoảng 25 ký tự, gộp mảnh
+              &lt; 8 ký tự.
+            </p>
+          </article>
+          <article>
+            <h3>Hai bản text, cùng một đơn vị</h3>
+            <p>
+              <code>raw_text</code> dùng cho hiển thị / history.
+              <code>spoken_text</code> dùng cho cách đọc: chuẩn Unicode NFC, số,
+              tiền, ngày, viết tắt, lexicon. Không tạo chunk_id mới chỉ vì text
+              đã được chuẩn hoá.
+            </p>
+          </article>
+        </div>
+      </section>
+      <section id="downlink">
+        <h2>04. TTS sinh theo chunk; loa phát theo clock của nó</h2>
+        <p class="section-intro">
+          D1 là request, D2 là stream audio trả về — hai chiều được vẽ tách
+          biệt. Adapter kiểm format/rate, đóng gói D3; D4 mới là đường mạng tới
+          client. D5 chuyển audio về rate AudioContext một lần, D6 render, C3
+          xác nhận phần thực sự đã phát.
+        </p>
+        <div class="diagram">
+          <svg
+            viewBox="0 0 1280 720"
+            role="img"
+            aria-labelledby="downlink-title downlink-desc"
+          >
+            <title id="downlink-title">
+              Downlink: sinh nhanh, phát đúng nhịp loa
+            </title>
+            <desc id="downlink-desc">
+              TTS trả audio về adapter, client queue hấp thụ khác biệt tốc độ,
+              worklet phát theo nhịp loa và báo số mẫu thực sự render để cắt
+              history.
+            </desc>
+            <defs>
+              <marker
+                id="downlink-arrow-muted"
+                markerWidth="8"
+                markerHeight="8"
+                refX="8"
+                refY="4"
+                orient="auto"
+              >
+                <path d="M0 0 L8 4 L0 8 Z" fill="#4f5d75" />
+              </marker>
+              <marker
+                id="downlink-arrow-accent"
+                markerWidth="8"
+                markerHeight="8"
+                refX="8"
+                refY="4"
+                orient="auto"
+              >
+                <path d="M0 0 L8 4 L0 8 Z" fill="#eb6c36" />
+              </marker>
+              <marker
+                id="downlink-arrow-link"
+                markerWidth="8"
+                markerHeight="8"
+                refX="8"
+                refY="4"
+                orient="auto"
+              >
+                <path d="M0 0 L8 4 L0 8 Z" fill="#2e5aa8" />
+              </marker>
+            </defs>
+            <rect width="1280" height="720" fill="#f5f5f5" />
+            <text x="40" y="52" class="caption" text-anchor="start">
+              04 / DOWNLINK + PLAYBACK ACK · D1–D6 / C3
+            </text>
+            <path
+              class="connector"
+              d="M280 128 H424"
+              fill="none"
+              stroke="#2e5aa8"
+              stroke-width="1.2"
+              marker-end="url(#downlink-arrow-link)"
+            />
+            <g class="edge-label">
+              <rect
+                x="336"
+                y="100"
+                width="32"
+                height="20"
+                rx="4"
+                fill="#f5f5f5"
+              />
+              <text x="352" y="112" class="edge" text-anchor="middle">D1</text>
+            </g>
+            <path
+              class="connector"
+              d="M424 168 H280"
+              fill="none"
+              stroke="#2e5aa8"
+              stroke-width="1.2"
+              marker-end="url(#downlink-arrow-link)"
+            />
+            <g class="edge-label">
+              <rect
+                x="336"
+                y="176"
+                width="32"
+                height="20"
+                rx="4"
+                fill="#f5f5f5"
+              />
+              <text x="352" y="188" class="edge" text-anchor="middle">D2</text>
+            </g>
+            <path
+              class="connector"
+              d="M160 192 V232 Q160 240 168 240 H872 Q880 240 880 232 V152 Q880 144 888 144 H952"
+              fill="none"
+              stroke="#4f5d75"
+              stroke-width="1.2"
+              marker-end="url(#downlink-arrow-muted)"
+            />
+            <g class="edge-label">
+              <rect
+                x="568"
+                y="212"
+                width="32"
+                height="20"
+                rx="4"
+                fill="#f5f5f5"
+              />
+              <text x="584" y="224" class="edge" text-anchor="middle">D3</text>
+            </g>
+            <path
+              class="connector"
+              d="M1072 192 V328"
+              fill="none"
+              stroke="#2e5aa8"
+              stroke-width="1.2"
+              marker-end="url(#downlink-arrow-link)"
+            />
+            <g class="edge-label">
+              <rect
+                x="1080"
+                y="256"
+                width="32"
+                height="20"
+                rx="4"
+                fill="#f5f5f5"
+              />
+              <text x="1096" y="268" class="edge" text-anchor="middle">D4</text>
+            </g>
+            <path
+              class="connector"
+              d="M952 376 H888"
+              fill="none"
+              stroke="#4f5d75"
+              stroke-width="1.2"
+              marker-end="url(#downlink-arrow-muted)"
+            />
+            <g class="edge-label">
+              <rect
+                x="904"
+                y="348"
+                width="32"
+                height="20"
+                rx="4"
+                fill="#f5f5f5"
+              />
+              <text x="920" y="360" class="edge" text-anchor="middle">D5</text>
+            </g>
+            <path
+              class="connector"
+              d="M648 376 H584"
+              fill="none"
+              stroke="#4f5d75"
+              stroke-width="1.2"
+              marker-end="url(#downlink-arrow-muted)"
+            />
+            <g class="edge-label">
+              <rect
+                x="596"
+                y="348"
+                width="40"
+                height="20"
+                rx="4"
+                fill="#f5f5f5"
+              />
+              <text x="616" y="360" class="edge" text-anchor="middle">F32</text>
+            </g>
+            <path
+              class="connector"
+              d="M344 376 H280"
+              fill="none"
+              stroke="#4f5d75"
+              stroke-width="1.2"
+              marker-end="url(#downlink-arrow-muted)"
+            />
+            <g class="edge-label">
+              <rect
+                x="296"
+                y="348"
+                width="32"
+                height="20"
+                rx="4"
+                fill="#f5f5f5"
+              />
+              <text x="312" y="360" class="edge" text-anchor="middle">D6</text>
+            </g>
+            <path
+              class="connector"
+              d="M464 424 V528"
+              fill="none"
+              stroke="#4f5d75"
+              stroke-width="1.2"
+              marker-end="url(#downlink-arrow-muted)"
+              stroke-dasharray="4,4"
+            />
+            <g class="edge-label">
+              <rect
+                x="472"
+                y="476"
+                width="32"
+                height="20"
+                rx="4"
+                fill="#f5f5f5"
+              />
+              <text x="488" y="488" class="edge" text-anchor="middle">C3</text>
+            </g>
+            <g class="node" data-name="TTS adapter">
+              <rect
+                x="40"
+                y="96"
+                width="240"
+                height="96"
+                rx="8"
+                fill="#f5f5f5"
+              />
+              <rect
+                class="box"
+                x="40"
+                y="96"
+                width="240"
+                height="96"
+                rx="8"
+                fill="#ffffff"
+                stroke="#2d3142"
+              />
+              <text x="52" y="116" class="tag" text-anchor="start">
+                SESSION
+              </text>
+              <text x="160.0" y="140" class="name" text-anchor="middle">
+                TTS adapter
+              </text>
+              <text x="160.0" y="160" class="sub" text-anchor="middle">
+                HTTP speech API hoặc SDK
+              </text>
+              <text x="160.0" y="180" class="tech" text-anchor="middle">
+                request handle / generation
+              </text>
+            </g>
+            <g class="node" data-name="VieNeu TTS">
+              <rect
+                x="424"
+                y="96"
+                width="320"
+                height="96"
+                rx="8"
+                fill="#f5f5f5"
+              />
+              <rect
+                class="box"
+                x="424"
+                y="96"
+                width="320"
+                height="96"
+                rx="8"
+                fill="#ffffff"
+                stroke="#2d3142"
+              />
+              <text x="436" y="116" class="tag" text-anchor="start">
+                BACKEND
+              </text>
+              <text x="584.0" y="140" class="name" text-anchor="middle">
+                VieNeu TTS
+              </text>
+              <text x="584.0" y="160" class="sub" text-anchor="middle">
+                HTTP s16le · SDK f32 · 48 kHz
+              </text>
+              <text x="584.0" y="180" class="sub" text-anchor="middle">
+                160 / 320 ms · X-Sample-Rate
+              </text>
+            </g>
+            <g class="node" data-name="Audio transport">
+              <rect
+                x="952"
+                y="96"
+                width="240"
+                height="96"
+                rx="8"
+                fill="#f5f5f5"
+              />
+              <rect
+                class="box"
+                x="952"
+                y="96"
+                width="240"
+                height="96"
+                rx="8"
+                fill="#ffffff"
+                stroke="#2d3142"
+              />
+              <text x="964" y="116" class="tag" text-anchor="start">
+                SESSION / CONNECTION
+              </text>
+              <text x="1072.0" y="140" class="name" text-anchor="middle">
+                Audio transport
+              </text>
+              <text x="1072.0" y="160" class="tech" text-anchor="middle">
+                audio.start(meta) + chunks
+              </text>
+              <text x="1072.0" y="180" class="tech" text-anchor="middle">
+                generation / chunk / sequence
+              </text>
+            </g>
+            <g class="node" data-name="Client queue giới hạn">
+              <rect
+                x="952"
+                y="328"
+                width="240"
+                height="96"
+                rx="8"
+                fill="#f5f5f5"
+              />
+              <rect
+                class="box"
+                x="952"
+                y="328"
+                width="240"
+                height="96"
+                rx="8"
+                fill="rgba(235,108,54,0.08)"
+                stroke="#eb6c36"
+              />
+              <text x="964" y="348" class="tag" text-anchor="start">
+                CLIENT
+              </text>
+              <text x="1072.0" y="372" class="name" text-anchor="middle">
+                Client queue giới hạn
+              </text>
+              <text x="1072.0" y="392" class="sub" text-anchor="middle">
+                pre-buffer 150–300 ms (GPU)
+              </text>
+              <text x="1072.0" y="412" class="sub" text-anchor="middle">
+                bỏ chunk khác generation
+              </text>
+            </g>
+            <g class="node" data-name="Decode + resample một lần">
+              <rect
+                x="648"
+                y="328"
+                width="240"
+                height="96"
+                rx="8"
+                fill="#f5f5f5"
+              />
+              <rect
+                class="box"
+                x="648"
+                y="328"
+                width="240"
+                height="96"
+                rx="8"
+                fill="#ffffff"
+                stroke="#2d3142"
+              />
+              <text x="660" y="348" class="tag" text-anchor="start">
+                CLIENT
+              </text>
+              <text x="768.0" y="372" class="name" text-anchor="middle">
+                Decode + resample một lần
+              </text>
+              <text x="768.0" y="392" class="tech" text-anchor="middle">
+                f32 @ AudioContext rate
+              </text>
+              <text x="768.0" y="412" class="sub" text-anchor="middle">
+                giữ state resampler
+              </text>
+            </g>
+            <g class="node" data-name="AudioWorklet playback">
+              <rect
+                x="344"
+                y="328"
+                width="240"
+                height="96"
+                rx="8"
+                fill="#f5f5f5"
+              />
+              <rect
+                class="box"
+                x="344"
+                y="328"
+                width="240"
+                height="96"
+                rx="8"
+                fill="#ffffff"
+                stroke="#2d3142"
+              />
+              <text x="356" y="348" class="tag" text-anchor="start">
+                CLIENT
+              </text>
+              <text x="464.0" y="372" class="name" text-anchor="middle">
+                AudioWorklet playback
+              </text>
+              <text x="464.0" y="392" class="tech" text-anchor="middle">
+                128 frame / quantum
+              </text>
+              <text x="464.0" y="412" class="sub" text-anchor="middle">
+                đếm mẫu thực sự render
+              </text>
+            </g>
+            <g class="node" data-name="Loa / audio device">
+              <rect
+                x="40"
+                y="328"
+                width="240"
+                height="96"
+                rx="8"
+                fill="#f5f5f5"
+              />
+              <rect
+                class="box"
+                x="40"
+                y="328"
+                width="240"
+                height="96"
+                rx="8"
+                fill="#ffffff"
+                stroke="#2d3142"
+              />
+              <text x="52" y="348" class="tag" text-anchor="start">
+                CLIENT HARDWARE
+              </text>
+              <text x="160.0" y="372" class="name" text-anchor="middle">
+                Loa / audio device
+              </text>
+              <text x="160.0" y="392" class="sub" text-anchor="middle">
+                tiêu thụ theo clock phần cứng
+              </text>
+              <text x="160.0" y="412" class="sub" text-anchor="middle">
+                ≈ 48 000 samples / second
+              </text>
+            </g>
+            <g class="node" data-name="Gateway: cắt history theo phần đã phát">
+              <rect
+                x="344"
+                y="528"
+                width="560"
+                height="96"
+                rx="8"
+                fill="#f5f5f5"
+              />
+              <rect
+                class="box"
+                x="344"
+                y="528"
+                width="560"
+                height="96"
+                rx="8"
+                fill="#ffffff"
+                stroke="#2d3142"
+              />
+              <text x="356" y="548" class="tag" text-anchor="start">
+                SESSION HISTORY
+              </text>
+              <text x="624.0" y="572" class="name" text-anchor="middle">
+                Gateway: cắt history theo phần đã phát
+              </text>
+              <text x="624.0" y="592" class="tech" text-anchor="middle">
+                audio.played(generation_id, played_sample_offset)
+              </text>
+              <text x="624.0" y="612" class="sub" text-anchor="middle">
+                offset theo rate của audio.start, không phải wall time
+              </text>
+            </g>
+            <line x1="40" y1="664" x2="1240" y2="664" stroke="#bfc0c0" />
+            <text x="40" y="696" class="legend" text-anchor="start">
+              Xanh = backend / mạng · Cam = bounded queue · Nét đứt C3 =
+              acknowledgement về gateway
+            </text>
+          </svg>
+        </div>
+        <div class="table-scroll">
+          <table>
+            <thead>
+              <tr>
+                <th>Cạnh</th>
+                <th>Đường đi</th>
+                <th>Payload / format</th>
+                <th>Framing / nhịp</th>
+                <th>State / owner / ID</th>
+                <th>Kết thúc / kiểm soát</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><code>D1</code></td>
+                <td>Adapter → TTS</td>
+                <td>POST /v1/audio/speech hoặc infer_stream</td>
+                <td>Một request / chunk_id</td>
+                <td>Adapter: request handle theo generation_id</td>
+                <td>HTTP 429 + Retry-After khi hết slot</td>
+              </tr>
+              <tr>
+                <td><code>D2</code></td>
+                <td>TTS → adapter</td>
+                <td>HTTP: s16le mono 48 kHz mặc định; SDK: f32 48 kHz</td>
+                <td>
+                  Codec frame 80 ms; đầu GPU 160 ms / CPU 320 ms; sau 320 ms
+                </td>
+                <td>TTS server: slot</td>
+                <td>
+                  Đọc X-Sample-Rate; HTTP body close / SSE done; server cancel
+                  best-effort
+                </td>
+              </tr>
+              <tr>
+                <td><code>D3</code></td>
+                <td>Adapter → transport</td>
+                <td>
+                  audio.start(format, sample_rate, channels) rồi audio.chunk
+                </td>
+                <td>Giữ rate gốc; có thể cắt lại 20–40 ms để pacing</td>
+                <td>Session: sequence + chunk_id → khoảng mẫu</td>
+                <td>response.cancel → ngừng gửi ngay</td>
+              </tr>
+              <tr>
+                <td><code>D4</code></td>
+                <td>Transport → client</td>
+                <td>WS binary + header; hoặc WebRTC Opus 48 kHz</td>
+                <td>WS theo rate gốc; RTP 20 ms</td>
+                <td>Kết nối</td>
+                <td>client.clear(generation_id) → flush</td>
+              </tr>
+              <tr>
+                <td><code>D5</code></td>
+                <td>Queue → resample → playback</td>
+                <td>PCM decode → f32 ở rate AudioContext</td>
+                <td>Chunk; resample một lần</td>
+                <td>Client: generation hiện tại + last_seq; trần queue ~2 s</td>
+                <td>
+                  Pre-buffer GPU 150–300 ms; CPU ≥300 ms; bỏ generation cũ
+                </td>
+              </tr>
+              <tr>
+                <td><code>D6</code></td>
+                <td>Worklet → loa</td>
+                <td>f32 · rate AudioContext</td>
+                <td>Quantum 128 frame</td>
+                <td>Client: mẫu thực sự đã render</td>
+                <td>
+                  Fade ngắn khi cắt; không dùng số mẫu đã tải thay số đã phát
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="cards" style="margin-top: 32px">
+          <article class="card">
+            <h3>Reblocker / accumulator / pacer</h3>
+            <p>
+              Reblocker ghép PCM thành 512 mẫu hoặc chunk ASR. Accumulator ghép
+              token thành mệnh đề, audio thành lượt. Pacer/splitter chuyển chunk
+              TTS tới dồn thành frame đều cho transport và playback.
+            </p>
+          </article>
+          <article class="card">
+            <h3>RTF &lt; 1 không xoá nhu cầu queue</h3>
+            <p>
+              TTS có thể sinh nhanh hơn thời gian thật, nhưng loa không tiêu thụ
+              nhanh hơn clock. Queue bounded hấp thụ chênh lệch; cần
+              pacing/backpressure, không giữ audio vô hạn.
+            </p>
+          </article>
+          <article class="card">
+            <h3>Đã tải ≠ đã phát</h3>
+            <p>
+              History phải phản ánh phần bot đã nói tới tai người dùng.
+              played_sample_offset loại im lặng khởi động / underrun và quy đổi
+              về rate audio.start.
+            </p>
+          </article>
+        </div>
+        <div class="callout">
+          <strong>48 kHz ở TTS không đồng nghĩa cả pipeline là 48 kHz.</strong>
+          <p>
+            Uplink 16 kHz phục vụ phân tích tiếng nói; gateway đề xuất giữ
+            downlink ở rate gốc. Hình này không mô tả đường HF s2s đã chuyển
+            output TTS về 16 kHz. Luôn đọc metadata thực tế, không suy rate từ
+            tên backend.
+          </p>
+        </div>
+      </section>
+      <section id="ids">
+        <h2>Đọc đúng định danh, giữ đúng vòng đời</h2>
+        <p class="section-intro">
+          Các contract và event trong minh hoạ là thiết kế Synthesis của chương,
+          không phải một schema vendor thống nhất.
+        </p>
+        <div class="table-scroll">
+          <table class="id-table">
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>Owner</th>
+                <th>Phạm vi / lúc tăng</th>
+                <th>Ngăn lỗi</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><code>session_id</code></td>
+                <td>Gateway lúc accept</td>
+                <td>Một kết nối; không đổi</td>
+                <td>Cách ly user / callback session cũ</td>
+              </tr>
+              <tr>
+                <td><code>turn_id</code></td>
+                <td>Turn owner</td>
+                <td>Lượt mới ở speech_start</td>
+                <td>Không ghép audio/transcript khác lượt</td>
+              </tr>
+              <tr>
+                <td><code>revision</code></td>
+                <td>Turn owner</td>
+                <td>Reopen hoặc final-pass sửa transcript</td>
+                <td>Không hành động theo bản transcript cũ</td>
+              </tr>
+              <tr>
+                <td><code>generation_id</code></td>
+                <td>Turn owner / Session</td>
+                <td>Response mới và mỗi cancel</td>
+                <td>Bỏ token/audio cũ sau barge-in</td>
+              </tr>
+              <tr>
+                <td><code>chunk_id</code></td>
+                <td>Clause chunker</td>
+                <td>Mỗi mệnh đề</td>
+                <td>Nối raw_text ↔ spoken_text ↔ audio</td>
+              </tr>
+              <tr>
+                <td><code>sequence</code></td>
+                <td>Bên gửi mỗi luồng</td>
+                <td>Mỗi message</td>
+                <td>Phát hiện mất / trùng / đảo thứ tự</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="two-col" style="margin-top: 32px">
+          <article>
+            <h3>Khi người dùng ngắt bot</h3>
+            <ol>
+              <li>
+                Owner / Session tăng generation: mọi công việc thuộc generation
+                cũ trở thành stale.
+              </li>
+              <li>
+                Huỷ stream LLM và request TTS; adapter ngừng gửi audio cũ. Huỷ
+                phía server TTS vẫn là best-effort.
+              </li>
+              <li>
+                Client nhận clear, flush queue và bỏ chunk tới muộn của
+                generation cũ; cắt playback với fade ngắn.
+              </li>
+              <li>
+                Client báo C3; gateway cắt history theo phần đã render, không
+                theo toàn bộ text đã sinh.
+              </li>
+            </ol>
+          </article>
+          <article>
+            <h3>Không lẫn hai timeline</h3>
+            <p>
+              <code>w</code> là chỉ số mẫu audio vào ở 16 kHz.
+              <code>played_sample_offset</code> là tiến độ audio ra theo rate
+              khai báo trong audio.start. Không so trực tiếp hai số này và không
+              dùng wall time thay cho số mẫu.
+            </p>
+            <p>
+              sequence phải được định nghĩa trong một luồng: reset theo
+              generation hoặc tăng liên tục theo Session. Chọn một policy và ghi
+              vào contract; không trộn hai cách.
+            </p>
+          </article>
+        </div>
+      </section>
+      <section id="sources">
+        <h2>Nguồn, cách đọc và giới hạn</h2>
+        <p>
+          <a href="chuong-16-dataflow-end-to-end-va-audio-contract.md"
+            >Chương 16 — Dataflow end-to-end và audio contract</a
+          >: §16.1 là nội dung chính; §16.2–16.4 bổ sung contract, state,
+          framing và nhịp; §16.8 bổ sung định danh/cancellation.
+        </p>
+        <ul>
+          <li>
+            <b>Synthesis:</b> kiến trúc gateway, single turn owner, event
+            schema, bounded queues và bố cục minh hoạ.
+          </li>
+          <li>
+            <b>Reported trong chương:</b> thông số Silero / VieNeu và hành vi
+            backend. Bản minh hoạ không chạy lại model, API hoặc benchmark,
+            không xác minh độc lập các claim vendor.
+          </li>
+          <li>
+            <b>Kiến thức nền / số học:</b> 320 mẫu = 20 ms @16 kHz, 512 mẫu = 32
+            ms; 2 560 mẫu = 160 ms. Không phải số đo latency end-to-end.
+          </li>
+          <li>
+            Pre-buffer, queue cap và chunk size là cấu hình / giá trị khởi điểm
+            của chương; không phải cam kết hiệu năng. AudioContext thực tế có
+            thể khác 48 kHz.
+          </li>
+          <li>
+            Hình 01 ghép các nhóm xử lý; hình 02 ghép decode+resample và
+            adapter+model; hình 04 ghép client decode+resample. Không bỏ cạnh
+            U0–U5v/s/a/t, C1–C3, T1–T3 hay D1–D6; bảng là lớp chi tiết đầy đủ.
+          </li>
+          <li>
+            Không mở rộng state machine, loss recovery, AEC hay credit protocol
+            thành sơ đồ riêng; chúng ngoài trọng tâm §16.1. Sơ đồ không khẳng
+            định AEC/NS/AGC luôn được mọi trình duyệt thực thi.
+          </li>
+        </ul>
+      </section>
+      <footer>
+        <p>
+          Deliverable trong outputs/ · Không sửa wiki hoặc nguồn Markdown ·
+          Static HTML + inline SVG + inline CSS.
+        </p>
+        <p>
+          Typography: Instrument Serif / Geist / Geist Mono qua Google Fonts;
+          khi offline hoặc font không tải được, dùng Georgia / Arial /
+          monospace. Không có JavaScript, hình ảnh ngoài hoặc export PNG/SVG
+          riêng.
+        </p>
+      </footer>
+    </main>
+  </body>
+</html>
