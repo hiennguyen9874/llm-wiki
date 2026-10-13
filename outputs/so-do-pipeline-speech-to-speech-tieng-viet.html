@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Kiến trúc speech-to-speech tiếng Việt</title>
+  <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&amp;family=Geist:wght@400;500;600&amp;family=Geist+Mono:wght@400;500;600&amp;display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --paper: #f5f5f5; --paper-2: #ececec; --ink: #2d3142;
+      --muted: #4f5d75; --soft: #7a8399; --rule: rgba(45,49,66,0.12);
+      --accent: #eb6c36; --accent-tint: rgba(235,108,54,0.08); --link: #2e5aa8;
+      --sans: 'Geist', system-ui, sans-serif;
+      --serif: 'Instrument Serif', Georgia, serif;
+      --mono: 'Geist Mono', ui-monospace, monospace;
+    }
+    body { background: var(--paper); color: var(--ink); font-family: var(--sans); padding: 48px 32px; }
+    main { max-width: 1280px; margin: auto; }
+    .eyebrow { font-family: var(--mono); font-size: 8px; letter-spacing: 0.16em; color: var(--muted); margin-bottom: 12px; text-transform: uppercase; }
+    h1 { font-family: var(--serif); font-size: 40px; line-height: 1.12; font-weight: 400; margin-bottom: 12px; }
+    .subtitle { font-size: 16px; color: var(--muted); line-height: 1.6; max-width: 960px; }
+    figure { margin-top: 24px; overflow-x: auto; }
+    svg { width: 100%; min-width: 960px; display: block; }
+    svg text { fill: var(--ink); font-family: var(--sans); font-size: 12px; }
+    svg .name { font-weight: 600; }
+    svg .major { font-size: 16px; font-weight: 600; }
+    svg .detail { fill: var(--muted); }
+    svg .tech { font-family: var(--mono); font-size: 8px; fill: var(--muted); }
+    svg .tag { font-family: var(--mono); font-size: 8px; letter-spacing: 0.08em; fill: var(--muted); }
+    svg .label { font-family: var(--mono); font-size: 8px; letter-spacing: 0.04em; fill: var(--muted); text-anchor: middle; }
+    svg .aside { font-family: var(--serif); font-size: 20px; font-style: italic; }
+    svg .wire { fill: none; stroke: var(--muted); stroke-width: 1.2; marker-end: url(#arrow); }
+    svg .api { fill: none; stroke: var(--link); stroke-width: 1.2; marker-end: url(#arrow-link); }
+    svg .return { stroke-dasharray: 4 4; }
+    .notes { border-top: 1px solid var(--rule); padding-top: 24px; display: grid; grid-template-columns: 1.4fr 1fr; gap: 40px; }
+    .notes h2 { font-size: 16px; font-weight: 600; margin-bottom: 12px; }
+    .notes p { font-size: 12px; line-height: 1.8; color: var(--muted); }
+    code { font-family: var(--mono); font-size: 0.95em; }
+    footer { margin-top: 24px; padding-top: 16px; border-top: 1px solid var(--rule); font-size: 12px; color: var(--muted); line-height: 1.6; }
+    footer a { color: var(--link); text-decoration-thickness: 1px; text-underline-offset: 4px; }
+    @media (max-width: 720px) { body { padding: 24px 16px; } h1 { font-size: 32px; } .notes { grid-template-columns: 1fr; gap: 24px; } }
+    @media print { body { padding: 0; } svg { min-width: 0; } figure { overflow: visible; } .notes, footer { break-inside: avoid; } }
+  </style>
+</head>
+<body>
+  <main>
+    <header>
+      <p class="eyebrow">Architecture · Production v1 · Default light · Doc-wide</p>
+      <h1>Speech-to-speech tiếng Việt</h1>
+      <p class="subtitle">Một owner cho lượt hội thoại. ASR và TTS là service thay thế được; cầu text → speech nằm trọn trong TTS.</p>
+    </header>
+    <figure aria-label="Sơ đồ kiến trúc production v1">
+      <svg viewBox="0 0 1280 720" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="so-do-pipeline-speech-to-speech-tieng-viet-title so-do-pipeline-speech-to-speech-tieng-viet-desc">
+        <title id="so-do-pipeline-speech-to-speech-tieng-viet-title">Kiến trúc speech-to-speech tiếng Việt</title>
+        <desc id="so-do-pipeline-speech-to-speech-tieng-viet-desc">Client kết nối WebRTC với orchestrator sau signaling qua edge; orchestrator sở hữu lượt, gọi ASR, LLM tự host trên host riêng và TTS chứa cầu text sang speech, chỉ phát audio sau commit và dùng coturn tự host khi cần relay.</desc>
+        <defs>
+          <marker id="arrow" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="#4f5d75"/></marker>
+          <marker id="arrow-accent" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="#eb6c36"/></marker>
+          <marker id="arrow-link" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="#2e5aa8"/></marker>
+        </defs>
+        <rect width="1280" height="720" fill="#f5f5f5"/>
+
+        <!-- Control plane is above media; edge never processes audio. -->
+        <path class="api" d="M128 240 V128 Q128 120 136 120 H272"/>
+        <path class="api" d="M464 160 V176 Q464 184 472 184 H688 Q696 184 696 192 V220"/>
+        <!-- Full-duplex media terminates at the orchestrator, not edge. -->
+        <path class="wire" d="M220 284 H536"/>
+        <path class="wire" d="M536 344 H220"/>
+        <!-- Fixed asr.v1 contract; v1 uses a unary turn-final request. -->
+        <path class="api" d="M800 220 V144 Q800 136 808 136 H936"/>
+        <path class="api return" d="M1000 192 V196 Q1000 204 992 204 H840 Q832 204 832 212 V220"/>
+        <!-- OpenAI-compatible streaming endpoint on a separate self-hosted host. -->
+        <path class="api" d="M856 268 H936"/>
+        <path class="api return" d="M936 316 H856"/>
+        <!-- One bidi tts.v1 stream per generation. -->
+        <path class="api" d="M744 420 V472 Q744 480 752 480 H936"/>
+        <path class="api return" d="M936 552 H688 Q680 552 680 544 V420"/>
+        <!-- Optional ICE relay, not a mandatory hop on the media path. -->
+        <path class="wire return" d="M128 384 V448"/>
+
+        <!-- Every label has an opaque mask and an 8px gap from its stroke. -->
+        <g>
+          <rect x="144" y="96" width="112" height="16" rx="4" fill="#f5f5f5"/>
+          <text class="label" x="200" y="108">HTTPS + TOKEN</text>
+          <rect x="532" y="160" width="144" height="16" rx="4" fill="#f5f5f5"/>
+          <text class="label" x="604" y="172">STICKY SESSION</text>
+          <rect x="316" y="260" width="128" height="16" rx="4" fill="#f5f5f5"/>
+          <text class="label" x="380" y="272">OPUS UPLINK</text>
+          <rect x="316" y="320" width="128" height="16" rx="4" fill="#f5f5f5"/>
+          <text class="label" x="380" y="332">OPUS 48k DOWN</text>
+          <rect x="824" y="112" width="104" height="16" rx="4" fill="#f5f5f5"/>
+          <text class="label" x="876" y="124">PCM16 16k</text>
+          <rect x="840" y="180" width="88" height="16" rx="4" fill="#f5f5f5"/>
+          <text class="label" x="884" y="192">FINAL + FLAGS</text>
+          <rect x="864" y="244" width="64" height="16" rx="4" fill="#f5f5f5"/>
+          <text class="label" x="896" y="256">PROMPT</text>
+          <rect x="864" y="292" width="64" height="16" rx="4" fill="#f5f5f5"/>
+          <text class="label" x="896" y="304">TEXT.DELTA</text>
+          <rect x="796" y="456" width="104" height="16" rx="4" fill="#f5f5f5"/>
+          <text class="label" x="848" y="468">TEXT.DELTA</text>
+          <rect x="780" y="528" width="120" height="16" rx="4" fill="#f5f5f5"/>
+          <text class="label" x="840" y="540">PCM + CHUNKS</text>
+          <rect x="136" y="404" width="104" height="16" rx="4" fill="#f5f5f5"/>
+          <text class="label" x="188" y="416">ICE / RELAY</text>
+        </g>
+
+        <!-- Seven nodes; API and GPU sidecars are collapsed into their service. -->
+        <g data-node="client">
+          <rect x="40" y="240" width="180" height="144" rx="8" fill="#f5f5f5"/>
+          <rect x="40" y="240" width="180" height="144" rx="8" fill="rgba(79,93,117,0.10)" stroke="#7a8399"/>
+          <rect x="56" y="252" width="40" height="16" rx="4" fill="none" stroke="#7a8399" stroke-width="0.8"/>
+          <text class="tag" x="64" y="264">WEB</text>
+          <text class="name" x="56" y="292">Client trình duyệt</text>
+          <text class="detail" x="56" y="316">Mic: AEC · NS · AGC</text>
+          <text class="detail" x="56" y="340">Caption · played offset</text>
+          <text class="tech" x="56" y="364">WebRTC + DataChannel</text>
+        </g>
+        <g data-node="edge">
+          <rect x="272" y="80" width="240" height="80" rx="8" fill="#ffffff" stroke="#2d3142"/>
+          <text class="name" x="288" y="108">Edge</text>
+          <text class="detail" x="288" y="128">TLS · auth · signaling · admission</text>
+          <text class="tech" x="288" y="148">Sticky routing / no audio processing</text>
+        </g>
+        <g data-node="orchestrator">
+          <rect x="536" y="220" width="320" height="200" rx="8" fill="#f5f5f5"/>
+          <rect x="536" y="220" width="320" height="200" rx="8" fill="rgba(235,108,54,0.08)" stroke="#eb6c36" stroke-width="1.2"/>
+          <rect x="552" y="232" width="104" height="16" rx="4" fill="none" stroke="#eb6c36" stroke-width="0.8"/>
+          <text class="tag" x="560" y="244">CPU · OWNER</text>
+          <text class="major" x="552" y="272">Orchestrator</text>
+          <text class="detail" x="552" y="296">SessionActor · một inbox / session</text>
+          <text class="detail" x="552" y="320">Silero VAD + Smart Turn ONNX CPU</text>
+          <text class="detail" x="552" y="344">Commit · reopen · barge-in · history</text>
+          <text class="detail" x="552" y="368">Output gate → pacer → Opus 48 kHz</text>
+          <text class="tech" x="552" y="392">turn_id / revision / generation_id</text>
+          <text class="tech" x="552" y="408">Ingress: 16k mono f32 / ring ≥ 10s / no torch</text>
+        </g>
+        <g data-node="asr">
+          <rect x="936" y="80" width="304" height="112" rx="8" fill="#ffffff" stroke="#2d3142"/>
+          <rect x="952" y="92" width="112" height="16" rx="4" fill="none" stroke="#bfc0c0" stroke-width="0.8"/>
+          <text class="tag" x="960" y="104">API + GPU ENGINE</text>
+          <text class="name" x="952" y="128">ASR service</text>
+          <text class="detail" x="952" y="148">Qwen3-ASR 0.6B / 1.7B · turn-final</text>
+          <text class="detail" x="952" y="168">Adapter · NFC · quality flags</text>
+          <text class="tech" x="952" y="184">gRPC asr.v1 / Describe + Recognize</text>
+        </g>
+        <g data-node="llm">
+          <rect x="936" y="248" width="304" height="112" rx="8" fill="#f5f5f5"/>
+          <rect x="936" y="248" width="304" height="112" rx="8" fill="rgba(45,49,66,0.03)" stroke="rgba(45,49,66,0.30)"/>
+          <rect x="952" y="260" width="96" height="16" rx="4" fill="none" stroke="#bfc0c0" stroke-width="0.8"/>
+          <text class="tag" x="960" y="272">SEPARATE HOST</text>
+          <text class="name" x="952" y="296">LLM tự host</text>
+          <text class="detail" x="952" y="316">Streaming text · tắt thinking</text>
+          <text class="detail" x="952" y="336">Prompt văn nói · hủy bằng đóng stream</text>
+          <text class="tech" x="952" y="352">OpenAI-compatible / SSE</text>
+        </g>
+        <g data-node="tts">
+          <rect x="936" y="440" width="304" height="160" rx="8" fill="#f5f5f5"/>
+          <rect x="936" y="440" width="304" height="160" rx="8" fill="rgba(235,108,54,0.08)" stroke="#eb6c36" stroke-width="1.2"/>
+          <rect x="952" y="452" width="136" height="16" rx="4" fill="none" stroke="#eb6c36" stroke-width="0.8"/>
+          <text class="tag" x="960" y="464">BRIDGE + GPU ENGINE</text>
+          <text class="major" x="952" y="488">TTS service</text>
+          <text class="detail" x="952" y="512">ThinkFilter → markup → clause chunker</text>
+          <text class="detail" x="952" y="532">Lexicon → VietNormalizer → tags</text>
+          <text class="detail" x="952" y="552">VieNeu v3 Turbo → resample → watermark</text>
+          <text class="tech" x="952" y="572">gRPC tts.v1 / 1 stream = 1 generation</text>
+          <text class="tech" x="952" y="588">PCM s16le 48k mono + text.chunk / segments</text>
+        </g>
+        <g data-node="coturn">
+          <rect x="40" y="448" width="180" height="112" rx="8" fill="#ffffff" stroke="#2d3142"/>
+          <text class="name" x="56" y="476">coturn tự host</text>
+          <text class="detail" x="56" y="500">TURN / STUN nội bộ</text>
+          <text class="detail" x="56" y="524">Relay khi cần</text>
+          <text class="tech" x="56" y="544">No public STUN / TURN</text>
+        </g>
+
+        <!-- Editorial annotations, not additional system nodes. -->
+        <text class="aside" x="280" y="472">Không phát trước commit.</text>
+        <text class="detail" x="280" y="496">L1 mặc định: ASR + LLM chạy trong grace;</text>
+        <text class="detail" x="280" y="516">TTS chỉ mở stream sau turn.commit.</text>
+        <text class="detail" x="280" y="544">Barge-in: nâng generation, clear, hủy stream.</text>
+        <text class="detail" x="280" y="564">History giữ phần display_text đã nghe.</text>
+        <text class="detail" x="280" y="596">Audio downlink không đi qua 16 kHz.</text>
+
+        <!-- Legend belongs below the diagram, with its own divider. -->
+        <line x1="40" y1="632" x2="1240" y2="632" stroke="#bfc0c0" stroke-width="0.8"/>
+        <text class="tech" x="40" y="656">LEGEND</text>
+        <rect x="128" y="644" width="16" height="16" rx="4" fill="rgba(79,93,117,0.10)" stroke="#7a8399"/>
+        <text class="detail" x="152" y="656">Client</text>
+        <rect x="240" y="644" width="16" height="16" rx="4" fill="#ffffff" stroke="#2d3142"/>
+        <text class="detail" x="264" y="656">Service</text>
+        <rect x="364" y="644" width="16" height="16" rx="4" fill="rgba(235,108,54,0.08)" stroke="#eb6c36"/>
+        <text class="detail" x="388" y="656">Trọng tâm thiết kế</text>
+        <rect x="552" y="644" width="16" height="16" rx="4" fill="rgba(45,49,66,0.03)" stroke="rgba(45,49,66,0.30)"/>
+        <text class="detail" x="576" y="656">Host riêng</text>
+        <line x1="696" y1="652" x2="728" y2="652" stroke="#2e5aa8" stroke-width="1.2"/>
+        <text class="detail" x="740" y="656">API / RPC</text>
+        <line x1="864" y1="652" x2="896" y2="652" stroke="#4f5d75" stroke-width="1.2"/>
+        <text class="detail" x="908" y="656">Media</text>
+        <line x1="1000" y1="652" x2="1032" y2="652" stroke="#4f5d75" stroke-width="1.2" stroke-dasharray="4 4"/>
+        <text class="detail" x="1044" y="656">Return / khi cần</text>
+        <text class="detail" x="40" y="688">Synthesis · Thiết kế đề xuất, chưa hiện thực hoặc đo · Engine và ngưỡng control chốt sau PoC</text>
+      </svg>
+    </figure>
+    <section class="notes" aria-label="Các bất biến và phạm vi rút gọn">
+      <div>
+        <h2>Thay engine, không sửa orchestrator</h2>
+        <p>Hợp đồng <code>asr.v1</code> / <code>tts.v1</code> + <code>Describe()</code>; registry version và checksum; voice profile, lexicon và consent cho clone. Engine được pin theo session. Release qua license gate, conformance, offline → shadow (chỉ ASR) → canary → promote; rollback bằng config.</p>
+      </div>
+      <div>
+        <h2>Đo ở client, giữ chất lượng dưới tải</h2>
+        <p>v2v mục tiêu mềm: P50 ≤ 1.5 s · P95 ≤ 2.5 s. Output gate thường quyết định latency. Warmup trước ready; queue có giới hạn, backpressure và fallback từ cache. Log content-free, trace nối theo turn / revision / generation / chunk.</p>
+      </div>
+    </section>
+    <footer>
+      <p>Nguồn: <a href="thiet-ke-pipeline-speech-to-speech-tieng-viet.md">Thiết kế pipeline speech-to-speech tiếng Việt</a> · v2, 2026-10-14 · §§4–9.</p>
+      <p>Rút gọn: API và engine sidecar gộp trong mỗi service; registry và observability mô tả bằng ghi chú. Không vẽ các mở rộng P2/P3: speaker lock, denoise, streaming/two-pass ASR, L2, SFU và telephony. Giả định WebRTC kết thúc tại orchestrator; played offset WebRTC là ước lượng bảo thủ, cần kiểm chứng.</p>
+      <p>VieNeu là baseline đề xuất, có license mâu thuẫn; deployment thương mại phải chặn đến khi làm rõ.</p>
+      <p>Default light: white-smoke / jet-black / atomic-tangerine. HTML + SVG inline, không JavaScript; Google Fonts tùy kết nối, có fallback hệ thống.</p>
+    </footer>
+  </main>
+</body>
+</html>
