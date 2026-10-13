@@ -1,746 +1,1223 @@
-# Lựa chọn và thiết kế pipeline speech-to-speech tiếng Việt
+# Thiết kế pipeline speech-to-speech tiếng Việt (bản production)
 
-> **Loại tài liệu:** bài viết tổng hợp (deliverable trong `outputs/`, không phải tri thức canonical).
-> **Ngày:** 2026-10-07.
-> **Cơ sở:** chỉ dùng wiki đã compile. Điểm xuất phát là [Vietnamese Speech Pipeline Design](../wiki/vietnamese-speech-pipeline-design.md). Tôi đọc trước các trang tổng hợp: các trang `type: Synthesis` và các trang mà `wiki/log.md` ghi là *Answered*/*Reconciled*. Sau đó mới đọc tới các concept về model, runtime và control.
-> **Cập nhật 2026-10-07 (sau khi ingest tài liệu con, theo [review tài liệu thiếu](review-missing-document.md)):** đọc thêm các trang wiki mới về [Smart Turn v3.2](../wiki/smart-turn.md), các trang con của [HF s2s](../wiki/speech-to-speech-cli-and-defaults.md) và [NeMo-Speech.cpp HTTP API](../wiki/nemo-speech-http-api.md), [VieNeu OpenAI API](../wiki/vieneu-tts-openai-speech-api.md). Đã sửa: số liệu Smart Turn tiếng Việt (§5.3), cách nối Nemotron với HF s2s (§5.4, §5.7), hợp đồng audio TTS (§2 nguyên tắc 4), playback buffer (§8.3), mâu thuẫn mở (§11), giới hạn (§13). Phần còn lại giữ nguyên.
-> **Phạm vi bằng chứng:** không mở `raw/` (trừ phần cập nhật nêu trên, chỉ đọc qua wiki), không cài đặt, không chạy inference, không đo benchmark. Mọi con số trong bài là của vendor/tác giả/report (**Reported**). Mọi lựa chọn và cấu hình đề xuất là suy luận tổng hợp (**Synthesis**). Không có thành phần nào đã được kiểm chứng end-to-end trên tiếng Việt.
+> **Loại tài liệu:** thiết kế kiến trúc, là deliverable trong `outputs/`, không phải tri thức canonical của wiki.
+> **Phiên bản:** v2, ngày 2026-10-14. Bản này thay v1 (2026-10-07). V1 tập trung vào chọn model và lộ trình MVP; v2 là thiết kế để chạy production. Danh sách thay đổi và bảng ánh xạ số mục cũ sang mới nằm ở [Phụ lục A](#phụ-lục-a-thay-đổi-so-với-v1-và-ánh-xạ-số-mục). Các chương 8, 12, 16–20 đang trỏ vào số mục của v1, và số mục chính được giữ nguyên nghĩa.
+> **Đầu vào:**
+> - **Yêu cầu** lấy từ [Spec PoC Phase 1](spec-poc-speech-to-speech-tieng-viet.md): mục tiêu, ràng buộc, quyết định Q1–Q30. Chỉ lấy yêu cầu. Kiến trúc PoC (HF s2s `serve` chạy model in-process) **không** được lấy làm kiến trúc production.
+> - **Lựa chọn thành phần** lấy từ [ASR/STT realtime](lua-chon-va-thiet-ke-asr-stt-tieng-viet-realtime.md), [TTS realtime](lua-chon-va-thiet-ke-tts-tieng-viet-realtime.md), [survey VAD/turn/denoise](survey-vad-turn-detection-denoise-tieng-viet.md) và [survey cầu text → speech](survey-cau-text-to-speech-tien-hau-xu-ly-sau-llm.md).
+> - **Bất biến khi hiện thực** lấy từ các mục "lưu ý khi thiết kế" của [Chương 8](chuong-08-transport-mang-cho-audio-realtime.md), [12](chuong-12-llm-trong-vong-hoi-thoai-noi.md), [16](chuong-16-dataflow-end-to-end-va-audio-contract.md), [17](chuong-17-turn-taking-event-barge-in-va-cancellation.md), [18](chuong-18-lap-trinh-async-va-streaming-cho-pipeline-audio.md), [19](chuong-19-cau-text-to-speech-chunker-normalizer-lexicon.md) và [20](chuong-20-latency-dinh-nghia-critical-path-do-luong.md).
+>
+> **Nhãn bằng chứng:**
+> - **Reported:** nguồn tự công bố, chưa kiểm chứng.
+> - **Observed:** thấy trong tài liệu hoặc code đã capture, chưa chạy.
+> - **Synthesis:** suy luận và đề xuất của tài liệu này.
+> - **Unverified:** chưa có sự kiện kiểm chứng.
+> - **Chốt sau PoC:** tham số hoặc lựa chọn phải lấy từ số đo Phase 1 của spec, không tự đặt.
+>
+> **Phạm vi bằng chứng:** chưa có thành phần nào được cài đặt, chạy hay đo. Kiến trúc, API, schema và pseudo-code trong bài đều là **Synthesis**. Mọi con số về model và runtime là **Reported** và giữ nguyên nhãn của tài liệu nguồn.
 
 ---
 
 ## 0. TL;DR
 
-1. **Với tiếng Việt, dùng cascade chứ không dùng end-to-end.** Hai model full-duplex speech-to-speech mã nguồn mở có trong wiki ([PersonaPlex 7B](../wiki/personaplex-7b-v1.md) và [NemotronLabs VoiceChat 11B](../wiki/nvidia-nemotronlabs-voicechat-11b.md)) đều khai báo `language: en`. Qwen3-Omni nhận được giọng nói tiếng Việt nhưng không phát được giọng nói tiếng Việt. Còn lại là con đường cascade **VAD → turn detection → ASR → LLM → TTS**, được bọc bởi một gateway có trạng thái theo từng session.
-2. **Kiến trúc đề xuất:**
-   `Client (AEC) → Silero VAD → endpoint manager (Smart Turn + timeout) → ASR → validity/hallucination gate → [LLM bên ngoài, giao diện OpenAI-compatible] → clause chunker + Vietnamese normalizer → TTS streaming → bounded playback`.
-   Barge-in dùng `generation_id`.
-3. **Chọn model theo nhu cầu, không theo bảng xếp hạng:**
-   - MVP ít tích hợp nhất: faster-whisper `large-v3-turbo` với `language="vi"` + [VieNeu-TTS v3 Turbo](../wiki/vieneu-tts-v3-turbo.md), chạy trên Pipecat hoặc [HF speech-to-speech](../wiki/speech-to-speech-pipeline.md) (**Profile A**).
-   - Cần partial transcript sớm: [Nemotron 3.5 ASR Streaming](../wiki/nemotron-3.5-asr-streaming-0.6b.md) với chunk 160–320 ms (**Profile B**).
-   - Cần độ chính xác cao: [Qwen3-ASR](../wiki/qwen3-asr-family.md) single-pass (**C**), hoặc two-pass có điều kiện (**D**).
-   - CPU/edge: **E**. Ràng buộc license thương mại chặt: **F**.
-4. **Ba điều quyết định chất lượng cảm nhận** hơn việc chọn model:
-   - Endpointing đúng: không cắt ngang lời user, không chờ quá lâu.
-   - Cầu text→speech tiếng Việt: chunker theo mệnh đề, normalizer số/tiền/ngày/viết tắt, lexicon cho tên riêng.
-   - Cancellation sạch khi barge-in.
-5. **Chưa có số đo cùng điều kiện** về WER, MOS hay độ trễ voice-to-voice tiếng Việt trên cùng một stack. Mọi lựa chọn trong bài là thứ tự thử nghiệm, kèm các gate đo lường cần vượt qua.
+1. **Hệ thống là cascade gồm năm khối chạy riêng và một LLM bên ngoài.**
+
+   ```text
+   client (WebRTC) → edge → orchestrator → asr-service
+                                         → LLM (host riêng)
+                                         → tts-service → orchestrator → client
+   ```
+
+   Model nặng không bao giờ chạy trong process của orchestrator.
+
+2. **Orchestrator là owner duy nhất của lượt hội thoại.** Mỗi session là một actor có một inbox. Actor này sở hữu `turn_id`, `revision`, `generation_id`, output gate, barge-in và history. VAD (Silero) và Smart Turn v3.2 chạy ngay trong orchestrator vì chúng chạy được bằng ONNX trên CPU, cần độ trễ theo từng frame, và phải nằm cạnh owner. Orchestrator không import torch.
+
+3. **`asr-service` có một hợp đồng cố định:** `Describe`, `StreamingRecognize`, `Recognize`. Bên trong là các engine adapter.
+   - Production v1 chạy **turn-final**. Engine mặc định là Qwen3-ASR (0.6B hoặc 1.7B, **Chốt sau PoC**).
+   - Có thể thêm streaming (Nemotron 3.5 qua NeMo-Speech.cpp) hoặc two-pass mà không phải đổi hợp đồng.
+   - Lý do không bắt đầu bằng streaming: streaming ASR không vượt qua được output gate (§8.1).
+
+4. **`tts-service` gộp cầu text → speech và engine TTS thành một service, đúng theo yêu cầu.** Service nhận **luồng text delta** từ LLM, rồi tự chạy chuỗi:
+
+   ```text
+   ThinkFilter → lọc markup → clause chunker → lexicon/normalizer tiếng Việt
+              → engine → resample → watermark
+   ```
+
+   Đầu ra gồm audio, kèm `text.chunk` (`display_text`, `spoken_text`, `segments`, version). Orchestrator dùng `text.chunk` để làm caption và để cắt history theo phần người dùng đã nghe.
+   - Lý do gộp: toàn bộ chính sách đọc (`max_chars`, code-switch, lexicon, tag hợp lệ, vùng miền) phụ thuộc vào engine. Gộp lại thì đổi TTS chỉ là đổi một khối.
+   - Engine baseline là VieNeu v3 Turbo, chạy dưới dạng sidecar `api-gpu`.
+
+5. **Có thể thay ASR hoặc TTS mà không sửa orchestrator.** Các cơ chế:
+   - hợp đồng gRPC cố định;
+   - capability descriptor (`Describe`) khai báo audio contract và text contract;
+   - engine registry có version và checksum;
+   - voice profile riêng theo engine;
+   - bộ conformance test;
+   - quy trình offline → shadow → canary → promote, với rollback bằng config.
+
+6. **Khác PoC ở bảy điểm:**
+   - Không chạy HF s2s trong production.
+   - Không bị trần 16 kHz: TTS 48 kHz đi thẳng ra Opus 48 kHz.
+   - History cắt thật theo played offset; HF s2s chỉ có `truncate` no-op.
+   - Có admission control và backpressure theo từng cạnh.
+   - Chạy nhiều session.
+   - Có timeline đo theo lượt, join theo ID.
+   - Có degradation ladder khi một service lỗi.
+
+7. **Latency thường bị quyết định bởi output gate, không phải tốc độ model.** Thiết kế có ba mức speculation (L0, L1, L2) chọn bằng config. SLO lấy từ spec: v2v đo ở client P50 ≤ 1.5 s, P95 ≤ 2.5 s (mục tiêu mềm). Các đòn bẩy xếp theo thứ tự ở §8.3.
+
+8. **Một số tham số chưa chốt, phải lấy từ PoC:** engine ASR/TTS mặc định, biến thể Smart Turn, grace và max wait, ngưỡng barge-in, `first_min` của chunker, `max_streams` của VieNeu, mức speculation, pre-buffer phía client. Danh sách đầy đủ ở §12.2.
 
 ---
 
-## 1. Cách đọc bài này
+## 1. Yêu cầu
 
-### 1.1 Nguồn đã dùng
+Yêu cầu dưới đây chuyển từ spec PoC sang ngữ cảnh production. Cột "Nguồn" ghi Q (quyết định trong spec) hoặc mục của spec. Chỗ nào production mở rộng hơn spec thì ghi **Synthesis**.
 
-| Lớp | Trang wiki | Vai trò trong bài |
+### 1.1 Yêu cầu chức năng
+
+| ID | Yêu cầu | Nguồn |
 |---|---|---|
-| Thiết kế tổng hợp | [Vietnamese Speech Pipeline Design](../wiki/vietnamese-speech-pipeline-design.md) | Khung chính: kiến trúc, 6 profile, control contracts, gates |
-| Answered/Synthesis | [Vietnamese Realtime ASR Selection](../wiki/vietnamese-realtime-asr-selection.md) | Phân loại realtime ASR, shortlist tiếng Việt, single-pass và two-pass |
-| Answered/Reconciled/Synthesis | [Vietnamese Realtime TTS Selection](../wiki/vietnamese-realtime-tts-selection.md) | Shortlist TTS tiếng Việt; phân biệt streaming audio-output và text-input |
-| Answered/Synthesis | [So sánh công cụ triển khai speech](../wiki/speech-deployment-tools-comparison.md) | Phân tầng model, runtime, server, streaming policy, orchestration |
-| Answered/Reconciled/Synthesis | [Phân nhóm ASR/STT và shortlist realtime](../wiki/realtime-asr-selection.md) | Trục kiến trúc ASR, dải kích thước, các nhãn native/buffered/turn-final |
-| Answered/Reconciled | [ASR/STT Model Survey](../wiki/asr-stt-model-survey.md), [TTS Model Survey](../wiki/tts-model-survey.md) | Catalog rộng, phần Streaming & latency, Selection guide |
-| Report pipeline | [Vietnamese Realtime Voice Agent Stack](../wiki/vietnamese-realtime-voice-agent-stack.md), [Cascaded Voice-Agent Blueprint](../wiki/cascaded-voice-agent-blueprint.md), [Community STT-LLM-TTS Wiring](../wiki/community-stt-llm-tts-pipeline.md) | Ngân sách latency/VRAM, chunker, normalizer, cấu trúc service |
-| Control | [Barge-in & Echo](../wiki/voice-agent-barge-in-and-echo-handling.md), [Turn Detection](../wiki/turn-detection-models.md), [Speech Enhancement Before ASR](../wiki/speech-enhancement-before-asr.md), [Whisper Hallucination Mitigation](../wiki/whisper-hallucination-mitigation.md), [Silero VAD](../wiki/silero-vad.md) | Tham số khởi điểm cho VAD/turn/barge-in/filter |
-| Orchestration | [HF Speech-to-Speech](../wiki/speech-to-speech-pipeline.md), [Voice Agent Frameworks](../wiki/voice-agent-frameworks.md) | Turn tracker, Realtime API subset, Pipecat composition |
-| End-to-end | [PersonaPlex 7B](../wiki/personaplex-7b-v1.md), [NemotronLabs VoiceChat 11B](../wiki/nvidia-nemotronlabs-voicechat-11b.md) | Cơ sở cho quyết định cascade so với full-duplex |
+| FR1 | Hội thoại giọng nói tiếng Việt full-duplex: người dùng nói, bot trả lời bằng giọng nói, người dùng ngắt lời được (barge-in) | Q7, Q12, Q17 |
+| FR2 | Client là trình duyệt, nối qua WebRTC; mic có AEC, NS, AGC | Q7, spec §2 |
+| FR3 | Endpointing tự nhiên: không cắt khi người dùng ngập ngừng, không chờ quá lâu | spec G4 |
+| FR4 | LLM là endpoint OpenAI-compatible có sẵn, streaming text, tắt thinking | Q5, Q9, Q23, spec §3.2 |
+| FR5 | Đọc đúng số, tiền, ngày, giờ, viết tắt, tên riêng; system prompt cho văn nói cộng normalizer và lexicon | Q25, spec §3.5 |
+| FR6 | Giọng preset (Bắc, Nam) và giọng clone từ reference **có consent** | Q15 |
+| FR7 | **Thay được ASR và TTS** bằng config, A/B mỗi lần một thành phần | Q8, Q28; mở rộng cho production (**Synthesis**) |
+| FR8 | Nhiều session đồng thời | spec loại khỏi PoC; production cần (**Synthesis**) |
+| FR9 | Có điểm cắm cho: partial/caption, two-pass, speaker lock, denoise nhánh VAD, telephony 8 kHz | spec §8 backlog |
 
-### 1.2 Nhãn bằng chứng
+### 1.2 Yêu cầu phi chức năng
 
-- **Reported:** nguồn khẳng định, chưa ai kiểm tra độc lập. Gồm card, README, paper và các AI report.
-- **Observed:** đã thấy trực tiếp trong tài liệu, ví dụ một field, một API hay một bảng.
-- **Synthesis:** suy luận của người viết từ các bằng chứng được dẫn.
-- **Unverified:** chưa có sự kiện kiểm chứng nào. Điều này không có nghĩa là sai.
+| ID | Yêu cầu | Giá trị | Nguồn |
+|---|---|---|---|
+| NFR1 | Latency voice-to-voice, đo ở client (D1) | P50 ≤ 1.5 s, P95 ≤ 2.5 s, mục tiêu mềm, báo theo loại lượt | spec §1 (Q24) |
+| NFR2 | Privacy | Self-host toàn bộ. Không gửi audio hoặc text ra ngoài, kể cả STUN công cộng | Q6, spec §3.1 |
+| NFR3 | Log | Mặc định không chứa nội dung (content-free). Transcript chỉ ghi khi opt-in | spec §2 |
+| NFR4 | Phần cứng speech | Mỗi node speech có 1 GPU 24 GB. Scale bằng cách thêm node | Q4; mở rộng (**Synthesis**) |
+| NFR5 | License | PoC được dùng model NC. Production phải qua license gate theo `license_profile` của từng deployment | Q3; §3 nguyên tắc 7 |
+| NFR6 | Cách ly môi trường | Mỗi model service có process và environment riêng | spec §2 |
+| NFR7 | Khả năng quan sát | Timeline theo lượt có các mốc soft-end, ASR, LLM, commit, TTS, playback; join theo ID | spec §5.3 |
+| NFR8 | Vận hành | Warmup xong mới báo ready. Có healthcheck, admission, backpressure, degradation | **Synthesis**, Chương 18 |
 
-Lưu ý quan trọng về độ tin cậy: khá nhiều tham số control đến từ hai **AI report thứ cấp** (bản Claude và bản ChatGPT trong `raw/`). Các tham số này gồm ngưỡng Smart Turn, barge-in, denoise, bộ lọc Whisper, latency budget và so sánh framework. Hãy coi chúng là giá trị khởi điểm để tune, không phải default đã được chứng minh.
+### 1.3 Giả định và ngoài phạm vi
+
+- LLM nằm trên host riêng. Thiết kế chỉ phụ thuộc vào `base_url`, tên model, streaming và khả năng hủy (R6 của spec).
+- Agent phục vụ một người dùng mỗi session, không có diarization trong critical path (§7.5).
+- Ngoài phạm vi v1: telephony 8 kHz (đã chừa ingress adapter), meeting nhiều người nói, model end-to-end speech-in/speech-out, tool có side effect (đã chừa hook, §5.7.6).
+
+### 1.4 Khác biệt giữa PoC và production
+
+| Chủ đề | PoC (spec Phase 1) | Production (tài liệu này) | Lý do |
+|---|---|---|---|
+| Orchestration | HF s2s `serve`, ASR Qwen chạy in-process | Orchestrator riêng, ASR và TTS là service | Cách ly, scale và thay thế; tránh các giới hạn ở §2 AD2 |
+| Trần băng thông | 16 kHz (R10, **Reported**) | 48 kHz đầu cuối | `--tts openai` của s2s ép về 16 kHz `int16` |
+| History khi bị ngắt | `conversation.item.truncate` là no-op | Cắt theo played offset và `segments` | Chương 17 §17.9, Chương 19 §19.5.3 |
+| Cầu text → speech | Proxy mỏng hoặc rule tối thiểu (R7) | Nằm trong `tts-service`, có version, có test L1/L2/L3 | Yêu cầu gộp và Chương 19 |
+| Chia text cho TTS | `--stream_batch_sentences` theo câu | Clause chunker trên luồng delta | R11 |
+| Session | Một người dùng | Nhiều session, có admission | FR8 |
+| Đo | Log s2s cộng `tts-proxy`/`llm-tap` | Timeline theo lượt, có ID và `t_mono_ns` ở mọi event | NFR7 |
+| ICE | Đặt ICE server trỏ vào LAN | TURN/STUN tự host | NFR2 |
 
 ---
 
-## 2. Quyết định nền: cascade hay end-to-end?
+## 2. Quyết định kiến trúc
 
-### 2.1 Hai họ kiến trúc
+Mỗi quyết định ghi lý do và phương án đã loại. Tất cả là **Synthesis**, trừ phần bằng chứng có nhãn riêng.
 
-| Tiêu chí | Cascade VAD→ASR→LLM→TTS | End-to-end full-duplex (speech-in/speech-out) |
-|---|---|---|
-| Đại diện trong wiki | HF s2s, Pipecat stack, RealtimeVoiceChat, blueprint | PersonaPlex 7B (Moshi-based), NemotronLabs VoiceChat 11B |
-| Turn-taking | Gateway hoặc tracker quyết định, dựa trên VAD và turn detector | Model tự xử lý: nghe và nói đồng thời, chồng lời, barge-in |
-| Latency được báo cáo | ~0.7–1.2 s voice-to-voice (ước lượng của report, chưa đo) | PersonaPlex: smooth turn-taking 0.170, interruption 0.240 (FullDuplexBench). VoiceChat 11B: ~448 ms turn-taking, 480 ms interruption |
-| Tiếng Việt | Ghép được từ ASR và TTS có hỗ trợ `vi` | Cả hai card khai báo `language: en` |
-| Kiểm soát, RAG, tool | Dễ: LLM là text, thay được từng thành phần | Khó hơn. VoiceChat 11B có tool calling, nhưng đổi thành phần thì không làm được |
-| Phần cứng | Từ CPU/edge đến multi-GPU | PersonaPlex thử trên A100 80 GB. VoiceChat 11B chạy vLLM trên A100/H100/H200/B100/B200/RTX-6000 |
-
-Thông tin về hai model end-to-end là **Reported** từ card. AI report về stack tiếng Việt cũng kết luận rằng omni/end-to-end "chưa thay được cascade cho tiếng Việt": khó kiểm soát, khó gắn RAG/tool, khó thay từng thành phần, và thiếu giọng nói đầu ra tiếng Việt. Report còn ghi Qwen3-Omni-30B-A3B nhận 19 ngôn ngữ giọng nói đầu vào (có vi) nhưng chỉ phát 10 ngôn ngữ (không có vi).
-
-**Kết luận (Synthesis):** chọn cascade. Đây không phải vì cascade "tốt hơn" về bản chất. Lý do là trong snapshot của wiki, chỉ cascade ghép được một vòng tiếng Việt hoàn chỉnh. Sau này, nếu xuất hiện một model full-duplex hỗ trợ tiếng Việt có bằng chứng, hãy đánh giá lại bằng cùng các gate ở Mục 10.
-
-### 2.2 Một biến thể lai đáng biết
-
-HF speech-to-speech có chế độ **direct audio input**: `--stt none --llm_backend chat-completions`. Ở chế độ này, mỗi đoạn VAD được gửi thẳng tới một LLM nhận audio (**Reported**). Cộng đồng cũng có người bỏ hẳn tầng STT bằng một Omni model trong llama.cpp, đổi lại phải dùng LLM nhỏ hơn (**Reported**, anecdote). Với tiếng Việt, khả năng hiểu giọng nói của LLM audio phải được đo riêng. Hướng này chỉ nên coi là thử nghiệm (**Synthesis**).
+| ID | Quyết định | Lý do | Phương án loại |
+|---|---|---|---|
+| **AD1** | **Cascade** VAD → turn → ASR → LLM → TTS | Hai model full-duplex mở trong wiki ([PersonaPlex 7B](../wiki/personaplex-7b-v1.md), [VoiceChat 11B](../wiki/nvidia-nemotronlabs-voicechat-11b.md)) chỉ khai `language: en`. Qwen3-Omni nhận tiếng Việt nhưng không phát ra tiếng Việt (**Reported**). Cascade cho phép kiểm soát, thay từng thành phần, và gắn RAG/tool | End-to-end. Đánh giá lại bằng các gate ở §10 khi có model full-duplex hỗ trợ tiếng Việt |
+| **AD2** | **Tự viết orchestrator.** HF s2s chỉ dùng làm harness đo trong PoC và làm tham chiếu cho turn tracker | HF s2s có các giới hạn production sau (**Reported/Observed**): TTS bị ép về 16 kHz; `truncate` là no-op; text gửi TTS chia theo câu và không có hook normalizer (R7, R11); ASR Qwen chạy in-process; không có admission dùng chung; LLM proxy không có auth; `compact_history` tạo một lời gọi LLM ẩn; handler `omnivoice` không có `tts_ttfa`. Phần điều khiển (owner, generation floor, output hold) là phần lõi cần đúng tuyệt đối theo Chương 17–18 | Chạy HF s2s trong production. Pipecat được phép làm khung hiện thực **nếu** qua được bộ test ở §10 (cách gom câu, cách lưu context và khả năng hủy giữa câu của Pipecat vẫn **Unverified**) |
+| **AD3** | Model ASR/TTS chạy **ngoài process** của orchestrator, mỗi model một owner process | Cách ly torch/CUDA/numpy (HF s2s từng xung đột DeepFilterNet `numpy<2` với Pocket TTS, **Reported**). Scale riêng từng service. Thay engine không phải restart session | Load model trong gateway worker |
+| **AD4** | **Cầu text → speech nằm trong `tts-service`.** Service nhận luồng text delta | Chính sách đọc gắn với engine và voice (Chương 19 §A.7). Gộp lại thì đổi engine là đổi cả bộ chính sách. Chunker vẫn nằm ở consumer của LLM stream, vì orchestrator chuyển delta tới ngay khi nhận | Đặt chunker và normalizer trong orchestrator; đặt proxy normalizer đứng riêng |
+| **AD5** | **Endpointing speculative + revision** (triết lý của HF s2s), chọn bằng config | Ở cùng mức im lặng, cách này giảm cắt nhầm lời người dùng. ASR và LLM chạy trong thời gian grace (Chương 20 §A.2). Commit cứng (grace = 0) vẫn là một chế độ config | Trộn tham số HF (64 ms, 800 ms, 2 s) với tham số của report (200–300 ms, 1.2–1.5 s) |
+| **AD6** | **Downlink giữ sample rate gốc:** TTS 48 kHz s16le → Opus 48 kHz. Mỗi chiều resample tối đa một lần | Bỏ trần 16 kHz. VieNeu sinh 48 kHz (**Reported**) | Đưa mọi thứ về 16 kHz như HF s2s |
+| **AD7** | Production dùng WebRTC. WebSocket PCM chỉ dùng cho dev và harness test. Cả hai nằm sau interface `Transport` | WebRTC có AEC, jitter buffer, chịu mất gói (**Reported**). WebSocket dễ replay và dễ debug | Chỉ dùng WebSocket |
+| **AD8** | RPC nội bộ dùng **gRPC bidi streaming** (protobuf, deadline, hủy lan truyền). Engine sidecar nói API gốc của nó, chỉ trên localhost trong pod | Hủy stream là tín hiệu cancel chuẩn. Có deadline. Schema có version | REST/SSE cho mọi cạnh, khi đó hủy chỉ là đóng kết nối và không có cách xác nhận |
+| **AD9** | **v1 dùng ASR turn-final.** Streaming ASR là tùy chọn có gate | Với output gate 800 ms đến 2 s, ASR sau soft-end thường nằm gọn trong grace. Streaming chỉ có lợi khi timeline cho thấy lượt bị giới hạn bởi compute, hoặc khi cần caption (Chương 20 §B, spec §8) | Bắt đầu bằng Nemotron streaming. Cầu NeMo realtime WS ↔ client chưa chắc ghép được (spec §8) |
+| **AD10** | Tự host toàn bộ, kể cả TURN/STUN | NFR2 | STUN của Google (mặc định của demo HF, **Reported**) |
 
 ---
 
 ## 3. Nguyên tắc thiết kế
 
-Các nguyên tắc dưới đây là **Synthesis** rút ra từ các trang tổng hợp.
+Nguyên tắc 1–7 giữ nguyên số thứ tự và nghĩa như v1 (các chương khác đang trỏ vào). Nguyên tắc 8–12 được thêm cho production. Tất cả là **Synthesis**.
 
-1. **Tách năm tầng:** model, inference runtime, API server, streaming policy, orchestration. Lý do: một runtime hỗ trợ GGUF không có nghĩa là mọi checkpoint đều streaming. Một endpoint "OpenAI-compatible" không có nghĩa là drop-in. Và license của runtime không thay cho license của weights.
-2. **Mỗi quyết định turn chỉ có một owner.** Gateway (hoặc turn tracker của framework) là nơi duy nhất quyết định close, reopen và commit một lượt. VAD, ASR và TTS chỉ cung cấp tín hiệu.
-3. **ASR nghe audio sau AEC, không qua enhancement.** Denoise chỉ dùng cho nhánh VAD/barge-in, cho tới khi A/B trên WER tiếng Việt chứng minh điều ngược lại.
-4. **Mỗi backend khai báo rõ audio contract:** sample rate, dtype, số kênh, framing, cách cancel. VieNeu SDK trả `float32` 48 kHz, còn HTTP trả `s16le` 48 kHz (mặc định, có thể xin `sample_rate` 24000/16000/8000 qua field của request). Trong HF s2s, `--tts openai` nhận PCM16 thô theo `--openai_tts_sample_rate` rồi chuyển dần về khối 16 kHz mono `int16`, nên trần băng thông của cả pipeline là 16 kHz. MOSS Local có codec stereo nhưng ví dụ stream lại là mono. Higgs dùng SSE base64 WAV.
-5. **Không hành động trên văn bản chưa commit.** Partial dùng cho caption và cho tính toán speculative. Side effect (tool call, phát âm thanh đã cam kết) chỉ chạy sau `turn.commit`.
-6. **Không cộng các con số khác loại.** Chunk size của ASR không phải độ trễ ra văn bản ổn định. TTFT 92 ms của Qwen không phải độ trễ từ mic. TTFA 115 ms của VieNeu không phải độ trễ voice-to-voice. RTF của batch không phải RTF của một stream.
-7. **License là hard gate,** áp dụng trước mọi điểm chất lượng.
+1. **Tách năm tầng:** model, inference runtime, API server, streaming policy, orchestration. Runtime có hỗ trợ GGUF không có nghĩa là checkpoint stream được. Route "OpenAI-compatible" không có nghĩa là thay thẳng được. License của runtime không thay cho license của weights.
+2. **Mỗi quyết định về lượt chỉ có một owner:** session actor trong orchestrator. Trong code chỉ có đúng một chỗ commit, một chỗ reopen và một chỗ tăng `generation_id`. VAD, Smart Turn, ASR, LLM, TTS, client và timer chỉ gửi sự kiện vào inbox. Endpointing riêng của ASR engine (ví dụ NeMo-Speech.cpp EOU) phải tắt, hoặc chỉ được dùng làm tín hiệu.
+3. **ASR nghe audio đã qua AEC, chưa qua enhancement.** Denoise chỉ dùng cho nhánh VAD/barge-in, cho đến khi có A/B trên WER tiếng Việt chứng minh điều ngược lại. Bằng chứng hiện tại mâu thuẫn (§11).
+4. **Mỗi backend tự khai báo hợp đồng qua `Describe`.** Audio contract gồm sample rate, dtype, số kênh, framing và cách hủy. Text contract gồm `max_chars`, code-switch, phân biệt hoa thường, tham số bị bỏ qua và inline tag hợp lệ. Client của hợp đồng không được hard-code các giá trị này.
+5. **Không hành động trên văn bản chưa commit.** Phát audio là ranh giới cứng: không chunk audio nào ra client trước `turn.commit` của đúng `(turn_id, revision)`. Partial chỉ dùng cho caption và cho tính toán speculative. Ghi history và tool có side effect chỉ chạy sau commit.
+6. **Không cộng các con số khác loại.** Chunk size của ASR không phải độ trễ ra text. TTFT của LLM không phải độ trễ từ mic. TTFA của TTS không phải v2v. RTF batch không phải RTF một stream. Mỗi metric được đặt tên theo cặp mốc đầu và cuối.
+7. **License là hard gate,** xét trước mọi điểm chất lượng. Production đọc `license_profile` (`research` hoặc `commercial`) của deployment. Registry chặn engine không đạt profile.
+8. **Service sở hữu model.** Orchestrator chỉ chạy model nhỏ bằng ONNX Runtime trên CPU (VAD, Smart Turn). Mọi thứ cần torch, vLLM hay CUDA nằm trong service riêng.
+9. **Hợp đồng trước, engine sau.** Orchestrator chỉ biết hợp đồng `asr.v1` và `tts.v1`. Mọi chi tiết riêng của engine (sample rate, endpoint, quirk, lexicon, filter hallucination) nằm trong adapter của service.
+10. **Mọi queue đều có giới hạn, mỗi cạnh có policy riêng** (§9.6). Hủy là best-effort, còn lọc theo `generation_id` là bắt buộc ở mọi chỗ dữ liệu đổi chủ. Hủy task không đồng nghĩa với dừng compute, nên phải đo cả hai.
+11. **History là thứ người dùng đã nghe.** History chỉ lưu `display_text`, không lưu `spoken_text`, và cắt theo played offset một cách bảo thủ.
+12. **Quan sát được mà không chứa nội dung.** Mọi event mang `session_id`, `turn_id`, `revision`, `generation_id`, `chunk_id`, `t_mono_ns`. Log vận hành chỉ ghi độ dài, loại và version, không ghi text hay audio.
 
 ---
 
 ## 4. Kiến trúc tổng thể
 
+### 4.1 Sơ đồ
+
 ```text
-Client: mic + AEC (getUserMedia echoCancellation) + capture timestamp
-  │  WebRTC Opus (production) / WebSocket PCM16 16 kHz mono (MVP, LAN)
-  ▼
-Gateway (state theo từng session): decode → resample 16 kHz → ring buffer 20 ms
-  ├─► [denoise nhẹ, tùy chọn] → Silero VAD (512 samples/32 ms)
-  │        → Smart Turn v3 + fallback timeout → endpoint / barge-in policy
-  ├─► audio AEC gốc (không enhance) → ASR streaming state  (Profile B/D)
-  └─► turn audio buffer (+ pre-roll 200–300 ms) → ASR turn-final / final-pass
-  ▼
-transcript revisions → validity gate
-   (confidence, hallucination filter, entity checks, speaker lock tùy chọn)
-  ▼
-turn.commit → LLM bên ngoài (OpenAI-compatible, streaming text, cancel được)
-  ▼
-clause chunker → Vietnamese spoken-text normalizer + lexicon
-  ▼
-TTS router/adapter (/v1/audio/speech hoặc SDK) → audio.start(meta) + audio.chunk
-  ▼
-bounded client queue (AudioWorklet) → playback → audio.played(offset)
-        ▲
-        └─ barge-in ⇒ generation_id++ ⇒ cancel LLM + TTS, flush queue,
-           client.clear, lưu phần đã phát vào history kèm tag [bị ngắt]
+┌──────────────────────────── Client (web app) ────────────────────────────────┐
+│ getUserMedia{echoCancellation, noiseSuppression, autoGainControl}            │
+│ WebRTC: audio track lên (Opus) ─┐   ┌─ audio track xuống (Opus 48 kHz)       │
+│ DataChannel: event điều khiển, caption, audio.stats/audio.played, lỗi       │
+└──────────────────────────────────┼───┼───────────────────────────────────────┘
+          HTTPS signaling + token  │   │  SRTP/UDP (TURN tự host khi cần)
+┌──────────────────────────────────▼───┴───────────────────────────────────────┐
+│ edge: TLS, xác thực, signaling, admission theo session, route sticky          │
+└──────────────────────────────────┬───────────────────────────────────────────┘
+┌──────────────────────────────────▼──────── orchestrator (CPU, N session/process)┐
+│ Transport (WebRTC | WS) → Opus decode → 16 kHz mono f32 → ring ≥ 10 s           │
+│   ├─ VAD consumer: Silero ONNX (512 mẫu) ─┐                                     │
+│   ├─ Smart Turn v3.2 ONNX (executor riêng)─┼─► SessionActor (owner, 1 inbox)    │
+│   └─ barge-in gate (+ speaker lock, P2) ──┘    turn/revision/generation         │
+│ SessionActor: response scope, held output, history, validity gate               │
+│ LLM client (SSE, aclosing, deadline) ───────────────────────────► LLM (host riêng)│
+│ Downlink pacer (lịch tuyệt đối, credit) → Opus 48 kHz encode → track            │
+└───────┬────────────────────────────────────────────┬──────────────────────────────┘
+        │ gRPC asr.v1                                 │ gRPC tts.v1
+        │ (PCM16 16 kHz / audio của lượt)             │ ↓ text.delta   ↑ text.chunk + audio 48 kHz
+┌───────▼──────────────────────────┐   ┌──────────────▼────────────────────────────────────────┐
+│ asr-service                      │   │ tts-service                                           │
+│  API + session/stream mgmt       │   │  API + bridge cho mỗi generation:                     │
+│  post: NFC, punct (nếu cần),     │   │  ThinkFilter → markup → ClauseChunker →               │
+│        filter, quality_flags     │   │  pre-lexicon → VietNormalizer → post-lexicon → tag    │
+│  engine adapter                  │   │  engine adapter → resample (soxr) → watermark         │
+│  ┌ engine sidecar (GPU) ┐        │   │  ┌ engine sidecar (GPU) ┐  fixed-phrase cache         │
+│  │ vLLM qwen-asr /      │        │   │  │ VieNeu api-gpu /     │                             │
+│  │ NeMo-Speech.cpp ...  │        │   │  │ VoxCPM2 ...          │                             │
+│  └──────────────────────┘        │   │  └──────────────────────┘                             │
+└──────────────────────────────────┘   └───────────────────────────────────────────────────────┘
+  registry (git, read-only mount): model manifest + checksum, voice registry, lexicon, text policy
+  observability: OpenTelemetry collector → metrics/traces; log content-free; corpus opt-in tách riêng
+  coturn (TURN/STUN tự host)
 ```
 
-Sơ đồ này là **Synthesis**, chưa phải một implementation đã test. Nó kết hợp kiến trúc trong [Vietnamese Realtime Voice Agent Stack](../wiki/vietnamese-realtime-voice-agent-stack.md) (**Reported**) với các chỉnh sửa trong [Vietnamese Speech Pipeline Design](../wiki/vietnamese-speech-pipeline-design.md).
+### 4.2 Các service
+
+| Service | Trách nhiệm | Chứa | Phần cứng | Trạng thái | Đơn vị scale |
+|---|---|---|---|---|---|
+| **edge** | TLS, xác thực, signaling WebRTC, admission (trần số session), route session tới orchestrator (sticky), cấp ICE config | Reverse proxy cộng signaling API | CPU | Không có state | Ngang |
+| **coturn** | TURN/STUN tự host | coturn | CPU, mạng | Không có state | Ngang |
+| **orchestrator** | Transport, ingress audio, VAD, Smart Turn, owner của lượt, barge-in, LLM client, history, downlink pacer, telemetry theo lượt | onnxruntime (CPU), Opus, resampler; **không có** torch | CPU | State session trong RAM | Theo process, session sticky |
+| **asr-service** | Nhận dạng tiếng Việt theo hợp đồng `asr.v1`; hậu xử lý; gắn cờ chất lượng | API process cộng engine sidecar | GPU (engine), CPU (API) | State stream trong lúc gRPC stream còn mở | Theo pool engine |
+| **tts-service** | Cầu text → speech cộng tổng hợp giọng theo hợp đồng `tts.v1` | API/bridge process cộng engine sidecar, fixed-phrase cache | GPU (engine), CPU (bridge) | State theo stream (một generation) | Theo pool engine |
+| **speaker-service** (P2, tùy chọn) | Embedding người nói cho speaker lock | ECAPA/CAM++ ONNX | CPU hoặc GPU | Không có state (embedding giữ ở orchestrator) | Ngang |
+| **registry** | Manifest model (revision, sha256), voice registry (kèm consent), lexicon, text policy, routing thí nghiệm | Repo git, mount read-only | — | Có version | — |
+| **observability** | Metrics, trace, log content-free | OTel collector, Prometheus, Grafana (hoặc tương đương) | CPU | — | — |
+| **LLM** (ngoài phạm vi) | Sinh text streaming | Endpoint OpenAI-compatible có sẵn | Host riêng | — | — |
+
+### 4.3 Ranh giới trách nhiệm
+
+| Service | Làm | **Không** làm |
+|---|---|---|
+| orchestrator | Quyết định lượt, commit, cancel, history, policy validity, chọn engine theo session | Load model torch/vLLM. Tự normalize text đọc. Tự resample TTS |
+| asr-service | Trả partial/final kèm `quality_flags`. Filter đặc thù engine (blacklist Whisper, …) | Quyết định hết lượt. Quyết định bỏ lượt. Gọi LLM |
+| tts-service | Biến luồng text thành audio cộng alignment. Chính sách đọc theo engine/voice | Quyết định commit hoặc phát. Ghi history. Tự sinh câu đệm khi không được yêu cầu. Định tuyến backend theo từng chunk |
+| edge | Xác thực, admission, route | Xử lý audio |
+
+### 4.4 Thành phần đặt ở đâu
+
+| Thành phần | Đặt ở | Runtime | Lý do (**Synthesis**) |
+|---|---|---|---|
+| Silero VAD v5/v6 | orchestrator | onnxruntime CPU, state riêng mỗi session | Dưới 1 ms mỗi khối (**Reported**), chạy theo frame, phải ở cạnh owner. Mất một hop mạng mỗi 32 ms là vô lý |
+| Smart Turn v3.2 (CPU int8) | orchestrator, **executor riêng** | onnxruntime CPU | Mất 10 ms đến hơn 100 ms (**Reported**), nên không được gọi trên event loop (Chương 18) |
+| Smart Turn bản GPU fp32 | `turn-service` riêng (chỉ khi chọn bản GPU) | onnxruntime CUDA | Không cho orchestrator phụ thuộc CUDA |
+| Denoise nhánh VAD (RNNoise / DeepFilterNet 3) | orchestrator (RNNoise, thư viện C) hoặc process riêng (DeepFilterNet, vì xung đột `numpy<2`) | CPU | Mặc định tắt (§5.2) |
+| Opus, WebRTC, resample uplink | orchestrator (transport) hoặc SFU | CPU | Chỉ resample một lần: 48 kHz → 16 kHz |
+| Model ASR | asr-service, engine sidecar | vLLM / NeMo-Speech.cpp / CTranslate2 / sherpa-onnx | Cách ly môi trường, scale theo GPU |
+| Punctuation restoration (nếu engine không có) | asr-service | ONNX | Phụ thuộc engine |
+| Filter hallucination (Whisper) | asr-service adapter | CPU | Phụ thuộc engine |
+| Policy hợp lệ, hỏi lại | orchestrator | — | Là quyết định về lượt |
+| LLM client, prompt, history | orchestrator | httpx/SSE async | Thuộc về owner |
+| ThinkFilter, chunker, VietNormalizer, lexicon, whitelist tag, LID | tts-service bridge | Python thuần (VietNormalizer khoảng 0.6 ms/lần, **Reported**) | Chính sách gắn với engine (AD4) |
+| Model TTS | tts-service, engine sidecar | VieNeu Docker `api-gpu`, … | Cách ly, slot, warmup |
+| Resample downlink, watermark | tts-service | soxr | Orchestrator nhận đúng format nó yêu cầu |
+| Opus encode downlink, fade khi cắt | orchestrator pacer | CPU | Pacer là nơi cắt audio |
+| Speaker embedding | speaker-service (P2) | ONNX | Tùy chọn |
+
+**Khi nào tách thêm service:** chỉ khi đo được nhu cầu.
+- Smart Turn tách thành `turn-service` khi chọn bản GPU, hoặc khi executor làm loop lag P99 > 5 ms.
+- VAD batch hóa giữa các session khi loop lag tăng theo số session. Chương 18 ước khoảng 30 session thì một loop bão hòa (**Synthesis**).
+- Punctuation restoration tách ra khi nhiều engine ASR dùng chung.
 
 ---
 
-## 5. Lựa chọn theo từng tầng
+## 5. Các tầng xử lý
 
-### 5.1 Transport, AEC và tiền xử lý
+### 5.1 Transport, AEC và client
 
-| Lựa chọn | Khi nào dùng | Ghi chú |
+**Client.** Production dùng web app riêng, không dùng browser demo của HF.
+- Gọi `getUserMedia` với `echoCancellation`, `noiseSuppression`, `autoGainControl` (AEC tầng 2, **Reported**).
+- Gửi audio lên bằng track WebRTC. Nhận audio xuống bằng track WebRTC, Opus 48 kHz.
+- DataChannel dùng cho event điều khiển (§7.2).
+- Mic chỉ hoạt động trên HTTPS hoặc `localhost` (**Reported**).
+
+**Đường đi của audio.**
+- Lên: Opus → decode 48 kHz → resample **một lần** xuống 16 kHz mono f32 trong orchestrator. Frame transport 20 ms, reblock thành 512 mẫu cho Silero.
+- Xuống: tts-service trả PCM s16le 48 kHz mono → pacer → Opus 48 kHz. Không đi qua 16 kHz (AD6).
+
+**Kết thúc WebRTC ở đâu** (**Synthesis**, phải đánh giá lúc hiện thực):
+
+| Phương án | Khi nào | Ghi chú |
 |---|---|---|
-| **WebRTC** (Opus, AEC, jitter buffer, chịu packet loss) | Production qua Internet, mobile, barge-in từ xa | Cần AEC khi dùng loa ngoài (**Reported**) |
-| **WebSocket PCM16 16 kHz mono**, binary frame 20–32 ms | MVP, LAN, loopback trên edge | Gửi binary, không dùng base64. Client phải có playback queue (AudioWorklet) và biết sample rate của từng backend, ví dụ VieNeu 48 kHz (**Reported**) |
-| **Denoise RNNoise / DeepFilterNet 3** | Chỉ nhánh VAD/barge-in | Bằng chứng mâu thuẫn, xem Mục 11 (**Reported**) |
+| WebRTC kết thúc ngay trong orchestrator | LAN, nội bộ, số session vừa phải | Đơn giản nhất. Orchestrator cần cổng UDP và TURN |
+| SFU tự host (ví dụ LiveKit server), orchestrator vào phòng như một participant | Internet hoặc mobile, nhiều session, sau này có SIP | SFU lo ICE, TURN và congestion. Turn detector của LiveKit không có tiếng Việt (**Reported**) nên không dùng nó |
 
-Ba tầng xử lý echo (**Reported**, theo [Barge-in & Echo](../wiki/voice-agent-barge-in-and-echo-handling.md)):
+Cả hai nằm sau interface `Transport`, nên đổi phương án không làm thay đổi phần ASR, LLM hay TTS.
 
-1. **Đơn giản:** tắt mic khi bot nói. Không có barge-in.
-2. **Tốt hơn:** AEC của trình duyệt (`echoCancellation`, `noiseSuppression`, `autoGainControl`). VAD vẫn chạy để phát hiện ngắt lời.
-3. **Production:** AEC ở tầng WebRTC, cộng với so sánh audio bot vừa phát với tín hiệu mic.
+**ICE.** Chỉ trỏ tới coturn tự host. Không dùng STUN công cộng (NFR2).
 
-Lỗi thường gặp nhất khi mới làm là **lệch sample rate**: mic 48 kHz, Whisper cần 16 kHz, TTS xuất 22–24–48 kHz. Cộng đồng ghi nhận "9/10 lần" transcript bị rác là do lệch sample rate chứ không phải do model (**Reported**, anecdote). Với telephony 8 kHz: decode đúng rồi mới resample. Upsample không khôi phục được thông tin đã mất (**Synthesis**).
+**AEC tầng 3** (P2) là kiểm tra echo phía server. Khi bot đang nói mà VAD bật, quick-ASR của đoạn đó được so với text bot đang phát. Nếu trùng thì coi là echo (**Reported** là ý tưởng, **Synthesis** là cách đặt).
+
+**WebSocket transport (dev/harness).** PCM16 16 kHz lên. PCM 48 kHz xuống, mỗi frame có header `(generation_id, sequence)`. Client có `floor` và AudioWorklet đếm số mẫu đã render để báo `audio.played` chính xác. Transport này dùng để replay audio cố định trong test (§10).
 
 ### 5.2 VAD
 
-| | Silero VAD v5/v6 (pick) | Thay thế |
-|---|---|---|
-| Đặc điểm | ONNX, MIT, ~2 MB, <1 ms/chunk trên CPU, cửa sổ cố định 512 samples ở 16 kHz | TEN VAD: Apache "with conditions", hop 10/16 ms. FireRed Stream-VAD: extra `fireredvad` trong HF s2s |
-| Giới hạn | Chỉ phát hiện speech, không hiểu end-of-turn | TEN và Silero có claim mâu thuẫn (Mục 11) |
-
-Tham số khởi điểm (**Reported** từ AI report, cần tune):
-
-- `load_silero_vad(onnx=True)`. Mỗi session một `VADIterator`, gọi `reset_states()` khi hết lượt.
-- `threshold=0.5`. Nâng lên 0.6–0.7 khi nền rất ồn.
-- `min_silence_duration_ms` 200–300 (khi có Smart Turn phía sau).
-- `speech_pad_ms` 100–200, để giữ phụ âm đầu và cuối. Điều này quan trọng với thanh điệu tiếng Việt.
-- `min_speech_duration_ms` 250.
-- **Ngưỡng thích ứng:** đo VAD prob và RMS trong 2–3 s đầu, trước khi user nói. Nếu xác suất trung bình của nền > 0.3, nâng threshold lên 0.65–0.7 và nâng luôn gate barge-in.
-
-### 5.3 Turn detection (semantic endpointing)
-
-VAD chỉ biết "đang im lặng". Turn detector trả lời câu hỏi "user đã nói xong chưa".
-
-| Model | Tiếng Việt | Kích thước / latency | License |
-|---|---|---|---|
-| **Pipecat Smart Turn v3.2** (pick) | Có, nhưng là ngôn ngữ yếu nhất trong 23 ngôn ngữ. Benchmark vendor, 1.004 mẫu vi: GPU fp32 accuracy 82.47%, FPR 9.56%, FNR 7.97%; **CPU int8 (bản HF s2s tải mặc định)** accuracy 79.38%, FPR 8.86%, FNR 11.75% | ~8M params, CPU int8 8 MB, GPU fp32 32 MB. 10 ms trên một số CPU, dưới 100 ms trên đa số cloud, ~65 ms Pipecat Cloud | BSD-2 |
-| Namo (community, `dangvansam`) | Có, do tác giả tự đo | ~200 MB (bản VN), 4–36 ms | Plugin LiveKit, chưa có benchmark độc lập |
-| LiveKit Turn Detector | **Không** (14 ngôn ngữ) | ~25 ms | License riêng của LiveKit |
-
-Smart Turn là **Reported** từ [capture gốc của vendor](../wiki/smart-turn.md) (README + model card + benchmark CPU/GPU). Namo và LiveKit vẫn là **Reported** qua AI report, chưa có nguồn gốc. Số 81.27% / FP 14.84% / FN 3.88% trong AI report **không khớp** capture v3.2; chưa rõ report mô tả bản nào, xem §11.
-
-**Hệ quả thiết kế:**
-
-- FPR 8.86–9.56% nghĩa là cỡ **1/10** quyết định "hết lượt" có thể đến khi user vẫn đang nói (đọc thô, **Synthesis**). Bản CPU còn bỏ sót nhiều hơn (FNR 11.75% so với 7.97%), nên bản GPU fp32 đáng thử nếu có GPU rảnh. Vì vậy luôn kèm timeout dự phòng; với HF s2s thì đó là `--smart_turn_max_wait_ms` (mặc định 2 s), còn thiết kế gateway tự viết dùng 1.2–1.5 s.
-- Nếu tỷ lệ false-interruption tiếng Việt vẫn > 10%, thay sang Namo hoặc một model fine-tune (ngưỡng thay thế, **Reported**).
-- Khi không có semantic detector, dùng 500–800 ms im lặng, tune theo tốc độ nói (**Synthesis**, theo blueprint).
-
-**Tham chiếu triển khai cụ thể nhất** là turn tracker của HF s2s (**Reported**, từ README gốc):
-
-- Các trạng thái: `LISTENING → SOFT_ENDED → ANSWERING → CLOSED`.
-- Turn được đánh giá là complete: chạy STT/LLM ngay, kèm speculative reopen 800 ms trước khi commit output.
-- Turn được đánh giá là incomplete: chờ 600 ms rồi mới chạy. Output bị gate bởi max wait 2 s.
-- User nói tiếp: turn mở lại thành một revision mới, công việc chưa commit bị bỏ.
-
-Các default này đã được đối chiếu với argument class của HF s2s ([CLI and Defaults](../wiki/speech-to-speech-cli-and-defaults.md), **Observed** trong code): `--thresh 0.6`, `--min_silence_ms 64`, `--min_speech_ms 384`, `--speech_pad_ms 500`, `--speculative_reopen_ms 800`, `--unanswered_reopen_ms 7000`, `--smart_turn_threshold 0.5`, `--smart_turn_incomplete_delay_ms 600`, `--smart_turn_max_wait_ms 2000`. Smart Turn mặc định tải checkpoint v3.2 **CPU**. Lưu ý `min_speech_ms=384`: đoạn nói ngắn hơn ngưỡng này (lệnh một âm tiết) có thể không thành lượt (**Synthesis**, cần thử).
-
-Đây là thiết kế "speculative + revision", khác thiết kế "commit cứng sau timeout" của report. Không nên chép default 64 ms/800 ms/2 s của HF sang cùng bảng tham số với Silero 200–300 ms + 1.2–1.5 s, vì hai triết lý control khác nhau (**Synthesis**).
-
-### 5.4 ASR tiếng Việt
-
-#### 5.4.1 Ba nghĩa khác nhau của "realtime"
-
-Theo [Vietnamese Realtime ASR Selection](../wiki/vietnamese-realtime-asr-selection.md) (**Synthesis**):
-
-1. **Native/stateful streaming:** audio vào liên tục, giữ encoder/decoder cache. Ví dụ: Nemotron 3.5.
-2. **Buffered/policy streaming:** nhận audio liên tục nhưng chờ đủ context và stable prefix rồi mới commit. Ví dụ: Qwen3-ASR (paper dùng chunk 2 s), hoặc Whisper bọc bởi WhisperLiveKit. Bọc model bằng WebSocket/SSE không biến nó thành causal encoder.
-3. **Turn-final:** nhận cả câu sau endpoint rồi decode nhanh. Ví dụ: Whisper, PhoWhisper, ChunkFormer large, Cohere.
-
-RTF < 1 chỉ có nghĩa là theo kịp luồng audio, chưa đủ để có văn bản dùng được sớm. Độ trễ ra văn bản dùng được gồm cả chunk accumulation, lookahead, compute, scheduling, transport và commit policy.
-
-#### 5.4.2 Shortlist
-
-Các con số là **Reported**. Vai trò là **Synthesis**.
-
-| Candidate | Kiểu | Bằng chứng tiếng Việt | Runtime | License |
-|---|---|---|---|---|
-| **Nemotron 3.5** 600M | Native cache-aware RNNT, chunk 80–1120 ms | FLEURS vi-VN WER (LangID): 13.41 / 12.87 / 12.29 / 11.78 / 11.18 tại 80 / 160 / 320 / 560 / 1120 ms | NeMo script; [NeMo-Speech.cpp](../wiki/nemo-speech-cpp.md) Q8 GGUF (HTTP/WS/C SDK); Transformers ≥5.13 | OpenMDW-1.1 (card ghi commercial-ready) |
-| **Qwen3-ASR** 1.7B / 0.6B | Buffered; mạnh ở turn-final | Offline FLEURS-vi 5.55 / 8.52; MLC-SLM-vi 14.92 / 17.67 | `qwen-asr` + vLLM; WLK windowed | Apache-2.0 |
-| **Whisper large-v3-turbo** 809M | Turn-final (live captions cần WLK) | Chưa có điểm vi đo cùng điều kiện cho turbo. Whisper large-v3: 16.44% WER trung bình trên 3 tập vi (VietASR, qua report) | [Faster-Whisper](../wiki/faster-whisper.md) CT2 fp16/`int8_float16` | MIT |
-| [PhoWhisper](../wiki/phowhisper.md) medium/large | Turn-final | large: VIVOS 4.67, CMV 8.14 | Convert sang CT2, cần test parity | BSD-3 |
-| [ChunkFormer](../wiki/chunkformer-vietnamese.md) RNNT large 113M | Final-pass | VIVOS 2.49, CMV 5.18, VLSP2020 T1/T2 12.75/20.47 | ONNX CPU/GPU | CC-BY-4.0 (bản CTC 110M là NC) |
-| Fun-ASR-MLT 800M / Cohere Transcribe 2B | Challenger turn-final | Có vi trong language list, chưa có điểm | FunASR; Transformers/vLLM | Apache-2.0 |
-| [ZipFormer 30M](../wiki/zipformer-30m-vietnamese.md) | CPU, nghiên cứu | VLSP2020 T1 12.29 | sherpa-onnx | **CC-BY-NC-ND**, loại khỏi dùng thương mại |
-
-**Bẫy khi so sánh:**
-
-- Đừng đặt Qwen 5.55 lên trước Nemotron 12.29. Hai con số khác giao thức (offline so với streaming, có LangID) và khác chunk.
-- Đừng so VIVOS với FLEURS. Hai tập khác nhau, normalizer cũng khác.
-- TTFT 92 ms của Qwen 0.6B đo ở concurrency 1, với input ~2 phút có sẵn. Ở concurrency 128, TTFT là 3210 ms (P95 6195 ms). Không con số nào trong đó là độ trễ từ mic.
-- Nemotron phải đặt `vi-VN` tường minh, vì pipeline Transformers mặc định là `en-US`. Trong NeMo-Speech.cpp, HTTP `/v1/audio/transcriptions` có field `language` ([HTTP API](../wiki/nemo-speech-http-api.md)); giá trị `vi` hay `vi-VN` nào được nhận vẫn phải thử. Trong HF s2s, handler `--stt nemotron-streaming` dùng NeMo `transcribe()` (offline) với `target_lang=auto`, tự phát hiện ngôn ngữ từng utterance và chỉ dùng `--nemotron_streaming_language` làm fallback khi model không phát tag (**Reported**, [STT README](../wiki/speech-to-speech-pipeline.md)); nghĩa là **không ép được `vi-VN`** qua handler này và chịu thêm phạt auto-detect.
-- Tên "0.6B/1.7B" của Qwen chưa tính hết encoder, projector và cache.
-
-**Loại khỏi shortlist tiếng Việt** vì language list không có vi: Parakeet (25 ngôn ngữ châu Âu) và các bản phái sinh, Canary, Voxtral, Audio8, SenseVoiceSmall, GLM-ASR, Hojo, ARK, VibeVoice Streaming, Granite TurboCTC, Distil-Whisper (chỉ English) (**Reported**). Hệ quả thực tế: **default Parakeet TDT của HF s2s và RealtimeSTT không dùng được cho tiếng Việt**. Phải đổi backend.
-
-#### 5.4.3 Ba mẫu ghép ASR
-
-| Mẫu | Luồng | Ưu | Nhược |
-|---|---|---|---|
-| **1. Single-pass turn-final** | VAD/turn cắt lượt → Whisper turbo / Qwen3-ASR / PhoWhisper | Đơn giản nhất | Latency = endpoint + decode cả câu. Không có partial cho caption hay speculative LLM |
-| **2. Single-pass native streaming** | Nemotron 160–320 ms | Partial sớm, cache được tái sử dụng, hợp nhiều phiên | FLEURS thấp hơn Qwen offline |
-| **3. Two-pass selective** | Nemotron cho partial/UI → cuối lượt chạy Qwen3-ASR 1.7B hoặc ChunkFormer RNNT cho final | Kết hợp partial sớm với final chính xác hơn | Tốn compute. Phải reconcile các revision. Không được hành động trên partial chưa commit |
-
-Model final-pass **không phải ground truth**. Khi có mơ hồ ở số, tên riêng hay phủ định, hãy hỏi lại user thay vì lấy đa số phiếu.
-
-#### 5.4.4 Cấu hình bắt buộc khi dùng faster-whisper
-
-Theo [Whisper Hallucination Mitigation](../wiki/whisper-hallucination-mitigation.md) (**Reported**).
-
-**Tham số decode:**
-
-```text
-language="vi"                       # auto-detect trên clip ngắn, ồn dễ sai
-beam_size=1–3                       # 3 tốt hơn nhưng chậm hơn ~30–50%
-condition_on_previous_text=False
-temperature=0.0
-vad_filter=True, min_silence_duration_ms=500   # lớp lọc thứ hai
-no_speech_threshold=0.6, log_prob_threshold=-1.0, compression_ratio_threshold=2.4
-hotwords / initial_prompt ngắn cho tên riêng
-# KHÔNG đưa câu kiểu "cảm ơn đã xem" vào prompt
-```
-
-**Lọc sau decode:**
-
-- Bỏ segment có `no_speech_prob > 0.6` và `avg_logprob < -1.0`.
-- Bỏ cả turn nếu `compression_ratio > 2.4`, hoặc nếu turn có dưới 2 từ trong khi VAD < 400 ms.
-- Regex blacklist: `subscribe`, `đăng k[ýí] (cho )?kênh`, `cảm ơn (các bạn )?đã (xem|theo dõi)`, `để không bỏ lỡ những video`, `La La School`, `Ghiền Mì Gõ`, và câu bị lặp nguyên văn 3 lần.
-- Materialize generator (`list(segs)`) trong worker thread (`asyncio.to_thread`). Nếu lặp lazy generator ngay trên event loop, cả pipeline bị block. Pipecat từng gặp đúng lỗi này ở PR #5931.
-
-**Lưu ý (Synthesis):** blacklist chỉ là một tín hiệu, cần kết hợp với bằng chứng âm học. User có thể nói thật chữ "subscribe", hoặc nói lệnh ngắn "không", "dừng". Vì vậy luật "< 2 từ" phải tune trên dữ liệu thật.
-
-**Khi nào thay Whisper (Reported):** WER tiếng Việt trong môi trường ồn > ~15%, hallucination vẫn lọt qua filter, hoặc cần partial.
-
-### 5.5 Cầu text → speech tiếng Việt
-
-Tầng này hay bị xem nhẹ, nhưng nó quyết định trực tiếp chất lượng nghe.
-
-**Giao diện LLM.** Thiết kế không gắn với model LLM cụ thể. Gateway chỉ cần LLM có streaming text, `done`, `error`, `cancel` và correlation theo `generation_id` (**Synthesis**). Prompt hệ thống cho hội thoại nói nên yêu cầu (**Reported**):
-
-- 1–3 câu ngắn.
-- Không markdown, emoji, bảng hay URL.
-- Hỏi lại khi không chắc mình nghe đúng.
-- Tắt thinking mode (`enable_thinking=False`) nếu model có chế độ đó.
-
-Để tham khảo, report đề xuất Qwen3-8B AWQ trên vLLM cho GPU 24 GB và Qwen3-4B 4-bit cho GPU 12 GB. Đây là **Reported** và nằm ngoài phạm vi bài này.
-
-**Chunker** (**Reported**, quy tắc khởi điểm):
-
-- Flush khi gặp `.?!…;:` hoặc xuống dòng.
-- Với chunk đầu, cắt ở dấu phẩy khi đã có ≥ ~25 ký tự, để giảm TTFA.
-- Gộp các mảnh < 8 ký tự vào câu sau.
-- Không flush từng token: prosody gãy, TTS thiếu context, số request bùng nổ. Cũng không chờ đủ cả câu trả lời. Đơn vị tốt thường là một câu, hoặc khoảng 20–60 ký tự.
-
-**Normalizer** (**Reported**, ví dụ). Tách text hiển thị khỏi text để đọc:
-
-| Loại | Ví dụ |
+| Mục | Thiết kế |
 |---|---|
-| Tiền | `1.250.000đ` → "một triệu hai trăm năm mươi nghìn đồng" |
-| Số điện thoại | Đọc từng chữ số |
-| Ngày/giờ | Cần luật theo domain vì có thể mơ hồ |
-| %, đơn vị | `km/h`, `%` |
-| Viết tắt | `TP.HCM`, `UBND` |
-| Code-switch | Giữ tiếng Anh nếu TTS xử lý được (VieNeu xử lý được). Nếu không thì phiên âm |
+| Model | Silero VAD v5/v6 ONNX. Mỗi session một state, cửa sổ 512 mẫu (32 ms) ở 16 kHz (**Reported**) |
+| Threshold | Khởi điểm 0.6 theo default HF s2s (**Observed**). Hiệu chỉnh theo nhiễu: đo xác suất VAD và RMS trong 2–3 s đầu; nếu nền > 0.3 thì nâng lên 0.65–0.7 (**Reported**, AI report). **Chốt sau PoC** |
+| Padding | Liệt kê **mọi** lớp padding: pre-roll lấy từ ring, `speech_pad`. Mục đích là để chúng không cộng dồn ngoài ý muốn (Chương 16 §16.17.2) |
+| Chạy ở đâu | Task consumer của uplink, không chạy trong reader của transport |
+| Ứng viên thay thế | FireRedVAD có false alarm thấp hơn trong bảng của chính vendor (2.69% so với Silero 9.41%, **Reported**). Đáng A/B khi nền là TV hoặc nhạc. Không có VAD nào có số đo riêng cho tiếng Việt |
+| Denoise | Mặc định **tắt**. Nếu bật thì RNNoise hoặc DeepFilterNet 3, **chỉ** cho nhánh VAD/barge-in. Facebook Denoiser là CC-BY-NC và không có metric chất lượng (**Reported**) |
 
-Ngoài ra cần thêm (**Synthesis**): Unicode NFC, strip markup/URL, giữ dấu câu cho prosody, và bộ regression prompts. Lưu ý: wiki **chưa chọn được thư viện Vietnamese normalizer nào đã kiểm chứng**.
+### 5.3 Turn detection và endpointing
 
-**Lexicon.** VieNeu v3 Turbo được báo đọc `chánh` thành `tránh` (issue #207, chưa reproduce, **Reported/Unverified**). Cần một substitution dictionary cho tên riêng và thuật ngữ domain.
+**Máy trạng thái lượt** (speculative + revision, theo turn tracker của HF s2s, **Reported**):
 
-**Hai nghĩa của "streaming TTS"** (**Synthesis**):
+```text
+LISTENING ──VAD im ≥ min_silence──► SOFT_ENDED ──Smart Turn: complete────► (grace) ──► COMMIT
+    ▲                                   │      └─Smart Turn: incomplete──► chờ incomplete_delay ─► (gate tới max_wait) ─► COMMIT
+    └──────── user nói tiếp (≥ continuation_ms) ◄──── reopen: revision++, bỏ việc chưa commit
+```
 
-- *Audio-output streaming:* nhận text hoàn chỉnh, phát audio theo từng chunk. VieNeu `infer_stream` và VoxCPM2 `generate_streaming` thuộc loại này.
-- *Incremental text-input (bi-streaming):* nhận token dần dần trong khi đang nói. Chưa có bằng chứng ứng viên tiếng Việt nào làm được. CosyVoice bi-streaming và Qwen Dual-Track đều không có vi.
+**Tham số khởi điểm.** Đây là default của HF s2s, đã thấy trong argument class (**Observed**). Giữ nguyên bộ này cho tới khi PoC có số đo, và **không** trộn với bộ tham số của report.
 
-Vì vậy "clause chunker + gọi TTS theo mệnh đề" là cây cầu đề xuất. Đừng gọi đó là native bi-streaming.
+| Tham số | Khởi điểm | Ghi chú |
+|---|---|---|
+| `min_silence_ms` | 64 | Đây là ngưỡng *ứng viên* soft-end, chưa phải thời điểm bot được nói |
+| `min_speech_ms` | 384 | Rủi ro mất các lệnh một âm tiết như "không" hay "dừng". Phải test riêng (§10) |
+| `continuation_ms` | 192 | Phải nhỏ hơn ngưỡng mở lượt và ngưỡng barge-in (Chương 17) |
+| `speculative_reopen_ms` (grace) | 800 | **Chốt sau PoC.** Spec §8 đề xuất A/B 800 → 600 → 400 |
+| `smart_turn_threshold` | 0.5 | |
+| `smart_turn_incomplete_delay_ms` | 600 | |
+| `smart_turn_max_wait_ms` | 2000 | Timeout dự phòng |
+| Ring buffer | ≥ 10 s | Smart Turn cần cửa sổ 8 s, cộng thêm biên cho pre-roll và backlog (Chương 16) |
+| Pre-roll | 200–300 ms, lấy từ ring | Khi barge-in, turn buffer bắt đầu từ đầu đoạn nói trừ pre-roll |
 
-### 5.6 TTS tiếng Việt
+**Smart Turn với tiếng Việt** (**Reported**, benchmark vendor trên 1.004 mẫu):
 
-Capabilities là **Reported**. Thứ tự ưu tiên là **Synthesis** theo độ phù hợp triển khai, **không phải xếp hạng chất lượng nghe**.
+| Bản | Accuracy | FPR | FNR |
+|---|---|---|---|
+| GPU fp32 | 82.47% | 9.56% | 7.97% |
+| CPU int8 (mặc định của HF s2s) | 79.38% | 8.86% | 11.75% |
 
-| Candidate | Vai trò | Deploy | Streaming/perf (Reported) | License / gate |
+Bản CPU ít cắt lời hơn nhưng chờ thừa nhiều hơn. Chọn bản nào tùy theo lỗi nào sản phẩm khó chịu đựng hơn (**Chốt sau PoC**). Nếu false-interruption tiếng Việt trên dữ liệu thật vượt 10%, thử Namo hoặc fine-tune (ngưỡng thay thế, **Reported**). TEN Turn Detection và LiveKit turn detector không hỗ trợ tiếng Việt.
+
+**Một owner.** Endpointing trong NeMo-Speech.cpp (`stop_history_eou_ms`) và segmentation của WhisperLiveKit hay RealtimeSTT phải tắt, hoặc chỉ được dùng làm tín hiệu.
+
+**Timer.** Mọi timer (grace, incomplete, max wait, unanswered) mang token `(turn_id, revision)`. Khi revision đã đổi, timer tự vô hiệu. Config ghi rõ timer nào chạy theo đồng hồ audio (chỉ số mẫu) và timer nào chạy theo wall clock.
+
+### 5.4 ASR service
+
+**Trách nhiệm:** nhận dạng tiếng Việt, hậu xử lý, gắn cờ chất lượng. Không quyết định lượt. Hợp đồng ở §7.6.
+
+**Ba chế độ, cùng một hợp đồng:**
+
+| Chế độ | Luồng | Khi nào |
+|---|---|---|
+| `turn_final` (v1) | Orchestrator gửi audio của lượt (16 kHz, có pre-roll) qua `Recognize` ngay lúc soft-end. Nếu reopen thì gửi lại toàn bộ lượt với `revision` mới | Mặc định. Có speculation vì ASR chạy trong grace |
+| `native_stream` / `buffered_stream` | `StreamingRecognize` nhận frame từ lúc bắt đầu nói trừ pre-roll, trả `partial`. `Finalize(turn_id, revision)` lúc soft-end | Cần caption, speculation trên partial, hoặc timeline cho thấy bị giới hạn bởi compute |
+| `two_pass` | Stream để lấy partial, cộng `Recognize` trên engine final cho lượt cần kiểm tra lại (critical span hoặc cờ chất lượng) | Khi lỗi số, tên hay phủ định vẫn cao sau khi tune (P3) |
+
+**Engine adapter đầu tiên.** Số liệu là **Reported**, vai trò là **Synthesis**. Chi tiết ở [tài liệu ASR](lua-chon-va-thiet-ke-asr-stt-tieng-viet-realtime.md).
+
+| Engine | Adapter → runtime | Chế độ | Vai trò | Gate |
 |---|---|---|---|---|
-| **VieNeu v3 Turbo** | Baseline | SDK `infer_stream`; `apps/openai_speech.py` `POST /v1/audio/speech` (pcm/wav, chunked/SSE); Docker `api-gpu`/`api-cpu` cổng 8000 | RTX 3060: 1 stream TTFA ~115 ms, RTF 0.49; 16 streams median 185 ms (max 339 ms khi bắt đầu đồng loạt), RTF 0.59; 32 streams ~450 ms, RTF 0.93. CPU fp32 260–400 ms; CPU int8 140–195 ms (cần VNNI) | FAQ ghi Apache/commercial, roadmap lại ghi "personal use". **Mâu thuẫn, chưa giải quyết** |
-| [VoxCPM2](../wiki/voxcpm2.md) 2B | Challenger GPU về chất lượng/cloning | `generate_streaming`, cần tự viết API adapter | RTF ~0.3 trên RTX 4090 (~0.13 với Nano-vLLM), ~8 GB VRAM. Chưa có TTFA hay MOS vi | Apache-2.0 |
-| Supertonic 3 ~99M | Challenger CPU | ONNX SDK | `synthesize` trả full waveform, không phải frame streaming | OpenRAIL-M |
-| [Kokoro Vietnamese](../wiki/kokoro-vietnamese.md) | A/B trên CPU | ONNX/PyTorch, `vig2p` | Không có số liệu | Apache (theo capture) |
-| [MOSS-TTS Local v1.5](../wiki/moss-tts-local-transformer-v1-5.md) | Challenger GPU streaming | HF / SGLang-Omni | Codec stereo 48 kHz nhưng ví dụ là mono, phải xác nhận số kênh. Không có số liệu | Apache (theo card) |
-| Higgs TTS 3 / Fish S2 Pro | Expressive | SGLang-Omni (Higgs có thêm vLLM-Omni) | Số đo trên H100/H200 không chứng minh TTFA cho vi | **Non-commercial** |
-| G-OmniVoice / Gwen-TTS | A/B về cloning | `omnivoice` / `qwen-tts` | Full waveform, chưa có streaming | Phải rà lineage NC / quyền dữ liệu TikTok |
-| VieNeu v3 Nano / sanoTTS vi | Edge | Nano 48M ONNX 24 kHz; sano 1.46M 22.05 kHz | Nano chỉ trả chunk đã xong; English/code-switch yếu hơn | sanoTTS là GPL-3.0 |
+| Qwen3-ASR 0.6B / 1.7B | vLLM `qwen-asr-serve` (sidecar), ép `language=vi` | turn_final | **Mặc định v1**. Chọn 0.6B hay 1.7B theo PoC (R0 so với R1) | Đo TTFT dưới concurrency: 92 ms ở c=1, 3.210 ms ở c=128 (**Reported**). Admission theo model là bắt buộc. Giới hạn tỷ lệ VRAM vLLM được cấp phát trước |
+| Nemotron 3.5 Streaming 0.6B | NeMo-Speech.cpp `serve`, HTTP `/v1/audio/transcriptions` (turn_final) hoặc realtime WS (stream) | turn_final → native_stream | Challenger. Partial 160–320 ms ở P2 | Giá trị `language` hợp lệ (R1). WS là giao thức riêng của dự án. Confidence RNNT luôn bằng 1.0 nên không dùng làm tín hiệu được. Có word boosting `speech_contexts`. Route health không có auth, chỉ bind loopback |
+| Gipformer 1.5 68M | sherpa-onnx `OfflineRecognizer` (CPU) | turn_final / final-pass | Final-pass trên CPU, tổng đài/domain; giải phóng GPU | Output có dấu câu hay không chưa rõ, có thể cần bước punctuation. File LICENSE chưa có |
+| faster-whisper large-v3-turbo | CTranslate2 | turn_final | Đối chứng | Bắt buộc có filter hallucination ([cấu hình](lua-chon-va-thiet-ke-asr-stt-tieng-viet-realtime.md#63-whisper-large-v3-turbo-baseline-turn-final)). Gọi `list(segments)` trong executor |
+| ChunkFormer RNNT large | ONNX | turn_final / final-pass | Đối chứng chuyên Việt (CC-BY-4.0) | Bản CTC là NC |
 
-**Ba điều dễ hiểu sai về VieNeu (Synthesis):**
+**Hậu xử lý trong service:**
+1. Unicode NFC.
+2. Punctuation restoration nếu `Describe.punctuation=false`. Ứng viên: [Punctuation Restoration 307M](../wiki/punctuation-restoration-base.md), F1 tiếng Việt 0.866 (**Reported**).
+3. Filter riêng theo engine.
+4. Gắn `quality_flags`: `empty`, `no_speech`, `hallucination_suspect`, `language_mismatch`, `truncated`, `low_confidence` (chỉ khi confidence đã được calibrate, nếu không thì `unknown`).
 
-1. Bulk RTF 0.011–0.02 là throughput của batch, **không phải RTF một stream**.
-2. 16 TTS streams không có nghĩa là 16 pipeline đồng thời. Tác giả ước 16 streams phục vụ được khoảng 45–80 user đang chat, vì một stream chỉ sống trong lúc bot nói.
-3. GPU idle vài giây sẽ hạ clock, request đầu tiên phải trả thêm 100–300 ms. CUDA graph capture mất ~0.5 s cho mỗi batch size. Phải gọi `warm_fused()` khi khởi động.
+**Validity gate** chạy ở orchestrator, không chạy trong ASR service:
 
-**Không dùng out-of-box cho tiếng Việt:** Qwen3-TTS chính thức (10 ngôn ngữ, không có vi). Đây là điểm mà [Cascaded Voice-Agent Blueprint](../wiki/cascaded-voice-agent-blueprint.md) mắc lỗi khi truyền `language="vi"` vào Qwen3-TTS. Danh sách tương tự: CosyVoice2/3, Chatterbox, Pocket, VibeVoice, IndexTTS, GPT-SoVITS và một số model khác (**Reported**).
+| Cờ / tình huống | Hành vi |
+|---|---|
+| `empty`, hoặc `no_speech` khi VAD ngắn | Bỏ lượt, quay về LISTENING. Không gọi LLM |
+| `hallucination_suspect` | Hỏi lại bằng câu soạn sẵn, phát từ cache. Không gọi LLM |
+| Đoạn ngắn trong lúc bot đang nói | Xử lý theo policy backchannel ba kết cục (§7.3) |
+| Lượt có entity quan trọng (P3, khi có tool) | Đọc lại để xác nhận trước khi chạy tool |
 
-### 5.7 Orchestration
+**Capacity.** Mỗi engine có semaphore riêng và hàng đợi có giới hạn. Khi quá tải, service trả `RESOURCE_EXHAUSTED` kèm `retry_after_ms`. Tách pool streaming (nhạy cadence) khỏi pool final (có thể batch, nhưng chỉ khi cửa sổ gom nhỏ hơn nhiều so với ngân sách từ endpoint tới final).
 
-| Lựa chọn | Phù hợp | Chi phí tích hợp tiếng Việt |
-|---|---|---|
-| **Pipecat** (BSD-2) | Cascade tùy biến; WebRTC (Daily, SmallWebRTC), WS, telephony | Có sẵn `SileroVADAnalyzer`, `LocalSmartTurnAnalyzerV3`, `WhisperSTTService`, `OpenAILLMService(base_url=...)`. Chỉ cần viết một `TTSService` tùy biến có `run_tts()` gọi VieNeu. Nemotron và Qwen streaming cần adapter riêng |
-| **HF speech-to-speech** (Apache-2.0) | Muốn có OpenAI Realtime subset (gồm `response.cancel`; `conversation.item.truncate` chỉ được chấp nhận như no-op, không cắt lịch sử phía server) và Smart Turn v3.2 sẵn | Phải đổi default không có vi: `--stt faster-whisper --language vi` hoặc `--stt qwen3-asr --qwen3_asr_language vi`; TTS qua `--tts openai --openai_tts_base_url ...` trỏ tới VieNeu (cờ đã xác nhận trong [CLI and Defaults](../wiki/speech-to-speech-cli-and-defaults.md)). Nemotron có ba đường: extra `nemo` với `--stt nemotron-streaming` (turn-final, auto-detect, không ép `vi-VN`); `--stt openai` trỏ tới `/v1/audio/transcriptions` của NeMo-Speech.cpp; hoặc `--stt openai-realtime` (giao thức khác, chưa chắc tương thích, xem §5.7) |
-| LiveKit Agents (Apache-2.0) | Cần WebRTC SFU / SIP | Turn detector không có vi |
-| TEN / FastRTC | Agora RTC / Gradio WebRTC | Không có lợi thế gì cho tiếng Việt |
-| Gateway FastAPI/asyncio tự viết | Kiểm soát toàn bộ turn và cancel | Report có reference server (`VADIterator` mỗi session, gate barge-in 400 ms, `{"type":"clear"}`). Phải tự làm metrics và cancellation |
+### 5.5 TTS service, phần 1: cầu text → speech
 
-**Nemotron streaming thật với HF s2s (Synthesis, chưa kiểm chứng).** Backend `--stt openai-realtime` của s2s nói giao thức transcription của OpenAI (`intent=transcription`, audio 24 kHz, model cấu hình trong session), còn `/v1/audio/transcriptions/realtime` của NeMo-Speech.cpp là giao thức riêng, nguồn ghi rõ "không phải OpenAI Realtime API" (dù tên event gần giống, và `/v1/realtime` cũng phục vụ giao thức transcription này khi không nạp VoiceChat). Tài liệu không nói hai bên ghép được; cần thử bằng stub trước khi tính là "stream không cần viết handler". Hai đường còn lại đều turn-final ở s2s. Nguồn: [OpenAI-Compatible Backends](../wiki/speech-to-speech-openai-compatible-backends.md), [NeMo-Speech.cpp HTTP API](../wiki/nemo-speech-http-api.md).
+**Vì sao cầu nằm trong `tts-service`** (**Synthesis**, theo yêu cầu và Chương 19):
+- Chính sách đọc phụ thuộc engine và voice: `max_chars` (VieNeu mặc định 256), có đọc được code-switch không, tag hợp lệ, vùng miền của giọng (`nghìn`/`ngàn`, `linh`/`lẻ`), scope của lexicon, tham số bị bỏ qua (VieNeu bỏ qua `speed` và `instructions`, **Reported**).
+- Đổi engine thì đổi trọn bộ. Orchestrator không cần biết gì.
+- Cầu là hàm thuần, khoảng 0.1 ms mỗi chunk, nên không làm tăng latency.
+- Chunker vẫn là consumer của LLM stream, vì orchestrator chuyển `text.delta` ngay khi nhận (L1 và L2 ở §5.7.3).
 
-So sánh framework là bằng chứng thứ cấp (AI report). Riêng HF s2s nay có README gốc và các tài liệu con. Các plugin hiện hành chưa được kiểm tra.
+**Pipeline cho mỗi stream `Synthesize` (một generation):**
 
-HF s2s còn có các điểm vận hành đáng học: log mặc định không chứa nội dung (content-free; `--log_transcripts` là opt-in), và một bản ghi độ trễ mỗi response ([Latency Instrumentation](../wiki/speech-to-speech-latency-instrumentation.md)): `stt`, `llm`, `tts_ttfa`, `e2e` (từ *ước lượng* cuối tiếng nói tới audio TTS đầu tiên, không gồm playback), `vad_decision_s`, `smart_status`, `hold_s`. Các stage chồng lấn nên không được cộng. `tts_ttfa`/`e2e` chỉ đo cho TTS `qwen3` và `openai`; handler `omnivoice` là `n/a`. Giá trị cũng nằm trong `response.done` metadata (`speech_to_speech.turn_latency`). Một lưu ý bảo mật: LLM proxy của nó **không có auth hay throttling**. Phải để tắt, hoặc đặt sau một gateway có kiểm soát truy cập.
+```text
+text.delta ─► ThinkFilter ─► markup/emoji/URL policy ─► ClauseChunker ─┐
+                                                                      ▼
+   text.chunk{display_text, segments, kind, warnings, versions} ◄── pre-lexicon (bảo vệ thực thể)
+                                                                      ▼
+                                       VietNormalizer (verbalizer trên segment `plain`)
+                                                                      ▼
+                                       post-lexicon (respelling theo engine/voice) → alert list
+                                                                      ▼
+                                       whitelist inline tag theo engine → spoken_text
+                                                                      ▼
+                         hàng engine (bounded) → engine adapter → resample → watermark → audio.chunk
+```
 
-### 5.8 Deploy tools: chọn đúng tầng
+**Bất biến** (từ Chương 19 §A, **Synthesis**):
+1. Mỗi `generation_id` có một instance cầu. Khi bị hủy thì vứt bỏ instance, **không** gọi `flush()`.
+2. Chunker chỉ cắt khi đã thấy ký tự đứng sau dấu câu. Nhờ vậy đầu ra không phụ thuộc vào cách LLM chia token (fuzz test L2).
+3. Có ba dạng text, mỗi dạng một nơi dùng. `display_text` cho caption và history. `spoken_text` chỉ cho engine. `raw_text` chỉ cho debug opt-in.
+4. Normalizer chạy **sau** chunker, trên từng chunk, và là hàm thuần. Mỗi loại ký hiệu chỉ có một stage sở hữu.
+5. Normalizer không sửa nội dung. Gặp chỗ mơ hồ thì theo chính sách đã ghi thành văn bản. Không chắc thì đọc nguyên văn và ghi `warnings`.
+6. Lexicon là dữ liệu sản phẩm, có version, scope theo engine/voice, và có test.
+7. Chunk nào có `spoken_text` rỗng thì phát event nhưng **không** gọi engine.
 
-Theo [So sánh công cụ triển khai speech](../wiki/speech-deployment-tools-comparison.md):
+**Tham số chunker khởi điểm** (**Reported** từ AI report, cần tune, **Chốt sau PoC**):
+- Flush khi gặp `.?!…;:` hoặc xuống dòng.
+- Chunk đầu: cắt ở dấu phẩy khi đã có ít nhất `first_min` ≈ 25 ký tự.
+- Gộp mảnh ngắn hơn 8 ký tự vào chunk sau.
+- `hard_max` < `max_chars` của engine. Khi buộc phải cắt vì `hard_max`, cắt **trước** liên từ.
+- Không cắt bên trong giá trị: `1.250.000đ`, `3,5`, `14:30`, `TP.HCM`, URL, `TS. Nguyễn`.
+- Chỉ hạ `hard_max` khi đo thấy `inter_chunk_gap_ms` P95 cao.
 
-| Tầng | Lựa chọn | Ranh giới bằng chứng |
-|---|---|---|
-| VAD trên CPU | Silero ONNX | Chỉ là detector, không phải orchestrator |
-| Nemotron | NeMo reference; NeMo-Speech.cpp (HTTP/WS/C SDK); Transformers ≥5.13 | Con số 27 ms CPU / 2.3 ms RTX 4090 cho mỗi chunk 160 ms là của **model EN**, không phải 3.5/vi |
-| Qwen ASR | `qwen-asr`/vLLM; WLK windowed | Toolkit gốc: streaming chỉ qua vLLM, không batch, không timestamps. WLK causal chỉ có English |
-| Whisper | Faster-Whisper CT2; WLK hoặc RealtimeSTT nếu cần live | Không để hai owner cùng quyết định segmentation |
-| TTS tiếng Việt | VieNeu SDK/API; VoxCPM2 Python adapter | `VIENEU_MAX_STREAMS` mặc định 16 (GPU) / 1 (CPU); vượt ngưỡng → HTTP 429. Mỗi slot đặt trước cộng ~2.5 ms vào mỗi lần gọi codec |
-| GPU multi-stage | SGLang-Omni / vLLM-Omni | Chọn theo recipe của model, chưa có bên nào thắng chung |
-| Native C++ | audio.cpp (có community port `vieneu_v3_turbo`); transcribe.cpp | Port chưa được kiểm tra parity. GGUF giữa các runtime không thay thế cho nhau được |
+**Normalizer.** [VietNormalizer](../wiki/vietnormalizer.md) (MIT, 19 bước, **Reported**, chưa chạy) được bọc làm verbalizer cho các segment `plain`.
+- Với VieNeu Turbo: tắt `enable_transliteration`, vì engine tự đọc được code-switch.
+- Output của VietNormalizer bị lowercase. Phải kiểm tra việc này có làm mất prosody không. Giữ dấu câu.
+- ViSoNorm mặc định tắt (chưa có license, hợp với text người dùng gõ hơn).
+- Pin version. Ghi `normalizer_version` và `lexicon_version` vào mỗi `text.chunk`.
 
-**Quy ước đo (Synthesis):** RTF = wall/audio (thấp hơn thì nhanh hơn). RTFx = audio/wall. Faster Qwen3-TTS dùng chữ "RTF" theo nghĩa RTFx. Luôn đọc định nghĩa trước khi so sánh.
+**Lexicon hai pha.**
+- Pre-TN bảo vệ thực thể: tên riêng, mã.
+- Post-TN respell theo engine.
+- Một **alert list** riêng cho các từ respelling không cứu được. Ví dụ `chánh` → `tránh` của VieNeu (issue #207, **Reported/Unverified**). Phải reproduce trên đúng version và voice trước khi xử lý.
 
----
+**Phòng thủ đầu tiên vẫn nằm ở orchestrator.** System prompt cho văn nói và tắt thinking (§5.7.4). ThinkFilter trong cầu chỉ là lưới an toàn. Đo mức LLM tuân thủ prompt bằng `norm_warnings` và `chunk_kind_ratio`.
 
-## 6. Sáu cấu hình ghép model và deploy tool
+### 5.6 TTS service, phần 2: engine, giọng và capacity
 
-| Profile | VAD/Turn | ASR + runtime | TTS + runtime | Orchestration | Chọn khi nào / gate |
+**Engine adapter.** Số liệu là **Reported**. Chi tiết ở [tài liệu TTS](lua-chon-va-thiet-ke-tts-tieng-viet-realtime.md).
+
+| Engine | Adapter → runtime | Streaming | Rate gốc | Hủy | Vai trò / gate |
 |---|---|---|---|---|---|
-| **A — MVP turn-final** (1 GPU 12–24 GB) | Silero ONNX + Smart Turn CPU + timeout 1.2–1.5 s | Whisper turbo `vi` + Faster-Whisper fp16/`int8_float16` + filter; hoặc Qwen3-ASR 0.6B | VieNeu GPU qua `/v1/audio/speech` | Pipecat + SmallWebRTC, hoặc HF s2s `serve` | Ít adapter nhất. Không có ASR streaming. Cần test schema TTS và cancellation |
-| **B — native streaming** | Như A, state per-session trên CPU | Nemotron 3.5 `vi-VN`, chunk 160/320 ms; NeMo hoặc NeMo-Speech.cpp Q8 | VieNeu GPU hoặc ONNX CPU | Pipecat hoặc gateway tự viết; WebRTC | Thử đầu tiên nếu cần partial sớm. Có thể phải viết adapter ASR riêng |
-| **C — quality single-pass** | Như A | Qwen3-ASR 0.6B → 1.7B; vLLM hoặc WLK windowed | VieNeu; A/B với VoxCPM2 | Gateway có transcript revision policy | Chấp nhận buffering/rollback. Chưa có số WER streaming cho vi |
-| **D — two-pass selective** | Như B | Nemotron partial + Qwen3-ASR 1.7B hoặc ChunkFormer RNNT final | VieNeu GPU server (`VIENEU_MAX_STREAMS` theo tải) | Pipecat/LiveKit + WebRTC; tách GPU theo service; gateway sở hữu commit | Chỉ khi số, tên, phủ định cần kiểm tra lại và B/C chưa đạt |
-| **E — CPU/edge/on-prem** | Silero ONNX + Smart Turn int8 | Nemotron Q8 qua NeMo-Speech.cpp CPU (đo lại), hoặc Whisper CT2 INT8 turn-final | VieNeu ONNX fp32 (INT8 chỉ khi có VNNI); A/B với Supertonic 3 / Kokoro vi; Nano cho CPU yếu | Gateway local, WS loopback, model đã pre-stage | Không cam kết realtime trên mọi CPU. Final mặc định của RealtimeSTT là Parakeet, không có vi |
-| **F — license-strict thương mại** | Silero (MIT) + Smart Turn (BSD-2) | Qwen3-ASR (Apache), Whisper (MIT), PhoWhisper (BSD-3), ChunkFormer RNNT (CC-BY-4.0); Nemotron (OpenMDW) sau khi legal review | VoxCPM2 (Apache); VieNeu chỉ sau khi giải quyết mâu thuẫn license; MOSS Local | Pipecat, LiveKit, HF s2s | Tránh ZipFormer NC-ND, ChunkFormer CTC NC, OmniVoice NC lineage, Higgs/Fish, Gwen (quyền dữ liệu), sanoTTS GPL (nếu không chấp nhận copyleft), Supertonic OpenRAIL-M |
+| **VieNeu v3 Turbo** | `openai_speech_pcm` → sidecar Docker `api-gpu`, `POST /v1/audio/speech`, `response_format=pcm`, `sample_rate=48000`, chunked | Theo frame (80 ms) | 48 kHz | Đóng response thì giải phóng slot ở tick kế tiếp (**Reported**) | **Baseline.** License mâu thuẫn (FAQ ghi Apache, roadmap ghi personal use) nên `license_profile=commercial` sẽ chặn cho tới khi giải quyết |
+| VoxCPM2 2B | Adapter in-process trong sidecar Python, `generate_streaming`, cờ stop theo từng bước | Có | 48 kHz | Phải tự viết | Challenger cho cloning, Apache-2.0. Chưa có TTFA |
+| MOSS-TTS Local v1.5 | SGLang-Omni, `stream=true` | PCM | 48 kHz | Chưa rõ | Challenger khi đã có SGLang-Omni. Phải xác nhận số kênh |
+| G-OmniVoice / Gwen-TTS | Server tự bọc | Full waveform | 24 kHz / chưa rõ | Không có | Chỉ dùng nghiên cứu (`license_profile=research`). TTFA bằng thời gian sinh cả mệnh đề |
+| Supertonic 3 / Kokoro vi / VieNeu Nano | ONNX CPU | Theo chunk / full | Theo model | — | Đường CPU/edge |
 
-### 6.1 Cây quyết định gợi ý (Synthesis)
+**Chi tiết sidecar VieNeu** (**Reported**, theo [API](../wiki/vieneu-tts-openai-speech-api.md), [Streaming Runtime](../wiki/vieneu-tts-streaming-runtime.md), [Docker](../wiki/vieneu-tts-docker-deployment.md)):
+- Bind `127.0.0.1` trong pod. Nếu phải lộ ra ngoài thì đặt `VIENEU_API_KEY`. Docker profile mặc định `HOST=0.0.0.0`.
+- `VIENEU_MAX_STREAMS` bằng số stream **đồng thời** đo được, không bằng số user. Mỗi slot dư cộng khoảng 2.5 ms vào mọi lần gọi codec. Một user giữ stream khoảng 20–35% thời gian, nên 16 stream tương ứng khoảng 45–80 user đang hoạt động (ước lượng của tác giả).
+- Có `VIENEU_QUEUE` và `VIENEU_QUEUE_TIMEOUT` (mặc định 10 s). Khi quá tải trả 429 kèm `Retry-After`.
+- Server tự warmup khoảng 12 s. Chỉ nhận traffic khi `/health` trả `ok`. `/health` trả 503 khi scheduler GPU chết; scheduler không tự phục hồi, nên container phải được restart.
+- GPU hạ clock sau khoảng 2 s rảnh (đo được 118 ms → 403 ms). Phải khóa clock ở host (§9.7). Giữ GPU nóng từ trong process không có tác dụng.
+- Watermark Perth bật mặc định. Bật hay tắt là quyết định chính sách, ghi trong config.
+- Giọng clone đăng ký qua `POST /v1/voices` chỉ sống trong bộ nhớ process. tts-service phải **đăng ký lại sau mỗi lần sidecar khởi động**, lấy từ voice registry, trước khi báo ready. Trùng tên preset trả 409.
+- `mp3` và `opus` trả 400. `speed` và `instructions` bị bỏ qua.
+
+**Voice registry.** `voice_id` là định danh ổn định của sản phẩm. Mỗi `voice_id` ánh xạ sang (engine, preset hoặc reference, vùng, scope lexicon, tham số sampling cố định).
+- Reference clone lưu ngoài repo, kèm bản ghi consent và thời hạn lưu.
+- Log chỉ ghi `voice_id`, không ghi đường dẫn hay embedding.
+- Session được pin một `voice_id` và một engine. Không đổi giọng giữa chừng một utterance (§9.4).
+
+**Fixed-phrase cache.** Các câu đệm, câu hỏi lại và câu báo lỗi được tổng hợp sẵn lúc khởi động bằng đúng `voice_id` (`SynthesizePhrase`), cache theo `(voice_id, phrase_id, engine_version)`. Khi engine lỗi vẫn phát được các câu này (§9.4).
+
+**Cadence.** Mặc định mỗi generation chỉ có một request engine đang chạy. Request cho mệnh đề kế tiếp được gửi khi audio của mệnh đề trước đã **nhận** xong (không cần chờ phát xong). Vì RTF < 1 nên khe hở được che. Đo `inter_chunk_gap_ms` trước khi bật prefetch hai request.
+
+### 5.7 Orchestrator: session runtime, LLM và history
+
+#### 5.7.1 Mô hình actor
+
+Mỗi session có các thành phần sau (theo Chương 17–18, **Synthesis**):
+
+- `SessionActor`: một task đọc một inbox, xử lý tuần tự. Giữa lúc đọc và lúc ghi trạng thái không có `await`. Inbox control không bao giờ bỏ phần tử.
+- `transport_reader`: chỉ đẩy frame vào uplink queue (drop-oldest, có đánh dấu gap).
+- `vad_consumer`: reblock, chạy VAD, gửi sự kiện `vad.*` vào inbox. Gọi Smart Turn qua executor.
+- `response scope` (TaskGroup) cho mỗi generation: LLM stream, stream gRPC tới tts-service, buffer `held`. Hủy cả scope một lần.
+- `send_loop` / pacer: nơi duy nhất ghi ra transport. Kiểm generation **nguyên tử** ngay trước khi gửi. Pacing theo lịch tuyệt đối. Có credit theo played offset.
+- `lag_monitor` cho mỗi process.
+
+#### 5.7.2 Vòng đời response
 
 ```text
-Cần tiếng Việt cả hai chiều?
- └─ Có → cascade (Mục 2)
-     │
-     ├─ Ràng buộc license thương mại chặt? → áp lớp lọc F lên mọi lựa chọn bên dưới
-     │
-     ├─ Chỉ có CPU / edge?                       → E
-     │
-     ├─ Cần caption live hoặc speculative LLM trên partial?
-     │    ├─ Có  → B (Nemotron 160–320 ms)
-     │    │         └─ Lỗi số/tên/phủ định vẫn cao sau khi tune? → D (thêm final-pass có điều kiện)
-     │    └─ Không → A (Whisper turbo vi) để có vòng đo đầu tiên
-     │               └─ WER noisy > ~15% hoặc hallucination lọt filter? → C (Qwen3-ASR 0.6B→1.7B)
-     │
-     └─ TTS: VieNeu baseline → A/B VoxCPM2 (GPU, cloning) / Supertonic 3, Kokoro vi (CPU)
+SPECULATIVE ──commit(turn, rev)──► COMMITTED ──audio đầu ra client──► RELEASED ──► DONE
+     │                                 │                                 │
+     └─reopen/cancel──► DISCARDED      └─────cancel/fail──► CANCELLED/FAILED ◄─┘
 ```
 
-**Nguyên tắc (Synthesis):**
+- `generation_id` tăng đơn điệu trong suốt session, không reset theo lượt. Cancel cũng làm tăng. Cancel khi không có response nào đang active là no-op.
+- Buffer `held[gen]` giữ text và audio đã sinh trước commit. Khi commit thì thả ra. Khi reopen thì bỏ.
 
-- Đừng triển khai D ngay từ đầu. Two-pass có thể chỉ bật cho các critical span.
-- Nếu output phụ thuộc vào bản sửa của final-pass, đừng phát âm thanh hay tạo side effect trước khi commit.
-- Nếu đã chạy speculation trên partial, hãy discard/cancel khi revision thay đổi.
+#### 5.7.3 Mức speculation
+
+Chọn bằng config `speculation_level`. Mặc định L1. Lên L2 **sau PoC**, khi đã đo được tỷ lệ lượt bị giới hạn bởi gate và tỷ lệ reopen (Chương 20).
+
+| Mức | ASR | LLM | TTS | Ảnh hưởng tới v2v (§8.1) | Chi phí |
+|---|---|---|---|---|---|
+| L0 commit cứng | Sau commit | Sau commit | Sau commit | ASR + LLM + TTS cộng nối tiếp | Thấp nhất. Dùng để debug hoặc cho telephony |
+| **L1** (mặc định) | Tại soft-end | Speculative, text giữ trong `held` | Mở stream lúc commit, flush text đã giữ | `max(hold, ASR + LLM→mệnh đề đầu)` cộng TTS | Mỗi reopen tốn một inference LLM |
+| L2 | Tại soft-end | Speculative | Speculative cho mệnh đề đầu (`Start.speculative=true`), audio giữ trong `held` | `max(hold, ASR + LLM + TTS)` | Tốn thêm slot TTS cho mỗi reopen. Stream speculative có độ ưu tiên thấp và bị từ chối trước khi tải cao |
+
+#### 5.7.4 LLM client
+
+- Adapter chuẩn hóa SSE (Chat Completions hoặc Responses) thành `LLMEvent` nội bộ: `delta`, `done(finish_reason, usage)`, `error`.
+- Map tham số theo backend: tắt thinking (`enable_thinking=false` hoặc `reasoning_effort`, chọn theo server), `max_tokens` làm chặn an toàn (không dùng để giữ câu ngắn), `include_usage`.
+- Bốn loại timeout (connect, TTFT, inter-token, tổng), đặt dưới một deadline tuyệt đối cho mỗi response. Tiêu thụ stream bên trong `aclosing`. Lỗi được chuyển thành event `response.failed` gửi vào inbox, không làm chết session.
+- **Không tự retry** sau khi đã nhận token đầu. Trước token đầu, chỉ retry nếu còn trong deadline.
+- Hủy bằng cách đóng stream. Endpoint LLM phải giải phóng compute khi client đóng stream (R6, deployment gate).
+- System prompt cho văn nói lấy từ spec §3.2. Phần tĩnh đặt đầu để tận dụng prefix cache. Không chèn timestamp hay `session_id` vào đầu prompt.
+- Không dùng LLM proxy của HF s2s. Không có lời gọi LLM ẩn: tóm tắt history là một job tường minh, chạy giữa các lượt, có log và metric.
+
+#### 5.7.5 History
+
+- Mỗi `text.chunk` nhận từ tts-service được lưu cùng bảng `chunk_id → [mẫu đầu, mẫu cuối)` trên timeline downlink.
+- Khi response DONE: history lưu nối các `display_text`.
+- Khi bị ngắt: chờ played offset (§7.3), rồi lưu `played_display_prefix` theo cách **bảo thủ**. Segment đã bị viết lại (số, tiền, ngày) chỉ được tính khi đã phát hết. Sau đó thêm tag `[bị ngắt]`.
+- Khi reopen: message user cũ bị thay bằng transcript gộp. Assistant dở dang bị bỏ.
+
+#### 5.7.6 Tool (hook cho P3)
+
+Tool chỉ chạy sau commit, và sau khi người dùng xác nhận bằng lời nếu tool có side effect. Mỗi lần gọi có idempotency key `(session_id, turn_id, revision, tool_call_index)`. Kiểm `generation_id` ngay trước khi chạy. Không coi mọi "ừ", "vâng" là backchannel trong luồng xác nhận.
+
+### 5.8 Runtime và cách ly dependency
+
+| Process | Dependency chính | Ghi chú (**Synthesis**) |
+|---|---|---|
+| orchestrator | Python asyncio (hoặc ngôn ngữ khác), onnxruntime CPU, Opus, soxr/libsamplerate, WebRTC stack | Không có torch. Executor riêng cho Smart Turn, có semaphore |
+| asr-service API | gRPC, adapter client | Mỏng, có thể chung image cho mọi engine |
+| asr engine sidecar | vLLM + `qwen-asr` / NeMo-Speech.cpp / CTranslate2 / sherpa-onnx | Mỗi engine một image. Pin version và checksum. GGUF giữa các runtime không thay thế cho nhau được |
+| tts-service API/bridge | gRPC, VietNormalizer, lexicon, soxr, watermark | Thuần Python |
+| tts engine sidecar | Image VieNeu `api-gpu` / Python cho VoxCPM2 / SGLang-Omni | Mỗi engine một image |
+
+Mọi việc nặng chạy ngoài event loop. Mỗi model có executor riêng. Không có `to_thread(f)` nào trả generator rồi lặp trên loop (Chương 18 §A).
 
 ---
 
-## 7. Hợp đồng điều khiển (control contracts)
+## 6. Thay thế ASR và TTS
 
-### 7.1 Audio ingress
+### 6.1 Cơ chế
 
-Các điểm sau là **Synthesis** dựa trên Silero, report và HF s2s.
+| Cơ chế | Mô tả (**Synthesis**) |
+|---|---|
+| Hợp đồng cố định | `asr.v1` và `tts.v1` (§7.6, §7.7). Thay đổi không tương thích ngược thì tạo `v2`, chạy song song |
+| Khai báo năng lực | `Describe()` trả chế độ, partial, ép ngôn ngữ, sample rate, cách hủy, `max_streams`, text contract, license. Orchestrator điều chỉnh hành vi theo đó (ví dụ không có partial thì không bật caption) |
+| Adapter SDK | Một interface Python cho mỗi loại: `open_stream`, `recognize`, `synthesize_stream`, `cancel`, `describe`, `health`, `warmup`. Engine mới chỉ cần viết adapter |
+| Engine registry | YAML có version trong repo registry (§6.2): endpoint, revision và sha256 của weights, tham số, license, `max_streams` |
+| Voice profile | Text policy theo `(engine, voice)`: `max_chars`, `hard_max`, code-switch, vùng, scope lexicon, tag hợp lệ, sampling |
+| Định tuyến theo session | Engine được chọn lúc mở session (mặc định hoặc theo thí nghiệm) và **pin** cho tới hết session |
+| Conformance suite | Bắt buộc phải qua trước khi engine được vào registry (§6.3) |
 
-- Frame transport 20 ms được reblock thành 512 samples (32 ms) cho Silero (256 samples ở 8 kHz). Không bắt VAD, ASR và TTS dùng chung một chunk length.
-- Audio chuẩn của gateway cho ASR: 16 kHz mono. Output giữ sample rate gốc tới tận playback adapter.
-- Pre-roll 200–300 ms để không mất âm tiết đầu. Đây là thiết kế khởi điểm, chưa phải cutoff đã đo.
-- Mỗi session có state VAD/ASR riêng, không bao giờ dùng chung cache giữa các user.
-- Packet thiếu hoặc có gap thì cần policy rõ ràng, không nối lệch timeline.
+### 6.2 Ví dụ registry
 
-### 7.2 Event schema đề xuất
-
-Đây là **Synthesis**, không phải schema của vendor nào.
-
-```text
-session_id, turn_id, revision, generation_id, sequence
-
-asr.partial(text, stable_prefix_if_available)
-asr.final(text, model_id, language, quality_flags)
-turn.commit(turn_id, revision)
-text.chunk(generation_id, chunk_id, raw_text, spoken_text)
-audio.start(generation_id, format, sample_rate, channels)
-audio.chunk(generation_id, chunk_id, sequence, payload)
-audio.played(generation_id, played_sample_offset)
-response.cancel(generation_id)
-client.clear(generation_id)        # ≈ {"type":"clear"} / audio_cancel
+```yaml
+license_profile: research          # research | commercial; commercial chặn engine có license NC/mâu thuẫn
+asr:
+  default: qwen3-asr-0.6b          # Chốt sau PoC (R0 so với R1/R2)
+  engines:
+    qwen3-asr-0.6b:
+      adapter: qwen3_asr_vllm
+      endpoint: http://127.0.0.1:8101
+      model: { repo: Qwen/Qwen3-ASR-0.6B, revision: <commit>, sha256: <...> }
+      language: vi
+      modes: [turn_final]
+      license: apache-2.0
+      limits: { max_inflight: 4, queue: 8, max_turn_s: 30 }
+    nemotron-3.5:
+      adapter: nemo_speech_cpp
+      endpoint: http://127.0.0.1:8102           # WS realtime ở P2
+      language: vi-VN                            # TBD theo R1 của spec
+      modes: [turn_final]                        # native_stream sau khi qua gate
+      license: openmdw-1.1                       # cần legal review
+tts:
+  default: vieneu-v3-turbo
+  engines:
+    vieneu-v3-turbo:
+      adapter: openai_speech_pcm
+      endpoint: http://127.0.0.1:8000/v1/audio/speech
+      native_sample_rate: 48000
+      max_streams: 8                             # Chốt sau PoC; = VIENEU_MAX_STREAMS
+      text_contract: { max_chars: 256, codeswitch: true, ignored: [speed, instructions] }
+      license: disputed                          # FAQ Apache vs roadmap personal use
+  voices:
+    vi-north-01: { engine: vieneu-v3-turbo, preset: <từ list_preset_voices()>, region: north,
+                   lexicon_scope: [common, vieneu], text_policy: { hard_max: 200, first_min: 25 } }
+    vi-south-01: { engine: vieneu-v3-turbo, preset: <...>, region: south, lexicon_scope: [common, vieneu] }
+experiments:
+  - name: asr-1.7b-canary
+    component: asr
+    split: { qwen3-asr-0.6b: 95, qwen3-asr-1.7b: 5 }
+    pin: session
 ```
 
-Các quy tắc đi kèm:
+### 6.3 Conformance suite (bắt buộc)
 
-- `asr.partial` chỉ dùng cho caption và speculation. `stable_prefix` không phải confidence.
-- Final-pass chạy lại trên turn audio đã giữ. Kết quả thay thế một revision và chỉ commit một lần. Không đổ full transcript vào luồng partial, vì sẽ bị trùng lặp.
-- Confidence của các ASR khác nhau không được calibrate cùng thang. Nếu thiếu confidence thì để "unknown".
-- Khi session đóng: giải phóng cache ASR, cancel inference, flush queue, bỏ các callback đến trễ.
+**ASR** (stub client cộng audio cố định):
+- Nhận đúng 16 kHz mono PCM16. Từ chối format sai bằng lỗi có mã.
+- Turn chứa toàn im lặng hoặc nhạc thì trả `empty` hoặc `no_speech`, không trả text rác.
+- `revision` mới thay revision cũ. Không có final trùng.
+- `Finalize` sau đúng một lần thì có final.
+- Hủy stream giữa chừng thì giải phóng tài nguyên (đo bằng số stream active).
+- Quá tải trả `RESOURCE_EXHAUSTED` kèm `retry_after_ms`.
+- Ép `vi` có tác dụng.
+- Transcript rỗng hoặc lặp trên audio dài thì bị gắn cờ. Kiểm này cần cho các bản quantized.
+
+**TTS:**
+- Fuzz chia token (L2): đầu ra của chunker giống nhau với mọi cách chia, kể cả chia từng ký tự.
+- Không chunk nào vượt `max_chars`. Không cắt trong số, tiền, giờ, URL.
+- Không có `<think>`, markdown hay emoji nào tới engine.
+- `sample_offset` và `seq` tăng đơn điệu. Rate và số kênh khớp `audio.start`.
+- Hủy giữa chunk thì không còn chunk nào của generation đó. Slot của engine về 0 trong khoảng thời gian X (đo).
+- 429 của engine được chuyển thành `RESOURCE_EXHAUSTED`.
+- Chunk có `spoken_text` rỗng thì không gọi engine.
+- Mỗi `text.chunk` có `normalizer_version` và `lexicon_version`.
+- Golden L1 của normalizer đạt 100%.
+
+### 6.4 Quy trình đưa engine mới vào
+
+| Bước | Nội dung | Điều kiện qua |
+|---|---|---|
+| 1. Offline | ASR: corpus tiếng Việt (§10 mục 1), cùng normalizer chấm điểm. TTS: tập nghe L3 (150–300 prompt) cộng TTFA/RTF dưới tải | Tốt hơn hoặc bằng baseline ở metric chính; không thua ở exact-match entity (ASR) hay lỗi thanh điệu (TTS); qua license gate |
+| 2. Conformance | §6.3 | 100% |
+| 3. Shadow (chỉ ASR) | Engine mới chạy song song trên cùng audio lượt. Chỉ ghi metric, không ảnh hưởng hội thoại. Kết quả transcript chỉ lưu trong corpus opt-in | Không làm tăng latency của engine chính. Có khác biệt thì đem đi review |
+| 4. Canary | 1–5% session, pin theo session | SLO §8.2 không xấu đi; tỷ lệ lỗi và 429 không tăng |
+| 5. Promote / rollback | Đổi `default` trong registry | Rollback chỉ là revert một commit config |
+
+TTS không có shadow trực tiếp, vì tổng hợp hai lần làm tốn GPU. Thay vào đó dùng tập nghe offline cộng canary.
+
+### 6.5 Cấu hình engine theo kịch bản
+
+Bảng này thay cho các "Profile A–F" của v1. Profile giờ chỉ là một bộ registry. **Synthesis**.
+
+| Kịch bản | ASR | TTS | Chế độ | Ghi chú |
+|---|---|---|---|---|
+| **v1 mặc định** (1×24 GB, research) | Qwen3-ASR 0.6B/1.7B, turn_final | VieNeu v3 Turbo | L1 | Theo kết quả PoC |
+| Cần caption hoặc speculation trên partial | Nemotron 3.5 stream 160/320 ms | VieNeu | L1/L2 | Profile B cũ. Gate: R1, WS adapter |
+| Lỗi số, tên, phủ định cao | Nemotron partial cộng final-pass Qwen 1.7B (GPU) hoặc Gipformer 1.5 (CPU) | VieNeu | two_pass | Profile D cũ. Chỉ bật cho critical span |
+| CPU/edge | Gipformer 1.5 int8 hoặc Nemotron Q8 (NeMo-Speech.cpp CPU) | VieNeu ONNX / Supertonic 3 / Kokoro vi | L0/L1 | VieNeu CPU fp32 chạy được 1 stream, int8 chạy được 2 stream nếu có VNNI (**Reported**) |
+| `license_profile=commercial` | Qwen3-ASR (Apache), Whisper (MIT), PhoWhisper (BSD-3), ChunkFormer RNNT (CC-BY-4.0); Nemotron sau khi qua legal | VoxCPM2 (Apache), MOSS Local; VieNeu sau khi giải quyết mâu thuẫn license | — | Loại ZipFormer NC-ND, ChunkFormer CTC, OmniVoice/G-OmniVoice, Higgs/Fish, Gwen (quyền dữ liệu) |
+
+### 6.6 Khi đổi engine phải làm lại những gì
+
+- **ASR:** chạy lại corpus và exact-match entity. Kiểm định dạng output (dấu câu, chữ hoa, số viết bằng chữ hay chữ số) vì LLM nhạy với các thứ này. Kiểm lại filter và `quality_flags`. Đo capacity.
+- **TTS:** chạy lại toàn bộ L3 cho mọi mục lexicon. Viết lại voice profile (vùng, code-switch, `max_chars`). Đổi G2P của engine là lý do chạy lại tập nghe. Tổng hợp lại fixed-phrase cache. Đo `max_streams`, TTFA và RTF dưới tải chung với ASR. Nếu rate gốc khác 48 kHz thì xác nhận chỉ resample một lần.
+
+---
+
+## 7. Hợp đồng điều khiển và API
+
+### 7.1 Audio ingress và audio contract theo từng đoạn
+
+| Đoạn | Định dạng | Ai resample |
+|---|---|---|
+| Client → orchestrator | Opus (WebRTC) hoặc PCM16 16 kHz mono frame 20 ms (WS dev) | — |
+| Trong orchestrator | f32 16 kHz mono, ring ≥ 10 s, chỉ số mẫu tuyệt đối | Orchestrator, một lần (48 → 16 kHz) |
+| Orchestrator → asr-service | PCM16 16 kHz mono, frame mang `sample_index` | — |
+| Orchestrator → tts-service | Text UTF-8 (delta) | — |
+| tts-service → orchestrator | PCM s16le, rate lấy từ `Start.output` (mặc định 48 kHz) mono, chunk mang `sample_offset` | tts-service, tối đa một lần (rate gốc → rate yêu cầu) |
+| Orchestrator → client | Opus 48 kHz (WebRTC) hoặc PCM 48 kHz có header (WS) | — |
+
+**Policy khi có gap ở uplink** (Chương 16, **Synthesis**):
+- Mất ngắn (< 100 ms): chèn im lặng đúng độ dài và gửi `ingress.gap`.
+- Mất dài (≥ khoảng 500 ms) giữa lượt: `turn.invalidated`, rồi hỏi lại.
+- Frame đến muộn hoặc trùng: bỏ.
+- Có metric `uplink_dropped`.
+
+**Vòng đời turn buffer:** OPEN → HOLD (từ soft-end tới khi có final hoặc final-pass) → RELEASE. Trần 30 s mỗi lượt, cấu hình được. Turn buffer là dữ liệu nhạy cảm và được giải phóng đúng hạn.
+
+### 7.2 Định danh và event schema
+
+**Định danh:**
+
+| ID | Phạm vi | Quy tắc |
+|---|---|---|
+| `session_id` | Một kết nối | Edge cấp |
+| `turn_id` | Lượt của user | Tăng khi mở lượt mới |
+| `revision` | Trong một lượt | Tăng khi reopen |
+| `generation_id` | Cả session | Tăng đơn điệu khi tạo response và khi cancel. Không reset |
+| `chunk_id` | Trong một generation | Do tts-service cấp, tăng đơn điệu |
+| `sequence` | Theo `(generation_id)` cho audio downlink | Client kiểm cặp `(generation_id, sequence)` |
+
+Mọi event mang thêm `t_mono_ns` (đồng hồ đơn điệu của host phát event). Event audio mang chỉ số mẫu.
+
+**Event giữa client và orchestrator (DataChannel hoặc WS text):**
+
+```text
+↓ session.ready(session_id, uplink_format, downlink_format, capabilities)
+↓ turn.state(turn_id, revision, state)                 # tùy chọn, cho UI
+↓ caption.user(turn_id, revision, text, final)          # chỉ khi ASR có partial
+↓ response.created(generation_id, turn_id, revision)
+↓ caption.bot(generation_id, chunk_id, display_text)    # gửi lúc audio của chunk bắt đầu phát
+↓ audio.end(generation_id, n_samples)
+↓ client.clear(cancelled_generation_id)                 # client nâng floor ≥ id này
+↓ response.done(generation_id, status, reason)          # completed | cancelled | failed
+↓ error(code, retry_after_ms?)                          # overloaded | auth | format | timeout
+↑ audio.played(generation_id, played_sample_offset)     # WS: chính xác; WebRTC: ước lượng (§7.3)
+↑ audio.stats(jitter_buffer_ms, output_latency_ms, underruns)
+↑ response.cancel()                                     # nút dừng trên UI
+↑ session.end(reason)
+```
+
+**Event nội bộ trong inbox của actor:** `vad.speech_start(sample)`, `vad.speech_end(sample)`, `smart_turn.result(turn_id, revision, prob)`, `timer.fired(kind, turn_id, revision)`, `asr.partial(...)`, `asr.final(turn_id, revision, text, flags, audio_range)`, `llm.delta/done/failed(generation_id, ...)`, `tts.text_chunk/audio/done/failed(generation_id, ...)`, `ingress.gap(...)`, `turn.invalidated(...)`, `client.*`.
+
+**Quy tắc:**
+- Event có `generation_id` nhỏ hơn generation hiện tại thì bị bỏ ở mọi chặng.
+- Partial là latest-only, nên `sequence` của partial có lỗ là bình thường.
+- `turn.commit(turn_id, revision, speech_end_sample)` chỉ phát một lần cho mỗi lượt.
 
 ### 7.3 Barge-in và cancellation
 
-Trình tự (**Reported**, gộp từ hai report):
+**Trình tự trong actor.** Tất cả chạy đồng bộ, không có `await` xen giữa bước 1 và bước 2 (Chương 17–18):
 
-1. Mic luôn mở, có AEC. VAD tiếp tục chấm điểm trong lúc bot nói.
-2. Khi phát hiện user nói đủ lâu: `generation_id++`.
-3. Cancel LLM stream. Cancel request TTS (HTTP/WS). Xóa các câu đang xếp hàng.
-4. Gửi `{"type":"clear"}` / `audio_cancel` để client flush buffer AudioWorklet.
-5. Trong history, chỉ lưu **phần đã thực sự phát**, kèm tag `[bị ngắt]`.
-6. Client bỏ mọi chunk thuộc generation cũ.
+1. Tăng `generation_id` (`cancelled = old`).
+2. Đẩy `client.clear(old)` vào hàng ưu tiên. Pacer ngừng gửi audio của `old` ngay lập tức. Fade-out khoảng 5–10 ms tại điểm cắt (**Synthesis**).
+3. Set cờ stop và hủy response scope: đóng stream LLM, hủy stream gRPC tới tts-service (tts-service đóng request engine, VieNeu nhả slot), hủy `Recognize` đang chạy nếu có.
+4. Mở lượt mới. Turn buffer bắt đầu từ đầu đoạn nói trừ pre-roll.
+5. Phát `response.done(old, cancelled, reason)`.
+6. **Sau đó**, khi có played offset, cắt history (§5.7.5). Bước này không làm trong lúc ngắt.
 
-Gating chống ngắt nhầm (**Reported**):
+**Played offset:**
+- WebSocket: client đếm mẫu đã render trong AudioWorklet và báo `audio.played`. Giá trị này chính xác.
+- WebRTC: client không chặn được audio trong jitter buffer. Server ước lượng `played ≈ sent_samples − (jitter_buffer_ms + output_latency_ms) × rate` từ `audio.stats` (WebRTC `getStats`), làm tròn về phía bảo thủ. Cách này là **Synthesis** và phải kiểm trên trình duyệt đích. Phần đuôi audio đã nằm trong jitter buffer (vài chục ms) không flush được từ xa và được tính vào T_silence.
 
-| Cơ chế | Giá trị khởi điểm |
-|---|---|
-| Duration gate (môi trường sạch) | 100–200 ms speech liên tục (ưu tiên độ nhạy) |
-| Duration gate (môi trường ồn) | threshold 0.7 và ≥300–500 ms (reference server dùng 400 ms) |
-| Speaker lock | Cosine của embedding ECAPA/CAM++ so với embedding user (lấy từ lượt đầu, cập nhật dần); bỏ nếu < ~0.5–0.6, cần calibrate |
-| Quick ASR (tùy chọn) | ≥2 từ và không trùng câu bot đang phát |
+**Gate chống ngắt nhầm.** Tất cả là tham số, **Chốt sau PoC** trên dữ liệu tiếng Việt:
 
-Lưu ý (**Synthesis**):
+| Cơ chế | Khởi điểm | Ghi chú |
+|---|---|---|
+| Duration gate | Hai giá trị khởi điểm mâu thuẫn: 100–200 ms (ưu tiên nhạy) và threshold 0.7 cộng 300–500 ms (ưu tiên chống ồn) (**Reported**, §11) | Đo đánh đổi: 150 ms dễ ngắt nhầm vì "ừ"; 400 ms làm gate chiếm phần lớn T_silence |
+| Backchannel ba kết cục | Ngắt / ghi nhận không ngắt / bỏ qua | Không mặc định bỏ qua "ừ, vâng, ok" |
+| Speaker lock (P2) | Cosine ECAPA/CAM++ so với embedding của user, khoảng 0.5–0.6, cần calibrate | Speaker lock không phải xác thực |
+| Kiểm echo (P2) | Quick-ASR ≥ 2 từ và không trùng câu bot đang phát | |
 
-- Speaker lock **không phải là xác thực**.
-- Đừng mặc định coi mọi "ừ/vâng/ok" là backchannel để bỏ qua. Trong một số domain, đó chính là lời xác nhận.
-- Đo cả hai: user-speech → âm thanh bot dừng (nghe được), và thời gian giải phóng compute.
-- Nếu một SDK không cancel được từ bên trong, đó là một deployment gate.
-- Nếu không có alignment giữa token và audio, chỉ khẳng định được "played offset", không khẳng định được chính xác từ nào đã phát. `conversation.item.truncate` của HF s2s là điểm nối tự nhiên cho việc này.
+**Đo** (bắt buộc, kèm `(turn, rev, gen)` và lý do cancel):
+- **T_silence:** từ lúc user bắt đầu nói tới lúc âm thanh bot dừng, đo ở client.
+- **T_release:** từ lúc cancel tới lúc LLM và TTS hết compute, đo ở server qua slot VieNeu và metric của LLM.
+- Tỷ lệ ngắt đúng, ngắt trượt, ngắt nhầm.
 
-### 7.4 Phác thảo vòng điều khiển (minh họa, Synthesis)
+### 7.4 Vòng điều khiển (minh họa, **Synthesis**)
 
-Đây là pseudo-code để mô tả luồng điều khiển. Nó không bám API của bất kỳ thư viện nào.
+Pseudo-code dưới đây đã sửa các lỗi mà Chương 17–19 chỉ ra trong pseudo-code của v1: owner một inbox, hold output speculative, timer có token, guard ở send loop, history chờ played offset, cầu text → speech nằm trong tts-service.
 
 ```python
-class Session:
-    generation_id = 0
-    turn = TurnTracker()          # LISTENING / SOFT_ENDED / ANSWERING / CLOSED
-    bot_speaking = False
+class SessionActor:                      # một task, một inbox; không await giữa đọc và ghi state
+    async def run(self):
+        async for ev in self.inbox:
+            match ev:
+                case VadSpeechEnd(sample):
+                    if self.turn.state == LISTENING:
+                        self.turn.soft_end(sample)
+                        self.executors.smart_turn.submit(self.ring.window_8s(), token=self.turn.token())
+                        self.start_speculative()             # L1/L2: ASR (+LLM) ngay tại soft-end
+                case VadSpeechStart(sample):
+                    if self.response_playing() and self.barge_gate.ok(sample):
+                        self.cancel_response("barge_in")
+                    elif self.turn.state in (SOFT_ENDED, ANSWERING) and not self.committed():
+                        self.turn.reopen(sample)             # revision++, timer cũ tự vô hiệu
+                        self.discard_speculative()
+                case SmartTurnResult(token, complete):
+                    if token == self.turn.token():
+                        self.timers.arm("commit", GRACE if complete else MAX_WAIT, token)
+                case TimerFired("commit", token) if token == self.turn.token():
+                    self.commit()                            # điểm commit DUY NHẤT
+                case AsrFinal(turn_id, rev, text, flags) if (turn_id, rev) == self.turn.key():
+                    verdict = self.validity.check(text, flags, self.turn)
+                    if verdict.ok: self.resp.start_llm(self.history, text)   # vẫn SPECULATIVE
+                    else: self.plan_fallback(verdict)                         # hỏi lại từ cache
+                case TtsTextChunk(gid, chunk) if gid == self.gen:
+                    self.resp.record_chunk(chunk)            # display_text + segments
+                case ClientPlayed(gid, offset):
+                    self.history.truncate_if_cancelled(gid, offset)
+                case LlmFailed(gid) | TtsFailed(gid) if gid == self.gen:
+                    self.play_fixed_phrase("loi_tam_thoi")
 
-    on_audio_frame(frame):
-        vad_p = silero.score(reblock_512(denoise_opt(frame)))   # nhánh VAD
-        asr_stream.feed(frame)                                    # nhánh ASR: audio AEC gốc
-        if bot_speaking and speech_run_ms(vad_p) >= BARGE_MS and speaker_lock_ok():
-            interrupt()
-        if silence_ms(vad_p) >= STOP_MS:
-            if smart_turn.complete(last_8s_audio) or silence_ms >= FALLBACK_MS:
-                turn.soft_end()        # có thể chạy ASR/LLM speculative ở đây
-        if user_resumed():
-            turn.reopen()              # revision mới, discard việc chưa commit
+    def commit(self):
+        self.turn.commit()
+        self.resp.mark_committed()               # L1: mở stream TTS, flush text đã held
+        self.pacer.release(self.gen)             # L2: thả audio đã held
 
-    on_turn_commit(turn_id, revision):
-        text = asr.final(turn_audio)                  # hoặc final-pass (Profile D)
-        if not validity_gate(text): return ask_back_or_ignore()
-        gid = generation_id
-        for clause in chunker(llm.stream(history, text, gid)):
-            if gid != generation_id: break             # stale
-            tts.enqueue(gid, normalize_vi(lexicon(clause)))
+    def cancel_response(self, reason):
+        if not self.resp.active(): return        # no-op, không tăng generation
+        old, self.gen = self.gen, self.gen + 1   # tăng trước mọi await
+        self.pacer.clear(old)                    # hàng ưu tiên: client.clear(old) + ngừng gửi
+        self.resp.scope_cancel(old)              # đóng LLM + gRPC TTS; cờ stop
+        self.emit(ResponseDone(old, "cancelled", reason))
 
-    interrupt():
-        generation_id += 1
-        llm.cancel(); tts.cancel(); tts_queue.clear()
-        client.send({"type": "clear"})
-        history.append(played_part_only() + " [bị ngắt]")
+# pacer (task duy nhất ghi ra transport)
+async def send_loop(self):
+    async for frame in self.schedule.absolute(20 * MS):
+        chunk = self.queue.peek()
+        if chunk and chunk.gid == self.actor.gen and self.released(chunk.gid):   # kiểm nguyên tử
+            self.transport.send_audio(self.queue.pop())
 ```
 
 ### 7.5 Diarization
 
-Agent một-user thì **không** đặt diarizer vào critical path. Với meeting hoặc nhiều user: ưu tiên track riêng theo participant. Nếu chỉ có audio trộn, thử [Nemotron 3 Diarization](../wiki/nemotron-3-diarization.md) (tối đa 8 speakers, input buffer 0.32/0.64/1.04 s, **Reported**). Chưa có số DER tiếng Việt.
+Agent một người dùng **không** đặt diarizer trong critical path. Khi có nhiều người nói, ưu tiên mỗi participant một track riêng (SFU). Nếu chỉ có audio trộn, thử [Nemotron 3 Diarization](../wiki/nemotron-3-diarization.md) (tối đa 8 speaker, **Reported**). Hiện chưa có DER cho tiếng Việt.
+
+### 7.6 ASR service API (`asr.v1`)
+
+```proto
+syntax = "proto3";
+package asr.v1;
+
+service Asr {
+  rpc Describe(DescribeRequest) returns (AsrCapabilities);
+  rpc StreamingRecognize(stream AsrClientMsg) returns (stream AsrServerMsg); // native/buffered stream
+  rpc Recognize(RecognizeRequest) returns (RecognizeResponse);               // turn_final / final-pass
+}
+
+message AsrCapabilities {
+  string engine_id = 1; string engine_version = 2;
+  repeated string modes = 3;            // "turn_final" | "native_stream" | "buffered_stream"
+  bool partials = 4; bool stable_prefix = 5;
+  bool language_forcing = 6; repeated string languages = 7;
+  bool context_biasing = 8; bool punctuation = 9; bool itn = 10;
+  bool confidence_calibrated = 11;      // false ⇒ orchestrator coi confidence = unknown
+  repeated int32 input_sample_rates = 12;
+  int32 max_inflight = 13; int32 max_turn_seconds = 14; string license = 15;
+}
+
+message StreamConfig { string session_id = 1; string language = 2; int32 sample_rate = 3;
+                       repeated string context_phrases = 4; string mode = 5; }
+message AudioFrame   { uint64 sample_index = 1; bytes pcm16 = 2; }
+message Finalize     { uint64 turn_id = 1; uint32 revision = 2; uint64 end_sample = 3; }
+message AsrClientMsg { oneof msg { StreamConfig config = 1; AudioFrame audio = 2; Finalize finalize = 3; } }
+
+message Partial { uint64 turn_id = 1; uint32 revision = 2; string text = 3;
+                  int32 stable_prefix_chars = 4; uint64 start_sample = 5; uint64 end_sample = 6; }
+message Final   { uint64 turn_id = 1; uint32 revision = 2; string text = 3; string language = 4;
+                  repeated string quality_flags = 5; uint64 start_sample = 6; uint64 end_sample = 7;
+                  Timings timings = 8; }       // queue_ms, compute_ms (không chứa nội dung)
+message AsrServerMsg { oneof msg { Partial partial = 1; Final final = 2; Error error = 3; } }
+
+message RecognizeRequest { string session_id = 1; uint64 turn_id = 2; uint32 revision = 3;
+                           bytes pcm16 = 4; int32 sample_rate = 5; string language = 6;
+                           repeated string context_phrases = 7; }
+message RecognizeResponse { Final final = 1; }
+message Error { string code = 1; uint32 retry_after_ms = 2; }   // RESOURCE_EXHAUSTED, INVALID_AUDIO, ...
+```
+
+Ngữ nghĩa:
+- Hủy một RPC (gRPC cancel) là cancel. Service phải dừng decode hoặc bỏ kết quả và giải phóng slot.
+- Deadline do orchestrator đặt theo ngân sách của lượt.
+- Final của `(turn_id, revision)` cũ đến muộn sẽ bị orchestrator bỏ.
+
+### 7.7 TTS service API (`tts.v1`)
+
+```proto
+syntax = "proto3";
+package tts.v1;
+
+service Tts {
+  rpc Describe(DescribeRequest) returns (TtsCapabilities);
+  rpc ListVoices(ListVoicesRequest) returns (VoiceList);
+  rpc Synthesize(stream TtsClientMsg) returns (stream TtsServerMsg);   // 1 stream = 1 generation
+  rpc SynthesizePhrase(PhraseRequest) returns (stream AudioChunk);     // câu cố định, cache được
+}
+
+message TtsCapabilities {
+  string engine_id = 1; string engine_version = 2;
+  string streaming = 3;               // "frame" | "chunk" | "full_waveform"
+  int32 native_sample_rate = 4; repeated int32 output_sample_rates = 5; int32 channels = 6;
+  string cancel = 7;                  // "server" | "close_connection" | "none"
+  int32 max_streams = 8;
+  TextContract text_contract = 9;     // max_chars, codeswitch, case_sensitive, ignored_params, inline_tags
+  string normalizer_version = 10; string lexicon_version = 11; string license = 12;
+}
+
+message Start { string session_id = 1; uint64 turn_id = 2; uint32 revision = 3; uint64 generation_id = 4;
+                string voice_id = 5; int32 sample_rate = 6;   // mặc định 48000, PCM16 mono
+                bool speculative = 7;                         // L2: ưu tiên thấp, có thể bị từ chối
+                map<string,string> policy_overrides = 8; }
+message TextDelta { uint32 seq = 1; string text = 2; }
+message TextEnd {}
+message Cancel { string reason = 1; }
+message TtsClientMsg { oneof msg { Start start = 1; TextDelta delta = 2; TextEnd end = 3; Cancel cancel = 4; } }
+
+message Segment { uint32 display_start = 1; uint32 display_end = 2;
+                  uint32 spoken_start = 3; uint32 spoken_end = 4; bool rewritten = 5; }
+message TextChunk { uint32 chunk_id = 1; string display_text = 2; string spoken_text = 3;
+                    repeated Segment segments = 4; string kind = 5;   // clause | first_comma | hard_max | final
+                    repeated string warnings = 6; string normalizer_version = 7; string lexicon_version = 8; }
+message AudioChunk { uint32 chunk_id = 1; uint32 seq = 2; uint64 sample_offset = 3; bytes pcm16 = 4; }
+message ChunkEnd { uint32 chunk_id = 1; uint64 n_samples = 2; uint32 ttfa_ms = 3; }
+message Done { string status = 1; uint32 chars = 2; uint64 audio_samples = 3; }
+message TtsServerMsg { oneof msg { TextChunk text_chunk = 1; AudioChunk audio = 2; ChunkEnd chunk_end = 3;
+                                   Done done = 4; Error error = 5; } }
+message Error { string code = 1; uint32 retry_after_ms = 2; }
+```
+
+Ngữ nghĩa:
+- Mỗi stream ứng với đúng một `generation_id`. Hủy stream là cancel, và bridge của generation đó bị vứt bỏ, **không** flush.
+- `sample_offset` tính trên timeline của generation. Orchestrator dùng nó để dựng bảng `chunk_id → [mẫu đầu, mẫu cuối)`.
+- `spoken_text` là nội dung. Nó chỉ được gửi cho orchestrator (để debug opt-in) và không bao giờ được ghi vào log vận hành.
+- Từ chối do quá tải trả `RESOURCE_EXHAUSTED` kèm `retry_after_ms`. Stream `speculative` bị từ chối trước stream thường.
 
 ---
 
-## 8. Latency: ngân sách, đo lường và tối ưu
+## 8. Latency: critical path, SLO, đòn bẩy, đo lường
 
-### 8.1 Critical path cần đo
-
-```text
-mẫu speech cuối của user
-  → endpoint commit
-  → final ASR được chấp nhận
-  → LLM: mệnh đề có nghĩa đầu tiên
-  → TTS: mẫu audio phát được đầu tiên
-  → client: mẫu audio nghe được đầu tiên
-```
-
-Đo từng cạnh và tổng. Không cộng các tính toán đã chạy chồng lấn.
-
-**Output gate trong thiết kế speculative** (**Synthesis** từ [HF s2s — Endpointing](../wiki/speech-to-speech-pipeline.md#endpointing-and-turn-taking), bổ sung 2026-10-07 sau review PoC). Khi ASR/LLM chạy speculative trong grace trước commit, thời điểm gate mở có thể quyết định latency thay cho tốc độ model:
+### 8.1 Critical path và output gate
 
 ```text
-v2v ≈ (cuối tiếng user → soft-end) + max(output-hold, ASR + LLM tới mệnh đề đầu)
-      + TTS tới audio đầu + transport/playback
+mẫu speech cuối của user (chỉ số mẫu)
+  → soft-end (VAD im ≥ min_silence)
+  → [grace / incomplete delay / max wait]   ‖   ASR final → LLM tới mệnh đề đầu [→ TTS mệnh đề đầu nếu L2]
+  → turn.commit (gate mở)
+  → TTS first byte (nếu L1) → pacer → Opus → mạng/jitter → client: mẫu nghe được đầu tiên
 ```
 
-Với default HF s2s, output-hold là 800 ms cho lượt complete và tới 2 s cho lượt incomplete. Nếu TTS chỉ chạy sau commit thì TTS nằm ngoài `max`. Hệ quả:
+Công thức (**Synthesis** từ Reported, spec §1):
 
-- Đo riêng output-hold và thời điểm response sẵn sàng trước khi đổi model.
-- Streaming ASR không vượt qua được output gate.
-- Chunker phải nằm ở consumer của LLM stream. Chia câu sau khi đã nhận cả câu trả lời không lấy lại được thời gian chờ LLM.
-- Khi có reopen, cancel hoặc nhiều TTS chunk, join log theo `turn_id`/`revision`/`generation_id`/`chunk_id`, không theo thứ tự lượt.
+```text
+L1: v2v ≈ (cuối tiếng → soft-end) + max(hold, ASR + LLM→mệnh đề đầu) + TTS TTFA + transport/playback
+L2: v2v ≈ (cuối tiếng → soft-end) + max(hold, ASR + LLM→mệnh đề đầu + TTS TTFA) + transport/playback
+```
 
-### 8.2 Ngân sách tham khảo
+Hệ quả:
+- Với default HF (hold 800 ms cho lượt complete, tới 2 s cho lượt incomplete), lượt complete khó xuống dưới khoảng 0.9 s, dù model nhanh tới đâu.
+- Nếu ASR và LLM đã nằm gọn trong grace thì đổi sang model nhanh hơn được 0 ms.
+- Phải đo **tỷ lệ lượt bị giới hạn bởi gate** và **slack** trước khi chọn đòn bẩy (Chương 20).
+- Join log theo `(turn_id, revision, generation_id, chunk_id)`, không theo thứ tự lượt.
 
-Đây là ước lượng của report (**Reported**), **không phải target**.
+### 8.2 SLO
 
-| Stage | Claude report (vi stack) | ChatGPT blueprint |
+Ngân sách tham khảo của report (0.7–1.2 s và 0.95–2.9 s, **Reported**) **không** phải mục tiêu. Bảng đó không có dòng hold và không có dòng playback.
+
+| SLO | Mục tiêu | Nguồn / nhãn |
 |---|---|---|
-| Network + jitter | 30–80 ms | 50–200 ms |
-| VAD silence / end-of-speech | 200–300 ms | 400–600 ms |
-| Smart Turn | 10–65 ms | — |
-| ASR turn-final | 100–300 ms (turbo, GPU, câu 3–5 s) | 200–700 ms |
-| LLM TTFT + chunk đầu | 150–350 ms | 100–500 ms + tách câu 100–400 ms |
-| TTS TTFA | 64–300 ms (VieNeu ~115 ms) | 100–500 ms |
-| **Voice-to-voice** | **~0.7–1.2 s** | **mục tiêu 1–2 s** (tổng các dải thực ra là 0.95–2.9 s) |
+| v2v D1 (client), lượt complete | P50 ≤ 1.5 s, P95 ≤ 2.5 s, mục tiêu mềm | spec §1 |
+| v2v D1, báo riêng theo loại lượt | complete / incomplete-reopen / sau barge-in / sau idle (GPU nguội) | spec §5.3 |
+| T_silence (barge-in) | Đặt sau PoC. Khởi điểm: duration gate cộng ≤ 200 ms | **Synthesis** |
+| Audio cũ phát sau `clear` | 0 ms ngoài phần đuôi trong jitter buffer | Chương 17 |
+| TTS TTFA dưới tải | P95 ≤ 250–400 ms | Tài liệu TTS (**Synthesis**) |
+| TTS RTF mỗi stream dưới tải | P95 ≤ 0.7 | Tài liệu TTS. VieNeu khuyến nghị giảm `max_streams` nếu RTF > 0.8 |
+| Loop lag của orchestrator | P99 < 5 ms ở số session mục tiêu | Chương 18 |
+| False-interruption tiếng Việt | ≤ 10%; vượt thì thay hoặc fine-tune turn detector | **Reported** trigger |
+| False cutoff | Báo **cùng** v2v; không hạ hold khi chưa đo chỉ số này | Chương 20 |
 
-Hai bảng chênh nhau chủ yếu ở cách endpointing: có Smart Turn với 200–300 ms im lặng, hay dùng 400–600 ms im lặng thuần (**Synthesis**). LLM nằm ngoài phạm vi bài này. Vì vậy speech pipeline không thể cam kết tổng ~1 s khi chưa biết endpoint LLM.
+### 8.3 Đòn bẩy theo thứ tự ưu tiên
 
-### 8.3 Các đòn bẩy tối ưu
+Thứ tự theo spec §8, chỉnh lại cho production (**Synthesis**):
 
-Theo report (**Reported**):
+1. Bảo đảm LLM → TTS theo mệnh đề. Chunker nằm trong tts-service, nhận delta ngay khi orchestrator nhận.
+2. Khóa clock GPU ở host. Đặt `max_streams` đúng tải. Warmup xong mới báo readiness. Chunk đầu của mỗi lượt luôn đến sau một khoảng rảnh > 2 s.
+3. A/B grace có kiểm soát (800 → 600 → 400 ms), đo kèm false cutoff và reopen.
+4. Dùng L2 (TTS speculative) khi tỷ lệ lượt bị giới hạn bởi gate cao và tỷ lệ reopen thấp.
+5. Tune pre-buffer và `MAX_LEAD` của pacer theo jitter và underrun đo được.
+6. Đo LLM tới mệnh đề đầu với context dài. Dùng prefix cache.
+7. Streaming ASR, chỉ khi timeline cho thấy bị giới hạn bởi compute.
+8. Cuối cùng mới tối ưu runtime (`torch.compile`, vLLM, …) trên đúng workload hội thoại.
 
-- Warm up mọi model và giữ resident trong VRAM. Không load model theo request. Không ghi file WAV tạm ra đĩa.
-- Bật prefix cache cho system prompt (vLLM).
-- Chạy faster-whisper trong `asyncio.to_thread`.
-- **Preemptive ASR + LLM** khi VAD im 200 ms, và cancel nếu user nói tiếp. Cơ chế speculative reopen của HF s2s là phiên bản có kỷ luật của ý tưởng này.
-- Clause chunking để TTS bắt đầu sớm. Blueprint gọi đây là tối ưu quan trọng nhất.
-- Playback buffer nhỏ để chống giật. Chỉ client Python đóng gói sẵn (`local --tts openai`) mặc định đệm 196 ms; browser demo qua WebSocket mặc định 0 ms (chỉnh trong Settings), WebRTC không dùng tùy chọn này. VieNeu khuyến nghị client pre-buffer 150–300 ms ([Streaming Runtime](../wiki/vieneu-tts-streaming-runtime.md)); nguồn demo nêu ví dụ 1200 ms trong một setup TTS cục bộ nhưng nói rõ không phải tối ưu chung. Đánh đổi là bớt giật nhưng chậm bắt đầu hơn.
+### 8.4 Monitoring theo lượt
 
-### 8.4 Monitoring theo từng turn
+**Mốc thời gian** (khớp với tập M1–M12 của Chương 20 §20.7.1). Mỗi mốc ghi `t_mono_ns` và ID:
 
-Các metric (**Reported**): `vad_end→asr_done`, `asr_done→llm_first_token`, `first_sentence→tts_first_byte`, voice-to-voice đo phía client, tỷ lệ transcript bị lọc, tỷ lệ barge-in, tỷ lệ false-interruption.
+`speech_end_sample` → `soft_end` → `smart_turn_done` → `asr_request` → `asr_final` → `llm_request` → `llm_first_token` → `first_clause_ready` (tts-service) → `turn_commit` → `tts_first_byte` → `downlink_first_send` → `client_first_audible` → `llm_done` → `response_done(status)`.
 
-Gate khởi điểm cho TTS (**Synthesis**, SLO đề xuất): TTFA P95 ~250–400 ms và RTF P95 ≤ 0.7 dưới tải thực.
+Client tự tính D1 từ `speech_end_sample` do server gửi xuống, nên không cần đồng bộ đồng hồ giữa client và server.
+
+**Metric theo service:**
+
+| Service | Metric |
+|---|---|
+| orchestrator | `hold_ms`, tỷ lệ lượt bị giới hạn bởi gate, slack, tỷ lệ Smart Turn incomplete, số reopen, `speculative_discard`, T_silence, T_release, loop lag, độ sâu, số bỏ và thời gian chờ của mỗi queue, `uplink_dropped`, `downlink_lead_ms`, `client_underrun_total`, `prebuffer_wait_ms` |
+| asr-service | queue_ms, compute_ms, endpoint→final theo bucket độ dài lượt, tỷ lệ từng `quality_flags`, `RESOURCE_EXHAUSTED`, số stream active |
+| tts-service | `ttfc_ms` (time-to-first-clause), `ttfa_ms`, `inter_chunk_gap_ms` P95, độ dài chunk, `chunk_kind_ratio`, `chunks_per_reply`, `norm_warnings{type}`, `alert_hits`, `spoken_empty_chunks`, slot của engine, 429, RTF |
+| LLM client | TTFT, TTFC, tokens/s, cached tokens, `finish_reason`, lỗi theo loại |
 
 ---
 
-## 9. Triển khai, VRAM, scaling và privacy
+## 9. Triển khai, capacity và vận hành
 
 ### 9.1 Topology
 
-Theo **Synthesis** từ phần so sánh deploy tools và report.
+**Một node speech (v1):**
 
-- Bắt đầu với Docker Compose. Mỗi model một owner process, đừng để mỗi gateway worker tự load weights.
-- Tách environment của ASR, TTS và ONNX để tránh xung đột torch/transformers/CUDA. HF s2s là ví dụ: DeepFilterNet cần `numpy<2`, xung đột với Pocket TTS.
-- Danh sách container: `gateway` (public RTC/WS), `asr-service` (private), `final-asr-service` (tùy chọn), `tts-service`, `telemetry`. LLM nằm ngoài, nhưng phải tính contention nếu dùng chung GPU.
-- Pin revision và checksum cho runtime, weights, G2P, voicepack, normalizer. Pre-stage offline. Health/readiness chỉ báo ready sau khi warmup xong.
-- Có admission cap, bounded queue, backpressure/429, deadline theo session, circuit breaker và cleanup.
+```text
+node-speech-01 (1× GPU 24 GB)
+  ├─ asr-api            (CPU)  ──localhost── asr-engine-qwen3   (GPU, vLLM)
+  ├─ tts-api            (CPU)  ──localhost── tts-engine-vieneu  (GPU, Docker api-gpu)
+  ├─ orchestrator ×K    (CPU; WebRTC kết thúc tại đây hoặc ở SFU)
+  ├─ edge + coturn      (có thể ở host riêng)
+  └─ otel-collector
+llm-host (riêng)        ── endpoint OpenAI-compatible (spec Q5)
+```
 
-### 9.2 VRAM
+- Bắt đầu bằng Docker Compose. Mỗi model có một owner process. Gateway không load weights.
+- Engine sidecar chỉ bind localhost hoặc mạng nội bộ của pod.
+- Chỉ edge và TURN được lộ ra ngoài.
 
-Các con số là ước lượng của report (**Reported**, chưa đo).
+### 9.2 GPU và VRAM trên node 24 GB
 
-| GPU | Phân bổ |
-|---|---|
-| 24 GB | Whisper turbo fp16 ~2–3 GB; VieNeu GPU ~2–3 GB (tác giả ghi peak 1.1 GB ở 16 streams); phần còn lại cho LLM + KV cache |
-| 12 GB | Whisper turbo `int8_float16`, VieNeu, LLM 4B 4-bit |
-| Lựa chọn khác (cộng đồng) | Đặt TTS trên CPU để GPU dành cho STT + LLM (**Reported**, anecdote) |
+Số liệu là **Reported** hoặc ước lượng thô, phải đo lại (R5 của spec):
 
-Ước lượng thô weights = params × bytes/param. Ví dụ 0.6B BF16 ≈ 1.2 GB, 1.7B ≈ 3.4 GB. Con số này chưa gồm encoder (nếu tên model chỉ tính decoder), KV/encoder cache, workspace và số phiên (**Synthesis**).
+| Thành phần | Ước lượng | Ghi chú |
+|---|---|---|
+| Qwen3-ASR 0.6B | Weights khoảng 1.2 GB BF16, cộng encoder 180M, cache, workspace | Phải giới hạn tỷ lệ VRAM vLLM được cấp phát trước, nếu không nó chiếm GPU của TTS |
+| Qwen3-ASR 1.7B | Weights khoảng 3.4 GB, cộng encoder 300M, cache | |
+| VieNeu v3 Turbo | 0.64–0.72 GB (8 stream) đến 0.91–1.10 GB (16 stream), theo harness của tác giả | Report thứ cấp ước 2–3 GB |
+| Context CUDA của mỗi process | Phải đo | |
+| Smart Turn, VAD | 0 (chạy CPU) | |
+| LLM | 0 (ở host khác) | |
 
-### 9.3 Scaling
+VRAM đủ **không có nghĩa là** cadence đủ. Một burst ASR turn-final có thể làm bước codec của TTS chậm lại. Phải đo P99 thời gian một bước TTS khi ASR đang chạy. Nếu cadence vỡ, có ba cách: (a) chuyển final-pass sang CPU (Gipformer), (b) tách GPU theo service, (c) giảm `max_inflight` của ASR.
 
-Theo report (**Reported**):
+### 9.3 Scale và mô hình capacity
 
-- State VAD theo session chạy trên CPU.
-- ASR turn-final qua một worker pool batch (faster-whisper `BatchedInferencePipeline`).
-- Continuous batching cho LLM và TTS.
-- Khi số phiên tăng thì tách GPU theo service.
+- **Đơn vị scale** là một node speech: một GPU chạy ASR engine và TTS engine, cộng một pool orchestrator CPU.
+- **Capacity của node** là giá trị nhỏ nhất trong ba giới hạn sau (**Synthesis**). Cả ba đều phải đo bằng harness open-loop có khoảng rảnh thật giữa các lượt:
+  - TTS: `max_streams` / duty cycle (khoảng 0.2–0.35, **Reported**).
+  - ASR: số lượt mỗi giây mà engine chịu được ở P95 endpoint→final mục tiêu.
+  - CPU orchestrator: loop lag P99 < 5 ms.
+- **Routing:**
+  - Edge route session sticky tới orchestrator.
+  - Orchestrator gọi asr-api và tts-api qua LB nội bộ theo kiểu least-outstanding.
+  - Stream gRPC tự sticky trong suốt vòng đời của nó.
+  - Ưu tiên node local (cùng máy) để tránh hop mạng.
+- Khi số session tăng, tách GPU theo service trước, rồi mới tính tới Kubernetes hay kiến trúc disaggregated.
+- Năng lực Nemotron trên H100 (khoảng 240 stream ở 80 ms, **Reported**) là trần lý thuyết của riêng ASR, không phải của cả pipeline.
 
-Thêm (**Synthesis**): ưu tiên nhịp audio đều (cadence) hơn throughput batch. Tách service theo GPU trước khi nghĩ đến Kubernetes hay disaggregated Omni. Năng lực Nemotron 3.5 trên H100 (~240 streams ở chunk 80 ms, ~2.400 ở 1.12 s, **Reported** theo card) là trần lý thuyết của riêng ASR, không phải năng lực của cả pipeline.
+### 9.4 Fallback và degradation ladder
 
-### 9.4 Fallback
-
-Nếu đổi TTS giữa chừng một câu, giọng sẽ thay đổi. Nên retry hoặc chuyển sang mệnh đề mới kèm thông báo trạng thái, thay vì ghép hai giọng (**Synthesis**).
+| Sự cố | Phát hiện | Hành vi (**Synthesis**) |
+|---|---|---|
+| TTS 429 / `RESOURCE_EXHAUSTED` | Mã lỗi | Retry ở replica khác trong deadline. Nếu vẫn lỗi, phát câu đệm từ cache ("Anh/chị chờ em một chút"), rồi thử lại **ở mệnh đề mới** |
+| TTS engine chết (`/health` 503) | Health, circuit breaker | Breaker mở, route sang replica khác. Nếu không có replica nào thì phát câu báo lỗi từ cache. Container restart |
+| Fallback sang engine TTS khác | Registry `fallback:` | Chỉ đổi engine ở ranh giới response, không đổi giữa câu. Đổi luôn voice profile. Ghi vào history kèm nhãn |
+| ASR quá tải hoặc timeout | Mã lỗi, deadline | Hỏi lại ("Anh/chị nói lại giúp em được không?") từ cache. Không gọi LLM |
+| LLM timeout trước token đầu | Deadline | Retry một lần nếu còn ngân sách. Nếu không, phát câu xin lỗi từ cache. `response.failed` |
+| LLM lỗi giữa stream | `error` hoặc `finish_reason=length` | Kết thúc ở ranh giới mệnh đề bằng câu fallback ngắn. Không đọc lại từ đầu |
+| Uplink mất dài | Gap ≥ khoảng 500 ms | `turn.invalidated`, hỏi lại |
+| Quá tải toàn node | Admission ở edge | Từ chối session mới bằng `error(overloaded)`. Session đang chạy giữ chất lượng |
 
 ### 9.5 Privacy và bảo mật
 
-Các yêu cầu sau là **Synthesis**.
+- TLS và xác thực ở edge (token ngắn hạn cho signaling). Mạng nội bộ riêng; nên dùng mTLS giữa các service.
+- Port của engine chỉ bind loopback. NeMo-Speech.cpp có route health và playground không cần auth (**Reported**). VieNeu phải có API key nếu không bind loopback.
+- Không dùng STUN/TURN công cộng. Không dùng LLM proxy của HF s2s.
+- Giới hạn theo session: thời lượng session, độ dài lượt (30 s), tốc độ event trên DataChannel, kích thước message.
+- Reference clone chỉ được nạp qua pipeline quản trị, có bản ghi consent. Client không được trỏ tới URL hay path reference. Quyền với preset voice không bao gồm reference do người dùng cung cấp (**Reported**).
+- Log mặc định content-free: độ dài, loại, version, ID. Transcript, `display_text`/`spoken_text`, audio và speaker embedding chỉ vào **corpus opt-in** có kiểm soát truy cập, retention và consent. `lexicon_hits` chỉ ghi id của mục, không ghi term.
+- Turn buffer và embedding giải phóng đúng hạn. Không log payload trong handler exception.
+- Watermark (VieNeu Perth) là một quyết định chính sách và được ghi vào config.
 
-- TLS và auth ở gateway. Cổng của model service để private.
-- Giới hạn thời lượng upload, giới hạn kích thước reference. Không cho client tự trỏ tới URL/path reference.
-- Log mặc định chỉ có metadata, không có audio hay transcript.
-- Corpus đánh giá phải opt-in, có access control, retention và consent.
-- Speaker embedding và reference dùng để clone giọng cũng là dữ liệu nhạy cảm. Không ghi chúng vào operational log.
-- Quyền với preset voice không bao gồm quyền với reference do user tự cung cấp (VieNeu FAQ, **Reported**).
+### 9.6 Admission, queue và backpressure
+
+Có ba tầng admission (Chương 18):
+- Session, ở edge.
+- Model, bằng semaphore và hàng đợi của engine.
+- Request, bằng deadline.
+
+| Cạnh | Giới hạn | Khi đầy | Metric |
+|---|---|---|---|
+| Transport → uplink | Vài trăm ms audio | Drop-oldest, ghi `ingress.gap` | `uplink_dropped`, độ sâu |
+| Partial ASR → actor | 1 | Latest-only | Số bị thay |
+| Final ASR → actor | Nhỏ | Không bỏ (control) | Thời gian chờ |
+| Control (`clear`, `cancel`, timer) | Không giới hạn trên thực tế, hàng ưu tiên | Không bao giờ bỏ, vượt lên trước audio | — |
+| LLM delta → stream TTS | Lookahead 1–2 mệnh đề (credit) | Chặn producer (LLM sinh chậm lại) | Thời gian bị chặn |
+| tts-service: hàng engine | 1 request đang chạy cộng 1 mệnh đề chờ cho mỗi generation | Chặn | `inter_chunk_gap_ms` |
+| TTS audio → pacer | `MAX_LEAD` 1–2 s audio (**Chốt sau PoC**, phải lớn hơn pre-buffer) | Chặn theo generation. Đọc response engine hết tốc độ vào buffer, **không** giữ slot engine theo tốc độ phát | `downlink_lead_ms` |
+| Executor Smart Turn | Semaphore | Bỏ yêu cầu cũ của cùng session (latest-only) | Thời gian chờ executor |
+
+### 9.7 Config, version và runbook host
+
+- **Pin và checksum:** runtime, weights, G2P, voicepack, normalizer, lexicon, image. Pre-stage offline. Registry là nguồn sự thật duy nhất.
+- **Host GPU:** khóa clock (`nvidia-smi -lgc …`) và bật persistence mode. Giữ GPU nóng từ trong process không có tác dụng (**Reported**). Driver và CUDA khớp với image.
+- **Readiness:** từng service chỉ báo ready sau khi warmup xong. Với tts-service, điều kiện gồm: sidecar `/health` ok, voice đã được đăng ký lại, fixed-phrase cache đã có.
+- **Healthcheck:** liveness tách khỏi readiness. Engine có `start_period` (VieNeu GPU 120 s, CPU 180 s, **Reported**).
+- **Rollout:** canary theo §6.4. Mỗi lần chỉ đổi một thành phần.
 
 ---
 
 ## 10. Đánh giá và release gates
 
-Đây là **Synthesis** từ các gate ASR, TTS, control và server trong wiki.
+Đây là **Synthesis** từ các gate ASR, TTS, control và server trong wiki, cộng các checklist của Chương 16–20.
 
 1. **Corpus ASR:**
-   - Giọng Bắc/Trung/Nam. Tên riêng, số, địa chỉ, phủ định, code-switch.
-   - Call 8 kHz so với mic 16 kHz. Far-field.
-   - Tiếng ồn quán café, xe máy, TV ở SNR 0/5/10/20 dB, có và không có denoise.
-   - Đoạn im lặng và nhạc để đo hallucination.
-   - Dùng cùng ground truth và normalizer. Đo WER/CER, độ chính xác chính xác (exact) của các critical span, tỷ lệ partial bị sửa, first partial, first-stable-text, endpoint→final P50/P95.
-2. **TTS: 150–300 prompts.**
-   - Blind pairwise/MOS/CMOS với 10–20 người nghe là người Việt.
-   - Chấm thanh điệu, phát âm, độ tự nhiên, độ nhất quán giọng. Test riêng preset và cloning. Test normalizer, lexicon và ranh giới chunk.
-   - ASR round-trip CER chỉ là proxy.
+   - Giọng Bắc, Trung, Nam.
+   - Tên riêng, số, địa chỉ, phủ định, code-switch, lệnh rất ngắn ("không", "dừng").
+   - Mic 16 kHz, telephony 8 kHz, far-field.
+   - Nhiễu quán café, xe máy, TV ở SNR 0/5/10/20 dB, có và không có denoise. Đoạn chỉ có im lặng hoặc nhạc.
+   - Cùng một normalizer chấm điểm. Báo WER/CER, exact-match riêng cho entity, và endpoint→final P50/P95 theo bucket độ dài lượt.
+2. **TTS:**
+   - L1: golden normalizer, 100% pass.
+   - L2: fuzz chunker.
+   - L3: 150–300 prompt, blind pairwise/MOS/CMOS với 10–20 người nghe Việt. Có ca riêng cho ranh giới chunk, chunk đầu ngắn, từng mục lexicon và alert. Lưu cả `raw_text` và `spoken_text` cho mỗi prompt.
 3. **Turn và barge-in:**
-   - Các tình huống: pause dài giữa câu, lệnh ngắn "không"/"dừng", backchannel, TV nền, echo của bot, user nói đè, ho, gõ phím.
-   - Đo false-cutoff, missed/false interrupt, thời gian tới khi âm thanh dừng, khả năng phục hồi.
-   - Ngưỡng thay Smart Turn: false-interruption tiếng Việt > 10%.
+   - Các tình huống: ngập ngừng dài, lệnh ngắn, backchannel, TV nền, echo của bot ở loa ngoài (C2/C4 của spec), user nói đè, ho, gõ phím.
+   - Báo false-cutoff, missed/false interrupt, T_silence, T_release.
 4. **Tải:**
-   - Warm và cold. Tải đều và nhiều phiên bắt đầu cùng lúc. Concurrency 1/4/8/16.
-   - Memory theo session, stall, frame bị rớt, TTS underrun, GPU dùng chung giữa ASR/TTS/LLM.
-   - Chỉ tăng concurrency khi vẫn đạt P95 và cadence.
-5. **Contract tests:**
-   - Sample rate 48k/24k/không rõ. Mono/stereo. dtype. PCM so với WAV/SSE. sequence và revision tăng đơn điệu.
-   - Cancel giữa chunk, disconnect/reconnect, timeout, OOM, 429.
-   - Đảm bảo không có audio cũ, không có final trùng, không có action trên text chưa commit.
+   - Harness open-loop replay audio theo thời gian thực, có khoảng rảnh 6–20 s.
+   - Concurrency 1/4/8/16, cả kiểu đến rải rác lẫn bắt đầu đồng loạt.
+   - Warm và cold (GPU nguội).
+   - LLM **thật**, chạy chung GPU nếu production cũng chạy chung.
+   - Báo đường cong latency theo concurrency.
+5. **Contract và replay:**
+   - Contract test giữa các service (§6.3).
+   - Replay sự kiện: jitter, burst, gap, đảo thứ tự, disconnect/reconnect, backend chậm, 429/503, client chậm, loop bị chiếm.
+   - Assert: không có audio cũ; không có final trùng; `sequence` và `revision` đơn điệu; không có hành động trên text chưa commit; không còn task nào sau teardown (`asyncio.all_tasks()`).
+   - Soak 1.000 session.
 6. **Quyền và bảo mật:**
-   - Rà license riêng cho runtime, weights, voicepack và lineage dữ liệu. Consent cho reference.
-   - Logs content-free.
-   - Các gate thương mại: VieNeu, Fish/Higgs/Omni NC, G-OmniVoice, Gwen, GPL/RAIL.
+   - License của runtime, weights, voicepack, lexicon, normalizer và lineage dữ liệu, đối chiếu với `license_profile`.
+   - Consent cho reference. Log content-free. Kiểm port nào đang lộ ra ngoài.
+7. **Thay engine:** quy trình §6.4 cộng checklist §6.6.
+
+**Điều kiện xong P1:** qua cả 7 gate với cấu hình v1 trên phần cứng đích; đạt SLO §8.2 cho lượt complete; bộ conformance chạy trong CI.
 
 ---
 
 ## 11. Mâu thuẫn còn mở
 
-Phần này giữ nguyên các mâu thuẫn trong wiki, không chọn bên nào.
+Phần này ghi nhận mâu thuẫn, không chọn bên.
 
 | Chủ đề | Bên A | Bên B |
 |---|---|---|
-| License VieNeu v3 Turbo | Card FAQ: Apache-2.0, preset voices dùng thương mại được | README §7 Roadmap và report: "on-device, personal use" |
-| Cửa sổ kích hoạt barge-in | ~100–200 ms speech (ưu tiên nhạy, bản ChatGPT) | ≥300–500 ms ở threshold 0.7 (chống ồn; 400 ms trong reference server) |
-| Enhancement trước ASR | arXiv 2403.06387 (ARN/CrossNet, CHiME-4): giúp ASR | arXiv 2512.17562 và 2603.04710: làm giảm chất lượng ở mọi cấu hình đã thử (Whisper 10 dB: 8.82% → 25.83% semWER). Không có nghiên cứu nào trên tiếng Việt |
-| TEN VAD so với Silero | Vendor: TEN chính xác hơn | Benchmark cộng đồng nhỏ: Silero F1 91.9% so với TEN 69.2% |
-| Default endpoint | HF s2s: `--min_silence_ms` 64 + speculative reopen 800 ms + Smart Turn max wait 2 s | Report: Silero 200–300 ms + fallback 1.2–1.5 s. Đây là hai triết lý control khác nhau |
-| Qwen3-TTS và tiếng Việt | Blueprint dùng `language="vi"` | Card chính thức (cả Base 0.6B) có 10 ngôn ngữ, không có vi. Card [Gwen-TTS](../wiki/gwen-tts-0.6b.md), bản finetune từ Base, dùng `language="Vietnamese"` trong ví dụ `generate_voice_clone` |
-| Số liệu Smart Turn tiếng Việt | AI report: accuracy 81.27%, FP 14.84%, FN 3.88% | Capture v3.2 của vendor: GPU 82.47% / 9.56% / 7.97%, CPU 79.38% / 8.86% / 11.75% (cùng 1.004 mẫu). Chưa rõ report mô tả bản nào ([Turn Detection Models](../wiki/turn-detection-models.md)) |
+| License VieNeu v3 Turbo | Card FAQ: Apache-2.0, preset dùng thương mại được | README Roadmap và report: "on-device, personal use" |
+| Cửa sổ kích hoạt barge-in | 100–200 ms (ưu tiên nhạy) | Threshold 0.7 cộng 300–500 ms (chống ồn; reference server dùng 400 ms) |
+| Enhancement trước ASR | arXiv 2403.06387: có ích | arXiv 2512.17562, 2603.04710: có hại ở mọi cấu hình đã thử. Không có nghiên cứu nào trên tiếng Việt |
+| TEN VAD so với Silero | Vendor TEN: TEN tốt hơn | NOVA-VAD: Silero F1 91.9 so với TEN 69.2. Bảng FireRed: Silero trên TEN |
+| Default endpoint | HF s2s: 64 ms cộng reopen 800 ms cộng max wait 2 s | Report: 200–300 ms cộng fallback 1.2–1.5 s |
+| Số liệu Smart Turn tiếng Việt | AI report: 81.27% / FP 14.84% / FN 3.88% | Capture v3.2: GPU 82.47 / 9.56 / 7.97; CPU 79.38 / 8.86 / 11.75 |
+| Qwen3-ASR-1.7B trên FLEURS-vi | 5.55 (paper) | 6.15 (GGUF Q8_0) và 10.13 (bảng Gipformer). Khác normalizer và runtime |
+| G-OmniVoice | Card ghi Apache-2.0 | Base OmniVoice là CC-BY-NC, tokenizer theo license Boson |
+| Qwen3-TTS và tiếng Việt | Blueprint dùng `language="vi"` | Card chính thức không có vi. Gwen (finetune) dùng `"Vietnamese"` trong ví dụ |
 
 ---
 
-## 12. Lộ trình triển khai đề xuất
+## 12. Lộ trình từ PoC tới production
 
-| Phase | Nội dung | Ghi chú |
+### 12.1 Các phase
+
+| Phase | Mục tiêu | Nội dung | Điều kiện xong |
+|---|---|---|---|
+| **P0: PoC** ([spec](spec-poc-speech-to-speech-tieng-viet.md)) | Đo, chưa xây | HF s2s làm harness. Chạy R0–R5 × C1–C4. Timeline có `hold_s`. Day 0 kiểm R1–R12 | Có các số liệu ở §12.2 |
+| **P1: Production v1, một node** | Một vòng hội thoại production | Orchestrator (actor, L1, Smart Turn, duration gate cộng AEC trình duyệt, history cắt theo played offset). asr-service (`asr.v1`, Qwen3-ASR turn_final cộng một engine đối chứng). tts-service (`tts.v1`, cầu đầy đủ, VieNeu). WebRTC cộng coturn. Registry, observability, admission, degradation ladder. Conformance trong CI | Gate §10 mục 1–7, SLO §8.2 |
+| **P2: Scale và chất lượng** | Nhiều node, giảm lỗi tương tác | Scale-out, LB nội bộ. Engine TTS thứ hai qua §6.4 (VoxCPM2 hoặc MOSS). Nemotron stream adapter cho caption/speculation nếu gate cho phép. L2. Speaker lock, kiểm echo, denoise nhánh VAD (A/B). Thử FireRedVAD và Namo. Tune grace | Canary đạt, SLO giữ được dưới tải |
+| **P3: Nâng cao** | Theo nhu cầu sản phẩm | Two-pass cho critical span. Tool có xác nhận bằng lời. Telephony 8 kHz (ingress adapter, tập test riêng). SFU, multi-region. Fine-tune hoặc LoRA khi có failure case và quyền dữ liệu. Runtime native (audio.cpp, NeMo-Speech.cpp) sau khi qua parity gate | Theo từng hạng mục |
+
+### 12.2 Những gì PoC phải trả lời trước khi chốt P1
+
+| Tham số / lựa chọn | Lấy từ PoC |
+|---|---|
+| ASR mặc định: Qwen 0.6B, 1.7B hay Nemotron | R0, R1, R2: lỗi entity, thời gian decode, VRAM |
+| TTS mặc định cho preset và cho clone | R0, R3–R5 |
+| Biến thể Smart Turn (CPU hay GPU), grace, max wait | Tỷ lệ incomplete, `hold_s`, false cutoff |
+| Ngưỡng duration gate cho barge-in | Phiếu quan sát C2/C4: ngắt nhầm hoặc trượt |
+| `first_min`, `hard_max` của chunker | R11, `inter_chunk_gap` |
+| `VIENEU_MAX_STREAMS`, khóa clock GPU | Peak VRAM, lượt sau idle |
+| Mức speculation (L1 hay L2) | R12, tỷ lệ lượt bị giới hạn bởi gate, tỷ lệ reopen |
+| Pre-buffer phía client, `MAX_LEAD` | Underrun, v2v |
+| Nemotron streaming có ghép được không | Stub D8 |
+| Giá trị `language` cho NeMo-Speech.cpp | R1 |
+| LLM endpoint có stream và hủy được không | R6 |
+
+---
+
+## 13. Giới hạn của tài liệu
+
+- Chưa có gì được hiện thực hay đo. Mọi API, schema, pseudo-code, topology và SLO đều là **Synthesis**.
+- Chưa có số đo tiếng Việt cùng điều kiện cho WER, MOS, TTFA hay v2v trên một stack hoàn chỉnh.
+- Nhiều tham số control (barge-in, denoise, filter Whisper, ngân sách latency/VRAM) đến từ AI report thứ cấp và chỉ là giá trị khởi điểm.
+- Một số điểm hiện thực **Unverified**:
+  - cách ước lượng played offset trên WebRTC từ `getStats`;
+  - hành vi của VieNeu khi client đọc chậm;
+  - Pipecat có thay được orchestrator tự viết không;
+  - SFU có hợp với mô hình actor không;
+  - ghép NeMo realtime WS.
+- License không phải tư vấn pháp lý.
+- Số liệu model và runtime có `stale_after` khoảng 2027-10.
+
+---
+
+## Phụ lục A. Thay đổi so với v1 và ánh xạ số mục
+
+**Thay đổi chính:**
+- Chuyển từ "chọn model và profile" sang kiến trúc service production.
+- Thêm yêu cầu lấy từ spec (§1) và các quyết định kiến trúc (§2).
+- Cầu text → speech chuyển vào `tts-service` (AD4).
+- Bỏ phương án HF s2s cho production (AD2).
+- Thêm hợp đồng `asr.v1`/`tts.v1` (§7.6–7.7) và cơ chế thay engine (§6).
+- Sửa pseudo-code theo Chương 17–19 (§7.4).
+- Thay bảng ngân sách latency bằng SLO (§8.2).
+- Thêm admission, degradation và runbook (§9.4–9.7).
+- Phần survey model rút gọn thành tham chiếu sang các tài liệu ASR, TTS và VAD.
+
+| Mục v1 | Nội dung v1 | Mục v2 |
 |---|---|---|
-| **1 — MVP** (report ước 1–2 tuần) | Profile A: HF s2s hoặc Pipecat + Whisper turbo `vi` + VieNeu. Bắt đầu half-duplex nếu cần, sau đó thêm streaming TTS, `generation_id`, AEC, full-duplex barge-in | Từ ngày đầu: warmup, normalizer/lexicon, audio contract tường minh, Whisper filter, log theo turn, đo voice-to-voice và WER. Chọn B ngay nếu partial là yêu cầu bắt buộc |
-| **2 — Beta** | A/B Nemotron 160/320/560 ms so với Qwen 0.6B/1.7B, mỗi bên dùng đúng policy của mình. TTS: VieNeu so với VoxCPM2; trên CPU: VieNeu so với Supertonic 3/Kokoro. Thêm duration-gated barge-in, speaker lock, denoise chỉ cho nhánh VAD, confidence gating | Mỗi lần chỉ đổi một thành phần |
-| **3 — Production** | Thêm D nếu lợi ích về lỗi entity đáng với compute/latency bỏ ra. Tách GPU theo service, P95 observability. Calibrate Smart Turn/Namo. Thêm diarization khi có nhiều user. Chuyển sang audio.cpp/native chỉ sau parity gate | Fine-tune TTS/ASR chỉ khi đã xác định được failure case và có quyền dữ liệu |
+| §0 | TL;DR | §0 |
+| §1 | Cách đọc, nguồn | Header, §1 (yêu cầu) |
+| §2 | Cascade hay end-to-end | §2 AD1 |
+| §3 nguyên tắc 1–7 | Nguyên tắc | §3 nguyên tắc 1–7 (giữ số), thêm 8–12 |
+| §4 | Kiến trúc tổng thể | §4 |
+| §5.1 | Transport, AEC | §5.1, §7.1 |
+| §5.2 | VAD | §5.2 |
+| §5.3 | Turn detection | §5.3 |
+| §5.4 | ASR tiếng Việt | §5.4, §7.6, [tài liệu ASR](lua-chon-va-thiet-ke-asr-stt-tieng-viet-realtime.md) |
+| §5.5 | Cầu text → speech | §5.5 (trong tts-service), §7.7 |
+| §5.6 | TTS tiếng Việt | §5.6, [tài liệu TTS](lua-chon-va-thiet-ke-tts-tieng-viet-realtime.md) |
+| §5.7 | Orchestration (HF s2s, Pipecat, …) | §2 AD2, §5.7 |
+| §5.8 | Deploy tools | §5.8, §9 |
+| §6, §6.1 | Profile A–F, cây quyết định | §6.5 (cấu hình engine), §6.4 |
+| §7.1 | Audio ingress | §7.1 |
+| §7.2 | Event schema | §7.2 |
+| §7.3 | Barge-in, cancellation | §7.3 |
+| §7.4 | Pseudo-code | §7.4 (đã sửa) |
+| §7.5 | Diarization | §7.5 |
+| §8.1 | Critical path, output gate | §8.1 |
+| §8.2 | Ngân sách tham khảo | §8.2 (SLO) |
+| §8.3 | Đòn bẩy | §8.3 |
+| §8.4 | Monitoring | §8.4 |
+| §9.1–9.5 | Topology, VRAM, scaling, fallback, privacy | §9.1–9.5 (cùng số), thêm §9.6–9.7 |
+| §10 gate 1–6 | Release gates | §10 gate 1–6 (cùng số), thêm gate 7 |
+| §11 | Mâu thuẫn | §11 |
+| §12 | Lộ trình | §12 |
+| §13 | Giới hạn | §13 |
 
 ---
 
-## 13. Giới hạn của bài viết
+## Phụ lục B. Tài liệu tham chiếu
 
-- **Không có số đo nào cùng điều kiện** về WER, MOS, TTFA hay voice-to-voice tiếng Việt trên một stack hoàn chỉnh. Tất cả các trang nguồn tổng hợp đều đang ở `status: draft`.
-- Các tham số control (barge-in, denoise, Whisper filter, latency/VRAM budget) và bảng so sánh framework phần lớn dựa trên **AI report thứ cấp**. Smart Turn, HF s2s (tài liệu con), NeMo-Speech.cpp (server/API) và VieNeu (streaming/API/Docker) nay đã có capture gốc trong `raw/`, nhưng cũng mới chỉ được đọc tĩnh: chưa chạy gì. Namo, LiveKit, TEN và các nguồn gốc khác của report vẫn chưa có.
-- Event schema, cây quyết định và pseudo-code là **đề xuất thiết kế**, không phải API đã triển khai.
-- Bài này chỉ đọc qua wiki, không chạy model hay benchmark. Các khẳng định "không có vi" nghĩa là "chưa có trong phạm vi đã compile", không phải bằng chứng là không thể.
-- Số liệu về model và runtime có `stale_after` khoảng 2027-10. Cần kiểm tra lại release mới trước khi chốt.
+**Trong `outputs/`:**
+- [Spec PoC Phase 1](spec-poc-speech-to-speech-tieng-viet.md): yêu cầu, R1–R12, kịch bản đo.
+- [Lựa chọn và thiết kế ASR/STT tiếng Việt realtime](lua-chon-va-thiet-ke-asr-stt-tieng-viet-realtime.md).
+- [Lựa chọn và thiết kế TTS tiếng Việt realtime](lua-chon-va-thiet-ke-tts-tieng-viet-realtime.md).
+- [Survey VAD, turn detection, denoise](survey-vad-turn-detection-denoise-tieng-viet.md).
+- [Survey cầu text → speech](survey-cau-text-to-speech-tien-hau-xu-ly-sau-llm.md).
+- Các chương nền: [8 Transport](chuong-08-transport-mang-cho-audio-realtime.md), [12 LLM](chuong-12-llm-trong-vong-hoi-thoai-noi.md), [16 Dataflow và audio contract](chuong-16-dataflow-end-to-end-va-audio-contract.md), [17 Turn-taking, barge-in](chuong-17-turn-taking-event-barge-in-va-cancellation.md), [18 Async và streaming](chuong-18-lap-trinh-async-va-streaming-cho-pipeline-audio.md), [19 Cầu text → speech](chuong-19-cau-text-to-speech-chunker-normalizer-lexicon.md), [20 Latency](chuong-20-latency-dinh-nghia-critical-path-do-luong.md).
 
----
-
-## Tài liệu tham chiếu trong wiki
-
-**Synthesis / Answered / Reconciled**
-
-- [Vietnamese Speech Pipeline Design](../wiki/vietnamese-speech-pipeline-design.md)
-- [Vietnamese Realtime ASR Selection](../wiki/vietnamese-realtime-asr-selection.md)
-- [Vietnamese Realtime TTS Selection](../wiki/vietnamese-realtime-tts-selection.md)
-- [So sánh công cụ triển khai speech](../wiki/speech-deployment-tools-comparison.md)
-- [Phân nhóm ASR/STT và shortlist realtime](../wiki/realtime-asr-selection.md)
-- [ASR/STT Model Survey](../wiki/asr-stt-model-survey.md) — Streaming and latency; Selection guide
-- [TTS Model Survey](../wiki/tts-model-survey.md) — Streaming and latency; Selection guide
-
-**Pipeline reports và wiring**
-
-- [Vietnamese Realtime Voice Agent Stack](../wiki/vietnamese-realtime-voice-agent-stack.md)
-- [Cascaded Voice-Agent Blueprint](../wiki/cascaded-voice-agent-blueprint.md)
-- [Community-Reported STT-LLM-TTS Pipeline Wiring](../wiki/community-stt-llm-tts-pipeline.md)
-
-**Control**
-
-- [Voice-Agent Barge-in and Echo Handling](../wiki/voice-agent-barge-in-and-echo-handling.md)
-- [Turn Detection Models](../wiki/turn-detection-models.md)
-- [Speech Enhancement Before ASR](../wiki/speech-enhancement-before-asr.md)
-- [Whisper Hallucination Mitigation](../wiki/whisper-hallucination-mitigation.md)
-- [Silero VAD](../wiki/silero-vad.md)
-- [Smart Turn v3.2](../wiki/smart-turn.md)
-
-**Orchestration và runtime**
-
-- [HF Speech-to-Speech Pipeline](../wiki/speech-to-speech-pipeline.md)
-- [HF s2s — CLI and Defaults](../wiki/speech-to-speech-cli-and-defaults.md), [OpenAI-Compatible Backends](../wiki/speech-to-speech-openai-compatible-backends.md), [Realtime Engine](../wiki/speech-to-speech-realtime-engine.md), [Latency Instrumentation](../wiki/speech-to-speech-latency-instrumentation.md), [Browser Demo](../wiki/speech-to-speech-browser-demo.md)
-- [NeMo-Speech.cpp Server](../wiki/nemo-speech-server.md), [HTTP and Realtime API](../wiki/nemo-speech-http-api.md)
-- [Voice Agent Frameworks](../wiki/voice-agent-frameworks.md)
-- [NeMo-Speech.cpp](../wiki/nemo-speech-cpp.md)
-- [Faster-Whisper](../wiki/faster-whisper.md)
-- [audio.cpp Framework](../wiki/audio-cpp-framework.md)
-
-**Model**
-
-- [Nemotron 3.5 ASR Streaming 0.6B](../wiki/nemotron-3.5-asr-streaming-0.6b.md)
-- [Qwen3-ASR family](../wiki/qwen3-asr-family.md)
-- [Whisper Large v3 Turbo](../wiki/whisper-large-v3-turbo.md)
-- [PhoWhisper](../wiki/phowhisper.md)
-- [ChunkFormer Vietnamese](../wiki/chunkformer-vietnamese.md)
-- [VieNeu-TTS v3 Turbo](../wiki/vieneu-tts-v3-turbo.md), [OpenAI Speech API](../wiki/vieneu-tts-openai-speech-api.md), [Streaming Runtime](../wiki/vieneu-tts-streaming-runtime.md)
-- [Qwen3-TTS-12Hz-0.6B-Base](../wiki/qwen3-tts-12hz-0.6b-base.md), [Gwen-TTS 0.6B](../wiki/gwen-tts-0.6b.md)
-- [VoxCPM2](../wiki/voxcpm2.md)
-- [MOSS-TTS Local v1.5](../wiki/moss-tts-local-transformer-v1-5.md)
-- [Kokoro Vietnamese](../wiki/kokoro-vietnamese.md)
-- [Nemotron 3 Diarization](../wiki/nemotron-3-diarization.md)
-
-**End-to-end (đối chiếu)**
-
-- [PersonaPlex 7B v1](../wiki/personaplex-7b-v1.md)
-- [NVIDIA NemotronLabs VoiceChat 11B](../wiki/nvidia-nemotronlabs-voicechat-11b.md)
+**Wiki:**
+- Tổng hợp: [Vietnamese Speech Pipeline Design](../wiki/vietnamese-speech-pipeline-design.md), [So sánh công cụ triển khai speech](../wiki/speech-deployment-tools-comparison.md), [Vietnamese Realtime Voice Agent Stack](../wiki/vietnamese-realtime-voice-agent-stack.md), [Cascaded Voice-Agent Blueprint](../wiki/cascaded-voice-agent-blueprint.md).
+- Control: [Smart Turn v3.2](../wiki/smart-turn.md), [Turn Detection Models](../wiki/turn-detection-models.md), [Silero VAD](../wiki/silero-vad.md), [FireRedVAD](../wiki/firered-vad.md), [Speech Enhancement Before ASR](../wiki/speech-enhancement-before-asr.md), [Barge-in & Echo](../wiki/voice-agent-barge-in-and-echo-handling.md), [Whisper Hallucination Mitigation](../wiki/whisper-hallucination-mitigation.md).
+- HF s2s (tham chiếu turn tracker, harness PoC): [Pipeline](../wiki/speech-to-speech-pipeline.md), [CLI and Defaults](../wiki/speech-to-speech-cli-and-defaults.md), [OpenAI-Compatible Backends](../wiki/speech-to-speech-openai-compatible-backends.md), [Realtime Engine](../wiki/speech-to-speech-realtime-engine.md), [Latency Instrumentation](../wiki/speech-to-speech-latency-instrumentation.md), [Browser Demo](../wiki/speech-to-speech-browser-demo.md).
+- ASR: [Qwen3-ASR family](../wiki/qwen3-asr-family.md), [Nemotron 3.5 ASR Streaming](../wiki/nemotron-3.5-asr-streaming-0.6b.md), [NeMo-Speech.cpp](../wiki/nemo-speech-cpp.md), [HTTP and Realtime API](../wiki/nemo-speech-http-api.md), [ASR Configuration](../wiki/nemo-speech-asr-configuration.md), [Gipformer 1.5](../wiki/gipformer1.5-68m-rnnt.md), [ChunkFormer](../wiki/chunkformer-vietnamese.md), [Faster-Whisper](../wiki/faster-whisper.md), [Punctuation Restoration](../wiki/punctuation-restoration-base.md).
+- TTS: [VieNeu-TTS v3 Turbo](../wiki/vieneu-tts-v3-turbo.md), [OpenAI Speech API](../wiki/vieneu-tts-openai-speech-api.md), [Streaming Runtime](../wiki/vieneu-tts-streaming-runtime.md), [Docker Deployment](../wiki/vieneu-tts-docker-deployment.md), [VoxCPM2](../wiki/voxcpm2.md), [MOSS-TTS Local v1.5](../wiki/moss-tts-local-transformer-v1-5.md), [Supertonic 3](../wiki/supertonic-3.md), [Kokoro Vietnamese](../wiki/kokoro-vietnamese.md), [G-OmniVoice](../wiki/g-omnivoice.md), [Gwen-TTS 0.6B](../wiki/gwen-tts-0.6b.md), [VietNormalizer](../wiki/vietnormalizer.md), [Resemblyzer](../wiki/resemblyzer.md).
+- Framework và end-to-end: [Voice Agent Frameworks](../wiki/voice-agent-frameworks.md), [PersonaPlex 7B](../wiki/personaplex-7b-v1.md), [NemotronLabs VoiceChat 11B](../wiki/nvidia-nemotronlabs-voicechat-11b.md), [Nemotron 3 Diarization](../wiki/nemotron-3-diarization.md).
