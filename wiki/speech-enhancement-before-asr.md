@@ -5,13 +5,17 @@ description: Conflicting evidence on whether denoising or speech enhancement pla
 tags: [pipeline, stt, noisy-audio, speech-enhancement, denoising]
 status: draft
 created: 2026-10-06
-generated: { by: llm-wiki-agent/1, at: 2026-10-06T18:00:00Z }
+generated: { by: llm-wiki-agent/1, at: 2026-10-13T12:00:00Z }
 stale_after: 2027-10-06
 sources:
   - id: claude-pipeline-report
     resource: ../raw/Claude-pipeline-recommend.md
     kind: llm-response
     title: Claude voice-pipeline research report
+  - id: denoiser-readme
+    resource: ../raw/denoiser.md
+    kind: documentation
+    title: facebookresearch/denoiser README capture
 ---
 
 Placing a speech-enhancement (denoising) model in front of ASR is not a safe default: two reported studies found enhancement degraded Whisper and other ASR systems in every tested configuration, while a third found its enhancement models improved ASR on CHiME-4, so the effect depends on the enhancement model and data and must be A/B tested; the report's working practice is to denoise only the VAD/barge-in branch and feed ASR the original AEC-processed audio (**Reported**).[^claude-pipeline-report]
@@ -41,6 +45,7 @@ Placing a speech-enhancement (denoising) model in front of ASR is not a safe def
 - Related to [SAM Audio GGUF](sam-audio-gguf.md): SAM-Audio is the separation model whose use before Whisper raised WER in arXiv 2603.04710 (**Synthesis**).[^claude-pipeline-report]
 - Related to [Community-Reported Noisy On-Premise STT Selection](community-noisy-call-stt.md), which covers community preprocessing practice for noisy call transcription (**Synthesis**).[^claude-pipeline-report]
 - Related to [Voice-Agent Barge-in and Echo Handling](voice-agent-barge-in-and-echo-handling.md) for AEC and speaker lock (**Synthesis**).[^claude-pipeline-report]
+- Related to [Facebook Denoiser](facebook-denoiser.md) and its [live streaming mode](denoiser-live-streaming.md): a causal, CC-BY-NC waveform enhancer whose README reports CPU real-time factors but no ASR word-error results, so it adds no evidence to this question (**Synthesis**).[^denoiser-readme]
 
 ## Coverage and limits
 
@@ -48,3 +53,5 @@ Placing a speech-enhancement (denoising) model in front of ASR is not a safe def
 - None of the studies is on Vietnamese; the report itself notes this (**Reported**).[^claude-pipeline-report]
 
 [^claude-pipeline-report]: [Claude voice-pipeline research report](../raw/Claude-pipeline-recommend.md) — locators: `TL;DR` noisy-environment bullets; `PHẦN 1` §2 `Tiền xử lý cho môi trường ồn` (AEC/noise-suppression/target-speaker/speaker-verification/diarization table and `Phát hiện quan trọng` paragraph on arXiv 2512.17562, 2603.04710, 2403.06387); `PHẦN 2` mermaid flowchart (denoise only for VAD branch); `Triển khai` evaluation bullet; `Recommendations` › `Lộ trình` Beta; `Caveats` (no Vietnamese denoise study).
+
+[^denoiser-readme]: [facebookresearch/denoiser README capture](../raw/denoiser.md) — locators: `Online Evaluation` (RTF table); `Training and evaluation` › `Usage` › `3. Evaluating` (evaluation flags only); no section reports word error rate or any ASR result.

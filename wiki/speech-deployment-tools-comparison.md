@@ -5,7 +5,7 @@ description: Phân nhóm và so sánh runtime CPU/edge, engine GPU, API server, 
 tags: [pipeline, stt, tts, vad, serving, deployment, comparison]
 status: draft
 created: 2026-10-07
-generated: { by: llm-wiki-agent/1, at: 2026-10-07T04:54:02Z }
+generated: { by: llm-wiki-agent/1, at: 2026-10-13T04:17:58Z }
 stale_after: 2027-10-07
 sources:
   - { id: audio-cpp, resource: audio-cpp-framework.md, kind: synthesis, title: audio.cpp Framework }
@@ -18,6 +18,7 @@ sources:
   - { id: faster-qwen, resource: faster-qwen3-tts.md, kind: synthesis, title: Faster Qwen3-TTS }
   - { id: genie, resource: genie-tts.md, kind: synthesis, title: Genie-TTS }
   - { id: speaches, resource: speaches.md, kind: synthesis, title: Speaches }
+  - { id: kokoro-fastapi, resource: kokoro-fastapi.md, kind: synthesis, title: Kokoro-FastAPI }
   - { id: parakeet-server, resource: parakeet-asr-server.md, kind: synthesis, title: Parakeet ASR Server }
   - { id: parakeet-readme, resource: ../raw/parakeet.md, kind: documentation, title: Parakeet ASR server README }
   - { id: wlk, resource: whisperlivekit.md, kind: synthesis, title: WhisperLiveKit }
@@ -91,6 +92,7 @@ Thông tin khả năng là **Reported**; cột lựa chọn là **Synthesis**.
 | Server / SDK | Cung cấp | Khi shortlist | Giới hạn |
 |---|---|---|---|
 | [Speaches](speaches.md) | faster-whisper STT + Piper/Kokoro TTS; OpenAI-compatible; SSE, Realtime API; Docker CPU/GPU | Muốn self-host STT/TTS cùng bề mặt API, dynamic load/offload | Capture chỉ overview; thiếu API schema, license, version, benchmark; không xác nhận full Realtime equivalence.[^speaches] |
+| [Kokoro-FastAPI](kokoro-fastapi.md) | Chỉ TTS Kokoro-82M; `/v1/audio/speech` tương thích OpenAI; Docker CPU/CUDA/ROCm (ROCm thử nghiệm), Apple MPS native; voice tag, SSML, caption timestamp | Muốn server TTS Kokoro tự host với markup và caption mở rộng | Trường mở rộng (`allow_voice_tags`, `voice_aliases`, `ssml`) nằm ngoài schema OpenAI; `/dev/*` có thể đổi giữa các bản; benchmark chỉ là số của tác giả, chưa tái lập.[^kokoro-fastapi] |
 | [Parakeet ASR Server](parakeet-asr-server.md) | Go + ONNX Runtime Parakeet TDT V3; REST/SSE; auth; CPU/CUDA Docker | Drop-in cho client Whisper API, fixed model | **Upload toàn bộ audio trước**, rồi stream text khi decode; model/prompt/temperature bị bỏ qua. Không phải native audio-input streaming.[^parakeet-server][^parakeet-readme] |
 | [VieNeu SDK/API](vieneu-tts-v3-turbo.md) | CPU ONNX, GPU PyTorch fused CUDA graphs; infer_stream; /v1/audio/speech, voice enrollment, Docker | TTS tiếng Việt, muốn SDK hoặc service chuyên dụng | Pin v3 Turbo; v2 LMDeploy/remote deprecated, không phục vụ v3; int8 CPU cần VNNI; xem mâu thuẫn phạm vi commercial-use.[^vieneu] |
 | [TheStage SpeechKit/Apple SDK](thewhisper-large-v3-turbo.md) | Compressed TheWhisper S/M/L/XL, NVIDIA Docker và Apple Core ML | STT Apple on-device hoặc deployment theo vendor | Apple cần online token initialization mỗi process, dù inference local; không phải air-gap hoàn toàn; SDK yêu cầu OS/device riêng.[^thestage] |
@@ -175,6 +177,7 @@ License runtime không cấp quyền weights, preset voices hay voice cloning. t
 - `draft` vì so sánh framework còn dựa AI report, chưa có primary docs/API detail/concurrency benchmark đồng điều kiện cho mọi runtime. Recipe/code/test/weights và benchmark figures chưa có ở những concept được dẫn vẫn chưa inspect; ledger giới hạn kế thừa theo từng concept, không quảng bá thành hỗ trợ đã chạy được.
 - Nhạc/video thuần và model catalog ngoài vòng speech bị loại khỏi shortlist; count100+ của audio.cpp chỉ là framework-wide, không coverage speech riêng. Không chép credential/contact; input audio và cloning references nếu triển khai cần boundary riêng.
 
+[^kokoro-fastapi]: [Kokoro-FastAPI](kokoro-fastapi.md) — Identity and test pins; Deployment paths; API surface and stability tiers; Known issues; Contradictions (`:latest` CUDA tag); Coverage (static README capture only).
 [^audio-cpp]: [audio.cpp Framework](audio-cpp-framework.md) — Framework identity; Runtime, backends, and builds; Interfaces; Performance; Coverage; Notes về GGUF.
 [^transcribe-cpp]: [transcribe.cpp](transcribe-cpp.md) — Supported models; Build; Bindings; License; Contradictions; Coverage.
 [^nemo-cpp]: [NeMo-Speech.cpp](nemo-speech-cpp.md) — Models; Performance Q8 tables; Server, SDK, and source build; Coverage.

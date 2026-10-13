@@ -5,7 +5,7 @@ description: NVIDIA NeMo streaming speaker-diarization model for up to four spea
 tags: [vad, diarization, speaker-tagging, streaming, sortformer, nemo]
 status: stable
 created: 2026-10-06
-generated: { by: llm-wiki-agent/1, at: 2026-10-06T19:00:00Z }
+generated: { by: llm-wiki-agent/1, at: 2026-10-13T04:12:00Z }
 stale_after: 2027-10-06
 sources:
   - id: streaming-sortformer-card
@@ -104,6 +104,8 @@ Table values are the card's meeting-corpus DER table; v2.1 shows the largest gai
 - Updated from [Streaming Sortformer Diarizer 4spk v2](diar-streaming-sortformer-4spk-v2.md): the CC-BY-4.0 predecessor checkpoint with four latency profiles (0.32–30.4 s), 2,445 h real plus 5,150 h simulated training description, and NeMo-Speech.cpp GGUF plus Riva deployment paths; this v2.1 concept keeps the v2-vs-v2.1 DER comparison tables, with the largest v2.1 gains on meeting corpora (**Synthesis**).[^streaming-sortformer-card]
 - Succeeded by [Nemotron 3 Diarization](nemotron-3-diarization.md): the newer checkpoint supporting up to eight speakers with greatly improved accuracy per this card's announcement banner, and which uses this v2.1 checkpoint as its published 4-speaker DER/RTFx baseline; neither page deprecates the other (**Synthesis**).[^streaming-sortformer-card]
 - Used by [Multitalker Parakeet Streaming 0.6B v1](multitalker-parakeet-streaming-0.6b-v1.md): the streaming multitalker ASR model whose Method 1 snippet loads this v2.1 checkpoint as its speech-activity frontend and reports multitalker cpWER with a Streaming Sortformer frontend; this page keeps the diarizer mechanism, latency profiles, and DER tables (**Synthesis**).[^streaming-sortformer-card]
+
+- Complemented by [DiarizationLM-Gemma-4-E4B-v1](diarizationlm-gemma-4-e4b-v1.md): an LLM that rewrites speaker-turn boundaries in ASR transcripts already tagged with speaker labels, not a diarizer; the card does not connect it to this checkpoint (**Synthesis**).
 
 ## Coverage and limits
 

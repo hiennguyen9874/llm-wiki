@@ -5,7 +5,7 @@ description: NVIDIA open-weight streaming/offline speaker-diarization model for 
 tags: [vad, diarization, speaker-tagging, streaming, nemotron]
 status: stable
 created: 2026-10-06
-generated: { by: llm-wiki-agent/1, at: 2026-10-06T17:00:00Z }
+generated: { by: llm-wiki-agent/1, at: 2026-10-13T04:12:00Z }
 stale_after: 2027-10-06
 sources:
   - id: nemotron-3-diar-card
@@ -118,6 +118,8 @@ Table values are source-reported measurements (**Reported**).[^nemotron-3-diar-c
 - Uses Streaming Sortformer behavior (AOSC speaker cache plus FIFO recent-frame context with arrival-time ordering) and Sortformer permutation resolution, per the card's streaming-inference description and references [1][2] (**Reported**).[^nemotron-3-diar-card]
 - Compared against [Streaming Sortformer Diarizer 4spk v2.1](diar-streaming-sortformer-4spk-v2-1.md): the 4-speaker 117M-parameter streaming baseline evaluated across all eight evaluation conditions and shared latency points; that concept covers the baseline checkpoint, its AOSC/FIFO latency profiles, and v2-vs-v2.1 DER tables, while this concept covers the newer 8-speaker checkpoint and its gains over that baseline (**Synthesis**).[^nemotron-3-diar-card]
 - Preceded by [Sortformer Diarizer 4spk v1](diar-sortformer-4spk-v1.md): the 123M-parameter offline 4-speaker Sortformer checkpoint whose card announces this 8-speaker model as its successor with greatly improved accuracy; the predecessor keeps its own DER/RTFx tables and CC-BY-NC-4.0 terms, while this concept covers the newer streaming/offline checkpoint (**Synthesis**).[^sortformer-4spk-card]
+
+- Complemented by [DiarizationLM-Gemma-4-E4B-v1](diarizationlm-gemma-4-e4b-v1.md): an LLM that rewrites speaker-turn boundaries in ASR transcripts already tagged with speaker labels, not a diarizer; the card does not connect it to this checkpoint (**Synthesis**).
 
 ## Coverage and limits
 

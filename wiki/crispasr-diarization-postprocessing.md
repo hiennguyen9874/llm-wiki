@@ -5,7 +5,7 @@ description: CrispASR's speaker diarization methods (energy, xcorr, foxnose, Sor
 tags: [vad, diarization, stt, punctuation, truecasing, alignment, hotwords]
 status: stable
 created: 2026-10-13
-generated: { by: llm-wiki-agent/1, at: 2026-10-13T02:40:00Z }
+generated: { by: llm-wiki-agent/1, at: 2026-10-13T04:57:00Z }
 stale_after: 2027-10-13
 sources:
   - id: crispasr-readme
@@ -39,6 +39,7 @@ CrispASR runs speaker diarization as a post-processing step (`--diarize`), with 
 - CTC backends emit lowercase text without punctuation. The README's table marks fc-ctc, wav2vec2, firered-asr, omniasr (CTC), and paraformer as having no native punctuation (**Reported**).[^crispasr-readme]
 - Shortcuts: `auto` or `firered` (FireRedPunc, Chinese and English), `fullstop` (XLM-R-large, 6 classes, EN/DE/FR/IT, MIT), `punctuate-all` (XLM-R-base, 12 languages, MIT), and `pcs` (XLM-R-base, 47 languages, with punctuation, truecasing, and sentence-boundary detection in one model, Apache-2.0). A GGUF path also works, and the Python, Rust, and Dart wrappers expose `crispasr.PuncModel` (**Reported**).[^crispasr-readme]
 - The auto-enabled FireRedPunc is suppressed for gigaam's charwise `ctc` and `rnnt` revisions because, the README says, it injects full-width CJK punctuation into Russian. The `e2e_*` revisions carry punctuation in their vocabulary (**Reported**).[^crispasr-readme]
+- For a standalone multilingual punctuation model that these shortcuts do not name, see [Punctuation Restoration (base, 307M)](punctuation-restoration-base.md) (**Synthesis**).
 
 ## Truecasing (`--truecase-model`)
 

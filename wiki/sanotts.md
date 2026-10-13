@@ -5,7 +5,7 @@ description: Sub-2.2M-parameter multilingual neural TTS family down to 294k para
 tags: [tts, edge, microcontroller, multilingual]
 status: stable
 created: 2026-10-06
-generated: { by: llm-wiki-agent/1, at: 2026-10-07T04:47:01Z }
+generated: { by: llm-wiki-agent/1, at: 2026-10-13T04:34:17Z }
 stale_after: 2027-10-07
 sources:
   - id: sanotts-thread
@@ -22,7 +22,7 @@ sanoTTS is Ampixa's GPL-3.0 tiny neural TTS family spanning 294,279–2,272,145 
 
 ## Family identity and size
 
-- Exact parameter range is 294,279–2,272,145; per-voice footprint is 337 KB to 8.7 MB with zero dependencies (espeak-ng phonemizer included); coverage is 11 voices across 6 languages — English, Nepali, Hindi, Vietnamese, Indonesian, Chinese — with a live in-browser demo and no cloud or NPU required (**Reported**).[^sanotts-hf-card]
+- Exact parameter range is 294,279–2,272,145; per-voice footprint is 337 KB to 8.7 MB with zero dependencies ([eSpeak NG](espeak-ng.md) phonemizer included); coverage is 11 voices across 6 languages — English, Nepali, Hindi, Vietnamese, Indonesian, Chinese — with a live in-browser demo and no cloud or NPU required (**Reported**).[^sanotts-hf-card]
 - The release thread (poster `u/Affectionate_Hat_585` on r/LocalLLaMA; capture shows 509 votes, 121 comments, partially anonymized bylines) rounds the range to 294k–2.2M, claims the smallest neural TTS model at ~2% WER on Whisper, and compares 244x smaller than Kokoro and 9000x smaller than Voxtral TTS, targeting a $3 chip with 512 KB SRAM (**Reported**).[^sanotts-thread]
 - Frontmatter of the card declares `license: gpl-3.0`, `language: [en, ne, hi, vi, id, zh]`, `pipeline_tag: text-to-speech`, and `library_name: sanotts` (**Observed**).[^sanotts-hf-card]
 - Upstream pointers given (none fetched): repo `https://github.com/Ampixa/sanoTTS`, live demo `https://tts.ampixa.com/sanoTTS`, Hub `https://huggingface.co/ampixa/sanoTTS`, paper `https://arxiv.org/abs/2608.21378`, npm `sanotts-web`, PyPI `sanotts` (**Reported**, with unfetched-pointer limit).[^sanotts-hf-card][^sanotts-thread]
