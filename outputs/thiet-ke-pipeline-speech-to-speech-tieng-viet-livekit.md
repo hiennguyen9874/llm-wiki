@@ -1,7 +1,7 @@
 # Thiết kế pipeline speech-to-speech tiếng Việt dùng LiveKit
 
 > **Loại tài liệu:** thiết kế kiến trúc, deliverable trong `outputs/`, không phải tri thức canonical.
-> **Phiên bản:** LiveKit v1 — nhánh thiết kế độc lập đối chiếu với [bản HF s2s](thiet-ke-pipeline-speech-to-speech-tieng-viet-hf-s2s.md) và [bản production v2 gốc](thiet-ke-pipeline-speech-to-speech-tieng-viet.md). Không sửa hay thay thế hai bản đó.
+> **Phiên bản:** LiveKit v1.1 — đã bổ sung [đối chiếu docs/skills ngày 2026-10-13](doi-chieu-kien-truc-livekit-2026-10-13.md), chưa kiểm chứng runtime; nhánh thiết kế độc lập đối chiếu với [bản HF s2s](thiet-ke-pipeline-speech-to-speech-tieng-viet-hf-s2s.md) và [bản production v2 gốc](thiet-ke-pipeline-speech-to-speech-tieng-viet.md). Không sửa hay thay thế hai bản đó.
 > **Ngày tra cứu:** 2026-10-13 UTC. LiveKit docs tra bằng `lk docs`; source SDK được code search trả ở commit `3f479e242428d5fa9a7208810f036bbb8ccf9a48`. Đây là reference nghiên cứu, không phải lockfile triển khai.
 > **Quyết định chính:** LiveKit Server OSS cho media; LiveKit Agents Python cho orchestration; ASR/TTS/LLM nặng chạy bên ngoài worker. VAD local CPU; endpointing tiếng Việt bắt đầu bằng VAD-only, Smart Turn là extension có gate riêng.
 > **Nguồn yêu cầu/model:** [Spec PoC Phase 1](spec-poc-speech-to-speech-tieng-viet.md), [ASR](lua-chon-va-thiet-ke-asr-stt-tieng-viet-realtime.md), [TTS](lua-chon-va-thiet-ke-tts-tieng-viet-realtime.md), [VAD/turn/denoise](survey-vad-turn-detection-denoise-tieng-viet.md), [cầu text → speech](survey-cau-text-to-speech-tien-hau-xu-ly-sau-llm.md).
@@ -98,6 +98,10 @@ Mọi lựa chọn trong bảng là **Synthesis**; nền tảng Native có ngu�
 
 Native pipeline extension points và custom STT/TTS được tài liệu hóa ở [Pipeline nodes and hooks](https://docs.livekit.io/agents/logic/nodes/).[^lk-nodes]
 
+**Ba lớp SDK, không ba orchestrator:** `AgentServer` đăng ký/nhận jobs và quản lý job processes; `AgentSession` quản lý pipeline/media/lượt trong một cuộc hội thoại; `Agent` chứa instructions/tools/hooks và reasoning role đang active. Handoff đổi Agent trong cùng session, không cần thêm worker hay room participant.[^lk-options][^lk-handoffs]
+
+**Không dùng Agent Builder trong profile OSS/no-egress:** Builder deploy lên Cloud, chưa hỗ trợ model plugins, workflows/handoffs/tasks và tests như SDK. Quickstart Cloud chỉ là scaffold; bản OSS bỏ enhanced noise cancellation và dùng explicit model plugins/adapters thay Inference.[^lk-start]
+
 ---
 
 ## 3. Topology và service boundaries
@@ -188,12 +192,20 @@ Conformance phải inspect cả TTS decoder/reframer, RoomIO AudioSource và out
 ### 4.2 Browser và AEC
 
 - HTTPS/localhost cho mic; bật AEC/NS/AGC ở capture, kiểm thiết bị/headset/loa ngoài thật.
-- Client dùng LiveKit SDK; captions qua transcription streams, không giữ protocol `oai-events` của HF.
+- Client dùng LiveKit SDK; captions qua transcription streams, không giữ protocol `oai-events` của HF. Dùng text stream handlers/`useTranscriptions`, không `TranscriptionReceived` hay `useTrackTranscriptions` đã deprecated. Upsert interim/final theo identity/track/`lk.segment_id`, replace khi `lk.transcription_final=true`; catch stream abort/reconnect, không append thành hai lượt.[^lk-text]
+- Worker Python cũng có built-in AGC. L0 đặt `AudioInputOptions.auto_gain_control=False` explicit làm điểm đo với browser AGC bật; A/B bật worker AGC nếu cần, không giả hai tầng luôn tốt hơn. Đây là policy **Synthesis**, không default SDK. Source tự disable AGC khi noise cancellation được cấu hình trực tiếp nếu không override.[^lk-audio][^lk-roomio]
+- L0 voice-only đặt `RoomOptions.text_input=False`, giữ text output/captions. SDK bật text input mặc định; `lk.chat` từ linked participant có thể interrupt và tạo reply. Hybrid chat là profile opt-in, phải test ordering/audio-text paths, không chỉ ẩn textbox ở UI.[^lk-text]
 - Không tự viết AudioWorklet playback thứ hai ở baseline cạnh native audio track. Harness PCM riêng có thể phục vụ đo offline nhưng không chứng minh browser WebRTC parity.
 - Barge-in có đuôi network/jitter/device buffer; không tuyên bố clear phía server xóa audio đã tới thiết bị.
 - Transcript hiển thị là dữ liệu UI, không tự động đồng nghĩa dữ liệu được lưu vào log hoặc bằng chứng đã nghe.
 
 Native transcript topic là `lk.transcription`; text input là `lk.chat`; sync transcription và truncation khi interruption được tài liệu hóa (**Reported**).[^lk-text]
+
+**Frontend lifecycle:** ưu tiên frontend `Session` + endpoint/custom `TokenSource` khi client version pin hỗ trợ; lower-level `Room.connect` vẫn hợp lệ. Frontend Session không phải Python AgentSession. Backend authorize token/room_config, giữ một đường dispatch; không dùng Cloud sandbox token server trong no-egress profile. Observe agent state (`lk.agent.state`/Session APIs) để hiển thị UI, không tắt mic khi bot speaking vì FR1 full-duplex.[^lk-frontends]
+
+**Pre-connect audio:** docs có instant connect gửi buffer qua `lk.agent.pre-connect-audio-buffer`; source worker mặc định nhận buffer. L0 tắt client buffering và `AudioInputOptions.pre_connect_audio=False` để baseline dễ replay. Chỉ bật sau consent, bounded timeout và gate không mất/nhân đôi opening speech; không dùng buffer này như endpoint owner thứ hai.[^lk-audio][^lk-roomio]
+
+48k là sample-rate contract, không chứng minh codec bitrate/bandwidth hay thiết bị phát giữ toàn bộ phổ; conformance phải đo cả capture/encode/decode/playout.
 
 ### 4.3 ICE, STUN/TURN và privacy
 
@@ -217,7 +229,9 @@ Silero plugin chạy local CPU; supports8/16k và prewarm hook (**Reported**).[^
 - Prewarm model qua hook đúng version. Mỗi session tạo stream/state riêng; không share mutable recurrent state giữa user.
 - Không gọi HTTP service trên từng VAD frame.
 - Không chạy blocking ONNX hoặc generator trên event loop. Nếu inference gây lag, executor/process bounded và đo queue wait.
-- Prewarm model read-only; async HTTP clients tạo trong job loop. Không tạo client gắn event loop trước khi job chạy.
+- Prewarm model read-only qua `AgentServer.setup_fnc`, dùng lại `ctx.proc.userdata` trong job. Docs mô tả warm **job processes** trước khi nhận job; không giả mọi resource được parent worker load đúng một lần rồi chia sẻ. `num_idle_processes` phải pin theo RAM/startup budget. SDK forkserver preload là cơ chế riêng, khác setup hook.[^lk-options][^lk-preload]
+- Async HTTP clients tạo trong job loop. Không tạo client gắn event loop trước khi job chạy.
+- Explicit VAD-only không bảo đảm SDK bỏ preload local EOT. Source reference có `LIVEKIT_AGENTS_PRELOAD_LOCAL_INFERENCE=0` để bỏ preload bundled VAD/EOT; L0 đề xuất opt-out rồi setup custom Silero. Flag này không cấm mọi inference hay network. Kiểm trên SDK image pin, OS/start method, đo RSS/startup và egress; không coi đây là public/stable API bất biến.[^lk-preload]
 
 ### 5.2 Bộ cấu hình baseline
 
@@ -346,7 +360,8 @@ tts-service
 TTS adapter → native session output / transcript synchronization
 ```
 
-- Worker giữ filter/chunker state theo speech generation; cancel vứt state, không flush tail.
+- Worker giữ filter/chunker state theo speech generation; **actual cancellation** vứt state, không flush tail; provisional pause để false-interruption resume không tự hủy state.
+- ThinkFilter phải chặn reasoning **trước history/caption fan-out**, chẳng hạn ở custom `llm_node` đã qua conformance; chỉ đặt trong `tts_node`/`tts_text_transforms` không chứng minh history/UI sạch. Giữ tool-call/usage/terminal ordering khi lọc LLM stream. `tts_text_transforms` mặc định filter Markdown/emoji; cấu hình explicit hoặc `None` khi worker đã sở hữu policy để không transform hai lần.[^lk-nodes][^lk-text]
 - `display_text`: text sạch dành cho UI/history; `spoken_text`: bản engine thực sự đọc; raw reasoning không đi vào cả hai.
 - TTS service sở hữu normalize/voice policy theo engine để A/B không nhân bản rules trong worker.
 - Giới hạn chunk dựa trên text **sau normalize**. Service validate trước gọi engine; nếu vượt trần, trả lỗi typed để worker split lại an toàn. Không silent split/reorder thành một chunker thứ hai.
@@ -354,7 +369,7 @@ TTS adapter → native session output / transcript synchronization
 
 LiveKit cho phép custom `tts_node`, pronunciation rules và stream transforms. Non-streaming TTS mặc định dùng sentence tokenizer để incremental synthesis (**Reported**).[^lk-nodes][^lk-text]
 
-**Không chạy đồng thời** default sentence splitter và clause chunker cho cùng output. L0 có thể chỉ dùng sentence policy; L1 custom streaming adapter/node sở hữu việc flush clause. Khả năng đầu câu được synthesize trước khi LLM xong phải được trace, không suy ra từ chữ “streaming”.
+**Không chạy đồng thời** default sentence splitter và clause chunker cho cùng output. L0 có thể chỉ dùng sentence policy; L1 custom streaming adapter/node sở hữu việc flush clause. Khả năng đầu câu được synthesize trước khi LLM xong phải được trace, không suy ra từ chữ “streaming”. Spike thêm `FlushSentinel` tại `llm_node` nếu native speech segmentation đáp ứng clause policy: docs mô tả một SpeechHandle/assistant message với per-segment playout/truncation từ Python1.6.0. Đây là đường cần thử trước khi thêm scheduler; không thay PCM48k adapter, normalizer mapping hoặc timing gate.[^lk-nodes]
 
 ### 7.2 Chunk policy khởi điểm
 
@@ -429,10 +444,10 @@ Dùng OpenAI plugin với `base_url` tới endpoint Chat Completions self-host; 
 
 - Explicit model/base URL/API key; không để fallback credential/provider public.
 - Deadline connect/TTFT/inter-token/overall; close stream khi cancel; retry giới hạn trước token đầu.
-- System prompt nhỏ, trả lời ngắn; chỉ tools của workflow hiện tại. Context dài hoặc quá nhiều tools làm tăng TTFT.
-- Không split thành nhiều agents nếu chỉ có một trách nhiệm. Khi có intake/resolution/billing, handoff ở ranh giới có thể tóm tắt, không mang toàn bộ tools qua mọi phase.
+- System prompt nhỏ, cấu trúc identity/output rules/goals/guardrails: tiếng Việt plain text,1–3câu, hỏi một câu mỗi lần, giữ corrections/phủ định và facts user đã cung cấp, không lộ reasoning/tool internals. Chỉ tools của workflow hiện tại. Không copy SSML/emotion/phoneme tags của vendor vào local TTS chưa hỗ trợ. Context dài hoặc quá nhiều tools làm tăng TTFT.[^lk-prompting]
+- Một Agent cho trách nhiệm hiện tại; khi có intake/resolution/billing, handoff theo reasoning/permission boundary, không mang toàn bộ tools qua mọi phase. Agent mới mặc định có LLM history mới; phải truyền selected `chat_ctx`/summary/facts explicit, có thể copy với `exclude_instructions=True`. `session.history` vẫn là lịch sử tổng, không đồng nghĩa prompt Agent mới nhận mọi history. Typed `session.userdata` giữ state chung; task nhận quyền tạm thời rồi trả typed result. Kiểm per-agent model/turn overrides không bật Cloud hoặc đổi voice/policy ngoài authorization.[^lk-handoffs]
 - Summarization tường minh có metric; không hidden LLM call trong run latency. Giữ phủ định/corrections/facts quan trọng.
-- `on_user_turn_completed` là hook trước reply để kiểm validity/context; không tự phát một response thứ hai song song nếu native pipeline đã scheduled reply.[^lk-nodes]
+- `on_user_turn_completed` là hook voice-turn trước reply để kiểm validity/context; không tự phát một response thứ hai song song nếu native pipeline đã scheduled reply. Text/audio có thể đi hook paths khác nhau; listener ghi committed user messages dùng public `conversation_item_added`, bind trước start và test đúng input mode. Khi mở hybrid, modality-aware `Instructions` của Python còn beta; không giả đổi prompt theo input cũng tự tắt TTS output.[^lk-nodes][^lk-text][^lk-prompting]
 
 ### 8.3 Speculation/preemptive generation
 
@@ -452,8 +467,8 @@ Native có automatic interruption, explicit interruption và false-interruption 
 
 Conformance yêu cầu:
 
-1. User speech khi bot nói tạo interruption trong native session; không listener phụ vừa cancel vừa gọi `generate_reply` nhân đôi turn.
-2. Speech generation cũ mất quyền publish; flush native playout queue theo lifecycle, close TTS/LLM/ASR work liên quan.
+1. User speech khi bot nói đi qua native interruption handling (có thể pause trước khi actual interruption); không listener phụ vừa cancel vừa gọi `generate_reply` nhân đôi turn.
+2. Phân biệt **provisional pause** và **actual interruption**. Source reference giữ speech handle/audio khi false-interruption recovery có thể pause/resume; không close TTS/LLM hoặc vứt chunker ngay ở mọi VAD start. Khi native lifecycle thực sự interrupt/cancel generation, work cũ mất quyền publish, native xử lý playout/truncation và adapter đóng streams liên quan. Không cancel ASR đang nhận dạng lượt user mới chỉ vì bot bị ngắt.[^lk-activity]
 3. Async generator bị cancel phải đóng HTTP/gRPC stream trong `finally`; không flush filter/chunker còn dang dở.
 4. Model slot release đo độc lập; stale compute có thể còn chạy nhưng không được phát audio/event có nội dung.
 5. Giữ pre-roll/lệnh ngắn; xác nhận “vâng/không” không bị keyword filter coi là backchannel và bỏ đi.
@@ -473,6 +488,7 @@ LiveKit công bố tự truncation history đến phần speech user đã nghe; 
 - TTS không timing: công bố granularity/estimate; nếu release cần strict heard-prefix, thêm alignment hoặc conservative completed-chunk policy qua integration đã test. Không tự tuyên bố word-accurate.
 - Server playout completion không chứng minh remote device đã render hết; browser jitter/output latency và disconnect phải vào failure tests.
 - Caption sync tốt hơn không thay client D1 measurement hay privacy consent.
+- Docs có `use_tts_aligned_transcript=True` và `TextOutputOptions.json_format=True` để gửi timed chunks; timestamps chỉ có khi provider/adapter thực sự emit timing. `transcription_node`/`TimedString` được đánh dấu experimental: thêm compatibility gate. JSON mode cần frontend decoder tương ứng; không giả plain-text handler vẫn đúng. Cached speech nên gửi text+audio qua `session.say` nếu cần history/captions; audio-only không thêm text vào context.[^lk-text][^lk-audio]
 
 Nếu native không đủ gate, làm spike adapter/output integration cho timing/mapping; extension client ACK chỉ là phương án nghiên cứu, chưa API sẵn có. Nếu phải thay toàn bộ history/control, đánh giá lại kiến trúc trước khi fork.
 
@@ -618,10 +634,10 @@ Không mặc định dùng Cloud simulations/managed observability trong pipelin
 
 1. Một browser/user/room, đúng một agent, mic continuously active; ASR/LLM/TTS chạy đúng self-host endpoints.
 2. Audio input16k/output48k thật, không hidden24/16k downlink; PCM conformance và voice đúng.
-3. Explicit VAD-only/interruption options, no Cloud detector/adaptive requests, preemptive off.
+3. Explicit VAD-only/interruption options, no Cloud detector/adaptive requests, preemptive off; text input tắt, AGC/pre-connect policy và preload/RSS được kiểm theo manifest.
 4. “Không/dừng/vâng”, ngập ngừng, echo/noise, interruption giữa response; ghi limitations history.
 5. D1/client timeline + request counts/VRAM; warm/cold report, không claim production.
-6. Auth/consent/license research, network egress và content-free exception/log audit.
+6. Auth/consent/license research, network egress và content-free exception/log audit; reasoning không xuất hiện trong history/caption, transcript renderer không nhân đôi interim/final.
 
 ### 11.3 L1 production gates bắt buộc
 
@@ -629,11 +645,11 @@ Không mặc định dùng Cloud simulations/managed observability trong pipelin
 |---|---|
 | G1 — ASR tiếng Việt | Corpus Bắc/Trung/Nam, code-switch/số/tên/địa chỉ/phủ định/noise; WER/CER/entity và latency theo duration |
 | G2 — TTS fidelity | Golden normalization, fuzz token split, blind listening/prosody/code-switch; mapping đúng, source/output48k thật |
-| G3 — Turn correctness | Pause→continuation, segment final đến muộn, transcript change, short command, cancel/prediction cùng tick; no stale/precommit output |
+| G3 — Turn correctness | Pause→continuation, segment final đến muộn, transcript change, short command, cancel/prediction cùng tick; provisional pause→resume và real interrupt→cancel không xung đột; no stale/precommit output |
 | G4 — History/playback | Ngắt giữa rewritten span/chunk, missing timing, jitter/disconnect, fallback/cache; không claim độ chính xác vượt granularity được đo |
-| G5 — Browser/transport | HTTPS/mic/AEC, UDP bị chặn→TURN/TLS, reconnect, captions, participant authorization |
+| G5 — Browser/transport | HTTPS/mic/AEC, AGC A/B, UDP bị chặn→TURN/TLS, reconnect/playback bị chặn, caption interim/final upsert, text-input rejection, pre-connect consent/no-duplicate, participant authorization |
 | G6 — Capacity/failure | Concurrency1/4/8/16 tới capacity đích, ASR/TTS shared GPU bursts/cold,429/timeout/slow client/crash; bounded RAM/queues; soak1000sessions và drain |
-| G7 — Security/license/ops | Token grants/metadata auth, no-egress, log/trace payload scrub, clone consent/re-register, promote/rollback và SDK upgrade suite |
+| G7 — Security/license/ops | Token grants/metadata auth, no-egress kể cả startup/preload, log/trace payload scrub, reasoning không vào history/caption/log, idle-process RAM, clone consent/re-register, promote/rollback và SDK upgrade suite |
 
 Nếu bật Smart Turn, thêm compatibility suite cho streaming-detector private protocol, probability semantics, reset/cancel/timeout và native prediction ordering. Không promote chỉ vì classifier chạy ra một con số.
 
@@ -659,9 +675,13 @@ livekit:
   turn_policy: vad_only
   adaptive_interruptions: false
   cloud_inference: false
+worker:
+  env: {LIVEKIT_AGENTS_PRELOAD_LOCAL_INFERENCE: "0"} # source/version-gated
 room_io:
-  input: {sample_rate: 16000, channels: 1}
+  input: {sample_rate: 16000, channels: 1, auto_gain_control: false, pre_connect_audio: false}
   output: {sample_rate: 48000, channels: 1}
+  text_input: false
+  text_output: {sync_transcription: true, json_format: false}
 turn_handling:
   endpointing: {mode: fixed, min_delay: 0.60, max_delay: 2.50}
   interruption: {mode: vad, min_duration: 0.20, min_words: 0}
@@ -686,6 +706,8 @@ tts:
 text_bridge:
   owner: agent_worker
   chunk_policy: sentence_baseline
+  reasoning_filter_stage: llm_output_before_history_and_captions
+  sdk_tts_text_transforms: disabled_when_worker_owns_filtering
   normalization_owner: tts_service
 llm:
   api_mode: chat_completions
@@ -758,7 +780,7 @@ Tài liệu này khuyến nghị LiveKit vì có extension points và native rea
 
 ### 14.2 LiveKit tra trong phiên này
 
-Nguồn docs là trang online được `lk docs` render ngày2026-10-13, không immutable snapshot trong `raw/`. CLI báo docs server1.5.0/CLI1.4.x skew; dùng nội dung nguồn, không suy ra version SDK từ hai số đó. Không có SDK cài/lockfile để đối chiếu runtime. Source code search chỉ đọc một số interfaces/config types, không audit toàn control plane.
+Nguồn docs là trang online được `lk docs` render ngày2026-10-13, không immutable snapshot trong `raw/`. CLI báo docs server1.5.0/CLI1.4.x skew; dùng nội dung nguồn, không suy ra version SDK từ hai số đó. Không có SDK cài/lockfile để đối chiếu runtime. Source code search chỉ đọc một số interfaces/config types, không audit toàn control plane. Review v1.1 đã đọc đủ10URL user yêu cầu và bổ sung frontend/auth, sessions, server options, tasks, multimodal instructions, noise cancellation, turn options, deployment/testing/observability và changelog. Tra cứu trả Python Agents1.8.6 (2026-10-09), chỉ là candidate để smoke/pin, không phải release đã test; source commit không được xác nhận khớp release. Đã kiểm Python environment hiện tại không có `livekit-agents`/Silero plugin. Chi tiết kết luận/locator/giới hạn ở [báo cáo đối chiếu](doi-chieu-kien-truc-livekit-2026-10-13.md).
 
 [^lk-agents]: [LiveKit Agents introduction](https://docs.livekit.io/agents/) — Framework overview; How agents connect to LiveKit: agent server đăng ký, job subprocess và room participant; STT-LLM-TTS framework.
 [^lk-vad]: [Silero VAD plugin](https://docs.livekit.io/agents/logic/turns/vad/) — Requirements, Prewarm, Configuration: local CPU, sample rates, defaults và prewarm pattern. Chưa chạy model.
@@ -777,4 +799,12 @@ Nguồn docs là trang online được `lk docs` render ngày2026-10-13, không 
 [^lk-models]: [Models overview](https://docs.livekit.io/agents/models/) — OpenAI API compatibility: custom API key/base URL cho model interfaces; conformance vẫn cần khi backend chỉ tương thích một phần. Tra qua search excerpt.
 [^lk-llm]: [OpenAI-compatible LLMs](https://docs.livekit.io/agents/models/llm/openai-compatible-llms/) — Overview/Using a custom endpoint: `openai.LLM`, Chat Completions và custom base_url/API key.
 [^lk-observability]: [Observability overview](https://docs.livekit.io/testing/observability/) — Only available in LiveKit Cloud; components Data hooks/OpenTelemetry traces và self-host distinction. Payload scrub là yêu cầu thiết kế bổ sung.
+[^lk-start]: [Voice AI quickstart](https://docs.livekit.io/agents/start/voice-ai.md) — Requirements/LiveKit Cloud: chuyển OSS bỏ enhanced noise cancellation, dùng plugins; [Agent Builder](https://docs.livekit.io/agents/start/builder.md) — Overview/Limitations: Cloud deployment, SDK-only workflows/plugins/tests.
+[^lk-options]: [Agent server options](https://docs.livekit.io/agents/server/options.md) — Prewarm function: setup_fnc, job processes, num_idle_processes; Agent server load, Health check endpoint, Drain timeout.
+[^lk-handoffs]: [Agents & handoffs](https://docs.livekit.io/agents/logic/agents-handoffs.md) — Passing state/Context preservation/Per-agent configuration; [Tasks](https://docs.livekit.io/agents/logic/tasks.md) — temporary session control và typed result.
+[^lk-audio]: [Speech and audio](https://docs.livekit.io/agents/multimodality/audio.md) — Instant connect, Automatic gain control, Preemptive generation, session.say/SpeechHandle. AGC/pre-connect policy L0 là Synthesis.
+[^lk-frontends]: [Frontends](https://docs.livekit.io/frontends/) — Building frontends; [Sessions](https://docs.livekit.io/frontends/build/sessions.md) — lifecycle/messages; [Authentication](https://docs.livekit.io/frontends/build/authentication.md) — TokenSource; [Agent state](https://docs.livekit.io/frontends/build/agent-state.md) — lk.agent.state.
+[^lk-prompting]: [Prompting guide](https://docs.livekit.io/agents/start/prompting.md) — Prompt design/Voice realism/Testing; [Modality-aware instructions](https://docs.livekit.io/agents/multimodality/instructions.md) — Python beta, input variants. Vietnamese prompt rules là Synthesis từ guidance, chưa behavioral test.
+[^lk-activity]: [Agent activity source](https://github.com/livekit/agents/blob/3f479e242428d5fa9a7208810f036bbb8ccf9a48/livekit-agents/livekit/agents/voice/agent_activity.py) — _interrupt_by_audio_activity, _start_false_interruption_timer, _cancel_speech_pause: pause/resume khác actual interruption. Observed, không gọi private methods trực tiếp.
+[^lk-preload]: [SDK preload source](https://github.com/livekit/agents/blob/3f479e242428d5fa9a7208810f036bbb8ccf9a48/livekit-agents/livekit/agents/ipc/_preload.py) — module docstring, ENV_PRELOAD_LOCAL_INFERENCE, _local_inference_models: forkserver/spawn và opt-out local VAD/EOT preload. Observed; flag phải kiểm trên image pin.
 [^lk-tests]: [Unit tests](https://docs.livekit.io/testing/unit-tests/) — Overview/test setup/result assertions/mocking/multi-turn SDK harness. Chỉ tra/đọc docs, chưa viết hoặc chạy test agent.
