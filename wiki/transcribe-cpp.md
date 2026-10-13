@@ -5,7 +5,7 @@ description: C/C++ ggml-based STT inference runtime serving 20 ASR families plus
 tags: [stt, streaming, gguf, edge-deployment, pipeline, diarization]
 status: stable
 created: 2026-10-06
-generated: { by: llm-wiki-agent/1, at: 2026-10-06T14:00:00Z }
+generated: { by: llm-wiki-agent/1, at: 2026-10-13T02:35:20Z }
 stale_after: 2027-10-06
 sources:
   - id: transcribe-cpp-readme
@@ -89,6 +89,7 @@ Capability tokens below transcribe the source's `Available capabilities` column 
 
 - Serves: [Parakeet TDT 0.6B V2](parakeet-tdt-0.6b-v2.md), [Parakeet TDT 0.6B V3](parakeet-tdt-0.6b-v3.md), [Canary-1b-v2](canary-1b-v2.md), [Qwen3-ASR family](qwen3-asr-family.md), [Nemotron 3.5 ASR Streaming 0.6B](nemotron-3.5-asr-streaming-0.6b.md), [Nemotron Speech Streaming EN 0.6B](nemotron-speech-streaming-en-0.6b.md), [Voxtral Mini 4B Realtime 2602](voxtral-mini-4b-realtime-2602.md), and [Granite Speech 5.0 470M TurboCTC](granite-speech-5.0-470m-turboctc.md) are the wiki-covered checkpoints this runtime names; those pages hold model-level accuracy and checkpoint detail while this page holds the runtime path (**Synthesis**).[^transcribe-cpp-readme]
 - Packages: [Orukeet](orukeet.md) ships a Handy-compatible `orukeet-transcribe-cpp-Q8_0.gguf` export for this runtime family pinned to `transcribe-cpp` 0.2.0; that page holds the byte sizes, revision pins, and layout warning while this page holds the runtime's build and quantize path (**Synthesis**).[^transcribe-cpp-readme]
+- Packages: [handy-computer Qwen3-ASR-1.7B GGUF](handy-computer-qwen3-asr-1.7b-gguf.md) is a six-quant prebuilt ladder (BF16 through Q4_K_M) of the 1.7B Qwen3-ASR checkpoint for this runtime; that page holds the file sizes, card WER, and protocol limits, while this page keeps the build and `transcribe-quantize` path (**Synthesis**).[^transcribe-cpp-readme]
 - Uses: [Streaming Sortformer Diarizer 4spk v2.1](diar-streaming-sortformer-4spk-v2-1.md) is the diarization-only checkpoint this runtime names for streaming diarization verified by DER/JER rather than WER (**Synthesis**).[^transcribe-cpp-readme]
 - Contrasts with: [audio.cpp Framework](audio-cpp-framework.md) is the community ggml-based multi-family audio runtime in this wiki; transcribe.cpp is the Handy STT-plus-diarization runtime with its own catalog/verification workflow — compare them when choosing between broad audio coverage and a dedicated transcription engine (**Synthesis**).[^transcribe-cpp-readme]
 - Contrasts with: [NeMo-Speech.cpp](nemo-speech-cpp.md) is NVIDIA's official single-vendor Nemotron-family ggml runtime; transcribe.cpp is the multi-vendor Handy runtime instead — compare them when choosing between official Nemotron day-0 support and 20-family coverage (**Synthesis**).[^transcribe-cpp-readme]

@@ -5,7 +5,7 @@ description: Open-weight multilingual ASR family with 1.7B and 0.6B checkpoints 
 tags: [stt, asr, multilingual, streaming, forced-alignment]
 status: stable
 created: 2026-10-06
-generated: { by: llm-wiki-agent/1, at: 2026-10-07T03:56:09Z }
+generated: { by: llm-wiki-agent/1, at: 2026-10-13T02:35:20Z }
 stale_after: 2027-10-06
 sources:
   - id: vi-primary-research
@@ -29,6 +29,10 @@ sources:
     resource: ../raw/Confucius4-R2T2.md
     kind: documentation
     title: Confucius4-R2T2 GitHub README
+  - id: ggml-org-qwen3-asr-1.7b-gguf-card
+    resource: ../raw/ggml-org-Qwen3-ASR-1.7B-GGUF.md
+    kind: documentation
+    title: ggml-org Qwen3-ASR-1.7B-GGUF model card
 ---
 
 Qwen3-ASR is an open-weight automatic speech recognition family from Qwen built on the Qwen3-Omni foundation model, with a 1.7B accuracy flagship and a 0.6B efficiency point for joint language identification plus transcription across 30 languages and 22 Chinese dialects, a separate Qwen3-ForcedAligner-0.6B for word/character timestamps, unified streaming/offline inference with long-audio support including singing and songs with background music, and a full toolkit (`qwen-asr` Transformers and vLLM backends, async serving, Gradio and streaming demos, DashScope APIs, Docker, day-0 vLLM support), reported as state-of-the-art among open-source ASR with the 1.7B competitive against proprietary APIs and the aligner surpassing end-to-end forced-alignment baselines (**Reported**).[^qwen3-asr-readme]
@@ -130,6 +134,10 @@ Public-set WER in percent, lower is better; 1.7B leads most columns with noted e
 - Benchmarked against [Fun-ASR-MLT-Nano-2512](fun-asr-mlt-nano-2512.md), [Fun-ASR-Nano-2512](fun-asr-nano-2512.md), and [GLM-ASR-Nano-2512](glm-asr-nano-2512.md): the card's public, multilingual, singing, and alignment tables carry `Fun-ASR-MLT-Nano`, `Fun-ASR-Nano`, and `GLM-ASR-Nano-2512` columns as baselines, so cross-read those concepts when comparing compact Chinese-oriented ASR checkpoints; the WER numbers above are Qwen3-ASR-side values as reported in this card, not a merged ranking (**Synthesis**).[^qwen3-asr-readme]
 - Vietnamese figures from an AI-compiled report citing the tech report (arXiv 2601.21337): Fleurs-vi 5.55 (1.7B) / 8.52 (0.6B) and MLC-SLM-vi 14.92 / 17.67, with the 0.6B via vLLM reaching 92 ms average TTFT and 2000 s of speech per second at concurrency 128; the report names this family the main Whisper replacement for Vietnamese in [Vietnamese Realtime Voice Agent Stack](vietnamese-realtime-voice-agent-stack.md) and [Whisper Hallucination Mitigation for Vietnamese](whisper-hallucination-mitigation.md) (**Reported**).[^claude-pipeline-report]
 
+- Packaged by [CSTR Qwen3-ASR-1.7B GGUF](cstr-qwen3-asr-1.7b-gguf.md): a CrispASR-runtime GGUF set (Q4_K, Q8_0, F16) of the 1.7B checkpoint whose Q4_K file was rebaked to keep the audio encoder at Q8_0. Read that concept for file-level behavior; language coverage and benchmarks stay on this concept (**Synthesis**).
+- Packaged by [ggml-org Qwen3-ASR-1.7B GGUF](ggml-org-qwen3-asr-1.7b-gguf.md): a llama.cpp GGUF conversion of this 1.7B checkpoint with a one-command `llama-server -hf` launch; its card names no quantization, license, or audio request format, so read that concept for the launch path and its limits (**Reported** for the card; link **Synthesis**).[^ggml-org-qwen3-asr-1.7b-gguf-card]
+- Packaged by [handy-computer Qwen3-ASR-1.7B GGUF](handy-computer-qwen3-asr-1.7b-gguf.md): a transcribe.cpp GGUF ladder from BF16 to Q4_K_M with a card-reported LibriSpeech table and Q8_0-only FLEURS figures; read that concept for file sizes, protocol limits, and the Chinese FLEURS conflict (**Synthesis**).
+
 ## Coverage and limits
 
 - Source inspected statically only; no package installed, no model downloaded, no audio transcribed, and no WER, accuracy, AAS, or throughput figure reproduced (**Synthesis**).[^qwen3-asr-readme]
@@ -146,3 +154,5 @@ Public-set WER in percent, lower is better; 1.7B leads most columns with noted e
 [^vi-primary-research]: [Primary-source capture](../raw/vietnamese-asr-research-2026-10-07/README.md) — `qwen-report.html`, arXiv2601.21337v2: §2.1 Architecture; §2.4/Table2 efficiency; §4.5/Table8 streaming; AppendixTableA.2(a/b) vi rows. Selected sections inspected, not full paper ingestion or benchmark reproduction.
 
 [^confucius4-r2t2-readme]: [Confucius4-R2T2 GitHub README](../raw/Confucius4-R2T2.md) — locators: frontmatter (`base_model: Qwen/Qwen3-ASR-1.7B`); intro (append-only true streaming, 80 ms–2 s chunks, LSP training); `WebSocket Server` (vLLM backend, FireRedVAD Stream-VAD).
+
+[^ggml-org-qwen3-asr-1.7b-gguf-card]: [ggml-org Qwen3-ASR-1.7B-GGUF model card](../raw/ggml-org-Qwen3-ASR-1.7B-GGUF.md) — locators: frontmatter (`base_model: Qwen/Qwen3-ASR-1.7B`); intro paragraph (conversion with `convert_hf_to_gguf.py`); `To use it` fence (`llama-server -hf` launch command).

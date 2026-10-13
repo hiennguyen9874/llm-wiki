@@ -5,7 +5,7 @@ description: FireRedTeam's Apache-2.0 DFSMN-based voice activity detection and a
 tags: [vad, aed, endpointing, streaming, multilingual, chinese, english, pytorch, ncnn, license-check]
 status: stable
 created: 2026-10-11
-generated: { by: llm-wiki-agent/1, at: 2026-10-11T12:00:00Z }
+generated: { by: llm-wiki-agent/1, at: 2026-10-13T03:00:00Z }
 stale_after: 2027-10-11
 sources:
   - id: firered-vad
@@ -105,6 +105,8 @@ Prefer the GitHub values as current defaults; the card's CLI values may be an ea
 - Used as the VAD in [Confucius4-R2T2](confucius4-r2t2.md)'s WebSocket server (`Stream-VAD` checkpoint) and as the non-default `firered` option in the [HF Speech-to-Speech Pipeline](speech-to-speech-pipeline.md); its flags are listed in [Speech-to-Speech CLI and Defaults](speech-to-speech-cli-and-defaults.md), and its segment-end timing feeds the `vad_decision_s` field in [Speech-to-Speech Response Latency Instrumentation](speech-to-speech-latency-instrumentation.md) (**Synthesis**, from those pages).[^firered-vad]
 - Sibling of the FireRedASR2S ASR components; it adds music/singing labeling that [Silero VAD](silero-vad.md) and [TEN VAD](ten-vad.md) do not document, and the card declares only `en` and `zh` language tags despite the "100+ languages" claim. Like both Silero and TEN, it detects speech presence only and has no end-of-turn semantics, so pair it with a turn model from [Turn Detection Models](turn-detection-models.md) for conversational endpointing (**Synthesis**).[^firered-vad]
 - Selection use (**Synthesis**): consider it when music/singing separation, multilingual (including Chinese) robustness, or a tiny model with timestamped segment output matters. Validate threshold and `min_silence_frame` on in-domain audio before adopting it, as advised in [Vietnamese Speech Pipeline Design](vietnamese-speech-pipeline-design.md), because the source gives no streaming, Vietnamese, or noisy-call evidence.[^firered-vad]
+
+- Selectable as `-vm firered` in [CrispASR](crispasr.md), where the README recommends it and quotes F1 = 97.57%. That is the same FireRed table, not an independent result; see [CrispASR VAD and Language Identification](crispasr-vad-language-id.md) (**Synthesis**).
 
 ## Coverage and limits
 
