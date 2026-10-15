@@ -5,9 +5,17 @@ description: Research-report recommendation for an open-source Vietnamese realti
 tags: [pipeline, vad, stt, llm, tts, vietnamese, streaming, noisy-audio]
 status: draft
 created: 2026-10-06
-generated: { by: llm-wiki-agent/1, at: 2026-10-07T15:04:00Z }
+generated: { by: llm-wiki-agent/1, at: 2026-10-15T10:43:58Z }
 stale_after: 2027-10-06
 sources:
+  - id: qwen3-tts-vi-card
+    resource: ../raw/Qwen3-TTS-12Hz-1.7B-Vietnamese.md
+    kind: documentation
+    title: Qwen3-TTS-12Hz-1.7B-Vietnamese model card
+  - id: khanhtts-card
+    resource: ../raw/KhanhTTS-OmniVoice.md
+    kind: documentation
+    title: KhanhTTS model card
   - id: vi-primary-research
     resource: ../raw/vietnamese-asr-research-2026-10-07/README.md
     scope: ../raw/vietnamese-asr-research-2026-10-07/
@@ -85,6 +93,8 @@ All rows are the report's recommendation (**Reported**).[^claude-pipeline-report
 
 All cells are as reported, with the report's own attribution of vendor versus third-party origin (**Reported**); the Smart Turn row now uses the captured primary v3.2 benchmark instead of the report's stale 81.27% figure (**Reported**).[^claude-pipeline-report][^smart-turn-v3.2]
 
+Primary-card follow-up: [Qwen3-TTS-12Hz-1.7B-Vietnamese](qwen3-tts-12hz-1.7b-vietnamese.md) now documents Vietnamese phonology/style training, 30 presets and Apache-2.0 metadata; dataset rights, independent quality and realtime performance remain unknown. Its vendored example uses `non_streaming_mode=True`, so this does not change the stack’s routing baseline or establish support for the separately named VN-Style variant (**Reported/Synthesis**).[^qwen3-tts-vi-card]
+
 ## LLM choice and invocation
 
 - Qwen3 (04/2025, Apache-2.0): dense 0.6B–32B plus MoE 30B-A3B and 235B-A22B, 119 languages, thinking switch via `enable_thinking=False` or `/no_think`; Qwen3.5 (02–03/2026, Apache-2.0): 0.8B–397B-A17B, natively multimodal, 201 languages, with 4-bit 9B ~6 GB and 4B ~3 GB per Artificial Analysis, and its reasoning mode is token-heavy so voice must use non-thinking (**Reported**).[^claude-pipeline-report]
@@ -99,7 +109,8 @@ All cells are as reported, with the report's own attribution of vendor versus th
 - Qwen3-TTS checkpoint choice: `12Hz-0.6B-CustomVoice` for low latency/VRAM, `1.7B-CustomVoice` for `instruct` voice control, `Base` (1.7B or 0.6B) for cloning, since only Base exposes `create_voice_clone_prompt`/`generate_voice_clone` and CustomVoice/VoiceDesign raise `ValueError`; see [Qwen3-TTS-12Hz-0.6B-CustomVoice](qwen3-tts-12hz-0.6b-customvoice.md) and [Qwen3-TTS-12Hz-1.7B-CustomVoice](qwen3-tts-12hz-1.7b-customvoice.md) (**Reported**).[^claude-pipeline-report]
 - Streaming is a serving-layer property: the official `qwen-tts` package returns `(wavs, sr)` after full generation; streaming comes from vLLM-Omni (`vllm-omni serve ... --omni`, `POST /v1/audio/speech` with `response_format="pcm"`, `stream_format="audio"` requiring `async_chunk: true`, or a WebSocket `session.config`/`input.text`/`input.done` → `audio.start`/binary PCM/`audio.done` protocol; `speed` unsupported when streaming; TTFP 64 ms at concurrency 1 per vLLM-Omni docs) or community forks [Faster Qwen3-TTS](faster-qwen3-tts.md) (`generate_voice_clone_streaming(chunk_size=8)`, RTF 5.6 on RTX 4090 per author) and `dffdeeq/Qwen3-TTS-streaming` (~0.17 s first chunk on RTX 5090 per author) (**Reported**).[^claude-pipeline-report]
 - Vietnamese TTS paths ranked: (a) VieNeu-TTS v3 Turbo via `/v1/audio/speech` (recommended); (b) the community Vietnamese Qwen3-TTS fine-tune with `language="Vietnamese"`, requiring own MOS/CER evaluation; (c) self fine-tune from Base with the official `finetuning/` folder (**Reported**).[^claude-pipeline-report]
-- Other Vietnamese-capable TTS named: VieNeu-TTS v3 Nano preview (48M, flow-matching, CPU-only) and KhanhTTS-OmniVoice (community, Qwen3-0.6B backbone, Vi+En ~1,500 h, 4 GB GPU, Apache-2.0 per repo); XTTS-v2/viXTTS carry the non-commercial Coqui Public Model License (**Reported**).[^claude-pipeline-report]
+- Other Vietnamese-capable TTS named: VieNeu-TTS v3 Nano preview (48M, flow-matching, CPU-only) and [KhanhTTS-OmniVoice](khanhtts-omnivoice.md) (community, Qwen3-0.6B backbone, Vi+En ~1,500 h, 4 GB GPU, Apache-2.0 per report); XTTS-v2/viXTTS carry the non-commercial Coqui Public Model License (**Reported**).[^claude-pipeline-report]
+- Primary-card qualification: KhanhTTS confirms OmniVoice lineage, vi/en ~1,500 h and ~500,000 steps with CUDA FP16 24 kHz inference, but gives no 4 GB minimum or parameter count. Its Apache-2.0 label does not clear base-weight license lineage; see the [KhanhTTS concept](khanhtts-omnivoice.md). The report-only hardware claim above remains unverified (**Observed/Synthesis**).[^khanhtts-card]
 - Normalize text before TTS: numbers to words (`1.250.000đ` → `một triệu hai trăm năm mươi nghìn đồng`), dates, times, percentages, units, abbreviations (TP.HCM, UBND, km/h), and English words kept only when the TTS handles code-switching (VieNeu does) else transliterated; keep a substitution dictionary for proper nouns and domain terms because of known G2P errors such as VieNeu v3 Turbo reading `chánh` as `tránh` (issue #207) (**Reported**).[^claude-pipeline-report]
 
 ## Latency budget (report estimates)
@@ -162,3 +173,7 @@ Tier rows are the report's recommendation (**Reported**).[^claude-pipeline-repor
 [^smart-turn-v3.2]: [Smart Turn v3.2](smart-turn.md) — Benchmark (31,527 samples overall and the Vietnamese 1,004-sample CPU/GPU table); Architecture and variants; Coverage and limits.
 
 [^claude-pipeline-report]: [Claude voice-pipeline research report](../raw/Claude-pipeline-recommend.md) — locators: title and opening paragraph (Qwen3-TTS lacks Vietnamese, VieNeu recommendation, `/v1/audio/speech` swap); `TL;DR` (recommended 24 GB stack, verified-to-10/2026 facts, noisy-environment bullets); `Key Findings` 1–5; `PHẦN 1` §1 VAD, §2 preprocessing, §3 turn detection, §4 STT/ASR table, §5 LLM table plus serving paragraph, §6 TTS table, §7 speech-to-speech/omni, §8 framework table; `PHẦN 2` `Kiến trúc tổng thể` (mermaid flowchart, transport paragraph), `Qwen3: chọn cỡ và cách gọi`, `Qwen3-TTS: chọn model và cách dùng` (model choice, `qwen-tts` API, vLLM-Omni streaming, Vietnamese options, normalization, G2P issue #207), `Ngân sách độ trễ` table plus `Kỹ thuật tối ưu` and VRAM list, `Code mẫu` (server.py plus usage notes), `Triển khai` (docker-compose, scaling, monitoring, evaluation); `Recommendations` (tier table, `Lộ trình`, `Khi nào nên thay thành phần`); `Caveats`.
+
+[^khanhtts-card]: [KhanhTTS card](../raw/KhanhTTS-OmniVoice.md) — frontmatter; introduction; Thông tin huấn luyện; Sample audio URLs; Cài đặt & chạy inference §§1–2; Miễn trừ trách nhiệm & Khuyến cáo sử dụng (TTS). No revision/date recorded.
+
+[^qwen3-tts-vi-card]: [Vietnamese finetune card](../raw/Qwen3-TTS-12Hz-1.7B-Vietnamese.md) — YAML license/language/base_model; opening training stages and Final weights paragraph; Usage dependency sentence, Python loading/generation fence and closing speaker/tokenizer paragraph. No upstream revision or publication date supplied.

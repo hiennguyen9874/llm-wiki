@@ -5,9 +5,21 @@ description: Shortlist TTS realtime tiếng Việt theo chất lượng bằng c
 tags: [tts, vietnamese, streaming, comparison, deployment]
 status: draft
 created: 2026-10-07
-generated: { by: llm-wiki-agent/1, at: 2026-10-13T12:00:00Z }
+generated: { by: llm-wiki-agent/1, at: 2026-10-15T10:43:58Z }
 stale_after: 2027-10-07
 sources:
+  - id: qwen3-tts-vi-card
+    resource: ../raw/Qwen3-TTS-12Hz-1.7B-Vietnamese.md
+    kind: documentation
+    title: Qwen3-TTS-12Hz-1.7B-Vietnamese model card
+  - id: khanhtts-card
+    resource: ../raw/KhanhTTS-OmniVoice.md
+    kind: documentation
+    title: KhanhTTS model card
+  - id: f5-vi-card
+    resource: ../raw/F5-TTS-Vietnamese-ViVoice.md
+    kind: documentation
+    title: F5-TTS-Vietnamese-1000h model card
   - id: vieneu-tts-repo
     resource: ../raw/VieNeu-TTS-repo.md
     kind: documentation
@@ -122,7 +134,7 @@ sources:
 
 ## Phạm vi và độ tin cậy
 
-- Retrieval ban đầu dùng catalog TTS, exact search tiếng Việt và các concept/quan hệ runtime/pipeline; lần cập nhật này đối chiếu thêm các concept mới hoặc đổi trong Git với catalog hiện có 41 dòng model/family TTS (**Observed**). Số dòng là phạm vi catalog, không phải số checkpoint hay xác nhận coverage toàn thị trường; không cần QMD cho lần đối chiếu này.[^tts-survey]
+- Retrieval ban đầu dùng catalog TTS, exact search tiếng Việt và các concept/quan hệ runtime/pipeline; lần cập nhật này đối chiếu thêm các concept mới hoặc đổi trong Git với catalog hiện có 44 dòng model/family TTS (**Observed**). Số dòng là phạm vi catalog, không phải số checkpoint hay xác nhận coverage toàn thị trường; không cần QMD cho lần đối chiếu này.[^tts-survey]
 - Đã nghiên cứu nguồn local trong `raw/`: README/card của VieNeu, VoxCPM2, Supertonic 3, Higgs, Fish, dots-mf, LGTM, OmniVoice và phần language/model-family của Qwen3-TTS. Không fetch web/live releases; “hiện tại” là phạm vi snapshot trong repo, phần lớn được compile 2026-10-06, chứ không phải bảo đảm catalog toàn thị trường (**Observed**).
 - **Reported** là tuyên bố của tác giả/vendor, kể cả số liệu họ đo. **Observed** là thấy field/API/table trong tài liệu; không chứng minh model thực sự nói tốt. Không tải weights, chạy inference, nghe audio hay reproduce benchmark; không có verification event về chất lượng/latency (**Observed**).
 - Cập nhật 2026-10-13 (từ 50 dòng đầu `log.md`, chỉ dùng compiled concepts, không mở raw hay fetch mới): thêm repo snapshot Gwen-TTS `f0f24d8` (môi trường, CLI full-WAV, discrepancy `language`), hai text normalizer VietNormalizer/ViSoNorm, và ranh giới Vietnamese của Kokoro library/misaki/Kokoro-FastAPI; catalog survey tăng lên 41 dòng do thêm Kokoro-82M (không có vi). Không thay đổi thứ tự baseline (**Observed/Synthesis**).[^gwen-tts-repo][^vietnormalizer-concept][^kokoro-lib-concept][^tts-survey]
@@ -135,11 +147,13 @@ Các khả năng và số liệu trong bảng là **Reported**; phân hạng ưu
 | Model | Bằng chứng tiếng Việt | Realtime / triển khai | License và quyết định |
 | --- | --- | --- | --- |
 | **VieNeu v3 Turbo** | vi/en, ~10k h bilingual, preset Bắc/Trung/Nam, code-switching | frame-level audio streaming, CPU ONNX / GPU PyTorch, API; ~115 ms TTFA RTX 3060 | Apache-2.0 theo FAQ; roadmap còn ghi personal use. Baseline số 1 có điều kiện rà scope.[^vieneu-tts-repo][^vieneu-v3-card] |
+| **[Qwen3-TTS-12Hz-1.7B-Vietnamese](qwen3-tts-12hz-1.7b-vietnamese.md)** | Base 1.7B finetune; phonology 3 epochs + style 5 epochs; 30 speakers | Vendored `qwen_tts`, CUDA bf16; ví dụ `non_streaming_mode=True`; không có TTFA/RTF/VRAM | Apache-2.0 theo metadata; data rights chưa rõ. Ứng viên style/preset, chưa thay baseline realtime.[^qwen3-tts-vi-card] |
 | **VoxCPM2** | `vi` nằm trong 30 ngôn ngữ | 2B, 48 kHz, `generate_streaming`; RTF ~0.3 hoặc ~0.13 Nano-vLLM trên 4090; ~8 GB VRAM theo card | Apache-2.0. A/B số 1 cho cloning/style; chưa có TTFA và Vietnamese quality riêng.[^voxcpm2-card] |
 | **Supertonic 3** | `vi` trong 31 ngôn ngữ | ~99M ONNX, CPU-first; mẫu `synthesize` trả waveform hoàn chỉnh, không chứng minh frame-level streaming | OpenRAIL-M weights / MIT code. A/B CPU; không lấy RTF v2 làm benchmark v3.[^supertonic3-card] |
 | **Higgs TTS 3** | Vietnamese trong tier WER/CER <5 của card | ~4B codec AR, SSE streaming sub-second, SGLang/vLLM-Omni | Research/non-commercial; API hosting/product cần commercial license riêng. Ứng viên expressive mạnh, chưa được chứng minh thắng VieNeu/VoxCPM2 trên tiếng Việt.[^higgs3-card] |
 | **Fish S2 Pro** | `vi` trong danh sách Other, không thuộc Tier 1/2 | 4B Slow AR +400M Fast AR, SGLang, ~100 ms TTFA H200 | Research/non-commercial; commercial license riêng. Cần test thanh điệu và prosody tiếng Việt.[^fish2-card] |
 | **OmniVoice** | `vi` trong frontmatter (dòng 601) | diffusion LM, RTF thấp nhất công bố 0.025; card dùng `generate` trả full audio | CC-BY-NC weights. Không mặc định true-streaming; handler HF chờ full utterance.[^omnivoice-card][^hf-pipeline] |
+| **[KhanhTTS-OmniVoice](khanhtts-omnivoice.md)** | OmniVoice finetune vi/en, ~1.500 h / ~500k steps; card riêng không có benchmark | CUDA FP16 example, full-waveform 24 kHz; ref_audio/ref_text bị comment; chưa có TTFA/RTF/VRAM/streaming | Apache-2.0 theo card nhưng lineage base CC-BY-NC chưa giải quyết; disclaimer research và consent/disclosure. Candidate cloning chưa xếp hạng, không thay baseline.[^khanhtts-card] |
 | **G-OmniVoice** | held-out vi WER 0.0259 / SIM 0.890 / MOS 7.685, WER thấp nhất trong bảng 4 models của card (base, KhanhTTS, VietNeu) | `omnivoice` runtime, `generate` trả full waveform 24 kHz; chưa có TTFA/streaming/concurrency/VRAM | Card ghi Apache-2.0 + tokenizer Boson Community License; base OmniVoice weights CC-BY-NC nên cần rà lineage trước commercial. Challenger accuracy, chưa phải pick triển khai.[^g-omnivoice-card] |
 | **Gwen-TTS 0.6B** | Qwen3-TTS-0.6B-Base finetune, ~1.000 h audio vi crawl TikTok; 9 demo voices kèm ref/infer clips; chưa có benchmark, TTFA/streaming hay review data-rights | `qwen-tts` runtime, `generate_voice_clone` trả full waveform; repo `inference.py` ghi một WAV hoàn chỉnh, không có streaming path; môi trường đã test Python 3.11/CUDA 12.4, VRAM ≥4 GB là mức tối thiểu tuyên bố, không phải footprint đo; chưa có TTFA/concurrency | Card ghi MIT; cần rà lineage base Qwen3-TTS và quyền dữ liệu TikTok-crawl trước commercial. Candidate cloning để A/B listening, chưa phải pick triển khai.[^gwen-tts-card][^gwen-tts-repo] |
 | **[Kokoro Vietnamese](kokoro-vietnamese.md)** | Vietnamese finetune, `vig2p` G2P, default và additional voicepacks | PyTorch / ONNX CPU hoặc CUDA CLI; chưa có quality, TTFA, RTF, streaming hay concurrency figures | Apache-2.0 theo capture. Candidate CPU/ONNX để đo và nghe A/B; không suy support của checkpoint này từ upstream Kokoro hay server Kokoro khác: `lang_code` của Kokoro library không có vi, misaki chỉ có credit Viphoneme chứ không có module vi, danh sách ngôn ngữ Kokoro-FastAPI không có vi, còn `vig2p` là đường G2P riêng của artifact này.[^kokoro-vi-concept][^kokoro-lib-concept][^misaki-fe-concept] |
@@ -150,11 +164,15 @@ Các khả năng và số liệu trong bảng là **Reported**; phân hạng ưu
 | **LGTM-TTS** | `vi`, Python usage và links hai sample vi | ONNX/PyTorch 44.1 kHz, duration + iterative denoising + vocoder | Thiếu license, size, quality/latency; chưa chọn production.[^lgtm-card] |
 | **VieNeu v3 Nano** | vi/en nhưng English/code-switch yếu hơn Turbo | 48M flow matching ONNX, 24 kHz; RTF0.22/0.11 trên desktop i5 ở16/8 steps; chỉ finished-text chunks | Chỉ fallback yếu CPU sau kiểm tra artifacts/license; không thay Turbo khi cần frame-level streaming.[^vieneu-tts-repo] |
 
+**Primary card mới:** [F5-TTS-Vietnamese-1000h](f5-tts-vietnamese.md) finetune F5-TTS_Base trên 1.000 h được báo cáo (ViVoice/VLSP2021–2023), CLI reference audio/text + Vocos; CC-BY-NC-SA-4.0/non-commercial research. Chưa có quality, TTFA/RTF hoặc streaming evidence; ví dụ bị cắt và có lệnh `mv config.json .../vocab.txt` đáng ngờ. Ra khỏi nhóm secondary-only nhưng chưa thay đổi baseline triển khai (**Reported/Observed**, quyết định **Synthesis**).[^f5-vi-card]
+
 **Adjacent:** [SeamlessM4T v2 Large](seamless-m4t-v2-large.md) có Vietnamese speech output (`vie`) nhưng là hướng translation/UnitY2, non-commercial, chưa có cloning/TTFA evidence tương ứng; không đưa vào shortlist dedicated voice-agent TTS.[^tts-survey]
 
 **Không chọn out-of-box cho vi theo catalog đã đọc:** Qwen3-TTS chính thức (10 languages không vi; finetune [Gwen-TTS 0.6B](gwen-tts-0.6b.md) của checkpoint [Qwen3-TTS-12Hz-0.6B-Base](qwen3-tts-12hz-0.6b-base.md) đã có concept riêng với evidence card nhưng chưa benchmark/streaming nên chỉ là candidate A/B); CosyVoice2/Fun-CosyVoice3, Audio8 Preview, Chatterbox V3/Turbo/Nano, Pocket, Sopro, Soprano, VibeVoice/realtime, Breeze, GLM-TTS, IndexTTS2/2.5, GPT-SoVITS, AuK-Flash, Supertonic v1/v2, Irodori và Indic Parler. Đây là thiếu vi trong support scope đã compile, **không phải chứng minh mọi community adaptation đều bất khả thi**.[^qwen3-card][^tts-survey]
 
-**Chỉ secondary pointers:** ShiniChien Qwen3-TTS Vietnamese/VN-Style, F5-TTS-Vietnamese và viXTTS chưa có primary source và benchmark thích hợp trong evidence đã truy hồi. [G-OmniVoice](g-omnivoice.md) và [Gwen-TTS 0.6B](gwen-tts-0.6b.md) đã có primary card nên ra khỏi nhóm này; KhanhTTS-OmniVoice và VietNeu/v3turbo mới chỉ xuất hiện qua bảng số của card G-OmniVoice, chưa đối chiếu nguồn gốc.[^g-omnivoice-card][^gwen-tts-card] Đặc biệt không suy commercial permission của derivative OmniVoice từ một AI report trong khi upstream weights là NC; phải kiểm tra lineage/license riêng. VieNeu v4 là proprietary API theo README nhưng chưa có quality/TTFA/SLA/giá để xếp hạng. Các cloud TTS ngoài catalog chưa được khảo sát trong phiên này.[^vi-stack][^omnivoice-card][^vieneu-tts-repo]
+**Chỉ secondary pointers:** ShiniChien Qwen3-TTS Vietnamese/VN-Style và viXTTS chưa có primary source và benchmark thích hợp trong evidence đã truy hồi. [G-OmniVoice](g-omnivoice.md) và [Gwen-TTS 0.6B](gwen-tts-0.6b.md) đã có primary card nên ra khỏi nhóm này; [KhanhTTS-OmniVoice](khanhtts-omnivoice.md) nay có primary card cho lineage, training và inference nhưng các số WER/SIM/MOS vẫn chỉ đến từ card G-OmniVoice; VietNeu/v3turbo còn là secondary pointer.[^khanhtts-card][^g-omnivoice-card][^gwen-tts-card] Đặc biệt không suy commercial permission của derivative OmniVoice từ một AI report trong khi upstream weights là NC; phải kiểm tra lineage/license riêng. VieNeu v4 là proprietary API theo README nhưng chưa có quality/TTFA/SLA/giá để xếp hạng. Các cloud TTS ngoài catalog chưa được khảo sát trong phiên này.[^vi-stack][^omnivoice-card][^vieneu-tts-repo]
+
+[^f5-vi-card]: [F5-TTS-Vietnamese-1000h card](../raw/F5-TTS-Vietnamese-ViVoice.md) — frontmatter; Important Note; introduction/license; Model Details (processing and training); Usage (clone/install, mv and CLI flags, truncated fence). Revision and capture date unavailable.
 
 ## Vì sao VieNeu là lựa chọn triển khai đầu tiên?
 
@@ -287,3 +305,7 @@ C++/GGUF là deployment alternative, không đổi language/weight license: audi
 [^visonorm-concept]: [ViSoNorm (visobert-normalizer)](visonorm-visobert-normalizer.md) — lead paragraph (written-to-written direction), Mechanism (`trust_remote_code`, three heads); no benchmarks, license, latency, or revision. Compiled README claims, nothing run.
 [^kokoro-lib-concept]: [Kokoro Python Library](kokoro-python-library.md) — `lang_code` table (nine codes, eight languages) and "Vietnamese is absent" note; Kokoro-FastAPI language list via [Kokoro Vietnamese](kokoro-vietnamese.md). Compiled README claims.
 [^misaki-fe-concept]: [Misaki Language Frontends](misaki-language-frontends.md) — Vietnamese section (one Viphoneme link, no Vietnamese module in the TODO list); relation to `vig2p` not asserted. Compiled README claims.
+
+[^khanhtts-card]: [KhanhTTS card](../raw/KhanhTTS-OmniVoice.md) — frontmatter; introduction; Thông tin huấn luyện; Sample audio URLs; Cài đặt & chạy inference §§1–2; Miễn trừ trách nhiệm & Khuyến cáo sử dụng (TTS). No revision/date recorded.
+
+[^qwen3-tts-vi-card]: [Vietnamese finetune card](../raw/Qwen3-TTS-12Hz-1.7B-Vietnamese.md) — YAML license/language/base_model; opening training stages and Final weights paragraph; Usage dependency sentence, Python loading/generation fence and closing speaker/tokenizer paragraph. No upstream revision or publication date supplied.

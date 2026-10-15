@@ -5,9 +5,13 @@ description: 0.6B-parameter multilingual CustomVoice TTS checkpoint on the 12Hz 
 tags: [tts, multilingual, streaming, custom-voice]
 status: stable
 created: 2026-10-06
-generated: { by: llm-wiki-agent/1, at: 2026-10-06T18:00:00Z }
+generated: { by: llm-wiki-agent/1, at: 2026-10-15T10:43:58Z }
 stale_after: 2027-10-06
 sources:
+  - id: qwen3-tts-vi-card
+    resource: ../raw/Qwen3-TTS-12Hz-1.7B-Vietnamese.md
+    kind: documentation
+    title: Qwen3-TTS-12Hz-1.7B-Vietnamese model card
   - id: qwen3-tts-06b-customvoice-card
     resource: ../raw/Qwen3-TTS-12Hz-0.6B-CustomVoice.md
     kind: documentation
@@ -69,6 +73,8 @@ Nine supported preset speakers with the card's recommendation to use each speake
 - Voice cloning (`create_voice_clone_prompt`, `generate_voice_clone`) exists only on Base checkpoints; calling it on CustomVoice or VoiceDesign raises `ValueError` (**Reported**).[^claude-pipeline-report]
 - Used for non-Vietnamese languages in [Vietnamese Realtime Voice Agent Stack](vietnamese-realtime-voice-agent-stack.md), with estimated VRAM below the 1.7B's ~5–7 GB (**Reported**).[^claude-pipeline-report]
 
+Primary-card follow-up: [Qwen3-TTS-12Hz-1.7B-Vietnamese](qwen3-tts-12hz-1.7b-vietnamese.md) documents two-stage Vietnamese phonology/style training, 30 presets and Apache-2.0 metadata, but no dataset-license detail or quality/latency benchmarks. It is based on 1.7B Base, not this official CustomVoice checkpoint; vendored non-streaming usage does not inherit official streaming figures. The capture does not independently establish the author or the separately reported VN-Style variant (**Reported/Synthesis**).[^qwen3-tts-vi-card]
+
 ## Relationships
 
 - Underlying tokenizer [Qwen3-TTS-Tokenizer-12Hz](qwen3-tts-tokenizer-12hz.md): the shared 12.5 Hz 16-codebook causal-ConvNet codec this checkpoint builds on for encode/decode and streaming; tokenizer detail lives there (**Synthesis**).[^qwen3-tts-06b-customvoice-card]
@@ -91,3 +97,5 @@ Nine supported preset speakers with the card's recommendation to use each speake
 [^gwen-tts-card]: [Gwen-TTS 0.6B model card](../raw/gwen-tts-0.6B.md) — locators: frontmatter (`base_model: Qwen/Qwen3-TTS-12Hz-0.6B-Base`, `license: mit`, 11-code `language` with `vi`); intro plus `Key highlights` (~1,000 h TikTok-crawl finetune, few-second cloning); `## How to Use` (full `generation_config` dict, `generate_voice_clone` with `language="Vietnamese"`/`ref_audio`/`ref_text`); `## Voice Samples` (9 speaker tables); `## Supported Languages` (Vietnamese primary, non-Vietnamese caveat). No benchmarks, latency, or streaming figures stated.
 
 [^claude-pipeline-report]: [Claude voice-pipeline research report](../raw/Claude-pipeline-recommend.md) — locators: `Key Findings` 1–2 (10-language list, Discussion #274, `ShiniChien` fine-tunes, serving-layer streaming, vLLM-Omni 64 ms TTFP); `PHẦN 1` §6 Qwen3-TTS row; `PHẦN 2` `Qwen3-TTS: chọn model và cách dùng` (model choice, Base-only cloning `ValueError`, `qwen-tts` non-streaming API, vLLM-Omni HTTP/WebSocket streaming parameters); VRAM list; `Caveats`.
+
+[^qwen3-tts-vi-card]: [Vietnamese finetune card](../raw/Qwen3-TTS-12Hz-1.7B-Vietnamese.md) — YAML license/language/base_model; opening training stages and Final weights paragraph; Usage dependency sentence, Python loading/generation fence and closing speaker/tokenizer paragraph. No upstream revision or publication date supplied.

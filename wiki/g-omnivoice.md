@@ -5,9 +5,13 @@ description: Vietnamese-optimized OmniVoice finetune with zero-shot voice clonin
 tags: [tts, vietnamese, voice-cloning, zero-shot]
 status: stable
 created: 2026-10-07
-generated: { by: llm-wiki-agent/1, at: 2026-10-07T12:30:00Z }
+generated: { by: llm-wiki-agent/1, at: 2026-10-15T10:41:56Z }
 stale_after: 2027-10-07
 sources:
+  - id: khanhtts-card
+    resource: ../raw/KhanhTTS-OmniVoice.md
+    kind: documentation
+    title: KhanhTTS model card
   - id: g-omnivoice-card
     resource: ../raw/g-omnivoice.md
     kind: documentation
@@ -40,7 +44,7 @@ Vendor-reported evaluation on a held-out Vietnamese test set, where lower WER is
 
 - G-OmniVoice reports the lowest WER (0.0259, about 31% better than the next model at 0.0375) while its SIM of 0.890 essentially ties the best (0.892); MOS of 7.685 trails the base OmniVoice figure of 7.709 (**Reported**).[^g-omnivoice-card]
 - The card embeds a `wer_vs_sim.png` scatter plot described as placing G-OmniVoice alone in the top-left "best of both worlds" corner; the image file is not present in `raw/` and was not inspected, so the plot itself is unavailable evidence (**Synthesis**).[^g-omnivoice-card]
-- Competitor rows (KhanhTTS-OmniVoice, VietNeu v3turbo) are figures as printed by this card, not verified against their own sources; the VietNeu row is labeled `VietNeu/v3turbo`, which does not match the compiled [VieNeu-TTS v3 Turbo](vieneu-tts-v3-turbo.md) publisher/checkpoint naming, so cross-card comparability is unestablished (**Synthesis**).[^g-omnivoice-card]
+- Competitor rows ([KhanhTTS-OmniVoice](khanhtts-omnivoice.md), VietNeu v3turbo) are figures as printed by this card, not independently verified; KhanhTTS now has its own inspected card for identity/training/inference but no benchmark corroboration there.[^khanhtts-card] In addition, the VietNeu row is labeled `VietNeu/v3turbo`, which does not match the compiled [VieNeu-TTS v3 Turbo](vieneu-tts-v3-turbo.md) publisher/checkpoint naming, so cross-card comparability is unestablished (**Synthesis**).[^g-omnivoice-card]
 
 ## Requirements and inference usage
 
@@ -77,3 +81,5 @@ Vendor-reported evaluation on a held-out Vietnamese test set, where lower WER is
 - All identity, capability, benchmark, usage, language, and licensing claims are source assertions without independent verification in this wiki; model-release and benchmark figures carry `stale_after: 2027-10-07` per the `tts` domain rule (**Synthesis**).[^g-omnivoice-card]
 
 [^g-omnivoice-card]: [G-OmniVoice model card](../raw/g-omnivoice.md) — locators: frontmatter (`license: apache-2.0`, `language: vi`, `base_model: k2-fsa/OmniVoice` + `Qwen/Qwen3-0.6B`, `pipeline_tag: text-to-speech`, `library_name: omnivoice`, `tags`); intro paragraph (Vietnamese optimization, k2-fsa/OmniVoice lineage, Qwen3-0.6B backbone + Higgs Audio 2 codec, large-scale Vietnamese corpus, accuracy-plus-fidelity claim); feature bullets (Vietnamese speech, WER-plus-similarity, 3–10 s cloning); `## Benchmark` section (held-out Vietnamese test-set sentence, WER/SIM/MOS 4-row table, `wer_vs_sim.png` scatter description with ~31%-better reading); `## Installation` fences (torch 2.8.0+cu128, `pip install omnivoice`); `## Usage` fences (`from_pretrained` with `device_map`/`dtype`, cloning `generate` with `ref_audio`/`ref_text`, design `generate` with `instruct`, `sf.write` at 24000); `### Tips` bullets (text normalization, sentence-sized chunks, 3–10 s clean single-speaker reference); `## Supported Languages` paragraph (Vietnamese-optimized, 600+ base languages); `## Citation` (gomnivoice2026 + zhu2026omnivoice bibtex); `## License` (Apache 2.0, Higgs Audio 2 Community License tokenizer note); `## Acknowledgments` (k2-fsa, Boson AI, Qwen Team, G-Group AI Lab).
+
+[^khanhtts-card]: [KhanhTTS card](../raw/KhanhTTS-OmniVoice.md) — frontmatter; introduction; Thông tin huấn luyện; Sample audio URLs; Cài đặt & chạy inference §§1–2; Miễn trừ trách nhiệm & Khuyến cáo sử dụng (TTS). No revision/date recorded.

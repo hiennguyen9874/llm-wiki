@@ -5,9 +5,13 @@ description: Massively multilingual zero-shot TTS model covering 600+ languages 
 tags: [ml, tts, multilingual, voice-cloning, zero-shot]
 status: stable
 created: 2026-10-06
-generated: { by: llm-wiki-agent/1, at: 2026-10-07T04:10:00Z }
+generated: { by: llm-wiki-agent/1, at: 2026-10-15T10:41:56Z }
 stale_after: 2027-10-06
 sources:
+  - id: khanhtts-card
+    resource: ../raw/KhanhTTS-OmniVoice.md
+    kind: documentation
+    title: KhanhTTS model card
   - id: omnivoice-card
     resource: ../raw/OmniVoice.md
     kind: documentation
@@ -59,6 +63,8 @@ OmniVoice is a massively multilingual zero-shot text-to-speech model supporting 
 
 ## Relationships
 
+- Finetuned by [KhanhTTS-OmniVoice](khanhtts-omnivoice.md), a Vietnamese-English cloning derivative reporting ~1,500 h and ~500,000 steps; no derivative latency benchmark or cleared commercial license chain is established (**Reported/Synthesis**).[^khanhtts-card]
+
 - Included by [Vietnamese Realtime TTS Selection](vietnamese-realtime-tts-selection.md) as a Vietnamese-listed research candidate, not a latency-cleared production pick: weights remain CC-BY-NC and the card's `generate` example returns complete waveforms; RTF0.025 does not establish TTFA or incremental audio (**Synthesis**).[^omnivoice-card]
 - Multilingual zero-shot TTS comparison: [Audio8 TTS Preview 0.6B](audio8-tts-preview-0.6b.md) covers a compact 0.6B DualAR multilingual cloning model with 11 recommended languages and Seed-TTS numbers, while this concept covers a 600+-language diffusion-LM cloning/design model with 0.025 RTF; no shared codebase or vendor claim is asserted (**Synthesis**).[^omnivoice-card]
 - Bilingual real-time TTS contrast: [Breeze TTS 2](breeze-tts-2.md) covers an English-Chinese real-time model with voice clone/design/direction and H100 TTFA/RTF figures, while this concept covers massively multilingual coverage and attribute-driven voice design; no shared codebase or vendor claim is asserted (**Synthesis**).[^omnivoice-card]
@@ -77,3 +83,5 @@ OmniVoice is a massively multilingual zero-shot text-to-speech model supporting 
 [^omnivoice-gguf-card]: [OmniVoice GGUF model card](../raw/OmniVoice-GGUF.md) — locators: intro paragraph (omnivoice.cpp C++17/GGML port, 646 languages, 24 kHz mono, CPU/CUDA/ROCm/Metal/Vulkan); `## Files` variant table (paired base plus tokenizer files, F32/BF16/Q8_0/Q4_K_M sizes and use cases); `## Quick start` fence; `## Backends` table; `## Quantization policy` section; `## License` section (CC-BY-NC conversion terms).
 
 [^g-omnivoice-card]: [G-OmniVoice model card](../raw/g-omnivoice.md) — locators: intro paragraph (G-Group AI Lab Vietnamese finetune of k2-fsa/OmniVoice, Qwen3-0.6B backbone plus Higgs Audio 2 codec, large-scale Vietnamese corpus); `## Benchmark` (held-out Vietnamese WER 0.0259 / SIM 0.890 / MOS 7.685 table).
+
+[^khanhtts-card]: [KhanhTTS card](../raw/KhanhTTS-OmniVoice.md) — frontmatter; introduction; Thông tin huấn luyện; Sample audio URLs; Cài đặt & chạy inference §§1–2; Miễn trừ trách nhiệm & Khuyến cáo sử dụng (TTS). No revision/date recorded.
