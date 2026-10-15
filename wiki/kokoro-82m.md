@@ -5,7 +5,7 @@ description: Open-weight 82M-parameter text-to-speech model on the StyleTTS 2 ar
 tags: [tts, kokoro, styletts2, open-weights, apache-2.0]
 status: stable
 created: 2026-10-13
-generated: { by: llm-wiki-agent/1, at: 2026-10-13T05:10:00Z }
+generated: { by: llm-wiki-agent/1, at: 2026-10-15T10:59:14Z }
 stale_after: 2026-04-30
 sources:
   - id: kokoro-82m-card
@@ -73,6 +73,8 @@ The release table is **Reported**; see [Contradictions](#contradictions) for the
 - The training set includes CC BY 3.0 and CC BY 4.0 audio. The card does not state the attribution obligations for the weights, and this wiki has not evaluated them (**Unverified**).[^kokoro-82m-card]
 
 ## Relationships
+
+- Compared in [Kokoro Deployment Comparison](kokoro-deployment-comparison.md): separates embedded inference, dedicated APIs, native GGUF runtimes, pipeline integrations and Vietnamese artifacts; recommendations are synthesis, not a matched benchmark.
 
 - Run by the [Kokoro Python Library](kokoro-python-library.md), the `kokoro` package whose `KPipeline` wraps this model; its README gives the basic and advanced usage cells and the `lang_code` values (**Reported**).[^kokoro-library-readme]
 - Served by [Kokoro-FastAPI](kokoro-fastapi.md), a Dockerized FastAPI wrapper that exposes this model through an OpenAI-compatible `/v1/audio/speech` route. Its README names git commit `41e5892` as the tested model revision (**Reported**). That is a git identifier, distinct from the v1.0 file SHA256 above; the two do not conflict (**Synthesis**).[^kokoro-fastapi-readme]
