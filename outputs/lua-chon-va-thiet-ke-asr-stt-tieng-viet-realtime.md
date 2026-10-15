@@ -1,7 +1,8 @@
 # Lựa chọn và thiết kế ASR/STT realtime cho tiếng Việt
 
 > **Loại tài liệu:** bài viết tổng hợp, là deliverable trong `outputs/`. Đây không phải tri thức canonical của wiki.
-> **Ngày:** 2026-10-13 (bản đầu 2026-10-07; xem mục "Thay đổi so với bản 2026-10-07").
+> **Ngày:** 2026-10-15 (bản đầu 2026-10-07; xem các mục thay đổi bên dưới).
+> **Cập nhật lần này:** bổ sung [QUAN-Transcribe-1.0](../wiki/quan-transcribe-1.0.md) và [runtime/live streaming](../wiki/quan-transcribe-inference.md) từ wiki; không mở thêm raw, không chạy inference. Các phần cũ ngoài phạm vi QUAN được giữ lại, không phải đã kiểm chứng lại toàn bộ.
 > **Nguồn chính:** [Vietnamese Realtime ASR Selection](../wiki/vietnamese-realtime-asr-selection.md), [ASR/STT Model Survey](../wiki/asr-stt-model-survey.md), [Phân nhóm ASR/STT và shortlist realtime](../wiki/realtime-asr-selection.md).
 > **Nguồn model tiếng Việt:** [Nemotron 3.5 ASR](../wiki/nemotron-3.5-asr-streaming-0.6b.md), [Qwen3-ASR family](../wiki/qwen3-asr-family.md), [PhoWhisper](../wiki/phowhisper.md), [ChunkFormer Vietnamese](../wiki/chunkformer-vietnamese.md), [ZipFormer 30M Vietnamese](../wiki/zipformer-30m-vietnamese.md), [Gipformer 1.5 68M RNNT](../wiki/gipformer1.5-68m-rnnt.md), [Gipformer 68M RNNT](../wiki/gipformer-68m-rnnt.md), [Gipformer Inference Repository](../wiki/gipformer-inference-repo.md), [VietASR (zzasdf)](../wiki/zzasdf-viet-asr.md), [VietASR (dangvansam)](../wiki/dangvansam-viet-asr.md).
 > **Nguồn runtime / đóng gói:** [NeMo-Speech.cpp ASR Configuration](../wiki/nemo-speech-asr-configuration.md), [NeMo-Speech.cpp HTTP and Realtime API](../wiki/nemo-speech-http-api.md), [handy-computer Qwen3-ASR-1.7B GGUF](../wiki/handy-computer-qwen3-asr-1.7b-gguf.md), [CSTR Qwen3-ASR-1.7B GGUF](../wiki/cstr-qwen3-asr-1.7b-gguf.md), [ggml-org Qwen3-ASR-1.7B GGUF](../wiki/ggml-org-qwen3-asr-1.7b-gguf.md), [CrispASR ASR Backend Selection](../wiki/crispasr-asr-backend-selection.md), [transcribe.cpp](../wiki/transcribe-cpp.md), [WhisperLiveKit](../wiki/whisperlivekit.md).
@@ -14,9 +15,16 @@
 
 ---
 
-## Thay đổi so với bản 2026-10-07
+## Bổ sung ngày 2026-10-15: QUAN-Transcribe
 
-Bản này đã đối chiếu các mục log từ 2026-10-07 đến 2026-10-13 (`wiki/log.md`):
+- Thêm model chuyên Việt **356M**, EmbeddingGemma 2 + CTC, full-context và chunked streaming **0.48 s**; vendor báo avg WER **6.87%**, throughput **3.713× realtime trên H100**. Đây không phải latency mic hay số streaming WER trung bình.[^quan]
+- Live runtime chạy lại câu đang nói từ đầu mỗi update; sau silence mặc định **0.8 s**, decode lại full-context. Không gộp vào nhóm runtime cache-aware chỉ vì model có chunked attention.[^quan-live]
+- Thêm vào shortlist như **challenger partial/final trên GPU**, không thay thứ tự baseline. Bổ sung điều kiện Gemma terms/gated encoder, output lowercase/không dấu câu/số dạng chữ, tùy chọn KenLM và benchmark gate riêng.[^quan][^quan-live]
+- Bỏ nhận định cũ rằng chỉ bảng Gipformer so nhiều model Việt cùng normalizer: card QUAN cũng có bảng so sánh như vậy, nhưng hai bảng khác protocol và đều do vendor công bố.
+
+## Thay đổi từ bản 2026-10-07 đến 2026-10-13
+
+Bản 2026-10-13 ghi nhận các thay đổi sau từ log 2026-10-07 đến 2026-10-13 (`wiki/log.md`); lần cập nhật 2026-10-15 bổ sung QUAN ở mục trên:
 
 | Nhóm | Bổ sung / sửa |
 |---|---|
@@ -39,10 +47,11 @@ Bản này đã đối chiếu các mục log từ 2026-10-07 đến 2026-10-13 
 
    RTF < 1 chỉ cho biết model theo kịp luồng audio. Nó không phải độ trễ người dùng cảm nhận.
 2. **Shortlist tiếng Việt, theo vai trò:**
-   - **Partial sớm (native streaming):** [Nemotron 3.5 ASR Streaming 0.6B](../wiki/nemotron-3.5-asr-streaming-0.6b.md), chunk 160–320 ms. Vẫn là ứng viên native streaming duy nhất có bằng chứng tiếng Việt rõ.
+   - **Partial sớm (native streaming):** [Nemotron 3.5 ASR Streaming 0.6B](../wiki/nemotron-3.5-asr-streaming-0.6b.md), chunk 160–320 ms. Ưu tiên khi cần runtime cache-aware có bằng chứng tiếng Việt; QUAN có chunked streaming nhưng live runtime recompute cả câu.[^quan-live]
    - **Chất lượng, chấp nhận buffering:** [Qwen3-ASR](../wiki/qwen3-asr-family.md) 0.6B → 1.7B.
    - **Baseline turn-final có runtime chín muồi nhất:** [Whisper large-v3-turbo](../wiki/whisper-large-v3-turbo.md) qua faster-whisper.
    - **Final-pass chuyên Việt, nhẹ:** [ChunkFormer RNNT large 113M](../wiki/chunkformer-vietnamese.md) (CC-BY-4.0), [Gipformer 1.5 68M](../wiki/gipformer1.5-68m-rnnt.md) (MIT, ONNX int8, CPU/edge, mạnh nhất trong bảng vendor ở call-center/domain), [PhoWhisper](../wiki/phowhisper.md) medium.
+   - **Challenger chuyên Việt partial/final trên GPU:** [QUAN-Transcribe-1.0](../wiki/quan-transcribe-1.0.md), 356M; update 0.48 s, final full-context sau endpoint. Cần đo recomputation theo độ dài câu, final revision và license Gemma trước khi chọn.[^quan][^quan-live]
 3. **Thiết kế khuyến nghị:**
    - **single-pass:** đủ cho MVP và cho nhiều sản phẩm.
    - **two-pass selective:** Nemotron xuất partial, cuối lượt chạy Qwen3-ASR 1.7B, ChunkFormer RNNT hoặc Gipformer 1.5 để ra final. Chỉ bật khi lỗi số, tên hay phủ định vượt ngưỡng chấp nhận.
@@ -51,7 +60,7 @@ Bản này đã đối chiếu các mục log từ 2026-10-07 đến 2026-10-13 
 5. **Các số liệu hiện có không so sánh trực tiếp được, kể cả cho cùng một model.**
    - Qwen 5.55 (FLEURS-vi, offline) và Nemotron 12.29 (FLEURS-vi, streaming 320 ms) khác protocol.
    - Cùng Qwen3-ASR-1.7B trên FLEURS-vi: 5.55 / 6.15 / 10.13 tùy nguồn. Khoảng chênh do normalizer, runtime và cách chạy còn lớn hơn khoảng chênh giữa nhiều model.
-   - Bảng Gipformer là bảng tiếng Việt duy nhất chạy hơn 10 model trên cùng normalizer, nhưng do vendor tự chạy, có 4 tập private, và không có Nemotron hay Whisper turbo.
+   - Bảng Gipformer so hơn 10 model trên cùng normalizer, nhưng do vendor tự chạy, có 4 tập private, và không có Nemotron hay Whisper turbo. Card QUAN cũng so nhiều model với cùng normalization/scoring theo tác giả; không ghép hai bảng thành một ranking. QUAN avg 6.87% là full-context greedy, không chứng minh thắng Nemotron ở cùng latency.[^quan]
 
    Muốn quyết định thì phải tự benchmark (xem mục 10).
 
@@ -79,6 +88,8 @@ Trang [Vietnamese Realtime ASR Selection](../wiki/vietnamese-realtime-asr-select
 | **Native / stateful streaming** | Encoder (và decoder) giữ cache, chỉ xử lý audio mới không chồng lấp | Nemotron 3.5 / EN, Parakeet Realtime EOU, Voxtral Mini 4B Realtime, Audio8 Infinite, Confucius4-R2T2 (append-only), ChunkFormer small streaming (chưa truy cập được) | Có partial sớm và latency cấu hình rõ. Chất lượng giảm khi chunk nhỏ |
 | **Buffered / policy streaming** | Nhận audio liên tục, chờ đủ context, dùng stable-prefix hoặc rollback rồi mới commit | Qwen3-ASR (paper dùng chunk 2 s, fallback 5 token, giữ 4 chunk cuối chưa cố định), Whisper qua WhisperLiveKit SimulStreaming/LocalAgreement, CrispASR `--stream` (sliding window) | Partial có thể bị sửa. Compute có thể phải recompute theo cửa sổ |
 | **Turn-final** | VAD/endpoint cắt lượt, decode cả câu một lần | Whisper, PhoWhisper, ChunkFormer large, Gipformer (repo chỉ có `OfflineRecognizer`), VietASR zzasdf (`pretrained.py`), Cohere Transcribe, Fun-ASR-MLT, Qwen3-ASR GGUF trên transcribe.cpp (`streaming: false`) | Không có partial. Latency = endpoint + thời gian decode cả lượt |
+
+**Trường hợp bổ sung — QUAN:** model dùng chunked attention, nhưng live runtime chạy lại câu hiện tại từ đầu mỗi 0.48 s, không có bằng chứng cache reuse. `streaming=True` trên file hoàn chỉnh chỉ trả transcript tương đương chế độ streaming; live audio dùng `LiveSession`. Vì vậy ba nhóm trên là khung thiết kế, không nên ép QUAN vào nhóm stateful chỉ theo kiến trúc.[^quan-live]
 
 Có ba điểm hay bị nhầm (**Synthesis**):
 
@@ -113,6 +124,7 @@ Latency thực tế cộng dồn từ chunk accumulation, lookahead, compute, sc
 - **NeMo-Speech.cpp, 27 ms CPU cho mỗi chunk 160 ms:** benchmark này đo trên **Nemotron EN**, không phải Nemotron 3.5 tiếng Việt.[^runtime]
 - **ZipFormer 30M, 12 s audio trong 0.3 s trên CPU:** đây là throughput khi xử lý file, không phải độ trễ partial.[^zip]
 - **Qwen3-ASR GGUF, các key `rtf_*` (handy-computer: M4 Max cpu 9.59 / metal 41.08; Ryzen 4750U cpu 2.47 / vulkan 4.08):** card không định nghĩa đơn vị. Giá trị tăng theo backend nhanh hơn, nên nhiều khả năng là hệ số "x realtime" chứ không phải RTF thông thường. "0.2x realtime" của CSTR (một clip JFK 11 s, CPU 4 thread) cũng mơ hồ về đơn vị. Không so hai con số này với nhau (**Synthesis**).[^handy][^cstr]
+- **QUAN, 3.713× H100:** audio duration / waveform-to-text wall time trong benchmark greedy; chưa có batch size hay live P95. **0.48 s** là chunk/update cadence và **0.8 s** là silence endpoint mặc định, không phải cùng một metric. README cảnh báo CPU lag trên câu dài.[^quan][^quan-live]
 - **Gipformer:** script in RTF cho từng file nhưng repo và card **không công bố** con số RTF, latency hay memory nào.[^gip-repo]
 
 ---
@@ -173,6 +185,7 @@ Mọi số là **Reported** và chưa tái lập. Đơn vị là WER %. Cột "N
 
 | Model | Size | Kiến trúc / chế độ | Số tiếng Việt tiêu biểu | Nguồn số | License weights |
 |---|---|---|---|---|---|
+| [QUAN-Transcribe-1.0](../wiki/quan-transcribe-1.0.md) | 356M, ~2800 h | EmbeddingGemma 2 Conformer + CTC reader; full/chunked 0.48 s; live recompute câu | Avg 6.87; fleurs 6.75; VIVOS 8.15; FLEURS-valid greedy full 6.71 / streaming 8.40 (khác protocol) | qnguyen3, card + inference README; chưa tái lập[^quan] | Gemma Terms of Use; encoder gated |
 | [Gipformer 1.5 68M RNNT](../wiki/gipformer1.5-68m-rnnt.md) | 68M | Zipformer-RNNT, ONNX int8; repo chỉ offline | tele-medium 15.44; vi-asr-pubadmin 14.82; VIVOS 4.25; CMV 6.45; vlsp-t1 13.37; FLEURS 12.65 | Vendor (G-Group), 16 tập, 4 tập private | MIT (card; file LICENSE không có trong snapshot repo) |
 | [Gipformer 68M RNNT](../wiki/gipformer-68m-rnnt.md) | 68M | Như trên, bản trước | tele-medium 15.53; vlsp-t2 20.40; VIVOS 4.12 | Vendor, 12 tập | MIT (card) |
 | [ChunkFormer RNNT large](../wiki/chunkformer-vietnamese.md) | 113M, ~5000 h | Masked chunk-wise Conformer; long-form / turn-final | VIVOS 2.49; CMV 5.18; VLSP2020 T1/T2 12.75/20.47 | Tác giả | CC-BY-4.0 |
@@ -209,7 +222,7 @@ Mọi số là **Reported** và chưa tái lập. Đơn vị là WER %. Cột "N
 
 ### 5.2 Bảng so sánh nhiều model trên cùng normalizer (vendor Gipformer)
 
-Đây là bảng duy nhất trong wiki chạy hơn 10 model tiếng Việt với cùng normalizer: lowercase, bỏ dấu câu, số chuyển sang dạng nói. Nhưng vendor tự chạy, không mô tả test-set hygiene, và 4 tập `tele-*` là private. Số lấy từ card Gipformer 1.5 (**Reported**).[^gip15][^gip-raw]
+Đây là một bảng vendor chạy hơn 10 model tiếng Việt với cùng normalizer (không phải bảng duy nhất; xem QUAN ở 5.6): lowercase, bỏ dấu câu, số chuyển sang dạng nói. Nhưng vendor tự chạy, không mô tả test-set hygiene, và 4 tập `tele-*` là private. Số lấy từ card Gipformer 1.5 (**Reported**).[^gip15][^gip-raw]
 
 **Call-center (private) và domain (public trên Hugging Face `g-group-ai-lab`):**
 
@@ -289,6 +302,29 @@ Kết luận (**Synthesis**): khác biệt do normalizer (số, dấu câu, ch�
 - **Con số 16.44% WER của Whisper large-v3 "theo VietASR"** (xuất hiện trong Vietnamese Voice Agent Stack và Pipeline Design) không có trong README VietASR đã capture. Nó vẫn **Unverified** cho đến khi đối chiếu bảng của paper.[^zzasdf]
 - **Các bảng so sánh do tác giả tự chạy** (ChunkFormer, Gipformer) có cột API Viettel/Google/FPT hoặc model đối thủ không rõ version/ngày. Chúng không phải ranking hiện tại.[^chunk]
 - **Khoảng cách streaming/offline của Qwen** (1.7B: 2.69 → 3.33; 0.6B: 3.48 → 4.40) chỉ đo trên LibriSpeech và FLEURS-en/zh, **không có tiếng Việt**.[^qwen]
+
+---
+
+### 5.6 QUAN: benchmark riêng, không ghép ranking với Gipformer
+
+Card QUAN báo cùng utterances, normalization/scoring và greedy cho các model; GPU được ghi H100 bf16/fp16, nhưng các hàng API có speed N/A và setup chưa rõ. Không có batch size, split/count chi tiết hay uncertainty trong bảng chính.[^quan]
+
+| QUAN: tập theo nhãn card | WER % |
+|---|---:|
+| bud500 / cv17 / fleurs / gigaspeech2 | 1.62 / 10.19 / 6.75 / 12.34 |
+| lsvsc / phoaudiobook / vimd / VIVOS | 5.48 / 1.35 / 9.05 / 8.15 |
+| **Average** | **6.87** |
+
+Trong **chính bảng QUAN**, Qwen3-ASR-1.7B và Cohere cùng avg 7.01%, PhoWhisper-large 7.21%. Nhưng Qwen tốt hơn ở fleurs/gigaspeech2 (4.88/8.47), PhoWhisper-large tốt hơn ở cv17/phoaudiobook/VIVOS (9.12/0.87/4.52). Đây là **Reported** của vendor, không xác minh SOTA độc lập.[^quan]
+
+Inference README có protocol khác: FLEURS-valid greedy full **6.71% → streaming 8.40%**. Bảng KenLM loại reference chứa digits, dùng beam 32, alpha 0.3, beta 1.0, tune trên valid:
+
+| Subset đã lọc digits | Số câu | Greedy | + KenLM |
+|---|---:|---:|---:|
+| FLEURS valid / test | 317 / 679 | 6.71 / 7.10 | 4.79 / 5.03 |
+| Common Voice 17 valid / test | 641 / 1274 | 6.58 / 9.64 | 5.05 / 7.32 |
+
+Không thay fleurs 6.75 bằng filtered-test 7.10 hay LM 5.03 mà bỏ nhãn protocol; chưa có matched streaming + LM WER. Train và test cùng nêu tên một số corpora nhưng chưa đủ thông tin xác lập split disjointness; cũng không đủ để kết luận leakage (**Synthesis/giới hạn**).[^quan]
 
 ---
 
@@ -443,6 +479,18 @@ Confucius4-R2T2 chưa có bằng chứng tường minh cho vi (streaming tối �
 
 ---
 
+### 6.10 QUAN-Transcribe-1.0: challenger CTC chuyên Việt cho GPU
+
+- **Kiến trúc (Reported):** encoder EmbeddingGemma 2 USM-style Conformer 12 lớp, fine-tune hai lớp trên; learned layer mix → Transformer reader 6 lớp, d=768, CTC vocabulary 14.917 token. Dynamic chunk training; ~2800 h tiếng Việt.[^quan]
+- **Output:** 16 kHz mono; lowercase, không punctuation, số viết bằng chữ. Không coi đây là ITN; cần xử lý và kiểm riêng số/tên/phủ định.[^quan][^quan-live]
+- **Live:** `LiveSession.accept(block)` nhận 16 kHz mono float32, trả câu đã xong; `session.partial` là câu đang nói, `flush()` kết thúc. Update mỗi 0.48 s, giữ text chunk đã xong trong streaming; silence mặc định 0.8 s thì decode full-context, nên final có thể sửa partial. Live chạy lại từ đầu câu mỗi update, README nói cần CUDA/MPS để theo kịp, CPU lag với câu dài.[^quan-live]
+- **File/batch:** `asr.transcribe(path, streaming=True)` không phải API nhận chunk live. File dài chia tối đa 30 s ở quiet point; `batch_seconds` mặc định 600 s **padded audio** mỗi forward, giảm khi OOM. Device ưu tiên CUDA bf16 → MPS fp32 → CPU fp32; chưa có VRAM hay CPU benchmark.[^quan-live]
+- **KenLM tùy chọn:** four-gram 91 MB, beam mặc định 32, CPU decode từng utterance. README báo ~15 ms/câu ở beam 32, ~7 ms ở beam 8, thiếu model CPU/độ dài câu; trên GPU đây có thể là chi phí chính. Live chỉ dùng LM cho final khi bật. Custom word-level KenLM cần lowercase/không punctuation/số dạng chữ; không phải API hotword trực tiếp.[^quan-live]
+- **License:** Gemma Terms of Use cho weights; encoder gated, chấp nhận terms và authenticate trước first-use download. Code license chưa xác lập riêng; terms đầy đủ chưa inspect. Không xếp chung MIT/Apache.[^quan]
+- **Vai trò (Synthesis):** A/B với Nemotron và Qwen cho partial/final chuyên Việt trên GPU; cũng thử turn-final. Không suy 356M hay throughput H100 thành khả năng CPU/edge hoặc concurrency. Giữ baseline hiện tại đến khi qua benchmark ở mục 10.[^quan][^quan-live]
+
+---
+
 ## 7. Thiết kế hệ thống ASR
 
 ### 7.1 Vị trí của ASR trong pipeline
@@ -473,6 +521,8 @@ Nguyên tắc (**Synthesis**):[^pipeline][^noise]
 | **B. Single-pass native streaming** | Nemotron 3.5 chunk 160–320 ms | Cần partial sớm, caption, speculative LLM | Accuracy thấp hơn Qwen offline (khác protocol) |
 | **C. Single-pass buffered** | Qwen3-ASR qua vLLM streaming hoặc WLK windowed; Whisper qua WLK | Muốn chất lượng LLM-ASR mà vẫn có live text | Rollback/commit lag. Một phiên mỗi GPU với WLK windowed |
 | **D. Two-pass selective** | Nemotron cho partial; cuối lượt Qwen3-ASR 1.7B, ChunkFormer RNNT large hoặc Gipformer 1.5 chạy lại trên turn audio để ra final | Số/tên/phủ định cần độ chính xác cao hơn B/C; Gipformer là lựa chọn final rẻ trên CPU | Thêm compute và lag. Phải reconcile revision |
+
+**Biến thể C-QUAN (Synthesis):** QUAN chunked live → cùng weights full-context final, có/không KenLM. Đây là luồng partial/final với sentence recomputation, không phải mẫu B cache-aware và không bắt buộc có model thứ hai như D. Gateway phải chọn một endpoint owner; coi endpoint 0.8 s của runtime là policy cần tích hợp, không commit độc lập song song với Smart Turn.[^quan-live]
 
 Không triển khai D ngay từ đầu nếu B hoặc C đã đạt accuracy domain. D có thể chỉ bật cho *critical spans* hoặc cho lượt có confidence thấp. **Final recognizer không phải ground truth** (**Synthesis**).[^vi-asr][^pipeline]
 
@@ -557,7 +607,9 @@ Bẫy cần tránh:
   | Confucius4-R2T2 | `context` hint (không có bằng chứng vi) |
   | ChunkFormer, Gipformer, ZipFormer, VietASR | Không mô tả trong các trang đã compile |
 
+- **QUAN:** không có API hotword được mô tả trong concept; có thể thay KenLM word-level nhưng phải train LM và đo lại. Không coi LM là bảo đảm nhận đúng entity.[^quan-live]
 - **Dấu câu và chữ hoa:**
+  - QUAN xác định rõ lowercase/không punctuation/số dạng chữ. Có thể thử punctuation restoration trên final, nhưng phải đo latency và entity preservation; VietNormalizer viết→nói không giải quyết nhu cầu số dạng chữ→số (**Synthesis**).[^quan][^quan-live]
   - Nemotron 3.5, Qwen3-ASR và Whisper xuất văn bản có dấu câu. Các card chuyên Việt (Gipformer, ChunkFormer, ZipFormer) chấm điểm trên văn bản đã chuẩn hóa và không mô tả định dạng output. Phải kiểm output thật trước khi đưa cho LLM (**Synthesis**).[^gip15][^chunk]
   - Nếu output không có dấu câu: [Punctuation Restoration base 307M](../wiki/punctuation-restoration-base.md) (Apache-2.0, mmBERT, 88 ngôn ngữ) có dòng tiếng Việt trong bảng FLORES của tác giả: **F1 0.866 khi có chữ hoa, 0.791 khi lowercase**, so với punctuate-all 0.718 (**Reported**).[^punct][^punct-raw] Model này chỉ khôi phục `. , ? : -`, không khôi phục chữ hoa. `:` và `-` kém tin cậy. Có ONNX int8 641 MB. Chưa đo latency, và dữ liệu nói có disfluency khó hơn.
   - NeMo-Speech.cpp có PnC BERT riêng, nhưng tài liệu không nêu tiếng Việt.[^nemo-models]
@@ -580,6 +632,7 @@ Bẫy cần tránh:
 | Qwen3-ASR | `qwen-asr` + vLLM (`qwen-asr-serve`); WLK `qwen3-streaming` windowed (`--language vi`); SGLang-Omni chỉ qua HTTP `/v1/audio/transcriptions` | Pin version và môi trường (vLLM xung đột `cu129` trong WLK). Đo cache và concurrency thật |
 | Qwen3-ASR-1.7B GGUF | CrispASR (CSTR, có `-l vi`); transcribe.cpp (handy, không ép ngôn ngữ, offline); llama-server (ggml-org) | GGUF giữa các runtime không thay thế được cho nhau. CrispASR serialize inference trên một model; muốn song song thì dùng `--server-workers N` hoặc nhiều replica. Không hỗ trợ batched multi-stream |
 | Whisper turbo / PhoWhisper | faster-whisper (CTranslate2) cho final; WLK SimulStreaming/LocalAgreement cho live | Không cắt audio mỗi 200 ms một cách độc lập rồi coi là transcript ổn định. Mỗi luồng chỉ có một segmentation owner |
+| QUAN-Transcribe | Python `quan_transcribe.QuanTranscribe`; CLI `quan-transcribe --mic`; `LiveSession` cho audio live | CUDA bf16 / MPS fp32 ưu tiên cho live; CPU fp32 có thể lag. Encoder gated; chưa có server/concurrency contract được compile. `streaming=True` xử lý file, không phải push API live[^quan-live] |
 | ChunkFormer | ONNX Runtime CPU/GPU, session state riêng | Dùng checkpoint streaming-trained với cấu hình chunk đã huấn luyện |
 | Gipformer 1.5 / 68M | sherpa-onnx `OfflineRecognizer` (fp32/int8, `modified_beam_search`, 4 thread); icefall/k2 PyTorch (Linux CUDA) | Turn-final. Đặt `--quantize` tường minh. Chỉ nạp checkpoint tin cậy ở đường PyTorch. Cần `sherpa-onnx-core` từ sherpa-onnx 1.13 |
 | VietASR zzasdf | icefall `pretrained.py`; gói sherpa-onnx `zipformer-vi-2025-04-20` | Nghiên cứu; license checkpoint chưa rõ |
@@ -602,9 +655,9 @@ Bẫy cần tránh:
 
 | Dùng thương mại được (đọc từ card, không phải tư vấn pháp lý) | Cần review | Tránh dùng thương mại / chưa rõ |
 |---|---|---|
-| Qwen3-ASR và các GGUF CSTR/handy (Apache-2.0), Whisper (MIT/Apache theo card), PhoWhisper (BSD-3), ChunkFormer RNNT large (CC-BY-4.0), Gipformer 68M/1.5 (MIT theo card), Cohere (Apache-2.0), Smart Turn (BSD-2), Silero (MIT), Punctuation Restoration (Apache-2.0), VietNormalizer (MIT) | Nemotron 3.5 (OpenMDW-1.1, card ghi ready for commercial use); Fun-ASR-MLT (Apache theo card, CrispASR ghi FunASR Model License v1.1); Gipformer (file LICENSE không có trong snapshot repo); Confucius4-R2T2 weights (NetEase license) | ChunkFormer CTC (CC-BY-NC), ZipFormer 30M (CC-BY-NC-ND), SeamlessM4T v2 (CC-BY-NC), Audio8 0.1B (CC-BY-NC), Facebook Denoiser (CC-BY-NC). Chưa rõ: VietASR zzasdf checkpoint, VietASR dangvansam, ggml-org GGUF (card không có trường license), ChunkFormer small streaming, Moonshine `-vi`, ViSoNorm |
+| Qwen3-ASR và các GGUF CSTR/handy (Apache-2.0), Whisper (MIT/Apache theo card), PhoWhisper (BSD-3), ChunkFormer RNNT large (CC-BY-4.0), Gipformer 68M/1.5 (MIT theo card), Cohere (Apache-2.0), Smart Turn (BSD-2), Silero (MIT), Punctuation Restoration (Apache-2.0), VietNormalizer (MIT) | QUAN-Transcribe (Gemma Terms of Use, gated EmbeddingGemma 2; chưa inspect terms đầy đủ/code license); Nemotron 3.5 (OpenMDW-1.1, card ghi ready for commercial use); Fun-ASR-MLT (Apache theo card, CrispASR ghi FunASR Model License v1.1); Gipformer (file LICENSE không có trong snapshot repo); Confucius4-R2T2 weights (NetEase license) | ChunkFormer CTC (CC-BY-NC), ZipFormer 30M (CC-BY-NC-ND), SeamlessM4T v2 (CC-BY-NC), Audio8 0.1B (CC-BY-NC), Facebook Denoiser (CC-BY-NC). Chưa rõ: VietASR zzasdf checkpoint, VietASR dangvansam, ggml-org GGUF (card không có trường license), ChunkFormer small streaming, Moonshine `-vi`, ViSoNorm |
 
-[^survey][^vi-asr][^chunk][^zip][^gip15][^gip-repo][^zzasdf][^dvs][^ggml][^denoiser][^crisp]
+[^survey][^vi-asr][^chunk][^zip][^gip15][^gip-repo][^zzasdf][^dvs][^ggml][^denoiser][^crisp][^quan]
 
 Quyền dữ liệu train cũng là rủi ro riêng. Gipformer không mô tả dữ liệu train. VietASR dangvansam dùng audio YouTube, radio và tổng đài mà không nêu license hay consent.[^gip15][^dvs]
 
@@ -627,10 +680,12 @@ Cần text khi user đang nói (caption, speculative LLM, barge-in thông minh)?
                         ├─ Chấp nhận buffering ─► Mẫu C: Qwen3-ASR streaming (vLLM / WLK windowed)
                         └─ Cần cả partial sớm lẫn final tốt ─► Mẫu D: Nemotron + final-pass
                                                               Qwen 1.7B (GPU) / Gipformer 1.5 hoặc ChunkFormer (CPU)
-Mọi nhánh: lọc license weights trước; ép language = vi; chỉ hành động trên transcript đã commit.
+Mọi nhánh: lọc license weights trước; ép language = vi nếu model/runtime có hỗ trợ; chỉ hành động trên transcript đã commit.
 ```
 
 ---
+
+**Nhánh thử thêm, không thay baseline:** nếu có GPU và chấp nhận Gemma terms, A/B QUAN cho turn-final hoặc live chunked partial → full-context final. Chỉ chọn sau khi đo ở cùng corpus và tải, đặc biệt câu dài và partial→final revision; không áp `language="vi"` máy móc vào API QUAN chuyên Việt chưa mô tả tham số này.[^quan][^quan-live]
 
 ## 10. Quy trình benchmark đề xuất
 
@@ -678,6 +733,9 @@ Ghi một timeline duy nhất với timestamp căn chỉnh: `audio_in → partia
 | 6 | Qwen3-ASR-1.7B GGUF Q8_0 / Q4_K trên CPU đích (CrispASR với `-l vi`) | Đường CPU cho LLM-ASR; parity so với #3 |
 | 7 | Two-pass: #2 + final #3 hoặc #5 | Chỉ khi 2–4 chưa đạt mức lỗi entity |
 | 8 | Hậu xử lý: punctuation restoration trên output của #5 (nếu thiếu dấu câu) | Chất lượng đầu vào cho LLM |
+| 9 | QUAN greedy full-context, live 0.48 s → full-context final; tách thử KenLM bật/tắt | So với #2–5 trên cùng audio/normalizer; đo compute theo độ dài câu, stable-text và final revision; peak memory/concurrency trên GPU đích[^quan][^quan-live] |
+
+**Gate riêng cho QUAN (Synthesis):** không loại câu có digits khỏi holdout entity-critical chỉ để khớp bảng LM; ghi rõ subset khi tái lập số vendor. Đo cả silence endpoint 0.8 s mặc định và policy gateway, câu dài/liên tục, code-switch, tổng đài 8 kHz, greedy so với LM, CPU beam-search bottleneck và punctuation hậu xử lý. Adapter QUAN phải dùng API thật (`accept`/`partial`/`flush`), không coi pseudo-code `push/finalize` ở 7.4 là code chạy được.[^quan][^quan-live]
 
 Mỗi lần chỉ đổi một thành phần. Gate production gồm: availability, license, hiệu năng trên phần cứng đích, và **không hành động trên text chưa ổn định**.
 
@@ -704,12 +762,16 @@ Mỗi lần chỉ đổi một thành phần. Gate production gồm: availabilit
 - **Denoise trước ASR:** các nguồn mâu thuẫn và chưa có nghiên cứu tiếng Việt.[^noise]
 - **ChunkFormer small streaming:** card trả HTTP 401. Không suy ra là checkpoint không tồn tại, nhưng size, license và WER của nó chưa xác định.[^chunk]
 - **Whisper filter và ngưỡng thay thế:** phần lớn đến từ AI report thứ cấp, chưa được kiểm chứng ở nguồn gốc.[^pipeline]
-- **Phạm vi khảo sát:** đây là snapshot của wiki (các mục log đến 2026-10-13), không phải khảo sát toàn thị trường. API cloud/proprietary (Viettel, FPT, Google...) chưa được nghiên cứu, nên không xếp hạng. Các model chỉ thấy trong bảng bên thứ ba (PhoASR-whisper-small, parakeet-ctc-0.6b-Vietnamese, wav2vec2-base-vi) và Moonshine `-vi` chưa có concept.[^vi-asr]
+- **QUAN:** code, weights, base encoder, KenLM, benchmark scripts/data và terms đầy đủ chưa được inspect trong nguồn compile; hành vi và tốc độ vẫn Reported. Chưa có cache-reuse/concurrency guarantee, matched streaming LM WER, kiểm chứng SOTA độc lập hay phép đo production. Full-context avg, filtered LM scores và streaming-valid score là các operating point khác nhau.[^quan][^quan-live]
+- **Phạm vi khảo sát:** bản nền là snapshot wiki đến 2026-10-13, bổ sung QUAN ngày 2026-10-15; không refresh mọi model, không phải khảo sát toàn thị trường. API cloud/proprietary (Viettel, FPT, Google...) chưa được nghiên cứu, nên không xếp hạng. Các model chỉ thấy trong bảng bên thứ ba (PhoASR-whisper-small, parakeet-ctc-0.6b-Vietnamese, wav2vec2-base-vi) và Moonshine `-vi` chưa có concept.[^vi-asr]
 - **Bài viết không chạy model nào.** Mọi số liệu là Reported. Mọi khuyến nghị là Synthesis và cần đo lại trên dữ liệu, phần cứng và SLA của bạn.
 
 ---
 
 ## Tài liệu tham chiếu
+
+[^quan]: [QUAN-Transcribe-1.0](../wiki/quan-transcribe-1.0.md): Architecture, training, and output; Reported Vietnamese benchmark; Greedy, streaming, and optional LM evaluation; License and deployment relevance; Coverage and limits. Vendor-reported, chưa tái lập.
+[^quan-live]: [QUAN-Transcribe Inference and Live Streaming](../wiki/quan-transcribe-inference.md): Installation and input/output; Streaming and live finalization contract; Optional four-gram KenLM; Relationships and coverage. Documentation synthesis; chưa chạy runtime.
 
 [^vi-asr]: [Vietnamese Realtime ASR Selection](../wiki/vietnamese-realtime-asr-selection.md): Định nghĩa realtime; Shortlist và bằng chứng tiếng Việt; Qwen streaming/efficiency; Kiến trúc và hướng triển khai; Chọn runtime; Loại khỏi shortlist; Gate đánh giá.
 [^survey]: [ASR/STT Model Survey](../wiki/asr-stt-model-survey.md): Master catalog (gồm VietASR dangvansam); Multilingual coverage (Vietnamese); Streaming and latency; Licensing; Serving runtimes; Community-reported field notes; Contradictions.

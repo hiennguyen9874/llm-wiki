@@ -5,9 +5,14 @@ description: Lựa chọn ASR realtime tiếng Việt theo chất lượng, nati
 tags: [stt, asr, vietnamese, streaming, selection, comparison]
 status: draft
 created: 2026-10-07
-generated: { by: llm-wiki-agent/1, at: 2026-10-08T09:00:00Z }
+generated: { by: llm-wiki-agent/1, at: 2026-10-15T05:00:50Z }
 stale_after: 2027-10-07
 sources:
+  - id: quan-captures
+    resource: ../raw/QUAN-Transcribe-1.0/README-hf.md
+    scope: ../raw/QUAN-Transcribe-1.0/
+    kind: documentation
+    title: QUAN-Transcribe-1.0 model card and inference README captures
   - id: primary
     resource: ../raw/vietnamese-asr-research-2026-10-07/README.md
     scope: ../raw/vietnamese-asr-research-2026-10-07/
@@ -73,11 +78,18 @@ RTF <1 là điều kiện theo kịp audio, không đủ cho latency usable text
 | [Fun-ASR-MLT-Nano](fun-asr-mlt-nano-2512.md), 800M | Có | Language list + hotwords/ITN, không vi-specific score | Challenger turn-final; không nhầm với Nano zh/en/ja hay WLK SenseVoice; Apache-2.0[^survey] |
 | [Cohere Transcribe](cohere-transcribe-03-2026.md), 2B | Có | Language list; vi plot chưa inspect | Challenger final-pass; no timestamps/diarization, code-switch inconsistent, VAD cần thiết; Apache-2.0[^cohere] |
 | [Gipformer 1.5 68M RNNT](gipformer1.5-68m-rnnt.md), 68M | Chuyên vi | Vendor WER (không tái lập): vivos 4.25, vlsp-t1 13.37, Common-Voice 6.45, Fleurs 12.65; domain vi-asr-tech/edu/finance/pubadmin 27.49/23.32/22.34/14.82; call-center tele-* là private set | CPU/edge final-pass chuyên Việt, nhất là call-center/domain; ONNX int8, MIT. Card không nêu streaming, chunk, RTF, latency hay training data nên chưa là ứng viên partial[^gipformer] |
+| [QUAN-Transcribe-1.0](quan-transcribe-1.0.md), 356M | Chuyên vi | Vendor avg WER 6.87%, 3,713× H100; FLEURS-valid digit-filtered greedy full 6.71% / streaming 8.40% | Challenger partial/final GPU, 0.48 s chunk; live re-decode cả câu mỗi update, final full-context sau silence mặc định 0.8 s; chưa chứng minh cache-aware hay latency/concurrency production. Gemma terms, gated encoder; lowercase/no punctuation/numbers-as-words[^quan-captures] |
 | [ZipFormer 30M](zipformer-30m-vietnamese.md) | Chuyên vi | 12s/0.3s CPU claimed; VLSP2020 T1 12.29 | CPU research only; CC-BY-NC-ND, no established native streaming[^primary] |
 
 Gipformer thắng nhiều cột trong bảng của chính vendor (kể cả trước ChunkFormer-large, Qwen3-ASR-1.7B, PhoWhisper-large) nhưng dùng normalizer riêng, test set private, và thua Zipformer-30M ở Common-Voice/vlsp-t1 và Qwen3-ASR-1.7B ở Fleurs; không so trực tiếp với số ở các hàng khác (**Synthesis**).[^gipformer]
 
 Mọi số trên là **Reported** của nguồn, chưa tái lập. Các vai trò là **Synthesis**. FLEURS vs VIVOS/CMV/VLSP/MLC-SLM không chung tập; WER khác tokenizer/normalization cũng không thể xếp hạng trực tiếp. Qwen và Nemotron FLEURS cũng khác protocol offline/streaming và LangID, nên 5.55 vs 12.29 không chứng minh Qwen thắng khi cùng latency.[^primary][^nemotron]
+
+### QUAN: chunked attention không đồng nghĩa cache-aware runtime
+
+**Reported:** [QUAN runtime](quan-transcribe-inference.md) dùng `streaming=True` trên file hoàn chỉnh để cho transcript tương đương streaming; live mic mới nhận audio liên tục, giữ text của chunk đã xong nhưng chạy lại câu hiện tại từ đầu ở mỗi update. README yêu cầu GPU để theo kịp, cảnh báo CPU lag trên câu dài; final full-context có thể sửa câu. Optional KenLM chạy CPU từng utterance, áp dụng cho dòng final khi bật `--lm`.[^quan-captures]
+
+**Synthesis:** thêm QUAN như challenger chuyên Việt, không thay thứ tự baseline bằng vendor SOTA claim. Đo compute theo độ dài câu, partial→final revision, stable-text delay và entity accuracy trước production. Card WER/throughput là full-context greedy, còn LM test loại references có digits; không so trực tiếp avg 6.87%, fleurs 6.75% hay filtered-test 7.10% với protocol của Qwen/Nemotron ở trên. Cả hai README đã đọc; code, weights, LM và benchmark scripts chưa inspect, không chạy inference.[^quan-captures]
 
 ## Qwen: streaming và efficiency thực sự được đo gì?
 
@@ -136,6 +148,7 @@ MOSS-Transcribe-Diarize có vi trong challenge list nhưng offline long-form, ph
 - Primary research ran2026-10-07; no model execution. Captured package README lưu inspected/pending/excluded assets, unavailable HTTP401/404 và hashes. Paper inspection là targeted, không full paper ingestion. Existing wiki snapshots không được refresh toàn bộ; không claim exhaustive latest global releases.
 - Status draft vì thiếu matched Vietnamese streaming WER, target hardware/SLA và small streaming checkpoint evidence; không có verified metadata. Claim của vendor/author vẫn Reported, HTTP/check/file inspection không verify capability.
 
+[^quan-captures]: [QUAN model card](../raw/QUAN-Transcribe-1.0/README-hf.md) — `Model`, `Benchmark` protocol/table, `License`; supporting [inference README](../raw/QUAN-Transcribe-1.0/README-github.md) — `Usage`, `Streaming mode`, `Live microphone` endpoint/recomputation paragraphs, `Optional n-gram language model`, `Accuracy check` digit exclusion and full/streaming valid scores. Vendor-reported only; no runtime or benchmark reproduction.
 [^primary]: [Primary research package](../raw/vietnamese-asr-research-2026-10-07/README.md) — `qwen-report.html` §§2.1–2.4, Table2, §4.5/Table8, AppendixTableA.2(a/b) vi; `nemotron-card.md` Performance vi-VN row; PhoWhisper/ChunkFormer/ZipFormer files and locators in ledger.
 [^qwen]: [Qwen family](qwen3-asr-family.md) — Inference and serving; Language and audio coverage; Primary-paper clarification.
 [^nemotron]: [Nemotron3.5](nemotron-3.5-asr-streaming-0.6b.md) — Architecture and I/O; Supported languages; Streaming operating points; Benchmarks; Inference.
