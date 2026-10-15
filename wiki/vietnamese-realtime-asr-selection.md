@@ -5,7 +5,7 @@ description: Lựa chọn ASR realtime tiếng Việt theo chất lượng, nati
 tags: [stt, asr, vietnamese, streaming, selection, comparison]
 status: draft
 created: 2026-10-07
-generated: { by: llm-wiki-agent/1, at: 2026-10-15T05:00:50Z }
+generated: { by: llm-wiki-agent/1, at: 2026-10-15T10:21:49Z }
 stale_after: 2027-10-07
 sources:
   - id: quan-captures
@@ -76,7 +76,7 @@ RTF <1 là điều kiện theo kịp audio, không đủ cho latency usable text
 | ChunkFormer small streaming DCT | Guide nói vi streaming | Stateful ONNX graph/session, nhưng card HTTP401 | Chỉ research tier: chưa xác định size/license/availability/WER/latency[^primary] |
 | [PhoWhisper](phowhisper.md), medium/large | Chuyên vi | medium VIVOS 4.97, CMV 8.27; large 4.67/8.14 | Turn-final/specialized baseline; BSD-3; conversion runtime cần thử[^primary] |
 | [Fun-ASR-MLT-Nano](fun-asr-mlt-nano-2512.md), 800M | Có | Language list + hotwords/ITN, không vi-specific score | Challenger turn-final; không nhầm với Nano zh/en/ja hay WLK SenseVoice; Apache-2.0[^survey] |
-| [Cohere Transcribe](cohere-transcribe-03-2026.md), 2B | Có | Language list; vi plot chưa inspect | Challenger final-pass; no timestamps/diarization, code-switch inconsistent, VAD cần thiết; Apache-2.0[^cohere] |
+| [Cohere Transcribe](cohere-transcribe-03-2026.md), 2B | Có | Blog vi aggregate plot đã đọc: ≈8.8% WER vs Qwen1.7B ≈8.3%, ước lượng chiều cao cột, không FLEURS-only/streaming | Challenger final-pass; no timestamps/diarization, code-switch inconsistent, VAD cần thiết; Apache-2.0; chưa matched vi protocol[^cohere] |
 | [Gipformer 1.5 68M RNNT](gipformer1.5-68m-rnnt.md), 68M | Chuyên vi | Vendor WER (không tái lập): vivos 4.25, vlsp-t1 13.37, Common-Voice 6.45, Fleurs 12.65; domain vi-asr-tech/edu/finance/pubadmin 27.49/23.32/22.34/14.82; call-center tele-* là private set | CPU/edge final-pass chuyên Việt, nhất là call-center/domain; ONNX int8, MIT. Card không nêu streaming, chunk, RTF, latency hay training data nên chưa là ứng viên partial[^gipformer] |
 | [QUAN-Transcribe-1.0](quan-transcribe-1.0.md), 356M | Chuyên vi | Vendor avg WER 6.87%, 3,713× H100; FLEURS-valid digit-filtered greedy full 6.71% / streaming 8.40% | Challenger partial/final GPU, 0.48 s chunk; live re-decode cả câu mỗi update, final full-context sau silence mặc định 0.8 s; chưa chứng minh cache-aware hay latency/concurrency production. Gemma terms, gated encoder; lowercase/no punctuation/numbers-as-words[^quan-captures] |
 | [ZipFormer 30M](zipformer-30m-vietnamese.md) | Chuyên vi | 12s/0.3s CPU claimed; VLSP2020 T1 12.29 | CPU research only; CC-BY-NC-ND, no established native streaming[^primary] |
@@ -140,6 +140,8 @@ MOSS-Transcribe-Diarize có vi trong challenge list nhưng offline long-form, ph
 
 ## Relationships và coverage
 
+- Uses [So sánh benchmark Qwen3-ASR, Nemotron 3.5 và Cohere Transcribe](asr-qwen-nemotron-cohere-benchmarks.md): bổ sung chart Cohere đã inspect, không thay baseline bằng aggregate WER/RTFx không cùng protocol (**Synthesis**).[^cohere]
+
 - Used by [Vietnamese Speech Pipeline Design](vietnamese-speech-pipeline-design.md): ghép shortlist này với TTS, endpointing và runtime thành năm cấu hình không chọn LLM chính, có transcript revision/commit và deployment gates; đây là thiết kế tổng hợp, không validation ASR mới.
 
 - Uses [ASR/STT Model Survey](asr-stt-model-survey.md) và [Realtime shortlist](realtime-asr-selection.md); bổ sung tiếng Việt, primary-paper protocol và license correction.[^survey][^primary]
@@ -156,7 +158,7 @@ MOSS-Transcribe-Diarize có vi trong challenge list nhưng offline long-form, ph
 [^wlk]: [WLK](whisperlivekit.md) — Streaming policies; Backend notes Qwen/FunASR; Coverage.
 [^runtime]: [NeMo-Speech.cpp](nemo-speech-cpp.md) — Performance; Server, SDK, and source build.
 [^whisper]: [Whisper Turbo](whisper-large-v3-turbo.md) — Architecture; Performance, limitations, and implications; Relationships.
-[^cohere]: [Cohere](cohere-transcribe-03-2026.md) — Model identity; Strengths and limitations; Benchmarks.
+[^cohere]: [Cohere](cohere-transcribe-03-2026.md) — Model identity; Strengths and limitations; Benchmarks → Release-blog chart results (Figure 4 approximate vi aggregate WER; per-language dataset weights unknown); Coverage and limits.
 [^usable]: [Usable STT](community-usable-stt-voice-agents.md) — Usable-text evaluation checklist; Logging and diagnosis practice. Community evidence unverified.
 [^noise]: [Enhancement](speech-enhancement-before-asr.md) — Practice; Contradictions; Coverage and limits. Secondhand AI-report evidence.
 [^gipformer]: [Gipformer 1.5](gipformer1.5-68m-rnnt.md) — Reported benchmark; Deployment relevance; Coverage and limits. Vendor-reported, single model card.

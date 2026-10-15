@@ -5,9 +5,14 @@ description: Open-weight multilingual ASR family with 1.7B and 0.6B checkpoints 
 tags: [stt, asr, multilingual, streaming, forced-alignment]
 status: stable
 created: 2026-10-06
-generated: { by: llm-wiki-agent/1, at: 2026-10-13T02:35:20Z }
+generated: { by: llm-wiki-agent/1, at: 2026-10-15T10:21:49Z }
 stale_after: 2027-10-06
 sources:
+  - id: cohere-release-blog
+    resource: ../raw/cohere-transcribe-release-research-2026-10-15/README.md
+    scope: ../raw/cohere-transcribe-release-research-2026-10-15/
+    kind: documentation
+    title: Cohere Transcribe release blog and benchmark figures
   - id: vi-primary-research
     resource: ../raw/vietnamese-asr-research-2026-10-07/README.md
     scope: ../raw/vietnamese-asr-research-2026-10-07/
@@ -127,7 +132,14 @@ Public-set WER in percent, lower is better; 1.7B leads most columns with noted e
 - §2.1 specifies AuT encoder8x downsampling to12.5Hz, dynamic attention windows1–8s; 1.7B decoder plus300M encoder, 0.6B decoder plus180M encoder and projectors. Labels are not total weights/peak VRAM (**Reported/Synthesis**).[^vi-primary-research]
 - Uses [Vietnamese Realtime ASR Selection](vietnamese-realtime-asr-selection.md) for matched-protocol selection and the proposed two-pass option. Inspection was targeted: architecture prose, efficiency/streaming protocol and Vietnamese rows; figures, other sections, datasets and execution remain pending per package ledger. Source claims are not independently verified.[^vi-primary-research]
 
+## Cohere-side benchmark cross-check
+
+- Cohere's March 26 English table reports Qwen1.7B average WER **5.76%** vs Cohere **5.42%**; Figure 1 labels offline throughput **148 vs 525 RTFx**. These are **Reported** in Cohere's evaluation, not the June `-hf` snapshot above. Hardware/batch/runtime parity is not established; throughput is not streaming latency.[^cohere-release-blog]
+- Figure 4's Vietnamese aggregate bars are approximately Qwen **8.3%** vs Cohere **8.8%**, visual estimates rather than exact values. Caption averages FLEURS/Common Voice 17.0/MLS/Wenet where relevant; Vietnamese dataset membership/weights are unstated. Figure 3's English Cohere-vs-Qwen preference is **55%**, with sample counts/significance unknown. Reading charts is **Observed** evidence of source content, not independent benchmark verification.[^cohere-release-blog]
+
 ## Relationships
+
+- Compared in [So sánh benchmark Qwen3-ASR, Nemotron 3.5 và Cohere Transcribe](asr-qwen-nemotron-cohere-benchmarks.md): keeps Cohere-side English/Vietnamese results separate from Qwen offline and Nemotron streaming protocols (**Synthesis**).[^cohere-release-blog]
 
 - Extended by [Confucius4-R2T2](confucius4-r2t2.md): NetEase Youdao's true-streaming recognizer declares `Qwen/Qwen3-ASR-1.7B` as its base model and adds Longest Stable Prefix training plus append-only 80 ms–2 s chunked decoding with vLLM and WebSocket serving, so read that concept for the low-latency streaming derivative of this family (**Synthesis**).[^confucius4-r2t2-readme]
 - Used by [Audio8-ASR-0.1B](audio8-asr-0.1b.md): that compact model pairs a Qwen3-ASR audio encoder (its card names `Qwen/Qwen3-ASR-0.6B` as the backbone) with a small Qwen-style LM, so read this family concept for the encoder lineage's language coverage, streaming/offline behavior, and serving toolkit (**Synthesis**).[^qwen3-asr-readme]
@@ -145,6 +157,8 @@ Public-set WER in percent, lower is better; 1.7B leads most columns with noted e
 - `raw/Qwen3-ASR-1.7B.md` was found byte-identical to the ingested family file (verified by file comparison in an earlier session), so it is a duplicate of the same family card rather than a second source; ingesting it again should be a no-op (future idempotency note, **Synthesis**).[^qwen3-asr-readme]
 - `raw/Qwen3-ASR-0.6B-hf.md` inspected statically only: none of its example commands executed, no model downloaded, no audio transcribed; linked-but-unfetched artifacts are the three `-hf` checkpoint pages, the two header figures, and the `qianwen-res` plus `bezzam/audio_samples` sample-audio URLs (**Synthesis**).[^qwen3-asr-hf-card]
 - Material gaps in the original README: the "2000 times throughput" claim has no usable denominator or hardware, and architecture figures have no transcribed text. The primary-paper clarification now supplies architecture prose, throughput units and Vietnamese offline rows, but not named hardware or Vietnamese streaming WER. DashScope pricing or latency are not in the card; all identity, coverage, and accuracy claims are source assertions, and model-release plus benchmark details carry `stale_after: 2027-10-06` per the `stt` domain rule (**Synthesis**).[^qwen3-asr-readme]
+
+[^cohere-release-blog]: [Cohere release-blog capture](../raw/cohere-transcribe-release-research-2026-10-15/README.md) — `release-blog.txt`, `Results` English table dated 03.26.2026; `figure-1.png` (blog Figure 1, Qwen/Cohere RTFx point labels), `figure-2.png` (Figure 3, Qwen 55% preference row), `figure-3.png` (Figure 4, approximate vi bar heights and caption in text). Text and five PNGs inspected; code/datasets/hardware parity not established; ledger in package README.
 
 [^qwen3-asr-readme]: [Qwen3-ASR README and model card](../raw/Qwen3-ASR-0.6B.md) — locators: frontmatter (`license`, `pipeline_tag`); section `Introduction` (family members, 52-language claim, Qwen3-Omni lineage, SOTA/competitive claim, four feature bullets incl. 30 languages plus 22 dialects, 2000x-throughput sentence, 5-minute/11-language aligner, toolkit sentence); section `Model Architecture` (figures only); section `Released Models Description and Download` (30-language plus 22-dialect table, offline/streaming and speech/singing/songs cells, 11-language NAR aligner row, ModelScope and Hugging Face download commands); section `Environment Setup` (conda 3.12, `pip install qwen-asr` / `qwen-asr[vllm]`, editable install, FlashAttention 2 commands, `MAX_JOBS=4`, float16/bfloat16 note); `Quick Inference` fence (`from_pretrained`, `max_inference_batch_size`, `max_new_tokens`, audio-input forms, `language`, timestamps via `forced_aligner`); `vLLM Backend` fence (`LLM(...)`, `gpu_memory_utilization`, `qwen-asr-serve`, OpenAI chat/transcription, `__main__` spawn note); `Streaming Inference` (vLLM-only, no batch/timestamps); `ForcedAligner Usage` fence (`Qwen3ForcedAligner.from_pretrained`, `align`, `start_time`/`end_time`); `DashScope API Usage` (Real-time and FileTrans rows); `Gradio Demo` and `Streaming Demo` (`qwen-asr-demo` backend/CUDA/timestamps/HTTPS variants, 16,000 Hz Flask demo); `Deployment with vLLM` (nightly install, `vllm serve`, SDK/cURL/offline forms); `Docker` (`qwenllm/qwen3-asr`, `--gpus all`, mount/port/`--shm-size`); `Evaluation` protocol paragraph (bfloat16, `max_new_tokens=1024`, greedy, no language) and benchmark tables (public WER, internal WER, multilingual WER, LID accuracy, singing/song WER, streaming/offline WER, forced-alignment AAS); section `Citation` (arXiv 2601.21337 BibTeX).
 

@@ -5,7 +5,7 @@ description: NVIDIA 600M-parameter cache-aware FastConformer-RNNT streaming mult
 tags: [stt, asr, streaming, multilingual, fastconformer, rnnt, nemo]
 status: stable
 created: 2026-10-06
-generated: { by: llm-wiki-agent/1, at: 2026-10-07T03:56:09Z }
+generated: { by: llm-wiki-agent/1, at: 2026-10-15T10:21:49Z }
 stale_after: 2027-10-06
 sources:
   - id: nemotron-35-asr-card
@@ -100,6 +100,8 @@ Used by [Vietnamese Realtime ASR Selection](vietnamese-realtime-asr-selection.md
 - Sibling pointers in the card: English-only Nemotron ASR Streaming, Multitalker Parakeet Streaming, and [Parakeet Realtime EOU 120M v1](parakeet-realtime-eou-120m-v1.md) (now ingested here), plus Speech NIM, NeMo documentation, and Nemotron developer pages (**Reported**).[^nemotron-35-asr-card]
 
 ## Relationships
+
+- Compared in [So sánh benchmark Qwen3-ASR, Nemotron 3.5 và Cohere Transcribe](asr-qwen-nemotron-cohere-benchmarks.md): this card's streaming FLEURS and single-H100 concurrency figures are a separate operating regime, not an offline English leaderboard or matched three-way latency result (**Synthesis**).[^nemotron-35-asr-card]
 
 - Extends [Nemotron Speech Streaming EN 0.6B](nemotron-speech-streaming-en-0.6b.md): that concept covers the English-only 0.6B cache-aware base; use it when tracing the 0.6B lineage, and treat this concept as the multilingual successor (**Synthesis**).[^nemotron-35-asr-card]
 - Compared as a baseline in [Audio8 ASR Infinite](audio8-asr-infinite.md): that concept's evaluation table reports Nemotron 3.5 ASR at 560 ms on Aishell and LibriSpeech sets against Audio8 and Voxtral realtime; read both when contrasting bilingual native-streaming (Audio8) against multilingual cache-aware chunked streaming (Nemotron) (**Synthesis**).[^nemotron-35-asr-card]

@@ -1,0 +1,167 @@
+Today we are releasing
+cohere-transcribe-03-2026
+, a 2B-parameter speech recognition model open-sourced on huggingface under an Apache 2.0 licence. This dedicated transcription model was trained from scratch to support 14 enterprise-critical languages, achieving state-of-the-art accuracy while maintaining high efficiency, with an offline throughput three times higher than similarly sized competitors.
+In English,
+cohere-transcribe
+outperforms both proprietary and open-source competitors to take the #1 spot on the huggingface
+Open ASR Leaderboard
+. In addition, across the remaining 13 languages, our model is comparable to, or better than, all existing open-source models.
+Figure 1: Cohere-transcribe has a better throughout (RTFx) vs accuracy (WER) tradeoff than other 1B+ size models. RTFx (real-time factor multiple) measures how fast an audio model processes its input relative to real time.
+Cohere-transcribe was designed and built with production use in mind. That means state-of-the-art accuracy in a model that can be served efficiently. To that end, we collaborated with vLLM to enable production serving of our model with an open-source stack
+[see merged PR]
+.
+Cohere-transcribe is Cohere’s first audio model. From a modelling perspective, our aim with this release was to take a simple recipe and scale it methodically. For us this meant paying particular attention to fundamentals: a strong multilingual tokenizer, the optimization regime and, of course, our data mix. The result is a model that outperforms competitors in human evaluation as well as benchmarks. In this post we detail some of the key design decisions we made during the Cohere-transcribe model development process.
+Supported languages:
+The model has been trained on 14 languages: English, German, French, Italian, Spanish, Portuguese, Greek, Dutch, Polish, Arabic, Vietnamese, Chinese (Mandarin), Japanese and Korean.
+Try it now in our
+Hugging Face Space
+.
+Architecture
+Cohere-transcribe is a 2B encoder-decoder X-attention transformer with a Fast-Conformer encoder [1] trained with cross entropy. Following Distil-Whisper and others [2-4], we dedicate more than 90% of our total parameters to the encoder and maintain a lightweight decoder. This asymmetry keeps the amount of autoregressive inference compute to a minimum while maintaining performance. The strong efficiency of our offering is a direct result of this decision. In contrast, other recent models such as
+Qwen-1.7B-ASR
+and
+ibm-granite/granite-4.0-1b-speech
+build upon pre-trained text LLMs and add audio understanding to this autoregressive backbone. This makes the ASR model cheaper to train, but comes at the expense of inference speed and serving cost.
+Training data
+We chose a conventional, well-tested architecture and dedicated the bulk of our model development cycles to data work.
+cohere-transcribe-03-2026
+was trained on 0.5M hours of curated audio transcript pairs. Following rounds of error analysis we augmented this with synthetic data. In order to get the final mix we filtered subsets of the data mix with an internal cleaning pipeline. We used proprietary methods for mix balancing; furthermore, we also ran audio decontamination checks for test/train overlap.
+We used a 16k multilingual bpe tokenizer with byte fallback that we trained on data sampled in-distribution. During ASR training, we applied non-speech background noise augmentation with SNRs in the range 0 to 30 dB. Following canary [5] we make punctuation customizable in the prompt. This enabled us to train on open datasets for which there is no cased or punctuated reference transcriptions (e.g. multilingual librispeech). By default at inference time we punctuate all transcripts.
+Results
+cohere-transcribe-03-2026 achieves state-of-the-art performance in dedicated English speech recognition taking the #1 spot on the
+Open ASR Leaderboard
+against both proprietary and open-source entrants.
+Model
+Average WER
+AMI
+Earnings 22
+Gigaspeech
+LS clean
+LS other
+SPGISpeech
+Tedlium
+Voxpopuli
+Cohere Transcribe
+5.42
+8.15
+10.84
+9.33
+1.25
+2.37
+3.08
+2.49
+5.87
+Zoom Scribe v1
+5.47
+10.03
+9.53
+9.61
+1.63
+2.81
+1.59
+3.22
+5.37
+IBM Granite 4.0 1B Speech
+5.52
+8.44
+8.48
+10.14
+1.42
+2.85
+3.89
+3.10
+5.84
+NVIDIA Canary Qwen 2.5B
+5.63
+10.19
+10.45
+9.43
+1.61
+3.10
+1.90
+2.71
+5.66
+Qwen3-ASR-1.7B
+5.76
+10.56
+10.25
+8.74
+1.63
+3.40
+2.84
+2.28
+6.35
+ElevenLabs Scribe v2
+5.83
+11.86
+9.43
+9.11
+1.54
+2.83
+2.68
+2.37
+6.80
+Kyutai STT 2.6B
+6.40
+12.17
+10.99
+9.81
+1.70
+4.32
+2.03
+3.35
+6.79
+OpenAI Whisper Large v3
+7.44
+15.95
+11.29
+10.02
+2.01
+3.91
+2.94
+3.86
+9.54
+Voxtral Mini 4B Realtime 2602
+7.68
+17.07
+11.84
+10.38
+2.08
+5.52
+2.42
+3.79
+8.34
+Figure 2: the Hugging Face Open ASR Leaderboard as of 03.26.2026.
+Crucially, these gains aren’t limited to benchmark datasets. We observe similar performance in human evaluations, where trained annotators assess transcription quality across real-world audio for accuracy, coherence and usability. The consistency between automated metrics and human judgments suggests that the model’s improvements translate beyond controlled benchmarks to practical transcription settings.
+Figure 3: Human preference evaluation of model transcripts. In a head-to-head comparison, annotators were asked to express preferences for generations which primarily preserved meaning - but also avoided hallucination, correctly identified named entities, and provided verbatim transcripts with appropriate formatting. A score of 50% or higher indicates that Cohere Transcribe was preferred on average in the comparison.
+Figure 4: per-language error rate averaged over FLEURS, Common Voice 17.0, MLS and Wenet tests sets (where relevant for a given language). CER for zh, ja, ko — WER otherwise
+In our 13 remaining languages, cohere-transcribe outperforms or matches the best open-source model in a given language across the benchmarks we are tracking. It also comes 4th place (2nd among open models) on the multilingual ASR leaderboard. We also see strong performance in multilingual human evaluation against open source competitors.
+Figure 5: Human evaluation of ASR accuracy for a selection of supported languages. A score of 50% or higher indicates that Cohere Transcribe was preferred on average in the head-to-head comparison.
+High-performance production inference with vLLM
+While offline benchmark performance reflect raw capability, production viability depends on realising those gains under real-world serving constraints. To this end, we focused on making the system efficient, scalable, and cost-effective in deployment.
+To improve online throughput, we extended the vLLM inference stack to better support encoder-decoder architectures common in speech workloads. Although vLLM enables high-throughput LLM serving via continuous batching and KV-cache optimisation, its encoder batching pads input sequences to a fixed length, creating bottlenecks under concurrent ASR workloads with variable-length audio inputs. We reworked the scheduler to support fine-grained, concurrent execution of encoder requests with variable sequence lengths, improving GPU utilization and throughput.
+Separately, we extended the runtime and model stack to natively support variable-length audio inputs. This involved updates to attention metadata, KV-cache management, and model interfaces to operate over non-uniform sequence representations. To reconcile tensor layout differences, we execute the convolutional encoder on minimally padded batches and subsequently convert the outputs into a packed representation for the FlashAttention-based decoder. This preserves encoder parallelism while enabling efficient attention computation and reducing redundant work from padded tokens. Overall, these optimisations yield up to 2× throughput improvement for our model.
+We
+contributed these improvements to vLLM
+to enhance vLLM’s ability to serve speech models and other comparable architectures at scale, while making runtime more flexible for other multimodal workloads.
+Figure 6: vLLM inference flow
+Limitations & future work
+This model has some known limitations:
+Cohere-transcribe is trained to expect a language tag and monolingual audio. We have seen cases where the model successfully transcribes (En, X) code-switched audio, but we didn’t explicitly train the model to do this.
+Like many AED speech models, Cohere-transcribe is eager to transcribe, even non-speech sounds. The model thus benefits from prepending a noise gate or VAD (voice activity detection) model in order to prevent low-volume, floor noise from turning into hallucinations.
+Conclusion
+Cohere-transcribe is our zero-to-one in transcription, and we are excited to share this with the community. This model is just one part of Cohere’s effort to bring audio experiences to
+North
+- our secure enterprise platform.
+Try the model now in our
+Hugging Face Space
+You can also access Cohere Transcribe via our
+API
+for free, low-setup experimentation subject to rate limits. See the
+documentation
+for usage details and integration guidance.
+For managed production deployment without rate limits, provision a dedicated
+Model Vault
+from your cohere account's
+dashboard
+. Pricing is calculated per hour-instance, with discounted plans for longer-term commitments.
