@@ -1,7 +1,7 @@
 ---
 type: Concept
 title: CrispASR TTS Engines
-description: CrispASR's text-to-speech surface: engine count and matrix (cloning, sampling, sample rate), license-gated checkpoints, built-in watermarking, the voice-cloning consent flag, and conflicting engine lists in the README.
+description: "CrispASR's text-to-speech surface: engine count and matrix (cloning, sampling, sample rate), license-gated checkpoints, built-in watermarking, the voice-cloning consent flag, and conflicting engine lists in the README."
 tags: [tts, voice-cloning, watermark, licensing, ggml, gguf]
 status: stable
 created: 2026-10-13

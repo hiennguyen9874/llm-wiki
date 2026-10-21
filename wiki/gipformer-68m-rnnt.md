@@ -40,7 +40,7 @@ Predictions and labels are lowercased, punctuation-stripped, and numbers convert
 | ViMD | **7.17** | 7.28 | 11.77 | 10.15 | 11.16 | 11.18 |
 | vivos | **4.12** | 4.60 | 4.18 | 6.92 | 7.17 | 4.73 |
 
-Other rows in the card: PhoWhisper small/medium, wav2vec2-base-vi (95M), Qwen3-ASR-0.6B and `nvidia/parakeet-ctc-0.6b-Vietnamese`; none beats gipformer on the private call-center sets.[^gipformer-68m-card]
+Other rows in the card: PhoWhisper small/medium, wav2vec2-base-vi (95M), Qwen3-ASR-0.6B and `nvidia/parakeet-ctc-0.6b-Vietnamese` ([concept](parakeet-ctc-0.6b-vietnamese.md)); none beats gipformer on the private call-center sets.[^gipformer-68m-card]
 
 The card's rankings summary: #1 on 9/12 (the four tele sets, MultiMED, VietMed, vlsp-t2, ViMD, vivos), #2 on LSVSC, #3 on vlsp-t1 and Fleurs (**Reported**; consistent with the table, **Observed**).[^gipformer-68m-card] The call-center gain is large (about 10–13 WER points over the next-best model on the hard sets, **Synthesis** from the table); on public read/broadcast sets margins are small or negative.
 

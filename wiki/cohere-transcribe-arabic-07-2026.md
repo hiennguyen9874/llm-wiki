@@ -5,13 +5,17 @@ description: Open-source 2B-parameter Conformer encoder-decoder ASR model for Ar
 tags: [stt, asr, arabic, english, conformer]
 status: stable
 created: 2026-10-06
-generated: { by: llm-wiki-agent/1, at: 2026-10-06T21:00:00Z }
+generated: { by: llm-wiki-agent/1, at: 2026-10-21T18:00:00Z }
 stale_after: 2027-10-06
 sources:
   - id: cohere-arabic-card
     resource: ../raw/cohere-transcribe-arabic-07-2026.md
     kind: documentation
     title: Cohere Transcribe Arabic model card
+  - id: voxtral-arabic-card
+    resource: ../raw/Voxtral-Mini-4B-Realtime-Arabic.md
+    kind: documentation
+    title: Voxtral Mini 4B Realtime Arabic model card
 ---
 
 Cohere Transcribe Arabic (`CohereLabs/cohere-transcribe-arabic-07-2026`) is an open-source 2B-parameter Arabic automatic speech recognition model with a Conformer encoder plus lightweight Transformer decoder, natively supported in Transformers with a vLLM serving path, covering Arabic, Arabic dialects, and English, and reported as the best-average system on the Open Universal Arabic ASR Leaderboard as of 07.07.2026 with 25.87% WER and 11.80% CER average (**Reported**).[^cohere-arabic-card]
@@ -51,6 +55,7 @@ All numbers below are source assertions from the card's leaderboard table dated 
 
 - Alternative to [Qwen3-ASR family](qwen3-asr-family.md): that family covers Arabic among 30 languages with streaming/offline inference and timestamp prediction via a forced aligner, while this concept is the Arabic-specialized option with the leaderboard evidence above; the card's table carries a `Qwen3-ASR 1.7B` column as a baseline, so cross-read both when choosing between multilingual and Arabic-focused ASR (**Synthesis**).[^cohere-arabic-card]
 - Preceded by [Cohere Transcribe 03-2026](cohere-transcribe-03-2026.md) (declared `base_model`): the base leads the MASC clean/noisy subsets while this Arabic-tuned model leads the average, SADA, Common Voice, and Casablanca subsets — compare per-subset rows rather than averages alone when the deployment dialect mix is known (**Synthesis**).[^cohere-arabic-card]
+- Streaming alternative: [Voxtral Mini 4B Realtime Arabic](voxtral-mini-4b-realtime-arabic.md) is a natively streaming Arabic/dialect and code-switching model reporting 8.82% average CER at 480 ms under MTNRA normalization over seven benchmarks; this page's leaderboard WER/CER uses a different suite and normalization, so no ranking is implied (**Reported**; comparability **Synthesis**).[^voxtral-arabic-card]
 
 ## Coverage and limits
 
@@ -59,3 +64,4 @@ All numbers below are source assertions from the card's leaderboard table dated 
 - All capability, accuracy, and ranking claims are source assertions without independent verification in this wiki; model-release and benchmark details carry `stale_after: 2027-10-06` per the `stt` domain rule (**Synthesis**).[^cohere-arabic-card]
 
 [^cohere-arabic-card]: [Cohere Transcribe Arabic model card](../raw/cohere-transcribe-arabic-07-2026.md) — locators: frontmatter (`license`, `pipeline_tag`, `library_name`, `language`, `tags`, `base_model`); spec table (Name, Architecture, Input, Output, Model, Training objective, Languages, License rows); header intro (2B-parameter claim, Arabic/dialects/English/code-switch scope, Conformer encoder-decoder plus Transformers support, Cohere/Cohere Labs credit); `Usage` install fence and Quick Start fence (`AutoProcessor`, `CohereAsrForConditionalGeneration`, `device_map="auto"`, `language="ar"`, `max_new_tokens=256`); `Long-form transcription` details fence (`max_audio_clip_s`, `audio_chunk_index`, RTFx computation); commented `Punctuation control` block; `English transcription` details (`language="en"`); `vLLM Integration` details (`vllm==0.19.0`, `vllm[audio]`, `vllm serve ... --trust-remote-code`, `POST /v1/audio/transcriptions` curl); `Results` leaderboard details dated 07.07.2026 (Average/SADA/Common Voice/MASC clean/MASC noisy/MGB-2/Casablanca WER plus CER table with 14-model comparison); `Resources` (technical post, announcement post, leaderboard links); `Strengths and Limitations` (accuracy/efficiency bullets; single-language/code-switch, timestamps/diarization, silence/VAD bullets); `Model Card Contact` and Terms (`labs@cohere.com`, Apache 2.0); `Citation` BibTeX (authors, revision `0a8193c`, year 2026, doi `10.57967/hf/9549`).
+[^voxtral-arabic-card]: [Voxtral Mini 4B Realtime Arabic model card](../raw/Voxtral-Mini-4B-Realtime-Arabic.md) — locators: intro (streaming Arabic dialect/MSA model, 480 ms, 8.82% average CER over seven benchmarks); `Benchmarks` (MTNRA normalization, temperature 0.0).

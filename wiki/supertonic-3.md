@@ -5,13 +5,17 @@ description: Supertone's ~99M-parameter on-device multilingual TTS covering 31 l
 tags: [tts, on-device, multilingual]
 status: stable
 created: 2026-10-06
-generated: { by: llm-wiki-agent/1, at: 2026-10-07T04:10:00Z }
+generated: { by: llm-wiki-agent/1, at: 2026-10-21T12:00:00Z }
 stale_after: 2027-10-06
 sources:
   - id: supertonic-3-card
     resource: ../raw/supertonic-3.md
     kind: documentation
     title: Supertonic 3 Hugging Face model card
+  - id: audiocpp-10-hours-thread
+    resource: ../raw/audiocpp_10_hours_of_audio_generated_in_3_minutes.md
+    kind: documentation
+    title: audio.cpp release 0.3 Reddit thread, 10 hours of audio in 3 minutes (r/LocalLLaMA, undated capture)
 ---
 
 Supertonic 3 is Supertone Inc's on-device multilingual text-to-speech release, running on ONNX Runtime with no cloud call required for synthesis, expanding language coverage from 5 to 31 languages at about 99M parameters across the public ONNX assets, with claimed improvements in reading stability and speaker similarity over Supertonic 2 plus simple expression tags (**Reported**).[^supertonic-3-card]
@@ -76,12 +80,22 @@ Supertonic 3 is Supertone Inc's on-device multilingual text-to-speech release, r
 - Reported comparator: [VoxCPM2](voxcpm2.md) covers a 2B-parameter tokenizer-free diffusion-autoregressive multilingual TTS model that this source names as a much larger open system against which Supertonic 3 claims a competitive WER/CER range at a fraction of the size; the underlying values are image-only and no ranking is reproduced here (**Synthesis**).[^supertonic-3-card]
 - Packaged derivative: [audio.cpp GGUF Model Packages](audio-cpp-gguf-packages.md) catalogs a `Supertonic-3-GGUF` conversion (original plus F16 plus Q8 weights under BigScience OpenRAIL-M) with an audio.cpp CLI usage fence, while this concept covers the upstream Hugging Face card and Python SDK path; the GGUF artifact is compiled from a different source and is not covered here (**Synthesis**).[^supertonic-3-card]
 
+## Third-party reimplementation in audio.cpp (Reported)
+
+- The audio.cpp author reports porting Supertonic 3 to the [audio.cpp Framework](audio-cpp-framework.md) in release 0.3 by reverse-engineering the ONNX inference path and rebuilding it around the safetensors weights (**Reported**).[^audiocpp-10-hours-thread]
+- Reported results on an RTX 5090: 200x+ real time on CUDA, 6x+ on CPU, about 47 ms TTFT in CUDA streaming mode, and about 10 hours of *Sherlock Holmes* audio in about 3 minutes. The author says CUDA is much faster than the Python implementation because the ONNX version sends some nodes back to the CPU, while CPU speed is about the same or slightly faster (**Reported**).[^audiocpp-10-hours-thread]
+- These are audio.cpp-runtime figures from a forum post, not model-card figures. They do not fill this card's image-only gaps, and the 47 ms TTFT is the only streaming figure for this model in the wiki; it applies to that runtime and not to the ONNX SDK path (**Synthesis**).[^audiocpp-10-hours-thread]
+- Because the thread reports CPU about 6x+ real time with no hardware named, the CPU figure cannot be compared with the model card's CPU claims (**Synthesis**).[^audiocpp-10-hours-thread]
+
 ## Coverage and limits
 
 - Source inspected statically only; no checkpoint downloaded, no ONNX inference executed, and no reading-stability, speaker-similarity, latency, memory, model-size, or no-cloud claims reproduced (**Synthesis**).[^supertonic-3-card]
 - The hero image and all four metric figures (`Supertonic3_HeroImage.png`, reading-accuracy, v2-vs-v3 comparison, CPU/GPU latency-memory, and model-size plots) are referenced by relative `img/` paths that are not in `raw/` and were not fetched; no numeric benchmark, latency, or memory value from those images is recorded (**Synthesis**).[^supertonic-3-card]
 - The demo Space, GitHub repository, PyPI package, audio-sample demo page, Voice Builder, the 12 reference/generated audio files, and the linked LICENSE and PyTorch-license pages were not fetched; model weights, preset voices, generated audio quality, and voice-cloning fidelity were not inspected (**Synthesis**).[^supertonic-3-card]
 - All capability, language-coverage, speed, efficiency, benchmark, and license claims are source assertions without independent verification in this wiki; release and benchmark figures carry `stale_after: 2027-10-06` per the `tts` domain rule (**Synthesis**).[^supertonic-3-card]
-- This ingest covers only `raw/supertonic-3.md`; the related `raw/supertonic.md` and `raw/supertonic-2.md` are compiled in [Supertonic](supertonic.md) and [Supertonic 2](supertonic-2.md), and the `Supertonic-3-GGUF` packaging is cataloged from `raw/audio.cpp-gguf.md` in [audio.cpp GGUF Model Packages](audio-cpp-gguf-packages.md) (**Synthesis**).[^supertonic-3-card]
+- The audio.cpp thread was inspected as text only; the demo video, CPU model, and Python baseline configuration are not captured, and no figure was reproduced (**Synthesis**).[^audiocpp-10-hours-thread]
+- This ingest covers `raw/supertonic-3.md` plus the thread above; the related `raw/supertonic.md` and `raw/supertonic-2.md` are compiled in [Supertonic](supertonic.md) and [Supertonic 2](supertonic-2.md), and the `Supertonic-3-GGUF` packaging is cataloged from `raw/audio.cpp-gguf.md` in [audio.cpp GGUF Model Packages](audio-cpp-gguf-packages.md) (**Synthesis**).[^supertonic-3-card]
 
 [^supertonic-3-card]: [Supertonic 3 Hugging Face model card](../raw/supertonic-3.md) — locators: frontmatter (`license: openrail`, 31-code `language`, `pipeline_tag: text-to-speech`, `tags`, `library_name: supertonic`); H1 plus intro paragraph (ONNX Runtime, on-device, no cloud call); badge links (Hugging Face demo Space, GitHub repository, PyPI `supertonic`); `Quick Start` fences (`pip install supertonic`, `TTS(auto_download=True)`, `get_voice_style(voice_name="M1")`, `synthesize(text, voice_style, lang="en")` returning `wav, duration`, `save_audio`); `What's New in Supertonic 3` bullets (31 languages from 5, stable reading with fewer repeat/skip on short and long utterances, higher speaker similarity, `<laugh>`/`<breath>`/`<sigh>` tags); `Custom Voices and Audio Samples` section (fixed preset styles, audio-sample demo page, Voice Builder JSON creation plus purchased-embedding note, six reference/generated pairs with quoted prompt texts); `Performance Highlights` intro plus `Reading Accuracy` (competitive WER/CER vs larger open models such as VoxCPM2, asterisked CER note), `Supertonic 2 to Supertonic 3` (repeat/skip, similarity, 5-to-31 coverage), `Runtime Footprint` (fast CPU vs A100-GPU baselines, less memory, no GPU, local/browser/edge), and `Model Size` (~99M ONNX params vs 0.7B–2B class, download/startup/on-device advantages) subsections, all with image-only figures under `img/metrics/`; `Supported Languages` 31-code table; `License` section (MIT sample code, OpenRAIL-M model, PyTorch BSD 3-Clause, 2026 Supertone copyright).
+
+[^audiocpp-10-hours-thread]: [audio.cpp release 0.3 Reddit thread](../raw/audiocpp_10_hours_of_audio_generated_in_3_minutes.md) — locators: post body (Supertonic 3 highlight: 200x+ CUDA on RTX 5090, 6x+ CPU, about 47 ms TTFT streaming, *Sherlock Holmes* 10 h in about 3 min; ONNX reverse-engineering to safetensors; ONNX nodes returned to CPU; CPU about the same or slightly faster).

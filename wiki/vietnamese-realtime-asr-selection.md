@@ -5,9 +5,19 @@ description: Lựa chọn ASR realtime tiếng Việt theo chất lượng, nati
 tags: [stt, asr, vietnamese, streaming, selection, comparison]
 status: draft
 created: 2026-10-07
-generated: { by: llm-wiki-agent/1, at: 2026-10-15T10:21:49Z }
+generated: { by: llm-wiki-agent/1, at: 2026-10-21T22:00:00Z }
 stale_after: 2027-10-07
 sources:
+  - id: sherpa-vi-app
+    resource: sherpa-vietnamese-asr.md
+    kind: synthesis
+  - id: parakeet-ctc-vi
+    resource: parakeet-ctc-0.6b-vietnamese.md
+    kind: synthesis
+  - id: zip150-card
+    resource: ../raw/ZipFormer-150M-CR-CTC-RNNT-6000h.md
+    kind: documentation
+    title: ZipFormer-150M-CR-CTC-RNNT-6000h model card capture
   - id: quan-captures
     resource: ../raw/QUAN-Transcribe-1.0/README-hf.md
     scope: ../raw/QUAN-Transcribe-1.0/
@@ -80,6 +90,8 @@ RTF <1 là điều kiện theo kịp audio, không đủ cho latency usable text
 | [Gipformer 1.5 68M RNNT](gipformer1.5-68m-rnnt.md), 68M | Chuyên vi | Vendor WER (không tái lập): vivos 4.25, vlsp-t1 13.37, Common-Voice 6.45, Fleurs 12.65; domain vi-asr-tech/edu/finance/pubadmin 27.49/23.32/22.34/14.82; call-center tele-* là private set | CPU/edge final-pass chuyên Việt, nhất là call-center/domain; ONNX int8, MIT. Card không nêu streaming, chunk, RTF, latency hay training data nên chưa là ứng viên partial[^gipformer] |
 | [QUAN-Transcribe-1.0](quan-transcribe-1.0.md), 356M | Chuyên vi | Vendor avg WER 6.87%, 3,713× H100; FLEURS-valid digit-filtered greedy full 6.71% / streaming 8.40% | Challenger partial/final GPU, 0.48 s chunk; live re-decode cả câu mỗi update, final full-context sau silence mặc định 0.8 s; chưa chứng minh cache-aware hay latency/concurrency production. Gemma terms, gated encoder; lowercase/no punctuation/numbers-as-words[^quan-captures] |
 | [ZipFormer 30M](zipformer-30m-vietnamese.md) | Chuyên vi | 12s/0.3s CPU claimed; VLSP2020 T1 12.29 | CPU research only; CC-BY-NC-ND, no established native streaming[^primary] |
+| [ZipFormer 150M](zipformer-150m-vietnamese.md), ~153M | Chuyên vi | VLSP2023 public/private 6.59/7.80; VLSP2025 6.69/6.20; VLSP2020 T1 13.50; 12s/<0.3s RTX3090 claimed | GPU rẻ, final-pass nghiên cứu; CC-BY-NC-ND, no established native streaming, VLSP/GigaSpeech2 có thể trùng training data chưa kiểm tra[^zip150-card] |
+| [Parakeet CTC 0.6B Vietnamese](parakeet-ctc-0.6b-vietnamese.md), 600M | Chuyên vi (title nêu "Unified Vietnamese–English CS", không có bằng chứng code-switch) | Vendor avg WER 9.30 (blind: Gigaspeech2 11.23, VLSP2021 T2 8.99, ViMD 11.02, VIVOS 5.96) và 9.73 (in-domain: FLEURS 6.86, VLSP2021 T1 13.60, VietMed 14.52); không rõ có dùng LM | Final-pass offline CTC có PnC và timestamp (Qwen3-generated PnC, chưa kiểm); tùy chọn KenLM 4-gram flashlight; không có streaming, latency hay RTFx; NVIDIA Open Model License gated; test set/normalizer khác các hàng khác nên không so trực tiếp[^parakeet-ctc-vi] |
 
 Gipformer thắng nhiều cột trong bảng của chính vendor (kể cả trước ChunkFormer-large, Qwen3-ASR-1.7B, PhoWhisper-large) nhưng dùng normalizer riêng, test set private, và thua Zipformer-30M ở Common-Voice/vlsp-t1 và Qwen3-ASR-1.7B ở Fleurs; không so trực tiếp với số ở các hàng khác (**Synthesis**).[^gipformer]
 
@@ -146,11 +158,16 @@ MOSS-Transcribe-Diarize có vi trong challenge list nhưng offline long-form, ph
 
 - Uses [ASR/STT Model Survey](asr-stt-model-survey.md) và [Realtime shortlist](realtime-asr-selection.md); bổ sung tiếng Việt, primary-paper protocol và license correction.[^survey][^primary]
 - Uses [Gipformer 1.5 68M RNNT](gipformer1.5-68m-rnnt.md) làm ứng viên CPU/edge chuyên Việt; chỉ đưa vào shortlist partial sau khi xác minh streaming.[^gipformer]
-- Uses [PhoWhisper](phowhisper.md), [ChunkFormer Vietnamese](chunkformer-vietnamese.md) và [ZipFormer30M](zipformer-30m-vietnamese.md) làm các specialized alternatives newly captured.[^primary]
+- Uses [Parakeet CTC 0.6B Vietnamese](parakeet-ctc-0.6b-vietnamese.md) làm ứng viên offline final-pass trên NVIDIA/NeMo, không phải partial (**Synthesis**).[^parakeet-ctc-vi]
+- Related [Sherpa Vietnamese ASR](sherpa-vietnamese-asr.md): offline Windows app packaging Zipformer 30M/68M with diarization and punctuation; README gives no WER, latency or streaming evidence, so it is not a shortlist candidate for partials (**Synthesis**).[^sherpa-vi-app]
+- Uses [PhoWhisper](phowhisper.md), [ChunkFormer Vietnamese](chunkformer-vietnamese.md) [ZipFormer30M](zipformer-30m-vietnamese.md) và [ZipFormer150M](zipformer-150m-vietnamese.md) làm các specialized alternatives newly captured.[^primary]
 - Primary research ran2026-10-07; no model execution. Captured package README lưu inspected/pending/excluded assets, unavailable HTTP401/404 và hashes. Paper inspection là targeted, không full paper ingestion. Existing wiki snapshots không được refresh toàn bộ; không claim exhaustive latest global releases.
 - Status draft vì thiếu matched Vietnamese streaming WER, target hardware/SLA và small streaming checkpoint evidence; không có verified metadata. Claim của vendor/author vẫn Reported, HTTP/check/file inspection không verify capability.
 
+[^sherpa-vi-app]: [Sherpa Vietnamese ASR](sherpa-vietnamese-asr.md) — Pipeline components; Implications for voice pipelines; Coverage and limits. Single README capture, Reported.
 [^quan-captures]: [QUAN model card](../raw/QUAN-Transcribe-1.0/README-hf.md) — `Model`, `Benchmark` protocol/table, `License`; supporting [inference README](../raw/QUAN-Transcribe-1.0/README-github.md) — `Usage`, `Streaming mode`, `Live microphone` endpoint/recomputation paragraphs, `Optional n-gram language model`, `Accuracy check` digit exclusion and full/streaming valid scores. Vendor-reported only; no runtime or benchmark reproduction.
+[^parakeet-ctc-vi]: [Parakeet CTC 0.6B Vietnamese](parakeet-ctc-0.6b-vietnamese.md) — Reported accuracy; Inference and usage; Voice-pipeline implications; Coverage and limits. Vendor-reported single model card.
+[^zip150-card]: [ZipFormer-150M card](../raw/ZipFormer-150M-CR-CTC-RNNT-6000h.md) — `Evaluation Results`; `Inference Speed`; `Training Data`; frontmatter `license`.
 [^primary]: [Primary research package](../raw/vietnamese-asr-research-2026-10-07/README.md) — `qwen-report.html` §§2.1–2.4, Table2, §4.5/Table8, AppendixTableA.2(a/b) vi; `nemotron-card.md` Performance vi-VN row; PhoWhisper/ChunkFormer/ZipFormer files and locators in ledger.
 [^qwen]: [Qwen family](qwen3-asr-family.md) — Inference and serving; Language and audio coverage; Primary-paper clarification.
 [^nemotron]: [Nemotron3.5](nemotron-3.5-asr-streaming-0.6b.md) — Architecture and I/O; Supported languages; Streaming operating points; Benchmarks; Inference.

@@ -5,13 +5,17 @@ description: Dockerized FastAPI server wrapping Kokoro-82M with an OpenAI-compat
 tags: [tts, kokoro, fastapi, openai-compatible, docker, server]
 status: stable
 created: 2026-10-13
-generated: { by: llm-wiki-agent/1, at: 2026-10-13T04:34:17Z }
+generated: { by: llm-wiki-agent/1, at: 2026-10-21T15:00:00Z }
 stale_after: 2027-10-13
 sources:
   - id: kokoro-fastapi-readme
     resource: ../raw/Kokoro-FastAPI.md
     kind: documentation
     title: Kokoro-FastAPI README capture
+  - id: kokoro-fastapi-readme-remsky
+    resource: ../raw/remsky-Kokoro-FastAPI.md
+    kind: documentation
+    title: Kokoro-FastAPI README capture (remsky-prefixed variant)
 ---
 
 Kokoro-FastAPI is a Dockerized FastAPI wrapper around the Kokoro-82M text-to-speech model, published as `remsky/Kokoro-FastAPI`. It exposes an OpenAI-compatible `/v1/audio/speech` route for Kokoro, plus `/dev/*` and `/debug/*` helper routes that the README says may change between minor releases. The README presents it as a self-hosted server for long-form generation, multi-speaker output, and caption timestamps. It says the author made the wrapper "for ease of use and personal projects" and has no affiliation with the model's authors (**Reported**).[^kokoro-fastapi-readme]
@@ -67,6 +71,12 @@ Settings are environment variables or lines in a root `.env` file. The full refe
 - The README links the Apache text at apache.org; the repository `LICENSE` file was not captured (**Observed** limit).
 - The README requires permission before tuning a voice (line 416; see [Kokoro-FastAPI Voice and Markup Controls](kokoro-fastapi-voice-and-markup.md)).
 
+## Ecosystem and integrations
+
+- The README's "Integration & Guides" block links four in-repo guides: Helm chart (`docs/deployment/kubernetes.md`), DigitalOcean (`docs/deployment/digitalocean.md`), SillyTavern and OpenWebUI (`docs/integrations/`). None of those guides was captured (lines 31–35 in both captures; **Reported**).[^kokoro-fastapi-readme][^kokoro-fastapi-readme-remsky]
+- It also lists community projects that "use, recommend, or enable" the server as a backend, grouped as: Home Assistant (`wyoming_openai`, `openai_tts`, `Kokoro-TTS`); app stores and templates (Umbrel, Unraid Apps, GPUStack, jetson-containers); readers and audiobooks (openreader, epub_to_audiobook, audiobook-creator, Zotero-OpenReader); assistants and agents (xiaozhi-esp32-server, call-me, agent-cli, voice-chat-ai); and browser tools (kokoro-extension, customtts) (earlier capture lines 37–43; remsky capture lines 37–51; **Reported**).[^kokoro-fastapi-readme][^kokoro-fastapi-readme-remsky] For a voice loop, the agent entries show the server used as the TTS stage behind its OpenAI-compatible route (**Synthesis**). No linked project was inspected, and the README does not say which integrations the author tested.
+- The earlier capture heads the list "use, recommend, or enable"; the remsky capture says "enable" only. The earlier capture gives a Docker "Downloads 2.6M+" badge; the remsky capture gives "pulls per month 250K+". The two measure different things and neither is dated or verifiable here, so no adoption figure is relied on (**Observed** difference; **Unverified**).[^kokoro-fastapi-readme][^kokoro-fastapi-readme-remsky]
+
 ## Contradictions
 
 - **CUDA version of `:latest`:** the Quickest Start note says `gpu:latest` "is the same image as `gpu:latest-cu126`" (line 84). The NVIDIA arm64 row says the same `:latest` tag "ships cu129" on Jetson and GH200 (line 69). The README may mean one tag with per-architecture images, but the capture does not say. Neither reading is chosen here; check the registry manifest before relying on a CUDA version (**Observed** discrepancy).
@@ -82,10 +92,13 @@ Settings are environment variables or lines in a root `.env` file. The full refe
 ## Coverage and limits
 
 - Inspected statically: the whole README capture, `raw/Kokoro-FastAPI.md` (917 lines) (**Observed**).[^kokoro-fastapi-readme]
+- Second capture: `raw/remsky-Kokoro-FastAPI.md` (925 lines, undated, file written later than the first) was reconciled by `diff` against the first. Only five head-of-file spots differ: the Docker downloads/pulls badge, "Custom voicepack generation" versus "Custom voicepacks" (line 20), the DeepWiki badge image, and the community-projects list, which is flat in the first capture and a collapsed `<details>` list in the second. Everything from `## Get Started` onward is identical in content, so no other claim here changed. The capture order is not established by the documents themselves (**Observed**).[^kokoro-fastapi-readme-remsky]
 - Not executed: no image pulled, no container started, no server run, no synthesis or API call, no benchmark rerun.
 - Linked but not captured: `docs/configuration.md`, `docs/troubleshooting.md`, `docs/inno-tune.md`, `docs/deployment/*`, `docs/integrations/*`, `docker/scripts/download_model.py`, the `start-*` launchers, the compose files, `api/src/core/openai_mappings.json`, `examples/`, `CHANGELOG.md`, the GitHub repository, and `assets/` images. The missing configuration and troubleshooting docs are the main limit on the operations section.
-- Excluded as decorative or non-substantive: badges other than the test pins (Trendshift, Codecov, CI, downloads), donation and Spaces links, the contributor graph, and the repoglyph image.
+- Excluded as decorative or non-substantive: badges other than the test pins (Trendshift, Codecov, CI, downloads/pulls, DeepWiki/CodeWiki), donation and Spaces links, the contributor graph, and the repoglyph image.
 - Sensitive-value screen: the README uses only the placeholder `api_key="not-needed"` (lines 156, 189, 238, 381). No credentials, tokens, or private data appear (**Observed**).
 - No wrapper revision is recorded, so every fact here is time-bound (`stale_after` 2027-10-13).
 
 [^kokoro-fastapi-readme]: [Kokoro-FastAPI README capture](../raw/Kokoro-FastAPI.md) — locators: line 1 banner; lines 7–11 badges (`kokoro` 0.9.4, `misaki` 0.9.4, tested model commit `41e5892`); lines 16–28 intro features and platform matrix; line 19 language list; lines 48–88 docker run; line 52 `:latest` pin advice; line 69 NVIDIA arm64 row; line 84 `gpu:latest` note; lines 90–115 compose; lines 117–145 direct run; lines 147–177 Up and Running (`/docs`, `/web`); lines 184–230 OpenAI-compatible endpoint; lines 303–316 output formats; line 437 `ENABLE_VOICE_TAGS` opt-out; lines 451–458 `extra_body` example; lines 539 `SSML_MAX_DEPTH`; line 556 chunk token defaults; lines 778–783 configuration; lines 785–797 debug endpoints and stability; lines 808–835 normalization issue; lines 851–855 WAV sentinel; lines 886–899 model and license.
+
+[^kokoro-fastapi-readme-remsky]: [Kokoro-FastAPI README capture (remsky-prefixed variant)](../raw/remsky-Kokoro-FastAPI.md) — locators: line 13 Docker pulls-per-month badge; line 20 voicepack wording; lines 31–35 Integration & Guides; lines 37–51 collapsed community-projects list; line 53 `## Get Started`; content from there is identical to the earlier capture.

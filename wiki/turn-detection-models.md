@@ -5,7 +5,7 @@ description: Comparison of semantic/prosodic end-of-turn detectors for voice age
 tags: [vad, endpointing, turn-detection, pipeline, vietnamese]
 status: draft
 created: 2026-10-06
-generated: { by: llm-wiki-agent/1, at: 2026-10-08T12:00:00Z }
+generated: { by: llm-wiki-agent/1, at: 2026-10-21T12:00:00Z }
 stale_after: 2027-10-06
 sources:
   - id: claude-pipeline-report
@@ -23,6 +23,10 @@ sources:
     scope: ../raw/ten-turn-detection/
     kind: documentation
     title: TEN Turn Detection (TEN-framework) GitHub README and Hugging Face model card captures
+  - id: reddit-600ms-voice-agent
+    resource: ../raw/i_built_a_voice_ai_agent_with_600ms_latency_heres.md
+    kind: documentation
+    title: I built a voice AI agent with ~600ms latency. Here's what I learned. (r/VoiceAutomationAI thread capture)
 ---
 
 Turn detection (semantic endpointing) decides whether a user who paused has actually finished speaking; it runs after VAD reports silence. Among open options the report finds Pipecat Smart Turn v3 the only small, permissively licensed detector covering Vietnamese, while LiveKit's detectors cover 14 languages without Vietnamese; a silence fallback timeout remains advisable because Vietnamese is Smart Turn v3.2's weakest language in its own vendor benchmark (**Reported**).[^claude-pipeline-report][^smart-turn-v3.2]
@@ -63,6 +67,7 @@ Input modality differs: Smart Turn classifies raw audio (prosody), while TEN cla
 - Details of Pipecat Smart Turn's own architecture, input protocol, CPU/GPU variants, and per-language benchmark are in [Smart Turn v3.2](smart-turn.md) (**Synthesis**).[^smart-turn-v3.2]
 - Used by [Vietnamese Realtime Voice Agent Stack](vietnamese-realtime-voice-agent-stack.md) and integrated in [Voice Agent Frameworks](voice-agent-frameworks.md) (Pipecat `LocalSmartTurnAnalyzerV3`) (**Synthesis**).[^claude-pipeline-report]
 - Related to [Voice-Agent Barge-in and Echo Handling](voice-agent-barge-in-and-echo-handling.md): end-of-turn errors and false interruptions are the two turn-taking failure modes measured together (**Synthesis**).[^claude-pipeline-report]
+- Field report: [Community-Reported Voice-Agent Latency Measurement and Tuning](voice-agent-latency-community-report.md) says provider-side end-of-turn (Deepgram Flux `eot_threshold`/`eot_timeout_ms`/`eager_eot_threshold`, Cartesia Ink-2 turn API) closes the turn instead of VAD in a Pipecat phone deployment, and that turn-detection wait outweighed LLM gaps in another team's measurements (**Reported**).[^reddit-600ms-voice-agent]
 
 ## Coverage and limits
 
@@ -76,3 +81,5 @@ Input modality differs: Smart Turn classifies raw audio (prosody), while TEN cla
 [^ten-turn-detection]: [TEN Turn Detection](ten-turn-detection.md) — Task definition (finished/unfinished/wait, Qwen2.5-7B, text input); Inference recipe; Reported performance (English/Chinese per-class accuracy vs anonymous Models A/B); License and provenance; Contradictions (Apache-2.0 vs with additional restrictions); Coverage and limits. Primary locators: `README-github.md` › `Introduction`, `Detection Performance`, `License`; `README-hf.md` › frontmatter, `Detection Performance`.
 
 [^claude-pipeline-report]: [Claude voice-pipeline research report](../raw/Claude-pipeline-recommend.md) — locators: `TL;DR` turn-detection bullet; `Key Findings` 4; `PHẦN 1` §3 `Turn detection / semantic endpointing` table and following paragraph (`stop_secs=0.2`, 8 s window, prosody-based, FP 1/7, 1.2–1.5 s timeout); `PHẦN 2` mermaid flowchart (Smart Turn v3 + timeout 1.2s); `Ngân sách độ trễ` table; `Code mẫu` Pipecat note (`LocalSmartTurnAnalyzerV3`); `Recommendations` › `Khi nào nên thay thành phần`; `Caveats`.
+
+[^reddit-600ms-voice-agent]: [r/VoiceAutomationAI ~600 ms latency thread capture](../raw/i_built_a_voice_ai_agent_with_600ms_latency_heres.md) — locators: `Comments 55` section — the poster's reply listing Flux/Ink-2 end-of-turn parameters and the Dutch-receptionist comment on end-of-turn wait.

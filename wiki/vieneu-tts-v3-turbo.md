@@ -5,7 +5,7 @@ description: On-device Vietnamese TTS family whose open-source v3 Turbo default 
 tags: [tts, vietnamese, voice-cloning, streaming, on-device]
 status: stable
 created: 2026-10-06
-generated: { by: llm-wiki-agent/1, at: 2026-10-07T15:45:00Z }
+generated: { by: llm-wiki-agent/1, at: 2026-10-21T18:00:00Z }
 stale_after: 2027-10-06
 sources:
   - id: audio-cpp-repo
@@ -115,6 +115,7 @@ VieNeu-TTS is an on-device Vietnamese text-to-speech family by Pham Nguyen Ngoc 
 - CPU and edge TTS comparison: [Pocket TTS](pocket-tts.md) covers a 100M-parameter CPU-first multilingual TTS system with first-chunk streaming and edge ports, while this concept covers a Vietnamese TTS family with a torch-free ONNX CPU path plus a dedicated 48M-parameter Nano preview for weak CPUs; no shared vendor or codebase is asserted (**Synthesis**).[^vieneu-tts-repo]
 - Real-time bilingual TTS comparison: [Breeze TTS 2](breeze-tts-2.md) covers an English-Chinese real-time TTS model with voice design and direction and H100 latency figures, while this concept covers a Vietnamese bilingual TTS family with reference-following style, inline emotion cues, and consumer-GPU plus CPU latency figures; no shared vendor or codebase is asserted (**Synthesis**).[^vieneu-tts-repo]
 - Tokenizer-name link: the source names `MOSS-Audio-Tokenizer-Nano` as the v3 Turbo codec; [MOSS-TTS-Nano](moss-tts-nano.md) covers a separate 0.1B multilingual TTS model with its own autoregressive Audio Tokenizer plus LLM architecture and ONNX CPU paths, cited here only as a name-adjacent retrieval pointer with no shared-checkpoint claim (**Synthesis**).[^vieneu-tts-repo]
+- Phonemizer detail: [SEA-G2P](sea-g2p.md) covers the `sea-g2p` front end credited here, its Vietnamese/Thai/Indonesian pipelines, `<en>`/`<math>` markup, C ABI and reported throughput, from its own README (**Reported**).
 - Serving and deployment detail: this concept's repository-README summary is expanded by [VieNeu-TTS OpenAI-Compatible Speech API](vieneu-tts-openai-speech-api.md), [VieNeu-TTS Streaming Runtime and Performance](vieneu-tts-streaming-runtime.md), and [VieNeu-TTS Docker Compose Deployment](vieneu-tts-docker-deployment.md), which compile the captured `docs/streaming.md` and `docker/docker-compose.yml` (**Synthesis**).[^vieneu-tts-docs]
 
 ## Coverage and limits

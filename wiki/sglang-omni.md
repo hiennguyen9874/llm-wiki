@@ -5,13 +5,21 @@ description: Multi-stage GPU serving runtime for omni, speech, TTS, and ASR mode
 tags: [tts, stt, serving, streaming]
 status: stable
 created: 2026-10-06
-generated: { by: llm-wiki-agent/1, at: 2026-10-06T18:00:00Z }
+generated: { by: llm-wiki-agent/1, at: 2026-10-21T16:00:00Z }
 stale_after: 2027-10-06
 sources:
+  - id: ming-asr-tiny-card
+    resource: ../raw/Ming-3.0-asr-tiny.md
+    kind: documentation
+    title: Ming-3.0-asr-tiny model card capture
   - id: sglang-omni-readme
     resource: ../raw/sglang-omni.md
     kind: documentation
     title: SGLang-Omni GitHub README (v0.1.7-era, 2026/09 news)
+  - id: fish-drama3-card
+    resource: ../raw/drama-3.md
+    kind: documentation
+    title: Fish Audio Drama 3 model card
 ---
 
 SGLang-Omni is a multi-stage GPU serving runtime for omni, speech, and TTS models that models generation as coordinated heterogeneous stages — preprocessing, encoders, autoregressive engines, talkers, decoders, vocoders, and aggregators — with stage-matched scheduling and a control-plane plus relay-data-plane transport over shared memory, NCCL, NIXL, and Mooncake, exposing multimodal chat, speech generation, and transcription behind OpenAI-compatible endpoints while composing with SGLang for autoregressive scheduling and execution where applicable (**Reported**).[^sglang-omni-readme]
@@ -58,8 +66,11 @@ SGLang-Omni is a multi-stage GPU serving runtime for omni, speech, and TTS model
 
 ## Relationships
 
+- Serves: [Ming-3.0-asr-tiny](ming-3.0-asr-tiny.md) documents `sgl-omni serve --model-path inclusionAI/Ming-3.0-asr-tiny` on one GPU and `/v1/audio/transcriptions` with `language=en|zh`, prompt context and `stream=true` transcript SSE (**Reported by the model card**, not the older runtime README). This does not establish native audio-input streaming or a minimum compatible runtime version; the linked Ming cookbook and implementation were not inspected, and no server/request was run.[^ming-asr-tiny-card]
+
 - Serves: [Higgs TTS 3](higgs-tts-3-4b.md) names SGLang Omni as its documented production stack with continuous batching, `/v1/audio/speech` synthesis, cloning, and streaming; consult that page for model weights, tag controls, and H100 throughput (**Synthesis**).[^sglang-omni-readme]
 - Serves: [Fish Audio S2 Pro](fish-audio-s2-pro.md) runs on an SGLang-based streaming engine with LLM-native batching and prefix-caching optimizations; consult that page for DualAR architecture and H200 latency figures (**Synthesis**).[^sglang-omni-readme]
+- Serves: [Fish Audio Drama 3](fish-audio-drama-3.md) documents launch-day `sgl-omni serve --model-path fishaudio/drama-3` and reports, on H200, that moving the vocoder stage to a second GPU gives about 72% more throughput and 37% lower median TTFA at 256 streams, as an example of stage placement being deployment configuration (**Reported by the model card**, not the runtime README).[^fish-drama3-card]
 - Serves: [AuK](auk.md) and [AuK-Flash](auk-flash.md) report Day-0 SGLang-Omni support for 16 instruction-driven speech generation and editing tasks; consult those pages for task coverage and weights (**Synthesis**).[^sglang-omni-readme]
 - Serves: [Qwen3-ASR family](qwen3-asr-family.md), [Fun-ASR-Nano-2512](fun-asr-nano-2512.md), [Fun-ASR-MLT-Nano-2512](fun-asr-mlt-nano-2512.md), [ARK-ASR-3B](ark-asr-3b.md), [Nemotron 3.5 ASR Streaming 0.6B](nemotron-3.5-asr-streaming-0.6b.md), and [MOSS-Transcribe-Diarize GGUF (for moss-transcribe.cpp)](moss-transcribe-cpp-gguf.md) cover the ASR and transcribe-diarize families this runtime fronts over `/v1/audio/transcriptions`; no shared-vendor claim is made (**Synthesis**).[^sglang-omni-readme]
 - Serves: [dots.tts-mf](dots-tts-mf.md), [dots.tts-soar](dots-tts-soar.md), [Qwen3-TTS-12Hz-0.6B-CustomVoice](qwen3-tts-12hz-0.6b-customvoice.md), and [Qwen3-TTS-12Hz-1.7B-CustomVoice](qwen3-tts-12hz-1.7b-customvoice.md) cover TTS families in this runtime's `/v1/audio/speech` speech-generation list; no shared codebase is asserted (**Synthesis**).[^sglang-omni-readme]
@@ -73,5 +84,9 @@ SGLang-Omni is a multi-stage GPU serving runtime for omni, speech, and TTS model
 - Logo SVG, badges, cookbook, installation, basic-usage, developer-reference, `install.sh`, and `docs/cookbook` plus `docs/get_started` guides were linked but not fetched and were not present in `raw/`; stage internals, scheduler behavior, transport backends, router semantics, and checkpoint contents were not inspected (**Synthesis**).[^sglang-omni-readme]
 - License badge links to the upstream `LICENSE` but the license identifier is not stated in the captured text and was not resolved here (**Synthesis**).[^sglang-omni-readme]
 - Release, Day-0 support, hardware-support, and API-surface claims carry `stale_after: 2027-10-06` per the `tts`/`stt`/`llm` domain rules (**Synthesis**).[^sglang-omni-readme]
+
+[^ming-asr-tiny-card]: [Ming-3.0-asr-tiny model card](../raw/Ming-3.0-asr-tiny.md) — `Quick Start` → `SGLang-Omni serving` (single-GPU launch, OpenAI-compatible transcription request, JSON `text`, `language`, `prompt`, `stream=true`, Ming cookbook pointer); `Usage Notes` (bundled Transformers example has no streaming input). Model card inspected statically; external cookbook, runtime code and compatibility not checked.
+
+[^fish-drama3-card]: [Fish Audio Drama 3 model card](../raw/drama-3.md) — locators: `Launch with SGLang Omni`; `Production Serving` Table 2 and the paragraph after it (vocoder placement).
 
 [^sglang-omni-readme]: [SGLang-Omni GitHub README](../raw/sglang-omni.md) — locators: header badges and link row (PyPI, stars, license, issues, DeepWiki; Blog, Documentation, Quick Start, Cookbook, SGLang, Slack; star solicitation); `News` (2026/09 AuK/AuK-Flash 24 kHz `/v1/audio/speech` plus `/generate` editing and v0.1.7 `uv pip install` fence; 2026/08 MiniMax Music 3 32 kHz stereo song and TTS refactor with Roadmap/blog links; 2026/06 MOSS-TTS Local v1.5 48 kHz and Higgs Audio v3); `About` (multi-stage decoding target; owned topology/lifecycle/transport/integration/API versus SGLang composition; stage list; scheduler and control-plane/relay-plane transport sentences; API-surface sentence); `What SGLang-Omni Serves` (Qwen3-Omni/Ming-Omni; MiniMax Music 3; 9-family speech-generation list plus `/v1/audio/speech`/batch/streaming/uploaded-voices note; 5-family transcription list plus `/v1/audio/transcriptions` and MOSS-TD `verbose_json` note; Router sentence); `Hardware Support` table (CUDA supported/full; Apple Silicon experimental MLX/MPS `install.sh` plus Qwen3-ASR guide; Intel XPU experimental Arc/XPU 4-family end-to-end with decode-graphs/multi-XPU note plus install guide and auto-detect note); `Quick Start` (macOS `./install.sh`, Installation/TTS/Qwen3-Omni/ASR/MOSS-TD/Router/Developer-reference links); `Community & Support` (contributor topics, Slack/developer-reference, organizational contact); `Acknowledgments` (SGLang ecosystem and open-model communities).

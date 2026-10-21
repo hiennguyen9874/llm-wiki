@@ -1,7 +1,7 @@
 ---
 type: Concept
 title: CrispASR ASR Backend Selection
-description: Choosing a CrispASR ASR backend: families from Whisper and NVIDIA NeMo through speech-LLMs to CTC-only and streaming models, the 24-column capability matrix, Vietnamese coverage, translation, and CPU speed guidance, all README-reported.
+description: "Choosing a CrispASR ASR backend: families from Whisper and NVIDIA NeMo through speech-LLMs to CTC-only and streaming models, the 24-column capability matrix, Vietnamese coverage, translation, and CPU speed guidance, all README-reported."
 tags: [stt, asr, backend-selection, streaming, multilingual, ggml]
 status: stable
 created: 2026-10-13

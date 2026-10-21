@@ -1,7 +1,7 @@
 ---
 type: Concept
 title: Kokoro Python Library
-description: Python kokoro inference library for Kokoro-82M: KPipeline setup, lang_code and voice selection, per-segment grapheme, phoneme, and 24 kHz audio outputs, misaki and espeak-ng G2P roles, and per-platform install notes.
+description: "Python kokoro inference library for Kokoro-82M: KPipeline setup, lang_code and voice selection, per-segment grapheme, phoneme, and 24 kHz audio outputs, misaki and espeak-ng G2P roles, and per-platform install notes."
 tags: [tts, kokoro, python, misaki, espeak-ng]
 status: stable
 created: 2026-10-13

@@ -5,7 +5,7 @@ description: Core ML conversion set of pyannote speaker-diarization-community-1 
 tags: [vad, diarization, coreml, on-device, apple]
 status: stable
 created: 2026-10-06
-generated: { by: llm-wiki-agent/1, at: 2026-10-06T15:00:00Z }
+generated: { by: llm-wiki-agent/1, at: 2026-10-21T22:00:00Z }
 stale_after: 2027-10-06
 sources:
   - id: speaker-diar-coreml-card
@@ -68,6 +68,7 @@ Table values are the card's supported-artifact mapping (**Reported**).[^speaker-
 - Alternative to [Sortformer Diarizer 4spk v1](diar-sortformer-4spk-v1.md) and [Streaming Sortformer Diarizer 4spk v2](diar-streaming-sortformer-4spk-v2.md): NeMo offline/streaming up-to-four-speaker diarizers, while this concept covers a pyannote-lineage Core ML packaging for iOS 17 / macOS 14 or later (**Synthesis**).[^speaker-diar-coreml-card]
 - Alternative to [MOSS-Transcribe-Diarize 0.9B](moss-transcribe-diarize.md): joint long-form transcription plus diarization plus timestamps model, while this concept covers diarization-only segmentation/embedding/PLDA artifacts that return speaker segments without transcribed words (**Synthesis**).[^speaker-diar-coreml-card]
 - Related edge packaging: [Nemotron 3 Diarization GGUF](nemotron-3-diarization-gguf.md) is also an edge-format conversion (GGUF for audio.cpp with BF16/Q8_0 weights and quantization caveats), while this concept covers Core ML `.mlmodelc` plus `mlpackages/` artifacts for Apple deployment (**Synthesis**).[^speaker-diar-coreml-card]
+- Related ONNX packaging: [Sherpa Vietnamese ASR](sherpa-vietnamese-asr.md) runs pyannote Community-1 (and Senko CAM++) as pure ONNX Runtime on Windows, while this concept covers the Apple Core ML conversion (**Synthesis**).
 
 ## Coverage and limits
 

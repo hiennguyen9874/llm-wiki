@@ -5,7 +5,7 @@ description: MIT-licensed enterprise-grade pre-trained voice activity detector w
 tags: [vad, endpointing, pytorch, onnx, edge]
 status: stable
 created: 2026-10-06
-generated: { by: llm-wiki-agent/1, at: 2026-10-13T03:00:00Z }
+generated: { by: llm-wiki-agent/1, at: 2026-10-21T22:00:00Z }
 stale_after: 2027-10-06
 sources:
   - id: silero-vad-readme
@@ -72,6 +72,7 @@ Silero VAD by the Silero Team is a MIT-licensed pre-trained enterprise-grade Voi
 - Used by [Parakeet ASR Server](parakeet-asr-server.md): that Go server optionally bundles `silero_vad.onnx` for VAD-based long-audio chunking with mel-energy and midpoint fallbacks; consult that page for the serving, chunking, and operational context (**Synthesis**).[^silero-vad-readme]
 - Used by [RealtimeSTT](realtimestt.md): that Python library uses WebRTC/Silero VAD gating and a `silero-onnx-cpu` extra for recorder smoke tests and live-microphone use; consult that page for engine profiles and the production server around VAD-gated capture (**Synthesis**).[^silero-vad-readme]
 - Used by [Cascaded Voice-Agent Blueprint](cascaded-voice-agent-blueprint.md) and [Voice-Agent Barge-in and Echo Handling](voice-agent-barge-in-and-echo-handling.md): those LLM-generated drafts propose gateway endpointing defaults (threshold 0.5, 500 ms silence, 200 ms pre-roll) and always-on interruption scoring on top of this VAD; treat their parameters as unmeasured starting points (**Synthesis**).[^silero-vad-readme]
+- Used by [Sherpa Vietnamese ASR](sherpa-vietnamese-asr.md): that offline Vietnamese transcription app pairs Silero VAD with Pyannote segmentation and keeps Silero on CPU even when a GPU add-on is installed (README-reported; no VAD tuning values captured).
 - Referenced by [Community-Reported Local ASR/TTS Selection](community-asr-tts-selection.md): that draft names Silero VAD as the only open-weight VAD in a local ASR/TTS thread; treat those install and usage anecdotes as unverified alongside this page's source-reported characteristics (**Synthesis**).[^silero-vad-readme]
 
 - Compared by its vendor with [TEN VAD](ten-vad.md), whose README capture reports PR-curve, transition-latency, and RTF advantages over this VAD (Silero RTF given for one CPU only); see the Contradictions section (**Synthesis**).[^claude-pipeline-report]
@@ -85,6 +86,7 @@ Silero VAD by the Silero Team is a MIT-licensed pre-trained enterprise-grade Voi
 ## Contradictions
 
 - TEN VAD versus Silero: [TEN VAD](ten-vad.md) (Agora/TEN, Apache-2.0 with conditions, 10/16 ms hop) is vendor-claimed more accurate than Silero and WebRTC VAD with 32% lower RTF and an 86% smaller library, while a small community NOVA-VAD benchmark with UrbanSound8K noise reports Silero F1 91.9% versus TEN-VAD 69.2%; the report recommends measuring on own data and keeping Silero by default, considering TEN only when 10 ms frames are needed, so neither claim is chosen here (**Reported**).[^claude-pipeline-report]
+- Supported in [parakeet.cpp](parakeet-cpp.md) as a 1.3 MB GGUF (16 kHz and 8 kHz) via `vad` and `transcribe --vad`, where the README recommends it as the always-on gate over the noisier Parakeet Ultra/Redux VAD head; see [parakeet.cpp Bundles, VAD, Diarization and Scene Stream](parakeet-cpp-bundle-vad-scene.md) (**Synthesis**).
 
 ## Coverage and limits
 

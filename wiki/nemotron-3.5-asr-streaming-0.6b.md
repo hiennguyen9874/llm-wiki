@@ -5,7 +5,7 @@ description: NVIDIA 600M-parameter cache-aware FastConformer-RNNT streaming mult
 tags: [stt, asr, streaming, multilingual, fastconformer, rnnt, nemo]
 status: stable
 created: 2026-10-06
-generated: { by: llm-wiki-agent/1, at: 2026-10-15T10:21:49Z }
+generated: { by: llm-wiki-agent/1, at: 2026-10-21T21:00:00Z }
 stale_after: 2027-10-06
 sources:
   - id: nemotron-35-asr-card
@@ -108,6 +108,7 @@ Used by [Vietnamese Realtime ASR Selection](vietnamese-realtime-asr-selection.md
 - Shares the 0.6B cache-aware FastConformer streaming lineage with [Multitalker Parakeet Streaming 0.6B v1](multitalker-parakeet-streaming-0.6b-v1.md), which fine-tunes the English 0.6B streaming base for overlapped multitalker transcription fronted by streaming diarization (**Synthesis**).[^nemotron-35-asr-card]
 - Contrast endpointing strategy with [Parakeet Realtime EOU 120M v1](parakeet-realtime-eou-120m-v1.md): that concept covers the lightweight 120M English streaming model with inline `<EOU>`-token turn-taking at 80–160 ms latency, versus this page's 0.6B punctuated multilingual transcription with inference-time chunk-size selection (**Synthesis**).[^nemotron-35-asr-card]
 - Compare multilingual ASR coverage and accuracy with [Canary-1b-v2](canary-1b-v2.md), [Qwen3-ASR family](qwen3-asr-family.md), and [Fun-ASR-MLT-Nano-2512](fun-asr-mlt-nano-2512.md): Nemotron 3.5 ASR's differentiator in this wiki is streaming-first cache-aware inference with inference-time chunk-size selection and H100 concurrency figures over 40 locales (**Synthesis**).[^nemotron-35-asr-card]
+- Runtime field evidence: [audio.cpp ASR Benchmarks and Field Reports](audio-cpp-asr-benchmarks-and-field-reports.md) records the audio.cpp port's reported RTX 5090 offline/SSE figures (2.17 s for 327.6 s at 3.18% WER) and a third-party French-meeting test, including a since-fixed reused-session empty-output bug; those are runtime-port reports, not this card's NeMo figures (**Synthesis**).
 
 ## Coverage and limits
 

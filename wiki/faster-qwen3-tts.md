@@ -1,24 +1,28 @@
 ---
 type: Concept
 title: Faster Qwen3-TTS
-description: CUDA-graph and GGML inference wrapper for Qwen3-TTS with streaming synthesis, clone/custom/design APIs, and multi-GPU RTF/TTFA benchmarks.
-tags: [tts, streaming, inference-optimization, cuda-graphs, ggml]
+description: CUDA-graph and GGML inference wrapper for Qwen3-TTS across NVIDIA CUDA, AMD ROCm (MI300X-validated), and Apple Metal, with streaming synthesis, clone/custom/design APIs, and multi-GPU RTF/TTFA benchmarks.
+tags: [tts, streaming, inference-optimization, cuda-graphs, ggml, rocm]
 status: stable
 created: 2026-10-06
-generated: { by: llm-wiki-agent/1, at: 2026-10-06T10:35:26Z }
+generated: { by: llm-wiki-agent/1, at: 2026-10-21T22:30:00Z }
 stale_after: 2027-10-06
 sources:
   - id: faster-qwen3-tts-readme
     resource: ../raw/faster-qwen3-tts.md
     kind: documentation
     title: Faster Qwen3-TTS README
+  - id: faster-qwen3-tts-readme-rocm
+    resource: ../raw/andimarafioti-faster-qwen3-tts.md
+    kind: documentation
+    title: Faster Qwen3-TTS README (later snapshot with AMD ROCm support)
 ---
 
-Faster Qwen3-TTS is a real-time inference wrapper around Qwen3-TTS that accelerates the Talker plus Code Predictor decode step with `torch.cuda.CUDAGraph` static-cache replay on NVIDIA GPUs and an experimental GGML backend via `qwentts.cpp` for CUDA and Apple Silicon Metal, exposing streaming and non-streaming voice clone, CustomVoice, and VoiceDesign generation through Python, CLI, server, demo UI, and OpenAI-compatible API paths with published multi-GPU RTF/TTFA benchmarks (**Reported**).[^faster-qwen3-tts-readme]
+Faster Qwen3-TTS is a real-time inference wrapper around Qwen3-TTS that accelerates the Talker plus Code Predictor decode step with `torch.cuda.CUDAGraph` static-cache replay on NVIDIA CUDA and (in the later README snapshot) AMD ROCm GPUs and an experimental GGML backend via `qwentts.cpp` for CUDA, Apple Silicon Metal, and source-built AMD HIP, exposing streaming and non-streaming voice clone, CustomVoice, and VoiceDesign generation through Python, CLI, server, demo UI, and OpenAI-compatible API paths with published multi-GPU RTF/TTFA benchmarks (**Reported**).[^faster-qwen3-tts-readme]
 
 ## Backends and install
 
-- Torch backend uses `torch.cuda.CUDAGraph` and requires an NVIDIA GPU with CUDA; GGML backend supports CUDA and Apple Silicon Metal (**Reported**).[^faster-qwen3-tts-readme]
+- Earlier README snapshot: Torch backend uses `torch.cuda.CUDAGraph` and requires an NVIDIA GPU with CUDA; GGML backend supports CUDA and Apple Silicon Metal (**Reported**).[^faster-qwen3-tts-readme] The later snapshot extends this: Torch runs `CUDAGraph` on NVIDIA CUDA and AMD ROCm, and GGML adds AMD via a source-built HIP runtime (see [AMD GPUs (ROCm)](#amd-gpus-rocm)) (**Reported**).[^faster-qwen3-tts-readme-rocm]
 - Requires Python 3.10+ and PyTorch 2.5.1+; install with `pip install faster-qwen3-tts` (**Reported**).[^faster-qwen3-tts-readme]
 - Default install uses `qwen-tts-hf`, described as a temporary PyPI compatibility build of Qwen3-TTS with Transformers 5 support providing the same `qwen_tts` package as upstream `qwen-tts`; the source warns not to install both distributions in the same environment (**Reported**).[^faster-qwen3-tts-readme]
 - PyTorch floor is 2.5.1 because CUDA-graph capture in the fast path is described as unreliable on `torch<=2.5.0` ("operation not permitted when stream is capturing") (**Reported**).[^faster-qwen3-tts-readme]
@@ -28,6 +32,15 @@ Faster Qwen3-TTS is a real-time inference wrapper around Qwen3-TTS that accelera
 - On other platforms install the `ggml` extra (`pip install "faster-qwen3-tts[ggml]"`), which requires `qwentts-cpp-python>=0.5.0`; PyPI provides Metal (macOS 14+, native Apple Silicon) and CUDA 12.8 Linux wheels with no local native build needed, while other Linux runtimes install the matching wrapper wheel from the Hugging Face wheelhouse (documented `cu128` Ubuntu 22.04 and `cu130` CUDA 13 / DGX Spark variants, same ABI v5) (**Reported**).[^faster-qwen3-tts-readme]
 - GGML backend defaults to `log_level="warning"` in Python and CLI; `--verbose` or `qwentts_log_level="debug"` restores native diagnostics (**Reported**).[^faster-qwen3-tts-readme]
 - GGML backend caches raw reference audio as qwentts.cpp `.spk` speaker latents plus `.rvq` acoustic latents after the first clone request, and also accepts precomputed references directly (`--ref-spk`, `--ref-rvq`, `--ref-text`) so repeat requests skip reference-audio encoding (**Reported**).[^faster-qwen3-tts-readme]
+
+## AMD GPUs (ROCm)
+
+- Validation scope: both backends were validated only on AMD Instinct MI300X VF (`gfx942`) with ROCm 7.2.4; other AMD GPUs are untested (**Reported**).[^faster-qwen3-tts-readme-rocm]
+- Torch path: use a ROCm build of PyTorch. The verified environment was PyTorch 2.9.1, `qwen-tts-hf==0.1.1.post1`, `transformers==5.15.1`, SDPA attention, bfloat16, in container `rocm/pytorch:rocm7.2.4_ubuntu24.04_py3.12_pytorch_release_2.9.1`. Install with `pip install faster-qwen3-tts "transformers==5.15.1"` inside an environment that already has ROCm PyTorch, and check `torch.version.hip` plus `torch.cuda.is_available()` (**Reported**).[^faster-qwen3-tts-readme-rocm]
+- Keep `backend="torch"` and `device="cuda"` on AMD: ROCm PyTorch reuses the `torch.cuda` API and device names, including the graph APIs, so no `hip` device argument exists. The Transformers pin is required for the verified setup because newer versions hit a `MimiConfig.rope_theta` error at model load (**Reported**).[^faster-qwen3-tts-readme-rocm]
+- GGML path: build the pinned native runtime with `GGML_HIP=ON` and select `ROCm0`; BF16 and Q4_K_M were tested. Published Linux `qwentts-cpp-python` wheels are NVIDIA CUDA and do not include the AMD runtime; the build steps live in the linked `docs/ggml-backend.md#amd-gpus-hip`, which is not captured (**Reported**).[^faster-qwen3-tts-readme-rocm]
+- Validation covered streaming and full generation for 0.6B/1.7B Base cloning (ICL and xvec), 1.7B CustomVoice, and 1.7B VoiceDesign. The Torch suite passed 89 of 90 tests; the one failure was a greedy bfloat16 ICL case that hit its token limit without emitting EOS (**Reported**).[^faster-qwen3-tts-readme-rocm]
+- Measurement guidance: first-use initialization can be much slower than warm generation, so warm up with complete utterances before timing latency, and time reference extraction separately from generation. No AMD RTF/TTFA figures are published; the benchmark tables below are NVIDIA/Jetson only (**Reported**; absence observed by inspection).[^faster-qwen3-tts-readme-rocm]
 
 ## Interfaces
 
@@ -114,9 +127,12 @@ Qwen3-TTS runs two autoregressive transformers per decode step: a 28-layer Talke
 
 ## Coverage and limits
 
+- The later snapshot (`raw/andimarafioti-faster-qwen3-tts.md`) differs from the earlier capture only by the AMD/ROCm additions (lead paragraph, Install requirement line, `AMD GPUs (ROCm)` section) and a trailing-newline change, confirmed by `diff`; all other sections are unchanged, so earlier-snapshot citations remain valid. Neither snapshot records an upstream revision or capture date (**Observed**).[^faster-qwen3-tts-readme-rocm]
 - Source inspected statically only; no package installed, no checkpoint downloaded, no audio synthesized, and no RTF, TTFA, parity, or quality claim reproduced (**Synthesis**).[^faster-qwen3-tts-readme]
 - Linked but unfetched and absent from `raw/`: `docs/ggml-backend.md`, `examples/audio.py`, `examples/streaming_playback.py`, `examples/extract_speaker.py`, `examples/generate_with_embedding.py`, `examples/openai_server.py`, `demo/server.py`, `benchmarks/compare_modes.py`, `tests/test_e2e_parity.py`, `setup.sh`/`benchmark.sh` and Windows `.bat` scripts, `qwentts.cpp`/`qwentts-cpp-python` packages and Hugging Face wheelhouse, PyPI `faster-qwen3-tts`/`qwen-tts-hf` distributions, and `samples/parity/` plus `samples/non_streaming_mode/` WAV audio (not auditioned) and architecture/code references (**Synthesis**).[^faster-qwen3-tts-readme]
 - All install, compatibility, latency, benchmark, and quality figures are source assertions without independent verification in this wiki; release and benchmark figures carry `stale_after: 2027-10-06` per the `tts` domain rule (**Synthesis**).[^faster-qwen3-tts-readme]
 - No sensitive values were found in the source; CLI/Python examples use placeholder audio paths and a public-domain-style philosophical reference sentence (**Synthesis**).[^faster-qwen3-tts-readme]
 
 [^faster-qwen3-tts-readme]: [Faster Qwen3-TTS README](../raw/faster-qwen3-tts.md) — locators: title plus lead paragraph (Torch `torch.cuda.CUDAGraph`, GGML CUDA/Metal); `Install` section (`pip install faster-qwen3-tts`, Python 3.10+/Torch 2.5.1+, `qwen-tts-hf` note, `torch<=2.5.0` capture note, Blackwell `cu128`/2.7+ note, T4/A10G `cu124` fence, `nvidia-smi` guidance); `Experimental GGML backend` section (`--backend` selection, Metal/Intel-Mac notes, `[ggml]` extra, `qwentts-cpp-python>=0.5.0`, `cu128`/`cu130` wheelhouse fences, `docs/ggml-backend.md` link, `log_level`/`--verbose`/`qwentts_log_level`, `.spk`/`.rvq` cache fence); `Quick Start/Python` and `CLI` fences (`from_pretrained`, `generate_voice_clone_streaming` with `chunk_size=8`, `generate_voice_clone`, `warmup`, `StreamPlayer`, `clone`/`custom --list-speakers`/`design`/`--streaming`/`serve`, `sounddevice` note); `Demo UI` and `OpenAI-compatible API server` fences (`demo/server.py`, `examples/openai_server.py`, `/v1/audio/speech`, `--voices`, `pydub`); `Results` 0.6B/1.7B benchmark tables plus baseline/GPU-architecture notes; `Benchmark your hardware` fences (`./setup.sh`, `./benchmark.sh`, `setup_windows.bat`, `bench_results_<GPU_NAME>.json`); `Streaming` chunk-size table, model-seed table with `benchmarks/compare_modes.py`, `How streaming works` paragraphs (25-frame context, pull-based generators); `Voice Cloning Quality` tables and paragraphs (`xvec_only`, `chunked_decode`, `non_streaming_mode` defaults and RTX 4090 figures, `instruct`, `append_silence`); `Quality Samples` `samples/parity` and `samples/non_streaming_mode` audio-tag lists; `Parity` paragraphs plus `tests/test_e2e_parity.py` list and `QWEN_TTS_*` env fences; `How It Works` paragraphs plus Jetson per-component table (Talker 28 layers, Predictor 5 layers/15 steps, ~500 launches); `Voice Cloning with Precomputed Speaker Embeddings` fences (`extract_speaker.py`, `generate_with_embedding.py`, 4 KB/2048-dim bf16, `prompt_items`/`voice_clone_prompt` dict); `License` (MIT) and `Acknowledgments` links.
+
+[^faster-qwen3-tts-readme-rocm]: [Faster Qwen3-TTS README (later snapshot)](../raw/andimarafioti-faster-qwen3-tts.md) — locators: lead paragraph (CUDA/ROCm Torch, CUDA/Metal/HIP GGML); `Install` requirements line (NVIDIA CUDA or AMD ROCm); `Install` > `AMD GPUs (ROCm)` (MI300X VF `gfx942`, ROCm 7.2.4, PyTorch 2.9.1, `qwen-tts-hf==0.1.1.post1`, `transformers==5.15.1`, `rocm/pytorch` image fence, `GGML_HIP=ON`/`ROCm0`, BF16/Q4_K_M, 89-of-90 Torch tests, warm-up guidance); diff against `../raw/faster-qwen3-tts.md` for the unchanged remainder.

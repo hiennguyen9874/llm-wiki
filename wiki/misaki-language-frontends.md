@@ -1,7 +1,7 @@
 ---
 type: Concept
 title: Misaki Language Frontends
-description: Per-language text frontends in the misaki G2P engine: Japanese and Chinese tokenizer generations, the copied Korean tokenizer, English dependencies, and a Vietnamese credit that does not establish a misaki Vietnamese module.
+description: "Per-language text frontends in the misaki G2P engine: Japanese and Chinese tokenizer generations, the copied Korean tokenizer, English dependencies, and a Vietnamese credit that does not establish a misaki Vietnamese module."
 tags: [tts, g2p, misaki, japanese, chinese, korean, tokenizer]
 status: stable
 created: 2026-10-13

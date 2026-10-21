@@ -5,13 +5,17 @@ description: Comparison of open-source realtime voice-agent orchestration framew
 tags: [pipeline, orchestration, webrtc, frameworks]
 status: draft
 created: 2026-10-06
-generated: { by: llm-wiki-agent/1, at: 2026-10-07T04:37:10Z }
+generated: { by: llm-wiki-agent/1, at: 2026-10-21T12:00:00Z }
 stale_after: 2027-10-06
 sources:
   - id: claude-pipeline-report
     resource: ../raw/Claude-pipeline-recommend.md
     kind: llm-response
     title: Claude voice-pipeline research report
+  - id: reddit-600ms-voice-agent
+    resource: ../raw/i_built_a_voice_ai_agent_with_600ms_latency_heres.md
+    kind: documentation
+    title: I built a voice AI agent with ~600ms latency. Here's what I learned. (r/VoiceAutomationAI thread capture)
 ---
 
 Voice-agent frameworks supply transport, turn-taking, interruption, and service plumbing around VAD → STT → LLM → TTS. For a Silero + Whisper + Qwen3 + Qwen3-TTS stack the report rates Pipecat as needing the least code, because it already ships Silero VAD, faster-whisper, Smart Turn, and OpenAI-compatible LLM services, leaving only a custom `TTSService` for Qwen3-TTS or VieNeu; no surveyed framework has an official Qwen3-TTS service (**Reported**).[^claude-pipeline-report]
@@ -42,6 +46,7 @@ Telephony-leaning: Bolna, Dograh, Vocode. Listed but not re-checked: RealtimeSTT
 - Listed-but-unchecked projects with their own wiki concepts: [RealtimeSTT](realtimestt.md), [RealtimeVoiceChat](realtime-voice-chat.md), [HF Speech-to-Speech Pipeline](speech-to-speech-pipeline.md), and [Speaches](speaches.md) (**Synthesis**).[^claude-pipeline-report]
 - [VieNeu-TTS v3 Turbo](vieneu-tts-v3-turbo.md) exposes an OpenAI-style `/v1/audio/speech` server, which is what makes a thin custom `TTSService` sufficient (**Synthesis**).[^claude-pipeline-report]
 - [Community-Reported STT-LLM-TTS Pipeline Wiring](community-stt-llm-tts-pipeline.md) names Pipecat and LiveKit as good but optional end-to-end pipelines versus hand-wired HTTP services (**Synthesis**).[^claude-pipeline-report]
+- Field report: [Community-Reported Voice-Agent Latency Measurement and Tuning](voice-agent-latency-community-report.md) describes Pipecat run directly with one multi-tenant pipeline and Dograh as an open-source Pipecat layer with web UI, flow editor, and wired telephony; both are practitioner anecdotes, not verified (**Reported**).[^reddit-600ms-voice-agent]
 
 ## Coverage and limits
 
@@ -49,3 +54,5 @@ Telephony-leaning: Bolna, Dograh, Vocode. Listed but not re-checked: RealtimeSTT
 - TEN's "with conditions" license and LiveKit plugin details were not resolved by the report (**Reported**).[^claude-pipeline-report]
 
 [^claude-pipeline-report]: [Claude voice-pipeline research report](../raw/Claude-pipeline-recommend.md) — locators: `TL;DR` framework bullet; `PHẦN 1` §8 `Framework / sản phẩm hoàn chỉnh` table and closing Pipecat paragraph; `PHẦN 2` `Kỹ thuật tối ưu` (PR #5931); `Code mẫu` Pipecat usage note; `Recommendations` › `Lộ trình` MVP; `Caveats` (stars from mid-2026 blogs; unchecked small frameworks).
+
+[^reddit-600ms-voice-agent]: [r/VoiceAutomationAI ~600 ms latency thread capture](../raw/i_built_a_voice_ai_agent_with_600ms_latency_heres.md) — locators: `Comments 55` section — the Dograh/Pipecat and multi-tenant Pipecat comments.

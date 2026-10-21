@@ -5,7 +5,7 @@ description: Dependency-free MIT-licensed Python library that converts Vietnames
 tags: [tts, vietnamese, text-normalization, python, pipeline]
 status: stable
 created: 2026-10-08
-generated: { by: llm-wiki-agent/1, at: 2026-10-08T09:00:00Z }
+generated: { by: llm-wiki-agent/1, at: 2026-10-21T18:00:00Z }
 stale_after: 2027-10-08
 sources:
   - id: vietnormalizer-readme
@@ -64,6 +64,8 @@ README states ~0.6 ms per call with 17K+ entries, ~40 ms initialization, pre-com
 ## Relationships
 
 - Fills the normalizer step in [Vietnamese Speech Pipeline Design](vietnamese-speech-pipeline-design.md) and [Vietnamese Realtime TTS Selection](vietnamese-realtime-tts-selection.md) (**Synthesis**).
+- Shares its `nghitts` upstream with [NGHI-TTS Vietnamese Piper Voices](nghitts-vietnamese-piper-voices.md), a Piper/Sherpa ONNX voice set that could consume its output; compatibility is untested (**Synthesis**).
+- Alternative Vietnamese normalizer: [SEA-G2P](sea-g2p.md) is a Rust-core normalizer plus phonemizer (17-stage Vietnamese pipeline, Python and C ABI) with batch throughput figures; accuracy against this library is unmeasured (**Synthesis**).
 - Candidate preprocessing for [VieNeu-TTS v3 Turbo](vieneu-tts-v3-turbo.md) and [Kokoro Vietnamese](kokoro-vietnamese.md) inputs (**Synthesis**, untested).
 
 [^vietnormalizer-readme]: [Vietnamese Text Normalizer README](../raw/vietnormalizer.md) — locators: `## Features`; `## Installation`; `## Quick Start`; `## Transliteration Control`; `## Vietnamese Word Detection`; `## Direct Transliteration`; `## Custom Dictionaries` (CSV Formats); `## Advanced Usage`; `## Processing Pipeline` (19 steps); `## Performance`; `## Requirements`; `## License` (MIT); `## Acknowledgments` (ported from nghitts).

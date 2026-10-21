@@ -160,6 +160,7 @@ One utterance at a time; incumbents are parakeet.cpp (ggml), sherpa-onnx and onn
 - Contrasts with multilingual finetune [Orukeet](orukeet.md): that page keeps full parameter count with frozen Gabor taps for accuracy (FLEURS pooled 9.85 vs 11.01), while this page compresses the encoder to ternary for size and CPU speed (**Synthesis**).[^parakeet-redux-card]
 - Full-precision sibling [Parakeet Ultra](parakeet-ultra.md) keeps the same teacher at full precision for the GPU accuracy operating point (English 5.80, FLEURS 9.55, TED-LIUM 1.94 via Photon on NVIDIA GPU), while this page trades a small English penalty and a noise penalty for 178 MB ternary CPU/edge weights (**Synthesis**).[^parakeet-redux-card]
 - Surveyed alongside sibling checkpoints in [ASR/STT Model Survey](asr-stt-model-survey.md): compare its 7-set English, 25-language FLEURS, noise, and CPU realtime rows against the teacher, Phonon-2, and Orukeet rows when choosing a Parakeet-family checkpoint (**Synthesis**).[^parakeet-redux-card]
+- Runs in [parakeet.cpp](parakeet-cpp.md) as a packed-ternary CPU-only, offline-only model with its own README-reported kernels (median RTF 75.6 vs 46.1 for F16 on CPU, 6.8x smaller file, 1.96% WER on 100 LibriSpeech utterances); that engine's numbers and this page's Photon-based realtime figures use different runtimes and hardware and are not comparable (**Synthesis**).
 
 ## Coverage and limits
 

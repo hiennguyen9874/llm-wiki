@@ -1,7 +1,7 @@
 ---
 type: Concept
 title: Smart Turn v3.2
-description: Pipecat's BSD-2 audio-native semantic end-of-turn detector: Whisper Tiny encoder plus a linear head at ~8M params, 23 languages including Vietnamese, int8 CPU and fp32 GPU ONNX variants, and a 31,527-sample per-language benchmark.
+description: "Pipecat's BSD-2 audio-native semantic end-of-turn detector: Whisper Tiny encoder plus a linear head at ~8M params, 23 languages including Vietnamese, int8 CPU and fp32 GPU ONNX variants, and a 31,527-sample per-language benchmark."
 tags: [vad, endpointing, turn-detection, multilingual, onnx, edge]
 status: stable
 created: 2026-10-07

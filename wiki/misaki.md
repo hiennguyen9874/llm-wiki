@@ -5,9 +5,13 @@ description: "Misaki G2P engine for Kokoro models: English usage with optional e
 tags: [tts, g2p, kokoro, misaki, phonemes, espeak-ng]
 status: stable
 created: 2026-10-13
-generated: { by: llm-wiki-agent/1, at: 2026-10-13T04:53:00Z }
+generated: { by: llm-wiki-agent/1, at: 2026-10-21T15:12:59Z }
 stale_after: 2027-04-13
 sources:
+  - id: paradee-card
+    resource: ../raw/Paradee-8M-v1.0.md
+    kind: documentation
+    title: Paradee-8M v1.0 model card capture
   - id: misaki-readme
     resource: ../raw/misaki.md
     kind: documentation
@@ -57,6 +61,8 @@ Completed TODO items: more languages, with `ko.py`, `ja.py`, and `zh.py` added (
 
 ## Relationships
 
+- **Depended on by:** [Paradee-8M v1.0](paradee-8m-v1-0.md) requires misaki-compatible phoneme spelling, matching its teacher-generated training inputs. Its card links `web/misaki.js` to convert browser kokoro-js/eSpeak NG phonemes, reporting about 31% Whisper word errors without conversion versus about 2% with it. Judge version, sample count and protocol are not supplied; this is not an independent G2P evaluation (**Reported**). Code, weights and audio are uninspected; [Paradee's ledger](paradee-8m-v1-0.md#coverage-and-trust-limits) records the missing evidence.[^paradee-card]
+
 - **Depended on by:** [Kokoro Python Library](kokoro-python-library.md) depends on misaki for G2P (**Reported** in that concept).
 - **Depends on:** [eSpeak NG](espeak-ng.md) as an optional out-of-dictionary fallback, wired through `fallback=` (lines 22–39).[^misaki-readme]
 - **Related:** [Misaki Language Frontends](misaki-language-frontends.md) holds the per-language tokenizer lineage. [Kokoro Vietnamese](kokoro-vietnamese.md) uses its own `vig2p` path for Vietnamese G2P (per that concept). The misaki README lists Viphoneme but no Vietnamese module, so this page asserts no link between them.
@@ -70,4 +76,5 @@ Completed TODO items: more languages, with `ko.py`, `ja.py`, and `zh.py` added (
 - **Sensitive values:** none. The Discord invite was omitted.
 - **Freshness:** `stale_after` is six months after this ingest, because install commands and G2P behavior follow library releases. The capture has no date, so no release was checked.
 
+[^paradee-card]: [Paradee-8M v1.0 card](../raw/Paradee-8M-v1.0.md) — Files, paragraphs after ONNX Inputs/Output (`misaki`, kokoro-js/eSpeak NG, `web/misaki.js`, about 31% versus 2%); How it was made (teacher-generated training data).
 [^misaki-readme]: [misaki README capture](../raw/misaki.md) — locators: line 2 description; line 4 hosted demo; lines 6–20 English usage cell (line 9 install, line 13 constructor and comments, lines 15–19 example input and printed output); lines 22–40 espeak fallback (lines 24–25 install, line 27 `phonemizer-fork`, line 31 `EspeakFallback`, line 35 input, line 39 printed output); lines 42–45 English links; lines 47–56 Japanese; lines 58–61 Korean; lines 63–70 Chinese; lines 72–73 Vietnamese; lines 75–80 TODO list; lines 82–88 acknowledgements.

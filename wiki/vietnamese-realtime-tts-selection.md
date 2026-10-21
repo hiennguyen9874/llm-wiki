@@ -5,7 +5,7 @@ description: Shortlist TTS realtime tiếng Việt theo chất lượng bằng c
 tags: [tts, vietnamese, streaming, comparison, deployment]
 status: draft
 created: 2026-10-07
-generated: { by: llm-wiki-agent/1, at: 2026-10-15T10:43:58Z }
+generated: { by: llm-wiki-agent/1, at: 2026-10-21T12:00:00Z }
 stale_after: 2027-10-07
 sources:
   - id: qwen3-tts-vi-card
@@ -90,6 +90,10 @@ sources:
     resource: sanotts.md
     kind: synthesis
     title: Compiled sanoTTS
+  - id: nghitts-concept
+    resource: nghitts-vietnamese-piper-voices.md
+    kind: synthesis
+    title: Compiled NGHI-TTS Vietnamese Piper Voices (unofficial mirror)
   - id: tts-survey
     resource: tts-model-survey.md
     kind: synthesis
@@ -160,6 +164,7 @@ Các khả năng và số liệu trong bảng là **Reported**; phân hạng ưu
 | **[MOSS-TTS Local v1.5](moss-tts-local-transformer-v1-5.md)** | `vi` trong 31 ngôn ngữ; card khuyến nghị explicit language tag, có cloning/pause/duration control | HF và SGLang-Omni; card mô tả audio-output streaming PCM 48 kHz, native codec stereo; chưa có numeric quality/TTFA/RTF/VRAM | Apache-2.0 theo card. Candidate GPU streaming đáng A/B; cookbook/config chưa inspect, phải kiểm tra channel framing và cancellation.[^moss-local-v15-concept] |
 | **[MOSS-TTS v1.5](moss-tts-v1-5.md)** | `vi` trong 31 ngôn ngữ; language-tagged cloning, pause/duration control | Flagship MossTTSDelay-8B API, HF `generate` rồi decode; chưa có numeric quality/latency hay streaming path tương ứng trong capture | Apache-2.0 theo card. Research/cloning candidate; không gán streaming hoặc stereo handling của Local cho flagship.[^moss-v15-concept] |
 | **[sanoTTS](sanotts.md)** | Voice `vi-vais1000-1p46m/`, 1.46M; Vietnamese quality chưa được chấm | Piper/VITS-distilled piperlite, 22.05 kHz, numpy Python / browser / C paths; chưa có vi TTFA hoặc confirmed chunk-streaming API | GPL-3.0. Ultra-small edge candidate, không zero-shot cloning; không chuyển English nano/ESP32 figures sang voice vi.[^sanotts-concept] |
+| **[NGHI-TTS Piper voices](nghitts-vietnamese-piper-voices.md)** | 18 giọng vi một speaker (21 biến thể) finetune từ Piper voices; không có data, hours hay quality score | Piper ONNX / Sherpa ONNX, CPU, NVIDIA GPU hoặc OpenVINO; ví dụ `synthesize` theo chunk nhưng chưa có TTFA, RTF, sample rate | Card khai Apache-2.0 nhưng không nêu consent/likeness cho giọng mang tên người nổi tiếng và license upstream Piper. Candidate CPU để nghe thử, không phải baseline.[^nghitts-concept] |
 | **dots.tts-mf / soar** | card đề cập Vietnamese trong nhóm low-resource WER gap, không có danh sách support/điểm vi riêng ở đây | continuous AR + flow head; mf NFE=4; chưa có TTFA/RTF tiếng Việt | Apache-2.0. Research/fine-tune candidate; giữ similarity không đồng nghĩa đọc tiếng Việt đúng.[^dots-mf-card] |
 | **LGTM-TTS** | `vi`, Python usage và links hai sample vi | ONNX/PyTorch 44.1 kHz, duration + iterative denoising + vocoder | Thiếu license, size, quality/latency; chưa chọn production.[^lgtm-card] |
 | **VieNeu v3 Nano** | vi/en nhưng English/code-switch yếu hơn Turbo | 48M flow matching ONNX, 24 kHz; RTF0.22/0.11 trên desktop i5 ở16/8 steps; chỉ finished-text chunks | Chỉ fallback yếu CPU sau kiểm tra artifacts/license; không thay Turbo khi cần frame-level streaming.[^vieneu-tts-repo] |
@@ -260,6 +265,7 @@ C++/GGUF là deployment alternative, không đổi language/weight license: audi
 - G-OmniVoice: card tự báo held-out vi set nhưng thiếu protocol/dataset/judge/uncertainty; `wer_vs_sim.png` không có trong raw; competitor rows là số in lại, nhãn `VietNeu/v3turbo` chưa khớp naming VieNeu đã compile; chưa có TTFA/streaming nên chưa đổi baseline.[^g-omnivoice-card]
 - Kokoro Vietnamese: weights/config/voicepacks và `vig2p` chưa inspect; chưa có training-data details, quality/latency/streaming benchmarks trong capture. ONNX không tự chứng minh realtime.[^kokoro-vi-concept]
 - MOSS v1.5: language-tag gains và cloning/prosody improvements là qualitative claims; chưa có matched vi evaluation. Local SGLang cookbook/config/implementation chưa inspect; HF native stereo nhưng streaming example dùng `ffmpeg -ac 1`, nên phải xác nhận channel count thực của stream. Flagship là checkpoint/API riêng, không thừa hưởng streaming evidence của Local.[^moss-local-v15-concept][^moss-v15-concept]
+- NGHI-TTS Piper voices (mirror không chính thức): thiếu quality/latency/size/sample rate, training data và consent cho voice mang tên người thật; weights, config và repo chính thức chưa inspect; Apache-2.0 trong card chưa được đối chiếu với license upstream Piper hoặc runtime `piper1-gpl`.[^nghitts-concept]
 - sanoTTS: Vietnamese piperlite voice chưa được SCOREQ/UTMOS chấm; scorecard English và nano MCU figures không đánh giá voice vi. Không zero-shot cloning; cần rà GPL deployment và test các period-pause/sibilant reports (chưa reproduce, chưa xác lập cho vi).[^sanotts-concept]
 - Coverage bổ sung: lần cập nhật này chỉ đọc bốn compiled concepts Kokoro/MOSS Local/MOSS flagship/sanoTTS cùng survey, không mở raw hoặc fetch upstream; coverage ledger và artifact limits của các concept đó được giữ làm giới hạn, không coi là verification mới.[^kokoro-vi-concept][^moss-local-v15-concept][^moss-v15-concept][^sanotts-concept]
 - Coverage 2026-10-13: Gwen-TTS repo (README, `pyproject.toml`, `inference.py`), VietNormalizer, ViSoNorm, Kokoro library và misaki frontends chỉ được đọc qua compiled concepts; weights, audio, code normalizer/dictionaries, `vig2p` và Viphoneme chưa inspect, không có verification event mới.[^gwen-tts-repo][^vietnormalizer-concept][^visonorm-concept][^kokoro-lib-concept][^misaki-fe-concept]
@@ -272,6 +278,7 @@ C++/GGUF là deployment alternative, không đổi language/weight license: audi
 - Uses [TTS Model Survey](tts-model-survey.md) để map toàn catalog, nhưng thêm Vietnamese-specific deployment gates và sửa thiếu sót shortlist rộng.[^tts-survey]
 - Uses [VieNeu-TTS v3 Turbo](vieneu-tts-v3-turbo.md), [VoxCPM2](voxcpm2.md), [Supertonic 3](supertonic-3.md) làm ba baseline deployable có điều kiện; quyết định là synthesis từ support/runtime/license claims.[^vieneu-tts-repo][^voxcpm2-card][^supertonic3-card]
 - Depends on [VieNeu-TTS Streaming Runtime and Performance](vieneu-tts-streaming-runtime.md) cho số `max_streams`/TTFA/RTF và điều kiện CPU int8/VNNI của baseline đầu tiên, và trên [VieNeu-TTS Docker Compose Deployment](vieneu-tts-docker-deployment.md) cho profile triển khai `api-gpu`/`api-cpu`; đây là bằng chứng vận hành của tác giả, chưa reproduce (**Reported/Synthesis**).[^vieneu-tts-docs]
+- Uses [NGHI-TTS Vietnamese Piper Voices](nghitts-vietnamese-piper-voices.md) như CPU/edge Piper-Sherpa candidate cần nghe thử; chưa nâng thành baseline vì thiếu Vietnamese quality/TTFA/rights evidence (**Synthesis**).[^nghitts-concept]
 - Uses [Kokoro Vietnamese](kokoro-vietnamese.md) và [sanoTTS](sanotts.md) để bổ sung CPU/ultra-small edge candidates, chưa nâng thành realtime baseline vì thiếu Vietnamese quality/TTFA/streaming evidence (**Synthesis**).[^kokoro-vi-concept][^sanotts-concept]
 - Uses [MOSS-TTS Local v1.5](moss-tts-local-transformer-v1-5.md) như GPU streaming challenger có Vietnamese support; [MOSS-TTS v1.5](moss-tts-v1-5.md) là sibling cloning/control candidate, không đồng nhất serving path (**Synthesis**).[^moss-local-v15-concept][^moss-v15-concept]
 - Uses [VietNormalizer](vietnormalizer.md) và [ViSoNorm](visonorm-visobert-normalizer.md) làm hai hướng normalization khác nhau (rule-based written→spoken vs neural informal→standard) trước TTS; cả hai chưa được benchmark trong wiki (**Synthesis**).[^vietnormalizer-concept][^visonorm-concept]
@@ -309,3 +316,4 @@ C++/GGUF là deployment alternative, không đổi language/weight license: audi
 [^khanhtts-card]: [KhanhTTS card](../raw/KhanhTTS-OmniVoice.md) — frontmatter; introduction; Thông tin huấn luyện; Sample audio URLs; Cài đặt & chạy inference §§1–2; Miễn trừ trách nhiệm & Khuyến cáo sử dụng (TTS). No revision/date recorded.
 
 [^qwen3-tts-vi-card]: [Vietnamese finetune card](../raw/Qwen3-TTS-12Hz-1.7B-Vietnamese.md) — YAML license/language/base_model; opening training stages and Final weights paragraph; Usage dependency sentence, Python loading/generation fence and closing speaker/tokenizer paragraph. No upstream revision or publication date supplied.
+[^nghitts-concept]: [NGHI-TTS Vietnamese Piper Voices](nghitts-vietnamese-piper-voices.md) — Voices; Folder layout and formats; Usage recipes; Coverage and limits. Compiled card claims (Piper/Sherpa ONNX, CPU/GPU/OpenVINO recipes); no quality, latency, consent or license-lineage evidence, nothing executed.

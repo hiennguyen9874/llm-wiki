@@ -5,7 +5,7 @@ description: Massively multilingual zero-shot TTS model covering 600+ languages 
 tags: [ml, tts, multilingual, voice-cloning, zero-shot]
 status: stable
 created: 2026-10-06
-generated: { by: llm-wiki-agent/1, at: 2026-10-15T10:41:56Z }
+generated: { by: llm-wiki-agent/1, at: 2026-10-21T18:00:00Z }
 stale_after: 2027-10-06
 sources:
   - id: khanhtts-card
@@ -64,7 +64,7 @@ OmniVoice is a massively multilingual zero-shot text-to-speech model supporting 
 ## Relationships
 
 - Finetuned by [KhanhTTS-OmniVoice](khanhtts-omnivoice.md), a Vietnamese-English cloning derivative reporting ~1,500 h and ~500,000 steps; no derivative latency benchmark or cleared commercial license chain is established (**Reported/Synthesis**).[^khanhtts-card]
-
+- Vietnamese finetune with serving recipe: [OmniVoice Vietnamese (splendor1811)](omnivoice-vietnamese.md) covers an 8,000-step finetune on the 1,000-hour Dolly-Audio corpus with cached-prompt and `torch.compile` guidance, L4 RTF ~0.07 and ~210 ms TTFB figures, and a dataset (CC-BY-NC-SA-4.0) versus model (Apache 2.0) license tension; the card does not publish quality metrics (**Synthesis**).
 - Included by [Vietnamese Realtime TTS Selection](vietnamese-realtime-tts-selection.md) as a Vietnamese-listed research candidate, not a latency-cleared production pick: weights remain CC-BY-NC and the card's `generate` example returns complete waveforms; RTF0.025 does not establish TTFA or incremental audio (**Synthesis**).[^omnivoice-card]
 - Multilingual zero-shot TTS comparison: [Audio8 TTS Preview 0.6B](audio8-tts-preview-0.6b.md) covers a compact 0.6B DualAR multilingual cloning model with 11 recommended languages and Seed-TTS numbers, while this concept covers a 600+-language diffusion-LM cloning/design model with 0.025 RTF; no shared codebase or vendor claim is asserted (**Synthesis**).[^omnivoice-card]
 - Bilingual real-time TTS contrast: [Breeze TTS 2](breeze-tts-2.md) covers an English-Chinese real-time model with voice clone/design/direction and H100 TTFA/RTF figures, while this concept covers massively multilingual coverage and attribute-driven voice design; no shared codebase or vendor claim is asserted (**Synthesis**).[^omnivoice-card]

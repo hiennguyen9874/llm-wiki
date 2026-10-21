@@ -5,13 +5,17 @@ description: Mistral AI 4B-scale natively streaming multilingual speech-transcri
 tags: [stt, asr, streaming, multilingual, realtime]
 status: stable
 created: 2026-10-06
-generated: { by: llm-wiki-agent/1, at: 2026-10-06T00:00:00Z }
+generated: { by: llm-wiki-agent/1, at: 2026-10-21T21:00:00Z }
 stale_after: 2027-10-06
 sources:
   - id: voxtral-mini-4b-realtime-card
     resource: ../raw/Voxtral-Mini-4B-Realtime-2602.md
     kind: documentation
     title: Voxtral Mini 4B Realtime 2602 model card
+  - id: voxtral-arabic-card
+    resource: ../raw/Voxtral-Mini-4B-Realtime-Arabic.md
+    kind: documentation
+    title: Voxtral Mini 4B Realtime Arabic model card
 ---
 
 Voxtral Mini 4B Realtime 2602 (`mistralai/Voxtral-Mini-4B-Realtime-2602`) is Mistral AI's 4B-parameter natively streaming multilingual speech-transcription model, pairing a ~970M causal audio encoder trained from scratch with a ~3.4B language model, with a configurable transcription delay whose recommended 480 ms operating point matches leading offline open-source transcription models and realtime APIs at under 500 ms of delay, served primarily through vLLM's realtime endpoint on a single ≥16 GB GPU (**Reported**).[^voxtral-mini-4b-realtime-card]
@@ -79,6 +83,9 @@ All figures are vendor-reported word error rates from the card; nothing was repr
 - Evaluated against [Nemotron 3.5 ASR Streaming 0.6B](nemotron-3.5-asr-streaming-0.6b.md): the NVIDIA cache-aware multilingual streaming baseline appears in this card's comparison framing and in Audio8 Infinite's shared comparison table; read both when contrasting native causal-encoder streaming (Voxtral) against chunked cache-aware streaming with inference-time chunk selection (Nemotron) (**Synthesis**).[^voxtral-mini-4b-realtime-card]
 - Packaging catalog: [audio.cpp GGUF Model Packages](audio-cpp-gguf-packages.md) lists a `Voxtral-Mini-4B-Realtime-2602-GGUF` entry (BF16 + Q8 + Q4_K, Apache-2.0) for edge deployment; check that catalog before assuming a maturation path beyond vLLM serving (**Synthesis**).[^voxtral-mini-4b-realtime-card]
 
+- Arabic fine-tune: [Voxtral Mini 4B Realtime Arabic](voxtral-mini-4b-realtime-arabic.md) declares this checkpoint as its `base_model`, narrows coverage to Arabic MSA and dialects with a code-switching focus, and reports 8.82% average CER at 480 ms on its own Arabic benchmarks; the base's Arabic FLEURS WER above (22.53% at 480 ms) is a different metric and benchmark, so the two are not comparable (**Reported** lineage; comparability **Synthesis**).[^voxtral-arabic-card]
+- Runtime field evidence: [audio.cpp ASR Benchmarks and Field Reports](audio-cpp-asr-benchmarks-and-field-reports.md) records maintainer-reported audio.cpp RTX 5090 streaming figures (Q8_0 about 170 ms server TTFT, 6,495 MiB) and a third-party report that short single-clip offline requests returned empty text on this model's Q8_0 GGUF while whole-file and streaming paths worked; chunked VAD pipelines should test this before adoption (**Synthesis** of **Reported** claims).
+
 ## Coverage and limits
 
 - Source inspected statically only; no vLLM serve, no model download, no audio transcribed, and no WER, latency, throughput, or VRAM figure reproduced (**Synthesis**).[^voxtral-mini-4b-realtime-card]
@@ -87,3 +94,4 @@ All figures are vendor-reported word error rates from the card; nothing was repr
 - All accuracy, delay, throughput, VRAM, install, and usage claims are source assertions without independent verification in this wiki; release and benchmark figures carry `stale_after: 2027-10-06` per the `stt` domain rule (**Synthesis**).[^voxtral-mini-4b-realtime-card]
 
 [^voxtral-mini-4b-realtime-card]: [Voxtral Mini 4B Realtime 2602 model card](../raw/Voxtral-Mini-4B-Realtime-2602.md) — locators: frontmatter (`library_name`, 13-code `language` list, `license`, `base_model` Ministral-3-3B-Base-2512, `pipeline_tag`, `tags`, `inference`); header (multilingual realtime positioning, <500 ms claim, 13-language support, 4B on-device claim, >12.5 tok/s, BF16 Apache-2.0, blog/demo/technical-report/vLLM-blog links); `Key Features` (3.4B LM + 970M encoder bullets, causal training, sliding-window infinite streaming, architecture image, transcription/multilingual/realtime/delay capabilities, 80 ms–2.4 s delay range, use-case list); `Recommended Settings` (temperature 0.0, 80 ms-per-token rule with 45000/131072 figures, websockets, 480 ms sweet spot, `tekken.json` `transcription_delay_ms` multiples rule); `Benchmark Results > Fleurs` (6-row × 13-language WER table), `> Long-form English` (4-column table vs Transcribe 2.0), `> Short-form English` (6-column table vs Transcribe 2.0); `Usage` (vLLM/Transformers/ExecuTorch/community framework list, vLLM-only warning); `vLLM` (`Installation` pins `mistral_common >= 1.9.0`, `soxr/librosa/soundfile`, Transformers v5; `Serve` eager command with PIECEWISE cudagraph, ≥16 GB note, `max-num-batched-tokens`/`max-model-len` flags; `Client` `/v1/realtime` route and two example clients); `Transformers` (>= 5.2.0, `VoxtralRealtimeForConditionalGeneration` generate/decode fence); `ExecuTorch` (untested warning, demo link, README link, `voxtral.c` tip); `Community Contributions` (C, mlx-audio, MLX, Rust links); `License` (Apache-2.0 plus third-party-rights disclaimer).
+[^voxtral-arabic-card]: [Voxtral Mini 4B Realtime Arabic model card](../raw/Voxtral-Mini-4B-Realtime-Arabic.md) — locators: frontmatter `base_model`; intro (fine-tuned from this checkpoint, ~4.4B, 480 ms, 8.82% CER); `Limitations` (non-Arabic languages point back to the base model).

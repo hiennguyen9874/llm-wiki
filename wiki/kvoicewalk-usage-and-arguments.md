@@ -1,7 +1,7 @@
 ---
 type: Concept
 title: KVoiceWalk Usage and Arguments
-description: How to run KVoiceWalk: GUI and CLI modes for random walk, interpolated start, voice test, transcription, and voice export, with target-audio requirements, device selection, documented argument defaults, and a voice-folder flag-name conflict.
+description: "How to run KVoiceWalk: GUI and CLI modes for random walk, interpolated start, voice test, transcription, and voice export, with target-audio requirements, device selection, documented argument defaults, and a voice-folder flag-name conflict."
 tags: [tts, kokoro, cli, voice-cloning, operations]
 status: stable
 created: 2026-10-13

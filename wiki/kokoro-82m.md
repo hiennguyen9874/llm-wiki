@@ -5,9 +5,13 @@ description: Open-weight 82M-parameter text-to-speech model on the StyleTTS 2 ar
 tags: [tts, kokoro, styletts2, open-weights, apache-2.0]
 status: stable
 created: 2026-10-13
-generated: { by: llm-wiki-agent/1, at: 2026-10-15T10:59:14Z }
+generated: { by: llm-wiki-agent/1, at: 2026-10-21T15:12:59Z }
 stale_after: 2026-04-30
 sources:
+  - id: paradee-card
+    resource: ../raw/Paradee-8M-v1.0.md
+    kind: documentation
+    title: Paradee-8M v1.0 model card capture
   - id: kokoro-82m-card
     resource: ../raw/Kokoro-82M.md
     kind: documentation
@@ -74,6 +78,8 @@ The release table is **Reported**; see [Contradictions](#contradictions) for the
 
 ## Relationships
 
+- **Teacher of:** [Paradee-8M v1.0](paradee-8m-v1-0.md), an 8.07M-parameter distillation restricted to English `af_heart`, not a runtime for the full Kokoro checkpoint. Its card reports a 200-sentence, one-thread M4 Pro PyTorch comparison: Kokoro 81.8M / UTMOS 4.52 / Whisper-base WER 5.7% / 7.6× realtime, Paradee 8.07M / 4.41 / 5.7% / 25×. These are downstream-card claims, not benchmarks in Kokoro's own card or independent verification; Paradee's ONNX and leaderboard timings use separate conditions (**Reported**).[^paradee-card]
+
 - Compared in [Kokoro Deployment Comparison](kokoro-deployment-comparison.md): separates embedded inference, dedicated APIs, native GGUF runtimes, pipeline integrations and Vietnamese artifacts; recommendations are synthesis, not a matched benchmark.
 
 - Run by the [Kokoro Python Library](kokoro-python-library.md), the `kokoro` package whose `KPipeline` wraps this model; its README gives the basic and advanced usage cells and the `lang_code` values (**Reported**).[^kokoro-library-readme]
@@ -100,6 +106,7 @@ The release table is **Reported**; see [Contradictions](#contradictions) for the
 - **Excluded as decorative:** the closing image and the acknowledgement text, except the credits above. The capture contains no credentials, tokens, or private data; the Discord server link is omitted.
 - **Source revision:** none recorded beyond the April 2025 pricing note and the release table.
 
+[^paradee-card]: [Paradee-8M v1.0 card](../raw/Paradee-8M-v1.0.md) — opening model/voice description; Results table and PyTorch/ONNX qualifications; How it was made (frozen teacher, separate text/decoder training); Hugging Face Open TTS Leaderboard (dated snapshot). Full attachment/inspection limits are in [Paradee](paradee-8m-v1-0.md#coverage-and-trust-limits).
 [^kvoicewalk-readme]: [KVoiceWalk README capture](../raw/kvoicewalk.md) — locators: lines 2–4 purpose and Kokoro dependency; lines 25–33 example labels; line 95 walk and replacement; lines 86–99 example figures; line 179 Kokoro synthesis.
 [^kokoro-library-readme]: [kokoro library README capture](../raw/kokoro.md) — locators: line 3 package description and PyPI link; lines 10–11 and 32–34 install commands (`kokoro>=0.9.4`); lines 16–24 basic pipeline cell (`KPipeline(lang_code='a')`, `voice='af_heart'`, 24000 Hz write); lines 36–49 advanced setup and `lang_code` comments; lines 61–67 commented sample texts; lines 75–79 voice-tensor alternative; lines 106–119 conda environment (`kokoro>=0.3.1`).
 [^kokoro-fastapi-readme]: [Kokoro-FastAPI README capture](../raw/Kokoro-FastAPI.md) — locators: line 1 banner; lines 9–11 tested model-commit badge (`1.0::41e5892`, linked commit `41e5892b9d8b43e56fc560f892312a328a410973`); line 16 wrapper description.

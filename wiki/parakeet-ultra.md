@@ -141,6 +141,7 @@ One NVIDIA B200 with 128 requests in flight and the same files on both sides; Ne
 - Contrasts with quantized English derivative [Phonon-2](phonon-2.md): that page keeps the same teacher's conventions at ~2.1-bit encoder precision for a 164 MB English-only throughput play, while this page keeps 25-language multilingual coverage at full precision with Photon GPU serving (**Synthesis**).[^parakeet-ultra-card]
 - Contrasts with multilingual finetune [Orukeet](orukeet.md): that page keeps full parameter count with frozen Gabor taps for accuracy (FLEURS pooled 9.85), while this page is a vendor post-train reporting FLEURS pooled 9.55 under its own September-2026 Open ASR Leaderboard scoring protocol; do not compare the two pooled figures directly without reconciling protocols (**Synthesis**).[^parakeet-ultra-card]
 - Surveyed alongside sibling checkpoints in [ASR/STT Model Survey](asr-stt-model-survey.md): compare its 7-set English, 25-language FLEURS, business, noise, long-form, and B200 throughput rows against the teacher, Redux, Phonon-2, and Orukeet rows when choosing a Parakeet-family checkpoint (**Synthesis**).[^parakeet-ultra-card]
+- Also runnable in [parakeet.cpp](parakeet-cpp.md), whose README marks Ultra and Redux as not NeMo-validated (transcript-level parity against its own v3 path) and warns that their VAD head false-alarms on non-speech audio; see [parakeet.cpp Bundles, VAD, Diarization and Scene Stream](parakeet-cpp-bundle-vad-scene.md) (**Synthesis**).
 
 ## Coverage and limits
 

@@ -1,7 +1,7 @@
 ---
 type: Concept
 title: CrispASR Diarization and Post-Processing
-description: CrispASR's speaker diarization methods (energy, xcorr, foxnose, Sortformer, pyannote, sherpa, vad-turns) and its post-ASR steps: punctuation restoration, German truecasing, CTC forced alignment, and hotword biasing.
+description: "CrispASR's speaker diarization methods (energy, xcorr, foxnose, Sortformer, pyannote, sherpa, vad-turns) and its post-ASR steps: punctuation restoration, German truecasing, CTC forced alignment, and hotword biasing."
 tags: [vad, diarization, stt, punctuation, truecasing, alignment, hotwords]
 status: stable
 created: 2026-10-13

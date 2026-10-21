@@ -1,7 +1,7 @@
 ---
 type: Concept
 title: CrispASR Build, GPU, and Operations
-description: Building, installing, and operating CrispASR: CMake build, prebuilt CUDA and Vulkan tarball fallback rules, GPU backend selection, KV-cache and GGUF memory controls, quantization, model caching, and debugging environment variables.
+description: "Building, installing, and operating CrispASR: CMake build, prebuilt CUDA and Vulkan tarball fallback rules, GPU backend selection, KV-cache and GGUF memory controls, quantization, model caching, and debugging environment variables."
 tags: [pipeline, build, gpu, quantization, edge-deployment, ggml, gguf, debugging]
 status: stable
 created: 2026-10-13

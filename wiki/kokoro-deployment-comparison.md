@@ -5,9 +5,13 @@ description: Comparison of compiled Kokoro deployment routes across Python, dedi
 tags: [tts, kokoro, deployment, comparison]
 status: draft
 created: 2026-10-15
-generated: { by: llm-wiki-agent/1, at: 2026-10-15T10:59:14Z }
+generated: { by: llm-wiki-agent/1, at: 2026-10-21T15:12:59Z }
 stale_after: 2027-04-15
 sources:
+  - id: paradee-card
+    resource: ../raw/Paradee-8M-v1.0.md
+    kind: documentation
+    title: Paradee-8M v1.0 model card capture
   - id: library
     resource: kokoro-python-library.md
     kind: documentation
@@ -75,7 +79,7 @@ Kokoro deployment is not one choice: direct Python inference, an HTTP serving wr
 | Python kokoro | PyPI, KPipeline, per-segment 24 kHz audio; Windows/conda/Apple notes | Embed TTS in a Python app, batch generation, custom segmentation | Own the HTTP/concurrency/cancellation layer; README does not establish effective MPS device selection.[^library] |
 | Kokoro-FastAPI | CPU/CUDA/experimental ROCm Docker, Compose, direct uv scripts, native Apple MPS; OpenAI-compatible speech API and WebUI | Dedicated Kokoro service with voice mixes, markup, captions | Extensions are outside OpenAI schema; CUDA latest-tag ambiguity; normalization can drop phrases.[^fastapi] |
 | Speaches | CPU/GPU Docker or Compose; Kokoro/Piper TTS plus faster-whisper STT, dynamic load/offload, Realtime API | One STT/TTS API service | Overview only: precise API schema, license/version and benchmark unavailable.[^speaches] |
-| audio.cpp | Kokoro-82M-GGUF, family kokoro_tts, BF16/Q8; shared native CLI/server/WebUI | Native multi-model audio deployment | CPU/CUDA/Vulkan/Metal are framework options, not proof of every Kokoro/backend combination or streaming support; no matched Kokoro timing.[^packages][^native] |
+| audio.cpp | Kokoro-82M-GGUF, family kokoro_tts, BF16/Q8; shared native CLI/server/WebUI | Native multi-model audio deployment | CPU/CUDA/Vulkan/Metal are framework options, not proof of every Kokoro/backend combination or streaming support; no matched Kokoro timing. The audio.cpp author said in a launch thread that Kokoro would not enter the core models for portability reasons, which conflicts with the catalog row and is unresolved.[^packages][^native] |
 | CrispASR | kokoro backend, auto-download about 135 MB, CLI and OpenAI-compatible TTS HTTP surface | Native speech toolbox with easy Kokoro startup | README says all TTS is watermarked; inference serialized by default, no batched multi-stream inference. ASR worker claims do not prove TTS parallelism.[^crisp][^concurrency] |
 | HF speech-to-speech | kokoro extra and --tts kokoro; local/serve pipeline, browser WebSocket/WebRTC integration | Complete VAD→STT→LLM→Kokoro conversation system | Pipeline wrapper, not another Kokoro checkpoint; browser is a server client, not browser-local model inference; one session per pipeline unit, scalable with --num_pipelines.[^hf][^browser] |
 | RealtimeVoiceChat / RealtimeTTS | START_ENGINE=kokoro, Docker/manual Python, browser WebSocket audio and barge-in | Integrated conversation demo | Early preview, community-driven maintenance; source modules and exact engine behavior not inspected.[^chat] |
@@ -118,6 +122,7 @@ The same RTX setup reports a roughly 2.37 GB loaded-process/CUDA-context floor e
 
 - **Managed APIs:** the model card mentions Replicate and DeepInfra in an April 2025 pricing snapshot. That evidence is past its recorded stale_after date and establishes neither current availability, price, deployment controls nor SLA; not a current hosted-provider comparison.[^model]
 - **Browser/MCU distilled alternatives:** sanoTTS has Kokoro-distilled nano voices and WASM/MCU paths, but runs different, much smaller weights under GPLv3, not Kokoro-82M. Do not count it as the same model deployed to an ESP32.[^distilled]
+- **Small English ONNX alternative:** [Paradee-8M v1.0](paradee-8m-v1-0.md) distills Kokoro to 8.07M parameters and only `af_heart`. Its card recommends a ~9 MB INT8 ONNX graph (~18× realtime on one CPU thread); phoneme spelling must match misaki, with a linked browser eSpeak conversion. This is a different, Apache-2.0-declared checkpoint, not a full Kokoro ONNX runtime or a drop-in server backend (**Reported**; compatibility distinction **Synthesis**). A separate October 9, 2026 leaderboard snapshot reports CPU-streaming TTFA 390 ms median / RTFx 11.48, without hardware or adapter details; no incremental API, matched teacher-runtime speed win, or end-to-end latency is verified. The card's 8.45 versus 9.0 MB discrepancy and unavailable weights, config/vocab, samples, paper, repository, adapter and screenshots are recorded in its [coverage ledger](paradee-8m-v1-0.md#coverage-and-trust-limits).[^paradee-card]
 - **Voice search rather than serving:** KVoiceWalk is linked from the model as a voice-tensor search tool, not another serving runtime.[^model]
 - No compiled standalone upstream Kokoro ONNX/browser/Core ML/MLX runtime coverage was retrieved. This is a retrieval/coverage gap, not evidence that such projects do not exist.
 
@@ -128,18 +133,19 @@ The same RTX setup reports a roughly 2.37 GB loaded-process/CUDA-context floor e
 
 ## Coverage and trust limits
 
-- Wiki state: populated; initial structural check passed for 217 concepts. Retrieval used the root catalog, exact Kokoro search across wiki concepts, runtime/package and pipeline traversal; QMD was not needed.
-- Inspected the cited compiled pages and relevant sections this session. No raw research, live web research, installation, model download, API execution, audio listening or benchmark ran.
-- Citation sources are stable local concepts; inherit each concept's README-only, missing implementation/revision/configuration/weights, and unverified-capability limits. No claim of code-level support verification.
+- Original comparison retrieval record (2026-10-15): wiki state populated; initial structural check passed for 217 concepts. Retrieval used the root catalog, exact Kokoro search across wiki concepts, runtime/package and pipeline traversal; QMD was not needed.
+- The original comparison inspected compiled pages only. The 2026-10-21 Paradee ingest additionally inspected its entire raw model-card capture statically and linked the distinct distilled alternative; the other route claims were not reverified. No live web research, installation, model download, API execution, audio listening or benchmark ran.
+- Except for the raw Paradee card added in the follow-up, citation sources are stable local concepts; inherit each concept's README-only, missing implementation/revision/configuration/weights, and unverified-capability limits. Paradee has the same static-card limitation and its own attachment ledger. No claim of code-level support verification.
 - Draft because external ecosystem completeness, current hosted-provider coverage, per-backend Kokoro parity and comparable target-hardware performance remain unresolved. Operational comparison is time-sensitive.
 - Only public project/configuration identifiers and placeholder-free capability descriptions compiled; no sensitive values copied.
 
+[^paradee-card]: [Paradee-8M v1.0 card](../raw/Paradee-8M-v1.0.md) — opening model/voice/size/speed description; Files table, ONNX Inputs/Output and browser-conversion paragraphs; Results PyTorch/ONNX qualification; Hugging Face Open TTS Leaderboard (October 9, 2026 CPU-streaming bullets); License.
 [^library]: [Kokoro Python Library](kokoro-python-library.md) — Install; Pipeline API; Languages and G2P; Contradictions; Coverage and limits.
 [^fastapi]: [Kokoro-FastAPI](kokoro-fastapi.md) — Deployment paths; API surface; Known issues; Contradictions; Coverage and limits.
 [^performance]: [Kokoro-FastAPI Performance and Evaluation](kokoro-fastapi-performance.md) — Streaming first-token latency; Throughput; VRAM unload and reload; Reading the figures.
 [^speaches]: [Speaches](speaches.md) — Engines; Features (as listed); Coverage and limits.
 [^packages]: [audio.cpp GGUF Model Packages](audio-cpp-gguf-packages.md) — Files table, Kokoro-82M-GGUF row; Usage; Quality and licensing caveats.
-[^native]: [audio.cpp Framework](audio-cpp-framework.md) — Distribution and model management; Interfaces: CLI, server, WebUI, pipelines; Performance and quantization.
+[^native]: [audio.cpp Framework](audio-cpp-framework.md) — Distribution and model management; Contradictions (Kokoro core-model statement); Interfaces: CLI, server, WebUI, pipelines; Performance and quantization.
 [^crisp]: [CrispASR TTS Engines](crispasr-tts-engines.md) — Invocation; TTS feature matrix and engine notes; Coverage and limits.
 [^concurrency]: [CrispASR Streaming and HTTP Server](crispasr-streaming-http-server.md) — HTTP server; Concurrency; Coverage and limits.
 [^hf]: [HF Speech-to-Speech Pipeline](speech-to-speech-pipeline.md) — Installation; Supported components; Coverage and limits.

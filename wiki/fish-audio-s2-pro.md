@@ -5,13 +5,17 @@ description: Dual-autoregressive multilingual TTS model with free-form inline pr
 tags: [tts, multilingual, expressive, streaming]
 status: stable
 created: 2026-10-06
-generated: { by: llm-wiki-agent/1, at: 2026-10-07T04:10:00Z }
+generated: { by: llm-wiki-agent/1, at: 2026-10-21T16:00:00Z }
 stale_after: 2027-10-06
 sources:
   - id: fish-s2pro-card
     resource: ../raw/s2-pro.md
     kind: documentation
     title: Fish Audio S2 Pro model card
+  - id: fish-drama3-card
+    resource: ../raw/drama-3.md
+    kind: documentation
+    title: Fish Audio Drama 3 model card
 ---
 
 Fish Audio S2 Pro is a leading multilingual text-to-speech model combining reinforcement-learning alignment with a Dual-Autoregressive transformer (4B slow AR plus 400M fast AR) over a 10-codebook RVQ codec, trained on 10M+ hours across 80+ languages, offering free-form `[tag]` inline control of prosody and emotion plus an SGLang-based streaming engine that reports 0.195 RTF and ~100 ms time-to-first-audio on a single H200, under a research/non-commercial license (**Reported**).[^fish-s2pro-card]
@@ -53,6 +57,7 @@ Fish Audio S2 Pro is a leading multilingual text-to-speech model combining reinf
 
 - Included by [Vietnamese Realtime TTS Selection](vietnamese-realtime-tts-selection.md) as an expressive streaming candidate with a commercial-license gate. `vi` is in Other languages, not Tier 1/2; H200~100ms TTFA is not matched Vietnamese quality/latency evidence against consumer-GPU alternatives (**Synthesis**).[^fish-s2pro-card]
 - DualAR lineage: [Audio8 TTS Preview 0.6B](audio8-tts-preview-0.6b.md) describes its DualAR design as inspired by Fish Audio S2 Pro (slow AR semantic token per frame, fast AR codec codebooks conditioned on slow hidden state), while this concept covers the upstream S2 Pro architecture, control, language, and streaming claims; no shared checkpoint is asserted (**Synthesis**).[^fish-s2pro-card]
+- Later Fish Audio model: [Fish Audio Drama 3](fish-audio-drama-3.md) (35B MoE, 3B active, up to 16 speaker tags, edit-as-continuation) publishes a concurrency-sweep H200 table with a stated protocol, which the S2 Pro card lacks; the Drama 3 card states no architectural lineage from S2 Pro (**Synthesis**).[^fish-drama3-card]
 - Independent benchmark baseline: [Higgs TTS 3](higgs-tts-3-4b.md) reports Fish Audio S2 Pro scores as a baseline on multilingual voice-clone WER/CER suites and the Emergent-TTS judge win-rate table, while this concept carries S2 Pro's own card claims; prefer the Higgs page for head-to-head numbers (**Synthesis**).[^fish-s2pro-card]
 - Edge/server packaging: [audio.cpp GGUF Model Packages](audio-cpp-gguf-packages.md) already catalogs a `Fish-Audio-S2-Pro-GGUF` entry (`fish_audio`, BF16 + Q8, Fish Audio Research License), while this concept covers the upstream weights, card, and serving claims; prefer the GGUF entry for audio.cpp deployment questions (**Synthesis**).[^fish-s2pro-card]
 
@@ -61,5 +66,7 @@ Fish Audio S2 Pro is a leading multilingual text-to-speech model combining reinf
 - Source inspected statically only; no weights downloaded, no fine-tuning or inference code executed, and no RTF, latency, throughput, tag-effect, language-quality, or cloning claims reproduced (**Synthesis**).[^fish-s2pro-card]
 - Header image (`overview.png`), `LICENSE.md`, the arXiv/Hugging Face technical report, the `fish-speech` GitHub repository, the fish.audio playground, and the blog/tech-report page were linked but not fetched and were not present in `raw/`; checkpoint, tokenizer, codec, and audio contents were not inspected (**Synthesis**).[^fish-s2pro-card]
 - All architecture, training-scale, control-effect, language-coverage, performance, and licensing claims are source assertions without independent verification in this wiki; release and performance figures carry `stale_after: 2027-10-06` per the `tts` domain rule (**Synthesis**).[^fish-s2pro-card]
+
+[^fish-drama3-card]: [Fish Audio Drama 3 model card](../raw/drama-3.md) — locators: `Production Serving` (protocol, Table 1, Table 2); intro feature bullets; `License` section (no lineage statement from S2 Pro found).
 
 [^fish-s2pro-card]: [Fish Audio S2 Pro model card](../raw/s2-pro.md) — locators: frontmatter (`license`, `license_name`, `pipeline_tag`, `tags`, `language`, `inference`, `extra_gated_prompt`, `extra_gated_fields`); H1 plus intro paragraph (10M+ hours, 80+ languages, RL alignment, Dual-AR, weights/fine-tuning-code/SGLang-engine release); `Architecture` section (decoder-only transformer, 10-codebook RVQ at ~21 Hz, Slow AR 4B semantic codebook, Fast AR 400M 9 residual codebooks, SGLang optimizations incl. continuous batching / paged KV cache / CUDA graph replay / RadixAttention prefix caching); `Fine-Grained Inline Control` section (free-form `[tag]` syntax, word-level examples, 15,000+ tags, common-tag list); `Supported Languages` section (Tier 1, Tier 2, other-codes list); `Production Streaming Performance` section (H200 RTF 0.195, ~100 ms TTFA, 3,000+ tokens/s at RTF < 0.5); `Links` section (GitHub, Playground, blog/tech report); `Technical Report` BibTeX (Liao et al. 2026, arXiv:2603.08823); `License` section (research/non-commercial grant, business@fish.audio); header `<img>` alt text (fine-grained control, multi-speaker multi-turn, low-latency streaming, long-context inference).
