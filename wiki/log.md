@@ -1,6 +1,8 @@
 # Wiki Update Log
 
 ## 2026-10-22
+- **Ingest**: Compiled [AITeamVN/Vietnamese_Reranker model card](../raw/AITeamVN-Vietnamese_Reranker.md); created [Vietnamese_Reranker](vietnamese-reranker.md).
+- **Ingest**: Compiled [AITeamVN Vietnamese_Embedding model card](../raw/AITeamVN-Vietnamese_Embedding.md); created [Vietnamese_Embedding](vietnamese-embedding.md).
 - **Query**: Answered “best multimodal (image + text) embedding in wiki”; updated [multimodal embedding model comparison](multimodal-embedding-model-comparison.md) with [WeMM-Embedding](wemm-embedding.md), [Nemotron-3.5-Embed-1B-BF16](nemotron-3-5-embed-1b-bf16.md), and [EmbeddingGemma 2](embeddinggemma-2.md) (21→26 checkpoints), and refreshed cross-references in those concepts and the index.
 - **Ingest**: Compiled [EmbeddingGemma 2 model card](../raw/embeddinggemma-2.md); created [EmbeddingGemma 2](embeddinggemma-2.md) and added a successor relationship in [EmbeddingGemma 300M](embeddinggemma-300m.md).
 - **Ingest**: Compiled [r/LocalLLaMA thread “Best Embedding + Reranking Model”](../raw/best_embedding_reranking_model.md); created [Translation-memory embedding and reranker pairing benchmark](translation-memory-embedding-reranker-pairing-benchmark.md) and updated [zerank-2](zerank-2.md), [F2LLM-v2](f2llm-v2.md), and [Reranker model comparison](reranker-model-comparison.md).
