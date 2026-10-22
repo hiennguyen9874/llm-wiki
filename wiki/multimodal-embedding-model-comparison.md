@@ -1,11 +1,11 @@
 ---
 type: Synthesis
 title: Multimodal embedding model comparison
-description: A scope-aware comparison of the wiki's 36 documented multimodal embedding checkpoints and the limited 89-entry MMEB v3 ranking snapshot.
+description: A scope-aware comparison of the wiki's 36 documented multimodal embedding checkpoints, including a filter by documented language coverage (>2 languages), and the limited 89-entry MMEB v3 ranking snapshot.
 tags: [embedding, multimodal, retrieval, comparison, synthesis]
 status: stable
 created: 2026-08-19
-generated: { by: llm-wiki-agent/1, at: 2026-10-22T23:59:59Z }
+generated: { by: llm-wiki-agent/1, at: 2026-10-23T00:00:00Z }
 sources:
   - id: mmeb-v3-ranking
     resource: ../raw/mmeb_v3_ranking.csv
@@ -65,6 +65,76 @@ sources:
     resource: ../raw/perplexity-ai-pplx-embed-v2-late-9b.md
     kind: web
     title: perplexity-ai/pplx-embed-v2-late-9b Hugging Face page capture
+  - id: qwen3-vl-embedding-2b-card
+    resource: ../raw/Qwen3-VL-Embedding-2B.md
+    kind: model-card
+    title: Qwen3-VL-Embedding-2B model card
+  - id: qwen3-vl-embedding-8b-card
+    resource: ../raw/Qwen3-VL-Embedding-8B.md
+    kind: model-card
+    title: Qwen3-VL-Embedding-8B model card
+  - id: jina-v4-card
+    resource: ../raw/jina-embeddings-v4.md
+    kind: model-card
+    title: Jina Embeddings v4 model card
+  - id: evie-card
+    resource: ../raw/EVIE-Preview-4.5B.md
+    kind: model-card
+    title: EVIE-Preview-4.5B model card
+  - id: colqwen35v3-card
+    resource: ../raw/ColQwen3.5-4.5B-v3.md
+    kind: model-card
+    title: ColQwen3.5-4.5B-v3 model card
+  - id: vintern-embedding-1b-card
+    resource: ../raw/Vintern-Embedding-1B.md
+    kind: model-card
+    title: Vintern-Embedding-1B model card
+  - id: webai-colvec1-1-4b-card
+    resource: ../raw/webAI-ColVec1.1-4b.md
+    kind: model-card
+    title: webAI-ColVec1.1-4b model card
+  - id: webai-colvec1-1-8b-card
+    resource: ../raw/webAI-ColVec1.1-8b.md
+    kind: model-card
+    title: webAI-ColVec1.1-8b model card
+  - id: nemotron-colembed-vl-8b-v2-card
+    resource: ../raw/nemotron-colembed-vl-8b-v2.md
+    kind: model-card
+    title: Nemotron ColEmbed VL 8B v2 model card
+  - id: llama-nemotron-colembed-vl-3b-v2-card
+    resource: ../raw/llama-nemotron-colembed-vl-3b-v2.md
+    kind: model-card
+    title: Llama-Nemotron-ColEmbed-VL-3B-v2 model card
+  - id: tomoro-colqwen3-4b-card
+    resource: ../raw/tomoro-colqwen3-embed-4b.md
+    kind: model-card
+    title: TomoroAI/tomoro-colqwen3-embed-4b model card
+  - id: tomoro-colqwen3-8b-card
+    resource: ../raw/tomoro-colqwen3-embed-8b.md
+    kind: model-card
+    title: TomoroAI/tomoro-colqwen3-embed-8b model card
+  - id: jina-v5-omni-nano-card
+    resource: ../raw/jina-embeddings-v5-omni-nano.md
+    kind: model-card
+    title: jina-embeddings-v5-omni-nano model card
+  - id: jina-v5-omni-small-card
+    resource: ../raw/jina-embeddings-v5-omni-small.md
+    kind: model-card
+    title: jina-embeddings-v5-omni-small model card
+  - id: e5-omni-report
+    resource: ../raw/2601.03666_e5-omni/acl.tex
+    title: e5-omni technical-report LaTeX source
+  - id: tianmu-emb-uni-8b-card
+    resource: ../raw/Tianmu-Emb-Uni-8B.md
+    kind: model-card
+    title: Tianmu-Emb-Uni-8B model card
+  - id: omni-embed-nemotron-3b-card
+    resource: ../raw/omni-embed-nemotron-3b.md
+    kind: model-card
+    title: Omni-Embed-Nemotron-3B model card
+  - id: uembed-tech-report
+    resource: ../raw/2608.02583_UEmbed/main.tex
+    title: UEmbed technical-report LaTeX source
 ---
 
 # Multimodal embedding model comparison
@@ -104,6 +174,52 @@ This subset treats “2B” as the checkpoint's published model class; Jina Nano
 | [Vintern-Embedding-1B](vintern-embedding-1b.md) | multi-vector; scoring mechanism and width undisclosed | text-query against image or text document; explicitly lists Vietnamese, English, Chinese | ViDoRe average 82.85 in its card's table, but protocol/metric configuration is not documented | Choose for Vietnamese-first retrieval. It is not directly comparable to Qwen's MMEB-v2 score and has the least deployment detail. |
 
 **Recommendation (updated 2026-10-22):** for MMEB-style image/video/visual-document work, [WeMM-Embedding-2B](wemm-embedding.md) has the highest reported score in this band (77.9 vs Qwen 2B's 73.2–73.4), with [Ovis-VL-Embedding-2B](ovis-vl-embedding-2b.md) a close second (77.46; its Image score of 80.62 exceeds WeMM-2B's 79.6, while VisDoc 80.47 is slightly below 80.7; author-reported, so treat as a tie), but Qwen 2B stays the safer choice when 30+ language coverage matters. For multilingual document-page retrieval with text queries, evaluate [Nemotron-3.5-Embed-1B-BF16](nemotron-3-5-embed-1b-bf16.md). Choose [EmbeddingGemma 2](embeddinggemma-2.md) only when size or audio/video in one tiny index outweighs quality. Otherwise use Qwen 2B unless Vietnamese is primary (evaluate Vintern) or hybrid dense+sparse indexing is a hard requirement (evaluate UEmbed 2B). Choose Jina Omni Small over Nano when 32K context and adapters matter; choose Nano for the smaller footprint. The Jina report supplies MIEB evidence but not a common benchmark with Qwen, so validate both on the target corpus. [^jina-v5-omni-report]
+
+## Multilingual filter: image + text with more than two languages
+
+Filtered on 2026-10-23 for models that embed images and text and document more than two languages. Tiers reflect how strong the language evidence is, not model quality. Scores are Reported (author/vendor); cross-benchmark comparisons are Synthesis. Being absent here means "not documented in the wiki", not "monolingual".
+
+### Tier A — explicit language list or count
+
+| Model | Documented languages | Form / size | Reported result |
+|---|---|---|---|
+| [EmbeddingGemma 2](embeddinggemma-2.md) | 100+ understood; 140+ in training text; no per-language parity claimed[^embeddinggemma-2-card] | dense, 740M, 768D; also video/audio | MMEB-v2 overall 59.01 |
+| [DNA-VL-STEER-2B](dna-vl-steer-2b.md) | 36 calibrated XM3600 languages (incl. vi, ko, th, sw)[^dna-vl-steer-2b-page] | dense, 2.13B, 64–2,048D | XM3600 i→t R@1 59.8 → 70.3; LRL-5 32.8 → 51.8; regressions on text-only and fine-grained tasks |
+| [Nemotron-3.5-Embed-1B-BF16](nemotron-3-5-embed-1b-bf16.md) | text retrieval evaluated in 34 languages (incl. Vietnamese); image retrieval in 18[^nemotron-3-5-embed-1b-card] | dense, 1.55B, 2,048D; text queries only | ViDoRe V3 image 58.02; MIRACL-VISION 68.93 (NDCG@10, vendor-run) |
+| [Qwen3-VL-Embedding-2B](qwen3-vl-embedding-2b.md) / [8B](qwen3-vl-embedding-8b.md) | 30+, not enumerated[^qwen3-vl-embedding-2b-card][^qwen3-vl-embedding-8b-card] | dense, up to 2,048D / 4,096D Matryoshka | MMEB-v2 All 73.2–73.4 / 77.9 |
+| [Jina Embeddings v4](jina-embeddings-v4.md) | 30+, not enumerated[^jina-v4-card] | dense 2,048D or 128D-token late interaction | no scores on the card |
+| [EVIE-Preview-4.5B](evie-preview-4-5b.md) | queries in EN, FR, DE, IT, ES, PT, ZH[^evie-card] | 128D-token MaxSim, 4.54B | ViDoRe V3 public 65.36 at 1,792 visual tokens |
+| [ColQwen3.5-4.5B-v3](colqwen3-5-4-5b-v3.md) | EN, FR, DE, ES, ZH[^colqwen35v3-card] | 320D-token MaxSim, 4.5B | ViDoRe V3 61.46 Mean (Task) |
+| [Vintern-Embedding-1B](vintern-embedding-1b.md) | VI, EN, ZH[^vintern-embedding-1b-card] | multi-vector, ~0.9B; width undisclosed | ViDoRe average 82.85 (protocol undocumented) |
+
+### Tier B — labelled multilingual without a language list
+
+| Model | Language evidence | Reported result |
+|---|---|---|
+| [webAI-ColVec1.1-4b](webai-colvec1-1-4b.md) / [8b](webai-colvec1-1-8b.md) | ViDoRe V3 tasks averaged over six unnamed language subsets[^webai-colvec1-1-4b-card][^webai-colvec1-1-8b-card] | V3 final mean 63.90 / 64.95; 640D tokens |
+| [pplx-embed-v2-late-0.6b](pplx-embed-v2-late-0-6b.md) / [9b](pplx-embed-v2-late-9b.md) | Hub tag `multilingual` only[^pplx-late-06b-page][^pplx-late-9b-page] | ViDoRe V3 public (Image) 62.3 / 65.2; 128D tokens; MIT |
+| [Nemotron-ColEmbed-VL-8B-v2](nemotron-colembed-vl-8b-v2.md) | multilingual synthetic training data; EN/FR finance tasks[^nemotron-colembed-vl-8b-v2-card] | ViDoRe V3 63.54; 4,096D tokens |
+| [Llama-Nemotron-ColEmbed-VL-3B-v2](llama-nemotron-colembed-vl-3b-v2.md) | labelled multilingual[^llama-nemotron-colembed-vl-3b-v2-card] | ViDoRe V3 0.5970 nDCG@10 |
+| [Tomoro ColQwen3 4B](tomoro-colqwen3-embed-4b.md) / [8B](tomoro-colqwen3-embed-8b.md) | separate multilingual ViDoRe V3 split, languages unlisted[^tomoro-colqwen3-4b-card][^tomoro-colqwen3-8b-card] | V3 multilingual nDCG@5 0.5708 / 0.5866 |
+| [Jina v5 Omni Nano](jina-embeddings-v5-omni-nano.md) / [Small](jina-embeddings-v5-omni-small.md) | text space aligned with multilingual Jina v5 Text; language coverage for image/video/audio not established[^jina-v5-omni-nano-card][^jina-v5-omni-small-card] | MIEB Image 47.87 / 58.00 |
+| [e5-omni](e5-omni.md) | training mixes in BGE-M3 text pairs; language distribution not reported[^e5-omni-report] | MMEB-v2 66.4 (7B) |
+
+### Excluded (≤2 languages documented or none stated)
+
+- Chinese + English only: [WeMM-Embedding](wemm-embedding.md)[^wemm-readme] and [Tianmu-Emb-Uni-8B](tianmu-emb-uni-8b.md).[^tianmu-emb-uni-8b-card]
+- English only: [Omni-Embed-Nemotron-3B](omni-embed-nemotron-3b.md).[^omni-embed-nemotron-3b-card]
+- English/Chinese-heavy training: [UEmbed](uembed.md).[^uembed-tech-report]
+- Mostly English targets: [Sentio](sentio.md), [Wianmu-3B](wianmu-3b.md), [Wianmu-5B](wianmu-5b.md).[^sentio-card][^wianmu-3b-page][^wianmu-5b-page]
+- Language coverage not stated: [Ovis-VL-Embedding-2B](ovis-vl-embedding-2b.md), [Ovis-Omni-Embedding-3B](ovis-omni-embedding-3b.md), [GeeVec-Embeddings-mm-1.0](geevec-embeddings-mm-1-0.md), [AuroLA-Omni-3B](aurola-omni-3b.md).[^ovis-vl-card][^ovis-omni-card][^geevec-page][^auro-la-omni-3b-page]
+
+### Selection within the filter (Synthesis)
+
+- **Low-resource languages:** DNA-VL-STEER-2B is the only model with per-language evidence (36 languages); keep base Qwen3-VL-2B for text-only work.
+- **Broad image/video/visual-document:** Qwen3-VL-Embedding-8B has the highest MMEB-v2 score (77.9) among models claiming 30+ languages. WeMM scores higher but fails the language filter.
+- **Compact multilingual page retrieval, one vector:** Nemotron-3.5-Embed-1B (explicit 18-language image evaluation).
+- **Highest visual-document recall:** pplx-late-9b, EVIE, webAI-8b, and Nemotron-ColEmbed-8B cluster at ~63.5–65.4 on ViDoRe V3 but under unequal protocols/token budgets; no strict ranking.
+- **Vietnamese-first:** Vintern-Embedding-1B lists Vietnamese explicitly; Nemotron-3.5-Embed-1B and DNA-VL-STEER-2B include Vietnamese in their evaluated sets.
+- **Widest coverage on device:** EmbeddingGemma 2 (100+), with clearly lower image quality than Qwen3-VL.
 
 ## Architecture and modality matrix
 
@@ -163,7 +279,7 @@ The raw CSV ranks 89 entries by reported `Overall`; it does not include WeMM, Ne
 
 - **Do not compare dense-vector dimensions to token-vector dimensions as index footprint.** Late-interaction footprint also scales with retained tokens/page or frame.
 - **Use a reranker after first-stage retrieval** when latency allows. Qwen's multimodal rerankers are cross-encoders, not embeddings, and are intentionally excluded from this comparison.
-- **Language claims are uneven.** Qwen claims 30+ languages; WeMM lists Chinese and English; Nemotron-3.5-Embed-1B evaluated image retrieval in 18 languages; EVIE explicitly lists seven query languages; Vintern explicitly lists Vietnamese, English, and Chinese. Many other cards merely say multilingual.
+- **Language claims are uneven** (see the [multilingual filter](#multilingual-filter-image--text-with-more-than-two-languages)). Qwen claims 30+ languages; WeMM lists Chinese and English; Nemotron-3.5-Embed-1B evaluated image retrieval in 18 languages; EVIE explicitly lists seven query languages; Vintern explicitly lists Vietnamese, English, and Chinese. Many other cards merely say multilingual.
 - Most scores are provider-reported; neither the raw snapshot nor the model cards provide a common independently reproduced evaluation.
 
 ## Relationships
@@ -189,3 +305,21 @@ The raw CSV ranks 89 entries by reported `Overall`; it does not include WeMM, Ne
 [^pplx-late-06b-page]: [perplexity-ai/pplx-embed-v2-late-0.6b Hugging Face page capture](../raw/perplexity-ai-pplx-embed-v2-late-0.6b.md), Models table and Hub metadata. Vendor-reported; protocol in the unsupplied technical report.
 
 [^pplx-late-9b-page]: [perplexity-ai/pplx-embed-v2-late-9b Hugging Face page capture](../raw/perplexity-ai-pplx-embed-v2-late-9b.md), Models table and Hub metadata. Vendor-reported; protocol in the unsupplied technical report.
+[^qwen3-vl-embedding-2b-card]: [Qwen3-VL-Embedding-2B model card](../raw/Qwen3-VL-Embedding-2B.md), Highlights ("Supported Languages: 30+") and MMEB-V2 table. Author-reported.
+[^qwen3-vl-embedding-8b-card]: [Qwen3-VL-Embedding-8B model card](../raw/Qwen3-VL-Embedding-8B.md), Highlights and MMEB-V2 table. Author-reported.
+[^jina-v4-card]: [Jina Embeddings v4 model card](../raw/jina-embeddings-v4.md), feature list ("Multilingual support (30+ languages)"). Author-reported.
+[^evie-card]: [EVIE-Preview-4.5B model card](../raw/EVIE-Preview-4.5B.md), language-support statement and ViDoRe V3 results. Author-reported.
+[^colqwen35v3-card]: [ColQwen3.5-4.5B-v3 model card](../raw/ColQwen3.5-4.5B-v3.md), `language` front matter and ViDoRe V3 leaderboard capture. Author-reported.
+[^vintern-embedding-1b-card]: [Vintern-Embedding-1B model card](../raw/Vintern-Embedding-1B.md), `language` front matter and ViDoRe table. Author-reported.
+[^webai-colvec1-1-4b-card]: [webAI-ColVec1.1-4b model card](../raw/webAI-ColVec1.1-4b.md), ViDoRe V3 table and language claims. Author-reported.
+[^webai-colvec1-1-8b-card]: [webAI-ColVec1.1-8b model card](../raw/webAI-ColVec1.1-8b.md), ViDoRe V3 table and language claims. Author-reported.
+[^nemotron-colembed-vl-8b-v2-card]: [Nemotron ColEmbed VL 8B v2 model card](../raw/nemotron-colembed-vl-8b-v2.md), training-data description and ViDoRe V3 table. Vendor-reported.
+[^llama-nemotron-colembed-vl-3b-v2-card]: [Llama-Nemotron-ColEmbed-VL-3B-v2 model card](../raw/llama-nemotron-colembed-vl-3b-v2.md), description and ViDoRe V1–V3 table. Vendor-reported.
+[^tomoro-colqwen3-4b-card]: [TomoroAI/tomoro-colqwen3-embed-4b model card](../raw/tomoro-colqwen3-embed-4b.md), ViDoRe V3 multilingual table. Author-reported.
+[^tomoro-colqwen3-8b-card]: [TomoroAI/tomoro-colqwen3-embed-8b model card](../raw/tomoro-colqwen3-embed-8b.md), ViDoRe V3 multilingual table. Author-reported.
+[^jina-v5-omni-nano-card]: [jina-embeddings-v5-omni-nano model card](../raw/jina-embeddings-v5-omni-nano.md), model description ("multilingual"; no language list). Author-reported.
+[^jina-v5-omni-small-card]: [jina-embeddings-v5-omni-small model card](../raw/jina-embeddings-v5-omni-small.md), model description ("multilingual"; no language list). Author-reported.
+[^e5-omni-report]: [e5-omni technical report](../raw/2601.03666_e5-omni/acl.tex), training-data and MMEB-V2 results sections. Author-reported.
+[^tianmu-emb-uni-8b-card]: [Tianmu-Emb-Uni-8B model card](../raw/Tianmu-Emb-Uni-8B.md), `language` front matter (zh, en).
+[^omni-embed-nemotron-3b-card]: [Omni-Embed-Nemotron-3B model card](../raw/omni-embed-nemotron-3b.md), `language` front matter (en only).
+[^uembed-tech-report]: [UEmbed technical report](../raw/2608.02583_UEmbed/main.tex), limitations (English/Chinese-heavy training data).

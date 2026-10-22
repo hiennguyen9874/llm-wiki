@@ -1,5 +1,8 @@
 # Wiki Update Log
 
+## 2026-10-23
+- **Query**: Answered “multimodal image+text embeddings supporting more than two languages, compared”; filed a tiered multilingual filter (explicit list / multilingual label / excluded) with selection guidance into the [multimodal embedding model comparison](multimodal-embedding-model-comparison.md), adding 18 cited model-card and report sources.
+
 ## 2026-10-22
 - **Ingest**: Compiled [tencent/WeMM-Embedding-2B Hugging Face page capture](../raw/tencent-WeMM-Embedding-2B.md); updated [WeMM-Embedding](wemm-embedding.md) with a 2B Hub snapshot (2.72B BF16 stored parameters, custom-code config, lineage, license metadata, dates, activity, loading-interface mismatch) and `stale_after`; README content duplicated the already-compiled 2B card.
 - **Ingest**: Compiled [perplexity-ai/pplx-embed-v2-late-9b Hugging Face page capture](../raw/perplexity-ai-pplx-embed-v2-late-9b.md); created [pplx-embed-v2-late-9b](pplx-embed-v2-late-9b.md) (draft; technical report and blog not supplied), updated the [multimodal embedding model comparison](multimodal-embedding-model-comparison.md) (35→36 checkpoints), the [architecture taxonomy](embedding-model-architecture-taxonomy.md), and sibling links in [pplx-embed-v2-late-0.6b](pplx-embed-v2-late-0-6b.md) and [pplx-embed-v2-context-9b-preview](pplx-embed-v2-context-9b-preview.md).
