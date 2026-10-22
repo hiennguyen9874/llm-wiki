@@ -62,7 +62,7 @@ Within that snapshot, sparse output is slightly higher on Overall-V3 and Agent, 
 
 ## Relationships
 
-- **Variant of:** [UEmbed](uembed.md).
+- **Variant of:** [UEmbed](uembed.md); the smaller sibling is [UEmbed-2B](uembed-2b.md).
 
 [^uembed-tech-report]: [UEmbed technical-report LaTeX source](../raw/2608.02583_UEmbed/main.tex). Architecture, training, and evaluation results are author-reported; tables and relevant chart attachments were inspected, but no independent reproduction was available.
 [^uembed-4b-card]: [UEmbed-4B model card](../raw/UEmbed-4B.md). Model-card claims are author-reported.

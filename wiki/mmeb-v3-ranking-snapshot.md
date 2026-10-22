@@ -5,7 +5,7 @@ description: An 89-entry multimodal embedding ranking snapshot whose reported ov
 tags: [benchmark, embedding, multimodal, mmeb, leaderboard]
 status: stable
 created: 2026-08-19
-generated: { by: llm-wiki-agent/1, at: 2026-08-19T09:52:44Z }
+generated: { by: llm-wiki-agent/1, at: 2026-10-22T12:00:00Z }
 sources:
   - id: mmeb-v3-ranking
     resource: ../raw/mmeb_v3_ranking.csv
@@ -39,6 +39,7 @@ These are the 13 rows with nonzero Overall-V3 values, and they also occupy the f
 ## Relationships
 
 - **Evaluates:** [e5-omni](e5-omni.md), with separately listed reported entries for its 3B and 7B variants. [^mmeb-v3-ranking]
+- **Lists:** `Ovis-Omni-Embedding-v0.1-3B` (rank 2); its own card reports different, higher MMEB-v3 scores, documented in [Ovis-Omni-Embedding-3B](ovis-omni-embedding-3b.md). [^mmeb-v3-ranking]
 
 ## Data-quality limits
 

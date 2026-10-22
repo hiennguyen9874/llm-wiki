@@ -5,7 +5,7 @@ description: A 2B-parameter, 28-layer Qwen3-VL-based multimodal embedding model 
 tags: [embedding, retrieval, multimodal, multilingual, matryoshka, qwen]
 status: stable
 created: 2026-08-19
-generated: { by: llm-wiki-agent/1, at: 2026-08-19T10:09:50Z }
+generated: { by: llm-wiki-agent/1, at: 2026-10-22T23:59:00Z }
 sources:
   - id: qwen3-vl-embedding-2b-card
     resource: ../raw/Qwen3-VL-Embedding-2B.md
@@ -64,6 +64,7 @@ On the supplied MMEB-V2 comparison, the 2B model scores 73.2 overall: below Qwen
 
 - **Provides candidates to:** [Qwen3-VL-Reranker-2B](qwen3-vl-reranker-2b.md) and [Qwen3-VL-Reranker-8B](qwen3-vl-reranker-8b.md) in the report’s top-100 reranking evaluation.
 - **Shares family with:** [Qwen3-VL-Embedding-8B](qwen3-vl-embedding-8b.md).
+- **Fine-tuned into:** [DNA-VL-STEER-2B](dna-vl-steer-2b.md), a drop-in variant calibrated on 36 languages that adjusts only early residual-stream layers; it reports large low-resource-language retrieval gains but regressions on text-only and fine-grained visual tasks (Reported by that card).
 
 [^qwen3-vl-embedding-2b-card]: [Qwen3-VL-Embedding-2B model card](../raw/Qwen3-VL-Embedding-2B.md). Architecture, language, instruction-effect, and benchmark claims are author-reported.
 [^qwen3-vl-retrieval-report]: [Qwen3-VL retrieval technical report](../raw/2601.04720_Qwen3-VL-Embedding_Qwen3-VL-Reranker/colm2024_conference.tex). Architecture, training, ablation, and evaluation claims are author-reported; proprietary training data prevents full auditability.

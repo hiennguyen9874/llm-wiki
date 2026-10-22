@@ -41,6 +41,6 @@ The authors report English/Chinese-heavy training data and limited sparse cross-
 
 ## Relationships
 
-- **Includes variant:** [UEmbed-4B](uembed-4b.md).
+- **Includes variants:** [UEmbed-2B](uembed-2b.md) and [UEmbed-4B](uembed-4b.md).
 
 [^uembed-tech-report]: [UEmbed technical-report LaTeX source](../raw/2608.02583_UEmbed/main.tex). The report supplies author-reported architecture, training, and evaluation claims. Its tables and rendered chart attachments were inspected; no external benchmark reproduction was available.

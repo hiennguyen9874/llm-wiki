@@ -5,7 +5,8 @@ description: A 2B, 4B, and 9B Qwen3.5-based universal multimodal embedding famil
 tags: [embedding, retrieval, multimodal, multilingual, matryoshka, qwen]
 status: stable
 created: 2026-09-03
-generated: { by: llm-wiki-agent/1, at: 2026-09-03T00:00:00Z }
+generated: { by: llm-wiki-agent/1, at: 2026-10-23T00:30:00Z }
+stale_after: 2027-01-20
 sources:
   - id: wemm-readme
     resource: ../raw/WeMM-Embedding/README.md
@@ -22,6 +23,10 @@ sources:
   - id: wemm-report
     resource: ../raw/WeMM-Embedding/2608.24053-WeMM-Embedding/main.tex
     title: "WeMM-Embedding: WeChat Multi-Modal Embedding Technical Report"
+  - id: wemm-2b-hub
+    resource: ../raw/tencent-WeMM-Embedding-2B.md
+    kind: web
+    title: tencent/WeMM-Embedding-2B Hugging Face page capture
 ---
 
 # WeMM-Embedding
@@ -92,6 +97,26 @@ On MMEB-v2, 2B at 256 dimensions retains a reported 98.7% of full-dimensional im
 - Serving is documented for vLLM `0.27.0` in pooling mode with the bundled embedding chat template and SGLang `0.5.9` with `--is-embedding` and precise-embedding interpolation; wrapper scripts are `scripts/serve_vllm.sh` and `scripts/serve_sglang.sh`.[^wemm-readme][^wemm-2b-card]
 - MMEB-v3 evaluation code in `mmeb_v3_eval/` adapts the VLM2Vec pipeline with multi-node `torchrun`, a `wemm_embedding` backbone, aligned dataset instructions, and 64-frame video sampling.[^wemm-readme]
 
+## WeMM-Embedding-2B Hub snapshot
+
+A captured Hugging Face model page for `tencent/WeMM-Embedding-2B` (capture date not stated on the page; local file dated 2026-10-22) adds Hub-side metadata absent from the cards. Its rendered README matches the 2B card already compiled, so the snapshot adds no new benchmark, training, or usage claims.[^wemm-2b-hub][^wemm-2b-card]
+
+| Field | Hub value (Reported by the page's embedded metadata) |
+|---|---|
+| Stored parameters | 2,720,809,792, all BF16; single unsharded safetensors file, 5,441,695,216 bytes |
+| Config class | `architectures: Qwen3_5ForConditionalGeneration`, `model_type: qwen3_5`; `auto_map` sends `AutoModel` and `AutoModelForCausalLM` to custom `modeling_wemm_embedding.WeMMEmbedding` (requires `trust_remote_code=True`) |
+| Lineage | `base_model:finetune:Qwen/Qwen3.5-2B` |
+| Tags | `multimodal-embedding`, `text-embedding`, `image-embedding`, `video-embedding`, `mrl`, `sentence-transformers`, `custom_code`, `zh`, `en`; paper `arxiv:2608.24053` |
+| License | metadata `license: other`, `license_name: apache-2.0`, linked to the repository `LICENSE` file |
+| Dates and activity | created 2026-08-25; last modified 2026-09-03; 15,905 downloads last month, 40,118 all time; 123 likes; ungated; 3 discussions (2 closed, 1 open; contents not captured) |
+| Other | `hasQuantizations: true` (quantized derivatives exist; none identified in the capture); linked community Space `jw78/wemm-embedding-demo` (semantic-search demo) |
+
+Locators: embedded model-page JSON keys `safetensors`, `config`, `cardData`, `createdAt`, `downloads`, `downloadsAllTime`, `likes`, `discussionsStats`, `linkedSpaces`.[^wemm-2b-hub]
+
+- **Parameter count (Synthesis):** the Hub's 2.72B stored parameters exceed the 2.21B that [Wianmu-3B](wianmu-3b.md) quotes for the frozen WeMM-2B "excluding its unused language-model head" by about 0.51B, consistent with that head being included in the stored count. The "2B" label is a size class, not the exact count.
+- **Loading interfaces differ across the page (Observed):** the card examples use `AutoModel` with `model.embedding(**inputs)` and Sentence Transformers, while the Hub's generated snippet and `transformersInfo` use `AutoModelForMultimodalLM` with pipeline tag `image-text-to-text`; the card's own metadata sets `feature-extraction`. The card's `model.embedding` path is the documented embedding route; the generic Hub snippet was not verified to yield embeddings.[^wemm-2b-hub][^wemm-2b-card]
+- **Coverage limits:** the capture shows only the model-card tab. The Files tab, model tree, quantization list, discussion text, the embedded chat template, and the download-trend sparkline were not inspected. Scripts, styles, and page chrome are excluded as non-evidentiary.[^wemm-2b-hub]
+
 ## Limits
 
 - No audio input support; MMEB-v3 audio tasks are therefore zero in the reported V3-All averages.[^wemm-readme][^wemm-report]
@@ -103,10 +128,15 @@ On MMEB-v2, 2B at 256 dimensions retains a reported 98.7% of full-dimensional im
 - **Shares Qwen3.5 backbone generation with:** [UEmbed](uembed.md), [UEmbed-4B](uembed-4b.md), [ColQwen3.5-4.5B-v3](colqwen3-5-4-5b-v3.md), [EVIE-Preview-4.5B](evie-preview-4-5b.md), [webAI-ColVec1.1-4b](webai-colvec1-1-4b.md), and [webAI-ColVec1.1-8b](webai-colvec1-1-8b.md).
 - **Report compares against:** [Qwen3-VL-Embedding-2B](qwen3-vl-embedding-2b.md), [Qwen3-VL-Embedding-8B](qwen3-vl-embedding-8b.md), [Tianmu-Emb-Uni-8B](tianmu-emb-uni-8b.md), [Omni-Embed-Nemotron-3B](omni-embed-nemotron-3b.md), and [e5-omni](e5-omni.md).
 - **Uses benchmark context from:** [MMEB v3 ranking snapshot](mmeb-v3-ranking-snapshot.md); WeMM is absent from that snapshot.
+- **Extended by:** [Sentio](sentio.md), a community composite that adds a Qwen2.5-Omni audio tower and a video-moment LoRA to the 9B model (Reported: MMEB-V3 Overall 61.69 vs 59.33; adds audio, which WeMM lacks).
+- **Extended by:** [Wianmu-3B](wianmu-3b.md), a community audio extension of the 2B model that freezes WeMM-2B and a Qwen2.5-Omni audio tower and trains only a connector, so non-audio embeddings are unchanged (Reported).
+- **Extended by:** [Wianmu-5B](wianmu-5b.md), the same audio-connector method on the 4B model (2,560-d), leaving non-audio embeddings unchanged (Reported).
+- **Compared against by:** [GeeVec-Embeddings-mm-1.0](geevec-embeddings-mm-1-0.md), a Qwen3.5-9B model whose card lists WeMM-4B/9B on a 44-dataset MMEB-v2 retrieval subset (WeMM-9B 79.38 vs GeeVec 78.78; Reported by GeeVec).
 - **Compared in:** [Multimodal embedding model comparison](multimodal-embedding-model-comparison.md).
 
 [^wemm-readme]: [WeMM-Embedding repository README](../raw/WeMM-Embedding/README.md). Model Zoo, Matryoshka guidance, serving versions, MMEB tables, and evaluation-code claims are author-reported.
 [^wemm-2b-card]: [WeMM-Embedding-2B model card](../raw/WeMM-Embedding/WeMM-Embedding-2B.md). Base model, 2,048 dimensions, language, install, inference, serving, and benchmark claims are author-reported.
 [^wemm-4b-card]: [WeMM-Embedding-4B model card](../raw/WeMM-Embedding/WeMM-Embedding-4B.md). Base model, 2,560 dimensions, install, inference, serving, and benchmark claims are author-reported.
 [^wemm-9b-card]: [WeMM-Embedding-9B model card](../raw/WeMM-Embedding/WeMM-Embedding-9B.md). Base model, 4,096 dimensions, install, inference, serving, and benchmark claims are author-reported.
+[^wemm-2b-hub]: [tencent/WeMM-Embedding-2B Hugging Face page capture](../raw/tencent-WeMM-Embedding-2B.md). Hub metadata (parameters, config, dates, downloads, likes, tags, discussions, linked Space) is platform-reported and time-sensitive; README content duplicates the 2B card.
 [^wemm-report]: [WeMM-Embedding technical report](../raw/WeMM-Embedding/2608.24053-WeMM-Embedding/main.tex). Architecture, unified data format, two-stage training, distillation, ablation, MRL, cross-modal, in-house, and deployment claims are author-reported; proprietary data prevent full auditability. PDF figures were coverage-limited to captions and citing text.

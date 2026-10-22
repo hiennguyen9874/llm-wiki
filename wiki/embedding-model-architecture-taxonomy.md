@@ -5,7 +5,7 @@ description: A taxonomy of current embedding architectures by retrieval represen
 tags: [embedding, retrieval, multimodal, architecture, synthesis]
 status: stable
 created: 2026-08-21
-generated: { by: llm-wiki-agent/1, at: 2026-08-21T15:14:57+07:00 }
+generated: { by: llm-wiki-agent/1, at: 2026-10-22T16:20:00Z }
 sources:
   - id: granite-card
     resource: ../raw/granite-embedding-311m-multilingual-r2.md
@@ -28,19 +28,32 @@ sources:
   - id: gelato-report
     resource: ../raw/2605.08384_jina-embeddings-v5-omni/main.tex
     title: GELATO technical report
+  - id: pplx-context-9b-page
+    resource: ../raw/perplexity-ai-pplx-embed-v2-context-9b-preview.md
+    kind: web
+    title: perplexity-ai/pplx-embed-v2-context-9b-preview Hugging Face page capture
+  - id: pplx-late-06b-page
+    resource: ../raw/perplexity-ai-pplx-embed-v2-late-0.6b.md
+    kind: web
+    title: perplexity-ai/pplx-embed-v2-late-0.6b Hugging Face page capture
+  - id: pplx-late-9b-page
+    resource: ../raw/perplexity-ai-pplx-embed-v2-late-9b.md
+    kind: web
+    title: perplexity-ai/pplx-embed-v2-late-9b Hugging Face page capture
 ---
 
 # Current embedding-model architecture taxonomy
 
-Current embedding models do not form one linear succession. They are best classified on three independent axes: **retrieval representation** (one vector, token vectors, or dense+sparse), **backbone** (bidirectional encoder, causal decoder, or efficient sequence model), and **multimodal composition** (native unified model or aligned modality towers). The strongest practical trade-off remains representation: single-vector ANN minimizes index and scoring cost; late interaction preserves localized matches at higher cost; dense+sparse adds lexical matching.[^granite-card][^colqwen-card][^uembed-report]
+Current embedding models do not form one linear succession. They are best classified on three independent axes: **retrieval representation** (one vector, token vectors, dense+sparse, or context-aware chunk vectors), **backbone** (bidirectional encoder, causal decoder, or efficient sequence model), and **multimodal composition** (native unified model or aligned modality towers). The strongest practical trade-off remains representation: single-vector ANN minimizes index and scoring cost; late interaction preserves localized matches at higher cost; dense+sparse adds lexical matching.[^granite-card][^colqwen-card][^uembed-report]
 
 ## 1. By retrieval representation
 
 | Group | Architecture | Direction and trade-off | Examples in wiki |
 |---|---|---|---|
 | **Dense bi-encoder** | Encode query and item separately to one normalized vector; ANN plus cosine/dot-product scoring. | Default first-stage retrieval: compact index and low latency, but compresses a whole item into one vector. | [Granite 311M](granite-embedding-311m-multilingual-r2.md), [Qwen3 4B](qwen3-embedding-4b.md), [Qwen3-VL 8B](qwen3-vl-embedding-8b.md) |
-| **Late-interaction / multi-vector** | Retain token/region vectors; score query--document pairs with ColBERT-style MaxSim. | Aimed at visual documents and fine-grained evidence matching; index size and query-time scoring grow with retained tokens. | [ColQwen3.5](colqwen3-5-4-5b-v3.md), [Jina v4](jina-embeddings-v4.md) |
+| **Late-interaction / multi-vector** | Retain token/region vectors; score query--document pairs with ColBERT-style MaxSim. | Aimed at visual documents and fine-grained evidence matching; index size and query-time scoring grow with retained tokens. Distillation from a larger ColBERT teacher into a shared 128-D space (pplx-embed-v2-late) lets a small query model search an index built by a larger one; the 9B model fully fine-tunes only its last eight layers and adapts the rest, plus the vision encoder, with LoRA.[^pplx-late-06b-page][^pplx-late-9b-page] | [ColQwen3.5](colqwen3-5-4-5b-v3.md), [Jina v4](jina-embeddings-v4.md), [pplx-embed-v2-late-0.6b](pplx-embed-v2-late-0-6b.md), [pplx-embed-v2-late-9b](pplx-embed-v2-late-9b.md) |
 | **Dense + learned sparse hybrid** | One backbone emits a semantic dense vector and vocabulary-weighted sparse vector. | Combines ANN with inverted-index lexical matching, avoiding separate embedding passes; sparse quality and cross-lingual lexical activation remain limits. | [UEmbed](uembed.md) |
+| **Contextual chunk embeddings** | A document's chunks are encoded together; each chunk still yields one vector that reflects its neighbours. Queries use a separate encode method.[^pplx-context-9b-page] | Keeps single-vector ANN cost while reducing context loss from independent chunking; requires grouping chunks by document at indexing time, and the only example here is a preview release with no reported benchmarks. | [pplx-embed-v2-context-9b-preview](pplx-embed-v2-context-9b-preview.md) |
 
 ## 2. By backbone and pooling
 
@@ -75,4 +88,8 @@ Choose the representation first: dense for broad, cost-sensitive recall; late in
 [^colqwen-card]: [ColQwen3.5-4.5B-v3 model card](../raw/ColQwen3.5-4.5B-v3.md). Provider-reported architecture and results.
 [^uembed-report]: [UEmbed technical report](../raw/2608.02583_UEmbed/main.tex). Author-reported architecture and evaluation.
 [^qwen3-vl-report]: [Qwen3-VL Embedding technical report](../raw/2601.04720_Qwen3-VL-Embedding_Qwen3-VL-Reranker/colm2024_conference.tex). Author-reported architecture and training.
+[^pplx-context-9b-page]: [pplx-embed-v2-context-9b-preview Hugging Face page capture](../raw/perplexity-ai-pplx-embed-v2-context-9b-preview.md). Locator: model card intro and Usage sections. Vendor-reported; preview release.
 [^gelato-report]: [GELATO technical report](../raw/2605.08384_jina-embeddings-v5-omni/main.tex). Author-reported architecture and efficiency.
+[^pplx-late-06b-page]: [pplx-embed-v2-late-0.6b Hugging Face page capture](../raw/perplexity-ai-pplx-embed-v2-late-0.6b.md). Locator: intro and Training sections. Vendor-reported.
+
+[^pplx-late-9b-page]: [pplx-embed-v2-late-9b Hugging Face page capture](../raw/perplexity-ai-pplx-embed-v2-late-9b.md). Locator: intro and Training sections. Vendor-reported.
