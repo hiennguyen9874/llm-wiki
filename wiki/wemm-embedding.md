@@ -102,7 +102,8 @@ On MMEB-v2, 2B at 256 dimensions retains a reported 98.7% of full-dimensional im
 
 - **Shares Qwen3.5 backbone generation with:** [UEmbed](uembed.md), [UEmbed-4B](uembed-4b.md), [ColQwen3.5-4.5B-v3](colqwen3-5-4-5b-v3.md), [EVIE-Preview-4.5B](evie-preview-4-5b.md), [webAI-ColVec1.1-4b](webai-colvec1-1-4b.md), and [webAI-ColVec1.1-8b](webai-colvec1-1-8b.md).
 - **Report compares against:** [Qwen3-VL-Embedding-2B](qwen3-vl-embedding-2b.md), [Qwen3-VL-Embedding-8B](qwen3-vl-embedding-8b.md), [Tianmu-Emb-Uni-8B](tianmu-emb-uni-8b.md), [Omni-Embed-Nemotron-3B](omni-embed-nemotron-3b.md), and [e5-omni](e5-omni.md).
-- **Uses benchmark context from:** [MMEB v3 ranking snapshot](mmeb-v3-ranking-snapshot.md).
+- **Uses benchmark context from:** [MMEB v3 ranking snapshot](mmeb-v3-ranking-snapshot.md); WeMM is absent from that snapshot.
+- **Compared in:** [Multimodal embedding model comparison](multimodal-embedding-model-comparison.md).
 
 [^wemm-readme]: [WeMM-Embedding repository README](../raw/WeMM-Embedding/README.md). Model Zoo, Matryoshka guidance, serving versions, MMEB tables, and evaluation-code claims are author-reported.
 [^wemm-2b-card]: [WeMM-Embedding-2B model card](../raw/WeMM-Embedding/WeMM-Embedding-2B.md). Base model, 2,048 dimensions, language, install, inference, serving, and benchmark claims are author-reported.

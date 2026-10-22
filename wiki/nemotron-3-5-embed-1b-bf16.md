@@ -65,7 +65,7 @@ Reading (Synthesis): the 1B model beats Qwen3-VL-Embedding-2B on every column an
 - Distilled from: Nemotron-3.5-Embed-8B-BF16 (no local raw card; the related [Nemotron-3-Embed-8B-BF16](nemotron-3-embed-8b-bf16.md) is the text-only predecessor family). [^nemotron-3-5-embed-1b-card]
 - Compared against: [Qwen3-VL-Embedding-2B](qwen3-vl-embedding-2b.md) and [Qwen3-VL-Embedding-8B](qwen3-vl-embedding-8b.md) in the vendor table. [^nemotron-3-5-embed-1b-card]
 - Reranked by: [Nemotron-3.5-Rerank-8B-BF16](nemotron-3-5-rerank-8b-bf16.md), whose card uses this model as the first-stage retriever in its top-50 evaluation.
-- Related (Synthesis): a text-and-image single-vector model without audio/video input, relevant to the [multimodal embedding model comparison](multimodal-embedding-model-comparison.md); that page's checkpoint count does not yet include it.
+- Related (Synthesis): a text-and-image single-vector model without audio/video input, relevant to the [multimodal embedding model comparison](multimodal-embedding-model-comparison.md); that page now includes it in its selection, ≤2B, and architecture tables.
 
 ## Coverage and limits
 

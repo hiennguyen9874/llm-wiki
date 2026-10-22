@@ -90,7 +90,7 @@ Pre-training data (cutoff January 2025) spans web documents (140+ languages), co
 
 - Self-reported benchmarks, aggregates only; "among the strongest multimodal embedding models under 1B parameters" is an unsupported vendor claim.
 - Language performance is uneven by the card's own statement; no per-language results.
-- No comparisons to other multimodal embedding models, so it is not placed in the [multimodal embedding model comparison](multimodal-embedding-model-comparison.md) or MMEB ranking snapshots here.
+- The card compares only to EmbeddingGemma 1; it appears in the [multimodal embedding model comparison](multimodal-embedding-model-comparison.md) by cross-table synthesis, but not in the MMEB v3 ranking snapshot.
 - Training recipe, loss, and hardware are not documented; only the model card (`../raw/embeddinggemma-2.md`) was inspected, statically. Linked blog, GitHub, and documentation pages were not captured. The header's "Apache 2.0" label alongside a Gemma 4 license link is an unresolved inconsistency; check the upstream license before use.
 
 ## Relationships
