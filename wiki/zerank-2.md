@@ -5,11 +5,15 @@ description: A 4B-parameter Apache-2.0 Qwen3-4B-based text reranker with a 32,76
 tags: [reranking, retrieval, cross-encoder, qwen, sentence-transformers]
 status: stable
 created: 2026-08-19
-generated: { by: llm-wiki-agent/1, at: 2026-08-19T13:23:02Z }
+generated: { by: llm-wiki-agent/1, at: 2026-10-22T12:00:00Z }
 sources:
   - id: zerank-2-model-card
     resource: ../raw/zerank-2-reranker.md
     title: zeroentropy/zerank-2 model card
+  - id: reddit-embed-rerank-thread
+    resource: ../raw/best_embedding_reranking_model.md
+    kind: web
+    title: "r/LocalLLaMA thread: Best Embedding + Reranking Model"
 ---
 
 # zerank-2
@@ -39,4 +43,13 @@ The publisher evaluates reranking after retrieving the top 100 candidate documen
 
 In this publisher-reported table, zerank-2 leads the named models in every listed domain except Finance, where Gemini 2.5 Flash scores 0.7694 versus 0.7600. [^zerank-2-model-card]
 
+## Community-reported use
+
+A community test on a 15-language translation-memory task reports zerank-2 4B paired with F2LLM-v2 4B or 8B as its best pair (MRR 0.919–0.922), and says that adding an explicit task instruction to the query was decisive. The data are proprietary and the result is single-author and unverified; see [Translation-memory embedding and reranker pairing benchmark](translation-memory-embedding-reranker-pairing-benchmark.md). [^reddit-embed-rerank-thread]
+
+## Relationships
+
+- **Evaluated in:** [Translation-memory embedding and reranker pairing benchmark](translation-memory-embedding-reranker-pairing-benchmark.md).
+
 [^zerank-2-model-card]: [zeroentropy/zerank-2 model card](../raw/zerank-2-reranker.md). Architecture, training, interface, licensing, deployment, and evaluation claims are publisher-authored.
+[^reddit-embed-rerank-thread]: [r/LocalLLaMA thread "Best Embedding + Reranking Model"](../raw/best_embedding_reranking_model.md), post body results table and instruction-following comment exchange. Author-reported; unverified.

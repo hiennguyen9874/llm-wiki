@@ -1,5 +1,11 @@
 # Wiki Update Log
 
+## 2026-10-22
+- **Ingest**: Compiled [EmbeddingGemma 2 model card](../raw/embeddinggemma-2.md); created [EmbeddingGemma 2](embeddinggemma-2.md) and added a successor relationship in [EmbeddingGemma 300M](embeddinggemma-300m.md).
+- **Ingest**: Compiled [r/LocalLLaMA thread “Best Embedding + Reranking Model”](../raw/best_embedding_reranking_model.md); created [Translation-memory embedding and reranker pairing benchmark](translation-memory-embedding-reranker-pairing-benchmark.md) and updated [zerank-2](zerank-2.md), [F2LLM-v2](f2llm-v2.md), and [Reranker model comparison](reranker-model-comparison.md).
+- **Ingest**: Compiled [Nemotron-3.5-Rerank-8B-BF16 model card](../raw/Nemotron-3.5-Rerank-8B-BF16.md); created [Nemotron-3.5-Rerank-8B-BF16](nemotron-3-5-rerank-8b-bf16.md) and updated the [reranker model comparison](reranker-model-comparison.md), [Nemotron-3.5-Embed-1B-BF16](nemotron-3-5-embed-1b-bf16.md), and [Qwen3-VL-Reranker-8B](qwen3-vl-reranker-8b.md).
+- **Ingest**: Compiled [Nemotron-3.5-Embed-1B-BF16 model card](../raw/Nemotron-3.5-Embed-1B-BF16.md); created [Nemotron-3.5-Embed-1B-BF16](nemotron-3-5-embed-1b-bf16.md) and added a reciprocal relationship to [Nemotron-3-Embed-1B-BF16](nemotron-3-embed-1b-bf16.md).
+
 ## 2026-10-04
 - **Ingest**: Compiled [Text Embeddings Inference README](../raw/text-embeddings-inference.md); created [Text Embeddings Inference (TEI)](text-embeddings-inference.md) and added TEI serving notes to Qwen3-Embedding-0.6B/4B/8B and EmbeddingGemma 300M.
 

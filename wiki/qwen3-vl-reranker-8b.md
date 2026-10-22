@@ -42,6 +42,7 @@ After top-100 retrieval by Qwen3-VL-Embedding-2B, the authors report 79.2 averag
 
 - **Reranks candidates from:** [Qwen3-VL-Embedding-2B](qwen3-vl-embedding-2b.md) in the report’s evaluation pipeline.
 - **Larger variant of:** [Qwen3-VL-Reranker-2B](qwen3-vl-reranker-2b.md).
+- **Compared by (Synthesis, see linked page for citation):** [Nemotron-3.5-Rerank-8B-BF16](nemotron-3-5-rerank-8b-bf16.md), whose vendor card reports higher ViDoRe V3 and MIRACL-VISION NDCG@10 than this model in a top-50 pipeline from Nemotron-3.5-Embed-1B-BF16 (vendor-run; not comparable with this page's top-100 figures).
 - **Distills into:** the Qwen3-VL embedding family during its third training stage.
 
 [^qwen3-vl-reranker-8b-card]: [Qwen3-VL-Reranker-8B model card](../raw/Qwen3-VL-Reranker-8B.md). License, deployment, language, modality, and benchmark claims are author-reported.

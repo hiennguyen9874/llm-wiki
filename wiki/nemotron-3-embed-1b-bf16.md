@@ -5,11 +5,15 @@ description: A 1.14B-parameter Ministral-3-3B-derived multilingual text embeddin
 tags: [embedding, retrieval, multilingual, nemotron, nvidia, ministral]
 status: stable
 created: 2026-08-19
-generated: { by: llm-wiki-agent/1, at: 2026-08-19T15:34:59+07:00 }
+generated: { by: llm-wiki-agent/1, at: 2026-10-22T03:14:39Z }
 sources:
   - id: nemotron-3-embed-1b-card
     resource: ../raw/Nemotron-3-Embed-1B-BF16.md
     title: Nemotron-3-Embed-1B-BF16 model card
+  - id: nemotron-3-5-embed-1b-card
+    resource: ../raw/Nemotron-3.5-Embed-1B-BF16.md
+    kind: model-card
+    title: Nemotron-3.5-Embed-1B-BF16 model card
 ---
 
 # Nemotron-3-Embed-1B-BF16
@@ -48,4 +52,9 @@ Named public datasets include MIRACL, MLDR, HotpotQA, NQ, SQuAD, Stack Exchange,
 
 Synthetic query–document pairs were generated from scratch or from seed data using the listed Qwen, Gemma, GPT-OSS, and NVIDIA Nemotron generative models. The supplied source does not state mixture proportions, data-language distribution, filtering procedures, or a license-by-dataset inventory. [^nemotron-3-embed-1b-card]
 
+## Relationships
+
+- Reused by: [Nemotron-3.5-Embed-1B-BF16](nemotron-3-5-embed-1b-bf16.md), whose language model is initialized from this model and kept frozen during distillation. The two share one text embedding space, and the 3.5 model adds image and image-text document retrieval (Reported). [^nemotron-3-5-embed-1b-card]
+
 [^nemotron-3-embed-1b-card]: [Nemotron-3-Embed-1B-BF16 model card](../raw/Nemotron-3-Embed-1B-BF16.md). Architecture, training-data, language, and benchmark claims are reported by the model card; linked external datasets and benchmark materials were not independently inspected.
+[^nemotron-3-5-embed-1b-card]: [Nemotron-3.5-Embed-1B-BF16 model card](../raw/Nemotron-3.5-Embed-1B-BF16.md), Model Architecture. Reported by the vendor card.

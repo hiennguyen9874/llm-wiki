@@ -1,11 +1,11 @@
 ---
 type: Synthesis
 title: Reranker model comparison
-description: A use-case selection guide for the eleven dedicated reranker checkpoints documented from local raw model cards and reports.
+description: A use-case selection guide for the twelve dedicated reranker checkpoints documented from local raw model cards and reports.
 tags: [reranking, retrieval, comparison, selection]
 status: stable
 created: 2026-08-19
-generated: { by: llm-wiki-agent/1, at: 2026-08-19T14:36:00Z }
+generated: { by: llm-wiki-agent/1, at: 2026-10-22T12:00:00Z }
 sources:
   - id: qwen-text-card
     resource: ../raw/Qwen3-Reranker-4B.md
@@ -31,6 +31,13 @@ sources:
   - id: querit-card
     resource: ../raw/Querit-Reranker.md
     title: Querit-Reranker model card
+  - id: nemotron-rerank-card
+    resource: ../raw/Nemotron-3.5-Rerank-8B-BF16.md
+    title: Nemotron-3.5-Rerank-8B-BF16 model card
+  - id: reddit-embed-rerank-thread
+    resource: ../raw/best_embedding_reranking_model.md
+    kind: web
+    title: "r/LocalLLaMA thread: Best Embedding + Reranking Model"
 ---
 
 # Reranker model comparison
@@ -45,6 +52,7 @@ For a commercial, text-only RAG or search system without a hard latency limit, u
 | Chinese, multilingual, code, or maximum text quality | [Qwen3-Reranker-8B](qwen3-reranker-8b.md) | Best reported Qwen results on C-MTEB (77.45), MMTEB (72.94), MLDR (70.19), and code (81.22). | Same 32K pointwise design and evaluation regime; expect higher serving cost than 4B. [^qwen-text-card] |
 | Low-cost multilingual text reranking | [Qwen3-Reranker-0.6B](qwen3-reranker-0-6b.md) | Apache-2.0, 100+ languages, instructions, and 32K context at the smallest Qwen size. | It trails 4B/8B on most reported tasks; use it only when throughput or memory dominates. [^qwen-text-card] |
 | Image, screenshot, video, or mixed-modality retrieval | [Qwen3-VL-Reranker-8B](qwen3-vl-reranker-8b.md) | Apache-2.0 model that jointly reranks text, images, screenshots, video, and mixed pairs; it leads its 2B sibling on every reported aggregate. | Author-run top-100 pipeline scores; use [Qwen3-VL-Reranker-2B](qwen3-vl-reranker-2b.md) when 2B cost is necessary. [^qwen-vl-card] |
+| Multilingual visual-document RAG (page images, charts, tables) after a Nemotron-3.5-Embed first stage | [Nemotron-3.5-Rerank-8B-BF16](nemotron-3-5-rerank-8b-bf16.md) | 8.38B pointwise multimodal cross-encoder; reports the best ViDoRe V3 and MIRACL-VISION NDCG@10 against Qwen3-VL-Reranker-8B in the same top-50 pipeline (table 5). | OpenMDW-1.1 license (check terms); one image per document; 32,768-token limit; vendor-run only. [^nemotron-rerank-card] |
 | Long candidate lists with low model size, non-commercial use | [jina-reranker-v3.5](jina-reranker-v3-5.md) | 0.6B listwise reranker with 131K context; one pass jointly ranks a candidate list and its report shows better BEIR than Qwen3-Reranker-4B under its stated protocol. | CC BY-NC 4.0: not suitable for ordinary commercial self-hosting. It trails 4B Qwen on reported MIRACL, RTEB, and structured retrieval. [^jina-v35-card] [^jina-v35-report] |
 | Very high throughput / CPU or modest GPU, English only | [ettin-reranker-68m-v1](ettin-reranker-68m-v1.md) | Apache-2.0 68.6M cross-encoder; the card reports 1,916 pairs/s on RTX 3090 and 31.2 on an i7-13700K at 512 tokens. | English only and 7,999-token maximum; benchmark results are not directly comparable to Qwen's. [^ettin-card] |
 | Web, STEM, legal, biomedical, finance, or code where its domain evaluation matches yours | [zerank-2](zerank-2.md) | Apache-2.0 4B/32K reranker; its publisher reports a 0.6714 average NDCG@10 across seven named domains. | Language support, throughput, and reproducible training detail are absent; validate against Qwen 4B on your corpus. [^zerank-card] |
@@ -100,6 +108,18 @@ The Jina report reranks top-100 candidates from Jina Embeddings v5 Text Small; S
 | XProvence-reranker | Claims evaluation on 26 languages and six datasets with little-to-no loss while pruning, but gives no numeric scores or full protocol. | Cannot rank it against the others. [^xprovence-card] |
 | Querit-Reranker | No benchmark, scoring-interface, or quantitative evaluation is provided in the local card. | Cannot rank it. [^querit-card] |
 
+### 5. Nemotron multimodal protocol
+
+Both rerankers rerank the top 50 candidates from Nemotron-3.5-Embed-1B-BF16. NDCG@10; vendor-reported.
+
+| Model | ViDoRe V3 image | ViDoRe V3 text | ViDoRe V3 image+text | MIRACL-VISION image |
+|---|---:|---:|---:|---:|
+| Nemotron-3.5-Embed-1B-BF16 (first stage) | 58.02 | 57.80 | 58.82 | 68.93 |
+| Qwen3-VL-Reranker-8B | 66.02 | 64.88 | 66.03 | 75.06 |
+| **Nemotron-3.5-Rerank-8B-BF16** | **67.22** | **66.89** | **67.56** | **78.69** |
+
+**Reading:** Nemotron-3.5-Rerank-8B leads on every column in its own vendor run. Qwen3-VL-Reranker-8B's 66.02–66.03 here are not comparable with the 66.7 ViDoRe v3 in table 2, which uses a Qwen3-VL-Embedding-2B first stage and top-100 candidates. [^nemotron-rerank-card]
+
 ## Do not select by default
 
 - [Querit-Reranker](querit-reranker.md) is Apache-2.0 and offers 128K context with 0.43B active MoE parameters, but its raw card provides no scoring interface, benchmark numbers, or reproducible evaluation. [^querit-card]
@@ -107,13 +127,19 @@ The Jina report reranks top-100 candidates from Jina Embeddings v5 Text Small; S
 
 ## Comparison limits
 
-The available scores are **not a unified leaderboard**: Qwen text uses Qwen3-Embedding-0.6B for top-100 retrieval, Qwen-VL uses Qwen3-VL-Embedding-2B, Jina v3.5 uses Jina Embeddings v5 Text Small, zerank-2 uses OpenAI `text-embedding-3-small`, and ettin averages six first-stage embedding models. All are publisher or author reports. Run a held-out evaluation with your retrieval model, languages, document lengths, and latency budget before committing.
+The available scores are **not a unified leaderboard**: Qwen text uses Qwen3-Embedding-0.6B for top-100 retrieval, Qwen-VL uses Qwen3-VL-Embedding-2B, Nemotron-3.5-Rerank uses top-50 from Nemotron-3.5-Embed-1B-BF16, Jina v3.5 uses Jina Embeddings v5 Text Small, zerank-2 uses OpenAI `text-embedding-3-small`, and ettin averages six first-stage embedding models. All are publisher or author reports. Run a held-out evaluation with your retrieval model, languages, document lengths, and latency budget before committing.
+
+## Independent practitioner datapoint
+
+Outside publisher tables, one community end-to-end translation-memory test (15 languages, proprietary data) found that reranker gain depends on first-stage recall: zerank-2 4B after F2LLM 4B/8B scored MRR 0.919–0.922 with only +1.6% to +2.4% reranker gain, while Qwen3-Reranker-0.6B after BGE M3 lowered MRR by 7.5%. It is single-author and unverified; see [the benchmark concept](translation-memory-embedding-reranker-pairing-benchmark.md). [^reddit-embed-rerank-thread]
 
 ## Relationships
 
 - **Supersedes for selection:** [jina-reranker-v3](jina-reranker-v3.md) is deprecated in favor of [jina-reranker-v3.5](jina-reranker-v3-5.md).
+- **Adds:** [Nemotron-3.5-Rerank-8B-BF16](nemotron-3-5-rerank-8b-bf16.md) is a second multimodal cross-encoder alongside the Qwen3-VL rerankers.
 - **Uses:** Qwen's text rerankers use task-specific instructions; their card reports a 1%–5% decrease when instruction is omitted. [^qwen-text-card]
 
+[^reddit-embed-rerank-thread]: [r/LocalLLaMA thread "Best Embedding + Reranking Model"](../raw/best_embedding_reranking_model.md), post body results table. Author-reported on proprietary data; unverified.
 [^qwen-text-card]: [Qwen3-Reranker-4B model card](../raw/Qwen3-Reranker-4B.md). The family comparison, license, capability, and benchmark claims are publisher-authored.
 [^qwen-vl-card]: [Qwen3-VL-Reranker-8B model card](../raw/Qwen3-VL-Reranker-8B.md). The multimodal, licensing, and benchmark claims are publisher-authored.
 [^zerank-card]: [zerank-2 model card](../raw/zerank-2-reranker.md). The domain scores and deployment claims are publisher-authored.
@@ -122,3 +148,4 @@ The available scores are **not a unified leaderboard**: Qwen text uses Qwen3-Emb
 [^jina-v35-report]: [jina-reranker-v3.5 technical report](../raw/2607.18152_jina-reranker-v3.5/main.tex). Comparative benchmark claims are author-reported.
 [^xprovence-card]: [XProvence model card](../raw/xprovence-reranker-bgem3-v2.md). Pruning, licensing, and training-scope claims are publisher-authored.
 [^querit-card]: [Querit-Reranker model card](../raw/Querit-Reranker.md). Capability claims are publisher-authored.
+[^nemotron-rerank-card]: [Nemotron-3.5-Rerank-8B-BF16 model card](../raw/Nemotron-3.5-Rerank-8B-BF16.md), Evaluation Dataset. License, interface, and benchmark claims are vendor-authored.

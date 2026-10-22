@@ -5,11 +5,15 @@ description: An eight-size, Qwen3-based multilingual embedding family trained on
 tags: [embedding, retrieval, multilingual, instruction-tuned, matryoshka]
 status: stable
 created: 2026-08-19
-generated: { by: llm-wiki-agent/1, at: 2026-08-19T08:58:31Z }
+generated: { by: llm-wiki-agent/1, at: 2026-10-22T12:00:00Z }
 sources:
   - id: f2llm-v2-report
     resource: ../raw/2603.19223_F2LLM-v2/main.tex
     title: F2LLM-v2 technical-report LaTeX source
+  - id: reddit-embed-rerank-thread
+    resource: ../raw/best_embedding_reranking_model.md
+    kind: web
+    title: "r/LocalLLaMA thread: Best Embedding + Reranking Model"
 ---
 
 # F2LLM-v2
@@ -45,6 +49,10 @@ On the authors' 350-task ablation subset, distillation raises reported averages 
 
 The report evaluates the family on 17 MTEB benchmarks comprising 430 tasks across ten task types. It reports that the 14B model scores 68.74 on Multilingual MTEB and 71.72 in the table's unqualified average column; its 4B, 1.7B, 0.6B, 330M, and 160M scores on Multilingual are 67.06, 65.21, 62.74, 60.84, and 57.98, respectively. The leaderboard ranks in the table were accessed on 2026-03-19. [^f2llm-v2-report]
 
+## Community-reported use
+
+In a single-author, proprietary 15-language translation-memory test, F2LLM 4B and 8B paired with zerank-2 4B reached MRR 0.919 and 0.922, ahead of Qwen3-Embedding-4B, Octen 4B, and Voyage 4 Large pairs; the author noted that Qwen3-Embedding-4B ranks higher on public multilingual MTEB. This is unverified practitioner evidence; see [Translation-memory embedding and reranker pairing benchmark](translation-memory-embedding-reranker-pairing-benchmark.md). [^reddit-embed-rerank-thread]
+
 ## Contradictions
 
 - The report prose says the 14B model is state of the art on 11 of 17 benchmarks, but its results table assigns it rank 1 on ten: Code, European, Scandinavian, Indic, German, Polish, Japanese, Dutch, Persian, and Vietnamese. The source does not explain the discrepancy. [^f2llm-v2-report]
@@ -52,5 +60,6 @@ The report evaluates the family on 17 MTEB benchmarks comprising 430 tasks acros
 ## Relationships
 
 - **Includes:** [F2LLM-v2-14B](f2llm-v2-14b.md), the family member with an independently supplied model card.
+- **Evaluated in:** [Translation-memory embedding and reranker pairing benchmark](translation-memory-embedding-reranker-pairing-benchmark.md).
 
 [^f2llm-v2-report]: [F2LLM-v2 technical-report LaTeX source](../raw/2603.19223_F2LLM-v2/main.tex). Training, architecture, and performance are author-reported; this source does not independently verify them.

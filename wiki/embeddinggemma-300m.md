@@ -5,7 +5,7 @@ description: A 300M-parameter Gemma 3-based multilingual text embedding model wi
 tags: [embedding, retrieval, multilingual, matryoshka, gemma]
 status: stable
 created: 2026-08-19
-generated: { by: llm-wiki-agent/1, at: 2026-10-04T09:52:00Z }
+generated: { by: llm-wiki-agent/1, at: 2026-10-22T03:20:00Z }
 sources:
   - id: embeddinggemma-card
     resource: ../raw/embeddinggemma-300m.md
@@ -58,6 +58,10 @@ The model was trained on text in **100+ spoken languages**, including web docume
 The card reports approximately **320B tokens** drawn from web documents, code and technical documents, and synthetic/task-specific data. The latter includes curated data for information retrieval, classification, and sentiment analysis. It reports multi-stage CSAM filtering, automated filtering of certain personal and sensitive information, and additional quality and safety filtering. [^embeddinggemma-card]
 
 The source does not name constituent datasets, give mixture proportions, describe collection dates or licenses, or specify the amount of synthetic versus non-synthetic material; those omissions limit assessment of corpus coverage and provenance. [^embeddinggemma-card]
+
+## Relationships
+
+- Succeeded by [EmbeddingGemma 2](embeddinggemma-2.md), a 740M multimodal (text, image, video, audio) model whose card reports this model's MTEB multilingual v2 (61.15) and code v1 (68.76) scores as its "EmbeddingGemma 1" baseline. This model remains current and is not deprecated. (Synthesis from the EmbeddingGemma 2 card.)
 
 [^embeddinggemma-card]: [EmbeddingGemma model card](../raw/embeddinggemma-300m.md). Model, training, language, and benchmark claims are reported by the model card.
 [^mteb-multilingual-v2-summary]: [MTEB Multilingual v2 summary CSV](../raw/MTEB_Multilingual_v2_summary.csv). Supplied leaderboard scores; the artifact does not document its evaluation protocol.
