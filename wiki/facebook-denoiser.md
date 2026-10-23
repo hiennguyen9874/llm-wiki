@@ -68,6 +68,8 @@ Facebook Denoiser (the `denoiser` package from Facebook Research) is a causal sp
 
 - Related to [Speech Enhancement Before ASR](speech-enhancement-before-asr.md): a candidate causal enhancer for that concept's noise-preprocessing question, but the README reports no ASR effect (**Synthesis**).[^denoiser-readme]
 - Related to [Denoiser Live Streaming](denoiser-live-streaming.md), which runs this model as a live loopback filter (**Synthesis**).[^denoiser-readme]
+- Related to [ClearVoice](clearvoice.md), another open enhancement package (MossFormer/FRCRN checkpoints, with PESQ benchmarks) that likewise reports no ASR effect (**Synthesis**).[^denoiser-readme]
+- Related to [UL-UNAS](ul-unas.md), a far smaller causal spectrogram-mask enhancer (35M MACS/s) that publishes quality metrics and complexity where this README reports only CPU real-time factors (**Synthesis**).
 - Not the same model as HTDemucs in the [audio.cpp GGUF Model Packages](audio-cpp-gguf-packages.md); [audio.cpp Framework](audio-cpp-framework.md) describes HTDemucs as six-stem separation (**Synthesis** from names and catalog descriptions).
 
 ## Coverage and limits

@@ -1,0 +1,56 @@
+We train our model using a composite loss function:
+\begin{equation}
+    \mathcal{L} = \lambda_{1}\cdot\mathcal{L}_{mag} + \lambda_{2}\cdot\mathcal{L}_{comp} +
+                  \lambda_{3}\cdot\mathcal{L}_{con} + \lambda_{4}\cdot\mathcal{L}_{wav} + \lambda_{5}\cdot\mathcal{L}_{pesq},
+\end{equation}
+where $\lambda_{1}=0.3$, $\lambda_{2}=0.2$, $\lambda_{3}=0.3$, $\lambda_{4}=0.2$, and $\lambda_{5}=0.001$.
+
+\begin{itemize}[leftmargin=1em]
+    \item\textbf{Magnitude loss} calculates the mean squared error (MSE) between the magnitudes of $\mathbf{\hat{Y}}_c$ and $\mathbf{Y}_c$:
+    \begin{equation}
+        \mathcal{L}_{mag} = \left\Vert |\mathbf{Y}_c|-|\mathbf{\hat{Y}}_c| \right\Vert_2^2,
+    \end{equation}
+    where $\mathbf{Y}=\text{STFT}(\mathbf{y})$ is a spectrogram of a clean speech $\mathbf{y}$ and $\mathbf{Y}_c=|\textbf{Y}|^c\cdot e^{j \angle \textbf{Y}}$ is a compressed spectrogram of $\mathbf{y}$.
+    
+    \item\textbf{Complex spectrogram loss} interprets two complex spectrograms $\mathbf{\hat{Y}}_c$ and $\mathbf{Y}_c$ as two-channel real-valued tensors, and calculates MSE:
+    \begin{equation}
+        \mathcal{L}_{comp} = \| \mathbf{Y}_c-\mathbf{\hat{Y}}_c \|_2^2.
+    \end{equation}
+    
+    \item\textbf{Consistency loss} is defined as:
+    \begin{equation}
+        \mathcal{L}_{con} = \| \mathbf{Y}_c - \text{STFT}_c(\mathbf{\hat{y}}) \|_2^2,
+    \end{equation}
+    where $\text{STFT}_c(\mathbf{y})= \left| \text{STFT}(\mathbf{y}) \right|^c\cdot e^{j \angle \text{STFT}(\mathbf{y})}$.
+    
+    \item\textbf{Waveform loss} is a mean absolute error in the waveform domain:
+    \begin{equation}
+        \mathcal{L}_{wav} = \| \mathbf{y}-\mathbf{\hat{y}} \|_1.
+    \end{equation}
+    
+    \item\textbf{PESQ loss} $\mathcal{L}_{pesq}$ is a differentiable PESQ loss \cite{torch-pesq}. Optimizing a model solely on the PESQ metric can degrade subjective quality \cite{pesqetarian}. To prevent this, we use a sufficiently small weighting factor ($\lambda_5=0.001)$. We observed that including $\mathcal{L}_{pesq}$ improves not only PESQ but also other objective metrics.
+\end{itemize}
+
+VTCK-Demand dataset \cite{vctk-demand} was used for training and evaluation, with all audio files downsampled from 48kHz to 16kHz. During training, two-second-long segments were randomly extracted. We used the AdamP optimizer \cite{adamp} with an initial learning rate of 0.002, a weight decay of 0.01, and a batch size of 64. We applied a cosine annealing learning rate scheduler with a 500-step warm-up \cite{coslr}.
+
+\begin{table}
+    \vspace{-5pt}
+    \caption{Model configurations.}
+    \label{table:config}
+    \centering
+    \begin{tabular}{c|c|c|c|c|c|c}
+        \hline
+        Size & $H$ & $L$ & $K$ & $C_1$ & $C_2$ & $F$ \\
+        \hline
+        Tiny (T) & 256 & 2 & 2 & 24 & 20 & 16 \\
+        Base (B) & 256 & 2 & 3 & 48 & 36 & 24 \\
+        Small (S) & 256 & 3 & 3 & 64 & 48 & 36 \\
+        Medium (M) & 160 & 3 & 4 & 96 & 72 & 48 \\
+        Large (L) & 100 & 4 & 5 & 128 & 96 & 64 \\
+        \hline
+    \end{tabular}
+\end{table}
+
+We built \textit{FastEnhancers} with five different sizes (Table \ref{table:config}) and compared them with other low-complexity models. We exported every model to ONNXRuntime \cite{onnxruntime} and measured RTFs on a single thread of a server CPU (Intel Xeon Gold 6248R) and a laptop CPU (Apple M1, MacBook Air) under a streaming condition. RTFs in Fig. \ref{fig:main} and Fig. \ref{fig:ablation} are measured on Xeon.
+
+We utilized a variety of objective metrics for evaluation. For speech quality, we measured DNSMOS \cite{dnsmos-p.808} \cite{dnsmos-p.835}, SCOREQ (natural speech, full reference mode) \cite{scoreq}, scale-invariant signal-to-distortion ratio (SISDR) \cite{sisdr}, and PESQ (P.862.2 without Corrigendum 2) \cite{pesq}. For speech intelligibility, we measured STOI \cite{stoi}, ESTOI \cite{estoi}, and word error rate (WER) using Whisper-large-v3-turbo \cite{whisper}. We trained each model five times with five different random seeds and report the average scores.

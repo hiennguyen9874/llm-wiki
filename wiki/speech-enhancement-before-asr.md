@@ -5,7 +5,7 @@ description: Conflicting evidence on whether denoising or speech enhancement pla
 tags: [pipeline, stt, noisy-audio, speech-enhancement, denoising]
 status: draft
 created: 2026-10-06
-generated: { by: llm-wiki-agent/1, at: 2026-10-13T12:00:00Z }
+generated: { by: llm-wiki-agent/1, at: 2026-10-24T20:00:00Z }
 stale_after: 2027-10-06
 sources:
   - id: claude-pipeline-report
@@ -45,7 +45,14 @@ Placing a speech-enhancement (denoising) model in front of ASR is not a safe def
 - Related to [SAM Audio GGUF](sam-audio-gguf.md): SAM-Audio is the separation model whose use before Whisper raised WER in arXiv 2603.04710 (**Synthesis**).[^claude-pipeline-report]
 - Related to [Community-Reported Noisy On-Premise STT Selection](community-noisy-call-stt.md), which covers community preprocessing practice for noisy call transcription (**Synthesis**).[^claude-pipeline-report]
 - Related to [Voice-Agent Barge-in and Echo Handling](voice-agent-barge-in-and-echo-handling.md) for AEC and speaker lock (**Synthesis**).[^claude-pipeline-report]
+- Related to [Resemble Enhance](resemble-enhance.md): the offline enhancer named in the report's option list; its own README reports no metrics and no ASR results (**Synthesis**).
+- Related to [ClearVoice](clearvoice.md): the ClearerVoice-Studio package named in the report's option list, whose README reports PESQ/SI-SNRi benchmarks but no ASR results, so it adds no evidence to this question (**Synthesis**).[^claude-pipeline-report]
+- Related to [UL-UNAS](ul-unas.md): a 171k-parameter, 35M MACS/s causal enhancer with zero look-ahead whose paper reports PESQ/DNSMOS only, so it is a low-compute candidate but adds no ASR evidence to this question (**Synthesis**).
+- Related to [FastEnhancer](fastenhancer.md): a speed-optimized streaming enhancer family (RTF 0.0058–0.022 on one laptop or server CPU thread for Tiny and Base) whose papers report one Whisper-large-v3-turbo WER on enhanced VoiceBank-DEMAND audio (2.8–3.6%) but no noisy-audio baseline row, so it adds no evidence on whether enhancement helps or hurts ASR (**Synthesis**).
+- Related to [DPDFNet](dpdfnet.md): a DeepFilterNet2-based causal enhancer (2.3–3.6M parameters) evaluated on a 13.5 h, 12-language (including Vietnamese) low-SNR set and on an NPU, and whose paper flags a speech-truncation-after-silence failure mode fixed by long-sequence fine-tuning; it reports no ASR word-error results, so it adds no evidence on whether enhancement helps or hurts recognition (**Synthesis**).
 - Related to [Facebook Denoiser](facebook-denoiser.md) and its [live streaming mode](denoiser-live-streaming.md): a causal, CC-BY-NC waveform enhancer whose README reports CPU real-time factors but no ASR word-error results, so it adds no evidence to this question (**Synthesis**).[^denoiser-readme]
+- Related to [Fast-ULCNet](fast-ulcnet.md): a 0.338M-parameter ULCNet variant with FastGRNN layers (RTF 0.60–0.66 on one Cortex-A53/Pi 3 B+ thread) whose paper reports DNSMOS/PESQ/SI-SDR only, so it adds no ASR evidence to this question; its drift failure on 90 s input is covered in [Comfi-FastGRNN and RNN State Drift](comfi-fastgrnn-state-drift.md) (**Synthesis**).
+- Related to [CoFi-Lite](cofi-lite.md): an 83k-parameter, 12.87M MACs/s causal enhancer (DNSMOS/PESQ on DNS3 and DNS-2020 only), a low-compute candidate that adds no ASR evidence to this question (**Synthesis**).
 
 ## Coverage and limits
 
