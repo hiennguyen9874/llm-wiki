@@ -15,7 +15,7 @@ Domains emerge from ingested knowledge. Register a domain when it recurs across 
 
 | Domain | Focus | Course profile | Rules |
 | --- | --- | --- | --- |
-| `ml` | Machine learning, LLM architecture, and LLM-assisted knowledge systems | `ml` | Use `stale_after` for framework APIs, model releases, and benchmarks. |
+| pi-durable | Durable agent harness: Pi Durable concepts and deployment patterns | general | — |
 
 - Name domains as the human does; they may be broad (`health`) or narrow (`home-network`).
 - A concept belongs to its primary domain through tags and, once groups exist, its group path.
