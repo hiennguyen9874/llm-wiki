@@ -5,13 +5,17 @@ description: Multi-stage GPU serving runtime for omni, speech, TTS, and ASR mode
 tags: [tts, stt, serving, streaming]
 status: stable
 created: 2026-10-06
-generated: { by: llm-wiki-agent/1, at: 2026-10-21T16:00:00Z }
+generated: { by: llm-wiki-agent/1, at: 2026-10-25T13:10:00Z }
 stale_after: 2027-10-06
 sources:
   - id: ming-asr-tiny-card
     resource: ../raw/Ming-3.0-asr-tiny.md
     kind: documentation
     title: Ming-3.0-asr-tiny model card capture
+  - id: ming-audio-tiny-card
+    resource: ../raw/inclusionAI-Ming-3.0-audio-tiny.md
+    kind: documentation
+    title: Ming-3.0-audio-tiny model card capture
   - id: sglang-omni-readme
     resource: ../raw/sglang-omni.md
     kind: documentation
@@ -39,6 +43,7 @@ SGLang-Omni is a multi-stage GPU serving runtime for omni, speech, and TTS model
 ## Served model coverage
 
 - Omni chat and speech: Qwen3-Omni and Ming-Omni — multimodal in, text/audio out (**Reported**).[^sglang-omni-readme]
+- A model card outside this README also targets this runtime: [Ming-3.0-audio-tiny](ming-3.0-audio-tiny-serving.md) documents `sgl-omni serve --model-path inclusionAI/Ming-3.0-audio-tiny --talker.gpu 0` exposing transcription, speech and chat endpoints. It is card evidence, not part of the README's served-model list, and the README's `Ming-Omni`/`Ming-Omni-TTS` entries are not established to be this checkpoint (**Reported/Synthesis**).[^ming-audio-tiny-card]
 - Speech generation over `/v1/audio/speech` with batch, streaming, and uploaded voices: Higgs Audio v3, MOSS-TTS, MOSS-TTS Local, Fish Speech S2-Pro, Qwen3-TTS, Voxtral TTS, Ming-Omni-TTS, dots.tts, and ZONOS2, plus AuK and AuK-Flash per the News section (**Reported**).[^sglang-omni-readme]
 - Audio transcription and diarization over `/v1/audio/transcriptions`: Qwen3-ASR, Fun-ASR, ARK-ASR, Nemotron 3.5 ASR, and MOSS-Transcribe-Diarize; MOSS-TD supports speaker labels and timestamps via `response_format=verbose_json` (**Reported**).[^sglang-omni-readme]
 - SGLang-Omni Router is a multi-worker OpenAI-compatible front door covering health, readiness, lifecycle, and capability discovery (**Reported**).[^sglang-omni-readme]
@@ -67,6 +72,7 @@ SGLang-Omni is a multi-stage GPU serving runtime for omni, speech, and TTS model
 ## Relationships
 
 - Serves: [Ming-3.0-asr-tiny](ming-3.0-asr-tiny.md) documents `sgl-omni serve --model-path inclusionAI/Ming-3.0-asr-tiny` on one GPU and `/v1/audio/transcriptions` with `language=en|zh`, prompt context and `stream=true` transcript SSE (**Reported by the model card**, not the older runtime README). This does not establish native audio-input streaming or a minimum compatible runtime version; the linked Ming cookbook and implementation were not inspected, and no server/request was run.[^ming-asr-tiny-card]
+- Serves: [Ming-3.0-audio-tiny](ming-3.0-audio-tiny-serving.md) is a separate inclusionAI audio-language MoE whose card documents single-GPU colocation via `--talker.gpu 0` with `/v1/audio/transcriptions`, `/v1/audio/speech` and `/v1/chat/completions` (**Reported by the model card**). No runtime version floor, request schema, streaming event format or concurrency limit is printed; the linked `ming3_audio.html` cookbook was not fetched, and no server was launched.[^ming-audio-tiny-card]
 
 - Serves: [Higgs TTS 3](higgs-tts-3-4b.md) names SGLang Omni as its documented production stack with continuous batching, `/v1/audio/speech` synthesis, cloning, and streaming; consult that page for model weights, tag controls, and H100 throughput (**Synthesis**).[^sglang-omni-readme]
 - Serves: [Fish Audio S2 Pro](fish-audio-s2-pro.md) runs on an SGLang-based streaming engine with LLM-native batching and prefix-caching optimizations; consult that page for DualAR architecture and H200 latency figures (**Synthesis**).[^sglang-omni-readme]
@@ -86,6 +92,8 @@ SGLang-Omni is a multi-stage GPU serving runtime for omni, speech, and TTS model
 - Release, Day-0 support, hardware-support, and API-surface claims carry `stale_after: 2027-10-06` per the `tts`/`stt`/`llm` domain rules (**Synthesis**).[^sglang-omni-readme]
 
 [^ming-asr-tiny-card]: [Ming-3.0-asr-tiny model card](../raw/Ming-3.0-asr-tiny.md) — `Quick Start` → `SGLang-Omni serving` (single-GPU launch, OpenAI-compatible transcription request, JSON `text`, `language`, `prompt`, `stream=true`, Ming cookbook pointer); `Usage Notes` (bundled Transformers example has no streaming input). Model card inspected statically; external cookbook, runtime code and compatibility not checked.
+
+[^ming-audio-tiny-card]: [Ming-3.0-audio-tiny model card](../raw/inclusionAI-Ming-3.0-audio-tiny.md) — locators: `Serving` → `SGLang-Omni` (`sgl-omni serve --model-path inclusionAI/Ming-3.0-audio-tiny --talker.gpu 0`, single-GPU Talker colocation, `/v1/audio/transcriptions` + `/v1/audio/speech` + `/v1/chat/completions`, `cookbook/ming3_audio.html` pointer); `Serving` → `SGLang` (single-GPU text-only profile, separate route). Model card inspected statically; cookbook, launcher scripts and runtime code not inspected.
 
 [^fish-drama3-card]: [Fish Audio Drama 3 model card](../raw/drama-3.md) — locators: `Launch with SGLang Omni`; `Production Serving` Table 2 and the paragraph after it (vocoder placement).
 

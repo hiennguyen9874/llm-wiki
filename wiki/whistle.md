@@ -5,13 +5,17 @@ description: 16.9 MB on-device multilingual STT model with word timestamps, per-
 tags: [stt, on-device, edge, multilingual, quantization]
 status: stable
 created: 2026-10-06
-generated: { by: llm-wiki-agent/1, at: 2026-10-06T16:40:00Z }
+generated: { by: llm-wiki-agent/1, at: 2026-10-25T02:38:00Z }
 stale_after: 2027-10-06
 sources:
   - id: whistle-card
     resource: ../raw/whistle.md
     kind: documentation
     title: 'Whistle: Speech Recognition for Tiny Devices'
+  - id: auroraasr-card
+    resource: ../raw/AuroraAI-Research-AuroraASR-1M.md
+    kind: documentation
+    title: AuroraASR-1M Hugging Face model card capture
 ---
 
 Whistle is Cactus Compute's tiny on-device speech-to-text model for mobiles, wearables, robots, smart home, automotive, and microcontrollers, shipping as a single 16.9 MB `whistle.cact` file that runs on the same CPU engine, container, and quantisation as the Needle LLM with no dependencies and no GPU, covering 16 kHz mono transcription up to 30 seconds per pass in seven languages with auto language detection, decoder-attention word timestamps, per-frame speech embeddings, and keyword biasing (**Reported**).[^whistle-card]
@@ -63,11 +67,13 @@ Whistle is Cactus Compute's tiny on-device speech-to-text model for mobiles, wea
 ## Relationships
 
 - Benchmarked against [Whisper Large v3 Turbo](whisper-large-v3-turbo.md): the Whistle card's protocol pits its C++ engine at 5 beams against `openai-whisper` and non-streaming `moonshine-voice` on the same clips, using the multilingual Whisper checkpoint rather than `base.en` (**Synthesis**).[^whistle-card]
+- Footprint-class peer: [AuroraASR-1M](auroraasr-1m.md) reports only 949,073 parameters and 3.81 MB of FP32 English CTC weights, but arrives as a Transformers checkpoint requiring `trust_remote_code` with no timestamps, keyword biasing, or non-English coverage, whereas Whistle is a 16.9 MB single-file seven-language runtime artifact on a shared CPU engine. Read both when scoping the sub-20 MB class or when choosing between a packaged runtime and a research checkpoint (**Synthesis**).[^whistle-card][^auroraasr-card]
 
 ## Coverage and limits
 
 - Source inspected statically only; no package installed, no checkpoint downloaded, no audio transcribed, and no WER, latency, or throughput claim reproduced (**Synthesis**).[^whistle-card]
-- Banner, model, benchmark, loading, and deploy SVG figures plus the Needle3 engine repository, the `needle` GitHub source, and the devices guide were linked but not fetched and are not in `raw/`; only the single Markdown card was compiled (**Synthesis**).[^whistle-card]
+- Banner, model, benchmark, loading, and deploy SVG figures plus the Needle3 engine repository, the `needle` GitHub source, and the devices guide were linked but not fetched and are not in `raw/`; only the single Whistle Markdown card was compiled for this model, alongside the AuroraASR-1M card used solely for the footprint comparison (**Synthesis**).[^whistle-card][^auroraasr-card]
 - All identity, capability, architecture, protocol, usage, and accuracy claims are source assertions without independent verification in this wiki; model-release and benchmark figures carry `stale_after: 2027-10-06` per the `stt` domain rule (**Synthesis**).[^whistle-card]
 
 [^whistle-card]: [Whistle: Speech Recognition for Tiny Devices](../raw/whistle.md) — locators: frontmatter (`library_name: cactus-needle`, `pipeline_tag: automatic-speech-recognition`, `license: apache-2.0`, 7-code `language` list, `tags`); intro (16.9 MB single file, same Needle CPU engine/container/quantisation, no dependencies/GPU, six target device classes, three on-device jobs); `Transcription` / `Word timestamps` / `Speech embedding` bullets (16 kHz mono, ≤30 s, 7 languages, auto LID, silence-to-empty; start/end/probability from decoder attention; one row per 80 ms frame); `Keyword biasing` sentence; section `Model` (log-mel front end, convolutional stem, audio encoder, Needle-shaped decoder, gated cross attention every layer, `.cact`/Cactus Quants/SIMD kernels/KV cache, laddered `--audio-depth`, `whistle.cact` vs `needle3` engine); section `Benchmarks` (full-split WER, Whisper normalizers, 86,174 utterances, M4 Pro 10 s method, 5 beams, TTFB/decode definitions, 2–4-bit vs fp32 vs int8, multilingual-checkpoint note, missing-bar rule, Moonshine English-only, SPGISpeech/Earnings-22/AMI-cleaned gaps, AMI-IHM and empty-reference convention, TED-LIUM exclusions, FLEURS/MLS 7- and 6-language averaging, checksum plus speaker-ID leak check; `whistle-benchmarks.svg` image-only); section `Get started` (`pip install cactus-needle`, `[mic]` extra, `needle.transcribe` fence with `word_timestamps`/`keywords`/`language`, return fields, `needle.Whistle()`/`embed`, `playground`/`compare`); section `With Needle` (`needle_load`, joint transcribe-plus-tools JSON with `audio_` prefix, two CLI fences); section `Deploy` (`needle download` fences, platform folders with `needle`/`libneedle.a`/`needle.h`, `--audio-word-timestamps`, `needle_load`/`needle_transcribe`/`needle_embed`/`needle_complete`, no-environment-variable determinism, devices guide); section `Citation` (BibTeX Mroz et al. 2026, Cactus Compute, GitHub URL, `founders@cactuscompute.com` contact).
+[^auroraasr-card]: [AuroraASR-1M model card](../raw/AuroraAI-Research-AuroraASR-1M.md) — locators: frontmatter (`language: en`, `license: apache-2.0`, `custom_code` tag); intro (four unique Conformer-lite blocks applied twice, 256-piece BPE, under 1M parameters, greedy CTC, no external LM); `Precisions` (FP32 3.81 MB / FP16 1.91 MB / INT8 1.06 MB); `Usage` fence (`trust_remote_code=True`); `Architecture` (949,073 parameters).

@@ -5,7 +5,7 @@ description: Open-source 2B-parameter Conformer encoder-decoder ASR model for Ar
 tags: [stt, asr, arabic, english, conformer]
 status: stable
 created: 2026-10-06
-generated: { by: llm-wiki-agent/1, at: 2026-10-21T18:00:00Z }
+generated: { by: llm-wiki-agent/1, at: 2026-10-25T10:20:00Z }
 stale_after: 2027-10-06
 sources:
   - id: cohere-arabic-card
@@ -16,6 +16,10 @@ sources:
     resource: ../raw/Voxtral-Mini-4B-Realtime-Arabic.md
     kind: documentation
     title: Voxtral Mini 4B Realtime Arabic model card
+  - id: jais-arabic-table
+    resource: ../raw/IFM-Jais-ASR.md
+    kind: documentation
+    title: IFM Jais-ASR model card (later Arabic leaderboard table)
 ---
 
 Cohere Transcribe Arabic (`CohereLabs/cohere-transcribe-arabic-07-2026`) is an open-source 2B-parameter Arabic automatic speech recognition model with a Conformer encoder plus lightweight Transformer decoder, natively supported in Transformers with a vLLM serving path, covering Arabic, Arabic dialects, and English, and reported as the best-average system on the Open Universal Arabic ASR Leaderboard as of 07.07.2026 with 25.87% WER and 11.80% CER average (**Reported**).[^cohere-arabic-card]
@@ -44,6 +48,7 @@ All numbers below are source assertions from the card's leaderboard table dated 
 
 - Open Universal Arabic ASR Leaderboard average (WER down, CER second row): Cohere Transcribe Arabic 07-2026 leads at 25.87 / 11.80, ahead of OmniASR LLM 7B at 28.32 / 12.52, OmniASR LLM 3B at 29.96 / 13.77, OmniASR LLM 1B at 29.96 / 13.40, Cohere Transcribe 03-2026 at 30.67 / 16.37, Qwen3-Omni 30B at 30.71 / 13.67, NVIDIA Conformer-CTC with LM at 32.91 / 13.84, OmniASR LLM 300M at 32.96 / 14.84, Gemma 4 E4B at 32.98 / 13.71, Qwen3-ASR 1.7B at 33.36 / 12.33, Voxtral-Small 24B at 34.47 / 15.29, NVIDIA Conformer-CTC greedy at 34.74 / 13.37, Gemma 4 E2B at 35.87 / 15.34, and Whisper Large v3 at 36.86 / 17.21 (**Reported**).[^cohere-arabic-card]
 - Per-subset wins (WER / CER): SADA 37.47 / 23.53, Common Voice 5.82 / 1.62, and Casablanca 49.71 / 20.66 are best-in-table for this model; MASC clean 19.60 / 6.45, MASC noisy 27.07 / 10.13, and MGB-2 15.54 / 8.40 are not — MASC clean/noisy are led by Cohere Transcribe 03-2026 at 8.66 / 2.97 and 19.01 / 7.71, and MGB-2 by Qwen3-Omni 30B at 13.09 / 6.20 (**Reported**).[^cohere-arabic-card]
+- A later capture of the same leaderboard (the IFM Jais-ASR card, no date printed) reproduces every Cohere cell above verbatim — 25.87 / 11.80 average, SADA 37.47 / 23.53, Common Voice 5.82 / 1.62, MASC clean 19.60 / 6.45, MASC noisy 27.07 / 10.13, MGB-2 15.54 / 8.40, Casablanca 49.71 / 20.66 — and adds new entrants that displace the average lead: Jais-ASR 22.85 / 8.37, Audar-ASR-V1-Turbo 23.17 / 9.23, Speechmatics Melia 1 23.51 / 10.62, ElevenLabs Scribe v2 24.54 / 9.96 (**Observed** by cell comparison; ranking **Synthesis**).[^jais-arabic-table]
 - Live leaderboard and write-ups live outside `raw/`: the Open Universal Arabic ASR Leaderboard Space, technical release post, and Cohere announcement post are referenced but unfetched (**Synthesis**).[^cohere-arabic-card]
 
 ## Strengths and limitations
@@ -53,6 +58,7 @@ All numbers below are source assertions from the card's leaderboard table dated 
 
 ## Relationships
 
+- Later leaderboard leader: [IFM Jais-ASR](ifm-jais-asr.md) reports 22.85 / 8.37 on the same six sets and same leaderboard protocol, against this model's 25.87 / 11.80, so the "best-average as of 07.07.2026" framing here is time-bounded rather than current. The two remain close on MASC and MGB-2 (16.12 vs 19.60 and 9.59 vs 15.54 for Jais) while this model keeps a clear Common Voice 18 lead (5.82 / 1.62 vs 8.56 / 2.70) — compare per-subset rows for a known dialect mix (**Synthesis**).[^jais-arabic-table]
 - Alternative to [Qwen3-ASR family](qwen3-asr-family.md): that family covers Arabic among 30 languages with streaming/offline inference and timestamp prediction via a forced aligner, while this concept is the Arabic-specialized option with the leaderboard evidence above; the card's table carries a `Qwen3-ASR 1.7B` column as a baseline, so cross-read both when choosing between multilingual and Arabic-focused ASR (**Synthesis**).[^cohere-arabic-card]
 - Preceded by [Cohere Transcribe 03-2026](cohere-transcribe-03-2026.md) (declared `base_model`): the base leads the MASC clean/noisy subsets while this Arabic-tuned model leads the average, SADA, Common Voice, and Casablanca subsets — compare per-subset rows rather than averages alone when the deployment dialect mix is known (**Synthesis**).[^cohere-arabic-card]
 - Streaming alternative: [Voxtral Mini 4B Realtime Arabic](voxtral-mini-4b-realtime-arabic.md) is a natively streaming Arabic/dialect and code-switching model reporting 8.82% average CER at 480 ms under MTNRA normalization over seven benchmarks; this page's leaderboard WER/CER uses a different suite and normalization, so no ranking is implied (**Reported**; comparability **Synthesis**).[^voxtral-arabic-card]
@@ -61,7 +67,8 @@ All numbers below are source assertions from the card's leaderboard table dated 
 
 - Source inspected statically only; no package installed, no model downloaded, no audio transcribed, and no WER, CER, or RTFx figure reproduced (**Synthesis**).[^cohere-arabic-card]
 - Linked but unfetched and absent from `raw/`: Hugging Face demo Space, vLLM installation docs, technical and announcement blog posts, leaderboard Space, and every benchmark dataset (SADA, Common Voice, MASC clean/noisy, MGB-2, Casablanca); install, inference, and serving fences are transcribed, not executed (**Synthesis**).[^cohere-arabic-card]
-- All capability, accuracy, and ranking claims are source assertions without independent verification in this wiki; model-release and benchmark details carry `stale_after: 2027-10-06` per the `stt` domain rule (**Synthesis**).[^cohere-arabic-card]
+- All capability, accuracy, and ranking claims are source assertions without independent verification in this wiki; model-release and benchmark details carry `stale_after: 2027-10-06` per the `stt` domain rule, and the leaderboard ordering has since changed in a third-party card's table (**Synthesis**).[^cohere-arabic-card][^jais-arabic-table]
 
 [^cohere-arabic-card]: [Cohere Transcribe Arabic model card](../raw/cohere-transcribe-arabic-07-2026.md) — locators: frontmatter (`license`, `pipeline_tag`, `library_name`, `language`, `tags`, `base_model`); spec table (Name, Architecture, Input, Output, Model, Training objective, Languages, License rows); header intro (2B-parameter claim, Arabic/dialects/English/code-switch scope, Conformer encoder-decoder plus Transformers support, Cohere/Cohere Labs credit); `Usage` install fence and Quick Start fence (`AutoProcessor`, `CohereAsrForConditionalGeneration`, `device_map="auto"`, `language="ar"`, `max_new_tokens=256`); `Long-form transcription` details fence (`max_audio_clip_s`, `audio_chunk_index`, RTFx computation); commented `Punctuation control` block; `English transcription` details (`language="en"`); `vLLM Integration` details (`vllm==0.19.0`, `vllm[audio]`, `vllm serve ... --trust-remote-code`, `POST /v1/audio/transcriptions` curl); `Results` leaderboard details dated 07.07.2026 (Average/SADA/Common Voice/MASC clean/MASC noisy/MGB-2/Casablanca WER plus CER table with 14-model comparison); `Resources` (technical post, announcement post, leaderboard links); `Strengths and Limitations` (accuracy/efficiency bullets; single-language/code-switch, timestamps/diarization, silence/VAD bullets); `Model Card Contact` and Terms (`labs@cohere.com`, Apache 2.0); `Citation` BibTeX (authors, revision `0a8193c`, year 2026, doi `10.57967/hf/9549`).
 [^voxtral-arabic-card]: [Voxtral Mini 4B Realtime Arabic model card](../raw/Voxtral-Mini-4B-Realtime-Arabic.md) — locators: intro (streaming Arabic dialect/MSA model, 480 ms, 8.82% average CER over seven benchmarks); `Benchmarks` (MTNRA normalization, temperature 0.0).
+[^jais-arabic-table]: [IFM Jais-ASR model card](../raw/IFM-Jais-ASR.md) — locators: `Benchmark Results` intro (six public test sets, leaderboard evaluation script, open-weight scores taken from the leaderboard, the two commercial APIs measured by IFM); embedded `leaderboard` table WER and CER blocks, including the `cohere-transcribe-arabic-07-2026` column across Average, SADA, Common Voice 18, MASC clean, MASC noisy, MGB-2 and Casablanca plus the Jais-ASR, Audar-ASR-V1-Turbo, Melia 1 and Scribe v2 columns.

@@ -1,24 +1,28 @@
 ---
 type: Concept
 title: Phonon-2
-description: Fermion Research 164 MB quantized English ASR model distilled from Parakeet TDT 0.6B V3, reporting 5.21% mean WER on seven Open ASR sets with MLX, CPU, CUDA, and Docker runtimes.
+description: Fermion Research 164 MB quantized English ASR model distilled from Parakeet TDT 0.6B V3, reporting 5.21% mean WER on seven Open ASR sets with MLX, Core ML, CPU, CUDA, Docker, and Android runtimes.
 tags: [stt, asr, english, quantization, edge-deployment, parakeet, mlx]
 status: stable
 created: 2026-10-06
-generated: { by: llm-wiki-agent/1, at: 2026-10-06T23:05:00Z }
+generated: { by: llm-wiki-agent/1, at: 2026-10-25T02:55:08Z }
 stale_after: 2027-10-06
 sources:
   - id: phonon-2-card
     resource: ../raw/Phonon-2.md
     kind: documentation
     title: Phonon-2 model card
+  - id: phonon-2-card-recapture
+    resource: ../raw/FermionResearch-Phonon-2.md
+    kind: documentation
+    title: Phonon-2 model card (later capture)
   - id: parakeet-redux-card
     resource: ../raw/parakeet-redux.md
     kind: documentation
     title: Moondream Parakeet Redux model card
 ---
 
-Phonon-2 is Fermion Research's quantized English ASR checkpoint derived from NVIDIA's `parakeet-tdt-0.6b-v3`, reporting a 5.21% mean word error rate over seven Open ASR Leaderboard English sets from a 164 MB download, with Apple-silicon MLX, Linux/Windows CPU, and CUDA Docker runtimes (**Reported**).[^phonon-2-card]
+Phonon-2 is Fermion Research's quantized English ASR checkpoint derived from NVIDIA's `parakeet-tdt-0.6b-v3`, reporting a 5.21% mean word error rate over seven Open ASR Leaderboard English sets from a 164 MB download, with Apple-silicon MLX, Core ML, Linux/Windows CPU, Android, and CUDA Docker runtimes (**Reported**).[^phonon-2-card][^phonon-2-card-recapture]
 
 ## Identity and lineage
 
@@ -29,7 +33,7 @@ Phonon-2 is Fermion Research's quantized English ASR checkpoint derived from NVI
 
 ## Quantization and size
 
-- The encoder holds each weight at one of five learned levels in about 2.1 bits (**Reported**).[^phonon-2-card]
+- The encoder holds each weight at one of five learned levels in about 2.1 bits (**Reported** in the earlier capture).[^phonon-2-card] The later capture drops that sentence along with the `low-bit` and `quantization-aware-training` tags, while still declaring `base_model_relation: quantized`; the bit-width is therefore single-capture evidence rather than a stable card statement, and the quantization claim itself survives (**Observed** by whole-file diff).[^phonon-2-card-recapture]
 - Download size 164 MB against the 2,508 MB full-precision teacher in the same table, described as a download 15 times smaller (**Reported**).[^phonon-2-card]
 - Card headline claim: the most accurate open speech-recognition model for English under 900 MB, averaging 5.21% word error across the seven English sets and beating models multiple times its size in raw bytes (**Reported**).[^phonon-2-card]
 - Teacher-parity claim: holds the accuracy of its 2.5 GB full-precision teacher, reaching 100.8% of the teacher's word accuracy on parliamentary speech and beating it on meetings (**Reported**); mapped to the table's VoxPopuli (2.46 vs 3.19, parliamentary) and AMI (9.37 vs 9.42, meetings) cells this reads as a VoxPopuli win and a narrow AMI win (**Synthesis**).[^phonon-2-card]
@@ -59,10 +63,11 @@ Vendor-run table using the Open ASR Leaderboard's code on the full test sets; da
 
 ## Inference and usage
 
-- Apple silicon command line: `pip install fermion-research` plus `pip install mlx mlx-audio mlx-lm soundfile scipy zstandard`, then `phonon transcribe recording.wav` or `fermion transcribe phonon-2 recording.wav` (**Reported**).[^phonon-2-card]
+- Apple silicon command line: Python 3.10 or newer is required (macOS's built-in `python3` is 3.9), so the card opens with `python3.12 -m venv .venv && source .venv/bin/activate`; then `pip install fermion-research` plus `pip install mlx mlx-audio mlx-lm soundfile scipy zstandard`, and `phonon transcribe recording.wav` or `fermion transcribe phonon-2 recording.wav` (**Reported**).[^phonon-2-card][^phonon-2-card-recapture]
 - `--json` adds a start and end time for every word; the command line and server are documented at `fermionresearch.com/docs/speech` (**Reported**).[^phonon-2-card]
-- The same package runs on Linux (x86-64 and Arm) and Windows CPUs with engines at `github.com/fermionresearch/phonon` (**Reported**).[^phonon-2-card]
-- Docker CPU and GPU fences (pinned tags in source): `ghcr.io/fermionresearch/phonon-cpu:2.0.6 transcribe phonon-2 /audio/recording.wav` and `ghcr.io/fermionresearch/phonon-cuda:1.0.5 transcribe phonon-2 /audio/recording.wav`, both mounting `$PWD:/audio` and a `phonon-cache` volume (**Reported**).[^phonon-2-card]
+- Two further runtime targets appear only in the later capture: a Core ML (Neural Engine) package at `huggingface.co/FermionResearch/Phonon-2-CoreML`, and Android arm64-v8a (API 26+) via the CPU engine libraries plus a C header and call-sequence note at `github.com/fermionresearch/phonon/releases/tag/android-arm64-v8a-0.2.11` (**Reported**; neither package, header nor call sequence inspected).[^phonon-2-card-recapture]
+- The same package runs on Linux (x86-64 and Arm) and Windows CPUs; the earlier capture names the engines repo `github.com/fermionresearch/phonon`, while the later capture drops that sentence but keeps an Android release URL on the same repo, so the repo is corroborated while the CPU-engine claim rests on the earlier text (**Reported**; comparison is **Observed** by diff).[^phonon-2-card][^phonon-2-card-recapture]
+- Docker CPU and GPU fences, both mounting `$PWD:/audio` and a `phonon-cache` volume: `ghcr.io/fermionresearch/phonon-cpu:2.0.7 transcribe phonon-2 /audio/recording.wav` and `ghcr.io/fermionresearch/phonon-cuda:1.0.6 transcribe phonon-2 /audio/recording.wav` in the later capture; the earlier capture prints `phonon-cpu:2.0.6` and `phonon-cuda:1.0.5`, so these are moving pinned tags that should be re-read before pinning (**Reported**).[^phonon-2-card][^phonon-2-card-recapture]
 
 ## Relationships
 
@@ -73,9 +78,12 @@ Vendor-run table using the Open ASR Leaderboard's code on the full test sets; da
 
 ## Coverage and limits
 
-- Source inspected statically only; no checkpoint downloaded, no audio transcribed, and no WER or RTFx figure reproduced (**Synthesis**).[^phonon-2-card]
-- Referenced but unfetched and absent from `raw/`: Detta product page, `fermionresearch.com/docs/speech` CLI/server docs, PyPI `fermion-research` package, `github.com/fermionresearch/phonon` CPU/CUDA engines, Docker images `phonon-cpu:2.0.6` / `phonon-cuda:1.0.5`, NOTICE file, Open ASR Leaderboard code and full test sets; all install and inference fences are transcribed, not executed (**Synthesis**).[^phonon-2-card]
+- Two captures of the same Hugging Face model card back this page (`FermionResearch/Phonon-2`): `raw/Phonon-2.md` and the later `raw/FermionResearch-Phonon-2.md`. A whole-file `diff` shows the later capture changes only these points: it adds the Python-3.10/venv line, adds the Core ML and Android bullets, bumps the Docker tags to `2.0.7`/`1.0.6`, drops the sentence on five learned levels at about 2.1 bits, drops the `low-bit` and `quantization-aware-training` tags, renames the table's "teacher" row to "base model" and the intro's teacher wording to "the 2.5 GB full-precision parakeet-tdt-0.6b-v3 it derives from", and removes the engines-repo sentence (**Observed** by diff).[^phonon-2-card][^phonon-2-card-recapture]
+- Neither capture prints a card revision, release date or capture timestamp, so which one is newer is inferred from the added runtime targets and bumped Docker tags rather than from a stated version (**Synthesis**).
+- Source inspected statically only; no checkpoint downloaded, no audio transcribed, and no WER or RTFx figure reproduced (**Synthesis**).
+- Referenced but unfetched and absent from `raw/`: Detta product page, `fermionresearch.com/docs/speech` CLI/server docs, PyPI `fermion-research` package, `github.com/fermionresearch/phonon` CPU/CUDA engines, the `Phonon-2-CoreML` Hugging Face repo and the `android-arm64-v8a-0.2.11` release, Docker images `phonon-cpu:2.0.7` / `phonon-cuda:1.0.6`, NOTICE file, Open ASR Leaderboard code and full test sets; all install and inference fences are transcribed, not executed (**Synthesis**).[^phonon-2-card][^phonon-2-card-recapture]
 - All accuracy, size, quantization, and speed claims are source assertions without independent verification in this wiki; release and benchmark figures carry `stale_after: 2027-10-06` per the `stt` domain rule (**Synthesis**).[^phonon-2-card]
 
 [^phonon-2-card]: [Phonon-2 model card](../raw/Phonon-2.md) — locators: frontmatter (`base_model: nvidia/parakeet-tdt-0.6b-v3`, `base_model_relation: quantized`, `language: en`, `library_name: mlx`, `pipeline_tag: automatic-speech-recognition`, `metrics: wer`); `# Phonon-2` intro (sub-900MB claim, 5.21% seven-set average, 100.8% teacher word accuracy on parliamentary speech, meetings win, 15x smaller download, five learned levels in ~2.1 bits, 20 s per hour on M5 Air at 174x / 143x on eight Zen 5 cores / 6,680x on H100 batch-128); `## Benchmarks` (8-row WER table incl. Phonon-2 164 MB 5.21, teacher 2,508 MB 4.96†, Parakeet Redux 5.69, Phonon-1 6.56, Canary 180M Flash 5.69†, Voxtral Mini 4B Realtime ~8,000 MB 6.12†, Whisper large-v3-turbo 1,618 MB 6.58†, Nemotron 3.5 Streaming 2,368 MB 7.96†; † = leaderboard row, \* = 16-bit size estimate); `## Run it` (Detta Mac app; `pip install fermion-research` + `mlx mlx-audio mlx-lm soundfile scipy zstandard`; `phonon transcribe` / `fermion transcribe phonon-2`; `--json` word timings; docs URL; Linux x86-64/Arm + Windows CPU engines; Docker `phonon-cpu:2.0.6` / `phonon-cuda:1.0.5` fences with `/audio` + `phonon-cache` mounts); `## Notes` (parakeet-tdt-0.6b-v3 lineage, original tokenizer and PnC/casing/numeral conventions, CC-BY-4.0 + NOTICE, CLI/repo Apache-2.0).
+[^phonon-2-card-recapture]: [Later Phonon-2 model card capture](../raw/FermionResearch-Phonon-2.md) — locators: frontmatter (same `license: cc-by-4.0`, `base_model: nvidia/parakeet-tdt-0.6b-v3`, `base_model_relation: quantized`, `language: [en]`, `library_name: mlx`, `metrics: [wer]`, `pipeline_tag`; tag list without `low-bit` and `quantization-aware-training`); `# Phonon-2` intro (sub-900MB claim, 5.21% seven-set average, 100.8% of base-model word accuracy on parliamentary speech, meetings win, 15x smaller download, no bit-width sentence; 20 s per hour on M5 Air at 174x, 143x on eight Zen 5 cores, 6,680x on H100 batch-128); `## Benchmarks` (same 8-row table with the `Parakeet TDT 0.6B v3, base model†` row at 2,508 MB / 4.96); `## Run it` (Detta app; Python 3.10-or-newer note with `python3.12 -m venv .venv`; pip and `phonon`/`fermion transcribe phonon-2` fences; `--json` word timings; docs URL; `Phonon-2-CoreML` link; Android arm64-v8a API 26+ release link; Linux x86-64/Arm + Windows CPU sentence without the engines-repo link; Docker `phonon-cpu:2.0.7` / `phonon-cuda:1.0.6` fences with `/audio` + `phonon-cache` mounts); `## Notes` (parakeet-tdt-0.6b-v3 lineage, original tokenizer and PnC/casing/numeral conventions, CC-BY-4.0 + `NOTICE`, CLI/repo Apache-2.0); whole-file `diff` against [the earlier capture](../raw/Phonon-2.md).
 [^parakeet-redux-card]: [Moondream Parakeet Redux model card](../raw/parakeet-redux.md) — locators: intro (1.58-bit ternary version of `parakeet-tdt-0.6b-v3`, 178 MB, 113× realtime on eight x86 cores, 2.5× fastest other runtime); `Benchmarks` (Open ASR 6.55 vs 6.26, FLEURS 10.56 vs 11.62, TED-LIUM 2.51 vs 2.71).

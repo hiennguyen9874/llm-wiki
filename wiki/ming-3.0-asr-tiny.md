@@ -69,6 +69,7 @@ The card and frontmatter declare MIT for model weights and original project code
 ## Relationships
 
 - Uses: [SGLang-Omni](sglang-omni.md) as the card's single-GPU OpenAI-compatible transcription serving route; SSE output does not demonstrate live audio-input streaming (**Reported/Synthesis**).[^ming-asr-tiny-card]
+- Distinct from: [Ming-3.0-audio-tiny](ming-3.0-audio-tiny.md) is a separate inclusionAI checkpoint — a 9.3B-total / 2.7B-active audio-language MoE with audio understanding, reasoning and an optional Talker for synthesized speech, sharing only the `tiny` suffix and the shared `Ming-3.0-audio-flash` repository name with this ASR-only model. Do not transfer parameter counts, prompts, architecture or serving profiles between them (**Observed/Synthesis**).[^ming-asr-tiny-card]
 - Cataloged in: [ASR/STT Model Survey](asr-stt-model-survey.md) as a Chinese-English contextual recognizer without a compiled numerical benchmark; no cross-model quality ranking is justified (**Synthesis**).[^ming-asr-tiny-card]
 
 ## Coverage ledger and limits

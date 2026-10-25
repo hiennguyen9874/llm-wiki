@@ -105,6 +105,7 @@ Hardware, runtime revision, exact English-split aggregation, normalization, samp
 - **Depends on:** [Kokoro-82M](kokoro-82m.md) as distillation teacher, retaining `af_heart` rather than its full voice/language inventory (**Reported**).[^paradee-card]
 - **Uses:** [Misaki](misaki.md)-compatible phoneme spelling; browser [eSpeak NG](espeak-ng.md) output requires the card's linked conversion (**Reported**).[^paradee-card]
 - Compared in [TTS Model Survey](tts-model-survey.md) and [Kokoro Deployment Comparison](kokoro-deployment-comparison.md); the latter distinguishes distilled alternatives from deploying the teacher (**Synthesis** navigation).
+- Distinct from [Kitten TTS 2](kitten-tts-2.md): the comparison table's `KittenTTS nano 0.8 (Bella)` row (14.0M, 56.8 MB) is the earlier nano generation, not the 1.7B ternary-packed Kitten TTS 2, which carries the `Bella` speaker name only and states no benchmark (**Synthesis**).[^paradee-card]
 
 ## Coverage and trust limits
 

@@ -75,6 +75,7 @@ All three auto-download from `cstr/truecaser-de`. The `pcs` punctuation model is
 ## Relationships
 
 - Uses: [Nemotron 3 Diarization](nemotron-3-diarization.md) for the Sortformer method (**Synthesis**).[^crispasr-readme]
+- Uses: the pyannote lineage covered by [Pyannote Speaker Diarization Community-1](pyannote-speaker-diarization-community-1.md) for the `pyannote` method; the README's "7.8 % for pyannote with TitaNet" on VoxConverse is a different pipeline, embedder, and protocol from that card's 11.2 on VoxConverse v0.3, so the two are not comparable and neither is reconciled (see [its benchmarks](pyannote-community-1-benchmarks.md)) (**Synthesis**).[^crispasr-readme]
 - Follows: [CrispASR VAD and Language Identification](crispasr-vad-language-id.md), since diarization and punctuation act on VAD-segmented output (**Synthesis**).
 - Part of: [CrispASR](crispasr.md) (**Synthesis**).
 

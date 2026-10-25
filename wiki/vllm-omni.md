@@ -5,7 +5,7 @@ description: GPU serving framework for omni-modality autoregressive and diffusio
 tags: [pipeline, serving, tts, stt, streaming]
 status: stable
 created: 2026-10-06
-generated: { by: llm-wiki-agent/1, at: 2026-10-21T16:00:00Z }
+generated: { by: llm-wiki-agent/1, at: 2026-10-25T13:10:00Z }
 stale_after: 2027-10-06
 sources:
   - id: vllm-omni-readme
@@ -16,6 +16,10 @@ sources:
     resource: ../raw/drama-3.md
     kind: documentation
     title: Fish Audio Drama 3 model card
+  - id: ming-audio-tiny-card
+    resource: ../raw/inclusionAI-Ming-3.0-audio-tiny.md
+    kind: documentation
+    title: Ming-3.0-audio-tiny model card capture
 ---
 
 vLLM-Omni is the vLLM community's omni-modality serving framework that extends vLLM's text autoregressive generation into any-to-any text, image, audio, video, and action inference, combining vLLM-derived KV-cache management with pipelined and fully disaggregated stage execution plus an OpenAI-compatible server and full-duplex realtime audio input/output for voice-loop deployment (**Reported**).[^vllm-omni-readme]
@@ -40,6 +44,7 @@ vLLM-Omni is the vLLM community's omni-modality serving framework that extends v
 
 - Voice-loop-relevant served families named in the source: TTS models Qwen3-TTS, Tencent AuK, Breeze-TTS-2, and CosyVoice3; omni-modality models Qwen3-Omni and MiniCPM-o 4.5; speech and diffusion-audio generation via MiniMax H3 (**Reported**).[^vllm-omni-readme]
 - Full catalog context retained from the source but out of voice-loop scope per `SCOPE.md` unless feeding VAD → STT → LLM → TTS: omni-modality Cosmos3, HunyuanImage, and BAGEL; diffusion image/video MAGI-2, LTX-2.5, Wan2.2, and LingBot World; robot-policy and action π0.5, GR00T-N1.7, DreamZero-DROID, and InternVLA-A1 (**Synthesis**).[^vllm-omni-readme]
+- A model card outside this README also documents this runtime as a deployment target: [Ming-3.0-audio-tiny](ming-3.0-audio-tiny-serving.md) uses `scripts/serve_vllm_omni.sh` with `MING_MODEL_VARIANT=tiny` and `MING_OUTPUT_MODE=text|audio`, placing the Thinker on one GPU for text/ASR and the Thinker plus Talker on GPU 0 and GPU 1 for speech output (**Reported by the model card**, not this README, which lists no Ming checkpoint).[^ming-audio-tiny-card]
 - Deployment recipes are published per model through an external recipe site; recipe contents were not present in `raw/` and were not inspected (**Reported**, with unfetched-pointer limit).[^vllm-omni-readme]
 
 ## Architecture: speed and flexibility
@@ -67,6 +72,7 @@ vLLM-Omni is the vLLM community's omni-modality serving framework that extends v
 - Serves: [Qwen3-TTS-12Hz-0.6B-CustomVoice](qwen3-tts-12hz-0.6b-customvoice.md), [Qwen3-TTS-12Hz-1.7B-CustomVoice](qwen3-tts-12hz-1.7b-customvoice.md), and [Qwen3-TTS-Tokenizer-12Hz](qwen3-tts-tokenizer-12hz.md) cover the Qwen3-TTS checkpoints and tokenizer this runtime fronts; for streaming behavior compare [Faster Qwen3-TTS](faster-qwen3-tts.md) as a CUDA-graph/GGML streaming wrapper alternative (**Synthesis**).[^vllm-omni-readme]
 - Serves: [Fish Audio Drama 3](fish-audio-drama-3.md) documents `vllm serve fishaudio/drama-3 --omni --port 8091` and a vLLM-Omni recipe; its published H200 figures do not state which runtime produced them beyond the SGLang-Omni vocoder-placement discussion (**Reported by the model card**).[^fish-drama3-card]
 - Serves: [Higgs TTS 3](higgs-tts-3-4b.md) documents a `vllm-omni serve` zero-shot-cloning path behind the same OpenAI-compatible `/v1/audio/speech` API; consult that page for weights, tag controls, and H100 throughput (**Synthesis**).[^vllm-omni-readme]
+- Serves: [Ming-3.0-audio-tiny](ming-3.0-audio-tiny-serving.md) documents a two-profile Tiny deployment — `MING_OUTPUT_MODE=text` for text/ASR on one GPU and `MING_OUTPUT_MODE=audio` with the Talker on a second GPU — plus `audio.voice: {"id": ...}` selection and a default IP voice `灵小柔` (**Reported by the model card**). No runtime version floor, port, batching or streaming behavior is printed there, and no server was launched.[^ming-audio-tiny-card]
 - Contrasts with [SGLang-Omni](sglang-omni.md): SGLang-Omni is a multi-stage GPU runtime with stage-matched scheduling and control-plane plus relay-data-plane tensor transport composing with SGLang for AR execution, while vLLM-Omni is the vLLM-line counterpart with vLLM-derived KV-cache management, OmniConnector disaggregation, AR/DiT paged KV, and engine-owned full-duplex sessions; compare them when choosing a server-GPU omni/TTS serving stack (**Synthesis**).[^vllm-omni-readme]
 - Contrasts with [audio.cpp Framework](audio-cpp-framework.md): audio.cpp is a native ggml-based C++ runtime for local CPU/edge GGUF deployment, while vLLM-Omni is a server-GPU disaggregated serving framework with distributed parallelism and OpenAI-compatible streaming; compare them on edge-local versus server-GPU placement (**Synthesis**).[^vllm-omni-readme]
 
@@ -78,5 +84,7 @@ vLLM-Omni is the vLLM community's omni-modality serving framework that extends v
 - Release, hardware-support, model-coverage, and API-surface claims carry `stale_after: 2027-10-06` per the `pipeline`, `tts`, `stt`, and `llm` domain rules (**Synthesis**).[^vllm-omni-readme]
 
 [^fish-drama3-card]: [Fish Audio Drama 3 model card](../raw/drama-3.md) — locators: `Launch with vLLM-Omni`; `Production Serving` (runtime not named for Table 1).
+
+[^ming-audio-tiny-card]: [Ming-3.0-audio-tiny model card](../raw/inclusionAI-Ming-3.0-audio-tiny.md) — locators: `Serving` → `vLLM-Omni` (both `MING_MODEL_VARIANT=tiny MING_OUTPUT_MODE=...` launcher fences, Thinker/Talker GPU 0 and GPU 1 reference profile, deployment-YAML selection, `examples/vllm_omni_audio_chat.py`, Chat Completions `audio.voice: {"id": ...}`, default `灵小柔`, presets `灵楷` and `US_James`). Model card inspected statically; launcher scripts, YAML profiles and client code not inspected, no server run.
 
 [^vllm-omni-readme]: [vLLM-Omni GitHub README](../raw/vllm-omni.md) — locators: header badges and link row (Documentation, DeepWiki, User Forum, Developer Slack, WeChat, Paper arXiv:2602.02204, Slides); `Latest News` (2026/09 v0.30.0 rebase onto vLLM 0.30.0 with MiniCPM-o 4.5/AURA engine-owned sessions, Mooncake AR-to-DiT plus NIXL transfer, LingBot World, MiniMax H3 Turbo on Blackwell/Ascend 950; 2026/08 v0.28.0 GPU/NPU MiniMax H3 plus AR/DiT paged KV plus MiniCPM-o full-duplex; 2026/08 VeRL-Omni v0.2.0 FA3 batching plus Qwen3-Omni DPO/GSPO plus LTX-2.3/Qwen-Image-Edit; 2026/08 v0.26.0 vLLM 0.26 line with joint video/audio, experimental duplex, layerwise offload, TTS/quant support; 2026/07 v0.24.0 vLLM 0.24 line with stage refactor, request-level batching, async materialization, CUDA/ROCm/XPU/NPU; 2026/06 0.14.0–0.22.0 even-minor cadence with Cosmos3/DreamZero, MiniCPM-o 4.5/MOSS-TTS/Lance, VeRL-Omni, CUDA/ROCm/MUSA/NPU/XPU; 2026/03 Hong Kong deepdive; 2025/11 vllm-project release); `About` (vLLM text-AR origin; omni-modality/non-AR/heterogeneous-output bullets; architecture figure; speed bullets KV-cache/pipelined-overlap/OmniConnector-disaggregation; flexibility bullets pipeline-abstraction/HF/parallelisms/streaming/OpenAI-API/`docs/serving/realtime_duplex_api.md` duplex); `seamlessly supports` model lists (Qwen3-Omni/MiniCPM-o 4.5/Cosmos3/HunyuanImage/BAGEL; Qwen3-TTS/AuK/Breeze-TTS-2/CosyVoice3; MiniMax H3/LingBot World/MAGI-2/LTX-2.5/Wan2.2; π0.5/GR00T-N1.7/DreamZero-DROID/InternVLA-A1); `Getting Started` (docs, Installation, Quickstart, nightly CUDA Docker, Supported Models, Deployment Recipes at recipes.vllm.ai); `Contributing`, `Citation` (Yin et al. 2026 bibtex), `Join the Community` (#sig-omni/forum), `Star History`, `License` (Apache-2.0).

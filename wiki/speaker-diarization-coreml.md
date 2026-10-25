@@ -69,6 +69,7 @@ Table values are the card's supported-artifact mapping (**Reported**).[^speaker-
 - Alternative to [MOSS-Transcribe-Diarize 0.9B](moss-transcribe-diarize.md): joint long-form transcription plus diarization plus timestamps model, while this concept covers diarization-only segmentation/embedding/PLDA artifacts that return speaker segments without transcribed words (**Synthesis**).[^speaker-diar-coreml-card]
 - Related edge packaging: [Nemotron 3 Diarization GGUF](nemotron-3-diarization-gguf.md) is also an edge-format conversion (GGUF for audio.cpp with BF16/Q8_0 weights and quantization caveats), while this concept covers Core ML `.mlmodelc` plus `mlpackages/` artifacts for Apple deployment (**Synthesis**).[^speaker-diar-coreml-card]
 - Related ONNX packaging: [Sherpa Vietnamese ASR](sherpa-vietnamese-asr.md) runs pyannote Community-1 (and Senko CAM++) as pure ONNX Runtime on Windows, while this concept covers the Apple Core ML conversion (**Synthesis**).
+- Upstream: [Pyannote Speaker Diarization Community-1](pyannote-speaker-diarization-community-1.md) is the open pipeline this conversion packages, and it carries the audio contract (16 kHz mono, downmixing, resampling), the speaker-count controls, and the exclusive speaker track that the converted artifacts do not expose; the card documents no Core ML target of its own (**Synthesis**).
 
 ## Coverage and limits
 

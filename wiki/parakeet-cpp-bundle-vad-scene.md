@@ -40,7 +40,7 @@ Beyond transcription, [parakeet.cpp](parakeet-cpp.md) adds voice activity detect
 
 ## Sound events and the scene stream
 
-- CED tags 527 sound classes (6–88 MB models from `ced.cpp`; compile option `PARAKEET_WITH_CED`). `parakeet-cli scene --model ASR --diar DIAR --sound CED --input A.wav` produces one time-ordered feed of words, speakers, and sounds, shown on CPU with lines like `[00:00.4 - 00:05.4]  Speaker 0: ...` (**Reported**).[^parakeet-cpp-readme]
+- CED tags 527 sound classes (6–88 MB models from `ced.cpp`; compile option `PARAKEET_WITH_CED`; the upstream tagging family is compiled in [CED Audio Tagging Family](ced-audio-tagging-family.md)). `parakeet-cli scene --model ASR --diar DIAR --sound CED --input A.wav` produces one time-ordered feed of words, speakers, and sounds, shown on CPU with lines like `[00:00.4 - 00:05.4]  Speaker 0: ...` (**Reported**).[^parakeet-cpp-readme]
 
 ## Relationships
 
