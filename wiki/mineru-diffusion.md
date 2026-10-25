@@ -38,4 +38,8 @@ This local evidence is a model card. It links to an external technical report, H
 
 The card references local banner, training-overview, and performance-trade-off images under `assets/`, but those attachments are absent from `raw/`; this synthesis relies only on accompanying textual claims. It does not provide benchmark protocols, hardware configuration, baseline settings, model architecture details, weights, inference code, or evaluations needed to independently assess its accuracy, throughput, robustness, or claimed reduction in language-prior reliance.[^mineru-diffusion-model-card]
 
+## Relationships
+
+- **Contrasts with:** [GroundAnything](groundanything.md) applies block-level parallel diffusion decoding to visual grounding rather than page OCR, and documents its denoising and speculative procedures in [GroundAnything decoding and serving](groundanything-decoding-and-serving.md).
+
 [^mineru-diffusion-model-card]: MinerU-Diffusion authors, [*MinerU-Diffusion-V1-0320-2.5B model card*](../raw/MinerU-Diffusion-V1-0320-2.5B.md) (accessed 2026-08-17). Referenced `assets/banner.png`, `assets/train.png`, and `assets/performance_tradeoff.jpeg` are absent from the local source directory and were not inspected.

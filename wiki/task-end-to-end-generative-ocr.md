@@ -5,7 +5,7 @@ description: End-to-end generative OCR groups VLMs that map full page images dir
 tags: [task, document-parsing, ocr, vision-language-models, image-to-markdown]
 status: stable
 created: 2026-08-22
-generated: { by: llm-wiki-agent/1, at: 2026-08-22T12:00:00+07:00 }
+generated: { by: llm-wiki-agent/1, at: 2026-10-25T03:45:20Z }
 sources:
   - id: current-ocr-approaches
     resource: ../wiki/current-ocr-approaches.md
@@ -19,29 +19,37 @@ sources:
   - id: infinity-parser2-report
     resource: ../raw/2607.07836_Infinity-Parser2/arxiv_latex.tex
     title: Infinity-Parser2 Technical Report
+  - id: ovisocr3-model-card
+    resource: ../raw/ATH-MaaS-OvisOCR3.md
+    kind: model-card
+    title: OvisOCR3 model card
+  - id: lightonocr-3
+    resource: ../wiki/lightonocr-3.md
+    title: LightOnOCR-3
 ---
 
 # Task: End-to-end generative OCR
 
-End-to-end generative OCR is the task of converting a full document page image (and optional prompt) directly into an ordered structured representation such as Markdown, JSON, HTML, LaTeX, or SVG, unifying text recognition, layout, reading order, and formatting in one autoregressive or diffusion generation pass.
+End-to-end generative OCR is the task of converting a full document page image (and optional prompt) directly into an ordered structured representation such as Markdown, JSON, HTML, LaTeX, or SVG, unifying text recognition, layout, reading order, and formatting in one autoregressive or diffusion generation pass.[^current-ocr-approaches]
 
 ## Models in this task
 
 Core retained models that perform this task as their primary interface:
 
 - [DeepSeek-OCR](deepseek-ocr.md) — DeepEncoder visual compression before 3B MoE decoder
-- [DeepSeek-OCR 2](deepseek-ocr-2.md) — DeepEncoder V2 with causal visual token reordering
+- [DeepSeek-OCR 2](deepseek-ocr-2.md) — DeepEncoder V2 with causal visual token reordering[^deepseek-ocr-2-report]
 - [dots.ocr](dots-ocr.md) — 1.7B prompt-controlled layout/content/reading-order
 - [FireRed-OCR](firered-ocr.md) — 2B Qwen3-VL adaptation with geometry/semantics-balanced SFT+GRPO
 - [HunyuanOCR-1.5](hunyuanocr-1.5.md) — lightweight with DFlash speculative decoding
-- [Infinity-Parser](layout-rl-and-infinity-parser.md) (LayoutRL, Qwen2.5-VL-7B) and [Infinity-Parser2](infinity-parser2.md) (Qwen3.5 + task-native GRPO)
-- [LightOnOCR](lightonocr.md) — 1B native-resolution ViT + Qwen3 decoder
+- [Infinity-Parser](layout-rl-and-infinity-parser.md) (LayoutRL, Qwen2.5-VL-7B) and [Infinity-Parser2](infinity-parser2.md) (Qwen3.5 + task-native GRPO)[^infinity-parser2-report]
+- [LightOnOCR](lightonocr.md) — 1B native-resolution ViT + Qwen3 decoder; superseded for deployment by [LightOnOCR-3](lightonocr-3.md), which keeps the 1B architecture and adds a grounding mode over an empty-prompt Markdown transcription default[^lightonocr-3]
 - [MinerU-Diffusion](mineru-diffusion.md) — 2.5B block-parallel diffusion decoding
 - [Multimodal OCR](multimodal-ocr.md) — 3B typed payloads including SVG for graphics
 - [Nanonets-OCR2](nanonets-ocr2.md) — multilingual image-to-Markdown with explicit checkbox/signature/watermark handling
 - [NVIDIA Nemotron Parse v1.1](nemotron-parse-v1-1.md) / [NVIDIA Nemotron Parse 2.0](nemotron-parse-2-0.md) — sub-1B encoder-decoder with boxes and element classes
 - [olmOCR-2-7B-1025](olmocr-2-7b-1025.md) — 7B Qwen2.5-VL PDF-page extraction
 - [OvisOCR2](ovisocr2.md) — 0.8B with 4B-teacher RL, distillation, and fusion
+- [OvisOCR3](ovisocr3.md) — 0.8B prompt-conditioned parsing, OCR, KIE, figure captioning, and cross-page tables[^ovisocr3-model-card]
 - [Qianfan-OCR](qianfan-ocr.md) — 4B with optional Layout-as-Thought
 - [RolmOCR](rolmocr.md) — 7B metadata-independent with rotated-page training
 - [Typhoon OCR](typhoon-ocr.md) — 2B Thai–English image-only prompt
@@ -55,9 +63,18 @@ Core retained models that perform this task as their primary interface:
 - **Output:** ordered Markdown/JSON/HTML/LaTeX/SVG with implicit or explicit reading order; some variants emit bounding boxes.
 - **Strengths:** one model handles layout, text, tables, formulas, and figures; flexible prompting.
 - **Limits:** long output sequences, hallucination/repetition risk, sensitivity to schema, KV-cache growth for multi-page (addressed by [Optical Context Compression](optical-context-compression.md) and [Reference Sliding Window Attention](reference-sliding-window-attention.md)).
+- **Multi-task and multi-page extensions:** task prompts can select parsing, OCR, extraction, captioning, or table reconstruction; two-image requests extend the same checkpoint to page-pair table merging.[^ovisocr3-model-card] The smaller form of the same trend is a two-prompt contract: [LightOnOCR-3](lightonocr-3.md) keeps an empty prompt for Markdown transcription and reserves the literal `grounding` prompt for labelled boxes, image descriptions, and chart-to-table output, warning that other instructions are out of distribution and reporting roughly 25% more output tokens in grounding mode.[^lightonocr-3]
 
 ## Relationships
 
 - **Contrasts with:** [Task: Layout-first modular parsing](task-layout-first-modular-parsing.md) which decomposes layout then recognition; [Task: Detector–recognizer OCR](task-detector-recognizer-ocr.md) which targets word/line boxes only.
-- **Evaluated by:** [End-to-end generative OCR VLM benchmarks](end-to-end-generative-ocr-vlm-benchmarks.md)
+- **Evaluated by:** [End-to-end generative OCR VLM benchmarks](end-to-end-generative-ocr-vlm-benchmarks.md)[^end-to-end-benchmarks]
 - **Uses:** [Document-parser data flywheel](document-parser-data-flywheel.md) and [DOM-based document synthesis](dom-based-document-synthesis.md) for long-tail data
+- **Extended by:** [Task: Cross-page table reconstruction](task-cross-page-table-reconstruction.md) for tables that continue across page boundaries.
+
+[^current-ocr-approaches]: Compiled synthesis in this wiki: [Current OCR approaches](current-ocr-approaches.md), § End-to-end generative document VLMs and § Cross-cutting technical directions (accessed 2026-10-25).
+[^end-to-end-benchmarks]: Compiled synthesis in this wiki: [End-to-end generative OCR VLM benchmarks](end-to-end-generative-ocr-vlm-benchmarks.md), § Scope and model coverage, § Benchmark and metric map, and § Trust limits; that page is the retained catalog of this family's datasets, metrics, and protocol conflicts (accessed 2026-10-25).
+[^deepseek-ocr-2-report]: DeepSeek-AI, *DeepSeek-OCR 2 Technical Report*, local LaTeX source at [main.tex](../raw/2601.20552_DeepSeek-OCR-2/main.tex), § Methodology (causal visual token reordering) and § Evaluation (accessed 2026-10-25).
+[^infinity-parser2-report]: INF Team, *Infinity-Parser2 Technical Report*, local LaTeX sources at [latex/introduction.tex](../raw/2607.07836_Infinity-Parser2/latex/introduction.tex) and [latex/experiments.tex](../raw/2607.07836_Infinity-Parser2/latex/experiments.tex), with the task-native GRPO description in [latex/method.tex § Model Training](../raw/2607.07836_Infinity-Parser2/latex/method.tex) (accessed 2026-10-25).
+[^lightonocr-3]: Compiled synthesis in this wiki: [LightOnOCR-3](lightonocr-3.md), § Prompt modes and § Grounding output contract; the 25% figure is vendor-reported and the family publishes no benchmark table (accessed 2026-10-25).
+[^ovisocr3-model-card]: ATH-MaaS, *OvisOCR3 model card*, local source at [ATH-MaaS-OvisOCR3.md](../raw/ATH-MaaS-OvisOCR3.md), § Introduction, § Capabilities, and § Task-Specific Usage (accessed 2026-10-25).

@@ -5,7 +5,7 @@ description: Current document OCR spans lightweight detector–recognizer pipeli
 tags: [ocr, document-parsing, vision-language-models, synthesis]
 status: draft
 created: 2026-08-17
-generated: { by: llm-wiki-agent/1, at: 2026-09-29T15:55:00Z }
+generated: { by: llm-wiki-agent/1, at: 2026-10-25T10:37:15+07:00 }
 sources:
   - id: pp-ocrv6-report
     resource: ../raw/2606.13108_PP-OCRv6/main.tex
@@ -25,6 +25,10 @@ sources:
   - id: ovisocr2-report
     resource: ../raw/2607.13639_OvisOCR2/main.tex
     title: OvisOCR2 Technical Report
+  - id: ovisocr3-model-card
+    resource: ../raw/ATH-MaaS-OvisOCR3.md
+    kind: model-card
+    title: OvisOCR3 model card
   - id: infinity-parser2-report
     resource: ../raw/2607.07836_Infinity-Parser2/arxiv_latex.tex
     title: Infinity-Parser2 Technical Report
@@ -37,12 +41,19 @@ sources:
   - id: real5-source
     resource: ../raw/2601.21957_PaddleOCR-VL-1.5/main.tex
     title: PaddleOCR-VL-1.5 Technical Report
+  - id: indra-ocr-card
+    resource: ../raw/datalab-to-indra-ocr.md
+    title: Indra OCR model card (datalab-to/indra-ocr)
   - id: infinity-parser-report
     resource: ../raw/2506.03197_InfinityParser/main.tex
     title: Infinity-Parser Technical Report
   - id: rex-omni-report
     resource: "../raw/2510.12798_Detect Anything via Next Point Prediction/main.tex"
     title: Detect Anything via Next Point Prediction
+  - id: groundanything-card
+    resource: ../raw/GroundingPI-GroundAnything.md
+    kind: model-card
+    title: GroundAnything (DLM) model card
   - id: lightonocr-report
     resource: ../raw/2601.14251_LightOnOCR/templateArxiv.tex
     title: LightOnOCR Technical Report
@@ -106,13 +117,15 @@ Current document OCR is no longer one homogeneous text-recognition task. The des
 
 Classical two-stage OCR remains the preferred shape when the target is text boxes plus transcription under tight latency, memory, mobile, or hallucination constraints. [PP-OCRv6](pp-ocrv6.md) shares a reparameterizable backbone across detection and CTC recognition at 1.5M–34.5M parameters; [Nemotron OCR v2](nemotron-ocr-v2.md) adds a relational grouping and reading-order stage. These systems are efficient and controllable, but rich document reconstruction requires separate layout and specialist modules. [Detector–recognizer OCR benchmarks](detector-recognizer-ocr-benchmarks.md) catalogs their incompatible datasets, metrics, variants, and comparison-only baselines.[^pp-ocrv6-report]
 
+[Indra OCR](indra-ocr.md) shows the same family extended upward rather than scaled up: an ONNX CPU pipeline adds layout blocks with labels and reading order, routes each line to one of four script recognizers, and reuses a digital PDF's text layer where it passes checks. Its vendor card claims commodity-CPU throughput well above Tesseract and PP-OCR text models while remaining behind PP-StructureV3 on text unless its math mode is enabled, so the retained gap between line-level and structured parsing persists even at favourable speed.[^indra-ocr-card]
+
 ### Modular layout-first document parsing
 
 Systems such as [PP-StructureV3](pp-structurev3.md), [PaddleOCR-VL-1.6](paddleocr-vl-1.6.md), [GLM-OCR](glm-ocr.md), and [FalconOCR](falcon-ocr.md) first detect page elements and reading order, then recognize native-resolution crops in parallel. [PP-DocLayoutV3](pp-doclayoutv3.md) illustrates the trend toward jointly predicting classes, boxes, masks, and pairwise order. This decomposition preserves small text and routes formulas and tables to suitable recognizers, at the cost of error propagation across stages and greater system complexity.[^paddleocr-vl-1-6-report][^falcon-perception-report] [TeleOCR](teleocr.md) keeps the two-stage shell but replaces rectangular detection with deformation-aware polygon layout segmentation for camera-captured pages.[^teleocr-v3]
 
 ### End-to-end generative document VLMs
 
-End-to-end models map a full page and prompt directly to an ordered structured representation. [FireRed-OCR](firered-ocr.md), [OvisOCR2](ovisocr2.md), [DeepSeek-OCR 2](deepseek-ocr-2.md), and [Infinity-Parser2](infinity-parser2.md) exemplify page-to-Markdown or task-conditioned JSON/HTML/LaTeX generation. This unifies recognition, layout, and formatting and makes one model reusable across tasks, but introduces sequence-length cost, repetition or hallucination risk, and sensitivity to output schemas and language priors. [End-to-end generative OCR VLM benchmarks](end-to-end-generative-ocr-vlm-benchmarks.md) catalogs the retained models, datasets, metrics, result vectors, and protocol conflicts.[^deepseek-ocr-2-report][^ovisocr2-report][^infinity-parser2-report]
+End-to-end models map a full page and prompt directly to an ordered structured representation. [FireRed-OCR](firered-ocr.md), [OvisOCR2](ovisocr2.md), [OvisOCR3](ovisocr3.md), [DeepSeek-OCR 2](deepseek-ocr-2.md), and [Infinity-Parser2](infinity-parser2.md) exemplify page-to-Markdown or task-conditioned JSON/HTML/LaTeX generation. This unifies recognition, layout, and formatting and makes one model reusable across tasks, but introduces sequence-length cost, repetition or hallucination risk, and sensitivity to output schemas and language priors. OvisOCR3 extends the pattern to five prompt-selected domains—parsing, general OCR, KIE, figure captioning, and cross-page table reconstruction—using two images per request for the page-pair stage. [End-to-end generative OCR VLM benchmarks](end-to-end-generative-ocr-vlm-benchmarks.md) catalogs the retained models, datasets, metrics, result vectors, and protocol conflicts.[^deepseek-ocr-2-report][^ovisocr2-report][^ovisocr3-model-card][^infinity-parser2-report]
 
 ### Unified multimodal reconstruction
 
@@ -120,7 +133,7 @@ End-to-end models map a full page and prompt directly to an ordered structured r
 
 ### Adjacent unified perception
 
-Not every retained OCR-capable model is a document parser. [Rex-Omni](rex-omni.md) casts detection, grounding, OCR polygons, and keypoints as quantized coordinate-token generation, making OCR one task in a unified perception interface. [Falcon Perception](falcon-perception.md) similarly supplies a general early-fusion perception architecture related to FalconOCR. These systems matter where OCR must share a model with localization or interaction, but they do not replace document-to-Markdown pipelines.[^rex-omni-report][^falcon-perception-report]
+Not every retained OCR-capable model is a document parser. [Rex-Omni](rex-omni.md) casts detection, grounding, OCR polygons, and keypoints as quantized coordinate-token generation, making OCR one task in a unified perception interface. [Falcon Perception](falcon-perception.md) similarly supplies a general early-fusion perception architecture related to FalconOCR. These systems matter where OCR must share a model with localization or interaction, but they do not replace document-to-Markdown pipelines.[^rex-omni-report][^falcon-perception-report] [GroundAnything](groundanything.md) adds a decoding dimension to this family: one 4B backbone ships as an autoregressive checkpoint and as a blockwise-diffusion checkpoint with optional self-speculative decoding, both emitting the same quantized coordinate protocol and covering OCR text boxes and document layout categories alongside detection and GUI pointing.[^groundanything-card]
 
 ## Retained model coverage
 
@@ -132,6 +145,7 @@ The architectural families above use representative systems. For complete retrie
 | [dots.ocr](dots-ocr.md) | One prompt-driven 1.7B VLM for layout detection, recognition, grounding, and reading-order output.[^dots-ocr-card] |
 | [Granite Docling 258M](granite-docling-258m.md) | Compact document-conversion VLM integrated into the Docling processing stack.[^granite-docling-card] |
 | [HunyuanOCR-1.5](hunyuanocr-1.5.md) | Lightweight end-to-end OCR with agentic data construction and DFlash speculative decoding.[^hunyuanocr-card] |
+| [Indra OCR](indra-ocr.md) | CPU-only ONNX pipeline: layout labels, script-routed line recognizers, and a digital-PDF text-layer hybrid.[^indra-ocr-card] |
 | [LayoutRL and Infinity-Parser](layout-rl-and-infinity-parser.md) | Direct GRPO training with verifiable content, segment-count, and reading-order rewards.[^infinity-parser-report] |
 | [LightOnOCR](lightonocr.md) | Native-resolution ViT plus Qwen3 decoder, with an optional image-box output variant.[^lightonocr-report] |
 | [MonkeyOCRv2](monkeyocrv2.md) | Document-native visual-encoder pretraining through text generation and pixel reconstruction.[^monkeyocrv2-report] |
@@ -139,13 +153,14 @@ The architectural families above use representative systems. For complete retrie
 | [Nanonets-OCR2](nanonets-ocr2.md) | Multilingual image-to-Markdown with explicit handling of equations, tables, figures, signatures, watermarks, checkboxes, and VQA.[^nanonets-ocr2-card] |
 | [NVIDIA Nemotron Parse v1.1](nemotron-parse-v1-1.md) | Sub-1B encoder–decoder emitting ordered text, element classes, and boxes.[^nemotron-parse-card] |
 | [olmOCR-2-7B-1025](olmocr-2-7b-1025.md) | Qwen2.5-VL PDF-page extraction specialized through SFT and GRPO.[^olmocr2-card] |
+| [OvisOCR3](ovisocr3.md) | Five prompt-selected domains—parsing, OCR, KIE, figure captioning, and cross-page tables—in one 0.8B checkpoint.[^ovisocr3-model-card] |
 | [Qianfan-OCR](qianfan-ocr.md) | Optional Layout-as-Thought emits boxes, labels, and summaries before parsing or understanding.[^qianfan-ocr-report] |
 | [RolmOCR](rolmocr.md) | Metadata-independent PDF-page OCR trained with rotated pages for off-angle robustness.[^rolmocr-card] |
 | [Surya OCR 2](surya-ocr-2.md) | Shared compact VLM for layout, order, OCR, and tables, plus a separate line detector.[^surya-ocr-2-card] |
 | [TeleOCR](teleocr.md) | Decoupled, layout-first parsing of digital and camera-captured pages with deformation-aware polygon layout segmentation.[^teleocr-v3] |
 | [Typhoon OCR](typhoon-ocr.md) | Thai–English extraction using one image-only prompt and rich Markdown/HTML/formula outputs.[^typhoonocr-report] |
 
-Older or release-specific artifacts are represented by their current family pages: [DeepSeek-OCR](deepseek-ocr.md) precedes DeepSeek-OCR 2; [PaddleOCR-VL](paddleocr-vl.md) and [PaddleOCR-VL-1.5](paddleocr-vl-1.5.md) precede 1.6; [Chandra OCR](chandra-ocr.md) is superseded by Chandra OCR 2; `dots.mocr` is the released implementation covered by Multimodal OCR; and Infinity-Parser2-Pro is covered by Infinity-Parser2. [PaddleOCR 3.0](paddleocr-3.md) is a toolkit rather than one model, while [MDPBench](mdpbench.md), [Real5-OmniDocBench](real5-omnidocbench.md), MonkeyDoc, and Infinity-Doc are benchmarks or datasets rather than model families.
+Older or release-specific artifacts are represented by their current family pages: [DeepSeek-OCR](deepseek-ocr.md) precedes DeepSeek-OCR 2; [PaddleOCR-VL](paddleocr-vl.md) and [PaddleOCR-VL-1.5](paddleocr-vl-1.5.md) precede 1.6; [Chandra OCR](chandra-ocr.md) is superseded by Chandra OCR 2; [OvisOCR2](ovisocr2.md) precedes [OvisOCR3](ovisocr3.md)[^ovisocr3-model-card]; `dots.mocr` is the released implementation covered by Multimodal OCR; and Infinity-Parser2-Pro is covered by Infinity-Parser2. [PaddleOCR 3.0](paddleocr-3.md) is a toolkit rather than one model, while [MDPBench](mdpbench.md), [Real5-OmniDocBench](real5-omnidocbench.md), MonkeyDoc, and Infinity-Doc are benchmarks or datasets rather than model families.
 
 ## Cross-cutting technical directions
 
@@ -153,8 +168,8 @@ Older or release-specific artifacts are represented by their current family page
 2. **Reading order as a first-class target:** approaches include detector-level pairwise precedence, sequence order in generated markup, RL order rewards, and DeepSeek-OCR 2's causal visual queries. Reading order is now part of the learned objective rather than only an X–Y-sort postprocess.[^deepseek-ocr-2-report]
 3. **Typed and grounded output:** Markdown is common, but JSON with boxes, HTML tables, LaTeX formulas, image-region coordinates, SVG, and task-specific formats increasingly serve downstream automation and auditability.
 4. **Data-centric specialization:** the frontier is shifting from indiscriminate scaling toward mining unstable predictions, sparse feature regions, and unreliable labels. [Document-parser data flywheel](document-parser-data-flywheel.md) converts observed failures into targeted mined, pseudo-labeled, or synthesized data; [DOM-based document synthesis](dom-based-document-synthesis.md) derives pixels and geometry-aligned labels from the same rendered source.[^paddleocr-vl-1-6-report][^infinity-parser2-report][^ovisocr2-report]
-5. **Progressive post-training:** CPT or pre-alignment establishes broad visual-text competence, SFT teaches canonical structured outputs, and GRPO uses verifiable task-native rewards such as edit similarity, TEDS, CDM, mIoU, syntax validity, and reading-order consistency. Compact models may use teacher RL followed by on-policy distillation and model fusion when direct RL is unstable.[^paddleocr-vl-1-6-report][^ovisocr2-report][^infinity-parser2-report]
-6. **Faster and longer decoding:** compressed visual tokens and sparse MoE decoders reduce prefix and active-parameter cost; multi-token prediction generates several future tokens per step; [MinerU-Diffusion](mineru-diffusion.md) explores block-parallel diffusion instead of autoregression; [Unlimited OCR](unlimited-ocr.md) preserves the full visual prefix while limiting generated-token attention to a sliding window for bounded decode-side KV cache.[^mineru-diffusion-card][^unlimited-ocr-report]
+5. **Progressive post-training:** CPT or pre-alignment establishes broad visual-text competence, SFT teaches canonical structured outputs, and GRPO uses verifiable task-native rewards such as edit similarity, TEDS, CDM, mIoU, syntax validity, and reading-order consistency. Compact models may use teacher RL followed by on-policy distillation and model fusion when direct RL is unstable.[^paddleocr-vl-1-6-report][^ovisocr2-report][^infinity-parser2-report] OvisOCR3's card names continued pretraining, mid-training, on-policy distillation, and reinforcement learning but does not publish its data, reward definitions, or ablations.[^ovisocr3-model-card]
+6. **Faster and longer decoding:** compressed visual tokens and sparse MoE decoders reduce prefix and active-parameter cost; multi-token prediction generates several future tokens per step; [MinerU-Diffusion](mineru-diffusion.md) explores block-parallel diffusion instead of autoregression for page OCR, while [GroundAnything](groundanything.md) applies entropy-guided blockwise denoising and self-speculative verification to visual grounding and reports 4.51× over its autoregressive sibling at a 0.74-point COCO F1-mIoU cost; [Unlimited OCR](unlimited-ocr.md) preserves the full visual prefix while limiting generated-token attention to a sliding window for bounded decode-side KV cache.[^mineru-diffusion-card][^groundanything-card][^unlimited-ocr-report]
 7. **Robust real-world capture:** training and evaluation increasingly include skew, warping, illumination, screen photography, low resolution, handwriting, old scans, seals, rare scripts, rotated tables, and long-tail layouts. [Real5-OmniDocBench](real5-omnidocbench.md) captures five physical distortion conditions, but remains a targeted rather than comprehensive in-the-wild test.[^real5-source] [TeleOCR](teleocr.md) instead folds point- and region-level deformation awareness into the parser, replacing a separate geometric-rectification stage.[^teleocr-v3]
 
 ## Practical selection
@@ -176,7 +191,7 @@ Nearly all relevant wiki concepts are `draft`; missing independent verification 
 
 ## Relationships
 
-- **Synthesizes:** the retained current OCR and document-parsing model families cataloged under **Retained model coverage**, with [PP-OCRv6](pp-ocrv6.md), [PaddleOCR-VL-1.6](paddleocr-vl-1.6.md), [DeepSeek-OCR 2](deepseek-ocr-2.md), [OvisOCR2](ovisocr2.md), [Infinity-Parser2](infinity-parser2.md), and [Multimodal OCR](multimodal-ocr.md) as architectural exemplars.
+- **Synthesizes:** the retained current OCR and document-parsing model families cataloged under **Retained model coverage**, with [PP-OCRv6](pp-ocrv6.md), [PaddleOCR-VL-1.6](paddleocr-vl-1.6.md), [DeepSeek-OCR 2](deepseek-ocr-2.md), [OvisOCR2](ovisocr2.md), [OvisOCR3](ovisocr3.md), [Infinity-Parser2](infinity-parser2.md), and [Multimodal OCR](multimodal-ocr.md) as architectural exemplars.
 - **Uses:** [Document-parser data flywheel](document-parser-data-flywheel.md), [DOM-based document synthesis](dom-based-document-synthesis.md), and [Reference Sliding Window Attention](reference-sliding-window-attention.md) as cross-cutting methods.
 - **Evaluated by:** [Layout-first modular OCR benchmarks](layout-first-modular-ocr-benchmarks.md) for the retained region-first document parsers, with benchmark-version and protocol differences kept separate.
 - **Evaluated by:** [End-to-end generative OCR VLM benchmarks](end-to-end-generative-ocr-vlm-benchmarks.md) for direct page-to-structure models, including boundary cases and missing-result evidence.
@@ -188,12 +203,14 @@ Nearly all relevant wiki concepts are `draft`; missing independent verification 
 [^unlimited-ocr-report]: Yin et al., *Unlimited OCR Works*, local source at [main.tex](../raw/2606.23050_Unlimited-OCR/main.tex).
 [^mineru-diffusion-card]: MinerU-Diffusion authors, local [model card](../raw/MinerU-Diffusion-V1-0320-2.5B.md).
 [^ovisocr2-report]: Lu et al., *OvisOCR2 Technical Report*, local source at [main.tex](../raw/2607.13639_OvisOCR2/main.tex).
+[^ovisocr3-model-card]: ATH-MaaS, *OvisOCR3 model card*, local source at [ATH-MaaS-OvisOCR3.md](../raw/ATH-MaaS-OvisOCR3.md), § Introduction, § Capabilities, § Performance, and § Task-Specific Usage (accessed 2026-10-25).
 [^infinity-parser2-report]: INF Team, *Infinity-Parser2 Technical Report*, local source at [arxiv_latex.tex](../raw/2607.07836_Infinity-Parser2/arxiv_latex.tex).
 [^multimodal-ocr-report]: Zheng et al., *Multimodal OCR*, local source at [main.tex](../raw/2603.13032_MultimodalOCR/main.tex).
 [^falcon-perception-report]: Falcon Vision Team, *Falcon Perception*, local source at [main.tex](../raw/2603.27365_FalconPerception/main.tex).
 [^real5-source]: Cui et al., *PaddleOCR-VL-1.5*, local source at [main.tex](../raw/2601.21957_PaddleOCR-VL-1.5/main.tex).
 [^infinity-parser-report]: Wang et al., *Infinity-Parser*, local source at [main.tex](../raw/2506.03197_InfinityParser/main.tex).
 [^rex-omni-report]: Sun et al., *Detect Anything via Next Point Prediction*, local source at [main.tex](../raw/2510.12798_Detect%20Anything%20via%20Next%20Point%20Prediction/main.tex).
+[^groundanything-card]: GroundingPI, *GroundAnything (DLM) model card*, local capture at [GroundingPI-GroundAnything.md](../raw/GroundingPI-GroundAnything.md), § Model Overview, § Model Architecture, § Supported Tasks & Prompt Templates, § Generation Modes, and § Ethical Considerations (accessed 2026-10-25).
 [^lightonocr-report]: LightOnOCR authors, local source at [templateArxiv.tex](../raw/2601.14251_LightOnOCR/templateArxiv.tex).
 [^typhoonocr-report]: Typhoon OCR authors, local source at [main.tex](../raw/2601.14722_TyphoonOCR/main.tex).
 [^qianfan-ocr-report]: Qianfan-OCR authors, local source at [qianfan_ocr_report.tex](../raw/2603.13398_Qianfan-OCR/qianfan_ocr_report.tex).
@@ -209,4 +226,5 @@ Nearly all relevant wiki concepts are `draft`; missing independent verification 
 [^olmocr2-card]: Allen Institute for AI, local [olmOCR-2-7B-1025 model card](../raw/olmOCR-2-7B-1025.md).
 [^rolmocr-card]: Reducto AI, local [RolmOCR model card](../raw/RolmOCR.md).
 [^surya-ocr-2-card]: Datalab, local [Surya OCR 2 model card](../raw/surya-ocr-2.md).
+[^indra-ocr-card]: Datalab, local [Indra OCR model card](../raw/datalab-to-indra-ocr.md).
 [^teleocr-v3]: Cai et al., *TeleOCR: Navigating Document Parsing Across Digital and Camera-Captured Documents*, arXiv:2608.12898v3, local [main.tex](../raw/arXiv-2608.12898v3-TeleOCR/main.tex) (§ Related Work; Tables OmniDocBench v1.6, Wild OmniDocBench v1.5, PureDocBench) and [README.md](../raw/arXiv-2608.12898v3-TeleOCR/README.md), inspected 2026-09-29.

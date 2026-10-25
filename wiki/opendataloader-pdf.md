@@ -5,7 +5,7 @@ description: OpenDataLoader PDF is an Apache-2.0 PDF parser that combines determ
 tags: [ocr, document-parsing, pdf, markdown, json, accessibility, rag]
 status: draft
 created: 2026-08-21
-generated: { by: llm-wiki-agent/1, at: 2026-08-21T10:20:42+07:00 }
+generated: { by: llm-wiki-agent/1, at: 2026-10-25T03:24:46Z }
 sources:
   - id: opendataloader-pdf-readme
     resource: ../raw/opendataloader-pdf.md
@@ -43,5 +43,6 @@ The README states that the tool does not process Word, Excel, or PowerPoint and 
 - **Related to:** [PDF-to-Markdown parser architectures](pdf-to-markdown-parser-architectures.md), which places OpenDataLoader PDF in a geometry-first parser category based on an earlier comparison source.
 - **Related to:** [PDF-to-Markdown tool selection](pdf-to-markdown-tool-selection.md), whose CPU-throughput recommendation is a separate, source-qualified synthesis.
 - **Compared with:** [Marker](marker.md), [MinerU](mineru.md), and [Docling architecture](docling-architecture.md); their architectures, operating requirements, and vendor-reported benchmarks should be tested under a matched workload rather than merged into one ranking.
+- **Compared with:** [LiteParse](liteparse.md), which shares this project's geometry-first, model-free approach and its benchmark harness; the two projects report incompatible liteparse scores on that harness.
 
 [^opendataloader-pdf-readme]: OpenDataLoader Project, [*OpenDataLoader PDF README*](../raw/opendataloader-pdf.md) (accessed 2026-08-21). Linked external documentation, repositories, packages, benchmark artifacts, and remote images were not inspected.

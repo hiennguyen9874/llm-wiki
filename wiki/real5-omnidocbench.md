@@ -5,11 +5,15 @@ description: Real5-OmniDocBench is an OmniDocBench v1.5-derived benchmark that a
 tags: [benchmark, document-parsing, ocr, robustness, layout-analysis]
 status: draft
 created: 2026-08-17
-generated: { by: llm-wiki-agent/1, at: 2026-08-17T12:00:00Z }
+generated: { by: llm-wiki-agent/1, at: 2026-10-25T03:23:54Z }
 sources:
   - id: paddleocr-vl-1-5-report
     resource: ../raw/2601.21957_PaddleOCR-VL-1.5/main.tex
     title: "PaddleOCR-VL-1.5: Towards a Multi-Task 0.9B VLM for Robust In-the-Wild Document Parsing"
+  - id: ovisocr3-model-card
+    resource: ../raw/ATH-MaaS-OvisOCR3.md
+    kind: model-card
+    title: OvisOCR3 model card
 ---
 
 # Real5-OmniDocBench
@@ -22,6 +26,8 @@ The source states that all conditions except scanning were manually acquired wit
 
 The source reports that [PaddleOCR-VL-1.5](paddleocr-vl-1.5.md) scores 92.05 overall: 93.43 for scanning, 91.25 warping, 91.76 screen photography, 92.16 illumination, and 91.66 skew. These are author-reported model results, not independently reproduced benchmark results.[^paddleocr-vl-1-5-report]
 
+The [OvisOCR3](ovisocr3.md) card reports **93.63** overall on Real5-OmniDocBench, without per-condition values, split details, or a prompt/preprocessing manifest. It is a reported model result rather than an independent re-evaluation, and the missing protocol prevents treating it as a controlled comparison with PaddleOCR-VL-1.5's per-condition vector.[^ovisocr3-model-card]
+
 ## Trust limits
 
 - The source links to a dataset page but this bundle contains no dataset files, capture instructions, exact splits, transformation specifications, evaluation implementation, or baseline prompts/configurations. The benchmark construction and scores cannot be reproduced from local evidence.[^paddleocr-vl-1-5-report]
@@ -31,5 +37,7 @@ The source reports that [PaddleOCR-VL-1.5](paddleocr-vl-1.5.md) scores 92.05 ove
 
 - **Derived from:** OmniDocBench v1.5, as described by the source; this wiki has no separate concept for that upstream benchmark.
 - **Used by:** [PaddleOCR-VL-1.5](paddleocr-vl-1.5.md) for evaluation of physical-distortion robustness.
+- **Used by:** [OvisOCR3](ovisocr3.md), whose card reports an overall-only 93.63 result.[^ovisocr3-model-card]
 
 [^paddleocr-vl-1-5-report]: Cui et al., *PaddleOCR-VL-1.5: Towards a Multi-Task 0.9B VLM for Robust In-the-Wild Document Parsing*, local LaTeX source at [main.tex](../raw/2601.21957_PaddleOCR-VL-1.5/main.tex), including [Real5 sample PDF](../raw/2601.21957_PaddleOCR-VL-1.5/images/Real5-OmniDocBench-sample.pdf) (rendered and inspected, accessed 2026-08-17).
+[^ovisocr3-model-card]: ATH-MaaS, *OvisOCR3 model card*, local source at [ATH-MaaS-OvisOCR3.md](../raw/ATH-MaaS-OvisOCR3.md), § Performance › Document Parsing (accessed 2026-10-25).

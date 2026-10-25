@@ -5,11 +5,15 @@ description: OvisOCR2 is a 0.8B end-to-end document parser that generates page-l
 tags: [ocr, document-parsing, vision-language-models, reinforcement-learning, distillation, synthetic-data]
 status: draft
 created: 2026-08-17
-generated: { by: llm-wiki-agent/1, at: 2026-08-17T13:42:55Z }
+generated: { by: llm-wiki-agent/1, at: 2026-10-25T03:23:54Z }
 sources:
   - id: ovisocr2-report
     resource: ../raw/2607.13639_OvisOCR2/main.tex
     title: OvisOCR2 Technical Report
+  - id: ovisocr3-model-card
+    resource: ../raw/ATH-MaaS-OvisOCR3.md
+    kind: model-card
+    title: OvisOCR3 model card
 ---
 
 # OvisOCR2
@@ -48,6 +52,8 @@ All values are author-reported and were not independently reproduced from the lo
 
 - **Uses:** [DOM-based document synthesis](dom-based-document-synthesis.md) for hard-sample-directed HTML page generation with source-aligned Markdown targets.[^ovisocr2-report]
 - **Uses:** [PaddleOCR-VL-1.5](paddleocr-vl-1.5.md) as one structured parser for real-data candidate labels, not as OvisOCR2's inference pipeline.[^ovisocr2-report]
+- **Successor:** [OvisOCR3](ovisocr3.md) is the newer 0.8B model in the family, adding structured parsing and layout detection and reporting higher values where the two are compared; the OvisOCR3 card does not explicitly state that OvisOCR2 is withdrawn.[^ovisocr3-model-card]
 - **Compared with:** [PaddleOCR-VL-1.6](paddleocr-vl-1.6.md), [GLM-OCR](glm-ocr.md), [DeepSeek-OCR 2](deepseek-ocr-2.md), and [Unlimited OCR](unlimited-ocr.md) in author-reported benchmark tables; cross-system results are not controlled comparisons.[^ovisocr2-report]
 
 [^ovisocr2-report]: Lu et al., *OvisOCR2 Technical Report*, local LaTeX source at [main.tex](../raw/2607.13639_OvisOCR2/main.tex), including [performance summary](../raw/2607.13639_OvisOCR2/figures/performance.png), [data pipeline](../raw/2607.13639_OvisOCR2/figures/data_pipeline.png), [training pipeline](../raw/2607.13639_OvisOCR2/figures/training_pipeline.pdf), and [RL-stability plot](../raw/2607.13639_OvisOCR2/figures/rl_stability.pdf) (accessed 2026-08-17).
+[^ovisocr3-model-card]: ATH-MaaS, *OvisOCR3 model card*, local source at [ATH-MaaS-OvisOCR3.md](../raw/ATH-MaaS-OvisOCR3.md), § Introduction, § Performance, and § Task-Specific Usage › Document Parsing (accessed 2026-10-25).

@@ -5,11 +5,15 @@ description: PaddleOCR-VL-1.6 is a 0.9B two-stage document parser that targets r
 tags: [document-parsing, ocr, vision-language-models, post-training, reinforcement-learning, data-curation]
 status: draft
 created: 2026-08-17
-generated: { by: llm-wiki-agent/1, at: 2026-08-17T13:23:38Z }
+generated: { by: llm-wiki-agent/1, at: 2026-10-25T03:35:00Z }
 sources:
   - id: paddleocr-vl-1-6-report
     resource: ../raw/2606.03264_PaddleOCR-VL-1.6/main.tex
     title: "PaddleOCR-VL-1.6: Expanding the Frontier of Document Parsing with Under-Optimized Region Refinement and Progressive Post-Training"
+  - id: senocr-vi-model-card
+    resource: ../raw/VietAlphaLabs-SenOCR-Vi.md
+    kind: model-card
+    title: "SenOCR-Vi: A Vietnamese-Specialized Document OCR Model"
 ---
 
 # PaddleOCR-VL-1.6
@@ -50,5 +54,8 @@ All results below are author-reported and not independently reproduced:[^paddleo
 
 - **Supersedes:** [PaddleOCR-VL-1.5](paddleocr-vl-1.5.md) as the next version of the two-stage parser.
 - **Uses:** [PP-DocLayoutV3](pp-doclayoutv3.md) unchanged for layout analysis, multipoint localization, and reading order before element recognition.[^paddleocr-vl-1-6-report]
+- **Extended by:** [SenOCR-Vi](senocr-vi.md), a Vietnamese decoder-only LoRA fine-tune that keeps this model's architecture and prompt/pipeline interface; its card reports 82.83 versus 80.90 here on a corrected Vietnamese MDPBench page population, but the base figure is leaderboard-derived and not recomputed through the same corrected pipeline.[^senocr-vi-model-card]
 
 [^paddleocr-vl-1-6-report]: Zhang et al., *PaddleOCR-VL-1.6: Expanding the Frontier of Document Parsing with Under-Optimized Region Refinement and Progressive Post-Training*, local LaTeX source at [main.tex](../raw/2606.03264_PaddleOCR-VL-1.6/main.tex), including the [reported-metrics figure](../raw/2606.03264_PaddleOCR-VL-1.6/images/vl16img_for_overleaf/metric.png), [system overview](../raw/2606.03264_PaddleOCR-VL-1.6/images/vl16img_for_overleaf/overall.png), and [data-engine diagram](../raw/2606.03264_PaddleOCR-VL-1.6/images/vl16img_for_overleaf/data_engine.png) (accessed 2026-08-17).
+
+[^senocr-vi-model-card]: VietAlpha Lab, *SenOCR-Vi: A Vietnamese-Specialized Document OCR Model*, local model card at [VietAlphaLabs-SenOCR-Vi.md](../raw/VietAlphaLabs-SenOCR-Vi.md), § Evaluation › Vietnamese and § Benchmark note (accessed 2026-10-25).

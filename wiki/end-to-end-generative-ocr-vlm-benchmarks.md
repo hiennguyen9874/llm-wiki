@@ -5,7 +5,7 @@ description: End-to-end generative OCR VLM benchmarks catalog retained models, d
 tags: [ocr, document-parsing, vision-language-models, benchmarks, evaluation, generative-models]
 status: draft
 created: 2026-08-17
-generated: { by: llm-wiki-agent/1, at: 2026-08-17T22:05:24+07:00 }
+generated: { by: llm-wiki-agent/1, at: 2026-10-25T03:23:54Z }
 sources:
   - id: deepseek-ocr-report
     resource: ../raw/2510.18234_DeepSeek-OCR/main.tex
@@ -37,6 +37,10 @@ sources:
   - id: ovisocr2-report
     resource: ../raw/2607.13639_OvisOCR2/main.tex
     title: OvisOCR2 Technical Report
+  - id: ovisocr3-model-card
+    resource: ../raw/ATH-MaaS-OvisOCR3.md
+    kind: model-card
+    title: OvisOCR3 model card
   - id: chandra-card
     resource: ../raw/chandra.md
     title: Chandra model card
@@ -74,7 +78,7 @@ sources:
 
 # End-to-end generative OCR VLM benchmarks
 
-The retained core family comprises models that consume a page image and directly generate ordered text or a structured representation without requiring a separate layout detector at inference: [Chandra OCR](chandra-ocr.md), [Chandra OCR 2](chandra-ocr-2.md), [DeepSeek-OCR](deepseek-ocr.md), [DeepSeek-OCR 2](deepseek-ocr-2.md), [dots.ocr](dots-ocr.md), [FireRed-OCR](firered-ocr.md), [HunyuanOCR-1.5](hunyuanocr-1.5.md), [LayoutRL and Infinity-Parser](layout-rl-and-infinity-parser.md), [Infinity-Parser2](infinity-parser2.md), [LightOnOCR](lightonocr.md), [Nanonets-OCR2](nanonets-ocr2.md), [olmOCR-2-7B-1025](olmocr-2-7b-1025.md), [OvisOCR2](ovisocr2.md), [Qianfan-OCR](qianfan-ocr.md), [RolmOCR](rolmocr.md), [Typhoon OCR](typhoon-ocr.md), and [Unlimited OCR](unlimited-ocr.md). The closest retained common comparison is OmniDocBench v1.6 as transcribed by OvisOCR2: OvisOCR2 reports 96.58 overall, but all values are first-party or transcribed leaderboard results and do not establish a universal ranking.[^ovisocr2-report]
+The retained core family comprises models that consume a page image and directly generate ordered text or a structured representation without requiring a separate layout detector at inference: [Chandra OCR](chandra-ocr.md), [Chandra OCR 2](chandra-ocr-2.md), [DeepSeek-OCR](deepseek-ocr.md), [DeepSeek-OCR 2](deepseek-ocr-2.md), [dots.ocr](dots-ocr.md), [FireRed-OCR](firered-ocr.md), [HunyuanOCR-1.5](hunyuanocr-1.5.md), [LayoutRL and Infinity-Parser](layout-rl-and-infinity-parser.md), [Infinity-Parser2](infinity-parser2.md), [LightOnOCR](lightonocr.md), [Nanonets-OCR2](nanonets-ocr2.md), [olmOCR-2-7B-1025](olmocr-2-7b-1025.md), [OvisOCR2](ovisocr2.md), [OvisOCR3](ovisocr3.md), [Qianfan-OCR](qianfan-ocr.md), [RolmOCR](rolmocr.md), [Typhoon OCR](typhoon-ocr.md), and [Unlimited OCR](unlimited-ocr.md). The closest retained common comparison is OmniDocBench v1.6 as transcribed by OvisOCR2: OvisOCR2 reports 96.58 overall, but all values are first-party or transcribed leaderboard results and do not establish a universal ranking.[^ovisocr2-report] OvisOCR3's card adds an overall-only OmniDocBench1.6 table and five-domain results, but no component vectors or protocol manifest.[^ovisocr3-model-card]
 
 ## Scope and model coverage
 
@@ -91,6 +95,7 @@ The retained core family comprises models that consume a page image and directly
 | [Nanonets-OCR2](nanonets-ocr2.md) | Page → Markdown/HTML/LaTeX/Mermaid and VQA | Plus, 3B, experimental 1.5B | Core |
 | [olmOCR-2-7B-1025](olmocr-2-7b-1025.md) | Rendered page plus PDF-derived metadata → YAML/text | 7B | Core; uses metadata anchoring rather than image-only input |
 | [OvisOCR2](ovisocr2.md) | Page → ordered Markdown | 0.8B | Core |
+| [OvisOCR3](ovisocr3.md) | Prompted page(s) → Markdown, structured/layout JSON, KIE JSON, captions, or cross-page HTML tables | 0.8B | Core; five task domains in one checkpoint |
 | [Qianfan-OCR](qianfan-ocr.md) | Page + prompt → final output, optionally preceded by layout reasoning | 4B | Core |
 | [RolmOCR](rolmocr.md) | Image-only page → natural-reading text | 7B | Core; no retained numeric benchmark |
 | [Typhoon OCR](typhoon-ocr.md) | Page → Markdown, HTML tables, LaTeX, figure descriptions, page markers | V1 3B/7B; V1.5 2B | Core multilingual/domain family |
@@ -98,7 +103,7 @@ The retained core family comprises models that consume a page image and directly
 
 Three retained systems are boundary cases and are not merged into the core leaderboard: [Granite Docling 258M](granite-docling-258m.md) directly generates DocTags but is positioned as a Docling component; [NVIDIA Nemotron Parse v1.1](nemotron-parse-v1-1.md) is a direct vision-encoder–decoder parser but its card contains no results; [Surya OCR 2](surya-ocr-2.md) performs full-page generation with a shared VLM but also has a separate line detector and optional layout-first block mode. [MinerU-Diffusion](mineru-diffusion.md) directly decodes page text, but its retained card does not establish ordered structured-document output, so it is cataloged only as an adjacent generative decoder. [Multimodal OCR](multimodal-ocr.md) is kept under the separate unified-multimodal-reconstruction family defined by [Current OCR approaches](current-ocr-approaches.md).
 
-Comparison tables additionally name end-to-end systems without standalone retained sources: OCRFlux, Mistral OCR, POINTS-Reader, MinerU2-VLM, Nanonets-OCR-S, OCRVerse, OpenDoc/UniRec, ABot-OCR, Logics-Parsing-v2, FD-RL, HunyuanOCR 1.0, GOT-OCR, Nougat, SmolDocling, and general VLMs such as GPT, Gemini, InternVL, Qwen-VL, Kimi, and Ovis2.6. Their scores below are retained only when needed to define the protocol; this page does not promote them to locally verified model concepts.
+Comparison tables additionally name end-to-end systems without standalone retained sources: OCRFlux, Mistral OCR, POINTS-Reader, MinerU2-VLM, Nanonets-OCR-S, OCRVerse, OpenDoc/UniRec, ABot-OCR, Logics-Parsing-v2, Logics-Parsing-V3, FD-RL, Qwen3.5-OCR, Qwen3.8-Max, Xiaomi-OCR-0, HunyuanOCR 1.0, GOT-OCR, Nougat, SmolDocling, and general VLMs such as GPT, Gemini, InternVL, Qwen-VL, Kimi, and Ovis2.6. Their scores below are retained only when needed to define the protocol; this page does not promote them to locally verified model concepts.
 
 ## Benchmark and metric map
 
@@ -108,6 +113,10 @@ Comparison tables additionally name end-to-end systems without standalone retain
 | OmniDocBench v1.5 | 1,355 bilingual pages | Overall; text NED; formula CDM; table TEDS/TEDS-S; reading-order NED | Overall/CDM/TEDS higher; NED lower | Different reports give conflicting values for nominally identical models |
 | OmniDocBench v1.6 | 1,651 pages including a hard subset | Same component schema with refined matching | Same | Closest current common table; values are transcribed, not locally rerun |
 | PureDocBench | 1,475 source-traceable pages rendered into Clean, Digital, and Real tracks; 4,425 images | Per-track overall and Avg3 | Higher | OvisOCR2 report is the only retained source for the table |
+| MDPBench | 17-language digital-born and photographed pages under varied capture conditions | Overall and component parsing metrics | Higher | OvisOCR3's 88.80 is overall-only; split, prompt, and protocol are unstated |
+| Real5-OmniDocBench | OmniDocBench v1.5 pages under five physical-distortion conditions | Overall and component parsing metrics | Higher | OvisOCR3's 93.63 is overall-only; per-condition breakdown unavailable |
+| DocFigCapBench | Localized document-figure captioning | Localization F1 and caption score | Higher | OvisOCR3 card reports one comparison row; benchmark construction and caption scale are not defined |
+| CrossTabBench / MPDocBench-Parse | Cross-page table continuation and reconstruction | Relation F1 (P/R), reconstruction TEDS, truncated-table TEDS | Higher | OvisOCR3 card is the only retained source; high relation F1 can coexist with low reconstruction TEDS |
 | olmOCR-Bench | About 1,400 PDF pages and over 7,000 unit tests | Overall pass rate and eight category pass rates | Higher | Anchoring, omitted categories, toolkit versions, output normalization, and retries differ |
 | ParseBench | About 2,000 enterprise pages | Overall across structure, faithfulness, semantic formatting, and grounding | Higher | Infinity-Parser2's internal pipeline mixes own reruns and cited results |
 | FireRedBench | Distorted and non-standard layouts | OmniDoc-style overall and component metrics | Task-dependent | Private and unreproducible |
@@ -153,6 +162,8 @@ One OvisOCR2 table supplies the closest retained common comparison below. OvisOC
 | HunyuanOCR-1.5 | 94.74 | 0.039 | 94.50 | 93.67 | 94.71 | 0.129 |
 | **OvisOCR2** | **96.58** | **0.025** | **97.53** | **94.76** | **97.16** | **0.111** |
 
+OvisOCR3's card reports a separate overall-only OmniDocBench1.6 comparison: OvisOCR3 **96.74**, Xiaomi-OCR-0 96.83, OvisOCR2 96.58, PaddleOCR-VL-1.6 96.34, GLM-OCR 95.22, HunyuanOCR-1.5 94.74, Qwen3.8-Max 93.70, MonkeyOCRv2-B-Parsing 91.57, and Qwen3.5-OCR 91.27. The card does not publish component values, so these rows cannot be merged into the table above.[^ovisocr3-model-card]
+
 Infinity-Parser2 uses a separate table/protocol and reports Flash **91.98** and Pro **93.95** overall; its table reports DeepSeek-OCR 2 at 90.17 and dots.ocr at 90.50, illustrating cross-source drift even within the v1.6 name.[^infinity-parser2-report]
 
 ## PureDocBench
@@ -173,6 +184,8 @@ PureDocBench distinguishes clean source renders, digital degradation, and physic
 | Logics-Parsing-v2 | 76.35 | 73.85 | **67.64** | 72.61 |
 | FD-RL | 78.38 | 76.33 | 67.04 | 73.92 |
 | **OvisOCR2** | **81.55** | **77.09** | 66.56 | **75.06** |
+
+OvisOCR3's card reports 82.31 overall on PureDocBench without Clean, Digital, or Real track values, so it is excluded from this table rather than assigned unreported components.[^ovisocr3-model-card]
 
 ## olmOCR-Bench
 
@@ -212,6 +225,11 @@ These overall pass rates are intentionally separated by reporting source. Exact 
 | Nanonets-OCR2 Plus / 3B | ChartQA and DocVQA | ChartQA 79.20/78.56; DocVQA 85.15/89.43. The card gives no evaluator configuration.[^nanonets-ocr2-card] |
 | Nanonets-OCR2 3B | Pairwise Markdown comparison | Against Gemini 2.5 Flash: table labeled win 39.98%, lose 52.43%, both correct 7.58%; dataset and judge are undefined.[^nanonets-ocr2-card] |
 | OvisOCR2 | In-house >1,000 pages | Overall 85.54; handwriting 72.28; complex-table overall 83.97 and table-missing rate 0.0796.[^ovisocr2-report] |
+| OvisOCR3 | Document parsing, overall-only | OmniDocBench1.6 96.74; MDPBench 88.80; PureDocBench 82.31; Real5-OmniDocBench 93.63. No component vectors or split/protocol details.[^ovisocr3-model-card] |
+| OvisOCR3 | General OCR | OCRBench 88.8; OCRBench v2 EN/ZH 65.9/61.3; base Qwen3.5-0.8B reports 79.1/41.5/43.9.[^ovisocr3-model-card] |
+| OvisOCR3 | KIE | OCRBench KIE 90.50; OCRBench v2 KIE 83.01; CC-OCR KIE 88.69; in-house KIE 77.73. In-house set composition is undisclosed.[^ovisocr3-model-card] |
+| OvisOCR3 | DocFigCapBench | Localization F1 90.97; caption score 6.93; Qwen3.8-Max 86.67/7.30; MinerU2.5-Pro 85.00/4.61. Caption metric scale undefined.[^ovisocr3-model-card] |
+| OvisOCR3 | CrossTabBench and MPDocBench-Parse | Relation F1 97.07 (P 96.20/R 97.96); reconstruction TEDS 89.66; truncated-table TEDS 92.04; Qwen3.8-Max 94.47/91.71/89.57.[^ovisocr3-model-card] |
 | Qianfan-OCR | General OCR | OCRBench 880; OCRBenchv2 EN/ZH 56.0/60.77; CCOCR multilingual/overall 76.7/79.3.[^qianfan-ocr-report] |
 | Qianfan-OCR | Understanding | OCRVQA 66.8; TextVQA 80.0; DocVQA 92.8; CharXiv DQ/RQ 94.0/85.2; ChartQA/Pro 88.1/42.9; ChartBench 85.9.[^qianfan-ocr-report] |
 | Qianfan-OCR | Five KIE benchmarks | Mean 87.9; OCRBench KIE 95.0; OCRBenchv2 EN/ZH 82.8/82.3; CCOCR KIE 92.8; Nanonets KIE F1 86.5.[^qianfan-ocr-report] |
@@ -246,18 +264,21 @@ These measurements use different page renders, output lengths, hardware, concurr
 ## Interpretation
 
 - **Closest current comparison:** OvisOCR2 leads the retained Ovis-transcribed OmniDocBench v1.6 end-to-end table on every listed component, while its PureDocBench Real score trails Logics-Parsing-v2 and FD-RL. This is stronger evidence for clean/digital parsing than for universal in-the-wild superiority.[^ovisocr2-report]
+- **OvisOCR3 broadens the comparison but narrows the protocol:** The card's 96.74 OmniDocBench1.6 is 0.09 below Xiaomi-OCR-0's 96.83, while OvisOCR3 leads the card's MDPBench, PureDocBench, and Real5 columns. Because those are overall-only values without a prompt or evaluator manifest, they support a five-domain capability claim more than a precise ranking.[^ovisocr3-model-card]
+- **Continuation detection and reconstruction diverge:** OvisOCR3 leads CrossTabBench relation F1 (97.07) but trails Qwen3.8-Max on reconstruction TEDS (89.66 vs. 91.71), and several systems show high relation precision with low recall. Cross-page table quality therefore needs both metrics, not relation F1 alone.[^ovisocr3-model-card]
 - **Results evolve rapidly and conflict:** DeepSeek-OCR 2 is 91.09 in one v1.5 table and 89.17 in Unlimited OCR's; Chandra OCR 2 is 85.8 in its own olmOCR card and 83.1 in Infinity-Parser2's table. Version labels alone are insufficient to merge scores.
 - **Task breadth changes the apparent winner:** Qianfan and Infinity-Parser2 expose OCR, layout, VQA, chart, KIE, and chemistry results, while Chandra, dots, and LightOn emphasize page transcription. Missing tasks are missing evidence, not zero capability.
-- **Small end-to-end models can be competitive:** OvisOCR2 reports 0.8B and the top v1.6 value; LightOnOCR, Surya, and Granite report useful size–quality points. Their protocols remain first-party and not hardware- or evaluator-normalized.
+- **Small end-to-end models can be competitive:** OvisOCR2 and OvisOCR3 report 0.8B and near-top v1.6 overall values; LightOnOCR, Surya, and Granite report useful size–quality points. Their protocols remain first-party and not hardware- or evaluator-normalized.
 - **No global winner is supported:** dataset versions, prompts, PDF metadata anchoring, page rendering, output schemas, retry behavior, excluded categories, evaluator implementations, and private data differ.
 
 ## Trust limits
 
-Every numeric result is author-, vendor-, leaderboard-, or report-transcribed. The repository does not contain complete evaluated outputs, model weights for local reruns, benchmark snapshots, prompt/configuration manifests, or executable evaluation environments for the full family. Several cards reference absent local images or external artifacts; those were not used for values. The page records explicit results and conflicts, but it cannot verify leaderboard freshness, contamination controls, private benchmark composition, or causal claims about architecture and training.
+Every numeric result is author-, vendor-, leaderboard-, or report-transcribed. The repository does not contain complete evaluated outputs, model weights for local reruns, benchmark snapshots, prompt/configuration manifests, or executable evaluation environments for the full family. Several cards reference absent local images or external artifacts; those were not used for values. OvisOCR3's card similarly references absent `prompts/`, `document_crosspage.py`, `assets/`, model files, and a promised technical report, and its document-parsing values are overall-only outside the OCR, KIE, figure-captioning, and cross-page rows.[^ovisocr3-model-card] The page records explicit results and conflicts, but it cannot verify leaderboard freshness, contamination controls, private benchmark composition, or causal claims about architecture and training.
 
 ## Relationships
 
 - **Benchmarks:** the retained core models listed under **Scope and model coverage**.
+- **Includes:** [OvisOCR3](ovisocr3.md) as a five-domain 0.8B model whose cross-page table results extend this catalog beyond single-page parsing.
 - **Refines:** the end-to-end generative document-VLM family in [Current OCR approaches](current-ocr-approaches.md).
 - **Complements:** [Layout-first modular OCR benchmarks](layout-first-modular-ocr-benchmarks.md) and [Detector–recognizer OCR benchmarks](detector-recognizer-ocr-benchmarks.md).
 
@@ -271,6 +292,7 @@ Every numeric result is author-, vendor-, leaderboard-, or report-transcribed. T
 [^unlimited-ocr-report]: Yin et al., *Unlimited OCR Works*, local source at [main.tex](../raw/2606.23050_Unlimited-OCR/main.tex) (accessed 2026-08-17).
 [^infinity-parser2-report]: INF Team, *Infinity-Parser2*, local source at [arxiv_latex.tex](../raw/2607.07836_Infinity-Parser2/arxiv_latex.tex), especially `latex/experiments.tex` and `latex/appendix.tex` (accessed 2026-08-17).
 [^ovisocr2-report]: Lu et al., *OvisOCR2*, local source at [main.tex](../raw/2607.13639_OvisOCR2/main.tex), especially `content/evaluation.tex` (accessed 2026-08-17).
+[^ovisocr3-model-card]: ATH-MaaS, *OvisOCR3 model card*, local source at [ATH-MaaS-OvisOCR3.md](../raw/ATH-MaaS-OvisOCR3.md), especially § Performance, § Task-Specific Usage, and § Limitations (accessed 2026-10-25). The referenced prompts, script, assets, model files, and technical report are absent locally.
 [^chandra-card]: Datalab, local [Chandra model card](../raw/chandra.md) (accessed 2026-08-17).
 [^chandra-ocr-2-card]: Datalab, local [Chandra OCR 2 model card](../raw/chandra-ocr-2.md) (accessed 2026-08-17).
 [^dots-ocr-card]: rednote-hilab, local [dots.ocr model card](../raw/dots.ocr.md) (accessed 2026-08-17).

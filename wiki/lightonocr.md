@@ -5,7 +5,7 @@ description: LightOnOCR-2-1B is a 1B end-to-end document-OCR VLM that combines a
 tags: [ocr, document-parsing, vision-language-models, multilingual, reinforcement-learning, image-localization]
 status: draft
 created: 2026-08-17
-generated: { by: llm-wiki-agent/1, at: 2026-08-17T14:13:20Z }
+generated: { by: llm-wiki-agent/1, at: 2026-10-25T03:30:23Z }
 sources:
   - id: lightonocr-2-1b-model-card
     resource: ../raw/LightOnOCR-2-1B.md
@@ -65,6 +65,7 @@ The local evidence includes an author manuscript, its bibliography, architecture
 
 ## Relationships
 
+- **Superseded for deployment by:** [LightOnOCR-3](lightonocr-3.md), whose 1B variant keeps this architecture while adding grounding, image descriptions, and chart-to-table output; see [LightOnOCR-3 deployment](lightonocr-3-deployment.md) for the current runtime paths. This page remains the source for the LightOnOCR-2 architecture, training recipe, and benchmark evidence.
 - **Compared with:** [DeepSeek-OCR](deepseek-ocr.md), [PaddleOCR-VL](paddleocr-vl.md), and [LayoutRL and Infinity-Parser](layout-rl-and-infinity-parser.md) are included as document-parsing baselines in the paper's reported evaluations; cross-paper comparison requires matched benchmark versions, rendering, and inference settings.
 
 [^lightonocr-paper]: Taghadouini, Cavaillès, and Aubertin, *LightOnOCR: A 1B End-to-End Multilingual Vision-Language Model for State-of-the-Art OCR*, local LaTeX source at [templateArxiv.tex](../raw/2601.14251_LightOnOCR/templateArxiv.tex), including `figures/model_arch.png`, `figures/model_parameter_merging.pdf`, and five qualitative example images (accessed 2026-08-17).

@@ -5,7 +5,7 @@ description: Structured extraction and KIE groups models that produce schema-con
 tags: [task, information-extraction, kie, json-extraction, document-understanding]
 status: stable
 created: 2026-08-22
-generated: { by: llm-wiki-agent/1, at: 2026-08-22T12:00:00+07:00 }
+generated: { by: llm-wiki-agent/1, at: 2026-10-25T03:23:54Z }
 sources:
   - id: lift-card
     resource: ../raw/lift.md
@@ -16,6 +16,10 @@ sources:
   - id: glm-ocr-report
     resource: ../raw/2603.10910_GLM-OCR/main.tex
     title: GLM-OCR Technical Report
+  - id: ovisocr3-model-card
+    resource: ../raw/ATH-MaaS-OvisOCR3.md
+    kind: model-card
+    title: OvisOCR3 model card
 ---
 
 # Task: Structured extraction and KIE
@@ -30,15 +34,18 @@ Structured extraction and Key Information Extraction (KIE) go beyond faithful tr
 - [Qianfan-OCR](qianfan-ocr.md) — prompt-driven parsing *or* understanding outputs; Layout-as-Thought variant emits boxes/labels/summaries before answering
 - [Nanonets-OCR2](nanonets-ocr2.md) — VQA and field-like handling for checkboxes, signatures, watermarks within image-to-Markdown
 - [dots.ocr](dots-ocr.md) — grounding-capable VLM that can emit layout detection with coordinates for downstream extraction
+- [OvisOCR3](ovisocr3.md) — prompt-selected open, field-list, and schema-example KIE; the card reports 90.50/83.01/88.69/77.73 on OCRBench KIE, OCRBench v2 KIE, CC-OCR KIE, and an in-house set[^ovisocr3-model-card]
 
 ## Task characteristics
 
 - **Input:** page image/PDF + schema, keys, or natural-language question; may include retrieval context (PP-ChatOCRv4).
 - **Output:** JSON conforming to user schema, or answer with citation/boxes; evaluated on KIE benchmarks (Nanonets-KIE, Handwritten-KIE, private receipt/seal sets).
 - **Strengths:** directly consumable for automation; bounding-box grounding aids auditability.
-- **Limits:** schema adherence vs. hallucination trade-off; evaluation often private or task-conditioned, not comparable across leaderboards.
+- **Limits:** schema adherence vs. hallucination trade-off; evaluation often private or task-conditioned, not comparable across leaderboards. A schema may be an output example rather than a formal JSON Schema, and prompted adherence does not enforce validity.[^ovisocr3-model-card]
 
 ## Relationships
 
 - **Uses:** outputs of [Task: End-to-end generative OCR](task-end-to-end-generative-ocr.md) or [Task: Layout-first modular parsing](task-layout-first-modular-parsing.md) as evidence
 - **Contrasts with:** pure transcription tasks; overlapped by [Task: Unified perception and grounding](task-unified-perception-grounding.md) when grounding is required
+
+[^ovisocr3-model-card]: ATH-MaaS, *OvisOCR3 model card*, local source at [ATH-MaaS-OvisOCR3.md](../raw/ATH-MaaS-OvisOCR3.md), § Capabilities, § Performance › Key Information Extraction, and § Task-Specific Usage › Key Information Extraction (accessed 2026-10-25).
