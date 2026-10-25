@@ -14,6 +14,8 @@ Kho tri thức cá nhân vận hành cùng LLM, lưu kiến thức theo Markdown
 ## Cấu trúc repository
 
 ```text
+AGENTS.md Contract nền tảng, dùng chung cho mọi knowledge base
+SCOPE.md   Phạm vi, domain và quy ước riêng của knowledge base này
 raw/       Nguồn gốc, bất biến sau khi được đưa vào repository
 wiki/      Tri thức đã được tổng hợp theo OKF v0.2
   index.md Catalog đầy đủ, điểm vào cho truy vấn
@@ -24,7 +26,13 @@ outputs/   Báo cáo và kết quả tạm thời được yêu cầu
 tools/     Script kiểm tra cấu trúc và cập nhật QMD
 ```
 
-`LLM-WIKI.md` là contract trung tâm: định nghĩa phạm vi, quyền sở hữu dữ liệu, định dạng concept, retrieval policy và các bất biến khi thay đổi wiki.
+`AGENTS.md` là contract trung tâm, không gắn với domain nào: định nghĩa quyền sở hữu dữ liệu, định dạng concept và các bất biến khi thay đổi wiki. `SCOPE.md` cấu hình riêng cho knowledge base này: phạm vi, loại trừ, danh sách domain, quy tắc theo domain, ngôn ngữ và course profile. `SCOPE.md` chỉ được bổ sung, không được nới lỏng contract.
+
+Để tạo knowledge base mới cho chủ đề khác: sao chép repository (bỏ nội dung `raw/` và `wiki/`), giữ nguyên `AGENTS.md` và `.pi/`, rồi chạy prompt `init-wiki` (skill `wiki-init`) để viết lại `SCOPE.md`. Skill xác nhận `SCOPE.md` với bạn trước, sau đó mới tiếp tục ingest hoặc query.
+
+```text
+/init-wiki KB về tài chính cá nhân, domain: đầu tư, thuế. Ingest raw/my-source.md
+```
 
 ## Cách dùng cơ bản
 
@@ -37,7 +45,7 @@ git clone <repository-url>
 cd llm-wiki
 ```
 
-Đọc `LLM-WIKI.md` trước khi thay đổi nội dung để tuân thủ quy ước của kho.
+Agent tự động nạp `AGENTS.md`; đọc `SCOPE.md` trước khi thay đổi nội dung để tuân thủ quy ước của kho.
 
 ### 2. Thêm và ingest nguồn mới
 
@@ -103,11 +111,13 @@ File cấu hình `.qmd/index.yml` được theo dõi bởi Git; SQLite index và
 
 | Thành phần | Mục đích |
 | --- | --- |
+| `wiki-init` | Khởi tạo hoặc đổi phạm vi knowledge base qua `SCOPE.md`, rồi chuyển sang ingest/query |
 | `wiki-ingest` | Biên dịch nguồn và durable insight vào wiki |
 | `wiki-query` | Truy xuất, đánh giá và tổng hợp tri thức |
 | `wiki-lint` | Audit và sửa sức khỏe cấu trúc/nội dung của wiki |
 | `qmd-setup` | Thiết lập QMD cache cục bộ |
 | `qmd-retrieval` | Xếp hạng candidate bằng QMD khi cần |
-| `wiki-learn` | Tạo bài viết hướng dẫn cho người mới từ tri thức wiki |
+| `wiki-learn` | Tạo bài viết hướng dẫn cho người mới từ tri thức wiki, theo course profile của domain |
+| `read-arxiv-paper` | Lưu TeX source của paper arXiv vào `raw/` rồi ingest vào wiki |
 
-Chi tiết đầy đủ về chính sách và quy trình nằm trong [LLM-WIKI.md](LLM-WIKI.md).
+Chi tiết đầy đủ về chính sách và quy trình nằm trong [AGENTS.md](AGENTS.md).

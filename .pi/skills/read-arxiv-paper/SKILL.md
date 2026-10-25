@@ -1,40 +1,22 @@
 ---
 name: read-arxiv-paper
-description: Use this skill when asked to read an arxiv paper given an arxiv URL
+description: Fetch an arXiv paper's TeX source into raw/ and compile it into the wiki. Use when the user gives an arXiv URL or ID to read or ingest.
 ---
 
-You will be given a URL of an arxiv paper, for example:
+# Read arXiv Paper
 
-https://www.arxiv.org/abs/2601.07372
+Capture the paper's TeX source as immutable evidence in `raw/`, then compile it through `wiki-ingest`. Prefer TeX over PDF because equations, figures, and sections stay addressable for locators.
 
-### Part 1: Normalize the URL
+## Steps
 
-The goal is to fetch the TeX Source of the paper (not the PDF!), the URL always looks like this:
+1. **Normalize the ID.** Extract the arXiv ID and version from forms such as `https://arxiv.org/abs/2601.07372`, `https://www.arxiv.org/pdf/2601.07372v2`, or `2601.07372`. Resolve the latest version when none is given and record it. The source URL is `https://arxiv.org/src/<id><version>`. This step is complete when the ID and version are explicit.
 
-https://www.arxiv.org/src/2601.07372
+2. **Reconcile before fetching.** The source package is `raw/arxiv-<id><version>/`. If it already exists, do not re-download or modify it: `raw/` is immutable. A newer version is a new package. Search `wiki/` for concepts citing the package scope; complete prior coverage makes the ingest a no-op per `AGENTS.md` idempotency. This step is complete when the package is known to be new, already present, or already compiled.
 
-Notice the /src/ in the url. Once you have the URL:
+3. **Fetch and unpack.** Download the source archive and unpack it into `raw/arxiv-<id><version>/`. arXiv may serve a gzipped tarball, a single gzipped `.tex` file, or a PDF when no TeX exists; handle each and fall back to the PDF only when TeX is unavailable. Do not execute anything in the package. Add a `README.md` to the package recording title, authors, arXiv ID, version, abstract URL, source URL, and capture date. This step is complete when the package and its README exist.
 
-### Part 2: Download the paper source
+4. **Locate the entry point.** Find the main file (the `.tex` containing `\documentclass`, often `main.tex`) and record it in the package README. This step is complete when the canonical entry point is known.
 
-Fetch the url to a local .tar.gz file. A good location is `~/.cache/nanochat/knowledge/{arxiv_id}.tar.gz`.
+5. **Compile into the wiki.** Follow `wiki-ingest` with the package README as `sources[].resource`, the package directory as `scope`, `kind: paper`, and the arXiv version as `revision`. Recurse through `\input`/`\include` files, bibliography, and figures as the research-paper source profile requires. This step is complete when `wiki-ingest` reports a validated mutation or a no-op.
 
-(If the file already exists, there is no need to re-download it).
-
-### Part 3: Unpack the file in that folder
-
-Unpack the contents into `~/.cache/nanochat/knowledge/{arxiv_id}` directory.
-
-### Part 4: Locate the entrypoint
-
-Every latex source usually has an entrypoint, such as `main.tex` or something like that.
-
-### Part 5: Read the paper
-
-Once you've found the entrypoint, Read the contents and then recurse through all other relevant source files to read the paper.
-
-### Part 6: Report
-
-Once you've read the paper, produce a summary of the paper into a markdown file at `./knowledge/summary_{tag}.md`. Notice that 1) use the local knowledge directory here (it's easier for me to open and reference here), not in `~/.cache`, and 2) generate some reasonable `tag` like e.g. `conditional_memory` or whatever seems appropriate given the paper. Probably make sure that the tag doesn't exist yet so you're not overwriting files.
-
-As for the summary itself, remember that you're processing this paper within the context of the nanochat repository, so most often we will be interested in how to apply the paper and its lessons to the nanochat project. Therefore, you should feel free to "remind yourself" of the related nanochat code by reading the relevant parts, and then explicitly make the connection of how this paper might relate to nanochat or what are things we might be inspired about or try.
+Report the concepts created or updated. When the user asks only for a summary without filing knowledge, write it to `outputs/arxiv-<id>-summary.md` instead and leave `wiki/` unchanged.
