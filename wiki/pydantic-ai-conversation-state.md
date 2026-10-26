@@ -5,7 +5,7 @@ description: Pydantic AI v2.55's Conversation object — serializable thread sta
 tags: [ml, pydantic-ai, agents, persistence]
 status: stable
 created: 2026-10-26
-generated: { by: llm-wiki-agent/1, at: 2026-10-26T03:58:00Z }
+generated: { by: llm-wiki-agent/1, at: 2026-10-26T05:12:00Z }
 stale_after: 2026-12-23
 sources:
   - id: dd-v2-tour-2026
@@ -58,5 +58,7 @@ The source quotes the persistence docs' warning that reaching for a durable engi
 - **Uses** the [capability primitive](pydantic-ai-capability-primitive.md) indirectly: capabilities attached to the agent shape what a run records.
 - **Carries** the state needed to resume [deferred tool approvals](pydantic-ai-deferred-approvals.md).
 - **Contrasts with** [durable execution](pydantic-ai-durable-execution.md): a conversation survives between runs, a durable engine survives inside one run.
+- **Stops short of** [realtime voice sessions](pydantic-ai-realtime-voice.md), which hand a call to a text run at the `all_messages()` / `message_history=` level rather than as a `Conversation`.
+- **Is generalized by** [self-improving agent loops](self-improving-agent-loops.md), whose conversation search reads a shared store across sessions and agents rather than one saved thread.
 
 [^dd-v2-tour-2026]: Developers Digest, "Pydantic AI V2 in Late 2026: Capabilities, Graphs, Evals and MCP", published 2026-10-17, last updated 2026-10-21, §"Example 3: store a conversation, not a pile of messages (v2.55)" (raw lines 214–248) for the `Conversation` contents, the usage-budget and `deferred_tool_requests` rationale, the JSON round-trip sample, and the printed `True 2`; §"Human approval without holding a process open" for deferred requests. Local capture: `raw/pydantic-ai-whats-new-2026/index.md` (revision 836bd3b1). Evidence class: **Reported** — the author reports type-checking against 2.57.0 and running against `TestModel`; no provider call, package, or database was touched in this ingest.

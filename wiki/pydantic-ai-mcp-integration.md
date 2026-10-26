@@ -50,5 +50,6 @@ MCP configuration has been a leak path: v2.58.0 fixed GHSA-xv4x-g8mx-ch56, rated
 - **Uses** the [capability primitive](pydantic-ai-capability-primitive.md); `MCP` is a core capability.
 - **Exposes** configuration to [observability](pydantic-ai-observability.md) telemetry, which is where the v2.58 advisory applied.
 - **Feeds** frontends that [Pydantic Evals](pydantic-evals.md) cannot see when tools run provider-side.
+- **Runs opposite to** [Logfire MCP server](logfire-mcp-server.md): this page is Pydantic AI consuming an MCP server, while that one is a hosted MCP server consumed by a coding agent.
 
 [^dd-v2-tour-2026]: Developers Digest, "Pydantic AI V2 in Late 2026: Capabilities, Graphs, Evals and MCP", published 2026-10-17, last updated 2026-10-21, §"MCP: local by default, native opt-in, and MCP Apps (v2.57)" (raw lines 560–593) for the local-versus-native default, `MCPToolset`, Streamable HTTP and SSE detection, MCP Apps relay, UI-only tool visibility, and `VercelAIAdapter`; §"What changed in v2.58 and v2.59" for GHSA-xv4x-g8mx-ch56; §"What changed in V2, in one table" for the single `MCPToolset` replacement. Local capture: `raw/pydantic-ai-whats-new-2026/index.md` (revision 836bd3b1). Evidence class: **Reported** — docs summary and release-note summary; no MCP client, server, or frontend was exercised.

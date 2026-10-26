@@ -5,7 +5,7 @@ description: Pydantic AI v2's single composable unit that bundles instructions, 
 tags: [ml, pydantic-ai, agents, llm-frameworks]
 status: stable
 created: 2026-10-26
-generated: { by: llm-wiki-agent/1, at: 2026-10-26T04:12:00Z }
+generated: { by: llm-wiki-agent/1, at: 2026-10-26T05:12:00Z }
 stale_after: 2026-12-23
 sources:
   - id: pydantic-ai-v2
@@ -32,6 +32,12 @@ sources:
     kind: article
     revision: 836bd3b1cd2de6726899f5766b8f3d40947bc044
     title: "What Is Pydantic AI 2.0? The Capability Primitive That Changes How You Build Agents"
+  - id: pydantic-image-gen-2026
+    resource: ../raw/image-generation/index.md
+    scope: ../raw/image-generation/
+    kind: article
+    revision: sha256:2563fee14c8dd9209912c64e26cb10d888eb54d1e0d027343f546fe21ceaf69e
+    title: "Generate images with Pydantic AI"
 ---
 
 The **capability** is the single unit of agent behavior that Pydantic AI v2 composes. It bundles an agent's instructions, tools, lifecycle hooks, and model settings into one object, so an extension such as a memory system, a guardrail, or a coding toolkit reaches every layer of the agent through one concept and is attached the same way as anything else: `Agent(..., capabilities=[...])`[^pydantic-ai-v2]
@@ -45,7 +51,7 @@ The **capability** is the single unit of agent behavior that Pydantic AI v2 comp
 
 The article's example uses the shape `Capability(id='github', description='Look up GitHub issues, pull requests, and code.', instructions=..., toolset=MCPToolset('https://mcp.example.com/github'), defer_loading=True)`, which shows a capability built inline from an ID, a description, instructions, and a toolset rather than subclassed[^pydantic-ai-v2]
 
-Capability shapes vary in depth. `Thinking` (extended thinking unified across providers) is essentially a model setting; `WebSearch` wraps a native tool that runs natively where the provider supports it and falls back to a local implementation otherwise; the more powerful capabilities use hooks to rewrite the model's per-step view[^pydantic-ai-v2]
+Capability shapes vary in depth. `Thinking` (extended thinking unified across providers) is essentially a model setting; `WebSearch` wraps a native tool that runs natively where the provider supports it and falls back to a local implementation otherwise; the more powerful capabilities use hooks to rewrite the model's per-step view[^pydantic-ai-v2] Image generation shows the same native-or-local split at a finer grain: `ImageGeneration()` is native only, `ImageGeneration(local=generator)` prefers native generation where the model supports it and falls back to the supplied generator otherwise, and `ImageGeneration(native=False, local=generator)` forces the local path — a capability-level fallback, not automatic failover between image providers[^pydantic-image-gen-2026]
 
 One vendor explainer lists guardrails as the fourth part of the bundle instead of model settings; see [Contradictions](#contradictions).
 
@@ -159,8 +165,10 @@ Neither list is chosen here. The partial reconciliation available in this wiki i
 - **Uses** hooks as its extension substrate; `CodeMode` and `ToolSearch` are reported to be built on the public hook API.
 - **Attaches as** the production features documented in [Conversation state](pydantic-ai-conversation-state.md), [prompt caching](pydantic-ai-prompt-caching.md), [deferred tool approval](pydantic-ai-deferred-approvals.md), [workspaces](pydantic-ai-workspaces-and-sandboxes.md), [durable execution](pydantic-ai-durable-execution.md), [MCP integration](pydantic-ai-mcp-integration.md), and [Pydantic Evals](pydantic-evals.md).
 - **Depends on** the two-package split described in [Pydantic AI Harness](pydantic-ai-harness.md): a capability's tier decides its stability guarantee.
+- **Reaches** [realtime voice sessions](pydantic-ai-realtime-voice.md), where the same capabilities resolve once at connect time and run-graph features such as output validators are excluded.
 
 [^pydantic-ai-v2]: Douwe Maan, "Pydantic AI v2: capabilities, a leaner core, and the Harness", Pydantic, published 2026-06-23, §"One primitive: the capability" (including the `capabilities=[...]` code sample and the `defer_loading=True` GitHub capability); §"The Harness and a leaner core" for endorsements. Local capture: `raw/pydantic-ai-v2/index.md` (revision 836bd3b1). Evidence class: **Reported** — maintainer announcement, no independent inspection of the library or its hooks was performed in this ingest.
 [^alphasignal-v2-news]: AlphaSignal Newsroom, "Pydantic AI v2 Ships a Single Primitive That Rebuilds How Agents Work", AlphaSignal, published 2026-06-23, §"One primitive to rule the loop" (the `capabilities=[...]` sample and `defer_loading`) and §"Why on-demand loading matters for your token bill" (`load_capability`, compact catalog, the fall-up pattern). Local capture: `raw/pydantic-ai-v2-ships-a-single-primitive-that-rebuilds-how-agents-work/index.md` (revision 836bd3b1). Evidence class: **Reported** — its code sample was read, not executed.
 [^dd-v2-tour-2026]: Developers Digest, "Pydantic AI V2 in Late 2026: Capabilities, Graphs, Evals and MCP", published 2026-10-17, last updated 2026-10-21, §"Example 1: a typed agent with deps, structured output, hooks and caching" (raw lines 121–184) for the hook lifecycle and ordering rules, the `Hooks` snippet, `result.output` typing and `result.usage` as a property; §"Example 2: bundle behavior as a Capability" (raw lines 185–213) for the declarative `Capability[object]` form and the `defer_loading`/`id` requirement; §"The mental model: an agent loop plus capabilities" (raw lines 98–120) for the core and Harness capability inventories; §"Release timeline since V2.0" for v2.54.0 wrapper semantics and v2.57.0 `Skills` frontmatter support. Local capture: `raw/pydantic-ai-whats-new-2026/index.md` (revision 836bd3b1). Evidence class: **Reported** — a third-party tour that type-checked and ran some samples against `TestModel`; no package source was inspected here.
+[^pydantic-image-gen-2026]: David Sanchez, "Generate images with Pydantic AI", Pydantic, published 2026-09-14, §"Let an agent generate the image" (raw lines 47–86) for the three `ImageGeneration` declaration shapes and the capability-based rather than provider-based fallback. Local capture: `raw/image-generation/index.md`, content digest sha256:2563fee1. Evidence class: **Reported** — vendor announcement; no capability was instantiated.
 [^mindstudio-capability-primitive]: Luis Chavez-Mattos, "What Is Pydantic AI 2.0? The Capability Primitive That Changes How You Build Agents", MindStudio, published 2026-07-11. Sections: §"What Is a Capability in Pydantic AI 2.0?" (the four-part bundle) and §"What a Capability Looks Like in Practice" (the `Capability(tools=..., instructions=..., hooks=..., guardrails=...)` sample); §"The Four Components, Explained" (instruction drift, scoped hooks, guardrail levels, "guardrails are just Python functions"); §"Why Composition Changes Everything" (reuse, portable multi-agent contracts, unit testability); §"Common Patterns for Using Capabilities Effectively" ("Layered Capabilities", "Capability Versioning", "Shared Guardrail Libraries"); §"Capabilities and the Broader Shift in Agent Design" (the "capability boundary" framing). Local capture: `raw/what-is-pydantic-ai-2-0-capability-primitive/index.md` (revision 836bd3b1). Evidence class: **Reported**, and **opinion** wherever it argues design — a vendor blog post; no Pydantic AI package source, signature, or documentation was inspected and its sample was not executed. Disclosure: the publisher sells a competing no-code agent platform promoted in the same article.

@@ -5,7 +5,7 @@ description: Provider-neutral model error categories, run and request time budge
 tags: [ml, pydantic-ai, agents, reliability]
 status: stable
 created: 2026-10-26
-generated: { by: llm-wiki-agent/1, at: 2026-10-26T04:07:00Z }
+generated: { by: llm-wiki-agent/1, at: 2026-10-26T05:12:00Z }
 stale_after: 2026-12-23
 sources:
   - id: dd-v2-tour-2026
@@ -75,5 +75,6 @@ In 2.57.0, `Agent('anthropic:claude-sonnet-5-5')` raised `UserError` when `ANTHR
 - **Enables** [durable execution](pydantic-ai-durable-execution.md) retry policies through `non_retryable_model_errors`.
 - **Protects** [prompt caching](pydantic-ai-prompt-caching.md) through append-only instructions.
 - **Surfaced through** [observability](pydantic-ai-observability.md) warnings and spans.
+- **Caps** [realtime voice sessions](pydantic-ai-realtime-voice.md) through `usage_limits`, which bounds a session the same way it bounds a run.
 
 [^dd-v2-tour-2026]: Developers Digest, "Pydantic AI V2 in Late 2026: Capabilities, Graphs, Evals and MCP", published 2026-10-17, last updated 2026-10-21, §"What changed in v2.58 and v2.59 (October 19-20)" (raw lines 21–76) for the error categories, `for_category`, `non_retryable_model_errors`, the run and request time budgets, `UnsupportedSettingWarning`, append-only instructions, and the compatibility bullets; §"Gotchas I hit while checking the examples" for construction-time API-key failure. Local capture: `raw/pydantic-ai-whats-new-2026/index.md` (revision 836bd3b1). Evidence class: **Reported** — the author type-checked and ran a 2.59.0 sample; this ingest executed nothing.
