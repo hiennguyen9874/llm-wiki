@@ -12,7 +12,7 @@ sources:
     resource: ../raw/openrag/README.md
     scope: ../raw/openrag/
     kind: code
-    revision: 6fc819d3ec10ee3d0dedc842d244ec2b63fd9791
+    revision: 6fc819d3ec10
     title: OpenRAG repository
 ---
 
@@ -20,7 +20,7 @@ OpenRAG combines a browser workspace, Python API, Langflow orchestration, Doclin
 
 ## Snapshot and technology
 
-- Upstream: `langflow-ai/openrag`; package version `0.5.0`; Apache-2.0 license, with an IBM copyright notice. Snapshot commit: `6fc819d3ec10ee3d0dedc842d244ec2b63fd9791`, committed 2026-10-23.[^openrag-repo]
+- Upstream: `langflow-ai/openrag`; package version `0.5.0`; Apache-2.0 license, with an IBM copyright notice. Snapshot commit: `6fc819d3ec10`, committed 2026-10-23.[^openrag-repo]
 - Backend: Python ≥3.13, FastAPI/Starlette/Uvicorn, SQLModel/SQLAlchemy/Alembic, OpenSearch client, LiteLLM, FastMCP, and a Textual terminal launcher. These are declared requirements, not a resolved-environment compatibility guarantee.[^openrag-repo]
 - Frontend: Next.js 16, React 19, TypeScript, Tailwind 4, TanStack Query, Zustand, Radix, and AG Grid. Langflow and Docling Serve are separate runtime services in the application topology.[^openrag-repo]
 
@@ -44,4 +44,4 @@ OpenRAG combines a browser workspace, Python API, Langflow orchestration, Doclin
 
 This is a code-grounded, targeted static ingest, not an exhaustive audit, performance evaluation, or deployment certification. All concepts remain draft because material implementation/test/attachment coverage is outstanding; see the source map before treating a missing feature as absent. No vendor API calls, application execution, migrations, builds, or application tests were performed.
 
-[^openrag-repo]: `6fc819d3ec10ee3d0dedc842d244ec2b63fd9791`: `README.md` §§ Highlight Features, SDKs, Model Context Protocol; `pyproject.toml` `[project]`, dependencies, `[project.scripts]`; `LICENSE` title and appendix; `frontend/package.json::dependencies`; `docker-compose.yml::services`. Local repository identity and clean working-tree state were inspected with Git.
+[^openrag-repo]: `6fc819d3ec10`: `README.md` §§ Highlight Features, SDKs, Model Context Protocol; `pyproject.toml` `[project]`, dependencies, `[project.scripts]`; `LICENSE` title and appendix; `frontend/package.json::dependencies`; `docker-compose.yml::services`. Local repository identity and clean working-tree state were inspected with Git.

@@ -12,7 +12,7 @@ sources:
     resource: ../raw/LightRAG/README.md
     scope: ../raw/LightRAG/
     kind: code
-    revision: aaebfe1bb8d55deb6a4304d357a3bf4c92fcd40a
+    revision: aaebfe1bb8d5
     title: LightRAG repository
 ---
 
@@ -62,4 +62,4 @@ Compilation paused, unfinished canonical drafts were removed, and the human auth
 
 Static review, not penetration testing, secret-validity checking, complete PII scanning, token revocation testing or proof of safe deployment. Secret defaults, hypotheses and reviewer findings are redacted. See [coverage](lightrag-source-map.md).
 
-[^lightrag-aaebfe1]: Revision `aaebfe1bb8d55deb6a4304d357a3bf4c92fcd40a`: `env.docker-compose-full::{LLM_BINDING_API_KEY, EMBEDDING_BINDING_API_KEY, RERANK_BINDING_API_KEY, VLLM_EMBED_API_KEY, VLLM_RERANK_API_KEY}` (values withheld); `env.example` auth/OpenSearch default settings (values withheld); `api/config.py::DEFAULT_TOKEN_SECRET, validate_auth_configuration, parse_args, initialize_config`; `api/auth.py::AuthHandler`; `api/utils_api.py::get_combined_auth_dependency, credentials_accepted, path_is_whitelisted, _renew_token_if_needed`; `api/login_rate_limit.py::LoginRateLimiter`; `api/passwords.py::verify_password`; `api/lightrag_server.py::create_app` login/health/auth/verify handlers; document/graph route auth dependencies; `scripts/setup/setup.sh::security_check_env_file`; `scripts/setup/lib/validation.sh` default-secret check (506); `.dockerignore` environment exclusions; `Dockerfile`, `docker-entrypoint.sh`; Helm `templates/_helpers.tpl`; `SECURITY.md`; `tests/api/auth/test_shared_credential_check.py` and `tests/api/config/test_whitelist_exposes_api_routes.py` selected assertions. Session approval/rotation limits are operational history, not an upstream claim.
+[^lightrag-aaebfe1]: Revision `aaebfe1bb8d5`: `env.docker-compose-full::{LLM_BINDING_API_KEY, EMBEDDING_BINDING_API_KEY, RERANK_BINDING_API_KEY, VLLM_EMBED_API_KEY, VLLM_RERANK_API_KEY}` (values withheld); `env.example` auth/OpenSearch default settings (values withheld); `api/config.py::DEFAULT_TOKEN_SECRET, validate_auth_configuration, parse_args, initialize_config`; `api/auth.py::AuthHandler`; `api/utils_api.py::get_combined_auth_dependency, credentials_accepted, path_is_whitelisted, _renew_token_if_needed`; `api/login_rate_limit.py::LoginRateLimiter`; `api/passwords.py::verify_password`; `api/lightrag_server.py::create_app` login/health/auth/verify handlers; document/graph route auth dependencies; `scripts/setup/setup.sh::security_check_env_file`; `scripts/setup/lib/validation.sh` default-secret check (506); `.dockerignore` environment exclusions; `Dockerfile`, `docker-entrypoint.sh`; Helm `templates/_helpers.tpl`; `SECURITY.md`; `tests/api/auth/test_shared_credential_check.py` and `tests/api/config/test_whitelist_exposes_api_routes.py` selected assertions. Session approval/rotation limits are operational history, not an upstream claim.

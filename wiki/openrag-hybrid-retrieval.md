@@ -12,7 +12,7 @@ sources:
     resource: ../raw/openrag/README.md
     scope: ../raw/openrag/
     kind: code
-    revision: 6fc819d3ec10ee3d0dedc842d244ec2b63fd9791
+    revision: 6fc819d3ec10
     title: OpenRAG repository
 ---
 
@@ -54,4 +54,4 @@ Knowledge filters constrain subsets by query, data source, document type, owner,
 
 No ranking-quality, recall, vector compatibility, DLS threshold, or fallback tests were run. Provider routing and the full embedding-space test suite remain partly pending; see [source map](openrag-source-map.md).
 
-[^openrag-repo]: `6fc819d3ec10ee3d0dedc842d244ec2b63fd9791`: `src/services/search_service.py::{_search}` and embedding-space discovery (approximately lines 404–460, 596–700); `custom_components/openrag/opensearch_multimodal.py::{search,fence_untrusted_text}` and embedding-field construction; `custom_components/openrag/openai_compatible_embedding.py` routing contract; `src/api/search.py`; `src/auth_context.py`; `flows/openrag_agent.json` prompt/filter wiring; `docs/docs/core-components/ingestion-configure.mdx` § Best practices for multiple embedding models; `docs/docs/core-components/knowledge-filters.mdx` § Create a filter.
+[^openrag-repo]: `6fc819d3ec10`: `src/services/search_service.py::{_search}` and embedding-space discovery (approximately lines 404–460, 596–700); `custom_components/openrag/opensearch_multimodal.py::{search,fence_untrusted_text}` and embedding-field construction; `custom_components/openrag/openai_compatible_embedding.py` routing contract; `src/api/search.py`; `src/auth_context.py`; `flows/openrag_agent.json` prompt/filter wiring; `docs/docs/core-components/ingestion-configure.mdx` § Best practices for multiple embedding models; `docs/docs/core-components/knowledge-filters.mdx` § Create a filter.

@@ -12,7 +12,7 @@ sources:
     resource: ../raw/UltraRAG/README.md
     scope: ../raw/UltraRAG/
     kind: code
-    revision: 185e2032d9f134099405b8b483edbbad95274080
+    revision: 185e2032d9f1
     title: UltraRAG repository
 ---
 
@@ -51,4 +51,4 @@ Draft: the large corpus module was sampled across all tool paths, while detailed
 - **Depends on:** [deployment extras and external binaries](ultrarag-deployment.md).
 - **Constrained by:** [filesystem and subprocess security](ultrarag-security.md).
 
-[^ultrarag]: Revision `185e2032d9f134099405b8b483edbbad95274080`: `servers/corpus/src/corpus.py::_validate_path`, `clean_text`, `reflow_paragraphs`, `build_text_corpus`, `build_image_corpus`, `mineru_parse`, `build_mineru_corpus`, `chunk_documents`; `servers/corpus/parameter.yaml` chunk settings and `mineru_extra_params`; `data/corpus_example.jsonl` `id`/`contents`; `examples/experiments/{build_text_corpus,build_image_corpus,build_mineru_corpus,corpus_chunk}.yaml`; `pyproject.toml` corpus extra. Helper internals were selectively inspected; no runtime verification.
+[^ultrarag]: Revision `185e2032d9f1`: `servers/corpus/src/corpus.py::_validate_path`, `clean_text`, `reflow_paragraphs`, `build_text_corpus`, `build_image_corpus`, `mineru_parse`, `build_mineru_corpus`, `chunk_documents`; `servers/corpus/parameter.yaml` chunk settings and `mineru_extra_params`; `data/corpus_example.jsonl` `id`/`contents`; `examples/experiments/{build_text_corpus,build_image_corpus,build_mineru_corpus,corpus_chunk}.yaml`; `pyproject.toml` corpus extra. Helper internals were selectively inspected; no runtime verification.

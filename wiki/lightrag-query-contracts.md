@@ -12,7 +12,7 @@ sources:
     resource: ../raw/LightRAG/README.md
     scope: ../raw/LightRAG/
     kind: code
-    revision: aaebfe1bb8d55deb6a4304d357a3bf4c92fcd40a
+    revision: aaebfe1bb8d5
     title: LightRAG repository
 ---
 
@@ -65,4 +65,4 @@ sources:
 
 Static implementation and selected assertion inspection, not executed protocol or citation-accuracy validation. Provider tokenization/reasoning streams and all client reconnect/error scenarios remain unverified; see [source map](lightrag-source-map.md).
 
-[^lightrag-aaebfe1]: Revision `aaebfe1bb8d55deb6a4304d357a3bf4c92fcd40a`: `lightrag/lightrag.py::LightRAG.aquery, aquery_data, aquery_llm, _query_done`; `query_validation.py::MIN_RAG_QUERY_WEIGHT, meets_min_rag_query_weight, validate_rag_query`; `constants.py` request ceilings; `api/routers/query_routes.py::QueryRequest, _build_stream_generator` and query/data/stream handlers; `operate.py::QueryProgress, _answer_cache_kv, kg_query, naive_query, extract_keywords_only`; `utils.py::generate_reference_list_from_chunks, render_chunks_context_text, handle_cache, save_to_cache, get_llm_cache_identity`; `prompt.py::PROMPTS[rag_response, naive_rag_response, kg_query_context, naive_query_context]`; `lightrag_webui/src/lib/queryDefaults.ts::suggestedUserPrompts`; selected assertions in `tests/llm/test_query_cache_conversation_history.py`, `test_query_cache_kg_chunk_selection.py`, `test_query_cache_user_prompt_prefix.py`, `test_query_truncated_response_not_cached.py`.
+[^lightrag-aaebfe1]: Revision `aaebfe1bb8d5`: `lightrag/lightrag.py::LightRAG.aquery, aquery_data, aquery_llm, _query_done`; `query_validation.py::MIN_RAG_QUERY_WEIGHT, meets_min_rag_query_weight, validate_rag_query`; `constants.py` request ceilings; `api/routers/query_routes.py::QueryRequest, _build_stream_generator` and query/data/stream handlers; `operate.py::QueryProgress, _answer_cache_kv, kg_query, naive_query, extract_keywords_only`; `utils.py::generate_reference_list_from_chunks, render_chunks_context_text, handle_cache, save_to_cache, get_llm_cache_identity`; `prompt.py::PROMPTS[rag_response, naive_rag_response, kg_query_context, naive_query_context]`; `lightrag_webui/src/lib/queryDefaults.ts::suggestedUserPrompts`; selected assertions in `tests/llm/test_query_cache_conversation_history.py`, `test_query_cache_kg_chunk_selection.py`, `test_query_cache_user_prompt_prefix.py`, `test_query_truncated_response_not_cached.py`.

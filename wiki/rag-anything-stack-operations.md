@@ -12,7 +12,7 @@ sources:
     resource: ../raw/RAG-Anything/README.md
     scope: ../raw/RAG-Anything/
     kind: code
-    revision: 3a14ecb66fb352b90d40a9884a5ad235d98ac72e
+    revision: 3a14ecb66fb3
     title: RAG-Anything repository
 ---
 
@@ -87,4 +87,4 @@ python -m raganything.batch_parser --help
 - **Constrains:** [Batch processing](rag-anything-batch-processing.md) concurrency and resource use.
 - **Depends on:** [Source map](rag-anything-source-map.md) for snapshot identity and inspection limits.
 
-[^rag-anything-3a14ecb]: Revision `3a14ecb66fb352b90d40a9884a5ad235d98ac72e`: `pyproject.toml` project/dependencies/extras/pytest tables; `requirements.txt` pin rationale; `setup.py` extras (66–89); `LICENSE`; `raganything/__init__.py::__version__`; `config.py::RAGAnythingConfig` and `__post_init__` (145–157); `raganything.py` dotenv loading and LightRAG construction (426–442); `tests/test_config_environment.py` (assertions inspected, not run); `env.example` provider/storage/configuration sections; provider examples `vllm_integration_example.py`, `lmstudio_integration_example.py`, `ollama_integration_example.py`, `minimax_integration_example.py` (targeted reads); `asset_urls.py`; `docs/offline_setup.md`, `scripts/create_tiktoken_cache.py`; `.github/workflows/test.yaml`, `linting.yaml`, `pypi-publish.yml`; `.pre-commit-config.yaml`; `SECURITY.md` version-support table; `docs/vllm_integration.md` prerequisites; `resilience.py::retry`, `async_retry`, `CircuitBreaker` and `__init__.py` re-exports; README installation/configuration sections.
+[^rag-anything-3a14ecb]: Revision `3a14ecb66fb3`: `pyproject.toml` project/dependencies/extras/pytest tables; `requirements.txt` pin rationale; `setup.py` extras (66–89); `LICENSE`; `raganything/__init__.py::__version__`; `config.py::RAGAnythingConfig` and `__post_init__` (145–157); `raganything.py` dotenv loading and LightRAG construction (426–442); `tests/test_config_environment.py` (assertions inspected, not run); `env.example` provider/storage/configuration sections; provider examples `vllm_integration_example.py`, `lmstudio_integration_example.py`, `ollama_integration_example.py`, `minimax_integration_example.py` (targeted reads); `asset_urls.py`; `docs/offline_setup.md`, `scripts/create_tiktoken_cache.py`; `.github/workflows/test.yaml`, `linting.yaml`, `pypi-publish.yml`; `.pre-commit-config.yaml`; `SECURITY.md` version-support table; `docs/vllm_integration.md` prerequisites; `resilience.py::retry`, `async_retry`, `CircuitBreaker` and `__init__.py` re-exports; README installation/configuration sections.

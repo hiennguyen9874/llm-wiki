@@ -12,7 +12,7 @@ sources:
     resource: ../raw/WeKnora/README.md
     scope: ../raw/WeKnora/
     kind: code
-    revision: fd7a2586fd5855fc4ded5c981a92dcb82a455246
+    revision: fd7a2586fd58
     title: WeKnora v0.8.3 repository snapshot
 ---
 
@@ -44,4 +44,4 @@ Docker socket access is host-root-equivalent and the Docker sandbox backend is o
 
 Selected middleware, policy, config, outbound-classification, and Lite setup sections were inspected. OIDC end-to-end, all route guards, adapter callbacks, storage access, sandbox enforcement, rate limits, credential logging, and full tenant isolation remain pending. No exploit, auth request, or integration test ran. No likely live credentials were identified in inspected inputs; this is not a whole-repository secret audit. `SECURITY.md` asks for private vulnerability reporting.[^weknora]
 
-[^weknora]: Snapshot `fd7a2586fd5855fc4ded5c981a92dcb82a455246`: `internal/middleware/auth.go::Auth`, `resolveTargetTenant`, `authenticateAPIKeyRequest`, `resolveTenantRole`; `middleware/access.go::IsCrossTenantSuperuser`, `IsTenantAccessible`; `middleware/rbac.go::RequireRole`, `RequireSystemAdmin`, `RequireOwnershipOrRole`, `rbacEnforcementEnabled`; `middleware/api_key_gate.go::APIKeyRouteAuthorizer`, `authorize`, `DenyAPIKeyPrincipal`; `internal/config/config.go::applyAuthAndTenantDefaults`, `TenantConfig.IsRBACEnforced`; `internal/utils/security.go::SSRFWhitelistOnlyEnabled`, `CheckSSRFWhitelistOnly`, `CheckDialWhitelistOnly`; `internal/ipclass/ipclass.go` class declarations; `internal/sandbox/docker_enabled.go`; `internal/handler/auth.go::AutoSetup`; `docker-compose.yml` app socket warning; `SECURITY.md`, “Reporting a Vulnerability.” Package entry: [README](../raw/WeKnora/README.md), deployment warning and “Access and security.”
+[^weknora]: Snapshot `fd7a2586fd58`: `internal/middleware/auth.go::Auth`, `resolveTargetTenant`, `authenticateAPIKeyRequest`, `resolveTenantRole`; `middleware/access.go::IsCrossTenantSuperuser`, `IsTenantAccessible`; `middleware/rbac.go::RequireRole`, `RequireSystemAdmin`, `RequireOwnershipOrRole`, `rbacEnforcementEnabled`; `middleware/api_key_gate.go::APIKeyRouteAuthorizer`, `authorize`, `DenyAPIKeyPrincipal`; `internal/config/config.go::applyAuthAndTenantDefaults`, `TenantConfig.IsRBACEnforced`; `internal/utils/security.go::SSRFWhitelistOnlyEnabled`, `CheckSSRFWhitelistOnly`, `CheckDialWhitelistOnly`; `internal/ipclass/ipclass.go` class declarations; `internal/sandbox/docker_enabled.go`; `internal/handler/auth.go::AutoSetup`; `docker-compose.yml` app socket warning; `SECURITY.md`, “Reporting a Vulnerability.” Package entry: [README](../raw/WeKnora/README.md), deployment warning and “Access and security.”

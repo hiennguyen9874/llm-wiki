@@ -12,7 +12,7 @@ sources:
     resource: ../raw/UltraRAG/README.md
     scope: ../raw/UltraRAG/
     kind: code
-    revision: 185e2032d9f134099405b8b483edbbad95274080
+    revision: 185e2032d9f1
     title: UltraRAG repository
 ---
 
@@ -50,4 +50,4 @@ These are **observed static checks**, not reproduced authorization tests. No log
 - **Constrained by:** [deployment security defaults](ultrarag-security.md).
 - **Depends on:** [retrieval backend semantics](ultrarag-retrieval.md) for data isolation beyond UI metadata.
 
-[^ultrarag]: Revision `185e2032d9f134099405b8b483edbbad95274080`: `ui/backend/auth.py` username/password constants, `SQLiteUserStore.init_db`, `_ensure_default_admin_user`, password hashing and model-setting methods; `ui/backend/app.py::create_app`, `_get_authenticated_user_id`, `get_current_user_id`, `require_admin_user`, auth/chat/pipeline/KB/prompt/memory/AI/shutdown routes; `ui/backend/chat_store.py::_ensure_owner`; `ui/backend/kb_visibility_store.py::bootstrap_legacy_public`, `can_view`, `can_manage`, `filter_viewable_collections`; `servers/retriever/src/index_backends/faiss_backend.py::search`; `.github/workflows/ci-smoke.yml` test commands and `tests/` inventory. No runtime security verification.
+[^ultrarag]: Revision `185e2032d9f1`: `ui/backend/auth.py` username/password constants, `SQLiteUserStore.init_db`, `_ensure_default_admin_user`, password hashing and model-setting methods; `ui/backend/app.py::create_app`, `_get_authenticated_user_id`, `get_current_user_id`, `require_admin_user`, auth/chat/pipeline/KB/prompt/memory/AI/shutdown routes; `ui/backend/chat_store.py::_ensure_owner`; `ui/backend/kb_visibility_store.py::bootstrap_legacy_public`, `can_view`, `can_manage`, `filter_viewable_collections`; `servers/retriever/src/index_backends/faiss_backend.py::search`; `.github/workflows/ci-smoke.yml` test commands and `tests/` inventory. No runtime security verification.

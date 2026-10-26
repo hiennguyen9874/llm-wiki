@@ -12,7 +12,7 @@ sources:
     resource: ../raw/ragflow/README.md
     scope: ../raw/ragflow/
     kind: code
-    revision: 1731e54b3aa024356711dc86de2e231afb0e4bf1
+    revision: 1731e54b3aa0
     title: RAGFlow repository snapshot
 ---
 
@@ -44,4 +44,4 @@ Full protocol lifecycle, reconnect/cleanup behavior, tool schema bodies, downstr
 
 **Observed** means static inspection, not demonstrated runtime behavior. This page is **draft** because package coverage is sampled; builds, application tests, external services, model execution, and performance claims were not verified. See the [source map](ragflow-source-map.md) for the coverage ledger and redacted security boundary.
 
-[^ragflow]: [RAGFlow source](../raw/ragflow/README.md), revision `1731e54b3aa024356711dc86de2e231afb0e4bf1`; locators: `internal/mcp/http.go::NewHandler / Credential / SSE session ownership`; `internal/mcp/server.go::newServer / tools/list / tools/call`; `internal/mcp/connector.go::ServiceConnector`; `internal/handler/mcp_server.go::handler wiring`; `internal/mcp/client/mcp_ssrf.go::AssertMCPURLSafe / AssertMCPURLSafeSameOrigin`; `internal/mcp/client/mcp_call.go::FetchTools / CallTool`; `internal/mcp/client/mcp_client.go::requestSSE / renderHeaders / substituteTemplate`.
+[^ragflow]: [RAGFlow source](../raw/ragflow/README.md), revision `1731e54b3aa0`; locators: `internal/mcp/http.go::NewHandler / Credential / SSE session ownership`; `internal/mcp/server.go::newServer / tools/list / tools/call`; `internal/mcp/connector.go::ServiceConnector`; `internal/handler/mcp_server.go::handler wiring`; `internal/mcp/client/mcp_ssrf.go::AssertMCPURLSafe / AssertMCPURLSafeSameOrigin`; `internal/mcp/client/mcp_call.go::FetchTools / CallTool`; `internal/mcp/client/mcp_client.go::requestSSE / renderHeaders / substituteTemplate`.

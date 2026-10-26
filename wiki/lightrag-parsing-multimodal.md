@@ -12,7 +12,7 @@ sources:
     resource: ../raw/LightRAG/README.md
     scope: ../raw/LightRAG/
     kind: code
-    revision: aaebfe1bb8d55deb6a4304d357a3bf4c92fcd40a
+    revision: aaebfe1bb8d5
     title: LightRAG repository
 ---
 
@@ -53,4 +53,4 @@ Surrounding-context enrichment is attempted before analysis. The helper locates 
 
 Targeted static inspection only; native DOCX/Markdown internals, external parser services, real files, model outputs, and cancellation timing were not executed. This page remains draft; see the [coverage map](lightrag-source-map.md).
 
-[^lightrag-aaebfe1]: Revision `aaebfe1bb8d55deb6a4304d357a3bf4c92fcd40a`: `lightrag/parser/base.py::BaseParser, ParseContext, ParseResult`; `parser/registry.py::ParserSpec, _REGISTRY, available_engine_suffixes, register_parser, get_parser, parser_specs_snapshot`; `parser/routing.py::ProcessOptions, validate_process_options, resolve_parser_directives, resolve_stored_document_parser_engine`; `lightrag/pipeline.py::_vlm_image_budget_limits, _resolve_sidecar_image_path, analyze_multimodal` (375–440, 6841–7055, 7236–7350, 7730–7949); `lightrag/api/config.py` VLM enable/binding validation (820–844); `lightrag/constants.py::DEFAULT_MM_IMAGE_MIN_PIXEL`; `lightrag/utils.py::handle_cache`; `lightrag/multimodal_context.py` module contract and marker/truncation helpers (1–220); README “Multimodal Capability Upgrades” and “Document Processing Pipeline Configuration”.
+[^lightrag-aaebfe1]: Revision `aaebfe1bb8d5`: `lightrag/parser/base.py::BaseParser, ParseContext, ParseResult`; `parser/registry.py::ParserSpec, _REGISTRY, available_engine_suffixes, register_parser, get_parser, parser_specs_snapshot`; `parser/routing.py::ProcessOptions, validate_process_options, resolve_parser_directives, resolve_stored_document_parser_engine`; `lightrag/pipeline.py::_vlm_image_budget_limits, _resolve_sidecar_image_path, analyze_multimodal` (375–440, 6841–7055, 7236–7350, 7730–7949); `lightrag/api/config.py` VLM enable/binding validation (820–844); `lightrag/constants.py::DEFAULT_MM_IMAGE_MIN_PIXEL`; `lightrag/utils.py::handle_cache`; `lightrag/multimodal_context.py` module contract and marker/truncation helpers (1–220); README “Multimodal Capability Upgrades” and “Document Processing Pipeline Configuration”.

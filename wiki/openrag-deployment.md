@@ -12,7 +12,7 @@ sources:
     resource: ../raw/openrag/README.md
     scope: ../raw/openrag/
     kind: code
-    revision: 6fc819d3ec10ee3d0dedc842d244ec2b63fd9791
+    revision: 6fc819d3ec10
     title: OpenRAG repository
 ---
 
@@ -58,4 +58,4 @@ Helm uses a single backend replica/Recreate strategy and persistent volumes, inc
 
 No container build, chart render, startup, TUI workflow, upgrade, backup/restore, or destructive action was executed. Operator reconciliation internals and many TUI/package assets remain pending; seven dangling asset links are recorded in the [source map](openrag-source-map.md).
 
-[^openrag-repo]: `6fc819d3ec10ee3d0dedc842d244ec2b63fd9791`: `Makefile::{setup,dev,dev-cpu,dev-local,backend,frontend,factory-reset,clean,db-reset,clear-os-data,test-ci}`; `pyproject.toml::{project.requires-python,project.scripts,tool.ruff}`; `.python-version`; `Dockerfile{,.backend,.frontend,.langflow}`; `.dockerignore`; `docker-compose.yml::services/volumes`; `src/app/lifespan.py::run_startup`; `kubernetes/helm/openrag/{Chart.yaml,values.yaml}`; `templates/backend/deployment.yaml::readinessProbe/load-default-flows`; `templates/storage/backend-sc.yaml`; `templates/langflow/deployment.yaml`; `kubernetes/operator/internal/controller/env.go`; `docs/docs/_partial-docker-stop-all.mdx`.
+[^openrag-repo]: `6fc819d3ec10`: `Makefile::{setup,dev,dev-cpu,dev-local,backend,frontend,factory-reset,clean,db-reset,clear-os-data,test-ci}`; `pyproject.toml::{project.requires-python,project.scripts,tool.ruff}`; `.python-version`; `Dockerfile{,.backend,.frontend,.langflow}`; `.dockerignore`; `docker-compose.yml::services/volumes`; `src/app/lifespan.py::run_startup`; `kubernetes/helm/openrag/{Chart.yaml,values.yaml}`; `templates/backend/deployment.yaml::readinessProbe/load-default-flows`; `templates/storage/backend-sc.yaml`; `templates/langflow/deployment.yaml`; `kubernetes/operator/internal/controller/env.go`; `docs/docs/_partial-docker-stop-all.mdx`.

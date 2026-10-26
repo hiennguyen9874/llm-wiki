@@ -12,7 +12,7 @@ sources:
     resource: ../raw/ragas/README.md
     scope: ../raw/ragas/
     kind: code
-    revision: 298b68274234c060deacab3cf5fb52aa3a20e885
+    revision: 298b68274234
     title: Ragas repository
 ---
 
@@ -39,4 +39,4 @@ GDriveBackend expects `folder_id`, not the `root_dir` argument shown in one data
 - Split datasets use fresh in-memory backends; explicitly override storage for durable split-run results.
 - Representative backend tests were inspected, with some assertions only located by symbol/name. No local round-trip or real cloud API test ran; atomicity, concurrent writers, permission handling and recovery are unverified.
 
-[^ragas-298b682]: Ragas `298b68274234c060deacab3cf5fb52aa3a20e885`, `pyproject.toml::project.entry-points.ragas.backends`; `src/ragas/backends/base.py::BaseBackend`; `src/ragas/backends/registry.py::BackendRegistry.discover_backends`; `src/ragas/backends/local_csv.py::LocalCSVBackend._load/_save`; `src/ragas/backends/local_jsonl.py::LocalJSONLBackend._serialize_datetime/_deserialize_datetime/_load`; `src/ragas/backends/inmemory.py::InMemoryBackend`; `src/ragas/backends/gdrive_backend.py::GDriveBackend`; `src/ragas/dataset.py::DataTable.train_test_split`; `docs/concepts/datasets.md::Cloud Storage`. Static inspection only unless explicitly stated otherwise; coverage and remaining limits: [source map](ragas-source-map.md).
+[^ragas-298b682]: Ragas `298b68274234`, `pyproject.toml::project.entry-points.ragas.backends`; `src/ragas/backends/base.py::BaseBackend`; `src/ragas/backends/registry.py::BackendRegistry.discover_backends`; `src/ragas/backends/local_csv.py::LocalCSVBackend._load/_save`; `src/ragas/backends/local_jsonl.py::LocalJSONLBackend._serialize_datetime/_deserialize_datetime/_load`; `src/ragas/backends/inmemory.py::InMemoryBackend`; `src/ragas/backends/gdrive_backend.py::GDriveBackend`; `src/ragas/dataset.py::DataTable.train_test_split`; `docs/concepts/datasets.md::Cloud Storage`. Static inspection only unless explicitly stated otherwise; coverage and remaining limits: [source map](ragas-source-map.md).

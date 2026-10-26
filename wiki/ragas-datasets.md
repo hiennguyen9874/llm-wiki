@@ -12,7 +12,7 @@ sources:
     resource: ../raw/ragas/README.md
     scope: ../raw/ragas/
     kind: code
-    revision: 298b68274234c060deacab3cf5fb52aa3a20e885
+    revision: 298b68274234
     title: Ragas repository
 ---
 
@@ -44,4 +44,4 @@ Legacy HuggingFace input conversion maps historical `question`, `contexts`, `ans
 
 Empty collections, mixed schemas and serialized message-content round trips were not executed. Model-specific coercion, particularly after CSV string loading, must be tested with the caller's actual schema.
 
-[^ragas-298b682]: Ragas `298b68274234c060deacab3cf5fb52aa3a20e885`, `src/ragas/dataset.py::DataTable.__init__/_resolve_backend/load/save/train_test_split`; `src/ragas/dataset_schema.py::SingleTurnSample/MultiTurnSample/RagasDataset/EvaluationDataset`; `src/ragas/validation.py::validate_required_columns/validate_supported_metrics`; `src/ragas/utils.py::convert_v1_to_v2_dataset`; `docs/howtos/migrations/migrate_from_v03_to_v04.md::Updated Schema`. Static inspection only unless explicitly stated otherwise; coverage and remaining limits: [source map](ragas-source-map.md).
+[^ragas-298b682]: Ragas `298b68274234`, `src/ragas/dataset.py::DataTable.__init__/_resolve_backend/load/save/train_test_split`; `src/ragas/dataset_schema.py::SingleTurnSample/MultiTurnSample/RagasDataset/EvaluationDataset`; `src/ragas/validation.py::validate_required_columns/validate_supported_metrics`; `src/ragas/utils.py::convert_v1_to_v2_dataset`; `docs/howtos/migrations/migrate_from_v03_to_v04.md::Updated Schema`. Static inspection only unless explicitly stated otherwise; coverage and remaining limits: [source map](ragas-source-map.md).

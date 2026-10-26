@@ -12,11 +12,11 @@ sources:
     resource: ../raw/ragas/README.md
     scope: ../raw/ragas/
     kind: code
-    revision: 298b68274234c060deacab3cf5fb52aa3a20e885
+    revision: 298b68274234
     title: Ragas repository
 ---
 
-**Observed:** this compilation pins VibrantLabs Ragas at `298b68274234c060deacab3cf5fb52aa3a20e885`, using four parallel Explore subagents for architecture/datasets/runners, metrics/model interfaces, synthetic data/prompts, and operations/integrations/security, plus curator reconciliation, targeted source rereading and a separate focused semantic review. The entire 694-path tracked inventory is accounted for in a [per-file coverage ledger](ragas-source-coverage.tsv). **Limit:** this is a targeted static ingest, not exhaustive implementation or runtime verification; concepts remain draft.[^ragas-298b682]
+**Observed:** this compilation pins VibrantLabs Ragas at `298b68274234`, using four parallel Explore subagents for architecture/datasets/runners, metrics/model interfaces, synthetic data/prompts, and operations/integrations/security, plus curator reconciliation, targeted source rereading and a separate focused semantic review. The entire 694-path tracked inventory is accounted for in a [per-file coverage ledger](ragas-source-coverage.tsv). **Limit:** this is a targeted static ingest, not exhaustive implementation or runtime verification; concepts remain draft.[^ragas-298b682]
 
 ## Source identity
 
@@ -24,7 +24,7 @@ sources:
 | --- | --- |
 | Canonical entry point | `raw/ragas/README.md` |
 | Package scope | `raw/ragas/` |
-| Revision | `298b68274234c060deacab3cf5fb52aa3a20e885` |
+| Revision | `298b68274234` |
 | Git description | `v0.4.3-8-g298b682` (not an installed distribution version) |
 | Commit date / subject | `2026-02-23T23:47:18-08:00` / fix: allow fork contributors in check-docs CI workflow (#2606) |
 | Upstream remote | `git@github.com:vibrantlabsai/ragas.git` |
@@ -93,4 +93,4 @@ No upstream tests, imports, builds, notebooks, benchmarks, containers, cloud/pro
 
 Source identity is normalized `raw/ragas/` plus this revision; all supporting files reconcile to this package and canonical README, not separate source records. Before re-ingest, find every concept declaring this scope/revision and compare ledger rows, snapshot fingerprint, new evidence and newly connected knowledge. Repeating covered evidence is a no-op; pending rows are explicit follow-up, not asserted complete coverage.
 
-[^ragas-298b682]: Ragas `298b68274234c060deacab3cf5fb52aa3a20e885`, `README.md::Key Features/Installation/Open Analytics/Cite Us`; `pyproject.toml::project/build-system/tool.setuptools_scm`; `LICENSE` (Apache-2.0 header); `src/ragas/testset/`; `docs/_static/imgs/kg_rag.png/scenario_rag.png/ragas_workflow_white.png/component-wise-metrics.png` (whole diagrams); `docs/_static/architecture.png` (whole AWS example diagram). Static inspection only unless explicitly stated otherwise; coverage and remaining limits: [source map](ragas-source-map.md).
+[^ragas-298b682]: Ragas `298b68274234`, `README.md::Key Features/Installation/Open Analytics/Cite Us`; `pyproject.toml::project/build-system/tool.setuptools_scm`; `LICENSE` (Apache-2.0 header); `src/ragas/testset/`; `docs/_static/imgs/kg_rag.png/scenario_rag.png/ragas_workflow_white.png/component-wise-metrics.png` (whole diagrams); `docs/_static/architecture.png` (whole AWS example diagram). Static inspection only unless explicitly stated otherwise; coverage and remaining limits: [source map](ragas-source-map.md).

@@ -12,7 +12,7 @@ sources:
     resource: ../raw/RAG-Anything/README.md
     scope: ../raw/RAG-Anything/
     kind: code
-    revision: 3a14ecb66fb352b90d40a9884a5ad235d98ac72e
+    revision: 3a14ecb66fb3
     title: RAG-Anything repository
 ---
 
@@ -79,4 +79,4 @@ Headers, footers, page numbers, aside text, and page footnotes are excluded unle
 
 All backend mechanisms are observed adapter code, not successful parsing with external engines. External model files, LibreOffice behavior, parser schemas, and provider outputs were not executed or independently validated; see [source map](rag-anything-source-map.md).
 
-[^rag-anything-3a14ecb]: Revision `3a14ecb66fb352b90d40a9884a5ad235d98ac72e`: `raganything/parser.py::HTML_FILE_EXTENSIONS`/`html_requires_docling_error` (131–144), `Parser` URL/download helpers (162–243), `convert_office_to_pdf` (317–490), Markdown image resolution/block construction (791–1027), `parse_text_file` (1029), `MineruParser` (1153), `_run_mineru_command` (1266–1513; stderr/failure 1420–1491), output discovery/read (1515–1810), `parse_document` (2083), `DoclingParser` (2167; URL dispatch 2278–2341, converter options 2343–2417, block mapping 2587–2676), `PaddleOCRParser` (2821), registry/factory/CLI (3147–3436); `mineru_content.py::convert_mineru_content_list_v2` and conversion helpers; `parse_options.py::PARSER_CACHE_KWARGS`; `asset_urls.py`; `processor.py::parse_document` (614–811); `image_signature.py`; `utils.py` image validation/encoding; README “Parser Configuration”, “MinerU 3.x Content List v2”, “Document Formats”; tests `test_html_routing.py`, `test_parser_url_download.py`, `test_docling_text_files.py`, `testparser_wiring.py` (not executed).
+[^rag-anything-3a14ecb]: Revision `3a14ecb66fb3`: `raganything/parser.py::HTML_FILE_EXTENSIONS`/`html_requires_docling_error` (131–144), `Parser` URL/download helpers (162–243), `convert_office_to_pdf` (317–490), Markdown image resolution/block construction (791–1027), `parse_text_file` (1029), `MineruParser` (1153), `_run_mineru_command` (1266–1513; stderr/failure 1420–1491), output discovery/read (1515–1810), `parse_document` (2083), `DoclingParser` (2167; URL dispatch 2278–2341, converter options 2343–2417, block mapping 2587–2676), `PaddleOCRParser` (2821), registry/factory/CLI (3147–3436); `mineru_content.py::convert_mineru_content_list_v2` and conversion helpers; `parse_options.py::PARSER_CACHE_KWARGS`; `asset_urls.py`; `processor.py::parse_document` (614–811); `image_signature.py`; `utils.py` image validation/encoding; README “Parser Configuration”, “MinerU 3.x Content List v2”, “Document Formats”; tests `test_html_routing.py`, `test_parser_url_download.py`, `test_docling_text_files.py`, `testparser_wiring.py` (not executed).

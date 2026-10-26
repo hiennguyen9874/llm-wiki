@@ -12,7 +12,7 @@ sources:
     resource: ../raw/WeKnora/README.md
     scope: ../raw/WeKnora/
     kind: code
-    revision: fd7a2586fd5855fc4ded5c981a92dcb82a455246
+    revision: fd7a2586fd58
     title: WeKnora v0.8.3 repository snapshot
 ---
 
@@ -48,4 +48,4 @@ WeKnora's main UI and embed UI share a streaming-event vocabulary but have diffe
 
 Transport, selected state/event code, manifest/build setup, and delivery-shell interfaces were inspected. View rendering, accessibility, layout, complete event handling, desktop platform behavior, and browser security were not tested. See the [source map](weknora-source-map.md).
 
-[^weknora]: Snapshot `fd7a2586fd5855fc4ded5c981a92dcb82a455246`: `frontend/package.json`; `frontend/vite.config.ts::build.rollupOptions.input`; `frontend/public/config.js`; `frontend/src/main.ts::bootstrap`; `frontend/src/utils/api-base.ts::getApiBaseUrl`; `frontend/src/stores/resourceCache.ts::createCachedResource`; `stores/versionedRequest.ts::createVersionedRequestCoordinator`; `stores/chatResources.ts::useChatResourcesStore`; `frontend/src/api/chat/streame.ts::useStream`, `canReconnect`; `frontend/src/utils/authRefresh.ts::refreshAccessTokenShared`; `frontend/src/composables/useChatStreamHandler.ts` dispatch/answer/complete sections; `internal/handler/session/stream.go` heartbeat/replay code; `cmd/desktop/main.go`, `signing_key.go`; `miniprogram/utils/request.js`, `utils/sse.js`, `utils/config.js`, `pages/chat/chat.js::ask`. Package entry: [README](../raw/WeKnora/README.md), “Product Tour” and “Clients and Integrations.”
+[^weknora]: Snapshot `fd7a2586fd58`: `frontend/package.json`; `frontend/vite.config.ts::build.rollupOptions.input`; `frontend/public/config.js`; `frontend/src/main.ts::bootstrap`; `frontend/src/utils/api-base.ts::getApiBaseUrl`; `frontend/src/stores/resourceCache.ts::createCachedResource`; `stores/versionedRequest.ts::createVersionedRequestCoordinator`; `stores/chatResources.ts::useChatResourcesStore`; `frontend/src/api/chat/streame.ts::useStream`, `canReconnect`; `frontend/src/utils/authRefresh.ts::refreshAccessTokenShared`; `frontend/src/composables/useChatStreamHandler.ts` dispatch/answer/complete sections; `internal/handler/session/stream.go` heartbeat/replay code; `cmd/desktop/main.go`, `signing_key.go`; `miniprogram/utils/request.js`, `utils/sse.js`, `utils/config.js`, `pages/chat/chat.js::ask`. Package entry: [README](../raw/WeKnora/README.md), “Product Tour” and “Clients and Integrations.”

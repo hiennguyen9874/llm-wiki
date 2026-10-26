@@ -12,7 +12,7 @@ sources:
     resource: ../raw/txtai/README.md
     scope: ../raw/txtai/
     kind: code
-    revision: 738aac498ccbba7c4bff51886e660edd5241d04e
+    revision: 738aac498ccb
     title: txtai repository
 ---
 
@@ -55,4 +55,4 @@ These are **Observed configuration/implementation defaults**, not a claim that m
 
 Static inspection only. No index was built and no optional backend was exercised; compatibility, recall, throughput, atomicity under failure, and practical read/write concurrency remain unverified. The [source map](txtai-source-map.md) records targeted and pending coverage.
 
-[^txtai-repo]: Revision `738aac498ccbba7c4bff51886e660edd5241d04e`: `src/python/txtai/embeddings/base.py::Embeddings.__init__, configure, defaults, defaultsparse, createann, createdatabase, creategraph, createindexes, createscoring, index, upsert, search, batchsearch`; `embeddings/index/transform.py::Transform`, `embeddings/index/stream.py::Stream`, `embeddings/index/indexes.py::Indexes`; `embeddings/search/base.py::Search.__call__`; `ann/dense/factory.py::ANNFactory.create`; `database/factory.py::DatabaseFactory.create`; `scoring/factory.py::ScoringFactory.create, issparse`; `graph/factory.py::GraphFactory.create`; `vectors/dense/factory.py::VectorsFactory.create`; `graph/base.py::Graph.index, inferedges`; `src/python/txtai/app/base.py::Application.read, createpipelines`; `src/python/txtai/__init__.py` exports; `setup.py` dependencies/extras and `setup`; `src/python/txtai/version.py`; `README.md` feature list. Short module paths after the first source prefix are relative to `src/python/txtai/`.
+[^txtai-repo]: Revision `738aac498ccb`: `src/python/txtai/embeddings/base.py::Embeddings.__init__, configure, defaults, defaultsparse, createann, createdatabase, creategraph, createindexes, createscoring, index, upsert, search, batchsearch`; `embeddings/index/transform.py::Transform`, `embeddings/index/stream.py::Stream`, `embeddings/index/indexes.py::Indexes`; `embeddings/search/base.py::Search.__call__`; `ann/dense/factory.py::ANNFactory.create`; `database/factory.py::DatabaseFactory.create`; `scoring/factory.py::ScoringFactory.create, issparse`; `graph/factory.py::GraphFactory.create`; `vectors/dense/factory.py::VectorsFactory.create`; `graph/base.py::Graph.index, inferedges`; `src/python/txtai/app/base.py::Application.read, createpipelines`; `src/python/txtai/__init__.py` exports; `setup.py` dependencies/extras and `setup`; `src/python/txtai/version.py`; `README.md` feature list. Short module paths after the first source prefix are relative to `src/python/txtai/`.

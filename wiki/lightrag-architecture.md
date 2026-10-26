@@ -12,7 +12,7 @@ sources:
     resource: ../raw/LightRAG/README.md
     scope: ../raw/LightRAG/
     kind: code
-    revision: aaebfe1bb8d55deb6a4304d357a3bf4c92fcd40a
+    revision: aaebfe1bb8d5
     title: LightRAG repository
 ---
 
@@ -57,4 +57,4 @@ Four independent storage axes cover KV, vectors, graph and document status. Twel
 
 Static architecture inspection only. The source map records targeted, not exhaustive, backend/parser/provider/test coverage. No server, frontend build, database, worker pool, or model was run.[^lightrag-aaebfe1]
 
-[^lightrag-aaebfe1]: Revision `aaebfe1bb8d55deb6a4304d357a3bf4c92fcd40a`: `lightrag/lightrag.py::LightRAG, __post_init__, initialize_storages, finalize_storages, _index_storages`; `pipeline.py::_PipelineMixin, _run_pipeline_batch`; `base.py::DocStatus`; `llm_roles.py::_RoleLLMMixin`; `storage_migrations.py::_StorageMigrationMixin`; `lightrag/__init__.py` lazy exports; `api/lightrag_server.py::create_app, initialize_rag`; `kg/shared_storage.py::initialize_share_data`; `pyproject.toml` project/dependencies/extras/scripts; `LICENSE`; `lightrag_webui/package.json`; README “Multimodal Capability Upgrades”.
+[^lightrag-aaebfe1]: Revision `aaebfe1bb8d5`: `lightrag/lightrag.py::LightRAG, __post_init__, initialize_storages, finalize_storages, _index_storages`; `pipeline.py::_PipelineMixin, _run_pipeline_batch`; `base.py::DocStatus`; `llm_roles.py::_RoleLLMMixin`; `storage_migrations.py::_StorageMigrationMixin`; `lightrag/__init__.py` lazy exports; `api/lightrag_server.py::create_app, initialize_rag`; `kg/shared_storage.py::initialize_share_data`; `pyproject.toml` project/dependencies/extras/scripts; `LICENSE`; `lightrag_webui/package.json`; README “Multimodal Capability Upgrades”.

@@ -12,13 +12,13 @@ sources:
     resource: ../raw/ragflow/README.md
     scope: ../raw/ragflow/
     kind: code
-    revision: 1731e54b3aa024356711dc86de2e231afb0e4bf1
+    revision: 1731e54b3aa0
     title: RAGFlow repository snapshot
 ---
 
 # RAGFlow source map and coverage
 
-This SourceMap records a **partial, static repository ingest** of RAGFlow at revision `1731e54b3aa024356711dc86de2e231afb0e4bf1`. The canonical entrypoint is [README.md](../raw/ragflow/README.md), the package scope is `raw/ragflow/`, and the upstream named by the entrypoint is `https://github.com/infiniflow/ragflow`. The inspected license is Apache-2.0. No independent runtime or benchmark verification occurred.[^ragflow]
+This SourceMap records a **partial, static repository ingest** of RAGFlow at revision `1731e54b3aa0`. The canonical entrypoint is [README.md](../raw/ragflow/README.md), the package scope is `raw/ragflow/`, and the upstream named by the entrypoint is `https://github.com/infiniflow/ragflow`. The inspected license is Apache-2.0. No independent runtime or benchmark verification occurred.[^ragflow]
 
 ## Identity and idempotency
 
@@ -67,4 +67,4 @@ Root instructions retain deleted Python-server paths; metadata config is narrowe
 
 **Observed** means static inspection, not demonstrated runtime behavior. This page is **draft** because package coverage is sampled; builds, application tests, external services, model execution, and performance claims were not verified. See the [source map](ragflow-source-map.md) for the coverage ledger and redacted security boundary.
 
-[^ragflow]: [RAGFlow source](../raw/ragflow/README.md), revision `1731e54b3aa024356711dc86de2e231afb0e4bf1`; locators: `README.md::What is RAGFlow? / System Architecture / Local Deployment`; `LICENSE::Apache License Version 2.0`; `go.mod::module / go / require`; `web/package.json::dependencies`; `AGENTS.md::Current stack / Code Layout to Expect`; `internal/server/config/database_config.go::ParseDatabaseConfig`; `internal/harness/README.md::Project Structure`; `Dockerfile::VERSION generation / dependency image mounts`; `Dockerfile_ci::legacy COPY`; `run_tests.py::Config.__init__`; `deps/download_deps.py::DEEPDOC_MODEL_FILES / TOKENIZER_ASSETS`; `tools/scripts/download_dev_deps.py::native dependency declarations`; `internal/common/password.go::LoadPrivateKey`; `git ls-files at pinned revision::tracked path inventory; ragflow-source-coverage.tsv::path/status/reason`.
+[^ragflow]: [RAGFlow source](../raw/ragflow/README.md), revision `1731e54b3aa0`; locators: `README.md::What is RAGFlow? / System Architecture / Local Deployment`; `LICENSE::Apache License Version 2.0`; `go.mod::module / go / require`; `web/package.json::dependencies`; `AGENTS.md::Current stack / Code Layout to Expect`; `internal/server/config/database_config.go::ParseDatabaseConfig`; `internal/harness/README.md::Project Structure`; `Dockerfile::VERSION generation / dependency image mounts`; `Dockerfile_ci::legacy COPY`; `run_tests.py::Config.__init__`; `deps/download_deps.py::DEEPDOC_MODEL_FILES / TOKENIZER_ASSETS`; `tools/scripts/download_dev_deps.py::native dependency declarations`; `internal/common/password.go::LoadPrivateKey`; `git ls-files at pinned revision::tracked path inventory; ragflow-source-coverage.tsv::path/status/reason`.

@@ -12,7 +12,7 @@ sources:
     resource: ../raw/txtai/README.md
     scope: ../raw/txtai/
     kind: code
-    revision: 738aac498ccbba7c4bff51886e660edd5241d04e
+    revision: 738aac498ccb
     title: txtai repository
 ---
 
@@ -52,4 +52,4 @@ For `reference`, the pipeline obtains query terms where supported, concatenates 
 
 Static code and sampled-test inspection only. No model inference, answer-quality evaluation, citation-correctness test, latency measurement, or provider compatibility check ran.
 
-[^txtai-repo]: Revision `738aac498ccbba7c4bff51886e660edd5241d04e`: `src/python/txtai/pipeline/llm/llm.py::LLM.__init__, __call__`; `pipeline/llm/factory.py::GenerationFactory.create, method`; `pipeline/llm/generation.py::Generation.format, clean, cleanthink, cleanstream, response`; `pipeline/llm/huggingface.py::HFLLM, StreamingResponse`; `pipeline/llm/llama.py::LlamaCpp.create`; `pipeline/llm/litert.py::LiteRT.createengine`; `pipeline/llm/opencode.py::OpenCode`; `pipeline/llm/rag.py::RAG.__init__, __call__, load, query, score, batchsearch, tokenize, answers, prompts, apply, snippets, reference, terms`; `pipeline/__init__.py` alias export; `docs/pipeline/llm/rag.md`; `examples/52_Build_RAG_pipelines_with_txtai.ipynb` citation discussion (Markdown cells 18/20/23); `test/python/testpipeline/testllm/testrag.py`. Short module paths are relative to `src/python/txtai/`.
+[^txtai-repo]: Revision `738aac498ccb`: `src/python/txtai/pipeline/llm/llm.py::LLM.__init__, __call__`; `pipeline/llm/factory.py::GenerationFactory.create, method`; `pipeline/llm/generation.py::Generation.format, clean, cleanthink, cleanstream, response`; `pipeline/llm/huggingface.py::HFLLM, StreamingResponse`; `pipeline/llm/llama.py::LlamaCpp.create`; `pipeline/llm/litert.py::LiteRT.createengine`; `pipeline/llm/opencode.py::OpenCode`; `pipeline/llm/rag.py::RAG.__init__, __call__, load, query, score, batchsearch, tokenize, answers, prompts, apply, snippets, reference, terms`; `pipeline/__init__.py` alias export; `docs/pipeline/llm/rag.md`; `examples/52_Build_RAG_pipelines_with_txtai.ipynb` citation discussion (Markdown cells 18/20/23); `test/python/testpipeline/testllm/testrag.py`. Short module paths are relative to `src/python/txtai/`.

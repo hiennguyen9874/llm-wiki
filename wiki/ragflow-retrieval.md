@@ -12,7 +12,7 @@ sources:
     resource: ../raw/ragflow/README.md
     scope: ../raw/ragflow/
     kind: code
-    revision: 1731e54b3aa024356711dc86de2e231afb0e4bf1
+    revision: 1731e54b3aa0
     title: RAGFlow repository snapshot
 ---
 
@@ -50,4 +50,4 @@ By default, dataset search includes ordinary chunks plus dataset-scoped compiled
 
 **Observed** means static inspection, not demonstrated runtime behavior. This page is **draft** because package coverage is sampled; builds, application tests, external services, model execution, and performance claims were not verified. See the [source map](ragflow-source-map.md) for the coverage ledger and redacted security boundary.
 
-[^ragflow]: [RAGFlow source](../raw/ragflow/README.md), revision `1731e54b3aa024356711dc86de2e231afb0e4bf1`; locators: `internal/service/nlp/retrieval.go::Retrieval / Search / scoreSearchResult / RetrievalByChildren / GetFilters / buildRetrievalFusionExpr`; `internal/service/nlp/query_builder.go::Question`; `internal/service/nlp/reranker.go::RerankStandard / RerankWithKNN / HybridSimilarity`; `internal/service/similarity_weight.go::NormalizeSimilarityWeights`; `internal/engine/elasticsearch/chunk.go::buildQueryStringQuery`; `internal/service/dataset/search.go::SearchDatasets / knowledgeCompilationFilter`; `internal/service/chunk/chunk.go::RetrievalTest`; `internal/agent/tool/retrieval_nlp.go::NLPRetrievalAdapter.Search`; `internal/agentic_rag/compiled_knowledge.go::compiledKnowledgeTools`.
+[^ragflow]: [RAGFlow source](../raw/ragflow/README.md), revision `1731e54b3aa0`; locators: `internal/service/nlp/retrieval.go::Retrieval / Search / scoreSearchResult / RetrievalByChildren / GetFilters / buildRetrievalFusionExpr`; `internal/service/nlp/query_builder.go::Question`; `internal/service/nlp/reranker.go::RerankStandard / RerankWithKNN / HybridSimilarity`; `internal/service/similarity_weight.go::NormalizeSimilarityWeights`; `internal/engine/elasticsearch/chunk.go::buildQueryStringQuery`; `internal/service/dataset/search.go::SearchDatasets / knowledgeCompilationFilter`; `internal/service/chunk/chunk.go::RetrievalTest`; `internal/agent/tool/retrieval_nlp.go::NLPRetrievalAdapter.Search`; `internal/agentic_rag/compiled_knowledge.go::compiledKnowledgeTools`.

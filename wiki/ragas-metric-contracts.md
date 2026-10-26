@@ -12,7 +12,7 @@ sources:
     resource: ../raw/ragas/README.md
     scope: ../raw/ragas/
     kind: code
-    revision: 298b68274234c060deacab3cf5fb52aa3a20e885
+    revision: 298b68274234
     title: Ragas repository
 ---
 
@@ -42,4 +42,4 @@ The migration guide describes some APIs as removed, but the source still resolve
 - See [RAG scoring mechanisms](ragas-rag-metrics.md) and [specialized metrics](ragas-specialized-metrics.md).
 - No import compatibility matrix or scoring call was executed; source exporter inspection is not runtime dependency verification.
 
-[^ragas-298b682]: Ragas `298b68274234c060deacab3cf5fb52aa3a20e885`, `src/ragas/metrics/__init__.py::__all__/_DEPRECATED_METRICS/__getattr__`; `src/ragas/metrics/base.py::Metric/SingleTurnMetric/MultiTurnMetric/SimpleBaseMetric/SimpleLLMMetric`; `src/ragas/metrics/collections/base.py::BaseMetric._validate_llm/_validate_embeddings/score`; `src/ragas/metrics/decorator.py::create_metric_decorator`; `src/ragas/metrics/result.py::MetricResult`; `src/ragas/evaluation.py::aevaluate`; `docs/howtos/migrations/migrate_from_v03_to_v04.md::Metrics Migration/Removed Features`. Static inspection only unless explicitly stated otherwise; coverage and remaining limits: [source map](ragas-source-map.md).
+[^ragas-298b682]: Ragas `298b68274234`, `src/ragas/metrics/__init__.py::__all__/_DEPRECATED_METRICS/__getattr__`; `src/ragas/metrics/base.py::Metric/SingleTurnMetric/MultiTurnMetric/SimpleBaseMetric/SimpleLLMMetric`; `src/ragas/metrics/collections/base.py::BaseMetric._validate_llm/_validate_embeddings/score`; `src/ragas/metrics/decorator.py::create_metric_decorator`; `src/ragas/metrics/result.py::MetricResult`; `src/ragas/evaluation.py::aevaluate`; `docs/howtos/migrations/migrate_from_v03_to_v04.md::Metrics Migration/Removed Features`. Static inspection only unless explicitly stated otherwise; coverage and remaining limits: [source map](ragas-source-map.md).

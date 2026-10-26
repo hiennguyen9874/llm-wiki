@@ -12,7 +12,7 @@ sources:
     resource: ../raw/openrag/README.md
     scope: ../raw/openrag/
     kind: code
-    revision: 6fc819d3ec10ee3d0dedc842d244ec2b63fd9791
+    revision: 6fc819d3ec10
     title: OpenRAG repository
 ---
 
@@ -48,4 +48,4 @@ Declared dependencies include Next.js `^16.4.0`, React `^19.2.7`, TypeScript `^6
 
 Large chat/knowledge pages were inspected by imports and selected handlers, not line-by-line. Onboarding state machines, preview internals, component accessibility, markdown sanitization, telemetry behavior, and connector UI policy were not comprehensively audited. No browser or rendering tests were run. See [source map](openrag-source-map.md).
 
-[^openrag-repo]: `6fc819d3ec10ee3d0dedc842d244ec2b63fd9791`: `frontend/package.json::{dependencies,devDependencies,engines,scripts,overrides}`; `frontend/next.config.ts`; `Dockerfile.frontend`; `frontend/lib/api-client.ts::apiClient`; `frontend/app/api/[...path]/route.ts::proxyRequest`; `frontend/app/health/{route.ts,collective_health/route.ts}`; `frontend/instrumentation.node.ts::registerNodeInstrumentation`; `frontend/hooks/{useChatStreaming.ts,use-permissions.ts}`; `frontend/app/{chat,knowledge}/page.tsx` selected handlers/imports; `frontend/app/settings/_components/settings-nav.tsx::TABS`; `frontend/lib/{brand,constants}.ts`.
+[^openrag-repo]: `6fc819d3ec10`: `frontend/package.json::{dependencies,devDependencies,engines,scripts,overrides}`; `frontend/next.config.ts`; `Dockerfile.frontend`; `frontend/lib/api-client.ts::apiClient`; `frontend/app/api/[...path]/route.ts::proxyRequest`; `frontend/app/health/{route.ts,collective_health/route.ts}`; `frontend/instrumentation.node.ts::registerNodeInstrumentation`; `frontend/hooks/{useChatStreaming.ts,use-permissions.ts}`; `frontend/app/{chat,knowledge}/page.tsx` selected handlers/imports; `frontend/app/settings/_components/settings-nav.tsx::TABS`; `frontend/lib/{brand,constants}.ts`.

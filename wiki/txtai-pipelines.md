@@ -12,7 +12,7 @@ sources:
     resource: ../raw/txtai/README.md
     scope: ../raw/txtai/
     kind: code
-    revision: 738aac498ccbba7c4bff51886e660edd5241d04e
+    revision: 738aac498ccb
     title: txtai repository
 ---
 
@@ -58,4 +58,4 @@ Do not infer that images must be captioned before embeddings: caption/hash/stora
 - **Used by:** [Workflow tasks and agent tools](txtai-agents-workflows.md), whose defaults are not always the Application defaults.
 - **Part of:** [txtai](txtai.md); see the [source map](txtai-source-map.md) for pending parser, audio, training, examples, and runtime coverage.
 
-[^txtai-repo]: Revision `738aac498ccbba7c4bff51886e660edd5241d04e`: `src/python/txtai/pipeline/data/textractor.py::Textractor.__init__, text, download`; `pipeline/data/filetohtml.py::FileToHTML.__init__, __call__, Tika.available, Tika.__call__, Docling.__call__, Docling.normalize, LiteParse.__call__`; `pipeline/data/segmentation.py::Segmentation.__init__, parse, clean, createchunker`; `pipeline/data/htmltomd.py::HTMLToMarkdown.__call__, process`; `pipeline/data/tabular.py::Tabular`; `pipeline/image/caption.py::Caption.__init__, __call__`; `pipeline/image/objects.py::Objects`; `pipeline/image/imagehash.py::ImageHash` docstring; `pipeline/audio/transcription.py::Transcription`; `database/encoder/image.py::ImageEncoder`; `pipeline/factory.py::PipelineFactory`; `app/base.py::Application.createpipelines, function`; `docs/pipeline/data/textractor.md`, `docs/pipeline/data/segmentation.md`; sampled declarations in `test/python/testpipeline/testdata/testtextractor.py`, `testsegmentation.py`, `testfiletohtml.py`, and `testurlretrieve.py` (all under that test directory), not executed. Short module paths are relative to `src/python/txtai/`.
+[^txtai-repo]: Revision `738aac498ccb`: `src/python/txtai/pipeline/data/textractor.py::Textractor.__init__, text, download`; `pipeline/data/filetohtml.py::FileToHTML.__init__, __call__, Tika.available, Tika.__call__, Docling.__call__, Docling.normalize, LiteParse.__call__`; `pipeline/data/segmentation.py::Segmentation.__init__, parse, clean, createchunker`; `pipeline/data/htmltomd.py::HTMLToMarkdown.__call__, process`; `pipeline/data/tabular.py::Tabular`; `pipeline/image/caption.py::Caption.__init__, __call__`; `pipeline/image/objects.py::Objects`; `pipeline/image/imagehash.py::ImageHash` docstring; `pipeline/audio/transcription.py::Transcription`; `database/encoder/image.py::ImageEncoder`; `pipeline/factory.py::PipelineFactory`; `app/base.py::Application.createpipelines, function`; `docs/pipeline/data/textractor.md`, `docs/pipeline/data/segmentation.md`; sampled declarations in `test/python/testpipeline/testdata/testtextractor.py`, `testsegmentation.py`, `testfiletohtml.py`, and `testurlretrieve.py` (all under that test directory), not executed. Short module paths are relative to `src/python/txtai/`.

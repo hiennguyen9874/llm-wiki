@@ -12,7 +12,7 @@ sources:
     resource: ../raw/WeKnora/README.md
     scope: ../raw/WeKnora/
     kind: code
-    revision: fd7a2586fd5855fc4ded5c981a92dcb82a455246
+    revision: fd7a2586fd58
     title: WeKnora v0.8.3 repository snapshot
 ---
 
@@ -48,4 +48,4 @@ The server retries listener binding, starts catalog/settings notifications, and 
 
 Selected bootstrap, wiring, router, and lifecycle sections were inspected. Most feature-service bodies and platform-specific desktop lifecycle paths remain pending. Runtime shutdown/server test files were read but not executed. See the [source map](weknora-source-map.md).
 
-[^weknora]: Snapshot `fd7a2586fd5855fc4ded5c981a92dcb82a455246`: `go.mod` dependency declarations; `cmd/server/main.go::main`; `cmd/server/bootstrap.go::runStartupBootstrap`; `internal/runtime/container.go::GetContainer`; `internal/container/container.go::BuildContainer`, `must`, `initDatabase`, `initRedisClient`, `initDocReaderClient`, `initNeo4jClient`, `initLangfuse`; `internal/runtime/shutdown.go::ShutdownBudgets`; `internal/container/cleanup.go::ResourceCleaner.Cleanup`; `internal/router/router.go::NewRouter`; `cmd/desktop/main.go::ensureDesktopLiteEdition`; `Makefile::build-lite`. Package entry: [README](../raw/WeKnora/README.md), “Architecture” and “Other ways to deploy.”
+[^weknora]: Snapshot `fd7a2586fd58`: `go.mod` dependency declarations; `cmd/server/main.go::main`; `cmd/server/bootstrap.go::runStartupBootstrap`; `internal/runtime/container.go::GetContainer`; `internal/container/container.go::BuildContainer`, `must`, `initDatabase`, `initRedisClient`, `initDocReaderClient`, `initNeo4jClient`, `initLangfuse`; `internal/runtime/shutdown.go::ShutdownBudgets`; `internal/container/cleanup.go::ResourceCleaner.Cleanup`; `internal/router/router.go::NewRouter`; `cmd/desktop/main.go::ensureDesktopLiteEdition`; `Makefile::build-lite`. Package entry: [README](../raw/WeKnora/README.md), “Architecture” and “Other ways to deploy.”

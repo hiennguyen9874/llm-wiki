@@ -12,7 +12,7 @@ sources:
     resource: ../raw/WeKnora/README.md
     scope: ../raw/WeKnora/
     kind: code
-    revision: fd7a2586fd5855fc4ded5c981a92dcb82a455246
+    revision: fd7a2586fd58
     title: WeKnora v0.8.3 repository snapshot
 ---
 
@@ -48,4 +48,4 @@ The README's historical v0.8.0 “local host-process backend removed” statemen
 
 Skill-manager sections and the sandbox's declared session/workspace contract were inspected. Remote adapters, installation supply chain, local host sandbox, lifecycle races, network enforcement, and provider TTL behavior remain pending. No sandbox was launched. See the [source map](weknora-source-map.md).
 
-[^weknora]: Snapshot `fd7a2586fd5855fc4ded5c981a92dcb82a455246`: `internal/agent/skills/manager.go::GetAllMetadata`, `LoadSkill`, `ReadSkillFile`, `filterAllowedSkills`, `isSkillAllowed`, `resolveSource`, `discoverAllSkills`, `ArtifactOutputDir`, `InjectedSandboxEnvVars`, `WithSkillsRoot`; `internal/sandbox/session_manager.go` package contract and `SessionInputRoot`, `SessionOutputRoot`, `SessionWorkspaceRoot`, `SessionGitDir`; `internal/sandbox/tenant_config.go` symbol inventory; `internal/sandbox/docker_enabled.go` opt-in guard; `docker-compose.yml` app Docker-socket warning; `internal/localsandbox/` directory inventory. Package entry: [README](../raw/WeKnora/README.md), “Skills and sandbox” and v0.8.0–v0.8.3 notes.
+[^weknora]: Snapshot `fd7a2586fd58`: `internal/agent/skills/manager.go::GetAllMetadata`, `LoadSkill`, `ReadSkillFile`, `filterAllowedSkills`, `isSkillAllowed`, `resolveSource`, `discoverAllSkills`, `ArtifactOutputDir`, `InjectedSandboxEnvVars`, `WithSkillsRoot`; `internal/sandbox/session_manager.go` package contract and `SessionInputRoot`, `SessionOutputRoot`, `SessionWorkspaceRoot`, `SessionGitDir`; `internal/sandbox/tenant_config.go` symbol inventory; `internal/sandbox/docker_enabled.go` opt-in guard; `docker-compose.yml` app Docker-socket warning; `internal/localsandbox/` directory inventory. Package entry: [README](../raw/WeKnora/README.md), “Skills and sandbox” and v0.8.0–v0.8.3 notes.

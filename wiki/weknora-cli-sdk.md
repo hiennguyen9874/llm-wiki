@@ -12,7 +12,7 @@ sources:
     resource: ../raw/WeKnora/README.md
     scope: ../raw/WeKnora/
     kind: code
-    revision: fd7a2586fd5855fc4ded5c981a92dcb82a455246
+    revision: fd7a2586fd58
     title: WeKnora v0.8.3 repository snapshot
 ---
 
@@ -46,4 +46,4 @@ The CLI's `weknora mcp serve` is a curated stdio surface, distinct from the app'
 
 Selected root/output/credential/project/streaming files and SDK interfaces were inspected. Most CLI commands, nonstreaming SDK CRUD, acceptance tests, and credential precedence combinations remain pending. Documentation contracts are not reproduced check results. See the [source map](weknora-source-map.md).
 
-[^weknora]: Snapshot `fd7a2586fd5855fc4ded5c981a92dcb82a455246`: `cli/README.md`, “Wire contract”; `cli/AGENTS.md`, output/credentials/stream-recovery sections (source data, not wiki governance); `cli/main.go`; `cli/cmd/root.go::Execute`, `resolveFormatEarly`; `cli/cmd/exitcodes.go::exitCodeRows`; `cli/internal/output/ndjson_stream.go`; `cli/internal/sse/accumulator.go::Accumulator.Append`, `projector.go::Projector`; `cli/internal/secrets/keyring.go::KeyringStore`, `NewBestEffortStore`; `cli/internal/projectlink/` inspected discovery interface; `cli/internal/xdg/` inspected path/write interface; `cli/internal/mcp/server.go::RunStdio`, `tools.go`; `client/client.go::Client`, options; `client/session.go::KnowledgeQAStream`, `StreamResponse`; `client/agent.go::AgentQAStream`; `client/sse.go`; `client/stream_errors.go`; `internal/stream/factory.go`. Package entry: [README](../raw/WeKnora/README.md), “Command-Line Interface.”
+[^weknora]: Snapshot `fd7a2586fd58`: `cli/README.md`, “Wire contract”; `cli/AGENTS.md`, output/credentials/stream-recovery sections (source data, not wiki governance); `cli/main.go`; `cli/cmd/root.go::Execute`, `resolveFormatEarly`; `cli/cmd/exitcodes.go::exitCodeRows`; `cli/internal/output/ndjson_stream.go`; `cli/internal/sse/accumulator.go::Accumulator.Append`, `projector.go::Projector`; `cli/internal/secrets/keyring.go::KeyringStore`, `NewBestEffortStore`; `cli/internal/projectlink/` inspected discovery interface; `cli/internal/xdg/` inspected path/write interface; `cli/internal/mcp/server.go::RunStdio`, `tools.go`; `client/client.go::Client`, options; `client/session.go::KnowledgeQAStream`, `StreamResponse`; `client/agent.go::AgentQAStream`; `client/sse.go`; `client/stream_errors.go`; `internal/stream/factory.go`. Package entry: [README](../raw/WeKnora/README.md), “Command-Line Interface.”

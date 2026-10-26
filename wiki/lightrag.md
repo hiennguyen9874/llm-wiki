@@ -12,7 +12,7 @@ sources:
     resource: ../raw/LightRAG/README.md
     scope: ../raw/LightRAG/
     kind: code
-    revision: aaebfe1bb8d55deb6a4304d357a3bf4c92fcd40a
+    revision: aaebfe1bb8d5
     title: LightRAG repository
 ---
 
@@ -41,7 +41,7 @@ sources:
 
 ## Snapshot and consequential cautions
 
-- **Observed:** HKUDS LightRAG revision `aaebfe1bb8d55deb6a4304d357a3bf4c92fcd40a`, committed 2026-10-14; core version 1.5.8, API version 0347; Python ≥3.10; MIT.
+- **Observed:** HKUDS LightRAG revision `aaebfe1bb8d5`, committed 2026-10-14; core version 1.5.8, API version 0347; Python ≥3.10; MIT.
 - **Observed:** default retrieval is mix; default stores are RAM-resident with local persistence. **Reported:** those stores are for small-scale testing/evaluation, not production.
 - **Observed:** authentication is unconfigured by default and the default Ollama whitelist stays open even when other authentication is enabled. The inspected API uses shared credential authorization, not per-document user permissions.
 - **Observed reviewer finding:** a tracked compose environment sample contains likely live provider/service-key material. Values are withheld; human permission to continue redacted compilation does not establish credential remediation.
@@ -58,4 +58,4 @@ sources:
 
 All pages remain draft because intended broad repository coverage is incomplete. Static observation is not production verification, a security certification, or a reproduced research result. External parser services, database/model implementations and linked paper/dataset artifacts were not fetched or executed.[^lightrag-aaebfe1]
 
-[^lightrag-aaebfe1]: Revision `aaebfe1bb8d55deb6a4304d357a3bf4c92fcd40a`: README “About LightRAG”, feature/configuration/tool sections and related-project news; `lightrag/_version.py::__version__, __api_version__`; `pyproject.toml` project metadata; `LICENSE`; `lightrag/lightrag.py::LightRAG`; `operate.py::kg_query, naive_query, extract_entities, merge_nodes_and_edges`; `pipeline.py::_PipelineMixin`; `llm_roles.py::ROLES`; `api/config.py` defaults and `api/utils_api.py::get_combined_auth_dependency`; `tools/rebuild_vdb.py`; `env.docker-compose-full` key-presence review (values withheld). Revision/date from read-only Git inspection; executed syntax-only method and scope recorded in [testing limits](lightrag-testing.md).
+[^lightrag-aaebfe1]: Revision `aaebfe1bb8d5`: README “About LightRAG”, feature/configuration/tool sections and related-project news; `lightrag/_version.py::__version__, __api_version__`; `pyproject.toml` project metadata; `LICENSE`; `lightrag/lightrag.py::LightRAG`; `operate.py::kg_query, naive_query, extract_entities, merge_nodes_and_edges`; `pipeline.py::_PipelineMixin`; `llm_roles.py::ROLES`; `api/config.py` defaults and `api/utils_api.py::get_combined_auth_dependency`; `tools/rebuild_vdb.py`; `env.docker-compose-full` key-presence review (values withheld). Revision/date from read-only Git inspection; executed syntax-only method and scope recorded in [testing limits](lightrag-testing.md).

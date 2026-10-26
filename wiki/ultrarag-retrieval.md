@@ -12,7 +12,7 @@ sources:
     resource: ../raw/UltraRAG/README.md
     scope: ../raw/UltraRAG/
     kind: code
-    revision: 185e2032d9f134099405b8b483edbbad95274080
+    revision: 185e2032d9f1
     title: UltraRAG repository
 ---
 
@@ -64,4 +64,4 @@ Draft because backend internals and provider edge cases were selectively inspect
 - **Used by:** [research workflows](ultrarag-research-workflows.md) and [UI knowledge bases](ultrarag-ui.md).
 - **Depends on:** [optional dependencies and services](ultrarag-deployment.md).
 
-[^ultrarag]: Revision `185e2032d9f134099405b8b483edbbad95274080`: `servers/retriever/parameter.yaml`; `servers/retriever/src/retriever.py::retriever_init`, `retriever_embed`, `retriever_index`, `retriever_search`, `retriever_deploy_search`, `retriever_websearch`, `bm25_index`, `bm25_search`; `servers/retriever/src/index_backends/{base,faiss_backend,milvus_backend,qdrant_backend}.py` backend classes, FAISS `search`/`_maybe_to_gpu`; `servers/retriever/src/websearch_backends/__init__.py` factory and provider adapter constructors; `servers/reranker/src/reranker.py::reranker_init`, `reranker_rerank`; `script/deploy_retriever_server.py` `/search` and CLI defaults; `tests/servers/retriever/test_faiss_search_padding.py`; `examples/experiments/hybrid_search.yaml` server aliases and pipeline; `examples/demos/parameter/milvus_index_parameter.yaml` `retriever.index_backend`; `examples/demos/qdrant_index.yaml` and companion-directory inventory; `retriever.py::_api_embed_texts`, `retriever_index`, `retriever_project_memory_search`; `MilvusIndexBackend.build_index`; `FaissIndexBackend.search`.
+[^ultrarag]: Revision `185e2032d9f1`: `servers/retriever/parameter.yaml`; `servers/retriever/src/retriever.py::retriever_init`, `retriever_embed`, `retriever_index`, `retriever_search`, `retriever_deploy_search`, `retriever_websearch`, `bm25_index`, `bm25_search`; `servers/retriever/src/index_backends/{base,faiss_backend,milvus_backend,qdrant_backend}.py` backend classes, FAISS `search`/`_maybe_to_gpu`; `servers/retriever/src/websearch_backends/__init__.py` factory and provider adapter constructors; `servers/reranker/src/reranker.py::reranker_init`, `reranker_rerank`; `script/deploy_retriever_server.py` `/search` and CLI defaults; `tests/servers/retriever/test_faiss_search_padding.py`; `examples/experiments/hybrid_search.yaml` server aliases and pipeline; `examples/demos/parameter/milvus_index_parameter.yaml` `retriever.index_backend`; `examples/demos/qdrant_index.yaml` and companion-directory inventory; `retriever.py::_api_embed_texts`, `retriever_index`, `retriever_project_memory_search`; `MilvusIndexBackend.build_index`; `FaissIndexBackend.search`.

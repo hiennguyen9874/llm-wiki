@@ -12,7 +12,7 @@ sources:
     resource: ../raw/openrag/README.md
     scope: ../raw/openrag/
     kind: code
-    revision: 6fc819d3ec10ee3d0dedc842d244ec2b63fd9791
+    revision: 6fc819d3ec10
     title: OpenRAG repository
 ---
 
@@ -45,4 +45,4 @@ The optional `enhancements` package adds connector/provider implementations, inc
 
 Connector modules were inspected selectively, not end-to-end. Delta/ETag change detection, provider ACL translation, webhook validation/renewal failures, token persistence, concurrent sync, and remote-deletion handling remain pending. No cloud accounts or network calls were used. See [source map](openrag-source-map.md).
 
-[^openrag-repo]: `6fc819d3ec10ee3d0dedc842d244ec2b63fd9791`: `src/connectors/{registry,base,service}.py::{get_connector_classes,DocumentACL,ConnectorService}`; `src/connectors/{google_drive,onedrive,sharepoint,aws_s3}/connector.py`; `src/services/connector_access_service.py::{CONNECTOR_ACCESS_SECTION,get_access_map,is_connector_access_policy_enforced}`; `src/services/{group_acl_service,dls_principal_service}.py`; `src/app/{container,lifespan}.py::{_should_load_persisted_connections,cleanup_subscriptions_proper}`; `src/app/routes/internal.py` connector registration order; `src/api/auth.py::auth_init`; `src/api/connectors.py::_connector_access_denied`; `src/services/langflow_file_service.py::run_ingestion_flow`; `securityconfig/roles.yml`; `docs/docs/core-components/knowledge-connectors.mdx`; `docs/docs/_partial-oauth-credentials.mdx`.
+[^openrag-repo]: `6fc819d3ec10`: `src/connectors/{registry,base,service}.py::{get_connector_classes,DocumentACL,ConnectorService}`; `src/connectors/{google_drive,onedrive,sharepoint,aws_s3}/connector.py`; `src/services/connector_access_service.py::{CONNECTOR_ACCESS_SECTION,get_access_map,is_connector_access_policy_enforced}`; `src/services/{group_acl_service,dls_principal_service}.py`; `src/app/{container,lifespan}.py::{_should_load_persisted_connections,cleanup_subscriptions_proper}`; `src/app/routes/internal.py` connector registration order; `src/api/auth.py::auth_init`; `src/api/connectors.py::_connector_access_denied`; `src/services/langflow_file_service.py::run_ingestion_flow`; `securityconfig/roles.yml`; `docs/docs/core-components/knowledge-connectors.mdx`; `docs/docs/_partial-oauth-credentials.mdx`.

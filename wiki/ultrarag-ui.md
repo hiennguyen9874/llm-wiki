@@ -12,7 +12,7 @@ sources:
     resource: ../raw/UltraRAG/README.md
     scope: ../raw/UltraRAG/
     kind: code
-    revision: 185e2032d9f134099405b8b483edbbad95274080
+    revision: 185e2032d9f1
     title: UltraRAG repository
 ---
 
@@ -54,4 +54,4 @@ The largest page components (`ChatPage`, `BuilderPage`) and `pipeline_manager.py
 - **Uses:** [corpus processing](ultrarag-corpus.md) and [retrieval](ultrarag-retrieval.md) for knowledge-base workflows.
 - **Constrained by:** [authentication](ultrarag-auth.md) and [security boundaries](ultrarag-security.md).
 
-[^ultrarag]: Revision `185e2032d9f134099405b8b483edbbad95274080`: `README.md` UltraRAG UI; `ui/frontend/package.json`; `ui/frontend/src/app/{App,router}.tsx`; `pages/{ChatPage,BuilderPage}.tsx` view/editor/chat regions; `features/pipeline/components/PipelineCanvas.tsx`; `shared/api/streaming.ts::streamPipelineChat`; `shared/lib/chatMarkdown.ts::renderChatMarkdown`; `shared/i18n/provider.tsx`; `ui/backend/app.py::create_app`, SPA/API routes, `KB_TASKS`; `ui/backend/storage_paths.py::_resolve_ui_storage_root`; `ui/backend/{auth,chat_store,kb_visibility_store}.py` table initialization/ownership helpers; `ui/backend/pipeline_manager.py::_ensure_client_funcs`, `SessionManager`, `_prepare_chat_context`, `save_parameters`, `upload_kb_files_batch`; `ui/frontend/README.md` Repository Convention. Large UI modules sampled, not exhaustively audited.
+[^ultrarag]: Revision `185e2032d9f1`: `README.md` UltraRAG UI; `ui/frontend/package.json`; `ui/frontend/src/app/{App,router}.tsx`; `pages/{ChatPage,BuilderPage}.tsx` view/editor/chat regions; `features/pipeline/components/PipelineCanvas.tsx`; `shared/api/streaming.ts::streamPipelineChat`; `shared/lib/chatMarkdown.ts::renderChatMarkdown`; `shared/i18n/provider.tsx`; `ui/backend/app.py::create_app`, SPA/API routes, `KB_TASKS`; `ui/backend/storage_paths.py::_resolve_ui_storage_root`; `ui/backend/{auth,chat_store,kb_visibility_store}.py` table initialization/ownership helpers; `ui/backend/pipeline_manager.py::_ensure_client_funcs`, `SessionManager`, `_prepare_chat_context`, `save_parameters`, `upload_kb_files_batch`; `ui/frontend/README.md` Repository Convention. Large UI modules sampled, not exhaustively audited.

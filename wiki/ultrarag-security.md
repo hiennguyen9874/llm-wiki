@@ -12,7 +12,7 @@ sources:
     resource: ../raw/UltraRAG/README.md
     scope: ../raw/UltraRAG/
     kind: code
-    revision: 185e2032d9f134099405b8b483edbbad95274080
+    revision: 185e2032d9f1
     title: UltraRAG repository
 ---
 
@@ -61,4 +61,4 @@ Draft because these are static findings with sampled large UI modules, not a pen
 - **Constrained by:** [container and service deployment](ultrarag-deployment.md).
 - **Affects:** [UI persistence](ultrarag-ui.md), [corpus parsing](ultrarag-corpus.md), and [retrieval](ultrarag-retrieval.md).
 
-[^ultrarag]: Revision `185e2032d9f134099405b8b483edbbad95274080`: `ui/backend/app.py::create_app` secret/cookie config, `shutdown`, KB config/file-list, prompt, auth, and `/api/ai/*` routes; `ui/backend/auth.py` admin initialization and `MODEL_SETTING_COLUMNS`; `ui/frontend/src/pages/BuilderPage.tsx` `ultrarag_ai_settings` localStorage handling; `ui/backend/pipeline_manager.py` `SessionManager`, pipeline-name sanitization, raw YAML save, `_prepare_chat_context`, `load_kb_config`, `list_kb_files`; `src/ultrarag/client.py::local_server_launch_config`, `remote_server_launch_config`; `servers/corpus/src/corpus.py::_validate_path`, `mineru_parse`; `servers/generation/src/generation.py::_to_data_url`; `servers/retriever/src/retriever.py::retriever_deploy_search`; `servers/retriever/src/index_backends/faiss_backend.py::search`; benchmark/evaluation `_load_data_from_file` debug logging; `Dockerfile*` `CMD`; `.env.dev`; `docs/SECURITY.md` CVE-2025-53000 section. Security conclusions are static observations or explicitly labeled synthesis, not executed checks.
+[^ultrarag]: Revision `185e2032d9f1`: `ui/backend/app.py::create_app` secret/cookie config, `shutdown`, KB config/file-list, prompt, auth, and `/api/ai/*` routes; `ui/backend/auth.py` admin initialization and `MODEL_SETTING_COLUMNS`; `ui/frontend/src/pages/BuilderPage.tsx` `ultrarag_ai_settings` localStorage handling; `ui/backend/pipeline_manager.py` `SessionManager`, pipeline-name sanitization, raw YAML save, `_prepare_chat_context`, `load_kb_config`, `list_kb_files`; `src/ultrarag/client.py::local_server_launch_config`, `remote_server_launch_config`; `servers/corpus/src/corpus.py::_validate_path`, `mineru_parse`; `servers/generation/src/generation.py::_to_data_url`; `servers/retriever/src/retriever.py::retriever_deploy_search`; `servers/retriever/src/index_backends/faiss_backend.py::search`; benchmark/evaluation `_load_data_from_file` debug logging; `Dockerfile*` `CMD`; `.env.dev`; `docs/SECURITY.md` CVE-2025-53000 section. Security conclusions are static observations or explicitly labeled synthesis, not executed checks.

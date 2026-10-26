@@ -12,7 +12,7 @@ sources:
     resource: ../raw/txtai/README.md
     scope: ../raw/txtai/
     kind: code
-    revision: 738aac498ccbba7c4bff51886e660edd5241d04e
+    revision: 738aac498ccb
     title: txtai repository
 ---
 
@@ -52,4 +52,4 @@ Scheduling uses `croniter`; scheduled-run errors are logged and the loop can con
 
 No agent loop, external MCP server, code tool, workflow, schedule, or concurrency test ran. Sampled test names identify intended coverage, not passed security or behavioral guarantees.
 
-[^txtai-repo]: Revision `738aac498ccbba7c4bff51886e660edd5241d04e`: `src/python/txtai/agent/base.py::Agent.__init__, __call__, prompt, instructions`; `agent/factory.py::ProcessFactory.create`; `agent/model.py::PipelineModel.generate`; `agent/tool/factory.py::ToolFactory.DEFAULTS, create, createtool, fromdocs`; `agent/tool/bash.py::BashTool`, `agent/tool/read.py::ReadTool`, `agent/tool/write.py::WriteTool`, `agent/tool/edit.py::EditTool`, `agent/tool/embeddings.py::EmbeddingsTool`, `agent/tool/skill.py::SkillTool`; `workflow/base.py::Workflow.__init__, __call__, chunk, process, schedule`; `workflow/task/base.py::Task`; `workflow/task/template.py::TemplateTask, RagTask`; `workflow/task/retrieve.py::RetrieveTask`; `workflow/task/service.py::ServiceTask`; `app/base.py::Application.createagents, createworkflows`; `docs/agent/configuration.md`; `test/python/testagent.py`, `test/python/testworkflow.py` test declaration indexes only. Short module paths are relative to `src/python/txtai/`.
+[^txtai-repo]: Revision `738aac498ccb`: `src/python/txtai/agent/base.py::Agent.__init__, __call__, prompt, instructions`; `agent/factory.py::ProcessFactory.create`; `agent/model.py::PipelineModel.generate`; `agent/tool/factory.py::ToolFactory.DEFAULTS, create, createtool, fromdocs`; `agent/tool/bash.py::BashTool`, `agent/tool/read.py::ReadTool`, `agent/tool/write.py::WriteTool`, `agent/tool/edit.py::EditTool`, `agent/tool/embeddings.py::EmbeddingsTool`, `agent/tool/skill.py::SkillTool`; `workflow/base.py::Workflow.__init__, __call__, chunk, process, schedule`; `workflow/task/base.py::Task`; `workflow/task/template.py::TemplateTask, RagTask`; `workflow/task/retrieve.py::RetrieveTask`; `workflow/task/service.py::ServiceTask`; `app/base.py::Application.createagents, createworkflows`; `docs/agent/configuration.md`; `test/python/testagent.py`, `test/python/testworkflow.py` test declaration indexes only. Short module paths are relative to `src/python/txtai/`.

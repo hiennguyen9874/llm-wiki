@@ -12,7 +12,7 @@ sources:
     resource: ../raw/UltraRAG/README.md
     scope: ../raw/UltraRAG/
     kind: code
-    revision: 185e2032d9f134099405b8b483edbbad95274080
+    revision: 185e2032d9f1
     title: UltraRAG repository
 ---
 
@@ -43,4 +43,4 @@ No benchmark dataset beyond bundled samples was downloaded, no metrics were exec
 - **Uses:** [pipeline remapping](ultrarag-pipelines.md) to bind predictions and references.
 - **Uses:** [research workflow examples](ultrarag-research-workflows.md) as comparison configurations, not verified result artifacts.
 
-[^ultrarag]: Revision `185e2032d9f134099405b8b483edbbad95274080`: `servers/benchmark/src/benchmark.py::get_data`; `servers/benchmark/parameter.yaml`; `data/sample_nq_10.jsonl` field schema; `servers/evaluation/src/evaluation.py::normalize_text`, `compute_metrics`, `evaluate`, `evaluate_trec`, `evaluate_trec_pvalue`; `servers/evaluation/parameter.yaml` metric list; `tests/servers/benchmark/test_key_map_alignment.py`; `tests/servers/evaluation/test_normalize_text.py`; `examples/experiments/{evaluate_results,eval_trec,eval_trec_pvalue,rag_loop}.yaml`; `pyproject.toml` evaluation extra; `README.md` Key Highlights; `docs/architecture.png` right-hand Experimental Results panel (visually inspected, protocol unavailable).
+[^ultrarag]: Revision `185e2032d9f1`: `servers/benchmark/src/benchmark.py::get_data`; `servers/benchmark/parameter.yaml`; `data/sample_nq_10.jsonl` field schema; `servers/evaluation/src/evaluation.py::normalize_text`, `compute_metrics`, `evaluate`, `evaluate_trec`, `evaluate_trec_pvalue`; `servers/evaluation/parameter.yaml` metric list; `tests/servers/benchmark/test_key_map_alignment.py`; `tests/servers/evaluation/test_normalize_text.py`; `examples/experiments/{evaluate_results,eval_trec,eval_trec_pvalue,rag_loop}.yaml`; `pyproject.toml` evaluation extra; `README.md` Key Highlights; `docs/architecture.png` right-hand Experimental Results panel (visually inspected, protocol unavailable).

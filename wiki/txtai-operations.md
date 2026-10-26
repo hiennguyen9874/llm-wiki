@@ -12,7 +12,7 @@ sources:
     resource: ../raw/txtai/README.md
     scope: ../raw/txtai/
     kind: code
-    revision: 738aac498ccbba7c4bff51886e660edd5241d04e
+    revision: 738aac498ccb
     title: txtai repository
 ---
 
@@ -62,4 +62,4 @@ API/workflow/schedule/AWS images instantiate `API('config.yml', False)` at build
 
 No compatibility verification, deployment smoke test, container build, actual CI result, resource sizing, or performance evidence is available from this ingest.
 
-[^txtai-repo]: Revision `738aac498ccbba7c4bff51886e660edd5241d04e`: `setup.py` default dependencies, extras, `MINIMAL`, `setup`; `src/python/txtai/version.py`; `src/python/txtai/app/base.py::Application.read, createpipelines, index, reindex, function, resolvetask, wait`; `src/python/txtai/api/application.py::create, lifespan`; `README.md` “Why txtai?” and “Installation”; all six `docker/*/Dockerfile` artifacts listed above; `docker/aws/api.py`, `docker/aws/workflow.py`; `docs/cloud.md` scheduling/service example; `docs/observability.md` Initialization and examples; `Makefile::data, test, coverage`; `.coveragerc`; `.github/workflows/build.yml::jobs.build`, `minimal.yml`, `docs.yml`; `.pre-commit-config.yaml`; `test/python/utils.py::Utils.PATH`, `test/python/testoptional.py`, `test/python/testembeddings.py::TestEmbeddings.setUpClass`, `test/python/testapi/testmcp.py`. Session AST result is recorded in `outputs/txtai-ingest/syntax-check.json`; that result is not an upstream behavioral claim.
+[^txtai-repo]: Revision `738aac498ccb`: `setup.py` default dependencies, extras, `MINIMAL`, `setup`; `src/python/txtai/version.py`; `src/python/txtai/app/base.py::Application.read, createpipelines, index, reindex, function, resolvetask, wait`; `src/python/txtai/api/application.py::create, lifespan`; `README.md` “Why txtai?” and “Installation”; all six `docker/*/Dockerfile` artifacts listed above; `docker/aws/api.py`, `docker/aws/workflow.py`; `docs/cloud.md` scheduling/service example; `docs/observability.md` Initialization and examples; `Makefile::data, test, coverage`; `.coveragerc`; `.github/workflows/build.yml::jobs.build`, `minimal.yml`, `docs.yml`; `.pre-commit-config.yaml`; `test/python/utils.py::Utils.PATH`, `test/python/testoptional.py`, `test/python/testembeddings.py::TestEmbeddings.setUpClass`, `test/python/testapi/testmcp.py`. Session AST result is recorded in `outputs/txtai-ingest/syntax-check.json`; that result is not an upstream behavioral claim.
