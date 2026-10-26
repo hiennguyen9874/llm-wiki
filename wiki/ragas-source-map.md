@@ -61,7 +61,7 @@ SCM generates distribution version; no package was built/imported to determine t
 | Pending | 425 | Unread bodies, tests, docs, notebooks, data/plots/screenshots or ancillary scripts; Python syntax alone is separate |
 | Total | 694 | One ledger row per tracked artifact |
 
-All 33 tracked testset implementation artifacts were reported read by the generation explorer; the merged ledger conservatively marks even these targeted rather than pretending uniform depth across agents. Other implementation areas include selected datasets/evaluator/executor, backends, metric APIs and core metric bodies, model factories/providers, prompt/optimizer regions, integrations/tracing, CLI, analytics, CI and representative tests. Test-name/symbol inspection is not full assertion auditing. Agent report path lists and curator notes preserve inspection provenance under [session outputs](../outputs/ragas-ingest/README.md).
+All 33 tracked testset implementation artifacts were reported read by the generation explorer; the merged ledger conservatively marks even these targeted rather than pretending uniform depth across agents. Other implementation areas include selected datasets/evaluator/executor, backends, metric APIs and core metric bodies, model factories/providers, prompt/optimizer regions, integrations/tracing, CLI, analytics, CI and representative tests. Test-name/symbol inspection is not full assertion auditing. Agent report path lists and curator notes preserved inspection provenance in session outputs under `outputs/ragas-ingest/`; those outputs were disposable and are not retained, so that per-agent provenance is no longer re-auditable from this repository.
 
 **Material dependency limits:** external provider SDK behavior, Instructor/LiteLLM compatibility, LangChain version resolution, HuggingFace/tiktoken assets, optional DSPy/Google/tracing/database-comparison libraries and their transitives were not independently inspected or installed. External docs/issues/papers and hosted services were not retrieved. Dataset/notebook cell content, plots and benchmark screenshots remain pending where the ledger says so; no empirical claim is extracted from them. Generated Markdown mirrors and original notebooks were not proven semantically equivalent.
 
@@ -69,13 +69,13 @@ All 33 tracked testset implementation artifacts were reported read by the genera
 
 ## Checks actually performed
 
-**Reproduced, compilation-session only:** all 387 tracked Python files passed standard-library `ast.parse` under Python 3.12.3/Linux. This reads source text without importing upstream modules; it establishes syntax, not runtime compatibility, test outcomes or correctness. Full results are in [static-checks.json](../outputs/ragas-ingest/static-checks.json).
+**Reproduced, compilation-session only:** all 387 tracked Python files passed standard-library `ast.parse` under Python 3.12.3/Linux. This reads source text without importing upstream modules; it establishes syntax, not runtime compatibility, test outcomes or correctness. Full per-file results were written to `outputs/ragas-ingest/static-checks.json`, a disposable session artifact not retained in this repository.
 
 A selected private-key/provider/AWS/GitHub token-shape screen across UTF-8 tracked content returned no matches; explorer-reviewed assignment matches were placeholders/fixtures. This is not exhaustive secret/PII detection, and unread notebook cells remain a privacy-review limit. No credentials or sensitive source values are reproduced in concepts.
 
 Tracked-content inspection fingerprint: `03cd1b167bc713b06e65cfe74ee0e2ffc970e41b8f62c5718b3b18c7d74a8c36` (SHA-256 over sorted path bytes, NUL and each raw file's SHA-256 digest bytes). This is a session fingerprint, not signed upstream attestation.
 
-A [focused semantic review](../outputs/ragas-ingest/semantic-review.md) sampled the compiled claims against source and checked locators, citation joins, index descriptions and inventory/fingerprint consistency. Its graph-append/idempotency wording, precommit lint scope, distribution-heading locator and adapter-description corrections were applied. This is static synthesis review, not independent verification of runtime behavior.
+A focused semantic review (recorded in the disposable `outputs/ragas-ingest/semantic-review.md`, not retained here) sampled the compiled claims against source and checked locators, citation joins, index descriptions and inventory/fingerprint consistency. Its graph-append/idempotency wording, precommit lint scope, distribution-heading locator and adapter-description corrections were applied. This is static synthesis review, not independent verification of runtime behavior.
 
 No upstream tests, imports, builds, notebooks, benchmarks, containers, cloud/provider calls, model downloads, exploit attempts or Git-versioning helper ran. Structural/citation checks on compiled pages are repository-maintenance checks and do not verify Ragas behavior.
 

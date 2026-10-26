@@ -58,7 +58,7 @@ A prefix-pattern screen initially found no high-specificity matches. The operati
 
 ## Executed versus unexecuted checks
 
-**Reproduced, syntax only:** all 818 tracked Python files passed `ast.parse` under Python 3.12.3/Linux with no repository imports. Record: [static-check JSON](../outputs/lightrag-ingest/static-checks.json). This is not pytest, dependency resolution, a provider call or an API smoke test.
+**Reproduced, syntax only:** all 818 tracked Python files passed `ast.parse` under Python 3.12.3/Linux with no repository imports. Record: a per-file JSON was written to `outputs/lightrag-ingest/static-checks.json` during the ingest, but that disposable artifact was not retained in this repository, so the per-file result is not re-auditable here. This is not pytest, dependency resolution, a provider call or an API smoke test.
 
 Inspection fingerprint: `eb40b5cf2d89925a2a15e8a7ea20f613abea900655fd9541bb21a23f74de2cf3` (SHA-256 of sorted relative path bytes + NUL + raw SHA-256 digest bytes for each tracked file). This is an ingest fingerprint, not an upstream signature or attestation. Initial, pre-resumption and final source Git checks were clean; a recomputed tracked-content fingerprint matched the initial value.
 
