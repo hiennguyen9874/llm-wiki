@@ -4,10 +4,10 @@ Instance configuration under the base contract [`AGENTS.md`](AGENTS.md). Initial
 
 ## Identity
 
-- **Name:** Personal knowledge base
-- **Purpose:** A general-purpose personal knowledge base. It is not bound to one subject; any domain the human curates is eligible.
-- **Inclusion test:** a source or question is in scope when the human supplies or requests it and it yields durable knowledge. Any subject qualifies.
-- **Exclusions:** material the human marks as off-limits.
+- **Name:** Open-source RAG platform engineering
+- **Purpose:** Compile and compare how open-source retrieval-augmented generation platforms are built, operated, and secured, from pinned repository snapshots and their documentation.
+- **Inclusion test:** a source or question is in scope when it concerns one of the tracked platforms (OpenRAG, RAGFlow, RAG-Anything, UltraRAG, WeKnora), another open-source RAG or agentic-retrieval system worth comparing, or a cross-cutting concern of those systems — architecture, parsing and ingestion, retrieval and ranking, agent workflows, knowledge compilation, persistence, deployment, integrations, or security — and yields durable, code-grounded knowledge.
+- **Exclusions:** off-topic personal material; general ML theory or software topics that do not inform RAG platform engineering; vendor marketing claims kept as claims only, never as measured capability; material the human marks as off-limits.
 
 ## Domains
 
@@ -15,7 +15,10 @@ Domains emerge from ingested knowledge. Register a domain when it recurs across 
 
 | Domain | Focus | Course profile | Rules |
 | --- | --- | --- | --- |
-| `ml` | Machine learning, LLM architecture, and LLM-assisted knowledge systems | `ml` | Use `stale_after` for framework APIs, model releases, and benchmarks. |
+| `rag` | Platform architecture, parsing and ingestion, hybrid retrieval and ranking, agent workflows, knowledge compilation | `general` | Ground claims in a pinned revision; label evidence as Observed, Reported, or Synthesis; keep unread coverage visible. |
+| `operations` | Build, deployment, configuration, persistence, task queues, testing and validation of the tracked platforms | `general` | Set `stale_after` for version-specific build, deployment, and configuration guidance. |
+| `security` | Authentication, authorization, connector and MCP boundaries, credential and disclosure limits | `general` | Redact sensitive values and record what a static review could not establish. |
+| `ml` | Model and retrieval-model internals the platforms depend on | `ml` | Use `stale_after` for framework APIs, model releases, and benchmarks. |
 
 - Name domains as the human does; they may be broad (`health`) or narrow (`home-network`).
 - A concept belongs to its primary domain through tags and, once groups exist, its group path.
@@ -27,9 +30,10 @@ Domains emerge from ingested knowledge. Register a domain when it recurs across 
 | Setting | Value |
 | --- | --- |
 | Default interaction mode | `autonomous` |
-| Concept prose language | Match the human's request; keep technical terms in their original language. |
+| Concept prose language | English, with technical terms kept in their original form. |
 | Course prose language | Vietnamese, with technical keywords in English and an English gloss on first use. |
 | Default course profile | `general` |
+| Source pinning | Each platform is a read-only `raw/<platform>/` snapshot; every concept cites its `resource`, `scope`, and inspected `revision`. |
 
 Course profiles live in `.pi/skills/wiki-learn/references/profiles/`. A domain without a matching profile uses `general`.
 
