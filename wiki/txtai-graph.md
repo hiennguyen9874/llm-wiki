@@ -41,6 +41,7 @@ NetworkX persists nodes, edges, categories, and topics through serialization, wi
 - **Depends on:** [Retrieval scores](txtai-retrieval.md) as its inferred-edge oracle and [persistence](txtai-persistence.md) for backend lifecycle.
 - **Can feed:** [RAG](txtai-rag.md) through an appropriate retrieval composition; graph storage alone is not proof every RAG request traverses the graph.
 - **Part of:** [txtai architecture](txtai-architecture.md); see [source map](txtai-source-map.md).
+- **Contrasts with:** [Graphiti's context graph model](graphiti-context-graph-model.md), which vendor documentation presents as LLM-extracted facts carrying validity windows and episode provenance, whereas txtai's edges are similarity-derived
 
 Static code and sampled graph-test inspection only. Graph completeness, community quality, factual relation extraction, backend equivalence, practical scalability, and runtime correctness were not measured.
 

@@ -52,6 +52,7 @@ sources:
 
 - **Related:** [RAG-Anything architecture](rag-anything-architecture.md) is a separate pinned multimodal library relying on LightRAG internals. The README reports upstream integration, but neither source review proves the two snapshots are compatible or that the standalone package is superseded.
 - **Uses:** [Source map](lightrag-source-map.md) for coverage, trust and idempotent follow-up.
+- **Contrasts with:** [Graphiti's context graph model](graphiti-context-graph-model.md): per this overview LightRAG compiles entity/relation descriptions into graph and vector indexes for retrieval, whereas Graphiti's documentation describes LLM-extracted facts that carry validity windows and episode provenance.
 
 ## Evidence limits
 
