@@ -8,4 +8,77 @@ The complete retrieval map for compiled knowledge. See [LLM Wiki Contract](../AG
 
 ## Concepts
 
-_No concepts yet._
+- [OpenRAG](openrag.md) — Overview and navigation for OpenRAG's agentic RAG platform, implementation boundaries, and inspected repository snapshot.
+- [OpenRAG authentication and security boundaries](openrag-auth-security.md) — Identity planes, opt-in RBAC, OpenSearch document access, delegated tokens, and configuration-dependent security risks.
+- [OpenRAG backend architecture and persistence](openrag-backend-architecture.md) — Backend entrypoints, dependency composition, configuration precedence, and the split between SQL, OpenSearch, and legacy file storage.
+- [OpenRAG built-in MCP server](openrag-mcp.md) — Streamable-HTTP MCP route conversion, required authentication headers, explicit exclusions, and retired-package documentation drift.
+- [OpenRAG chat, streaming, and nudges](openrag-chat-streaming.md) — Agent prompt rules, distinct browser NDJSON and public SSE contracts, conversation identity, and nudge generation limits.
+- [OpenRAG connectors and ACL propagation](openrag-connectors.md) — Connector registry, OAuth versus login, workspace access policy, indexed ACLs, and the limits of inspected synchronization behavior.
+- [OpenRAG deployment and operational constraints](openrag-deployment.md) — Compose, local-development and Kubernetes deployment surfaces, storage/network defaults, destructive commands, and static deployment hazards.
+- [OpenRAG document ingestion](openrag-document-ingestion.md) — Docling parsing, chunking, delegated chunk callbacks, indexed metadata, and ingestion limits and discrepancies.
+- [OpenRAG frontend and request proxy](openrag-frontend.md) — Browser feature surfaces, Next.js proxy and build constraints, permission affordances, and frontend test boundaries.
+- [OpenRAG hybrid retrieval and embedding spaces](openrag-hybrid-retrieval.md) — Parallel backend and Langflow hybrid search, embedding-space routing, DLS-aware thresholds, and keyword fallback behavior.
+- [OpenRAG Langflow workflow bundle](openrag-langflow-workflows.md) — The four committed Langflow flows, create-only provisioning, runtime tweaks, component synchronization, and customization constraints.
+- [OpenRAG public API](openrag-public-api.md) — Versioned integration endpoints, permission requirements, file pagination, mode-specific routes, and internal/proxy API distinctions.
+- [OpenRAG Python and TypeScript SDKs](openrag-sdks.md) — SDK authentication, frontend-origin routing, language-specific streaming interfaces, and integration parity limits.
+- [OpenRAG source map and coverage](openrag-source-map.md) — Pinned source identity, per-artifact coverage ledger, exclusions, unavailable assets, and remaining evidence limits for the OpenRAG ingest.
+- [OpenRAG testing and validation limits](openrag-testing.md) — Configured backend, frontend, SDK and CI checks, known exclusions, non-gating scans, and what this ingest did not execute.
+- [RAGFlow](ragflow.md) — Overview of RAGFlow’s Go-based RAG platform, feature families, technology stack, and inspected source snapshot.
+- [RAGFlow agent workflows and agentic retrieval](ragflow-agent-workflows.md) — The shipping eino-based canvas runtime composes typed components, streaming events, tools, interruptions, and multi-step retrieval.
+- [RAGFlow answer citation mechanisms](ragflow-citations.md) — Similarity-based citation insertion and agentic evidence-ID tracking have distinct provenance and correctness limits.
+- [RAGFlow build, deployment, and testing](ragflow-operations.md) — Native build prerequisites, asset provisioning, Compose startup/migrations, configuration rendering, and unexecuted test tiers.
+- [RAGFlow connectors and incremental synchronization](ragflow-connectors.md) — Connector factories, window/cursor checkpoints, fingerprint skips, scheduling leases, retries, and guarded outbound fetches.
+- [RAGFlow document ingestion](ragflow-ingestion.md) — Canvas-driven file parsing, format-aware chunking, extraction, embeddings, parent chunks, and index-write behavior.
+- [RAGFlow frontend and API integration](ragflow-frontend.md) — React/Vite feature routing, query/service/request layers, Go proxy routes, agent canvas state, and browser SSE transports.
+- [RAGFlow hybrid retrieval and ranking](ragflow-retrieval.md) — Hybrid candidate generation, backend-specific score recomputation, parent-child promotion, filters, and retrieval defaults.
+- [RAGFlow inbound and outbound MCP boundaries](ragflow-mcp.md) — MCP caller binding, per-caller tool discovery, delegated authorization, outbound SSRF controls, and protocol-review limits.
+- [RAGFlow knowledge compilation](ragflow-knowledge-compilation.md) — Template-driven document compilation and dataset-level merging produce navigable wiki, structure, tree, and mind-map products.
+- [RAGFlow persistence and engines](ragflow-persistence.md) — Metadata, document search, object storage, cache/leases, and task queues are separate configurable persistence planes.
+- [RAGFlow security and disclosure limits](ragflow-security.md) — Redacted committed-key finding, credential-default risks, authentication surfaces, and limits of the static security review.
+- [RAGFlow server architecture](ragflow-architecture.md) — Go process modes, bootstrap ordering, dependency composition, and runtime versus migration boundaries.
+- [RAGFlow source map and coverage](ragflow-source-map.md) — Pinned RAGFlow source identity, tracked-artifact inspection ledger, redacted security handling, exclusions, and pending verification.
+- [RAGFlow standalone harness boundary](ragflow-harness.md) — A separate graph/ADK/event-replay harness exists in the tree but was not found wired into the shipping server runtime.
+- [RAG-Anything architecture](rag-anything-architecture.md) — Multimodal orchestration over LightRAG, including module boundaries, extension points, initialization, and lifecycle.
+- [RAG-Anything audio and video processing](rag-anything-audio-video.md) — Opt-in local transcription and scene-keyframe analysis produce timestamped text windows for LightRAG indexing.
+- [RAG-Anything batch processing](rag-anything-batch-processing.md) — Parse-only worker pools, incremental manifests, RAG-state-aware retries, and multiplicative concurrency limits.
+- [RAG-Anything document ingestion](rag-anything-ingestion.md) — Single-document ingestion, parse identity, text completion, page provenance, and best-effort multimodal status semantics.
+- [RAG-Anything document parsing](rag-anything-parsing.md) — MinerU, Docling, PaddleOCR, and direct text parsing normalize files into content lists with explicit format and trust boundaries.
+- [RAG-Anything DOCX equation extraction](rag-anything-docx-equations.md) — An opt-in OMML-to-LaTeX utility enriches content lists with equations while retaining synthetic rather than precise page placement.
+- [RAG-Anything enhanced Markdown rendering](rag-anything-enhanced-markdown.md) — A standalone Markdown-to-PDF utility whose renderer dependencies, partial configuration, and trust boundary differ from ingestion.
+- [RAG-Anything multimodal graph grounding](rag-anything-multimodal-grounding.md) — Modality descriptions become shared text chunks and graph anchors, with contextual prompts and explicit belongs-to relations.
+- [RAG-Anything query and retrieval](rag-anything-query-retrieval.md) — Text queries, attachment-to-text query enhancement, retrieved-image VLM answering, cache keys, and image-access boundaries.
+- [RAG-Anything reproduction and evaluation](rag-anything-reproduction-evaluation.md) — The repository's indexing, querying, and LLM-judge scripts require external data and schema reconciliation before reproducible evaluation.
+- [RAG-Anything runtime stack and operations](rag-anything-stack-operations.md) — Python packaging, dependency pins, environment configuration, provider/storage adapters, CI intent, and deployment cautions.
+- [RAG-Anything source map and coverage](rag-anything-source-map.md) — Pinned repository identity, per-artifact static-inspection ledger, exclusions, external dependencies, and unexecuted checks.
+- [UltraRAG architecture and feature map](ultrarag.md) — MCP-based RAG framework with YAML orchestration, modular servers, and a visual development UI.
+- [UltraRAG authentication and access control](ultrarag-auth.md) — Route-level UI authorization, anonymous default tenancy, SQLite ownership, and knowledge-base visibility.
+- [UltraRAG benchmarking and evaluation](ultrarag-evaluation.md) — Dataset loading and alignment, answer-quality metrics, retrieval evaluation, and reproducibility limits.
+- [UltraRAG corpus processing and chunking](ultrarag-corpus.md) — Text, page-image, and MinerU corpus builders with JSONL schemas and configurable Chonkie chunking.
+- [UltraRAG generation backends](ultrarag-generation.md) — Local and API model generation, multimodal calls, concurrency, retries, and inference lifecycle constraints.
+- [UltraRAG installation, deployment, and test coverage](ultrarag-deployment.md) — Python and frontend dependencies, optional backend extras, CUDA-aware containers, and the limits of CI smoke tests.
+- [UltraRAG pipeline DSL and configuration](ultrarag-pipelines.md) — YAML dataflow, generated MCP metadata, parameter resolution, branching, and server extension contracts.
+- [UltraRAG repository coverage and evidence ledger](ultrarag-source-map.md) — Snapshot identity, inspected and excluded artifact families, compilation destinations, and outstanding runtime and coverage limits.
+- [UltraRAG research workflows, prompts, and memory](ultrarag-research-workflows.md) — Reusable iterative RAG examples, prompt rendering, citation transformations, routers, and persistent user memory.
+- [UltraRAG retrieval and reranking](ultrarag-retrieval.md) — Embedding, index, web-search, and reranking backends behind UltraRAG's retrieval tools.
+- [UltraRAG security and operational trust boundaries](ultrarag-security.md) — Static risks from development defaults, credential storage, anonymous APIs, configurable paths, and process/network execution.
+- [UltraRAG UI architecture and persistence](ultrarag-ui.md) — React builder and chat UI over Flask APIs, shared pipeline execution, filesystem artifacts, and SQLite state.
+- [WeKnora agent turn runtime](weknora-agent-runtime.md) — ReAct orchestration, tool capability gates, loop budgets, recovery, and mid-turn steering in WeKnora.
+- [WeKnora asynchronous task queues](weknora-task-queues.md) — Isolated Asynq worker pools, retry/dead-letter handling, model concurrency, and the Redis-free Lite executor.
+- [WeKnora authentication and security boundaries](weknora-security.md) — Workspace RBAC, scoped machine principals, tenant selection, outbound filtering, and deployment-dependent trust limits.
+- [WeKnora automatic wiki compilation and revisions](weknora-wiki-compilation.md) — Durable ingest/finalize lanes, concurrent page convergence, citation extraction, link graphs, and revision-preserving rewrite guards.
+- [WeKnora backend architecture and technology stack](weknora-backend-architecture.md) — Go/Gin service composition, dependency injection, startup, shutdown, and standard-versus-Lite runtime choices.
+- [WeKnora CLI and Go SDK](weknora-cli-sdk.md) — Agent-first CLI envelopes, streaming/replay contracts, credential resolution, project binding, and the Go client API.
+- [WeKnora configuration precedence and key management](weknora-configuration.md) — YAML/environment layering, explicit overrides, validation, JWT persistence, and the exact AES key-length requirement.
+- [WeKnora cross-session memory](weknora-memory.md) — Principal-scoped resident memory, query recall, explicit versus automatic writes, confirmation states, and bounded extraction.
+- [WeKnora deployment and verification surfaces](weknora-deployment.md) — Docker Compose, Helm, Lite/desktop tradeoffs, upgrade caveats, and the difference between local and CI checks.
+- [WeKnora document parsing and adaptive chunking](weknora-document-ingestion.md) — Parser-engine routing, streaming docreader output, validated chunking strategies, and parent-child indexing inputs.
+- [WeKnora domain persistence and migrations](weknora-persistence.md) — Workspace-scoped knowledge, chunks, conversations, store bindings, and separate PostgreSQL/SQLite migration histories.
+- [WeKnora embed, IM, and harness publishing channels](weknora-publishing-channels.md) — Embedded-agent sessions, callback-driven messaging, and a read-only DeepSeek Harness plugin expose different external trust boundaries.
+- [WeKnora external datasource synchronization](weknora-datasource-sync.md) — Connector interfaces, resumable streaming checkpoints, schedules, and capability-dependent deletion reconciliation.
+- [WeKnora frontend and streaming chat state](weknora-frontend-streaming.md) — Vue/Vite/Pinia clients, shared SSE state reconstruction, reconnect limits, and desktop/mobile delivery differences.
+- [WeKnora graph and multimodal retrieval boundaries](weknora-graph-multimodal-retrieval.md) — Graph evidence validation and image-aware retrieval exceptions, distinguished from the wiki-page link graph.
+- [WeKnora hybrid retrieval and reranking](weknora-hybrid-retrieval.md) — Store-bound fan-out, normalized weighted RRF, rerank degradation, composite scoring, and MMR diversity selection.
+- [WeKnora knowledge framework](weknora.md) — Code-grounded overview and navigation for WeKnora's shared RAG, agent, automatic wiki, and integration platform.
+- [WeKnora MCP server surfaces](weknora-mcp-servers.md) — Built-in scoped Streamable HTTP endpoints, the CLI stdio catalog, and the deprecated Python server are distinct MCP products.
+- [WeKnora skills and session sandboxes](weknora-skills-sandboxes.md) — Progressive skill disclosure, installed-image source selection, session-bound workspaces, and execution trust boundaries.
+- [WeKnora source map and coverage](weknora-source-map.md) — Snapshot identity, per-file coverage ledger, exclusions, evidence limits, and follow-up targets for the WeKnora repository ingest.
