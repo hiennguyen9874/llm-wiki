@@ -12,7 +12,7 @@ sources:
     resource: ../raw/openrag/README.md
     scope: ../raw/openrag/
     kind: code
-    revision: 6fc819d3ec10ee3d0dedc842d244ec2b63fd9791
+    revision: 6fc819d
     title: OpenRAG repository
 ---
 
@@ -56,4 +56,4 @@ These are static findings and **Synthesis** implications, not demonstrated explo
 
 Static checks did not establish end-to-end DLS behavior, every webhook provider's validation, JWT issuer safety, key rotation, or all RBAC route coverage. Limited credential-pattern screening found no likely live credentials; that is not a comprehensive secret audit. See [source map](openrag-source-map.md).
 
-[^openrag-repo]: `6fc819d3ec10ee3d0dedc842d244ec2b63fd9791`: `src/services/rbac_service.py::is_rbac_enforced`; `src/auth/permission_dependencies.py::enforce_permission`; `src/auth/request_identity.py::{_attach_db_user_id,_attach_opensearch_jwt}`; `src/services/api_key_service.py::{_hash_key,_candidate_hashes}`; `src/config/settings.py::{get_api_jwt_header,get_jwt_verify_signature,AppClients.initialize}`; `src/config/utils.py::{resolve_jwt_claims,verify_jwt_from_issuer}`; `src/utils/{encryption,langflow_headers}.py::{encrypt_secret,add_provider_credentials_to_headers,build_ibm_opensearch_vars}`; `src/services/docling_service.py::picture_description_api` construction; `src/services/langflow_llm_token_service.py`; `securityconfig/{roles,roles_mapping,internal_users}.yml`; `src/api/{connectors,knowledge_filter}.py` webhook handlers; `docs/docs/_partial-opensearch-auth-modes.mdx`; `docker-compose.yml::SESSION_SECRET`.
+[^openrag-repo]: `6fc819d`: `src/services/rbac_service.py::is_rbac_enforced`; `src/auth/permission_dependencies.py::enforce_permission`; `src/auth/request_identity.py::{_attach_db_user_id,_attach_opensearch_jwt}`; `src/services/api_key_service.py::{_hash_key,_candidate_hashes}`; `src/config/settings.py::{get_api_jwt_header,get_jwt_verify_signature,AppClients.initialize}`; `src/config/utils.py::{resolve_jwt_claims,verify_jwt_from_issuer}`; `src/utils/{encryption,langflow_headers}.py::{encrypt_secret,add_provider_credentials_to_headers,build_ibm_opensearch_vars}`; `src/services/docling_service.py::picture_description_api` construction; `src/services/langflow_llm_token_service.py`; `securityconfig/{roles,roles_mapping,internal_users}.yml`; `src/api/{connectors,knowledge_filter}.py` webhook handlers; `docs/docs/_partial-opensearch-auth-modes.mdx`; `docker-compose.yml::SESSION_SECRET`.

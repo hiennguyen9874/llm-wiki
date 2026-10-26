@@ -12,7 +12,7 @@ sources:
     resource: ../raw/RAG-Anything/README.md
     scope: ../raw/RAG-Anything/
     kind: code
-    revision: 3a14ecb66fb352b90d40a9884a5ad235d98ac72e
+    revision: 3a14ecb
     title: RAG-Anything repository
 ---
 
@@ -63,4 +63,4 @@ sources:
 
 Static inspection plus selected test assertions, not executed ingestion. External LightRAG queue/storage semantics and real-provider error behavior remain unverified; [source map](rag-anything-source-map.md) records coverage.
 
-[^rag-anything-3a14ecb]: Revision `3a14ecb66fb352b90d40a9884a5ad235d98ac72e`: `raganything/processor.py::_generate_cache_key` (94), `_drop_placeholder_doc_status` (168), `_wait_for_text_processing` (193), `_annotate_text_chunk_pages` (258), `_text_chunk_page_labels` (329), `_generate_content_based_doc_id` (458), `_get_cached_result` (497), `_store_cached_result` (561), `parse_document` (614; media branch 709–731), `_process_multimodal_content` (867–998), `_process_multimodal_content_individual` (999–1130), `_process_multimodal_content_batch_type_aware` (1132), `_update_doc_status_with_chunks_type_aware` (1795), `_mark_multimodal_processing_complete` (1857), `process_document_complete` (1979), `process_document_complete_lightrag_api` (2174), `insert_content_list` (2483); `parse_options.py::PARSER_CACHE_KWARGS`; `utils.py::separate_content_with_page_map`, `build_sanitized_page_map`, `replay_chunk_spans`, `annotate_chunks_with_page_idx`; README “Content List Format” and “Re-processing Multimodal Content After a Storage Backend Change”; tests `testparse_cache_key.py`, `test_processor_lightrag_api.py`, and sampled `test_text_chunk_page_idx_pipeline.py` (assertions inspected, not run).
+[^rag-anything-3a14ecb]: Revision `3a14ecb`: `raganything/processor.py::_generate_cache_key` (94), `_drop_placeholder_doc_status` (168), `_wait_for_text_processing` (193), `_annotate_text_chunk_pages` (258), `_text_chunk_page_labels` (329), `_generate_content_based_doc_id` (458), `_get_cached_result` (497), `_store_cached_result` (561), `parse_document` (614; media branch 709–731), `_process_multimodal_content` (867–998), `_process_multimodal_content_individual` (999–1130), `_process_multimodal_content_batch_type_aware` (1132), `_update_doc_status_with_chunks_type_aware` (1795), `_mark_multimodal_processing_complete` (1857), `process_document_complete` (1979), `process_document_complete_lightrag_api` (2174), `insert_content_list` (2483); `parse_options.py::PARSER_CACHE_KWARGS`; `utils.py::separate_content_with_page_map`, `build_sanitized_page_map`, `replay_chunk_spans`, `annotate_chunks_with_page_idx`; README “Content List Format” and “Re-processing Multimodal Content After a Storage Backend Change”; tests `testparse_cache_key.py`, `test_processor_lightrag_api.py`, and sampled `test_text_chunk_page_idx_pipeline.py` (assertions inspected, not run).

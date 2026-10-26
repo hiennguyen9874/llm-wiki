@@ -12,7 +12,7 @@ sources:
     resource: ../raw/WeKnora/README.md
     scope: ../raw/WeKnora/
     kind: code
-    revision: fd7a2586fd5855fc4ded5c981a92dcb82a455246
+    revision: fd7a258
     title: WeKnora v0.8.3 repository snapshot
 ---
 
@@ -52,4 +52,4 @@ Selected PostgreSQL code lazily detects a compatible ParadeDB/pg_search score fu
 
 Fusion/shared rerank code received deeper inspection than backend drivers. SQLite, Qdrant, Weaviate, Elasticsearch, OpenSearch, Doris, Tencent VectorDB, embedding providers, and rerank vendor adapters remain pending. Test names were inspected but no searches, benchmarks, or tests ran. See the [source map](weknora-source-map.md).
 
-[^weknora]: Snapshot `fd7a2586fd5855fc4ded5c981a92dcb82a455246`: `internal/application/service/retriever/factory.go::VerifyBinding`, `CreateRetrieveEngineForKB` and error sentinels; `retriever/composite.go::CompositeRetrieveEngine.Retrieve`; `knowledgebase_search.go::hybridSearchCandidates`, `validateSameEmbeddingModel`; `knowledgebase_search_fusion.go::fuseWithRRF`, `bestRanks`, `fuseOrDeduplicate`, `rescaleUnboundedScores`; `knowledgebase_search_rerank.go::HybridSearchWithRerank`; `internal/types/retrieval_config.go` effective defaults/caps; `internal/reranking/rerank.go::Rerank`, `applyThreshold`, `FallbackMinScore`, `CompositeScore`, `fitPassages`; `reranking/mmr.go::SelectMMR`; `internal/application/repository/retriever/postgres/repository.go::resolveKeywordScoreFunction`; `retriever/milvus/repository.go::getCollectionName`, `VectorRetrieve`, `KeywordsRetrieve`. Package entry: [README](../raw/WeKnora/README.md), “Retrieval” and “Supported backends.”
+[^weknora]: Snapshot `fd7a258`: `internal/application/service/retriever/factory.go::VerifyBinding`, `CreateRetrieveEngineForKB` and error sentinels; `retriever/composite.go::CompositeRetrieveEngine.Retrieve`; `knowledgebase_search.go::hybridSearchCandidates`, `validateSameEmbeddingModel`; `knowledgebase_search_fusion.go::fuseWithRRF`, `bestRanks`, `fuseOrDeduplicate`, `rescaleUnboundedScores`; `knowledgebase_search_rerank.go::HybridSearchWithRerank`; `internal/types/retrieval_config.go` effective defaults/caps; `internal/reranking/rerank.go::Rerank`, `applyThreshold`, `FallbackMinScore`, `CompositeScore`, `fitPassages`; `reranking/mmr.go::SelectMMR`; `internal/application/repository/retriever/postgres/repository.go::resolveKeywordScoreFunction`; `retriever/milvus/repository.go::getCollectionName`, `VectorRetrieve`, `KeywordsRetrieve`. Package entry: [README](../raw/WeKnora/README.md), “Retrieval” and “Supported backends.”

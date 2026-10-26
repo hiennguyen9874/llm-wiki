@@ -12,7 +12,7 @@ sources:
     resource: ../raw/RAG-Anything/README.md
     scope: ../raw/RAG-Anything/
     kind: code
-    revision: 3a14ecb66fb352b90d40a9884a5ad235d98ac72e
+    revision: 3a14ecb
     title: RAG-Anything repository
 ---
 
@@ -44,4 +44,4 @@ The automatic backend recommendation prefers Pandoc, then WeasyPrint, then `"non
 
 No PDF was generated or visually checked, and no renderer resource-loading attack was executed. Static renderer/configuration findings do not establish output layout quality.
 
-[^rag-anything-3a14ecb]: Revision `3a14ecb66fb352b90d40a9884a5ad235d98ac72e`: `raganything/enhanced_markdown.py::MarkdownConfig` (46–70), `_process_markdown_content` (228–289), `convert_with_weasyprint` (291–315), Pandoc conversion (318–350), `convert_markdown_to_pdf` (377–410), `convert_file_to_pdf` (418), `get_backend_info` and `_get_recommended_backend` (467–489), CLI (491–552); `parser.py::parse_text_file` (1029–1065); `docs/enhanced_markdown.md` banner (10), backend recommendation (66–73), automatic-ingestion claims (303–317), configuration/API sections (424–509); `pyproject.toml` markdown extra; `tests/test_enhanced_markdown_css.py` and `tests/test_enhanced_markdown_images.py` (inspected, not executed).
+[^rag-anything-3a14ecb]: Revision `3a14ecb`: `raganything/enhanced_markdown.py::MarkdownConfig` (46–70), `_process_markdown_content` (228–289), `convert_with_weasyprint` (291–315), Pandoc conversion (318–350), `convert_markdown_to_pdf` (377–410), `convert_file_to_pdf` (418), `get_backend_info` and `_get_recommended_backend` (467–489), CLI (491–552); `parser.py::parse_text_file` (1029–1065); `docs/enhanced_markdown.md` banner (10), backend recommendation (66–73), automatic-ingestion claims (303–317), configuration/API sections (424–509); `pyproject.toml` markdown extra; `tests/test_enhanced_markdown_css.py` and `tests/test_enhanced_markdown_images.py` (inspected, not executed).

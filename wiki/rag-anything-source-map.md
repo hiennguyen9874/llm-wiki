@@ -12,18 +12,18 @@ sources:
     resource: ../raw/RAG-Anything/README.md
     scope: ../raw/RAG-Anything/
     kind: code
-    revision: 3a14ecb66fb352b90d40a9884a5ad235d98ac72e
+    revision: 3a14ecb
     title: RAG-Anything repository
 ---
 
-**Observed:** this compilation covers HKUDS RAG-Anything's local repository at commit `3a14ecb66fb352b90d40a9884a5ad235d98ac72e`, using static code/document inspection by the curator and four parallel Explore agents, followed by a separate focused semantic review of all twelve compiled pages. The ledger distinguishes full reading, targeted reading, inventory/syntax-only coverage, and deliberate exclusions. **Limit:** this is not a runtime or complete test-assertion audit; the source map remains draft for the explicit coverage gaps below.[^rag-anything-3a14ecb]
+**Observed:** this compilation covers HKUDS RAG-Anything's local repository at commit `3a14ecb`, using static code/document inspection by the curator and four parallel Explore agents, followed by a separate focused semantic review of all twelve compiled pages. The ledger distinguishes full reading, targeted reading, inventory/syntax-only coverage, and deliberate exclusions. **Limit:** this is not a runtime or complete test-assertion audit; the source map remains draft for the explicit coverage gaps below.[^rag-anything-3a14ecb]
 
 ## Source identity and trust
 
 | Field | Inspected value |
 | --- | --- |
 | Canonical entry point / scope | `raw/RAG-Anything/README.md` / `raw/RAG-Anything/` |
-| Revision / commit date | `3a14ecb66fb352b90d40a9884a5ad235d98ac72e` / 2026-10-26 |
+| Revision / commit date | `3a14ecb` / 2026-10-26 |
 | Commit subject | Discard empty Whisper transcription segments (#438) |
 | Upstream | `https://github.com/HKUDS/RAG-Anything` (remote points to the same HKUDS repository) |
 | Distribution | `raganything` 1.4.3; Python ≥3.10; MIT; package author Zirui Guo; license attribution Data Intelligence Lab @ HKU |
@@ -182,4 +182,4 @@ These 29 modules were inventoried and syntax-parsed, but their assertion bodies 
 
 **Synthesis:** all linked concepts use the same package identity (scope plus revision); internal supporting files are not separate sources. Reingesting the same audited regions without changed/new knowledge should not rewrite concepts or log. New revisions, newly inspected pending regions, meaningful corrections, or cross-concept connections justify a targeted update. The current graph has no prior concepts from this source to supersede; implementation/document disagreements are preserved in their owning concepts, not flattened into one unsupported claim.
 
-[^rag-anything-3a14ecb]: Canonical README plus source scope at revision `3a14ecb66fb352b90d40a9884a5ad235d98ac72e`; identity locators: README title/overview/citation, `pyproject.toml` project metadata/dependencies, `raganything/__init__.py::__version__`, `LICENSE`; all file paths/regions above are the coverage locators for static findings. Git revision/status and tracked-file inventory were inspected during this compilation. Detailed claim locators are preserved in the linked concept footnotes; no unavailable upstream attachment is treated as inspected evidence.
+[^rag-anything-3a14ecb]: Canonical README plus source scope at revision `3a14ecb`; identity locators: README title/overview/citation, `pyproject.toml` project metadata/dependencies, `raganything/__init__.py::__version__`, `LICENSE`; all file paths/regions above are the coverage locators for static findings. Git revision/status and tracked-file inventory were inspected during this compilation. Detailed claim locators are preserved in the linked concept footnotes; no unavailable upstream attachment is treated as inspected evidence.

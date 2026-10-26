@@ -12,7 +12,7 @@ sources:
     resource: ../raw/WeKnora/README.md
     scope: ../raw/WeKnora/
     kind: code
-    revision: fd7a2586fd5855fc4ded5c981a92dcb82a455246
+    revision: fd7a258
     title: WeKnora v0.8.3 repository snapshot
 ---
 
@@ -44,4 +44,4 @@ The public widget mounts an iframe and schedules token refresh; the embed SPA ha
 
 Models, selected embed/session/widget logic, adapter contracts, route guards, and plugin source sections were inspected. Per-platform callback implementations, embed exchange/origin enforcement end to end, webhook delivery, plugin tools, browser bridge, and external platform APIs remain pending. No conversation, webhook, IM callback, or harness test ran. See the [source map](weknora-source-map.md).
 
-[^weknora]: Snapshot `fd7a2586fd5855fc4ded5c981a92dcb82a455246`: `internal/types/embed_channel.go::EmbedChannel`; `internal/application/service/embed_session.go::embedSessionTTL`, `SignEmbedSessionHandle`, `VerifyEmbedSessionHandle`; `internal/middleware/embed_auth.go`; `internal/router/routes_agent.go::RegisterEmbedPublicRoutes`, `RegisterIMRoutes`, `RegisterIMChannelRoutes`; `internal/handler/embed_channel.go` payload-patching symbol inventory; `frontend/public/weknora-widget.js::scheduleRefresh`; `frontend/src/embed-main.ts`; `frontend/src/composables/useEmbedBridge.ts`; `frontend/src/api/chat/streame.ts::canReconnect`; `internal/im/adapter.go`, `types.go`, `channel_security.go::validateChannelTransport`; `packages/dsh-weknora/package.json`; `packages/dsh-weknora/src/index.ts::apply`, `config.ts::resolveConfig`, `client.ts::assembleStream`; plugin README compatibility section. Package entry: [README](../raw/WeKnora/README.md), “Channels and integrations” and “Clients and Integrations.”
+[^weknora]: Snapshot `fd7a258`: `internal/types/embed_channel.go::EmbedChannel`; `internal/application/service/embed_session.go::embedSessionTTL`, `SignEmbedSessionHandle`, `VerifyEmbedSessionHandle`; `internal/middleware/embed_auth.go`; `internal/router/routes_agent.go::RegisterEmbedPublicRoutes`, `RegisterIMRoutes`, `RegisterIMChannelRoutes`; `internal/handler/embed_channel.go` payload-patching symbol inventory; `frontend/public/weknora-widget.js::scheduleRefresh`; `frontend/src/embed-main.ts`; `frontend/src/composables/useEmbedBridge.ts`; `frontend/src/api/chat/streame.ts::canReconnect`; `internal/im/adapter.go`, `types.go`, `channel_security.go::validateChannelTransport`; `packages/dsh-weknora/package.json`; `packages/dsh-weknora/src/index.ts::apply`, `config.ts::resolveConfig`, `client.ts::assembleStream`; plugin README compatibility section. Package entry: [README](../raw/WeKnora/README.md), “Channels and integrations” and “Clients and Integrations.”

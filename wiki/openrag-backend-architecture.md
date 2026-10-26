@@ -12,7 +12,7 @@ sources:
     resource: ../raw/openrag/README.md
     scope: ../raw/openrag/
     kind: code
-    revision: 6fc819d3ec10ee3d0dedc842d244ec2b63fd9791
+    revision: 6fc819d
     title: OpenRAG repository
 ---
 
@@ -60,4 +60,4 @@ The declared SQL API-key model does not establish that SQL is the active key-aut
 
 Targeted entrypoint, config, model, and migration inspection is not execution of migrations or proof of cross-store consistency. Repository methods other than the workspace-config repository, legacy runtime bodies, and gateway internals remain partly pending; see [source map](openrag-source-map.md).
 
-[^openrag-repo]: `6fc819d3ec10ee3d0dedc842d244ec2b63fd9791`: `src/main.py::__main__`; `src/bootstrap.py::load_env`; `src/app/{factory,container,lifespan,router_app}.py::{create_app,initialize_services,run_startup}`; `src/config/config_manager.py::{load_config,_load_env_overrides,apply_index_name_env_override}`; `src/config/{paths,storage_mode}.py`; `src/services/{workspace_config_service,api_key_service}.py`; `src/db/engine.py`; `src/db/models/{conversation,session_ownership,api_key}.py`; `src/db/migrations_runtime.py`; `alembic/versions/0001_initial.py` through `0008_session_conversation_id.py`.
+[^openrag-repo]: `6fc819d`: `src/main.py::__main__`; `src/bootstrap.py::load_env`; `src/app/{factory,container,lifespan,router_app}.py::{create_app,initialize_services,run_startup}`; `src/config/config_manager.py::{load_config,_load_env_overrides,apply_index_name_env_override}`; `src/config/{paths,storage_mode}.py`; `src/services/{workspace_config_service,api_key_service}.py`; `src/db/engine.py`; `src/db/models/{conversation,session_ownership,api_key}.py`; `src/db/migrations_runtime.py`; `alembic/versions/0001_initial.py` through `0008_session_conversation_id.py`.

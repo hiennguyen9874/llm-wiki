@@ -12,7 +12,7 @@ sources:
     resource: ../raw/ragas/README.md
     scope: ../raw/ragas/
     kind: code
-    revision: 298b68274234c060deacab3cf5fb52aa3a20e885
+    revision: 298b682
     title: Ragas repository
 ---
 
@@ -45,4 +45,4 @@ Representative tracing unit tests use mocked SDKs. Those assertions are not host
 - Depends on optional extras and [operations](ragas-operations.md); [security](ragas-security.md) distinguishes default analytics from enabled integration payloads.
 - AG-UI and some wrappers were inspected at structural/network-call depth only. No framework app, upload, remote trace fetch or service integration ran; end-to-end interoperability remains unverified.
 
-[^ragas-298b682]: Ragas `298b68274234c060deacab3cf5fb52aa3a20e885`, `src/ragas/integrations/langchain.py`; `llama_index.py`; `amazon_bedrock.py`; `griptape.py`; `swarm.py`; `r2r.py`; `ag_ui.py` (HTTPX client/network-call regions); `langsmith.py::upload_dataset/evaluate`; `opik.py`; `tracing/langfuse.py::sync_trace/LangfuseTrace.filter`; `tracing/mlflow.py::sync_trace/MLflowTrace.get_url`; `helicone.py::HeliconeSingleton.default_headers` (integration paths relative to `src/ragas/integrations/`); `src/ragas/evaluation.py::aevaluate`; `tests/unit/integrations/test_tracing.py`. Static inspection only unless explicitly stated otherwise; coverage and remaining limits: [source map](ragas-source-map.md).
+[^ragas-298b682]: Ragas `298b682`, `src/ragas/integrations/langchain.py`; `llama_index.py`; `amazon_bedrock.py`; `griptape.py`; `swarm.py`; `r2r.py`; `ag_ui.py` (HTTPX client/network-call regions); `langsmith.py::upload_dataset/evaluate`; `opik.py`; `tracing/langfuse.py::sync_trace/LangfuseTrace.filter`; `tracing/mlflow.py::sync_trace/MLflowTrace.get_url`; `helicone.py::HeliconeSingleton.default_headers` (integration paths relative to `src/ragas/integrations/`); `src/ragas/evaluation.py::aevaluate`; `tests/unit/integrations/test_tracing.py`. Static inspection only unless explicitly stated otherwise; coverage and remaining limits: [source map](ragas-source-map.md).

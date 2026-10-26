@@ -12,7 +12,7 @@ sources:
     resource: ../raw/txtai/README.md
     scope: ../raw/txtai/
     kind: code
-    revision: 738aac498ccbba7c4bff51886e660edd5241d04e
+    revision: 738aac4
     title: txtai repository
 ---
 
@@ -55,4 +55,4 @@ Legacy serializers can fall back to gated pickle; enabling `ALLOW_PICKLE` change
 
 No persistence round-trip, failure injection, migration, concurrent-write, remote-database, cloud upload/download, or archive extraction was executed. No general crash-consistency guarantee is established.
 
-[^txtai-repo]: Revision `738aac498ccbba7c4bff51886e660edd5241d04e`: `src/python/txtai/embeddings/base.py::Embeddings.index, upsert, delete, reindex, save, load`; `embeddings/index/indexids.py::IndexIds`; `embeddings/index/transform.py::Transform.load, stream`; `embeddings/index/documents.py::Documents`; `database/factory.py::DatabaseFactory`; `database/schema/statement.py::Statement`; `database/rdbms.py::RDBMS.load, initialize, session, reindex, embed, scores, query`; `database/client.py::Client.createtables, connect`; `database/duckdb.py::DuckDB`; `database/sql/base.py` statement parsing; `database/encoder/image.py::ImageEncoder`; `embeddings/index/configuration.py::Configuration`; `serialize/serializer.py::Serializer`, `serialize/pickle.py::Pickle.allow`; `archive/tar.py::Tar.unpack`, `archive/zip.py::Zip.unpack`; `cloud/factory.py::CloudFactory`, `cloud/storage.py::ObjectStorage.load`, `cloud/hub.py::HuggingFaceHub`; `docs/embeddings/format.md`, `docs/embeddings/indexing.md` cloud storage restriction. Short module paths are relative to `src/python/txtai/`.
+[^txtai-repo]: Revision `738aac4`: `src/python/txtai/embeddings/base.py::Embeddings.index, upsert, delete, reindex, save, load`; `embeddings/index/indexids.py::IndexIds`; `embeddings/index/transform.py::Transform.load, stream`; `embeddings/index/documents.py::Documents`; `database/factory.py::DatabaseFactory`; `database/schema/statement.py::Statement`; `database/rdbms.py::RDBMS.load, initialize, session, reindex, embed, scores, query`; `database/client.py::Client.createtables, connect`; `database/duckdb.py::DuckDB`; `database/sql/base.py` statement parsing; `database/encoder/image.py::ImageEncoder`; `embeddings/index/configuration.py::Configuration`; `serialize/serializer.py::Serializer`, `serialize/pickle.py::Pickle.allow`; `archive/tar.py::Tar.unpack`, `archive/zip.py::Zip.unpack`; `cloud/factory.py::CloudFactory`, `cloud/storage.py::ObjectStorage.load`, `cloud/hub.py::HuggingFaceHub`; `docs/embeddings/format.md`, `docs/embeddings/indexing.md` cloud storage restriction. Short module paths are relative to `src/python/txtai/`.

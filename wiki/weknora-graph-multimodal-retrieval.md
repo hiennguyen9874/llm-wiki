@@ -12,7 +12,7 @@ sources:
     resource: ../raw/WeKnora/README.md
     scope: ../raw/WeKnora/
     kind: code
-    revision: fd7a2586fd5855fc4ded5c981a92dcb82a455246
+    revision: fd7a258
     title: WeKnora v0.8.3 repository snapshot
 ---
 
@@ -40,4 +40,4 @@ Selected `graphSearchService.Search` code checks the knowledge-base read grant, 
 
 Selected graph service logic, type/limit symbols, embedding sanitization, and reranking exceptions were inspected. Neo4j query bodies, graph extraction, image enrichment/indexing, model adapters, image-keep bounds, and multimodal quality evaluations remain pending. No model, database, or image retrieval was run. See the [source map](weknora-source-map.md).
 
-[^weknora]: Snapshot `fd7a2586fd5855fc4ded5c981a92dcb82a455246`: `internal/application/service/graph_search.go::graphSearchService.Search`; `internal/types/graph_search.go::GraphSearchTimeout`, `GraphSearchRequest.Normalize` and cap symbols; `internal/application/service/retriever/keywords_vector_hybrid_indexer.go::embeddingImagePayloadPatterns`, `sanitizeForEmbedding`; `internal/reranking/image.go::MinImageKeepScore`, `ImageKeepScoreFor`; `internal/reranking/rerank.go::Rerank`, `topByScore`, `keptImages`, `scoredCopy`. Package entry: [README](../raw/WeKnora/README.md), v0.8.3 “Multimodal Embedding,” “Image gallery,” and “Retrieval.”
+[^weknora]: Snapshot `fd7a258`: `internal/application/service/graph_search.go::graphSearchService.Search`; `internal/types/graph_search.go::GraphSearchTimeout`, `GraphSearchRequest.Normalize` and cap symbols; `internal/application/service/retriever/keywords_vector_hybrid_indexer.go::embeddingImagePayloadPatterns`, `sanitizeForEmbedding`; `internal/reranking/image.go::MinImageKeepScore`, `ImageKeepScoreFor`; `internal/reranking/rerank.go::Rerank`, `topByScore`, `keptImages`, `scoredCopy`. Package entry: [README](../raw/WeKnora/README.md), v0.8.3 “Multimodal Embedding,” “Image gallery,” and “Retrieval.”

@@ -12,7 +12,7 @@ sources:
     resource: ../raw/ragas/README.md
     scope: ../raw/ragas/
     kind: code
-    revision: 298b68274234c060deacab3cf5fb52aa3a20e885
+    revision: 298b682
     title: Ragas repository
 ---
 
@@ -45,4 +45,4 @@ KnowledgeGraph saves JSON with UUID identifiers, full properties and relationshi
 - Uses [models and embeddings](ragas-model-adapters.md) and [prompt lifecycle](ragas-prompt-optimization.md).
 - Conceptual KG/scenario diagrams were visually inspected, not treated as proof of exact defaults. No graph generation, transform rerun, persistence round trip, token count or model-quality check executed.
 
-[^ragas-298b682]: Ragas `298b68274234c060deacab3cf5fb52aa3a20e885`, `src/ragas/testset/graph.py::Node/Relationship/KnowledgeGraph.save/load/_add_relationship`; `src/ragas/testset/transforms/default.py::default_transforms/default_transforms_for_prechunked`; `transforms/engine.py::apply_transforms/Parallel/rollback_transforms`; `transforms/filters.py::CustomNodeFilter`; `transforms/extractors/llm_based.py::SummaryExtractor`; `transforms/splitters/headline.py::HeadlineSplitter`; `transforms/relationship_builders/cosine.py::CosineSimilarityBuilder`; `transforms/relationship_builders/traditional.py::OverlapScoreBuilder` (transform paths relative to `src/ragas/testset/`); `docs/_static/imgs/kg_rag.png` (whole diagram). Static inspection only unless explicitly stated otherwise; coverage and remaining limits: [source map](ragas-source-map.md).
+[^ragas-298b682]: Ragas `298b682`, `src/ragas/testset/graph.py::Node/Relationship/KnowledgeGraph.save/load/_add_relationship`; `src/ragas/testset/transforms/default.py::default_transforms/default_transforms_for_prechunked`; `transforms/engine.py::apply_transforms/Parallel/rollback_transforms`; `transforms/filters.py::CustomNodeFilter`; `transforms/extractors/llm_based.py::SummaryExtractor`; `transforms/splitters/headline.py::HeadlineSplitter`; `transforms/relationship_builders/cosine.py::CosineSimilarityBuilder`; `transforms/relationship_builders/traditional.py::OverlapScoreBuilder` (transform paths relative to `src/ragas/testset/`); `docs/_static/imgs/kg_rag.png` (whole diagram). Static inspection only unless explicitly stated otherwise; coverage and remaining limits: [source map](ragas-source-map.md).

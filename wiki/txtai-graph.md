@@ -12,7 +12,7 @@ sources:
     resource: ../raw/txtai/README.md
     scope: ../raw/txtai/
     kind: code
-    revision: 738aac498ccbba7c4bff51886e660edd5241d04e
+    revision: 738aac4
     title: txtai repository
 ---
 
@@ -44,4 +44,4 @@ NetworkX persists nodes, edges, categories, and topics through serialization, wi
 
 Static code and sampled graph-test inspection only. Graph completeness, community quality, factual relation extraction, backend equivalence, practical scalability, and runtime correctness were not measured.
 
-[^txtai-repo]: Revision `738aac498ccbba7c4bff51886e660edd5241d04e`: `src/python/txtai/graph/base.py::Graph.insert, resolverelations, inferedges, addbatch, addtopics, delete`; `graph/networkx.py::NetworkX.louvain, centrality, pagerank, showpath, distance, save, load`; `graph/topics.py::Topics.score`; `graph/query.py::Query.isquery, parse, build, filter`; `graph/rdbms.py::RDBMS.create, load, save, connect`; `graph/factory.py::GraphFactory`; `embeddings/search/base.py::Search.graphsearch`; `embeddings/base.py::Embeddings.index, batchsearch`; `docs/embeddings/configuration/graph.md`; `test/python/testgraph.py::testDatabase, testCommunityUnmatchedNodes, testSearchSkip, testUpsert` (sampled statically). Short module paths are relative to `src/python/txtai/`.
+[^txtai-repo]: Revision `738aac4`: `src/python/txtai/graph/base.py::Graph.insert, resolverelations, inferedges, addbatch, addtopics, delete`; `graph/networkx.py::NetworkX.louvain, centrality, pagerank, showpath, distance, save, load`; `graph/topics.py::Topics.score`; `graph/query.py::Query.isquery, parse, build, filter`; `graph/rdbms.py::RDBMS.create, load, save, connect`; `graph/factory.py::GraphFactory`; `embeddings/search/base.py::Search.graphsearch`; `embeddings/base.py::Embeddings.index, batchsearch`; `docs/embeddings/configuration/graph.md`; `test/python/testgraph.py::testDatabase, testCommunityUnmatchedNodes, testSearchSkip, testUpsert` (sampled statically). Short module paths are relative to `src/python/txtai/`.

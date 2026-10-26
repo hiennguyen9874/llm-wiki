@@ -12,7 +12,7 @@ sources:
     resource: ../raw/ragas/README.md
     scope: ../raw/ragas/
     kind: code
-    revision: 298b68274234c060deacab3cf5fb52aa3a20e885
+    revision: 298b682
     title: Ragas repository
 ---
 
@@ -40,4 +40,4 @@ Executor assigns submission indices, supports optional batches, restores submiss
 - Supersession is only a source-reported migration direction toward [experiments](ragas-experiments.md), not removal of the old API in this snapshot.
 - Executor/async-evaluation tests were inspected for intent, not run. No rate-limit, cancellation, timeout, notebook, cost or provider behavior was reproduced.
 
-[^ragas-298b682]: Ragas `298b68274234c060deacab3cf5fb52aa3a20e885`, `src/ragas/evaluation.py::aevaluate/evaluate`; `src/ragas/executor.py::Executor`; `src/ragas/async_utils.py::apply_nest_asyncio/as_completed/run`; `src/ragas/run_config.py::RunConfig/add_retry/add_async_retry`; `src/ragas/dataset_schema.py::EvaluationResult`; `tests/unit/test_executor.py`; `tests/unit/test_async_evaluation.py`. Static inspection only unless explicitly stated otherwise; coverage and remaining limits: [source map](ragas-source-map.md).
+[^ragas-298b682]: Ragas `298b682`, `src/ragas/evaluation.py::aevaluate/evaluate`; `src/ragas/executor.py::Executor`; `src/ragas/async_utils.py::apply_nest_asyncio/as_completed/run`; `src/ragas/run_config.py::RunConfig/add_retry/add_async_retry`; `src/ragas/dataset_schema.py::EvaluationResult`; `tests/unit/test_executor.py`; `tests/unit/test_async_evaluation.py`. Static inspection only unless explicitly stated otherwise; coverage and remaining limits: [source map](ragas-source-map.md).

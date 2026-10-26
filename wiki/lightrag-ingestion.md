@@ -12,7 +12,7 @@ sources:
     resource: ../raw/LightRAG/README.md
     scope: ../raw/LightRAG/
     kind: code
-    revision: aaebfe1bb8d55deb6a4304d357a3bf4c92fcd40a
+    revision: aaebfe1
     title: LightRAG repository
 ---
 
@@ -52,4 +52,4 @@ During document processing, the implementation builds the chunk dictionary, writ
 
 Targeted static reading only. Upload/queue execution, source-conflict CAS, admission interleavings, all custom-chunk journaling, parser formats and real backend flush failures were not reproduced. See [coverage](lightrag-source-map.md).
 
-[^lightrag-aaebfe1]: Revision `aaebfe1bb8d55deb6a4304d357a3bf4c92fcd40a`: `lightrag/lightrag.py::LightRAG.ainsert, _insert_done, _flush_storages`; `pipeline.py::_PipelineMixin.apipeline_enqueue_documents, apipeline_process_enqueue_documents, _add_content, _run_pipeline_batch, _persist_parsed_full_docs, _mark_duplicate_after_parse` and process-stage writes (5713–5925); `utils_pipeline.py::compute_text_content_hash`; `parser/routing.py::default_chunker_config, resolve_chunk_options`; `base.py::DocStatus`; `constants.py` insert/embedding/admission defaults; `api/routers/document_routes.py::pipeline_enqueue_file, pipeline_index_file`; `docs/FileProcessingPipeline.md` §7.1.
+[^lightrag-aaebfe1]: Revision `aaebfe1`: `lightrag/lightrag.py::LightRAG.ainsert, _insert_done, _flush_storages`; `pipeline.py::_PipelineMixin.apipeline_enqueue_documents, apipeline_process_enqueue_documents, _add_content, _run_pipeline_batch, _persist_parsed_full_docs, _mark_duplicate_after_parse` and process-stage writes (5713–5925); `utils_pipeline.py::compute_text_content_hash`; `parser/routing.py::default_chunker_config, resolve_chunk_options`; `base.py::DocStatus`; `constants.py` insert/embedding/admission defaults; `api/routers/document_routes.py::pipeline_enqueue_file, pipeline_index_file`; `docs/FileProcessingPipeline.md` §7.1.

@@ -12,7 +12,7 @@ sources:
     resource: ../raw/WeKnora/README.md
     scope: ../raw/WeKnora/
     kind: code
-    revision: fd7a2586fd5855fc4ded5c981a92dcb82a455246
+    revision: fd7a258
     title: WeKnora v0.8.3 repository snapshot
 ---
 
@@ -44,4 +44,4 @@ Token limits use language-dependent character estimates with a 0.9 safety factor
 
 Parser facade/registry/configuration, chunking framework, and selected ingestion guards were inspected; most format parsers, heading/heuristic bodies, Go AnyDoc/MinerU/PaddleOCR converters, OCR/VLM enrichment, upload handlers, and full reparse lifecycle remain pending. Test names were inspected, not executed. See the [source map](weknora-source-map.md).
 
-[^weknora]: Snapshot `fd7a2586fd5855fc4ded5c981a92dcb82a455246`: `docreader/main.py::DocReaderServicer.Read`, `ReadStream`, `_parse_request`, `_iter_image_refs`; `docreader/parser/parser.py::Parser`, `detect_effective_file_type`, `parse_file_stream`; `docreader/parser/registry.py::ParserEngineRegistry.get_parser_class`, `_DEFAULT_ENGINE_BY_TYPE`, `_build_default_registry`; `docreader/config.py::load_config`; `docreader/utils/request_memory.py::RequestThreadPoolExecutor`; `internal/infrastructure/chunker/splitter.go` defaults, protected patterns and `Chunk.EmbeddingContent`; `chunker/strategy.go::resolveChainWithProfile`, `SplitWithDiagnostics`, `DeriveParentChildConfigs`; `chunker/profiler.go::SelectStrategy`; `chunker/validator.go::ValidateChunks`; `chunker/tokens.go::CharsForTokenLimit`; `internal/application/service/knowledge_process.go::processChunks`. Package entry: [README](../raw/WeKnora/README.md), “Data sources and formats.”
+[^weknora]: Snapshot `fd7a258`: `docreader/main.py::DocReaderServicer.Read`, `ReadStream`, `_parse_request`, `_iter_image_refs`; `docreader/parser/parser.py::Parser`, `detect_effective_file_type`, `parse_file_stream`; `docreader/parser/registry.py::ParserEngineRegistry.get_parser_class`, `_DEFAULT_ENGINE_BY_TYPE`, `_build_default_registry`; `docreader/config.py::load_config`; `docreader/utils/request_memory.py::RequestThreadPoolExecutor`; `internal/infrastructure/chunker/splitter.go` defaults, protected patterns and `Chunk.EmbeddingContent`; `chunker/strategy.go::resolveChainWithProfile`, `SplitWithDiagnostics`, `DeriveParentChildConfigs`; `chunker/profiler.go::SelectStrategy`; `chunker/validator.go::ValidateChunks`; `chunker/tokens.go::CharsForTokenLimit`; `internal/application/service/knowledge_process.go::processChunks`. Package entry: [README](../raw/WeKnora/README.md), “Data sources and formats.”

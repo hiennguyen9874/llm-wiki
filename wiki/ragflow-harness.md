@@ -12,7 +12,7 @@ sources:
     resource: ../raw/ragflow/README.md
     scope: ../raw/ragflow/
     kind: code
-    revision: 1731e54b3aa024356711dc86de2e231afb0e4bf1
+    revision: 1731e54
     title: RAGFlow repository snapshot
 ---
 
@@ -48,4 +48,4 @@ The import search is static negative evidence, not an executed reachability proo
 
 **Observed** means static inspection, not demonstrated runtime behavior. This page is **draft** because package coverage is sampled; builds, application tests, external services, model execution, and performance claims were not verified. See the [source map](ragflow-source-map.md) for the coverage ledger and redacted security boundary.
 
-[^ragflow]: [RAGFlow source](../raw/ragflow/README.md), revision `1731e54b3aa024356711dc86de2e231afb0e4bf1`; locators: `internal/harness/harness.go::package documentation / re-exports`; `internal/harness/core/contracts.go::TypedAgent`; `internal/harness/core/runner.go::TypedRunner / NewTypedRunner`; `internal/harness/core/react_agent.go::ReActConfig`; `internal/harness/core/agent_loop.go::AgentLoop / NewAgentLoop`; `internal/harness/core/workflow.go::NewSequential / NewParallel / NewLoop`; `internal/harness/core/profile/profile.go::ProviderProfile / HarnessProfile`; `internal/harness/events/event.go::EventType`; `internal/harness/replay/replay.go::ReplayEngine`; `internal/harness/metrics/metrics.go::NewAgentMetrics`; `internal/harness/README.md::Project Structure`; `internal/agent/canvas/compile.go::eino imports`; `go.mod::module ragflow; static import search for ragflow/internal/harness outside internal/harness (2026-10-26)`.
+[^ragflow]: [RAGFlow source](../raw/ragflow/README.md), revision `1731e54`; locators: `internal/harness/harness.go::package documentation / re-exports`; `internal/harness/core/contracts.go::TypedAgent`; `internal/harness/core/runner.go::TypedRunner / NewTypedRunner`; `internal/harness/core/react_agent.go::ReActConfig`; `internal/harness/core/agent_loop.go::AgentLoop / NewAgentLoop`; `internal/harness/core/workflow.go::NewSequential / NewParallel / NewLoop`; `internal/harness/core/profile/profile.go::ProviderProfile / HarnessProfile`; `internal/harness/events/event.go::EventType`; `internal/harness/replay/replay.go::ReplayEngine`; `internal/harness/metrics/metrics.go::NewAgentMetrics`; `internal/harness/README.md::Project Structure`; `internal/agent/canvas/compile.go::eino imports`; `go.mod::module ragflow; static import search for ragflow/internal/harness outside internal/harness (2026-10-26)`.

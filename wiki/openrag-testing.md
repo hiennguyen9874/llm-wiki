@@ -12,7 +12,7 @@ sources:
     resource: ../raw/openrag/README.md
     scope: ../raw/openrag/
     kind: code
-    revision: 6fc819d3ec10ee3d0dedc842d244ec2b63fd9791
+    revision: 6fc819d
     title: OpenRAG repository
 ---
 
@@ -51,4 +51,4 @@ The ingest executed only repository metadata/inventory parsing and wiki-maintena
 
 Most test bodies, all execution results, provider/live validation scripts, and generated lockfile dependency audits remain pending. No source-level verification metadata is set on the compiled concepts.
 
-[^openrag-repo]: `6fc819d3ec10ee3d0dedc842d244ec2b63fd9791`: `pyproject.toml::{dependency-groups.dev,tool.pytest.ini_options,tool.ruff,tool.mypy}`; `tests/conftest.py`; `tests/unit/dependencies/test_require_api_key_permission.py`; `tests/integration/core/test_api_endpoints.py`; `tests/unit/known_failures.txt`; inventory entry `tests/unit/test_flow_component_sync.py` (existence only); `frontend/{package.json,next.config.ts,vitest.config.mts,playwright.config.ts}`; `Makefile::lint`; `.github/workflows/{test-backend,lint-backend,test-ci,security-scan,dependency-audit,codeql}.yml`; `docs/docs/core-components/ingestion.mdx` § Ingestion performance expectations.
+[^openrag-repo]: `6fc819d`: `pyproject.toml::{dependency-groups.dev,tool.pytest.ini_options,tool.ruff,tool.mypy}`; `tests/conftest.py`; `tests/unit/dependencies/test_require_api_key_permission.py`; `tests/integration/core/test_api_endpoints.py`; `tests/unit/known_failures.txt`; inventory entry `tests/unit/test_flow_component_sync.py` (existence only); `frontend/{package.json,next.config.ts,vitest.config.mts,playwright.config.ts}`; `Makefile::lint`; `.github/workflows/{test-backend,lint-backend,test-ci,security-scan,dependency-audit,codeql}.yml`; `docs/docs/core-components/ingestion.mdx` § Ingestion performance expectations.

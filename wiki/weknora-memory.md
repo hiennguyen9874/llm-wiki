@@ -12,7 +12,7 @@ sources:
     resource: ../raw/WeKnora/README.md
     scope: ../raw/WeKnora/
     kind: code
-    revision: fd7a2586fd5855fc4ded5c981a92dcb82a455246
+    revision: fd7a258
     title: WeKnora v0.8.3 repository snapshot
 ---
 
@@ -44,4 +44,4 @@ Scope is derived from request context rather than a client-selected memory subje
 
 Selected sections of memory types, service, extraction scheduling, and search were read. Repository scoping, vector/lexical ranking, consolidation, tombstones, confirmation APIs, retention, and evaluation datasets/tests remain pending. No memory quality, deletion, or isolation test was run; see the [source map](weknora-source-map.md).
 
-[^weknora]: Snapshot `fd7a2586fd5855fc4ded5c981a92dcb82a455246`: `internal/types/memory.go` kind/origin/status/write-mode constants, rune/item budgets, `ResidentMemoryKinds`, `MemorySubject`, `MemoryAllowedForAgent`; `internal/application/service/memory/service.go::workspaceConfig`, `enabledScope`, `Recall`, error sentinels; `memory/search.go::MemoryAvailable`, `SearchMemory`, `lexicalPoolSize`; `memory/extract.go::ScheduleExtraction` and extraction-budget constants. Package entry: [README](../raw/WeKnora/README.md), “Memory and curation” and v0.8.0 notes.
+[^weknora]: Snapshot `fd7a258`: `internal/types/memory.go` kind/origin/status/write-mode constants, rune/item budgets, `ResidentMemoryKinds`, `MemorySubject`, `MemoryAllowedForAgent`; `internal/application/service/memory/service.go::workspaceConfig`, `enabledScope`, `Recall`, error sentinels; `memory/search.go::MemoryAvailable`, `SearchMemory`, `lexicalPoolSize`; `memory/extract.go::ScheduleExtraction` and extraction-budget constants. Package entry: [README](../raw/WeKnora/README.md), “Memory and curation” and v0.8.0 notes.

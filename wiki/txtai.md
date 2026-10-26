@@ -12,7 +12,7 @@ sources:
     resource: ../raw/txtai/README.md
     scope: ../raw/txtai/
     kind: code
-    revision: 738aac498ccbba7c4bff51886e660edd5241d04e
+    revision: 738aac4
     title: txtai repository
 ---
 
@@ -36,7 +36,7 @@ This feature map is **synthesis of static inspection**, not proof that every opt
 
 ## Identity and evidence
 
-The canonical package is `raw/txtai/`, upstream `https://github.com/neuml/txtai`, pinned to `738aac498ccbba7c4bff51886e660edd5241d04e` (commit timestamp 2026-10-22). The local package declares version `9.15.0`, Python ≥3.11, and Apache-2.0 licensing. `CITATION.cff` names David Mezzetti/NeuML; its 2020 release date is historical citation metadata, not the snapshot date.[^txtai-repo]
+The canonical package is `raw/txtai/`, upstream `https://github.com/neuml/txtai`, pinned to `738aac4` (commit timestamp 2026-10-22). The local package declares version `9.15.0`, Python ≥3.11, and Apache-2.0 licensing. `CITATION.cff` names David Mezzetti/NeuML; its 2020 release date is historical citation metadata, not the snapshot date.[^txtai-repo]
 
 The README's “all-in-one” positioning, autonomy claims, and local/scale-out statements are **Reported**, not measurements. Its diagrams depict embeddings as a sparse/dense/database/graph union and documents → extraction/indexing → vector search → LLM → answer/citation; diagrams do not establish answer correctness, isolation, or production readiness.[^txtai-repo]
 
@@ -50,4 +50,4 @@ The README's “all-in-one” positioning, autonomy claims, and local/scale-out 
 
 Targeted static exploration by four Explore subagents and the curator; no txtai imports, application tests, models, services, builds, or benchmarks ran. All feature pages remain draft because optional-backend, test, example, and runtime coverage is incomplete. See the source map for the distinction between inspected content and syntax-only checks.
 
-[^txtai-repo]: Revision `738aac498ccbba7c4bff51886e660edd5241d04e`: `README.md` introduction, feature list, Agents, Retrieval augmented generation, Installation; `CITATION.cff` title/authors/license/date-released; `LICENSE` header; `setup.py::setup`, `src/python/txtai/version.py`; `src/python/txtai/__init__.py` exports; `src/python/txtai/embeddings/base.py::Embeddings`; `src/python/txtai/app/base.py::Application`; `docs/images/architecture.png` central embeddings block and `docs/images/rag.png` full left-to-right flow (visually inspected). Cross-platform relationships are synthesis from the linked wiki pages inspected in this session.
+[^txtai-repo]: Revision `738aac4`: `README.md` introduction, feature list, Agents, Retrieval augmented generation, Installation; `CITATION.cff` title/authors/license/date-released; `LICENSE` header; `setup.py::setup`, `src/python/txtai/version.py`; `src/python/txtai/__init__.py` exports; `src/python/txtai/embeddings/base.py::Embeddings`; `src/python/txtai/app/base.py::Application`; `docs/images/architecture.png` central embeddings block and `docs/images/rag.png` full left-to-right flow (visually inspected). Cross-platform relationships are synthesis from the linked wiki pages inspected in this session.

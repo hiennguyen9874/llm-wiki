@@ -12,7 +12,7 @@ sources:
     resource: ../raw/RAG-Anything/README.md
     scope: ../raw/RAG-Anything/
     kind: code
-    revision: 3a14ecb66fb352b90d40a9884a5ad235d98ac72e
+    revision: 3a14ecb
     title: RAG-Anything repository
 ---
 
@@ -55,4 +55,4 @@ sources:
 - **Depends on:** [Runtime operations](rag-anything-stack-operations.md) for CUDA/models/providers/environment.
 - **Uses:** [Source map](rag-anything-source-map.md) for missing-data and partial-evaluator coverage limits.
 
-[^rag-anything-3a14ecb]: Revision `3a14ecb66fb352b90d40a9884a5ad235d98ac72e`: `reproduce/index.py::process_with_rag` (92 onward, model functions/embedding configuration and final ingestion call); `reproduce/query.py::process_with_rag` (92 onward; rerank/LightRAG setup, JSONL reading, query and output writing 190–285); `reproduce/env.example`; `reproduce/llm_answer_evaluator.py` grading prompts (46–158), evaluation/model call (286–530), structured result reader (approximately 870–980), atomic saves (1009), report (1058–1188), resume (1489–1580), flat QA reader and directory discovery (1581–1715), CLI/main (1738–1876); default data path checked against package inventory; README “Citation” links the external technical report. Evaluator inspection was targeted, not a complete line-by-line audit; no experiment was run.
+[^rag-anything-3a14ecb]: Revision `3a14ecb`: `reproduce/index.py::process_with_rag` (92 onward, model functions/embedding configuration and final ingestion call); `reproduce/query.py::process_with_rag` (92 onward; rerank/LightRAG setup, JSONL reading, query and output writing 190–285); `reproduce/env.example`; `reproduce/llm_answer_evaluator.py` grading prompts (46–158), evaluation/model call (286–530), structured result reader (approximately 870–980), atomic saves (1009), report (1058–1188), resume (1489–1580), flat QA reader and directory discovery (1581–1715), CLI/main (1738–1876); default data path checked against package inventory; README “Citation” links the external technical report. Evaluator inspection was targeted, not a complete line-by-line audit; no experiment was run.

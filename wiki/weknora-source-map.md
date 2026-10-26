@@ -11,7 +11,7 @@ sources:
     resource: ../raw/WeKnora/README.md
     scope: ../raw/WeKnora/
     kind: code
-    revision: fd7a2586fd5855fc4ded5c981a92dcb82a455246
+    revision: fd7a258
     title: WeKnora v0.8.3 repository snapshot
 ---
 
@@ -21,7 +21,7 @@ This is the reconciliation ledger for the WeKnora package, not a claim of exhaus
 
 - Canonical entry: [README](../raw/WeKnora/README.md); package scope: `raw/WeKnora/`.
 - Upstream identity: Tencent/WeKnora, as linked by the README; version file: `0.8.3`.
-- Revision: `fd7a2586fd5855fc4ded5c981a92dcb82a455246`, commit subject “fix(docparser): escape standalone image filenames in Markdown (#4475),” author timestamp 2026-10-26.
+- Revision: `fd7a258`, commit subject “fix(docparser): escape standalone image filenames in Markdown (#4475),” author timestamp 2026-10-26.
 - **Observed snapshot caveat:** the sole tracked worktree difference at inspection was a pre-existing `.gitignore` addition for `.pi/`. It was left unchanged. The ledger hashes local artifact bytes, so the revision is qualified by that explicit difference.
 - WeKnora's own code is MIT. Third-party component terms remain separate; the top-level notice describes MPL source/notice bundles, Apache-licensed dictionary/OCR material, and other component notices. Detailed license texts and packaged source archives were not audited.[^weknora]
 
@@ -85,4 +85,4 @@ Future ingests should match normalized package scope plus revision, reconcile ar
 - Documents the evidence boundary for [WeKnora](weknora.md) and every linked concept above.
 - Uses the TSV as supporting canonical coverage data, not as an additional source identity.
 
-[^weknora]: Snapshot `fd7a2586fd5855fc4ded5c981a92dcb82a455246`: [README](../raw/WeKnora/README.md), “Overview,” “Architecture,” “Features,” “Clients and Integrations,” and “Development”; `VERSION`; `LICENSE`, opening MIT terms; `THIRD_PARTY_NOTICES.md`, introduction and component sections; `docs/images/readme/architecture-en-light.svg`, services/model-catalog labels; `.gitignore` final addition. Repository metadata inspected with `git rev-parse HEAD`, `git log -1`, `git status --short --ignored`, `git diff -- .gitignore`, and `git ls-files -z`. Per-file methods and local hashes are persisted in [the coverage inventory](weknora-source-inventory.tsv); behavior-specific symbol locators appear in the linked concept footnotes.
+[^weknora]: Snapshot `fd7a258`: [README](../raw/WeKnora/README.md), “Overview,” “Architecture,” “Features,” “Clients and Integrations,” and “Development”; `VERSION`; `LICENSE`, opening MIT terms; `THIRD_PARTY_NOTICES.md`, introduction and component sections; `docs/images/readme/architecture-en-light.svg`, services/model-catalog labels; `.gitignore` final addition. Repository metadata inspected with `git rev-parse HEAD`, `git log -1`, `git status --short --ignored`, `git diff -- .gitignore`, and `git ls-files -z`. Per-file methods and local hashes are persisted in [the coverage inventory](weknora-source-inventory.tsv); behavior-specific symbol locators appear in the linked concept footnotes.

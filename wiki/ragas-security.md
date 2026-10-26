@@ -12,7 +12,7 @@ sources:
     resource: ../raw/ragas/README.md
     scope: ../raw/ragas/
     kind: code
-    revision: 298b68274234c060deacab3cf5fb52aa3a20e885
+    revision: 298b682
     title: Ragas repository
 ---
 
@@ -52,4 +52,4 @@ Pattern screens across tracked UTF-8 content found no selected live-key/private-
 
 - Constrains [model adapters](ragas-model-adapters.md), [specialized metrics](ragas-specialized-metrics.md), [persistence](ragas-backends.md), [integrations](ragas-integrations.md) and [operations](ragas-operations.md).
 
-[^ragas-298b682]: Ragas `298b68274234c060deacab3cf5fb52aa3a20e885`, `src/ragas/_analytics.py::do_not_track/get_userid/BaseEvent/AnalyticsBatcher/track`; `README.md::Open Analytics`; `src/ragas/prompt/multi_modal_prompt.py::_download_validate_and_encode/_is_safe_url_target`; `src/ragas/metrics/collections/multi_modal_faithfulness/util.py::_try_process_url/_try_process_local_file/build_multimodal_message_content`; `src/ragas/backends/gdrive_backend.py::GDriveBackend._setup_auth`; `src/ragas/backends/local_csv.py::LocalCSVBackend._get_file_path`; `src/ragas/backends/local_jsonl.py::LocalJSONLBackend._get_file_path`; `src/ragas/backends/registry.py::BackendRegistry.discover_backends`; `src/ragas/cli.py::load_eval_module/quickstart`; `src/ragas/experiment.py::version_experiment`; `Makefile::benchmarks-docker`; `tests/benchmarks/Dockerfile`; `.github/workflows/claude-docs-check.yml::check-docs`; `SECURITY.md::Reporting Security Issues/Supported Versions`. Static inspection only unless explicitly stated otherwise; coverage and remaining limits: [source map](ragas-source-map.md).
+[^ragas-298b682]: Ragas `298b682`, `src/ragas/_analytics.py::do_not_track/get_userid/BaseEvent/AnalyticsBatcher/track`; `README.md::Open Analytics`; `src/ragas/prompt/multi_modal_prompt.py::_download_validate_and_encode/_is_safe_url_target`; `src/ragas/metrics/collections/multi_modal_faithfulness/util.py::_try_process_url/_try_process_local_file/build_multimodal_message_content`; `src/ragas/backends/gdrive_backend.py::GDriveBackend._setup_auth`; `src/ragas/backends/local_csv.py::LocalCSVBackend._get_file_path`; `src/ragas/backends/local_jsonl.py::LocalJSONLBackend._get_file_path`; `src/ragas/backends/registry.py::BackendRegistry.discover_backends`; `src/ragas/cli.py::load_eval_module/quickstart`; `src/ragas/experiment.py::version_experiment`; `Makefile::benchmarks-docker`; `tests/benchmarks/Dockerfile`; `.github/workflows/claude-docs-check.yml::check-docs`; `SECURITY.md::Reporting Security Issues/Supported Versions`. Static inspection only unless explicitly stated otherwise; coverage and remaining limits: [source map](ragas-source-map.md).

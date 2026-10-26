@@ -12,7 +12,7 @@ sources:
     resource: ../raw/UltraRAG/README.md
     scope: ../raw/UltraRAG/
     kind: code
-    revision: 185e2032d9f134099405b8b483edbbad95274080
+    revision: 185e203
     title: UltraRAG repository
 ---
 
@@ -76,4 +76,4 @@ Seven top-level test files target local interpreter launch, remote MCP configura
 - **Constrained by:** [security defaults](ultrarag-security.md) before publishing the container port.
 - **Depends on:** external assets required by [generation](ultrarag-generation.md), [retrieval](ultrarag-retrieval.md), and [corpus processing](ultrarag-corpus.md).
 
-[^ultrarag]: Revision `185e2032d9f134099405b8b483edbbad95274080`: `pyproject.toml` project/dependency/extras/uv-index sections; `README.md` Installation and Docker sections; `Dockerfile`, `Dockerfile.base-cpu`, `Dockerfile.base-gpu` stages/install/CMD; `ui/frontend/package.json` dependencies/scripts; `ui/frontend/vite.config.ts`; `.github/workflows/{ci-smoke,dockerhub-nightly}.yml` jobs, schedules, tags; `src/ultrarag/client.py::main`, `launch_ui`; `src/ultrarag/mcp_exceptions.py::check_node_version`; `script/vllm_serve*.sh`; demo parameter endpoints; `tests/**/*.py` and `servers/{generation,retriever}/tests/*.py` static inventory. Session-local syntax check: standard-library `ast.parse(f.read_text(encoding='utf-8'), filename=str(f))` over `Path('raw/UltraRAG').rglob('*.py')`, 52 files, zero errors, 2026-10-26; no import/test execution.
+[^ultrarag]: Revision `185e203`: `pyproject.toml` project/dependency/extras/uv-index sections; `README.md` Installation and Docker sections; `Dockerfile`, `Dockerfile.base-cpu`, `Dockerfile.base-gpu` stages/install/CMD; `ui/frontend/package.json` dependencies/scripts; `ui/frontend/vite.config.ts`; `.github/workflows/{ci-smoke,dockerhub-nightly}.yml` jobs, schedules, tags; `src/ultrarag/client.py::main`, `launch_ui`; `src/ultrarag/mcp_exceptions.py::check_node_version`; `script/vllm_serve*.sh`; demo parameter endpoints; `tests/**/*.py` and `servers/{generation,retriever}/tests/*.py` static inventory. Session-local syntax check: standard-library `ast.parse(f.read_text(encoding='utf-8'), filename=str(f))` over `Path('raw/UltraRAG').rglob('*.py')`, 52 files, zero errors, 2026-10-26; no import/test execution.

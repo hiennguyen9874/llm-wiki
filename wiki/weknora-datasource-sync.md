@@ -12,7 +12,7 @@ sources:
     resource: ../raw/WeKnora/README.md
     scope: ../raw/WeKnora/
     kind: code
-    revision: fd7a2586fd5855fc4ded5c981a92dcb82a455246
+    revision: fd7a258
     title: WeKnora v0.8.3 repository snapshot
 ---
 
@@ -42,4 +42,4 @@ The registry rejects nil connectors and empty type strings and returns an explic
 
 Connector framework and registry metadata were inspected; scheduler inspection was symbolic. Provider implementations, OAuth/token refresh, remote attachments, markdown conversion, rate limits, conflict handling, and actual checkpoint storage remain pending. No remote connection or sync ran. See the [source map](weknora-source-map.md).
 
-[^weknora]: Snapshot `fd7a2586fd5855fc4ded5c981a92dcb82a455246`: `internal/datasource/connector.go::Connector`, `StreamHandler`, `StreamingConnector`, `FullStreamingConnector`, `FullSyncWithCursor`, `ConnectorRegistry`, `ConnectorMetadataRegistry`; `internal/datasource/scheduler.go::ValidateSyncSchedule`, `Scheduler.AddOrUpdate`, `addEntryLocked`, `triggerSync` (symbol inventory). Package entry: [README](../raw/WeKnora/README.md), “Data sources and formats” and “Supported backends.”
+[^weknora]: Snapshot `fd7a258`: `internal/datasource/connector.go::Connector`, `StreamHandler`, `StreamingConnector`, `FullStreamingConnector`, `FullSyncWithCursor`, `ConnectorRegistry`, `ConnectorMetadataRegistry`; `internal/datasource/scheduler.go::ValidateSyncSchedule`, `Scheduler.AddOrUpdate`, `addEntryLocked`, `triggerSync` (symbol inventory). Package entry: [README](../raw/WeKnora/README.md), “Data sources and formats” and “Supported backends.”

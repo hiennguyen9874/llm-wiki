@@ -12,7 +12,7 @@ sources:
     resource: ../raw/WeKnora/README.md
     scope: ../raw/WeKnora/
     kind: code
-    revision: fd7a2586fd5855fc4ded5c981a92dcb82a455246
+    revision: fd7a258
     title: WeKnora v0.8.3 repository snapshot
 ---
 
@@ -51,4 +51,4 @@ Without Redis, `SyncTaskExecutor` emulates task delay/retry/timeout options in g
 
 Static selected sections and queue-test names only; no worker, crash-recovery, retry, fairness, or load test ran. Housekeeping and every task handler's idempotence remain unreviewed. See the [source map](weknora-source-map.md).
 
-[^weknora]: Snapshot `fd7a2586fd5855fc4ded5c981a92dcb82a455246`: `internal/types/task.go::queueDefinitions`, `QueueWeightsForSharedPool`, `ResolveWorkerPoolConcurrency`, worker default constants; `internal/router/task.go::RunAsynqServer`, `asynqRetryDelayFunc`, `taskTypesAffectingKnowledgeStatus`, `newDeadLetterKnowledgeFailer`, server constructors; `internal/router/sync_task.go::SyncTaskExecutor`; `internal/container/container.go::BuildContainer`, `initAntsPool`, model-governor initialization; `internal/container/reset_pending_tasks.go::resetPendingTasks`. Package entry: [README](../raw/WeKnora/README.md), “Permissions and operations” and v0.7.0 notes.
+[^weknora]: Snapshot `fd7a258`: `internal/types/task.go::queueDefinitions`, `QueueWeightsForSharedPool`, `ResolveWorkerPoolConcurrency`, worker default constants; `internal/router/task.go::RunAsynqServer`, `asynqRetryDelayFunc`, `taskTypesAffectingKnowledgeStatus`, `newDeadLetterKnowledgeFailer`, server constructors; `internal/router/sync_task.go::SyncTaskExecutor`; `internal/container/container.go::BuildContainer`, `initAntsPool`, model-governor initialization; `internal/container/reset_pending_tasks.go::resetPendingTasks`. Package entry: [README](../raw/WeKnora/README.md), “Permissions and operations” and v0.7.0 notes.

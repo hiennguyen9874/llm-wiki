@@ -12,7 +12,7 @@ sources:
     resource: ../raw/openrag/README.md
     scope: ../raw/openrag/
     kind: code
-    revision: 6fc819d3ec10ee3d0dedc842d244ec2b63fd9791
+    revision: 6fc819d
     title: OpenRAG repository
 ---
 
@@ -54,4 +54,4 @@ The nudge prompt asks for exactly three short English suggestions, about 40 char
 
 No interrupted-stream, model, tool-routing, or citation-compliance test was executed. Internal chat producer and full ownership repository coverage remain pending; see [source map](openrag-source-map.md).
 
-[^openrag-repo]: `6fc819d3ec10ee3d0dedc842d244ec2b63fd9791`: `flows/openrag_agent.json::Agent-Nfw7u` and system prompt; `flows/openrag_nudges.json::Prompt Template-Wo6kR`; `frontend/hooks/useChatStreaming.ts::{sendMessage,startTimeout}`; `frontend/lib/chat-stream-parsers.ts` parser functions and `detectImplicitToolCall`; `src/api/v1/chat.py::{chat_create_endpoint,chat_delete_endpoint,_transform_stream_to_sse}`; `src/services/chat_service.py::{langflow_chat,langflow_nudges_chat}`; `src/api/nudges.py`; `docs/docs/core-components/chat.mdx` §§ Interrupted chat responses, Nudges, Upload documents to the chat.
+[^openrag-repo]: `6fc819d`: `flows/openrag_agent.json::Agent-Nfw7u` and system prompt; `flows/openrag_nudges.json::Prompt Template-Wo6kR`; `frontend/hooks/useChatStreaming.ts::{sendMessage,startTimeout}`; `frontend/lib/chat-stream-parsers.ts` parser functions and `detectImplicitToolCall`; `src/api/v1/chat.py::{chat_create_endpoint,chat_delete_endpoint,_transform_stream_to_sse}`; `src/services/chat_service.py::{langflow_chat,langflow_nudges_chat}`; `src/api/nudges.py`; `docs/docs/core-components/chat.mdx` §§ Interrupted chat responses, Nudges, Upload documents to the chat.

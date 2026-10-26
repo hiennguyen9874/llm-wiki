@@ -12,7 +12,7 @@ sources:
     resource: ../raw/UltraRAG/README.md
     scope: ../raw/UltraRAG/
     kind: code
-    revision: 185e2032d9f134099405b8b483edbbad95274080
+    revision: 185e203
     title: UltraRAG repository
 ---
 
@@ -68,4 +68,4 @@ The engine records per-step snapshots, writes `output/memory_<benchmark>_<pipeli
 - **Uses:** [router and prompt workflows](ultrarag-research-workflows.md) for data-dependent iteration.
 - **Used by:** [the UI](ultrarag-ui.md), which imports the same engine.
 
-[^ultrarag]: Revision `185e2032d9f134099405b8b483edbbad95274080`: `src/ultrarag/client.py::UltraData.__init__`, `_extract_io`, `get_data`, `save_data`, `write_memory_output`, `build`, `load_pipeline_context`, `_execute_steps`, `execute_pipeline`, `_auto_save_memory_turn`, `main`; `ui/backend/pipeline_manager.py` runtime/backend override builder; `src/ultrarag/server.py::UltraRAG_MCP_Server._make_io_mapping`, `_build_entry`, `build`, `__init__`; `src/ultrarag/api.py::_CallWrapper`, `initialize`, `PipelineCall`; `examples/experiments/{sayhello,rag_loop,rag_branch,hybrid_search}.yaml`; `script/api_usage_example.py`; `docs/llms.txt` embedded `quick_start.mdx`, `rag_client/multi_agents.mdx`, `api/cli.mdx` sections. All behavior here is static observation; examples were not run.
+[^ultrarag]: Revision `185e203`: `src/ultrarag/client.py::UltraData.__init__`, `_extract_io`, `get_data`, `save_data`, `write_memory_output`, `build`, `load_pipeline_context`, `_execute_steps`, `execute_pipeline`, `_auto_save_memory_turn`, `main`; `ui/backend/pipeline_manager.py` runtime/backend override builder; `src/ultrarag/server.py::UltraRAG_MCP_Server._make_io_mapping`, `_build_entry`, `build`, `__init__`; `src/ultrarag/api.py::_CallWrapper`, `initialize`, `PipelineCall`; `examples/experiments/{sayhello,rag_loop,rag_branch,hybrid_search}.yaml`; `script/api_usage_example.py`; `docs/llms.txt` embedded `quick_start.mdx`, `rag_client/multi_agents.mdx`, `api/cli.mdx` sections. All behavior here is static observation; examples were not run.

@@ -12,7 +12,7 @@ sources:
     resource: ../raw/ragas/README.md
     scope: ../raw/ragas/
     kind: code
-    revision: 298b68274234c060deacab3cf5fb52aa3a20e885
+    revision: 298b682
     title: Ragas repository
 ---
 
@@ -44,4 +44,4 @@ The source's picklability workaround indicates object persistence concerns, but 
 - Outbound provider calls and local cache contents are distinct from default analytics; see [security](ragas-security.md).
 - No model downloaded, wrapper imported, cache round-trip performed or provider compatibility tested. Adapter/provider bodies were inspected at varying depth.
 
-[^ragas-298b682]: Ragas `298b68274234c060deacab3cf5fb52aa3a20e885`, `src/ragas/llms/base.py::llm_factory/_get_instructor_client/InstructorModelArgs/InstructorLLM._map_openai_params/_map_google_params`; `src/ragas/llms/adapters/__init__.py::auto_detect_adapter`; `src/ragas/embeddings/base.py::BaseRagasEmbedding/BaseRagasEmbeddings/embedding_factory`; `src/ragas/evaluation.py::aevaluate`; `src/ragas/tokenizers.py::TiktokenWrapper/HuggingFaceTokenizer/get_default_tokenizer`; `src/ragas/cache.py::DiskCacheBackend/_generate_cache_key/cacher`; `tests/unit/test_cache.py::test_generate_cache_key_bound_method`; `src/ragas/prompt/pydantic_prompt.py::PydanticPrompt`; `src/ragas/prompt/metrics/base_prompt.py::BasePrompt`. Static inspection only unless explicitly stated otherwise; coverage and remaining limits: [source map](ragas-source-map.md).
+[^ragas-298b682]: Ragas `298b682`, `src/ragas/llms/base.py::llm_factory/_get_instructor_client/InstructorModelArgs/InstructorLLM._map_openai_params/_map_google_params`; `src/ragas/llms/adapters/__init__.py::auto_detect_adapter`; `src/ragas/embeddings/base.py::BaseRagasEmbedding/BaseRagasEmbeddings/embedding_factory`; `src/ragas/evaluation.py::aevaluate`; `src/ragas/tokenizers.py::TiktokenWrapper/HuggingFaceTokenizer/get_default_tokenizer`; `src/ragas/cache.py::DiskCacheBackend/_generate_cache_key/cacher`; `tests/unit/test_cache.py::test_generate_cache_key_bound_method`; `src/ragas/prompt/pydantic_prompt.py::PydanticPrompt`; `src/ragas/prompt/metrics/base_prompt.py::BasePrompt`. Static inspection only unless explicitly stated otherwise; coverage and remaining limits: [source map](ragas-source-map.md).

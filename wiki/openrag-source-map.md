@@ -12,11 +12,11 @@ sources:
     resource: ../raw/openrag/README.md
     scope: ../raw/openrag/
     kind: code
-    revision: 6fc819d3ec10ee3d0dedc842d244ec2b63fd9791
+    revision: 6fc819d
     title: OpenRAG repository
 ---
 
-OpenRAG is treated as one composite code source with canonical entry point `raw/openrag/README.md`, package scope `raw/openrag/`, and revision `6fc819d3ec10ee3d0dedc842d244ec2b63fd9791`. **Observed:** Git identifies upstream `langflow-ai/openrag`, commit date 2026-10-23, and a clean inner working tree at inspection. The package declares version `0.5.0`, Python ≥3.13, and Apache-2.0 licensing. This source map records targeted static coverage, not an exhaustive repository audit.[^openrag-repo]
+OpenRAG is treated as one composite code source with canonical entry point `raw/openrag/README.md`, package scope `raw/openrag/`, and revision `6fc819d`. **Observed:** Git identifies upstream `langflow-ai/openrag`, commit date 2026-10-23, and a clean inner working tree at inspection. The package declares version `0.5.0`, Python ≥3.13, and Apache-2.0 licensing. This source map records targeted static coverage, not an exhaustive repository audit.[^openrag-repo]
 
 ## Coverage ledger and idempotency
 
@@ -68,5 +68,5 @@ No application code, tests, builds, migrations, cloud commands, package installs
 - Describes coverage for the [OpenRAG overview](openrag.md) and every linked implementation concept.
 - Constrains any completeness, security, performance, or compatibility inference from this ingest.
 
-[^openrag-repo]: `6fc819d3ec10ee3d0dedc842d244ec2b63fd9791`: `README.md`; `pyproject.toml::project`; `LICENSE`; Git HEAD/commit/origin/status and tracked-path inventory inspected this session; `docs/README.md` PDF-generation dependency; `docs/static/img/workflow-diagram.svg` three labeled nodes; `docs/static/img/opensearch-agent-flow.png` graph; `src/tui/_assets/` symlink targets and tracked artifact dispositions recorded in the linked ledger. Detailed code locators are carried by the destination concepts.
+[^openrag-repo]: `6fc819d`: `README.md`; `pyproject.toml::project`; `LICENSE`; Git HEAD/commit/origin/status and tracked-path inventory inspected this session; `docs/README.md` PDF-generation dependency; `docs/static/img/workflow-diagram.svg` three labeled nodes; `docs/static/img/opensearch-agent-flow.png` graph; `src/tui/_assets/` symlink targets and tracked artifact dispositions recorded in the linked ledger. Detailed code locators are carried by the destination concepts.
 

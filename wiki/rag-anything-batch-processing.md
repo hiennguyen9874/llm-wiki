@@ -12,7 +12,7 @@ sources:
     resource: ../raw/RAG-Anything/README.md
     scope: ../raw/RAG-Anything/
     kind: code
-    revision: 3a14ecb66fb352b90d40a9884a5ad235d98ac72e
+    revision: 3a14ecb
     title: RAG-Anything repository
 ---
 
@@ -64,4 +64,4 @@ sources:
 
 Static implementation and selected regression-test inspection only. No batch, timeout, cancellation, manifest recovery, or load test was executed; see [source map](rag-anything-source-map.md).
 
-[^rag-anything-3a14ecb]: Revision `3a14ecb66fb352b90d40a9884a5ad235d98ac72e`: `raganything/batch_parser.py::BatchProcessingResult` (29), `BatchParser.__init__` (70–107), `_file_output_dir` (231), `_manifest_path` (244), manifest load/write (247–302), `_file_metadata`/`_file_signature`/`_filter_incremental_files` (305–398), `_parse_config_signature` (399–422), `process_batch` (including dry-run/invalidation 479–520, worker clock 538–601, success recording 622–633); `batch.py::process_folder_complete` (35), `process_documents_batch` (186), `process_documents_batch_async` (241), `process_documents_with_rag_batch` (324–528); `processor.py::_process_multimodal_content_batch_type_aware` (1158); `modalprocessors_video.py` frame semaphore (345–347); `config.py::RAGAnythingConfig`; `parse_options.py::PARSER_CACHE_KWARGS`; `docs/batch_processing.md`, incremental processing and multimodal ingestion concurrency sections; tests `test_batch_parser_workers.py`, `test_multimodal_concurrency.py`, and sampled `test_batch_rag_incremental.py` (not executed).
+[^rag-anything-3a14ecb]: Revision `3a14ecb`: `raganything/batch_parser.py::BatchProcessingResult` (29), `BatchParser.__init__` (70–107), `_file_output_dir` (231), `_manifest_path` (244), manifest load/write (247–302), `_file_metadata`/`_file_signature`/`_filter_incremental_files` (305–398), `_parse_config_signature` (399–422), `process_batch` (including dry-run/invalidation 479–520, worker clock 538–601, success recording 622–633); `batch.py::process_folder_complete` (35), `process_documents_batch` (186), `process_documents_batch_async` (241), `process_documents_with_rag_batch` (324–528); `processor.py::_process_multimodal_content_batch_type_aware` (1158); `modalprocessors_video.py` frame semaphore (345–347); `config.py::RAGAnythingConfig`; `parse_options.py::PARSER_CACHE_KWARGS`; `docs/batch_processing.md`, incremental processing and multimodal ingestion concurrency sections; tests `test_batch_parser_workers.py`, `test_multimodal_concurrency.py`, and sampled `test_batch_rag_incremental.py` (not executed).

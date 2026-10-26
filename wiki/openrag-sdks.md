@@ -12,7 +12,7 @@ sources:
     resource: ../raw/openrag/README.md
     scope: ../raw/openrag/
     kind: code
-    revision: 6fc819d3ec10ee3d0dedc842d244ec2b63fd9791
+    revision: 6fc819d
     title: OpenRAG repository
 ---
 
@@ -51,4 +51,4 @@ Python's document API documents the 500-file cap of `get_all_files` and recommen
 
 Client/chat implementations were inspected more deeply than all search/filter/model helper modules. No packages were installed and no SDK tests or network requests ran. Published package contents/version compatibility were not checked; this page describes repository code only. See [source map](openrag-source-map.md).
 
-[^openrag-repo]: `6fc819d3ec10ee3d0dedc842d244ec2b63fd9791`: `sdks/python/{pyproject.toml,README.md}`; `sdks/python/openrag_sdk/{client,chat,documents}.py::{OpenRAGClient,ChatStream,_request,_handle_error}`; `sdks/typescript/package.json`; `sdks/typescript/src/{client,chat,documents,index}.ts::{OpenRAGClient,ChatStream,_request,_handleError}`; `src/api/v1/files.py::get_all_files`; `docs/docs/core-components/chat.mdx` § Integrate OpenRAG chat into an application.
+[^openrag-repo]: `6fc819d`: `sdks/python/{pyproject.toml,README.md}`; `sdks/python/openrag_sdk/{client,chat,documents}.py::{OpenRAGClient,ChatStream,_request,_handle_error}`; `sdks/typescript/package.json`; `sdks/typescript/src/{client,chat,documents,index}.ts::{OpenRAGClient,ChatStream,_request,_handleError}`; `src/api/v1/files.py::get_all_files`; `docs/docs/core-components/chat.mdx` § Integrate OpenRAG chat into an application.

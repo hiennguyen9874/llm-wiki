@@ -12,7 +12,7 @@ sources:
     resource: ../raw/LightRAG/README.md
     scope: ../raw/LightRAG/
     kind: code
-    revision: aaebfe1bb8d55deb6a4304d357a3bf4c92fcd40a
+    revision: aaebfe1
     title: LightRAG repository
 ---
 
@@ -45,4 +45,4 @@ sources:
 
 Observed source control flow, not executed purge/rollback/restart evidence. Dedicated purge design contracts, all failure journals, backend strict-read completeness, concurrent deletes and destructive force-reset semantics remain only partially inspected. No deletion or repair command ran; see [coverage](lightrag-source-map.md).
 
-[^lightrag-aaebfe1]: Revision `aaebfe1bb8d55deb6a4304d357a3bf4c92fcd40a`: `lightrag/lightrag.py::LightRAG.adelete_by_doc_id, _purge_kg_contributions, _admin_write_gate, _raise_if_recovery_required, amerge_entities, _index_storages, _flush_storages` (purge 6015–6105; deletion 6727–7375; admin 7475–7513, 7925–7955, 8123–8360); `operate.py::rebuild_knowledge_from_chunks` (1102–1145); `base.py::BaseGraphStorage.requires_single_writer`; `api/routers/document_routes.py` deletion and recovery route registration; `api/routers/graph_routes.py` admin route registration.
+[^lightrag-aaebfe1]: Revision `aaebfe1`: `lightrag/lightrag.py::LightRAG.adelete_by_doc_id, _purge_kg_contributions, _admin_write_gate, _raise_if_recovery_required, amerge_entities, _index_storages, _flush_storages` (purge 6015–6105; deletion 6727–7375; admin 7475–7513, 7925–7955, 8123–8360); `operate.py::rebuild_knowledge_from_chunks` (1102–1145); `base.py::BaseGraphStorage.requires_single_writer`; `api/routers/document_routes.py` deletion and recovery route registration; `api/routers/graph_routes.py` admin route registration.

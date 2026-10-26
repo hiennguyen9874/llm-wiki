@@ -12,7 +12,7 @@ sources:
     resource: ../raw/openrag/README.md
     scope: ../raw/openrag/
     kind: code
-    revision: 6fc819d3ec10ee3d0dedc842d244ec2b63fd9791
+    revision: 6fc819d
     title: OpenRAG repository
 ---
 
@@ -56,4 +56,4 @@ Indexed fields include document/chunk identity, filename, MIME type, page, text,
 
 Direct processor internals, cancellation/rollback under failure, Docling compatibility, actual OCR quality, and performance remain untested or partly pending. See [source map](openrag-source-map.md).
 
-[^openrag-repo]: `6fc819d3ec10ee3d0dedc842d244ec2b63fd9791`: `flows/ingestion_flow.json::data.nodes/data.edges`; `custom_components/openrag/{docling_remote,export_docling_document}.py::{VALID_EXTENSIONS,MAX_500_RETRIES}` and export compatibility probe; `src/config/config_manager.py::KnowledgeConfig`; `src/api/settings/endpoints.py` chunk-overlap validation; `src/services/{langflow_file_service,docling_service,document_index_writer,langflow_ingest_token_service}.py::{run_ingestion_flow,get_docling_preset_configs,_build_chunk_document,_scoped_chunk_id,delete_ingest_run}`; `src/api/langflow_ingest.py::_authorized_chunk_id` and callback handler; `src/config/settings.py::{OPENRAG_MAX_UPLOAD_MB,INGESTION_TIMEOUT,LANGFLOW_TIMEOUT,LANGFLOW_REQUEST_RETRIES}`; `docs/docs/core-components/{ingestion,ingestion-configure}.mdx` §§ Supported file types, Ingestion performance expectations, Select a Docling implementation, Documents aren't reingested; `docs/docs/_partial-ingestion-flow.mdx`; `docs/docs/_partial-temp-knowledge.mdx`.
+[^openrag-repo]: `6fc819d`: `flows/ingestion_flow.json::data.nodes/data.edges`; `custom_components/openrag/{docling_remote,export_docling_document}.py::{VALID_EXTENSIONS,MAX_500_RETRIES}` and export compatibility probe; `src/config/config_manager.py::KnowledgeConfig`; `src/api/settings/endpoints.py` chunk-overlap validation; `src/services/{langflow_file_service,docling_service,document_index_writer,langflow_ingest_token_service}.py::{run_ingestion_flow,get_docling_preset_configs,_build_chunk_document,_scoped_chunk_id,delete_ingest_run}`; `src/api/langflow_ingest.py::_authorized_chunk_id` and callback handler; `src/config/settings.py::{OPENRAG_MAX_UPLOAD_MB,INGESTION_TIMEOUT,LANGFLOW_TIMEOUT,LANGFLOW_REQUEST_RETRIES}`; `docs/docs/core-components/{ingestion,ingestion-configure}.mdx` §§ Supported file types, Ingestion performance expectations, Select a Docling implementation, Documents aren't reingested; `docs/docs/_partial-ingestion-flow.mdx`; `docs/docs/_partial-temp-knowledge.mdx`.

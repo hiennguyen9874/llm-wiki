@@ -12,7 +12,7 @@ sources:
     resource: ../raw/ragas/README.md
     scope: ../raw/ragas/
     kind: code
-    revision: 298b68274234c060deacab3cf5fb52aa3a20e885
+    revision: 298b682
     title: Ragas repository
 ---
 
@@ -47,4 +47,4 @@ Use [the actual experiment API](ragas-experiments.md) or [legacy evaluator](raga
 
 `benchmarks-docker` passes an environment API key as a Docker build arg and the benchmark Dockerfile promotes it to ENV; that pattern can embed a supplied credential in image configuration. AI documentation workflows include pull_request_target/fork checkout/write permissions and secret-bearing actions. These are [static trust concerns](ragas-security.md), not attempted exploits. No upstream tests, notebooks, builds, release jobs, provider calls or Git-versioning helper ran.[^ragas-298b682]
 
-[^ragas-298b682]: Ragas `298b68274234c060deacab3cf5fb52aa3a20e885`, `pyproject.toml::project/project.optional-dependencies/build-system/tool.uv.workspace/tool.pytest`; `README.md::Installation/Quickstart`; `src/ragas/__init__.py::__getattr__`; `examples/README.md::Installation`; `Makefile::setup-venv/install-minimal/install/run-ci/benchmarks-docker`; `src/ragas/cli.py::quickstart/evals/hello_world/load_eval_module`; `tests/unit/test_cli.py`; `.pre-commit-config.yaml`; `.github/workflows/ci.yaml::unit_tests/code_quality_check`; `.github/workflows/python-publish.yml`; `.github/workflows/publish-examples.yml`; `.github/workflows/claude-docs-check.yml`; `tests/benchmarks/Dockerfile`. Static inspection only unless explicitly stated otherwise; coverage and remaining limits: [source map](ragas-source-map.md).
+[^ragas-298b682]: Ragas `298b682`, `pyproject.toml::project/project.optional-dependencies/build-system/tool.uv.workspace/tool.pytest`; `README.md::Installation/Quickstart`; `src/ragas/__init__.py::__getattr__`; `examples/README.md::Installation`; `Makefile::setup-venv/install-minimal/install/run-ci/benchmarks-docker`; `src/ragas/cli.py::quickstart/evals/hello_world/load_eval_module`; `tests/unit/test_cli.py`; `.pre-commit-config.yaml`; `.github/workflows/ci.yaml::unit_tests/code_quality_check`; `.github/workflows/python-publish.yml`; `.github/workflows/publish-examples.yml`; `.github/workflows/claude-docs-check.yml`; `tests/benchmarks/Dockerfile`. Static inspection only unless explicitly stated otherwise; coverage and remaining limits: [source map](ragas-source-map.md).

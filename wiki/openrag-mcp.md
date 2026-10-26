@@ -12,7 +12,7 @@ sources:
     resource: ../raw/openrag/README.md
     scope: ../raw/openrag/
     kind: code
-    revision: 6fc819d3ec10ee3d0dedc842d244ec2b63fd9791
+    revision: 6fc819d
     title: OpenRAG repository
 ---
 
@@ -52,4 +52,4 @@ The frontend rewrites `/mcp/*` through its API proxy, so `http://localhost:3000/
 
 No MCP client, transport session, header-forwarding test, or retired-package import was run. FastMCP dependency internals were not independently audited. See [source map](openrag-source-map.md).
 
-[^openrag-repo]: `6fc819d3ec10ee3d0dedc842d244ec2b63fd9791`: `src/mcp_http/server.py::{create_mcp_server,COMPONENT_CUSTOMIZATIONS}` and authentication module docstring; `src/app/routes/mcp.py::mount_mcp`; `frontend/next.config.ts::rewrites`; `frontend/app/api/[...path]/route.ts::proxyRequest`; `sdks/mcp/{README.md,pyproject.toml,src/openrag_mcp/__init__.py}`; `README.md` § Model Context Protocol; `docs/docs/reference/api-sdk-overview.mdx`.
+[^openrag-repo]: `6fc819d`: `src/mcp_http/server.py::{create_mcp_server,COMPONENT_CUSTOMIZATIONS}` and authentication module docstring; `src/app/routes/mcp.py::mount_mcp`; `frontend/next.config.ts::rewrites`; `frontend/app/api/[...path]/route.ts::proxyRequest`; `sdks/mcp/{README.md,pyproject.toml,src/openrag_mcp/__init__.py}`; `README.md` § Model Context Protocol; `docs/docs/reference/api-sdk-overview.mdx`.

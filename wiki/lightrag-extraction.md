@@ -12,7 +12,7 @@ sources:
     resource: ../raw/LightRAG/README.md
     scope: ../raw/LightRAG/
     kind: code
-    revision: aaebfe1bb8d55deb6a4304d357a3bf4c92fcd40a
+    revision: aaebfe1
     title: LightRAG repository
 ---
 
@@ -51,4 +51,4 @@ Gleaning defaults to one additional extraction round; it is skipped with a warni
 
 Targeted static prompt, normalization, merge and summarization reads. No extraction outputs, ontology accuracy, hallucination rates, merge concurrency, source-cap recall impact or rollback fault injection was tested. See [coverage](lightrag-source-map.md).
 
-[^lightrag-aaebfe1]: Revision `aaebfe1bb8d55deb6a4304d357a3bf4c92fcd40a`: `lightrag/prompt.py` entity types and extraction templates; `operate.py::extract_entities, _normalize_and_validate_entity_type, _handle_single_entity_extraction, merge_nodes_and_edges, _merge_nodes_then_upsert, _merge_edges_then_upsert, _handle_entity_relation_summary` (notably 3514–3640, 3994–4409); `lightrag.py::LightRAG.kg_extraction_validator`; `constants.py` gleaning/input/source-cap/summary defaults; `pipeline.py` process-stage flush/terminal status handling.
+[^lightrag-aaebfe1]: Revision `aaebfe1`: `lightrag/prompt.py` entity types and extraction templates; `operate.py::extract_entities, _normalize_and_validate_entity_type, _handle_single_entity_extraction, merge_nodes_and_edges, _merge_nodes_then_upsert, _merge_edges_then_upsert, _handle_entity_relation_summary` (notably 3514–3640, 3994–4409); `lightrag.py::LightRAG.kg_extraction_validator`; `constants.py` gleaning/input/source-cap/summary defaults; `pipeline.py` process-stage flush/terminal status handling.

@@ -12,7 +12,7 @@ sources:
     resource: ../raw/ragflow/README.md
     scope: ../raw/ragflow/
     kind: code
-    revision: 1731e54b3aa024356711dc86de2e231afb0e4bf1
+    revision: 1731e54
     title: RAGFlow repository snapshot
 ---
 
@@ -54,4 +54,4 @@ Document-engine choice takes environment `DOC_ENGINE` over `general.doc_engine`.
 
 **Observed** means static inspection, not demonstrated runtime behavior. This page is **draft** because package coverage is sampled; builds, application tests, external services, model execution, and performance claims were not verified. See the [source map](ragflow-source-map.md) for the coverage ledger and redacted security boundary.
 
-[^ragflow]: [RAGFlow source](../raw/ragflow/README.md), revision `1731e54b3aa024356711dc86de2e231afb0e4bf1`; locators: `internal/server/config/database_config.go::ParseDatabaseConfig`; `internal/engine/global.go::InitDocEngine / InitMessageQueue`; `internal/engine/engine.go::DocEngine / MessageQueue`; `internal/storage/storage_factory.go::initStorage`; `internal/storage/types.go::StorageType`; `internal/engine/kvrocks/redis.go::Init`; `cmd/ragflow_server.go::main`; `internal/server/api/server.go::buildAgentRunOptions`; `internal/engine/nats/knowledgecompile.go::knowledge.compile.events / notify.kc.workers`; `internal/engine/elasticsearch/chunk.go::CreateChunkStore`; `internal/engine/elasticsearch/client.go::index template installation`; `internal/engine/elasticsearch/common.go::ragflow_doc_meta_`; `internal/entity/base.go::BaseModel / BeforeCreate`; `internal/dao/database.go::InitDB`; `internal/server/config/general_config.go::DocEngineType`.
+[^ragflow]: [RAGFlow source](../raw/ragflow/README.md), revision `1731e54`; locators: `internal/server/config/database_config.go::ParseDatabaseConfig`; `internal/engine/global.go::InitDocEngine / InitMessageQueue`; `internal/engine/engine.go::DocEngine / MessageQueue`; `internal/storage/storage_factory.go::initStorage`; `internal/storage/types.go::StorageType`; `internal/engine/kvrocks/redis.go::Init`; `cmd/ragflow_server.go::main`; `internal/server/api/server.go::buildAgentRunOptions`; `internal/engine/nats/knowledgecompile.go::knowledge.compile.events / notify.kc.workers`; `internal/engine/elasticsearch/chunk.go::CreateChunkStore`; `internal/engine/elasticsearch/client.go::index template installation`; `internal/engine/elasticsearch/common.go::ragflow_doc_meta_`; `internal/entity/base.go::BaseModel / BeforeCreate`; `internal/dao/database.go::InitDB`; `internal/server/config/general_config.go::DocEngineType`.

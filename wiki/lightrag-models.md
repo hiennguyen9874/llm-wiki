@@ -12,7 +12,7 @@ sources:
     resource: ../raw/LightRAG/README.md
     scope: ../raw/LightRAG/
     kind: code
-    revision: aaebfe1bb8d55deb6a4304d357a3bf4c92fcd40a
+    revision: aaebfe1
     title: LightRAG repository
 ---
 
@@ -56,4 +56,4 @@ sources:
 
 Role runtime and selected OpenAI/rerank paths inspected statically; most provider bodies, actual rate limits, model output schemas, asymmetric-prefix correctness, queue timing and live hot updates remain unverified. See [coverage](lightrag-source-map.md).
 
-[^lightrag-aaebfe1]: Revision `aaebfe1bb8d55deb6a4304d357a3bf4c92fcd40a`: `lightrag/llm_roles.py::ROLES, RoleLLMConfig, _RoleLLMMixin`; `lightrag.py::LightRAG.__post_init__, _build_global_config`; `api/config.py` binding choices and role options; `api/lightrag_server.py::initialize_rag`; `utils.py::EmbeddingFunc, priority_limit_async_func_call, get_llm_cache_identity`; `constants.py::DEFAULT_LLM_TIMEOUT, DEFAULT_EMBEDDING_TIMEOUT, DEFAULT_RERANK_TIMEOUT`; `llm/openai.py::_validate_openai_response_format, openai_complete_if_cache`; `llm/__init__.py` empty file; `rerank.py` adapters; README role guidance and concurrency section; adapter directory inventory (presence only).
+[^lightrag-aaebfe1]: Revision `aaebfe1`: `lightrag/llm_roles.py::ROLES, RoleLLMConfig, _RoleLLMMixin`; `lightrag.py::LightRAG.__post_init__, _build_global_config`; `api/config.py` binding choices and role options; `api/lightrag_server.py::initialize_rag`; `utils.py::EmbeddingFunc, priority_limit_async_func_call, get_llm_cache_identity`; `constants.py::DEFAULT_LLM_TIMEOUT, DEFAULT_EMBEDDING_TIMEOUT, DEFAULT_RERANK_TIMEOUT`; `llm/openai.py::_validate_openai_response_format, openai_complete_if_cache`; `llm/__init__.py` empty file; `rerank.py` adapters; README role guidance and concurrency section; adapter directory inventory (presence only).

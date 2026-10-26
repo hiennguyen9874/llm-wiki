@@ -12,7 +12,7 @@ sources:
     resource: ../raw/WeKnora/README.md
     scope: ../raw/WeKnora/
     kind: code
-    revision: fd7a2586fd5855fc4ded5c981a92dcb82a455246
+    revision: fd7a258
     title: WeKnora v0.8.3 repository snapshot
 ---
 
@@ -51,4 +51,4 @@ WeKnora models a workspace as a tenant containing knowledge bases, documents, ch
 
 Only representative entity fields, a tenant-filtered repository method, initial schema, and migration dispatch were inspected. Later migrations, all foreign-key/constraint behavior, full repository authorization coverage, and data migration execution remain pending; see the [source map](weknora-source-map.md).
 
-[^weknora]: Snapshot `fd7a2586fd5855fc4ded5c981a92dcb82a455246`: `internal/types/tenant.go::Tenant`, `GetDefaultRetrieverEngines`; `internal/types/knowledgebase.go::KnowledgeBase`; `internal/types/knowledge.go::Knowledge`, `ParseStatusPending` and parse-state constants; `internal/types/chunk.go::Chunk`; `internal/types/session.go::Session`; `internal/types/message.go::Message`; `internal/types/vectorstore.go::VectorStore`, `validEngineTypes`; `internal/application/repository/knowledge.go::GetKnowledgeByID`; `internal/database/migration.go::RunMigrationsWithOptions`; `internal/container/container.go::initDatabase`, `resolveStorageProviderPending`, `migrateLegacyStorageBackends`; `migrations/versioned/000000_init.up.sql`, core table definitions and `knowledges.parse_status`. Package entry: [README](../raw/WeKnora/README.md), “Supported backends.”
+[^weknora]: Snapshot `fd7a258`: `internal/types/tenant.go::Tenant`, `GetDefaultRetrieverEngines`; `internal/types/knowledgebase.go::KnowledgeBase`; `internal/types/knowledge.go::Knowledge`, `ParseStatusPending` and parse-state constants; `internal/types/chunk.go::Chunk`; `internal/types/session.go::Session`; `internal/types/message.go::Message`; `internal/types/vectorstore.go::VectorStore`, `validEngineTypes`; `internal/application/repository/knowledge.go::GetKnowledgeByID`; `internal/database/migration.go::RunMigrationsWithOptions`; `internal/container/container.go::initDatabase`, `resolveStorageProviderPending`, `migrateLegacyStorageBackends`; `migrations/versioned/000000_init.up.sql`, core table definitions and `knowledges.parse_status`. Package entry: [README](../raw/WeKnora/README.md), “Supported backends.”

@@ -12,7 +12,7 @@ sources:
     resource: ../raw/ragflow/README.md
     scope: ../raw/ragflow/
     kind: code
-    revision: 1731e54b3aa024356711dc86de2e231afb0e4bf1
+    revision: 1731e54
     title: RAGFlow repository snapshot
 ---
 
@@ -41,4 +41,4 @@ sources:
 
 **Observed** means static inspection, not demonstrated runtime behavior. This page is **draft** because package coverage is sampled; builds, application tests, external services, model execution, and performance claims were not verified. See the [source map](ragflow-source-map.md) for the coverage ledger and redacted security boundary.
 
-[^ragflow]: [RAGFlow source](../raw/ragflow/README.md), revision `1731e54b3aa024356711dc86de2e231afb0e4bf1`; locators: `internal/service/citation.go::InsertCitations / InsertCitationsWithVectors / splitAnswer / findCitations / applyCitations / RepairBadCitationFormats / citationStreamFilter`; `internal/service/chat_pipeline.go::InsertCitations call`; `internal/service/ask_service.go::InsertCitations call`; `internal/agentic_rag/citations.go::ExtractCitedChunkIDs / InsertCitationMarkers`; `internal/agentic_rag/evidence_registry.go::EvidenceRegistry.ServeText / Stamp`; `internal/service/agentic_reference.go::reference resolution`.
+[^ragflow]: [RAGFlow source](../raw/ragflow/README.md), revision `1731e54`; locators: `internal/service/citation.go::InsertCitations / InsertCitationsWithVectors / splitAnswer / findCitations / applyCitations / RepairBadCitationFormats / citationStreamFilter`; `internal/service/chat_pipeline.go::InsertCitations call`; `internal/service/ask_service.go::InsertCitations call`; `internal/agentic_rag/citations.go::ExtractCitedChunkIDs / InsertCitationMarkers`; `internal/agentic_rag/evidence_registry.go::EvidenceRegistry.ServeText / Stamp`; `internal/service/agentic_reference.go::reference resolution`.

@@ -12,7 +12,7 @@ sources:
     resource: ../raw/ragflow/README.md
     scope: ../raw/ragflow/
     kind: code
-    revision: 1731e54b3aa024356711dc86de2e231afb0e4bf1
+    revision: 1731e54
     title: RAGFlow repository snapshot
 ---
 
@@ -44,4 +44,4 @@ Connector HTTP requests validate each redirect hop, pin validated DNS addresses,
 
 **Observed** means static inspection, not demonstrated runtime behavior. This page is **draft** because package coverage is sampled; builds, application tests, external services, model execution, and performance claims were not verified. See the [source map](ragflow-source-map.md) for the coverage ledger and redacted security boundary.
 
-[^ragflow]: [RAGFlow source](../raw/ragflow/README.md), revision `1731e54b3aa024356711dc86de2e231afb0e4bf1`; locators: `internal/syncer/connector/registry.go::Registry / Open`; `internal/syncer/connector/builtin.go::RegisterBuiltIns / newS3SourceConnector`; `internal/syncer/connector/models.go::SyncRequest / SyncCheckpointState`; `internal/syncer/sync_runner.go::Run / processDocument / collectResults / resetCheckpointForRestart`; `internal/syncer/connector/fingerprint.go::contentFingerprint / stableFingerprint`; `internal/syncer/scheduler.go::Run / taskDelay`; `internal/syncer/connector_lock.go::ConnectorLocker.TryLock`; `internal/syncer/task_coordinator.go::taskExecutionDeadline`; `internal/syncer/job_executor.go::RegisterTask / dispatch / popReadyJob`; `internal/syncer/transient_error.go::isTransientSyncError`; `internal/syncer/syncer.go::checkpoint store wiring`; `internal/syncer/README.md::acknowledgement semantics`; `internal/syncer/connector/ssrf.go::connectorRequest / assertConnectorURLSafe / newConnectorPinnedTransport`.
+[^ragflow]: [RAGFlow source](../raw/ragflow/README.md), revision `1731e54`; locators: `internal/syncer/connector/registry.go::Registry / Open`; `internal/syncer/connector/builtin.go::RegisterBuiltIns / newS3SourceConnector`; `internal/syncer/connector/models.go::SyncRequest / SyncCheckpointState`; `internal/syncer/sync_runner.go::Run / processDocument / collectResults / resetCheckpointForRestart`; `internal/syncer/connector/fingerprint.go::contentFingerprint / stableFingerprint`; `internal/syncer/scheduler.go::Run / taskDelay`; `internal/syncer/connector_lock.go::ConnectorLocker.TryLock`; `internal/syncer/task_coordinator.go::taskExecutionDeadline`; `internal/syncer/job_executor.go::RegisterTask / dispatch / popReadyJob`; `internal/syncer/transient_error.go::isTransientSyncError`; `internal/syncer/syncer.go::checkpoint store wiring`; `internal/syncer/README.md::acknowledgement semantics`; `internal/syncer/connector/ssrf.go::connectorRequest / assertConnectorURLSafe / newConnectorPinnedTransport`.

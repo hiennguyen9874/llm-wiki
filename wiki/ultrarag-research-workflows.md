@@ -12,7 +12,7 @@ sources:
     resource: ../raw/UltraRAG/README.md
     scope: ../raw/UltraRAG/
     kind: code
-    revision: 185e2032d9f134099405b8b483edbbad95274080
+    revision: 185e203
     title: UltraRAG repository
 ---
 
@@ -52,4 +52,4 @@ Draft because the 55-template collection and large custom SurveyCPM state machin
 - **Depends on:** [pipeline state semantics](ultrarag-pipelines.md) for branch-aware iteration.
 - **Uses:** [UI storage](ultrarag-ui.md) as the persistent-memory root, even outside a browser session.
 
-[^ultrarag]: Revision `185e2032d9f134099405b8b483edbbad95274080`: `examples/experiments/*.yaml` server/step mappings, especially `hybrid_search.yaml`, `ircot.yaml`, `rankcot.yaml`, `search_o1.yaml`, `webnote.yaml`; `examples/demos/{LightResearch,AgentCPM-Report,LLM_memory,RAG_memory}.yaml`; `servers/prompt/src/prompt.py` Jinja environment, `_safe_render`, QA/WebNote/SurveyCPM prompt registrations; `prompt/{qa_boxed,qa_rag_boxed}.jinja`; `servers/custom/src/custom.py::CitationRegistry`, `assign_citation_ids`, `assign_citation_ids_stateful`, `merge_passages`, `output_extract_from_boxed`, `surveycpm_state_init`, `surveycpm_validate_action`, `surveycpm_update_state`; `servers/custom/parameter.yaml` SurveyCPM limits; `servers/router/src/router.py::ircot_check_end`, `search_o1_check`, `check_model_state`; `servers/memory/src/memory.py` storage-root/user-ID helpers, `get_global_memory`, `save_memory`; `src/ultrarag/client.py::_auto_save_memory_turn`.
+[^ultrarag]: Revision `185e203`: `examples/experiments/*.yaml` server/step mappings, especially `hybrid_search.yaml`, `ircot.yaml`, `rankcot.yaml`, `search_o1.yaml`, `webnote.yaml`; `examples/demos/{LightResearch,AgentCPM-Report,LLM_memory,RAG_memory}.yaml`; `servers/prompt/src/prompt.py` Jinja environment, `_safe_render`, QA/WebNote/SurveyCPM prompt registrations; `prompt/{qa_boxed,qa_rag_boxed}.jinja`; `servers/custom/src/custom.py::CitationRegistry`, `assign_citation_ids`, `assign_citation_ids_stateful`, `merge_passages`, `output_extract_from_boxed`, `surveycpm_state_init`, `surveycpm_validate_action`, `surveycpm_update_state`; `servers/custom/parameter.yaml` SurveyCPM limits; `servers/router/src/router.py::ircot_check_end`, `search_o1_check`, `check_model_state`; `servers/memory/src/memory.py` storage-root/user-ID helpers, `get_global_memory`, `save_memory`; `src/ultrarag/client.py::_auto_save_memory_turn`.

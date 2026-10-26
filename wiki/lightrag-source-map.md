@@ -12,18 +12,18 @@ sources:
     resource: ../raw/LightRAG/README.md
     scope: ../raw/LightRAG/
     kind: code
-    revision: aaebfe1bb8d55deb6a4304d357a3bf4c92fcd40a
+    revision: aaebfe1
     title: LightRAG repository
 ---
 
-**Observed:** this compilation treats `raw/LightRAG/` as one read-only composite code source at revision `aaebfe1bb8d55deb6a4304d357a3bf4c92fcd40a`. Five Explore subagents reviewed core/pipeline, retrieval/models, storage/concurrency, API/UI/auth, and operations/testing; the curator inspected parser contracts, selected multimodal logic, the full entry README and its architecture diagram. **Limit:** targeted static inspection does not mean complete files or passing runtime tests; all compiled concepts remain draft for material coverage and verification gaps.[^lightrag-aaebfe1]
+**Observed:** this compilation treats `raw/LightRAG/` as one read-only composite code source at revision `aaebfe1`. Five Explore subagents reviewed core/pipeline, retrieval/models, storage/concurrency, API/UI/auth, and operations/testing; the curator inspected parser contracts, selected multimodal logic, the full entry README and its architecture diagram. **Limit:** targeted static inspection does not mean complete files or passing runtime tests; all compiled concepts remain draft for material coverage and verification gaps.[^lightrag-aaebfe1]
 
 ## Identity and trust
 
 | Field | Inspected value |
 | --- | --- |
 | Entry point / scope | `raw/LightRAG/README.md` / `raw/LightRAG/` |
-| Revision / commit date | `aaebfe1bb8d55deb6a4304d357a3bf4c92fcd40a` / 2026-10-14 |
+| Revision / commit date | `aaebfe1` / 2026-10-14 |
 | Commit subject | Merge pull request #4210 from ModestXin/fix/pgvector-filtered-ann |
 | Upstream | Git remote `git@github.com:HKUDS/LightRAG.git` |
 | Distribution / runtime | `lightrag-hku` 1.5.8, API 0347; Python ≥3.10 |
@@ -76,4 +76,4 @@ No upstream code, tests, model, external parser, HTTP service, frontend build, i
 
 **Idempotency:** match this normalized scope plus revision and reconcile the ledger before re-ingest. The 18-page compilation is not complete coverage; a follow-up should inspect named pending regions and mutate only newly established, changed or connected knowledge—not append a second source identity for a supporting module.
 
-[^lightrag-aaebfe1]: Revision `aaebfe1bb8d55deb6a4304d357a3bf4c92fcd40a`: `README.md` complete entry-point inspection and local links; `README.assets/b2aaf634151b4706892693ffb43d9093.png` full architecture diagram; `LICENSE`; `pyproject.toml`; `lightrag/_version.py`; `lightrag/{lightrag,pipeline,operate,base,utils,llm_roles,storage_migrations}.py` selected regions; parser/registry/routing/base and multimodal contracts; selected storage/provider/API/frontend/deployment/evaluation/test artifacts individually enumerated in the [coverage ledger](lightrag-source-coverage.tsv); `env.docker-compose-full` redacted key-presence inspection. Git identity/inventory and AST/fingerprint checks were performed by the curator; human approval and workflow facts describe this compilation session, not upstream runtime behavior.
+[^lightrag-aaebfe1]: Revision `aaebfe1`: `README.md` complete entry-point inspection and local links; `README.assets/b2aaf634151b4706892693ffb43d9093.png` full architecture diagram; `LICENSE`; `pyproject.toml`; `lightrag/_version.py`; `lightrag/{lightrag,pipeline,operate,base,utils,llm_roles,storage_migrations}.py` selected regions; parser/registry/routing/base and multimodal contracts; selected storage/provider/API/frontend/deployment/evaluation/test artifacts individually enumerated in the [coverage ledger](lightrag-source-coverage.tsv); `env.docker-compose-full` redacted key-presence inspection. Git identity/inventory and AST/fingerprint checks were performed by the curator; human approval and workflow facts describe this compilation session, not upstream runtime behavior.
