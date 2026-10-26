@@ -5,7 +5,7 @@ description: Graph evidence validation and image-aware retrieval exceptions, dis
 tags: [ml, weknora, graph, multimodal, retrieval]
 status: draft
 created: 2026-10-26
-generated: { by: llm-wiki-agent/1, at: 2026-10-26T08:11:38Z }
+generated: { by: llm-wiki-agent/1, at: 2026-10-26T16:19:21Z }
 stale_after: 2027-01-26
 sources:
   - id: weknora
@@ -24,6 +24,10 @@ Selected `graphSearchService.Search` code checks the knowledge-base read grant, 
 
 **Observed:** source chunks are revalidated as enabled, live, and belonging to the same knowledge/document and KB. This matters because graph attributes aggregate at document level: a graph association alone should not establish that every listed chunk supports the answer. Extraction accuracy and Neo4j query completeness were not checked.[^weknora]
 
+## Document deletion boundary
+
+**Observed follow-up:** `knowledge_delete.go::executeKnowledgeDelete` invokes `graphEngine.DelGraph` with document/KB namespaces during document cleanup. Chunk deletion and other cleanup work can run concurrently; errors from the group are returned. **Synthesis:** graph deletion is not absent, but this service call does not establish contribution-safe rebuilding of shared entities/relations or cross-store atomicity. The graph backend body and failed-delete recovery remain pending; audit those before adopting LightRAG's [contribution-owned deletion design](lightrag-deletion.md).[^weknora]
+
 ## Image evidence and shared reranking
 
 **Observed:** image payload sanitization replaces inline base64 data URLs before textual embedding so encoded pixels are not fed as enormous text. `reranking/image.go` declares a minimum image-keep score of 0.25; the shared reranker can preserve bounded image hits using vector evidence even when a text reranker rejects pictorial content. Graph candidates also receive special handling because they lack ordinary retrieval scores.[^weknora]
@@ -35,9 +39,10 @@ Selected `graphSearchService.Search` code checks the knowledge-base read grant, 
 - Extends [hybrid retrieval/reranking](weknora-hybrid-retrieval.md).
 - Depends on [parsing and image extraction](weknora-document-ingestion.md).
 - Distinct from the [wiki-page link graph](weknora-wiki-compilation.md), which represents page references rather than extracted document entities.
+- Informs the [selective fork roadmap](weknora-fork-roadmap.md): contribution recovery is conditional graph work, not a presumed missing delete API.
 
 ## Coverage limits
 
 Selected graph service logic, type/limit symbols, embedding sanitization, and reranking exceptions were inspected. Neo4j query bodies, graph extraction, image enrichment/indexing, model adapters, image-keep bounds, and multimodal quality evaluations remain pending. No model, database, or image retrieval was run. See the [source map](weknora-source-map.md).
 
-[^weknora]: Snapshot `fd7a2586fd58`: `internal/application/service/graph_search.go::graphSearchService.Search`; `internal/types/graph_search.go::GraphSearchTimeout`, `GraphSearchRequest.Normalize` and cap symbols; `internal/application/service/retriever/keywords_vector_hybrid_indexer.go::embeddingImagePayloadPatterns`, `sanitizeForEmbedding`; `internal/reranking/image.go::MinImageKeepScore`, `ImageKeepScoreFor`; `internal/reranking/rerank.go::Rerank`, `topByScore`, `keptImages`, `scoredCopy`. Package entry: [README](../raw/WeKnora/README.md), v0.8.3 “Multimodal Embedding,” “Image gallery,” and “Retrieval.”
+[^weknora]: Snapshot `fd7a2586fd58`: `internal/application/service/graph_search.go::graphSearchService.Search`; `internal/types/graph_search.go::GraphSearchTimeout`, `GraphSearchRequest.Normalize` and cap symbols; `internal/application/service/retriever/keywords_vector_hybrid_indexer.go::embeddingImagePayloadPatterns`, `sanitizeForEmbedding`; `internal/reranking/image.go::MinImageKeepScore`, `ImageKeepScoreFor`; `internal/reranking/rerank.go::Rerank`, `topByScore`, `keptImages`, `scoredCopy`; follow-up `internal/application/service/knowledge_delete.go::executeKnowledgeDelete`, graph/chunk cleanup and `wg.Wait` region. Package entry: [README](../raw/WeKnora/README.md), v0.8.3 “Multimodal Embedding,” “Image gallery,” and “Retrieval.”

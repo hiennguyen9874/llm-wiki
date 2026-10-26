@@ -5,7 +5,7 @@ description: Snapshot identity, per-file coverage ledger, exclusions, evidence l
 tags: [ml, weknora, source-map]
 status: draft
 created: 2026-10-26
-generated: { by: llm-wiki-agent/1, at: 2026-10-26T08:11:38Z }
+generated: { by: llm-wiki-agent/1, at: 2026-10-26T16:19:21Z }
 sources:
   - id: weknora
     resource: ../raw/WeKnora/README.md
@@ -31,10 +31,10 @@ This is the reconciliation ledger for the WeKnora package, not a claim of exhaus
 
 | Coverage state | Artifacts | Meaning |
 | --- | ---: | --- |
-| `inspected-selected` | 230 | Static selected sections or symbol-level searches; does not promise a full-file audit |
-| `test-intent-only` | 28 | Test names or selected source inspected; none executed |
+| `inspected-selected` | 241 | Static selected sections or symbol-level searches; does not promise a full-file audit |
+| `test-intent-only` | 29 | Test names or selected source inspected; none executed |
 | `excluded` | 386 | Vendored internals, detailed legal texts, generated contracts/bindings, lockfiles, translations, or visual assets, with per-file reasons |
-| `pending` | 5,020 | Inventoried but not content-reviewed; no behavior attributed to them |
+| `pending` | 5,008 | Inventoried but not content-reviewed; no behavior attributed to them |
 | **Total** | **5,664** | Tracked source closure at this snapshot |
 
 The named inspected set is deliberately conservative: directory listings and test-suite counts do not promote every file in those directories to inspected. Inspection depth varies, including symbol-only searches. Source-dependent claims use precise locators in their concept footnotes; those claims must not be generalized to an entire pending subtree.[^weknora]
@@ -59,6 +59,15 @@ The named inspected set is deliberately conservative: directory listings and tes
 | Endpoint/catalog/auth; Python transport sections | [MCP](weknora-mcp-servers.md) | Every tool handler; outbound MCP client/OAuth; protocol tests |
 | Embed/widget/IM contracts/plugin sections | [Channels](weknora-publishing-channels.md) | Adapter signature bodies, embed policy/exchange, browser bridge and live integrations |
 | Compose/chart/config/middleware/crypto selections | [Deployment](weknora-deployment.md), [configuration](weknora-configuration.md), [security](weknora-security.md) | Full templates/CI, OIDC, storage URL guards, all authorization and egress paths |
+
+## Fork-planning follow-up coverage
+
+A targeted static follow-up added 11 selected implementation inspections and one test-intent inspection, with matching pre-existing artifact hashes in the TSV. It read citation-source restoration, reference/registry preparation, source-handle and citation expansion, local query expansion, untrusted-source prompts, streaming checkpoint/item-failure regions, and graph deletion call sites. Each row records read depth; dependencies outside those regions remain pending. No upstream application code or test ran.[^weknora]
+
+- New destination: [citations and source boundary](weknora-citations-source-boundary.md).
+- Extended destinations: [retrieval](weknora-hybrid-retrieval.md), [sync](weknora-datasource-sync.md), and [graph deletion boundary](weknora-graph-multimodal-retrieval.md).
+- Derived decision: [selective fork roadmap](weknora-fork-roadmap.md); other platforms were consulted through their compiled feature pages, not new raw inspection.
+- Outstanding material closure: registry renderers/agent wiring, provider/repository cursor implementations, failed-item durability, `DelGraph` shared-contribution semantics, and all runtime quality/security/restart checks remain pending.
 
 ## Exclusions, attachments, and unavailable evidence
 

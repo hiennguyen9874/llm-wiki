@@ -5,7 +5,7 @@ description: Store-bound fan-out, normalized weighted RRF, rerank degradation, c
 tags: [ml, weknora, rag, retrieval]
 status: draft
 created: 2026-10-26
-generated: { by: llm-wiki-agent/1, at: 2026-10-26T08:11:38Z }
+generated: { by: llm-wiki-agent/1, at: 2026-10-26T16:19:21Z }
 stale_after: 2027-01-26
 sources:
   - id: weknora
@@ -30,6 +30,10 @@ Store creation verifies tenant ownership and distinguishes missing, unavailable,
 
 `CompositeRetrieveEngine.Retrieve` distinguishes engine-level errors (discard results) from result-level errors (return hits **and** an error). **Synthesis:** a caller that treats every non-nil error as an empty result would erase useful partial evidence.[^weknora]
 
+## Low-recall keyword expansion
+
+**Observed follow-up:** `chat_pipeline/query_expansion.go::runQueryExpansion` skips expansion when keyword matching is disabled and issues keyword-only searches (`DisableVectorMatch=true`) for local query variants. The inspected `expandQueries` body removes stopwords, extracts quoted phrases/delimited segments and removes Chinese question prefixes, deduplicating and limiting output to five variants. Although a comment mentions word reordering, no explicit reordering branch appears in that body. Dictionaries/rules are primarily Chinese/English; Vietnamese-specific normalization or synonym handling was not established. This is not LLM semantic expansion or a domain-synonym query builder.[^weknora]
+
 ## Rerank and diversity
 
 **Observed:** rerank takes up to `max(top_k, 50)` available fused candidates after raising retrieval depth to match `top_k`. The enclosing candidate-retrieval and requested-`top_k` caps supply the 500 bound, rather than the slicing expression independently enforcing it. Effective configuration defaults include retrieval depth 50, vector threshold 0.15, keyword threshold 0.3, and rerank output 10. Rerank threshold falls back to 0.2 for a nil configuration; a non-nil configuration preserves its threshold, including zero (`GetEffectiveRerankThreshold`).[^weknora]
@@ -47,9 +51,11 @@ Selected PostgreSQL code lazily detects a compatible ParadeDB/pg_search score fu
 - Consumes [parsed and chunked documents](weknora-document-ingestion.md).
 - Uses [workspace/store bindings](weknora-persistence.md).
 - Complements, rather than replaces, [wiki-page retrieval](weknora-wiki-compilation.md).
+- Supplies results to the existing [citation/source registry](weknora-citations-source-boundary.md), which separates expanded ranking context from original-chunk evidence.
+- Informs the [selective fork roadmap](weknora-fork-roadmap.md); lexical/field-aware improvements are proposed experiments, not measured gains.
 
 ## Coverage limits
 
 Fusion/shared rerank code received deeper inspection than backend drivers. SQLite, Qdrant, Weaviate, Elasticsearch, OpenSearch, Doris, Tencent VectorDB, embedding providers, and rerank vendor adapters remain pending. Test names were inspected but no searches, benchmarks, or tests ran. See the [source map](weknora-source-map.md).
 
-[^weknora]: Snapshot `fd7a2586fd58`: `internal/application/service/retriever/factory.go::VerifyBinding`, `CreateRetrieveEngineForKB` and error sentinels; `retriever/composite.go::CompositeRetrieveEngine.Retrieve`; `knowledgebase_search.go::hybridSearchCandidates`, `validateSameEmbeddingModel`; `knowledgebase_search_fusion.go::fuseWithRRF`, `bestRanks`, `fuseOrDeduplicate`, `rescaleUnboundedScores`; `knowledgebase_search_rerank.go::HybridSearchWithRerank`; `internal/types/retrieval_config.go` effective defaults/caps; `internal/reranking/rerank.go::Rerank`, `applyThreshold`, `FallbackMinScore`, `CompositeScore`, `fitPassages`; `reranking/mmr.go::SelectMMR`; `internal/application/repository/retriever/postgres/repository.go::resolveKeywordScoreFunction`; `retriever/milvus/repository.go::getCollectionName`, `VectorRetrieve`, `KeywordsRetrieve`. Package entry: [README](../raw/WeKnora/README.md), “Retrieval” and “Supported backends.”
+[^weknora]: Snapshot `fd7a2586fd58`: `internal/application/service/retriever/factory.go::VerifyBinding`, `CreateRetrieveEngineForKB` and error sentinels; `retriever/composite.go::CompositeRetrieveEngine.Retrieve`; `knowledgebase_search.go::hybridSearchCandidates`, `validateSameEmbeddingModel`; `knowledgebase_search_fusion.go::fuseWithRRF`, `bestRanks`, `fuseOrDeduplicate`, `rescaleUnboundedScores`; `knowledgebase_search_rerank.go::HybridSearchWithRerank`; `internal/types/retrieval_config.go` effective defaults/caps; `internal/reranking/rerank.go::Rerank`, `applyThreshold`, `FallbackMinScore`, `CompositeScore`, `fitPassages`; `reranking/mmr.go::SelectMMR`; `internal/application/repository/retriever/postgres/repository.go::resolveKeywordScoreFunction`; `retriever/milvus/repository.go::getCollectionName`, `VectorRetrieve`, `KeywordsRetrieve`; follow-up `internal/application/service/chat_pipeline/query_expansion.go::runQueryExpansion`, `expandQueries`, `extractKeywords`, `removeQuestionWords`, `tokenize`. Package entry: [README](../raw/WeKnora/README.md), “Retrieval” and “Supported backends.”

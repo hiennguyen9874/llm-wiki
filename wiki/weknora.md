@@ -5,7 +5,7 @@ description: Code-grounded overview and navigation for WeKnora's shared RAG, age
 tags: [ml, weknora, rag, knowledge-systems]
 status: draft
 created: 2026-10-26
-generated: { by: llm-wiki-agent/1, at: 2026-10-26T08:11:38Z }
+generated: { by: llm-wiki-agent/1, at: 2026-10-26T16:19:21Z }
 stale_after: 2027-01-26
 sources:
   - id: weknora
@@ -36,6 +36,7 @@ The following links are this ingest's maintained synthesis boundaries, grounded 
 | How do documents become indexing inputs? | [Parsing and chunking](weknora-document-ingestion.md) |
 | How do external sources synchronize? | [Datasource sync](weknora-datasource-sync.md) |
 | How are candidates fused and reranked? | [Hybrid retrieval](weknora-hybrid-retrieval.md) |
+| How are source identities and citations kept separate from expanded context? | [Citations and source boundary](weknora-citations-source-boundary.md) |
 | What differs for graphs and images? | [Graph and multimodal retrieval](weknora-graph-multimodal-retrieval.md) |
 | How does an agent turn stop, recover, or accept steering? | [Agent runtime](weknora-agent-runtime.md) |
 | How are instructions and executable work isolated? | [Skills and sandboxes](weknora-skills-sandboxes.md) |
@@ -49,6 +50,7 @@ The following links are this ingest's maintained synthesis boundaries, grounded 
 
 - Uses one shared knowledge pipeline for RAG, agent access, and wiki generation; the architecture SVG explicitly connects all three modes to the same knowledge bases.[^weknora]
 - Depends on edition-specific infrastructure: standard deployments use external database/queue services, while Lite substitutes local implementations. See [deployment](weknora-deployment.md).
+- Design guidance: [selective fork and feature adoption roadmap](weknora-fork-roadmap.md) preserves existing mechanisms and gates additions on evaluation.
 - Audited by the [source coverage map](weknora-source-map.md), which records inspected sections, exclusions, unresolved drift, and pending artifacts.
 
 ## Coverage limits

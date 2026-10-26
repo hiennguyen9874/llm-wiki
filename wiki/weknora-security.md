@@ -5,7 +5,7 @@ description: Workspace RBAC, scoped machine principals, tenant selection, outbou
 tags: [ml, weknora, security, authorization]
 status: draft
 created: 2026-10-26
-generated: { by: llm-wiki-agent/1, at: 2026-10-26T08:11:38Z }
+generated: { by: llm-wiki-agent/1, at: 2026-10-26T16:19:21Z }
 stale_after: 2027-01-26
 sources:
   - id: weknora
@@ -39,6 +39,8 @@ Docker socket access is host-root-equivalent and the Docker sandbox backend is o
 - Applies to [domain persistence](weknora-persistence.md) and [agent/sandbox execution](weknora-skills-sandboxes.md).
 - [MCP servers](weknora-mcp-servers.md) and [embed/IM channels](weknora-publishing-channels.md) have additional authentication surfaces before the global middleware.
 - Depends on deliberate [deployment topology](weknora-deployment.md).
+- Complements the [model-facing citation/source boundary](weknora-citations-source-boundary.md): existing untrusted-data instructions do not replace tool authorization.
+- Informs the [fork roadmap](weknora-fork-roadmap.md), including proposed source-ACL checks for derived wiki, graph, cache and conversation surfaces.
 
 ## Coverage and trust limits
 
