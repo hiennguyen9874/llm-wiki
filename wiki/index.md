@@ -8,6 +8,24 @@ The complete retrieval map for compiled knowledge. See [LLM Wiki Contract](../AG
 
 ## Concepts
 
+- [LightRAG](lightrag.md) — Code-grounded overview of LightRAG's graph/vector RAG engine, integrated multimodal pipeline, service surfaces, and inspected source snapshot.
+- [LightRAG API server and WebUI](lightrag-api-ui.md) — FastAPI route families, upload and request limits, dual React entries, browser state, and NDJSON client behavior.
+- [LightRAG architecture and technology stack](lightrag-architecture.md) — Python facade and mixins, FastAPI and React delivery, storage namespaces, role routing, and explicit runtime lifecycle.
+- [LightRAG authentication and security boundaries](lightrag-security.md) — Open-by-default deployment, shared API/JWT authorization, Ollama whitelist exposure, redacted credential findings, and static-review limits.
+- [LightRAG chunking strategies and provenance](lightrag-chunking.md) — Fixed, recursive, vector-semantic, paragraph-semantic and custom dispatch, persisted parameters, and fallback and source-span limits.
+- [LightRAG concurrency and durability contracts](lightrag-concurrency.md) — Single- versus multi-process shared state, keyed locks, file publication fences, and strict-read migration constraints.
+- [LightRAG deletion and recovery boundaries](lightrag-deletion.md) — Reservation-owned document purge, recovery proofs, contribution ownership, cache-based graph rebuilding, and guarded admin graph writes.
+- [LightRAG document ingestion and commit lifecycle](lightrag-ingestion.md) — SDK versus server enqueue paths, document identity and deduplication, persisted processing options, and flush-before-status completion.
+- [LightRAG embedding-space compatibility and recovery](lightrag-embedding-recovery.md) — Model-space markers, typed compatibility refusals, legacy-data limits, and the destructive vector-only rebuild workflow.
+- [LightRAG knowledge-graph extraction and merge](lightrag-extraction.md) — Entity/relation prompts, bounded gleaning, normalization, cache reachability, write-ahead recovery anchors, and merge summarization.
+- [LightRAG model roles and integrations](lightrag-models.md) — Independent extraction, keyword, answer and vision roles, embedding shape contracts, provider bindings, and concurrency limits.
+- [LightRAG packaging, configuration, and deployment](lightrag-deployment.md) — Dependency extras and runtime installs, environment layering, container variants, single-writer Helm defaults, and destructive operational boundaries.
+- [LightRAG parsing and multimodal analysis](lightrag-parsing-multimodal.md) — Registry-based parser routing, persisted per-file directives, sidecar analysis, and image-containment and failure boundaries.
+- [LightRAG query results, citations, streaming, and caches](lightrag-query-contracts.md) — Structured retrieval and answer APIs, prompt-based citations, NDJSON streaming, answer-cache identity, and no-context semantics.
+- [LightRAG retrieval modes and ranking](lightrag-retrieval.md) — Dual-level graph retrieval, vector-chunk mixing, keyword routing, chunk selection, reranking, and token-budget ordering.
+- [LightRAG source map and coverage](lightrag-source-map.md) — Pinned source identity, per-artifact inspection ledger, redacted disclosure handling, exclusions, and remaining execution and coverage limits.
+- [LightRAG storage backends and workspace isolation](lightrag-storage.md) — Four storage contracts, backend selection, capability gates, workspace mappings, and filtered-vector-search constraints.
+- [LightRAG testing, evaluation, and reproduction limits](lightrag-testing.md) — Offline and PostgreSQL CI tiers, WebUI/build checks, external-model evaluation scripts, and the distinction between syntax checks and behavioral evidence.
 - [OpenRAG](openrag.md) — Overview and navigation for OpenRAG's agentic RAG platform, implementation boundaries, and inspected repository snapshot.
 - [OpenRAG authentication and security boundaries](openrag-auth-security.md) — Identity planes, opt-in RBAC, OpenSearch document access, delegated tokens, and configuration-dependent security risks.
 - [OpenRAG backend architecture and persistence](openrag-backend-architecture.md) — Backend entrypoints, dependency composition, configuration precedence, and the split between SQL, OpenSearch, and legacy file storage.
@@ -23,6 +41,22 @@ The complete retrieval map for compiled knowledge. See [LLM Wiki Contract](../AG
 - [OpenRAG Python and TypeScript SDKs](openrag-sdks.md) — SDK authentication, frontend-origin routing, language-specific streaming interfaces, and integration parity limits.
 - [OpenRAG source map and coverage](openrag-source-map.md) — Pinned source identity, per-artifact coverage ledger, exclusions, unavailable assets, and remaining evidence limits for the OpenRAG ingest.
 - [OpenRAG testing and validation limits](openrag-testing.md) — Configured backend, frontend, SDK and CI checks, known exclusions, non-gating scans, and what this ingest did not execute.
+- [Ragas agent, SQL, lexical and multimodal metrics](ragas-specialized-metrics.md) — Rule-based tool and citation checks coexist with LLM goal/SQL judges, CSV result comparison and network-capable multimodal scoring.
+- [Ragas dataset stacks and sample schemas](ragas-datasets.md) — Backend-bound Dataset and Experiment tables coexist with legacy EvaluationDataset samples and are not interchangeable.
+- [Ragas evaluation framework](ragas.md) — Code-grounded overview of Ragas experiments, evaluation metrics, synthetic test generation, and its role alongside RAG platforms.
+- [Ragas experiment runner and versioning](ragas-experiments.md) — Experiment row functions run in completion order with backend inheritance, dropped failures, and optional repository-mutating versioning.
+- [Ragas framework adapters and tracing boundaries](ragas-integrations.md) — Evaluation adapters, message conversion, uploads and tracing are separate surfaces with legacy schema drift and placeholder implementations.
+- [Ragas installation, CLI and test operations](ragas-operations.md) — Python packaging, uv workspace, template scaffolding and CI checks coexist with unfinished CLI evaluation contracts and unexecuted provider-dependent suites.
+- [Ragas legacy evaluation and executor](ragas-legacy-evaluation.md) — Deprecated evaluate and aevaluate retain sample validation, metric fan-out, ordered scores, cancellation, and optional cost tracing.
+- [Ragas metric APIs and custom metric contracts](ragas-metric-contracts.md) — Legacy sample-scored metrics, collections metrics and custom keyword-scored metrics have different base classes and error contracts.
+- [Ragas model adapters, prompts and caching](ragas-model-adapters.md) — Client-supplied structured LLMs and dual embedding interfaces drive scores, while shared cache keys can omit model-instance configuration.
+- [Ragas persistence backends](ragas-backends.md) — Plugin-discovered CSV, JSONL, in-memory and Google Sheets backends have distinct durability and type-preservation constraints.
+- [Ragas prompt lifecycle and metric optimizers](ragas-prompt-optimization.md) — Typed prompt adaptation and persistence differ from genetic and DSPy optimization of annotated legacy metric prompts.
+- [Ragas retrieval and answer-quality metrics](ragas-rag-metrics.md) — RAG judges measure context support, generated-question relevance, ranked precision, attribution recall and reference-based correctness with distinct limits.
+- [Ragas source map and coverage](ragas-source-map.md) — Pinned Ragas identity, artifact-level inspection ledger, draft coverage gaps and syntax-only validation limits.
+- [Ragas synthetic testsets and query synthesis](ragas-testset-generation.md) — Graph-compatible query distributions combine personas, styles and single/multi-hop contexts to produce single-turn references without exact-size or quality guarantees.
+- [Ragas synthetic-test knowledge graph](ragas-testset-graph.md) — Length-dependent transforms build document/chunk property graphs whose summary and entity relationships feed query synthesis.
+- [Ragas telemetry and evaluation trust boundaries](ragas-security.md) — Default analytics, enabled data sinks, asymmetric image access, local paths, plugins and credential-handling patterns define Ragas trust boundaries.
 - [RAGFlow](ragflow.md) — Overview of RAGFlow’s Go-based RAG platform, feature families, technology stack, and inspected source snapshot.
 - [RAGFlow agent workflows and agentic retrieval](ragflow-agent-workflows.md) — The shipping eino-based canvas runtime composes typed components, streaming events, tools, interruptions, and multi-step retrieval.
 - [RAGFlow answer citation mechanisms](ragflow-citations.md) — Similarity-based citation insertion and agentic evidence-ID tracking have distinct provenance and correctness limits.
@@ -50,6 +84,18 @@ The complete retrieval map for compiled knowledge. See [LLM Wiki Contract](../AG
 - [RAG-Anything reproduction and evaluation](rag-anything-reproduction-evaluation.md) — The repository's indexing, querying, and LLM-judge scripts require external data and schema reconciliation before reproducible evaluation.
 - [RAG-Anything runtime stack and operations](rag-anything-stack-operations.md) — Python packaging, dependency pins, environment configuration, provider/storage adapters, CI intent, and deployment cautions.
 - [RAG-Anything source map and coverage](rag-anything-source-map.md) — Pinned repository identity, per-artifact static-inspection ledger, exclusions, external dependencies, and unexecuted checks.
+- [txtai agents and workflow orchestration](txtai-agents-workflows.md) — Smolagents integration, tools, skills, session memory, batched task execution, scheduling, and execution trust boundaries.
+- [txtai API, clustering, and MCP](txtai-api.md) — Configuration-selected FastAPI routes, OpenAI-compatible dispatch, shared-token authentication, MCP limits, and shard fan-out.
+- [txtai architecture and feature map](txtai.md) — Overview of txtai’s embeddings database, pipelines, agents, workflows, serving interfaces, and pinned repository snapshot.
+- [txtai architecture and technology stack](txtai-architecture.md) — Factory-based composition, component defaults, write ordering, public interfaces, and optional technology dependencies.
+- [txtai extraction and multimodal pipelines](txtai-pipelines.md) — Document conversion, configurable segmentation, tabular and modality pipelines, and their distinct file and model boundaries.
+- [txtai hybrid retrieval and ranking](txtai-retrieval.md) — Dense and sparse candidate generation, strategy-selected fusion, ranking surfaces, backend constraints, and model-dependent image embeddings.
+- [txtai LLM generation and RAG references](txtai-rag.md) — Generation adapters, retrieval-context construction, prompt and streaming contracts, and post-hoc single-context reference selection.
+- [txtai operations and testing](txtai-operations.md) — Python packaging, configuration, Docker and Lambda deployment surfaces, CI intent, documentation drift, and unexecuted validation.
+- [txtai persistence and index lifecycle](txtai-persistence.md) — Identifiers, SQL content joins, mutation and initialization boundaries, serialization, archives, and cloud persistence.
+- [txtai security boundaries](txtai-security.md) — Configuration-dependent authentication, file and network safeguards, executable extensions, agent tools, and artifact trust limits.
+- [txtai semantic graph and topic analysis](txtai-graph.md) — Similarity-derived edges, explicit relationships, community topics, graph queries, and backend-specific lifecycle constraints.
+- [txtai source map and coverage](txtai-source-map.md) — Pinned source identity, tracked-artifact coverage ledger, exclusions, reconciliation decisions, and remaining evidence limits.
 - [UltraRAG architecture and feature map](ultrarag.md) — MCP-based RAG framework with YAML orchestration, modular servers, and a visual development UI.
 - [UltraRAG authentication and access control](ultrarag-auth.md) — Route-level UI authorization, anonymous default tenancy, SQLite ownership, and knowledge-base visibility.
 - [UltraRAG benchmarking and evaluation](ultrarag-evaluation.md) — Dataset loading and alignment, answer-quality metrics, retrieval evaluation, and reproducibility limits.
