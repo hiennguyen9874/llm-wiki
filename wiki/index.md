@@ -8,6 +8,18 @@ The complete retrieval map for compiled knowledge. See [LLM Wiki Contract](../AG
 
 ## Concepts
 
+- [Agent loop versus single-shot RAG pipeline](agent-loop-vs-rag-pipeline.md) — A pipeline fixes what to read before reading, while an agent loop re-decides retrieval after every read, which is why technique layers stall on multi-hop questions.
+- [Agentic stack layers and candidate open-source projects](agentic-stack-landscape.md) — A community listicle's four-layer model for autonomous LLM systems, its ten candidate projects, and the reported-only evidence behind that recommendation.
+- [FRAMES agent-loop benchmark (PipesHub, self-reported)](frames-agentic-rag-benchmark.md) — A vendor-published 824-question FRAMES comparison reports 92.7% for an agent loop against 78.9% for its best of 18 RAG pipelines, with stated protocol, costs, and unresolved confounds.
+- [Graphiti](graphiti.md) — README-grounded overview of Graphiti's temporal context-graph framework, its episode provenance, hybrid retrieval, backend and provider matrix, and snapshot limits.
+- [Graphiti context graph data model](graphiti-context-graph-model.md) — Entities, temporally valid facts, episode provenance, and prescribed or learned ontology as the four parts of a Graphiti context graph.
+- [Graphiti deployment and graph backends](graphiti-deployment-backends.md) — Supported graph databases and extras, driver-level connection configuration, Compose-based local setup, and the operational gaps Graphiti leaves to the integrator.
+- [Graphiti episode ingestion](graphiti-episode-ingestion.md) — Episode-first ingestion, index initialization, incremental graph integration, LLM concurrency limits, and overridable extraction prompts.
+- [Graphiti model and provider configuration](graphiti-model-providers.md) — OpenAI, Azure OpenAI, Gemini, and OpenAI-compatible clients, structured-output modes, per-prompt model routing, and decision-model dedupe.
+- [Graphiti positioning versus Zep and GraphRAG](graphiti-positioning.md) — Vendor-reported boundaries between the Graphiti framework, the Zep platform, and GraphRAG's batch summarization model.
+- [Graphiti retrieval and ranking](graphiti-retrieval.md) — Hybrid semantic, keyword, and graph-traversal search with graph-distance reranking and search recipes, as documented rather than measured.
+- [Graphiti security boundaries and telemetry](graphiti-security-telemetry.md) — Unauthenticated reference MCP/REST servers declared out of security scope, the production paths the README offers, and opt-out anonymous telemetry.
+- [Grounded-accuracy evaluation for RAG and agent answers](grounded-accuracy-evaluation.md) — Closed-book and oracle controls, grounding checks against what a system actually read, and trace-fidelity pitfalls separate retrieval success from parametric recall.
 - [LightRAG](lightrag.md) — Code-grounded overview of LightRAG's graph/vector RAG engine, integrated multimodal pipeline, service surfaces, and inspected source snapshot.
 - [LightRAG API server and WebUI](lightrag-api-ui.md) — FastAPI route families, upload and request limits, dual React entries, browser state, and NDJSON client behavior.
 - [LightRAG architecture and technology stack](lightrag-architecture.md) — Python facade and mixins, FastAPI and React delivery, storage namespaces, role routing, and explicit runtime lifecycle.
@@ -41,6 +53,9 @@ The complete retrieval map for compiled knowledge. See [LLM Wiki Contract](../AG
 - [OpenRAG Python and TypeScript SDKs](openrag-sdks.md) — SDK authentication, frontend-origin routing, language-specific streaming interfaces, and integration parity limits.
 - [OpenRAG source map and coverage](openrag-source-map.md) — Pinned source identity, per-artifact coverage ledger, exclusions, unavailable assets, and remaining evidence limits for the OpenRAG ingest.
 - [OpenRAG testing and validation limits](openrag-testing.md) — Configured backend, frontend, SDK and CI checks, known exclusions, non-gating scans, and what this ingest did not execute.
+- [OpenRAG, RAGFlow, WeKnora, LightRAG and txtai compared](rag-platform-comparison.md) — Cross-platform synthesis of positioning, core-feature maturity, strengths, weaknesses and fit for five open-source RAG systems, derived from their static code-grounded wiki pages.
+- [RAG data preparation before embedding](rag-data-preparation.md) — Reported eight-stage pipeline that converts, cleans, and validates heterogeneous sources into provenance-bearing retrieval-ready records before any embedding runs.
+- [RAG ingestion validation and version currency](rag-ingestion-validation.md) — Post-conversion integrity checks, worst-document regression sets, and the stale-version ambiguity that hash deduplication cannot resolve.
 - [Ragas agent, SQL, lexical and multimodal metrics](ragas-specialized-metrics.md) — Rule-based tool and citation checks coexist with LLM goal/SQL judges, CSV result comparison and network-capable multimodal scoring.
 - [Ragas dataset stacks and sample schemas](ragas-datasets.md) — Backend-bound Dataset and Experiment tables coexist with legacy EvaluationDataset samples and are not interchangeable.
 - [Ragas evaluation framework](ragas.md) — Code-grounded overview of Ragas experiments, evaluation metrics, synthetic test generation, and its role alongside RAG platforms.
@@ -84,6 +99,7 @@ The complete retrieval map for compiled knowledge. See [LLM Wiki Contract](../AG
 - [RAG-Anything reproduction and evaluation](rag-anything-reproduction-evaluation.md) — The repository's indexing, querying, and LLM-judge scripts require external data and schema reconciliation before reproducible evaluation.
 - [RAG-Anything runtime stack and operations](rag-anything-stack-operations.md) — Python packaging, dependency pins, environment configuration, provider/storage adapters, CI intent, and deployment cautions.
 - [RAG-Anything source map and coverage](rag-anything-source-map.md) — Pinned repository identity, per-artifact static-inspection ledger, exclusions, external dependencies, and unexecuted checks.
+- [Retrieval technique trade-offs on multi-hop questions](rag-retrieval-technique-tradeoffs.md) — On one reported FRAMES board, query expansion and small-to-big raise pipeline accuracy while a weak cross-encoder reranker lowers a good pipeline by nearly nine points.
 - [txtai agents and workflow orchestration](txtai-agents-workflows.md) — Smolagents integration, tools, skills, session memory, batched task execution, scheduling, and execution trust boundaries.
 - [txtai API, clustering, and MCP](txtai-api.md) — Configuration-selected FastAPI routes, OpenAI-compatible dispatch, shared-token authentication, MCP limits, and shard fan-out.
 - [txtai architecture and feature map](txtai.md) — Overview of txtai’s embeddings database, pipelines, agents, workflows, serving interfaces, and pinned repository snapshot.
@@ -113,6 +129,7 @@ The complete retrieval map for compiled knowledge. See [LLM Wiki Contract](../AG
 - [WeKnora authentication and security boundaries](weknora-security.md) — Workspace RBAC, scoped machine principals, tenant selection, outbound filtering, and deployment-dependent trust limits.
 - [WeKnora automatic wiki compilation and revisions](weknora-wiki-compilation.md) — Durable ingest/finalize lanes, concurrent page convergence, citation extraction, link graphs, and revision-preserving rewrite guards.
 - [WeKnora backend architecture and technology stack](weknora-backend-architecture.md) — Go/Gin service composition, dependency injection, startup, shutdown, and standard-versus-Lite runtime choices.
+- [WeKnora citations and model-facing source boundary](weknora-citations-source-boundary.md) — Request-local source handles, original-chunk evidence restoration, citation expansion, and prompt-level untrusted-data rules already exist in WeKnora.
 - [WeKnora CLI and Go SDK](weknora-cli-sdk.md) — Agent-first CLI envelopes, streaming/replay contracts, credential resolution, project binding, and the Go client API.
 - [WeKnora configuration precedence and key management](weknora-configuration.md) — YAML/environment layering, explicit overrides, validation, JWT persistence, and the exact AES key-length requirement.
 - [WeKnora cross-session memory](weknora-memory.md) — Principal-scoped resident memory, query recall, explicit versus automatic writes, confirmation states, and bounded extraction.
@@ -126,5 +143,6 @@ The complete retrieval map for compiled knowledge. See [LLM Wiki Contract](../AG
 - [WeKnora hybrid retrieval and reranking](weknora-hybrid-retrieval.md) — Store-bound fan-out, normalized weighted RRF, rerank degradation, composite scoring, and MMR diversity selection.
 - [WeKnora knowledge framework](weknora.md) — Code-grounded overview and navigation for WeKnora's shared RAG, agent, automatic wiki, and integration platform.
 - [WeKnora MCP server surfaces](weknora-mcp-servers.md) — Built-in scoped Streamable HTTP endpoints, the CLI stdio catalog, and the deprecated Python server are distinct MCP products.
+- [WeKnora selective fork and feature adoption roadmap](weknora-fork-roadmap.md) — A baseline-first fork strategy preserves WeKnora's existing mechanisms and selectively adopts document, retrieval, permission, sync and recovery designs from other RAG systems.
 - [WeKnora skills and session sandboxes](weknora-skills-sandboxes.md) — Progressive skill disclosure, installed-image source selection, session-bound workspaces, and execution trust boundaries.
 - [WeKnora source map and coverage](weknora-source-map.md) — Snapshot identity, per-file coverage ledger, exclusions, evidence limits, and follow-up targets for the WeKnora repository ingest.

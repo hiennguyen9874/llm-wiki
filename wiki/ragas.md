@@ -12,7 +12,7 @@ sources:
     resource: ../raw/ragas/README.md
     scope: ../raw/ragas/
     kind: code
-    revision: 298b682
+    revision: 298b68274234
     title: Ragas repository
 ---
 
@@ -43,4 +43,4 @@ sources:
 
 The README's “objective metrics” and integration claims are **Reported**, not independently measured capability. Judge scores are conditional on prompts, models, available references and input schemas. Synthetic testsets are not verified ground truth merely because a generation pipeline produced them. All pages are draft because implementation, documentation and test coverage are targeted, not exhaustive. No benchmark or production-readiness conclusion was reproduced.[^ragas-298b682]
 
-[^ragas-298b682]: Ragas `298b682`, `README.md::Key Features/Quickstart/Open Analytics`; `pyproject.toml::project/build-system/project.optional-dependencies`; `src/ragas/__init__.py::__all__`; `docs/_static/imgs/ragas_workflow_white.png` (full diagram, historical field names). Static inspection only unless explicitly stated otherwise; coverage and remaining limits: [source map](ragas-source-map.md).
+[^ragas-298b682]: Ragas `298b68274234`, `README.md::Key Features/Quickstart/Open Analytics`; `pyproject.toml::project/build-system/project.optional-dependencies`; `src/ragas/__init__.py::__all__`; `docs/_static/imgs/ragas_workflow_white.png` (full diagram, historical field names). Static inspection only unless explicitly stated otherwise; coverage and remaining limits: [source map](ragas-source-map.md).

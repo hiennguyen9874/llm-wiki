@@ -12,7 +12,7 @@ sources:
     resource: ../raw/WeKnora/README.md
     scope: ../raw/WeKnora/
     kind: code
-    revision: fd7a258
+    revision: fd7a2586fd58
     title: WeKnora v0.8.3 repository snapshot
 ---
 
@@ -57,4 +57,4 @@ A machine whole-page rewrite can be refused if table-row identities disappear. A
 
 Queue constants, selected orchestration/extraction sections, page updates, repository transactions, linkification sections, and test names were inspected. Full map/reduce, cancellation, link-maintenance atomicity, taxonomy quality, frontend graph grouping, and revision tests were not executed or exhaustively reviewed. No “40k documents” scale claim was reproduced. See the [source map](weknora-source-map.md).
 
-[^weknora]: Snapshot `fd7a258`: `internal/application/service/wiki_ingest.go` constants and lane/coordination comments; `wiki_ingest_batch.go::ProcessWikiIngest`; `wiki_ingest_cite.go::maxRunesPerCitationBatch`, `maxCitationBatchConcurrency`, `extractCandidateSlugs`; `wiki_ingest_taxonomy.go::planBatchTaxonomy`, `resolvePlannedFolders`; `wiki_ingest_dedup.go::selectDedupCandidatePages`; `wiki_page.go::UpdatePage`, `pruneRevisions`, `RevertPageToVersion`, `GetGraph`, `computeGraphSubset`; `wiki_write_row_guard.go::wikiWriteIngestRowIdentityLossLimit`, `ErrWikiWriteDroppedTableRows`; `wiki_linkify.go::linkifyContent`; `wiki_lint.go` issue/report declarations; `internal/application/repository/wiki_page.go::UpdateWithRevision`, `updateWikiPageRow`; `internal/types/wiki_page.go::WikiMaxRevisionsPerPage`, `WikiMaxRevisionsHardCap`, `WikiPrunableEditSources`. Package entry: [README](../raw/WeKnora/README.md), “Automatic wiki.”
+[^weknora]: Snapshot `fd7a2586fd58`: `internal/application/service/wiki_ingest.go` constants and lane/coordination comments; `wiki_ingest_batch.go::ProcessWikiIngest`; `wiki_ingest_cite.go::maxRunesPerCitationBatch`, `maxCitationBatchConcurrency`, `extractCandidateSlugs`; `wiki_ingest_taxonomy.go::planBatchTaxonomy`, `resolvePlannedFolders`; `wiki_ingest_dedup.go::selectDedupCandidatePages`; `wiki_page.go::UpdatePage`, `pruneRevisions`, `RevertPageToVersion`, `GetGraph`, `computeGraphSubset`; `wiki_write_row_guard.go::wikiWriteIngestRowIdentityLossLimit`, `ErrWikiWriteDroppedTableRows`; `wiki_linkify.go::linkifyContent`; `wiki_lint.go` issue/report declarations; `internal/application/repository/wiki_page.go::UpdateWithRevision`, `updateWikiPageRow`; `internal/types/wiki_page.go::WikiMaxRevisionsPerPage`, `WikiMaxRevisionsHardCap`, `WikiPrunableEditSources`. Package entry: [README](../raw/WeKnora/README.md), “Automatic wiki.”

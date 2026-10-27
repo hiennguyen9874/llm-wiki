@@ -5,13 +5,13 @@ description: Snapshot identity, per-file coverage ledger, exclusions, evidence l
 tags: [ml, weknora, source-map]
 status: draft
 created: 2026-10-26
-generated: { by: llm-wiki-agent/1, at: 2026-10-26T08:11:38Z }
+generated: { by: llm-wiki-agent/1, at: 2026-10-26T16:19:21Z }
 sources:
   - id: weknora
     resource: ../raw/WeKnora/README.md
     scope: ../raw/WeKnora/
     kind: code
-    revision: fd7a258
+    revision: fd7a2586fd58
     title: WeKnora v0.8.3 repository snapshot
 ---
 
@@ -21,7 +21,7 @@ This is the reconciliation ledger for the WeKnora package, not a claim of exhaus
 
 - Canonical entry: [README](../raw/WeKnora/README.md); package scope: `raw/WeKnora/`.
 - Upstream identity: Tencent/WeKnora, as linked by the README; version file: `0.8.3`.
-- Revision: `fd7a258`, commit subject “fix(docparser): escape standalone image filenames in Markdown (#4475),” author timestamp 2026-10-26.
+- Revision: `fd7a2586fd58`, commit subject “fix(docparser): escape standalone image filenames in Markdown (#4475),” author timestamp 2026-10-26.
 - **Observed snapshot caveat:** the sole tracked worktree difference at inspection was a pre-existing `.gitignore` addition for `.pi/`. It was left unchanged. The ledger hashes local artifact bytes, so the revision is qualified by that explicit difference.
 - WeKnora's own code is MIT. Third-party component terms remain separate; the top-level notice describes MPL source/notice bundles, Apache-licensed dictionary/OCR material, and other component notices. Detailed license texts and packaged source archives were not audited.[^weknora]
 
@@ -31,10 +31,10 @@ This is the reconciliation ledger for the WeKnora package, not a claim of exhaus
 
 | Coverage state | Artifacts | Meaning |
 | --- | ---: | --- |
-| `inspected-selected` | 230 | Static selected sections or symbol-level searches; does not promise a full-file audit |
-| `test-intent-only` | 28 | Test names or selected source inspected; none executed |
+| `inspected-selected` | 241 | Static selected sections or symbol-level searches; does not promise a full-file audit |
+| `test-intent-only` | 29 | Test names or selected source inspected; none executed |
 | `excluded` | 386 | Vendored internals, detailed legal texts, generated contracts/bindings, lockfiles, translations, or visual assets, with per-file reasons |
-| `pending` | 5,020 | Inventoried but not content-reviewed; no behavior attributed to them |
+| `pending` | 5,008 | Inventoried but not content-reviewed; no behavior attributed to them |
 | **Total** | **5,664** | Tracked source closure at this snapshot |
 
 The named inspected set is deliberately conservative: directory listings and test-suite counts do not promote every file in those directories to inspected. Inspection depth varies, including symbol-only searches. Source-dependent claims use precise locators in their concept footnotes; those claims must not be generalized to an entire pending subtree.[^weknora]
@@ -59,6 +59,15 @@ The named inspected set is deliberately conservative: directory listings and tes
 | Endpoint/catalog/auth; Python transport sections | [MCP](weknora-mcp-servers.md) | Every tool handler; outbound MCP client/OAuth; protocol tests |
 | Embed/widget/IM contracts/plugin sections | [Channels](weknora-publishing-channels.md) | Adapter signature bodies, embed policy/exchange, browser bridge and live integrations |
 | Compose/chart/config/middleware/crypto selections | [Deployment](weknora-deployment.md), [configuration](weknora-configuration.md), [security](weknora-security.md) | Full templates/CI, OIDC, storage URL guards, all authorization and egress paths |
+
+## Fork-planning follow-up coverage
+
+A targeted static follow-up added 11 selected implementation inspections and one test-intent inspection, with matching pre-existing artifact hashes in the TSV. It read citation-source restoration, reference/registry preparation, source-handle and citation expansion, local query expansion, untrusted-source prompts, streaming checkpoint/item-failure regions, and graph deletion call sites. Each row records read depth; dependencies outside those regions remain pending. No upstream application code or test ran.[^weknora]
+
+- New destination: [citations and source boundary](weknora-citations-source-boundary.md).
+- Extended destinations: [retrieval](weknora-hybrid-retrieval.md), [sync](weknora-datasource-sync.md), and [graph deletion boundary](weknora-graph-multimodal-retrieval.md).
+- Derived decision: [selective fork roadmap](weknora-fork-roadmap.md); other platforms were consulted through their compiled feature pages, not new raw inspection.
+- Outstanding material closure: registry renderers/agent wiring, provider/repository cursor implementations, failed-item durability, `DelGraph` shared-contribution semantics, and all runtime quality/security/restart checks remain pending.
 
 ## Exclusions, attachments, and unavailable evidence
 
@@ -85,4 +94,4 @@ Future ingests should match normalized package scope plus revision, reconcile ar
 - Documents the evidence boundary for [WeKnora](weknora.md) and every linked concept above.
 - Uses the TSV as supporting canonical coverage data, not as an additional source identity.
 
-[^weknora]: Snapshot `fd7a258`: [README](../raw/WeKnora/README.md), “Overview,” “Architecture,” “Features,” “Clients and Integrations,” and “Development”; `VERSION`; `LICENSE`, opening MIT terms; `THIRD_PARTY_NOTICES.md`, introduction and component sections; `docs/images/readme/architecture-en-light.svg`, services/model-catalog labels; `.gitignore` final addition. Repository metadata inspected with `git rev-parse HEAD`, `git log -1`, `git status --short --ignored`, `git diff -- .gitignore`, and `git ls-files -z`. Per-file methods and local hashes are persisted in [the coverage inventory](weknora-source-inventory.tsv); behavior-specific symbol locators appear in the linked concept footnotes.
+[^weknora]: Snapshot `fd7a2586fd58`: [README](../raw/WeKnora/README.md), “Overview,” “Architecture,” “Features,” “Clients and Integrations,” and “Development”; `VERSION`; `LICENSE`, opening MIT terms; `THIRD_PARTY_NOTICES.md`, introduction and component sections; `docs/images/readme/architecture-en-light.svg`, services/model-catalog labels; `.gitignore` final addition. Repository metadata inspected with `git rev-parse HEAD`, `git log -1`, `git status --short --ignored`, `git diff -- .gitignore`, and `git ls-files -z`. Per-file methods and local hashes are persisted in [the coverage inventory](weknora-source-inventory.tsv); behavior-specific symbol locators appear in the linked concept footnotes.

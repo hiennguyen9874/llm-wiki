@@ -12,7 +12,7 @@ sources:
     resource: ../raw/WeKnora/README.md
     scope: ../raw/WeKnora/
     kind: code
-    revision: fd7a258
+    revision: fd7a2586fd58
     title: WeKnora v0.8.3 repository snapshot
 ---
 
@@ -50,4 +50,4 @@ The engine has suspension/resume hooks and cancellation salvage paths, but the a
 
 Static, selected-section inspection only. Tool act/observe implementations, approval correctness, model-provider behavior, and concurrent turn races remain pending; see the [source map](weknora-source-map.md). No end-to-end agent execution or token/cost measurement was performed.
 
-[^weknora]: Snapshot `fd7a258`: `internal/agent/engine.go::AgentEngine`, `Execute`, `executeLoop`, `runReActIteration`, `withinIterationBudget`, `loopGuards.recordFailedToolCall`, `drainSteerMessages`; `internal/agent/const.go::DefaultAgentMaxIterations`, `defaultLLMStallTimeout`, `maxEmptyResponseRetries`, `maxRepeatedResponseRounds`, `maxConsecutiveFailedToolCalls`, `maxConsecutiveLengthRounds`, `toolExecutionTimeout`; `internal/agent/tools/capabilities.go::ToolCapabilityRequirements`, `documentReaderRequirement`; test-name inventories in `internal/agent/engine_test.go` and `failed_tool_loop_test.go`. Canonical package entry: [README](../raw/WeKnora/README.md), “Overview” and “Features.”
+[^weknora]: Snapshot `fd7a2586fd58`: `internal/agent/engine.go::AgentEngine`, `Execute`, `executeLoop`, `runReActIteration`, `withinIterationBudget`, `loopGuards.recordFailedToolCall`, `drainSteerMessages`; `internal/agent/const.go::DefaultAgentMaxIterations`, `defaultLLMStallTimeout`, `maxEmptyResponseRetries`, `maxRepeatedResponseRounds`, `maxConsecutiveFailedToolCalls`, `maxConsecutiveLengthRounds`, `toolExecutionTimeout`; `internal/agent/tools/capabilities.go::ToolCapabilityRequirements`, `documentReaderRequirement`; test-name inventories in `internal/agent/engine_test.go` and `failed_tool_loop_test.go`. Canonical package entry: [README](../raw/WeKnora/README.md), “Overview” and “Features.”

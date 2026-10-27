@@ -12,7 +12,7 @@ sources:
     resource: ../raw/txtai/README.md
     scope: ../raw/txtai/
     kind: code
-    revision: 738aac4
+    revision: 738aac498ccb
     title: txtai repository
 ---
 
@@ -54,4 +54,4 @@ When `mcp` is enabled, `createmcp` constructs an `httpx.AsyncClient` over `ASGIT
 
 No HTTP request, MCP exchange, shard call, auth test, stream, or concurrency/shutdown test ran.
 
-[^txtai-repo]: Revision `738aac4`: `src/python/txtai/api/application.py::create, lifespan, enabled, createmcp`; `api/authorization.py::Authorization.__call__, digest`; `api/routers/embeddings.py`; `api/routers/openai.py::chat, embeddings, speech, transcribe, translate, StreamingChatResponse`; `api/route.py::EncodingAPIRoute`; `api/responses/factory.py`; `api/cluster.py::Cluster.shard, execute, run, get, post`; `app/base.py::Application.search, count, reindex, __del__, wait`; `agent/base.py::Agent.__call__`; `docs/api/mcp.md`, `docs/api/security.md`, `docs/api/cluster.md`; `test/python/testapi/testmcp.py::TestMCP.testMCP`, `test/python/testapi/testauthorization.py`, `test/python/testapi/testcluster.py`, `test/python/testapi/testopenai.py` (static only). Short module paths are relative to `src/python/txtai/`.
+[^txtai-repo]: Revision `738aac498ccb`: `src/python/txtai/api/application.py::create, lifespan, enabled, createmcp`; `api/authorization.py::Authorization.__call__, digest`; `api/routers/embeddings.py`; `api/routers/openai.py::chat, embeddings, speech, transcribe, translate, StreamingChatResponse`; `api/route.py::EncodingAPIRoute`; `api/responses/factory.py`; `api/cluster.py::Cluster.shard, execute, run, get, post`; `app/base.py::Application.search, count, reindex, __del__, wait`; `agent/base.py::Agent.__call__`; `docs/api/mcp.md`, `docs/api/security.md`, `docs/api/cluster.md`; `test/python/testapi/testmcp.py::TestMCP.testMCP`, `test/python/testapi/testauthorization.py`, `test/python/testapi/testcluster.py`, `test/python/testapi/testopenai.py` (static only). Short module paths are relative to `src/python/txtai/`.

@@ -12,7 +12,7 @@ sources:
     resource: ../raw/RAG-Anything/README.md
     scope: ../raw/RAG-Anything/
     kind: code
-    revision: 3a14ecb
+    revision: 3a14ecb66fb3
     title: RAG-Anything repository
 ---
 
@@ -64,4 +64,4 @@ sources:
 
 Descriptions and extracted relations are model outputs, not verified facts. No model calls, graph queries, retrieval quality measurements, or tests were run; [source map](rag-anything-source-map.md) records inspected artifacts and external dependencies.
 
-[^rag-anything-3a14ecb]: Revision `3a14ecb`: `raganything/modalprocessors.py::ContextConfig` (54), `ContextExtractor` (69; page/chunk modes 153/193, truncation 330), `BaseModalProcessor.set_content_source` (432), `_create_entity_and_chunk` (556), `_process_chunk_for_extraction` (848), modality processor classes; `document_context.py`; `utils.py::separate_content_with_page_map` (205), heading/neighbor helpers (117/170); `processor.py::_process_multimodal_content_batch_type_aware` (1132), `_convert_to_lightrag_chunks_type_aware` (1327), `_apply_chunk_template` (1382), chunk/entity stores (1494/1511), extraction (1665), `_batch_add_belongs_to_relations_type_aware` (1694–1754), merge (1758); `modalprocessors_audio.py::_build_audio_chunk` (375), `modalprocessors_video.py::_build_video_chunk` (707); `raganything.py::update_context_config` (641–664); `prompt.py` chunk templates (336–364), `prompt_manager.py` (84–137); `asset_urls.py::attach_public_media_urls`; `docs/context_aware_processing.md` “Caching Optimization”; `docs/multimodal_rag_failure_modes.md` §6.
+[^rag-anything-3a14ecb]: Revision `3a14ecb66fb3`: `raganything/modalprocessors.py::ContextConfig` (54), `ContextExtractor` (69; page/chunk modes 153/193, truncation 330), `BaseModalProcessor.set_content_source` (432), `_create_entity_and_chunk` (556), `_process_chunk_for_extraction` (848), modality processor classes; `document_context.py`; `utils.py::separate_content_with_page_map` (205), heading/neighbor helpers (117/170); `processor.py::_process_multimodal_content_batch_type_aware` (1132), `_convert_to_lightrag_chunks_type_aware` (1327), `_apply_chunk_template` (1382), chunk/entity stores (1494/1511), extraction (1665), `_batch_add_belongs_to_relations_type_aware` (1694–1754), merge (1758); `modalprocessors_audio.py::_build_audio_chunk` (375), `modalprocessors_video.py::_build_video_chunk` (707); `raganything.py::update_context_config` (641–664); `prompt.py` chunk templates (336–364), `prompt_manager.py` (84–137); `asset_urls.py::attach_public_media_urls`; `docs/context_aware_processing.md` “Caching Optimization”; `docs/multimodal_rag_failure_modes.md` §6.

@@ -12,7 +12,7 @@ sources:
     resource: ../raw/LightRAG/README.md
     scope: ../raw/LightRAG/
     kind: code
-    revision: aaebfe1
+    revision: aaebfe1bb8d5
     title: LightRAG repository
 ---
 
@@ -59,4 +59,4 @@ Chart configuration can render all values-env into a chart-owned Secret mounted 
 
 Static manifests, scripts and selected documentation inspected; no dependency install, container image build, Helm rendering, database extension/migration, package resolver or deployment ran. Lockfile packages, registry signatures and runtime permissions were not independently verified. See [coverage](lightrag-source-map.md).
 
-[^lightrag-aaebfe1]: Revision `aaebfe1`: `pyproject.toml` metadata/extras/scripts/package-data; `Makefile`; `Dockerfile`, `Dockerfile.lite`, `Dockerfile.postgres`, `docker-entrypoint.sh`; `docker-compose.yml`, `docker-compose.podman.yml`, `docker-compose-full.yml`; `requirements-offline*.txt`; `lightrag/api/{config,lightrag_server,run_with_gunicorn,utils_api}.py` configuration/startup, particularly `config.py::parse_args` and `lightrag_server.py` 1635; `lightrag/operate.py` package-directory dotenv load (111); `kg/{postgres_impl,neo4j_impl,pgtable_impl}.py` configuration fallback; `scripts/setup/setup.sh`, `scripts/setup/lib/file_ops.sh`, `scripts/setup/apple-container.sh`; `k8s-deploy/lightrag/{Chart.yaml,values.yaml,templates/_helpers.tpl,templates/service.yaml,templates/pvc.yaml,templates/secret.yaml}`; `k8s-deploy/{K8S-README.md,install_lightrag.sh,uninstall_lightrag.sh,databases/04-cleanup.sh}`; `docs/{DockerDeployment,InteractiveSetup,OfflineDeployment}.md`; README optional libcairo and smart-heading sections.
+[^lightrag-aaebfe1]: Revision `aaebfe1bb8d5`: `pyproject.toml` metadata/extras/scripts/package-data; `Makefile`; `Dockerfile`, `Dockerfile.lite`, `Dockerfile.postgres`, `docker-entrypoint.sh`; `docker-compose.yml`, `docker-compose.podman.yml`, `docker-compose-full.yml`; `requirements-offline*.txt`; `lightrag/api/{config,lightrag_server,run_with_gunicorn,utils_api}.py` configuration/startup, particularly `config.py::parse_args` and `lightrag_server.py` 1635; `lightrag/operate.py` package-directory dotenv load (111); `kg/{postgres_impl,neo4j_impl,pgtable_impl}.py` configuration fallback; `scripts/setup/setup.sh`, `scripts/setup/lib/file_ops.sh`, `scripts/setup/apple-container.sh`; `k8s-deploy/lightrag/{Chart.yaml,values.yaml,templates/_helpers.tpl,templates/service.yaml,templates/pvc.yaml,templates/secret.yaml}`; `k8s-deploy/{K8S-README.md,install_lightrag.sh,uninstall_lightrag.sh,databases/04-cleanup.sh}`; `docs/{DockerDeployment,InteractiveSetup,OfflineDeployment}.md`; README optional libcairo and smart-heading sections.

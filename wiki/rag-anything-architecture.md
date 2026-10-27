@@ -12,7 +12,7 @@ sources:
     resource: ../raw/RAG-Anything/README.md
     scope: ../raw/RAG-Anything/
     kind: code
-    revision: 3a14ecb
+    revision: 3a14ecb66fb3
     title: RAG-Anything repository
 ---
 
@@ -67,4 +67,4 @@ RAG-Anything is a Python multimodal ingestion and query layer built on LightRAG.
 
 This is a static architecture synthesis at the cited revision, not a successful deployment. LightRAG and optional parser/model implementations are not vendored in this package and were not audited as part of this source review. The separately linked LightRAG snapshot does not verify this package's exact installed dependency. See the source map for sampled-test coverage and excluded artifacts.
 
-[^rag-anything-3a14ecb]: Repository revision `3a14ecb`: `raganything/raganything.py::RAGAnything` (line 64), `__post_init__`, `close` (161), `_initialize_processors` (222), `_ensure_lightrag_initialized` (314), `_initialize_lightrag`, `finalize_storages` (485); `processor.py::process_document_complete` (1979); `document_context.py::document_context`; `callbacks.py::CallbackManager` (290–377); `parser.py::register_parser` (3163); `resilience.py` exports and `__init__.py` re-exports; README “System Overview” and “Algorithm & Architecture”; `assets/rag_anything_framework.png`, left-to-right parsing/grounding/retrieval panels (visually inspected).
+[^rag-anything-3a14ecb]: Repository revision `3a14ecb66fb3`: `raganything/raganything.py::RAGAnything` (line 64), `__post_init__`, `close` (161), `_initialize_processors` (222), `_ensure_lightrag_initialized` (314), `_initialize_lightrag`, `finalize_storages` (485); `processor.py::process_document_complete` (1979); `document_context.py::document_context`; `callbacks.py::CallbackManager` (290–377); `parser.py::register_parser` (3163); `resilience.py` exports and `__init__.py` re-exports; README “System Overview” and “Algorithm & Architecture”; `assets/rag_anything_framework.png`, left-to-right parsing/grounding/retrieval panels (visually inspected).

@@ -12,7 +12,7 @@ sources:
     resource: ../raw/ragas/README.md
     scope: ../raw/ragas/
     kind: code
-    revision: 298b682
+    revision: 298b68274234
     title: Ragas repository
 ---
 
@@ -45,4 +45,4 @@ Legacy and collections implementations are not guaranteed numeric equivalents: f
 - Uses contexts/reference fields from [dataset schemas](ragas-datasets.md); generated references from [testset synthesis](ragas-testset-generation.md) still require quality review.
 - Entity-recall, summary and some rubric prompt bodies received only signature/symbol-level inspection; no exhaustive metric catalogue verification.
 
-[^ragas-298b682]: Ragas `298b682`, `src/ragas/metrics/collections/faithfulness/metric.py::Faithfulness.ascore/_compute_score` and `util.py::NLIStatementPrompt`; `collections/answer_relevancy/metric.py::AnswerRelevancy.ascore`; `collections/context_precision/metric.py::ContextPrecisionWithReference/ContextPrecisionWithoutReference/ContextPrecision/ContextUtilization`; `collections/context_recall/metric.py::ContextRecall.ascore`; `collections/factual_correctness/metric.py::FactualCorrectness.ascore`; `collections/answer_correctness/metric.py::AnswerCorrectness.ascore`; `collections/noise_sensitivity/metric.py::NoiseSensitivity`; `collections/response_groundedness/metric.py`; `collections/context_relevance/metric.py` (all collection paths relative to `src/ragas/metrics/`); `src/ragas/metrics/_answer_relevance.py::ResponseRelevancy`; `tests/e2e/metrics_migration/`; `docs/concepts/metrics/available_metrics/faithfulness.md`. Static inspection only unless explicitly stated otherwise; coverage and remaining limits: [source map](ragas-source-map.md).
+[^ragas-298b682]: Ragas `298b68274234`, `src/ragas/metrics/collections/faithfulness/metric.py::Faithfulness.ascore/_compute_score` and `util.py::NLIStatementPrompt`; `collections/answer_relevancy/metric.py::AnswerRelevancy.ascore`; `collections/context_precision/metric.py::ContextPrecisionWithReference/ContextPrecisionWithoutReference/ContextPrecision/ContextUtilization`; `collections/context_recall/metric.py::ContextRecall.ascore`; `collections/factual_correctness/metric.py::FactualCorrectness.ascore`; `collections/answer_correctness/metric.py::AnswerCorrectness.ascore`; `collections/noise_sensitivity/metric.py::NoiseSensitivity`; `collections/response_groundedness/metric.py`; `collections/context_relevance/metric.py` (all collection paths relative to `src/ragas/metrics/`); `src/ragas/metrics/_answer_relevance.py::ResponseRelevancy`; `tests/e2e/metrics_migration/`; `docs/concepts/metrics/available_metrics/faithfulness.md`. Static inspection only unless explicitly stated otherwise; coverage and remaining limits: [source map](ragas-source-map.md).

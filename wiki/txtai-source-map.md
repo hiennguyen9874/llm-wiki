@@ -12,18 +12,18 @@ sources:
     resource: ../raw/txtai/README.md
     scope: ../raw/txtai/
     kind: code
-    revision: 738aac4
+    revision: 738aac498ccb
     title: txtai repository
 ---
 
-**Observed:** this compilation covers the local NeuML txtai repository at commit `738aac4`, using four parallel Explore subagents plus curator inspection and reconciliation. The [658-artifact ledger](txtai-source-coverage.tsv) is the package coverage/accounting surface: it separates targeted static inspection, declarations/credential-only screening, syntax-only coverage, pending material, and exclusions. **Limit:** neither this map nor the concept pages claim complete behavioral coverage or a successfully running txtai installation.[^txtai-repo]
+**Observed:** this compilation covers the local NeuML txtai repository at commit `738aac498ccb`, using four parallel Explore subagents plus curator inspection and reconciliation. The [658-artifact ledger](txtai-source-coverage.tsv) is the package coverage/accounting surface: it separates targeted static inspection, declarations/credential-only screening, syntax-only coverage, pending material, and exclusions. **Limit:** neither this map nor the concept pages claim complete behavioral coverage or a successfully running txtai installation.[^txtai-repo]
 
 ## Source identity
 
 | Field | Inspected value |
 | --- | --- |
 | Canonical entry point / scope | `raw/txtai/README.md` / `raw/txtai/` |
-| Revision / author timestamp | `738aac4` / `2026-10-22T19:56:53+01:00` |
+| Revision / author timestamp | `738aac498ccb` / `2026-10-22T19:56:53+01:00` |
 | Commit subject | Encode images without a format as PNG in ImageEncoder (#1467) |
 | Upstream | `https://github.com/neuml/txtai`; Git remote uses the same repository over SSH |
 | Package / runtime | `txtai` 9.15.0; Python ≥3.11; optional `txtai_minimal` distribution mode |
@@ -95,4 +95,4 @@ Heuristic private-key/provider-token scanning and targeted credential-context re
 
 All pages are **draft** because package/dependency coverage and runtime/optional-backend verification remain incomplete. The ledger supports future idempotent ingestion: re-inspect missing or changed paths, reconcile the existing source identity, and update only new/corrected knowledge rather than duplicating concepts.
 
-[^txtai-repo]: Revision `738aac4`: `README.md`; `CITATION.cff`; `LICENSE` header; `setup.py`; `src/python/txtai/version.py`; local Git HEAD/log/remote/status and tracked-path inventory inspected this session; implementation locators and precise evidence are distributed across the linked concepts and ledger. Reconciliation locators: `vectors/base.py::Vectors.tokens, prepare`, `vectors/dense/sbert.py::STVectors.encode`; `database/client.py::Client.createtables`, `database/rdbms.py::RDBMS.load, initialize`; `graph/rdbms.py::RDBMS.create, load`; `api/authorization.py::Authorization.digest`; `api/cluster.py::Cluster.run`; `api/application.py::createmcp`; `pipeline/llm/rag.py::RAG.reference`; `.github/workflows/build.yml`; `embeddings/base.py::Embeddings.defaultsparse`; `docs/embeddings/configuration/general.md`; `docs/cloud.md`, `docker/schedule/Dockerfile`. Short module paths are relative to `src/python/txtai/`. Coverage, AST and fingerprint results are session-generated checks over local artifacts, not upstream runtime verification.
+[^txtai-repo]: Revision `738aac498ccb`: `README.md`; `CITATION.cff`; `LICENSE` header; `setup.py`; `src/python/txtai/version.py`; local Git HEAD/log/remote/status and tracked-path inventory inspected this session; implementation locators and precise evidence are distributed across the linked concepts and ledger. Reconciliation locators: `vectors/base.py::Vectors.tokens, prepare`, `vectors/dense/sbert.py::STVectors.encode`; `database/client.py::Client.createtables`, `database/rdbms.py::RDBMS.load, initialize`; `graph/rdbms.py::RDBMS.create, load`; `api/authorization.py::Authorization.digest`; `api/cluster.py::Cluster.run`; `api/application.py::createmcp`; `pipeline/llm/rag.py::RAG.reference`; `.github/workflows/build.yml`; `embeddings/base.py::Embeddings.defaultsparse`; `docs/embeddings/configuration/general.md`; `docs/cloud.md`, `docker/schedule/Dockerfile`. Short module paths are relative to `src/python/txtai/`. Coverage, AST and fingerprint results are session-generated checks over local artifacts, not upstream runtime verification.

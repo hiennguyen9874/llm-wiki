@@ -12,7 +12,7 @@ sources:
     resource: ../raw/ragflow/README.md
     scope: ../raw/ragflow/
     kind: code
-    revision: 1731e54
+    revision: 1731e54b3aa0
     title: RAGFlow repository snapshot
 ---
 
@@ -45,7 +45,7 @@ RAGFlow combines document parsing and chunk indexing, hybrid retrieval, chat and
 
 ## Snapshot and trust boundary
 
-The source is pinned to `1731e54`; its repository license is Apache-2.0. The README's release examples and the frontend package version describe different version surfaces, so use the revision—not a guessed product release—as this ingest's identity. A committed private key and loader passphrase were found; the human authorized continuing, but their deployment use remains unknown. No values are compiled here.[^ragflow]
+The source is pinned to `1731e54b3aa0`; its repository license is Apache-2.0. The README's release examples and the frontend package version describe different version surfaces, so use the revision—not a guessed product release—as this ingest's identity. A committed private key and loader passphrase were found; the human authorized continuing, but their deployment use remains unknown. No values are compiled here.[^ragflow]
 
 ## Relationships
 
@@ -56,4 +56,4 @@ The source is pinned to `1731e54`; its repository license is Apache-2.0. The REA
 
 **Observed** means static inspection, not demonstrated runtime behavior. This page is **draft** because package coverage is sampled; builds, application tests, external services, model execution, and performance claims were not verified. See the [source map](ragflow-source-map.md) for the coverage ledger and redacted security boundary.
 
-[^ragflow]: [RAGFlow source](../raw/ragflow/README.md), revision `1731e54`; locators: `README.md::What is RAGFlow? / Key Features / Local Deployment`; `LICENSE::Apache License Version 2.0`; `go.mod::module / go / require`; `web/package.json::version / dependencies / devDependencies`; `cmd/ragflow_server.go::main`; `internal/common/password.go::LoadPrivateKey`.
+[^ragflow]: [RAGFlow source](../raw/ragflow/README.md), revision `1731e54b3aa0`; locators: `README.md::What is RAGFlow? / Key Features / Local Deployment`; `LICENSE::Apache License Version 2.0`; `go.mod::module / go / require`; `web/package.json::version / dependencies / devDependencies`; `cmd/ragflow_server.go::main`; `internal/common/password.go::LoadPrivateKey`.

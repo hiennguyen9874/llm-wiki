@@ -12,7 +12,7 @@ sources:
     resource: ../raw/ragflow/README.md
     scope: ../raw/ragflow/
     kind: code
-    revision: 1731e54
+    revision: 1731e54b3aa0
     title: RAGFlow repository snapshot
 ---
 
@@ -43,4 +43,4 @@ Backend router groups separate unauthenticated, beta-token and session-authorize
 
 **Observed** means static inspection, not demonstrated runtime behavior. This page is **draft** because package coverage is sampled; builds, application tests, external services, model execution, and performance claims were not verified. See the [source map](ragflow-source-map.md) for the coverage ledger and redacted security boundary.
 
-[^ragflow]: [RAGFlow source](../raw/ragflow/README.md), revision `1731e54`; locators: `web/package.json::dependencies / devDependencies`; `web/src/routes.tsx::Routes / createBrowserRouter`; `web/src/hooks/use-agent-request.ts::AgentKeys / agent hooks`; `web/src/services/agent-service.ts::registerNextServer client`; `web/src/utils/register-server.ts::registerNextServer`; `web/src/utils/next-request.ts::axios.create / request and response interceptors`; `web/src/hooks/use-send-message.ts::useSendMessageBySSE`; `web/src/services/chat-completion-stream.ts::requestChatCompletionStream`; `web/src/pages/agent/chat/use-send-agent-message.ts::SSE integration`; `web/src/pages/agent/store.ts::Zustand store`; `web/vite.config.ts::server.port / server.proxy`; `web/src/utils/api.ts::webAPI / restAPIv1`; `internal/router/router.go::Setup`; `internal/handler/agent.go::RunAgent`; `internal/server/api/server.go::MCP HTTP server`.
+[^ragflow]: [RAGFlow source](../raw/ragflow/README.md), revision `1731e54b3aa0`; locators: `web/package.json::dependencies / devDependencies`; `web/src/routes.tsx::Routes / createBrowserRouter`; `web/src/hooks/use-agent-request.ts::AgentKeys / agent hooks`; `web/src/services/agent-service.ts::registerNextServer client`; `web/src/utils/register-server.ts::registerNextServer`; `web/src/utils/next-request.ts::axios.create / request and response interceptors`; `web/src/hooks/use-send-message.ts::useSendMessageBySSE`; `web/src/services/chat-completion-stream.ts::requestChatCompletionStream`; `web/src/pages/agent/chat/use-send-agent-message.ts::SSE integration`; `web/src/pages/agent/store.ts::Zustand store`; `web/vite.config.ts::server.port / server.proxy`; `web/src/utils/api.ts::webAPI / restAPIv1`; `internal/router/router.go::Setup`; `internal/handler/agent.go::RunAgent`; `internal/server/api/server.go::MCP HTTP server`.

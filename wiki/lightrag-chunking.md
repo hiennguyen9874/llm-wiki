@@ -12,7 +12,7 @@ sources:
     resource: ../raw/LightRAG/README.md
     scope: ../raw/LightRAG/
     kind: code
-    revision: aaebfe1
+    revision: aaebfe1bb8d5
     title: LightRAG repository
 ---
 
@@ -49,4 +49,4 @@ sources:
 
 Static targeted reads of fixed/vector/paragraph implementations and dispatch. Recursive implementation and full plugin loading were not audited; no document splitting, golden fixtures, embedding calls, span accuracy or table-quality evaluation ran. See [coverage](lightrag-source-map.md).
 
-[^lightrag-aaebfe1]: Revision `aaebfe1`: `lightrag/pipeline.py` chunk dispatch (5130–5150); `parser/routing.py::ProcessOptions, validate_process_options, resolve_chunk_options`; `constants.py` chunk defaults, selectors and separator bounds; `chunker/token_size.py::chunking_by_token_size, chunking_by_fixed_token`; `chunker/semantic_vector.py::chunking_by_semantic_vector`; `chunker/paragraph_semantic.py::chunking_by_paragraph_semantic` and table-splitting helpers; `chunker/plugins.py` entry-point group (symbol inspection); `utils_pipeline.py::build_chunks_dict_from_chunking_result` and live sentence-regex handling (117–139); README “Multiple Text Chunking Strategies”; `docs/ParagraphSemanticChunking.md`; `docs/ProgramingWithCore.md` defaults table.
+[^lightrag-aaebfe1]: Revision `aaebfe1bb8d5`: `lightrag/pipeline.py` chunk dispatch (5130–5150); `parser/routing.py::ProcessOptions, validate_process_options, resolve_chunk_options`; `constants.py` chunk defaults, selectors and separator bounds; `chunker/token_size.py::chunking_by_token_size, chunking_by_fixed_token`; `chunker/semantic_vector.py::chunking_by_semantic_vector`; `chunker/paragraph_semantic.py::chunking_by_paragraph_semantic` and table-splitting helpers; `chunker/plugins.py` entry-point group (symbol inspection); `utils_pipeline.py::build_chunks_dict_from_chunking_result` and live sentence-regex handling (117–139); README “Multiple Text Chunking Strategies”; `docs/ParagraphSemanticChunking.md`; `docs/ProgramingWithCore.md` defaults table.

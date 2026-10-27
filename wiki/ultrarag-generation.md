@@ -12,7 +12,7 @@ sources:
     resource: ../raw/UltraRAG/README.md
     scope: ../raw/UltraRAG/
     kind: code
-    revision: 185e203
+    revision: 185e2032d9f1
     title: UltraRAG repository
 ---
 
@@ -51,4 +51,4 @@ All runtime behavior above is **observed statically**. The repository contains a
 - **Uses:** [prompt workflows](ultrarag-research-workflows.md) for model input construction.
 - **Used by:** [evaluation](ultrarag-evaluation.md); error sentinels affect answer interpretation.
 
-[^ultrarag]: Revision `185e203`: `servers/generation/parameter.yaml` `backend`, `model_name`, sampling and API concurrency/retry settings; `servers/generation/src/generation.py::generation_init`, `generate`, `multimodal_generate`, `multiturn_generate`, `vllm_shutdown`, nested `_generate` retry paths; `servers/generation/src/local_generation.py::LocalGenerationService` OpenAI-compatible streaming helper; `servers/generation/tests/test_litellm_backend.py`; `pyproject.toml` `[project.optional-dependencies]` `generation`/`litellm`; `src/ultrarag/client.py::execute_pipeline` cleanup and `_execute_steps` demo interception; `ui/backend/pipeline_manager.py` generation-service construction and backend override builder; `LocalGenerationService.generate_stream`, `multiturn_generate_stream`.
+[^ultrarag]: Revision `185e2032d9f1`: `servers/generation/parameter.yaml` `backend`, `model_name`, sampling and API concurrency/retry settings; `servers/generation/src/generation.py::generation_init`, `generate`, `multimodal_generate`, `multiturn_generate`, `vllm_shutdown`, nested `_generate` retry paths; `servers/generation/src/local_generation.py::LocalGenerationService` OpenAI-compatible streaming helper; `servers/generation/tests/test_litellm_backend.py`; `pyproject.toml` `[project.optional-dependencies]` `generation`/`litellm`; `src/ultrarag/client.py::execute_pipeline` cleanup and `_execute_steps` demo interception; `ui/backend/pipeline_manager.py` generation-service construction and backend override builder; `LocalGenerationService.generate_stream`, `multiturn_generate_stream`.

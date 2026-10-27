@@ -12,7 +12,7 @@ sources:
     resource: ../raw/ragas/README.md
     scope: ../raw/ragas/
     kind: code
-    revision: 298b682
+    revision: 298b68274234
     title: Ragas repository
 ---
 
@@ -44,4 +44,4 @@ The migration guide's `await run_evaluation(dataset)` calls the row function onc
 - Uses [dataset tables](ragas-datasets.md) and [backend persistence](ragas-backends.md).
 - Contrasts with [legacy evaluation](ragas-legacy-evaluation.md), whose Executor/RunConfig controls do not automatically carry over.
 
-[^ragas-298b682]: Ragas `298b682`, `src/ragas/experiment.py::ExperimentWrapper.__call__/arun/experiment/version_experiment`; `src/ragas/dataset.py::DataTable.save`; `tests/unit/test_experiment.py::TestExperimentDecorator`; `docs/concepts/experimentation.md::Result Storage`; `docs/howtos/migrations/migrate_from_v03_to_v04.md::Evaluation to Experiment`. Static inspection only unless explicitly stated otherwise; coverage and remaining limits: [source map](ragas-source-map.md).
+[^ragas-298b682]: Ragas `298b68274234`, `src/ragas/experiment.py::ExperimentWrapper.__call__/arun/experiment/version_experiment`; `src/ragas/dataset.py::DataTable.save`; `tests/unit/test_experiment.py::TestExperimentDecorator`; `docs/concepts/experimentation.md::Result Storage`; `docs/howtos/migrations/migrate_from_v03_to_v04.md::Evaluation to Experiment`. Static inspection only unless explicitly stated otherwise; coverage and remaining limits: [source map](ragas-source-map.md).

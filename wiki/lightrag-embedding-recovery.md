@@ -12,7 +12,7 @@ sources:
     resource: ../raw/LightRAG/README.md
     scope: ../raw/LightRAG/
     kind: code
-    revision: aaebfe1
+    revision: aaebfe1bb8d5
     title: LightRAG repository
 ---
 
@@ -47,4 +47,4 @@ sources:
 
 Static inspection of contracts, selected backend regions, and tool control flow; no vector rebuild, database migration, adoption probe, or model swap was executed. Full backend marker persistence and index-readiness recovery remain pending in the [source map](lightrag-source-map.md).
 
-[^lightrag-aaebfe1]: Revision `aaebfe1`: `lightrag/base.py::BaseVectorStorage._generate_collection_suffix`; `kg/vector_space.py::assert_vector_space_matches`; `exceptions.py::VectorSpaceMismatchError`; `kg/{nano_vector_db_impl,faiss_impl,mongo_impl,opensearch_impl,milvus_impl,qdrant_impl,postgres_impl}.py` model-space initialization, particularly `faiss_impl.py` 1458–1484 and `postgres_impl.py` 4022–4042; `lightrag.py::LightRAG.initialize_storages` targeted symbol search; `tools/rebuild_vdb.py` initialization and confirmation paths; `tools/README_REBUILD_VDB.md` 5–11, 45–64, 70–121, 135–141; `docs/design/VectorSpaceProvenance.md` marker/adoption contract and 442–445; README “Embedding Models”, SDK Note 1 and maintenance tools; `docs/ProgramingWithCore.md` “Switching embedding models”.
+[^lightrag-aaebfe1]: Revision `aaebfe1bb8d5`: `lightrag/base.py::BaseVectorStorage._generate_collection_suffix`; `kg/vector_space.py::assert_vector_space_matches`; `exceptions.py::VectorSpaceMismatchError`; `kg/{nano_vector_db_impl,faiss_impl,mongo_impl,opensearch_impl,milvus_impl,qdrant_impl,postgres_impl}.py` model-space initialization, particularly `faiss_impl.py` 1458–1484 and `postgres_impl.py` 4022–4042; `lightrag.py::LightRAG.initialize_storages` targeted symbol search; `tools/rebuild_vdb.py` initialization and confirmation paths; `tools/README_REBUILD_VDB.md` 5–11, 45–64, 70–121, 135–141; `docs/design/VectorSpaceProvenance.md` marker/adoption contract and 442–445; README “Embedding Models”, SDK Note 1 and maintenance tools; `docs/ProgramingWithCore.md` “Switching embedding models”.

@@ -12,7 +12,7 @@ sources:
     resource: ../raw/ragas/README.md
     scope: ../raw/ragas/
     kind: code
-    revision: 298b682
+    revision: 298b68274234
     title: Ragas repository
 ---
 
@@ -39,4 +39,4 @@ Optimizer operates on metric-bound SingleMetricAnnotation and Loss and returns p
 - Depends on [model adapters](ragas-model-adapters.md); extra search can incur judge/provider calls.
 - Genetic/DSPy implementations were read in selected material regions, not exhaustively. No optimizer ran; no improvement, convergence, cost, fairness or held-out generalization result is claimed. Annotation acceptance and evaluation splits require caller review.
 
-[^ragas-298b682]: Ragas `298b682`, `src/ragas/prompt/mixin.py::PromptMixin.get_prompts/set_prompts/adapt_prompts/save_prompts/load_prompts`; `src/ragas/prompt/pydantic_prompt.py::PydanticPrompt.generate_multiple/adapt`; `src/ragas/prompt/base.py::BasePrompt.save/load`; `src/ragas/optimizers/base.py::Optimizer`; `src/ragas/optimizers/genetic.py::GeneticOptimizer`; `src/ragas/optimizers/dspy_optimizer.py::DSPyOptimizer`; `src/ragas/metrics/base.py::MetricWithLLM.train`; `tests/unit/test_optimizer_config.py`. Static inspection only unless explicitly stated otherwise; coverage and remaining limits: [source map](ragas-source-map.md).
+[^ragas-298b682]: Ragas `298b68274234`, `src/ragas/prompt/mixin.py::PromptMixin.get_prompts/set_prompts/adapt_prompts/save_prompts/load_prompts`; `src/ragas/prompt/pydantic_prompt.py::PydanticPrompt.generate_multiple/adapt`; `src/ragas/prompt/base.py::BasePrompt.save/load`; `src/ragas/optimizers/base.py::Optimizer`; `src/ragas/optimizers/genetic.py::GeneticOptimizer`; `src/ragas/optimizers/dspy_optimizer.py::DSPyOptimizer`; `src/ragas/metrics/base.py::MetricWithLLM.train`; `tests/unit/test_optimizer_config.py`. Static inspection only unless explicitly stated otherwise; coverage and remaining limits: [source map](ragas-source-map.md).

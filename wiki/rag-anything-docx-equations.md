@@ -12,7 +12,7 @@ sources:
     resource: ../raw/RAG-Anything/README.md
     scope: ../raw/RAG-Anything/
     kind: code
-    revision: 3a14ecb
+    revision: 3a14ecb66fb3
     title: RAG-Anything repository
 ---
 
@@ -46,4 +46,4 @@ Returned `raw_omml` is generated with `ElementTree.tostring`: **Observed**, it i
 
 The extraction/conversion code and selected test setup were statically inspected. No DOCX was opened by execution and no equation fidelity or precise page placement was reproduced; see [source map](rag-anything-source-map.md).
 
-[^rag-anything-3a14ecb]: Revision `3a14ecb`: `raganything/omml_extractor.py::extract_omml_equations` (main ZIP/XML processing 155–196), `enrich_content_list_with_docx_equations` (220–332), local-name/dispatch helpers (362–384), `_HANDLERS` (784–817); absence of parser/processor integration found by static import/reference search; sampled `tests/test_omml_extractor.py` (first 60 lines and test-name inventory, not executed).
+[^rag-anything-3a14ecb]: Revision `3a14ecb66fb3`: `raganything/omml_extractor.py::extract_omml_equations` (main ZIP/XML processing 155–196), `enrich_content_list_with_docx_equations` (220–332), local-name/dispatch helpers (362–384), `_HANDLERS` (784–817); absence of parser/processor integration found by static import/reference search; sampled `tests/test_omml_extractor.py` (first 60 lines and test-name inventory, not executed).

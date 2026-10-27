@@ -12,7 +12,7 @@ sources:
     resource: ../raw/openrag/README.md
     scope: ../raw/openrag/
     kind: code
-    revision: 6fc819d
+    revision: 6fc819d3ec10
     title: OpenRAG repository
 ---
 
@@ -51,4 +51,4 @@ Restore for Agent/Knowledge Ingestion discards customizations. Other flows need 
 
 Flow node/edge/template inspection does not execute the graph or prove every embedded code copy matches source. Runtime backups and persisted user edits were not available; see [source map](openrag-source-map.md).
 
-[^openrag-repo]: `6fc819d`: `flows/{openrag_agent,openrag_nudges,ingestion_flow,openrag_url_mcp}.json::data.nodes/data.edges/locked`; `src/config/settings.py` flow-ID constants; `src/services/flows_service.py::{ensure_flows_exist,_lock_flow,enable_mcp_none_for_url_ingest_flow}`; `src/utils/langflow_headers.py`; `custom_components/openrag/{openai_compatible_llm,openai_compatible_embedding}.py`; `Dockerfile.langflow::LANGFLOW_COMPONENTS_PATH/LANGFLOW_ALLOW_CUSTOM_COMPONENTS/LANGFLOW_BLOCK_CODE_INTERPRETER_COMPONENTS`; `docs/docs/core-components/{agents,editing-in-langflow,chat}.mdx`; `docs/static/img/opensearch-agent-flow.png` full graph.
+[^openrag-repo]: `6fc819d3ec10`: `flows/{openrag_agent,openrag_nudges,ingestion_flow,openrag_url_mcp}.json::data.nodes/data.edges/locked`; `src/config/settings.py` flow-ID constants; `src/services/flows_service.py::{ensure_flows_exist,_lock_flow,enable_mcp_none_for_url_ingest_flow}`; `src/utils/langflow_headers.py`; `custom_components/openrag/{openai_compatible_llm,openai_compatible_embedding}.py`; `Dockerfile.langflow::LANGFLOW_COMPONENTS_PATH/LANGFLOW_ALLOW_CUSTOM_COMPONENTS/LANGFLOW_BLOCK_CODE_INTERPRETER_COMPONENTS`; `docs/docs/core-components/{agents,editing-in-langflow,chat}.mdx`; `docs/static/img/opensearch-agent-flow.png` full graph.

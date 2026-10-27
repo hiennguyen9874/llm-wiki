@@ -12,7 +12,7 @@ sources:
     resource: ../raw/ragflow/README.md
     scope: ../raw/ragflow/
     kind: code
-    revision: 1731e54
+    revision: 1731e54b3aa0
     title: RAGFlow repository snapshot
 ---
 
@@ -49,4 +49,4 @@ The root source `AGENTS.md` describes legacy Python server directories as pendin
 
 **Observed** means static inspection, not demonstrated runtime behavior. This page is **draft** because package coverage is sampled; builds, application tests, external services, model execution, and performance claims were not verified. See the [source map](ragflow-source-map.md) for the coverage ledger and redacted security boundary.
 
-[^ragflow]: [RAGFlow source](../raw/ragflow/README.md), revision `1731e54`; locators: `cmd/ragflow_server.go::main / modeFlag.Set / isStandaloneDeepDocServer / checkDatabaseVersion`; `internal/server/bootstrap/bootstrap.go::GetServerType / ResolveServerName`; `internal/server/api/server.go::startServer`; `internal/server/ingestor/server.go::Run`; `internal/dao/database.go::InitDB / autoMigrateRuntimeModels`; `internal/dao/migration_version.go::migrationDBVersionMarker`; `internal/storage/storage_factory.go::CloseStorage`; `AGENTS.md::Current stack / Code Layout to Expect`; `internal/server/config/database_config.go::ParseDatabaseConfig`.
+[^ragflow]: [RAGFlow source](../raw/ragflow/README.md), revision `1731e54b3aa0`; locators: `cmd/ragflow_server.go::main / modeFlag.Set / isStandaloneDeepDocServer / checkDatabaseVersion`; `internal/server/bootstrap/bootstrap.go::GetServerType / ResolveServerName`; `internal/server/api/server.go::startServer`; `internal/server/ingestor/server.go::Run`; `internal/dao/database.go::InitDB / autoMigrateRuntimeModels`; `internal/dao/migration_version.go::migrationDBVersionMarker`; `internal/storage/storage_factory.go::CloseStorage`; `AGENTS.md::Current stack / Code Layout to Expect`; `internal/server/config/database_config.go::ParseDatabaseConfig`.

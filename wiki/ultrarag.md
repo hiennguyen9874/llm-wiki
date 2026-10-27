@@ -12,7 +12,7 @@ sources:
     resource: ../raw/UltraRAG/README.md
     scope: ../raw/UltraRAG/
     kind: code
-    revision: 185e203
+    revision: 185e2032d9f1
     title: UltraRAG repository
 ---
 
@@ -44,11 +44,11 @@ The feature map is **synthesis** of static implementation inspection, not proof 
 
 ## Identity and limits
 
-The README identifies THUNLP, NEUIR, OpenBMB, and AI9stars as collaborators and links upstream `https://github.com/OpenBMB/UltraRAG`. The inspected package version is `0.3.0.2`, and the local license is Apache-2.0. These pages describe commit `185e203`, not the moving upstream branch. No framework services, model inference, benchmarks, or repository tests were executed.[^ultrarag]
+The README identifies THUNLP, NEUIR, OpenBMB, and AI9stars as collaborators and links upstream `https://github.com/OpenBMB/UltraRAG`. The inspected package version is `0.3.0.2`, and the local license is Apache-2.0. These pages describe commit `185e2032d9f1`, not the moving upstream branch. No framework services, model inference, benchmarks, or repository tests were executed.[^ultrarag]
 
 ## Relationships
 
 - **Uses:** [YAML pipeline orchestration](ultrarag-pipelines.md) to compose [retrieval](ultrarag-retrieval.md) with [generation](ultrarag-generation.md).
 - **Uses:** [UI](ultrarag-ui.md) as another adapter to the shared engine rather than an independent RAG runtime.
 
-[^ultrarag]: Inspected revision `185e203`: `README.md` §§ About UltraRAG, UltraRAG UI; `pyproject.toml` `[project]`, `[project.scripts]`; `LICENSE.txt` heading; `src/ultrarag/client.py::local_server_launch_config`, `remote_server_launch_config`, `build`, `execute_pipeline`; `src/ultrarag/mcp_exceptions.py::check_node_version`; `src/ultrarag/api.py::initialize`, `PipelineCall`; `ui/backend/pipeline_manager.py` imports of the client engine.
+[^ultrarag]: Inspected revision `185e2032d9f1`: `README.md` §§ About UltraRAG, UltraRAG UI; `pyproject.toml` `[project]`, `[project.scripts]`; `LICENSE.txt` heading; `src/ultrarag/client.py::local_server_launch_config`, `remote_server_launch_config`, `build`, `execute_pipeline`; `src/ultrarag/mcp_exceptions.py::check_node_version`; `src/ultrarag/api.py::initialize`, `PipelineCall`; `ui/backend/pipeline_manager.py` imports of the client engine.

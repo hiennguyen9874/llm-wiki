@@ -5,14 +5,14 @@ description: Workspace RBAC, scoped machine principals, tenant selection, outbou
 tags: [ml, weknora, security, authorization]
 status: draft
 created: 2026-10-26
-generated: { by: llm-wiki-agent/1, at: 2026-10-26T08:11:38Z }
+generated: { by: llm-wiki-agent/1, at: 2026-10-26T16:19:21Z }
 stale_after: 2027-01-26
 sources:
   - id: weknora
     resource: ../raw/WeKnora/README.md
     scope: ../raw/WeKnora/
     kind: code
-    revision: fd7a258
+    revision: fd7a2586fd58
     title: WeKnora v0.8.3 repository snapshot
 ---
 
@@ -39,9 +39,11 @@ Docker socket access is host-root-equivalent and the Docker sandbox backend is o
 - Applies to [domain persistence](weknora-persistence.md) and [agent/sandbox execution](weknora-skills-sandboxes.md).
 - [MCP servers](weknora-mcp-servers.md) and [embed/IM channels](weknora-publishing-channels.md) have additional authentication surfaces before the global middleware.
 - Depends on deliberate [deployment topology](weknora-deployment.md).
+- Complements the [model-facing citation/source boundary](weknora-citations-source-boundary.md): existing untrusted-data instructions do not replace tool authorization.
+- Informs the [fork roadmap](weknora-fork-roadmap.md), including proposed source-ACL checks for derived wiki, graph, cache and conversation surfaces.
 
 ## Coverage and trust limits
 
 Selected middleware, policy, config, outbound-classification, and Lite setup sections were inspected. OIDC end-to-end, all route guards, adapter callbacks, storage access, sandbox enforcement, rate limits, credential logging, and full tenant isolation remain pending. No exploit, auth request, or integration test ran. No likely live credentials were identified in inspected inputs; this is not a whole-repository secret audit. `SECURITY.md` asks for private vulnerability reporting.[^weknora]
 
-[^weknora]: Snapshot `fd7a258`: `internal/middleware/auth.go::Auth`, `resolveTargetTenant`, `authenticateAPIKeyRequest`, `resolveTenantRole`; `middleware/access.go::IsCrossTenantSuperuser`, `IsTenantAccessible`; `middleware/rbac.go::RequireRole`, `RequireSystemAdmin`, `RequireOwnershipOrRole`, `rbacEnforcementEnabled`; `middleware/api_key_gate.go::APIKeyRouteAuthorizer`, `authorize`, `DenyAPIKeyPrincipal`; `internal/config/config.go::applyAuthAndTenantDefaults`, `TenantConfig.IsRBACEnforced`; `internal/utils/security.go::SSRFWhitelistOnlyEnabled`, `CheckSSRFWhitelistOnly`, `CheckDialWhitelistOnly`; `internal/ipclass/ipclass.go` class declarations; `internal/sandbox/docker_enabled.go`; `internal/handler/auth.go::AutoSetup`; `docker-compose.yml` app socket warning; `SECURITY.md`, “Reporting a Vulnerability.” Package entry: [README](../raw/WeKnora/README.md), deployment warning and “Access and security.”
+[^weknora]: Snapshot `fd7a2586fd58`: `internal/middleware/auth.go::Auth`, `resolveTargetTenant`, `authenticateAPIKeyRequest`, `resolveTenantRole`; `middleware/access.go::IsCrossTenantSuperuser`, `IsTenantAccessible`; `middleware/rbac.go::RequireRole`, `RequireSystemAdmin`, `RequireOwnershipOrRole`, `rbacEnforcementEnabled`; `middleware/api_key_gate.go::APIKeyRouteAuthorizer`, `authorize`, `DenyAPIKeyPrincipal`; `internal/config/config.go::applyAuthAndTenantDefaults`, `TenantConfig.IsRBACEnforced`; `internal/utils/security.go::SSRFWhitelistOnlyEnabled`, `CheckSSRFWhitelistOnly`, `CheckDialWhitelistOnly`; `internal/ipclass/ipclass.go` class declarations; `internal/sandbox/docker_enabled.go`; `internal/handler/auth.go::AutoSetup`; `docker-compose.yml` app socket warning; `SECURITY.md`, “Reporting a Vulnerability.” Package entry: [README](../raw/WeKnora/README.md), deployment warning and “Access and security.”

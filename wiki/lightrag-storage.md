@@ -12,7 +12,7 @@ sources:
     resource: ../raw/LightRAG/README.md
     scope: ../raw/LightRAG/
     kind: code
-    revision: aaebfe1
+    revision: aaebfe1bb8d5
     title: LightRAG repository
 ---
 
@@ -70,4 +70,4 @@ Backend-specific workspace environment overrides can take precedence over the pa
 
 Targeted static reading of backend naming, capability and migration regions, not full query-path or database integration testing. Large backend bodies, cursor/batch behavior, remote services, and many assertions remain pending in the [source map](lightrag-source-map.md).
 
-[^lightrag-aaebfe1]: Revision `aaebfe1`: `lightrag/kg/__init__.py::STORAGE_IMPLEMENTATIONS, STORAGE_ENV_REQUIREMENTS, STORAGES, verify_storage_implementation`; `kg/factory.py::get_storage_class`; `lightrag.py::LightRAG.__post_init__`; `base.py::BaseVectorStorage, BaseGraphStorage, DocStatusStorage` and strict-read/buffer-discard contracts; `utils.py::check_storage_env_vars, validate_workspace`; `kg/{json_kv_impl,json_doc_status_impl,nano_vector_db_impl,faiss_impl,networkx_impl,redis_impl,milvus_impl,qdrant_impl,postgres_impl,pgtable_impl,neo4j_impl,memgraph_impl,mongo_impl,opensearch_impl,noop_vector_db_impl}.py` workspace initialization and capability fields; `redis_impl.py` eviction guard (189–250); `postgres_impl.py` AGE version gate (1200–1290); `docs/design/PgVectorFilteredSearch.md` problem, mitigation and limits; README “Selecting Backend Storage”; `env.example` workspace constraints; `docs/LightRAG-API-Server.md` storage/workspace sections.
+[^lightrag-aaebfe1]: Revision `aaebfe1bb8d5`: `lightrag/kg/__init__.py::STORAGE_IMPLEMENTATIONS, STORAGE_ENV_REQUIREMENTS, STORAGES, verify_storage_implementation`; `kg/factory.py::get_storage_class`; `lightrag.py::LightRAG.__post_init__`; `base.py::BaseVectorStorage, BaseGraphStorage, DocStatusStorage` and strict-read/buffer-discard contracts; `utils.py::check_storage_env_vars, validate_workspace`; `kg/{json_kv_impl,json_doc_status_impl,nano_vector_db_impl,faiss_impl,networkx_impl,redis_impl,milvus_impl,qdrant_impl,postgres_impl,pgtable_impl,neo4j_impl,memgraph_impl,mongo_impl,opensearch_impl,noop_vector_db_impl}.py` workspace initialization and capability fields; `redis_impl.py` eviction guard (189–250); `postgres_impl.py` AGE version gate (1200–1290); `docs/design/PgVectorFilteredSearch.md` problem, mitigation and limits; README “Selecting Backend Storage”; `env.example` workspace constraints; `docs/LightRAG-API-Server.md` storage/workspace sections.

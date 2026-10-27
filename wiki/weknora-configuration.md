@@ -12,7 +12,7 @@ sources:
     resource: ../raw/WeKnora/README.md
     scope: ../raw/WeKnora/
     kind: code
-    revision: fd7a258
+    revision: fd7a2586fd58
     title: WeKnora v0.8.3 repository snapshot
 ---
 
@@ -48,4 +48,4 @@ The inspected `.env.example` correctly recommends `openssl rand -hex 16` for a 3
 
 Selected loader/default passes, JWT generation, crypto helpers, startup banner, and templates were inspected. Full override coverage, every credential consumer, signing-helper bodies, secret rotation, and multi-replica behavior were not executed or exhaustively audited. See the [source map](weknora-source-map.md).
 
-[^weknora]: Snapshot `fd7a258`: `internal/config/config.go::LoadConfig`, `ValidateConfig`, `applyOIDCEnvOverrides`, `applyAgentEnvOverrides`, `applyKnowledgeBaseEnvOverrides`, `applyNetworkEnvOverrides`, `applyAuthAndTenantDefaults`, `applyAuditDefaults`; `internal/application/service/user.go::getJwtSecret`; `internal/utils/crypto.go::GetAESKey`, `EncryptAESGCM`, `DecryptStoredSecret`, `ErrEncryptedDataMissingKey`; `internal/utils/presign.go` signing-key symbols (partial inspection); `internal/runtime/startup.go::LogStartupEnv`; `.env.example`, “F1. keys” section, lines 595–608. Package entry: [README](../raw/WeKnora/README.md), “Quick Start” and configuration links.
+[^weknora]: Snapshot `fd7a2586fd58`: `internal/config/config.go::LoadConfig`, `ValidateConfig`, `applyOIDCEnvOverrides`, `applyAgentEnvOverrides`, `applyKnowledgeBaseEnvOverrides`, `applyNetworkEnvOverrides`, `applyAuthAndTenantDefaults`, `applyAuditDefaults`; `internal/application/service/user.go::getJwtSecret`; `internal/utils/crypto.go::GetAESKey`, `EncryptAESGCM`, `DecryptStoredSecret`, `ErrEncryptedDataMissingKey`; `internal/utils/presign.go` signing-key symbols (partial inspection); `internal/runtime/startup.go::LogStartupEnv`; `.env.example`, “F1. keys” section, lines 595–608. Package entry: [README](../raw/WeKnora/README.md), “Quick Start” and configuration links.

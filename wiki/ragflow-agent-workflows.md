@@ -12,7 +12,7 @@ sources:
     resource: ../raw/ragflow/README.md
     scope: ../raw/ragflow/
     kind: code
-    revision: 1731e54
+    revision: 1731e54b3aa0
     title: RAGFlow repository snapshot
 ---
 
@@ -46,4 +46,4 @@ Agent routes expose templates, CRUD, run/publish/reset, component forms/debuggin
 
 **Observed** means static inspection, not demonstrated runtime behavior. This page is **draft** because package coverage is sampled; builds, application tests, external services, model execution, and performance claims were not verified. See the [source map](ragflow-source-map.md) for the coverage ledger and redacted security boundary.
 
-[^ragflow]: [RAGFlow source](../raw/ragflow/README.md), revision `1731e54`; locators: `go.mod::github.com/cloudwego/eino`; `internal/agent/canvas/compile.go::Compile / CompiledCanvas`; `internal/agent/canvas/runner.go::Runner.Run / RunEvent`; `internal/agent/component/base.go::Component`; `internal/agent/runtime/registry.go::Register`; `internal/agent/component/registry.go::Register`; `internal/agent/component/agent.go::eino ReAct integration`; `internal/agent/workflowx/loop.go::AddLoopNode`; `internal/agent/workflowx/parallel.go::AddParallelNode`; `internal/agentic_rag/agent.go::Run`; `internal/agentic_rag/compiled_knowledge.go::compiledKnowledgeTools`; `README.md::Agentic Retrieval`; `internal/router/agent_routes.go::RegisterAgentRoutes / RegisterPublicAgentWebhookRoutes / RegisterAgentCancelRoutes`; `internal/handler/agent.go::RunAgent`.
+[^ragflow]: [RAGFlow source](../raw/ragflow/README.md), revision `1731e54b3aa0`; locators: `go.mod::github.com/cloudwego/eino`; `internal/agent/canvas/compile.go::Compile / CompiledCanvas`; `internal/agent/canvas/runner.go::Runner.Run / RunEvent`; `internal/agent/component/base.go::Component`; `internal/agent/runtime/registry.go::Register`; `internal/agent/component/registry.go::Register`; `internal/agent/component/agent.go::eino ReAct integration`; `internal/agent/workflowx/loop.go::AddLoopNode`; `internal/agent/workflowx/parallel.go::AddParallelNode`; `internal/agentic_rag/agent.go::Run`; `internal/agentic_rag/compiled_knowledge.go::compiledKnowledgeTools`; `README.md::Agentic Retrieval`; `internal/router/agent_routes.go::RegisterAgentRoutes / RegisterPublicAgentWebhookRoutes / RegisterAgentCancelRoutes`; `internal/handler/agent.go::RunAgent`.

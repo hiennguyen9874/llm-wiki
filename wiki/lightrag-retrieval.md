@@ -12,7 +12,7 @@ sources:
     resource: ../raw/LightRAG/README.md
     scope: ../raw/LightRAG/
     kind: code
-    revision: aaebfe1
+    revision: aaebfe1bb8d5
     title: LightRAG repository
 ---
 
@@ -66,4 +66,4 @@ sources:
 
 Targeted static code and selected test-assertion inspection only. No retrieval request, quality benchmark, provider call, latency measurement, or backend comparison ran. Missing-backend and token-boundary branches are not integration-verified; see [coverage](lightrag-source-map.md).
 
-[^lightrag-aaebfe1]: Revision `aaebfe1`: `lightrag/lightrag.py::LightRAG.aquery_llm`; `operate.py::kg_query, naive_query, get_keywords_from_query, extract_keywords_only, _perform_kg_search, _apply_token_truncation, _merge_all_chunks, _build_context_str, _get_node_data, _get_edge_data, _vector_chunk_quota`; `utils.py::pick_by_vector_similarity, pick_by_weighted_polling, process_chunks_unified, apply_rerank_if_enabled, normalize_rerank_result, _truncate_chunks_for_unified_context`; `base.py::QueryParam`; `constants.py::DEFAULT_TOP_K, DEFAULT_CHUNK_TOP_K, DEFAULT_MAX_ENTITY_TOKENS, DEFAULT_MAX_RELATION_TOKENS, DEFAULT_MAX_TOTAL_TOKENS, DEFAULT_COSINE_THRESHOLD, DEFAULT_RELATED_CHUNK_NUMBER`; `rerank.py::generic_rerank_api, cohere_rerank, jina_rerank, ali_rerank`; `api/config.py` rerank choices; `api/lightrag_server.py::initialize_rag`; selected assertions in `tests/test_kg_vector_chunk_quota.py`, `tests/test_operate_truncation_order.py`, `tests/utils/test_pick_by_vector_similarity.py`, `tests/utils/test_normalize_rerank_result.py`; README query/rerank guidance.
+[^lightrag-aaebfe1]: Revision `aaebfe1bb8d5`: `lightrag/lightrag.py::LightRAG.aquery_llm`; `operate.py::kg_query, naive_query, get_keywords_from_query, extract_keywords_only, _perform_kg_search, _apply_token_truncation, _merge_all_chunks, _build_context_str, _get_node_data, _get_edge_data, _vector_chunk_quota`; `utils.py::pick_by_vector_similarity, pick_by_weighted_polling, process_chunks_unified, apply_rerank_if_enabled, normalize_rerank_result, _truncate_chunks_for_unified_context`; `base.py::QueryParam`; `constants.py::DEFAULT_TOP_K, DEFAULT_CHUNK_TOP_K, DEFAULT_MAX_ENTITY_TOKENS, DEFAULT_MAX_RELATION_TOKENS, DEFAULT_MAX_TOTAL_TOKENS, DEFAULT_COSINE_THRESHOLD, DEFAULT_RELATED_CHUNK_NUMBER`; `rerank.py::generic_rerank_api, cohere_rerank, jina_rerank, ali_rerank`; `api/config.py` rerank choices; `api/lightrag_server.py::initialize_rag`; selected assertions in `tests/test_kg_vector_chunk_quota.py`, `tests/test_operate_truncation_order.py`, `tests/utils/test_pick_by_vector_similarity.py`, `tests/utils/test_normalize_rerank_result.py`; README query/rerank guidance.

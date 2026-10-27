@@ -12,7 +12,7 @@ sources:
     resource: ../raw/ragas/README.md
     scope: ../raw/ragas/
     kind: code
-    revision: 298b682
+    revision: 298b68274234
     title: Ragas repository
 ---
 
@@ -45,4 +45,4 @@ The collection helper's local/URL policy differs from the older guarded multimod
 - Agent metrics are distinct from [synthetic test generation](ragas-testset-generation.md), whose inspected shipped synthesizers produce single-turn RAG samples.
 - No SQL engine, tool trajectory, image fetch, quote check or provider judge was run. No metric-quality or security exploit conclusion was reproduced.
 
-[^ragas-298b682]: Ragas `298b682`, `src/ragas/metrics/collections/__init__.py::__all__`; `collections/tool_call_accuracy/metric.py::ToolCallAccuracy.ascore` and `util.py::exact_match_args`; `collections/tool_call_f1/util.py::tool_call_to_hashable/calculate_f1_score`; `collections/agent_goal_accuracy/metric.py::AgentGoalAccuracyWithReference`; `collections/sql_semantic_equivalence/metric.py::SQLSemanticEquivalence`; `collections/datacompy_score/metric.py::DataCompyScore`; `collections/_string.py`; `collections/quoted_spans/metric.py`; `collections/multi_modal_faithfulness/metric.py` and `util.py::build_multimodal_message_content/_try_process_url/_try_process_local_file` (collection paths relative to `src/ragas/metrics/`); `src/ragas/metrics/quoted_spans.py::_extract_quoted_spans`. Static inspection only unless explicitly stated otherwise; coverage and remaining limits: [source map](ragas-source-map.md).
+[^ragas-298b682]: Ragas `298b68274234`, `src/ragas/metrics/collections/__init__.py::__all__`; `collections/tool_call_accuracy/metric.py::ToolCallAccuracy.ascore` and `util.py::exact_match_args`; `collections/tool_call_f1/util.py::tool_call_to_hashable/calculate_f1_score`; `collections/agent_goal_accuracy/metric.py::AgentGoalAccuracyWithReference`; `collections/sql_semantic_equivalence/metric.py::SQLSemanticEquivalence`; `collections/datacompy_score/metric.py::DataCompyScore`; `collections/_string.py`; `collections/quoted_spans/metric.py`; `collections/multi_modal_faithfulness/metric.py` and `util.py::build_multimodal_message_content/_try_process_url/_try_process_local_file` (collection paths relative to `src/ragas/metrics/`); `src/ragas/metrics/quoted_spans.py::_extract_quoted_spans`. Static inspection only unless explicitly stated otherwise; coverage and remaining limits: [source map](ragas-source-map.md).

@@ -12,7 +12,7 @@ sources:
     resource: ../raw/ragas/README.md
     scope: ../raw/ragas/
     kind: code
-    revision: 298b682
+    revision: 298b68274234
     title: Ragas repository
 ---
 
@@ -46,4 +46,4 @@ Testset converts to EvaluationDataset, pandas/HuggingFace and CSV/JSONL forms; a
 - Supplies potential references for [RAG metrics](ragas-rag-metrics.md), which still inherit generator/reference/judge biases.
 - No samples generated, no requested-vs-realized count measured, no provider spend incurred and no human validation of synthetic answers performed.
 
-[^ragas-298b682]: Ragas `298b682`, `src/ragas/testset/synthesizers/generate.py::TestsetGenerator.generate_with_langchain_docs/generate_with_llamaindex_docs/generate_with_chunks/generate`; `synthesizers/__init__.py::default_query_distribution`; `synthesizers/utils.py::calculate_split_values`; `synthesizers/single_hop/specific.py::SingleHopSpecificQuerySynthesizer`; `synthesizers/multi_hop/specific.py::MultiHopSpecificQuerySynthesizer`; `synthesizers/multi_hop/abstract.py::MultiHopAbstractQuerySynthesizer`; `persona.py::generate_personas_from_kg`; `synthesizers/testset_schema.py::Testset` (paths relative to `src/ragas/testset/`); `docs/getstarted/rag_testset_generation.md::Testset Generation`; `docs/concepts/test_data_generation/agents.md`. Static inspection only unless explicitly stated otherwise; coverage and remaining limits: [source map](ragas-source-map.md).
+[^ragas-298b682]: Ragas `298b68274234`, `src/ragas/testset/synthesizers/generate.py::TestsetGenerator.generate_with_langchain_docs/generate_with_llamaindex_docs/generate_with_chunks/generate`; `synthesizers/__init__.py::default_query_distribution`; `synthesizers/utils.py::calculate_split_values`; `synthesizers/single_hop/specific.py::SingleHopSpecificQuerySynthesizer`; `synthesizers/multi_hop/specific.py::MultiHopSpecificQuerySynthesizer`; `synthesizers/multi_hop/abstract.py::MultiHopAbstractQuerySynthesizer`; `persona.py::generate_personas_from_kg`; `synthesizers/testset_schema.py::Testset` (paths relative to `src/ragas/testset/`); `docs/getstarted/rag_testset_generation.md::Testset Generation`; `docs/concepts/test_data_generation/agents.md`. Static inspection only unless explicitly stated otherwise; coverage and remaining limits: [source map](ragas-source-map.md).

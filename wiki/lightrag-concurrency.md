@@ -12,7 +12,7 @@ sources:
     resource: ../raw/LightRAG/README.md
     scope: ../raw/LightRAG/
     kind: code
-    revision: aaebfe1
+    revision: aaebfe1bb8d5
     title: LightRAG repository
 ---
 
@@ -61,4 +61,4 @@ Dead-owner reclamation considers PID liveness and process identity/start-time in
 
 Targeted static reading, with design-document assertions explicitly Reported. Ingress/scan hub bodies, all atomic-file helpers, full backend transactions, dead-process recovery, and concurrent execution remain unverified; see [coverage](lightrag-source-map.md).
 
-[^lightrag-aaebfe1]: Revision `aaebfe1`: `lightrag/kg/shared_storage.py::initialize_share_data, get_final_namespace, UnifiedLock, KeyedUnifiedLock, KeyedHolderTable, NamespaceLock, initialize_pipeline_status, get_data_init_lock, finalize_share_data`; `kg/file_fingerprint.py` publication contract; `kg/write_seq.py`; `kg/networkx_impl.py::requires_single_writer, discard_uncommitted_mutations`; `kg/json_kv_impl.py` update-flag contract; `storage_migrations.py::check_and_migrate_data, _migrate_chunk_tracking_before_creation`; `lightrag.py::LightRAG._query_done`; `tests/test_storage_migrations_strict_read.py` assertions inspected, not run; `docs/design/FileBackedSnapshotContract.md` FAISS publication; `docs/design/NetworkXSingleWriterContract.md` commit gate.
+[^lightrag-aaebfe1]: Revision `aaebfe1bb8d5`: `lightrag/kg/shared_storage.py::initialize_share_data, get_final_namespace, UnifiedLock, KeyedUnifiedLock, KeyedHolderTable, NamespaceLock, initialize_pipeline_status, get_data_init_lock, finalize_share_data`; `kg/file_fingerprint.py` publication contract; `kg/write_seq.py`; `kg/networkx_impl.py::requires_single_writer, discard_uncommitted_mutations`; `kg/json_kv_impl.py` update-flag contract; `storage_migrations.py::check_and_migrate_data, _migrate_chunk_tracking_before_creation`; `lightrag.py::LightRAG._query_done`; `tests/test_storage_migrations_strict_read.py` assertions inspected, not run; `docs/design/FileBackedSnapshotContract.md` FAISS publication; `docs/design/NetworkXSingleWriterContract.md` commit gate.

@@ -12,7 +12,7 @@ sources:
     resource: ../raw/txtai/README.md
     scope: ../raw/txtai/
     kind: code
-    revision: 738aac4
+    revision: 738aac498ccb
     title: txtai repository
 ---
 
@@ -41,7 +41,8 @@ NetworkX persists nodes, edges, categories, and topics through serialization, wi
 - **Depends on:** [Retrieval scores](txtai-retrieval.md) as its inferred-edge oracle and [persistence](txtai-persistence.md) for backend lifecycle.
 - **Can feed:** [RAG](txtai-rag.md) through an appropriate retrieval composition; graph storage alone is not proof every RAG request traverses the graph.
 - **Part of:** [txtai architecture](txtai-architecture.md); see [source map](txtai-source-map.md).
+- **Contrasts with:** [Graphiti's context graph model](graphiti-context-graph-model.md), which vendor documentation presents as LLM-extracted facts carrying validity windows and episode provenance, whereas txtai's edges are similarity-derived
 
 Static code and sampled graph-test inspection only. Graph completeness, community quality, factual relation extraction, backend equivalence, practical scalability, and runtime correctness were not measured.
 
-[^txtai-repo]: Revision `738aac4`: `src/python/txtai/graph/base.py::Graph.insert, resolverelations, inferedges, addbatch, addtopics, delete`; `graph/networkx.py::NetworkX.louvain, centrality, pagerank, showpath, distance, save, load`; `graph/topics.py::Topics.score`; `graph/query.py::Query.isquery, parse, build, filter`; `graph/rdbms.py::RDBMS.create, load, save, connect`; `graph/factory.py::GraphFactory`; `embeddings/search/base.py::Search.graphsearch`; `embeddings/base.py::Embeddings.index, batchsearch`; `docs/embeddings/configuration/graph.md`; `test/python/testgraph.py::testDatabase, testCommunityUnmatchedNodes, testSearchSkip, testUpsert` (sampled statically). Short module paths are relative to `src/python/txtai/`.
+[^txtai-repo]: Revision `738aac498ccb`: `src/python/txtai/graph/base.py::Graph.insert, resolverelations, inferedges, addbatch, addtopics, delete`; `graph/networkx.py::NetworkX.louvain, centrality, pagerank, showpath, distance, save, load`; `graph/topics.py::Topics.score`; `graph/query.py::Query.isquery, parse, build, filter`; `graph/rdbms.py::RDBMS.create, load, save, connect`; `graph/factory.py::GraphFactory`; `embeddings/search/base.py::Search.graphsearch`; `embeddings/base.py::Embeddings.index, batchsearch`; `docs/embeddings/configuration/graph.md`; `test/python/testgraph.py::testDatabase, testCommunityUnmatchedNodes, testSearchSkip, testUpsert` (sampled statically). Short module paths are relative to `src/python/txtai/`.

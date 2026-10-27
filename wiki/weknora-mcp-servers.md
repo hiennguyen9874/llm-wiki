@@ -12,7 +12,7 @@ sources:
     resource: ../raw/WeKnora/README.md
     scope: ../raw/WeKnora/
     kind: code
-    revision: fd7a258
+    revision: fd7a2586fd58
     title: WeKnora v0.8.3 repository snapshot
 ---
 
@@ -42,4 +42,4 @@ WeKnora exposes multiple MCP implementations with different transports, tool cat
 
 Server setup, endpoint auth/scope/model, catalog symbols, and selected Python transport/path code were inspected. No MCP handshake, tool call, OAuth flow, rate-limit test, upload test, or proxy deployment ran. Actual replicated limiter behavior and complete per-tool scope enforcement remain pending; see the [source map](weknora-source-map.md).
 
-[^weknora]: Snapshot `fd7a258`: `internal/mcpserver/server.go` server constants, filters and guard middleware; `mcpserver/scope.go::allowedKnowledgeBases`; `internal/types/mcp_endpoint.go::MCPEndpoint`; `types/mcp_endpoint_tools.go` catalog/group defaults; `internal/router/routes_mcp_endpoint.go::RegisterMCPServerRoutes`; `internal/middleware/mcp_endpoint_auth.go::MCPEndpointAuth`; `cli/internal/mcp/tools.go`, `server.go::RunStdio`; `mcp-server/README.md`, opening deprecation notice; `mcp-server/pyproject.toml`; `mcp-server/weknora_mcp_server.py` configuration, network authentication, transports, and `main`; `mcp-server/upload_paths.py::resolve_upload_file_path`. Package entry: [README](../raw/WeKnora/README.md), “Clients and Integrations” and v0.8.2 “Built-in MCP Server.”
+[^weknora]: Snapshot `fd7a2586fd58`: `internal/mcpserver/server.go` server constants, filters and guard middleware; `mcpserver/scope.go::allowedKnowledgeBases`; `internal/types/mcp_endpoint.go::MCPEndpoint`; `types/mcp_endpoint_tools.go` catalog/group defaults; `internal/router/routes_mcp_endpoint.go::RegisterMCPServerRoutes`; `internal/middleware/mcp_endpoint_auth.go::MCPEndpointAuth`; `cli/internal/mcp/tools.go`, `server.go::RunStdio`; `mcp-server/README.md`, opening deprecation notice; `mcp-server/pyproject.toml`; `mcp-server/weknora_mcp_server.py` configuration, network authentication, transports, and `main`; `mcp-server/upload_paths.py::resolve_upload_file_path`. Package entry: [README](../raw/WeKnora/README.md), “Clients and Integrations” and v0.8.2 “Built-in MCP Server.”

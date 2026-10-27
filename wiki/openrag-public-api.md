@@ -12,7 +12,7 @@ sources:
     resource: ../raw/openrag/README.md
     scope: ../raw/openrag/
     kind: code
-    revision: 6fc819d
+    revision: 6fc819d3ec10
     title: OpenRAG repository
 ---
 
@@ -56,4 +56,4 @@ Filter resolution combines a saved `filter_id` with per-field inline overrides. 
 
 This is a route-family map, not a complete OpenAPI/schema reproduction. Endpoint error paths, gateway compatibility, all role combinations, and v2 cursor correctness were not exercised. See [source map](openrag-source-map.md).
 
-[^openrag-repo]: `6fc819d`: `src/app/routes/{public_v1,public_v2,internal}.py` registration functions; `src/dependencies.py::{require_api_key_permission,require_api_key_any_permission}`; `src/api/v1/{chat,search,documents,files,knowledge_filters,llm}.py`; `src/api/v1/_filter_resolution.py`; `src/api/v2/files.py` query parameters; `src/mcp_http/server.py::COMPONENT_CUSTOMIZATIONS`; `sdks/python/openrag_sdk/client.py::DEFAULT_BASE_URL` and request paths.
+[^openrag-repo]: `6fc819d3ec10`: `src/app/routes/{public_v1,public_v2,internal}.py` registration functions; `src/dependencies.py::{require_api_key_permission,require_api_key_any_permission}`; `src/api/v1/{chat,search,documents,files,knowledge_filters,llm}.py`; `src/api/v1/_filter_resolution.py`; `src/api/v2/files.py` query parameters; `src/mcp_http/server.py::COMPONENT_CUSTOMIZATIONS`; `sdks/python/openrag_sdk/client.py::DEFAULT_BASE_URL` and request paths.

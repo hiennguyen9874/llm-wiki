@@ -12,7 +12,7 @@ sources:
     resource: ../raw/WeKnora/README.md
     scope: ../raw/WeKnora/
     kind: code
-    revision: fd7a258
+    revision: fd7a2586fd58
     title: WeKnora v0.8.3 repository snapshot
 ---
 
@@ -53,4 +53,4 @@ Compose pins ParadeDB `v0.25.11-pg17`; the inspected Helm values use `v0.18.9-pg
 
 Compose app/core wiring, selected chart values/secrets, Lite docs/template/unit, Make targets, and selected CI sections were inspected. Most Dockerfiles, chart templates, release scripts, full workflows, upgrade migrations, and actual infrastructure compatibility remain pending. See the [source map](weknora-source-map.md).
 
-[^weknora]: Snapshot `fd7a258`: `docker-compose.yml::services.frontend`, `app`, `docreader`, `postgres`, `redis` and graph-flag comments; `helm/Chart.yaml::appVersion`, `kubeVersion`; `helm/values.yaml` replica/image keys; `helm/templates/secrets.yaml` existing-secret lookup; `helm/tests/test_app_storage.py`; `.env.lite.example` driver/stream/sandbox keys; `Makefile::build-lite`, `run-lite`, `test`; `deploy/weknora-lite.service`; `.github/workflows/app.yml` Go vet/test steps; `.github/workflows/helm.yml`; `docs/LITE.md`, comparison matrix. Package entry: [README](../raw/WeKnora/README.md), “Run with Docker Compose,” “Optional services,” “Upgrading,” “Other ways to deploy,” and “Validating your change.”
+[^weknora]: Snapshot `fd7a2586fd58`: `docker-compose.yml::services.frontend`, `app`, `docreader`, `postgres`, `redis` and graph-flag comments; `helm/Chart.yaml::appVersion`, `kubeVersion`; `helm/values.yaml` replica/image keys; `helm/templates/secrets.yaml` existing-secret lookup; `helm/tests/test_app_storage.py`; `.env.lite.example` driver/stream/sandbox keys; `Makefile::build-lite`, `run-lite`, `test`; `deploy/weknora-lite.service`; `.github/workflows/app.yml` Go vet/test steps; `.github/workflows/helm.yml`; `docs/LITE.md`, comparison matrix. Package entry: [README](../raw/WeKnora/README.md), “Run with Docker Compose,” “Optional services,” “Upgrading,” “Other ways to deploy,” and “Validating your change.”

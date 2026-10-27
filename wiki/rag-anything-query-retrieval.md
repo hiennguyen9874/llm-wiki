@@ -12,7 +12,7 @@ sources:
     resource: ../raw/RAG-Anything/README.md
     scope: ../raw/RAG-Anything/
     kind: code
-    revision: 3a14ecb
+    revision: 3a14ecb66fb3
     title: RAG-Anything repository
 ---
 
@@ -60,4 +60,4 @@ The cache uses LightRAG `llm_response_cache` when enabled and flushes through it
 
 No retrieval/provider call, stream, cache hit, or security exploit was executed. Retrieval quality and README modality-ranking claims are unverified. See [source map](rag-anything-source-map.md).
 
-[^rag-anything-3a14ecb]: Revision `3a14ecb`: `raganything/query.py::_fingerprint_local_file` (33), cache normalization/key helpers (65–132), `aquery` (134), `aquery_with_multimodal` (227–355), `aquery_vlm_enhanced` (390–476), `_process_multimodal_query_content` (477), `_process_image_paths_for_vlm` (652–768), `_build_vlm_messages_with_images` (771), `_call_vlm_with_multimodal_content` (863); `utils.py::encode_image_to_base64` (528), `validate_image_file` (551); `image_signature.py::image_mime_type`; `prompt.py` chunk templates (336–364) and query suffix (414); `processor.py` audio/video templates (1453–1478); README “Query Options”; tests `test_vlm_query_flags.py`, `test_multimodal_query_key.py`, `testquery_stream_cache.py` (inspected, not run).
+[^rag-anything-3a14ecb]: Revision `3a14ecb66fb3`: `raganything/query.py::_fingerprint_local_file` (33), cache normalization/key helpers (65–132), `aquery` (134), `aquery_with_multimodal` (227–355), `aquery_vlm_enhanced` (390–476), `_process_multimodal_query_content` (477), `_process_image_paths_for_vlm` (652–768), `_build_vlm_messages_with_images` (771), `_call_vlm_with_multimodal_content` (863); `utils.py::encode_image_to_base64` (528), `validate_image_file` (551); `image_signature.py::image_mime_type`; `prompt.py` chunk templates (336–364) and query suffix (414); `processor.py` audio/video templates (1453–1478); README “Query Options”; tests `test_vlm_query_flags.py`, `test_multimodal_query_key.py`, `testquery_stream_cache.py` (inspected, not run).
