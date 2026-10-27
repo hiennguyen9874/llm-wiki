@@ -50,17 +50,17 @@ Nguồn: [citation/source boundary](../wiki/weknora-citations-source-boundary.md
 
 Mọi mức ưu tiên dưới đây là **đề xuất**, cần acceptance test và ablation trước khi bật mặc định. “Học từ” nghĩa là tiếp thu thuật toán hoặc contract, không mặc định copy nguyên module.
 
-| Mức | Hạng mục | Tham khảo | Cách đưa vào fork |
-|---|---|---|---|
-| **P0** | Eval, trace, security baseline | Ragas; grounded evaluation; controls hiện có của WeKnora | Harness riêng, trace được phân quyền/redact, baseline có thể tái lập |
-| **P1** | Table-aware chunking và tokenizer-aware budget | RAGFlow; chunker hiện có của WeKnora | Mở rộng ingestion, giữ source locator |
-| **P1** | Domain synonyms, phrase boost và field-aware ranking | RAGFlow | Mở rộng retriever theo backend; test tiếng Việt/Anh riêng |
-| **P1** | Durable retry cho sync item/delete lỗi | RAGFlow sync contracts | Retry ledger trên queue/persistence của WeKnora |
-| **P1 nếu enterprise** | Source ACL xuyên suốt retrieval và derived knowledge | OpenRAG | Thay đổi end-to-end, không chỉ thêm field vào document |
-| **P2** | Embedding-space identity và migration có rollback | LightRAG, OpenRAG | Versioned index, backfill, validation và chuyển traffic có kiểm soát |
-| **P2 nếu cần** | Enrichment riêng cho bảng, hình và công thức | LightRAG | Worker/sidecar có provenance, giới hạn chi phí và truy cập file |
-| **P3** | Relation/global retrieval và contribution-safe graph recovery | LightRAG | Nhánh tùy chọn, chỉ bật khi multi-hop eval có lợi |
-| **Thử nghiệm** | Semantic chunking, local rerank fallback, log-odds/convex fusion | LightRAG, RAGFlow, txtai | Feature flag và thí nghiệm từng biến |
+| Mức | Hạng mục | Tham khảo | Cách đưa vào fork | Acceptance gate |
+|---|---|---|---|---|
+| **P0** | Eval, trace, security baseline | Ragas; grounded evaluation; controls hiện có của WeKnora | Harness riêng, trace được phân quyền/redact, baseline có thể tái lập | Lưu baseline artifact; test cross-tenant và unauthorized-tool pass; đã diễn tập restore/rollback |
+| **P1** | Table-aware chunking và tokenizer-aware budget | RAGFlow; chunker hiện có của WeKnora | Mở rộng ingestion, giữ source locator | Bảng lớn giữ header lặp và source mapping; regression tokenizer-limit và citation pass |
+| **P1** | Domain synonyms, phrase boost và field-aware ranking | RAGFlow | Mở rộng retriever theo backend; test tiếng Việt/Anh riêng | Recall/ranking trên held-out tăng mà không vượt ngân sách latency/cost |
+| **P1** | Durable retry cho sync item/delete lỗi; lease/idempotence cho connector | RAGFlow sync contracts | Retry ledger trên queue/persistence của WeKnora | Crash/retry không làm mất item lỗi; hai worker không xử lý trùng một connector |
+| **P1 nếu enterprise** | Source ACL xuyên suốt retrieval và derived knowledge | OpenRAG | Thay đổi end-to-end, không chỉ thêm field vào document | Tài liệu bị thu hồi quyền không xuất hiện trong bất kỳ answer hay derived surface nào |
+| **P2** | Embedding-space identity và migration có rollback | LightRAG, OpenRAG | Versioned index, backfill, validation và chuyển traffic có kiểm soát | Vector sai space bị từ chối; index mới được validate trước khi chuyển; rollback và keyword fallback đã test |
+| **P2 nếu cần** | Enrichment riêng cho bảng, hình, công thức; parser options có thể replay | LightRAG | Worker/sidecar có provenance, giới hạn chi phí và truy cập file | Gain multimodal đo được, locator chính xác, VLM cost có trần, file containment an toàn |
+| **P3** | Relation/global retrieval và contribution-safe graph recovery | LightRAG | Nhánh tùy chọn, chỉ bật khi multi-hop eval có lợi | Gain multi-hop lớn hơn chi phí extraction/query; xoá một nguồn vẫn giữ evidence của nguồn khác |
+| **Thử nghiệm** | Semantic chunking, local rerank fallback, log-odds/convex fusion, compiled knowledge (tree/RAPTOR) trong search | LightRAG, RAGFlow, txtai | Feature flag và thí nghiệm từng biến | Ablation một biến thắng baseline hiện tại; nếu không thì để tắt |
 
 Cơ sở cơ chế và locator được tập hợp tại [fork roadmap — priorities and acceptance gates](../wiki/weknora-fork-roadmap.md#product-priorities-and-acceptance-gates).
 
@@ -73,6 +73,8 @@ WeKnora đã có parser routing/fallback, chunk validation, protected spans cho 
 - **Table chunker:** chia bảng lớn theo nhóm dòng, lặp header, giữ caption và locator; test bảng nhiều trang, ô gộp và bảng có nội dung dài.
 - **Tokenizer-aware budget:** tính theo embedding model; ghi rõ fallback nếu không có tokenizer tương thích. Budget context trả lời phải tính riêng cả instruction, history, query, tool/source wrapper và phần dành cho output.
 - **Chunk lineage:** lưu document version, parser/chunker/options version và content identity để giải thích khác biệt sau re-ingest.
+- **Đóng băng options theo tài liệu:** như LightRAG, lưu cố định parser engine và tham số chunk lúc enqueue để re-parse cho ra đúng kết quả cũ; đổi options phải là một version mới.
+- **Không fallback âm thầm:** LightRAG có fallback nhiều tầng (V → R, P → R) có thể làm giảm chất lượng mà không báo. Mỗi lần parser/chunker rơi về đường dự phòng phải được ghi vào lineage và trace kèm lý do.
 - **Regression corpus:** PDF scan, tài liệu hai cột, bảng lớn, code, công thức, tiếng Việt/Anh và file lỗi.
 
 Không dùng riêng `{doc_id}-chunk-{order}` làm bảo đảm citation ổn định: chèn nội dung có thể làm thay đổi toàn bộ thứ tự. Contract mới nên phân biệt document version, content identity và source locator. [Cơ sở thiết kế](../wiki/weknora-fork-roadmap.md#implementation-shape-one-owner-for-lifecycle-and-authorization)
@@ -91,6 +93,14 @@ Thứ tự đề xuất:
 4. Passage splitting và final-context budget nếu trace cho thấy evidence bị cắt mất.
 5. Sau cùng mới thử semantic splitting hoặc fusion khác RRF.
 
+Lưu ý khi làm ablation và vận hành:
+
+- Ở WeKnora, đặt trọng số = 0 **không** tắt được retriever. Cần cờ disable riêng cho từng nhánh, nếu không thí nghiệm "chỉ vector" / "chỉ keyword" sẽ sai. [Nguồn](../wiki/weknora-hybrid-retrieval.md)
+- Keyword search trên PostgreSQL cần ParadeDB/`pg_search`; kiểm tra điều này trong deployment trước khi đo recall lexical.
+- Ý nghĩa của score phụ thuộc backend (RAGFlow: ES/Infinity/OceanBase cho kết quả khác nhau với cùng trọng số) và chiến lược fusion (txtai: `minscore` đổi nghĩa theo strategy; RRF của txtai không có offset 60). Mỗi khi đổi backend hoặc fusion phải hiệu chỉnh lại threshold và test field boost trên từng backend. [RAGFlow](../wiki/ragflow-retrieval.md) · [txtai](../wiki/txtai-retrieval.md)
+- **Retrieval hit contract (đề xuất):** mỗi hit giữ document/chunk revision, source locator, authorization scope, nhánh retrieval, điểm raw/fused/rerank và lý do degrade nếu có. Không so sánh raw score giữa các embedding space khác nhau; truy vấn từng space tương thích rồi dùng fusion theo rank **sau khi** đã lọc quyền. [Roadmap](../wiki/weknora-fork-roadmap.md#implementation-shape-one-owner-for-lifecycle-and-authorization)
+- **Chỉ nguồn thực sự được đưa vào model mới được làm citation.** Budget cuối cùng học thứ tự ưu tiên của LightRAG (ngân sách riêng cho entity/relation/chunk) nhưng giữ semantics original-chunk của WeKnora.
+
 **Reranker không cứu được tài liệu chưa vào candidate set.** Vì vậy cần tách phép đo candidate recall khỏi rerank quality. Không copy nguyên tokenizer/query DSL của RAGFlow: cùng Go chỉ giảm một phần công sức, không làm storage schema và score semantics tương thích. [Cơ sở đề xuất](../wiki/weknora-fork-roadmap.md)
 
 ### 3.3. Sync: không để checkpoint che mất item lỗi
@@ -101,7 +111,7 @@ Contract đề xuất:
 
 > Chỉ advance checkpoint khi item đã thành công, hoặc việc retry item đó đã được ghi bền vững.
 
-Cần có retry ledger cho create/update/delete, idempotency key theo source/document/version, phân loại lỗi tạm thời/quyền/nội dung, và UI hiển thị partial cùng item lỗi. Test crash tại các điểm fetch → ingest → ghi retry → checkpoint. Mục tiêu là không phải full-sync cả kho chỉ để thử lại vài lần xoá lỗi. Đây là phần nên học từ sync contracts của RAGFlow, **không phải lý do nhập thêm NATS/Kvrocks vào WeKnora**. [Roadmap](../wiki/weknora-fork-roadmap.md)
+Cần có retry ledger cho create/update/delete, idempotency key theo source/document/version, lease cho từng connector để hai worker không chạy trùng (tham khảo `connector_lock.go::TryLock` của RAGFlow), egress chống SSRF có pin DNS cho connector gọi URL do người dùng cấu hình, phân loại lỗi tạm thời/quyền/nội dung, và UI hiển thị partial cùng item lỗi. Test crash tại các điểm fetch → ingest → ghi retry → checkpoint. Mục tiêu là không phải full-sync cả kho chỉ để thử lại vài lần xoá lỗi. Đây là phần nên học từ sync contracts của RAGFlow, **không phải lý do nhập thêm NATS/Kvrocks vào WeKnora**. [Roadmap](../wiki/weknora-fork-roadmap.md)
 
 ### 3.4. ACL: bao phủ cả tri thức dẫn xuất
 
@@ -113,6 +123,9 @@ Trong fork, phải kiểm tra quyền ở các đường:
 - Agent tools và MCP.
 - Answer cache, conversation replay và revocation.
 - Auto-wiki và entity/relation hợp nhất từ nhiều nguồn.
+- Memory xuyên session của agent: nếu memory được rút ra từ tài liệu bị hạn chế, nó cũng là derived surface (Synthesis, roadmap chưa liệt kê). [Memory](../wiki/weknora-memory.md)
+
+Thứ tự enforce: kiểm tra quyền trong retrieval và source resolution **trước** rerank, trước khi đưa vào model context và trước streaming. Filter do caller truyền vào không phải là authorization. Kiểm tra lại revocation trước khi trả kết quả cache/derived nhạy cảm. Prompt fencing chỉ là lớp phòng thủ bổ sung; tool vẫn cần kiểm tra capability trong code.
 
 Ví dụ thiết kế: wiki page tổng hợp một tài liệu chung và một tài liệu chỉ HR được đọc không được mặc nhiên hiển thị cho mọi người. Hoặc compile theo nhóm quyền tương thích, hoặc giữ/enforce contribution provenance; nếu chưa bảo đảm, tắt derived surface đó cho corpus trộn ACL.
 
@@ -123,6 +136,16 @@ Ví dụ thiết kế: wiki page tổng hợp một tài liệu chung và một 
 WeKnora hiện từ chối multi-KB search khi embedding model khác nhau. Không bỏ guard rồi trộn vector. Thiết kế migration nên tạo space/index mới, backfill, kiểm tra chất lượng, chuyển traffic và giữ rollback; dùng LightRAG/OpenRAG làm tham khảo về compatibility và nhiều space. [Retrieval hiện có](../wiki/weknora-hybrid-retrieval.md) · [Roadmap migration](../wiki/weknora-fork-roadmap.md)
 
 Với graph, chỉ thêm relation-vector/global retrieval nếu câu hỏi multi-hop đủ quan trọng và lợi ích lớn hơn chi phí extraction/query. Trước đó phải test việc xoá một nguồn vẫn giữ đúng contribution của các nguồn còn lại. Chưa có bằng chứng end-to-end cho semantics này trong phần WeKnora đã đọc. [Graph boundaries](../wiki/weknora-graph-multimodal-retrieval.md)
+
+### 3.6. Agent, workflow và compiled knowledge: giữ runtime hiện có
+
+Theo so sánh, WeKnora có agent runtime kỹ nhất (ReAct với guard cho vòng lặp, rỗng, lặp lỗi, tràn context; skills; sandbox theo session; memory cần xác nhận), còn RAGFlow mạnh nhất về workflow canvas (loop/parallel/interrupt/checkpoint). WeKnora cũng có auto-wiki được vận hành cẩn thận nhất (revision có optimistic lock, chặn ghi đè mất >20% dòng bảng, lane bền có dead-letter, lint). [Agent](../wiki/weknora-agent-runtime.md) · [Wiki](../wiki/weknora-wiki-compilation.md) · [RAGFlow workflows](../wiki/ragflow-agent-workflows.md)
+
+Đề xuất (Synthesis):
+
+- Giữ agent runtime và auto-wiki của WeKnora làm baseline; không thêm agent runtime thứ hai. Nếu canvas workflow là yêu cầu trung tâm, đây là lý do cân nhắc lại RAGFlow làm nền (mục 1), không phải lý do port canvas vào fork.
+- Hardening trước khi mở agent cho người dùng: sandbox Docker ở snapshot chạy bằng root và mount Docker socket (tương đương root trên host); phần approval/HITL chưa được review. [Skills/sandbox](../wiki/weknora-skills-sandboxes.md)
+- RAGFlow đưa compiled knowledge (wiki, structure, tree kiểu RAPTOR, mindmap) vào dataset search mặc định. Đây là ý tưởng đáng thử cho câu hỏi tổng hợp, nhưng chỉ ở mức **thử nghiệm**, và chỉ sau khi derived surface đã an toàn về ACL (mục 3.4). [RAGFlow compilation](../wiki/ragflow-knowledge-compilation.md)
 
 ## 4. Kiến trúc fork: một chủ sở hữu lifecycle
 
@@ -164,7 +187,8 @@ Cơ sở: [kiến trúc hiện có](../wiki/weknora-backend-architecture.md) và
 
 - Pin upstream, model, parser options và cấu hình triển khai; thử restore/rollback.
 - Chọn registration mode phù hợp, xác nhận RBAC được enforce, giữ JWT/AES key bền vững.
-- Không mount Docker socket nếu không cần; đặt egress/allowlist cho các dependency hợp lệ.
+- Không mount Docker socket nếu không cần, sandbox không chạy root; đặt egress/allowlist cho các dependency hợp lệ.
+- Review approval/HITL cho tool có side effect; xác nhận ParadeDB/`pg_search` nếu dùng keyword search trên PostgreSQL.
 - Trace candidate → fusion → rerank → **context thật đưa vào model** → citation.
 - Test citation hiện có, truy cập chéo tenant, tool capability và prompt injection.
 
@@ -192,11 +216,15 @@ Embedding migration, multimodal enrichment và graph retrieval dựa trên nhu c
 | Operations | p50/p95 latency, model cost, ingestion failure, crash recovery, update/delete |
 | Security | Không lộ dữ liệu qua tenant, tool, cache, conversation hay derived knowledge |
 
+**Bộ eval đề xuất** (dev + held-out, từ tài liệu thật, có review): tra cứu thông thường, PDF scan/layout phức tạp, bảng lớn, viết tắt Việt/Anh, câu hỏi nhiều tài liệu, câu hỏi không có bằng chứng, và ca đối kháng về quyền/prompt injection/xoá. Lưu đúng context model nhìn thấy, cấu hình pipeline và trace đường degrade, không log secret hay nội dung không được phép. Security và recovery là release gate kể cả khi không cải thiện accuracy. [Roadmap](../wiki/weknora-fork-roadmap.md#evaluation-and-delivery-sequence)
+
 Giữ cố định metric API, judge model, prompt, split và invalid-score policy khi so sánh. [Ragas metrics](../wiki/ragas-rag-metrics.md) cung cấp cơ chế đo, nhưng **faithfulness chỉ đo nhất quán với context, không đồng nghĩa sự thật độc lập**. [Grounded evaluation](../wiki/grounded-accuracy-evaluation.md) bổ sung closed-book/oracle controls và kiểm tra trace/checker; các số liệu vendor trong nguồn đó không phải mục tiêu hiệu năng cho fork.
 
 ## 6. License và giới hạn bằng chứng
 
 - Bản tổng hợp này dựa trên wiki ở các snapshot: WeKnora `fd7a2586fd58`, RAGFlow `1731e54b3aa0`, OpenRAG `6fc819d3ec10`, LightRAG `aaebfe1bb8d5`, txtai `738aac498ccb`, Ragas `298b68274234`. Không suy rộng sang phiên bản mới hơn. [Nguồn và revision](../wiki/weknora-fork-roadmap.md)
+- Coverage thực tế rất hẹp: khoảng 241/5.664 artifact của WeKnora, 241/5.482 path của RAGFlow, 276/1.574 của OpenRAG, 302/658 của txtai. Các trang wiki có `stale_after` khoảng 2027-01-24/26; sau mốc đó cần ingest lại trước khi dùng tài liệu này. [Limits](../wiki/rag-platform-comparison.md#limits)
+- Chưa hệ nào trong 5 nền tảng có entailment validation cho citation trong phần đã đọc, nên citation support phải được đo bằng eval, không thể "học" từ hệ khác.
 - Phần lớn bằng chứng là **Observed qua đọc code được wiki ghi nhận**, với coverage từng phần và không đồng đều; các ưu tiên và kiến trúc là **Synthesis**. “Chưa xác lập” không có nghĩa tính năng không tồn tại.
 - Lần biên tập này chỉ đối chiếu các trang wiki, **không nghiên cứu raw mới, không chạy ứng dụng, upstream test, model hay benchmark**. Vì vậy chưa chứng minh được chất lượng, latency, scale, chống prompt injection hoặc isolation end-to-end.
 - Theo metadata đã tổng hợp, WeKnora/LightRAG dùng MIT; RAGFlow/OpenRAG/txtai dùng Apache-2.0. Tuy nhiên phải audit từng file/component và dependency trước khi tái sử dụng, giữ notice/attribution và nghĩa vụ tương ứng. Viết lại không tự động thay thế license review; tài liệu này không phải kết quả audit pháp lý. [So sánh license](../wiki/rag-platform-comparison.md#positioning) · [Giới hạn roadmap](../wiki/weknora-fork-roadmap.md#evidence-and-coverage-limits)
