@@ -15,7 +15,7 @@ Domains emerge from ingested knowledge. Register a domain when it recurs across 
 
 | Domain | Focus | Course profile | Rules |
 | --- | --- | --- | --- |
-| `ml` | Machine learning, LLM architecture, and LLM-assisted knowledge systems | `ml` | Use `stale_after` for framework APIs, model releases, and benchmarks. |
+| `edge-ai` | Edge AI, computer vision on embedded devices, and camera application platforms | `general` | Use `stale_after` for SoC, SDK, firmware, and model compatibility; prefer vendor documentation locators. |
 
 - Name domains as the human does; they may be broad (`health`) or narrow (`home-network`).
 - A concept belongs to its primary domain through tags and, once groups exist, its group path.
