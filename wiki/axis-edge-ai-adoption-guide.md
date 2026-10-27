@@ -58,6 +58,7 @@ Axis phù hợp khi mục tiêu là tự phát triển model object detection, c
 - **Depends on** [khả năng tùy biến AI](axis-custom-ai-capability.md), [quy trình triển khai](axis-custom-model-deployment.md) và [giới hạn DLPU](axis-dlpu-model-constraints.md).
 - **Uses** [ACAP Native SDK](axis-acap-native-sdk.md) và Larod.
 - **Prefers** ARTPEC-8/9 over CV25/CV75 cho development độc lập.
+- **Narrows to** [chọn camera ARTPEC-9 cụ thể](axis-artpec-9-camera-selection.md) khi đã quyết định dùng ARTPEC-9 và phải chọn giữa Q1728-LE và P1488-LE.
 - **Uses** [quy trình chuyển ONNX sang native cho CV75](axis-cv75-onnx-conversion.md) khi phải triển khai trên CV75.
 - **Informs** quyết định sản phẩm và phạm vi PoC.
 - **Excludes** việc thay detector trong [AOA](axis-object-analytics.md) bằng model riêng.

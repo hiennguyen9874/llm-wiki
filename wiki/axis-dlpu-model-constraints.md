@@ -22,6 +22,12 @@ sources:
     scope: ../raw/computer-vision/on-device/system-on-chip/artpec-9/supported-ops/
     kind: docs
     title: "Supported Ops (ARTPEC-9) — Axis developer documentation"
+  - id: mz-readme
+    resource: ../raw/axis-model-zoo/README.md
+    scope: ../raw/axis-model-zoo/
+    kind: code
+    revision: "v1.0.7-42-g66bf5ea (66bf5ea7fc1d14b21e2e0d67db5205f02528e6f8, 2026-10-09)"
+    title: "AxisCommunications/axis-model-zoo — README (git checkout)"
 ---
 
 # Giới hạn model trên DLPU của camera Axis
@@ -62,6 +68,19 @@ Tài liệu vendor Axis xác nhận các ràng buộc ARTPEC-9 nêu trên và b�
 
 Nguồn tự mô tả bảng này là đánh giá kỹ thuật dựa trên đặc tính DLPU và supported operators, không phải danh sách tương thích chính thức cho mọi phiên bản model. Axis Model Zoo cung cấp model tham khảo và số đo hiệu năng, accuracy trên các SoC, hữu ích để chọn backbone trước khi train model riêng.[^axis-ai-chatgpt-research]
 
+### Bằng chứng công bố cho họ YOLO trên ARTPEC-9
+
+Bảng trên là đánh giá gián tiếp; mức bằng chứng thực tế của từng họ YOLO trên ARTPEC-9 thì đọc trực tiếp được từ Axis Model Zoo (**Observed** trên README, AXIS OS 12.11.72):[^mz-readme]
+
+| Họ model | Bằng chứng trên ARTPEC-9 | Hệ quả khi chọn model |
+| --- | --- | --- |
+| YOLOv5n / s / m | Có artifact `.tflite` riêng cho ARTPEC-9 và số đo trên `ARTPEC-9 (Q1728)` | Lựa chọn có cơ sở rõ nhất để bắt đầu |
+| SSD MobileNetV2 / SSDLite MobileDet | Có số đo trên ARTPEC-9 | Dùng để dựng pipeline trước khi có model riêng |
+| YOLOv8 | Chỉ có dòng `YOLOv8n_det` trên CV75 | Không phải bằng chứng cho DLPU ARTPEC-9; phải kiểm operator và chạy thử |
+| YOLO11 | Không có dòng benchmark nào trong Model Zoo | Chưa có bằng chứng công bố; phải kiểm operator, quantization và chạy thử thực tế |
+
+Đây là danh sách **bằng chứng công bố**, không phải danh sách tương thích: model không có trong bảng vẫn có thể chạy nếu toàn bộ operator của nó nằm trong tập được hỗ trợ. Số đo tương ứng và giới hạn so sánh nằm ở [Axis Model Zoo benchmark results](axis-model-zoo-benchmark-results.md); lựa chọn máy cụ thể cho ARTPEC-9 ở [Chọn camera ARTPEC-9 cho custom AI](axis-artpec-9-camera-selection.md).
+
 ## Nhiều model cùng lúc
 
 Có thể chạy nhiều model trên một thiết bị, nhưng các lần inference trên DLPU được chia sẻ theo thời gian, không chạy song song độc lập. Nếu chạy AXIS Object Analytics đồng thời với application riêng, các workload sẽ cạnh tranh tài nguyên DLPU và có thể ảnh hưởng latency/FPS; Axis khuyến nghị tắt analytics mặc định nếu không cần thiết.[^axis-ai-chatgpt-research]
@@ -75,6 +94,7 @@ Không nên tính tổng throughput theo cách: một model chạy 20 FPS riêng
 - **Affects** khả năng chạy song song với [AXIS Object Analytics](axis-object-analytics.md).
 - **Drives** các metric cần đo trong [PoC](axis-edge-ai-adoption-guide.md).
 - **Documented by** [bảng supported operators của ARTPEC-9](axis-artpec-9-operator-support.md); bảng của ARTPEC-8 chưa lưu cục bộ.
+- **Evidenced by** [Axis Model Zoo benchmark results](axis-model-zoo-benchmark-results.md): số đo và artifact hiện có quyết định họ model nào đã có bằng chứng trên ARTPEC-9.
 
 ## Độ tin cậy
 
@@ -83,3 +103,4 @@ Trang này là **Reported** từ nguồn thứ cấp. Các giới hạn operator
 [^axis-ai-chatgpt-research]: Nguồn thứ cấp: [Phân tích Axis DLPU và khả năng triển khai Custom AI Models trên Camera Axis](../raw/axis-ai-chatgpt-research.md), §6.1 "Giới hạn operators và quantization", §6.2 "Model nào phù hợp?" và §6.3 "Có thể chạy nhiều model cùng lúc không?".
 [^axis-doc-artpec9-optimization-tips]: Tài liệu chính thức: [Optimization Tips (ARTPEC-9) — Axis developer documentation](../raw/computer-vision/on-device/system-on-chip/artpec-9/optimization-tips/index.md), toàn bộ phần thân.
 [^axis-doc-artpec9-supported-ops]: Tài liệu chính thức: [Supported Ops (ARTPEC-9) — Axis developer documentation](../raw/computer-vision/on-device/system-on-chip/artpec-9/supported-ops/index.md), bảng "Operator | Known limitations".
+[^mz-readme]: Repository (cục bộ, revision `v1.0.7-42-g66bf5ea`): [axis-model-zoo README](../raw/axis-model-zoo/README.md), bảng "Object Detection", các dòng `ARTPEC-9 (Q1728)` (SSD MobileNetV2, SSDLite MobileDet, Yolov5n/s/m-Artpec9) và dòng `CV75 (M2048-LE)` (Yolov8n_det); không có dòng YOLO11.

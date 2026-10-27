@@ -27,6 +27,10 @@ sources:
     scope: ../raw/computer-vision/on-device/system-on-chip/cv75/model-conversion/
     kind: docs
     title: "Model Conversion (CV75) — Axis developer documentation"
+  - id: axis-camera-chatgpt-research
+    resource: ../raw/axis-camera-chatgpt-research.md
+    kind: research
+    title: "Kết quả tra cứu SoC của AXIS Q1728-LE và AXIS P1488-LE"
 ---
 
 # Triển khai custom AI model lên camera Axis
@@ -56,9 +60,11 @@ Trang SoC của Axis xác nhận hai đầu mút của bảng: ARTPEC-9 nhận t
 | --- | --- | --- |
 | AXIS M3216-LVE | ARTPEC-8, 4 MP | Thuộc M32 Series, có DLPU và hỗ trợ phát triển ứng dụng deep learning tùy biến qua ACAP; phù hợp để nghiên cứu pipeline TFLite trên ARTPEC-8 |
 | AXIS Q3548-LVE | ARTPEC-9, 8 MP | Có DLPU ARTPEC-9 và hỗ trợ analytics tại edge; đáng cân nhắc khi cần hiệu năng cao hơn |
+| AXIS Q1728-LE | ARTPEC-9, 8 MP, 4 GB RAM | Block camera; cùng SoC, cùng `a9-dlpu-tflite` và cùng đường model như P1488-LE, nhưng nhiều RAM hơn |
+| AXIS P1488-LE | ARTPEC-9, 8 MP, 2 GB RAM | Bullet camera; cùng SoC và cùng đường model, ít RAM hơn nên cỡ model bị giới hạn sớm hơn |
 | AXIS M2036-LE | Ambarella CV25, 4 MP | Có DLPU và analytics tại edge, nhưng custom model trên CV25 cần Ambarella CNNGen, kém thuận tiện hơn ARTPEC-8/9 |
 
-Đây là các ví dụ minh họa, không phải danh sách bảo đảm tương thích. Có DLPU không đồng nghĩa một model đã convert chạy được trên mọi camera Axis; phải kiểm tra SoC, bộ nhớ, phiên bản AXIS OS, ACAP API và tập operator được hỗ trợ.[^axis-ai-chatgpt-research]
+Đây là các ví dụ minh họa, không phải danh sách bảo đảm tương thích. Có DLPU không đồng nghĩa một model đã convert chạy được trên mọi camera Axis; phải kiểm tra SoC, bộ nhớ, phiên bản AXIS OS, ACAP API và tập operator được hỗ trợ.[^axis-ai-chatgpt-research] Riêng cặp Q1728-LE / P1488-LE, tiêu chí chọn giữa hai máy (RAM, form factor, benchmark áp dụng cho camera nào) được tách ra ở [Chọn camera ARTPEC-9 cho custom AI](axis-artpec-9-camera-selection.md).[^axis-camera-chatgpt-research]
 
 ## Quy trình trên ARTPEC-8/9
 
@@ -86,6 +92,8 @@ larod-client -g custom_model.tflite -c a9-dlpu-tflite -i ""
 
 Đây chỉ là lệnh thử nạp và chạy model, chưa phải ứng dụng AI hoàn chỉnh. Lệnh ARTPEC-9 khớp với lệnh mẫu trong tài liệu vendor, nơi model `.tflite` đã lượng tử hóa được nạp trực tiếp mà không qua bước biên dịch offline.[^axis-doc-artpec9-model-conversion] Ứng dụng thực tế còn phải xử lý input tensor, frames, output tensors, post-processing và logic nghiệp vụ.
 
+`cpu-tflite` và `a9-dlpu-tflite` là hai backend khác nhau, không phải hai mức tốc độ của cùng một đường chạy: model chạy được trên CPU không bảo đảm chạy được trên DLPU, vì DLPU chỉ nhận một tập operator và cấu hình tensor giới hạn. Vì vậy luôn chạy thử bằng channel DLPU của SoC đích (`larod-client -g custom_model.tflite -c cpu-tflite -i ""` chỉ là phép thử phụ để tách lỗi model khỏi lỗi accelerator).[^axis-camera-chatgpt-research] Ràng buộc chi tiết ở [Giới hạn model trên DLPU](axis-dlpu-model-constraints.md).
+
 ## Đóng gói application
 
 Một ACAP application điển hình có cấu trúc:[^axis-ai-chatgpt-research]
@@ -110,6 +118,7 @@ Native SDK dùng toolchain theo kiến trúc: `armv7hf` cho ARTPEC-7, `aarch64` 
 - **Depends on** [ACAP Native SDK](axis-acap-native-sdk.md) để build và đóng gói `.eap`.
 - **Uses** [quy trình chuyển ONNX sang định dạng native cho CV75](axis-cv75-onnx-conversion.md) khi đích là CV75.
 - **Detailed by** [Chuyển model sang ARTPEC-9](axis-artpec-9-model-conversion.md), nhánh TFLite trực tiếp, và **constrained by** [bảng operator của ARTPEC-9](axis-artpec-9-operator-support.md).
+- **Refined by** [Chọn camera ARTPEC-9 cho custom AI](axis-artpec-9-camera-selection.md) khi bước "chọn SoC" thu hẹp còn việc chọn giữa Q1728-LE và P1488-LE.
 - **Targets** [Axis DLPU](axis-dlpu.md) và SoC cụ thể.
 - **Constrained by** [giới hạn quantization, operator và batch](axis-dlpu-model-constraints.md).
 - **Constrained by** [breaking changes của AXIS OS 13/14](acap-axis-os-13-14-migration.md): `.larod` model format và Larod API v1/v2 bị bỏ, phải dùng `.tflite` và Larod v3, đồng thời khai báo `deepLearningProcessor` trong manifest.
@@ -126,3 +135,4 @@ Native SDK dùng toolchain theo kiến trúc: `armv7hf` cho ARTPEC-7, `aarch64` 
 [^axis-ai-chatgpt-research]: Nguồn thứ cấp: [Phân tích Axis DLPU và khả năng triển khai Custom AI Models trên Camera Axis](../raw/axis-ai-chatgpt-research.md), §3 "Những dòng camera Axis nào hỗ trợ deploy custom AI model?", §4.1 "Quy trình deploy trên ARTPEC-8/9" và §4.2 "Đóng gói application".
 [^axis-doc-artpec9-model-conversion]: Tài liệu chính thức: [Model Conversion (ARTPEC-9) — Axis developer documentation](../raw/computer-vision/on-device/system-on-chip/artpec-9/model-conversion/index.md), §How to accelerate your model on ARTPEC-9, bước 2–3.
 [^axis-doc-cv75-model-conversion]: Tài liệu chính thức: [Model Conversion (CV75) — Axis developer documentation](../raw/computer-vision/on-device/system-on-chip/cv75/model-conversion/index.md), §How to accelerate your model on CV75, bước 2–4.
+[^axis-camera-chatgpt-research]: Nguồn thứ cấp: [Kết quả tra cứu SoC của AXIS Q1728-LE và AXIS P1488-LE](../raw/axis-camera-chatgpt-research.md), §2 "Đối chiếu bảng SoC và Larod của bạn" và §3 "Cách chuyển model để chạy trên hai camera" (hai lệnh `larod-client` với `a9-dlpu-tflite` và `cpu-tflite`, cùng cảnh báo backend DLPU không tương đương CPU).
