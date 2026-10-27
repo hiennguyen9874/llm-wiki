@@ -44,9 +44,12 @@ The complete retrieval map for compiled knowledge. See [LLM Wiki Contract](../AG
 - [LightOnOCR](lightonocr.md) — LightOnOCR-2-1B is a 1B end-to-end document-OCR VLM that combines a native-resolution ViT with a Qwen3 decoder and optionally emits image bounding boxes.
 - [LightOnOCR-3](lightonocr-3.md) — LightOnOCR-3 is LightOn's Apache-2.0 OCR family in 0.8B, 1B, and 4B sizes that keeps empty-prompt transcription and adds a grounding mode emitting labelled bounding boxes, image descriptions, and chart-to-table extraction.
 - [LightOnOCR-3 deployment](lightonocr-3-deployment.md) — LightOnOCR-3 serves through two runtime paths — LightOnOcr Transformers classes for the 1B variant and Qwen3.5 classes with thinking disabled for the 0.8B and 4B variants — with variant-specific loader versions, vLLM flags, and PDF render targets.
+- [LightOnOCR-3 evaluation](lightonocr-3-evaluation.md) — LightOnOCR-3 evaluation reports vendor-run OCR benchmarks and H100 serving measurements, with postprocessing and rendering conditions that limit direct comparisons.
+- [LightOnOCR-3 training](lightonocr-3-training.md) — LightOnOCR-3 training combines resampled OCR data, multi-model grounding annotation with quality gates, and GRPO with task-specific verifiable rewards.
 - [lift](lift.md) — lift is Datalab's 9B structured-extraction model for producing schema-constrained JSON from PDFs and images.
 - [LiteParse](liteparse.md) — LiteParse is run-llama's Apache-2.0, model-free PDF parser that extracts spatial text with bounding boxes and optionally merges Tesseract or HTTP-server OCR into Markdown, JSON, or text.
 - [MDPBench](mdpbench.md) — MDPBench is an author-constructed benchmark for multilingual document parsing on digital-born and photographed pages under varied real-world capture conditions.
+- [MarathonDocBench](marathon-doc-bench.md) — MarathonDocBench is a 100-document benchmark for hundred-page parsing with annotated cross-page text, tables, and document structure.
 - [Marker](marker.md) — Marker is Datalab's open-source document-conversion pipeline that produces Markdown, JSON, HTML, or chunks from PDFs and other document formats using text extraction, layout analysis, and selective VLM OCR.
 - [MonkeyDoc v2](monkeydoc-v2.md) — MonkeyDoc v2 is a 113-million-sample, 17-language document-image corpus used to pretrain MonkeyOCRv2 for page-level and cropped-element document tasks.
 - [MonkeyOCRv2](monkeyocrv2.md) — MonkeyOCRv2 is a document-native visual encoder family pretrained with image-to-text generation and pixel-level reconstruction for transfer across document-AI tasks.
@@ -68,6 +71,7 @@ The complete retrieval map for compiled knowledge. See [LLM Wiki Contract](../AG
 - [Optical Context Compression](optical-context-compression.md) — Optical context compression is the proposal to render text into images and retain compressed vision tokens, trading fidelity for a smaller long-context representation.
 - [OvisOCR2](ovisocr2.md) — OvisOCR2 is a 0.8B end-to-end document parser that generates page-level Markdown after SFT, 4B-teacher RL, on-policy distillation, and model fusion.
 - [OvisOCR3](ovisocr3.md) — OvisOCR3 is a 0.8B Qwen3.5-based multimodal model that handles document parsing, general OCR, key-information extraction, document-figure captioning, and cross-page table reconstruction through task-specific prompts.
+- [OXR-1.0](oxr-1-0.md) — OXR-1.0 is SoMark's 1.3B document parser with a replaceable layout model and combined content recognition and reading-order prediction.
 - [PaddleOCR 3.0](paddleocr-3.md) — PaddleOCR 3.0 is an open-source document-AI toolkit that unifies model training, layered inference, heterogeneous deployment, and MCP access around three OCR and document-understanding pipelines.
 - [PaddleOCR-VL](paddleocr-vl.md) — PaddleOCR-VL is a two-stage document parser that combines PP-DocLayoutV2 with a 0.9B dynamic-resolution VLM for multilingual text, table, formula, and chart conversion.
 - [PaddleOCR-VL-1.5](paddleocr-vl-1.5.md) — PaddleOCR-VL-1.5 is a 0.9B two-stage document parser that adds distortion-robust polygonal layout analysis, text spotting, seal recognition, and long-document post-processing to PaddleOCR-VL.
@@ -87,6 +91,7 @@ The complete retrieval map for compiled knowledge. See [LLM Wiki Contract](../AG
 - [Rex-Omni](rex-omni.md) — Rex-Omni is a 3B vision-language model that unifies detection, grounding, OCR, and keypoint tasks as quantized point-sequence generation refined with geometry-aware GRPO.
 - [RolmOCR](rolmocr.md) — RolmOCR is Reducto AI's Apache-2.0 Qwen2.5-VL-7B document-OCR model that omits PDF metadata inputs and trains with rotated pages for off-angle robustness.
 - [SenOCR-Vi](senocr-vi.md) — SenOCR-Vi is VietAlpha Lab's 0.96B Vietnamese-specialized document OCR model, produced by a decoder-only LoRA fine-tune of PaddleOCR-VL-1.6 and released as a merged Apache-2.0 checkpoint.
+- [Sparse Reference Sliding Window Attention](sparse-reference-sliding-window-attention.md) — Sparse Reference Sliding Window Attention bounds each query's active visual references through page gating and learned top-k block routing alongside a local window.
 - [Surya Layout (fast)](surya-layout-fast.md) — Surya Layout (fast) is a compact object detector for document regions and reading order that can replace Surya's VLM-based layout predictor.
 - [Surya OCR 2](surya-ocr-2.md) — Surya OCR 2 is a 650M document-OCR system whose shared VLM produces layout, reading order, OCR content, and table-recognition outputs.
 - [Task: Cross-page table reconstruction](task-cross-page-table-reconstruction.md) — Cross-page table reconstruction stitches table fragments separated by page boundaries into one table using per-page parses and page-pair continuation reasoning.
@@ -100,3 +105,4 @@ The complete retrieval map for compiled knowledge. See [LLM Wiki Contract](../AG
 - [TeleOCR](teleocr.md) — TeleOCR (formerly NaviDC-OCR) is a 1.2B layout-first document parser that uses deformation-aware polygon layouts and structure-aware training for digital and camera-captured pages.
 - [Typhoon OCR](typhoon-ocr.md) — Typhoon OCR is an open Thai-and-English document-extraction VLM family whose 2B V1.5 revision uses a single image-only prompt to emit Markdown, HTML tables, figure descriptions, equations, and page markers.
 - [Unlimited OCR](unlimited-ocr.md) — Unlimited OCR is a 3B-total, 500M-active end-to-end document OCR VLM that uses Reference Sliding Window Attention to bound decode-side KV-cache growth for one-shot multi-page parsing.
+- [Unlimited OCR 2](unlimited-ocr-2.md) — Unlimited OCR 2 is a document OCR VLM that combines sparse visual-reference attention and overlapping page chunks for long-document parsing.

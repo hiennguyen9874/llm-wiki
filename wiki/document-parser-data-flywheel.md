@@ -5,7 +5,7 @@ description: The document-parser data flywheel iteratively converts model weakne
 tags: [data-curation, document-parsing, evaluation, synthetic-data, workflows]
 status: draft
 created: 2026-08-17
-generated: { by: llm-wiki-agent/1, at: 2026-08-17T14:06:36Z }
+generated: { by: llm-wiki-agent/1, at: 2026-10-27T10:01:15Z }
 sources:
   - id: infinity-parser2-report
     resource: ../raw/2607.07836_Infinity-Parser2/arxiv_latex.tex
@@ -13,6 +13,10 @@ sources:
   - id: hunyuanocr-1-5-model-card
     resource: ../raw/HunyuanOCR-1.5.md
     title: "HunyuanOCR-1.5: Making Lightweight OCR VLMs Faster and Better"
+  - id: oxr-readme
+    resource: ../raw/OXR-1.0.md
+    kind: readme
+    title: SoMark OXR-1.0 README
 ---
 
 # Document-parser data flywheel
@@ -29,6 +33,10 @@ The document-parser data flywheel is an iterative data-curation workflow that ma
 ## Agent-mediated variant
 
 HunyuanOCR-1.5 calls its approach **Agentic Data Flow**. Its model card says agents turn model weaknesses into executable data requirements and participate in material search, tool-based verification, sample cleaning, and pipeline development with algorithm engineers. It names low-resource OCR, ancient-script OCR, and multi-image text-centric QA as targeted capabilities, but gives no source manifests, data volumes, outcome metrics, or overlap controls. Thus, it supports the general weakness-to-data pattern, not the detailed acquisition, separation, or efficacy claims documented for Infinity-Parser2.[^hunyuanocr-1-5-model-card]
+
+## OXR's reported RSI loop
+
+[OXR-1.0](oxr-1-0.md) reports recursive self-improvement targeting samples it gets wrong or handles weakly without human annotation. **Synthesis:** this shares the weakness-targeted iteration pattern, but the README does not describe data generation, validation or held-out controls, so it does not establish equivalence to the detailed Infinity-Parser2 workflow.[^oxr-readme]
 
 ## Observed ablation in the report
 
@@ -48,4 +56,5 @@ The workflow relies on proprietary data, specialist pseudo-labelers, hand-crafte
 - **Used by:** [HunyuanOCR-1.5](hunyuanocr-1.5.md) as a related agent-mediated data-construction approach with less documented procedure.[^hunyuanocr-1-5-model-card]
 
 [^infinity-parser2-report]: INF Team, *Infinity-Parser2 Technical Report*, local LaTeX source at [arxiv_latex.tex](../raw/2607.07836_Infinity-Parser2/arxiv_latex.tex), including [data flywheel](../raw/2607.07836_Infinity-Parser2/figures/data_flywheel_0605.pdf) (accessed 2026-08-17).
+[^oxr-readme]: SoMark, [OXR-1.0 README](../raw/OXR-1.0.md), § How it works › Improvement Through the RSI Loop (inspected 2026-10-27).
 [^hunyuanocr-1-5-model-card]: Tencent Hunyuan, *HunyuanOCR-1.5: Making Lightweight OCR VLMs Faster and Better*, local model card at [HunyuanOCR-1.5.md](../raw/HunyuanOCR-1.5.md) (accessed 2026-08-17).

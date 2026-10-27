@@ -5,11 +5,15 @@ description: Unlimited OCR is a 3B-total, 500M-active end-to-end document OCR VL
 tags: [ocr, document-parsing, vision-language-models, long-horizon, kv-cache, mixture-of-experts]
 status: draft
 created: 2026-08-17
-generated: { by: llm-wiki-agent/1, at: 2026-08-17T13:30:03Z }
+generated: { by: llm-wiki-agent/1, at: 2026-10-27T10:01:00Z }
 sources:
   - id: unlimited-ocr-report
     resource: ../raw/2606.23050_Unlimited-OCR/main.tex
     title: Unlimited OCR Works
+  - id: unlimited-ocr-2-report
+    resource: ../raw/Unlimited-OCR-2.pdf
+    kind: paper
+    title: Unlimited OCR Works 2
   - id: unlimited-ocr-model-card
     resource: ../raw/2606.23050_Unlimited-OCR/README.md
     title: Unlimited OCR model card
@@ -46,10 +50,15 @@ All results are author-reported and have not been independently reproduced:[^unl
 - The local bundle contains the report, three source figures, and model-card inference instructions. It lacks local weights, training data, evaluation data and scripts, complete prompts, and reproducible hardware/configuration details; the reported accuracy, multi-page behavior, and throughput cannot be independently verified from it.[^unlimited-ocr-report][^unlimited-ocr-model-card]
 - The report proposes applying R-SWA to ASR and translation but evaluates document OCR only; broader task effectiveness is unverified.[^unlimited-ocr-report]
 
+## Later development
+
+[Unlimited OCR 2](unlimited-ocr-2.md) initializes from this checkpoint and replaces R-SWA with sparse visual routing and chunked decoding; it is a successor, not evidence that the earlier model's own limits disappeared.[^unlimited-ocr-2-report]
+
 ## Relationships
 
 - **Builds on:** [DeepSeek-OCR](deepseek-ocr.md), retaining its DeepEncoder and MoE decoder while replacing standard decoder attention.[^unlimited-ocr-report]
 - **Uses:** [Reference Sliding Window Attention](reference-sliding-window-attention.md), the persistent-reference and bounded-output attention pattern introduced by this report.[^unlimited-ocr-report]
 
+[^unlimited-ocr-2-report]: Baidu ERNIE Team, [Unlimited OCR Works 2](../raw/Unlimited-OCR-2.pdf), §§3.2–3.4 and 4.2.
 [^unlimited-ocr-report]: Yin et al., *Unlimited OCR Works*, local LaTex source at [main.tex](../raw/2606.23050_Unlimited-OCR/main.tex), including [R-SWA attention diagram](../raw/2606.23050_Unlimited-OCR/Figs/1.pdf), [architecture diagram](../raw/2606.23050_Unlimited-OCR/Figs/3.pdf), and [attention-scaling plot](../raw/2606.23050_Unlimited-OCR/Figs/attn_scaling-2-Arial-95.pdf) (accessed 2026-08-17).
 [^unlimited-ocr-model-card]: Baidu Inc., *Unlimited OCR model card*, local [README.md](../raw/2606.23050_Unlimited-OCR/README.md) (accessed 2026-08-17).

@@ -5,7 +5,7 @@ description: Layout-first modular parsing groups systems that detect layout regi
 tags: [task, document-parsing, layout-analysis, modular-systems]
 status: stable
 created: 2026-08-22
-generated: { by: llm-wiki-agent/1, at: 2026-10-25T03:45:08Z }
+generated: { by: llm-wiki-agent/1, at: 2026-10-27T10:01:15Z }
 stale_after: 2027-04-25
 sources:
   - id: current-ocr-approaches
@@ -27,6 +27,10 @@ sources:
   - id: omniparsebench
     resource: ../wiki/omniparsebench.md
     title: OmniParseBench
+  - id: oxr-readme
+    resource: ../raw/OXR-1.0.md
+    kind: readme
+    title: SoMark OXR-1.0 README
 ---
 
 # Task: Layout-first modular parsing
@@ -44,6 +48,8 @@ Layout-first modular parsing first detects document elements (text blocks, table
 - [FalconOCR](falcon-ocr.md) — 300M PP-DocLayoutV3 → early-fusion text/LaTeX/HTML-table recognizer
 - [PP-StructureV3](pp-structurev3.md) — OCR + layout/article detection + specialist element models + order reconstruction
 - [Surya OCR 2](surya-ocr-2.md) — 650M shared VLM for layout/order/OCR/tables (boundary: can operate layout-first block-parallel or end-to-end)
+
+**Related boundary:** [OXR-1.0](oxr-1-0.md) separates a replaceable layout model from recognition, but places reading order in the recognition stage; its README does not establish crop resolution or the complete intermediate flow assumed by the core definition above.[^oxr-readme]
 
 Supporting layout components used by the above:
 
@@ -78,4 +84,5 @@ The comparison makes the fidelity cost measurable within one protocol: on the ve
 [^layout-first-benchmarks]: Compiled synthesis in this wiki: [Layout-first modular OCR benchmarks](layout-first-modular-ocr-benchmarks.md), § Scope and model coverage, § Benchmark and metric map, and § OmniDocBench v1.6 (accessed 2026-10-25).
 [^paddleocr-vl-1-6-report]: PaddleOCR Team, *PaddleOCR-VL-1.6 Technical Report*, local LaTeX source at [main.tex](../raw/2606.03264_PaddleOCR-VL-1.6/main.tex), § PaddleOCR-VL-1.6 Overview (two-stage framework and post-processing engine) and § Evaluation › Document Parsing (accessed 2026-10-25).
 [^indra-ocr-card]: Datalab, *Indra OCR model card* (`datalab-to/indra-ocr`), local capture [datalab-to-indra-ocr.md](../raw/datalab-to-indra-ocr.md), § Indra OCR (layout, line-classifier, and recognizer stages), § Output (block labels and reading order), and § Benchmarks › OmniParseBench (accessed 2026-10-25).
+[^oxr-readme]: SoMark, [OXR-1.0 README](../raw/OXR-1.0.md), § How it works › Technical Architecture (inspected 2026-10-27).
 [^omniparsebench]: Compiled synthesis in this wiki: [OmniParseBench](omniparsebench.md), § Reported structure, § Reported comparison, and § Protocol caveats; the underlying source is a vendor model card and was not run here (accessed 2026-10-25).

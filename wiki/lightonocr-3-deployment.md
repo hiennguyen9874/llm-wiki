@@ -5,7 +5,7 @@ description: LightOnOCR-3 serves through two runtime paths — LightOnOcr Transf
 tags: [ocr, document-parsing, deployment, vllm, transformers, qwen3-5]
 status: draft
 created: 2026-10-25
-generated: { by: llm-wiki-agent/1, at: 2026-10-25T03:30:23Z }
+generated: { by: llm-wiki-agent/1, at: 2026-10-27T10:11:56Z }
 stale_after: 2027-01-25
 sources:
   - id: lightonocr-3-1b-card
@@ -48,7 +48,7 @@ The cards point to the LightOnOCR GitHub repository for a minimal vLLM client, a
 
 ## Operational notes and limits
 
-- The variants differ in caching posture: the 1B flags disable the multimodal-processor cache and prefix caching while limiting one image per prompt, and the 0.8B/4B flags enable remote code and set the chat-template kwarg. The cards do not explain why the flag sets diverge, and no throughput measurement accompanies either configuration.[^lightonocr-3-1b-card][^lightonocr-3-0-8b-card][^lightonocr-3-4b-card]
+- The variants differ in caching posture: the 1B flags disable the multimodal-processor cache and prefix caching while limiting one image per prompt, and the 0.8B/4B flags enable remote code and set the chat-template kwarg. The cards do not explain why the flag sets diverge, and no throughput measurement accompanies either configuration in the cards. Separate vendor measurements under benchmark settings are summarized in [LightOnOCR-3 evaluation](lightonocr-3-evaluation.md).[^lightonocr-3-1b-card][^lightonocr-3-0-8b-card][^lightonocr-3-4b-card]
 - Only two prompts are supported; the cards state other instructions are out of distribution, so a serving stack should not expose a free-form instruction field.[^lightonocr-3-1b-card][^lightonocr-3-4b-card]
 - Grounding is reported to add roughly 25% output tokens (1,433 vs 1,158 per page on average, 4B), which affects token budgets and latency planning but is not broken down per variant.[^lightonocr-3-4b-card]
 - Sampling settings appear only inside examples (`do_sample=True, temperature=0.2` and, for vLLM, `top_p=0.9`); the cards do not present them as required decoding parameters, and no determinism or accuracy comparison across settings is given.[^lightonocr-3-0-8b-card][^lightonocr-3-4b-card]

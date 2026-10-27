@@ -5,9 +5,14 @@ description: LightOnOCR-3 is LightOn's Apache-2.0 OCR family in 0.8B, 1B, and 4B
 tags: [ocr, document-parsing, vision-language-models, visual-grounding, chart-extraction, qwen3-5]
 status: draft
 created: 2026-10-25
-generated: { by: llm-wiki-agent/1, at: 2026-10-25T03:30:23Z }
+generated: { by: llm-wiki-agent/1, at: 2026-10-27T10:11:56Z }
 stale_after: 2027-04-25
 sources:
+  - id: lightonocr-3-blog
+    resource: ../raw/lightonocr-3/index.md
+    scope: ../raw/lightonocr-3/
+    kind: article
+    title: "LightOnOCR-3: High-Performance OCR and Layout Extraction in One Model"
   - id: lightonocr-3-1b-card
     resource: ../raw/lightonai-LightOnOCR-3-1B.md
     kind: model-card
@@ -24,7 +29,7 @@ sources:
 
 # LightOnOCR-3
 
-LightOnOCR-3 is LightOn's Apache-2.0 document-OCR family, released in three sizes (0.8B, 1B, and 4B) that keep the empty-prompt transcription behavior of the previous generation and add an opt-in `grounding` mode. Grounding prefixes every page block with a type label and a bounding box, writes short descriptions for images, and converts charts into HTML tables of their data points. The 1B variant retains the LightOnOCR-2-1B architecture so existing deployments switch without change, while the 0.8B and 4B variants move to a Qwen3.5 vision-language architecture that the cards describe as simpler to integrate and significantly faster. Every capability and speed claim here is vendor-reported model-card text: the cards publish no benchmark table and no LightOnOCR-3 technical report.[^lightonocr-3-1b-card][^lightonocr-3-0-8b-card][^lightonocr-3-4b-card]
+LightOnOCR-3 is LightOn's Apache-2.0 document-OCR family, released in three sizes (0.8B, 1B, and 4B) that keep the empty-prompt transcription behavior of the previous generation and add an opt-in `grounding` mode. Grounding prefixes every page block with a type label and a bounding box, writes short descriptions for images, and converts charts into HTML tables of their data points. The 1B variant retains the LightOnOCR-2-1B architecture so existing deployments switch without change, while the 0.8B and 4B variants move to a Qwen3.5 vision-language architecture that the cards describe as simpler to integrate and significantly faster. These capabilities are vendor-reported; the subsequent vendor blog adds benchmark and training details, summarized in [evaluation](lightonocr-3-evaluation.md) and [training](lightonocr-3-training.md), but not independently reproduced.[^lightonocr-3-blog][^lightonocr-3-1b-card][^lightonocr-3-0-8b-card][^lightonocr-3-4b-card]
 
 ## Family and variants
 
@@ -99,10 +104,10 @@ The 1B variant keeps LightOnOCR-2's rendering guidance: 200 DPI with a 1,540-pix
 
 ## Limits and trust
 
-The evidence is three vendor model cards, all **reported** and none reproduced locally. Consequential coverage gaps are:[^lightonocr-3-1b-card][^lightonocr-3-0-8b-card][^lightonocr-3-4b-card]
+The evidence includes three vendor model cards and a vendor blog; consequential claims are **reported** and none reproduced locally. Consequential coverage gaps are:[^lightonocr-3-1b-card][^lightonocr-3-0-8b-card][^lightonocr-3-4b-card]
 
-- No benchmark results, dataset names, or comparison tables appear in any of the three cards, so the "significant improvements in speed and transcription quality" and the 4B's "most accurate" positioning are unquantified vendor claims.
-- No parameter counts beyond the model names, no architecture diagrams, training data, compute, or ablations. The cards' citation block still points at the LightOnOCR-2 paper (arXiv 2601.14251, key `lightonocr2_2026`), so the grounding, image-description, and chart-extraction outputs have no first-party evaluation document behind them.
+- The cards contain no benchmark tables or training details; the vendor blog now reports both, but its evaluation and training claims remain unverified independently. It does not give a full compute budget or controlled ablations.[^lightonocr-3-blog]
+- The cards' citation block points at the LightOnOCR-2 paper (arXiv 2601.14251), not a LightOnOCR-3 technical report.
 - Prompt behavior is tuned instruction-following, not a constrained decoder; the cards document no schema validation for the emitted placeholders or HTML tables.
 - Language coverage is undocumented for the family. Only the 0.8B card's frontmatter declares `language: en`; the 1B and 4B cards declare none, and the LightOnOCR-2 paper's European/Latin-script scope in [LightOnOCR](lightonocr.md) is not restated.
 - The 1B card's capability bullet lists handwriting while the 0.8B and 4B bullets omit it, although the family paragraph says all variants carry the same features. The per-variant handwriting scope is therefore unclear from these cards.
@@ -112,9 +117,12 @@ The evidence is three vendor model cards, all **reported** and none reproduced l
 
 - **Supersedes:** [LightOnOCR](lightonocr.md) as the generation to deploy — the 1B variant keeps that architecture and the LightOnOCR-2 paper remains the source for its architecture, training recipe, and benchmark evidence.
 - **Uses:** a Qwen3.5 vision-language architecture in the 0.8B and 4B variants. [OvisOCR3](ovisocr3.md) is also Qwen3.5-based at 0.8B, but neither card relates the two projects, so this is synthesis rather than a stated dependency.
+- **Trained using:** [LightOnOCR-3 training](lightonocr-3-training.md), including multi-model grounding annotation and RL.
+- **Evaluated in:** [LightOnOCR-3 evaluation](lightonocr-3-evaluation.md), with vendor-reported quality and speed comparisons.
 - **Operationalized by:** [LightOnOCR-3 deployment](lightonocr-3-deployment.md) for per-variant loaders, serving flags, and rendering settings.
 - **Compared with:** other single-prompt page-to-Markdown systems in [Task: End-to-end generative OCR](task-end-to-end-generative-ocr.md).
 
+[^lightonocr-3-blog]: Said Taghadouini, Adrien Cavaillès and Baptiste Aubertin, [LightOnOCR-3 blog](../raw/lightonocr-3/index.md), §§ 1–3; locally captured article and assets.
 [^lightonocr-3-1b-card]: LightOn, [*LightOnOCR-3-1B model card*](../raw/lightonai-LightOnOCR-3-1B.md) (accessed 2026-10-25), §§ "About LightOnOCR-3", "Highlights", "Model Variants", "Prompt Modes", "Rendering and Preprocessing Tips". The logo image is remote and was not inspected.
 [^lightonocr-3-0-8b-card]: LightOn, [*LightOnOCR-3-0.8B model card*](../raw/lightonai-LightOnOCR-3-0.8B.md) (accessed 2026-10-25), §§ "About LightOnOCR-3", "Highlights", "Model Variants", "Prompt Modes", "Rendering and Preprocessing Tips"; frontmatter declares `language: en` and an added `pdf` tag.
 [^lightonocr-3-4b-card]: LightOn, [*LightOnOCR-3-4B model card*](../raw/lightonai-LightOnOCR-3-4B.md) (accessed 2026-10-25), §§ "About LightOnOCR-3", "Highlights", "Model Variants", "Prompt Modes", "Rendering and Preprocessing Tips", including the reported 1,433 vs 1,158 tokens-per-page grounding overhead.

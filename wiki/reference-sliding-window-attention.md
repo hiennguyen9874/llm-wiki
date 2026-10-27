@@ -5,8 +5,12 @@ description: Reference Sliding Window Attention preserves a fixed reference pref
 tags: [attention, sliding-window-attention, kv-cache, long-horizon, sequence-modeling]
 status: draft
 created: 2026-08-17
-generated: { by: llm-wiki-agent/1, at: 2026-08-17T13:30:03Z }
+generated: { by: llm-wiki-agent/1, at: 2026-10-27T10:01:00Z }
 sources:
+  - id: unlimited-ocr-2-report
+    resource: ../raw/Unlimited-OCR-2.pdf
+    kind: paper
+    title: Unlimited OCR Works 2
   - id: unlimited-ocr-report
     resource: ../raw/2606.23050_Unlimited-OCR/main.tex
     title: Unlimited OCR Works
@@ -26,8 +30,11 @@ Unlike ordinary sliding-window attention, R-SWA does not evict the reference pre
 
 The bounded quantity applies to the generated continuation for a fixed reference prefix, not to total inference cost regardless of input size: a larger document produces a larger visual prefix. The source evaluates the mechanism in document OCR and proposes, but does not test, transfer to ASR and translation.[^unlimited-ocr-report]
 
+A later variant, [Sparse Reference Sliding Window Attention](sparse-reference-sliding-window-attention.md), selects a fixed budget of visual blocks rather than attending to the entire visual prefix; separate chunking controls resident visual KV memory.[^unlimited-ocr-2-report]
+
 ## Relationships
 
 - **Implemented by:** [Unlimited OCR](unlimited-ocr.md), which applies R-SWA to every decoder attention layer for long-horizon document parsing.[^unlimited-ocr-report]
 
+[^unlimited-ocr-2-report]: Baidu ERNIE Team, [Unlimited OCR Works 2](../raw/Unlimited-OCR-2.pdf), §§3.3–3.4.
 [^unlimited-ocr-report]: Yin et al., *Unlimited OCR Works*, local LaTex source at [main.tex](../raw/2606.23050_Unlimited-OCR/main.tex), including [R-SWA attention diagram](../raw/2606.23050_Unlimited-OCR/Figs/1.pdf) and [architecture diagram](../raw/2606.23050_Unlimited-OCR/Figs/3.pdf) (accessed 2026-08-17).

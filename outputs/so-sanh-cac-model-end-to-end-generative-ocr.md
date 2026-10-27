@@ -1,0 +1,214 @@
+# So sánh các model End-to-end Generative OCR
+
+## 1. Phạm vi và cách đọc kết quả
+
+Ở đây, **end-to-end generative OCR** là nhóm model nhận ảnh trang tài liệu và sinh trực tiếp văn bản hoặc biểu diễn có cấu trúc như Markdown, HTML, JSON, LaTeX. Khác với pipeline layout-first, nhóm này không bắt buộc chạy một layout detector riêng trước khi nhận dạng. Xem [phân loại trong wiki](../wiki/task-end-to-end-generative-ocr.md).
+
+Tôi tập trung vào **model, kích thước, ngày công bố và benchmark**; không đi sâu kiến trúc. Các điểm cần lưu ý trước khi so sánh:
+
+- **Ngày trống nghĩa là chưa tìm thấy ngày ra mắt đáng tin cậy trong tài liệu đã kiểm tra**, không phải model chưa ra mắt. Ngày tạo trang wiki không phải ngày ra mắt model.
+- **B** = tỷ tham số. Với model MoE, số tham số tổng và số tham số hoạt động cho mỗi token khác nhau; cũng không nên dùng chỉ số đó như ước lượng trực tiếp VRAM.
+- Các benchmark dưới đây chủ yếu là **kết quả do tác giả/model card báo cáo hoặc chép từ leaderboard**; wiki chưa chạy lại độc lập.
+- Không ghép điểm giữa các benchmark hoặc các phiên bản benchmark thành một bảng xếp hạng chung. Ngay cả cùng tên benchmark, prompt, render PDF, retry và evaluator có thể khác nhau.
+
+Nguồn chính là [catalog benchmark end-to-end](../wiki/end-to-end-generative-ocr-vlm-benchmarks.md), bổ sung bằng các trang model riêng.
+
+---
+
+## 2. Bảng tổng quan model
+
+| Model | Size | Ngày ra mắt được ghi nhận | Kết quả đáng chú ý | Nhận xét ngắn |
+|---|---:|---|---|---|
+| [OvisOCR3](../wiki/ovisocr3.md) | **0.8B** | Chưa ghi rõ | OmniDocBench 1.6 **96.74**; MDPBench **88.80**; PureDocBench **82.31** | Model nhỏ, nhiều tác vụ; card chỉ công bố điểm tổng cho các benchmark parsing này. |
+| [OvisOCR2](../wiki/ovisocr2.md) | **0.8B** | Chưa ghi rõ | OmniDocBench 1.6 **96.58**; PureDocBench Avg3 **75.06** | Có bảng thành phần text/formula/table/order chi tiết hơn OvisOCR3. |
+| [LightOnOCR-3](../wiki/lightonocr-3.md) | **0.8B / 1B / 4B** | Chưa xác nhận ngày ra mắt | Bản 4B: olmOCR-Bench **86.3**, ParseBench 5 mục **75.1**, fr-bench-pdf2md **74.1** | Blog nhà phát hành báo cáo benchmark; hỗ trợ transcription và grounding. [Chi tiết](../wiki/lightonocr-3-evaluation.md). |
+| [LightOnOCR-2-1B](../wiki/lightonocr.md) | **1B** | Chưa ghi rõ | olmOCR-Bench **83.2 ± 0.9** | Điểm loại header/footer khỏi aggregate, không so trực tiếp với các dòng giữ các mục này. |
+| [HunyuanOCR-1.5](../wiki/hunyuanocr-1.5.md) | Bảng so sánh gọi family là **1B**; card không xác nhận size | **07/07/2026**, theo README | OmniDocBench 1.6 **94.74** trong bảng OvisOCR2 | Có kết quả được bên khác chép lại; card/README được lưu không có bảng benchmark riêng. |
+| [FireRed-OCR](../wiki/firered-ocr.md) | **2B** | Chưa ghi rõ | OmniDocBench 1.5 **92.94**; 1.6 **93.26** | Có cả bảng benchmark chuẩn và benchmark nội bộ cho trang biến dạng. |
+| [Infinity-Parser2 Flash](../wiki/infinity-parser2.md) | **2B** | **11/05/2026**, theo model card | OmniDocBench 1.6 **91.98**; olmOCR-Bench **86.0 ± 0.8** | Điểm ở hai benchmark đến từ bảng đánh giá của nhóm tác giả. |
+| [Infinity-Parser2 Pro](../wiki/infinity-parser2.md) | **35B tổng / 3B active** | **11/05/2026**, theo model card | OmniDocBench 1.6 **93.95**; olmOCR-Bench **87.6 ± 0.8** | Bản lớn hơn Flash; active parameter không thể hiểu là chỉ cần bộ nhớ như model dense 3B. |
+| [DeepSeek-OCR 2](../wiki/deepseek-ocr-2.md) | Decoder **3B MoE / ~0.5B active** | Chưa ghi rõ | OmniDocBench 1.5 **91.09**; 1.6 **90.25** | Size nêu theo decoder; các báo cáo khác nhau cho điểm 1.5 khác nhau. |
+| [Unlimited OCR](../wiki/unlimited-ocr.md) | **3B tổng / 0.5B active** | Chưa ghi rõ | OmniDocBench 1.5 **93.23**; 1.6 **93.92** | Có thêm đánh giá tài liệu nhiều trang do tác giả xây dựng. |
+| [Unlimited OCR 2](../wiki/unlimited-ocr-2.md) | Báo cáo nêu **3B tổng / 0.5B active** | Chưa ghi rõ | OmniDocBench 1.6 **94.02**; MPDocBench **84.59**; MarathonDocBench **77.06** | Tập trung tài liệu dài; bảng điểm đơn trang đến từ báo cáo riêng. |
+| [Qianfan-OCR](../wiki/qianfan-ocr.md) | **4B** | Chưa ghi rõ | OmniDocBench 1.5 **93.12**; 1.6 **93.90** | Có thêm bảng cho general OCR, VQA và KIE. |
+| [dots.ocr](../wiki/dots-ocr.md) | Card nêu **1.7B LLM foundation**; bảng khác ghi 3B | Chưa ghi rõ | OmniDocBench 1.6 **90.77**; olmOCR-Bench **79.1 ± 1.0** | Cần phân biệt `dots.ocr` gốc với 1.5 và dots.mocr. |
+| [olmOCR-2-7B-1025](../wiki/olmocr-2-7b-1025.md) | **7B** | Chưa ghi rõ | olmOCR-Bench **82.3 ± 1.1** BF16; **82.4 ± 1.1** FP8 | Cần chú ý PDF metadata/anchoring và toolkit khi đối chiếu benchmark. |
+| [Chandra OCR 2](../wiki/chandra-ocr-2.md) | **5.3B trong bảng so sánh**; card riêng không xác nhận | Chưa ghi rõ | olmOCR-Bench **85.8 ± 0.8** theo card | Có giới hạn thương mại cho weights; phải kiểm tra license trước khi chọn. |
+| [Nanonets-OCR2](../wiki/nanonets-ocr2.md) | **3B**, thử nghiệm **1.5B**; Plus hosted | Chưa ghi rõ | Bản 3B: ChartQA **78.56**, DocVQA **89.43** | Hữu ích khi cần cả parsing và VQA; cấu hình benchmark không được mô tả đầy đủ. |
+| [Typhoon OCR 1.5](../wiki/typhoon-ocr.md) | **2B** | Chưa ghi rõ | Bộ Thai nội bộ: BLEU **0.644**, ROUGE-L **0.774** | Chuyên Thai/English; không so trực tiếp các điểm này với OmniDocBench. |
+| [Granite Docling](../wiki/granite-docling-258m.md) | **258M** | Chưa ghi rõ | Full-page OCR edit **0.45** trong model-card evaluation | Model rất nhỏ, nhưng thuộc nhóm ranh giới: được định vị là thành phần trong Docling. |
+| [NVIDIA Nemotron Parse v1.1 / 2.0](../wiki/nemotron-parse-2-0.md) | Cả hai được mô tả là **dưới 1B** | Chưa ghi rõ | Card v1.1 được lưu **không có kết quả số** | Model trực tiếp page-to-structure; chưa đủ bảng đối chiếu trong catalog này. |
+
+**Về ngày ra mắt:** Trong các tài liệu model đã kiểm tra, tôi chỉ thấy ngày cụ thể cho **HunyuanOCR-1.5** và **Infinity-Parser2** như trên. Đây là ngày do nhà phát hành công bố, chưa kiểm tra độc lập. Không dùng ngày tạo trang wiki hay mã thư mục paper làm ngày release.
+
+---
+
+## 3. Benchmark quan trọng nhất: OmniDocBench v1.6
+
+Đây là bảng gần nhất trong wiki có nhiều model end-to-end được đặt cạnh nhau. Nó được [OvisOCR2 báo cáo/chép lại](../wiki/end-to-end-generative-ocr-vlm-benchmarks.md); phiên bản checkpoint và cấu hình evaluator của các dòng chưa hoàn toàn đồng nhất.
+
+**Overall, Formula CDM, Table TEDS:** càng cao càng tốt.  
+**Text edit và Order edit:** càng thấp càng tốt.
+
+| Model | Size | Overall ↑ | Text edit ↓ | Formula CDM ↑ | Table TEDS ↑ | Order edit ↓ |
+|---|---:|---:|---:|---:|---:|---:|
+| **OvisOCR2** | **0.8B** | **96.58** | **0.025** | **97.53** | **94.76** | **0.111** |
+| HunyuanOCR-1.5 | ~1B theo bảng | 94.74 | 0.039 | 94.50 | 93.67 | 0.129 |
+| Unlimited OCR | 3B / 0.5B active | 93.92 | 0.042 | 95.79 | 90.16 | 0.129 |
+| Qianfan-OCR | 4B | 93.90 | 0.040 | 95.08 | 90.53 | 0.130 |
+| FireRed-OCR | 2B | 93.26 | 0.037 | 95.44 | 88.04 | 0.131 |
+| dots.ocr | 1.7B foundation | 90.77 | 0.048 | 89.95 | 87.18 | 0.138 |
+| DeepSeek-OCR 2 | 3B decoder / ~0.5B active | 90.25 | 0.050 | 91.84 | 83.89 | 0.144 |
+| olmOCR — tên như trong bảng | Không xác định chính xác checkpoint | 85.74 | 0.139 | 88.10 | 83.00 | 0.216 |
+| Nanonets-OCR-S | Không xác định trong bảng | 83.61 | 0.108 | 81.46 | 80.18 | 0.213 |
+
+### OvisOCR3 và Infinity-Parser2: giữ riêng nguồn
+
+| Model | Size | OmniDocBench 1.6 overall | Nguồn và giới hạn |
+|---|---:|---:|---|
+| OvisOCR3 | 0.8B | **96.74** | Model card OvisOCR3; không công bố vector thành phần. |
+| OvisOCR2 | 0.8B | 96.58 | Dòng đối chiếu trong cùng card OvisOCR3. |
+| Infinity-Parser2 Pro | 35B / 3B active | 93.95 | Bảng riêng của Infinity-Parser2. |
+| Infinity-Parser2 Flash | 2B | 91.98 | Cùng bảng Infinity-Parser2 Pro. |
+| Unlimited OCR 2 | 3B / 0.5B active | 94.02 | Bảng riêng trong báo cáo Unlimited OCR 2. |
+
+**Diễn giải:**
+
+1. Trong bảng OvisOCR2, **OvisOCR2 dẫn tất cả thành phần được liệt kê**, dù chỉ 0.8B. Đây là kết quả rất đáng chú ý để đưa vào shortlist, không phải bằng chứng nó thắng mọi bộ dữ liệu.
+2. Card OvisOCR3 báo **96.74 so với OvisOCR2 96.58**, nhưng chỉ có overall và không nêu đầy đủ cách chạy comparator. Chênh lệch **0.16 điểm** không đủ để khẳng định mức cải thiện thực tế trên tài liệu của bạn.
+3. Không nên sắp Infinity-Parser2 hay Unlimited OCR 2 vào cùng thứ hạng chính xác với bảng đầu: chúng đến từ **bảng và protocol khác**.
+
+---
+
+## 4. OmniDocBench v1.5: xem thêm nhưng không cộng gộp với v1.6
+
+Các điểm trong bảng này dùng schema v1.5, **không so trực tiếp bằng số với v1.6**. Các dòng cũng đến từ nhiều báo cáo.
+
+| Model | Overall ↑ | Text edit ↓ | Formula CDM ↑ | Table TEDS ↑ | Order edit ↓ |
+|---|---:|---:|---:|---:|---:|
+| Unlimited OCR | **93.23** | 0.038 | 92.61 | 90.93 | 0.045 |
+| Qianfan-OCR | 93.12 | 0.041 | 92.43 | 91.02 | 0.049 |
+| FireRed-OCR | 92.94 | **0.032** | 91.71 | 90.31 | **0.041** |
+| DeepSeek-OCR 2 | 91.09 | 0.048 | 90.31 | 87.75 | 0.057 |
+| dots.ocr | 88.41 | 0.048 | 83.22 | 86.78 | 0.053 |
+| DeepSeek-OCR | 87.36 | 0.073 | 84.14 | 85.25 | 0.085 |
+
+**Điểm đáng chú ý:** FireRed có text/order edit tốt nhất trong các dòng trên; Qianfan có table TEDS cao hơn FireRed. Tuy nhiên, **không coi các khác biệt nhỏ là kết luận chắc chắn**, vì chúng được tổng hợp từ nhiều báo cáo. Ví dụ, một bảng khác báo DeepSeek-OCR 2 **89.17**, thay vì **91.09**, dù đều mang nhãn v1.5. [Nguồn và protocol](../wiki/end-to-end-generative-ocr-vlm-benchmarks.md).
+
+---
+
+## 5. PureDocBench: tài liệu sạch so với ảnh thực tế
+
+PureDocBench tách ba điều kiện: **Clean**, **Digital** và **Real**. Bảng dưới đây từ báo cáo OvisOCR2; **Avg3 càng cao càng tốt**.
+
+| Model | Clean ↑ | Digital ↑ | Real ↑ | Avg3 ↑ |
+|---|---:|---:|---:|---:|
+| **OvisOCR2** | **81.55** | **77.09** | **66.56** | **75.06** |
+| FireRed-OCR | 70.81 | 68.49 | 57.42 | 65.57 |
+| dots.ocr | 72.01 | 65.95 | 55.68 | 64.55 |
+| olmOCR-2-7B | 69.36 | 65.87 | 56.10 | 63.78 |
+| Nanonets-OCR2 | 64.83 | 61.23 | 49.03 | 58.36 |
+| Qianfan-OCR | 57.22 | 50.85 | 45.06 | 51.04 |
+| DeepSeek-OCR 2 | 55.53 | 49.41 | 43.60 | 49.51 |
+| DeepSeek-OCR | 53.50 | 46.95 | 40.48 | 46.98 |
+
+Trong các model liệt kê ở đây, OvisOCR2 dẫn cả ba track. Nhưng bảng đầy đủ trong wiki có các hệ thống khác đạt **Real cao hơn OvisOCR2**, nên không thể kết luận OvisOCR2 tốt nhất cho mọi ảnh chụp thực tế.
+
+Card OvisOCR3 báo **82.31 overall** trên PureDocBench, nhưng **không công bố Clean/Digital/Real**, nên không thể đối chiếu mức cải thiện theo từng điều kiện. [Nguồn](../wiki/end-to-end-generative-ocr-vlm-benchmarks.md).
+
+---
+
+## 6. olmOCR-Bench: hữu ích, nhưng cần đọc protocol
+
+olmOCR-Bench dùng các unit test theo loại tài liệu/tác vụ; điểm dưới đây là **overall pass rate**. Bảng này **trộn các nguồn báo cáo**, vì vậy phù hợp để chọn model thử nghiệm hơn là tuyên bố thứ hạng chính xác.
+
+| Model | Kết quả ↑ | Lưu ý |
+|---|---:|---|
+| Infinity-Parser2 Pro | **87.6 ± 0.8** | Pipeline đánh giá của tác giả. |
+| LightOnOCR-3-4B | **86.3** | Blog LightOn, có postprocessing; không nêu khoảng bất định. |
+| Infinity-Parser2 Flash | **86.0 ± 0.8** | Pipeline đánh giá của tác giả. |
+| LightOnOCR-3-0.8B / 1B | **85.5 / 84.5** | Blog LightOn, có postprocessing; không nêu khoảng bất định. |
+| Chandra OCR 2 | **85.8 ± 0.8** | Card Datalab tự chạy; một bảng Infinity-Parser2 lại chép 83.1. |
+| dots.ocr 1.5 / dots.mocr | 83.9 | Tên version không thống nhất giữa card/báo cáo. |
+| Chandra OCR | 83.1 ± 0.9 | Kết quả nhà cung cấp. |
+| LightOnOCR-2-1B | 83.2 ± 0.9 | **Loại header/footer** khỏi aggregate. |
+| olmOCR-2-7B BF16 | 82.3 ± 1.1 | Toolkit v0.4.0 có render, rotation và retry. |
+| olmOCR-2-7B FP8 | 82.4 ± 1.1 | Cùng toolkit; card khuyến nghị FP8 cho sử dụng thực tế. |
+| dots.ocr gốc | 79.1 ± 1.0 | Không nhầm với dots.ocr 1.5. |
+| Qianfan-OCR | 79.8 | Kết quả từ báo cáo Qianfan. |
+
+**Điểm chính:** Infinity-Parser2, Chandra 2 và LightOnOCR-3 là các ứng viên đáng thử trên tài liệu kiểu olmOCR-Bench, nhưng sự khác nhau về **anchoring, category, retry, postprocessing và evaluator** ngăn việc kết luận model nào sẽ thắng khi chạy cùng một pipeline. [Catalog benchmark](../wiki/end-to-end-generative-ocr-vlm-benchmarks.md); [đánh giá LightOnOCR-3](../wiki/lightonocr-3-evaluation.md).
+
+### Cùng bảng do LightOn báo cáo: chất lượng và tốc độ
+
+Bảng sau giữ riêng kết quả trong blog LightOn; các điểm **cao hơn là tốt hơn**, là kết quả nhà phát hành chọn và chạy, chưa được tái lập độc lập. ParseBench dùng overall **5 category**; không trộn với overall 3 category hay benchmark khác. [Nguồn và giới hạn](../wiki/lightonocr-3-evaluation.md).
+
+| Model | olmOCR-Bench ↑ | ParseBench 5 mục ↑ | fr-bench-pdf2md ↑ |
+|---|---:|---:|---:|
+| LightOnOCR-3-0.8B | 85.5 | 74.6 | 70.5 |
+| LightOnOCR-3-1B | 84.5 | 71.4 | 69.6 |
+| LightOnOCR-3-4B | 86.3 | 75.1 | 74.1 |
+| Infinity Parser Pro | 87.6 | 74.3 | 63.2 |
+| Chandra 2 | 85.8 | 70.1 | 69.0 |
+
+Theo bảng này, bản 4B đứng đầu các dòng được công bố trên ParseBench và fr-bench-pdf2md, còn Infinity dẫn olmOCR-Bench. Kết quả thay đổi theo loại tài liệu; trên ParseBench visual grounding, Infinity đạt 74.9 so với 68.3 của 4B. Không suy ra thứ hạng toàn cầu hay ý nghĩa thống kê từ các chênh lệch nhỏ. Trên olmOCR-Bench, điểm 4B tăng từ **85.0 raw lên 86.3 sau postprocessing**; các model khác cũng thay đổi sau xử lý.
+
+Về serving, tác giả dùng cùng 512 trang olmOCR, một H100/model và vLLM 0.30.0. Ở cấu hình render benchmark riêng của mỗi model, 0.8B / 1B / 4B lần lượt đạt latency trung vị **3.8 / 2.7 / 6.6 giây** mỗi trang và throughput đỉnh **3.32 / 3.52 / 2.03 trang/giây**; Chandra 2 đạt **8.1 giây** và **1.68 trang/giây**. Render và prompt khác nhau; ở 1540 px cạnh dài, throughput đỉnh 4B là **3.36**, Chandra 2 là **2.95 trang/giây**. Cấu hình này không chứng minh chất lượng khi giảm độ phân giải và không bảo đảm tốc độ trên phần cứng khác. [Chi tiết setup](../wiki/lightonocr-3-evaluation.md).
+
+---
+
+## 7. Tiếng Việt và tài liệu nhiều trang
+
+### 7.1. Tiếng Việt: cần so với model chuyên biệt
+
+Vì câu hỏi bằng tiếng Việt, đây là một nhóm đối chiếu quan trọng. **SenOCR-Vi không phải model end-to-end page parser thuần theo định nghĩa ở đầu bài**: nó là bản fine-tune model nhận dạng của PaddleOCR-VL-1.6 và có thể chạy trong pipeline layout-first. Dù vậy, đây là baseline thực dụng cho tài liệu Việt.
+
+| Model/hệ thống | Size báo cáo | Vietnamese document composite ↑ |
+|---|---:|---:|
+| Chandra OCR 2 | ~5B trong bảng này | **85.60** |
+| MonkeyOCRv2-B-Parsing | 0.7B | **83.20** |
+| **SenOCR-Vi** | **0.959B** | **82.83** |
+| PaddleOCR-VL-1.6 | ~0.9B | **80.90** |
+
+[Nguồn: SenOCR-Vi](../wiki/senocr-vi.md). SenOCR-Vi báo **86.7% text recognition** theo `1 - Edit_dist`, nhưng chỉ số này **khác** document composite 82.83 và không nên so trực tiếp.
+
+**Cảnh báo quan trọng:** điểm 82.83 của SenOCR-Vi được tính lại trên 160 trang sau sửa lỗi scorer; điểm base 80.90 lấy từ leaderboard. Hai dòng chưa được chứng minh chạy lại bằng **cùng pipeline đã sửa**, nên chênh lệch 1.93 điểm chỉ mang tính tham khảo.
+
+### 7.2. Cross-page và tài liệu rất dài
+
+| Model | Kết quả do tác giả báo cáo | Phù hợp khảo sát khi |
+|---|---|---|
+| [OvisOCR3](../wiki/ovisocr3.md) | CrossTabBench relation F1 **97.07**; reconstruction TEDS **89.66** | Muốn phát hiện và ghép bảng qua các trang liên tiếp. |
+| [Unlimited OCR 2](../wiki/unlimited-ocr-2.md) | MPDocBench overall **84.59**, table TEDS **89.54**; MarathonDocBench overall **77.06**, table TEDS **71.11** | Muốn parse tài liệu dài; báo cáo thử nghiệm quy mô hàng trăm trang. |
+
+Các giá trị cross-page ở hai dòng **không cùng benchmark**, nên không so trực tiếp 89.66 với 89.54. Với OvisOCR3, phát hiện bảng tiếp nối và tái tạo đúng bảng cũng là hai việc khác nhau: relation F1 cao không bảo đảm reconstruction TEDS cao tương ứng.
+
+---
+
+## 8. Chọn model nào để thử trước?
+
+Đây là **đề xuất tổng hợp**, không phải kết quả benchmark độc lập:
+
+| Nhu cầu | Shortlist | Lý do |
+|---|---|---|
+| **Một model nhỏ để parse trang đa dụng** | **OvisOCR3, OvisOCR2** | 0.8B, có các điểm OmniDocBench/PureDocBench đáng chú ý; OvisOCR3 có nhiều loại output hơn. |
+| **Ảnh chụp hoặc scan suy giảm** | **OvisOCR2, FireRed-OCR**, cộng OvisOCR3 nếu thử thực tế | Có điểm PureDocBench hoặc benchmark điều kiện khó; cần tự kiểm tra theo camera, ngôn ngữ và độ méo của dữ liệu. |
+| **Tài liệu Việt** | **Chandra OCR 2**, cộng **SenOCR-Vi** làm baseline pipeline | Có kết quả Vietnamese slice được báo cáo; kiểm tra license Chandra và caveat scorer SenOCR-Vi. |
+| **Tài liệu nhiều trang, bảng nối trang** | **OvisOCR3, Unlimited OCR 2** | Có đánh giá riêng cho cross-page hoặc long-document. |
+| **Markdown + tọa độ / structured extraction** | **OvisOCR3, Infinity-Parser2 Flash/Pro, dots.ocr** | Có các chế độ JSON/layout hoặc output theo tác vụ. |
+| **Cần model/stack có benchmark olmOCR mạnh** | **Infinity-Parser2 Flash/Pro, Chandra OCR 2** | Điểm được báo cáo cao trong bảng olmOCR; protocol chưa đồng nhất. |
+| **Thai/English** | **Typhoon OCR 1.5** | Chuyên biệt ngôn ngữ và có benchmark Thai nội bộ, nhưng không có đối chiếu công bằng với toàn bộ shortlist. |
+| **Muốn thử grounding nhẹ** | **LightOnOCR-3 0.8B**, đối chiếu **4B** | Có bounding box, mô tả ảnh và bảng dữ liệu biểu đồ; blog báo cáo benchmark và tốc độ, nhưng cần kiểm thử trên dữ liệu thực tế. |
+
+### Nếu phải bắt đầu bằng 4 hệ thống
+
+Cho một bài toán tài liệu hỗn hợp có tiếng Việt, tôi sẽ thử:
+
+1. **OvisOCR3 0.8B** — baseline end-to-end nhỏ, nhiều tác vụ.
+2. **Chandra OCR 2** — đối chiếu multilingual/Vietnamese, sau khi kiểm tra license.
+3. **Infinity-Parser2 Flash 2B** — đối chiếu output có cấu trúc và olmOCR-Bench.
+4. **SenOCR-Vi + PaddleOCR pipeline** — baseline chuyên Việt, dù không cùng loại kiến trúc.
+
+Đánh giá trên **cùng bộ trang của bạn**, giữ nguyên DPI, prompt, output schema và retry; tách ít nhất các nhóm **văn bản Việt có dấu, bảng, công thức, chữ viết tay, ảnh chụp, nhiều cột và bảng qua trang**. Báo riêng chất lượng và latency/VRAM thay vì chỉ lấy một điểm tổng.
+
+**Giới hạn kiểm tra:** Bản cập nhật dùng catalog và các trang wiki [LightOnOCR-3](../wiki/lightonocr-3.md) và [đánh giá LightOnOCR-3](../wiki/lightonocr-3-evaluation.md); không mở lại raw papers/model cards hoặc chạy benchmark/model trong lượt cập nhật này. Các phần khác giữ kết quả và giới hạn của bản trước, không phải một cuộc rà soát lại toàn bộ model. Kết quả là số do nguồn báo cáo; bản so sánh này được giữ trong `outputs/`, không ghi thêm vào wiki.
