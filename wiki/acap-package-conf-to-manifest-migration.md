@@ -5,7 +5,7 @@ description: "Migration path from package.conf to manifest.json in ACAP 12: pack
 tags: [edge-ai, axis, acap, migration, manifest]
 status: stable
 created: 2026-10-27
-    generated: { by: llm-wiki-agent/1, at: 2026-10-27T13:10:00Z}
+generated: { by: llm-wiki-agent/1, at: 2026-10-27T15:00:00Z }
 stale_after: 2027-04-30
 sources:
   - id: acap-package-conf-migration
@@ -107,6 +107,7 @@ All substantive claims are **Reported** from Axis's official ACAP 12 documentati
 
 - **Depends on** [Build, install, and control ACAP applications](acap-build-install-control.md): the interactive SDK container is where `packageconf2manifest.py` runs, and `acap-build` is the replacement for `create-package.sh`.
 - **Constrained by** [Phiên bản ACAP và tương thích với AXIS OS](acap-versioning.md): the SDK-to-schema mapping selects the `--schema-version`, and `package.conf` support ends with AXIS OS 13.
+- **Elaborated by** [Manifest schema 1.x history](acap-manifest-schema-v1-history.md): the schema versions (1.0 to 1.7.3) that the SDK-to-schema mapping selects, with the fields each added.
 - **Precedes** [Upgrading an ACAP manifest to schema v2](acap-manifest-schema-v2-upgrade.md): the generated schema 1.x manifest is the input to the v2 field and resource upgrade.
 - **Precedes** [Preparing ACAP applications for AXIS OS 13 and 14](acap-axis-os-13-14-migration.md): this schema 1.x migration is a prerequisite before the schema 2.x upgrade and `compatibleOsVersions` declaration that AXIS OS 13 requires.
 - **Uses** [ACAP application user types and permissions](acap-application-user-permissions.md): both `setup.user.username` and `setup.user.group` should be omitted to keep the recommended dynamic user rather than carrying over a static user.

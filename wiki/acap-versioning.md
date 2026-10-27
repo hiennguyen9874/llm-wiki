@@ -5,7 +5,7 @@ description: "Quy tắc chọn phiên bản ACAP theo AXIS OS LTS, và việc s�
 tags: [edge-ai, axis, acap, compatibility, versioning]
 status: stable
 created: 2026-10-27
-generated: { by: llm-wiki-agent/1, at: 2026-10-27T04:56:41Z }
+generated: { by: llm-wiki-agent/1, at: 2026-10-27T15:00:00Z }
 stale_after: 2027-04-30
 sources:
   - id: acap-docs-index-v12
@@ -43,7 +43,7 @@ Phiên bản ACAP phải chọn theo AXIS OS LTS mà thiết bị đích chạy,
 
 - Entry point: `raw/acap/index/index.md` (672 từ), bộ tài liệu "ACAP version 12", site `developer.axis.com/acap/`.
 - Nguồn dẫn tới một hình minh họa ánh xạ ACAP version ↔ AXIS OS LTS, nhưng hình này **không có trong** `raw/acap/index/assets/`; do đó wiki không ghi lại bảng ánh xạ cụ thể nào.
-- Trang version history và trang thiết bị/tương thích được nguồn trỏ tới nhưng chưa có trong `raw/`, nên chưa được kiểm chứng độc lập.
+- Trang version history và trang thiết bị/tương thích được nguồn trỏ tới nay đã có trong bản lưu trữ `raw/acap-documentation/`; bảng ánh xạ ACAP ↔ SDK ↔ AXIS OS nằm ở [ACAP generations, chip architectures and SDK compatibility](acap-chip-architecture-and-sdk-compatibility.md) và lịch sử từng bản ở [ACAP release history](acap-release-history.md). Hai nguồn là hai snapshot khác nhau và chưa được đối chiếu với trang live.
 - Bản capture không có ngày xuất bản hay ngày cập nhật; `revision` chỉ suy ra từ tiêu đề bộ tài liệu.
 
 ## Độ tin cậy
@@ -57,6 +57,7 @@ Quy tắc trùng số phiên bản và yêu cầu dùng phiên bản ACAP đư�
 - **Guides** [quyết định triển khai](axis-edge-ai-adoption-guide.md) khi khóa nền tảng cho sản phẩm dài hạn.
 - **Constrained by** [breaking changes của AXIS OS 13/14](acap-axis-os-13-14-migration.md) và [Upgrading an ACAP manifest to schema v2](acap-manifest-schema-v2-upgrade.md): `compatibleOsVersions` bắt buộc từ AXIS OS 13, kéo theo yêu cầu manifest schema v2 và thủ tục nâng cấp manifest.
 - **Constrains** [Migrating ACAP applications from package.conf to manifest.json](acap-package-conf-to-manifest-migration.md): the SDK-to-schema mapping selects `--schema-version`, and `package.conf` support ends with AXIS OS 13.
+- **Elaborated by** [ACAP generations, chip architectures and SDK compatibility](acap-chip-architecture-and-sdk-compatibility.md) và [ACAP release history](acap-release-history.md): bảng ánh xạ cụ thể mà trang này từng ghi là thiếu (ACAP 4.x ↔ SDK ↔ AXIS OS 10.7 đến 11.11, và 12.0 đến 12.2).
 - **Constrains** [ACAP application signing](acap-application-signing.md): whether a device verifies the signature and whether it accepts unsigned packages depends on its AXIS OS version, and schema v2 is required to obtain a `vendorId`.
 
 [^acap-docs-index-v12]: Tài liệu chính thức: [ACAP version 12 — Axis developer documentation](../raw/acap/index/index.md), §Introduction (câu về "supported ACAP version" và AXIS OS LTS) và §ACAP versioning.

@@ -5,7 +5,7 @@ description: "Legacy container path for Axis apps: Docker-based build on the Com
 tags: [edge-ai, axis, acap, docker, containers, lifecycle]
 status: stable
 created: 2026-10-27
-generated: { by: llm-wiki-agent/1, at: 2026-10-27T05:45:00Z }
+generated: { by: llm-wiki-agent/1, at: 2026-10-27T22:00:00Z }
 stale_after: 2027-04-30
 sources:
   - id: acap-container-build-run
@@ -91,9 +91,13 @@ The two ACAPs therefore answer different deployment shapes:
 ## Source coverage
 
 - Entry point: `raw/acap/reference/develop-container-applications/build-install-run/index.md`, one file, 711 words, site `developer.axis.com`, revision "ACAP version 12". No assets or attachments in the folder. Every section was read: lifecycle banner, §ACAP Computer Vision SDK incl. Docker ACAP (§Build, §Install and run, §Configure network proxy settings), §The Docker Compose ACAP.
-- Supporting artifacts referenced by the source but **outside** the ingested scope, so inspected only to the extent of listing: `raw/docker-compose-acap/` (README, `Dockerfile`, `app/`, `build.sh`) and `raw/acap-native-sdk-examples/container-example/` (README, `manifest.json`, `docker-compose.yml`, `Dockerfile`, `Makefile`, `preuninstall.sh`, `postinstall.sh`). Both submodules exist locally at unknown revisions; their contents were not read, so no implementation detail from them is asserted here.
-- Excluded: the external links to Docker Hub (`axisecp/acap-computer-vision-sdk`), the `docker-acap` and `docker-compose-acap` repositories, `acap-computer-vision-sdk-examples`, `ACAP Runtime`, Docker's sample-application guide, and the AXIS OS support/end-of-life pages. All remain outside `raw/` and unverified.
+- Supporting artifacts referenced by the source but **outside** the ingested scope: `raw/docker-compose-acap/` is now compiled as its own source in [Docker Compose ACAP repository](docker-compose-acap-repository.md) (revision `4.0.0-2-g985c8ce`), and `raw/acap-native-sdk-examples/container-example/` is covered by [ACAP example: containers from a native ACAP](acap-example-container-in-native-acap.md). No implementation detail from either is asserted on this page; this page rests only on the vendor documentation page.
+- Excluded: the external links to Docker Hub (`axisecp/acap-computer-vision-sdk`), the `docker-acap` and `docker-compose-acap` repositories, `ACAP Runtime`, Docker's sample-application guide, and the AXIS OS support/end-of-life pages. All remain outside this page's scope and unverified here; the examples repository (`raw/acap-computer-vision-sdk-examples/`) is compiled in [ACAP Computer Vision SDK examples repository](acap-cv-sdk-examples-repository.md).
 - Limits: the page does not state the minimum AXIS OS version for the Docker ACAP, how certificates are generated or installed, how a container application is registered in the device UI, or how containers appear to the AXIS OS application framework once running. It also gives no resource limits for containers and no guidance on migrating an existing container application to the Native SDK.
+
+## Implementation of the Docker Compose ACAP
+
+The repository behind the Docker Compose ACAP is documented in [Docker Compose ACAP repository](docker-compose-acap-repository.md): release 4.0.0 runs **rootless** dockerd 29.8.1 (AXIS OS 12.0 or newer, `aarch64` devices), while rootful releases 1.5.0 and 2.0.0 and the rootless 3.0.3 serve AXIS OS 10.12 to 11.x. Its TLS defaults, certificate upload endpoint and `DOCKER_INSECURE_NO_IPTABLES_RAW=1` networking caveat refine the "TLS enabled by default" statement above for the Compose variant; see [certificates and TLS](docker-compose-acap-certificate-upload-and-tls.md) and [daemon runtime](docker-compose-acap-daemon-runtime.md). Those findings come from the repository (Observed/Reported by its README), not from the vendor page cited on this page.
 
 ## Evidence class
 
@@ -106,8 +110,12 @@ Commands, the TLS default, the registry and save/load routes, the Compose recomm
 - **Alternative to** [Build, install, and control ACAP applications](acap-build-install-control.md): the same Docker build machine produces either a container image or a `.eap` package, and the install/control channels differ completely.
 - **Affected by** [Proxy configuration for ACAP builds and runtime](acap-proxy-configuration.md): the device's Docker daemon needs its own proxy configuration, separate from the build-machine and device-wide proxy layers.
 - **Requires** the Docker ACAP plus TLS certificates on the device before any container can start; certificate issuance is delegated to the external Docker ACAP repository.
+- **Hosts** the containerized ACAP Runtime gRPC service ([ACAP Runtime repository](acap-runtime-repository.md)), whose image carries no default flags and must be started with chip, model and TLS options.
 - **Uses** the archived ACAP Computer Vision SDK image lineage, whose utilities and scripts moved to ACAP Runtime at AXIS OS 12.0.
+- **Exemplified by** [ACAP Computer Vision SDK examples repository](acap-cv-sdk-examples-repository.md): the worked custom-image examples this page refers to, with the concrete commands in [Building and deploying the CV SDK container examples](acap-cv-examples-build-deploy-workflow.md) and the Runtime wiring in [Containerized ACAP Runtime architecture](acap-cv-examples-runtime-architecture.md).
 - **Uses** the `container-example` from [Ví dụ ứng dụng ACAP chính thức](acap-application-examples.md) as the documented case of a native ACAP launching containers with the Docker Compose ACAP.
 - **Constrains** migration planning: the end-of-2031 support horizon is the deadline for moving a container deployment onto the Native SDK, as weighed in [Hướng triển khai custom AI trên Axis](axis-edge-ai-adoption-guide.md).
+- **Detailed by** [Docker Compose ACAP repository](docker-compose-acap-repository.md): the code and build of the Docker Compose ACAP, including its rootless operation and certificate endpoint.
+- **Contrast** [ACAP example: containers from a native ACAP](acap-example-container-in-native-acap.md): the native-SDK `container-example` carries a docker-saved image inside an `.eap` and starts it through the Docker Compose ACAP.
 
 [^acap-container-build-run]: Official documentation: [Build, install, run — Axis developer documentation](../raw/acap/reference/develop-container-applications/build-install-run/index.md), whole page, ACAP version 12: warning banner "Note on container applications", §ACAP Computer Vision SDK incl. Docker ACAP (§Build, §Install and run incl. Docker ACAP/TLS note, registry and `save`/`load` commands, `run` and `docker-compose` commands, §Configure network proxy settings), §The Docker Compose ACAP.

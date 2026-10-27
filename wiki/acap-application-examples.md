@@ -5,7 +5,7 @@ description: "Kho acap-native-sdk-examples của Axis: mỗi API có ít nhất 
 tags: [edge-ai, axis, acap, examples]
 status: stable
 created: 2026-10-27
-    generated: { by: llm-wiki-agent/1, at: 2026-10-27T13:10:00Z }
+generated: { by: llm-wiki-agent/1, at: 2026-10-27T20:00:00Z }
 stale_after: 2027-04-30
 sources:
   - id: acap-app-examples
@@ -49,7 +49,7 @@ Ví dụ tổng hợp được nêu tên là `object-detection-yolov5`. Ứng d�
 
 Trang how-to computer vision on device của Axis nêu thêm hai ví dụ để tham khảo khi tích hợp model vào application: `vdo-larod` và `object-detection`, bên cạnh `object-detection-yolov5`. Trang nguồn chỉ nêu tên và dẫn tới repository GitHub, không mô tả nội dung từng ví dụ.[^acap-cv-on-device]
 
-Bộ ví dụ cũng có `remote-debug-example`, ví dụ minh họa remote debugging application bằng GNU Debugger (GDB) và VS Code; trang debugging của Axis chỉ dẫn tới nó và không chép lại các bước. README của ví dụ này, giống các ví dụ khác, nằm ngoài `raw/` nên chưa được kiểm chứng.[^acap-remote-debug] Chi tiết về phương pháp nằm ở [Remote debugging ACAP applications with GDB and VS Code](acap-remote-debugging.md).
+Bộ ví dụ cũng có `remote-debug-example`, ví dụ minh họa remote debugging application bằng GNU Debugger (GDB) và VS Code; trang debugging của Axis chỉ dẫn tới nó và không chép lại các bước. README và mã nguồn của chính ví dụ này đã được đọc và ghi lại ở trang remote debugging.[^acap-remote-debug] Chi tiết về phương pháp nằm ở [Remote debugging ACAP applications with GDB and VS Code](acap-remote-debugging.md).
 
 Một ví dụ đã có trong `raw/`: thư mục `raw/acap-native-sdk-examples/vapix/` (submodule acap-native-sdk-examples) chứa README, `app/manifest.json`, `app/vapix_example.c`, `Makefile` và `Dockerfile` của ứng dụng gọi VAPIX. Luồng lấy credential qua D-Bus và gọi VAPIX trên `127.0.0.12` được biên soạn ở [VAPIX access from ACAP applications](acap-vapix-service-account-access.md).
 
@@ -63,22 +63,23 @@ Thư mục `raw/acap-native-sdk-examples/web-server/` cũng đã có trong `raw/
 
 - Entry point: `raw/acap/get-started/acap-application-examples/index.md`, 167 từ, thuộc bộ tài liệu ACAP 12, site `developer.axis.com`.
 - Đã kiểm tra toàn bộ trang; trang không có mục con, hình ảnh hay tệp đính kèm.
-- Repository GitHub, README phân loại use case và mã nguồn `object-detection-yolov5` được nguồn liên kết; repository có trong `raw/` dưới dạng submodule nhưng các ví dụ đó chưa được đọc, nên chưa được kiểm chứng. Vì vậy wiki chỉ nêu tên các ví dụ được tài liệu nhắc đến, không mô tả nội dung build/run thực tế.
+- **Cập nhật 2026-10-27:** toàn bộ repository (revision `12.11.0-7-g3025a4e`) đã được ingest từng phần; xem [ACAP Native SDK examples repository](acap-native-sdk-examples-repository.md) làm danh mục và bảng đối chiếu. Các câu “chưa được kiểm chứng” ở dưới chỉ còn mô tả trạng thái của nguồn tài liệu Axis, không còn mô tả trạng thái của repository.
 - Ngoại lệ đã kiểm chứng: `raw/acap-native-sdk-examples/vapix/` (revision `12.11.0-7-g3025a4e`) đã đọc README, manifest và mã nguồn, ghi lại ở [VAPIX access from ACAP applications](acap-vapix-service-account-access.md). `Makefile`, `LICENSE` và `Dockerfile` của ví dụ này chưa được phân tích.
 - Ngoại lệ đã kiểm chứng thứ hai: `raw/acap-native-sdk-examples/web-server/` cùng revision, đã đọc cả hai README, hai `app/manifest.json`, hai `Makefile`, hai `Dockerfile`, `web_server_rev_proxy.c`, `fastcgi_example.c` và các file `html/`; ghi lại ở [Exposing an HTTP API from an ACAP application](acap-web-server-reverse-proxy-fastcgi.md).
 - Trang không nêu ngày xuất bản hoặc cập nhật; `revision` chỉ suy ra từ tiêu đề bộ tài liệu "ACAP version 12".
-- Nguồn bổ sung `raw/acap/how-to-guides/computer-vision-on-device/index.md` (137 từ) thêm tên `vdo-larod` và `object-detection`; hai thư mục này có trong submodule `raw/acap-native-sdk-examples/` nhưng chưa được đọc, nên nội dung và cách build của chúng chưa được kiểm chứng.
+- Nguồn bổ sung `raw/acap/how-to-guides/computer-vision-on-device/index.md` (137 từ) thêm tên `vdo-larod` và `object-detection`; nội dung và cách build của hai ví dụ này hiện được mô tả ở [Larod inference examples](acap-example-larod-object-detection.md).
 
 ## Độ tin cậy
 
-Các thông tin về repository, độ phủ API, cách tổ chức README và tên các ví dụ `object-detection-yolov5`, `vdo-larod`, `object-detection` là **Reported** từ tài liệu chính thức của Axis. Không có claim nào **Observed** trên repository hay **Reproduced** bằng cách build/chạy ví dụ trong lần ingest này. Việc "mỗi API có ít nhất một ví dụ" là tuyên bố của nhà cung cấp, chưa được đối chiếu với danh sách API reference.
+Các thông tin về repository, độ phủ API, cách tổ chức README và tên các ví dụ `object-detection-yolov5`, `vdo-larod`, `object-detection` là **Reported** từ tài liệu chính thức của Axis. Trang này không có claim nào **Observed** trên repository hay **Reproduced**; các quan sát trên mã nguồn nằm ở các trang ví dụ liên kết trong Relationships. Việc "mỗi API có ít nhất một ví dụ" là tuyên bố của nhà cung cấp, chưa được đối chiếu với danh sách API reference.
 
 ## Relationships
 
 - **Depends on** [ACAP Native SDK và nền tảng ứng dụng camera Axis](axis-acap-native-sdk.md): bộ ví dụ dùng API và toolchain của SDK.
 - **Uses** VDO, Larod, Parameter API và Bounding Box API trong ví dụ `object-detection-yolov5`.
-- **Documented by** README của repository và README của từng ví dụ, chưa có trong `raw/`.
+- **Documented by** README của repository và từng ví dụ, nay đã có trong `raw/` và được biên soạn tại [ACAP Native SDK examples repository](acap-native-sdk-examples-repository.md) cùng các trang phân nhóm: [build và manifest](acap-examples-build-and-manifest-conventions.md), [contribution, lint và CI](acap-examples-contribution-lint-and-ci.md), [VDO và OpenCL](acap-example-vdo-video-capture-and-opencl.md), [overlay và bounding box](acap-example-overlays-and-bounding-box.md), [Larod](acap-example-larod-object-detection.md), [CV25](acap-example-object-detection-cv25.md), [training guides](acap-example-model-training-guides.md), [events và parameters](acap-example-events-and-parameters.md), [Device Data Hub và Message Broker](acap-example-device-data-hub-and-message-broker.md), [PTZ WebSocket](acap-example-ptz-control-ws-api.md), [audio](acap-example-audio-pipewire.md), [storage, serial, recording, licensekey](acap-example-storage-serial-recording-licensekey.md), [thư viện bundle](acap-example-bundled-libraries-opencv-curl-openssl.md), [ví dụ tối thiểu và reproducible](acap-example-minimal-shell-and-reproducible-package.md) và [container](acap-example-container-in-native-acap.md).
 - **Supports** [quy trình triển khai custom AI model](axis-custom-model-deployment.md) bằng mẫu build, packaging và kiểm tra model.
+- **Counterpart** (container era, archived): [ACAP Computer Vision SDK examples repository](acap-cv-sdk-examples-repository.md) — bảy ví dụ Docker cho camera aarch64, đã được ingest riêng.
 - **Includes** `remote-debug-example`, được ghi lại ở [Remote debugging ACAP applications with GDB and VS Code](acap-remote-debugging.md).
 - **Includes** `vapix`, được ghi lại ở [VAPIX access from ACAP applications](acap-vapix-service-account-access.md).
 - **Includes** `web-server/reverse-proxy-using-fixed-port` và `web-server/http-requests-using-fastcgi`, được ghi lại ở [Exposing an HTTP API from an ACAP application](acap-web-server-reverse-proxy-fastcgi.md).

@@ -5,7 +5,7 @@ description: "Yêu cầu máy phát triển, cách ACAP Native SDK phân phối 
 tags: [edge-ai, axis, acap, tooling, docker]
 status: stable
 created: 2026-10-27
-generated: { by: llm-wiki-agent/1, at: 2026-10-27T05:14:00Z }
+generated: { by: llm-wiki-agent/1, at: 2026-10-27T18:00:00Z }
 stale_after: 2027-04-30
 sources:
   - id: acap-dev-env-prereq
@@ -150,6 +150,7 @@ Toàn bộ nội dung là **Reported** từ tài liệu chính thức của Axis
 
 ## Relationships
 
+- **Built from** [Dockerfile của `acap-native-sdk`](acap-native-sdk-image-assembly.md): image gồm `acap-api` và `acap-toolchain` trên `ubuntu:24.04`, chạy root, và chỉ source `environment-setup*` trong shell tương tác (qua `/etc/bash.bashrc`).
 - **Depends on** [ACAP Native SDK và nền tảng ứng dụng camera Axis](axis-acap-native-sdk.md): base image, SDK tools và `acap-build` nằm trong container.
 - **Constrained by** [phiên bản ACAP](acap-versioning.md): `VERSION` của SDK image và `$schema`/`schemaVersion` phải khớp phiên bản ACAP của AXIS OS đích.
 - **Precedes** [Tạo, build và cài ACAP application đầu tiên](acap-first-application-workflow.md): cấu hình môi trường trước, sau đó build `.eap` và cài lên thiết bị.

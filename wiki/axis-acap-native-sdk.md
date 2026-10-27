@@ -5,7 +5,7 @@ description: "Nền tảng phát triển ứng dụng camera Axis: API VDO/Larod
 tags: [edge-ai, axis, acap, sdk]
 status: stable
 created: 2026-10-27
-generated: { by: llm-wiki-agent/1, at: 2026-10-27T05:55:00Z }
+generated: { by: llm-wiki-agent/1, at: 2026-10-27T20:00:00Z }
 stale_after: 2027-04-30
 sources:
   - id: axis-ai-chatgpt-research
@@ -141,15 +141,18 @@ Tài liệu ACAP 12 chia theo mục đích sử dụng, hữu ích khi cần bi�
 | Reference | Supported APIs, manifest schema, thiết bị và tương thích, cấu trúc application project |
 | FAQ | Câu hỏi thường gặp, tương thích, ảnh hưởng dung lượng lưu trữ |
 
-Kênh tương tác chính thức với team Axis là GitHub: `AxisCommunications/acap-native-sdk`, `acap-native-sdk-examples`, `acap-computer-vision-sdk-examples` cho issue và discussion, cùng general ACAP discussions của organization; ngoài ra có chương trình Axis For Developers.[^acap-docs-index-v12] Bản thân mã nguồn các repository vẫn chưa được ingest; trang giới thiệu bộ ví dụ đã được tổng hợp tại [Ví dụ ứng dụng ACAP chính thức](acap-application-examples.md).[^acap-app-examples]
+Kênh tương tác chính thức với team Axis là GitHub: `AxisCommunications/acap-native-sdk`, `acap-native-sdk-examples`, `acap-computer-vision-sdk-examples` cho issue và discussion, cùng general ACAP discussions của organization; ngoài ra có chương trình Axis For Developers.[^acap-docs-index-v12] Mã nguồn `acap-computer-vision-sdk-examples` (bộ ví dụ container, đã archived) đã được tổng hợp tại [ACAP Computer Vision SDK examples repository](acap-cv-sdk-examples-repository.md); mã nguồn các repository còn lại vẫn chưa được ingest; trang giới thiệu bộ ví dụ đã được tổng hợp tại [Ví dụ ứng dụng ACAP chính thức](acap-application-examples.md).[^acap-app-examples]
 
 ## Relationships
 
+- **Packaged by** [repository `acap-native-sdk`](acap-native-sdk-repository.md): chỉ chứa Dockerfile, không chứa mã SDK; cách ghép image ở [SDK image assembly](acap-native-sdk-image-assembly.md), danh sách thư viện bị ẩn khỏi sysroot ở [sysroot pruning](acap-native-sdk-sysroot-pruning.md) và CI ở [CI and maintenance](acap-native-sdk-repo-ci-and-maintenance.md).
 - **Runs on** AXIS OS trên thiết bị Axis: camera, intercom, loa và radar.
 - **Provides** VDO, Larod, Axoverlay, Axevent và VAPIX cho application.
 - **Uses** [Axis DLPU](axis-dlpu.md) cho inference tăng tốc.
 - **Supersedes** [hướng ACAP Computer Vision SDK/container](acap-container-applications.md): container path đã deprecated từ ACAP 12, không có container support trên sản phẩm mới chạy AXIS OS 12.x và chỉ còn hỗ trợ đến hết năm 2031.
 - **Constrained by** [phiên bản ACAP](acap-versioning.md) tương ứng AXIS OS LTS của thiết bị đích.
+- **Detailed by** [Native SDK API catalog](acap-native-sdk-api-catalog.md) (API, phiên bản SDK đưa vào, chip hỗ trợ), [ACAP generations, chip architectures and SDK compatibility](acap-chip-architecture-and-sdk-compatibility.md) và [ACAP release history](acap-release-history.md).
+- **Succeeded** [ACAP SDK version 3 (legacy)](acap-sdk-version-3-legacy.md): Native SDK thay SDK 3.x và nhiều API cũ.
 - **Hosts** AXIS Object Analytics và custom application.
 - **Used by** [quy trình triển khai custom model](axis-custom-model-deployment.md).
 - **Practiced via** [Tạo, build và cài ACAP application đầu tiên](acap-first-application-workflow.md): dùng base image Docker, `acap-build`, manifest và AXParameter của SDK.
@@ -161,6 +164,7 @@ Kênh tương tác chính thức với team Axis là GitHub: `AxisCommunications
 - **Set up via** [Môi trường phát triển ACAP: Docker SDK và VS Code Dev Containers](acap-dev-environment-setup.md): SDK image, Dev Container và validate manifest.
 - **Requires** [thiết bị Axis đã được chuẩn bị](axis-device-setup.md) và [SSH/Developer Mode](axis-device-ssh-developer-mode.md) khi cần debug trên thiết bị.
 - **Marketed publicly as** [hệ sinh thái ACAP](acap-ecosystem-public-case-studies.md): định vị "create and install scalable, customizable applications" trên camera, loa và access control, kèm case study đối tác Buddywise và SAFR; trang marketing không dùng để xác nhận khả năng kỹ thuật.
+- **Examples** [ACAP Native SDK examples repository](acap-native-sdk-examples-repository.md): catalog, conventions, CI and per-API example pages compiled from the local repository.
 
 ## Độ tin cậy
 

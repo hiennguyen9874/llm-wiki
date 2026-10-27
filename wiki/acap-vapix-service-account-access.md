@@ -5,7 +5,7 @@ description: "How an ACAP application obtains admin-level VAPIX service-account 
 tags: [edge-ai, axis, acap, vapix, dbus, security]
 status: stable
 created: 2026-10-27
-    generated: { by: llm-wiki-agent/1, at: 2026-10-27T13:10:00Z }
+    generated: { by: llm-wiki-agent/1, at: 2026-10-27T20:00:00Z }
 stale_after: 2027-04-30
 sources:
   - id: acap-vapix-access
@@ -183,6 +183,7 @@ Procedure, manifest requirement, proxy caveat, version history, and limitations 
 - **Uses** the VAPIX CGI surface (`/axis-cgi/...`) as an alternative to writing a device-side API of its own.
 - **Mirrored by** [Exposing an HTTP API from an ACAP application](acap-web-server-reverse-proxy-fastcgi.md): this concept is an application calling VAPIX, while a FastCGI endpoint extends the same Apache surface and shares the same user pool.
 - **Follows** [Build, install, and control ACAP applications](acap-build-install-control.md): the manifest change takes effect when the package is installed and the app started.
+- **Siblings** [ACAP Native SDK examples repository](acap-native-sdk-examples-repository.md) and [PTZ control example](acap-example-ptz-control-ws-api.md), which uses the same D-Bus credential call with a WebSocket.
 
 [^acap-vapix-access]: Official documentation: [VAPIX access for ACAP applications — Axis developer documentation](../raw/acap/how-to-guides/VAPIX-access-for-ACAP-applications/index.md), whole page, ACAP version 12: overview paragraph, §Example application (§Modify the manifest file, §Acquire credentials, §Make a VAPIX call), §Test from command-line, §Limitations. The sample credential in the `gdbus call` reply is omitted.
 

@@ -5,7 +5,7 @@ description: "Quy trình đưa model tự huấn luyện lên camera Axis: chọ
 tags: [edge-ai, axis, deployment, tflite]
 status: stable
 created: 2026-10-27
-generated: { by: llm-wiki-agent/1, at: 2026-10-27T06:00:00Z }
+generated: { by: llm-wiki-agent/1, at: 2026-10-27T20:00:00Z }
 stale_after: 2027-04-30
 sources:
   - id: axis-doc-dlpu
@@ -116,6 +116,7 @@ Native SDK dùng toolchain theo kiến trúc: `armv7hf` cho ARTPEC-7, `aarch64` 
 - **Preceded by** [hiệu chỉnh méo ống kính](axis-camera-calibration.md) khi cần ảnh không méo trước detection hoặc đo khoảng cách. (Synthesis)
 - **Guided by** [khuyến nghị triển khai và PoC](axis-edge-ai-adoption-guide.md).
 - **Alternative to** [tùy biến AOA](axis-object-analytics.md) khi cần class hoặc detector riêng.
+- **Illustrated by** [ACAP examples: training guides](acap-example-model-training-guides.md) and [Larod inference examples](acap-example-larod-object-detection.md): working per-SoC training, conversion and on-device inference code from `acap-native-sdk-examples`.
 
 ## Độ tin cậy
 

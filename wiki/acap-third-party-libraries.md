@@ -5,7 +5,7 @@ description: "Build và bundle thư viện bên thứ ba trong ACAP Native SDK: 
 tags: [edge-ai, axis, acap, build, docker, dependencies]
 status: stable
 created: 2026-10-27
-generated: { by: llm-wiki-agent/1, at: 2026-10-27T13:05:00Z }
+generated: { by: llm-wiki-agent/1, at: 2026-10-27T20:00:00Z }
 stale_after: 2027-04-30
 sources:
   - id: acap-third-party-libs
@@ -134,6 +134,7 @@ Toàn bộ nội dung là **Reported** từ tài liệu chính thức của Axis
 
 ## Relationships
 
+- **Constrained by** [SDK sysroot pruning](acap-native-sdk-sysroot-pruning.md): libraries such as Boost, GnuTLS, libjpeg, SQLite and libpaho are removed from the SDK sysroot, so applications must build and bundle them.
 - **Depends on** [ACAP Native SDK và nền tảng ứng dụng camera Axis](axis-acap-native-sdk.md): base image, `environment-setup*`, `CONFIGURE_FLAGS` và `acap-build`.
 - **Elaborates** [Build, install, and control ACAP applications](acap-build-install-control.md): mở rộng nhánh Dockerfile bằng bước cài build tool, cross-compile và bundle `lib/`.
 - **Contrasts with** [Tạo, build và cài ACAP application đầu tiên](acap-first-application-workflow.md): thư viện đã có trong SDK thì chỉ cần `pkg-config`; thư viện ngoài SDK phải cross-compile và mang theo trong `.eap`.
@@ -141,5 +142,6 @@ Toàn bộ nội dung là **Reported** từ tài liệu chính thức của Axis
 - **Constrained by** [phiên bản ACAP và tương thích với AXIS OS](acap-versioning.md): kiến trúc build (`armv7hf`, `aarch64`) và phiên bản SDK phải khớp thiết bị đích.
 - **Uses** RPATH với `$ORIGIN` để application tìm thấy library đã bundle lúc runtime.
 - **Precedes** cài đặt và kiểm chứng application trên thiết bị, theo cùng kênh GUI, `eap-install.sh` hoặc VAPIX.
+- **Illustrated by** [ACAP examples: bundling libraries](acap-example-bundled-libraries-opencv-curl-openssl.md): `using-opencv`, `curl-openssl` and `utility-libraries` are now compiled from the local examples repository (revision `12.11.0-7-g3025a4e`), which supersedes this page's note that those examples were unverified.
 
 [^acap-third-party-libs]: Tài liệu chính thức: [Include third party libraries — Axis developer documentation](../raw/acap/how-to-guides/include-third-party-libraries/index.md), toàn bộ trang: §ACAP Native SDK (Docker commands to install supporting build tools; clone và work directory; build thư viện với ví dụ cURL; copy library vào `/opt/app/lib`; Makefile link flags), §Importance of setting RPATH, §Troubleshooting. Các external link (`utility-libraries`, `acap-native-sdk-examples`, "Building using a Dockerfile") chưa được kiểm chứng trong `raw/`.

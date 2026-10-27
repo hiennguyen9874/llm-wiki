@@ -5,7 +5,7 @@ description: "Operational ACAP workflow: Dockerfile versus interactive SDK build
 tags: [edge-ai, axis, acap, build, deployment]
 status: stable
 created: 2026-10-27
-generated: { by: llm-wiki-agent/1, at: 2026-10-27T05:28:00Z}
+generated: { by: llm-wiki-agent/1, at: 2026-10-27T18:00:00Z }
 stale_after: 2027-04-30
 sources:
   - id: acap-build-install-run
@@ -125,6 +125,7 @@ All substantive claims are **Reported** from Axis's official ACAP 12 documentati
 
 ## Relationships
 
+- **Environment defined by** [ACAP Native SDK image assembly](acap-native-sdk-image-assembly.md): the SDK image's tools, `eap-install.sh` prerequisites (`curl`, `iputils-ping`) and environment-script patches.
 - **Depends on** [ACAP Native SDK và nền tảng ứng dụng camera Axis](axis-acap-native-sdk.md): SDK container images, `acap-build`, and `eap-install.sh`.
 - **Elaborates** [Tạo, build và cài ACAP application đầu tiên](acap-first-application-workflow.md): same Docker-based build, expanded into production versus interactive paths and GUI/script/API delivery.
 - **Elaborated by** [Tích hợp third-party library vào ACAP application](acap-third-party-libraries.md): the Dockerfile path extended with build-tool installation, cross-compilation of an external library, and bundling it in `app/lib`.
@@ -134,6 +135,7 @@ All substantive claims are **Reported** from Axis's official ACAP 12 documentati
 - **Constrained by** [phiên bản ACAP và tương thích với AXIS OS](acap-versioning.md): SDK version and `ARCH` must match the target device.
 - **Uses** [Application logging trong ACAP](acap-application-logging.md) when inspecting application output through App log or `journalctl`.
 - **Needs** signing or **Allow unsigned apps** before installation; from AXIS OS 13 signing is enforced and `compatibleOsVersions` is mandatory ([migration notes](acap-axis-os-13-14-migration.md), [signing paths](acap-application-signing.md)).
+- **Extended by** [Deploying an ACAP application to many devices](acap-fleet-deployment-via-vapix.md): the `upload.cgi` and `control.cgi` calls behind the VAPIX channel, scripted for many devices.
 - **Uses** Docker locally only; the target device runs the `.eap`, not a container.
 
 [^acap-build-install-run]: Tài liệu chính thức: [Build, install, control — Axis developer documentation](../raw/acap/how-to-guides/build-install-run/index.md), §How to build an ACAP application (Building using a Dockerfile; Building interactively inside the SDK container; The `acap-build` tool), §How to install an ACAP application (web GUI; `eap-install.sh`; VAPIX API), §How to run and control an ACAP application (web GUI; SDK container; VAPIX).

@@ -5,7 +5,7 @@ description: "Two ways for an ACAP application to serve web pages and HTTP APIs 
 tags: [edge-ai, axis, acap, web-server, networking]
 status: stable
 created: 2026-10-27
-generated: { by: llm-wiki-agent/1, at: 2026-10-27T13:10:00Z }
+generated: { by: llm-wiki-agent/1, at: 2026-10-27T20:00:00Z }
 stale_after: 2027-04-30
 sources:
   - id: acap-web-server-docs
@@ -120,7 +120,9 @@ Manifest fields, URL schemes, access policies, the FastCGI port/user-pool argume
 - **Follows** [Build, install, and control ACAP applications](acap-build-install-control.md): the manifest change takes effect at install, and the examples use the Docker build plus `acap-build` path.
 - **Constrained by** [Upgrading an ACAP manifest to schema v2](acap-manifest-schema-v2-upgrade.md): `configuration.reverseProxy` and `httpConfig` travel with the manifest version; both examples already use schema 2.2.0.
 - **Relates to** [Migrating ACAP applications from package.conf to manifest.json](acap-package-conf-to-manifest-migration.md): `settingPage` and `httpConfig` map to `package.conf` fields, while reverse proxy moved from the post-install script to a manifest section.
+- **Contrasts with** [Monkey web server container example](acap-cv-example-monkey-web-server.md): the legacy container-era way to serve HTTP, a plain port 2001 listener whose own README says reverse-proxy configuration is impossible from AXIS OS 12.0.
 - **Exemplified by** [Ví dụ ứng dụng ACAP chính thức](acap-application-examples.md): `web-server/reverse-proxy-using-fixed-port` and `web-server/http-requests-using-fastcgi`.
+- **Siblings** [ACAP Native SDK examples repository](acap-native-sdk-examples-repository.md) catalogs the `web-server` examples among the rest.
 
 [^acap-web-server-docs]: Official documentation: [Web server — Axis developer documentation](../raw/acap/how-to-guides/web-server-via-reverse-proxy/index.md), ACAP version 12; whole page — intro paragraph, §Web server with reverse proxy (§Configure reverse proxy, §Reverse proxy example), §Web server with FastCGI (§FastCGI example).
 

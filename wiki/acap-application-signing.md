@@ -5,7 +5,7 @@ description: "How Axis signs ACAP applications: TIP partners through the ACAP Se
 tags: [edge-ai, axis, acap, signing, security, distribution]
 status: stable
 created: 2026-10-27
-generated: { by: llm-wiki-agent/1, at: 2026-10-27T05:21:35Z }
+generated: { by: llm-wiki-agent/1, at: 2026-10-27T15:00:00Z }
 stale_after: 2027-04-30
 sources:
   - id: acap-app-signing
@@ -106,6 +106,7 @@ All substantive claims are **Reported** from Axis's official ACAP 12 documentati
 
 ## Relationships
 
+- **Corroborated by** the archived pages in [ACAP SDK version 3 (legacy)](acap-sdk-version-3-legacy.md) and [ACAP release history](acap-release-history.md): the 9.20 verification, 11.2 VAPIX switch and 12.0 default match the table above, and the legacy `AllowUnsigned` call in `applications/config.cgi` is documented there.
 - **Constrained by** [Preparing ACAP applications for AXIS OS 13 and 14](acap-axis-os-13-14-migration.md): AXIS OS 13 removes the option to allow unsigned applications, which makes this signing path mandatory for anything shipped to 13.x.
 - **Depends on** [Migrating ACAP applications from package.conf to manifest.json](acap-package-conf-to-manifest-migration.md) and [Upgrading an ACAP manifest to schema v2](acap-manifest-schema-v2-upgrade.md): schema v2.x is required by the ACAP Signing Service and by `vendorId`, so the legacy migration and the v2 upgrade are preconditions for non-TIP signing.
 - **Applied in** [Tạo, build và cài ACAP application đầu tiên](acap-first-application-workflow.md) and [Build, install, and control ACAP applications](acap-build-install-control.md): both install flows rely on either a signed package or the **Allow unsigned apps** setting described here.

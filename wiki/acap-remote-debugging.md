@@ -1,11 +1,11 @@
 ---
 type: Concept
 title: "Remote debugging ACAP applications with GDB and VS Code"
-description: "Debug an ACAP application on the device from VS Code: the remote-debug-example, dev container and GDB server setup, and what the vendor page leaves undocumented."
+description: "Debug an ACAP application on the device from VS Code: the vendor page, plus what the remote-debug-example actually does (gdbserver 9.2 cross-build, dev container, launch.json, scp and ssh steps, Developer Mode need) and its limits."
 tags: [edge-ai, axis, acap, debugging, gdb, vscode]
-status: draft
+status: stable
 created: 2026-10-27
-generated: { by: llm-wiki-agent/1, at: 2026-10-27T05:13:03Z }
+generated: { by: llm-wiki-agent/1, at: 2026-10-27T20:00:00Z }
 stale_after: 2027-04-30
 sources:
   - id: acap-remote-debug
@@ -14,11 +14,17 @@ sources:
     kind: docs
     revision: "ACAP version 12"
     title: "Debugging | Axis developer documentation"
+  - id: remote-debug-example
+    resource: ../raw/acap-native-sdk-examples/remote-debug-example/README.md
+    scope: ../raw/acap-native-sdk-examples/remote-debug-example/
+    kind: code
+    revision: "acap-native-sdk-examples 12.11.0-7-g3025a4e"
+    title: "remote-debug-example (acap-native-sdk-examples)"
 ---
 
 # Remote debugging ACAP applications with GDB and VS Code
 
-An ACAP application can be debugged while it runs on the device, not only inferred from its log output. Axis documents one path: **GNU Debugger (GDB)** on the device plus **Visual Studio Code** as the front end, packaged as the `remote-debug-example` in the `acap-native-sdk-examples` repository. The debugging page is only a pointer to that example — it states the shape of the workflow but leaves the actual commands to the example's README, which is not part of `raw/`.[^acap-remote-debug]
+An ACAP application can be debugged while it runs on the device, not only inferred from its log output. Axis documents one path: **GNU Debugger (GDB)** on the device plus **Visual Studio Code** as the front end, packaged as the `remote-debug-example` in the `acap-native-sdk-examples` repository. The debugging page is only a pointer to that example — it states the shape of the workflow but leaves the actual commands to the example's README, which is now local and compiled in the next section.[^acap-remote-debug]
 
 ## What the documented setup provides
 
@@ -43,9 +49,22 @@ The page names these steps and defers the details to the example:[^acap-remote-d
 
 The example sits alongside the other SDK examples; see [Ví dụ ứng dụng ACAP chính thức](acap-application-examples.md) for how that collection is organized.
 
-## Limits of this page
+## What the example actually does
 
-The source is a 94-word overview with no sub-sections, so the following are **not established** by it:[^acap-remote-debug]
+Observed from the example's files (revision `12.11.0-7-g3025a4e`):[^remote-debug-example]
+
+- **Image:** the Dockerfile starts from the SDK image, installs `gdb-multiarch` and `ssh`, and cross-compiles **gdbserver 9.2** (`ARG GDB_VERSION=9.2`, prefix `/opt/build/gdb`, `--host=$($CC -dumpmachine)`, `--with-sysroot=${SDKTARGETSYSROOT}`) so the server matches the device architecture. A final stage also runs `acap-build ./` as a build test.
+- **Dev container:** `docker build . --platform=linux/amd64 --build-arg ARCH=<armv7hf|aarch64> -t dev_container:<arch>`; `app/.devcontainer/<arch>-container/devcontainer.json` binds the workspace to `/opt/app` and recommends the `ms-vscode.cpptools` and `webfreak.debug` extensions. The image tag must match the device architecture.
+- **Application:** `remote_debug.c` deliberately writes to a string literal (`message[0] = 'h'`) to cause a segmentation fault to debug. The Makefile builds with `-g3 -O0`, keeps the symbol-rich binary in `app/debug/remote_debug`, and strips the copy that is installed. `app/.vscode/launch.json` points `program` at `/opt/app/debug/remote_debug`, `miDebuggerPath` at `/usr/bin/gdb-multiarch` and `miDebuggerServerAddress` at `192.168.0.90:1234`.
+- **Procedure (README):** build with `acap-build .` inside the dev container; install with `eap-install.sh <IP> <ADMIN> <PASSWORD> install`; copy gdbserver with `scp /opt/build/gdb/bin/gdbserver acap-remote_debug@<IP>:/tmp/`; over `ssh` start `/tmp/gdbserver :1234 /usr/local/packages/remote_debug/remote_debug`; start the session with F5 in VS Code; stop with Shift+F5 and clean with `make clean`.
+- **Prerequisite:** **Developer Mode**, which creates the SSH user `acap-remote_debug` with a settable password (see [SSH and Developer Mode](axis-device-ssh-developer-mode.md)). The manifest `runOptions` are not forwarded to gdbserver.
+- **Limits:** the device IP and port are hard-coded in `launch.json`; the process dies at the fault and ends the gdbserver session. Nothing was built or run here.
+
+These details answer most of the open questions below: the GDB server is built by the example's Dockerfile (not taken from the SDK image), listens on port 1234 and VS Code attaches through `miDebuggerServerAddress`.[^remote-debug-example]
+
+## Limits of the vendor page
+
+The vendor page is a 94-word overview with no sub-sections, so the following are **not established** by it (items marked above are now answered by the example):[^acap-remote-debug]
 
 - which prerequisites the example requires (debug build flags such as `-g`, a compiler or GDB version, network reachability, credentials, or device-side permissions);
 - how the GDB server is obtained, which port it listens on, and how VS Code attaches to it (launch configuration, `gdbserver`/`gdb` invocation);
@@ -53,7 +72,7 @@ The source is a 94-word overview with no sub-sections, so the following are **no
 - any supported AXIS OS or ACAP version, and whether debugging works on all camera models;
 - whether the application runs under the normal ACAP runtime or needs a special debug launch when attached.
 
-The authoritative procedure lives in the external repository. Until that README and its scripts are captured in `raw/`, the actionable steps on this page are deliberately absent rather than reconstructed from memory. This is why the concept is `draft`.
+Still unestablished after reading the example: supported AXIS OS and ACAP versions and device models for debugging, and behaviour on real hardware. Status moved from `draft` to `stable` because the intended synthesis is now complete and auditable, not because it was verified.
 
 ## Logs versus a debugger
 
@@ -63,12 +82,12 @@ The two facilities answer different questions and do not replace each other: [Ap
 
 - Entry point: `raw/acap/how-to-guides/debugging/index.md` (94 words), site `developer.axis.com`, bộ tài liệu ACAP 12. The folder contains only this file — no images, attachments, or sub-pages — and the whole page was read.
 - No code, command, or configuration block exists in the source; the body above therefore quotes no commands.
-- External references not present in `raw/` and therefore unverified: the `acap-native-sdk-examples` repository, the `remote-debug-example` directory and its README, and the tools it documents.
+- `raw/acap-native-sdk-examples/remote-debug-example/` (README, `Dockerfile`, `app/Makefile`, `app/remote_debug.c`, `app/manifest.json`, `app/.vscode/launch.json`, two `devcontainer.json`) was read statically; the gdb source tarball, the SDK image and VS Code extensions are not local.
 - The page carries no publication or update date; `revision: "ACAP version 12"` is inferred from the documentation bundle, as with the other ACAP pages in this wiki.
 
 ## Độ tin cậy
 
-Every claim about the debugging method, the example's existence, and the quoted workflow steps is **Reported** by Axis's official documentation, read on 2026-10-27. No claim is **Observed** (the example repository was not inspected) or **Reproduced** (no dev container was built, no GDB server uploaded, no remote debugging session run). The statement that breakpoints and variable inspection become available is the vendor's description of what the example achieves, not a measured result here.
+Claims in the first sections about the method and the four workflow steps are **Reported** by Axis's official documentation, read on 2026-10-27. The section "What the example actually does" is **Observed** from the example's files. No claim is **Reproduced** (no dev container was built, no GDB server uploaded, no remote debugging session run). The statement that breakpoints and variable inspection become available is the vendor's description of what the example achieves, not a measured result here.
 
 ## Relationships
 
@@ -77,6 +96,8 @@ Every claim about the debugging method, the example's existence, and the quoted 
 - **Uses** [Ví dụ ứng dụng ACAP chính thức](acap-application-examples.md): `remote-debug-example` is one entry in that collection.
 - **Complements** [Application logging trong ACAP](acap-application-logging.md): logs observe emitted messages, a debugger stops execution and inspects live state.
 - **Constrained by** [phiên bản ACAP và tương thích với AXIS OS](acap-versioning.md) in principle, although the debugging page names no version requirement.
-- **Pending on** the external `remote-debug-example` README, which must be captured in `raw/` before the procedure can become `stable`.
+- **Documented by** [ACAP Native SDK examples repository](acap-native-sdk-examples-repository.md), where `remote-debug-example` is catalogued; its Dockerfile pattern follows [shared build conventions](acap-examples-build-and-manifest-conventions.md).
+
+[^remote-debug-example]: Example package: `raw/acap-native-sdk-examples/remote-debug-example/README.md` (§ prerequisites and debug steps), `Dockerfile` (gdbserver stage), `app/remote_debug.c`, `app/Makefile`, `app/.vscode/launch.json`, `app/.devcontainer/*/devcontainer.json`, `app/manifest.json`, revision `12.11.0-7-g3025a4e`.
 
 [^acap-remote-debug]: Tài liệu chính thức: [Debugging — Axis developer documentation](../raw/acap/how-to-guides/debugging/index.md), toàn bộ trang (94 từ, không chia mục); các liên kết tới `acap-native-sdk-examples` và `remote-debug-example` là external link chưa được kiểm chứng.

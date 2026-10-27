@@ -5,7 +5,7 @@ description: "Ghi log từ ACAP application bằng syslog library, chọn priori
 tags: [edge-ai, axis, acap, logging, debugging]
 status: stable
 created: 2026-10-27
-generated: { by: llm-wiki-agent/1, at: 2026-10-27T05:14:00Z }
+generated: { by: llm-wiki-agent/1, at: 2026-10-27T20:00:00Z }
 stale_after: 2027-04-30
 sources:
   - id: acap-app-logging
@@ -105,5 +105,6 @@ Toàn bộ nội dung là **Reported** từ tài liệu chính thức của Axis
 - **Requires** [SSH trên thiết bị Axis](axis-device-ssh-developer-mode.md) để dùng `journalctl` và xem `LOG_DEBUG`.
 - **Constrained by** `appName` trong `manifest.json`: identifier mặc định của log, và là giá trị `appname` trong URL xem log.
 - **Complements** [Remote debugging ACAP applications with GDB and VS Code](acap-remote-debugging.md): log ghi lại message application tự phát ra, còn debugger dừng application và đọc state trực tiếp.
+- **Observed in** [hello-world and minimal examples](acap-example-minimal-shell-and-reproducible-package.md): the `hello-world` example in `acap-native-sdk-examples` logs with `syslog(LOG_INFO, ...)` and is now available locally.
 
 [^acap-app-logging]: Tài liệu chính thức: [Application logging — Axis developer documentation](../raw/acap/how-to-guides/application-logging/index.md), toàn bộ trang: §Produce logs (§Basic use, §Debug logging, §Using openlog()), §View logs (§Device web interface, §journalctl). Các liên kết ra ngoài (`hello-world` example, `journalctl` help) chưa được kiểm chứng.
