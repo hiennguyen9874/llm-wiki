@@ -5,7 +5,7 @@ description: Code-grounded overview and navigation for WeKnora's shared RAG, age
 tags: [ml, weknora, rag, knowledge-systems]
 status: draft
 created: 2026-10-26
-generated: { by: llm-wiki-agent/1, at: 2026-10-26T16:19:21Z }
+generated: { by: llm-wiki-agent/1, at: 2026-10-27T10:20:00Z }
 stale_after: 2027-01-26
 sources:
   - id: weknora
@@ -34,6 +34,7 @@ The following links are this ingest's maintained synthesis boundaries, grounded 
 | What data is persisted and scoped to a workspace? | [Persistence and migrations](weknora-persistence.md) |
 | How does work run asynchronously? | [Task queues](weknora-task-queues.md) |
 | How do documents become indexing inputs? | [Parsing and chunking](weknora-document-ingestion.md) |
+| Which models exist, are they configurable, and which stages call them? | [Model types, bindings and configuration](weknora-models.md) |
 | How do external sources synchronize? | [Datasource sync](weknora-datasource-sync.md) |
 | How are candidates fused and reranked? | [Hybrid retrieval](weknora-hybrid-retrieval.md) |
 | How are source identities and citations kept separate from expanded context? | [Citations and source boundary](weknora-citations-source-boundary.md) |

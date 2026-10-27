@@ -143,6 +143,7 @@ The complete retrieval map for compiled knowledge. See [LLM Wiki Contract](../AG
 - [WeKnora hybrid retrieval and reranking](weknora-hybrid-retrieval.md) — Store-bound fan-out, normalized weighted RRF, rerank degradation, composite scoring, and MMR diversity selection.
 - [WeKnora knowledge framework](weknora.md) — Code-grounded overview and navigation for WeKnora's shared RAG, agent, automatic wiki, and integration platform.
 - [WeKnora MCP server surfaces](weknora-mcp-servers.md) — Built-in scoped Streamable HTTP endpoints, the CLI stdio catalog, and the deprecated Python server are distinct MCP products.
+- [WeKnora model types, bindings and configuration](weknora-models.md) — Five model types as encrypted tenant-scoped rows, per-knowledge-base and per-agent bindings, provider and catalog overlays, and which pipeline stages actually call a model.
 - [WeKnora selective fork and feature adoption roadmap](weknora-fork-roadmap.md) — A baseline-first fork strategy preserves WeKnora's existing mechanisms and selectively adopts document, retrieval, permission, sync and recovery designs from other RAG systems.
 - [WeKnora skills and session sandboxes](weknora-skills-sandboxes.md) — Progressive skill disclosure, installed-image source selection, session-bound workspaces, and execution trust boundaries.
 - [WeKnora source map and coverage](weknora-source-map.md) — Snapshot identity, per-file coverage ledger, exclusions, evidence limits, and follow-up targets for the WeKnora repository ingest.
