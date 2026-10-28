@@ -5,7 +5,7 @@ description: Layout-first modular parsing groups systems that detect layout regi
 tags: [task, document-parsing, layout-analysis, modular-systems]
 status: stable
 created: 2026-08-22
-generated: { by: llm-wiki-agent/1, at: 2026-10-27T10:01:15Z }
+generated: { by: llm-wiki-agent/1, at: 2026-10-28T16:51:28Z }
 stale_after: 2027-04-25
 sources:
   - id: current-ocr-approaches
@@ -27,6 +27,12 @@ sources:
   - id: omniparsebench
     resource: ../wiki/omniparsebench.md
     title: OmniParseBench
+  - id: minicpm-repo
+    resource: ../raw/MiniCPM-OCR/README.md
+    scope: ../raw/MiniCPM-OCR/
+    kind: code
+    revision: b33b474136088dc43a2341e94590c804ec0c16a5
+    title: MiniCPM-OCR repository
   - id: oxr-readme
     resource: ../raw/OXR-1.0.md
     kind: readme
@@ -43,6 +49,7 @@ Layout-first modular parsing first detects document elements (text blocks, table
 - [PaddleOCR-VL-1.5](paddleocr-vl-1.5.md) — PP-DocLayoutV3 polygonal layout + text spotting/seal + long-doc postprocessing
 - [PaddleOCR-VL-1.6](paddleocr-vl-1.6.md) — same two-stage path with mined weak-region data and CPT–SFT–GRPO[^paddleocr-vl-1-6-report]
 - [GLM-OCR](glm-ocr.md) — PP-DocLayoutV3 → CogViT-GLM recognizer (0.9B)
+- [MiniCPM-OCR 1.0](minicpm-ocr-1-0.md) — PP-DocLayoutV3 → 1.3B region recognizer and SDK assembly; crop resolution is not established here[^minicpm-repo]
 - [MinerU2.5](mineru2-5.md) / [MinerU2.5-Pro](mineru2-5-pro.md) — 1.2B low-resolution global layout → native-resolution crop recognition
 - [TeleOCR](teleocr.md) — 1.2B deformation-aware polygon layout segmentation → crop recognition in one prompted VLM (digital and camera-captured pages)
 - [FalconOCR](falcon-ocr.md) — 300M PP-DocLayoutV3 → early-fusion text/LaTeX/HTML-table recognizer
@@ -75,6 +82,7 @@ The comparison makes the fidelity cost measurable within one protocol: on the ve
 - **Uses:** [PP-DocLayoutV3](pp-doclayoutv3.md), [Surya Layout (fast)](surya-layout-fast.md)
 - **Contrasts with:** [Task: End-to-end generative OCR](task-end-to-end-generative-ocr.md)
 - **Evaluated by:** [Layout-first modular OCR benchmarks](layout-first-modular-ocr-benchmarks.md) and [Hybrid OCR systems and benchmarks](hybrid-ocr-systems-and-benchmarks.md), which keep benchmark-version and protocol differences separate[^layout-first-benchmarks][^hybrid-benchmarks]
+- **Evaluated by:** [MiniCPM-OCR evaluation](minicpm-ocr-evaluation.md), which retains vendor-reported parsing and throughput comparisons separately from other protocols.[^minicpm-repo]
 - **Evaluated by:** [OmniParseBench](omniparsebench.md), a vendor-run third protocol in which [PP-StructureV3](pp-structurev3.md) is scored as one of three baselines; its page-eligible engines differ from this task, so the numbers stay on that page[^omniparsebench]
 - **Extended below VLM scale by:** [Indra OCR](indra-ocr.md), which preserves the layout-then-route shape with line hypotheses and script-specialist recognizers
 - **Synthesized in:** [Current OCR approaches](current-ocr-approaches.md)[^current-ocr-approaches]
@@ -84,5 +92,6 @@ The comparison makes the fidelity cost measurable within one protocol: on the ve
 [^layout-first-benchmarks]: Compiled synthesis in this wiki: [Layout-first modular OCR benchmarks](layout-first-modular-ocr-benchmarks.md), § Scope and model coverage, § Benchmark and metric map, and § OmniDocBench v1.6 (accessed 2026-10-25).
 [^paddleocr-vl-1-6-report]: PaddleOCR Team, *PaddleOCR-VL-1.6 Technical Report*, local LaTeX source at [main.tex](../raw/2606.03264_PaddleOCR-VL-1.6/main.tex), § PaddleOCR-VL-1.6 Overview (two-stage framework and post-processing engine) and § Evaluation › Document Parsing (accessed 2026-10-25).
 [^indra-ocr-card]: Datalab, *Indra OCR model card* (`datalab-to/indra-ocr`), local capture [datalab-to-indra-ocr.md](../raw/datalab-to-indra-ocr.md), § Indra OCR (layout, line-classifier, and recognizer stages), § Output (block labels and reading order), and § Benchmarks › OmniParseBench (accessed 2026-10-25).
+[^minicpm-repo]: [MiniCPM-OCR repository](../raw/MiniCPM-OCR/README.md), revision `b33b474136088dc43a2341e94590c804ec0c16a5`, `docs/minicpm_ocr_1dot0_en.md` §§ Model Base and Architecture, Document Parsing Workflow, Evaluation and Throughput; `docs/benchmark_reproduction_en.md` §§ Scoring Methods and Parsing Efficiency Test (inspected 2026-10-28).
 [^oxr-readme]: SoMark, [OXR-1.0 README](../raw/OXR-1.0.md), § How it works › Technical Architecture (inspected 2026-10-27).
 [^omniparsebench]: Compiled synthesis in this wiki: [OmniParseBench](omniparsebench.md), § Reported structure, § Reported comparison, and § Protocol caveats; the underlying source is a vendor model card and was not run here (accessed 2026-10-25).

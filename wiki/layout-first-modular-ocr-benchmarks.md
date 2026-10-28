@@ -5,7 +5,7 @@ description: Layout-first modular OCR benchmarks catalog retained models, datase
 tags: [ocr, document-parsing, layout-analysis, benchmarks, evaluation]
 status: draft
 created: 2026-08-17
-generated: { by: llm-wiki-agent/1, at: 2026-09-29T15:55:00Z }
+generated: { by: llm-wiki-agent/1, at: 2026-10-28T16:49:13Z }
 sources:
   - id: paddleocr3-report
     resource: ../raw/2507.05595_PaddleOCR-3.0/main.tex
@@ -34,6 +34,12 @@ sources:
   - id: mineru2-5-pro-2605-card
     resource: ../raw/MinerU2.5-Pro-2605-1.2B.md
     title: MinerU2.5-Pro-2605-1.2B model card
+  - id: minicpm-repo
+    resource: ../raw/MiniCPM-OCR/README.md
+    scope: ../raw/MiniCPM-OCR/
+    kind: code
+    revision: b33b474136088dc43a2341e94590c804ec0c16a5
+    title: MiniCPM-OCR repository
   - id: teleocr-v3
     resource: ../raw/arXiv-2608.12898v3-TeleOCR/main.tex
     scope: ../raw/arXiv-2608.12898v3-TeleOCR/
@@ -61,6 +67,8 @@ The retained core layout-first modular family consists of [PP-StructureV3](pp-st
 | [TeleOCR](teleocr.md) | Deformation-aware polygon layout segmentation → same-VLM crop recognition for digital and camera-captured pages | 1.2B | Current model; author-reported results without independent reproduction |
 
 [Surya OCR 2](surya-ocr-2.md) is a boundary case rather than a core member: its optional block mode runs layout before region recognition, but its primary system is described as one shared VLM for full-page layout, order, OCR, and tables. [Nemotron OCR v2](nemotron-ocr-v2.md) is classified with detector–recognizer OCR, while [PP-DocLayoutV2](pp-doclayoutv2.md) and [PP-DocLayoutV3](pp-doclayoutv3.md) are layout components rather than full document parsers. End-to-end models with an optional generated layout trace, such as Qianfan-OCR, are also excluded.
+
+The vendor-reported [MiniCPM-OCR 1.0](minicpm-ocr-1-0.md) scores and comparator rows are retained separately in [MiniCPM-OCR evaluation](minicpm-ocr-evaluation.md), not merged into the tables below: its v1.6 guide specifies `quick_match`, and source-specific configurations and unresolved discrepancies limit direct comparison.[^minicpm-repo]
 
 ## Benchmark and metric map
 
@@ -267,4 +275,5 @@ Every numeric result is author- or vendor-reported. The local bundle does not co
 [^mineru2-5-card]: OpenDataLab, local [MinerU2.5 model card](../raw/MinerU2.5-2509-1.2B.md); remote benchmark figures were unavailable locally (accessed 2026-08-17).
 [^mineru2-5-pro-card]: OpenDataLab, local [MinerU2.5-Pro-2604 model card](../raw/MinerU2.5-Pro-2604-1.2B.md); remote benchmark figures were unavailable locally (accessed 2026-08-17).
 [^mineru2-5-pro-2605-card]: OpenDataLab, local [MinerU2.5-Pro-2605-1.2B model card](../raw/MinerU2.5-Pro-2605-1.2B.md) (accessed 2026-08-17).
+[^minicpm-repo]: [MiniCPM-OCR repository](../raw/MiniCPM-OCR/README.md), revision `b33b474136088dc43a2341e94590c804ec0c16a5`, `docs/benchmark_reproduction_en.md` §§ Benchmarks and Official Scoring Resources and Parsing Efficiency Test; `assets/minicpm-ocr/ocr-benchmarks.png` and `benchmark-data.json`.
 [^teleocr-v3]: Cai et al., *TeleOCR: Navigating Document Parsing Across Digital and Camera-Captured Documents*, arXiv:2608.12898v3, local [main.tex](../raw/arXiv-2608.12898v3-TeleOCR/main.tex) (§§ Data Engineering, Progressive Training, Experimental Evaluation; Tables OmniDocBench v1.6, Wild OmniDocBench v1.5, PureDocBench) and [README.md](../raw/arXiv-2608.12898v3-TeleOCR/README.md) (§ News, Quick Start), inspected 2026-09-29.

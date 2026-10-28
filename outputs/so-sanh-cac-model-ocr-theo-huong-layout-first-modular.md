@@ -1,6 +1,8 @@
 # So sánh các model OCR theo hướng layout-first modular
 
-**Kết luận nhanh:** Trong các bảng đã kiểm tra, [TeleOCR](wiki/teleocr.md) đạt **96,87** trên OmniDocBench v1.6 Full, cao nhất trong các model layout-first xuất hiện ở bảng của chính bài báo TeleOCR. [PaddleOCR-VL-1.6](wiki/paddleocr-vl-1.6.md) đạt **96,33**, còn [MinerU2.5-Pro](wiki/mineru2-5-pro.md) đạt **95,75** và có reading-order edit thấp nhất trong nhóm ở bảng đó. Nếu ưu tiên model nhỏ, [FalconOCR](wiki/falcon-ocr.md) chỉ **0,3B**, nhưng đánh giá được lưu chủ yếu là **tiếng Anh**, không nên ghép trực tiếp vào bảng đa ngôn ngữ.
+**Kết luận nhanh:** Trong các bảng đã kiểm tra, [TeleOCR](../wiki/teleocr.md) đạt **96,87** trên OmniDocBench v1.6 Full, cao nhất trong các model layout-first xuất hiện ở bảng của chính bài báo TeleOCR. [PaddleOCR-VL-1.6](../wiki/paddleocr-vl-1.6.md) đạt **96,33**, còn [MinerU2.5-Pro](../wiki/mineru2-5-pro.md) đạt **95,75** và có reading-order edit thấp nhất trong nhóm ở bảng đó. Nếu ưu tiên model nhỏ, [FalconOCR](../wiki/falcon-ocr.md) chỉ **0,3B**, nhưng đánh giá được lưu chủ yếu là **tiếng Anh**, không nên ghép trực tiếp vào bảng đa ngôn ngữ.
+
+Bổ sung từ diff: [MiniCPM-OCR 1.0](../wiki/minicpm-ocr-1-0.md) là ứng viên layout-first 1,3B. Trong bảng riêng do nhóm MiniCPM công bố, model đạt **96,51** trên OmniDocBench v1.6 và **93,68** trên Real5; TeleOCR đạt **96,91** trên v1.6 trong cùng bảng. Không ghép trực tiếp các con số này vào bảng của paper TeleOCR hoặc report PaddleOCR vì điều kiện và nguồn khác nhau.
 
 Các điểm số dưới đây là **tác giả hoặc nhà cung cấp công bố**, chưa được chạy lại độc lập trong wiki. Bảng cùng nguồn giúp so sánh tốt hơn, nhưng không nhất thiết chứng minh mọi baseline đã được chạy lại với cấu hình đồng nhất.
 
@@ -10,22 +12,23 @@ Phạm vi chính là các hệ thống phân vùng tài liệu trước rồi nh
 
 | Model | Thời điểm phát hành / mốc có bằng chứng | Size công bố | Điểm đáng chú ý khi chọn |
 |---|---|---:|---|
-| [PP-StructureV3](wiki/pp-structurev3.md) | Chưa xác định chính xác ngày release từ bằng chứng đã kiểm tra | **Chưa rõ tổng pipeline**; hình trong report gợi ý khoảng 0,36B | Pipeline nhiều model chuyên biệt; có benchmark làm baseline nhưng kết quả trên tài liệu méo thấp hơn các bản VLM mới trong bảng Real5. |
-| [MinerU2.5](wiki/mineru2-5.md) | Checkpoint có tên `2509`; **chưa xác minh ngày release chính xác** | 1,2B | Baseline đời trước của MinerU2.5-Pro. |
-| [PaddleOCR-VL](wiki/paddleocr-vl.md) | **16/10/2025** theo model card | 0,9B | Bản đầu; wiki đánh dấu đã được thay thế bởi 1.5 và sau đó 1.6. |
-| [PaddleOCR-VL-1.5](wiki/paddleocr-vl-1.5.md) | **29/01/2026** theo model card | 0,9B | Cải thiện đáng kể trên tài liệu biến dạng so với bản đầu; đã được 1.6 thay thế trong wiki. |
-| [GLM-OCR](wiki/glm-ocr.md) | Report năm 2026; **chưa xác định ngày release chính xác** | 0,9B | Có cả document parsing và đường xử lý KIE riêng; các điểm KIE không đo riêng pipeline layout-first. |
-| [FalconOCR](wiki/falcon-ocr.md) | Report năm 2026; **chưa xác định ngày release chính xác** | 0,3B | Nhỏ nhất trong nhóm VLM chính ở đây; tập trung tiếng Anh. |
-| [MinerU2.5-Pro](wiki/mineru2-5-pro.md) | Bản `2604`: chưa xác minh ngày chính xác; bản **2605 phát hành 21/05/2026** | 1,2B | Nâng cấp từ MinerU2.5; hai bản 2604/2605 có điểm tương đối gần nhau. |
-| [PaddleOCR-VL-1.6](wiki/paddleocr-vl-1.6.md) | Report năm 2026; **chưa xác định ngày release chính xác** | 0,9B | Bản hiện tại trong chuỗi PaddleOCR-VL được wiki ghi nhận; mạnh ở cả OmniDocBench v1.6 và Real5. |
-| [TeleOCR](wiki/teleocr.md) | Trọng số **NaviDC-OCR phát hành 17/08/2026**; đổi tên thành TeleOCR **10/09/2026** | 1,2B | Nhắm cả tài liệu số lẫn ảnh chụp bị biến dạng; bảng của paper có kết quả mạnh về table. |
-| [SenOCR-Vi](wiki/senocr-vi.md) | Card trích preprint 2026 nhưng **không ghi ngày release** | **0,959B** | Fine-tune của PaddleOCR-VL-1.6 cho tiếng Việt; dùng được trong pipeline PaddleOCR-VL 1.6. |
+| [PP-StructureV3](../wiki/pp-structurev3.md) | Chưa xác định chính xác ngày release từ bằng chứng đã kiểm tra | **Chưa rõ tổng pipeline**; hình trong report gợi ý khoảng 0,36B | Pipeline nhiều model chuyên biệt; có benchmark làm baseline nhưng kết quả trên tài liệu méo thấp hơn các bản VLM mới trong bảng Real5. |
+| [MinerU2.5](../wiki/mineru2-5.md) | Checkpoint có tên `2509`; **chưa xác minh ngày release chính xác** | 1,2B | Baseline đời trước của MinerU2.5-Pro. |
+| [PaddleOCR-VL](../wiki/paddleocr-vl.md) | **16/10/2025** theo model card | 0,9B | Bản đầu; wiki đánh dấu đã được thay thế bởi 1.5 và sau đó 1.6. |
+| [PaddleOCR-VL-1.5](../wiki/paddleocr-vl-1.5.md) | **29/01/2026** theo model card | 0,9B | Cải thiện đáng kể trên tài liệu biến dạng so với bản đầu; đã được 1.6 thay thế trong wiki. |
+| [GLM-OCR](../wiki/glm-ocr.md) | Report năm 2026; **chưa xác định ngày release chính xác** | 0,9B | Có cả document parsing và đường xử lý KIE riêng; các điểm KIE không đo riêng pipeline layout-first. |
+| [FalconOCR](../wiki/falcon-ocr.md) | Report năm 2026; **chưa xác định ngày release chính xác** | 0,3B | Nhỏ nhất trong nhóm VLM chính ở đây; tập trung tiếng Anh. |
+| [MinerU2.5-Pro](../wiki/mineru2-5-pro.md) | Bản `2604`: chưa xác minh ngày chính xác; bản **2605 phát hành 21/05/2026** | 1,2B | Nâng cấp từ MinerU2.5; hai bản 2604/2605 có điểm tương đối gần nhau. |
+| [PaddleOCR-VL-1.6](../wiki/paddleocr-vl-1.6.md) | Report năm 2026; **chưa xác định ngày release chính xác** | 0,9B | Bản hiện tại trong chuỗi PaddleOCR-VL được wiki ghi nhận; mạnh ở cả OmniDocBench v1.6 và Real5. |
+| [TeleOCR](../wiki/teleocr.md) | Trọng số **NaviDC-OCR phát hành 17/08/2026**; đổi tên thành TeleOCR **10/09/2026** | 1,2B | Nhắm cả tài liệu số lẫn ảnh chụp bị biến dạng; bảng của paper có kết quả mạnh về table. |
+| [SenOCR-Vi](../wiki/senocr-vi.md) | Card trích preprint 2026 nhưng **không ghi ngày release** | **0,959B** | Fine-tune của PaddleOCR-VL-1.6 cho tiếng Việt; dùng được trong pipeline PaddleOCR-VL 1.6. |
+| [MiniCPM-OCR 1.0](../wiki/minicpm-ocr-1-0.md) | **Chưa xác minh ngày release chính xác** | 1,3B | PP-DocLayoutV3 → nhận dạng từng vùng → SDK ghép Markdown; ngôn ngữ chính là Trung và Anh. Có KIE trực tiếp và heuristic ghép bảng qua trang tùy chọn. |
 
-Mốc ngày rõ ràng được đối chiếu thêm trong model card của [PaddleOCR-VL](raw/PaddleOCR-VL.md#news), [PaddleOCR-VL-1.5](raw/2601.21957_PaddleOCR-VL-1.5/README.md#news), [MinerU2.5-Pro-2605](raw/MinerU2.5-Pro-2605-1.2B.md) và [TeleOCR](raw/arXiv-2608.12898v3-TeleOCR/README.md#-news). Tên checkpoint `2509` hoặc `2604` **không đủ để khẳng định ngày phát hành**.
+Mốc ngày rõ ràng được đối chiếu thêm trong model card của [PaddleOCR-VL](../raw/PaddleOCR-VL.md#news), [PaddleOCR-VL-1.5](../raw/2601.21957_PaddleOCR-VL-1.5/README.md#news), [MinerU2.5-Pro-2605](../raw/MinerU2.5-Pro-2605-1.2B.md) và [TeleOCR](../raw/arXiv-2608.12898v3-TeleOCR/README.md#-news). Tên checkpoint `2509` hoặc `2604` **không đủ để khẳng định ngày phát hành**.
 
 ## 2. So sánh chính: OmniDocBench v1.6 Full
 
-Bảng dưới lấy **cùng một bảng** trong [paper TeleOCR, bảng OmniDocBench v1.6 Full](raw/arXiv-2608.12898v3-TeleOCR/main.tex), thay vì ghép điểm từ các bản report khác nhau. Chỉ giữ các model thuộc hướng đang xét.
+Bảng dưới lấy **cùng một bảng** trong [paper TeleOCR, bảng OmniDocBench v1.6 Full](../raw/arXiv-2608.12898v3-TeleOCR/main.tex), thay vì ghép điểm từ các bản report khác nhau. Chỉ giữ các model thuộc hướng đang xét.
 
 - **Overall, Formula CDM, Table TEDS/TEDS-S:** cao hơn tốt hơn.
 - **Text edit, Order edit:** thấp hơn tốt hơn.
@@ -47,7 +50,7 @@ Bảng dưới lấy **cùng một bảng** trong [paper TeleOCR, bảng OmniDoc
 2. **PaddleOCR-VL-1.6 cân bằng size/chất lượng:** 0,9B, overall chỉ thấp hơn TeleOCR **0,54 điểm**, đồng thời có formula CDM cao nhất trong nhóm trên.
 3. **MinerU2.5-Pro đáng xét khi reading order quan trọng:** order edit **0,120**, thấp nhất trong nhóm này; overall và table TEDS thấp hơn TeleOCR và PaddleOCR-VL-1.6.
 4. **GLM-OCR cùng cỡ 0,9B nhưng thấp hơn PaddleOCR-VL-1.6** ở các cột trong bảng này. Điều đó không quyết định kết quả KIE, vì GLM-OCR có đường KIE riêng.
-5. **Không nên coi khoảng cách vài phần mười điểm là thứ hạng tuyệt đối.** Bảng trong [tổng hợp benchmark layout-first](wiki/layout-first-modular-ocr-benchmarks.md) chép từ report PaddleOCR-VL-1.6 ghi VL-1.5 **94,93** thay vì **94,87** ở bảng TeleOCR; MinerU card cũng có các giá trị Pro hơi khác. Wiki không có snapshot leaderboard và cấu hình đầy đủ để giải thích chênh lệch.
+5. **Không nên coi khoảng cách vài phần mười điểm là thứ hạng tuyệt đối.** Bảng trong [tổng hợp benchmark layout-first](../wiki/layout-first-modular-ocr-benchmarks.md) chép từ report PaddleOCR-VL-1.6 ghi VL-1.5 **94,93** thay vì **94,87** ở bảng TeleOCR; MinerU card cũng có các giá trị Pro hơi khác. Wiki không có snapshot leaderboard và cấu hình đầy đủ để giải thích chênh lệch.
 
 **Lưu ý:** Đây không phải toàn bộ model trong họ. FalconOCR, PP-StructureV3, SenOCR-Vi và các trường hợp ranh giới không có hàng tương ứng trong bảng trên; không nên tự điền từ benchmark khác.
 
@@ -55,7 +58,7 @@ Bảng dưới lấy **cùng một bảng** trong [paper TeleOCR, bảng OmniDoc
 
 ### Real5-OmniDocBench: cùng bảng trong report PaddleOCR-VL-1.6
 
-Real5 đo năm điều kiện: scan, cong/biến dạng, chụp màn hình, ánh sáng và lệch góc. Điểm càng cao càng tốt. Nguồn: [bảng benchmark layout-first — Real5](wiki/layout-first-modular-ocr-benchmarks.md#real5-omnidocbench).
+Real5 đo năm điều kiện: scan, cong/biến dạng, chụp màn hình, ánh sáng và lệch góc. Điểm càng cao càng tốt. Nguồn: [bảng benchmark layout-first — Real5](../wiki/layout-first-modular-ocr-benchmarks.md#real5-omnidocbench).
 
 | Model | Overall ↑ | Scan | Warp | Chụp màn hình | Ánh sáng | Lệch góc |
 |---|---:|---:|---:|---:|---:|---:|
@@ -78,15 +81,33 @@ Paper TeleOCR báo cáo trên **Wild-OmniDocBench v1.5 Full**:
 | **TeleOCR** | **88,53** | Bảng của tác giả TeleOCR |
 | PaddleOCR-VL-1.6 | 87,36 | Cùng bảng |
 
-TeleOCR còn báo cáo **86,90 / 77,47 / 70,85** trên ba track PureDocBench **Clean / Digital Degraded / Real Degraded**. Với PureDocBench, tác giả loại sáu prediction Markdown không hợp lệ sau hiện tượng lặp nghiêm trọng và nói prediction bị thiếu được chấm 0. Đây là failure mode cần lưu ý khi thử nghiệm. Nguồn và giới hạn: [TeleOCR — Reported evaluation](wiki/teleocr.md#reported-evaluation).
+TeleOCR còn báo cáo **86,90 / 77,47 / 70,85** trên ba track PureDocBench **Clean / Digital Degraded / Real Degraded**. Với PureDocBench, tác giả loại sáu prediction Markdown không hợp lệ sau hiện tượng lặp nghiêm trọng và nói prediction bị thiếu được chấm 0. Đây là failure mode cần lưu ý khi thử nghiệm. Nguồn và giới hạn: [TeleOCR — Reported evaluation](../wiki/teleocr.md#reported-evaluation).
 
 **Không so sánh trực tiếp 88,53 của Wild với 93,19 của Real5:** đây là hai benchmark khác nhau.
+
+### Bảng riêng do nhóm MiniCPM-OCR công bố
+
+Nguồn: [MiniCPM-OCR evaluation](../wiki/minicpm-ocr-evaluation.md#document-parsing-comparison). Các hàng dưới đây đến từ **cùng hình benchmark của nhà cung cấp MiniCPM**, không bổ sung vào các bảng trên. Điểm càng cao càng tốt; mỗi cột là một benchmark riêng.
+
+| Model | OmniDocBench v1.6 ↑ | Real5 ↑ | Wild ↑ | olmOCR ↑ |
+|---|---:|---:|---:|---:|
+| MiniCPM-OCR 1.0 | 96,51 | **93,68** | **92,39** | **82,7** |
+| TeleOCR | **96,91** | 90,72 | 90,71 | 77,1 |
+| PaddleOCR-VL-1.6 | 96,34 | 93,19 | 91,49 | 80,2 |
+| MinerU2.5-Pro | 95,75 | 88,94 | 90,06 | 79,5 |
+| GLM-OCR | 95,22 | 90,32 | 90,40 | 75,2 |
+
+Trong bảng này, MiniCPM cao hơn PaddleOCR-VL-1.6 **0,17 điểm** trên v1.6 và **0,49 điểm** trên Real5, nhưng thấp hơn TeleOCR **0,40 điểm** trên v1.6. Đó là tín hiệu để benchmark, không phải thứ hạng tuyệt đối. OmniDocBench v1.6 dùng `quick_match`; Real5 dùng ground truth v1.5 và trung bình đều năm điều kiện; Wild dùng scorer v1.6 với ground truth v1.5 tương ứng và sửa xoay bằng SDK. Cấu hình từng hệ thống và tài liệu tái lập còn thiếu chi tiết. Điểm TeleOCR v1.6 **96,91** ở đây khác **96,87** trong bảng paper phía trên; Wild cũng khác phiên bản/tiền xử lý nên không ghép trực tiếp.
+
+**Tốc độ do vendor báo cáo:** trên 1.651 ảnh OmniDocBench v1.6, RTX 5090, image concurrency 1 và cấu hình tăng tốc riêng của từng hệ thống: MiniCPM **1,217 trang/s**, GLM-OCR **1,179**, PaddleOCR-VL-1.6 **0,818**, MinerU2.5-Pro **0,336**. Các vùng trong một trang vẫn có thể chạy song song. JSON benchmark lại ghi MiniCPM **1,213 trang/s** trong điều kiện được nêu; khác biệt chưa được giải thích. Thiếu version chính xác, timing boundary và lệnh/log đầy đủ, nên không suy rộng sang phần cứng hoặc workload khác. [Nguồn và giới hạn](../wiki/minicpm-ocr-evaluation.md#throughput).
+
+**Khả năng bổ sung:** SDK có heuristic ghép bảng qua trang, mặc định tắt; đây là kết quả đọc mã tĩnh, chưa chạy test hay chứng minh độ chính xác. [Jev](../wiki/minicpm-ocr-jev.md) là model 2B riêng chấm tính đúng của vùng OCR để hỗ trợ chọn kết quả hoặc chuyển review, không tạo OCR; AUROC không tự xác lập ngưỡng chấp nhận an toàn. Xem [cross-page table reconstruction](../wiki/task-cross-page-table-reconstruction.md#minicpm-ocr-sdk-heuristic-merging).
 
 ## 4. FalconOCR: nhỏ hơn, nhưng cần so đúng tập tiếng Anh
 
 ### OmniDocBench v1.5 — chỉ các trang tiếng Anh
 
-Nguồn Falcon loại các trang tiếng Trung, nên bảng này **không tương đương** OmniDocBench v1.5 song ngữ hoặc v1.6 ở trên. Nguồn: [layout-first benchmarks — Falcon English-only](wiki/layout-first-modular-ocr-benchmarks.md#falcon-english-only-protocol).
+Nguồn Falcon loại các trang tiếng Trung, nên bảng này **không tương đương** OmniDocBench v1.5 song ngữ hoặc v1.6 ở trên. Nguồn: [layout-first benchmarks — Falcon English-only](../wiki/layout-first-modular-ocr-benchmarks.md#falcon-english-only-protocol).
 
 | Model | Size | Overall ↑ | Text edit ↓ | Formula CDM ↑ | Table TEDS ↑ |
 |---|---:|---:|---:|---:|---:|
@@ -102,11 +123,11 @@ Nguồn Falcon loại các trang tiếng Trung, nên bảng này **không tươn
 | PaddleOCR-VL-1.5 | 79,3 | 82,6 | 39,2 | 84,1 |
 | PaddleOCR-VL | 79,2 | 82,5 | 38,8 | 83,9 |
 
-**Nhận xét:** FalconOCR thua PaddleOCR-VL-1.5 khá rõ ở overall OmniDocBench tiếng Anh, nhưng lại dẫn nhẹ trên olmOCR-Bench tiếng Anh và dẫn ở các nhóm multi-column/table trong bảng đó. Vì vậy, với tài liệu **tiếng Anh** và yêu cầu model nhỏ, FalconOCR là ứng viên đáng benchmark thực tế; không thể từ đây kết luận nó tốt cho tiếng Việt. Hai bảng có task và scorer khác nhau. [Nguồn](wiki/layout-first-modular-ocr-benchmarks.md#falcon-english-filtered-protocol).
+**Nhận xét:** FalconOCR thua PaddleOCR-VL-1.5 khá rõ ở overall OmniDocBench tiếng Anh, nhưng lại dẫn nhẹ trên olmOCR-Bench tiếng Anh và dẫn ở các nhóm multi-column/table trong bảng đó. Vì vậy, với tài liệu **tiếng Anh** và yêu cầu model nhỏ, FalconOCR là ứng viên đáng benchmark thực tế; không thể từ đây kết luận nó tốt cho tiếng Việt. Hai bảng có task và scorer khác nhau. [Nguồn](../wiki/layout-first-modular-ocr-benchmarks.md#falcon-english-filtered-protocol).
 
 ## 5. Nếu trọng tâm là tài liệu tiếng Việt: SenOCR-Vi
 
-[SenOCR-Vi](wiki/senocr-vi.md) là bản chuyên biệt hóa từ PaddleOCR-VL-1.6, có **958.588.736 parameter**. Model card báo cáo trên tập tiếng Việt 160 trang của MDPBench:
+[SenOCR-Vi](../wiki/senocr-vi.md) là bản chuyên biệt hóa từ PaddleOCR-VL-1.6, có **958.588.736 parameter**. Model card báo cáo trên tập tiếng Việt 160 trang của MDPBench:
 
 | Model | Size | Vietnamese document composite ↑ |
 |---|---:|---:|
@@ -115,15 +136,15 @@ Nguồn Falcon loại các trang tiếng Trung, nên bảng này **không tươn
 
 SenOCR-Vi còn báo cáo **86,7%** cho text recognition theo `1 − edit distance`; con số này **không phải** document composite. Với tập đánh giá EN/VI/ZH, card báo cáo macro **82,98** cho SenOCR-Vi so với **83,43** cho base, nên cải thiện tiếng Việt không đồng nghĩa cải thiện đều mọi ngôn ngữ.
 
-**Giới hạn quan trọng:** 82,83 được tính lại sau khi sửa vấn đề tổng hợp số dòng; 80,90 của base lấy từ leaderboard và chưa được tính lại bằng cùng pipeline đã sửa. Vì vậy chênh **1,93 điểm** là tín hiệu để thử nghiệm, chưa phải so sánh kiểm soát hoàn toàn. [Nguồn và caveat](wiki/senocr-vi.md#comparability-caveats).
+**Giới hạn quan trọng:** 82,83 được tính lại sau khi sửa vấn đề tổng hợp số dòng; 80,90 của base lấy từ leaderboard và chưa được tính lại bằng cùng pipeline đã sửa. Vì vậy chênh **1,93 điểm** là tín hiệu để thử nghiệm, chưa phải so sánh kiểm soát hoàn toàn. [Nguồn và caveat](../wiki/senocr-vi.md#comparability-caveats).
 
 ## 6. Các trường hợp ranh giới
 
 | Model | Size | Có nên đưa vào shortlist? | Bằng chứng benchmark |
 |---|---:|---|---|
-| [Surya OCR 2](wiki/surya-ocr-2.md) | 650M cho VLM | Có, nếu muốn thử chế độ block layout-first; hệ thống cũng có chế độ full-page nên không hoàn toàn cùng định nghĩa. | Vendor báo cáo **83,3** trên olmOCR-bench với preset 8.413 test và điều chỉnh cho HTML. Không ghép trực tiếp với bảng Falcon. |
-| [Indra OCR](wiki/indra-ocr.md) | Card nói **7,3M cho toàn bộ model mặc định**, nhưng có mô tả “1M” không được giải thích; tải mặc định khoảng **76 MB** gồm cả language model | Có, nếu ưu tiên **CPU, tốc độ và tài liệu in tương đối sạch** hơn là bảng phức tạp. | Trên [OmniParseBench](wiki/omniparsebench.md), vendor báo cáo **66,7** mặc định và **71,4** với `--math`, so với **58,4** của PP-StructureV3. So sánh do vendor chạy; PP-StructureV3 thiếu 19 trang và các cấu hình không đối xứng. |
-| [OXR-1.0](wiki/oxr-1-0.md) | 1,3B | Có thể theo dõi, nhưng thiếu dữ liệu để xếp hạng. | README quảng bá thứ hạng cao nhưng bản lưu không có score vector, version benchmark hoặc điều kiện test; layout/recognition flow cũng chưa đủ rõ để xếp chắc vào nhóm lõi. |
+| [Surya OCR 2](../wiki/surya-ocr-2.md) | 650M cho VLM | Có, nếu muốn thử chế độ block layout-first; hệ thống cũng có chế độ full-page nên không hoàn toàn cùng định nghĩa. | Vendor báo cáo **83,3** trên olmOCR-bench với preset 8.413 test và điều chỉnh cho HTML. Không ghép trực tiếp với bảng Falcon. |
+| [Indra OCR](../wiki/indra-ocr.md) | Card nói **7,3M cho toàn bộ model mặc định**, nhưng có mô tả “1M” không được giải thích; tải mặc định khoảng **76 MB** gồm cả language model | Có, nếu ưu tiên **CPU, tốc độ và tài liệu in tương đối sạch** hơn là bảng phức tạp. | Trên [OmniParseBench](../wiki/omniparsebench.md), vendor báo cáo **66,7** mặc định và **71,4** với `--math`, so với **58,4** của PP-StructureV3. So sánh do vendor chạy; PP-StructureV3 thiếu 19 trang và các cấu hình không đối xứng. |
+| [OXR-1.0](../wiki/oxr-1-0.md) | 1,3B | Có thể theo dõi, nhưng thiếu dữ liệu để xếp hạng. | README quảng bá thứ hạng cao nhưng bản lưu không có score vector, version benchmark hoặc điều kiện test; layout/recognition flow cũng chưa đủ rõ để xếp chắc vào nhóm lõi. |
 
 ## 7. Gợi ý shortlist theo nhu cầu
 
@@ -131,9 +152,10 @@ SenOCR-Vi còn báo cáo **86,7%** cho text recognition theo `1 − edit distanc
 
 - **Điểm tổng thể và bảng trên OmniDocBench v1.6:** thử **TeleOCR** trước, sau đó **PaddleOCR-VL-1.6**. Kiểm tra thêm lỗi lặp và tính ổn định trên tài liệu của bạn.
 - **Một model khoảng 0,9B cho nhiều loại tài liệu, kể cả ảnh biến dạng:** thử **PaddleOCR-VL-1.6**; nó dẫn bảng Real5 được lưu.
-- **Reading order hoặc đang dùng hệ MinerU:** thử **MinerU2.5-Pro** song song với PaddleOCR-VL-1.6; xác nhận bản 2604 hay 2605 và chức năng cross-page table trong môi trường triển khai, vì model card có mô tả chưa nhất quán về trạng thái tính năng này. [Nguồn](wiki/mineru2-5-pro.md).
+- **Tài liệu tiếng Anh/Trung, cần throughput hoặc pipeline theo vùng:** thêm **MiniCPM-OCR 1.0** vào shortlist cùng TeleOCR và PaddleOCR-VL-1.6; đo tốc độ và chất lượng trên cùng phần cứng, cấu hình và dữ liệu thực tế. Chưa có bằng chứng trong các trang này để suy ra chất lượng tiếng Việt.
+- **Reading order hoặc đang dùng hệ MinerU:** thử **MinerU2.5-Pro** song song với PaddleOCR-VL-1.6; xác nhận bản 2604 hay 2605 và chức năng cross-page table trong môi trường triển khai, vì model card có mô tả chưa nhất quán về trạng thái tính năng này. [Nguồn](../wiki/mineru2-5-pro.md).
 - **Chủ yếu tiếng Anh và cần model nhỏ:** thử **FalconOCR 0,3B**, nhất là nếu workload giống olmOCR-Bench hơn OmniDocBench.
 - **Chủ yếu tiếng Việt:** thử **SenOCR-Vi và PaddleOCR-VL-1.6 trên cùng tập**, đặc biệt giữ nguyên cách tính dấu tiếng Việt, bảng và formula. Bằng chứng hiện tại chưa đủ để chốt mức tăng 1,93 điểm.
 - **CPU-only, tài liệu đơn giản:** cân nhắc **Indra OCR**, nhưng đánh giá riêng handwriting, scan cũ và bảng có merged cells.
 
-**Giới hạn kiểm tra:** Tôi đã kiểm tra wiki và mở thêm raw để đối chiếu bảng TeleOCR và các mốc release được nêu; không truy cập web, không tải model và không chạy benchmark. Wiki qua structural check với **98 concept**, nhưng các trang benchmark/model liên quan phần lớn ở trạng thái **draft**, và kết quả vẫn là số được báo cáo. Bản so sánh này được để **transient**, chưa ghi thêm vào wiki.
+**Giới hạn kiểm tra:** Bản cập nhật này dựa trên diff đã stage, các trang MiniCPM mới và hướng dẫn tái lập trong raw; không truy cập web, không tải model và không chạy benchmark. Chưa chạy lại structural check cho lần cập nhật output này. Các trang MiniCPM liên quan ở trạng thái **draft**, còn thiếu coverage và tài liệu tái lập; kết quả là số vendor báo cáo, chưa xác minh độc lập. Bản so sánh nằm trong `outputs/`, không thay đổi wiki.

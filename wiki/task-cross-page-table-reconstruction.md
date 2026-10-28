@@ -5,9 +5,15 @@ description: Cross-page table reconstruction stitches table fragments separated 
 tags: [task, table-recognition, document-parsing, multi-page, ocr]
 status: draft
 created: 2026-10-25
-generated: { by: llm-wiki-agent/1, at: 2026-10-25T03:23:54Z }
+generated: { by: llm-wiki-agent/1, at: 2026-10-28T16:51:28Z }
 stale_after: 2027-04-25
 sources:
+  - id: minicpm-repo
+    resource: ../raw/MiniCPM-OCR/README.md
+    scope: ../raw/MiniCPM-OCR/
+    kind: code
+    revision: b33b474136088dc43a2341e94590c804ec0c16a5
+    title: MiniCPM-OCR repository
   - id: ovisocr3-model-card
     resource: ../raw/ATH-MaaS-OvisOCR3.md
     kind: model-card
@@ -60,6 +66,12 @@ The OvisOCR3 card reports the following author-run comparison. Relation F1 is sh
 
 **Synthesis:** The table separates two capabilities. OvisOCR3 leads relation F1 and the truncated-table TEDS column, while Qwen3.8-Max leads reconstruction TEDS. Several systems show high relation precision with low recall—PaddleOCR-VL-1.6 detects few continuations but is usually right when it does—so relation F1 alone does not establish reconstruction quality. The card gives no benchmark construction details, split, prompt configuration, or per-page error analysis.[^ovisocr3-model-card]
 
+## MiniCPM-OCR SDK: heuristic merging
+
+**Observed by static inspection:** [MiniCPM-OCR 1.0](minicpm-ocr-1-0.md)'s SDK offers a separate rule-based cross-page merge, disabled in the bundled configuration (`pipeline.merge_cross_page_tables: false`). It compares the last table of one page with the first on the next: both must contain HTML tables, their bounding-box widths must differ by less than 10% relative to the smaller width, intervening blocks must pass label/continuation-marker checks, and total column counts or boundary-row shapes must match. It appends later rows after removing up to five repeated leading header rows, clears the absorbed block, and processes pages backward to support chains. This is not OvisOCR3's image-pair model inference; the code credits an adaptation from PaddleOCR-VL and MinerU logic.[^minicpm-repo]
+
+The bundled CLI only invokes merging during merged-page assembly when the option is enabled. Unit tests describe width, boundary, header and multi-page cases, but they were inspected, not run; no cross-page accuracy result for MiniCPM is established here. Heuristic gating can miss true continuations or join similarly shaped unrelated tables; review important outputs.[^minicpm-repo]
+
 ## Related systems
 
 The retained wiki records cross-page table merging claims for [PaddleOCR-VL-1.5](paddleocr-vl-1.5.md) and [MinerU2.5-Pro](mineru2-5-pro.md), including the latter's unresolved status between its capability list and quick-start note. Those pages retain their own evidence and limits; they are not merged into OvisOCR3's benchmark protocol here.
@@ -68,8 +80,10 @@ The retained wiki records cross-page table merging claims for [PaddleOCR-VL-1.5]
 
 - **Extends:** [Task: Table structure recognition](task-table-structure-recognition.md) from single-table grid recovery to page-boundary continuation and merge.
 - **Part of:** [Task: End-to-end generative OCR](task-end-to-end-generative-ocr.md) as an optional multi-image stage rather than a separate deployment.
+- **Implemented by:** [MiniCPM-OCR 1.0](minicpm-ocr-1-0.md)'s optional SDK heuristic, independently of image-pair generation.[^minicpm-repo]
 - **Implemented by:** [OvisOCR3](ovisocr3.md), which uses one checkpoint for page parsing and page-pair reconstruction.[^ovisocr3-model-card]
 - **Related:** [PaddleOCR-VL-1.5](paddleocr-vl-1.5.md) and [MinerU2.5-Pro](mineru2-5-pro.md) also document cross-page table handling, with different pipeline designs and evidence.
 - **Evaluated by:** CrossTabBench and MPDocBench-Parse, as reported in the OvisOCR3 card; no separate benchmark concepts are retained because their construction is not locally documented.[^ovisocr3-model-card]
 
+[^minicpm-repo]: [MiniCPM-OCR repository](../raw/MiniCPM-OCR/README.md), revision `b33b474136088dc43a2341e94590c804ec0c16a5`; `sdk/minicpmvocr/postprocess/crosspage.py::can_merge_tables`, `::detect_table_headers`, `::perform_table_merge`, `::merge_cross_page_tables`, and `::apply_cross_page_merge`; `sdk/minicpmvocr/configs/minicpmvocr.yaml` key `pipeline.merge_cross_page_tables`; `sdk/minicpmvocr/cli.py` merged-page assembly; `sdk/tests/test_crosspage_tables.py` (static inspection, not executed).
 [^ovisocr3-model-card]: ATH-MaaS, *OvisOCR3 model card*, local source at [ATH-MaaS-OvisOCR3.md](../raw/ATH-MaaS-OvisOCR3.md), especially § Capabilities, § Performance › Cross-Page Table Reconstruction, and § Task-Specific Usage › Cross-Page Table Reconstruction (accessed 2026-10-25). The referenced `prompts/crosspage_table.txt`, `document_crosspage.py`, and model files are absent from the local bundle.

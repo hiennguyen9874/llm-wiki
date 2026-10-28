@@ -54,6 +54,9 @@ The complete retrieval map for compiled knowledge. See [LLM Wiki Contract](../AG
 - [MonkeyDoc v2](monkeydoc-v2.md) — MonkeyDoc v2 is a 113-million-sample, 17-language document-image corpus used to pretrain MonkeyOCRv2 for page-level and cropped-element document tasks.
 - [MonkeyOCRv2](monkeyocrv2.md) — MonkeyOCRv2 is a document-native visual encoder family pretrained with image-to-text generation and pixel-level reconstruction for transfer across document-AI tasks.
 - [MonkeyOCRv2 serving and deployment stack](monkeyocrv2-serving-stack.md) — MonkeyOCRv2 runs encoder, parsing, and document-understanding checkpoints through separate Transformers and vLLM paths, with an optional DFlash speculative-decoding variant, CLI, Gradio, and FastAPI front ends, a CPU path, and RAGFlow integration.
+- [MiniCPM-OCR 1.0](minicpm-ocr-1-0.md) — MiniCPM-OCR 1.0 is a 1.3B OCR VLM used with PP-DocLayoutV3 and an SDK to recognize document regions and assemble ordered output.
+- [MiniCPM-OCR evaluation](minicpm-ocr-evaluation.md) — MiniCPM-OCR evaluation records the project's reported OCR quality, throughput, and Jev correctness-assessment results with protocol and reproducibility limits.
+- [MiniCPM-OCR Jev](minicpm-ocr-jev.md) — MiniCPM-OCR Jev is a 2B region-level OCR correctness model that scores candidate transcriptions for review routing or candidate selection.
 - [MinerU](mineru.md) — MinerU is an OpenDataLab document-parsing project that converts PDFs, office documents, images, and web pages into structured Markdown and JSON through pipeline, VLM, and hybrid backends.
 - [MinerU-Diffusion](mineru-diffusion.md) — MinerU-Diffusion is a 2.5B document-OCR model that replaces autoregressive generation with block-level parallel diffusion decoding.
 - [MinerU2.5](mineru2-5.md) — MinerU2.5 is a 1.2B two-stage vision-language document parser that performs low-resolution global layout analysis before native-resolution crop recognition.
