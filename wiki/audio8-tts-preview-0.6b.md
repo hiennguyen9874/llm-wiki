@@ -5,9 +5,13 @@ description: 0.6B-parameter multilingual zero-shot voice-cloning TTS model with 
 tags: [ml, tts, multilingual, voice-cloning]
 status: stable
 created: 2026-10-06
-generated: { by: llm-wiki-agent/1, at: 2026-10-06T00:00:00Z }
+generated: { by: llm-wiki-agent/1, at: 2026-10-28T03:16:03Z }
 stale_after: 2027-10-06
 sources:
+  - id: audio8-realistic-card
+    resource: ../raw/Edge0-Audio8-TTS-Realistic-0.6b.md
+    kind: documentation
+    title: Audio8 TTS Realistic 0.6B model card
   - id: audio8-tts-preview-card
     resource: ../raw/Audio8-TTS-Preview-0.6b.md
     kind: documentation
@@ -76,6 +80,9 @@ CV3 multilingual error rates; lower is better (**Reported**):[^audio8-tts-previe
 
 ## Relationships
 
+- [Audio8 TTS Realistic 0.6B](audio8-tts-realistic-0.6b.md) builds on this Preview and expands the supported languages from 11 to 23; its separate evaluation does not establish uniform error-rate improvements (**Reported**).[^audio8-realistic-card]
+
+- Related model: [Audio8 TTS Preview 0.1B](audio8-tts-preview-0.1b.md) is a smaller Preview checkpoint with its own language coverage, license and CPU packaging; these are distinct from this 0.6B card (**Synthesis**).[^audio8-tts-preview-card]
 - Audio8 ASR family: [Audio8-ASR-0.1B](audio8-asr-0.1b.md) and [Audio8 ASR Infinite](audio8-asr-infinite.md) cover Audio8-named speech-recognition models (multilingual short-form transcription and streaming bilingual ASR respectively), while this concept covers the Audio8-named speech-synthesis Preview model; no shared codebase or vendor claim is asserted beyond the naming and audio-model overlap (**Synthesis**).[^audio8-tts-preview-card]
 
 ## Coverage and limits
@@ -83,5 +90,7 @@ CV3 multilingual error rates; lower is better (**Reported**):[^audio8-tts-previe
 - Source inspected statically only; no code executed, no audio synthesized, and no WER/CER, SIM, memory-footprint, or serving-throughput figures reproduced (**Synthesis**).[^audio8-tts-preview-card]
 - Header image (`20260729-124515.jpeg`), upstream GitHub repository, live demo, ONNX INT4 release, CPU ONNX Runtime guide, SGLang Omni adapter and deployment guide, VoxCPM baseline collection, Fish S2 Pro source, and upstream `LICENSE`/`NOTICE` were linked but not fetched and were not present in `raw/`; checkpoint, codec, tokenizer, processor, and remote-code files were listed but not present in `raw/` and were not inspected (**Synthesis**).[^audio8-tts-preview-card]
 - All architecture, language-coverage, accuracy, similarity, memory, compatibility, and usage claims are source assertions without independent verification in this wiki (**Synthesis**).[^audio8-tts-preview-card]
+
+[^audio8-realistic-card]: [Audio8 TTS Realistic 0.6B model card](../raw/Edge0-Audio8-TTS-Realistic-0.6b.md) — introduction, “Supported Languages”, and “Evaluation: Seed-TTS detail”.
 
 [^audio8-tts-preview-card]: [Audio8 TTS Preview 0.6B model card](../raw/Audio8-TTS-Preview-0.6b.md) — locators: frontmatter (`license`, `language`, `library_name`, `pipeline_tag`, `tags`); header badges (GitHub `Audio8-AI/Audio8_TTS`, demo, ONNX INT4, Apache 2.0); intro paragraph (0.6B, multilingual, zero-shot cloning, checkpoint/codec/tokenizer/processor/remote code); `Preview status` callout (11 recommended languages, planned broader/dialect coverage); `Supported Languages` section (11-language list); `Model Details` section (DualAR slow/fast description, 7-row configuration table, bundled-codec paragraph); `Installation` section (`torch`, `torchaudio`, `transformers`, `soundfile`, `safetensors` requirements, Python 3.10+/CUDA); `Usage` section (`trust_remote_code=True` paragraph, zero-shot Python fence with `max_new_tokens`/`temperature`/`top_p`/`top_k`/`do_sample` plus transcript-match note, reference-free paragraph, CLI/batch/SFT pointer); `Deployment Options` section (ONNX INT4 advantage table, ~1 GiB M2/session-management paragraph, CPU guide link; SGLang Omni capability table, plugin/pinned-revision paragraph, deployment-guide link); `Evaluation` section (intro 0.6B/first-tier paragraph, Seed-TTS 6-row table, CV3 5-row table, parameter-count paragraph, reevaluation/normalizer paragraph, language-claim scoping sentence); `Limitations and Responsible Use` section (4 bullets); `License and Acknowledgements` section (Apache 2.0, NOTICE, Fish Audio thanks).
