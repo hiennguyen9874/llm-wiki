@@ -12,7 +12,7 @@ sources:
     resource: ../raw/MiniCPM-OCR/README.md
     scope: ../raw/MiniCPM-OCR/
     kind: code
-    revision: b33b474136088dc43a2341e94590c804ec0c16a5
+    revision: b33b474
     title: MiniCPM-OCR repository
   - id: ovisocr3-model-card
     resource: ../raw/ATH-MaaS-OvisOCR3.md
@@ -85,5 +85,5 @@ The retained wiki records cross-page table merging claims for [PaddleOCR-VL-1.5]
 - **Related:** [PaddleOCR-VL-1.5](paddleocr-vl-1.5.md) and [MinerU2.5-Pro](mineru2-5-pro.md) also document cross-page table handling, with different pipeline designs and evidence.
 - **Evaluated by:** CrossTabBench and MPDocBench-Parse, as reported in the OvisOCR3 card; no separate benchmark concepts are retained because their construction is not locally documented.[^ovisocr3-model-card]
 
-[^minicpm-repo]: [MiniCPM-OCR repository](../raw/MiniCPM-OCR/README.md), revision `b33b474136088dc43a2341e94590c804ec0c16a5`; `sdk/minicpmvocr/postprocess/crosspage.py::can_merge_tables`, `::detect_table_headers`, `::perform_table_merge`, `::merge_cross_page_tables`, and `::apply_cross_page_merge`; `sdk/minicpmvocr/configs/minicpmvocr.yaml` key `pipeline.merge_cross_page_tables`; `sdk/minicpmvocr/cli.py` merged-page assembly; `sdk/tests/test_crosspage_tables.py` (static inspection, not executed).
+[^minicpm-repo]: [MiniCPM-OCR repository](../raw/MiniCPM-OCR/README.md), revision `b33b474`; `sdk/minicpmvocr/postprocess/crosspage.py::can_merge_tables`, `::detect_table_headers`, `::perform_table_merge`, `::merge_cross_page_tables`, and `::apply_cross_page_merge`; `sdk/minicpmvocr/configs/minicpmvocr.yaml` key `pipeline.merge_cross_page_tables`; `sdk/minicpmvocr/cli.py` merged-page assembly; `sdk/tests/test_crosspage_tables.py` (static inspection, not executed).
 [^ovisocr3-model-card]: ATH-MaaS, *OvisOCR3 model card*, local source at [ATH-MaaS-OvisOCR3.md](../raw/ATH-MaaS-OvisOCR3.md), especially § Capabilities, § Performance › Cross-Page Table Reconstruction, and § Task-Specific Usage › Cross-Page Table Reconstruction (accessed 2026-10-25). The referenced `prompts/crosspage_table.txt`, `document_crosspage.py`, and model files are absent from the local bundle.

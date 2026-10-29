@@ -38,7 +38,7 @@ sources:
     resource: ../raw/MiniCPM-OCR/README.md
     scope: ../raw/MiniCPM-OCR/
     kind: code
-    revision: b33b474136088dc43a2341e94590c804ec0c16a5
+    revision: b33b474
     title: MiniCPM-OCR repository
   - id: teleocr-v3
     resource: ../raw/arXiv-2608.12898v3-TeleOCR/main.tex
@@ -275,5 +275,5 @@ Every numeric result is author- or vendor-reported. The local bundle does not co
 [^mineru2-5-card]: OpenDataLab, local [MinerU2.5 model card](../raw/MinerU2.5-2509-1.2B.md); remote benchmark figures were unavailable locally (accessed 2026-08-17).
 [^mineru2-5-pro-card]: OpenDataLab, local [MinerU2.5-Pro-2604 model card](../raw/MinerU2.5-Pro-2604-1.2B.md); remote benchmark figures were unavailable locally (accessed 2026-08-17).
 [^mineru2-5-pro-2605-card]: OpenDataLab, local [MinerU2.5-Pro-2605-1.2B model card](../raw/MinerU2.5-Pro-2605-1.2B.md) (accessed 2026-08-17).
-[^minicpm-repo]: [MiniCPM-OCR repository](../raw/MiniCPM-OCR/README.md), revision `b33b474136088dc43a2341e94590c804ec0c16a5`, `docs/benchmark_reproduction_en.md` §§ Benchmarks and Official Scoring Resources and Parsing Efficiency Test; `assets/minicpm-ocr/ocr-benchmarks.png` and `benchmark-data.json`.
+[^minicpm-repo]: [MiniCPM-OCR repository](../raw/MiniCPM-OCR/README.md), revision `b33b474`, `docs/benchmark_reproduction_en.md` §§ Benchmarks and Official Scoring Resources and Parsing Efficiency Test; `assets/minicpm-ocr/ocr-benchmarks.png` and `benchmark-data.json`.
 [^teleocr-v3]: Cai et al., *TeleOCR: Navigating Document Parsing Across Digital and Camera-Captured Documents*, arXiv:2608.12898v3, local [main.tex](../raw/arXiv-2608.12898v3-TeleOCR/main.tex) (§§ Data Engineering, Progressive Training, Experimental Evaluation; Tables OmniDocBench v1.6, Wild OmniDocBench v1.5, PureDocBench) and [README.md](../raw/arXiv-2608.12898v3-TeleOCR/README.md) (§ News, Quick Start), inspected 2026-09-29.

@@ -12,7 +12,7 @@ sources:
     resource: ../raw/PaddleOCR/README.md
     scope: ../raw/PaddleOCR/
     kind: code
-    revision: dab3fe35379033fdcb2d0e9572fac0b36c9a9ebf
+    revision: dab3fe3
     title: PaddleOCR repository
 ---
 
@@ -40,4 +40,4 @@ The source is the Apache-2.0 upstream repository snapshot at the revision above.
 - **Uses:** [PaddleOCR model and training architecture](paddleocr-model-training-architecture.md) for the source-tree model building and training path.
 - **Includes:** [PP-OCRv6](pp-ocrv6.md), [PP-StructureV3](pp-structurev3.md), and [PaddleOCR-VL 1.6](paddleocr-vl-1.6.md) as documented model and pipeline families.[^paddleocr-repo]
 
-[^paddleocr-repo]: [Repository README](../raw/PaddleOCR/README.md), “Key Features” and “Quick Start”; revision `dab3fe35379033fdcb2d0e9572fac0b36c9a9ebf`: `pyproject.toml::project.dependencies`; `paddleocr/_pipelines/base.py::PaddleXPipelineWrapper`; `paddleocr/_pipelines/ocr.py::PaddleOCR.__init__` and `_get_ocr_model_names`; `paddleocr/_pipelines/pp_structurev3.py::_SUPPORTED_OCR_VERSIONS` and `_get_paddlex_config_overrides`; `paddleocr/_pipelines/paddleocr_vl.py::PaddleOCRVL`; `tools/infer/predict_system.py::TextSystem.__call__`; `deploy/cpp_infer/src/configs/OCR.yaml`; `docs/version3.x/pipeline_usage/PaddleOCR-VL.en.md`, introduction.
+[^paddleocr-repo]: [Repository README](../raw/PaddleOCR/README.md), “Key Features” and “Quick Start”; revision `dab3fe3`: `pyproject.toml::project.dependencies`; `paddleocr/_pipelines/base.py::PaddleXPipelineWrapper`; `paddleocr/_pipelines/ocr.py::PaddleOCR.__init__` and `_get_ocr_model_names`; `paddleocr/_pipelines/pp_structurev3.py::_SUPPORTED_OCR_VERSIONS` and `_get_paddlex_config_overrides`; `paddleocr/_pipelines/paddleocr_vl.py::PaddleOCRVL`; `tools/infer/predict_system.py::TextSystem.__call__`; `deploy/cpp_infer/src/configs/OCR.yaml`; `docs/version3.x/pipeline_usage/PaddleOCR-VL.en.md`, introduction.

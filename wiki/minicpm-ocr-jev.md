@@ -12,7 +12,7 @@ sources:
     resource: ../raw/MiniCPM-OCR/README.md
     scope: ../raw/MiniCPM-OCR/
     kind: code
-    revision: b33b474136088dc43a2341e94590c804ec0c16a5
+    revision: b33b474
     title: MiniCPM-OCR repository
 ---
 
@@ -32,4 +32,4 @@ The vendor's JevOCRBench figure reports AUROC ×100 of 93.6 overall, 94.6 text, 
 
 The repository README, English Jev and 1.0 model guides, reproduction guide, environment manifest, benchmark JSON and two benchmark-table images were inspected; other deployment, training, API, renderer and SDK implementation, tests and remaining figures are pending. The external dataset and weights were not inspected; no code or evaluation was executed. The repository reports Apache-2.0 for code, documentation and weights. This incomplete package coverage makes the page draft; see [MiniCPM-OCR 1.0](minicpm-ocr-1-0.md) for the package-level ledger.[^minicpm-repo]
 
-[^minicpm-repo]: [Repository README](../raw/MiniCPM-OCR/README.md), revision `b33b474136088dc43a2341e94590c804ec0c16a5`; `docs/minicpm_ocr_jev_en.md` §§ Base model and architecture, Use cases, Inference, Evaluation and License; `assets/minicpm-ocr/jev-benchmark-score-table.png`, MiniCPM-OCR Jev row.
+[^minicpm-repo]: [Repository README](../raw/MiniCPM-OCR/README.md), revision `b33b474`; `docs/minicpm_ocr_jev_en.md` §§ Base model and architecture, Use cases, Inference, Evaluation and License; `assets/minicpm-ocr/jev-benchmark-score-table.png`, MiniCPM-OCR Jev row.

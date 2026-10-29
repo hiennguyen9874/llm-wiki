@@ -16,7 +16,7 @@ sources:
     resource: ../raw/MiniCPM-OCR/README.md
     scope: ../raw/MiniCPM-OCR/
     kind: code
-    revision: b33b474136088dc43a2341e94590c804ec0c16a5
+    revision: b33b474
     title: MiniCPM-OCR repository
 ---
 
@@ -52,4 +52,4 @@ The model guide gives **1.217 pages/s** at concurrency 1, whereas the benchmark-
 The model card, repository README, English model guide, Jev guide, reproduction guide, project environment manifest, benchmark-data JSON, two benchmark-table images, SDK cross-page merge implementation, configuration, CLI assembly and its tests were inspected; no model, installer or benchmark was executed. Repository checkout was clean at the recorded revision. The English/Chinese parallel guides, backend and fine-tuning documentation, SDK implementation and tests, Jev scripts and deployment services, and other material figures remain **pending**, as do external weights, datasets and scoring artifacts. The bundled KaTeX and other static vendor assets are excluded as third-party dependencies; decorative logos and examples are not evidence for benchmark claims. The repository reports Apache-2.0 for code, documentation and weights; individual remote artifacts were not independently checked. This incomplete package coverage makes the page draft.[^minicpm-card][^minicpm-repo]
 
 [^minicpm-card]: [MiniCPM-OCR 1.0 model card](../raw/MiniCPM-OCR-1.0.md), §§ Model architecture, Recognition guide, Related checkpoints and License.
-[^minicpm-repo]: [Repository README](../raw/MiniCPM-OCR/README.md), revision `b33b474136088dc43a2341e94590c804ec0c16a5`; `docs/minicpm_ocr_1dot0_en.md` §§ Model Base, Document Parsing Workflow, Inference, Evaluation and Throughput; `docs/benchmark_reproduction_en.md` §§ Evaluation Settings, Scoring and Aggregation Rules, Parsing Efficiency Test; `assets/minicpm-ocr/ocr-benchmarks.png` MiniCPM row; `assets/minicpm-ocr/benchmark-data.json` `benchmarks.models` and `throughput.models` MiniCPM rows; `sdk/minicpmvocr/postprocess/crosspage.py::merge_cross_page_tables`, `sdk/minicpmvocr/configs/minicpmvocr.yaml` key `pipeline.merge_cross_page_tables`.
+[^minicpm-repo]: [Repository README](../raw/MiniCPM-OCR/README.md), revision `b33b474`; `docs/minicpm_ocr_1dot0_en.md` §§ Model Base, Document Parsing Workflow, Inference, Evaluation and Throughput; `docs/benchmark_reproduction_en.md` §§ Evaluation Settings, Scoring and Aggregation Rules, Parsing Efficiency Test; `assets/minicpm-ocr/ocr-benchmarks.png` MiniCPM row; `assets/minicpm-ocr/benchmark-data.json` `benchmarks.models` and `throughput.models` MiniCPM rows; `sdk/minicpmvocr/postprocess/crosspage.py::merge_cross_page_tables`, `sdk/minicpmvocr/configs/minicpmvocr.yaml` key `pipeline.merge_cross_page_tables`.

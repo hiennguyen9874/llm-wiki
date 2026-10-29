@@ -12,7 +12,7 @@ sources:
     resource: ../raw/MiniCPM-OCR/README.md
     scope: ../raw/MiniCPM-OCR/
     kind: code
-    revision: b33b474136088dc43a2341e94590c804ec0c16a5
+    revision: b33b474
     title: MiniCPM-OCR repository
 ---
 
@@ -70,4 +70,4 @@ JevOCRBench evaluates human-labelled correct/incorrect region candidates. The fi
 - **Evaluates:** [MiniCPM-OCR 1.0](minicpm-ocr-1-0.md) and [MiniCPM-OCR Jev](minicpm-ocr-jev.md).[^minicpm-repo]
 - **Complements:** [Layout-first modular OCR benchmarks](layout-first-modular-ocr-benchmarks.md); keep these vendor-run figures separate from its other evaluation protocols.[^minicpm-repo]
 
-[^minicpm-repo]: [MiniCPM-OCR repository README](../raw/MiniCPM-OCR/README.md), revision `b33b474136088dc43a2341e94590c804ec0c16a5`; [OCR benchmark figure](../raw/MiniCPM-OCR/assets/minicpm-ocr/ocr-benchmarks.png), all indicated model rows; [benchmark-data JSON](../raw/MiniCPM-OCR/assets/minicpm-ocr/benchmark-data.json), `benchmarks.models` and `throughput`; [1.0 guide](../raw/MiniCPM-OCR/docs/minicpm_ocr_1dot0_en.md), §§ Evaluation and Throughput; [reproduction guide](../raw/MiniCPM-OCR/docs/benchmark_reproduction_en.md), §§ Evaluation Settings, Scoring and Aggregation Rules, Parsing Efficiency Test; [Jev figure](../raw/MiniCPM-OCR/assets/minicpm-ocr/jev-benchmark-score-table.png), comparison rows; [Jev guide](../raw/MiniCPM-OCR/docs/minicpm_ocr_jev_en.md), § Evaluation.
+[^minicpm-repo]: [MiniCPM-OCR repository README](../raw/MiniCPM-OCR/README.md), revision `b33b474`; [OCR benchmark figure](../raw/MiniCPM-OCR/assets/minicpm-ocr/ocr-benchmarks.png), all indicated model rows; [benchmark-data JSON](../raw/MiniCPM-OCR/assets/minicpm-ocr/benchmark-data.json), `benchmarks.models` and `throughput`; [1.0 guide](../raw/MiniCPM-OCR/docs/minicpm_ocr_1dot0_en.md), §§ Evaluation and Throughput; [reproduction guide](../raw/MiniCPM-OCR/docs/benchmark_reproduction_en.md), §§ Evaluation Settings, Scoring and Aggregation Rules, Parsing Efficiency Test; [Jev figure](../raw/MiniCPM-OCR/assets/minicpm-ocr/jev-benchmark-score-table.png), comparison rows; [Jev guide](../raw/MiniCPM-OCR/docs/minicpm_ocr_jev_en.md), § Evaluation.

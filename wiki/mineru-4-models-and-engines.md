@@ -12,7 +12,7 @@ sources:
     resource: ../raw/MinerU/README.md
     scope: ../raw/MinerU/
     kind: code
-    revision: b7f3dd0c5f6e6d66a298239ffd02b328b873918e
+    revision: b7f3dd0
     title: MinerU repository 4.0.12
 ---
 
@@ -51,4 +51,4 @@ Configured remote VLM inference may transmit page images to its server; optional
 - **Supports:** [MinerU 4 OCR pipeline](mineru-4-ocr-pipeline.md), with specialized local components and optional VLM inference.
 - **Related to:** [PP-OCRv6](pp-ocrv6.md) and [PP-DocLayoutV2](pp-doclayoutv2.md), which describe the model families.
 
-[^mineru-repo]: [MinerU repository README](../raw/MinerU/README.md), “MinerU 4.0” and “Model Engines with Extras”; `mineru/model/registry.py::MINERU_4_MODELS_ONNX`, `::MINERU_4_MODELS_TORCH`, `::MINERU_2_5_PRO_2605_1_2B_GGUF`, `::model_repos_for_tier`; `mineru/model/runtime/device.py::resolve_small_model_backend`; `mineru/model/runtime/onnx.py::ort_providers`, `::table_ort_session`, `::configure_ort_threads`; `mineru/model/vlm/selector.py::resolve_vlm_engine`; `mineru/model/vlm/client.py::get_vlm_predictor`; `docs/next/model-assets.md` §§“下载与离线运行”, “资源结构”; `docs/en/usage/model_source.md` §“Three remote connections at a glance”; `mineru/doclib/telemetry/transport.py::signed_headers`; revision `b7f3dd0c5f6e6d66a298239ffd02b328b873918e`.
+[^mineru-repo]: [MinerU repository README](../raw/MinerU/README.md), “MinerU 4.0” and “Model Engines with Extras”; `mineru/model/registry.py::MINERU_4_MODELS_ONNX`, `::MINERU_4_MODELS_TORCH`, `::MINERU_2_5_PRO_2605_1_2B_GGUF`, `::model_repos_for_tier`; `mineru/model/runtime/device.py::resolve_small_model_backend`; `mineru/model/runtime/onnx.py::ort_providers`, `::table_ort_session`, `::configure_ort_threads`; `mineru/model/vlm/selector.py::resolve_vlm_engine`; `mineru/model/vlm/client.py::get_vlm_predictor`; `docs/next/model-assets.md` §§“下载与离线运行”, “资源结构”; `docs/en/usage/model_source.md` §“Three remote connections at a glance”; `mineru/doclib/telemetry/transport.py::signed_headers`; revision `b7f3dd0`.

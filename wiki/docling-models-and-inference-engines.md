@@ -12,7 +12,7 @@ sources:
     resource: ../raw/docling/README.md
     scope: ../raw/docling/
     kind: code
-    revision: 8f7ae54409583908f06a2172d260e71b964cc4dd
+    revision: 8f7ae54
     title: Docling repository
 ---
 
@@ -40,4 +40,4 @@ The VLM stage and model preset system can propagate `trust_remote_code` into the
 - **Related to:** [Docling architecture](docling-architecture.md), which explains backend and pipeline dispatch.
 - **Related to:** [Docling standard PDF pipeline](docling-standard-pdf-pipeline.md), the modular PDF conversion alternative.
 
-[^docling-repo]: Docling repository, revision `8f7ae54409583908f06a2172d260e71b964cc4dd`: `README.md` §Features, §Quickstart; `docling/datamodel/stage_model_specs.py::VlmModelSpec`, `StagePresetMixin.from_preset`; `docling/datamodel/pipeline_options.py::_default_vlm_convert_options`, `VlmPipelineOptions`; `docling/models/stages/vlm_convert/vlm_convert_model.py::VlmConvertModel`, `_predict_mineru2`; `docling/pipeline/vlm_pipeline.py::VlmPipeline._initialize_new_runtime_system`, `_initialize_legacy_vlm_models`; `docling/models/inference_engines/vlm/auto_inline_engine.py::AutoInlineVlmEngine._select_engine`, `initialize`; `docling/models/inference_engines/vlm/api_openai_compatible_engine.py::ApiVlmEngine.__init__`.
+[^docling-repo]: Docling repository, revision `8f7ae54`: `README.md` §Features, §Quickstart; `docling/datamodel/stage_model_specs.py::VlmModelSpec`, `StagePresetMixin.from_preset`; `docling/datamodel/pipeline_options.py::_default_vlm_convert_options`, `VlmPipelineOptions`; `docling/models/stages/vlm_convert/vlm_convert_model.py::VlmConvertModel`, `_predict_mineru2`; `docling/pipeline/vlm_pipeline.py::VlmPipeline._initialize_new_runtime_system`, `_initialize_legacy_vlm_models`; `docling/models/inference_engines/vlm/auto_inline_engine.py::AutoInlineVlmEngine._select_engine`, `initialize`; `docling/models/inference_engines/vlm/api_openai_compatible_engine.py::ApiVlmEngine.__init__`.

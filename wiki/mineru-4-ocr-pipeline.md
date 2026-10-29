@@ -12,7 +12,7 @@ sources:
     resource: ../raw/MinerU/README.md
     scope: ../raw/MinerU/
     kind: code
-    revision: b7f3dd0c5f6e6d66a298239ffd02b328b873918e
+    revision: b7f3dd0
     title: MinerU repository 4.0.12
 ---
 
@@ -41,4 +41,4 @@ Static inspection only: no sample PDF or model was run, and classification, nati
 - **Depends on:** [MinerU 4 models and inference engines](mineru-4-models-and-engines.md) for OCR, layout and formula models.
 - **Related to:** [Task: Layout-first modular parsing](task-layout-first-modular-parsing.md); this pipeline uses detected regions for specialist recognition.[^mineru-repo]
 
-[^mineru-repo]: [MinerU repository README](../raw/MinerU/README.md), “MinerU 4.0” and “Quality Tiers”; `mineru/backend/analysis/pdf/pipeline.py::_prepare_analysis`; `mineru/backend/analysis/pdf/window.py::_configured_window_size`, `::_prepare_pdf_window`, `::_process_flash_ocr`, `::_process_text_and_formulas`, `::_process_pdf_window`, `::process_pdf_windows`; `mineru/backend/analysis/pdf/ocr.py::_build_ocr_det_type_and_mfr_enable`, `::_collect_ocr_det_crops`, `::_ocr_det`, `::_apply_ocr_rec_results`, `::_apply_seal_ocr`; `mineru/backend/analysis/pdf/text/content.py::_fill_window_block_content_and_lines`; `mineru/backend/analysis/pdf/tables.py::_apply_medium_table_recognition`; revision `b7f3dd0c5f6e6d66a298239ffd02b328b873918e`.
+[^mineru-repo]: [MinerU repository README](../raw/MinerU/README.md), “MinerU 4.0” and “Quality Tiers”; `mineru/backend/analysis/pdf/pipeline.py::_prepare_analysis`; `mineru/backend/analysis/pdf/window.py::_configured_window_size`, `::_prepare_pdf_window`, `::_process_flash_ocr`, `::_process_text_and_formulas`, `::_process_pdf_window`, `::process_pdf_windows`; `mineru/backend/analysis/pdf/ocr.py::_build_ocr_det_type_and_mfr_enable`, `::_collect_ocr_det_crops`, `::_ocr_det`, `::_apply_ocr_rec_results`, `::_apply_seal_ocr`; `mineru/backend/analysis/pdf/text/content.py::_fill_window_block_content_and_lines`; `mineru/backend/analysis/pdf/tables.py::_apply_medium_table_recognition`; revision `b7f3dd0`.

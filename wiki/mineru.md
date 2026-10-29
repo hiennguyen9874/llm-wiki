@@ -14,7 +14,7 @@ sources:
     resource: ../raw/MinerU/README.md
     scope: ../raw/MinerU/
     kind: code
-    revision: b7f3dd0c5f6e6d66a298239ffd02b328b873918e
+    revision: b7f3dd0
     title: MinerU repository 4.0.12
 ---
 
@@ -62,4 +62,4 @@ This compilation is based only on the retained project README. Its linked docume
 
 [^mineru-readme]: OpenDataLab, [*MinerU README*](../raw/MinerU.md) (accessed 2026-08-21). Linked external resources and embedded remote assets were not inspected.
 
-[^mineru-4-repo]: [MinerU repository README](../raw/MinerU/README.md), “MinerU 4.0”; `mineru/parser/tier.py::_EFFORT_BY_TIER`; `mineru/model/runtime/device.py::resolve_small_model_backend`; `mineru/model/vlm/selector.py::resolve_vlm_engine`, revision `b7f3dd0c5f6e6d66a298239ffd02b328b873918e`.
+[^mineru-4-repo]: [MinerU repository README](../raw/MinerU/README.md), “MinerU 4.0”; `mineru/parser/tier.py::_EFFORT_BY_TIER`; `mineru/model/runtime/device.py::resolve_small_model_backend`; `mineru/model/vlm/selector.py::resolve_vlm_engine`, revision `b7f3dd0`.

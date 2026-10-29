@@ -12,7 +12,7 @@ sources:
     resource: ../raw/PaddleOCR/README.md
     scope: ../raw/PaddleOCR/
     kind: code
-    revision: dab3fe35379033fdcb2d0e9572fac0b36c9a9ebf
+    revision: dab3fe3
     title: PaddleOCR repository
 ---
 
@@ -40,4 +40,4 @@ The package configuration installs the `paddleocr` wrapper and depends on Paddle
 - **Used by:** [PaddleOCR repository pipelines](paddleocr-repository-pipelines.md), as a source-tree training and classic inference stack.
 - **Implements:** configurations for [PP-OCRv6](pp-ocrv6.md).[^paddleocr-repo]
 
-[^paddleocr-repo]: [Repository README](../raw/PaddleOCR/README.md), “Key Features”; revision `dab3fe35379033fdcb2d0e9572fac0b36c9a9ebf`: `ppocr/modeling/architectures/base_model.py::BaseModel`; `configs/det/PP-OCRv6/PP-OCRv6_medium_det.yml::Architecture`, `Loss`, `PostProcess`; `configs/rec/PP-OCRv6/PP-OCRv6_medium_rec.yml::Architecture`, `Loss`, `PostProcess`, `Global.character_dict_path`; `deploy/cpp_infer/src/configs/OCR.yaml::SubModules.TextDetection`; `pyproject.toml::project.dependencies` and `tool.setuptools.packages.find`; `docs/version3.x/pipeline_usage/PaddleOCR-VL.en.md`, introduction.
+[^paddleocr-repo]: [Repository README](../raw/PaddleOCR/README.md), “Key Features”; revision `dab3fe3`: `ppocr/modeling/architectures/base_model.py::BaseModel`; `configs/det/PP-OCRv6/PP-OCRv6_medium_det.yml::Architecture`, `Loss`, `PostProcess`; `configs/rec/PP-OCRv6/PP-OCRv6_medium_rec.yml::Architecture`, `Loss`, `PostProcess`, `Global.character_dict_path`; `deploy/cpp_infer/src/configs/OCR.yaml::SubModules.TextDetection`; `pyproject.toml::project.dependencies` and `tool.setuptools.packages.find`; `docs/version3.x/pipeline_usage/PaddleOCR-VL.en.md`, introduction.

@@ -24,7 +24,7 @@ sources:
     resource: ../raw/MiniCPM-OCR/README.md
     scope: ../raw/MiniCPM-OCR/
     kind: code
-    revision: b33b474136088dc43a2341e94590c804ec0c16a5
+    revision: b33b474
     title: MiniCPM-OCR repository
   - id: ovisocr3-model-card
     resource: ../raw/ATH-MaaS-OvisOCR3.md
@@ -64,5 +64,5 @@ Structured extraction and Key Information Extraction (KIE) go beyond faithful tr
 [^lift-card]: Datalab, [lift model card](../raw/lift.md), §§ lift and Features (schema-constrained extraction).
 [^paddleocr3-report]: PaddleOCR Team, [PaddleOCR 3.0 report](../raw/2507.05595_PaddleOCR-3.0/main.tex), § PP-ChatOCRv4 (OCR, retrieval and VLM answer fusion).
 [^glm-ocr-report]: GLM-OCR authors, [report entry point](../raw/2603.10910_GLM-OCR/main.tex), `sections/3_evaluation.tex` § Overall Benchmark Performance and `tables/docparse.tex` (KIE results); values are author-reported, not reproduced.
-[^minicpm-repo]: [MiniCPM-OCR repository](../raw/MiniCPM-OCR/README.md), revision `b33b474136088dc43a2341e94590c804ec0c16a5`, [model guide § Key Information Extraction](../raw/MiniCPM-OCR/docs/minicpm_ocr_1dot0_en.md#key-information-extraction-kie) (reported interface, not executed).
+[^minicpm-repo]: [MiniCPM-OCR repository](../raw/MiniCPM-OCR/README.md), revision `b33b474`, [model guide § Key Information Extraction](../raw/MiniCPM-OCR/docs/minicpm_ocr_1dot0_en.md#key-information-extraction-kie) (reported interface, not executed).
 [^ovisocr3-model-card]: ATH-MaaS, *OvisOCR3 model card*, local source at [ATH-MaaS-OvisOCR3.md](../raw/ATH-MaaS-OvisOCR3.md), § Capabilities, § Performance › Key Information Extraction, and § Task-Specific Usage › Key Information Extraction (accessed 2026-10-25).

@@ -12,7 +12,7 @@ sources:
     resource: ../raw/docling/README.md
     scope: ../raw/docling/
     kind: code
-    revision: 8f7ae54409583908f06a2172d260e71b964cc4dd
+    revision: 8f7ae54
     title: Docling repository
 ---
 
@@ -49,4 +49,4 @@ This is a **partial, static repository ingest** at the pinned revision, not a pe
 - **Related to:** [Docling models and inference engines](docling-models-and-inference-engines.md), an alternative VLM conversion path and shared engine architecture.
 - **Related to:** [Docling architecture](docling-architecture.md), the converter/backend overview.
 
-[^docling-repo]: Docling repository, revision `8f7ae54409583908f06a2172d260e71b964cc4dd`: `README.md` §Features, §License; `docling/document_converter.py::PdfFormatOption`, `ImageFormatOption`; `docling/pipeline/standard_pdf_pipeline.py::StandardPdfPipeline._create_run_ctx`, `_init_models`; `docling/datamodel/pipeline_options.py::PdfPipelineOptions`, `OcrOptions`; `docling/models/base_ocr_model.py::BaseOcrModel.get_ocr_rects`, `_find_pdf_aware_layout_ocr_rects`, `post_process_cells`; `docling/models/stages/ocr/auto_ocr_model.py::OcrAutoModel`; `docling/models/stages/ocr/kserve_v2_ocr_model.py::KserveV2OcrModel.__init__`; `docling/datamodel/kserve_v2_options.py::KserveV2OptionsMixin`.
+[^docling-repo]: Docling repository, revision `8f7ae54`: `README.md` §Features, §License; `docling/document_converter.py::PdfFormatOption`, `ImageFormatOption`; `docling/pipeline/standard_pdf_pipeline.py::StandardPdfPipeline._create_run_ctx`, `_init_models`; `docling/datamodel/pipeline_options.py::PdfPipelineOptions`, `OcrOptions`; `docling/models/base_ocr_model.py::BaseOcrModel.get_ocr_rects`, `_find_pdf_aware_layout_ocr_rects`, `post_process_cells`; `docling/models/stages/ocr/auto_ocr_model.py::OcrAutoModel`; `docling/models/stages/ocr/kserve_v2_ocr_model.py::KserveV2OcrModel.__init__`; `docling/datamodel/kserve_v2_options.py::KserveV2OptionsMixin`.

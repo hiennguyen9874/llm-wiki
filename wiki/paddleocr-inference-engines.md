@@ -12,7 +12,7 @@ sources:
     resource: ../raw/PaddleOCR/README.md
     scope: ../raw/PaddleOCR/
     kind: code
-    revision: dab3fe35379033fdcb2d0e9572fac0b36c9a9ebf
+    revision: dab3fe3
     title: PaddleOCR repository
 ---
 
@@ -37,4 +37,4 @@ The repository includes separate local, serving and client surfaces; the upstrea
 - **Used by:** [PaddleOCR repository pipelines](paddleocr-repository-pipelines.md).
 - **Supports:** [PaddleOCR-VL 1.6](paddleocr-vl-1.6.md) through a separately configured generative recognition backend.[^paddleocr-repo]
 
-[^paddleocr-repo]: [Repository README](../raw/PaddleOCR/README.md), “More Features”; revision `dab3fe35379033fdcb2d0e9572fac0b36c9a9ebf`: `paddleocr/_common_args.py::SUPPORTED_INFERENCE_ENGINE_LIST`, `prepare_common_init_args`; `paddleocr/_pipelines/paddleocr_vl.py::_SUPPORTED_VL_BACKENDS`, `PaddleOCRVL`; `docs/version3.x/inference_deployment/local_inference/inference_engine.en.md`, §§4.2–4.4; `docs/version3.x/inference_deployment/local_inference/high_performance_inference.en.md`, introduction and §1; `docs/version3.x/pipeline_usage/PaddleOCR-VL.en.md`, introduction.
+[^paddleocr-repo]: [Repository README](../raw/PaddleOCR/README.md), “More Features”; revision `dab3fe3`: `paddleocr/_common_args.py::SUPPORTED_INFERENCE_ENGINE_LIST`, `prepare_common_init_args`; `paddleocr/_pipelines/paddleocr_vl.py::_SUPPORTED_VL_BACKENDS`, `PaddleOCRVL`; `docs/version3.x/inference_deployment/local_inference/inference_engine.en.md`, §§4.2–4.4; `docs/version3.x/inference_deployment/local_inference/high_performance_inference.en.md`, introduction and §1; `docs/version3.x/pipeline_usage/PaddleOCR-VL.en.md`, introduction.

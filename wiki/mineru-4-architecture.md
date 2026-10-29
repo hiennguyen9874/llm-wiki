@@ -12,7 +12,7 @@ sources:
     resource: ../raw/MinerU/README.md
     scope: ../raw/MinerU/
     kind: code
-    revision: b7f3dd0c5f6e6d66a298239ffd02b328b873918e
+    revision: b7f3dd0
     title: MinerU repository 4.0.12
 ---
 
@@ -38,4 +38,4 @@ This is a **partial repository ingest** focused on the requested OCR, architectu
 - **Uses:** [MinerU 4 models and inference engines](mineru-4-models-and-engines.md) for independently selected small-model and VLM runtimes.
 - **Related to:** [MinerU](mineru.md) retains the older 3.x README evidence.
 
-[^mineru-repo]: [MinerU repository README](../raw/MinerU/README.md), “MinerU 4.0”, “Quick Start” and “Quality Tiers”; `docs/next/architecture.md` §“DocVortex 引擎边界”, §1–2; `mineru/parser/tier.py::_EFFORT_BY_TIER`; `mineru/backend/analysis/pdf/pipeline.py::_prepare_analysis`; `mineru/parser/mineru_parser.py::_prepare_input`; `pyproject.toml::[project]`; revision `b7f3dd0c5f6e6d66a298239ffd02b328b873918e`.
+[^mineru-repo]: [MinerU repository README](../raw/MinerU/README.md), “MinerU 4.0”, “Quick Start” and “Quality Tiers”; `docs/next/architecture.md` §“DocVortex 引擎边界”, §1–2; `mineru/parser/tier.py::_EFFORT_BY_TIER`; `mineru/backend/analysis/pdf/pipeline.py::_prepare_analysis`; `mineru/parser/mineru_parser.py::_prepare_input`; `pyproject.toml::[project]`; revision `b7f3dd0`.

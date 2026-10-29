@@ -1,6 +1,7 @@
 # Wiki Update Log
 
 ## 2026-10-29
+- **Update**: Shortened full Git revision references to seven characters in 17 concepts, including source metadata and citation locators.
 - **Ingest**: Partially compiled the [Docling repository](../raw/docling/README.md); created [standard PDF pipeline](docling-standard-pdf-pipeline.md) and [models and inference engines](docling-models-and-inference-engines.md), linked existing architecture and OCR concepts, and recorded pending coverage and unexecuted-runtime limits.
 - **Ingest**: Partially compiled the [MinerU repository](../raw/MinerU/README.md) after privacy review; created [architecture](mineru-4-architecture.md), [OCR pipeline](mineru-4-ocr-pipeline.md), and [models and engines](mineru-4-models-and-engines.md), distinguished the older [MinerU overview](mineru.md), and recorded pending coverage and unexecuted-runtime limits.
 - **Ingest**: Partially compiled the [PaddleOCR repository](../raw/PaddleOCR/README.md); created [pipeline](paddleocr-repository-pipelines.md), [model and training architecture](paddleocr-model-training-architecture.md), and [inference engine](paddleocr-inference-engines.md) concepts, linked the 3.0 overview, and recorded pending repository coverage and unexecuted-runtime limits.
