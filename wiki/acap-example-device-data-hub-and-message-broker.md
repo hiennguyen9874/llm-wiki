@@ -60,6 +60,8 @@ Evidence class: **Observed**; no topic was subscribed on a device. For the PTZ v
 
 ## Relationships
 
+- **Supports** [multi-object tracking options on Axis](axis-multi-object-tracking-options.md), distinguishing consumption of Axis tracks from tracking custom detections.
+
 - **Part of** [ACAP Native SDK examples repository](acap-native-sdk-examples-repository.md); manifest resources in [shared conventions](acap-examples-build-and-manifest-conventions.md).
 - **Uses** APIs catalogued in [Native SDK API catalog](acap-native-sdk-api-catalog.md).
 - **Complements** the event mechanism in [axevent](acap-example-events-and-parameters.md).
