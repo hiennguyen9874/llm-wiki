@@ -5,7 +5,8 @@ description: PaddleOCR-VL-1.6 is a 0.9B two-stage document parser that targets r
 tags: [document-parsing, ocr, vision-language-models, post-training, reinforcement-learning, data-curation]
 status: draft
 created: 2026-08-17
-generated: { by: llm-wiki-agent/1, at: 2026-10-25T03:35:00Z }
+generated: { by: llm-wiki-agent/1, at: 2026-10-29T14:03:42+07:00 }
+stale_after: 2027-01-29
 sources:
   - id: paddleocr-vl-1-6-report
     resource: ../raw/2606.03264_PaddleOCR-VL-1.6/main.tex
@@ -44,6 +45,10 @@ All results below are author-reported and not independently reproduced:[^paddleo
 - **Real5-OmniDocBench:** 93.19 overall, with scores of 94.74 (scanning), 92.48 (warping), 92.78 (screen photography), 93.28 (illumination), and 92.66 (skew).
 - **In-house capability tests:** 91.71 TEDS and 94.67 structural TEDS on a 1,258-sample hard-table set; 91.74 RMS-F1 on a 1,801-sample chart set; 87.47 average text-spotting accuracy across nine categories; and 0.119 normalized edit distance on a 300-image seal set.
 
+## Comparison and protocol limits
+
+**Reported:** the same report's OmniDocBench v1.6 table lists MinerU2.5-Pro at 95.75 overall, formula CDM 97.45, and reading-order edit 0.120 versus this model's 96.33, 97.49 and 0.127. Thus the overall lead does not imply a lead on reading order. Its Real5 table lists MinerU2.5-pro at 88.96 versus 93.19 here. The exact MinerU model revision is not specified in those rows, and the OmniDocBench values differ from its model cards; [the detailed comparison](paddleocr-mineru-docling-comparison.md#discrepancy-cần-giữ-riêng) preserves both sources without resolving the protocol difference. No corresponding Docling row appears in these two tables.[^paddleocr-vl-1-6-report]
+
 ## Trust limits
 
 - The bundle contains the report, bibliography, and three result/architecture figures, but no weights, data, training or evaluation code, prompts, annotation outputs, or reproducible benchmark configurations. Its model, procedure, and performance claims cannot be independently reproduced from these artifacts.[^paddleocr-vl-1-6-report]
@@ -56,6 +61,6 @@ All results below are author-reported and not independently reproduced:[^paddleo
 - **Uses:** [PP-DocLayoutV3](pp-doclayoutv3.md) unchanged for layout analysis, multipoint localization, and reading order before element recognition.[^paddleocr-vl-1-6-report]
 - **Extended by:** [SenOCR-Vi](senocr-vi.md), a Vietnamese decoder-only LoRA fine-tune that keeps this model's architecture and prompt/pipeline interface; its card reports 82.83 versus 80.90 here on a corrected Vietnamese MDPBench page population, but the base figure is leaderboard-derived and not recomputed through the same corrected pipeline.[^senocr-vi-model-card]
 
-[^paddleocr-vl-1-6-report]: Zhang et al., *PaddleOCR-VL-1.6: Expanding the Frontier of Document Parsing with Under-Optimized Region Refinement and Progressive Post-Training*, local LaTeX source at [main.tex](../raw/2606.03264_PaddleOCR-VL-1.6/main.tex), including the [reported-metrics figure](../raw/2606.03264_PaddleOCR-VL-1.6/images/vl16img_for_overleaf/metric.png), [system overview](../raw/2606.03264_PaddleOCR-VL-1.6/images/vl16img_for_overleaf/overall.png), and [data-engine diagram](../raw/2606.03264_PaddleOCR-VL-1.6/images/vl16img_for_overleaf/data_engine.png) (accessed 2026-08-17).
+[^paddleocr-vl-1-6-report]: Zhang et al., *PaddleOCR-VL-1.6: Expanding the Frontier of Document Parsing with Under-Optimized Region Refinement and Progressive Post-Training*, local LaTeX source at [main.tex](../raw/2606.03264_PaddleOCR-VL-1.6/main.tex), §Experiments → Document Parsing, tables `tab:omni16_full_performance` and `tab:real5-omnidocbench-performance`, including the [reported-metrics figure](../raw/2606.03264_PaddleOCR-VL-1.6/images/vl16img_for_overleaf/metric.png), [system overview](../raw/2606.03264_PaddleOCR-VL-1.6/images/vl16img_for_overleaf/overall.png), and [data-engine diagram](../raw/2606.03264_PaddleOCR-VL-1.6/images/vl16img_for_overleaf/data_engine.png) (accessed 2026-08-17).
 
 [^senocr-vi-model-card]: VietAlpha Lab, *SenOCR-Vi: A Vietnamese-Specialized Document OCR Model*, local model card at [VietAlphaLabs-SenOCR-Vi.md](../raw/VietAlphaLabs-SenOCR-Vi.md), § Evaluation › Vietnamese and § Benchmark note (accessed 2026-10-25).

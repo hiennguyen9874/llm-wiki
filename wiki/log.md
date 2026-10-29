@@ -1,6 +1,7 @@
 # Wiki Update Log
 
 ## 2026-10-29
+- **Query**: Compared [PaddleOCR, MinerU 4 and Docling](paddleocr-mineru-docling-comparison.md) using compiled implementation concepts and focused raw research; filed a Vietnamese synthesis, linked three architecture/pipeline concepts, documented MinerU application-license conditions and Paddle cross-page API boundaries, and preserved cross-source MinerU-Pro benchmark discrepancies in both affected model concepts. No inference or benchmark was executed.
 - **Update**: Shortened full Git revision references to seven characters in 17 concepts, including source metadata and citation locators.
 - **Ingest**: Partially compiled the [Docling repository](../raw/docling/README.md); created [standard PDF pipeline](docling-standard-pdf-pipeline.md) and [models and inference engines](docling-models-and-inference-engines.md), linked existing architecture and OCR concepts, and recorded pending coverage and unexecuted-runtime limits.
 - **Ingest**: Partially compiled the [MinerU repository](../raw/MinerU/README.md) after privacy review; created [architecture](mineru-4-architecture.md), [OCR pipeline](mineru-4-ocr-pipeline.md), and [models and engines](mineru-4-models-and-engines.md), distinguished the older [MinerU overview](mineru.md), and recorded pending coverage and unexecuted-runtime limits.

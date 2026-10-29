@@ -5,7 +5,8 @@ description: MinerU2.5-Pro is a 1.2B document-parsing vision-language model whos
 tags: [ocr, document-parsing, vision-language-models, data-engineering, table-recognition, formula-recognition]
 status: draft
 created: 2026-08-17
-generated: { by: llm-wiki-agent/1, at: 2026-08-17T14:30:00Z }
+generated: { by: llm-wiki-agent/1, at: 2026-10-29T14:03:42+07:00 }
+stale_after: 2027-01-29
 sources:
   - id: mineru2-5-pro-model-card
     resource: ../raw/MinerU2.5-Pro-2604-1.2B.md
@@ -13,6 +14,10 @@ sources:
   - id: mineru2-5-pro-2605-model-card
     resource: ../raw/MinerU2.5-Pro-2605-1.2B.md
     title: "MinerU2.5-Pro-2605-1.2B model card"
+  - id: paddleocr-vl-1-6-report
+    resource: ../raw/2606.03264_PaddleOCR-VL-1.6/main.tex
+    kind: paper
+    title: PaddleOCR-VL-1.6 technical report
 ---
 
 # MinerU2.5-Pro
@@ -43,13 +48,18 @@ The documented Python interface is `mineru-vl-utils`, with Transformers and vLLM
 
 - The card lists cross-page table merging as a native capability, but says it is “currently under integration” in its quick-start section.[^mineru2-5-pro-model-card]
 
+## Cross-source benchmark discrepancy
+
+**Reported:** the PaddleOCR-VL-1.6 report's OmniDocBench v1.6 table instead records MinerU2.5-Pro at 95.75 overall and formula CDM 97.45, while the 2605 card gives 95.72/97.15 for 2605 and 95.69/97.29 for 2604. The report row does not identify the exact MinerU revision, and no common outputs or evaluation configuration were inspected to reconcile these differences. Preserve both rather than treating either as a verified correction. See [PaddleOCR vs MinerU vs Docling](paddleocr-mineru-docling-comparison.md) for separately scoped comparisons.[^paddleocr-vl-1-6-report][^mineru2-5-pro-2605-model-card]
+
 ## Relationships
 
 - **Compares with:** [MinerU2.5](mineru2-5.md), which the card identifies as its previous baseline.[^mineru2-5-pro-model-card]
 
 ## Scope and trust limits
 
-This synthesis is based only on the local Apache-2.0 model cards. The linked technical report, model weights, utility package, and remote leaderboard, performance, and showcase images were not inspected. Accordingly, architecture details beyond the stated 1.2B size, the numerical claims above, and feature quality are unverified author claims.[^mineru2-5-pro-model-card][^mineru2-5-pro-2605-model-card]
+The model and operation synthesis is based on the local Apache-2.0 model cards, with a separately attributed benchmark comparison from the local PaddleOCR-VL-1.6 report. The linked technical report, model weights, utility package, and remote leaderboard, performance, and showcase images were not inspected. Accordingly, architecture details beyond the stated 1.2B size, the numerical claims above, and feature quality are unverified author claims.[^mineru2-5-pro-model-card][^mineru2-5-pro-2605-model-card]
 
 [^mineru2-5-pro-model-card]: OpenDataLab, [*MinerU2.5-Pro: Pushing the Limits of Data-Centric Document Parsing at Scale*](../raw/MinerU2.5-Pro-2604-1.2B.md) (accessed 2026-08-17). Remote image assets and linked external resources were not inspected.
-[^mineru2-5-pro-2605-model-card]: OpenDataLab, [*MinerU2.5-Pro-2605-1.2B model card*](../raw/MinerU2.5-Pro-2605-1.2B.md) (accessed 2026-08-17). Remote image assets and linked external resources were not inspected.
+[^mineru2-5-pro-2605-model-card]: OpenDataLab, [*MinerU2.5-Pro-2605-1.2B model card*](../raw/MinerU2.5-Pro-2605-1.2B.md), §News → Comparable Performance table; §Unmatched SOTA Performance; §1 Quick Start (accessed 2026-08-17; textual comparison revisited 2026-10-29). Remote image assets and linked external resources were not inspected.
+[^paddleocr-vl-1-6-report]: [PaddleOCR-VL-1.6 report](../raw/2606.03264_PaddleOCR-VL-1.6/main.tex), §Experiments → Document Parsing, table `tab:omni16_full_performance`; report attributes its values to the official leaderboard, not inspected independently here.

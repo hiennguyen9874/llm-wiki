@@ -5,7 +5,7 @@ description: MinerU 4 separates document-library and service orchestration from 
 tags: [ml, ocr, document-parsing, architecture]
 status: draft
 created: 2026-10-29
-generated: { by: llm-wiki-agent/1, at: 2026-10-29T13:55:01+07:00 }
+generated: { by: llm-wiki-agent/1, at: 2026-10-29T14:03:42+07:00 }
 stale_after: 2027-04-29
 sources:
   - id: mineru-repo
@@ -28,14 +28,19 @@ MinerU 4 is a document-parsing application that combines a local document librar
 
 **Reported:** the `mineru` CLI supports library-based parsing and progressive reading with page/block locators; `mineru-kit parse` is stateless. The README says library active reading defaults to the first 10 PDF pages while stateless parsing defaults to all pages. A remote document parse requires explicit configuration; this is distinct from telemetry and other configured remote inference.[^mineru-repo]
 
+## Application license
+
+**Observed:** `LICENSE.md` adds conditions to Apache-2.0: a separate commercial license is required when consolidated usage with affiliates exceeds 100 million MAU or consolidated monthly revenue exceeds USD 20 million. Online services to third parties must prominently identify MinerU in their interface or public documentation. Failure to meet the applicable commercial-license or attribution obligations automatically terminates the license. This is a reading of the retained text, not legal advice or a determination of dependency/model licenses; [MinerU-Pro's model-card license](mineru2-5-pro.md) is a separate artifact.[^mineru-repo]
+
 ## Coverage and limits
 
-This is a **partial repository ingest** focused on the requested OCR, architecture, models and engines. The README and `docs/` file inventory were inspected; selected architecture, tier and model-asset documentation and PDF/backend/runtime code were inspected statically, including focused test references. The wider doclib, API, router, UI, non-PDF parsers, deployment guides, design decisions and tests remain pending. Local images and integration screenshots are decorative or outside this focus; the chemical-knowledge PDF/XMind are not inspected. Vendored internals, model binaries and external dependencies are not analyzed. No parsing, model download, inference or project tests were executed; package functionality and accuracy are not independently verified. Source is a nested checkout untracked in the parent repository, so preservation across parent checkouts is not established.[^mineru-repo]
+This is a **partial repository ingest** focused on the requested OCR, architecture, models and engines. The README, application `LICENSE.md` §§1–4, and `docs/` file inventory were inspected; selected architecture, tier and model-asset documentation and PDF/backend/runtime code were inspected statically, including focused test references. The wider doclib, API, router, UI, non-PDF parsers, deployment guides, design decisions and tests remain pending. Local images and integration screenshots are decorative or outside this focus; the chemical-knowledge PDF/XMind are not inspected. Vendored internals, model binaries and external dependencies are not analyzed. No parsing, model download, inference or project tests were executed; package functionality and accuracy are not independently verified. Source is a nested checkout untracked in the parent repository, so preservation across parent checkouts is not established.[^mineru-repo]
 
 ## Relationships
 
+- **Compared by:** [PaddleOCR vs MinerU vs Docling](paddleocr-mineru-docling-comparison.md), including shared Paddle model components and application-license boundaries.
 - **Uses:** [MinerU 4 OCR pipeline](mineru-4-ocr-pipeline.md) for PDF text and layout inference.
 - **Uses:** [MinerU 4 models and inference engines](mineru-4-models-and-engines.md) for independently selected small-model and VLM runtimes.
 - **Related to:** [MinerU](mineru.md) retains the older 3.x README evidence.
 
-[^mineru-repo]: [MinerU repository README](../raw/MinerU/README.md), “MinerU 4.0”, “Quick Start” and “Quality Tiers”; `docs/next/architecture.md` §“DocVortex 引擎边界”, §1–2; `mineru/parser/tier.py::_EFFORT_BY_TIER`; `mineru/backend/analysis/pdf/pipeline.py::_prepare_analysis`; `mineru/parser/mineru_parser.py::_prepare_input`; `pyproject.toml::[project]`; revision `b7f3dd0`.
+[^mineru-repo]: [MinerU repository README](../raw/MinerU/README.md), “MinerU 4.0”, “Quick Start” and “Quality Tiers”; `docs/next/architecture.md` §“DocVortex 引擎边界”, §1–2; `mineru/parser/tier.py::_EFFORT_BY_TIER`; `mineru/backend/analysis/pdf/pipeline.py::_prepare_analysis`; `mineru/parser/mineru_parser.py::_prepare_input`; `pyproject.toml::[project]`; `LICENSE.md` §§1–4; revision `b7f3dd0`.
