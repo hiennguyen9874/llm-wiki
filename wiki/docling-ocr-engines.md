@@ -5,7 +5,7 @@ description: Docling offers optional OCR-engine integrations including RapidOCR,
 tags: [docling, ocr, rapidocr, easyocr, nemotron, tesseract]
 status: stable
 created: 2026-08-21
-generated: { by: llm-wiki-agent/1, at: 2026-08-21T03:17:04Z }
+generated: { by: llm-wiki-agent/1, at: 2026-10-29T06:58:04Z }
 sources:
   - id: docling-ocr-docs
     resource: ../raw/docling-concepts/OCR.md
@@ -34,6 +34,7 @@ Tesseract must be installed as a system package; tesserocr is its Python wrapper
 
 ## Relationships
 
+- **Used by:** [Docling standard PDF pipeline](docling-standard-pdf-pipeline.md), including its revision-specific auto-selection and OCR-region policies (synthesis).
 - **Used by:** [Docling architecture](docling-architecture.md) through configurable conversion backends and pipeline options.[^docling-ocr-docs]
 - **Related to:** [Docling confidence grades](docling-confidence-grades.md), whose report includes OCR quality.[^docling-ocr-docs]
 - **Related to:** [Nemotron OCR v2](nemotron-ocr-v2.md), the separately documented model family integrated by this source.

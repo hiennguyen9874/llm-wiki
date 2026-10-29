@@ -5,7 +5,7 @@ description: PaddleOCR 3.0 is an open-source document-AI toolkit that unifies mo
 tags: [ocr, document-ai, inference, deployment, mcp]
 status: draft
 created: 2026-08-17
-generated: { by: llm-wiki-agent/1, at: 2026-08-17T10:29:24Z }
+generated: { by: llm-wiki-agent/1, at: 2026-10-29T06:53:14Z }
 sources:
   - id: paddleocr3-report
     resource: ../raw/2507.05595_PaddleOCR-3.0/main.tex
@@ -48,6 +48,7 @@ The MCP server exposes OCR and PP-StructureV3 over stdio or Streamable HTTP. It 
 
 ## Relationships
 
+- **See also:** [PaddleOCR repository pipelines](paddleocr-repository-pipelines.md) for a later, statically inspected code snapshot and its coverage limits.
 - **Includes:** [PP-OCRv5](pp-ocrv5.md), [PP-StructureV3](pp-structurev3.md), and [PP-ChatOCRv4](pp-chatocrv4.md).
 
 [^paddleocr3-report]: Cui et al., *PaddleOCR 3.0 Technical Report*, local LaTeX source at [main.tex](../raw/2507.05595_PaddleOCR-3.0/main.tex), with referenced architecture, pipeline, deployment, and benchmark figures in the same source bundle (accessed 2026-08-17).

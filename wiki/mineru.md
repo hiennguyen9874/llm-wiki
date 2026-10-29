@@ -5,14 +5,22 @@ description: MinerU is an OpenDataLab document-parsing project that converts PDF
 tags: [ocr, document-parsing, pdf, markdown, json, document-ai]
 status: stable
 created: 2026-08-21
-generated: { by: llm-wiki-agent/1, at: 2026-08-21T10:11:40+07:00 }
+generated: { by: llm-wiki-agent/1, at: 2026-10-29T13:55:01+07:00 }
 sources:
   - id: mineru-readme
     resource: ../raw/MinerU.md
     title: "MinerU README"
+  - id: mineru-4-repo
+    resource: ../raw/MinerU/README.md
+    scope: ../raw/MinerU/
+    kind: code
+    revision: b7f3dd0c5f6e6d66a298239ffd02b328b873918e
+    title: MinerU repository 4.0.12
 ---
 
 # MinerU
+
+**Version boundary:** The backend names, commands, figures and capabilities below describe the retained 3.x README, not the newer repository. MinerU 4 uses tiers and independent runtime selection; see [MinerU 4 architecture](mineru-4-architecture.md), [OCR pipeline](mineru-4-ocr-pipeline.md), and [models and engines](mineru-4-models-and-engines.md).[^mineru-4-repo]
 
 MinerU is OpenDataLab's document-parsing project for converting PDF, images, DOCX, PPTX, XLSX, and web-page inputs into structured Markdown or JSON for retrieval and downstream processing. Its retained README documents three local inference families—`pipeline`, VLM, and hybrid—plus CLI, API, WebUI, and router deployment interfaces.[^mineru-readme]
 
@@ -53,3 +61,5 @@ MinerU is stated to use the MinerU Open Source License, described as based on Ap
 This compilation is based only on the retained project README. Its linked documentation, technical reports, source code, hosted demos, package artifacts, benchmark, and license were not inspected. The source's capabilities, performance, release, hardware, and licensing claims are therefore attributed to the project rather than independently verified.[^mineru-readme]
 
 [^mineru-readme]: OpenDataLab, [*MinerU README*](../raw/MinerU.md) (accessed 2026-08-21). Linked external resources and embedded remote assets were not inspected.
+
+[^mineru-4-repo]: [MinerU repository README](../raw/MinerU/README.md), “MinerU 4.0”; `mineru/parser/tier.py::_EFFORT_BY_TIER`; `mineru/model/runtime/device.py::resolve_small_model_backend`; `mineru/model/vlm/selector.py::resolve_vlm_engine`, revision `b7f3dd0c5f6e6d66a298239ffd02b328b873918e`.

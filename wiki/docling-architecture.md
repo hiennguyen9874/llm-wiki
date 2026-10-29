@@ -5,7 +5,7 @@ description: Docling converts each input format through a configurable backend a
 tags: [docling, document-parsing, architecture, document-conversion]
 status: stable
 created: 2026-08-21
-generated: { by: llm-wiki-agent/1, at: 2026-08-21T03:17:04Z }
+generated: { by: llm-wiki-agent/1, at: 2026-10-29T06:58:04Z }
 sources:
   - id: docling-architecture-docs
     resource: ../raw/docling-concepts/architecture.md
@@ -30,6 +30,7 @@ A `DoclingDocument` can be exported directly, passed to a [Docling serializer](d
 
 - **Uses:** [Docling document representation](docling-document-representation.md) as the conversion result's fundamental document model.[^docling-architecture-docs]
 - **Uses:** [Docling serialization](docling-serialization.md) and [Docling native chunking](docling-native-chunking.md) as documented downstream operations.[^docling-architecture-docs]
+- **Related to:** [Docling standard PDF pipeline](docling-standard-pdf-pipeline.md) and [Docling models and inference engines](docling-models-and-inference-engines.md) for revision-specific implementation details (synthesis).
 - **Related to:** [PDF-to-Markdown parser architectures](pdf-to-markdown-parser-architectures.md), whose retained comparison independently characterizes Docling as a structured-document-IR framework.
 
 [^docling-architecture-docs]: Docling, [*Architecture*](../raw/docling-concepts/architecture.md) (accessed 2026-08-21).

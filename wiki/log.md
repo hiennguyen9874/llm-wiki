@@ -1,6 +1,9 @@
 # Wiki Update Log
 
 ## 2026-10-29
+- **Ingest**: Partially compiled the [Docling repository](../raw/docling/README.md); created [standard PDF pipeline](docling-standard-pdf-pipeline.md) and [models and inference engines](docling-models-and-inference-engines.md), linked existing architecture and OCR concepts, and recorded pending coverage and unexecuted-runtime limits.
+- **Ingest**: Partially compiled the [MinerU repository](../raw/MinerU/README.md) after privacy review; created [architecture](mineru-4-architecture.md), [OCR pipeline](mineru-4-ocr-pipeline.md), and [models and engines](mineru-4-models-and-engines.md), distinguished the older [MinerU overview](mineru.md), and recorded pending coverage and unexecuted-runtime limits.
+- **Ingest**: Partially compiled the [PaddleOCR repository](../raw/PaddleOCR/README.md); created [pipeline](paddleocr-repository-pipelines.md), [model and training architecture](paddleocr-model-training-architecture.md), and [inference engine](paddleocr-inference-engines.md) concepts, linked the 3.0 overview, and recorded pending repository coverage and unexecuted-runtime limits.
 - **Update**: Connected [Xiaomi-OCR-0](xiaomi-ocr-0.md) to [layout-first modular parsing](task-layout-first-modular-parsing.md) as an optional two-stage workflow and to [table structure recognition](task-table-structure-recognition.md) as generative OTSL recognition, retaining the uninspected implementation and unreproduced benchmark limits.
 - **Ingest**: Compiled the [Xiaomi-OCR-0 model card](../raw/Xiaomi-OCR-0.md); created [model](xiaomi-ocr-0.md) and [training and data engine](xiaomi-ocr-0-training.md) concepts, linked OCR and KIE tasks and the data flywheel, and recorded author-reporting, missing external assets, and unreproduced deployment limits.
 
