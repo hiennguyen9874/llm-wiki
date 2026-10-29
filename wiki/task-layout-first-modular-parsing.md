@@ -5,7 +5,7 @@ description: Layout-first modular parsing groups systems that detect layout regi
 tags: [task, document-parsing, layout-analysis, modular-systems]
 status: stable
 created: 2026-08-22
-generated: { by: llm-wiki-agent/1, at: 2026-10-28T16:51:28Z }
+generated: { by: llm-wiki-agent/1, at: 2026-10-29T05:12:52Z }
 stale_after: 2027-04-25
 sources:
   - id: current-ocr-approaches
@@ -33,6 +33,10 @@ sources:
     kind: code
     revision: b33b474136088dc43a2341e94590c804ec0c16a5
     title: MiniCPM-OCR repository
+  - id: xiaomi-card
+    resource: ../raw/Xiaomi-OCR-0.md
+    kind: model-card
+    title: Xiaomi-OCR-0 model card
   - id: oxr-readme
     resource: ../raw/OXR-1.0.md
     kind: readme
@@ -55,6 +59,8 @@ Layout-first modular parsing first detects document elements (text blocks, table
 - [FalconOCR](falcon-ocr.md) — 300M PP-DocLayoutV3 → early-fusion text/LaTeX/HTML-table recognizer
 - [PP-StructureV3](pp-structurev3.md) — OCR + layout/article detection + specialist element models + order reconstruction
 - [Surya OCR 2](surya-ocr-2.md) — 650M shared VLM for layout/order/OCR/tables (boundary: can operate layout-first block-parallel or end-to-end)
+
+**Optional two-stage path:** [Xiaomi-OCR-0](xiaomi-ocr-0.md) also documents PP-DocLayoutV3 → region recognition → page assembly alongside its whole-page interface. The card points to external repository code, which was not inspected; crop resolution and assembly details are not established here.[^xiaomi-card]
 
 **Related boundary:** [OXR-1.0](oxr-1-0.md) separates a replaceable layout model from recognition, but places reading order in the recognition stage; its README does not establish crop resolution or the complete intermediate flow assumed by the core definition above.[^oxr-readme]
 
@@ -93,5 +99,6 @@ The comparison makes the fidelity cost measurable within one protocol: on the ve
 [^paddleocr-vl-1-6-report]: PaddleOCR Team, *PaddleOCR-VL-1.6 Technical Report*, local LaTeX source at [main.tex](../raw/2606.03264_PaddleOCR-VL-1.6/main.tex), § PaddleOCR-VL-1.6 Overview (two-stage framework and post-processing engine) and § Evaluation › Document Parsing (accessed 2026-10-25).
 [^indra-ocr-card]: Datalab, *Indra OCR model card* (`datalab-to/indra-ocr`), local capture [datalab-to-indra-ocr.md](../raw/datalab-to-indra-ocr.md), § Indra OCR (layout, line-classifier, and recognizer stages), § Output (block labels and reading order), and § Benchmarks › OmniParseBench (accessed 2026-10-25).
 [^minicpm-repo]: [MiniCPM-OCR repository](../raw/MiniCPM-OCR/README.md), revision `b33b474136088dc43a2341e94590c804ec0c16a5`, `docs/minicpm_ocr_1dot0_en.md` §§ Model Base and Architecture, Document Parsing Workflow, Evaluation and Throughput; `docs/benchmark_reproduction_en.md` §§ Scoring Methods and Parsing Efficiency Test (inspected 2026-10-28).
+[^xiaomi-card]: [Xiaomi-OCR-0 model card](../raw/Xiaomi-OCR-0.md), §§ Usage › Ollama and Use Examples › More code (inspected 2026-10-29); linked repository implementation was not inspected.
 [^oxr-readme]: SoMark, [OXR-1.0 README](../raw/OXR-1.0.md), § How it works › Technical Architecture (inspected 2026-10-27).
 [^omniparsebench]: Compiled synthesis in this wiki: [OmniParseBench](omniparsebench.md), § Reported structure, § Reported comparison, and § Protocol caveats; the underlying source is a vendor model card and was not run here (accessed 2026-10-25).

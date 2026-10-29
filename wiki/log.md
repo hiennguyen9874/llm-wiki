@@ -1,5 +1,9 @@
 # Wiki Update Log
 
+## 2026-10-29
+- **Update**: Connected [Xiaomi-OCR-0](xiaomi-ocr-0.md) to [layout-first modular parsing](task-layout-first-modular-parsing.md) as an optional two-stage workflow and to [table structure recognition](task-table-structure-recognition.md) as generative OTSL recognition, retaining the uninspected implementation and unreproduced benchmark limits.
+- **Ingest**: Compiled the [Xiaomi-OCR-0 model card](../raw/Xiaomi-OCR-0.md); created [model](xiaomi-ocr-0.md) and [training and data engine](xiaomi-ocr-0-training.md) concepts, linked OCR and KIE tasks and the data flywheel, and recorded author-reporting, missing external assets, and unreproduced deployment limits.
+
 ## 2026-10-28
 - **Update**: Reviewed eight OCR task pages against [MiniCPM-OCR](minicpm-ocr-1-0.md) and its [evaluation](minicpm-ocr-evaluation.md); connected direct KIE, region-table recognition, benchmark context, and the statically inspected optional cross-page SDK heuristic, repaired the KIE page citation join, and recorded unexecuted-test limits.
 - **Ingest**: Compiled benchmark figures, reproduction details and throughput data from the [MiniCPM-OCR repository](../raw/MiniCPM-OCR/README.md); created [MiniCPM-OCR evaluation](minicpm-ocr-evaluation.md), linked the two models and layout-first benchmark catalog, and recorded unresolved score and throughput discrepancies and unexecuted evaluation limits.

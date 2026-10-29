@@ -5,7 +5,7 @@ description: End-to-end generative OCR groups VLMs that map full page images dir
 tags: [task, document-parsing, ocr, vision-language-models, image-to-markdown]
 status: stable
 created: 2026-08-22
-generated: { by: llm-wiki-agent/1, at: 2026-10-27T10:01:00Z }
+generated: { by: llm-wiki-agent/1, at: 2026-10-29T05:11:26Z }
 sources:
   - id: unlimited-ocr-2-report
     resource: ../raw/Unlimited-OCR-2.pdf
@@ -27,6 +27,10 @@ sources:
     resource: ../raw/ATH-MaaS-OvisOCR3.md
     kind: model-card
     title: OvisOCR3 model card
+  - id: xiaomi-card
+    resource: ../raw/Xiaomi-OCR-0.md
+    kind: model-card
+    title: Xiaomi-OCR-0 model card
   - id: lightonocr-3
     resource: ../wiki/lightonocr-3.md
     title: LightOnOCR-3
@@ -57,6 +61,7 @@ Core retained models that perform this task as their primary interface:
 - [Qianfan-OCR](qianfan-ocr.md) — 4B with optional Layout-as-Thought
 - [RolmOCR](rolmocr.md) — 7B metadata-independent with rotated-page training
 - [Typhoon OCR](typhoon-ocr.md) — 2B Thai–English image-only prompt
+- [Xiaomi-OCR-0](xiaomi-ocr-0.md) — 0.8B prompt-driven page parsing with OTSL tables and LaTeX formulas.[^xiaomi-card]
 - [Unlimited OCR](unlimited-ocr.md) — 3B/500M-active with Reference Sliding Window Attention for multi-page one-shot; [Unlimited OCR 2](unlimited-ocr-2.md) adds sparse visual routing and chunked decoding for longer documents.[^unlimited-ocr-2-report]
 - [Chandra OCR](chandra-ocr.md) / [Chandra OCR 2](chandra-ocr-2.md) — Datalab Markdown/HTML/JSON conversion
 - [Granite Docling 258M](granite-docling-258m.md) — 258M VLM integrated with Docling
@@ -76,6 +81,7 @@ Core retained models that perform this task as their primary interface:
 - **Uses:** [Document-parser data flywheel](document-parser-data-flywheel.md) and [DOM-based document synthesis](dom-based-document-synthesis.md) for long-tail data
 - **Extended by:** [Task: Cross-page table reconstruction](task-cross-page-table-reconstruction.md) for tables that continue across page boundaries.
 
+[^xiaomi-card]: [Xiaomi-OCR-0 model card](../raw/Xiaomi-OCR-0.md), §§ About the model and Usage › Task prompts (inspected 2026-10-29).
 [^unlimited-ocr-2-report]: Baidu ERNIE Team, [Unlimited OCR Works 2](../raw/Unlimited-OCR-2.pdf), §§3.2–3.4.
 [^current-ocr-approaches]: Compiled synthesis in this wiki: [Current OCR approaches](current-ocr-approaches.md), § End-to-end generative document VLMs and § Cross-cutting technical directions (accessed 2026-10-25).
 [^end-to-end-benchmarks]: Compiled synthesis in this wiki: [End-to-end generative OCR VLM benchmarks](end-to-end-generative-ocr-vlm-benchmarks.md), § Scope and model coverage, § Benchmark and metric map, and § Trust limits; that page is the retained catalog of this family's datasets, metrics, and protocol conflicts (accessed 2026-10-25).

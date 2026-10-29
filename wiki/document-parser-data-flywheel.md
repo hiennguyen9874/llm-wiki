@@ -5,7 +5,7 @@ description: The document-parser data flywheel iteratively converts model weakne
 tags: [data-curation, document-parsing, evaluation, synthetic-data, workflows]
 status: draft
 created: 2026-08-17
-generated: { by: llm-wiki-agent/1, at: 2026-10-27T10:01:15Z }
+generated: { by: llm-wiki-agent/1, at: 2026-10-29T05:11:26Z }
 sources:
   - id: infinity-parser2-report
     resource: ../raw/2607.07836_Infinity-Parser2/arxiv_latex.tex
@@ -13,6 +13,10 @@ sources:
   - id: hunyuanocr-1-5-model-card
     resource: ../raw/HunyuanOCR-1.5.md
     title: "HunyuanOCR-1.5: Making Lightweight OCR VLMs Faster and Better"
+  - id: xiaomi-card
+    resource: ../raw/Xiaomi-OCR-0.md
+    kind: model-card
+    title: Xiaomi-OCR-0 model card
   - id: oxr-readme
     resource: ../raw/OXR-1.0.md
     kind: readme
@@ -38,6 +42,10 @@ HunyuanOCR-1.5 calls its approach **Agentic Data Flow**. Its model card says age
 
 [OXR-1.0](oxr-1-0.md) reports recursive self-improvement targeting samples it gets wrong or handles weakly without human annotation. **Synthesis:** this shares the weakness-targeted iteration pattern, but the README does not describe data generation, validation or held-out controls, so it does not establish equivalence to the detailed Infinity-Parser2 workflow.[^oxr-readme]
 
+## Xiaomi's reported data engine
+
+[Xiaomi-OCR-0](xiaomi-ocr-0.md) reports failure-driven mining and targeted synthesis alongside expert consensus and render-guided refinement. **Synthesis:** this shares the weakness-to-data pattern, but the card does not establish the same held-out controls or full iteration procedure as Infinity-Parser2.[^xiaomi-card]
+
 ## Observed ablation in the report
 
 On the authors' Flash ablation, adding pseudo-labeled web documents to public and manually labeled data raises olmOCR-Bench from 28.4 to 83.3 and DocLayNet from 49.03 to 62.48; adding synthetic data reaches 85.3 and 62.31. Later addition of element and generalization data expands capabilities but slightly lowers the reported core parsing and layout scores. These author-reported results support that the listed data additions coincided with performance changes, not that the flywheel alone caused them.[^infinity-parser2-report]
@@ -55,6 +63,7 @@ The workflow relies on proprietary data, specialist pseudo-labelers, hand-crafte
 - **Used by:** [Infinity-Parser2](infinity-parser2.md) as its reported data-curation process.[^infinity-parser2-report]
 - **Used by:** [HunyuanOCR-1.5](hunyuanocr-1.5.md) as a related agent-mediated data-construction approach with less documented procedure.[^hunyuanocr-1-5-model-card]
 
+[^xiaomi-card]: [Xiaomi-OCR-0 model card](../raw/Xiaomi-OCR-0.md), § Data Engine › Multi-Factor Mining and Targeted Synthesis (inspected 2026-10-29).
 [^infinity-parser2-report]: INF Team, *Infinity-Parser2 Technical Report*, local LaTeX source at [arxiv_latex.tex](../raw/2607.07836_Infinity-Parser2/arxiv_latex.tex), including [data flywheel](../raw/2607.07836_Infinity-Parser2/figures/data_flywheel_0605.pdf) (accessed 2026-08-17).
 [^oxr-readme]: SoMark, [OXR-1.0 README](../raw/OXR-1.0.md), § How it works › Improvement Through the RSI Loop (inspected 2026-10-27).
 [^hunyuanocr-1-5-model-card]: Tencent Hunyuan, *HunyuanOCR-1.5: Making Lightweight OCR VLMs Faster and Better*, local model card at [HunyuanOCR-1.5.md](../raw/HunyuanOCR-1.5.md) (accessed 2026-08-17).

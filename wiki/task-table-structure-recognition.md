@@ -5,8 +5,12 @@ description: Table structure recognition groups detectors that localize cells, r
 tags: [task, table-recognition, document-parsing, layout-analysis]
 status: stable
 created: 2026-08-22
-generated: { by: llm-wiki-agent/1, at: 2026-10-28T16:51:28Z }
+generated: { by: llm-wiki-agent/1, at: 2026-10-29T05:12:52Z }
 sources:
+  - id: xiaomi-card
+    resource: ../raw/Xiaomi-OCR-0.md
+    kind: model-card
+    title: Xiaomi-OCR-0 model card
   - id: nemotron-table-card
     resource: ../raw/nemotron-table-structure-v1.md
     title: Nemotron Table Structure v1 model card
@@ -48,7 +52,8 @@ Table structure recognition recovers the grid of a table (cells, rows, columns, 
 
 Implicit table handling (less explicit detection, more generative):
 
-- Models in [Task: End-to-end generative OCR](task-end-to-end-generative-ocr.md) that generate HTML/Markdown tables directly (e.g., DeepSeek-OCR 2, OvisOCR2, OvisOCR3, Qwen-based parsers) — retained for comparison but not primarily table-structure detectors
+- Models in [Task: End-to-end generative OCR](task-end-to-end-generative-ocr.md) that generate HTML/Markdown tables directly (e.g., DeepSeek-OCR 2, OvisOCR2, OvisOCR3, Qwen-based parsers) — retained for comparison but not primarily table-structure detectors.
+- [Xiaomi-OCR-0](xiaomi-ocr-0.md) — its table-region prompt requests OTSL, not cell boxes; its authors report 92.27 on PubTabNet, without enough protocol detail for a controlled comparison. Neither inference nor evaluation was reproduced.[^xiaomi-card]
 
 ## Rule-based and block-level extraction without a learned table model
 
@@ -74,6 +79,7 @@ Both statements are **reported** vendor documentation; neither was reproduced ag
 - **Extended by:** [Task: Cross-page table reconstruction](task-cross-page-table-reconstruction.md), which merges table fragments across page boundaries after per-page parsing.
 - **Implemented without a table model by:** [LiteParse](liteparse.md) via grid and span heuristics, and [Indra OCR](indra-ocr.md) via layout block labels.[^liteparse-readme][^indra-ocr-card]
 
+[^xiaomi-card]: [Xiaomi-OCR-0 model card](../raw/Xiaomi-OCR-0.md), §§ Benchmark results and Usage › Task prompts (inspected 2026-10-29).
 [^nemotron-table-card]: NVIDIA, *Nemotron Table Structure v1 model card*, local source at [nemotron-table-structure-v1.md](../raw/nemotron-table-structure-v1.md), locators: § Model Overview (cell/row/column components), § Model Card › Technical Limitations ("not robust to rotated tables"), § Limitations (low-confidence bottom cells) (accessed 2026-10-25).
 [^pp-structurev3-source]: PaddleOCR Team, *PaddleOCR 3.0 Technical Report*, local source at [2507.05595_PaddleOCR-3.0/main.tex](../raw/2507.05595_PaddleOCR-3.0/main.tex), § PP-StructureV3 › Document Items Recognition › Table Recognition (PP-TableMagic stages) (accessed 2026-10-25).
 [^paddleocr-vl-1-6-report]: PaddleOCR Team, *PaddleOCR-VL-1.6 Technical Report*, local source at [2606.03264_PaddleOCR-VL-1.6/main.tex](../raw/2606.03264_PaddleOCR-VL-1.6/main.tex), locators: § Document parsing framework (PP-DocLayoutV3 plus post-processing with cross-page table merging); § OmniDocBench v1.6 (296-page Hard subset); Table `tab:omni16_full_performance` (Table-TEDS 94.76, Table-TEDS-S 97.11) (accessed 2026-10-25).

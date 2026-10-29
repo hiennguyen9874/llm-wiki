@@ -4,6 +4,8 @@
 
 Bổ sung từ diff: [MiniCPM-OCR 1.0](../wiki/minicpm-ocr-1-0.md) là ứng viên layout-first 1,3B. Trong bảng riêng do nhóm MiniCPM công bố, model đạt **96,51** trên OmniDocBench v1.6 và **93,68** trên Real5; TeleOCR đạt **96,91** trên v1.6 trong cùng bảng. Không ghép trực tiếp các con số này vào bảng của paper TeleOCR hoặc report PaddleOCR vì điều kiện và nguồn khác nhau.
 
+Bổ sung từ diff mới: [Xiaomi-OCR-0](../wiki/xiaomi-ocr-0.md) là VLM **0,8B** có chế độ layout-first tùy chọn, bên cạnh chế độ whole-page. Model card báo cáo **96,83** trên OmniDocBench v1.6 và **95,24** trên Real5, nhưng không xác lập cấu hình pipeline của các kết quả này. Cần xem đây là ứng viên ranh giới, không tự coi điểm đó là kết quả của chế độ layout-first.
+
 Các điểm số dưới đây là **tác giả hoặc nhà cung cấp công bố**, chưa được chạy lại độc lập trong wiki. Bảng cùng nguồn giúp so sánh tốt hơn, nhưng không nhất thiết chứng minh mọi baseline đã được chạy lại với cấu hình đồng nhất.
 
 ## 1. Danh sách model, thời điểm và kích thước
@@ -52,7 +54,7 @@ Bảng dưới lấy **cùng một bảng** trong [paper TeleOCR, bảng OmniDoc
 4. **GLM-OCR cùng cỡ 0,9B nhưng thấp hơn PaddleOCR-VL-1.6** ở các cột trong bảng này. Điều đó không quyết định kết quả KIE, vì GLM-OCR có đường KIE riêng.
 5. **Không nên coi khoảng cách vài phần mười điểm là thứ hạng tuyệt đối.** Bảng trong [tổng hợp benchmark layout-first](../wiki/layout-first-modular-ocr-benchmarks.md) chép từ report PaddleOCR-VL-1.6 ghi VL-1.5 **94,93** thay vì **94,87** ở bảng TeleOCR; MinerU card cũng có các giá trị Pro hơi khác. Wiki không có snapshot leaderboard và cấu hình đầy đủ để giải thích chênh lệch.
 
-**Lưu ý:** Đây không phải toàn bộ model trong họ. FalconOCR, PP-StructureV3, SenOCR-Vi và các trường hợp ranh giới không có hàng tương ứng trong bảng trên; không nên tự điền từ benchmark khác.
+**Lưu ý:** Đây không phải toàn bộ model trong họ. FalconOCR, PP-StructureV3, SenOCR-Vi, Xiaomi-OCR-0 và các trường hợp ranh giới không có hàng tương ứng trong bảng trên; không nên tự điền từ benchmark khác.
 
 ## 3. Tài liệu chụp, scan và biến dạng
 
@@ -103,6 +105,23 @@ Trong bảng này, MiniCPM cao hơn PaddleOCR-VL-1.6 **0,17 điểm** trên v1.6
 
 **Khả năng bổ sung:** SDK có heuristic ghép bảng qua trang, mặc định tắt; đây là kết quả đọc mã tĩnh, chưa chạy test hay chứng minh độ chính xác. [Jev](../wiki/minicpm-ocr-jev.md) là model 2B riêng chấm tính đúng của vùng OCR để hỗ trợ chọn kết quả hoặc chuyển review, không tạo OCR; AUROC không tự xác lập ngưỡng chấp nhận an toàn. Xem [cross-page table reconstruction](../wiki/task-cross-page-table-reconstruction.md#minicpm-ocr-sdk-heuristic-merging).
 
+### Bảng riêng trong model card Xiaomi-OCR-0
+
+Nguồn: [model card Xiaomi-OCR-0 — Document parsing: selected comparisons](../raw/Xiaomi-OCR-0.md#document-parsing-selected-comparisons), đối chiếu với [trang wiki](../wiki/xiaomi-ocr-0.md#author-reported-evaluation). Các điểm là **Overall do nhà cung cấp báo cáo**, không chạy lại độc lập; dấu — nghĩa là nguồn không báo cáo. OvisOCR2 là model end-to-end được giữ làm baseline trong bảng gốc, không phải model layout-first lõi.
+
+| Model | Size | OmniDocBench v1.6 ↑ | Real5 ↑ | Wild ↑ |
+|---|---:|---:|---:|---:|
+| Xiaomi-OCR-0 | 0,8B | 96,83 | 95,24 | 87,94 |
+| TeleOCR | 1,2B | 96,87 | — | 88,53 |
+| OvisOCR2 | 0,8B | 96,58 | 92,29 | 87,91 |
+| PaddleOCR-VL-1.6 | 0,9B | 96,33 | 93,19 | 87,36 |
+| MinerU2.5-Pro | 1,2B | 95,75 | 88,94 | 87,33 |
+| GLM-OCR | 0,9B | 95,22 | 90,32 | 85,08 |
+
+Trong bảng của Xiaomi, Real5 của Xiaomi cao hơn PaddleOCR-VL-1.6 **2,05 điểm**, còn OmniDocBench thấp hơn TeleOCR **0,04 điểm**. Tuy nhiên, card không cung cấp đủ protocol, độ bất định hoặc cấu hình inference để kết luận thứ hạng tổng quát; đặc biệt **chưa rõ điểm Xiaomi dùng whole-page hay two-stage**. Không ghép các hàng này vào bảng TeleOCR, PaddleOCR hoặc MiniCPM. Chẳng hạn, Wild của PaddleOCR-VL-1.6 là **87,36** ở đây nhưng **91,49** trong bảng MiniCPM, vốn nêu scorer và sửa xoay riêng.
+
+Về triển khai, card mô tả tùy chọn **PP-DocLayoutV3 → nhận dạng vùng → ghép trang**, nhưng mã external chưa được kiểm tra; chưa rõ crop resolution và chi tiết ghép. Prompt bảng yêu cầu **OTSL**, không phải cell boxes; prompt KIE theo JSON schema cũng không bảo đảm output hợp lệ. Whole-page prompt yêu cầu bỏ header/footer, cần kiểm tra nếu workload cần giữ chúng. Card báo cáo **92,27 PubTabNet**, nhưng không đủ protocol để so sánh có kiểm soát. [Chi tiết và giới hạn](../wiki/xiaomi-ocr-0.md).
+
 ## 4. FalconOCR: nhỏ hơn, nhưng cần so đúng tập tiếng Anh
 
 ### OmniDocBench v1.5 — chỉ các trang tiếng Anh
@@ -142,6 +161,7 @@ SenOCR-Vi còn báo cáo **86,7%** cho text recognition theo `1 − edit distanc
 
 | Model | Size | Có nên đưa vào shortlist? | Bằng chứng benchmark |
 |---|---:|---|---|
+| [Xiaomi-OCR-0](../wiki/xiaomi-ocr-0.md) | 0,8B | Có, nếu muốn thử chế độ layout-first tùy chọn cùng whole-page; mã pipeline ngoài card chưa được kiểm tra. Trọng số phát hành **30/09/2026** theo card. | Card báo cáo **96,83** trên OmniDocBench v1.6 và **95,24** trên Real5; chưa xác định chế độ chạy hay đủ protocol để quy kết các điểm cho pipeline layout-first. |
 | [Surya OCR 2](../wiki/surya-ocr-2.md) | 650M cho VLM | Có, nếu muốn thử chế độ block layout-first; hệ thống cũng có chế độ full-page nên không hoàn toàn cùng định nghĩa. | Vendor báo cáo **83,3** trên olmOCR-bench với preset 8.413 test và điều chỉnh cho HTML. Không ghép trực tiếp với bảng Falcon. |
 | [Indra OCR](../wiki/indra-ocr.md) | Card nói **7,3M cho toàn bộ model mặc định**, nhưng có mô tả “1M” không được giải thích; tải mặc định khoảng **76 MB** gồm cả language model | Có, nếu ưu tiên **CPU, tốc độ và tài liệu in tương đối sạch** hơn là bảng phức tạp. | Trên [OmniParseBench](../wiki/omniparsebench.md), vendor báo cáo **66,7** mặc định và **71,4** với `--math`, so với **58,4** của PP-StructureV3. So sánh do vendor chạy; PP-StructureV3 thiếu 19 trang và các cấu hình không đối xứng. |
 | [OXR-1.0](../wiki/oxr-1-0.md) | 1,3B | Có thể theo dõi, nhưng thiếu dữ liệu để xếp hạng. | README quảng bá thứ hạng cao nhưng bản lưu không có score vector, version benchmark hoặc điều kiện test; layout/recognition flow cũng chưa đủ rõ để xếp chắc vào nhóm lõi. |
@@ -153,9 +173,10 @@ SenOCR-Vi còn báo cáo **86,7%** cho text recognition theo `1 − edit distanc
 - **Điểm tổng thể và bảng trên OmniDocBench v1.6:** thử **TeleOCR** trước, sau đó **PaddleOCR-VL-1.6**. Kiểm tra thêm lỗi lặp và tính ổn định trên tài liệu của bạn.
 - **Một model khoảng 0,9B cho nhiều loại tài liệu, kể cả ảnh biến dạng:** thử **PaddleOCR-VL-1.6**; nó dẫn bảng Real5 được lưu.
 - **Tài liệu tiếng Anh/Trung, cần throughput hoặc pipeline theo vùng:** thêm **MiniCPM-OCR 1.0** vào shortlist cùng TeleOCR và PaddleOCR-VL-1.6; đo tốc độ và chất lượng trên cùng phần cứng, cấu hình và dữ liệu thực tế. Chưa có bằng chứng trong các trang này để suy ra chất lượng tiếng Việt.
+- **Muốn thử một VLM 0,8B có cả whole-page và tùy chọn layout-first:** thêm **Xiaomi-OCR-0** vào thử nghiệm; đo riêng từng chế độ, kiểm tra OTSL, header/footer và phụ thuộc layout. Chưa có bằng chứng trong card đã kiểm tra để quy điểm benchmark cho chế độ two-stage hoặc suy ra chất lượng tiếng Việt.
 - **Reading order hoặc đang dùng hệ MinerU:** thử **MinerU2.5-Pro** song song với PaddleOCR-VL-1.6; xác nhận bản 2604 hay 2605 và chức năng cross-page table trong môi trường triển khai, vì model card có mô tả chưa nhất quán về trạng thái tính năng này. [Nguồn](../wiki/mineru2-5-pro.md).
 - **Chủ yếu tiếng Anh và cần model nhỏ:** thử **FalconOCR 0,3B**, nhất là nếu workload giống olmOCR-Bench hơn OmniDocBench.
 - **Chủ yếu tiếng Việt:** thử **SenOCR-Vi và PaddleOCR-VL-1.6 trên cùng tập**, đặc biệt giữ nguyên cách tính dấu tiếng Việt, bảng và formula. Bằng chứng hiện tại chưa đủ để chốt mức tăng 1,93 điểm.
 - **CPU-only, tài liệu đơn giản:** cân nhắc **Indra OCR**, nhưng đánh giá riêng handwriting, scan cũ và bảng có merged cells.
 
-**Giới hạn kiểm tra:** Bản cập nhật này dựa trên diff đã stage, các trang MiniCPM mới và hướng dẫn tái lập trong raw; không truy cập web, không tải model và không chạy benchmark. Chưa chạy lại structural check cho lần cập nhật output này. Các trang MiniCPM liên quan ở trạng thái **draft**, còn thiếu coverage và tài liệu tái lập; kết quả là số vendor báo cáo, chưa xác minh độc lập. Bản so sánh nằm trong `outputs/`, không thay đổi wiki.
+**Giới hạn kiểm tra:** Lần cập nhật này dựa trên diff đã stage, các trang Xiaomi và model card lưu cục bộ; không truy cập web, tải model hay chạy benchmark. `python3 tools/wiki_check.py` đã chạy và báo **OK: 103 concepts, 1 index**; đây là kiểm tra cấu trúc wiki, không xác minh điểm số hay chất lượng output. Trang Xiaomi ở trạng thái **draft**; repository, evaluation code và tài liệu ngoài card chưa được kiểm tra. Các trang MiniCPM liên quan cũng ở trạng thái draft và còn giới hạn coverage, tái lập. Bản so sánh nằm trong `outputs/`; lần cập nhật này không thay đổi wiki.

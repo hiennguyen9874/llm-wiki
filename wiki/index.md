@@ -109,3 +109,5 @@ The complete retrieval map for compiled knowledge. See [LLM Wiki Contract](../AG
 - [Typhoon OCR](typhoon-ocr.md) — Typhoon OCR is an open Thai-and-English document-extraction VLM family whose 2B V1.5 revision uses a single image-only prompt to emit Markdown, HTML tables, figure descriptions, equations, and page markers.
 - [Unlimited OCR](unlimited-ocr.md) — Unlimited OCR is a 3B-total, 500M-active end-to-end document OCR VLM that uses Reference Sliding Window Attention to bound decode-side KV-cache growth for one-shot multi-page parsing.
 - [Unlimited OCR 2](unlimited-ocr-2.md) — Unlimited OCR 2 is a document OCR VLM that combines sparse visual-reference attention and overlapping page chunks for long-document parsing.
+- [Xiaomi-OCR-0](xiaomi-ocr-0.md) — Xiaomi-OCR-0 is a 0.8B Qwen3.5-based vision-language model for document parsing, OCR-centric question answering, and key information extraction.
+- [Xiaomi-OCR-0 training and data engine](xiaomi-ocr-0-training.md) — Xiaomi-OCR-0's reported training combines consensus-based OCR annotation, render-guided refinement, targeted data synthesis, and mixed-task reinforcement learning.
