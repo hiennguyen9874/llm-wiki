@@ -5,7 +5,7 @@ description: Table structure recognition groups detectors that localize cells, r
 tags: [task, table-recognition, document-parsing, layout-analysis]
 status: stable
 created: 2026-08-22
-generated: { by: llm-wiki-agent/1, at: 2026-10-25T03:41:12Z }
+generated: { by: llm-wiki-agent/1, at: 2026-10-28T16:51:28Z }
 sources:
   - id: nemotron-table-card
     resource: ../raw/nemotron-table-structure-v1.md
@@ -20,6 +20,12 @@ sources:
     resource: ../raw/liteparse.md
     kind: readme
     title: LiteParse README
+  - id: minicpm-repo
+    resource: ../raw/MiniCPM-OCR/README.md
+    scope: ../raw/MiniCPM-OCR/
+    kind: code
+    revision: b33b474136088dc43a2341e94590c804ec0c16a5
+    title: MiniCPM-OCR repository
   - id: indra-ocr-card
     resource: ../raw/datalab-to-indra-ocr.md
     kind: model-card
@@ -38,6 +44,7 @@ Table structure recognition recovers the grid of a table (cells, rows, columns, 
   - [PaddleOCR-VL-1.5](paddleocr-vl-1.5.md) / [PaddleOCR-VL-1.6](paddleocr-vl-1.6.md) — evaluated on Paddle hard-table set (TEDS 91.71) and OmniDocBench table TEDS; the 1.6 report lists Table-TEDS 94.76 and Table-TEDS-S 97.11 on OmniDocBench v1.6, and its post-processing engine performs cross-page table merging.[^paddleocr-vl-1-6-report]
   - [MinerU2.5](mineru2-5.md) / [MinerU2.5-Pro](mineru2-5-pro.md) — native-resolution table-crop recognition
   - [FalconOCR](falcon-ocr.md) — HTML table generation per layout region
+  - [MiniCPM-OCR 1.0](minicpm-ocr-1-0.md) — prompted table-region recognition; the SDK converts OTSL to HTML. Its optional rule-based cross-page merge is documented under [cross-page table reconstruction](task-cross-page-table-reconstruction.md), not as a cell-box detector.[^minicpm-repo]
 
 Implicit table handling (less explicit detection, more generative):
 
@@ -71,4 +78,5 @@ Both statements are **reported** vendor documentation; neither was reproduced ag
 [^pp-structurev3-source]: PaddleOCR Team, *PaddleOCR 3.0 Technical Report*, local source at [2507.05595_PaddleOCR-3.0/main.tex](../raw/2507.05595_PaddleOCR-3.0/main.tex), § PP-StructureV3 › Document Items Recognition › Table Recognition (PP-TableMagic stages) (accessed 2026-10-25).
 [^paddleocr-vl-1-6-report]: PaddleOCR Team, *PaddleOCR-VL-1.6 Technical Report*, local source at [2606.03264_PaddleOCR-VL-1.6/main.tex](../raw/2606.03264_PaddleOCR-VL-1.6/main.tex), locators: § Document parsing framework (PP-DocLayoutV3 plus post-processing with cross-page table merging); § OmniDocBench v1.6 (296-page Hard subset); Table `tab:omni16_full_performance` (Table-TEDS 94.76, Table-TEDS-S 97.11) (accessed 2026-10-25).
 [^liteparse-readme]: run-llama, *LiteParse README*, local source at [liteparse.md](../raw/liteparse.md), § Markdown output block types and § table-cell bbox semantics (ruled versus borderless), plus the complexity warning deferring dense tables (accessed 2026-10-25). The parser was not run.
+[^minicpm-repo]: [MiniCPM-OCR repository](../raw/MiniCPM-OCR/README.md), revision `b33b474136088dc43a2341e94590c804ec0c16a5`, `docs/minicpm_ocr_1dot0_en.md` §§ Document Parsing Workflow and Single-Region Recognition; `sdk/minicpmvocr/postprocess/crosspage.py::merge_cross_page_tables` (static inspection, not executed).
 [^indra-ocr-card]: Datalab, *Indra OCR model card*, local source at [datalab-to-indra-ocr.md](../raw/datalab-to-indra-ocr.md), locators: § JSON output block labels (`Table`), § Limitations › Complex tables (accessed 2026-10-25). No benchmark run was reproduced.

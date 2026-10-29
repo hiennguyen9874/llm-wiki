@@ -1,5 +1,10 @@
 # Wiki Update Log
 
+## 2026-10-28
+- **Update**: Reviewed eight OCR task pages against [MiniCPM-OCR](minicpm-ocr-1-0.md) and its [evaluation](minicpm-ocr-evaluation.md); connected direct KIE, region-table recognition, benchmark context, and the statically inspected optional cross-page SDK heuristic, repaired the KIE page citation join, and recorded unexecuted-test limits.
+- **Ingest**: Compiled benchmark figures, reproduction details and throughput data from the [MiniCPM-OCR repository](../raw/MiniCPM-OCR/README.md); created [MiniCPM-OCR evaluation](minicpm-ocr-evaluation.md), linked the two models and layout-first benchmark catalog, and recorded unresolved score and throughput discrepancies and unexecuted evaluation limits.
+- **Ingest**: Partially compiled the [MiniCPM-OCR model card](../raw/MiniCPM-OCR-1.0.md) and [repository](../raw/MiniCPM-OCR/README.md); created draft concepts for [MiniCPM-OCR 1.0](minicpm-ocr-1-0.md) and [Jev](minicpm-ocr-jev.md), connected the layout-first task, and recorded pending package coverage and benchmark reproduction limits.
+
 ## 2026-10-27
 - **Ingest**: Compiled the [LightOnOCR-3 blog](../raw/lightonocr-3/index.md) and local figures; created [training](lightonocr-3-training.md) and [evaluation](lightonocr-3-evaluation.md), updated [LightOnOCR-3](lightonocr-3.md) and [deployment](lightonocr-3-deployment.md), and recorded vendor-reporting, postprocessing, rendering and unavailable external-artifact limits.
 - **Ingest**: Compiled [OXR-1.0 README](../raw/OXR-1.0.md); created [OXR-1.0](oxr-1-0.md), documenting its architecture, reported evaluation, deployment constraints and uninspected license and figures; updated [layout-first parsing](task-layout-first-modular-parsing.md) and the [document-parser data flywheel](document-parser-data-flywheel.md).
