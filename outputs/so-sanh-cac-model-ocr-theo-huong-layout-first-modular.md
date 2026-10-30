@@ -2,13 +2,9 @@
 
 **Kết luận nhanh:** Trong các bảng đã kiểm tra, [TeleOCR](../wiki/teleocr.md) đạt **96,87** trên OmniDocBench v1.6 Full, cao nhất trong các model layout-first xuất hiện ở bảng của chính bài báo TeleOCR. [PaddleOCR-VL-1.6](../wiki/paddleocr-vl-1.6.md) đạt **96,33**, còn [MinerU2.5-Pro](../wiki/mineru2-5-pro.md) đạt **95,75** và có reading-order edit thấp nhất trong nhóm ở bảng đó. Nếu ưu tiên model nhỏ, [FalconOCR](../wiki/falcon-ocr.md) chỉ **0,3B**, nhưng đánh giá được lưu chủ yếu là **tiếng Anh**, không nên ghép trực tiếp vào bảng đa ngôn ngữ.
 
-Bổ sung từ diff: [MiniCPM-OCR 1.0](../wiki/minicpm-ocr-1-0.md) là ứng viên layout-first 1,3B. Trong bảng riêng do nhóm MiniCPM công bố, model đạt **96,51** trên OmniDocBench v1.6 và **93,68** trên Real5; TeleOCR đạt **96,91** trên v1.6 trong cùng bảng. Không ghép trực tiếp các con số này vào bảng của paper TeleOCR hoặc report PaddleOCR vì điều kiện và nguồn khác nhau.
+[MiniCPM-OCR 1.0](../wiki/minicpm-ocr-1-0.md) là ứng viên layout-first 1,3B. Trong bảng riêng do nhóm MiniCPM công bố, model đạt **96,51** trên OmniDocBench v1.6 và **93,68** trên Real5; TeleOCR đạt **96,91** trên v1.6 trong cùng bảng. Không ghép trực tiếp các con số này vào bảng của paper TeleOCR hoặc report PaddleOCR vì điều kiện và nguồn khác nhau.
 
-Bổ sung từ diff mới: [Xiaomi-OCR-0](../wiki/xiaomi-ocr-0.md) là VLM **0,8B** có chế độ layout-first tùy chọn, bên cạnh chế độ whole-page. Model card báo cáo **96,83** trên OmniDocBench v1.6 và **95,24** trên Real5, nhưng không xác lập cấu hình pipeline của các kết quả này. Cần xem đây là ứng viên ranh giới, không tự coi điểm đó là kết quả của chế độ layout-first.
-
-Bổ sung từ diff hiện tại: [Surya OCR 2.5](../wiki/surya-ocr-2-5.md) là VLM **689M** có tùy chọn layout-first theo block, nhưng mặc định OCR toàn trang. Vendor báo cáo kết quả tốt hơn Surya 2 trên OmniParseBench trong cùng lần đánh giá; không ghép các điểm đó với OmniDocBench bên dưới.
-
-Đối chiếu với [so sánh benchmark mười model](../wiki/document-ocr-model-benchmark-comparison.md) và [phụ lục bằng chứng](../wiki/ocr-ten-model-benchmark-comparison.md): trong mười model đó, các model thuộc hướng layout-first là **TeleOCR, PaddleOCR-VL-1.6, MinerU2.5-Pro, MiniCPM-OCR 1.0**, còn **Surya OCR 2.5** là trường hợp ranh giới. Các con số đã có trong output này khớp với hai trang trên. Lần đối chiếu này bổ sung các benchmark còn thiếu: MDPBench, PureDocBench đầy đủ, OmniParseBench, olmOCR-Bench, CHAOS/OCRBench v2, các benchmark bảng và throughput của TeleOCR (mục 3–4). Phần so sánh với nhóm end-to-end chỉ dùng làm bối cảnh.
+**Phạm vi model:** tài liệu này chỉ giữ các hệ thống layout-first theo [phân loại trong wiki](../wiki/task-layout-first-modular-parsing.md). [MonkeyOCRv2-B-Parsing](../wiki/monkeyocrv2.md) cũng được giữ vì nó dự đoán phần tử và tọa độ trước, rồi crop từng phần tử để nhận dạng. Các trường hợp ranh giới nằm riêng ở mục 7. Trong mười model của [so sánh benchmark mười model](../wiki/document-ocr-model-benchmark-comparison.md), các model layout-first là **TeleOCR, PaddleOCR-VL-1.6, MinerU2.5-Pro, MiniCPM-OCR 1.0 và MonkeyOCRv2-B-Parsing**. Các model end-to-end, gồm OvisOCR2/3, Chandra OCR 2, Infinity-Parser2, LightOnOCR-3 và Xiaomi-OCR-0, đã được loại khỏi bảng và nhận xét; xem [so sánh end-to-end](so-sanh-cac-model-end-to-end-generative-ocr.md). Surya OCR 2.5 mặc định OCR toàn trang, nên benchmark chi tiết của nó cũng nằm bên đó.
 
 Các điểm số dưới đây là **tác giả hoặc nhà cung cấp công bố**, chưa được chạy lại độc lập trong wiki. Bảng cùng nguồn giúp so sánh tốt hơn, nhưng không nhất thiết chứng minh mọi baseline đã được chạy lại với cấu hình đồng nhất.
 
@@ -28,6 +24,7 @@ Phạm vi chính là các hệ thống phân vùng tài liệu trước rồi nh
 | [PaddleOCR-VL-1.6](../wiki/paddleocr-vl-1.6.md) | Report năm 2026; **chưa xác định ngày release chính xác** | 0,9B | Bản hiện tại trong chuỗi PaddleOCR-VL được wiki ghi nhận; mạnh ở cả OmniDocBench v1.6 và Real5. |
 | [TeleOCR](../wiki/teleocr.md) | Trọng số **NaviDC-OCR phát hành 17/08/2026**; đổi tên thành TeleOCR **10/09/2026** | 1,2B | Nhắm cả tài liệu số lẫn ảnh chụp bị biến dạng; bảng của paper có kết quả mạnh về table. |
 | [SenOCR-Vi](../wiki/senocr-vi.md) | Card trích preprint 2026 nhưng **không ghi ngày release** | **0,959B** | Fine-tune của PaddleOCR-VL-1.6 cho tiếng Việt; dùng được trong pipeline PaddleOCR-VL 1.6. |
+| [MonkeyOCRv2-B-Parsing](../wiki/monkeyocrv2.md) | Paper năm 2026; **chưa xác định ngày release chính xác** | ~0,7B (encoder B 113M + Qwen3-0.6B) | Dự đoán loại phần tử và tọa độ theo thứ tự đọc, crop từng phần tử, rồi nhận dạng và ghép kết quả. Mạnh trên MDPBench đa ngôn ngữ. |
 | [MiniCPM-OCR 1.0](../wiki/minicpm-ocr-1-0.md) | **Chưa xác minh ngày release chính xác** | 1,3B | PP-DocLayoutV3 → nhận dạng từng vùng → SDK ghép Markdown; ngôn ngữ chính là Trung và Anh. Có KIE trực tiếp và heuristic ghép bảng qua trang tùy chọn. |
 
 Mốc ngày rõ ràng được đối chiếu thêm trong model card của [PaddleOCR-VL](../raw/PaddleOCR-VL.md#news), [PaddleOCR-VL-1.5](../raw/2601.21957_PaddleOCR-VL-1.5/README.md#news), [MinerU2.5-Pro-2605](../raw/MinerU2.5-Pro-2605-1.2B.md) và [TeleOCR](../raw/arXiv-2608.12898v3-TeleOCR/README.md#-news). Tên checkpoint `2509` hoặc `2604` **không đủ để khẳng định ngày phát hành**.
@@ -58,9 +55,9 @@ Bảng dưới lấy **cùng một bảng** trong [paper TeleOCR, bảng OmniDoc
 4. **GLM-OCR cùng cỡ 0,9B nhưng thấp hơn PaddleOCR-VL-1.6** ở các cột trong bảng này. Điều đó không quyết định kết quả KIE, vì GLM-OCR có đường KIE riêng.
 5. **Không nên coi khoảng cách vài phần mười điểm là thứ hạng tuyệt đối.** Bảng trong [tổng hợp benchmark layout-first](../wiki/layout-first-modular-ocr-benchmarks.md) chép từ report PaddleOCR-VL-1.6 ghi VL-1.5 **94,93** thay vì **94,87** ở bảng TeleOCR; Model card MinerU cũng ghi giá trị khác: Pro-2604 **95,69** (CDM 97,29), Pro-2605 **95,72** (CDM 97,15), so với 95,75 / 97,45 trong bảng này. Wiki không có snapshot leaderboard và cấu hình đầy đủ để giải thích chênh lệch.
 6. **MinerU2.5-Pro theo tập con (ảnh leaderboard của MinerU):** Base **96,12**, Hard **94,08**. Vector Hard: text edit 0,052, CDM 97,54, TEDS 89,91, TEDS-S 93,61, order edit 0,170. [Phụ lục §1](../wiki/ocr-ten-model-benchmark-comparison.md#1-omnidocbench-v16-mineru25-pro-base--hard)
-7. **Bối cảnh ngoài nhóm:** OvisOCR3 (end-to-end) tự báo cáo **96,74**, MiniCPM-OCR 1.0 tự báo cáo **96,51**. Cụm TeleOCR / OvisOCR3 / MiniCPM / PaddleOCR-VL-1.6 nằm trong khoảng 96,3–96,9. Chênh lệch trong cụm này nhỏ hơn mức chênh giữa các nguồn, nên không đủ để xếp hạng chắc chắn. [Nguồn](../wiki/document-ocr-model-benchmark-comparison.md#omnidocbench-v16-full)
+7. **Các dòng layout-first từ nguồn khác:** MiniCPM-OCR 1.0 tự báo cáo **96,51** (mục 3). MonkeyOCRv2-B-Parsing tự báo cáo **91,57** trong bài của nó, với text edit 0,053, CDM 91,83, TEDS 88,24, TEDS-S 91,38 và order edit 0,131. Cụm TeleOCR / MiniCPM / PaddleOCR-VL-1.6 nằm trong khoảng 96,3–96,9. Chênh lệch trong cụm nhỏ hơn mức chênh giữa các nguồn, nên không đủ để xếp hạng chắc chắn. [Nguồn](../wiki/document-ocr-model-benchmark-comparison.md#omnidocbench-v16-full)
 
-**Lưu ý:** Đây không phải toàn bộ model trong họ. FalconOCR, PP-StructureV3, SenOCR-Vi, Xiaomi-OCR-0 và các trường hợp ranh giới không có hàng tương ứng trong bảng trên; không nên tự điền từ benchmark khác.
+**Lưu ý:** Đây không phải toàn bộ model trong họ. FalconOCR, PP-StructureV3, SenOCR-Vi và các trường hợp ranh giới không có hàng tương ứng trong bảng trên; không nên tự điền từ benchmark khác.
 
 ## 3. Tài liệu chụp, scan và biến dạng
 
@@ -78,7 +75,7 @@ Real5 đo năm điều kiện: scan, cong/biến dạng, chụp màn hình, ánh
 | PaddleOCR-VL | 85,54 | 92,11 | 85,97 | 82,54 | 89,61 | 77,47 |
 | PP-StructureV3 | 64,45 | 84,68 | 59,34 | 66,89 | 73,38 | 37,98 |
 
-**Điểm đáng chú ý:** trên bảng này, PaddleOCR-VL-1.6 dẫn đầu cả năm điều kiện. Chênh lệch đặc biệt lớn ở **lệch góc**: 92,66 so với 81,26 của MinerU2.5-Pro và 37,98 của PP-StructureV3. Đây là bằng chứng hữu ích để chọn ứng viên thử nghiệm ảnh chụp, nhưng Real5 không bao phủ mọi điều kiện thực tế.
+**Điểm đáng chú ý:** trên bảng này, PaddleOCR-VL-1.6 dẫn đầu cả năm điều kiện. Chênh lệch đặc biệt lớn ở **lệch góc**: 92,66 so với 81,26 của MinerU2.5-Pro và 37,98 của PP-StructureV3. Đây là bằng chứng hữu ích để chọn ứng viên thử nghiệm ảnh chụp, nhưng Real5 không bao phủ mọi điều kiện thực tế. Card OvisOCR3 ghi thêm MonkeyOCRv2-B-Parsing **89,22** overall; nguồn này khác và không có điểm theo từng điều kiện.
 
 ### TeleOCR: benchmark ảnh chụp khác, không ghép với Real5
 
@@ -99,8 +96,9 @@ Cả ba hàng lấy từ cùng bảng của paper TeleOCR, chấm bằng `quick_
 | **TeleOCR** | **78,41** | **86,90** | **77,47** | **70,85** | Paper TeleOCR |
 | MinerU2.5-Pro | 70,07 | 75,87 | 71,77 | 62,56 | Paper TeleOCR; báo cáo OvisOCR2 cũng ghi các số này |
 | PaddleOCR-VL-1.6 | 65,44 (overall) | — | — | — | Card OvisOCR3; không nêu định nghĩa overall |
+| MonkeyOCRv2-B-Parsing | 64,91 (overall) | — | — | — | Card OvisOCR3; không nêu định nghĩa overall |
 
-Vector `Text ED ↓ / CDM ↑ / TEDS ↑` theo track: TeleOCR Clean 0,111 / 81,01 / 91,09 và Real 0,302 / 65,11 / 77,66; MinerU2.5-Pro Clean 0,222 / 65,14 / 84,68 và Real 0,375 / 52,70 / 72,47. Hàng PaddleOCR-VL-1.6 khác nguồn nên không xếp cùng hai hàng trên. Bối cảnh: OvisOCR3 (end-to-end) tự báo cáo 82,31 mà không nêu định nghĩa. [Phụ lục §2](../wiki/ocr-ten-model-benchmark-comparison.md#2-puredocbench-component-vectors-theo-track)
+Vector `Text ED ↓ / CDM ↑ / TEDS ↑` theo track: TeleOCR Clean 0,111 / 81,01 / 91,09 và Real 0,302 / 65,11 / 77,66; MinerU2.5-Pro Clean 0,222 / 65,14 / 84,68 và Real 0,375 / 52,70 / 72,47. Hai hàng PaddleOCR-VL-1.6 và MonkeyOCRv2-B-Parsing khác nguồn, nên không xếp cùng hai hàng đầu. [Phụ lục §2](../wiki/ocr-ten-model-benchmark-comparison.md#2-puredocbench-component-vectors-theo-track)
 
 Với PureDocBench, tác giả TeleOCR loại sáu prediction Markdown không hợp lệ (1 Clean, 5 Real) sau hiện tượng lặp nghiêm trọng và nói prediction bị thiếu được chấm 0. Đây là failure mode cần lưu ý khi thử nghiệm. Nguồn và giới hạn: [TeleOCR — Reported evaluation](../wiki/teleocr.md#reported-evaluation).
 
@@ -112,10 +110,11 @@ Nguồn là bảng chính thức trong README MDPBench. TeleOCR và MiniCPM-OCR 
 
 | Model | All ↑ | Digital | Photo | Latin avg | Non-Latin avg | VI | ZH | Private |
 |---|---:|---:|---:|---:|---:|---:|---:|---:|
-| **PaddleOCR-VL-1.6** | **78,9** | **87,1** | **76,3** | **81,4** | **76,1** | **80,9** | **85,9** | **83,0** |
+| **MonkeyOCRv2-B-Parsing** | **83,3** | **88,1** | **81,7** | **84,2** | **82,1** | **83,2** | 83,6 | **84,7** |
+| PaddleOCR-VL-1.6 | 78,9 | 87,1 | 76,3 | 81,4 | 76,1 | 80,9 | **85,9** | 83,0 |
 | MinerU2.5-Pro | 71,0 | 86,2 | 66,1 | 74,6 | 67,0 | 74,2 | 76,5 | 74,3 |
 
-Khoảng cách chủ yếu nằm ở trang **ảnh chụp** (76,3 so với 66,1); trên trang digital, hai model chỉ cách nhau 0,9 điểm. Bài MonkeyOCRv2 lại ghi PaddleOCR-VL-1.6 là **75,0** (82,8 / 72,6), và không nguồn nào giải thích chênh lệch này. Bối cảnh ngoài nhóm trong cùng README: MonkeyOCRv2-B-Parsing 83,3, Chandra OCR 2 79,7 (VI 85,6). OvisOCR3 tự báo cáo 88,8 nhưng không có mặt trong README. Điểm VI 80,9 của PaddleOCR-VL-1.6 khớp với mốc base trong mục SenOCR-Vi bên dưới. [Nguồn](../wiki/document-ocr-model-benchmark-comparison.md#mdpbench-17-ngôn-ngữ-digital--photographed)
+MonkeyOCRv2-B-Parsing dẫn mọi cột trừ ZH. Khoảng cách giữa ba model chủ yếu nằm ở trang **ảnh chụp** (81,7 / 76,3 / 66,1); trên trang digital, chúng chỉ cách nhau tối đa 1,9 điểm. Nhóm tác giả MonkeyOCRv2 cũng là bên quản lý benchmark và tự nộp hàng của mình. Bài MonkeyOCRv2 lại ghi PaddleOCR-VL-1.6 là **75,0** (82,8 / 72,6), và không nguồn nào giải thích chênh lệch này. Điểm VI 80,9 của PaddleOCR-VL-1.6 khớp với mốc base trong mục SenOCR-Vi bên dưới. [Nguồn](../wiki/document-ocr-model-benchmark-comparison.md#mdpbench-17-ngôn-ngữ-digital--photographed)
 
 ### Bảng riêng do nhóm MiniCPM-OCR công bố
 
@@ -148,67 +147,30 @@ CHAOS chỉ đo khả năng giữ đúng 1.025 từ bị thay đổi trên 500 t
 
 **Khả năng bổ sung:** SDK có heuristic ghép bảng qua trang, mặc định tắt; đây là kết quả đọc mã tĩnh, chưa chạy test hay chứng minh độ chính xác. [Jev](../wiki/minicpm-ocr-jev.md) là model 2B riêng chấm tính đúng của vùng OCR để hỗ trợ chọn kết quả hoặc chuyển review, không tạo OCR; AUROC không tự xác lập ngưỡng chấp nhận an toàn. Xem [cross-page table reconstruction](../wiki/task-cross-page-table-reconstruction.md#minicpm-ocr-sdk-heuristic-merging).
 
-### Bảng riêng trong model card Xiaomi-OCR-0
-
-Nguồn: [model card Xiaomi-OCR-0 — Document parsing: selected comparisons](../raw/Xiaomi-OCR-0.md#document-parsing-selected-comparisons), đối chiếu với [trang wiki](../wiki/xiaomi-ocr-0.md#author-reported-evaluation). Các điểm là **Overall do nhà cung cấp báo cáo**, không chạy lại độc lập; dấu — nghĩa là nguồn không báo cáo. OvisOCR2 là model end-to-end được giữ làm baseline trong bảng gốc, không phải model layout-first lõi.
-
-| Model | Size | OmniDocBench v1.6 ↑ | Real5 ↑ | Wild ↑ |
-|---|---:|---:|---:|---:|
-| Xiaomi-OCR-0 | 0,8B | 96,83 | 95,24 | 87,94 |
-| TeleOCR | 1,2B | 96,87 | — | 88,53 |
-| OvisOCR2 | 0,8B | 96,58 | 92,29 | 87,91 |
-| PaddleOCR-VL-1.6 | 0,9B | 96,33 | 93,19 | 87,36 |
-| MinerU2.5-Pro | 1,2B | 95,75 | 88,94 | 87,33 |
-| GLM-OCR | 0,9B | 95,22 | 90,32 | 85,08 |
-
-Trong bảng của Xiaomi, Real5 của Xiaomi cao hơn PaddleOCR-VL-1.6 **2,05 điểm**, còn OmniDocBench thấp hơn TeleOCR **0,04 điểm**. Tuy nhiên, card không cung cấp đủ protocol, độ bất định hoặc cấu hình inference để kết luận thứ hạng tổng quát; đặc biệt **chưa rõ điểm Xiaomi dùng whole-page hay two-stage**. Không ghép các hàng này vào bảng TeleOCR, PaddleOCR hoặc MiniCPM. Chẳng hạn, Wild của PaddleOCR-VL-1.6 là **87,36** ở đây nhưng **91,49** trong bảng MiniCPM, vốn nêu scorer và sửa xoay riêng.
-
-Về triển khai, card mô tả tùy chọn **PP-DocLayoutV3 → nhận dạng vùng → ghép trang**, nhưng mã external chưa được kiểm tra; chưa rõ crop resolution và chi tiết ghép. Prompt bảng yêu cầu **OTSL**, không phải cell boxes; prompt KIE theo JSON schema cũng không bảo đảm output hợp lệ. Whole-page prompt yêu cầu bỏ header/footer, cần kiểm tra nếu workload cần giữ chúng. Card báo cáo **92,27 PubTabNet**, nhưng không đủ protocol để so sánh có kiểm soát. [Chi tiết và giới hạn](../wiki/xiaomi-ocr-0.md).
-
-### Surya 2.5 so với Surya 2: benchmark riêng
-
-Nguồn: [Surya OCR 2.5 — Vendor-reported evaluation](../wiki/surya-ocr-2-5.md#vendor-reported-evaluation). Đây là kết quả **vendor báo cáo, chưa tái lập**, cho hai checkpoint trong cùng thiết lập; không suy ra thứ hạng so với các model trong bảng OmniDocBench hay Falcon.
-
-| Benchmark / metric | Surya 2 | Surya 2.5 |
-|---|---:|---:|
-| OmniParseBench headline ↑ | 83,3 | **85,9** |
-| Text ↑ | 81,0 | **83,8** |
-| Tables ↑ | 74,3 | **78,3** |
-| Layout ↑ | 94,5 | **95,7** |
-| olmOCR-bench ↑ | 82,8 | **83,7** |
-
-OmniParseBench dùng `surya-ocr` 0.23.0, 192 DPI, public scorer và một lần chạy mỗi model; vendor báo cáo khoảng bootstrap 95% cho chênh lệch headline **+1,6 đến +3,7 điểm**. olmOCR-bench là trung bình ba lượt output thô; điểm **82,8** của Surya 2 ở lần chạy này khác **83,3** trong card cũ và không nên thay thế cho nhau. Trên benchmark nội bộ 91 ngôn ngữ phiên bản mới, vendor báo cáo tiếng Việt **63,6%** cho 2.5 so với **57,9%** cho 2; không so trực tiếp với điểm SenOCR-Vi trên MDPBench. Bảng ngôn ngữ đầy đủ và scorer chưa được kiểm tra.
-
-**Đánh đổi thực tế:** 2.5 xuất HTML bảng có merged cells nhưng `surya_table --mode simple` trả lỗi; muốn row/column geometry qua chế độ này cần checkpoint Surya 2. Geometry của block vẫn có trong output 2.5. Hai đường full-page và layout-first cần được đo riêng; nguồn không xác lập kết quả benchmark trên là của block mode. [Chi tiết triển khai](../wiki/surya-ocr-2-5-deployment.md).
-
-**Tốc độ do vendor tự đo:** trên một H100 80 GB với vLLM 0.25.1 và concurrency 32, Surya 2.5 đạt **4,52 trang/s** ở 192 DPI (6,19 ở 96 DPI, 2,68 ở 300 DPI). Phần cứng khác phép đo RTX 5090 của MiniCPM, nên không so trực tiếp. [Phụ lục §7](../wiki/ocr-ten-model-benchmark-comparison.md#7-throughput-điều-kiện-chi-tiết)
-
 ## 4. Benchmark unit-test và benchmark bảng
 
 ### OmniParseBench (Datalab chạy các model)
 
-Headline là trung bình của text, tables và layout. Model open-weight được Datalab chạy bằng server image của `omni-parse-bench` với default do vendor khuyến nghị. Datalab cũng là tác giả Surya, nên đây là bằng chứng do vendor chạy. TeleOCR không có trong bảng.
+Headline là trung bình của text, tables và layout. Model open-weight được Datalab chạy bằng server image của `omni-parse-bench` với default do vendor khuyến nghị. Datalab là bên xây dựng và chạy benchmark, đồng thời có model cạnh tranh, nên đây là bằng chứng do vendor chạy. TeleOCR và MonkeyOCRv2 không có trong bảng.
 
 | Model | Headline ↑ | Text | Tables | Layout |
 |---|---:|---:|---:|---:|
-| **MinerU2.5-Pro** | **87,1** | 77,4 | **92,1** | 91,7 |
-| Surya OCR 2.5 (ranh giới) | 85,9 | **83,8** | 78,3 | **95,7** |
+| **MinerU2.5-Pro** | **87,1** | **77,4** | **92,1** | **91,7** |
 | MiniCPM-OCR 1.0 | 83,2 | 72,8 | 89,1 | 87,6 |
 | PaddleOCR-VL-1.6 | 78,7 | 61,7 | 83,7 | 90,7 |
 
-**Synthesis:** PaddleOCR-VL-1.6 thuộc nhóm dẫn đầu OmniDocBench nhưng đứng cuối bảng này, chủ yếu vì text chỉ đạt 61,7. MinerU2.5-Pro có điểm tables cao nhất trong toàn bảng OPB, kể cả so với các model end-to-end. Bối cảnh: model end-to-end Chandra OCR 2 dẫn đầu với **90,1**, Infinity-Parser2-Pro đạt 87,0. [Nguồn](../wiki/document-ocr-model-benchmark-comparison.md#omniparsebench-datalab-16288-test-passfail-2937-trang-2343-tài-liệu-22-suite-92-ngôn-ngữ)
+**Synthesis:** MinerU2.5-Pro dẫn cả bốn cột trong nhóm này. PaddleOCR-VL-1.6 thuộc nhóm dẫn đầu OmniDocBench nhưng đứng cuối bảng này, chủ yếu vì text chỉ đạt 61,7. Indra OCR và PP-StructureV3 có điểm OmniParseBench ở mục 7, theo một phép so riêng trong card Indra. [Nguồn](../wiki/document-ocr-model-benchmark-comparison.md#omniparsebench-datalab-16288-test-passfail-2937-trang-2343-tài-liệu-22-suite-92-ngôn-ngữ)
 
 ### olmOCR-Bench (tỉ lệ pass của unit test)
 
 | Model | Overall ↑ | Nguồn |
 |---|---:|---|
-| Surya OCR 2.5 (ranh giới) | **83,7** | Vendor; trung bình 3 lượt; có điểm theo nhóm (tiny text 94,8, old scans 44,3) |
-| MiniCPM-OCR 1.0 | 82,7 | Nhà cung cấp MiniCPM |
+| MiniCPM-OCR 1.0 | **82,7** | Nhà cung cấp MiniCPM |
 | PaddleOCR-VL-1.6 | 80,2 | Bảng MiniCPM |
 | MinerU2.5-Pro | 79,5 | Bảng MiniCPM |
 | TeleOCR | 77,1 | Bảng MiniCPM |
 
-Bốn hàng cuối đến từ cùng bảng của MiniCPM; hàng Surya là lần chạy riêng. Mọi model layout-first ở đây đều thấp hơn nhóm end-to-end dẫn đầu: Infinity-Parser2-Pro **87,6**, LightOnOCR-3-4B 86,3, Chandra OCR 2 85,8. Theo LightOn, bước postprocessing đã làm thay đổi thứ hạng của top-3 này. **Synthesis:** thứ hạng đảo chiều giữa họ OmniDocBench và họ unit-test. TeleOCR dẫn đầu OmniDocBench v1.6 nhưng đứng cuối ở đây. [Nguồn](../wiki/document-ocr-model-benchmark-comparison.md#olmocr-bench-unit-test-pass-rate)
+Cả bốn hàng đến từ cùng bảng của MiniCPM, bên cũng có model trong bảng. FalconOCR chỉ có điểm trên bản lọc tiếng Anh (mục 5), nên không đưa vào đây. **Synthesis:** thứ hạng đảo chiều giữa họ OmniDocBench và họ unit-test. TeleOCR dẫn đầu OmniDocBench v1.6 nhưng đứng cuối ở đây. [Nguồn](../wiki/document-ocr-model-benchmark-comparison.md#olmocr-bench-unit-test-pass-rate)
 
 ### Bảng khó, bảng qua trang và bộ in-house
 
@@ -222,7 +184,7 @@ Bốn hàng cuối đến từ cùng bảng của MiniCPM; hàng Surya là lần
 | Bộ in-house >1.000 trang (report OvisOCR2) | Full overall ↑ | **82,88** | 65,54 |
 | Bộ in-house (report OvisOCR2) | Handwriting / complex tables overall ↑ | **67,66 / 73,19** | 55,04 / 71,43 |
 
-MinerU2.5-Pro còn đạt trung bình **91,10 TEDS / 94,48 TEDS-S** trên năm bộ bảng dạng crop theo GT box; cách đo này loại bỏ lỗi layout nên không phải end-to-end. **Synthesis:** cả hai model đều thua rõ khi ghép bảng qua trang (OvisOCR3 end-to-end đạt 97,07 / 89,66), và chủ yếu thua ở recall: ít nối nhầm nhưng bỏ sót nhiều. MinerU-PoPo (54,76 F1) là hệ thống tăng cường riêng, không thay cho MinerU2.5-Pro thuần. ChartQA/spotting/seal của Paddle chỉ có hàng của chính Paddle. [Phụ lục §5–6](../wiki/ocr-ten-model-benchmark-comparison.md#5-benchmark-chuyên-biệt-của-ovisocr3)
+MinerU2.5-Pro còn đạt trung bình **91,10 TEDS / 94,48 TEDS-S** trên năm bộ bảng dạng crop theo GT box; cách đo này loại bỏ lỗi layout nên không phải end-to-end. **Synthesis:** khi ghép bảng qua trang, cả hai model đều có precision cao nhưng recall thấp: ít nối nhầm nhưng bỏ sót nhiều. MinerU-PoPo (54,76 F1) là hệ thống tăng cường riêng, không thay cho MinerU2.5-Pro thuần. ChartQA/spotting/seal của Paddle chỉ có hàng của chính Paddle. [Phụ lục §5–6](../wiki/ocr-ten-model-benchmark-comparison.md#5-benchmark-chuyên-biệt-của-ovisocr3)
 
 ## 5. FalconOCR: nhỏ hơn, nhưng cần so đúng tập tiếng Anh
 
@@ -252,8 +214,11 @@ Nguồn Falcon loại các trang tiếng Trung, nên bảng này **không tươn
 
 | Model | Size | Vietnamese document composite ↑ |
 |---|---:|---:|
-| SenOCR-Vi | 0,959B | **82,83** |
+| MonkeyOCRv2-B-Parsing | ~0,7B | **83,20** |
+| SenOCR-Vi | 0,959B | 82,83 |
 | PaddleOCR-VL-1.6 | khoảng 0,9B | 80,90 |
+
+Hàng MonkeyOCRv2-B-Parsing và PaddleOCR-VL-1.6 được card SenOCR-Vi lấy từ leaderboard; chúng khớp cột VI của bảng MDPBench ở mục 3. Trong các model layout-first, MonkeyOCRv2-B-Parsing hiện cao nhất trên tiếng Việt, cao hơn SenOCR-Vi **0,37 điểm**. Khoảng cách này rất nhỏ, còn điểm SenOCR-Vi được tính theo cách khác (xem giới hạn bên dưới), nên không đủ để xếp hạng.
 
 SenOCR-Vi còn báo cáo **86,7%** cho text recognition theo `1 − edit distance`; con số này **không phải** document composite. Với tập đánh giá EN/VI/ZH, card báo cáo macro **82,98** cho SenOCR-Vi so với **83,43** cho base, nên cải thiện tiếng Việt không đồng nghĩa cải thiện đều mọi ngôn ngữ.
 
@@ -263,11 +228,12 @@ SenOCR-Vi còn báo cáo **86,7%** cho text recognition theo `1 − edit distanc
 
 | Model | Size | Có nên đưa vào shortlist? | Bằng chứng benchmark |
 |---|---:|---|---|
-| [Xiaomi-OCR-0](../wiki/xiaomi-ocr-0.md) | 0,8B | Có, nếu muốn thử chế độ layout-first tùy chọn cùng whole-page; mã pipeline ngoài card chưa được kiểm tra. Trọng số phát hành **30/09/2026** theo card. | Card báo cáo **96,83** trên OmniDocBench v1.6 và **95,24** trên Real5; chưa xác định chế độ chạy hay đủ protocol để quy kết các điểm cho pipeline layout-first. |
 | [Surya OCR 2](../wiki/surya-ocr-2.md) | 650M cho VLM | Có, nếu muốn thử chế độ block layout-first; hệ thống cũng có chế độ full-page nên không hoàn toàn cùng định nghĩa. | Vendor báo cáo **83,3** trên olmOCR-bench với preset 8.413 test và điều chỉnh cho HTML. Không ghép trực tiếp với bảng Falcon. |
-| [Surya OCR 2.5](../wiki/surya-ocr-2-5.md) | 689M cho VLM; detector dòng là model riêng | Có, nếu muốn thử cả full-page mặc định và layout-first theo block. Chưa xác lập crop resolution hoặc routing model chuyên biệt như nhóm lõi; ngày release chính xác chưa rõ. | Vendor báo cáo **85,9** OmniParseBench và **83,7** olmOCR-bench; điều kiện và giới hạn ở mục benchmark riêng phía trên. |
+| [Surya OCR 2.5](../wiki/surya-ocr-2-5.md) | 689M cho VLM; detector dòng là model riêng | Có, nếu muốn thử cả full-page mặc định và layout-first theo block. Chưa xác lập crop resolution hoặc routing model chuyên biệt như nhóm lõi; ngày release chính xác chưa rõ. | Vendor báo cáo **85,9** OmniParseBench (Surya 2: 83,3) và **83,7** olmOCR-bench (Surya 2: 82,8 trong cùng lần chạy). Không xác định được các điểm này thuộc chế độ block; điều kiện chi tiết nằm trong [tài liệu end-to-end](so-sanh-cac-model-end-to-end-generative-ocr.md). |
 | [Indra OCR](../wiki/indra-ocr.md) | Card nói **7,3M cho toàn bộ model mặc định**, nhưng có mô tả “1M” không được giải thích; tải mặc định khoảng **76 MB** gồm cả language model | Có, nếu ưu tiên **CPU, tốc độ và tài liệu in tương đối sạch** hơn là bảng phức tạp. | Trên [OmniParseBench](../wiki/omniparsebench.md), vendor báo cáo **66,7** mặc định và **71,4** với `--math`, so với **58,4** của PP-StructureV3. So sánh do vendor chạy; PP-StructureV3 thiếu 19 trang và các cấu hình không đối xứng. |
 | [OXR-1.0](../wiki/oxr-1-0.md) | 1,3B | Có thể theo dõi, nhưng thiếu dữ liệu để xếp hạng. | README quảng bá thứ hạng cao nhưng bản lưu không có score vector, version benchmark hoặc điều kiện test; layout/recognition flow cũng chưa đủ rõ để xếp chắc vào nhóm lõi. |
+
+[Xiaomi-OCR-0](../wiki/xiaomi-ocr-0.md) có tùy chọn PP-DocLayoutV3 → nhận dạng vùng, nhưng giao diện chính là whole-page, và card không nêu benchmark được chạy ở chế độ nào. Vì vậy, model này được chuyển sang [tài liệu end-to-end](so-sanh-cac-model-end-to-end-generative-ocr.md).
 
 ## 8. Gợi ý shortlist theo nhu cầu
 
@@ -276,13 +242,13 @@ SenOCR-Vi còn báo cáo **86,7%** cho text recognition theo `1 − edit distanc
 - **Điểm tổng thể và bảng trên OmniDocBench v1.6:** thử **TeleOCR** trước, sau đó **PaddleOCR-VL-1.6**. Kiểm tra thêm lỗi lặp và tính ổn định trên tài liệu của bạn. TeleOCR chậm nhất trong phép đo RTX 5090 của MiniCPM (0,141 trang/s) và thấp nhất nhóm trên olmOCR-Bench (77,1) trong cùng bảng.
 - **Một model khoảng 0,9B cho nhiều loại tài liệu, kể cả ảnh biến dạng:** thử **PaddleOCR-VL-1.6**. Model này dẫn bảng Real5 được lưu và vượt MinerU2.5-Pro trên MDPBench ảnh chụp. Nếu workload giống OmniParseBench, hãy kiểm tra kỹ phần text, vì điểm text trên bảng đó chỉ là 61,7.
 - **Tài liệu tiếng Anh/Trung, cần throughput hoặc pipeline theo vùng:** thêm **MiniCPM-OCR 1.0** vào shortlist cùng TeleOCR và PaddleOCR-VL-1.6; đo tốc độ và chất lượng trên cùng phần cứng, cấu hình và dữ liệu thực tế. Chưa có bằng chứng trong các trang này để suy ra chất lượng tiếng Việt.
-- **Muốn thử một VLM 0,8B có cả whole-page và tùy chọn layout-first:** thêm **Xiaomi-OCR-0** vào thử nghiệm; đo riêng từng chế độ, kiểm tra OTSL, header/footer và phụ thuộc layout. Chưa có bằng chứng trong card đã kiểm tra để quy điểm benchmark cho chế độ two-stage hoặc suy ra chất lượng tiếng Việt.
+- **Tài liệu đa ngôn ngữ hoặc ảnh chụp đa ngôn ngữ:** thử **MonkeyOCRv2-B-Parsing** cùng PaddleOCR-VL-1.6. MonkeyOCRv2 dẫn bảng MDPBench chính thức với 83,3 overall và 81,7 photo, nhưng hàng này do nhóm quản lý benchmark tự nộp. Trên OmniDocBench v1.6, model chỉ tự báo cáo 91,57.
 - **Reading order, bảng trong một trang, hoặc đang dùng hệ MinerU:** thử **MinerU2.5-Pro** song song với PaddleOCR-VL-1.6. MinerU có tables OmniParseBench 92,1, cao nhất bảng; tuy nhiên PaddleOCR-VL-1.6 dẫn trên bộ hard table in-house của Paddle. MinerU cũng dẫn PaddleOCR-VL-1.6 về bảng qua trang. Tuy vậy, recall ghép bảng qua trang của MinerU vẫn thấp (43,18), và điểm lệch góc trên Real5 chỉ đạt 81,26. Cần xác nhận bản 2604 hay 2605 và chức năng cross-page table trong môi trường triển khai, vì model card có mô tả chưa nhất quán về trạng thái tính năng này. [Nguồn](../wiki/mineru2-5-pro.md).
 - **Chủ yếu tiếng Anh và cần model nhỏ:** thử **FalconOCR 0,3B**, nhất là nếu workload giống olmOCR-Bench hơn OmniDocBench.
 - **Chủ yếu tiếng Việt:** thử **SenOCR-Vi và PaddleOCR-VL-1.6 trên cùng tập**, đặc biệt giữ nguyên cách tính dấu tiếng Việt, bảng và formula. Bằng chứng hiện tại chưa đủ để chốt mức tăng 1,93 điểm.
 - **Muốn so sánh full-page với layout-first theo block:** thử **Surya 2.5** riêng từng chế độ; nếu cần row/column geometry, kiểm tra thêm **Surya 2**. Layout, OCR và bảng dùng inference server chung; xác minh license trọng số thực tế trước khi dùng thương mại. [Triển khai](../wiki/surya-ocr-2-5-deployment.md) · [Giới hạn license](../wiki/surya-ocr-2-5.md#license-and-evidence-limits).
 - **CPU-only, tài liệu đơn giản:** cân nhắc **Indra OCR**, nhưng đánh giá riêng handwriting, scan cũ và bảng có merged cells.
 
-**Đối chiếu 2026-10-30:** các số của TeleOCR, PaddleOCR-VL-1.6, MinerU2.5-Pro, MiniCPM-OCR 1.0 và Surya OCR 2.5 trong output này đã được đối chiếu và bổ sung từ [Document OCR model benchmark comparison](../wiki/document-ocr-model-benchmark-comparison.md) và [supplementary evidence](../wiki/ocr-ten-model-benchmark-comparison.md). Lần này không đối chiếu lại với `raw/`. GLM-OCR, FalconOCR, PP-StructureV3, SenOCR-Vi, Xiaomi-OCR-0 và các bản PaddleOCR-VL/MinerU cũ không nằm trong hai trang đó, nên giữ nguyên.
+**Đối chiếu 2026-10-30:** các số của TeleOCR, PaddleOCR-VL-1.6, MinerU2.5-Pro, MiniCPM-OCR 1.0, MonkeyOCRv2-B-Parsing và Surya OCR 2.5 trong output này đã được đối chiếu với [Document OCR model benchmark comparison](../wiki/document-ocr-model-benchmark-comparison.md), [supplementary evidence](../wiki/ocr-ten-model-benchmark-comparison.md) và [MDPBench](../wiki/mdpbench.md). GLM-OCR, FalconOCR, PP-StructureV3, SenOCR-Vi và các bản PaddleOCR-VL/MinerU cũ không nằm trong các trang đó, nên giữ nguyên. **Rà soát hướng cùng ngày:** đã loại các model end-to-end, gồm OvisOCR2/3, Chandra OCR 2, Infinity-Parser2, LightOnOCR-3 và Xiaomi-OCR-0, khỏi bảng và nhận xét. Bảng Xiaomi được chuyển sang tài liệu end-to-end, còn phần chi tiết Surya 2.5 so với Surya 2 chỉ được giữ bên đó. MonkeyOCRv2-B-Parsing được thêm vào vì pipeline của nó đi theo hướng layout-first. Các bảng có nguồn là card của model end-to-end, như card OvisOCR3/OvisOCR2, vẫn được giữ khi các hàng trong bảng đều là model layout-first.
 
-**Giới hạn kiểm tra:** Lần cập nhật trước dựa trên diff đã stage và các trang Surya 2.5 trong wiki; không truy cập web, tải model hay chạy benchmark. Các trang Surya 2.5 ở trạng thái **draft**: mã triển khai, trọng số, scorer, benchmark và văn bản license liên kết chưa được kiểm tra; các con số là báo cáo của vendor. Trang Xiaomi và các trang MiniCPM liên quan cũng ở trạng thái draft, còn giới hạn coverage và tái lập. Bản so sánh nằm trong `outputs/`; lần cập nhật này không thay đổi wiki.
+**Giới hạn kiểm tra:** không truy cập web, tải model hay chạy benchmark. Các trang Surya 2.5, MonkeyOCRv2 và MiniCPM liên quan ở trạng thái **draft**, còn giới hạn về coverage và khả năng tái lập; mọi con số là báo cáo của tác giả hoặc vendor. Bản so sánh nằm trong `outputs/`; lần cập nhật này không thay đổi wiki.
