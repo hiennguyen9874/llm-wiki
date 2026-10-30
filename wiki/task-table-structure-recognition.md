@@ -5,7 +5,7 @@ description: Table structure recognition groups detectors that localize cells, r
 tags: [task, table-recognition, document-parsing, layout-analysis]
 status: stable
 created: 2026-08-22
-generated: { by: llm-wiki-agent/1, at: 2026-10-29T05:12:52Z }
+generated: { by: llm-wiki-agent/1, at: 2026-10-30T02:16:13Z }
 sources:
   - id: xiaomi-card
     resource: ../raw/Xiaomi-OCR-0.md
@@ -30,6 +30,10 @@ sources:
     kind: code
     revision: b33b474
     title: MiniCPM-OCR repository
+  - id: surya-25-card
+    resource: ../raw/surya-ocr-2.5-hf.md
+    kind: model-card
+    title: Surya OCR 2.5 model card
   - id: indra-ocr-card
     resource: ../raw/datalab-to-indra-ocr.md
     kind: model-card
@@ -54,6 +58,7 @@ Implicit table handling (less explicit detection, more generative):
 
 - Models in [Task: End-to-end generative OCR](task-end-to-end-generative-ocr.md) that generate HTML/Markdown tables directly (e.g., DeepSeek-OCR 2, OvisOCR2, OvisOCR3, Qwen-based parsers) — retained for comparison but not primarily table-structure detectors.
 - [Xiaomi-OCR-0](xiaomi-ocr-0.md) — its table-region prompt requests OTSL, not cell boxes; its authors report 92.27 on PubTabNet, without enough protocol detail for a controlled comparison. Neither inference nor evaluation was reproduced.[^xiaomi-card]
+- [Surya OCR 2.5](surya-ocr-2-5.md) — full mode generates HTML including merged-cell spans, but its `simple` row/column geometry mode returns an error; that mode requires a [Surya OCR 2](surya-ocr-2.md) checkpoint. Block bounding boxes are distinct from row, column, or cell geometry. This is vendor-reported and was not tested.[^surya-25-card]
 
 ## Rule-based and block-level extraction without a learned table model
 
@@ -79,6 +84,7 @@ Both statements are **reported** vendor documentation; neither was reproduced ag
 - **Extended by:** [Task: Cross-page table reconstruction](task-cross-page-table-reconstruction.md), which merges table fragments across page boundaries after per-page parsing.
 - **Implemented without a table model by:** [LiteParse](liteparse.md) via grid and span heuristics, and [Indra OCR](indra-ocr.md) via layout block labels.[^liteparse-readme][^indra-ocr-card]
 
+[^surya-25-card]: Datalab, [Surya OCR 2.5 model card](../raw/surya-ocr-2.5-hf.md), §§ OCR (text recognition), Table Recognition and Limitations (inspected 2026-10-30).
 [^xiaomi-card]: [Xiaomi-OCR-0 model card](../raw/Xiaomi-OCR-0.md), §§ Benchmark results and Usage › Task prompts (inspected 2026-10-29).
 [^nemotron-table-card]: NVIDIA, *Nemotron Table Structure v1 model card*, local source at [nemotron-table-structure-v1.md](../raw/nemotron-table-structure-v1.md), locators: § Model Overview (cell/row/column components), § Model Card › Technical Limitations ("not robust to rotated tables"), § Limitations (low-confidence bottom cells) (accessed 2026-10-25).
 [^pp-structurev3-source]: PaddleOCR Team, *PaddleOCR 3.0 Technical Report*, local source at [2507.05595_PaddleOCR-3.0/main.tex](../raw/2507.05595_PaddleOCR-3.0/main.tex), § PP-StructureV3 › Document Items Recognition › Table Recognition (PP-TableMagic stages) (accessed 2026-10-25).

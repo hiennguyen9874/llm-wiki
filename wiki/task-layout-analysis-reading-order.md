@@ -5,7 +5,7 @@ description: Layout analysis and reading order groups models and rule-based pipe
 tags: [task, layout-analysis, reading-order, document-parsing]
 status: stable
 created: 2026-08-22
-generated: { by: llm-wiki-agent/1, at: 2026-10-25T03:43:07Z }
+generated: { by: llm-wiki-agent/1, at: 2026-10-30T02:16:13Z }
 stale_after: 2027-04-25
 sources:
   - id: current-ocr-approaches
@@ -33,6 +33,10 @@ sources:
     resource: ../raw/liteparse.md
     kind: readme
     title: LiteParse README
+  - id: surya-25-card
+    resource: ../raw/surya-ocr-2.5-hf.md
+    kind: model-card
+    title: Surya OCR 2.5 model card
   - id: mdpbench-paper
     resource: ../raw/2603.28130_MDPBench/main.tex
     kind: paper
@@ -48,6 +52,7 @@ Layout analysis and reading-order prediction localize where content lives on a p
 - [PP-DocLayoutV2](pp-doclayoutv2.md) — RT-DETR layout detector with 6-layer relation-aware pointer network for reading order
 - [PP-DocLayoutV3](pp-doclayoutv3.md) — RT-DETR-derived Transformer jointly predicting classes, boxes, instance masks, and pairwise precedence ranking; academic identity RT-DocLayout
 - [Surya Layout (fast)](surya-layout-fast.md) — compact object detector alternative to VLM-based layout predictor, emits regions + order
+- [Surya OCR 2.5](surya-ocr-2-5.md) — shared VLM layout mode returns labeled polygons and boxes in reading order with explicit zero-indexed positions; OCR can also generate ordered blocks directly.[^surya-25-card]
 - [Nemotron OCR v2](nemotron-ocr-v2.md) (relational layout module) — grouping and reading-order stage over detected words/lines
 - [Indra OCR](indra-ocr.md) (layout stage) — CPU ONNX pipeline whose layout stage assigns every line and block a box, one of ten block labels, and a reading order before script-routed recognition[^indra-ocr-card]
 
@@ -78,6 +83,7 @@ Three retained systems place layout detection outside a dedicated layout-and-ord
 - **Evaluated by:** the layout test family of [OmniParseBench](omniparsebench.md), whose vendor-run rows report 92.2 for [Indra OCR](indra-ocr.md) in its default `auto` mode and 71.7 for [PP-StructureV3](pp-structurev3.md) under one scorer and page set[^indra-ocr-card], and by [MDPBench](mdpbench.md), whose annotation pipeline verifies reading order element by element against human reading logic[^mdpbench-paper]
 - **Related to:** [Task: Unified perception and grounding](task-unified-perception-grounding.md), which shares the localization capability but treats category-prompted detection as an end in itself rather than a scaffold for serialization
 
+[^surya-25-card]: Datalab, [Surya OCR 2.5 model card](../raw/surya-ocr-2.5-hf.md), §§ OCR (text recognition) and Layout and reading order (inspected 2026-10-30); reported outputs, not independently tested.
 [^current-ocr-approaches]: Compiled synthesis in this wiki: [Current OCR approaches](current-ocr-approaches.md), § Modular layout-first document parsing and § Cross-cutting technical directions (reading order as a first-class target) (accessed 2026-10-25).
 [^indra-ocr-card]: Datalab, *Indra OCR* model card (`datalab-to/indra-ocr`), local capture [datalab-to-indra-ocr.md](../raw/datalab-to-indra-ocr.md), § Indra OCR (the *Layout* bullet), § Output, § Limitations (*Geometry*), and § Benchmarks › OmniParseBench (accessed 2026-10-25).
 [^ovisocr3-model-card]: ATH-MaaS, *OvisOCR3 model card*, local source at [ATH-MaaS-OvisOCR3.md](../raw/ATH-MaaS-OvisOCR3.md), § Document Parsing (three-mode table), § Task-Specific Usage › Document Parsing, and § Limitations (accessed 2026-10-25).

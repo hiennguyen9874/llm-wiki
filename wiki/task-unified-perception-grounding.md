@@ -5,7 +5,7 @@ description: Unified perception and grounding groups models that cast detection,
 tags: [task, perception, grounding, detection, keypoints, ocr]
 status: stable
 created: 2026-08-22
-generated: { by: llm-wiki-agent/1, at: 2026-10-25T03:43:00Z }
+generated: { by: llm-wiki-agent/1, at: 2026-10-30T02:16:13Z }
 sources:
   - id: rex-omni-report
     resource: "../raw/2510.12798_Detect Anything via Next Point Prediction/main.tex"
@@ -26,6 +26,10 @@ sources:
   - id: lightonocr-3
     resource: ../wiki/lightonocr-3.md
     title: LightOnOCR-3
+  - id: surya-25-card
+    resource: ../raw/surya-ocr-2.5-hf.md
+    kind: model-card
+    title: Surya OCR 2.5 model card
 ---
 
 # Task: Unified perception and grounding
@@ -48,7 +52,7 @@ Unified perception and grounding reformulates classical vision tasks — object 
 - **Strengths:** one model serves detection, interaction, and OCR; shared coordinate vocabulary enables multi-task transfer.
 - **Decoding axis:** this task was originally defined by autoregressive point-sequence generation, but it is not inherently left-to-right. [GroundAnything](groundanything.md) argues the coordinate dependencies do not imply a generation order and adds entropy-guided blockwise diffusion plus optional self-speculative decoding over the same spatial-token interface.[^groundanything-card]
 - **Limits:** not a replacement for full document-to-Markdown pipelines; evaluated on referring-expression and detection benchmarks rather than OmniDocBench document parsing.[^current-ocr-approaches]
-- **Boundary with document parsers:** normalized coordinate output alone does not place a model in this task. [OvisOCR3](ovisocr3.md) exposes word-level text-spotting and reference-grounding prompts beside its parsing modes, and [LightOnOCR-3](lightonocr-3.md) adds a `grounding` mode that prefixes every page block with a type label and box; both quantize boxes to 0–1000 integers, yet return prompt-selected document structure rather than one point sequence per query, so they remain document-centric. That distinction is synthesis from the cited concepts, not a claim either card makes.[^ovisocr3][^lightonocr-3]
+- **Boundary with document parsers:** normalized coordinate output alone does not place a model in this task. [OvisOCR3](ovisocr3.md) exposes word-level text-spotting and reference-grounding prompts beside its parsing modes, and [LightOnOCR-3](lightonocr-3.md) adds a `grounding` mode that prefixes every page block with a type label and box; both quantize boxes to 0–1000 integers, yet return prompt-selected document structure rather than one point sequence per query, so they remain document-centric. [Surya OCR 2.5](surya-ocr-2-5.md) likewise emits 0–1000 normalized block coordinates within its document OCR output, but its card describes document layout and transcription rather than a general-purpose query-grounding interface. These boundary classifications are synthesis, not claims of the cards.[^ovisocr3][^lightonocr-3][^surya-25-card]
 
 ## Relationships
 
@@ -58,6 +62,7 @@ Unified perception and grounding reformulates classical vision tasks — object 
 - **Decoding variant:** [GroundAnything decoding and serving](groundanything-decoding-and-serving.md) records the parallel and speculative decoder mechanics for this task family.
 - **Adjacent from the document side:** [OvisOCR3](ovisocr3.md) and [LightOnOCR-3](lightonocr-3.md) add on-demand box output inside page-to-Markdown generation, the reverse direction of [Rex-Omni](rex-omni.md) and [GroundAnything](groundanything.md), which add document tasks to a perception interface.[^ovisocr3][^lightonocr-3]
 
+[^surya-25-card]: Datalab, [Surya OCR 2.5 model card](../raw/surya-ocr-2.5-hf.md), §§ Usage, OCR (text recognition), Output format and Limitations (inspected 2026-10-30).
 [^rex-omni-report]: Sun et al., *Detect Anything via Next Point Prediction*, local LaTeX source at [main.tex](../raw/2510.12798_Detect%20Anything%20via%20Next%20Point%20Prediction/main.tex) (accessed 2026-08-22).
 [^falcon-perception-report]: Falcon Vision Team, *Falcon Perception*, local LaTeX source at [main.tex](../raw/2603.27365_FalconPerception/main.tex) (accessed 2026-08-22).
 [^current-ocr-approaches]: Compiled synthesis in this wiki: [Current OCR approaches](current-ocr-approaches.md), § Adjacent unified perception (accessed 2026-10-25).

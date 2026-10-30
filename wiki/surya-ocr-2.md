@@ -5,11 +5,15 @@ description: Surya OCR 2 is a 650M document-OCR system whose shared VLM produces
 tags: [ocr, document-parsing, vision-language-models, layout-analysis, table-recognition, multilingual]
 status: draft
 created: 2026-08-17
-generated: { by: llm-wiki-agent/1, at: 2026-08-17T14:20:00Z }
+generated: { by: llm-wiki-agent/1, at: 2026-10-30T02:11:12Z }
 sources:
   - id: surya-ocr-2-model-card
     resource: ../raw/surya-ocr-2.md
     title: Surya OCR 2 model card
+  - id: surya-25-card
+    resource: ../raw/surya-ocr-2.5-hf.md
+    kind: model-card
+    title: Surya OCR 2.5 model card
 ---
 
 # Surya OCR 2
@@ -47,6 +51,9 @@ This local source is a vendor model card, not an independent technical report. I
 
 ## Relationships
 
+- **Related to:** [Surya OCR 2.5](surya-ocr-2-5.md), a later checkpoint that generates HTML tables but, unlike Surya 2, does not support simple-mode row/column geometry. Its card evaluates both checkpoints on a newer multilingual benchmark and a separate olmOCR-bench run, so those scores should not be substituted for the earlier card's figures.[^surya-25-card]
 - **Compared with:** [Chandra OCR 2](chandra-ocr-2.md), [Multimodal OCR](multimodal-ocr.md)'s dots.mocr implementation, and [LightOnOCR](lightonocr.md) in the source's olmOCR-bench table; these values are not a general ranking without matched evaluation conditions.[^surya-ocr-2-model-card]
+
+[^surya-25-card]: Datalab, [Surya 2.5 model card](../raw/surya-ocr-2.5-hf.md), §§ Table Recognition, Limitations, olmOCR-bench and Multilingual (inspected 2026-10-30).
 
 [^surya-ocr-2-model-card]: Datalab, *Surya OCR 2 model card*, local [surya-ocr-2.md](../raw/surya-ocr-2.md) (accessed 2026-08-17). The 29 referenced local image assets are absent and were not inspected.

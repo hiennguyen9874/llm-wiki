@@ -5,7 +5,7 @@ description: End-to-end generative OCR groups VLMs that map full page images dir
 tags: [task, document-parsing, ocr, vision-language-models, image-to-markdown]
 status: stable
 created: 2026-08-22
-generated: { by: llm-wiki-agent/1, at: 2026-10-29T05:11:26Z }
+generated: { by: llm-wiki-agent/1, at: 2026-10-30T02:16:13Z }
 sources:
   - id: unlimited-ocr-2-report
     resource: ../raw/Unlimited-OCR-2.pdf
@@ -34,6 +34,10 @@ sources:
   - id: lightonocr-3
     resource: ../wiki/lightonocr-3.md
     title: LightOnOCR-3
+  - id: surya-25-card
+    resource: ../raw/surya-ocr-2.5-hf.md
+    kind: model-card
+    title: Surya OCR 2.5 model card
 ---
 
 # Task: End-to-end generative OCR
@@ -66,6 +70,10 @@ Core retained models that perform this task as their primary interface:
 - [Chandra OCR](chandra-ocr.md) / [Chandra OCR 2](chandra-ocr-2.md) — Datalab Markdown/HTML/JSON conversion
 - [Granite Docling 258M](granite-docling-258m.md) — 258M VLM integrated with Docling
 
+### Boundary: shared full-page and layout-first VLM
+
+[Surya OCR 2.5](surya-ocr-2-5.md) defaults to one full-page VLM call yielding ordered HTML blocks with labels and geometry, while its optional block mode first runs layout and then OCR per region. Its separate line detector is not required by the documented full-page example; classify it as a boundary system rather than assuming every operation is a single call.[^surya-25-card]
+
 ## Task characteristics
 
 - **Input:** single page image at native or dynamic resolution; optional prompt for output format.
@@ -81,6 +89,7 @@ Core retained models that perform this task as their primary interface:
 - **Uses:** [Document-parser data flywheel](document-parser-data-flywheel.md) and [DOM-based document synthesis](dom-based-document-synthesis.md) for long-tail data
 - **Extended by:** [Task: Cross-page table reconstruction](task-cross-page-table-reconstruction.md) for tables that continue across page boundaries.
 
+[^surya-25-card]: Datalab, [Surya OCR 2.5 model card](../raw/surya-ocr-2.5-hf.md), §§ Usage, OCR (text recognition) › From python, and Training (inspected 2026-10-30); reported interface, not executed.
 [^xiaomi-card]: [Xiaomi-OCR-0 model card](../raw/Xiaomi-OCR-0.md), §§ About the model and Usage › Task prompts (inspected 2026-10-29).
 [^unlimited-ocr-2-report]: Baidu ERNIE Team, [Unlimited OCR Works 2](../raw/Unlimited-OCR-2.pdf), §§3.2–3.4.
 [^current-ocr-approaches]: Compiled synthesis in this wiki: [Current OCR approaches](current-ocr-approaches.md), § End-to-end generative document VLMs and § Cross-cutting technical directions (accessed 2026-10-25).

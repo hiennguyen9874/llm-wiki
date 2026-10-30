@@ -1,5 +1,9 @@
 # Wiki Update Log
 
+## 2026-10-30
+- **Update**: Reviewed eight OCR task concepts against the [Surya OCR 2.5 model card](../raw/surya-ocr-2.5-hf.md); connected its full-page and optional layout-first workflows, explicit layout order, HTML table versus row/column geometry limitation, and document-grounding boundary in five task pages. No inference or benchmark was run.
+- **Ingest**: Compiled the [Surya OCR 2.5 model card](../raw/surya-ocr-2.5-hf.md); created [model](surya-ocr-2-5.md) and [deployment](surya-ocr-2-5-deployment.md) concepts, linked the [Surya OCR 2 predecessor](surya-ocr-2.md), and recorded vendor-reported evaluation, table-geometry differences, unavailable assets and unexecuted checks.
+
 ## 2026-10-29
 - **Query**: Compared [PaddleOCR, MinerU 4 and Docling](paddleocr-mineru-docling-comparison.md) using compiled implementation concepts and focused raw research; filed a Vietnamese synthesis, linked three architecture/pipeline concepts, documented MinerU application-license conditions and Paddle cross-page API boundaries, and preserved cross-source MinerU-Pro benchmark discrepancies in both affected model concepts. No inference or benchmark was executed.
 - **Update**: Shortened full Git revision references to seven characters in 17 concepts, including source metadata and citation locators.

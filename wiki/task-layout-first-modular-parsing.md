@@ -5,7 +5,7 @@ description: Layout-first modular parsing groups systems that detect layout regi
 tags: [task, document-parsing, layout-analysis, modular-systems]
 status: stable
 created: 2026-08-22
-generated: { by: llm-wiki-agent/1, at: 2026-10-29T05:12:52Z }
+generated: { by: llm-wiki-agent/1, at: 2026-10-30T02:16:13Z }
 stale_after: 2027-04-25
 sources:
   - id: current-ocr-approaches
@@ -37,6 +37,10 @@ sources:
     resource: ../raw/Xiaomi-OCR-0.md
     kind: model-card
     title: Xiaomi-OCR-0 model card
+  - id: surya-25-card
+    resource: ../raw/surya-ocr-2.5-hf.md
+    kind: model-card
+    title: Surya OCR 2.5 model card
   - id: oxr-readme
     resource: ../raw/OXR-1.0.md
     kind: readme
@@ -58,7 +62,7 @@ Layout-first modular parsing first detects document elements (text blocks, table
 - [TeleOCR](teleocr.md) — 1.2B deformation-aware polygon layout segmentation → crop recognition in one prompted VLM (digital and camera-captured pages)
 - [FalconOCR](falcon-ocr.md) — 300M PP-DocLayoutV3 → early-fusion text/LaTeX/HTML-table recognizer
 - [PP-StructureV3](pp-structurev3.md) — OCR + layout/article detection + specialist element models + order reconstruction
-- [Surya OCR 2](surya-ocr-2.md) — 650M shared VLM for layout/order/OCR/tables (boundary: can operate layout-first block-parallel or end-to-end)
+- [Surya OCR 2](surya-ocr-2.md) and [Surya OCR 2.5](surya-ocr-2-5.md) — shared VLMs for layout/order/OCR/tables. They are boundary cases: 2.5 defaults to full-page OCR, but passing layout results selects per-block OCR; the card does not establish the crop-resolution or specialist-model routing in this task's core definition.[^surya-25-card]
 
 **Optional two-stage path:** [Xiaomi-OCR-0](xiaomi-ocr-0.md) also documents PP-DocLayoutV3 → region recognition → page assembly alongside its whole-page interface. The card points to external repository code, which was not inspected; crop resolution and assembly details are not established here.[^xiaomi-card]
 
@@ -93,6 +97,7 @@ The comparison makes the fidelity cost measurable within one protocol: on the ve
 - **Extended below VLM scale by:** [Indra OCR](indra-ocr.md), which preserves the layout-then-route shape with line hypotheses and script-specialist recognizers
 - **Synthesized in:** [Current OCR approaches](current-ocr-approaches.md)[^current-ocr-approaches]
 
+[^surya-25-card]: Datalab, [Surya OCR 2.5 model card](../raw/surya-ocr-2.5-hf.md), §§ Usage, OCR (text recognition) › From python, and Training (inspected 2026-10-30); reported workflow, not executed.
 [^current-ocr-approaches]: Compiled synthesis in this wiki: [Current OCR approaches](current-ocr-approaches.md), § Modular layout-first document parsing and § Practical selection (accessed 2026-10-25).
 [^hybrid-benchmarks]: Compiled synthesis in this wiki: [Hybrid OCR systems and benchmarks](hybrid-ocr-systems-and-benchmarks.md), § Scope and complete retained model roster, § Benchmark and metric map, and § Trust limits (accessed 2026-10-25).
 [^layout-first-benchmarks]: Compiled synthesis in this wiki: [Layout-first modular OCR benchmarks](layout-first-modular-ocr-benchmarks.md), § Scope and model coverage, § Benchmark and metric map, and § OmniDocBench v1.6 (accessed 2026-10-25).

@@ -6,6 +6,8 @@ Bổ sung từ diff: [MiniCPM-OCR 1.0](../wiki/minicpm-ocr-1-0.md) là ứng vi�
 
 Bổ sung từ diff mới: [Xiaomi-OCR-0](../wiki/xiaomi-ocr-0.md) là VLM **0,8B** có chế độ layout-first tùy chọn, bên cạnh chế độ whole-page. Model card báo cáo **96,83** trên OmniDocBench v1.6 và **95,24** trên Real5, nhưng không xác lập cấu hình pipeline của các kết quả này. Cần xem đây là ứng viên ranh giới, không tự coi điểm đó là kết quả của chế độ layout-first.
 
+Bổ sung từ diff hiện tại: [Surya OCR 2.5](../wiki/surya-ocr-2-5.md) là VLM **689M** có tùy chọn layout-first theo block, nhưng mặc định OCR toàn trang. Vendor báo cáo kết quả tốt hơn Surya 2 trên OmniParseBench trong cùng lần đánh giá; không ghép các điểm đó với OmniDocBench bên dưới.
+
 Các điểm số dưới đây là **tác giả hoặc nhà cung cấp công bố**, chưa được chạy lại độc lập trong wiki. Bảng cùng nguồn giúp so sánh tốt hơn, nhưng không nhất thiết chứng minh mọi baseline đã được chạy lại với cấu hình đồng nhất.
 
 ## 1. Danh sách model, thời điểm và kích thước
@@ -122,6 +124,22 @@ Trong bảng của Xiaomi, Real5 của Xiaomi cao hơn PaddleOCR-VL-1.6 **2,05 �
 
 Về triển khai, card mô tả tùy chọn **PP-DocLayoutV3 → nhận dạng vùng → ghép trang**, nhưng mã external chưa được kiểm tra; chưa rõ crop resolution và chi tiết ghép. Prompt bảng yêu cầu **OTSL**, không phải cell boxes; prompt KIE theo JSON schema cũng không bảo đảm output hợp lệ. Whole-page prompt yêu cầu bỏ header/footer, cần kiểm tra nếu workload cần giữ chúng. Card báo cáo **92,27 PubTabNet**, nhưng không đủ protocol để so sánh có kiểm soát. [Chi tiết và giới hạn](../wiki/xiaomi-ocr-0.md).
 
+### Surya 2.5 so với Surya 2: benchmark riêng
+
+Nguồn: [Surya OCR 2.5 — Vendor-reported evaluation](../wiki/surya-ocr-2-5.md#vendor-reported-evaluation). Đây là kết quả **vendor báo cáo, chưa tái lập**, cho hai checkpoint trong cùng thiết lập; không suy ra thứ hạng so với các model trong bảng OmniDocBench hay Falcon.
+
+| Benchmark / metric | Surya 2 | Surya 2.5 |
+|---|---:|---:|
+| OmniParseBench headline ↑ | 83,3 | **85,9** |
+| Text ↑ | 81,0 | **83,8** |
+| Tables ↑ | 74,3 | **78,3** |
+| Layout ↑ | 94,5 | **95,7** |
+| olmOCR-bench ↑ | 82,8 | **83,7** |
+
+OmniParseBench dùng `surya-ocr` 0.23.0, 192 DPI, public scorer và một lần chạy mỗi model; vendor báo cáo khoảng bootstrap 95% cho chênh lệch headline **+1,6 đến +3,7 điểm**. olmOCR-bench là trung bình ba lượt output thô; điểm **82,8** của Surya 2 ở lần chạy này khác **83,3** trong card cũ và không nên thay thế cho nhau. Trên benchmark nội bộ 91 ngôn ngữ phiên bản mới, vendor báo cáo tiếng Việt **63,6%** cho 2.5 so với **57,9%** cho 2; không so trực tiếp với điểm SenOCR-Vi trên MDPBench. Bảng ngôn ngữ đầy đủ và scorer chưa được kiểm tra.
+
+**Đánh đổi thực tế:** 2.5 xuất HTML bảng có merged cells nhưng `surya_table --mode simple` trả lỗi; muốn row/column geometry qua chế độ này cần checkpoint Surya 2. Geometry của block vẫn có trong output 2.5. Hai đường full-page và layout-first cần được đo riêng; nguồn không xác lập kết quả benchmark trên là của block mode. [Chi tiết triển khai](../wiki/surya-ocr-2-5-deployment.md).
+
 ## 4. FalconOCR: nhỏ hơn, nhưng cần so đúng tập tiếng Anh
 
 ### OmniDocBench v1.5 — chỉ các trang tiếng Anh
@@ -163,6 +181,7 @@ SenOCR-Vi còn báo cáo **86,7%** cho text recognition theo `1 − edit distanc
 |---|---:|---|---|
 | [Xiaomi-OCR-0](../wiki/xiaomi-ocr-0.md) | 0,8B | Có, nếu muốn thử chế độ layout-first tùy chọn cùng whole-page; mã pipeline ngoài card chưa được kiểm tra. Trọng số phát hành **30/09/2026** theo card. | Card báo cáo **96,83** trên OmniDocBench v1.6 và **95,24** trên Real5; chưa xác định chế độ chạy hay đủ protocol để quy kết các điểm cho pipeline layout-first. |
 | [Surya OCR 2](../wiki/surya-ocr-2.md) | 650M cho VLM | Có, nếu muốn thử chế độ block layout-first; hệ thống cũng có chế độ full-page nên không hoàn toàn cùng định nghĩa. | Vendor báo cáo **83,3** trên olmOCR-bench với preset 8.413 test và điều chỉnh cho HTML. Không ghép trực tiếp với bảng Falcon. |
+| [Surya OCR 2.5](../wiki/surya-ocr-2-5.md) | 689M cho VLM; detector dòng là model riêng | Có, nếu muốn thử cả full-page mặc định và layout-first theo block. Chưa xác lập crop resolution hoặc routing model chuyên biệt như nhóm lõi; ngày release chính xác chưa rõ. | Vendor báo cáo **85,9** OmniParseBench và **83,7** olmOCR-bench; điều kiện và giới hạn ở mục benchmark riêng phía trên. |
 | [Indra OCR](../wiki/indra-ocr.md) | Card nói **7,3M cho toàn bộ model mặc định**, nhưng có mô tả “1M” không được giải thích; tải mặc định khoảng **76 MB** gồm cả language model | Có, nếu ưu tiên **CPU, tốc độ và tài liệu in tương đối sạch** hơn là bảng phức tạp. | Trên [OmniParseBench](../wiki/omniparsebench.md), vendor báo cáo **66,7** mặc định và **71,4** với `--math`, so với **58,4** của PP-StructureV3. So sánh do vendor chạy; PP-StructureV3 thiếu 19 trang và các cấu hình không đối xứng. |
 | [OXR-1.0](../wiki/oxr-1-0.md) | 1,3B | Có thể theo dõi, nhưng thiếu dữ liệu để xếp hạng. | README quảng bá thứ hạng cao nhưng bản lưu không có score vector, version benchmark hoặc điều kiện test; layout/recognition flow cũng chưa đủ rõ để xếp chắc vào nhóm lõi. |
 
@@ -177,6 +196,7 @@ SenOCR-Vi còn báo cáo **86,7%** cho text recognition theo `1 − edit distanc
 - **Reading order hoặc đang dùng hệ MinerU:** thử **MinerU2.5-Pro** song song với PaddleOCR-VL-1.6; xác nhận bản 2604 hay 2605 và chức năng cross-page table trong môi trường triển khai, vì model card có mô tả chưa nhất quán về trạng thái tính năng này. [Nguồn](../wiki/mineru2-5-pro.md).
 - **Chủ yếu tiếng Anh và cần model nhỏ:** thử **FalconOCR 0,3B**, nhất là nếu workload giống olmOCR-Bench hơn OmniDocBench.
 - **Chủ yếu tiếng Việt:** thử **SenOCR-Vi và PaddleOCR-VL-1.6 trên cùng tập**, đặc biệt giữ nguyên cách tính dấu tiếng Việt, bảng và formula. Bằng chứng hiện tại chưa đủ để chốt mức tăng 1,93 điểm.
+- **Muốn so sánh full-page với layout-first theo block:** thử **Surya 2.5** riêng từng chế độ; nếu cần row/column geometry, kiểm tra thêm **Surya 2**. Layout, OCR và bảng dùng inference server chung; xác minh license trọng số thực tế trước khi dùng thương mại. [Triển khai](../wiki/surya-ocr-2-5-deployment.md) · [Giới hạn license](../wiki/surya-ocr-2-5.md#license-and-evidence-limits).
 - **CPU-only, tài liệu đơn giản:** cân nhắc **Indra OCR**, nhưng đánh giá riêng handwriting, scan cũ và bảng có merged cells.
 
-**Giới hạn kiểm tra:** Lần cập nhật này dựa trên diff đã stage, các trang Xiaomi và model card lưu cục bộ; không truy cập web, tải model hay chạy benchmark. `python3 tools/wiki_check.py` đã chạy và báo **OK: 103 concepts, 1 index**; đây là kiểm tra cấu trúc wiki, không xác minh điểm số hay chất lượng output. Trang Xiaomi ở trạng thái **draft**; repository, evaluation code và tài liệu ngoài card chưa được kiểm tra. Các trang MiniCPM liên quan cũng ở trạng thái draft và còn giới hạn coverage, tái lập. Bản so sánh nằm trong `outputs/`; lần cập nhật này không thay đổi wiki.
+**Giới hạn kiểm tra:** Lần cập nhật này dựa trên diff đã stage và các trang Surya 2.5 trong wiki; không truy cập web, tải model hay chạy benchmark. Các trang Surya 2.5 ở trạng thái **draft**: mã triển khai, trọng số, scorer, benchmark và văn bản license liên kết chưa được kiểm tra; các con số là báo cáo của vendor. Trang Xiaomi và các trang MiniCPM liên quan cũng ở trạng thái draft, còn giới hạn coverage và tái lập. Bản so sánh nằm trong `outputs/`; lần cập nhật này không thay đổi wiki.

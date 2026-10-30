@@ -36,6 +36,7 @@ Nguồn chính là [catalog benchmark end-to-end](../wiki/end-to-end-generative-
 | [Chandra OCR 2](../wiki/chandra-ocr-2.md) | **5.3B trong bảng so sánh**; card riêng không xác nhận | Chưa ghi rõ | olmOCR-Bench **85.8 ± 0.8** theo card | Có giới hạn thương mại cho weights; phải kiểm tra license trước khi chọn. |
 | [Nanonets-OCR2](../wiki/nanonets-ocr2.md) | **3B**, thử nghiệm **1.5B**; Plus hosted | Chưa ghi rõ | Bản 3B: ChartQA **78.56**, DocVQA **89.43** | Hữu ích khi cần cả parsing và VQA; cấu hình benchmark không được mô tả đầy đủ. |
 | [Typhoon OCR 1.5](../wiki/typhoon-ocr.md) | **2B** | Chưa ghi rõ | Bộ Thai nội bộ: BLEU **0.644**, ROUGE-L **0.774** | Chuyên Thai/English; không so trực tiếp các điểm này với OmniDocBench. |
+| [Surya OCR 2.5](../wiki/surya-ocr-2-5.md) | **689M** | Chưa xác nhận ngày ra mắt | OmniParseBench **85.9**; olmOCR-bench **83.7** | Hệ thống ranh giới: mặc định sinh HTML theo trang, tùy chọn OCR theo block sau layout; cần kiểm tra license weights. |
 | [Granite Docling](../wiki/granite-docling-258m.md) | **258M** | Chưa ghi rõ | Full-page OCR edit **0.45** trong model-card evaluation | Model rất nhỏ, nhưng thuộc nhóm ranh giới: được định vị là thành phần trong Docling. |
 | [NVIDIA Nemotron Parse v1.1 / 2.0](../wiki/nemotron-parse-2-0.md) | Cả hai được mô tả là **dưới 1B** | Chưa ghi rõ | Card v1.1 được lưu **không có kết quả số** | Model trực tiếp page-to-structure; chưa đủ bảng đối chiếu trong catalog này. |
 
@@ -125,6 +126,7 @@ olmOCR-Bench dùng các unit test theo loại tài liệu/tác vụ; điểm dư
 | Model | Kết quả ↑ | Lưu ý |
 |---|---:|---|
 | Infinity-Parser2 Pro | **87.6 ± 0.8** | Pipeline đánh giá của tác giả. |
+| [Surya OCR 2.5](../wiki/surya-ocr-2-5.md) | **83.7** | Datalab báo trung bình ba lượt, plain output; Surya 2 đạt 82.8 trong cùng báo cáo. |
 | LightOnOCR-3-4B | **86.3** | Blog LightOn, có postprocessing; không nêu khoảng bất định. |
 | Infinity-Parser2 Flash | **86.0 ± 0.8** | Pipeline đánh giá của tác giả. |
 | LightOnOCR-3-0.8B / 1B | **85.5 / 84.5** | Blog LightOn, có postprocessing; không nêu khoảng bất định. |
@@ -157,6 +159,14 @@ Về serving, tác giả dùng cùng 512 trang olmOCR, một H100/model và vLLM
 
 ---
 
+### OmniParseBench: Surya OCR 2.5 so với Surya OCR 2
+
+Theo [model card Surya 2.5 được tổng hợp trong wiki](../wiki/surya-ocr-2-5.md), hai checkpoint đạt **85.9 so với 83.3 overall**, **83.8 so với 81.0 text**, **78.3 so với 74.3 table** và **95.7 so với 94.5 layout**. Datalab báo dùng `surya-ocr` 0.23.0, 192 DPI, public scorer và một lượt mỗi model; khoảng tin cậy bootstrap cặp 95% cho chênh lệch overall là **+1.6 đến +3.7 điểm**. Đây là kết quả nhà phát hành, chưa được tái lập; OmniParseBench không phải OmniDocBench hay ParseBench trong các bảng trên.
+
+Surya 2.5 mặc định sinh các block HTML có thứ tự và tọa độ trong một lượt VLM/trang; chế độ tùy chọn chạy layout trước rồi OCR từng block. Chế độ bảng đầy đủ sinh HTML có ô gộp, nhưng `--mode simple` lấy hình học hàng/cột cần checkpoint Surya 2, không hỗ trợ 2.5. Theo cùng nguồn, throughput 2.5 là **4.52 trang/giây** trên H100 80 GB, 192 DPI, 32 request đồng thời và 300 trang, với server vLLM đã chạy; không so trực tiếp tốc độ này với setup LightOn ở trên. [Chi tiết triển khai](../wiki/surya-ocr-2-5-deployment.md).
+
+---
+
 ## 7. Tiếng Việt và tài liệu nhiều trang
 
 ### 7.1. Tiếng Việt: cần so với model chuyên biệt
@@ -171,6 +181,8 @@ Vì câu hỏi bằng tiếng Việt, đây là một nhóm đối chiếu quan 
 | PaddleOCR-VL-1.6 | ~0.9B | **80.90** |
 
 [Nguồn: SenOCR-Vi](../wiki/senocr-vi.md). SenOCR-Vi báo **86.7% text recognition** theo `1 - Edit_dist`, nhưng chỉ số này **khác** document composite 82.83 và không nên so trực tiếp.
+
+[Surya OCR 2.5](../wiki/surya-ocr-2-5.md) báo **63.6% cho tiếng Việt** trên benchmark nội bộ 91 ngôn ngữ của Datalab. Đây là benchmark khác, **không so trực tiếp** với Vietnamese document composite trong bảng; bảng ngôn ngữ đầy đủ không có trong nguồn lưu cục bộ.
 
 **Cảnh báo quan trọng:** điểm 82.83 của SenOCR-Vi được tính lại trên 160 trang sau sửa lỗi scorer; điểm base 80.90 lấy từ leaderboard. Hai dòng chưa được chứng minh chạy lại bằng **cùng pipeline đã sửa**, nên chênh lệch 1.93 điểm chỉ mang tính tham khảo.
 
@@ -195,7 +207,7 @@ Các giá trị cross-page ở hai dòng **không cùng benchmark**, nên không
 | **Ảnh chụp hoặc scan suy giảm** | **OvisOCR2, FireRed-OCR**, cộng OvisOCR3 nếu thử thực tế | Có điểm PureDocBench hoặc benchmark điều kiện khó; cần tự kiểm tra theo camera, ngôn ngữ và độ méo của dữ liệu. |
 | **Tài liệu Việt** | **Chandra OCR 2**, cộng **SenOCR-Vi** làm baseline pipeline | Có kết quả Vietnamese slice được báo cáo; kiểm tra license Chandra và caveat scorer SenOCR-Vi. |
 | **Tài liệu nhiều trang, bảng nối trang** | **OvisOCR3, Unlimited OCR 2** | Có đánh giá riêng cho cross-page hoặc long-document. |
-| **Markdown + tọa độ / structured extraction** | **OvisOCR3, Infinity-Parser2 Flash/Pro, dots.ocr** | Có các chế độ JSON/layout hoặc output theo tác vụ. |
+| **Markdown + tọa độ / structured extraction** | **OvisOCR3, Infinity-Parser2 Flash/Pro, dots.ocr; Surya OCR 2.5** | Có các chế độ JSON/layout hoặc output theo tác vụ; Surya sinh HTML block có tọa độ và cần kiểm tra license weights. |
 | **Cần model/stack có benchmark olmOCR mạnh** | **Infinity-Parser2 Flash/Pro, Chandra OCR 2** | Điểm được báo cáo cao trong bảng olmOCR; protocol chưa đồng nhất. |
 | **Thai/English** | **Typhoon OCR 1.5** | Chuyên biệt ngôn ngữ và có benchmark Thai nội bộ, nhưng không có đối chiếu công bằng với toàn bộ shortlist. |
 | **Muốn thử grounding nhẹ** | **LightOnOCR-3 0.8B**, đối chiếu **4B** | Có bounding box, mô tả ảnh và bảng dữ liệu biểu đồ; blog báo cáo benchmark và tốc độ, nhưng cần kiểm thử trên dữ liệu thực tế. |
@@ -211,4 +223,4 @@ Cho một bài toán tài liệu hỗn hợp có tiếng Việt, tôi sẽ thử
 
 Đánh giá trên **cùng bộ trang của bạn**, giữ nguyên DPI, prompt, output schema và retry; tách ít nhất các nhóm **văn bản Việt có dấu, bảng, công thức, chữ viết tay, ảnh chụp, nhiều cột và bảng qua trang**. Báo riêng chất lượng và latency/VRAM thay vì chỉ lấy một điểm tổng.
 
-**Giới hạn kiểm tra:** Bản cập nhật dùng catalog và các trang wiki [LightOnOCR-3](../wiki/lightonocr-3.md) và [đánh giá LightOnOCR-3](../wiki/lightonocr-3-evaluation.md); không mở lại raw papers/model cards hoặc chạy benchmark/model trong lượt cập nhật này. Các phần khác giữ kết quả và giới hạn của bản trước, không phải một cuộc rà soát lại toàn bộ model. Kết quả là số do nguồn báo cáo; bản so sánh này được giữ trong `outputs/`, không ghi thêm vào wiki.
+**Giới hạn kiểm tra:** Lượt cập nhật này dựa trên git diff và các trang wiki [Surya OCR 2.5](../wiki/surya-ocr-2-5.md), [triển khai Surya 2.5](../wiki/surya-ocr-2-5-deployment.md) và [Surya OCR 2](../wiki/surya-ocr-2.md); không mở lại model card gốc hoặc chạy benchmark/model. Các phần khác giữ kết quả và giới hạn của bản trước, không phải một cuộc rà soát lại toàn bộ model. Kết quả là số do nguồn báo cáo; bản so sánh này được giữ trong `outputs/`, không ghi thêm vào wiki.
