@@ -5,7 +5,7 @@ description: MDPBench is an author-constructed benchmark for multilingual docume
 tags: [benchmark, document-parsing, multilingual, ocr, robustness]
 status: draft
 created: 2026-08-17
-generated: { by: llm-wiki-agent/1, at: 2026-10-25T03:32:14Z }
+generated: { by: llm-wiki-agent/1, at: 2026-10-30T03:30:00Z }
 stale_after: 2027-01-25
 sources:
   - id: mdpbench-paper
@@ -26,6 +26,10 @@ sources:
     resource: ../raw/VietAlphaLabs-SenOCR-Vi.md
     kind: model-card
     title: "SenOCR-Vi: A Vietnamese-Specialized Document OCR Model"
+  - id: mdpbench-readme
+    resource: ../raw/ocr-benchmark-assets-2026-10-30/mdpbench-readme.md
+    kind: article
+    title: MDPBench README (main results)
 ---
 
 # MDPBench
@@ -54,6 +58,10 @@ The [OvisOCR3](ovisocr3.md) card reports **88.80** on MDPBench, but does not sta
 
 The [MonkeyOCRv2](monkeyocrv2.md) card, which links this benchmark's repository, publishes the same comparison and a dated leaderboard claim: on 2026.07.22 MonkeyOCRv2-B-Parsing ranked first among the evaluated open-source models at 83.3 overall, while the closed-source Gemini-3-pro remained above it at 86.4. The card's per-language columns show that the overall lead is not uniform: B-Parsing trails dots.mocr on traditional Chinese (75.3 versus 79.6) and Japanese (71.9 versus 75.0) and PaddleOCR-VL-1.5 on simplified Chinese (83.6 versus 84.8), while the 0.6B S-Parsing variant scores higher than B on simplified Chinese (84.4) and Spanish (76.8). The benchmark's curators are also the submitters of these rows, so the placement claim is self-reported rather than independent verification.[^monkeyocrv2-model-card]
 
+The benchmark README captured on 2026-10-30 adds a `Private` split column and newer rows. Its overall / digital / photographed / private values include MonkeyOCRv2-B-Parsing 83.3 / 88.1 / 81.7 / 84.7, chandra-ocr-2 79.7 / 87.8 / 77.1 / 82.4, PaddleOCR-VL-1.6 78.9 / 87.1 / 76.3 / 83.0, and MinerU-2.5-Pro-1.2B 71.0 / 86.2 / 66.1 / 74.3; Gemini-3-pro-preview remains highest at 86.4, and Kimi K3 is listed at 83.6. OvisOCR3 does not appear in that table.[^mdpbench-readme]
+
+**Reported, unresolved:** the MonkeyOCRv2 paper and card list PaddleOCR-VL-1.6 at 75.0 overall (82.8 digital, 72.6 photographed), whereas the README and the OvisOCR3 card list 78.9. Neither source explains the difference, so treat 75.0 as a superseded or differently configured submission rather than choose one silently.[^monkeyocrv2-paper][^mdpbench-readme][^ovisocr3-model-card] [Document OCR model benchmark comparison](document-ocr-model-benchmark-comparison.md) places these rows beside the other benchmarks.
+
 The [SenOCR-Vi](senocr-vi.md) card publishes a Vietnamese-only recomputation over 160 corrected pages: SenOCR-Vi 82.83, chandra-ocr-2 85.60, MonkeyOCRv2-B-Parsing 83.20, Claude-Sonnet-4.6 83.10, ChatGPT-5.2-2025-12-11 82.10, and PaddleOCR-VL-1.6 80.90, with the non-SenOCR rows attributed to this leaderboard. That card also records that its original scorer emitted three extra non-page rows from a key-parsing defect, all in the Vietnamese population, so its 82.83 is a re-aggregation over actual pages rather than the raw scorer output. These single-language rows cannot be merged into the 17-language overall comparison, and the base model's 80.90 and the corrected 82.83 arise from different aggregation paths.[^senocr-vi-model-card]
 
 ## Trust limits
@@ -73,4 +81,5 @@ The [SenOCR-Vi](senocr-vi.md) card publishes a Vietnamese-only recomputation ove
 [^monkeyocrv2-paper]: Liu et al., *MonkeyOCRv2: A Visual-Text Foundation Model for Document AI*, local LaTeX source at [monkeyocr.tex](../raw/2607.11562_MonkeyOCRv2/monkeyocr.tex) (accessed 2026-08-17).
 [^monkeyocrv2-model-card]: Liu et al., *MonkeyOCRv2: A Visual-Text Foundation Model for Document AI*, model card and repository README captured at [zenosai-MonkeyOCRv2-B-Parsing.md](../raw/zenosai-MonkeyOCRv2-B-Parsing.md), locators: § News entry dated 2026.07.22; § Evaluation Results › 6. Document parsing results on MDPBench (accessed 2026-10-25).
 [^ovisocr3-model-card]: ATH-MaaS, *OvisOCR3 model card*, local source at [ATH-MaaS-OvisOCR3.md](../raw/ATH-MaaS-OvisOCR3.md), § Performance › Document Parsing (accessed 2026-10-25).
+[^mdpbench-readme]: [MDPBench README](../raw/ocr-benchmark-assets-2026-10-30/mdpbench-readme.md), § Main Results (fetched 2026-10-30 per `manifest-extra.json`).
 [^senocr-vi-model-card]: VietAlpha Lab, *SenOCR-Vi: A Vietnamese-Specialized Document OCR Model*, local model card at [VietAlphaLabs-SenOCR-Vi.md](../raw/VietAlphaLabs-SenOCR-Vi.md), § Evaluation › Vietnamese, § Text recognition, and § Benchmark note (accessed 2026-10-25).

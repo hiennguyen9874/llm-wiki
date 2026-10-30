@@ -40,6 +40,7 @@ The supplied English model-card capture was inspected statically; publication da
 
 ## Relationships
 
+- **Compared in:** [Document OCR model benchmark comparison](document-ocr-model-benchmark-comparison.md), which places this model's reported results beside nine other document parsers per dataset.
 - **Related to:** [Surya OCR 2](surya-ocr-2.md), an earlier checkpoint with a distinct table geometry capability and separately reported evaluation.[^surya-25-card]
 - **Uses:** [Task: End-to-end generative OCR](task-end-to-end-generative-ocr.md) for full-page generation, with optional layout-first block recognition.[^surya-25-card]
 - **Evaluated by:** [OmniParseBench](omniparsebench.md), in the vendor's reported run.[^surya-25-card]

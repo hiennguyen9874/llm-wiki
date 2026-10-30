@@ -5,7 +5,7 @@ description: MinerU2.5-Pro is a 1.2B document-parsing vision-language model whos
 tags: [ocr, document-parsing, vision-language-models, data-engineering, table-recognition, formula-recognition]
 status: draft
 created: 2026-08-17
-generated: { by: llm-wiki-agent/1, at: 2026-10-29T14:03:42+07:00 }
+generated: { by: llm-wiki-agent/1, at: 2026-10-30T03:30:00Z }
 stale_after: 2027-01-29
 sources:
   - id: mineru2-5-pro-model-card
@@ -18,6 +18,14 @@ sources:
     resource: ../raw/2606.03264_PaddleOCR-VL-1.6/main.tex
     kind: paper
     title: PaddleOCR-VL-1.6 technical report
+  - id: mineru-pro-leaderboard
+    resource: ../raw/ocr-benchmark-assets-2026-10-30/mineru-leaderboard.png
+    kind: figure
+    title: MinerU2.5-Pro OmniDocBench v1.6 leaderboard figure
+  - id: mineru-pro-table-img
+    resource: ../raw/ocr-benchmark-assets-2026-10-30/mineru-table_performance.png
+    kind: figure
+    title: MinerU2.5-Pro table-recognition table
 ---
 
 # MinerU2.5-Pro
@@ -30,7 +38,9 @@ The 2604 card reports an overall score of 95.69 on OmniDocBench v1.6, versus 92.
 
 The May 2026 2605 update reports an overall score of 95.72 on OmniDocBench v1.6_full, compared with 95.69 for 2604. Its table lists text edit distance at 0.036 for both versions; formula CDM at 97.15 versus 97.29; Table TEDS at 93.62 versus 93.42; Table TEDS-S at 96.01 versus 95.92; and read-order edit distance at 0.123 versus 0.120. The authors characterize these metric differences as marginal and say 2605 instead targets user-experience improvements.[^mineru2-5-pro-2605-model-card]
 
-All of these are author-reported comparisons: the local cards provide no evaluation protocol, and their remote performance images were not inspected.
+The 2604 card's performance images, downloaded on 2026-10-30, add subset and element-level detail: OmniDocBench v1.6 Base **96.12** and Hard **94.08** (Hard ranks first; Base trails GLM-OCR's 96.19), and single-task Full scores of text 1−edit 96.37, formula CDM 97.29, table TEDS 93.42, and reading-order 1−edit 87.97.[^mineru-pro-leaderboard] The five table benchmarks behind the 1.39-point claim are OmniDoc Base, OmniDoc Hard, CCOCR, OCRBv2, and an in-house set; Pro averages **91.10 TEDS / 94.48 TEDS-S** there versus GLM-OCR's 89.71 / 93.52, while GLM-OCR leads on OmniDoc Base and CCOCR.[^mineru-pro-table-img]
+
+All of these are author-reported comparisons: the local cards provide no evaluation protocol. See [Document OCR model benchmark comparison](document-ocr-model-benchmark-comparison.md) for MinerU2.5-Pro's results on MDPBench, OmniParseBench, Real5, Wild, and PureDocBench as reported by other projects.
 
 ## Data engine and training
 
@@ -55,11 +65,14 @@ The documented Python interface is `mineru-vl-utils`, with Transformers and vLLM
 ## Relationships
 
 - **Compares with:** [MinerU2.5](mineru2-5.md), which the card identifies as its previous baseline.[^mineru2-5-pro-model-card]
+- **Compared in:** [Document OCR model benchmark comparison](document-ocr-model-benchmark-comparison.md), per dataset with nine other parsers.
 
 ## Scope and trust limits
 
-The model and operation synthesis is based on the local Apache-2.0 model cards, with a separately attributed benchmark comparison from the local PaddleOCR-VL-1.6 report. The linked technical report, model weights, utility package, and remote leaderboard, performance, and showcase images were not inspected. Accordingly, architecture details beyond the stated 1.2B size, the numerical claims above, and feature quality are unverified author claims.[^mineru2-5-pro-model-card][^mineru2-5-pro-2605-model-card]
+The model and operation synthesis is based on the local Apache-2.0 model cards, with a separately attributed benchmark comparison from the local PaddleOCR-VL-1.6 report. The linked technical report (downloaded to `raw/ocr-benchmark-assets-2026-10-30/` but only its result tables checked), model weights, utility package, and showcase images were not inspected; the leaderboard and performance images were inspected visually on 2026-10-30. Accordingly, architecture details beyond the stated 1.2B size, the numerical claims above, and feature quality are unverified author claims.[^mineru2-5-pro-model-card][^mineru2-5-pro-2605-model-card]
 
 [^mineru2-5-pro-model-card]: OpenDataLab, [*MinerU2.5-Pro: Pushing the Limits of Data-Centric Document Parsing at Scale*](../raw/MinerU2.5-Pro-2604-1.2B.md) (accessed 2026-08-17). Remote image assets and linked external resources were not inspected.
 [^mineru2-5-pro-2605-model-card]: OpenDataLab, [*MinerU2.5-Pro-2605-1.2B model card*](../raw/MinerU2.5-Pro-2605-1.2B.md), §News → Comparable Performance table; §Unmatched SOTA Performance; §1 Quick Start (accessed 2026-08-17; textual comparison revisited 2026-10-29). Remote image assets and linked external resources were not inspected.
+[^mineru-pro-leaderboard]: [mineru-leaderboard.png](../raw/ocr-benchmark-assets-2026-10-30/mineru-leaderboard.png), panels OmniDocBench-v1.6 Full/Base/Hard Overall and Single-task Performance (fetched 2026-10-30 per `manifest.json`).
+[^mineru-pro-table-img]: [mineru-table_performance.png](../raw/ocr-benchmark-assets-2026-10-30/mineru-table_performance.png), rows MinerU2.5-Pro and GLM-OCR (fetched 2026-10-30 per `manifest-retry.json`).
 [^paddleocr-vl-1-6-report]: [PaddleOCR-VL-1.6 report](../raw/2606.03264_PaddleOCR-VL-1.6/main.tex), §Experiments → Document Parsing, table `tab:omni16_full_performance`; report attributes its values to the official leaderboard, not inspected independently here.

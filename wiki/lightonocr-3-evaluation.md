@@ -52,6 +52,7 @@ The authors report 19% lower 4B single-page latency and 21% higher peak throughp
 
 ## Coverage and relationships
 
+- **Compared in:** [Document OCR model benchmark comparison](document-ocr-model-benchmark-comparison.md), which places this model's reported results beside nine other document parsers per dataset.
 - **Evaluates:** [LightOnOCR-3](lightonocr-3.md); see [deployment](lightonocr-3-deployment.md) for model-card runtime instructions and [training](lightonocr-3-training.md) for the reported data recipe.
 - The article and 11 local image assets were inspected, including the postprocessing and speed tables. The interactive benchmark and example iframes, external benchmarking repository, weights and execution environment were unavailable for inspection; no benchmark or inference was run. The article's model-card render recommendations and benchmark settings have different contexts and should not be conflated. Draft records these limits.[^lightonocr-3-blog]
 

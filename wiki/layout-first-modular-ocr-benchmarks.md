@@ -5,7 +5,7 @@ description: Layout-first modular OCR benchmarks catalog retained models, datase
 tags: [ocr, document-parsing, layout-analysis, benchmarks, evaluation]
 status: draft
 created: 2026-08-17
-generated: { by: llm-wiki-agent/1, at: 2026-10-28T16:49:13Z }
+generated: { by: llm-wiki-agent/1, at: 2026-10-30T03:30:00Z }
 sources:
   - id: paddleocr3-report
     resource: ../raw/2507.05595_PaddleOCR-3.0/main.tex
@@ -46,6 +46,10 @@ sources:
     kind: paper
     revision: arXiv:2608.12898v3
     title: "TeleOCR: Navigating Document Parsing Across Digital and Camera-Captured Documents"
+  - id: mineru-pro-table-img
+    resource: ../raw/ocr-benchmark-assets-2026-10-30/mineru-table_performance.png
+    kind: figure
+    title: MinerU2.5-Pro table-recognition table
 ---
 
 # Layout-first modular OCR benchmarks
@@ -230,9 +234,9 @@ The GLM report gives the following public rows; metric implementations are not f
 
 Its private suite reports: Code Document 84.7, Real-world Table 91.5, Handwritten Text 87.0, Multilingual Text 69.3, Seal Recognition 90.5, and Receipt KIE 94.5. Dataset sizes, formulas, and uncertainty are absent; Receipt KIE uses GLM-OCR's separate full-page KIE path.[^glm-ocr-report]
 
-### MinerU2.5-Pro claims without retained numeric tables
+### MinerU2.5-Pro table-recognition claims
 
-The 2604 card says Pro was evaluated across five unnamed table benchmarks, leading the next model by 1.39 points and original MinerU by 3.06 points; it also reports Dense Formula CDM 97.29 and text edit distance 0.036. The referenced performance plots are remote and not retained, so the five table-dataset names and complete score vectors cannot be recovered from the local evidence.[^mineru2-5-pro-card]
+The 2604 card says Pro was evaluated across five table benchmarks, leading the next model by 1.39 points and original MinerU by 3.06 points; it also reports Dense Formula CDM 97.29 and text edit distance 0.036.[^mineru2-5-pro-card] Its performance image, downloaded on 2026-10-30, names the five sets (OmniDoc Base, OmniDoc Hard, CCOCR, OCRBv2, in-house) and gives Pro's overall 91.10 TEDS / 94.48 TEDS-S against GLM-OCR 89.71 / 93.52, MinerU2.5 87.94 / 92.17, and PaddleOCR-VL-1.5 82.91 / 87.60. GLM-OCR still leads OmniDoc Base and CCOCR.[^mineru-pro-table-img] Cross-dataset results for MinerU2.5-Pro beside other parsers are in [Document OCR model benchmark comparison](document-ocr-model-benchmark-comparison.md).
 
 ## Throughput and system metrics
 
@@ -258,7 +262,7 @@ These measurements use different datasets, servers, backends, batching, and conc
 
 ## Trust limits
 
-Every numeric result is author- or vendor-reported. The local bundle does not contain a complete reproducible evaluation package, evaluated outputs, training corpora, uncertainty for most metrics, or a preserved official leaderboard snapshot. Private Paddle and GLM suites cannot be audited; MinerU's remote benchmark images are absent; Falcon's throughput statements conflict; and PP-StructureV3's total parameter count is unresolved. PaddleOCR-VL's in-house OCR prose also states Telugu/Japanese NED as 0.114/0.096 while its table prints 0.011/0.086; the table values are transcribed above without resolving the conflict. This page records exact printed values where available and marks missing score vectors rather than inferring them.[^paddleocr3-report][^paddleocr-vl-report][^paddleocr-vl-1-5-report][^paddleocr-vl-1-6-report][^glm-ocr-report][^falcon-perception-report][^mineru2-5-card][^mineru2-5-pro-card][^mineru2-5-pro-2605-card]
+Every numeric result is author- or vendor-reported. The local bundle does not contain a complete reproducible evaluation package, evaluated outputs, training corpora, uncertainty for most metrics, or a preserved official leaderboard snapshot. Private Paddle and GLM suites cannot be audited; only some of MinerU's remote benchmark images were later downloaded (2026-10-30); Falcon's throughput statements conflict; and PP-StructureV3's total parameter count is unresolved. PaddleOCR-VL's in-house OCR prose also states Telugu/Japanese NED as 0.114/0.096 while its table prints 0.011/0.086; the table values are transcribed above without resolving the conflict. This page records exact printed values where available and marks missing score vectors rather than inferring them.[^paddleocr3-report][^paddleocr-vl-report][^paddleocr-vl-1-5-report][^paddleocr-vl-1-6-report][^glm-ocr-report][^falcon-perception-report][^mineru2-5-card][^mineru2-5-pro-card][^mineru2-5-pro-2605-card]
 
 ## Relationships
 
@@ -276,4 +280,5 @@ Every numeric result is author- or vendor-reported. The local bundle does not co
 [^mineru2-5-pro-card]: OpenDataLab, local [MinerU2.5-Pro-2604 model card](../raw/MinerU2.5-Pro-2604-1.2B.md); remote benchmark figures were unavailable locally (accessed 2026-08-17).
 [^mineru2-5-pro-2605-card]: OpenDataLab, local [MinerU2.5-Pro-2605-1.2B model card](../raw/MinerU2.5-Pro-2605-1.2B.md) (accessed 2026-08-17).
 [^minicpm-repo]: [MiniCPM-OCR repository](../raw/MiniCPM-OCR/README.md), revision `b33b474`, `docs/benchmark_reproduction_en.md` §§ Benchmarks and Official Scoring Resources and Parsing Efficiency Test; `assets/minicpm-ocr/ocr-benchmarks.png` and `benchmark-data.json`.
+[^mineru-pro-table-img]: [mineru-table_performance.png](../raw/ocr-benchmark-assets-2026-10-30/mineru-table_performance.png), Overall TEDS/TEDS-S columns (fetched 2026-10-30).
 [^teleocr-v3]: Cai et al., *TeleOCR: Navigating Document Parsing Across Digital and Camera-Captured Documents*, arXiv:2608.12898v3, local [main.tex](../raw/arXiv-2608.12898v3-TeleOCR/main.tex) (§§ Data Engineering, Progressive Training, Experimental Evaluation; Tables OmniDocBench v1.6, Wild OmniDocBench v1.5, PureDocBench) and [README.md](../raw/arXiv-2608.12898v3-TeleOCR/README.md) (§ News, Quick Start), inspected 2026-09-29.

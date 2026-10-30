@@ -57,6 +57,7 @@ All results below are author-reported and not independently reproduced:[^paddleo
 
 ## Relationships
 
+- **Compared in:** [Document OCR model benchmark comparison](document-ocr-model-benchmark-comparison.md), which places this model's reported results beside nine other document parsers per dataset.
 - **Supersedes:** [PaddleOCR-VL-1.5](paddleocr-vl-1.5.md) as the next version of the two-stage parser.
 - **Uses:** [PP-DocLayoutV3](pp-doclayoutv3.md) unchanged for layout analysis, multipoint localization, and reading order before element recognition.[^paddleocr-vl-1-6-report]
 - **Extended by:** [SenOCR-Vi](senocr-vi.md), a Vietnamese decoder-only LoRA fine-tune that keeps this model's architecture and prompt/pipeline interface; its card reports 82.83 versus 80.90 here on a corrected Vietnamese MDPBench page population, but the base figure is leaderboard-derived and not recomputed through the same corrected pipeline.[^senocr-vi-model-card]

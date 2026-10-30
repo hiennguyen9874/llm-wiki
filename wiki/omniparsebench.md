@@ -5,11 +5,19 @@ description: OmniParseBench is Datalab's pass/fail document-parsing benchmark wh
 tags: [benchmark, document-parsing, ocr, tables, layout-analysis, multilingual]
 status: draft
 created: 2026-10-25
-generated: { by: llm-wiki-agent/1, at: 2026-10-25T03:24:25Z }
+generated: { by: llm-wiki-agent/1, at: 2026-10-30T03:30:00Z }
 sources:
   - id: indra-ocr-card
     resource: ../raw/datalab-to-indra-ocr.md
     title: Indra OCR model card (datalab-to/indra-ocr)
+  - id: opb-card
+    resource: ../raw/ocr-benchmark-assets-2026-10-30/omniparsebench-card.md
+    kind: dataset-card
+    title: Omni Parse Bench dataset card
+  - id: surya25-card
+    resource: ../raw/surya-ocr-2.5-hf.md
+    kind: model-card
+    title: Surya OCR 2.5 model card
 ---
 
 # OmniParseBench
@@ -47,6 +55,12 @@ Throughput runs one single-threaded worker per core on the same 300 pages, OCR m
 | Tesseract 5 | 0.78 | 1.37 | 2.27 | 2.92 |
 | PP-StructureV3 (upper bounds) | ≤ 0.022 | ≤ 0.044 | ≤ 0.089 | ≤ 0.18 |
 
+## Dataset-card leaderboard
+
+The dataset card captured on 2026-10-30 publishes the full results table: closed systems up to Datalab accurate at 94.1, and open-weight models served by Datalab from omni-parse-bench server images with each vendor's recommended defaults. Selected open rows (headline / text / tables / layout): chandra-ocr-2 90.1 / 87.4 / 87.4 / 95.4; MinerU2.5-Pro 87.1 / 77.4 / 92.1 / 91.7; Infinity-Parser2-Pro 87.0 / 83.3 / 84.1 / 93.5; Surya OCR 2.5 85.9 / 83.8 / 78.3 / 95.7; MiniCPM-OCR-1.0 83.2 / 72.8 / 89.1 / 87.6; LightOnOCR-3-4B 82.9 / 83.9 / 70.8 / 94.0; PaddleOCR-VL-1.6 78.7 / 61.7 / 83.7 / 90.7. Parsers that return no layout (olmOCR-2, Nanonets-OCR2-3B, Tesseract) have no headline, and closed models marked `*` helped create or verify some tests. Every verdict is published in `results.parquet`, which was not downloaded here.[^opb-card] Cross-benchmark context for these models is in [Document OCR model benchmark comparison](document-ocr-model-benchmark-comparison.md).
+
+**Reported, unreconciled:** the dataset card lists Indra OCR at 69.5 / 60.3 / 58.1 / 90.1 and Surya OCR 2 at 83.1 / 80.6 / 74.3 / 94.3, while the Indra card's `auto` row gives 66.7 / 46.7 / 61.1 / 92.2 and the Surya 2.5 card's own rerun of Surya 2 gives 83.3 / 81.0 / 74.3 / 94.5. Run date, mode, and package version can differ; no source maps the rows to each other.[^opb-card][^indra-ocr-card][^surya25-card]
+
 ## Protocol caveats
 
 - **Asymmetric execution.** The Indra OCR rows were produced with the benchmark's own adapter; the competing rows were produced by Datalab running each engine at default settings. That is a vendor-run comparison under a shared scorer, not a neutral third-party evaluation.[^indra-ocr-card]
@@ -61,14 +75,17 @@ The card documents a harness script in the Indra repository: clone, `pip install
 
 ## Trust limits
 
-- No OmniParseBench test content, ground truth, scoring code, dataset, or leaderboard snapshot is present locally; every structural and numeric statement above is **reported** by a vendor model card.[^indra-ocr-card]
+- No OmniParseBench test content, ground truth, scoring code, or per-test verdicts are present locally; the only leaderboard snapshot is the 2026-10-30 dataset-card capture. Every structural and numeric statement above is **reported** by Datalab's model or dataset cards.[^indra-ocr-card][^opb-card]
 - The card does not define how a text, table, or layout test is judged as pass/fail, how the page sample was drawn, or what uncertainty surrounds the headline, so rankings at differences of a few points should not be treated as established.[^indra-ocr-card]
 - Because the retained comparison is single-run and vendor-executed, the defensible claim is that Indra OCR is far faster and competitive-to-ahead on this benchmark as its vendor ran it — not that any engine is globally best at document parsing.[^indra-ocr-card]
 
 ## Relationships
 
+- **Used by:** [Document OCR model benchmark comparison](document-ocr-model-benchmark-comparison.md) as one of its per-dataset sections.[^opb-card]
 - **Benchmarks:** [Indra OCR](indra-ocr.md), whose headline, text, table, layout, math, throughput, and per-script results this page catalogs.[^indra-ocr-card]
 - **Compares against:** [PP-StructureV3](pp-structurev3.md), PP-OCRv6 text models, and Tesseract 5 as the three baselines in the reported tables.[^indra-ocr-card]
 - **Distinct from:** [MDPBench](mdpbench.md) and [Real5-OmniDocBench](real5-omnidocbench.md), which use different page sets, capture conditions, and metric definitions; scores must not be transferred between them.
 
+[^opb-card]: Datalab, [Omni Parse Bench dataset card](../raw/ocr-benchmark-assets-2026-10-30/omniparsebench-card.md), §§ Results, Results details (fetched 2026-10-30 per `manifest-text.json`).
+[^surya25-card]: Datalab, [Surya OCR 2.5 model card](../raw/surya-ocr-2.5-hf.md), § Benchmarks › OmniParseBench.
 [^indra-ocr-card]: Datalab, *Indra OCR* model card (`datalab-to/indra-ocr`), local capture [datalab-to-indra-ocr.md](../raw/datalab-to-indra-ocr.md), sections *Indra OCR*, *Languages*, *Math*, *Benchmarks* (subsections *OmniParseBench*, *olmOCR-bench*, *Throughput*, *Reproducing*) (accessed 2026-10-25).

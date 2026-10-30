@@ -53,6 +53,7 @@ On PureDocBench the authors **removed six invalid Markdown predictions** followi
 
 ## Relationships
 
+- **Compared in:** [Document OCR model benchmark comparison](document-ocr-model-benchmark-comparison.md), which places this model's reported results beside nine other document parsers per dataset.
 - **Uses:** [Task: Layout-first modular parsing](task-layout-first-modular-parsing.md) as its page-layout-then-region-recognition paradigm; polygon segmentation modifies the region representation.[^teleocr-v3]
 - **Cataloged in:** [Layout-first modular OCR benchmarks](layout-first-modular-ocr-benchmarks.md) as a retained layout-first family member; its author-reported numbers remain on this page rather than in that catalog's protocol tables.[^teleocr-v3]
 - **Related to:** [Document-parser data flywheel](document-parser-data-flywheel.md) through pseudo-label filtering and synthetic captured-document generation, without demonstrating the same benchmark-driven iterative cycle.[^teleocr-v3]

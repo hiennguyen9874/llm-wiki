@@ -5,7 +5,7 @@ description: MonkeyOCRv2 is a document-native visual encoder family pretrained w
 tags: [vision-encoder, document-ai, ocr, pretraining, multilingual]
 status: draft
 created: 2026-08-17
-generated: { by: llm-wiki-agent/1, at: 2026-10-25T03:32:14Z }
+generated: { by: llm-wiki-agent/1, at: 2026-10-30T03:30:00Z }
 stale_after: 2027-01-25
 sources:
   - id: monkeyocrv2-paper
@@ -19,6 +19,10 @@ sources:
     resource: ../raw/HunyuanOCR-github.md
     kind: code
     title: "HunyuanOCR-1.5: Making Lightweight OCR VLMs Faster and Better (GitHub repository README)"
+  - id: mdpbench-readme
+    resource: ../raw/ocr-benchmark-assets-2026-10-30/mdpbench-readme.md
+    kind: article
+    title: MDPBench README (main results)
 ---
 
 # MonkeyOCRv2
@@ -37,7 +41,7 @@ MonkeyOCRv2-Parsing pairs a frozen S or B encoder with an MLP projector and Qwen
 
 All performance values below are author-reported, not independently reproduced:[^monkeyocrv2-paper]
 
-- **MDPBench:** B-Parsing reports **83.3** overall, versus the table's 80.5 for dots.mocr and 75.0 for PaddleOCR-VL-1.6. The card versions of the same table also publish S-Parsing at **82.5**, and the release announcement claims first place among evaluated open-source models. The lead is not uniform: B-Parsing trails dots.mocr on traditional Chinese (75.3 versus 79.6) and Japanese (71.9 versus 75.0), trails PaddleOCR-VL-1.5 on simplified Chinese (83.6 versus 84.8), and S-Parsing scores higher than B on simplified Chinese (84.4) and Spanish (76.8) with a 28M encoder.[^monkeyocrv2-model-card][^monkeyocrv2-paper] Its 0.1B encoder is about 11 times smaller than dots.mocr's stated 1.2B encoder; the table is a cross-system comparison, not an encoder-controlled attribution.
+- **MDPBench:** B-Parsing reports **83.3** overall, versus the table's 80.5 for dots.mocr and 75.0 for PaddleOCR-VL-1.6. The card versions of the same table also publish S-Parsing at **82.5**, and the release announcement claims first place among evaluated open-source models. The lead is not uniform: B-Parsing trails dots.mocr on traditional Chinese (75.3 versus 79.6) and Japanese (71.9 versus 75.0), trails PaddleOCR-VL-1.5 on simplified Chinese (83.6 versus 84.8), and S-Parsing scores higher than B on simplified Chinese (84.4) and Spanish (76.8) with a 28M encoder.[^monkeyocrv2-model-card][^monkeyocrv2-paper] Its 0.1B encoder is about 11 times smaller than dots.mocr's stated 1.2B encoder; the table is a cross-system comparison, not an encoder-controlled attribution. The benchmark's README captured on 2026-10-30 keeps B-Parsing at 83.3 (private split 84.7) but lists PaddleOCR-VL-1.6 at 78.9 rather than 75.0, so the paper's "8.3-point" margin over that model is not current.[^mdpbench-readme]
 - **OmniDocBench 1.6:** B-Parsing reports **91.57** overall without unfreezing the encoder or task-specific post-training. The same table reports higher scores for specialized systems including PaddleOCR-VL-1.6 (96.33), and the paper explicitly warns that their differing pipelines prevent encoder-level attribution.
 - **Controlled document understanding:** with a fixed Qwen3-1.7B decoder and frozen encoders, B with edge- and distance-aware reconstruction reports a mean **57.2** across eight document-VQA benchmarks. The source reports 50.7 for S without reconstruction, 51.7 for S with MSE, and 55.9 for S with the structure-aware loss; this is the paper's controlled evidence for its encoder objective.
 - **Faithfulness probes:** at long-side resolution 448, S-Parsing with reconstruction reports 72.1% scrambled-text recognition and a 15.3-point semantic--scrambled gap, versus 55.4% and 29.3 points without reconstruction. On CHAOS-Bench, B-Parsing reports 17.9 page-average recall of perturbed words; the benchmark is the HunyuanOCR team's character-level hallucination probe, which injects character-level corruptions into academic-paper images, and neither its scoring rules nor that figure is present in this bundle.[^monkeyocrv2-paper][^hunyuanocr-repo-readme] These are pipeline-level, distribution-shifting probes, not complete measures of hallucination or encoder-only visual fidelity.
@@ -67,6 +71,7 @@ Each variant ships as its own Hugging Face and ModelScope repository, with AS re
 
 ## Relationships
 
+- **Compared in:** [Document OCR model benchmark comparison](document-ocr-model-benchmark-comparison.md), alongside nine other document parsers per dataset.
 - **Deployed by:** [MonkeyOCRv2 serving and deployment stack](monkeyocrv2-serving-stack.md) for the vLLM, DFlash, CPU, and API paths.[^monkeyocrv2-model-card]
 - **Uses:** [MonkeyDoc v2](monkeydoc-v2.md) as its multilingual, multi-type pretraining corpus.[^monkeyocrv2-paper]
 - **Evaluated on:** [MDPBench](mdpbench.md) for multilingual digital-born and photographed document parsing.[^monkeyocrv2-paper]
@@ -74,4 +79,5 @@ Each variant ships as its own Hugging Face and ModelScope repository, with AS re
 
 [^monkeyocrv2-paper]: Liu et al., *MonkeyOCRv2: A Visual-Text Foundation Model for Document AI*, local LaTeX source at [monkeyocr.tex](../raw/2607.11562_MonkeyOCRv2/monkeyocr.tex), including visually reviewed [model overview](../raw/2607.11562_MonkeyOCRv2/images/figfig.pdf), [pretraining overview](../raw/2607.11562_MonkeyOCRv2/images/pretrain.pdf), [data distribution](../raw/2607.11562_MonkeyOCRv2/images/data_dis.pdf), [MDPBench comparison](../raw/2607.11562_MonkeyOCRv2/images/fig1_mdpbench_bubble_svg-raw.pdf), and [reconstruction analysis](../raw/2607.11562_MonkeyOCRv2/images/resolution.pdf) (accessed 2026-08-17).
 [^monkeyocrv2-model-card]: Liu et al., *MonkeyOCRv2: A Visual-Text Foundation Model for Document AI*, model card and repository README captured at [zenosai-MonkeyOCRv2-B-Parsing.md](../raw/zenosai-MonkeyOCRv2-B-Parsing.md), locators: § News entry dated 2026.07.22; § Model Zoo tables 1–3; § Evaluation Results tables 1, 2, 4, 5, 6, and 7; § Copyright (accessed 2026-10-25).
+[^mdpbench-readme]: [MDPBench README](../raw/ocr-benchmark-assets-2026-10-30/mdpbench-readme.md), § Main Results, rows MonkeyOCRv2-B-Parsing and PaddleOCR-VL-1.6 (fetched 2026-10-30).
 [^hunyuanocr-repo-readme]: Tencent Hunyuan, *HunyuanOCR-1.5: Making Lightweight OCR VLMs Faster and Better* (GitHub repository README), local capture at [HunyuanOCR-github.md](../raw/HunyuanOCR-github.md), locator: `News` entry dated 2026/07/13 (accessed 2026-10-25).

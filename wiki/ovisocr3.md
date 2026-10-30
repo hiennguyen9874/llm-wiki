@@ -12,6 +12,10 @@ sources:
     resource: ../raw/ATH-MaaS-OvisOCR3.md
     kind: model-card
     title: OvisOCR3 model card
+  - id: ovisocr3-overview-img
+    resource: ../raw/ocr-benchmark-assets-2026-10-30/ovisocr3_performance_overview.png
+    kind: figure
+    title: OvisOCR3 performance overview figure
 ---
 
 # OvisOCR3
@@ -119,13 +123,14 @@ Raw outputs should be preserved before parsing, rendering, or cleanup because JS
 ## Coverage
 
 - **Inspected:** `raw/ATH-MaaS-OvisOCR3.md` in full, including frontmatter, capability tables, all five performance tables, inference and task-specific usage examples, output-handling guidance, and limitations.
-- **Referenced but absent:** the `prompts/` task files, `document_crosspage.py`, the two `assets/` figures, `LICENSE`, and the model weights, configuration, tokenizer, and processor files. These were not inspected or executed.
+- **Later downloaded:** `assets/ovisocr3_performance_overview.png` (2026-10-30); its 12 panels match the card's text tables, so it adds no new values.[^ovisocr3-overview-img]
+- **Referenced but absent:** the `prompts/` task files, `document_crosspage.py`, the other `assets/` figure, `LICENSE`, and the model weights, configuration, tokenizer, and processor files. These were not inspected or executed.
 - **Unavailable:** the technical report named in the citation block; the card says its link will be added later.
 - **Excluded:** the external Hugging Face CDN logo is decorative and was not used.
 
 ## Limitations and trust limits
 
-- The local bundle is only the model card. It lacks weights, configuration, tokenizer and processor files, the `prompts/` directory, `document_crosspage.py`, the two `assets/` figures, the license file, and the promised technical report. The card's procedures and scores therefore cannot be reproduced from local evidence.[^ovisocr3-model-card]
+- The local bundle is only the model card. It lacks weights, configuration, tokenizer and processor files, the `prompts/` directory, `document_crosspage.py`, one of the two `assets/` figures (the performance overview was downloaded later), the license file, and the promised technical report. The card's procedures and scores therefore cannot be reproduced from local evidence.[^ovisocr3-model-card]
 - The card names four training stages but gives no dataset composition, data volume, reward definitions, optimization details, compute, or ablations. Claims about how the stages produce the reported capabilities are author assertions.[^ovisocr3-model-card]
 - All benchmark values are author-reported, and the card does not state whether comparator rows were rerun or transcribed. It provides no per-component vectors for its document-parsing benchmarks, no prompt/configuration manifests, no evaluated outputs, and no hardware-normalized latency or throughput measurements.[^ovisocr3-model-card]
 - The card itself warns that OvisOCR3 can produce incorrect, incomplete, repeated, or malformed outputs; small or blurred text, severe perspective distortion, dense layouts, complex formulas, and long tables can degrade recognition and structure recovery. Captions and answers may contain unsupported details and should be checked against the source image.[^ovisocr3-model-card]
@@ -138,6 +143,7 @@ Raw outputs should be preserved before parsing, rendering, or cleanup because JS
 
 ## Relationships
 
+- **Compared in:** [Document OCR model benchmark comparison](document-ocr-model-benchmark-comparison.md), which places this model's reported results beside nine other document parsers per dataset.
 - **Predecessor:** [OvisOCR2](ovisocr2.md) is the earlier 0.8B parser; OvisOCR3 adds structured parsing and layout detection and reports higher values where the two are compared, but the card does not explicitly state that OvisOCR2 is withdrawn.[^ovisocr3-model-card]
 - **Implements:** [Task: Cross-page table reconstruction](task-cross-page-table-reconstruction.md) with the same checkpoint for page parsing and page-pair merging.[^ovisocr3-model-card]
 - **Part of:** [Task: End-to-end generative OCR](task-end-to-end-generative-ocr.md) as a prompt-conditioned page-to-structure model, extended with multi-image and multi-task modes.[^ovisocr3-model-card]
@@ -145,4 +151,5 @@ Raw outputs should be preserved before parsing, rendering, or cleanup because JS
 - **Evaluated by:** [End-to-end generative OCR VLM benchmarks](end-to-end-generative-ocr-vlm-benchmarks.md), [MDPBench](mdpbench.md), and [Real5-OmniDocBench](real5-omnidocbench.md), each of which preserves its own protocol qualifications.[^ovisocr3-model-card]
 - **Compared with:** Qwen3.8-Max, PaddleOCR-VL-1.6, HunyuanOCR-1.5, GLM-OCR, MinerU2.5-Pro, OvisOCR2, and Xiaomi-OCR-0 in the card's author-reported tables; these are not controlled comparisons.[^ovisocr3-model-card]
 
+[^ovisocr3-overview-img]: [ovisocr3_performance_overview.png](../raw/ocr-benchmark-assets-2026-10-30/ovisocr3_performance_overview.png), all 12 benchmark panels (fetched 2026-10-30 per `manifest.json`).
 [^ovisocr3-model-card]: ATH-MaaS, *OvisOCR3 model card*, local source at [ATH-MaaS-OvisOCR3.md](../raw/ATH-MaaS-OvisOCR3.md), especially § Introduction, § Capabilities, § Performance, § Inference, § Task-Specific Usage, § Output Handling, and § Limitations (accessed 2026-10-25). The referenced `prompts/`, `document_crosspage.py`, `assets/`, model files, and technical report are absent from the local bundle.

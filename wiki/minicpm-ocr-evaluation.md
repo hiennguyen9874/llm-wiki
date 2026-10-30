@@ -67,6 +67,7 @@ JevOCRBench evaluates human-labelled correct/incorrect region candidates. The fi
 
 ## Relationships
 
+- **Compared in:** [Document OCR model benchmark comparison](document-ocr-model-benchmark-comparison.md), which places this model's reported results beside nine other document parsers per dataset.
 - **Evaluates:** [MiniCPM-OCR 1.0](minicpm-ocr-1-0.md) and [MiniCPM-OCR Jev](minicpm-ocr-jev.md).[^minicpm-repo]
 - **Complements:** [Layout-first modular OCR benchmarks](layout-first-modular-ocr-benchmarks.md); keep these vendor-run figures separate from its other evaluation protocols.[^minicpm-repo]
 

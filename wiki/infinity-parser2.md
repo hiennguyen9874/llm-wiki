@@ -50,6 +50,7 @@ All results are author-reported and were not independently reproduced from this 
 
 ## Relationships
 
+- **Compared in:** [Document OCR model benchmark comparison](document-ocr-model-benchmark-comparison.md), which places this model's reported results beside nine other document parsers per dataset.
 - **Builds on:** [LayoutRL and Infinity-Parser](layout-rl-and-infinity-parser.md), the earlier Qwen2.5-VL-7B document parser; the report calls Infinity-Parser-7B the prior generation.[^infinity-parser2-report]
 - **Uses:** [Infinity-Doc2-5M](infinity-doc2-5m.md) for SFT and the sampled multi-task RL set.[^infinity-parser2-report]
 - **Uses:** [Document-parser data flywheel](document-parser-data-flywheel.md) to target data collection, pseudo-labeling, synthesis, and cumulative retraining.[^infinity-parser2-report]
