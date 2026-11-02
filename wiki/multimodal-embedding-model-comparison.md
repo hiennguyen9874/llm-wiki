@@ -1,11 +1,11 @@
 ---
 type: Synthesis
 title: Multimodal embedding model comparison
-description: A scope-aware comparison of the wiki's 36 documented multimodal embedding checkpoints, including a filter by documented language coverage (>2 languages), and the limited 89-entry MMEB v3 ranking snapshot.
+description: A scope-aware comparison of the wiki's 38 documented multimodal embedding checkpoints, including a filter by documented language coverage (>2 languages), and the limited 89-entry MMEB v3 ranking snapshot.
 tags: [embedding, multimodal, retrieval, comparison, synthesis]
 status: stable
 created: 2026-08-19
-generated: { by: llm-wiki-agent/1, at: 2026-10-23T00:00:00Z }
+generated: { by: llm-wiki-agent/1, at: 2026-11-02T04:18:02Z }
 sources:
   - id: mmeb-v3-ranking
     resource: ../raw/mmeb_v3_ranking.csv
@@ -57,6 +57,14 @@ sources:
     resource: ../raw/dnotitia-DNA-VL-STEER-2B.md
     kind: model-card
     title: dnotitia/DNA-VL-STEER-2B model page
+  - id: pplx-context-9b-card
+    resource: ../raw/perplexity-ai-pplx-embed-v2-context-9b.md
+    kind: model-card
+    title: perplexity-ai/pplx-embed-v2-context-9b model card
+  - id: pplx-context-06b-card
+    resource: ../raw/perplexity-ai-pplx-embed-v2-context-0.6b.md
+    kind: model-card
+    title: perplexity-ai/pplx-embed-v2-context-0.6b model card
   - id: pplx-late-06b-page
     resource: ../raw/perplexity-ai-pplx-embed-v2-late-0.6b.md
     kind: web
@@ -139,7 +147,7 @@ sources:
 
 # Multimodal embedding model comparison
 
-The wiki documents 36 concrete multimodal-embedding checkpoints in 23 model lines (the latest additions are [pplx-embed-v2-late-9b](pplx-embed-v2-late-9b.md), [pplx-embed-v2-late-0.6b](pplx-embed-v2-late-0-6b.md), [GeeVec-Embeddings-mm-1.0](geevec-embeddings-mm-1-0.md), [Wianmu-5B](wianmu-5b.md), [Wianmu-3B](wianmu-3b.md), [DNA-VL-STEER-2B](dna-vl-steer-2b.md), [AuroLA-Omni-3B](aurola-omni-3b.md), [Sentio](sentio.md), [Ovis-VL-Embedding-2B](ovis-vl-embedding-2b.md), [Ovis-Omni-Embedding-3B](ovis-omni-embedding-3b.md), [WeMM-Embedding](wemm-embedding.md), [Nemotron-3.5-Embed-1B-BF16](nemotron-3-5-embed-1b-bf16.md), and [EmbeddingGemma 2](embeddinggemma-2.md)). They are not one substitutable class: dense bi-encoders optimize low-cost ANN; late-interaction models optimize visual-document recall at much larger indexes; omni models add audio and/or video. A supplied [MMEB v3 ranking snapshot](mmeb-v3-ranking-snapshot.md) names 89 entries, but only 13 have nonzero v3 modality columns and its protocol is unspecified. Thus it can rank those reported values, not establish a universal leaderboard.[^mmeb-v3-ranking]
+The wiki documents 38 concrete multimodal-embedding checkpoints in 24 model lines (the latest additions include [pplx-embed-v2-context-9b](pplx-embed-v2-context-9b.md), [pplx-embed-v2-context-0.6b](pplx-embed-v2-context-0-6b.md), [pplx-embed-v2-late-9b](pplx-embed-v2-late-9b.md), [pplx-embed-v2-late-0.6b](pplx-embed-v2-late-0-6b.md), [GeeVec-Embeddings-mm-1.0](geevec-embeddings-mm-1-0.md), [Wianmu-5B](wianmu-5b.md), [Wianmu-3B](wianmu-3b.md), [DNA-VL-STEER-2B](dna-vl-steer-2b.md), [AuroLA-Omni-3B](aurola-omni-3b.md), [Sentio](sentio.md), [Ovis-VL-Embedding-2B](ovis-vl-embedding-2b.md), [Ovis-Omni-Embedding-3B](ovis-omni-embedding-3b.md), [WeMM-Embedding](wemm-embedding.md), [Nemotron-3.5-Embed-1B-BF16](nemotron-3-5-embed-1b-bf16.md), and [EmbeddingGemma 2](embeddinggemma-2.md)). They are not one substitutable class: dense bi-encoders optimize low-cost ANN; late-interaction models optimize visual-document recall at much larger indexes; omni models add audio and/or video. A supplied [MMEB v3 ranking snapshot](mmeb-v3-ranking-snapshot.md) names 89 entries, but only 13 have nonzero v3 modality columns and its protocol is unspecified. Thus it can rank those reported values, not establish a universal leaderboard.[^mmeb-v3-ranking]
 
 ## Selection by workload
 
@@ -152,6 +160,7 @@ The wiki documents 36 concrete multimodal-embedding checkpoints in 23 model line
 | Compact multilingual text-query → page-image/text retrieval with one dense vector | [Nemotron-3.5-Embed-1B-BF16](nemotron-3-5-embed-1b-bf16.md) | 1.55B, 2,048D; vendor-run ViDoRe V3 image NDCG@10 58.02 vs 52.89 (Qwen3-VL-2B) and 58.29 (Qwen3-VL-8B); image retrieval evaluated in 18 languages. Text queries only; no video or audio.[^nemotron-3-5-embed-1b-card] |
 | On-device single index over text, code, image, video, audio | [EmbeddingGemma 2](embeddinggemma-2.md) | 740M, 768D Matryoshka, removable encoders (270M text-only to 740M full). Smallest omni option, but reported MMEB v2 overall is only 59.01 and the card gives aggregates without protocol.[^embeddinggemma-2-card] |
 | Multilingual image/video retrieval incl. low-resource languages (e.g. Korean) on a Qwen3-VL-2B stack | [DNA-VL-STEER-2B](dna-vl-steer-2b.md) | Drop-in calibrated variant of Qwen3-VL-Embedding-2B: XM3600 mean image→text R@1 59.8 → 70.3 (LRL-5 32.8 → 51.8) over 36 languages. Reports regressions on abstract text retrieval (−7.9 R@1), video action classification (−4 to −9), and fine-grained visual tasks; use the frozen base for English/text-only work. Author-reported; no MMEB score.[^dna-vl-steer-2b-page] |
+| Context-aware text chunks or page-image bands in a dense index | [pplx-embed-v2-context-0.6b](pplx-embed-v2-context-0-6b.md) or [9b](pplx-embed-v2-context-9b.md) | Vendor-reported contextual chunk vectors; page retrieval takes the maximum band score. Their 1,024D spaces are reported to align; truncate 9B vectors before normalization. No benchmark scores or numeric context limit supplied; 0.6B license unstated, 9B card declares MIT. Both require custom remote code.[^pplx-context-06b-card][^pplx-context-9b-card] |
 | Visual-document (page image/PDF) retrieval where recall outweighs index cost | late-interaction models below | Token-vector MaxSim preserves page-region matches, unlike one-vector ANN. It increases storage and scoring cost. |
 | High ViDoRe V3 score in the reported tables | [webAI-ColVec1.1-8b](webai-colvec1-1-8b.md), [EVIE-Preview-4.5B](evie-preview-4-5b.md), [Nemotron-ColEmbed-VL-8B-v2](nemotron-colembed-vl-8b-v2.md) | They respectively report 64.95 final mean, 65.36 public (at 1,792 visual tokens), and 63.54. These are different captures/configurations, so this is not a strict three-way ranking. |
 | Compact Vietnamese visual/text retrieval | [Vintern-Embedding-1B](vintern-embedding-1b.md) | Only documented model explicitly listing Vietnamese; it is multi-vector but omits output width and deployment limits. |
@@ -159,10 +168,11 @@ The wiki documents 36 concrete multimodal-embedding checkpoints in 23 model line
 
 ## Text–image models at or below 2B
 
-This subset treats “2B” as the checkpoint's published model class; Jina Nano/Small exact counts differ between their cards and the leaderboard (1.04B/1.74B versus 0.986B/1.626B). All nine can be used for text↔image/visual-document retrieval, but they do not report one common image-only benchmark. WeMM-2B, Nemotron-3.5-Embed-1B, and EmbeddingGemma 2 were added in October 2026.
+This subset treats “2B” as the checkpoint's published model class; Jina Nano/Small exact counts differ between their cards and the leaderboard (1.04B/1.74B versus 0.986B/1.626B). The ten options support text–image/visual-document retrieval, but they do not report one common image-only benchmark; the contextual model documents text queries against images, not both retrieval directions. WeMM-2B, Nemotron-3.5-Embed-1B, and EmbeddingGemma 2 were added in October 2026.
 
 | Model | Retrieval representation | Evidence for text–image work | Reported result | Best fit / caveat |
 |---|---|---|---|---|
+| [pplx-embed-v2-context-0.6b](pplx-embed-v2-context-0-6b.md) | 1,024D contextual chunk vectors, dense ANN | text queries against text or image bands; multilingual tag | No scores supplied | Compact contextual indexing; unknown license and context limit, custom remote code.[^pplx-context-06b-card] |
 | [Qwen3-VL-Embedding-2B](qwen3-vl-embedding-2b.md) | one dense cosine vector; 64–2,048D Matryoshka | text, images, screenshots, mixed input; 30+ language claim | MMEB-v2: 75.0 Image, 79.2 VisDoc, 73.2 All | **Default choice**: the strongest documented broad multimodal evidence in this size band. Supports instructions, quantization, and 32K context; training disclosure is incomplete. |
 | [WeMM-Embedding-2B](wemm-embedding.md) | one dense vector (dedicated `<embedding>` token); 64–2,048D Matryoshka | text, image, video, visual document, interleaved input; Chinese and English listed | MMEB-v2: 79.6 Image, 80.7 VisDoc, 77.9 All; 4.7 above Qwen3-VL-Embedding-2B in the report's table | Strongest reported MMEB-v2 score at this size. Same benchmark as Qwen, so directly comparable but author-reported; no audio; language coverage narrower than Qwen's. [^wemm-readme] |
 | [Nemotron-3.5-Embed-1B-BF16](nemotron-3-5-embed-1b-bf16.md) | one mean-pooled 2,048D vector, end-truncatable | text queries; image, text, or image+text documents; 18 image-retrieval languages | Vendor-run NDCG@10: ViDoRe V3 image 58.02, text 57.80, image+text 58.82; MIRACL-VISION image 68.93 | Choose for multilingual document-page retrieval at ~1.5B with 32K context. Beats Qwen3-VL-2B in every column of its table; not on MMEB, so not comparable with WeMM/Qwen MMEB scores. [^nemotron-3-5-embed-1b-card] |
@@ -177,7 +187,7 @@ This subset treats “2B” as the checkpoint's published model class; Jina Nano
 
 ## Multilingual filter: image + text with more than two languages
 
-Filtered on 2026-10-23 for models that embed images and text and document more than two languages. Tiers reflect how strong the language evidence is, not model quality. Scores are Reported (author/vendor); cross-benchmark comparisons are Synthesis. Being absent here means "not documented in the wiki", not "monolingual".
+Originally filtered on 2026-10-23 and updated with the contextual models on 2026-11-02. Tier A documents more than two languages; Tier B includes weaker multilingual labels or indirect evidence, which do not establish a language count or image-language parity. Tiers reflect language evidence, not model quality. Scores are Reported (author/vendor); cross-benchmark comparisons are Synthesis. Being absent here means "not documented in the wiki", not "monolingual".
 
 ### Tier A — explicit language list or count
 
@@ -196,6 +206,7 @@ Filtered on 2026-10-23 for models that embed images and text and document more t
 
 | Model | Language evidence | Reported result |
 |---|---|---|
+| [pplx-embed-v2-context-0.6b](pplx-embed-v2-context-0-6b.md) / [9b](pplx-embed-v2-context-9b.md) | multilingual tag only; language list unspecified[^pplx-context-06b-card][^pplx-context-9b-card] | No scores supplied; 1,024D / 2,048D contextual chunks, with shared 1,024D prefix |
 | [webAI-ColVec1.1-4b](webai-colvec1-1-4b.md) / [8b](webai-colvec1-1-8b.md) | ViDoRe V3 tasks averaged over six unnamed language subsets[^webai-colvec1-1-4b-card][^webai-colvec1-1-8b-card] | V3 final mean 63.90 / 64.95; 640D tokens |
 | [pplx-embed-v2-late-0.6b](pplx-embed-v2-late-0-6b.md) / [9b](pplx-embed-v2-late-9b.md) | Hub tag `multilingual` only[^pplx-late-06b-page][^pplx-late-9b-page] | ViDoRe V3 public (Image) 62.3 / 65.2; 128D tokens; MIT |
 | [Nemotron-ColEmbed-VL-8B-v2](nemotron-colembed-vl-8b-v2.md) | multilingual synthetic training data; EN/FR finance tasks[^nemotron-colembed-vl-8b-v2-card] | ViDoRe V3 63.54; 4,096D tokens |
@@ -225,6 +236,7 @@ Filtered on 2026-10-23 for models that embed images and text and document more t
 
 | Model line (concrete variants) | Reported modalities | Retrieval form | Size / output |
 |---|---|---|---|
+| pplx-embed-v2-context ([0.6B](pplx-embed-v2-context-0-6b.md), [9B](pplx-embed-v2-context-9b.md)) | text queries; text and image documents | contextual dense chunk/band vectors; max band score for pages | 0.6B: 1,024D; 9B: 2,048D or shared 1,024D prefix[^pplx-context-06b-card][^pplx-context-9b-card] |
 | [Qwen3-VL Embedding](qwen3-vl-embedding-8b.md) (2B, 8B) | text, image, screenshot, video, mixed input | dense cosine bi-encoder | 2B: 64–2,048D; 8B: 64–4,096D Matryoshka |
 | [WeMM-Embedding](wemm-embedding.md) (2B, 4B, 9B) | text, image, video, visual document, interleaved; no audio | dense, dedicated-token pooling | 2,048D / 2,560D / 4,096D Matryoshka |
 | [Nemotron-3.5-Embed-1B-BF16](nemotron-3-5-embed-1b-bf16.md) | text queries; text, image, image+text documents | dense mean-pooled bi-encoder | 1.55B; 2,048D |
@@ -289,6 +301,8 @@ The raw CSV ranks 89 entries by reported `Overall`; it does not include WeMM, Ne
 - **Uses method:** [GELATO](gelato.md) for the Jina v5 Omni variants. [^jina-v5-omni-report]
 - **Added 2026-10-22:** [pplx-embed-v2-late-9b](pplx-embed-v2-late-9b.md), [pplx-embed-v2-late-0.6b](pplx-embed-v2-late-0-6b.md), [GeeVec-Embeddings-mm-1.0](geevec-embeddings-mm-1-0.md), [Wianmu-5B](wianmu-5b.md), [Wianmu-3B](wianmu-3b.md), [DNA-VL-STEER-2B](dna-vl-steer-2b.md), [AuroLA-Omni-3B](aurola-omni-3b.md), [Sentio](sentio.md), [Ovis-VL-Embedding-2B](ovis-vl-embedding-2b.md), [Ovis-Omni-Embedding-3B](ovis-omni-embedding-3b.md), [WeMM-Embedding](wemm-embedding.md), [Nemotron-3.5-Embed-1B-BF16](nemotron-3-5-embed-1b-bf16.md), [EmbeddingGemma 2](embeddinggemma-2.md). Their scores are author-reported (Reported) and cross-table comparisons above are Synthesis.
 
+[^pplx-context-9b-card]: [Perplexity contextual 9B model card](../raw/perplexity-ai-pplx-embed-v2-context-9b.md), frontmatter, introduction, “Text Embeddings”, “Matryoshka dimensions”, and “Image Embeddings”. Vendor-reported; no independent verification.
+[^pplx-context-06b-card]: [Perplexity contextual 0.6B model card](../raw/perplexity-ai-pplx-embed-v2-context-0.6b.md), frontmatter, introduction, “Text Embeddings” and “Image Embeddings”. Vendor-reported; no independent verification.
 [^mmeb-v3-ranking]: [MMEB v3 ranking CSV](../raw/mmeb_v3_ranking.csv). This supplied, unauthenticated artifact supports only its reported values; it does not define benchmark semantics or explain zero-filled fields.
 [^jina-v5-omni-report]: [jina-embeddings-v5-omni: Geometry-preserving Embeddings via Locked Aligned Towers](../raw/2605.08384_jina-embeddings-v5-omni/main.tex). Author technical report; its architecture and benchmark claims were not independently reproduced.
 [^ovis-omni-card]: [Ovis-Omni-Embedding-3B model page](../raw/ATH-MaaS-Ovis-Omni-Embedding-3B.md), Performance (MMEB-v3) table. Author-reported; baseline names are in an image not in `raw/`.

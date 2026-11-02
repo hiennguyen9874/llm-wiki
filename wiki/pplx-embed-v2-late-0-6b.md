@@ -5,9 +5,13 @@ description: A 594M-stored-parameter (340M active) MIT-licensed Qwen3.5-based mu
 tags: [embedding, retrieval, late-interaction, colbert, multimodal, visual-document, multilingual, perplexity]
 status: draft
 created: 2026-10-22
-generated: { by: llm-wiki-agent/1, at: 2026-10-22T18:00:00Z }
+generated: { by: llm-wiki-agent/1, at: 2026-11-02T04:12:32Z }
 stale_after: 2027-01-20
 sources:
+  - id: pplx-context-06b-card
+    resource: ../raw/perplexity-ai-pplx-embed-v2-context-0.6b.md
+    kind: model-card
+    title: perplexity-ai/pplx-embed-v2-context-0.6b model card
   - id: pplx-late-06b-page
     resource: ../raw/perplexity-ai-pplx-embed-v2-late-0.6b.md
     kind: web
@@ -72,8 +76,12 @@ Created 2026-08-03, last modified 2026-10-22; 2,003 downloads in the last month,
 
 ## Relationships
 
+- **Base for:** [pplx-embed-v2-context-0.6b](pplx-embed-v2-context-0-6b.md), whose card declares it a fine-tune of this checkpoint; it produces dense chunk vectors instead of token-level late interaction.[^pplx-context-06b-card]
+
 - **Shares embedding space with:** [pplx-embed-v2-late-9b](pplx-embed-v2-late-9b.md), enabling cheap query-side encoding against a 9B-built index.
 - **Same collection as:** [pplx-embed-v2-context-9b-preview](pplx-embed-v2-context-9b-preview.md), a single-vector contextual-chunk model from the same vendor; the two use different representations and are not interchangeable.
 - **Comparable late-interaction retrievers:** [LFM2.5-ColBERT-350M](lfm2-5-colbert-350m.md) and [mLateOn](mlateon.md) (text), and [EVIE-Preview-4.5B](evie-preview-4-5b.md), [ColQwen3.5-4.5B-v3](colqwen3-5-4-5b-v3.md), and [webAI-ColVec1.1-4b](webai-colvec1-1-4b.md) (visual-document, also Qwen3.5-based); see [Current embedding-model architecture taxonomy](embedding-model-architecture-taxonomy.md).
+
+[^pplx-context-06b-card]: [Perplexity contextual 0.6B model card](../raw/perplexity-ai-pplx-embed-v2-context-0.6b.md), frontmatter and introduction. Vendor-reported.
 
 [^pplx-late-06b-page]: [perplexity-ai/pplx-embed-v2-late-0.6b Hugging Face page capture](../raw/perplexity-ai-pplx-embed-v2-late-0.6b.md). Locators: rendered model card sections "pplx-embed-v2-late: Multimodal Late-Interaction Embeddings", "Models" table, "Training", "Usage (Sentence Transformers)", and "Citation"; embedded Hub JSON keys `config`, `cardData`, `safetensors`, `tags`, `downloads`, `likes`, `createdAt`, and `lastModified`; sidebar "Model tree" and "Collection" panels. Vendor-reported; no independent verification. Page chrome, SVG download chart, and chat template were excluded as boilerplate; linked blog, paper, and Files tab were not followed.

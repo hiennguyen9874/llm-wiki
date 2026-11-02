@@ -5,7 +5,7 @@ description: An 8.40B-parameter MIT-licensed multilingual contextual embedding p
 tags: [embedding, retrieval, contextual-embeddings, multilingual, matryoshka, rag, perplexity, preview]
 status: draft
 created: 2026-10-22
-generated: { by: llm-wiki-agent/1, at: 2026-10-22T16:20:00Z }
+generated: { by: llm-wiki-agent/1, at: 2026-11-02T04:12:32Z }
 stale_after: 2027-01-20
 sources:
   - id: pplx-context-9b-page
@@ -59,6 +59,8 @@ The card states that, like `pplx-embed-context-v1`, the model natively produces 
 - The captured page is a rendered HTML snapshot; its Files tab was not captured, so the file list and checkpoint contents are unverified.
 
 ## Relationships
+
+- **Related contextual model:** [pplx-embed-v2-context-0.6b](pplx-embed-v2-context-0-6b.md); its card names a non-preview 9B model for shared-space compatibility, not this preview.
 
 - **Contrasts with:** [Qwen3-Embedding-8B](qwen3-embedding-8b.md) and other independent-chunk dense bi-encoders, which embed each chunk without its neighbours; see [Current embedding-model architecture taxonomy](embedding-model-architecture-taxonomy.md).
 - **Sibling in the `pplx-embed-v2` collection:** [pplx-embed-v2-late-0.6b](pplx-embed-v2-late-0-6b.md) and [pplx-embed-v2-late-9b](pplx-embed-v2-late-9b.md), multi-vector late-interaction models with a different output representation.

@@ -5,7 +5,7 @@ description: A taxonomy of current embedding architectures by retrieval represen
 tags: [embedding, retrieval, multimodal, architecture, synthesis]
 status: stable
 created: 2026-08-21
-generated: { by: llm-wiki-agent/1, at: 2026-10-22T16:20:00Z }
+generated: { by: llm-wiki-agent/1, at: 2026-11-02T04:13:34Z }
 sources:
   - id: granite-card
     resource: ../raw/granite-embedding-311m-multilingual-r2.md
@@ -28,6 +28,10 @@ sources:
   - id: gelato-report
     resource: ../raw/2605.08384_jina-embeddings-v5-omni/main.tex
     title: GELATO technical report
+  - id: pplx-context-06b-card
+    resource: ../raw/perplexity-ai-pplx-embed-v2-context-0.6b.md
+    kind: model-card
+    title: perplexity-ai/pplx-embed-v2-context-0.6b model card
   - id: pplx-context-9b-page
     resource: ../raw/perplexity-ai-pplx-embed-v2-context-9b-preview.md
     kind: web
@@ -53,7 +57,7 @@ Current embedding models do not form one linear succession. They are best classi
 | **Dense bi-encoder** | Encode query and item separately to one normalized vector; ANN plus cosine/dot-product scoring. | Default first-stage retrieval: compact index and low latency, but compresses a whole item into one vector. | [Granite 311M](granite-embedding-311m-multilingual-r2.md), [Qwen3 4B](qwen3-embedding-4b.md), [Qwen3-VL 8B](qwen3-vl-embedding-8b.md) |
 | **Late-interaction / multi-vector** | Retain token/region vectors; score query--document pairs with ColBERT-style MaxSim. | Aimed at visual documents and fine-grained evidence matching; index size and query-time scoring grow with retained tokens. Distillation from a larger ColBERT teacher into a shared 128-D space (pplx-embed-v2-late) lets a small query model search an index built by a larger one; the 9B model fully fine-tunes only its last eight layers and adapts the rest, plus the vision encoder, with LoRA.[^pplx-late-06b-page][^pplx-late-9b-page] | [ColQwen3.5](colqwen3-5-4-5b-v3.md), [Jina v4](jina-embeddings-v4.md), [pplx-embed-v2-late-0.6b](pplx-embed-v2-late-0-6b.md), [pplx-embed-v2-late-9b](pplx-embed-v2-late-9b.md) |
 | **Dense + learned sparse hybrid** | One backbone emits a semantic dense vector and vocabulary-weighted sparse vector. | Combines ANN with inverted-index lexical matching, avoiding separate embedding passes; sparse quality and cross-lingual lexical activation remain limits. | [UEmbed](uembed.md) |
-| **Contextual chunk embeddings** | A document's chunks are encoded together; each chunk still yields one vector that reflects its neighbours. Queries use a separate encode method.[^pplx-context-9b-page] | Keeps single-vector ANN cost while reducing context loss from independent chunking; requires grouping chunks by document at indexing time, and the only example here is a preview release with no reported benchmarks. | [pplx-embed-v2-context-9b-preview](pplx-embed-v2-context-9b-preview.md) |
+| **Contextual chunk embeddings** | A document's chunks are encoded together; each chunk still yields one vector that reflects its neighbours. Queries use a separate encode method.[^pplx-context-9b-page] | Enables ANN over chunk vectors, but requires document grouping at indexing time. The 0.6B card also describes contextual horizontal image bands; neither cited card gives benchmark scores.[^pplx-context-06b-card] | [pplx-embed-v2-context-0.6b](pplx-embed-v2-context-0-6b.md), [pplx-embed-v2-context-9b](pplx-embed-v2-context-9b.md), [pplx-embed-v2-context-9b-preview](pplx-embed-v2-context-9b-preview.md) |
 
 ## 2. By backbone and pooling
 
@@ -61,14 +65,14 @@ Current embedding models do not form one linear succession. They are best classi
 |---|---|---|
 | **Bidirectional encoder** | BERT/ModernBERT-like encoder; usually CLS or mean pooling. | Remains the efficiency-oriented text baseline, including long-context variants. [^granite-card] |
 | **Repurposed causal decoder / VLM** | Decoder-only LLM or VLM used as a bi-encoder; EOS or last-token hidden state is pooled. | Embedding capability is being added to general-purpose instruction-following backbones, providing long context and a common text--vision path. [^qwen3-report][^qwen3-vl-report] |
-| **Efficient long-sequence backbone** | Linear attention and parameter sharing rather than conventional full attention. | Targets long, domain-specific documents at lower sequence cost; this is an emerging specialized branch rather than evidence of a universal replacement. | [DeepX](deepx-embedding-v1.md) |
+| **Efficient long-sequence backbone** | Linear attention and parameter sharing rather than conventional full attention. | Targets long, domain-specific documents at lower sequence cost; this is an emerging specialized branch rather than evidence of a universal replacement.[^deepx-card] | [DeepX](deepx-embedding-v1.md) |
 
 ## 3. By multimodal composition
 
 | Group | Architecture | Direction and trade-off |
 |---|---|---|
 | **Native unified multimodal encoder** | A VLM directly maps text, image, video, and mixed inputs to one space. | Best when multimodal fusion and shared instruction conditioning are central; training and serving use the full backbone. | [Qwen3-VL Embedding](qwen3-vl-embedding-8b.md), [e5-omni](e5-omni.md) |
-| **Locked aligned towers** | Preserve a text embedding space; freeze text/vision/audio towers and train small modality projectors. | Adds image/audio/video while retaining compatibility with an existing text index and allowing unused towers to be omitted. | [GELATO](gelato.md), [Jina v5 Omni Small](jina-embeddings-v5-omni-small.md) |
+| **Locked aligned towers** | Preserve a text embedding space; freeze text/vision/audio towers and train small modality projectors. | Adds image/audio/video while retaining compatibility with an existing text index and allowing unused towers to be omitted.[^gelato-report] | [GELATO](gelato.md), [Jina v5 Omni Small](jina-embeddings-v5-omni-small.md) |
 
 ## Cross-cutting direction: adaptable vector budgets
 
@@ -82,6 +86,7 @@ Choose the representation first: dense for broad, cost-sensitive recall; late in
 
 - **Synthesizes:** [Multimodal embedding model comparison](multimodal-embedding-model-comparison.md), [Qwen3-VL, harrier, Qwen3, F2LLM, and Jina embedding comparison](embedding-model-comparison-qwen3-vl-harrier-qwen3-f2llm.md), and the architecture examples linked above.
 
+[^pplx-context-06b-card]: [Perplexity contextual 0.6B model card](../raw/perplexity-ai-pplx-embed-v2-context-0.6b.md), introduction and “Image Embeddings”. Vendor-reported.
 [^granite-card]: [Granite Embedding 311M Multilingual R2 model card](../raw/granite-embedding-311m-multilingual-r2.md). Provider-reported architecture and results.
 [^qwen3-report]: [Qwen3 Embedding technical report](../raw/2506.05176_Qwen3Embedding/main.tex). Author-reported architecture and training.
 [^deepx-card]: [DeepX Embedding v1.0 model card](../raw/deepx-embedding-v1.md). Provider-reported architecture and results.

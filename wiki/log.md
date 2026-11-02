@@ -1,5 +1,10 @@
 # Wiki Update Log
 
+## 2026-11-02
+- **Update**: Completed the contextual 0.6B/9B entries in the [multimodal comparison](multimodal-embedding-model-comparison.md), including workload guidance, the architecture matrix, and language-evidence limits.
+- **Ingest**: Compiled [pplx-embed-v2-context-9b model card](../raw/perplexity-ai-pplx-embed-v2-context-9b.md); created its [draft concept](pplx-embed-v2-context-9b.md), updated the [multimodal comparison](multimodal-embedding-model-comparison.md), [architecture taxonomy](embedding-model-architecture-taxonomy.md), and sibling link. Report and model code were not inspected.
+- **Ingest**: Compiled [pplx-embed-v2-context-0.6b model card](../raw/perplexity-ai-pplx-embed-v2-context-0.6b.md); created its [draft concept](pplx-embed-v2-context-0-6b.md) and updated the [multimodal comparison](multimodal-embedding-model-comparison.md), [architecture taxonomy](embedding-model-architecture-taxonomy.md), and related model links. Technical report and model code were not inspected.
+
 ## 2026-10-23
 - **Query**: Answered “multimodal image+text embeddings supporting more than two languages, compared”; filed a tiered multilingual filter (explicit list / multilingual label / excluded) with selection guidance into the [multimodal embedding model comparison](multimodal-embedding-model-comparison.md), adding 18 cited model-card and report sources.
 
