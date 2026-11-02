@@ -1,6 +1,7 @@
 # Wiki Update Log
 
 ## 2026-11-02
+- **Update**: Added [HunyuanOCR-1.5](hunyuanocr-1.5.md) to the [document OCR comparison](document-ocr-model-benchmark-comparison.md) and [supplement](ocr-ten-model-benchmark-comparison.md), inspecting local cards, tables and benchmark figures; preserved Real5 and CHAOS discrepancies and third-party protocol limits. No benchmark was run.
 - **Update**: Expanded [document OCR benchmark comparison](document-ocr-model-benchmark-comparison.md) and its [supplementary evidence](ocr-ten-model-benchmark-comparison.md) to include Nemotron 3.5 Parse, its reported ParseBench pass tradeoffs and multilingual results; retained source and protocol limits. No benchmark was run.
 - **Ingest**: Compiled the [Youtu-Parsing-Omni model card](../raw/Youtu-Parsing-Omni.md); created [model](youtu-parsing-omni.md) and [deployment](youtu-parsing-omni-deployment.md) concepts and linked [end-to-end OCR](task-end-to-end-generative-ocr.md). Recorded reported benchmarks, unavailable artifacts, uninspected license and code, and unexecuted inference.
 - **Ingest**: Compiled the [Nemotron 3.5 Parse model card](../raw/Nemotron-3.5-Parse.md); created [model](nemotron-parse-3-5.md), [evaluation](nemotron-parse-3-5-evaluation.md), and [deployment](nemotron-parse-3-5-deployment.md) concepts, linked the 2.0 model and end-to-end OCR task, and recorded unavailable supporting artifacts and unreproduced claims.

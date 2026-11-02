@@ -5,7 +5,7 @@ description: Bằng chứng bổ sung cho so sánh benchmark document OCR, gồm
 tags: [ml, ocr, benchmarks, comparison, document-parsing]
 status: draft
 created: 2026-10-30
-generated: { by: llm-wiki-agent/1, at: 2026-11-02T14:50:17Z }
+generated: { by: llm-wiki-agent/1, at: 2026-11-02T15:43:17Z }
 stale_after: 2027-01-30
 sources:
   - id: fetched-assets
@@ -66,6 +66,22 @@ sources:
     resource: ../raw/Nemotron-3.5-Parse.md
     kind: model-card
     title: Nemotron 3.5 Parse model card
+  - id: hunyuan-card
+    resource: ../raw/HunyuanOCR-1.5.md
+    kind: model-card
+    title: HunyuanOCR-1.5 model card
+  - id: hunyuan-repo
+    resource: ../raw/HunyuanOCR-github.md
+    kind: code
+    title: HunyuanOCR repository README capture
+  - id: mdpbench
+    resource: ../raw/ocr-benchmark-assets-2026-10-30/mdpbench-readme.md
+    kind: dataset-card
+    title: MDPBench README
+  - id: opb
+    resource: ../raw/ocr-benchmark-assets-2026-10-30/omniparsebench-card.md
+    kind: dataset-card
+    title: OmniParseBench dataset card
   - id: unlimited2
     resource: ../raw/Unlimited-OCR-2.pdf
     kind: paper
@@ -74,7 +90,7 @@ sources:
 
 # OCR benchmark comparison: supplementary evidence
 
-Phụ lục bằng chứng cho [Document OCR model benchmark comparison](document-ocr-model-benchmark-comparison.md). Trang chính giữ các bảng headline theo dataset (OmniDocBench v1.6, Real5, Wild, MDPBench, PureDocBench, olmOCR-Bench, OmniParseBench, ParseBench, CHAOS, OCRBench), contradictions giữa các nguồn và tổng hợp theo mô hình. Trang này **chỉ** giữ phần chi tiết không lặp lại ở đó: component vectors, kết quả crop-level, benchmark chuyên biệt và in-house, điều kiện throughput, và coverage ledger cho mười model gốc cùng phần bổ sung Nemotron 3.5 Parse. Mọi điểm là **Reported**; việc đọc được con số từ LaTeX, card, PDF hoặc ảnh là **Observed**; không có inference hay scorer nào được chạy lại, nên không có kết quả **Reproduced**.[^fetched-assets]
+Phụ lục bằng chứng cho [Document OCR model benchmark comparison](document-ocr-model-benchmark-comparison.md). Trang chính giữ các bảng headline theo dataset (OmniDocBench v1.6, Real5, Wild, MDPBench, PureDocBench, olmOCR-Bench, OmniParseBench, ParseBench, CHAOS, OCRBench), contradictions giữa các nguồn và tổng hợp theo mô hình. Trang này **chỉ** giữ phần chi tiết không lặp lại ở đó: component vectors, kết quả crop-level, benchmark chuyên biệt và in-house, điều kiện throughput, và coverage ledger cho mười model gốc cùng phần bổ sung Nemotron 3.5 Parse và HunyuanOCR-1.5. Mọi điểm là **Reported**; việc đọc được con số từ LaTeX, card, PDF hoặc ảnh là **Observed**; không có inference hay scorer nào được chạy lại, nên không có kết quả **Reproduced**.[^fetched-assets]
 
 ## Quy tắc
 
@@ -121,7 +137,7 @@ Guide MiniCPM: 500 trang, 1,025 từ bị thay đổi; normalize whitespace tron
 
 ## 5. Benchmark chuyên biệt của OvisOCR3
 
-Chỉ OvisOCR3 trong mười model có hàng KIE trong card: **OCRBench KIE 90.50; OCRBench v2 KIE 83.01; CC-OCR KIE 88.69; in-house KIE 77.73**. Đây là các task/subset riêng, không phải điểm parsing hay OCRBench overall.[^ovis3]
+Card OvisOCR3 có cả hàng Hunyuan: **OCRBench KIE / OCRBench v2 KIE / CC-OCR KIE / in-house KIE** lần lượt Hunyuan **81.00 / 68.63 / 66.08 / 75.96**, OvisOCR3 **90.50 / 83.01 / 88.69 / 77.73**. Đây là task/subset riêng, không phải điểm parsing hay OCRBench overall; card không mô tả đầy đủ protocol comparator.[^ovis3]
 
 Thang điểm và evaluator của DocFigCapBench caption score (OvisOCR3 6.93, PaddleOCR-VL-1.6 4.29, MinerU2.5-Pro 4.61) không được định nghĩa trong card; không quy ra phần trăm.[^ovis3]
 
@@ -221,7 +237,7 @@ ICDAR 2026 Sci-ImageMiner data extraction: TeleOCR **F1 17.23**, **TEDS 66.39**,
 
 Không trộn phần cứng hoặc workload giữa các mục; tóm tắt nằm ở trang chính.
 
-- **MiniCPM, RTX 5090, OmniDocBench v1.6 Full:** official SDK, có acceleration; concurrency theo ảnh = 1 nhưng concurrency theo region có thể > 1. Guide: MiniCPM 1.217, PaddleOCR-VL-1.6 0.818, MinerU2.5-Pro 0.336, TeleOCR 0.141, Chandra OCR 2 0.068, LightOnOCR-3 0.340 (không nêu biến thể, nên không gán cho 4B) pages/s. JSON tách MinerU2.5-Pro-Standard **0.531** và Advanced **0.336**. MiniCPM ở concurrency 1/2/4/6/8: **1.217 / 1.613 / 1.888 / 2.031 / 2.133** pages/s.[^minicpm]
+- **MiniCPM, RTX 5090, OmniDocBench v1.6 Full:** official SDK, có acceleration; concurrency theo ảnh = 1 nhưng concurrency theo region có thể > 1. Guide: MiniCPM 1.217, PaddleOCR-VL-1.6 0.818, HunyuanOCR-1.5 0.416, MinerU2.5-Pro 0.336, TeleOCR 0.141, Chandra OCR 2 0.068, LightOnOCR-3 0.340 (không nêu biến thể, nên không gán cho 4B) pages/s. JSON tách MinerU2.5-Pro-Standard **0.531** và Advanced **0.336**. MiniCPM ở concurrency 1/2/4/6/8: **1.217 / 1.613 / 1.888 / 2.031 / 2.133** pages/s.[^minicpm]
 - **LightOn, 512 trang olmOCR, một H100/model, vLLM 0.30.0:** LightOnOCR-3-4B median single-page latency **6.6 s**, peak **2.03** pages/s, **3.36** ở long side 1540 px; Chandra OCR 2 **8.1 s**, **1.68**, **2.95**. Render benchmark lần lượt 400 DPI ≤ 5 MP và 300 DPI ≤ 6.3 MP; Chandra có prompt 579 token; peak = gửi cả 512 request cùng lúc. Không suy ra chất lượng ở 1540 px từ chất lượng ở cấu hình render của benchmark.[^lighton3]
 - **Surya OCR 2.5, OmniParseBench pages:** một H100 80 GB, vLLM 0.25.1, concurrency 32, 300 trang mỗi resolution: **6.19 / 6.03 / 4.52 / 2.68** pages/s ở **96 / 150 / 192 / 300 DPI**; tại 192 DPI p50/p95 **6.8 / 11.3 s**. M4 Max 36 GB, Metal, 96 DPI, concurrency 8, 32 request: **0.190** (bf16) và **0.198** (Q8_0) pages/s, chỉ đếm trang xong trước token cap.[^surya25]
 - **Chandra OCR 2 card:** H100 80 GB, vLLM, concurrency 96: **1.44** pages/s, mean / P95 **60 / 156 s**, 0% lỗi trong lần chạy đó; khác phép đo của LightOn.[^chandra2]
@@ -229,6 +245,9 @@ Không trộn phần cứng hoặc workload giữa các mục; tóm tắt nằm 
 - **Infinity-Parser2-Pro, tài liệu tài chính in-house:** H100, vLLM, `doc2json`, TP 2: concurrency 1 **173.58** tokens/s, **8.48 s**/trang; concurrency 8 **703.71** tokens/s, **2.13 s**/trang; khoảng 1,500 token output mỗi trang, không tính thời gian khởi động server. Bảng FinIE (95.75 F1) chỉ có Infinity-Parser2-**Flash** được fine-tune thêm, không có Pro.[^infinity2]
 
 ## 8. Coverage, exclusions và giới hạn
+
+- **HunyuanOCR-1.5:** đã đọc model card và README local: không có bảng benchmark; teaser và technical report được liên kết nhưng không có trong nguồn local đã rà. Đã đọc trực tiếp ảnh MiniCPM, JSON, guide và reproduction guide; bảng OvisOCR2 chép vector OmniDocBench từ report Hunyuan, card OvisOCR3 cung cấp PureDocBench, OCR/KIE, README MDPBench cho vector ngôn ngữ, và card OmniParseBench cho headline/nhóm. Ảnh Ovis chỉ hiển thị một số comparator, còn số chi tiết lấy từ bảng text. Không kiểm tra toàn bộ nguồn ngoài hoặc scorer; không chạy inference.[^hunyuan-card][^hunyuan-repo][^minicpm][^ovis2-report][^ovis3][^mdpbench][^opb][^fetched-assets]
+- **Real5 / CHAOS:** ảnh MiniCPM 88.70 khác JSON 88.542 và OvisOCR3 88.53; CHAOS của MiniCPM 14.88 (tìm từ toàn trang) khác 14.2 trong bảng MonkeyOCRv2 chép CHAOS-Bench. Chưa xác định nguyên nhân, không coi là sai số làm tròn hay cùng protocol.[^minicpm][^ovis3][^monkey2]
 
 - **Observed:** đã đối chiếu bảng raw của mười model, card OvisOCR2 để lấy đúng hàng baseline, và các ảnh benchmark đã tải ngày 2026-10-30 (archive và manifest ghi nguồn tải, kể cả một file JPEG mang đuôi PNG khi tải lại).[^fetched-assets][^minicpm][^lighton3]
 - **Đã kiểm tra, không có điểm cho mười model:** Tables 1–2 của Unlimited OCR Works 2 (MPDocBench, MarathonDocBench) chỉ có general VLM và model Unlimited. Ngoại lệ duy nhất có bằng chứng là MPDocBench-Parse truncated-table subset trong card OvisOCR3 (§5).[^unlimited2][^ovis3]
@@ -244,21 +263,25 @@ Không trộn phần cứng hoặc workload giữa các mục; tóm tắt nằm 
 
 ## Relationships
 
-- **Supplements:** [Document OCR model benchmark comparison](document-ocr-model-benchmark-comparison.md), trang chính cho mười model gốc và Nemotron 3.5 Parse; trang này không lặp lại các bảng headline của trang chính.
+- **Supplements:** [Document OCR model benchmark comparison](document-ocr-model-benchmark-comparison.md), trang chính cho mười model gốc, Nemotron 3.5 Parse và HunyuanOCR-1.5; trang này không lặp lại các bảng headline của trang chính.
 - **Uses:** [Layout-first modular OCR benchmarks](layout-first-modular-ocr-benchmarks.md) và [End-to-end generative OCR VLM benchmarks](end-to-end-generative-ocr-vlm-benchmarks.md) làm bản đồ truy xuất theo họ kiến trúc.
 - **Uses:** [LightOnOCR-3 evaluation](lightonocr-3-evaluation.md) và [MiniCPM-OCR evaluation](minicpm-ocr-evaluation.md) cho định nghĩa protocol của từng vendor.
 
+[^hunyuan-card]: [HunyuanOCR-1.5 model card](../raw/HunyuanOCR-1.5.md), Introduction, model layout, related resources; không có bảng benchmark, teaser và report không có trong nguồn local đã rà.
+[^hunyuan-repo]: [HunyuanOCR repository README capture](../raw/HunyuanOCR-github.md), News, Introduction và Documentation; không có bảng điểm trong bản capture.
+[^mdpbench]: [MDPBench README](../raw/ocr-benchmark-assets-2026-10-30/mdpbench-readme.md), Main Results, hàng HunyuanOCR-1.5 và tiêu đề cột.
+[^opb]: [OmniParseBench card](../raw/ocr-benchmark-assets-2026-10-30/omniparsebench-card.md), Results, hàng HunyuanOCR-1.5.
 [^nemotron35]: NVIDIA, [Nemotron 3.5 Parse model card](../raw/Nemotron-3.5-Parse.md), §§ Benchmark highlights và Evaluation Results › ParseBench, IndicVisionBench OCR, MOSCAR multilingual OCR; reported, không chạy lại.
 [^fetched-assets]: [Archive và coverage ledger](../raw/ocr-benchmark-assets-2026-10-30/README.md) và các manifest; `mineru-pro-report.pdf` §§ 5.3–6.3, Tables 2–6, appendix Tables 7–8 (Base/Hard definitions, Hard end-to-end vector, crop tables); `mineru-{leaderboard,end2end,text_performance,formula_performance,table_performance}.png` đọc trực tiếp. Snapshot tải 2026-10-30; hash/URL trong manifest. Chỉ các phần benchmark liên quan của report lớn được tổng hợp.
-[^minicpm]: [MiniCPM README](../raw/MiniCPM-OCR/README.md), revision b33b474; [JSON](../raw/MiniCPM-OCR/assets/minicpm-ocr/benchmark-data.json), `throughput.models`; [reproduction guide](../raw/MiniCPM-OCR/docs/benchmark_reproduction_en.md), §§ Scoring and Aggregation Rules (CHAOS-Bench), Parsing Efficiency Test; [model guide](../raw/MiniCPM-OCR/docs/minicpm_ocr_1dot0_en.md), § Throughput và bảng concurrency. Guide mô tả protocol, không phải bản reproduction chạy được đầy đủ.
+[^minicpm]: [MiniCPM README](../raw/MiniCPM-OCR/README.md), revision b33b474; [benchmark figure](../raw/MiniCPM-OCR/assets/minicpm-ocr/ocr-benchmarks.png), hàng Hunyuan; [JSON](../raw/MiniCPM-OCR/assets/minicpm-ocr/benchmark-data.json), `throughput.models`; [reproduction guide](../raw/MiniCPM-OCR/docs/benchmark_reproduction_en.md), §§ Scoring and Aggregation Rules (CHAOS-Bench), Parsing Efficiency Test; [model guide](../raw/MiniCPM-OCR/docs/minicpm_ocr_1dot0_en.md), § Throughput và bảng concurrency. Guide mô tả protocol, không phải bản reproduction chạy được đầy đủ.
 [^ovis3]: [OvisOCR3 card](../raw/ATH-MaaS-OvisOCR3.md), § Performance, các bảng Document Parsing, KIE, Document Figure Captioning, Cross-Page Table Reconstruction. Cách chạy lại/chép comparator, split và nhiều evaluator không được nêu.
 [^paddle16]: [PaddleOCR-VL-1.6 report](../raw/2606.03264_PaddleOCR-VL-1.6/main.tex), Tables `tab:chart_parsing`, `tab:spotting`, `table:seal_results` và phần prose đi kèm.
 [^teleocr]: [TeleOCR v3](../raw/arXiv-2608.12898v3-TeleOCR/main.tex), mô tả PureDocBench (§ Experimental Evaluation), Tables `tab:puredoc`, `tab:leaderboard_data_extraction`.
 [^infinity2]: [Infinity-Parser2 report entry](../raw/2607.07836_Infinity-Parser2/arxiv_latex.tex); [experiments](../raw/2607.07836_Infinity-Parser2/latex/experiments.tex), Tables `layout_analysis_public`, `element_parsing_public`, `chart_parsing_public`, `chem_formula_parsing`, `general_mm_public`, `inference_speed`, `finie`; [appendix](../raw/2607.07836_Infinity-Parser2/latex/appendix.tex), § Evaluation Benchmarks cho định nghĩa task/split.
 [^lighton3]: [LightOnOCR-3 blog](../raw/lightonocr-3/index.md), § 2 (bảng ParseBench và fr-bench-pdf2md, hàng Surya OCR 2); [speed table](../raw/lightonocr-3/assets/QKQIrgIR9NpILnyGLu9fW.png), hàng LightOnOCR-3-4B/Chandra-OCR-2 và footnote render/concurrency.
-[^monkey2]: [MonkeyOCRv2 paper](../raw/2607.11562_MonkeyOCRv2/monkeyocr.tex), các bảng text spotting, recognition, formula, tampering, VQA và encoder-transfer trong appendix; chỉ hàng B-Parsing được coi là kết quả của model đích.
+[^monkey2]: [MonkeyOCRv2 paper](../raw/2607.11562_MonkeyOCRv2/monkeyocr.tex), bảng `tab:chaos_bench_results`, cùng các bảng text spotting, recognition, formula, tampering, VQA và encoder-transfer trong appendix; chỉ hàng B-Parsing được coi là kết quả của model đích.
 [^mineru2605]: [MinerU2.5-Pro-2605 card](../raw/MinerU2.5-Pro-2605-1.2B.md), ghi chú hiệu năng trong Quick Start (vLLM async engine, A100).
 [^chandra2]: [Chandra OCR 2 card](../raw/chandra-ocr-2.md), § Throughput.
 [^surya25]: [Surya OCR 2.5 card](../raw/surya-ocr-2.5-hf.md), §§ Throughput › H100, Apple Silicon (llama.cpp / Metal).
-[^ovis2-report]: [OvisOCR2 report entry](../raw/2607.13639_OvisOCR2/main.tex); [evaluation](../raw/2607.13639_OvisOCR2/content/evaluation.tex), `tab:puredoc_full`, `tab:inhouse_all`, `tab:inhouse_all_difficulty`, `tab:inhouse_handwriting`, `tab:inhouse_table`. Chỉ hàng MinerU2.5-Pro và PaddleOCR-VL-1.6 được tổng hợp.
+[^ovis2-report]: [OvisOCR2 report entry](../raw/2607.13639_OvisOCR2/main.tex); [evaluation](../raw/2607.13639_OvisOCR2/content/evaluation.tex), `tab:odb16_full`, `tab:puredoc_full`, `tab:inhouse_all`, `tab:inhouse_all_difficulty`, `tab:inhouse_handwriting`, `tab:inhouse_table`. Chỉ hàng MinerU2.5-Pro và PaddleOCR-VL-1.6 được tổng hợp.
 [^unlimited2]: [Unlimited OCR Works 2](../raw/Unlimited-OCR-2.pdf), § 5, Tables 1–2 (MPDocBench/MarathonDocBench); đã kiểm tra thành phần bảng, không chạy lại.

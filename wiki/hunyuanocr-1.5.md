@@ -5,7 +5,7 @@ description: HunyuanOCR-1.5 is a lightweight end-to-end OCR VLM with DFlash spec
 tags: [ocr, document-parsing, vision-language-models, speculative-decoding, multilingual, data-curation]
 status: draft
 created: 2026-08-17
-generated: { by: llm-wiki-agent/1, at: 2026-10-25T03:24:26Z }
+generated: { by: llm-wiki-agent/1, at: 2026-11-02T15:43:17Z }
 sources:
   - id: hunyuanocr-1-5-model-card
     resource: ../raw/HunyuanOCR-1.5.md
@@ -57,6 +57,10 @@ This local source is a model card, not the linked paper, repository, weights, or
 The card embeds a teaser image at `assets/HyOCR_1_5_teaser.png`, but that attachment is absent from the local `raw/` directory; this synthesis does not rely on its visual content.[^hunyuanocr-1-5-model-card]
 
 The second local source, the GitHub repository README, is largely the same introduction and model description as the card, plus operation and maintenance material. It likewise carries no benchmark table, latency measurement, draft acceptance rate, architecture specification, or independent reproduction, and the pages it defers to for those details are not in the bundle. Its release dates and its upstream-merge claim are therefore single-source author assertions.[^hunyuanocr-repo-readme]
+
+## Benchmark retrieval
+
+Third-party reported scores, including conflicting Real5 and CHAOS values, are compared by dataset in [Document OCR model benchmark comparison](document-ocr-model-benchmark-comparison.md); its [supplement](ocr-ten-model-benchmark-comparison.md) records coverage and protocols. These are not benchmark measurements in the model card or independent reproduction.
 
 ## Relationships
 
