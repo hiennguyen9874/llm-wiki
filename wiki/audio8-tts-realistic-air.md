@@ -5,7 +5,7 @@ description: 0.6B DualAR multilingual voice-cloning TTS checkpoint with 23 suppo
 tags: [tts, multilingual, voice-cloning, serving]
 status: draft
 created: 2026-11-02
-generated: { by: llm-wiki-agent/1, at: 2026-11-02T14:28:04Z }
+generated: { by: llm-wiki-agent/1, at: 2026-11-02T14:37:12Z }
 stale_after: 2027-05-02
 sources:
   - id: audio8-realistic-card
@@ -35,6 +35,8 @@ The card reports unweighted language macro averages: Seed-TTS English WER/Chines
 For Vietnamese the card reports CV3 WER 28.111% and SIM 0.6790 over 500 items, versus MiniMax CER 7.966% and SIM 0.7120 over 100 items. These use different sets and metrics and cannot be compared as a direct improvement (**Reported**; comparison caveat is **Synthesis**). Seed-TTS English WER is 1.464% versus Preview 1.506%, while Chinese CER is 1.029% versus 0.950%, and hard Chinese 12.797% versus 11.510%; the separately evaluated figures do not establish a universal improvement (**Reported**).[^audio8-realistic-card]
 
 ## Relationships
+
+- Supersedes [Audio8 TTS Realistic 0.6B](audio8-tts-realistic-0.6b.md): the user confirmed the rename on 2026-11-02; its effective date is unknown. The Air card uses the new model ID.[^audio8-realistic-card]
 
 - Builds on [Audio8 TTS Preview 0.6B](audio8-tts-preview-0.6b.md), adding languages and claiming greater realism; Preview's ONNX INT4 packaging is not established for this checkpoint (**Reported/Synthesis**).[^audio8-realistic-card]
 - Uses an independently installed [SGLang-Omni](sglang-omni.md) adapter for GPU serving (**Reported**).[^audio8-realistic-card]

@@ -5,13 +5,17 @@ description: Compact zero-shot voice-cloning TTS with a reported 170M-parameter 
 tags: [tts, voice-cloning, multilingual, edge-deployment]
 status: draft
 created: 2026-11-02
-generated: { by: llm-wiki-agent/1, at: 2026-11-02T14:26:32Z }
+generated: { by: llm-wiki-agent/1, at: 2026-11-02T14:37:12Z }
 stale_after: 2027-05-02
 sources:
   - id: audio8-01b-card
     resource: ../raw/Audio8-TTS-Preview-0.1b.md
     kind: documentation
     title: Audio8 TTS Preview 0.1B model card
+  - id: audio8-01b-duplicate
+    resource: ../raw/Edge0-Audio8-TTS-Preview-0.1b.md
+    kind: documentation
+    title: Duplicate Audio8 TTS Preview 0.1B model card capture
 ---
 
 Audio8 TTS Preview 0.1B is a compact autoregressive TTS checkpoint for speech generation and zero-shot voice cloning, with Chinese and English as primary languages and an ONNX CPU deployment option. Its model card reports approximately 170M generator parameters plus a separate 120M codec decoder; all capabilities and measurements below are **Reported**, not independently verified.[^audio8-01b-card]
@@ -50,6 +54,8 @@ The card summarizes Audio8 Community License v1.0 as free for non-commercial use
 
 ## Coverage and limits
 
-The local model-card capture was read in full and inspected statically. Its decorative header image is absent locally; teaser video and sample audio were not reviewed. Model weights, codec, tokenizer, remote code, ONNX release and guide, training/inference repository, license text, and evaluation datasets and linked baseline reports were not inspected. No download, install, execution, synthesis, listening, license verification or benchmark was performed. The card has no immutable revision, release or capture date, training data, TTFA, throughput or detailed evaluation protocol; its Linux CPU memory figure is configuration-specific. Draft status records these material trust and coverage limits.[^audio8-01b-card]
+The local model-card capture was read in full and inspected statically. A second local capture is byte-identical (**Observed**).[^audio8-01b-duplicate] Its decorative header image is absent locally; teaser video and sample audio were not reviewed. Model weights, codec, tokenizer, remote code, ONNX release and guide, training/inference repository, license text, and evaluation datasets and linked baseline reports were not inspected. No download, install, execution, synthesis, listening, license verification or benchmark was performed. The card has no immutable revision, release or capture date, training data, TTFA, throughput or detailed evaluation protocol; its Linux CPU memory figure is configuration-specific. Draft status records these material trust and coverage limits.[^audio8-01b-card]
+
+[^audio8-01b-duplicate]: [Duplicate model-card capture](../raw/Edge0-Audio8-TTS-Preview-0.1b.md) — complete file, compared with the other capture.
 
 [^audio8-01b-card]: [Audio8 TTS Preview 0.1B model card](../raw/Audio8-TTS-Preview-0.1b.md) — frontmatter and introduction; “Compact Scale”; “Supported Languages”; “Model Details”; “Deployment Options / CPU deployment: ONNX INT8”; “Installation”; “Usage / Voice cloning”; “Evaluation / CV3 error-rate comparison” and “Seed-TTS comparison”; “Limitations and Responsible Use”; “License”.

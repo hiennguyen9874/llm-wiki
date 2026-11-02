@@ -1,8 +1,9 @@
 # Lựa chọn và thiết kế TTS realtime cho tiếng Việt
 
 > **Loại tài liệu:** bài viết tổng hợp (deliverable trong `outputs/`), không phải tri thức canonical của wiki.
-> **Ngày cập nhật:** 2026-10-13 (bản đầu: 2026-10-07).
+> **Ngày cập nhật:** 2026-10-28 (bản đầu: 2026-10-07; bản trước: 2026-10-13).
 > **Cơ sở:** chỉ dùng wiki đã compile. Nguồn chính: [Vietnamese Realtime TTS Selection](../wiki/vietnamese-realtime-tts-selection.md) và [TTS Model Survey](../wiki/tts-model-survey.md). Nguồn đã đọc lại trong lần cập nhật này gồm concept của từng model có tiếng Việt: VieNeu v3 Turbo và ba trang vận hành của nó, VoxCPM2, Supertonic 3, MOSS-TTS Local v1.5 và flagship v1.5, Higgs TTS 3, Fish S2 Pro, OmniVoice, G-OmniVoice, Gwen-TTS 0.6B, Qwen3-TTS 0.6B Base, Kokoro Vietnamese, sanoTTS, LGTM-TTS, dots.tts, SeamlessM4T v2. Đọc thêm các trang frontend/normalizer: VietNormalizer, ViSoNorm, Kokoro-82M, Kokoro Python Library, Misaki, eSpeak NG, Phonemizer, StyleTTS 2, CrispASR TTS Engines, Resemblyzer và KVoiceWalk.
+> **Cập nhật theo git diff 2026-10-28:** đọc thêm [ZeroTTS](../wiki/zerotts.md), [Audio8 TTS Realistic 0.6B](../wiki/audio8-tts-realistic-0.6b.md), hai bản Preview [0.1B](../wiki/audio8-tts-preview-0.1b.md) / [0.6B](../wiki/audio8-tts-preview-0.6b.md), cùng survey; rà lại [KhanhTTS](../wiki/khanhtts-omnivoice.md), [F5-TTS Vietnamese](../wiki/f5-tts-vietnamese.md) và [Qwen3-TTS 1.7B Vietnamese](../wiki/qwen3-tts-12hz-1.7b-vietnamese.md) vì bản cũ đã lỗi thời. Phần còn lại giữ theo bản trước, không phải rà soát toàn bộ wiki.
 > **Phạm vi bằng chứng:** không mở `raw/`, không tải weights, không chạy inference, không nghe audio, không đo benchmark. Mọi con số đều do vendor, tác giả hoặc report công bố (**Reported**). Mọi thứ tự ưu tiên, kiến trúc và tham số đề xuất là suy luận tổng hợp (**Synthesis**). Chưa có phép so sánh MOS, TTFA hay lỗi phát âm tiếng Việt nào được đo trên cùng điều kiện giữa các model.
 
 ---
@@ -10,7 +11,8 @@
 ## 0. TL;DR
 
 1. **Baseline triển khai vẫn là [VieNeu-TTS v3 Turbo](../wiki/vieneu-tts-v3-turbo.md).** Lý do: model Vietnamese-first (vi/en, code-switching), có G2P riêng `sea-g2p`, preset giọng ba miền, frame-level streaming, chạy được trên CPU ONNX và GPU PyTorch, kèm server `/v1/audio/speech` kiểu OpenAI và Docker profile. Tài liệu streaming của tác giả (nay đã được compile) cho số đo chi tiết trên RTX 3060: TTFA 89 ms (`max_streams=8`) đến 115 ms (`max_streams=16`) khi có 1 stream, 185 ms median khi có 16 stream.
-2. **Hai challenger cần A/B:**
+2. **Các challenger cần A/B:**
+   - [ZeroTTS](../wiki/zerotts.md) (202M, ONNX, tiếng Việt, CPU streaming): ứng viên CPU mới; tác giả báo TTFA khoảng 70 ms và RTF khoảng 0.50, chưa được reproduce. Voice encoder không công khai; tạo voice mới cần dịch vụ upload ngoài.
    - [VoxCPM2](../wiki/voxcpm2.md) (2B, Apache-2.0, 48 kHz, có `vi`, có `generate_streaming`, LoRA với 5–10 phút audio): dùng khi ưu tiên cloning/style và có GPU khoảng 8 GB.
    - [Supertonic 3](../wiki/supertonic-3.md) (khoảng 99M, ONNX, có `vi`): dùng khi ưu tiên CPU/on-device. Card chỉ có API trả full waveform và các số đo dạng ảnh.
 3. **Challenger GPU streaming thứ ba:** [MOSS-TTS Local v1.5](../wiki/moss-tts-local-transformer-v1-5.md) (Apache-2.0, có `vi`, PCM 48 kHz stream qua SGLang-Omni). Hợp lý khi hạ tầng đã có SGLang-Omni.
@@ -19,7 +21,8 @@
 6. **Hệ sinh thái Kokoro gốc không có tiếng Việt.** Mục `lang_code` của Kokoro library, frontend misaki và danh sách ngôn ngữ của Kokoro-FastAPI đều không có `vi`. Kokoro Vietnamese là một artifact riêng, dùng `vig2p`, và phải chạy qua CLI riêng hoặc wrapper tự viết.
 7. **Đã có ứng viên cho normalizer tiếng Việt:** [VietNormalizer](../wiki/vietnormalizer.md) (MIT, thuần stdlib, pipeline 19 bước, README báo khoảng 0.6 ms/lần gọi) chuyển văn bản viết sang dạng đọc. [ViSoNorm](../wiki/visonorm-visobert-normalizer.md) làm việc ngược lại: chuẩn hóa văn bản không chuẩn sang văn bản chuẩn. Cả hai đều chưa được kiểm chứng.
 8. **Thiết kế quan trọng hơn chọn model.** Chất lượng cảm nhận phụ thuộc vào clause chunker, normalizer + lexicon, hợp đồng audio format, cancellation khi barge-in, warmup, và việc đặt `max_streams` khớp với tải thật.
-9. **Đây là thứ tự thử nghiệm, không phải bảng xếp hạng chất lượng.** Quyết định cuối phải dựa trên blind listening test tiếng Việt (150–300 prompt) và TTFA P95 đo dưới tải thực trên phần cứng đích.
+9. **Audio8 Realistic 0.6B** có `vi`, nhưng số WER tiếng Việt CV3 do card báo là 28.111% và serving H20 chỉ được xác nhận non-streaming; xem là ứng viên nghiên cứu, không thay baseline. Hai bản Audio8 Preview không liệt kê `vi`.
+10. **Đây là thứ tự thử nghiệm, không phải bảng xếp hạng chất lượng.** Quyết định cuối phải dựa trên blind listening test tiếng Việt (150–300 prompt) và TTFA P95 đo dưới tải thực trên phần cứng đích.
 
 ---
 
@@ -38,10 +41,12 @@ Số liệu từ các card khác nhau **không so sánh trực tiếp được**
 
 ## 2. Có gì mới kể từ bản 2026-10-07
 
-Phần này tổng hợp từ khoảng 50 dòng đầu của `wiki/log.md` (các entry từ 2026-10-07 đến 2026-10-13) và các concept tương ứng.
+Các dòng 2026-10-28 dưới đây phản ánh git diff đang có; phần lịch sử 2026-10-07–2026-10-13 được giữ từ bản trước, không phải danh sách đầy đủ mọi ingest giữa hai mốc.
 
 | Thay đổi trong wiki | Ảnh hưởng tới lựa chọn TTS tiếng Việt |
 |---|---|
+| [ZeroTTS](../wiki/zerotts.md) | Thêm challenger Vietnamese-first CPU streaming; voice encoder không công khai và số đo chỉ do vendor báo. |
+| [Audio8 Realistic 0.6B](../wiki/audio8-tts-realistic-0.6b.md) và [Preview 0.1B](../wiki/audio8-tts-preview-0.1b.md); cập nhật Preview 0.6B | Realistic bổ sung `vi` so với Preview, nhưng chưa có benchmark streaming; 0.1B không liệt kê `vi`, license có ngưỡng doanh thu. Không chuyển license hay tính năng giữa các checkpoint. |
 | Compile tài liệu streaming và Docker của VieNeu (revision `85344322`), tách thành 3 concept: [Streaming Runtime](../wiki/vieneu-tts-streaming-runtime.md), [OpenAI-Compatible API](../wiki/vieneu-tts-openai-speech-api.md), [Docker Compose](../wiki/vieneu-tts-docker-deployment.md) | Baseline có thêm số đo theo `max_streams` 8/16/32, cơ chế codec dùng chung, latency khi GPU nguội, bảng HTTP, quy tắc sizing, hợp đồng API đầy đủ, và tuyên bố "đóng kết nối sẽ giải phóng slot". Các mục 8.4–8.6 được cập nhật theo đây. |
 | Compile repo snapshot Gwen-TTS `f0f24d8` | Đã xác định: CLI chỉ ghi một WAV hoàn chỉnh, không có đường streaming, không có normalizer hay server. Đối số `language` bị comment out trong `inference.py`. Môi trường đã test: Python 3.11, CUDA 12.4, VRAM tối thiểu 4 GB. |
 | Compile concept [Qwen3-TTS-12Hz-0.6B-Base](../wiki/qwen3-tts-12hz-0.6b-base.md) | Base của Gwen là Apache-2.0 và không có `vi`. Rủi ro license của Gwen vì vậy dồn chủ yếu về quyền dữ liệu, không nằm ở weights base (**Synthesis**). |
@@ -52,7 +57,7 @@ Phần này tổng hợp từ khoảng 50 dòng đầu của `wiki/log.md` (các
 | Compile [CrispASR TTS Engines](../wiki/crispasr-tts-engines.md) | Runtime C++ có `/v1/audio/speech`, gồm các engine voxcpm2-tts (48 kHz, cloning) và omnivoice. Bảng engine đã capture không ghi engine tiếng Việt riêng. |
 | Ingest card sanoTTS, G-OmniVoice, MOSS v1.5 (2026-10-07) | Đã có trong bản trước; giữ nguyên, bổ sung chi tiết ở mục 4. |
 
-Các ingest khác trong khoảng thời gian này (VAD, ASR, diarization, denoiser, punctuation restoration) không thay đổi lựa chọn TTS.
+Không suy rằng các ingest khác giữa hai mốc không ảnh hưởng lựa chọn: chúng không được rà toàn diện trong lần cập nhật theo diff này.
 
 ---
 
@@ -77,7 +82,7 @@ Các ingest khác trong khoảng thời gian này (VAD, ASR, diarization, denois
 - **Audio-output streaming:** model nhận một đoạn text hoàn chỉnh rồi trả audio theo từng chunk/frame trước khi xong câu. Thuộc loại này (**Reported**): VieNeu `infer_stream(text=...)`, VoxCPM2 `generate_streaming(text=...)`, MOSS Local qua SGLang-Omni (`stream=true`, PCM 48 kHz), Higgs (SSE), Fish (SGLang).
 - **Incremental text-input / bi-streaming:** model nhận tiếp token từ LLM trong khi đang nói. Qwen3-TTS (Dual-Track), CosyVoice và VibeVoice-Realtime quảng cáo khả năng này, nhưng **không checkpoint chính thức nào trong số đó có `vi`** (**Reported**).
 
-**Hệ quả (Synthesis):** với tiếng Việt hiện nay, cầu nối LLM → TTS phải là **clause-level chunking**: gom token thành mệnh đề có nghĩa rồi gọi TTS streaming cho từng mệnh đề.
+**Hệ quả (Synthesis):** với các backend tiếng Việt đã khảo sát ở đây, dùng **clause-level chunking** làm phương án tích hợp: gom token thành mệnh đề có nghĩa rồi gọi TTS cho từng mệnh đề. Đây không phải chứng minh rằng mọi backend tiếng Việt đều thiếu incremental text input.
 
 ### 3.3. Đừng trộn throughput với streaming
 
@@ -89,19 +94,19 @@ Các ingest khác trong khoảng thời gian này (VAD, ASR, diarization, denois
 
 ## 4. Survey các model TTS có tiếng Việt trong wiki
 
-Catalog TTS hiện có **41 dòng model/family** (**Observed**). Trong đó, các model dưới đây có bằng chứng tiếng Việt ở một mức nào đó. Mọi khả năng và số liệu là **Reported**. Cách phân nhóm và đánh giá mức bằng chứng là **Synthesis**.
+[Catalog TTS](../wiki/tts-model-survey.md) ghi **49 dòng model/family**; danh sách dưới đây là shortlist của bản trước được bổ sung theo diff, không phải danh mục đầy đủ. Các model được chọn có bằng chứng tiếng Việt ở một mức nào đó. Mọi khả năng và số liệu là **Reported**. Cách phân nhóm và đánh giá mức bằng chứng là **Synthesis**.
 
 ### 4.1. Bậc thang bằng chứng tiếng Việt
 
 | Mức | Ý nghĩa | Model |
 |---|---|---|
-| **A. Vietnamese-first** | Huấn luyện chủ yếu cho vi, có frontend/dữ liệu vi riêng, có giọng vi | VieNeu v3 Turbo (và Nano), G-OmniVoice, Gwen-TTS 0.6B, Kokoro Vietnamese |
-| **B. Multilingual, `vi` nằm trong danh sách hỗ trợ** | `vi` nằm trong frontmatter/bảng ngôn ngữ; không có điểm số vi riêng | VoxCPM2, Supertonic 3, MOSS Local v1.5, MOSS v1.5 flagship, Fish S2 Pro (nhóm "Other"), OmniVoice, LGTM-TTS, sanoTTS (voice `vi`) |
+| **A. Vietnamese-first** | Huấn luyện chủ yếu cho vi, có frontend/dữ liệu vi riêng, có giọng vi | VieNeu v3 Turbo (và Nano), ZeroTTS, G-OmniVoice, Gwen-TTS 0.6B, Kokoro Vietnamese, KhanhTTS, F5-TTS Vietnamese, Qwen3-TTS 1.7B Vietnamese |
+| **B. Multilingual, `vi` nằm trong danh sách hỗ trợ** | `vi` nằm trong bảng ngôn ngữ; chất lượng cần đánh giá riêng | VoxCPM2, Supertonic 3, MOSS Local v1.5, MOSS v1.5 flagship, Fish S2 Pro (nhóm "Other"), OmniVoice, LGTM-TTS, sanoTTS (voice `vi`), Audio8 Realistic 0.6B (có điểm vi do vendor báo) |
 | **B+. Multilingual, có tuyên bố chất lượng vi** | Card xếp vi vào một tier chất lượng, nhưng không có điểm số chi tiết | Higgs TTS 3 (tier WER/CER < 5) |
 | **C. Tự thừa nhận yếu với vi** | Card nói WER vi cao hơn ngôn ngữ giàu tài nguyên | dots.tts-mf / soar |
 | **D. Kề cận** | Có speech output `vie` nhưng là model dịch | SeamlessM4T v2 Large |
 | **E. Chưa xác lập** | Engine hoặc frontend có thể có vi nhưng danh sách ngôn ngữ chưa được capture | eSpeak NG, các backend của Phonemizer |
-| **F. Không có `vi`** | Danh sách hỗ trợ đã compile không có vi | Qwen3-TTS chính thức (cả Base lẫn CustomVoice), Kokoro-82M / Kokoro library / Kokoro-FastAPI, misaki, CosyVoice2, Fun-CosyVoice3, Audio8, Chatterbox, Pocket, Sopro, Soprano, VibeVoice, Breeze, GLM-TTS, IndexTTS2/2.5, GPT-SoVITS, AuK-Flash, Supertonic v1/v2, Voxtral, MOSS-TTS-Nano, Irodori, Indic Parler, Inflect-Nano |
+| **F. Không có `vi`** | Danh sách hỗ trợ đã compile không có vi | Qwen3-TTS chính thức (cả Base lẫn CustomVoice), Kokoro-82M / Kokoro library / Kokoro-FastAPI, misaki, CosyVoice2, Fun-CosyVoice3, Audio8 Preview 0.1B / 0.6B, Chatterbox, Pocket, Sopro, Soprano, VibeVoice, Breeze, GLM-TTS, IndexTTS2/2.5, GPT-SoVITS, AuK-Flash, Supertonic v1/v2, Voxtral, MOSS-TTS-Nano, Irodori, Indic Parler, Inflect-Nano |
 
 ### 4.2. Bảng so sánh tổng hợp
 
@@ -109,6 +114,8 @@ Catalog TTS hiện có **41 dòng model/family** (**Observed**). Trong đó, cá
 |---|---|---|---|---|---|---|---|
 | [VieNeu v3 Turbo](../wiki/vieneu-tts-v3-turbo.md) | Không công bố số tham số; backbone + acoustic decoder + codec `MOSS-Audio-Tokenizer-Nano`; G2P `sea-g2p`; khoảng 10k giờ vi/en | 48 kHz | 25 preset (ba miền), cloning 3–8 s, LoRA, emotion tag thử nghiệm | **Frame-level** (frame 80 ms) | GPU RTX 3060: 115 ms / RTF 0.49 (1 stream), 185 ms / 0.59 (16 stream); CPU int8: 140–195 ms / RTF 0.35 | CPU ONNX không cần torch; GPU PyTorch + CUDA graph; SDK, `/v1/audio/speech`, Docker | Apache-2.0 theo FAQ của card; roadmap ghi "on-device, personal use" (mâu thuẫn) |
 | VieNeu v3 Nano | 48M, flow matching, ONNX | 24 kHz | 11 preset + cloning | Chỉ chunk đã hoàn chỉnh | CPU i5: RTF 0.22 (16 step), 0.11 (8 step); tải 282 MB, load khoảng 3 s | CPU, không cần torch | Như VieNeu |
+| [ZeroTTS](../wiki/zerotts.md) | 202M, ONNX, speaker latent | 48 kHz | 8 preset; voice encoder không công khai | `synthesize_stream`, float32 | CPU: 53–89 ms first audio, RTF 0.47–0.53; 1 request, 8 core, phần cứng không nêu | CPU/browser; khoảng 900 MB fp32 | MIT code/weights, codec Apache-2.0 theo README; license text chưa kiểm tra |
+| [Audio8 Realistic 0.6B](../wiki/audio8-tts-realistic-0.6b.md) | 601M + codec, DualAR | 44.1 kHz | Zero-shot cloning + reference-free | H20 SGLang test **non-streaming**; chưa có benchmark streaming | CV3 vi WER 28.111%; MiniMax vi CER 7.966%, khác dataset/metric; không có TTFA | CUDA khuyến nghị; SGLang Omni | Apache-2.0 theo card; license/NOTICE chưa inspect |
 | [VoxCPM2](../wiki/voxcpm2.md) | 2B, diffusion-AR không tokenizer (`LocEnc → TSLM → RALM → LocDiT`), backbone MiniCPM-4 | 48 kHz | Voice design, cloning có điều khiển và "ultimate", LoRA 5–10 phút | Có `generate_streaming` | RTX 4090: RTF khoảng 0.3 (0.13 với Nano-vLLM); chưa có TTFA | GPU khoảng 8 GB; CUDA ≥ 12; có GGUF trong audio.cpp và engine trong CrispASR | Apache-2.0 |
 | [Supertonic 3](../wiki/supertonic-3.md) | Khoảng 99M, ONNX | Chưa ghi nhận | Preset + Voice Builder (trả phí), tag `<laugh>` `<breath>` `<sigh>` | Ví dụ trả full waveform | Chỉ có biểu đồ dạng ảnh, không có số | CPU-first, on-device; có GGUF trong audio.cpp | OpenRAIL-M (weights), MIT (code) |
 | [MOSS-TTS Local v1.5](../wiki/moss-tts-local-transformer-v1-5.md) | Local Transformer trên codec MOSS-Audio-Tokenizer-v2, 12 codebook | 48 kHz stereo | Cloning, `[pause X.Ys]`, điều khiển độ dài theo token, khuyến nghị gắn language tag | PCM stream qua SGLang-Omni | Chưa có số | HF Transformers, SGLang-Omni; GGUF BF16/Q8 trong audio.cpp | Apache-2.0 theo card |
@@ -132,6 +139,14 @@ Catalog TTS hiện có **41 dòng model/family** (**Observed**). Trong đó, cá
 - Điểm yếu: license chưa nhất quán, corpus bị gated, lỗi G2P `chánh` → `tránh` (issue #207, chỉ có report thứ cấp nhắc lại), danh sách voice khác nhau giữa các phiên bản (card 3.7.1: 23 voice, mặc định Minh Quân; README 3.8.x: 25 voice, mặc định Hải Đăng).
 - Có community port C++ `vieneu_v3_turbo` (GGUF, 48 kHz) trong audio.cpp. Chưa ai kiểm tra parity hay streaming của port này.
 
+**ZeroTTS (mức A, challenger CPU streaming).**
+- Vendor báo ZeroBench raw-text WER 1.03% và CPU TTFA 53/66/89 ms cho 26/77/227 ký tự, RTF 0.51/0.47/0.53: một request, tám thread pin core, mỗi mẫu sáu lần bỏ hai lần đầu; không nêu model CPU. Không suy ra P95, concurrency hay latency end-to-end. Trang wiki là **draft**; benchmark, code và weights chưa kiểm tra.
+- `synthesize_stream` trả float32 48 kHz; API `synthesize()` không tự normalize, trong khi CLI/UI bật mặc định. Cần test tránh normalize hai lần. Voice mới cần tạo latent bằng dịch vụ ngoài; upload reference là ranh giới privacy/consent, không phải cloning hoàn toàn offline. Preset được mô tả là dành cho demo/đánh giá; rà quyền trước production. Dataset benchmark CC-BY-NC-4.0 tách biệt MIT code/weights và Apache-2.0 codec theo README.
+
+**Audio8 Realistic 0.6B (mức B, nghiên cứu).**
+- Card liệt kê 23 ngôn ngữ gồm `vi`, không giống hai Preview. CV3 tiếng Việt WER 28.111% trên 500 mẫu; MiniMax CER 7.966% trên 100 mẫu. Hai số khác dataset và metric, không so trực tiếp hoặc xếp hạng với model khác.
+- H20 BF16 chỉ xác nhận API non-streaming, không benchmark streaming/throughput; không có TTFA, VRAM hoặc hiệu năng CPU. `trust_remote_code=True` cần review code; license/NOTICE chưa inspect. Không giả định ONNX hoặc streaming của Preview hoạt động với Realistic.
+
 **VoxCPM2 (mức B, challenger GPU).**
 - License sạch nhất trong nhóm chất lượng cao (Apache-2.0), 48 kHz, có streaming API, LoRA chỉ cần 5–10 phút audio.
 - Chưa có TTFA và chưa có điểm tiếng Việt riêng. Card thừa nhận chất lượng thay đổi theo lượng dữ liệu của từng ngôn ngữ. Voice design có thể cần sinh lại 1–3 lần.
@@ -151,7 +166,7 @@ Catalog TTS hiện có **41 dòng model/family** (**Observed**). Trong đó, cá
 - Higgs xếp vi vào tier < 5 nhưng không có điểm số vi. Fish xếp vi vào nhóm "Other", không thuộc Tier 1/2.
 
 **OmniVoice và G-OmniVoice (mức B và A).**
-- G-OmniVoice là model duy nhất trong wiki có **bảng số đo tiếng Việt** (WER, SIM, MOS) so với các model khác, nhưng đây là số vendor tự đo, không có protocol, dataset hay judge, và ảnh `wer_vs_sim.png` không có trong raw.
+- G-OmniVoice có **bảng số đo tiếng Việt** (WER, SIM, MOS) so với các model khác, nhưng đây là số vendor tự đo, không có protocol, dataset hay judge, và ảnh `wer_vs_sim.png` không có trong raw.
 - Nhãn `VietNeu/v3turbo` trong bảng không khớp với tên VieNeu đã compile. Không dùng con số này để kết luận VieNeu kém hơn.
 - Card ghi Apache-2.0, nhưng base OmniVoice có weights CC-BY-NC và tokenizer theo Boson license. Cần rà lineage trước khi dùng thương mại.
 - Cả hai chỉ trả full waveform. Muốn dùng realtime phải chunk theo mệnh đề và đo TTFA.
@@ -187,11 +202,11 @@ Phân nhóm là **Synthesis** của survey. Cơ chế của từng model là **R
 
 | Hướng kiến trúc | Ví dụ có vi | Ưu điểm | Lưu ý cho tiếng Việt |
 |---|---|---|---|
-| **Codec-token AR** | VieNeu v3 Turbo, MOSS Local, Higgs, Fish | Hợp với audio streaming; tái dùng hạ tầng LLM serving (KV cache, continuous batching) | Model to và codec tốt không đảm bảo thanh điệu đúng. Frontend, dữ liệu vi và runtime quan trọng hơn kích thước. Có thể lặp hoặc bỏ chữ. |
+| **Codec-token AR** | VieNeu v3 Turbo, MOSS Local, Higgs, Fish, Audio8 Realistic | Hợp với audio streaming; tái dùng hạ tầng LLM serving (KV cache, continuous batching) | Model to và codec tốt không đảm bảo thanh điệu đúng. Frontend, dữ liệu vi và runtime quan trọng hơn kích thước. Có thể lặp hoặc bỏ chữ. |
 | **Continuous-latent diffusion-AR** | VoxCPM2, dots.tts | Tốt cho cloning và prosody; đánh đổi quality–latency qua số bước flow | VoxCPM2 có streaming API. 6.25 Hz là token rate của LM, không phải TTFA. |
 | **Diffusion-LM non-AR** | OmniVoice, G-OmniVoice | Phủ ngôn ngữ rộng, RTF thấp | API đã inspect chỉ trả full waveform. |
 | **Discrete multi-codebook LM** | Gwen-TTS (trên Qwen3-TTS 12 Hz) | Kiến trúc gốc có streaming ở tầng serving | Checkpoint chính thức không có vi. Finetune vi hiện chỉ có đường xuất full WAV. |
-| **Lightweight / ONNX / StyleTTS-lineage** | Supertonic 3, VieNeu Nano, Kokoro Vietnamese, LGTM | Chạy CPU, footprint nhỏ | ONNX là **định dạng runtime**, không phải kiến trúc. Phần lớn sinh xong cả chunk rồi mới trả. |
+| **Lightweight / ONNX / StyleTTS-lineage** | ZeroTTS, Supertonic 3, VieNeu Nano, Kokoro Vietnamese, LGTM | Chạy CPU, footprint nhỏ | ONNX là **định dạng runtime**, không phải kiến trúc. Phần lớn sinh xong cả chunk rồi mới trả. |
 | **Piper/VITS chưng cất siêu nhỏ** | sanoTTS | Chạy được trên MCU | GPL-3.0, không cloning, voice vi chưa được chấm. |
 
 **Chọn kiến trúc theo yêu cầu (Synthesis):**
@@ -240,15 +255,15 @@ Phân nhóm là **Synthesis** của survey. Cơ chế của từng model là **R
 |---|---|---|
 | **Baseline** | VieNeu v3 Turbo | Pick số 1, có điều kiện rà license |
 | **Challenger GPU (cloning/style)** | VoxCPM2 | A/B về chất lượng nghe và cloning |
-| **Challenger CPU** | Supertonic 3, Kokoro Vietnamese | A/B on-device, cạnh VieNeu ONNX |
+| **Challenger CPU** | ZeroTTS, Supertonic 3, Kokoro Vietnamese | A/B on-device, cạnh VieNeu ONNX; ZeroTTS cần kiểm tra voice encoder/consent và rights preset |
 | **Challenger GPU streaming** | MOSS-TTS Local v1.5 | A/B khi đã có SGLang-Omni |
 | **Accuracy/cloning challenger** | G-OmniVoice, Gwen-TTS 0.6B | Chỉ nghe thử; cần giải quyết streaming + quyền |
 | **Expressive (NC)** | Higgs TTS 3, Fish S2 Pro | Chỉ khi có license thương mại |
 | **Edge fallback** | VieNeu v3 Nano | CPU yếu; chấp nhận chất lượng thấp hơn, nhất là code-switch |
 | **MCU** | sanoTTS | Thử nghiệm siêu nhỏ, GPL-3.0 |
-| **Nghiên cứu** | MOSS flagship, dots.tts, LGTM, OmniVoice | Không đưa vào production |
+| **Nghiên cứu** | Audio8 Realistic, MOSS flagship, dots.tts, LGTM, OmniVoice, F5-TTS Vietnamese, KhanhTTS, Qwen3-TTS 1.7B Vietnamese | Chưa được chứng minh sẵn sàng production |
 
-**Chỉ là pointer thứ cấp:** F5-TTS-Vietnamese, viXTTS, ShiniChien Qwen3-TTS-VN và KhanhTTS-OmniVoice chưa có nguồn primary trong wiki. VieNeu v4 là API proprietary, chưa có số liệu chất lượng, TTFA, SLA hay giá. Các cloud TTS ngoài catalog chưa được khảo sát.
+**Nguồn primary mới hơn bản trước:** [F5-TTS Vietnamese](../wiki/f5-tts-vietnamese.md) có license NC và ví dụ CLI chưa hoàn chỉnh; [KhanhTTS](../wiki/khanhtts-omnivoice.md) có card vi/en, 24 kHz, nhưng lineage base CC-BY-NC chưa giải quyết; [Qwen3-TTS 1.7B Vietnamese](../wiki/qwen3-tts-12hz-1.7b-vietnamese.md) có 30 preset và ví dụ non-streaming, chưa có benchmark. Chúng chưa chứng minh realtime. **Chỉ là pointer thứ cấp:** viXTTS và ShiniChien Qwen3-TTS-VN chưa được rà lại trong lần cập nhật này. VieNeu v4 là API proprietary, chưa có số liệu chất lượng, TTFA, SLA hay giá. Các cloud TTS ngoài catalog chưa được khảo sát.
 
 ### 7.2. Vì sao VieNeu được chọn làm baseline?
 
@@ -264,7 +279,7 @@ Lý do là **bằng chứng phù hợp với triển khai**, không phải MOS v
 | Tình huống | Hướng xử lý |
 |---|---|
 | VieNeu không đạt chất lượng nghe, hoặc cần clone tốt hơn, và có GPU từ khoảng 8 GB | **VoxCPM2** nếu vẫn đạt SLO TTFA/RTF. Phải tự viết API adapter. |
-| Chỉ có CPU, hoặc on-device | **VieNeu ONNX** trước (int8 nếu CPU có VNNI), A/B với **Supertonic 3** và **Kokoro vi**. Dùng **Nano** cho CPU yếu. |
+| Chỉ có CPU, hoặc on-device | **VieNeu ONNX** trước (int8 nếu CPU có VNNI), A/B với **ZeroTTS**, **Supertonic 3** và **Kokoro vi**. Dùng **Nano** cho CPU yếu. |
 | Đã có SGLang-Omni | Thử **MOSS Local v1.5**. |
 | Cần cảm xúc mạnh và inline tag, có ngân sách license | **Higgs TTS 3** hoặc **Fish S2 Pro**, sau khi qua test tiếng Việt. |
 | License thương mại phải sạch ngay | **VoxCPM2** (Apache-2.0) hoặc **MOSS Local** (Apache theo card), cho tới khi mâu thuẫn license của VieNeu được giải quyết. |
@@ -369,6 +384,8 @@ Khác biệt đã biết giữa các backend (**Reported**):
 | VieNeu SDK | `np.float32`, 48 kHz, theo chunk |
 | VieNeu HTTP | `pcm` (s16le mono, không header) hoặc `wav` (header với độ dài "unknown"); chunked hoặc SSE (`speech.audio.delta` chứa base64 PCM, kết thúc bằng `speech.audio.done`). `sample_rate` có thể là 48000/24000/16000/8000, resample theo chunk bằng soxr. `mp3`/`opus` trả về 400. |
 | VieNeu Nano | 24 kHz, từng chunk đã hoàn chỉnh |
+| ZeroTTS | float32 `(1, n)`, 48 kHz theo ví dụ streaming; cancellation chưa xác lập |
+| Audio8 Realistic | 44.1 kHz codec; ví dụ SGLang được xác nhận non-streaming, framing streaming chưa xác lập |
 | MOSS Local (SGLang) | PCM 48 kHz; codec native stereo nhưng ví dụ dùng mono, phải xác nhận số kênh |
 | Higgs | SSE chứa WAV base64, không phải raw PCM |
 | G-OmniVoice / OmniVoice | full waveform 24 kHz |
@@ -455,7 +472,7 @@ Cần kiểm chứng (**Synthesis**):
 | VoxCPM2 Python + service tự viết | Challenger GPU | Chưa inspect tài liệu Nano-vLLM accelerator |
 | SGLang-Omni | MOSS Local, Higgs, Fish | Chưa có recipe cho VieNeu/VoxCPM2; cookbook MOSS chưa inspect |
 | vLLM-Omni / Faster Qwen3-TTS | Higgs, Qwen3-TTS | Không có vi chính thức; khả năng chạy Gwen là **Unverified** |
-| ONNX Runtime service | Supertonic 3, Kokoro vi, VieNeu Nano, LGTM | ONNX không tự chứng minh realtime |
+| ONNX Runtime service | ZeroTTS, Supertonic 3, Kokoro vi, VieNeu Nano, LGTM | ZeroTTS có API stream được báo; cancellation/concurrency chưa xác lập. ONNX không tự chứng minh realtime. |
 | [audio.cpp](../wiki/audio-cpp-framework.md) GGUF | Native C++ | Có community port `vieneu_v3_turbo`, cùng package VoxCPM2, Supertonic-3, MOSS Local v1.5, OmniVoice, Higgs, Fish. Chưa inspect parity/streaming của port VieNeu. |
 | [CrispASR](../wiki/crispasr-tts-engines.md) | C++ một binary, `/v1/audio/speech` | Có engine voxcpm2-tts và omnivoice. README ghi mặc định server xử lý tuần tự, không hỗ trợ batched multi-stream. Mọi output có watermark. |
 | Pipecat custom `TTSService` / plugin OpenAI | Orchestration | Đổi `base_url` sang VieNeu, `pcm`, `sample_rate` (**Reported**) |
@@ -540,7 +557,7 @@ License và lỗi nghiêm trọng là **hard gate**. Điểm preference chỉ x�
 
 1. **VieNeu** nếu thắng về khả năng triển khai và đạt ngưỡng chất lượng.
 2. **VoxCPM2** nếu cải thiện có ý nghĩa về nghe/cloning mà vẫn đạt SLO.
-3. **Supertonic 3** hoặc **Kokoro vi** nếu footprint CPU và chất lượng đạt.
+3. **ZeroTTS**, **Supertonic 3** hoặc **Kokoro vi** nếu footprint CPU, chất lượng, quyền voice và cancellation đạt; ZeroTTS cần xét riêng việc upload reference khi tạo voice.
 4. **MOSS Local** nếu có SGLang-Omni và qua được test số kênh, cancellation.
 5. **Higgs/Fish** chỉ sau khi qua test chất lượng tiếng Việt **và** có thỏa thuận thương mại.
 6. **G-OmniVoice/Gwen** chỉ khi thắng rõ trong blind test **và** giải quyết được streaming (chunk theo mệnh đề, đo TTFA) cùng lineage/quyền dữ liệu.
@@ -552,7 +569,7 @@ License và lỗi nghiêm trọng là **hard gate**. Điểm preference chỉ x�
 | Giai đoạn | Việc chính |
 |---|---|
 | **1 — MVP** | VieNeu v3 Turbo qua `/v1/audio/speech` (Docker `api-gpu` hoặc `api-cpu`), chạy sau Pipecat hoặc HF speech-to-speech. Làm ngay từ đầu: clause chunker; VietNormalizer + lexicon riêng + bộ regression; adapter khai báo audio format (`pcm`, `sample_rate`); chờ `/health` ok; `max_streams` theo tải (8 nếu ít hơn hoặc bằng 8 stream); khóa clock GPU; `VIENEU_API_KEY` khi bind `0.0.0.0`; `generation_id` + đóng request khi barge-in; client pre-buffer; log latency theo từng turn. |
-| **2 — Beta** | A/B VieNeu với VoxCPM2 (GPU), và VieNeu ONNX với Supertonic 3 / Kokoro vi (CPU). Nghe thử G-OmniVoice và Gwen song song nhưng tách khỏi quyết định triển khai. Chạy protocol mục 10. Mỗi lần chỉ đổi một thành phần. Tune chunk đầu. Thêm MOSS Local nếu đã dùng SGLang-Omni. |
+| **2 — Beta** | A/B VieNeu với VoxCPM2 (GPU), và VieNeu ONNX với ZeroTTS / Supertonic 3 / Kokoro vi (CPU). Nghe thử G-OmniVoice và Gwen song song nhưng tách khỏi quyết định triển khai. Chạy protocol mục 10. Mỗi lần chỉ đổi một thành phần. Tune chunk đầu. Thêm MOSS Local nếu đã dùng SGLang-Omni. |
 | **3 — Production** | Tách TTS thành service/GPU pool riêng, quan sát P95, admission control, circuit breaker, healthcheck restart. LoRA cho brand voice (VieNeu: 10–30 phút audio sạch của một speaker, khoảng 6 GB GPU theo tác giả; VoxCPM2: 5–10 phút) sau khi có consent. Chỉ chuyển sang audio.cpp/native sau khi qua gate về parity output và latency. |
 
 ---
@@ -568,17 +585,20 @@ License và lỗi nghiêm trọng là **hard gate**. Điểm preference chỉ x�
 - **Gwen-TTS:** chưa rõ quy trình crawl, lọc và consent dữ liệu TikTok. Frontmatter ghi `library_name: transformers` nhưng code dùng `qwen_tts`. CLI không truyền `language` vào model; ảnh hưởng tới chất lượng chưa được test.
 - **Kokoro Vietnamese:** weights, config, voicepack và `vig2p` chưa được inspect; không có số đo nào. Không suy được gì từ Kokoro-82M hay Kokoro-FastAPI.
 - **MOSS Local:** cookbook/config chưa inspect; số kênh thực tế của stream chưa xác nhận. Không gán đường streaming của Local cho flagship 8B.
+- **ZeroTTS:** wiki draft; CPU model, protocol benchmark đầy đủ, code và weights chưa được inspect. Encoder không công khai, dịch vụ tạo latent yêu cầu upload; rights preset, cancellation và concurrency cần xác minh. MIT/Apache là mô tả trong README, không phải rà license.
+- **Audio8 Realistic:** số vi do vendor báo trên hai bộ test khác nhau; H20 validation non-streaming, chưa có TTFA hay benchmark streaming. Không chuyển tính năng, license hoặc độ phủ ngôn ngữ giữa các bản Audio8.
 - **sanoTTS:** voice vi chưa được chấm; số đo MCU là của voice tiếng Anh.
 - **Frontend:** độ phủ vi của eSpeak NG và Phonemizer chưa xác lập. VietNormalizer có mâu thuẫn ví dụ transliteration trong README. ViSoNorm không có license.
 - **Không có so sánh khớp điều kiện** về MOS, TTFA hay lỗi phát âm tiếng Việt giữa bất kỳ cặp ứng viên nào. Trang selection trong wiki giữ trạng thái `draft` cho tới khi có listening test và đo trên phần cứng đích.
-- Toàn bộ là snapshot tài liệu trong repo (compile từ 2026-10-06 đến 2026-10-13), không phải khảo sát toàn thị trường. Cloud TTS ngoài catalog chưa được khảo sát.
+- Đây là snapshot tài liệu trong repo, bản trước đến 2026-10-13 và bổ sung theo git diff đến 2026-10-28; không rà toàn bộ các ingest giữa hai mốc, không phải khảo sát toàn thị trường. Cloud TTS ngoài catalog chưa được khảo sát.
 
 ---
 
 ## 13. Tài liệu tham chiếu trong wiki
 
-- **Tổng hợp:** [Vietnamese Realtime TTS Selection](../wiki/vietnamese-realtime-tts-selection.md), [TTS Model Survey](../wiki/tts-model-survey.md) (catalog 41 dòng), [Vietnamese Speech Pipeline Design](../wiki/vietnamese-speech-pipeline-design.md), [Vietnamese Realtime Voice Agent Stack](../wiki/vietnamese-realtime-voice-agent-stack.md).
+- **Tổng hợp:** [Vietnamese Realtime TTS Selection](../wiki/vietnamese-realtime-tts-selection.md), [TTS Model Survey](../wiki/tts-model-survey.md) (catalog 49 dòng theo survey), [Vietnamese Speech Pipeline Design](../wiki/vietnamese-speech-pipeline-design.md), [Vietnamese Realtime Voice Agent Stack](../wiki/vietnamese-realtime-voice-agent-stack.md).
 - **Baseline VieNeu:** [VieNeu-TTS v3 Turbo](../wiki/vieneu-tts-v3-turbo.md), [Streaming Runtime and Performance](../wiki/vieneu-tts-streaming-runtime.md), [OpenAI-Compatible Speech API](../wiki/vieneu-tts-openai-speech-api.md), [Docker Compose Deployment](../wiki/vieneu-tts-docker-deployment.md).
+- **Bổ sung 2026-10-28:** [ZeroTTS](../wiki/zerotts.md), [Audio8 Realistic 0.6B](../wiki/audio8-tts-realistic-0.6b.md), [Audio8 Preview 0.1B](../wiki/audio8-tts-preview-0.1b.md), [Audio8 Preview 0.6B](../wiki/audio8-tts-preview-0.6b.md); thêm [KhanhTTS](../wiki/khanhtts-omnivoice.md), [F5-TTS Vietnamese](../wiki/f5-tts-vietnamese.md), [Qwen3-TTS 1.7B Vietnamese](../wiki/qwen3-tts-12hz-1.7b-vietnamese.md).
 - **Model có vi:** [VoxCPM2](../wiki/voxcpm2.md), [Supertonic 3](../wiki/supertonic-3.md), [MOSS-TTS Local v1.5](../wiki/moss-tts-local-transformer-v1-5.md), [MOSS-TTS v1.5](../wiki/moss-tts-v1-5.md), [Higgs TTS 3](../wiki/higgs-tts-3-4b.md), [Fish Audio S2 Pro](../wiki/fish-audio-s2-pro.md), [OmniVoice](../wiki/omnivoice.md), [G-OmniVoice](../wiki/g-omnivoice.md), [Gwen-TTS 0.6B](../wiki/gwen-tts-0.6b.md), [Kokoro Vietnamese](../wiki/kokoro-vietnamese.md), [sanoTTS](../wiki/sanotts.md), [LGTM-TTS](../wiki/lgtm-tts.md), [dots.tts-mf](../wiki/dots-tts-mf.md), [SeamlessM4T v2 Large](../wiki/seamless-m4t-v2-large.md).
 - **Lineage / không có vi:** [Qwen3-TTS-12Hz-0.6B-Base](../wiki/qwen3-tts-12hz-0.6b-base.md), [Kokoro-82M](../wiki/kokoro-82m.md), [Kokoro Python Library](../wiki/kokoro-python-library.md), [Kokoro-FastAPI](../wiki/kokoro-fastapi.md), [StyleTTS 2](../wiki/styletts2.md).
 - **Frontend và normalizer:** [VietNormalizer](../wiki/vietnormalizer.md), [ViSoNorm](../wiki/visonorm-visobert-normalizer.md), [Misaki Language Frontends](../wiki/misaki-language-frontends.md), [eSpeak NG](../wiki/espeak-ng.md), [Phonemizer Backends](../wiki/phonemizer-backends.md).
