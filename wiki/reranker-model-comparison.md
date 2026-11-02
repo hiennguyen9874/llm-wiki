@@ -1,11 +1,11 @@
 ---
 type: Synthesis
 title: Reranker model comparison
-description: A use-case selection guide for the twelve dedicated reranker checkpoints documented from local raw model cards and reports.
+description: A use-case selection guide for reranker checkpoints documented from local raw model cards and reports.
 tags: [reranking, retrieval, comparison, selection]
 status: stable
 created: 2026-08-19
-generated: { by: llm-wiki-agent/1, at: 2026-10-22T12:00:00Z }
+generated: { by: llm-wiki-agent/1, at: 2026-11-02T04:41:22Z }
 sources:
   - id: qwen-text-card
     resource: ../raw/Qwen3-Reranker-4B.md
@@ -34,6 +34,9 @@ sources:
   - id: nemotron-rerank-card
     resource: ../raw/Nemotron-3.5-Rerank-8B-BF16.md
     title: Nemotron-3.5-Rerank-8B-BF16 model card
+  - id: kalm-rerank-card
+    resource: ../raw/KaLM-Embedding-KaLM-Reranker-V1-Large-R2.md
+    title: KaLM-Reranker-V1-Large-R2 model card
   - id: reddit-embed-rerank-thread
     resource: ../raw/best_embedding_reranking_model.md
     kind: web
@@ -53,6 +56,7 @@ For a commercial, text-only RAG or search system without a hard latency limit, u
 | Low-cost multilingual text reranking | [Qwen3-Reranker-0.6B](qwen3-reranker-0-6b.md) | Apache-2.0, 100+ languages, instructions, and 32K context at the smallest Qwen size. | It trails 4B/8B on most reported tasks; use it only when throughput or memory dominates. [^qwen-text-card] |
 | Image, screenshot, video, or mixed-modality retrieval | [Qwen3-VL-Reranker-8B](qwen3-vl-reranker-8b.md) | Apache-2.0 model that jointly reranks text, images, screenshots, video, and mixed pairs; it leads its 2B sibling on every reported aggregate. | Author-run top-100 pipeline scores; use [Qwen3-VL-Reranker-2B](qwen3-vl-reranker-2b.md) when 2B cost is necessary. [^qwen-vl-card] |
 | Multilingual visual-document RAG (page images, charts, tables) after a Nemotron-3.5-Embed first stage | [Nemotron-3.5-Rerank-8B-BF16](nemotron-3-5-rerank-8b-bf16.md) | 8.38B pointwise multimodal cross-encoder; reports the best ViDoRe V3 and MIRACL-VISION NDCG@10 against Qwen3-VL-Reranker-8B in the same top-50 pipeline (table 5). | OpenMDW-1.1 license (check terms); one image per document; 32,768-token limit; vendor-run only. [^nemotron-rerank-card] |
+| Adjustable document-compression budget for multilingual text reranking | [KaLM-Reranker-V1-Large-R2](kalm-reranker-v1-large-r2.md), [Small-R2](kalm-reranker-v1-small-r2.md) or [Nano-R2](kalm-reranker-v1-nano-r2.md) | Apache-2.0, 4B, 1B or 0.27B activated; compresses document states before pointwise query-conditioned scoring. | Default document limit 1,024 tokens; custom remote code; benchmark protocol and external figures are incomplete locally. Evaluate quality and latency at the chosen compression ratio. [^kalm-rerank-card] |
 | Long candidate lists with low model size, non-commercial use | [jina-reranker-v3.5](jina-reranker-v3-5.md) | 0.6B listwise reranker with 131K context; one pass jointly ranks a candidate list and its report shows better BEIR than Qwen3-Reranker-4B under its stated protocol. | CC BY-NC 4.0: not suitable for ordinary commercial self-hosting. It trails 4B Qwen on reported MIRACL, RTEB, and structured retrieval. [^jina-v35-card] [^jina-v35-report] |
 | Very high throughput / CPU or modest GPU, English only | [ettin-reranker-68m-v1](ettin-reranker-68m-v1.md) | Apache-2.0 68.6M cross-encoder; the card reports 1,916 pairs/s on RTX 3090 and 31.2 on an i7-13700K at 512 tokens. | English only and 7,999-token maximum; benchmark results are not directly comparable to Qwen's. [^ettin-card] |
 | Web, STEM, legal, biomedical, finance, or code where its domain evaluation matches yours | [zerank-2](zerank-2.md) | Apache-2.0 4B/32K reranker; its publisher reports a 0.6714 average NDCG@10 across seven named domains. | Language support, throughput, and reproducible training detail are absent; validate against Qwen 4B on your corpus. [^zerank-card] |
@@ -139,6 +143,7 @@ Outside publisher tables, one community end-to-end translation-memory test (15 l
 - **Adds:** [Nemotron-3.5-Rerank-8B-BF16](nemotron-3-5-rerank-8b-bf16.md) is a second multimodal cross-encoder alongside the Qwen3-VL rerankers.
 - **Uses:** Qwen's text rerankers use task-specific instructions; their card reports a 1%–5% decrease when instruction is omitted. [^qwen-text-card]
 
+[^kalm-rerank-card]: [KaLM-Reranker-V1-Large-R2 model card](../raw/KaLM-Embedding-KaLM-Reranker-V1-Large-R2.md), “Model family,” “Using Sentence Transformers,” and “Evaluation”; publisher-reported.
 [^reddit-embed-rerank-thread]: [r/LocalLLaMA thread "Best Embedding + Reranking Model"](../raw/best_embedding_reranking_model.md), post body results table. Author-reported on proprietary data; unverified.
 [^qwen-text-card]: [Qwen3-Reranker-4B model card](../raw/Qwen3-Reranker-4B.md). The family comparison, license, capability, and benchmark claims are publisher-authored.
 [^qwen-vl-card]: [Qwen3-VL-Reranker-8B model card](../raw/Qwen3-VL-Reranker-8B.md). The multimodal, licensing, and benchmark claims are publisher-authored.
