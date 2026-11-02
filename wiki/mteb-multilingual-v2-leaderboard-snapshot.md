@@ -5,7 +5,7 @@ description: A 45-model CSV ranking snapshot for MTEB Multilingual v2, led by Qw
 tags: [benchmark, embedding, multilingual, mteb, leaderboard]
 status: stable
 created: 2026-08-19
-generated: { by: llm-wiki-agent/1, at: 2026-08-19T10:00:46Z }
+generated: { by: llm-wiki-agent/1, at: 2026-11-02T04:55:00Z }
 sources:
   - id: mteb-multilingual-v2-summary
     resource: ../raw/MTEB_Multilingual_v2_summary.csv
@@ -66,7 +66,7 @@ This CSV snapshot ranks 45 embedding models on MTEB Multilingual v2. Qwen/Qwen3-
 | 44 | ibm-granite/granite-embedding-311m-multilingual-r2 | 55.96 | 49.35 |
 | 45 | deepvk/USER-bge-m3 | — | — |
 
-An em dash represents `NA` or an empty value in the CSV. The table's non-monotonic ranks among rows with missing Mean (Task) values show that the ranking cannot be reconstructed from the two displayed aggregates alone. [^mteb-multilingual-v2-summary]
+An em dash represents `NA` or an empty value in the CSV. **Reported rank is not a sort by Mean (Task):** for example harrier-270m at rank 8 scores 66.55, higher than F2LLM-1.7B at rank 6 with 65.21, and Jina Nano at rank 10 scores 65.52, higher than Qwen3-0.6B at rank 9 with 64.34. The artifact does not explain the ordering; do not treat reported ranks as score ranks or assert a numeric lead over models missing from the snapshot.[^mteb-multilingual-v2-summary]
 
 ## Covered concepts
 

@@ -1,6 +1,7 @@
 # Wiki Update Log
 
 ## 2026-11-02
+- **Query**: Compared the wiki's text and multimodal embedding models by benchmark and protocol; filed [the synthesis](embedding-benchmark-comparison.md), preserved and read five linked benchmark images, updated affected Ovis/e5/Jina/WeMM concepts and clarified snapshot ordering. Results remain reported, not independently reproduced.
 - **Ingest**: Compiled the [KaLM-Reranker-V1-Small model card](../raw/KaLM-Embedding-KaLM-Reranker-V1-Small.md); created its [draft concept](kalm-reranker-v1-small.md) and linked its R2 version. Figures and implementation were unavailable or not inspected.
 - **Ingest**: Compiled the [KaLM-Reranker-V1-Small-R2 model card](../raw/KaLM-Embedding-KaLM-Reranker-V1-Small-R2.md); created its [draft concept](kalm-reranker-v1-small-r2.md), linked R2 siblings and updated the reranker comparison. Figures and implementation were unavailable or not inspected.
 - **Ingest**: Compiled the [KaLM-Reranker-V1-Nano model card](../raw/KaLM-Embedding-KaLM-Reranker-V1-Nano.md); created its [draft concept](kalm-reranker-v1-nano.md) and linked the R2 version. Figures and implementation were unavailable or not inspected.

@@ -5,8 +5,12 @@ description: A reported 1.74B-parameter multimodal embedding model with locked a
 tags: [embedding, retrieval, multimodal, multilingual, matryoshka, jina]
 status: stable
 created: 2026-08-19
-generated: { by: llm-wiki-agent/1, at: 2026-08-19T21:18:01+07:00 }
+generated: { by: llm-wiki-agent/1, at: 2026-11-02T04:55:00Z }
 sources:
+  - id: jina-card-frontier
+    resource: ../raw/benchmark-figures-2026-11-02/jina-frontier.png
+    kind: image
+    title: Jina v5 Omni model-card efficiency frontier
   - id: jina-v5-omni-small-card
     resource: ../raw/jina-embeddings-v5-omni-small.md
     title: jina-embeddings-v5-omni-small model card
@@ -24,7 +28,7 @@ Jina Embeddings v5 Omni Small embeds text, images, video, and audio into a share
 
 ## Benchmarks
 
-The model card claims that Omni Small and Omni Nano define the open-weight efficiency frontier by average score versus parameter count across MIEB-Lite for images, MMEB-V for video, and MAEB for audio. It provides no numeric results in the Markdown. Its referenced `omni_frontier.png` is absent from `raw/`, and the linked external report was not supplied, so the exact results, evaluation setup, and comparison set cannot be audited from this artifact. [^jina-v5-omni-small-card]
+The model card's visually inspected frontier plots average score versus parameter count across MIEB-Lite image, MMEB-V video, and MAEB audio; it has no exact point labels. The figure is **not** the same aggregation as the local report's four-modality frontier, which also includes text and gives Small **54.04**. Do not combine the figures or infer exact scores from the card plot. Both claims are author-reported.[^jina-v5-omni-small-card][^jina-card-frontier][^jina-v5-omni-report]
 
 The local MTEB Multilingual v2 snapshot ranks Omni Small **4th of 45**, with Mean (Task) **67.00** and Mean (TaskType) **58.90**. It reports bitext mining 69.71, classification 71.32, clustering 53.41, instruction reranking 1.35, multilabel classification 41.97, pair classification 82.93, reranking 65.66, retrieval 64.88, and STS 78.85. These equal the snapshot's Text Small values; the artifact does not explain whether the omni model was evaluated independently or shares its text tower's submission. The snapshot is unauthenticated and omits evaluation protocol details. [^mteb-multilingual-v2-summary]
 
@@ -63,6 +67,7 @@ The card's approximate **1.74B** parameter count differs from the leaderboard's 
 - **Aligned with:** [Jina Embeddings v5 Text Small](jina-embeddings-v5-text-small.md); their vectors share a space, allowing text indexed with Text Small to be queried using Omni Small media embeddings without reindexing. [^jina-v5-omni-report]
 - **Evaluated in:** [MTEB Multilingual v2 leaderboard snapshot](mteb-multilingual-v2-leaderboard-snapshot.md). [^mteb-multilingual-v2-summary]
 
-[^jina-v5-omni-small-card]: [jina-embeddings-v5-omni-small model card](../raw/jina-embeddings-v5-omni-small.md). Model, architecture, language, benchmark, and training-coverage statements are reported by the card. Its referenced benchmark and architecture images are unavailable for this source.
+[^jina-card-frontier]: [Model-card frontier](../raw/benchmark-figures-2026-11-02/jina-frontier.png), axes, legend and model points; retrieved 2026-11-02 from [Small model image](https://huggingface.co/jinaai/jina-embeddings-v5-omni-small/resolve/main/omni_frontier.png), identical to Nano's image. SHA-256 `40f26ab4cb46187eb419253e4d4711469ba8cda0bc91b99fd418d73b1d9730bf`.
+[^jina-v5-omni-small-card]: [jina-embeddings-v5-omni-small model card](../raw/jina-embeddings-v5-omni-small.md), benchmark image caption and model details. Architecture image unavailable locally.
 [^jina-v5-omni-report]: [jina-embeddings-v5-omni: Geometry-preserving Embeddings via Locked Aligned Towers](../raw/2605.08384_jina-embeddings-v5-omni/main.tex). Author technical report; architectural, training, and benchmark claims are reported by its authors and were not independently reproduced.
 [^mteb-multilingual-v2-summary]: [MTEB Multilingual v2 summary CSV](../raw/MTEB_Multilingual_v2_summary.csv). Supplied, unauthenticated leaderboard metadata and scores; the artifact does not document its evaluation protocol.

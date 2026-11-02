@@ -5,9 +5,17 @@ description: A 2B, 4B, and 9B Qwen3.5-based universal multimodal embedding famil
 tags: [embedding, retrieval, multimodal, multilingual, matryoshka, qwen]
 status: stable
 created: 2026-09-03
-generated: { by: llm-wiki-agent/1, at: 2026-10-23T00:30:00Z }
+generated: { by: llm-wiki-agent/1, at: 2026-11-02T04:55:00Z }
 stale_after: 2027-01-20
 sources:
+  - id: wemm-performance-figure
+    resource: ../raw/WeMM-Embedding/2608.24053-WeMM-Embedding/figs/performance-overview.pdf
+    kind: image
+    title: WeMM performance overview figure
+  - id: wemm-mrl-figure
+    resource: ../raw/WeMM-Embedding/2608.24053-WeMM-Embedding/figs/mrl-performance-trend.png
+    kind: image
+    title: WeMM Matryoshka performance figure
   - id: wemm-readme
     resource: ../raw/WeMM-Embedding/README.md
     title: WeMM-Embedding repository README
@@ -58,7 +66,7 @@ Training examples use a unified pair format `(I, q, c, N, y)`: optional instruct
 - **Curated set:** about one-tenth the large-scale size, built by Semantic-ID-guided resampling, MLLM quality filtering and text correction, and hard-negative enrichment. Semantic IDs come from encoding each pair's longer side with an intermediate WeMM checkpoint and mapping it through a three-level residual k-means quantizer; dense codes are downsampled and rare codes retained at higher rates.[^wemm-report]
 - **Hard negatives:** LLM-generated plausible-but-wrong candidates for text targets; embedding-retrieved similar candidates from task pools for image and video targets; a smaller mined subset receives reranker-assigned relevance scores.[^wemm-report]
 
-Rendered dataset-overview and performance-overview PDF figures under `figs/` were not visually inspected; the above follows the report text and captions. Icon assets carry no material claims.[^wemm-report]
+The dataset-overview PDF was not visually inspected; the training summary follows the report text and captions. Icon assets carry no material claims.[^wemm-report]
 
 ## Training strategy
 
@@ -70,7 +78,7 @@ Two stages progress from broad alignment to fine-grained relevance learning.[^we
 
 ## Reported benchmarks
 
-All scores below are author-reported; no independent reproduction was available.
+All scores below are author-reported; no independent reproduction was available. On 2026-11-02 the performance-overview PDF and Matryoshka PNG were visually inspected; the former displays WeMM 2B/4B/9B MMEB-v2 overall 77.9/79.2/80.6, and the latter shows greater VisDoc sensitivity to very short vectors.[^wemm-performance-figure][^wemm-mrl-figure]
 
 | Benchmark | WeMM-2B | WeMM-4B | WeMM-9B | Context |
 |---|---:|---:|---:|---|
@@ -139,4 +147,6 @@ Locators: embedded model-page JSON keys `safetensors`, `config`, `cardData`, `cr
 [^wemm-4b-card]: [WeMM-Embedding-4B model card](../raw/WeMM-Embedding/WeMM-Embedding-4B.md). Base model, 2,560 dimensions, install, inference, serving, and benchmark claims are author-reported.
 [^wemm-9b-card]: [WeMM-Embedding-9B model card](../raw/WeMM-Embedding/WeMM-Embedding-9B.md). Base model, 4,096 dimensions, install, inference, serving, and benchmark claims are author-reported.
 [^wemm-2b-hub]: [tencent/WeMM-Embedding-2B Hugging Face page capture](../raw/tencent-WeMM-Embedding-2B.md). Hub metadata (parameters, config, dates, downloads, likes, tags, discussions, linked Space) is platform-reported and time-sensitive; README content duplicates the 2B card.
-[^wemm-report]: [WeMM-Embedding technical report](../raw/WeMM-Embedding/2608.24053-WeMM-Embedding/main.tex). Architecture, unified data format, two-stage training, distillation, ablation, MRL, cross-modal, in-house, and deployment claims are author-reported; proprietary data prevent full auditability. PDF figures were coverage-limited to captions and citing text.
+[^wemm-performance-figure]: [Performance overview](../raw/WeMM-Embedding/2608.24053-WeMM-Embedding/figs/performance-overview.pdf), first page, MMEB-v2 versus model-size plot; rendered and visually inspected 2026-11-02.
+[^wemm-mrl-figure]: [Matryoshka performance trend](../raw/WeMM-Embedding/2608.24053-WeMM-Embedding/figs/mrl-performance-trend.png), left plot (image, video, VisDoc retention), visually inspected 2026-11-02.
+[^wemm-report]: [WeMM-Embedding technical report](../raw/WeMM-Embedding/2608.24053-WeMM-Embedding/main.tex). Architecture, unified data format, two-stage training, distillation, ablation, MRL, cross-modal, in-house, and deployment claims are author-reported; proprietary data prevent full auditability. The performance-overview PDF was visually inspected on 2026-11-02; the dataset-overview PDF remains covered through caption and citing text.

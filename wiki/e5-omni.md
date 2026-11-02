@@ -5,8 +5,16 @@ description: A Qwen2.5-Omni-based 3B/7B omni-modal embedding family that uses ex
 tags: [embedding, retrieval, multimodal, omni-modal, qwen]
 status: stable
 created: 2026-08-19
-generated: { by: llm-wiki-agent/1, at: 2026-10-22T23:30:00Z }
+generated: { by: llm-wiki-agent/1, at: 2026-11-02T04:55:00Z }
 sources:
+  - id: e5-mmeb-figure
+    resource: ../raw/benchmark-figures-2026-11-02/e5-mmeb.png
+    kind: image
+    title: e5-omni MMEB-v2 benchmark figure
+  - id: e5-audio-figure
+    resource: ../raw/benchmark-figures-2026-11-02/e5-audiocaps.png
+    kind: image
+    title: e5-omni AudioCaps benchmark figure
   - id: e5-omni-report
     resource: ../raw/2601.03666_e5-omni/acl.tex
     title: e5-omni technical-report LaTeX source
@@ -61,7 +69,7 @@ Metadata from a Hugging Face page capture of `Haon-Chen/e5-omni-3B` (Reported by
 
 - The 4.703B count equals the [Omni-Embed-Nemotron-3B](omni-embed-nemotron-3b.md) count, consistent with both adapting the same Qwen2.5-Omni-3B Thinker (Synthesis). By the same inference the output width would be 2,048, but no e5-omni source states it (Unverified); the Transformers example only takes the L2-normalized final-token hidden state. [^e5-omni-3b-hub-page]
 - The Transformers example prepends the Qwen2.5-Omni chat template, appends `<|endoftext|>`, uses left padding, passes `use_audio_in_video=True`, and prefixes text queries with `Query: `; the Sentence Transformers path uses `encode_query` instead. Both paths yield similar example scores (e.g. video 0.5881/0.5454 vs 0.5898/0.5430; text 0.7248/0.6511 vs 0.7266/0.6523), differing slightly from bfloat16 precision effects (Synthesis). These are single-pair illustrations, not benchmarks. [^e5-omni-3b-hub-page]
-- The page's benchmark figures (MMEB-V2, AudioCaps) are images that were not inspected; the numbers in the table below come from the report. [^e5-omni-3b-hub-page]
+- The linked MMEB-v2 and AudioCaps figures were downloaded and visually inspected on 2026-11-02. Both reproduce the e5 3B/7B values in the report table below; the AudioCaps figure also lists Omni-Embed-Nemotron-3B at 20.5 Recall@1. Both 3B and 7B URLs yielded byte-identical corresponding images. These remain author-reported results, not independent evaluations.[^e5-mmeb-figure][^e5-audio-figure]
 
 ## Reported evaluation
 
@@ -87,8 +95,10 @@ The local [MMEB v3 ranking snapshot](mmeb-v3-ranking-snapshot.md) separately lis
 - **Sibling on the same base:** [AuroLA-Omni-3B](aurola-omni-3b.md), another Qwen2.5-Omni-3B Thinker embedding checkpoint with a similar Sentence Transformers interface.
 - **Evaluated in:** [MMEB v3 ranking snapshot](mmeb-v3-ranking-snapshot.md), which contains reported 3B and 7B entries. [^mmeb-v3-ranking]
 
+[^e5-mmeb-figure]: [e5 MMEB-v2 figure](../raw/benchmark-figures-2026-11-02/e5-mmeb.png), final two rows; retrieved 2026-11-02 from the [3B card figure](https://huggingface.co/Haon-Chen/e5-omni-3B/resolve/main/assets/e5-omni-mmeb.png), also identical to the 7B card figure. SHA-256 `fa83cf28bc26cc8bd618cfba5e82845e09084e680a99a112d5e7db1bb60014ef`.
+[^e5-audio-figure]: [e5 AudioCaps figure](../raw/benchmark-figures-2026-11-02/e5-audiocaps.png), Recall@1 column; retrieved 2026-11-02 from the [3B card figure](https://huggingface.co/Haon-Chen/e5-omni-3B/resolve/main/assets/e5-omni-audiocaps.png), also identical to the 7B card figure. SHA-256 `9ef3081e9dd0c3814eae888d7282603acccd89d050e2030be11a539880693e81`.
 [^e5-omni-report]: [e5-omni technical-report LaTeX source](../raw/2601.03666_e5-omni/acl.tex). This ingest covered its included sections, bibliography, and figure captions; PDFs in `figures/` were not visually rendered because the captions carried the claims compiled here. Model architecture, training, and evaluation results are author-reported.
-[^e5-omni-3b-card]: [Haon-Chen/e5-omni-3B model card](../raw/e5-omni-3B.md). The local card was fully read; its externally hosted media, paper, package documentation, and repository artifacts were not independently inspected. License, availability, API, implementation, and example-retrieval claims are provider-reported.
-[^e5-omni-3b-hub-page]: [Haon-Chen/e5-omni-3B Hugging Face page capture](../raw/Haon-Chen-e5-omni-3B.md). The 192 KB HTML capture (page text, embedded model metadata JSON) was inspected statically: the card prose duplicates the local 3B card, while the metadata block (safetensors counts, tags, dates, download counts, config class) is new. Asset images, the chat-template JSON, site chrome, and scripts were excluded as decorative or non-informative. Capture date is not recorded in the file (file timestamp 2026-10-22); popularity figures are time-sensitive.
-[^e5-omni-7b-card]: [Haon-Chen/e5-omni-7B model card](../raw/e5-omni-7B.md). The local card was fully read; its externally hosted benchmark images, paper, package documentation, and example media were not independently inspected. License, availability, API, implementation, and example-retrieval claims are provider-reported.
+[^e5-omni-3b-card]: [Haon-Chen/e5-omni-3B model card](../raw/e5-omni-3B.md). The local card was fully read; its benchmark images were inspected on 2026-11-02. Other media, package documentation, and repository artifacts were not independently inspected. License, availability, API, implementation, and example-retrieval claims are provider-reported.
+[^e5-omni-3b-hub-page]: [Haon-Chen/e5-omni-3B Hugging Face page capture](../raw/Haon-Chen-e5-omni-3B.md). The 192 KB HTML capture (page text, embedded model metadata JSON) was inspected statically: the card prose duplicates the local 3B card, while the metadata block (safetensors counts, tags, dates, download counts, config class) is new. The two benchmark figures were subsequently inspected and preserved; example media, the chat-template JSON, site chrome, and scripts were not used. Capture date is not recorded in the file (file timestamp 2026-10-22); popularity figures are time-sensitive.
+[^e5-omni-7b-card]: [Haon-Chen/e5-omni-7B model card](../raw/e5-omni-7B.md). The local card was fully read; its benchmark images were fetched and found byte-identical to the 3B card images on 2026-11-02. Package documentation and example media were not inspected. License, availability, API, implementation, and example-retrieval claims are provider-reported.
 [^mmeb-v3-ranking]: [MMEB v3 ranking CSV](../raw/mmeb_v3_ranking.csv), as compiled in the [MMEB v3 ranking snapshot](mmeb-v3-ranking-snapshot.md). This local artifact is unauthenticated and omits metric definitions and evaluation protocol.

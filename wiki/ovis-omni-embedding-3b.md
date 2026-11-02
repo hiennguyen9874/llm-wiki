@@ -5,9 +5,13 @@ description: A 3B Qwen2.5-Omni-initialized universal omni-modal embedding model 
 tags: [embedding, retrieval, multimodal, omni-modal, qwen, matryoshka]
 status: stable
 created: 2026-10-22
-generated: { by: llm-wiki-agent/1, at: 2026-10-22T12:00:00Z }
+generated: { by: llm-wiki-agent/1, at: 2026-11-02T04:55:00Z }
 stale_after: 2027-01-20
 sources:
+  - id: ovis-omni-figure
+    resource: ../raw/benchmark-figures-2026-11-02/ovis-omni.png
+    kind: image
+    title: Ovis-Omni MMEB-v3 comparison table
   - id: ovis-omni-card
     resource: ../raw/ATH-MaaS-Ovis-Omni-Embedding-3B.md
     kind: model-card
@@ -50,7 +54,7 @@ The query is paired with a task instruction and formatted with the native proces
 
 ## Reported results
 
-- **MMEB-v3 (190 datasets; image, video, visual document, text, audio, agent):** overall **58.46** versus 53.27 for the best compared baseline (+5.19). Group scores (Ovis / best baseline): Image 77.55/73.83, Video 64.99/59.37, Visual document 78.26/75.37, Text 47.15/43.62, Audio 50.08/43.17, Agent 45.52/39.42. It reports ranking first on 22 and second on 8 of 31 aggregate and sub-task entries; MultiConIR is the only entry outside the top two. Metrics are mainly Hit@1 (image, video, audio, agent) and nDCG@5 (text, visual document); overall is an unweighted average over datasets. The baseline names behind each “best compared” value are not given in the text (the comparison table is an image absent from `raw/`). [^ovis-omni-card]
+- **MMEB-v3 (190 datasets; image, video, visual document, text, audio, agent):** overall **58.46** versus 53.27 for the best compared baseline (+5.19). Group scores (Ovis / best baseline): Image 77.55/73.83, Video 64.99/59.37, Visual document 78.26/75.37, Text 47.15/43.62, Audio 50.08/43.17, Agent 45.52/39.42. It reports ranking first on 22 and second on 8 of 31 aggregate and sub-task entries; MultiConIR is the only entry outside the top two. Metrics are mainly Hit@1 (image, video, audio, agent) and nDCG@5 (text, visual document); overall is an unweighted average over datasets. The visually inspected figure identifies the baseline Overall scores as Tianmu-Emb-Uni-8B **53.27**, e5-omni-7B **47.14**, Omni-Embed-Nemotron-3B **43.60**, and LCO-Embedding-Omni-7B **43.14**. For Audio, Ovis **50.08** leads the listed LCO **43.17**, e5 **43.04**, Tianmu **38.94**, and Omni-Embed **36.52**. The figure's comparison does not contain Sentio, Wianmu, or WeMM. [^ovis-omni-card][^ovis-omni-figure]
 - **Other benchmarks (own aggregation procedures; do not average):** MAEB (beta, 30 audio tasks) 57.29 vs LCO-Embedding-Omni-7B 53.54; MVEB (beta, 23 video and audio-video tasks) 61.77 vs LCO-Embedding-Omni-7B 57.58; RTEB (15-task English public split) 67.35 vs Qwen3-Embedding-4B 67.27. MAEB and MVEB are local evaluations inserted into leaderboard snapshots. [^ovis-omni-card]
 
 ## Limitations and cautions
@@ -58,7 +62,7 @@ The query is paired with a task instruction and formatted with the native proces
 - Produces retrieval embeddings only; not a generative model. Quality depends on task-appropriate instructions and the native preprocessing/chat template.
 - Self-reported weaknesses: MultiConIR, several established visual-document suites, and memory retrieval trail the best specialist.
 - The card advises domain evaluation, access controls, and a second-stage reranker for high-stakes use. [^ovis-omni-card]
-- Coverage limit: the captured page is HTML; its figures (architecture, data pipeline, training/inference, MMEB-v3 table image) are not in `raw/` and were not inspected. The linked report and GitHub repositories were not supplied.
+- Coverage: the MMEB-v3 comparison figure was downloaded and visually read on 2026-11-02; the upstream `main` revision was not pinned. Architecture, data-pipeline and training/inference figures, the linked report, and GitHub repositories were not inspected.[^ovis-omni-figure]
 
 ## Contradictions
 
@@ -72,5 +76,6 @@ The local MMEB v3 snapshot lists **Ovis-Omni-Embedding-v0.1-3B** (size 3.0, date
 - **Sibling of:** [Ovis-VL-Embedding-2B](ovis-vl-embedding-2b.md), the audio-free Qwen3.5-2B-based vision-language model from the same team and report.
 - **Similar omni scope:** [Tianmu-Emb-Uni-8B](tianmu-emb-uni-8b.md), [Omni-Embed-Nemotron-3B](omni-embed-nemotron-3b.md), [Jina Embeddings v5 Omni Small](jina-embeddings-v5-omni-small.md).
 
+[^ovis-omni-figure]: [MMEB-v3 figure](../raw/benchmark-figures-2026-11-02/ovis-omni.png), model columns, ALL Overall and AUD Overall rows; downloaded 2026-11-02 from the [model's linked `main` figure](https://huggingface.co/ATH-MaaS/Ovis-Omni-Embedding-3B/resolve/main/figures/ovis_blog_table1.png). Author-reported; SHA-256 `e6cdde834fdbb18300f02b3d5049c8b0ce08b0d481c86b04e8d5eb9c16670823`.
 [^ovis-omni-card]: [ATH-MaaS/Ovis-Omni-Embedding-3B model page](../raw/ATH-MaaS-Ovis-Omni-Embedding-3B.md), README sections Architecture, Training, Retrieval interface, Performance (MMEB-v3, Additional benchmark results), Embedding dimensions, Limitations, License; page metadata JSON (createdAt, lastModified). Author-reported, not independently reproduced.
 [^mmeb-v3-ranking]: [MMEB v3 ranking CSV](../raw/mmeb_v3_ranking.csv), row 2 (`Ovis-Omni-Embedding-v0.1-3B`). Supplied, unauthenticated artifact with undefined columns.
