@@ -5,7 +5,7 @@ description: NVIDIA Nemotron Parse 2.0 is a sub-1B vision-encoder–decoder docu
 tags: [ocr, document-parsing, vision-language-models, layout-analysis, table-extraction, chart-parsing, multilingual, spatial-grounding]
 status: stable
 created: 2026-08-22
-generated: { by: llm-wiki-agent/1, at: 2026-08-22T00:00:00Z }
+generated: { by: llm-wiki-agent/1, at: 2026-11-02T14:47:22Z }
 sources:
   - id: nemotron-parse-2-0-model-card
     resource: ../raw/NVIDIA-Nemotron-Parse-2.0.md
@@ -84,6 +84,10 @@ The card characterizes improvements as expanded multilingual OCR (notably CJK an
 ## Supersession
 
 Supersedes [NVIDIA Nemotron Parse v1.1](nemotron-parse-v1-1.md) as the current 2.0 release lineage. The source explicitly compares to v1.2 (vocabulary expansion, `<class_Chart>`, chart/table-heavy coverage); v1.2 source is not present in this bundle, so v1.1 is retained as the last inspected predecessor with its own supersession note.[^nemotron-parse-2-0-model-card]
+
+## Later release
+
+[NVIDIA Nemotron 3.5 Parse](nemotron-parse-3-5.md) is a later release that reports new comparisons with 2.0. Its 2.0 multilingual baselines differ from this card's numbers; the [evaluation page](nemotron-parse-3-5-evaluation.md) records the checkpoint and protocol limits without assuming a like-for-like contradiction.
 
 ## Relationships
 

@@ -5,7 +5,7 @@ description: End-to-end generative OCR groups VLMs that map full page images dir
 tags: [task, document-parsing, ocr, vision-language-models, image-to-markdown]
 status: stable
 created: 2026-08-22
-generated: { by: llm-wiki-agent/1, at: 2026-10-30T02:16:13Z }
+generated: { by: llm-wiki-agent/1, at: 2026-11-02T14:49:00Z }
 sources:
   - id: unlimited-ocr-2-report
     resource: ../raw/Unlimited-OCR-2.pdf
@@ -34,6 +34,14 @@ sources:
   - id: lightonocr-3
     resource: ../wiki/lightonocr-3.md
     title: LightOnOCR-3
+  - id: youtu-omni-card
+    resource: ../raw/Youtu-Parsing-Omni.md
+    kind: model-card
+    title: Youtu-Parsing-Omni model card
+  - id: nemotron-35
+    resource: ../raw/Nemotron-3.5-Parse.md
+    kind: model-card
+    title: Nemotron 3.5 Parse model card
   - id: surya-25-card
     resource: ../raw/surya-ocr-2.5-hf.md
     kind: model-card
@@ -58,7 +66,7 @@ Core retained models that perform this task as their primary interface:
 - [MinerU-Diffusion](mineru-diffusion.md) — 2.5B block-parallel diffusion decoding
 - [Multimodal OCR](multimodal-ocr.md) — 3B typed payloads including SVG for graphics
 - [Nanonets-OCR2](nanonets-ocr2.md) — multilingual image-to-Markdown with explicit checkbox/signature/watermark handling
-- [NVIDIA Nemotron Parse v1.1](nemotron-parse-v1-1.md) / [NVIDIA Nemotron Parse 2.0](nemotron-parse-2-0.md) — sub-1B encoder-decoder with boxes and element classes
+- [NVIDIA Nemotron Parse v1.1](nemotron-parse-v1-1.md) / [NVIDIA Nemotron Parse 2.0](nemotron-parse-2-0.md) / [NVIDIA Nemotron 3.5 Parse](nemotron-parse-3-5.md) — sub-1B encoder-decoders with boxes and element classes; 3.5 also has multi-pass crop-refinement configurations.[^nemotron-35]
 - [olmOCR-2-7B-1025](olmocr-2-7b-1025.md) — 7B Qwen2.5-VL PDF-page extraction
 - [OvisOCR2](ovisocr2.md) — 0.8B with 4B-teacher RL, distillation, and fusion
 - [OvisOCR3](ovisocr3.md) — 0.8B prompt-conditioned parsing, OCR, KIE, figure captioning, and cross-page tables[^ovisocr3-model-card]
@@ -66,6 +74,7 @@ Core retained models that perform this task as their primary interface:
 - [RolmOCR](rolmocr.md) — 7B metadata-independent with rotated-page training
 - [Typhoon OCR](typhoon-ocr.md) — 2B Thai–English image-only prompt
 - [Xiaomi-OCR-0](xiaomi-ocr-0.md) — 0.8B prompt-driven page parsing with OTSL tables and LaTeX formulas.[^xiaomi-card]
+- [Youtu-Parsing-Omni](youtu-parsing-omni.md) — reported 5B shared-encoder multimodal parser with prompt-selected document-page JSON and reading order.[^youtu-omni-card]
 - [Unlimited OCR](unlimited-ocr.md) — 3B/500M-active with Reference Sliding Window Attention for multi-page one-shot; [Unlimited OCR 2](unlimited-ocr-2.md) adds sparse visual routing and chunked decoding for longer documents.[^unlimited-ocr-2-report]
 - [Chandra OCR](chandra-ocr.md) / [Chandra OCR 2](chandra-ocr-2.md) — Datalab Markdown/HTML/JSON conversion
 - [Granite Docling 258M](granite-docling-258m.md) — 258M VLM integrated with Docling
@@ -89,6 +98,8 @@ Core retained models that perform this task as their primary interface:
 - **Uses:** [Document-parser data flywheel](document-parser-data-flywheel.md) and [DOM-based document synthesis](dom-based-document-synthesis.md) for long-tail data
 - **Extended by:** [Task: Cross-page table reconstruction](task-cross-page-table-reconstruction.md) for tables that continue across page boundaries.
 
+[^youtu-omni-card]: Tencent Youtu Lab, [Youtu-Parsing-Omni model card](../raw/Youtu-Parsing-Omni.md), §§ Introduction and Method; inspected 2026-11-02; reported, not reproduced.
+[^nemotron-35]: NVIDIA, [Nemotron 3.5 Parse model card](../raw/Nemotron-3.5-Parse.md), §§ Description and Evaluation Results › ParseBench.
 [^surya-25-card]: Datalab, [Surya OCR 2.5 model card](../raw/surya-ocr-2.5-hf.md), §§ Usage, OCR (text recognition) › From python, and Training (inspected 2026-10-30); reported interface, not executed.
 [^xiaomi-card]: [Xiaomi-OCR-0 model card](../raw/Xiaomi-OCR-0.md), §§ About the model and Usage › Task prompts (inspected 2026-10-29).
 [^unlimited-ocr-2-report]: Baidu ERNIE Team, [Unlimited OCR Works 2](../raw/Unlimited-OCR-2.pdf), §§3.2–3.4.

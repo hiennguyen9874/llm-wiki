@@ -1,11 +1,11 @@
 ---
 type: Synthesis
 title: Document OCR model benchmark comparison
-description: So sánh theo từng dataset các kết quả benchmark được báo cáo của Chandra OCR 2, MinerU2.5-Pro, Surya OCR 2.5, MonkeyOCRv2-B-Parsing, OvisOCR3, PaddleOCR-VL-1.6, Infinity-Parser2-Pro, LightOnOCR-3, TeleOCR và MiniCPM-OCR 1.0.
+description: So sánh theo từng dataset các kết quả benchmark được báo cáo của mười document OCR model và NVIDIA Nemotron 3.5 Parse.
 tags: [ml, ocr, document-parsing, benchmarks, comparison]
 status: draft
 created: 2026-10-30
-generated: { by: llm-wiki-agent/1, at: 2026-10-30T03:07:00Z }
+generated: { by: llm-wiki-agent/1, at: 2026-11-02T14:50:17Z }
 stale_after: 2027-01-30
 sources:
   - id: chandra2-card
@@ -101,6 +101,10 @@ sources:
     kind: code
     revision: b33b474
     title: MiniCPM-OCR repository
+  - id: nemotron35-card
+    resource: ../raw/Nemotron-3.5-Parse.md
+    kind: model-card
+    title: Nemotron 3.5 Parse model card
   - id: xiaomi-card
     resource: ../raw/Xiaomi-OCR-0.md
     kind: model-card
@@ -109,31 +113,32 @@ sources:
 
 # Document OCR model benchmark comparison
 
-Trang này gom **mọi kết quả benchmark tìm được trong wiki và `raw/`** cho 10 mô hình document OCR, rồi so sánh **theo từng dataset**: [Chandra OCR 2](chandra-ocr-2.md), [MinerU2.5-Pro](mineru2-5-pro.md), [Surya OCR 2.5](surya-ocr-2-5.md), MonkeyOCRv2-B-Parsing ([MonkeyOCRv2](monkeyocrv2.md)), [OvisOCR3](ovisocr3.md), [PaddleOCR-VL-1.6](paddleocr-vl-1.6.md), Infinity-Parser2-Pro ([Infinity-Parser2](infinity-parser2.md)), [LightOnOCR-3](lightonocr-3.md) (4B, kèm 0.8B/1B khi đó là biến thể duy nhất được đo), [TeleOCR](teleocr.md) và [MiniCPM-OCR 1.0](minicpm-ocr-1-0.md). **Synthesis:** không có mô hình nào dẫn đầu mọi dataset; thứ hạng đảo chiều giữa họ benchmark kiểu OmniDocBench (edit distance/TEDS/CDM) và họ benchmark unit-test (olmOCR-Bench, OmniParseBench, ParseBench). Mọi con số là **Reported** (tác giả/vendor tự chạy hoặc chép lại), không được chạy lại ở đây.
+Trang này tổng hợp kết quả benchmark đã tìm được cho 11 mô hình document OCR và so sánh **theo từng dataset**; mười model gốc là [Chandra OCR 2](chandra-ocr-2.md), [MinerU2.5-Pro](mineru2-5-pro.md), [Surya OCR 2.5](surya-ocr-2-5.md), MonkeyOCRv2-B-Parsing ([MonkeyOCRv2](monkeyocrv2.md)), [OvisOCR3](ovisocr3.md), [PaddleOCR-VL-1.6](paddleocr-vl-1.6.md), Infinity-Parser2-Pro ([Infinity-Parser2](infinity-parser2.md)), [LightOnOCR-3](lightonocr-3.md) (4B, kèm 0.8B/1B khi đó là biến thể duy nhất được đo), [TeleOCR](teleocr.md) và [MiniCPM-OCR 1.0](minicpm-ocr-1-0.md); model bổ sung là [NVIDIA Nemotron 3.5 Parse](nemotron-parse-3-5.md). Phạm vi tìm kiếm gốc được ghi trong phụ lục; với Nemotron, phần bổ sung dựa trên model card đã lưu, không khẳng định đã rà soát mọi nguồn. **Synthesis:** không có mô hình nào dẫn đầu mọi dataset; thứ hạng đảo chiều giữa họ benchmark kiểu OmniDocBench (edit distance/TEDS/CDM) và họ benchmark unit-test (olmOCR-Bench, OmniParseBench, ParseBench). Mọi con số là **Reported** (tác giả/vendor tự chạy hoặc chép lại), không được chạy lại ở đây.
 
 ## Phương pháp và quy ước
 
-- Mỗi ô ghi nguồn đo: **own** = báo cáo của chính tác giả mô hình; **[M]** = bảng của MiniCPM-OCR; **[T]** = bài TeleOCR; **[O3]** = card OvisOCR3; **[P]** = báo cáo PaddleOCR-VL-1.6; **[OPB]** = dataset card OmniParseBench do Datalab chạy; **[L]** = blog LightOnOCR-3; **[I]** = báo cáo Infinity-Parser2.
+- Mỗi ô ghi nguồn đo: **own** = báo cáo của chính tác giả mô hình; **[M]** = bảng của MiniCPM-OCR; **[T]** = bài TeleOCR; **[O3]** = card OvisOCR3; **[P]** = báo cáo PaddleOCR-VL-1.6; **[OPB]** = dataset card OmniParseBench do Datalab chạy; **[L]** = blog LightOnOCR-3; **[I]** = báo cáo Infinity-Parser2; **[N]** = model card NVIDIA Nemotron 3.5 Parse.
 - Số từ ảnh đã được tải về `raw/ocr-benchmark-assets-2026-10-30/` (manifest kèm URL, thời điểm tải, SHA-256) và đọc trực tiếp; các ảnh đã có sẵn trong gói nguồn (MiniCPM, LightOnOCR-3, TeleOCR) cũng được đọc lại để đối chiếu với bảng text.
 - "—" nghĩa là **không tìm thấy kết quả**, không phải điểm 0. Điểm giữa các dataset khác thang, không được cộng hay so trực tiếp.
-- Trang này giữ các bảng headline. Component vectors (PureDocBench theo track, MinerU Hard, crop-level), benchmark chuyên biệt/in-house, điều kiện throughput chi tiết và coverage ledger nằm ở [OCR ten-model benchmark comparison: supplementary evidence](ocr-ten-model-benchmark-comparison.md).
+- Trang này giữ các bảng headline. Component vectors (PureDocBench theo track, MinerU Hard, crop-level), benchmark chuyên biệt/in-house, điều kiện throughput chi tiết và coverage ledger nằm ở [OCR benchmark comparison: supplementary evidence](ocr-ten-model-benchmark-comparison.md).
 
 ## Ma trận phủ benchmark (overall, cao hơn là tốt hơn)
 
 | Mô hình | OmniDocBench v1.6 | Real5 | Wild (giao thức M / T) | MDPBench | PureDocBench | olmOCR-Bench | OmniParseBench | ParseBench |
 |---|---:|---:|---:|---:|---:|---:|---:|---:|
 | Chandra OCR 2 | 92.27 [M] | 88.74 [M] | 89.08 / — | 79.7 | — | 85.8 own | **90.1** | 70.1 |
-| MinerU2.5-Pro | 95.69 own; 95.75 [P][T][M] | 88.96 [P]; 88.94 [M] | 90.06 / 87.33 | 71.0 | 70.07 [T] | 79.5 [M] | 87.1 | — |
+| MinerU2.5-Pro | 95.69 own; 95.75 [P][T][M] | 88.96 [P]; 88.94 [M] | 90.06 / 87.33 | 71.0 | 70.07 [T] | 79.5 [M] | 87.1 | 72.78 [N], 2605 |
 | Surya OCR 2.5 | — | — | — | — | — | 83.7 own | 85.9 | — |
 | MonkeyOCRv2-B-Parsing | 91.57 own | 89.22 [O3] | — | 83.3 | 64.91 [O3] | — | — | — |
 | OvisOCR3 | 96.74 own | 93.63 own | — | **88.8** own | **82.31** own | — | — | — |
-| PaddleOCR-VL-1.6 | 96.33 own; 96.34 [O3][M] | 93.19 own | 91.49 / 87.36 | 78.9; 75.0 (MonkeyOCRv2) | 65.44 [O3] | 80.2 [M] | 78.7 | — |
+| PaddleOCR-VL-1.6 | 96.33 own; 96.34 [O3][M] | 93.19 own | 91.49 / 87.36 | 78.9; 75.0 (MonkeyOCRv2) | 65.44 [O3] | 80.2 [M] | 78.7 | 67.43 [N] |
 | Infinity-Parser2-Pro | 93.95 own | — | — | — | — | **87.6** own | 87.0 | 74.3 |
-| LightOnOCR-3 (4B) | — (1B: 89.87 [M]) | — (1B: 83.62 [M]) | — (1B: 84.36 / —) | — | — | 86.3 [L] | 82.9 | **75.1** [L] |
+| LightOnOCR-3 (4B) | — (1B: 89.87 [M]) | — (1B: 83.62 [M]) | — (1B: 84.36 / —) | — | — | 86.3 [L] | 82.9 | 75.1 [L] |
 | TeleOCR | **96.87** own; 96.91 [M] | 90.72 [M] | 90.71 / 88.53 own | — | 78.41 own (TB 3 track) | 77.1 [M] | — | — |
 | MiniCPM-OCR 1.0 | 96.51 own | **93.68** own | **92.39** own / — | — | — | 82.7 own | 83.2 | — |
+| Nemotron 3.5 Parse | — | — | — | — | — | — | — | 75.20 [N], triple-pass |
 
-Nguồn: [^minicpm-repo][^teleocr-v3][^ovisocr3-card][^paddle16-report][^opb-card][^lightonocr3-blog][^infinity2-report][^mdpbench-readme][^mineru-pro-2604-card][^monkeyocrv2-paper][^chandra2-card][^surya25-card]
+Nguồn: [^minicpm-repo][^teleocr-v3][^ovisocr3-card][^paddle16-report][^opb-card][^lightonocr3-blog][^infinity2-report][^mdpbench-readme][^mineru-pro-2604-card][^monkeyocrv2-paper][^chandra2-card][^surya25-card][^nemotron35-card]
 
 ## OmniDocBench v1.6 (Full)
 
@@ -193,7 +198,7 @@ Bảng chính thức trong README MDPBench (bản tải 2026-10-30):[^mdpbench-r
 | MinerU2.5-Pro | 71.0 | 86.2 | 66.1 | 74.6 | 67.0 | 74.2 | 76.5 | 74.3 |
 
 - **OvisOCR3** tự báo cáo **88.8** trong card của nó, nhưng không xuất hiện trong bảng README đã tải và card không nêu split/giao thức.[^ovisocr3-card] So với hàng cao nhất của README (Gemini-3-pro-preview 86.4) là phép so **giữa hai nguồn**; trong bảng của chính card OvisOCR3, hàng 86.40 là Qwen3.8-Max, không có Gemini.[^ovisocr3-card][^mdpbench-readme]
-- Sáu mô hình còn lại không có kết quả MDPBench (LightOnOCR chỉ có thế hệ 2-1B: 63.9).[^mdpbench-readme]
+- Trong mười mô hình gốc, sáu mô hình còn lại không có kết quả MDPBench trong README đã đọc (LightOnOCR chỉ có thế hệ 2-1B: 63.9). Chưa tìm thấy kết quả Nemotron trong card đã đọc.[^mdpbench-readme]
 
 ## PureDocBench (Clean / Digital-degraded / Real-degraded)
 
@@ -247,18 +252,20 @@ Headline = trung bình text, tables, layout. Model open-weight được Datalab 
 
 | Mô hình | ParseBench 5 mục ↑ | Tables | Charts | Faithfulness | Semantic fmt | Visual grounding | fr-bench-pdf2md ↑ |
 |---|---:|---:|---:|---:|---:|---:|---:|
-| LightOnOCR-3-4B | **75.1** | 83.8 | **66.1** | 89.9 | **67.6** | 68.3 | **74.1** |
+| Nemotron 3.5 Parse (triple-pass [N]) | 75.20 | 84.67 | 64.40 | 87.96 | 68.28 | 70.67 | — |
+| LightOnOCR-3-4B | 75.1 | 83.8 | **66.1** | 89.9 | 67.6 | 68.3 | **74.1** |
 | LightOnOCR-3-0.8B | 74.6 | 84.5 | 64.7 | 88.9 | 66.7 | 68.2 | 70.5 |
 | Infinity-Parser2-Pro | 74.3 | 86.4 | 61.3 | 89.7 | 59.1 | **74.9** | 63.2 |
 | LightOnOCR-3-1B | 71.4 | 84.8 | 57.3 | 88.6 | 64.5 | 61.7 | 69.6 |
 | Chandra OCR 2 | 70.1 | **89.2** | 65.1 | 83.7 | 61.4 | 51.2 | 69.0 |
 
-[^lightonocr3-blog] Báo cáo Infinity-Parser2 cho cùng ParseBench Pro 74.3 và Chandra-OCR-2 70.1.[^infinity2-report]
+[^lightonocr3-blog][^nemotron35-card] Báo cáo Infinity-Parser2 cho cùng ParseBench Pro 74.3 và Chandra-OCR-2 70.1.[^infinity2-report] **Giới hạn so sánh:** dòng Nemotron do NVIDIA báo cáo dùng triple-pass và union các vùng detector/parser trên 2,078 trang; LightOn là bảng từ nguồn khác, chưa xác nhận cùng preprocessing, scorer hay pass count. Không coi chênh 0.10 điểm là xếp hạng chắc chắn. [N] còn báo cáo MinerU2.5-Pro-2605 72.78 và PaddleOCR-VL-1.6 67.43 overall; không có vector component trong card.[^nemotron35-card]
 
 ## Benchmark chuyên biệt và phụ
 
 - **CHAOS-Bench (page-average recall của từ bị thay đổi):** hai nguồn mâu thuẫn. [M] (MiniCPM tự chạy; 500 trang, 1,025 từ bị thay đổi, tìm theo word boundary trong output cả trang): MiniCPM 29.78, TeleOCR 21.28, MinerU2.5-Pro 13.90, PaddleOCR-VL-1.6 9.32, LightOnOCR-3-1B 7.73, Chandra 2 2.87. Ảnh in 29.78 nhưng `benchmark-data.json` để ô CHAOS của MiniCPM là `null` với `status: pending_confirmation`. MonkeyOCRv2: MonkeyOCRv2-B 17.9, MinerU2.5-Pro 6.3, PaddleOCR-VL-1.6 6.0; caption ghi các hàng baseline "taken from CHAOS-Bench", tức nguồn leaderboard gốc chứ không phải lần chạy của MiniCPM.[^minicpm-repo][^monkeyocrv2-paper]
 - **OCRBench v2:** [M] một số duy nhất: MiniCPM 54.7, PaddleOCR-VL-1.6 35.2, Chandra 2 32.9, MinerU2.5-Pro 29.1, TeleOCR 23.3, LightOnOCR-3-1B 12.7. Card OvisOCR3 tách EN/ZH: OvisOCR3 65.9/61.3, PaddleOCR-VL-1.6 23.8/30.4.[^minicpm-repo][^ovisocr3-card]
+- **IndicVisionBench và MOSCAR [N]:** Nemotron đạt 83.73 ANLS-char / 16.00% CER trên 876 trang, 10 ngôn ngữ; MOSCAR đạt 99.51 character-bag F1 / 1.35% CER trên 8,111 trang synthetic. Character-bag F1 không xét thứ tự; dữ liệu synthetic đơn giản không bảo đảm chất lượng trên scan khó hoặc handwriting.[^nemotron35-card]
 - **OCRBench (v1):** OvisOCR3 88.8, Infinity-Parser2-Pro 86.20, PaddleOCR-VL-1.6 55.9.[^ovisocr3-card][^infinity2-card]
 - **DocFigCapBench (localization F1 / caption score):** OvisOCR3 90.97/6.93, PaddleOCR-VL-1.6 85.32/4.29, MinerU2.5-Pro 85.00/4.61.[^ovisocr3-card][^ovisocr3-overview-img]
 - **CrossTabBench (relation F1 / reconstruction TEDS) và MPDocBench-Parse truncated-table TEDS:** OvisOCR3 97.07/89.66 và 92.04; MinerU2.5-Pro 59.14/41.02 và 91.44; PaddleOCR-VL-1.6 42.61/24.24 và 83.39.[^ovisocr3-card]
@@ -282,9 +289,10 @@ Headline = trung bình text, tables, layout. Model open-weight được Datalab 
 | OvisOCR3 | Tự báo top MDPBench, PureDocBench, Real5, OCRBench, cross-page table | Chỉ overall; không có olmOCR/OmniParseBench; chưa có tech report |
 | PaddleOCR-VL-1.6 | Real5 per-condition tốt nhất; formula CDM v1.6 97.49; nhanh | OmniParseBench text 61.7; OCRBench thấp; cross-page TEDS 24.24 |
 | Infinity-Parser2-Pro | Top olmOCR (87.6), visual grounding ParseBench 74.9 | OmniDocBench 93.95; 35B-A3B; fr-bench 63.2 |
-| LightOnOCR-3-4B | Top ParseBench (75.1), fr-bench (74.1) | OmniParseBench tables 70.8; số OmniDocBench chỉ có cho 1B (89.87) |
+| LightOnOCR-3-4B | Dẫn bảng ParseBench của LightOn (75.1), fr-bench (74.1) | OmniParseBench tables 70.8; số OmniDocBench chỉ có cho 1B (89.87) |
 | TeleOCR | OmniDocBench v1.6 cao nhất (96.87), Wild [T], PureDocBench 3 track | olmOCR 77.1 [M]; throughput 0.141 p/s [M] |
 | MiniCPM-OCR 1.0 | Real5/Wild [M] cao nhất, nhanh nhất ở [M], OCRBench v2 54.7 | Phần lớn số do chính MiniCPM chạy; OPB text 72.8 |
+| Nemotron 3.5 Parse | ParseBench 75.20 triple-pass; IndicVisionBench 83.73 ANLS-char [N] | Khác pass/protocol so với bảng nguồn khác; MOSCAR dùng ảnh synthetic; chưa có benchmark độc lập trong phạm vi nguồn đã đọc |
 
 **Chọn theo nhu cầu (Synthesis):** tài liệu số sạch kiểu OmniDocBench → cụm TeleOCR/OvisOCR3/MiniCPM/PaddleOCR-VL-1.6; PDF tiếng Anh kiểu unit-test (olmOCR/OmniParseBench) → Infinity-Parser2-Pro, Chandra OCR 2, LightOnOCR-3-4B; ảnh chụp đa ngôn ngữ → MonkeyOCRv2-B (official) hoặc OvisOCR3 (self-reported); ảnh biến dạng vật lý → PaddleOCR-VL-1.6, MiniCPM, OvisOCR3.
 
@@ -305,11 +313,12 @@ Headline = trung bình text, tables, layout. Model open-weight được Datalab 
 
 ## Relationships
 
-- **Compares:** [Chandra OCR 2](chandra-ocr-2.md), [MinerU2.5-Pro](mineru2-5-pro.md), [Surya OCR 2.5](surya-ocr-2-5.md), [MonkeyOCRv2](monkeyocrv2.md), [OvisOCR3](ovisocr3.md), [PaddleOCR-VL-1.6](paddleocr-vl-1.6.md), [Infinity-Parser2](infinity-parser2.md), [LightOnOCR-3 evaluation](lightonocr-3-evaluation.md), [TeleOCR](teleocr.md), [MiniCPM-OCR evaluation](minicpm-ocr-evaluation.md).
+- **Compares:** [NVIDIA Nemotron 3.5 Parse](nemotron-parse-3-5.md) và [Chandra OCR 2](chandra-ocr-2.md), [MinerU2.5-Pro](mineru2-5-pro.md), [Surya OCR 2.5](surya-ocr-2-5.md), [MonkeyOCRv2](monkeyocrv2.md), [OvisOCR3](ovisocr3.md), [PaddleOCR-VL-1.6](paddleocr-vl-1.6.md), [Infinity-Parser2](infinity-parser2.md), [LightOnOCR-3 evaluation](lightonocr-3-evaluation.md), [TeleOCR](teleocr.md), [MiniCPM-OCR evaluation](minicpm-ocr-evaluation.md).
 - **Uses:** [OmniParseBench](omniparsebench.md), [MDPBench](mdpbench.md), [Real5-OmniDocBench](real5-omnidocbench.md).
-- **Detailed by:** [OCR ten-model benchmark comparison: supplementary evidence](ocr-ten-model-benchmark-comparison.md), giữ component vectors, benchmark chuyên biệt/in-house, throughput chi tiết và coverage ledger cho cùng mười mô hình.
+- **Detailed by:** [OCR benchmark comparison: supplementary evidence](ocr-ten-model-benchmark-comparison.md), giữ component vectors, benchmark chuyên biệt/in-house, throughput chi tiết và coverage ledger cho mười mô hình gốc cùng phần bổ sung Nemotron.
 - **Complements:** [End-to-end generative OCR VLM benchmarks](end-to-end-generative-ocr-vlm-benchmarks.md) và [Layout-first modular OCR benchmarks](layout-first-modular-ocr-benchmarks.md), vốn liệt kê theo họ kiến trúc thay vì theo tập mô hình này.
 
+[^nemotron35-card]: NVIDIA, [Nemotron 3.5 Parse model card](../raw/Nemotron-3.5-Parse.md), §§ Benchmark highlights và Evaluation Results › ParseBench, IndicVisionBench OCR, MOSCAR multilingual OCR; số vendor-reported, không chạy lại.
 [^chandra2-card]: Datalab, [Chandra OCR 2 model card](../raw/chandra-ocr-2.md), §§ Benchmarks › olmOCR Benchmark, Multilingual Benchmark (43 Languages), Throughput.
 [^chandra2-bench-img]: [chandra-bench.png](../raw/ocr-benchmark-assets-2026-10-30/chandra-bench.png), bar "Chandra 2 85.8%"; tải 2026-10-30 theo `manifest.json`.
 [^chandra2-full-bench]: [chandra-full-benchmarks.md](../raw/ocr-benchmark-assets-2026-10-30/chandra-full-benchmarks.md), § Overall Scores và hàng `vi`.
