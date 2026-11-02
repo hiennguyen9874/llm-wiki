@@ -5,7 +5,7 @@ description: 0.6B-parameter multilingual zero-shot voice-cloning TTS model with 
 tags: [ml, tts, multilingual, voice-cloning]
 status: stable
 created: 2026-10-06
-generated: { by: llm-wiki-agent/1, at: 2026-10-06T00:00:00Z }
+generated: { by: llm-wiki-agent/1, at: 2026-11-02T14:28:04Z }
 stale_after: 2027-10-06
 sources:
   - id: audio8-tts-preview-card
@@ -76,6 +76,8 @@ CV3 multilingual error rates; lower is better (**Reported**):[^audio8-tts-previe
 
 ## Relationships
 
+- Later derivative: [Audio8 TTS Realistic Air](audio8-tts-realistic-air.md) builds on this checkpoint, expands reported language support, and reports separate evaluation; see that page for evidence.
+- Related checkpoint: [Audio8 TTS Preview 0.1B](audio8-tts-preview-0.1b.md) is the smaller sibling; its own model card reports different language coverage, ONNX INT8 packaging and a revenue-capped license rather than this page's Apache-2.0 claim (**Synthesis**). See the sibling page for its evidence.
 - Audio8 ASR family: [Audio8-ASR-0.1B](audio8-asr-0.1b.md) and [Audio8 ASR Infinite](audio8-asr-infinite.md) cover Audio8-named speech-recognition models (multilingual short-form transcription and streaming bilingual ASR respectively), while this concept covers the Audio8-named speech-synthesis Preview model; no shared codebase or vendor claim is asserted beyond the naming and audio-model overlap (**Synthesis**).[^audio8-tts-preview-card]
 
 ## Coverage and limits

@@ -5,9 +5,13 @@ description: Lựa chọn ASR realtime tiếng Việt theo chất lượng, nati
 tags: [stt, asr, vietnamese, streaming, selection, comparison]
 status: draft
 created: 2026-10-07
-generated: { by: llm-wiki-agent/1, at: 2026-10-21T22:00:00Z }
+generated: { by: llm-wiki-agent/1, at: 2026-11-02T14:32:06Z }
 stale_after: 2027-10-07
 sources:
+  - id: viegem-card
+    resource: ../raw/VieGem-ASR.md
+    kind: documentation
+    title: VieGem-ASR model card capture
   - id: sherpa-vi-app
     resource: sherpa-vietnamese-asr.md
     kind: synthesis
@@ -89,6 +93,7 @@ RTF <1 là điều kiện theo kịp audio, không đủ cho latency usable text
 | [Cohere Transcribe](cohere-transcribe-03-2026.md), 2B | Có | Blog vi aggregate plot đã đọc: ≈8.8% WER vs Qwen1.7B ≈8.3%, ước lượng chiều cao cột, không FLEURS-only/streaming | Challenger final-pass; no timestamps/diarization, code-switch inconsistent, VAD cần thiết; Apache-2.0; chưa matched vi protocol[^cohere] |
 | [Gipformer 1.5 68M RNNT](gipformer1.5-68m-rnnt.md), 68M | Chuyên vi | Vendor WER (không tái lập): vivos 4.25, vlsp-t1 13.37, Common-Voice 6.45, Fleurs 12.65; domain vi-asr-tech/edu/finance/pubadmin 27.49/23.32/22.34/14.82; call-center tele-* là private set | CPU/edge final-pass chuyên Việt, nhất là call-center/domain; ONNX int8, MIT. Card không nêu streaming, chunk, RTF, latency hay training data nên chưa là ứng viên partial[^gipformer] |
 | [QUAN-Transcribe-1.0](quan-transcribe-1.0.md), 356M | Chuyên vi | Vendor avg WER 6.87%, 3,713× H100; FLEURS-valid digit-filtered greedy full 6.71% / streaming 8.40% | Challenger partial/final GPU, 0.48 s chunk; live re-decode cả câu mỗi update, final full-context sau silence mặc định 0.8 s; chưa chứng minh cache-aware hay latency/concurrency production. Gemma terms, gated encoder; lowercase/no punctuation/numbers-as-words[^quan-captures] |
+| [VieGem-ASR](viegem-asr.md), 359M | vi và vi–en code-switch | Vendor 8-set WER 6.34 greedy / 5.29 LM; ViMedCSS 14.30 greedy, 15.99 streaming | Challenger nghiên cứu: 0.48 s chunks, no look-ahead; chưa rõ live cache/endpointing/latency; CC-BY-NC-SA-4.0 và Gemma terms, không mặc định dùng thương mại[^viegem-card] |
 | [ZipFormer 30M](zipformer-30m-vietnamese.md) | Chuyên vi | 12s/0.3s CPU claimed; VLSP2020 T1 12.29 | CPU research only; CC-BY-NC-ND, no established native streaming[^primary] |
 | [ZipFormer 150M](zipformer-150m-vietnamese.md), ~153M | Chuyên vi | VLSP2023 public/private 6.59/7.80; VLSP2025 6.69/6.20; VLSP2020 T1 13.50; 12s/<0.3s RTX3090 claimed | GPU rẻ, final-pass nghiên cứu; CC-BY-NC-ND, no established native streaming, VLSP/GigaSpeech2 có thể trùng training data chưa kiểm tra[^zip150-card] |
 | [Parakeet CTC 0.6B Vietnamese](parakeet-ctc-0.6b-vietnamese.md), 600M | Chuyên vi (title nêu "Unified Vietnamese–English CS", không có bằng chứng code-switch) | Vendor avg WER 9.30 (blind: Gigaspeech2 11.23, VLSP2021 T2 8.99, ViMD 11.02, VIVOS 5.96) và 9.73 (in-domain: FLEURS 6.86, VLSP2021 T1 13.60, VietMed 14.52); không rõ có dùng LM | Final-pass offline CTC có PnC và timestamp (Qwen3-generated PnC, chưa kiểm); tùy chọn KenLM 4-gram flashlight; không có streaming, latency hay RTFx; NVIDIA Open Model License gated; test set/normalizer khác các hàng khác nên không so trực tiếp[^parakeet-ctc-vi] |
@@ -96,6 +101,8 @@ RTF <1 là điều kiện theo kịp audio, không đủ cho latency usable text
 Gipformer thắng nhiều cột trong bảng của chính vendor (kể cả trước ChunkFormer-large, Qwen3-ASR-1.7B, PhoWhisper-large) nhưng dùng normalizer riêng, test set private, và thua Zipformer-30M ở Common-Voice/vlsp-t1 và Qwen3-ASR-1.7B ở Fleurs; không so trực tiếp với số ở các hàng khác (**Synthesis**).[^gipformer]
 
 Mọi số trên là **Reported** của nguồn, chưa tái lập. Các vai trò là **Synthesis**. FLEURS vs VIVOS/CMV/VLSP/MLC-SLM không chung tập; WER khác tokenizer/normalization cũng không thể xếp hạng trực tiếp. Qwen và Nemotron FLEURS cũng khác protocol offline/streaming và LangID, nên 5.55 vs 12.29 không chứng minh Qwen thắng khi cùng latency.[^primary][^nemotron]
+
+[^viegem-card]: [VieGem-ASR model card](../raw/VieGem-ASR.md) — Results, Usage, Model and License; reported only, no inference or live benchmark.
 
 ### QUAN: chunked attention không đồng nghĩa cache-aware runtime
 

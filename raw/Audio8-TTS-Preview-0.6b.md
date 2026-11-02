@@ -32,9 +32,9 @@ tags:
 **A 0.6B-parameter multilingual text-to-speech model with zero-shot voice cloning.**
 
 [![GitHub](https://img.shields.io/badge/GitHub-Audio8__TTS-black?style=for-the-badge&logo=github)](https://github.com/Audio8-AI/Audio8_TTS)
-[![Demo](https://img.shields.io/badge/Live-Demo-brightgreen?style=for-the-badge&logo=githubpages)](https://audio8-ai.github.io/Audio8_TTS/)
+[![Demo](https://img.shields.io/badge/Live-Demo-brightgreen?style=for-the-badge&logo=githubpages)](https://edge0-ai.github.io/Audio8_TTS/preview-0.6b/)
 [![ONNX INT4](https://img.shields.io/badge/ONNX-INT4-005CED?style=for-the-badge&logo=onnx)](https://huggingface.co/Audio8/Audio8-TTS-Preview-0.6B-ONNX-INT4)
-[![License](https://img.shields.io/badge/License-Apache%202.0-blue?style=for-the-badge)](https://github.com/Audio8-AI/Audio8_TTS/blob/main/LICENSE)
+[![License](https://img.shields.io/badge/License-Apache%202.0-blue?style=for-the-badge)](https://github.com/Edge0-AI/Audio8_TTS/blob/master/LICENSE)
 
 </div>
 
@@ -262,8 +262,8 @@ languages listed above.
 ## License and Acknowledgements
 
 The code and model weights are released under the
-[Apache License 2.0](https://github.com/Audio8-AI/Audio8_TTS/blob/main/LICENSE).
-See the upstream [NOTICE](https://github.com/Audio8-AI/Audio8_TTS/blob/main/NOTICE)
+[Apache License 2.0](https://github.com/Edge0-AI/Audio8_TTS/blob/master/LICENSE).
+See the upstream [NOTICE](https://github.com/Edge0-AI/Audio8_TTS/blob/master/NOTICE)
 for attribution details.
 
 We thank the Fish Audio team for publishing the DualAR architecture used in

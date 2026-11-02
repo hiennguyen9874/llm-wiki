@@ -5,9 +5,13 @@ description: Vietnamese 356M EmbeddingGemma 2 plus CTC ASR model with 0.48 s chu
 tags: [stt, asr, vietnamese, ctc, streaming]
 status: stable
 created: 2026-10-15
-generated: { by: llm-wiki-agent/1, at: 2026-10-15T05:00:50Z }
+generated: { by: llm-wiki-agent/1, at: 2026-11-02T14:32:06Z }
 stale_after: 2027-04-15
 sources:
+  - id: viegem-card
+    resource: ../raw/VieGem-ASR.md
+    kind: documentation
+    title: VieGem-ASR model card capture
   - id: quan-captures
     resource: ../raw/QUAN-Transcribe-1.0/README-hf.md
     scope: ../raw/QUAN-Transcribe-1.0/
@@ -64,6 +68,8 @@ The weights derive from EmbeddingGemma 2 and are subject to **Gemma Terms of Use
 
 ## Relationships
 
+- Inspired [VieGem-ASR](viegem-asr.md), whose card reports a separate same-normalizer comparison; its code-switching and live-runtime properties should not be attributed to QUAN.[^viegem-card]
+
 - Uses [QUAN-Transcribe Inference and Live Streaming](quan-transcribe-inference.md) as its documented deployment interface.[^quan-captures]
 - Compared in [ASR/STT Model Survey](asr-stt-model-survey.md) and [Vietnamese Realtime ASR Selection](vietnamese-realtime-asr-selection.md); selection remains conditional on target-hardware and live-text evaluation (**Synthesis**).
 
@@ -73,5 +79,7 @@ The weights derive from EmbeddingGemma 2 and are subject to **Gemma Terms of Use
 - Not captured/inspected: upstream implementation, dependency manifest, tests, weights/tokenizer, base encoder, `lm/` binary and training text, benchmark scripts/data, and license terms. No installation, authentication, download, transcription or benchmark was executed. Instructions and snippets were inspected only as documentation.
 - Excluded: repeated quick-start examples and exhaustive rival rows already resolvable in the raw benchmark; no material local attachments exist beyond the two READMEs. Corpus consent, data rights, robustness to noisy calls/code-switching, detailed training hyperparameters and checkpoint-selection procedure are not established by these captures.
 - `stable` means the intended documentation synthesis is complete, not independently verified capability; no `verified` metadata is set.
+
+[^viegem-card]: [VieGem-ASR model card](../raw/VieGem-ASR.md) — opening and Results, Vietnamese test sets.
 
 [^quan-captures]: [Model card](../raw/QUAN-Transcribe-1.0/README-hf.md) — opening bullets; `Quick start`; `Model` (architecture and training corpora); `Benchmark` protocol and table; `License`. Supporting [inference README](../raw/QUAN-Transcribe-1.0/README-github.md) — opening architecture summary; `Install`; `Usage` I/O; `Streaming mode`; `Live microphone`; `Optional n-gram language model`; `Accuracy check` filtered subsets, tuning and timings; `License`.
