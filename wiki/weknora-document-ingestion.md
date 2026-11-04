@@ -5,7 +5,7 @@ description: Parser-engine routing, streaming docreader output, validated chunki
 tags: [ml, weknora, ingestion, chunking]
 status: draft
 created: 2026-10-26
-generated: { by: llm-wiki-agent/1, at: 2026-10-27T10:20:00Z }
+generated: { by: llm-wiki-agent/1, at: 2026-11-04T04:00:00Z }
 stale_after: 2027-01-26
 sources:
   - id: weknora
@@ -40,6 +40,7 @@ Token limits use language-dependent character estimates with a 0.9 safety factor
 - External [datasource sync](weknora-datasource-sync.md) supplies another ingestion path.
 - Parsing/indexing stages use [worker queues](weknora-task-queues.md).
 - Parsing and chunking themselves call no model; image caption/OCR (VLM) and embedding are the model-backed stages — see [model types and bindings](weknora-models.md).
+- The chunker's en/de/zh-only language heuristics, separators and heading patterns, plus text-encoding and PaddleOCR-VL parameter limits, are analyzed for Vietnamese in [Vietnamese deployment readiness](weknora-vietnamese-deployment.md).
 
 ## Coverage limits
 

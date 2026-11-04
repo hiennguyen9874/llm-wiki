@@ -5,7 +5,7 @@ description: Snapshot identity, per-file coverage ledger, exclusions, evidence l
 tags: [ml, weknora, source-map]
 status: draft
 created: 2026-10-26
-generated: { by: llm-wiki-agent/1, at: 2026-10-26T16:19:21Z }
+generated: { by: llm-wiki-agent/1, at: 2026-11-04T04:00:00Z }
 sources:
   - id: weknora
     resource: ../raw/WeKnora/README.md
@@ -31,10 +31,10 @@ This is the reconciliation ledger for the WeKnora package, not a claim of exhaus
 
 | Coverage state | Artifacts | Meaning |
 | --- | ---: | --- |
-| `inspected-selected` | 241 | Static selected sections or symbol-level searches; does not promise a full-file audit |
+| `inspected-selected` | 318 | Static selected sections or symbol-level searches; does not promise a full-file audit |
 | `test-intent-only` | 29 | Test names or selected source inspected; none executed |
 | `excluded` | 386 | Vendored internals, detailed legal texts, generated contracts/bindings, lockfiles, translations, or visual assets, with per-file reasons |
-| `pending` | 5,008 | Inventoried but not content-reviewed; no behavior attributed to them |
+| `pending` | 4,931 | Inventoried but not content-reviewed; no behavior attributed to them |
 | **Total** | **5,664** | Tracked source closure at this snapshot |
 
 The named inspected set is deliberately conservative: directory listings and test-suite counts do not promote every file in those directories to inspected. Inspection depth varies, including symbol-only searches. Source-dependent claims use precise locators in their concept footnotes; those claims must not be generalized to an entire pending subtree.[^weknora]
@@ -69,6 +69,15 @@ A targeted static follow-up added 11 selected implementation inspections and one
 - Derived decision: [selective fork roadmap](weknora-fork-roadmap.md); other platforms were consulted through their compiled feature pages, not new raw inspection.
 - Outstanding material closure: registry renderers/agent wiring, provider/repository cursor implementations, failed-item durability, `DelGraph` shared-contribution semantics, and all runtime quality/security/restart checks remain pending.
 
+Counts above reflect the TSV after the 2026-11-04 follow-up. Before it, the TSV held 262 selected and 4,987 pending rows; this table had not been updated for the model-configuration follow-up's 21 reconciled rows.
+
+## Vietnamese-readiness follow-up coverage
+
+A targeted static follow-up on 2026-11-04 promoted 56 pending rows to `inspected-selected`, after confirming each local SHA-256 still matched. It covered language and locale resolution, frontend locale registration, prompt templates, chunker language patterns, text decoding, PaddleOCR-VL and MinerU request parameters, keyword-index tokenizers and analyzers per driver, query expansion, embedding input settings, HNSW migrations, wiki trigram indexing and built-in text metrics. Three additional files it read were already selected. Inspection was grep- or section-level; no tokenizer, model, OCR, migration or test ran.[^weknora]
+
+- New destination: [Vietnamese deployment readiness and roadmap](weknora-vietnamese-deployment.md).
+- Outstanding: TDesign locale availability (dependencies not installed), user-visible reach of backend Han literals, Elasticsearch v7/Doris/Weaviate/Tencent VectorDB analyzers, web-search language parameters, and every runtime tokenizer behavior.
+
 ## Exclusions, attachments, and unavailable evidence
 
 - `.git/` is VCS storage rather than product evidence; only revision/status/diff metadata were used. Ignored `.pi/` is local agent tooling and was not compiled. No other product worktree additions were reported by the inspected Git status.
@@ -91,7 +100,7 @@ Future ingests should match normalized package scope plus revision, reconcile ar
 
 ## Relationships
 
-- Documents the evidence boundary for [WeKnora](weknora.md) and every linked concept above.
+- Documents the evidence boundary for [WeKnora](weknora.md) and every linked concept above, including the [Vietnamese deployment readiness](weknora-vietnamese-deployment.md) follow-up.
 - Uses the TSV as supporting canonical coverage data, not as an additional source identity.
 
 [^weknora]: Snapshot `fd7a2586fd58`: [README](../raw/WeKnora/README.md), “Overview,” “Architecture,” “Features,” “Clients and Integrations,” and “Development”; `VERSION`; `LICENSE`, opening MIT terms; `THIRD_PARTY_NOTICES.md`, introduction and component sections; `docs/images/readme/architecture-en-light.svg`, services/model-catalog labels; `.gitignore` final addition. Repository metadata inspected with `git rev-parse HEAD`, `git log -1`, `git status --short --ignored`, `git diff -- .gitignore`, and `git ls-files -z`. Per-file methods and local hashes are persisted in [the coverage inventory](weknora-source-inventory.tsv); behavior-specific symbol locators appear in the linked concept footnotes.

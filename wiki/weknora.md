@@ -5,7 +5,7 @@ description: Code-grounded overview and navigation for WeKnora's shared RAG, age
 tags: [ml, weknora, rag, knowledge-systems]
 status: draft
 created: 2026-10-26
-generated: { by: llm-wiki-agent/1, at: 2026-10-27T10:20:00Z }
+generated: { by: llm-wiki-agent/1, at: 2026-11-04T04:00:00Z }
 stale_after: 2027-01-26
 sources:
   - id: weknora
@@ -46,6 +46,7 @@ The following links are this ingest's maintained synthesis boundaries, grounded 
 | How does the UI reconstruct live responses? | [Frontend streaming](weknora-frontend-streaming.md) |
 | How do programs and coding agents connect? | [CLI/SDK](weknora-cli-sdk.md), [MCP](weknora-mcp-servers.md), [publishing channels](weknora-publishing-channels.md) |
 | What must an operator configure and protect? | [Deployment](weknora-deployment.md), [configuration](weknora-configuration.md), [security](weknora-security.md) |
+| What is needed to deploy it for Vietnamese? | [Vietnamese deployment readiness and roadmap](weknora-vietnamese-deployment.md) |
 
 ## Relationships
 

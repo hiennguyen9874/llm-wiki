@@ -5,7 +5,7 @@ description: A baseline-first fork strategy preserves WeKnora's existing mechani
 tags: [rag, weknora, architecture, synthesis, roadmap]
 status: draft
 created: 2026-10-26
-generated: { by: llm-wiki-agent/1, at: 2026-10-26T16:19:21Z }
+generated: { by: llm-wiki-agent/1, at: 2026-11-04T04:00:00Z }
 stale_after: 2027-01-26
 sources:
   - id: weknora
@@ -111,6 +111,7 @@ Keep one feature flag and one reviewable change series per mechanism; avoid unne
 - **Uses:** [platform comparison](rag-platform-comparison.md) for positioning, but corrects its earlier uncompiled WeKnora citation row.
 - **Depends on:** [WeKnora citation/source boundary](weknora-citations-source-boundary.md), [sync contracts](weknora-datasource-sync.md), [security](weknora-security.md), and [source coverage](weknora-source-map.md).
 - **Uses:** [grounded-accuracy evaluation](grounded-accuracy-evaluation.md) as additional evaluation design guidance; its vendor-reported numbers are not fork performance targets.
+- Refined by [Vietnamese deployment readiness and roadmap](weknora-vietnamese-deployment.md), which turns the Vietnamese/English terminology gate into locale, tokenizer, chunking and evaluation phases.
 
 ## Evidence and coverage limits
 

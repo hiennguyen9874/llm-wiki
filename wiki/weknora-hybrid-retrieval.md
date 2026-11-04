@@ -5,7 +5,7 @@ description: Store-bound fan-out, normalized weighted RRF, rerank degradation, c
 tags: [ml, weknora, rag, retrieval]
 status: draft
 created: 2026-10-26
-generated: { by: llm-wiki-agent/1, at: 2026-10-26T16:19:21Z }
+generated: { by: llm-wiki-agent/1, at: 2026-11-04T04:00:00Z }
 stale_after: 2027-01-26
 sources:
   - id: weknora
@@ -53,6 +53,7 @@ Selected PostgreSQL code lazily detects a compatible ParadeDB/pg_search score fu
 - Complements, rather than replaces, [wiki-page retrieval](weknora-wiki-compilation.md).
 - Supplies results to the existing [citation/source registry](weknora-citations-source-boundary.md), which separates expanded ranking context from original-chunk evidence.
 - Informs the [selective fork roadmap](weknora-fork-roadmap.md); lexical/field-aware improvements are proposed experiments, not measured gains.
+- Language-specific keyword behavior (the PostgreSQL `chinese_lindera` BM25 tokenizer, per-driver analyzers, zh/en-only expansion stopwords) is analyzed for Vietnamese in [Vietnamese deployment readiness](weknora-vietnamese-deployment.md).
 
 ## Coverage limits
 
