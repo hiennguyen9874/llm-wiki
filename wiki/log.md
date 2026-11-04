@@ -1,5 +1,8 @@
 # Wiki Update Log
 
+## 2026-11-04
+- **Ingest**: Compiled vendor datasheets [AXIS Q1728-LE](../raw/axis-datasheets/datasheet-axis-q1728-le-block-camera-en-US-555452.pdf) (T10219464/EN/M15.2/202609) and [AXIS P1488-LE](../raw/axis-datasheets/datasheet-axis-p1488-le-bullet-camera-en-US-563418.pdf) (T10229221/EN/M13.2/202610), downloaded from axis.com at the human's request; coverage: full text extracted with pdftotext, drawings and images not inspected visually. Updated [Chọn camera ARTPEC-9 cho custom AI](axis-artpec-9-camera-selection.md): both cameras support microSD/microSDHC/microSDXC, SD card encryption AES-XTS-Plain64 256bit and NAS recording; the vendor datasheets confirm the hardware table (including Q1728-LE 4 GB RAM / 8 GB Flash, which resolves the secondary note's inconsistency). Recorded as limits: no maximum card capacity, speed class or file system appears in either datasheet; Axis SD card recommendations page not local.
+
 ## 2026-10-29
 - **Query**: Tổng hợp [các phương án multi-object tracking trên Axis](axis-multi-object-tracking-options.md) từ Scene Metadata, ví dụ native detection, thông số camera thứ cấp và Model Zoo; ghi rõ giới hạn nguồn, API và thử nghiệm.
 

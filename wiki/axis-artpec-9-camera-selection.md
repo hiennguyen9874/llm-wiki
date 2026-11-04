@@ -1,11 +1,11 @@
 ---
 type: Concept
 title: "Chọn camera ARTPEC-9 cho custom AI: AXIS Q1728-LE và P1488-LE"
-description: "So sánh AXIS Q1728-LE và P1488-LE khi triển khai model tự huấn luyện: cùng SoC ARTPEC-9/DLPU và cùng channel a9-dlpu-tflite, khác nhau ở RAM 4 GB so với 2 GB và form factor, kèm giới hạn của số benchmark Axis công bố."
+description: "So sánh AXIS Q1728-LE và P1488-LE khi triển khai model tự huấn luyện: cùng SoC ARTPEC-9/DLPU, cùng channel a9-dlpu-tflite và cùng hỗ trợ thẻ microSD/microSDHC/microSDXC, khác nhau ở RAM 4 GB so với 2 GB và form factor, kèm giới hạn của số benchmark Axis công bố."
 tags: [edge-ai, axis, artpec-9, camera-selection, hardware, dlpu]
 status: stable
 created: 2026-10-27
-generated: { by: llm-wiki-agent/1, at: 2026-10-27T16:20:00Z }
+generated: { by: llm-wiki-agent/1, at: 2026-11-04T09:45:00Z }
 stale_after: 2027-04-30
 sources:
   - id: axis-camera-chatgpt-research
@@ -29,6 +29,16 @@ sources:
     scope: ../raw/computer-vision/on-device/system-on-chip/artpec-9/model-conversion/
     kind: docs
     title: "Model Conversion (ARTPEC-9) — Axis developer documentation"
+  - id: axis-ds-q1728-le
+    resource: ../raw/axis-datasheets/datasheet-axis-q1728-le-block-camera-en-US-555452.pdf
+    kind: datasheet
+    revision: "T10219464/EN/M15.2/202609 (sha256 d3c83b34…c5e)"
+    title: "AXIS Q1728-LE Block Camera — Datasheet (en-US)"
+  - id: axis-ds-p1488-le
+    resource: ../raw/axis-datasheets/datasheet-axis-p1488-le-bullet-camera-en-US-563418.pdf
+    kind: datasheet
+    revision: "T10229221/EN/M13.2/202610 (sha256 41d9c514…75e)"
+    title: "AXIS P1488-LE Bullet Camera — Datasheet (en-US)"
 ---
 
 # Chọn camera ARTPEC-9 cho custom AI: AXIS Q1728-LE và P1488-LE
@@ -52,8 +62,22 @@ AXIS Q1728-LE (block camera) và AXIS P1488-LE (bullet camera) cùng dùng SoC A
 | Larod device cho DLPU | `a9-dlpu-tflite` | `a9-dlpu-tflite` |
 | Model chạy trên DLPU | INT8/UINT8 `.tflite` | INT8/UINT8 `.tflite` |
 | Compiler offline cần thiết | Không | Không |
+| Thẻ nhớ | microSD/microSDHC/microSDXC | microSD/microSDHC/microSDXC |
 
-Tất cả giá trị trong bảng là **Reported** từ một bản tra cứu thứ cấp; trang sản phẩm của Axis và datasheet mà nó dẫn link không có trong `raw/`, nên chưa đối chiếu được với vendor. Có một điểm không nhất quán ngay trong nguồn: danh sách ở §1 của nguồn không ghi RAM/Flash cho Q1728-LE (chỉ P1488-LE có), còn bảng đối chiếu ở §2 ghi Q1728-LE 4 GB RAM và 8 GB Flash. Trang này dùng giá trị của bảng §2 và ghi lại khác biệt đó như một hạn chế, không phải một xác nhận.[^axis-camera-chatgpt-research]
+Bảng ban đầu lấy từ một bản tra cứu thứ cấp.[^axis-camera-chatgpt-research] Datasheet vendor (bản 09/2026 và 10/2026) xác nhận các dòng form factor, SoC ARTPEC-9, DLPU, RAM/Flash (Q1728-LE 4 GB/8 GB, P1488-LE 2 GB/8 GB), cảm biến 1/1.2", 3840x2160, tối đa 50/60 fps khi không bật WDR và codec H.264/H.265/AV1 (**Reported** bởi vendor, **Observed** trên PDF).[^axis-ds-q1728-le][^axis-ds-p1488-le] Điểm không nhất quán của nguồn thứ cấp (thiếu RAM/Flash của Q1728-LE ở §1) được datasheet giải quyết: 4 GB RAM, 8 GB Flash. Các dòng `aarch64`, Larod device, định dạng model và compiler không có trong datasheet; chúng đến từ tài liệu ACAP.
+
+## Lưu trữ (edge storage)
+
+Hai datasheet có mục **Storage** giống hệt nhau:[^axis-ds-q1728-le][^axis-ds-p1488-le]
+
+- Hỗ trợ thẻ **microSD/microSDHC/microSDXC**.
+- Hỗ trợ mã hóa thẻ SD (**AES-XTS-Plain64 256bit**).
+- Ghi hình lên NAS (network-attached storage).
+- Khuyến nghị thẻ SD và NAS cụ thể: xem axis.com; phụ kiện gợi ý là **AXIS Surveillance Cards**.
+
+Cả hai camera còn có event condition về edge storage (recording ongoing, storage disruption, storage health issues detected) và event action ghi hình (P1488-LE ghi rõ "SD card and network share").[^axis-ds-q1728-le][^axis-ds-p1488-le]
+
+Datasheet **không** nêu dung lượng thẻ tối đa, speed class/UHS hay hệ thống file được hỗ trợ. Với ACAP application như Docker Compose ACAP cần ext4/ext3/xfs, xem [Docker Compose ACAP SD card storage](docker-compose-acap-sd-card-storage-and-permissions.md).
 
 Kiến trúc `aarch64` cho ARTPEC-9 khớp với bảng chip của tài liệu ACAP đã lưu cục bộ (xem [ACAP generations, chip architectures and SDK-to-Axis OS compatibility](acap-chip-architecture-and-sdk-compatibility.md)), nên đây là điểm duy nhất của bảng được nguồn thứ hai củng cố.
 
@@ -94,7 +118,7 @@ Khuyến nghị trên là quyết định kỹ thuật dựa trên thông số, 
 
 ## Giới hạn coverage
 
-- Nguồn là **research thứ cấp** (một bản tra cứu do trợ lý AI tổng hợp, không phải trang vendor). Trang sản phẩm `axis.com` của Q1728-LE và P1488-LE, datasheet và Product Selector đều không có trong `raw/`, nên mọi thông số phần cứng ở đây chưa được đối chiếu vendor.
+- Nguồn ban đầu là **research thứ cấp**. Từ 2026-11-04, datasheet vendor của cả hai camera đã có trong `raw/axis-datasheets/` và đã đối chiếu các dòng phần cứng, storage. Đã đọc text của cả hai PDF (`pdftotext`); bản vẽ kích thước, hình ảnh và phần phụ kiện chưa được kiểm tra trực quan. Trang sản phẩm `axis.com`, Product Selector và trang khuyến nghị thẻ SD/NAS vẫn không có trong `raw/`.
 - Nguồn không nêu phiên bản AXIS OS hay firmware cho các thông số sản phẩm; `stale_after` đặt theo quy ước domain `edge-ai` vì đây là dữ liệu phụ thuộc model máy.
 - Không nhất quán nội bộ của nguồn: Q1728-LE không có RAM/Flash ở §1 nhưng có ở §2 (xem trên).
 - Không chạy gì: không có camera ARTPEC-9 trong môi trường ingest, nên lệnh `larod-client` và mọi con số FPS đều không **Reproduced**.
@@ -111,9 +135,11 @@ Khuyến nghị trên là quyết định kỹ thuật dựa trên thông số, 
 
 ## Độ tin cậy
 
-Bảng phần cứng và khuyến nghị chọn máy là **Reported** từ nguồn thứ cấp, chưa đối chiếu với trang sản phẩm Axis (không có cục bộ). Sự tương thích `aarch64` và cảnh báo bộ nhớ 4 GB cho YOLOv5 ARTPEC-9 là **Observed** trên tài liệu cục bộ trong `raw/` (bảng chip ACAP và `axis-model-zoo/docs/yolov5.md`). Phần suy luận "RAM không tăng tốc DLPU", "2 GB là biến rủi ro cho model lớn" và khuyến nghị chọn Q1728-LE là **Synthesis**. Không có claim nào **Reproduced** — không thiết bị, không chạy `larod-client`.
+Bảng phần cứng và mục lưu trữ là **Reported** bởi datasheet vendor (đã đối chiếu, **Observed** trên PDF); khuyến nghị chọn máy lấy từ nguồn thứ cấp. Sự tương thích `aarch64` và cảnh báo bộ nhớ 4 GB cho YOLOv5 ARTPEC-9 là **Observed** trên tài liệu cục bộ trong `raw/` (bảng chip ACAP và `axis-model-zoo/docs/yolov5.md`). Phần suy luận "RAM không tăng tốc DLPU", "2 GB là biến rủi ro cho model lớn" và khuyến nghị chọn Q1728-LE là **Synthesis**. Không có claim nào **Reproduced** — không thiết bị, không chạy `larod-client`.
 
 [^axis-camera-chatgpt-research]: Nguồn thứ cấp: [Kết quả tra cứu SoC của AXIS Q1728-LE và AXIS P1488-LE](../raw/axis-camera-chatgpt-research.md), §1 "So sánh phần cứng hai camera", §2 "Đối chiếu bảng SoC và Larod của bạn", §3 "Cách chuyển model để chạy trên hai camera" và §7 "Nên chọn camera nào để triển khai AI?".
 [^mz-readme]: Repository (cục bộ, revision `v1.0.7-42-g66bf5ea`): [axis-model-zoo README](../raw/axis-model-zoo/README.md), bảng "Object Detection" các dòng `ARTPEC-9 (Q1728)` và `CV75 (M2048-LE)` và dòng ghi chú *"Values for AXIS OS 12.11.72."*.
 [^mz-yolov5]: Repository (cục bộ, revision `v1.0.7-42-g66bf5ea`): [axis-model-zoo — docs/yolov5.md](../raw/axis-model-zoo/docs/yolov5.md), đoạn mở đầu: YOLOv5 được test với yolov5n/s/m trên Q1728 4 GB cho ARTPEC-9, và cảnh báo thiết bị ít bộ nhớ hơn có thể gặp vấn đề với model lớn hơn.
+[^axis-ds-q1728-le]: Datasheet vendor: [AXIS Q1728-LE Block Camera](../raw/axis-datasheets/datasheet-axis-q1728-le-block-camera-en-US-555452.pdf), T10219464/EN/M15.2/202609, trang 2 (Camera: 4 GB RAM, 8 GB Flash; System on chip ARTPEC-9; DLPU; Image sensor; Video), mục Event conditions/Event actions, trang 5 mục "Storage".
+[^axis-ds-p1488-le]: Datasheet vendor: [AXIS P1488-LE Bullet Camera](../raw/axis-datasheets/datasheet-axis-p1488-le-bullet-camera-en-US-563418.pdf), T10229221/EN/M13.2/202610, trang 2 (Camera: 2 GB RAM, 8 GB Flash; ARTPEC-9; DLPU; Image sensor; Video), trang 3 Event actions "Recordings: SD card and network share", trang 5 mục "Storage".
 [^axis-doc-artpec9-model-conversion]: Tài liệu chính thức: [Model Conversion (ARTPEC-9) — Axis developer documentation](../raw/computer-vision/on-device/system-on-chip/artpec-9/model-conversion/index.md), §How to accelerate your model on ARTPEC-9, bước 2–3 (`larod-client ... -c a9-dlpu-tflite`, không có bước compiler).
