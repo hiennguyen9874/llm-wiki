@@ -151,5 +151,3 @@ Muốn đối chiếu đầy đủ về bảo mật thì đọc [security and pr
 - Cả ba đều là `draft`, và `stale_after` của hai trang so sánh là 2027-02-06. Các concept TencentDB hết hạn ngày 2027-05-06.
 - Đây là static inspection, không chạy code. Không có kết luận nào về chất lượng retrieval. Số benchmark nằm ở [benchmarks comparison](agent-memory-benchmarks-comparison.md), và các con số đó không xếp hạng chéo được.
 - Các ô "không ghi nhận" của TencentDB là khoảng trống của wiki, không phải bằng chứng hệ đó thiếu tính năng.
-
-Đây là truy vấn chỉ đọc, nên tôi không thay đổi wiki hay log.
