@@ -15,7 +15,8 @@ Domains emerge from ingested knowledge. Register a domain when it recurs across 
 
 | Domain | Focus | Course profile | Rules |
 | --- | --- | --- | --- |
-| `ml` | Machine learning, LLM architecture, and LLM-assisted knowledge systems | `ml` | Use `stale_after` for framework APIs, model releases, and benchmarks. |
+| agent-memory | Memory systems for LLM agents (SDKs, products, architectures, deployment, benchmarks, integrations) | general | Cite repo-derived claims with `path::symbol` locators and the source revision; version-specific facts (versions, defaults, provider lists, platform support) are time-sensitive, so re-check against newer revisions; label vendor-reported benchmark figures as Reported; prefer code over README prose when they conflict and record the conflict. |
+| note-taking | Self-hosted note-taking products, their data models, interfaces, privacy and deployment | general | Default rules. |
 
 - Name domains as the human does; they may be broad (`health`) or narrow (`home-network`).
 - A concept belongs to its primary domain through tags and, once groups exist, its group path.
