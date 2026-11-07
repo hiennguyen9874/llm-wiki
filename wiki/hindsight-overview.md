@@ -59,7 +59,7 @@ The root is a uv workspace (members `hindsight-all`, `hindsight-api`, `hindsight
 
 ## Other topic pages
 
-[Memory banks](hindsight-memory-banks.md) · [Decision models](hindsight-decision-models.md) · [Storage and configuration](hindsight-storage-and-configuration.md) · [LLM, embedding and reranker providers](hindsight-llm-embedding-providers.md)
+[Memory banks](hindsight-memory-banks.md) · [Decision models](hindsight-decision-models.md) · [Storage and configuration](hindsight-storage-and-configuration.md) · [LLM, embedding and reranker providers](hindsight-llm-embedding-providers.md) · cross-system comparison: [Agent memory landscape survey](agent-memory-landscape-survey.md)
 
 ## Coverage and limits
 

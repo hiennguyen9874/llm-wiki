@@ -85,6 +85,7 @@ Markdown brain repos are synced into a database index (PGLite by default, Postgr
 | Eval suites and reported numbers | [Evals and benchmarks](gbrain-evals-and-benchmarks.md) |
 | Tests, CI, releases, vendoring, repo hygiene | [Testing, CI and release](gbrain-testing-ci-and-release.md) |
 | Where docs and code disagree | [Doc/code discrepancies](gbrain-doc-code-discrepancies.md) |
+| How GBrain compares with other agent-memory systems | [Agent memory landscape survey](agent-memory-landscape-survey.md) |
 
 ## Coverage and limits
 

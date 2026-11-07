@@ -24,5 +24,6 @@ Headroom is an agent-context compression system with a Python library, proxy, ag
 
 - Uses [content compression](headroom-compression.md), [prefix caching and CCR](headroom-cache-and-ccr.md), and optional [memory](headroom-memory.md).
 - Exposes [interfaces and deployment](headroom-interfaces.md); [source coverage](headroom-source-map.md) records inspection limits.
+- Compared in [Agent memory landscape survey](agent-memory-landscape-survey.md) (cross-system synthesis).
 
 [^headroom]: `README.md` §§ What it does, How it works, Telemetry; `pyproject.toml` `[project]`, `[build-system]`, `[tool.maturin]`; `sdk/typescript/README.md` introduction; `Cargo.toml` workspace members; `RUST_DEV.md` proxy section, revision `2b0315b`.

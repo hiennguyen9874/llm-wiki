@@ -64,6 +64,7 @@ The README names its influences: the Karpathy LLM Wiki (compile-not-retrieve), a
 
 - Uses: [Wiki storage and OKF](ai-memory-wiki-storage-and-okf.md) as its on-disk format (OKF v0.2 bundle).
 - Related repositories in this knowledge base's `raw/` folder (mem0, cognee, hindsight, memos, gbrain, etc.) are separate sources; this page makes no claim about them beyond the README's self-reported comparison ([Comparison claims](ai-memory-comparison-claims.md)).
+- Compared in: [Agent memory landscape survey](agent-memory-landscape-survey.md) (cross-system synthesis).
 
 [^readme]: `../raw/ai-memory/README.md` — "Why ai-memory" (axes, zero-LLM default, plain markdown), "How it works" (pipeline), "Support matrix", "Quick start" (default bind `127.0.0.1:49374`), "Architecture" (data dir layout), "Built on the shoulders of", "Acknowledgements".
 [^cargo]: `../raw/ai-memory/Cargo.toml::[workspace.package]` — `version = "3.4.2"`, `edition = "2024"`, `rust-version = "1.95"`, `license = "MIT"`, repository and homepage fields.

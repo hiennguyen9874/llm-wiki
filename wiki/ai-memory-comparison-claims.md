@@ -59,7 +59,7 @@ Source: README table.[^readme]
 ## Relationships
 
 - Overview: [ai-memory overview](ai-memory-overview.md).
-- Per-tool claims about other systems should be checked against their own sources; this page does not independently verify them.
+- Per-tool claims about other systems should be checked against their own sources; this page does not independently verify them. A cross-check against the compiled sources of those systems is in [Agent memory landscape survey](agent-memory-landscape-survey.md).
 
 [^readme]: `../raw/ai-memory/README.md` — "Coming from another tool?" table and following paragraphs.
 [^comparison]: `../raw/ai-memory/docs/comparison.md` — "The short version", camp groupings, maturity and "where we're behind" sections (delegated reading; snapshot date from that reading).

@@ -1,6 +1,8 @@
 # Wiki Update Log
 
 ## 2026-11-07
+- **Query**: Answered “tổng hợp lại chi tiết hơn”; rewrote [Agent memory landscape survey](agent-memory-landscape-survey.md) as a hub with per-system profiles, a direction matrix and scenario guide, and filed five dimension pages: [data model and write](agent-memory-data-model-and-write-comparison.md), [retrieval](agent-memory-retrieval-comparison.md), [integration and operations](agent-memory-integration-and-operations-comparison.md), [security and privacy](agent-memory-security-and-privacy-comparison.md), [benchmarks](agent-memory-benchmarks-comparison.md). Raw opened only for adapter listings, Cognee `SearchType`/MCP handlers and TencentDB `agents/`.
+- **Query**: Answered “survey, phân nhóm và so sánh các hệ agent/memory/RAG trong wiki”; filed [Agent memory landscape survey](agent-memory-landscape-survey.md) (Synthesis over eight systems, six design directions) and added backlinks from eight overviews and the ai-memory comparison page. Raw opened only to confirm licences and two missing versions.
 - **Update**: Recorded the previously unlogged ingest of [Hy-Memory](../raw/Hy-Memory/README.md) at `9737431`; its indexed pages comprise 11 Hy Memory concepts, seven MemHub concepts, and one CMB benchmark concept. The [overview](hy-memory-overview.md) records delegated static inspection; this entry is a retrospective correction.
 - **Update**: Shortened Git commit references to locally unambiguous seven-character prefixes across 114 concept pages to reduce retrieval overhead; repaired two pre-existing malformed YAML descriptions. Existing history remains unchanged.
 

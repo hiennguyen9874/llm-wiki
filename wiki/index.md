@@ -6,6 +6,15 @@ okf_version: "0.2"
 
 The complete retrieval map for compiled knowledge. See [LLM Wiki Contract](../AGENTS.md) for storage and maintenance rules.
 
+## Agent memory — cross-system synthesis
+
+- [Agent memory benchmarks comparison](agent-memory-benchmarks-comparison.md) — Tập hợp và giải thích các con số benchmark do tám hệ agent-memory tự công bố (LongMemEval, LoCoMo, BEAM, PersonaMem, BrainBench, CMB, token savings), metric mỗi con số đo, mức tái lập được và lý do không thể xếp hạng chéo.
+- [Agent memory data model, write path and lifecycle comparison](agent-memory-data-model-and-write-comparison.md) — So sánh đơn vị memory, phân tầng, storage backend, write path, mức phụ thuộc LLM, dedup/reconcile, consolidation, decay và ngữ nghĩa xoá giữa tám hệ agent-memory trong wiki.
+- [Agent memory integration and operations comparison](agent-memory-integration-and-operations-comparison.md) — So sánh bề mặt interface (SDK, REST, MCP, CLI, UI), cơ chế tích hợp với agent/harness, tính năng riêng cho coding agent, provider LLM/embedding, triển khai, background job, đổi embedding model và observability của tám hệ agent-memory.
+- [Agent memory landscape survey](agent-memory-landscape-survey.md) — Survey so sánh tám hệ agent-memory trong wiki (Mem0, Cognee, Hindsight, Hy-Memory/MemHub, TencentDB Agent Memory, ai-memory, GBrain, Headroom), chia theo hướng thiết kế và đối chiếu storage, write path, retrieval, consolidation, tích hợp, bảo mật và benchmark.
+- [Agent memory retrieval comparison](agent-memory-retrieval-comparison.md) — So sánh pipeline retrieval (phần "RAG" bên trong) của tám hệ agent-memory trong wiki — các arm, công thức fusion, rerank, token budget, temporal/graph retrieval, answer synthesis, chế độ suy giảm, embedding mặc định và hỗ trợ đa ngôn ngữ.
+- [Agent memory security and privacy comparison](agent-memory-security-and-privacy-comparison.md) — So sánh tư thế bảo mật mặc định, mô hình tenancy/isolation, các lỗ hổng isolation đã quan sát, egress và telemetry, lọc secret, mã hoá và ngữ nghĩa xoá của tám hệ agent-memory, kèm checklist audit.
+
 ## Agent memory — ai pages (compiled by a concurrent ingest)
 
 - [ai-memory architecture and crates](ai-memory-architecture.md) — Data flow, 11-crate layout, SQLite single-writer storage, data directory and the cross-cutting invariants of ai-memory 3.4.2.

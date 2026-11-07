@@ -26,6 +26,7 @@ Cognee is an agent-memory platform that builds connected graph and vector repres
 
 - **Uses:** [Ingestion and code graphs](cognee-ingestion-and-code-graphs.md) construct memory; [retrieval](cognee-retrieval.md) queries it.
 - **Uses:** [Sessions and improvement](cognee-sessions-and-improvement.md) bridge session experience into durable memory.
+- **Compared in:** [Agent memory landscape survey](agent-memory-landscape-survey.md) (cross-system synthesis).
 - **Depends on:** [Storage and security](cognee-storage-and-security.md) and [interfaces and deployment](cognee-interfaces-and-deployment.md) for operational boundaries.
 - **Reported evidence:** [Benchmarks](cognee-benchmarks.md); see the [source map](cognee-source-map.md) for inspection limits.
 

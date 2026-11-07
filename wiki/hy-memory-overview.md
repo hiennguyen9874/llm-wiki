@@ -48,6 +48,7 @@ Supported install matrix: core includes ChromaDB and Kuzu; extras add Qdrant, FA
 
 - Contains: [MemHub product architecture](memhub-product-architecture.md) (product layer on the SDK).
 - Documented by: [SDK API and config](hy-memory-sdk-api-and-config.md).
+- Compared in: [Agent memory landscape survey](agent-memory-landscape-survey.md) (cross-system synthesis).
 
 ## Coverage and limits
 

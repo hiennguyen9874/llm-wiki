@@ -24,6 +24,7 @@ Mem0 is an agent-memory project offering Python and TypeScript libraries, a self
 
 - Uses [Mem0 OSS write and storage](mem0-write-and-storage.md) and [Mem0 retrieval](mem0-retrieval.md) for local memory operations.
 - See [Mem0 server and security](mem0-server-and-security.md), [clients and integrations](mem0-clients-and-integrations.md), and [benchmarks](mem0-benchmarks.md).
+- Compared in [Agent memory landscape survey](agent-memory-landscape-survey.md) (cross-system synthesis).
 - [Source map and discrepancies](mem0-source-map.md) records coverage and unresolved documentation drift.
 
 [^mem0]: Revision `d16b8df6`; `README.md::Introduction`, `README.md::New Memory Algorithm (April 2026)`, `mem0/memory/main.py::Memory._add_to_vector_store`, `docs/migration/oss-v2-to-v3.mdx::Overview`, `server/main.py::app`.

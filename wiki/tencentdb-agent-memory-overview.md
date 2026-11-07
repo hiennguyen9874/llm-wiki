@@ -24,6 +24,6 @@ TencentDB Agent Memory combines layered chat memory with skills, document wiki, 
 
 **Reported:** the README gives PersonaMem results of 48% without and 76% with the product, calling this a 59% relative improvement. The benchmark protocol, dataset and harness were not independently inspected or reproduced; the numbers are vendor claims, not an independent comparison.[^tencentdb]
 
-The [source map](tencentdb-source-map.md) records inspection limits. This snapshot was reviewed statically; behavior, performance and security were not tested.
+The [source map](tencentdb-source-map.md) records inspection limits; the [Agent memory landscape survey](agent-memory-landscape-survey.md) compares this product with the other compiled systems. This snapshot was reviewed statically; behavior, performance and security were not tested.
 
 [^tencentdb]: Revision `2002196`: `README.md` sections “What is TencentDB Agent Memory?”, “Technical Implementation”, and “Benchmark”; `MemoryCore/src/core/tdai-core.ts::TdaiCore`; `MemoryKnowledge/src/module.ts::createKnowledgeModule`; `MemoryPanel/src/panel/panel-deps.ts::buildPanelDeps`; `MemoryProxy/src/server.ts::createApp`.
