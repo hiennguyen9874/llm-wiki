@@ -5,7 +5,8 @@ description: Marker is Datalab's open-source document-conversion pipeline that p
 tags: [ocr, document-parsing, pdf, markdown, layout-analysis, table-recognition]
 status: draft
 created: 2026-08-21
-generated: { by: llm-wiki-agent/1, at: 2026-10-25T03:24:46Z }
+generated: { by: llm-wiki-agent/1, at: 2026-11-08T03:10:11Z }
+stale_after: 2027-05-08
 sources:
   - id: marker-readme
     resource: ../raw/marker.md
@@ -48,13 +49,14 @@ The source compares these results with other systems, but its benchmark version,
 
 The source states that Marker code is Apache 2.0. It says model weights use a modified AI Pubs Open Rail-M license, are free for research, personal use, and startups under $5M funding or revenue, and require Datalab licensing for broader commercial use.[^marker-readme]
 
-This is a vendor-maintained README rather than an independent evaluation or security review. Its benchmark, throughput, accuracy, licensing, data-retention, and hosted-service claims are source claims. Five referenced local image assets—the logo and four benchmark figures—are absent from `raw/`, so their visual content was not inspected.
+This is a vendor-maintained README rather than an independent evaluation or security review. Its benchmark, throughput, accuracy, licensing, data-retention, and hosted-service claims are source claims. The flat README snapshot's referenced image paths do not resolve relative to `raw/`; a separate repository checkout contains the images, but their visual content was not inspected.
 
 ## Relationships
 
+- **Related to:** [Marker conversion pipeline](marker-conversion-pipeline.md), [document representation](marker-document-representation.md), and [deployment and configuration](marker-deployment-and-configuration.md), which analyze the later repository snapshot.
 - **Uses:** [Surya OCR 2](surya-ocr-2.md) as its layout, OCR, and table-recognition VLM backend; Marker is a selective text-layer/VLM pipeline, whereas the Surya page describes the underlying OCR system.[^marker-readme]
 - **Related to:** [Chandra OCR 2](chandra-ocr-2.md), Datalab's separate hosted document-OCR offering named as a higher-accuracy alternative in this source.[^marker-readme]
 - **Related to:** [PDF-to-Markdown tool selection](pdf-to-markdown-tool-selection.md) and [PDF-to-Markdown parser architectures](pdf-to-markdown-parser-architectures.md), which contain earlier source-qualified comparisons involving Marker.
 - **Compared with:** [LiteParse](liteparse.md), a model-free CPU baseline that this source ranks well below Marker's CPU mode on olmOCR-bench; LiteParse's own runs of the same benchmark report far higher scores.[^marker-readme]
 
-[^marker-readme]: Datalab, *Marker README*, local [marker.md](../raw/marker.md) (accessed 2026-08-21).
+[^marker-readme]: Datalab, *Marker README*, local [marker.md](../raw/marker.md), §§ Usage, Output Formats, Internals, Benchmarks, Licensing (accessed 2026-08-21).

@@ -1,5 +1,11 @@
 # Wiki Update Log
 
+## 2026-11-08
+- **Ingest**: Partially compiled the pinned [LiteParse repository](../raw/liteparse/README.md); created [pipeline](liteparse-pipeline.md) and [OCR and deployment](liteparse-ocr-and-deployment.md) concepts, updated the [overview](liteparse.md), and documented coverage gaps, privacy boundaries and benchmark-reproduction limits. No source code, tests or benchmarks were executed.
+
+## 2026-11-08
+- **Ingest**: Partially compiled the [Marker repository](../raw/marker/README.md) at revision `71dd5fd`; created [pipeline](marker-conversion-pipeline.md), [document representation](marker-document-representation.md), and [deployment](marker-deployment-and-configuration.md) concepts, linked the existing overview, and recorded pending coverage and static-only evidence limits. No conversion, tests, or benchmark were run.
+
 ## 2026-11-02
 - **Update**: Added [HunyuanOCR-1.5](hunyuanocr-1.5.md) to the [document OCR comparison](document-ocr-model-benchmark-comparison.md) and [supplement](ocr-ten-model-benchmark-comparison.md), inspecting local cards, tables and benchmark figures; preserved Real5 and CHAOS discrepancies and third-party protocol limits. No benchmark was run.
 - **Update**: Expanded [document OCR benchmark comparison](document-ocr-model-benchmark-comparison.md) and its [supplementary evidence](ocr-ten-model-benchmark-comparison.md) to include Nemotron 3.5 Parse, its reported ParseBench pass tradeoffs and multilingual results; retained source and protocol limits. No benchmark was run.

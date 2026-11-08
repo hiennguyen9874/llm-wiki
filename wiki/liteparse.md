@@ -5,8 +5,15 @@ description: LiteParse is run-llama's Apache-2.0, model-free PDF parser that ext
 tags: [ocr, document-parsing, pdf, markdown, model-free, layout-analysis, rag]
 status: draft
 created: 2026-10-25
-generated: { by: llm-wiki-agent/1, at: 2026-10-25T03:24:46Z }
+generated: { by: llm-wiki-agent/1, at: 2026-11-08T03:13:43Z }
+stale_after: 2027-05-08
 sources:
+  - id: liteparse-repo
+    resource: ../raw/liteparse/README.md
+    scope: ../raw/liteparse/
+    kind: code
+    revision: 9bd22ec9ddd2b64b47c49827b35970931641efcd
+    title: LiteParse repository
   - id: liteparse-readme
     resource: ../raw/liteparse.md
     title: LiteParse README
@@ -30,9 +37,13 @@ The Markdown path is described as classifying each page into blocks — `heading
 
 The same core ships through four interfaces: `napi-rs` Node.js/TypeScript bindings, `PyO3` Python bindings, `wasm-bindgen` browser bindings (no CLI), and a `lit` CLI installed by npm, pip, or cargo. A Python/Node "worker pool" mode runs parses in persistent worker processes because PDFium serializes concurrent parses, and adds hard per-parse timeouts that kill and name a rogue document. Platform claims are Linux, macOS (Intel and ARM), and Windows.[^liteparse-readme]
 
+**Observed at repository revision `9bd22ec`:** The implementation exposes the parse as composable stages and protects native PDFium calls with a process-global lock; see [LiteParse parsing pipeline](liteparse-pipeline.md) for concurrency and batch trade-offs.[^liteparse-repo]
+
 ## OCR modes
 
 Tesseract is bundled and enabled by default (`--ocr-language eng`, offline via `TESSDATA_PREFIX` or `--tessdata-path`). Higher-accuracy engines are attached by running a local HTTP OCR server that answers `POST /ocr` with `{results: [{text, bbox, confidence}]}`; the repository ships EasyOCR and PaddleOCR wrapper examples, and every benchmark's PaddleOCR row uses a PP-OCRv5 mobile detector plus English recognizer served over that API on ONNX Runtime, reported as 20–40× faster per page than the sibling PaddleOCR wrapper on CPU-only machines.[^liteparse-readme]
+
+**Observed:** Missing Tesseract language data may download on first use, so an offline deployment must pre-provision it. HTTP OCR sends page images to the configured endpoint; WASM requires a callback. The Rust library also supports an injected optional ONNX OCR engine. See [LiteParse OCR and deployment](liteparse-ocr-and-deployment.md) for engine selection, privacy, and failure behavior.[^liteparse-repo]
 
 ## Outputs and optional extraction fields
 
@@ -52,7 +63,7 @@ All figures below are project-reported: run on one machine from one command, wit
 | opendataloader-bench (200 docs) | NID + TEDS + MHS | 0.886 | 0.896 | 0.901 | opendataloader 0.842 |
 | olmOCR-bench (1,403 pages) | % tests passed | 39.6 | 41.1 | 42.2 | pdf-inspector 33.7 |
 
-The per-category detail is more informative than the aggregate. On ParseBench, LiteParse + PaddleOCR scores 0.430 tables but 0.013 charts, 0.787 content faithfulness, 0.402 semantic formatting, and 0.314 visual grounding, with every tested tool near zero on charts. On olmOCR-bench the same row scores 99.9 on `baseline`, 69.1 `multi_column`, 54.0 `table_tests`, 46.4 `long_tiny_text`, 19.4 `old_scans`, and 0.0 on both math categories, which the README attributes to the absence of a LaTeX path; OCR also lowers `headers_footers` (55.8 → 48.7) because OCR recovers letterhead text from logo images where the repeated-line filter cannot fire. On opendataloader-bench, the opendataloader row in LiteParse's own table reaches only 0.483 TEDS against LiteParse's 0.832, at comparable reading order (0.912 vs 0.932).[^liteparse-readme]
+The per-category detail is more informative than the aggregate. On ParseBench, LiteParse + PaddleOCR scores 0.430 tables but 0.013 charts, 0.787 content faithfulness, 0.402 semantic formatting, and 0.314 visual grounding, with every tested tool near zero on charts. On olmOCR-bench the same row scores 99.9 on `baseline`, 69.1 `multi_column`, 54.0 `table_tests`, 46.4 `long_tiny_text`, 19.4 `old_scans`, and 0.0 on both math categories, which the README notes require LaTeX output; OCR also lowers `headers_footers` (55.8 → 48.7) because OCR recovers letterhead text from logo images where the repeated-line filter cannot fire. On opendataloader-bench, the opendataloader row in LiteParse's own table reaches only 0.483 TEDS against LiteParse's 0.832, at comparable reading order (0.912 vs 0.932).[^liteparse-readme]
 
 ## Contradictions
 
@@ -65,7 +76,8 @@ Neither contradiction is resolvable from the inspected material: both competing 
 
 ## Evidence limits
 
-- The README, source tree, benchmark harnesses, and packaged binaries were not inspected or executed for this page. Architecture, flags, defaults, and platform claims are reported documentation, not observed implementation.[^liteparse-readme]
+- The separate README capture was read previously; the matching repository README, selected source, tests, and benchmark-script regions were statically inspected at revision `9bd22ec` for this update. Coverage is partial and packaged binaries were not inspected. No builds, tests, parsing or benchmarks were executed; see the [coverage ledger](liteparse-pipeline.md).[^liteparse-repo]
+- The benchmark README describes v2.14.4, not the inspected 2.18.0-based snapshot. Its `ocr/rapidocr` reproduction path and the benchmark script's `LAUNCH_BENCHMARKS.md` are absent in this checkout; external harnesses and outputs were not inspected. The script instead points to `ocr/paddleocr`, so reproduction of the published PaddleOCR rows remains unresolved.[^liteparse-repo]
 - Benchmark numbers are project-reported and self-run, including the competitor rows and the choice of model-free competitors; the comparison deliberately excludes LLM-based parsers that would win on difficult pages.
 - Throughput cannot be compared across sources: the README's "~2–5 ms per page" is a PDFium text-extraction claim per page, while competitor tables publish concurrent pages/second on other hardware (the Marker README, for instance, lists 1,721 pg/s for liteparse without OCR on a B200 host).[^liteparse-readme][^marker-readme]
 - The README's own recommendation defers dense tables, multi-column layouts, charts, handwriting, and scanned PDFs to the commercial LlamaParse service, so LiteParse is documented as a fast baseline rather than a quality ceiling.
@@ -79,6 +91,7 @@ Neither contradiction is resolvable from the inspected material: both competing 
 - **Related to:** [PDF-to-Markdown tool selection](pdf-to-markdown-tool-selection.md), which places LiteParse in the model-free, CPU-bound branch of that decision.
 - **Related to:** [PDF-to-Markdown parser architectures](pdf-to-markdown-parser-architectures.md), whose geometry-first versus model-first split applies to LiteParse's rule-based block classifier.
 
-[^liteparse-readme]: run-llama, [*LiteParse README*](../raw/liteparse.md), sections "Overview", "Benchmarks", "CLI Usage", "OCR Setup", "Multi-Format Input Support", and "Development" (captured 2026-10-25; benchmarks describe v2.14.4). Linked docs, source code, benchmark harnesses, and package artifacts were not inspected.
+[^liteparse-repo]: run-llama, [LiteParse repository](../raw/liteparse/README.md), revision `9bd22ec`; `crates/liteparse/src/stages.rs` module documentation, `parser.rs::ocr_engine`, `ocr/tesseract.rs::ensure_traineddata`, `crates/pdfium/src/library.rs::pdfium_lock`, `run_benchmarks.sh` OCR mode, root README “Benchmarks” and “Reproducing the benchmarks”. Repository coverage is partial and no source was executed.
+[^liteparse-readme]: run-llama, [*LiteParse README*](../raw/liteparse.md), sections "Overview", "Benchmarks", "CLI Usage", "OCR Setup", "Multi-Format Input Support", and "Development" (captured 2026-10-25; benchmarks describe v2.14.4). This capture is byte-identical to the inspected repository README; benchmark runs and package artifacts were not inspected.
 [^opendataloader-pdf-readme]: OpenDataLoader Project, [*OpenDataLoader PDF README*](../raw/opendataloader-pdf.md), project benchmark table listing `liteparse` at 0.576 overall (accessed 2026-10-25). The benchmark implementation and the liteparse build it used were not inspected.
 [^marker-readme]: Datalab, [*Marker README*](../raw/marker.md), "Overall PDF Conversion" competitive comparison table and the "Born-digital, CPU-only" subsection (accessed 2026-10-25). The benchmark runs and liteparse version used were not inspected.
