@@ -1,0 +1,282 @@
+\section{Evaluation}
+\label{sec:evaluation}
+
+\subsection{Overall Evaluation Setup}
+We evaluate MemT-1.0 from the perspectives of memory and general capabilities.
+The memory evaluation focuses on whether MemT-1.0 can answer questions based on its dynamic memory states, without access to prior textual context.
+The evaluation on general capabilities examines the impact of the additional native memory mechanism on the model’s general capabilities.
+These aspects provide an important foundation for self-evolving memory-native models.
+
+\textbf{Benchmarks.}
+We evaluate memory capabilities on 11 benchmarks and divide them into four groups according to trajectory length.
+Specifically, the group below 16K includes MemBench~\cite{tan2025membench} and ImplicitMemBench~\cite{qin2026implicitmembench}, and the 16K-32K group includes PersonaMem~\cite{jiang2025know}, PS-Bench~\cite{guo2026personalization}, and LoCoMo~\cite{maharana2024evaluating}.
+For longer trajectories, the 32K-64K group includes PerMemSafe~\cite{an2026permemsafe}, Memora~\cite{uddin2026recall}, and MemOps~\cite{hao2026memops}, and the group above 64K includes LongMemEval-S~\cite{wu2024longmemeval}, MemoryAgentBench~\cite{hu2026evaluating}, and BEAM-1M~\cite{tavakoli2025beyond}.
+These benchmarks focus on long-term information retention and retrieval, dynamic memory updating and management, and personalized understanding.
+In addition, we evaluate general capabilities on six benchmarks spanning four major dimensions.
+Specifically, we evaluate knowledge and scientific reasoning with MMLU-Pro~\cite{wang2024mmlu} and GPQA Diamond~\cite{rein2023gpqa}, instruction following with IFEval~\cite{zhou2023instruction},
+long-context understanding with LongBench v2~\cite{bai2025longbench}, and code generation with BigCodeBench-Hard~\cite{zhuo2025bigcodebench} and LiveCodeBench v6~\cite{jain2025livecodebench}.
+These benchmarks collectively assess a wide range of general capabilities, thereby reflecting the impact of the additional native memory mechanism on the underlying backbone model.
+More details are available in Appendix~\ref{appendix:benchmark_details}.
+
+\textbf{Baselines.}
+We compare MemT-1.0 with textual memory and parametric memory approaches.
+Textual memory methods perform inference based on the original backbone model with full context and partial context settings.
+Full context provides the complete historical text as memory in the input context, while DenseRAG retrieves a subset of relevant information as contextual evidence~\cite{karpukhin2020densepassageretrievalopendomain}.
+We also include representative memory systems for comparison, including MemOS~\cite{li2025memos}, Mem0~\cite{chhikara2025mem0}, OpenViking~\cite{fu2026vikingmem}, and Graphiti~\cite{rasmussen2025zep}.
+For parametric memory methods, no textual history is provided in the context, and the model performs inference using its own parametric memory.
+Our parametric memory baselines include Temp-LoRA~\cite{wang2024greater}, Doc-to-LoRA~\cite{charakorn2026doc}, SHINE~\cite{liu2026shine}, $\delta$-mem~\cite{lei2026delta}, LiveMem~\cite{liu2026livemem}, MemoryLLM~\cite{wang2024memoryllm} and ICAE~\cite{ge2023context}.
+More details of the baselines are provided in Appendix~\ref{appendix:baseline_details}.
+
+\textbf{Evaluation Protocol.}
+For memory capability evaluation, in each trajectory, we first reset the memory and write the historical information into memory following the chronological order.
+Then, the model is required to answer multiple questions related to the historical information, and the responses are compared against the ground-truth answers to compute accuracy.
+Specifically, memory is strictly isolated across different users and histories. 
+Ground-truth answers, evidence annotations, and evaluation labels are only used for scoring and are never exposed to the evaluated models.
+For LLM-as-a-Judge, we utilize \texttt{gpt-4.1-mini} with the OmniMemEval~\cite{memtensor2026omnimemeval} prompt.
+For general capability evaluation, we introduce irrelevant information before inference, which aims to examine how the native memory mechanism affects the model’s general capabilities under the noise setting.
+More details are available in Appendix~\ref{appendix:eval_general_pipeline_details}.
+
+\input{tables/memory_major_result}
+
+\subsection{Memory Capabilities}
+The results for memory capabilities are presented in Table~\ref{tab:memory_capability_main}.
+MemT-1.0-Flash and MemT-1.0-Nano achieve average scores of 50.6 and 47.0, respectively, ranking first and second among the parametric memory methods, ahead of the strongest parametric baseline by 12.5 and 8.9 points.
+The results support native memory as a shared representation for diverse memory tasks without providing historical text in the query context.
+The comparison between MemT-1.0-Flash and MemT-1.0-Nano reveals distinct strengths across tasks, though the aggregate gap between them remains modest and is driven mainly by memory operations.
+MemT-1.0-Flash improves most clearly on memory operations, personalized understanding, conversational recall, and implicit learning.
+MemT-1.0-Nano remains stronger on PerMemSafe and Memora, whereas MemT-1.0-Flash scores higher on Persona-grounded PS-Bench.
+The advantage over parametric memory baselines also extends to long histories, where MemT-1.0 leads this group on LongMemEval-S, MemoryAgentBench, and BEAM-1M.
+However, the remaining errors on these benchmarks show that processing an extended trajectory does not by itself ensure reliable access to its contents.
+Answering later queries requires earlier information to survive successive updates and remain distinguishable from other stored associations.
+The results motivate further improvements in selective retention and query-dependent readout.
+
+The strongest textual memory systems still achieve substantially higher performance, particularly on LongMemEval-S and BEAM-1M.
+These systems provide explicit historical evidence at query time, whereas MemT-1.0 must recover the required information from its evolving states.
+This gap is consistent with the difficulty of preserving detailed evidence through recurrent memory updates and highlights memory fidelity as an important target for further development.
+
+\subsection{General Capabilities}
+We evaluate general capabilities under the noise setting.
+In this setting, we inject irrelevant information into memory before the evaluation tasks, which simulates the impact of distracting memories during real-world online interactions.
+We report the performance gap between MemT-1.0 and its corresponding backbone model under the noise setting.
+The results are presented in Table~\ref{tab:general_capability}.
+
+MemT-1.0-Flash performs comparably to its DeepSeek-V4-Flash backbone on average under the same noise setting.
+The largest gain occurs on BigCodeBench-Hard, with smaller improvements on IFEval and LongBench v2.
+Performance decreases modestly on MMLU-Pro, GPQA Diamond, and LiveCodeBench v6.
+These results suggest that MemT-1.0-Flash broadly preserves general capabilities under distracting memories.
+
+We next examine MemT-1.0-Nano, whose average decrease is around one point.
+Under the noise setting, most benchmarks remain close to the backbone, with gains on IFEval and BigCodeBench-Hard.
+The degradation is concentrated rather than uniform.
+The largest decrease occurs on LiveCodeBench v6, followed by smaller decreases on LongBench v2, MMLU-Pro, and GPQA Diamond.
+The contrasting changes on BigCodeBench-Hard and LiveCodeBench v6 further suggest that the impact varies even across benchmarks within the same capability domain.
+
+Overall, the results support broad capability preservation alongside native memory, while highlighting that resistance to distracting memories should be evaluated at the task level.
+
+\input{tables/general_major_result}
+
+\subsection{Ablation Studies}
+In this section, we further present several ablation studies based on MemT-1.0-Nano during model development.
+As for the model architecture, we focus on the update rule and update granularity in the native memory procedure.
+We also design a bidirectional encoding mechanism to aggregate information from the current turn.
+In addition, we study the contribution of different training stages.
+These experiments further verify the effectiveness of our current architecture.
+
+\subsubsection{Architecture Ablation}
+
+For architecture ablation, we evaluate four variants.
+First, we remove the stable mechanism to recover the GDN-2 memory update (w/ GDN-2) by directly using
+\begin{equation*}
+    \tilde{\mathbf{M}}_{t, i, h}^{(l)} = \left[
+\mathbf{I}
+-
+\mathbf{K}_{t,i,h}^{(l)\top}
+\left(
+\bm{\beta}_{t,i,h}^{(l)}
+\odot
+\mathbf{K}_{t,i,h}^{(l)}
+\right)
+\right]
+\cdot
+\mathbf{D}_{t,i,h}^{(l)}
+\tilde{\mathbf{M}}_{t,i-1,h}^{(l)}
++
+\mathbf{K}_{t,i,h}^{(l)\top}
+\left(
+\bm{\omega}_{t,i,h}^{(l)}
+\odot
+\mathbf{V}_{t,i,h}^{(l)}
+\right).
+\end{equation*}
+We also change the update rule into GDN~\cite{yang2025gateddeltanetworksimproving} as another ablation baseline (w/ GDN).
+Second, we change the update granularity from token-level to turn-level (w/ TL).
+The storage procedure can be defined as
+\begin{equation*}
+    \mathbf{M}_{t+1,h}^{(l)} = \left[
+\mathbf{I}
+-
+\frac{1}{L_t}
+\mathbf{U}_{t,h}^{(l)\top}
+\mathbf{U}_{t,h}^{(l)}
+\right]
+\cdot
+\mathbf{D}_{t,h}^{(l)}
+\mathbf{M}_{t,h}^{(l)}
++
+\frac{1}{L_t}
+\mathbf{U}_{t,h}^{(l)\top}
+\left(
+\bm{\omega}_{t,h}^{(l)}
+\odot
+\mathbf{V}_{t,h}^{(l)}
+\right),
+\end{equation*}
+where we have 
+\begin{equation*}
+    \mathbf{D}_{t,h}^{(l)} = \operatorname{Diag}
+\left[
+\exp
+\left(
+\frac{1}{L_t}
+\sum_{i=1}^{L_t}
+\bm{\lambda}_{t,i,h}^{(l)}
+\right)
+\right].
+\end{equation*}
+We also evaluate a bidirectional encoding (w/ BE) for information aggregation.
+Specifically, during the storage procedure in each turn, it first projects the pre-attention hidden states $\tilde{\mathbf{H}}_t^{(l)}$ into a lower-dimensional space, and applies multi-head self-attention with rotary position embeddings without a causal mask.
+After that, it projects the result back to the backbone dimension through a residual connection.
+The enriched representations are used to predict the erase, write, and forget gates, while the memory keys and values are still projected from the original pre-attention hidden states.
+
+As shown in Table~\ref{tab:ablation_results}, the update granularity has the largest effect among the architecture variants.
+Replacing token-level with turn-level aggregation reduces the average from 46.97 to 40.98, a far larger drop than any change to the update rule.
+This may be because successive token-level updates can better account for memory decay and revise associations established earlier within the same turn.
+The update-rule variants, by contrast, stay close to the full model, with removing the stable mechanism giving 46.43 and substituting GDN giving 46.72.
+Both fall within a narrow band around the baseline, so the aggregate capability is not determined by the precise form of the update rule.
+Adding bidirectional encoding reduces the average to 45.43.
+Its effect is benchmark-dependent rather than uniformly negative: MB, IM, PM, and PMS improve, whereas the remaining benchmarks regress.
+Under the evaluated training budget, bidirectional encoding does not improve aggregate memory performance, and its benchmark-specific gains do not offset the losses elsewhere.
+
+\subsubsection{Training Ablation}
+We further conduct ablation studies on our training procedures.
+For the w/o CPT setting, we skip CPT and directly train the memory parameters through post-training alone.
+For the w/o PT setting, we evaluate the checkpoint after continued pre-training without subsequent post-training.
+From the results in Table~\ref{tab:ablation_results}, we find that post-training plays an important role in memory-specific tasks, where it increases the average score by approximately 10.69 points over the CPT checkpoint.
+These results indicate that language-modeling CPT alone does not provide the same memory-conditioned response capability as the complete pipeline.
+In addition, the CPT stage improves post-training as well.
+Therefore, post-training accounts for the larger observed gain in this comparison, while CPT provides an additional aggregate benefit as an initialization stage.
+
+\input{tables/ablation_study}
+
+\subsection{End-to-End Inference Efficiency}
+\label{sec:inference_efficiency}
+We further evaluate the end-to-end inference efficiency of MemT-1.0 against baseline methods, with a particular focus on the results as the history length increases.
+Specifically, we compare MemT-1.0-Nano with full context, $\delta$-mem, and Temp-LoRA on BEAM.
+Full context, Temp-LoRA and MemT-1.0-Nano use HF inference on two GPUs exclusively allocated to each run, with backbone layers distributed across devices, a concurrency of 1, and a batch size of 1. For $\delta$-mem, we use its publicly released model and implementation.
+
+\begin{figure}[t]
+    \centering
+    \includegraphics[width=\linewidth]{figures/eval_efficiency.pdf}
+    \vspace{-0.8cm}
+    \caption{Left: End-to-end latency includes history preparation and generation of a 128-token response. Right: Query TTFT measures the time from query execution to the first generated token, excluding history preparation.}
+    \label{fig:results_efficiency}
+    \vspace{-0.4cm}
+\end{figure}
+
+We construct input sequences with varying history lengths based on BEAM.
+The query uses shared 512-token content, with the chat template added separately, rather than a benchmark question, and each sequence is treated independently.
+We evaluate a fixed generation length of 128 tokens by forcing the model to decode exactly 128 tokens while ignoring the end-of-sequence signal.
+For the HF evaluations, synchronized wall-clock timers exclude model loading, input tokenization, and evaluation-related scoring overhead.
+For each history and length, we measure preparation once, discard one query warm-up, and average five timed queries. Reported curves average the resulting values across 35 histories.
+For MemT-1.0-Nano, history content is processed in 2,048-token slices, with each chat-formatted chunk capped at 2,048 tokens.
+
+The reported end-to-end latency includes history preparation and response generation, accounting for indexing, test-time adaptation, or memory writes as applicable.
+We additionally report query time to first token (TTFT), measured from the start of query execution to the first generated token, including query prefilling but excluding history preparation.
+For full context and MemT-1.0-Nano, both end-to-end latency and TTFT include state restoration.
+The HF full-context baseline reuses the prepared history cache.
+We report results over the common history-length range from 512 to 256K tokens.
+Figure~\ref{fig:results_efficiency} presents the results.
+MemT-1.0-Nano achieves an end-to-end advantage over full context at long histories.
+It is generally slower at short histories and approximately matches full context at 32K tokens, reaching speedups of approximately $1.20\times$ at 64K, $1.86\times$ at 128K, and $3.99\times$ at 256K.
+Its memory storage procedure processes history incrementally; generation then accesses the resulting state without retaining historical tokens in the attention context.
+In comparison, the full-context baseline incurs both history prefilling and continued attention over historical KV entries during generation.
+The measured long-history end-to-end advantage primarily reflects lower history-preparation cost.
+
+The query TTFT curves reveal an additional benefit after history preparation.
+MemT-1.0-Nano maintains broadly stable mean query TTFT of approximately 104--112\,ms across the evaluated range, while full-context TTFT rises to approximately 257\,ms at 128K tokens and 445\,ms at 256K tokens.
+MemT-1.0-Nano's behavior is consistent with a fixed-size memory readout whose state dimensions do not grow with the number of historical tokens processed.
+For persistent interactions, it allows accumulated history to influence responses without progressively increasing the attention context used for each new query.
+The benefit concerns access to the stored representation, and the memory-capability results above already show that this representation preserves useful information.
+At 128K and 256K tokens, MemT-1.0-Nano achieves query TTFT speedups of approximately $2.44\times$ and $4.19\times$, respectively, over cached full-context inference.
+
+Previously collected results for the parametric memory baselines highlight the importance of accounting for preparation costs.
+Temp-LoRA maintains stable query TTFT, but its end-to-end cost grows substantially because history-specific adaptation requires optimization.
+Although $\delta$-mem has the lowest query TTFT, its end-to-end latency exceeds Nano's from 64K tokens onward as history-preparation cost grows.
+Absolute latency differences across these systems also reflect their backbone, runtime, and tokenization configurations.
+These results show the value of efficient memory construction together with predictable query TTFT.
+Reusing a prepared state amortizes its construction cost over multiple queries.
+
+
+
+\subsection{Storage Overhead}
+\label{sec:storage_overhead}
+We evaluate the per-trajectory storage overhead on BEAM histories, after history preparation and before querying.
+The reported storage size is the logical size in bytes of the per-trajectory state.
+The shared backbone weights, embedders and hyper memory parameters are excluded from the measurement.
+More details can be found in Appendix~\ref{appendix:eval_storage_overhead}, and the results are presented in Figure~\ref{fig:storage_overhead}.
+
+Figure~\ref{fig:storage_overhead} shows a clear difference between retaining historical records and maintaining a fixed-size state.
+Full context incurs increasing storage as its logical state size grows with the visible history.
+DenseRAG has a much smaller storage overhead at short histories, but its stored texts and retrieval vectors also accumulate as more information is added.
+In contrast, MemT-1.0-Nano's memory state storage remains constant throughout the trajectory, because new information updates memory states without enlarging them.
+At a history length of 128K tokens, MemT-1.0-Nano achieves an approximately $66\times$ reduction in per-trajectory storage compared with the full context setting.
+Temp-LoRA also exhibits constant storage, since its adapter dimensions are fixed, although its storage overhead is larger than MemT-1.0-Nano's in the evaluated configuration.
+
+The comparison with DenseRAG illustrates how the storage advantage depends on interaction length.
+For short histories, storing a small collection of text chunks and embeddings is cheaper than allocating MemT-1.0-Nano's full memory state.
+As histories grow, DenseRAG's accumulated records eventually exceed that fixed allocation.
+MemT-1.0-Nano therefore becomes more attractive for persistent sessions with extended interaction histories, where additional turns do not increase the size of the saved state.
+The full context curve ends at its context-window limit, so its reported storage does not represent retaining the entire longest history.
+For deployment of MemT-1.0, a constant state size makes per-trajectory logical-state budgets predictable, and bounds the logical payload that must be saved or transferred when resuming an interaction.
+Total storage still grows with the number of independent trajectories and the configured memory capacity.
+
+\begin{figure}[t]
+    \centering
+    \includegraphics[width=0.75\linewidth]{figures/eval_storage.pdf}
+    \vspace{-0.2cm}
+    \caption{Results of storage overhead. Per-trajectory persistent storage on BEAM histories of increasing length.}
+    \label{fig:storage_overhead}
+    \vspace{-0.4cm}
+\end{figure}
+
+
+\subsection{Low-Rank Decomposition}
+To further explore the compressibility of memory states based on MemT-1.0-Nano, we perform online low-rank projection for memory states to study their performance impacts.
+Specifically, we apply singular value decomposition (SVD) to the FP32 state matrix of each layer after each storage procedure, and reconstruct a dense state from the retained components for subsequent computation.
+For a retained rank $k$, the reconstructed state is computed as 
+\begin{equation*}
+    \mathbf{M}_{t,h}^{(l)}=U_{:,1:k}\Sigma_{1:k,1:k}V_{:,1:k}^{\top}.
+\end{equation*}
+We set the rank $k \in \{1, 2, 4, 8, 16, 32, 64, 128, 256\}$, with the full rank $k=256$ retaining the original dense state without projection.
+The evaluation is conducted on PersonaMem and LoCoMo.
+For each retention ratio, we independently initialize the memory state, write the complete history, and apply low-rank reconstruction after every memory storage  when $k<256$.
+
+Figure~\ref{fig:low_rank_decomposition} shows different results across the two tasks.
+On LoCoMo, accuracy generally improves as more singular components are retained.
+The largest gains fall in the middle of the rank range, and the final doublings add progressively less, although the score still improves up to the full rank.
+The one exception is the smallest retained rank, which scores slightly above the next one.
+At this level of truncation, the small score difference alone does not establish an advantage of extreme compression.
+PersonaMem follows the same shape but saturates much earlier.
+Its accuracy rises quickly and then flattens out before reaching full rank, with the highest observed accuracy at an intermediate rank and no further improvement once additional components are retained.
+Overall, memory performance improves as the retained rank increases, but the returns diminish quickly, and on PersonaMem they eventually vanish.
+Because theoretical factor storage grows roughly linearly with the retained rank, increasing the rank yields diminishing returns in downstream accuracy.
+
+\begin{figure}[t]
+    \centering
+    \includegraphics[width=0.95\linewidth]{figures/eval_low_rank.pdf}
+    \vspace{-0.2cm}
+    \caption{Impact of online low-rank decomposition
+        on memory performance and storage.}
+    \label{fig:low_rank_decomposition}
+    \vspace{-0.4cm}
+\end{figure}

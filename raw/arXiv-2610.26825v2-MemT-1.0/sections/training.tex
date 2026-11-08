@@ -1,0 +1,148 @@
+\section{Training}
+\label{sec:training}
+\subsection{Backbone Preparation}
+\label{sec:backbone_prep}
+A memory foundation model inherits from its backbone both the knowledge fixed at pre-training and the reliability with which that knowledge becomes behavior, and post-training treats the two very differently. Training on the backbone's own verified samples fits its distribution conditioned on verifier acceptance~\cite{zelikman2022star,singh2024beyond}: it reweights what the backbone already produces and, by itself, leaves tasks the backbone almost never solves untouched. Our per-item analysis bears this out. Gains concentrate on tasks the backbone solves occasionally. Tasks it never solved in eight attempts end at only 1.6--4.0\% accuracy across four benchmarks after the preparation described below, in line with observations for RL~\cite{yue2025does}, whereas on a separate probe set of hard knowledge questions, supplying the relevant facts in context raises accuracy from 27\% to 91\%, which suggests that the remaining gap is largely informational. In our setting, reliability is therefore what post-training mainly improves, and new information is what native memory must supply.
+
+Accordingly, we post-train DeepSeek-V4-Flash before attaching native memory, with data from a three-step pipeline applied within each of three tracks: general capabilities (instruction following, knowledge, mathematics, and long-context reasoning), agentic coding, and agentic working (tool use and workflow automation). First, capability profiling: each task is attempted repeatedly and classified as reliably, occasionally, or not solved, a profile that stands in for the pre-training data we cannot see. Second, attribution by intervention: a failure is re-run with the suspected missing piece, a grader convention, a procedural hint, or a fact, placed in context, and whether it disappears tells a missing convention or procedure apart from missing knowledge; failures that persist under every intervention are excluded from synthesis. Third, capability-conditioned synthesis assigns each class its own data source. Reliably solved tasks supply replay. Occasionally solved tasks supply the backbone's own attempts that pass programmatic verifiers (constraint checkers, unit tests, or sandboxed agent runs), which keeps most of the data on the backbone's own distribution. Failures traced to a missing convention or procedure are learned either from guided sampling, where the guidance appears in the sampling context but not in the target, or from style-matched demonstrations by stronger models. Knowledge gaps, which synthesis has so far closed only item by item, are left mainly to retrieval and, in MemT-1.0, to native memory. Transfer is checked on held-out task families.
+
+The recipe was settled over five rounds of full-mixture training and more than fifty training runs in total. The final mixture holds 126.5K trajectories (2.4B tokens, 1.1B loss-bearing), 56.4\% general, 18.0\% agentic coding, and 25.3\% agentic working by count; agentic trajectories account for about 90\% of loss-bearing tokens, so general data anchors the backbone's existing capabilities while the long agentic trajectories carry the multi-turn behavior that memory tasks build on. The prepared backbone improves on all six benchmarks we monitor across the three tracks, by 6.3 points on average over the public release (Figure~\ref{fig:backbone_preparation_results}), and on SWE-bench Multilingual and IFBench~v2, at 284B total and 13B active parameters, it exceeds the reported scores of larger open models, including GLM-5.3 Flash (320B total, 18B active)~\cite{glm53flash} and the far larger DeepSeek-V4 Pro (1.6T total, 49B active)~\cite{deepseekai2026deepseekv4}.
+
+The backbone is then frozen to serve as both the host model and the full-context distillation teacher of Section~\ref{sec:objectives}. Backbone preparation and native memory are two routes by which experience shapes a model's later behavior, through the weights before deployment and through memory states during interaction; closing the loop between them is left to future work.
+
+\subsection{Data Construction}
+
+To support the training of MemT-1.0, we construct a large-scale training corpus with 34B tokens, which is composed of continued pre-training (CPT) and post-training data.
+We collect 20B tokens of CPT data, which mainly consists of large-scale general-purpose language modeling corpora.
+It contains long-form and sequential text to expose the model to diverse linguistic patterns and extensive contextual dependencies.
+
+For post-training, we organize 14B tokens of data into three major categories.
+First, we construct memory-native language modeling data.
+This data encourages MemT-1.0 to maintain linguistic coherence, stylistic consistency, and instruction-following capability when information is accessed through native memory.
+Second, we construct data for native memory storage and utilization, including tasks such as summarization, continuation, and compression.
+They provide explicit supervision for storing information that should be retained in native memory.
+They train the model to recover and utilize the stored information during subsequent generation.
+Third, we introduce memory task data to further strengthen the model's long-range memory capability.
+They further improve the model's ability to selectively retain critical information and resolve long-range dependencies, which improves the utilization of memory when answering downstream queries.
+Part of the training corpus is based on real-world interaction patterns in MemOS's anonymized internal data.
+
+All three categories are formulated in a unified context-query-answer format.
+The context is first processed and stored through the native memory mechanism, after which the model receives the corresponding query and is trained to generate the target answer conditioned on the resulting memory state.
+This unified formulation allows heterogeneous memory-related tasks to be incorporated into the same post-training pipeline.
+
+\subsection{Training Objectives}
+\label{sec:objectives}
+The core training objective of MemT-1.0 is to align its capability with the backbone given full context, which enables the model to retain and utilize historical information without preserving the context.
+To this end, we introduce an off-policy distillation framework for training native memory models, where the backbone serves as the teacher model for acquiring memory capabilities~\cite{hinton2015distillingknowledgeneuralnetwork}.
+
+Let $\theta_{b}$ denote the frozen backbone parameters and $\phi$ denote the trainable memory parameters, including the hyper memory blocks and extra parameters of MoS.
+For a training trajectory $\{(X_t,Y_t)\}_{t=1}^{T}$, we define the preceding textual history as $C_{<t}=S_1\Vert\cdots\Vert S_{t-1}$, where $S_t=X_t\Vert Y_t$.
+We use the original backbone without the additional memory modules as the teacher, whose next-token distribution is
+\begin{equation*}
+    q_{t,k}(v)
+    = P\left(v \mid C_{<t},X_t,Y_{t,<k};\theta_{b}\right),
+    \qquad v\in\mathcal{V}.
+\end{equation*}
+The MemT-1.0 student receives the current input and the same observed response prefix, with previous steps represented by the incoming local memory state $\mathbf{M}_t$, where
+\begin{equation*}
+    p_{t,k}(v)
+    = P\left(v \mid X_t,Y_{t,<k};\theta_{b},\phi,\bm{\mathcal{M}}_t\right).
+\end{equation*}
+Here, $\bm{\mathcal{M}}_t$ denotes the collection of dynamic states
+across all memory layers and experts.
+The state is initialized to zero for each independent trajectory
+and evolves through the native storage procedure after each completed step.
+Both models are evaluated under teacher forcing on
+fixed teacher-generated trajectories rather than student-generated
+rollouts, making the distillation objective off-policy
+with respect to the student policy.
+To reduce the size of the teacher targets, we retain its Top-$K$ tokens at each supervised position.
+Let $\mathcal{K}_{t,k}\subseteq\mathcal{V}$ be this token set and $T_{d}>0$ be the distillation temperature.
+Given $q^{T_{d}}$ and $p^{T_{d}}$ for distributions obtained by dividing the respective logits by $T_{d}$ before softmax, we define
+\begin{equation*}
+    \hat{q}_{t,k}(v)
+    = \frac{q^{T_{d}}_{t,k}(v)}
+    {\sum_{u\in\mathcal{K}_{t,k}}q^{T_{d}}_{t,k}(u)},
+    \qquad v\in\mathcal{K}_{t,k},
+\end{equation*}
+and set $\hat{q}_{t,k}(v)=0$ outside this set.
+The per-token distillation loss is the forward KL divergence from this truncated teacher distribution to the student by
+\begin{equation*}
+    \ell^{\mathrm{KL}}_{t,k}
+    = T_{d}^{2}
+    \sum_{v\in\mathcal{K}_{t,k}}
+    \hat{q}_{t,k}(v)
+    \log\frac{\hat{q}_{t,k}(v)}{p^{T_{d}}_{t,k}(v)}.
+\end{equation*}
+The teacher is renormalized over its selected support, whereas the student remains normalized over the full vocabulary.
+Consequently, the loss also penalizes student probability mass assigned outside the teacher's selected tokens.
+We additionally use the observed target token $y_{t,k}$ for next-token cross-entropy supervision
+\begin{equation*}
+    \ell^{\mathrm{CE}}_{t,k}=-\log p_{t,k}(y_{t,k}).
+\end{equation*}
+For a training batch $\mathcal{B}$, let $m^{(b)}_{t,k}\in\{0,1\}$ indicate whether a position in trajectory $b$ is supervised.
+The training loss is
+\begin{equation*}
+    \mathcal{L}(\phi)
+    = \frac{1}{N_{\mathrm{spt}}}
+    \sum_{b\in\mathcal{B}}\sum_{t,k}m^{(b)}_{t,k}
+    \left[
+        \lambda_{\mathrm{KD}}\ell^{\mathrm{KL},(b)}_{t,k}
+        +\lambda_{\mathrm{CE}}\ell^{\mathrm{CE},(b)}_{t,k}
+    \right],
+\end{equation*}
+where $N_{\mathrm{spt}}=\sum_{b\in\mathcal{B}}\sum_{t,k}m^{(b)}_{t,k}$ is the number of supervised tokens, and $\lambda_{\mathrm{KD}}$ and $\lambda_{\mathrm{CE}}$ are nonnegative weights with at least one nonzero value.
+Cross-entropy uses the untempered student distribution.
+The mask selects the prediction targets appropriate to each training stage and excludes padding.
+History tokens may participate in memory construction without receiving direct loss.
+Normalization is performed over all supervised tokens in the optimization batch, including those distributed across workers and accumulation steps.
+Specifically, we use CE supervision during CPT and KL-based distillation during post-training.
+For MoS training, we add a router auxiliary loss to balance the load across memory experts.
+For MemT-1.0-Flash, the backbone prepared in Section~\ref{sec:backbone_prep} is frozen during native-memory training.
+
+\subsection{Continued Pre-Training}
+
+We first conduct CPT to establish the basic capability of language modeling with native memory.
+This stage trains MemT-1.0 to predict subsequent tokens using both the current textual context and information accumulated from preceding segments.
+For each training sequence, we divide the tokens into consecutive, non-overlapping segments and treat each segment as a step $t$.
+The student performs causal language modeling within the current segment, with the preceding history $C_{<t}$ represented by the incoming memory states $\bm{\mathcal{M}}_t$.
+Its backbone context is restricted to the current segment, so information from earlier segments is accessed through native memory.
+After processing a segment, the native storage procedure applies token-level updates to obtain $\bm{\mathcal{M}}_{t+1}$ for the next segment.
+The final segment is retained even when it is shorter than the specified segment length.
+Memory states are carried across segments within the same sequence and initialized to zero at the beginning of each independent sequence.
+
+We use CE loss during CPT, with the ground-truth next tokens serving as the supervision targets. The student performs causal language modeling within the current segment while relying on native memory to access information from preceding segments. This encourages the model to establish language modeling capabilities under native memory without requiring the full historical context as textual input.
+
+\subsection{Post-Training}
+
+Post-training further adapts MemT-1.0 to native memory-based response generation.
+We initialize the memory parameters from the CPT checkpoint and train on instances containing historical context, queries, and reference responses.
+The historical context is processed chronologically through the native storage procedure, producing the memory states used to answer subsequent queries. The responses are rollouts from the full-context teacher, and serve to condition both models under teacher forcing rather than as direct supervision targets.
+At step $t$, the student receives the current query $X_t$ and the observed response prefix $Y_{t,<k}$, with the preceding history $C_{<t}$ represented by $\bm{\mathcal{M}}_t$.
+The teacher retains access to the corresponding textual history.
+Memory states are initialized independently for each trajectory, preserving the association between a query and its own history.
+
+We use the KL loss in the post-training stage.
+The supervision mask $m^{(b)}_{t,k}$ selects response tokens, while history, query, and padding positions receive no direct token loss.
+Both teacher and student are evaluated under teacher forcing with the same observed response prefix.
+Reference responses thus determine the prefixes on which the models are evaluated, while the teacher's probability distributions provide the distillation targets.
+The loss is averaged over all supervised response tokens in the training batch.
+This focuses optimization on the outputs required by the task while training the student to approximate the full-context teacher through native memory.
+Although historical tokens receive no direct loss, gradients from response predictions propagate through memory readout and earlier storage operations.
+This allows the model to learn which historical information to retain and how to utilize it for the current query.
+The full-context teacher provides a reference for both the use of historical information and the backbone's response behavior, encouraging MemT-1.0 to acquire task-specific memory capabilities while preserving its general capabilities.
+
+\subsection{Training Setups}
+For MemT-1.0-Nano, training consists of 1 CPT epoch followed by post-training.
+The global batch size is 64 packed sequences.
+Each pack contains at most 64K tokens, while the segment length is 2K tokens.
+Incomplete final global batches are dropped.
+For the distillation objective, we retain the teacher's top-$K$ tokens at each supervised position with $K=64$, and set the distillation temperature to $T_{d}=1.0$.
+We optimize only the memory parameters using AdamW with $\beta_1=0.9$, $\beta_2=0.999$, $\epsilon=10^{-8}$, weight decay $0.01$, and a gradient clipping norm of $1.0$.
+We use mixed-precision training.
+The backbone runs in BF16, while numerically sensitive components (e.g., RMSNorm, Softmax, and memory states) and optimizer states are kept in FP32.
+A soft cap is applied to the memory output gate, with a limit of 2.0, for training stability.
+We use a WSD learning rate scheduler for MemT-1.0-Nano training. During CPT, we warm up for 600 steps to a learning rate of $1\times10^{-4}$, and keep the peak rate constant for the remaining steps. During post-training, we warm up for 500 steps to $1\times10^{-4}$, keep it constant, and apply cosine decay over the final 1,000 steps to a minimum learning rate of $5\times10^{-6}$.
+For MemT-1.0-Flash, we initialize from the prepared backbone and use a global batch of 192 packs, with the same 64K maximum pack length and 2K-token storage steps.
+Memory training uses the online backbone teacher with Top-64 targets, temperature 1, and KL loss.
+The learning-rate schedule has a peak of $8\times10^{-5}$, a 100-step warmup, and a planned cosine decay over the final steps.

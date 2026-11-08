@@ -108,6 +108,12 @@ The complete retrieval map for compiled knowledge. See [LLM Wiki Contract](../AG
 - [Hindsight retain pipeline](hindsight-retain-pipeline.md) — How Hindsight turns input content into extracted facts, entities and graph links, including chunking, extraction modes, delta retain and attachments.
 - [Hindsight storage and configuration](hindsight-storage-and-configuration.md) — Hindsight's PostgreSQL/Oracle storage, vector and text-search extensions, schema, and the hierarchical HINDSIGHT_API_* configuration system with key defaults.
 
+## Agent memory — Hy-Memory-30B-A3B writer
+
+- [Hy-Memory-30B-A3B reward and credit assignment](hy-memory-30b-reward-and-credit.md) — Failure-surface probes, evidence-attributed rewards, bank-growth penalty, and chunk-level GRPO for memory writing.
+- [Hy-Memory-30B-A3B writer and training](hy-memory-30b-writer-training.md) — Framework-integrated memory-writer model, on-policy distillation, attributed reinforcement learning, and deployment boundaries.
+- [Hy-Memory-30B-A3B writer evaluation](hy-memory-30b-writer-evaluation.md) — Fixed-subsample cross-harness evaluation, reported results, uncertainty, and reproducibility limits for the specialized memory writer.
+
 ## Agent memory — hy pages (compiled by a concurrent ingest)
 
 - [Hy Memory and MemHub overview](hy-memory-overview.md) — Entry-point map of the Tencent Hunyuan Hy-Memory monorepo — the hy-memory Python SDK (chat, working, coding scenes) and the MemHub local-first product built on it.
@@ -121,6 +127,15 @@ The complete retrieval map for compiled knowledge. See [LLM Wiki Contract](../AG
 - [Hy Memory storage backends, snapshot and re-embedding](hy-memory-storage-and-reembed.md) — Vector, graph, cache and history store abstractions in the SDK, plus offline data-plane snapshot/restore and the re-embedding workflow.
 - [Hy Memory System 2 evolution and cross-domain sweeper](hy-memory-system2-evolution.md) — Ultra-mode System 2 — explicit evolve() cycles that cluster facts, induce graph schemas with one LLM call per batch, and a cross-domain sweeper for core schemas.
 - [Hy Memory working and coding scenes (two-layer memory)](hy-memory-working-coding-memory.md) — The facts + experiences memory used for working and coding scenes — schema, write and search flow, scene routing, workspace/branch isolation, and reconciliation rules.
+
+## Agent memory — MemT-1.0
+
+- [MemT-1.0 evaluation and efficiency](memt-evaluation-and-efficiency.md) — Author-reported memory benchmarks, ablations, inference and storage comparisons, with protocol and comparability limits.
+- [MemT-1.0 experience-guided coding](memt-experience-guided-coding.md) — Retrieval, native-memory injection, application-specific training, and reported SWE-bench outcomes for MemT-1.0-Nano.
+- [MemT-1.0 models and session API](memt-models-and-session-api.md) — Nano and Flash model-card configurations, example session persistence, licensing, and unverified execution boundaries.
+- [MemT-1.0 native memory architecture](memt-native-memory-architecture.md) — Dynamic local state, trained hyper memory, stable updates, dense Mixture-of-Storage routing, and backbone-specific geometry in MemT-1.0.
+- [MemT-1.0 source map and coverage limits](memt-source-map.md) — Package identity, inspected material, pending research-paper attachments, and reproducibility limits for the MemT-1.0 source snapshot.
+- [MemT-1.0 training and scaling](memt-training-and-scaling.md) — Backbone preparation, memory training objectives, reported scaling experiments, and training infrastructure for MemT-1.0.
 
 ## Agent memory — Mem0
 

@@ -1,0 +1,110 @@
+\section{Memory Windowing Experiment}
+\label{appendix:infra_experiment_details}
+
+\subsection{Experimental Setup}
+
+The experiment compares two execution schedules for one standalone MoS memory block.
+Whole-pack execution produces expert projections for all tokens at once; windowed execution groups complete steps, performs their projections, state updates, and readout in sequence, and recomputes internal intermediates during backward.
+Both use the same equations, weights, inputs, precision, and update kernel.
+Measurement covers both routers, all expert projections, memory writes and reads, RMSNorm, SoftCapSiLU, fusion, and backward through these computations.
+
+\begin{table}[htbp]
+    \centering
+    \caption{Configuration of the MoS memory-block experiment.}
+    \label{tab:infra_window_configuration}
+    \small
+    \renewcommand{\arraystretch}{1.12}
+    \begin{tabular}{ll}
+        \toprule
+        Configuration & Value \\
+        \midrule
+        Hidden dimension & 2048 \\
+        Memory experts & 4 \\
+        Memory heads per expert / head dimension & 16 / 256 \\
+        Router projection rank & 128 \\
+        Decay-gate / output-gate projection rank & 256 / 256 \\
+        Parameter and projection / memory-state precision & BF16 / FP32 \\
+        Writer chunk & 64 tokens \\
+        Step length & 2048 tokens \\
+        Window budget & \makecell[l]{2048 / 4096 tokens,\\or 1 / 2 complete steps} \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+Each pack contains two equal-length trajectories: 8K, 16K, and 32K packs comprise two 4K, 8K, and 16K trajectories, respectively.
+Each trajectory starts from an independent initial state.
+All measured steps commit state, while reads within a step use its incoming snapshot.
+Windows do not cross trajectory boundaries.
+Weights are randomly initialized and hidden-state inputs are synthetic, with fixed random seed 20261015; input hidden states have standard deviation 1.0, while initial states and backward cotangents have standard deviation 0.01.
+This workload measures the computation and activation costs of the memory branch.
+
+Memory updates use a fixed chunked-WY implementation.
+
+\subsection{Measurement Method}
+
+Each pack length and window budget define a paired experiment.
+Both variants receive 5 warmups and 20 measured trials; successive pairs alternate between whole-pack$\rightarrow$windowed and windowed$\rightarrow$whole-pack order, yielding 240 measured samples.
+Each window budget has an independently measured whole-pack baseline, accounting for the small baseline-time differences between rows at the same length.
+
+CUDA events measure forward-plus-backward (F+B) time, including block execution, inner products of the output and final state with fixed cotangents, and backward through the scalar objective.
+Input preparation, schedule construction, and compilation occur outside the timed region.
+Peak memory is PyTorch peak allocated, including block parameters, inputs and cotangents, outputs, gradients, and both prepared schedules.
+This metric measures live tensor allocations, distinct from memory reserved by the caching allocator.
+The main table reports medians; percentage changes are computed from unrounded medians.
+
+\subsection{Full Results}
+
+\begin{table}[htbp]
+    \centering
+    \caption{Full memory and time results for the MoS memory block.
+    Each row is an independently measured whole-pack/window pair; values are medians.}
+    \label{tab:infra_window_full_results}
+    \small
+    \setlength{\tabcolsep}{5pt}
+    \renewcommand{\arraystretch}{1.12}
+    \begin{tabular}{rrrrrr}
+        \toprule
+        \makecell{Pack length\\(tokens)} & \makecell{Window budget\\(tokens)} & \makecell{Whole-pack\\memory (GiB)} & \makecell{Windowed\\memory (GiB)} & \makecell{Whole-pack\\F+B (ms)} & \makecell{Windowed\\F+B (ms)} \\
+        \midrule
+        8192 & 2048 & 12.37 & 4.85 & 102.1 & 122.9 \\
+        8192 & 4096 & 12.37 & 8.36 & 102.1 & 117.4 \\
+        16384 & 2048 & 24.19 & 5.23 & 211.6 & 246.1 \\
+        16384 & 4096 & 24.19 & 8.77 & 211.6 & 235.1 \\
+        32768 & 2048 & 47.83 & 6.03 & 462.7 & 493.5 \\
+        32768 & 4096 & 47.83 & 9.49 & 463.0 & 470.6 \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+As pack length increases from 8K to 32K, whole-pack peak memory grows from 12.37 GiB to 47.83 GiB, while 4096-token windows grow from 8.36 GiB to 9.49 GiB.
+Windowing bounds the lifetime of projections and intermediates, while retained outputs and boundary states still grow with length.
+Across the three lengths, the median time increases for 4096-token windows are 15.0\%, 11.1\%, and 1.6\%, respectively, showing that windowing overhead depends on the workload.
+
+\subsection{Measurement Variability}
+
+Table~\ref{tab:infra_window_variability} reports medians, interquartile intervals [Q25, Q75], and sample standard deviations, all in ms.
+
+\begin{table}[htbp]
+    \centering
+    \caption{F+B timing variability in milliseconds.
+    Intervals are the 25th and 75th percentiles; standard deviations use all measured samples.}
+    \label{tab:infra_window_variability}
+    \small
+    \setlength{\tabcolsep}{4pt}
+    \renewcommand{\arraystretch}{1.12}
+    \begin{tabular}{rrlll}
+        \toprule
+        \makecell{Pack length\\(tokens)} & \makecell{Window budget\\(tokens)} & \makecell[l]{Whole-pack median\\{[Q25, Q75]}} & \makecell[l]{Windowed median\\{[Q25, Q75]}} & \makecell[l]{Standard deviation\\(whole / windowed)} \\
+        \midrule
+        8192 & 2048 & 102.10 [102.08, 102.12] & 122.87 [122.86, 122.88] & 0.03 / 0.02 \\
+        8192 & 4096 & 102.11 [102.10, 102.12] & 117.42 [117.41, 117.45] & 0.05 / 0.03 \\
+        16384 & 2048 & 211.55 [211.43, 212.02] & 246.11 [246.02, 246.42] & 37.19 / 0.26 \\
+        16384 & 4096 & 211.61 [211.45, 211.87] & 235.07 [234.98, 235.39] & 0.30 / 0.27 \\
+        32768 & 2048 & 462.71 [462.37, 463.87] & 493.48 [492.91, 494.38] & 22.22 / 0.94 \\
+        32768 & 4096 & 462.96 [462.42, 463.68] & 470.58 [469.84, 471.46] & 0.76 / 38.01 \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+All samples are retained, including whole-pack trials at 16K/2048 (378.03 ms) and 32K/2048 (562.40 ms), and a windowed trial at 32K/4096 (640.58 ms).
+The 1.6\% reported in the chapter therefore describes the median time difference; individual trials exhibit variability.

@@ -1,5 +1,11 @@
 # Wiki Update Log
 
+## 2026-11-08
+- **Ingest**: Partially compiled [MemT-1.0 paper and model cards](../raw/arXiv-2610.26825v2-MemT-1.0/paper.tex) into six draft concepts, including a [coverage ledger](memt-source-map.md); appendices, tables and figures remain pending, and no model or benchmark was run.
+
+## 2026-11-08
+- **Ingest**: Compiled [Hy-Memory-30B-A3B model card and technical report](../raw/arXiv-2610.22196v1-Hy-Memory-30B-A3B/Hy-Memory-30B-A3B.md); created [writer and training](hy-memory-30b-writer-training.md), [reward and credit](hy-memory-30b-reward-and-credit.md), and [evaluation](hy-memory-30b-writer-evaluation.md), and updated the Hy-Memory overview. Static inspection; no training, serving, or benchmarks reproduced.
+
 ## 2026-11-07
 - **Query**: Answered “tổng hợp lại chi tiết hơn”; rewrote [Agent memory landscape survey](agent-memory-landscape-survey.md) as a hub with per-system profiles, a direction matrix and scenario guide, and filed five dimension pages: [data model and write](agent-memory-data-model-and-write-comparison.md), [retrieval](agent-memory-retrieval-comparison.md), [integration and operations](agent-memory-integration-and-operations-comparison.md), [security and privacy](agent-memory-security-and-privacy-comparison.md), [benchmarks](agent-memory-benchmarks-comparison.md). Raw opened only for adapter listings, Cognee `SearchType`/MCP handlers and TencentDB `agents/`.
 - **Query**: Answered “survey, phân nhóm và so sánh các hệ agent/memory/RAG trong wiki”; filed [Agent memory landscape survey](agent-memory-landscape-survey.md) (Synthesis over eight systems, six design directions) and added backlinks from eight overviews and the ai-memory comparison page. Raw opened only to confirm licences and two missing versions.

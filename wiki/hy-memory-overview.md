@@ -5,7 +5,7 @@ description: Entry-point map of the Tencent Hunyuan Hy-Memory monorepo — the h
 tags: [agent-memory, hy-memory, memhub, overview]
 status: stable
 created: 2026-11-06
-generated: { by: llm-wiki-agent/1, at: 2026-11-06T16:45:29Z }
+generated: { by: llm-wiki-agent/1, at: 2026-11-08T02:52:40Z }
 sources:
   - id: hy-memory
     resource: ../raw/Hy-Memory/README.md
@@ -34,13 +34,13 @@ Modes: `lite` (raw-only embedding, no LLM, no graph), `pro` (LLM extraction + re
 ## Map of the knowledge base
 
 - SDK: [API and config](hy-memory-sdk-api-and-config.md) · [storage and re-embedding](hy-memory-storage-and-reembed.md) · [runtime, concurrency, observability](hy-memory-runtime-concurrency-and-observability.md) · [System 2 evolution](hy-memory-system2-evolution.md)
-- Research: [CMB benchmark](cmb-coding-memory-benchmark.md)
+- Research: [CMB benchmark](cmb-coding-memory-benchmark.md) · [Hy-Memory-30B-A3B writer and training](hy-memory-30b-writer-training.md)
 - MemHub: [product architecture](memhub-product-architecture.md) · [modes and write queue](memhub-memory-modes-and-write-queue.md) · [import adapters and live sync](memhub-import-adapters-and-live-sync.md) · [embedding switching](memhub-embedding-space-switching.md) · [privacy and permissions](memhub-privacy-and-permissions.md) · [apps and packages](memhub-apps-and-packages.md) · [host bridge](memhub-host-bridge-harness-integration.md)
 - Integrations and project: [OpenClaw and Hermes plugins](hy-memory-plugins-openclaw-hermes.md) · [releases, CI, quality](hy-memory-release-ci-and-quality.md)
 
 ## Papers and releases claimed by the README
 
-The README lists three papers: the dual-process cognitive memory system (EMNLP 2026, arXiv 2606.09483; 8-layer hierarchy with reconciliation and cross-domain schema induction), the CMB coding benchmark (ICLR 2027 submission, PDF in `docs/papers/`), and the Hy-Memory-30B-A3B technical report on attributed RL for memory writing (arXiv 2610.22196) (`README.md::Papers`).[^hy-memory] Only the CMB PDF is in the repository; the other two are linked, not read (evidence class: Reported). News entries cite MemHub v1.0.4–v1.0.6, Hy Memory 2.0, FP8/GGUF model releases (`README.md::Latest News`, Reported).[^hy-memory]
+The README lists three papers: the dual-process cognitive memory system (EMNLP 2026, arXiv 2606.09483; 8-layer hierarchy with reconciliation and cross-domain schema induction), the CMB coding benchmark (ICLR 2027 submission, PDF in `docs/papers/`), and the Hy-Memory-30B-A3B technical report on attributed RL for memory writing (arXiv 2610.22196) (`README.md::Papers`).[^hy-memory] Only the CMB PDF is in that repository snapshot; the other two are linked there. The separately supplied [Hy-Memory-30B-A3B report](hy-memory-30b-writer-training.md) has since been compiled (evidence class: Reported). News entries cite MemHub v1.0.4–v1.0.6, Hy Memory 2.0, FP8/GGUF model releases (`README.md::Latest News`, Reported).[^hy-memory]
 
 Supported install matrix: core includes ChromaDB and Kuzu; extras add Qdrant, FAISS, Neo4j, MySQL cache, local cross-encoder rerank (`README.md::Quick Start §1`; `pyproject.toml`).[^hy-memory] Licence: Apache-2.0 (`README.md::License`).[^hy-memory]
 

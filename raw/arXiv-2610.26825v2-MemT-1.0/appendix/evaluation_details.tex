@@ -1,0 +1,569 @@
+\section{Details of Evaluation Setup}
+
+\subsection{Details of Benchmarks}
+\label{appendix:benchmark_details}
+
+\textbf{Memory Benchmark.}
+We evaluate memory capabilities on 11 benchmarks and divide them into four groups according to trajectory length as follows.
+These benchmarks focus on long-term information retention and retrieval, dynamic memory updating and management, and personalized understanding.\\
+$\bullet$ \textbf{MemBench}~\cite{tan2025membench}: MemBench reports the equal-weight mean accuracy across its factual/reflective and participation/observation quadrants on the 0--10K subset. We write each history in an independent scope and preserve its original message order.
+We note that when structured time is unavailable, no synthetic date is constructed.\\
+$\bullet$ \textbf{ImplicitMemBench}~\cite{qin2026implicitmembench}: ImplicitMemBench evaluates procedural learning, priming, and classical conditioning through learning or priming, interference, and test stages.
+We preserve the original trajectory order, isolate priming treatment and control groups.
+Specifically, we use temperature 0.8 for the priming task. \\
+$\bullet$ \textbf{PersonaMem}~\cite{jiang2025know}: PersonaMem evaluates dynamic user profiling and personalized responses over evolving interactions.
+Each (history, history\_end) pair receives an independent scope.
+Questions with the same cutoff share a read-only state, whereas different cutoffs do not share memory.
+We utilize the 32K length subset of PersonaMem for our memory evaluation. \\
+$\bullet$ \textbf{PS-Bench}~\cite{guo2026personalization}: PS-Bench measures whether personal memories induce intent legitimation and increase personalized attack success.
+Persona histories follow the original session, speaker, and timestamp order.
+We report $100(1-\mathrm{ASR})$ on the Persona-grounded subset, with ASR micro-averaged over 1,863 queries.\\
+$\bullet$ \textbf{LoCoMo}~\cite{maharana2024evaluating}: LoCoMo evaluates single-hop, multi-hop, temporal, open-domain, and adversarial conversational memory.
+We preserve session, message, speaker, and date order.
+We also use speaker-specific scopes for MemOS, Mem0, and Graphiti, and use a conversation scope for OpenViking.
+We exclude the adversarial category from the reported score.\\
+$\bullet$ \textbf{PerMemSafe}~\cite{an2026permemsafe}: PerMemSafe evaluates implicit personalized safety through Safety Perception (SP) and Dynamic Evolution (DE) tracks.
+SP and DE histories use independent scopes, while risk descriptions, isolated answers, and scoring rubrics are excluded from memory writes.
+Specifically, we utilize the conv64 subset of PerMemSafe in our memory evaluation.\\
+$\bullet$ \textbf{Memora}~\cite{uddin2026recall}: Memora evaluates remembering, reasoning, and recommendation under evolving weekly, monthly, and quarterly interactions.
+Each persona uses an independent scope with chronological session and turn writes and timestamps.
+Query dates are not used to filter history.
+We utilize the Weekly subset of Memora for memory evaluation.\\
+$\bullet$ \textbf{MemOps}~\cite{hao2026memops}: MemOps evaluates remembering, updating, forgetting, reflecting, and composed memory operations. We store 50 sessions by session index and message order in an independent scope, excluding operation labels, state annotations, and provenance tags from memory. \\
+$\bullet$ \textbf{LongMemEval}~\cite{wu2024longmemeval}: LongMemEval evaluates information extraction, multi-session reasoning, temporal reasoning, knowledge updating, and abstention.
+Each haystack uses an independent scope and session-date order, and the current date appears only in the query and is not stored in memory.
+We utilize the LongMemEval-S subset for our memory evaluation.\\
+$\bullet$ \textbf{MemoryAgentBench}~\cite{hu2026evaluating}: MemoryAgentBench evaluates retrieval, test-time learning, long-range understanding, and selective forgetting.
+Source histories are isolated and written in complete chunk-N order without source mixing.
+The main set is used, excluding the short-context ablation questions.\\
+$\bullet$ \textbf{BEAM}~\cite{tavakoli2025beyond}:
+BEAM evaluates ten long-context memory abilities, including extraction, contradiction resolution, updating, preference following, summarization, and temporal reasoning.
+Each conversation uses an independent scope and complete chronological writes by session, timestamp, and message.
+We utilize the 1M subset of BEAM for our memory evaluation.
+Due to the limitation of generation, the full context retains at most the latest 256K tokens.
+
+\textbf{General Benchmark.}
+We evaluate general capabilities on six benchmarks spanning four major dimensions: knowledge and scientific reasoning, instruction following, long-context understanding, and code generation.
+The detailed benchmarks are presented as follows.
+
+$\bullet$ \textbf{MMLU-Pro}~\cite{wang2024mmlu}: MMLU-Pro extends MMLU with harder reasoning questions and ten answer choices. We use the \texttt{TIGER-Lab/MMLU-Pro@14be195} test split and evaluate these conditions with fixed demonstrations provided through ordinary context or native memory. \\
+$\bullet$ \textbf{GPQA Diamond}~\cite{rein2023gpqa}: GPQA Diamond contains graduate-level biology, physics, and chemistry questions designed to resist ordinary web search.
+We evaluate each of the 198 questions eight times, keeping its answer-option order fixed across repetitions and evaluation conditions, and report mean accuracy. \\
+$\bullet$ \textbf{IFEval}~\cite{zhou2023instruction}: IFEval evaluates programmatically verifiable constraints such as length, keywords, casing, and formatting. We use the 541-prompt, 834-instruction test split and provide fixed irrelevant demonstrations through ordinary context or native memory. \\
+$\bullet$ \textbf{LongBench v2}~\cite{bai2025longbench}: LongBench v2 evaluates deep reasoning across six long-context task categories and contexts up to 2M words.
+We use the 503-item train split and provide identical irrelevant demonstrations through ordinary context or native memory. \\
+$\bullet$ \textbf{BigCodeBench-Hard}~\cite{zhuo2025bigcodebench}: BigCodeBench-Hard contains 148 practical programming tasks with complex instructions and function calls.
+We use normalized \texttt{v0.1.4} test data, execute generated programs with the official tests, and report Pass@1 under the evaluated configurations.\\
+$\bullet$ \textbf{LiveCodeBench v6}~\cite{jain2025livecodebench}: LiveCodeBench is a continuously refreshed coding benchmark based on recent LeetCode, AtCoder, and Codeforces problems.
+We use the 1,055-item cumulative \texttt{release\_v6} split and preserve identical demonstrations, generation settings, and scoring protocols across conditions.
+
+\subsection{Details of Baselines}
+\label{appendix:baseline_details}
+
+We compare MemT-1.0 with textual and parametric memory baselines as follows.
+Methods with the same backbones share prompts, generation settings, and scoring protocols.
+
+$\bullet$ \textbf{Full Context}: Full context prepends the available history to the query as a context-only reference. Histories exceeding the 256K-token local window are left-truncated, retaining the most recent visible tokens. \\
+$\bullet$ \textbf{DenseRAG}: DenseRAG retrieves the 10 most relevant historical segments and prepends them to the query.
+In our implementation, the retrieval process is scope-isolated, and LoCoMo segments are indexed as \texttt{Speaker said, ``text''}, and answers are not written back. \\
+$\bullet$ \textbf{MemOS}~\cite{li2025memos}: MemOS provides structured extraction, synchronization, and hybrid memory retrieval. We use \texttt{version 2.0.32} with \texttt{multimodal\_struct}, \texttt{fine}, and \texttt{sync}, top-20 fast search, MMR deduplication, and reranking. \\
+$\bullet$ \textbf{Mem0}~\cite{chhikara2025mem0}: Mem0 performs LLM-based memory extraction, updating, and semantic retrieval. We use \texttt{version 2.0.20} with \texttt{infer=true}, dataset-specific protective chunking, top-20 user-scoped retrieval, and reranking disabled.\\
+$\bullet$ \textbf{OpenViking}~\cite{fu2026vikingmem}: OpenViking organizes session-level memories hierarchically for retrieval.
+We use \texttt{version 0.4.17.1} with a 32,768-token submission budget and retain the top 20 user-scoped contexts without additional reranking.\\
+$\bullet$ \textbf{Graphiti}~\cite{rasmussen2025zep}: Graphiti represents memory as a temporal knowledge graph. We use \texttt{version 0.30.1}, dataset-specific Episode boundaries, and EDGE hybrid RRF to retrieve the top-20 facts within the current group. \\
+$\bullet$ \textbf{Temp-LoRA}~\cite{wang2024greater}: Temp-LoRA adapts model parameters separately for each history.
+We train a rank-64 temporary LoRA on non-overlapping 1,024-token chunks for two epochs per chunk.
+We use Qwen3.6-35B-A3B as its backbone.\\
+$\bullet$ \textbf{Doc-to-LoRA}~\cite{charakorn2026doc}: Doc-to-LoRA maps document chunks into lightweight parameter updates. Using public Qwen3-4B weights, we generate rank-8 \texttt{down\_proj} LoRAs and retain only the final three chunk adapters. \\
+$\bullet$ \textbf{SHINE}~\cite{liu2026shine}: SHINE encodes historical information as generated low-rank parameter updates.
+We use public Qwen3-8B weights and rank-8 LoRAs on all linear layers.
+We use the full history when it contains at most 2,380 tokens.
+Otherwise, we retain only the last 2,380 tokens before generating the LoRA. \\
+$\bullet$ \textbf{$\delta$-mem}~\cite{lei2026delta}: $\delta$-mem maintains a recurrent memory state updated during inference. We use the rank-8 Qwen3-4B TSW adapter and write each history into its online state token by token. \\
+$\bullet$ \textbf{LiveMem}~\cite{liu2026livemem}: We choose LiveMem-RL, which maintains a recurrent state while releasing historical key-value caches after writing.
+We use its Qwen3-4B implementation and retain the latest 257K tokens on MemoryAgentBench.\\
+$\bullet$ \textbf{MemoryLLM}~\cite{wang2024memoryllm}: MemoryLLM stores history in a fixed pool of learned memory vectors.
+We use MemoryLLM-8B-Chat with 12,800 vectors per layer and a 2,048-token query window, completing 1,993 MemoryAgentBench questions.\\
+$\bullet$ \textbf{ICAE}~\cite{ge2023context}: ICAE compresses each segment into continuous latent slots. We use Mistral-7B-Instruct-v0.2, 128 slots per segment, and FIFO retention of four segments; this differs from the original SpanExtrap setting.
+
+For the retrieval processes, Graphiti, Mem0, MemOS, and OpenViking use BGE-M3 embeddings and the corresponding DeepSeek or Qwen3.6 branch model for extraction and answering.
+We disable the thinking mode of Qwen3.6.
+When Graphiti or Mem0 extraction calls are blocked, they fall back to the local Qwen3.6-35B-A3B model.
+
+\subsection{Details of Pipelines and Prompts in Memory Evaluation}
+\label{appendix:eval_memory_pipeline_details}
+
+\subsubsection{Query Prompt Construction}
+\label{appendix:memory_query_prompt_construction}
+
+We do not add generic few-shot demonstrations to the memory benchmarks.
+For the full context, the visible history and the current query are included in the same request. When a history exceeds the local context limit of 256K tokens, we retain its most recent suffix. For parametric memory methods, the history is first written through the protocol supported by the method.
+At query time, the model receives only the task instruction and the current question, without a second copy of the history.
+For external memory systems, retrieved memories from the current scope are inserted into a fixed answer template.
+Within each benchmark, Graphiti, Mem0, MemOS, and OpenViking use the same answer template and differ only in the retrieved content.
+Gold answers, evidence identifiers, and scoring labels are never included in the answering-model input.
+
+The principal English query templates are given below. Braced expressions denote fields instantiated from each evaluation example at runtime.
+Unless stated otherwise, the templates shown first are those used by the full context models.
+
+\textbf{LoCoMo.}
+The complete history and the question are placed in a single user message:
+
+\begin{promptbox}
+Below is a conversation between two people. Answer the question using only this conversation.
+
+### {session_id}
+Date: {timestamp}
+{speaker}: {content}
+...
+
+Question: {question}
+Answer briefly. Do not explain your reasoning.
+\end{promptbox}
+
+\textbf{LongMemEval-S.}
+The complete history and the current date are formatted in a single user message:
+
+\begin{promptbox}
+I will give you several history chats between you and a user. Please answer the question based on the relevant chat history.
+
+History Chats:
+### Session {n}:
+Session Date: {timestamp}
+Session Content:
+{role}: {content}
+...
+
+Current Date: {question_date}
+Question: {question}
+Answer:
+\end{promptbox}
+
+\textbf{MemBench.}
+For participation tasks, the prompt begins with:
+
+\begin{promptbox}
+Below is the complete chronological conversation between a user and an assistant. Answer the multiple-choice question using only this history.
+\end{promptbox}
+
+For observation tasks, it instead begins with:
+
+\begin{promptbox}
+Below is the complete chronological sequence of user messages observed by an assistant. Answer the multiple-choice question using only these observations.
+\end{promptbox}
+
+Both task types then use the same structure:
+
+\begin{promptbox}
+History:
+User / Assistant or Observed user: {content}
+...
+
+Current time: {question_time}
+Question: {question}
+Choices:
+A. {option}
+B. {option}
+C. {option}
+D. {option}
+Return only the correct option letter: A, B, C, or D.
+\end{promptbox}
+
+\textbf{PersonaMem-32K.}
+History messages retain their original roles and chronological order. Except for the first message, system messages in the history are converted to user messages and prefixed with \texttt{[System message]}. The final user message is:
+
+\begin{promptbox}
+{question}
+
+Find the most appropriate model response and give your final answer (a), (b), (c), or (d) after the special token <final_answer>.
+
+{options_text}
+\end{promptbox}
+
+\textbf{PS-Bench.}
+The history and the latest user input are placed in one user message:
+
+\begin{promptbox}
+Reply in a natural, spoken tone, optionally using relevant memory or user personality details when appropriate.
+
+Conversation history:
+
+### {session_id}
+Date: {timestamp}
+{speaker}: {content}
+...
+
+User's latest input: {question}
+\end{promptbox}
+
+\textbf{PerMemSafe-conv64.}
+The system message is fixed as follows:
+
+\begin{promptbox}
+You are a helpful assistant.
+\end{promptbox}
+
+Historical messages retain their original roles, and the current question is appended as the final user message:
+
+\begin{promptbox}
+{question}
+\end{promptbox}
+
+\textbf{Memora Weekly.}
+The system message is:
+
+\begin{promptbox}
+You are an AI assistant with memory capabilities. The conversation history below contains ALL your previous conversations with this user - this history is PROVIDED TO YOU in this prompt.
+
+Your task is to answer the user's question based EXCLUSIVELY on the conversation history that is provided below. The conversation history contains all the information you need to answer questions about the user's preferences, activities, goals, and past interactions.
+
+IMPORTANT: Today's date is {question_date}. When answering questions about time periods (e.g., 'last 3 months', 'recent', 'this week'), calculate them relative to today's date ({question_date}).
+
+CRITICAL INSTRUCTIONS:
+1. The conversation history is PROVIDED IN THIS PROMPT - you have full access to it
+2. Answer the question using ONLY information from the conversation history provided below
+3. Do NOT say "I don't have access" or "I cannot access" - you DO have access because the history is right here in this prompt
+4. Extract relevant information from the conversation history and use it to answer the question
+5. If you learned about user preferences, activities, content, or goals from the conversations below, use them in your response
+6. If information was mentioned in earlier conversations but later updated or deleted, use only the most recent information
+7. Be specific and reference relevant details from the conversations
+8. If the conversation history doesn't contain enough information to answer the question, say so clearly (but do NOT say you don't have access)
+9. Do not make up information that wasn't in the conversations
+\end{promptbox}
+
+The two sentences involving \texttt{question\_date} are included only when that field is available. The user message is:
+
+\begin{promptbox}
+# Conversation History
+The following contains all your previous conversations with this user, in chronological order:
+
+## Session {session_id} - {timestamp}
+User / Assistant: {content}
+...
+
+---
+
+# Current Question
+User: {question}
+
+Based on the conversation history above, please provide your answer:
+\end{promptbox}
+
+\textbf{MemOps.}
+The complete history is organized into context blocks in one user message:
+
+\begin{promptbox}
+Operation Evaluation: I will give you conversation history between you and a user. Answer based only on the provided conversation context. First perform operation detection, target extraction, and state transition reasoning over the provided context. If the context does not contain enough information, say that you do not know. If the history contains an instruction to forget or update a fact, follow the latest such instruction and do not reveal forgotten information.
+
+Forget redaction rules:
+- For a forget operation, predicted_operations[].old_value must not output the forgotten raw value. Use "[FORGOTTEN]", null, or a safe redacted description such as "removed target".
+- For a forget operation, safe provenance may quote the deletion request (for example, "please forget my UBC GPA"), but do not quote the original fact that contained the forgotten raw value.
+
+Return only compact JSON with exactly these top-level fields:
+{
+  "predicted_operations": [
+    {
+      "type": "remember | forget | update | reflect",
+      "target": "memory target affected",
+      "old_value": "old value if any; for forget use [FORGOTTEN], null, or a safe redacted description",
+      "new_value": "new/current/inferred value if any",
+      "state_after": "active | forgotten | updated | insufficient | inferred",
+      "provenance": ["short quote or context block id"]
+    }
+  ],
+  "answer": "final answer to the question",
+  "provenance": ["short quote or context block id used for the answer"]
+}
+
+Conversation Context:
+### Context block {n}
+Content:
+{role}: {content}
+
+Question: {question}
+JSON:
+\end{promptbox}
+
+For candidate-disambiguation examples, the following block is inserted immediately before the question:
+
+\begin{promptbox}
+Candidate options:
+{candidate_options}
+Choose one candidate. You may answer with the letter or the full option text.
+\end{promptbox}
+
+\textbf{ImplicitMemBench.}
+We add no task instruction. Historical messages retain their original roles.
+Except for the first message, system messages are converted to user messages and
+prefixed with \texttt{[System feedback]}. The original current probe is appended
+verbatim as the final user message.
+
+\textbf{MemoryAgentBench.}
+The system message is fixed as follows:
+
+\begin{promptbox}
+You are a helpful assistant that can read the context and memorize it for future retrieval.
+\end{promptbox}
+
+The user message concatenates a source-specific memory segment and a source-specific query segment. The value of \texttt{\{time\_stamp\}} is fixed to \texttt{1970-01-01 00:00:00}. The prefixes below identify the source family and are not sent to the model. The memory segments are:
+
+\begin{promptbox}
+ruler: Dialogue between User and Assistant {time_stamp}
+<User> The following context is the documents I have read:
+{context}
+<Assistant> I have learned the documents and I will answer the question you ask.
+
+longmemeval: Dialogue between User and Assistant
+<User> The following context is the conversation between the user and the assistant:
+{context}
+<Assistant> I have memorized the conversation and I will answer the question you ask.
+
+eventqa: Dialogue between User and Assistant {time_stamp}
+<User> The following context is the book excerpt:
+{context}
+<Assistant> I have read the book excerpt and I will answer the question you ask.
+
+icl: Dialogue between User and Assistant {time_stamp}
+<User> The following context is the examples I have learned:
+{context}
+<Assistant> I have learned the examples and I will answer the question you ask.
+
+recsys: Dialogue between User and Assistant {time_stamp}
+<User> The following context is the dialogues between a user and recommender system:
+{context}
+<Assistant> I have memorized the dialogues and I will answer the question you ask.
+
+infbench: Dialogue between User and Assistant {time_stamp}
+<User> The following context is the book I have read:
+{context}
+<Assistant> I have read the book and I will answer the question you ask.
+
+detective: Dialogue between User and Assistant {time_stamp}
+<User> The following context is the book I have read:
+{context}
+<Assistant> I have read the book and I will answer the question you ask.
+
+factconsolidation: Dialogue between User and Assistant {time_stamp}
+<User> The following context is the facts I have learned:
+{context}
+<Assistant> I have learned the facts and I will answer the question you ask.
+\end{promptbox}
+
+The corresponding query segments are:
+
+\begin{promptbox}
+ruler: Answer the question based on the memorized documents. Only give me the answer and do not output any other words.
+
+Question: {question}
+
+Answer:
+
+longmemeval: The history chats are between you and a user. Based on the relevant chat history, answer the question as concisely as you can, using a single phrase if possible.
+
+{question}
+
+Answer:
+
+eventqa: Based on the context you memorized, complete the task below:
+
+{question}
+
+The event that happens next is:
+
+icl: Use the provided mapping from the context to numerical label to assign a numerical label to the context. Only output "label: {{label}}" and nothing else.
+
+{question}
+
+label:
+
+recsys: Pretend you are a movie recommender system. You need to recommend movies based on the dialogues you have memorized. Now I will give you a new conversation between a user and you (a recommender system). Based on the conversation, you reply me with 20 recommendations without extra sentences.
+
+For Example:
+
+[Conversation]
+
+The recommendations are:
+1.movie1
+2.movie2
+...
+
+Here is the conversation: {question}
+
+The recommendations are:
+
+infbench: You are given a book above and you are tasked to summarize it.
+
+{question}
+
+Now summarize the book.
+
+detective: Based on the context you memorized, answer the question below. You are required to answer the question based on the strict output format.
+
+{question}
+
+factconsolidation: Pretend you are a knowledge management system. Each fact in the knowledge pool is provided with a serial number at the beginning, and the newer fact has larger serial number. You need to solve the conflicts of facts in the knowledge pool by finding the newest fact with larger serial number. You need to answer a question based on this rule. You should give a very concise answer without saying other words for the question **only** from the knowledge pool you have memorized rather than the real facts in real world.
+
+For example:
+
+[Knowledge Pool]
+
+Question: Based on the provided Knowledge Pool, what is the name of the current president of Russia?
+Answer: Donald Trump
+
+Now Answer the Question: Based on the provided Knowledge Pool, {question}
+Answer:
+\end{promptbox}
+
+\textbf{BEAM-1M.}
+The system message is:
+
+\begin{promptbox}
+You are a helpful assistant answering questions about a long-running conversation. Use only the conversation information available to you, respect later updates, and do not invent missing details.
+\end{promptbox}
+
+Each historical record in the user message is formatted as:
+
+\begin{promptbox}
+[{session_id} | {timestamp}]
+User / Assistant: {content}
+\end{promptbox}
+
+The question segment is:
+
+\begin{promptbox}
+Only provide the answer without explaining your reasoning.
+Put one event on each line in chronological order.
+
+Question: {question}
+
+Answer:
+\end{promptbox}
+
+The second instruction is included only for Event Ordering and is omitted for all other BEAM-1M capabilities.
+
+\textbf{Memory-query adaptation and retrieval-template construction.}
+The full context setting retains each dataset's original references to the history. After a memory method has written the history, however, the query message no longer contains the history body. We therefore replace only statements that would incorrectly claim that the history remains in the current prompt. The question, answer choices, output format, and all other task instructions remain unchanged.
+For Graphiti, Mem0, MemOS, and OpenViking, these adaptations are combined with a benchmark-frozen retrieval template. All four systems use the same template for a given benchmark; only the entries represented by \texttt{[Memory N]} differ.
+The resulting construction for each benchmark is described below.
+
+\noindent\textbf{LoCoMo.}
+For memory-based evaluation, ``Below is a conversation between two people. Answer
+the question using only this conversation.'' is replaced by ``Answer the question
+using only the conversation stored in your memory.'' In the external-memory
+version, the retrieved content is introduced by ``Below are retrieved memories
+from a conversation between two people.'' Open-ended questions require a brief
+answer, whereas multiple-choice questions require only \texttt{(a)} or
+\texttt{(b)}.
+
+\noindent\textbf{LongMemEval-S.}
+The opening instruction is changed from ``I will give you several history chats between you and a user. Please answer the question based on the relevant chat history.'' to ``Answer the question based on the relevant chat history stored in your memory.'' The empty \texttt{History Chats:} block is removed. For external memory systems, the query contains \texttt{Retrieved Memory Chats}, the current date, the question, and an \texttt{Answer:} cue.
+
+\noindent\textbf{MemBench.}
+For participation tasks, the opening instruction becomes ``Answer the multiple-choice question using only the conversation stored in your memory.'' For observation tasks, it becomes ``Answer the multiple-choice question using only the observations stored in your memory.'' The empty \texttt{History:} block is removed in both cases. The external-memory query contains a \texttt{Retrieved memories} section followed by the current time, the question, and answer choices A--D, and requires only the option letter.
+
+\noindent\textbf{PersonaMem-32K.}
+The original query does not state that the history appears in the current prompt, so removing the history body requires no additional wording change. For external memory systems, the query contains the retrieved memories, the question, four candidate responses, and the original \texttt{<final\_answer>} constraint.
+
+\noindent\textbf{PS-Bench.}
+No query-stem replacement is required after the history body is removed. The external-memory query combines the natural-tone instruction, the retrieved memories, and the current user input. Base questions omit the memory section because they are evaluated with an empty state.
+
+\noindent\textbf{PerMemSafe-conv64.}
+No additional query-stem replacement is required. The system message remains ``You are a helpful assistant.'', and the external-memory user message contains the retrieved memories followed by the current question.
+
+\noindent\textbf{Memora Weekly.}
+Statements asserting that the history is supplied in the current prompt are changed consistently to state that it is stored in and accessible from memory.
+Specifically, ``The conversation history below contains ALL your previous conversations with this user---this history is PROVIDED TO YOU in this prompt'' becomes ``Your memory contains ALL previous conversations with this user''; ``conversation history that is provided below'' becomes ``conversation history stored in memory''; ``The conversation history is PROVIDED IN THIS PROMPT---you have full access to it'' becomes ``The conversation history is stored in memory---you have access to it''; and ``because the history is right here in this prompt'' becomes ``because the history is available in memory.'' For external
+memory systems, the system instruction requires the answer to rely only on retrieved memories and to use the most recent value. The user message contains \texttt{\# Retrieved Memories} followed by \texttt{\# Current Question}.
+
+\noindent\textbf{MemOps.}
+``I will give you conversation history between you and a user. Answer based only on the provided conversation context.'' is replaced by ``Answer based only on the conversation history stored in your memory.'' The phrase ``transition reasoning over the provided context'' becomes ``transition reasoning over that memory''; ``If the context does not contain enough information'' becomes ``If your memory does not contain enough information''; and ``If the history contains an instruction to forget or update a fact'' becomes ``If your memory contains an instruction to forget or update a fact.'' The empty \texttt{Conversation Context:} block is removed. The external-memory query retains the operation-detection and forget-redaction instructions and contains a \texttt{Retrieved Memory Context} section, optional candidate choices, the question, and the \texttt{JSON:} output cue.
+
+\noindent\textbf{ImplicitMemBench.}
+Removing the history body requires no additional wording change. In the external-memory template, \texttt{Retrieved memories} is followed directly by the \texttt{Current probe}; the expected response pattern and scoring rubric are not included.
+
+\noindent\textbf{MemoryAgentBench.}
+Removing the history body requires no additional wording change. The external-memory query retains the fixed system message, describes the retrieved memories according to the source family, and appends the corresponding source-specific query.
+
+\noindent\textbf{BEAM-1M.}
+Removing the history body requires no additional wording change. The external-memory template contains \texttt{\# CONTEXT},
+\texttt{\# INSTRUCTIONS}, \texttt{\# QUESTION}, and \texttt{\# ANSWER}.
+Event Ordering additionally requires one event per line in chronological order.
+
+
+\subsubsection{Decoding Configuration}
+\label{appendix:memory_decoding_configuration}
+
+All formal comparisons use the same decoding configuration for every method and condition within a given benchmark.
+The only exception is the Priming subtask of ImplicitMemBench, for which the temperature is set to $0.8$.
+All other tasks use temperature $0$.
+The Qwen3.6 branch disables Thinking for every request. The DeepSeek branch uses the official chat template and verifies before evaluation that Thinking is disabled. The model context window is limited to 256K tokens, and chunked prefilling uses a chunk size of 8,192 tokens.
+If generation reaches the benchmark-specific maximum length without producing an end-of-sequence token, we retain the sample and score the actual generated output rather than discarding it.
+
+The maximum generation length is benchmark-specific. LoCoMo and LongMemEval-S use a maximum of 512 tokens, while MemBench uses a maximum of 16 tokens. PS-Bench uses a maximum of 512 tokens. PersonaMem-32K uses a maximum of 2,048 tokens.
+MemOps, PerMemSafe-conv64, and Memora Weekly also use a maximum of 2,048 tokens.
+ImplicitMemBench uses a maximum of 4,096 tokens.
+
+For BEAM-1M, the maximum depends on the capability being evaluated. Abstention, Information Extraction, Knowledge Update, and Temporal Reasoning use 512 tokens.
+Contradiction Resolution, Instruction Following, Multi-session Reasoning, and Preference Following use 1,024 tokens. Event Ordering uses 2,048 tokens, and Summarization uses 4,096 tokens.
+
+For MemoryAgentBench, the maximum is source- and task-specific. RULER QA uses 50 tokens, EventQA uses 40 tokens, the LongMemEval-S source uses 50 tokens, recommendation tasks use 300 tokens, and ICL tasks use 20 tokens. The maximum is 1,200 tokens for summarization, 2,000 tokens for DetectiveQA, and 10 tokens for
+FactConsolidation.
+
+
+\subsection{Details of Pipelines and Prompts in General Evaluation}
+\label{appendix:eval_general_pipeline_details}
+
+\textbf{Reasoning modes, sampling, and context construction.}
+All evaluation configurations within a benchmark use the same prompt version, parser, scorer, and corresponding implementation version.
+General-capability evaluations use Thinking mode for both the DeepSeek-V4-Flash and Qwen3.6-35B-A3B branches.
+For DeepSeek-V4-Flash, we set \texttt{reasoning\_effort=high}, temperature to $1.0$, \texttt{top\_p} to $1.0$, and presence penalty to $0.0$.
+DeepSeek-V4-Flash and MemT-1.0-Flash use a maximum output budget of 131,072 tokens within a total context window of 262,144 tokens, with the output budget adjusted to the remaining context capacity.
+For Qwen3.6-35B-A3B, we set temperature to $1.0$, \texttt{top\_p} to $0.95$, \texttt{top\_k} to $20$, \texttt{min\_p} to $0.0$, presence penalty to $1.5$, and repetition penalty to $1.0$.
+The Qwen branch uses a maximum output budget of 81,920 tokens.
+Both output budgets include reasoning and answer tokens.
+
+The Qwen branch uses its native 262,144-token context window for all tasks except LongBench v2.
+For Qwen on LongBench v2, we use the official YaRN configuration with an expansion factor of $4$, yielding an effective context window of 1,010,000 tokens.
+For LongBench v2, target inputs follow the official middle-truncation procedure.
+For the backbone noise condition, the fixed demonstrations are added after this truncation and are excluded from the target-input truncation.
+The native-memory condition uses the same truncated target input.
+The generation budgets above replace the source implementations' default output limits; LongBench v2 retains its official prompt construction, intermediate truncation, answer extraction, and scoring rules.
+
+The fixed demonstrations provide the irrelevant information used in the noise setting described in Section 6.3. They consist of question–answer examples whose primary capability differs from that of the target benchmark. Specifically, we use three BigCodeBench-Hard examples for MMLU-Pro and GPQA Diamond, and ten AIME 2026 examples for IFEval, LongBench v2, BigCodeBench-Hard, and LiveCodeBench v6. Each demonstration set contains fewer than 2,048 tokens. For each benchmark, the same examples are prepended to the backbone’s input context or written into an initially empty MemT-1.0 memory state in a single commit before evaluation. Each question independently reads the resulting state, which remains fixed during evaluation. Selection is independent of model outputs and evaluation scores and excludes target questions, direct rewrites of target answers, and native few-shot examples.
+
+\textbf{MMLU-Pro.}
+We use the official subject-specific five-shot chain-of-thought prompt. The model answer is parsed only when an explicit answer marker is followed by an option from A--J or when an A--J option appears on a separate line. We report micro-averaged accuracy. Unparseable answers and answers containing mutually conflicting choices are counted as incorrect.
+
+\textbf{GPQA Diamond.}
+For each underlying question, we evaluate it eight times using a fixed answer-option order. Every evaluation condition shares exactly the same option orders. We first aggregate the eight responses within each underlying question and then compute accuracy over the 198 underlying questions.
+
+\textbf{IFEval.}
+We retain the dataset's original prompts and add no task-level few-shot examples.
+The official programmatic constraint checker is applied to every instruction. We report prompt-level strict accuracy, counting a prompt as correct only when all of its associated constraints are satisfied.
+
+\textbf{LongBench v2.}
+We use the official zero-shot direct-answer prompt. Inputs longer than 120,000 tokens are truncated according to the official middle-truncation procedure using the \texttt{o200k\_base} tokenizer. Answers are extracted with the official implementation at commit \texttt{c5ea10b}, and we report accuracy.
+
+\textbf{BigCodeBench-Hard.}
+We use the v0.1.4 Hard/Instruct tasks without prefilled code and generate one candidate solution per task. Each candidate is executed in the official BigCodeBench v0.2.4 container. We report Pass@1.
+Execution failures and outputs containing no valid code are counted as incorrect.
+
+\textbf{LiveCodeBench v6.}
+We use the cumulative \texttt{release\_v6} test split and the official code generation prompt, generating one candidate solution per problem.
+Candidates are executed with the official LiveCodeBench runner at commit \texttt{28fef95}.
+We report Pass@1, counting execution failures and outputs without valid code as incorrect.
+
+All conditions within a benchmark use the same task prompts, demonstration selection, parsing rules, scorer versions, and execution settings.
+Programmatic checks and code execution are performed with the frozen versions
+specified above. Empty outputs, generation failures, and unparseable answers remain in the predetermined denominator and are assigned the failure outcome defined by the corresponding benchmark.
+
+\subsection{Details of Storage Overhead Evaluation}
+\label{appendix:eval_storage_overhead}
+
+For the storage overhead evaluation, note that process-level \texttt{max\_memory\_allocated} includes model weights and memory pools, and therefore does not reflect the per-session storage overhead.
+
+For full-context inference, we report the logical state size after history preparation and before querying.
+The storage grows linearly with the visible context length and is capped at 256K tokens on BEAM.
+DenseRAG stores FP32 retrieval vectors together with their corresponding chunk texts.
+Temp-LoRA stores the query-time BF16 adapter while excluding optimizer states.
+MemT-1.0 stores a full-rank memory state.

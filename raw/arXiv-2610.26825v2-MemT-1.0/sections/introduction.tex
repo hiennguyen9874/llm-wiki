@@ -1,0 +1,39 @@
+\section{Introduction}
+
+The rapid evolution of foundation models is expanding the boundary of what can be natively learned and performed within a single model.
+Many capabilities are progressively internalized from external systems into the model itself, such as reasoning~\cite{guo2025deepseek,jaech2024openai} and multimodality~\cite{xu2026deepseek,team2024gemini}.
+Memory represents another fundamental capability, enabling models to accumulate experience and adapt over extended interactions~\cite{zhang2025survey,hu2025memory}.
+Our previous work, Metis~\cite{zhang2026metis}, first introduced memory foundation models to internalize memory as a native capability of foundation models.
+This offers a path beyond external context and enables models to continuously accumulate information and experience, which marks a critical step towards memory-native evolution.
+
+To improve memory capabilities, we introduce \textbf{MemT-1.0}, a new architecture with substantial upgrades over Metis, while retaining the structure of dynamic local memory and trainable hyper memory.
+It replaces token selection with a stable token-level update mechanism based on Gated DeltaNet-2 (GDN-2)~\cite{hatamizadeh2026gated}.
+To further scale native memory capability, we introduce Mixture-of-Storage (MoS) to expand the capacity of native memory.
+We release a model family comprising \textbf{MemT-1.0-Nano} with 36B parameters (3B activated, 10M dynamic memory) and \textbf{MemT-1.0-Flash} with 288B parameters (17B activated, 336M dynamic memory).
+
+Following a deliberate backbone preparation, we develop a two-stage training pipeline for MemT-1.0.
+The first stage performs continued pre-training (CPT) to establish language modeling capabilities with native memory~\cite{gururangan2020don}.
+The post-training stage further adapts the model to downstream memory tasks while preserving its general capabilities~\cite{ouyang2022training}.
+To support this training pipeline, we construct a large-scale dataset of 34B tokens.
+Across 11 memory benchmarks, our models outperform parametric memory baselines on average, showing effective utilization of historical information without accessing the original context during inference.
+They also largely preserve general capabilities under the noise setting.
+Our evaluation shows an increasing end-to-end inference latency and storage overhead advantage over full context on longer histories.
+
+To support training and deployment, we develop a distributed infrastructure, which preserves memory isolation across independent trajectories.
+We organize stateful inference around separate memory storage and utilization procedures, with shared model parameters and trajectory-specific memory states.
+For a fixed memory configuration, the persistent state size remains constant as interactions accumulate.
+In addition, we explore the scaling behavior of MemT-1.0.
+Unlike general foundation models~\cite{kaplan2020scalinglawsneurallanguage}, memory foundation models introduce memory capacity as a critical scaling dimension, so we conduct scaling studies over memory capacity and training data.
+These findings provide valuable guidance for building stronger memory foundation models.
+
+We further apply MemT-1.0 to experience-guided coding agents, where retrieved procedural experience is internalized into native memory to guide subsequent actions.
+On SWE-bench Verified~\cite{chowdhury2024swebenchverified} and SWE-bench Multilingual~\cite{Yang2025SWEsmithSD}, our method improves average task success and consistency across repeated runs over agents without experience, while achieving performance comparable to explicit textual experience.
+These findings extend the role of native memory from information recall to procedural guidance in multi-step execution.
+
+Our main contributions are summarized as follows: \\
+$\bullet$ We introduce MemT-1.0, a memory foundation model architecture with improved memory storage and utilization mechanisms, together with MoS for scalable memory capacity.\\
+$\bullet$ Following a deliberate backbone preparation, we design a two-stage training pipeline including CPT and post-training stages, with a corresponding infrastructure design.
+We construct a training corpus of 34B tokens, and systematically evaluate MemT-1.0 on both memory and general benchmarks. The results show that MemT-1.0 achieves superior memory performance while largely preserving general capabilities. \\
+$\bullet$ We explore the scaling behavior of memory capabilities in MemT-1.0.
+We further deploy MemT-1.0 in practical agentic coding tasks to demonstrate its effectiveness and potential in enabling memory-native evolution.
+We also discuss its current limitations and promising directions for future development.

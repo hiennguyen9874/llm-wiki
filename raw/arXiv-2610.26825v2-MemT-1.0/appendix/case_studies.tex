@@ -1,0 +1,164 @@
+\section{Case Studies}
+\label{appendix:case_studies}
+
+We present four examples from a long English conversation. They show how MemT-1.0-Nano uses its memory as the history grows.
+
+MemT-1.0-Nano keeps one latent memory slot for each conversation. History enters the slot through commit operations. A commit reads the incoming turns and writes their content into the slot, and the original text is not carried forward.
+What the model can answer therefore depends on the writes. The examples below show this at four points in the conversation.
+The text inside each box is given exactly as the model produced it. 
+
+
+\subsection{Example 1: Factual Recall at 4K}
+\label{appendix:case_4k}
+
+The question asks for three things: the city, the purpose of the trip, and who holds the sample book. The model gives all three. It also keeps the nearby details with their owners, so Ningbo, the red toolbox, and the blue badge do not move to Chen Wei. The colour of the sample book is not mentioned, which is correct because the question does not ask for it.
+
+\begin{promptbox}
+History: 4,340 tokens / first 25 turns of the conversation
+
+Turn 1 (user): I'm Lin Yao, and I coordinate exhibitions at
+  Qinghe Studio. ... I think I'd rather sit than go straight
+  back out.
+
+Turn 2 (user): ... I went to Suzhou to set up an exhibition and
+  left my blue sample book with my colleague Chen Wei for
+  safekeeping. That was a past work visit, separate from the
+  future exhibition I'm still arranging. ...
+
+Turn 3 (user): ... There's a note about Xu Cheng, another
+  colleague: he lives in Ningbo, handles lighting, and has the
+  red toolbox. ...
+
+[... 21 turns of unrelated conversation about drawing,
+cooking, and household objects ...]
+
+Question: Which city did I go to last week, and what was I
+  doing there? Who should I ask to get back the sample book I
+  handed over?
+
+Answer: You went to **Suzhou** last week. You were there to
+  **set up an exhibition**.
+
+  You should ask **Chen Wei** for the sample book.
+\end{promptbox}
+
+
+\subsection{Example 2: Abstention on Missing Information at 16K}
+\label{appendix:case_16k}
+
+The question asks for the user's birthday. The conversation never mentions a birthday. The model reports this instead of inventing a date. The answer is only six tokens long, and its brevity is the point. The question invites the model to fill the gap, and this answer does not.
+
+\begin{promptbox}
+History: 16,457 tokens / first 105 turns of the conversation
+
+Turn 1 (user): I'm Lin Yao, and I coordinate exhibitions at
+  Qinghe Studio. ...
+
+Turn 18 (user): ... The cup beside me has cooled, and the tea
+  leaves have collected along one edge because the table isn't
+  perfectly level. ...
+
+[... 87 further turns that stay on drawing, cooking, and
+walking outside, and never mention a birthday or an age ...]
+
+Turn 103 (user): I once bought a set of colored pencils and
+  spent more time arranging them than using them. ...
+
+Turn 105 (user): I kept the stub. It was easier to hold
+  sideways for broad marks ... Sometimes a broken object is
+  simply broken. ...
+
+Question: What month and day is my birthday again? If we
+  haven't talked about it, just say you don't know.
+
+Answer: I don't know.
+\end{promptbox}
+
+
+\subsection{Example 3: Rule Application at 32K}
+\label{appendix:case_32k}
+
+The fictional page of the notebook gives two chained rules. A blue badge grants eligibility to book a room. Eligibility to book, together with completed registration, grants eligibility to collect a silver toolbox. The second rule therefore depends on both conditions. If the registration condition is dropped, the rule grants an entitlement that the text never gives. The answer below applies the chain correctly to both characters. It also keeps the two fictional colleagues apart, so Xu Cheng's incomplete registration does not move to Chen Wei.
+
+\begin{promptbox}
+History: 32,931 tokens / first 230 turns of the conversation
+
+Turn 4 (user): ... anyone with a blue badge is eligible to book
+  Room 2. Anyone eligible to book Room 2 who has completed
+  registration is eligible to collect a silver toolbox. There
+  are no other eligibility rules. I mean eligibility only:
+  being allowed to book or collect something doesn't mean the
+  person has actually done it.
+
+Turn 5 (user): The fictional Chen Wei has a blue badge and has
+  completed registration. The fictional Xu Cheng also has a
+  blue badge but hasn't completed registration yet. ...
+
+[... 224 turns in which the story is never revisited and
+neither the rules nor the characters' circumstances are
+restated ...]
+
+Turn 229 (user): A description of the sound itself makes more
+  sense to me. ...
+
+Turn 230 (user): The radio voice has become my favorite thing
+  in this invented film. ...
+
+Question: Given the rules and what we discussed about each
+  person, are Chen Wei and Xu Cheng each eligible to collect
+  the toolbox now? Briefly explain why.
+
+Answer: Based on the rules provided in the text:
+
+  * **Chen Wei:** Yes, he is eligible. He has a blue badge and
+    has completed registration.
+
+  * **Xu Cheng:** No, he is not eligible. Although he has a
+    blue badge, he has not completed registration.
+\end{promptbox}
+
+
+\subsection{Example 4: Tracking an Update at 64K}
+\label{appendix:case_64k}
+
+The exhibition is first set for Saturday at 3 p.m. in the East Hall. It is then officially changed to Sunday at 4 p.m. The venue, the admission price, and the contact person all stay the same. A move to Monday is also proposed, but it is never decided. A correct answer must report the change and leave the proposal out. The answer below does both. It answers the second half of the question by negation instead of repeating the values. The conversation runs for 508 more turns after the change, and the model still separates a settled change from a passing suggestion.
+
+\begin{promptbox}
+History: 65,587 tokens / first 516 turns of the conversation
+
+Turn 6 (user): The small exhibition I'm planning for the future
+  was originally set for Saturday at 3 p.m. in the East Hall,
+  with free admission, and Chen Wei is the contact person. ...
+  I'm waiting for the final timing decision before I send a
+  notice, so the draft is still open.
+
+Turn 7 (user): ... the confirmation has just arrived too: the
+  exhibition has officially changed to Sunday at 4 p.m.
+  Everything else stays the same. This change is definite, so
+  that's the new arrangement. ...
+
+Turn 8 (user): ... Someone has just suggested moving the
+  exhibition to Monday, but I haven't decided and haven't
+  announced another change. It's only a suggestion under
+  consideration, not a confirmed arrangement. ...
+
+[... 508 turns in which the exhibition is not raised again; the
+closing turns discuss a lamp, a book, and a patch of wall ...]
+
+Turn 514 (user): ... The wall opposite has a little patch where
+  the paint catches the light differently. ...
+
+Turn 516 (user): ... My first glance supplies a shadow, then
+  the second supplies the patch. ...
+
+Question: When was the exhibition originally scheduled, and
+  what time was it officially changed to? Did the venue,
+  admission price or contact person change?
+
+Answer: The exhibition was originally scheduled for **Saturday
+  at 3 p.m.** It was officially changed to **Sunday at 4 p.m.**
+
+  No, the venue, admission price, or contact person did not
+  change. The change was solely to a different time on a
+  different day.
+\end{promptbox}

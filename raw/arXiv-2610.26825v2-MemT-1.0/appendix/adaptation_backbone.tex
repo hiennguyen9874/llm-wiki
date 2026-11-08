@@ -1,0 +1,127 @@
+\section{Adaptation to Specific Backbones}
+\label{appendix:backbone_adaptation}
+
+Table~\ref{tab:backbone_memory_geometry} summarizes the memory geometry of the MemT-1.0-Nano and MemT-1.0-Flash models used in the main evaluations.
+Both use one memory block per selected layer ($E=1$).
+The four-expert MoS workload in Appendix~\ref{appendix:infra_experiment_details} measures the cost of capacity expansion separately.
+Layer indices below start at zero.
+
+\begin{table}[htbp]
+    \centering
+    \caption{Backbone and native-memory configuration. State size counts the persistent memory matrices for one trajectory, excluding model weights and current-step KV caches.}
+    \label{tab:backbone_memory_geometry}
+    \small
+    \renewcommand{\arraystretch}{1.15}
+    \begin{tabularx}{\linewidth}{l>{\raggedright\arraybackslash}X>{\raggedright\arraybackslash}X}
+        \toprule
+        \textbf{Configuration} & \textbf{MemT-1.0-Nano} & \textbf{MemT-1.0-Flash} \\
+        \midrule
+        Backbone & Qwen3.6-35B-A3B & DeepSeek-V4-Flash, after backbone preparation \\
+        Hidden width / decoder layers & 2048 / 40 & 4096 / 43 \\
+        Memory layers & $3,7,\ldots,39$ (10 layers) & $4,6,\ldots,42$ (20 layers) \\
+        Memory-layer type & Full attention & Compressed sparse attention \\
+        Memory $H_q/H_{kv}$ & 16 / 16 & 64 / 64 \\
+        Memory $d_k/d_v$ & 256 / 256 & 512 / 512 \\
+        Memory experts per layer & 1 & 1 \\
+        Trainable memory parameters & 450,931,360 & 3,608,608,000 \\
+        State elements per trajectory & 10,485,760 & 335,544,320 \\
+        FP32 state size & 40 MiB & 1280 MiB \\
+        Readout / fusion-point width & 4096 / 4096 & 32768 / 8192 \\
+        \bottomrule
+    \end{tabularx}
+\end{table}
+
+\subsection{Projection and Fusion}
+
+\textbf{MemT-1.0-Nano.}
+MemT-1.0-Nano augments each full-attention layer of Qwen3.6-35B-A3B with a native memory block, preserving the original hybrid architecture and MoE computation.
+The memory branch receives the same pre-normalized hidden states as the original attention and assigns an independent memory channel to each query head.
+Memory query, key, and value projections are dense and initialized from the corresponding backbone attention projections.
+The query projection copies the query component of the backbone's joint query/output-gate projection.
+The two backbone KV heads are each copied into eight memory heads, giving 16 independently trainable memory heads.
+The copies share initial values but are separate parameters, with separate channel-wise gates and memory states.
+After per-head RMSNorm and output gating, the 16 readouts are concatenated into a 4096-dimension vector, added to the backbone's already-gated attention output, and passed through its frozen $4096\!\times\!2048$ output projection.
+The backbone sigmoid gate therefore applies only to the original attention branch, while memory uses the output gate defined in Section~\ref{sec:model_arc}.
+
+
+\textbf{MemT-1.0-Flash.}
+MemT-1.0-Flash attaches a native memory block to the compressed-attention layers of DeepSeek-V4.
+The backbone compressed-attention has 64 query heads of dimension 512, and the memory branch keeps the same geometry, assigning one independent memory channel to each query head.
+
+The memory query projection follows the backbone query projection, which is a two-stage bottleneck that maps the hidden state of width 4096 to a rank-1024 factor and then to 32768 features.
+Both stages and the normalization gain on the intermediate factor are copied from the backbone attention.
+This normalization depends on the input and therefore remains in the projection rather than being folded into the weights.
+
+Keys and values instead use a grouped bottleneck.
+Eight latent groups of width 512 are projected from the hidden state, and each group is normalized by its own RMSNorm over the group's 512 features.
+The group is then expanded to eight heads of dimension 512, so that the eight groups yield 64 memory heads in total, matching the backbone query-head count.
+
+The eight groups are initialized from three backbone projections: the layer's local KV projection, written $L$, and the previous and current halves of the compressed-attention projection, written $P$ and $C$.
+Group $g$ draws its key and value from the $g$-th entry of the following list of pairings:
+\begin{equation*}
+    (L,L),\ (P,C),\ (P,L),\ (C,P),\ (C,L),\ (L,P),\ (L,C),\ (C,C).
+\end{equation*}
+Here $P$ and $C$ denote the two halves of a single backbone projection, and a pairing such as $(P,C)$ means that the key is taken from the previous half and the value from the current half.
+Each group also copies the normalization gain and epsilon of the backbone module that its pairing selects, so groups drawing from $L$ inherit the local KV normalization while those drawing from $P$ or $C$ inherit the compressed-attention normalization.
+Within a group, the expansion to the eight heads is initialized as an identity mapping and the heads are trained independently.
+
+After readout, the backbone's frozen grouped output projection maps eight groups of 4096 features to eight groups of 1024.
+The resulting 8192-dimensional memory contribution is added at the input of the final backbone output projection, which contracts it to the hidden width of 4096.
+The original backbone residual and hyper-connection operations are preserved.
+
+\subsection{Gates and Initialization}
+
+All gates take the pre-attention hidden state directly.
+MemT-1.0-Nano uses dense erase/write projections and rank-256 factorizations for the forget and output gates. MemT-1.0-Flash uses rank-512 factorizations for all four gates.
+There is no intervening nonlinearity or normalization between gate factors, so the erase/write factors compose into the effective matrices in Section~\ref{sec:model_arc}.
+MemT-1.0-Flash's Q/K/V bottleneck normalization, described above, is distinct from these gate projections.
+
+New gate input weights are initialized from $\mathcal{N}(0,0.02^2)$.
+For both models, the forget-gate expansion starts at zero and the output-gate expansion uses $\mathcal{N}(0,0.001^2)$.
+MemT-1.0-Nano copies the initial erase projection into the write projection, then trains them independently.
+MemT-1.0-Flash initializes the erase/write expansion factors independently from $\mathcal{N}(0,0.02^2)$ and initializes the output-gate bias to $0.1$. 
+MemT-1.0-Nano has no output-gate bias.
+Both use a SoftCapSiLU threshold of $2.0$ in the evaluated models.
+
+Forget-gate biases encode a range of initial time scales.
+For each key channel, a half-life $\tau_{1/2}$ is sampled independently and log-uniformly from $[2048,32768]$ tokens for MemT-1.0-Nano and $[128,32768]$ tokens for MemT-1.0-Flash.
+We initialize
+\begin{equation*}
+    b_\lambda=\operatorname{Softplus}^{-1}\!\left(\frac{\log 2}{\tau_{1/2}}\right),
+    \qquad s_h=0.
+\end{equation*}
+Together with the zero forget-gate expansion, this sets the initial decay time scale through a factor $2^{-1/\tau_{1/2}}$ per token.
+Both the channel-wise bias $b_\lambda$ and head-wise log-scale $s_h$ remain trainable and are excluded from weight decay.
+Memory states start at zero for each independent trajectory.
+
+\subsection{Training Configuration}
+\label{appendix:memory_training_configuration}
+
+The trainable parameter counts in Table~\ref{tab:backbone_memory_geometry} include memory Q/K/V projections, gate projections and biases, decay scales, and memory normalization gains.
+Backbone parameters, including the output projections used for fusion, are frozen during memory training.
+Model parameters and projection computation use BF16.
+Optimizer master parameters, gradient accumulation/reduction, and Adam moments use FP32.
+Memory-state accumulation and the sensitive normalization/decay calculations also use FP32.
+
+\begin{table}[htbp]
+    \centering
+    \caption{Execution and distillation settings for the evaluated checkpoints. TP, PP, CP, and EP denote tensor, pipeline, context, and expert parallelism. DP counts logical data-parallel replicas. EP partitions backbone experts within that topology.}
+    \label{tab:memory_training_configuration}
+    \small
+    \renewcommand{\arraystretch}{1.15}
+    \begin{tabularx}{\linewidth}{l>{\raggedright\arraybackslash}X>{\raggedright\arraybackslash}X}
+        \toprule
+        Setting & MemT-1.0-Nano & MemT-1.0-Flash \\
+        \midrule
+        TP / PP / CP / EP & 1 / 1 / 1 / 8 & 1 / 4 / 2 / 8 \\
+        Logical DP / accumulation steps & 64 / 1 & 12 / 16 \\
+        Global batch (packs) & 64 & 192 \\
+        Maximum pack / storage step & 65536 / 2048 tokens & 65536 / 2048 tokens \\
+        Post-training target & Online backbone, Top-64 KL & Online backbone, Top-64 KL \\
+        Temperature / KL / CE weight & 1 / 1 / 0 & 1 / 1 / 0 \\
+        Memory writer / reader & Chunked update / step snapshot & Chunked update / step snapshot \\
+        MoE communication backend & DeepEP & DeepEP \\
+        \bottomrule
+    \end{tabularx}
+\end{table}
+The single-GPU MoS measurements in Appendix~\ref{appendix:infra_experiment_details} have their own workload and software configuration.

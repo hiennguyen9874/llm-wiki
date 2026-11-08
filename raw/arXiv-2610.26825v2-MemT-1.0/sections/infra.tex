@@ -1,0 +1,111 @@
+\section{System and Infrastructure}
+\label{sec:infra}
+
+Each interaction in MemT-1.0 depends on memory accumulated from earlier steps.
+Training must combine these dependencies with batched GPU computation, while inference must maintain an independent evolving state for each trajectory.
+Our infrastructure executes the model one decoder layer at a time, handles state recurrence within memory blocks, and manages model weights separately from trajectory-specific states.
+We describe the resulting training schedule, memory operators, and online state organization below.
+
+\subsection{Distributed Training}
+\label{sec:distributed_training}
+
+Training packs combine independent trajectories, each containing the steps defined in Section~\ref{sec:training}.
+Attention stays within each step, while memory carries information between steps of the same trajectory and resets at trajectory boundaries.
+Teacher forcing supplies all tokens in the pack, so the model processes the complete pack one decoder layer at a time.
+Within each layer, attention and memory projections are batched across tokens.
+The memory block alone advances state along each trajectory.
+This organization retains large backbone matrix multiplications while preserving the order of memory writes and reads.
+
+We use Megatron-Core~\cite{narayanan2021efficientlargescalelanguagemodel} and Bridge~\cite{nvidia2026megatronbridge} for distributed training, including expert parallelism for the backbone MoE layers.
+Although backbone weights are frozen during memory training, gradients still pass through backbone computations and memory transitions, allowing later predictions to train earlier writes.
+The remaining infrastructure challenge is therefore the cost of memory computation and its training activations, which we address below.
+
+\subsection{Efficient Operators}
+\label{sec:infra_operators}
+
+Native memory introduces two related costs: ordered state updates and activations that grow with the number of memory experts.
+Our execution separates state updates from reads of step snapshots, then groups complete steps into windows to limit the lifetime of expert projections.
+This lets the memory branch control its working set while the backbone continues to process the full token pack layer by layer.
+
+\textbf{Chunked updates and snapshot reads.}
+The stable update has a rank-one structure.
+Suppressing layer, step, and channel indices, let $\mathbf{k}_i$ denote the normalized key, and define $\mathbf{u}_i=\sqrt{\boldsymbol{\beta}_i}\odot\mathbf{k}_i$, $\mathbf{z}_i=\boldsymbol{\omega}_i\odot\mathbf{v}_i$, and $\mathbf{D}_i=\operatorname{Diag}(\exp(\boldsymbol{\lambda}_i))$.
+The update in Section~\ref{sec:model_arc} can then be written as
+\begin{equation*}
+\mathbf{S}_i=\mathbf{D}_i\mathbf{S}_{i-1}
++\mathbf{u}_i^\top\bigl(\mathbf{z}_i-\mathbf{u}_i\mathbf{D}_i\mathbf{S}_{i-1}\bigr),
+\qquad
+\mathbf{S}_0=\mathbf{M}_t,\quad \mathbf{M}_{t+1}=\mathbf{S}_{L_t}.
+\end{equation*}
+Each token requires a vector--matrix multiplication and an outer product, with leading work of $O(d_kd_v)$ per channel.
+We use chunked WY~\cite{NEURIPS2024_d13a3eae} to group these small dependent updates into triangular solves and matrix multiplications, carrying state between chunks and reconstructing intermediate quantities during backward.
+The adaptation to MemT-1.0 is to pair this writer with a separate snapshot reader: all queries in step $t$ read the same incoming state $\mathbf{M}_t$, even as the writer processes several chunks to form $\mathbf{M}_{t+1}$.
+The reads can therefore be batched independently, followed by RMSNorm and SoftCapSiLU output gating.
+Gradients from later reads propagate through the writes that produced their snapshots.
+Writer chunks determine computation granularity, and model steps determine when updated memory becomes visible.
+
+\textbf{Complete-step windows for MoS.}
+Dense MoS evaluates every expert, so materializing all expert projections at once requires tensors that grow with both pack length and expert count.
+Whole-pack execution does exactly this: it projects every token in the pack before processing the resulting memory computations.
+Windowed execution instead performs expert projections, state updates, and readout fusion for one group of complete steps at a time, passing a differentiable FP32 final state to the next window.
+Both schedules use the same storage and utilization routers, shared expert addresses, and update kernel.
+Storage probabilities modulate the erase gate, write gate, and log-decay. Utilization probabilities mix the gated expert readouts.
+
+A window budget limits how many tokens are projected together, while keeping each step intact even if it exceeds the budget.
+Recomputing internal intermediates during backward~\cite{korthikanti2023reducing} avoids retaining all windows' expert projections for the full training pass.
+Smaller windows reduce live intermediates but require more launches and recomputation.
+Outputs, routing probabilities, and boundary states still occupy memory, so the total remains dependent on pack length as well as window size.
+
+\textbf{The memory--time tradeoff of window size.} We measure one complete MoS memory block on a single GPU using synthetic hidden-state inputs.
+Table~\ref{tab:infra_window_tradeoff} fixes a 32K-token pack, BF16 parameters and projections, and 2048-token steps, comparing peak allocated memory and forward-plus-backward (F+B) time for two window sizes.
+Arrows denote whole-pack execution $\rightarrow$ windowed execution; all values are medians.
+
+\begin{table}[htbp]
+    \centering
+    \caption{Memory-time tradeoff for one MoS memory block on a single GPU at a 32K-token pack length.
+    Arrows denote whole-pack to windowed execution. The values are medians.}
+    \label{tab:infra_window_tradeoff}
+    \small
+    \setlength{\tabcolsep}{5pt}
+    \renewcommand{\arraystretch}{1.15}
+    \begin{tabular}{lrrrr}
+        \toprule
+        \makecell[l]{Window size\\(complete steps)} & \makecell{Peak memory\\(GiB)} & \makecell{Memory\\reduction} & \makecell{F+B\\(ms)} & \makecell{Time\\increase} \\
+        \midrule
+        2048 tokens (1 step) & $47.83 \rightarrow 6.03$ & 87.4\% & $462.7 \rightarrow 493.5$ & 6.6\% \\
+        4096 tokens (2 steps) & $47.83 \rightarrow 9.49$ & 80.1\% & $463.0 \rightarrow 470.6$ & 1.6\% \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+In this configuration, processing two steps at a time reduces peak memory by approximately 80\%, with a 1.6\% increase in median F+B time.
+Shrinking the window to one step saves additional memory but raises the time increase to 6.6\%.
+The window budget thus provides a direct resource tradeoff: smaller windows reduce live intermediates, while larger windows reduce execution overhead.
+Appendix~\ref{appendix:infra_experiment_details} provides the block configuration, measurement protocol, and full results and variability from 8K to 32K.
+
+
+\subsection{Stateful Inference and Serving}
+\label{sec:infra_serving}
+
+During online interaction, backbone and hyper memory weights remain fixed and are shared across trajectories, while each trajectory maintains its own dynamic memory states.
+Within a step, generation reads the incoming memory snapshot, and attention over the current text uses that step's KV cache.
+Once the interaction completes, storage incorporates the input and response into memory for the next interaction.
+The serving runtime manages states by trajectory so that subsequent requests continue their respective histories.
+
+For a fixed configuration, the number of memory-state elements per trajectory is
+\begin{equation*}
+N_{\mathrm{state}}=\sum_l E_l H_{kv,l}d_{k,l}d_{v,l},
+\end{equation*}
+where the sum covers memory layers and $E_l=1$ without MoS.
+Growing history updates these elements while their number remains determined by configured memory capacity.
+Total storage for multiple trajectories grows with trajectory count.
+Active requests additionally require their current-step KV caches and computational workspaces.
+Persistent-state storage can thus be estimated directly from the memory configuration, whereas runtime GPU memory also includes shared weights and active requests.
+The effect of finite capacity on retained historical detail is examined in the capability evaluations and Discussion.
+
+This organization separates history preparation from subsequent queries.
+In Evaluation's two-GPU, single-request BEAM experiment, MemT-1.0-Nano's query latency after history preparation remains nearly constant as history grows.
+At 64K tokens of history, MemT-1.0-Nano achieves an approximately \textbf{33$\times$ reduction} in logical per-trajectory state size compared with full context.
+The storage metric measures the logical state size after history preparation and before querying, and excludes shared weights.
+When subsequent queries reuse that state, the initial preparation cost is amortized over multiple interactions.
+The full protocol and curves appear in Section~\ref{sec:evaluation} and Appendix~\ref{appendix:eval_storage_overhead}.

@@ -1,0 +1,239 @@
+\documentclass[11pt]{memtensor}
+\usepackage{enumitem}
+\usepackage[utf8]{inputenc}
+\usepackage{url}
+\usepackage{graphicx}
+\usepackage{booktabs}
+\usepackage{amsfonts}
+\usepackage{nicefrac}
+\usepackage{makecell}
+\usepackage{microtype}
+\usepackage{amsmath}
+\usepackage{etoolbox}
+\usepackage{lipsum}
+\usepackage{minitoc}
+\usepackage{tablefootnote}
+\usepackage{threeparttable}
+\usepackage{wrapfig}
+\usepackage{appendix}
+\usepackage{multirow}
+\usepackage{ulem}
+\useunder{\uline}{\ul}{}
+\usepackage{colortbl}
+\usepackage{adjustbox}
+\usepackage{array}
+\usepackage{tabularx}
+\usepackage{siunitx}
+\usepackage{placeins}
+\usepackage{float}
+\usepackage{xcolor}
+\usepackage{mdframed}
+\usepackage{listings}
+\usepackage{bigstrut}
+\usepackage{amsthm}
+
+\usepackage{newtxtext,newtxmath}
+\usepackage[most]{tcolorbox}
+\usepackage{microtype}
+\usepackage{setspace}
+
+\usepackage[table]{xcolor}
+
+\usepackage{booktabs}
+\usepackage[table]{xcolor}
+\usepackage{siunitx}
+\usepackage{adjustbox}
+\usepackage{threeparttable}
+
+
+\definecolor{MetisBlue}{HTML}{6F8FEF}
+\definecolor{MetisBlueDark}{HTML}{536FC8}
+\definecolor{MetisBlueLight}{HTML}{EAF1FF}
+\definecolor{MetisBluePale}{HTML}{F6F9FF}
+\definecolor{MetisBlueRule}{HTML}{C9D7F6}
+\definecolor{MetisHighlight}{HTML}{EDF3FF}
+\definecolor{MetisHighlightStrong}{HTML}{DFE9FF}
+\definecolor{MetisText}{HTML}{263247}
+
+\definecolor{MetisHeader}{HTML}{DCE6F0}
+\definecolor{MetisHeaderText}{HTML}{31475E}
+
+\definecolor{InsightBlue}{HTML}{2F5D7C}
+\definecolor{InsightBg}{HTML}{F3F6F8}
+\definecolor{InsightText}{HTML}{24313A}
+
+\definecolor{MetisDeltaDown}{HTML}{2E8B57}
+\definecolor{MetisDeltaUp}{HTML}{C94C4C}
+
+\newcommand{\increase}[1]{%
+    \multicolumn{1}{c}{%
+        \textcolor{MetisDeltaUp}{\num{+#1}}%
+    }%
+}
+
+\newcommand{\decrease}[1]{%
+    \multicolumn{1}{c}{%
+        \textcolor{MetisDeltaDown}{\num{-#1}}%
+    }%
+}
+
+\newcommand{\NA}{\multicolumn{1}{c}{--}}
+
+\newtcolorbox{keyinsight}[1][Key insight]{
+  enhanced,
+  breakable,
+  colback=InsightBg,
+  colframe=InsightBlue,
+  coltext=InsightText,
+  boxrule=0pt,
+  leftrule=2.8pt,
+  arc=1.2pt,
+  outer arc=1.2pt,
+  left=13pt,
+  right=13pt,
+  top=9pt,
+  bottom=10pt,
+  before skip=11pt,
+  after skip=11pt,
+  title={\footnotesize\bfseries\color{InsightBlue}\MakeUppercase{#1}},
+  attach title to upper={\par\vspace{4pt}},
+  fontupper=\normalsize,
+}
+
+
+\DeclareMathOperator{\Softmax}{Softmax}
+\DeclareMathOperator{\Norm}{Norm}
+
+\newcommand{\nameat}[1]{\textcolor{green!40!black}{@#1}}
+
+\title{
+  \titlefont
+  \parbox{\textwidth}{
+    \centering
+    \LARGE
+    \raisebox{-0.4em}{\includegraphics[height=1.6em]{logo/MemT_logo.png}}\hspace{0.15em}
+    MemT-1.0: Towards Memory-Native Evolution
+  }
+}
+
+\author[]{\makebox[\linewidth][c]{MemTensor Team}}
+
+
+\abstract{
+Memory-native evolution requires making memory an intrinsic capability of foundation models, enabling them to continuously accumulate and utilize information.
+To this end, we introduce \textbf{MemT-1.0}, a new architecture of memory foundation models that internalize memory as part of model computation.
+Building on Metis, MemT-1.0 employs Gated DeltaNet-2 with a stable token-level memory update mechanism within each turn. 
+We further introduce Mixture-of-Storage to scale native memory capacity.
+Following a deliberate backbone preparation, we develop a two-stage training pipeline consisting of continued pre-training and post-training, supported by 34B tokens of training data and efficient training and inference infrastructure.
+We release a model family comprising \textbf{MemT-1.0-Nano} and \textbf{MemT-1.0-Flash}, and conduct a comprehensive evaluation of memory and general capabilities.
+The results show that they outperform the parametric memory baselines on average and remain competitive with retrieval-augmented methods, while largely preserving general capabilities.
+At a history length of 128K tokens, MemT-1.0-Nano achieves approximately $1.86\times$ end-to-end inference speedup and a $66\times$ reduction in persistent storage relative to full context KV cache.
+By internalizing retrieved procedural experience, MemT-1.0 improves task success on agentic tasks, providing a practical step toward memory-native evolution.
+}
+
+
+\checkdata[\raisebox{-0.7ex}{\includegraphics[height=1.05em]{logo/github_logo.png}}\hspace{0.3em}Code]{%
+  \url{https://github.com/MemTensor/MemT-1.0}%
+}
+\checkdata[\raisebox{-0.7ex}{\includegraphics[height=1.05em]{logo/huggingface_logo.png}}\hspace{0.3em}Model]{%
+\url{https://huggingface.co/collections/MemTensor/memt-1}%
+}
+
+
+\theoremstyle{definition}
+\newtheorem{definition}{Definition}
+
+\begin{document}
+\maketitle
+
+\begin{center}
+    \vspace{-0.4cm}
+    \includegraphics[width=\textwidth]
+        {figures/figure_performance.pdf}
+
+    \vspace{-0.2cm}
+    \captionof{figure}{
+        Memory performance of MemT-1.0 on representative benchmarks.
+    }
+    \label{fig:overall_results}
+
+    \vspace{-0.6cm}
+\end{center}
+
+\begin{center}
+    \includegraphics[width=\textwidth]
+        {figures/figure_moe.pdf}
+
+    \captionof{figure}{
+        Agentic performance of MemT-1.0-Flash after backbone preparation without native memory.
+    }
+    \label{fig:backbone_preparation_results}
+
+\end{center}
+
+
+\begin{figure*}[h]
+    \centering
+    \vspace{0.8em}
+
+    \includegraphics[width=\textwidth]
+        {figures/figure_efficiency.pdf}
+
+    \caption{
+    Inference efficiency and storage overhead of MemT-1.0-Nano.
+    }
+    \label{fig:overall_efficiency}
+
+    \vspace{-0.8em}
+\end{figure*}
+
+
+\newpage
+\tableofcontents
+
+
+
+\newpage
+
+\input{sections/introduction}
+
+\input{sections/model_architecture}
+
+\input{sections/training}
+
+\input{sections/infra}
+
+\input{sections/scaling}
+
+\input{sections/evaluation}
+
+\input{sections/application}
+
+\input{sections/discussion}
+
+\input{sections/conclusion}
+
+
+\bibliographystyle{unsrt}
+\phantomsection
+\addcontentsline{toc}{section}{References}
+\bibliography{reference}
+
+\newpage
+
+\appendix
+
+\input{appendix/author_list}
+
+\input{appendix/adaptation_backbone}
+
+\input{appendix/stable_gdn}
+
+\input{appendix/evaluation_details}
+
+\input{appendix/detail_of_application}
+
+\input{appendix/infra_experiment_details}
+
+\input{appendix/case_studies}
+\end{document}
