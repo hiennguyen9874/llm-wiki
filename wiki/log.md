@@ -1,6 +1,8 @@
 # Wiki Update Log
 
 ## 2026-11-09
+- **Ingest**: Compiled the [Reddit Sparks discussion](../raw/sparks_of_weightspace_programming_llms_can.md); updated neural weight editing with a reported whitespace-embedding intervention and evaluation limits.
+- **Ingest**: Compiled the [Reddit emergence discussion](../raw/seems_weight_space_programming_is_an_emergent.md) and its main screenshot; updated weight-space programming with an attributed cross-generation claim and its evidence limits.
 - **Ingest**: Compiled [Masood's weight-space programming analysis](../raw/when-llms-edit-other-llms-weight-space-programming-and-the-conditions-for-recursive-self-improvement.md); created concepts comparing adaptation mechanisms and assessing continual and recursive improvement, and linked weight editing.
 - **Ingest**: Compiled the [weight-space programming deep-dive tutorial](../raw/weight-space-programming-deep-dive-tutorial-live-demo-039ca7f2230a.md); updated browser editing with injection mathematics, reported interventions, implementation details, and evidence limits.
 - **Ingest**: Compiled [Italian translation weight-edit discussion](../raw/i_tried_mits_weightspace_programming_on_my_own.md); created the experiment concept and linked the weight-space programming and editing overviews.

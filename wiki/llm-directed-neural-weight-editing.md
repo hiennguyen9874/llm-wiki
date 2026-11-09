@@ -5,8 +5,12 @@ description: Reported neural policy construction, classification, and model repa
 tags: [ml, optimization, interpretability]
 status: draft
 created: 2026-11-09
-generated: { by: llm-wiki-agent/1, at: 2026-11-09T08:29:40Z }
+generated: { by: llm-wiki-agent/1, at: 2026-11-09T08:58:43Z }
 sources:
+  - id: reddit-qwen-whitespace
+    resource: ../raw/sparks_of_weightspace_programming_llms_can.md
+    kind: article
+    title: "Reddit discussion of Sparks of Weight-Space Programming and Qwen replication"
   - id: video-cAGCH19xgU8
     resource: ../raw/cAGCH19xgU8.md
     kind: video
@@ -135,6 +139,12 @@ sources:
 
 **Reported by a secondary article:** An Admix account describes a held-out accuracy increase from 10.6% to 60.4% and says 576 of 579 repaired answers had originally reached the token cap. The same counts appear in another account's analysis of 1,152 held-out practice items; this is not established as an item-level analysis of the final benchmark. The Admix account also reports that Alex Krentsel reran an earlier MIT experiment across model generations and that the newest models scored up to 22 times an RL-trained baseline; it provides no linked report or evaluation details for this claim.[^admix-weight-space] [^kingy-weight-space]
 
+## Reported whitespace-embedding intervention
+
+**Reported, unverified:** A Reddit commenter describes a separate GLM 5.3-assisted edit of Qwen3.5-0.8B on a consumer Mac: scale 302 pure-whitespace vocabulary embedding rows by 0.60 and the `</think>` row by 1.25, reportedly changing 0.041% of weights without gradients. On greedy MATH-50, they report accuracy rising from 0% to 22%, terminations from 7/50 to 16/50, and verbatim loops falling from three to zero. They attribute looping to whitespace continuation logits outcompeting the thinking terminator; the capture does not provide a procedure sufficient to verify that mechanism. The commenter cautions that arithmetic failures remain and whitespace damping could hurt code generation. This is a distinct intervention and benchmark from the MLP edit above, not a direct replication of its method.[^reddit-qwen-whitespace]
+
+**Reported evaluation suggestion:** Another commenter proposes comparing the unedited model with a repetition penalty or no-repeat sampling under the same budget, to distinguish the edit's contribution from a cheaper decoding change. The discussion does not report that controlled comparison.[^reddit-qwen-whitespace]
+
 ## Qwen intervention and comparison details
 
 **Reported by a secondary account:** The two edited MLP output matrices have shape 1,024 × 3,584. For a layer-specific estimated repetition direction `u`, the account gives `W_new = W_original - 6 × outer(u, mask64 × (u @ W_original))`. Thus the intervention is a sixfold scaled adjustment to 64 selected columns per layer, not simply removal of an unscaled projection. Of 131,072 targeted entries, the reported manifest counts 130,188 bitwise different after bfloat16 rounding; the small edited fraction does not establish behavioral preservation.[^kingy-weight-space]
@@ -195,6 +205,8 @@ sources:
 
 ## Evidence limits
 
+The English Reddit capture attributes the post to u/teakhop but anonymizes commenters and supplies no publication or capture date, license, model revision, code, or complete evaluation protocol. Its linked research, model card, external experiments, and remote preview images were not inspected for this ingest; the images may contain additional evidence. The claimed experiment was not reproduced. Speculative forecasts and unrelated discussion were excluded; no sensitive values or executable content were identified.[^reddit-qwen-whitespace]
+
 The standalone English video transcript links to YouTube but gives no full creator identity, date, license, timestamps, test protocol, or local attachments. The video, the speaker's social-media post and the underlying research artifacts were not inspected for this ingest; transcription errors may affect model names and technical detail. No experiment was reproduced. The speaker's proposed internal mechanisms and recursive improvement are speculation; the legal-classifier anecdote does not resolve the separate attribution ambiguity above.[^video-cAGCH19xgU8]
 
 The results are the authors' reports. External code, logs, benchmark data, model card, and edited model were not inspected; no training or evaluation was reproduced. In particular, small edit size does not demonstrate absence of side effects or catastrophic forgetting.[^takehi2026]
@@ -233,6 +245,7 @@ The Qwen3.8-27B post and remote before/after image were inspected; the image is 
 
 The English ITECS AI explainer by the ITECS Team, dated 2026-11-04, says it checked the primary post and experiment logs but did not reproduce experiments. The article and lead image were inspected; the lead image repeats the summary, and its SVG logo and inline illustrations are decorative or repeat text. External logs, model, and linked business guidance were not inspected for this ingest; the capture supplies no license or local capture date. Promotional material was excluded.[^itecs-explainer]
 
+[^reddit-qwen-whitespace]: Reddit capture, comments beginning “I had GLM 5.3” and “building on what niagalacigolliwon said.”
 [^video-cAGCH19xgU8]: Local transcript, passages beginning “Of course, there are skeptics” and “It turns out that the same part of the network”; no timestamps available.
 [^legal-summary-2117695754278142357]: Local summary, sole paragraph, attribution and reported classifier results.
 [^williams-weight-edit]: Junior Williams, “What the researchers reported,” “Confirmed, claimed and not yet known,” “Verify model integrity,” and “Where this fits my own work.”

@@ -42,7 +42,7 @@ Bài của Masood nhấn mạnh rằng sửa tham số trực tiếp đã có t�
 | --- | --- | --- | --- |
 | A. Weight reading | LLM | Trọng số dạng text, có khi thêm Python hoặc attention pattern | Nhận diện game, diffusion, character transformer, sycophancy; audit CNN; audit mạng lâm sàng |
 | B. From-scratch writing | LLM | Luật chơi, source code, layout I/O | MinAtar, Go 9×9, legal citation classifier |
-| C. LLM-directed repair/editing | LLM | Trọng số, failure case, công cụ Python, forward pass có giới hạn | Kinetix car, Qwen3.5-0.8B, Gemma Italian, mạng lâm sàng, inject profile facts |
+| C. LLM-directed repair/editing | LLM | Trọng số, failure case, công cụ Python, forward pass có giới hạn | Kinetix car, Qwen3.5-0.8B (MLP direction, embedding whitespace), Gemma Italian, mạng lâm sàng, inject profile facts |
 | D. Human-directed rule-based editing | Con người | DSL selector/op, hidden-state statistics | webWeightSpace, coarse normalization gain |
 | E. Cơ chế thích nghi khác (để so sánh) | Optimizer, retriever | Dữ liệu, gradient, tài liệu | Fine-tuning, LoRA, distillation, prompt baking, RAG, ROME/MEMIT/MEND |
 
@@ -150,6 +150,13 @@ $$
 - **Đối chứng âm:** Gemma 3 270M, vốn hiếm khi loop, chỉ đạt 7.0–7.7% so với baseline 6.8%. Nghĩa là không có cải thiện đáng kể.
 - **Tranh cãi về baseline:** khi chạy ở non-thinking mode, Qwen gốc được báo cáo đạt khoảng 43.95–47%. Các nguồn MindStudio và Kingy cho rằng thí nghiệm dùng thinking mode ở temperature thấp hơn khuyến nghị, điều kiện dễ gây loop. Các cấu hình này không khớp nhau, nên **chưa xác định được hiệu ứng gia tăng (incremental effect) của bản sửa**.
 
+**Một can thiệp khác trên cùng mô hình: scale embedding whitespace (Reported, unverified).** Một người bình luận trên Reddit kể rằng họ nhờ GLM 5.3 hỗ trợ sửa Qwen3.5-0.8B trên một máy Mac phổ thông ([LLM-directed neural weight editing](../wiki/llm-directed-neural-weight-editing.md)):
+- **Can thiệp:** nhân 302 hàng embedding của các token chỉ gồm whitespace với 0.60, và hàng của `</think>` với 1.25. Khoảng 0.041% trọng số thay đổi, không dùng gradient.
+- **Kết quả tự báo cáo trên greedy MATH-50:** accuracy 0% → 22%; số lần kết thúc 7/50 → 16/50; số vòng lặp nguyên văn 3 → 0.
+- **Giải thích của tác giả:** vòng lặp xảy ra vì logit tiếp tục sinh whitespace lấn át token kết thúc thinking. Bản capture không đưa ra quy trình đủ để kiểm chứng cơ chế này.
+- **Tác giả tự cảnh báo:** lỗi số học vẫn còn, và giảm whitespace có thể làm hỏng việc sinh code.
+- **Lưu ý:** đây là can thiệp và benchmark khác với bản sửa MLP ở trên, **không phải bản replication** của phương pháp đó. **Synthesis:** kết quả này cùng hướng với diễn giải "gỡ vật cản" (giảm loop), nhưng chỉ là lời kể của một cá nhân.
+
 ### 5.3 Neuron switch có điều kiện (Gemma 4 12B, dịch tiếng Ý)
 Một người dùng Reddit nhờ Claude Opus 5.5 viết lại **8 MLP neuron** thành một "công tắc có điều kiện". Mục tiêu là chọn thì imperfect cho tình huống "đang diễn ra trong quá khứ thì bị gián đoạn". Mô hình được dùng một Python kernel và 50 forward pass; khoảng 92,000 trên 11.9B tham số bị thay đổi. Một linear probe ở layer giữa được dùng để định vị khái niệm ([Italian translation weight-edit experiment](../wiki/italian-translation-weight-edit-experiment.md)).
 
@@ -242,7 +249,7 @@ Theo [Model adaptation mechanisms](../wiki/model-adaptation-mechanisms.md), các
 
 ### 8.2 Khuyến nghị gộp từ các nguồn (Reported recommendations)
 1. **Measurement contract:** kiểm tra rằng tensor đích thực sự thay đổi. Dùng greedy decoding với seed cố định, và so kết quả từng task qua các lần chạy độc lập ([Coarse normalization](../wiki/coarse-normalization-weight-editing-experiment.md)).
-2. **Baseline đúng cấu hình:** kiểm tra tỉ lệ hoàn thành và lặp, không chỉ độ đúng. Thử chỉnh mode, temperature và output limit trước khi sửa trọng số ([LLM-directed editing](../wiki/llm-directed-neural-weight-editing.md)).
+2. **Baseline đúng cấu hình:** kiểm tra tỉ lệ hoàn thành và lặp, không chỉ độ đúng. Thử chỉnh mode, temperature và output limit trước khi sửa trọng số. So sánh thêm mô hình gốc dùng repetition penalty hoặc no-repeat sampling dưới cùng ngân sách, để tách đóng góp của bản sửa khỏi một thay đổi decoding rẻ hơn. Thảo luận gốc chưa báo cáo phép so sánh này ([LLM-directed editing](../wiki/llm-directed-neural-weight-editing.md)).
 3. **Ghi đủ ngân sách:** số forward pass, số lần chạy Python, số agent turn, và **chi phí tìm ra bản sửa**, không chỉ kích thước bản sửa (Williams).
 4. **Controls cho weight reading:** ẩn nhãn, dùng dataset ít quen thuộc, hoán vị class, xáo trộn trọng số, và hỏi logit chính xác cho một input cụ thể. Nên preregister và có người chấm độc lập ([Dataset-prior audit](../wiki/weight-reading-dataset-prior-audit.md)).
 5. **Kiểm tra trong arithmetic khi triển khai** (fp16, bf16) và recommission ([Clinical audit](../wiki/clinical-decision-network-weight-audit.md)).
@@ -257,6 +264,7 @@ Theo [Model adaptation mechanisms](../wiki/model-adaptation-mechanisms.md), các
 - **Không mới:** bình luận trên Hacker News, được trích qua Reddit, cho rằng bản sửa Qwen chỉ là **contrastive steering** quen thuộc.
 - **Sycophancy:** một bài phê bình nói các lần thử chỉ dùng weights tương đương tung đồng xu, và việc can thiệp vào thành phần bị chỉ ra không làm thay đổi hành vi. Nhận định này chưa được kiểm chứng.
 - **Comparator mạnh hơn cho Breakout:** một script ngắn được cho là vượt Astra. Chưa được kiểm chứng.
+- **"Năng lực emergent" qua các thế hệ mô hình (Reported, unverified):** một bài Reddit đăng screenshot được cho là của Alex Krentsel, nói rằng đã reproduce thí nghiệm và thấy một bước nhảy giữa các thế hệ mô hình. Biểu đồ ghi GPT 6.1 Sol, GPT 6 Astra và Opus 5.5 đạt lần lượt 18×, 22× và 20× so với PPO 500M bước. Bài Admix cũng kể lại rằng các mô hình mới nhất đạt "tới 22 lần" một baseline RL, nhưng không dẫn link báo cáo. Screenshot không nêu task, cách chấm, cỡ mẫu hay uncertainty. Người bình luận đưa ra hai giả thuyết: mô hình được huấn luyện riêng cho việc phân tích trọng số, hoặc khái quát hóa từ kỹ năng khác. Không giả thuyết nào được xác lập; chênh lệch điểm tự nó không cho biết lịch sử huấn luyện và không chứng minh năng lực emergent ([Weight-space programming](../wiki/weight-space-programming.md), [LLM-directed editing](../wiki/llm-directed-neural-weight-editing.md)).
 - **Recursive self-improvement:** @theojaffee và Masood đều cho rằng một bản sửa đơn lẻ **không** phải bằng chứng cho RSI.
 
 ---
@@ -283,6 +291,7 @@ Theo [Continual learning and recursive improvement](../wiki/continual-learning-a
 | Go 9×9 | GPT-6 Astra | Policy từ 0 | Viết (Python) | 0–50 pass | Thắng PPO cùng kích thước khi có 50 pass | Mô tả đối thủ chưa nhất quán |
 | Legal citation | "Fable"/"Claude" | MLP ~100K | Viết | 0 hoặc 5,062 nhãn | 97.8–98.9% so với 94.6% | Attribution, protocol |
 | Qwen loop | GPT-6 Astra | Qwen3.5-0.8B | Direction subtraction | 50 pass | MATH-500 7.9% → 48.1% | Cấu hình baseline |
+| Qwen whitespace | GLM 5.3 (hỗ trợ) | Qwen3.5-0.8B | Scale embedding whitespace và `</think>` | Không rõ | Greedy MATH-50 0% → 22% | Một người bình luận, không có protocol |
 | Italian tense | Claude Opus 5.5 | Gemma 4 12B | 8-neuron switch | 50 pass | 5–16% so với base 26–32% | Tự báo cáo, n chưa rõ |
 | webWeightSpace | Con người | Qwen2.5-0.5B | DSL / inject | Quan sát trực tiếp | Steering có tác dụng phụ | Demo minh họa |
 | Coarse gain | Con người | Qwen2.5-Coder-1.5B | Norm gain | Hidden-state statistics | 4/8 → 0/8 | Nhỏ, không có uncertainty |
