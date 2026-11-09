@@ -1,1 +1,32 @@
 # Wiki Update Log
+
+## 2026-11-09
+- **Ingest**: Compiled [Masood's weight-space programming analysis](../raw/when-llms-edit-other-llms-weight-space-programming-and-the-conditions-for-recursive-self-improvement.md); created concepts comparing adaptation mechanisms and assessing continual and recursive improvement, and linked weight editing.
+- **Ingest**: Compiled the [weight-space programming deep-dive tutorial](../raw/weight-space-programming-deep-dive-tutorial-live-demo-039ca7f2230a.md); updated browser editing with injection mathematics, reported interventions, implementation details, and evidence limits.
+- **Ingest**: Compiled [Italian translation weight-edit discussion](../raw/i_tried_mits_weightspace_programming_on_my_own.md); created the experiment concept and linked the weight-space programming and editing overviews.
+- **Ingest**: Compiled [weight-space programming video transcript](../raw/cAGCH19xgU8.md); updated neural weight editing with a preliminary reported copying trade-off and evidence limits.
+- **Ingest**: Compiled [dataset-prior weight-reading preprint](../raw/arXiv-2611.08070v1/main.tex); created the CNN audit concept and linked related weight-reading and programming concepts.
+- **Ingest**: Compiled [clinical decision network audit preprint](../raw/arXiv-2611.05341v1/main.tex); created the clinical audit concept and linked weight reading and editing.
+- **Ingest**: Compiled [legal classifier summary](../raw/x-2117695754278142357-legoras-cto-says-claude-fable-hand-wrote-the-weights-of-a-100k-parameter.md); updated the weight-editing concept with attribution and model-identity limits.
+- **Ingest**: Compiled [webWeightSpace browser demo article](../raw/what-is-weight-space-programming-live-demo-in-a-browser-tab-57dk/index.md); created the browser-editing concept and linked the overview.
+- **Ingest**: Compiled [Das's coarse weight-editing experiment](../raw/weight-space-programming-what-the/index.md); created the experiment concept and linked related weight-editing concepts.
+- **Ingest**: Compiled [Junior Williams's weight-edit analysis](../raw/weight-space-programming-what-0016-edit-means-ai-junior-williams-3nbgc.md); updated neural weight editing with efficiency limits and model-integrity recommendations.
+- **Ingest**: Compiled [Admix weight-space programming article](../raw/weight-space-programming-llms-edit-weights.md); updated neural weight editing with reported replication claims and evaluation limits.
+- **Ingest**: Compiled [ITECS weight-space programming explainer](../raw/weight-space-programming-explained/index.md); updated weight reading and editing with reported scoring, Go comparisons, and governance guidance.
+- **Ingest**: Compiled [Kingy AI weight-space programming article](../raw/weight-space-programming-ai-agent-model-weights/index.md); updated LLM-directed neural weight editing with intervention details, baseline comparisons, and replication limits.
+- **Ingest**: Compiled [local Qwen weight-reading article](../raw/qwen-can-interpret-model-weights.md); updated weight-reading experiments with reported results, setup, and conflicting secondary-account details.
+- **Ingest**: Compiled [Reddit Sparks discussion](../raw/paper_sparks_of_weightspace_programming_llms_can.md); updated LLM-directed neural weight editing with attributed steering-method criticism and evidence limits.
+- **Ingest**: Compiled [MindStudio weight-reading article](../raw/gpt6-astra-weight-space-programming/index.md); updated reading neural network weights with the reported local test and methodological critique.
+- **Ingest**: Compiled [MindStudio weight-space programming article](../raw/gpt-5-astra-weight-space-programming/index.md); updated LLM-directed neural weight editing with reported baseline-configuration and completion caveats.
+- **Ingest**: Compiled [DataCamp weight-space programming article](../raw/datacamp-weight-space-programming.md); updated LLM-directed neural weight editing with a reported independent reevaluation and replay procedure.
+- **Ingest**: Compiled [Reddit legal-citation discussion](../raw/claude_writes_a_neural_networks_weights_by_hand.md) and its preview images; updated LLM-directed neural weight editing with reported Claude results and attribution limits.
+- **Ingest**: Compiled [profile-fact weight-editing post](../raw/2119416808273019037.md); updated LLM-directed neural weight editing with the reported example and its evidence limits.
+- **Ingest**: Compiled [weight-writing critique](../raw/2118072016670732400.md); updated LLM-directed neural weight editing with the attributed critique and incomplete replication claim.
+- **Ingest**: Compiled [Qwen3.8-27B token-efficiency post](../raw/2117808859691811216.md) and its linked image; updated LLM-directed neural weight editing with reported results and evaluation limits.
+- **Ingest**: Compiled [Fable 5.1 legal classifier post](../raw/2117782732654658047.md) and its linked table; updated LLM-directed neural weight editing with attributed model and baseline claims.
+- **Ingest**: Compiled [legal citation classifier post](../raw/2117606206764175543.md) and its linked table; updated LLM-directed neural weight editing with reported results and evaluation limits.
+- **Ingest**: Compiled [Writing Weights Index post and chart](../raw/2117428789068386630/index.md); created the index concept and linked it to neural weight editing.
+- **Ingest**: Compiled [direct weight-editing summary](../raw/2117422816438145164.md); updated the weight-editing concept with Breakout comparison detail and a qualified view on recursive self-improvement.
+- **Ingest**: Compiled [experimental critique](../raw/2117416640132366570.md); updated weight-reading and weight-editing concepts with reported challenges and unresolved limits.
+- **Ingest**: Compiled [community discussion](../raw/1412375/index.md); updated LLM-directed neural weight editing with anecdotal speech-model attempts and limitations.
+- **Ingest**: Compiled [Sparks of Weight-Space Programming](../raw/weight-space-programming.md); created three concepts on the approach, weight reading, and weight editing.

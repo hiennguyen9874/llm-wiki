@@ -1,0 +1,67 @@
+# Weight-space programming for auditing clinical decision networks
+
+**Authors:** Humza Nusrat (Henry Ford Health, Detroit; Michigan State University, East Lansing) and Omar Nusrat (Toronto Metropolitan University, Toronto)
+**Corresponding author:** hnusrat1@hfhs.org
+**Paper:** arXiv preprint, November 2026 (identifier to be added after posting)
+**Code, networks and every model answer:** https://github.com/hnusrat1/weightspace-rt
+**This file describes:** version 1 of the preprint
+
+## What is this paper about?
+
+The paper tests whether a frontier language model, Claude Opus 5.5, can audit and repair a small neural network that makes a clinical decision by reading and editing its raw weights, with no data, no tools and no code execution. The networks decide whether a head-and-neck radiotherapy planning request goes to automated planning or is escalated to a physicist, under a protocol of four rules. Flaws were planted through the training data, so the right answer for every network was known. The language model found and repaired flaws that silence one rule or shift one dose threshold, usually by changing about three parameters. It could not reliably confirm that a correct network was correct, and it found one of three hidden triggers.
+
+## Important context
+
+- "Weight-space programming" is the term of Takehi et al. (2026, MIT CSAIL blog post) for a language model that reads and writes a network's weights directly. This paper does not introduce that ability. It is a known-answer test of it on clinical decision networks.
+- The networks are tiny: multilayer perceptrons with 433 to 4,801 parameters, eight named inputs (doses in Gy, volumes in cc and a missing-structure flag), trained on synthetic requests. They stand in for clinical models; they are not clinical models.
+- "Detected" has a fixed meaning. The verdict was "deviates", and the claimed regions, checked by sampling, covered at least half of the network's failures in its planted region. A claim counted when at least 100 sampled requests matched it and the claimed deviation occurred in at least 30% of them and at least 20 times as often as elsewhere.
+- A "forced verdict" is an answer obtained by asking for a final answer after the output budget ran out. Forced verdicts were tentative or wrong, and the paper says they should not be accepted.
+- "Healthy" networks had no planted flaw. They made 0 to 7 errors among 416,809 test requests.
+- Every flaw the language model found was visible in single units, and a simple statistic chosen for each flaw type finds the same flaws: column norms find the confounds, and the switch-on point of the cord units finds the shifted cord threshold. What the language model added was choosing the right check without being told the flaw type, and writing a small repair.
+- Common misreadings to avoid. The paper does not show that a language model can certify or commission a clinical AI model. It does not show that reading weights beats testing: testing against the protocol detected every flaw in under a second. It does not show that the language model's repairs do less damage than fine-tuning done with a sensible schedule.
+- Related work: Kabra et al. (2026) trained language models to read weights. Formal verification (Katz et al. 2017; Tjeng et al. 2019) and verification-based repair (Goldberger et al. 2020; Sotoudeh and Thakur 2021) address the same task for small networks with an exact specification and were not compared. The motivation is shortcut learning (Geirhos et al. 2020).
+
+## Data and methods
+
+- Decision: plan or escalate. Escalate if, and only if, at least one rule holds. (A) The coverage goal is above the hot-spot cap. (B) The mandible volume forced into the coverage dose (mandible in PTV minus 5% of the PTV volume) exceeds 0.1 cc while the coverage goal is above the mandible limit. (C) The cord limit is below the achievable cord floor. (D) A goal names a missing structure. Disagreements within 0.3 Gy or 0.3 cc of a threshold are not counted.
+- Networks: two hidden layers of 16 rectified linear units (433 parameters); 32 and 64 units for a size check (1,377 and 4,801 parameters).
+- Planted flaws, three random seeds each: four confounds (a rule fires in training only together with another rule), a 3 Gy shift in the cord threshold, a hidden trigger (missing-structure requests with a PTV volume of 212 to 216 cc labeled for planning), and healthy controls. Also four pilot networks with the mandible-rule confound, three pilot networks trained without it, two healthy pilot networks and four larger networks.
+- Auditor: Claude Opus 5.5 through Claude Code 2.1.299 at the "high" effort setting, all tools disabled, one audit per network, all run on 2 November 2026. Each audit returned a verdict, each deviation as a Python condition on the raw inputs, and weight edits.
+- Scoring: every claim and edit was tested on 416,809 requests (a family test set, 400,000 uniform requests and 17,281 requests in the trigger window). The scoring rules for the panel were fixed before its answers were read.
+- Comparisons: instructions without the weights (three runs), column-norm and switch-on statistics, black-box testing with up to 150 test requests, testing against the protocol, other Claude models (Sonnet 5.5, Haiku 5.5, Opus 4.6 and Fable 5.1), gradient fine-tuning in two settings, a scripted repair told the diagnosis, random edits of matched size, and writing a network from the protocol alone.
+
+## Key results
+
+- Detection: 16 of 18 flawed panel networks (95% CI 67% to 97%), namely all 15 confound and cord-shift networks (95% CI 80% to 100%) and 1 of 3 trigger networks.
+- Repairs: all 16 detected flaws were repaired, with a median of 3 parameters changed (range 1 to 53). In 14 of 16 repairs no correct decision was made wrong; the other two made 2 and 18 of about 420,000 decisions wrong, all unneeded escalations.
+- Healthy networks: 2 of 5 were cleared without forcing, and one of these needed about 275,000 output tokens. One clearance was forced and called tentative, one network drew a false alarm whose edit made 2,018 decisions wrong, and one never received a verdict.
+- A forced edit on one trigger network made 1,181 correct decisions wrong, all of them missed escalations.
+- Without the weights, the language model guessed the mandible rule, but predicted the opposite direction of failure.
+- Fine-tuning on protocol-labeled requests repaired all 18 flawed networks, triggers included, in seconds, in each of five runs with different random seeds. With the networks' own training schedule it made 0 to 114 decisions wrong (median 3) and changed 432 or 433 of the 433 parameters. At a constant learning rate it made 0 to 2,538 decisions wrong (median 32); these counts vary with the seed and the machine.
+- Testing against the protocol separated every flawed network from every healthy one in 0.4 s. Black-box testing found the confounds and the cord shift in 2 to 3 minutes.
+- Every repair that wrote weights of 10^5 or more failed in 16-bit floating point. In most, the score became undefined and every request went to automated planning, so every escalation was missed.
+- Sonnet 5.5 matched Opus 5.5 on the networks it was given, Haiku 5.5 raised a false alarm, and Opus 4.6 gave no verdict at half the output budget.
+
+## Limitations and scope
+
+- Scale: 433 to 4,801 parameters and eight named numeric inputs. The results say nothing direct about contouring networks (millions of parameters, image inputs) or planning agents built on language models (billions). Printing weights costs about ten characters per parameter, so the approach used here, with the whole network in the instructions and no tools, cannot reach clinical scale.
+- Task: synthetic requests drawn uniformly within stated ranges, and a protocol of four rules that a few lines of code implement exactly. No patient data and no clinical model were used.
+- Flaw types: every flaw the language model found was visible in single units. Flaws spread across several units, threshold shifts smaller than 3 Gy, shifts in rules other than the cord rule, and networks carrying more than one flaw were not tested.
+- Certification: the language model cleared 2 of 5 healthy networks and found 1 of 3 triggers, so it cannot certify that a network is correct.
+- Model and runs: one family of language models, reached by its alias through Claude Code on 2 November 2026, with no dated model version, no control of sampling and no record of the reasoning text. Each network was audited once. The comparison between models is confounded by their different output budgets.
+- The healthy-network audits met most of the safety-classifier interruptions and a monitoring fault, which changed their budgets.
+- Not compared: formal verification and verification-based repair, which would most likely do better on networks this small.
+- The study was not preregistered, and some comparisons, including the switch-on statistic, were defined after the flaw types were known.
+
+## Navigation guide
+
+- Detection results: Results, "Detection across the flaw panel" (Table 2).
+- Why the findings are not deeper than a weight statistic: the paragraph after Table 2 and the second paragraph of the Discussion.
+- What matters for commissioning: Results, "Healthy networks", and the Discussion paragraphs on healthy networks, triggers, testing and repairs.
+- Repairs and their side effects: Results, "Repairs" (Figure 3), including the 16-bit failures.
+- Exact instructions given to the language model: Appendix A.
+- Every audit, answer and setting: the repository (runs/, runs_table.csv). The data behind each figure and table: data/ in the repository. To regenerate the numbers, tables and figures: reproduce.sh.
+
+## Publication status
+
+Preprint, not peer reviewed. Version 1 posted to arXiv (physics.med-ph) in November 2026; the arXiv identifier will be added to this file after posting.
