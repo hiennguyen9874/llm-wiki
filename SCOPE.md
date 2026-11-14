@@ -15,7 +15,13 @@ Domains emerge from ingested knowledge. Register a domain when it recurs across 
 
 | Domain | Focus | Course profile | Rules |
 | --- | --- | --- | --- |
+| eta | Eta personal agent desktop, Bot, mobile companion, and shared core | general | — |
+| foreman | Foreman coding-agent supervision, evidence, routing, and integrations | general | — |
+| pi-agents | Pi Agents extension, delegation, messaging, and configuration | general | — |
 | pi-durable | Durable agent harness: Pi Durable concepts and deployment patterns | general | — |
+| pi-orbs | Pi Orbs bots, Sprite deployment, integrations, and security | general | — |
+| pi-pocket | Pi Pocket application, operation, security, and orchestration | general | — |
+| pi-tab | Pi Tab browser agent, execution modes, recovery, and security | general | — |
 
 - Name domains as the human does; they may be broad (`health`) or narrow (`home-network`).
 - A concept belongs to its primary domain through tags and, once groups exist, its group path.

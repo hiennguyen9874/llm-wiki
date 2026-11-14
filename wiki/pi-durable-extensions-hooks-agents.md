@@ -5,7 +5,7 @@ description: How pi-durable packages behavior into named extensions, renders the
 tags: [pi-durable, extensions, hooks, system-prompt]
 status: stable
 created: 2026-10-25
-generated: { by: llm-wiki-agent/1, at: 2026-10-25T16:02:23Z }
+generated: { by: llm-wiki-agent/1, at: 2026-11-14T15:50:51Z }
 stale_after: 2027-01-25
 sources:
   - id: pi-durable-readme
@@ -23,6 +23,8 @@ Installing an extension with an installed name replaces it in place in one step,
 ## Hooks
 
 Hooks observe or adjust built-in tasks in conversations that select their extension. Generation hooks are `beforeRequest` (replace the messages of one request), `afterResponse`, `onYield` (continue the run with another user message), and `afterTools` (runs once a round's tools are done). Tool hooks are `beforeTool` (block or rewrite arguments) and `afterTool` (replace the result). A throwing hook is reported and skipped, and a throwing `beforeTool` blocks the call. Limiting a hook to some conversations is done by selecting its extension only there, for example with `configure({ extensions: { add: [Guard] } })`.[^pi-durable-readme]
+
+For an application of these hooks to external supervision, see [Foreman Attached Hooks and Pi Integration](foreman-attached-hooks.md).
 
 ## System prompt
 

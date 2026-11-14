@@ -5,7 +5,7 @@ description: An experimental TypeScript agent harness in which model turns, tool
 tags: [pi-durable, durable-agents, agent-harness]
 status: stable
 created: 2026-10-25
-generated: { by: llm-wiki-agent/1, at: 2026-10-25T16:15:00Z }
+generated: { by: llm-wiki-agent/1, at: 2026-11-14T15:48:34Z }
 stale_after: 2027-01-25
 sources:
   - id: pi-durable-readme
@@ -79,6 +79,8 @@ Coverage exclusions: the README's generated table of contents is navigational; i
 - **Exposes tools via** [tools and nested calls](pi-durable-tools-nested-calls.md) and [code mode](pi-durable-code-mode.md).
 - **Manages context with** [compaction](pi-durable-compaction.md) and **observes state through** [observability and telemetry](pi-durable-observability-telemetry.md).
 - **Durability semantics are detailed in** [crash recovery and durability](pi-durable-crash-recovery.md), and its general step model is [the effect sandwich](pi-durable-effect-sandwich.md).
+- **Is used by** [Pi Pocket](pi-pocket-overview.md), a self-hosted multiplayer application built on the harness.
+- **Is used by** [Pi Tab](pi-tab-overview.md), a browser agent whose project documentation reports using the harness; its package declares the dependency.
 - **Deploys on Cloudflare Durable Objects** as a worked session-per-object pattern in [Pi Durable on Cloudflare](pi-durable-on-cloudflare.md).
 - **Is positioned as a durability layer, not a deployment location, in** [home, cloud, and durable agents](agent-execution-models-home-cloud-durable.md).
 
