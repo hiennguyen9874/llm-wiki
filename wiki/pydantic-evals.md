@@ -5,7 +5,7 @@ description: Pydantic's code-first evaluation library — deterministic agentic 
 tags: [ml, pydantic-ai, agents, evaluation]
 status: stable
 created: 2026-10-26
-generated: { by: llm-wiki-agent/1, at: 2026-10-26T12:20:00Z }
+generated: { by: llm-wiki-agent/1, at: 2026-11-17T06:46:43Z }
 stale_after: 2026-12-23
 sources:
   - id: dd-v2-tour-2026
@@ -75,6 +75,7 @@ Native provider tools run on the provider's side and produce no local spans, so 
 
 ## Relationships
 
+- **Complements** [Pydantic AI AgentEnv evaluation](pydantic-ai-agentenv-evaluation.md): **Synthesis**, seeded environment outcome verification is a separate evaluation route, not a documented use of this library.
 - **Accepts judges from** [Jev structured scoring judge](jev-structured-scoring-judge.md), whose custom evaluator groups several questions into one judge request while the built-in `LLMJudge` and `GEval` spend one request per check.
 - **Is graded through** [Pydantic AI observability](pydantic-ai-observability.md): both depend on the same local OpenTelemetry spans.
 - **Attaches as** a [capability](pydantic-ai-capability-primitive.md) in its online form.

@@ -5,7 +5,7 @@ description: How Pydantic AI trades integration breadth for type-safe, productio
 tags: [ml, pydantic-ai, agents, llm-frameworks, ecosystem]
 status: draft
 created: 2026-10-26
-generated: { by: llm-wiki-agent/1, at: 2026-10-26T04:12:00Z }
+generated: { by: llm-wiki-agent/1, at: 2026-11-17T06:49:19Z }
 stale_after: 2026-12-23
 sources:
   - id: alphasignal-v2-news
@@ -97,6 +97,8 @@ The two claims can be reconciled only by reading them as different questions, an
 - The counter-argument to the LangGraph row comes from the framework's own author on the vendor's site, names no Pydantic AI, `pydantic-graph`, LangGraph or Temporal version, and was not tested; it argues an architecture position rather than measuring a migration[^colvin-code-is-graph-2026]
 
 ## Relationships
+
+- **Compared in** [Python agent framework comparison](python-agent-framework-comparison.md), which adds Pydantic's vendor-reported framework and voice-stack selection criteria.
 
 - **Part of** the [Pydantic AI v2 release](pydantic-ai-v2-release.md) story: the release is where the type-safety posture becomes a composable system.
 - **Depends on** the [capability primitive](pydantic-ai-capability-primitive.md) for the "typed composition" half of the argument.

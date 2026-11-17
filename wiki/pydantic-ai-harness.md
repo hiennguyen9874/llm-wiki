@@ -5,7 +5,7 @@ description: First-party Pydantic AI package of agent batteries — Coder, memor
 tags: [ml, pydantic-ai, agents, llm-frameworks]
 status: stable
 created: 2026-10-26
-generated: { by: llm-wiki-agent/1, at: 2026-10-26T13:10:00Z }
+generated: { by: llm-wiki-agent/1, at: 2026-11-17T06:48:00Z }
 stale_after: 2026-12-23
 sources:
   - id: pydantic-ai-v2
@@ -60,6 +60,8 @@ sources:
 
 The **Pydantic AI Harness** is the first-party package of "batteries for your agent" that sits outside the core library: memory, guardrails, context management, file system access, code mode, and more, all delivered as [capabilities](pydantic-ai-capability-primitive.md)[^pydantic-ai-v2] It exists to keep the core small and stable while the surrounding layer moves fast.
 
+For selection against other SDKs, see the [Python agent harness comparison](python-agent-harness-comparison.md), including portability, isolation and recovery tradeoffs.
+
 ## The core / Harness split
 
 | Tier | Contains | Rationale |
@@ -90,6 +92,8 @@ A later, v2.59-era inventory names the shipped set more sharply: `Coder` (a full
 Sandboxing has since become a core concern rather than a Harness one: `LocalWorkspace` ships in core, sandbox backends (`E2BSandbox`, `SpritesSandbox`, `BubblewrapSandbox`, `SmolSandbox`, `DaytonaSandbox`) are core workspace backends, and v2.59.0's `DaytonaSandbox` runs `Coder`, `Shell`, `FileSystem` and the other Harness capabilities inside a Daytona sandbox[^dd-v2-tour-2026] See [Pydantic AI workspaces and sandboxes](pydantic-ai-workspaces-and-sandboxes.md).
 
 One further Harness feature is named without detail: media externalization, which moves large payloads out of persisted message history, with storage configured separately — generating an image through [Pydantic AI image generation](pydantic-ai-image-generation.md) does not persist it automatically[^pydantic-image-gen-2026] That is the feature that matters once a `BinaryImage` would otherwise sit in every saved message, but no capture here documents its configuration keys, its trimming policy, or what remains once a payload has been externalized.
+
+For the versioned sandbox boundary, benchmark results and retry risks of `CodeMode`, see [Pydantic AI code mode](pydantic-ai-code-mode.md).
 
 ## Whole agents you can take apart
 
@@ -159,6 +163,7 @@ The Harness's own policy adds the operational detail: APIs may move between mino
 
 ## Relationships
 
+- **Supplies Coder to** [Pydantic AI AgentEnv evaluation](pydantic-ai-agentenv-evaluation.md), an environment-based evaluation integration documented in a separate vendor announcement.
 - **Depends on** the [capability primitive](pydantic-ai-capability-primitive.md): every Harness battery is attached as a capability.
 - **Part of** the [Pydantic AI v2 release](pydantic-ai-v2-release.md) story: the split is what lets core stay lean.
 - **Includes** endorsed third-party capabilities, documented from the provider side in [Vstorm Pydantic AI capabilities](vstorm-pydantic-ai-capabilities.md).

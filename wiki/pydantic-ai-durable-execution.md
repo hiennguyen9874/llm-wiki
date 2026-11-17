@@ -5,7 +5,7 @@ description: The nine durability engines Pydantic AI supports, where each integr
 tags: [ml, pydantic-ai, agents, durability]
 status: stable
 created: 2026-10-26
-generated: { by: llm-wiki-agent/1, at: 2026-10-26T04:02:00Z }
+generated: { by: llm-wiki-agent/1, at: 2026-11-17T06:52:17Z }
 stale_after: 2026-12-23
 sources:
   - id: dd-v2-tour-2026
@@ -23,6 +23,8 @@ sources:
 ---
 
 Durable execution is attached as one [capability](pydantic-ai-capability-primitive.md), so the agent code barely mentions it, and Pydantic AI offers more engines than the frameworks the source compares it with: nine, plus a builder for any other backend. The engines are split by docs group and by where their code ships, which decides whose stability policy covers them[^dd-v2-tour-2026]
+
+For a worked Temporal recovery example and the limits of replaying sandbox side effects, see [E2B sandbox recovery](pydantic-ai-e2b-sandbox-recovery.md).
 
 ## The engines and their shipping location
 
