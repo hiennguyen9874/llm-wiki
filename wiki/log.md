@@ -1,5 +1,9 @@
 # Wiki Update Log
 
+## 2026-11-18
+- **Ingest**: Compiled [IPython Code Mode documentation](../raw/ipython-code-mode/index.md); created and indexed [IPython Code Mode](pydantic-ai-ipython-code-mode.md) and linked it from CodeMode operations. Covered host security, tool dispatch, kernel state, timeouts and durability limits. The sole local vendor capture was inspected; versions are unspecified, external links were not fetched, and no examples or kernels were run.
+- **Ingest**: Compiled [Code Mode documentation](../raw/code-mode/index.md); created and indexed [CodeMode operations](pydantic-ai-code-mode-operations.md) and linked it from code mode. Covered selection, resource and state limits, early execution, remote workers and Temporal. The sole local capture was inspected; versions are unspecified, external links were not fetched, and no examples were executed.
+
 ## 2026-11-17
 - **Ingest**: Compiled [Pydantic AI + E2B: sandboxed coding agents in Python](../raw/pydantic-ai-e2b-sandboxes/index.md); created [E2B sandbox recovery](pydantic-ai-e2b-sandbox-recovery.md) and linked workspaces and durable execution. Covered setup, lifecycle, pause and resume, Temporal replay, at-least-once side effects and tracing. The sole local article was inspected; external cookbook and documentation links were not fetched, versions are unspecified, and no code or sandbox was run.
 - **Ingest**: Compiled [Code mode vs sandboxes for AI agents](../raw/code-mode-vs-sandboxes/index.md); updated [code mode](pydantic-ai-code-mode.md) and [workspaces and sandboxes](pydantic-ai-workspaces-and-sandboxes.md) with separate execution boundaries, composition, mount behavior, local isolation limits and sandbox lifecycle. The vendor article names no framework versions; its three SVGs repeat prose and alt text, external links and embedded traces were not fetched, and no code or sandbox was run.

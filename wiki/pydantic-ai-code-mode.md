@@ -5,7 +5,7 @@ description: Pydantic AI Harness CodeMode's sandbox and tool boundary, measured 
 tags: [pydantic-ai, ml, agents, sandboxing, benchmarks]
 status: draft
 created: 2026-11-17
-generated: { by: llm-wiki-agent/1, at: 2026-11-17T06:50:34Z }
+generated: { by: llm-wiki-agent/1, at: 2026-11-18T02:35:40Z }
 stale_after: 2027-02-17
 sources:
   - id: pydantic-code-mode-benchmark
@@ -62,6 +62,8 @@ The local package contains `index.md` and ten SVGs. The hero is decorative; the 
 The 2026-11-10 Pydantic article by Marcelo Trylesinski is vendor-authored and specifies no Pydantic AI, Harness, or Monty version. Its three local SVG diagrams duplicate their alt text and surrounding prose and were not separately inspected; two embedded public traces and external links were not fetched. No example, remote worker, sandbox or trace was run; license and capture date are unspecified. Claims from it are **Reported**.[^pydantic-code-sandboxes]
 
 ## Relationships
+
+- **Related:** [Pydantic AI CodeMode operations](pydantic-ai-code-mode-operations.md) details tool selection, execution limits, state and replay.
 
 - **Uses:** [Pydantic AI workspaces and sandboxes](pydantic-ai-workspaces-and-sandboxes.md) to isolate tool-side file and command execution separately from model-written code.[^pydantic-code-sandboxes]
 
