@@ -5,7 +5,7 @@ description: Pydantic AI 2.50's DecisionModel path to TypeSafe Jev — output fi
 tags: [pydantic-ai, ml, structured-output, classification]
 status: draft
 created: 2026-10-26
-generated: { by: llm-wiki-agent/1, at: 2026-10-26T04:48:00Z }
+generated: { by: llm-wiki-agent/1, at: 2026-11-18T03:33:00Z }
 stale_after: 2027-03-29
 sources:
   - id: jev-live-view-2026
@@ -14,6 +14,18 @@ sources:
     kind: article
     revision: sha256:288f23ddf22c009f4ada93b87fcc6526a089ea7ece6d6c5a229a7dd98e2636f0
     title: "Pydantic AI agents on Jev, traced in Logfire"
+  - id: pydantic-openai-2026
+    resource: ../raw/models/openai/index.md
+    scope: ../raw/models/openai/
+    kind: documentation
+    revision: sha256:843643d2d611697bb1b730046fa5d0721dc79a32f8665c573769afcbbdc15457
+    title: "OpenAI"
+  - id: pydantic-google-2026
+    resource: ../raw/models/google/index.md
+    scope: ../raw/models/google/
+    kind: documentation
+    revision: sha256:827e192268216b47d986cf2e339ca69639cf0c6618aec8ee216587336f620e44
+    title: "Google"
 ---
 
 TypeSafe's **Jev** is a decision model, not a chat model: it takes material plus a list of typed questions and returns one answer and one probability per question, with no generated text to parse[^jev-live-view-2026] From Pydantic AI 2.50.0 the agent's `output_type` *is* the question set — each field name and description become a question and each field type picks the shape of the answer — and `DecisionModel` is the base class any model speaking TypeSafe's Decisions protocol implements, with `TypeSafeModel` a thin adapter over it[^jev-live-view-2026] The design returns the cost of an agent whose output is a `bool`, a `Literal` or a score to the price of a classifier, but in exchange the prompt stops being instructions and becomes nothing but the material being judged[^jev-live-view-2026]
@@ -59,6 +71,8 @@ The swap is nonetheless the intended adoption path: keep Jev and a language mode
 - **As a judge**, the evals path reuses this mapping; see [Jev structured scoring judge](jev-structured-scoring-judge.md)[^jev-live-view-2026]
 - **Through the [Gateway](pydantic-ai-gateway.md)**, the same `TypeSafeModel` is constructed against the gateway's `base_url` so one metered key covers Jev and the language models[^jev-live-view-2026]
 - **A new Decisions backend** is, in the article's framing, a matter of translating its transport; `DecisionModel` plus the `decide` span and the Logfire panel come with it[^jev-live-view-2026] See [Logfire decision tracing](logfire-decision-tracing.md).
+- **A second backend now exists**: OpenAI's Decisions API is reached as `openai-decisions:gpt-6-luna` through `OpenAIDecisionsModel`, which turns the agent's output type and tools into the same questions — see [OpenAI decision models](openai-decision-models.md)[^pydantic-openai-2026]. That the contract generalises beyond TypeSafe is therefore no longer only the Jev article's projection.
+- **A third backend now exists**: Google's Decisions API is reached as `google-decisions:gemini-decision-1` through `GoogleDecisionsModel`, which turns the agent's output type and tools into the same questions over the Gemini API and its `GoogleProvider` — see [Google decision models](google-decisions-model.md)[^pydantic-google-2026] It is also the backend that changes the conversation shape: the API takes no turns, so the history is sent as one text with the latest prompt as what to judge, where OpenAI sends role-preserving input items.
 
 ## Limits
 
@@ -76,5 +90,10 @@ The swap is nonetheless the intended adoption path: keep Jev and a language mode
 - **Is reachable through** [Pydantic AI Gateway](pydantic-ai-gateway.md) as a base-URL change on the same model adapter.
 - **Depends on** the [capability primitive](pydantic-ai-capability-primitive.md) only insofar as it is a model implementation: capabilities, tools and instructions are unchanged by swapping in a decision model.
 - **Attributed to** v2.50.0 in [Pydantic AI v2 release](pydantic-ai-v2-release.md), on this article's authority rather than the release tour's.
+- **Implemented for a second provider** by [OpenAI decision models](openai-decision-models.md), whose route names no version, so this page's 2.50.0 attribution stays TypeSafe-specific.
 
 [^jev-live-view-2026]: Marcelo Trylesinski, "Pydantic AI agents on Jev, traced in Logfire", Pydantic, published 2026-09-29T09:00Z, 872 words as declared; local capture `raw/jev-pydantic-ai-live-view/index.md`, content digest sha256:288f23dd. §"Your output type is the question" (raw lines 17–44) for `TypeSafeModel`, fields-as-questions, the single request, the `Ticket` example and its printed `urgent=True area='billing'`; lines 46–52 for the `typesafe`/`logfire` extras, `TYPESAFE_API_KEY`/`LOGFIRE_TOKEN` and the model-name swap; line 54 for the `bool`/`Literal`/`Enum`/`float`/`IntEnum`/union/free-form shapes, the `UserError` before the request, the union-plus-`FallbackModel` exception, and the pointer to the TypeSafe docs page; §"The chat span wasn't enough" (lines 59–68) for `DecisionModel` as the base class, `TypeSafeModel` as a thin adapter, PRs #8696/#8698 and the 2.50.0 release; §"Where else you can use Jev" (lines 84–90) for the Pydantic Evals judge, the Gateway route, and `DecisionModel` generalizing to other Decisions backends. The `[!warn]` callout (lines 56–57) is the source of the prompt-is-only-material rule. Attachments `assets/support-triage.png` and `assets/route-then-fill.png` were inspected but carry no claim on this page; both are cited on [Logfire decision tracing](logfire-decision-tracing.md). Evidence class: **Reported** — vendor article; nothing was installed, keyed, run or measured.
+
+[^pydantic-openai-2026]: Pydantic Docs, "OpenAI", <https://pydantic.dev/docs/ai/models/openai/>, no publication date and no Pydantic AI version named; local capture `raw/models/openai/index.md`, content digest sha256:843643d2. §"Decisions API" (raw lines 690–733) for `OpenAIDecisionsModel`, the `'openai-decisions:gpt-6-luna'` prefix, and the statement that an agent's output type and tools become the questions described on the Decision models page. Evidence class: **Reported** — vendor documentation; no decision model was constructed or called.
+
+[^pydantic-google-2026]: Pydantic Docs, "Google", <https://pydantic.dev/docs/ai/models/google/>, 4,106 words as declared and 4,177 by local `wc -w`, no publication date and no Pydantic AI version named; local capture `raw/models/google/index.md`, content digest sha256:827e1922. §"Decisions API" (raw lines 529–568) for `GoogleDecisionsModel`, the `google-decisions:gemini-decision-1` example, and the statement that an agent's output type and tools become the questions. Evidence class: **Reported** — vendor documentation; no decision model was constructed or called.

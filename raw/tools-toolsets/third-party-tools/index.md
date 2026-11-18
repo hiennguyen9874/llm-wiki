@@ -1,0 +1,59 @@
+---
+title: "Third-Party Tools"
+site: "Pydantic Docs"
+source: "https://pydantic.dev/docs/ai/tools-toolsets/third-party-tools/"
+domain: "pydantic.dev"
+language: "en"
+description: "Use tools from third-party libraries such as LangChain and from MCP servers in your Pydantic AI agents, as toolsets or as capabilities."
+word_count: 276
+---
+
+Pydantic AI supports integration with various third-party tool libraries, allowing you to leverage existing tool ecosystems in your agents. Third-party tools are also available as [capabilities](https://pydantic.dev/docs/ai/capabilities/third-party/) — see [Extensibility](https://pydantic.dev/docs/ai/guides/extensibility/) for the full ecosystem.
+
+## MCP Tools
+
+See the [MCP Client](https://pydantic.dev/docs/ai/mcp/client/) documentation for how to use MCP servers with Pydantic AI as [toolsets](https://pydantic.dev/docs/ai/tools-toolsets/toolsets/).
+
+## LangChain Tools
+
+If you’d like to use a tool from LangChain’s [community tool library](https://python.langchain.com/docs/integrations/tools/) with Pydantic AI, you can use the [`tool_from_langchain`](https://pydantic.dev/docs/ai/api/pydantic-ai/ext/#pydantic_ai.ext.langchain.tool_from_langchain) convenience method. Note that Pydantic AI will not validate the arguments in this case — it’s up to the model to provide arguments matching the schema specified by the LangChain tool, and up to the LangChain tool to raise an error if the arguments are invalid.
+
+You will need to install the `langchain-community` package and any others required by the tool in question.
+
+Here is how you can use the LangChain `DuckDuckGoSearchRun` tool, which requires the `ddgs` package:
+
+```python
+from langchain_community.tools import DuckDuckGoSearchRun
+
+from pydantic_ai import Agent
+from pydantic_ai.ext.langchain import tool_from_langchain
+
+search = DuckDuckGoSearchRun()
+search_tool = tool_from_langchain(search)
+
+agent = Agent(
+    'google:gemini-3.8-flash',
+    tools=[search_tool],
+)
+
+result = agent.run_sync('What is the release date of Elden Ring Nightreign?')  # (1)
+print(result.output)
+#> Elden Ring Nightreign is planned to be released on May 30, 2025.
+```
+
+The release date of this game is the 30th of May 2025, which is after the knowledge cutoff for Gemini 2.0 (August 2024).
+
+If you’d like to use multiple LangChain tools or a LangChain [toolkit](https://python.langchain.com/docs/concepts/tools/#toolkits), you can use the [`LangChainToolset`](https://pydantic.dev/docs/ai/api/pydantic-ai/ext/#pydantic_ai.ext.langchain.LangChainToolset) [toolset](https://pydantic.dev/docs/ai/tools-toolsets/toolsets/) which takes a list of LangChain tools:
+
+```python
+from langchain_community.agent_toolkits import SlackToolkit
+
+from pydantic_ai import Agent
+from pydantic_ai.ext.langchain import LangChainToolset
+
+toolkit = SlackToolkit()
+toolset = LangChainToolset(toolkit.get_tools())
+
+agent = Agent('openai:gpt-6.1-sol', toolsets=[toolset])
+# ...
+```

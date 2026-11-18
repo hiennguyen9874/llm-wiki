@@ -1,0 +1,123 @@
+---
+type: Concept
+title: Pydantic AI batch processing
+description: How Pydantic AI puts an agent's model requests through provider batch APIs at about half price — the BatchModelRequests capability, batch assembly and polling settings, sharing and agent specs, which model and credential serves a batch, resubmission and transport retries, cancellation, tracing and retention.
+tags: [pydantic-ai, capabilities, models, cost, batching]
+status: draft
+created: 2026-11-18
+generated: { by: llm-wiki-agent/1, at: 2026-11-18T11:20:00Z }
+stale_after: 2027-02-18
+sources:
+  - id: pydantic-batch-2026
+    resource: ../raw/core-concepts/batch/index.md
+    scope: ../raw/core-concepts/batch/
+    kind: documentation
+    revision: sha256:53d4b659984b6eae8adbebe06233751631e17a8e05d828ffab66252c2232be08
+    title: "Batch Processing"
+---
+
+**Reported, Pydantic AI version unspecified:** every supported provider sells a batch API that works through many submitted requests when it has capacity, for about half the standard price, and Pydantic AI exposes that trade at three levels — the `BatchModelRequests` capability for whole agent runs, `model_request_batch` for a list of requests with no agent, and the `Model.batch_*` methods underneath both[^pydantic-batch-2026] What you buy with the discount is latency: Anthropic and OpenAI give a batch a 24-hour window, Google targets 24 hours and expires a job after 48, none of those windows is a guarantee, and a request the provider did not reach in time is submitted again[^pydantic-batch-2026] So batching fits work nobody is waiting on — evals, classifying or extracting from many records, generating data offline — and not interactive use or agents that take many turns, because every model request of a run, including each one after a tool call, is a separate batch round trip[^pydantic-batch-2026]
+
+## What can be batched
+
+| Model | Batch route and its boundaries |
+| --- | --- |
+| `AnthropicModel` | Claude API Message Batches; not on Bedrock, Vertex AI or Microsoft Foundry |
+| `OpenAIResponsesModel` | OpenAI Batch API; not `OpenAIChatModel`, not Azure OpenAI |
+| `GoogleModel` | Gemini API Batch Mode; not on Vertex AI |
+| `TestModel`, `FunctionModel` | Run the batch's requests immediately and in memory, for testing |
+
+Batching is not available through the [Pydantic AI Gateway](pydantic-ai-gateway.md) yet, so a batched run needs the provider directly with its own API key[^pydantic-batch-2026] `OpenAIProvider` turns the OpenAI route on by default, including over a custom `base_url`; a provider with its own class opts in through the profile flag[^pydantic-batch-2026] Those flags are `anthropic_supports_message_batches`, `openai_supports_batch_api` and `google_supports_batch_api`, settable with `profile=` where an endpoint's default is wrong, and batching a model without a batch API raises a `UserError`[^pydantic-batch-2026] Which models a provider serves in batches, and how many requests a batch may hold, is the provider's rule rather than Pydantic AI's — the per-provider figures live in [Anthropic models in Pydantic AI](anthropic-models-in-pydantic-ai.md), [OpenAI Responses API features](openai-responses-api-features.md) and [Google models in Pydantic AI](google-models-in-pydantic-ai.md).
+
+**Cost** is not a separate switch: batched responses carry `provider_details['processing'] == 'batch'`, so `ModelResponse.cost()`, `usage.cost` and [usage limits](pydantic-ai-run-controls.md) all price the request from batch rates in `genai-prices`[^pydantic-batch-2026]
+
+## The BatchModelRequests capability
+
+Add `BatchModelRequests` from `pydantic_ai.capabilities` to an agent and run it as usual; runs started together, with `asyncio.gather` for instance, have their requests collected into one batch, and a request that fails fails only its own run, not the others sharing the batch[^pydantic-batch-2026] Tools, structured output, output validation and retries work as they do live, and usage limits apply per run as usual[^pydantic-batch-2026]
+
+Each request queues until its batch holds `max_requests` requests or the oldest queued request has waited `max_wait`; then the batch is submitted, the run waits, and the run continues as if the request had been answered live[^pydantic-batch-2026] The wait is a poll at growing intervals, so the `await` can take minutes or hours[^pydantic-batch-2026] Two consequences of the assembly rule matter more than the settings themselves: **only near-simultaneous requests share a batch** — runs awaited one after another each wait `max_wait` alone and get a batch each — and a run needing several model requests, to call tools or to retry after a `ModelRetry`, takes several batch round trips, each of which can take as long as the provider's window[^pydantic-batch-2026]
+
+| Setting | Default | What it does |
+| --- | --- | --- |
+| `max_requests` | 1,000 | Most requests in one batch; the provider's own limit caps it |
+| `max_wait` | 30 seconds | How long the oldest queued request waits; later requests never extend it. `None` submits only when the batch is full or `flush()` is called |
+| `max_resubmissions` | 2 | New batches a provider-side failure is retried in before the error is raised |
+| `poll_interval` | 30 seconds | First wait before checking the batch; the interval grows by half after every check |
+| `max_poll_interval` | 10 minutes | Longest wait between checks |
+
+A batch is also submitted early when the next request would take it past the provider's size limit, and raising `max_requests` gives fewer, larger batches — worth doing because providers limit how many batches may be in progress at once[^pydantic-batch-2026] In the other direction, a run of several round trips waits up to `max_wait` plus the time to the next check **for each**, so lowering `max_poll_interval` shortens that at the cost of more status requests[^pydantic-batch-2026]
+
+## Sharing batches and agent specs
+
+A `BatchModelRequests` instance collects its own batches, so passing the same instance to several agents — or to individual runs with `capabilities=` — is what makes their requests share one batch[^pydantic-batch-2026] The capability can also be declared in a YAML or JSON [agent spec](pydantic-ai-agent-specs.md) with its settings as keyword arguments, and durations there may be seconds or ISO 8601 durations such as `PT5M`[^pydantic-batch-2026] Each agent built from a spec gets an instance of its own, so runs of agents built from the same spec do **not** share batches; sharing across spec-built agents means leaving the capability out of the specs and passing one instance to their runs[^pydantic-batch-2026]
+
+## Which model serves a batch, and how batches split
+
+Each request is batched with the model that serves it, however that model was chosen — the agent's model, one passed to the run as `model=`, one selected by a capability such as `SelectModel`, or one a `before_model_request` hook swaps in, whatever the capability order[^pydantic-batch-2026] A run that switches models mid-way puts each request in its own model's batch, and a switch to a model without a batch API raises a `UserError` at that request; a `FallbackModel` has no batch API of its own, so batching one raises a `UserError` too[^pydantic-batch-2026] Adding `ModelFallback` instead lets a request that errors enter a batch on the next model in its chain, and a run resumed from history whose batch failed also moves to the next model rather than starting over on the first[^pydantic-batch-2026]
+
+Requests go into separate batches when the provider cannot take them in one: when they use different credentials or endpoints, with OpenAI and Google when they use different models, and with Anthropic when they need different beta flags — Anthropic batches may otherwise mix models and settings[^pydantic-batch-2026] A batch is also split at `Model.batch_max_bytes` and capped by `Model.batch_max_requests`, and a single request too large for any batch raises a `UserError` when it is made[^pydantic-batch-2026]
+
+## Credentials and request-level settings
+
+A batch is submitted, checked and collected with **one** credential, so batching refuses a client whose credential can vary or that it cannot see: an OpenAI client with an API key callback or workload identity, an HTTP client carrying its own `auth`, and per-request `extra_headers`[^pydantic-batch-2026] The credential belongs on the provider's client[^pydantic-batch-2026] Settings that only make sense for a single live request, such as a per-request `timeout`, raise a `UserError` and belong on the client too, and `max_retries` is simply ignored because the provider runs the request itself and no SDK client retries it[^pydantic-batch-2026] One useful survivor: OpenAI stores batched responses by default, so `openai_previous_response_id` continues across batches unless `openai_store=False` opts out[^pydantic-batch-2026]
+
+A `request_timeout` in model settings still works, and covers the whole wait from queueing to result; when it passes the run raises `ModelRequestTimeout` and the request is withdrawn, cancelling its batch if nothing else waits on it[^pydantic-batch-2026]
+
+## Failures, resubmission and retrying transports
+
+A request that fails inside a batch raises the same error, with the same category — `ModelRateLimitError`, `ModelContextWindowExceededError`, `ModelAPIError` and the rest catalogued in [model API errors](pydantic-ai-model-api-errors.md) — as it would live, and only its own run fails[^pydantic-batch-2026] A failure the provider side is worth retrying for is resubmitted in a new batch: a request that expired before the provider reached it, including an expired Google job, one missing from the batch results, and one that failed with a rate limit, timeout, conflict, overloaded or other server error[^pydantic-batch-2026] That happens up to `max_resubmissions` times, after which the error is raised[^pydantic-batch-2026]
+
+The refusals are the more interesting half:
+
+- A failure that would repeat — an invalid request, a context-window overflow, an exhausted quota — is raised straight away, and `max_resubmissions=0` makes every error immediate[^pydantic-batch-2026]
+- A batch that was **cancelled** is never resubmitted, because providers do not cancel their own batches, so a cancellation from the provider's console means someone wanted the work stopped[^pydantic-batch-2026]
+- A batch the provider refuses to create, for example because too many requests already wait in the project's batches, fails every request in it with the provider's error and is not resubmitted — submit fewer requests or wait for earlier batches[^pydantic-batch-2026]
+- A failed *check* on a batch — a dropped connection, a server error — says nothing about the batch, so the request keeps waiting and is checked again at the next poll; after 3 failed checks in a row the next failure raises[^pydantic-batch-2026]
+
+Both counters, resubmissions and failed checks, are recorded in the message history, which is what makes a [resumed run](pydantic-ai-pending-batch-responses.md) resubmit a failed request instead of re-reading the same stored failure[^pydantic-batch-2026]
+
+**Retrying transports** are the trap here. Pydantic AI sends the request that creates a batch once, with the provider SDK's own retries turned off, precisely because a failed attempt may still have created the batch; a retrying transport sits *below* the SDK, so it resends on every failure its `validate_response` raises for, and a duplicate create becomes a second billed batch whose twin Pydantic AI never learns about[^pydantic-batch-2026] The fix is to return without raising for batch-create requests so the error reaches the SDK: the creates are `POST /v1/batches` for OpenAI, `POST /v1/messages/batches` for Anthropic and `POST /v1beta/models/<model>:batchGenerateContent` for Google[^pydantic-batch-2026] The transport still retries a create that failed to connect, still retries every other request including checks, and still retries an input-file upload, which at worst leaves an unused file until the provider expires it[^pydantic-batch-2026]
+
+## Cancellation, streaming and wrappers
+
+Cancelling a run that waits abandons its request: Pydantic AI cancels the provider batch once every request it submitted in that batch has been abandoned, though requests the provider already completed may still be billed[^pydantic-batch-2026] A batch submitted by another process or another capability instance is left running, because a message history cannot be trusted to say who else shares it[^pydantic-batch-2026] A request already left for a later run keeps its batch running, even if the run that resumes it is cancelled[^pydantic-batch-2026] And a request is only *left* for a later run when the run actually ends with its pending response as the output — a pending response an `after_model_request` hook rejects, or that a failing run, another output from an `after_run` hook, or an `iter()` abandoned early overtakes, is abandoned like any cancelled run's[^pydantic-batch-2026]
+
+Requests waiting on the same submission or check share one task, so using the capability as `async with batching:` cancels those tasks on exit, failing anything still queued or waiting with a `UserError`; a request waiting *between* two checks is unaffected[^pydantic-batch-2026] A streamed run gets no benefit from streaming — the result arrives all at once, so `run_stream()`, `run_stream_events()`, an `event_stream_handler` or a UI adapter waits as any run does and then receives each part of the response in one event[^pydantic-batch-2026] Batching needs an `asyncio` loop and does not run under Trio, though one instance may serve runs on several loops, each loop's requests forming its own batches[^pydantic-batch-2026]
+
+`BatchModelRequests` sends through the model's batch API methods rather than its `request()`, which changes what a wrapper model sees: a wrapper from a capability listed **after** it never has `request()` called, while one listed **before** it is called for the submission and again for every check, receiving a response with `state='suspended'` until the result arrives[^pydantic-batch-2026] Metering and counting therefore belong in a `wrap_model_request` hook, which runs once per model request wherever the capability sits — the wrapper mechanics are in [capability model control](pydantic-ai-capability-model-control.md).
+
+## Durable execution
+
+Without a pending response in the output type, a run holds its process until the batch ends and yields message history only at the end, so a process that may stop needs either [pending batch responses](pydantic-ai-pending-batch-responses.md) or [durable execution](pydantic-ai-durable-execution.md)[^pydantic-batch-2026]
+
+With Temporal, DBOS or Prefect, the capability sits on the agent next to the durability capability, and submitting a request and every check run as separate durable steps, so an interrupted run continues on the same batch when it recovers[^pydantic-batch-2026] Temporal and DBOS also make the waits between checks durable; Prefect's are plain sleeps in the flow, which a retried flow run sleeps through again[^pydantic-batch-2026] Azure Durable Task from Pydantic AI Harness records submission and checks as activities with durable timers[^pydantic-batch-2026] Requests are collected into batches **per worker process**, so concurrent workflow runs on one worker share batches and no worker slot is held while a batch is processed[^pydantic-batch-2026] Temporal and DBOS do not accept a capability passed to a run inside a workflow, so there the capability must be on the agent[^pydantic-batch-2026]
+
+Three rules follow. Once a submitting step completes, replay reuses its recorded result and does not resubmit — the exception is a step retried after the provider created the batch but before the step completed, for example on a worker crash or step timeout, which submits the request in another batch like any retried model request[^pydantic-batch-2026] `max_wait` must stay well below the step's timeout, because a request waits for its batch inside its step, which is also why `max_wait=None` does not suit durable execution — `flush()` cannot be called from workflow code[^pydantic-batch-2026] A resubmission happens inside the step that found the failure, with the same exception[^pydantic-batch-2026]
+
+The other Harness engines record less. With AWS Lambda, Absurd, pgtask and Render Workflows, submission and checks are durable steps but the waits between checks are plain sleeps in the process running the agent, which must therefore stay up for the whole batch within its invocation, claim or task timeout; on AWS Lambda, Absurd and pgtask a recovered run continues on the same batch, while a retried Render Workflows entry task or a run continued from a [Step Persistence](pydantic-ai-durable-execution.md) snapshot taken mid-wait submits in a new batch[^pydantic-batch-2026] Restate and Airflow record model requests through wrappers of their own that batched requests bypass, so batching is simply not recorded there and recovery resubmits and re-bills[^pydantic-batch-2026]
+
+## Tracing and retention
+
+With instrumentation enabled a batch is traced once, in a trace of its own rather than under whichever run happened to start it: a `batch <model>` span links to the `chat` span of every request in the batch, each check is a `batch check <model>` span in that trace holding the provider's HTTP requests, and each request's span records `pydantic_ai.batch.id` and links back to the `batch` span — including in a later run that resumes waiting from history[^pydantic-batch-2026] The instrumentation itself is in [observability](pydantic-ai-observability.md).
+
+Retention is the operational deadline: OpenAI deletes a batch's output file 30 days after the batch completes, Anthropic makes results available for 29 days after the batch was *created* (the batch itself stays checkable), and Google stores results for 6 weeks by default[^pydantic-batch-2026] A run resumed from history whose batch the provider no longer has raises `SuspendedResponseExpired`, as a resumed OpenAI background response does; the request is not resubmitted, because the provider may have run and billed it, so re-running means resuming from the history without the pending response at its end[^pydantic-batch-2026] A key from another project or workspace gets the same error, since the provider will not show it the batch[^pydantic-batch-2026]
+
+## Limits
+
+- The capture names **no Pydantic AI version, publication date, author or licence**, so every setting, default and error name here is version-unknown and this page is `draft` under the `pydantic-ai` domain rule[^pydantic-batch-2026]
+- The samples pin `anthropic:claude-sonnet-5-5` and `google:gemini-3.8-flash`, aliases no other capture in this wiki corroborates, so they are vendor example text rather than a statement about released models.
+- The provider windows (24/24/48 hours) and the retention periods (30/29/6 weeks) are the vendor's summary of three providers' policies; the provider pages and their linked provider documentation own the authoritative figures, and nothing here was checked against them.
+- Unstated: how the polling intervals are measured against a batch's own status transitions, what a batch's size accounting counts (`batch_max_bytes`) for encoded requests, whether `flush()` may be called while another run waits, and how the per-worker batching under Temporal behaves when a worker's activity pool is smaller than its workflow pool.
+- Nothing was installed, no capability attached, no batch submitted, polled, cancelled, resubmitted or traced, and no cost computed, so every claim is **Reported** and none **Observed** or **Reproduced**. Two readings are **Synthesis**: that `max_requests` and `max_wait` are a latency-versus-batch-count dial with the provider's concurrency limits as the ceiling, and that "only near-simultaneous requests share a batch" makes `asyncio.gather` a load-bearing part of the pattern rather than an incidental example detail.
+
+## Relationships
+
+- **Depends on** [models and providers](pydantic-ai-models-and-providers.md) for the profile flags that decide whether a model has a batch API, and on [model fallback](pydantic-ai-model-fallback.md) for continuing a failed or resubmitted request on the next model in a chain.
+- **Pairs with** [pending batch responses](pydantic-ai-pending-batch-responses.md), which turn the hours-long wait into a stored history, and with [direct batch requests](pydantic-ai-direct-batch-requests.md), the agent-free level of the same three-level surface.
+- **Is recorded differently by** [durable execution](pydantic-ai-durable-execution.md): submission and checks become steps or activities, with per-engine differences in what survives recovery.
+- **Constrains** [capability model control](pydantic-ai-capability-model-control.md): because requests go through the batch API methods rather than `request()`, a wrapper model outside the capability is entered twice per round trip and one inside it never is.
+- **Prices through** `provider_details['processing'] == 'batch'`, which is what makes [usage limits and cost accounting](pydantic-ai-run-controls.md) bill batch rates.
+- **Excludes** the [Pydantic AI Gateway](pydantic-ai-gateway.md) and every transport whose provider does not offer a batch API — Bedrock, Vertex AI, Microsoft Foundry, Azure OpenAI and `OpenAIChatModel` — which is the same split the three provider pages record from the other direction.
+- **Is refused inside** [dynamic workflows](pydantic-ai-dynamic-workflow.md) and [subagent](pydantic-ai-subagents.md) returns: a child run that ends with a pending response is a failed delegation, and its waiting request is cancelled best effort, a batch only once nothing else in it still waits.
+
+[^pydantic-batch-2026]: Pydantic Docs, "Batch Processing" (<https://pydantic.dev/docs/ai/core-concepts/batch/>; 4,953 words as declared, 5,013 by local `wc -w` including frontmatter and markup; 487 lines; language `en`; no publication date, author, licence or Pydantic AI version), local capture `raw/core-concepts/batch/index.md`, content digest sha256:53d4b659. Opening lines (raw 1–14) for the three providers' batch APIs, the 24/24/48-hour windows, the resubmission of unfinished requests, the suitability list and the per-round-trip cost; lines 16–20 for the three levels; "Supported providers and APIs" (21–35) for the four-row table, the Gateway gap, the three profile flags and the `UserError`; "Cost" (36–39) for `provider_details['processing']` and batch pricing through `genai-prices`; "Batching agent runs" (40–85) for the capability sample, per-run failure isolation, whether tools and validators still work, and the wake-up behaviour; "What happens while a request waits" (86–93) and "Settings" (94–109) for the queue-then-submit rule, polling, the five settings and their defaults, the early-submit rule, multi-round-trip cost and model fallback; "Sharing batches between agents" (110–141) and "Agent specs" (142–158) for instance-scoped batches, run-level `capabilities=`, the YAML form, ISO 8601 durations and the per-spec instance rule; "Submitting now and collecting later" (159–225) for the pending-output cycle, the resumption `UserError`s, usage accounting, the collector credential, the status cache and retention; "Durable execution" (226–278) for the Temporal/DBOS/Prefect/Azure Durable Task steps, per-worker batching, the replay exception, the `max_wait`-versus-timeout rule and the four lesser engines plus Restate/Airflow; "Errors and resubmission" (279–290) for error categories, the resubmitted and non-resubmitted sets, cancelled and refused batches, the failed-check counter and the history counters; "Retrying transports" (291–337) for the single create, the transport-below-SDK hazard, the three create paths and the upload rule; "Direct batch requests" (338–381) and "The low-level Model API" (382–446) for `model_request_batch` and the `batch_*` methods, compiled separately in [direct batch requests](pydantic-ai-direct-batch-requests.md); "Details" (447–456) for per-model batching regardless of how the model was chosen, the `UserError`s, the split rules, the credential refusals and the OpenAI storage rule; "Request timeouts" (457–460); "Streaming and event loops" (461–466); "Model wrappers and hooks" (467–470); "Cancellation and async with" (471–478); "Tracing" (479–482); "Retention" (483–487). Evidence class: **Reported** — vendor documentation naming no version; no package installed, no capability attached, no batch submitted, polled or collected, and no cost computed.

@@ -5,7 +5,7 @@ description: Pydantic's code-first evaluation library — deterministic agentic 
 tags: [ml, pydantic-ai, agents, evaluation]
 status: stable
 created: 2026-10-26
-generated: { by: llm-wiki-agent/1, at: 2026-11-17T06:46:43Z }
+generated: { by: llm-wiki-agent/1, at: 2026-11-18T11:49:00Z }
 stale_after: 2026-12-23
 sources:
   - id: dd-v2-tour-2026
@@ -32,6 +32,12 @@ sources:
     kind: article
     revision: sha256:c34f4321a3b5786600eeefff3fc14216036d1f0d9c3b4bfba2686aca93241c0a
     title: "Cheap AI scoring with Jev and Pydantic Evals"
+  - id: pydantic-production-docs
+    resource: ../raw/production/index.md
+    scope: ../raw/production/
+    kind: documentation
+    revision: sha256:37a18c9b248bb378966b18d9fd89501679796e9a5548f1b240bfa3095cf36e42
+    title: "Going to Production"
 ---
 
 Pydantic Evals is a code-first evaluation library: it grades final outputs and tool-call trajectories against datasets, or against sampled live traffic, in Python and in the same test suite as the agent. Its distinguishing feature is a set of deterministic agentic evaluators that never call an LLM — `ToolCorrectness`, `TrajectoryMatch`, `ArgumentCorrectness`, `MaxToolCalls`, `MaxModelRequests` — which read the local OpenTelemetry span tree instead[^dd-v2-tour-2026]
@@ -60,6 +66,16 @@ The evaluator list also accepts two shipped judge evaluators: `LLMJudge` takes a
 
 The `OnlineEvaluation` capability grades runs in the background after each completed run. It takes evaluators and an `OnlineEvalConfig` with a sampling rate, and emits `gen_ai.evaluation.result` OpenTelemetry events under `gen_ai.evaluation.target`, which is set to the agent's `name`[^dd-v2-tour-2026] Results therefore land in the same [observability](pydantic-ai-observability.md) pipeline as traces. The vendor's later evals article states the storage from the platform side: an evaluation result is an OpenTelemetry event attached to its originating trace, billed with the same records as other telemetry and carrying no separate score fee[^logfire-evals-focus-2026]
 
+Three operational rules decide whether online grading survives production[^pydantic-production-docs]:
+
+- **The background work lives in your process, not on a job queue.** There is nothing to drain after the process exits, so the shutdown path has to wait.
+- **Sample, and cap the concurrency** of expensive evaluators such as an LLM judge; otherwise the grader scales with traffic.
+- **Await `wait_for_evaluations()` on shutdown** so pending evaluations finish instead of being killed mid-score.
+
+## Rolling out a change
+
+Evaluation is the comparison step of a rollout rather than only a check: run the same dataset against the changed prompt or model and compare the reports, and send experiments to Logfire so every run sits side by side with the trace of its case[^pydantic-production-docs] Three vendor features move the change out of code — a Harness `ManagedPrompt` backs instructions with a Logfire-managed prompt you version, label and roll out without a redeploy; an [agent spec](pydantic-ai-agent-specs.md) keeps model, instructions and capabilities in YAML or JSON; and the Harness `TrajectoryJudge` reviews a long run every few model requests while it happens[^pydantic-production-docs] The same features are listed as names in the [capability catalog](pydantic-ai-capability-catalog.md), which is where their package attribution lives.
+
 ## Blind spot
 
 Native provider tools run on the provider's side and produce no local spans, so the agentic evaluators cannot see them. A tool-correctness score says nothing about calls the provider executed itself[^dd-v2-tour-2026]
@@ -71,6 +87,7 @@ Native provider tools run on the provider's side and produce no local spans, so 
 - No threshold calibration, dataset size, cost, or benchmark appears in that source. The pricing and hosting comparison it lacked now lives in [LLM evaluation tool comparison](llm-evaluation-platform-comparison.md), which prices Pydantic Evals' hosted path — dataset cases kept in the web UI or in code, hosted cases preserved from a production trace with the source link retained, candidate-versus-baseline review, and evaluation records billed on the same record allowance as traces with no separate score fee[^pydantic-eval-tools-2026] That page is a Pydantic article too, so the cost case is the vendor's own[^pydantic-eval-tools-2026]
 - The library's licence boundary is stated only from the vendor's table: the Logfire SDKs are MIT, and the local-run claim is that Pydantic Evals and DeepEval both evaluate at no cost[^pydantic-eval-tools-2026] No licence file or package metadata was opened here.
 - The unconfigured-Logfire failure mode was observed by the author, not reproduced here.
+- The three online-grading rules and the rollout paragraph come from the vendor's production page, which names no version or date; `wait_for_evaluations()` was not called, no sampling rate or concurrency figure is given, and `ManagedPrompt` and `TrajectoryJudge` are names with no configuration, pricing or prompt behaviour described in this capture[^pydantic-production-docs]
 - Evidence class: **Reported**.
 
 ## Relationships
@@ -82,7 +99,10 @@ Native provider tools run on the provider's side and produce no local spans, so 
 - **Closes the loop from** [agent observability requirements](agent-observability-requirements.md), whose Vstrom-sourced flywheel pitches captured production traces as the dataset an evaluation suite is built from.
 - **Complements** [Pydantic AI run controls](pydantic-ai-run-controls.md): one bounds a run, the other scores how it went.
 - **Is priced and placed against rivals in** [LLM evaluation tool comparison](llm-evaluation-platform-comparison.md), and its offline/online split is the worked implementation of [LLM evaluation modes](llm-eval-modes.md).
+- **Scores retrieval as well as answers in** [RAG retrieval pipeline design](rag-retrieval-pipeline.md), whose guide names this library for tracking whether the right chunks are retrieved, not only whether the reply is good.
 - **Is reviewed through** [Logfire Evals workspace review loop](logfire-evals-workspace.md) once its reports reach the hosted platform, where each score opens onto the trace that produced it.
+
+[^pydantic-production-docs]: Pydantic Docs, "Going to Production", <https://pydantic.dev/docs/ai/production/>; local capture `raw/production/index.md`, content digest sha256:37a18c9b, 3,774 words as declared and 3,836 by `wc -w`, 335 lines, no publication date, author, licence or Pydantic AI version. §"How do I test and evaluate changes?" (raw lines 259–289) for `TestModel`/`FunctionModel`, `Agent.override` and `ALLOW_MODEL_REQUESTS = False` with `defer_model_check=True`, the offline-versus-online split, trajectory evaluators, the dataset comparison and Logfire experiment upload, `ManagedPrompt` and agent specs, the in-process background evaluation work with sampling, a concurrency cap and `wait_for_evaluations()`, and `TrajectoryJudge`. Evidence class: **Reported** — vendor documentation; no eval suite, experiment or shutdown path was exercised.
 
 [^dd-v2-tour-2026]: Developers Digest, "Pydantic AI V2 in Late 2026: Capabilities, Graphs, Evals and MCP", published 2026-10-17, last updated 2026-10-21, §"Pydantic Evals: grade the trajectory, offline and online" (raw lines 482–559) for the evaluator list, the Logfire requirement and the zero-score failure mode, `Dataset` naming, LCS scoring, `OnlineEvaluation` events and sampling, and the native-tool blind spot. Local capture: `raw/pydantic-ai-whats-new-2026/index.md` (revision 836bd3b1). Evidence class: **Reported** — the author ran this against `TestModel`; no eval suite was executed in this ingest.
 

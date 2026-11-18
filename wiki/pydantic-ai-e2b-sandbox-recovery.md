@@ -49,5 +49,6 @@ The source is a Pydantic vendor article by Laís Carvalho, published 2026-10-22;
 - **Uses** [Pydantic AI workspaces and sandboxes](pydantic-ai-workspaces-and-sandboxes.md) for the common file and command boundary.
 - **Composes with** [Pydantic AI durable execution](pydantic-ai-durable-execution.md): Temporal replay retains the workspace reference, not exactly-once side effects.
 - **Related to** [Pydantic AI observability](pydantic-ai-observability.md): workspace identifiers correlate sandbox activity with agent traces.
+- **Is the same backend as** [Harness E2B sandbox](pydantic-ai-harness-e2b-sandbox.md), which states the option surface, the pause/resume rules and the timeout behaviour this article demonstrates.
 
 [^pydantic-e2b-2026]: Laís Carvalho, [Pydantic AI + E2B: sandboxed coding agents in Python](../raw/pydantic-ai-e2b-sandboxes/index.md), Pydantic, 2026-10-22, sections “One line, and the agent is off your machine”, “Diagnose, pause, resume, fix”, “Kill the worker, keep the sandbox”, “Where the trace goes”, and “Get started”. **Reported:** vendor article; external sources not fetched and examples not executed.

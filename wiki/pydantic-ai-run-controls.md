@@ -5,9 +5,15 @@ description: Provider-neutral model error categories, run and request time budge
 tags: [ml, pydantic-ai, agents, reliability]
 status: stable
 created: 2026-10-26
-generated: { by: llm-wiki-agent/1, at: 2026-10-26T05:12:00Z }
+generated: { by: llm-wiki-agent/1, at: 2026-11-18T11:22:00Z }
 stale_after: 2026-12-23
 sources:
+  - id: pydantic-docs-tools-advanced
+    resource: ../raw/tools-toolsets/tools-advanced/index.md
+    scope: ../raw/tools-toolsets/tools-advanced/
+    kind: documentation
+    revision: sha256:8ba11efdb429ad3648a9f6d4786a06ffc1bcc1da00c6a6635a5a19b091f9daf8
+    title: "Advanced Tool Features"
   - id: dd-v2-tour-2026
     resource: ../raw/pydantic-ai-whats-new-2026/index.md
     scope: ../raw/pydantic-ai-whats-new-2026/
@@ -75,6 +81,14 @@ In 2.57.0, `Agent('anthropic:claude-sonnet-5-5')` raised `UserError` when `ANTHR
 - **Enables** [durable execution](pydantic-ai-durable-execution.md) retry policies through `non_retryable_model_errors`.
 - **Protects** [prompt caching](pydantic-ai-prompt-caching.md) through append-only instructions.
 - **Surfaced through** [observability](pydantic-ai-observability.md) warnings and spans.
-- **Caps** [realtime voice sessions](pydantic-ai-realtime-voice.md) through `usage_limits`, which bounds a session the same way it bounds a run.
+- **Caps** [realtime voice sessions](pydantic-ai-realtime-voice.md) through `usage_limits`, which bounds a session the same way it bounds a run — except on OpenAI GPT-Live, whose duration billing no `UsageLimits` field measures, leaving `cost_limit` as the only bound once the duration is priced.
+- **Elaborated by** [model API errors](pydantic-ai-model-api-errors.md), which lists the full category taxonomy this page introduces and records the provider-signal rules that decide an ambiguous status code.
+- **Is only partly covered by tool timeouts**: `tool_timeout` and a per-tool `timeout`, compiled in [tool execution, retries and failures](pydantic-ai-tool-execution.md), are enforced by `FunctionToolset` alone, so an MCP or custom toolset binds its deadline at the server or transport level instead of through the run's budget[^pydantic-docs-tools-advanced].
+- **Distinguished from** [model fallback](pydantic-ai-model-fallback.md): a time or usage budget ends a request, while fallback re-routes it to another model inside the same run.
+- **Is the only budget that covers** `request_limit`, per [retry layers and multiplication](pydantic-ai-retry-layers.md): the limit counts committed model responses, so fallback, `RetryModelRequest`, SDK and transport attempts beneath them are invisible to it, while `request_timeout` is what bounds all of one request's attempts.
+- **Sizes** [provider SDK retries](pydantic-ai-provider-sdk-retries.md) through its `max_retries` row, whose per-attempt `timeout` differs from the whole-request `request_timeout`.
+- **Is expanded by** [Pydantic AI timeouts](pydantic-ai-timeouts.md): the two-scope table here is the summary, and that page adds the ten settings that actually bound a run (tool, hook, MCP, realtime handshake, usage limit and run wall clock), the layer that enforces each, the per-model-class forwarding caveat behind `ModelSettings['timeout']`, `RunTimedOut`'s `RunCancelled`/`TimeoutError` bases and `all_messages()` resume path, and the `ApprovalRequired`/`CallDeferred`/`cancel()` exits from a tool.
 
 [^dd-v2-tour-2026]: Developers Digest, "Pydantic AI V2 in Late 2026: Capabilities, Graphs, Evals and MCP", published 2026-10-17, last updated 2026-10-21, §"What changed in v2.58 and v2.59 (October 19-20)" (raw lines 21–76) for the error categories, `for_category`, `non_retryable_model_errors`, the run and request time budgets, `UnsupportedSettingWarning`, append-only instructions, and the compatibility bullets; §"Gotchas I hit while checking the examples" for construction-time API-key failure. Local capture: `raw/pydantic-ai-whats-new-2026/index.md` (revision 836bd3b1). Evidence class: **Reported** — the author type-checked and ran a 2.59.0 sample; this ingest executed nothing.
+
+[^pydantic-docs-tools-advanced]: Pydantic Docs, "Advanced Tool Features" (<https://pydantic.dev/docs/ai/tools-toolsets/tools-advanced/>; no publication date, author, licence or Pydantic AI version); local capture `raw/tools-toolsets/tools-advanced/index.md`, content digest sha256:8ba11efd. §"Tool Timeout" (raw lines 628–658) for `Agent(tool_timeout=…)` and the per-tool `timeout`, the retried `Timed out after {timeout} seconds.` result that consumes the tool's retry limit, and the rule that both settings are enforced by `FunctionToolset` only, so MCP, external and custom toolsets bind their deadlines elsewhere. Evidence class: **Reported** — vendor documentation naming no version, date, author or licence.

@@ -57,7 +57,7 @@ sources:
 | `MCP(url=...)` | Runs locally by default |
 | Instrumentation | Defaults to version 5, with aggregated token-usage attributes |
 | Function tools + output tool | Function tools requested alongside a successful output tool now run instead of being skipped (`end_strategy='graceful'`) |
-| Generic defaults | `Agent(...)` infers `Agent[object, str]` instead of `Agent[None, str]`; `RunContext[None]` no longer matches a deps-less agent, so annotate `RunContext[object]` |
+| Generic defaults | `Agent(...)` infers `Agent[object, str]` instead of `Agent[None, str]`; `RunContext[None]` no longer matches a deps-less agent, so annotate `RunContext[object]` (see [dependencies](pydantic-ai-dependencies.md)) |
 | `ModelProfile` | Now a `TypedDict` |
 
 Message history serialized under V1 still deserializes in V2, so a stored conversation survives the upgrade[^dd-v2-tour-2026]

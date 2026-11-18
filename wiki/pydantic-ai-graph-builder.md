@@ -5,7 +5,7 @@ description: pydantic-graph's typed GraphBuilder for fan-out, joins and decision
 tags: [ml, pydantic-ai, agents, orchestration]
 status: stable
 created: 2026-10-26
-generated: { by: llm-wiki-agent/1, at: 2026-10-26T04:03:00Z }
+generated: { by: llm-wiki-agent/1, at: 2026-11-18T03:20:00Z }
 stale_after: 2026-12-23
 sources:
   - id: dd-v2-tour-2026
@@ -20,6 +20,12 @@ sources:
     kind: article
     revision: sha256:d8803b5fa767d23f0a03bda63f364781d1f1f476ba4e3d243f33e05dea5f21be
     title: "The code is the graph"
+  - id: pydantic-docs-graph-2026
+    resource: ../raw/graph/graph/index.md
+    scope: ../raw/graph/graph/
+    kind: documentation
+    revision: sha256:22e3c49dae90e663dc1ec7f2da567ad6ce5f16b633ced20fe473c7372a23ab6b
+    title: "Graphs"
 ---
 
 Most Pydantic AI agents should stay a single loop; when a workflow needs explicit fan-out, joins, or decisions, `pydantic-graph`'s `GraphBuilder` supplies typed steps and type-checked edges. In V2 the builder API became the top-level `pydantic_graph` API, replacing `pydantic_graph.beta` imports[^dd-v2-tour-2026]
@@ -27,6 +33,8 @@ Most Pydantic AI agents should stay a single loop; when a workflow needs explici
 ## How a graph is declared
 
 Each step declares `StepContext[State, Deps, Input]`, and edges are checked against those types. A `GraphBuilder(state_type=..., input_type=..., output_type=...)` collects `@g.step` functions, then `g.edge_from(g.start_node).to(a, b, c)` broadcasts to parallel steps and `g.join(reduce_list_append, initial_factory=list[str])` reduces their outputs before `g.end_node`. `.map()` on an edge spreads an iterable across parallel tasks instead of broadcasting the same input[^dd-v2-tour-2026]
+
+The library's own documentation corroborates the top-level import from the vendor side: every sample imports `BaseNode`, `End`, `GraphBuilder`, `GraphRunContext` and `StepContext` from plain `pydantic_graph`, builds with `GraphBuilder(state_type=..., deps_type=..., input_type=..., output_type=...)`, and declares the entry point as a `@g.step` function wired from `g.start_node`[^pydantic-docs-graph-2026] Its node-class API — `BaseNode` subclasses whose `run` return annotation is the edge, reachable-node discovery, the state and deps generics, and Mermaid rendering — is compiled in [pydantic-graph core](pydantic-graph-core.md), which leaves the broadcast/join/map detail to this page.
 
 ```python
 g = GraphBuilder(state_type=ReviewState, input_type=str, output_type=list[str])
@@ -73,6 +81,8 @@ The author's own comparison of the two ways to write a fan-out is the argument i
 - **Contrasted with** LangGraph in [Pydantic AI ecosystem positioning](pydantic-ai-ecosystem-positioning.md).
 - **Explained by** [Code as the agent graph](code-as-agent-graph.md), the library author's argument for why typed, parallel and snapshotted cannot all hold.
 - **Keeps only the drawing** of a graph, per the same argument: `render()` output is documentation of code that runs elsewhere.
+- **Complemented by** [pydantic-graph core](pydantic-graph-core.md), the vendor documentation's view of the same builder from the node side; the two agree on the top-level import and on keeping most agents on a plain loop, and the docs page adds nothing here about persistence.
 
 [^dd-v2-tour-2026]: Developers Digest, "Pydantic AI V2 in Late 2026: Capabilities, Graphs, Evals and MCP", published 2026-10-17, last updated 2026-10-21, §"pydantic-graph: typed control flow when one loop is not enough" (raw lines 400–481) for the top-level import, `StepContext` typing, broadcast and join edges, `.map()`, the `graph.render()` Mermaid output, and the removal of `pydantic_graph.persistence`; §"What changed in V2, in one table" for the `pydantic_graph.beta` to `pydantic_graph` import change. Local capture: `raw/pydantic-ai-whats-new-2026/index.md` (revision 836bd3b1). Evidence class: **Reported** — an author-run example reported secondhand; nothing was executed here.
+[^pydantic-docs-graph-2026]: Pydantic, "Graphs", Pydantic Docs (`https://pydantic.dev/docs/ai/graph/graph/`), no publication date, author, licence or library version; local capture `raw/graph/graph/index.md`, content digest sha256:22e3c49d. §"Graph" (raw lines 120–213) for the top-level `from pydantic_graph import BaseNode, End, GraphBuilder, GraphRunContext, StepContext` (line 140), `GraphBuilder(input_type=int, output_type=int)` (line 162) and the `@g.step` start node; the state and deps samples repeat the same import at lines 277 and 581. Evidence class: **Reported** — vendor documentation; no graph was built or run here.
 [^colvin-code-is-graph-2026]: Samuel Colvin, "The code is the graph", Pydantic, published 2026-10-13T09:00Z, 2,445 words as declared; local capture `raw/the-code-is-the-graph/index.md`, content digest sha256:d8803b5f. §"Typed, snapshotted, parallel: pick two" (raw lines 113–143) for the three properties, `NodeSnapshot(state, next_node)`, the parallel-snapshot incoherence, the reducer-per-field cost and the limits of checking a semantic merge; §"Every graph fights the call stack" (lines 43–111) for the `GraphBuilder`-versus-`asyncio.gather` comparison, the `[1, 4, 9, 16, 25]` output, and the Mermaid-rendering concession. Evidence class: **Reported** — a vendor article by the library's author; no graph was built or run here.
