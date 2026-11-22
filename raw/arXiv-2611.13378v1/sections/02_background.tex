@@ -1,0 +1,16 @@
+\section{Preliminaries}
+\label{sec:background}
+
+\paragraph{Looped language models.} Following Huginn~\citep{huginn}, modern looped Transformers adopt a ``sandwich'' topology that partitions the network into a non-recurrent prelude $\mathcal{P}$, a weight-tied recurrent core $\mathcal{R}$, and a non-recurrent coda $\mathcal{C}$. For input tokens $x$,
+\begin{equation}
+  e = \mathcal{P}(x), \qquad h_r = \mathcal{R}(h_{r-1}, e), \qquad y = \mathcal{C}(h_T),
+  \label{eq:sandwich}
+\end{equation}
+where $h_r \in \mathbb{R}^d$ is the per-token state after round $r$ of $T$ (hidden size $d$) and $y$ gives the next-token logits. Concentrating recurrence within a middle core surrounded by dedicated entry and exit blocks consistently outperforms looping the entire layer stack~\citep{saunshi_looped,loopsright1}. To stabilize recurrent dynamics and preserve token-level grounding across rounds, we adopt the gated input injection of Parcae~\citep{parcae}, which blends $\tilde{e} = \mathrm{RMSNorm}(e)$ into the state at each round:
+\begin{equation}
+  \mathcal{R}(h_{r-1}, e) = f\big(\bar{A} \odot h_{r-1} + \Delta \odot (B\tilde{e})\big),
+  \label{eq:injection}
+\end{equation}
+where $f$ is one core pass, $\odot$ is the element-wise product, and learned $\Delta \in \mathbb{R}^d_{>0}$, $A \in \mathbb{R}^d_{<0}$, $B \in \mathbb{R}^{d \times d}$ give the step size, decay $\bar{A} = \exp(\Delta \odot A)$, and input projection.
+
+\paragraph{Causal encoder--decoder (CED).} Introduced in DeepSeek-V4.1-Flash~\citep{deepseekv41}, a CED partitions an $L$-layer stack into an encoder followed by a decoder. To bound local attention memory, every layer maintains its own sliding-window attention (SWA) cache over the most recent $w$ tokens. Full-context (\emph{global}) KV includes a sparse subset of source layers within the encoder, and a single shared decoder KV entry linearly projected once at the encoder--decoder boundary from the normalized final encoder output. Any layer equipped with global attention jointly attends to its own local SWA cache and its designated global KV source—either the most recent encoder source preceding that layer, or the shared boundary projection—within a single unified softmax. Crucially, because all global KV entries are fully determined by the encoder output, prompt prefill only needs to execute the encoder layers, bypassing the decoder entirely.

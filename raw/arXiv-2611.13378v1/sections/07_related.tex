@@ -1,0 +1,14 @@
+\section{Related Work}
+\label{sec:related}
+
+\paragraph{Recurrent-depth models and cross-round KV sharing.} 
+Building on early weight-tied and equilibrium networks~\citep{universal_transformer,albert,deq}, modern prelude--core--coda language models and their routed or adapted variants scale reasoning and sample efficiency via recurrent depth~\citep{saunshi_looped,huginn,parcae,ouro,schwethelm,moeut,relaxed_recursive,mor}. To avoid linear KV growth across rounds, prior work either bounds and compresses cross-round caches~\citep{huginn,mor,plt,melt,lla} or reuses only the last round's KV---which collapses fixed-depth models~\citep{lla,schwethelm_cdb,loopsright2} but is lossless when stochastic-depth training induces a contractive fixed point~\citep{parcae,loopsright2,benice}. We extend it to asymmetric SWA and global-KV stacks.
+
+\paragraph{Asymmetric KV topologies and loop placement.} 
+Beyond head sharing, latent compression, and local windows~\citep{mqa,gqa,mla_dsv2,gtagla,longformer,streamingllm}, cross-layer KV sharing and hierarchical sparse attention restrict global KV generation to a few or single layers~\citep{cla,yoco,ramba,hsa_lengthgen}, culminating in CED's split between sparse encoder global-KV sources and a single projected decoder KV~\citep{deepseekv41}. Whereas prior recurrent cross-layer designs loop downstream of a frozen prelude KV or only over local SWA layers under fixed depth~\citep{cart,yocou}, we show that preserving long-context quality requires recomputing a global KV source \emph{inside} a stochastically trained encoder loop.
+
+\paragraph{Concurrent work.}
+Several concurrent preprints explore nearby points in this design space (Appendix~\ref{app:concurrent}). AsymLoop~\citep{asymloop} loops a CED-style decoder over fixed per-layer encoder KV, but each decoder layer recomputes a full-length local KV in every round, so its cache grows with the number of rounds unless that KV is shared. LPT~\citep{lpt} and \citet{lstmloop} share one round's KV across rounds---the first round's alongside a short local window, or the final round's with a consistency loss---and HLA~\citep{hla} adds a compact latent cache to frozen pretrained Ouro models. In contrast, \ourmethod loops the CED encoder so that each round refines a global KV source, keeps prefill decoder-free apart from the local window, and shares last-round KV through stochastic-depth training alone, without auxiliary losses or full-length per-round caches.
+
+\paragraph{KV-centric serving systems.} 
+Modern serving engines maximize throughput through paged KV management, prefix caching, and prefill--decode disaggregation~\citep{vllm,sglang,mooncake,distserve,splitwise}. Because an encoder loop trades prefill compute for a minimal decode KV cache, we evaluate our serving trade-offs (\S\ref{sec:cost}) under empirical prefix-cache hit rates and prefill-to-decode ratios from production traces~\citep{prefixcache_wild,mooncake,agentic_coding_wild}.

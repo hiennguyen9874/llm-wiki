@@ -1,0 +1,205 @@
+\section{Additional Serving Results}
+\label{app:serving-more}
+
+This appendix collects serving measurements that Section~\ref{sec:cost} does not show. They come from the same two
+setups: one $4\times\text{GB200}$ tray (TP4/EP4) and one $8\times\text{H200}$ node (TP8/EP8), both running SGLang
+\texttt{da64c5cbb} with our plugin. Runs marked \emph{dummy weights} use random weights with standard deviation 0.02,
+which route tokens to experts almost uniformly. In an A/B test, dummy weights decoded 15--36\% slower than the real
+ones, while the ratios between models moved by 2--4\%. All other runs use the original (real) \vfour-Flash weights, unchanged. In Figure~\ref{fig:serving-main}, panel (a) uses dummy weights and
+panels (b) and (c) use the real weights. Every
+comparison is at equal rounds $T$, and the names are those of Section~\ref{sec:cost}. Across layers, a model either
+shares global KV as \ced does or keeps \emph{per-layer KV} (every layer \Lr{2}{39} caches its own global KV and runs
+over every prompt token in prefill). Across rounds, it keeps \emph{last-round KV} or \emph{per-round KV}. The
+\emph{baseline} keeps per-layer and per-round KV; \emph{\ourmethod} keeps neither. The \emph{decoder loop} loops
+\Lr{21}{38} of \ced instead of the encoder. Per-round KV is always emulated by shrinking the KV pool, so a model and its
+per-round variant run identical compute.
+
+\begin{figure*}[t]
+\centering
+\safegraphic[width=\textwidth]{figures/fig_serving_more.pdf}
+\caption{\textbf{Further serving measurements.} \emph{(a)}~As Figure~\ref{fig:serving-main}(a), for ShareGPT on
+one GB200 tray (dummy weights): output tokens/s per GPU against the p90 per-user decode speed
+($1000/\text{p90 TPOT}$), one point per concurrency, preemption-free points only. \emph{(b, c)}~Mooncake tool-agent trace, closed loop, $T=8$, real
+weights (the runs of Figure~\ref{fig:p1-pareto}c): \emph{(b)}~prefix-cache hit rate over the second half of each run;
+\emph{(c)}~share of requests with TTFT $\le 10$\,s.}
+\label{fig:serving-more}
+\end{figure*}
+
+\paragraph{The gain holds at interactive speeds.}
+The $3.1\times$--$3.6\times$ of Section~\ref{sec:cost} compares peak throughput, which \ourmethod reaches at $c=512$.
+Figures~\ref{fig:serving-main}(a, b) and~\ref{fig:serving-more}(a) plot throughput against the p90 per-user speed
+instead. Reading the curves by linear interpolation between neighbouring points, at 30 and 50 tokens/s per user \ourmethod serves $1.39\times$--$1.67\times$ the throughput of
+the baseline on 8K/1K and $1.42\times$--$1.61\times$ on ShareGPT. No KV pool is full at these speeds, so this part of
+the gain comes from cross-layer sharing, not from capacity: the baseline runs every layer on every prompt token
+(166 instead of 147 layer passes at $T=8$) and keeps a KV cache and an indexer in all 38 layers. A single request
+shows the same: its time to first token (TTFT) on 8K/1K is 0.98\,s instead of 1.47\,s at $T=4$ and 1.68\,s instead of
+2.65\,s at $T=8$, and its time per output token is 10\% lower. On H200 with real weights the gap is larger. At equal
+concurrency, \ourmethod serves $1.48\times$--$1.64\times$ the throughput of the baseline on 8K/1K ($c=1$--64) and
+$1.47\times$--$1.73\times$ on ShareGPT ($c=1$--256); its single-request TTFT is 1.95\,s instead of 3.23\,s ($T=4$)
+and 3.56\,s instead of 5.61\,s ($T=8$). On 8K/1K the H200 baseline preempts at $c=112$ ($T=4$) and fills 96\% of its
+pool at $c=64$ ($T=8$), while \ourmethod runs $c=256$ at 16\% KV use. On H200 ShareGPT the baseline's pool never
+exceeds 28\%, so the $1.72\times$--$1.73\times$ there at $c=256$ comes from cross-layer sharing alone.
+
+\begin{table*}[t]
+\caption{\textbf{Cross-layer and cross-round sharing, measured separately} ($4\times\text{GB200}$, dummy weights).
+Left: peak preemption-free output tokens/s per GPU on 8K/1K, with the largest preemption-free concurrency in
+parentheses. Right: decode tokens/s per GPU at the largest batch of 128K-token requests that fits the KV pool, with
+that batch in parentheses. Without a loop, \ced reaches 887.8 and 780.3 and the per-layer-KV model 371.7 and 116.7.
+The ratios compare rows at equal $T$.}
+\label{tab:serving-2x2}
+\vskip 0.06in
+\centering
+\footnotesize
+\setlength{\tabcolsep}{5pt}
+\begin{tabular}{@{}llcccc@{}}
+\toprule
+& & \multicolumn{2}{c}{8K in / 1K out, peak} & \multicolumn{2}{c}{128K decode at the KV limit} \\
+\cmidrule(lr){3-4}\cmidrule(lr){5-6}
+KV across layers & KV across rounds & $T=4$ & $T=8$ & $T=4$ & $T=8$ \\
+\midrule
+\ced (\ourmethod, ours) & last round & 391.8 ($c$\,512) & 185.1 ($c$\,512) & 347.4 (38) & 199.2 (38) \\
+\ced & per round & 308.4 ($c$\,128) & 142.5 ($c$\,64) & 186.1 (13) & 69.4 (7) \\
+per layer & last round & 161.6 ($c$\,32) & 92.4 ($c$\,32) & 51.7 (3) & 29.6 (3) \\
+per layer (baseline) & per round & 127.3 ($c$\,16) & 50.9 ($c$\,8) & 21.1 (1) & does not fit (0) \\
+\midrule
+\multicolumn{2}{@{}l}{Cross-layer sharing, both last-round KV (\ced $\div$ per layer)} & $2.43\times$ & $2.00\times$ & $6.72\times$ & $6.73\times$ \\
+\multicolumn{2}{@{}l}{Cross-layer sharing, both per-round KV} & $2.42\times$ & $2.80\times$ & $8.82\times$ & --- \\
+\multicolumn{2}{@{}l}{Cross-round sharing in \ced (last round $\div$ per round)} & $1.27\times$ & $1.30\times$ & $1.87\times$ & $2.87\times$ \\
+\multicolumn{2}{@{}l}{Cross-round sharing with per-layer KV} & $1.27\times$ & $1.82\times$ & $2.45\times$ & --- \\
+\multicolumn{2}{@{}l}{Both (\ourmethod $\div$ baseline)} & $\mathbf{3.08\times}$ & $\mathbf{3.64\times}$ & $\mathbf{16.5\times}$ & 199.2 vs.\ none \\
+\bottomrule
+\end{tabular}
+\end{table*}
+
+\paragraph{Both kinds of sharing contribute, and they multiply.}
+Table~\ref{tab:serving-2x2} measures all four combinations of cross-layer sharing (\ced or per-layer KV) and
+cross-round sharing (last-round or per-round KV). With last-round KV in both, cross-layer sharing alone gives
+$2.0\times$--$2.4\times$ the peak 8K/1K throughput and $6.7\times$ the 128K decode throughput, because \ced fits 38
+requests of 128K tokens where per-layer KV fits 3. Cross-round sharing alone gives $1.27\times$--$1.30\times$ in \ced
+and $1.27\times$--$1.82\times$ with per-layer KV on 8K/1K, and $1.87\times$--$2.87\times$ in \ced at 128K. The 8K/1K
+factors multiply to the headline exactly ($1.27\times 2.43=3.08$, $1.82\times 2.00=3.64$). Cross-round sharing thus
+also helps a model with per-layer KV: the benefit of stochastic-depth training is not specific to \ced. At equal batch,
+a model and its per-round variant decode within 3\% of each other (one point differs by 6\%), as the emulation intends,
+so these gains come from the larger batch that fits. For the same reason, cross-round sharing changes nothing in \ced
+at 30 or 50 tokens/s per user (factor 1.00), where its pool is at most a third full. It pays off once the pool fills:
+at long context, on agent traces and under heavy load.
+
+\begin{table*}[t]
+\caption{\textbf{Prefill cost of running every layer over the prompt.} Top: ratio of per-request prefill time for
+uncached prompts (batch 1, real weights); both models keep last-round KV. \emph{Full replay} runs the \ced decoder over
+every prompt token instead of the last 128. Bottom: ratio of new prompt tokens prefilled per second behind one cached
+prefix ($4\times\text{GB200}$, dummy weights, 4K new tokens per request). Values above 1 mean the \ced variant is
+faster.}
+\label{tab:serving-prefill}
+\vskip 0.06in
+\centering
+\footnotesize
+\setlength{\tabcolsep}{5pt}
+\begin{tabular}{@{}llccccc@{}}
+\toprule
+& & \multicolumn{5}{c}{Prompt length (tokens)} \\
+\cmidrule(lr){3-7}
+& Ratio & 512 & 2K & 4K & 16K & 64K \\
+\midrule
+H200 & \ced, no loop: full replay $\div$ 128-token tail & 1.32 & 1.45 & 1.50 & 1.60 & 1.75 \\
+H200 & Per-layer KV $\div$ \ced, encoder loop $T=8$ & 1.87 & 1.45 & 1.44 & 1.69 & 2.43 \\
+GB200 & Per-layer KV $\div$ \ced, encoder loop $T=8$ & 1.65 & 1.48 & 1.41 & 1.40 & 1.48 \\
+\midrule
+& & \multicolumn{5}{c}{Context length / prefill chunk (tokens)} \\
+\cmidrule(lr){3-7}
+& & 64K / 4K & 64K / 8K & 64K / 16K & 128K / 4K & 128K / 8K \\
+\midrule
+GB200 & \ourmethod $\div$ baseline, $T=4$ & 1.60 & 1.64 & 1.70 & 1.65 & 1.83 \\
+\bottomrule
+\end{tabular}
+\end{table*}
+
+\paragraph{Prefill: skipping the decoder survives looping.}
+A \ced prompt runs the encoder and a 128-token decoder tail, and an encoder loop keeps that property
+(Table~\ref{tab:serving-prefill}). Even without a loop, running the decoder over the whole prompt costs $1.32\times$ at
+512 tokens and $1.75\times$ at 64K tokens on H200, and $1.30\times$ at 8K tokens on GB200. With eight rounds, the
+model with per-layer KV takes $1.40\times$--$1.65\times$ (GB200) and $1.44\times$--$2.43\times$ (H200) as long as the
+\ced encoder loop to prefill the same prompt. Behind a cached 60K--124K-token prefix, \ourmethod at $T=4$ prefills
+$1.60\times$--$1.83\times$ as many new tokens per second as the baseline at the same chunk size, and $1.56\times$ at
+$T=8$ (64K context, 4K chunk). The encoder loop's own prefill grows more slowly than its round count
+(Table~\ref{tab:unit-costs-app}).
+
+\begin{table*}[t]
+\caption{\textbf{Requests that fit the KV pool at long context.} $4\times\text{GB200}$: one tray with the flags of
+Figure~\ref{fig:p1-pareto}, dummy weights; requests of $L+256$ tokens; the last column is decode tokens/s per GPU at
+the largest 128K batch that fits. The \ced limit of 604 at 8K is computed from the pool (the sweep stopped at 256).
+$8\times\text{H200}$: one node, real weights, requests that fit at full length. The H200 per-round pool also charges
+each round's sliding-window rings; the GB200 one does not.}
+\label{tab:serving-longctx}
+\vskip 0.06in
+\centering
+\footnotesize
+\setlength{\tabcolsep}{5pt}
+\begin{tabular}{@{}llcccccc@{}}
+\toprule
+& & \multicolumn{3}{c}{$4\times\text{GB200}$} & \multicolumn{3}{c}{$8\times\text{H200}$} \\
+\cmidrule(lr){3-5}\cmidrule(lr){6-8}
+Model & KV across rounds & 8K & 128K & tok/s/GPU at 128K & 120K & 524K & 1M \\
+\midrule
+\ced, no loop & --- & 604 & 38 & 780.3 & 195 & 44 & 23 \\
+\ced encoder loop, $T=4$ & last round & 604 & 38 & 347.4 & --- & --- & --- \\
+\ced encoder loop, $T=8$ & last round & 604 & 38 & 199.2 & 195 & 44 & 23 \\
+\ced decoder loop, $T=8$ & last round & --- & --- & --- & 195 & 44 & 23 \\
+\ced encoder loop, $T=4$ & per round & 215 & 13 & 186.1 & --- & --- & --- \\
+\ced encoder loop, $T=8$ & per round & 116 & 7 & 69.4 & 23 & 5 & 2 \\
+\midrule
+Per-layer KV, no loop & --- & 49 & 3 & 116.7 & 16 & 3 & 1 \\
+Per-layer KV, $T=4$ & last round & 49 & 3 & 51.7 & --- & --- & --- \\
+Per-layer KV, $T=8$ & last round & 49 & 3 & 29.6 & 16 & 3 & 1 \\
+Per-layer KV, $T=4$ & per round & 25 & 1 & 21.1 & --- & --- & --- \\
+Per-layer KV, $T=8$ & per round & 15 & 0 & --- & --- & --- & --- \\
+\bottomrule
+\end{tabular}
+\end{table*}
+
+\paragraph{Cost per request on four workloads.}
+Figure~\ref{fig:serving-main}(c) runs four closed-loop workloads on one GB200 tray with real weights at $T=8$, one run
+each:
+synthetic reasoning (2K-token prompts, 4K output tokens, 32 concurrent requests), the Mooncake conversation and
+tool-agent traces~\citep{mooncake} (64 concurrent requests, starting at minute 10), and synthetic long documents
+(100K-token prompts, 1K output tokens, 8 concurrent requests). \ourmethod costs $3.7\times$--$4.7\times$ the GPU time
+per request of an unlooped \ced. That is $0.64\times$--$0.93\times$ the cost of per-layer KV with last-round KV, and
+$0.36\times$--$0.93\times$ the cost of the baseline. The largest saving is on long documents, where the baseline's pool
+holds one 101K-token request at a time. The cost model, evaluated for the same runs, matches the two \ced loops
+(measured over predicted 0.78--1.04). It underpredicts per-layer KV with last-round KV by 9--44\% on the three workloads
+where that model's KV pool fills (95--100\%), an effect that a model of FLOPs and bytes does not capture. The encoder
+loop costs the same as the decoder loop on reasoning ($1.00\times$) and $1.37\times$--$1.64\times$ as much on the three
+prompt-heavy workloads, where its rounds run over every prompt token. These runs decode 8--64 requests at a time on one tray. With larger decode batches, as in
+expert-parallel serving across many GPUs, each output token costs less and prompt tokens take a larger share of a
+request, so the premium grows; running prompts at fewer rounds ($T_p<T_d$, Appendix~\ref{app:split}) lowers it.
+
+\paragraph{Cross-round sharing leaves prefix caching as it is without a loop.}
+Figure~\ref{fig:serving-more}(b, c) replays the Mooncake tool-agent trace in closed loop
+with 64--512 concurrent sessions, real weights and $T=8$ (the runs of Figure~\ref{fig:p1-pareto}c); each point replays
+600--1{,}536 complete requests from the trace. With last-round KV, both the encoder and
+the decoder loop hit the prefix cache within 0.8 points as often as the unlooped \ced at every concurrency, so looping
+does not change which session histories stay resident. With per-round KV, the 1.5M-token pool is full from $c=128$,
+and the hit rate is 4.3, 6.4, 8.1 and 11.6 points lower than with last-round KV at $c=64$, 128, 256 and 512. The
+share of requests with TTFT $\le 10$\,s then falls to 4.8\% at $c=256$ (58.3\% with last-round KV) and 1.4\% at
+$c=512$ (46.0\%). A synthetic multi-turn agent workload on H200 (80 sessions of 4 turns, 32K--40K-token contexts,
+0.2 requests/s) shows the same direction: per-round KV lowers the hit rate of the encoder loop from 72.3\% to 63.8\%
+and its completed rate from 0.199 to 0.171 requests/s. Cross-layer sharing matters even more on this workload. In the
+same runs, per-layer KV with last-round KV holds 2.0M tokens against \ced's 23.4M, so the session histories (about
+3.2M tokens) do not stay resident: its hit rate is 3.4\% and it completes 0.039 requests/s, $5.1\times$ fewer than
+\ourmethod.
+
+\paragraph{Encoder and decoder loops decode at the same cost.}
+Decode runs every layer under either loop placement. In a pure-decode sweep with real weights on GB200 that fills the KV
+pool (8K, 16K and 32K-token contexts, 256 output tokens per request), the encoder loop and the decoder loop at $T=8$
+reach 1{,}451 / 1{,}118 / 818 and 1{,}460 / 1{,}112 / 828 output tokens/s per GPU (the 8K values are capped at 768
+requests). With last-round KV neither loop adds global KV, so both hold the same pool, and both take 33.1\,ms per decode
+step at 8K context and batch 32.
+
+\paragraph{Long and very long contexts.}
+With last-round KV, a looped \ced fits as many requests as the unlooped \ced at every $T$
+(Table~\ref{tab:serving-longctx}): 38 requests of 128K tokens on one GB200 tray, and 44 of 524K tokens and 23 of 1M
+tokens on one H200 node, where the unlooped model with per-layer KV fits 3 and 1. At 524K tokens on H200, last-round KV
+decodes 195 tokens/s per node at a batch of 32. Per-round KV fits only 5 such requests and peaks at 55.7 tokens/s at a
+batch of 4, $3.5\times$ less. For every model, the long-context decode measurements use KV that is allocated without
+being computed, so that they measure decode alone; on H200, decoding over such KV was within 3\% of decoding after a
+real prefill.

@@ -1,0 +1,73 @@
+\usepackage{xcolor}
+\usepackage{url}
+\def\UrlBreaks{\do\/\do-}
+\usepackage{tikz}
+\usetikzlibrary{positioning,fit,calc,decorations.pathreplacing,arrows.meta}
+
+\newcommand{\todo}[1]{\textcolor{red}{\textbf{[TODO: #1]}}}
+\newcommand{\note}[1]{\textcolor{blue}{[#1]}}
+
+% Numbers. Every number about our runs or the cost model comes from paper/scripts/collect.py, which writes
+% data/numbers.tex with \defval{key}{value} and \defpending{key}{runs}{what}.
+% \val{key}: the value in text; a pending value prints a red box naming the W&B run(s) it waits for.
+% \sval{key}: the same for table cells; a pending value prints a red TBD.
+% \waitfor{key,key,...}: a red line listing the runs that the pending keys among these wait for.
+\makeatletter
+\newcommand{\defval}[2]{\expandafter\def\csname pv@#1\endcsname{#2}}
+\newcommand{\defpending}[3]{%
+  \expandafter\def\csname pv@#1\endcsname{\pendingbox{#2}{#3}}%
+  \expandafter\def\csname ps@#1\endcsname{\pendingshort}%
+  \expandafter\def\csname pr@#1\endcsname{#2}}
+\newcommand{\pendingbox}[2]{\textcolor{red}{\textbf{[pending: #2; run \pendingruns{#1}]}}}
+\newcommand{\pendingshort}{\textcolor{red}{\textbf{TBD}}}
+\newcommand{\pendingruns}[1]{%
+  \def\pr@sep{}\@for\pr@run:=#1\do{\pr@sep\expandafter\path\expandafter{\pr@run}\def\pr@sep{, }}}
+\newcommand{\val}[1]{\ifcsname pv@#1\endcsname\csname pv@#1\endcsname
+  \else\textcolor{red}{\textbf{??#1??}}\PackageWarning{paper}{Undefined value #1}\fi}
+\newcommand{\sval}[1]{\ifcsname ps@#1\endcsname\csname ps@#1\endcsname\else\val{#1}\fi}
+\newcommand{\waitfor}[1]{%
+  \begingroup
+  \def\wf@list{}%
+  \@for\wf@key:=#1\do{%
+    \ifcsname pr@\wf@key\endcsname
+      \edef\wf@runs{\csname pr@\wf@key\endcsname}%
+      \@for\wf@run:=\wf@runs\do{%
+        \ifcsname wfseen@\wf@run\endcsname\else
+          \expandafter\def\csname wfseen@\wf@run\endcsname{}%
+          \ifx\wf@list\@empty\edef\wf@list{\wf@run}\else\edef\wf@list{\wf@list,\wf@run}\fi
+        \fi}%
+    \fi}%
+  \ifx\wf@list\@empty\else
+    \textcolor{red}{\textbf{Pending (TBD):} \expandafter\pendingruns\expandafter{\wf@list}.}%
+  \fi
+  \endgroup}
+\makeatother
+
+% Multi-line table cell (instead of the makecell package)
+\newcommand{\makecell}[1]{\begin{tabular}[c]{@{}c@{}}#1\end{tabular}}
+
+% Names
+\newcommand{\ced}{CED\xspace}
+\newcommand{\ourmethod}{Looped CED\xspace}
+\newcommand{\vfour}{DeepSeek-V4.1\xspace}
+\newcommand{\bpb}{BPB\xspace}
+\newcommand{\Lr}[2]{L#1--#2}
+
+% A figure produced by scripts/make_figures.py; until it exists, a red placeholder keeps the paper compiling.
+% \ignorespaces drops the line end after the call: a full-width figure followed by a space would push the anchor
+% that \caption adds onto an empty line of its own, 12pt of extra space above the caption.
+\newcommand{\safegraphic}[2][]{\IfFileExists{#2}{\includegraphics[#1]{#2}}{%
+  \fbox{\parbox[c][3cm][c]{0.92\columnwidth}{\centering\textcolor{red}{\textbf{[figure not generated yet:
+  \path{#2}; run scripts/make\_figures.py]}}}}}\ignorespaces}
+
+% Figure captions sit closer to their figure: preprint.sty puts 10pt above every caption; figures keep 2pt of it.
+% Tables, whose captions sit above them, are unchanged.
+\makeatletter
+\let\paper@makecaption\@makecaption
+\long\def\@makecaption#1#2{\def\@tempa{figure}\ifx\@captype\@tempa\vskip -8pt\fi\paper@makecaption{#1}{#2}}
+% \captype{table} inside a minipage makes its \caption a table caption, so one float can hold a figure beside a table.
+\newcommand{\captype}[1]{\def\@captype{#1}}
+\makeatother
+
+% At most one float at the top of a column, so that two floats on a page sit one per column instead of stacked.
+\setcounter{topnumber}{1}

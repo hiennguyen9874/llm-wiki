@@ -1,0 +1,114 @@
+\section{Serving Cost Analysis}
+\label{sec:cost}
+
+\begin{figure*}[t]
+\centering
+\safegraphic[width=\textwidth]{figures/fig_serving.pdf}
+\caption{\textbf{Serving looped \vfour-Flash on $4\times\text{GB200}$: last-round KV vs.\ per-round KV.}
+\emph{(a)}~Throughput vs.\ concurrency on 8K-input / 1K-output requests; open markers show where per-round KV fills the KV pool.
+\emph{(b)}~Peak preemption-free throughput; bold ratios are last-round \ced over the baseline with per-layer and per-round KV.
+\emph{(c)}~Median time to first token on a multi-turn agent trace.
+Setup and further numbers are in Appendix~\ref{app:serving-fig}.}
+\label{fig:p1-pareto}
+\end{figure*}
+
+
+% Sections~\ref{sec:method}--\ref{sec:results} showed that looping the \ced encoder preserves long-context scaling while stochastic-depth training allows inference to cache only the last round's KV state.
+% To verify that these dual memory savings translate directly into low-cost production serving at frontier scale, we benchmark a 40-layer \ced MoE backbone with 552B parameters (\vfour-Flash~\citep{deepseekv41}, with an 18-layer recurrent core) in SGLang~\citep{sglang} across NVIDIA GB200 NVL72 ($4\times\text{GB200}$, TP4) and HGX H200 ($8\times\text{H200}$, TP8) nodes, with dummy or original \vfour-Flash weights, to test serving cost rather than quality (setup in Appendix~\ref{app:serving}).
+% Our baseline keeps \vfour's MoE and sparse attention and loops the same layers \Lr{2}{19}, but every layer \Lr{2}{39} caches its own global KV (\emph{per-layer KV}, as in a standard Transformer: $18{,}908$\,B/token from 38 KV sources; sliding-window caches are per-layer in both layouts), and every round keeps its own copy (\emph{per-round KV}), the KV policy of prior looped models~\citep{parcae}.
+% \ced's cross-layer KV sharing shrinks the per-token global KV to $1{,}630$\,B ($11.6\times$), and cross-round KV sharing (last-round KV) removes the $5.2\times$ per-round expansion at $T=8$.
+% Together, \ourmethod holds $\mathbf{36.8\times}$ less KV than the baseline ($59{,}984$\,B/token), expanding the usable KV pool on a single GB200 node from $0.13$\,M to $5.11$\,M tokens regardless of recurrence depth.
+% Per-round KV is emulated with identical compute by capping the KV pool (Appendix~\ref{app:serving-fig}).
+
+Sections~\ref{sec:method}--\ref{sec:results} showed that looping the \ced encoder preserves long-context scaling while stochastic-depth training allows inference to cache only the last round's KV state.
+To verify that these dual memory savings translate directly into low-cost production serving at frontier scale, we benchmark a 40-layer, 552B-parameter \ced MoE backbone (\vfour-Flash~\citep{deepseekv41}) in SGLang~\citep{sglang} on NVIDIA GB200 ($4\times\text{GB200}$, TP4) and HGX H200 ($8\times\text{H200}$, TP8) nodes, with dummy or original \vfour-Flash weights, to test serving cost rather than quality (setup in Appendix~\ref{app:serving}).
+Our baseline shares the same MoE, sparse attention, and looped layers, but follows standard Transformers by caching global KV at every layer (\emph{per-layer KV}) and follows prior looped models~\citep{parcae} by caching a separate copy at every recurrence round (\emph{per-round KV}, emulated at identical compute by capping the KV pool; Appendix~\ref{app:serving-fig}).
+\ced's cross-layer KV sharing shrinks per-token global KV by $11.6\times$, and cross-round KV sharing (last-round KV) eliminates the per-round expansion.
+Together, \ourmethod reduces the per-token KV footprint by $\mathbf{36.8\times}$ at $T=8$, expanding the usable KV pool on a single GB200 node to $5.11$\,M tokens regardless of recurrence depth (Table~\ref{tab:cost}).
+
+\begin{table*}[t]
+\centering
+\caption{\textbf{Production serving summary at $T=8$ on $4\times\text{GB200}$ (TP4) with \vfour-Flash in SGLang.}
+Comparing the baseline with \textbf{per-layer and per-round KV}, \textbf{\ced with per-round KV}, and \textbf{\ourmethod (ours; \ced, last-round KV)}; KV pools at the server settings of Figure~\ref{fig:p1-pareto}(a). All three loop \Lr{2}{19} with the same MoE FLOPs per decoded token; the baseline also runs every layer on every prompt token in prefill. Full $T=4$ and $8\times\text{H200}$ results are in Appendix~\ref{app:serving}.}
+\label{tab:cost}
+\vskip 0.06in
+\small
+\setlength{\tabcolsep}{4.2pt}
+\begin{tabular}{@{}lcccc@{}}
+\toprule
+\textbf{Workload / Metric ($T{=}8$, GB200)} & \makecell{\textbf{Per-layer KV,}\\\textbf{per-round KV}} & \makecell{\textbf{\ced,}\\\textbf{per-round KV}} & \makecell{\textbf{\ourmethod}\\\textbf{(Ours)}} & \textbf{Advantage (Ours)} \\
+\midrule
+Global KV per Token (KB) & $60.0$ & $8.5$ & $\mathbf{1.6}$ & $\mathbf{36.8\times}$ \textbf{smaller} ($5.2\times$ vs.\ \ced per-round) \\
+Usable KV Pool per Node (M tok) & $0.13$ & $0.98$ & $\mathbf{5.11}$ & $\mathbf{39\times}$ \textbf{larger} ($5.2\times$ vs.\ \ced per-round) \\
+\midrule
+8K In / 1K Out (tok/s/GPU) & $50.9$ & $142.5$ & $\mathbf{185.1}$ & $\mathbf{3.6\times}$ \textbf{higher} ($1.3\times$ vs.\ \ced per-round) \\
+32K HBM Decode (tok/s/GPU) & --- & $289.3$ & $\mathbf{818.5}$ & $\mathbf{2.8\times}$ \textbf{higher decode throughput} \\
+128K Long-Context (tok/s/GPU) & \textbf{OOM} ($0$ req) & $7$ reqs max & $\mathbf{199.2}$ ($\mathbf{38}$ reqs) & $\mathbf{38}$ \textbf{reqs vs.\ OOM} ($16.5\times$ at $T{=}4$) \\
+Multi-Turn Agent TTFT ($c{=}512$) & --- & $345.1\,\text{s}$ & $\mathbf{11.6\,\text{s}}$ & $\mathbf{29.7\times}$ \textbf{lower latency} \\
+\bottomrule
+\end{tabular}
+\end{table*}
+
+% \paragraph{Eliminating the KV capacity wall in single-turn and long-context serving.}
+% In a large MoE model, high serving throughput requires batching many concurrent requests to amortize expert weight streaming across tokens.
+% As shown in Figure~\ref{fig:p1-pareto}(a,b) and Table~\ref{tab:cost}, the baseline with per-layer and per-round KV exhausts HBM at $c_{\max}=8$ on standard 8K/1K workloads ($50.9\text{ tok/s/GPU}$) and cannot fit even a single 128K-context request at $T=8$ (\texttt{OOM}).
+% Sharing KV across layers (\ced with per-round KV) raises the 8K/1K concurrency wall to $c_{\max}=64$ at $T=8$ ($142.5\text{ tok/s/GPU}$) and $c_{\max}=128$ at $T=4$ ($308.4\text{ tok/s/GPU}$), but still suffers a $2.8\times\text{--}5.2\times$ per-round KV expansion that caps decode batch size.
+% Adding cross-round KV sharing (\textbf{Ours}) makes per-token KV completely invariant to recurrence depth, scaling preemption-free to $c_{\max}=512$ on 8K/1K ($\mathbf{3.1\times\text{--}3.6\times}$ over the baseline; $\mathbf{4.95\times}$ on ShareGPT), boosting HBM-saturated decode throughput at $8\text{K}\text{--}32\text{K}$ context by $\mathbf{2.05\times\text{--}2.83\times}$ over \ced with per-round KV (Table~\ref{tab:hbm-decode-app}), and fitting 38 concurrent 128K requests for a $\mathbf{16.5\times}$ throughput gain at $T=4$.
+% Only a small part of the $3.6\times$ is compute: at $c\le 4$, where no KV pool is full, the per-layer-KV baseline is $13$--$14\%$ slower, because its prefill runs every layer on every prompt token and takes $1.5$--$1.6\times$ as long, and each of its decode steps takes about $11\%$ longer; the rest is KV capacity.
+% At equal per-user speed the gap is larger than this compute difference, because the faster model reaches a given speed at a higher concurrency: at 30--50 tokens/s per user, \ourmethod serves $1.4\times$--$1.7\times$ the baseline's throughput on GB200 (Figure~\ref{fig:serving-main}a), and on H200 $1.9\times$--$3.0\times$ at 5--10 tokens/s per user (Figure~\ref{fig:serving-main}b).
+% Measured separately, cross-layer and cross-round sharing each raise throughput, and their gains multiply to the $3.1\times$--$3.6\times$ above (Table~\ref{tab:serving-2x2} in Appendix~\ref{app:serving-more}).
+% The capacity advantage holds up to 1M-token contexts: on one $8\times\text{H200}$ node, \ourmethod at $T=8$ fits as many requests as an unlooped \ced, 44 of 524K tokens or 23 of 1M tokens, where an unlooped model with per-layer KV fits 3 or 1; at 524K it decodes $\mathbf{3.5\times}$ as fast as with per-round KV, which fits 5 such requests (Table~\ref{tab:serving-longctx}).
+
+% \paragraph{Preventing prefix-cache eviction collapse in multi-turn agents.}
+% The minimal KV footprint is equally critical for multi-turn conversational and agentic workloads, where prompts are long but consist mostly of shared session history~\citep{mooncake,agentic_coding_wild}.
+% Because a radix prefix-cache hit in SGLang costs about $1\%$ of computing a new prompt token, multi-turn serving cost hinges on keeping active session histories resident in HBM without eviction.
+% As shown in Figure~\ref{fig:p1-pareto}(c) and Table~\ref{tab:cost} (bottom), when high concurrency ($c=256\text{--}512$ on the Mooncake \texttt{toolagent} trace) pushes the per-round KV pool of \ced ($1.5\text{M}$ tokens) to $100\%$ utilization, continuous cache evictions force the server to recompute evicted histories from scratch across all 8 rounds, causing median time-to-first-token (TTFT) to spike to $95\text{--}345\,\text{s}$.
+% Cross-round KV sharing expands the cache pool to $7.9\text{M}$ tokens, which never fills (at most $77\%$ at $c=512$), slashing median TTFT by $\mathbf{13.6\times\text{--}29.7\times}$ on GB200.
+% With last-round KV, $58\%$ of requests still receive their first token within 10\,s at $c=256$, against $5\%$ with per-round KV (Figure~\ref{fig:serving-more}c).
+% On H200, per-round KV likewise lowers the prefix-cache hit rate of a synthetic multi-turn agent workload from $72.3\%$ to $63.8\%$ (Appendix~\ref{app:serving-more}).
+
+% \paragraph{Sub-linear compute scaling across workloads.}
+% With the KV capacity bottleneck removed, compute cost scales sub-linearly with recurrence depth (Appendix~\ref{app:serving}, Table~\ref{tab:unit-costs-app}).
+% Because the 18-layer recurrent core spans less than half of the 40-layer stack, $T=4$ and $T=8$ rounds need only $2.35\times$ and $4.15\times$ the layer passes of unlooped \ced ($T=1$) per decoded token; the measured per-step decode latency rises by $\mathbf{2.13\times}$ and $\mathbf{3.95\times}$, within $10\%$ of these counts.
+% Decode runs every layer under either loop placement, so the encoder and decoder loops decode at the same cost (Appendix~\ref{app:serving-more}).
+% Consequently, on decode-dominated workloads such as long chain-of-thought reasoning ($2\text{K}\to 4\text{K}$, $>95\%$ decode time), the encoder loop matches the decoder loop in end-to-end serving cost (both $3.7\times$ the GPU time per request of $T=1$ at $T=8$; Figure~\ref{fig:serving-main}c) while preserving all long-context modeling gains (\S\ref{sec:results}).
+% Across the four workloads of Figure~\ref{fig:serving-main}(c), \ourmethod costs $0.36\times$--$0.93\times$ the GPU time per request of the baseline, and $0.64\times$--$0.93\times$ that of per-layer KV with last-round KV.
+% In prefill, the encoder loop still skips the decoder: with eight rounds, the model with per-layer KV, which runs every layer over the prompt, takes $1.40\times$--$2.43\times$ as long as \ourmethod to prefill an uncached prompt of 512--64K tokens on GB200 and H200, and behind a cached prefix of 60K--124K tokens, \ourmethod at $T=4$ prefills $1.60\times$--$1.83\times$ as many new tokens per second as the baseline (Table~\ref{tab:serving-prefill}).
+% Even on uncached prompt-heavy workloads where encoder recurrence runs over the full prompt, stochastic-depth training enables asymmetric prefill--decode recurrence ($T_p < T_d$; Appendix~\ref{app:split}, Table~\ref{tab:split}): with $T_d=8$ decode rounds, running prompts at $T_p=4$ or $2$ rounds retains over $99\%$ or $94\%$ of the 8-round validation loss improvement, and a $T_p$-round prefill runs the same layers as a $T=T_p$ model, whose measured GB200 prefill costs $2.72\times$ or $1.54\times$ that of unlooped \ced, not $5.12\times$ (Table~\ref{tab:unit-costs-app}).
+
+
+\paragraph{Eliminating the KV capacity wall in single-turn and long-context serving.}
+In a large MoE model, high serving throughput requires batching many concurrent requests to amortize expert weight streaming across tokens.
+As shown in Figure~\ref{fig:p1-pareto}(a,b) and Table~\ref{tab:cost}, the baseline with per-layer and per-round KV quickly exhausts HBM on standard 8K/1K prompts and cannot fit even a single 128K-context request at $T=8$ (\texttt{OOM}).
+Sharing KV across layers (\ced with per-round KV) raises this concurrency ceiling, but per-round KV growth still caps the decode batch size.
+Adding cross-round KV sharing (\ourmethod) makes the KV footprint invariant to recurrence depth, raising peak preemption-free throughput on 8K/1K to $\mathbf{3.1\times}$--$\mathbf{3.6\times}$ that of the baseline ($\mathbf{5.0\times}$ on ShareGPT), boosting HBM-saturated decode throughput by up to $\mathbf{2.8\times}$ over per-round \ced (Table~\ref{tab:hbm-decode-app}), and scaling to 38 concurrent 128K requests ($\mathbf{16.5\times}$ higher throughput than the baseline at $T=4$).
+Only a small fraction of this gain comes from compute: at low concurrency where no KV pool is full, the baseline is only $\sim\!14\%$ slower (since its prefill runs all layers on every prompt token and every layer keeps its own KV cache and indexer); the rest comes from KV capacity.
+At matched per-user interactivity targets, the throughput advantage is much larger than this raw compute gap because the faster model reaches a given per-user speed at higher concurrency (Figure~\ref{fig:serving-main}a,b).
+A $2\times 2$ ablation confirms that cross-layer and cross-round sharing each improve throughput and compound multiplicatively (Table~\ref{tab:serving-2x2}, Appendix~\ref{app:serving-more}).
+This capacity advantage extends up to 1M-token contexts on $8\times\text{H200}$, where \ourmethod at $T=8$ matches the request capacity of unlooped \ced and decodes $\mathbf{3.5\times}$ faster at 524K context than per-round KV (Table~\ref{tab:serving-longctx}).
+\paragraph{Preventing prefix-cache eviction collapse in multi-turn agents.}
+A minimal KV footprint is equally critical for multi-turn conversational and agentic workloads, where long prompts consist mostly of shared session history~\citep{mooncake,agentic_coding_wild}.
+Because a radix prefix-cache hit in SGLang costs only $\sim\!1\%$ of computing a new prompt token, multi-turn latency hinges on keeping active session histories resident in HBM without eviction.
+As shown in Figure~\ref{fig:p1-pareto}(c) and Table~\ref{tab:cost} (bottom), under high concurrency on the Mooncake \texttt{toolagent} trace, per-round KV saturates its cache pool ($100\%$ utilization), triggering continuous evictions that force the server to recompute evicted histories from scratch across all rounds.
+Cross-round KV sharing expands the cache pool so it never fills, cutting median time-to-first-token (TTFT) by up to $\mathbf{29.7\times}$ on GB200, where per-round KV stalls for minutes (Figure~\ref{fig:serving-more}c), while similarly preserving higher prefix-cache hit rates on H200 (Appendix~\ref{app:serving-more}).
+
+
+\paragraph{Compute grows only with the looped layers.}
+With the KV capacity bottleneck removed, compute cost grows linearly with recurrence depth, but each extra round re-runs only the recurrent core (Appendix~\ref{app:serving}, Table~\ref{tab:unit-costs-app}).
+Because the recurrent core spans less than half of the 40-layer stack, looping $T=8$ rounds increases physical layer passes per decoded token by $4.15\times$ over unlooped \ced, and measured per-step decode latency rises by $\mathbf{3.95\times}$.
+Since decode executes every layer under either loop placement, encoder and decoder loops have identical decode cost (Appendix~\ref{app:serving-more}).
+Consequently, on decode-dominated workloads such as long chain-of-thought reasoning ($>95\%$ decode time), the encoder loop matches the decoder loop in end-to-end serving cost ($\mathbf{3.7\times}$ that of $T=1$ at $T=8$; Figure~\ref{fig:serving-main}c) while preserving all long-context modeling gains (\S\ref{sec:results}).
+Across all four workloads in Figure~\ref{fig:serving-main}(c), \ourmethod consistently uses less GPU time per request than both per-layer KV baselines.
+In prefill, the encoder loop still skips the decoder on all but the local window, prefilling uncached prompts and cached long-context suffixes $\mathbf{1.4\times}$--$\mathbf{2.4\times}$ faster than the per-layer KV baseline, which runs every layer over the entire prompt (Table~\ref{tab:serving-prefill}).
+Even on uncached prompt-heavy workloads, stochastic-depth training enables asymmetric prefill--decode recurrence ($T_p < T_d$; Appendix~\ref{app:split}, Table~\ref{tab:split}): halving prefill depth from $8$ to $4$ rounds retains over $99\%$ of the $8$-round validation loss improvement while reducing the GB200 prefill cost multiplier from $5.1\times$ to $\mathbf{2.7\times}$ (Table~\ref{tab:unit-costs-app}).
+
+% Defined at the end of the section so that it floats to the top of the next page (page 10), one float per page.
+\begin{figure*}[t]
+\centering
+\safegraphic[width=\textwidth]{figures/fig_serving_main.pdf}
+\caption{\textbf{\ourmethod at interactive speeds and on real workloads.}
+\emph{(a, b)}~Output throughput against p90 per-user decode speed on 8K-input / 1K-output requests, preemption-free points only, on \emph{(a)}~one $4\times\text{GB200}$ tray and \emph{(b)}~one $8\times\text{H200}$ node.
+\emph{(c)}~Measured GPU-seconds per completed request relative to unlooped \ced on four closed-loop workloads at $T=8$ ($4\times\text{GB200}$; 32, 64, 64 and 8 concurrent requests).
+Setup, model weights and further results are in Appendix~\ref{app:serving-more}.}
+\label{fig:serving-main}
+\end{figure*}

@@ -1,0 +1,61 @@
+\section{Introduction}
+\label{sec:intro}
+
+\begin{figure*}[t]
+\centering
+\begin{minipage}[b]{0.58\textwidth}
+\centering
+\resizebox{\linewidth}{!}{%
+\begin{tikzpicture}[x=0.58cm, y=1cm,
+  box/.style={draw, minimum width=0.48cm, minimum height=0.42cm, inner sep=0pt, font=\scriptsize},
+  S/.style={box, fill=gray!20}, F/.style={box, fill=orange!70, very thick}, R/.style={box, fill=orange!15},
+  D/.style={box, fill=blue!20},
+  loop/.style={-{Stealth[length=4pt]}, thick, red!70!black},
+  lab/.style={font=\scriptsize, anchor=east}]
+  \foreach \row/\y/\name in {enc/0/{CED, encoder loop}, dec/-1.35/{CED, decoder loop}} {
+    \node[lab] at (-0.55, \y) {\name};
+    \foreach \i in {0,1} \node[S] (\row\i) at (\i, \y) {\i};
+    \foreach \i in {2,6} \node[F] (\row\i) at (\i, \y) {\i};
+    \foreach \i in {3,4,5,7,8,9,10,11} \node[R] (\row\i) at (\i, \y) {\i};
+  }
+  \node[lab] at (-0.55, -2.7) {Dense loop};
+  \foreach \i in {0,...,11} \node[D] (den\i) at (\i, -2.7) {\i};
+  \draw[loop] (enc5.north) to[out=65, in=115, looseness=0.75] node[above, font=\scriptsize] {$T$ rounds} (enc2.north);
+  \draw[loop] (dec10.north) to[out=65, in=115, looseness=0.75] node[above, font=\scriptsize] {$T$ rounds} (dec7.north);
+  \draw[loop] (den5.north) to[out=65, in=115, looseness=0.75] node[above, font=\scriptsize] {$T$ rounds} (den2.north);
+  \draw[densely dashed, thick, black!75] (6.5, 0.95) -- (6.5, -1.7);
+  \node[font=\scriptsize, anchor=east] at (6.4, 1.0) {$\leftarrow$ prefill};
+  \node[font=\scriptsize, anchor=west] at (6.6, 1.0) {skipped by prefill $\rightarrow$};
+  \begin{scope}[shift={(-3.6, -3.45)}]
+    \node[S, minimum width=0.3cm, minimum height=0.25cm] at (0,0) {}; \node[font=\scriptsize, anchor=west] at (0.25,0) {SWA only};
+    \node[F, minimum width=0.3cm, minimum height=0.25cm] at (3.1,0) {}; \node[font=\scriptsize, anchor=west] at (3.35,0) {SWA + global KV source};
+    \node[R, minimum width=0.3cm, minimum height=0.25cm] at (8.8,0) {}; \node[font=\scriptsize, anchor=west] at (9.05,0) {SWA + reads global KV};
+    \node[D, minimum width=0.3cm, minimum height=0.25cm] at (13.8,0) {}; \node[font=\scriptsize, anchor=west] at (14.05,0) {Full-context KV};
+  \end{scope}
+\end{tikzpicture}}%
+\\[3pt]{\small\textbf{(a) Layer layout and loop placement}}
+\end{minipage}\hfill
+\begin{minipage}[b]{0.40\textwidth}
+\centering
+\safegraphic[width=\linewidth]{figures/fig_kvbars.pdf}
+\\[3pt]{\small\textbf{(b) Resident global KV per token}}
+\end{minipage}
+\caption{\textbf{Where and how to loop a Causal Encoder--Decoder.}
+\emph{(a)}~Our 12-layer models; a loop repeats $L_R{=}4$ layers for $T$ rounds. Prefill runs only the layers left of the dashed line, so an encoder loop puts all $T$ rounds on the prefill path and a decoder loop does not; a dense loop runs every layer in prefill and decode.
+\emph{(b)}~Global KV per token in units of one full-context layer ($L{=}12$, $L_R{=}4$, $T{=}\val{cfg/rounds}$, $n_s{=}1$ encoder KV source). Hatched bars keep KV for every round; solid bars keep only the last round's KV, which stochastic-depth training makes lossless (\S\ref{sec:method-train}).}
+% \caption{\textbf{Where and how to loop a Causal Encoder--Decoder.}
+% \emph{(a)}~Our 12-layer models, where a loop repeats $L_R{=}4$ layers for $T$ rounds. In CED, layer~2 generates the encoder's global KV and layer~6 projects the shared decoder global KV from the encoder output. Consequently, an encoder loop (L2--5) iteratively refines the global KV source across all $T$ rounds on the prefill path, whereas a decoder loop (L7--10) is skipped by prefill (right of the dashed line) and only queries a static global KV projection during decode.
+% \emph{(b)}~Resident global KV per token in units of one full-context layer ($L{=}12$, $L_R{=}4$, $T{=}\val{cfg/rounds}$, $n_s{=}1$ encoder KV source). Hatched bars cache distinct KV per round; solid bars cache only the terminal round's KV via stochastic-depth fixed-point training (\S\ref{sec:method-train}), allowing looped CED to match looped dense quality with $1/\val{kvratio/x40/1024/dense-over-ced}$ of the global KV.}
+\label{fig:main}
+\end{figure*}
+
+Looped language models scale compute without scaling parameters by repeatedly applying a weight-tied layer block across recurrent rounds~\citep{universal_transformer,saunshi_looped,parcae,huginn,ouro}. Yet in production serving, memory capacity and decode throughput are bottlenecked not by parameter count alone, but by the \emph{resident KV cache} per request~\citep{vllm,gtagla}. To shrink this KV footprint, recent system-co-designed architectures replace homogeneous full-context layers with asymmetric KV routing~\citep{cla,yoco,deepseekv41}. Most notably, the \emph{causal encoder--decoder} (CED) in DeepSeek-V4.1-Flash~\citep{deepseekv41} equips every layer with bounded sliding-window attention (SWA) while restricting full-context (\emph{global}) KV generation to a few encoder layers; all decoder layers share a single global KV projected once from the final encoder output, allowing prompt prefill to bypass the decoder entirely.
+
+Our goal is to combine recurrent looping with a CED to match the modeling quality and long-range scaling of a looped dense Transformer while preserving CED's serving efficiency. In a homogeneous dense Transformer, every layer generates and consumes full-context KV during both prefill and decode. In a CED, by contrast, layer depth directly governs both \emph{global KV generation} and \emph{prefill execution} (Fig.~\ref{fig:main}a), while repeating layers across rounds risks multiplying resident KV states (Fig.~\ref{fig:main}b). Designing a looped CED therefore comes down to two questions: \textbf{(1)~Where in the asymmetric CED stack should recurrence be placed} to maximize modeling capability, and how does that placement affect prefill and decode cost? \textbf{(2)~How can a looped CED be trained and cached} so that multi-round recurrence adds zero resident KV overhead over an unlooped CED without sacrificing quality?
+
+To answer these questions, we compare looping the CED encoder against looping the decoder (Fig.~\ref{fig:main}a), and train the recurrent core under stochastic recurrence depth~\citep{deq,parcae,loopsright2} so that inference caches only the last round's KV rather than all $T$ rounds (Fig.~\ref{fig:main}b). We call the encoder loop trained and cached this way \textbf{\ourmethod}: at any number of rounds, it keeps the resident KV of an unlooped CED. Furthermore, because standard pretraining corpora and benchmarks are dominated by short sequences, we introduce offset-averaged long-document BPB to directly probe long-range routing through CED's global KV bottleneck. Training CED and dense models from scratch across three scales (\S\ref{sec:setup}), paired with a serving cost analysis at DeepSeek-V4.1-Flash scale (\S\ref{sec:cost}), we establish three main findings:
+\begin{enumerate}
+\item \textbf{Where to loop. Looping the CED encoder matches looped dense quality and long-context scaling across model scales} (\S\ref{sec:res-where}--\S\ref{sec:res-longdoc}). We find that looping the encoder is essential because effective recurrence must iteratively refine the global KV source itself, whereas loops that only re-read static global KV or local sliding windows fail to scale beyond the window. Across all three model sizes and extended training horizons, our encoder-looped CED consistently scales in capability, raising DCLM CORE accuracy by \val{coregain/long/1024/ced-enc} points and matching both the validation BPB and long-context scaling of a looped dense model.
+\item \textbf{How to loop. Cross-round and cross-layer KV sharing compound losslessly, adding zero KV overhead and cutting global KV by \val{kvratio/x40/1024/dense-over-ced}--\val{kvratio/x40/1024/denseround-over-ced}$\times$} (\S\ref{sec:res-kv}). Stochastic-depth training induces a contractive fixed point in the CED encoder that makes cross-round KV sharing lossless at inference. Looping thus adds no resident KV over an unlooped CED, retaining only $1/\val{kvratio/x40/1024/dense-over-ced}$ of the global KV of a fixed-point looped dense model and $1/\val{kvratio/x40/1024/denseround-over-ced}$ of a per-round cached one (Fig.~\ref{fig:main}b).
+\item \textbf{Serving analysis. Removing per-round KV turns an out-of-memory loop into a servable one at 552B scale} (\S\ref{sec:cost}). Looping the 552B-parameter DeepSeek-V4.1-Flash for 8 rounds with per-layer and per-round KV cannot fit a single 128K-token request on a $4\times$GB200 node; \ourmethod cuts per-token KV by $36.8\times$ and fits 38 such requests like the unlooped model, raising 8K/1K throughput by $3.6\times$ and cutting multi-turn agent TTFT by up to $29.7\times$. The cost of looping is compute, not memory: each round re-runs only the 18-layer recurrent core, and on prompt-heavy workloads the encoder loop pays a prefill premium (\S\ref{sec:cost}).
+\end{enumerate}

@@ -1,5 +1,13 @@
 # Wiki Update Log
 
+## 2026-11-22
+- **Ingest**: Compiled [Looping Deeper Without Growing the KV Cache](../raw/arXiv-2611.13378v1/main.tex); created [looped CED](looped-causal-encoder-decoder-global-kv.md) and [last-round KV caching](last-round-kv-caching-for-looped-ced.md), with evidence and coverage limits.
+- **Ingest**: Compiled [MindStudio’s GPT-6.2 Astra safety article](../raw/gpt-6-2-astra-system-card-safety/index.md); updated [monitorability](looped-computation-and-chain-of-thought-monitorability.md) and [serial reasoning benchmark preview](single-token-serial-reasoning-benchmark-preview.md), including a disputed comparator label.
+- **Ingest**: Compiled [loop-position post and images](../raw/2123943370145890767/index.md); created [Loop position and the workspace hypothesis](loop-position-and-workspace-hypothesis.md) and linked the Inkling architecture report.
+- **Ingest**: Compiled [@scaling01’s Inkling architecture post](../raw/2123909722646483219/index.md) and diagram; created [Inkling 2 Mini looped MoE architecture report](inkling-2-mini-looped-moe-architecture-report.md).
+
+- **Ingest**: Compiled [Epoch AI single-token reasoning preview](../raw/2122762411287748696/index.md); created [Single-token serial reasoning benchmark preview](single-token-serial-reasoning-benchmark-preview.md) and linked it from [Looped computation and chain-of-thought monitorability](looped-computation-and-chain-of-thought-monitorability.md).
+
 ## 2026-10-03
 - **Ingest**: Compiled [GPT-6 Astra, Looped Transformers, and Hidden Reasoning](../raw/gpt-6-astra-looped-transformers-and/index.md); created [Looped computation and chain-of-thought monitorability](looped-computation-and-chain-of-thought-monitorability.md), updated and retitled [OpenAI GPT-6 Astra looped-architecture report](openai-astra-looped-architecture-report.md), and updated [Ouro looped language models](ouro-looped-language-models.md) and [Latent recurrence safety and faithfulness evidence](latent-recurrence-safety-and-faithfulness.md).
 

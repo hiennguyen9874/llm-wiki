@@ -1,0 +1,151 @@
+\section{Results}
+\label{sec:results}
+
+We evaluate our models along two complementary axes: overall language modeling quality via validation BPB on FineWeb-Edu across the full \val{cfg/seq}-token training context (Table~\ref{tab:main}, Figure~\ref{fig:width}; \S\ref{sec:res-where}--\S\ref{sec:res-dense}), and true long-range dependency utilization via position-wise BPB on contiguous long documents (Figure~\ref{fig:longctx}; \S\ref{sec:res-longdoc}), followed by cross-round KV sharing (\S\ref{sec:res-kv}) and extended training evaluations (\S\ref{sec:res-long}).
+
+% Figure 2 and Table 1 side by side in one full-width float, which goes to the top of the page after this source:
+% after the first mention of both in the paragraph above.
+\begin{figure*}[t]
+\begin{minipage}[t]{\columnwidth}
+\vspace{0pt}
+\centering
+\safegraphic[width=\columnwidth]{figures/fig_width.pdf}
+\caption{\textbf{Validation BPB and recurrent loop gains across model scales.} Model size reflects non-embedding parameters, with each scale trained on \val{cfg/ratio/x40/1024} tokens per block parameter. (a) Upstream validation BPB. (b) BPB reduction of each loop over its unlooped counterpart. Solid: looped (L2--5; decoder loop L7--10); dashed: unlooped. \waitfor{bpb/x40/768/ced-enc,bpb/x40/768/ced-dec,bpb/x40/768/ced-noloop,bpb/x40/768/dense-l25,bpb/x40/768/dense-noloop,bpb/x40/1536/ced-enc,bpb/x40/1536/ced-dec,bpb/x40/1536/ced-noloop,bpb/x40/1536/dense-l25,bpb/x40/1536/dense-noloop}}
+\label{fig:width}
+\end{minipage}\hfill
+\begin{minipage}[t]{\columnwidth}
+\vspace{0pt}
+\captype{table}
+\caption{\textbf{Validation BPB of the 150M models.} Trained for \val{cfg/tokens/x40/1024}B tokens and evaluated at $T{=}\val{cfg/rounds}$ rounds on FineWeb-Edu over the full \val{cfg/seq}-token context (Appendix~\ref{app:eval}); lower is better. ``Gain'' denotes the BPB reduction relative to the corresponding unlooped baseline. Resident global KV is reported per token in bf16 under last-round KV caching.}
+\label{tab:main}
+\centering
+\small
+\setlength{\tabcolsep}{2pt}
+\begin{tabular}{lcccc}
+\toprule
+Model & \makecell{Params\\(M)} & \makecell{KV\\(KB)} & BPB & Gain \\
+\midrule
+Dense, no loop & \sval{params/x40/1024/dense-noloop} & \sval{kvlast/x40/1024/dense-noloop} & \sval{bpb/x40/1024/dense-noloop} & -- \\
+Dense, loop L2--5 & \sval{params/x40/1024/dense-l25} & \sval{kvlast/x40/1024/dense-l25} & \sval{bpb/x40/1024/dense-l25} & \sval{gain/x40/1024/dense-l25} \\
+Dense, loop L4--7 (Parcae) & \sval{params/x40/1024/dense-l47} & \sval{kvlast/x40/1024/dense-l47} & \sval{bpb/x40/1024/dense-l47} & \sval{gain/x40/1024/dense-l47} \\
+\midrule
+CED, no loop & \sval{params/x40/1024/ced-noloop} & \sval{kvlast/x40/1024/ced-noloop} & \sval{bpb/x40/1024/ced-noloop} & -- \\
+CED, encoder loop L2--5 & \sval{params/x40/1024/ced-enc} & \sval{kvlast/x40/1024/ced-enc} & \textbf{\sval{bpb/x40/1024/ced-enc}} & \textbf{\sval{gain/x40/1024/ced-enc}} \\
+CED, decoder loop L7--10 & \sval{params/x40/1024/ced-dec} & \sval{kvlast/x40/1024/ced-dec} & \sval{bpb/x40/1024/ced-dec} & \sval{gain/x40/1024/ced-dec} \\
+\midrule
+\multicolumn{5}{l}{\emph{Ablations}} \\
+CED, encoder loop, fixed rounds & \sval{params/x40/1024/ced-enc-fixed} & \sval{kvlast/x40/1024/ced-enc-fixed} & \sval{bpb/x40/1024/ced-enc-fixed} & \sval{gain/x40/1024/ced-enc-fixed} \\
+YOCO-U style, no loop & \sval{params/x40/1024/yocou-noloop} & \sval{kvlast/x40/1024/yocou-noloop} & \sval{bpb/x40/1024/yocou-noloop} & -- \\
+YOCO-U style, loop L2--5 & \sval{params/x40/1024/yocou-loop} & \sval{kvlast/x40/1024/yocou-loop} & \sval{bpb/x40/1024/yocou-loop} & \sval{gain/x40/1024/yocou-loop} \\
+\bottomrule
+\end{tabular}
+\end{minipage}
+\end{figure*}
+
+\subsection{Where to Loop: Iterate the Encoder, Not the Decoder}
+\label{sec:res-where}
+
+Evaluating validation BPB across placements (Table~\ref{tab:main}) reveals a striking asymmetry: looping the CED encoder yields a substantial quality improvement over the unlooped CED baseline, whereas looping the decoder—despite introducing the exact same parameter overhead, recurrence depth, and per-token decode compute (\val{passes/x40/1024/ced-dec/decode} layer passes per token, \S\ref{sec:method-where})—recovers only \val{frac/x40/768/dec-over-enc}\%, \val{frac/x40/1024/dec-over-enc}\%, and \val{frac/x40/1536/dec-over-enc}\% of the encoder loop's gain at 90M, 150M, and 340M. Crucially, this gap is not an artifact of limited training tokens: even after $5\times$ longer training (\val{cfg/tokens/long}B tokens), the decoder loop captures only \val{frac/long/1024/dec-over-enc}\% of the encoder loop's improvement (Table~\ref{tab:long}).
+
+This disparity stems directly from how each placement interacts with global KV formation (\S\ref{sec:method-where}). Looping the encoder iteratively refines the representations that feed both global caches: layer 2 actively updates its encoder global KV across all $T$ rounds, and the shared decoder KV is projected from the fully refined terminal encoder output $H_E$. Conversely, a decoder loop operates downstream of the boundary projection; its recurrent rounds can only repeatedly query a static global KV representation that was frozen before the loop began. Thus, effective recurrence in a CED requires placing the loop where global representations are constructed rather than where they are merely read.
+
+\subsection{Quality Parity with Looped Dense Transformers at 1/6 Global KV}
+\label{sec:res-dense}
+
+When matched for parameter count, loop position (layers 2--5), training tokens, and recurrence depth, our looped CED matches the validation BPB of the looped dense Transformer within 0.001 at all three scales while retaining only one-sixth of the resident global KV (Table~\ref{tab:main}, Figure~\ref{fig:width}). In the unlooped regime, CED slightly outperforms the dense baseline across all three scales; adding the encoder loop amplifies CED capability nearly as strongly as looping benefits the dense stack, capturing \val{frac/x40/768/ced-over-dense}\%, \val{frac/x40/1024/ced-over-dense}\%, and \val{frac/x40/1536/ced-over-dense}\% of the dense loop gain at 90M, 150M, and 340M (the slight difference in relative gain likely reflects that the dense loop iteratively refines four full-KV layers whereas the CED encoder loop refines a single global-KV source alongside local SWA).
+
+We also benchmark against Parcae's default middle-third loop placement (layers 4--7)~\citep{parcae}. In a dense Transformer, looping layers 4--7 slightly underperforms looping layers 2--5 at both 90M and 150M; we therefore use layers 2--5 as our primary dense baseline and include layers 4--7 as a literature reference. Over our extended \val{cfg/tokens/long}B-token training horizon—where the dense reference is looped at layers 4--7—the CED encoder loop finishes ahead by a margin matching this placement offset (Table~\ref{tab:long}), confirming that quality parity between looped CED and looped dense models persists across training scales.
+
+\subsection{Long-Context Evaluation: Recurrence Must Refine Global KV}
+\label{sec:res-longdoc}
+
+\begin{figure*}[t]
+\centering
+\safegraphic[width=\textwidth]{figures/fig_longctx.pdf}
+\caption{\textbf{Position-wise BPB across long documents.} Pooled over PG19 test, FinePDFs, and GovReport (Appendix~\ref{app:longctx}); 150M models trained on \val{cfg/tokens/x40/1024}B tokens. (a) Absolute BPB as a function of available context length; lines fit $a + b\,n^{-c}$. (b) Unlooped models minus the unlooped dense model. (c) Looped models minus the L2--5 dense loop. In (b) and (c), lines are least-squares fits in $\log_2 n$. Markers are measurements; solid curves are looped (layers 2--5; the CED decoder loop, layers 7--10), dashed curves are unlooped. The red dashed line marks the \val{cfg/window}-token SWA window (per-corpus breakdowns in Figure~\ref{fig:longctx-corpora}).}
+\label{fig:longctx}
+\end{figure*}
+
+Because standard validation corpora are dominated by short documents, aggregate BPB masks how models utilize long-range context. Evaluating position-wise BPB on contiguous long documents (\S\ref{sec:setup}, Figure~\ref{fig:longctx}; values in Table~\ref{tab:longctx}) directly tests whether recurrent computation in a CED can propagate information beyond its local \val{cfg/window}-token SWA window.
+
+\paragraph{Looped CED preserves full-context scaling.} 
+Because SWA layers cannot attend beyond \val{cfg/window} tokens, any long-range dependency must route through global KV. Strikingly, the quality gap between the CED encoder loop and the dense loop remains invariant to context length across all three long-document benchmarks (Figure~\ref{fig:longctx}c; Table~\ref{tab:slope}), just as unlooped CED maintains a constant lead over unlooped dense (Figure~\ref{fig:longctx}b). Storing more global KV layers does not by itself improve long-range modeling: the unlooped dense baseline caches $6\times$ more global KV than CED yet performs worst at every context position (Figure~\ref{fig:longctx}a, dashed). Instead, a single iteratively refined encoder KV source suffices—both the dense loop and the CED encoder loop amplify their quality gains over their unlooped counterparts at nearly identical rates as context length scales (and maintain parity over the \val{cfg/tokens/long}B-token horizon, with CED's positional lead over the L4--7 dense loop narrowing only marginally at the longest positions).
+
+\paragraph{Why looping local SWA alone fails at long range (CED vs.\ YOCO-U).} 
+Given that looping the lower half of the network is essential (\S\ref{sec:res-where}), a natural question is whether the looped encoder even needs a global KV source, or whether iterating purely over local SWA layers suffices—the architectural choice made by YOCO-U~\citep{yocou}. On aggregate validation BPB (Table~\ref{tab:main}), our YOCO-U-style ablation (which loops layers 2--5 inside an SWA-only encoder, deferring all global KV generation to layer 6) appears highly competitive, recovering \val{frac/x40/1024/yocou-over-enc}\% of the CED encoder loop's average gain. 
+
+Position-wise evaluation on long documents, however, exposes what this short-context average hides (Figure~\ref{fig:longctx}c). Within the \val{cfg/window}-token SWA window, the YOCO-U loop performs slightly better than CED. Beyond the SWA window, however, YOCO-U degrades progressively relative to the dense and CED encoder loops with every doubling of context length across every corpus; by the end of the training context (1,024--2,048 tokens), it forfeits \val{posfrac/x40/1024/ced-enc-minus-yocou-loop/longdocs/c1024-2048}\% of the long-range gain achieved by the CED encoder loop, with the deficit continuing to widen. The CED decoder loop suffers a symmetric failure mode from the opposite side: because its rounds repeatedly query a frozen global KV projection, it falls further behind the dense loop as context grows (Figure~\ref{fig:longctx}c), and still does after $5\times$ longer training. Together, these ablations establish a core design principle: \textit{for recurrent computation to scale across long contexts, the looped block must actively recompute a global KV source.} A copy test isolates this mechanism: each sample's first 1,024 tokens are repeated verbatim, so every copied token must be retrieved through global KV (Figure~\ref{fig:recall} in Appendix~\ref{app:recall}).
+At 90M and 150M, unlooped CED recalls worse than unlooped dense (\val{recalldiff/x40/768/ced-noloop-minus-dense-noloop} and \val{recalldiff/x40/1024/ced-noloop-minus-dense-noloop} BPB on the copied half). The encoder loop removes this deficit (\val{recalldiff/x40/768/ced-enc-minus-ced-noloop} and \val{recalldiff/x40/1024/ced-enc-minus-ced-noloop} against unlooped CED; looping the dense model gives \val{recalldiff/x40/768/dense-l25-minus-dense-noloop} and \val{recalldiff/x40/1024/dense-l25-minus-dense-noloop}) and recalls as well as the dense loop, whereas the decoder loop barely changes recall (\val{recalldiff/x40/768/ced-dec-minus-ced-noloop} and \val{recalldiff/x40/1024/ced-dec-minus-ced-noloop}) and the YOCO-U loop recalls worst of the looped models (\val{recalldiff/x40/768/yocou-loop-minus-dense-l25} and \val{recalldiff/x40/1024/yocou-loop-minus-dense-l25} against the dense loop). At 340M the differences shrink, and all five models lie between \val{recall/x40/1536/dense-l25/bpb} and \val{recall/x40/1536/ced-noloop/bpb} BPB.
+
+\subsection{Lossless Cross-Round KV Sharing via Fixed-Point Convergence}
+\label{sec:res-kv}
+
+\begin{table*}[t]
+\begin{minipage}[t]{\columnwidth}
+\caption{\textbf{Extended training (\val{cfg/tokens/long}B tokens) and downstream benchmark accuracy.} 150M models trained to match the token budget of 370M Parcae~\citep{parcae}. BPB$_{\text{train}}$ denotes validation BPB on the training-time evaluation subset (Appendix~\ref{app:eval}). Downstream metrics report zero/few-shot accuracy on DCLM CORE and CORE-Extended (higher is better). Parcae reference rows are cited from~\citet{parcae} (Table~5), which use a different tokenizer and data ordering. Bold: best; underline: second best among our models.
+\waitfor{bpb/long/1024/ced-noloop,bpb/long/1024/ced-dec,bpb/long/1024/dense-l47,bpb/long/1024/dense-noloop,core/long/1024/ced-dec,core/long/1024/dense-l47,core/long/1024/dense-noloop}}
+\label{tab:long}
+\centering
+\small
+\setlength{\tabcolsep}{2.5pt}
+\begin{tabular}{lcccc}
+\toprule
+Model & BPB$_{\text{train}}$ & BPB & CORE & \makecell{CORE-\\Ext.} \\
+\midrule
+CED, no loop & \sval{bpbtrain/long/1024/ced-noloop} & \sval{bpb/long/1024/ced-noloop} & \sval{core/long/1024/ced-noloop} & \sval{coreext/long/1024/ced-noloop} \\
+CED, encoder loop & \textbf{\sval{bpbtrain/long/1024/ced-enc}} & \textbf{\sval{bpb/long/1024/ced-enc}} & \underline{\sval{core/long/1024/ced-enc}} & \sval{coreext/long/1024/ced-enc} \\
+CED, decoder loop & \sval{bpbtrain/long/1024/ced-dec} & \sval{bpb/long/1024/ced-dec} & \sval{core/long/1024/ced-dec} & \underline{\sval{coreext/long/1024/ced-dec}} \\
+Dense, no loop & \sval{bpbtrain/long/1024/dense-noloop} & \sval{bpb/long/1024/dense-noloop} & \sval{core/long/1024/dense-noloop} & \sval{coreext/long/1024/dense-noloop} \\
+Dense, loop L4--7 & \underline{\sval{bpbtrain/long/1024/dense-l47}} & \underline{\sval{bpb/long/1024/dense-l47}} & \textbf{\sval{core/long/1024/dense-l47}} & \textbf{\sval{coreext/long/1024/dense-l47}} \\
+\midrule
+Parcae: Transformer & -- & -- & \val{lit/parcae/core/transformer} & \val{lit/parcae/coreext/transformer} \\
+Parcae: looped ($T{=}8$) & -- & -- & \val{lit/parcae/core/parcae} & \val{lit/parcae/coreext/parcae} \\
+\bottomrule
+\end{tabular}
+\end{minipage}\hfill
+\begin{minipage}[t]{\columnwidth}
+\caption{\textbf{Per-round versus last-round KV caching.} Validation BPB under exact fp32 token-by-token decoding at $T{=}\val{cfg/rounds}$ rounds with per-round (Per) or last-round (Last) KV. Scale: non-embedding parameters, training tokens. Last-round KV keeps one terminal copy of the core's global and SWA KV per token, read by all rounds of later tokens.
+\waitfor{kvshare/x40/1024/ced-dec/last,kvshare/x40/1024/dense-l25/last,kvshare/x40/1024/ced-enc-fixed/last,kvshare/x40/1536/ced-enc/last,kvshare/x40/1024/yocou-loop/last}}
+\label{tab:kvshare}
+\centering
+\small
+\setlength{\tabcolsep}{3.5pt}
+\begin{tabular}{@{}lcrrr@{}}
+\toprule
+Model & Scale & Per & Last & Last$-$Per \\
+\midrule
+CED, encoder loop & 90M, \val{cfg/tokens/x40/768}B & \sval{kvshare/x40/768/ced-enc/round} & \sval{kvshare/x40/768/ced-enc/last} & \sval{kvshare/x40/768/ced-enc/delta} \\
+CED, encoder loop & 150M, \val{cfg/tokens/x40/1024}B & \sval{kvshare/x40/1024/ced-enc/round} & \sval{kvshare/x40/1024/ced-enc/last} & \sval{kvshare/x40/1024/ced-enc/delta} \\
+CED, encoder loop & 340M, \val{cfg/tokens/x40/1536}B & \sval{kvshare/x40/1536/ced-enc/round} & \sval{kvshare/x40/1536/ced-enc/last} & \sval{kvshare/x40/1536/ced-enc/delta} \\
+CED, encoder loop & 150M, \val{cfg/tokens/long}B & \sval{kvshare/long/1024/ced-enc/round} & \sval{kvshare/long/1024/ced-enc/last} & \sval{kvshare/long/1024/ced-enc/delta} \\
+CED, decoder loop & 150M, \val{cfg/tokens/x40/1024}B & \sval{kvshare/x40/1024/ced-dec/round} & \sval{kvshare/x40/1024/ced-dec/last} & \sval{kvshare/x40/1024/ced-dec/delta} \\
+Dense, loop L2--5 & 150M, \val{cfg/tokens/x40/1024}B & \sval{kvshare/x40/1024/dense-l25/round} & \sval{kvshare/x40/1024/dense-l25/last} & \sval{kvshare/x40/1024/dense-l25/delta} \\
+Dense, loop L4--7 & 150M, \val{cfg/tokens/x40/1024}B & \sval{kvshare/x40/1024/dense-l47/round} & \sval{kvshare/x40/1024/dense-l47/last} & \sval{kvshare/x40/1024/dense-l47/delta} \\
+YOCO-U style, loop & 150M, \val{cfg/tokens/x40/1024}B & \sval{kvshare/x40/1024/yocou-loop/round} & \sval{kvshare/x40/1024/yocou-loop/last} & \sval{kvshare/x40/1024/yocou-loop/delta} \\
+\midrule
+\multicolumn{5}{l}{\emph{Fixed recurrence depth}} \\
+CED, encoder loop & 150M, \val{cfg/tokens/x40/1024}B & \sval{kvshare/x40/1024/ced-enc-fixed/round} & \sval{kvshare/x40/1024/ced-enc-fixed/last} & \sval{kvshare/x40/1024/ced-enc-fixed/delta} \\
+\bottomrule
+\end{tabular}
+\end{minipage}
+\end{table*}
+
+To verify whether cross-round KV sharing (\S\ref{sec:method-train}) degrades generation quality, Table~\ref{tab:kvshare} evaluates exact token-by-token decoding where every recurrent round queries only the historical tokens' last-round KV cache. Across every model trained with stochastic recurrence depth—whether CED or dense, encoder or decoder loop, 90M to 340M scale, or standard (\val{cfg/tokens/x40/1024}B) versus extended (\val{cfg/tokens/long}B) training—switching from per-round KV to last-round KV alters BPB by less than $0.001$. On all \val{cfg/kvfull/windows} validation samples, the change for the CED encoder loop is at most \val{kvfull/max} BPB at every scale, with 95\% intervals within $\pm$\val{kvfull/maxci} (Appendix~\ref{app:eval}). Consequently, \ourmethod retains only a single copy of its recurrent KV states instead of \val{cfg/rounds} (Figure~\ref{fig:main}b). We further confirm that this invariance holds under a realistic long-document serving protocol—where a long prompt is prefilled in parallel while caching only final-round KV before autoregressively decoding the continuation—yielding zero quality loss across all prompt lengths. In stark contrast, training the exact same CED encoder loop with a deterministic fixed depth ($T{=}\val{cfg/rounds}$) causes last-round KV sharing to fail catastrophically (and degrades baseline per-round stability; preliminary experiments on shallower 6-layer, 45M CED models exhibit the exact same dichotomy).
+
+Appendix~\ref{app:fixedpoint} traces this behavior directly to the recurrent core's dynamical trajectory. Under stochastic-depth training, the CED encoder state contracts geometrically toward a fixed point across late rounds—stabilizing both its local SWA keys/values and its global KV source (\S\ref{sec:method-train})—such that unrolling up to $4\times$ more rounds at test time leaves BPB virtually unchanged. Conversely, deterministic fixed-depth models (trained with truncated backpropagation through the final \val{cfg/bwd} of \val{cfg/rounds} rounds) fail to contract and instead enter a limit cycle of period \val{fp/x40/1024/ced-enc-fixed/fw/period}, rendering last-round KV states incompatible with early rounds~\citep{loopsright2,benice}. While \citet{benice} find that Parcae models from \val{lit/benice/fail-min}M (about our 340M) can require a brief post-training phase to share KV losslessly, stochastic depth alone suffices across all scales studied here, and our serving analysis in \S\ref{sec:cost} assumes that lossless last-round KV caching is maintained at production scale.
+
+\subsection{Extended Training Horizon and Downstream Generalization}
+\label{sec:res-long}
+
+% Training curves of the 29.6B-token runs (fig_long.pdf), left out for now.
+% \begin{figure}[t]
+% \centering
+% \safegraphic[width=\columnwidth]{figures/fig_long.pdf}
+% \caption{\textbf{Training curves of the longer runs.} 150M models, \val{cfg/tokens/long}B tokens, training-time validation BPB. Left: validation curves. Right: BPB gaps at matched steps. The shaded region is the decay.
+% \waitfor{bpbtrain/long/1024/ced-dec,bpbtrain/long/1024/dense-noloop}}
+% \label{fig:long}
+% \end{figure}
+
+Finally, Table~\ref{tab:long} evaluates whether the upstream BPB advantages of looping the CED encoder translate into downstream task accuracy over an extended \val{cfg/tokens/long}B-token training horizon ($\sim$200 tokens per non-embedding parameter). Looping the CED encoder substantially boosts downstream performance over the unlooped CED baseline, improving DCLM CORE by \val{coregain/long/1024/ced-enc} points (95\% paired bootstrap CI [\val{corediff/long/1024/ced-enc-minus-ced-noloop/lo}, \val{corediff/long/1024/ced-enc-minus-ced-noloop/hi}]) and CORE-Extended by \val{coreextgain/long/1024/ced-enc} points. Notably, while absolute scores across studies reflect differences in tokenizer and data ordering, the magnitude of our encoder loop's downstream gain matches that reported by~\citet{parcae} for 370M looped dense models at the identical token budget (\val{coregain/lit/parcae} points on CORE and \val{coreextgain/lit/parcae} on CORE-Extended). Compared against our own looped dense reference—which caches $6\times$ as much global KV—the CED encoder loop leads on validation BPB (\val{bpb/long/1024/ced-enc} vs.\ \val{bpb/long/1024/dense-l47}) and remains statistically indistinguishable on CORE under paired item-bootstrap testing (\val{corediff/long/1024/ced-enc-minus-dense-l47} points, 95\% CI [\val{corediff/long/1024/ced-enc-minus-dense-l47/lo}, \val{corediff/long/1024/ced-enc-minus-dense-l47/hi}]). Moreover, across our standard-budget width sweep against the stronger L2--5 dense loop, the modest downstream gap at 90M and 150M shrinks with model width and becomes statistically indistinguishable from zero at 340M.
+
+Comparing the two CED loop placements on CORE further underscores the role of scale and context length. At standard token budgets, the decoder loop significantly trails the encoder loop across every model size, with its deficit widening to \val{corediff/x40/1536/ced-dec-minus-ced-enc} points (95\% CI [\val{corediff/x40/1536/ced-dec-minus-ced-enc/lo}, \val{corediff/x40/1536/ced-dec-minus-ced-enc/hi}]) at 340M. While extending training to \val{cfg/tokens/long}B tokens allows the 150M decoder loop to narrow this gap on CORE (\val{core/long/1024/ced-dec} vs.\ \val{core/long/1024/ced-enc}), this convergence is confined to short-prompt zero/few-shot items that largely fit within or near the \val{cfg/window}-token local SWA window—leaving the decoder loop's large deficits in validation BPB (\val{bpb/long/1024/ced-dec} vs.\ \val{bpb/long/1024/ced-enc}), long-document scaling (\S\ref{sec:res-longdoc}), and long-range in-context recall (Appendix~\ref{app:recall}) unchanged.

@@ -1,0 +1,433 @@
+% Float-only pages in the appendix start at the top of the page instead of being centred vertically.
+\makeatletter
+\setlength{\@fptop}{0pt}\setlength{\@fpbot}{0pt plus 1fil}
+\setlength{\@dblfptop}{0pt}\setlength{\@dblfpbot}{0pt plus 1fil}
+\makeatother
+% Let the appendix's floats share pages with text and stack two wide floats at a page top.
+\renewcommand{\topfraction}{0.9}\renewcommand{\bottomfraction}{0.8}\renewcommand{\textfraction}{0.05}
+\renewcommand{\dbltopfraction}{0.95}\setcounter{dbltopnumber}{3}\setcounter{topnumber}{3}\setcounter{totalnumber}{6}
+\renewcommand{\floatpagefraction}{0.85}\renewcommand{\dblfloatpagefraction}{0.85}
+\section{Concurrent work}
+\label{app:concurrent}
+
+The works below appeared on arXiv in September and October 2026, while this paper was being finished.
+Section~\ref{sec:related} contrasts the closest of them with \ourmethod in brief; here we describe each in more
+detail. We have not compared against them experimentally. The fixed-point analyses of
+\citet{loopsright2} and BeNice!~\citep{benice}, which we build on throughout, appeared in the same period.
+
+\paragraph{Looped encoder--decoders.} AsymLoop~\citep{asymloop} builds on the CED of DeepSeek-V4.1-Flash and
+loops the decoder. A causal encoder runs once and projects a global KV for each decoder layer, which stays fixed
+across rounds; each layer of a weight-tied decoder reads it together with a full-length local KV recomputed from
+the decoder's state in every round. From 60M to 1B parameters it improves on looping the whole stack, but it is
+not compared with an encoder loop. AsymLoop does not discuss caching for decoding, but its decoder has a full-length KV of its own, recomputed every round,
+so its cache grows with the number of rounds unless that KV is shared across rounds. Our decoder, like that of
+DeepSeek-V4.1-Flash, keeps only sliding-window KV of its own: in our CED, a loop recomputes global KV every round
+only if it sits in the encoder and contains a global-KV source. RLT~\citep{rlt} also pairs a parallel causal
+encoder, whose output is projected into a global KV that the decoder layers read, with a decoder that keeps
+sliding-window KV, but it recurs across tokens rather than across depth: each token's decoder input merges the
+final decoder state of the previous token. It is evaluated on algorithmic tasks, and its decoder processes prompt
+tokens one after another. Our loops repeat layers within each token and keep prefill parallel across tokens.
+
+\paragraph{Sharing KV across rounds.} LPT~\citep{lpt} pretrains looped models in which only the first round
+writes a full-length cache; later rounds read it together with a short window of their own KV. From 150M to 1B
+parameters this sharing improves quality over a looped model that caches every round. We share the last round's
+KV instead. Both policies cache the looped layers' KV once instead of once per round (LPT adds a short window per
+round), and both compose with the reduction across layers that CED provides. In a CED, however, the choice does
+not change prefill: the decoder's global KV is projected from the encoder output of the final round, so an
+encoder loop runs every round on prompt tokens whichever round's KV the later rounds read. The LSTM-style looped
+transformer of \citet{lstmloop} shares one cache across its whole recurrent core: every core block reads the KV
+that the last core block writes in the final round, and a consistency loss late in training narrows the gap
+between parallel training and recursive decoding. In an ablation, a cache producer placed before the loop gives
+higher loss than this late producer at equal training tokens but lower loss at equal training compute; the author
+does not conclude that either placement is better in general.
+
+\paragraph{Compressing the caches of pretrained looped models.} HLA~\citep{hla} adds a compact cache to pretrained
+Ouro models while keeping their weights frozen: exact KV for a window of recent tokens, and one latent per older
+token that every loop reads directly. The cache per token shrinks by an order of magnitude. Like
+LLA~\citep{lla}, HLA finds that reusing the last loop's KV in Ouro is unsafe for long generations, consistent with
+Ouro's states not reaching a fixed point~\citep{loopsright2}.
+
+\paragraph{Shared global KV with local history.} \citet{sharedglobal_local} studies a non-looped decoder in which a
+lower stack produces one global KV that every upper layer reads, through one softmax, together with its own
+sliding-window KV, the same split as in a CED decoder. It proves that prefill can rebuild the complete local caches
+exactly while each upper layer processes only a suffix of the prompt that shrinks with depth. Our estimate of exact
+SWA replay in \S\ref{sec:cost} already shrinks the replayed suffix pass by pass in this way; the proof also lets
+queries and feed-forward layers run on a suffix shorter than the one used for keys and values, which would lower
+that estimate slightly.
+
+\begin{figure*}[t]
+\centering
+\safegraphic[width=\textwidth]{figures/fig_kvprompt.pdf}
+\caption{\textbf{Last-round KV when serving a prompt.} The prompt is prefilled in one parallel pass, and the next
+128 tokens are decoded one at a time; the plot shows their BPB with last-round KV minus with per-round KV, pooled
+over PG19 test, FinePDFs and GovReport, with 95\% paired bootstrap intervals. Each panel compares the looped models
+of one size and token budget (dense loop: L2--5; L4--7 in the last panel). The fixed-round CED encoder loop
+(150M) is off the scale.}
+\label{fig:kvprompt}
+\end{figure*}
+
+% Additional serving results (GB200 + H200 exports) as Appendix B: sections/appendix_serving.tex,
+% figures from scripts/fig_serving_app.py.
+\input{sections/appendix_serving}
+
+\section{Evaluation protocol}
+\label{app:eval}
+
+\paragraph{Validation BPB.} We tokenize the FineWeb-Edu validation split into one token stream and cut it into
+consecutive samples of \val{cfg/seq} tokens, the training context; a sample may span document boundaries. Every
+model is scored on all \val{cfg/fwwin} samples, about \val{cfg/fwtok}M tokens. BPB is the total negative
+log-likelihood of the predicted tokens in bits, divided by their total number of UTF-8 bytes, so it does not depend
+on the tokenizer. Looped models run \val{cfg/rounds} rounds. During training we evaluated only the first
+\val{cfg/evalwin/x40} samples (\val{cfg/evalwin/long} for the \val{cfg/tokens/long}B-token runs; BPB$_{\text{train}}$ in
+Table~\ref{tab:long}); on the first \val{cfg/evalwin/x40} samples, every model's BPB is within 0.001 of its value on
+all samples, and no ranking of models changes.
+
+\paragraph{Last-round KV.} Last-round KV cannot be scored in one parallel pass, because a token's last-round KV
+exists only after that token has run all its rounds. We therefore decode every sample token by token with teacher
+forcing, in fp32, as \citet{benice} do for shared-KV perplexity. With per-round KV, the parallel pass gives the
+same result as token-by-token decoding, which we check in our tests. The deployment protocol of \S\ref{sec:res-kv}
+instead prefills a prompt in one parallel pass and decodes only the answer. With last-round KV the prompt keeps only its tokens' final-round KV,
+which every round of the answer reads; Figure~\ref{fig:kvprompt} shows that this loses nothing at any prompt length. Table~\ref{tab:kvshare} decodes the
+first \val{cfg/evalwin/x40} validation samples. For the CED encoder loop we also decode all
+\val{cfg/kvfull/windows} samples of the validation split and bootstrap the paired difference over samples: last-round
+minus per-round KV is \val{kvfull/x40/768/ced-enc/delta} [\val{kvfull/x40/768/ced-enc/delta/lo},
+\val{kvfull/x40/768/ced-enc/delta/hi}] at 90M, \val{kvfull/x40/1024/ced-enc/delta}
+[\val{kvfull/x40/1024/ced-enc/delta/lo}, \val{kvfull/x40/1024/ced-enc/delta/hi}] at 150M,
+\val{kvfull/x40/1536/ced-enc/delta} [\val{kvfull/x40/1536/ced-enc/delta/lo}, \val{kvfull/x40/1536/ced-enc/delta/hi}]
+at 340M, and \val{kvfull/long/1024/ced-enc/delta} [\val{kvfull/long/1024/ced-enc/delta/lo},
+\val{kvfull/long/1024/ced-enc/delta/hi}] after \val{cfg/tokens/long}B tokens.
+
+\paragraph{Downstream intervals.} CORE scores are mean centered accuracy over the suite's tasks. Their 95\%
+intervals come from 1,000 bootstrap resamples of items, stratified by task; differences between two models are paired
+over items where both have per-item results, and use unpaired resamples otherwise.
+
+\section{Fixed-point analysis}
+\label{app:fixedpoint}
+
+\begin{figure}[t]
+\centering
+\safegraphic[width=\columnwidth]{figures/fig_fixedpoint.pdf}
+\caption{\textbf{Fixed-point analysis.} The 150M CED encoder loop (\val{cfg/tokens/x40/1024}B tokens), trained with a
+random or a fixed number of rounds and run for up to \val{cfg/fp/rounds} rounds on FineWeb-Edu validation data in fp32. (a) Median relative
+change of the core state between rounds, $\rho_r = \lVert h_r - h_{r-1}\rVert / \lVert h_{r-1}\rVert$, over tokens,
+with the interquartile band. (b) BPB after $r$ rounds minus BPB after the trained mean of \val{cfg/rounds} rounds
+(dashed line).}
+\label{fig:fixedpoint}
+\end{figure}
+
+\begin{figure*}[t]
+\centering
+\safegraphic[width=\textwidth]{figures/fig_longctx_corpora.pdf}
+\caption{\textbf{Gap to dense on each corpus.} BPB minus the dense model with the same loop setting, by tokens of
+context, for each corpus (150M
+models, \val{cfg/tokens/x40/1024}B tokens). Markers are measurements; lines are least-squares fits in $\log_2$ of
+the context beyond the SWA window (red dashed line). Top: no loop. Bottom: loop over layers 2--5. FineWeb-Edu counts
+each token's context within its own document and is not averaged over offsets.}
+\label{fig:longctx-corpora}
+\end{figure*}
+
+We run each loop for up to \val{cfg/fp/rounds} rounds and track $\rho_r$, the relative change of the core state
+between rounds, as \citet{benice} do. With random rounds, $\rho_r$ shrinks by a factor of about
+\val{fp/x40/1024/ced-enc/fw/contract} per round, from \val{fp/x40/1024/ced-enc/fw/rho/r4}\% at round 4 to
+\val{fp/x40/1024/ced-enc/fw/rho/r8}\% at the \val{cfg/rounds} rounds we deploy and
+\val{fp/x40/1024/ced-enc/fw/rho/r32}\% at round \val{cfg/fp/rounds}: the core contracts to a fixed point. Between
+rounds 7 and 8, layer 2's global KV changes by only \val{fp/x40/1024/ced-enc/fw/kvstep/r8}\%, which is why every
+round can read the last round's. From round 8 to \val{cfg/fp/rounds}, BPB stays within
+\val{fp/x40/1024/ced-enc/fw/bpbspread/late} of its 8-round value, so running more rounds than trained is safe. The
+same holds after \val{cfg/tokens/long}B tokens ($\rho_8 = \val{fp/long/1024/ced-enc/fw/rho/r8}\%$), for the decoder
+loop ($\val{fp/x40/1024/ced-dec/fw/rho/r8}\%$) and for the 45M CED ($\val{fp/p140/768/p140-enc/fw/rho/r8}\%$). With
+a fixed number of rounds, $\rho_r$ never falls below \val{fp/x40/1024/ced-enc-fixed/fw/rhomin/late}\% after round
+8, and layer 2's KV changes by \val{fp/x40/1024/ced-enc-fixed/fw/kvstep/r8}\% per round. The state does not
+converge but cycles with period \val{fp/x40/1024/ced-enc-fixed/fw/period}: BPB matches its 8-round value whenever
+$r$ is a multiple of \val{fp/x40/1024/ced-enc-fixed/fw/period} and is
+\val{fp/x40/1024/ced-enc-fixed/fw/bpbbad/min}--\val{fp/x40/1024/ced-enc-fixed/fw/bpbbad/max} higher otherwise. The
+45M fixed-round CED shows the same cycle. Every fixed-round model we have backpropagates through only the last
+\val{cfg/bwd} of its \val{cfg/rounds} rounds, which likely causes the period-\val{fp/x40/1024/ced-enc-fixed/fw/period}
+cycle; we do not claim it for fixed-depth training in general. These models thus learn an orbit that reaches a
+good state at the trained depth, not a fixed point, and the last round's KV is then a poor stand-in for earlier rounds'.
+
+\section{Hyperparameters}
+\label{app:hparams}
+
+Every 12-layer run uses the hyperparameters of Table~\ref{tab:hparams}; the three sizes differ only in width, heads,
+steps and training tokens.
+
+\begin{table}[tb]
+\caption{\textbf{Hyperparameters.} Shared by every 12-layer run, read from the run configurations.}
+\label{tab:hparams}
+\centering
+\footnotesize
+\setlength{\tabcolsep}{3pt}
+\begin{tabular}{@{}l>{\raggedright\arraybackslash}p{0.5\columnwidth}@{}}
+\toprule
+Layers & \val{cfg/layers} \\
+Model size (non-embedding) & 90M / 150M / 340M \\
+Hidden size $d$ & 768 / 1024 / 1536 \\
+Heads (query = KV) & \val{cfg/heads/768} / \val{cfg/heads/1024} / \val{cfg/heads/1536}, dimension \val{cfg/headdim} \\
+FFN & \val{cfg/ffnmult}$d$, ReLU$^2$ \\
+Value embeddings & layers \val{cfg/ve} \\
+SWA window & \val{cfg/window} \\
+RoPE $\theta$ & \val{cfg/rope} \\
+Vocabulary & \val{cfg/vocab} (Qwen3) \\
+Sequence length & \val{cfg/seq} \\
+Batch & \val{cfg/batch} sequences \\
+Optimizer & Muon (matrices), AdamW (others) \\
+Learning rate & \val{cfg/lr}, warmup \val{cfg/warmup}\%, linear decay over the last \val{cfg/decay}\% \\
+Weight decay & \val{cfg/wd} (AdamW), \val{cfg/muonwd} (Muon) \\
+Steps & \val{cfg/steps/x40/768} / \val{cfg/steps/x40/1024} / \val{cfg/steps/x40/1536} \\
+Tokens & \val{cfg/tokens/x40/768}B / \val{cfg/tokens/x40/1024}B / \val{cfg/tokens/x40/1536}B; \val{cfg/tokens/long}B for 150M \\
+Rounds & $\max(1, \mathrm{Poisson}(\val{cfg/rounds}))$ per sequence; \val{cfg/rounds} at evaluation \\
+Backpropagated rounds & last \val{cfg/bwd} \\
+Loop-state initialization & \val{cfg/stateinit} (truncated normal); decay gate $\sqrt{\val{cfg/decayinit}}$ \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\section{Test-time rounds}
+\label{app:rounds}
+
+Table~\ref{tab:rounds} evaluates the 150M looped models with $T=1$ to 16 rounds. Running 12 or 16 rounds instead of
+the trained mean of \val{cfg/rounds} lowers BPB by at most 0.0004 and never raises it, so these models can run more
+rounds than they were trained with (Appendix~\ref{app:fixedpoint}).
+
+\begin{table}[tb]
+\caption{\textbf{Test-time rounds.} BPB when evaluating with $T$ rounds; the models were trained with \val{cfg/rounds} rounds on average.
+Parallel forward pass with per-round KV on the first \val{cfg/evalwin/x40} validation samples, as in
+Table~\ref{tab:kvshare}.}
+\label{tab:rounds}
+\centering
+\footnotesize
+\setlength{\tabcolsep}{2pt}
+\resizebox{\columnwidth}{!}{\begin{tabular}{@{}lcccccc@{}}
+\toprule
+Model & $T{=}1$ & 2 & 4 & 8 & 12 & 16 \\
+\midrule
+CED, encoder loop & \sval{tt/x40/1024/ced-enc/T1} & \sval{tt/x40/1024/ced-enc/T2} & \sval{tt/x40/1024/ced-enc/T4} & \sval{tt/x40/1024/ced-enc/T8} & \sval{tt/x40/1024/ced-enc/T12} & \sval{tt/x40/1024/ced-enc/T16} \\
+CED, enc.\ loop, \val{cfg/tokens/long}B & \sval{tt/long/1024/ced-enc/T1} & \sval{tt/long/1024/ced-enc/T2} & \sval{tt/long/1024/ced-enc/T4} & \sval{tt/long/1024/ced-enc/T8} & \sval{tt/long/1024/ced-enc/T12} & \sval{tt/long/1024/ced-enc/T16} \\
+CED, decoder loop & \sval{tt/x40/1024/ced-dec/T1} & \sval{tt/x40/1024/ced-dec/T2} & \sval{tt/x40/1024/ced-dec/T4} & \sval{tt/x40/1024/ced-dec/T8} & \sval{tt/x40/1024/ced-dec/T12} & \sval{tt/x40/1024/ced-dec/T16} \\
+Dense, loop L2--5 & \sval{tt/x40/1024/dense-l25/T1} & \sval{tt/x40/1024/dense-l25/T2} & \sval{tt/x40/1024/dense-l25/T4} & \sval{tt/x40/1024/dense-l25/T8} & \sval{tt/x40/1024/dense-l25/T12} & \sval{tt/x40/1024/dense-l25/T16} \\
+Dense, loop L4--7 & \sval{tt/x40/1024/dense-l47/T1} & \sval{tt/x40/1024/dense-l47/T2} & \sval{tt/x40/1024/dense-l47/T4} & \sval{tt/x40/1024/dense-l47/T8} & \sval{tt/x40/1024/dense-l47/T12} & \sval{tt/x40/1024/dense-l47/T16} \\
+\bottomrule
+\end{tabular}}
+\end{table}
+
+\section{Fewer rounds for prompt tokens}
+\label{app:split}
+
+The encoder loop's prefill cost scales with the number of rounds that prompt tokens run. The unified evaluation
+splits each validation sequence after its first half. It runs the first half with $T_p$ rounds and caches its
+final-round KV, then scores the second half with $T_d$ rounds. Table~\ref{tab:split} shows BPB on the second
+half only, so it is not comparable to the other tables. A prefill at $T_p$ rounds runs the same layers as a $T=T_p$
+model. On $4\times\text{GB200}$, the measured prefill of $T=4$ and $T=2$ models is $2.72\times$ and $1.54\times$ that of
+unlooped \ced, against $5.12\times$ at $T=8$ (Table~\ref{tab:unit-costs-app}).
+
+\begin{table}[tb]
+\caption{\textbf{Fewer rounds for prompt tokens.} CED encoder loop after \val{cfg/tokens/long}B tokens: BPB on the second half of each sequence, with
+the first half (the prompt) run at $T_p$ rounds and the second half at $T_d$ rounds.}
+\label{tab:split}
+\centering
+\small
+\begin{tabular}{lcccc}
+\toprule
+$T_p$ & $T_d{=}2$ & 4 & 8 & 16 \\
+\midrule
+1 & \sval{split/long/1024/ced-enc/tp1_td2} & \sval{split/long/1024/ced-enc/tp1_td4} & \sval{split/long/1024/ced-enc/tp1_td8} & \sval{split/long/1024/ced-enc/tp1_td16} \\
+2 & \sval{split/long/1024/ced-enc/tp2_td2} & \sval{split/long/1024/ced-enc/tp2_td4} & \sval{split/long/1024/ced-enc/tp2_td8} & \sval{split/long/1024/ced-enc/tp2_td16} \\
+4 & \sval{split/long/1024/ced-enc/tp4_td2} & \sval{split/long/1024/ced-enc/tp4_td4} & \sval{split/long/1024/ced-enc/tp4_td8} & \sval{split/long/1024/ced-enc/tp4_td16} \\
+8 & \sval{split/long/1024/ced-enc/tp8_td2} & \sval{split/long/1024/ced-enc/tp8_td4} & \sval{split/long/1024/ced-enc/tp8_td8} & \sval{split/long/1024/ced-enc/tp8_td16} \\
+16 & \sval{split/long/1024/ced-enc/tp16_td2} & \sval{split/long/1024/ced-enc/tp16_td4} & \sval{split/long/1024/ced-enc/tp16_td8} & \sval{split/long/1024/ced-enc/tp16_td16} \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{table}[tb]
+\caption{\textbf{How fast BPB gaps grow with context.} The least-squares slope of BPB(a)$-$BPB(b) over the four context
+buckets beyond the SWA window (128--255, \dots, 1024--2047 tokens) against $\log_2$ of the context, in
+$10^{-3}$ BPB per doubling. Positive means that a falls further behind b as the context grows. Long docs pools PG19
+test, FinePDFs and GovReport, with a 95\% paired bootstrap interval; FW is the FineWeb-Edu validation set. Hidden
+size 1024, \val{cfg/tokens/x40/1024}B tokens.}
+\label{tab:slope}
+\centering
+\small
+\setlength{\tabcolsep}{2pt}
+\begin{tabular}{lccccc}
+\toprule
+a $-$ b & Long docs & PG19 & PDFs & Gov. & FW \\
+\midrule
+\multicolumn{6}{l}{\emph{Gap to dense, loop L2--5}} \\
+CED enc.\ loop & \sval{slopem/x40/1024/ced-enc-minus-dense-l25/longdocs} {\scriptsize[\sval{slopem/x40/1024/ced-enc-minus-dense-l25/longdocs/lo}, \sval{slopem/x40/1024/ced-enc-minus-dense-l25/longdocs/hi}]} & \sval{slopem/x40/1024/ced-enc-minus-dense-l25/pg19-test} & \sval{slopem/x40/1024/ced-enc-minus-dense-l25/finepdfs-long} & \sval{slopem/x40/1024/ced-enc-minus-dense-l25/govreport-test} & \sval{slopem/x40/1024/ced-enc-minus-dense-l25/fineweb-edu-100bt} \\
+YOCO-U loop & \sval{slopem/x40/1024/yocou-loop-minus-dense-l25/longdocs} {\scriptsize[\sval{slopem/x40/1024/yocou-loop-minus-dense-l25/longdocs/lo}, \sval{slopem/x40/1024/yocou-loop-minus-dense-l25/longdocs/hi}]} & \sval{slopem/x40/1024/yocou-loop-minus-dense-l25/pg19-test} & \sval{slopem/x40/1024/yocou-loop-minus-dense-l25/finepdfs-long} & \sval{slopem/x40/1024/yocou-loop-minus-dense-l25/govreport-test} & \sval{slopem/x40/1024/yocou-loop-minus-dense-l25/fineweb-edu-100bt} \\
+\multicolumn{6}{l}{\emph{Gap to dense, no loop}} \\
+CED & \sval{slopem/x40/1024/ced-noloop-minus-dense-noloop/longdocs} {\scriptsize[\sval{slopem/x40/1024/ced-noloop-minus-dense-noloop/longdocs/lo}, \sval{slopem/x40/1024/ced-noloop-minus-dense-noloop/longdocs/hi}]} & \sval{slopem/x40/1024/ced-noloop-minus-dense-noloop/pg19-test} & \sval{slopem/x40/1024/ced-noloop-minus-dense-noloop/finepdfs-long} & \sval{slopem/x40/1024/ced-noloop-minus-dense-noloop/govreport-test} & \sval{slopem/x40/1024/ced-noloop-minus-dense-noloop/fineweb-edu-100bt} \\
+YOCO-U & \sval{slopem/x40/1024/yocou-noloop-minus-dense-noloop/longdocs} {\scriptsize[\sval{slopem/x40/1024/yocou-noloop-minus-dense-noloop/longdocs/lo}, \sval{slopem/x40/1024/yocou-noloop-minus-dense-noloop/longdocs/hi}]} & \sval{slopem/x40/1024/yocou-noloop-minus-dense-noloop/pg19-test} & \sval{slopem/x40/1024/yocou-noloop-minus-dense-noloop/finepdfs-long} & \sval{slopem/x40/1024/yocou-noloop-minus-dense-noloop/govreport-test} & \sval{slopem/x40/1024/yocou-noloop-minus-dense-noloop/fineweb-edu-100bt} \\
+\midrule
+\multicolumn{6}{l}{\emph{Loop gain: no loop $-$ loop}} \\
+Dense L2--5 & \sval{slopem/x40/1024/dense-noloop-minus-dense-l25/longdocs} {\scriptsize[\sval{slopem/x40/1024/dense-noloop-minus-dense-l25/longdocs/lo}, \sval{slopem/x40/1024/dense-noloop-minus-dense-l25/longdocs/hi}]} & \sval{slopem/x40/1024/dense-noloop-minus-dense-l25/pg19-test} & \sval{slopem/x40/1024/dense-noloop-minus-dense-l25/finepdfs-long} & \sval{slopem/x40/1024/dense-noloop-minus-dense-l25/govreport-test} & \sval{slopem/x40/1024/dense-noloop-minus-dense-l25/fineweb-edu-100bt} \\
+CED encoder & \sval{slopem/x40/1024/ced-noloop-minus-ced-enc/longdocs} {\scriptsize[\sval{slopem/x40/1024/ced-noloop-minus-ced-enc/longdocs/lo}, \sval{slopem/x40/1024/ced-noloop-minus-ced-enc/longdocs/hi}]} & \sval{slopem/x40/1024/ced-noloop-minus-ced-enc/pg19-test} & \sval{slopem/x40/1024/ced-noloop-minus-ced-enc/finepdfs-long} & \sval{slopem/x40/1024/ced-noloop-minus-ced-enc/govreport-test} & \sval{slopem/x40/1024/ced-noloop-minus-ced-enc/fineweb-edu-100bt} \\
+CED decoder & \sval{slopem/x40/1024/ced-noloop-minus-ced-dec/longdocs} {\scriptsize[\sval{slopem/x40/1024/ced-noloop-minus-ced-dec/longdocs/lo}, \sval{slopem/x40/1024/ced-noloop-minus-ced-dec/longdocs/hi}]} & \sval{slopem/x40/1024/ced-noloop-minus-ced-dec/pg19-test} & \sval{slopem/x40/1024/ced-noloop-minus-ced-dec/finepdfs-long} & \sval{slopem/x40/1024/ced-noloop-minus-ced-dec/govreport-test} & \sval{slopem/x40/1024/ced-noloop-minus-ced-dec/fineweb-edu-100bt} \\
+YOCO-U & \sval{slopem/x40/1024/yocou-noloop-minus-yocou-loop/longdocs} {\scriptsize[\sval{slopem/x40/1024/yocou-noloop-minus-yocou-loop/longdocs/lo}, \sval{slopem/x40/1024/yocou-noloop-minus-yocou-loop/longdocs/hi}]} & \sval{slopem/x40/1024/yocou-noloop-minus-yocou-loop/pg19-test} & \sval{slopem/x40/1024/yocou-noloop-minus-yocou-loop/finepdfs-long} & \sval{slopem/x40/1024/yocou-noloop-minus-yocou-loop/govreport-test} & \sval{slopem/x40/1024/yocou-noloop-minus-yocou-loop/fineweb-edu-100bt} \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{table*}[t]
+\caption{\textbf{Long-document BPB by context bucket.} PG19 test, FinePDFs and GovReport (512, 512 and 396 samples
+of 2048 tokens, each averaged over six offsets in its document); 150M models. One forward pass per sample with per-round KV and \val{cfg/rounds} rounds for looped
+models. Rows above the line trained on \val{cfg/tokens/x40/1024}B tokens.}
+\label{tab:longctx}
+\centering
+\small
+\setlength{\tabcolsep}{4pt}
+\begin{tabular}{lcccccc}
+\toprule
+Model & 1--127 & 128--255 & 256--511 & 512--1023 & 1024--2047 & mean \\
+\midrule
+Dense, no loop & \sval{pos/x40/1024/dense-noloop/longdocs/c1-128} & \sval{pos/x40/1024/dense-noloop/longdocs/c128-256} & \sval{pos/x40/1024/dense-noloop/longdocs/c256-512} & \sval{pos/x40/1024/dense-noloop/longdocs/c512-1024} & \sval{pos/x40/1024/dense-noloop/longdocs/c1024-2048} & \sval{pos/x40/1024/dense-noloop/longdocs/mean} \\
+Dense, loop L2--5 & \sval{pos/x40/1024/dense-l25/longdocs/c1-128} & \sval{pos/x40/1024/dense-l25/longdocs/c128-256} & \sval{pos/x40/1024/dense-l25/longdocs/c256-512} & \sval{pos/x40/1024/dense-l25/longdocs/c512-1024} & \sval{pos/x40/1024/dense-l25/longdocs/c1024-2048} & \sval{pos/x40/1024/dense-l25/longdocs/mean} \\
+Dense, loop L4--7 & \sval{pos/x40/1024/dense-l47/longdocs/c1-128} & \sval{pos/x40/1024/dense-l47/longdocs/c128-256} & \sval{pos/x40/1024/dense-l47/longdocs/c256-512} & \sval{pos/x40/1024/dense-l47/longdocs/c512-1024} & \sval{pos/x40/1024/dense-l47/longdocs/c1024-2048} & \sval{pos/x40/1024/dense-l47/longdocs/mean} \\
+CED, no loop & \sval{pos/x40/1024/ced-noloop/longdocs/c1-128} & \sval{pos/x40/1024/ced-noloop/longdocs/c128-256} & \sval{pos/x40/1024/ced-noloop/longdocs/c256-512} & \sval{pos/x40/1024/ced-noloop/longdocs/c512-1024} & \sval{pos/x40/1024/ced-noloop/longdocs/c1024-2048} & \sval{pos/x40/1024/ced-noloop/longdocs/mean} \\
+CED, encoder loop & \sval{pos/x40/1024/ced-enc/longdocs/c1-128} & \sval{pos/x40/1024/ced-enc/longdocs/c128-256} & \sval{pos/x40/1024/ced-enc/longdocs/c256-512} & \sval{pos/x40/1024/ced-enc/longdocs/c512-1024} & \sval{pos/x40/1024/ced-enc/longdocs/c1024-2048} & \sval{pos/x40/1024/ced-enc/longdocs/mean} \\
+CED, decoder loop & \sval{pos/x40/1024/ced-dec/longdocs/c1-128} & \sval{pos/x40/1024/ced-dec/longdocs/c128-256} & \sval{pos/x40/1024/ced-dec/longdocs/c256-512} & \sval{pos/x40/1024/ced-dec/longdocs/c512-1024} & \sval{pos/x40/1024/ced-dec/longdocs/c1024-2048} & \sval{pos/x40/1024/ced-dec/longdocs/mean} \\
+CED, enc.\ loop, fixed rounds & \sval{pos/x40/1024/ced-enc-fixed/longdocs/c1-128} & \sval{pos/x40/1024/ced-enc-fixed/longdocs/c128-256} & \sval{pos/x40/1024/ced-enc-fixed/longdocs/c256-512} & \sval{pos/x40/1024/ced-enc-fixed/longdocs/c512-1024} & \sval{pos/x40/1024/ced-enc-fixed/longdocs/c1024-2048} & \sval{pos/x40/1024/ced-enc-fixed/longdocs/mean} \\
+YOCO-U style, no loop & \sval{pos/x40/1024/yocou-noloop/longdocs/c1-128} & \sval{pos/x40/1024/yocou-noloop/longdocs/c128-256} & \sval{pos/x40/1024/yocou-noloop/longdocs/c256-512} & \sval{pos/x40/1024/yocou-noloop/longdocs/c512-1024} & \sval{pos/x40/1024/yocou-noloop/longdocs/c1024-2048} & \sval{pos/x40/1024/yocou-noloop/longdocs/mean} \\
+YOCO-U style, loop L2--5 & \sval{pos/x40/1024/yocou-loop/longdocs/c1-128} & \sval{pos/x40/1024/yocou-loop/longdocs/c128-256} & \sval{pos/x40/1024/yocou-loop/longdocs/c256-512} & \sval{pos/x40/1024/yocou-loop/longdocs/c512-1024} & \sval{pos/x40/1024/yocou-loop/longdocs/c1024-2048} & \sval{pos/x40/1024/yocou-loop/longdocs/mean} \\
+\midrule
+\multicolumn{7}{l}{\emph{\val{cfg/tokens/long}B training tokens}} \\
+CED, no loop & \sval{pos/long/1024/ced-noloop/longdocs/c1-128} & \sval{pos/long/1024/ced-noloop/longdocs/c128-256} & \sval{pos/long/1024/ced-noloop/longdocs/c256-512} & \sval{pos/long/1024/ced-noloop/longdocs/c512-1024} & \sval{pos/long/1024/ced-noloop/longdocs/c1024-2048} & \sval{pos/long/1024/ced-noloop/longdocs/mean} \\
+CED, encoder loop & \sval{pos/long/1024/ced-enc/longdocs/c1-128} & \sval{pos/long/1024/ced-enc/longdocs/c128-256} & \sval{pos/long/1024/ced-enc/longdocs/c256-512} & \sval{pos/long/1024/ced-enc/longdocs/c512-1024} & \sval{pos/long/1024/ced-enc/longdocs/c1024-2048} & \sval{pos/long/1024/ced-enc/longdocs/mean} \\
+CED, decoder loop & \sval{pos/long/1024/ced-dec/longdocs/c1-128} & \sval{pos/long/1024/ced-dec/longdocs/c128-256} & \sval{pos/long/1024/ced-dec/longdocs/c256-512} & \sval{pos/long/1024/ced-dec/longdocs/c512-1024} & \sval{pos/long/1024/ced-dec/longdocs/c1024-2048} & \sval{pos/long/1024/ced-dec/longdocs/mean} \\
+Dense, loop L4--7 & \sval{pos/long/1024/dense-l47/longdocs/c1-128} & \sval{pos/long/1024/dense-l47/longdocs/c128-256} & \sval{pos/long/1024/dense-l47/longdocs/c256-512} & \sval{pos/long/1024/dense-l47/longdocs/c512-1024} & \sval{pos/long/1024/dense-l47/longdocs/c1024-2048} & \sval{pos/long/1024/dense-l47/longdocs/mean} \\
+\bottomrule
+\end{tabular}
+\end{table*}
+
+\begin{figure*}[t]
+\centering
+\safegraphic[width=\textwidth]{figures/fig_recall.pdf}
+\caption{\textbf{In-context recall.} BPB on the second half of samples whose tokens 1,024--2,047 repeat tokens
+0--1,023 verbatim (PG19 test and arXiv, \val{cfg/recall/windows} samples), per 64-token bin; the first copied bin is
+left out. Each panel compares the models of one size and token budget. Solid: looped (L2--5; decoder loop L7--10;
+dense L4--7 in the last panel); dashed: unlooped.}
+\label{fig:recall}
+\end{figure*}
+
+\section{Long-context evaluation}
+\label{app:longctx}
+
+\paragraph{Long documents.} PG19 test and FinePDFs contribute 512 samples and GovReport 396, each 2048 contiguous
+tokens of one document starting at least 1,024 tokens in; every model scores the same samples. To keep the
+difficulty of particular passages out of the position-wise curves, every sample is also scored after moving it
+256, 512, 768 and 1,024 tokens earlier in its document and by one random offset of up to 1,024 tokens, and each
+context bin averages the six copies, so the text at a given position comes from six places in the document. One forward pass scores each sample,
+with \val{cfg/rounds} rounds and per-round KV for looped models. ``Long docs'' pools the three corpora.
+Differences between models carry 95\% intervals from a paired bootstrap over samples (\val{cfg/bootreps}
+resamples, stratified by corpus). For FineWeb-Edu we take each token's position in its own document as its
+context.
+
+\paragraph{BPB by context length.} Table~\ref{tab:longctx} gives the BPB behind Figure~\ref{fig:longctx} for every model, pooled over the three
+long-document corpora, by the number of tokens of context. Figure~\ref{fig:longctx-corpora} repeats
+Figure~\ref{fig:longctx}b--c for each corpus, and Table~\ref{tab:slope} gives how fast each gap grows with context.
+
+\paragraph{In-context recall.}
+\label{app:recall}
+To test recall directly, we take the first 1,024 tokens of each PG19 test sample and of 512 arXiv documents from the Proof-Pile-2 test
+split~\citep{llemma}, and repeat them verbatim at positions 1,024--2,047. Each copied token lies 1,024 tokens after its source, far beyond the SWA window, so only global KV can retrieve it.
+Figure~\ref{fig:recall} shows BPB on the repeated half. Unlooped CED recalls
+worse than unlooped dense (\val{recalldiff/x40/768/ced-noloop-minus-dense-noloop} and
+\val{recalldiff/x40/1024/ced-noloop-minus-dense-noloop}); the encoder loop removes this deficit
+(\val{recalldiff/x40/768/ced-enc-minus-ced-noloop} and \val{recalldiff/x40/1024/ced-enc-minus-ced-noloop} against
+unlooped CED), whereas the decoder loop barely changes recall (\val{recalldiff/x40/768/ced-dec-minus-ced-noloop} and
+\val{recalldiff/x40/1024/ced-dec-minus-ced-noloop}). The YOCO-U style loop, whose only global KV comes from layer 6,
+recalls worst of the looped models (\val{recalldiff/x40/768/yocou-loop-minus-dense-l25} and
+\val{recalldiff/x40/1024/yocou-loop-minus-dense-l25} against the dense loop). The differences shrink with scale: at
+340M, all five models lie between \val{recall/x40/1536/dense-l25/bpb} and \val{recall/x40/1536/ced-noloop/bpb} BPB.
+The CED encoder loop recalls better than the dense loop at 90M and 150M
+(\val{recalldiff/x40/768/ced-enc-minus-dense-l25} and \val{recalldiff/x40/1024/ced-enc-minus-dense-l25} BPB), trails
+it by \val{recalldiff/x40/1536/ced-enc-minus-dense-l25} [\val{recalldiff/x40/1536/ced-enc-minus-dense-l25/lo},
+\val{recalldiff/x40/1536/ced-enc-minus-dense-l25/hi}] at 340M, and recalls better than the L4--7 dense loop of
+Table~\ref{tab:long} after \val{cfg/tokens/long}B tokens (\val{recalldiff/long/1024/ced-enc-minus-dense-l47}). Across
+the three sizes and both token budgets, it thus recalls within 0.03 BPB of the dense loop while caching one-sixth of its
+global KV.
+
+
+\section{Production Serving Setup and Detailed Results}
+\label{app:serving}
+
+\begin{table*}[t]
+\centering
+\caption{\textbf{Unit prefill and decode cost multipliers relative to unlooped \ced ($T=1$) across $4\times\text{GB200}$ (TP4) and $8\times\text{H200}$ (TP8).}
+The analytic columns are a roofline model of FLOPs and bytes at GB200 peak rates, with expert parallelism over 4 GPUs and all of $L_{20}$ run on every prompt token, as in SGLang.
+Prefill $a$ is the per-token slope of $t_{\text{pre}}(L) = b + aL + cL^2$, fitted over uncached prompts of 512--65{,}536 tokens at batch 1; for \ced $T=1$ it is $18.8\,\mu$s per prompt token per GB200 tray and $60.8\,\mu$s per H200 node. Decode is the per-step time averaged over 8K and 32K contexts at batches 16--256; for \ced $T=1$ the step at 8K context and batch 32 takes 8.6\,ms. GB200 120K uses distinct 120K-token contexts (per-layer KV, $T=8$: batches 1 and 8 only). Unit costs do not depend on the round policy, so each row holds for last-round and per-round KV alike.}
+\label{tab:unit-costs-app}
+\vskip 0.06in
+\footnotesize
+\setlength{\tabcolsep}{2.4pt}
+\begin{tabular}{@{}lccccccc@{}}
+\toprule
+& \multicolumn{3}{c}{\textbf{Analytic Roofline Model}} & \multicolumn{3}{c}{\textbf{Measured $4\times\text{GB200}$ (TP4)}} & \textbf{Measured $8\times\text{H200}$ (TP8)} \\
+\cmidrule(lr){2-4} \cmidrule(lr){5-7} \cmidrule(lr){8-8}
+\textbf{Model Variant} & Prefill $a$ & Decode $8\text{--}32\text{K}$ & KV Pool & Prefill $a$ & Decode $8\text{--}32\text{K}$ & Decode $120\text{K}$ & Prefill $a$ \\
+\midrule
+\textbf{\ced, no loop (reference)} & $1.00\times$ & $1.00\times$ & $1.00\times$ & $1.00\times$ & $1.00\times$ & $1.00\times$ & $1.00\times$ \\
+\textbf{Stock SGLang (no plugin)} & $1.00\times$ & $1.00\times$ & $1.00\times$ & $1.00\times$ & $1.02\times$ & --- & $0.98\times$ \\
+\textbf{\ourmethod, $T=2$} & $1.87\times$ & $1.45\times$ & $1.00\times$ & $1.54\times$ & $1.39\times$ & --- & $1.61\times$ \\
+\textbf{\ourmethod, $T=4$} & $3.60\times$ & $2.34\times$ & $1.00\times$ & $2.72\times$ & $2.13\times$ & --- & $2.87\times$ \\
+\textbf{\ourmethod, $T=8$} & $7.06\times$ & $4.12\times$ & $\mathbf{1.00\times}$ & $\mathbf{5.12\times}$ & $\mathbf{3.95\times}$ & $\mathbf{3.83\times}$ & $\mathbf{5.42\times}$ \\
+\textbf{\ced decoder loop, $T=8$} & $1.00\times^\ddagger$ & $4.13\times$ & $\mathbf{1.00\times}$ & $2.76\times^\ddagger$ & $\mathbf{3.99\times}$ & $\mathbf{3.89\times}$ & $1.80\times^\ddagger$ \\
+\midrule
+\textbf{Per-layer KV, no loop} & $1.91\times$ & $1.12\times$ & $0.086\times$ & --- & --- & --- & $1.73\times$ \\
+\textbf{Per-layer KV, $T=8$} & $8.21\times$ & $4.23\times$ & $0.086\times$ & $\mathbf{6.97\times}$ & $\mathbf{4.24\times}$ & $\mathbf{4.56\times}$ & $\mathbf{6.88\times}$ \\
+\bottomrule
+\multicolumn{8}{@{}p{0.97\textwidth}@{}}{\scriptsize $^\ddagger$Analytically, the decoder loop runs its extra rounds only on the 128-token tail ($a\times 1.00$, $b\times 7.64$). Measured, its prefill slope is $2.76\times$ (GB200) and $1.80\times$ (H200), and on GB200 its per-request prefill time is $2.6\text{--}2.9\times$ that of \ced $T=1$ at every prompt length from 512 tokens (a single chunk) to 64K. The architecture does not require this extra cost; it comes from our implementation of the decoder-loop prefill.} \\
+\end{tabular}
+\end{table*}
+
+\begin{table*}[t]
+\centering
+\caption{\textbf{Pure decode throughput saturation (last-round vs.\ per-round KV) for the \ced encoder loop} on $4\times\text{GB200}$ (real weights; each request has its own context, whose KV is allocated without being computed, and generates 256 tokens). Each cell is the ratio of the two policies' highest decode throughput; in parentheses, the batch at which each was measured. Last-round KV at 8K is capped at 768 requests (pool 80\% full), so the 8K ratios are lower bounds.}
+\label{tab:hbm-decode-app}
+\vskip 0.06in
+\footnotesize
+\setlength{\tabcolsep}{5pt}
+\begin{tabular}{@{}lccccc@{}}
+\toprule
+\textbf{Rounds ($T$)} & \makecell{\textbf{Per-round}\\\textbf{KV factor}} & \makecell{\textbf{Pool (last-round}\\\textbf{/ per-round)}} & \textbf{ISL = 8K} & \textbf{ISL = 16K} & \textbf{ISL = 32K} \\
+\midrule
+\textbf{$T=2$} & $1.60\times$ & $8.11\text{M} \;/\; 5.07\text{M}$ & $\mathbf{\ge 1.12\times}$ ($768$ vs.\ $570$) & $\mathbf{1.17\times}$ ($487$ vs.\ $288$) & $\mathbf{1.34\times}$ ($245$ vs.\ $144$) \\
+\textbf{$T=4$} & $2.80\times$ & $8.11\text{M} \;/\; 2.90\text{M}$ & $\mathbf{\ge 1.42\times}$ ($768$ vs.\ $342$) & $\mathbf{1.58\times}$ ($487$ vs.\ $174$) & $\mathbf{1.80\times}$ ($245$ vs.\ $87$) \\
+\textbf{$T=8$} & $5.20\times$ & $8.11\text{M} \;/\; 1.56\text{M}$ & $\mathbf{\ge 2.05\times}$ ($768$ vs.\ $184$) & $\mathbf{2.35\times}$ ($487$ vs.\ $93$) & $\mathbf{2.83\times}$ ($245$ vs.\ $47$) \\
+\bottomrule
+\end{tabular}
+\end{table*}
+
+\paragraph{DeepSeek-V4.1-Flash architecture and SGLang plugin.}
+DeepSeek-V4.1-Flash~\citep{deepseekv41} is a 40-layer Causal Encoder--Decoder MoE model (hidden dimension $5{,}120$, 384 routed experts per MoE layer with top-6 routing, FP8 attention/dense projections, and MXFP4 expert weights) partitioned into a 21-layer encoder (\Lr{0}{20}) and a 19-layer decoder (\Lr{21}{39}).
+Every layer maintains a 128-token sliding-window attention (SWA) ring buffer ($768$ reserved slots per active request in SGLang, totaling $17.94$\,MB/request).
+Long-range context is served by only four global KV-source layers ($L_2, L_8, L_{14}, L_{20}$) with compression ratios $(2, 2, 2, 1)$: the three sources inside the looped range \Lr{2}{19} store $3 \times 1/2 = 1.5$ compressed entries per token, and $L_{20}$, whose KV the whole decoder reads, stores one ($2.5$ compressed entries/token total).
+In SGLang (\texttt{da64c5cbb}), each compressed entry stores $584$\,B of MLA latent KV (\texttt{fp8\_e4m3} nope + BF16 RoPE + scale) plus $68$\,B of FP4 lightning-indexer keys ($652$\,B/entry), giving $2.5 \times 652 = 1{,}630$\,B/token for \ced vs.\ $29.0 \times 652 = 18{,}908$\,B/token for the per-layer-KV baseline, in which all 38 layers \Lr{2}{39} own distinct global KV caches ($11.60\times$ larger; the analytical FP4-latent cost model uses $288 + 68 = 356$\,B/entry, or $890$\,B vs.\ $10{,}324$\,B/token, with identical ratios).
+Under per-round KV, looping \Lr{2}{19} for $T$ rounds multiplies global KV by $1 + \frac{1.5}{2.5}(T-1) = 1 + 0.6(T-1)$ for \ced ($5.20\times$ at $T=8$, or $8{,}476$\,B/tok) and by $1 + \frac{9}{29}(T-1)$ with per-layer KV ($3.17\times$ at $T=8$, or $59{,}984$\,B/tok).
+
+Our weight-tied plugin (\texttt{sglang\_ced\_loop}) wraps SGLang's layer execution loop into a virtual schedule of $(l, r)$ passes while keeping a single copy of physical weights.
+For loops whose first layer reuses an earlier source's sparse top-$k$ indices (the decoder loop \Lr{21}{38} reusing $L_{20}$), the plugin snapshots the top-$k$ buffer on round 1 and restores it on rounds $2\dots T$; for $L_{14}$'s Engram table, the embedding lookup and key-value projection execute once on round 1 while the hidden-state gate runs every round.
+At $T=1$, the plugin's unit prefill and decode costs are within 2\% of stock SGLang on both $8\times\text{H200}$ (TP8/EP8) and $4\times\text{GB200}$ (TP4/EP4) (Table~\ref{tab:unit-costs-app}), with zero layer-count or NLL discrepancies.
+Table~\ref{tab:unit-costs-app} reports the complete unit prefill and decode cost multipliers, and Table~\ref{tab:hbm-decode-app} details the HBM-saturated pure decode sweep across context lengths and rounds.
+
+
+\paragraph{Setup of Figure~\ref{fig:p1-pareto}.}
+\label{app:serving-fig}
+All runs use one $4\times\text{GB200}$ tray (TP4/EP4) and one SGLang server.
+Within each panel, all models share the server settings, apart from the pool cap that emulates per-round KV. The settings differ between experiments, and so does the KV pool of \ourmethod: $5.11$\,M tokens in panels (a) and (b) and in Table~\ref{tab:cost}, $7.9$\,M in panel (c), and $8.11$\,M in Table~\ref{tab:hbm-decode-app}.
+Panels (a) and (b) use the \vfour-Flash architecture with dummy weights, which change the ratios between models by 2--4\% (Appendix~\ref{app:serving-more}); panel (c) uses the real checkpoint weights.
+Per-round KV is emulated with identical compute: the KV pool is capped by the per-round byte factor ($5.2\times$ for \ced at $T=8$, $3.17\times$ with per-layer KV; Appendix~\ref{app:serving}).
+The baseline with per-layer KV gives every layer \Lr{2}{39} its own global KV and runs every layer on every prompt token in prefill (full replay).
+A point is \emph{preemption-free} when no request is retracted; panel (a) draws only such points, and the dotted line carries each baseline's last preemption-free throughput to $c=512$.
+\emph{(a)}~8K/1K requests are random token ids with \texttt{ignore\_eos} and $\max(20, 5c)$ prompts per point (one or two repeats).
+The baseline (per-layer and per-round KV) fills its pool at $c=16$ ($T=4$) and $c=8$ ($T=8$), \ced with per-round KV at $c=128$ and $c=64$; last-round KV stays preemption-free up to $c=512$.
+At $c=512$, last-round KV gives $1.27\times$ ($T=4$) and $1.30\times$ ($T=8$) the peak throughput of per-round KV, and $3.1\times$ and $3.6\times$ that of the baseline.
+\emph{(b)}~The 128K groups are pure decode: each request has its own 131K-token context and generates 256 tokens, at the largest batch the KV pool holds ($38$ requests with last-round KV; $13$ and $7$ with per-round KV at $T=4$ and $8$; $1$ for the baseline at $T=4$ and none at $T=8$).
+There, last-round KV gives $1.9\times$ ($T=4$) and $2.9\times$ ($T=8$) the throughput of per-round KV.
+The ShareGPT group compares \ourmethod with the baseline only.
+\emph{(c)}~Mooncake \texttt{toolagent} trace~\citep{mooncake}, closed loop with $c$ concurrent sessions, encoder loop at $T=8$.
+With per-round KV the prefix cache holds $1.5$\,M tokens and is full from $c=128$, so evicted session histories are recomputed through all eight rounds; last-round KV holds $7.9$\,M tokens and peaks at $77\%$ use at $c=512$.
+Median TTFT drops $13.6\times$ at $c=256$ and $29.7\times$ at $c=512$, while output throughput is within $13\%$ between the two policies.
+
