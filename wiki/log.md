@@ -1,6 +1,7 @@
 # Wiki Update Log
 
 ## 2026-11-22
+- **Ingest**: Compiled [Inkling 2 Mini developer release](../raw/inkling-2-mini/index.md); created [training](inkling-2-mini-pruning-quantization-and-training.md) and [variable-loop evaluation](inkling-variable-loop-reasoning-and-monitorability.md), and updated architecture, loop-position and monitorability concepts.
 - **Ingest**: Compiled [Looping Deeper Without Growing the KV Cache](../raw/arXiv-2611.13378v1/main.tex); created [looped CED](looped-causal-encoder-decoder-global-kv.md) and [last-round KV caching](last-round-kv-caching-for-looped-ced.md), with evidence and coverage limits.
 - **Ingest**: Compiled [MindStudio’s GPT-6.2 Astra safety article](../raw/gpt-6-2-astra-system-card-safety/index.md); updated [monitorability](looped-computation-and-chain-of-thought-monitorability.md) and [serial reasoning benchmark preview](single-token-serial-reasoning-benchmark-preview.md), including a disputed comparator label.
 - **Ingest**: Compiled [loop-position post and images](../raw/2123943370145890767/index.md); created [Loop position and the workspace hypothesis](loop-position-and-workspace-hypothesis.md) and linked the Inkling architecture report.

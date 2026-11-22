@@ -5,7 +5,7 @@ description: Looping adds hidden computation per emitted token but does not by i
 tags: [chain-of-thought, faithfulness, latent-reasoning, monitorability, recurrent-depth]
 status: draft
 created: 2026-10-03
-generated: { by: llm-wiki-agent/1, at: 2026-11-22T10:16:08Z }
+generated: { by: llm-wiki-agent/1, at: 2026-11-22T10:24:19Z }
 stale_after: 2027-03-09
 sources:
   - id: raschka2026astra
@@ -22,7 +22,7 @@ sources:
 
 # Looped computation and chain-of-thought monitorability
 
-A looped transformer passes each token's hidden state through shared blocks several times before emitting the next token. A reasoning model built on it still generates its textual chain-of-thought (CoT) one token at a time, as a non-looped model does. Looping therefore adds latent computation per token. It does not turn the visible trace into hidden reasoning. The open question is whether the extra internal computation shortens or degrades traces enough to weaken monitoring. The available evidence is indirect and does not isolate looping as a cause (Synthesis).[^raschka2026astra]
+A looped transformer passes each token's hidden state through shared blocks several times before emitting the next token. A reasoning model built on it still generates its textual chain-of-thought (CoT) one token at a time, as a non-looped model does. Looping therefore adds latent computation per token. It does not turn the visible trace into hidden reasoning. The open question is whether the extra internal computation shortens or degrades traces enough to weaken monitoring. A developer-reported variable-pass study now provides more direct within-model evidence, but does not establish trace faithfulness or effects at frontier scale (Synthesis).[^raschka2026astra]
 
 ## The claim and the counter-argument
 
@@ -52,9 +52,11 @@ The Huginn-style latent-reasoning model (Geiping et al.) also illustrates the po
 
 ## Assessment
 
-Synthesis: three questions remain separate. (1) Does looping shift work from visible tokens into hidden states? It is plausible, but untested at frontier scale. (2) Are the resulting traces less informative to monitors? The Astra system card reportedly says yes, partly, without attribution to architecture. (3) Are traces less faithful? No evidence is cited. Reasoning traces are not guaranteed to be faithful in any architecture, per Turpin et al. (arXiv 2305.04388) as cited by the source.[^raschka2026astra] Compiled primary studies give mixed evidence on latent depth reasoning, and none addresses monitorability directly.
+Synthesis: three questions remain separate. (1) Does looping shift work from visible tokens into hidden states? It is plausible, but untested at frontier scale. (2) Are the resulting traces less informative to monitors? The Astra system card reportedly says yes, partly, without attribution to architecture. (3) Are traces less faithful? No evidence is cited. Reasoning traces are not guaranteed to be faithful in any architecture, per Turpin et al. (arXiv 2305.04388) as cited by the source.[^raschka2026astra] A developer-reported variable-pass study directly tests proxies for monitorability but does not establish trace faithfulness; see [Inkling variable-loop reasoning and monitorability](inkling-variable-loop-reasoning-and-monitorability.md).
 
 ## Relationships
+
+- Related to: [Inkling variable-loop reasoning and monitorability](inkling-variable-loop-reasoning-and-monitorability.md) reports pass-controlled legibility, controllability, and agentic monitoring experiments.
 
 - Concerns: [OpenAI GPT-6 Astra looped-architecture report](openai-astra-looped-architecture-report.md), whose reporting raised the concern.
 - Related to: [Latent recurrence safety and faithfulness evidence](latent-recurrence-safety-and-faithfulness.md). Ouro's probe-based faithfulness claim is observational, not causal.
